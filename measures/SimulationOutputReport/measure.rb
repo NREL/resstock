@@ -109,6 +109,26 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       "upgrade_option_09_lifetime_yrs",
       "upgrade_option_10_cost_usd",
       "upgrade_option_10_lifetime_yrs",
+      "upgrade_option_11_cost_usd",
+      "upgrade_option_11_lifetime_yrs",
+      "upgrade_option_12_cost_usd",
+      "upgrade_option_12_lifetime_yrs",
+      "upgrade_option_13_cost_usd",
+      "upgrade_option_13_lifetime_yrs",
+      "upgrade_option_14_cost_usd",
+      "upgrade_option_14_lifetime_yrs",
+      "upgrade_option_15_cost_usd",
+      "upgrade_option_15_lifetime_yrs",
+      "upgrade_option_16_cost_usd",
+      "upgrade_option_16_lifetime_yrs",
+      "upgrade_option_17_cost_usd",
+      "upgrade_option_17_lifetime_yrs",
+      "upgrade_option_18_cost_usd",
+      "upgrade_option_18_lifetime_yrs",
+      "upgrade_option_19_cost_usd",
+      "upgrade_option_19_lifetime_yrs",
+      "upgrade_option_20_cost_usd",
+      "upgrade_option_20_lifetime_yrs",
       "weight"
     ]
     result = OpenStudio::Measure::OSOutputVector.new
@@ -583,7 +603,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     has_costs = false
     option_cost_pairs = {}
     option_lifetimes = {}
-    for option_num in 1..10 # Sync with ApplyUpgrade measure
+    for option_num in 1..20 # Sync with ApplyUpgrade measure
       option_cost_pairs[option_num] = []
       option_lifetimes[option_num] = nil
       for cost_num in 1..2 # Sync with ApplyUpgrade measure

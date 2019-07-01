@@ -2974,14 +2974,14 @@ class HVACSizing
 
     control_zone = control_slave_zones_hash.keys[0]
 
-    HVAC.existing_cooling_equipment(model, runner, control_zone).each do |clg_equip|
+    HVAC.existing_cooling_equipment(model, runner, control_zone, exclude_central = true).each do |clg_equip|
       next if clg_equips.include? clg_equip
       next if clg_equip.is_a? OpenStudio::Model::ZoneHVACIdealLoadsAirSystem
 
       clg_equips << clg_equip
     end
 
-    HVAC.existing_heating_equipment(model, runner, control_zone).each do |htg_equip|
+    HVAC.existing_heating_equipment(model, runner, control_zone, exclude_central = true).each do |htg_equip|
       next if htg_equips.include? htg_equip
       next if htg_equip.is_a? OpenStudio::Model::ZoneHVACIdealLoadsAirSystem
 
