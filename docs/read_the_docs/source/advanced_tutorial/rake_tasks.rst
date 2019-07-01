@@ -1,7 +1,7 @@
 Rake Tasks
 ##########
 
-Once you have completed instructions found in :doc:`installer_setup`, you can then :ref:`use the Rakefile <using-the-rakefile>` contained at the top level of this repository (`Rakefile <https://github.com/NREL/OpenStudio-BuildStock/blob/master/Rakefile>`_). First you will run a rake task for :ref:`copying measures and resource files <copy-residential-files>` from the `OpenStudio-BEopt <https://github.com/NREL/OpenStudio-BEopt>`_) repository into the top-level ``resources/measures`` folder. Then you will run rake task(s) for :ref:`performing integrity checks on project inputs <integrity-checks>`.
+Once you have completed instructions found in :doc:`installer_setup`, you can then :ref:`use the Rakefile <using-the-rakefile>` contained at the top level of this repository (`Rakefile <https://github.com/NREL/OpenStudio-BuildStock/blob/master/Rakefile>`_). You will run rake task(s) for :ref:`performing integrity checks on project inputs <integrity-checks>`.
 
 .. _using-the-rakefile:
 
@@ -13,14 +13,15 @@ Run ``rake -T`` to see the list of possible rake tasks. The ``-T`` is replaced w
 .. code:: ruby
 
   $ rake -T
-  rake integrity_check_all                  # Perform integrity check on inputs...
-  rake integrity_check_singlefamilydetached # Perform integrity check on inputs...
-  rake integrity_check_multifamily_beta     # Perform integrity check on inputs...
-  rake integrity_check_testing              # Perform integrity check on inputs...
-  rake test:all                             # Run tests for all
-  rake test:regenerate_osms                 # Run tests for regenerate_osms
-  rake update_measures                      # update all measures
-  rake update_tariffs                       # update urdb tariffs
+  rake integrity_check_all                   # Run tests for integrity_check_all
+  rake integrity_check_multifamily_beta      # Run tests for integrity_check_...
+  rake integrity_check_singlefamilydetached  # Run tests for integrity_check_...
+  rake integrity_check_testing               # Run tests for integrity_check_...
+  rake integrity_check_unit_tests            # Run tests for integrity_check_...
+  rake test:regenerate_osms                  # Run tests for regenerate_osms
+  rake test:regression_tests                 # Run tests for regression_tests
+  rake test:unit_tests                       # Run tests for unit_tests
+  rake update_measures                       # Run tests for update_measures
 
 .. _integrity-checks:
 

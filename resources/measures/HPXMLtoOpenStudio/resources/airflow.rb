@@ -996,7 +996,7 @@ class Airflow
       temp_hourly_wked << ssn_schedule_wked
     end
 
-    temp_sch = HourlyByMonthSchedule.new(model, runner, obj_name_natvent + " temp schedule", temp_hourly_wkdy, temp_hourly_wked, normalize_values = false)
+    temp_sch = HourlyByMonthSchedule.new(model, runner, obj_name_natvent + " temp schedule", temp_hourly_wkdy, temp_hourly_wked, normalize_values = false, create_sch_object = true, winter_design_day_sch = nil, summer_design_day_sch = nil, schedule_type_limits_name = Constants.ScheduleTypeLimitsTemperature)
 
     nv_output = NaturalVentilationOutput.new(area, max_flow_rate, temp_sch, c_s, c_w, season_type)
     return true, nv_output
@@ -1178,8 +1178,11 @@ class Airflow
     avail_sch = OpenStudio::Model::ScheduleRuleset.new(model)
     avail_sch.setName(obj_name_natvent + " avail schedule")
 
-    day_endm = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365]
-    day_startm = [0, 1, 32, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335]
+    Schedule.set_schedule_type_limits(model, avail_sch, Constants.ScheduleTypeLimitsOnOff)
+
+    year_description = model.getYearDescription
+    assumed_year = year_description.assumedYear
+    num_days_in_months = Constants.NumDaysInMonths(year_description.isLeapYear)
 
     time = []
     for h in 1..24
@@ -1187,8 +1190,8 @@ class Airflow
     end
 
     (1..12).to_a.each do |m|
-      date_s = OpenStudio::Date::fromDayOfYear(day_startm[m])
-      date_e = OpenStudio::Date::fromDayOfYear(day_endm[m])
+      date_s = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(m), 1, assumed_year)
+      date_e = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(m), num_days_in_months[m - 1], assumed_year)
 
       if ((nv_output.season_type[m - 1] == Constants.SeasonHeating and nat_vent.htg_season) or (nv_output.season_type[m - 1] == Constants.SeasonCooling and nat_vent.clg_season) or (nv_output.season_type[m - 1] == Constants.SeasonOverlap and nat_vent.ovlp_season)) and (nat_vent.num_weekdays + nat_vent.num_weekends != 0)
         on_rule = OpenStudio::Model::ScheduleRule.new(avail_sch)
@@ -1229,13 +1232,8 @@ class Airflow
         for h in 1..24
           off_rule_day.addValue(time[h], 0)
         end
-        off_rule.setApplyMonday(true)
-        off_rule.setApplyTuesday(true)
-        off_rule.setApplyWednesday(true)
-        off_rule.setApplyThursday(true)
-        off_rule.setApplyFriday(true)
-        off_rule.setApplySaturday(true)
-        off_rule.setApplySunday(true)
+        Schedule.set_weekday_rule(off_rule)
+        Schedule.set_weekend_rule(off_rule)
         off_rule.setStartDate(date_s)
         off_rule.setEndDate(date_e)
       end
@@ -1836,20 +1834,20 @@ class Airflow
 
     range_array = [0.0] * 24
     range_array[mech_vent.range_exhaust_hour - 1] = 1.0
-    range_hood_sch = HourlyByMonthSchedule.new(model, runner, obj_name_mech_vent + " range exhaust schedule", [range_array] * 12, [range_array] * 12, normalize_values = false, create_sch_object = true, winter_design_day_sch, summer_design_day_sch)
+    range_hood_sch = HourlyByMonthSchedule.new(model, runner, obj_name_mech_vent + " range exhaust schedule", [range_array] * 12, [range_array] * 12, normalize_values = false, create_sch_object = true, winter_design_day_sch = winter_design_day_sch, summer_design_day_sch = summer_design_day_sch, schedule_type_limits_name = Constants.ScheduleTypeLimitsOnOff)
     range_sch_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Schedule Value")
     range_sch_sensor.setName("#{obj_name_infil} range sch s")
     range_sch_sensor.setKeyName(range_hood_sch.schedule.name.to_s)
 
     bathroom_array = [0.0] * 24
     bathroom_array[mech_vent.bathroom_exhaust_hour - 1] = 1.0
-    bath_exhaust_sch = HourlyByMonthSchedule.new(model, runner, obj_name_mech_vent + " bath exhaust schedule", [bathroom_array] * 12, [bathroom_array] * 12, normalize_values = false, create_sch_object = true, winter_design_day_sch, summer_design_day_sch)
+    bath_exhaust_sch = HourlyByMonthSchedule.new(model, runner, obj_name_mech_vent + " bath exhaust schedule", [bathroom_array] * 12, [bathroom_array] * 12, normalize_values = false, create_sch_object = true, winter_design_day_sch = winter_design_day_sch, summer_design_day_sch = summer_design_day_sch, schedule_type_limits_name = Constants.ScheduleTypeLimitsOnOff)
     bath_sch_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Schedule Value")
     bath_sch_sensor.setName("#{obj_name_infil} bath sch s")
     bath_sch_sensor.setKeyName(bath_exhaust_sch.schedule.name.to_s)
 
     if mv_output.has_dryer and mech_vent.dryer_exhaust > 0
-      dryer_exhaust_sch = HotWaterSchedule.new(model, runner, obj_name_mech_vent + " dryer exhaust schedule", obj_name_mech_vent + " dryer exhaust temperature schedule", nbeds, mv_output.dryer_exhaust_day_shift, "ClothesDryerExhaust", 0)
+      dryer_exhaust_sch = HotWaterSchedule.new(model, runner, obj_name_mech_vent + " dryer exhaust schedule", obj_name_mech_vent + " dryer exhaust temperature schedule", nbeds, mv_output.dryer_exhaust_day_shift, "ClothesDryerExhaust", 0, create_sch_object = true, schedule_type_limits_name = Constants.ScheduleTypeLimitsFraction)
       dryer_sch_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Schedule Value")
       dryer_sch_sensor.setName("#{obj_name_infil} dryer sch s")
       dryer_sch_sensor.setKeyName(dryer_exhaust_sch.schedule.name.to_s)

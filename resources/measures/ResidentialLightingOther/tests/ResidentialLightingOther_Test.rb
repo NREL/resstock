@@ -10,7 +10,7 @@ class ResidentialLightingOtherTest < MiniTest::Test
     args_hash = {}
     args_hash["option_type"] = Constants.OptionTypeLightingEnergyUses
     expected_num_del_objects = {}
-    expected_num_new_objects = { "LightsDefinition" => 1, "Lights" => 1, "ExteriorLightsDefinition" => 1, "ExteriorLights" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "LightsDefinition" => 1, "Lights" => 1, "ExteriorLightsDefinition" => 1, "ExteriorLights" => 1, "ScheduleRuleset" => 2 }
     expected_values = { "Annual_kwh" => 400 }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 2)
   end
@@ -24,7 +24,7 @@ class ResidentialLightingOtherTest < MiniTest::Test
     args_hash["pg_led"] = 0.0
     args_hash["pg_lfl"] = 0.0
     expected_num_del_objects = {}
-    expected_num_new_objects = { "LightsDefinition" => 1, "Lights" => 1, "ExteriorLightsDefinition" => 1, "ExteriorLights" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "LightsDefinition" => 1, "Lights" => 1, "ExteriorLightsDefinition" => 1, "ExteriorLights" => 1, "ScheduleRuleset" => 2 }
     expected_values = { "Annual_kwh" => 397 }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 2)
   end
@@ -38,7 +38,7 @@ class ResidentialLightingOtherTest < MiniTest::Test
     args_hash["pg_led"] = 0.0
     args_hash["pg_lfl"] = 0.0
     expected_num_del_objects = {}
-    expected_num_new_objects = { "LightsDefinition" => 1, "Lights" => 1, "ExteriorLightsDefinition" => 1, "ExteriorLights" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "LightsDefinition" => 1, "Lights" => 1, "ExteriorLightsDefinition" => 1, "ExteriorLights" => 1, "ScheduleRuleset" => 2 }
     expected_values = { "Annual_kwh" => 357 }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 2)
   end
@@ -52,7 +52,7 @@ class ResidentialLightingOtherTest < MiniTest::Test
     args_hash["pg_led"] = 0.0
     args_hash["pg_lfl"] = 0.0
     expected_num_del_objects = {}
-    expected_num_new_objects = { "LightsDefinition" => 1, "Lights" => 1, "ExteriorLightsDefinition" => 1, "ExteriorLights" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "LightsDefinition" => 1, "Lights" => 1, "ExteriorLightsDefinition" => 1, "ExteriorLights" => 1, "ScheduleRuleset" => 2 }
     expected_values = { "Annual_kwh" => 330 }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 2)
   end
@@ -66,7 +66,7 @@ class ResidentialLightingOtherTest < MiniTest::Test
     args_hash["pg_led"] = 0.0
     args_hash["pg_lfl"] = 0.0
     expected_num_del_objects = {}
-    expected_num_new_objects = { "LightsDefinition" => 1, "Lights" => 1, "ExteriorLightsDefinition" => 1, "ExteriorLights" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "LightsDefinition" => 1, "Lights" => 1, "ExteriorLightsDefinition" => 1, "ExteriorLights" => 1, "ScheduleRuleset" => 2 }
     expected_values = { "Annual_kwh" => 266 }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 2)
   end
@@ -80,7 +80,7 @@ class ResidentialLightingOtherTest < MiniTest::Test
     args_hash["pg_led"] = 0.0
     args_hash["pg_lfl"] = 0.0
     expected_num_del_objects = {}
-    expected_num_new_objects = { "LightsDefinition" => 1, "Lights" => 1, "ExteriorLightsDefinition" => 1, "ExteriorLights" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "LightsDefinition" => 1, "Lights" => 1, "ExteriorLightsDefinition" => 1, "ExteriorLights" => 1, "ScheduleRuleset" => 2 }
     expected_values = { "Annual_kwh" => 212 }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 2)
   end
@@ -94,7 +94,7 @@ class ResidentialLightingOtherTest < MiniTest::Test
     args_hash["pg_led"] = 1.0
     args_hash["pg_lfl"] = 0.0
     expected_num_del_objects = {}
-    expected_num_new_objects = { "LightsDefinition" => 1, "Lights" => 1, "ExteriorLightsDefinition" => 1, "ExteriorLights" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "LightsDefinition" => 1, "Lights" => 1, "ExteriorLightsDefinition" => 1, "ExteriorLights" => 1, "ScheduleRuleset" => 2 }
     expected_values = { "Annual_kwh" => 182 }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 2)
   end
@@ -109,7 +109,7 @@ class ResidentialLightingOtherTest < MiniTest::Test
     args_hash["pg_lfl"] = 0.0
     args_hash["led_eff"] = 50
     expected_num_del_objects = {}
-    expected_num_new_objects = { "LightsDefinition" => 1, "Lights" => 1, "ExteriorLightsDefinition" => 1, "ExteriorLights" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "LightsDefinition" => 1, "Lights" => 1, "ExteriorLightsDefinition" => 1, "ExteriorLights" => 1, "ScheduleRuleset" => 2 }
     expected_values = { "Annual_kwh" => 221 }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 2)
   end
@@ -118,7 +118,7 @@ class ResidentialLightingOtherTest < MiniTest::Test
     args_hash = {}
     args_hash["mult"] = 0.5
     expected_num_del_objects = {}
-    expected_num_new_objects = { "LightsDefinition" => 1, "Lights" => 1, "ExteriorLightsDefinition" => 1, "ExteriorLights" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "LightsDefinition" => 1, "Lights" => 1, "ExteriorLightsDefinition" => 1, "ExteriorLights" => 1, "ScheduleRuleset" => 2 }
     expected_values = { "Annual_kwh" => 330 / 2 }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 2)
   end
@@ -126,13 +126,13 @@ class ResidentialLightingOtherTest < MiniTest::Test
   def test_retrofit_replace
     args_hash = {}
     expected_num_del_objects = {}
-    expected_num_new_objects = { "LightsDefinition" => 1, "Lights" => 1, "ExteriorLightsDefinition" => 1, "ExteriorLights" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "LightsDefinition" => 1, "Lights" => 1, "ExteriorLightsDefinition" => 1, "ExteriorLights" => 1, "ScheduleRuleset" => 2 }
     expected_values = { "Annual_kwh" => 330 }
     model = _test_measure("SFD_2000sqft_2story_FB_GRG_UA_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 2)
     args_hash = {}
     args_hash["hw_cfl"] = 1.0
-    expected_num_del_objects = { "LightsDefinition" => 1, "Lights" => 1, "ExteriorLightsDefinition" => 1, "ExteriorLights" => 1, "ScheduleRuleset" => 1 }
-    expected_num_new_objects = { "LightsDefinition" => 1, "Lights" => 1, "ExteriorLightsDefinition" => 1, "ExteriorLights" => 1, "ScheduleRuleset" => 1 }
+    expected_num_del_objects = { "LightsDefinition" => 1, "Lights" => 1, "ExteriorLightsDefinition" => 1, "ExteriorLights" => 1, "ScheduleRuleset" => 2 }
+    expected_num_new_objects = { "LightsDefinition" => 1, "Lights" => 1, "ExteriorLightsDefinition" => 1, "ExteriorLights" => 1, "ScheduleRuleset" => 2 }
     expected_values = { "Annual_kwh" => 212 }
     _test_measure(model, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 3)
   end
@@ -141,9 +141,28 @@ class ResidentialLightingOtherTest < MiniTest::Test
     args_hash = {}
     args_hash["sch_option_type"] = Constants.OptionTypeLightingScheduleUserSpecified
     expected_num_del_objects = {}
-    expected_num_new_objects = { "LightsDefinition" => 1, "Lights" => 1, "ExteriorLightsDefinition" => 1, "ExteriorLights" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "LightsDefinition" => 1, "Lights" => 1, "ExteriorLightsDefinition" => 1, "ExteriorLights" => 1, "ScheduleRuleset" => 2 }
     expected_values = { "Annual_kwh" => 330 }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 2)
+  end
+
+  def test_new_construction_holiday_schedule_overlap_years
+    args_hash = {}
+    args_hash["holiday_daily_energy_use_exterior"] = "1.1" # for 41 days
+    expected_num_del_objects = {}
+    expected_num_new_objects = { "LightsDefinition" => 1, "Lights" => 1, "ExteriorLightsDefinition" => 2, "ExteriorLights" => 2, "ScheduleRuleset" => 3 }
+    expected_values = { "Annual_kwh" => 330 + 1.1 * 41 }
+    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 3)
+  end
+
+  def test_new_construction_holiday_schedule_within_year
+    args_hash = {}
+    args_hash["holiday_end_date"] = "December 27"
+    args_hash["holiday_daily_energy_use_exterior"] = "1.1" # for 31 days
+    expected_num_del_objects = {}
+    expected_num_new_objects = { "LightsDefinition" => 1, "Lights" => 1, "ExteriorLightsDefinition" => 2, "ExteriorLights" => 2, "ScheduleRuleset" => 3 }
+    expected_values = { "Annual_kwh" => 330 + 1.1 * 31 }
+    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 3)
   end
 
   def test_argument_error_hw_cfl_lt_0
@@ -294,6 +313,14 @@ class ResidentialLightingOtherTest < MiniTest::Test
   def test_argument_error_energy_use_exterior_lt_0
     args_hash = {}
     args_hash["option_type"] = Constants.OptionTypeLightingEnergyUses
+    args_hash["holiday_daily_energy_use_exterior"] = -1.0
+    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_Denver.osm", args_hash)
+    assert_equal(result.errors.map { |x| x.logMessage }[0], "#{Constants.OptionTypeLightingEnergyUses}: Holiday Exterior must be greater than or equal to 0.")
+  end
+
+  def test_argument_error_daily_energy_use_holiday_exterior_lt_0
+    args_hash = {}
+    args_hash["option_type"] = Constants.OptionTypeLightingEnergyUses
     args_hash["energy_use_exterior"] = -1.0
     result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_Denver.osm", args_hash)
     assert_equal(result.errors.map { |x| x.logMessage }[0], "#{Constants.OptionTypeLightingEnergyUses}: Exterior must be greater than or equal to 0.")
@@ -345,6 +372,38 @@ class ResidentialLightingOtherTest < MiniTest::Test
     args_hash["monthly_sch"] = "str,1,1,1,1,1,1,1,1,1,1,1"
     result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_Denver.osm", args_hash)
     assert_equal(result.errors.map { |x| x.logMessage }[0], "A comma-separated string of 12 numbers must be entered for the monthly schedule.")
+  end
+
+  def test_argument_error_holiday_sch_wrong_number_of_values
+    args_hash = {}
+    args_hash["holiday_daily_energy_use_exterior"] = "1.1"
+    args_hash["holiday_sch"] = "1,1"
+    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_Denver.osm", args_hash)
+    assert_equal(result.errors.map { |x| x.logMessage }[0], "A comma-separated string of 24 numbers must be entered for the holiday schedule.")
+  end
+
+  def test_argument_error_holiday_sch_not_number
+    args_hash = {}
+    args_hash["holiday_daily_energy_use_exterior"] = "1.1"
+    args_hash["holiday_sch"] = "str,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1"
+    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_Denver.osm", args_hash)
+    assert_equal(result.errors.map { |x| x.logMessage }[0], "A comma-separated string of 24 numbers must be entered for the holiday schedule.")
+  end
+
+  def test_argument_error_holiday_period_month_invalid
+    args_hash = {}
+    args_hash["holiday_daily_energy_use_exterior"] = "1.1"
+    args_hash["holiday_start_date"] = "Nov 27"
+    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_Denver.osm", args_hash)
+    assert_equal(result.errors.map { |x| x.logMessage }[0], "Invalid holiday period month(s) entered.")
+  end
+
+  def test_argument_error_holiday_period_date_invalid
+    args_hash = {}
+    args_hash["holiday_daily_energy_use_exterior"] = "1.1"
+    args_hash["holiday_start_date"] = "November 32"
+    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_Denver.osm", args_hash)
+    assert_equal(result.errors.map { |x| x.logMessage }[0], "Invalid holiday period date(s) entered.")
   end
 
   def test_error_missing_geometry
@@ -430,7 +489,7 @@ class ResidentialLightingOtherTest < MiniTest::Test
     result = runner.result
 
     # show the output
-    # show_output(result)
+    show_output(result) unless result.value.valueName == 'Fail'
 
     # assert that it didn't run
     assert_equal("Fail", result.value.valueName)
@@ -474,7 +533,7 @@ class ResidentialLightingOtherTest < MiniTest::Test
     result = runner.result
 
     # show the output
-    # show_output(result)
+    show_output(result) unless result.value.valueName == 'Success'
 
     # assert that it ran correctly
     assert_equal("Success", result.value.valueName)
@@ -501,10 +560,10 @@ class ResidentialLightingOtherTest < MiniTest::Test
 
         new_object = new_object.public_send("to_#{obj_type}").get
         if obj_type == "Lights"
-          full_load_hrs = Schedule.annual_equivalent_full_load_hrs(model.yearDescription.get.assumedYear, new_object.schedule.get)
+          full_load_hrs = Schedule.annual_equivalent_full_load_hrs(model.getYearDescription, new_object.schedule.get)
           actual_values["Annual_kwh"] += UnitConversions.convert(full_load_hrs * new_object.lightingLevel.get * new_object.multiplier * new_object.space.get.multiplier, "Wh", "kWh")
         elsif obj_type == "ExteriorLights"
-          full_load_hrs = Schedule.annual_equivalent_full_load_hrs(model.yearDescription.get.assumedYear, new_object.schedule.get)
+          full_load_hrs = Schedule.annual_equivalent_full_load_hrs(model.getYearDescription, new_object.schedule.get)
           actual_values["Annual_kwh"] += UnitConversions.convert(full_load_hrs * new_object.exteriorLightsDefinition.designLevel * new_object.multiplier, "Wh", "kWh")
         end
       end
