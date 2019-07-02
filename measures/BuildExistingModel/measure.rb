@@ -210,7 +210,8 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
 
   def get_data_for_sample(buildstock_csv, building_id, runner)
     CSV.foreach(buildstock_csv, headers: true) do |sample|
-      runner.registerInfo("Building ID is #{building_id} and csv sample is #{sample["Building"].to_i}")
+      runner.registerInfo("Building ID is #{building_id} and csv sample is #{sample["Building"]}")
+      runner.registerInfo("Building location is #{sample["Location"]}")
       next if sample["Building"].to_i != building_id
 
       return sample
