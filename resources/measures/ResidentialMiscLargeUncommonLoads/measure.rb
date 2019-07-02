@@ -110,6 +110,13 @@ class ResidentialMiscLargeUncommonLoads < OpenStudio::Measure::ModelMeasure
     has_gas_lighting.setDefaultValue(false)
     args << has_gas_lighting
 
+    # Make a boolean argument for has electric vehicle
+    has_electric_vehicle = OpenStudio::Measure::OSArgument::makeDoubleArgument("has_electric_vehicle")
+    has_electric_vehicle.setDisplayName("Has Electric Vehicle")
+    has_electric_vehicle.setDescription("Specifies whether the building has an electric vehicle.")
+    has_electric_vehicle.setDefaultValue(false)
+    args << has_electric_vehicle
+
     # Extra Refrigerator
 
     # make a double argument for user defined fridge options
@@ -552,6 +559,43 @@ class ResidentialMiscLargeUncommonLoads < OpenStudio::Measure::ModelMeasure
     gas_lighting_monthly_sch.setDefaultValue("1.154, 1.161, 1.013, 1.010, 1.013, 0.888, 0.883, 0.883, 0.888, 0.978, 0.974, 1.154")
     args << gas_lighting_monthly_sch
 
+    # Electric Vehicle
+
+    # Make a double argument for miles driven
+    ev_annual_miles_driven = OpenStudio::Measure::OSArgument::makeDoubleArgument("ev_annual_miles_driven")
+    ev_annual_miles_driven.setDisplayName("Electric Vehicle: Annual miles driven")
+    ev_annual_miles_driven.setDescription("Specify annual miles electric vehicle is driven and charged at home.")
+    ev_annual_miles_driven.setDefaultValue(0)
+    args << ev_annual_miles_driven
+
+    # Make a double argument for vehicle efficiency
+    ev_kWh_per_mile = OpenStudio::Measure::OSArgument::makeDoubleArgument("ev_kWh_per_mile")
+    ev_kWh_per_mile.setDisplayName("Electric Vehicle: vehicle efficiency")
+    ev_kWh_per_mile.setDescription("Specify the efficiency the vehicle uses energy from the battery.")
+    ev_kWh_per_mile.setDefaultValue(0.3)
+    args << ev_kWh_per_mile
+
+    # Make a double argument for charger efficiency
+    ev_charger_efficiency = OpenStudio::Measure::OSArgument::makeDoubleArgument("ev_charger_efficiency")
+    ev_charger_efficiency.setDisplayName("Electric Vehicle: Charger efficiency")
+    ev_charger_efficiency.setDescription("Specify the efficiency the charger converts AC to DC.")
+    ev_charger_efficiency.setDefaultValue(0.9)
+    args << ev_charger_efficiency
+
+    # Make a double argument for battery efficiency
+    ev_battery_efficiency = OpenStudio::Measure::OSArgument::makeDoubleArgument("ev_battery_efficiency")
+    ev_battery_efficiency.setDisplayName("Electric Vehicle: Battery efficiency")
+    ev_battery_efficiency.setDescription("Specify the efficiency the battery accepts energy from the charger.")
+    ev_battery_efficiency.setDefaultValue(0.9)
+    args << ev_battery_efficiency
+
+    # Make a double argument for EV annual energy usage
+    ev_annual_energy = OpenStudio::Measure::OSArgument::makeDoubleArgument("ev_annual_energy")
+    ev_annual_energy.setDisplayName("Electric Vehicle: Annual energy consumption")
+    ev_annual_energy.setDescription("Specify the total annual energy use of charging the EV at home.")
+    ev_annual_energy.setDefaultValue(0)
+    args << ev_annual_energy
+
     return args
   end # end the arguments method
 
@@ -577,6 +621,13 @@ class ResidentialMiscLargeUncommonLoads < OpenStudio::Measure::ModelMeasure
     has_gas_fireplace = runner.getBoolArgumentValue("has_gas_fireplace", user_arguments)
     has_gas_grill = runner.getBoolArgumentValue("has_gas_grill", user_arguments)
     has_gas_lighting = runner.getBoolArgumentValue("has_gas_lighting", user_arguments)
+    has_electric_vehicle = runner.getBoolArgumentValue("has_electric_vehicle", user_arguments)
+
+    ev_annual_miles_driven = runner.getDoubleArgumentValue("ev_annual_miles_driven", user_arguments)
+    ev_kWh_per_mile = runner.getDoubleArgumentValue("ev_kWh_per_mile", user_arguments)
+    ev_charger_efficiency = runner.getDoubleArgumentValue("ev_charger_efficiency", user_arguments)
+    ev_battery_efficiency = runner.getDoubleArgumentValue("ev_battery_efficiency", user_arguments)
+    ev_annual_energy = runner.getDoubleArgumentValue("ev_annual_energy", user_arguments)
 
     fridge_rated_annual_energy = runner.getDoubleArgumentValue("fridge_rated_annual_energy", user_arguments)
     fridge_mult = runner.getDoubleArgumentValue("fridge_mult", user_arguments)
@@ -659,7 +710,8 @@ class ResidentialMiscLargeUncommonLoads < OpenStudio::Measure::ModelMeasure
                  Constants.ObjectNameWellPump,
                  Constants.ObjectNameGasFireplace,
                  Constants.ObjectNameGasGrill,
-                 Constants.ObjectNameGasLighting]
+                 Constants.ObjectNameGasLighting,
+                 Constants.ObjectNameElectricVehicle]
     model.getSpaces.each do |space|
       MiscLoads.remove(runner, space, obj_names)
     end
@@ -925,6 +977,25 @@ class ResidentialMiscLargeUncommonLoads < OpenStudio::Measure::ModelMeasure
         end
 
       end
+
+      # Electric Vehicle
+
+      if has_electric_vehicle
+
+        unit_obj_name = Constants.ObjectNameElectricVehicle(unit.name.to_s)
+        success, ann_e, pool_sch = MiscLoads.apply_electric(model, unit, runner, ev_annual_miles_driven, ev_kWh_per_mile,
+                                                            ev_charger_efficiency, ev_battery_efficiency,
+                                                            ev_annual_energy, nil, unit_obj_name)
+
+        return false if not success
+
+        if ann_e > 0
+          msgs << "An electric vehicle with #{ann_e.round} kWhs annual energy consumption has been assigned to outside."
+          tot_ann_e += ann_e
+        end
+
+      end
+
     end
 
     # Reporting
