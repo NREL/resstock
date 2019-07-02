@@ -239,7 +239,7 @@ class ProcessSingleSpeedCentralAirConditionerTest < MiniTest::Test
     args_hash["actual_cfm_per_ton"] = "650"
     expected_num_del_objects = {}
     expected_num_new_objects = { "AirLoopHVACUnitarySystem" => 1, "AirLoopHVAC" => 1, "CoilCoolingDXSingleSpeed" => 1, "FanOnOff" => 1, "AirTerminalSingleDuctConstantVolumeNoReheat" => 1, "EnergyManagementSystemSensor" => 2, "EnergyManagementSystemActuator" => 2, "EnergyManagementSystemProgram" => 1, "EnergyManagementSystemProgramCallingManager" => 1 }
-    expected_values = { "COP" => 3.95, "MaximumSupplyAirTemperature" => 48.88, "res_install_quality_fault_1_prog" => { "F_AF" => 0.625 }, "SensorLocation" => "living zone" }
+    expected_values = { "COP" => 3.95, "MaximumSupplyAirTemperature" => 48.88, "res_install_quality_fault_1_prog" => { "FF_AF_comb_c" => 1.625 }, "SensorLocation" => "living zone" }
     _test_measure("SFD_2000sqft_2story_SL_UA_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 3, 1)
  end
 
@@ -265,26 +265,36 @@ class ProcessSingleSpeedCentralAirConditionerTest < MiniTest::Test
     args_hash["actual_cfm_per_ton"] = "280"
     expected_num_del_objects = { "AirLoopHVACUnitarySystem" => 1, "AirLoopHVAC" => 1, "CoilCoolingDXSingleSpeed" => 1, "FanOnOff" => 1, "AirTerminalSingleDuctConstantVolumeNoReheat" => 2, "AirLoopHVACReturnPlenum" => 1, "EnergyManagementSystemSensor" => 2, "EnergyManagementSystemActuator" => 2, "EnergyManagementSystemProgram" => 1, "EnergyManagementSystemProgramCallingManager" => 1 }
     expected_num_new_objects = { "AirLoopHVACUnitarySystem" => 1, "AirLoopHVAC" => 1, "CoilCoolingDXSingleSpeed" => 1, "FanOnOff" => 1, "AirTerminalSingleDuctConstantVolumeNoReheat" => 2, "EnergyManagementSystemSensor" => 2, "EnergyManagementSystemActuator" => 2, "EnergyManagementSystemProgram" => 1, "EnergyManagementSystemProgramCallingManager" => 1 }
-    expected_values = { "COP" => 3.95, "MaximumSupplyAirTemperature" => 48.88, "res_install_quality_fault_1_prog" => { "F_AF" => -0.3 }, "SensorLocation" => "living zone" }
+    expected_values = { "COP" => 3.95, "MaximumSupplyAirTemperature" => 48.88, "res_install_quality_fault_1_prog" => { "FF_AF_comb_c" => 0.7 }, "SensorLocation" => "living zone" }
     _test_measure("SFD_HVACSizing_Equip_GF_Faulted_AC1_Fixed.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 6)
  end
 
   def test_apply_charge_fault_to_faulted_single_speed_central_ac
     args_hash = {}
-    args_hash["frac_manufacturer_charge"] = "0.90"
+    args_hash["frac_manufacturer_charge"] = "0.75"
     expected_num_del_objects = { "AirLoopHVACUnitarySystem" => 1, "AirLoopHVAC" => 1, "CoilCoolingDXSingleSpeed" => 1, "FanOnOff" => 1, "AirTerminalSingleDuctConstantVolumeNoReheat" => 2, "AirLoopHVACReturnPlenum" => 1, "EnergyManagementSystemSensor" => 2, "EnergyManagementSystemActuator" => 2, "EnergyManagementSystemProgram" => 1, "EnergyManagementSystemProgramCallingManager" => 1 }
     expected_num_new_objects = { "AirLoopHVACUnitarySystem" => 1, "AirLoopHVAC" => 1, "CoilCoolingDXSingleSpeed" => 1, "FanOnOff" => 1, "AirTerminalSingleDuctConstantVolumeNoReheat" => 2, "EnergyManagementSystemSensor" => 2, "EnergyManagementSystemActuator" => 2, "EnergyManagementSystemProgram" => 1, "EnergyManagementSystemProgramCallingManager" => 1 }
-    expected_values = { "COP" => 3.95, "MaximumSupplyAirTemperature" => 48.88, "res_install_quality_fault_1_prog" => { "F_CH" => -0.1 }, "SensorLocation" => "living zone" }
+    expected_values = { "COP" => 3.95, "MaximumSupplyAirTemperature" => 48.88, "res_install_quality_fault_1_prog" => { "FF_CH_c" => 1.181, "F_CH" => -0.25 }, "SensorLocation" => "living zone" }
     _test_measure("SFD_HVACSizing_Equip_GF_Faulted_AC1_Fixed.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 6)
  end
 
   def test_apply_airflow_charge_fault_to_faulted_single_speed_central_ac
     args_hash = {}
     args_hash["actual_cfm_per_ton"] = "280"
-    args_hash["frac_manufacturer_charge"] = "0.90"
+    args_hash["frac_manufacturer_charge"] = "0.75"
     expected_num_del_objects = { "AirLoopHVACUnitarySystem" => 1, "AirLoopHVAC" => 1, "CoilCoolingDXSingleSpeed" => 1, "FanOnOff" => 1, "AirTerminalSingleDuctConstantVolumeNoReheat" => 2, "AirLoopHVACReturnPlenum" => 1, "EnergyManagementSystemSensor" => 2, "EnergyManagementSystemActuator" => 2, "EnergyManagementSystemProgram" => 1, "EnergyManagementSystemProgramCallingManager" => 1 }
     expected_num_new_objects = { "AirLoopHVACUnitarySystem" => 1, "AirLoopHVAC" => 1, "CoilCoolingDXSingleSpeed" => 1, "FanOnOff" => 1, "AirTerminalSingleDuctConstantVolumeNoReheat" => 2, "EnergyManagementSystemSensor" => 2, "EnergyManagementSystemActuator" => 2, "EnergyManagementSystemProgram" => 1, "EnergyManagementSystemProgramCallingManager" => 1 }
-    expected_values = { "COP" => 3.95, "MaximumSupplyAirTemperature" => 48.88, "res_install_quality_fault_1_prog" => { "F_AF" => -0.3, "F_CH" => -0.1 }, "SensorLocation" => "living zone" }
+    expected_values = { "COP" => 3.95, "MaximumSupplyAirTemperature" => 48.88, "res_install_quality_fault_1_prog" => { "FF_CH_c" => 1.181, "FF_AF_comb_c" => 0.827, "F_CH" => -0.25 }, "SensorLocation" => "living zone" }
+    _test_measure("SFD_HVACSizing_Equip_GF_Faulted_AC1_Fixed.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 6)
+ end
+
+  def test_apply_airflow_charge_fault_to_faulted_single_speed_central_ac_2
+    args_hash = {}
+    args_hash["actual_cfm_per_ton"] = "300"
+    args_hash["frac_manufacturer_charge"] = "1.15"
+    expected_num_del_objects = { "AirLoopHVACUnitarySystem" => 1, "AirLoopHVAC" => 1, "CoilCoolingDXSingleSpeed" => 1, "FanOnOff" => 1, "AirTerminalSingleDuctConstantVolumeNoReheat" => 2, "AirLoopHVACReturnPlenum" => 1, "EnergyManagementSystemSensor" => 2, "EnergyManagementSystemActuator" => 2, "EnergyManagementSystemProgram" => 1, "EnergyManagementSystemProgramCallingManager" => 1 }
+    expected_num_new_objects = { "AirLoopHVACUnitarySystem" => 1, "AirLoopHVAC" => 1, "CoilCoolingDXSingleSpeed" => 1, "FanOnOff" => 1, "AirTerminalSingleDuctConstantVolumeNoReheat" => 2, "EnergyManagementSystemSensor" => 2, "EnergyManagementSystemActuator" => 2, "EnergyManagementSystemProgram" => 1, "EnergyManagementSystemProgramCallingManager" => 1 }
+    expected_values = { "COP" => 3.95, "MaximumSupplyAirTemperature" => 48.88, "res_install_quality_fault_1_prog" => { "FF_CH_c" => 0.983, "FF_AF_comb_c" => 0.737, "F_CH" => 0.15 }, "SensorLocation" => "living zone" }
     _test_measure("SFD_HVACSizing_Equip_GF_Faulted_AC1_Fixed.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 6)
  end
 
@@ -292,14 +302,14 @@ class ProcessSingleSpeedCentralAirConditionerTest < MiniTest::Test
     num_units = 4
     args_hash = {}
     args_hash["actual_cfm_per_ton"] = "280"
-    args_hash["frac_manufacturer_charge"] = "0.90"
+    args_hash["frac_manufacturer_charge"] = "0.75"
     expected_num_del_objects = { "AirLoopHVACUnitarySystem" => 1 * num_units, "AirLoopHVAC" => 1 * num_units, "CoilCoolingDXSingleSpeed" => 1 * num_units, "FanOnOff" => 1 * num_units, "AirTerminalSingleDuctConstantVolumeNoReheat" => 1 * num_units }
     expected_num_new_objects = { "AirLoopHVACUnitarySystem" => 1 * num_units, "AirLoopHVAC" => 1 * num_units, "CoilCoolingDXSingleSpeed" => 1 * num_units, "FanOnOff" => 1 * num_units, "AirTerminalSingleDuctConstantVolumeNoReheat" => 1 * num_units, "EnergyManagementSystemSensor" => 2 * num_units, "EnergyManagementSystemActuator" => 2 * num_units, "EnergyManagementSystemProgram" => 1 * num_units, "EnergyManagementSystemProgramCallingManager" => 1 * num_units }
     expected_values = { "COP" => 3.95, "MaximumSupplyAirTemperature" => 48.88, \
-                        "res_install_quality_fault_1_prog" => { "F_AF" => -0.3, "F_CH" => -0.1 }, \
-                        "res_install_quality_fault_2_prog" => { "F_AF" => -0.3, "F_CH" => -0.1 }, \
-                        "res_install_quality_fault_3_prog" => { "F_AF" => -0.3, "F_CH" => -0.1 }, \
-                        "res_install_quality_fault_4_prog" => { "F_AF" => -0.3, "F_CH" => -0.1 } }
+                        "res_install_quality_fault_1_prog" => { "FF_CH_c" => 1.181, "FF_AF_comb_c" => 0.827, "F_CH" => -0.25 }, \
+                        "res_install_quality_fault_2_prog" => { "FF_CH_c" => 1.181, "FF_AF_comb_c" => 0.827, "F_CH" => -0.25 }, \
+                        "res_install_quality_fault_3_prog" => { "FF_CH_c" => 1.181, "FF_AF_comb_c" => 0.827, "F_CH" => -0.25 }, \
+                        "res_install_quality_fault_4_prog" => { "FF_CH_c" => 1.181, "FF_AF_comb_c" => 0.827, "F_CH" => -0.25 } }
     _test_measure("SFA_4units_1story_SL_UA_3Beds_2Baths_Denver_CentralAC_NoSetpoints.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 5 * num_units)
  end
 
