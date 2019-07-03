@@ -178,8 +178,8 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
         runner.registerInfo("The weather station WMO has not been set appropriately in the EPW weather file header.")
       end
     end
-    register_value(runner, "units_represented", "#{model.getBuilding.additionalProperties.getFeatureAsInteger("Total Units Represented").get}")
-    register_value(runner, "units_modeled", "#{model.getBuilding.additionalProperties.getFeatureAsInteger("Total Units Modeled").get}")
+    # register_value(runner, "units_represented", "#{model.getBuilding.additionalProperties.getFeatureAsInteger("Total Units Represented").get}")
+    # register_value(runner, "units_modeled", "#{model.getBuilding.additionalProperties.getFeatureAsInteger("Total Units Modeled").get}")
 
     # Determine weight
     if number_of_buildings_represented.is_initialized
@@ -210,8 +210,6 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
 
   def get_data_for_sample(buildstock_csv, building_id, runner)
     CSV.foreach(buildstock_csv, headers: true) do |sample|
-      runner.registerInfo("Building ID is #{building_id} and csv sample is #{sample["Building"]}")
-      runner.registerInfo("Building location is #{sample["Location"]}")
       next if sample["Building"].to_i != building_id
 
       return sample
