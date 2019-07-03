@@ -983,7 +983,7 @@ class ResidentialMiscLargeUncommonLoads < OpenStudio::Measure::ModelMeasure
       if has_electric_vehicle
 
         unit_obj_name = Constants.ObjectNameElectricVehicle(unit.name.to_s)
-        success, ann_e, pool_sch = MiscLoads.apply_electric(model, unit, runner, ev_annual_miles_driven, ev_kWh_per_mile,
+        success, ann_e = MiscLoads.apply_electric(model, unit, runner, ev_annual_miles_driven, ev_kWh_per_mile,
                                                             ev_charger_efficiency, ev_battery_efficiency,
                                                             ev_annual_energy, nil, unit_obj_name)
 
