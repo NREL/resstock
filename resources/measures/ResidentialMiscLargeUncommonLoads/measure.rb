@@ -111,7 +111,7 @@ class ResidentialMiscLargeUncommonLoads < OpenStudio::Measure::ModelMeasure
     args << has_gas_lighting
 
     # Make a boolean argument for has electric vehicle
-    has_electric_vehicle = OpenStudio::Measure::OSArgument::makeDoubleArgument("has_electric_vehicle")
+    has_electric_vehicle = OpenStudio::Measure::OSArgument::makeBoolArgument("has_electric_vehicle", true)
     has_electric_vehicle.setDisplayName("Has Electric Vehicle")
     has_electric_vehicle.setDescription("Specifies whether the building has an electric vehicle.")
     has_electric_vehicle.setDefaultValue(false)
