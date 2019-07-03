@@ -186,7 +186,7 @@ class ProcessCentralSystemHotWaterBoilerBaseboardsTest < MiniTest::Test
     measure.run(model, runner, argument_map)
     result = runner.result
 
-    # show_output(result)
+    show_output(result) unless result.value.valueName == 'Success'
 
     # save the model to test output directory
     # output_file_path = OpenStudio::Path.new(File.dirname(__FILE__) + "/output/#{test_name}.osm")
