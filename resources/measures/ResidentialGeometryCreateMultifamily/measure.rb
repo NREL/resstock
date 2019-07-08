@@ -163,14 +163,14 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     args << eaves_depth
 
     # make a string argument for number of bedrooms
-    num_br = OpenStudio::Measure::OSArgument::makeStringArgument("num_bedrooms", false)
+    num_br = OpenStudio::Measure::OSArgument::makeStringArgument("num_bedrooms", true)
     num_br.setDisplayName("Number of Bedrooms")
     num_br.setDescription("Specify the number of bedrooms. Used to determine the energy usage of appliances and plug loads, hot water usage, mechanical ventilation rate, etc.")
     num_br.setDefaultValue("3")
     args << num_br
 
     # make a string argument for number of bathrooms
-    num_ba = OpenStudio::Measure::OSArgument::makeStringArgument("num_bathrooms", false)
+    num_ba = OpenStudio::Measure::OSArgument::makeStringArgument("num_bathrooms", true)
     num_ba.setDisplayName("Number of Bathrooms")
     num_ba.setDescription("Specify the number of bathrooms. Used to determine the hot water usage, etc.")
     num_ba.setDefaultValue("2")
@@ -205,7 +205,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     args << occupants_monthly_sch
 
     # make a double argument for left neighbor offset
-    left_neighbor_offset = OpenStudio::Measure::OSArgument::makeDoubleArgument("neighbor_left_offset", false)
+    left_neighbor_offset = OpenStudio::Measure::OSArgument::makeDoubleArgument("neighbor_left_offset", true)
     left_neighbor_offset.setDisplayName("Neighbor Left Offset")
     left_neighbor_offset.setUnits("ft")
     left_neighbor_offset.setDescription("The minimum distance between the simulated house and the neighboring house to the left (not including eaves). A value of zero indicates no neighbors.")
@@ -213,7 +213,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     args << left_neighbor_offset
 
     # make a double argument for right neighbor offset
-    right_neighbor_offset = OpenStudio::Measure::OSArgument::makeDoubleArgument("neighbor_right_offset", false)
+    right_neighbor_offset = OpenStudio::Measure::OSArgument::makeDoubleArgument("neighbor_right_offset", true)
     right_neighbor_offset.setDisplayName("Neighbor Right Offset")
     right_neighbor_offset.setUnits("ft")
     right_neighbor_offset.setDescription("The minimum distance between the simulated house and the neighboring house to the right (not including eaves). A value of zero indicates no neighbors.")
@@ -221,7 +221,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     args << right_neighbor_offset
 
     # make a double argument for back neighbor offset
-    back_neighbor_offset = OpenStudio::Measure::OSArgument::makeDoubleArgument("neighbor_back_offset", false)
+    back_neighbor_offset = OpenStudio::Measure::OSArgument::makeDoubleArgument("neighbor_back_offset", true)
     back_neighbor_offset.setDisplayName("Neighbor Back Offset")
     back_neighbor_offset.setUnits("ft")
     back_neighbor_offset.setDescription("The minimum distance between the simulated house and the neighboring house to the back (not including eaves). A value of zero indicates no neighbors.")
@@ -229,7 +229,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     args << back_neighbor_offset
 
     # make a double argument for front neighbor offset
-    front_neighbor_offset = OpenStudio::Measure::OSArgument::makeDoubleArgument("neighbor_front_offset", false)
+    front_neighbor_offset = OpenStudio::Measure::OSArgument::makeDoubleArgument("neighbor_front_offset", true)
     front_neighbor_offset.setDisplayName("Neighbor Front Offset")
     front_neighbor_offset.setUnits("ft")
     front_neighbor_offset.setDescription("The minimum distance between the simulated house and the neighboring house to the front (not including eaves). A value of zero indicates no neighbors.")
@@ -449,12 +449,10 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
 		if surface.surfaceType == "Wall"
 		  if adb_facade.include? os_facade
 		    surface.setOutsideBoundaryCondition("Adiabatic")
-		    # puts("----------", surface)
 		  end
 		else
 		  if (adb_level.include? surface.surfaceType)
 		    surface.setOutsideBoundaryCondition("Adiabatic")
-			# puts("---------", surface)
 		  end
 		end		
 		
@@ -476,8 +474,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     unit_spaces_hash[1] = living_spaces_front
 		
     if (corridor_position == "Double-Loaded Interior")
-      interior_corridor_width = corridor_width/2 #Only half the lighting load is included with this unit
-      
+      interior_corridor_width = corridor_width/2 #Only half the corridor is attached to a unit
       # corridors
       if corridor_width > 0
         # create the prototype corridor
@@ -514,11 +511,9 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
 			os_facade = Geometry.get_facade_for_surface(surface)
 		  end
 		end
-		
 	  end
-	end
 	
-    if corridor_position == "Double Exterior"
+    elsif corridor_position == "Double Exterior" or corridor_position == "Single Exterior (Front)"
 	  interior_corridor_width = 0
       # front access
       nw_point = OpenStudio::Point3d.new(0, -y, wall_height)
@@ -530,34 +525,33 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
 
       shading_surface_group = OpenStudio::Model::ShadingSurfaceGroup.new(model)
       shading_surface.setShadingSurfaceGroup(shading_surface_group)
-	  shading_surface.setName("Double Exterior Corridor Front")
+	  shading_surface.setName("Corridor shading")
+      
       # rear access
-      nw_point = OpenStudio::Point3d.new(0, y + corridor_width, wall_height)
-      sw_point = OpenStudio::Point3d.new(0, y, wall_height)
-      ne_point = OpenStudio::Point3d.new(x, y + corridor_width, wall_height)
-      se_point = OpenStudio::Point3d.new(x, y, wall_height)
+      # nw_point = OpenStudio::Point3d.new(0, y + corridor_width, wall_height)
+      # sw_point = OpenStudio::Point3d.new(0, y, wall_height)
+      # ne_point = OpenStudio::Point3d.new(x, y + corridor_width, wall_height)
+      # se_point = OpenStudio::Point3d.new(x, y, wall_height)
 
-      shading_surface = OpenStudio::Model::ShadingSurface.new(OpenStudio::Point3dVector.new([sw_point, se_point, ne_point, nw_point]), model)
+      # shading_surface = OpenStudio::Model::ShadingSurface.new(OpenStudio::Point3dVector.new([sw_point, se_point, ne_point, nw_point]), model)
 
-      shading_surface_group = OpenStudio::Model::ShadingSurfaceGroup.new(model)
-      shading_surface.setShadingSurfaceGroup(shading_surface_group)
-	  shading_surface.setName("Double Exterior Corridor Rear")
+      # shading_surface_group = OpenStudio::Model::ShadingSurfaceGroup.new(model)
+      # shading_surface.setShadingSurfaceGroup(shading_surface_group)
+	  # shading_surface.setName("Double Exterior Corridor Rear")
     end	
     
-    if corridor_position == "Single Exterior (Front)"
-      nw_point = OpenStudio::Point3d.new(0, -y, wall_height)
-      ne_point = OpenStudio::Point3d.new(x, -y, wall_height)
-      sw_point = OpenStudio::Point3d.new(0, -y - corridor_width, wall_height)
-      se_point = OpenStudio::Point3d.new(x, -y - corridor_width, wall_height)
+    # if corridor_position == "Single Exterior (Front)"
+      # nw_point = OpenStudio::Point3d.new(0, -y, wall_height)
+      # sw_point = OpenStudio::Point3d.new(0, -y - corridor_width, wall_height)
+      # ne_point = OpenStudio::Point3d.new(x, -y, wall_height)
+      # se_point = OpenStudio::Point3d.new(x, -y - corridor_width, wall_height)
 
-      shading_surface = OpenStudio::Model::ShadingSurface.new(OpenStudio::Point3dVector.new([sw_point, se_point, ne_point, nw_point]), model)
+      # shading_surface = OpenStudio::Model::ShadingSurface.new(OpenStudio::Point3dVector.new([sw_point, se_point, ne_point, nw_point]), model)
 
-      shading_surface_group = OpenStudio::Model::ShadingSurfaceGroup.new(model)
-      shading_surface.setShadingSurfaceGroup(shading_surface_group)    
-      shading_surface.setName("Single Exterior Corridor Front")
-    end
-    
-    
+      # shading_surface_group = OpenStudio::Model::ShadingSurfaceGroup.new(model)
+      # shading_surface.setShadingSurfaceGroup(shading_surface_group)    
+      # shading_surface.setName("Single Exterior Corridor Front")
+    # end
 	
     # foundation
     if foundation_height > 0
