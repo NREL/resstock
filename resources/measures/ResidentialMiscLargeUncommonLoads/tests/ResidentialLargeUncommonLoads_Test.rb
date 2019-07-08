@@ -1114,7 +1114,7 @@ class ResidentialMiscLargeUncommonLoadsTest < MiniTest::Test
   end
 
   # Electric Vehicle
-  
+
   def test_electric_vehicle_new_construction_none
     # Using annual energy
     args_hash = {}
@@ -1123,7 +1123,7 @@ class ResidentialMiscLargeUncommonLoadsTest < MiniTest::Test
     expected_num_del_objects = {}
     expected_num_new_objects = {}
     expected_values = { "Annual_kwh" => 0, "Annual_therm" => 0 }
-    _test_measure("SFD_Successful_EnergyPlus_Run_TMY_Appl_PV.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
+    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
   def test_electric_vehicle_new_construction_electric
@@ -1133,7 +1133,7 @@ class ResidentialMiscLargeUncommonLoadsTest < MiniTest::Test
     expected_num_del_objects = {}
     expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
     expected_values = { "Annual_kwh" => 2000, "Annual_therm" => 0 }
-    _test_measure("SFD_Successful_EnergyPlus_Run_TMY_Appl_PV.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
+    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
   def test_electric_vehicle_retrofit_replace
@@ -1143,7 +1143,7 @@ class ResidentialMiscLargeUncommonLoadsTest < MiniTest::Test
     expected_num_del_objects = {}
     expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
     expected_values = { "Annual_kwh" => 2000, "Annual_therm" => 0 }
-    model = _test_measure("SFD_Successful_EnergyPlus_Run_TMY_Appl_PV.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
+    model = _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
     args_hash = {}
     args_hash["has_electric_vehicle"] = true
     args_hash["ev_annual_energy"] = 2500.0
@@ -1160,7 +1160,7 @@ class ResidentialMiscLargeUncommonLoadsTest < MiniTest::Test
     expected_num_del_objects = {}
     expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
     expected_values = { "Annual_kwh" => 2000, "Annual_therm" => 0 }
-    model = _test_measure("SFD_Successful_EnergyPlus_Run_TMY_Appl_PV.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
+    model = _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
     args_hash = {}
     args_hash["has_electric_vehicle"] = true
     args_hash["ev_annual_energy"] = 0.0
@@ -1174,7 +1174,7 @@ class ResidentialMiscLargeUncommonLoadsTest < MiniTest::Test
     args_hash = {}
     args_hash["has_electric_vehicle"] = true
     args_hash["ev_annual_energy"] = -1.0
-    result = _test_error("SFD_Successful_EnergyPlus_Run_TMY_Appl_PV.osm", args_hash)
+    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash)
     assert_equal(result.errors.map { |x| x.logMessage }[0], "Annual energy must be greater than or equal to 0.")
   end
 
