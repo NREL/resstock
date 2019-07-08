@@ -67,6 +67,12 @@ class ResidentialSimulationControls < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(31)
     args << arg
 
+    # make an argument for the calendar year; this determines the day of week for start day
+    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument("calendar_year", true)
+    arg.setDisplayName("Calendar Year")
+    arg.setDefaultValue(2007)
+    args << arg
+
     return args
   end
 
@@ -84,6 +90,7 @@ class ResidentialSimulationControls < OpenStudio::Measure::ModelMeasure
     begin_day_of_month = runner.getIntegerArgumentValue("begin_day_of_month", user_arguments)
     end_month = runner.getIntegerArgumentValue("end_month", user_arguments)
     end_day_of_month = runner.getIntegerArgumentValue("end_day_of_month", user_arguments)
+    calendar_year = runner.getIntegerArgumentValue("calendar_year", user_arguments)
 
     # Error checking
     if timesteps_per_hr < 1 or timesteps_per_hr > 60
@@ -115,11 +122,17 @@ class ResidentialSimulationControls < OpenStudio::Measure::ModelMeasure
       end
     end
 
-    success = Simulation.apply(model, runner, timesteps_per_hr, min_system_timestep_mins = nil, begin_month, begin_day_of_month, end_month, end_day_of_month)
+    if calendar_year < 1600 or calendar_year > 9999
+      runner.registerError("Your calendar year value of #{calendar_year} is not in the range 1600-9999.")
+      return false
+    end
+
+    success = Simulation.apply(model, runner, timesteps_per_hr, min_system_timestep_mins = nil, begin_month, begin_day_of_month, end_month, end_day_of_month, calendar_year)
     return false if not success
 
     runner.registerInfo("Set the simulation timesteps per hour to #{timesteps_per_hr}.")
     runner.registerInfo("Set the run period begin and end month/day to #{begin_month}/#{begin_day_of_month} and #{end_month}/#{end_day_of_month}, respectively.")
+    runner.registerInfo("Set the calendar year to #{model.getYearDescription.calendarYear} and the start day of week to #{model.getYearDescription.dayofWeekforStartDay}; if you are running with AMY, this will be overridden.")
 
     return true
   end
