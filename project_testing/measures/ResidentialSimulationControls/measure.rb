@@ -134,8 +134,6 @@ class ResidentialSimulationControls < OpenStudio::Measure::ModelMeasure
     runner.registerInfo("Set the run period begin and end month/day to #{begin_month}/#{begin_day_of_month} and #{end_month}/#{end_day_of_month}, respectively.")
     runner.registerInfo("Set the calendar year to #{model.getYearDescription.calendarYear} and the start day of week to #{model.getYearDescription.dayofWeekforStartDay}; if you are running with AMY, this will be overridden.")
 
-    puts model.getYearDescription.dayofWeekforStartDay
-
     return true
   end
 end
