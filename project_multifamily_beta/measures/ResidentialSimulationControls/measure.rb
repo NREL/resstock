@@ -25,12 +25,12 @@ class ResidentialSimulationControls < OpenStudio::Measure::ModelMeasure
 
   # human readable description
   def description
-    return 'Set the simulation timesteps per hour and the run period begin/end month/day.'
+    return 'Set the simulation timesteps per hour, the run period begin month/day and end month/day, and the calendar year (for start day of week).'
   end
 
   # human readable description of modeling approach
   def modeler_description
-    return 'Set the simulation timesteps per hour on the Timestep object, and the run period begin/end month/day on the RunPeriod object.'
+    return 'Set the simulation timesteps per hour on the Timestep object, the run period begin month/day and end month/day on the RunPeriod object, and the calendar year on the YearDescription object.'
   end
 
   # define the arguments that the user will input
@@ -40,36 +40,42 @@ class ResidentialSimulationControls < OpenStudio::Measure::ModelMeasure
     # make an argument for the simulation timesteps per hour
     arg = OpenStudio::Measure::OSArgument::makeIntegerArgument("timesteps_per_hr", true)
     arg.setDisplayName("Simulation Timesteps Per Hour")
+    arg.setDescription("The value entered here is the number of (zone) timesteps to use within an hour. For example a value of 6 entered here directs the program to use a zone timestep of 10 minutes and a value of 60 means a 1 minute timestep.")
     arg.setDefaultValue(6)
     args << arg
 
     # make an argument for the run period begin month
     arg = OpenStudio::Measure::OSArgument::makeIntegerArgument("begin_month", true)
     arg.setDisplayName("Run Period Begin Month")
+    arg.setDescription("This numeric field should contain the starting month number (1 = January, 2 = February, etc.) for the annual run period desired.")
     arg.setDefaultValue(1)
     args << arg
 
     # make an argument for the run period begin day of month
     arg = OpenStudio::Measure::OSArgument::makeIntegerArgument("begin_day_of_month", true)
     arg.setDisplayName("Run Period Begin Day of Month")
+    arg.setDescription("This numeric field should contain the starting day of the starting month (must be valid for month) for the annual run period desired.")
     arg.setDefaultValue(1)
     args << arg
 
     # make an argument for the run period end month
     arg = OpenStudio::Measure::OSArgument::makeIntegerArgument("end_month", true)
     arg.setDisplayName("Run Period End Month")
+    arg.setDescription("This numeric field should contain the ending month number (1 = January, 2 = February, etc.) for the annual run period desired.")
     arg.setDefaultValue(12)
     args << arg
 
     # make an argument for the run period end day of month
     arg = OpenStudio::Measure::OSArgument::makeIntegerArgument("end_day_of_month", true)
     arg.setDisplayName("Run Period End Day of Month")
+    arg.setDescription("This numeric field should contain the ending day of the ending month (must be valid for month) for the annual run period desired.")
     arg.setDefaultValue(31)
     args << arg
 
     # make an argument for the calendar year; this determines the day of week for start day
     arg = OpenStudio::Measure::OSArgument::makeIntegerArgument("calendar_year", true)
     arg.setDisplayName("Calendar Year")
+    arg.setDescription("This numeric field should contain the calendar year that determines the start day of week. If you are running simulations using AMY weather files, the value entered for calendar year will not be used; it will be overridden by the actual year found in the AMY weather file.")
     arg.setDefaultValue(2007)
     args << arg
 
@@ -132,7 +138,7 @@ class ResidentialSimulationControls < OpenStudio::Measure::ModelMeasure
 
     runner.registerInfo("Set the simulation timesteps per hour to #{timesteps_per_hr}.")
     runner.registerInfo("Set the run period begin and end month/day to #{begin_month}/#{begin_day_of_month} and #{end_month}/#{end_day_of_month}, respectively.")
-    runner.registerInfo("Set the calendar year to #{model.getYearDescription.calendarYear} and the start day of week to #{model.getYearDescription.dayofWeekforStartDay}; if you are running with AMY, this will be overridden.")
+    runner.registerInfo("Set the calendar year to #{model.getYearDescription.calendarYear} and the start day of week to #{model.getYearDescription.dayofWeekforStartDay}; if you are running with AMY, this will be overridden by the AMY year.")
 
     return true
   end
