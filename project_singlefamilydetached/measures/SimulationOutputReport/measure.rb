@@ -34,6 +34,8 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
   def energyPlusOutputRequests(runner, user_arguments)
     super(runner, user_arguments)
 
+    return OpenStudio::IdfObjectVector.new if runner.halted
+
     # get the last model and sql file
     model = runner.lastOpenStudioModel
     if model.empty?
