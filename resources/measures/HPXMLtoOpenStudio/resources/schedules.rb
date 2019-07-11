@@ -484,7 +484,6 @@ class HourlySchedule
 
     # Read data into hourly array
     hour = 0
-    # data = [0] * 8760
     data = [] # Generalize for any length
     File.open(file).each do |line|
       linedata = line.strip.split(',')
