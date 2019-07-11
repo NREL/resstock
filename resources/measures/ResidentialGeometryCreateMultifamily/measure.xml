@@ -2,12 +2,12 @@
   <schema_version>3.0</schema_version>
   <name>create_residential_multifamily_geometry</name>
   <uid>9bc07973-98a4-46fc-b643-e280628817c5</uid>
-  <version_id>57418f4c-8699-4ebe-aa3c-0e709c23ced7</version_id>
-  <version_modified>20190701T173018Z</version_modified>
+  <version_id>2aaa97fb-a303-4a14-b9c6-b57a8e0d2c36</version_id>
+  <version_modified>20190708T210918Z</version_modified>
   <xml_checksum>2AF3A68E</xml_checksum>
   <class_name>CreateResidentialMultifamilyGeometry</class_name>
   <display_name>CreateResidentialMultifamilyGeometry</display_name>
-  <description>Sets the geometry for a single unit in a multifamily building based on the user-specified location of the unit. Sets the number of bedrooms, bathrooms, and occupants in the unit. See https://github.com/NREL/OpenStudio-BEopt#workflows for supported workflows using this measure.</description>
+  <description>Sets the geometry for a single unit in a multifamily building based on the user-specified location of the unit. Sets the number of bedrooms, bathrooms, and occupants in the unit. See https://github.com/NREL/OpenStudio-BuildStock#workflows for supported workflows using this measure.</description>
   <modeler_description>Creates multifamily geometry for a single unit. Also, sets (or replaces) BuildingUnit objects that store the number of bedrooms and bathrooms associated with the model. Sets (or replaces) the People object for each finished space in the model.</modeler_description>
   <arguments>
     <argument>
@@ -194,7 +194,7 @@
       <display_name>Number of Bedrooms</display_name>
       <description>Specify the number of bedrooms. Used to determine the energy usage of appliances and plug loads, hot water usage, mechanical ventilation rate, etc.</description>
       <type>String</type>
-      <required>false</required>
+      <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>3</default_value>
     </argument>
@@ -203,7 +203,7 @@
       <display_name>Number of Bathrooms</display_name>
       <description>Specify the number of bathrooms. Used to determine the hot water usage, etc.</description>
       <type>String</type>
-      <required>false</required>
+      <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>2</default_value>
     </argument>
@@ -249,7 +249,7 @@
       <description>The minimum distance between the simulated house and the neighboring house to the left (not including eaves). A value of zero indicates no neighbors.</description>
       <type>Double</type>
       <units>ft</units>
-      <required>false</required>
+      <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>10</default_value>
     </argument>
@@ -259,7 +259,7 @@
       <description>The minimum distance between the simulated house and the neighboring house to the right (not including eaves). A value of zero indicates no neighbors.</description>
       <type>Double</type>
       <units>ft</units>
-      <required>false</required>
+      <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>10</default_value>
     </argument>
@@ -269,7 +269,7 @@
       <description>The minimum distance between the simulated house and the neighboring house to the back (not including eaves). A value of zero indicates no neighbors.</description>
       <type>Double</type>
       <units>ft</units>
-      <required>false</required>
+      <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>0</default_value>
     </argument>
@@ -279,7 +279,7 @@
       <description>The minimum distance between the simulated house and the neighboring house to the front (not including eaves). A value of zero indicates no neighbors.</description>
       <type>Double</type>
       <units>ft</units>
-      <required>false</required>
+      <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>0</default_value>
     </argument>
@@ -296,7 +296,7 @@
     <argument>
       <name>level</name>
       <display_name>Unit Level</display_name>
-      <description>The level of the unit (top, middle, bottom)</description>
+      <description>The level of the unit (Top, Middle, Bottom)</description>
       <type>String</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -305,30 +305,11 @@
     <argument>
       <name>horz_location</name>
       <display_name>Horizontal Location of the Unit</display_name>
-      <description>The horizontal location of the unit when viewwing the front of the building (left, middle, right)</description>
+      <description>The horizontal location of the unit when viewing the front of the building (Left, Middle, Right)</description>
       <type>String</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>Left</default_value>
-    </argument>
-    <argument>
-      <name>multi_story</name>
-      <display_name>Multi story boolean</display_name>
-      <description>Indicates if the building has more than one story</description>
-      <type>Boolean</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>true</default_value>
-      <choices>
-        <choice>
-          <value>true</value>
-          <display_name>true</display_name>
-        </choice>
-        <choice>
-          <value>false</value>
-          <display_name>false</display_name>
-        </choice>
-      </choices>
     </argument>
     <argument>
       <name>has_rear_units</name>
@@ -379,30 +360,6 @@
   </attributes>
   <files>
     <file>
-      <filename>LICENSE.md</filename>
-      <filetype>md</filetype>
-      <usage_type>license</usage_type>
-      <checksum>CD7F5672</checksum>
-    </file>
-    <file>
-      <filename>README.md.erb</filename>
-      <filetype>erb</filetype>
-      <usage_type>readmeerb</usage_type>
-      <checksum>703C9964</checksum>
-    </file>
-    <file>
-      <filename>.gitkeep</filename>
-      <filetype>gitkeep</filetype>
-      <usage_type>doc</usage_type>
-      <checksum>00000000</checksum>
-    </file>
-    <file>
-      <filename>example_model.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>53D14E69</checksum>
-    </file>
-    <file>
       <version>
         <software_program>OpenStudio</software_program>
         <identifier>2.7.0</identifier>
@@ -411,10 +368,10 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>06008287</checksum>
+      <checksum>C715A642</checksum>
     </file>
     <file>
-      <filename>residential_geometry_create_single_unit_test.rb</filename>
+      <filename>create_residential_multifamily_geometry_test.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
       <checksum>F9BEFD4B</checksum>

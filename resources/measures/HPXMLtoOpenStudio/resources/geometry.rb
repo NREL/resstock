@@ -681,12 +681,12 @@ class Geometry
     surfaces = []
     model.getSurfaces.each do |surface|
       next if not surface.surfaceType.downcase == "wall"
-      next if surface.outsideBoundaryCondition.downcase != "outdoors"
-
+      next if (surface.outsideBoundaryCondition.downcase != "outdoors") and (surface.outsideBoundaryCondition.downcase != "adiabatic")
+      # next if surface.outsideBoundaryCondition.downcase == "foundation"
       surfaces << surface
     end
     model_edges = self.get_edges_for_surfaces(surfaces, false)
-
+    
     # compare edges for overlap
     ground_edges.each do |e1|
       model_edges.each do |e2|
