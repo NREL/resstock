@@ -1003,7 +1003,6 @@ class ResidentialMiscLargeUncommonLoads < OpenStudio::Measure::ModelMeasure
         end
 
       end
-
     end
 
     # Reporting
