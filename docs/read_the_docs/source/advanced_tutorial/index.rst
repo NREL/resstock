@@ -1,3 +1,5 @@
+.. _advanced_tutorial:
+
 Advanced Tutorial
 #################
 

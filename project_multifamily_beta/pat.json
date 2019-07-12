@@ -133,17 +133,17 @@
     {
       "measure_dir": "C:\\OpenStudio\\OpenStudio-BuildStock\\project_multifamily_beta\\measures\\ResidentialSimulationControls",
       "name": "residential_simulation_controls",
-      "directory": "C:\\OpenStudio\\OpenStudio-BuildStock\\project_multifamily_beta\\measures\\ResidentialSimulationControls",
+      "directory": "C:/OpenStudio/OpenStudio-BuildStock/measures/ResidentialSimulationControls",
       "uid": "874f921e-8f3c-458a-a82f-01b7d51a547e",
       "uuid": "{874f921e-8f3c-458a-a82f-01b7d51a547e}",
-      "version_id": "90763e60-9376-4551-bf78-47dfbab16921",
-      "version_uuid": "{90763e60-9376-4551-bf78-47dfbab16921}",
-      "version_modified": "20190516T155920Z",
+      "version_id": "b9258fa8-94ae-4f8e-b4f3-af203eae89cc",
+      "version_uuid": "{b9258fa8-94ae-4f8e-b4f3-af203eae89cc}",
+      "version_modified": "20190709T162534Z",
       "xml_checksum": "2C38F48B",
       "display_name": "Set Residential Simulation Controls",
       "class_name": "ResidentialSimulationControls",
-      "description": "Set the simulation timesteps per hour and the run period begin/end month/day.",
-      "modeler_description": "Set the simulation timesteps per hour on the Timestep object, and the run period begin/end month/day on the RunPeriod object.",
+      "description": "Set the simulation timesteps per hour, the run period begin month/day and end month/day, and the calendar year (for start day of week).",
+      "modeler_description": "Set the simulation timesteps per hour on the Timestep object, the run period begin month/day and end month/day on the RunPeriod object, and the calendar year on the YearDescription object.",
       "tags": "Whole Building.Space Types",
       "outputs": [],
       "attributes": [
@@ -157,7 +157,7 @@
         {
           "name": "timesteps_per_hr",
           "display_name": "Simulation Timesteps Per Hour",
-          "description": "",
+          "description": "The value entered here is the number of (zone) timesteps to use within an hour. For example a value of 6 entered here directs the program to use a zone timestep of 10 minutes and a value of 60 means a 1 minute timestep.",
           "type": "Integer",
           "required": true,
           "model_dependent": false,
@@ -176,12 +176,12 @@
             "stdDev": 6,
             "default_value": 6
           },
-          "$$hashKey": "object:7133"
+          "$$hashKey": "object:11290"
         },
         {
           "name": "begin_month",
           "display_name": "Run Period Begin Month",
-          "description": "",
+          "description": "This numeric field should contain the starting month number (1 = January, 2 = February, etc.) for the annual run period desired.",
           "type": "Integer",
           "required": true,
           "model_dependent": false,
@@ -200,12 +200,12 @@
             "stdDev": 1,
             "default_value": 1
           },
-          "$$hashKey": "object:7134"
+          "$$hashKey": "object:11291"
         },
         {
           "name": "begin_day_of_month",
           "display_name": "Run Period Begin Day of Month",
-          "description": "",
+          "description": "This numeric field should contain the starting day of the starting month (must be valid for month) for the annual run period desired.",
           "type": "Integer",
           "required": true,
           "model_dependent": false,
@@ -224,12 +224,12 @@
             "stdDev": 1,
             "default_value": 1
           },
-          "$$hashKey": "object:7135"
+          "$$hashKey": "object:11292"
         },
         {
           "name": "end_month",
           "display_name": "Run Period End Month",
-          "description": "",
+          "description": "This numeric field should contain the ending month number (1 = January, 2 = February, etc.) for the annual run period desired.",
           "type": "Integer",
           "required": true,
           "model_dependent": false,
@@ -248,12 +248,12 @@
             "stdDev": 12,
             "default_value": 12
           },
-          "$$hashKey": "object:7136"
+          "$$hashKey": "object:11293"
         },
         {
           "name": "end_day_of_month",
           "display_name": "Run Period End Day of Month",
-          "description": "",
+          "description": "This numeric field should contain the ending day of the ending month (must be valid for month) for the annual run period desired.",
           "type": "Integer",
           "required": true,
           "model_dependent": false,
@@ -272,7 +272,31 @@
             "stdDev": 31,
             "default_value": 31
           },
-          "$$hashKey": "object:7137"
+          "$$hashKey": "object:11294"
+        },
+        {
+          "name": "calendar_year",
+          "display_name": "Calendar Year",
+          "description": "This numeric field should contain the calendar year that determines the start day of week. If you are running simulations using AMY weather files, the value entered for calendar year will not be used; it will be overridden by the actual year found in the AMY weather file.",
+          "type": "Integer",
+          "required": true,
+          "model_dependent": false,
+          "default_value": 2007,
+          "display_name_short": "calendar_year",
+          "inputs": {
+            "relationship": null,
+            "choiceDisplayNames": [],
+            "variableSetting": "Argument",
+            "distribution": "Uniform",
+            "discreteVariables": [],
+            "maximum": 2007,
+            "minimum": 2007,
+            "mean": 2007,
+            "deltaX": 2007,
+            "stdDev": 2007,
+            "default_value": 2007
+          },
+          "$$hashKey": "object:11295"
         }
       ],
       "edit": "",
@@ -282,16 +306,15 @@
       "add": "",
       "open": false,
       "addedToProject": true,
-      "date": "5/16/2019",
+      "date": "7/9/2019",
       "author": "",
       "type": "ModelMeasure",
       "seed": "EmptySeedModel.osm",
       "workflow_index": 0,
       "options": [],
-      "instanceId": 0.8103616704903929,
+      "instanceId": 0.7542375384979718,
       "skip": false,
-      "$$hashKey": "object:6880",
-      "outputMeasure": false
+      "$$hashKey": "object:11247"
     },
     {
       "measure_dir": "C:\\OpenStudio\\OpenStudio-BuildStock\\project_multifamily_beta\\measures\\BuildExistingModel",
@@ -447,7 +470,7 @@
       "seed": "EmptySeedModel.osm",
       "workflow_index": 1,
       "options": [],
-      "instanceId": 0.7107282761754976,
+      "instanceId": 0.24741848880293138,
       "skip": false,
       "$$hashKey": "object:6879",
       "showWarningText": false,
@@ -5939,7 +5962,7 @@
       "seed": "EmptySeedModel.osm",
       "workflow_index": 2,
       "options": [],
-      "instanceId": 0.9187395371167508,
+      "instanceId": 0.7314676349808951,
       "skip": false,
       "$$hashKey": "object:10377",
       "showWarningText": false,
@@ -11431,7 +11454,7 @@
       "seed": "EmptySeedModel.osm",
       "workflow_index": 3,
       "options": [],
-      "instanceId": 0.4265139963275466,
+      "instanceId": 0.412923586657054,
       "skip": false,
       "showWarningText": false,
       "$$hashKey": "object:15259",
@@ -11440,12 +11463,12 @@
     {
       "measure_dir": "C:\\OpenStudio\\OpenStudio-BuildStock\\project_multifamily_beta\\measures\\BuildingCharacteristicsReport",
       "name": "building_characteristics_report",
-      "directory": "C:/OpenStudio/OpenStudio-BuildStock/measures/BuildingCharacteristicsReport",
+      "directory": "C:\\OpenStudio\\OpenStudio-BuildStock\\project_multifamily_beta\\measures\\BuildingCharacteristicsReport",
       "uid": "90eecbe2-d8e2-47db-9079-5d9029fb3e67",
       "uuid": "{90eecbe2-d8e2-47db-9079-5d9029fb3e67}",
-      "version_id": "be6b4f86-56e8-4b7f-a377-ec6114851ba0",
-      "version_uuid": "{be6b4f86-56e8-4b7f-a377-ec6114851ba0}",
-      "version_modified": "20190620T200840Z",
+      "version_id": "d134ad9d-9108-43b7-8663-2075ab8be6d5",
+      "version_uuid": "{d134ad9d-9108-43b7-8663-2075ab8be6d5}",
+      "version_modified": "20190607T201256Z",
       "xml_checksum": "2EA103AF",
       "display_name": "Building Characteristics Report",
       "class_name": "BuildingCharacteristicsReport",
@@ -11460,7 +11483,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12455",
+          "$$hashKey": "object:22675",
           "checked": true,
           "visualize": "true"
         },
@@ -11471,7 +11494,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12456",
+          "$$hashKey": "object:22676",
           "checked": true,
           "visualize": "true"
         },
@@ -11482,7 +11505,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12457",
+          "$$hashKey": "object:22677",
           "checked": true,
           "visualize": "true"
         },
@@ -11493,7 +11516,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12458",
+          "$$hashKey": "object:22678",
           "checked": true,
           "visualize": "true"
         },
@@ -11504,7 +11527,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12459",
+          "$$hashKey": "object:22679",
           "checked": true,
           "visualize": "true"
         },
@@ -11515,7 +11538,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12460",
+          "$$hashKey": "object:22680",
           "checked": true,
           "visualize": "true"
         },
@@ -11526,7 +11549,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12461",
+          "$$hashKey": "object:22681",
           "checked": true,
           "visualize": "true"
         },
@@ -11537,7 +11560,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12462",
+          "$$hashKey": "object:22682",
           "checked": true,
           "visualize": "true"
         },
@@ -11548,7 +11571,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12463",
+          "$$hashKey": "object:22683",
           "checked": true,
           "visualize": "true"
         },
@@ -11559,7 +11582,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12464",
+          "$$hashKey": "object:22684",
           "checked": true,
           "visualize": "true"
         },
@@ -11570,7 +11593,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12465",
+          "$$hashKey": "object:22685",
           "checked": true,
           "visualize": "true"
         },
@@ -11581,7 +11604,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12466",
+          "$$hashKey": "object:22686",
           "checked": true,
           "visualize": "true"
         },
@@ -11592,7 +11615,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12467",
+          "$$hashKey": "object:22687",
           "checked": true,
           "visualize": "true"
         },
@@ -11603,7 +11626,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12468",
+          "$$hashKey": "object:22688",
           "checked": true,
           "visualize": "true"
         },
@@ -11614,7 +11637,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12469",
+          "$$hashKey": "object:22689",
           "checked": true,
           "visualize": "true"
         },
@@ -11625,7 +11648,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12470",
+          "$$hashKey": "object:22690",
           "checked": true,
           "visualize": "true"
         },
@@ -11636,7 +11659,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12471",
+          "$$hashKey": "object:22691",
           "checked": true,
           "visualize": "true"
         },
@@ -11647,7 +11670,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12472",
+          "$$hashKey": "object:22692",
           "checked": true,
           "visualize": "true"
         },
@@ -11658,7 +11681,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12473",
+          "$$hashKey": "object:22693",
           "checked": true,
           "visualize": "true"
         },
@@ -11669,7 +11692,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12474",
+          "$$hashKey": "object:22694",
           "checked": true,
           "visualize": "true"
         },
@@ -11680,7 +11703,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12475",
+          "$$hashKey": "object:22695",
           "checked": true,
           "visualize": "true"
         },
@@ -11691,7 +11714,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12476",
+          "$$hashKey": "object:22696",
           "checked": true,
           "visualize": "true"
         },
@@ -11702,7 +11725,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12477",
+          "$$hashKey": "object:22697",
           "checked": true,
           "visualize": "true"
         },
@@ -11713,7 +11736,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12478",
+          "$$hashKey": "object:22698",
           "checked": true,
           "visualize": "true"
         },
@@ -11724,7 +11747,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12479",
+          "$$hashKey": "object:22699",
           "checked": true,
           "visualize": "true"
         },
@@ -11735,7 +11758,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12480",
+          "$$hashKey": "object:22700",
           "checked": true,
           "visualize": "true"
         },
@@ -11746,7 +11769,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12481",
+          "$$hashKey": "object:22701",
           "checked": true,
           "visualize": "true"
         },
@@ -11757,7 +11780,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12482",
+          "$$hashKey": "object:22702",
           "checked": true,
           "visualize": "true"
         },
@@ -11768,7 +11791,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12483",
+          "$$hashKey": "object:22703",
           "checked": true,
           "visualize": "true"
         },
@@ -11779,7 +11802,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12484",
+          "$$hashKey": "object:22704",
           "checked": true,
           "visualize": "true"
         },
@@ -11790,7 +11813,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12485",
+          "$$hashKey": "object:22705",
           "checked": true,
           "visualize": "true"
         },
@@ -11801,7 +11824,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12486",
+          "$$hashKey": "object:22706",
           "checked": true,
           "visualize": "true"
         },
@@ -11812,7 +11835,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12487",
+          "$$hashKey": "object:22707",
           "checked": true,
           "visualize": "true"
         },
@@ -11823,7 +11846,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12488",
+          "$$hashKey": "object:22708",
           "checked": true,
           "visualize": "true"
         },
@@ -11834,7 +11857,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12489",
+          "$$hashKey": "object:22709",
           "checked": true,
           "visualize": "true"
         },
@@ -11845,7 +11868,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12490",
+          "$$hashKey": "object:22710",
           "checked": true,
           "visualize": "true"
         },
@@ -11856,7 +11879,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12491",
+          "$$hashKey": "object:22711",
           "checked": true,
           "visualize": "true"
         },
@@ -11867,7 +11890,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12492",
+          "$$hashKey": "object:22712",
           "checked": true,
           "visualize": "true"
         },
@@ -11878,7 +11901,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12493",
+          "$$hashKey": "object:22713",
           "checked": true,
           "visualize": "true"
         },
@@ -11889,7 +11912,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12494",
+          "$$hashKey": "object:22714",
           "checked": true,
           "visualize": "true"
         },
@@ -11900,7 +11923,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12495",
+          "$$hashKey": "object:22715",
           "checked": true,
           "visualize": "true"
         },
@@ -11911,7 +11934,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12496",
+          "$$hashKey": "object:22716",
           "checked": true,
           "visualize": "true"
         },
@@ -11922,7 +11945,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12497",
+          "$$hashKey": "object:22717",
           "checked": true,
           "visualize": "true"
         },
@@ -11933,7 +11956,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12498",
+          "$$hashKey": "object:22718",
           "checked": true,
           "visualize": "true"
         },
@@ -11944,7 +11967,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12499",
+          "$$hashKey": "object:22719",
           "checked": true,
           "visualize": "true"
         },
@@ -11955,7 +11978,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12500",
+          "$$hashKey": "object:22720",
           "checked": true,
           "visualize": "true"
         },
@@ -11966,7 +11989,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12501",
+          "$$hashKey": "object:22721",
           "checked": true,
           "visualize": "true"
         },
@@ -11977,7 +12000,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12502",
+          "$$hashKey": "object:22722",
           "checked": true,
           "visualize": "true"
         },
@@ -11988,7 +12011,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12503",
+          "$$hashKey": "object:22723",
           "checked": true,
           "visualize": "true"
         },
@@ -11999,7 +12022,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12504",
+          "$$hashKey": "object:22724",
           "checked": true,
           "visualize": "true"
         },
@@ -12010,7 +12033,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12505",
+          "$$hashKey": "object:22725",
           "checked": true,
           "visualize": "true"
         },
@@ -12021,7 +12044,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12506",
+          "$$hashKey": "object:22726",
           "checked": true,
           "visualize": "true"
         },
@@ -12032,7 +12055,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12507",
+          "$$hashKey": "object:22727",
           "checked": true,
           "visualize": "true"
         },
@@ -12043,7 +12066,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12508",
+          "$$hashKey": "object:22728",
           "checked": true,
           "visualize": "true"
         },
@@ -12054,7 +12077,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12509",
+          "$$hashKey": "object:22729",
           "checked": true,
           "visualize": "true"
         },
@@ -12065,7 +12088,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12510",
+          "$$hashKey": "object:22730",
           "checked": true,
           "visualize": "true"
         },
@@ -12076,7 +12099,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12511",
+          "$$hashKey": "object:22731",
           "checked": true,
           "visualize": "true"
         },
@@ -12087,7 +12110,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12512",
+          "$$hashKey": "object:22732",
           "checked": true,
           "visualize": "true"
         },
@@ -12098,7 +12121,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12513",
+          "$$hashKey": "object:22733",
           "checked": true,
           "visualize": "true"
         },
@@ -12109,7 +12132,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12514",
+          "$$hashKey": "object:22734",
           "checked": true,
           "visualize": "true"
         },
@@ -12120,7 +12143,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12515",
+          "$$hashKey": "object:22735",
           "checked": true,
           "visualize": "true"
         },
@@ -12131,7 +12154,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12516",
+          "$$hashKey": "object:22736",
           "checked": true,
           "visualize": "true"
         },
@@ -12142,7 +12165,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12517",
+          "$$hashKey": "object:22737",
           "checked": true,
           "visualize": "true"
         },
@@ -12153,7 +12176,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12518",
+          "$$hashKey": "object:22738",
           "checked": true,
           "visualize": "true"
         },
@@ -12164,7 +12187,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12519",
+          "$$hashKey": "object:22739",
           "checked": true,
           "visualize": "true"
         },
@@ -12175,7 +12198,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12520",
+          "$$hashKey": "object:22740",
           "checked": true,
           "visualize": "true"
         },
@@ -12186,7 +12209,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12521",
+          "$$hashKey": "object:22741",
           "checked": true,
           "visualize": "true"
         },
@@ -12197,7 +12220,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12522",
+          "$$hashKey": "object:22742",
           "checked": true,
           "visualize": "true"
         },
@@ -12208,7 +12231,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12523",
+          "$$hashKey": "object:22743",
           "checked": true,
           "visualize": "true"
         },
@@ -12219,7 +12242,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12524",
+          "$$hashKey": "object:22744",
           "checked": true,
           "visualize": "true"
         },
@@ -12230,7 +12253,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12525",
+          "$$hashKey": "object:22745",
           "checked": true,
           "visualize": "true"
         },
@@ -12241,7 +12264,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12526",
+          "$$hashKey": "object:22746",
           "checked": true,
           "visualize": "true"
         },
@@ -12252,7 +12275,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12527",
+          "$$hashKey": "object:22747",
           "checked": true,
           "visualize": "true"
         },
@@ -12263,18 +12286,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12528",
-          "checked": true,
-          "visualize": "true"
-        },
-        {
-          "name": "setpoint_demand_response",
-          "display_name": "setpoint_demand_response",
-          "short_name": "setpoint_demand_response",
-          "description": "",
-          "type": "String",
-          "model_dependent": false,
-          "$$hashKey": "object:12529",
+          "$$hashKey": "object:22748",
           "checked": true,
           "visualize": "true"
         },
@@ -12285,7 +12297,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12530",
+          "$$hashKey": "object:22749",
           "checked": true,
           "visualize": "true"
         },
@@ -12296,7 +12308,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12531",
+          "$$hashKey": "object:22750",
           "checked": true,
           "visualize": "true"
         },
@@ -12307,7 +12319,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12532",
+          "$$hashKey": "object:22751",
           "checked": true,
           "visualize": "true"
         },
@@ -12318,7 +12330,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12533",
+          "$$hashKey": "object:22752",
           "checked": true,
           "visualize": "true"
         },
@@ -12329,7 +12341,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12534",
+          "$$hashKey": "object:22753",
           "checked": true,
           "visualize": "true"
         },
@@ -12340,7 +12352,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12535",
+          "$$hashKey": "object:22754",
           "checked": true,
           "visualize": "true"
         },
@@ -12351,7 +12363,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12536",
+          "$$hashKey": "object:22755",
           "checked": true,
           "visualize": "true"
         },
@@ -12362,7 +12374,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12537",
+          "$$hashKey": "object:22756",
           "checked": true,
           "visualize": "true"
         },
@@ -12373,7 +12385,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12538",
+          "$$hashKey": "object:22757",
           "checked": true,
           "visualize": "true"
         },
@@ -12384,7 +12396,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12539",
+          "$$hashKey": "object:22758",
           "checked": true,
           "visualize": "true"
         },
@@ -12395,7 +12407,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12540",
+          "$$hashKey": "object:22759",
           "checked": true,
           "visualize": "true"
         },
@@ -12406,7 +12418,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12541",
+          "$$hashKey": "object:22760",
           "checked": true,
           "visualize": "true"
         },
@@ -12417,7 +12429,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12542",
+          "$$hashKey": "object:22761",
           "checked": true,
           "visualize": "true"
         },
@@ -12428,7 +12440,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12543",
+          "$$hashKey": "object:22762",
           "checked": true,
           "visualize": "true"
         },
@@ -12439,7 +12451,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12544",
+          "$$hashKey": "object:22763",
           "checked": true,
           "visualize": "true"
         },
@@ -12450,7 +12462,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12545",
+          "$$hashKey": "object:22764",
           "checked": true,
           "visualize": "true"
         },
@@ -12461,7 +12473,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12546",
+          "$$hashKey": "object:22765",
           "checked": true,
           "visualize": "true"
         },
@@ -12472,7 +12484,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12547",
+          "$$hashKey": "object:22766",
           "checked": true,
           "visualize": "true"
         },
@@ -12483,7 +12495,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12548",
+          "$$hashKey": "object:22767",
           "checked": true,
           "visualize": "true"
         },
@@ -12494,7 +12506,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12549",
+          "$$hashKey": "object:22768",
           "checked": true,
           "visualize": "true"
         },
@@ -12505,7 +12517,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12550",
+          "$$hashKey": "object:22769",
           "checked": true,
           "visualize": "true"
         },
@@ -12516,7 +12528,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12551",
+          "$$hashKey": "object:22770",
           "checked": true,
           "visualize": "true"
         },
@@ -12527,7 +12539,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12552",
+          "$$hashKey": "object:22771",
           "checked": true,
           "visualize": "true"
         },
@@ -12538,7 +12550,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12553",
+          "$$hashKey": "object:22772",
           "checked": true,
           "visualize": "true"
         },
@@ -12549,7 +12561,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12554",
+          "$$hashKey": "object:22773",
           "checked": true,
           "visualize": "true"
         },
@@ -12560,7 +12572,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12555",
+          "$$hashKey": "object:22774",
           "checked": true,
           "visualize": "true"
         },
@@ -12571,7 +12583,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12556",
+          "$$hashKey": "object:22775",
           "checked": true,
           "visualize": "true"
         },
@@ -12582,7 +12594,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12557",
+          "$$hashKey": "object:22776",
           "checked": true,
           "visualize": "true"
         },
@@ -12593,7 +12605,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12558",
+          "$$hashKey": "object:22777",
           "checked": true,
           "visualize": "true"
         },
@@ -12604,7 +12616,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12559",
+          "$$hashKey": "object:22778",
           "checked": true,
           "visualize": "true"
         },
@@ -12615,7 +12627,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12560",
+          "$$hashKey": "object:22779",
           "checked": true,
           "visualize": "true"
         },
@@ -12626,7 +12638,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12561",
+          "$$hashKey": "object:22780",
           "checked": true,
           "visualize": "true"
         },
@@ -12637,7 +12649,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12562",
+          "$$hashKey": "object:22781",
           "checked": true,
           "visualize": "true"
         },
@@ -12648,7 +12660,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12563",
+          "$$hashKey": "object:22782",
           "checked": true,
           "visualize": "true"
         },
@@ -12659,7 +12671,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12564",
+          "$$hashKey": "object:22783",
           "checked": true,
           "visualize": "true"
         },
@@ -12670,7 +12682,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12565",
+          "$$hashKey": "object:22784",
           "checked": true,
           "visualize": "true"
         }
@@ -12695,15 +12707,15 @@
       "add": "",
       "open": false,
       "addedToProject": true,
-      "date": "6/20/2019",
+      "date": "6/7/2019",
       "author": "",
       "type": "ReportingMeasure",
       "seed": "EmptySeedModel.osm",
       "workflow_index": 4,
       "options": [],
-      "instanceId": 0.025063576905389073,
+      "instanceId": 0.20418459784129017,
       "skip": false,
-      "$$hashKey": "object:12196",
+      "$$hashKey": "object:20039",
       "outputMeasure": true,
       "userDefinedOutputs": [],
       "analysisOutputs": [
@@ -12714,7 +12726,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12455",
+          "$$hashKey": "object:22675",
           "checked": true,
           "visualize": "true"
         },
@@ -12725,7 +12737,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12456",
+          "$$hashKey": "object:22676",
           "checked": true,
           "visualize": "true"
         },
@@ -12736,7 +12748,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12457",
+          "$$hashKey": "object:22677",
           "checked": true,
           "visualize": "true"
         },
@@ -12747,7 +12759,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12458",
+          "$$hashKey": "object:22678",
           "checked": true,
           "visualize": "true"
         },
@@ -12758,7 +12770,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12459",
+          "$$hashKey": "object:22679",
           "checked": true,
           "visualize": "true"
         },
@@ -12769,7 +12781,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12460",
+          "$$hashKey": "object:22680",
           "checked": true,
           "visualize": "true"
         },
@@ -12780,7 +12792,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12461",
+          "$$hashKey": "object:22681",
           "checked": true,
           "visualize": "true"
         },
@@ -12791,7 +12803,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12462",
+          "$$hashKey": "object:22682",
           "checked": true,
           "visualize": "true"
         },
@@ -12802,7 +12814,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12463",
+          "$$hashKey": "object:22683",
           "checked": true,
           "visualize": "true"
         },
@@ -12813,7 +12825,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12464",
+          "$$hashKey": "object:22684",
           "checked": true,
           "visualize": "true"
         },
@@ -12824,7 +12836,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12465",
+          "$$hashKey": "object:22685",
           "checked": true,
           "visualize": "true"
         },
@@ -12835,7 +12847,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12466",
+          "$$hashKey": "object:22686",
           "checked": true,
           "visualize": "true"
         },
@@ -12846,7 +12858,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12467",
+          "$$hashKey": "object:22687",
           "checked": true,
           "visualize": "true"
         },
@@ -12857,7 +12869,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12468",
+          "$$hashKey": "object:22688",
           "checked": true,
           "visualize": "true"
         },
@@ -12868,7 +12880,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12469",
+          "$$hashKey": "object:22689",
           "checked": true,
           "visualize": "true"
         },
@@ -12879,7 +12891,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12470",
+          "$$hashKey": "object:22690",
           "checked": true,
           "visualize": "true"
         },
@@ -12890,7 +12902,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12471",
+          "$$hashKey": "object:22691",
           "checked": true,
           "visualize": "true"
         },
@@ -12901,7 +12913,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12472",
+          "$$hashKey": "object:22692",
           "checked": true,
           "visualize": "true"
         },
@@ -12912,7 +12924,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12473",
+          "$$hashKey": "object:22693",
           "checked": true,
           "visualize": "true"
         },
@@ -12923,7 +12935,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12474",
+          "$$hashKey": "object:22694",
           "checked": true,
           "visualize": "true"
         },
@@ -12934,7 +12946,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12475",
+          "$$hashKey": "object:22695",
           "checked": true,
           "visualize": "true"
         },
@@ -12945,7 +12957,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12476",
+          "$$hashKey": "object:22696",
           "checked": true,
           "visualize": "true"
         },
@@ -12956,7 +12968,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12477",
+          "$$hashKey": "object:22697",
           "checked": true,
           "visualize": "true"
         },
@@ -12967,7 +12979,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12478",
+          "$$hashKey": "object:22698",
           "checked": true,
           "visualize": "true"
         },
@@ -12978,7 +12990,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12479",
+          "$$hashKey": "object:22699",
           "checked": true,
           "visualize": "true"
         },
@@ -12989,7 +13001,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12480",
+          "$$hashKey": "object:22700",
           "checked": true,
           "visualize": "true"
         },
@@ -13000,7 +13012,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12481",
+          "$$hashKey": "object:22701",
           "checked": true,
           "visualize": "true"
         },
@@ -13011,7 +13023,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12482",
+          "$$hashKey": "object:22702",
           "checked": true,
           "visualize": "true"
         },
@@ -13022,7 +13034,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12483",
+          "$$hashKey": "object:22703",
           "checked": true,
           "visualize": "true"
         },
@@ -13033,7 +13045,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12484",
+          "$$hashKey": "object:22704",
           "checked": true,
           "visualize": "true"
         },
@@ -13044,7 +13056,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12485",
+          "$$hashKey": "object:22705",
           "checked": true,
           "visualize": "true"
         },
@@ -13055,7 +13067,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12486",
+          "$$hashKey": "object:22706",
           "checked": true,
           "visualize": "true"
         },
@@ -13066,7 +13078,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12487",
+          "$$hashKey": "object:22707",
           "checked": true,
           "visualize": "true"
         },
@@ -13077,7 +13089,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12488",
+          "$$hashKey": "object:22708",
           "checked": true,
           "visualize": "true"
         },
@@ -13088,7 +13100,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12489",
+          "$$hashKey": "object:22709",
           "checked": true,
           "visualize": "true"
         },
@@ -13099,7 +13111,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12490",
+          "$$hashKey": "object:22710",
           "checked": true,
           "visualize": "true"
         },
@@ -13110,7 +13122,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12491",
+          "$$hashKey": "object:22711",
           "checked": true,
           "visualize": "true"
         },
@@ -13121,7 +13133,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12492",
+          "$$hashKey": "object:22712",
           "checked": true,
           "visualize": "true"
         },
@@ -13132,7 +13144,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12493",
+          "$$hashKey": "object:22713",
           "checked": true,
           "visualize": "true"
         },
@@ -13143,7 +13155,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12494",
+          "$$hashKey": "object:22714",
           "checked": true,
           "visualize": "true"
         },
@@ -13154,7 +13166,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12495",
+          "$$hashKey": "object:22715",
           "checked": true,
           "visualize": "true"
         },
@@ -13165,7 +13177,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12496",
+          "$$hashKey": "object:22716",
           "checked": true,
           "visualize": "true"
         },
@@ -13176,7 +13188,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12497",
+          "$$hashKey": "object:22717",
           "checked": true,
           "visualize": "true"
         },
@@ -13187,7 +13199,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12498",
+          "$$hashKey": "object:22718",
           "checked": true,
           "visualize": "true"
         },
@@ -13198,7 +13210,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12499",
+          "$$hashKey": "object:22719",
           "checked": true,
           "visualize": "true"
         },
@@ -13209,7 +13221,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12500",
+          "$$hashKey": "object:22720",
           "checked": true,
           "visualize": "true"
         },
@@ -13220,7 +13232,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12501",
+          "$$hashKey": "object:22721",
           "checked": true,
           "visualize": "true"
         },
@@ -13231,7 +13243,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12502",
+          "$$hashKey": "object:22722",
           "checked": true,
           "visualize": "true"
         },
@@ -13242,7 +13254,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12503",
+          "$$hashKey": "object:22723",
           "checked": true,
           "visualize": "true"
         },
@@ -13253,7 +13265,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12504",
+          "$$hashKey": "object:22724",
           "checked": true,
           "visualize": "true"
         },
@@ -13264,7 +13276,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12505",
+          "$$hashKey": "object:22725",
           "checked": true,
           "visualize": "true"
         },
@@ -13275,7 +13287,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12506",
+          "$$hashKey": "object:22726",
           "checked": true,
           "visualize": "true"
         },
@@ -13286,7 +13298,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12507",
+          "$$hashKey": "object:22727",
           "checked": true,
           "visualize": "true"
         },
@@ -13297,7 +13309,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12508",
+          "$$hashKey": "object:22728",
           "checked": true,
           "visualize": "true"
         },
@@ -13308,7 +13320,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12509",
+          "$$hashKey": "object:22729",
           "checked": true,
           "visualize": "true"
         },
@@ -13319,7 +13331,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12510",
+          "$$hashKey": "object:22730",
           "checked": true,
           "visualize": "true"
         },
@@ -13330,7 +13342,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12511",
+          "$$hashKey": "object:22731",
           "checked": true,
           "visualize": "true"
         },
@@ -13341,7 +13353,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12512",
+          "$$hashKey": "object:22732",
           "checked": true,
           "visualize": "true"
         },
@@ -13352,7 +13364,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12513",
+          "$$hashKey": "object:22733",
           "checked": true,
           "visualize": "true"
         },
@@ -13363,7 +13375,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12514",
+          "$$hashKey": "object:22734",
           "checked": true,
           "visualize": "true"
         },
@@ -13374,7 +13386,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12515",
+          "$$hashKey": "object:22735",
           "checked": true,
           "visualize": "true"
         },
@@ -13385,7 +13397,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12516",
+          "$$hashKey": "object:22736",
           "checked": true,
           "visualize": "true"
         },
@@ -13396,7 +13408,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12517",
+          "$$hashKey": "object:22737",
           "checked": true,
           "visualize": "true"
         },
@@ -13407,7 +13419,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12518",
+          "$$hashKey": "object:22738",
           "checked": true,
           "visualize": "true"
         },
@@ -13418,7 +13430,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12519",
+          "$$hashKey": "object:22739",
           "checked": true,
           "visualize": "true"
         },
@@ -13429,7 +13441,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12520",
+          "$$hashKey": "object:22740",
           "checked": true,
           "visualize": "true"
         },
@@ -13440,7 +13452,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12521",
+          "$$hashKey": "object:22741",
           "checked": true,
           "visualize": "true"
         },
@@ -13451,7 +13463,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12522",
+          "$$hashKey": "object:22742",
           "checked": true,
           "visualize": "true"
         },
@@ -13462,7 +13474,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12523",
+          "$$hashKey": "object:22743",
           "checked": true,
           "visualize": "true"
         },
@@ -13473,7 +13485,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12524",
+          "$$hashKey": "object:22744",
           "checked": true,
           "visualize": "true"
         },
@@ -13484,7 +13496,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12525",
+          "$$hashKey": "object:22745",
           "checked": true,
           "visualize": "true"
         },
@@ -13495,7 +13507,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12526",
+          "$$hashKey": "object:22746",
           "checked": true,
           "visualize": "true"
         },
@@ -13506,7 +13518,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12527",
+          "$$hashKey": "object:22747",
           "checked": true,
           "visualize": "true"
         },
@@ -13517,18 +13529,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12528",
-          "checked": true,
-          "visualize": "true"
-        },
-        {
-          "name": "setpoint_demand_response",
-          "display_name": "setpoint_demand_response",
-          "short_name": "setpoint_demand_response",
-          "description": "",
-          "type": "String",
-          "model_dependent": false,
-          "$$hashKey": "object:12529",
+          "$$hashKey": "object:22748",
           "checked": true,
           "visualize": "true"
         },
@@ -13539,7 +13540,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12530",
+          "$$hashKey": "object:22749",
           "checked": true,
           "visualize": "true"
         },
@@ -13550,7 +13551,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12531",
+          "$$hashKey": "object:22750",
           "checked": true,
           "visualize": "true"
         },
@@ -13561,7 +13562,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12532",
+          "$$hashKey": "object:22751",
           "checked": true,
           "visualize": "true"
         },
@@ -13572,7 +13573,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12533",
+          "$$hashKey": "object:22752",
           "checked": true,
           "visualize": "true"
         },
@@ -13583,7 +13584,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12534",
+          "$$hashKey": "object:22753",
           "checked": true,
           "visualize": "true"
         },
@@ -13594,7 +13595,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12535",
+          "$$hashKey": "object:22754",
           "checked": true,
           "visualize": "true"
         },
@@ -13605,7 +13606,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12536",
+          "$$hashKey": "object:22755",
           "checked": true,
           "visualize": "true"
         },
@@ -13616,7 +13617,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12537",
+          "$$hashKey": "object:22756",
           "checked": true,
           "visualize": "true"
         },
@@ -13627,7 +13628,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12538",
+          "$$hashKey": "object:22757",
           "checked": true,
           "visualize": "true"
         },
@@ -13638,7 +13639,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12539",
+          "$$hashKey": "object:22758",
           "checked": true,
           "visualize": "true"
         },
@@ -13649,7 +13650,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12540",
+          "$$hashKey": "object:22759",
           "checked": true,
           "visualize": "true"
         },
@@ -13660,7 +13661,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12541",
+          "$$hashKey": "object:22760",
           "checked": true,
           "visualize": "true"
         },
@@ -13671,7 +13672,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12542",
+          "$$hashKey": "object:22761",
           "checked": true,
           "visualize": "true"
         },
@@ -13682,7 +13683,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12543",
+          "$$hashKey": "object:22762",
           "checked": true,
           "visualize": "true"
         },
@@ -13693,7 +13694,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12544",
+          "$$hashKey": "object:22763",
           "checked": true,
           "visualize": "true"
         },
@@ -13704,7 +13705,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12545",
+          "$$hashKey": "object:22764",
           "checked": true,
           "visualize": "true"
         },
@@ -13715,7 +13716,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12546",
+          "$$hashKey": "object:22765",
           "checked": true,
           "visualize": "true"
         },
@@ -13726,7 +13727,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12547",
+          "$$hashKey": "object:22766",
           "checked": true,
           "visualize": "true"
         },
@@ -13737,7 +13738,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12548",
+          "$$hashKey": "object:22767",
           "checked": true,
           "visualize": "true"
         },
@@ -13748,7 +13749,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12549",
+          "$$hashKey": "object:22768",
           "checked": true,
           "visualize": "true"
         },
@@ -13759,7 +13760,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12550",
+          "$$hashKey": "object:22769",
           "checked": true,
           "visualize": "true"
         },
@@ -13770,7 +13771,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12551",
+          "$$hashKey": "object:22770",
           "checked": true,
           "visualize": "true"
         },
@@ -13781,7 +13782,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12552",
+          "$$hashKey": "object:22771",
           "checked": true,
           "visualize": "true"
         },
@@ -13792,7 +13793,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12553",
+          "$$hashKey": "object:22772",
           "checked": true,
           "visualize": "true"
         },
@@ -13803,7 +13804,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12554",
+          "$$hashKey": "object:22773",
           "checked": true,
           "visualize": "true"
         },
@@ -13814,7 +13815,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12555",
+          "$$hashKey": "object:22774",
           "checked": true,
           "visualize": "true"
         },
@@ -13825,7 +13826,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12556",
+          "$$hashKey": "object:22775",
           "checked": true,
           "visualize": "true"
         },
@@ -13836,7 +13837,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12557",
+          "$$hashKey": "object:22776",
           "checked": true,
           "visualize": "true"
         },
@@ -13847,7 +13848,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12558",
+          "$$hashKey": "object:22777",
           "checked": true,
           "visualize": "true"
         },
@@ -13858,7 +13859,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12559",
+          "$$hashKey": "object:22778",
           "checked": true,
           "visualize": "true"
         },
@@ -13869,7 +13870,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12560",
+          "$$hashKey": "object:22779",
           "checked": true,
           "visualize": "true"
         },
@@ -13880,7 +13881,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12561",
+          "$$hashKey": "object:22780",
           "checked": true,
           "visualize": "true"
         },
@@ -13891,7 +13892,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12562",
+          "$$hashKey": "object:22781",
           "checked": true,
           "visualize": "true"
         },
@@ -13902,7 +13903,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12563",
+          "$$hashKey": "object:22782",
           "checked": true,
           "visualize": "true"
         },
@@ -13913,7 +13914,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12564",
+          "$$hashKey": "object:22783",
           "checked": true,
           "visualize": "true"
         },
@@ -13924,7 +13925,7 @@
           "description": "",
           "type": "String",
           "model_dependent": false,
-          "$$hashKey": "object:12565",
+          "$$hashKey": "object:22784",
           "checked": true,
           "visualize": "true"
         }
@@ -13933,12 +13934,12 @@
     {
       "measure_dir": "C:\\OpenStudio\\OpenStudio-BuildStock\\project_multifamily_beta\\measures\\SimulationOutputReport",
       "name": "simulation_output_report",
-      "directory": "C:/OpenStudio/OpenStudio-BuildStock/measures/SimulationOutputReport",
+      "directory": "C:\\OpenStudio\\OpenStudio-BuildStock\\project_multifamily_beta\\measures\\SimulationOutputReport",
       "uid": "fc337100-8634-404e-8966-01243d292a79",
       "uuid": "{fc337100-8634-404e-8966-01243d292a79}",
-      "version_id": "8f17b79f-9c40-45c1-a5de-110de3379a63",
-      "version_uuid": "{8f17b79f-9c40-45c1-a5de-110de3379a63}",
-      "version_modified": "20190618T164621Z",
+      "version_id": "817e30d1-9836-42a1-b6ba-d0ce294f4502",
+      "version_uuid": "{817e30d1-9836-42a1-b6ba-d0ce294f4502}",
+      "version_modified": "20190708T154332Z",
       "xml_checksum": "2C8A3EEF",
       "display_name": "Simulation Output Report",
       "class_name": "SimulationOutputReport",
@@ -13953,9 +13954,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29541",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "total_site_electricity_kwh",
@@ -13964,9 +13963,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29542",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "total_site_natural_gas_therm",
@@ -13975,9 +13972,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29543",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "total_site_fuel_oil_mbtu",
@@ -13986,9 +13981,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29544",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "total_site_propane_mbtu",
@@ -13997,9 +13990,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29545",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "net_site_energy_mbtu",
@@ -14008,9 +13999,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29546",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "net_site_electricity_kwh",
@@ -14019,9 +14008,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29547",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "electricity_heating_kwh",
@@ -14030,9 +14017,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29548",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "electricity_central_system_heating_kwh",
@@ -14041,9 +14026,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29549",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "electricity_cooling_kwh",
@@ -14052,9 +14035,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29550",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "electricity_central_system_cooling_kwh",
@@ -14063,9 +14044,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29551",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "electricity_interior_lighting_kwh",
@@ -14074,9 +14053,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29552",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "electricity_exterior_lighting_kwh",
@@ -14085,9 +14062,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29553",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "electricity_interior_equipment_kwh",
@@ -14096,9 +14071,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29554",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "electricity_fans_heating_kwh",
@@ -14107,9 +14080,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29555",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "electricity_fans_cooling_kwh",
@@ -14118,9 +14089,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29556",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "electricity_pumps_heating_kwh",
@@ -14129,9 +14098,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29557",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "electricity_central_system_pumps_heating_kwh",
@@ -14140,9 +14107,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29558",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "electricity_pumps_cooling_kwh",
@@ -14151,9 +14116,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29559",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "electricity_central_system_pumps_cooling_kwh",
@@ -14162,9 +14125,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29560",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "electricity_water_systems_kwh",
@@ -14173,9 +14134,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29561",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "electricity_pv_kwh",
@@ -14184,9 +14143,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29562",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "natural_gas_heating_therm",
@@ -14195,9 +14152,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29563",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "natural_gas_central_system_heating_therm",
@@ -14206,9 +14161,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29564",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "natural_gas_interior_equipment_therm",
@@ -14217,9 +14170,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29565",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "natural_gas_water_systems_therm",
@@ -14228,9 +14179,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29566",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "fuel_oil_heating_mbtu",
@@ -14239,9 +14188,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29567",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "fuel_oil_central_system_heating_mbtu",
@@ -14250,9 +14197,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29568",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "fuel_oil_interior_equipment_mbtu",
@@ -14261,9 +14206,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29569",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "fuel_oil_water_systems_mbtu",
@@ -14272,9 +14215,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29570",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "propane_heating_mbtu",
@@ -14283,9 +14224,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29571",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "propane_central_system_heating_mbtu",
@@ -14294,9 +14233,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29572",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "propane_interior_equipment_mbtu",
@@ -14305,9 +14242,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29573",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "propane_water_systems_mbtu",
@@ -14316,9 +14251,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29574",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "hours_heating_setpoint_not_met",
@@ -14327,9 +14260,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29575",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "hours_cooling_setpoint_not_met",
@@ -14338,9 +14269,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29576",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "hvac_cooling_capacity_w",
@@ -14349,9 +14278,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29577",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "hvac_heating_capacity_w",
@@ -14360,9 +14287,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29578",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "hvac_heating_supp_capacity_w",
@@ -14371,9 +14296,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29579",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "upgrade_name",
@@ -14382,9 +14305,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29580",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "upgrade_cost_usd",
@@ -14393,9 +14314,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29581",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "upgrade_option_01_cost_usd",
@@ -14404,9 +14323,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29582",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "upgrade_option_01_lifetime_yrs",
@@ -14415,9 +14332,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29583",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "upgrade_option_02_cost_usd",
@@ -14426,9 +14341,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29584",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "upgrade_option_02_lifetime_yrs",
@@ -14437,9 +14350,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29585",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "upgrade_option_03_cost_usd",
@@ -14448,9 +14359,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29586",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "upgrade_option_03_lifetime_yrs",
@@ -14459,9 +14368,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29587",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "upgrade_option_04_cost_usd",
@@ -14470,9 +14377,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29588",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "upgrade_option_04_lifetime_yrs",
@@ -14481,9 +14386,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29589",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "upgrade_option_05_cost_usd",
@@ -14492,9 +14395,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29590",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "upgrade_option_05_lifetime_yrs",
@@ -14503,9 +14404,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29591",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "upgrade_option_06_cost_usd",
@@ -14514,9 +14413,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29592",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "upgrade_option_06_lifetime_yrs",
@@ -14525,9 +14422,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29593",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "upgrade_option_07_cost_usd",
@@ -14536,9 +14431,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29594",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "upgrade_option_07_lifetime_yrs",
@@ -14547,9 +14440,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29595",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "upgrade_option_08_cost_usd",
@@ -14558,9 +14449,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29596",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "upgrade_option_08_lifetime_yrs",
@@ -14569,9 +14458,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29597",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "upgrade_option_09_cost_usd",
@@ -14580,9 +14467,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29598",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "upgrade_option_09_lifetime_yrs",
@@ -14591,9 +14476,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29599",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "upgrade_option_10_cost_usd",
@@ -14602,9 +14485,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29600",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "upgrade_option_10_lifetime_yrs",
@@ -14613,9 +14494,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29601",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "upgrade_option_11_cost_usd",
@@ -14624,9 +14503,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29602",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "upgrade_option_11_lifetime_yrs",
@@ -14635,9 +14512,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29603",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "upgrade_option_12_cost_usd",
@@ -14646,9 +14521,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29604",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "upgrade_option_12_lifetime_yrs",
@@ -14657,9 +14530,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29605",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "upgrade_option_13_cost_usd",
@@ -14668,9 +14539,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29606",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "upgrade_option_13_lifetime_yrs",
@@ -14679,9 +14548,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29607",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "upgrade_option_14_cost_usd",
@@ -14690,9 +14557,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29608",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "upgrade_option_14_lifetime_yrs",
@@ -14701,9 +14566,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29609",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "upgrade_option_15_cost_usd",
@@ -14712,9 +14575,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29610",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "upgrade_option_15_lifetime_yrs",
@@ -14723,9 +14584,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29611",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "upgrade_option_16_cost_usd",
@@ -14734,9 +14593,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29612",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "upgrade_option_16_lifetime_yrs",
@@ -14745,9 +14602,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29613",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "upgrade_option_17_cost_usd",
@@ -14756,9 +14611,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29614",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "upgrade_option_17_lifetime_yrs",
@@ -14767,9 +14620,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29615",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "upgrade_option_18_cost_usd",
@@ -14778,9 +14629,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29616",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "upgrade_option_18_lifetime_yrs",
@@ -14789,9 +14638,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29617",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "upgrade_option_19_cost_usd",
@@ -14800,9 +14647,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29618",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "upgrade_option_19_lifetime_yrs",
@@ -14811,9 +14656,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29619",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "upgrade_option_20_cost_usd",
@@ -14822,9 +14665,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29620",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "upgrade_option_20_lifetime_yrs",
@@ -14833,9 +14674,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29621",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         },
         {
           "name": "weight",
@@ -14844,9 +14683,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29622",
-          "checked": true,
-          "visualize": "true"
+          "checked": true
         }
       ],
       "attributes": [
@@ -14869,15 +14706,15 @@
       "add": "",
       "open": false,
       "addedToProject": true,
-      "date": "6/18/2019",
+      "date": "7/8/2019",
       "author": "",
       "type": "ReportingMeasure",
       "seed": "EmptySeedModel.osm",
       "workflow_index": 5,
       "options": [],
-      "instanceId": 0.19491760136990366,
+      "instanceId": 0.7059386926671851,
       "skip": false,
-      "$$hashKey": "object:26763",
+      "$$hashKey": "object:15142",
       "outputMeasure": true,
       "userDefinedOutputs": [],
       "analysisOutputs": [
@@ -14888,7 +14725,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29541",
+          "$$hashKey": "object:22794",
           "checked": true,
           "visualize": "true"
         },
@@ -14899,7 +14736,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29542",
+          "$$hashKey": "object:22795",
           "checked": true,
           "visualize": "true"
         },
@@ -14910,7 +14747,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29543",
+          "$$hashKey": "object:22796",
           "checked": true,
           "visualize": "true"
         },
@@ -14921,7 +14758,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29544",
+          "$$hashKey": "object:22797",
           "checked": true,
           "visualize": "true"
         },
@@ -14932,7 +14769,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29545",
+          "$$hashKey": "object:22798",
           "checked": true,
           "visualize": "true"
         },
@@ -14943,7 +14780,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29546",
+          "$$hashKey": "object:22799",
           "checked": true,
           "visualize": "true"
         },
@@ -14954,7 +14791,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29547",
+          "$$hashKey": "object:22800",
           "checked": true,
           "visualize": "true"
         },
@@ -14965,7 +14802,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29548",
+          "$$hashKey": "object:22801",
           "checked": true,
           "visualize": "true"
         },
@@ -14976,7 +14813,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29549",
+          "$$hashKey": "object:22802",
           "checked": true,
           "visualize": "true"
         },
@@ -14987,7 +14824,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29550",
+          "$$hashKey": "object:22803",
           "checked": true,
           "visualize": "true"
         },
@@ -14998,7 +14835,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29551",
+          "$$hashKey": "object:22804",
           "checked": true,
           "visualize": "true"
         },
@@ -15009,7 +14846,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29552",
+          "$$hashKey": "object:22805",
           "checked": true,
           "visualize": "true"
         },
@@ -15020,7 +14857,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29553",
+          "$$hashKey": "object:22806",
           "checked": true,
           "visualize": "true"
         },
@@ -15031,7 +14868,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29554",
+          "$$hashKey": "object:22807",
           "checked": true,
           "visualize": "true"
         },
@@ -15042,7 +14879,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29555",
+          "$$hashKey": "object:22808",
           "checked": true,
           "visualize": "true"
         },
@@ -15053,7 +14890,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29556",
+          "$$hashKey": "object:22809",
           "checked": true,
           "visualize": "true"
         },
@@ -15064,7 +14901,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29557",
+          "$$hashKey": "object:22810",
           "checked": true,
           "visualize": "true"
         },
@@ -15075,7 +14912,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29558",
+          "$$hashKey": "object:22811",
           "checked": true,
           "visualize": "true"
         },
@@ -15086,7 +14923,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29559",
+          "$$hashKey": "object:22812",
           "checked": true,
           "visualize": "true"
         },
@@ -15097,7 +14934,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29560",
+          "$$hashKey": "object:22813",
           "checked": true,
           "visualize": "true"
         },
@@ -15108,7 +14945,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29561",
+          "$$hashKey": "object:22814",
           "checked": true,
           "visualize": "true"
         },
@@ -15119,7 +14956,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29562",
+          "$$hashKey": "object:22815",
           "checked": true,
           "visualize": "true"
         },
@@ -15130,7 +14967,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29563",
+          "$$hashKey": "object:22816",
           "checked": true,
           "visualize": "true"
         },
@@ -15141,7 +14978,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29564",
+          "$$hashKey": "object:22817",
           "checked": true,
           "visualize": "true"
         },
@@ -15152,7 +14989,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29565",
+          "$$hashKey": "object:22818",
           "checked": true,
           "visualize": "true"
         },
@@ -15163,7 +15000,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29566",
+          "$$hashKey": "object:22819",
           "checked": true,
           "visualize": "true"
         },
@@ -15174,7 +15011,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29567",
+          "$$hashKey": "object:22820",
           "checked": true,
           "visualize": "true"
         },
@@ -15185,7 +15022,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29568",
+          "$$hashKey": "object:22821",
           "checked": true,
           "visualize": "true"
         },
@@ -15196,7 +15033,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29569",
+          "$$hashKey": "object:22822",
           "checked": true,
           "visualize": "true"
         },
@@ -15207,7 +15044,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29570",
+          "$$hashKey": "object:22823",
           "checked": true,
           "visualize": "true"
         },
@@ -15218,7 +15055,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29571",
+          "$$hashKey": "object:22824",
           "checked": true,
           "visualize": "true"
         },
@@ -15229,7 +15066,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29572",
+          "$$hashKey": "object:22825",
           "checked": true,
           "visualize": "true"
         },
@@ -15240,7 +15077,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29573",
+          "$$hashKey": "object:22826",
           "checked": true,
           "visualize": "true"
         },
@@ -15251,7 +15088,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29574",
+          "$$hashKey": "object:22827",
           "checked": true,
           "visualize": "true"
         },
@@ -15262,7 +15099,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29575",
+          "$$hashKey": "object:22828",
           "checked": true,
           "visualize": "true"
         },
@@ -15273,7 +15110,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29576",
+          "$$hashKey": "object:22829",
           "checked": true,
           "visualize": "true"
         },
@@ -15284,7 +15121,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29577",
+          "$$hashKey": "object:22830",
           "checked": true,
           "visualize": "true"
         },
@@ -15295,7 +15132,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29578",
+          "$$hashKey": "object:22831",
           "checked": true,
           "visualize": "true"
         },
@@ -15306,7 +15143,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29579",
+          "$$hashKey": "object:22832",
           "checked": true,
           "visualize": "true"
         },
@@ -15317,7 +15154,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29580",
+          "$$hashKey": "object:22833",
           "checked": true,
           "visualize": "true"
         },
@@ -15328,7 +15165,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29581",
+          "$$hashKey": "object:22834",
           "checked": true,
           "visualize": "true"
         },
@@ -15339,7 +15176,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29582",
+          "$$hashKey": "object:22835",
           "checked": true,
           "visualize": "true"
         },
@@ -15350,7 +15187,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29583",
+          "$$hashKey": "object:22836",
           "checked": true,
           "visualize": "true"
         },
@@ -15361,7 +15198,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29584",
+          "$$hashKey": "object:22837",
           "checked": true,
           "visualize": "true"
         },
@@ -15372,7 +15209,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29585",
+          "$$hashKey": "object:22838",
           "checked": true,
           "visualize": "true"
         },
@@ -15383,7 +15220,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29586",
+          "$$hashKey": "object:22839",
           "checked": true,
           "visualize": "true"
         },
@@ -15394,7 +15231,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29587",
+          "$$hashKey": "object:22840",
           "checked": true,
           "visualize": "true"
         },
@@ -15405,7 +15242,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29588",
+          "$$hashKey": "object:22841",
           "checked": true,
           "visualize": "true"
         },
@@ -15416,7 +15253,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29589",
+          "$$hashKey": "object:22842",
           "checked": true,
           "visualize": "true"
         },
@@ -15427,7 +15264,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29590",
+          "$$hashKey": "object:22843",
           "checked": true,
           "visualize": "true"
         },
@@ -15438,7 +15275,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29591",
+          "$$hashKey": "object:22844",
           "checked": true,
           "visualize": "true"
         },
@@ -15449,7 +15286,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29592",
+          "$$hashKey": "object:22845",
           "checked": true,
           "visualize": "true"
         },
@@ -15460,7 +15297,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29593",
+          "$$hashKey": "object:22846",
           "checked": true,
           "visualize": "true"
         },
@@ -15471,7 +15308,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29594",
+          "$$hashKey": "object:22847",
           "checked": true,
           "visualize": "true"
         },
@@ -15482,7 +15319,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29595",
+          "$$hashKey": "object:22848",
           "checked": true,
           "visualize": "true"
         },
@@ -15493,7 +15330,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29596",
+          "$$hashKey": "object:22849",
           "checked": true,
           "visualize": "true"
         },
@@ -15504,7 +15341,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29597",
+          "$$hashKey": "object:22850",
           "checked": true,
           "visualize": "true"
         },
@@ -15515,7 +15352,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29598",
+          "$$hashKey": "object:22851",
           "checked": true,
           "visualize": "true"
         },
@@ -15526,7 +15363,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29599",
+          "$$hashKey": "object:22852",
           "checked": true,
           "visualize": "true"
         },
@@ -15537,7 +15374,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29600",
+          "$$hashKey": "object:22853",
           "checked": true,
           "visualize": "true"
         },
@@ -15548,7 +15385,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29601",
+          "$$hashKey": "object:22854",
           "checked": true,
           "visualize": "true"
         },
@@ -15559,7 +15396,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29602",
+          "$$hashKey": "object:22855",
           "checked": true,
           "visualize": "true"
         },
@@ -15570,7 +15407,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29603",
+          "$$hashKey": "object:22856",
           "checked": true,
           "visualize": "true"
         },
@@ -15581,7 +15418,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29604",
+          "$$hashKey": "object:22857",
           "checked": true,
           "visualize": "true"
         },
@@ -15592,7 +15429,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29605",
+          "$$hashKey": "object:22858",
           "checked": true,
           "visualize": "true"
         },
@@ -15603,7 +15440,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29606",
+          "$$hashKey": "object:22859",
           "checked": true,
           "visualize": "true"
         },
@@ -15614,7 +15451,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29607",
+          "$$hashKey": "object:22860",
           "checked": true,
           "visualize": "true"
         },
@@ -15625,7 +15462,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29608",
+          "$$hashKey": "object:22861",
           "checked": true,
           "visualize": "true"
         },
@@ -15636,7 +15473,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29609",
+          "$$hashKey": "object:22862",
           "checked": true,
           "visualize": "true"
         },
@@ -15647,7 +15484,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29610",
+          "$$hashKey": "object:22863",
           "checked": true,
           "visualize": "true"
         },
@@ -15658,7 +15495,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29611",
+          "$$hashKey": "object:22864",
           "checked": true,
           "visualize": "true"
         },
@@ -15669,7 +15506,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29612",
+          "$$hashKey": "object:22865",
           "checked": true,
           "visualize": "true"
         },
@@ -15680,7 +15517,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29613",
+          "$$hashKey": "object:22866",
           "checked": true,
           "visualize": "true"
         },
@@ -15691,7 +15528,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29614",
+          "$$hashKey": "object:22867",
           "checked": true,
           "visualize": "true"
         },
@@ -15702,7 +15539,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29615",
+          "$$hashKey": "object:22868",
           "checked": true,
           "visualize": "true"
         },
@@ -15713,7 +15550,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29616",
+          "$$hashKey": "object:22869",
           "checked": true,
           "visualize": "true"
         },
@@ -15724,7 +15561,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29617",
+          "$$hashKey": "object:22870",
           "checked": true,
           "visualize": "true"
         },
@@ -15735,7 +15572,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29618",
+          "$$hashKey": "object:22871",
           "checked": true,
           "visualize": "true"
         },
@@ -15746,7 +15583,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29619",
+          "$$hashKey": "object:22872",
           "checked": true,
           "visualize": "true"
         },
@@ -15757,7 +15594,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29620",
+          "$$hashKey": "object:22873",
           "checked": true,
           "visualize": "true"
         },
@@ -15768,7 +15605,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29621",
+          "$$hashKey": "object:22874",
           "checked": true,
           "visualize": "true"
         },
@@ -15779,7 +15616,7 @@
           "description": "",
           "type": "Double",
           "model_dependent": false,
-          "$$hashKey": "object:29622",
+          "$$hashKey": "object:22875",
           "checked": true,
           "visualize": "true"
         }
@@ -15791,9 +15628,9 @@
       "directory": "C:\\OpenStudio\\OpenStudio-BuildStock\\project_multifamily_beta\\measures\\TimeseriesCSVExport",
       "uid": "2a3442c1-944d-4e91-9e11-11e0cf368c64",
       "uuid": "{2a3442c1-944d-4e91-9e11-11e0cf368c64}",
-      "version_id": "528c5809-d8bf-4bda-92f6-538ded3300e7",
-      "version_uuid": "{528c5809-d8bf-4bda-92f6-538ded3300e7}",
-      "version_modified": "20190530T151540Z",
+      "version_id": "b75af608-82c7-466b-9a63-7d0366d216c9",
+      "version_uuid": "{b75af608-82c7-466b-9a63-7d0366d216c9}",
+      "version_modified": "20190708T154332Z",
       "xml_checksum": "15BF4E57",
       "display_name": "Timeseries CSV Export",
       "class_name": "TimeseriesCSVExport",
@@ -15851,7 +15688,7 @@
             "stdDev": "Hourly",
             "default_value": "Hourly"
           },
-          "$$hashKey": "object:7436"
+          "$$hashKey": "object:12514"
         },
         {
           "name": "include_enduse_subcategories",
@@ -15875,7 +15712,7 @@
             "stdDev": false,
             "default_value": true
           },
-          "$$hashKey": "object:7437"
+          "$$hashKey": "object:12515"
         },
         {
           "name": "output_variables",
@@ -15898,7 +15735,7 @@
             "stdDev": "",
             "default_value": ""
           },
-          "$$hashKey": "object:7438"
+          "$$hashKey": "object:12516"
         }
       ],
       "edit": "",
@@ -15908,16 +15745,15 @@
       "add": "",
       "open": false,
       "addedToProject": true,
-      "date": "5/30/2019",
+      "date": "7/8/2019",
       "author": "",
       "type": "ReportingMeasure",
       "seed": "EmptySeedModel.osm",
       "workflow_index": 6,
       "options": [],
-      "instanceId": 0.4430887351675994,
+      "instanceId": 0.2513711150722968,
       "skip": false,
-      "$$hashKey": "object:7303",
-      "outputMeasure": false
+      "$$hashKey": "object:12471"
     },
     {
       "measure_dir": "C:\\OpenStudio\\OpenStudio-BuildStock\\project_multifamily_beta\\measures\\ServerDirectoryCleanup",
@@ -15961,7 +15797,7 @@
       "seed": "EmptySeedModel.osm",
       "workflow_index": 7,
       "options": [],
-      "instanceId": 0.32157755611043437,
+      "instanceId": 0.3658324124921686,
       "skip": false,
       "$$hashKey": "object:663249",
       "outputMeasure": false
