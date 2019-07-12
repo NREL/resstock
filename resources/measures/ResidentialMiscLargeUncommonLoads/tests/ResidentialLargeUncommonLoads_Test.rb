@@ -1113,6 +1113,136 @@ class ResidentialMiscLargeUncommonLoadsTest < MiniTest::Test
     _test_measure("MF_8units_1story_SL_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
   end
 
+  # Electric Vehicle
+
+  def test_electric_vehicle_new_construction_none
+    # Using annual energy
+    args_hash = {}
+    args_hash["has_electric_vehicle"] = true
+    args_hash["ev_annual_energy"] = 0.0
+    expected_num_del_objects = {}
+    expected_num_new_objects = {}
+    expected_values = { "Annual_kwh" => 0, "Annual_therm" => 0 }
+    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
+  end
+
+  def test_no_electric_vehicle_new_construction_none
+    # Using annual energy
+    args_hash = {}
+    args_hash["has_electric_vehicle"] = false
+    args_hash["ev_annual_energy"] = 2000.0
+    expected_num_del_objects = {}
+    expected_num_new_objects = {}
+    expected_values = { "Annual_kwh" => 0, "Annual_therm" => 0 }
+    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
+  end
+
+  def test_electric_vehicle_new_construction_electric
+    args_hash = {}
+    args_hash["has_electric_vehicle"] = true
+    args_hash["ev_annual_energy"] = 2000.0
+    expected_num_del_objects = {}
+    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_values = { "Annual_kwh" => 2000, "Annual_therm" => 0 }
+    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
+  end
+
+  def test_electric_vehicle_retrofit_replace
+    args_hash = {}
+    args_hash["has_electric_vehicle"] = true
+    args_hash["ev_annual_energy"] = 2000.0
+    expected_num_del_objects = {}
+    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_values = { "Annual_kwh" => 2000, "Annual_therm" => 0 }
+    model = _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
+    args_hash = {}
+    args_hash["has_electric_vehicle"] = true
+    args_hash["ev_annual_energy"] = 2500.0
+    expected_num_del_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_values = { "Annual_kwh" => 2500, "Annual_therm" => 0 }
+    _test_measure(model, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
+  end
+
+  def test_electric_vehicle_retrofit_remove_by_boolean
+    args_hash = {}
+    args_hash["has_electric_vehicle"] = true
+    args_hash["ev_annual_energy"] = 2000.0
+    expected_num_del_objects = {}
+    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_values = { "Annual_kwh" => 2000, "Annual_therm" => 0 }
+    model = _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
+    args_hash = {}
+    args_hash["has_electric_vehicle"] = false
+    args_hash["ev_annual_energy"] = 2000.0
+    expected_num_del_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = {}
+    expected_values = { "Annual_kwh" => 0.0, "Annual_therm" => 0 }
+    _test_measure(model, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
+  end
+
+  def test_electric_vehicle_mult
+    args_hash = {}
+    args_hash["has_electric_vehicle"] = true
+    args_hash["ev_annual_energy"] = 2000.0
+    args_hash["ev_charger_mult"] = 1
+    expected_num_del_objects = {}
+    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_values = { "Annual_kwh" => 2000, "Annual_therm" => 0 }
+    model = _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
+    args_hash["ev_charger_mult"] = 2
+    expected_num_del_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    # This test passes, so it must be deleting the above objects appropriately and building new ones. The following line doesn't do anything,
+    # but it does help developers understand that it's making new objects again, even though the variable is identical to the one above.
+    # expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_values = { "Annual_kwh" => 4000.0, "Annual_therm" => 0 }
+    _test_measure(model, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
+  end
+
+  def test_electric_vehicle_argument_error_mult_negative
+    args_hash = {}
+    args_hash["has_electric_vehicle"] = true
+    args_hash["ev_charger_mult"] = -1.0
+    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash)
+    assert_equal(result.errors.map { |x| x.logMessage }[0], "Energy multiplier must be greater than or equal to 0.")
+  end
+
+  def test_electric_vehicle_new_construction_mult_0
+    # Using energy multiplier
+    args_hash = {}
+    args_hash["has_electric_vehicle"] = true
+    args_hash["ev_charger_mult"] = 0.0
+    expected_num_del_objects = {}
+    expected_num_new_objects = {}
+    expected_values = { "Annual_kwh" => 0, "Annual_therm" => 0 }
+    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
+  end
+
+  def test_electric_vehicle_retrofit_remove
+    args_hash = {}
+    args_hash["has_electric_vehicle"] = true
+    args_hash["ev_annual_energy"] = 2000.0
+    expected_num_del_objects = {}
+    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_values = { "Annual_kwh" => 2000, "Annual_therm" => 0 }
+    model = _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
+    args_hash = {}
+    args_hash["has_electric_vehicle"] = true
+    args_hash["ev_annual_energy"] = 0.0
+    expected_num_del_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = {}
+    expected_values = { "Annual_kwh" => 0.0, "Annual_therm" => 0 }
+    _test_measure(model, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
+  end
+
+  def test_electric_vehicle_argument_error_annual_energy_negative
+    args_hash = {}
+    args_hash["has_electric_vehicle"] = true
+    args_hash["ev_annual_energy"] = -1.0
+    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash)
+    assert_equal(result.errors.map { |x| x.logMessage }[0], "Annual energy must be greater than or equal to 0.")
+  end
+
   # Gas Fireplace
 
   def test_gas_fireplace_new_construction_none1
