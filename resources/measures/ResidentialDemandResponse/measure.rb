@@ -356,15 +356,15 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
     end
 
     # Run functions and apply new schedules
-    htg_hrly_base = get_existing_sched(finished_zones, "heat", model, runner)   ## Existing schedule as 12x24
+    htg_hrly_base = get_existing_sched(finished_zones, "heat", model, runner)   # Existing schedule as 12x24
     clg_hrly_base = get_existing_sched(finished_zones, "cool", model, runner)
 
-    htg_hrly = create_new_sched(dr_hrly_htg, htg_hrly_base, offset_heat)        ## New hourly schedule
+    htg_hrly = create_new_sched(dr_hrly_htg, htg_hrly_base, offset_heat)        # New hourly schedule
     clg_hrly = create_new_sched(dr_hrly_clg, clg_hrly_base, offset_cool)
 
-    fix_setpoint_inversion(htg_hrly, clg_hrly, HVAC, weather, model, runner)    ## Fix setpoint inversions in new schedules
+    fix_setpoint_inversion(htg_hrly, clg_hrly, HVAC, weather, model, runner)    # Fix setpoint inversions in new schedules
 
-    htg_hrly = create_OS_sched(htg_hrly, "HeatingTSP", model, runner)           ## Create fixed interval schedule using new hourly schedules
+    htg_hrly = create_OS_sched(htg_hrly, "HeatingTSP", model, runner)           # Create fixed interval schedule using new hourly schedules
     clg_hrly = create_OS_sched(clg_hrly, "CoolingTSP", model, runner)
 
     # Convert back to ruleset and apply to dual thermostat
