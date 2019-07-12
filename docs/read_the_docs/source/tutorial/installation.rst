@@ -17,3 +17,7 @@ Download the ResStock repository
 
 Go to the `repository page on GitHub <https://github.com/NREL/OpenStudio-BuildStock>`_ and either ``git clone`` or download a zip of the repository. Make sure that you have checked out the `master` branch of the repository.
 
+Developer instructions
+======================
+
+If you will be developing residential measures and testing residential building models, see the :ref:`advanced_tutorial`.
