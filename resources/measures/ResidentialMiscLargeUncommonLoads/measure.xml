@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>residential_misc_large_uncommon_loads</name>
   <uid>96f1e9ca-41b9-4fb8-a219-57850e351500</uid>
-  <version_id>722fc9e0-e07d-41fc-bbe0-2c4393243656</version_id>
-  <version_modified>20190701T173021Z</version_modified>
+  <version_id>00698376-c278-47b9-a26f-39a8a398857e</version_id>
+  <version_modified>20190711T161233Z</version_modified>
   <xml_checksum>126F1C43</xml_checksum>
   <class_name>ResidentialMiscLargeUncommonLoads</class_name>
   <display_name>Set Residential Large Uncommon Loads</display_name>
@@ -223,6 +223,25 @@
       <name>has_gas_lighting</name>
       <display_name>Has Gas lighting</display_name>
       <description>Specifies whether the building has a gas lighting.</description>
+      <type>Boolean</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>has_electric_vehicle</name>
+      <display_name>Has Electric Vehicle</display_name>
+      <description>Specifies whether the building has an electric vehicle.</description>
       <type>Boolean</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -841,6 +860,51 @@
       <model_dependent>false</model_dependent>
       <default_value>1.154, 1.161, 1.013, 1.010, 1.013, 0.888, 0.883, 0.883, 0.888, 0.978, 0.974, 1.154</default_value>
     </argument>
+    <argument>
+      <name>ev_annual_energy</name>
+      <display_name>EV charger: Annual energy consumption</display_name>
+      <description>Specify the total annual energy use of charging the EV at home.</description>
+      <type>Double</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0</default_value>
+    </argument>
+    <argument>
+      <name>ev_charger_mult</name>
+      <display_name>EV charger: Energy Multiplier</display_name>
+      <description>Sets the annual energy use equal to the annual energy use times this multiplier.</description>
+      <type>Double</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>1</default_value>
+    </argument>
+    <argument>
+      <name>ev_charger_weekday_sch</name>
+      <display_name>EV charger: Weekday schedule</display_name>
+      <description>Specify the 24-hour weekday schedule.</description>
+      <type>String</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042</default_value>
+    </argument>
+    <argument>
+      <name>ev_charger_weekend_sch</name>
+      <display_name>EV charger: Weekend schedule</display_name>
+      <description>Specify the 24-hour weekend schedule.</description>
+      <type>String</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042</default_value>
+    </argument>
+    <argument>
+      <name>ev_charger_monthly_sch</name>
+      <display_name>EV charger: Month schedule</display_name>
+      <description>Specify the 12-month schedule.</description>
+      <type>String</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1</default_value>
+    </argument>
   </arguments>
   <outputs/>
   <provenances/>
@@ -869,13 +933,13 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>FBB0B14D</checksum>
+      <checksum>2C0B1930</checksum>
     </file>
     <file>
       <filename>ResidentialLargeUncommonLoads_Test.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
-      <checksum>C5564938</checksum>
+      <checksum>ACF19CEA</checksum>
     </file>
   </files>
 </measure>
