@@ -804,24 +804,25 @@ class Airflow
 
     # Todo WHF: ask Joe/Scott? my thinknig: don't need days shift for WHF as being used throughout the year/ season with particular ToD. 
     # Todo WHF: Search for whole house fan
-    has_whf = false
-    (model.getElectricEquipments + model.getOtherEquipments).each do |equip|
-      next unless equip.name.to_s == Constants.ObjectNameWholeHouseFan(unit.name.to_s)
-      has_whf = true
-      break
-    end
+    # has_whf = false
+    # (model.getElectricEquipments + model.getOtherEquipments).each do |equip|
+    #   next unless equip.name.to_s == Constants.ObjectNameWholeHouseFan(unit.name.to_s)
+    #   has_whf = true
+    #   break
+    # end
 
-    if not has_whf and mech_vent.whf_exhaust > 0
+    # this logic is probably not exactly the same as clothes dryer
+    if not mech_vent.has_whf and mech_vent.whf_exhaust > 0
     	runner.registerWarning("No whole house fan object was found in #{unit.name.to_s} but the whole house fan exhaust specified is non-zero. Overriding whole house fan exhaust to be zero.")
     end
 
-    if has_whf and mech_vent.whf_exhaust == 0
-      whf_exhaust = unit_living.ACH * UnitConversions.convert(unit_living.volume, "ft^3", "m^3") / UnitConversions.convert(1.0, "hr", "min")
-    end
+    # if has_whf and mech_vent.whf_exhaust == 0
+    #   whf_exhaust = unit_living.ACH * UnitConversions.convert(unit_living.volume, "ft^3", "m^3") / UnitConversions.convert(1.0, "hr", "min")
+    # end
 
     bathroom_hour_avg_exhaust = mech_vent.bathroom_exhaust * nbaths * bath_exhaust_sch_operation / 60.0 # cfm
     range_hood_hour_avg_exhaust = mech_vent.range_exhaust * range_hood_exhaust_operation / 60.0 # cfm
-    whf_avg_exhaust = mech_vent.
+    whf_avg_exhaust_cfm = mech_vent.whf_exhaust * whf_exhaust_operation / 60.0 # cfm
     #--- Calculate HRV/ERV effectiveness values. Calculated here for use in sizing routines.
 
     apparent_sensible_effectiveness = 0.0
@@ -900,7 +901,7 @@ class Airflow
     unit.additionalProperties.setFeature(Constants.SizingInfoMechVentApparentSensibleEffectiveness, apparent_sensible_effectiveness.to_f)
     unit.additionalProperties.setFeature(Constants.SizingInfoMechVentWholeHouseRate, whole_house_vent_rate.to_f)
 
-    mv_output = MechanicalVentilationOutput.new(frac_fan_heat, num_fans, whole_house_vent_rate, bathroom_hour_avg_exhaust, range_hood_hour_avg_exhaust, spot_fan_power, latent_effectiveness, sensible_effectiveness, dryer_exhaust_day_shift, has_dryer, whf_avg_exhaust_cfm,whf_fan_power, has_whf)
+    mv_output = MechanicalVentilationOutput.new(frac_fan_heat, num_fans, whole_house_vent_rate, bathroom_hour_avg_exhaust, range_hood_hour_avg_exhaust, spot_fan_power, latent_effectiveness, sensible_effectiveness, dryer_exhaust_day_shift, has_dryer, whf_avg_exhaust_cfm, whf_fan_power, mech_vent.has_whf)
     return true, mv_output
   end
 
@@ -1311,6 +1312,121 @@ class Airflow
     nv_program.addLine("EndIf")
 
     return nv_program
+  end
+
+  def self.create_whf_objects(model, runner, obj_name_mech_vent, unit_living, mech_vent, mv_output, tin_sensor, tout_sensor, pbar_sensor, vwind_sensor, wout_sensor)
+    avail_sch = OpenStudio::Model::ScheduleRuleset.new(model)
+    avail_sch.setName(obj_name_mech_vent + " avail schedule")
+
+    Schedule.set_schedule_type_limits(model, avail_sch, Constants.ScheduleTypeLimitsOnOff) # todo: limitsonoff?? is this correct schedule for WHF??
+
+    year_description = model.getYearDescription
+    assumed_year = year_description.assumedYear
+    num_days_in_months = Constants.NumDaysInMonths(year_description.isLeapYear)
+
+    time = []
+    for h in 1..24
+      time[h] = OpenStudio::Time.new(0, h, 0, 0)
+    end
+
+    (1..12).to_a.each do |m|
+      date_s = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(m), 1, assumed_year)
+      date_e = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(m), num_days_in_months[m - 1], assumed_year)
+
+      if ((mech_vent.season_type[m - 1] == Constants.SeasonHeating and mech_vent.htg_season) or (mech_vent.season_type[m - 1] == Constants.SeasonCooling and mech_vent.clg_season) or (mv_output.season_type[m - 1] == Constants.SeasonOverlap and mv_output.ovlp_season)) and (mech_vent.num_weekdays + mech_vent.num_weekends != 0)
+        on_rule = OpenStudio::Model::ScheduleRule.new(avail_sch)
+        on_rule.setName(obj_name_mech_vent + " availability schedule #{Schedule.allday_name} ruleset#{m} on")
+        on_rule_day = on_rule.daySchedule
+        on_rule_day.setName(obj_name_mech_vent + " availability schedule #{Schedule.allday_name}1 on")
+        for h in 1..24
+          on_rule_day.addValue(time[h], 1)
+        end
+        if nat_vent.num_weekdays >= 1
+          on_rule.setApplyMonday(true)
+        end
+        if nat_vent.num_weekdays >= 2
+          on_rule.setApplyWednesday(true)
+        end
+        if nat_vent.num_weekdays >= 3
+          on_rule.setApplyFriday(true)
+        end
+        if nat_vent.num_weekdays >= 4
+          on_rule.setApplyTuesday(true)
+        end
+        if nat_vent.num_weekdays == 5
+          on_rule.setApplyThursday(true)
+        end
+        if nat_vent.num_weekends >= 1
+          on_rule.setApplySaturday(true)
+        end
+        if nat_vent.num_weekends == 2
+          on_rule.setApplySunday(true)
+        end
+        on_rule.setStartDate(date_s)
+        on_rule.setEndDate(date_e)
+      else
+        off_rule = OpenStudio::Model::ScheduleRule.new(avail_sch)
+        off_rule.setName(obj_name_mech_vent + " availability schedule #{Schedule.allday_name} ruleset#{m} off")
+        off_rule_day = off_rule.daySchedule
+        off_rule_day.setName(obj_name_mech_vent + " availability schedule #{Schedule.allday_name}1 off")
+        for h in 1..24
+          off_rule_day.addValue(time[h], 0)
+        end
+        Schedule.set_weekday_rule(off_rule)
+        Schedule.set_weekend_rule(off_rule)
+        off_rule.setStartDate(date_s)
+        off_rule.setEndDate(date_e)
+      end
+    end
+
+    # Sensors
+
+    mvavail_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Schedule Value")
+    mvavail_sensor.setName("#{obj_name_natvent} nva s")
+    mvavail_sensor.setKeyName(avail_sch.name.to_s)
+
+    mvsp_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Schedule Value")
+    mvsp_sensor.setName("#{obj_name_natvent} sp s")
+    mvsp_sensor.setKeyName(mv_output.temp_sch.schedule.name.to_s)
+
+    # Actuator
+
+    living_space = unit_living.zone.spaces[0]
+
+    mechvent_flow = OpenStudio::Model::SpaceInfiltrationDesignFlowRate.new(model)
+    mechvent_flow.setName(obj_name_mech_vent + " flow")
+    mechvent_flow.setSchedule(model.alwaysOnDiscreteSchedule)
+    mechvent_flow.setSpace(living_space)
+    mechvent_flow_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(mechvent_flow, "Zone Infiltration", "Air Exchange Flow Rate")
+    mechvent_flow_actuator.setName("#{mechvent_flow.name} act")
+
+    # Program
+
+    mv_program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
+    mv_program.setName(obj_name_mech_vent + " program")
+    mv_program.addLine("Set Tdiff = #{tin_sensor.name}-#{tout_sensor.name}")
+    mv_program.addLine("Set dT = (@Abs Tdiff)")
+    mv_program.addLine("Set pt = (@RhFnTdbWPb #{tout_sensor.name} #{wout_sensor.name} #{pbar_sensor.name})")
+    mv_program.addLine("Set NVA = #{UnitConversions.convert(mv_output.area, "ft^2", "cm^2")}")
+    mv_program.addLine("Set Cs = #{UnitConversions.convert(mv_output.c_s, "ft^2/(s^2*R)", "L^2/(s^2*cm^4*K)")}")
+    mv_program.addLine("Set Cw = #{mv_output.c_w * 0.01}")
+    mv_program.addLine("Set MNV = #{UnitConversions.convert(mv_output.max_flow_rate, "cfm", "m^3/s")}")
+    mv_program.addLine("Set MHR = #{mech_vent.max_oa_hr}")
+    mv_program.addLine("Set MRH = #{mech_vent.max_oa_rh}")
+    mv_program.addLine("Set temp1 = (#{mvavail_sensor.name}*NVA)")
+    mv_program.addLine("Set SGNV = temp1*((((Cs*dT)+(Cw*(#{vwind_sensor.name}^2)))^0.5)/1000)")
+    mv_program.addLine("If (#{wout_sensor.name}<MHR) && (pt<MRH) && (#{tin_sensor.name}>#{nvsp_sensor.name})")
+    mv_program.addLine("  Set temp2 = (#{tin_sensor.name}-#{nvsp_sensor.name})")
+    mv_program.addLine("  Set NVadj1 = temp2/(#{tin_sensor.name}-#{tout_sensor.name})")
+    mv_program.addLine("  Set NVadj2 = (@Min NVadj1 1)")
+    mv_program.addLine("  Set NVadj3 = (@Max NVadj2 0)")
+    mv_program.addLine("  Set NVadj = SGNV*NVadj3")
+    mv_program.addLine("  Set #{mechvent_flow_actuator.name} = (@Min NVadj MNV)")
+    mv_program.addLine("Else")
+    mv_program.addLine("  Set #{mechvent_flow_actuator.name} = 0")
+    mv_program.addLine("EndIf")
+
+    return mv_program
   end
 
   def self.create_return_air_duct_zone(model, obj_name_ducts, ducts_output, adiabatic_const)
@@ -2171,6 +2287,7 @@ class Airflow
 
     infil_program.addLine("Set #{range_hood_fan_actuator.name} = (Qrange*300)/faneff_sp")
     infil_program.addLine("Set #{bath_exhaust_sch_fan_actuator.name} = (Qbath*300)/faneff_sp")
+
     infil_program.addLine("Set Q_acctd_for_elsewhere = QhpwhOut+QhpwhIn+QductsOut+QductsIn")
     infil_program.addLine("Set #{infil_flow_actuator.name} = (((Qu^2)+(Qn^2))^0.5)-Q_acctd_for_elsewhere")
     infil_program.addLine("Set #{infil_flow_actuator.name} = (@Max #{infil_flow_actuator.name} 0)")
@@ -2492,7 +2609,7 @@ class NaturalVentilationOutput
 end
 
 class MechanicalVentilation
-  def initialize(type, infil_credit, total_efficiency, frac_62_2, whole_house_cfm, fan_power, sensible_efficiency, ashrae_std, dryer_exhaust, range_exhaust, range_exhaust_hour, bathroom_exhaust, bathroom_exhaust_hour, whf_exhaust, whf_sch)
+  def initialize(type, infil_credit, total_efficiency, frac_62_2, whole_house_cfm, fan_power, sensible_efficiency, ashrae_std, dryer_exhaust, range_exhaust, range_exhaust_hour, bathroom_exhaust, bathroom_exhaust_hour, whf_exhaust, whf_sch, has_whf)
     @type = type
     @infil_credit = infil_credit
     @total_efficiency = total_efficiency
@@ -2508,12 +2625,13 @@ class MechanicalVentilation
     @bathroom_exhaust_hour = bathroom_exhaust_hour
     @whf_exhaust = whf_exhaust
     @whf_sch = whf_sch
+    @has_whf = has_whf
   end
-  attr_accessor(:type, :infil_credit, :total_efficiency, :frac_62_2, :whole_house_cfm, :fan_power, :sensible_efficiency, :ashrae_std, :dryer_exhaust, :range_exhaust, :range_exhaust_hour, :bathroom_exhaust, :bathroom_exhaust_hour, :whf_exhaust, :whf_sch)
+  attr_accessor(:type, :infil_credit, :total_efficiency, :frac_62_2, :whole_house_cfm, :fan_power, :sensible_efficiency, :ashrae_std, :dryer_exhaust, :range_exhaust, :range_exhaust_hour, :bathroom_exhaust, :bathroom_exhaust_hour, :whf_exhaust, :whf_sch, :has_whf)
 end
 
 class MechanicalVentilationOutput
-  def initialize(frac_fan_heat, num_fans, whole_house_vent_rate, bathroom_hour_avg_exhaust, range_hood_hour_avg_exhaust, spot_fan_power, latent_effectiveness, sensible_effectiveness, dryer_exhaust_day_shift, has_dryer, whf_fan_power, whf_avg_exhaust_cfm, has_whf, num_fans_whf)
+  def initialize(frac_fan_heat, num_fans, whole_house_vent_rate, bathroom_hour_avg_exhaust, range_hood_hour_avg_exhaust, spot_fan_power, latent_effectiveness, sensible_effectiveness, dryer_exhaust_day_shift, has_dryer, whf_fan_power, whf_avg_exhaust_cfm, has_whf, num_fans_whf=1)
     @frac_fan_heat = frac_fan_heat
     @num_fans = num_fans
     @whole_house_vent_rate = whole_house_vent_rate
