@@ -232,20 +232,27 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
     args << clothes_dryer_exhaust
 
     # make a double argument for whole house fan exhaust
-    whf_exhaust = OpenStudio::Measure::OSArgument::makeDoubleArgument("whole_house_fan_exhaust", true)
+    whf_exhaust = OpenStudio::Measure::OSArgument::makeDoubleArgument("whf_exhaust", true)
     whf_exhaust.setDisplayName("Whole House Fan: Exhaust")
     whf_exhaust.setUnits("cfm")
     whf_exhaust.setDescription("Rated flow capacity of the whole house fanexhaust. This fan is assumed to run as per the schedule provided.")
-    whf_exhaust.setDefaultValue(0.00)
+    whf_exhaust.setDefaultValue(1200)
     args << whf_exhaust
 
     # make a string argument for whole house fan exhaust operating schedule
-    whf_sch = OpenStudio::Measure::OSArgument::makeStringArgument("whole_house_fan_schedule", true)
+    whf_sch = OpenStudio::Measure::OSArgument::makeStringArgument("whf_sch", true)
     whf_sch.setDisplayName("Whole house fan Schedule")
     whf_sch.setDescription("Specify a 24-hour comma-separated schedule of 0s and 1s for applying the offset on weekdays.")
     whf_sch.setUnits("hour of the day")
     whf_sch.setDefaultValue("0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0")
     args << whf_sch
+
+    # make a double argument for open hvac flue
+    has_whf = OpenStudio::Measure::OSArgument::makeBoolArgument("has_whf", true)
+    has_whf.setDisplayName("Mechanical Ventilatione: Has whole house fan")
+    has_whf.setDescription("Specifies whether the building has awhole house fan.")
+    has_whf.setDefaultValue(false)
+    args << has_whf
 
     # make a double argument for heating season setpoint offset
     nat_vent_htg_offset = OpenStudio::Measure::OSArgument::makeDoubleArgument("nat_vent_htg_offset", true)
@@ -536,7 +543,7 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
     # Create the airflow objects
     has_flue_chimney = (has_hvac_flue or has_water_heater_flue or has_fireplace_chimney)
     infil = Infiltration.new(living_ach50, nil, shelter_coef, garage_ach50, crawl_ach, unfinished_attic_sla, nil, unfinished_basement_ach, finished_basement_ach, pier_beam_ach, has_flue_chimney, is_existing_home, terrain)
-    mech_vent = MechanicalVentilation.new(mech_vent_type, mech_vent_infil_credit, mech_vent_total_efficiency, mech_vent_frac_62_2, nil, mech_vent_fan_power, mech_vent_sensible_efficiency, mech_vent_ashrae_std, clothes_dryer_exhaust, range_exhaust, range_exhaust_hour, bathroom_exhaust, bathroom_exhaust_hour, whf_exhaust, whf_sch)
+    mech_vent = MechanicalVentilation.new(mech_vent_type, mech_vent_infil_credit, mech_vent_total_efficiency, mech_vent_frac_62_2, nil, mech_vent_fan_power, mech_vent_sensible_efficiency, mech_vent_ashrae_std, clothes_dryer_exhaust, range_exhaust, range_exhaust_hour, bathroom_exhaust, bathroom_exhaust_hour, whf_exhaust, whf_sch, has_whf)
     cfis = CFIS.new(mech_vent_cfis_open_time, mech_vent_cfis_airflow_frac)
     nat_vent = NaturalVentilation.new(nat_vent_htg_offset, nat_vent_clg_offset, nat_vent_ovlp_offset, nat_vent_htg_season, nat_vent_clg_season, nat_vent_ovlp_season, nat_vent_num_weekdays, nat_vent_num_weekends, nat_vent_frac_windows_open, nat_vent_frac_window_area_openable, nat_vent_max_oa_hr, nat_vent_max_oa_rh)
     ducts = Ducts.new(duct_total_leakage, duct_norm_leakage_25pa, duct_supply_area_mult, duct_return_area_mult, duct_r, duct_supply_frac, duct_return_frac, duct_ah_supply_frac, duct_ah_return_frac, duct_location_frac, duct_num_returns, duct_location)
