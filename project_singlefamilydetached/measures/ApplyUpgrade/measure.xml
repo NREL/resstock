@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>apply_upgrade</name>
   <uid>33f1654c-f734-43d1-b35d-9d2856e41b5a</uid>
-  <version_id>cdda78c5-7a44-40d1-bb9f-ba8d68549767</version_id>
-  <version_modified>20190618T164620Z</version_modified>
+  <version_id>48b4badc-12ca-411c-ad2c-97e10ec5e7f3</version_id>
+  <version_modified>20190715T223325Z</version_modified>
   <xml_checksum>9339BE01</xml_checksum>
   <class_name>ApplyUpgrade</class_name>
   <display_name>Apply Upgrade</display_name>
@@ -3720,6 +3720,931 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
+      <name>option_21</name>
+      <display_name>Option 21</display_name>
+      <description>Specify the parameter|option as found in resources\options_lookup.tsv.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>option_21_apply_logic</name>
+      <display_name>Option 21 Apply Logic</display_name>
+      <description>Logic that specifies if the Option 21 upgrade will apply based on the existing building's options. Specify one or more parameter|option as found in resources\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&amp;&amp;' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>option_21_cost_1_value</name>
+      <display_name>Option 21 Cost 1 Value</display_name>
+      <description>Total option 21 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).</description>
+      <type>Double</type>
+      <units>$</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>option_21_cost_1_multiplier</name>
+      <display_name>Option 21 Cost 1 Multiplier</display_name>
+      <description>Total option 21 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).</description>
+      <type>Choice</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value></default_value>
+      <choices>
+        <choice>
+          <value></value>
+          <display_name></display_name>
+        </choice>
+        <choice>
+          <value>Fixed (1)</value>
+          <display_name>Fixed (1)</display_name>
+        </choice>
+        <choice>
+          <value>Wall Area, Above-Grade, Conditioned (ft^2)</value>
+          <display_name>Wall Area, Above-Grade, Conditioned (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Wall Area, Above-Grade, Exterior (ft^2)</value>
+          <display_name>Wall Area, Above-Grade, Exterior (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Wall Area, Below-Grade (ft^2)</value>
+          <display_name>Wall Area, Below-Grade (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Conditioned (ft^2)</value>
+          <display_name>Floor Area, Conditioned (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic (ft^2)</value>
+          <display_name>Floor Area, Attic (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Lighting (ft^2)</value>
+          <display_name>Floor Area, Lighting (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Roof Area (ft^2)</value>
+          <display_name>Roof Area (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Window Area (ft^2)</value>
+          <display_name>Window Area (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Door Area (ft^2)</value>
+          <display_name>Door Area (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Duct Surface Area (ft^2)</value>
+          <display_name>Duct Surface Area (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System (kBtu/h)</value>
+          <display_name>Size, Heating System (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Cooling System (kBtu/h)</value>
+          <display_name>Size, Cooling System (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Water Heater (gal)</value>
+          <display_name>Size, Water Heater (gal)</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>option_21_cost_2_value</name>
+      <display_name>Option 21 Cost 2 Value</display_name>
+      <description>Total option 21 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).</description>
+      <type>Double</type>
+      <units>$</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>option_21_cost_2_multiplier</name>
+      <display_name>Option 21 Cost 2 Multiplier</display_name>
+      <description>Total option 21 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).</description>
+      <type>Choice</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value></default_value>
+      <choices>
+        <choice>
+          <value></value>
+          <display_name></display_name>
+        </choice>
+        <choice>
+          <value>Fixed (1)</value>
+          <display_name>Fixed (1)</display_name>
+        </choice>
+        <choice>
+          <value>Wall Area, Above-Grade, Conditioned (ft^2)</value>
+          <display_name>Wall Area, Above-Grade, Conditioned (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Wall Area, Above-Grade, Exterior (ft^2)</value>
+          <display_name>Wall Area, Above-Grade, Exterior (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Wall Area, Below-Grade (ft^2)</value>
+          <display_name>Wall Area, Below-Grade (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Conditioned (ft^2)</value>
+          <display_name>Floor Area, Conditioned (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic (ft^2)</value>
+          <display_name>Floor Area, Attic (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Lighting (ft^2)</value>
+          <display_name>Floor Area, Lighting (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Roof Area (ft^2)</value>
+          <display_name>Roof Area (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Window Area (ft^2)</value>
+          <display_name>Window Area (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Door Area (ft^2)</value>
+          <display_name>Door Area (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Duct Surface Area (ft^2)</value>
+          <display_name>Duct Surface Area (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System (kBtu/h)</value>
+          <display_name>Size, Heating System (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Cooling System (kBtu/h)</value>
+          <display_name>Size, Cooling System (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Water Heater (gal)</value>
+          <display_name>Size, Water Heater (gal)</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>option_21_lifetime</name>
+      <display_name>Option 21 Lifetime</display_name>
+      <description>The option lifetime.</description>
+      <type>Double</type>
+      <units>years</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>option_22</name>
+      <display_name>Option 22</display_name>
+      <description>Specify the parameter|option as found in resources\options_lookup.tsv.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>option_22_apply_logic</name>
+      <display_name>Option 22 Apply Logic</display_name>
+      <description>Logic that specifies if the Option 22 upgrade will apply based on the existing building's options. Specify one or more parameter|option as found in resources\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&amp;&amp;' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>option_22_cost_1_value</name>
+      <display_name>Option 22 Cost 1 Value</display_name>
+      <description>Total option 22 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).</description>
+      <type>Double</type>
+      <units>$</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>option_22_cost_1_multiplier</name>
+      <display_name>Option 22 Cost 1 Multiplier</display_name>
+      <description>Total option 22 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).</description>
+      <type>Choice</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value></default_value>
+      <choices>
+        <choice>
+          <value></value>
+          <display_name></display_name>
+        </choice>
+        <choice>
+          <value>Fixed (1)</value>
+          <display_name>Fixed (1)</display_name>
+        </choice>
+        <choice>
+          <value>Wall Area, Above-Grade, Conditioned (ft^2)</value>
+          <display_name>Wall Area, Above-Grade, Conditioned (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Wall Area, Above-Grade, Exterior (ft^2)</value>
+          <display_name>Wall Area, Above-Grade, Exterior (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Wall Area, Below-Grade (ft^2)</value>
+          <display_name>Wall Area, Below-Grade (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Conditioned (ft^2)</value>
+          <display_name>Floor Area, Conditioned (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic (ft^2)</value>
+          <display_name>Floor Area, Attic (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Lighting (ft^2)</value>
+          <display_name>Floor Area, Lighting (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Roof Area (ft^2)</value>
+          <display_name>Roof Area (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Window Area (ft^2)</value>
+          <display_name>Window Area (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Door Area (ft^2)</value>
+          <display_name>Door Area (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Duct Surface Area (ft^2)</value>
+          <display_name>Duct Surface Area (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System (kBtu/h)</value>
+          <display_name>Size, Heating System (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Cooling System (kBtu/h)</value>
+          <display_name>Size, Cooling System (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Water Heater (gal)</value>
+          <display_name>Size, Water Heater (gal)</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>option_22_cost_2_value</name>
+      <display_name>Option 22 Cost 2 Value</display_name>
+      <description>Total option 22 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).</description>
+      <type>Double</type>
+      <units>$</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>option_22_cost_2_multiplier</name>
+      <display_name>Option 22 Cost 2 Multiplier</display_name>
+      <description>Total option 22 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).</description>
+      <type>Choice</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value></default_value>
+      <choices>
+        <choice>
+          <value></value>
+          <display_name></display_name>
+        </choice>
+        <choice>
+          <value>Fixed (1)</value>
+          <display_name>Fixed (1)</display_name>
+        </choice>
+        <choice>
+          <value>Wall Area, Above-Grade, Conditioned (ft^2)</value>
+          <display_name>Wall Area, Above-Grade, Conditioned (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Wall Area, Above-Grade, Exterior (ft^2)</value>
+          <display_name>Wall Area, Above-Grade, Exterior (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Wall Area, Below-Grade (ft^2)</value>
+          <display_name>Wall Area, Below-Grade (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Conditioned (ft^2)</value>
+          <display_name>Floor Area, Conditioned (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic (ft^2)</value>
+          <display_name>Floor Area, Attic (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Lighting (ft^2)</value>
+          <display_name>Floor Area, Lighting (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Roof Area (ft^2)</value>
+          <display_name>Roof Area (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Window Area (ft^2)</value>
+          <display_name>Window Area (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Door Area (ft^2)</value>
+          <display_name>Door Area (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Duct Surface Area (ft^2)</value>
+          <display_name>Duct Surface Area (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System (kBtu/h)</value>
+          <display_name>Size, Heating System (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Cooling System (kBtu/h)</value>
+          <display_name>Size, Cooling System (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Water Heater (gal)</value>
+          <display_name>Size, Water Heater (gal)</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>option_22_lifetime</name>
+      <display_name>Option 22 Lifetime</display_name>
+      <description>The option lifetime.</description>
+      <type>Double</type>
+      <units>years</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>option_23</name>
+      <display_name>Option 23</display_name>
+      <description>Specify the parameter|option as found in resources\options_lookup.tsv.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>option_23_apply_logic</name>
+      <display_name>Option 23 Apply Logic</display_name>
+      <description>Logic that specifies if the Option 23 upgrade will apply based on the existing building's options. Specify one or more parameter|option as found in resources\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&amp;&amp;' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>option_23_cost_1_value</name>
+      <display_name>Option 23 Cost 1 Value</display_name>
+      <description>Total option 23 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).</description>
+      <type>Double</type>
+      <units>$</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>option_23_cost_1_multiplier</name>
+      <display_name>Option 23 Cost 1 Multiplier</display_name>
+      <description>Total option 23 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).</description>
+      <type>Choice</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value></default_value>
+      <choices>
+        <choice>
+          <value></value>
+          <display_name></display_name>
+        </choice>
+        <choice>
+          <value>Fixed (1)</value>
+          <display_name>Fixed (1)</display_name>
+        </choice>
+        <choice>
+          <value>Wall Area, Above-Grade, Conditioned (ft^2)</value>
+          <display_name>Wall Area, Above-Grade, Conditioned (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Wall Area, Above-Grade, Exterior (ft^2)</value>
+          <display_name>Wall Area, Above-Grade, Exterior (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Wall Area, Below-Grade (ft^2)</value>
+          <display_name>Wall Area, Below-Grade (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Conditioned (ft^2)</value>
+          <display_name>Floor Area, Conditioned (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic (ft^2)</value>
+          <display_name>Floor Area, Attic (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Lighting (ft^2)</value>
+          <display_name>Floor Area, Lighting (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Roof Area (ft^2)</value>
+          <display_name>Roof Area (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Window Area (ft^2)</value>
+          <display_name>Window Area (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Door Area (ft^2)</value>
+          <display_name>Door Area (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Duct Surface Area (ft^2)</value>
+          <display_name>Duct Surface Area (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System (kBtu/h)</value>
+          <display_name>Size, Heating System (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Cooling System (kBtu/h)</value>
+          <display_name>Size, Cooling System (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Water Heater (gal)</value>
+          <display_name>Size, Water Heater (gal)</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>option_23_cost_2_value</name>
+      <display_name>Option 23 Cost 2 Value</display_name>
+      <description>Total option 23 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).</description>
+      <type>Double</type>
+      <units>$</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>option_23_cost_2_multiplier</name>
+      <display_name>Option 23 Cost 2 Multiplier</display_name>
+      <description>Total option 23 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).</description>
+      <type>Choice</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value></default_value>
+      <choices>
+        <choice>
+          <value></value>
+          <display_name></display_name>
+        </choice>
+        <choice>
+          <value>Fixed (1)</value>
+          <display_name>Fixed (1)</display_name>
+        </choice>
+        <choice>
+          <value>Wall Area, Above-Grade, Conditioned (ft^2)</value>
+          <display_name>Wall Area, Above-Grade, Conditioned (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Wall Area, Above-Grade, Exterior (ft^2)</value>
+          <display_name>Wall Area, Above-Grade, Exterior (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Wall Area, Below-Grade (ft^2)</value>
+          <display_name>Wall Area, Below-Grade (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Conditioned (ft^2)</value>
+          <display_name>Floor Area, Conditioned (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic (ft^2)</value>
+          <display_name>Floor Area, Attic (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Lighting (ft^2)</value>
+          <display_name>Floor Area, Lighting (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Roof Area (ft^2)</value>
+          <display_name>Roof Area (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Window Area (ft^2)</value>
+          <display_name>Window Area (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Door Area (ft^2)</value>
+          <display_name>Door Area (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Duct Surface Area (ft^2)</value>
+          <display_name>Duct Surface Area (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System (kBtu/h)</value>
+          <display_name>Size, Heating System (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Cooling System (kBtu/h)</value>
+          <display_name>Size, Cooling System (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Water Heater (gal)</value>
+          <display_name>Size, Water Heater (gal)</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>option_23_lifetime</name>
+      <display_name>Option 23 Lifetime</display_name>
+      <description>The option lifetime.</description>
+      <type>Double</type>
+      <units>years</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>option_24</name>
+      <display_name>Option 24</display_name>
+      <description>Specify the parameter|option as found in resources\options_lookup.tsv.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>option_24_apply_logic</name>
+      <display_name>Option 24 Apply Logic</display_name>
+      <description>Logic that specifies if the Option 24 upgrade will apply based on the existing building's options. Specify one or more parameter|option as found in resources\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&amp;&amp;' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>option_24_cost_1_value</name>
+      <display_name>Option 24 Cost 1 Value</display_name>
+      <description>Total option 24 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).</description>
+      <type>Double</type>
+      <units>$</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>option_24_cost_1_multiplier</name>
+      <display_name>Option 24 Cost 1 Multiplier</display_name>
+      <description>Total option 24 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).</description>
+      <type>Choice</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value></default_value>
+      <choices>
+        <choice>
+          <value></value>
+          <display_name></display_name>
+        </choice>
+        <choice>
+          <value>Fixed (1)</value>
+          <display_name>Fixed (1)</display_name>
+        </choice>
+        <choice>
+          <value>Wall Area, Above-Grade, Conditioned (ft^2)</value>
+          <display_name>Wall Area, Above-Grade, Conditioned (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Wall Area, Above-Grade, Exterior (ft^2)</value>
+          <display_name>Wall Area, Above-Grade, Exterior (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Wall Area, Below-Grade (ft^2)</value>
+          <display_name>Wall Area, Below-Grade (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Conditioned (ft^2)</value>
+          <display_name>Floor Area, Conditioned (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic (ft^2)</value>
+          <display_name>Floor Area, Attic (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Lighting (ft^2)</value>
+          <display_name>Floor Area, Lighting (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Roof Area (ft^2)</value>
+          <display_name>Roof Area (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Window Area (ft^2)</value>
+          <display_name>Window Area (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Door Area (ft^2)</value>
+          <display_name>Door Area (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Duct Surface Area (ft^2)</value>
+          <display_name>Duct Surface Area (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System (kBtu/h)</value>
+          <display_name>Size, Heating System (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Cooling System (kBtu/h)</value>
+          <display_name>Size, Cooling System (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Water Heater (gal)</value>
+          <display_name>Size, Water Heater (gal)</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>option_24_cost_2_value</name>
+      <display_name>Option 24 Cost 2 Value</display_name>
+      <description>Total option 24 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).</description>
+      <type>Double</type>
+      <units>$</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>option_24_cost_2_multiplier</name>
+      <display_name>Option 24 Cost 2 Multiplier</display_name>
+      <description>Total option 24 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).</description>
+      <type>Choice</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value></default_value>
+      <choices>
+        <choice>
+          <value></value>
+          <display_name></display_name>
+        </choice>
+        <choice>
+          <value>Fixed (1)</value>
+          <display_name>Fixed (1)</display_name>
+        </choice>
+        <choice>
+          <value>Wall Area, Above-Grade, Conditioned (ft^2)</value>
+          <display_name>Wall Area, Above-Grade, Conditioned (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Wall Area, Above-Grade, Exterior (ft^2)</value>
+          <display_name>Wall Area, Above-Grade, Exterior (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Wall Area, Below-Grade (ft^2)</value>
+          <display_name>Wall Area, Below-Grade (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Conditioned (ft^2)</value>
+          <display_name>Floor Area, Conditioned (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic (ft^2)</value>
+          <display_name>Floor Area, Attic (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Lighting (ft^2)</value>
+          <display_name>Floor Area, Lighting (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Roof Area (ft^2)</value>
+          <display_name>Roof Area (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Window Area (ft^2)</value>
+          <display_name>Window Area (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Door Area (ft^2)</value>
+          <display_name>Door Area (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Duct Surface Area (ft^2)</value>
+          <display_name>Duct Surface Area (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System (kBtu/h)</value>
+          <display_name>Size, Heating System (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Cooling System (kBtu/h)</value>
+          <display_name>Size, Cooling System (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Water Heater (gal)</value>
+          <display_name>Size, Water Heater (gal)</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>option_24_lifetime</name>
+      <display_name>Option 24 Lifetime</display_name>
+      <description>The option lifetime.</description>
+      <type>Double</type>
+      <units>years</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>option_25</name>
+      <display_name>Option 25</display_name>
+      <description>Specify the parameter|option as found in resources\options_lookup.tsv.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>option_25_apply_logic</name>
+      <display_name>Option 25 Apply Logic</display_name>
+      <description>Logic that specifies if the Option 25 upgrade will apply based on the existing building's options. Specify one or more parameter|option as found in resources\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&amp;&amp;' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>option_25_cost_1_value</name>
+      <display_name>Option 25 Cost 1 Value</display_name>
+      <description>Total option 25 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).</description>
+      <type>Double</type>
+      <units>$</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>option_25_cost_1_multiplier</name>
+      <display_name>Option 25 Cost 1 Multiplier</display_name>
+      <description>Total option 25 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).</description>
+      <type>Choice</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value></default_value>
+      <choices>
+        <choice>
+          <value></value>
+          <display_name></display_name>
+        </choice>
+        <choice>
+          <value>Fixed (1)</value>
+          <display_name>Fixed (1)</display_name>
+        </choice>
+        <choice>
+          <value>Wall Area, Above-Grade, Conditioned (ft^2)</value>
+          <display_name>Wall Area, Above-Grade, Conditioned (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Wall Area, Above-Grade, Exterior (ft^2)</value>
+          <display_name>Wall Area, Above-Grade, Exterior (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Wall Area, Below-Grade (ft^2)</value>
+          <display_name>Wall Area, Below-Grade (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Conditioned (ft^2)</value>
+          <display_name>Floor Area, Conditioned (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic (ft^2)</value>
+          <display_name>Floor Area, Attic (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Lighting (ft^2)</value>
+          <display_name>Floor Area, Lighting (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Roof Area (ft^2)</value>
+          <display_name>Roof Area (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Window Area (ft^2)</value>
+          <display_name>Window Area (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Door Area (ft^2)</value>
+          <display_name>Door Area (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Duct Surface Area (ft^2)</value>
+          <display_name>Duct Surface Area (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System (kBtu/h)</value>
+          <display_name>Size, Heating System (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Cooling System (kBtu/h)</value>
+          <display_name>Size, Cooling System (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Water Heater (gal)</value>
+          <display_name>Size, Water Heater (gal)</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>option_25_cost_2_value</name>
+      <display_name>Option 25 Cost 2 Value</display_name>
+      <description>Total option 25 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).</description>
+      <type>Double</type>
+      <units>$</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>option_25_cost_2_multiplier</name>
+      <display_name>Option 25 Cost 2 Multiplier</display_name>
+      <description>Total option 25 cost is the sum of all: (Cost N Value) x (Cost N Multiplier).</description>
+      <type>Choice</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value></default_value>
+      <choices>
+        <choice>
+          <value></value>
+          <display_name></display_name>
+        </choice>
+        <choice>
+          <value>Fixed (1)</value>
+          <display_name>Fixed (1)</display_name>
+        </choice>
+        <choice>
+          <value>Wall Area, Above-Grade, Conditioned (ft^2)</value>
+          <display_name>Wall Area, Above-Grade, Conditioned (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Wall Area, Above-Grade, Exterior (ft^2)</value>
+          <display_name>Wall Area, Above-Grade, Exterior (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Wall Area, Below-Grade (ft^2)</value>
+          <display_name>Wall Area, Below-Grade (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Conditioned (ft^2)</value>
+          <display_name>Floor Area, Conditioned (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Attic (ft^2)</value>
+          <display_name>Floor Area, Attic (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Floor Area, Lighting (ft^2)</value>
+          <display_name>Floor Area, Lighting (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Roof Area (ft^2)</value>
+          <display_name>Roof Area (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Window Area (ft^2)</value>
+          <display_name>Window Area (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Door Area (ft^2)</value>
+          <display_name>Door Area (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Duct Surface Area (ft^2)</value>
+          <display_name>Duct Surface Area (ft^2)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Heating System (kBtu/h)</value>
+          <display_name>Size, Heating System (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Cooling System (kBtu/h)</value>
+          <display_name>Size, Cooling System (kBtu/h)</display_name>
+        </choice>
+        <choice>
+          <value>Size, Water Heater (gal)</value>
+          <display_name>Size, Water Heater (gal)</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>option_25_lifetime</name>
+      <display_name>Option 25 Lifetime</display_name>
+      <description>The option lifetime.</description>
+      <type>Double</type>
+      <units>years</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
       <name>package_apply_logic</name>
       <display_name>Package Apply Logic</display_name>
       <description>Logic that specifies if the entire package upgrade (all options) will apply based on the existing building's options. Specify one or more parameter|option as found in resources\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&amp;&amp;' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.</description>
@@ -3804,7 +4729,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>86D47820</checksum>
+      <checksum>8E1786F4</checksum>
     </file>
   </files>
 </measure>
