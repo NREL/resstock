@@ -1,5 +1,6 @@
 require 'openstudio'
 require 'openstudio/ruleset/ShowRunnerOutput'
+require_relative '../../test/minitest_helper'
 require 'minitest/autorun'
 require 'fileutils'
 require 'json'
@@ -23,7 +24,7 @@ class WorkflowTest < MiniTest::Test
   private
 
   def run_and_check(in_osw, parent_dir)
-    # Run energy_rating_index workflow
+    # Run workflow
     cli_path = OpenStudio.getOpenStudioCLI
     command = "cd #{parent_dir} && \"#{cli_path}\" --no-ssl run -w #{in_osw}"
     system(command)
@@ -37,7 +38,7 @@ class WorkflowTest < MiniTest::Test
     assert_equal(data_hash["completed_status"], "Success")
 
     enduse_timeseries = File.join(parent_dir, "run", "enduse_timeseries.csv")
-    result = { 'OSW' => File.basename(in_osw) }
+    result = { "OSW" => File.basename(in_osw) }
     sum_enduse_timeseries(result, enduse_timeseries)
     return result
   end
@@ -55,7 +56,7 @@ class WorkflowTest < MiniTest::Test
 
   def write_summary_results(results_dir, results)
     Dir.mkdir(results_dir)
-    csv_out = File.join(results_dir, 'results.csv')
+    csv_out = File.join(results_dir, "results.csv")
 
     column_headers = results[0].keys.sort
     CSV.open(csv_out, "wb") do |csv|
