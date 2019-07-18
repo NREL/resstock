@@ -154,7 +154,7 @@ class ResidentialGeometryFromFloorspaceJS < OpenStudio::Measure::ModelMeasure
     OpenStudio::Model.intersectSurfaces(spaces)
     OpenStudio::Model.matchSurfaces(spaces)
 
-    json = JSON.parse(json)
+    json = JSON.parse(File.read(path.get.to_s))
 
     # error checking
     unless json["space_types"].length > 0
@@ -165,7 +165,7 @@ class ResidentialGeometryFromFloorspaceJS < OpenStudio::Measure::ModelMeasure
     # set the space type standards fields based on what user wrote in the editor
     json["space_types"].each do |st|
       model.getSpaceTypes.each do |space_type|
-        next unless st["name"] == space_type.name.to_s
+        next unless space_type.name.to_s.include? st["name"]
 
         space_type.setStandardsSpaceType(st["name"])
       end
