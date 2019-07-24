@@ -23,8 +23,16 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     return "Reports simulation outputs of interest."
   end
 
+  def num_options
+    return Constants.NumApplyUpgradeOptions # Synced with SimulationOutputReport measure
+  end
+
+  def num_costs_per_option
+    return Constants.NumApplyUpgradesCostsPerOption # Synced with SimulationOutputReport measure
+  end
+
   # define the arguments that the user will input
-  def arguments()
+  def arguments
     args = OpenStudio::Ruleset::OSArgumentVector.new
 
     return args
@@ -33,6 +41,8 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
   # return a vector of IdfObject's to request EnergyPlus objects needed by the run method
   def energyPlusOutputRequests(runner, user_arguments)
     super(runner, user_arguments)
+
+    return OpenStudio::IdfObjectVector.new if runner.halted
 
     # get the last model and sql file
     model = runner.lastOpenStudioModel
@@ -88,29 +98,14 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       "hvac_heating_capacity_w",
       "hvac_heating_supp_capacity_w",
       "upgrade_name",
-      "upgrade_cost_usd",
-      "upgrade_option_01_cost_usd",
-      "upgrade_option_01_lifetime_yrs",
-      "upgrade_option_02_cost_usd",
-      "upgrade_option_02_lifetime_yrs",
-      "upgrade_option_03_cost_usd",
-      "upgrade_option_03_lifetime_yrs",
-      "upgrade_option_04_cost_usd",
-      "upgrade_option_04_lifetime_yrs",
-      "upgrade_option_05_cost_usd",
-      "upgrade_option_05_lifetime_yrs",
-      "upgrade_option_06_cost_usd",
-      "upgrade_option_06_lifetime_yrs",
-      "upgrade_option_07_cost_usd",
-      "upgrade_option_07_lifetime_yrs",
-      "upgrade_option_08_cost_usd",
-      "upgrade_option_08_lifetime_yrs",
-      "upgrade_option_09_cost_usd",
-      "upgrade_option_09_lifetime_yrs",
-      "upgrade_option_10_cost_usd",
-      "upgrade_option_10_lifetime_yrs",
-      "weight"
+      "upgrade_cost_usd"
     ]
+    for option_num in 1..num_options
+      buildstock_outputs << "upgrade_option_%02d_cost_usd" % option_num
+      buildstock_outputs << "upgrade_option_%02d_lifetime_yrs" % option_num
+    end
+    buildstock_outputs << "weight"
+
     result = OpenStudio::Measure::OSOutputVector.new
     buildstock_outputs.each do |output|
       result << OpenStudio::Measure::OSOutput.makeDoubleOutput(output)
@@ -174,6 +169,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     modeledCentralElectricityHeating = 0.0
     modeledCentralElectricityCooling = 0.0
     modeledCentralElectricityExteriorLighting = 0.0
+    modeledCentralElectricityExteriorHolidayLighting = 0.0
     modeledCentralElectricityPumpsHeating = 0.0
     modeledCentralElectricityPumpsCooling = 0.0
     modeledCentralElectricityInteriorEquipment = 0.0
@@ -197,6 +193,11 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     central_electricity_exterior_lighting_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:ELECTRICITYEXTERIORLIGHTING') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
     unless sqlFile.execAndReturnFirstDouble(central_electricity_exterior_lighting_query).empty?
       modeledCentralElectricityExteriorLighting = sqlFile.execAndReturnFirstDouble(central_electricity_exterior_lighting_query).get.round(2)
+    end
+
+    central_electricity_exterior_holiday_lighting_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:ELECTRICITYEXTERIORHOLIDAYLIGHTING') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+    unless sqlFile.execAndReturnFirstDouble(central_electricity_exterior_holiday_lighting_query).empty?
+      modeledCentralElectricityExteriorHolidayLighting = sqlFile.execAndReturnFirstDouble(central_electricity_exterior_holiday_lighting_query).get.round(2)
     end
 
     central_electricity_pumps_heating_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:ELECTRICITYPUMPSHEATING') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
@@ -265,6 +266,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     electricityCooling = 0.0
     electricityInteriorLighting = 0.0
     electricityExteriorLighting = 0.0
+    electricityExteriorHolidayLighting = modeledCentralElectricityExteriorHolidayLighting
     electricityInteriorEquipment = 0.0
     electricityFansHeating = 0.0
     electricityFansCooling = 0.0
@@ -448,7 +450,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     end
     report_sim_output(runner, "electricity_pv_kwh", pv_val, "GJ", elec_site_units)
 
-    electricityTotalEndUses = electricityHeating + centralElectricityHeating + electricityCooling + centralElectricityCooling + electricityInteriorLighting + electricityExteriorLighting + electricityInteriorEquipment + electricityFansHeating + electricityFansCooling + electricityPumpsHeating + centralElectricityPumpsHeating + electricityPumpsCooling + centralElectricityPumpsCooling + electricityWaterSystems
+    electricityTotalEndUses = electricityHeating + centralElectricityHeating + electricityCooling + centralElectricityCooling + electricityInteriorLighting + electricityExteriorLighting + electricityExteriorHolidayLighting + electricityInteriorEquipment + electricityFansHeating + electricityFansCooling + electricityPumpsHeating + centralElectricityPumpsHeating + electricityPumpsCooling + centralElectricityPumpsCooling + electricityWaterSystems
 
     report_sim_output(runner, "total_site_electricity_kwh", electricityTotalEndUses, "GJ", elec_site_units)
     report_sim_output(runner, "net_site_electricity_kwh", electricityTotalEndUses + pv_val, "GJ", elec_site_units)
@@ -457,7 +459,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     report_sim_output(runner, "electricity_cooling_kwh", electricityCooling, "GJ", elec_site_units)
     report_sim_output(runner, "electricity_central_system_cooling_kwh", centralElectricityCooling, "GJ", elec_site_units)
     report_sim_output(runner, "electricity_interior_lighting_kwh", electricityInteriorLighting, "GJ", elec_site_units)
-    report_sim_output(runner, "electricity_exterior_lighting_kwh", electricityExteriorLighting, "GJ", elec_site_units)
+    report_sim_output(runner, "electricity_exterior_lighting_kwh", electricityExteriorLighting + electricityExteriorHolidayLighting, "GJ", elec_site_units)
     report_sim_output(runner, "electricity_interior_equipment_kwh", electricityInteriorEquipment, "GJ", elec_site_units)
     electricityFans = 0.0
     unless sqlFile.electricityFans.empty?
@@ -576,10 +578,10 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     has_costs = false
     option_cost_pairs = {}
     option_lifetimes = {}
-    for option_num in 1..10 # Sync with ApplyUpgrade measure
+    for option_num in 1..num_options # Sync with ApplyUpgrade measure
       option_cost_pairs[option_num] = []
       option_lifetimes[option_num] = nil
-      for cost_num in 1..2 # Sync with ApplyUpgrade measure
+      for cost_num in 1..num_costs_per_option # Sync with ApplyUpgrade measure
         cost_value = get_value_from_runner_past_results(runner, "option_#{option_num}_cost_#{cost_num}_value_to_apply", "apply_upgrade", false)
         next if cost_value.nil?
 

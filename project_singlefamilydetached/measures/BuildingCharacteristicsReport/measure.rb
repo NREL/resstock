@@ -19,8 +19,7 @@ class BuildingCharacteristicsReport < OpenStudio::Measure::ReportingMeasure
   def outputs
     result = OpenStudio::Measure::OSOutputVector.new
     # Outputs based on parameters in options_lookup.tsv
-    # Note: Not every parameter is used by every project; non-applicable outputs
-    #       for a given project can be removed via a server finalization script.
+    # Note: Not every parameter is used by every project; non-applicable outputs for a given project can be removed via a server finalization script.
     resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), "..", "..", "resources"))
     buildstock_file = File.join(resources_dir, "buildstock.rb")
     lookup_file = File.join(resources_dir, "options_lookup.tsv")
@@ -29,12 +28,13 @@ class BuildingCharacteristicsReport < OpenStudio::Measure::ReportingMeasure
     parameters.each do |parameter|
       result << OpenStudio::Measure::OSOutput.makeStringOutput(OpenStudio::toUnderscoreCase(parameter))
     end
-    # Additional hard-coded outputs
     buildstock_outputs = [
       "location_city",
       "location_state",
       "location_latitude",
       "location_longitude",
+      "climate_zone_ba",
+      "climate_zone_iecc",
       "units_represented",
       "units_modeled"
     ]
@@ -67,7 +67,7 @@ class BuildingCharacteristicsReport < OpenStudio::Measure::ReportingMeasure
       next if not step.result.is_initialized
 
       step_result = step.result.get
-      next if !step_result.measureName.is_initialized or (step_result.measureName.get != "build_existing_model" and step_result.measureName.get != "zone_multipliers")
+      next if !step_result.measureName.is_initialized or step_result.measureName.get != "build_existing_model"
 
       step_result.stepValues.each do |step_value|
         begin
@@ -84,34 +84,6 @@ class BuildingCharacteristicsReport < OpenStudio::Measure::ReportingMeasure
       runner.registerInfo("Registering #{v} for #{k}.")
       runner.registerValue(k, v)
     end
-
-    # Report some additional location and model characteristics
-
-    model = runner.lastOpenStudioModel
-    if model.empty?
-      runner.registerError("Cannot find last model.")
-      return false
-    end
-    model = model.get
-
-    weather = WeatherProcess.new(model, runner)
-    if !weather.error?
-      runner.registerInfo("Registering #{weather.header.City} for location_city.")
-      runner.registerValue("location_city", weather.header.City)
-      runner.registerInfo("Registering #{weather.header.State} for location_state.")
-      runner.registerValue("location_state", weather.header.State)
-      runner.registerInfo("Registering #{weather.header.Latitude} for location_latitude.")
-      runner.registerValue("location_latitude", weather.header.Latitude)
-      runner.registerInfo("Registering #{weather.header.Longitude} for location_longitude.")
-      runner.registerValue("location_longitude", weather.header.Longitude)
-    end
-
-    units_represented = model.getBuilding.additionalProperties.getFeatureAsInteger("Total Units Represented")
-    runner.registerInfo("Registering #{units_represented} for units_represented.")
-    runner.registerValue("units_represented", "#{units_represented.get}")
-    units_modeled = model.getBuilding.additionalProperties.getFeatureAsInteger("Total Units Modeled")
-    runner.registerInfo("Registering #{units_modeled} for units_modeled.")
-    runner.registerValue("units_modeled", "#{units_modeled.get}")
 
     runner.registerFinalCondition("Report generated successfully.")
 

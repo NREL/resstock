@@ -117,10 +117,14 @@ class ResidentialHotWaterDistribution < OpenStudio::Measure::ModelMeasure
       return false
     end
 
+    year_description = model.getYearDescription
+    num_days_in_months = Constants.NumDaysInMonths(year_description.isLeapYear)
+    num_days_in_year = Constants.NumDaysInYear(year_description.isLeapYear)
+
     waterMainsTemperature = site.siteWaterMainsTemperature.get
     avgOAT = UnitConversions.convert(waterMainsTemperature.annualAverageOutdoorAirTemperature.get, "C", "F")
     maxDiffMonthlyAvgOAT = UnitConversions.convert(waterMainsTemperature.maximumDifferenceInMonthlyAverageOutdoorAirTemperatures.get, "K", "R")
-    mainsMonthlyTemps = WeatherProcess.calc_mains_temperatures(avgOAT, maxDiffMonthlyAvgOAT, site.latitude)[1]
+    mainsMonthlyTemps = WeatherProcess.calc_mains_temperatures(avgOAT, maxDiffMonthlyAvgOAT, site.latitude, num_days_in_year)[1]
 
     tot_pump_e_ann = 0
     msgs = []
@@ -267,7 +271,7 @@ class ResidentialHotWaterDistribution < OpenStudio::Measure::ModelMeasure
           daily_shower_increase[m] = [(-0.305 - 0.075 * nbeds) * dist_ins / 2.0, 0].min # gal/day
           daily_bath_increase[m] = [(0.03 - 0.03 * nbeds) * dist_ins / 2.0, 0].min # gal/day
           daily_sink_increase[m] = [(-0.755 - 0.245 * nbeds) * dist_ins / 2.0, 0].min # gal/day
-          monthly_internal_gain[m] = [Constants.MonthNumDays[m] * (4257.0 + 735.0 * (nbeds - 3) - \
+          monthly_internal_gain[m] = [num_days_in_months[m] * (4257.0 + 735.0 * (nbeds - 3) - \
                                      (948.0 + 158.0 * (nbeds - 3)) * dist_ins / 2.0) * (1 + 1.0 / 4257.0 * \
                                      (362.0 + (63.0 * (nbeds - 3))) * Math.sin(deg_rad * (360.0 * ((m + 1.0) / 12.0) + 0.3))), 0].max # Btu/month
         end
@@ -278,7 +282,7 @@ class ResidentialHotWaterDistribution < OpenStudio::Measure::ModelMeasure
           daily_shower_increase[m] = [-0.85 - 0.44 * dist_ins / 2.0, 0].min # gal/day
           daily_bath_increase[m] = [-0.12 - 0.06 * dist_ins / 2.0, 0].min # gal/day
           daily_sink_increase[m] = [-1.69 - 1.74 * dist_ins / 2.0, 0].min # gal/day
-          monthly_internal_gain[m] = [Constants.MonthNumDays[m] * (4257.0 - 1047.0 - 732.0 * dist_ins / 2.0) * \
+          monthly_internal_gain[m] = [num_days_in_months[m] * (4257.0 - 1047.0 - 732.0 * dist_ins / 2.0) * \
             (1 + 1.0 / 4257.0 * 735.0 * (nbeds - 3) + 1.0 / 4257.0 * (362.0 + (63.0 * (nbeds - 3))) * \
               Math.sin(deg_rad * (360.0 * ((m + 1.0) / 12.0) + 0.3))), 0].max # Btu/month
         end
@@ -319,7 +323,7 @@ class ResidentialHotWaterDistribution < OpenStudio::Measure::ModelMeasure
           daily_shower_increase[m] = [(-0.52 - 0.23 * nbeds) + (-0.35 + 0.02 * nbeds) * dist_ins / 2.0, 0].min # gal/day
           daily_bath_increase[m] = [(-0.06 - 0.05 * nbeds) + (-0.11 + 0.03 * nbeds) * dist_ins / 2.0, 0].min # gal/day
           daily_sink_increase[m] = [(0.21 - 0.72 * nbeds) + (-0.75 - 0.15 * nbeds) * dist_ins / 2.0, 0].min # gal/day
-          monthly_internal_gain[m] = [Constants.MonthNumDays[m] * (4257.0 + 735.0 * (nbeds - 3) - (1142.0 + 378.0 * (nbeds - 3)) - \
+          monthly_internal_gain[m] = [num_days_in_months[m] * (4257.0 + 735.0 * (nbeds - 3) - (1142.0 + 378.0 * (nbeds - 3)) - \
                                      ((649.0 + 73.0 * (nbeds - 3)) * dist_ins / 2.0)) * (1.0 + 1.0 / 4257.0 * (362.0 + (63.0 * (nbeds - 3))) * \
                                      Math.sin(deg_rad * (360.0 * ((m + 1.0) / 12.0)) + 0.3)), 0].max # Btu/month
         end
@@ -348,7 +352,7 @@ class ResidentialHotWaterDistribution < OpenStudio::Measure::ModelMeasure
           daily_shower_increase[m] = [(-2.15 + 0.25 * nbeds) + (-0.16 - 0.08 * nbeds) * dist_ins / 2.0, 0].min # gal/day
           daily_bath_increase[m] = [(-0.27 + 0.04 * nbeds) + (-0.01 - 0.03 * nbeds) * dist_ins / 2.0, 0].min # gal/day
           daily_sink_increase[m] = [(-2.01 - 0.95 * nbeds) + (-0.36 - 0.13 * nbeds) * dist_ins / 2.0, 0].min # gal/day
-          monthly_internal_gain[m] = [Constants.MonthNumDays[m] * (4257.0 + 735.0 * (nbeds - 3) + (20148.0 + 2140.0 * (nbeds - 3)) - \
+          monthly_internal_gain[m] = [num_days_in_months[m] * (4257.0 + 735.0 * (nbeds - 3) + (20148.0 + 2140.0 * (nbeds - 3)) - \
                                       ((11956.0 + 1355.0 * (nbeds - 3)) * dist_ins / 2.0)) * (1.0 + 1.0 / 4257.0 * (362.0 + (63.0 * \
                                       (nbeds - 3))) * Math.sin(deg_rad * (360.0 * ((m + 1.0) / 12.0) + 0.3))), 0].max # Btu/month
         end
@@ -359,7 +363,7 @@ class ResidentialHotWaterDistribution < OpenStudio::Measure::ModelMeasure
           daily_shower_increase[m] = [(-2.61 + 0.35 * nbeds) + (0.05 - 0.13 * nbeds) * dist_ins / 2.0, 0].min # gal/day
           daily_bath_increase[m] = [(-0.26 + 0.01 * nbeds) - 0.03 * dist_ins / 2.0, 0].min # gal/day
           daily_sink_increase[m] = [(-1.34 - 0.91 * nbeds) + (-0.64 - 0.07 * nbeds) * dist_ins / 2.0, 0].min # gal/day
-          monthly_internal_gain[m] = [Constants.MonthNumDays[m] * (4257.0 + 735.0 * (nbeds - 3) + (1458.0 + 1066.0 * (nbeds - 3)) - \
+          monthly_internal_gain[m] = [num_days_in_months[m] * (4257.0 + 735.0 * (nbeds - 3) + (1458.0 + 1066.0 * (nbeds - 3)) - \
                                      ((1332.0 + 545.0 * (nbeds - 3)) * dist_ins / 2.0)) * \
             (1.0 + 1.0 / 4257.0 * (362.0 + (63.0 * (nbeds - 3))) * \
               Math.sin(deg_rad * (360.0 * ((m + 1.0) / 12.0) + 0.3))), 0].max # Btu/month
@@ -377,7 +381,7 @@ class ResidentialHotWaterDistribution < OpenStudio::Measure::ModelMeasure
           daily_sink_increase[m] = [-1.69 + (sink_daily * water_mix_to_h[m] - 1.69) / \
                                             (sink_daily * water_mix_to_h[m]) * ((-2.01 - 0.95 * nbeds) + \
                                    (-0.36 - 0.13 * nbeds) * dist_ins / 2.0), 0].min # gal/day
-          monthly_internal_gain[m] = [Constants.MonthNumDays[m] * ((4257.0 - 1047.0) * (1.0 + 1.0 / 4257.0 * 735.0 * (nbeds - 3.0) + \
+          monthly_internal_gain[m] = [num_days_in_months[m] * ((4257.0 - 1047.0) * (1.0 + 1.0 / 4257.0 * 735.0 * (nbeds - 3.0) + \
                                      1.0 / 4257.0 * (20148.0 + 2140.0 * (nbeds - 3.0)) - 1.0 / 4257.0 * ((11956.0 + 1355.0 * \
                                      (nbeds - 3.0)) * dist_ins / 2.0)) * (1.0 + 1.0 / 4257.0 * (362.0 + (63.0 * (nbeds - 3.0))) * \
                                      Math.sin(deg_rad * (360.0 * ((m + 1.0) / 12.0) + 0.3)))), 0.0].max # Btu/month
@@ -395,7 +399,7 @@ class ResidentialHotWaterDistribution < OpenStudio::Measure::ModelMeasure
           daily_sink_increase[m] = [-1.69 + (sink_daily * water_mix_to_h[m] - 1.69) / \
                                             (sink_daily * water_mix_to_h[m]) * ((-1.34 - 0.91 * nbeds) + \
                                    (-0.64 - 0.07 * nbeds) * dist_ins / 2.0), 0].min # gal/day
-          monthly_internal_gain[m] = [Constants.MonthNumDays[m] * ((4257.0 - 1047.0) * (1.0 + 1.0 / 4257.0 * 735.0 * (nbeds - 3) + \
+          monthly_internal_gain[m] = [num_days_in_months[m] * ((4257.0 - 1047.0) * (1.0 + 1.0 / 4257.0 * 735.0 * (nbeds - 3) + \
                                      1.0 / 4257.0 * (1458.0 + 1066.0 * (nbeds - 3)) - 1.0 / 4257.0 * ((1332.0 + 545.0 * (nbeds - 3)) * \
                                      dist_ins / 2.0)) * (1.0 + 1.0 / 4257.0 * (362.0 + (63.0 * (nbeds - 3))) * \
                                      Math.sin(deg_rad * (360.0 * ((m + 1.0) / 12.0) + 0.3)))), 0].max # Btu/month
@@ -408,7 +412,7 @@ class ResidentialHotWaterDistribution < OpenStudio::Measure::ModelMeasure
           daily_bath_increase[m] = 0 # gal/day
           daily_sink_increase[m] = 0 # gal/day
           if dist_loc == Constants.LocationInterior
-            monthly_internal_gain[m] = [Constants.MonthNumDays[m] * (4257.0 + 735.0 * (nbeds - 3)) *
+            monthly_internal_gain[m] = [num_days_in_months[m] * (4257.0 + 735.0 * (nbeds - 3)) *
               (1.0 + 1.0 / 4257.0 * (362.0 + (63.0 * (nbeds - 3))) *
                 Math.sin(deg_rad * (360.0 * (m / 12.0) + 0.3))), 0].max # Btu/month
           else
@@ -426,10 +430,10 @@ class ResidentialHotWaterDistribution < OpenStudio::Measure::ModelMeasure
       daily_bath_inc = 0
       ann_int_gain = 0
       for m in 0..11
-        recovery_load_inc += Constants.MonthNumDays[m] * daily_recovery_load[m] / water_mix_to_h[m] / (365.0 * 3.0) # Split evenly across all end uses
-        daily_shower_inc += Constants.MonthNumDays[m] * daily_shower_increase[m] / water_mix_to_h[m] / 365.0
-        daily_sink_inc += Constants.MonthNumDays[m] * daily_sink_increase[m] / water_mix_to_h[m] / 365.0
-        daily_bath_inc += Constants.MonthNumDays[m] * daily_bath_increase[m] / water_mix_to_h[m] / 365.0
+        recovery_load_inc += num_days_in_months[m] * daily_recovery_load[m] / water_mix_to_h[m] / (num_days_in_year * 3.0) # Split evenly across all end uses
+        daily_shower_inc += num_days_in_months[m] * daily_shower_increase[m] / water_mix_to_h[m] / num_days_in_year
+        daily_sink_inc += num_days_in_months[m] * daily_sink_increase[m] / water_mix_to_h[m] / num_days_in_year
+        daily_bath_inc += num_days_in_months[m] * daily_bath_increase[m] / water_mix_to_h[m] / num_days_in_year
         ann_int_gain += UnitConversions.convert(monthly_internal_gain[m], "Btu", "kWh")
       end
       shower_dist_hw = recovery_load_inc + daily_shower_inc
@@ -518,7 +522,7 @@ class ResidentialHotWaterDistribution < OpenStudio::Measure::ModelMeasure
           return false
         end
 
-        dist_design_level = gain_sch.calcDesignLevelFromDailykWh(ann_int_gain / 365.0)
+        dist_design_level = gain_sch.calcDesignLevelFromDailykWh(ann_int_gain / num_days_in_year)
         dist_oe_def = OpenStudio::Model::OtherEquipmentDefinition.new(model)
         dist_oe = OpenStudio::Model::OtherEquipment.new(dist_oe_def)
         dist_oe.setName(obj_name_dist)
@@ -533,7 +537,7 @@ class ResidentialHotWaterDistribution < OpenStudio::Measure::ModelMeasure
 
       # Add in an electricEquipment object for the recirculation pump
       if pump_e_ann > 0
-        recirc_pump_design_level = sch_sh.calcDesignLevelFromDailykWh(pump_e_ann / 365.0)
+        recirc_pump_design_level = sch_sh.calcDesignLevelFromDailykWh(pump_e_ann / num_days_in_year)
         recirc_pump_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
         recirc_pump = OpenStudio::Model::ElectricEquipment.new(recirc_pump_def)
         recirc_pump.setName(obj_name_recirc_pump)

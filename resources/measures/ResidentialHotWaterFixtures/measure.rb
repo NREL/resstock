@@ -213,7 +213,11 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
       if sh_gpd > 0
 
         # Create schedule
+<<<<<<< HEAD
         sch_sh = HotWaterSchedule.new(model, runner, Constants.ObjectNameShower + " schedule", Constants.ObjectNameShower + " temperature schedule", nbeds, d_sh, "Shower", mixed_use_t, prof_type)
+=======
+        sch_sh = HotWaterSchedule.new(model, runner, Constants.ObjectNameShower + " schedule", Constants.ObjectNameShower + " temperature schedule", nbeds, d_sh, "Shower", mixed_use_t, create_sch_object = true, schedule_type_limits_name = Constants.ScheduleTypeLimitsFraction)
+>>>>>>> master
         if not sch_sh.validated?
           return false
         end
@@ -336,7 +340,11 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
       if s_gpd > 0
 
         # Create schedule
+<<<<<<< HEAD
         sch_s = HotWaterSchedule.new(model, runner, Constants.ObjectNameSink + " schedule", Constants.ObjectNameSink + " temperature schedule", nbeds, d_sh, "Sink", mixed_use_t, prof_type)
+=======
+        sch_s = HotWaterSchedule.new(model, runner, Constants.ObjectNameSink + " schedule", Constants.ObjectNameSink + " temperature schedule", nbeds, d_sh, "Sink", mixed_use_t, create_sch_object = true, schedule_type_limits_name = Constants.ScheduleTypeLimitsFraction)
+>>>>>>> master
         if not sch_s.validated?
           return false
         end
@@ -375,7 +383,11 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
       if b_gpd > 0
 
         # Create schedule
+<<<<<<< HEAD
         sch_b = HotWaterSchedule.new(model, runner, Constants.ObjectNameBath + " schedule", Constants.ObjectNameBath + " temperature schedule", nbeds, d_sh, "Bath", mixed_use_t, prof_type)
+=======
+        sch_b = HotWaterSchedule.new(model, runner, Constants.ObjectNameBath + " schedule", Constants.ObjectNameBath + " temperature schedule", nbeds, d_sh, "Bath", mixed_use_t, create_sch_object = true, schedule_type_limits_name = Constants.ScheduleTypeLimitsFraction)
+>>>>>>> master
         if not sch_b.validated?
           return false
         end
