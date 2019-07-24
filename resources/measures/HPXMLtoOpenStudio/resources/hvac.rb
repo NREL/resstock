@@ -2987,6 +2987,18 @@ class HVAC
       break # assume all finished zones have the same schedules
     end
 
+    # Store the setpoints on thermostat_setpoint for DR measure
+    finished_zones.each do |finished_zone|
+      thermostat_setpoint = finished_zone.thermostatSetpointDualSetpoint
+      if thermostat_setpoint.is_initialized
+        thermostat_setpoint = thermostat_setpoint.get
+        thermostat_setpoint.additionalProperties.setFeature("htg_wkdy", "#{htg_wkdy_monthly[0].join(",")}")
+        thermostat_setpoint.additionalProperties.setFeature("htg_wked", "#{htg_wked_monthly[0].join(",")}")
+        thermostat_setpoint.additionalProperties.setFeature("clg_wkdy", "#{clg_wkdy_monthly[0].join(",")}")
+        thermostat_setpoint.additionalProperties.setFeature("clg_wked", "#{clg_wked_monthly[0].join(",")}")
+      end
+    end
+
     (0..11).to_a.each do |i|
       if heating_season[i] == 1 and cooling_season[i] == 1 # overlap seasons
         htg_wkdy = htg_wkdy_monthly[i].zip(clg_wkdy_monthly[i]).map { |h, c| c < h ? (h + c) / 2.0 : h }
@@ -3139,6 +3151,18 @@ class HVAC
       break # assume all finished zones have the same schedules
     end
 
+    # Store the setpoints on thermostat_setpoint for DR measure
+    finished_zones.each do |finished_zone|
+      thermostat_setpoint = finished_zone.thermostatSetpointDualSetpoint
+      if thermostat_setpoint.is_initialized
+        thermostat_setpoint = thermostat_setpoint.get
+        thermostat_setpoint.additionalProperties.setFeature("htg_wkdy", "#{htg_wkdy_monthly[0].join(",")}")
+        thermostat_setpoint.additionalProperties.setFeature("htg_wked", "#{htg_wked_monthly[0].join(",")}")
+        thermostat_setpoint.additionalProperties.setFeature("clg_wkdy", "#{clg_wkdy_monthly[0].join(",")}")
+        thermostat_setpoint.additionalProperties.setFeature("clg_wked", "#{clg_wked_monthly[0].join(",")}")
+      end
+    end
+
     (0..11).to_a.each do |i|
       if heating_season[i] == 1 and cooling_season[i] == 1 # overlap seasons
         htg_wkdy = htg_wkdy_monthly[i].zip(clg_wkdy_monthly[i]).map { |h, c| c < h ? (h + c) / 2.0 : h }
@@ -3184,13 +3208,10 @@ class HVAC
     finished_zones.each do |finished_zone|
       thermostat_setpoint = finished_zone.thermostatSetpointDualSetpoint
       if thermostat_setpoint.is_initialized
-
         thermostat_setpoint = thermostat_setpoint.get
         thermostat_setpoint.setHeatingSetpointTemperatureSchedule(heating_setpoint.schedule)
         thermostat_setpoint.setCoolingSetpointTemperatureSchedule(cooling_setpoint.schedule)
-
       else
-
         thermostat_setpoint = OpenStudio::Model::ThermostatSetpointDualSetpoint.new(model)
         thermostat_setpoint.setName("#{finished_zone.name} temperature setpoint")
         runner.registerInfo("Created new thermostat #{thermostat_setpoint.name} for #{finished_zone.name}.")
@@ -3198,7 +3219,6 @@ class HVAC
         thermostat_setpoint.setCoolingSetpointTemperatureSchedule(cooling_setpoint.schedule)
         finished_zone.setThermostatSetpointDualSetpoint(thermostat_setpoint)
         runner.registerInfo("Set a dummy heating setpoint schedule for #{thermostat_setpoint.name}.")
-
       end
 
       runner.registerInfo("Set the cooling setpoint schedule for #{thermostat_setpoint.name}.")
