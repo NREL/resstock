@@ -35,7 +35,7 @@ class TestResStockMeasuresOSW < MiniTest::Test
     FileUtils.rm_rf(File.join(parent_dir, "run"))
     FileUtils.rm_rf(File.join(parent_dir, "reports"))
   end
-  
+
   def run_and_check(in_osw, parent_dir, measures_osw_dir, building_id)
     # Create measures.osw
     cli_path = OpenStudio.getOpenStudioCLI
@@ -54,10 +54,10 @@ class TestResStockMeasuresOSW < MiniTest::Test
   end
 
   def create_buildstock_csv(project_dir, num_samples)
-    outfile = File.join("..", "test", "test_measures_osw", "buildstock.csv")    
+    outfile = File.join("..", "test", "test_measures_osw", "buildstock.csv")
     r = RunSampling.new
     r.run(project_dir, num_samples, outfile)
-  
+
     return outfile
   end
 
@@ -80,12 +80,12 @@ class TestResStockMeasuresOSW < MiniTest::Test
 
     return des
   end
-  
+
   def change_building_id(osw, building_id)
     json = JSON.parse(File.read(osw), symbolize_names: true)
     json[:steps].each do |measure|
       next if measure[:measure_dir_name] != "BuildExistingModel"
-      
+
       measure[:arguments][:building_id] = "#{building_id}"
     end
     File.open(osw, "w") do |f|
