@@ -23,6 +23,33 @@ class ResidentialHotWaterHeaterHeatPumpTest < MiniTest::Test
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
+  def test_new_construction_50_scheduled_setpoint
+    args_hash = {}
+    args_hash["setpoint_type"] = Constants.WaterHeaterSetpointTypeScheduled
+    expected_num_del_objects = {}
+    expected_num_new_objects = { "WaterHeaterStratified" => 1, "PlantLoop" => 1, "PumpVariableSpeed" => 1, "WaterHeaterHeatPumpWrappedCondenser" => 1, "CoilWaterHeatingAirToWaterHeatPumpWrapped" => 1, "FanOnOff" => 1, "OtherEquipment" => 2, "OtherEquipmentDefinition" => 2, "EnergyManagementSystemSensor" => 10, "EnergyManagementSystemActuator" => 7, "EnergyManagementSystemTrendVariable" => 3, "EnergyManagementSystemProgram" => 2, "EnergyManagementSystemProgramCallingManager" => 1, "ScheduleConstant" => 5, "ScheduleRuleset" => 7, "ScheduleFixedInterval" => 3 }
+    expected_values = { "TankVolume" => 45, "Heater1Height" => 0.732, "Heater2Height" => 0.129, "TankU" => 1.13, "OnCycle" => 3, "OffCycle" => 3, "CondBottom" => 0.0870, "CondTop" => 0.560, "AirflowRate" => 0.0854, "Sensor1Height" => 0.818, "Sensor2Height" => 0.818, "Cap" => 1400, "COP" => 2.8, "SHR" => 0.88, "WBTemp" => 13.08, "FanEff" => 0.235 }
+    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
+  end
+
+  def test_new_construction_50_scheduled_operating_mode
+    args_hash = {}
+    args_hash["operating_mode_type"] = Constants.WaterHeaterSetpointTypeScheduled
+    expected_num_del_objects = {}
+    expected_num_new_objects = { "WaterHeaterStratified" => 1, "PlantLoop" => 1, "PumpVariableSpeed" => 1, "WaterHeaterHeatPumpWrappedCondenser" => 1, "CoilWaterHeatingAirToWaterHeatPumpWrapped" => 1, "FanOnOff" => 1, "OtherEquipment" => 2, "OtherEquipmentDefinition" => 2, "EnergyManagementSystemSensor" => 10, "EnergyManagementSystemActuator" => 7, "EnergyManagementSystemTrendVariable" => 3, "EnergyManagementSystemProgram" => 2, "EnergyManagementSystemProgramCallingManager" => 1, "ScheduleConstant" => 7, "ScheduleRuleset" => 7, "ScheduleFixedInterval" => 1 }
+    expected_values = { "TankVolume" => 45, "Heater1Height" => 0.732, "Heater2Height" => 0.129, "TankU" => 1.13, "OnCycle" => 3, "OffCycle" => 3, "CondBottom" => 0.0870, "CondTop" => 0.560, "AirflowRate" => 0.0854, "Sensor1Height" => 0.818, "Sensor2Height" => 0.818, "Cap" => 1400, "COP" => 2.8, "SHR" => 0.88, "WBTemp" => 13.08, "FanEff" => 0.235 }
+    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
+  end
+
+  def test_new_construction_50_hp_only_operating_mode
+    args_hash = {}
+    args_hash["operating_mode"] = Constants.WaterHeaterOperatingModeHeatPumpOnly
+    expected_num_del_objects = {}
+    expected_num_new_objects = { "WaterHeaterStratified" => 1, "PlantLoop" => 1, "PumpVariableSpeed" => 1, "WaterHeaterHeatPumpWrappedCondenser" => 1, "CoilWaterHeatingAirToWaterHeatPumpWrapped" => 1, "FanOnOff" => 1, "OtherEquipment" => 2, "OtherEquipmentDefinition" => 2, "EnergyManagementSystemSensor" => 9, "EnergyManagementSystemActuator" => 7, "EnergyManagementSystemTrendVariable" => 3, "EnergyManagementSystemProgram" => 2, "EnergyManagementSystemProgramCallingManager" => 1, "ScheduleConstant" => 7, "ScheduleRuleset" => 7 }
+    expected_values = { "TankVolume" => 45, "Heater1Height" => 0.732, "Heater2Height" => 0.129, "TankU" => 1.13, "OnCycle" => 3, "OffCycle" => 3, "CondBottom" => 0.0870, "CondTop" => 0.560, "AirflowRate" => 0.0854, "Sensor1Height" => 0.818, "Sensor2Height" => 0.818, "Cap" => 1400, "COP" => 2.8, "SHR" => 0.88, "WBTemp" => 13.08, "FanEff" => 0.235 }
+    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
+  end
+
   def test_new_construction_80
     args_hash = {}
     args_hash["storage_tank_volume"] = "80"

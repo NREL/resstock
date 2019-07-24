@@ -390,10 +390,12 @@ class ResidentialHotWaterSolar < OpenStudio::Measure::ModelMeasure
         storage_tank.setHeater1SetpointTemperatureSchedule(setpoint_schedule_one)
         storage_tank.setHeater1Capacity(0)
         storage_tank.setHeater1Height(0)
+        storage_tank.setHeater1DeadbandTemperatureDifference(2)
         storage_tank.heater2SetpointTemperatureSchedule.remove
         storage_tank.setHeater2SetpointTemperatureSchedule(setpoint_schedule_two)
         storage_tank.setHeater2Capacity(0)
         storage_tank.setHeater2Height(0)
+        storage_tank.setHeater2DeadbandTemperatureDifference(2)
         storage_tank.setHeaterFuelType('Electricity')
         storage_tank.setHeaterThermalEfficiency(1)
         storage_tank.ambientTemperatureSchedule.get.remove

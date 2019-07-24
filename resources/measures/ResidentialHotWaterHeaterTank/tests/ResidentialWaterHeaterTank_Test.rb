@@ -15,6 +15,37 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
+  def test_new_construction_standard_gas_stratified
+    args_hash = {}
+    args_hash["fuel_type"] = Constants.FuelTypeGas
+    args_hash["tank_model_type"] = Constants.WaterHeaterTypeTankModelTypeStratified
+    expected_num_del_objects = {}
+    expected_num_new_objects = { "WaterHeaterStratified" => 1, "PlantLoop" => 1, "PumpVariableSpeed" => 1, "ScheduleConstant" => 2 }
+    expected_values = { "TankVolume" => 40, "InputCapacity" => 11.72, "ThermalEfficiency" => 1.0, "TankUA" => 0.8066, "Setpoint" => 119.02, "OnCycle" => 0, "OffCycle" => 0, "FuelType" => Constants.FuelTypeGas, "SkinLossFrac" => 1.0 }
+    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
+  end
+
+  def test_new_construction_standard_gas_scheduled_setpoint
+    args_hash = {}
+    args_hash["fuel_type"] = Constants.FuelTypeGas
+    args_hash["setpoint_type"] = Constants.WaterHeaterSetpointTypeScheduled
+    expected_num_del_objects = {}
+    expected_num_new_objects = { "WaterHeaterMixed" => 1, "PlantLoop" => 1, "PumpVariableSpeed" => 1, "ScheduleFixedInterval" => 2 }
+    expected_values = { "TankVolume" => 40, "InputCapacity" => 11.72, "ThermalEfficiency" => 0.773, "TankUA" => 7.88, "Setpoint" => 123.19, "OnCycle" => 0, "OffCycle" => 0, "FuelType" => Constants.FuelTypeGas, "SkinLossFrac" => 0.64 }
+    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
+  end
+
+  def test_new_construction_standard_gas_stratified_scheduled_setpoint
+    args_hash = {}
+    args_hash["fuel_type"] = Constants.FuelTypeGas
+    args_hash["tank_model_type"] = Constants.WaterHeaterTypeTankModelTypeStratified
+    args_hash["setpoint_type"] = Constants.WaterHeaterSetpointTypeScheduled
+    expected_num_del_objects = {}
+    expected_num_new_objects = { "WaterHeaterStratified" => 1, "PlantLoop" => 1, "PumpVariableSpeed" => 1, "ScheduleFixedInterval" => 2 }
+    expected_values = { "TankVolume" => 40, "InputCapacity" => 11.72, "ThermalEfficiency" => 1.0, "TankUA" => 0.8066, "Setpoint" => 118.22, "OnCycle" => 0, "OffCycle" => 0, "FuelType" => Constants.FuelTypeGas, "SkinLossFrac" => 1.0 }
+    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
+  end
+
   def test_new_construction_premium_gas
     args_hash = {}
     args_hash["energy_factor"] = "0.67"
@@ -46,8 +77,12 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     args_hash["energy_factor"] = "0.92"
     args_hash["capacity"] = "15.35"
     expected_num_del_objects = {}
+    # Use this for mixed tank model
     expected_num_new_objects = { "WaterHeaterMixed" => 1, "PlantLoop" => 1, "PumpVariableSpeed" => 1, "ScheduleConstant" => 2 }
     expected_values = { "TankVolume" => 50, "InputCapacity" => 4.5, "ThermalEfficiency" => 1.0, "TankUA" => 2.21, "Setpoint" => 125, "OnCycle" => 0, "OffCycle" => 0, "FuelType" => Constants.FuelTypeElectric, "SkinLossFrac" => 1.0 }
+    # Use this for stratified tank model
+    # expected_num_new_objects = {"WaterHeaterStratified"=>1, "PlantLoop"=>1, "PumpVariableSpeed"=>1, "ScheduleConstant"=>2}
+    # expected_values = {"TankVolume"=>50, "InputCapacity"=>4.5, "ThermalEfficiency"=>1.0, "TankUA"=>0.205, "Setpoint"=>125, "OnCycle"=>0, "OffCycle"=>0, "FuelType"=>Constants.FuelTypeElectric, "SkinLossFrac"=>1.0}
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
@@ -59,6 +94,9 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     expected_num_del_objects = {}
     expected_num_new_objects = { "WaterHeaterMixed" => 1, "PlantLoop" => 1, "PumpVariableSpeed" => 1, "ScheduleConstant" => 2 }
     expected_values = { "TankVolume" => 50, "InputCapacity" => 5.5, "ThermalEfficiency" => 1.0, "TankUA" => 1.34, "Setpoint" => 125, "OnCycle" => 0, "OffCycle" => 0, "FuelType" => Constants.FuelTypeElectric, "SkinLossFrac" => 1.0 }
+    # Use this for stratified tank model
+    # expected_num_new_objects = {"WaterHeaterStratified"=>1, "PlantLoop"=>1, "PumpVariableSpeed"=>1, "ScheduleConstant"=>2}
+    # expected_values = {"TankVolume"=>50, "InputCapacity"=>5.5, "ThermalEfficiency"=>1.0, "TankUA"=>0.124, "Setpoint"=>125, "OnCycle"=>0, "OffCycle"=>0, "FuelType"=>Constants.FuelTypeElectric, "SkinLossFrac"=>1.0}
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
@@ -68,8 +106,12 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     args_hash["energy_factor"] = Constants.Auto
     args_hash["capacity"] = Constants.Auto
     expected_num_del_objects = {}
+    # Use this for mixed tank model
     expected_num_new_objects = { "WaterHeaterMixed" => 1, "PlantLoop" => 1, "PumpVariableSpeed" => 1, "ScheduleConstant" => 2 }
     expected_values = { "TankVolume" => 50, "InputCapacity" => 5.5, "ThermalEfficiency" => 1.0, "TankUA" => 2.69, "Setpoint" => 125, "OnCycle" => 0, "OffCycle" => 0, "FuelType" => Constants.FuelTypeElectric, "SkinLossFrac" => 1.0 }
+    # Use this for stratified tank model
+    # expected_num_new_objects = {"WaterHeaterStratified"=>1, "PlantLoop"=>1, "PumpVariableSpeed"=>1, "ScheduleConstant"=>2}
+    # expected_values = {"TankVolume"=>50, "InputCapacity"=>5.5, "ThermalEfficiency"=>1.0, "TankUA"=>0.25, "Setpoint"=>125, "OnCycle"=>0, "OffCycle"=>0, "FuelType"=>Constants.FuelTypeElectric, "SkinLossFrac"=>1.0}
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
@@ -478,15 +520,27 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
         new_object = new_object.public_send("to_#{obj_type}").get
         if obj_type == "WaterHeaterMixed" or obj_type == "WaterHeaterStratified"
           actual_values["TankVolume"] += UnitConversions.convert(new_object.tankVolume.get, "m^3", "gal")
-          actual_values["InputCapacity"] += UnitConversions.convert(new_object.heaterMaximumCapacity.get, "W", "kW")
-          actual_values["ThermalEfficiency"] += new_object.heaterThermalEfficiency.get
-          actual_values["TankUA1"] += UnitConversions.convert(new_object.onCycleLossCoefficienttoAmbientTemperature.get, "W/K", "Btu/(hr*F)")
-          actual_values["TankUA2"] += UnitConversions.convert(new_object.offCycleLossCoefficienttoAmbientTemperature.get, "W/K", "Btu/(hr*F)")
-          actual_values["Setpoint"] += Waterheater.get_water_heater_setpoint(model, new_object.plantLoop.get, nil)
+          if obj_type == "WaterHeaterMixed"
+            actual_values["InputCapacity"] += UnitConversions.convert(new_object.heaterMaximumCapacity.get, "W", "kW")
+            actual_values["ThermalEfficiency"] += new_object.heaterThermalEfficiency.get
+            actual_values["TankUA1"] += UnitConversions.convert(new_object.onCycleLossCoefficienttoAmbientTemperature.get, "W/K", "Btu/(hr*F)")
+            actual_values["TankUA2"] += UnitConversions.convert(new_object.offCycleLossCoefficienttoAmbientTemperature.get, "W/K", "Btu/(hr*F)")
+            actual_values["Setpoint"] += Waterheater.get_water_heater_setpoint(model, new_object.plantLoop.get, nil) - new_object.deadbandTemperatureDifference / 2.0
+            actual_values["SkinLossFrac"] += new_object.offCycleLossFractiontoThermalZone
+          elsif obj_type == "WaterHeaterStratified" # Stratified water heater model is being used
+            # Elements 1 and 2 are set using the same values, so we only validate for element 1
+            actual_values["InputCapacity"] += UnitConversions.convert(new_object.heater1Capacity.to_f, "W", "kW")
+            actual_values["ThermalEfficiency"] += new_object.heaterThermalEfficiency.to_f
+            actual_values["TankUA1"] += UnitConversions.convert(new_object.uniformSkinLossCoefficientperUnitAreatoAmbientTemperature.get, "W/K", "Btu/(hr*F)")
+            actual_values["TankUA2"] += UnitConversions.convert(new_object.uniformSkinLossCoefficientperUnitAreatoAmbientTemperature.get, "W/K", "Btu/(hr*F)")
+
+            actual_values["Setpoint"] += Waterheater.get_water_heater_setpoint(model, new_object.plantLoop.get, nil) - new_object.heater1DeadbandTemperatureDifference / 2.0
+            actual_values["SkinLossFrac"] += new_object.skinLossFractiontoZone
+          end
+
           actual_values["OnCycle"] += new_object.onCycleParasiticFuelConsumptionRate
           actual_values["OffCycle"] += new_object.offCycleParasiticFuelConsumptionRate
           assert_equal(HelperMethods.eplus_fuel_map(expected_values["FuelType"]), new_object.heaterFuelType)
-          actual_values["SkinLossFrac"] += new_object.offCycleLossFractiontoThermalZone
           if new_object.supplyInletModelObject.is_initialized
             inlet_object = new_object.supplyInletModelObject.get.connectedObject(new_object.supplyInletModelObject.get.to_Node.get.inletPort).get
             if inlet_object.to_WaterHeaterStratified.is_initialized
