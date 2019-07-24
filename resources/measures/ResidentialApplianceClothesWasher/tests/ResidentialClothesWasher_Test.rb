@@ -361,7 +361,7 @@ class ResidentialClothesWasherTest < MiniTest::Test
     result = runner.result
 
     # show the output
-    # show_output(result)
+    show_output(result) unless result.value.valueName == 'Fail'
 
     # assert that it didn't run
     assert_equal("Fail", result.value.valueName)
@@ -405,7 +405,7 @@ class ResidentialClothesWasherTest < MiniTest::Test
     result = runner.result
 
     # show the output
-    # show_output(result)
+    show_output(result) unless result.value.valueName == 'Success'
 
     # assert that it ran correctly
     assert_equal("Success", result.value.valueName)
@@ -435,11 +435,11 @@ class ResidentialClothesWasherTest < MiniTest::Test
         next if not new_object.name.to_s.start_with? Constants.ObjectNameClothesWasher
 
         if obj_type == "ElectricEquipment"
-          full_load_hrs = Schedule.annual_equivalent_full_load_hrs(model.yearDescription.get.assumedYear, new_object.schedule.get)
+          full_load_hrs = Schedule.annual_equivalent_full_load_hrs(model.getYearDescription, new_object.schedule.get)
           actual_values["Annual_kwh"] += UnitConversions.convert(full_load_hrs * new_object.designLevel.get * new_object.multiplier, "Wh", "kWh")
           actual_values["Location"] << new_object.space.get.spaceType.get.standardsSpaceType.get
         elsif obj_type == "WaterUseEquipment"
-          full_load_hrs = Schedule.annual_equivalent_full_load_hrs(model.yearDescription.get.assumedYear, new_object.flowRateFractionSchedule.get)
+          full_load_hrs = Schedule.annual_equivalent_full_load_hrs(model.getYearDescription, new_object.flowRateFractionSchedule.get)
           actual_values["HotWater_gpd"] += UnitConversions.convert(full_load_hrs * new_object.waterUseEquipmentDefinition.peakFlowRate * new_object.multiplier, "m^3/s", "gal/min") * 60.0 / 365.0
           actual_values["Location"] << new_object.space.get.spaceType.get.standardsSpaceType.get
         end

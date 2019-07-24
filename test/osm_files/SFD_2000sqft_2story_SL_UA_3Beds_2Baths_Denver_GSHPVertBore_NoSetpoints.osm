@@ -1,64 +1,41 @@
 !- NOTE: Auto-generated from /test/osw_files/SFD_2000sqft_2story_SL_UA_3Beds_2Baths_Denver_GSHPVertBore_NoSetpoints.osw
 
 OS:Version,
-  {a1ee3201-80f4-4700-95ff-82708a0c4609}, !- Handle
+  {3db95643-aed7-4a99-a12e-7af8cda6da62}, !- Handle
   2.8.0;                                  !- Version Identifier
 
-OS:Building,
-  {f4d16c4f-d033-4edb-9300-aa4d6c5a8aa0}, !- Handle
-  Building 1,                             !- Name
-  ,                                       !- Building Sector Type
-  0,                                      !- North Axis {deg}
-  ,                                       !- Nominal Floor to Floor Height {m}
-  ,                                       !- Space Type Name
-  ,                                       !- Default Construction Set Name
-  ,                                       !- Default Schedule Set Name
-  2,                                      !- Standards Number of Stories
-  2,                                      !- Standards Number of Above Ground Stories
-  ,                                       !- Standards Template
-  singlefamilydetached,                   !- Standards Building Type
-  1;                                      !- Standards Number of Living Units
-
-OS:Facility,
-  {0058ae45-d478-4c6f-a40a-8429077d4f11}; !- Handle
-
-OS:Site,
-  {52c8fe15-0f91-4bd8-81d3-94ecc1ad7a1a}, !- Handle
-  Denver Intl Ap_CO_USA,                  !- Name
-  39.83,                                  !- Latitude {deg}
-  -104.65,                                !- Longitude {deg}
-  -7,                                     !- Time Zone {hr}
-  1650,                                   !- Elevation {m}
-  ;                                       !- Terrain
-
 OS:SimulationControl,
-  {c2125220-7b7f-4c27-8892-849de47aa247}, !- Handle
+  {42dc32f4-7583-45da-8c1c-cf1256656ce3}, !- Handle
   ,                                       !- Do Zone Sizing Calculation
   ,                                       !- Do System Sizing Calculation
   ,                                       !- Do Plant Sizing Calculation
   No;                                     !- Run Simulation for Sizing Periods
 
-OS:Sizing:Parameters,
-  {9fc3ef6c-4175-44e8-a1dc-4f768a9a183a}, !- Handle
-  1.25,                                   !- Heating Sizing Factor
-  1.15;                                   !- Cooling Sizing Factor
-
 OS:Timestep,
-  {d4cc203e-2145-4da2-bf07-8ad5edb5f1de}, !- Handle
+  {1b07cfa0-429b-4c34-aa44-a367cf8d255f}, !- Handle
   6;                                      !- Number of Timesteps per Hour
 
 OS:ShadowCalculation,
-  {61b80096-4c79-4cea-83ad-a743d9e5a43b}, !- Handle
+  {7275c9cf-d693-4183-a10e-5b75c2339198}, !- Handle
   20,                                     !- Calculation Frequency
   200;                                    !- Maximum Figures in Shadow Overlap Calculations
 
-OS:HeatBalanceAlgorithm,
-  {13ee150d-10e8-4ead-afc6-3d4cd4f3d212}, !- Handle
-  ConductionTransferFunction,             !- Algorithm
-  200;                                    !- Surface Temperature Upper Limit {C}
+OS:SurfaceConvectionAlgorithm:Outside,
+  {17bd819b-0d90-4ebe-af96-cd7d5b501da7}, !- Handle
+  DOE-2;                                  !- Algorithm
+
+OS:SurfaceConvectionAlgorithm:Inside,
+  {76290c87-f8c8-44eb-8e76-a8add7d478e7}, !- Handle
+  TARP;                                   !- Algorithm
+
+OS:ZoneCapacitanceMultiplier:ResearchSpecial,
+  {e99e6f80-4aeb-4035-b8da-f2a5e93676e4}, !- Handle
+  ,                                       !- Temperature Capacity Multiplier
+  15,                                     !- Humidity Capacity Multiplier
+  ;                                       !- Carbon Dioxide Capacity Multiplier
 
 OS:RunPeriod,
-  {bfbeb441-5cbb-4761-bb17-951d2b1badf0}, !- Handle
+  {98e757e1-f7ac-4bdf-a99e-85695ecbb741}, !- Handle
   Run Period 1,                           !- Name
   1,                                      !- Begin Month
   1,                                      !- Begin Day of Month
@@ -71,36 +48,14 @@ OS:RunPeriod,
   ,                                       !- Use Weather File Snow Indicators
   ;                                       !- Number of Times Runperiod to be Repeated
 
-OS:LifeCycleCost:Parameters,
-  {fc3ffa85-811f-441c-96d1-5031f5f9d551}, !- Handle
-  ,                                       !- Analysis Type
-  ,                                       !- Discounting Convention
-  ,                                       !- Inflation Approach
-  ,                                       !- Real Discount Rate
-  ,                                       !- Nominal Discount Rate
-  ,                                       !- Inflation
-  ,                                       !- Base Date Month
-  ,                                       !- Base Date Year
-  ,                                       !- Service Date Month
-  ,                                       !- Service Date Year
-  ;                                       !- Length of Study Period in Years
-
-OS:SurfaceConvectionAlgorithm:Outside,
-  {849ff99f-5d0c-4885-95f9-8cffb3f5997d}, !- Handle
-  DOE-2;                                  !- Algorithm
-
-OS:SurfaceConvectionAlgorithm:Inside,
-  {27859f58-67cf-42df-b489-632b2d92ad0d}, !- Handle
-  TARP;                                   !- Algorithm
-
-OS:ZoneCapacitanceMultiplier:ResearchSpecial,
-  {01f12f78-dbcf-44a1-890a-0065128a9092}, !- Handle
-  ,                                       !- Temperature Capacity Multiplier
-  15,                                     !- Humidity Capacity Multiplier
-  ;                                       !- Carbon Dioxide Capacity Multiplier
+OS:YearDescription,
+  {4087c231-6e0f-4bf5-b4e9-ed68e82a51e4}, !- Handle
+  2007,                                   !- Calendar Year
+  ,                                       !- Day of Week for Start Day
+  ;                                       !- Is Leap Year
 
 OS:ThermalZone,
-  {a3e95b7d-9abd-4556-81b8-213b5ad86536}, !- Handle
+  {4498c2a4-8c66-433f-994f-77330d734cd6}, !- Handle
   living zone,                            !- Name
   ,                                       !- Multiplier
   ,                                       !- Ceiling Height {m}
@@ -109,10 +64,10 @@ OS:ThermalZone,
   ,                                       !- Zone Inside Convection Algorithm
   ,                                       !- Zone Outside Convection Algorithm
   ,                                       !- Zone Conditioning Equipment List Name
-  {59b50c45-c6f4-4ced-87a6-6cc8b9f52519}, !- Zone Air Inlet Port List
-  {f7cea72a-c076-442f-9217-7e656f02a417}, !- Zone Air Exhaust Port List
-  {6d76b9ab-2872-4ea0-81fc-fc63e14fcb59}, !- Zone Air Node Name
-  {e33d1dc7-1bba-46ff-aad7-8fa3045ad9ce}, !- Zone Return Air Port List
+  {98b755ec-5a0c-4bc5-90d9-4ff8a4839492}, !- Zone Air Inlet Port List
+  {0efa1ddf-79f9-40b2-8384-b0e5fb4af161}, !- Zone Air Exhaust Port List
+  {9a791330-0fc5-43b3-aaed-edc7eea820f4}, !- Zone Air Node Name
+  {e40176db-446a-46ab-aebc-4f5efce599b5}, !- Zone Return Air Port List
   ,                                       !- Primary Daylighting Control Name
   ,                                       !- Fraction of Zone Controlled by Primary Daylighting Control
   ,                                       !- Secondary Daylighting Control Name
@@ -123,41 +78,41 @@ OS:ThermalZone,
   No;                                     !- Use Ideal Air Loads
 
 OS:Node,
-  {60fd5da6-41cf-4ede-8395-d1178d52e894}, !- Handle
+  {2c97b73a-806c-40b8-82dd-f91cf067e0e0}, !- Handle
   Node 1,                                 !- Name
-  {6d76b9ab-2872-4ea0-81fc-fc63e14fcb59}, !- Inlet Port
+  {9a791330-0fc5-43b3-aaed-edc7eea820f4}, !- Inlet Port
   ;                                       !- Outlet Port
 
 OS:Connection,
-  {6d76b9ab-2872-4ea0-81fc-fc63e14fcb59}, !- Handle
-  {8f6992da-3eee-42d8-aef8-b6fbb7ee3e4f}, !- Name
-  {a3e95b7d-9abd-4556-81b8-213b5ad86536}, !- Source Object
+  {9a791330-0fc5-43b3-aaed-edc7eea820f4}, !- Handle
+  {4fadfd32-9e6f-469b-a9b7-62f004a85f0e}, !- Name
+  {4498c2a4-8c66-433f-994f-77330d734cd6}, !- Source Object
   11,                                     !- Outlet Port
-  {60fd5da6-41cf-4ede-8395-d1178d52e894}, !- Target Object
+  {2c97b73a-806c-40b8-82dd-f91cf067e0e0}, !- Target Object
   2;                                      !- Inlet Port
 
 OS:PortList,
-  {59b50c45-c6f4-4ced-87a6-6cc8b9f52519}, !- Handle
-  {ee5546ef-35b2-487c-8b68-125652d90eff}, !- Name
-  {a3e95b7d-9abd-4556-81b8-213b5ad86536}, !- HVAC Component
-  {02ca99f7-7f18-4a25-949f-dbc2f3f338da}, !- Port 1
-  {7b7ea6c5-5815-4409-b405-ccaf3052bfa6}; !- Port 2
+  {98b755ec-5a0c-4bc5-90d9-4ff8a4839492}, !- Handle
+  {b827f298-8b2e-483f-86ca-1b4ab33e3dd5}, !- Name
+  {4498c2a4-8c66-433f-994f-77330d734cd6}, !- HVAC Component
+  {e37fcfe1-70ef-450f-9e71-e80741050bff}, !- Port 1
+  {ae8bccca-e596-42ec-b2fe-f1900b8ebcd4}; !- Port 2
 
 OS:PortList,
-  {f7cea72a-c076-442f-9217-7e656f02a417}, !- Handle
-  {c8922fb9-cd9e-4d44-8dc4-724add7c3a03}, !- Name
-  {a3e95b7d-9abd-4556-81b8-213b5ad86536}; !- HVAC Component
+  {0efa1ddf-79f9-40b2-8384-b0e5fb4af161}, !- Handle
+  {d2ffdac6-5e39-485b-b273-9a2157fbd8b1}, !- Name
+  {4498c2a4-8c66-433f-994f-77330d734cd6}; !- HVAC Component
 
 OS:PortList,
-  {e33d1dc7-1bba-46ff-aad7-8fa3045ad9ce}, !- Handle
-  {8f457957-7613-456e-ac51-a61856f747a6}, !- Name
-  {a3e95b7d-9abd-4556-81b8-213b5ad86536}, !- HVAC Component
-  {98f62c9d-2af1-4181-a427-afde4478b95c}, !- Port 1
-  {35e9515b-8aa2-4647-80b8-708bdc352614}; !- Port 2
+  {e40176db-446a-46ab-aebc-4f5efce599b5}, !- Handle
+  {9a3c2612-cd56-498c-ae4d-5b311f96b645}, !- Name
+  {4498c2a4-8c66-433f-994f-77330d734cd6}, !- HVAC Component
+  {056fcfa0-1ca3-4a13-8b62-c6551e77b753}, !- Port 1
+  {d5a45bd2-0ba1-495b-83ab-c8ba48f406aa}; !- Port 2
 
 OS:Sizing:Zone,
-  {096d7fb6-30f5-4853-b0c8-0aa054a96011}, !- Handle
-  {a3e95b7d-9abd-4556-81b8-213b5ad86536}, !- Zone or ZoneList Name
+  {d1aad255-d6c1-4e77-9650-8373d74c21be}, !- Handle
+  {4498c2a4-8c66-433f-994f-77330d734cd6}, !- Zone or ZoneList Name
   SupplyAirTemperature,                   !- Zone Cooling Design Supply Air Temperature Input Method
   14,                                     !- Zone Cooling Design Supply Air Temperature {C}
   11.11,                                  !- Zone Cooling Design Supply Air Temperature Difference {deltaC}
@@ -186,25 +141,25 @@ OS:Sizing:Zone,
   autosize;                               !- Dedicated Outdoor Air High Setpoint Temperature for Design {C}
 
 OS:ZoneHVAC:EquipmentList,
-  {2bdb51c0-806a-44ac-ab0a-0fc9c50299ba}, !- Handle
+  {b8db6925-730e-4b05-a756-24ffccc62e52}, !- Handle
   Zone HVAC Equipment List 1,             !- Name
-  {a3e95b7d-9abd-4556-81b8-213b5ad86536}, !- Thermal Zone
+  {4498c2a4-8c66-433f-994f-77330d734cd6}, !- Thermal Zone
   SequentialLoad,                         !- Load Distribution Scheme
-  {3bcbe149-2135-4753-828c-5bf8b20619ca}, !- Zone Equipment 1
+  {d2cdfe38-1cb1-4535-bf38-8d5b00af19e9}, !- Zone Equipment 1
   1,                                      !- Zone Equipment Cooling Sequence 1
   1,                                      !- Zone Equipment Heating or No-Load Sequence 1
   ,                                       !- Zone Equipment Sequential Cooling Fraction 1
   ,                                       !- Zone Equipment Sequential Heating Fraction 1
-  {d5ab9634-5dba-476f-ab5d-695338e42530}, !- Zone Equipment 2
+  {a22a4caa-deea-4d5c-8bcc-391c30e11d4c}, !- Zone Equipment 2
   2,                                      !- Zone Equipment Cooling Sequence 2
   2,                                      !- Zone Equipment Heating or No-Load Sequence 2
   ,                                       !- Zone Equipment Sequential Cooling Fraction 2
   ;                                       !- Zone Equipment Sequential Heating Fraction 2
 
 OS:Space,
-  {df37055d-c613-412b-85e9-7f6a1a7e4b52}, !- Handle
+  {3c1962b6-8075-48a1-9b6a-74df48cf1976}, !- Handle
   living space,                           !- Name
-  {78f732b3-b051-4ac0-b6fa-e8eb16f739f3}, !- Space Type Name
+  {c363ba19-c1e1-4467-8e37-a240e33dd096}, !- Space Type Name
   ,                                       !- Default Construction Set Name
   ,                                       !- Default Schedule Set Name
   -0,                                     !- Direction of Relative North {deg}
@@ -212,17 +167,17 @@ OS:Space,
   0,                                      !- Y Origin {m}
   0,                                      !- Z Origin {m}
   ,                                       !- Building Story Name
-  {a3e95b7d-9abd-4556-81b8-213b5ad86536}, !- Thermal Zone Name
+  {4498c2a4-8c66-433f-994f-77330d734cd6}, !- Thermal Zone Name
   ,                                       !- Part of Total Floor Area
   ,                                       !- Design Specification Outdoor Air Object Name
-  {4b645627-c899-4db7-9987-e0857954e619}; !- Building Unit Name
+  {de11bd4a-9462-4bba-aa86-34c68c5d374c}; !- Building Unit Name
 
 OS:Surface,
-  {b7e6dfca-bf1b-4177-8dde-a99bc2e6179e}, !- Handle
+  {8c13d038-d1d2-4659-aa40-d60bd381eab2}, !- Handle
   Surface 1,                              !- Name
   Floor,                                  !- Surface Type
   ,                                       !- Construction Name
-  {df37055d-c613-412b-85e9-7f6a1a7e4b52}, !- Space Name
+  {3c1962b6-8075-48a1-9b6a-74df48cf1976}, !- Space Name
   Foundation,                             !- Outside Boundary Condition
   ,                                       !- Outside Boundary Condition Object
   NoSun,                                  !- Sun Exposure
@@ -235,11 +190,11 @@ OS:Surface,
   13.6310703908387, 0, 0;                 !- X,Y,Z Vertex 4 {m}
 
 OS:Surface,
-  {e58c9c14-3512-4345-9e21-c5f50dcde08c}, !- Handle
+  {e228262e-1bfe-4719-9b9d-55da06690342}, !- Handle
   Surface 2,                              !- Name
   Wall,                                   !- Surface Type
   ,                                       !- Construction Name
-  {df37055d-c613-412b-85e9-7f6a1a7e4b52}, !- Space Name
+  {3c1962b6-8075-48a1-9b6a-74df48cf1976}, !- Space Name
   Outdoors,                               !- Outside Boundary Condition
   ,                                       !- Outside Boundary Condition Object
   SunExposed,                             !- Sun Exposure
@@ -252,11 +207,11 @@ OS:Surface,
   0, 0, 2.4384;                           !- X,Y,Z Vertex 4 {m}
 
 OS:Surface,
-  {3bc362f5-e7e4-467f-ae43-852e65453ded}, !- Handle
+  {9d58fa08-b046-4307-b078-9674c56b2e18}, !- Handle
   Surface 3,                              !- Name
   Wall,                                   !- Surface Type
   ,                                       !- Construction Name
-  {df37055d-c613-412b-85e9-7f6a1a7e4b52}, !- Space Name
+  {3c1962b6-8075-48a1-9b6a-74df48cf1976}, !- Space Name
   Outdoors,                               !- Outside Boundary Condition
   ,                                       !- Outside Boundary Condition Object
   SunExposed,                             !- Sun Exposure
@@ -269,11 +224,11 @@ OS:Surface,
   0, 6.81553519541936, 2.4384;            !- X,Y,Z Vertex 4 {m}
 
 OS:Surface,
-  {c4e793cd-e505-4436-85bc-a06fa81ff8a9}, !- Handle
+  {7ccb9a33-849b-40e9-adab-0f39d6e53e03}, !- Handle
   Surface 4,                              !- Name
   Wall,                                   !- Surface Type
   ,                                       !- Construction Name
-  {df37055d-c613-412b-85e9-7f6a1a7e4b52}, !- Space Name
+  {3c1962b6-8075-48a1-9b6a-74df48cf1976}, !- Space Name
   Outdoors,                               !- Outside Boundary Condition
   ,                                       !- Outside Boundary Condition Object
   SunExposed,                             !- Sun Exposure
@@ -286,11 +241,11 @@ OS:Surface,
   13.6310703908387, 6.81553519541936, 2.4384; !- X,Y,Z Vertex 4 {m}
 
 OS:Surface,
-  {1ea330a9-552b-4ac3-bb17-7fc6fb37f83c}, !- Handle
+  {1b05aac5-4a23-40d3-b9e4-419694f13d6f}, !- Handle
   Surface 5,                              !- Name
   Wall,                                   !- Surface Type
   ,                                       !- Construction Name
-  {df37055d-c613-412b-85e9-7f6a1a7e4b52}, !- Space Name
+  {3c1962b6-8075-48a1-9b6a-74df48cf1976}, !- Space Name
   Outdoors,                               !- Outside Boundary Condition
   ,                                       !- Outside Boundary Condition Object
   SunExposed,                             !- Sun Exposure
@@ -303,13 +258,13 @@ OS:Surface,
   13.6310703908387, 0, 2.4384;            !- X,Y,Z Vertex 4 {m}
 
 OS:Surface,
-  {e4687f7d-5fe7-4eb7-b618-eb9cda76cc00}, !- Handle
+  {6569b62c-09c9-4b8f-9a8a-bcda93fae072}, !- Handle
   Surface 6,                              !- Name
   RoofCeiling,                            !- Surface Type
   ,                                       !- Construction Name
-  {df37055d-c613-412b-85e9-7f6a1a7e4b52}, !- Space Name
+  {3c1962b6-8075-48a1-9b6a-74df48cf1976}, !- Space Name
   Surface,                                !- Outside Boundary Condition
-  {0e7055d6-3740-4c32-aac6-5ef260633e50}, !- Outside Boundary Condition Object
+  {01e2b757-94a3-4eb1-ba43-776a36be4e51}, !- Outside Boundary Condition Object
   NoSun,                                  !- Sun Exposure
   NoWind,                                 !- Wind Exposure
   ,                                       !- View Factor to Ground
@@ -320,7 +275,7 @@ OS:Surface,
   0, 0, 2.4384;                           !- X,Y,Z Vertex 4 {m}
 
 OS:SpaceType,
-  {78f732b3-b051-4ac0-b6fa-e8eb16f739f3}, !- Handle
+  {c363ba19-c1e1-4467-8e37-a240e33dd096}, !- Handle
   Space Type 1,                           !- Name
   ,                                       !- Default Construction Set Name
   ,                                       !- Default Schedule Set Name
@@ -331,9 +286,9 @@ OS:SpaceType,
   living;                                 !- Standards Space Type
 
 OS:Space,
-  {b159ebaf-fbca-4be1-b86c-8530c9b585e1}, !- Handle
+  {538e1aa6-65e5-467a-9031-3c800ba7bf0a}, !- Handle
   living space|story 2,                   !- Name
-  {78f732b3-b051-4ac0-b6fa-e8eb16f739f3}, !- Space Type Name
+  {c363ba19-c1e1-4467-8e37-a240e33dd096}, !- Space Type Name
   ,                                       !- Default Construction Set Name
   ,                                       !- Default Schedule Set Name
   -0,                                     !- Direction of Relative North {deg}
@@ -341,19 +296,19 @@ OS:Space,
   0,                                      !- Y Origin {m}
   2.4384,                                 !- Z Origin {m}
   ,                                       !- Building Story Name
-  {a3e95b7d-9abd-4556-81b8-213b5ad86536}, !- Thermal Zone Name
+  {4498c2a4-8c66-433f-994f-77330d734cd6}, !- Thermal Zone Name
   ,                                       !- Part of Total Floor Area
   ,                                       !- Design Specification Outdoor Air Object Name
-  {4b645627-c899-4db7-9987-e0857954e619}; !- Building Unit Name
+  {de11bd4a-9462-4bba-aa86-34c68c5d374c}; !- Building Unit Name
 
 OS:Surface,
-  {0e7055d6-3740-4c32-aac6-5ef260633e50}, !- Handle
+  {01e2b757-94a3-4eb1-ba43-776a36be4e51}, !- Handle
   Surface 7,                              !- Name
   Floor,                                  !- Surface Type
   ,                                       !- Construction Name
-  {b159ebaf-fbca-4be1-b86c-8530c9b585e1}, !- Space Name
+  {538e1aa6-65e5-467a-9031-3c800ba7bf0a}, !- Space Name
   Surface,                                !- Outside Boundary Condition
-  {e4687f7d-5fe7-4eb7-b618-eb9cda76cc00}, !- Outside Boundary Condition Object
+  {6569b62c-09c9-4b8f-9a8a-bcda93fae072}, !- Outside Boundary Condition Object
   NoSun,                                  !- Sun Exposure
   NoWind,                                 !- Wind Exposure
   ,                                       !- View Factor to Ground
@@ -364,11 +319,11 @@ OS:Surface,
   13.6310703908387, 0, 0;                 !- X,Y,Z Vertex 4 {m}
 
 OS:Surface,
-  {48f40f87-daf7-415b-8e61-3cbe8b4fef4b}, !- Handle
+  {058948e9-0a96-4e39-8a58-cd0890efec3a}, !- Handle
   Surface 8,                              !- Name
   Wall,                                   !- Surface Type
   ,                                       !- Construction Name
-  {b159ebaf-fbca-4be1-b86c-8530c9b585e1}, !- Space Name
+  {538e1aa6-65e5-467a-9031-3c800ba7bf0a}, !- Space Name
   Outdoors,                               !- Outside Boundary Condition
   ,                                       !- Outside Boundary Condition Object
   SunExposed,                             !- Sun Exposure
@@ -381,11 +336,11 @@ OS:Surface,
   0, 0, 2.4384;                           !- X,Y,Z Vertex 4 {m}
 
 OS:Surface,
-  {3422e88d-2c44-40f0-87f6-abba2de10bf9}, !- Handle
+  {528cda43-55cb-4cda-8d4e-65c773e81bc5}, !- Handle
   Surface 9,                              !- Name
   Wall,                                   !- Surface Type
   ,                                       !- Construction Name
-  {b159ebaf-fbca-4be1-b86c-8530c9b585e1}, !- Space Name
+  {538e1aa6-65e5-467a-9031-3c800ba7bf0a}, !- Space Name
   Outdoors,                               !- Outside Boundary Condition
   ,                                       !- Outside Boundary Condition Object
   SunExposed,                             !- Sun Exposure
@@ -398,11 +353,11 @@ OS:Surface,
   0, 6.81553519541936, 2.4384;            !- X,Y,Z Vertex 4 {m}
 
 OS:Surface,
-  {93b52ad4-0ce9-4064-9f9c-4c3addf87b8a}, !- Handle
+  {e85281d6-39bd-4450-8cb7-bc8ca53699e2}, !- Handle
   Surface 10,                             !- Name
   Wall,                                   !- Surface Type
   ,                                       !- Construction Name
-  {b159ebaf-fbca-4be1-b86c-8530c9b585e1}, !- Space Name
+  {538e1aa6-65e5-467a-9031-3c800ba7bf0a}, !- Space Name
   Outdoors,                               !- Outside Boundary Condition
   ,                                       !- Outside Boundary Condition Object
   SunExposed,                             !- Sun Exposure
@@ -415,11 +370,11 @@ OS:Surface,
   13.6310703908387, 6.81553519541936, 2.4384; !- X,Y,Z Vertex 4 {m}
 
 OS:Surface,
-  {a1719922-bdbe-43d6-b657-eaf76125bac1}, !- Handle
+  {b5a87148-8be9-4ea9-bb1d-9e951f38bc79}, !- Handle
   Surface 11,                             !- Name
   Wall,                                   !- Surface Type
   ,                                       !- Construction Name
-  {b159ebaf-fbca-4be1-b86c-8530c9b585e1}, !- Space Name
+  {538e1aa6-65e5-467a-9031-3c800ba7bf0a}, !- Space Name
   Outdoors,                               !- Outside Boundary Condition
   ,                                       !- Outside Boundary Condition Object
   SunExposed,                             !- Sun Exposure
@@ -432,13 +387,13 @@ OS:Surface,
   13.6310703908387, 0, 2.4384;            !- X,Y,Z Vertex 4 {m}
 
 OS:Surface,
-  {1dff8922-ee52-43bb-8ff5-6f7fe098746b}, !- Handle
+  {06efb1ac-7388-46e9-a5f6-bcb9ca6c57f7}, !- Handle
   Surface 12,                             !- Name
   RoofCeiling,                            !- Surface Type
   ,                                       !- Construction Name
-  {b159ebaf-fbca-4be1-b86c-8530c9b585e1}, !- Space Name
+  {538e1aa6-65e5-467a-9031-3c800ba7bf0a}, !- Space Name
   Surface,                                !- Outside Boundary Condition
-  {91190113-00ff-46b6-9ecf-6d51048af5f4}, !- Outside Boundary Condition Object
+  {a3a4c1a8-2a79-47eb-80d3-c46e2faaaa7d}, !- Outside Boundary Condition Object
   NoSun,                                  !- Sun Exposure
   NoWind,                                 !- Wind Exposure
   ,                                       !- View Factor to Ground
@@ -449,13 +404,13 @@ OS:Surface,
   0, 0, 2.4384;                           !- X,Y,Z Vertex 4 {m}
 
 OS:Surface,
-  {91190113-00ff-46b6-9ecf-6d51048af5f4}, !- Handle
+  {a3a4c1a8-2a79-47eb-80d3-c46e2faaaa7d}, !- Handle
   Surface 13,                             !- Name
   Floor,                                  !- Surface Type
   ,                                       !- Construction Name
-  {676ca505-43a6-40c3-84ea-5331f14d3127}, !- Space Name
+  {76d4e4be-47a2-48e0-8795-116aff9721ea}, !- Space Name
   Surface,                                !- Outside Boundary Condition
-  {1dff8922-ee52-43bb-8ff5-6f7fe098746b}, !- Outside Boundary Condition Object
+  {06efb1ac-7388-46e9-a5f6-bcb9ca6c57f7}, !- Outside Boundary Condition Object
   NoSun,                                  !- Sun Exposure
   NoWind,                                 !- Wind Exposure
   ,                                       !- View Factor to Ground
@@ -466,45 +421,45 @@ OS:Surface,
   0, 0, 0;                                !- X,Y,Z Vertex 4 {m}
 
 OS:Surface,
-  {26c7baa5-6519-4ef0-a634-9e6ce3132147}, !- Handle
+  {26296ff4-8840-4b4d-8d86-94aa075eee56}, !- Handle
   Surface 14,                             !- Name
   RoofCeiling,                            !- Surface Type
   ,                                       !- Construction Name
-  {676ca505-43a6-40c3-84ea-5331f14d3127}, !- Space Name
+  {76d4e4be-47a2-48e0-8795-116aff9721ea}, !- Space Name
   Outdoors,                               !- Outside Boundary Condition
   ,                                       !- Outside Boundary Condition Object
   SunExposed,                             !- Sun Exposure
   WindExposed,                            !- Wind Exposure
   ,                                       !- View Factor to Ground
   ,                                       !- Number of Vertices
-  13.6310703908387, 3.40776759770968, 1.70388379885484, !- X,Y,Z Vertex 1 {m}
-  0, 3.40776759770968, 1.70388379885484,  !- X,Y,Z Vertex 2 {m}
-  0, 0, 0,                                !- X,Y,Z Vertex 3 {m}
-  13.6310703908387, 0, 0;                 !- X,Y,Z Vertex 4 {m}
+  13.6310703908387, 3.40776759770968, 2.00868379885484, !- X,Y,Z Vertex 1 {m}
+  0, 3.40776759770968, 2.00868379885484,  !- X,Y,Z Vertex 2 {m}
+  0, 0, 0.3048,                           !- X,Y,Z Vertex 3 {m}
+  13.6310703908387, 0, 0.3048;            !- X,Y,Z Vertex 4 {m}
 
 OS:Surface,
-  {814dac9a-5fa2-42f1-b2a9-e4db991f5cab}, !- Handle
+  {9b6458c0-d2ce-4746-a610-5ac5d7235b7c}, !- Handle
   Surface 15,                             !- Name
   RoofCeiling,                            !- Surface Type
   ,                                       !- Construction Name
-  {676ca505-43a6-40c3-84ea-5331f14d3127}, !- Space Name
+  {76d4e4be-47a2-48e0-8795-116aff9721ea}, !- Space Name
   Outdoors,                               !- Outside Boundary Condition
   ,                                       !- Outside Boundary Condition Object
   SunExposed,                             !- Sun Exposure
   WindExposed,                            !- Wind Exposure
   ,                                       !- View Factor to Ground
   ,                                       !- Number of Vertices
-  0, 3.40776759770968, 1.70388379885484,  !- X,Y,Z Vertex 1 {m}
-  13.6310703908387, 3.40776759770968, 1.70388379885484, !- X,Y,Z Vertex 2 {m}
-  13.6310703908387, 6.81553519541936, 0,  !- X,Y,Z Vertex 3 {m}
-  0, 6.81553519541936, 0;                 !- X,Y,Z Vertex 4 {m}
+  0, 3.40776759770968, 2.00868379885484,  !- X,Y,Z Vertex 1 {m}
+  13.6310703908387, 3.40776759770968, 2.00868379885484, !- X,Y,Z Vertex 2 {m}
+  13.6310703908387, 6.81553519541936, 0.3048, !- X,Y,Z Vertex 3 {m}
+  0, 6.81553519541936, 0.3048;            !- X,Y,Z Vertex 4 {m}
 
 OS:Surface,
-  {0888949a-d731-4de8-931d-9a012c7d3dd6}, !- Handle
+  {368849cb-6429-4ccf-a46b-a333d317b550}, !- Handle
   Surface 16,                             !- Name
   Wall,                                   !- Surface Type
   ,                                       !- Construction Name
-  {676ca505-43a6-40c3-84ea-5331f14d3127}, !- Space Name
+  {76d4e4be-47a2-48e0-8795-116aff9721ea}, !- Space Name
   Outdoors,                               !- Outside Boundary Condition
   ,                                       !- Outside Boundary Condition Object
   SunExposed,                             !- Sun Exposure
@@ -516,11 +471,11 @@ OS:Surface,
   0, 0, 0;                                !- X,Y,Z Vertex 3 {m}
 
 OS:Surface,
-  {48ddff09-cc89-48fd-adbd-054c953bf1bd}, !- Handle
+  {1b95486b-82a2-4b47-a5dc-ee19b82c97c1}, !- Handle
   Surface 17,                             !- Name
   Wall,                                   !- Surface Type
   ,                                       !- Construction Name
-  {676ca505-43a6-40c3-84ea-5331f14d3127}, !- Space Name
+  {76d4e4be-47a2-48e0-8795-116aff9721ea}, !- Space Name
   Outdoors,                               !- Outside Boundary Condition
   ,                                       !- Outside Boundary Condition Object
   SunExposed,                             !- Sun Exposure
@@ -532,9 +487,9 @@ OS:Surface,
   13.6310703908387, 6.81553519541936, 0;  !- X,Y,Z Vertex 3 {m}
 
 OS:Space,
-  {676ca505-43a6-40c3-84ea-5331f14d3127}, !- Handle
+  {76d4e4be-47a2-48e0-8795-116aff9721ea}, !- Handle
   unfinished attic space,                 !- Name
-  {2a0396c2-0379-4070-b67e-3ce4e56d76d5}, !- Space Type Name
+  {99ef89c6-8027-4937-b61e-301c7623d681}, !- Space Type Name
   ,                                       !- Default Construction Set Name
   ,                                       !- Default Schedule Set Name
   -0,                                     !- Direction of Relative North {deg}
@@ -542,10 +497,10 @@ OS:Space,
   0,                                      !- Y Origin {m}
   4.8768,                                 !- Z Origin {m}
   ,                                       !- Building Story Name
-  {e2cacdc1-8ec8-47a0-8fd6-ebe5b6b0910e}; !- Thermal Zone Name
+  {953acf75-9c47-410a-9230-518f36ddb61d}; !- Thermal Zone Name
 
 OS:ThermalZone,
-  {e2cacdc1-8ec8-47a0-8fd6-ebe5b6b0910e}, !- Handle
+  {953acf75-9c47-410a-9230-518f36ddb61d}, !- Handle
   unfinished attic zone,                  !- Name
   ,                                       !- Multiplier
   ,                                       !- Ceiling Height {m}
@@ -554,10 +509,10 @@ OS:ThermalZone,
   ,                                       !- Zone Inside Convection Algorithm
   ,                                       !- Zone Outside Convection Algorithm
   ,                                       !- Zone Conditioning Equipment List Name
-  {22bc9bf6-18df-4dfa-85a4-f6823734cf75}, !- Zone Air Inlet Port List
-  {e9f450b3-9c32-4bd6-a26b-15bdfd47c1bd}, !- Zone Air Exhaust Port List
-  {f8462ea2-b4bb-4424-8eff-76946defd967}, !- Zone Air Node Name
-  {1a037d9e-c531-431f-8257-b8a560e16059}, !- Zone Return Air Port List
+  {25a719d7-b7a6-4b00-967e-5061e610ef0d}, !- Zone Air Inlet Port List
+  {74612d70-e2d6-4fce-a22e-7d78b50623fe}, !- Zone Air Exhaust Port List
+  {daf09d6a-4919-4fc6-8ece-0633c285b24a}, !- Zone Air Node Name
+  {1b017d14-b94d-49ab-a369-cec3f52081b3}, !- Zone Return Air Port List
   ,                                       !- Primary Daylighting Control Name
   ,                                       !- Fraction of Zone Controlled by Primary Daylighting Control
   ,                                       !- Secondary Daylighting Control Name
@@ -568,37 +523,37 @@ OS:ThermalZone,
   No;                                     !- Use Ideal Air Loads
 
 OS:Node,
-  {db54c17b-fa60-43b8-9473-87ee49137243}, !- Handle
+  {ab8064ee-31f8-42ec-9a9d-ddb6b3a73f11}, !- Handle
   Node 2,                                 !- Name
-  {f8462ea2-b4bb-4424-8eff-76946defd967}, !- Inlet Port
+  {daf09d6a-4919-4fc6-8ece-0633c285b24a}, !- Inlet Port
   ;                                       !- Outlet Port
 
 OS:Connection,
-  {f8462ea2-b4bb-4424-8eff-76946defd967}, !- Handle
-  {cfe0fb9d-727e-437a-a14e-e107e9dab1c9}, !- Name
-  {e2cacdc1-8ec8-47a0-8fd6-ebe5b6b0910e}, !- Source Object
+  {daf09d6a-4919-4fc6-8ece-0633c285b24a}, !- Handle
+  {d7c0439e-c1a2-4489-9ee5-f73c53692120}, !- Name
+  {953acf75-9c47-410a-9230-518f36ddb61d}, !- Source Object
   11,                                     !- Outlet Port
-  {db54c17b-fa60-43b8-9473-87ee49137243}, !- Target Object
+  {ab8064ee-31f8-42ec-9a9d-ddb6b3a73f11}, !- Target Object
   2;                                      !- Inlet Port
 
 OS:PortList,
-  {22bc9bf6-18df-4dfa-85a4-f6823734cf75}, !- Handle
-  {e3a120d2-45c3-4eb6-a16d-0635ed8504dd}, !- Name
-  {e2cacdc1-8ec8-47a0-8fd6-ebe5b6b0910e}; !- HVAC Component
+  {25a719d7-b7a6-4b00-967e-5061e610ef0d}, !- Handle
+  {95ecbd9b-84ff-4f13-b051-44e8ec028e66}, !- Name
+  {953acf75-9c47-410a-9230-518f36ddb61d}; !- HVAC Component
 
 OS:PortList,
-  {e9f450b3-9c32-4bd6-a26b-15bdfd47c1bd}, !- Handle
-  {1d31286b-cb5f-434d-9e59-38ce589e10bf}, !- Name
-  {e2cacdc1-8ec8-47a0-8fd6-ebe5b6b0910e}; !- HVAC Component
+  {74612d70-e2d6-4fce-a22e-7d78b50623fe}, !- Handle
+  {da8061b2-4d2e-4e54-87c8-a83647c9ce9e}, !- Name
+  {953acf75-9c47-410a-9230-518f36ddb61d}; !- HVAC Component
 
 OS:PortList,
-  {1a037d9e-c531-431f-8257-b8a560e16059}, !- Handle
-  {838a90cc-eed5-4fdc-a62b-8d8aa9b465cb}, !- Name
-  {e2cacdc1-8ec8-47a0-8fd6-ebe5b6b0910e}; !- HVAC Component
+  {1b017d14-b94d-49ab-a369-cec3f52081b3}, !- Handle
+  {d90a40c4-6ad9-4436-a9a0-146f4de57815}, !- Name
+  {953acf75-9c47-410a-9230-518f36ddb61d}; !- HVAC Component
 
 OS:Sizing:Zone,
-  {df72ee7a-e557-4b1b-a602-3f3da911c366}, !- Handle
-  {e2cacdc1-8ec8-47a0-8fd6-ebe5b6b0910e}, !- Zone or ZoneList Name
+  {3b02f73c-ac55-49fc-b548-4c5df2d0ae5b}, !- Handle
+  {953acf75-9c47-410a-9230-518f36ddb61d}, !- Zone or ZoneList Name
   SupplyAirTemperature,                   !- Zone Cooling Design Supply Air Temperature Input Method
   14,                                     !- Zone Cooling Design Supply Air Temperature {C}
   11.11,                                  !- Zone Cooling Design Supply Air Temperature Difference {deltaC}
@@ -627,12 +582,12 @@ OS:Sizing:Zone,
   autosize;                               !- Dedicated Outdoor Air High Setpoint Temperature for Design {C}
 
 OS:ZoneHVAC:EquipmentList,
-  {a64469b9-efe5-43f0-8107-4bcdf0948c49}, !- Handle
+  {768fda8b-3605-467c-951d-bca74566aa25}, !- Handle
   Zone HVAC Equipment List 2,             !- Name
-  {e2cacdc1-8ec8-47a0-8fd6-ebe5b6b0910e}; !- Thermal Zone
+  {953acf75-9c47-410a-9230-518f36ddb61d}; !- Thermal Zone
 
 OS:SpaceType,
-  {2a0396c2-0379-4070-b67e-3ce4e56d76d5}, !- Handle
+  {99ef89c6-8027-4937-b61e-301c7623d681}, !- Handle
   Space Type 2,                           !- Name
   ,                                       !- Default Construction Set Name
   ,                                       !- Default Schedule Set Name
@@ -643,14 +598,29 @@ OS:SpaceType,
   unfinished attic;                       !- Standards Space Type
 
 OS:BuildingUnit,
-  {4b645627-c899-4db7-9987-e0857954e619}, !- Handle
+  {de11bd4a-9462-4bba-aa86-34c68c5d374c}, !- Handle
   unit 1,                                 !- Name
   ,                                       !- Rendering Color
   Residential;                            !- Building Unit Type
 
+OS:Building,
+  {0af100e8-b63d-41ce-8826-68f01e0d1c89}, !- Handle
+  Building 1,                             !- Name
+  ,                                       !- Building Sector Type
+  180,                                    !- North Axis {deg}
+  ,                                       !- Nominal Floor to Floor Height {m}
+  ,                                       !- Space Type Name
+  ,                                       !- Default Construction Set Name
+  ,                                       !- Default Schedule Set Name
+  2,                                      !- Standards Number of Stories
+  2,                                      !- Standards Number of Above Ground Stories
+  ,                                       !- Standards Template
+  singlefamilydetached,                   !- Standards Building Type
+  1;                                      !- Standards Number of Living Units
+
 OS:AdditionalProperties,
-  {af2a68fb-447f-4bf0-8e61-6981856f5d0f}, !- Handle
-  {f4d16c4f-d033-4edb-9300-aa4d6c5a8aa0}, !- Object Name
+  {d27fb9a6-d052-46c5-8069-4647c8b9181c}, !- Handle
+  {0af100e8-b63d-41ce-8826-68f01e0d1c89}, !- Object Name
   Total Units Represented,                !- Feature Name 1
   Integer,                                !- Feature Data Type 1
   1,                                      !- Feature Value 1
@@ -659,8 +629,8 @@ OS:AdditionalProperties,
   1;                                      !- Feature Value 2
 
 OS:AdditionalProperties,
-  {c7463235-ccfb-4a5b-b4e6-699a1deb8e2d}, !- Handle
-  {4b645627-c899-4db7-9987-e0857954e619}, !- Object Name
+  {421b8133-f590-4d70-97d8-3e1135eb49d6}, !- Handle
+  {de11bd4a-9462-4bba-aa86-34c68c5d374c}, !- Object Name
   NumberOfBedrooms,                       !- Feature Name 1
   Integer,                                !- Feature Data Type 1
   3,                                      !- Feature Value 1
@@ -669,7 +639,7 @@ OS:AdditionalProperties,
   2;                                      !- Feature Value 2
 
 OS:Schedule:Day,
-  {9db4dd40-6ce3-430a-a5cc-6a0af8dc31f8}, !- Handle
+  {438f2cbc-7f14-421a-b392-0d4897b75313}, !- Handle
   Schedule Day 1,                         !- Name
   ,                                       !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
@@ -678,7 +648,7 @@ OS:Schedule:Day,
   0;                                      !- Value Until Time 1
 
 OS:Schedule:Day,
-  {10c64356-a5cd-4e47-bd74-e12d172e7912}, !- Handle
+  {86bf5ada-c5f2-4b74-9d5a-71c26d86e15b}, !- Handle
   Schedule Day 2,                         !- Name
   ,                                       !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
@@ -686,8 +656,831 @@ OS:Schedule:Day,
   0,                                      !- Minute 1
   1;                                      !- Value Until Time 1
 
+OS:Schedule:Ruleset,
+  {e18c9430-888e-4476-9899-a4a065fac252}, !- Handle
+  res occupants schedule,                 !- Name
+  {388c8d38-6224-498e-9b3d-fc06f82c3742}, !- Schedule Type Limits Name
+  {432c44c9-8aae-44c5-815a-1804148e7a6f}, !- Default Day Schedule Name
+  {0759bcb2-ecd5-4756-90f4-0b00107055f9}, !- Summer Design Day Schedule Name
+  {ad14db9f-c649-4434-b0dd-4b9ac06c19dc}; !- Winter Design Day Schedule Name
+
+OS:Schedule:Day,
+  {432c44c9-8aae-44c5-815a-1804148e7a6f}, !- Handle
+  Schedule Day 3,                         !- Name
+  {388c8d38-6224-498e-9b3d-fc06f82c3742}, !- Schedule Type Limits Name
+  ,                                       !- Interpolate to Timestep
+  24,                                     !- Hour 1
+  0,                                      !- Minute 1
+  0;                                      !- Value Until Time 1
+
+OS:Schedule:Rule,
+  {339602d5-9f71-49d3-95c6-37fa6ba0584e}, !- Handle
+  res occupants schedule allday rule1,    !- Name
+  {e18c9430-888e-4476-9899-a4a065fac252}, !- Schedule Ruleset Name
+  11,                                     !- Rule Order
+  {e4dbac1e-4541-4ef8-9b7e-b69fc4063bd6}, !- Day Schedule Name
+  Yes,                                    !- Apply Sunday
+  Yes,                                    !- Apply Monday
+  Yes,                                    !- Apply Tuesday
+  Yes,                                    !- Apply Wednesday
+  Yes,                                    !- Apply Thursday
+  Yes,                                    !- Apply Friday
+  Yes,                                    !- Apply Saturday
+  ,                                       !- Apply Holiday
+  DateRange,                              !- Date Specification Type
+  1,                                      !- Start Month
+  1,                                      !- Start Day
+  1,                                      !- End Month
+  31;                                     !- End Day
+
+OS:Schedule:Day,
+  {e4dbac1e-4541-4ef8-9b7e-b69fc4063bd6}, !- Handle
+  res occupants schedule allday1,         !- Name
+  {388c8d38-6224-498e-9b3d-fc06f82c3742}, !- Schedule Type Limits Name
+  ,                                       !- Interpolate to Timestep
+  7,                                      !- Hour 1
+  0,                                      !- Minute 1
+  1,                                      !- Value Until Time 1
+  8,                                      !- Hour 2
+  0,                                      !- Minute 2
+  0.88,                                   !- Value Until Time 2
+  9,                                      !- Hour 3
+  0,                                      !- Minute 3
+  0.41,                                   !- Value Until Time 3
+  16,                                     !- Hour 4
+  0,                                      !- Minute 4
+  0.24,                                   !- Value Until Time 4
+  17,                                     !- Hour 5
+  0,                                      !- Minute 5
+  0.29,                                   !- Value Until Time 5
+  18,                                     !- Hour 6
+  0,                                      !- Minute 6
+  0.55,                                   !- Value Until Time 6
+  21,                                     !- Hour 7
+  0,                                      !- Minute 7
+  0.9,                                    !- Value Until Time 7
+  24,                                     !- Hour 8
+  0,                                      !- Minute 8
+  1;                                      !- Value Until Time 8
+
+OS:Schedule:Rule,
+  {980a9b6d-bf69-4e36-bca5-fbe46c3ecb9d}, !- Handle
+  res occupants schedule allday rule2,    !- Name
+  {e18c9430-888e-4476-9899-a4a065fac252}, !- Schedule Ruleset Name
+  10,                                     !- Rule Order
+  {1db4efe2-6949-44d2-a049-b9c8cb261ed2}, !- Day Schedule Name
+  Yes,                                    !- Apply Sunday
+  Yes,                                    !- Apply Monday
+  Yes,                                    !- Apply Tuesday
+  Yes,                                    !- Apply Wednesday
+  Yes,                                    !- Apply Thursday
+  Yes,                                    !- Apply Friday
+  Yes,                                    !- Apply Saturday
+  ,                                       !- Apply Holiday
+  DateRange,                              !- Date Specification Type
+  2,                                      !- Start Month
+  1,                                      !- Start Day
+  2,                                      !- End Month
+  28;                                     !- End Day
+
+OS:Schedule:Day,
+  {1db4efe2-6949-44d2-a049-b9c8cb261ed2}, !- Handle
+  res occupants schedule allday2,         !- Name
+  {388c8d38-6224-498e-9b3d-fc06f82c3742}, !- Schedule Type Limits Name
+  ,                                       !- Interpolate to Timestep
+  7,                                      !- Hour 1
+  0,                                      !- Minute 1
+  1,                                      !- Value Until Time 1
+  8,                                      !- Hour 2
+  0,                                      !- Minute 2
+  0.88,                                   !- Value Until Time 2
+  9,                                      !- Hour 3
+  0,                                      !- Minute 3
+  0.41,                                   !- Value Until Time 3
+  16,                                     !- Hour 4
+  0,                                      !- Minute 4
+  0.24,                                   !- Value Until Time 4
+  17,                                     !- Hour 5
+  0,                                      !- Minute 5
+  0.29,                                   !- Value Until Time 5
+  18,                                     !- Hour 6
+  0,                                      !- Minute 6
+  0.55,                                   !- Value Until Time 6
+  21,                                     !- Hour 7
+  0,                                      !- Minute 7
+  0.9,                                    !- Value Until Time 7
+  24,                                     !- Hour 8
+  0,                                      !- Minute 8
+  1;                                      !- Value Until Time 8
+
+OS:Schedule:Rule,
+  {319dee50-5a5f-4205-aafb-5958eea4dc8f}, !- Handle
+  res occupants schedule allday rule3,    !- Name
+  {e18c9430-888e-4476-9899-a4a065fac252}, !- Schedule Ruleset Name
+  9,                                      !- Rule Order
+  {d95d2512-711a-400a-9200-5ab36ddb45b0}, !- Day Schedule Name
+  Yes,                                    !- Apply Sunday
+  Yes,                                    !- Apply Monday
+  Yes,                                    !- Apply Tuesday
+  Yes,                                    !- Apply Wednesday
+  Yes,                                    !- Apply Thursday
+  Yes,                                    !- Apply Friday
+  Yes,                                    !- Apply Saturday
+  ,                                       !- Apply Holiday
+  DateRange,                              !- Date Specification Type
+  3,                                      !- Start Month
+  1,                                      !- Start Day
+  3,                                      !- End Month
+  31;                                     !- End Day
+
+OS:Schedule:Day,
+  {d95d2512-711a-400a-9200-5ab36ddb45b0}, !- Handle
+  res occupants schedule allday3,         !- Name
+  {388c8d38-6224-498e-9b3d-fc06f82c3742}, !- Schedule Type Limits Name
+  ,                                       !- Interpolate to Timestep
+  7,                                      !- Hour 1
+  0,                                      !- Minute 1
+  1,                                      !- Value Until Time 1
+  8,                                      !- Hour 2
+  0,                                      !- Minute 2
+  0.88,                                   !- Value Until Time 2
+  9,                                      !- Hour 3
+  0,                                      !- Minute 3
+  0.41,                                   !- Value Until Time 3
+  16,                                     !- Hour 4
+  0,                                      !- Minute 4
+  0.24,                                   !- Value Until Time 4
+  17,                                     !- Hour 5
+  0,                                      !- Minute 5
+  0.29,                                   !- Value Until Time 5
+  18,                                     !- Hour 6
+  0,                                      !- Minute 6
+  0.55,                                   !- Value Until Time 6
+  21,                                     !- Hour 7
+  0,                                      !- Minute 7
+  0.9,                                    !- Value Until Time 7
+  24,                                     !- Hour 8
+  0,                                      !- Minute 8
+  1;                                      !- Value Until Time 8
+
+OS:Schedule:Rule,
+  {d2ab0ee3-b8c1-4988-b64f-b649de6c74f0}, !- Handle
+  res occupants schedule allday rule4,    !- Name
+  {e18c9430-888e-4476-9899-a4a065fac252}, !- Schedule Ruleset Name
+  8,                                      !- Rule Order
+  {327a6453-2588-4df3-9762-af941b97c8e6}, !- Day Schedule Name
+  Yes,                                    !- Apply Sunday
+  Yes,                                    !- Apply Monday
+  Yes,                                    !- Apply Tuesday
+  Yes,                                    !- Apply Wednesday
+  Yes,                                    !- Apply Thursday
+  Yes,                                    !- Apply Friday
+  Yes,                                    !- Apply Saturday
+  ,                                       !- Apply Holiday
+  DateRange,                              !- Date Specification Type
+  4,                                      !- Start Month
+  1,                                      !- Start Day
+  4,                                      !- End Month
+  30;                                     !- End Day
+
+OS:Schedule:Day,
+  {327a6453-2588-4df3-9762-af941b97c8e6}, !- Handle
+  res occupants schedule allday4,         !- Name
+  {388c8d38-6224-498e-9b3d-fc06f82c3742}, !- Schedule Type Limits Name
+  ,                                       !- Interpolate to Timestep
+  7,                                      !- Hour 1
+  0,                                      !- Minute 1
+  1,                                      !- Value Until Time 1
+  8,                                      !- Hour 2
+  0,                                      !- Minute 2
+  0.88,                                   !- Value Until Time 2
+  9,                                      !- Hour 3
+  0,                                      !- Minute 3
+  0.41,                                   !- Value Until Time 3
+  16,                                     !- Hour 4
+  0,                                      !- Minute 4
+  0.24,                                   !- Value Until Time 4
+  17,                                     !- Hour 5
+  0,                                      !- Minute 5
+  0.29,                                   !- Value Until Time 5
+  18,                                     !- Hour 6
+  0,                                      !- Minute 6
+  0.55,                                   !- Value Until Time 6
+  21,                                     !- Hour 7
+  0,                                      !- Minute 7
+  0.9,                                    !- Value Until Time 7
+  24,                                     !- Hour 8
+  0,                                      !- Minute 8
+  1;                                      !- Value Until Time 8
+
+OS:Schedule:Rule,
+  {f148a40b-7117-4252-ae8f-87a3be983d12}, !- Handle
+  res occupants schedule allday rule5,    !- Name
+  {e18c9430-888e-4476-9899-a4a065fac252}, !- Schedule Ruleset Name
+  7,                                      !- Rule Order
+  {18007328-3ba2-43ff-a73c-58abf8e76e33}, !- Day Schedule Name
+  Yes,                                    !- Apply Sunday
+  Yes,                                    !- Apply Monday
+  Yes,                                    !- Apply Tuesday
+  Yes,                                    !- Apply Wednesday
+  Yes,                                    !- Apply Thursday
+  Yes,                                    !- Apply Friday
+  Yes,                                    !- Apply Saturday
+  ,                                       !- Apply Holiday
+  DateRange,                              !- Date Specification Type
+  5,                                      !- Start Month
+  1,                                      !- Start Day
+  5,                                      !- End Month
+  31;                                     !- End Day
+
+OS:Schedule:Day,
+  {18007328-3ba2-43ff-a73c-58abf8e76e33}, !- Handle
+  res occupants schedule allday5,         !- Name
+  {388c8d38-6224-498e-9b3d-fc06f82c3742}, !- Schedule Type Limits Name
+  ,                                       !- Interpolate to Timestep
+  7,                                      !- Hour 1
+  0,                                      !- Minute 1
+  1,                                      !- Value Until Time 1
+  8,                                      !- Hour 2
+  0,                                      !- Minute 2
+  0.88,                                   !- Value Until Time 2
+  9,                                      !- Hour 3
+  0,                                      !- Minute 3
+  0.41,                                   !- Value Until Time 3
+  16,                                     !- Hour 4
+  0,                                      !- Minute 4
+  0.24,                                   !- Value Until Time 4
+  17,                                     !- Hour 5
+  0,                                      !- Minute 5
+  0.29,                                   !- Value Until Time 5
+  18,                                     !- Hour 6
+  0,                                      !- Minute 6
+  0.55,                                   !- Value Until Time 6
+  21,                                     !- Hour 7
+  0,                                      !- Minute 7
+  0.9,                                    !- Value Until Time 7
+  24,                                     !- Hour 8
+  0,                                      !- Minute 8
+  1;                                      !- Value Until Time 8
+
+OS:Schedule:Rule,
+  {e858888f-ad8f-46b5-82c4-0b190d91dd90}, !- Handle
+  res occupants schedule allday rule6,    !- Name
+  {e18c9430-888e-4476-9899-a4a065fac252}, !- Schedule Ruleset Name
+  6,                                      !- Rule Order
+  {56f4be94-578e-462a-9da3-c33d0fc630c0}, !- Day Schedule Name
+  Yes,                                    !- Apply Sunday
+  Yes,                                    !- Apply Monday
+  Yes,                                    !- Apply Tuesday
+  Yes,                                    !- Apply Wednesday
+  Yes,                                    !- Apply Thursday
+  Yes,                                    !- Apply Friday
+  Yes,                                    !- Apply Saturday
+  ,                                       !- Apply Holiday
+  DateRange,                              !- Date Specification Type
+  6,                                      !- Start Month
+  1,                                      !- Start Day
+  6,                                      !- End Month
+  30;                                     !- End Day
+
+OS:Schedule:Day,
+  {56f4be94-578e-462a-9da3-c33d0fc630c0}, !- Handle
+  res occupants schedule allday6,         !- Name
+  {388c8d38-6224-498e-9b3d-fc06f82c3742}, !- Schedule Type Limits Name
+  ,                                       !- Interpolate to Timestep
+  7,                                      !- Hour 1
+  0,                                      !- Minute 1
+  1,                                      !- Value Until Time 1
+  8,                                      !- Hour 2
+  0,                                      !- Minute 2
+  0.88,                                   !- Value Until Time 2
+  9,                                      !- Hour 3
+  0,                                      !- Minute 3
+  0.41,                                   !- Value Until Time 3
+  16,                                     !- Hour 4
+  0,                                      !- Minute 4
+  0.24,                                   !- Value Until Time 4
+  17,                                     !- Hour 5
+  0,                                      !- Minute 5
+  0.29,                                   !- Value Until Time 5
+  18,                                     !- Hour 6
+  0,                                      !- Minute 6
+  0.55,                                   !- Value Until Time 6
+  21,                                     !- Hour 7
+  0,                                      !- Minute 7
+  0.9,                                    !- Value Until Time 7
+  24,                                     !- Hour 8
+  0,                                      !- Minute 8
+  1;                                      !- Value Until Time 8
+
+OS:Schedule:Rule,
+  {4f02153d-f846-401b-97f9-6ac88d832405}, !- Handle
+  res occupants schedule allday rule7,    !- Name
+  {e18c9430-888e-4476-9899-a4a065fac252}, !- Schedule Ruleset Name
+  5,                                      !- Rule Order
+  {6ef6aaad-a8c6-4a37-b78c-9b395148daba}, !- Day Schedule Name
+  Yes,                                    !- Apply Sunday
+  Yes,                                    !- Apply Monday
+  Yes,                                    !- Apply Tuesday
+  Yes,                                    !- Apply Wednesday
+  Yes,                                    !- Apply Thursday
+  Yes,                                    !- Apply Friday
+  Yes,                                    !- Apply Saturday
+  ,                                       !- Apply Holiday
+  DateRange,                              !- Date Specification Type
+  7,                                      !- Start Month
+  1,                                      !- Start Day
+  7,                                      !- End Month
+  31;                                     !- End Day
+
+OS:Schedule:Day,
+  {6ef6aaad-a8c6-4a37-b78c-9b395148daba}, !- Handle
+  res occupants schedule allday7,         !- Name
+  {388c8d38-6224-498e-9b3d-fc06f82c3742}, !- Schedule Type Limits Name
+  ,                                       !- Interpolate to Timestep
+  7,                                      !- Hour 1
+  0,                                      !- Minute 1
+  1,                                      !- Value Until Time 1
+  8,                                      !- Hour 2
+  0,                                      !- Minute 2
+  0.88,                                   !- Value Until Time 2
+  9,                                      !- Hour 3
+  0,                                      !- Minute 3
+  0.41,                                   !- Value Until Time 3
+  16,                                     !- Hour 4
+  0,                                      !- Minute 4
+  0.24,                                   !- Value Until Time 4
+  17,                                     !- Hour 5
+  0,                                      !- Minute 5
+  0.29,                                   !- Value Until Time 5
+  18,                                     !- Hour 6
+  0,                                      !- Minute 6
+  0.55,                                   !- Value Until Time 6
+  21,                                     !- Hour 7
+  0,                                      !- Minute 7
+  0.9,                                    !- Value Until Time 7
+  24,                                     !- Hour 8
+  0,                                      !- Minute 8
+  1;                                      !- Value Until Time 8
+
+OS:Schedule:Rule,
+  {4955074b-c456-464f-8027-4e67c653f5d9}, !- Handle
+  res occupants schedule allday rule8,    !- Name
+  {e18c9430-888e-4476-9899-a4a065fac252}, !- Schedule Ruleset Name
+  4,                                      !- Rule Order
+  {4e61d361-04b2-48ad-b607-45a24b624dad}, !- Day Schedule Name
+  Yes,                                    !- Apply Sunday
+  Yes,                                    !- Apply Monday
+  Yes,                                    !- Apply Tuesday
+  Yes,                                    !- Apply Wednesday
+  Yes,                                    !- Apply Thursday
+  Yes,                                    !- Apply Friday
+  Yes,                                    !- Apply Saturday
+  ,                                       !- Apply Holiday
+  DateRange,                              !- Date Specification Type
+  8,                                      !- Start Month
+  1,                                      !- Start Day
+  8,                                      !- End Month
+  31;                                     !- End Day
+
+OS:Schedule:Day,
+  {4e61d361-04b2-48ad-b607-45a24b624dad}, !- Handle
+  res occupants schedule allday8,         !- Name
+  {388c8d38-6224-498e-9b3d-fc06f82c3742}, !- Schedule Type Limits Name
+  ,                                       !- Interpolate to Timestep
+  7,                                      !- Hour 1
+  0,                                      !- Minute 1
+  1,                                      !- Value Until Time 1
+  8,                                      !- Hour 2
+  0,                                      !- Minute 2
+  0.88,                                   !- Value Until Time 2
+  9,                                      !- Hour 3
+  0,                                      !- Minute 3
+  0.41,                                   !- Value Until Time 3
+  16,                                     !- Hour 4
+  0,                                      !- Minute 4
+  0.24,                                   !- Value Until Time 4
+  17,                                     !- Hour 5
+  0,                                      !- Minute 5
+  0.29,                                   !- Value Until Time 5
+  18,                                     !- Hour 6
+  0,                                      !- Minute 6
+  0.55,                                   !- Value Until Time 6
+  21,                                     !- Hour 7
+  0,                                      !- Minute 7
+  0.9,                                    !- Value Until Time 7
+  24,                                     !- Hour 8
+  0,                                      !- Minute 8
+  1;                                      !- Value Until Time 8
+
+OS:Schedule:Rule,
+  {ba797ad1-596d-4cab-9bc3-7bfdab929734}, !- Handle
+  res occupants schedule allday rule9,    !- Name
+  {e18c9430-888e-4476-9899-a4a065fac252}, !- Schedule Ruleset Name
+  3,                                      !- Rule Order
+  {d2814bb3-4461-480f-b298-5294be76dc1a}, !- Day Schedule Name
+  Yes,                                    !- Apply Sunday
+  Yes,                                    !- Apply Monday
+  Yes,                                    !- Apply Tuesday
+  Yes,                                    !- Apply Wednesday
+  Yes,                                    !- Apply Thursday
+  Yes,                                    !- Apply Friday
+  Yes,                                    !- Apply Saturday
+  ,                                       !- Apply Holiday
+  DateRange,                              !- Date Specification Type
+  9,                                      !- Start Month
+  1,                                      !- Start Day
+  9,                                      !- End Month
+  30;                                     !- End Day
+
+OS:Schedule:Day,
+  {d2814bb3-4461-480f-b298-5294be76dc1a}, !- Handle
+  res occupants schedule allday9,         !- Name
+  {388c8d38-6224-498e-9b3d-fc06f82c3742}, !- Schedule Type Limits Name
+  ,                                       !- Interpolate to Timestep
+  7,                                      !- Hour 1
+  0,                                      !- Minute 1
+  1,                                      !- Value Until Time 1
+  8,                                      !- Hour 2
+  0,                                      !- Minute 2
+  0.88,                                   !- Value Until Time 2
+  9,                                      !- Hour 3
+  0,                                      !- Minute 3
+  0.41,                                   !- Value Until Time 3
+  16,                                     !- Hour 4
+  0,                                      !- Minute 4
+  0.24,                                   !- Value Until Time 4
+  17,                                     !- Hour 5
+  0,                                      !- Minute 5
+  0.29,                                   !- Value Until Time 5
+  18,                                     !- Hour 6
+  0,                                      !- Minute 6
+  0.55,                                   !- Value Until Time 6
+  21,                                     !- Hour 7
+  0,                                      !- Minute 7
+  0.9,                                    !- Value Until Time 7
+  24,                                     !- Hour 8
+  0,                                      !- Minute 8
+  1;                                      !- Value Until Time 8
+
+OS:Schedule:Rule,
+  {6ee49b5f-ef62-4ed2-994a-0eeeb2926bbb}, !- Handle
+  res occupants schedule allday rule10,   !- Name
+  {e18c9430-888e-4476-9899-a4a065fac252}, !- Schedule Ruleset Name
+  2,                                      !- Rule Order
+  {d5e03569-c138-43cf-8348-c11026427e3d}, !- Day Schedule Name
+  Yes,                                    !- Apply Sunday
+  Yes,                                    !- Apply Monday
+  Yes,                                    !- Apply Tuesday
+  Yes,                                    !- Apply Wednesday
+  Yes,                                    !- Apply Thursday
+  Yes,                                    !- Apply Friday
+  Yes,                                    !- Apply Saturday
+  ,                                       !- Apply Holiday
+  DateRange,                              !- Date Specification Type
+  10,                                     !- Start Month
+  1,                                      !- Start Day
+  10,                                     !- End Month
+  31;                                     !- End Day
+
+OS:Schedule:Day,
+  {d5e03569-c138-43cf-8348-c11026427e3d}, !- Handle
+  res occupants schedule allday10,        !- Name
+  {388c8d38-6224-498e-9b3d-fc06f82c3742}, !- Schedule Type Limits Name
+  ,                                       !- Interpolate to Timestep
+  7,                                      !- Hour 1
+  0,                                      !- Minute 1
+  1,                                      !- Value Until Time 1
+  8,                                      !- Hour 2
+  0,                                      !- Minute 2
+  0.88,                                   !- Value Until Time 2
+  9,                                      !- Hour 3
+  0,                                      !- Minute 3
+  0.41,                                   !- Value Until Time 3
+  16,                                     !- Hour 4
+  0,                                      !- Minute 4
+  0.24,                                   !- Value Until Time 4
+  17,                                     !- Hour 5
+  0,                                      !- Minute 5
+  0.29,                                   !- Value Until Time 5
+  18,                                     !- Hour 6
+  0,                                      !- Minute 6
+  0.55,                                   !- Value Until Time 6
+  21,                                     !- Hour 7
+  0,                                      !- Minute 7
+  0.9,                                    !- Value Until Time 7
+  24,                                     !- Hour 8
+  0,                                      !- Minute 8
+  1;                                      !- Value Until Time 8
+
+OS:Schedule:Rule,
+  {18febb12-3034-49d8-993e-a49a7f93a9b5}, !- Handle
+  res occupants schedule allday rule11,   !- Name
+  {e18c9430-888e-4476-9899-a4a065fac252}, !- Schedule Ruleset Name
+  1,                                      !- Rule Order
+  {77e7f003-9587-411d-877d-a6acb6d549b0}, !- Day Schedule Name
+  Yes,                                    !- Apply Sunday
+  Yes,                                    !- Apply Monday
+  Yes,                                    !- Apply Tuesday
+  Yes,                                    !- Apply Wednesday
+  Yes,                                    !- Apply Thursday
+  Yes,                                    !- Apply Friday
+  Yes,                                    !- Apply Saturday
+  ,                                       !- Apply Holiday
+  DateRange,                              !- Date Specification Type
+  11,                                     !- Start Month
+  1,                                      !- Start Day
+  11,                                     !- End Month
+  30;                                     !- End Day
+
+OS:Schedule:Day,
+  {77e7f003-9587-411d-877d-a6acb6d549b0}, !- Handle
+  res occupants schedule allday11,        !- Name
+  {388c8d38-6224-498e-9b3d-fc06f82c3742}, !- Schedule Type Limits Name
+  ,                                       !- Interpolate to Timestep
+  7,                                      !- Hour 1
+  0,                                      !- Minute 1
+  1,                                      !- Value Until Time 1
+  8,                                      !- Hour 2
+  0,                                      !- Minute 2
+  0.88,                                   !- Value Until Time 2
+  9,                                      !- Hour 3
+  0,                                      !- Minute 3
+  0.41,                                   !- Value Until Time 3
+  16,                                     !- Hour 4
+  0,                                      !- Minute 4
+  0.24,                                   !- Value Until Time 4
+  17,                                     !- Hour 5
+  0,                                      !- Minute 5
+  0.29,                                   !- Value Until Time 5
+  18,                                     !- Hour 6
+  0,                                      !- Minute 6
+  0.55,                                   !- Value Until Time 6
+  21,                                     !- Hour 7
+  0,                                      !- Minute 7
+  0.9,                                    !- Value Until Time 7
+  24,                                     !- Hour 8
+  0,                                      !- Minute 8
+  1;                                      !- Value Until Time 8
+
+OS:Schedule:Rule,
+  {658246c8-4f4c-4a71-b5f2-d5eeeb0c6ec3}, !- Handle
+  res occupants schedule allday rule12,   !- Name
+  {e18c9430-888e-4476-9899-a4a065fac252}, !- Schedule Ruleset Name
+  0,                                      !- Rule Order
+  {324d5f02-3442-430c-9a79-97ba1a284e90}, !- Day Schedule Name
+  Yes,                                    !- Apply Sunday
+  Yes,                                    !- Apply Monday
+  Yes,                                    !- Apply Tuesday
+  Yes,                                    !- Apply Wednesday
+  Yes,                                    !- Apply Thursday
+  Yes,                                    !- Apply Friday
+  Yes,                                    !- Apply Saturday
+  ,                                       !- Apply Holiday
+  DateRange,                              !- Date Specification Type
+  12,                                     !- Start Month
+  1,                                      !- Start Day
+  12,                                     !- End Month
+  31;                                     !- End Day
+
+OS:Schedule:Day,
+  {324d5f02-3442-430c-9a79-97ba1a284e90}, !- Handle
+  res occupants schedule allday12,        !- Name
+  {388c8d38-6224-498e-9b3d-fc06f82c3742}, !- Schedule Type Limits Name
+  ,                                       !- Interpolate to Timestep
+  7,                                      !- Hour 1
+  0,                                      !- Minute 1
+  1,                                      !- Value Until Time 1
+  8,                                      !- Hour 2
+  0,                                      !- Minute 2
+  0.88,                                   !- Value Until Time 2
+  9,                                      !- Hour 3
+  0,                                      !- Minute 3
+  0.41,                                   !- Value Until Time 3
+  16,                                     !- Hour 4
+  0,                                      !- Minute 4
+  0.24,                                   !- Value Until Time 4
+  17,                                     !- Hour 5
+  0,                                      !- Minute 5
+  0.29,                                   !- Value Until Time 5
+  18,                                     !- Hour 6
+  0,                                      !- Minute 6
+  0.55,                                   !- Value Until Time 6
+  21,                                     !- Hour 7
+  0,                                      !- Minute 7
+  0.9,                                    !- Value Until Time 7
+  24,                                     !- Hour 8
+  0,                                      !- Minute 8
+  1;                                      !- Value Until Time 8
+
+OS:Schedule:Day,
+  {ad14db9f-c649-4434-b0dd-4b9ac06c19dc}, !- Handle
+  res occupants schedule winter design,   !- Name
+  {388c8d38-6224-498e-9b3d-fc06f82c3742}, !- Schedule Type Limits Name
+  ,                                       !- Interpolate to Timestep
+  24,                                     !- Hour 1
+  0,                                      !- Minute 1
+  0;                                      !- Value Until Time 1
+
+OS:Schedule:Day,
+  {0759bcb2-ecd5-4756-90f4-0b00107055f9}, !- Handle
+  res occupants schedule summer design,   !- Name
+  {388c8d38-6224-498e-9b3d-fc06f82c3742}, !- Schedule Type Limits Name
+  ,                                       !- Interpolate to Timestep
+  24,                                     !- Hour 1
+  0,                                      !- Minute 1
+  1;                                      !- Value Until Time 1
+
+OS:ScheduleTypeLimits,
+  {388c8d38-6224-498e-9b3d-fc06f82c3742}, !- Handle
+  Fractional,                             !- Name
+  0,                                      !- Lower Limit Value
+  1,                                      !- Upper Limit Value
+  Continuous;                             !- Numeric Type
+
+OS:Schedule:Ruleset,
+  {10e23db3-83dc-4ba3-803f-2b85f410ce73}, !- Handle
+  Schedule Ruleset 1,                     !- Name
+  {a74bdf8c-210f-4dd7-a6ad-c1f9efc2dd6f}, !- Schedule Type Limits Name
+  {68f8440e-3f10-4bb0-9e5e-4a77808c6918}; !- Default Day Schedule Name
+
+OS:Schedule:Day,
+  {68f8440e-3f10-4bb0-9e5e-4a77808c6918}, !- Handle
+  Schedule Day 4,                         !- Name
+  {a74bdf8c-210f-4dd7-a6ad-c1f9efc2dd6f}, !- Schedule Type Limits Name
+  ,                                       !- Interpolate to Timestep
+  24,                                     !- Hour 1
+  0,                                      !- Minute 1
+  112.539290946133;                       !- Value Until Time 1
+
+OS:People:Definition,
+  {9168f107-5614-4915-8ec4-f79f4213e822}, !- Handle
+  res occupants|living space,             !- Name
+  People,                                 !- Number of People Calculation Method
+  1.32,                                   !- Number of People {people}
+  ,                                       !- People per Space Floor Area {person/m2}
+  ,                                       !- Space Floor Area per Person {m2/person}
+  0.319734,                               !- Fraction Radiant
+  0.573,                                  !- Sensible Heat Fraction
+  0,                                      !- Carbon Dioxide Generation Rate {m3/s-W}
+  No,                                     !- Enable ASHRAE 55 Comfort Warnings
+  ZoneAveraged;                           !- Mean Radiant Temperature Calculation Type
+
+OS:People,
+  {47934846-eb06-4af6-b546-2c7cefdf2fca}, !- Handle
+  res occupants|living space,             !- Name
+  {9168f107-5614-4915-8ec4-f79f4213e822}, !- People Definition Name
+  {3c1962b6-8075-48a1-9b6a-74df48cf1976}, !- Space or SpaceType Name
+  {e18c9430-888e-4476-9899-a4a065fac252}, !- Number of People Schedule Name
+  {10e23db3-83dc-4ba3-803f-2b85f410ce73}, !- Activity Level Schedule Name
+  ,                                       !- Surface Name/Angle Factor List Name
+  ,                                       !- Work Efficiency Schedule Name
+  ,                                       !- Clothing Insulation Schedule Name
+  ,                                       !- Air Velocity Schedule Name
+  1;                                      !- Multiplier
+
+OS:ScheduleTypeLimits,
+  {a74bdf8c-210f-4dd7-a6ad-c1f9efc2dd6f}, !- Handle
+  ActivityLevel,                          !- Name
+  0,                                      !- Lower Limit Value
+  ,                                       !- Upper Limit Value
+  Continuous,                             !- Numeric Type
+  ActivityLevel;                          !- Unit Type
+
+OS:People:Definition,
+  {0a4438f0-71e1-471a-b0e4-934cb6002ee8}, !- Handle
+  res occupants|living space|story 2,     !- Name
+  People,                                 !- Number of People Calculation Method
+  1.32,                                   !- Number of People {people}
+  ,                                       !- People per Space Floor Area {person/m2}
+  ,                                       !- Space Floor Area per Person {m2/person}
+  0.319734,                               !- Fraction Radiant
+  0.573,                                  !- Sensible Heat Fraction
+  0,                                      !- Carbon Dioxide Generation Rate {m3/s-W}
+  No,                                     !- Enable ASHRAE 55 Comfort Warnings
+  ZoneAveraged;                           !- Mean Radiant Temperature Calculation Type
+
+OS:People,
+  {7ba14007-a650-477a-91e8-566e6883c3a2}, !- Handle
+  res occupants|living space|story 2,     !- Name
+  {0a4438f0-71e1-471a-b0e4-934cb6002ee8}, !- People Definition Name
+  {538e1aa6-65e5-467a-9031-3c800ba7bf0a}, !- Space or SpaceType Name
+  {e18c9430-888e-4476-9899-a4a065fac252}, !- Number of People Schedule Name
+  {10e23db3-83dc-4ba3-803f-2b85f410ce73}, !- Activity Level Schedule Name
+  ,                                       !- Surface Name/Angle Factor List Name
+  ,                                       !- Work Efficiency Schedule Name
+  ,                                       !- Clothing Insulation Schedule Name
+  ,                                       !- Air Velocity Schedule Name
+  1;                                      !- Multiplier
+
+OS:ShadingSurfaceGroup,
+  {99c8d1d0-72da-42d8-89ff-91fd6d048390}, !- Handle
+  res eaves,                              !- Name
+  Building;                               !- Shading Surface Type
+
+OS:ShadingSurface,
+  {b8214984-0595-4aac-b477-5e824cff5fd8}, !- Handle
+  Surface 14 - res eaves,                 !- Name
+  ,                                       !- Construction Name
+  {99c8d1d0-72da-42d8-89ff-91fd6d048390}, !- Shading Surface Group Name
+  ,                                       !- Transmittance Schedule Name
+  ,                                       !- Number of Vertices
+  14.2406703908387, 0, 5.1816,            !- X,Y,Z Vertex 1 {m}
+  14.2406703908387, 3.40776759770968, 6.88548379885484, !- X,Y,Z Vertex 2 {m}
+  13.6310703908387, 3.40776759770968, 6.88548379885484, !- X,Y,Z Vertex 3 {m}
+  13.6310703908387, 0, 5.1816;            !- X,Y,Z Vertex 4 {m}
+
+OS:ShadingSurface,
+  {28124099-b245-4916-b3eb-ac25f594d3ab}, !- Handle
+  Surface 14 - res eaves 1,               !- Name
+  ,                                       !- Construction Name
+  {99c8d1d0-72da-42d8-89ff-91fd6d048390}, !- Shading Surface Group Name
+  ,                                       !- Transmittance Schedule Name
+  ,                                       !- Number of Vertices
+  -0.6096, 3.40776759770968, 6.88548379885484, !- X,Y,Z Vertex 1 {m}
+  -0.6096, 0, 5.1816,                     !- X,Y,Z Vertex 2 {m}
+  0, 0, 5.1816,                           !- X,Y,Z Vertex 3 {m}
+  0, 3.40776759770968, 6.88548379885484;  !- X,Y,Z Vertex 4 {m}
+
+OS:ShadingSurface,
+  {e87ba471-cc04-473b-bb4e-dd2972a0bd17}, !- Handle
+  Surface 14 - res eaves 2,               !- Name
+  ,                                       !- Construction Name
+  {99c8d1d0-72da-42d8-89ff-91fd6d048390}, !- Shading Surface Group Name
+  ,                                       !- Transmittance Schedule Name
+  ,                                       !- Number of Vertices
+  0, -0.6096, 4.8768,                     !- X,Y,Z Vertex 1 {m}
+  13.6310703908387, -0.6096, 4.8768,      !- X,Y,Z Vertex 2 {m}
+  13.6310703908387, 0, 5.1816,            !- X,Y,Z Vertex 3 {m}
+  0, 0, 5.1816;                           !- X,Y,Z Vertex 4 {m}
+
+OS:ShadingSurface,
+  {7333ff85-41b6-4830-bfab-c5cca1419464}, !- Handle
+  Surface 15 - res eaves,                 !- Name
+  ,                                       !- Construction Name
+  {99c8d1d0-72da-42d8-89ff-91fd6d048390}, !- Shading Surface Group Name
+  ,                                       !- Transmittance Schedule Name
+  ,                                       !- Number of Vertices
+  -0.6096, 6.81553519541936, 5.1816,      !- X,Y,Z Vertex 1 {m}
+  -0.6096, 3.40776759770968, 6.88548379885484, !- X,Y,Z Vertex 2 {m}
+  0, 3.40776759770968, 6.88548379885484,  !- X,Y,Z Vertex 3 {m}
+  0, 6.81553519541936, 5.1816;            !- X,Y,Z Vertex 4 {m}
+
+OS:ShadingSurface,
+  {caac0375-700f-46a8-a08f-9ebc5b308cfc}, !- Handle
+  Surface 15 - res eaves 1,               !- Name
+  ,                                       !- Construction Name
+  {99c8d1d0-72da-42d8-89ff-91fd6d048390}, !- Shading Surface Group Name
+  ,                                       !- Transmittance Schedule Name
+  ,                                       !- Number of Vertices
+  14.2406703908387, 3.40776759770968, 6.88548379885484, !- X,Y,Z Vertex 1 {m}
+  14.2406703908387, 6.81553519541936, 5.1816, !- X,Y,Z Vertex 2 {m}
+  13.6310703908387, 6.81553519541936, 5.1816, !- X,Y,Z Vertex 3 {m}
+  13.6310703908387, 3.40776759770968, 6.88548379885484; !- X,Y,Z Vertex 4 {m}
+
+OS:ShadingSurface,
+  {cec63084-3bed-49af-9957-b79f03e4e89a}, !- Handle
+  Surface 15 - res eaves 2,               !- Name
+  ,                                       !- Construction Name
+  {99c8d1d0-72da-42d8-89ff-91fd6d048390}, !- Shading Surface Group Name
+  ,                                       !- Transmittance Schedule Name
+  ,                                       !- Number of Vertices
+  13.6310703908387, 7.42513519541936, 4.8768, !- X,Y,Z Vertex 1 {m}
+  0, 7.42513519541936, 4.8768,            !- X,Y,Z Vertex 2 {m}
+  0, 6.81553519541936, 5.1816,            !- X,Y,Z Vertex 3 {m}
+  13.6310703908387, 6.81553519541936, 5.1816; !- X,Y,Z Vertex 4 {m}
+
+OS:ShadingSurfaceGroup,
+  {481fdbe1-650a-41f7-9031-e29829e775ac}, !- Handle
+  res neighbors,                          !- Name
+  Building;                               !- Shading Surface Type
+
+OS:ShadingSurface,
+  {c32bca93-f9fc-4c02-b9a6-b6c338ca7d5a}, !- Handle
+  res neighbors left,                     !- Name
+  ,                                       !- Construction Name
+  {481fdbe1-650a-41f7-9031-e29829e775ac}, !- Shading Surface Group Name
+  ,                                       !- Transmittance Schedule Name
+  ,                                       !- Number of Vertices
+  -3.048, 0, 0,                           !- X,Y,Z Vertex 1 {m}
+  -3.048, 0, 6.58068379885484,            !- X,Y,Z Vertex 2 {m}
+  -3.048, 6.81553519541936, 6.58068379885484, !- X,Y,Z Vertex 3 {m}
+  -3.048, 6.81553519541936, 0;            !- X,Y,Z Vertex 4 {m}
+
+OS:ShadingSurface,
+  {b9c7dc99-62a3-47e5-840b-e49f4ae5b568}, !- Handle
+  res neighbors right,                    !- Name
+  ,                                       !- Construction Name
+  {481fdbe1-650a-41f7-9031-e29829e775ac}, !- Shading Surface Group Name
+  ,                                       !- Transmittance Schedule Name
+  ,                                       !- Number of Vertices
+  16.6790703908387, 6.81553519541936, 0,  !- X,Y,Z Vertex 1 {m}
+  16.6790703908387, 6.81553519541936, 6.58068379885484, !- X,Y,Z Vertex 2 {m}
+  16.6790703908387, 0, 6.58068379885484,  !- X,Y,Z Vertex 3 {m}
+  16.6790703908387, 0, 0;                 !- X,Y,Z Vertex 4 {m}
+
 OS:WeatherFile,
-  {129a3e08-91da-4593-b028-897eebe3a77f}, !- Handle
+  {67b0ab48-5c79-477d-a4cb-307a2c8cb165}, !- Handle
   Denver Intl Ap,                         !- City
   CO,                                     !- State Province Region
   USA,                                    !- Country
@@ -701,8 +1494,8 @@ OS:WeatherFile,
   E23378AA;                               !- Checksum
 
 OS:AdditionalProperties,
-  {3aa13182-7361-4c41-85e4-2e5e7b9e65bf}, !- Handle
-  {129a3e08-91da-4593-b028-897eebe3a77f}, !- Object Name
+  {1d716f53-0cb7-4c87-b5bd-687820a788ec}, !- Handle
+  {67b0ab48-5c79-477d-a4cb-307a2c8cb165}, !- Object Name
   EPWHeaderCity,                          !- Feature Name 1
   String,                                 !- Feature Data Type 1
   Denver Intl Ap,                         !- Feature Value 1
@@ -809,13 +1602,17 @@ OS:AdditionalProperties,
   Double,                                 !- Feature Data Type 35
   84;                                     !- Feature Value 35
 
-OS:YearDescription,
-  {3d5a6233-1e16-43be-93d9-63367f3465ff}, !- Handle
-  ,                                       !- Calendar Year
-  Monday;                                 !- Day of Week for Start Day
+OS:Site,
+  {78ff5014-fa4b-48a9-a91e-4350ba6554a1}, !- Handle
+  Denver Intl Ap_CO_USA,                  !- Name
+  39.83,                                  !- Latitude {deg}
+  -104.65,                                !- Longitude {deg}
+  -7,                                     !- Time Zone {hr}
+  1650,                                   !- Elevation {m}
+  ;                                       !- Terrain
 
 OS:ClimateZones,
-  {8f12f47b-39cd-4618-8287-a6a6d0a652a4}, !- Handle
+  {6f426c10-1cd8-4352-85dd-a95d9bb31405}, !- Handle
   ,                                       !- Active Institution
   ,                                       !- Active Year
   ,                                       !- Climate Zone Institution Name 1
@@ -828,19 +1625,19 @@ OS:ClimateZones,
   Cold;                                   !- Climate Zone Value 2
 
 OS:Site:WaterMainsTemperature,
-  {532b3d63-0327-4b36-b7c6-455a5a2042cc}, !- Handle
+  {571fa781-e9aa-427c-9829-bad9e4232eb9}, !- Handle
   Correlation,                            !- Calculation Method
   ,                                       !- Temperature Schedule Name
   10.8753424657535,                       !- Annual Average Outdoor Air Temperature {C}
   23.1524007936508;                       !- Maximum Difference In Monthly Average Outdoor Air Temperatures {deltaC}
 
 OS:RunPeriodControl:DaylightSavingTime,
-  {c7069616-7a2c-4dda-a868-765a8ace1b9d}, !- Handle
+  {44ef5610-34bb-47b7-b6e9-900d738f22c3}, !- Handle
   4/7,                                    !- Start Date
   10/26;                                  !- End Date
 
 OS:Site:GroundTemperature:Deep,
-  {6125a117-5a3b-4e4b-a5fb-37d277fba924}, !- Handle
+  {e8321bf1-93b3-467c-b663-c3b09a84915c}, !- Handle
   10.8753424657535,                       !- January Deep Ground Temperature {C}
   10.8753424657535,                       !- February Deep Ground Temperature {C}
   10.8753424657535,                       !- March Deep Ground Temperature {C}
@@ -855,10 +1652,10 @@ OS:Site:GroundTemperature:Deep,
   10.8753424657535;                       !- December Deep Ground Temperature {C}
 
 OS:GroundHeatExchanger:Vertical,
-  {7881b14b-5944-4e5a-adb3-5ea34debfff5}, !- Handle
+  {91618adf-ceda-4cff-b2a7-643af10940c6}, !- Handle
   res gshp vert bore exchanger,           !- Name
-  {2faf0f52-0352-4b2c-b87e-4b2610e2ccbf}, !- Inlet Node Name
-  {e25101d4-39be-45ea-95e0-df27d3fbfdb1}, !- Outlet Node Name
+  {113e6ffc-0984-43e8-b760-b16c75806c8e}, !- Inlet Node Name
+  {5dcba9db-1643-4cda-b262-eb034960b59b}, !- Outlet Node Name
   0.0033,                                 !- Maximum Flow Rate {m3/s}
   120,                                    !- Number of Bore Holes
   76.2,                                   !- Bore Hole Length {m}
@@ -946,7 +1743,7 @@ OS:GroundHeatExchanger:Vertical,
   72.511;                                 !- G-Function G Value 35
 
 OS:PlantLoop,
-  {8600f06b-17bd-463e-88b0-66ba8254df67}, !- Handle
+  {05e3fe97-c77f-459e-b423-fe4d6e6f32f9}, !- Handle
   res gshp vert bore condenser loop,      !- Name
   Water,                                  !- Fluid Type
   30,                                     !- Glycol Concentration
@@ -954,21 +1751,21 @@ OS:PlantLoop,
   ,                                       !- Plant Equipment Operation Heating Load
   ,                                       !- Plant Equipment Operation Cooling Load
   ,                                       !- Primary Plant Equipment Operation Scheme
-  {7ad6655a-06e1-44ae-a8e8-21bd2660563b}, !- Loop Temperature Setpoint Node Name
+  {9a59695e-84d2-4931-a5d9-f2a0c1220722}, !- Loop Temperature Setpoint Node Name
   48.88889,                               !- Maximum Loop Temperature {C}
   1.66666666666667,                       !- Minimum Loop Temperature {C}
   ,                                       !- Maximum Loop Flow Rate {m3/s}
   0,                                      !- Minimum Loop Flow Rate {m3/s}
   Autocalculate,                          !- Plant Loop Volume {m3}
-  {762dc58b-fcbc-41bd-a301-4a234d7a6ca3}, !- Plant Side Inlet Node Name
-  {fd251def-eaf7-4512-8527-9f4af5d96ecf}, !- Plant Side Outlet Node Name
+  {7388ac2a-5bb2-48d6-b700-4c93d2028667}, !- Plant Side Inlet Node Name
+  {2355e9df-962d-4a02-97d1-b9a24822840a}, !- Plant Side Outlet Node Name
   ,                                       !- Plant Side Branch List Name
-  {feeca43f-3ac5-470d-914b-af71fb14d39f}, !- Demand Side Inlet Node Name
-  {2ee4ae3c-2631-426f-baec-f543194e0ccf}, !- Demand Side Outlet Node Name
+  {92f7578b-cc3d-4ddc-ab85-05a39cddc1b8}, !- Demand Side Inlet Node Name
+  {e1a3a422-2dec-4f79-9e96-349f48d3b316}, !- Demand Side Outlet Node Name
   ,                                       !- Demand Side Branch List Name
   ,                                       !- Demand Side Connector List Name
   SequentialLoad,                         !- Load Distribution Scheme
-  {a5487e34-4f02-4d20-8910-b66bc17b3489}, !- Availability Manager List Name
+  {34cdcbe5-47e6-4f34-a690-1d841d7937e8}, !- Availability Manager List Name
   ,                                       !- Plant Loop Demand Calculation Scheme
   ,                                       !- Common Pipe Simulation
   ,                                       !- Pressure Simulation Type
@@ -976,128 +1773,128 @@ OS:PlantLoop,
   ,                                       !- Plant Equipment Operation Cooling Load Schedule
   ,                                       !- Primary Plant Equipment Operation Scheme Schedule
   ,                                       !- Component Setpoint Operation Scheme Schedule
-  {d76558e8-494a-4f68-8f2f-59d7865444a1}, !- Demand Mixer Name
-  {549c82fa-8551-4a0b-b7cb-638cc15c95c6}, !- Demand Splitter Name
-  {d1cb7765-4c4d-4a72-8b43-6d53db51a2c1}, !- Supply Mixer Name
-  {a34bc53e-8f1e-414a-8be1-b4ddcbb3dc43}; !- Supply Splitter Name
+  {7887e9d8-070e-4fa3-b425-0fa27c238523}, !- Demand Mixer Name
+  {c2ce7971-20c8-4eef-960a-7f0ab545b276}, !- Demand Splitter Name
+  {0306344f-165b-4d68-874e-3d9b6e7c0ed7}, !- Supply Mixer Name
+  {ad4fdac2-f6f6-4c0f-9cce-508cd3f59788}; !- Supply Splitter Name
 
 OS:Node,
-  {74e12b51-287f-4bfa-ad4a-707f37f693c4}, !- Handle
+  {cca0701f-4c6d-4283-897c-f6471801da59}, !- Handle
   Node 3,                                 !- Name
-  {762dc58b-fcbc-41bd-a301-4a234d7a6ca3}, !- Inlet Port
-  {150a40fb-5528-4eeb-a533-75ceb65e1c70}; !- Outlet Port
+  {7388ac2a-5bb2-48d6-b700-4c93d2028667}, !- Inlet Port
+  {e03803c9-913f-4774-a12c-cbe76c33e142}; !- Outlet Port
 
 OS:Node,
-  {7ad6655a-06e1-44ae-a8e8-21bd2660563b}, !- Handle
+  {9a59695e-84d2-4931-a5d9-f2a0c1220722}, !- Handle
   Node 4,                                 !- Name
-  {23ea48c5-9e71-40be-89bb-718810599090}, !- Inlet Port
-  {fd251def-eaf7-4512-8527-9f4af5d96ecf}; !- Outlet Port
+  {a5990c7e-d33d-4877-a756-8ab0696a2fca}, !- Inlet Port
+  {2355e9df-962d-4a02-97d1-b9a24822840a}; !- Outlet Port
 
 OS:Node,
-  {7ff6d0a0-4f68-44c2-8d31-b9988b8f8eca}, !- Handle
+  {0f510838-d4a9-4353-914a-c1d4d39dae7c}, !- Handle
   Node 5,                                 !- Name
-  {67384c50-305d-4c65-8785-eef7a2031c5a}, !- Inlet Port
-  {2faf0f52-0352-4b2c-b87e-4b2610e2ccbf}; !- Outlet Port
+  {f409090c-166a-4b80-b292-88e1ad3d1ced}, !- Inlet Port
+  {113e6ffc-0984-43e8-b760-b16c75806c8e}; !- Outlet Port
 
 OS:Connector:Mixer,
-  {d1cb7765-4c4d-4a72-8b43-6d53db51a2c1}, !- Handle
+  {0306344f-165b-4d68-874e-3d9b6e7c0ed7}, !- Handle
   Connector Mixer 1,                      !- Name
-  {c9e638ee-913b-482a-8589-a5daf9990c0f}, !- Outlet Branch Name
-  {12a1dfa5-5eb0-41ad-ae16-a6d2e34737e3}, !- Inlet Branch Name 1
-  {507e9b4c-0961-4b65-bf5d-0b9bfbba4589}; !- Inlet Branch Name 2
+  {e645e983-e158-4305-89d7-63aaa713dc0f}, !- Outlet Branch Name
+  {f4c62d50-5410-42e9-a4fb-76c6d013780f}, !- Inlet Branch Name 1
+  {e2ddfb12-a9bd-4c66-843d-e998112f022e}; !- Inlet Branch Name 2
 
 OS:Connector:Splitter,
-  {a34bc53e-8f1e-414a-8be1-b4ddcbb3dc43}, !- Handle
+  {ad4fdac2-f6f6-4c0f-9cce-508cd3f59788}, !- Handle
   Connector Splitter 1,                   !- Name
-  {fde4bd5f-143f-4994-a9cf-8182709d9968}, !- Inlet Branch Name
-  {67384c50-305d-4c65-8785-eef7a2031c5a}, !- Outlet Branch Name 1
-  {0226d444-4952-4e8f-9ffc-ffdb9c2a858a}; !- Outlet Branch Name 2
+  {60013f61-3e23-43c3-9bc5-57c59fd0a633}, !- Inlet Branch Name
+  {f409090c-166a-4b80-b292-88e1ad3d1ced}, !- Outlet Branch Name 1
+  {2a4eb042-a3cc-4145-930e-869a24aeaaf0}; !- Outlet Branch Name 2
 
 OS:Connection,
-  {762dc58b-fcbc-41bd-a301-4a234d7a6ca3}, !- Handle
-  {e8db06a6-828b-45bf-b612-bd09584d2458}, !- Name
-  {8600f06b-17bd-463e-88b0-66ba8254df67}, !- Source Object
+  {7388ac2a-5bb2-48d6-b700-4c93d2028667}, !- Handle
+  {7a870d2e-c8eb-4167-ad80-7bbb9c54fbb2}, !- Name
+  {05e3fe97-c77f-459e-b423-fe4d6e6f32f9}, !- Source Object
   14,                                     !- Outlet Port
-  {74e12b51-287f-4bfa-ad4a-707f37f693c4}, !- Target Object
+  {cca0701f-4c6d-4283-897c-f6471801da59}, !- Target Object
   2;                                      !- Inlet Port
 
 OS:Connection,
-  {67384c50-305d-4c65-8785-eef7a2031c5a}, !- Handle
-  {55f48406-c48e-4617-ba04-c08969e74893}, !- Name
-  {a34bc53e-8f1e-414a-8be1-b4ddcbb3dc43}, !- Source Object
+  {f409090c-166a-4b80-b292-88e1ad3d1ced}, !- Handle
+  {2fc6c664-a794-4167-8286-f5c1c65e2fdf}, !- Name
+  {ad4fdac2-f6f6-4c0f-9cce-508cd3f59788}, !- Source Object
   3,                                      !- Outlet Port
-  {7ff6d0a0-4f68-44c2-8d31-b9988b8f8eca}, !- Target Object
+  {0f510838-d4a9-4353-914a-c1d4d39dae7c}, !- Target Object
   2;                                      !- Inlet Port
 
 OS:Connection,
-  {fd251def-eaf7-4512-8527-9f4af5d96ecf}, !- Handle
-  {d562e64f-8436-4847-8c12-4c36fa76c470}, !- Name
-  {7ad6655a-06e1-44ae-a8e8-21bd2660563b}, !- Source Object
+  {2355e9df-962d-4a02-97d1-b9a24822840a}, !- Handle
+  {7b03a893-89f4-4045-9a68-c6e594da3f78}, !- Name
+  {9a59695e-84d2-4931-a5d9-f2a0c1220722}, !- Source Object
   3,                                      !- Outlet Port
-  {8600f06b-17bd-463e-88b0-66ba8254df67}, !- Target Object
+  {05e3fe97-c77f-459e-b423-fe4d6e6f32f9}, !- Target Object
   15;                                     !- Inlet Port
 
 OS:Node,
-  {e6a7c9a4-e058-4d87-a5e7-d6b26828c4bf}, !- Handle
+  {aff85039-2d2f-4ae6-8133-82eefcb26f66}, !- Handle
   Node 6,                                 !- Name
-  {feeca43f-3ac5-470d-914b-af71fb14d39f}, !- Inlet Port
-  {973c1df5-320b-4a43-91fd-adc6b8dcc7bc}; !- Outlet Port
+  {92f7578b-cc3d-4ddc-ab85-05a39cddc1b8}, !- Inlet Port
+  {b66c92e3-035f-42f7-bbb1-73648f3cc54c}; !- Outlet Port
 
 OS:Node,
-  {22fe13ff-7c28-422d-b96a-422c80d8762a}, !- Handle
+  {db434248-19bc-4f02-a704-69783b307dcf}, !- Handle
   Node 7,                                 !- Name
-  {28a11849-7316-47d3-8586-63a6ffe56559}, !- Inlet Port
-  {2ee4ae3c-2631-426f-baec-f543194e0ccf}; !- Outlet Port
+  {bac0d456-adc9-4f6e-85a5-c6aff02b917b}, !- Inlet Port
+  {e1a3a422-2dec-4f79-9e96-349f48d3b316}; !- Outlet Port
 
 OS:Node,
-  {aead45a6-3ac7-47b8-854f-cc4e77638b9c}, !- Handle
+  {f88f0663-036a-4557-a49e-0eebfe351cf6}, !- Handle
   Node 8,                                 !- Name
-  {4fb9f0db-b4a1-434b-a84e-cc6ca73ea4c7}, !- Inlet Port
-  {677640c6-3361-4de3-8ab6-767c5e44ca21}; !- Outlet Port
+  {1c33362f-3b15-4b6e-a7d3-700943bcde77}, !- Inlet Port
+  {1f9a3b50-84c7-4259-bd0c-9525bcc99c86}; !- Outlet Port
 
 OS:Connector:Mixer,
-  {d76558e8-494a-4f68-8f2f-59d7865444a1}, !- Handle
+  {7887e9d8-070e-4fa3-b425-0fa27c238523}, !- Handle
   Connector Mixer 2,                      !- Name
-  {3530994e-5f7e-472c-ad94-50551caef37f}, !- Outlet Branch Name
-  {fa35f463-2ab6-4359-93f6-dab8711656d0}, !- Inlet Branch Name 1
-  {bd2f1ded-ac6d-49e5-add8-5be7195a67f7}, !- Inlet Branch Name 2
-  {0997491d-5f30-4d64-9fd4-a4ae87bb50b7}; !- Inlet Branch Name 3
+  {af637581-276a-4a8f-ac49-a57e19dbaf8c}, !- Outlet Branch Name
+  {b7032117-4637-4853-947c-ae043654c5bc}, !- Inlet Branch Name 1
+  {2dded268-a388-4c00-ac81-ec95fa944904}, !- Inlet Branch Name 2
+  {feb71d5d-c0d6-489c-b81b-89317d5e0ad8}; !- Inlet Branch Name 3
 
 OS:Connector:Splitter,
-  {549c82fa-8551-4a0b-b7cb-638cc15c95c6}, !- Handle
+  {c2ce7971-20c8-4eef-960a-7f0ab545b276}, !- Handle
   Connector Splitter 2,                   !- Name
-  {458feb23-87ba-495c-9e94-b1695ecaa3ec}, !- Inlet Branch Name
-  {4fb9f0db-b4a1-434b-a84e-cc6ca73ea4c7}, !- Outlet Branch Name 1
-  {6945e827-b8d1-44a0-8819-ffe13bcdcf5f}, !- Outlet Branch Name 2
-  {15b2b19d-cb65-4ed3-8c61-ac487189b9cf}; !- Outlet Branch Name 3
+  {fe62d83a-c031-43ce-b7e5-64a7890c8282}, !- Inlet Branch Name
+  {1c33362f-3b15-4b6e-a7d3-700943bcde77}, !- Outlet Branch Name 1
+  {d9e3d4c7-812e-49af-9310-ac5cffdb67f1}, !- Outlet Branch Name 2
+  {a60238ac-9aeb-41a1-a4d6-c10efc91243c}; !- Outlet Branch Name 3
 
 OS:Connection,
-  {feeca43f-3ac5-470d-914b-af71fb14d39f}, !- Handle
-  {971efaec-e976-475b-bed3-c3776ef6593b}, !- Name
-  {8600f06b-17bd-463e-88b0-66ba8254df67}, !- Source Object
+  {92f7578b-cc3d-4ddc-ab85-05a39cddc1b8}, !- Handle
+  {d060c679-6eb0-48c8-8712-473b937a5ca5}, !- Name
+  {05e3fe97-c77f-459e-b423-fe4d6e6f32f9}, !- Source Object
   17,                                     !- Outlet Port
-  {e6a7c9a4-e058-4d87-a5e7-d6b26828c4bf}, !- Target Object
+  {aff85039-2d2f-4ae6-8133-82eefcb26f66}, !- Target Object
   2;                                      !- Inlet Port
 
 OS:Connection,
-  {4fb9f0db-b4a1-434b-a84e-cc6ca73ea4c7}, !- Handle
-  {aa0bd8fa-9166-4852-add3-79bc4e65a186}, !- Name
-  {549c82fa-8551-4a0b-b7cb-638cc15c95c6}, !- Source Object
+  {1c33362f-3b15-4b6e-a7d3-700943bcde77}, !- Handle
+  {d4944ec1-8098-4216-b351-8eb6b1d62880}, !- Name
+  {c2ce7971-20c8-4eef-960a-7f0ab545b276}, !- Source Object
   3,                                      !- Outlet Port
-  {aead45a6-3ac7-47b8-854f-cc4e77638b9c}, !- Target Object
+  {f88f0663-036a-4557-a49e-0eebfe351cf6}, !- Target Object
   2;                                      !- Inlet Port
 
 OS:Connection,
-  {2ee4ae3c-2631-426f-baec-f543194e0ccf}, !- Handle
-  {55b5e679-76cb-4807-b4e3-2710ccfc9711}, !- Name
-  {22fe13ff-7c28-422d-b96a-422c80d8762a}, !- Source Object
+  {e1a3a422-2dec-4f79-9e96-349f48d3b316}, !- Handle
+  {a3cbefea-29d5-48da-b8f3-91ce468d0bc7}, !- Name
+  {db434248-19bc-4f02-a704-69783b307dcf}, !- Source Object
   3,                                      !- Outlet Port
-  {8600f06b-17bd-463e-88b0-66ba8254df67}, !- Target Object
+  {05e3fe97-c77f-459e-b423-fe4d6e6f32f9}, !- Target Object
   18;                                     !- Inlet Port
 
 OS:Sizing:Plant,
-  {e9bdcb30-91be-4fd2-bc58-d2f7323a00f4}, !- Handle
-  {8600f06b-17bd-463e-88b0-66ba8254df67}, !- Plant or Condenser Loop Name
+  {7606d0d9-7835-46c4-9064-36b001743dd9}, !- Handle
+  {05e3fe97-c77f-459e-b423-fe4d6e6f32f9}, !- Plant or Condenser Loop Name
   Condenser,                              !- Loop Type
   29.4444444444444,                       !- Design Loop Exit Temperature {C}
   5.55555555555556,                       !- Loop Design Temperature Difference {deltaC}
@@ -1106,24 +1903,24 @@ OS:Sizing:Plant,
   None;                                   !- Coincident Sizing Factor Mode
 
 OS:AvailabilityManagerAssignmentList,
-  {a5487e34-4f02-4d20-8910-b66bc17b3489}, !- Handle
+  {34cdcbe5-47e6-4f34-a690-1d841d7937e8}, !- Handle
   Plant Loop 1 AvailabilityManagerAssignmentList; !- Name
 
 OS:SetpointManager:FollowGroundTemperature,
-  {63472b0e-157d-4d8d-ab46-4de2bc3d92aa}, !- Handle
+  {a78609b9-c465-4eb2-8bf7-cb983adbf938}, !- Handle
   res gshp vert bore condenser loop temp, !- Name
   Temperature,                            !- Control Variable
   0,                                      !- Offset Temperature Difference {deltaC}
   48.88889,                               !- Maximum Setpoint Temperature {C}
   1.66666666666667,                       !- Minimum Setpoint Temperature {C}
-  {7ad6655a-06e1-44ae-a8e8-21bd2660563b}, !- Setpoint Node or NodeList Name
+  {9a59695e-84d2-4931-a5d9-f2a0c1220722}, !- Setpoint Node or NodeList Name
   Site:GroundTemperature:Deep;            !- Reference Ground Temperature Object Type
 
 OS:Pump:VariableSpeed,
-  {5832655b-2fa9-4897-8ff6-7687c59d9450}, !- Handle
+  {9ed3a1f8-aa06-46cc-9282-3a6a675009bb}, !- Handle
   res gshp vert bore pump,                !- Name
-  {150a40fb-5528-4eeb-a533-75ceb65e1c70}, !- Inlet Node Name
-  {8506e71e-2431-4c72-bc9a-f8f90de3aef4}, !- Outlet Node Name
+  {e03803c9-913f-4774-a12c-cbe76c33e142}, !- Inlet Node Name
+  {9c506305-1080-4f17-9e6a-cd08a9ecda81}, !- Outlet Node Name
   ,                                       !- Rated Flow Rate {m3/s}
   149460,                                 !- Rated Pump Head {Pa}
   ,                                       !- Rated Power Consumption {W}
@@ -1153,270 +1950,270 @@ OS:Pump:VariableSpeed,
   General;                                !- End-Use Subcategory
 
 OS:Node,
-  {e3df613b-5b29-45db-b976-b9b4be99ee9e}, !- Handle
+  {c3a6e3ae-57b9-49d8-b1ec-4d57e44197a8}, !- Handle
   Node 9,                                 !- Name
-  {8506e71e-2431-4c72-bc9a-f8f90de3aef4}, !- Inlet Port
-  {fde4bd5f-143f-4994-a9cf-8182709d9968}; !- Outlet Port
+  {9c506305-1080-4f17-9e6a-cd08a9ecda81}, !- Inlet Port
+  {60013f61-3e23-43c3-9bc5-57c59fd0a633}; !- Outlet Port
 
 OS:Connection,
-  {150a40fb-5528-4eeb-a533-75ceb65e1c70}, !- Handle
-  {cbf05cfd-e2fe-482f-90fd-ff0313321512}, !- Name
-  {74e12b51-287f-4bfa-ad4a-707f37f693c4}, !- Source Object
+  {e03803c9-913f-4774-a12c-cbe76c33e142}, !- Handle
+  {dc44f314-4cc4-4f76-a612-0fd9804ad5e7}, !- Name
+  {cca0701f-4c6d-4283-897c-f6471801da59}, !- Source Object
   3,                                      !- Outlet Port
-  {5832655b-2fa9-4897-8ff6-7687c59d9450}, !- Target Object
+  {9ed3a1f8-aa06-46cc-9282-3a6a675009bb}, !- Target Object
   2;                                      !- Inlet Port
 
 OS:Connection,
-  {8506e71e-2431-4c72-bc9a-f8f90de3aef4}, !- Handle
-  {bcf1df71-6dcc-44d0-ab19-8acba204259d}, !- Name
-  {5832655b-2fa9-4897-8ff6-7687c59d9450}, !- Source Object
+  {9c506305-1080-4f17-9e6a-cd08a9ecda81}, !- Handle
+  {9d422dc2-6c61-49b3-a821-0d12bf4ef66e}, !- Name
+  {9ed3a1f8-aa06-46cc-9282-3a6a675009bb}, !- Source Object
   3,                                      !- Outlet Port
-  {e3df613b-5b29-45db-b976-b9b4be99ee9e}, !- Target Object
+  {c3a6e3ae-57b9-49d8-b1ec-4d57e44197a8}, !- Target Object
   2;                                      !- Inlet Port
 
 OS:Connection,
-  {fde4bd5f-143f-4994-a9cf-8182709d9968}, !- Handle
-  {5a2e4086-407e-4f8c-ab74-77850546f9df}, !- Name
-  {e3df613b-5b29-45db-b976-b9b4be99ee9e}, !- Source Object
+  {60013f61-3e23-43c3-9bc5-57c59fd0a633}, !- Handle
+  {7e54e75a-d93f-448e-a447-720858c5d6e5}, !- Name
+  {c3a6e3ae-57b9-49d8-b1ec-4d57e44197a8}, !- Source Object
   3,                                      !- Outlet Port
-  {a34bc53e-8f1e-414a-8be1-b4ddcbb3dc43}, !- Target Object
+  {ad4fdac2-f6f6-4c0f-9cce-508cd3f59788}, !- Target Object
   2;                                      !- Inlet Port
 
 OS:EnergyManagementSystem:Sensor,
-  {b59008e9-2ed2-4092-a27d-dbdeb76db6ac}, !- Handle
+  {6e30b5c0-6bac-4516-a560-cea4b93e47fc}, !- Handle
   res_gshp_vert_bore_pump_s,              !- Name
   res gshp vert bore pump,                !- Output Variable or Output Meter Index Key Name
   Pump Electric Energy;                   !- Output Variable or Output Meter Name
 
 OS:Node,
-  {d96d3d04-c944-499f-bd8c-3a27c16cf559}, !- Handle
+  {bc37ab89-e031-4b35-b632-caee80271f7c}, !- Handle
   Node 10,                                !- Name
-  {e25101d4-39be-45ea-95e0-df27d3fbfdb1}, !- Inlet Port
-  {12a1dfa5-5eb0-41ad-ae16-a6d2e34737e3}; !- Outlet Port
+  {5dcba9db-1643-4cda-b262-eb034960b59b}, !- Inlet Port
+  {f4c62d50-5410-42e9-a4fb-76c6d013780f}; !- Outlet Port
 
 OS:Connection,
-  {2faf0f52-0352-4b2c-b87e-4b2610e2ccbf}, !- Handle
-  {61bdd466-668e-41b1-816f-61d01458af05}, !- Name
-  {7ff6d0a0-4f68-44c2-8d31-b9988b8f8eca}, !- Source Object
+  {113e6ffc-0984-43e8-b760-b16c75806c8e}, !- Handle
+  {886d443d-1459-441d-9952-d8c8032da915}, !- Name
+  {0f510838-d4a9-4353-914a-c1d4d39dae7c}, !- Source Object
   3,                                      !- Outlet Port
-  {7881b14b-5944-4e5a-adb3-5ea34debfff5}, !- Target Object
+  {91618adf-ceda-4cff-b2a7-643af10940c6}, !- Target Object
   2;                                      !- Inlet Port
 
 OS:Connection,
-  {e25101d4-39be-45ea-95e0-df27d3fbfdb1}, !- Handle
-  {8faa3682-9bb6-4a1c-acac-e4fab4536e2f}, !- Name
-  {7881b14b-5944-4e5a-adb3-5ea34debfff5}, !- Source Object
+  {5dcba9db-1643-4cda-b262-eb034960b59b}, !- Handle
+  {1dba67a3-3f37-488e-aef6-74e725cdb575}, !- Name
+  {91618adf-ceda-4cff-b2a7-643af10940c6}, !- Source Object
   3,                                      !- Outlet Port
-  {d96d3d04-c944-499f-bd8c-3a27c16cf559}, !- Target Object
+  {bc37ab89-e031-4b35-b632-caee80271f7c}, !- Target Object
   2;                                      !- Inlet Port
 
 OS:Connection,
-  {12a1dfa5-5eb0-41ad-ae16-a6d2e34737e3}, !- Handle
-  {60789eba-8f5f-4c6a-b7ad-3aeafa08be24}, !- Name
-  {d96d3d04-c944-499f-bd8c-3a27c16cf559}, !- Source Object
+  {f4c62d50-5410-42e9-a4fb-76c6d013780f}, !- Handle
+  {09d70579-65cd-4d47-bde1-0822bf4cd6ac}, !- Name
+  {bc37ab89-e031-4b35-b632-caee80271f7c}, !- Source Object
   3,                                      !- Outlet Port
-  {d1cb7765-4c4d-4a72-8b43-6d53db51a2c1}, !- Target Object
+  {0306344f-165b-4d68-874e-3d9b6e7c0ed7}, !- Target Object
   3;                                      !- Inlet Port
 
 OS:Pipe:Adiabatic,
-  {d3a0bd0d-4d35-4bbc-973f-c54477e9dc86}, !- Handle
+  {b7a9d239-e925-4a6a-bab9-29fd7f35d443}, !- Handle
   Pipe Adiabatic 1,                       !- Name
-  {1f04e783-7d2a-40f0-ac2b-331a97a35d19}, !- Inlet Node Name
-  {584caa5e-a0b8-48aa-9150-fff9273d0586}; !- Outlet Node Name
+  {15e61a58-eb7e-4e56-819c-659898023af7}, !- Inlet Node Name
+  {38492210-ef5b-495a-bddc-470dd8c75f50}; !- Outlet Node Name
 
 OS:Node,
-  {9b14be3c-9b0c-45f5-a1ab-c6e1b447e445}, !- Handle
+  {67fb0bae-1420-47e3-8187-2c1c8b8268f1}, !- Handle
   Node 11,                                !- Name
-  {0226d444-4952-4e8f-9ffc-ffdb9c2a858a}, !- Inlet Port
-  {1f04e783-7d2a-40f0-ac2b-331a97a35d19}; !- Outlet Port
+  {2a4eb042-a3cc-4145-930e-869a24aeaaf0}, !- Inlet Port
+  {15e61a58-eb7e-4e56-819c-659898023af7}; !- Outlet Port
 
 OS:Connection,
-  {0226d444-4952-4e8f-9ffc-ffdb9c2a858a}, !- Handle
-  {9c2d79c3-3beb-48ba-b237-3fd8b20bb739}, !- Name
-  {a34bc53e-8f1e-414a-8be1-b4ddcbb3dc43}, !- Source Object
+  {2a4eb042-a3cc-4145-930e-869a24aeaaf0}, !- Handle
+  {ffe9531b-3ee1-4269-b870-64a93b064ec1}, !- Name
+  {ad4fdac2-f6f6-4c0f-9cce-508cd3f59788}, !- Source Object
   4,                                      !- Outlet Port
-  {9b14be3c-9b0c-45f5-a1ab-c6e1b447e445}, !- Target Object
+  {67fb0bae-1420-47e3-8187-2c1c8b8268f1}, !- Target Object
   2;                                      !- Inlet Port
 
 OS:Node,
-  {5ac48c99-7aee-452a-b43f-040de6a13e48}, !- Handle
+  {da03d000-df8d-4643-bbda-7206114c089c}, !- Handle
   Node 12,                                !- Name
-  {584caa5e-a0b8-48aa-9150-fff9273d0586}, !- Inlet Port
-  {507e9b4c-0961-4b65-bf5d-0b9bfbba4589}; !- Outlet Port
+  {38492210-ef5b-495a-bddc-470dd8c75f50}, !- Inlet Port
+  {e2ddfb12-a9bd-4c66-843d-e998112f022e}; !- Outlet Port
 
 OS:Connection,
-  {1f04e783-7d2a-40f0-ac2b-331a97a35d19}, !- Handle
-  {ef6de797-0887-438b-83e3-c1069d1712d8}, !- Name
-  {9b14be3c-9b0c-45f5-a1ab-c6e1b447e445}, !- Source Object
+  {15e61a58-eb7e-4e56-819c-659898023af7}, !- Handle
+  {c28c6830-abcd-4129-892f-556533ee36d6}, !- Name
+  {67fb0bae-1420-47e3-8187-2c1c8b8268f1}, !- Source Object
   3,                                      !- Outlet Port
-  {d3a0bd0d-4d35-4bbc-973f-c54477e9dc86}, !- Target Object
+  {b7a9d239-e925-4a6a-bab9-29fd7f35d443}, !- Target Object
   2;                                      !- Inlet Port
 
 OS:Connection,
-  {584caa5e-a0b8-48aa-9150-fff9273d0586}, !- Handle
-  {7476f83d-1c60-4331-b795-26d4c92191e3}, !- Name
-  {d3a0bd0d-4d35-4bbc-973f-c54477e9dc86}, !- Source Object
+  {38492210-ef5b-495a-bddc-470dd8c75f50}, !- Handle
+  {357f9e13-492c-4645-ade2-701907371265}, !- Name
+  {b7a9d239-e925-4a6a-bab9-29fd7f35d443}, !- Source Object
   3,                                      !- Outlet Port
-  {5ac48c99-7aee-452a-b43f-040de6a13e48}, !- Target Object
+  {da03d000-df8d-4643-bbda-7206114c089c}, !- Target Object
   2;                                      !- Inlet Port
 
 OS:Connection,
-  {507e9b4c-0961-4b65-bf5d-0b9bfbba4589}, !- Handle
-  {c3d2febc-d419-40e0-b141-d641dddea35f}, !- Name
-  {5ac48c99-7aee-452a-b43f-040de6a13e48}, !- Source Object
+  {e2ddfb12-a9bd-4c66-843d-e998112f022e}, !- Handle
+  {a5a8005e-8947-4a27-b2bc-3e9e4ce735a3}, !- Name
+  {da03d000-df8d-4643-bbda-7206114c089c}, !- Source Object
   3,                                      !- Outlet Port
-  {d1cb7765-4c4d-4a72-8b43-6d53db51a2c1}, !- Target Object
+  {0306344f-165b-4d68-874e-3d9b6e7c0ed7}, !- Target Object
   4;                                      !- Inlet Port
 
 OS:Pipe:Adiabatic,
-  {13eed56c-437d-4abe-ab6e-de7c7ee615fe}, !- Handle
+  {5f3a3a88-4a31-43c7-b378-f6e0075cfe14}, !- Handle
   Pipe Adiabatic 2,                       !- Name
-  {677640c6-3361-4de3-8ab6-767c5e44ca21}, !- Inlet Node Name
-  {c0ddc7f6-263c-4e5d-85b3-7241c9f0853c}; !- Outlet Node Name
+  {1f9a3b50-84c7-4259-bd0c-9525bcc99c86}, !- Inlet Node Name
+  {2f2dee9f-c580-48d0-9aa5-a0804ade6bf8}; !- Outlet Node Name
 
 OS:Node,
-  {e2b62a9e-ec88-4e3d-8435-fc8d63b85505}, !- Handle
+  {d7e798d1-5065-4336-af31-4e434b88317a}, !- Handle
   Node 13,                                !- Name
-  {c0ddc7f6-263c-4e5d-85b3-7241c9f0853c}, !- Inlet Port
-  {fa35f463-2ab6-4359-93f6-dab8711656d0}; !- Outlet Port
+  {2f2dee9f-c580-48d0-9aa5-a0804ade6bf8}, !- Inlet Port
+  {b7032117-4637-4853-947c-ae043654c5bc}; !- Outlet Port
 
 OS:Connection,
-  {677640c6-3361-4de3-8ab6-767c5e44ca21}, !- Handle
-  {dcb7aadf-b577-482e-b61a-cee290d69c84}, !- Name
-  {aead45a6-3ac7-47b8-854f-cc4e77638b9c}, !- Source Object
+  {1f9a3b50-84c7-4259-bd0c-9525bcc99c86}, !- Handle
+  {a1269371-ba87-4647-9a8c-c9a23e653c2e}, !- Name
+  {f88f0663-036a-4557-a49e-0eebfe351cf6}, !- Source Object
   3,                                      !- Outlet Port
-  {13eed56c-437d-4abe-ab6e-de7c7ee615fe}, !- Target Object
+  {5f3a3a88-4a31-43c7-b378-f6e0075cfe14}, !- Target Object
   2;                                      !- Inlet Port
 
 OS:Connection,
-  {c0ddc7f6-263c-4e5d-85b3-7241c9f0853c}, !- Handle
-  {8adac26c-6dae-420d-9bab-9ab0f4d92514}, !- Name
-  {13eed56c-437d-4abe-ab6e-de7c7ee615fe}, !- Source Object
+  {2f2dee9f-c580-48d0-9aa5-a0804ade6bf8}, !- Handle
+  {bc774cc3-b27c-46a2-a806-17ca0bf20d83}, !- Name
+  {5f3a3a88-4a31-43c7-b378-f6e0075cfe14}, !- Source Object
   3,                                      !- Outlet Port
-  {e2b62a9e-ec88-4e3d-8435-fc8d63b85505}, !- Target Object
+  {d7e798d1-5065-4336-af31-4e434b88317a}, !- Target Object
   2;                                      !- Inlet Port
 
 OS:Connection,
-  {fa35f463-2ab6-4359-93f6-dab8711656d0}, !- Handle
-  {63f5687e-9c03-413b-acd2-3d0067c836e7}, !- Name
-  {e2b62a9e-ec88-4e3d-8435-fc8d63b85505}, !- Source Object
+  {b7032117-4637-4853-947c-ae043654c5bc}, !- Handle
+  {3a5d7409-2bb2-48c9-92e8-63908ec0c9d2}, !- Name
+  {d7e798d1-5065-4336-af31-4e434b88317a}, !- Source Object
   3,                                      !- Outlet Port
-  {d76558e8-494a-4f68-8f2f-59d7865444a1}, !- Target Object
+  {7887e9d8-070e-4fa3-b425-0fa27c238523}, !- Target Object
   3;                                      !- Inlet Port
 
 OS:Pipe:Adiabatic,
-  {d893946b-f57f-43ec-b19f-da12339c704c}, !- Handle
+  {47122bab-784b-4eb3-821e-6d0445d4303f}, !- Handle
   Pipe Adiabatic 3,                       !- Name
-  {48b7a272-d29c-4342-9426-cebbe5534df8}, !- Inlet Node Name
-  {23ea48c5-9e71-40be-89bb-718810599090}; !- Outlet Node Name
+  {747947df-8186-4557-90f1-acdd28ae31ef}, !- Inlet Node Name
+  {a5990c7e-d33d-4877-a756-8ab0696a2fca}; !- Outlet Node Name
 
 OS:Node,
-  {9a4b646e-1e7e-4540-9137-0c5d7ce62a23}, !- Handle
+  {f0e7e6fd-006d-4947-a712-2a55b8d7fead}, !- Handle
   Node 14,                                !- Name
-  {c9e638ee-913b-482a-8589-a5daf9990c0f}, !- Inlet Port
-  {48b7a272-d29c-4342-9426-cebbe5534df8}; !- Outlet Port
+  {e645e983-e158-4305-89d7-63aaa713dc0f}, !- Inlet Port
+  {747947df-8186-4557-90f1-acdd28ae31ef}; !- Outlet Port
 
 OS:Connection,
-  {c9e638ee-913b-482a-8589-a5daf9990c0f}, !- Handle
-  {bffe32c4-e85e-41bb-b84c-4e8b4a01ad6b}, !- Name
-  {d1cb7765-4c4d-4a72-8b43-6d53db51a2c1}, !- Source Object
+  {e645e983-e158-4305-89d7-63aaa713dc0f}, !- Handle
+  {1066075a-e4b0-45a6-8529-735aaecea301}, !- Name
+  {0306344f-165b-4d68-874e-3d9b6e7c0ed7}, !- Source Object
   2,                                      !- Outlet Port
-  {9a4b646e-1e7e-4540-9137-0c5d7ce62a23}, !- Target Object
+  {f0e7e6fd-006d-4947-a712-2a55b8d7fead}, !- Target Object
   2;                                      !- Inlet Port
 
 OS:Connection,
-  {48b7a272-d29c-4342-9426-cebbe5534df8}, !- Handle
-  {c58df8b4-c3dc-49dc-8de8-3488441e38ae}, !- Name
-  {9a4b646e-1e7e-4540-9137-0c5d7ce62a23}, !- Source Object
+  {747947df-8186-4557-90f1-acdd28ae31ef}, !- Handle
+  {d25156b8-9c14-49f7-b769-254b10329f34}, !- Name
+  {f0e7e6fd-006d-4947-a712-2a55b8d7fead}, !- Source Object
   3,                                      !- Outlet Port
-  {d893946b-f57f-43ec-b19f-da12339c704c}, !- Target Object
+  {47122bab-784b-4eb3-821e-6d0445d4303f}, !- Target Object
   2;                                      !- Inlet Port
 
 OS:Connection,
-  {23ea48c5-9e71-40be-89bb-718810599090}, !- Handle
-  {aa77ebdc-64b1-439d-822c-a8bccbb31d2b}, !- Name
-  {d893946b-f57f-43ec-b19f-da12339c704c}, !- Source Object
+  {a5990c7e-d33d-4877-a756-8ab0696a2fca}, !- Handle
+  {528b82f9-8b28-4bf8-9fea-0b0f71248afd}, !- Name
+  {47122bab-784b-4eb3-821e-6d0445d4303f}, !- Source Object
   3,                                      !- Outlet Port
-  {7ad6655a-06e1-44ae-a8e8-21bd2660563b}, !- Target Object
+  {9a59695e-84d2-4931-a5d9-f2a0c1220722}, !- Target Object
   2;                                      !- Inlet Port
 
 OS:Pipe:Adiabatic,
-  {c4eb495c-524a-4db7-94cb-031c2c2398f0}, !- Handle
+  {542ea7db-e310-4b32-84a3-5e4fba245c3a}, !- Handle
   Pipe Adiabatic 4,                       !- Name
-  {973c1df5-320b-4a43-91fd-adc6b8dcc7bc}, !- Inlet Node Name
-  {a8cdbc47-1ea8-4090-a502-ec45532d8db0}; !- Outlet Node Name
+  {b66c92e3-035f-42f7-bbb1-73648f3cc54c}, !- Inlet Node Name
+  {3f8a5216-08b5-41c3-88cb-9a71bdc6cfe9}; !- Outlet Node Name
 
 OS:Node,
-  {8e879923-c824-423c-85b4-474831282478}, !- Handle
+  {b33af861-a099-4d11-90a8-9b36e947caee}, !- Handle
   Node 15,                                !- Name
-  {a8cdbc47-1ea8-4090-a502-ec45532d8db0}, !- Inlet Port
-  {458feb23-87ba-495c-9e94-b1695ecaa3ec}; !- Outlet Port
+  {3f8a5216-08b5-41c3-88cb-9a71bdc6cfe9}, !- Inlet Port
+  {fe62d83a-c031-43ce-b7e5-64a7890c8282}; !- Outlet Port
 
 OS:Connection,
-  {973c1df5-320b-4a43-91fd-adc6b8dcc7bc}, !- Handle
-  {ad173614-186a-4377-9939-75c89bdbf6b4}, !- Name
-  {e6a7c9a4-e058-4d87-a5e7-d6b26828c4bf}, !- Source Object
+  {b66c92e3-035f-42f7-bbb1-73648f3cc54c}, !- Handle
+  {8cd06536-a076-49ce-a863-14d2c327e7a0}, !- Name
+  {aff85039-2d2f-4ae6-8133-82eefcb26f66}, !- Source Object
   3,                                      !- Outlet Port
-  {c4eb495c-524a-4db7-94cb-031c2c2398f0}, !- Target Object
+  {542ea7db-e310-4b32-84a3-5e4fba245c3a}, !- Target Object
   2;                                      !- Inlet Port
 
 OS:Connection,
-  {a8cdbc47-1ea8-4090-a502-ec45532d8db0}, !- Handle
-  {f9e278e0-510d-48a0-b350-e4972346243b}, !- Name
-  {c4eb495c-524a-4db7-94cb-031c2c2398f0}, !- Source Object
+  {3f8a5216-08b5-41c3-88cb-9a71bdc6cfe9}, !- Handle
+  {7d4d575a-bc1d-4b0a-8463-13e45a908b1a}, !- Name
+  {542ea7db-e310-4b32-84a3-5e4fba245c3a}, !- Source Object
   3,                                      !- Outlet Port
-  {8e879923-c824-423c-85b4-474831282478}, !- Target Object
+  {b33af861-a099-4d11-90a8-9b36e947caee}, !- Target Object
   2;                                      !- Inlet Port
 
 OS:Connection,
-  {458feb23-87ba-495c-9e94-b1695ecaa3ec}, !- Handle
-  {49103b2f-6be9-42b3-b77a-9971c4543128}, !- Name
-  {8e879923-c824-423c-85b4-474831282478}, !- Source Object
+  {fe62d83a-c031-43ce-b7e5-64a7890c8282}, !- Handle
+  {8606c24c-86bb-4477-a011-404db7acea34}, !- Name
+  {b33af861-a099-4d11-90a8-9b36e947caee}, !- Source Object
   3,                                      !- Outlet Port
-  {549c82fa-8551-4a0b-b7cb-638cc15c95c6}, !- Target Object
+  {c2ce7971-20c8-4eef-960a-7f0ab545b276}, !- Target Object
   2;                                      !- Inlet Port
 
 OS:Pipe:Adiabatic,
-  {5537b897-aa33-4691-8e3f-db3c9c2e8846}, !- Handle
+  {ae587155-2941-4e3b-bf8f-b868110d99e0}, !- Handle
   Pipe Adiabatic 5,                       !- Name
-  {2c7d113c-ec4b-40af-a768-4c5ef7f2b755}, !- Inlet Node Name
-  {28a11849-7316-47d3-8586-63a6ffe56559}; !- Outlet Node Name
+  {b28bc508-c5de-4ecb-9eb9-f1ad236ac24d}, !- Inlet Node Name
+  {bac0d456-adc9-4f6e-85a5-c6aff02b917b}; !- Outlet Node Name
 
 OS:Node,
-  {1aee7f4c-23d5-487d-ac5e-d886a65c0af6}, !- Handle
+  {afee1437-8e86-4c1d-a61d-7d20ab71088e}, !- Handle
   Node 16,                                !- Name
-  {3530994e-5f7e-472c-ad94-50551caef37f}, !- Inlet Port
-  {2c7d113c-ec4b-40af-a768-4c5ef7f2b755}; !- Outlet Port
+  {af637581-276a-4a8f-ac49-a57e19dbaf8c}, !- Inlet Port
+  {b28bc508-c5de-4ecb-9eb9-f1ad236ac24d}; !- Outlet Port
 
 OS:Connection,
-  {3530994e-5f7e-472c-ad94-50551caef37f}, !- Handle
-  {56539ae3-c7a3-4723-b967-9da904c4c3bd}, !- Name
-  {d76558e8-494a-4f68-8f2f-59d7865444a1}, !- Source Object
+  {af637581-276a-4a8f-ac49-a57e19dbaf8c}, !- Handle
+  {4cc66cc4-595b-4dc6-8694-9679e832bb7d}, !- Name
+  {7887e9d8-070e-4fa3-b425-0fa27c238523}, !- Source Object
   2,                                      !- Outlet Port
-  {1aee7f4c-23d5-487d-ac5e-d886a65c0af6}, !- Target Object
+  {afee1437-8e86-4c1d-a61d-7d20ab71088e}, !- Target Object
   2;                                      !- Inlet Port
 
 OS:Connection,
-  {2c7d113c-ec4b-40af-a768-4c5ef7f2b755}, !- Handle
-  {cc2e1696-ed52-4989-8494-217e19b06f81}, !- Name
-  {1aee7f4c-23d5-487d-ac5e-d886a65c0af6}, !- Source Object
+  {b28bc508-c5de-4ecb-9eb9-f1ad236ac24d}, !- Handle
+  {e3735a05-d943-44ab-abcd-4d690e588d79}, !- Name
+  {afee1437-8e86-4c1d-a61d-7d20ab71088e}, !- Source Object
   3,                                      !- Outlet Port
-  {5537b897-aa33-4691-8e3f-db3c9c2e8846}, !- Target Object
+  {ae587155-2941-4e3b-bf8f-b868110d99e0}, !- Target Object
   2;                                      !- Inlet Port
 
 OS:Connection,
-  {28a11849-7316-47d3-8586-63a6ffe56559}, !- Handle
-  {6b5235b2-f6b9-4bbe-b9ab-0094ae8b0306}, !- Name
-  {5537b897-aa33-4691-8e3f-db3c9c2e8846}, !- Source Object
+  {bac0d456-adc9-4f6e-85a5-c6aff02b917b}, !- Handle
+  {d677eb68-1aad-486d-b478-2c5c94fe7543}, !- Name
+  {ae587155-2941-4e3b-bf8f-b868110d99e0}, !- Source Object
   3,                                      !- Outlet Port
-  {22fe13ff-7c28-422d-b96a-422c80d8762a}, !- Target Object
+  {db434248-19bc-4f02-a704-69783b307dcf}, !- Target Object
   2;                                      !- Inlet Port
 
 OS:Coil:Heating:WaterToAirHeatPump:EquationFit,
-  {569c2e02-72b0-4d73-9410-2b184a27e3ae}, !- Handle
+  {68951fcb-7485-4959-ac36-e7f53405e71c}, !- Handle
   res gshp vert bore heating coil,        !- Name
-  {b167d76c-9da9-4028-86ed-6d8d1722f94b}, !- Water Inlet Node Name
-  {f943103b-44dc-46d0-b4bd-630caa16214c}, !- Water Outlet Node Name
+  {acc59637-87aa-4f1f-a57e-aef406f666fa}, !- Water Inlet Node Name
+  {d7df99d7-c671-4124-a4bd-e50fe9e4d384}, !- Water Outlet Node Name
   ,                                       !- Air Inlet Node Name
   ,                                       !- Air Outlet Node Name
   ,                                       !- Rated Air Flow Rate {m3/s}
@@ -1435,63 +2232,63 @@ OS:Coil:Heating:WaterToAirHeatPump:EquationFit,
   0;                                      !- Heating Power Consumption Coefficient 5
 
 OS:EnergyManagementSystem:Sensor,
-  {8215bdfa-d811-4f43-b997-f1a43a2432ea}, !- Handle
+  {18f2d581-ed41-43a1-a11b-6f01ab5ecf27}, !- Handle
   res_gshp_vert_bore_heating_coil_s,      !- Name
   res gshp vert bore heating coil,        !- Output Variable or Output Meter Index Key Name
   Heating Coil Electric Energy;           !- Output Variable or Output Meter Name
 
 OS:Node,
-  {474839c4-2eb1-4fee-83e5-6e896345e191}, !- Handle
+  {f0253b78-1088-4ed5-864c-8aa88f08ad7e}, !- Handle
   Node 17,                                !- Name
-  {6945e827-b8d1-44a0-8819-ffe13bcdcf5f}, !- Inlet Port
-  {b167d76c-9da9-4028-86ed-6d8d1722f94b}; !- Outlet Port
+  {d9e3d4c7-812e-49af-9310-ac5cffdb67f1}, !- Inlet Port
+  {acc59637-87aa-4f1f-a57e-aef406f666fa}; !- Outlet Port
 
 OS:Connection,
-  {6945e827-b8d1-44a0-8819-ffe13bcdcf5f}, !- Handle
-  {efc48f43-2c5b-498c-a27d-002c1db20816}, !- Name
-  {549c82fa-8551-4a0b-b7cb-638cc15c95c6}, !- Source Object
+  {d9e3d4c7-812e-49af-9310-ac5cffdb67f1}, !- Handle
+  {461dcf41-fa1b-47e6-a43d-d607cab6e003}, !- Name
+  {c2ce7971-20c8-4eef-960a-7f0ab545b276}, !- Source Object
   4,                                      !- Outlet Port
-  {474839c4-2eb1-4fee-83e5-6e896345e191}, !- Target Object
+  {f0253b78-1088-4ed5-864c-8aa88f08ad7e}, !- Target Object
   2;                                      !- Inlet Port
 
 OS:Node,
-  {0861b71e-b1d0-4a5a-8f73-a564b64a816a}, !- Handle
+  {1dd810a0-166d-4da3-ad19-64976f291942}, !- Handle
   Node 18,                                !- Name
-  {f943103b-44dc-46d0-b4bd-630caa16214c}, !- Inlet Port
-  {bd2f1ded-ac6d-49e5-add8-5be7195a67f7}; !- Outlet Port
+  {d7df99d7-c671-4124-a4bd-e50fe9e4d384}, !- Inlet Port
+  {2dded268-a388-4c00-ac81-ec95fa944904}; !- Outlet Port
 
 OS:Connection,
-  {b167d76c-9da9-4028-86ed-6d8d1722f94b}, !- Handle
-  {e613baa8-4b59-466f-8dc4-fa8e092a0f93}, !- Name
-  {474839c4-2eb1-4fee-83e5-6e896345e191}, !- Source Object
+  {acc59637-87aa-4f1f-a57e-aef406f666fa}, !- Handle
+  {c1c18e08-9ed1-4a11-87d9-d826de341518}, !- Name
+  {f0253b78-1088-4ed5-864c-8aa88f08ad7e}, !- Source Object
   3,                                      !- Outlet Port
-  {569c2e02-72b0-4d73-9410-2b184a27e3ae}, !- Target Object
+  {68951fcb-7485-4959-ac36-e7f53405e71c}, !- Target Object
   2;                                      !- Inlet Port
 
 OS:Connection,
-  {f943103b-44dc-46d0-b4bd-630caa16214c}, !- Handle
-  {d20340fe-51cc-4dc4-98c1-f884dac8ad5c}, !- Name
-  {569c2e02-72b0-4d73-9410-2b184a27e3ae}, !- Source Object
+  {d7df99d7-c671-4124-a4bd-e50fe9e4d384}, !- Handle
+  {92cef819-2180-408a-aa45-b09ba99449e2}, !- Name
+  {68951fcb-7485-4959-ac36-e7f53405e71c}, !- Source Object
   3,                                      !- Outlet Port
-  {0861b71e-b1d0-4a5a-8f73-a564b64a816a}, !- Target Object
+  {1dd810a0-166d-4da3-ad19-64976f291942}, !- Target Object
   2;                                      !- Inlet Port
 
 OS:Connection,
-  {bd2f1ded-ac6d-49e5-add8-5be7195a67f7}, !- Handle
-  {23e68b6d-8c9e-4247-9dc8-3a0e4f076b9d}, !- Name
-  {0861b71e-b1d0-4a5a-8f73-a564b64a816a}, !- Source Object
+  {2dded268-a388-4c00-ac81-ec95fa944904}, !- Handle
+  {6f95f269-fa67-4983-853f-3d95eba5273e}, !- Name
+  {1dd810a0-166d-4da3-ad19-64976f291942}, !- Source Object
   3,                                      !- Outlet Port
-  {d76558e8-494a-4f68-8f2f-59d7865444a1}, !- Target Object
+  {7887e9d8-070e-4fa3-b425-0fa27c238523}, !- Target Object
   4;                                      !- Inlet Port
 
 OS:Schedule:Constant,
-  {9c3bcf3e-7ab6-48a1-a82b-5d8c7d0f7683}, !- Handle
+  {22b924cd-ad2b-477c-8b64-87364899d6e8}, !- Handle
   Always On Discrete,                     !- Name
-  {f1759e4f-118d-453d-ad67-a67b2a0cc649}, !- Schedule Type Limits Name
+  {e7e949ed-8d09-411d-81c8-103eea10d39c}, !- Schedule Type Limits Name
   1;                                      !- Value
 
 OS:ScheduleTypeLimits,
-  {f1759e4f-118d-453d-ad67-a67b2a0cc649}, !- Handle
+  {e7e949ed-8d09-411d-81c8-103eea10d39c}, !- Handle
   OnOff,                                  !- Name
   0,                                      !- Lower Limit Value
   1,                                      !- Upper Limit Value
@@ -1499,18 +2296,18 @@ OS:ScheduleTypeLimits,
   Availability;                           !- Unit Type
 
 OS:Coil:Heating:Electric,
-  {8711067f-6c42-47f0-9b96-a5371138fad9}, !- Handle
+  {cead6ed3-2997-4b52-a6f2-3e6cd5958230}, !- Handle
   res gshp vert bore supp heater,         !- Name
-  {9c3bcf3e-7ab6-48a1-a82b-5d8c7d0f7683}, !- Availability Schedule Name
+  {22b924cd-ad2b-477c-8b64-87364899d6e8}, !- Availability Schedule Name
   1,                                      !- Efficiency
   ,                                       !- Nominal Capacity {W}
   ,                                       !- Air Inlet Node Name
   ;                                       !- Air Outlet Node Name
 
 OS:Fan:OnOff,
-  {8efb8754-a7d4-4c87-8e73-45941d34aeb9}, !- Handle
+  {126c81cc-a8b2-4acf-b04a-555e79cc99f3}, !- Handle
   res gshp vert bore living zone htg supply fan, !- Name
-  {9c3bcf3e-7ab6-48a1-a82b-5d8c7d0f7683}, !- Availability Schedule Name
+  {22b924cd-ad2b-477c-8b64-87364899d6e8}, !- Availability Schedule Name
   0.75,                                   !- Fan Total Efficiency
   794.580001233493,                       !- Pressure Rise {Pa}
   autosize,                               !- Maximum Flow Rate {m3/s}
@@ -1518,12 +2315,12 @@ OS:Fan:OnOff,
   1,                                      !- Motor In Airstream Fraction
   ,                                       !- Air Inlet Node Name
   ,                                       !- Air Outlet Node Name
-  {e31d4c9c-dbff-46ee-a412-56dfdf251f54}, !- Fan Power Ratio Function of Speed Ratio Curve Name
-  {5881814a-e692-429d-ab33-1903d770638c}, !- Fan Efficiency Ratio Function of Speed Ratio Curve Name
+  {871515a7-6527-4b4d-8327-8b152daa21fd}, !- Fan Power Ratio Function of Speed Ratio Curve Name
+  {3218cb12-4021-473f-a835-45454a98766d}, !- Fan Efficiency Ratio Function of Speed Ratio Curve Name
   res gshp vert bore htg supply fan;      !- End-Use Subcategory
 
 OS:Curve:Exponent,
-  {e31d4c9c-dbff-46ee-a412-56dfdf251f54}, !- Handle
+  {871515a7-6527-4b4d-8327-8b152daa21fd}, !- Handle
   Fan On Off Power Curve,                 !- Name
   1,                                      !- Coefficient1 Constant
   0,                                      !- Coefficient2 Constant
@@ -1536,7 +2333,7 @@ OS:Curve:Exponent,
   ;                                       !- Output Unit Type
 
 OS:Curve:Cubic,
-  {5881814a-e692-429d-ab33-1903d770638c}, !- Handle
+  {3218cb12-4021-473f-a835-45454a98766d}, !- Handle
   Fan On Off Efficiency Curve,            !- Name
   1,                                      !- Coefficient1 Constant
   0,                                      !- Coefficient2 x
@@ -1546,24 +2343,24 @@ OS:Curve:Cubic,
   1;                                      !- Maximum Value of x
 
 OS:AirLoopHVAC:UnitarySystem,
-  {35a5a695-46fe-401d-95dc-3bcf31864c15}, !- Handle
+  {6838bd96-4c85-4ec6-8c14-fe6255701e3a}, !- Handle
   res gshp vert bore htg unitary system,  !- Name
   Load,                                   !- Control Type
-  {a3e95b7d-9abd-4556-81b8-213b5ad86536}, !- Controlling Zone or Thermostat Location
+  {4498c2a4-8c66-433f-994f-77330d734cd6}, !- Controlling Zone or Thermostat Location
   None,                                   !- Dehumidification Control Type
-  {9c3bcf3e-7ab6-48a1-a82b-5d8c7d0f7683}, !- Availability Schedule Name
-  {6d886a5f-2e75-404c-83c2-e0a99c612ce6}, !- Air Inlet Node Name
-  {4a5b900b-1b0b-4723-ad38-bdc5647424c9}, !- Air Outlet Node Name
-  {8efb8754-a7d4-4c87-8e73-45941d34aeb9}, !- Supply Fan Name
+  {22b924cd-ad2b-477c-8b64-87364899d6e8}, !- Availability Schedule Name
+  {2789434e-dcce-40c2-8684-19d994463bd0}, !- Air Inlet Node Name
+  {322388d4-e89f-4792-9b54-34eb4db9543d}, !- Air Outlet Node Name
+  {126c81cc-a8b2-4acf-b04a-555e79cc99f3}, !- Supply Fan Name
   BlowThrough,                            !- Fan Placement
-  {54890eed-19d4-45df-aecb-8766d4fceb14}, !- Supply Air Fan Operating Mode Schedule Name
-  {569c2e02-72b0-4d73-9410-2b184a27e3ae}, !- Heating Coil Name
+  {7c1b3231-e94e-4f0e-b897-a410146f19b8}, !- Supply Air Fan Operating Mode Schedule Name
+  {68951fcb-7485-4959-ac36-e7f53405e71c}, !- Heating Coil Name
   1,                                      !- DX Heating Coil Sizing Ratio
   ,                                       !- Cooling Coil Name
   No,                                     !- Use DOAS DX Cooling Coil
   2,                                      !- DOAS DX Cooling Coil Leaving Minimum Air Temperature {C}
   SensibleOnlyLoadControl,                !- Latent Load Control
-  {8711067f-6c42-47f0-9b96-a5371138fad9}, !- Supplemental Heating Coil Name
+  {cead6ed3-2997-4b52-a6f2-3e6cd5958230}, !- Supplemental Heating Coil Name
   ,                                       !- Supply Air Flow Rate Method During Cooling Operation
   autosize,                               !- Supply Air Flow Rate During Cooling Operation {m3/s}
   ,                                       !- Supply Air Flow Rate Per Floor Area During Cooling Operation {m3/s-m2}
@@ -1592,13 +2389,13 @@ OS:AirLoopHVAC:UnitarySystem,
   0;                                      !- Ancilliary Off-Cycle Electric Power {W}
 
 OS:Schedule:Constant,
-  {54890eed-19d4-45df-aecb-8766d4fceb14}, !- Handle
+  {7c1b3231-e94e-4f0e-b897-a410146f19b8}, !- Handle
   Always Off Discrete,                    !- Name
-  {2b7bb7de-a6d1-46c2-826e-2387dcd6da59}, !- Schedule Type Limits Name
+  {8e73fd96-982a-4c4a-b292-876468d439b0}, !- Schedule Type Limits Name
   0;                                      !- Value
 
 OS:ScheduleTypeLimits,
-  {2b7bb7de-a6d1-46c2-826e-2387dcd6da59}, !- Handle
+  {8e73fd96-982a-4c4a-b292-876468d439b0}, !- Handle
   OnOff 1,                                !- Name
   0,                                      !- Lower Limit Value
   1,                                      !- Upper Limit Value
@@ -1606,119 +2403,119 @@ OS:ScheduleTypeLimits,
   Availability;                           !- Unit Type
 
 OS:AirLoopHVAC,
-  {92307b07-1e57-4be5-9ac2-8066b53c8ca0}, !- Handle
+  {c4352c75-a8dc-4d62-aa5d-bd1a2ac597a1}, !- Handle
   res gshp vert bore central htg air system, !- Name
   ,                                       !- Controller List Name
-  {9c3bcf3e-7ab6-48a1-a82b-5d8c7d0f7683}, !- Availability Schedule
-  {8df2ed36-5944-411e-948c-2f4af8a24aea}, !- Availability Manager List Name
+  {22b924cd-ad2b-477c-8b64-87364899d6e8}, !- Availability Schedule
+  {5fcd16d1-be46-4212-a7ad-db23d185bbcc}, !- Availability Manager List Name
   AutoSize,                               !- Design Supply Air Flow Rate {m3/s}
   ,                                       !- Branch List Name
   ,                                       !- Connector List Name
-  {52087fc9-062d-4cef-aaea-0d82c83d652a}, !- Supply Side Inlet Node Name
-  {45762960-4141-415c-8a01-f66d65dbc9bd}, !- Demand Side Outlet Node Name
-  {8b252b47-5035-42d1-b01b-e36281e1dd2c}, !- Demand Side Inlet Node A
-  {e5beb01a-bce0-4674-b10c-6607b738b5c7}, !- Supply Side Outlet Node A
+  {74b96aef-b57f-4301-adc3-a547f9b09a8f}, !- Supply Side Inlet Node Name
+  {ccb9654c-db01-428b-a9de-73c4d75341ea}, !- Demand Side Outlet Node Name
+  {d1cc651f-2230-49c8-9966-95ffc0419fbd}, !- Demand Side Inlet Node A
+  {c9a7bebe-6e09-42a3-a24e-dee405c4c425}, !- Supply Side Outlet Node A
   ,                                       !- Demand Side Inlet Node B
   ,                                       !- Supply Side Outlet Node B
   ,                                       !- Return Air Bypass Flow Temperature Setpoint Schedule Name
-  {c02714c0-33ca-4666-8c73-eaf24ec602a7}, !- Demand Mixer Name
-  {bcc691c4-2b99-400a-9b5f-c20e0b537af8}, !- Demand Splitter A Name
+  {6d34428a-e8ed-4b49-81a8-3a5937f005ed}, !- Demand Mixer Name
+  {35288c23-0360-4001-8561-8ce39aacd77f}, !- Demand Splitter A Name
   ,                                       !- Demand Splitter B Name
   ;                                       !- Supply Splitter Name
 
 OS:Node,
-  {f210556b-7e6e-4b06-abb8-c2948ba05536}, !- Handle
+  {1fc63409-6c52-4b04-87c7-f0a4fb9acfe1}, !- Handle
   Node 19,                                !- Name
-  {52087fc9-062d-4cef-aaea-0d82c83d652a}, !- Inlet Port
-  {6d886a5f-2e75-404c-83c2-e0a99c612ce6}; !- Outlet Port
+  {74b96aef-b57f-4301-adc3-a547f9b09a8f}, !- Inlet Port
+  {2789434e-dcce-40c2-8684-19d994463bd0}; !- Outlet Port
 
 OS:Node,
-  {1d8bac1e-c3b8-40d2-b4d0-f4d22338c065}, !- Handle
+  {7461d9e8-26e1-4bb3-8d90-8649ea5663dc}, !- Handle
   Node 20,                                !- Name
-  {4a5b900b-1b0b-4723-ad38-bdc5647424c9}, !- Inlet Port
-  {e5beb01a-bce0-4674-b10c-6607b738b5c7}; !- Outlet Port
+  {322388d4-e89f-4792-9b54-34eb4db9543d}, !- Inlet Port
+  {c9a7bebe-6e09-42a3-a24e-dee405c4c425}; !- Outlet Port
 
 OS:Connection,
-  {52087fc9-062d-4cef-aaea-0d82c83d652a}, !- Handle
-  {77e6da55-d08c-4055-97d3-a7a6164fc2e0}, !- Name
-  {92307b07-1e57-4be5-9ac2-8066b53c8ca0}, !- Source Object
+  {74b96aef-b57f-4301-adc3-a547f9b09a8f}, !- Handle
+  {73be37eb-930c-46ac-be7e-c942dc863861}, !- Name
+  {c4352c75-a8dc-4d62-aa5d-bd1a2ac597a1}, !- Source Object
   8,                                      !- Outlet Port
-  {f210556b-7e6e-4b06-abb8-c2948ba05536}, !- Target Object
+  {1fc63409-6c52-4b04-87c7-f0a4fb9acfe1}, !- Target Object
   2;                                      !- Inlet Port
 
 OS:Connection,
-  {e5beb01a-bce0-4674-b10c-6607b738b5c7}, !- Handle
-  {d0d44339-43d1-4134-b24e-ab288e7c0140}, !- Name
-  {1d8bac1e-c3b8-40d2-b4d0-f4d22338c065}, !- Source Object
+  {c9a7bebe-6e09-42a3-a24e-dee405c4c425}, !- Handle
+  {9e1e5a79-6ab6-4ec9-b59f-bbb7f71feecf}, !- Name
+  {7461d9e8-26e1-4bb3-8d90-8649ea5663dc}, !- Source Object
   3,                                      !- Outlet Port
-  {92307b07-1e57-4be5-9ac2-8066b53c8ca0}, !- Target Object
+  {c4352c75-a8dc-4d62-aa5d-bd1a2ac597a1}, !- Target Object
   11;                                     !- Inlet Port
 
 OS:Node,
-  {f5a530e7-78be-47b5-a3e0-18999eec2bdc}, !- Handle
+  {4fa27396-8e64-498f-9f8f-ddde740a00da}, !- Handle
   Node 21,                                !- Name
-  {8b252b47-5035-42d1-b01b-e36281e1dd2c}, !- Inlet Port
-  {377dc82a-9c67-447f-a099-8003a7493f4a}; !- Outlet Port
+  {d1cc651f-2230-49c8-9966-95ffc0419fbd}, !- Inlet Port
+  {14a8edb7-68ea-4894-8a4a-70d07713f9af}; !- Outlet Port
 
 OS:Node,
-  {cbb8489e-83c8-495d-af23-2bde6aaf6900}, !- Handle
+  {b4c4ea20-3e61-43b9-9e5e-c53c6888c5d4}, !- Handle
   Node 22,                                !- Name
-  {dd8cb2d5-14be-41a1-bda2-b54e09e4dd50}, !- Inlet Port
-  {45762960-4141-415c-8a01-f66d65dbc9bd}; !- Outlet Port
+  {bfc66d94-46e8-46e0-b428-f84d8fd6ca2b}, !- Inlet Port
+  {ccb9654c-db01-428b-a9de-73c4d75341ea}; !- Outlet Port
 
 OS:Node,
-  {b64bf09e-ac28-4198-ad99-b7a18db20f71}, !- Handle
+  {6fa68f65-7b85-4f48-8a38-d9d636c0e28c}, !- Handle
   Node 23,                                !- Name
-  {e894415d-fe78-47b2-ad64-40bf57660d8e}, !- Inlet Port
-  {02ca99f7-7f18-4a25-949f-dbc2f3f338da}; !- Outlet Port
+  {613332ca-9791-41e6-a1b6-3443c8e32e52}, !- Inlet Port
+  {e37fcfe1-70ef-450f-9e71-e80741050bff}; !- Outlet Port
 
 OS:Connection,
-  {8b252b47-5035-42d1-b01b-e36281e1dd2c}, !- Handle
-  {edd92355-2e3d-4705-a5d1-91a1ae52644b}, !- Name
-  {92307b07-1e57-4be5-9ac2-8066b53c8ca0}, !- Source Object
+  {d1cc651f-2230-49c8-9966-95ffc0419fbd}, !- Handle
+  {90cfe920-b8fe-4761-b4b0-483b6c23dc2c}, !- Name
+  {c4352c75-a8dc-4d62-aa5d-bd1a2ac597a1}, !- Source Object
   10,                                     !- Outlet Port
-  {f5a530e7-78be-47b5-a3e0-18999eec2bdc}, !- Target Object
+  {4fa27396-8e64-498f-9f8f-ddde740a00da}, !- Target Object
   2;                                      !- Inlet Port
 
 OS:Connection,
-  {45762960-4141-415c-8a01-f66d65dbc9bd}, !- Handle
-  {1e694930-6253-4127-8ba7-dbc885c29582}, !- Name
-  {cbb8489e-83c8-495d-af23-2bde6aaf6900}, !- Source Object
+  {ccb9654c-db01-428b-a9de-73c4d75341ea}, !- Handle
+  {d65af621-975b-4fbc-866c-e78be08e9007}, !- Name
+  {b4c4ea20-3e61-43b9-9e5e-c53c6888c5d4}, !- Source Object
   3,                                      !- Outlet Port
-  {92307b07-1e57-4be5-9ac2-8066b53c8ca0}, !- Target Object
+  {c4352c75-a8dc-4d62-aa5d-bd1a2ac597a1}, !- Target Object
   9;                                      !- Inlet Port
 
 OS:AirLoopHVAC:ZoneSplitter,
-  {bcc691c4-2b99-400a-9b5f-c20e0b537af8}, !- Handle
+  {35288c23-0360-4001-8561-8ce39aacd77f}, !- Handle
   res gshp vert bore htg zone splitter,   !- Name
-  {377dc82a-9c67-447f-a099-8003a7493f4a}, !- Inlet Node Name
-  {d84a84d7-2053-4e45-8569-353d518215d9}; !- Outlet Node Name 1
+  {14a8edb7-68ea-4894-8a4a-70d07713f9af}, !- Inlet Node Name
+  {81c6e0da-8aea-4c07-9e14-967ac7de5933}; !- Outlet Node Name 1
 
 OS:AirLoopHVAC:ZoneMixer,
-  {c02714c0-33ca-4666-8c73-eaf24ec602a7}, !- Handle
+  {6d34428a-e8ed-4b49-81a8-3a5937f005ed}, !- Handle
   res gshp vert bore htg zone mixer,      !- Name
-  {dd8cb2d5-14be-41a1-bda2-b54e09e4dd50}, !- Outlet Node Name
-  {394a592f-f125-4339-8a89-be6dc6818b46}; !- Inlet Node Name 1
+  {bfc66d94-46e8-46e0-b428-f84d8fd6ca2b}, !- Outlet Node Name
+  {1980e6ed-1079-4479-816c-69444c6476c3}; !- Inlet Node Name 1
 
 OS:Connection,
-  {377dc82a-9c67-447f-a099-8003a7493f4a}, !- Handle
-  {aa4c78c9-69d8-4420-9064-bb462fbe9846}, !- Name
-  {f5a530e7-78be-47b5-a3e0-18999eec2bdc}, !- Source Object
+  {14a8edb7-68ea-4894-8a4a-70d07713f9af}, !- Handle
+  {e6dee274-dcc7-4792-9088-152261dd310a}, !- Name
+  {4fa27396-8e64-498f-9f8f-ddde740a00da}, !- Source Object
   3,                                      !- Outlet Port
-  {bcc691c4-2b99-400a-9b5f-c20e0b537af8}, !- Target Object
+  {35288c23-0360-4001-8561-8ce39aacd77f}, !- Target Object
   2;                                      !- Inlet Port
 
 OS:Connection,
-  {dd8cb2d5-14be-41a1-bda2-b54e09e4dd50}, !- Handle
-  {2b80c27b-e690-4139-a1c4-f82dcdca0421}, !- Name
-  {c02714c0-33ca-4666-8c73-eaf24ec602a7}, !- Source Object
+  {bfc66d94-46e8-46e0-b428-f84d8fd6ca2b}, !- Handle
+  {4810cec6-c393-4c03-b903-723524479913}, !- Name
+  {6d34428a-e8ed-4b49-81a8-3a5937f005ed}, !- Source Object
   2,                                      !- Outlet Port
-  {cbb8489e-83c8-495d-af23-2bde6aaf6900}, !- Target Object
+  {b4c4ea20-3e61-43b9-9e5e-c53c6888c5d4}, !- Target Object
   2;                                      !- Inlet Port
 
 OS:Sizing:System,
-  {3d1442ae-3568-45b0-9df0-4f1c7aebc731}, !- Handle
-  {92307b07-1e57-4be5-9ac2-8066b53c8ca0}, !- AirLoop Name
+  {124e2a23-ed40-47f3-b822-e8c6da71a580}, !- Handle
+  {c4352c75-a8dc-4d62-aa5d-bd1a2ac597a1}, !- AirLoop Name
   Sensible,                               !- Type of Load to Size On
   Autosize,                               !- Design Outdoor Air Flow Rate {m3/s}
   0.3,                                    !- Central Heating Maximum System Air Flow Ratio
@@ -1757,98 +2554,98 @@ OS:Sizing:System,
   OnOff;                                  !- Central Cooling Capacity Control Method
 
 OS:AvailabilityManagerAssignmentList,
-  {8df2ed36-5944-411e-948c-2f4af8a24aea}, !- Handle
+  {5fcd16d1-be46-4212-a7ad-db23d185bbcc}, !- Handle
   Air Loop HVAC 1 AvailabilityManagerAssignmentList; !- Name
 
 OS:Connection,
-  {6d886a5f-2e75-404c-83c2-e0a99c612ce6}, !- Handle
-  {a967b7bf-65e4-43b2-948c-4a54fbb62be8}, !- Name
-  {f210556b-7e6e-4b06-abb8-c2948ba05536}, !- Source Object
+  {2789434e-dcce-40c2-8684-19d994463bd0}, !- Handle
+  {e1ab6d97-15d5-41ea-87ec-95c46246e734}, !- Name
+  {1fc63409-6c52-4b04-87c7-f0a4fb9acfe1}, !- Source Object
   3,                                      !- Outlet Port
-  {35a5a695-46fe-401d-95dc-3bcf31864c15}, !- Target Object
+  {6838bd96-4c85-4ec6-8c14-fe6255701e3a}, !- Target Object
   6;                                      !- Inlet Port
 
 OS:Connection,
-  {4a5b900b-1b0b-4723-ad38-bdc5647424c9}, !- Handle
-  {52de0283-95e7-4a90-8b68-0467de77b14b}, !- Name
-  {35a5a695-46fe-401d-95dc-3bcf31864c15}, !- Source Object
+  {322388d4-e89f-4792-9b54-34eb4db9543d}, !- Handle
+  {ca0526a0-54b6-45df-9424-e07d6e2d3aca}, !- Name
+  {6838bd96-4c85-4ec6-8c14-fe6255701e3a}, !- Source Object
   7,                                      !- Outlet Port
-  {1d8bac1e-c3b8-40d2-b4d0-f4d22338c065}, !- Target Object
+  {7461d9e8-26e1-4bb3-8d90-8649ea5663dc}, !- Target Object
   2;                                      !- Inlet Port
 
 OS:AirTerminal:SingleDuct:ConstantVolume:NoReheat,
-  {3bcbe149-2135-4753-828c-5bf8b20619ca}, !- Handle
+  {d2cdfe38-1cb1-4535-bf38-8d5b00af19e9}, !- Handle
   res gshp vert bore living zone htg direct air, !- Name
-  {9c3bcf3e-7ab6-48a1-a82b-5d8c7d0f7683}, !- Availability Schedule Name
-  {e8428e62-95db-4d1e-a362-4ed4d0a0f5dd}, !- Air Inlet Node Name
-  {e894415d-fe78-47b2-ad64-40bf57660d8e}, !- Air Outlet Node Name
+  {22b924cd-ad2b-477c-8b64-87364899d6e8}, !- Availability Schedule Name
+  {702e7e93-75c4-4253-8e5d-59e615bd5ebd}, !- Air Inlet Node Name
+  {613332ca-9791-41e6-a1b6-3443c8e32e52}, !- Air Outlet Node Name
   AutoSize;                               !- Maximum Air Flow Rate {m3/s}
 
 OS:Node,
-  {f33005cf-5abe-407d-914f-6cb6910a052e}, !- Handle
+  {88582d04-9b91-44db-bb62-fc16b5320bf2}, !- Handle
   Node 24,                                !- Name
-  {98f62c9d-2af1-4181-a427-afde4478b95c}, !- Inlet Port
-  {394a592f-f125-4339-8a89-be6dc6818b46}; !- Outlet Port
+  {056fcfa0-1ca3-4a13-8b62-c6551e77b753}, !- Inlet Port
+  {1980e6ed-1079-4479-816c-69444c6476c3}; !- Outlet Port
 
 OS:Connection,
-  {02ca99f7-7f18-4a25-949f-dbc2f3f338da}, !- Handle
-  {76f788fc-ba5a-49e6-97dd-5fb1731973d2}, !- Name
-  {b64bf09e-ac28-4198-ad99-b7a18db20f71}, !- Source Object
+  {e37fcfe1-70ef-450f-9e71-e80741050bff}, !- Handle
+  {2fb8b9be-97ef-4e3c-9ffe-c4d2eb1324c3}, !- Name
+  {6fa68f65-7b85-4f48-8a38-d9d636c0e28c}, !- Source Object
   3,                                      !- Outlet Port
-  {59b50c45-c6f4-4ced-87a6-6cc8b9f52519}, !- Target Object
+  {98b755ec-5a0c-4bc5-90d9-4ff8a4839492}, !- Target Object
   3;                                      !- Inlet Port
 
 OS:Connection,
-  {98f62c9d-2af1-4181-a427-afde4478b95c}, !- Handle
-  {86d6a289-e2c6-415b-97ea-d312acbfa135}, !- Name
-  {e33d1dc7-1bba-46ff-aad7-8fa3045ad9ce}, !- Source Object
+  {056fcfa0-1ca3-4a13-8b62-c6551e77b753}, !- Handle
+  {6c717a84-8c9b-4605-b212-013f2ae11b0f}, !- Name
+  {e40176db-446a-46ab-aebc-4f5efce599b5}, !- Source Object
   3,                                      !- Outlet Port
-  {f33005cf-5abe-407d-914f-6cb6910a052e}, !- Target Object
+  {88582d04-9b91-44db-bb62-fc16b5320bf2}, !- Target Object
   2;                                      !- Inlet Port
 
 OS:Connection,
-  {394a592f-f125-4339-8a89-be6dc6818b46}, !- Handle
-  {b072bf29-a953-4244-9021-09cec8df8535}, !- Name
-  {f33005cf-5abe-407d-914f-6cb6910a052e}, !- Source Object
+  {1980e6ed-1079-4479-816c-69444c6476c3}, !- Handle
+  {09907249-dfbb-44c4-badd-d18e9f2f33f4}, !- Name
+  {88582d04-9b91-44db-bb62-fc16b5320bf2}, !- Source Object
   3,                                      !- Outlet Port
-  {c02714c0-33ca-4666-8c73-eaf24ec602a7}, !- Target Object
+  {6d34428a-e8ed-4b49-81a8-3a5937f005ed}, !- Target Object
   3;                                      !- Inlet Port
 
 OS:Node,
-  {356d125b-fab2-4609-a296-7bf867357676}, !- Handle
+  {6d1ecd31-2833-418a-9b50-5c8bd53ae3c7}, !- Handle
   Node 25,                                !- Name
-  {d84a84d7-2053-4e45-8569-353d518215d9}, !- Inlet Port
-  {e8428e62-95db-4d1e-a362-4ed4d0a0f5dd}; !- Outlet Port
+  {81c6e0da-8aea-4c07-9e14-967ac7de5933}, !- Inlet Port
+  {702e7e93-75c4-4253-8e5d-59e615bd5ebd}; !- Outlet Port
 
 OS:Connection,
-  {d84a84d7-2053-4e45-8569-353d518215d9}, !- Handle
-  {07c94e6f-4718-4654-bf23-f9b032f2f349}, !- Name
-  {bcc691c4-2b99-400a-9b5f-c20e0b537af8}, !- Source Object
+  {81c6e0da-8aea-4c07-9e14-967ac7de5933}, !- Handle
+  {9521996b-64d4-44b9-82a1-31a1249cb9ef}, !- Name
+  {35288c23-0360-4001-8561-8ce39aacd77f}, !- Source Object
   3,                                      !- Outlet Port
-  {356d125b-fab2-4609-a296-7bf867357676}, !- Target Object
+  {6d1ecd31-2833-418a-9b50-5c8bd53ae3c7}, !- Target Object
   2;                                      !- Inlet Port
 
 OS:Connection,
-  {e8428e62-95db-4d1e-a362-4ed4d0a0f5dd}, !- Handle
-  {afacf474-ef4b-42dc-b554-6e0e83330cac}, !- Name
-  {356d125b-fab2-4609-a296-7bf867357676}, !- Source Object
+  {702e7e93-75c4-4253-8e5d-59e615bd5ebd}, !- Handle
+  {545207fb-9b53-4759-b731-b53f22cc83cd}, !- Name
+  {6d1ecd31-2833-418a-9b50-5c8bd53ae3c7}, !- Source Object
   3,                                      !- Outlet Port
-  {3bcbe149-2135-4753-828c-5bf8b20619ca}, !- Target Object
+  {d2cdfe38-1cb1-4535-bf38-8d5b00af19e9}, !- Target Object
   3;                                      !- Inlet Port
 
 OS:Connection,
-  {e894415d-fe78-47b2-ad64-40bf57660d8e}, !- Handle
-  {ac1be937-0099-4a37-9e53-5485bc2c4064}, !- Name
-  {3bcbe149-2135-4753-828c-5bf8b20619ca}, !- Source Object
+  {613332ca-9791-41e6-a1b6-3443c8e32e52}, !- Handle
+  {d2348339-c7ec-4a6d-8d83-7bde9ba53e80}, !- Name
+  {d2cdfe38-1cb1-4535-bf38-8d5b00af19e9}, !- Source Object
   4,                                      !- Outlet Port
-  {b64bf09e-ac28-4198-ad99-b7a18db20f71}, !- Target Object
+  {6fa68f65-7b85-4f48-8a38-d9d636c0e28c}, !- Target Object
   2;                                      !- Inlet Port
 
 OS:Coil:Cooling:WaterToAirHeatPump:EquationFit,
-  {bc8266d2-76ed-4e43-8e73-69c932ed59a5}, !- Handle
+  {2a2e61cc-ca4d-46dc-9777-9352cc9888cd}, !- Handle
   res gshp vert bore cooling coil,        !- Name
-  {d6b3d604-02e2-45ae-827b-2ea174624e12}, !- Water Inlet Node Name
-  {99697b77-5caf-467b-b8e9-42453e50bb21}, !- Water Outlet Node Name
+  {e9d7ea61-3963-4e1d-b7fd-c2698f2aa3d4}, !- Water Inlet Node Name
+  {9214b3fa-397f-476c-b73e-374075cfd5f6}, !- Water Outlet Node Name
   ,                                       !- Air Inlet Node Name
   ,                                       !- Air Outlet Node Name
   ,                                       !- Rated Air Flow Rate {m3/s}
@@ -1876,59 +2673,59 @@ OS:Coil:Cooling:WaterToAirHeatPump:EquationFit,
   1.5;                                    !- Ratio of Initial Moisture Evaporation Rate and Steady State Latent Capacity {dimensionless}
 
 OS:EnergyManagementSystem:Sensor,
-  {c6d60a1c-3185-4723-92bf-6e5d2aa1925a}, !- Handle
+  {be6c6aed-81d4-4e29-bfd0-819667895a98}, !- Handle
   res_gshp_vert_bore_cooling_coil_s,      !- Name
   res gshp vert bore cooling coil,        !- Output Variable or Output Meter Index Key Name
   Cooling Coil Electric Energy;           !- Output Variable or Output Meter Name
 
 OS:Node,
-  {d1e32e61-4f25-4218-8c49-e2fe8d7e72d6}, !- Handle
+  {0aa7b1c8-07fe-406b-9e4f-ed25ae1c985d}, !- Handle
   Node 26,                                !- Name
-  {15b2b19d-cb65-4ed3-8c61-ac487189b9cf}, !- Inlet Port
-  {d6b3d604-02e2-45ae-827b-2ea174624e12}; !- Outlet Port
+  {a60238ac-9aeb-41a1-a4d6-c10efc91243c}, !- Inlet Port
+  {e9d7ea61-3963-4e1d-b7fd-c2698f2aa3d4}; !- Outlet Port
 
 OS:Connection,
-  {15b2b19d-cb65-4ed3-8c61-ac487189b9cf}, !- Handle
-  {dadff6ac-ac28-49c4-be79-5f42fcf9528e}, !- Name
-  {549c82fa-8551-4a0b-b7cb-638cc15c95c6}, !- Source Object
+  {a60238ac-9aeb-41a1-a4d6-c10efc91243c}, !- Handle
+  {0a4458c0-ba28-4733-87ba-796a63989c5a}, !- Name
+  {c2ce7971-20c8-4eef-960a-7f0ab545b276}, !- Source Object
   5,                                      !- Outlet Port
-  {d1e32e61-4f25-4218-8c49-e2fe8d7e72d6}, !- Target Object
+  {0aa7b1c8-07fe-406b-9e4f-ed25ae1c985d}, !- Target Object
   2;                                      !- Inlet Port
 
 OS:Node,
-  {fa8c6e0c-a97a-4ec2-8fdb-ae686f8ec989}, !- Handle
+  {d0b2a56e-d528-4ba8-80c5-5b511ab3d731}, !- Handle
   Node 27,                                !- Name
-  {99697b77-5caf-467b-b8e9-42453e50bb21}, !- Inlet Port
-  {0997491d-5f30-4d64-9fd4-a4ae87bb50b7}; !- Outlet Port
+  {9214b3fa-397f-476c-b73e-374075cfd5f6}, !- Inlet Port
+  {feb71d5d-c0d6-489c-b81b-89317d5e0ad8}; !- Outlet Port
 
 OS:Connection,
-  {d6b3d604-02e2-45ae-827b-2ea174624e12}, !- Handle
-  {d8def2ee-7132-442a-a84f-5bdf9cc3a69d}, !- Name
-  {d1e32e61-4f25-4218-8c49-e2fe8d7e72d6}, !- Source Object
+  {e9d7ea61-3963-4e1d-b7fd-c2698f2aa3d4}, !- Handle
+  {4216a1cd-3457-4496-92c1-67e822a50c30}, !- Name
+  {0aa7b1c8-07fe-406b-9e4f-ed25ae1c985d}, !- Source Object
   3,                                      !- Outlet Port
-  {bc8266d2-76ed-4e43-8e73-69c932ed59a5}, !- Target Object
+  {2a2e61cc-ca4d-46dc-9777-9352cc9888cd}, !- Target Object
   2;                                      !- Inlet Port
 
 OS:Connection,
-  {99697b77-5caf-467b-b8e9-42453e50bb21}, !- Handle
-  {afe3dbee-29dc-4f5b-adae-526476ddf54f}, !- Name
-  {bc8266d2-76ed-4e43-8e73-69c932ed59a5}, !- Source Object
+  {9214b3fa-397f-476c-b73e-374075cfd5f6}, !- Handle
+  {afdb235b-3516-4745-a2a9-db6e12749695}, !- Name
+  {2a2e61cc-ca4d-46dc-9777-9352cc9888cd}, !- Source Object
   3,                                      !- Outlet Port
-  {fa8c6e0c-a97a-4ec2-8fdb-ae686f8ec989}, !- Target Object
+  {d0b2a56e-d528-4ba8-80c5-5b511ab3d731}, !- Target Object
   2;                                      !- Inlet Port
 
 OS:Connection,
-  {0997491d-5f30-4d64-9fd4-a4ae87bb50b7}, !- Handle
-  {5e1bb048-8e98-4bed-a71a-4e12fdaa56e9}, !- Name
-  {fa8c6e0c-a97a-4ec2-8fdb-ae686f8ec989}, !- Source Object
+  {feb71d5d-c0d6-489c-b81b-89317d5e0ad8}, !- Handle
+  {6ff51223-c110-4eb2-a65a-2a0c97fde6e0}, !- Name
+  {d0b2a56e-d528-4ba8-80c5-5b511ab3d731}, !- Source Object
   3,                                      !- Outlet Port
-  {d76558e8-494a-4f68-8f2f-59d7865444a1}, !- Target Object
+  {7887e9d8-070e-4fa3-b425-0fa27c238523}, !- Target Object
   5;                                      !- Inlet Port
 
 OS:Fan:OnOff,
-  {983864dd-07fd-4653-a84f-6335eecbae7e}, !- Handle
+  {820934f3-dfa4-4ef4-ba7d-764bc6d26fb8}, !- Handle
   res gshp vert bore living zone clg supply fan, !- Name
-  {9c3bcf3e-7ab6-48a1-a82b-5d8c7d0f7683}, !- Availability Schedule Name
+  {22b924cd-ad2b-477c-8b64-87364899d6e8}, !- Availability Schedule Name
   0.75,                                   !- Fan Total Efficiency
   794.580001233493,                       !- Pressure Rise {Pa}
   autosize,                               !- Maximum Flow Rate {m3/s}
@@ -1936,12 +2733,12 @@ OS:Fan:OnOff,
   1,                                      !- Motor In Airstream Fraction
   ,                                       !- Air Inlet Node Name
   ,                                       !- Air Outlet Node Name
-  {360b5a6f-7cd0-497f-8939-d69b0faad857}, !- Fan Power Ratio Function of Speed Ratio Curve Name
-  {3ea9edd2-d5fd-487d-8cef-bf6bc1168a5b}, !- Fan Efficiency Ratio Function of Speed Ratio Curve Name
+  {bffe7dce-3982-43a5-a08e-356a86e53b5d}, !- Fan Power Ratio Function of Speed Ratio Curve Name
+  {ff03a5b2-93ee-40c2-9998-7c1e489dbec0}, !- Fan Efficiency Ratio Function of Speed Ratio Curve Name
   res gshp vert bore clg supply fan;      !- End-Use Subcategory
 
 OS:Curve:Exponent,
-  {360b5a6f-7cd0-497f-8939-d69b0faad857}, !- Handle
+  {bffe7dce-3982-43a5-a08e-356a86e53b5d}, !- Handle
   Fan On Off Power Curve 1,               !- Name
   1,                                      !- Coefficient1 Constant
   0,                                      !- Coefficient2 Constant
@@ -1954,7 +2751,7 @@ OS:Curve:Exponent,
   ;                                       !- Output Unit Type
 
 OS:Curve:Cubic,
-  {3ea9edd2-d5fd-487d-8cef-bf6bc1168a5b}, !- Handle
+  {ff03a5b2-93ee-40c2-9998-7c1e489dbec0}, !- Handle
   Fan On Off Efficiency Curve 1,          !- Name
   1,                                      !- Coefficient1 Constant
   0,                                      !- Coefficient2 x
@@ -1964,20 +2761,20 @@ OS:Curve:Cubic,
   1;                                      !- Maximum Value of x
 
 OS:AirLoopHVAC:UnitarySystem,
-  {bdac4cd7-aea3-4221-b383-2fec933c225c}, !- Handle
+  {c7cff555-67f1-47cf-9342-8a00c4c7f8dd}, !- Handle
   res gshp vert bore clg unitary system,  !- Name
   Load,                                   !- Control Type
-  {a3e95b7d-9abd-4556-81b8-213b5ad86536}, !- Controlling Zone or Thermostat Location
+  {4498c2a4-8c66-433f-994f-77330d734cd6}, !- Controlling Zone or Thermostat Location
   None,                                   !- Dehumidification Control Type
-  {9c3bcf3e-7ab6-48a1-a82b-5d8c7d0f7683}, !- Availability Schedule Name
-  {d7b5b782-5516-42ca-a9b8-419bfcc5fc12}, !- Air Inlet Node Name
-  {8658a076-42dd-44f0-ab7c-bab39cc89f0c}, !- Air Outlet Node Name
-  {983864dd-07fd-4653-a84f-6335eecbae7e}, !- Supply Fan Name
+  {22b924cd-ad2b-477c-8b64-87364899d6e8}, !- Availability Schedule Name
+  {8f7be5a7-e956-4aa3-84c0-7c9d428ff7f7}, !- Air Inlet Node Name
+  {79a083b0-0871-4a2f-89a4-f27678ad00ce}, !- Air Outlet Node Name
+  {820934f3-dfa4-4ef4-ba7d-764bc6d26fb8}, !- Supply Fan Name
   BlowThrough,                            !- Fan Placement
-  {54890eed-19d4-45df-aecb-8766d4fceb14}, !- Supply Air Fan Operating Mode Schedule Name
+  {7c1b3231-e94e-4f0e-b897-a410146f19b8}, !- Supply Air Fan Operating Mode Schedule Name
   ,                                       !- Heating Coil Name
   1,                                      !- DX Heating Coil Sizing Ratio
-  {bc8266d2-76ed-4e43-8e73-69c932ed59a5}, !- Cooling Coil Name
+  {2a2e61cc-ca4d-46dc-9777-9352cc9888cd}, !- Cooling Coil Name
   No,                                     !- Use DOAS DX Cooling Coil
   2,                                      !- DOAS DX Cooling Coil Leaving Minimum Air Temperature {C}
   SensibleOnlyLoadControl,                !- Latent Load Control
@@ -2010,119 +2807,119 @@ OS:AirLoopHVAC:UnitarySystem,
   0;                                      !- Ancilliary Off-Cycle Electric Power {W}
 
 OS:AirLoopHVAC,
-  {cfc4646e-6d31-49e6-af0a-83549a8f1296}, !- Handle
+  {ad48d571-16f7-4276-b8be-d8890df92af6}, !- Handle
   res gshp vert bore central clg air system, !- Name
   ,                                       !- Controller List Name
-  {9c3bcf3e-7ab6-48a1-a82b-5d8c7d0f7683}, !- Availability Schedule
-  {a18e87e4-23cc-40c3-a6c9-7a0f71960063}, !- Availability Manager List Name
+  {22b924cd-ad2b-477c-8b64-87364899d6e8}, !- Availability Schedule
+  {f81490aa-f682-4b0f-85d2-6e03a971682d}, !- Availability Manager List Name
   AutoSize,                               !- Design Supply Air Flow Rate {m3/s}
   ,                                       !- Branch List Name
   ,                                       !- Connector List Name
-  {2b118439-8dfd-44a7-8594-20fa0c4cebb1}, !- Supply Side Inlet Node Name
-  {60cbf53c-144e-4ea3-b0da-49ffc534def9}, !- Demand Side Outlet Node Name
-  {ee200bb2-9c27-4173-a155-3df585d8f44c}, !- Demand Side Inlet Node A
-  {9d6da29f-0f99-4ee3-99a2-cab2c990c2ef}, !- Supply Side Outlet Node A
+  {7eb3672a-41a7-4c5f-bfb2-e9a1760d016c}, !- Supply Side Inlet Node Name
+  {d698010b-2d0f-45ef-b8ef-d2ebe4924318}, !- Demand Side Outlet Node Name
+  {fa141c42-349a-46cb-a0fb-5cf67df57588}, !- Demand Side Inlet Node A
+  {dbc9bf1d-d888-4b29-9ede-7d227d67d803}, !- Supply Side Outlet Node A
   ,                                       !- Demand Side Inlet Node B
   ,                                       !- Supply Side Outlet Node B
   ,                                       !- Return Air Bypass Flow Temperature Setpoint Schedule Name
-  {e66348c2-6bbc-4c69-a421-e7fd69509060}, !- Demand Mixer Name
-  {d1d30dd0-1612-4d27-8085-adbe69a06748}, !- Demand Splitter A Name
+  {50292624-8120-4620-a7b1-da1d87c051a1}, !- Demand Mixer Name
+  {95e24370-f80a-4317-885d-cb5c0137a79a}, !- Demand Splitter A Name
   ,                                       !- Demand Splitter B Name
   ;                                       !- Supply Splitter Name
 
 OS:Node,
-  {d306e658-34dd-4a37-966b-99747c084206}, !- Handle
+  {ac12e734-66ce-4d45-8e2c-a19076945cb5}, !- Handle
   Node 28,                                !- Name
-  {2b118439-8dfd-44a7-8594-20fa0c4cebb1}, !- Inlet Port
-  {d7b5b782-5516-42ca-a9b8-419bfcc5fc12}; !- Outlet Port
+  {7eb3672a-41a7-4c5f-bfb2-e9a1760d016c}, !- Inlet Port
+  {8f7be5a7-e956-4aa3-84c0-7c9d428ff7f7}; !- Outlet Port
 
 OS:Node,
-  {085469a8-2015-4a30-921d-7015a4b173b9}, !- Handle
+  {1dcbc5a9-b02d-4d43-9b06-04688c9f1d84}, !- Handle
   Node 29,                                !- Name
-  {8658a076-42dd-44f0-ab7c-bab39cc89f0c}, !- Inlet Port
-  {9d6da29f-0f99-4ee3-99a2-cab2c990c2ef}; !- Outlet Port
+  {79a083b0-0871-4a2f-89a4-f27678ad00ce}, !- Inlet Port
+  {dbc9bf1d-d888-4b29-9ede-7d227d67d803}; !- Outlet Port
 
 OS:Connection,
-  {2b118439-8dfd-44a7-8594-20fa0c4cebb1}, !- Handle
-  {654c4d23-1cfa-473d-bf3b-c531647d9e13}, !- Name
-  {cfc4646e-6d31-49e6-af0a-83549a8f1296}, !- Source Object
+  {7eb3672a-41a7-4c5f-bfb2-e9a1760d016c}, !- Handle
+  {af24fcbc-5842-410c-9e5b-48eba5f389b8}, !- Name
+  {ad48d571-16f7-4276-b8be-d8890df92af6}, !- Source Object
   8,                                      !- Outlet Port
-  {d306e658-34dd-4a37-966b-99747c084206}, !- Target Object
+  {ac12e734-66ce-4d45-8e2c-a19076945cb5}, !- Target Object
   2;                                      !- Inlet Port
 
 OS:Connection,
-  {9d6da29f-0f99-4ee3-99a2-cab2c990c2ef}, !- Handle
-  {b48b71db-2912-4ec7-9711-48f560ac271a}, !- Name
-  {085469a8-2015-4a30-921d-7015a4b173b9}, !- Source Object
+  {dbc9bf1d-d888-4b29-9ede-7d227d67d803}, !- Handle
+  {1d8b020c-617d-4ff7-9050-b1adb1a50981}, !- Name
+  {1dcbc5a9-b02d-4d43-9b06-04688c9f1d84}, !- Source Object
   3,                                      !- Outlet Port
-  {cfc4646e-6d31-49e6-af0a-83549a8f1296}, !- Target Object
+  {ad48d571-16f7-4276-b8be-d8890df92af6}, !- Target Object
   11;                                     !- Inlet Port
 
 OS:Node,
-  {84b721f7-e44b-4a26-9f29-5bafc9953a7b}, !- Handle
+  {8198564c-3af5-4542-a520-a452f380b378}, !- Handle
   Node 30,                                !- Name
-  {ee200bb2-9c27-4173-a155-3df585d8f44c}, !- Inlet Port
-  {6dc03617-2000-4fd1-b037-f00d3cfb60fe}; !- Outlet Port
+  {fa141c42-349a-46cb-a0fb-5cf67df57588}, !- Inlet Port
+  {58793a5d-21b4-4899-ab4c-00b128f80e92}; !- Outlet Port
 
 OS:Node,
-  {a6e0d074-0c2f-4281-aa65-e83e34252c3b}, !- Handle
+  {7a4570dc-9ab5-4c37-be3b-c73d1e7c370a}, !- Handle
   Node 31,                                !- Name
-  {d4087333-8f3e-467b-8bd2-299e31c5ed06}, !- Inlet Port
-  {60cbf53c-144e-4ea3-b0da-49ffc534def9}; !- Outlet Port
+  {f0d4886c-d790-4569-8ab7-70f203c12604}, !- Inlet Port
+  {d698010b-2d0f-45ef-b8ef-d2ebe4924318}; !- Outlet Port
 
 OS:Node,
-  {df9e84ad-7b4e-4162-a8e4-614174425d3d}, !- Handle
+  {b7e93c8f-bbe0-408b-b844-4dddd1c8444b}, !- Handle
   Node 32,                                !- Name
-  {ac6f19cd-31b9-46ee-ab31-1058f7cb727f}, !- Inlet Port
-  {7b7ea6c5-5815-4409-b405-ccaf3052bfa6}; !- Outlet Port
+  {d6387839-d1c8-4381-b0da-9a201a2f5a1d}, !- Inlet Port
+  {ae8bccca-e596-42ec-b2fe-f1900b8ebcd4}; !- Outlet Port
 
 OS:Connection,
-  {ee200bb2-9c27-4173-a155-3df585d8f44c}, !- Handle
-  {e4154051-5c56-4779-a833-804f7f7913b1}, !- Name
-  {cfc4646e-6d31-49e6-af0a-83549a8f1296}, !- Source Object
+  {fa141c42-349a-46cb-a0fb-5cf67df57588}, !- Handle
+  {d8f25ee6-a63f-493d-a127-38e1a981760c}, !- Name
+  {ad48d571-16f7-4276-b8be-d8890df92af6}, !- Source Object
   10,                                     !- Outlet Port
-  {84b721f7-e44b-4a26-9f29-5bafc9953a7b}, !- Target Object
+  {8198564c-3af5-4542-a520-a452f380b378}, !- Target Object
   2;                                      !- Inlet Port
 
 OS:Connection,
-  {60cbf53c-144e-4ea3-b0da-49ffc534def9}, !- Handle
-  {271d50d8-53d4-42cf-930f-dab206c1facd}, !- Name
-  {a6e0d074-0c2f-4281-aa65-e83e34252c3b}, !- Source Object
+  {d698010b-2d0f-45ef-b8ef-d2ebe4924318}, !- Handle
+  {87c7a8fe-60c8-4d3a-afe8-e3c31a2bee48}, !- Name
+  {7a4570dc-9ab5-4c37-be3b-c73d1e7c370a}, !- Source Object
   3,                                      !- Outlet Port
-  {cfc4646e-6d31-49e6-af0a-83549a8f1296}, !- Target Object
+  {ad48d571-16f7-4276-b8be-d8890df92af6}, !- Target Object
   9;                                      !- Inlet Port
 
 OS:AirLoopHVAC:ZoneSplitter,
-  {d1d30dd0-1612-4d27-8085-adbe69a06748}, !- Handle
+  {95e24370-f80a-4317-885d-cb5c0137a79a}, !- Handle
   res gshp vert bore clg zone splitter,   !- Name
-  {6dc03617-2000-4fd1-b037-f00d3cfb60fe}, !- Inlet Node Name
-  {0884b600-6d4a-457c-a4aa-d876d0143086}; !- Outlet Node Name 1
+  {58793a5d-21b4-4899-ab4c-00b128f80e92}, !- Inlet Node Name
+  {b76c0369-12e9-41c5-be7f-a63cfd5637f7}; !- Outlet Node Name 1
 
 OS:AirLoopHVAC:ZoneMixer,
-  {e66348c2-6bbc-4c69-a421-e7fd69509060}, !- Handle
+  {50292624-8120-4620-a7b1-da1d87c051a1}, !- Handle
   res gshp vert bore clg zone mixer,      !- Name
-  {d4087333-8f3e-467b-8bd2-299e31c5ed06}, !- Outlet Node Name
-  {f7bae1de-e338-4d2a-912f-6f7aed18e8cd}; !- Inlet Node Name 1
+  {f0d4886c-d790-4569-8ab7-70f203c12604}, !- Outlet Node Name
+  {41cf6d3c-15a2-4822-80ed-eb63ba68c203}; !- Inlet Node Name 1
 
 OS:Connection,
-  {6dc03617-2000-4fd1-b037-f00d3cfb60fe}, !- Handle
-  {1486312e-8652-499b-a731-723cd5e6e492}, !- Name
-  {84b721f7-e44b-4a26-9f29-5bafc9953a7b}, !- Source Object
+  {58793a5d-21b4-4899-ab4c-00b128f80e92}, !- Handle
+  {3a1bff76-6b8f-45b5-bb84-30f650627e9c}, !- Name
+  {8198564c-3af5-4542-a520-a452f380b378}, !- Source Object
   3,                                      !- Outlet Port
-  {d1d30dd0-1612-4d27-8085-adbe69a06748}, !- Target Object
+  {95e24370-f80a-4317-885d-cb5c0137a79a}, !- Target Object
   2;                                      !- Inlet Port
 
 OS:Connection,
-  {d4087333-8f3e-467b-8bd2-299e31c5ed06}, !- Handle
-  {f704a909-b55f-410b-a5cf-f91adc7d5198}, !- Name
-  {e66348c2-6bbc-4c69-a421-e7fd69509060}, !- Source Object
+  {f0d4886c-d790-4569-8ab7-70f203c12604}, !- Handle
+  {bdd848c0-039f-46bc-ba80-4235cedac4d4}, !- Name
+  {50292624-8120-4620-a7b1-da1d87c051a1}, !- Source Object
   2,                                      !- Outlet Port
-  {a6e0d074-0c2f-4281-aa65-e83e34252c3b}, !- Target Object
+  {7a4570dc-9ab5-4c37-be3b-c73d1e7c370a}, !- Target Object
   2;                                      !- Inlet Port
 
 OS:Sizing:System,
-  {b4e8f22c-be7e-4b21-bd73-77c9e2f19eb0}, !- Handle
-  {cfc4646e-6d31-49e6-af0a-83549a8f1296}, !- AirLoop Name
+  {0bca0601-3a8e-4290-bdef-ec6b8f5da6c0}, !- Handle
+  {ad48d571-16f7-4276-b8be-d8890df92af6}, !- AirLoop Name
   Sensible,                               !- Type of Load to Size On
   Autosize,                               !- Design Outdoor Air Flow Rate {m3/s}
   0.3,                                    !- Central Heating Maximum System Air Flow Ratio
@@ -2161,96 +2958,96 @@ OS:Sizing:System,
   OnOff;                                  !- Central Cooling Capacity Control Method
 
 OS:AvailabilityManagerAssignmentList,
-  {a18e87e4-23cc-40c3-a6c9-7a0f71960063}, !- Handle
+  {f81490aa-f682-4b0f-85d2-6e03a971682d}, !- Handle
   Air Loop HVAC 1 AvailabilityManagerAssignmentList 1; !- Name
 
 OS:Connection,
-  {d7b5b782-5516-42ca-a9b8-419bfcc5fc12}, !- Handle
-  {6e9823fc-04f8-4740-bb9c-dfbefdce1421}, !- Name
-  {d306e658-34dd-4a37-966b-99747c084206}, !- Source Object
+  {8f7be5a7-e956-4aa3-84c0-7c9d428ff7f7}, !- Handle
+  {253d07c4-bf54-4adf-95a6-b3a661b6e272}, !- Name
+  {ac12e734-66ce-4d45-8e2c-a19076945cb5}, !- Source Object
   3,                                      !- Outlet Port
-  {bdac4cd7-aea3-4221-b383-2fec933c225c}, !- Target Object
+  {c7cff555-67f1-47cf-9342-8a00c4c7f8dd}, !- Target Object
   6;                                      !- Inlet Port
 
 OS:Connection,
-  {8658a076-42dd-44f0-ab7c-bab39cc89f0c}, !- Handle
-  {f9e8df2c-c8f3-4ec7-a06b-100869ca103e}, !- Name
-  {bdac4cd7-aea3-4221-b383-2fec933c225c}, !- Source Object
+  {79a083b0-0871-4a2f-89a4-f27678ad00ce}, !- Handle
+  {9bc2c9b3-5591-4b63-a617-20426b975d92}, !- Name
+  {c7cff555-67f1-47cf-9342-8a00c4c7f8dd}, !- Source Object
   7,                                      !- Outlet Port
-  {085469a8-2015-4a30-921d-7015a4b173b9}, !- Target Object
+  {1dcbc5a9-b02d-4d43-9b06-04688c9f1d84}, !- Target Object
   2;                                      !- Inlet Port
 
 OS:AirTerminal:SingleDuct:ConstantVolume:NoReheat,
-  {d5ab9634-5dba-476f-ab5d-695338e42530}, !- Handle
+  {a22a4caa-deea-4d5c-8bcc-391c30e11d4c}, !- Handle
   res gshp vert bore living zone clg direct air, !- Name
-  {9c3bcf3e-7ab6-48a1-a82b-5d8c7d0f7683}, !- Availability Schedule Name
-  {4dd37177-d774-4490-875a-40a1623a345a}, !- Air Inlet Node Name
-  {ac6f19cd-31b9-46ee-ab31-1058f7cb727f}, !- Air Outlet Node Name
+  {22b924cd-ad2b-477c-8b64-87364899d6e8}, !- Availability Schedule Name
+  {368df1ae-3953-4fa0-a545-c720995e413a}, !- Air Inlet Node Name
+  {d6387839-d1c8-4381-b0da-9a201a2f5a1d}, !- Air Outlet Node Name
   AutoSize;                               !- Maximum Air Flow Rate {m3/s}
 
 OS:Node,
-  {e7bbf40c-ae6b-4b78-b2db-047ce8847d01}, !- Handle
+  {5333dd7d-eb7b-46d2-ab29-5f8339ae782b}, !- Handle
   Node 33,                                !- Name
-  {35e9515b-8aa2-4647-80b8-708bdc352614}, !- Inlet Port
-  {f7bae1de-e338-4d2a-912f-6f7aed18e8cd}; !- Outlet Port
+  {d5a45bd2-0ba1-495b-83ab-c8ba48f406aa}, !- Inlet Port
+  {41cf6d3c-15a2-4822-80ed-eb63ba68c203}; !- Outlet Port
 
 OS:Connection,
-  {7b7ea6c5-5815-4409-b405-ccaf3052bfa6}, !- Handle
-  {5a221e3e-d464-468e-867b-1c12c5f8d7e0}, !- Name
-  {df9e84ad-7b4e-4162-a8e4-614174425d3d}, !- Source Object
+  {ae8bccca-e596-42ec-b2fe-f1900b8ebcd4}, !- Handle
+  {ba31c527-7b83-47ce-bfa4-3c5f93e31a18}, !- Name
+  {b7e93c8f-bbe0-408b-b844-4dddd1c8444b}, !- Source Object
   3,                                      !- Outlet Port
-  {59b50c45-c6f4-4ced-87a6-6cc8b9f52519}, !- Target Object
+  {98b755ec-5a0c-4bc5-90d9-4ff8a4839492}, !- Target Object
   4;                                      !- Inlet Port
 
 OS:Connection,
-  {35e9515b-8aa2-4647-80b8-708bdc352614}, !- Handle
-  {f67979db-1738-4620-810c-1f7ab41b0b27}, !- Name
-  {e33d1dc7-1bba-46ff-aad7-8fa3045ad9ce}, !- Source Object
+  {d5a45bd2-0ba1-495b-83ab-c8ba48f406aa}, !- Handle
+  {d4c49bed-68b2-43a9-be54-1002af59e6c0}, !- Name
+  {e40176db-446a-46ab-aebc-4f5efce599b5}, !- Source Object
   4,                                      !- Outlet Port
-  {e7bbf40c-ae6b-4b78-b2db-047ce8847d01}, !- Target Object
+  {5333dd7d-eb7b-46d2-ab29-5f8339ae782b}, !- Target Object
   2;                                      !- Inlet Port
 
 OS:Connection,
-  {f7bae1de-e338-4d2a-912f-6f7aed18e8cd}, !- Handle
-  {a3825f3d-a88c-4793-88e7-045a1ee27119}, !- Name
-  {e7bbf40c-ae6b-4b78-b2db-047ce8847d01}, !- Source Object
+  {41cf6d3c-15a2-4822-80ed-eb63ba68c203}, !- Handle
+  {364d7e9a-db6f-4bfd-90fe-b60266c0f7b4}, !- Name
+  {5333dd7d-eb7b-46d2-ab29-5f8339ae782b}, !- Source Object
   3,                                      !- Outlet Port
-  {e66348c2-6bbc-4c69-a421-e7fd69509060}, !- Target Object
+  {50292624-8120-4620-a7b1-da1d87c051a1}, !- Target Object
   3;                                      !- Inlet Port
 
 OS:Node,
-  {f80db8dc-92d2-4901-a102-4234aa57ffc0}, !- Handle
+  {5d5bdfe2-960a-4ff4-986a-7871b94232ac}, !- Handle
   Node 34,                                !- Name
-  {0884b600-6d4a-457c-a4aa-d876d0143086}, !- Inlet Port
-  {4dd37177-d774-4490-875a-40a1623a345a}; !- Outlet Port
+  {b76c0369-12e9-41c5-be7f-a63cfd5637f7}, !- Inlet Port
+  {368df1ae-3953-4fa0-a545-c720995e413a}; !- Outlet Port
 
 OS:Connection,
-  {0884b600-6d4a-457c-a4aa-d876d0143086}, !- Handle
-  {faa911ef-643c-4fa4-9e32-d2760ab5e4c8}, !- Name
-  {d1d30dd0-1612-4d27-8085-adbe69a06748}, !- Source Object
+  {b76c0369-12e9-41c5-be7f-a63cfd5637f7}, !- Handle
+  {6c829dca-a96e-4b32-80c6-d24d07283ead}, !- Name
+  {95e24370-f80a-4317-885d-cb5c0137a79a}, !- Source Object
   3,                                      !- Outlet Port
-  {f80db8dc-92d2-4901-a102-4234aa57ffc0}, !- Target Object
+  {5d5bdfe2-960a-4ff4-986a-7871b94232ac}, !- Target Object
   2;                                      !- Inlet Port
 
 OS:Connection,
-  {4dd37177-d774-4490-875a-40a1623a345a}, !- Handle
-  {87b8c6ff-a9b5-44bc-a8c7-c99421b28b7a}, !- Name
-  {f80db8dc-92d2-4901-a102-4234aa57ffc0}, !- Source Object
+  {368df1ae-3953-4fa0-a545-c720995e413a}, !- Handle
+  {000597bb-1df4-4c3f-8d17-8b44f873c232}, !- Name
+  {5d5bdfe2-960a-4ff4-986a-7871b94232ac}, !- Source Object
   3,                                      !- Outlet Port
-  {d5ab9634-5dba-476f-ab5d-695338e42530}, !- Target Object
+  {a22a4caa-deea-4d5c-8bcc-391c30e11d4c}, !- Target Object
   3;                                      !- Inlet Port
 
 OS:Connection,
-  {ac6f19cd-31b9-46ee-ab31-1058f7cb727f}, !- Handle
-  {1038b282-eb23-4d18-a46d-67b35d3efddc}, !- Name
-  {d5ab9634-5dba-476f-ab5d-695338e42530}, !- Source Object
+  {d6387839-d1c8-4381-b0da-9a201a2f5a1d}, !- Handle
+  {026dbce7-6d7c-43fd-9af2-231451e36901}, !- Name
+  {a22a4caa-deea-4d5c-8bcc-391c30e11d4c}, !- Source Object
   4,                                      !- Outlet Port
-  {df9e84ad-7b4e-4162-a8e4-614174425d3d}, !- Target Object
+  {b7e93c8f-bbe0-408b-b844-4dddd1c8444b}, !- Target Object
   2;                                      !- Inlet Port
 
 OS:AdditionalProperties,
-  {78e568dc-6a95-4643-a00f-23bde19ed3e3}, !- Handle
-  {bdac4cd7-aea3-4221-b383-2fec933c225c}, !- Object Name
+  {c8ba3a05-b91e-4582-a496-04f4853095ff}, !- Handle
+  {c7cff555-67f1-47cf-9342-8a00c4c7f8dd}, !- Object Name
   SizingInfoHVACSHR,                      !- Feature Name 1
   String,                                 !- Feature Data Type 1
   0.732,                                  !- Feature Value 1
@@ -2280,14 +3077,14 @@ OS:AdditionalProperties,
   b;                                      !- Feature Value 9
 
 OS:AdditionalProperties,
-  {e67412fa-5e79-4a0d-bc33-25eb72d6bf3e}, !- Handle
-  {35a5a695-46fe-401d-95dc-3bcf31864c15}, !- Object Name
+  {70398c65-2be3-4c16-a792-e19b035df8b5}, !- Handle
+  {6838bd96-4c85-4ec6-8c14-fe6255701e3a}, !- Object Name
   SizingInfoHVACFracHeatLoadServed,       !- Feature Name 1
   Double,                                 !- Feature Data Type 1
   1;                                      !- Feature Value 1
 
 OS:EnergyManagementSystem:Program,
-  {1870ccba-fe91-4350-b80b-f12207ca9126}, !- Handle
+  {dbbe5651-80a4-4663-bf57-a6e42679d211}, !- Handle
   res_gshp_vert_bore_pumps_program,       !- Name
   Set unit_1_pumps_h = 0,                 !- Program Line 1
   Set unit_1_pumps_c = 0,                 !- Program Line 2
@@ -2298,26 +3095,26 @@ OS:EnergyManagementSystem:Program,
   EndIf;                                  !- Program Line 7
 
 OS:EnergyManagementSystem:OutputVariable,
-  {c9fdbe78-f574-4367-b21e-8742b4826546}, !- Handle
+  {fb3dedfe-3252-46bc-a80b-a62fa425ceca}, !- Handle
   res gshp vert bore htg pump:Pumps:Electricity, !- Name
   unit_1_pumps_h,                         !- EMS Variable Name
   Summed,                                 !- Type of Data in Variable
   SystemTimestep,                         !- Update Frequency
-  {1870ccba-fe91-4350-b80b-f12207ca9126}, !- EMS Program or Subroutine Name
+  {dbbe5651-80a4-4663-bf57-a6e42679d211}, !- EMS Program or Subroutine Name
   J;                                      !- Units
 
 OS:EnergyManagementSystem:OutputVariable,
-  {e312be3d-6973-40c0-8683-46eda494dbe5}, !- Handle
+  {b0a71178-9907-41db-9963-02b04dd2daba}, !- Handle
   res gshp vert bore clg pump:Pumps:Electricity, !- Name
   unit_1_pumps_c,                         !- EMS Variable Name
   Summed,                                 !- Type of Data in Variable
   SystemTimestep,                         !- Update Frequency
-  {1870ccba-fe91-4350-b80b-f12207ca9126}, !- EMS Program or Subroutine Name
+  {dbbe5651-80a4-4663-bf57-a6e42679d211}, !- EMS Program or Subroutine Name
   J;                                      !- Units
 
 OS:EnergyManagementSystem:ProgramCallingManager,
-  {32400415-5e1c-4b54-a41d-7455f0e016db}, !- Handle
+  {90257801-d20c-472a-baab-cea589bce38d}, !- Handle
   res gshp vert bore pump program calling manager, !- Name
   EndOfSystemTimestepBeforeHVACReporting, !- EnergyPlus Model Calling Point
-  {1870ccba-fe91-4350-b80b-f12207ca9126}; !- Program Name 1
+  {dbbe5651-80a4-4663-bf57-a6e42679d211}; !- Program Name 1
 

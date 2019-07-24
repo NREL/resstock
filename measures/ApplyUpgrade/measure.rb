@@ -7,6 +7,18 @@
 require 'csv'
 require 'openstudio'
 
+require 'openstudio'
+if File.exists? File.absolute_path(File.join(File.dirname(__FILE__), "../../lib/resources/measures/HPXMLtoOpenStudio/resources")) # Hack to run ResStock on AWS
+  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../../lib/resources/measures/HPXMLtoOpenStudio/resources"))
+elsif File.exists? File.absolute_path(File.join(File.dirname(__FILE__), "../../resources/measures/HPXMLtoOpenStudio/resources")) # Hack to run ResStock unit tests locally
+  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../../resources/measures/HPXMLtoOpenStudio/resources"))
+elsif File.exists? File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, "HPXMLtoOpenStudio/resources") # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
+  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, "HPXMLtoOpenStudio/resources")
+else
+  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources"))
+end
+require File.join(resources_path, "constants")
+
 # start the measure
 class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
   # human readable name
@@ -25,11 +37,11 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
   end
 
   def num_options
-    return 10 # Sync with SimulationOutputReport measure
+    return Constants.NumApplyUpgradeOptions # Synced with SimulationOutputReport measure
   end
 
   def num_costs_per_option
-    return 2 # Sync with SimulationOutputReport measure
+    return Constants.NumApplyUpgradesCostsPerOption # Synced with SimulationOutputReport measure
   end
 
   # define the arguments that the user will input
