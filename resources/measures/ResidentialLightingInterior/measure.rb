@@ -16,19 +16,19 @@ require File.join(resources_path, "weather")
 require File.join(resources_path, "lighting")
 
 # start the measure
-class ResidentialLighting < OpenStudio::Measure::ModelMeasure
+class ResidentialLightingInterior < OpenStudio::Measure::ModelMeasure
   # define the name that a user will see, this method may be deprecated as
   # the display name in PAT comes from the name field in measure.xml
   def name
-    return "Set Residential Lighting"
+    return "Set Residential Interior Lighting"
   end
 
   def description
-    return "Sets (or replaces) the lighting energy use, based on fractions of CFLs, LFLs, and LEDs, for finished spaces, the garage, and outside. For multifamily buildings, the lighting can be set for all units of the building.#{Constants.WorkflowDescription}"
+    return "Sets (or replaces) the lighting energy use, based on fractions of CFLs, LFLs, and LEDs, for finished spaces. For multifamily buildings, the lighting can be set for all units of the building.#{Constants.WorkflowDescription}"
   end
 
   def modeler_description
-    return "Assigns a lighting energy use and schedule to finished spaces, the garage, and outside. The lighting schedule is calculated for the latitude/longitude of the weather location specified in the model."
+    return "Assigns a lighting energy use and schedule to finished spaces. The lighting schedule, by default, is calculated for the latitude/longitude of the weather location specified in the model."
   end
 
   # define the arguments that the user will input
@@ -49,21 +49,21 @@ class ResidentialLighting < OpenStudio::Measure::ModelMeasure
     # make a double argument for hardwired CFL fraction
     hw_cfl = OpenStudio::Measure::OSArgument::makeDoubleArgument("hw_cfl", true)
     hw_cfl.setDisplayName("#{Constants.OptionTypeLightingFractions}: Hardwired Fraction CFL")
-    hw_cfl.setDescription("Fraction of all hardwired lamps (interior, garage, and exterior) that are compact fluorescent. Hardwired lighting not specified as CFL, LED, or LFL is assumed to be incandescent.")
+    hw_cfl.setDescription("Fraction of all hardwired lamps (interior) that are compact fluorescent. Hardwired lighting not specified as CFL, LED, or LFL is assumed to be incandescent.")
     hw_cfl.setDefaultValue(0.34)
     args << hw_cfl
 
     # make a double argument for hardwired LED fraction
     hw_led = OpenStudio::Measure::OSArgument::makeDoubleArgument("hw_led", true)
     hw_led.setDisplayName("#{Constants.OptionTypeLightingFractions}: Hardwired Fraction LED")
-    hw_led.setDescription("Fraction of all hardwired lamps (interior, garage, and exterior) that are LED. Hardwired lighting not specified as CFL, LED, or LFL is assumed to be incandescent.")
+    hw_led.setDescription("Fraction of all hardwired lamps (interior) that are LED. Hardwired lighting not specified as CFL, LED, or LFL is assumed to be incandescent.")
     hw_led.setDefaultValue(0)
     args << hw_led
 
     # make a double argument for hardwired LFL fraction
     hw_lfl = OpenStudio::Measure::OSArgument::makeDoubleArgument("hw_lfl", true)
     hw_lfl.setDisplayName("#{Constants.OptionTypeLightingFractions}: Hardwired Fraction LFL")
-    hw_lfl.setDescription("Fraction of all hardwired lamps (interior, garage, and exterior) that are linear fluorescent. Hardwired lighting not specified as CFL, LED, or LFL is assumed to be incandescent.")
+    hw_lfl.setDescription("Fraction of all hardwired lamps (interior) that are linear fluorescent. Hardwired lighting not specified as CFL, LED, or LFL is assumed to be incandescent.")
     hw_lfl.setDefaultValue(0)
     args << hw_lfl
 
@@ -87,6 +87,13 @@ class ResidentialLighting < OpenStudio::Measure::ModelMeasure
     pg_lfl.setDescription("Fraction of all plugin lamps that are linear fluorescent. Plugin lighting not specified as CFL, LED, or LFL is assumed to be incandescent.")
     pg_lfl.setDefaultValue(0)
     args << pg_lfl
+
+    # make a double argument for BA Benchmark multiplier
+    mult = OpenStudio::Measure::OSArgument::makeDoubleArgument("mult", true)
+    mult.setDisplayName("#{Constants.OptionTypeLightingFractions}: Multiplier")
+    mult.setDescription("A multiplier on the national average lighting energy. 0.75 indicates a 25% reduction in the lighting energy, 1.0 indicates the same lighting energy as the national average, 1.25 indicates a 25% increase in the lighting energy, etc.")
+    mult.setDefaultValue(1)
+    args << mult
 
     # make a double argument for Incandescent Efficacy
     in_eff = OpenStudio::Measure::OSArgument::makeDoubleArgument("in_eff", true)
@@ -128,21 +135,22 @@ class ResidentialLighting < OpenStudio::Measure::ModelMeasure
     energy_use_interior.setDefaultValue(900)
     args << energy_use_interior
 
-    # make a double argument for garage energy use
-    energy_use_garage = OpenStudio::Measure::OSArgument::makeDoubleArgument("energy_use_garage", true)
-    energy_use_garage.setDisplayName("#{Constants.OptionTypeLightingEnergyUses}: Garage")
-    energy_use_garage.setUnits("kWh/year")
-    energy_use_garage.setDescription("Total garage annual lighting energy use. Only applied if there is a garage space.")
-    energy_use_garage.setDefaultValue(100)
-    args << energy_use_garage
+    # make a choice argument for option type
+    choices = []
+    choices << Constants.OptionTypeLightingScheduleCalculated
+    choices << Constants.OptionTypeLightingScheduleUserSpecified
+    sch_option_type = OpenStudio::Measure::OSArgument::makeChoiceArgument("sch_option_type", choices, true)
+    sch_option_type.setDisplayName("Schedule Option Type")
+    sch_option_type.setDescription("Inputs are used/ignored below based on the option type specified.")
+    sch_option_type.setDefaultValue(Constants.OptionTypeLightingScheduleCalculated)
+    args << sch_option_type
 
-    # make a double argument for exterior energy use
-    energy_use_exterior = OpenStudio::Measure::OSArgument::makeDoubleArgument("energy_use_exterior", true)
-    energy_use_exterior.setDisplayName("#{Constants.OptionTypeLightingEnergyUses}: Exterior")
-    energy_use_exterior.setUnits("kWh/year")
-    energy_use_exterior.setDescription("Total exterior annual lighting energy use.")
-    energy_use_exterior.setDefaultValue(300)
-    args << energy_use_exterior
+    # Make a string argument for 12 monthly schedule values
+    monthly_sch = OpenStudio::Measure::OSArgument::makeStringArgument("monthly_sch", true)
+    monthly_sch.setDisplayName("Month schedule")
+    monthly_sch.setDescription("Specify the 12-month schedule.")
+    monthly_sch.setDefaultValue("1.248, 1.257, 0.993, 0.989, 0.993, 0.827, 0.821, 0.821, 0.827, 0.99, 0.987, 1.248")
+    args << monthly_sch
 
     return args
   end # end the arguments method
@@ -164,13 +172,14 @@ class ResidentialLighting < OpenStudio::Measure::ModelMeasure
     pg_cfl = runner.getDoubleArgumentValue("pg_cfl", user_arguments)
     pg_led = runner.getDoubleArgumentValue("pg_led", user_arguments)
     pg_lfl = runner.getDoubleArgumentValue("pg_lfl", user_arguments)
+    mult = runner.getDoubleArgumentValue("mult", user_arguments)
     in_eff = runner.getDoubleArgumentValue("in_eff", user_arguments)
     cfl_eff = runner.getDoubleArgumentValue("cfl_eff", user_arguments)
     led_eff = runner.getDoubleArgumentValue("led_eff", user_arguments)
     lfl_eff = runner.getDoubleArgumentValue("lfl_eff", user_arguments)
     energy_use_interior = runner.getDoubleArgumentValue("energy_use_interior", user_arguments)
-    energy_use_garage = runner.getDoubleArgumentValue("energy_use_garage", user_arguments)
-    energy_use_exterior = runner.getDoubleArgumentValue("energy_use_exterior", user_arguments)
+    sch_option_type = runner.getStringArgumentValue("sch_option_type", user_arguments)
+    monthly_sch = runner.getStringArgumentValue("monthly_sch", user_arguments)
 
     # Check for valid inputs
     if option_type == Constants.OptionTypeLightingFractions
@@ -206,6 +215,10 @@ class ResidentialLighting < OpenStudio::Measure::ModelMeasure
         runner.registerError("Sum of CFL, LED, and LFL Plugin Fractions must be less than or equal to 1.")
         return false
       end
+      if mult < 0
+        runner.registerError("Lamps used multiplier must be greater than or equal to 0.")
+        return false
+      end
       if in_eff <= 0
         runner.registerError("Incandescent Efficacy must be greater than 0.")
         return false
@@ -225,14 +238,6 @@ class ResidentialLighting < OpenStudio::Measure::ModelMeasure
     elsif option_type == Constants.OptionTypeLightingEnergyUses
       if energy_use_interior < 0
         runner.registerError("#{Constants.OptionTypeLightingEnergyUses}: Interior must be greater than or equal to 0.")
-        return false
-      end
-      if energy_use_garage < 0
-        runner.registerError("#{Constants.OptionTypeLightingEnergyUses}: Garage must be greater than or equal to 0.")
-        return false
-      end
-      if energy_use_exterior < 0
-        runner.registerError("#{Constants.OptionTypeLightingEnergyUses}: Exterior must be greater than or equal to 0.")
         return false
       end
     end
@@ -279,7 +284,7 @@ class ResidentialLighting < OpenStudio::Measure::ModelMeasure
     # Smart Replacement Factor
     smrt_replace_f = (0.1672 * hw_inc**4 - 0.4817 * hw_inc**3 + 0.6336 * hw_inc**2 - 0.492 * hw_inc + 1.1561)
 
-    Lighting.remove(model, runner)
+    Lighting.remove_interior(model, runner)
 
     tot_ltg_e = 0
     msgs = []
@@ -287,7 +292,7 @@ class ResidentialLighting < OpenStudio::Measure::ModelMeasure
     units.each do |unit|
       # Interior lighting
       unit_finished_spaces = Geometry.get_finished_spaces(unit.spaces)
-      ffa = Geometry.get_finished_floor_area_from_spaces(unit.spaces, false, runner)
+      ffa = Geometry.get_finished_floor_area_from_spaces(unit.spaces, runner)
       if ffa.nil?
         return false
       end
@@ -295,62 +300,30 @@ class ResidentialLighting < OpenStudio::Measure::ModelMeasure
       if option_type == Constants.OptionTypeLightingEnergyUses
         interior_ann = energy_use_interior
       elsif option_type == Constants.OptionTypeLightingFractions
-        bm_hw_e = frac_hw * (ffa * 0.542 + 334)
-        bm_pg_e = frac_pg * (ffa * 0.542 + 334)
+        bm_hw_e = mult * frac_hw * (ffa * 0.542 + 334)
+        bm_pg_e = mult * frac_pg * (ffa * 0.542 + 334)
         int_hw_e = (bm_hw_e * (((hw_inc * er_inc + (1 - bab_frac_inc) * bab_er_inc) + (hw_cfl * er_cfl - bab_frac_cfl * bab_er_cfl) + (hw_led * er_led - bab_frac_led * bab_er_led) + (hw_lfl * er_lfl - bab_frac_lfl * bab_er_lfl)) * smrt_replace_f * 0.9 + 0.1))
         int_pg_e = (bm_pg_e * (((pg_inc * er_inc + (1 - bab_frac_inc) * bab_er_inc) + (pg_cfl * er_cfl - bab_frac_cfl * bab_er_cfl) + (pg_led * er_led - bab_frac_led * bab_er_led) + (pg_lfl * er_lfl - bab_frac_lfl * bab_er_lfl)) * smrt_replace_f * 0.9 + 0.1))
         interior_ann = int_hw_e + int_pg_e
       end
 
-      success, sch = Lighting.apply_interior(model, unit, runner, weather, sch, interior_ann)
+      success, sch = Lighting.apply_interior(model, unit, runner, weather, sch, interior_ann, sch_option_type, monthly_sch)
       return false if not success
 
       msgs << "Lighting with #{interior_ann.round} kWhs annual energy consumption has been assigned to unit '#{unit.name.to_s}'."
       tot_ltg_e += interior_ann
     end
 
-    # Garage lighting (garages not associated with a unit)
-    garage_spaces = Geometry.get_garage_spaces(model.getSpaces)
-    gfa = Geometry.get_floor_area_from_spaces(garage_spaces)
-    if option_type == Constants.OptionTypeLightingEnergyUses
-      garage_ann = energy_use_garage
-    elsif option_type == Constants.OptionTypeLightingFractions
-      common_bm_garage_e = 0.08 * gfa + 8 * units.size
-      garage_ann = (common_bm_garage_e * (((hw_inc * er_inc + (1 - bab_frac_inc) * bab_er_inc) + (hw_cfl * er_cfl - bab_frac_cfl * bab_er_cfl) + (hw_led * er_led - bab_frac_led * bab_er_led) + (hw_lfl * er_lfl - bab_frac_lfl * bab_er_lfl)) * smrt_replace_f * 0.9 + 0.1))
-    end
-
-    success = Lighting.apply_garage(model, runner, sch, garage_ann)
-    return false if not success
-
-    msgs << "Lighting with #{garage_ann.round} kWhs annual energy consumption has been assigned to the garage(s)."
-    tot_ltg_e += garage_ann
-
-    # Exterior Lighting
-    exterior_ann = 0
-    if option_type == Constants.OptionTypeLightingEnergyUses
-      exterior_ann = energy_use_exterior
-    elsif option_type == Constants.OptionTypeLightingFractions
-      total_ffa = Geometry.get_finished_floor_area_from_spaces(model.getSpaces, true, runner)
-      bm_outside_e = 0.145 * total_ffa
-      exterior_ann = (bm_outside_e * (((hw_inc * er_inc + (1 - bab_frac_inc) * bab_er_inc) + (hw_cfl * er_cfl - bab_frac_cfl * bab_er_cfl) + (hw_led * er_led - bab_frac_led * bab_er_led) + (hw_lfl * er_lfl - bab_frac_lfl * bab_er_lfl)) * smrt_replace_f * 0.9 + 0.1))
-    end
-
-    success = Lighting.apply_exterior(model, runner, sch, exterior_ann)
-    return false if not success
-
-    msgs << "Lighting with #{exterior_ann.round} kWhs annual energy consumption has been assigned to the exterior."
-    tot_ltg_e += exterior_ann
-
     # reporting final condition of model
     if msgs.size > 1
       msgs.each do |msg|
         runner.registerInfo(msg)
       end
-      runner.registerFinalCondition("The building has been assigned lighting totaling #{tot_ltg_e.round} kWhs annual energy consumption across #{units.size} units.")
+      runner.registerFinalCondition("The building has been assigned interior lighting totaling #{tot_ltg_e.round} kWhs annual energy consumption across #{units.size} units.")
     elsif msgs.size == 1
       runner.registerFinalCondition(msgs[0])
     else
-      runner.registerFinalCondition("No lighting has been assigned.")
+      runner.registerFinalCondition("No interior lighting has been assigned.")
     end
 
     return true
@@ -358,4 +331,4 @@ class ResidentialLighting < OpenStudio::Measure::ModelMeasure
 end # end the measure
 
 # this allows the measure to be use by the application
-ResidentialLighting.new.registerWithApplication
+ResidentialLightingInterior.new.registerWithApplication
