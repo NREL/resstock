@@ -1315,78 +1315,81 @@ class Airflow
   end
 
   def self.create_whf_objects(model, runner, obj_name_mech_vent, unit_living, mech_vent, mv_output, tin_sensor, tout_sensor, pbar_sensor, vwind_sensor, wout_sensor)
-    avail_sch = OpenStudio::Model::ScheduleRuleset.new(model)
-    avail_sch.setName(obj_name_mech_vent + " avail schedule")
-
-    Schedule.set_schedule_type_limits(model, avail_sch, Constants.ScheduleTypeLimitsOnOff) # todo: limitsonoff?? is this correct schedule for WHF??
-
-    year_description = model.getYearDescription
-    assumed_year = year_description.assumedYear
-    num_days_in_months = Constants.NumDaysInMonths(year_description.isLeapYear)
-
-    time = []
-    for h in 1..24
-      time[h] = OpenStudio::Time.new(0, h, 0, 0)
-    end
-
-    (1..12).to_a.each do |m|
-      date_s = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(m), 1, assumed_year)
-      date_e = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(m), num_days_in_months[m - 1], assumed_year)
-
-      if ((mech_vent.season_type[m - 1] == Constants.SeasonHeating and mech_vent.htg_season) or (mech_vent.season_type[m - 1] == Constants.SeasonCooling and mech_vent.clg_season) or (mv_output.season_type[m - 1] == Constants.SeasonOverlap and mv_output.ovlp_season)) and (mech_vent.num_weekdays + mech_vent.num_weekends != 0)
-        on_rule = OpenStudio::Model::ScheduleRule.new(avail_sch)
-        on_rule.setName(obj_name_mech_vent + " availability schedule #{Schedule.allday_name} ruleset#{m} on")
-        on_rule_day = on_rule.daySchedule
-        on_rule_day.setName(obj_name_mech_vent + " availability schedule #{Schedule.allday_name}1 on")
-        for h in 1..24
-          on_rule_day.addValue(time[h], 1)
-        end
-        if nat_vent.num_weekdays >= 1
-          on_rule.setApplyMonday(true)
-        end
-        if nat_vent.num_weekdays >= 2
-          on_rule.setApplyWednesday(true)
-        end
-        if nat_vent.num_weekdays >= 3
-          on_rule.setApplyFriday(true)
-        end
-        if nat_vent.num_weekdays >= 4
-          on_rule.setApplyTuesday(true)
-        end
-        if nat_vent.num_weekdays == 5
-          on_rule.setApplyThursday(true)
-        end
-        if nat_vent.num_weekends >= 1
-          on_rule.setApplySaturday(true)
-        end
-        if nat_vent.num_weekends == 2
-          on_rule.setApplySunday(true)
-        end
-        on_rule.setStartDate(date_s)
-        on_rule.setEndDate(date_e)
-      else
-        off_rule = OpenStudio::Model::ScheduleRule.new(avail_sch)
-        off_rule.setName(obj_name_mech_vent + " availability schedule #{Schedule.allday_name} ruleset#{m} off")
-        off_rule_day = off_rule.daySchedule
-        off_rule_day.setName(obj_name_mech_vent + " availability schedule #{Schedule.allday_name}1 off")
-        for h in 1..24
-          off_rule_day.addValue(time[h], 0)
-        end
-        Schedule.set_weekday_rule(off_rule)
-        Schedule.set_weekend_rule(off_rule)
-        off_rule.setStartDate(date_s)
-        off_rule.setEndDate(date_e)
-      end
-    end
+    # placeholder schedule - to be updated once the rest of the measure is working properly
+    Schedule.setSchedule(model.alwaysOnDiscreteSchedule)
+    # avail_sch = OpenStudio::Model::ScheduleRuleset.new(model)
+    # avail_sch.setName(obj_name_mech_vent + " avail schedule")
+    #
+    # Schedule.set_schedule_type_limits(model, avail_sch, Constants.ScheduleTypeLimitsOnOff) # todo: limitsonoff?? is this correct schedule for WHF??
+    #
+    # year_description = model.getYearDescription
+    # assumed_year = year_description.assumedYear
+    # num_days_in_months = Constants.NumDaysInMonths(year_description.isLeapYear)
+    #
+    # time = []
+    # for h in 1..24
+    #   time[h] = OpenStudio::Time.new(0, h, 0, 0)
+    # end
+    #
+    # (1..12).to_a.each do |m|
+    #   date_s = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(m), 1, assumed_year)
+    #   date_e = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(m), num_days_in_months[m - 1], assumed_year)
+    #
+    #   if ((mech_vent.season_type[m - 1] == Constants.SeasonHeating and mech_vent.htg_season) or (mech_vent.season_type[m - 1] == Constants.SeasonCooling and mech_vent.clg_season) or (mv_output.season_type[m - 1] == Constants.SeasonOverlap and mv_output.ovlp_season)) and (mech_vent.num_weekdays + mech_vent.num_weekends != 0)
+    #     #todo: get this reviewed by Joe/Scott for Schedule
+    #     on_rule = OpenStudio::Model::ScheduleRule.new(avail_sch)
+    #     on_rule.setName(obj_name_mech_vent + " availability schedule #{Schedule.allday_name} ruleset#{m} on")
+    #     on_rule_day = on_rule.daySchedule
+    #     on_rule_day.setName(obj_name_mech_vent + " availability schedule #{Schedule.allday_name}1 on")
+    #     for h in 1..24
+    #       on_rule_day.addValue(time[h], 1)
+    #     end
+    #     if nat_vent.num_weekdays >= 1
+    #       on_rule.setApplyMonday(true)
+    #     end
+    #     if nat_vent.num_weekdays >= 2
+    #       on_rule.setApplyWednesday(true)
+    #     end
+    #     if nat_vent.num_weekdays >= 3
+    #       on_rule.setApplyFriday(true)
+    #     end
+    #     if nat_vent.num_weekdays >= 4
+    #       on_rule.setApplyTuesday(true)
+    #     end
+    #     if nat_vent.num_weekdays == 5
+    #       on_rule.setApplyThursday(true)
+    #     end
+    #     if nat_vent.num_weekends >= 1
+    #       on_rule.setApplySaturday(true)
+    #     end
+    #     if nat_vent.num_weekends == 2
+    #       on_rule.setApplySunday(true)
+    #     end
+    #     on_rule.setStartDate(date_s)
+    #     on_rule.setEndDate(date_e)
+    #   else
+    #     off_rule = OpenStudio::Model::ScheduleRule.new(avail_sch)
+    #     off_rule.setName(obj_name_mech_vent + " availability schedule #{Schedule.allday_name} ruleset#{m} off")
+    #     off_rule_day = off_rule.daySchedule
+    #     off_rule_day.setName(obj_name_mech_vent + " availability schedule #{Schedule.allday_name}1 off")
+    #     for h in 1..24
+    #       off_rule_day.addValue(time[h], 0)
+    #     end
+    #     Schedule.set_weekday_rule(off_rule)
+    #     Schedule.set_weekend_rule(off_rule)
+    #     off_rule.setStartDate(date_s)
+    #     off_rule.setEndDate(date_e)
+    #   end
+    # end
 
     # Sensors
 
     mvavail_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Schedule Value")
-    mvavail_sensor.setName("#{obj_name_natvent} nva s")
+    mvavail_sensor.setName("#{obj_name_mech_vent} whfa s")
     mvavail_sensor.setKeyName(avail_sch.name.to_s)
 
     mvsp_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Schedule Value")
-    mvsp_sensor.setName("#{obj_name_natvent} sp s")
+    mvsp_sensor.setName("#{obj_name_mech_vent} sp s")
     mvsp_sensor.setKeyName(mv_output.temp_sch.schedule.name.to_s)
 
     # Actuator
@@ -2071,8 +2074,21 @@ class Airflow
     equip_def.setFractionLost(1.0 - mv_output.frac_fan_heat)
     equip.setSchedule(model.alwaysOnDiscreteSchedule)
     equip.setEndUseSubcategory(obj_name_mech_vent + " house fan")
-    whole_house_fan_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(equip, "ElectricEquipment", "Electric Power Level")
+    whole_house_fan_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(equip, "ElectricEquipment", "Electric Power Level") # Todo: propose a new name for this?
     whole_house_fan_actuator.setName("#{equip.name} act")
+
+    equip_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
+    equip_def.setName(obj_name_infil + " whole house fan")
+    equip = OpenStudio::Model::ElectricEquipment.new(equip_def)
+    equip.setName(obj_name_infil + " whole house fan")
+    equip.setSpace(living_space)
+    equip_def.setFractionRadiant(0)
+    equip_def.setFractionLatent(0)
+    equip_def.setFractionLost(1.0 - mv_output.frac_fan_heat)
+    equip.setSchedule(model.alwaysOnDiscreteSchedule)
+    equip.setEndUseSubcategory(obj_name_mech_vent + " whole house fan")
+    whf_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(equip, "ElectricEquipment", "Electric Power Level")
+    whf_actuator.setName("#{equip.name} act")
 
     equip_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
     equip_def.setName(obj_name_infil + " range fan")
