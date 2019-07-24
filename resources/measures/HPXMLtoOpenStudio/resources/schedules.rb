@@ -520,7 +520,7 @@ end
 
 class HotWaterSchedule
   def initialize(model, runner, sch_name, temperature_sch_name, num_bedrooms, days_shift,
-                 file_prefix, target_water_temperature, create_sch_object = true,
+                 file_prefix, target_water_temperature, prof_type, create_sch_object = true,
                  schedule_type_limits_name = nil)
     @validated = true
     @model = model

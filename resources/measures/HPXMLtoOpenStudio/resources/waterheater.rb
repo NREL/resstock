@@ -1410,6 +1410,7 @@ class Waterheater
   end
 
   def self.configure_stratified_tank_setpoint_schedules(model, runner, new_heater, set_type, t_set, sch_file, wh_type)
+    puts("STRATIFIEDD=====")
     if set_type == Constants.WaterHeaterSetpointTypeConstant
       set_temp_c = UnitConversions.convert(t_set, "F", "C") + deadband(wh_type) / 2.0 # Half the deadband to account for E+ deadband
       new_schedule = OpenStudio::Model::ScheduleConstant.new(model)
@@ -1421,11 +1422,13 @@ class Waterheater
       new_heater.setHeater2SetpointTemperatureSchedule(new_schedule)
     elsif set_type == Constants.WaterHeaterSetpointTypeScheduled
       new_schedule = HourlySchedule.new(model, runner, "WH Setpoint Temp", sch_file, deadband(wh_type) * (9 / 5) / 2.0, true, [])
+      puts(new_schedule)
       unless new_schedule.validated?
         return false
       end
 
       wh_setpoint = new_schedule.schedule
+      puts(wh_setpoint)
       new_heater.heater1SetpointTemperatureSchedule.remove
       new_heater.heater2SetpointTemperatureSchedule.remove
       new_heater.setHeater1SetpointTemperatureSchedule(wh_setpoint)
