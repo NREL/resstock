@@ -652,8 +652,8 @@ class ResidentialAirflowTest < MiniTest::Test
     args_hash["whf_exhaust"] = 1200
     args_hash["shf_sch"] = "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0"
     expected_num_del_objects = {}
-    expected_num_new_objects = { }
-    expected_values = { }
+    expected_num_new_objects = {}
+    expected_values = {}
     model, result = _test_measure("SFD_2000sqft_2story_SL_UA_3Beds_2Baths_Denver_Furnace_CentralAC_ElecWHTank_ClothesWasher_ClothesDryer.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__, num_airloops)
   end
 

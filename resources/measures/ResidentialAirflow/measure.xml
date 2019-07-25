@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>residential_airflow</name>
   <uid>7d2adf5c-9995-49be-b662-a23d2452bb36</uid>
-  <version_id>5600e787-9f5e-4ec1-b67e-b3bf34698537</version_id>
-  <version_modified>20190701T173015Z</version_modified>
+  <version_id>a86e18c6-3967-4df2-b1fa-42fbcc01ed71</version_id>
+  <version_modified>20190725T163424Z</version_modified>
   <xml_checksum>19EEDBBB</xml_checksum>
   <class_name>ResidentialAirflow</class_name>
   <display_name>Set Residential Airflow</display_name>
@@ -349,6 +349,45 @@
       <default_value>100</default_value>
     </argument>
     <argument>
+      <name>whf_exhaust</name>
+      <display_name>Whole House Fan: Exhaust</display_name>
+      <description>Rated flow capacity of the whole house fanexhaust. This fan is assumed to run as per the schedule provided.</description>
+      <type>Double</type>
+      <units>cfm</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>1200</default_value>
+    </argument>
+    <argument>
+      <name>whf_sch</name>
+      <display_name>Whole house fan Schedule</display_name>
+      <description>Specify a 24-hour comma-separated schedule of 0s and 1s for applying the offset on weekdays.</description>
+      <type>String</type>
+      <units>hour of the day</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</default_value>
+    </argument>
+    <argument>
+      <name>has_whf</name>
+      <display_name>Mechanical Ventilatione: Has whole house fan</display_name>
+      <description>Specifies whether the building has awhole house fan.</description>
+      <type>Boolean</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
       <name>nat_vent_htg_offset</name>
       <display_name>Natural Ventilation: Heating Season Setpoint Offset</display_name>
       <description>The temperature offset below the hourly cooling setpoint, to which the living space is allowed to cool during months that are only in the heating season.</description>
@@ -650,13 +689,13 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>A11A96B8</checksum>
+      <checksum>245745D5</checksum>
     </file>
     <file>
       <filename>residential_airflow_test.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
-      <checksum>14BCF390</checksum>
+      <checksum>AABB011A</checksum>
     </file>
   </files>
 </measure>
