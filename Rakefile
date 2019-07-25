@@ -8,20 +8,36 @@ require 'pp'
 require 'colored'
 require 'json'
 
-desc 'perform tasks related to unit tests'
+desc 'Perform tasks related to unit tests'
 namespace :test do
   desc 'Run unit tests for all projects/measures'
-  Rake::TestTask.new('all') do |t|
+  Rake::TestTask.new('unit_tests') do |t|
     t.libs << 'test'
-    t.test_files = Dir['project_*/tests/*.rb'] + Dir['test/test_integrity_checks.rb'] + Dir['measures/*/tests/*.rb'] + Dir['resources/measures/*/tests/*.rb'] + Dir['workflows/tests/*.rb'] - Dir['resources/measures/HPXMLtoOpenStudio/tests/*.rb'] # HPXMLtoOpenStudio is tested upstream
+    t.test_files = Dir['project_*/tests/*.rb'] + Dir['test/test_integrity_checks.rb'] + Dir['measures/*/tests/*.rb'] + Dir['resources/measures/*/tests/*.rb'] + Dir['test/test_measures_osw.rb']
     t.warning = false
     t.verbose = true
   end
 
-  desc 'regenerate test osm files from osw files'
+  desc 'Run regression tests for all example osws'
+  Rake::TestTask.new('regression_tests') do |t|
+    t.libs << 'test'
+    t.test_files = Dir['workflows/tests/*.rb']
+    t.warning = false
+    t.verbose = true
+  end
+
+  desc 'Regenerate test osms from osws'
   Rake::TestTask.new('regenerate_osms') do |t|
     t.libs << 'test'
     t.test_files = Dir['test/osw_files/tests/*.rb']
+    t.warning = false
+    t.verbose = true
+  end
+  
+  desc 'Test creating measure osws'
+  Rake::TestTask.new('measures_osw') do |t|
+    t.libs << 'test'
+    t.test_files = Dir['test/test_measures_osw.rb']
     t.warning = false
     t.verbose = true
   end
@@ -136,7 +152,6 @@ end # rake task
 
 desc 'Perform integrity check on inputs for project_singlefamilydetached'
 Rake::TestTask.new('integrity_check_singlefamilydetached') do |t|
-  desc 'Run unit tests for all projects/measures'
   t.libs << 'test'
   t.test_files = Dir['project_singlefamilydetached/tests/*.rb']
   t.warning = false
@@ -392,8 +407,15 @@ def get_all_project_dir_names()
   return project_dir_names
 end
 
-desc 'update all measures'
-task :update_measures do
+desc 'Apply rubocop, update all measure xmls, and regenerate example osws'
+Rake::TestTask.new('update_measures') do |t|
+  t.libs << 'test'
+  t.test_files = Dir['test/test_update_measures.rb']
+  t.warning = false
+  t.verbose = true
+end
+
+def update_measures
   require 'openstudio'
 
   # Apply rubocop

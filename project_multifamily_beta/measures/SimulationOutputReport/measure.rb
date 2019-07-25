@@ -23,8 +23,16 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     return "Reports simulation outputs of interest."
   end
 
+  def num_options
+    return Constants.NumApplyUpgradeOptions # Synced with SimulationOutputReport measure
+  end
+
+  def num_costs_per_option
+    return Constants.NumApplyUpgradesCostsPerOption # Synced with SimulationOutputReport measure
+  end
+
   # define the arguments that the user will input
-  def arguments()
+  def arguments
     args = OpenStudio::Ruleset::OSArgumentVector.new
 
     return args
@@ -33,6 +41,8 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
   # return a vector of IdfObject's to request EnergyPlus objects needed by the run method
   def energyPlusOutputRequests(runner, user_arguments)
     super(runner, user_arguments)
+
+    return OpenStudio::IdfObjectVector.new if runner.halted
 
     # get the last model and sql file
     model = runner.lastOpenStudioModel
@@ -88,29 +98,14 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       "hvac_heating_capacity_w",
       "hvac_heating_supp_capacity_w",
       "upgrade_name",
-      "upgrade_cost_usd",
-      "upgrade_option_01_cost_usd",
-      "upgrade_option_01_lifetime_yrs",
-      "upgrade_option_02_cost_usd",
-      "upgrade_option_02_lifetime_yrs",
-      "upgrade_option_03_cost_usd",
-      "upgrade_option_03_lifetime_yrs",
-      "upgrade_option_04_cost_usd",
-      "upgrade_option_04_lifetime_yrs",
-      "upgrade_option_05_cost_usd",
-      "upgrade_option_05_lifetime_yrs",
-      "upgrade_option_06_cost_usd",
-      "upgrade_option_06_lifetime_yrs",
-      "upgrade_option_07_cost_usd",
-      "upgrade_option_07_lifetime_yrs",
-      "upgrade_option_08_cost_usd",
-      "upgrade_option_08_lifetime_yrs",
-      "upgrade_option_09_cost_usd",
-      "upgrade_option_09_lifetime_yrs",
-      "upgrade_option_10_cost_usd",
-      "upgrade_option_10_lifetime_yrs",
-      "weight"
+      "upgrade_cost_usd"
     ]
+    for option_num in 1..num_options
+      buildstock_outputs << "upgrade_option_%02d_cost_usd" % option_num
+      buildstock_outputs << "upgrade_option_%02d_lifetime_yrs" % option_num
+    end
+    buildstock_outputs << "weight"
+
     result = OpenStudio::Measure::OSOutputVector.new
     buildstock_outputs.each do |output|
       result << OpenStudio::Measure::OSOutput.makeDoubleOutput(output)
@@ -583,10 +578,10 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     has_costs = false
     option_cost_pairs = {}
     option_lifetimes = {}
-    for option_num in 1..10 # Sync with ApplyUpgrade measure
+    for option_num in 1..num_options # Sync with ApplyUpgrade measure
       option_cost_pairs[option_num] = []
       option_lifetimes[option_num] = nil
-      for cost_num in 1..2 # Sync with ApplyUpgrade measure
+      for cost_num in 1..num_costs_per_option # Sync with ApplyUpgrade measure
         cost_value = get_value_from_runner_past_results(runner, "option_#{option_num}_cost_#{cost_num}_value_to_apply", "apply_upgrade", false)
         next if cost_value.nil?
 

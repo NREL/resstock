@@ -1,17 +1,24 @@
 Installer Setup
 ###############
 
-After you have downloaded the OpenStudio installer, you will want to install Ruby. This will allow you to execute rake tasks contained in the `Rakefile <https://github.com/NREL/OpenStudio-BuildStock/blob/master/Rakefile>`_. Follow the instructions below for :ref:`windows-setup` or :ref:`mac-setup`.
+After you have downloaded the OpenStudio installer, you will want to install Ruby (2.2.4). This will allow you to execute rake tasks contained in the `Rakefile <https://github.com/NREL/OpenStudio-BuildStock/blob/master/Rakefile>`_. Follow the instructions below for :ref:`windows-setup` or :ref:`mac-setup`.
 
 .. _windows-setup:
 
 Windows Setup
 =============
 
-1. Install `Ruby <http://rubyinstaller.org/downloads/archives>`_. Follow the installation instructions `here <http://nrel.github.io/OpenStudio-user-documentation/getting_started/getting_started/#installation-steps>`_ ("Optional - Install Ruby").
-2. Run ``gem install bundler``. (If you get an error, you may have to issue the following: ``gem sources -r https://rubygems.org/`` followed by ``gem sources -a http://rubygems.org/``.)
-3. Download the DevKit at http://rubyinstaller.org/downloads/. Choose either the 32-bit or 64-bit version depending on which version of Ruby you installed. Run the installer and extract to a directory (e.g., C:\RubyDevKit). Go to this directory, run ``ruby dk.rb init``, modify the config.yml file as needed, and finally run ``ruby dk.rb install``.
-4. Run ``bundler`` from the OpenStudio-BuildStock directory. (If you get an error, the problem may be that ``git`` is not in your ``PATH``.)
+1. Install `Ruby <http://rubyinstaller.org/downloads/archives>`_ (2.2.4). Follow the installation instructions `here <http://nrel.github.io/OpenStudio-user-documentation/getting_started/getting_started/#installation-steps>`_ ("Optional - Install Ruby").
+2. Run ``gem install bundler -v 1.17.1``. 
+
+.. note::
+
+  If you get an error, you may have to issue the following: ``gem sources -r https://rubygems.org/`` followed by ``gem sources -a http://rubygems.org/``. If you still get an error, manually update your gem sources list by including a config file named ".gemrc" in your home directory (.e.g, /c/Users/<USERNAME>) with the following contents:
+
+.. literalinclude:: .gemrc
+
+3. Download the DevKit at http://rubyinstaller.org/downloads/ (e.g., DevKit-mingw64-64-4.7.2-20130224-1432-sfx.exe). Choose either the 32-bit or 64-bit version depending on which version of Ruby you installed. Run the installer and extract to a directory (e.g., C:\\RubyDevKit). Go to this directory, run ``ruby dk.rb init``, modify the config.yml file as needed, and finally run ``ruby dk.rb install``.
+4. Run ``bundle install`` from the OpenStudio-BuildStock directory. (If you get an error, the problem may be that ``git`` is not in your ``PATH``.)
 
 .. _mac-setup:
 
@@ -75,12 +82,12 @@ Add the path to the install ruby libraries top the bottom of your ``~/.bash_prof
 
 .. code:: bash
 
-  echo "export RUBYLIB=/Applications/OpenStudio-2.0.5/Ruby" >> ~/.bash_profile
-  echo "export ENERGYPLUS_EXE_PATH=\"/Applications/OpenStudio-2.1.0/EnergyPlus/energyplus-8.7.0\""
+  echo "export RUBYLIB=/Applications/OpenStudio-2.8.1/Ruby" >> ~/.bash_profile
+  echo "export ENERGYPLUS_EXE_PATH=\"/Applications/OpenStudio-2.8.1/EnergyPlus/energyplus-9.1.0\""
 
 Install bundler and the libraries that bundler installs.
 
 .. code:: bash
 
-  gem install bundler
+  gem install bundler -v 1.17.1
   bundle install
