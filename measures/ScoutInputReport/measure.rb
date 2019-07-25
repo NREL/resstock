@@ -33,6 +33,8 @@ class ScoutInputReport < OpenStudio::Measure::ReportingMeasure
   def energyPlusOutputRequests(runner, user_arguments)
     super(runner, user_arguments)
 
+    results = OpenStudio::IdfObjectVector.new
+
     # TODO
 
     return results
@@ -46,8 +48,8 @@ class ScoutInputReport < OpenStudio::Measure::ReportingMeasure
       "lighting",
       "refrigeration",
       "water_heating",
-      "MELS",
-      "PCs"
+      "mels",
+      "pcs"
     ] # TODO
 
     result = OpenStudio::Measure::OSOutputVector.new
