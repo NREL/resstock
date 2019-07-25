@@ -812,8 +812,8 @@ class Airflow
     # end
 
     # this logic is probably not exactly the same as clothes dryer
-    if not mech_vent.has_whf and mech_vent.whf_exhaust > 0
-      runner.registerWarning("No whole house fan object was found in #{unit.name.to_s} but the whole house fan exhaust specified is non-zero. Overriding whole house fan exhaust to be zero.")
+    if mech_vent.has_whf and mech_vent.whf_exhaust == 0
+      runner.registerWarning("A whole has fan was specified for #{unit.name.to_s} but with zero exhaust cfm. Not modeling a whole house fan.")
     end
 
     # if has_whf and mech_vent.whf_exhaust == 0
@@ -823,6 +823,7 @@ class Airflow
     bathroom_hour_avg_exhaust = mech_vent.bathroom_exhaust * nbaths * bath_exhaust_sch_operation / 60.0 # cfm
     range_hood_hour_avg_exhaust = mech_vent.range_exhaust * range_hood_exhaust_operation / 60.0 # cfm
     whf_avg_exhaust_cfm = mech_vent.whf_exhaust * whf_exhaust_operation / 60.0 # cfm
+
     #--- Calculate HRV/ERV effectiveness values. Calculated here for use in sizing routines.
 
     apparent_sensible_effectiveness = 0.0
@@ -1991,7 +1992,7 @@ class Airflow
 
     if mv_output.has_whf and mech_vent.whf_exhaust > 0
       whf_array = mech_vent.whf_sch # 24 value starting from 0 till 23 schedule of whole day; on 1 and off 0
-      whf_exhaust_sch = HourlyByMonthSchedule.new(model, runner, obj_name_mech_vent + " whoel house fan exhaust schedule", [whf_array] * 12, [whf_array] * 12, normalize_values = false, create_sch_object = true, winter_design_day_sch, summer_design_day_sch)
+      whf_exhaust_sch = HourlyByMonthSchedule.new(model, runner, obj_name_mech_vent + " whole house fan exhaust schedule", [whf_array] * 12, [whf_array] * 12, normalize_values = false, create_sch_object = true, winter_design_day_sch, summer_design_day_sch)
       whf_sch_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Schedule Value")
       whf_sch_sensor.setName("#{obj_name_infil} whf sch s")
       whf_sch_sensor.setKeyName(whf_exhaust_sch.schedule.name.to_s)
@@ -2077,18 +2078,20 @@ class Airflow
     whole_house_fan_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(equip, "ElectricEquipment", "Electric Power Level") # Todo: propose a new name for this?
     whole_house_fan_actuator.setName("#{equip.name} act")
 
-    equip_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
-    equip_def.setName(obj_name_infil + " whole house fan")
-    equip = OpenStudio::Model::ElectricEquipment.new(equip_def)
-    equip.setName(obj_name_infil + " whole house fan")
-    equip.setSpace(living_space)
-    equip_def.setFractionRadiant(0)
-    equip_def.setFractionLatent(0)
-    equip_def.setFractionLost(1.0 - mv_output.frac_fan_heat)
-    equip.setSchedule(model.alwaysOnDiscreteSchedule)
-    equip.setEndUseSubcategory(obj_name_mech_vent + " whole house fan")
-    whf_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(equip, "ElectricEquipment", "Electric Power Level")
-    whf_actuator.setName("#{equip.name} act")
+    if mv_output.has_whf and mech_vent.whf_exhaust > 0
+      equip_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
+      equip_def.setName(obj_name_infil + " whole house fan")
+      equip = OpenStudio::Model::ElectricEquipment.new(equip_def)
+      equip.setName(obj_name_infil + " whole house fan")
+      equip.setSpace(living_space)
+      equip_def.setFractionRadiant(0)
+      equip_def.setFractionLatent(0)
+      equip_def.setFractionLost(1.0 - mv_output.frac_fan_heat)
+      equip.setSchedule(model.alwaysOnDiscreteSchedule)
+      equip.setEndUseSubcategory(obj_name_mech_vent + " whole house fan")
+      whf_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(equip, "ElectricEquipment", "Electric Power Level")
+      whf_actuator.setName("#{equip.name} act")
+    end
 
     equip_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
     equip_def.setName(obj_name_infil + " range fan")
@@ -2262,7 +2265,7 @@ class Airflow
       infil_program.addLine("Set QductsIn = QductsIn+#{duct_lk_supply_fan_equiv_var.name}")
     end
     if mech_vent.type == Constants.VentTypeBalanced
-      infil_program.addLine("Set Qout = Qrange+Qbath+Qdryer+QhpwhOut+QductsOut")
+      infil_program.addLine("Set Qout = Qrange+Qbath+Qdryer+Qwhf+QhpwhOut+QductsOut")
       infil_program.addLine("Set Qin = QhpwhIn+QductsIn")
       infil_program.addLine("Set Qu = (@Abs (Qout-Qin))")
       infil_program.addLine("Set Qb = QWHV + (@Min Qout Qin)")
@@ -2273,7 +2276,7 @@ class Airflow
         infil_program.addLine("Set Qu = (@Abs (Qout-Qin))")
         infil_program.addLine("Set Qb = (@Min Qout Qin)")
       else # mech_vent.type == Constants.VentTypeSupply
-        infil_program.addLine("Set Qout = Qrange+Qbath+Qdryer+QhpwhOut+QductsOut")
+        infil_program.addLine("Set Qout = Qrange+Qbath+Qdryer+Qwhf+QhpwhOut+QductsOut")
         infil_program.addLine("Set Qin = QWHV+QhpwhIn+QductsIn")
         infil_program.addLine("Set Qu = @Abs (Qout- Qin)")
         infil_program.addLine("Set Qb = (@Min Qout Qin)")
@@ -2294,10 +2297,12 @@ class Airflow
       infil_program.addLine("Set faneff_sp = 1")
     end
 
-    if mv_output.whf_fan_power != 0
-      infil_program.addLine("Set faneff_whf = #{UnitConversions.convert(300.0 / mv_output.whf_fan_power, "cfm", "m^3/s")}")
-    else
-      infil_program.addLine("Set faneff_whf = 1")
+    if mv_output.has_whf and mech_vent.whf_exhaust > 0
+      if mv_output.whf_fan_power != 0
+        infil_program.addLine("Set faneff_whf = #{UnitConversions.convert(300.0 / mv_output.whf_fan_power, "cfm", "m^3/s")}")
+      else
+        infil_program.addLine("Set faneff_whf = 1")
+      end
       infil_program.addLine("Set #{whf_actuator.name} = (Qwhf*300)/faneff_whf*#{mv_output.num_fans_whf}")
     end
 

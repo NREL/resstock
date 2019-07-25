@@ -391,6 +391,7 @@ class OutputMeters
         electricity_dishwasher(custom_meter_infos, model, runner, unit, thermal_zones)
         electricity_plug_loads(custom_meter_infos, model, runner, unit, thermal_zones)
         electricity_house_fan(custom_meter_infos, model, runner, unit, thermal_zones)
+        # electricity_whole_house_fan(...) TODO
         electricity_range_fan(custom_meter_infos, model, runner, unit, thermal_zones)
         electricity_bath_fan(custom_meter_infos, model, runner, unit, thermal_zones)
         electricity_ceiling_fan(custom_meter_infos, model, runner, unit, thermal_zones)

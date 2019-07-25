@@ -208,6 +208,29 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
     mech_vent_cfis_airflow_frac.setDescription("Blower airflow rate, when the #{Constants.VentTypeCFIS} system is operating in ventilation mode, as a fraction of maximum blower airflow rate.")
     mech_vent_cfis_airflow_frac.setDefaultValue(1.0)
     args << mech_vent_cfis_airflow_frac
+    
+    # make a double argument for open hvac flue
+    has_whf = OpenStudio::Measure::OSArgument::makeBoolArgument("has_whf", true)
+    has_whf.setDisplayName("Mechanical Ventilation: Has Whole House Fan")
+    has_whf.setDescription("Specifies whether the building has awhole house fan.")
+    has_whf.setDefaultValue(false)
+    args << has_whf
+    
+    # make a double argument for whole house fan exhaust
+    whf_exhaust = OpenStudio::Measure::OSArgument::makeDoubleArgument("whf_exhaust", true)
+    whf_exhaust.setDisplayName("Whole House Fan: Exhaust")
+    whf_exhaust.setUnits("cfm")
+    whf_exhaust.setDescription("Rated flow capacity of the whole house fanexhaust. This fan is assumed to run as per the schedule provided.")
+    whf_exhaust.setDefaultValue(1200)
+    args << whf_exhaust
+
+    # make a string argument for whole house fan exhaust operating schedule
+    whf_sch = OpenStudio::Measure::OSArgument::makeStringArgument("whf_sch", true)
+    whf_sch.setDisplayName("Whole House Fan: Schedule")
+    whf_sch.setDescription("Specify a 24-hour comma-separated schedule of 0s and 1s for applying the offset on weekdays.")
+    whf_sch.setUnits("hour of the day")
+    whf_sch.setDefaultValue("0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0")
+    args << whf_sch
 
     # make an integer argument for hour of range spot ventilation
     range_exhaust_hour = OpenStudio::Measure::OSArgument::makeIntegerArgument("range_exhaust_hour", true)
@@ -230,29 +253,6 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
     clothes_dryer_exhaust.setDescription("Rated flow capacity of the clothes dryer exhaust. This fan is assumed to run after any clothes dryer events.")
     clothes_dryer_exhaust.setDefaultValue(100.0)
     args << clothes_dryer_exhaust
-
-    # make a double argument for whole house fan exhaust
-    whf_exhaust = OpenStudio::Measure::OSArgument::makeDoubleArgument("whf_exhaust", true)
-    whf_exhaust.setDisplayName("Whole House Fan: Exhaust")
-    whf_exhaust.setUnits("cfm")
-    whf_exhaust.setDescription("Rated flow capacity of the whole house fanexhaust. This fan is assumed to run as per the schedule provided.")
-    whf_exhaust.setDefaultValue(1200)
-    args << whf_exhaust
-
-    # make a string argument for whole house fan exhaust operating schedule
-    whf_sch = OpenStudio::Measure::OSArgument::makeStringArgument("whf_sch", true)
-    whf_sch.setDisplayName("Whole house fan Schedule")
-    whf_sch.setDescription("Specify a 24-hour comma-separated schedule of 0s and 1s for applying the offset on weekdays.")
-    whf_sch.setUnits("hour of the day")
-    whf_sch.setDefaultValue("0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0")
-    args << whf_sch
-
-    # make a double argument for open hvac flue
-    has_whf = OpenStudio::Measure::OSArgument::makeBoolArgument("has_whf", true)
-    has_whf.setDisplayName("Mechanical Ventilatione: Has whole house fan")
-    has_whf.setDescription("Specifies whether the building has awhole house fan.")
-    has_whf.setDefaultValue(false)
-    args << has_whf
 
     # make a double argument for heating season setpoint offset
     nat_vent_htg_offset = OpenStudio::Measure::OSArgument::makeDoubleArgument("nat_vent_htg_offset", true)
@@ -496,8 +496,7 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
     is_existing_home = runner.getBoolArgumentValue("is_existing_home", user_arguments)
     has_whf = runner.getBoolArgumentValue("has_whf", user_arguments)
     whf_exhaust = runner.getDoubleArgumentValue("whf_exhaust", user_arguments)
-    whf_sch = runner.getStringArgumentValue("whf_sch", user_arguments)
-    whf_sch = whf_sch.split(",").map(&:to_f)
+    whf_sch = runner.getStringArgumentValue("whf_sch", user_arguments).split(",").map(&:to_f)
 
     # Natural Ventilation
     nat_vent_htg_offset = runner.getDoubleArgumentValue("nat_vent_htg_offset", user_arguments)
