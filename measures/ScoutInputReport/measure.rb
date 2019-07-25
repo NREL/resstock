@@ -82,7 +82,15 @@ class ScoutInputReport < OpenStudio::Measure::ReportingMeasure
     sqlFile = sqlFile.get
     model.setSqlFile(sqlFile)
 
-    # TODO
+    # TODO: below is for testing on buildstockbatch
+    report_sim_output(runner, "heating", 1, "GJ", "GJ")
+    report_sim_output(runner, "cooling", 2, "GJ", "GJ")
+    report_sim_output(runner, "ventilation", 3, "GJ", "GJ")
+    report_sim_output(runner, "lighting", 4, "GJ", "GJ")
+    report_sim_output(runner, "refrigeration", 5, "GJ", "GJ")
+    report_sim_output(runner, "water_heating", 6, "GJ", "GJ")
+    report_sim_output(runner, "MELS", 7, "GJ", "GJ")
+    report_sim_output(runner, "PCs", 8, "GJ", "GJ")
 
     # close the sql file
     sqlFile.close
