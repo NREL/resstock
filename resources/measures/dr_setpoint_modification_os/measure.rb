@@ -164,10 +164,10 @@ class DrSetpointModificationOS < OpenStudio::Measure::ModelMeasure
     thermostat_shift_program_calling_manager.setCallingPoint("BeginTimestepBeforePredictor")
     
     # specify ems output
-    thermostat_shift_program_ems_output = model.getOutputEnergyManagementSystem
-    thermostat_shift_program_ems_output.setActuatorAvailabilityDictionaryReporting("Verbose")
-    thermostat_shift_program_ems_output.setInternalVariableAvailabilityDictionaryReporting("Verbose")
-    thermostat_shift_program_ems_output.setEMSRuntimeLanguageDebugOutputLevel("Verbose")
+    # thermostat_shift_program_ems_output = model.getOutputEnergyManagementSystem
+    # thermostat_shift_program_ems_output.setActuatorAvailabilityDictionaryReporting("Verbose")
+    # thermostat_shift_program_ems_output.setInternalVariableAvailabilityDictionaryReporting("Verbose")
+    # thermostat_shift_program_ems_output.setEMSRuntimeLanguageDebugOutputLevel("Verbose")
 
     return true
   end
