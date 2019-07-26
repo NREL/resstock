@@ -98,8 +98,13 @@ class DrSetpointModificationOS < OpenStudio::Measure::ModelMeasure
       if dr_event_schedule.is_initialized
         dr_event_schedule = dr_event_schedule.get.to_ScheduleRuleset.get
       else
-        runner.registerError("ERROR.  Schedule #{dr_event_schedule_name} cannot be loaded")
-        return false
+				dr_event_schedule = model.getObjectByTypeAndName('OS_Schedule_File'.to_IddObjectType, dr_event_schedule_name)
+				if dr_event_schedule.is_initialized
+					dr_event_schedule = dr_event_schedule.get.to_ScheduleFile.get
+				else
+					runner.registerError("ERROR.  Schedule #{dr_event_schedule_name} cannot be loaded")
+					return false
+				end	
       end
 
     # copy the heating and cooling setpoint schedules
