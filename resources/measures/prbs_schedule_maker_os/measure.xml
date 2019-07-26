@@ -1,0 +1,141 @@
+<measure>
+  <schema_version>3.0</schema_version>
+  <name>prbs_schedule_maker_os</name>
+  <uid>aee789b2-1918-41f2-b08e-df665f5e170a</uid>
+  <version_id>1647d0b5-12f8-4e4c-bc27-414d8a035e23</version_id>
+  <version_modified>20190725T205442Z</version_modified>
+  <xml_checksum>FC9586A7</xml_checksum>
+  <class_name>PrbsScheduleMakerOS</class_name>
+  <display_name>PrbsScheduleMakerOS</display_name>
+  <description>OS version of measure that makes a PRBS DR event schedule</description>
+  <modeler_description>OS version of measure that makes a PRBS DR event schedule</modeler_description>
+  <arguments>
+    <argument>
+      <name>dr_event_schedule</name>
+      <display_name>DR Event Schedule Name</display_name>
+      <description>Name of the schedule to use for setting the EMS code.</description>
+      <type>String</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>dr_event_hvac</default_value>
+    </argument>
+    <argument>
+      <name>minimum_value</name>
+      <display_name>Minimum Value for PRBS Signal</display_name>
+      <description>The minimum value to use. Typically -1 or 0.</description>
+      <type>Double</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0</default_value>
+    </argument>
+    <argument>
+      <name>maximum_value</name>
+      <display_name>Maximum Value for PRBS Signal</display_name>
+      <description>The maximum value to use. Typically 0 or 1.</description>
+      <type>Double</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>1</default_value>
+    </argument>
+    <argument>
+      <name>timestep</name>
+      <display_name>Timestep (min)</display_name>
+      <description>By default, the measure pulls the simulation timestep from the OpenStudio model. This argument provides the option to override that value.</description>
+      <type>Double</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>minimum_hold_duration</name>
+      <display_name>Minimum Hold Duration of DR State (min)</display_name>
+      <description>Specifies the minimum hold duration of the DR state.  Cannot be shorter than ((1 / Nyquist frequency) = 2 * timestep); otherwise, input will be overridden.</description>
+      <type>Double</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>maximum_hold_duration</name>
+      <display_name>Maximum Hold Duration of DR State (min)</display_name>
+      <description>Specifies the maximum hold duration of the DR state.  Cannot be longer than 3 hrs (180 min); otherwise, input will be overridden.</description>
+      <type>Double</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+  </arguments>
+  <outputs/>
+  <provenances/>
+  <tags>
+    <tag>Whole Building.Whole Building Schedules</tag>
+  </tags>
+  <attributes>
+    <attribute>
+      <name>Measure Type</name>
+      <value>ModelMeasure</value>
+      <datatype>string</datatype>
+    </attribute>
+    <attribute>
+      <name>Intended Software Tool</name>
+      <value>Apply Measure Now</value>
+      <datatype>string</datatype>
+    </attribute>
+    <attribute>
+      <name>Intended Software Tool</name>
+      <value>OpenStudio Application</value>
+      <datatype>string</datatype>
+    </attribute>
+    <attribute>
+      <name>Intended Software Tool</name>
+      <value>Parametric Analysis Tool</value>
+      <datatype>string</datatype>
+    </attribute>
+  </attributes>
+  <files>
+    <file>
+      <filename>LICENSE.md</filename>
+      <filetype>md</filetype>
+      <usage_type>license</usage_type>
+      <checksum>CD7F5672</checksum>
+    </file>
+    <file>
+      <filename>README.md.erb</filename>
+      <filetype>erb</filetype>
+      <usage_type>readmeerb</usage_type>
+      <checksum>703C9964</checksum>
+    </file>
+    <file>
+      <filename>.gitkeep</filename>
+      <filetype>gitkeep</filetype>
+      <usage_type>doc</usage_type>
+      <checksum>00000000</checksum>
+    </file>
+    <file>
+      <filename>prbs_schedule_maker_os_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>BC65D046</checksum>
+    </file>
+    <file>
+      <filename>example_model.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>53D14E69</checksum>
+    </file>
+    <file>
+      <filename>README.md</filename>
+      <filetype>md</filetype>
+      <usage_type>readme</usage_type>
+      <checksum>98803621</checksum>
+    </file>
+    <file>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>2.8.0</identifier>
+        <min_compatible>2.8.0</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>script</usage_type>
+      <checksum>670CE484</checksum>
+    </file>
+  </files>
+</measure>
