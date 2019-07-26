@@ -141,12 +141,12 @@ class ResidentialHotWaterHeaterHeatPumpTest < MiniTest::Test
   end
 
   # def test_retrofit_replace_hpwh
-    # args_hash = {}
-    # args_hash["fuel_type"] = Constants.FuelTypeGas
-    # expected_num_del_objects = { "WaterHeaterStratified" => 1, "ScheduleConstant" => 5, "CoilWaterHeatingAirToWaterHeatPumpWrapped" => 1, "FanOnOff" => 1, "WaterHeaterHeatPumpWrappedCondenser" => 1, "OtherEquipment" => 2, "OtherEquipmentDefinition" => 2, "EnergyManagementSystemProgramCallingManager" => 1, "EnergyManagementSystemProgram" => 2, "EnergyManagementSystemActuator" => 7, "EnergyManagementSystemSensor" => 9, "EnergyManagementSystemTrendVariable" => 3 }
-    # expected_num_new_objects = { "WaterHeaterStratified" => 1, "WaterHeaterHeatPumpWrappedCondenser" => 1, "CoilWaterHeatingAirToWaterHeatPumpWrapped" => 1, "FanOnOff" => 1, "OtherEquipment" => 2, "OtherEquipmentDefinition" => 2, "EnergyManagementSystemSensor" => 9, "EnergyManagementSystemActuator" => 7, "EnergyManagementSystemTrendVariable" => 3, "EnergyManagementSystemProgram" => 2, "EnergyManagementSystemProgramCallingManager" => 1, "ScheduleConstant" => 5, "ScheduleRuleset" => 7 }
-    # expected_values = { "TankVolume" => 45, "Heater1Height" => 0.732, "Heater2Height" => 0.129, "TankU" => 1.13, "OnCycle" => 3, "OffCycle" => 3, "CondBottom" => 0.0870, "CondTop" => 0.560, "AirflowRate" => 0.0854, "Sensor1Height" => 0.818, "Sensor2Height" => 0.818, "Cap" => 1400, "COP" => 2.8, "SHR" => 0.88, "WBTemp" => 13.08, "FanEff" => 0.235 }
-    # _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_HPWH.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
+  # args_hash = {}
+  # args_hash["fuel_type"] = Constants.FuelTypeGas
+  # expected_num_del_objects = { "WaterHeaterStratified" => 1, "ScheduleConstant" => 5, "CoilWaterHeatingAirToWaterHeatPumpWrapped" => 1, "FanOnOff" => 1, "WaterHeaterHeatPumpWrappedCondenser" => 1, "OtherEquipment" => 2, "OtherEquipmentDefinition" => 2, "EnergyManagementSystemProgramCallingManager" => 1, "EnergyManagementSystemProgram" => 2, "EnergyManagementSystemActuator" => 7, "EnergyManagementSystemSensor" => 9, "EnergyManagementSystemTrendVariable" => 3 }
+  # expected_num_new_objects = { "WaterHeaterStratified" => 1, "WaterHeaterHeatPumpWrappedCondenser" => 1, "CoilWaterHeatingAirToWaterHeatPumpWrapped" => 1, "FanOnOff" => 1, "OtherEquipment" => 2, "OtherEquipmentDefinition" => 2, "EnergyManagementSystemSensor" => 9, "EnergyManagementSystemActuator" => 7, "EnergyManagementSystemTrendVariable" => 3, "EnergyManagementSystemProgram" => 2, "EnergyManagementSystemProgramCallingManager" => 1, "ScheduleConstant" => 5, "ScheduleRuleset" => 7 }
+  # expected_values = { "TankVolume" => 45, "Heater1Height" => 0.732, "Heater2Height" => 0.129, "TankU" => 1.13, "OnCycle" => 3, "OffCycle" => 3, "CondBottom" => 0.0870, "CondTop" => 0.560, "AirflowRate" => 0.0854, "Sensor1Height" => 0.818, "Sensor2Height" => 0.818, "Cap" => 1400, "COP" => 2.8, "SHR" => 0.88, "WBTemp" => 13.08, "FanEff" => 0.235 }
+  # _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_HPWH.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   # end
 
   def test_retrofit_replace_tank_electric_shw
@@ -168,13 +168,13 @@ class ResidentialHotWaterHeaterHeatPumpTest < MiniTest::Test
   end
 
   # def test_retrofit_replace_hpwh_shw
-    # args_hash = {}
-    # args_hash["setpoint_temp"] = "130"
-    # args_hash["fuel_type"] = Constants.FuelTypeGas
-    # expected_num_del_objects = { "WaterHeaterStratified" => 1, "ScheduleConstant" => 5, "CoilWaterHeatingAirToWaterHeatPumpWrapped" => 1, "FanOnOff" => 1, "WaterHeaterHeatPumpWrappedCondenser" => 1, "OtherEquipment" => 2, "OtherEquipmentDefinition" => 2, "EnergyManagementSystemProgramCallingManager" => 1, "EnergyManagementSystemProgram" => 2, "EnergyManagementSystemActuator" => 7, "EnergyManagementSystemSensor" => 9, "EnergyManagementSystemTrendVariable" => 3 }
-    # expected_num_new_objects = { "WaterHeaterStratified" => 1, "WaterHeaterHeatPumpWrappedCondenser" => 1, "CoilWaterHeatingAirToWaterHeatPumpWrapped" => 1, "FanOnOff" => 1, "OtherEquipment" => 2, "OtherEquipmentDefinition" => 2, "EnergyManagementSystemSensor" => 9, "EnergyManagementSystemActuator" => 7, "EnergyManagementSystemTrendVariable" => 3, "EnergyManagementSystemProgram" => 2, "EnergyManagementSystemProgramCallingManager" => 1, "ScheduleConstant" => 5, "ScheduleRuleset" => 7 }
-    # expected_values = { "TankVolume" => 45, "Heater1Height" => 0.732, "Heater2Height" => 0.129, "TankU" => 1.13, "OnCycle" => 3, "OffCycle" => 3, "CondBottom" => 0.0870, "CondTop" => 0.560, "AirflowRate" => 0.0854, "Sensor1Height" => 0.818, "Sensor2Height" => 0.818, "Cap" => 1400, "COP" => 2.8, "SHR" => 0.88, "WBTemp" => 13.08, "FanEff" => 0.235, "StorageTankSetpoint1" => args_hash["setpoint_temp"].to_f, "StorageTankSetpoint2" => args_hash["setpoint_temp"].to_f }
-    # _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_HPWH_SHW.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
+  # args_hash = {}
+  # args_hash["setpoint_temp"] = "130"
+  # args_hash["fuel_type"] = Constants.FuelTypeGas
+  # expected_num_del_objects = { "WaterHeaterStratified" => 1, "ScheduleConstant" => 5, "CoilWaterHeatingAirToWaterHeatPumpWrapped" => 1, "FanOnOff" => 1, "WaterHeaterHeatPumpWrappedCondenser" => 1, "OtherEquipment" => 2, "OtherEquipmentDefinition" => 2, "EnergyManagementSystemProgramCallingManager" => 1, "EnergyManagementSystemProgram" => 2, "EnergyManagementSystemActuator" => 7, "EnergyManagementSystemSensor" => 9, "EnergyManagementSystemTrendVariable" => 3 }
+  # expected_num_new_objects = { "WaterHeaterStratified" => 1, "WaterHeaterHeatPumpWrappedCondenser" => 1, "CoilWaterHeatingAirToWaterHeatPumpWrapped" => 1, "FanOnOff" => 1, "OtherEquipment" => 2, "OtherEquipmentDefinition" => 2, "EnergyManagementSystemSensor" => 9, "EnergyManagementSystemActuator" => 7, "EnergyManagementSystemTrendVariable" => 3, "EnergyManagementSystemProgram" => 2, "EnergyManagementSystemProgramCallingManager" => 1, "ScheduleConstant" => 5, "ScheduleRuleset" => 7 }
+  # expected_values = { "TankVolume" => 45, "Heater1Height" => 0.732, "Heater2Height" => 0.129, "TankU" => 1.13, "OnCycle" => 3, "OffCycle" => 3, "CondBottom" => 0.0870, "CondTop" => 0.560, "AirflowRate" => 0.0854, "Sensor1Height" => 0.818, "Sensor2Height" => 0.818, "Cap" => 1400, "COP" => 2.8, "SHR" => 0.88, "WBTemp" => 13.08, "FanEff" => 0.235, "StorageTankSetpoint1" => args_hash["setpoint_temp"].to_f, "StorageTankSetpoint2" => args_hash["setpoint_temp"].to_f }
+  # _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_HPWH_SHW.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   # end
 
   def test_argument_error_tank_volume_lt_0
