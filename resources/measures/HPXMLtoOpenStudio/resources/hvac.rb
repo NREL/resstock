@@ -76,12 +76,12 @@ class HVAC
 
       ff_af = installed_airflow_rate / rated_airflow_rate
       f_chg = frac_manufacturer_charge - 1.0
-      
+
       if htg_coils.empty?
         # air conditioner airflow curves from Cutler et al.
         fault_program.addLine("Set a1_AF_Qgr_c = 0.718605468")
         fault_program.addLine("Set a2_AF_Qgr_c = 0.410099989")
-        fault_program.addLine("Set a3_AF_Qgr_c = -0.128705457")      
+        fault_program.addLine("Set a3_AF_Qgr_c = -0.128705457")
 
         fault_program.addLine("Set a1_AF_EIR_c = 1.32299905")
         fault_program.addLine("Set a2_AF_EIR_c = -0.477711207")
@@ -90,11 +90,11 @@ class HVAC
         # heat pump (cooling) airflow curves from Cutler et al.
         fault_program.addLine("Set a1_AF_Qgr_c = 0.718664047")
         fault_program.addLine("Set a2_AF_Qgr_c = 0.41797409")
-        fault_program.addLine("Set a3_AF_Qgr_c = -0.136638137")      
+        fault_program.addLine("Set a3_AF_Qgr_c = -0.136638137")
 
         fault_program.addLine("Set a1_AF_EIR_c = 1.143487507")
         fault_program.addLine("Set a2_AF_EIR_c = -0.13943972")
-        fault_program.addLine("Set a3_AF_EIR_c = -0.004047787")                
+        fault_program.addLine("Set a3_AF_EIR_c = -0.004047787")
       end
 
       fault_program.addLine("Set F_CH = #{f_chg.round(3)}")
@@ -103,13 +103,13 @@ class HVAC
         fault_program.addLine("Set a2_CH_Qgr_c = 4.93E-02")
         fault_program.addLine("Set a3_CH_Qgr_c = -1.18E-03")
         fault_program.addLine("Set a4_CH_Qgr_c = -1.15E+00")
-        
+
         fault_program.addLine("Set a1_CH_P_c = -3.13E-01")
         fault_program.addLine("Set a2_CH_P_c = 1.15E-02")
         fault_program.addLine("Set a3_CH_P_c = 2.66E-03")
         fault_program.addLine("Set a4_CH_P_c = -1.16E-01")
-        
-        ff_ch_c = 1.0/(1.0 + (-9.46E-01 + (4.93E-02*26.67) - (1.18E-03*35.0) - (1.15*f_chg))*f_chg)
+
+        ff_ch_c = 1.0 / (1.0 + (-9.46E-01 + (4.93E-02 * 26.67) - (1.18E-03 * 35.0) - (1.15 * f_chg)) * f_chg)
       else
         fault_program.addLine("Set a1_CH_Qgr_c = -1.63E-01")
         fault_program.addLine("Set a2_CH_Qgr_c = 1.14E-02")
@@ -120,10 +120,10 @@ class HVAC
         fault_program.addLine("Set a2_CH_P_c = -5.01E-03")
         fault_program.addLine("Set a3_CH_P_c = 9.89E-04")
         fault_program.addLine("Set a4_CH_P_c = 2.84E-01")
-        
-        ff_ch_c = 1.0/(1.0 + (-1.63E-01 + (1.14E-02*26.67) - (2.10E-04*35.0) - (1.40E-01*f_chg))*f_chg)
+
+        ff_ch_c = 1.0 / (1.0 + (-1.63E-01 + (1.14E-02 * 26.67) - (2.10E-04 * 35.0) - (1.40E-01 * f_chg)) * f_chg)
       end
-      
+
       fault_program.addLine("Set FF_CH_c = #{ff_ch_c.round(3)}")
 
       fault_program.addLine("Set q0_CH = a1_CH_Qgr_c")
@@ -142,23 +142,23 @@ class HVAC
       fault_program.addLine("Set p3_CH = a3_CH_P_c*#{tout_sensor.name}")
       fault_program.addLine("Set p4_CH = a4_CH_P_c*F_CH")
       fault_program.addLine("Set Y_CH_COP_c = Y_CH_Q_c/(1 + (p1_CH+(p2_CH)+(p3_CH)+(p4_CH))*F_CH)")
-     
+
       fault_program.addLine("Set eir0_AF_CH = a1_AF_EIR_c")
       fault_program.addLine("Set eir1_AF_CH = a2_AF_EIR_c*FF_CH_c")
       fault_program.addLine("Set eir2_AF_CH = a3_AF_EIR_c*FF_CH_c*FF_CH_c")
       fault_program.addLine("Set p_CH_COP_c = Y_CH_COP_c*(eir0_AF_CH+(eir1_AF_CH)+(eir2_AF_CH))")
 
-      ff_af_comb_c = ff_ch_c*ff_af
+      ff_af_comb_c = ff_ch_c * ff_af
       fault_program.addLine("Set FF_AF_comb_c = #{ff_af_comb_c.round(3)}")
-      
+
       fault_program.addLine("Set q0_AF_comb = a1_AF_Qgr_c")
       fault_program.addLine("Set q1_AF_comb = a2_AF_Qgr_c*FF_AF_comb_c")
       fault_program.addLine("Set q2_AF_comb = a3_AF_Qgr_c*FF_AF_comb_c*FF_AF_comb_c")
       fault_program.addLine("Set p_AF_Q_c = q0_AF_comb+(q1_AF_comb)+(q2_AF_comb)")
-      
+
       fault_program.addLine("Set eir0_AF_comb = a1_AF_EIR_c")
       fault_program.addLine("Set eir1_AF_comb = a2_AF_EIR_c*FF_AF_comb_c")
-      fault_program.addLine("Set eir2_AF_comb = a3_AF_EIR_c*FF_AF_comb_c*FF_AF_comb_c")      
+      fault_program.addLine("Set eir2_AF_comb = a3_AF_EIR_c*FF_AF_comb_c*FF_AF_comb_c")
       fault_program.addLine("Set p_AF_COP_c = 1.0/(eir0_AF_comb+(eir1_AF_comb)+(eir2_AF_comb))")
 
       fault_program.addLine("Set #{cool_cap_fff_act.name} = (p_CH_Q_c * p_AF_Q_c)")
@@ -184,12 +184,12 @@ class HVAC
       # heat pump (heating) airflow curves from Cutler et al.
       fault_program.addLine("Set a1_AF_Qgr_h = 0.694045465")
       fault_program.addLine("Set a2_AF_Qgr_h = 0.474207981")
-      fault_program.addLine("Set a3_AF_Qgr_h = -0.168253446")      
+      fault_program.addLine("Set a3_AF_Qgr_h = -0.168253446")
 
       fault_program.addLine("Set a1_AF_EIR_h = 2.185418751")
       fault_program.addLine("Set a2_AF_EIR_h = -1.942827919")
-      fault_program.addLine("Set a3_AF_EIR_h = 0.757409168")  
-      
+      fault_program.addLine("Set a3_AF_EIR_h = 0.757409168")
+
       if f_chg <= 0
         fault_program.addLine("Set a1_CH_Qgr_h = -0.0338595")
         fault_program.addLine("Set a2_CH_Qgr_h = 0.0202827")
@@ -198,8 +198,8 @@ class HVAC
         fault_program.addLine("Set a1_CH_P_h = 0.0615649")
         fault_program.addLine("Set a2_CH_P_h = 0.0044554")
         fault_program.addLine("Set a3_CH_P_h = -0.2598507")
-        
-        ff_ch_h = 1/(1 + (-0.0338595 + 0.0202827*8.33 - 2.6226343*f_chg)*f_chg)
+
+        ff_ch_h = 1 / (1 + (-0.0338595 + 0.0202827 * 8.33 - 2.6226343 * f_chg) * f_chg)
       else
         fault_program.addLine("Set a1_CH_Qgr_h = -0.0029514")
         fault_program.addLine("Set a2_CH_Qgr_h = 0.0007379")
@@ -208,8 +208,8 @@ class HVAC
         fault_program.addLine("Set a1_CH_P_h = -0.0594134")
         fault_program.addLine("Set a2_CH_P_h = 0.0159205")
         fault_program.addLine("Set a3_CH_P_h = 1.8872153")
-        
-        ff_ch_h = 1/(1 + (-0.0029514 + 0.0007379*8.33 - 0.0064112*f_chg)*f_chg)
+
+        ff_ch_h = 1 / (1 + (-0.0029514 + 0.0007379 * 8.33 - 0.0064112 * f_chg) * f_chg)
       end
 
       fault_program.addLine("Set FF_CH_h = #{ff_ch_h.round(3)}")
@@ -218,7 +218,7 @@ class HVAC
       fault_program.addLine("Set qh2_CH = a2_CH_Qgr_h*#{tout_sensor.name}")
       fault_program.addLine("Set qh3_CH = a3_CH_Qgr_h*F_CH")
       fault_program.addLine("Set Y_CH_Q_h = 1 + ((qh1_CH+(qh2_CH)+(qh3_CH))*F_CH)")
-      
+
       fault_program.addLine("Set qh0_AF_CH = a1_AF_Qgr_h")
       fault_program.addLine("Set qh1_AF_CH = a2_AF_Qgr_h*FF_CH_h")
       fault_program.addLine("Set qh2_AF_CH = a3_AF_Qgr_h*FF_CH_h*FF_CH_h")
@@ -244,7 +244,7 @@ class HVAC
 
       fault_program.addLine("Set eirh0_AF_comb = a1_AF_EIR_h")
       fault_program.addLine("Set eirh1_AF_comb = a2_AF_EIR_h*FF_AF_comb_h")
-      fault_program.addLine("Set eirh2_AF_comb = a3_AF_EIR_h*FF_AF_comb_h*FF_AF_comb_h")      
+      fault_program.addLine("Set eirh2_AF_comb = a3_AF_EIR_h*FF_AF_comb_h*FF_AF_comb_h")
       fault_program.addLine("Set p_AF_COP_h = 1.0/(eirh0_AF_comb+(eirh1_AF_comb)+(eirh2_AF_comb))")
 
       fault_program.addLine("Set #{hp_heat_cap_fff_act.name} = (p_CH_Q_h * p_AF_Q_h)")
