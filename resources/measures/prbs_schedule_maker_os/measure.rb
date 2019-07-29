@@ -149,7 +149,7 @@ class PrbsScheduleMakerOS < OpenStudio::Measure::ModelMeasure
     runner.registerValue('min_timestep', 'Minimum timestep (min) used as a unit in the new schedule.', min_timestep)
 		
     # compose the dr schedule
-		filepath = File.join(File.dirname(File.dirname(File.dirname(__FILE__))), 'files/PRBS_Schedule.csv')
+		filepath = File.join(File.dirname(File.dirname(File.dirname(__FILE__))),'files','PRBS_Schedule.csv')
 		
     # actual schedule file
     minutes = 0;
