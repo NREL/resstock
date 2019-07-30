@@ -94,6 +94,7 @@ class DrSetpointModificationOS < OpenStudio::Measure::ModelMeasure
       end
 
     # confirm dr event schedule exists
+		# runner.registerInfo("Loading DR Event Schedule: #{dr_event_schedule_name}")
       dr_event_schedule = model.getObjectByTypeAndName('OS_Schedule_Ruleset'.to_IddObjectType, dr_event_schedule_name)
       if dr_event_schedule.is_initialized
         dr_event_schedule = dr_event_schedule.get.to_ScheduleRuleset.get
@@ -102,8 +103,13 @@ class DrSetpointModificationOS < OpenStudio::Measure::ModelMeasure
 				if dr_event_schedule.is_initialized
 					dr_event_schedule = dr_event_schedule.get.to_ScheduleFile.get
 				else
-					runner.registerError("ERROR.  Schedule #{dr_event_schedule_name} cannot be loaded")
-					return false
+					dr_event_schedule = model.getObjectByTypeAndName('OS_Schedule_FixedInterval'.to_IddObjectType, dr_event_schedule_name)
+					if dr_event_schedule.is_initialized
+						dr_event_schedule = dr_event_schedule.get.to_ScheduleFixedInterval.get
+					else
+						runner.registerError("ERROR.  Schedule #{dr_event_schedule_name} cannot be loaded")
+						return false
+					end	
 				end	
       end
 

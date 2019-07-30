@@ -149,27 +149,27 @@ class PrbsScheduleMakerOS < OpenStudio::Measure::ModelMeasure
     runner.registerValue('min_timestep', 'Minimum timestep (min) used as a unit in the new schedule.', min_timestep)
 		
     # compose the dr schedule
-		filepath = File.join(File.dirname(File.dirname(File.dirname(__FILE__))),'files','PRBS_Schedule.csv')
+		# filepath = File.join(File.dirname(File.dirname(File.dirname(__FILE__))),'files','PRBS_Schedule.csv')
 		
-    # actual schedule file
-    minutes = 0;
-    next_value = nil
-    next_duration = nil
-    next_num_timesteps = 0
-    File.open(filepath, 'w') { |file| 
-      while minutes < 8760*60
-        if (next_num_timesteps == 0)
-          next_value = ([0, 1].sample == 0) ? minimum_value : maximum_value
-          next_duration = 1.0 / (rand(min_nf_frac..max_nf_frac) * nyquist_frequency) # minutes
-          next_num_timesteps = (next_duration / Float(min_timestep)).round
-        end
-        while (minutes < 8760*60) and (next_num_timesteps > 0)
-          file.write(next_value.to_s + "\n")
-          next_num_timesteps = next_num_timesteps - 1
-          minutes = minutes + min_timestep
-        end
-      end
-    }
+    # # actual schedule file
+    # minutes = 0
+    # next_value = nil
+    # next_duration = nil
+    # next_num_timesteps = 0
+    # File.open(filepath, 'w') { |file| 
+      # while minutes < 8760*60
+        # if (next_num_timesteps == 0)
+          # next_value = ([0, 1].sample == 0) ? minimum_value : maximum_value
+          # next_duration = 1.0 / (rand(min_nf_frac..max_nf_frac) * nyquist_frequency) # minutes
+          # next_num_timesteps = (next_duration / Float(min_timestep)).round
+        # end
+        # while (minutes < 8760*60) and (next_num_timesteps > 0)
+          # file.write(next_value.to_s + "\n")
+          # next_num_timesteps = next_num_timesteps - 1
+          # minutes = minutes + min_timestep
+        # end
+      # end
+    # }
 		
 		# create dr schedule and assign prbs schedule data to it
 		# create external file for prbs schedule data
@@ -180,17 +180,54 @@ class PrbsScheduleMakerOS < OpenStudio::Measure::ModelMeasure
 			# runner.registerInfo("CSV file does not exist")
 		# end
 		
-		prbs_external_file = OpenStudio::Model::ExternalFile::getExternalFile(model, filepath)
+		# prbs_external_file = OpenStudio::Model::ExternalFile::getExternalFile(model, filepath)
 		
-		if prbs_external_file.is_initialized
-			prbs_external_file = prbs_external_file.get
-			puts "Found CSV file at: #{filepath}"
-		else
-			runner.registerError("File (#{filepath}) could not be found and cannot be assigned to ScheduleFile object(s)")
-			return false
+		# if prbs_external_file.is_initialized
+			# prbs_external_file = prbs_external_file.get
+			# puts "Found CSV file at: #{filepath}"
+		# else
+			# runner.registerError("File (#{filepath}) could not be found and cannot be assigned to ScheduleFile object(s)")
+			# return false
+		# end
+		# dr_event_schedule = OpenStudio::Model::ScheduleFile.new(prbs_external_file,1,0)
+		# dr_event_schedule.setName(dr_event_schedule_name)
+		
+		
+		
+		# alternate schedule creation method
+		# use ScheduleFixedInterval instead
+		
+		# save data into array with an interval equal to the minimum timestep
+		timestep = 0
+		data = []
+    minutes = 0
+    next_value = nil
+    next_duration = nil
+    next_num_timesteps = 0
+		# loop through value creation until a year's worth of data is stored
+		while minutes < 8760*60
+			if (next_num_timesteps == 0)
+				next_value = ([0, 1].sample == 0) ? minimum_value : maximum_value
+				next_duration = 1.0 / (rand(min_nf_frac..max_nf_frac) * nyquist_frequency) # minutes
+				next_num_timesteps = (next_duration / Float(min_timestep)).round
+			end
+			while (minutes < 8760*60) and (next_num_timesteps > 0)
+				data[timestep] = next_value
+				next_num_timesteps -= 1
+				minutes += min_timestep
+				timestep += 1
+			end
 		end
-		dr_event_schedule = OpenStudio::Model::ScheduleFile.new(prbs_external_file,1,0)
-		dr_event_schedule.setName(dr_event_schedule_name)
+		# create schedule
+		
+		year_description = model.getYearDescription
+    start_date = year_description.makeDate(1, 1)
+    interval = OpenStudio::Time.new(0, 0, min_timestep, 0)
+
+    time_series = OpenStudio::TimeSeries.new(start_date, interval, OpenStudio::createVector(data), "")
+
+    dr_event_schedule = OpenStudio::Model::ScheduleFixedInterval.fromTimeSeries(time_series,model).get
+    dr_event_schedule.setName(dr_event_schedule_name)		
 		
     runner.registerInfo("Added schedule #{dr_event_schedule.name}")
 		
