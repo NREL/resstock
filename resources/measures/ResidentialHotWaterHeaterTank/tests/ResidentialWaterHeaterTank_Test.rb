@@ -248,14 +248,15 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTankless.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
-  # def test_retrofit_replace_hpwh_with_tank_gas
-  # args_hash = {}
-  # args_hash["fuel_type"] = Constants.FuelTypeGas
-  # expected_num_del_objects = { "WaterHeaterStratified" => 1, "ScheduleConstant" => 5, "CoilWaterHeatingAirToWaterHeatPumpWrapped" => 1, "FanOnOff" => 1, "WaterHeaterHeatPumpWrappedCondenser" => 1, "OtherEquipment" => 2, "OtherEquipmentDefinition" => 2, "EnergyManagementSystemProgramCallingManager" => 1, "EnergyManagementSystemProgram" => 2, "EnergyManagementSystemActuator" => 7, "EnergyManagementSystemSensor" => 9, "EnergyManagementSystemTrendVariable" => 3 }
-  # expected_num_new_objects = { "WaterHeaterMixed" => 1, "ScheduleConstant" => 1 }
-  # expected_values = { "TankVolume" => 40, "InputCapacity" => 11.72, "ThermalEfficiency" => 0.773, "TankUA" => 7.88, "Setpoint" => 125, "OnCycle" => 0, "OffCycle" => 0, "FuelType" => Constants.FuelTypeGas, "SkinLossFrac" => 0.64 }
-  # _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_HPWH.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
-  # end
+  def test_retrofit_replace_hpwh_with_tank_gas
+    skip
+    args_hash = {}
+    args_hash["fuel_type"] = Constants.FuelTypeGas
+    expected_num_del_objects = { "WaterHeaterStratified" => 1, "ScheduleConstant" => 5, "CoilWaterHeatingAirToWaterHeatPumpWrapped" => 1, "FanOnOff" => 1, "WaterHeaterHeatPumpWrappedCondenser" => 1, "OtherEquipment" => 2, "OtherEquipmentDefinition" => 2, "EnergyManagementSystemProgramCallingManager" => 1, "EnergyManagementSystemProgram" => 2, "EnergyManagementSystemActuator" => 7, "EnergyManagementSystemSensor" => 9, "EnergyManagementSystemTrendVariable" => 3 }
+    expected_num_new_objects = { "WaterHeaterMixed" => 1, "ScheduleConstant" => 1 }
+    expected_values = { "TankVolume" => 40, "InputCapacity" => 11.72, "ThermalEfficiency" => 0.773, "TankUA" => 7.88, "Setpoint" => 125, "OnCycle" => 0, "OffCycle" => 0, "FuelType" => Constants.FuelTypeGas, "SkinLossFrac" => 0.64 }
+    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_HPWH.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
+  end
 
   def test_retrofit_replace_tank_electric_shw_with_tank_gas
     args_hash = {}

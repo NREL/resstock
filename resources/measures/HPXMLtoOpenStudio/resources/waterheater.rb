@@ -10,7 +10,6 @@ require_relative "psychrometrics"
 class Waterheater
   def self.apply_tank(model, unit, runner, loop, space, fuel_type, cap, vol, ef,
                       re, set_type, t_set, sch_file, oncycle_p, offcycle_p, ec_adj, tank_model_type)
-
     # Validate inputs
     if vol <= 0
       runner.registerError("Storage tank volume must be greater than 0.")

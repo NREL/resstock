@@ -685,14 +685,16 @@ class ClothesDryer
       ann_f = daily_energy_fuel * num_days_in_year # therms/yr
     end
 
-    if ann_e > 0 or ann_f > 0
+    #FIXME: should either add a profile type argument to clothes dryer, or inherit the profile type from clothes washer (using AdditionalProperties most likely) [A. Speake]
+    prof_type = Constants.WaterHeaterDrawProfileTypeRealistic
 
+    if ann_e > 0 or ann_f > 0
       if sch.nil?
         # Create schedule
         hr_shift = day_shift - 1.0 / 24.0
         sch = HotWaterSchedule.new(model, runner, unit_obj_name_f + " schedule",
                                    unit_obj_name_f + " temperature schedule", nbeds,
-                                   hr_shift, "ClothesDryer", 0,
+                                   hr_shift, "ClothesDryer", 0, prof_type,
                                    create_sch_object = true, schedule_type_limits_name = Constants.ScheduleTypeLimitsFraction)
         if not sch.validated?
           return false
