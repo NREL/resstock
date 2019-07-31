@@ -45,13 +45,37 @@ class ResidentialHotWaterHeaterTankless < OpenStudio::Measure::ModelMeasure
     fuel_type.setDefaultValue(Constants.FuelTypeGas)
     args << fuel_type
 
+    # make an argument for setpoint type (constant or variable)
+    setpoint_type_args = OpenStudio::StringVector.new
+    setpoint_type_args << Constants.WaterHeaterSetpointTypeConstant
+    setpoint_type_args << Constants.WaterHeaterSetpointTypeScheduled
+    setpoint_type = OpenStudio::Measure::OSArgument::makeChoiceArgument("setpoint_type", setpoint_type_args, true, true)
+    setpoint_type.setDisplayName("Setpoint type")
+    setpoint_type.setDescription("The water heater setpoint type. The '#{Constants.WaterHeaterSetpointTypeConstant}' option will use a constant value for the whole year, while '#{Constants.WaterHeaterSetpointTypeScheduled}' will use 8760 values in a schedule file.")
+    setpoint_type.setDefaultValue(Constants.WaterHeaterSetpointTypeConstant)
+    args << setpoint_type
+
     # make an argument for hot water setpoint temperature
     setpoint_temp = osargument::makeDoubleArgument("setpoint_temp", true)
     setpoint_temp.setDisplayName("Setpoint")
-    setpoint_temp.setDescription("Water heater setpoint temperature.")
+    setpoint_temp.setDescription("Water heater setpoint temperature. This value will be ignored if the setpoint type is Scheduled.")
     setpoint_temp.setUnits("F")
     setpoint_temp.setDefaultValue(125)
     args << setpoint_temp
+
+    # make an argument for the directory that contains the hourly schedules
+    sp_dir = OpenStudio::Measure::OSArgument.makeStringArgument("schedules_directory", true)
+    sp_dir.setDisplayName("Setpoint and Operating Mode Schedule Directory")
+    sp_dir.setDescription("Absolute (or relative) directory to schedule files. This argument will be ignored if a constant setpoint type is used instead.")
+    sp_dir.setDefaultValue("./resources")
+    args << sp_dir
+
+    # make an argument for the 8760 hourly setpoint schedule
+    sp_sch = OpenStudio::Measure::OSArgument.makeStringArgument("setpoint_schedule", true)
+    sp_sch.setDisplayName("Setpoint Schedule File Name")
+    sp_sch.setDescription("Name of the hourly setpoint schedule. Setpoint should be defined (in F) for every hour. The operating mode schedule must also be located in the same location.")
+    sp_sch.setDefaultValue("hourly_setpoint_schedule.csv")
+    args << sp_sch
 
     # make a choice argument for location
     location_args = OpenStudio::StringVector.new
@@ -117,7 +141,10 @@ class ResidentialHotWaterHeaterTankless < OpenStudio::Measure::ModelMeasure
     energy_factor = runner.getDoubleArgumentValue("energy_factor", user_arguments)
     cycling_derate = runner.getDoubleArgumentValue("cycling_derate", user_arguments)
     location = runner.getStringArgumentValue("location", user_arguments)
+    setpoint_type = runner.getStringArgumentValue("setpoint_type", user_arguments)
     setpoint_temp = runner.getDoubleArgumentValue("setpoint_temp", user_arguments).to_f
+    schedule_directory = runner.getStringArgumentValue("schedules_directory", user_arguments)
+    setpoint_schedule = runner.getStringArgumentValue("setpoint_schedule", user_arguments)
     oncycle_power = runner.getDoubleArgumentValue("oncyc_power", user_arguments)
     offcycle_power = runner.getDoubleArgumentValue("offcyc_power", user_arguments)
 
@@ -148,6 +175,18 @@ class ResidentialHotWaterHeaterTankless < OpenStudio::Measure::ModelMeasure
 
     location_hierarchy = Waterheater.get_location_hierarchy(ba_cz_name)
 
+    if setpoint_type == Constants.WaterHeaterSetpointTypeScheduled
+      unless (Pathname.new schedule_directory).absolute?
+        schedule_directory = File.expand_path(File.join(File.dirname(__FILE__), schedule_directory))
+      end
+      setpoint_schedule_file = File.join(schedule_directory, setpoint_schedule)
+
+      if not File.exists?(setpoint_schedule_file)
+        runner.registerError("'#{setpoint_schedule_file}' does not exist.")
+        return false
+      end
+    end
+
     Waterheater.remove(model, runner)
 
     units.each_with_index do |unit, unit_index|
@@ -165,7 +204,9 @@ class ResidentialHotWaterHeaterTankless < OpenStudio::Measure::ModelMeasure
 
       success = Waterheater.apply_tankless(model, unit, runner, loop, space, fuel_type,
                                            capacity, energy_factor, cycling_derate,
-                                           setpoint_temp, oncycle_power, offcycle_power, 1.0)
+                                           setpoint_type, setpoint_temp,
+                                           setpoint_schedule_file, oncycle_power,
+                                           offcycle_power, 1.0)
       return false if not success
     end
 

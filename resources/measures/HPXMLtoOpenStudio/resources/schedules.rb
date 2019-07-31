@@ -520,7 +520,7 @@ end
 
 class HotWaterSchedule
   def initialize(model, runner, sch_name, temperature_sch_name, num_bedrooms, days_shift,
-                 file_prefix, target_water_temperature, create_sch_object = true,
+                 file_prefix, target_water_temperature, prof_type, create_sch_object = true,
                  schedule_type_limits_name = nil)
     @validated = true
     @model = model
@@ -540,8 +540,15 @@ class HotWaterSchedule
     timestep_minutes = (60 / @model.getTimestep.numberOfTimestepsPerHour).to_i
     weeks = 1 # use a single week that repeats
 
-    data = loadMinuteDrawProfileFromFile(timestep_minutes, days_shift, weeks)
-    @totflow, @maxflow, @ontime = loadDrawProfileStatsFromFile()
+    if prof_type == Constants.WaterHeaterDrawProfileTypeRealistic
+      data = loadMinuteDrawProfileFromFile(timestep_minutes, days_shift, weeks)
+      @totflow, @maxflow, @ontime = loadDrawProfileStatsFromFile()
+    elsif prof_type == Constants.WaterHeaterDrawProfileTypeSmooth
+      # TODO: new methods for smooth draw profiles below
+      data = loadMinuteDrawProfileFromFile(timestep_minutes, days_shift, weeks)
+      @totflow, @maxflow, @ontime = loadDrawProfileStatsFromFile()
+    end
+
     if data.nil? or @totflow.nil? or @maxflow.nil? or @ontime.nil?
       @validated = false
       return

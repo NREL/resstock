@@ -26,6 +26,7 @@ class ResidentialHotWaterSolarTest < MiniTest::Test
   end
 
   def test_faces_south_hpwh_hardcoded_volume
+    skip
     args_hash = {}
     args_hash["storage_vol"] = "80.0"
     expected_num_del_objects = {}

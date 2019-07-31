@@ -92,7 +92,7 @@ class ClothesWasher
   def self.apply(model, unit, runner, imef, rated_annual_energy, annual_cost,
                  test_date, drum_volume, cold_cycle, thermostatic_control,
                  internal_heater, fill_sensor, mult_e, mult_hw, d_sh, cd_sch,
-                 space, plant_loop, mains_temps)
+                 space, plant_loop, mains_temps, prof_type)
 
     # Check for valid inputs
     if imef <= 0
@@ -419,8 +419,7 @@ class ClothesWasher
       # Create schedule
       sch = HotWaterSchedule.new(model, runner, Constants.ObjectNameClothesWasher + " schedule",
                                  Constants.ObjectNameClothesWasher + " temperature schedule",
-                                 nbeds, d_sh, "ClothesWasher", water_temp,
-                                 create_sch_object = true, schedule_type_limits_name = Constants.ScheduleTypeLimitsFraction)
+                                 nbeds, d_sh, "ClothesWasher", water_temp, prof_type)
       if not sch.validated?
         return false
       end
@@ -686,14 +685,16 @@ class ClothesDryer
       ann_f = daily_energy_fuel * num_days_in_year # therms/yr
     end
 
-    if ann_e > 0 or ann_f > 0
+    #FIXME: should either add a profile type argument to clothes dryer, or inherit the profile type from clothes washer (using AdditionalProperties most likely) [A. Speake]
+    prof_type = Constants.WaterHeaterDrawProfileTypeRealistic
 
+    if ann_e > 0 or ann_f > 0
       if sch.nil?
         # Create schedule
         hr_shift = day_shift - 1.0 / 24.0
         sch = HotWaterSchedule.new(model, runner, unit_obj_name_f + " schedule",
                                    unit_obj_name_f + " temperature schedule", nbeds,
-                                   hr_shift, "ClothesDryer", 0,
+                                   hr_shift, "ClothesDryer", 0, prof_type,
                                    create_sch_object = true, schedule_type_limits_name = Constants.ScheduleTypeLimitsFraction)
         if not sch.validated?
           return false
@@ -954,7 +955,7 @@ class Dishwasher
   def self.apply(model, unit, runner, num_settings, rated_annual_energy,
                  cold_inlet, has_internal_heater, cold_use, test_date,
                  annual_gas_cost, mult_e, mult_hw, d_sh, space, plant_loop,
-                 mains_temps)
+                 mains_temps, prof_type)
 
     # Check for valid inputs
     if num_settings < 1
@@ -1191,8 +1192,7 @@ class Dishwasher
       # Create schedule
       sch = HotWaterSchedule.new(model, runner, Constants.ObjectNameDishwasher + " schedule",
                                  Constants.ObjectNameDishwasher + " temperature schedule",
-                                 nbeds, d_sh, "Dishwasher", wh_setpoint,
-                                 create_sch_object = true, schedule_type_limits_name = Constants.ScheduleTypeLimitsFraction)
+                                 nbeds, d_sh, "Dishwasher", wh_setpoint, prof_type)
       if not sch.validated?
         return false
       end
