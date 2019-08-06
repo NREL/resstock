@@ -326,6 +326,11 @@ class ProcessSingleSpeedAirSourceHeatPump < OpenStudio::Measure::ModelMeasure
         end
       end
 
+      if rated_cfm_per_ton != actual_cfm_per_ton
+        # Use NIST fan power correlation to overwrite fan_power_installed
+        fan_power_installed = 0.00072 * (actual_cfm_per_ton - rated_cfm_per_ton) + fan_power_installed
+      end
+
       success = HVAC.apply_central_ashp_1speed(model, unit, runner, seer, hspf, eers, cops, shrs,
                                                fan_power_rated, fan_power_installed, min_temp,
                                                crankcase_capacity, crankcase_temp,
