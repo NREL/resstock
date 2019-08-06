@@ -229,6 +229,11 @@ class ProcessSingleSpeedCentralAirConditioner < OpenStudio::Measure::ModelMeasur
         end
       end
 
+      if rated_cfm_per_ton != actual_cfm_per_ton
+        # Use NIST fan power correlation to overwrite fan_power_installed
+        fan_power_installed = -0.00072 * (actual_cfm_per_ton - rated_cfm_per_ton) + fan_power_installed
+      end
+
       success = HVAC.apply_central_ac_1speed(model, unit, runner, seer, eers, shrs,
                                              fan_power_rated, fan_power_installed,
                                              crankcase_capacity, crankcase_temp,
