@@ -73,7 +73,6 @@ class Waterheater
     storage_tank = get_shw_storage_tank(model, unit)
 
     if storage_tank.nil?
-      runner.registerInfo("Storage tank NIL")
       loop.addSupplyBranchForComponent(new_heater)
     else
       runner.registerInfo("SETTING HEATER SETPOINT SCHEDULES")
@@ -1266,8 +1265,10 @@ class Waterheater
   end
 
   def self.create_new_heater(name, cap, fuel, vol, ef, re, set_type, t_set, sch_file, thermal_zone, oncycle_p, offcycle_p, ec_adj, wh_type, cyc_derate, nbeds, tank_model_type, model, runner)
+    runner.registerInfo("creating new WH heater")  #################################################
     if tank_model_type == Constants.WaterHeaterTypeTankModelTypeStratified
       # Calculate necessary geometry parameters for the stratified tank
+      runner.registerInfo("creating new stratified tank WH")  #################################################
 
       act_vol = calc_actual_tankvol(vol, fuel, wh_type)
       u, ua, eta_c = calc_tank_UA(act_vol, fuel, ef, re, cap, wh_type, cyc_derate)
