@@ -1426,7 +1426,7 @@ class Waterheater
       unless new_schedule.validated?
         return false
       end
-      runner.registerInfo("creating stratified WH schedule: '#{new_schedule}'")  #################################################
+      runner.registerInfo("creating stratified WH schedule: '#{new_schedule.schedule}'")  #################################################
       wh_setpoint = new_schedule.schedule
       new_heater.heater1SetpointTemperatureSchedule.remove
       new_heater.heater2SetpointTemperatureSchedule.remove
