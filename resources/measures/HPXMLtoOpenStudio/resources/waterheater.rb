@@ -73,8 +73,10 @@ class Waterheater
     storage_tank = get_shw_storage_tank(model, unit)
 
     if storage_tank.nil?
+      runner.registerInfo("Storage tank NIL")
       loop.addSupplyBranchForComponent(new_heater)
     else
+      runner.registerInfo("SETTING HEATER SETPOINT SCHEDULES")
       storage_tank.setHeater1SetpointTemperatureSchedule(new_heater.setpointTemperatureSchedule.get)
       storage_tank.setHeater2SetpointTemperatureSchedule(new_heater.setpointTemperatureSchedule.get)
       new_heater.addToNode(storage_tank.supplyOutletModelObject.get.to_Node.get)
