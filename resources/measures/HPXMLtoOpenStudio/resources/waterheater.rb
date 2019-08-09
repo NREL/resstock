@@ -926,6 +926,8 @@ class Waterheater
               objects_to_remove << hpwh.tank
               objects_to_remove << hpwh
             end
+            
+            objects_to_remove << wh
             objects_to_remove << wh.to_WaterHeaterStratified.get.heater1SetpointTemperatureSchedule
             objects_to_remove << wh.to_WaterHeaterStratified.get.heater2SetpointTemperatureSchedule
 
