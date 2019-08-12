@@ -52,10 +52,22 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
     dr_arg.setDefaultValue('18-22')
     args << dr_arg
 
+    dr_arg = OpenStudio::Measure::OSArgument::makeStringArgument("summer_take_hours", false)
+    dr_arg.setDisplayName("Hours for the summer during which the load is low")
+    dr_arg.setDescription("Period for the summer months in 24-hour format a-b,c-d inclusive all hours, when the load is low")
+    dr_arg.setDefaultValue('3-7')
+    args << dr_arg
+
     dr_arg = OpenStudio::Measure::OSArgument::makeStringArgument("winter_peak_hours", false)
     dr_arg.setDisplayName("Peak hours for the winter time")
     dr_arg.setDescription("Peak period for the winter months in 24-hour format a-b,c-d inclusive all hours")
     dr_arg.setDefaultValue('5-9,18-22')
+    args << dr_arg
+
+    dr_arg = OpenStudio::Measure::OSArgument::makeStringArgument("winter_take_hours", false)
+    dr_arg.setDisplayName("Hours for the winter during which the load is low")
+    dr_arg.setDescription("Period for the winter months in 24-hour format a-b,c-d inclusive all hours, when the load is low")
+    dr_arg.setDefaultValue('10-14')
     args << dr_arg
 
     dr_arg = OpenStudio::Measure::OSArgument::makeStringArgument("summer_months", false)
@@ -88,6 +100,12 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
     dr_arg.setDefaultValue(true)
     args << dr_arg
 
+    dr_arg = OpenStudio::Measure::OSArgument::makeBoolArgument("shift_PP", false)
+    dr_arg.setDisplayName("If pool pump operation should be shifted to avoid the peaks")
+    dr_arg.setDescription("The operation of pool pump would be shifted form peak hours to the take hours")
+    dr_arg.setDefaultValue(true)
+    args << dr_arg
+
     return args
   end
 
@@ -106,7 +124,9 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
     dr_dir = runner.getStringArgumentValue("dr_directory", user_arguments)
 
     summer_peak_hours = runner.getStringArgumentValue("summer_peak_hours", user_arguments)
+    summer_take_hours = runner.getStringArgumentValue("summer_take_hours", user_arguments)
     winter_peak_hours = runner.getStringArgumentValue("winter_peak_hours", user_arguments)
+    winter_take_hours = runner.getStringArgumentValue("winter_take_hours", user_arguments)
     summer_months = runner.getStringArgumentValue("summer_months", user_arguments)
     winter_months = runner.getStringArgumentValue("winter_months", user_arguments)
 
@@ -121,16 +141,16 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
 
     summer_peak_hours = array_interval_input(summer_peak_hours)
     winter_peak_hours = array_interval_input(winter_peak_hours)
+    summer_take_hours = array_interval_input(summer_take_hours)
+    winter_take_hours = array_interval_input(winter_take_hours)
     summer_months = expand_interval_input(summer_months)
     winter_months = expand_interval_input(winter_months)
     shift_CW = runner.getBoolArgumentValue("shift_CW", user_arguments)
-
     shift_CD = runner.getBoolArgumentValue("shift_CD", user_arguments)
     shift_DW = runner.getBoolArgumentValue("shift_DW", user_arguments)
-
+    shift_PP = runner.getBoolArgumentValue("shift_PP", user_arguments)
 
     def avoid_peaks(day_sch, peak_hours, model)
-
       def create_new_day_schedule(times,values,model)
         new_day_sch = OpenStudio::Model::ScheduleDay.new(model)
         times.each_with_index do |time, index|
@@ -154,14 +174,6 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
       puts("Got before Sch_Vals: #{old_vals}")
       puts("Got after Sch_Vals: #{day_sch.values}")
       return day_sch
-
-      # times = day_sch.times
-      # values = day_sch.values
-      # new_day_sch = OpenStudio::Model::ScheduleDay.new(model)
-      # times.each_with_index do |time, index|
-      #   new_day_sch.addValue(time, values[index])
-      # end
-      # return new_day_sch
     end
 
     units = Geometry.get_building_units(model, runner)
