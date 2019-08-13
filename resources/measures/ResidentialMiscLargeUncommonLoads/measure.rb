@@ -994,7 +994,7 @@ class ResidentialMiscLargeUncommonLoads < OpenStudio::Measure::ModelMeasure
 
         unit_obj_name = Constants.ObjectNameElectricVehicle(unit.name.to_s)
         success, ann_e, electric_vehicle_sch = MiscLoads.apply_electric(model, unit, runner, ev_annual_energy, ev_charger_mult, ev_charger_weekday_sch,
-                                                  ev_charger_weekend_sch, ev_charger_monthly_sch, nil, nil, unit_obj_name, false)
+                                                                        ev_charger_weekend_sch, ev_charger_monthly_sch, nil, nil, unit_obj_name, false)
 
         return false if not success
 
