@@ -83,11 +83,23 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
     appl_summer_peak.setDefaultValue("0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0")
     args << appl_summer_peak
 
+    appl_summer_take = OpenStudio::Measure::OSArgument::makeStringArgument("appl_summer_take", false)
+    appl_summer_take.setDisplayName("Hours for the summer during which the load is low")
+    appl_summer_take.setDescription("Period for the summer months in 24-hour format a-b,c-d inclusive all hours, when the load is low") ###fix
+    appl_summer_take.setDefaultValue("0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0")
+    args << appl_summer_take
+
     appl_winter_peak = OpenStudio::Measure::OSArgument::makeStringArgument("appl_winter_peak", false)
     appl_winter_peak.setDisplayName("Peak hours for the winter time")
     appl_winter_peak.setDescription("Peak period for the winter months in 24-hour format a-b,c-d inclusive all hours") ###fix
     appl_winter_peak.setDefaultValue("0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0")
     args << appl_winter_peak
+
+    appl_winter_take = OpenStudio::Measure::OSArgument::makeStringArgument("appl_winter_take", false)
+    appl_winter_take.setDisplayName("Hours for the winter during which the load is low")
+    appl_winter_take.setDescription("Period for the winter months in 24-hour format a-b,c-d inclusive all hours, when the load is low") ###fix
+    appl_winter_take.setDefaultValue("0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0")
+    args << appl_winter_take
 
     appl_summer_season = OpenStudio::Measure::OSArgument::makeStringArgument("appl_summer_season", false)
     appl_summer_season.setDisplayName("Which months count as summer")
@@ -142,7 +154,9 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
 
     # Import appliance DR arguments
     appl_summer_peak = runner.getStringArgumentValue("appl_summer_peak", user_arguments)
+    appl_summer_take = runner.getStringArgumentValue("appl_summer_take", user_arguments)
     appl_winter_peak = runner.getStringArgumentValue("appl_winter_peak", user_arguments)
+    appl_winter_take = runner.getStringArgumentValue("appl_winter_take", user_arguments)
     appl_summer_season = runner.getStringArgumentValue("appl_summer_season", user_arguments)
     appl_winter_season = runner.getStringArgumentValue("appl_winter_season", user_arguments)
     shift_CW = runner.getBoolArgumentValue("shift_CW", user_arguments)
@@ -150,7 +164,9 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
     shift_DW = runner.getBoolArgumentValue("shift_DW", user_arguments)
 
     appl_summer_peak = appl_summer_peak.split(",").map(&:to_f)
+    appl_summer_take = appl_summer_take.split(",").map(&:to_f)
     appl_winter_peak = appl_winter_peak.split(",").map(&:to_f)
+    appl_winter_take = appl_winter_take.split(",").map(&:to_f)
     appl_summer_season = appl_summer_season.split(",").map(&:to_f)
     appl_winter_season = appl_winter_season.split(",").map(&:to_f)
 
@@ -161,39 +177,6 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
         finished_zones << thermal_zone
       end
     end
-
-    # Get hot water appliance objects
-    cw_obj, dw_obj, cd_obj = nil, nil, nil
-    #Electric
-    model.getElectricEquipments.each do |eqp|
-      if eqp.endUseSubcategory == Constants.ObjectNameClothesWasher()
-        cw_obj = eqp
-      elsif eqp.endUseSubcategory == Constants.ObjectNameDishwasher()
-        dw_obj = eqp
-      elsif eqp.endUseSubcategory == Constants.ObjectNameClothesDryer("electric")
-        cd_obj = eqp
-      end
-    end
-    #Gas 
-    model.getOtherEquipments.each do |eqp|
-      if eqp.endUseSubcategory == Constants.ObjectNameClothesDryer("gas")
-        cd_obj = eqp
-      end
-    end
-
-    sch = cd_obj.schedule
-    if sch.is_initialized
-      sch = sch.get.to_ScheduleRuleset.get
-    else
-      return false
-    end
-    
-    sch.scheduleRules.each do |rule|
-      # puts(rule.daySchedule)
-    end
-
-    runner.registerError("BREAK")
-    return false
 
     def check_tsp_args(offset_heat, offset_cool, finished_zones, runner)
       # Check for setpoint offset
@@ -241,24 +224,9 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
       appl_dr = false
     end
     if not tsp_dr and not appl_dr
-      runner.registerInfo("No demand response arguments specified, skipping measure")
+      runner.registerInfo("No demand response arguments specified, skipping DR measure")
       return true
     end
-    
-    # # Check for setpoint offset
-    # if offset_heat == 0 and offset_cool == 0
-    #   runner.registerInfo("DR offset magnitudes are set to zero, no thermostat DR applied")
-    #   return true
-    # end
-    # # Check if thermostat exists
-    # finished_zones.each do |finished_zone|
-    #   thermostat_setpoint = finished_zone.thermostatSetpointDualSetpoint
-    #   if !thermostat_setpoint.is_initialized
-    #     runner.registerInfo("No thermostat setpoint defined, skipping demand response applied")
-    #     return true
-    #     break
-    #   end
-    # end
 
     year_description = model.getYearDescription
     assumed_year = year_description.assumedYear
@@ -546,6 +514,36 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
         end
       end
     end
+
+    # Return if no appliance DR
+    if not appl_dr
+      return true
+    end
+    
+
+    # *** Put Appliance DR Code HERE *** #
+
+    # Get hot water appliance objects
+    cw_obj, dw_obj, cd_obj = nil, nil, nil
+    #Electric
+    model.getElectricEquipments.each do |eqp|
+      if eqp.endUseSubcategory == Constants.ObjectNameClothesWasher()
+        cw_obj = eqp
+      elsif eqp.endUseSubcategory == Constants.ObjectNameDishwasher()
+        dw_obj = eqp
+      elsif eqp.endUseSubcategory == Constants.ObjectNameClothesDryer("electric")
+        cd_obj = eqp
+      end
+    end
+    #Gas 
+    model.getOtherEquipments.each do |eqp|
+      if eqp.endUseSubcategory == Constants.ObjectNameClothesDryer("gas")
+        cd_obj = eqp
+      end
+    end
+
+
+
 
   end
 end
