@@ -49,6 +49,8 @@ Or say we want to apply the upgrade only to houses with 3 car garages that aren'
 .. todo::
    
    Come up with some better examples here.
+   
+Currently, you can enter up to 25 options per upgrade. To allow additional options per upgrade you would need to update a method defined in a resource file, run a rake task, and update the outputs section for all PAT projects. See :doc:`../advanced_tutorial/increasing_upgrade_options` for more information.
 
 Option <#> Cost <#>
 ===================
@@ -58,7 +60,7 @@ This is the cost of the upgrade. Multiple costs can be entered and each is multi
 Option <#> Cost <#> Multiplier
 ==============================
 
-The cost above is multiplied by this value, which is a function of the building. Since there can be multiple costs, this permits both fixed and variable costs for upgrades that depend on the properties of the baseline house.
+The cost above is multiplied by this value, which is a function of the building. Since there can be multiple costs (currently 2), this permits both fixed and variable costs for upgrades that depend on the properties of the baseline house.
 
    - Fixed (1) 
    - Conditioned Floor Area (ft^2) 

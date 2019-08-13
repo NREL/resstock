@@ -55,6 +55,14 @@ class Constants
     return num_hours_in_year.to_f
   end
 
+  def self.NumApplyUpgradeOptions
+    return 25
+  end
+
+  def self.NumApplyUpgradesCostsPerOption
+    return 2
+  end
+
   def self.Patm
     return 14.696 # standard atmospheric pressure (psia)
   end
@@ -860,6 +868,14 @@ class Constants
       s_unit = "|#{unit_name}"
     end
     return "res well pump#{s_unit}"
+  end
+
+  def self.ObjectNameElectricVehicle(unit_name = self.ObjectNameBuildingUnit)
+    s_unit = ""
+    if unit_name != self.ObjectNameBuildingUnit
+      s_unit = "|#{unit_name}"
+    end
+    return "res electric vehicle#{s_unit}"
   end
 
   def self.OptionTypeLightingFractions

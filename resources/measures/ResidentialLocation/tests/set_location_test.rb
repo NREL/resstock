@@ -29,24 +29,24 @@ class SetResidentialEPWFileTest < MiniTest::Test
     args_hash = {}
     args_hash["dst_start_date"] = "NA"
     args_hash["dst_end_date"] = "NA"
-    result = _test_error_or_NA(nil, args_hash)
-    assert(result.errors.size == 0)
-    assert_equal("Success", result.value.valueName)
-    assert_includes(result.info.map { |x| x.logMessage }, "No daylight saving time set.")
+    expected_num_del_objects = {}
+    expected_num_new_objects = { "SiteGroundTemperatureDeep" => 1, "SiteWaterMainsTemperature" => 1, "WeatherFile" => 1, "ClimateZones" => 1, "Site" => 1 }
+    expected_values = { "HotWaterAnnualTemp" => 10.88, "HotWaterMaxDiffTemp" => 23.15 }
+    _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 5)
   end
 
   def test_change_daylight_saving
     args_hash = {}
     expected_num_del_objects = {}
     expected_num_new_objects = { "SiteGroundTemperatureDeep" => 1, "RunPeriodControlDaylightSavingTime" => 1, "SiteWaterMainsTemperature" => 1, "WeatherFile" => 1, "ClimateZones" => 1, "Site" => 1 }
-    expected_values = { "StartDate" => "Apr-07", "EndDate" => "Oct-26", "Year" => "", "HotWaterAnnualTemp" => 10.88, "HotWaterMaxDiffTemp" => 23.15 }
+    expected_values = { "StartDate" => "Apr-07", "EndDate" => "Oct-26", "HotWaterAnnualTemp" => 10.88, "HotWaterMaxDiffTemp" => 23.15 }
     model = _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 5)
     args_hash = {}
     args_hash["dst_start_date"] = "April 8"
     args_hash["dst_end_date"] = "October 27"
     expected_num_del_objects = {}
     expected_num_new_objects = {}
-    expected_values = { "StartDate" => "Apr-08", "EndDate" => "Oct-27", "Year" => "", "HotWaterAnnualTemp" => 10.88, "HotWaterMaxDiffTemp" => 23.15 }
+    expected_values = { "StartDate" => "Apr-08", "EndDate" => "Oct-27", "HotWaterAnnualTemp" => 10.88, "HotWaterMaxDiffTemp" => 23.15 }
     _test_measure(model, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 5)
   end
 
@@ -78,7 +78,7 @@ class SetResidentialEPWFileTest < MiniTest::Test
     measure.run(model, runner, argument_map)
     result = runner.result
 
-    # show_output(result)
+    show_output(result) unless result.value.valueName == 'Fail'
 
     return result
   end
@@ -117,7 +117,7 @@ class SetResidentialEPWFileTest < MiniTest::Test
     measure.run(model, runner, argument_map)
     result = runner.result
 
-    # show_output(result)
+    show_output(result) unless result.value.valueName == 'Success'
 
     # assert that it ran correctly
     assert_equal("Success", result.value.valueName)

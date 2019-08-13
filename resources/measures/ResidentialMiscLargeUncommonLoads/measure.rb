@@ -110,6 +110,13 @@ class ResidentialMiscLargeUncommonLoads < OpenStudio::Measure::ModelMeasure
     has_gas_lighting.setDefaultValue(false)
     args << has_gas_lighting
 
+    # Make a boolean argument for has electric vehicle
+    has_electric_vehicle = OpenStudio::Measure::OSArgument::makeBoolArgument("has_electric_vehicle", true)
+    has_electric_vehicle.setDisplayName("Has Electric Vehicle")
+    has_electric_vehicle.setDescription("Specifies whether the building has an electric vehicle.")
+    has_electric_vehicle.setDefaultValue(false)
+    args << has_electric_vehicle
+
     # Extra Refrigerator
 
     # make a double argument for user defined fridge options
@@ -552,6 +559,52 @@ class ResidentialMiscLargeUncommonLoads < OpenStudio::Measure::ModelMeasure
     gas_lighting_monthly_sch.setDefaultValue("1.154, 1.161, 1.013, 1.010, 1.013, 0.888, 0.883, 0.883, 0.888, 0.978, 0.974, 1.154")
     args << gas_lighting_monthly_sch
 
+    # Electric Vehicle
+
+    # Make a double argument for EV annual energy usage
+    ev_annual_energy = OpenStudio::Measure::OSArgument::makeDoubleArgument("ev_annual_energy")
+    ev_annual_energy.setDisplayName("EV charger: Annual energy consumption")
+    ev_annual_energy.setDescription("Specify the total annual energy use of charging the EV at home.")
+    ev_annual_energy.setDefaultValue(0)
+    args << ev_annual_energy
+    # ev_annual_energy is calculated like this:
+    # vehicle_annual_miles_driven * vehicle_kWh_per_mile / (ev_charger_efficiency * ev_battery_efficiency)
+
+    # Assume 0.3 kWh/mile based on https://wattev2buy.com/efficient-ev-ranking-efficiency-electric-vehicles-usa/
+    # Tesla vehicles display consumption in Wh/mi, with numbers 250-400 depending on driving style. Users report 300 (0.3 kWh/mi) is normal. https://forums.tesla.com/forum/forums/miles-kwh
+    # Also note that charger efficiency and battery efficiency are roughly 90% each, for a combined efficiency of 80% (https://fueleconomy.gov/feg/evtech.shtml - "view data sources", Chae et. al, Gautam et. al)
+    # An example calculation: 5000mi * 0.3kWh/mi / (0.9 * 0.9) == 1852
+
+    # make a double argument for Energy Multiplier
+    ev_charger_mult = OpenStudio::Measure::OSArgument::makeDoubleArgument("ev_charger_mult")
+    ev_charger_mult.setDisplayName("EV charger: Energy Multiplier")
+    ev_charger_mult.setDescription("Sets the annual energy use equal to the annual energy use times this multiplier.")
+    ev_charger_mult.setDefaultValue(1)
+    args << ev_charger_mult
+
+    # These ev schedules are placeholders, evenly divided across the day and year. Replace with more accurate values when known.
+
+    # Make a string argument for 24 weekday schedule values
+    ev_charger_weekday_sch = OpenStudio::Measure::OSArgument::makeStringArgument("ev_charger_weekday_sch")
+    ev_charger_weekday_sch.setDisplayName("EV charger: Weekday schedule")
+    ev_charger_weekday_sch.setDescription("Specify the 24-hour weekday schedule.")
+    ev_charger_weekday_sch.setDefaultValue("0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042")
+    args << ev_charger_weekday_sch
+
+    # Make a string argument for 24 weekend schedule values
+    ev_charger_weekend_sch = OpenStudio::Measure::OSArgument::makeStringArgument("ev_charger_weekend_sch")
+    ev_charger_weekend_sch.setDisplayName("EV charger: Weekend schedule")
+    ev_charger_weekend_sch.setDescription("Specify the 24-hour weekend schedule.")
+    ev_charger_weekend_sch.setDefaultValue("0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042")
+    args << ev_charger_weekend_sch
+
+    # Make a string argument for 12 monthly schedule values
+    ev_charger_monthly_sch = OpenStudio::Measure::OSArgument::makeStringArgument("ev_charger_monthly_sch")
+    ev_charger_monthly_sch.setDisplayName("EV charger: Month schedule")
+    ev_charger_monthly_sch.setDescription("Specify the 12-month schedule.")
+    ev_charger_monthly_sch.setDefaultValue("1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1")
+    args << ev_charger_monthly_sch
+
     return args
   end # end the arguments method
 
@@ -577,6 +630,13 @@ class ResidentialMiscLargeUncommonLoads < OpenStudio::Measure::ModelMeasure
     has_gas_fireplace = runner.getBoolArgumentValue("has_gas_fireplace", user_arguments)
     has_gas_grill = runner.getBoolArgumentValue("has_gas_grill", user_arguments)
     has_gas_lighting = runner.getBoolArgumentValue("has_gas_lighting", user_arguments)
+    has_electric_vehicle = runner.getBoolArgumentValue("has_electric_vehicle", user_arguments)
+
+    ev_charger_weekday_sch = runner.getStringArgumentValue("ev_charger_weekday_sch", user_arguments)
+    ev_charger_weekend_sch = runner.getStringArgumentValue("ev_charger_weekend_sch", user_arguments)
+    ev_charger_monthly_sch = runner.getStringArgumentValue("ev_charger_monthly_sch", user_arguments)
+    ev_charger_mult = runner.getDoubleArgumentValue("ev_charger_mult", user_arguments)
+    ev_annual_energy = runner.getDoubleArgumentValue("ev_annual_energy", user_arguments)
 
     fridge_rated_annual_energy = runner.getDoubleArgumentValue("fridge_rated_annual_energy", user_arguments)
     fridge_mult = runner.getDoubleArgumentValue("fridge_mult", user_arguments)
@@ -659,7 +719,8 @@ class ResidentialMiscLargeUncommonLoads < OpenStudio::Measure::ModelMeasure
                  Constants.ObjectNameWellPump,
                  Constants.ObjectNameGasFireplace,
                  Constants.ObjectNameGasGrill,
-                 Constants.ObjectNameGasLighting]
+                 Constants.ObjectNameGasLighting,
+                 Constants.ObjectNameElectricVehicle]
     model.getSpaces.each do |space|
       MiscLoads.remove(runner, space, obj_names)
     end
@@ -685,6 +746,7 @@ class ResidentialMiscLargeUncommonLoads < OpenStudio::Measure::ModelMeasure
     gas_fireplace_sch = nil
     gas_grill_sch = nil
     gas_lighting_sch = nil
+    electric_vehicle_sch = nil
 
     msgs = []
     tot_ann_e = 0
@@ -922,6 +984,23 @@ class ResidentialMiscLargeUncommonLoads < OpenStudio::Measure::ModelMeasure
         if ann_g > 0
           msgs << "Gas lighting with #{ann_g.round} therms annual energy consumption has been assigned to outside."
           tot_ann_g += ann_g
+        end
+
+      end
+
+      # Electric Vehicle
+
+      if has_electric_vehicle
+
+        unit_obj_name = Constants.ObjectNameElectricVehicle(unit.name.to_s)
+        success, ann_e, electric_vehicle_sch = MiscLoads.apply_electric(model, unit, runner, ev_annual_energy, ev_charger_mult, ev_charger_weekday_sch,
+                                                                        ev_charger_weekend_sch, ev_charger_monthly_sch, nil, nil, unit_obj_name, false)
+
+        return false if not success
+
+        if ann_e > 0
+          msgs << "An electric vehicle with #{ann_e.round} kWhs annual energy consumption has been assigned to outside."
+          tot_ann_e += ann_e
         end
 
       end
