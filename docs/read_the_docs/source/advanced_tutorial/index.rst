@@ -17,3 +17,4 @@ If your changes are intended to be merged into the master branch of the `OpenStu
    options_lookup
    updating_projects
    debugging
+   increasing_upgrade_options
