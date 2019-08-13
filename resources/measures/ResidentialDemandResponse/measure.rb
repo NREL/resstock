@@ -17,6 +17,7 @@ require File.join(resources_path, "weather")
 require File.join(resources_path, "hvac")
 require File.join(resources_path, "schedules")
 require File.join(resources_path, "geometry")
+require File.join(resources_path, "appliances")
 
 # start the measure
 class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
@@ -74,6 +75,49 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
     offset_magnitude_cool.setUnits("degrees F")
     offset_magnitude_cool.setDefaultValue(0)
     args << offset_magnitude_cool
+
+    ######  ARGS FOR APPLIANCE DEMAND RESPONSE   ######
+    appl_summer_peak = OpenStudio::Measure::OSArgument::makeStringArgument("appl_summer_peak", false)
+    appl_summer_peak.setDisplayName("Peak hours for the summer time")
+    appl_summer_peak.setDescription("Peak period for the summer months in 24-hour format a-b,c-d inclusive all hours") ###fix
+    appl_summer_peak.setDefaultValue("0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0")
+    args << appl_summer_peak
+
+    appl_winter_peak = OpenStudio::Measure::OSArgument::makeStringArgument("appl_winter_peak", false)
+    appl_winter_peak.setDisplayName("Peak hours for the winter time")
+    appl_winter_peak.setDescription("Peak period for the winter months in 24-hour format a-b,c-d inclusive all hours") ###fix
+    appl_winter_peak.setDefaultValue("0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0")
+    args << appl_winter_peak
+
+    appl_summer_season = OpenStudio::Measure::OSArgument::makeStringArgument("appl_summer_season", false)
+    appl_summer_season.setDisplayName("Which months count as summer")
+    appl_summer_season.setDescription("List of months that count as summer months") ###fix
+    appl_summer_season.setDefaultValue("1,1,1,1,1,1,1,1,1,1,1,1")
+    args << appl_summer_season
+
+    appl_winter_season = OpenStudio::Measure::OSArgument::makeStringArgument("appl_winter_season", false)
+    appl_winter_season.setDisplayName("Which months count as winter")
+    appl_winter_season.setDescription("List of months that count as winter months") ###fix
+    appl_winter_season.setDefaultValue("1,1,1,1,1,1,1,1,1,1,1,1")
+    args << appl_winter_season
+
+    shift_CW = OpenStudio::Measure::OSArgument::makeBoolArgument("shift_CW", false)
+    shift_CW.setDisplayName("If clothes washer operation should be shifted to avoid the peaks")
+    shift_CW.setDescription("The operation of clothes washer would be delayed or started earlier to avoid the peak hours.")
+    shift_CW.setDefaultValue(false)
+    args << shift_CW
+
+    shift_CD = OpenStudio::Measure::OSArgument::makeBoolArgument("shift_CD", false)
+    shift_CD.setDisplayName("If clothes dryer operation should be shifted to avoid the peaks")
+    shift_CD.setDescription("The operation of clothes dryer would be delayed or started earlier to avoid the peak hours.")
+    shift_CD.setDefaultValue(false)
+    args << shift_CD
+
+    shift_DW = OpenStudio::Measure::OSArgument::makeBoolArgument("shift_DW", false)
+    shift_DW.setDisplayName("If dish washer operation should be shifted to avoid the peaks")
+    shift_DW.setDescription("The operation of dishwasher would be delayed or started earlier to avoid the peak hours")
+    shift_DW.setDefaultValue(false)
+    args << shift_DW
     return args
   end
 
@@ -89,14 +133,28 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
       return false
     end
 
-    # Import data and create DR schedule
+    # Import thermostat DR arguments
     dr_dir = runner.getStringArgumentValue("dr_directory", user_arguments)
     offset_heat = runner.getDoubleArgumentValue("offset_magnitude_heat", user_arguments)
     dr_sch_htg = runner.getStringArgumentValue("dr_schedule_heat", user_arguments)
     offset_cool = runner.getDoubleArgumentValue("offset_magnitude_cool", user_arguments)
     dr_sch_clg = runner.getStringArgumentValue("dr_schedule_cool", user_arguments)
 
-    # Finished Zones
+    # Import appliance DR arguments
+    appl_summer_peak = runner.getStringArgumentValue("appl_summer_peak", user_arguments)
+    appl_winter_peak = runner.getStringArgumentValue("appl_winter_peak", user_arguments)
+    appl_summer_season = runner.getStringArgumentValue("appl_summer_season", user_arguments)
+    appl_winter_season = runner.getStringArgumentValue("appl_winter_season", user_arguments)
+    shift_CW = runner.getBoolArgumentValue("shift_CW", user_arguments)
+    shift_CD = runner.getBoolArgumentValue("shift_CD", user_arguments)
+    shift_DW = runner.getBoolArgumentValue("shift_DW", user_arguments)
+
+    appl_summer_peak = appl_summer_peak.split(",").map(&:to_f)
+    appl_winter_peak = appl_winter_peak.split(",").map(&:to_f)
+    appl_summer_season = appl_summer_season.split(",").map(&:to_f)
+    appl_winter_season = appl_winter_season.split(",").map(&:to_f)
+
+    # # Finished Zones
     finished_zones = []
     model.getThermalZones.each do |thermal_zone|
       if Geometry.zone_is_finished(thermal_zone)
@@ -104,21 +162,103 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
       end
     end
 
-    # Check for setpoint offset
-    if offset_heat == 0 and offset_cool == 0
-      runner.registerInfo("DR offset magnitudes are set to zero, no thermostat DR applied")
+    # Get hot water appliance objects
+    cw_obj, dw_obj, cd_obj = nil, nil, nil
+    #Electric
+    model.getElectricEquipments.each do |eqp|
+      if eqp.endUseSubcategory == Constants.ObjectNameClothesWasher()
+        cw_obj = eqp
+      elsif eqp.endUseSubcategory == Constants.ObjectNameDishwasher()
+        dw_obj = eqp
+      elsif eqp.endUseSubcategory == Constants.ObjectNameClothesDryer("electric")
+        cd_obj = eqp
+      end
+    end
+    #Gas 
+    model.getOtherEquipments.each do |eqp|
+      if eqp.endUseSubcategory == Constants.ObjectNameClothesDryer("gas")
+        cd_obj = eqp
+      end
+    end
+
+    sch = cd_obj.schedule
+    if sch.is_initialized
+      sch = sch.get.to_ScheduleRuleset.get
+    else
+      return false
+    end
+    
+    sch.scheduleRules.each do |rule|
+      # puts(rule.daySchedule)
+    end
+
+    runner.registerError("BREAK")
+    return false
+
+    def check_tsp_args(offset_heat, offset_cool, finished_zones, runner)
+      # Check for setpoint offset
+      if offset_heat == 0 and offset_cool == 0
+        runner.registerInfo("DR offset magnitudes are set to zero, thermostat DR not applied")
+        return false
+      end
+      # Check if thermostat exists
+      finished_zones.each do |finished_zone|
+        thermostat_setpoint = finished_zone.thermostatSetpointDualSetpoint
+        if !thermostat_setpoint.is_initialized
+          runner.registerInfo("No thermostat setpoint defined, thermostat DR not applied")
+          return false
+          break
+        end
+      end
+      return true
+    end
+    def check_appl_dr_args(shift_CD, shift_CW, shift_DW, appl_summer_peak, appl_winter_peak, appl_summer_season, appl_winter_season, runner)
+      # Check for appliance DR
+      if not shift_CD and not shift_CW and not shift_DW
+        runner.registerInfo("No appliance specified for demand response, appliance DR not applied")
+        return false
+      end
+      # Check for zero-array peaks
+      if (appl_summer_peak-[0.0]).empty? and (appl_winter_peak-[0.0]).empty?
+        runner.registerInfo("No peak hours for appliance DR specified, appliance DR not applied")
+        return false
+      end
+      # Check for no season specified
+      if (appl_summer_season-[0.0]).empty? and (appl_winter_season-[0.0]).empty?
+        runner.registerInfo("No summer or winter months specified for appliance DR seasons, appliance DR not applied")
+        return false
+      end
       return true
     end
 
-    # Check if thermostat exists
-    finished_zones.each do |finished_zone|
-      thermostat_setpoint = finished_zone.thermostatSetpointDualSetpoint
-      if !thermostat_setpoint.is_initialized
-        runner.registerInfo("No thermostat setpoint defined, skipping demand response applied")
-        return true
-        break
-      end
+    # Flag for tsp dr and/or appliance dr run
+    tsp_dr = true
+    appl_dr = true
+    if not check_tsp_args(offset_heat, offset_cool, finished_zones, runner)
+      tsp_dr = false
     end
+    if not check_appl_dr_args(shift_CD, shift_CW, shift_DW, appl_summer_peak, appl_winter_peak, appl_summer_season, appl_winter_season, runner)
+      appl_dr = false
+    end
+    if not tsp_dr and not appl_dr
+      runner.registerInfo("No demand response arguments specified, skipping measure")
+      return true
+    end
+    
+    # # Check for setpoint offset
+    # if offset_heat == 0 and offset_cool == 0
+    #   runner.registerInfo("DR offset magnitudes are set to zero, no thermostat DR applied")
+    #   return true
+    # end
+    # # Check if thermostat exists
+    # finished_zones.each do |finished_zone|
+    #   thermostat_setpoint = finished_zone.thermostatSetpointDualSetpoint
+    #   if !thermostat_setpoint.is_initialized
+    #     runner.registerInfo("No thermostat setpoint defined, skipping demand response applied")
+    #     return true
+    #     break
+    #   end
+    # end
 
     year_description = model.getYearDescription
     assumed_year = year_description.assumedYear
@@ -169,13 +309,15 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
     # Import user DR schedule and run checks
     dr_hrly_htg = []
     dr_hrly_clg = []
-    dr_hrly_clg = import_DR_sched(dr_dir, dr_sch_clg, "DR Cooling Schedule", offset_cool, sim_hours, model, runner)
-    dr_hrly_htg = import_DR_sched(dr_dir, dr_sch_htg, "DR Heating Schedule", offset_heat, sim_hours, model, runner)
-    # Check if file exists (error message in import_DR_sched())
-    if dr_hrly_htg == nil
-      return false
-    elsif dr_hrly_clg == nil
-      return false
+    if tsp_dr
+      dr_hrly_clg = import_DR_sched(dr_dir, dr_sch_clg, "DR Cooling Schedule", offset_cool, sim_hours, model, runner)
+      dr_hrly_htg = import_DR_sched(dr_dir, dr_sch_htg, "DR Heating Schedule", offset_heat, sim_hours, model, runner)
+      # Check if file exists (error message in import_DR_sched())
+      if dr_hrly_htg == nil
+        return false
+      elsif dr_hrly_clg == nil
+        return false
+      end
     end
 
     # Check attributes of imported DR schedules
@@ -185,10 +327,8 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
         runner.registerError("The DR schedule must have values of -1, 0, or 1.")
         return false
       end
-
       return true
     end
-
     # Check length of DR schedule
     def check_DR_length(dr_hrly, sim_hours, model, runner)
       year_description = model.getYearDescription
@@ -200,29 +340,33 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
       return true
     end
 
-    dr_list = []
-    offset_list = [dr_hrly_htg, dr_hrly_clg]
-    offset_list.each do |dr|
-      if dr != []
-        dr_list << dr
-        if not check_DR_sched(dr, model, runner)
-          return false
-        end
+    if tsp_dr
+      dr_list = []
+      offset_list = [dr_hrly_htg, dr_hrly_clg]
+      offset_list.each do |dr|
+        if dr != []
+          dr_list << dr
+          if not check_DR_sched(dr, model, runner)
+            return false
+          end
 
-        if not check_DR_length(dr, sim_hours, model, runner)
-          return true
+          if not check_DR_length(dr, sim_hours, model, runner)
+            return true
+          end
         end
       end
     end
 
     # Check if DR schedules contain only zeros
-    ct = 0
-    dr_list.each do |dr_hrly|
-      if ((dr_hrly.to_a.max() == 0) & (dr_hrly.to_a.min() == 0))
-        ct += 1
-        if ct == dr_list.length
-          runner.registerInfo("DR schedules contain only zeros, no thermostat DR applied")
-          return true
+    if tsp_dr
+      ct = 0
+      dr_list.each do |dr_hrly|
+        if ((dr_hrly.to_a.max() == 0) & (dr_hrly.to_a.min() == 0))
+          ct += 1
+          if ct == dr_list.length
+            runner.registerInfo("DR schedules contain only zeros, no thermostat DR applied")
+            return true
+          end
         end
       end
     end
@@ -356,51 +500,52 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
     end
 
     # Run functions and apply new schedules
-    htg_hrly_base = get_existing_sched(finished_zones, "heat", model, runner)   # Existing schedule as 12x24
-    clg_hrly_base = get_existing_sched(finished_zones, "cool", model, runner)
+    if tsp_dr
+      htg_hrly_base = get_existing_sched(finished_zones, "heat", model, runner)   # Existing schedule as 12x24
+      clg_hrly_base = get_existing_sched(finished_zones, "cool", model, runner)
 
-    htg_hrly = create_new_sched(dr_hrly_htg, htg_hrly_base, offset_heat)        # New hourly schedule
-    clg_hrly = create_new_sched(dr_hrly_clg, clg_hrly_base, offset_cool)
+      htg_hrly = create_new_sched(dr_hrly_htg, htg_hrly_base, offset_heat)        # New hourly schedule
+      clg_hrly = create_new_sched(dr_hrly_clg, clg_hrly_base, offset_cool)
 
-    fix_setpoint_inversion(htg_hrly, clg_hrly, HVAC, weather, model, runner)    # Fix setpoint inversions in new schedules
+      fix_setpoint_inversion(htg_hrly, clg_hrly, HVAC, weather, model, runner)    # Fix setpoint inversions in new schedules
 
-    htg_hrly = create_OS_sched(htg_hrly, "HeatingTSP", model, runner)           # Create fixed interval schedule using new hourly schedules
-    clg_hrly = create_OS_sched(clg_hrly, "CoolingTSP", model, runner)
+      htg_hrly = create_OS_sched(htg_hrly, "HeatingTSP", model, runner)           # Create fixed interval schedule using new hourly schedules
+      clg_hrly = create_OS_sched(clg_hrly, "CoolingTSP", model, runner)
 
-    # Convert back to ruleset and apply to dual thermostat
-    winter_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
-    winter_design_day_sch.addValue(OpenStudio::Time.new(0, 24, 0, 0), UnitConversions.convert(70, "F", "C"))
-    summer_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
-    summer_design_day_sch.addValue(OpenStudio::Time.new(0, 24, 0, 0), UnitConversions.convert(75, "F", "C"))
-    rule_sched_h = []
-    rule_sched_c = []
+      # Convert back to ruleset and apply to dual thermostat
+      winter_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
+      winter_design_day_sch.addValue(OpenStudio::Time.new(0, 24, 0, 0), UnitConversions.convert(70, "F", "C"))
+      summer_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
+      summer_design_day_sch.addValue(OpenStudio::Time.new(0, 24, 0, 0), UnitConversions.convert(75, "F", "C"))
+      rule_sched_h = []
+      rule_sched_c = []
 
-    finished_zones.each do |finished_zone|
-      thermostat_setpoint = finished_zone.thermostatSetpointDualSetpoint
-      if thermostat_setpoint.is_initialized
-        thermostat_setpoint = thermostat_setpoint.get
-        thermostat_setpoint.resetHeatingSetpointTemperatureSchedule()
-        thermostat_setpoint.resetCoolingSetpointTemperatureSchedule()
-
-        rule_sched_h = Schedule.ruleset_from_fixedinterval(model, htg_hrly, Constants.ObjectNameHeatingSetpoint, winter_design_day_sch, summer_design_day_sch)
-        rule_sched_c = Schedule.ruleset_from_fixedinterval(model, clg_hrly, Constants.ObjectNameCoolingSetpoint, winter_design_day_sch, summer_design_day_sch)
-
-        htg_hrly.remove
-        clg_hrly.remove
-        break
+      finished_zones.each do |finished_zone|
+        thermostat_setpoint = finished_zone.thermostatSetpointDualSetpoint
+        if thermostat_setpoint.is_initialized
+          thermostat_setpoint = thermostat_setpoint.get
+          thermostat_setpoint.resetHeatingSetpointTemperatureSchedule()
+          thermostat_setpoint.resetCoolingSetpointTemperatureSchedule()
+          rule_sched_h = Schedule.ruleset_from_fixedinterval(model, htg_hrly, Constants.ObjectNameHeatingSetpoint, winter_design_day_sch, summer_design_day_sch)
+          rule_sched_c = Schedule.ruleset_from_fixedinterval(model, clg_hrly, Constants.ObjectNameCoolingSetpoint, winter_design_day_sch, summer_design_day_sch)
+          htg_hrly.remove
+          clg_hrly.remove
+          break
+        end
+      end
+    
+      # Set heating/cooling setpoint schedules
+      finished_zones.each do |finished_zone|
+        thermostat_setpoint = finished_zone.thermostatSetpointDualSetpoint
+        if thermostat_setpoint.is_initialized
+          thermostat_setpoint = thermostat_setpoint.get
+          thermostat_setpoint.setHeatingSetpointTemperatureSchedule(rule_sched_h)
+          runner.registerInfo("Set the heating setpoint schedule for #{thermostat_setpoint.name}.")
+          thermostat_setpoint.setCoolingSetpointTemperatureSchedule(rule_sched_c)
+          runner.registerInfo("Set the cooling setpoint schedule for #{thermostat_setpoint.name}.")
+        end
       end
     end
 
-    # Set heating/cooling setpoint schedules
-    finished_zones.each do |finished_zone|
-      thermostat_setpoint = finished_zone.thermostatSetpointDualSetpoint
-      if thermostat_setpoint.is_initialized
-        thermostat_setpoint = thermostat_setpoint.get
-        thermostat_setpoint.setHeatingSetpointTemperatureSchedule(rule_sched_h)
-        runner.registerInfo("Set the heating setpoint schedule for #{thermostat_setpoint.name}.")
-        thermostat_setpoint.setCoolingSetpointTemperatureSchedule(rule_sched_c)
-        runner.registerInfo("Set the cooling setpoint schedule for #{thermostat_setpoint.name}.")
-      end
-    end
   end
 end
