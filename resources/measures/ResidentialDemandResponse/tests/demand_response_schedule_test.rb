@@ -32,7 +32,7 @@ class DemandResponseScheduleTest < MiniTest::Test
     expected_num_del_objects = {}
     expected_num_new_objects = {}
     expected_values = {}
-    _test_measure("SFD_2000sqft_2story_CS_UA_3Beds_2Baths_Denver_Furnace_CentralAC.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 2)
+    _test_measure("SFD_2000sqft_2story_CS_UA_3Beds_2Baths_Denver_Furnace_CentralAC.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 3)
   end
 
   def test_no_offset
@@ -42,7 +42,7 @@ class DemandResponseScheduleTest < MiniTest::Test
     expected_num_del_objects = {}
     expected_num_new_objects = {}
     expected_values = {}
-    _test_measure("SFD_2000sqft_2story_CS_UA_3Beds_2Baths_Denver_Furnace_CentralAC.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
+    _test_measure("SFD_2000sqft_2story_CS_UA_3Beds_2Baths_Denver_Furnace_CentralAC.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 3)
   end
 
   def test_normal_tsp
@@ -60,8 +60,8 @@ class DemandResponseScheduleTest < MiniTest::Test
                         "cool_tsp_non_dr" => 75,
                         "cool_tsp_dr_plus" => 78,
                         "cool_tsp_dr_minus" => 72 }
-    _test_measure("SFD_70heat_75cool_12mo_seasons.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 6)
-    # 6 assertions: 2 DR sched found, 2 Thermostat found, 2 setting thermostat
+    _test_measure("SFD_70heat_75cool_12mo_seasons.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 7)
+    # 7 assertions: 2 DR sched found, 2 Thermostat found, 2 setting thermostat, 1 no appliance DR
   end
 
   def test_normal_tsp_auto_seasons
@@ -81,8 +81,8 @@ class DemandResponseScheduleTest < MiniTest::Test
                         "cool_tsp_dr_plus" => 78,
                         "cool_tsp_dr_minus" => 72,
                         "cool_tsp_coolseason" => 75 }
-    _test_measure("SFD_70heat_75cool_auto_seasons.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 6)
-    # 6 assertions: 2 DR sched found, 2 Thermostat found, 2 setting thermostat
+    _test_measure("SFD_70heat_75cool_auto_seasons.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 7)
+    # 7 assertions: 2 DR sched found, 2 Thermostat found, 2 setting thermostat, 1 no appliance DR
   end
 
   def test_short_period
@@ -100,8 +100,8 @@ class DemandResponseScheduleTest < MiniTest::Test
                         "cool_tsp_non_dr" => 76,
                         "cool_tsp_dr_plus" => 79,
                         "cool_tsp_dr_minus" => 73 }
-    _test_measure("example_single_family_detached_FebruaryRunPeriod.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 6)
-    # 6 assertions: 2 DR sched found, 2 Thermostat found, 2 setting thermostat
+    _test_measure("example_single_family_detached_FebruaryRunPeriod.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 7)
+    # 7 assertions: 2 DR sched found, 2 Thermostat found, 2 setting thermostat, 1 no appliance DR
   end
 
   def test_short_period_8760_DR
@@ -120,8 +120,8 @@ class DemandResponseScheduleTest < MiniTest::Test
                         "cool_tsp_non_dr" => 76,
                         "cool_tsp_dr_plus" => 79,
                         "cool_tsp_dr_minus" => 73 }
-    _test_measure("example_single_family_detached_FebruaryRunPeriod.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 6)
-    # 6 assertions: 2 DR sched found, 2 Thermostat found, 2 setting thermostat
+    _test_measure("example_single_family_detached_FebruaryRunPeriod.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 7)
+    # 7 assertions: 2 DR sched found, 2 Thermostat found, 2 setting thermostat, 1 no appliance DR
   end
 
   # Inverted setpoints with overlapping seasons
@@ -140,7 +140,7 @@ class DemandResponseScheduleTest < MiniTest::Test
                         "cool_tsp_non_dr" => 69,     # averaged
                         "cool_tsp_dr_plus" => 72,    #+DR (not inverted)
                         "cool_tsp_dr_minus" => 67 } #-DR --> averaged
-    _test_measure("SFD_70heat_68cool_12mo_seasons.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 6)
+    _test_measure("SFD_70heat_68cool_12mo_seasons.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 7)
   end
 
   # Inverted setpoints without overlapping seasons
@@ -161,7 +161,7 @@ class DemandResponseScheduleTest < MiniTest::Test
                         "cool_tsp_dr_plus" => 72,    #+DR
                         "cool_tsp_dr_minus" => 70,   # match htg
                         "cool_tsp_coolseason" => 68 }
-    _test_measure("SFD_70heat_68cool_auto_seasons.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 6)
+    _test_measure("SFD_70heat_68cool_auto_seasons.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 7)
   end
 
   # DR signal occurs at same time for cooling and heating
@@ -180,8 +180,8 @@ class DemandResponseScheduleTest < MiniTest::Test
                         "cool_tsp_non_dr" => 75,
                         "cool_tsp_dr_plus" => 79,
                         "cool_tsp_dr_minus" => 71 }
-    _test_measure("SFD_70heat_75cool_12mo_seasons.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 6)
-    # 6 assertions: 2 DR sched found, 2 Thermostat found, 2 setting thermostat
+    _test_measure("SFD_70heat_75cool_12mo_seasons.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 7)
+    # 7 assertions: 2 DR sched found, 2 Thermostat found, 2 setting thermostat, 1 no appliance DR
   end
 
   def test_zero_DR_schedule
@@ -193,7 +193,7 @@ class DemandResponseScheduleTest < MiniTest::Test
     expected_num_del_objects = {}
     expected_num_new_objects = {}
     expected_values = {}
-    _test_measure("SFD_2000sqft_2story_CS_UA_3Beds_2Baths_Denver_Furnace_CentralAC.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 3)
+    _test_measure("SFD_2000sqft_2story_CS_UA_3Beds_2Baths_Denver_Furnace_CentralAC.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 4)
   end
 
   def test_no_thermostat
@@ -204,7 +204,7 @@ class DemandResponseScheduleTest < MiniTest::Test
     expected_num_del_objects = {}
     expected_num_new_objects = {}
     expected_values = {}
-    _test_measure("SFD_2000sqft_2story_SL_UA_3Beds_2Baths_Denver_CentralAC_NoSetpoints.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
+    _test_measure("SFD_2000sqft_2story_SL_UA_3Beds_2Baths_Denver_CentralAC_NoSetpoints.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 3)
   end
 
   def test_normal_tsp_MF
@@ -222,8 +222,8 @@ class DemandResponseScheduleTest < MiniTest::Test
                         "cool_tsp_non_dr" => 76, # default
                         "cool_tsp_dr_plus" => 79,
                         "cool_tsp_dr_minus" => 73 }
-    _test_measure("MF_40units_4story_SL_3Beds_2Baths_Denver_Furnace_CentralAC.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 84)
-    # 84 assertions: 2 DR sched found, 2 Thermostat found, 40 setting cooling TSP, 40 setting heating TSP
+    _test_measure("MF_40units_4story_SL_3Beds_2Baths_Denver_Furnace_CentralAC.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 85)
+    # 85 assertions: 2 DR sched found, 2 Thermostat found, 40 setting cooling TSP, 40 setting heating TSP, 1 no appliance DR
   end
 
   def test_normal_tsp_basement
@@ -241,8 +241,8 @@ class DemandResponseScheduleTest < MiniTest::Test
                         "cool_tsp_non_dr" => 75,
                         "cool_tsp_dr_plus" => 78,
                         "cool_tsp_dr_minus" => 72 }
-    _test_measure("SFD_70heat_75cool_12mo_seasons_FB.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 8)
-    # 8 assertions: 2 DR sched found, 2 Thermostat found, 2 setting cooling TSP, 2 setting heating TSP
+    _test_measure("SFD_70heat_75cool_12mo_seasons_FB.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 9)
+    # 9 assertions: 2 DR sched found, 2 Thermostat found, 2 setting cooling TSP, 2 setting heating TSP, 1 no appliance DR
   end
 
   # Test case that uses weekday_offset argument in `ResidentialHVACHeatingSetpoints`
@@ -258,8 +258,8 @@ class DemandResponseScheduleTest < MiniTest::Test
     expected_values = { "wkday_offset_ht" => 76, # +2 wkday offset, +4 DR offset
                         "wkday_no_offset_ht" => 74, # +4 DR offset
                         "wknd_ht" => 74 }
-    _test_measure("SFD_70heat_75cool_2wkdy_offset_12mo_seasons.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 6)
-    # 8 assertions: 2 DR sched found, 2 Thermostat found, 2 setting cooling TSP, 2 setting heating TSP
+    _test_measure("SFD_70heat_75cool_2wkdy_offset_12mo_seasons.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 7)
+    # 7 assertions: 2 DR sched found, 2 Thermostat found, 1 setting cooling TSP, 1 setting heating TSP, 1 no appliance DR
   end
 
   private
