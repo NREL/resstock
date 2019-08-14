@@ -538,18 +538,16 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
     # HVAC CAPACITIES
 
-    conditioned_zones = get_conditioned_zones(model)
-    hvac_cooling_capacity_kbtuh = get_cost_multiplier("Size, Cooling System (kBtu/h)", model, runner, conditioned_zones)
+    hvac_cooling_capacity_kbtuh = get_cost_multiplier("Size, Cooling System (kBtu/h)", model, runner)
     return false if hvac_cooling_capacity_kbtuh.nil?
-
     report_sim_output(runner, "hvac_cooling_capacity_w", hvac_cooling_capacity_kbtuh, "kBtu/hr", "W")
-    hvac_heating_capacity_kbtuh = get_cost_multiplier("Size, Heating System (kBtu/h)", model, runner, conditioned_zones)
+
+    hvac_heating_capacity_kbtuh = get_cost_multiplier("Size, Heating System (kBtu/h)", model, runner)
     return false if hvac_heating_capacity_kbtuh.nil?
-
     report_sim_output(runner, "hvac_heating_capacity_w", hvac_heating_capacity_kbtuh, "kBtu/hr", "W")
-    hvac_heating_supp_capacity_kbtuh = get_cost_multiplier("Size, Heating Supplemental System (kBtu/h)", model, runner, conditioned_zones)
-    return false if hvac_heating_supp_capacity_kbtuh.nil?
 
+    hvac_heating_supp_capacity_kbtuh = get_cost_multiplier("Size, Heating Supplemental System (kBtu/h)", model, runner)
+    return false if hvac_heating_supp_capacity_kbtuh.nil?
     report_sim_output(runner, "hvac_heating_supp_capacity_w", hvac_heating_supp_capacity_kbtuh, "kBtu/hr", "W")
 
     sqlFile.close()
@@ -608,7 +606,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     option_cost_pairs.keys.each do |option_num|
       option_cost = 0.0
       option_cost_pairs[option_num].each do |cost_value, cost_mult_type|
-        cost_mult = get_cost_multiplier(cost_mult_type, model, runner, conditioned_zones)
+        cost_mult = get_cost_multiplier(cost_mult_type, model, runner)
         if cost_mult.nil?
           return false
         end
@@ -654,123 +652,22 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     runner.registerInfo("Registering #{valInUnits.round(2)} for #{name}.")
   end
 
-  def get_cost_multiplier(cost_mult_type, model, runner, conditioned_zones)
+  def get_cost_multiplier(cost_mult_type, model, runner)
     cost_mult = 0.0
-
-    if cost_mult_type == "Fixed (1)"
-      cost_mult = 1.0
-
-    elsif cost_mult_type == "Wall Area, Above-Grade, Conditioned (ft^2)"
-      # Walls between conditioned space and 1) outdoors or 2) unconditioned space
-      model.getSurfaces.each do |surface|
-        next if surface.surfaceType.downcase != "wall"
-        next if not surface.space.is_initialized
-        next if not is_space_conditioned(surface.space.get, conditioned_zones)
-
-        adjacent_space = get_adjacent_space(surface)
-        if surface.outsideBoundaryCondition.downcase == "outdoors"
-          cost_mult += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
-        elsif !adjacent_space.nil? and not is_space_conditioned(adjacent_space, conditioned_zones)
-          cost_mult += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
-        end
+    
+    model.getBuildingUnits.each do |unit|
+      next if unit.spaces.empty?
+      
+      units_represented = 1
+      if unit.additionalProperties.getFeatureAsInteger("Units Represented").is_initialized
+        units_represented = unit.additionalProperties.getFeatureAsInteger("Units Represented").get
       end
-
-    elsif cost_mult_type == "Wall Area, Above-Grade, Exterior (ft^2)"
-      # Walls adjacent to outdoors
-      model.getSurfaces.each do |surface|
-        next if surface.surfaceType.downcase != "wall"
-        next if surface.outsideBoundaryCondition.downcase != "outdoors"
-
-        cost_mult += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
-      end
-
-    elsif cost_mult_type == "Wall Area, Below-Grade (ft^2)"
-      # Walls adjacent to ground
-      model.getSurfaces.each do |surface|
-        next if surface.surfaceType.downcase != "wall"
-        next if surface.outsideBoundaryCondition.downcase != "ground" and surface.outsideBoundaryCondition.downcase != "foundation"
-
-        cost_mult += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
-      end
-
-    elsif cost_mult_type == "Floor Area, Conditioned (ft^2)"
-      # Floors of conditioned zone
-      model.getSurfaces.each do |surface|
-        next if surface.surfaceType.downcase != "floor"
-        next if not surface.space.is_initialized
-        next if not is_space_conditioned(surface.space.get, conditioned_zones)
-
-        cost_mult += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
-      end
-
-    elsif cost_mult_type == "Floor Area, Attic (ft^2)"
-      # Floors under sloped surfaces and above conditioned space
-      model.getSurfaces.each do |surface|
-        next if surface.surfaceType.downcase != "floor"
-        next if not surface.space.is_initialized
-
-        space = surface.space.get
-        next if not has_sloped_roof_surfaces(space)
-
-        adjacent_space = get_adjacent_space(surface)
-        next if adjacent_space.nil?
-        next if not is_space_conditioned(adjacent_space, conditioned_zones)
-
-        cost_mult += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
-      end
-
-    elsif cost_mult_type == "Floor Area, Lighting (ft^2)"
-      # Floors with lighting objects
-      model.getSurfaces.each do |surface|
-        next if surface.surfaceType.downcase != "floor"
-        next if not surface.space.is_initialized
-        next if surface.space.get.lights.size == 0
-
-        cost_mult += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
-      end
-
-    elsif cost_mult_type == "Roof Area (ft^2)"
-      # Roofs adjacent to outdoors
-      model.getSurfaces.each do |surface|
-        next if surface.surfaceType.downcase != "roofceiling"
-        next if surface.outsideBoundaryCondition.downcase != "outdoors"
-
-        cost_mult += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
-      end
-
-    elsif cost_mult_type == "Window Area (ft^2)"
-      # Window subsurfaces
-      model.getSurfaces.each do |surface|
-        next if surface.surfaceType.downcase != "wall"
-
-        surface.subSurfaces.each do |sub_surface|
-          next if not sub_surface.subSurfaceType.downcase.include? "window"
-
-          cost_mult += UnitConversions.convert(sub_surface.grossArea, "m^2", "ft^2")
-        end
-      end
-
-    elsif cost_mult_type == "Door Area (ft^2)"
-      # Door subsurfaces
-      model.getSurfaces.each do |surface|
-        next if surface.surfaceType.downcase != "wall"
-
-        surface.subSurfaces.each do |sub_surface|
-          next if not sub_surface.subSurfaceType.downcase.include? "door"
-
-          cost_mult += UnitConversions.convert(sub_surface.grossArea, "m^2", "ft^2")
-        end
-      end
-
-    elsif cost_mult_type == "Duct Surface Area (ft^2)"
-      # Duct supply+return surface area
-      model.getBuildingUnits.each do |unit|
-        next if unit.spaces.size == 0
-
-        if cost_mult > 0
-          runner.registerError("Multiple building units found. This code should be reevaluated for correctness.")
-          return nil
-        end
+      
+      if cost_mult_type == "Fixed (1)"
+        cost_mult = 1.0
+        
+      elsif cost_mult_type == "Duct Surface Area (ft^2)"
+        # Duct supply+return surface area
         supply_area = unit.getFeatureAsDouble("SizingInfoDuctsSupplySurfaceArea")
         if supply_area.is_initialized
           cost_mult += supply_area.get
@@ -779,40 +676,31 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
         if return_area.is_initialized
           cost_mult += return_area.get
         end
+        
+      end
+      
+      zones = []
+      unit.spaces.each do |space|
+        zone = space.thermalZone.get
+        next unless zone.thermostat.is_initialized
+        unless zones.include? zone
+          zones << zone
+        end
       end
 
-    elsif cost_mult_type == "Size, Heating System (kBtu/h)"
-      # Heating system capacity
-
-      all_conditioned_zones = conditioned_zones
-
-      model.getBuildingUnits.each do |unit|
-        next if unit.spaces.empty?
-
-        conditioned_zones = []
-        unit.spaces.each do |space|
-          zone = space.thermalZone.get
-          next unless all_conditioned_zones.include? zone
-          next if conditioned_zones.include? zone
-
-          conditioned_zones << zone
-        end
-
-        units_represented = 1
-        if unit.additionalProperties.getFeatureAsInteger("Units Represented").is_initialized
-          units_represented = unit.additionalProperties.getFeatureAsInteger("Units Represented").get
-        end
-
-        component = nil
-
-        # Unit heater?
-        if component.nil?
-          conditioned_zones.each do |zone|
+      zones.each do |zone|
+      
+        if cost_mult_type == "Size, Heating System (kBtu/h)"
+          # Heating system capacity
+          component = nil
+          
+          # Unit heater?
+          if component.nil?
             zone.equipment.each do |equipment|
               next unless equipment.to_AirLoopHVACUnitarySystem.is_initialized
 
               sys = equipment.to_AirLoopHVACUnitarySystem.get
-              next unless conditioned_zones.include? sys.controllingZoneorThermostatLocation.get
+              next if zone != sys.controllingZoneorThermostatLocation.get
               next if not sys.heatingCoil.is_initialized
 
               component = sys.heatingCoil.get
@@ -824,251 +712,437 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
               cost_mult += UnitConversions.convert(coil.nominalCapacity.get, "W", "kBtu/hr")
             end
           end
-        end
+          
+          # Unitary system?
+          if component.nil?
+            model.getAirLoopHVACUnitarySystems.each do |sys|
+              next if zone != sys.controllingZoneorThermostatLocation.get
+              next if not sys.heatingCoil.is_initialized
 
-        # Unitary system?
-        if component.nil?
-          model.getAirLoopHVACUnitarySystems.each do |sys|
-            next unless conditioned_zones.include? sys.controllingZoneorThermostatLocation.get
-            next if not sys.heatingCoil.is_initialized
-
-            if not component.nil?
-              runner.registerError("Multiple heating systems found. This code should be reevaluated for correctness.")
-              return nil
-            end
-            component = sys.heatingCoil.get
-          end
-          if not component.nil?
-            if component.to_CoilHeatingDXSingleSpeed.is_initialized
-              coil = component.to_CoilHeatingDXSingleSpeed.get
-              if coil.ratedTotalHeatingCapacity.is_initialized
-                cost_mult += UnitConversions.convert(coil.ratedTotalHeatingCapacity.get, "W", "kBtu/hr")
+              if not component.nil?
+                runner.registerError("Multiple heating systems found. This code should be reevaluated for correctness.")
+                return nil
               end
-            elsif component.to_CoilHeatingDXMultiSpeed.is_initialized
-              coil = component.to_CoilHeatingDXMultiSpeed.get
-              if coil.stages.size > 0
-                stage = coil.stages[coil.stages.size - 1]
-                capacity_ratio = get_highest_stage_capacity_ratio(model, "SizingInfoHVACCapacityRatioCooling")
-                if stage.grossRatedHeatingCapacity.is_initialized
-                  cost_mult += UnitConversions.convert(stage.grossRatedHeatingCapacity.get / capacity_ratio, "W", "kBtu/hr")
+              component = sys.heatingCoil.get
+            end
+            if not component.nil?
+              if component.to_CoilHeatingDXSingleSpeed.is_initialized
+                coil = component.to_CoilHeatingDXSingleSpeed.get
+                if coil.ratedTotalHeatingCapacity.is_initialized
+                  cost_mult += UnitConversions.convert(coil.ratedTotalHeatingCapacity.get, "W", "kBtu/hr")
+                end
+              elsif component.to_CoilHeatingDXMultiSpeed.is_initialized
+                coil = component.to_CoilHeatingDXMultiSpeed.get
+                if coil.stages.size > 0
+                  stage = coil.stages[coil.stages.size - 1]
+                  capacity_ratio = get_highest_stage_capacity_ratio(model, "SizingInfoHVACCapacityRatioCooling")
+                  if stage.grossRatedHeatingCapacity.is_initialized
+                    cost_mult += UnitConversions.convert(stage.grossRatedHeatingCapacity.get / capacity_ratio, "W", "kBtu/hr")
+                  end
+                end
+              elsif component.to_CoilHeatingGas.is_initialized
+                coil = component.to_CoilHeatingGas.get
+                if coil.nominalCapacity.is_initialized
+                  cost_mult += UnitConversions.convert(coil.nominalCapacity.get, "W", "kBtu/hr")
+                end
+              elsif component.to_CoilHeatingElectric.is_initialized
+                coil = component.to_CoilHeatingElectric.get
+                if coil.nominalCapacity.is_initialized
+                  cost_mult += UnitConversions.convert(coil.nominalCapacity.get, "W", "kBtu/hr")
+                end
+              elsif component.to_CoilHeatingWaterToAirHeatPumpEquationFit.is_initialized
+                coil = component.to_CoilHeatingWaterToAirHeatPumpEquationFit.get
+                if coil.ratedHeatingCapacity.is_initialized
+                  cost_mult += UnitConversions.convert(coil.ratedHeatingCapacity.get, "W", "kBtu/hr")
                 end
               end
-            elsif component.to_CoilHeatingGas.is_initialized
-              coil = component.to_CoilHeatingGas.get
-              if coil.nominalCapacity.is_initialized
-                cost_mult += UnitConversions.convert(coil.nominalCapacity.get, "W", "kBtu/hr")
-              end
-            elsif component.to_CoilHeatingElectric.is_initialized
-              coil = component.to_CoilHeatingElectric.get
-              if coil.nominalCapacity.is_initialized
-                cost_mult += UnitConversions.convert(coil.nominalCapacity.get, "W", "kBtu/hr")
-              end
-            elsif component.to_CoilHeatingWaterToAirHeatPumpEquationFit.is_initialized
-              coil = component.to_CoilHeatingWaterToAirHeatPumpEquationFit.get
-              if coil.ratedHeatingCapacity.is_initialized
-                cost_mult += UnitConversions.convert(coil.ratedHeatingCapacity.get, "W", "kBtu/hr")
-              end
             end
           end
-        end
+          
+          # Electric baseboard?
+          if component.nil?
+            max_value = 0.0
+            model.getZoneHVACBaseboardConvectiveElectrics.each do |sys|
+              next if zone != sys.thermalZone.get
 
-        # Electric baseboard?
-        if component.nil?
-          max_value = 0.0
-          model.getZoneHVACBaseboardConvectiveElectrics.each do |sys|
-            next unless conditioned_zones.include? sys.thermalZone.get
-
-            component = sys
-            next if not component.nominalCapacity.is_initialized
-
-            cost_mult += UnitConversions.convert(component.nominalCapacity.get, "W", "kBtu/hr")
-          end
-        end
-
-        # Boiler?
-        if component.nil?
-          max_value = 0.0
-          model.getPlantLoops.each do |pl|
-            pl.components.each do |plc|
-              next if not plc.to_BoilerHotWater.is_initialized
-
-              component = plc.to_BoilerHotWater.get
+              component = sys
               next if not component.nominalCapacity.is_initialized
-              next if component.nominalCapacity.get <= max_value
 
-              max_value = component.nominalCapacity.get
+              cost_mult += UnitConversions.convert(component.nominalCapacity.get, "W", "kBtu/hr")
             end
           end
-          cost_mult += UnitConversions.convert(max_value, "W", "kBtu/hr")
-        end
+          
+          # Boiler?
+          if component.nil?
+            max_value = 0.0
+            model.getPlantLoops.each do |pl|
+              pl.components.each do |plc|
+                next if not plc.to_BoilerHotWater.is_initialized
 
-        cost_mult *= units_represented
-      end
+                component = plc.to_BoilerHotWater.get
+                next if not component.nominalCapacity.is_initialized
+                next if component.nominalCapacity.get <= max_value
 
-    elsif cost_mult_type == "Size, Heating Supplemental System (kBtu/h)"
-      # Supplemental heating system capacity
-
-      all_conditioned_zones = conditioned_zones
-
-      model.getBuildingUnits.each do |unit|
-        next if unit.spaces.empty?
-
-        conditioned_zones = []
-        unit.spaces.each do |space|
-          zone = space.thermalZone.get
-          next unless all_conditioned_zones.include? zone
-          next if conditioned_zones.include? zone
-
-          conditioned_zones << zone
-        end
-
-        units_represented = 1
-        if unit.additionalProperties.getFeatureAsInteger("Units Represented").is_initialized
-          units_represented = unit.additionalProperties.getFeatureAsInteger("Units Represented").get
-        end
-
-        component = nil
-
-        # Unitary system?
-        if component.nil?
-          model.getAirLoopHVACUnitarySystems.each do |sys|
-            next unless conditioned_zones.include? sys.controllingZoneorThermostatLocation.get
-            next if not sys.supplementalHeatingCoil.is_initialized
-
-            if not component.nil?
-              runner.registerError("Multiple supplemental heating systems found. This code should be reevaluated for correctness.")
-              return nil
-            end
-            component = sys.supplementalHeatingCoil.get
-          end
-          if not component.nil?
-            if component.to_CoilHeatingElectric.is_initialized
-              coil = component.to_CoilHeatingElectric.get
-              if coil.nominalCapacity.is_initialized
-                cost_mult += UnitConversions.convert(coil.nominalCapacity.get, "W", "kBtu/hr")
+                max_value = component.nominalCapacity.get
               end
             end
+            cost_mult += UnitConversions.convert(max_value, "W", "kBtu/hr")
           end
-        end
+          
+        elsif cost_mult_type == "Size, Heating Supplemental System (kBtu/h)"
+          # Supplemental heating system capacity          
+          component = nil
+          
+          # Unitary system?
+          if component.nil?
+            model.getAirLoopHVACUnitarySystems.each do |sys|
+              next if zone != sys.controllingZoneorThermostatLocation.get
+              next if not sys.supplementalHeatingCoil.is_initialized
 
-        cost_mult *= units_represented
-      end
-
-    elsif cost_mult_type == "Size, Cooling System (kBtu/h)"
-      # Cooling system capacity
-
-      all_conditioned_zones = conditioned_zones
-
-      model.getBuildingUnits.each do |unit|
-        next if unit.spaces.empty?
-
-        conditioned_zones = []
-        unit.spaces.each do |space|
-          zone = space.thermalZone.get
-          next unless all_conditioned_zones.include? zone
-          next if conditioned_zones.include? zone
-
-          conditioned_zones << zone
-        end
-
-        units_represented = 1
-        if unit.additionalProperties.getFeatureAsInteger("Units Represented").is_initialized
-          units_represented = unit.additionalProperties.getFeatureAsInteger("Units Represented").get
-        end
-
-        component = nil
-
-        # Unitary system?
-        if component.nil?
-          model.getAirLoopHVACUnitarySystems.each do |sys|
-            next unless conditioned_zones.include? sys.controllingZoneorThermostatLocation.get
-            next if not sys.coolingCoil.is_initialized
-
-            if not component.nil?
-              runner.registerError("Multiple cooling systems found. This code should be reevaluated for correctness.")
-              return nil
-            end
-            component = sys.coolingCoil.get
-          end
-          if not component.nil?
-            if component.to_CoilCoolingDXSingleSpeed.is_initialized
-              coil = component.to_CoilCoolingDXSingleSpeed.get
-              if coil.ratedTotalCoolingCapacity.is_initialized
-                cost_mult += UnitConversions.convert(coil.ratedTotalCoolingCapacity.get, "W", "kBtu/hr")
+              if not component.nil?
+                runner.registerError("Multiple supplemental heating systems found. This code should be reevaluated for correctness.")
+                return nil
               end
-            elsif component.to_CoilCoolingDXMultiSpeed.is_initialized
-              coil = component.to_CoilCoolingDXMultiSpeed.get
-              if coil.stages.size > 0
-                stage = coil.stages[coil.stages.size - 1]
-                capacity_ratio = get_highest_stage_capacity_ratio(model, "SizingInfoHVACCapacityRatioCooling")
-                if stage.grossRatedTotalCoolingCapacity.is_initialized
-                  cost_mult += UnitConversions.convert(stage.grossRatedTotalCoolingCapacity.get / capacity_ratio, "W", "kBtu/hr")
+              component = sys.supplementalHeatingCoil.get
+            end
+            if not component.nil?
+              if component.to_CoilHeatingElectric.is_initialized
+                coil = component.to_CoilHeatingElectric.get
+                if coil.nominalCapacity.is_initialized
+                  cost_mult += UnitConversions.convert(coil.nominalCapacity.get, "W", "kBtu/hr")
                 end
               end
-            elsif component.to_CoilCoolingWaterToAirHeatPumpEquationFit.is_initialized
-              coil = component.to_CoilCoolingWaterToAirHeatPumpEquationFit.get
-              if coil.ratedTotalCoolingCapacity.is_initialized
-                cost_mult += UnitConversions.convert(coil.ratedTotalCoolingCapacity.get, "W", "kBtu/hr")
-              end
             end
           end
-        end
+          
+        elsif cost_mult_type == "Size, Cooling System (kBtu/h)"
+          # Cooling system capacity
+          component = nil
+          
+          # Unitary system?
+          if component.nil?
+            model.getAirLoopHVACUnitarySystems.each do |sys|
+              next if zone != sys.controllingZoneorThermostatLocation.get
+              next if not sys.coolingCoil.is_initialized
 
-        # PTAC?
-        if component.nil?
-          model.getZoneHVACPackagedTerminalAirConditioners.each do |sys|
-            next unless conditioned_zones.include? sys.thermalZone.get
-
-            component = sys.coolingCoil
+              if not component.nil?
+                runner.registerError("Multiple cooling systems found. This code should be reevaluated for correctness.")
+                return nil
+              end
+              component = sys.coolingCoil.get
+            end
             if not component.nil?
               if component.to_CoilCoolingDXSingleSpeed.is_initialized
                 coil = component.to_CoilCoolingDXSingleSpeed.get
                 if coil.ratedTotalCoolingCapacity.is_initialized
                   cost_mult += UnitConversions.convert(coil.ratedTotalCoolingCapacity.get, "W", "kBtu/hr")
                 end
+              elsif component.to_CoilCoolingDXMultiSpeed.is_initialized
+                coil = component.to_CoilCoolingDXMultiSpeed.get
+                if coil.stages.size > 0
+                  stage = coil.stages[coil.stages.size - 1]
+                  capacity_ratio = get_highest_stage_capacity_ratio(model, "SizingInfoHVACCapacityRatioCooling")
+                  if stage.grossRatedTotalCoolingCapacity.is_initialized
+                    cost_mult += UnitConversions.convert(stage.grossRatedTotalCoolingCapacity.get / capacity_ratio, "W", "kBtu/hr")
+                  end
+                end
+              elsif component.to_CoilCoolingWaterToAirHeatPumpEquationFit.is_initialized
+                coil = component.to_CoilCoolingWaterToAirHeatPumpEquationFit.get
+                if coil.ratedTotalCoolingCapacity.is_initialized
+                  cost_mult += UnitConversions.convert(coil.ratedTotalCoolingCapacity.get, "W", "kBtu/hr")
+                end
               end
             end
           end
-        end
+          
+          # PTAC?
+          if component.nil?
+            model.getZoneHVACPackagedTerminalAirConditioners.each do |sys|
+              next if zone != sys.thermalZone.get
 
-        cost_mult *= units_represented
-      end
-
-    elsif cost_mult_type == "Size, Water Heater (gal)"
-      # Water heater tank volume
-      (model.getWaterHeaterMixeds + model.getWaterHeaterHeatPumpWrappedCondensers).each do |wh|
-        if wh.to_WaterHeaterHeatPumpWrappedCondenser.is_initialized
-          wh = wh.tank.to_WaterHeaterStratified.get
-        end
-        if wh.tankVolume.is_initialized
-          volume = UnitConversions.convert(wh.tankVolume.get, "m^3", "gal")
-          if volume >= 1.0 # skip tankless
-            # FIXME: Remove actual->nominal size logic by storing nominal size in the OSM
-            if wh.heaterFuelType.downcase == "electricity"
-              cost_mult += volume / 0.9
-            else
-              cost_mult += volume / 0.95
+              component = sys.coolingCoil
+              if not component.nil?
+                if component.to_CoilCoolingDXSingleSpeed.is_initialized
+                  coil = component.to_CoilCoolingDXSingleSpeed.get
+                  if coil.ratedTotalCoolingCapacity.is_initialized
+                    cost_mult += UnitConversions.convert(coil.ratedTotalCoolingCapacity.get, "W", "kBtu/hr")
+                  end
+                end
+              end
             end
           end
-        end
-      end
+          
+        elsif cost_mult_type == "Size, Water Heater (gal)"
+          # Water heater tank volume
+          model.getWaterHeaterMixeds.each do |wh|
+            next if zone != wh.ambientTemperatureThermalZone.get
+            if wh.tankVolume.is_initialized
+              volume = UnitConversions.convert(wh.tankVolume.get, "m^3", "gal")
+              if volume >= 1.0 # skip tankless
+                # FIXME: Remove actual->nominal size logic by storing nominal size in the OSM
+                if wh.heaterFuelType.downcase == "electricity"
+                  cost_mult += volume / 0.9
+                else
+                  cost_mult += volume / 0.95
+                end
+              end
+            end
+          end
+          
+          model.getWaterHeaterHeatPumpWrappedCondensers.each do |wh|
+            # TODO: implement "only for this zone"
+            if wh.to_WaterHeaterHeatPumpWrappedCondenser.is_initialized
+              wh = wh.tank.to_WaterHeaterStratified.get
+            end
+            if wh.tankVolume.is_initialized
+              volume = UnitConversions.convert(wh.tankVolume.get, "m^3", "gal")
+              if volume >= 1.0 # skip tankless
+                # FIXME: Remove actual->nominal size logic by storing nominal size in the OSM
+                if wh.heaterFuelType.downcase == "electricity"
+                  cost_mult += volume / 0.9
+                else
+                  cost_mult += volume / 0.95
+                end
+              end
+            end
+          end
+          
+        end      
+      end # zones
 
-    elsif cost_mult_type != ""
-      runner.registerError("Unhandled cost multiplier: #{cost_mult_type.to_s}. Aborting...")
-      return nil
-    end
+      unit.spaces.each do |space|
+      
+        if cost_mult_type == "Wall Area, Above-Grade, Conditioned (ft^2)"
+          # Walls between conditioned space and 1) outdoors or 2) unconditioned space
+          space.surfaces.each do |surface|
+            next if surface.surfaceType.downcase != "wall"
+            next if not surface.space.is_initialized
+            next if not is_space_conditioned(surface.space.get)
+
+            adjacent_space = get_adjacent_space(surface)
+            if surface.outsideBoundaryCondition.downcase == "outdoors"
+              cost_mult += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
+            elsif !adjacent_space.nil? and not is_space_conditioned(adjacent_space)
+              cost_mult += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
+            end
+          end
+          
+        elsif cost_mult_type == "Wall Area, Above-Grade, Exterior (ft^2)"
+          # Walls adjacent to outdoors
+          space.surfaces.each do |surface|
+            next if surface.surfaceType.downcase != "wall"
+            next if surface.outsideBoundaryCondition.downcase != "outdoors"
+
+            cost_mult += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
+          end
+          
+        elsif cost_mult_type == "Wall Area, Below-Grade (ft^2)"
+          # Walls adjacent to ground
+          space.surfaces.each do |surface|
+            next if surface.surfaceType.downcase != "wall"
+            next if surface.outsideBoundaryCondition.downcase != "ground" and surface.outsideBoundaryCondition.downcase != "foundation"
+
+            cost_mult += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
+          end
+          
+        elsif cost_mult_type == "Floor Area, Conditioned (ft^2)"
+          # Floors of conditioned zone
+          space.surfaces.each do |surface|
+            next if surface.surfaceType.downcase != "floor"
+            next if not surface.space.is_initialized
+            next if not is_space_conditioned(surface.space.get)
+
+            cost_mult += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
+          end
+          
+        elsif cost_mult_type == "Floor Area, Attic (ft^2)"
+          # Floors under sloped surfaces and above conditioned space
+          space.surfaces.each do |surface|
+            next if surface.surfaceType.downcase != "floor"
+            next if not surface.space.is_initialized
+
+            space = surface.space.get
+            next if not has_sloped_roof_surfaces(space)
+
+            adjacent_space = get_adjacent_space(surface)
+            next if adjacent_space.nil?
+            next if not is_space_conditioned(adjacent_space)
+
+            cost_mult += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
+          end
+      
+        elsif cost_mult_type == "Floor Area, Lighting (ft^2)"
+          # Floors with lighting objects
+          space.surfaces.each do |surface|
+            next if surface.surfaceType.downcase != "floor"
+            next if not surface.space.is_initialized
+            next if surface.space.get.lights.size == 0
+
+            cost_mult += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
+          end
+      
+        elsif cost_mult_type == "Roof Area (ft^2)"
+          # Roofs adjacent to outdoors
+          space.surfaces.each do |surface|
+            next if surface.surfaceType.downcase != "roofceiling"
+            next if surface.outsideBoundaryCondition.downcase != "outdoors"
+
+            cost_mult += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
+          end
+      
+        elsif cost_mult_type == "Window Area (ft^2)"
+          # Window subsurfaces
+          space.surfaces.each do |surface|
+            next if surface.surfaceType.downcase != "wall"
+
+            surface.subSurfaces.each do |sub_surface|
+              next if not sub_surface.subSurfaceType.downcase.include? "window"
+
+              cost_mult += UnitConversions.convert(sub_surface.grossArea, "m^2", "ft^2")
+            end
+          end
+      
+        elsif cost_mult_type == "Door Area (ft^2)"
+          # Door subsurfaces
+          space.surfaces.each do |surface|
+            next if surface.surfaceType.downcase != "wall"
+
+            surface.subSurfaces.each do |sub_surface|
+              next if not sub_surface.subSurfaceType.downcase.include? "door"
+
+              cost_mult += UnitConversions.convert(sub_surface.grossArea, "m^2", "ft^2")
+            end
+          end
+
+        end
+      end # spaces
+
+      cost_mult *= units_represented
+
+      if cost_mult_type == "Wall Area, Above-Grade, Conditioned (ft^2)"
+        # Walls between conditioned space and 1) outdoors or 2) unconditioned space
+        model.getSurfaces.each do |surface|
+          space = surface.space.get
+          next if unit.spaces.include? space
+          next if surface.surfaceType.downcase != "wall"
+          next if not surface.space.is_initialized
+          next if not is_space_conditioned(surface.space.get)
+
+          adjacent_space = get_adjacent_space(surface)
+          if surface.outsideBoundaryCondition.downcase == "outdoors"
+            cost_mult += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
+          elsif !adjacent_space.nil? and not is_space_conditioned(adjacent_space)
+            cost_mult += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
+          end
+        end
+        
+      elsif cost_mult_type == "Wall Area, Above-Grade, Exterior (ft^2)"
+        # Walls adjacent to outdoors
+        model.getSurfaces.each do |surface|
+          space = surface.space.get
+          next if unit.spaces.include? space
+          next if surface.surfaceType.downcase != "wall"
+          next if surface.outsideBoundaryCondition.downcase != "outdoors"
+
+          cost_mult += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
+        end
+        
+      elsif cost_mult_type == "Wall Area, Below-Grade (ft^2)"
+        # Walls adjacent to ground
+        model.getSurfaces.each do |surface|
+          space = surface.space.get
+          next if unit.spaces.include? space
+          next if surface.surfaceType.downcase != "wall"
+          next if surface.outsideBoundaryCondition.downcase != "ground" and surface.outsideBoundaryCondition.downcase != "foundation"
+
+          cost_mult += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
+        end
+        
+      elsif cost_mult_type == "Floor Area, Conditioned (ft^2)"
+        # Floors of conditioned zone
+        model.getSurfaces.each do |surface|
+          space = surface.space.get
+          next if unit.spaces.include? space
+          next if surface.surfaceType.downcase != "floor"
+          next if not surface.space.is_initialized
+          next if not is_space_conditioned(surface.space.get)
+
+          cost_mult += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
+        end
+        
+      elsif cost_mult_type == "Floor Area, Attic (ft^2)"
+        # Floors under sloped surfaces and above conditioned space
+        model.getSurfaces.each do |surface|
+          space = surface.space.get
+          next if unit.spaces.include? space
+          next if surface.surfaceType.downcase != "floor"
+          next if not surface.space.is_initialized
+
+          space = surface.space.get
+          next if not has_sloped_roof_surfaces(space)
+
+          adjacent_space = get_adjacent_space(surface)
+          next if adjacent_space.nil?
+          next if not is_space_conditioned(adjacent_space)
+
+          cost_mult += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
+        end
+    
+      elsif cost_mult_type == "Floor Area, Lighting (ft^2)"
+        # Floors with lighting objects
+        model.getSurfaces.each do |surface|
+          space = surface.space.get
+          next if unit.spaces.include? space
+          next if surface.surfaceType.downcase != "floor"
+          next if not surface.space.is_initialized
+          next if surface.space.get.lights.size == 0
+
+          cost_mult += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
+        end
+    
+      elsif cost_mult_type == "Roof Area (ft^2)"
+        # Roofs adjacent to outdoors
+        model.getSurfaces.each do |surface|
+          space = surface.space.get
+          next if unit.spaces.include? space
+          next if surface.surfaceType.downcase != "roofceiling"
+          next if surface.outsideBoundaryCondition.downcase != "outdoors"
+
+          cost_mult += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
+        end
+    
+      elsif cost_mult_type == "Window Area (ft^2)"
+        # Window subsurfaces
+        model.getSurfaces.each do |surface|
+          space = surface.space.get
+          next if unit.spaces.include? space
+          next if surface.surfaceType.downcase != "wall"
+
+          surface.subSurfaces.each do |sub_surface|
+            next if not sub_surface.subSurfaceType.downcase.include? "window"
+
+            cost_mult += UnitConversions.convert(sub_surface.grossArea, "m^2", "ft^2")
+          end
+        end
+    
+      elsif cost_mult_type == "Door Area (ft^2)"
+        # Door subsurfaces
+        model.getSurfaces.each do |surface|
+          space = surface.space.get
+          next if unit.spaces.include? space
+          next if surface.surfaceType.downcase != "wall"
+
+          surface.subSurfaces.each do |sub_surface|
+            next if not sub_surface.subSurfaceType.downcase.include? "door"
+
+            cost_mult += UnitConversions.convert(sub_surface.grossArea, "m^2", "ft^2")
+          end
+        end
+
+      end
+    end # units
 
     return cost_mult
-  end
-
-  def get_conditioned_zones(model)
-    conditioned_zones = []
-    model.getThermalZones.each do |zone|
-      next if not zone.thermostat.is_initialized
-
-      conditioned_zones << zone
-    end
-    return conditioned_zones
   end
 
   def get_adjacent_space(surface)
@@ -1078,9 +1152,10 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     return surface.adjacentSurface.get.space.get
   end
 
-  def is_space_conditioned(adjacent_space, conditioned_zones)
-    conditioned_zones.each do |zone|
-      return true if zone.spaces.include? adjacent_space
+  def is_space_conditioned(adjacent_space)
+    zone = adjacent_space.thermalZone.get
+    if zone.thermostat.is_initialized
+      return true
     end
     return false
   end
