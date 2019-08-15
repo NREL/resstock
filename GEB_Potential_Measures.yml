@@ -1,5 +1,5 @@
 stock_type: residential
-buildstock_directory: /home/epresent/OpenStudio-BuildStock-master  # Relative to this file or absolute
+buildstock_directory: ./  # Relative to this file or absolute
 project_directory: project_singlefamilydetached
 output_directory: /scratch/epresent/YAML1s
 weather_files_path: /shared-projects/buildstock/weather/project_resstock_national_weather.zip
@@ -73,66 +73,66 @@ upgrades:
             - Water Heater|Electric Heat Pump, 50 gal, In Confined Space #should this be included?
         lifetime: 12
         #Best CW
-        - option: Clothes Washer|EnergyStar Most Efficient, 80% Usage
-          apply_logic:
-            or:
-              - Clothes Washer|EnergyStar, 80% Usage
-              - Clothes Washer|Standard, 80% Usage
-        - option: Clothes Washer|EnergyStar Most Efficient, 100% Usage
-          apply_logic:
-            or:
-              - Clothes Washer|EnergyStar, 100% Usage
-              - Clothes Washer|Standard, 100% Usage
-              - Clothes Washer|Standard, 100% Usage, Cold Only
-              - Clothes Washer|EnergyStar, Cold Only
-        - option: Clothes Washer|EnergyStar Most Efficient, 120% Usage
-          apply_logic:
-            or:
-              - Clothes Washer|EnergyStar, 120% Usage
-              - Clothes Washer|Standard, 120% Usage
-        #Best CD
-        - option: Clothes Dryer|Electric, Heat Pump, Ventless
-          apply_logic:
-            or:
-              - Clothes Dryer|Electric, 80% Usage
-              - Clothes Dryer|Electric, 100% Usage
-              - Clothes Dryer|Electric, 120% Usage
-              - Clothes Dryer|Electric, Premium
-        #Best DW
-        - option: Dishwasher|199 Rated kWh, 80% Usage
-          apply_logic: 
-            or:
-              - Dishwasher|318 Rated kWh, 80% Usage
-              - Dishwasher|290 Rated kWh, 80% Usage
-          costs:
-            - value: 1000
-              multiplier: Fixed (1)
-          lifetime: 11
-        - option: Dishwasher|199 Rated kWh, 100% Usage
-          apply_logic: 
-            or:
-              - Dishwasher|318 Rated kWh, 100% Usage
-              - Dishwasher|290 Rated kWh, 100% Usage
-          costs:
-            - value: 1000
-              multiplier: Fixed (1)
-          lifetime: 11
-        - option: Dishwasher|199 Rated kWh, 120% Usage
-          apply_logic: 
-            or:
-              - Dishwasher|318 Rated kWh, 120% Usage
-              - Dishwasher|290 Rated kWh, 120% Usage
-          costs:
-            - value: 1000
-              multiplier: Fixed (1)
-          lifetime: 11
-        #Best Pool Pump
-        - option: Misc Pool Pump|0.75 HP Pump
-          apply_logic: Misc Pool Pump|1.0 HP Pump
-        #Best Electronics (not ready yet)
+      - option: Clothes Washer|EnergyStar Most Efficient, 80% Usage
+        apply_logic:
+          or:
+            - Clothes Washer|EnergyStar, 80% Usage
+            - Clothes Washer|Standard, 80% Usage
+      - option: Clothes Washer|EnergyStar Most Efficient, 100% Usage
+        apply_logic:
+          or:
+            - Clothes Washer|EnergyStar, 100% Usage
+            - Clothes Washer|Standard, 100% Usage
+            - Clothes Washer|Standard, 100% Usage, Cold Only
+            - Clothes Washer|EnergyStar, Cold Only
+      - option: Clothes Washer|EnergyStar Most Efficient, 120% Usage
+        apply_logic:
+          or:
+            - Clothes Washer|EnergyStar, 120% Usage
+            - Clothes Washer|Standard, 120% Usage
+      #Best CD
+      - option: Clothes Dryer|Electric, Heat Pump, Ventless
+        apply_logic:
+          or:
+            - Clothes Dryer|Electric, 80% Usage
+            - Clothes Dryer|Electric, 100% Usage
+            - Clothes Dryer|Electric, 120% Usage
+            - Clothes Dryer|Electric, Premium
+      #Best DW
+      - option: Dishwasher|199 Rated kWh, 80% Usage
+        apply_logic: 
+          or:
+            - Dishwasher|318 Rated kWh, 80% Usage
+            - Dishwasher|290 Rated kWh, 80% Usage
+        costs:
+          - value: 1000
+            multiplier: Fixed (1)
+        lifetime: 11
+      - option: Dishwasher|199 Rated kWh, 100% Usage
+        apply_logic: 
+          or:
+            - Dishwasher|318 Rated kWh, 100% Usage
+            - Dishwasher|290 Rated kWh, 100% Usage
+        costs:
+          - value: 1000
+            multiplier: Fixed (1)
+        lifetime: 11
+      - option: Dishwasher|199 Rated kWh, 120% Usage
+        apply_logic: 
+          or:
+            - Dishwasher|318 Rated kWh, 120% Usage
+            - Dishwasher|290 Rated kWh, 120% Usage
+        costs:
+          - value: 1000
+            multiplier: Fixed (1)
+        lifetime: 11
+      #Best Pool Pump
+      - option: Misc Pool Pump|0.75 HP Pump
+        apply_logic: Misc Pool Pump|1.0 HP Pump
+      #Best Electronics (not ready yet)
 
 ##up2 - package 1b - EE measures with ASHP
-- upgrade_name: Package 1b EE with ASHP
+  - upgrade_name: Package 1b EE with ASHP
     options:
       #Best ASHP today - Variable-Speed Heat Pump
       - option: HVAC System Heat Pump|ASHP, SEER 22, 10 HSPF
@@ -194,67 +194,67 @@ upgrades:
             - Water Heater|Electric Heat Pump, 50 gal, 140F
             - Water Heater|Electric Heat Pump, 50 gal, In Confined Space #should this be included?
         lifetime: 12
-        #Best CW
-        - option: Clothes Washer|EnergyStar Most Efficient, 80% Usage
-          apply_logic:
-            or:
-              - Clothes Washer|EnergyStar, 80% Usage
-              - Clothes Washer|Standard, 80% Usage
-        - option: Clothes Washer|EnergyStar Most Efficient, 100% Usage
-          apply_logic:
-            or:
-              - Clothes Washer|EnergyStar, 100% Usage
-              - Clothes Washer|Standard, 100% Usage
-              - Clothes Washer|Standard, 100% Usage, Cold Only
-              - Clothes Washer|EnergyStar, Cold Only
-        - option: Clothes Washer|EnergyStar Most Efficient, 120% Usage
-          apply_logic:
-            or:
-              - Clothes Washer|EnergyStar, 120% Usage
-              - Clothes Washer|Standard, 120% Usage
-        #Best CD
-        - option: Clothes Dryer|Electric, Heat Pump, Ventless
-          apply_logic:
-            or:
-              - Clothes Dryer|Electric, 80% Usage
-              - Clothes Dryer|Electric, 100% Usage
-              - Clothes Dryer|Electric, 120% Usage
-              - Clothes Dryer|Electric, Premium
-        #Best DW
-        - option: Dishwasher|199 Rated kWh, 80% Usage
-          apply_logic: 
-            or:
-              - Dishwasher|318 Rated kWh, 80% Usage
-              - Dishwasher|290 Rated kWh, 80% Usage
-          costs:
-            - value: 1000
-              multiplier: Fixed (1)
-          lifetime: 11
-        - option: Dishwasher|199 Rated kWh, 100% Usage
-          apply_logic: 
-            or:
-              - Dishwasher|318 Rated kWh, 100% Usage
-              - Dishwasher|290 Rated kWh, 100% Usage
-          costs:
-            - value: 1000
-              multiplier: Fixed (1)
-          lifetime: 11
-        - option: Dishwasher|199 Rated kWh, 120% Usage
-          apply_logic: 
-            or:
-              - Dishwasher|318 Rated kWh, 120% Usage
-              - Dishwasher|290 Rated kWh, 120% Usage
-          costs:
-            - value: 1000
-              multiplier: Fixed (1)
-          lifetime: 11
-        #Best Pool Pump
-        - option: Misc Pool Pump|0.75 HP Pump
-          apply_logic: Misc Pool Pump|1.0 HP Pump
-        #Best Electronics (not ready yet)
+      #Best CW
+      - option: Clothes Washer|EnergyStar Most Efficient, 80% Usage
+        apply_logic:
+          or:
+            - Clothes Washer|EnergyStar, 80% Usage
+            - Clothes Washer|Standard, 80% Usage
+      - option: Clothes Washer|EnergyStar Most Efficient, 100% Usage
+        apply_logic:
+          or:
+            - Clothes Washer|EnergyStar, 100% Usage
+            - Clothes Washer|Standard, 100% Usage
+            - Clothes Washer|Standard, 100% Usage, Cold Only
+            - Clothes Washer|EnergyStar, Cold Only
+      - option: Clothes Washer|EnergyStar Most Efficient, 120% Usage
+        apply_logic:
+          or:
+            - Clothes Washer|EnergyStar, 120% Usage
+            - Clothes Washer|Standard, 120% Usage
+      #Best CD
+      - option: Clothes Dryer|Electric, Heat Pump, Ventless
+        apply_logic:
+          or:
+            - Clothes Dryer|Electric, 80% Usage
+            - Clothes Dryer|Electric, 100% Usage
+            - Clothes Dryer|Electric, 120% Usage
+            - Clothes Dryer|Electric, Premium
+      #Best DW
+      - option: Dishwasher|199 Rated kWh, 80% Usage
+        apply_logic: 
+          or:
+            - Dishwasher|318 Rated kWh, 80% Usage
+            - Dishwasher|290 Rated kWh, 80% Usage
+        costs:
+          - value: 1000
+            multiplier: Fixed (1)
+        lifetime: 11
+      - option: Dishwasher|199 Rated kWh, 100% Usage
+        apply_logic: 
+          or:
+            - Dishwasher|318 Rated kWh, 100% Usage
+            - Dishwasher|290 Rated kWh, 100% Usage
+        costs:
+          - value: 1000
+            multiplier: Fixed (1)
+        lifetime: 11
+      - option: Dishwasher|199 Rated kWh, 120% Usage
+        apply_logic: 
+          or:
+            - Dishwasher|318 Rated kWh, 120% Usage
+            - Dishwasher|290 Rated kWh, 120% Usage
+        costs:
+          - value: 1000
+            multiplier: Fixed (1)
+        lifetime: 11
+      #Best Pool Pump
+      - option: Misc Pool Pump|0.75 HP Pump
+        apply_logic: Misc Pool Pump|1.0 HP Pump
+      #Best Electronics (not ready yet)
 
 ##up3 - package 1c - EE measures with smart thermostat
-- upgrade_name: Package 1c EE with smart thermostat
+  - upgrade_name: Package 1c EE with smart thermostat
     options:
       #Best LEDs
       - option: Lighting|100% LED, High Efficacy
@@ -293,66 +293,66 @@ upgrades:
             - Water Heater|Electric Heat Pump, 50 gal, In Confined Space #should this be included?
         lifetime: 12
         #Best CW
-        - option: Clothes Washer|EnergyStar Most Efficient, 80% Usage
-          apply_logic:
-            or:
-              - Clothes Washer|EnergyStar, 80% Usage
-              - Clothes Washer|Standard, 80% Usage
-        - option: Clothes Washer|EnergyStar Most Efficient, 100% Usage
-          apply_logic:
-            or:
-              - Clothes Washer|EnergyStar, 100% Usage
-              - Clothes Washer|Standard, 100% Usage
-              - Clothes Washer|Standard, 100% Usage, Cold Only
-              - Clothes Washer|EnergyStar, Cold Only
-        - option: Clothes Washer|EnergyStar Most Efficient, 120% Usage
-          apply_logic:
-            or:
-              - Clothes Washer|EnergyStar, 120% Usage
-              - Clothes Washer|Standard, 120% Usage
-        #Best CD
-        - option: Clothes Dryer|Electric, Heat Pump, Ventless
-          apply_logic:
-            or:
-              - Clothes Dryer|Electric, 80% Usage
-              - Clothes Dryer|Electric, 100% Usage
-              - Clothes Dryer|Electric, 120% Usage
-              - Clothes Dryer|Electric, Premium
-        #Best DW
-        - option: Dishwasher|199 Rated kWh, 80% Usage
-          apply_logic: 
-            or:
-              - Dishwasher|318 Rated kWh, 80% Usage
-              - Dishwasher|290 Rated kWh, 80% Usage
-          costs:
-            - value: 1000
-              multiplier: Fixed (1)
-          lifetime: 11
-        - option: Dishwasher|199 Rated kWh, 100% Usage
-          apply_logic: 
-            or:
-              - Dishwasher|318 Rated kWh, 100% Usage
-              - Dishwasher|290 Rated kWh, 100% Usage
-          costs:
-            - value: 1000
-              multiplier: Fixed (1)
-          lifetime: 11
-        - option: Dishwasher|199 Rated kWh, 120% Usage
-          apply_logic: 
-            or:
-              - Dishwasher|318 Rated kWh, 120% Usage
-              - Dishwasher|290 Rated kWh, 120% Usage
-          costs:
-            - value: 1000
-              multiplier: Fixed (1)
-          lifetime: 11
-        #Best Pool Pump
-        - option: Misc Pool Pump|0.75 HP Pump
-          apply_logic: Misc Pool Pump|1.0 HP Pump
-        #Best Electronics (not ready yet)
+      - option: Clothes Washer|EnergyStar Most Efficient, 80% Usage
+        apply_logic:
+          or:
+            - Clothes Washer|EnergyStar, 80% Usage
+            - Clothes Washer|Standard, 80% Usage
+      - option: Clothes Washer|EnergyStar Most Efficient, 100% Usage
+        apply_logic:
+          or:
+            - Clothes Washer|EnergyStar, 100% Usage
+            - Clothes Washer|Standard, 100% Usage
+            - Clothes Washer|Standard, 100% Usage, Cold Only
+            - Clothes Washer|EnergyStar, Cold Only
+      - option: Clothes Washer|EnergyStar Most Efficient, 120% Usage
+        apply_logic:
+          or:
+            - Clothes Washer|EnergyStar, 120% Usage
+            - Clothes Washer|Standard, 120% Usage
+      #Best CD
+      - option: Clothes Dryer|Electric, Heat Pump, Ventless
+        apply_logic:
+          or:
+            - Clothes Dryer|Electric, 80% Usage
+            - Clothes Dryer|Electric, 100% Usage
+            - Clothes Dryer|Electric, 120% Usage
+            - Clothes Dryer|Electric, Premium
+      #Best DW
+      - option: Dishwasher|199 Rated kWh, 80% Usage
+        apply_logic: 
+          or:
+            - Dishwasher|318 Rated kWh, 80% Usage
+            - Dishwasher|290 Rated kWh, 80% Usage
+        costs:
+          - value: 1000
+            multiplier: Fixed (1)
+        lifetime: 11
+      - option: Dishwasher|199 Rated kWh, 100% Usage
+        apply_logic: 
+          or:
+            - Dishwasher|318 Rated kWh, 100% Usage
+            - Dishwasher|290 Rated kWh, 100% Usage
+        costs:
+          - value: 1000
+            multiplier: Fixed (1)
+        lifetime: 11
+      - option: Dishwasher|199 Rated kWh, 120% Usage
+        apply_logic: 
+          or:
+            - Dishwasher|318 Rated kWh, 120% Usage
+            - Dishwasher|290 Rated kWh, 120% Usage
+        costs:
+          - value: 1000
+            multiplier: Fixed (1)
+        lifetime: 11
+      #Best Pool Pump
+      - option: Misc Pool Pump|0.75 HP Pump
+        apply_logic: Misc Pool Pump|1.0 HP Pump
+      #Best Electronics (not ready yet)
 
 ##up4 - package 1d - EE measures with advanced envelope
-- upgrade_name: Package 1d EE with advanced envelope
+  - upgrade_name: Package 1d EE with advanced envelope
     options:
       # Best walls
       - option: Insulation Wall|Wood Stud, R-13, R-20 external XPS
@@ -368,7 +368,7 @@ upgrades:
             - Insulation Wall|Wood Stud, R-23 Closed Cell Spray Foam, 2x4, 16 in o.c.
       #Best roofs - R-49 attic insulation
       - option: Insulation Unfinished Attic|Ceiling R-49, Vented
-        apply_logic: Insulation Unfinished Attic|Ceiling R-7, Vented
+        apply_logic: 
           or:
             - Insulation Unfinished Attic|Uninsulated, Vented
             - Insulation Unfinished Attic|Ceiling R-7, Vented
@@ -432,71 +432,71 @@ upgrades:
             - Water Heater|Electric Heat Pump, 50 gal, In Confined Space #should this be included?
         lifetime: 12
         #Best CW
-        - option: Clothes Washer|EnergyStar Most Efficient, 80% Usage
-          apply_logic:
-            or:
-              - Clothes Washer|EnergyStar, 80% Usage
-              - Clothes Washer|Standard, 80% Usage
-        - option: Clothes Washer|EnergyStar Most Efficient, 100% Usage
-          apply_logic:
-            or:
-              - Clothes Washer|EnergyStar, 100% Usage
-              - Clothes Washer|Standard, 100% Usage
-              - Clothes Washer|Standard, 100% Usage, Cold Only
-              - Clothes Washer|EnergyStar, Cold Only
-        - option: Clothes Washer|EnergyStar Most Efficient, 120% Usage
-          apply_logic:
-            or:
-              - Clothes Washer|EnergyStar, 120% Usage
-              - Clothes Washer|Standard, 120% Usage
-        #Best CD
-        - option: Clothes Dryer|Electric, Heat Pump, Ventless
-          apply_logic:
-            or:
-              - Clothes Dryer|Electric, 80% Usage
-              - Clothes Dryer|Electric, 100% Usage
-              - Clothes Dryer|Electric, 120% Usage
-              - Clothes Dryer|Electric, Premium
-        #Best DW
-        - option: Dishwasher|199 Rated kWh, 80% Usage
-          apply_logic: 
-            or:
-              - Dishwasher|318 Rated kWh, 80% Usage
-              - Dishwasher|290 Rated kWh, 80% Usage
-          costs:
-            - value: 1000
-              multiplier: Fixed (1)
-          lifetime: 11
-        - option: Dishwasher|199 Rated kWh, 100% Usage
-          apply_logic: 
-            or:
-              - Dishwasher|318 Rated kWh, 100% Usage
-              - Dishwasher|290 Rated kWh, 100% Usage
-          costs:
-            - value: 1000
-              multiplier: Fixed (1)
-          lifetime: 11
-        - option: Dishwasher|199 Rated kWh, 120% Usage
-          apply_logic: 
-            or:
-              - Dishwasher|318 Rated kWh, 120% Usage
-              - Dishwasher|290 Rated kWh, 120% Usage
-          costs:
-            - value: 1000
-              multiplier: Fixed (1)
-          lifetime: 11
-        #Best Pool Pump
-        - option: Misc Pool Pump|0.75 HP Pump
-          apply_logic: Misc Pool Pump|1.0 HP Pump
-        #Best Electronics (not ready yet)
+      - option: Clothes Washer|EnergyStar Most Efficient, 80% Usage
+        apply_logic:
+          or:
+            - Clothes Washer|EnergyStar, 80% Usage
+            - Clothes Washer|Standard, 80% Usage
+      - option: Clothes Washer|EnergyStar Most Efficient, 100% Usage
+        apply_logic:
+          or:
+            - Clothes Washer|EnergyStar, 100% Usage
+            - Clothes Washer|Standard, 100% Usage
+            - Clothes Washer|Standard, 100% Usage, Cold Only
+            - Clothes Washer|EnergyStar, Cold Only
+      - option: Clothes Washer|EnergyStar Most Efficient, 120% Usage
+        apply_logic:
+          or:
+            - Clothes Washer|EnergyStar, 120% Usage
+            - Clothes Washer|Standard, 120% Usage
+      #Best CD
+      - option: Clothes Dryer|Electric, Heat Pump, Ventless
+        apply_logic:
+          or:
+            - Clothes Dryer|Electric, 80% Usage
+            - Clothes Dryer|Electric, 100% Usage
+            - Clothes Dryer|Electric, 120% Usage
+            - Clothes Dryer|Electric, Premium
+      #Best DW
+      - option: Dishwasher|199 Rated kWh, 80% Usage
+        apply_logic: 
+          or:
+            - Dishwasher|318 Rated kWh, 80% Usage
+            - Dishwasher|290 Rated kWh, 80% Usage
+        costs:
+          - value: 1000
+            multiplier: Fixed (1)
+        lifetime: 11
+      - option: Dishwasher|199 Rated kWh, 100% Usage
+        apply_logic: 
+          or:
+            - Dishwasher|318 Rated kWh, 100% Usage
+            - Dishwasher|290 Rated kWh, 100% Usage
+        costs:
+          - value: 1000
+            multiplier: Fixed (1)
+        lifetime: 11
+      - option: Dishwasher|199 Rated kWh, 120% Usage
+        apply_logic: 
+          or:
+            - Dishwasher|318 Rated kWh, 120% Usage
+            - Dishwasher|290 Rated kWh, 120% Usage
+        costs:
+          - value: 1000
+            multiplier: Fixed (1)
+        lifetime: 11
+      #Best Pool Pump
+      - option: Misc Pool Pump|0.75 HP Pump
+        apply_logic: Misc Pool Pump|1.0 HP Pump
+      #Best Electronics (not ready yet)
 
 ##up5 - package 2 - DR measures
-- upgrade_name: Package 2 DR
-    options:
+  # - upgrade_name: Package 2 DR
+  #   options:
     #
 
 ##up6 - package 3a - EE/DR measures with CAC
-- upgrade_name: Package 3a EEDR with CAC 
+  - upgrade_name: Package 3a EEDR with CAC 
     options: 
       #Best CAC 18 SEER
       - option: HVAC System Cooling|AC, SEER 18
@@ -550,64 +550,64 @@ upgrades:
             - Water Heater|Electric Heat Pump, 50 gal, In Confined Space #should this be included?
         lifetime: 12
         #Best CW
-        - option: Clothes Washer|EnergyStar Most Efficient, 80% Usage
-          apply_logic:
-            or:
-              - Clothes Washer|EnergyStar, 80% Usage
-              - Clothes Washer|Standard, 80% Usage
-        - option: Clothes Washer|EnergyStar Most Efficient, 100% Usage
-          apply_logic:
-            or:
-              - Clothes Washer|EnergyStar, 100% Usage
-              - Clothes Washer|Standard, 100% Usage
-              - Clothes Washer|Standard, 100% Usage, Cold Only
-              - Clothes Washer|EnergyStar, Cold Only
-        - option: Clothes Washer|EnergyStar Most Efficient, 120% Usage
-          apply_logic:
-            or:
-              - Clothes Washer|EnergyStar, 120% Usage
-              - Clothes Washer|Standard, 120% Usage
-        #Best CD
-        - option: Clothes Dryer|Electric, Heat Pump, Ventless
-          apply_logic:
-            or:
-              - Clothes Dryer|Electric, 80% Usage
-              - Clothes Dryer|Electric, 100% Usage
-              - Clothes Dryer|Electric, 120% Usage
-              - Clothes Dryer|Electric, Premium
-        #Best DW
-        - option: Dishwasher|199 Rated kWh, 80% Usage
-          apply_logic: 
-            or:
-              - Dishwasher|318 Rated kWh, 80% Usage
-              - Dishwasher|290 Rated kWh, 80% Usage
-          costs:
-            - value: 1000
-              multiplier: Fixed (1)
-          lifetime: 11
-        - option: Dishwasher|199 Rated kWh, 100% Usage
-          apply_logic: 
-            or:
-              - Dishwasher|318 Rated kWh, 100% Usage
-              - Dishwasher|290 Rated kWh, 100% Usage
-          costs:
-            - value: 1000
-              multiplier: Fixed (1)
-          lifetime: 11
-        - option: Dishwasher|199 Rated kWh, 120% Usage
-          apply_logic: 
-            or:
-              - Dishwasher|318 Rated kWh, 120% Usage
-              - Dishwasher|290 Rated kWh, 120% Usage
-          costs:
-            - value: 1000
-              multiplier: Fixed (1)
-          lifetime: 11
-        #Best Pool Pump
-        - option: Misc Pool Pump|0.75 HP Pump
-          apply_logic: Misc Pool Pump|1.0 HP Pump
-        #Best Electronics (not ready yet)
-              # Best walls
+      - option: Clothes Washer|EnergyStar Most Efficient, 80% Usage
+        apply_logic:
+          or:
+            - Clothes Washer|EnergyStar, 80% Usage
+            - Clothes Washer|Standard, 80% Usage
+      - option: Clothes Washer|EnergyStar Most Efficient, 100% Usage
+        apply_logic:
+          or:
+            - Clothes Washer|EnergyStar, 100% Usage
+            - Clothes Washer|Standard, 100% Usage
+            - Clothes Washer|Standard, 100% Usage, Cold Only
+            - Clothes Washer|EnergyStar, Cold Only
+      - option: Clothes Washer|EnergyStar Most Efficient, 120% Usage
+        apply_logic:
+          or:
+            - Clothes Washer|EnergyStar, 120% Usage
+            - Clothes Washer|Standard, 120% Usage
+      #Best CD
+      - option: Clothes Dryer|Electric, Heat Pump, Ventless
+        apply_logic:
+          or:
+            - Clothes Dryer|Electric, 80% Usage
+            - Clothes Dryer|Electric, 100% Usage
+            - Clothes Dryer|Electric, 120% Usage
+            - Clothes Dryer|Electric, Premium
+      #Best DW
+      - option: Dishwasher|199 Rated kWh, 80% Usage
+        apply_logic: 
+          or:
+            - Dishwasher|318 Rated kWh, 80% Usage
+            - Dishwasher|290 Rated kWh, 80% Usage
+        costs:
+          - value: 1000
+            multiplier: Fixed (1)
+        lifetime: 11
+      - option: Dishwasher|199 Rated kWh, 100% Usage
+        apply_logic: 
+          or:
+            - Dishwasher|318 Rated kWh, 100% Usage
+            - Dishwasher|290 Rated kWh, 100% Usage
+        costs:
+          - value: 1000
+            multiplier: Fixed (1)
+        lifetime: 11
+      - option: Dishwasher|199 Rated kWh, 120% Usage
+        apply_logic: 
+          or:
+            - Dishwasher|318 Rated kWh, 120% Usage
+            - Dishwasher|290 Rated kWh, 120% Usage
+        costs:
+          - value: 1000
+            multiplier: Fixed (1)
+        lifetime: 11
+      #Best Pool Pump
+      - option: Misc Pool Pump|0.75 HP Pump
+        apply_logic: Misc Pool Pump|1.0 HP Pump
+      #Best Electronics (not ready yet)
+            # Best walls
       - option: Insulation Wall|Wood Stud, R-13, R-20 external XPS
         apply_logic:
           or:
@@ -621,7 +621,7 @@ upgrades:
             - Insulation Wall|Wood Stud, R-23 Closed Cell Spray Foam, 2x4, 16 in o.c.
       #Best roofs - R-49 attic insulation
       - option: Insulation Unfinished Attic|Ceiling R-49, Vented
-        apply_logic: Insulation Unfinished Attic|Ceiling R-7, Vented
+        apply_logic:
           or:
             - Insulation Unfinished Attic|Uninsulated, Vented
             - Insulation Unfinished Attic|Ceiling R-7, Vented
@@ -651,7 +651,7 @@ upgrades:
  #All DR measures
 
 ##up 7 - package 3b - EE/DR measures with ASHP
-- upgrade_name: Package 3b EEDR with ASHP
+  - upgrade_name: Package 3b EEDR with ASHP
     options:
     #Best ASHP today - Variable-Speed Heat Pump
       - option: HVAC System Heat Pump|ASHP, SEER 22, 10 HSPF
@@ -709,64 +709,64 @@ upgrades:
             - Water Heater|Electric Heat Pump, 50 gal, In Confined Space #should this be included?
         lifetime: 12
         #Best CW
-        - option: Clothes Washer|EnergyStar Most Efficient, 80% Usage
-          apply_logic:
-            or:
-              - Clothes Washer|EnergyStar, 80% Usage
-              - Clothes Washer|Standard, 80% Usage
-        - option: Clothes Washer|EnergyStar Most Efficient, 100% Usage
-          apply_logic:
-            or:
-              - Clothes Washer|EnergyStar, 100% Usage
-              - Clothes Washer|Standard, 100% Usage
-              - Clothes Washer|Standard, 100% Usage, Cold Only
-              - Clothes Washer|EnergyStar, Cold Only
-        - option: Clothes Washer|EnergyStar Most Efficient, 120% Usage
-          apply_logic:
-            or:
-              - Clothes Washer|EnergyStar, 120% Usage
-              - Clothes Washer|Standard, 120% Usage
-        #Best CD
-        - option: Clothes Dryer|Electric, Heat Pump, Ventless
-          apply_logic:
-            or:
-              - Clothes Dryer|Electric, 80% Usage
-              - Clothes Dryer|Electric, 100% Usage
-              - Clothes Dryer|Electric, 120% Usage
-              - Clothes Dryer|Electric, Premium
-        #Best DW
-        - option: Dishwasher|199 Rated kWh, 80% Usage
-          apply_logic: 
-            or:
-              - Dishwasher|318 Rated kWh, 80% Usage
-              - Dishwasher|290 Rated kWh, 80% Usage
-          costs:
-            - value: 1000
-              multiplier: Fixed (1)
-          lifetime: 11
-        - option: Dishwasher|199 Rated kWh, 100% Usage
-          apply_logic: 
-            or:
-              - Dishwasher|318 Rated kWh, 100% Usage
-              - Dishwasher|290 Rated kWh, 100% Usage
-          costs:
-            - value: 1000
-              multiplier: Fixed (1)
-          lifetime: 11
-        - option: Dishwasher|199 Rated kWh, 120% Usage
-          apply_logic: 
-            or:
-              - Dishwasher|318 Rated kWh, 120% Usage
-              - Dishwasher|290 Rated kWh, 120% Usage
-          costs:
-            - value: 1000
-              multiplier: Fixed (1)
-          lifetime: 11
-        #Best Pool Pump
-        - option: Misc Pool Pump|0.75 HP Pump
-          apply_logic: Misc Pool Pump|1.0 HP Pump
-        #Best Electronics (not ready yet)
-              # Best walls
+      - option: Clothes Washer|EnergyStar Most Efficient, 80% Usage
+        apply_logic:
+          or:
+            - Clothes Washer|EnergyStar, 80% Usage
+            - Clothes Washer|Standard, 80% Usage
+      - option: Clothes Washer|EnergyStar Most Efficient, 100% Usage
+        apply_logic:
+          or:
+            - Clothes Washer|EnergyStar, 100% Usage
+            - Clothes Washer|Standard, 100% Usage
+            - Clothes Washer|Standard, 100% Usage, Cold Only
+            - Clothes Washer|EnergyStar, Cold Only
+      - option: Clothes Washer|EnergyStar Most Efficient, 120% Usage
+        apply_logic:
+          or:
+            - Clothes Washer|EnergyStar, 120% Usage
+            - Clothes Washer|Standard, 120% Usage
+      #Best CD
+      - option: Clothes Dryer|Electric, Heat Pump, Ventless
+        apply_logic:
+          or:
+            - Clothes Dryer|Electric, 80% Usage
+            - Clothes Dryer|Electric, 100% Usage
+            - Clothes Dryer|Electric, 120% Usage
+            - Clothes Dryer|Electric, Premium
+      #Best DW
+      - option: Dishwasher|199 Rated kWh, 80% Usage
+        apply_logic: 
+          or:
+            - Dishwasher|318 Rated kWh, 80% Usage
+            - Dishwasher|290 Rated kWh, 80% Usage
+        costs:
+          - value: 1000
+            multiplier: Fixed (1)
+        lifetime: 11
+      - option: Dishwasher|199 Rated kWh, 100% Usage
+        apply_logic: 
+          or:
+            - Dishwasher|318 Rated kWh, 100% Usage
+            - Dishwasher|290 Rated kWh, 100% Usage
+        costs:
+          - value: 1000
+            multiplier: Fixed (1)
+        lifetime: 11
+      - option: Dishwasher|199 Rated kWh, 120% Usage
+        apply_logic: 
+          or:
+            - Dishwasher|318 Rated kWh, 120% Usage
+            - Dishwasher|290 Rated kWh, 120% Usage
+        costs:
+          - value: 1000
+            multiplier: Fixed (1)
+        lifetime: 11
+      #Best Pool Pump
+      - option: Misc Pool Pump|0.75 HP Pump
+        apply_logic: Misc Pool Pump|1.0 HP Pump
+      #Best Electronics (not ready yet)
+            # Best walls
       - option: Insulation Wall|Wood Stud, R-13, R-20 external XPS
         apply_logic:
           or:
@@ -780,7 +780,7 @@ upgrades:
             - Insulation Wall|Wood Stud, R-23 Closed Cell Spray Foam, 2x4, 16 in o.c.
       #Best roofs - R-49 attic insulation
       - option: Insulation Unfinished Attic|Ceiling R-49, Vented
-        apply_logic: Insulation Unfinished Attic|Ceiling R-7, Vented
+        apply_logic:
           or:
             - Insulation Unfinished Attic|Uninsulated, Vented
             - Insulation Unfinished Attic|Ceiling R-7, Vented
