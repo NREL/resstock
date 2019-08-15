@@ -150,7 +150,7 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
     shift_DW = runner.getBoolArgumentValue("shift_DW", user_arguments)
     shift_PP = runner.getBoolArgumentValue("shift_PP", user_arguments)
 
-    def avoid_peaks(day_sch, peak_hours, model)
+    def avoid_peaks(day_sch, peak_hours, model, take_hour = [], simple_shifting=false)
       def create_new_day_schedule(times,values,model)
         new_day_sch = OpenStudio::Model::ScheduleDay.new(model)
         times.each_with_index do |time, index|
@@ -164,9 +164,25 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
       puts("Avoding peaks #{peak_hours}**********************")
       peak_hours.each do |peak|
           puts("Passing schedule: #{day_sch.times.map{|x| x.toString}},#{day_sch.values} to dodge peak to dodge #{peak}")
-          new_times, new_vals = dodge_peak(day_sch, peak, peak_hours, OpenStudio::Time)
-          puts("Getting schedule: #{new_times.map{|x| x.toString}},#{new_vals} from dodge peak")
-          day_sch = create_new_day_schedule(new_times, new_vals, model)
+          if simple_shifting
+            new_times, new_vals = shift_peak_to_take(day_sch, peak, take_hour, OpenStudio::Time )
+            puts("Getting schedule: #{new_times.map{|x| x.toString}},#{new_vals} from shift_peak_to_take")
+            day_sch = create_new_day_schedule(new_times, new_vals, model)
+          else
+            new_times, new_vals = dodge_peak(day_sch, peak, peak_hours, OpenStudio::Time)
+            puts("Getting schedule: #{new_times.map{|x| x.toString}},#{new_vals} from dodge peak")
+            day_sch = create_new_day_schedule(new_times, new_vals, model)
+          end
+      end
+
+      if simple_shifting
+        new_day_sch = OpenStudio::Model::ScheduleDay.new(model)
+        times = day_sch.times
+        values = day_sch.values
+        times.each_with_index do |time, index|
+          new_day_sch.addValue(time, values[index]/10.to_f)
+        end
+        day_sch = new_day_sch
       end
 
       puts("Got before Sch_Times: #{old_times.map{|x| x.toString}}")
@@ -175,6 +191,7 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
       puts("Got after Sch_Vals: #{day_sch.values}")
       return day_sch
     end
+
 
     units = Geometry.get_building_units(model, runner)
 
@@ -194,6 +211,7 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
               puts("Pool The #{index} day schedule is values ##{day_sch.times.map{|x| x.to_s}},#{day_sch.values}")
               puts("Pool For this specific dates #{rule.specificDates[0]}")
               puts("Start date: #{rule.startDate.get} and End date: #{rule.endDate.get}")
+              puts("Month is #{rule.startDate.get.monthOfYear.value}")
             end
           end
         end
@@ -204,18 +222,22 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
     units.each_with_index do |unit, unit_index|
       appliance_names = []
       appliance_names << Constants.ObjectNameClothesWasher(unit.name.to_s)
-      appliance_names << Constants.ObjectNameClothesDryer(unit.name.to_s)
+      appliance_names << Constants.ObjectNameClothesDryer("electric",unit.name.to_s)
       appliance_names << Constants.ObjectNameDishwasher(unit.name.to_s)
+      appliance_names << Constants.ObjectNamePoolPump(unit.name.to_s)
       model.getElectricEquipments.each do |ee|
+        puts("Checking EE: #{(ee.name.to_s)}")
         next if not appliance_names.include?(ee.name.to_s)
-     
+        puts("EE is to be rescheduled")
         puts("For unit #{unit.name.to_s} found ee named: #{ee.name.to_s}")
         if not ee.schedule.empty?
+          puts("EE does have schedule")
           existing_schedule = ee.schedule.get
           new_schedule = OpenStudio::Model::ScheduleRuleset.new(model)
           new_schedule.setName('DR_'+existing_schedule.name.get)
 
           if not existing_schedule.to_ScheduleRuleset.empty?
+            puts("EE does have ruleset schedule ...")
             ruleset = existing_schedule.to_ScheduleRuleset.get
             rules = ruleset.scheduleRules()
             puts("Rules vector: #{rules}")
@@ -223,36 +245,113 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
               day_sch = rule.daySchedule
               puts("The #{index} day schedule is values #{day_sch.values}")
               puts("For this dates #{rule.specificDates[0]}")
-              day_sch.times.each do |time|
-                puts("Full time: #{time}, minutes #{time.totalMinutes}")
-              end
+              # day_sch.times.each do |time|
+              #   puts("Full time: #{time}, minutes #{time.totalMinutes}")
+              # end
               #puts("This applies to #{rule.specificDates}")
-              puts("First date is #{rule.specificDates[0]}")
-              puts("First month is #{rule.specificDates[0].monthOfYear.value}")
-              summer_dates = rule.specificDates.select{|x| summer_months.include?(x.monthOfYear.value)}
-              winter_dates = rule.specificDates.select{|x| winter_months.include?(x.monthOfYear.value)}
+              if ee.name.to_s == Constants.ObjectNamePoolPump(unit.name.to_s)
+                # pool-pump
+                start_date = rule.startDate.get
+                end_date = rule.endDate.get
+                if summer_months.include?(start_date.monthOfYear.value)
 
-              summer_sch = avoid_peaks(day_sch, summer_peak_hours, model)
-              winter_sch = avoid_peaks(day_sch, winter_peak_hours, model)
+                  #use only the first take_hour if a list is provided. 
+                  summer_sch = avoid_peaks(day_sch, summer_peak_hours, model, summer_take_hours[0], true)
+                  puts("Pool pump, Before after the schedule is: ")
+                  puts("#{day_sch.times.map{|t| t.to_s}}")
+                  puts("#{summer_sch.times.map{|t| t.to_s}}")
+                  puts("#{day_sch.values}")
+                  puts("#{summer_sch.values}")
+                  summer_rule = OpenStudio::Model::ScheduleRule.new(new_schedule, summer_sch)
+                  summer_rule.setName('summer_'+rule.name.get)
+                  summer_rule.setStartDate(start_date)
+                  summer_rule.setEndDate(end_date)
+                  Schedule.set_weekday_rule(summer_rule)
+                  Schedule.set_weekend_rule(summer_rule)
+                elsif winter_months.include?(start_date.monthOfYear.value)
+                  winter_sch = avoid_peaks(day_sch, winter_peak_hours, model, winter_take_hours[0], true)
+                  puts("Pool pump, Before after the schedule is: ")
+                  puts("#{day_sch.times.map{|t| t.to_s}}")
+                  puts("#{winter_sch.times.map{|t| t.to_s}}")
+                  puts("#{day_sch.values}")
+                  puts("#{winter_sch.values}")
+                  winter_rule = OpenStudio::Model::ScheduleRule.new(new_schedule, winter_sch)
+                  winter_rule.setName('winter_'+rule.name.get)
+                  winter_rule.setStartDate(start_date)
+                  winter_rule.setEndDate(end_date)
+                  Schedule.set_weekday_rule(winter_rule)
+                  Schedule.set_weekend_rule(winter_rule)
+                else
+                  #if the month doesn't fall in either summer or winter, no need to change schedule. Continue with another appliance
+                  next
+                end
 
-              puts("Summer dates: #{summer_dates} and winter dates #{winter_dates}")
-              summer_rule = OpenStudio::Model::ScheduleRule.new(new_schedule, summer_sch)
-              summer_rule.setName('summer_'+rule.name.get)
-
-              summer_dates.each{|date| summer_rule.addSpecificDate(date)}
-              
-              winter_rule = OpenStudio::Model::ScheduleRule.new(new_schedule, winter_sch)
-              winter_rule.setName('winter_'+rule.name.get)
-              winter_dates.each{|date| winter_rule.addSpecificDate(date)}
-
-              Schedule.set_weekday_rule(summer_rule)
-              Schedule.set_weekend_rule(summer_rule)
-
-              Schedule.set_weekday_rule(winter_rule)
-              Schedule.set_weekend_rule(winter_rule)
+              else
+                #other appliance
+                puts("First date is #{rule.specificDates[0]}")
+                puts("First month is #{rule.specificDates[0].monthOfYear.value}")
+                summer_dates = rule.specificDates.select{|x| summer_months.include?(x.monthOfYear.value)}
+                winter_dates = rule.specificDates.select{|x| winter_months.include?(x.monthOfYear.value)}
+                summer_sch = avoid_peaks(day_sch, summer_peak_hours, model)
+                winter_sch = avoid_peaks(day_sch, winter_peak_hours, model)
+                puts("Summer dates: #{summer_dates} and winter dates #{winter_dates}")
+                summer_rule = OpenStudio::Model::ScheduleRule.new(new_schedule, summer_sch)
+                summer_rule.setName('summer_'+rule.name.get)
+                summer_dates.each{|date| summer_rule.addSpecificDate(date)}
+                winter_rule = OpenStudio::Model::ScheduleRule.new(new_schedule, winter_sch)
+                winter_rule.setName('winter_'+rule.name.get)
+                winter_dates.each{|date| winter_rule.addSpecificDate(date)}
+                Schedule.set_weekday_rule(summer_rule)
+                Schedule.set_weekend_rule(summer_rule)
+                Schedule.set_weekday_rule(winter_rule)
+                Schedule.set_weekend_rule(winter_rule)
+              end
 
             end
+            if ee.name.to_s == Constants.ObjectNamePoolPump(unit.name.to_s)
+              #reset the schedule limit to 2 if it is a pool_pump
+              puts("Printing design level")
+              puts(ee.designLevel.get)
+              old_level = ee.designLevel.get
+              equip_def = ee.electricEquipmentDefinition
+              puts("Equipment def: #{equip_def}")
+              equip_def.setDesignLevel(old_level*10)
+              puts("New Eqip def: #{ee.electricEquipmentDefinition}")
+            end
+            puts
+            def print_schedule(existing_schedule)
+              if not existing_schedule.to_ScheduleRuleset.empty?
+                ruleset = existing_schedule.to_ScheduleRuleset.get
+                rules = ruleset.scheduleRules()
+                puts("Rules vector: #{rules}")
+                rules.each_with_index do |rule, index|
+                  day_sch = rule.daySchedule
+                  puts("Pool The #{index} day schedule is values ##{day_sch.times.map{|x| x.to_s}},#{day_sch.values}")
+                  
+                  begin
+                    puts("Pool For this specific dates #{rule.specificDates[0]}")
+                  rescue
+                    puts("No specific dates")
+                  end
+                  
+                  begin
+                    puts("Start date: #{rule.startDate.get} and End date: #{rule.endDate.get}")
+                  rescue
+                    puts("no start/end date")
+                  end
+
+                end
+              end
+            end
+
+            puts("Applying new schedule: #{ee.name.to_s}")
+            print_schedule(new_schedule)
             ee.setSchedule(new_schedule)
+            puts("After updating the schedule #{ee.name.to_s}")
+            existing_schedule = ee.schedule.get
+            print_schedule(existing_schedule)
+
+
           else
             runner.registerError("Expecting Ruleset schedule. Found #{existing_schedule} instead")
           end
