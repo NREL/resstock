@@ -330,7 +330,7 @@ class DemandResponseScheduleTest < MiniTest::Test
     measure.run(model, runner, argument_map)
     result = runner.result
 
-    show_output(result)
+    # show_output(result)
 
     # assert that it ran correctly
     assert_equal("Success", result.value.valueName)

@@ -81,25 +81,25 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
     appl_summer_peak = OpenStudio::Measure::OSArgument::makeStringArgument("appl_summer_peak", false)
     appl_summer_peak.setDisplayName("Peak hours for the summer time")
     appl_summer_peak.setDescription("Peak period for the summer months in 24-hour format a-b,c-d inclusive all hours") ###fix
-    appl_summer_peak.setDefaultValue("0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,0") #18-22
+    appl_summer_peak.setDefaultValue("0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0") 
     args << appl_summer_peak
 
     appl_summer_take = OpenStudio::Measure::OSArgument::makeStringArgument("appl_summer_take", false)
     appl_summer_take.setDisplayName("Hours for the summer during which the load is low")
     appl_summer_take.setDescription("Period for the summer months in 24-hour format a-b,c-d inclusive all hours, when the load is low") ###fix
-    appl_summer_take.setDefaultValue("0,0,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0") #3-7
+    appl_summer_take.setDefaultValue("0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0") 
     args << appl_summer_take
 
     appl_winter_peak = OpenStudio::Measure::OSArgument::makeStringArgument("appl_winter_peak", false)
     appl_winter_peak.setDisplayName("Peak hours for the winter time")
     appl_winter_peak.setDescription("Peak period for the winter months in 24-hour format a-b,c-d inclusive all hours") ###fix
-    appl_winter_peak.setDefaultValue("0,0,0,0,0,1,1,1,1,1,0,0,0,0,0,0,0,0,1,1,1,1,1,0") #5-10, 18-23
+    appl_winter_peak.setDefaultValue("0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0") 
     args << appl_winter_peak
 
     appl_winter_take = OpenStudio::Measure::OSArgument::makeStringArgument("appl_winter_take", false)
     appl_winter_take.setDisplayName("Hours for the winter during which the load is low")
     appl_winter_take.setDescription("Period for the winter months in 24-hour format a-b,c-d inclusive all hours, when the load is low") ###fix
-    appl_winter_take.setDefaultValue("0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0") #10-14
+    appl_winter_take.setDefaultValue("0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0") #10-14
     args << appl_winter_take
 
     appl_summer_season = OpenStudio::Measure::OSArgument::makeStringArgument("appl_summer_season", false)
@@ -117,19 +117,19 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
     shift_CW = OpenStudio::Measure::OSArgument::makeBoolArgument("shift_CW", false)
     shift_CW.setDisplayName("If clothes washer operation should be shifted to avoid the peaks")
     shift_CW.setDescription("The operation of clothes washer would be delayed or started earlier to avoid the peak hours.")
-    shift_CW.setDefaultValue(true)
+    shift_CW.setDefaultValue(false)
     args << shift_CW
 
     shift_CD = OpenStudio::Measure::OSArgument::makeBoolArgument("shift_CD", false)
     shift_CD.setDisplayName("If clothes dryer operation should be shifted to avoid the peaks")
     shift_CD.setDescription("The operation of clothes dryer would be delayed or started earlier to avoid the peak hours.")
-    shift_CD.setDefaultValue(true)
+    shift_CD.setDefaultValue(false)
     args << shift_CD
 
     shift_DW = OpenStudio::Measure::OSArgument::makeBoolArgument("shift_DW", false)
     shift_DW.setDisplayName("If dish washer operation should be shifted to avoid the peaks")
     shift_DW.setDescription("The operation of dishwasher would be delayed or started earlier to avoid the peak hours")
-    shift_DW.setDefaultValue(true)
+    shift_DW.setDefaultValue(false)
     args << shift_DW
     return args
   end
