@@ -540,14 +540,17 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
     hvac_cooling_capacity_kbtuh = get_cost_multiplier("Size, Cooling System (kBtu/h)", model, runner)
     return false if hvac_cooling_capacity_kbtuh.nil?
+
     report_sim_output(runner, "hvac_cooling_capacity_w", hvac_cooling_capacity_kbtuh, "kBtu/hr", "W")
 
     hvac_heating_capacity_kbtuh = get_cost_multiplier("Size, Heating System (kBtu/h)", model, runner)
     return false if hvac_heating_capacity_kbtuh.nil?
+
     report_sim_output(runner, "hvac_heating_capacity_w", hvac_heating_capacity_kbtuh, "kBtu/hr", "W")
 
     hvac_heating_supp_capacity_kbtuh = get_cost_multiplier("Size, Heating Supplemental System (kBtu/h)", model, runner)
     return false if hvac_heating_supp_capacity_kbtuh.nil?
+
     report_sim_output(runner, "hvac_heating_supp_capacity_w", hvac_heating_supp_capacity_kbtuh, "kBtu/hr", "W")
 
     sqlFile.close()
@@ -653,19 +656,25 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
   end
 
   def get_cost_multiplier(cost_mult_type, model, runner)
-    cost_mult = 0.0
-    
-    model.getBuildingUnits.each do |unit|
+    # Get building units
+    units = Geometry.get_building_units(model, runner)
+    if units.nil?
+      return false
+    end
+
+    total_cost_mult = 0.0
+    units.each do |unit|
       next if unit.spaces.empty?
-      
+
       units_represented = 1
       if unit.additionalProperties.getFeatureAsInteger("Units Represented").is_initialized
         units_represented = unit.additionalProperties.getFeatureAsInteger("Units Represented").get
       end
-      
+
+      cost_mult = 0.0
       if cost_mult_type == "Fixed (1)"
-        cost_mult = 1.0
-        
+        cost_mult += 1.0
+
       elsif cost_mult_type == "Duct Surface Area (ft^2)"
         # Duct supply+return surface area
         supply_area = unit.getFeatureAsDouble("SizingInfoDuctsSupplySurfaceArea")
@@ -676,13 +685,14 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
         if return_area.is_initialized
           cost_mult += return_area.get
         end
-        
+
       end
-      
+
       zones = []
       unit.spaces.each do |space|
         zone = space.thermalZone.get
         next unless zone.thermostat.is_initialized
+
         unless zones.include? zone
           zones << zone
         end
@@ -690,11 +700,9 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
       components = []
       zones.each do |zone|
-      
         if cost_mult_type == "Size, Heating System (kBtu/h)"
           # Heating system capacity
-          # component = nil
-          
+
           # Unit heater?
           zone.equipment.each do |equipment|
             next unless equipment.to_AirLoopHVACUnitarySystem.is_initialized
@@ -705,31 +713,27 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
             component = sys.heatingCoil.get
             next if components.include? component
+
             components << component
 
             next if not component.to_CoilHeatingGas.is_initialized
 
             coil = component.to_CoilHeatingGas.get
-            next if ( "#{Constants.ObjectNameUnitHeater(Constants.FuelTypeGas, unit.name.to_s)} heating coil" != coil.name.to_s ) and ( "#{Constants.ObjectNameUnitHeater(Constants.FuelTypeOil, unit.name.to_s)} heating coil" != coil.name.to_s ) and ( "#{Constants.ObjectNameUnitHeater(Constants.FuelTypeWood, unit.name.to_s)} heating coil" != coil.name.to_s ) and ( "#{Constants.ObjectNameUnitHeater(Constants.FuelTypeWood, unit.name.to_s)} heating coil" != coil.name.to_s )
             next if not coil.nominalCapacity.is_initialized
 
             cost_mult += UnitConversions.convert(coil.nominalCapacity.get, "W", "kBtu/hr")
           end
-          
+
           # Unitary system?
-          component = nil
           model.getAirLoopHVACUnitarySystems.each do |sys|
             next if zone != sys.controllingZoneorThermostatLocation.get
             next if not sys.heatingCoil.is_initialized
 
-            if not component.nil?
-              runner.registerError("Multiple heating systems found. This code should be reevaluated for correctness.")
-              return nil
-            end
             component = sys.heatingCoil.get
             next if components.include? component
+
             components << component
-            
+
             if component.to_CoilHeatingDXSingleSpeed.is_initialized
               coil = component.to_CoilHeatingDXSingleSpeed.get
               if coil.ratedTotalHeatingCapacity.is_initialized
@@ -761,7 +765,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
               end
             end
           end
-          
+
           # Electric baseboard?
           max_value = 0.0
           model.getZoneHVACBaseboardConvectiveElectrics.each do |sys|
@@ -769,22 +773,22 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
             component = sys
             next if components.include? component
+
             components << component
             next if not component.nominalCapacity.is_initialized
 
             cost_mult += UnitConversions.convert(component.nominalCapacity.get, "W", "kBtu/hr")
           end
-          
+
           # Boiler?
           max_value = 0.0
           model.getPlantLoops.each do |pl|
-            next if ( "#{Constants.ObjectNameBoiler(Constants.FuelTypeGas, unit.name.to_s)} hydronic heat loop" != pl.name.to_s ) and ( "#{Constants.ObjectNameBoiler(Constants.FuelTypeElectric, unit.name.to_s)} hydronic heat loop" != pl.name.to_s ) and ( "#{Constants.ObjectNameBoiler(Constants.FuelTypeOil, unit.name.to_s)} hydronic heat loop" != pl.name.to_s ) and ( "#{Constants.ObjectNameBoiler(Constants.FuelTypePropane, unit.name.to_s)} hydronic heat loop" != pl.name.to_s )
-
             pl.components.each do |plc|
               next if not plc.to_BoilerHotWater.is_initialized
 
               component = plc.to_BoilerHotWater.get
               next if components.include? component
+
               components << component
               next if not component.nominalCapacity.is_initialized
               next if component.nominalCapacity.get <= max_value
@@ -793,22 +797,18 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
               cost_mult += UnitConversions.convert(max_value, "W", "kBtu/hr")
             end
           end
-          
+
         elsif cost_mult_type == "Size, Heating Supplemental System (kBtu/h)"
-          # Supplemental heating system capacity          
-          component = nil
-          
+          # Supplemental heating system capacity
+
           # Unitary system?
           model.getAirLoopHVACUnitarySystems.each do |sys|
             next if zone != sys.controllingZoneorThermostatLocation.get
             next if not sys.supplementalHeatingCoil.is_initialized
 
-            if not component.nil?
-              runner.registerError("Multiple supplemental heating systems found. This code should be reevaluated for correctness.")
-              return nil
-            end
             component = sys.supplementalHeatingCoil.get
             next if components.include? component
+
             components << component
 
             if component.to_CoilHeatingElectric.is_initialized
@@ -818,22 +818,18 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
               end
             end
           end
-          
+
         elsif cost_mult_type == "Size, Cooling System (kBtu/h)"
           # Cooling system capacity
-          component = nil
-          
+
           # Unitary system?
           model.getAirLoopHVACUnitarySystems.each do |sys|
             next if zone != sys.controllingZoneorThermostatLocation.get
             next if not sys.coolingCoil.is_initialized
 
-            if not component.nil?
-              runner.registerError("Multiple cooling systems found. This code should be reevaluated for correctness.")
-              return nil
-            end
             component = sys.coolingCoil.get
             next if components.include? component
+
             components << component
 
             if component.to_CoilCoolingDXSingleSpeed.is_initialized
@@ -857,13 +853,14 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
               end
             end
           end
-          
+
           # PTAC?
           model.getZoneHVACPackagedTerminalAirConditioners.each do |sys|
             next if zone != sys.thermalZone.get
 
             component = sys.coolingCoil
             next if components.include? component
+
             components << component
 
             if not component.nil?
@@ -875,17 +872,17 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
               end
             end
           end
-          
+
         elsif cost_mult_type == "Size, Water Heater (gal)"
           # Water heater tank volume
           model.getWaterHeaterMixeds.each do |wh|
             next if Constants.ObjectNameWaterHeater(unit.name.to_s) != wh.name.to_s
-            # TODO: don't want to double count living/finished basement zones
 
             if wh.tankVolume.is_initialized
               volume = UnitConversions.convert(wh.tankVolume.get, "m^3", "gal")
               if volume >= 1.0 # skip tankless
                 next if components.include? wh
+
                 components << wh
                 # FIXME: Remove actual->nominal size logic by storing nominal size in the OSM
                 if wh.heaterFuelType.downcase == "electricity"
@@ -896,10 +893,9 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
               end
             end
           end
-          
+
           model.getWaterHeaterHeatPumpWrappedCondensers.each do |wh|
             next if "#{Constants.ObjectNameWaterHeater(unit.name.to_s.gsub("unit ", "")).gsub("|", "_")} hpwh" != wh.name.to_s
-            # TODO: don't want to double count living/finished basement zones
 
             if wh.to_WaterHeaterHeatPumpWrappedCondenser.is_initialized
               wh = wh.tank.to_WaterHeaterStratified.get
@@ -908,6 +904,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
               volume = UnitConversions.convert(wh.tankVolume.get, "m^3", "gal")
               if volume >= 1.0 # skip tankless
                 next if components.include? wh
+
                 components << wh
                 # FIXME: Remove actual->nominal size logic by storing nominal size in the OSM
                 if wh.heaterFuelType.downcase == "electricity"
@@ -918,12 +915,11 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
               end
             end
           end
-          
-        end      
+
+        end
       end # zones
 
       unit.spaces.each do |space|
-      
         if cost_mult_type == "Wall Area, Above-Grade, Conditioned (ft^2)"
           # Walls between conditioned space and 1) outdoors or 2) unconditioned space
           space.surfaces.each do |surface|
@@ -938,7 +934,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
               cost_mult += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
             end
           end
-          
+
         elsif cost_mult_type == "Wall Area, Above-Grade, Exterior (ft^2)"
           # Walls adjacent to outdoors
           space.surfaces.each do |surface|
@@ -947,7 +943,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
             cost_mult += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
           end
-          
+
         elsif cost_mult_type == "Wall Area, Below-Grade (ft^2)"
           # Walls adjacent to ground
           space.surfaces.each do |surface|
@@ -956,7 +952,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
             cost_mult += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
           end
-          
+
         elsif cost_mult_type == "Floor Area, Conditioned (ft^2)"
           # Floors of conditioned zone
           space.surfaces.each do |surface|
@@ -966,7 +962,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
             cost_mult += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
           end
-          
+
         elsif cost_mult_type == "Floor Area, Attic (ft^2)"
           # Floors under sloped surfaces and above conditioned space
           space.surfaces.each do |surface|
@@ -982,7 +978,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
             cost_mult += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
           end
-      
+
         elsif cost_mult_type == "Floor Area, Lighting (ft^2)"
           # Floors with lighting objects
           space.surfaces.each do |surface|
@@ -992,7 +988,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
             cost_mult += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
           end
-      
+
         elsif cost_mult_type == "Roof Area (ft^2)"
           # Roofs adjacent to outdoors
           space.surfaces.each do |surface|
@@ -1001,7 +997,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
             cost_mult += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
           end
-      
+
         elsif cost_mult_type == "Window Area (ft^2)"
           # Window subsurfaces
           space.surfaces.each do |surface|
@@ -1013,7 +1009,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
               cost_mult += UnitConversions.convert(sub_surface.grossArea, "m^2", "ft^2")
             end
           end
-      
+
         elsif cost_mult_type == "Door Area (ft^2)"
           # Door subsurfaces
           space.surfaces.each do |surface|
@@ -1030,7 +1026,20 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       end # spaces
 
       cost_mult *= units_represented
+      total_cost_mult += cost_mult
     end # units
+    cost_mult = total_cost_mult
+
+    total_units_represented = 0
+    units.each do |unit|
+      units_represented = 1
+      if unit.additionalProperties.getFeatureAsInteger("Units Represented").is_initialized
+        units_represented = unit.additionalProperties.getFeatureAsInteger("Units Represented").get
+      end
+      total_units_represented += units_represented
+    end
+
+    collapsed_factor = Float(total_units_represented) / units.length
 
     if cost_mult_type == "Wall Area, Above-Grade, Conditioned (ft^2)"
       # Walls between conditioned space and 1) outdoors or 2) unconditioned space
@@ -1048,7 +1057,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
           cost_mult += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
         end
       end
-      
+
     elsif cost_mult_type == "Wall Area, Above-Grade, Exterior (ft^2)"
       # Walls adjacent to outdoors
       model.getSurfaces.each do |surface|
@@ -1059,7 +1068,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
         cost_mult += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
       end
-      
+
     elsif cost_mult_type == "Wall Area, Below-Grade (ft^2)"
       # Walls adjacent to ground
       model.getSurfaces.each do |surface|
@@ -1068,9 +1077,9 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
         next if surface.surfaceType.downcase != "wall"
         next if surface.outsideBoundaryCondition.downcase != "ground" and surface.outsideBoundaryCondition.downcase != "foundation"
 
-        cost_mult += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
+        cost_mult += UnitConversions.convert(surface.grossArea, "m^2", "ft^2") * collapsed_factor
       end
-      
+
     elsif cost_mult_type == "Floor Area, Conditioned (ft^2)"
       # Floors of conditioned zone
       model.getSurfaces.each do |surface|
@@ -1082,7 +1091,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
         cost_mult += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
       end
-      
+
     elsif cost_mult_type == "Floor Area, Attic (ft^2)"
       # Floors under sloped surfaces and above conditioned space
       model.getSurfaces.each do |surface|
@@ -1098,9 +1107,9 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
         next if adjacent_space.nil?
         next if not is_space_conditioned(adjacent_space)
 
-        cost_mult += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
+        cost_mult += UnitConversions.convert(surface.grossArea, "m^2", "ft^2") * collapsed_factor
       end
-  
+
     elsif cost_mult_type == "Floor Area, Lighting (ft^2)"
       # Floors with lighting objects
       model.getSurfaces.each do |surface|
@@ -1112,7 +1121,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
         cost_mult += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
       end
-  
+
     elsif cost_mult_type == "Roof Area (ft^2)"
       # Roofs adjacent to outdoors
       model.getSurfaces.each do |surface|
@@ -1121,9 +1130,9 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
         next if surface.surfaceType.downcase != "roofceiling"
         next if surface.outsideBoundaryCondition.downcase != "outdoors"
 
-        cost_mult += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
+        cost_mult += UnitConversions.convert(surface.grossArea, "m^2", "ft^2") * collapsed_factor
       end
-  
+
     elsif cost_mult_type == "Window Area (ft^2)"
       # Window subsurfaces
       model.getSurfaces.each do |surface|
@@ -1137,7 +1146,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
           cost_mult += UnitConversions.convert(sub_surface.grossArea, "m^2", "ft^2")
         end
       end
-  
+
     elsif cost_mult_type == "Door Area (ft^2)"
       # Door subsurfaces
       model.getSurfaces.each do |surface|
@@ -1169,6 +1178,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     if zone.thermostat.is_initialized
       return true
     end
+
     return false
   end
 
