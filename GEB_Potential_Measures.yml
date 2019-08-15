@@ -18,9 +18,10 @@ upgrades:
 
 #note: no reference scenarios. Everything happens today. 
 
-##Best CAC 01
-  - upgrade_name: Best CAC 18 SEER
+##up1 - package 1a - EE measures with CAC
+  - upgrade_name: Package 1a EE with CAC
     options: 
+      #Best CAC 18 SEER
       - option: HVAC System Cooling|AC, SEER 18
         apply_logic:
           or:
@@ -35,10 +36,105 @@ upgrades:
           - value: 42
             multiplier: Size, Cooling System (kBtu/h)
         lifetime: 16
+      #Best LEDs
+      - option: Lighting|100% LED, High Efficacy
+        apply_logic:
+          or:
+            - Lighting|100% Incandescent
+            - Lighting|60% CFL Hardwired, 34% CFL Plugin
+            - Lighting|60% CFL
+            - Lighting|100% CFL
+            - Lighting|100% LED
+            - Lighting|20% LED
+            - Lighting|100% LED
+            - Lighting|100% LED, Low Efficacy
+        #Best Refrigerator/Freezer
+      - option: Refrigerator|EF 22.2, EnergyStar Most Efficient
+        apply_logic: 
+          or:
+            - Refrigerator|EF 17.6
+            - Refrigerator|EF 17.6, 105% Usage
+            - Refrigerator|EF 17.6, 95% Usage
+            - Refrigerator|EF 15.9
+            - Refrigerator|EF 10.5
+            - Refrigerator|EF 10.2
+            - Refrigerator|EF 6.7
+        lifetime: 17.4
+        #Best HPWH
+      - option: Water Heater|Electric Heat Pump, 80 gal
+        apply_logic: 
+          or:
+            - Water Heater|Electric Standard
+            - Water Heater|Electric Premium
+            - Water Heater|Electric Benchmark
+            - Water Heater|Electric Tankless #should we include tankless?
+            - Water Heater|Electric Heat Pump, 50 gal
+            - Water Heater|Electric Heat Pump, 50 gal, 140F
+            - Water Heater|Electric Heat Pump, 50 gal, In Confined Space #should this be included?
+        lifetime: 12
+        #Best CW
+        - option: Clothes Washer|EnergyStar Most Efficient, 80% Usage
+          apply_logic:
+            or:
+              - Clothes Washer|EnergyStar, 80% Usage
+              - Clothes Washer|Standard, 80% Usage
+        - option: Clothes Washer|EnergyStar Most Efficient, 100% Usage
+          apply_logic:
+            or:
+              - Clothes Washer|EnergyStar, 100% Usage
+              - Clothes Washer|Standard, 100% Usage
+              - Clothes Washer|Standard, 100% Usage, Cold Only
+              - Clothes Washer|EnergyStar, Cold Only
+        - option: Clothes Washer|EnergyStar Most Efficient, 120% Usage
+          apply_logic:
+            or:
+              - Clothes Washer|EnergyStar, 120% Usage
+              - Clothes Washer|Standard, 120% Usage
+        #Best CD
+        - option: Clothes Dryer|Electric, Heat Pump, Ventless
+          apply_logic:
+            or:
+              - Clothes Dryer|Electric, 80% Usage
+              - Clothes Dryer|Electric, 100% Usage
+              - Clothes Dryer|Electric, 120% Usage
+              - Clothes Dryer|Electric, Premium
+        #Best DW
+        - option: Dishwasher|199 Rated kWh, 80% Usage
+          apply_logic: 
+            or:
+              - Dishwasher|318 Rated kWh, 80% Usage
+              - Dishwasher|290 Rated kWh, 80% Usage
+          costs:
+            - value: 1000
+              multiplier: Fixed (1)
+          lifetime: 11
+        - option: Dishwasher|199 Rated kWh, 100% Usage
+          apply_logic: 
+            or:
+              - Dishwasher|318 Rated kWh, 100% Usage
+              - Dishwasher|290 Rated kWh, 100% Usage
+          costs:
+            - value: 1000
+              multiplier: Fixed (1)
+          lifetime: 11
+        - option: Dishwasher|199 Rated kWh, 120% Usage
+          apply_logic: 
+            or:
+              - Dishwasher|318 Rated kWh, 120% Usage
+              - Dishwasher|290 Rated kWh, 120% Usage
+          costs:
+            - value: 1000
+              multiplier: Fixed (1)
+          lifetime: 11
+        #Best Pool Pump
+        - option: Misc Pool Pump|0.75 HP Pump
+          apply_logic: Misc Pool Pump|1.0 HP Pump
+        #Best Electronics (not ready yet)
 
-##Best ASHP 02
-  - upgrade_name: Best ASHP today - Variable-Speed Heat Pump
+##up2 - package 1b - EE measures with ASHP
+- upgrade_name: Package 1b EE with ASHP
     options:
+      #Best ASHP today - Variable-Speed Heat Pump
       - option: HVAC System Heat Pump|ASHP, SEER 22, 10 HSPF
         apply_logic: 
           or:
@@ -62,27 +158,19 @@ upgrades:
           - value: 42
             multiplier: Size, Heating System (kBtu/h)
         lifetime: 15
-
-## Best Smart Thermostat Controls 03
-
-## Best LEDs 04
-  - upgrade_name: Best LEDs
-    options:
-        - option: Lighting|100% LED, High Efficacy
-          apply_logic:
-            or:
-              - Lighting|100% Incandescent
-              - Lighting|60% CFL Hardwired, 34% CFL Plugin
-              - Lighting|60% CFL
-              - Lighting|100% CFL
-              - Lighting|100% LED
-              - Lighting|20% LED
-              - Lighting|100% LED
-              - Lighting|100% LED, Low Efficacy
-
-## Best refrigerator/freezer 05
-  - upgrade_name: Best refrigerator
-    options:
+      #Best LEDs
+      - option: Lighting|100% LED, High Efficacy
+        apply_logic:
+          or:
+            - Lighting|100% Incandescent
+            - Lighting|60% CFL Hardwired, 34% CFL Plugin
+            - Lighting|60% CFL
+            - Lighting|100% CFL
+            - Lighting|100% LED
+            - Lighting|20% LED
+            - Lighting|100% LED
+            - Lighting|100% LED, Low Efficacy
+        #Best Refrigerator/Freezer
       - option: Refrigerator|EF 22.2, EnergyStar Most Efficient
         apply_logic: 
           or:
@@ -94,10 +182,7 @@ upgrades:
             - Refrigerator|EF 10.2
             - Refrigerator|EF 6.7
         lifetime: 17.4
-
-## Best HPWH 06
-  - upgrade_name: Electric Water Heater to 80 gal Heat Pump Water Heater
-    options:
+        #Best HPWH
       - option: Water Heater|Electric Heat Pump, 80 gal
         apply_logic: 
           or:
@@ -108,69 +193,8 @@ upgrades:
             - Water Heater|Electric Heat Pump, 50 gal
             - Water Heater|Electric Heat Pump, 50 gal, 140F
             - Water Heater|Electric Heat Pump, 50 gal, In Confined Space #should this be included?
-        costs:
-          - value: 2000
-            multiplier: Fixed (1)
         lifetime: 12
-
-## Best walls 07
-  - upgrade_name: Best walls
-    options:
-      - option: Insulation Wall|Wood Stud, R-13, R-20 external XPS
-        apply_logic:
-          or:
-            - Insulation_Wall|Wood Stud, Uninsulated
-            - Insulation_Wall|Wood Stud, R-7
-            - Insulation_Wall|Wood Stud, R-11
-            - Insulation Wall|Wood Stud, R-13
-            - Insulation Wall|Wood Stud, R-19
-            - Insulation Wall|Wood Stud, R-19, Grade 2
-            - Insulation Wall|Wood Stud, R-19, Grade 3
-            - Insulation Wall|Wood Stud, R-23 Closed Cell Spray Foam, 2x4, 16 in o.c.
-
-## Best roofs 08
-  - upgrade_name: R-49 Attic Insulation
-    options:
-      - option: Insulation Unfinished Attic|Ceiling R-49, Vented
-        apply_logic: Insulation Unfinished Attic|Ceiling R-7, Vented
-          or:
-            - Insulation Unfinished Attic|Uninsulated, Vented
-            - Insulation Unfinished Attic|Ceiling R-7, Vented
-            - Insulation Unfinished Attic|Ceiling R-13, Vented
-            - Insulation Unfinished Attic|Ceiling R-19, Vented
-            - Insulation Unfinished Attic|Ceiling R-30, Vented
-            - Insulation Unfinished Attic|Ceiling R-38, Vented
-        lifetime: 999
- 
-## Best air sealing 09
-  - upgrade_name: Best air sealing plus mech vent
-    options:
-      - option: Infiltration|1 ACH50
-      - option: Mechanical Ventilation|Exhaust, 2010 ASHRAE 62.2
-        apply_logic: 
-            - Mechanical Ventilation|None
-        costs: 
-          - value: 360
-            multiplier: Fixed (1)
-        lifetime: 999
-
-## Best windows 10
-  - upgrade_name: Best windows
-    options: 
-      - option: 
-
-## Best floors 11
-  - upgrade_name: Best floors
-    options:
-      - option: Insulation Slab|Uninsulated
-        apply_logic:
-            or:
-              - CZ4, CZ5
-      - option: Insulation Slab|
-
-## Best clothes washer 12
-  - upgrade_name: Best clothes washer
-    options:
+        #Best CW
         - option: Clothes Washer|EnergyStar Most Efficient, 80% Usage
           apply_logic:
             or:
@@ -188,10 +212,7 @@ upgrades:
             or:
               - Clothes Washer|EnergyStar, 120% Usage
               - Clothes Washer|Standard, 120% Usage
-
-## Best clothes dryer 13
-  - upgrade_name: Best clothes dryer
-    options:
+        #Best CD
         - option: Clothes Dryer|Electric, Heat Pump, Ventless
           apply_logic:
             or:
@@ -199,65 +220,595 @@ upgrades:
               - Clothes Dryer|Electric, 100% Usage
               - Clothes Dryer|Electric, 120% Usage
               - Clothes Dryer|Electric, Premium
+        #Best DW
+        - option: Dishwasher|199 Rated kWh, 80% Usage
+          apply_logic: 
+            or:
+              - Dishwasher|318 Rated kWh, 80% Usage
+              - Dishwasher|290 Rated kWh, 80% Usage
+          costs:
+            - value: 1000
+              multiplier: Fixed (1)
+          lifetime: 11
+        - option: Dishwasher|199 Rated kWh, 100% Usage
+          apply_logic: 
+            or:
+              - Dishwasher|318 Rated kWh, 100% Usage
+              - Dishwasher|290 Rated kWh, 100% Usage
+          costs:
+            - value: 1000
+              multiplier: Fixed (1)
+          lifetime: 11
+        - option: Dishwasher|199 Rated kWh, 120% Usage
+          apply_logic: 
+            or:
+              - Dishwasher|318 Rated kWh, 120% Usage
+              - Dishwasher|290 Rated kWh, 120% Usage
+          costs:
+            - value: 1000
+              multiplier: Fixed (1)
+          lifetime: 11
+        #Best Pool Pump
+        - option: Misc Pool Pump|0.75 HP Pump
+          apply_logic: Misc Pool Pump|1.0 HP Pump
+        #Best Electronics (not ready yet)
 
-## Best dishwasher 14
-  - upgrade_name: Best dishwasher (ENERGY STAR)
+##up3 - package 1c - EE measures with smart thermostat
+- upgrade_name: Package 1c EE with smart thermostat
     options:
-      - option: Dishwasher|199 Rated kWh, 80% Usage
+      #Best LEDs
+      - option: Lighting|100% LED, High Efficacy
+        apply_logic:
+          or:
+            - Lighting|100% Incandescent
+            - Lighting|60% CFL Hardwired, 34% CFL Plugin
+            - Lighting|60% CFL
+            - Lighting|100% CFL
+            - Lighting|100% LED
+            - Lighting|20% LED
+            - Lighting|100% LED
+            - Lighting|100% LED, Low Efficacy
+        #Best Refrigerator/Freezer
+      - option: Refrigerator|EF 22.2, EnergyStar Most Efficient
         apply_logic: 
           or:
-            - Dishwasher|318 Rated kWh, 80% Usage
-            - Dishwasher|290 Rated kWh, 80% Usage
-        costs:
-          - value: 1000
-            multiplier: Fixed (1)
-        lifetime: 11
-      - option: Dishwasher|199 Rated kWh, 100% Usage
+            - Refrigerator|EF 17.6
+            - Refrigerator|EF 17.6, 105% Usage
+            - Refrigerator|EF 17.6, 95% Usage
+            - Refrigerator|EF 15.9
+            - Refrigerator|EF 10.5
+            - Refrigerator|EF 10.2
+            - Refrigerator|EF 6.7
+        lifetime: 17.4
+        #Best HPWH
+      - option: Water Heater|Electric Heat Pump, 80 gal
         apply_logic: 
           or:
-            - Dishwasher|318 Rated kWh, 100% Usage
-            - Dishwasher|290 Rated kWh, 100% Usage
-        costs:
-          - value: 1000
-            multiplier: Fixed (1)
-        lifetime: 11
-      - option: Dishwasher|199 Rated kWh, 120% Usage
-        apply_logic: 
-          or:
-            - Dishwasher|318 Rated kWh, 120% Usage
-            - Dishwasher|290 Rated kWh, 120% Usage
-        costs:
-          - value: 1000
-            multiplier: Fixed (1)
-        lifetime: 11
+            - Water Heater|Electric Standard
+            - Water Heater|Electric Premium
+            - Water Heater|Electric Benchmark
+            - Water Heater|Electric Tankless #should we include tankless?
+            - Water Heater|Electric Heat Pump, 50 gal
+            - Water Heater|Electric Heat Pump, 50 gal, 140F
+            - Water Heater|Electric Heat Pump, 50 gal, In Confined Space #should this be included?
+        lifetime: 12
+        #Best CW
+        - option: Clothes Washer|EnergyStar Most Efficient, 80% Usage
+          apply_logic:
+            or:
+              - Clothes Washer|EnergyStar, 80% Usage
+              - Clothes Washer|Standard, 80% Usage
+        - option: Clothes Washer|EnergyStar Most Efficient, 100% Usage
+          apply_logic:
+            or:
+              - Clothes Washer|EnergyStar, 100% Usage
+              - Clothes Washer|Standard, 100% Usage
+              - Clothes Washer|Standard, 100% Usage, Cold Only
+              - Clothes Washer|EnergyStar, Cold Only
+        - option: Clothes Washer|EnergyStar Most Efficient, 120% Usage
+          apply_logic:
+            or:
+              - Clothes Washer|EnergyStar, 120% Usage
+              - Clothes Washer|Standard, 120% Usage
+        #Best CD
+        - option: Clothes Dryer|Electric, Heat Pump, Ventless
+          apply_logic:
+            or:
+              - Clothes Dryer|Electric, 80% Usage
+              - Clothes Dryer|Electric, 100% Usage
+              - Clothes Dryer|Electric, 120% Usage
+              - Clothes Dryer|Electric, Premium
+        #Best DW
+        - option: Dishwasher|199 Rated kWh, 80% Usage
+          apply_logic: 
+            or:
+              - Dishwasher|318 Rated kWh, 80% Usage
+              - Dishwasher|290 Rated kWh, 80% Usage
+          costs:
+            - value: 1000
+              multiplier: Fixed (1)
+          lifetime: 11
+        - option: Dishwasher|199 Rated kWh, 100% Usage
+          apply_logic: 
+            or:
+              - Dishwasher|318 Rated kWh, 100% Usage
+              - Dishwasher|290 Rated kWh, 100% Usage
+          costs:
+            - value: 1000
+              multiplier: Fixed (1)
+          lifetime: 11
+        - option: Dishwasher|199 Rated kWh, 120% Usage
+          apply_logic: 
+            or:
+              - Dishwasher|318 Rated kWh, 120% Usage
+              - Dishwasher|290 Rated kWh, 120% Usage
+          costs:
+            - value: 1000
+              multiplier: Fixed (1)
+          lifetime: 11
+        #Best Pool Pump
+        - option: Misc Pool Pump|0.75 HP Pump
+          apply_logic: Misc Pool Pump|1.0 HP Pump
+        #Best Electronics (not ready yet)
 
-## Best pool pump 15
-  - upgrade_name: Best pool pump #This doesn't include LA's - they don't align
+##up4 - package 1d - EE measures with advanced envelope
+- upgrade_name: Package 1d EE with advanced envelope
     options:
-      - option: Misc Pool Pump|0.75 HP Pump
-        apply_logic: Misc Pool Pump|1.0 HP Pump
-        #costs not in cost database
+      # Best walls
+      - option: Insulation Wall|Wood Stud, R-13, R-20 external XPS
+        apply_logic:
+          or:
+            - Insulation_Wall|Wood Stud, Uninsulated
+            - Insulation_Wall|Wood Stud, R-7
+            - Insulation_Wall|Wood Stud, R-11
+            - Insulation Wall|Wood Stud, R-13
+            - Insulation Wall|Wood Stud, R-19
+            - Insulation Wall|Wood Stud, R-19, Grade 2
+            - Insulation Wall|Wood Stud, R-19, Grade 3
+            - Insulation Wall|Wood Stud, R-23 Closed Cell Spray Foam, 2x4, 16 in o.c.
+      #Best roofs - R-49 attic insulation
+      - option: Insulation Unfinished Attic|Ceiling R-49, Vented
+        apply_logic: Insulation Unfinished Attic|Ceiling R-7, Vented
+          or:
+            - Insulation Unfinished Attic|Uninsulated, Vented
+            - Insulation Unfinished Attic|Ceiling R-7, Vented
+            - Insulation Unfinished Attic|Ceiling R-13, Vented
+            - Insulation Unfinished Attic|Ceiling R-19, Vented
+            - Insulation Unfinished Attic|Ceiling R-30, Vented
+            - Insulation Unfinished Attic|Ceiling R-38, Vented
+        lifetime: 999
+      #Best Air sealing
+      - option: Infiltration|1 ACH50
+      - option: Mechanical Ventilation|Exhaust, 2010 ASHRAE 62.2
+        apply_logic: 
+            - Mechanical Ventilation|None
+        costs: 
+          - value: 360
+            multiplier: Fixed (1)
+        lifetime: 999
+      #Best windows (not ready yet)
+      # Best floors (not ready yet)
+  #- upgrade_name: Best floors
+   # options:
+    #  - option: Insulation Slab|Uninsulated
+     #   apply_logic:
+      #      or:
+       #       - CZ4, CZ5
+      #- option: Insulation Slab|
+      #Best LEDs
+      - option: Lighting|100% LED, High Efficacy
+        apply_logic:
+          or:
+            - Lighting|100% Incandescent
+            - Lighting|60% CFL Hardwired, 34% CFL Plugin
+            - Lighting|60% CFL
+            - Lighting|100% CFL
+            - Lighting|100% LED
+            - Lighting|20% LED
+            - Lighting|100% LED
+            - Lighting|100% LED, Low Efficacy
+        #Best Refrigerator/Freezer
+      - option: Refrigerator|EF 22.2, EnergyStar Most Efficient
+        apply_logic: 
+          or:
+            - Refrigerator|EF 17.6
+            - Refrigerator|EF 17.6, 105% Usage
+            - Refrigerator|EF 17.6, 95% Usage
+            - Refrigerator|EF 15.9
+            - Refrigerator|EF 10.5
+            - Refrigerator|EF 10.2
+            - Refrigerator|EF 6.7
+        lifetime: 17.4
+        #Best HPWH
+      - option: Water Heater|Electric Heat Pump, 80 gal
+        apply_logic: 
+          or:
+            - Water Heater|Electric Standard
+            - Water Heater|Electric Premium
+            - Water Heater|Electric Benchmark
+            - Water Heater|Electric Tankless #should we include tankless?
+            - Water Heater|Electric Heat Pump, 50 gal
+            - Water Heater|Electric Heat Pump, 50 gal, 140F
+            - Water Heater|Electric Heat Pump, 50 gal, In Confined Space #should this be included?
+        lifetime: 12
+        #Best CW
+        - option: Clothes Washer|EnergyStar Most Efficient, 80% Usage
+          apply_logic:
+            or:
+              - Clothes Washer|EnergyStar, 80% Usage
+              - Clothes Washer|Standard, 80% Usage
+        - option: Clothes Washer|EnergyStar Most Efficient, 100% Usage
+          apply_logic:
+            or:
+              - Clothes Washer|EnergyStar, 100% Usage
+              - Clothes Washer|Standard, 100% Usage
+              - Clothes Washer|Standard, 100% Usage, Cold Only
+              - Clothes Washer|EnergyStar, Cold Only
+        - option: Clothes Washer|EnergyStar Most Efficient, 120% Usage
+          apply_logic:
+            or:
+              - Clothes Washer|EnergyStar, 120% Usage
+              - Clothes Washer|Standard, 120% Usage
+        #Best CD
+        - option: Clothes Dryer|Electric, Heat Pump, Ventless
+          apply_logic:
+            or:
+              - Clothes Dryer|Electric, 80% Usage
+              - Clothes Dryer|Electric, 100% Usage
+              - Clothes Dryer|Electric, 120% Usage
+              - Clothes Dryer|Electric, Premium
+        #Best DW
+        - option: Dishwasher|199 Rated kWh, 80% Usage
+          apply_logic: 
+            or:
+              - Dishwasher|318 Rated kWh, 80% Usage
+              - Dishwasher|290 Rated kWh, 80% Usage
+          costs:
+            - value: 1000
+              multiplier: Fixed (1)
+          lifetime: 11
+        - option: Dishwasher|199 Rated kWh, 100% Usage
+          apply_logic: 
+            or:
+              - Dishwasher|318 Rated kWh, 100% Usage
+              - Dishwasher|290 Rated kWh, 100% Usage
+          costs:
+            - value: 1000
+              multiplier: Fixed (1)
+          lifetime: 11
+        - option: Dishwasher|199 Rated kWh, 120% Usage
+          apply_logic: 
+            or:
+              - Dishwasher|318 Rated kWh, 120% Usage
+              - Dishwasher|290 Rated kWh, 120% Usage
+          costs:
+            - value: 1000
+              multiplier: Fixed (1)
+          lifetime: 11
+        #Best Pool Pump
+        - option: Misc Pool Pump|0.75 HP Pump
+          apply_logic: Misc Pool Pump|1.0 HP Pump
+        #Best Electronics (not ready yet)
 
+##up5 - package 2 - DR measures
+- upgrade_name: Package 2 DR
+    options:
+    #
 
-## Baseline CAC, ASHP, and thermostat controls, plus direct load cycling of air compressor 16 ##not for res
+##up6 - package 3a - EE/DR measures with CAC
+- upgrade_name: Package 3a EEDR with CAC 
+    options: 
+      #Best CAC 18 SEER
+      - option: HVAC System Cooling|AC, SEER 18
+        apply_logic:
+          or:
+            - HVAC System Cooling|AC, SEER 8
+            - HVAC System Cooling|AC, SEER 10
+            - HVAC System Cooling|AC, SEER 13
+            - HVAC System Cooling|AC, SEER 14
+            - HVAC System Cooling|AC, SEER 15
+        costs:
+          - value: 3200
+            multiplier: Fixed (1)
+          - value: 42
+            multiplier: Size, Cooling System (kBtu/h)
+        lifetime: 16
+      #Best LEDs
+      - option: Lighting|100% LED, High Efficacy
+        apply_logic:
+          or:
+            - Lighting|100% Incandescent
+            - Lighting|60% CFL Hardwired, 34% CFL Plugin
+            - Lighting|60% CFL
+            - Lighting|100% CFL
+            - Lighting|100% LED
+            - Lighting|20% LED
+            - Lighting|100% LED
+            - Lighting|100% LED, Low Efficacy
+        #Best Refrigerator/Freezer
+      - option: Refrigerator|EF 22.2, EnergyStar Most Efficient
+        apply_logic: 
+          or:
+            - Refrigerator|EF 17.6
+            - Refrigerator|EF 17.6, 105% Usage
+            - Refrigerator|EF 17.6, 95% Usage
+            - Refrigerator|EF 15.9
+            - Refrigerator|EF 10.5
+            - Refrigerator|EF 10.2
+            - Refrigerator|EF 6.7
+        lifetime: 17.4
+        #Best HPWH
+      - option: Water Heater|Electric Heat Pump, 80 gal
+        apply_logic: 
+          or:
+            - Water Heater|Electric Standard
+            - Water Heater|Electric Premium
+            - Water Heater|Electric Benchmark
+            - Water Heater|Electric Tankless #should we include tankless?
+            - Water Heater|Electric Heat Pump, 50 gal
+            - Water Heater|Electric Heat Pump, 50 gal, 140F
+            - Water Heater|Electric Heat Pump, 50 gal, In Confined Space #should this be included?
+        lifetime: 12
+        #Best CW
+        - option: Clothes Washer|EnergyStar Most Efficient, 80% Usage
+          apply_logic:
+            or:
+              - Clothes Washer|EnergyStar, 80% Usage
+              - Clothes Washer|Standard, 80% Usage
+        - option: Clothes Washer|EnergyStar Most Efficient, 100% Usage
+          apply_logic:
+            or:
+              - Clothes Washer|EnergyStar, 100% Usage
+              - Clothes Washer|Standard, 100% Usage
+              - Clothes Washer|Standard, 100% Usage, Cold Only
+              - Clothes Washer|EnergyStar, Cold Only
+        - option: Clothes Washer|EnergyStar Most Efficient, 120% Usage
+          apply_logic:
+            or:
+              - Clothes Washer|EnergyStar, 120% Usage
+              - Clothes Washer|Standard, 120% Usage
+        #Best CD
+        - option: Clothes Dryer|Electric, Heat Pump, Ventless
+          apply_logic:
+            or:
+              - Clothes Dryer|Electric, 80% Usage
+              - Clothes Dryer|Electric, 100% Usage
+              - Clothes Dryer|Electric, 120% Usage
+              - Clothes Dryer|Electric, Premium
+        #Best DW
+        - option: Dishwasher|199 Rated kWh, 80% Usage
+          apply_logic: 
+            or:
+              - Dishwasher|318 Rated kWh, 80% Usage
+              - Dishwasher|290 Rated kWh, 80% Usage
+          costs:
+            - value: 1000
+              multiplier: Fixed (1)
+          lifetime: 11
+        - option: Dishwasher|199 Rated kWh, 100% Usage
+          apply_logic: 
+            or:
+              - Dishwasher|318 Rated kWh, 100% Usage
+              - Dishwasher|290 Rated kWh, 100% Usage
+          costs:
+            - value: 1000
+              multiplier: Fixed (1)
+          lifetime: 11
+        - option: Dishwasher|199 Rated kWh, 120% Usage
+          apply_logic: 
+            or:
+              - Dishwasher|318 Rated kWh, 120% Usage
+              - Dishwasher|290 Rated kWh, 120% Usage
+          costs:
+            - value: 1000
+              multiplier: Fixed (1)
+          lifetime: 11
+        #Best Pool Pump
+        - option: Misc Pool Pump|0.75 HP Pump
+          apply_logic: Misc Pool Pump|1.0 HP Pump
+        #Best Electronics (not ready yet)
+              # Best walls
+      - option: Insulation Wall|Wood Stud, R-13, R-20 external XPS
+        apply_logic:
+          or:
+            - Insulation_Wall|Wood Stud, Uninsulated
+            - Insulation_Wall|Wood Stud, R-7
+            - Insulation_Wall|Wood Stud, R-11
+            - Insulation Wall|Wood Stud, R-13
+            - Insulation Wall|Wood Stud, R-19
+            - Insulation Wall|Wood Stud, R-19, Grade 2
+            - Insulation Wall|Wood Stud, R-19, Grade 3
+            - Insulation Wall|Wood Stud, R-23 Closed Cell Spray Foam, 2x4, 16 in o.c.
+      #Best roofs - R-49 attic insulation
+      - option: Insulation Unfinished Attic|Ceiling R-49, Vented
+        apply_logic: Insulation Unfinished Attic|Ceiling R-7, Vented
+          or:
+            - Insulation Unfinished Attic|Uninsulated, Vented
+            - Insulation Unfinished Attic|Ceiling R-7, Vented
+            - Insulation Unfinished Attic|Ceiling R-13, Vented
+            - Insulation Unfinished Attic|Ceiling R-19, Vented
+            - Insulation Unfinished Attic|Ceiling R-30, Vented
+            - Insulation Unfinished Attic|Ceiling R-38, Vented
+        lifetime: 999
+      #Best Air sealing
+      - option: Infiltration|1 ACH50
+      - option: Mechanical Ventilation|Exhaust, 2010 ASHRAE 62.2
+        apply_logic: 
+            - Mechanical Ventilation|None
+        costs: 
+          - value: 360
+            multiplier: Fixed (1)
+        lifetime: 999
+      #Best windows (not ready yet)
+      # Best floors (not ready yet)
+  #- upgrade_name: Best floors
+   # options:
+    #  - option: Insulation Slab|Uninsulated
+     #   apply_logic:
+      #      or:
+       #       - CZ4, CZ5
+      #- option: Insulation Slab|
+ #All DR measures
 
-## Baseline HPWH plus grid-responsive cycling 17
+##up 7 - package 3b - EE/DR measures with ASHP
+- upgrade_name: Package 3b EEDR with ASHP
+    options:
+    #Best ASHP today - Variable-Speed Heat Pump
+      - option: HVAC System Heat Pump|ASHP, SEER 22, 10 HSPF
+        apply_logic: 
+          or:
+            - HVAC System Heat Pump|ASHP SEER 10, 6.2 HSPF
+            - HVAC System Heat Pump|ASHP SEER 10.3, 7.0 HSPF
+            - HVAC System Heat Pump|ASHP SEER 11.5, 7.5 HSPF
+            - HVAC System Heat Pump|ASHP SEER 13, 7.7 HSPF
+            - HVAC System Heat Pump|ASHP SEER 13, 8,0 HSPF
+            - HVAC System Heat Pump|ASHP SEER 14, 8.2 HSPF
+            - HVAC System Heat Pump|ASHP SEER 14.3, 8.5 HSPF
+            - HVAC System Heat Pump|ASHP SEER 15, 8.5 HSPF
+            - HVAC System Heat Pump|ASHP SEER 16, 9.0 HSPF
+            - HVAC System Heat Pump|ASHP SEER 17, 8.7 HSPF
+            - HVAC System Heat Pump|ASHP SEER 18, 9.3 HSPF
+            - HVAC System Heating Electricity|Electric Furnace
+            - HVAC System Heating Electricity|Electric Boiler
+            - HVAC System Heating Electricity|Electric Baseboard
+        lifetime: 15
+              #Best LEDs
+      - option: Lighting|100% LED, High Efficacy
+        apply_logic:
+          or:
+            - Lighting|100% Incandescent
+            - Lighting|60% CFL Hardwired, 34% CFL Plugin
+            - Lighting|60% CFL
+            - Lighting|100% CFL
+            - Lighting|100% LED
+            - Lighting|20% LED
+            - Lighting|100% LED
+            - Lighting|100% LED, Low Efficacy
+        #Best Refrigerator/Freezer
+      - option: Refrigerator|EF 22.2, EnergyStar Most Efficient
+        apply_logic: 
+          or:
+            - Refrigerator|EF 17.6
+            - Refrigerator|EF 17.6, 105% Usage
+            - Refrigerator|EF 17.6, 95% Usage
+            - Refrigerator|EF 15.9
+            - Refrigerator|EF 10.5
+            - Refrigerator|EF 10.2
+            - Refrigerator|EF 6.7
+        lifetime: 17.4
+        #Best HPWH
+      - option: Water Heater|Electric Heat Pump, 80 gal
+        apply_logic: 
+          or:
+            - Water Heater|Electric Standard
+            - Water Heater|Electric Premium
+            - Water Heater|Electric Benchmark
+            - Water Heater|Electric Tankless #should we include tankless?
+            - Water Heater|Electric Heat Pump, 50 gal
+            - Water Heater|Electric Heat Pump, 50 gal, 140F
+            - Water Heater|Electric Heat Pump, 50 gal, In Confined Space #should this be included?
+        lifetime: 12
+        #Best CW
+        - option: Clothes Washer|EnergyStar Most Efficient, 80% Usage
+          apply_logic:
+            or:
+              - Clothes Washer|EnergyStar, 80% Usage
+              - Clothes Washer|Standard, 80% Usage
+        - option: Clothes Washer|EnergyStar Most Efficient, 100% Usage
+          apply_logic:
+            or:
+              - Clothes Washer|EnergyStar, 100% Usage
+              - Clothes Washer|Standard, 100% Usage
+              - Clothes Washer|Standard, 100% Usage, Cold Only
+              - Clothes Washer|EnergyStar, Cold Only
+        - option: Clothes Washer|EnergyStar Most Efficient, 120% Usage
+          apply_logic:
+            or:
+              - Clothes Washer|EnergyStar, 120% Usage
+              - Clothes Washer|Standard, 120% Usage
+        #Best CD
+        - option: Clothes Dryer|Electric, Heat Pump, Ventless
+          apply_logic:
+            or:
+              - Clothes Dryer|Electric, 80% Usage
+              - Clothes Dryer|Electric, 100% Usage
+              - Clothes Dryer|Electric, 120% Usage
+              - Clothes Dryer|Electric, Premium
+        #Best DW
+        - option: Dishwasher|199 Rated kWh, 80% Usage
+          apply_logic: 
+            or:
+              - Dishwasher|318 Rated kWh, 80% Usage
+              - Dishwasher|290 Rated kWh, 80% Usage
+          costs:
+            - value: 1000
+              multiplier: Fixed (1)
+          lifetime: 11
+        - option: Dishwasher|199 Rated kWh, 100% Usage
+          apply_logic: 
+            or:
+              - Dishwasher|318 Rated kWh, 100% Usage
+              - Dishwasher|290 Rated kWh, 100% Usage
+          costs:
+            - value: 1000
+              multiplier: Fixed (1)
+          lifetime: 11
+        - option: Dishwasher|199 Rated kWh, 120% Usage
+          apply_logic: 
+            or:
+              - Dishwasher|318 Rated kWh, 120% Usage
+              - Dishwasher|290 Rated kWh, 120% Usage
+          costs:
+            - value: 1000
+              multiplier: Fixed (1)
+          lifetime: 11
+        #Best Pool Pump
+        - option: Misc Pool Pump|0.75 HP Pump
+          apply_logic: Misc Pool Pump|1.0 HP Pump
+        #Best Electronics (not ready yet)
+              # Best walls
+      - option: Insulation Wall|Wood Stud, R-13, R-20 external XPS
+        apply_logic:
+          or:
+            - Insulation_Wall|Wood Stud, Uninsulated
+            - Insulation_Wall|Wood Stud, R-7
+            - Insulation_Wall|Wood Stud, R-11
+            - Insulation Wall|Wood Stud, R-13
+            - Insulation Wall|Wood Stud, R-19
+            - Insulation Wall|Wood Stud, R-19, Grade 2
+            - Insulation Wall|Wood Stud, R-19, Grade 3
+            - Insulation Wall|Wood Stud, R-23 Closed Cell Spray Foam, 2x4, 16 in o.c.
+      #Best roofs - R-49 attic insulation
+      - option: Insulation Unfinished Attic|Ceiling R-49, Vented
+        apply_logic: Insulation Unfinished Attic|Ceiling R-7, Vented
+          or:
+            - Insulation Unfinished Attic|Uninsulated, Vented
+            - Insulation Unfinished Attic|Ceiling R-7, Vented
+            - Insulation Unfinished Attic|Ceiling R-13, Vented
+            - Insulation Unfinished Attic|Ceiling R-19, Vented
+            - Insulation Unfinished Attic|Ceiling R-30, Vented
+            - Insulation Unfinished Attic|Ceiling R-38, Vented
+        lifetime: 999
+      #Best Air sealing
+      - option: Infiltration|1 ACH50
+      - option: Mechanical Ventilation|Exhaust, 2010 ASHRAE 62.2
+        apply_logic: 
+            - Mechanical Ventilation|None
+        costs: 
+          - value: 360
+            multiplier: Fixed (1)
+        lifetime: 999
+      #Best windows (not ready yet)
+      # Best floors (not ready yet)
+  #- upgrade_name: Best floors
+   # options:
+    #  - option: Insulation Slab|Uninsulated
+     #   apply_logic:
+      #      or:
+       #       - CZ4, CZ5
+      #- option: Insulation Slab|
+  #All DR measures
 
-## Baseline cw, cd, dw, plus grid-responsive cycling 18
-
-## Pool pumps: grid-responsive cycling 19
-
-## Baseline electronics, plus low-priority device switching via smart energy meters 20
-
-## Best CAC, ASHP, plus direct load control 21
-
-## Best envelopes + DR passive pre heating/coolign 22
-
-## Best HPWH + Grid responsive cycling 23
-
-## Best cw, cd, dw, pp + DR cycling 24
-
-## Best electronics + DR device switching 25
 
 
 timeseries_csv_export:
