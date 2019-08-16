@@ -491,7 +491,6 @@ class SimulationOutputReportTest < MiniTest::Test
 
     # Check for correct cost multiplier values
     cost_multipliers.each do |mult_type, mult_value|
-      # conditioned_zones = measure.get_conditioned_zones(model)
       value = measure.get_cost_multiplier(mult_type, model, runner)
       assert(!value.nil?)
       if mult_type.include? "ft^2" or mult_type.include? "gal"
