@@ -100,6 +100,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       "upgrade_name",
       "upgrade_cost_usd"
     ]
+    buildstock_outputs += mult_types.values
     for option_num in 1..num_options
       buildstock_outputs << "upgrade_option_%02d_cost_usd" % option_num
       buildstock_outputs << "upgrade_option_%02d_lifetime_yrs" % option_num
@@ -111,6 +112,25 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       result << OpenStudio::Measure::OSOutput.makeDoubleOutput(output)
     end
     return result
+  end
+
+  def mult_types
+    return {
+      "Fixed (1)" => "fixed",
+      "Wall Area, Above-Grade, Conditioned (ft^2)" => "wall_area_above_grade_conditioned_ft2",
+      "Wall Area, Above-Grade, Exterior (ft^2)" => "wall_area_above_grade_exterior_ft2",
+      "Wall Area, Below-Grade (ft^2)" => "wall_area_below_grade_ft2",
+      "Floor Area, Conditioned (ft^2)" => "floor_area_conditioned_ft2",
+      "Floor Area, Attic (ft^2)" => "floor_area_attic_ft2",
+      "Floor Area, Lighting (ft^2)" => "floor_area_lighting_ft2",
+      "Roof Area (ft^2)" => "roof_area_ft2",
+      "Window Area (ft^2)" => "window_area_ft2",
+      "Door Area (ft^2)" => "door_area_ft2",
+      "Duct Surface Area (ft^2)" => "duct_surface_area_ft2",
+      "Size, Heating System (kBtu/h)" => "size_heating_system_kbtu_h",
+      "Size, Cooling System (kBtu/h)" => "size_cooling_system_kbtu_h",
+      "Size, Water Heater (gal)" => "size_water_heater_gal"
+    }
   end
 
   # define what happens when the measure is run
@@ -602,6 +622,13 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       runner.registerValue(upgrade_cost_name, "")
       runner.registerInfo("Registering (blank) for #{upgrade_cost_name}.")
       return true
+    end
+
+    # Report cost_mult
+    mult_types.each do |cost_mult_type, cost_mult_type_str|
+      cost_mult = get_cost_multiplier(cost_mult_type, model, runner)
+      cost_mult_str = cost_mult.round(2).to_s
+      runner.registerValue(cost_mult_type_str, cost_mult_str)
     end
 
     # Obtain cost multiplier values and calculate upgrade costs
