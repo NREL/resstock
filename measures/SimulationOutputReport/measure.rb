@@ -57,6 +57,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
   end
 
   def outputs
+    result = OpenStudio::Measure::OSOutputVector.new
     buildstock_outputs = [
       "total_site_energy_mbtu",
       "total_site_electricity_kwh",
@@ -97,24 +98,23 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       "hvac_cooling_capacity_w",
       "hvac_heating_capacity_w",
       "hvac_heating_supp_capacity_w",
-      "upgrade_name",
+      "weight",
       "upgrade_cost_usd"
     ]
-    buildstock_outputs += mult_types.values
+    buildstock_outputs += cost_mult_types.values
     for option_num in 1..num_options
       buildstock_outputs << "upgrade_option_%02d_cost_usd" % option_num
       buildstock_outputs << "upgrade_option_%02d_lifetime_yrs" % option_num
     end
-    buildstock_outputs << "weight"
-
-    result = OpenStudio::Measure::OSOutputVector.new
     buildstock_outputs.each do |output|
       result << OpenStudio::Measure::OSOutput.makeDoubleOutput(output)
     end
+    result << OpenStudio::Measure::OSOutput.makeStringOutput("upgrade_name")
+
     return result
   end
 
-  def mult_types
+  def cost_mult_types
     return {
       "Fixed (1)" => "fixed",
       "Wall Area, Above-Grade, Conditioned (ft^2)" => "wall_area_above_grade_conditioned_ft2",
@@ -625,10 +625,10 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     end
 
     # Report cost_mult
-    mult_types.each do |cost_mult_type, cost_mult_type_str|
+    cost_mult_types.each do |cost_mult_type, cost_mult_type_str|
       cost_mult = get_cost_multiplier(cost_mult_type, model, runner)
-      cost_mult_str = cost_mult.round(2).to_s
-      runner.registerValue(cost_mult_type_str, cost_mult_str)
+      cost_mult = cost_mult.round(2)
+      runner.registerValue(cost_mult_type_str, cost_mult)
     end
 
     # Obtain cost multiplier values and calculate upgrade costs
@@ -649,22 +649,21 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
       # Save option cost/lifetime to results.csv
       if option_cost != 0
-        option_num_str = option_num.to_s.rjust(2, '0')
-        option_cost_str = option_cost.round(2).to_s
-        option_cost_name = "upgrade_option_#{option_num_str}_cost_usd"
-        runner.registerValue(option_cost_name, option_cost_str)
-        runner.registerInfo("Registering #{option_cost_str} for #{option_cost_name}.")
+        option_cost = option_cost.round(2)
+        option_cost_name = "upgrade_option_%02d_cost_usd" % option_num
+        runner.registerValue(option_cost_name, option_cost)
+        runner.registerInfo("Registering #{option_cost} for #{option_cost_name}.")
         if not option_lifetimes[option_num].nil? and option_lifetimes[option_num] != 0
-          lifetime_str = option_lifetimes[option_num].round(2).to_s
-          option_lifetime_name = "upgrade_option_#{option_num_str}_lifetime_yrs"
-          runner.registerValue(option_lifetime_name, lifetime_str)
-          runner.registerInfo("Registering #{lifetime_str} for #{option_lifetime_name}.")
+          lifetime = option_lifetimes[option_num].round(2)
+          option_lifetime_name = "upgrade_option_%02d_lifetime_yrs" % option_num
+          runner.registerValue(option_lifetime_name, lifetime)
+          runner.registerInfo("Registering #{lifetime} for #{option_lifetime_name}.")
         end
       end
     end
-    upgrade_cost_str = upgrade_cost.round(2).to_s
-    runner.registerValue(upgrade_cost_name, upgrade_cost_str)
-    runner.registerInfo("Registering #{upgrade_cost_str} for #{upgrade_cost_name}.")
+    upgrade_cost = upgrade_cost.round(2)
+    runner.registerValue(upgrade_cost_name, upgrade_cost)
+    runner.registerInfo("Registering #{upgrade_cost} for #{upgrade_cost_name}.")
 
     runner.registerFinalCondition("Report generated successfully.")
 
