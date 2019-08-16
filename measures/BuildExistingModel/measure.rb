@@ -170,7 +170,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     if measures_to_ignore.is_initialized
       measures_to_ignore = measures_to_ignore.get
       measures_to_ignore.split("|").each do |measure_dir|
-        runner.registerInfo("Ignorning/not running measure #{measure_dir}")
+        runner.registerInfo("Ignoring/not running measure #{measure_dir}")
         measures.delete(measure_dir)
       end
     end
