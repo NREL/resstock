@@ -4291,7 +4291,6 @@ class HVAC
     # Returns the water baseboard if available
     baseboards = []
     model.getZoneHVACBaseboardConvectiveWaters.each do |baseboard|
-      next if model.getSimulationControl.runSimulationforSizingPeriods
       next unless thermal_zone.handle.to_s == baseboard.thermalZone.get.handle.to_s
 
       baseboards << baseboard
