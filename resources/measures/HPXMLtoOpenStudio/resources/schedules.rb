@@ -964,7 +964,7 @@ class Schedule
     end
 
     return schedule
-    end
+  end
 
   def self.set_schedule_type_limits(model, schedule, schedule_type_limits_name)
     return if schedule_type_limits_name.nil?
