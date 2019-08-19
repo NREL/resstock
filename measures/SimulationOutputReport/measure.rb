@@ -581,7 +581,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       runner.registerValue("weight", weight.to_f)
       runner.registerInfo("Registering #{weight} for weight.")
     end
-    
+
     # Report cost multipliers
     cost_mult_types.each do |cost_mult_type, cost_mult_type_str|
       cost_mult = get_cost_multiplier(cost_mult_type, model, runner)
@@ -812,13 +812,12 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
               next if not plc.to_BoilerHotWater.is_initialized
 
               component = plc.to_BoilerHotWater.get
-              puts component.name
               next if components.include? component
-              puts "HERE0"
+
               components << component
               next if not component.nominalCapacity.is_initialized
               next if component.nominalCapacity.get <= max_value
-              puts "HERE1"
+
               max_value = component.nominalCapacity.get
               cost_mult += UnitConversions.convert(max_value, "W", "kBtu/hr")
             end
