@@ -87,14 +87,24 @@ class HVAC
         fault_program.addLine("Set a2_AF_EIR_c = -0.477711207")
         fault_program.addLine("Set a3_AF_EIR_c = 0.154712157")
       else
-        # heat pump (cooling) airflow curves from Cutler et al.
-        fault_program.addLine("Set a1_AF_Qgr_c = 0.718664047")
-        fault_program.addLine("Set a2_AF_Qgr_c = 0.41797409")
-        fault_program.addLine("Set a3_AF_Qgr_c = -0.136638137")
+        # air conditioner airflow curves from Cutler et al.
+        # NOTE: heat pump (cooling) curves don't exhibit expected trends at extreme faults; using air conditioner curves instead
+        fault_program.addLine("Set a1_AF_Qgr_c = 0.718605468")
+        fault_program.addLine("Set a2_AF_Qgr_c = 0.410099989")
+        fault_program.addLine("Set a3_AF_Qgr_c = -0.128705457")
 
-        fault_program.addLine("Set a1_AF_EIR_c = 1.143487507")
-        fault_program.addLine("Set a2_AF_EIR_c = -0.13943972")
-        fault_program.addLine("Set a3_AF_EIR_c = -0.004047787")
+        fault_program.addLine("Set a1_AF_EIR_c = 1.32299905")
+        fault_program.addLine("Set a2_AF_EIR_c = -0.477711207")
+        fault_program.addLine("Set a3_AF_EIR_c = 0.154712157")
+        
+        # heat pump (cooling) airflow curves from Cutler et al.
+        #fault_program.addLine("Set a1_AF_Qgr_c = 0.718664047")
+        #fault_program.addLine("Set a2_AF_Qgr_c = 0.41797409")
+        #fault_program.addLine("Set a3_AF_Qgr_c = -0.136638137")
+
+        #fault_program.addLine("Set a1_AF_EIR_c = 1.143487507")
+        #fault_program.addLine("Set a2_AF_EIR_c = -0.13943972")
+        #fault_program.addLine("Set a3_AF_EIR_c = -0.004047787")
       end
 
       fault_program.addLine("Set F_CH = #{f_chg.round(3)}")

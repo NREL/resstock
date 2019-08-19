@@ -301,10 +301,10 @@ class ProcessSingleSpeedAirSourceHeatPump < OpenStudio::Measure::ModelMeasure
     if (rated_cfm_per_ton < 200 or actual_cfm_per_ton < 200) or (rated_cfm_per_ton > 600 or actual_cfm_per_ton > 600)
       runner.registerWarning("Air flow rate input(s) are almost outside the valid range.")
     end
-    if (frac_manufacturer_charge < 0.70) or (frac_manufacturer_charge > 1.30)
+    if (frac_manufacturer_charge < 0.55) or (frac_manufacturer_charge > 1.45)
       runner.registerError("Fraction of manufacturer charge is outside the valid range.")
     end
-    if (frac_manufacturer_charge < 0.75) or (frac_manufacturer_charge > 1.25)
+    if (frac_manufacturer_charge < 0.60) or (frac_manufacturer_charge > 1.40)
       runner.registerWarning("Fraction of manufacturer charge is almost outside the valid range.")
     end
 
@@ -324,6 +324,11 @@ class ProcessSingleSpeedAirSourceHeatPump < OpenStudio::Measure::ModelMeasure
           HVAC.remove_heating(model, runner, zone, unit)
           HVAC.remove_cooling(model, runner, zone, unit)
         end
+      end
+
+      if rated_cfm_per_ton != actual_cfm_per_ton
+        # Use NIST fan power correlation to overwrite fan_power_installed
+        fan_power_installed = -0.00072 * (actual_cfm_per_ton - rated_cfm_per_ton) + fan_power_installed
       end
 
       success = HVAC.apply_central_ashp_1speed(model, unit, runner, seer, hspf, eers, cops, shrs,

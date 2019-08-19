@@ -229,7 +229,7 @@ class ProcessSingleSpeedCentralAirConditionerTest < MiniTest::Test
 
   def test_argument_error_frac_manufacturer_charge_low
     args_hash = {}
-    args_hash["frac_manufacturer_charge"] = "0.65"
+    args_hash["frac_manufacturer_charge"] = "0.50"
     result = _test_error("SFD_2000sqft_2story_SL_UA_Denver.osm", args_hash)
     assert_includes(result.errors.map { |x| x.logMessage }, "Fraction of manufacturer charge is outside the valid range.")
  end
@@ -245,10 +245,10 @@ class ProcessSingleSpeedCentralAirConditionerTest < MiniTest::Test
 
   def test_argument_warning_frac_manufacturer_charge_high
     args_hash = {}
-    args_hash["frac_manufacturer_charge"] = "1.27"
+    args_hash["frac_manufacturer_charge"] = "1.42"
     expected_num_del_objects = {}
     expected_num_new_objects = { "AirLoopHVACUnitarySystem" => 1, "AirLoopHVAC" => 1, "CoilCoolingDXSingleSpeed" => 1, "FanOnOff" => 1, "AirTerminalSingleDuctConstantVolumeNoReheat" => 1, "EnergyManagementSystemSensor" => 2, "EnergyManagementSystemActuator" => 2, "EnergyManagementSystemProgram" => 1, "EnergyManagementSystemProgramCallingManager" => 1 }
-    expected_values = { "COP" => 3.95, "MaximumSupplyAirTemperature" => 48.88, "res_install_quality_fault_1_prog" => { "F_CH" => 0.27 }, "SensorLocation" => "living zone" }
+    expected_values = { "COP" => 3.95, "MaximumSupplyAirTemperature" => 48.88, "res_install_quality_fault_1_prog" => { "F_CH" => 0.42 }, "SensorLocation" => "living zone" }
     _test_measure("SFD_2000sqft_2story_SL_UA_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 3, 1)
  end
 
