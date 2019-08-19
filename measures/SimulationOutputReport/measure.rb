@@ -116,17 +116,16 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
   def cost_mult_types
     return {
-      "Fixed (1)" => "fixed",
-      "Wall Area, Above-Grade, Conditioned (ft^2)" => "wall_area_above_grade_conditioned_ft2",
-      "Wall Area, Above-Grade, Exterior (ft^2)" => "wall_area_above_grade_exterior_ft2",
-      "Wall Area, Below-Grade (ft^2)" => "wall_area_below_grade_ft2",
-      "Floor Area, Conditioned (ft^2)" => "floor_area_conditioned_ft2",
-      "Floor Area, Attic (ft^2)" => "floor_area_attic_ft2",
-      "Floor Area, Lighting (ft^2)" => "floor_area_lighting_ft2",
-      "Roof Area (ft^2)" => "roof_area_ft2",
-      "Window Area (ft^2)" => "window_area_ft2",
-      "Door Area (ft^2)" => "door_area_ft2",
-      "Duct Surface Area (ft^2)" => "duct_surface_area_ft2",
+      "Wall Area, Above-Grade, Conditioned (ft^2)" => "wall_area_above_grade_conditioned_ft_2",
+      "Wall Area, Above-Grade, Exterior (ft^2)" => "wall_area_above_grade_exterior_ft_2",
+      "Wall Area, Below-Grade (ft^2)" => "wall_area_below_grade_ft_2",
+      "Floor Area, Conditioned (ft^2)" => "floor_area_conditioned_ft_2",
+      "Floor Area, Attic (ft^2)" => "floor_area_attic_ft_2",
+      "Floor Area, Lighting (ft^2)" => "floor_area_lighting_ft_2",
+      "Roof Area (ft^2)" => "roof_area_ft_2",
+      "Window Area (ft^2)" => "window_area_ft_2",
+      "Door Area (ft^2)" => "door_area_ft_2",
+      "Duct Surface Area (ft^2)" => "duct_surface_area_ft_2",
       "Size, Heating System (kBtu/h)" => "size_heating_system_kbtu_h",
       "Size, Cooling System (kBtu/h)" => "size_cooling_system_kbtu_h",
       "Size, Water Heater (gal)" => "size_water_heater_gal"
@@ -582,6 +581,13 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       runner.registerValue("weight", weight.to_f)
       runner.registerInfo("Registering #{weight} for weight.")
     end
+    
+    # Report cost multipliers
+    cost_mult_types.each do |cost_mult_type, cost_mult_type_str|
+      cost_mult = get_cost_multiplier(cost_mult_type, model, runner)
+      cost_mult = cost_mult.round(2)
+      runner.registerValue(cost_mult_type_str, cost_mult)
+    end
 
     # UPGRADE NAME
     upgrade_name = get_value_from_runner_past_results(runner, "upgrade_name", "apply_upgrade", false)
@@ -622,13 +628,6 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       runner.registerValue(upgrade_cost_name, "")
       runner.registerInfo("Registering (blank) for #{upgrade_cost_name}.")
       return true
-    end
-
-    # Report cost_mult
-    cost_mult_types.each do |cost_mult_type, cost_mult_type_str|
-      cost_mult = get_cost_multiplier(cost_mult_type, model, runner)
-      cost_mult = cost_mult.round(2)
-      runner.registerValue(cost_mult_type_str, cost_mult)
     end
 
     # Obtain cost multiplier values and calculate upgrade costs
@@ -813,12 +812,13 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
               next if not plc.to_BoilerHotWater.is_initialized
 
               component = plc.to_BoilerHotWater.get
+              puts component.name
               next if components.include? component
-
+              puts "HERE0"
               components << component
               next if not component.nominalCapacity.is_initialized
               next if component.nominalCapacity.get <= max_value
-
+              puts "HERE1"
               max_value = component.nominalCapacity.get
               cost_mult += UnitConversions.convert(max_value, "W", "kBtu/hr")
             end
