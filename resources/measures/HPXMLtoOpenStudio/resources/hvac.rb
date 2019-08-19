@@ -295,7 +295,7 @@ class HVAC
 
       program.remove
     end
- end
+  end
 
   def self.apply_central_ac_1speed(model, unit, runner, seer, eers, shrs,
                                    fan_power_rated, fan_power_installed,
