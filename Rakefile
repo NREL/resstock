@@ -33,7 +33,7 @@ namespace :test do
     t.warning = false
     t.verbose = true
   end
-  
+
   desc 'Test creating measure osws'
   Rake::TestTask.new('measures_osw') do |t|
     t.libs << 'test'
