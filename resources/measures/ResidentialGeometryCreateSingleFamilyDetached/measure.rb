@@ -798,16 +798,16 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Measure::Model
               sw_point = OpenStudio::Point3d.new(sw_point.x, sw_point.y, living_space.zOrigin + sw_point.z)
               se_point = OpenStudio::Point3d.new(se_point.x, se_point.y, living_space.zOrigin + se_point.z)
             else
-              nw_point = OpenStudio::Point3d.new(nw_point.x, nw_point.y, nw_point.z - living_space.zOrigin - attic_space.zOrigin)
-              ne_point = OpenStudio::Point3d.new(ne_point.x, ne_point.y, ne_point.z - living_space.zOrigin - attic_space.zOrigin)
-              sw_point = OpenStudio::Point3d.new(sw_point.x, sw_point.y, sw_point.z - living_space.zOrigin - attic_space.zOrigin)
-              se_point = OpenStudio::Point3d.new(se_point.x, se_point.y, se_point.z - living_space.zOrigin - attic_space.zOrigin)
+              nw_point = OpenStudio::Point3d.new(nw_point.x, nw_point.y, nw_point.z - living_space.zOrigin)
+              ne_point = OpenStudio::Point3d.new(ne_point.x, ne_point.y, ne_point.z - living_space.zOrigin)
+              sw_point = OpenStudio::Point3d.new(sw_point.x, sw_point.y, sw_point.z - living_space.zOrigin)
+              se_point = OpenStudio::Point3d.new(se_point.x, se_point.y, se_point.z - living_space.zOrigin)
             end
           else
-            nw_point = OpenStudio::Point3d.new(nw_point.x, nw_point.y, num_floors * nw_point.z - attic_space.zOrigin)
-            ne_point = OpenStudio::Point3d.new(ne_point.x, ne_point.y, num_floors * ne_point.z - attic_space.zOrigin)
-            sw_point = OpenStudio::Point3d.new(sw_point.x, sw_point.y, num_floors * sw_point.z - attic_space.zOrigin)
-            se_point = OpenStudio::Point3d.new(se_point.x, se_point.y, num_floors * se_point.z - attic_space.zOrigin)
+            nw_point = OpenStudio::Point3d.new(nw_point.x, nw_point.y, num_floors * nw_point.z)
+            ne_point = OpenStudio::Point3d.new(ne_point.x, ne_point.y, num_floors * ne_point.z)
+            sw_point = OpenStudio::Point3d.new(sw_point.x, sw_point.y, num_floors * sw_point.z)
+            se_point = OpenStudio::Point3d.new(se_point.x, se_point.y, num_floors * se_point.z)
           end
 
           garage_attic_height = (ne_point.x - nw_point.x) / 2 * roof_pitch
@@ -824,12 +824,12 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Measure::Model
               roof_n_point = OpenStudio::Point3d.new((nw_point.x + ne_point.x) / 2, nw_point.y + garage_attic_height / roof_pitch, living_space.zOrigin + wall_height + garage_attic_height)
               roof_s_point = OpenStudio::Point3d.new((sw_point.x + se_point.x) / 2, sw_point.y, living_space.zOrigin + wall_height + garage_attic_height)
             else
-              roof_n_point = OpenStudio::Point3d.new((nw_point.x + ne_point.x) / 2, nw_point.y + garage_attic_height / roof_pitch, garage_attic_height + wall_height - attic_space.zOrigin)
-              roof_s_point = OpenStudio::Point3d.new((sw_point.x + se_point.x) / 2, sw_point.y, garage_attic_height + wall_height - attic_space.zOrigin)
+              roof_n_point = OpenStudio::Point3d.new((nw_point.x + ne_point.x) / 2, nw_point.y + garage_attic_height / roof_pitch, garage_attic_height + wall_height)
+              roof_s_point = OpenStudio::Point3d.new((sw_point.x + se_point.x) / 2, sw_point.y, garage_attic_height + wall_height)
             end
           else
-            roof_n_point = OpenStudio::Point3d.new((nw_point.x + ne_point.x) / 2, nw_point.y + garage_attic_height / roof_pitch, num_floors * wall_height + garage_attic_height - attic_space.zOrigin)
-            roof_s_point = OpenStudio::Point3d.new((sw_point.x + se_point.x) / 2, sw_point.y, num_floors * wall_height + garage_attic_height - attic_space.zOrigin)
+            roof_n_point = OpenStudio::Point3d.new((nw_point.x + ne_point.x) / 2, nw_point.y + garage_attic_height / roof_pitch, num_floors * wall_height + garage_attic_height)
+            roof_s_point = OpenStudio::Point3d.new((sw_point.x + se_point.x) / 2, sw_point.y, num_floors * wall_height + garage_attic_height)
           end
 
           polygon_w_roof = Geometry.make_polygon(nw_point, sw_point, roof_s_point, roof_n_point)
@@ -849,36 +849,29 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Measure::Model
           wall_s.setSurfaceType("Wall")
           wall_s.setOutsideBoundaryCondition("Outdoors")
 
-          if num_floors > 1 or attic_type == "finished attic"
-            garage_attic_space = attic_space
-            garage_attic_space_name = "#{attic_space.name}"
-          else
-            garage_attic_space = OpenStudio::Model::Space.new(model)
-            garage_attic_space_name = "garage attic space"
-            garage_attic_space.setName(garage_attic_space_name)
-          end
+          garage_attic_space = OpenStudio::Model::Space.new(model)
           deck_w.setSpace(garage_attic_space)
           deck_e.setSpace(garage_attic_space)
           wall_n.setSpace(garage_attic_space)
           wall_s.setSpace(garage_attic_space)
 
           if attic_type == "finished attic"
+            garage_attic_space_name = "garage finished attic space"
             garage_attic_space.setThermalZone(living_zone)
             garage_attic_space_type_name = Constants.SpaceTypeLiving
           else
+            garage_attic_space_name = "garage attic space"
             if num_floors > 1
               garage_attic_space_type_name = Constants.SpaceTypeUnfinishedAttic
-              garage_attic_space.setThermalZone(attic_zone)
             else
+              attic_zone = garage_zone
               garage_attic_space_type_name = Constants.SpaceTypeGarageAttic
-              garage_attic_zone = OpenStudio::Model::ThermalZone.new(model)
-              garage_attic_zone_name = "garage attic zone"
-              garage_attic_zone.setName(garage_attic_zone_name)
-              garage_attic_space.setThermalZone(garage_attic_zone)
             end
+            garage_attic_space.setThermalZone(attic_zone)
           end
 
           surface.createAdjacentSurface(garage_attic_space)
+          garage_attic_space.setName(garage_attic_space_name)
           if space_types_hash.keys.include? garage_attic_space_type_name
             garage_attic_space_type = space_types_hash[garage_attic_space_type_name]
           else
