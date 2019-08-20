@@ -90,7 +90,7 @@ class CreateResidentialSingleFamilyDetachedGeometryTest < MiniTest::Test
     args_hash["garage_width"] = 40
     args_hash["garage_depth"] = 24
     expected_num_del_objects = {}
-    expected_num_new_objects = { "BuildingUnit" => 1, "Surface" => 26, "ThermalZone" => 3, "Space" => 4, "SpaceType" => 3, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 2, "ShadingSurfaceGroup" => 2, "ShadingSurface" => 12 }
+    expected_num_new_objects = { "BuildingUnit" => 1, "Surface" => 26, "ThermalZone" => 3, "Space" => 4, "SpaceType" => 4, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 2, "ShadingSurfaceGroup" => 2, "ShadingSurface" => 12 }
     expected_values = { "FinishedFloorArea" => 2000, "GarageAtticHeight" => 9.65, "GarageFloorArea" => 960, "UnfinishedAtticHeight" => 9.80, "UnfinishedAtticFloorArea" => 2960, "BuildingHeight" => 17.8, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 2.64, "EavesDepth" => 2 }
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
@@ -182,7 +182,7 @@ class CreateResidentialSingleFamilyDetachedGeometryTest < MiniTest::Test
     args_hash["foundation_type"] = "finished basement"
     args_hash["garage_protrusion"] = 0.5
     expected_num_del_objects = {}
-    expected_num_new_objects = { "BuildingUnit" => 1, "Surface" => 34, "ThermalZone" => 4, "Space" => 5, "SpaceType" => 4, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 2, "ShadingSurfaceGroup" => 2, "ShadingSurface" => 12 }
+    expected_num_new_objects = { "BuildingUnit" => 1, "Surface" => 34, "ThermalZone" => 4, "Space" => 5, "SpaceType" => 5, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 2, "ShadingSurfaceGroup" => 2, "ShadingSurface" => 12 }
     expected_values = { "FinishedFloorArea" => 2000, "FinishedBasementHeight" => 8, "FinishedBasementFloorArea" => 1000, "UnfinishedAtticHeight" => 6.91, "UnfinishedAtticFloorArea" => 1240, "GarageAtticHeight" => 4, "GarageFloorArea" => 240, "BuildingHeight" => 8 + 8 + 6.91, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 2.64, "EavesDepth" => 2 }
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
@@ -226,7 +226,7 @@ class CreateResidentialSingleFamilyDetachedGeometryTest < MiniTest::Test
     args_hash["foundation_type"] = "finished basement"
     args_hash["garage_protrusion"] = 1
     expected_num_del_objects = {}
-    expected_num_new_objects = { "BuildingUnit" => 1, "Surface" => 28, "ThermalZone" => 4, "Space" => 5, "SpaceType" => 4, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 2, "ShadingSurfaceGroup" => 2, "ShadingSurface" => 12 }
+    expected_num_new_objects = { "BuildingUnit" => 1, "Surface" => 28, "ThermalZone" => 4, "Space" => 5, "SpaceType" => 5, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 2, "ShadingSurfaceGroup" => 2, "ShadingSurface" => 12 }
     expected_values = { "FinishedFloorArea" => 2000, "FinishedBasementHeight" => 8, "FinishedBasementFloorArea" => 2000 / 2, "UnfinishedAtticHeight" => 6.59, "UnfinishedAtticFloorArea" => 1240, "GarageAtticHeight" => 4, "GarageFloorArea" => 240, "BuildingHeight" => 8 + 8 + 6.59, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 2.64, "EavesDepth" => 2 }
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
@@ -333,7 +333,7 @@ class CreateResidentialSingleFamilyDetachedGeometryTest < MiniTest::Test
     args_hash["foundation_type"] = "finished basement"
     args_hash["garage_protrusion"] = 0.5
     expected_num_del_objects = {}
-    expected_num_new_objects = { "BuildingUnit" => 1, "Surface" => 34, "ThermalZone" => 4, "Space" => 5, "SpaceType" => 4, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 2, "ShadingSurfaceGroup" => 2, "ShadingSurface" => 12 }
+    expected_num_new_objects = { "BuildingUnit" => 1, "Surface" => 34, "ThermalZone" => 4, "Space" => 5, "SpaceType" => 5, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 2, "ShadingSurfaceGroup" => 2, "ShadingSurface" => 12 }
     expected_values = { "FinishedFloorArea" => 2000, "FinishedBasementHeight" => 8, "FinishedBasementFloorArea" => 1000, "UnfinishedAtticHeight" => 6.91, "UnfinishedAtticFloorArea" => 1240, "GarageAtticHeight" => 4, "GarageFloorArea" => 240, "BuildingHeight" => 8 + 8 + 6.91, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 2.64, "EavesDepth" => 2 }
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
@@ -348,7 +348,7 @@ class CreateResidentialSingleFamilyDetachedGeometryTest < MiniTest::Test
     args_hash["foundation_type"] = "finished basement"
     args_hash["garage_protrusion"] = 1
     expected_num_del_objects = {}
-    expected_num_new_objects = { "BuildingUnit" => 1, "Surface" => 28, "ThermalZone" => 4, "Space" => 5, "SpaceType" => 4, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 2, "ShadingSurfaceGroup" => 2, "ShadingSurface" => 12 }
+    expected_num_new_objects = { "BuildingUnit" => 1, "Surface" => 28, "ThermalZone" => 4, "Space" => 5, "SpaceType" => 5, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 2, "ShadingSurfaceGroup" => 2, "ShadingSurface" => 12 }
     expected_values = { "FinishedFloorArea" => 2000, "FinishedBasementHeight" => 8, "FinishedBasementFloorArea" => 2000 / 2, "UnfinishedAtticHeight" => 6.59, "UnfinishedAtticFloorArea" => 1240, "GarageAtticHeight" => 4, "GarageFloorArea" => 240, "BuildingHeight" => 8 + 8 + 6.59, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 2.64, "EavesDepth" => 2 }
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end

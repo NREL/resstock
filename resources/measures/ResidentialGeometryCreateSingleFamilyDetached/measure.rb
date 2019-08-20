@@ -856,17 +856,18 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Measure::Model
           wall_s.setSpace(garage_attic_space)
 
           if attic_type == "finished attic"
-
             garage_attic_space_name = "garage finished attic space"
             garage_attic_space.setThermalZone(living_zone)
             garage_attic_space_type_name = Constants.SpaceTypeLiving
-
           else
-
             garage_attic_space_name = "garage attic space"
+            if num_floors > 1
+              garage_attic_space_type_name = Constants.SpaceTypeUnfinishedAttic
+            else
+              attic_zone = garage_zone
+              garage_attic_space_type_name = Constants.SpaceTypeGarageAttic
+            end
             garage_attic_space.setThermalZone(attic_zone)
-            garage_attic_space_type_name = Constants.SpaceTypeUnfinishedAttic
-
           end
 
           surface.createAdjacentSurface(garage_attic_space)
@@ -903,9 +904,10 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Measure::Model
         next if roof_type == Constants.RoofTypeHip
         next unless surface.vertices.length == 3
         next unless (90 - surface.tilt * 180 / Math::PI).abs > 0.01 # don't remove the vertical attic walls
-        next unless surface.adjacentSurface.is_initialized
 
-        surface.adjacentSurface.get.remove
+        if surface.adjacentSurface.is_initialized
+          surface.adjacentSurface.get.remove
+        end
         surface.remove
       end
     end
