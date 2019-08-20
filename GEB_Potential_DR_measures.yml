@@ -1,10 +1,10 @@
 stock_type: residential
 buildstock_directory: ./  # Relative to this file or absolute
 project_directory: project_singlefamilydetached
-output_directory: /scratch/aspeake/geb-potential/DR_test-moreoptions
+output_directory: /projects/enduse/geb-potential/DR_upgrades_test_5000
 weather_files_path: /shared-projects/buildstock/weather/project_resstock_national_weather.zip
 baseline:
-  n_datapoints: 30
+  n_datapoints: 5000
   n_buildings_represented: 81221016 
 
 downselect:
@@ -27,7 +27,7 @@ downselect:
       - Location|MN_International.Falls.Intl.AP.727470
 
 upgrades:
-  - upgrade_name: WH and Appliance DR
+  - upgrade_name: WH and Appliance DR 
     options: 
       - option: Appliance DR Apply|TRUE
         costs:
@@ -232,19 +232,21 @@ upgrades:
 timeseries_csv_export:
   reporting_frequency: Hourly
   include_enduse_subcategories: true
+  output_variables: Water Heater Tank Temperature
 peregrine:
   nodetype: haswell
   queue: batch-h
   n_jobs: 200
 eagle:
   account: enduse
-  n_jobs: 3
+  n_jobs: 15
   minutes_per_sim: 2
   sampling:
     time: 5
   postprocessing:
-    time: 10
+    time: 15
 postprocessing:
+  aggregate_timeseries: true
   aws:
     region_name: 'us-west-2'
     s3:
