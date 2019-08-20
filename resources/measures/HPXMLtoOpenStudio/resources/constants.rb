@@ -56,7 +56,7 @@ class Constants
   end
 
   def self.NumApplyUpgradeOptions
-    return 25
+    return 100
   end
 
   def self.NumApplyUpgradesCostsPerOption
