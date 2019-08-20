@@ -415,6 +415,7 @@ class ResidentialHotWaterSolar < OpenStudio::Measure::ModelMeasure
         storage_tank.setNode1AdditionalLossCoefficient(0)
         storage_tank.setNode6AdditionalLossCoefficient(0)
         storage_tank.setSourceSideDesignFlowRate(UnitConversions.convert(shw_system.coll_flow, "cfm", "m^3/s"))
+        storage_tank.setUseSideDesignFlowRate((UnitConversions.convert(shw_system.storage_vol, "ft^3", "m^3")) / 60.1) # 60.1 (seconds) ensures that the autosizing doesn't draw the whole tank volume in one minute
 
         plant_loop.addDemandBranchForComponent(storage_tank)
         runner.registerInfo("Added '#{storage_tank.name}' to demand branch of '#{plant_loop.name}'.")
