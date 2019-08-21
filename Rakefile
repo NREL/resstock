@@ -593,7 +593,6 @@ def get_and_proof_measure_order_json()
   measure_folder = File.expand_path("../measures/", __FILE__)
   resources_measure_folder = File.expand_path("../resources/measures/", __FILE__)
   all_measures = Dir.entries(measure_folder).select { |entry| entry.start_with?('Residential') } + Dir.entries(resources_measure_folder).select { |entry| entry.start_with?('Residential') }
-  all_measures += ['TimeseriesCSVExport']
 
   # Load json, and get all measures in there
   json_file = "resources/measure-info.json"
