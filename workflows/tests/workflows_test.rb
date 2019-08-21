@@ -24,17 +24,17 @@ class WorkflowTest < MiniTest::Test
   end
 
   private
-  
+
   def add_simulation_output_report(osw)
     json = JSON.parse(File.read(osw))
-    simulation_output_report = {"arguments": {}, "measure_dir_name": "SimulationOutputReport"}
+    simulation_output_report = { "arguments": {}, "measure_dir_name": "SimulationOutputReport" }
     json["steps"] << simulation_output_report
-    
+
     File.open(osw, "w") do |f|
       f.write(JSON.pretty_generate(json))
     end
   end
-  
+
   def create_lib_folder(parent_dir)
     puts parent_dir
     lib_dir = File.join(parent_dir, "..", "lib") # at top level
