@@ -49,7 +49,9 @@ class WorkflowTest < MiniTest::Test
     # Run workflow
     cli_path = OpenStudio.getOpenStudioCLI
     command = "cd #{parent_dir} && \"#{cli_path}\" --no-ssl run -w #{in_osw}"
+    simulation_start = Time.now
     system(command)
+    sim_time = (Time.now - simulation_start).round(1)
 
     # Check all output files exist
     out_osw = File.join(parent_dir, "out.osw")
@@ -62,12 +64,17 @@ class WorkflowTest < MiniTest::Test
     data_point_out = File.join(parent_dir, "run", "data_point_out.json")
     result = { "OSW" => File.basename(in_osw) }
     result = get_simulation_output_report(result, data_point_out)
+    result["simulation_time"] = sim_time
     return result
   end
 
   def get_simulation_output_report(result, data_point_out)
     rows = JSON.parse(File.read(File.expand_path(data_point_out)))
-    return result.merge(rows["SimulationOutputReport"])
+    result = result.merge(rows["SimulationOutputReport"])
+    result.delete("applicable")
+    result.delete("upgrade_name")
+    result.delete("upgrade_cost_usd")
+    return result
   end
 
   def write_summary_results(results_dir, results)
