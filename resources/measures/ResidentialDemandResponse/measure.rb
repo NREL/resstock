@@ -115,22 +115,47 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
     args << appl_winter_season
 
     shift_CW = OpenStudio::Measure::OSArgument::makeBoolArgument("shift_CW", false)
-    shift_CW.setDisplayName("If clothes washer operation should be shifted to avoid the peaks")
-    shift_CW.setDescription("The operation of clothes washer would be delayed or started earlier to avoid the peak hours.")
+    shift_CW.setDisplayName("Shift clothes washer")
+    shift_CW.setDescription("If clothes washer operation should be shifted to avoid the peaks. The operation of clothes washer would be delayed or started earlier to avoid the peak hours.")
     shift_CW.setDefaultValue(false)
     args << shift_CW
 
     shift_CD = OpenStudio::Measure::OSArgument::makeBoolArgument("shift_CD", false)
-    shift_CD.setDisplayName("If clothes dryer operation should be shifted to avoid the peaks")
+    shift_CD.setDisplayName("Shift clothes dryer")
     shift_CD.setDescription("The operation of clothes dryer would be delayed or started earlier to avoid the peak hours.")
     shift_CD.setDefaultValue(false)
     args << shift_CD
 
     shift_DW = OpenStudio::Measure::OSArgument::makeBoolArgument("shift_DW", false)
-    shift_DW.setDisplayName("If dish washer operation should be shifted to avoid the peaks")
+    shift_DW.setDisplayName("Shift dishwasher")
     shift_DW.setDescription("The operation of dishwasher would be delayed or started earlier to avoid the peak hours")
     shift_DW.setDefaultValue(false)
     args << shift_DW
+
+    shift_PP = OpenStudio::Measure::OSArgument::makeBoolArgument("shift_PP", false)
+    shift_PP.setDisplayName("Shift pool pumps")
+    shift_PP.setDescription("The operation of pool pump would be shifted to take hours to avoid the peak hours")
+    shift_PP.setDefaultValue(false)
+    args << shift_PP
+
+    shift_EX = OpenStudio::Measure::OSArgument::makeBoolArgument("shift_EX", false)
+    shift_EX.setDisplayName("Shift electronics")
+    shift_EX.setDescription("A portion of the electronics will be turned off during peak hours, and some portion will be shifted to adjacent hours")
+    shift_EX.setDefaultValue(false)
+    args << shift_EX
+
+    electronics_turn_off_fraction = OpenStudio::Measure::OSArgument::makeDoubleArgument("electronics_turn_off_fraction", false)
+    electronics_turn_off_fraction.setDisplayName("Electronics turn off fraction")
+    electronics_turn_off_fraction.setDescription("The fraction of plugloads that should be turned off during peak period")
+    electronics_turn_off_fraction.setDefaultValue(0.04)
+    args << electronics_turn_off_fraction
+
+    electronics_shift_fraction = OpenStudio::Measure::OSArgument::makeDoubleArgument("electronics_shift_fraction", false)
+    electronics_shift_fraction.setDisplayName("Electronics shift fraction")
+    electronics_shift_fraction.setDescription("The fraction of plugloads that should be shifted from peak period to adjacent hour")
+    electronics_shift_fraction.setDefaultValue(0.11)
+    args << electronics_shift_fraction
+
     return args
   end
 
@@ -163,6 +188,11 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
     shift_CW = runner.getBoolArgumentValue("shift_CW", user_arguments)
     shift_CD = runner.getBoolArgumentValue("shift_CD", user_arguments)
     shift_DW = runner.getBoolArgumentValue("shift_DW", user_arguments)
+    shift_PP = runner.getBoolArgumentValue("shift_PP", user_arguments)
+    shift_EX = runner.getBoolArgumentValue("shift_EX", user_arguments)
+    electronics_turn_off_fraction = runner.getDoubleArgumentValue("electronics_turn_off_fraction", user_arguments)
+    electronics_shift_fraction = runner.getDoubleArgumentValue("electronics_shift_fraction", user_arguments)
+    
 
     appl_summer_peak = appl_summer_peak.split(",").map(&:to_f)
     appl_summer_take = appl_summer_take.split(",").map(&:to_f)
@@ -196,9 +226,9 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
       end
       return true
     end
-    def check_appl_dr_args(shift_CD, shift_CW, shift_DW, appl_summer_peak, appl_winter_peak, appl_summer_season, appl_winter_season, runner)
+    def check_appl_dr_args(shift_CD, shift_CW, shift_DW, shift_PP, shift_EX, appl_summer_peak, appl_winter_peak, appl_summer_season, appl_winter_season, runner)
       # Check for appliance DR
-      if not shift_CD and not shift_CW and not shift_DW
+      if not shift_CD and not shift_CW and not shift_DW and not shift_EX and not shift_PP
         runner.registerInfo("No appliance specified for demand response, appliance DR not applied")
         return false
       end
@@ -221,7 +251,7 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
     if not check_tsp_args(offset_heat, offset_cool, finished_zones, runner)
       tsp_dr = false
     end
-    if not check_appl_dr_args(shift_CD, shift_CW, shift_DW, appl_summer_peak, appl_winter_peak, appl_summer_season, appl_winter_season, runner)
+    if not check_appl_dr_args(shift_CD, shift_CW, shift_DW, shift_PP, shift_EX, appl_summer_peak, appl_winter_peak, appl_summer_season, appl_winter_season, runner)
       appl_dr = false
     end
     if not tsp_dr and not appl_dr
@@ -518,7 +548,10 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
 
     # Return if no appliance DR
     if not appl_dr
+      runner.registerInfo("No appliance demand response enabled")
       return true
+    else
+      runner.registerInfo("Applying Appliance DR")
     end
     
 
@@ -559,7 +592,12 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
     summer_months = get_month_list(appl_summer_season)
     winter_months = get_month_list(appl_winter_season)
 
-    def avoid_peaks(day_sch, peak_hours, model, take_hour = [], simple_shifting=false)
+    def avoid_peaks(day_sch, peak_hours, model, take_hour = [], simple_shifting=false, fractions = [0, 1] )
+      # simple_shifting = true will just take portion (energy) out of peak hours and dump it on top of take_hours
+      # simple_shifting = false will do cluster based shifting (eg. dishwasher, clothswasher)
+      # fraction = a, b. The load during peak_hours will be reduced to a*original value. The load during take_hours will be
+      # increased by adding b*(Integration of original value)_during_peak_hours.
+
       def create_new_day_schedule(times,values,model)
         new_day_sch = OpenStudio::Model::ScheduleDay.new(model)
         times.each_with_index do |time, index|
@@ -572,7 +610,16 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
       old_vals = day_sch.values
       peak_hours.each do |peak|
           if simple_shifting
-            new_times, new_vals = shift_peak_to_take(day_sch, peak, take_hour, OpenStudio::Time )
+            if take_hour.empty?
+              if peak[1] == 23
+                new_take_hour = [peak[0]-2, peak[0]]
+              else
+                new_take_hour = [peak[1], peak[1]+2]
+              end
+            else
+              new_take_hour = take_hour
+            end
+            new_times, new_vals = shift_peak_to_take(day_sch, peak, new_take_hour, OpenStudio::Time, fractions )
             day_sch = create_new_day_schedule(new_times, new_vals, model)
           else
             new_times, new_vals = dodge_peak(day_sch, peak, peak_hours, OpenStudio::Time)
@@ -594,13 +641,15 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
     end
     units = Geometry.get_building_units(model, runner)
     units.each_with_index do |unit, unit_index|
-      appliance_names = []
-      appliance_names << Constants.ObjectNameClothesWasher(unit.name.to_s)
-      appliance_names << Constants.ObjectNameClothesDryer("electric",unit.name.to_s)
-      appliance_names << Constants.ObjectNameDishwasher(unit.name.to_s)
-      appliance_names << Constants.ObjectNamePoolPump(unit.name.to_s)
+
       model.getElectricEquipments.each do |ee|
-        next if not appliance_names.include?(ee.name.to_s)
+        puts("Checking #{ee.name.to_s}")
+        next if not ((ee.name.to_s == Constants.ObjectNameClothesWasher(unit.name.to_s) and shift_CW) or \
+           (ee.name.to_s == Constants.ObjectNameClothesDryer("electric",unit.name.to_s) and shift_CD) or \
+           (ee.name.to_s == Constants.ObjectNameDishwasher(unit.name.to_s) and shift_DW) or \
+           (ee.name.to_s == Constants.ObjectNamePoolPump(unit.name.to_s) and shift_PP) or \
+           (ee.name.to_s.start_with?('res misc plug loads') and shift_EX))
+        puts("Applying DR to #{ee.name.to_s}")
         if not ee.schedule.empty?
           existing_schedule = ee.schedule.get
           new_schedule = OpenStudio::Model::ScheduleRuleset.new(model)
@@ -611,12 +660,21 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
             rules = ruleset.scheduleRules()
             rules.each_with_index do |rule, index|
               day_sch = rule.daySchedule
-              if ee.name.to_s == Constants.ObjectNamePoolPump(unit.name.to_s)
+              if ee.name.to_s == Constants.ObjectNamePoolPump(unit.name.to_s) or ee.name.to_s.start_with?('res misc plug loads')
+                #pool-pump or plug loads
                 start_date = rule.startDate.get
                 end_date = rule.endDate.get
                 if summer_months.include?(start_date.monthOfYear.value)
                   #use only the first take_hour if a list is provided. 
-                  summer_sch = avoid_peaks(day_sch, summer_peak_hours, model, summer_take_hours[0], true)
+                  if ee.name.to_s.start_with?('res misc plug loads')
+                    remaining_peak_fraction = 1-  (electronics_turn_off_fraction + electronics_shift_fraction)
+                    fractions = [remaining_peak_fraction, electronics_shift_fraction]
+                    take_hour = []
+                  else
+                    fractions = [0,1]
+                    take_hour = summer_take_hours[0]
+                  end
+                  summer_sch = avoid_peaks(day_sch, summer_peak_hours, model, take_hour, true, fractions)
                   summer_rule = OpenStudio::Model::ScheduleRule.new(new_schedule, summer_sch)
                   summer_rule.setName('summer_'+rule.name.get)
                   summer_rule.setStartDate(start_date)
@@ -624,7 +682,15 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
                   Schedule.set_weekday_rule(summer_rule)
                   Schedule.set_weekend_rule(summer_rule)
                 elsif winter_months.include?(start_date.monthOfYear.value)
-                  winter_sch = avoid_peaks(day_sch, winter_peak_hours, model, winter_take_hours[0], true)
+                  if ee.name.to_s.start_with?('res misc plug loads')
+                    remaining_peak_fraction = 1-  (electronics_turn_off_fraction + electronics_shift_fraction)
+                    fractions = [remaining_peak_fraction, electronics_shift_fraction]
+                    take_hour = []
+                  else
+                    fractions = [0,1]
+                    take_hour = winter_take_hours[0] # use only the first take_hour if a list is provided.
+                  end
+                  winter_sch = avoid_peaks(day_sch, winter_peak_hours, model, take_hour, true, fractions)
                   winter_rule = OpenStudio::Model::ScheduleRule.new(new_schedule, winter_sch)
                   winter_rule.setName('winter_'+rule.name.get)
                   winter_rule.setStartDate(start_date)
@@ -655,7 +721,7 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
               end
 
             end
-            if ee.name.to_s == Constants.ObjectNamePoolPump(unit.name.to_s)
+            if ee.name.to_s == Constants.ObjectNamePoolPump(unit.name.to_s) or ee.name.to_s.start_with?('res misc plug loads')
               #reset the schedule limit to 2 if it is a pool_pump
               old_level = ee.designLevel.get
               equip_def = ee.electricEquipmentDefinition

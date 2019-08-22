@@ -263,8 +263,7 @@ def dodge_peak(sch, peak_period, all_peaks, timeClass)
 end
 
 
-def shift_peak_to_take(sch, peak_period, take_period, timeClass)
-
+def shift_peak_to_take(sch, peak_period, take_period, timeClass, fraction=[0,1])
   times = sch.times
   vals = sch.values
 
@@ -292,48 +291,93 @@ def shift_peak_to_take(sch, peak_period, take_period, timeClass)
     return times, vals
   end 
 
-  # clear the schedule during peak_period
-  new_sch_times = []
-  new_sch_vals = []
-  entered_peak = false
-  times.each_with_index do |time, index|
-    cur_val = vals[index]
-    if (time.totalMinutes >= peak_period[0]*60) and (not entered_peak)
-      prev_index = index-1
-      new_sch_times = times[0, prev_index+1] #indexes upto prev index
-      new_sch_vals = vals[0, prev_index+1]
-      entered_peak = true #enter here only once
-      if cur_val > 0
-        new_sch_times << timeClass.new("#{peak_period[0]}:00:00")
+  if fraction[0] == 0
+    # clear the schedule during peak_period
+    new_sch_times = []
+    new_sch_vals = []
+    entered_peak = false
+    times.each_with_index do |time, index|
+      cur_val = vals[index]
+      if (time.totalMinutes >= peak_period[0]*60) and (not entered_peak)
+        prev_index = index-1
+        new_sch_times = times[0, prev_index+1] #indexes upto prev index
+        new_sch_vals = vals[0, prev_index+1]
+        entered_peak = true #enter here only once
+        if cur_val > 0
+          new_sch_times << timeClass.new("#{peak_period[0]}:00:00")
+          new_sch_vals << cur_val
+        end
+      end
+
+      if time.totalMinutes >= peak_period[1]*60
+
+        if time.totalMinutes == peak_period[1]*60
+          # if this entry is exactly at the ending boundary, just make it 0
+          new_sch_times << time
+          new_sch_vals << 0
+          new_sch_times += times[index+1..-1]
+          new_sch_vals += vals[index+1..-1]
+        else
+          if cur_val > 0
+            # add a point at the ending boundary with value 0 if it isn't already 0
+            new_sch_times << timeClass.new("#{peak_period[1]}:00:00")
+            new_sch_vals << 0
+          end
+          new_sch_times += times[index..-1]
+          new_sch_vals += vals[index..-1]
+        end
+        break
+      end
+    end
+  else
+    #reduce the energy during peak period to a certain fraction
+    new_sch_times = []
+    new_sch_vals = []
+    entered = false
+    times.each_with_index do |time, index|
+      cur_val = vals[index]
+      if time.totalMinutes >= peak_period[0]*60 and (time.totalMinutes < peak_period[1]*60 or not entered)
+        if not entered
+          entered = true
+          if time.totalMinutes == peak_period[0]*60
+            new_sch_times << time
+            new_sch_vals << cur_val
+          elsif time.totalMinutes > peak_period[0]*60
+            new_sch_times << timeClass.new("#{peak_period[0]}:00:00")
+            new_sch_vals << cur_val
+            if time.totalMinutes < peak_period[1]*60
+              new_sch_times << time
+              new_sch_vals << cur_val*fraction[0]
+            end
+          end
+        else
+          new_sch_times << time
+          new_sch_vals << cur_val*fraction[0]
+        end
+      end
+      if time.totalMinutes >= peak_period[1]*60
+        if time.totalMinutes == peak_period[1]*60
+          new_sch_times << time
+          new_sch_vals << cur_val*fraction[0]
+          new_sch_times += times[index+1..-1]
+          new_sch_vals += vals[index+1..-1]
+        else
+          new_sch_times << timeClass.new("#{peak_period[1]}:00:00")
+          new_sch_vals << cur_val*fraction[0]
+          new_sch_times += times[index..-1]
+          new_sch_vals += vals[index..-1]
+        end
+        break
+      end
+      if time.totalMinutes < peak_period[0]*60
+        new_sch_times << time
         new_sch_vals << cur_val
       end
     end
-
-    if time.totalMinutes >= peak_period[1]*60
-
-      if time.totalMinutes == peak_period[1]*60
-        # if this entry is exactly at the ending boundary, just make it 0
-        new_sch_times << time
-        new_sch_vals << 0
-        new_sch_times += times[index+1..-1]
-        new_sch_vals += vals[index+1..-1]
-
-      else
-        if cur_val > 0
-          # add a point at the ending boundary with value 0 if it isn't already 0
-          new_sch_times << timeClass.new("#{peak_period[1]}:00:00")
-          new_sch_vals << 0
-        end
-        new_sch_times += times[index..-1]
-        new_sch_vals += vals[index..-1]
-
-      end
-      break
-    end
   end
   
-  # put the energy back into take period
-  energy_addition = energy_sum.to_f / ((take_period[1] - take_period[0])*60)
+  # put (fraction of) the energy back into take period
+  energy_addition = fraction[1] * energy_sum.to_f / ((take_period[1] - take_period[0])*60)
   take_added_sch_time = []
   take_added_sch_vals = []
   entered = false
@@ -377,6 +421,5 @@ def shift_peak_to_take(sch, peak_period, take_period, timeClass)
       take_added_sch_vals << cur_val
     end
   end
-
   return take_added_sch_time, take_added_sch_vals
 end

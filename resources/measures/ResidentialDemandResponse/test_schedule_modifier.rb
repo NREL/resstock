@@ -349,7 +349,7 @@ end
 
 def test_shift_peak_to_take()
   #testing
-  times_values_peaks_take_answertimes_answervals = [
+  times_values_peaks_take_answertimes_answervals_fractions = [
     #test0
     [
       ['24:00:00'],
@@ -357,7 +357,8 @@ def test_shift_peak_to_take()
       [7,9],
       [1,5],
       ['24:00:00'],
-      [0.0]
+      [0.0],
+      [0, 1]
     ],
     #test1
     [
@@ -366,7 +367,8 @@ def test_shift_peak_to_take()
       [7,9],
       [1,5],
       ['00:00:00','03:00:00','24:00:00'],
-      [0.0,1.0,0.0]
+      [0.0,1.0,0.0],
+      [0, 1]
     ],
     #test2
     [
@@ -375,7 +377,8 @@ def test_shift_peak_to_take()
       [2,5],
       [6,8],
       ['00:00:00','02:00:00', '06:00:00','08:00:00','24:00:00'],
-      [ 0.0,       1.0,        0.0,       0.5,       0.0]
+      [ 0.0,       1.0,        0.0,       0.5,       0.0],
+      [0, 1]
     ],
      #test3
      [
@@ -384,7 +387,9 @@ def test_shift_peak_to_take()
       [15,19],
       [1,5],
       ["01:00:00", "03:00:00", "04:00:00", "05:00:00", "06:00:00", "07:00:00", "08:00:00", "09:00:00", "10:00:00", "11:00:00", "12:00:00", "13:00:00", "14:00:00", "15:00:00", "19:00:00", "20:00:00", "21:00:00", "24:00:00"],
-      [1,           2.5        ,3.5       ,2.5         ,2         ,1          ,2          ,1          ,2          ,1          ,2          ,1          ,2          ,1          ,0          ,2          ,1          ,2]
+      [1,           2.5        ,3.5       ,2.5         ,2         ,1          ,2          ,1          ,2          ,1          ,2          ,1          ,2          ,1          ,0          ,2          ,1          ,2],
+      [0, 1]
+
      ],
      #test4
      [
@@ -393,7 +398,8 @@ def test_shift_peak_to_take()
        [15,19],
        [1,5],
        ["01:00:00", "05:00:00", "14:00:00","15:00:00","19:00:00","23:00:00","24:00:00"],
-       [0         , 0.25      , 0         , 1        , 0        , 1        , 0]
+       [0         , 0.25      , 0         , 1        , 0        , 1        , 0],
+       [0, 1]
 
      ],
      #test5
@@ -403,14 +409,26 @@ def test_shift_peak_to_take()
       [15,19],
       [1,5],
       ["01:00:00", "05:00:00", "14:00:00","15:00:00","19:00:00","23:00:00","24:00:00"],
-      [0         , 0.5       , 0         , 1        , 0        , 1        , 0]
+      [0         , 0.5       , 0         , 1        , 0        , 1        , 0],
+      [0, 1]
+
+    ],
+    #test 6
+    [
+      ["14:00:00","15:00:00","16:00:00","19:00:00","23:00:00","24:00:00"],
+      [0         , 1        , 2        , 0        , 1        , 0],
+      [14,16],
+      [16,17],
+      ["14:00:00","15:00:00","16:00:00","17:00:00", "19:00:00","23:00:00","24:00:00"],
+      [0         , 0.1       , 0.2       ,1.5     , 0         , 1        , 0],
+      [0.1, 0.5]
 
     ]
 
   ]
   puts("testing test_shift_peak_to_take... ")
   pass_count  = 0
-  times_values_peaks_take_answertimes_answervals.each_with_index do |test_case, index|
+  times_values_peaks_take_answertimes_answervals_fractions.each_with_index do |test_case, index|
     times = test_case[0]
     times = times.map{|x| MyTime.new(x)}
     values = test_case[1]
@@ -418,10 +436,11 @@ def test_shift_peak_to_take()
     take = test_case[3]
     answer_times = test_case[4]
     answer_values = test_case[5]
+    fraction = test_case[6]
     puts("Testing with #{times}, #{values}")
     puts("With peak #{peak} and take #{take}")
     test_sch = Sch.new(times, values)
-    new_sch_times, new_sch_values = shift_peak_to_take(test_sch, peak, take, MyTime)
+    new_sch_times, new_sch_values = shift_peak_to_take(test_sch, peak, take, MyTime, fraction)
     new_sch = Sch.new(new_sch_times, new_sch_values)
     atimes = new_sch.times.map{|x| x.to_s}
     avalues = new_sch.values
@@ -434,10 +453,10 @@ def test_shift_peak_to_take()
       pass_count += 1
     end
   end
-  if times_values_peaks_take_answertimes_answervals.length == pass_count
-    puts("All #{times_values_peaks_take_answertimes_answervals.length} test passed.")
+  if times_values_peaks_take_answertimes_answervals_fractions.length == pass_count
+    puts("All #{times_values_peaks_take_answertimes_answervals_fractions.length} test passed.")
   else
-    puts("#{times_values_peaks_take_answertimes_answervals.length - pass_count} tests failed")
+    puts("#{times_values_peaks_take_answertimes_answervals_fractions.length - pass_count} tests failed")
   end
 end
 
