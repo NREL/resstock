@@ -548,7 +548,6 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
 
     # Return if no appliance DR
     if not appl_dr
-      runner.registerInfo("No appliance demand response enabled")
       return true
     end
    
