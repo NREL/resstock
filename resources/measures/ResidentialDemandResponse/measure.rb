@@ -550,13 +550,9 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
     if not appl_dr
       runner.registerInfo("No appliance demand response enabled")
       return true
-    else
-      runner.registerInfo("Applying Appliance DR")
     end
-    
-
+   
     # *** Put Appliance DR Code HERE *** #
-
     def get_month_list(x)
       month_list = []
       x.each_with_index do |val, index|
