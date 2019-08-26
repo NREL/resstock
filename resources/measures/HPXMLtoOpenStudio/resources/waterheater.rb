@@ -728,7 +728,7 @@ class Waterheater
     # EMS for the HPWH control logic
     if sp_type == Constants.WaterHeaterSetpointTypeScheduled
       t_set_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Schedule Value")
-      t_set_sensor.setName("#{obj_name_hpwh} T_set")
+      t_set_sensor.setName("#{obj_name_hpwh.gsub! " ", "_"}_T_set")
       t_set_sensor.setKeyName("#{obj_name_hpwh} HPSchedule")
     end
 
@@ -747,6 +747,7 @@ class Waterheater
     end
 
     if hpwh_param == 80
+      
       hpwh_ctrl_program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
       hpwh_ctrl_program.setName("#{obj_name_hpwh} Control")
       if ducting == Constants.VentTypeSupply or ducting == Constants.VentTypeBalanced
@@ -754,7 +755,7 @@ class Waterheater
       else
         hpwh_ctrl_program.addLine("If (#{amb_temp_sensor.name}<#{UnitConversions.convert(min_temp, "F", "C").round(2)}) || (#{amb_temp_sensor.name}>#{UnitConversions.convert(max_temp, "F", "C").round(2)})")
       end
-      hpwh_ctrl_program.addLine("Set #{leschedoverride_actuator.name} = #{obj_name_hpwh} T_set")
+      hpwh_ctrl_program.addLine("Set #{leschedoverride_actuator.name} = #{obj_name_hpwh.gsub! " ", "_"}_T_set")
       hpwh_ctrl_program.addLine("Else")
       hpwh_ctrl_program.addLine("Set #{leschedoverride_actuator.name} = 0")
       hpwh_ctrl_program.addLine("EndIf")
