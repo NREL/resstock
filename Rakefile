@@ -174,6 +174,14 @@ Rake::TestTask.new('integrity_check_testing') do |t|
   t.verbose = true
 end # rake task
 
+desc 'Perform integrity check on inputs for project_ECE'
+Rake::TestTask.new('integrity_check_project_ECE') do |t|
+  t.libs << 'test'
+  t.test_files = Dir['project_ECE/tests/*.rb']
+  t.warning = false
+  t.verbose = true
+end # rake task
+
 desc 'Perform unit tests on integrity checks'
 Rake::TestTask.new('integrity_check_unit_tests') do |t|
   t.libs << 'test'
