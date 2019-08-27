@@ -211,6 +211,19 @@ def get_combination_hashes(tsvfiles, dependencies)
   return combos_hashes
 end
 
+def get_value_from_workflow_step_value(step_value)
+  variant_type = step_value.variantType
+  if variant_type == "Boolean".to_VariantType
+    return step_value.valueAsBoolean
+  elsif variant_type == "Double".to_VariantType
+    return step_value.valueAsDouble
+  elsif variant_type == "Integer".to_VariantType
+    return step_value.valueAsInteger
+  elsif variant_type == "String".to_VariantType
+    return step_value.valueAsString
+  end
+end
+
 def get_value_from_runner_past_results(runner, key_lookup, measure_name, error_if_missing = true)
   require 'openstudio'
   key_lookup = OpenStudio::toUnderscoreCase(key_lookup)
@@ -226,7 +239,7 @@ def get_value_from_runner_past_results(runner, key_lookup, measure_name, error_i
     step_result.stepValues.each do |step_value|
       next if step_value.name != key_lookup
 
-      return step_value.valueAsString
+      return get_value_from_workflow_step_value(step_value)
     end
   end
   if error_if_missing
@@ -240,7 +253,7 @@ def get_value_from_runner(runner, key_lookup, error_if_missing = true)
   runner.result.stepValues.each do |step_value|
     next if step_value.name != key_lookup
 
-    return step_value.valueAsString
+    return get_value_from_workflow_step_value(step_value)
   end
   if error_if_missing
     register_error("Could not find value for '#{key_lookup}'.", runner)
