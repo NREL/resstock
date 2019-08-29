@@ -204,7 +204,7 @@ def run_measure(model, measure, argument_map, runner)
       return false
     end
   rescue => e
-    runner.registerError("Measure Failed with Error: #{e.backtrace.join("\n")}")
+    runner.registerError("Measure Failed with an error: #{e.inspect.to_s} at: #{e.backtrace.join("\n")}")
     return false
   end
   return true
