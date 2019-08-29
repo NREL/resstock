@@ -308,14 +308,12 @@ class Waterheater
     if sp_type == Constants.WaterHeaterSetpointTypeConstant
       tset_C = UnitConversions.convert(t_set, "F", "C").to_f.round(2)
       hp_setpoint = OpenStudio::Model::ScheduleConstant.new(model)
-      hp_setpoint.setName("#{obj_name_hpwh} WaterHeaterHPSchedule")
+      hp_setpoint.setName("#{obj_name_hpwh} HPSchedule")
       hp_setpoint.setValue(tset_C)
     elsif sp_type == Constants.WaterHeaterSetpointTypeScheduled
-      puts("IT IS SCHEDULED")
       # To handle variable setpoints, need one schedule that gets sensed and a new schedule that gets actuated
       # Sensed schedule
       hp_setpoint = HourlySchedule.new(model, runner, "#{obj_name_hpwh} HPSchedule", sp_schedule_file, 0, true, [])
-      puts(hp_setpoint.name)
       if not hp_setpoint.validated?
         return false
       end
@@ -728,16 +726,9 @@ class Waterheater
     leschedoverride_actuator.setName("#{obj_name_hpwh} LESchedOverride")
 
     # EMS for the HPWH control logic
-    if sp_type == Constants.WaterHeaterSetpointTypeScheduled
-      puts("====SCHEDULED ------ ")
-      t_set_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Schedule Value")
-      t_set_sensor.setName("#{obj_name_hpwh} T_set")
-      t_set_sensor.setKeyName("#{obj_name_hpwh} HPSchedule")
-    end
-
-    # t_set_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Schedule Value")
-    # t_set_sensor.setName("#{obj_name_hpwh} T_set")
-    # t_set_sensor.setKeyName("#{obj_name_hpwh} WaterHeaterHPSchedule")
+    t_set_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Schedule Value")
+    t_set_sensor.setName("#{obj_name_hpwh} T_set")
+    t_set_sensor.setKeyName("#{obj_name_hpwh} HPSchedule")
 
     # Check if operating mode is constant or scheduled
     if op_mode_type == Constants.WaterHeaterOperatingModeTypeScheduled
@@ -762,8 +753,8 @@ class Waterheater
       else
         hpwh_ctrl_program.addLine("If (#{amb_temp_sensor.name}<#{UnitConversions.convert(min_temp, "F", "C").round(2)}) || (#{amb_temp_sensor.name}>#{UnitConversions.convert(max_temp, "F", "C").round(2)})")
       end
-      # hpwh_ctrl_program.addLine("Set #{leschedoverride_actuator.name} = #{obj_name_hpwh.gsub! " ", "_"}_T_set")
-      hpwh_ctrl_program.addLine("Set #{leschedoverride_actuator.name} = #{obj_name_hpwh} T_set")
+
+      hpwh_ctrl_program.addLine("Set #{leschedoverride_actuator.name} = #{t_set_sensor.name}")
       hpwh_ctrl_program.addLine("Else")
       hpwh_ctrl_program.addLine("Set #{leschedoverride_actuator.name} = 0")
       hpwh_ctrl_program.addLine("EndIf")
