@@ -317,15 +317,14 @@ def register_value(runner, parameter_name, option_name)
   runner.registerValue(parameter_name, option_name)
 end
 
-# Accepts string option_apply_logic and tries to evaluate it based on 
+# Accepts string option_apply_logic and tries to evaluate it based on
 # (parameter_name, option_name) pairs stored in runner.
 #
-# Returns a Boolean if evaluating and applying the logic is successful; nil 
-# otherwise. Returning true means that the building as defined in runner belongs 
-# to the downselect set (should be run); returning false means that this 
+# Returns a Boolean if evaluating and applying the logic is successful; nil
+# otherwise. Returning true means that the building as defined in runner belongs
+# to the downselect set (should be run); returning false means that this
 # building has been filtered out.
 def evaluate_logic(option_apply_logic, runner, past_results = true)
-  
   # Convert to appropriate ruby statement for evaluation
   if option_apply_logic.count("(") != option_apply_logic.count(")")
     runner.registerError("Inconsistent number of open and close parentheses in logic.")
