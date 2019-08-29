@@ -372,7 +372,7 @@ class Waterheater
     # WaterHeater:HeatPump:WrappedCondenser
     hpwh = OpenStudio::Model::WaterHeaterHeatPumpWrappedCondenser.new(model)
     hpwh.setName("#{obj_name_hpwh} hpwh")
-    if sp_type == Constants.WaterHeaterSetpointTypeConstant
+    if sp_type == Constants.WaterHeaterSetpointTypeConstant or hpwh_param == 80
       hpwh.setCompressorSetpointTemperatureSchedule(hp_setpoint)
     elsif sp_type == Constants.WaterHeaterSetpointTypeScheduled
       hpwh.setCompressorSetpointTemperatureSchedule(hp_control_sched)
@@ -1491,7 +1491,16 @@ class Waterheater
         runner.registerError("Heat pump water heater found without a setpoint temperature schedule.")
         return nil
       end
-      return UnitConversions.convert(waterHeater.compressorSetpointTemperatureSchedule.to_ScheduleConstant.get.value, "C", "F")
+
+      begin
+        sp = UnitConversions.convert(waterHeater.compressorSetpointTemperatureSchedule.to_ScheduleConstant.get.value, "C", "F")
+      rescue
+        runner.registerWarning("Variable WH setpoint schedule exists, returning 125F for constant setpoint calculations")
+        sp = 125
+      end
+
+      return sp
+      # return UnitConversions.convert(waterHeater.compressorSetpointTemperatureSchedule.to_ScheduleConstant.get.value, "C", "F")
     elsif waterHeater.is_a? OpenStudio::Model::WaterHeaterStratified
       if waterHeater.heater1SetpointTemperatureSchedule.nil? or waterHeater.heater2SetpointTemperatureSchedule.nil?
         runner.registerError("Stratified water heater found without both setpoint temperature schedule.")
