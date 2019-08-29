@@ -14,7 +14,7 @@ else
 end
 require File.join(resources_path, "weather")
 
-# in addition to the above requires, this measure is expected to run in an 
+# in addition to the above requires, this measure is expected to run in an
 # environment with OpenStudio-Buildstock/resources/buildstock.rb loaded
 
 # start the measure
@@ -121,7 +121,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       register_value(runner, parameter_name, option_name)
     end
 
-    # Determine whether this building_id has been downselected based on the 
+    # Determine whether this building_id has been downselected based on the
     # {parameter_name: option_name} pairs
     if downselect_logic.is_initialized
 
@@ -142,7 +142,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       end
 
     end
-    
+
     # Obtain measures and arguments to be called
     measures = {}
     parameters_ordered.each do |parameter_name|
