@@ -637,6 +637,8 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       option_cost_pairs[option_num].each do |cost_value, cost_mult_type|
         cost_mult = get_cost_multiplier(cost_mult_type, model, runner)
         total_cost = cost_value * cost_mult
+        next if total_cost == 0
+
         option_cost += total_cost
         runner.registerInfo("Upgrade cost addition: $#{cost_value} x #{cost_mult} [#{cost_mult_type}] = #{total_cost}.")
       end
