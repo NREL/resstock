@@ -65,7 +65,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
 
     measures_to_ignore = OpenStudio::Ruleset::OSArgument.makeStringArgument("measures_to_ignore", false)
     measures_to_ignore.setDisplayName("Measures to Ignore")
-    measures_to_ignore.setDescription("List of measures to exclude from the OpenStudio Workflow. Specify one or more measure directories separated by '|'.")
+    measures_to_ignore.setDescription("Measures to exclude from the OpenStudio Workflow specified by listing one or more measure directories separated by '|'. Core ResStock measures cannot be ignored (this measure will fail). INTENDED FOR ADVANCED USERS/WORKFLOW DEVELOPERS.")
     args << measures_to_ignore
 
     return args
@@ -169,7 +169,16 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     # Remove any measures_to_ignore from the list of measures to run
     if measures_to_ignore.is_initialized
       measures_to_ignore = measures_to_ignore.get
+      # core ResStock measures are those specified in the default workflow json
+      # those should not be ignored ...
+      core_measures = get_measures(File.join(resources_dir, 'measure-info.json'))
       measures_to_ignore.split("|").each do |measure_dir|
+        if core_measures.include? measure_dir
+          # fail if core ResStock measure is ignored
+          msg = "Core ResStock measure #{measure_dir} cannot be ignored"
+          runner.registerError(msg)
+          fail msg
+        end
         runner.registerInfo("Ignoring/not running measure #{measure_dir}")
         measures.delete(measure_dir)
       end
