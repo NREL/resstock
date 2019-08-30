@@ -2,7 +2,7 @@
 
 def get_measures(workflow_json, include_only = nil)
   result = []
-  JSON.parse(File.read(measure_info_json), :symbolize_names => true).each do |group|
+  JSON.parse(File.read(workflow_json), :symbolize_names => true).each do |group|
     group[:group_steps].each do |step|
       step[:measures].each do |measure_dir|
         if (not include_only.nil?) and (not include_only.include? measure_dir)
