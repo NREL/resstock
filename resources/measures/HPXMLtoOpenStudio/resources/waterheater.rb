@@ -308,7 +308,7 @@ class Waterheater
     if sp_type == Constants.WaterHeaterSetpointTypeConstant
       tset_C = UnitConversions.convert(t_set, "F", "C").to_f.round(2)
       hp_setpoint = OpenStudio::Model::ScheduleConstant.new(model)
-      hp_setpoint.setName("#{obj_name_hpwh} WaterHeaterHPSchedule")
+      hp_setpoint.setName("#{obj_name_hpwh} HPSchedule")
       hp_setpoint.setValue(tset_C)
     elsif sp_type == Constants.WaterHeaterSetpointTypeScheduled
       # To handle variable setpoints, need one schedule that gets sensed and a new schedule that gets actuated
@@ -372,7 +372,7 @@ class Waterheater
     # WaterHeater:HeatPump:WrappedCondenser
     hpwh = OpenStudio::Model::WaterHeaterHeatPumpWrappedCondenser.new(model)
     hpwh.setName("#{obj_name_hpwh} hpwh")
-    if sp_type == Constants.WaterHeaterSetpointTypeConstant
+    if sp_type == Constants.WaterHeaterSetpointTypeConstant or hpwh_param == 80
       hpwh.setCompressorSetpointTemperatureSchedule(hp_setpoint)
     elsif sp_type == Constants.WaterHeaterSetpointTypeScheduled
       hpwh.setCompressorSetpointTemperatureSchedule(hp_control_sched)
@@ -726,11 +726,9 @@ class Waterheater
     leschedoverride_actuator.setName("#{obj_name_hpwh} LESchedOverride")
 
     # EMS for the HPWH control logic
-    if sp_type == Constants.WaterHeaterSetpointTypeScheduled
-      t_set_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Schedule Value")
-      t_set_sensor.setName("#{obj_name_hpwh} T_set")
-      t_set_sensor.setKeyName("#{obj_name_hpwh} HPSchedule")
-    end
+    t_set_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Schedule Value")
+    t_set_sensor.setName("#{obj_name_hpwh} T_set")
+    t_set_sensor.setKeyName("#{obj_name_hpwh} HPSchedule")
 
     # Check if operating mode is constant or scheduled
     if op_mode_type == Constants.WaterHeaterOperatingModeTypeScheduled
@@ -747,6 +745,7 @@ class Waterheater
     end
 
     if hpwh_param == 80
+  
       hpwh_ctrl_program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
       hpwh_ctrl_program.setName("#{obj_name_hpwh} Control")
       if ducting == Constants.VentTypeSupply or ducting == Constants.VentTypeBalanced
@@ -754,7 +753,8 @@ class Waterheater
       else
         hpwh_ctrl_program.addLine("If (#{amb_temp_sensor.name}<#{UnitConversions.convert(min_temp, "F", "C").round(2)}) || (#{amb_temp_sensor.name}>#{UnitConversions.convert(max_temp, "F", "C").round(2)})")
       end
-      hpwh_ctrl_program.addLine("Set #{leschedoverride_actuator.name} = #{obj_name_hpwh} T_set")
+
+      hpwh_ctrl_program.addLine("Set #{leschedoverride_actuator.name} = #{t_set_sensor.name}")
       hpwh_ctrl_program.addLine("Else")
       hpwh_ctrl_program.addLine("Set #{leschedoverride_actuator.name} = 0")
       hpwh_ctrl_program.addLine("EndIf")
@@ -1491,7 +1491,16 @@ class Waterheater
         runner.registerError("Heat pump water heater found without a setpoint temperature schedule.")
         return nil
       end
-      return UnitConversions.convert(waterHeater.compressorSetpointTemperatureSchedule.to_ScheduleConstant.get.value, "C", "F")
+
+      begin
+        sp = UnitConversions.convert(waterHeater.compressorSetpointTemperatureSchedule.to_ScheduleConstant.get.value, "C", "F")
+      rescue
+        runner.registerWarning("Variable WH setpoint schedule exists, returning 125F for constant setpoint calculations")
+        sp = 125
+      end
+
+      return sp
+      # return UnitConversions.convert(waterHeater.compressorSetpointTemperatureSchedule.to_ScheduleConstant.get.value, "C", "F")
     elsif waterHeater.is_a? OpenStudio::Model::WaterHeaterStratified
       if waterHeater.heater1SetpointTemperatureSchedule.nil? or waterHeater.heater2SetpointTemperatureSchedule.nil?
         runner.registerError("Stratified water heater found without both setpoint temperature schedule.")
