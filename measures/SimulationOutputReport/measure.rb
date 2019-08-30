@@ -586,7 +586,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     cost_mult_types.each do |cost_mult_type, cost_mult_type_str|
       cost_mult = get_cost_multiplier(cost_mult_type, model, runner)
       cost_mult = cost_mult.round(2)
-      report_sim_output(runner, cost_mult_type_str, cost_mult, "", "")
+      register_value(runner, cost_mult_type_str, cost_mult)
     end
 
     # UPGRADE NAME
@@ -636,10 +636,6 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       option_cost = 0.0
       option_cost_pairs[option_num].each do |cost_value, cost_mult_type|
         cost_mult = get_cost_multiplier(cost_mult_type, model, runner)
-        unless cost_mult == 0
-          return false
-        end
-
         total_cost = cost_value * cost_mult
         option_cost += total_cost
         runner.registerInfo("Upgrade cost addition: $#{cost_value} x #{cost_mult} [#{cost_mult_type}] = #{total_cost}.")
