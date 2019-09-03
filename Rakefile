@@ -497,7 +497,7 @@ def generate_example_osws(data_hash, include_measures, exclude_measures,
   # with all the measures in it, in the order specified in /resources/measure-info.json
 
   require 'openstudio'
-  require_relative 'resources/measures/HPXMLtoOpenStudio/resources/meta_measure'
+  require_relative 'resources/meta_measure'
 
   puts "Updating #{osw_filename}..."
 
