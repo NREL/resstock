@@ -1495,7 +1495,7 @@ class Waterheater
       begin
         sp = UnitConversions.convert(waterHeater.compressorSetpointTemperatureSchedule.to_ScheduleConstant.get.value, "C", "F")
       rescue
-        runner.registerWarning("Variable WH setpoint schedule exists, returning 125F for constant setpoint calculations")
+        # runner.registerWarning("Variable WH setpoint schedule exists, returning 125F for constant setpoint calculations")
         sp = 125
       end
 
