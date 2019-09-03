@@ -254,9 +254,8 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
           next
         end
 
-        # Register this option so that it replaces the existing building option in the results csv file
+        # Print this option assignment
         print_option_assignment(parameter_name, option_name, runner)
-        register_value(runner, parameter_name, option_name)
 
         # Register cost values/multipliers/lifetime for applied options; used by the SimulationOutputReport measure
         for cost_num in 1..num_costs_per_option
@@ -265,14 +264,14 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
             cost_value = 0.0
           end
           cost_mult = runner.getStringArgumentValue("option_#{option_num}_cost_#{cost_num}_multiplier", user_arguments)
-          register_value(runner, "option_#{option_num}_cost_#{cost_num}_value_to_apply", cost_value.to_s)
-          register_value(runner, "option_#{option_num}_cost_#{cost_num}_multiplier_to_apply", cost_mult)
+          register_value(runner, "option_%02d_cost_#{cost_num}_value_to_apply" % option_num, cost_value.to_s)
+          register_value(runner, "option_%02d_cost_#{cost_num}_multiplier_to_apply" % option_num, cost_mult)
         end
         lifetime = runner.getOptionalDoubleArgumentValue("option_#{option_num}_lifetime", user_arguments)
         if lifetime.nil?
           lifetime = 0.0
         end
-        register_value(runner, "option_#{option_num}_lifetime_to_apply", lifetime.to_s)
+        register_value(runner, "option_%02d_lifetime_to_apply" % option_num, lifetime.to_s)
 
         # Check file/dir paths exist
         check_file_exists(lookup_file, runner)

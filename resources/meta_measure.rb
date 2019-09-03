@@ -8,6 +8,7 @@ def get_measures(workflow_json, include_only = nil)
         if (not include_only.nil?) and (not include_only.include? measure_dir)
           next
         end
+
         result << measure_dir
       end
     end
@@ -26,7 +27,7 @@ def apply_measures(measures_dir, measures, runner, model, workflow_json = nil, o
   else
     # Run measures in the order dictated by the json instead
     workflow_order = get_measures(workflow_json, include_only = measures.keys)
-    
+
     # Tack additional measure not found in workflow_json on the end
     measures.keys.each do |measure_subdir|
       next if workflow_order.include? measure_subdir
