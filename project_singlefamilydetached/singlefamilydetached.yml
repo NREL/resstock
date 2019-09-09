@@ -7,24 +7,24 @@ baseline:
   n_datapoints: 350000
   n_buildings_represented: 80000000
 residential_simulation_controls:
-  timesteps_per_hr: 4
+  timesteps_per_hr: 6
   begin_month: 1
   begin_day_of_month: 1
   end_month: 12
   end_day_of_month: 31
   calendar_year: 2007
 timeseries_csv_export:
-  reporting_frequency: Timestep
+  reporting_frequency: Hourly
   include_enduse_subcategories: true
 eagle:
   n_jobs: 3
   minutes_per_sim: 10
   account: enduse
   postprocessing:
-    time: 180
-    n_workers: 3
-  sampling:
     time: 20
+    n_workers: 1
+  sampling:
+    time: 5
 postprocessing:
   aws:
     region_name: 'us-west-2'
