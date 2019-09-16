@@ -103,8 +103,8 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     ]
     buildstock_outputs += cost_mult_types.values
     for option_num in 1..num_options
-      buildstock_outputs << "upgrade_option_%02d_cost_usd" % option_num
-      buildstock_outputs << "upgrade_option_%02d_lifetime_yrs" % option_num
+      buildstock_outputs << "option_%02d_cost_usd" % option_num
+      buildstock_outputs << "option_%02d_lifetime_yrs" % option_num
     end
     buildstock_outputs.each do |output|
       result << OpenStudio::Measure::OSOutput.makeDoubleOutput(output)
@@ -578,7 +578,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
     weight = get_value_from_runner_past_results(runner, "weight", "build_existing_model", false)
     if not weight.nil?
-      runner.registerValue("weight", weight.to_f)
+      register_value(runner, "weight", weight.to_f)
       runner.registerInfo("Registering #{weight} for weight.")
     end
 
@@ -586,15 +586,15 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     cost_mult_types.each do |cost_mult_type, cost_mult_type_str|
       cost_mult = get_cost_multiplier(cost_mult_type, model, runner)
       cost_mult = cost_mult.round(2)
-      runner.registerValue(cost_mult_type_str, cost_mult)
+      register_value(runner, cost_mult_type_str, cost_mult)
     end
 
     # UPGRADE NAME
     upgrade_name = get_value_from_runner_past_results(runner, "upgrade_name", "apply_upgrade", false)
     if upgrade_name.nil?
-      upgrade_name = ""
+      upgrade_name = "(blank)"
     end
-    runner.registerValue("upgrade_name", upgrade_name)
+    register_value(runner, "upgrade_name", upgrade_name)
     runner.registerInfo("Registering #{upgrade_name} for upgrade_name.")
 
     # UPGRADE COSTS
@@ -609,23 +609,23 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       option_cost_pairs[option_num] = []
       option_lifetimes[option_num] = nil
       for cost_num in 1..num_costs_per_option # Sync with ApplyUpgrade measure
-        cost_value = get_value_from_runner_past_results(runner, "option_#{option_num}_cost_#{cost_num}_value_to_apply", "apply_upgrade", false)
+        cost_value = get_value_from_runner_past_results(runner, "option_%02d_cost_#{cost_num}_value_to_apply" % option_num, "apply_upgrade", false)
         next if cost_value.nil?
 
-        cost_mult_type = get_value_from_runner_past_results(runner, "option_#{option_num}_cost_#{cost_num}_multiplier_to_apply", "apply_upgrade", false)
+        cost_mult_type = get_value_from_runner_past_results(runner, "option_%02d_cost_#{cost_num}_multiplier_to_apply" % option_num, "apply_upgrade", false)
         next if cost_mult_type.nil?
 
         has_costs = true
         option_cost_pairs[option_num] << [cost_value.to_f, cost_mult_type]
       end
-      lifetime = get_value_from_runner_past_results(runner, "option_#{option_num}_lifetime_to_apply", "apply_upgrade", false)
+      lifetime = get_value_from_runner_past_results(runner, "option_%02d_lifetime_to_apply" % option_num, "apply_upgrade", false)
       next if lifetime.nil?
 
       option_lifetimes[option_num] = lifetime.to_f
     end
 
     if not has_costs
-      runner.registerValue(upgrade_cost_name, "")
+      register_value(runner, upgrade_cost_name, "")
       runner.registerInfo("Registering (blank) for #{upgrade_cost_name}.")
       return true
     end
@@ -636,11 +636,9 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       option_cost = 0.0
       option_cost_pairs[option_num].each do |cost_value, cost_mult_type|
         cost_mult = get_cost_multiplier(cost_mult_type, model, runner)
-        if cost_mult.nil?
-          return false
-        end
-
         total_cost = cost_value * cost_mult
+        next if total_cost == 0
+
         option_cost += total_cost
         runner.registerInfo("Upgrade cost addition: $#{cost_value} x #{cost_mult} [#{cost_mult_type}] = #{total_cost}.")
       end
@@ -649,19 +647,19 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       # Save option cost/lifetime to results.csv
       if option_cost != 0
         option_cost = option_cost.round(2)
-        option_cost_name = "upgrade_option_%02d_cost_usd" % option_num
-        runner.registerValue(option_cost_name, option_cost)
+        option_cost_name = "option_%02d_cost_usd" % option_num
+        register_value(runner, option_cost_name, option_cost)
         runner.registerInfo("Registering #{option_cost} for #{option_cost_name}.")
         if not option_lifetimes[option_num].nil? and option_lifetimes[option_num] != 0
           lifetime = option_lifetimes[option_num].round(2)
-          option_lifetime_name = "upgrade_option_%02d_lifetime_yrs" % option_num
-          runner.registerValue(option_lifetime_name, lifetime)
+          option_lifetime_name = "option_%02d_lifetime_yrs" % option_num
+          register_value(runner, option_lifetime_name, lifetime)
           runner.registerInfo("Registering #{lifetime} for #{option_lifetime_name}.")
         end
       end
     end
     upgrade_cost = upgrade_cost.round(2)
-    runner.registerValue(upgrade_cost_name, upgrade_cost)
+    register_value(runner, upgrade_cost_name, upgrade_cost)
     runner.registerInfo("Registering #{upgrade_cost} for #{upgrade_cost_name}.")
 
     runner.registerFinalCondition("Report generated successfully.")
@@ -812,15 +810,12 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
               next if not plc.to_BoilerHotWater.is_initialized
 
               component = plc.to_BoilerHotWater.get
-              puts component.name
               next if components.include? component
 
-              puts "HERE0"
               components << component
               next if not component.nominalCapacity.is_initialized
               next if component.nominalCapacity.get <= max_value
 
-              puts "HERE1"
               max_value = component.nominalCapacity.get
               cost_mult += UnitConversions.convert(max_value, "W", "kBtu/hr")
             end
