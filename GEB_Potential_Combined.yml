@@ -1102,6 +1102,7 @@ upgrades:
 ##up7 - package 1g - Best ASHP, smart thermostat (*only for homes with ASHP upgrade), and envelope (1st)
   - upgrade_name: Package 1g EE ASHP with smart thermostat and best envelope
     package_apply_logic:
+      or:
             - HVAC System Heat Pump|ASHP, SEER 10, 6.2 HSPF
             - HVAC System Heat Pump|ASHP, SEER 10.3, 7.0 HSPF
             - HVAC System Heat Pump|ASHP, SEER 11.5, 7.5 HSPF
@@ -1556,6 +1557,7 @@ upgrades:
   - upgrade_name: Package 1h EE smart thermostat & envelope when not upgrading CAC or ASHP
     package_apply_logic:
       not:
+        - or:
             - HVAC System Heat Pump|ASHP, SEER 10, 6.2 HSPF
             - HVAC System Heat Pump|ASHP, SEER 10.3, 7.0 HSPF
             - HVAC System Heat Pump|ASHP, SEER 11.5, 7.5 HSPF
@@ -1567,6 +1569,7 @@ upgrades:
             - HVAC System Heat Pump|ASHP, SEER 16, 9.0 HSPF
             - HVAC System Heat Pump|ASHP, SEER 17, 8.7 HSPF
             - HVAC System Heat Pump|ASHP, SEER 18, 9.3 HSPF
+        - or:
             - HVAC System Cooling|AC, SEER 8
             - HVAC System Cooling|AC, SEER 10
             - HVAC System Cooling|AC, SEER 13
@@ -3196,6 +3199,7 @@ upgrades:
   - upgrade_name: Package 3c Pre-heating/cooling, smart thermostat, and envelope for no HVAC upgrades
     package_apply_logic:
       not:
+        - or:
             - HVAC System Heat Pump|ASHP, SEER 10, 6.2 HSPF
             - HVAC System Heat Pump|ASHP, SEER 10.3, 7.0 HSPF
             - HVAC System Heat Pump|ASHP, SEER 11.5, 7.5 HSPF
@@ -3207,6 +3211,7 @@ upgrades:
             - HVAC System Heat Pump|ASHP, SEER 16, 9.0 HSPF
             - HVAC System Heat Pump|ASHP, SEER 17, 8.7 HSPF
             - HVAC System Heat Pump|ASHP, SEER 18, 9.3 HSPF
+        - or:
             - HVAC System Cooling|AC, SEER 8
             - HVAC System Cooling|AC, SEER 10
             - HVAC System Cooling|AC, SEER 13
