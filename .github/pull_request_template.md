@@ -1,4 +1,4 @@
-Addresses #
+Addresses #[issue number here].
 
 ## Pull Request Description
 
@@ -19,3 +19,5 @@ Not all may apply:
 - [ ] No unexpected circleci regression test changes
 - [ ] All tests are passing (green) on circleci
 - [ ] This branch is up-to-date with master
+
+For more information on how to perform these checklist items, see the documentation's [Advanced Tutorial](https://resstock.readthedocs.io/en/latest/advanced_tutorial/index.html).
