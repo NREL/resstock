@@ -319,7 +319,7 @@ def integrity_check_options_lookup_tsv(project_dir_name, housing_characteristics
   parameter_names = get_parameters_ordered_from_options_lookup_tsv(lookup_file)
   parameter_names.each do |parameter_name|
     check_for_illegal_chars(parameter_name, 'parameter')
-    
+
     tsvpath = File.join(project_dir_name, housing_characteristics_dir, "#{parameter_name}.tsv")
     next if not File.exist?(tsvpath) # Not every parameter used by every project
 
@@ -405,7 +405,7 @@ def check_for_illegal_chars(name, name_type)
   # reserved for use in the apply upgrade logic.
   ['(', ')', '|', '&'].each do |char|
     next unless name.include? char
-    
+
     raise "ERROR: Illegal character ('#{char}') found in #{name_type} name '#{name}'."
   end
 end
@@ -497,7 +497,7 @@ def generate_example_osws(data_hash, include_measures, exclude_measures,
   # with all the measures in it, in the order specified in /resources/measure-info.json
 
   require 'openstudio'
-  require_relative 'resources/measures/HPXMLtoOpenStudio/resources/meta_measure'
+  require_relative 'resources/meta_measure'
 
   puts "Updating #{osw_filename}..."
 
