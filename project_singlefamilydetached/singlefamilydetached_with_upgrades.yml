@@ -175,28 +175,24 @@ upgrades:
           - value: 1.9
             multiplier: Floor Area, Attic (ft^2)
         lifetime: 999
-    options:
       - option: Insulation Unfinished Attic|Ceiling R-49, Vented
         apply_logic: Insulation Unfinished Attic|Ceiling R-13, Vented
         costs:
           - value: 1.6
             multiplier: Floor Area, Attic (ft^2)
         lifetime: 999
-    options:
       - option: Insulation Unfinished Attic|Ceiling R-49, Vented
         apply_logic: Insulation Unfinished Attic|Ceiling R-19, Vented
         costs:
           - value: 1.4
             multiplier: Floor Area, Attic (ft^2)
         lifetime: 999
-    options:
       - option: Insulation Unfinished Attic|Ceiling R-49, Vented
         apply_logic: Insulation Unfinished Attic|Ceiling R-30, Vented
         costs:
           - value: 0.87
             multiplier: Floor Area, Attic (ft^2)
         lifetime: 999
-    options:
       - option: Insulation Unfinished Attic|Ceiling R-49, Vented
         apply_logic: Insulation Unfinished Attic|Ceiling R-38, Vented
         costs:
@@ -252,9 +248,7 @@ upgrades:
   - upgrade_name: Drill-and-fill insulation for wood walls
     options: 
       - option: Insulation Wall|Wood Stud, R-13
-        apply_logic: 
-          or:
-            - Insulation Wall|Wood Stud, Uninsulated
+        apply_logic: Insulation Wall|Wood Stud, Uninsulated
         costs: 
           - value: 2.4
             multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
@@ -765,8 +759,9 @@ upgrades:
         lifetime: 24
       - option: HVAC System Heating Fuel Oil|Oil Boiler, 80% AFUE
         apply_logic:
-          - HVAC System Heating Fuel Oil|Oil Boiler, 72% AFUE
-          - HVAC System Heating Fuel Oil|Oil Boiler, 76% AFUE
+          or:
+            - HVAC System Heating Fuel Oil|Oil Boiler, 72% AFUE
+            - HVAC System Heating Fuel Oil|Oil Boiler, 76% AFUE
         costs:
           - value: 16
             multiplier: Size, Heating System (kBtu/h)
