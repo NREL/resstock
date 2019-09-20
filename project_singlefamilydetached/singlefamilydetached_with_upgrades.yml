@@ -3,12 +3,12 @@
 stock_type: residential
 buildstock_directory: ../../OpenStudio-BuildStock  # Relative to this file or absolute
 project_directory: project_singlefamilydetached
-output_directory: /scratch/epresent/outputs/project_singlefamilydetached #location on eagle where outputs should go - must not currently exist
+output_directory: /scratch/<username>/outputs/project_singlefamilydetached #location on eagle where outputs should go - must not currently exist
 weather_files_path: /shared-projects/buildstock/weather/project_resstock_national_weather.zip
 baseline:
   n_datapoints: 30 #number of units to sample - a full run of singlefamilydetached is typically 350,000 as of August 2019
   n_buildings_represented: 81221016 #current default value
-residential_simulation_controls:
+residential_simulation_controls: # This block is optional
   timesteps_per_hr: 6
   begin_month: 1
   begin_day_of_month: 1
@@ -1143,7 +1143,7 @@ timeseries_csv_export:
   reporting_frequency: Hourly
   include_enduse_subcategories: true
 eagle:
-  account: enduse
+  account: <account you are authorized to use>
   n_jobs: 20 #change this depending on number of buildings. 200 is appropriate for a large run. Illogical to have more jobs than buildings.
   minutes_per_sim: 5 #lower (e.g. 2) if not using mixed tank water heater model
   postprocessing:
