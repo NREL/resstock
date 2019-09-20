@@ -850,27 +850,27 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Measure::Model
           wall_s.setOutsideBoundaryCondition("Outdoors")
 
           garage_attic_space = OpenStudio::Model::Space.new(model)
+          garage_attic_space_name = "garage attic space"
+          garage_attic_space.setName(garage_attic_space_name)
           deck_w.setSpace(garage_attic_space)
           deck_e.setSpace(garage_attic_space)
           wall_n.setSpace(garage_attic_space)
           wall_s.setSpace(garage_attic_space)
 
           if attic_type == "finished attic"
-
-            garage_attic_space_name = "garage finished attic space"
-            garage_attic_space.setThermalZone(living_zone)
             garage_attic_space_type_name = Constants.SpaceTypeLiving
-
+            garage_attic_space.setThermalZone(living_zone)
           else
-
-            garage_attic_space_name = "garage attic space"
-            garage_attic_space.setThermalZone(attic_zone)
-            garage_attic_space_type_name = Constants.SpaceTypeUnfinishedAttic
-
+            if num_floors > 1
+              garage_attic_space_type_name = Constants.SpaceTypeUnfinishedAttic
+              garage_attic_space.setThermalZone(attic_zone)
+            else
+              garage_attic_space_type_name = Constants.SpaceTypeGarageAttic
+              garage_attic_space.setThermalZone(garage_zone)
+            end
           end
 
-          surface.createAdjacentSurface(garage_attic_space)
-          garage_attic_space.setName(garage_attic_space_name)
+          surface.createAdjacentSurface(garage_attic_space) # garage attic floor
           if space_types_hash.keys.include? garage_attic_space_type_name
             garage_attic_space_type = space_types_hash[garage_attic_space_type_name]
           else
@@ -881,32 +881,47 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Measure::Model
           garage_attic_space.setSpaceType(garage_attic_space_type)
           runner.registerInfo("Set #{garage_attic_space_name}.")
 
+          # put all of the spaces in the model into a vector
+          spaces = OpenStudio::Model::SpaceVector.new
+          model.getSpaces.each do |space|
+            spaces << space
+          end
+
+          # intersect and match surfaces for each space in the vector
+          OpenStudio::Model.intersectSurfaces(spaces)
+          OpenStudio::Model.matchSurfaces(spaces)
+
+          # remove triangular surface between unfinished attic and garage attic
+          unless attic_space.nil?
+            attic_space.surfaces.each do |surface|
+              next if roof_type == Constants.RoofTypeHip
+              next unless surface.vertices.length == 3
+              next unless (90 - surface.tilt * 180 / Math::PI).abs > 0.01 # don't remove the vertical attic walls
+              next unless surface.adjacentSurface.is_initialized
+
+              surface.adjacentSurface.get.remove
+              surface.remove
+            end
+          end
+
+          garage_attic_space.surfaces.each do |surface|
+            if num_floors > 1 or attic_type == "finished attic"
+              m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4, 4, 0))
+              m[2, 3] = -attic_space.zOrigin
+              transformation = OpenStudio::Transformation.new(m)
+              new_vertices = transformation * surface.vertices
+              surface.setVertices(new_vertices)
+              surface.setSpace(attic_space)
+            end
+          end
+
+          if num_floors > 1 or attic_type == "finished attic"
+            garage_attic_space.remove
+          end
+
           break
 
         end
-      end
-    end
-
-    # put all of the spaces in the model into a vector
-    spaces = OpenStudio::Model::SpaceVector.new
-    model.getSpaces.each do |space|
-      spaces << space
-    end
-
-    # intersect and match surfaces for each space in the vector
-    OpenStudio::Model.intersectSurfaces(spaces)
-    OpenStudio::Model.matchSurfaces(spaces)
-
-    # remove triangular surface between unfinished attic and garage attic
-    unless attic_space.nil?
-      attic_space.surfaces.each do |surface|
-        next if roof_type == Constants.RoofTypeHip
-        next unless surface.vertices.length == 3
-        next unless (90 - surface.tilt * 180 / Math::PI).abs > 0.01 # don't remove the vertical attic walls
-        next unless surface.adjacentSurface.is_initialized
-
-        surface.adjacentSurface.get.remove
-        surface.remove
       end
     end
 
