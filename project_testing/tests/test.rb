@@ -17,7 +17,7 @@ class TestProjectTesting < MiniTest::Test
       # flunk "#{e}\n#{e.backtrace.join('\n')}"
     end
   end
-  
+
   def test_apply_upgrade_run_measure_arg
     json = JSON.parse(File.read(File.join(File.dirname(__FILE__), "..", "pat.json")), :symbolize_names => true)
     json[:measures].each do |measure|
