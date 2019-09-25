@@ -9,7 +9,7 @@ require_relative '../resources/run_sampling'
 class TestResStockMeasuresOSW < MiniTest::Test
   def test_measures_osw
     project_dir = "project_testing"
-    num_samples = 1
+    num_samples = 3
 
     parent_dir = File.absolute_path(File.join(File.dirname(__FILE__), "test_measures_osw"))
 
@@ -17,12 +17,12 @@ class TestResStockMeasuresOSW < MiniTest::Test
     lib_dir = create_lib_folder(parent_dir, project_dir, buildstock_csv)
     weather_dir = create_weather_folder(parent_dir, project_dir)
 
-    measures_osw_dir = File.join(parent_dir, "measures_osw")
-    Dir.mkdir(measures_osw_dir) unless File.exist?(measures_osw_dir)
+    measures_dir = File.join(parent_dir, "measures")
+    Dir.mkdir(measures_dir) unless File.exist?(measures_dir)
     (1..num_samples).to_a.each do |building_id|
       Dir["#{parent_dir}/build_existing_model.osw"].each do |osw|
         change_building_id(osw, building_id)
-        run_and_check(osw, parent_dir, measures_osw_dir, building_id)
+        run_and_check(osw, parent_dir, measures_dir, building_id)
       end
     end
 
@@ -34,23 +34,33 @@ class TestResStockMeasuresOSW < MiniTest::Test
     FileUtils.rm_rf(weather_dir) if File.exist?(weather_dir)
     FileUtils.rm_rf(File.join(parent_dir, "run"))
     FileUtils.rm_rf(File.join(parent_dir, "reports"))
+    FileUtils.rm_rf(File.join(parent_dir, "generated_files"))
   end
 
-  def run_and_check(in_osw, parent_dir, measures_osw_dir, building_id)
-    # Create measures.osw
+  def run_and_check(in_osw, parent_dir, measures_dir, building_id)
+    # Create out.osw and measures.osw
     cli_path = OpenStudio.getOpenStudioCLI
     command = "cd #{parent_dir} && \"#{cli_path}\" --no-ssl run -m -w #{in_osw}"
     system(command)
 
     # Check output file exists
     out_osw = File.join(parent_dir, "out.osw")
-    new_out_osw = File.join(measures_osw_dir, "#{building_id}.osw")
-    FileUtils.mv(out_osw, new_out_osw)
-    assert(File.exists?(new_out_osw))
+    assert(File.exists?(out_osw))
 
     # Check workflow was successful
-    data_hash = JSON.parse(File.read(new_out_osw))
+    data_hash = JSON.parse(File.read(out_osw))
     assert_equal(data_hash["completed_status"], "Success")
+    FileUtils.rm(out_osw)
+
+    # Move measures.osw to measures_osw
+    measures_osw = File.join(parent_dir, "run", "measures.osw")
+    new_measures_osw = File.join(measures_dir, "#{building_id}.osw")
+    FileUtils.mv(measures_osw, new_measures_osw)
+
+    # Move in.osm to measures_osm
+    measures_osm = File.join(parent_dir, "run", "in.osm")
+    new_measures_osm = File.join(measures_dir, "#{building_id}.osm")
+    FileUtils.mv(measures_osm, new_measures_osm)
   end
 
   def create_buildstock_csv(project_dir, num_samples)
