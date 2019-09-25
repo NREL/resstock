@@ -147,7 +147,14 @@ class ResidentialMiscElectricLoads < OpenStudio::Measure::ModelMeasure
           return false
         end
 
-        mel_ann = (1108.1 + 180.2 * nbeds + 0.2785 * ffa) * mult
+        noccupants = 0.0
+        unit.spaces.each do |space|
+          space.people.each do |ppl|
+            noccupants += ppl.peopleDefinition.numberofPeople.get
+          end
+        end
+
+        mel_ann = (938.51 + 277.7 * noccupants + 0.46 * ffa) * mult
       elsif option_type == Constants.OptionTypePlugLoadsEnergyUse
         mel_ann = energy_use
       end
