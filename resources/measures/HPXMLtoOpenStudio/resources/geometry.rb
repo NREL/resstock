@@ -1464,9 +1464,9 @@ class Geometry
       # Calculate number of occupants for this unit
       if unit_occ == Constants.Auto
         if units.size > 1 # multifamily equation
-          unit_occ = 0.63 + 0.92 * nbeds
+          unit_occ = 1.17 + 0.56 * nbeds
         else # single-family equation
-          unit_occ = 0.87 + 0.59 * nbeds
+          unit_occ = 1.15 + 0.5 * nbeds
         end
       else
         unit_occ = unit_occ.to_f
