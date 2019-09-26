@@ -57,7 +57,7 @@ class TestResStockModelFidelity < MiniTest::Test
         heating_coil = heating_coil.to_CoilHeatingElectric.get
         next unless heating_coil.nominalCapacity.is_initialized
 
-        if coil.nominalCapacity.get == 0
+        if heating_coil.nominalCapacity.get == 0
           coil_heating_electric_is_sized_non_zero = false
         end
         unless coil_heating_electric_is_sized_non_zero
