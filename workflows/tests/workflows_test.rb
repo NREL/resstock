@@ -18,7 +18,7 @@ class WorkflowTest < MiniTest::Test
       all_results << run_and_check(osw, parent_dir)
     end
 
-    results_dir = File.join(parent_dir, "results")
+    results_dir = File.join(parent_dir, "workflows")
     _rm_path(results_dir)
     write_summary_results(results_dir, all_results)
   end
