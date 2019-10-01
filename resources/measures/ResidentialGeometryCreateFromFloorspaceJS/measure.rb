@@ -166,6 +166,7 @@ class ResidentialGeometryFromFloorspaceJS < OpenStudio::Measure::ModelMeasure
     json["space_types"].each do |st|
       model.getSpaceTypes.each do |space_type|
         next unless space_type.name.to_s.include? st["name"]
+        next if space_type.standardsSpaceType.is_initialized
 
         space_type.setStandardsSpaceType(st["name"])
       end
@@ -182,6 +183,10 @@ class ResidentialGeometryFromFloorspaceJS < OpenStudio::Measure::ModelMeasure
     model.getSpaceTypes.each do |space_type|
       next if Constants.ExpectedSpaceTypes.include? space_type.standardsSpaceType.get
 
+      if space_type.standardsBuildingType.is_initialized && !model.getBuilding.standardsBuildingType.is_initialized
+        model.getBuilding.setStandardsBuildingType(space_type.standardsBuildingType.get)
+      end
+      next if space_type.standardsSpaceType.is_initialized
       runner.registerError("Unexpected space type '#{space_type.standardsSpaceType.get}'. Supported space types are: '#{Constants.ExpectedSpaceTypes.join("', '")}'.")
       return false
     end
