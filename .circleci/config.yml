@@ -1,6 +1,6 @@
 version: 2
 jobs:
-  build:
+  test:
     docker:
       - image: nrel/openstudio:2.8.1
     steps:
@@ -28,3 +28,31 @@ jobs:
       - store_artifacts:
             path: workflows/results
             destination: results
+  progress:
+    docker:
+      - image: nrel/openstudio:2.8.1
+    steps:
+      - checkout
+      - run: 
+          name: Install gems
+          command: |
+            rm -f Gemfile.lock && bundle install
+      - run:
+          name: P v M
+          command: |
+            rake progress:example
+workflows:
+  version: 2
+  commit:
+    jobs:
+      - test
+  weekly:
+    triggers:
+      - schedule:
+          cron: "0 0 * * *"
+          filters:
+            branches:
+              only:
+                - workflow-schedule
+    jobs:
+      - progress
