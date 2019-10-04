@@ -45,32 +45,34 @@ jobs:
           command: |
             source env/bin/activate
             aws configure list
-            DATE=$(date '+%Y-%m-%d')
+            export DATE=$(date '+%Y-%m-%d')
             QUERYID=`aws athena start-query-execution --query-string "select * from run3_baseline" --query-execution-context Database=idsm-scout --result-configuration OutputLocation=s3://resbldg-datasets/idsm-scout/run3/baseline/$DATE --output text`
             aws athena get-query-execution --query-execution-id "${QUERYID}"
-            mkdir results
+            mkdir progress
             sleep 30
-            aws s3 cp s3://resbldg-datasets/idsm-scout/run3/baseline/$DATE/$QUERYID.csv ./results
+            aws s3 cp s3://resbldg-datasets/idsm-scout/run3/baseline/$DATE/$QUERYID.csv ./progress
       - run:
           name: P v M
           command: |
             source env/bin/activate
-            python test/test_progress.py
+            python scripts/progress.py
+            aws s3 cp ./progress/progress.csv s3://resbldg-datasets/idsm-scout/run3/baseline/$DATE/progress.csv
       - store_artifacts:
-            path: results
-            destination: results
+            path: progress
+            destination: progress
 workflows:
   version: 2
   commit:
     jobs:
-      - test
-  weekly_progress:
-    triggers:
-      - schedule:
-          cron: "0 0 * * 0"
-          filters:
-            branches:
-              only:
-                - workflow-schedule
-    jobs:
+      # - test
       - progress
+  # weekly:
+    # triggers:
+      # - schedule:
+          # cron: "0 0 * * 0"
+          # filters:
+            # branches:
+              # only:
+                # - workflow-schedule
+    # jobs:
+      # - progress
