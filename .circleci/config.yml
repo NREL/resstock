@@ -44,6 +44,7 @@ jobs:
           name: Retrieve results
           command: |
             source env/bin/activate
+            aws configure list
             QUERYID=`aws athena start-query-execution --query-string "select * from run3_baseline" --query-execution-context Database=idsm-scout --result-configuration OutputLocation=s3://resbldg-datasets/idsm-scout/run3/baseline --output text`
             mkdir results
             aws s3 cp s3://resbldg-datasets/idsm-scout/run3/baseline/$QUERYID.csv ./results
