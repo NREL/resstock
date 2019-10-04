@@ -27,7 +27,7 @@ jobs:
             rake test:regression_tests
       - store_artifacts:
             path: workflows/results
-            destination: results
+            destination: workflows
   progress:
     docker:
       - image: nrel/openstudio:2.8.1
@@ -38,21 +38,31 @@ jobs:
           command: |
             rm -f Gemfile.lock && bundle install
       - run:
+          name: Retrieve results
+          command: |
+            QUERYID=`aws athena start-query-execution --query-string "select * from run3_baseline" --query-execution-context Database=idsm-scout --result-configuration OutputLocation=s3://resbldg-datasets/idsm-scout/run3/baseline --output text`
+            mkdir results
+            aws s3 cp s3://resbldg-datasets/idsm-scout/run3/baseline/$QUERYID.csv ./results
+      - run:
           name: P v M
           command: |
             rake progress:example
+      - store_artifacts:
+            path: results
+            destination: results
 workflows:
   version: 2
   commit:
     jobs:
       - test
-  weekly:
-    triggers:
-      - schedule:
-          cron: "0 0 * * *"
-          filters:
-            branches:
-              only:
-                - workflow-schedule
+      - progress
+  # weekly:
+    # triggers:
+      # - schedule:
+          # cron: "0 0 * * 0"
+          # filters:
+            # branches:
+              # only:
+                # - workflow-schedule
     jobs:
       - progress
