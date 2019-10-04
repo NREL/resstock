@@ -47,6 +47,7 @@ jobs:
             aws configure list
             DATE=$(date '+%Y-%m-%d')
             QUERYID=`aws athena start-query-execution --query-string "select * from run3_baseline" --query-execution-context Database=idsm-scout --result-configuration OutputLocation=s3://resbldg-datasets/idsm-scout/run3/baseline/$DATE --output text`
+            aws athena get-query-execution --query-execution-id "${QUERYID}"
             mkdir results
             sleep 30
             aws s3 cp s3://resbldg-datasets/idsm-scout/run3/baseline/$DATE/$QUERYID.csv ./results
