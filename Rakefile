@@ -43,17 +43,6 @@ namespace :test do
   end
 end
 
-desc 'Perform tasks related to showing progress'
-namespace :progress do
-  desc ''
-  Rake::TestTask.new('example') do |t|
-    t.libs << 'progress'
-    t.test_files = Dir['test/test_progress.rb']
-    t.warning = false
-    t.verbose = true
-  end
-end
-
 def regenerate_osms
   require 'openstudio'
   require_relative 'resources/meta_measure'
