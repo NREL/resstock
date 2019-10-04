@@ -48,7 +48,7 @@ namespace :progress do
   desc ''
   Rake::TestTask.new('example') do |t|
     t.libs << 'progress'
-    t.test_files = Dir['resources/measures/ResidentialLightingInterior/tests/*.rb']
+    t.test_files = Dir['test/test_progress.rb']
     t.warning = false
     t.verbose = true
   end
