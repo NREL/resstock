@@ -1,4 +1,6 @@
 version: 2
+commands: |
+  
 jobs:
   test:
     docker:
@@ -45,7 +47,7 @@ jobs:
           command: |
             source env/bin/activate
             aws configure list
-            export DATE=$(date '+%Y-%m-%d')
+            echo "export DATE=$(date '+%Y-%m-%d')" >> $BASH_ENV
             QUERYID=`aws athena start-query-execution --query-string "select * from run3_baseline" --query-execution-context Database=idsm-scout --result-configuration OutputLocation=s3://resbldg-datasets/idsm-scout/run3/baseline/$DATE --output text`
             aws athena get-query-execution --query-execution-id "${QUERYID}"
             sleep 30
