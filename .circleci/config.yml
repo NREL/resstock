@@ -63,15 +63,14 @@ workflows:
   version: 2
   commit:
     jobs:
-      # - test
+      - test
+  weekly_progress:
+    triggers:
+      - schedule:
+          cron: "0 0 * * 0"
+          filters:
+            branches:
+              only:
+                - workflow-schedule
+    jobs:
       - progress
-  # weekly:
-    # triggers:
-      # - schedule:
-          # cron: "0 0 * * 0"
-          # filters:
-            # branches:
-              # only:
-                # - workflow-schedule
-    # jobs:
-      # - progress
