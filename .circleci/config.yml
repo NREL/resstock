@@ -30,24 +30,28 @@ jobs:
             destination: workflows
   progress:
     docker:
-      - image: nrel/openstudio:2.8.1
+      - image: circleci/python:3
     steps:
       - checkout
-      - run: 
-          name: Install gems
+      - run:
+          name: Install env
           command: |
-            rm -f Gemfile.lock && bundle install
+            python3 -m venv env
+            source env/bin/activate
+            pip install pandas
+            pip install awscli
       - run:
           name: Retrieve results
           command: |
-            pip install awscli
+            source env/bin/activate
             QUERYID=`aws athena start-query-execution --query-string "select * from run3_baseline" --query-execution-context Database=idsm-scout --result-configuration OutputLocation=s3://resbldg-datasets/idsm-scout/run3/baseline --output text`
             mkdir results
             aws s3 cp s3://resbldg-datasets/idsm-scout/run3/baseline/$QUERYID.csv ./results
       - run:
           name: P v M
           command: |
-            rake progress:example
+            source env/bin/activate
+            python test_progress.py
       - store_artifacts:
             path: results
             destination: results
