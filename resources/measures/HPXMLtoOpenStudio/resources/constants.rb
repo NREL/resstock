@@ -1250,6 +1250,10 @@ class Constants
     return 'garage'
   end
 
+  def self.SpaceTypeGarageAttic
+    return 'garage attic'
+  end
+
   def self.SpaceTypeKitchen
     return 'kitchen' # only used by multi-zone simulations
   end
@@ -1281,7 +1285,7 @@ class Constants
   def self.SpaceTypeUnfinishedBasement
     return 'unfinished basement'
   end
-  
+
   def self.SpaceTypeCommercial
     return 'commercial'
   end

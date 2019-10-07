@@ -13,6 +13,8 @@ class WorkflowTest < MiniTest::Test
     Dir["#{parent_dir}/*.osw"].each do |osw|
       next if File.basename(osw).include? "out"
 
+      add_simulation_output_report(osw)
+      lib_dir = create_lib_folder(parent_dir)
       all_results << run_and_check(osw, parent_dir)
     end
 
@@ -23,11 +25,33 @@ class WorkflowTest < MiniTest::Test
 
   private
 
+  def add_simulation_output_report(osw)
+    json = JSON.parse(File.read(osw))
+    simulation_output_report = { "arguments": {}, "measure_dir_name": "SimulationOutputReport" }
+    json["steps"] << simulation_output_report
+
+    File.open(osw, "w") do |f|
+      f.write(JSON.pretty_generate(json))
+    end
+  end
+
+  def create_lib_folder(parent_dir)
+    puts parent_dir
+    lib_dir = File.join(parent_dir, "..", "lib") # at top level
+    resources_dir = File.join(parent_dir, "..", "resources")
+    Dir.mkdir(lib_dir) unless File.exist?(lib_dir)
+    FileUtils.cp_r(resources_dir, lib_dir)
+
+    return lib_dir
+  end
+
   def run_and_check(in_osw, parent_dir)
     # Run workflow
     cli_path = OpenStudio.getOpenStudioCLI
     command = "cd #{parent_dir} && \"#{cli_path}\" --no-ssl run -w #{in_osw}"
+    simulation_start = Time.now
     system(command)
+    sim_time = (Time.now - simulation_start).round(1)
 
     # Check all output files exist
     out_osw = File.join(parent_dir, "out.osw")
@@ -37,20 +61,19 @@ class WorkflowTest < MiniTest::Test
     data_hash = JSON.parse(File.read(out_osw))
     assert_equal(data_hash["completed_status"], "Success")
 
-    enduse_timeseries = File.join(parent_dir, "run", "enduse_timeseries.csv")
+    data_point_out = File.join(parent_dir, "run", "data_point_out.json")
     result = { "OSW" => File.basename(in_osw) }
-    sum_enduse_timeseries(result, enduse_timeseries)
+    result = get_simulation_output_report(result, data_point_out)
+    result["simulation_time"] = sim_time
     return result
   end
 
-  def sum_enduse_timeseries(result, enduse_timeseries)
-    rows = CSV.read(File.expand_path(enduse_timeseries))
-    cols = rows.transpose
-    cols = cols[1..-1] # remove the Time col
-    cols.each do |col|
-      vals = col[1..-1].map { |v| v.to_f }
-      result[col[0]] = vals.reduce(:+)
-    end
+  def get_simulation_output_report(result, data_point_out)
+    rows = JSON.parse(File.read(File.expand_path(data_point_out)))
+    result = result.merge(rows["SimulationOutputReport"])
+    result.delete("applicable")
+    result.delete("upgrade_name")
+    result.delete("upgrade_cost_usd")
     return result
   end
 
