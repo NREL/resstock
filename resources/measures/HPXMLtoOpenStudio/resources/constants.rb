@@ -1266,16 +1266,8 @@ class Constants
     return 'living'
   end
 
-  def self.SpaceTypeOffice
-    return 'SmallOffice,WholeBuilding - Sm Office'
-  end
-
   def self.SpaceTypePierBeam
     return 'pier and beam'
-  end
-
-  def self.SpaceTypeRetail
-    return 'StripMall,Strip mall - type 3'
   end
 
   def self.SpaceTypeUnfinishedAttic
@@ -1284,10 +1276,6 @@ class Constants
 
   def self.SpaceTypeUnfinishedBasement
     return 'unfinished basement'
-  end
-
-  def self.SpaceTypeCommercial
-    return 'commercial'
   end
 
   def self.SurfaceTypeAdiabatic # adiabatic construction instead of adiabatic outside boundary condition
@@ -1466,8 +1454,7 @@ class Constants
             self.SpaceTypeLiving,
             self.SpaceTypePierBeam,
             self.SpaceTypeUnfinishedAttic,
-            self.SpaceTypeUnfinishedBasement,
-            self.SpaceTypeCommercial]
+            self.SpaceTypeUnfinishedBasement]
   end
 
   def self.ZoneHVACPriorityList

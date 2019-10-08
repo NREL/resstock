@@ -84,6 +84,7 @@ class MiscLoads
         mel.setEndUseSubcategory(obj_name)
         mel.setSpace(space)
         mel_def.setName(space_obj_name)
+
         mel_def.setDesignLevel(space_design_level)
         mel_def.setFractionRadiant(0.6 * sens_frac)
         mel_def.setFractionLatent(lat_frac)
