@@ -24,13 +24,15 @@ class ResidentialGeometryFromFloorspaceJS_Test < MiniTest::Test
     assert_includes(result.errors.map { |x| x.logMessage }, "Cannot find floorplan path '#{args_hash["floorplan_path"]}'.")
   end
 
-  def test_error_unexpected_space_type_name
+  def test_warning_unexpected_space_type_name
+    num_finished_spaces = 2
     args_hash = {}
     args_hash["floorplan_path"] = File.join(File.dirname(__FILE__), "unexpected_space_type_name.json")
-    result = _test_error(nil, args_hash)
-    assert(result.errors.size == 1)
-    assert_equal("Fail", result.value.valueName)
-    assert_includes(result.errors.map { |x| x.logMessage }, "Unexpected space type 'grrage'. Supported space types are: '#{Constants.ExpectedSpaceTypes.join("', '")}'.")
+    expected_num_del_objects = {}
+    expected_num_new_objects = { "Building" => 1, "Surface" => 40, "Space" => 4, "SpaceType" => 3, "ThermalZone" => 3, "BuildingUnit" => 1, "BuildingStory" => 3, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 2 }
+    expected_values = { "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 2.64 }
+    model, result = _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
+    assert_includes(result.warnings.map { |x| x.logMessage }, "Unexpected space type 'grrage'.")
   end
 
   def test_error_mix_of_finished_and_unfinished_spaces_in_a_zone
@@ -67,7 +69,7 @@ class ResidentialGeometryFromFloorspaceJS_Test < MiniTest::Test
     expected_num_del_objects = {}
     expected_num_new_objects = { "Building" => 1, "Surface" => 40, "Space" => 4, "SpaceType" => 3, "ThermalZone" => 4, "BuildingUnit" => 1, "BuildingStory" => 3, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 2 }
     expected_values = { "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 2.64 }
-    model = _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
+    model, result = _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
   def test_simple_floorplan_unfinished_attic
@@ -77,7 +79,7 @@ class ResidentialGeometryFromFloorspaceJS_Test < MiniTest::Test
     expected_num_del_objects = {}
     expected_num_new_objects = { "Building" => 1, "Surface" => 40, "Space" => 4, "SpaceType" => 3, "ThermalZone" => 3, "BuildingUnit" => 1, "BuildingStory" => 3, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 2 }
     expected_values = { "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 2.64 }
-    model = _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
+    model, result = _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
   def test_simple_floorplan_finished_attic
@@ -87,7 +89,7 @@ class ResidentialGeometryFromFloorspaceJS_Test < MiniTest::Test
     expected_num_del_objects = {}
     expected_num_new_objects = { "Building" => 1, "Surface" => 40, "Space" => 4, "SpaceType" => 2, "ThermalZone" => 2, "BuildingUnit" => 1, "BuildingStory" => 3, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 2 }
     expected_values = { "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 2.64 }
-    model = _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
+    model, result = _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
   def test_single_family_attached
@@ -97,7 +99,7 @@ class ResidentialGeometryFromFloorspaceJS_Test < MiniTest::Test
     expected_num_del_objects = {}
     expected_num_new_objects = { "Building" => 1, "Surface" => 71, "Space" => 8, "SpaceType" => 3, "ThermalZone" => 6, "BuildingUnit" => 2, "BuildingStory" => 3, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 2 }
     expected_values = { "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 6.78 }
-    model = _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
+    model, result = _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
   def test_multifamily
@@ -107,7 +109,7 @@ class ResidentialGeometryFromFloorspaceJS_Test < MiniTest::Test
     expected_num_del_objects = {}
     expected_num_new_objects = { "Building" => 1, "Surface" => 24, "Space" => 4, "SpaceType" => 1, "ThermalZone" => 4, "BuildingUnit" => 4, "BuildingStory" => 2, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 2 }
     expected_values = { "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 13.56 }
-    model = _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
+    model, result = _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
   def test_mf_with_corridor
@@ -117,7 +119,7 @@ class ResidentialGeometryFromFloorspaceJS_Test < MiniTest::Test
     expected_num_del_objects = {}
     expected_num_new_objects = { "Building" => 1, "Surface" => 92, "Space" => 14, "SpaceType" => 2, "ThermalZone" => 14, "BuildingUnit" => 12, "BuildingStory" => 2, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 2 }
     expected_values = { "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 40.68 }
-    model = _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
+    model, result = _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
   def test_sfd_multi_zone_floorplan
@@ -127,7 +129,7 @@ class ResidentialGeometryFromFloorspaceJS_Test < MiniTest::Test
     expected_num_del_objects = {}
     expected_num_new_objects = { "Building" => 1, "Surface" => 80, "Space" => 12, "SpaceType" => 7, "ThermalZone" => 12, "BuildingUnit" => 1, "BuildingStory" => 3, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 2 }
     expected_values = { "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 2.64 }
-    model = _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
+    model, result = _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
   def test_mf_multi_zone_floorplan
@@ -137,7 +139,7 @@ class ResidentialGeometryFromFloorspaceJS_Test < MiniTest::Test
     expected_num_del_objects = {}
     expected_num_new_objects = { "Building" => 1, "Surface" => 181, "Space" => 26, "SpaceType" => 6, "ThermalZone" => 22, "BuildingUnit" => 2, "BuildingStory" => 3, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 2 }
     expected_values = { "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 6.78 }
-    model = _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
+    model, result = _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
   def test_argument_error_beds_not_equal_to_baths
@@ -259,7 +261,7 @@ class ResidentialGeometryFromFloorspaceJS_Test < MiniTest::Test
     expected_num_del_objects = {}
     expected_num_new_objects = { "Building" => 1, "Surface" => 80, "Space" => 12, "SpaceType" => 7, "ThermalZone" => 12, "BuildingUnit" => 1, "BuildingStory" => 3 }
     expected_values = { "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 0 }
-    _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
+    model, result = _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
   def test_new_construction_auto
@@ -269,7 +271,7 @@ class ResidentialGeometryFromFloorspaceJS_Test < MiniTest::Test
     expected_num_del_objects = {}
     expected_num_new_objects = { "Building" => 1, "Surface" => 80, "Space" => 12, "SpaceType" => 7, "ThermalZone" => 12, "BuildingUnit" => 1, "BuildingStory" => 3, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 2 }
     expected_values = { "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 2.64 }
-    _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
+    model, result = _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
   def test_new_construction_fixed_3
@@ -279,7 +281,7 @@ class ResidentialGeometryFromFloorspaceJS_Test < MiniTest::Test
     expected_num_del_objects = {}
     expected_num_new_objects = { "Building" => 1, "Surface" => 80, "Space" => 12, "SpaceType" => 7, "ThermalZone" => 12, "BuildingUnit" => 1, "BuildingStory" => 3, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 2 }
     expected_values = { "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 3 }
-    _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
+    model, result = _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
   private
@@ -391,6 +393,6 @@ class ResidentialGeometryFromFloorspaceJS_Test < MiniTest::Test
     end
     assert_in_epsilon(expected_values["NumOccupants"], actual_values["NumOccupants"], 0.01)
 
-    return model
+    return model, result
   end
 end

@@ -186,9 +186,8 @@ class ResidentialGeometryFromFloorspaceJS < OpenStudio::Measure::ModelMeasure
       if space_type.standardsBuildingType.is_initialized && !model.getBuilding.standardsBuildingType.is_initialized
         model.getBuilding.setStandardsBuildingType(space_type.standardsBuildingType.get)
       end
-      next if space_type.standardsSpaceType.is_initialized
-      runner.registerError("Unexpected space type '#{space_type.standardsSpaceType.get}'. Supported space types are: '#{Constants.ExpectedSpaceTypes.join("', '")}'.")
-      return false
+
+      runner.registerWarning("Unexpected space type '#{space_type.standardsSpaceType.get}'.")
     end
 
     # for any spaces with no assigned zone, create (unless another space of the same space type has an assigned zone) a thermal zone based on the space type
