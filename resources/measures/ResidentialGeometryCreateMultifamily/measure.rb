@@ -247,8 +247,6 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
 
     # make an argument for first floor commercial space
     commercial_building_type_chs = OpenStudio::StringVector.new
-    commercial_building_type_chs << Constants.SpaceTypeOffice
-    commercial_building_type_chs << Constants.SpaceTypeRetail
     commercial_building_type_chs << "none"
 
     commercial_building_type = OpenStudio::Measure::OSArgument::makeChoiceArgument("commercial_building_type", commercial_building_type_chs, true)

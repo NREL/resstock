@@ -524,6 +524,7 @@ def generate_example_osws(data_hash, include_measures, exclude_measures,
       end
     end
   end
+
   (include_measures + exclude_measures).each do |m|
     next if all_measures.include? m
 
