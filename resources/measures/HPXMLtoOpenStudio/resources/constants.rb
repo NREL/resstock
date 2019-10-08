@@ -1278,6 +1278,14 @@ class Constants
     return 'unfinished basement'
   end
 
+  def self.SpaceTypeOffice
+    return 'SmallOffice,WholeBuilding - Sm Office'
+  end
+
+  def self.SpaceTypeRetail
+    return 'StripMall,Strip mall - type 3'
+  end
+
   def self.SurfaceTypeAdiabatic # adiabatic construction instead of adiabatic outside boundary condition
     return 'Adiabatic'
   end

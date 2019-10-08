@@ -858,12 +858,12 @@ class Geometry
     return self.space_or_zone_is_of_type(space_or_zone, Constants.SpaceTypeBedroom)
   end
 
-  def self.is_retail(space_or_zone)
-    return self.space_or_zone_is_of_type(space_or_zone, Constants.SpaceTypeRetail)
-  end
-
   def self.is_office(space_or_zone)
     return self.space_or_zone_is_of_type(space_or_zone, Constants.SpaceTypeOffice)
+  end
+
+  def self.is_retail(space_or_zone)
+    return self.space_or_zone_is_of_type(space_or_zone, Constants.SpaceTypeRetail)
   end
 
   def self.space_or_zone_is_of_type(space_or_zone, space_type)
