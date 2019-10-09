@@ -121,7 +121,7 @@ Continuing on the Measures Selection tab, scroll down to the **OpenStudio Measur
 Simulation Controls
 ^^^^^^^^^^^^^^^^^^^
 
-Using this measure you can set the simulation timesteps per hour, as well as the run period begin month/day and end month/day. By default the simulations use a 10-min timestep (i.e., the number of timesteps per hour is 6), start on January 1, and end on December 31.
+Using this measure you can set the simulation timesteps per hour, the run period begin month/day and end month/day, and the calendar year (for start day of week). By default the simulations use a 10-min timestep (i.e., the number of timesteps per hour is 6), start on January 1, end on December 31, and run with a calendar year of 2007 (start day of week is Monday). If you are running simulations using AMY weather files, the value entered for calendar year will not be used; it will be overridden by the actual year found in the AMY weather file.
 
 .. image:: ../images/tutorial/simulation_controls.png
 
@@ -144,7 +144,10 @@ This measure creates the baseline scenario. It incrementally applies OpenStudio 
   The number of buildings each simulation represents. Total number of buildings / Number of simulations. This argument is optional (it is only needed for running simulations on NREL HPC), so you can leave it blank.
   
 **Downselect Logic**
-  Logic that specifies the subset of the building stock to be considered in the analysis. Specify one or more ``parameter|option`` as found in the ``resources/options_lookup.tsv``. (This uses the same syntax as the :ref:`tutorial-apply-upgrade` measure.) For example, if you wanted to only simulate California homes you could enter ``Location Region|CR11`` in this field (CR refers to "Custom Region", which is based on RECS 2009 reportable domains aggregated into groups with similar climates; see the entire `custom region map`_).
+  Logic that specifies the subset of the building stock to be considered in the analysis. Specify one or more ``parameter|option`` as found in the ``resources/options_lookup.tsv``. (This uses the same syntax as the :ref:`tutorial-apply-upgrade` measure.) For example, if you wanted to only simulate California homes you could enter ``Location Region|CR11`` in this field (CR refers to "Custom Region", which is based on RECS 2009 reportable domains aggregated into groups with similar climates; see the entire `custom region map`_). Datapoints that are excluded from the downselect logic will result in "completed invalid workflow". Note that the **Building ID - Max** input refers to the number of datapoints *before* downselection, not after. This means that the number of datapoints remaining after downselection would be somewhere between zero (i.e., no datapoints matched the downselect logic) and **Building ID - Max** (i.e., all datapoints matched the downselect logic).
+
+**Measures to Ignore**
+  **INTENDED FOR ADVANCED USERS/WORKFLOW DEVELOPERS ONLY.** Measures to exclude from the OpenStudio Workflow specified by listing one or more measure directories separated by '|'. Core ResStock measures cannot be ignored (the Build Existing Model measure will fail).
 
 .. _custom region map: https://github.com/NREL/OpenStudio-BuildStock/wiki/Custom-Region-(CR)-Map
 
@@ -167,7 +170,7 @@ For this example, we will upgrade all windows by applying the ``Windows|Low-E, T
 
 .. image:: ../images/tutorial/apply_upgrade_windows.png
 
-For a full explanation of how to set up the options and logic surrounding them, see :doc:`../upgrade_scenario_config`.
+Like the **downselect logic**, excluded datapoints (i.e., datapoints for which the upgrade does not apply) will result in "completed invalid workflow". For a full explanation of how to set up the options and logic surrounding them, see :doc:`../upgrade_scenario_config`.
 
 Measures can be skipped in an analysis without losing their configuration. For this tutorial we will skip the second measure of applying wall insulation. To do so, select the **Apply Upgrade 2** measure, open it, and check the box **Skip this measure**.
 

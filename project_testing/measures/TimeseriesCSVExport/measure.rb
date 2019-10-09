@@ -68,6 +68,8 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
   def energyPlusOutputRequests(runner, user_arguments)
     super(runner, user_arguments)
 
+    return OpenStudio::IdfObjectVector.new if runner.halted
+
     reporting_frequency = runner.getStringArgumentValue("reporting_frequency", user_arguments)
     include_enduse_subcategories = runner.getBoolArgumentValue("include_enduse_subcategories", user_arguments)
     output_variables = runner.getOptionalStringArgumentValue("output_variables", user_arguments)

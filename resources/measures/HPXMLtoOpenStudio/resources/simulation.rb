@@ -1,5 +1,5 @@
 class Simulation
-  def self.apply(model, runner, timesteps_per_hr = 1, min_system_timestep_mins = nil, begin_month = 1, begin_day_of_month = 1, end_month = 12, end_day_of_month = 31)
+  def self.apply(model, runner, timesteps_per_hr = 1, min_system_timestep_mins = nil, begin_month = 1, begin_day_of_month = 1, end_month = 12, end_day_of_month = 31, calendar_year = 2007)
     sim = model.getSimulationControl
     sim.setRunSimulationforSizingPeriods(false)
 
@@ -29,6 +29,9 @@ class Simulation
     run_period.setBeginDayOfMonth(begin_day_of_month)
     run_period.setEndMonth(end_month)
     run_period.setEndDayOfMonth(end_day_of_month)
+
+    year_description = model.getYearDescription
+    year_description.setCalendarYear(calendar_year)
 
     return true
   end

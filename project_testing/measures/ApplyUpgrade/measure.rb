@@ -7,6 +7,18 @@
 require 'csv'
 require 'openstudio'
 
+require 'openstudio'
+if File.exists? File.absolute_path(File.join(File.dirname(__FILE__), "../../lib/resources/measures/HPXMLtoOpenStudio/resources")) # Hack to run ResStock on AWS
+  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../../lib/resources/measures/HPXMLtoOpenStudio/resources"))
+elsif File.exists? File.absolute_path(File.join(File.dirname(__FILE__), "../../resources/measures/HPXMLtoOpenStudio/resources")) # Hack to run ResStock unit tests locally
+  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../../resources/measures/HPXMLtoOpenStudio/resources"))
+elsif File.exists? File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, "HPXMLtoOpenStudio/resources") # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
+  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, "HPXMLtoOpenStudio/resources")
+else
+  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources"))
+end
+require File.join(resources_path, "constants")
+
 # start the measure
 class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
   # human readable name
@@ -25,11 +37,11 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
   end
 
   def num_options
-    return 20 # Sync with SimulationOutputReport measure
+    return Constants.NumApplyUpgradeOptions # Synced with SimulationOutputReport measure
   end
 
   def num_costs_per_option
-    return 2 # Sync with SimulationOutputReport measure
+    return Constants.NumApplyUpgradesCostsPerOption # Synced with SimulationOutputReport measure
   end
 
   # define the arguments that the user will input
@@ -242,9 +254,8 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
           next
         end
 
-        # Register this option so that it replaces the existing building option in the results csv file
+        # Print this option assignment
         print_option_assignment(parameter_name, option_name, runner)
-        register_value(runner, parameter_name, option_name)
 
         # Register cost values/multipliers/lifetime for applied options; used by the SimulationOutputReport measure
         for cost_num in 1..num_costs_per_option
@@ -253,14 +264,14 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
             cost_value = 0.0
           end
           cost_mult = runner.getStringArgumentValue("option_#{option_num}_cost_#{cost_num}_multiplier", user_arguments)
-          register_value(runner, "option_#{option_num}_cost_#{cost_num}_value_to_apply", cost_value.to_s)
-          register_value(runner, "option_#{option_num}_cost_#{cost_num}_multiplier_to_apply", cost_mult)
+          register_value(runner, "option_%02d_cost_#{cost_num}_value_to_apply" % option_num, cost_value.to_s)
+          register_value(runner, "option_%02d_cost_#{cost_num}_multiplier_to_apply" % option_num, cost_mult)
         end
         lifetime = runner.getOptionalDoubleArgumentValue("option_#{option_num}_lifetime", user_arguments)
         if lifetime.nil?
           lifetime = 0.0
         end
-        register_value(runner, "option_#{option_num}_lifetime_to_apply", lifetime.to_s)
+        register_value(runner, "option_%02d_lifetime_to_apply" % option_num, lifetime.to_s)
 
         # Check file/dir paths exist
         check_file_exists(lookup_file, runner)
