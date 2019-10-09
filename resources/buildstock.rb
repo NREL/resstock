@@ -154,6 +154,7 @@ def get_parameters_ordered_from_options_lookup_tsv(lookup_file, characteristics_
     next if params.include?(row[0])
 
     if not characteristics_dir.nil?
+      # skip this option if there is no tsv file provided
       tsvpath = File.join(characteristics_dir, row[0] + ".tsv")
       next if not File.exist?(tsvpath)
     end
@@ -210,6 +211,19 @@ def get_combination_hashes(tsvfiles, dependencies)
   return combos_hashes
 end
 
+def get_value_from_workflow_step_value(step_value)
+  variant_type = step_value.variantType
+  if variant_type == "Boolean".to_VariantType
+    return step_value.valueAsBoolean
+  elsif variant_type == "Double".to_VariantType
+    return step_value.valueAsDouble
+  elsif variant_type == "Integer".to_VariantType
+    return step_value.valueAsInteger
+  elsif variant_type == "String".to_VariantType
+    return step_value.valueAsString
+  end
+end
+
 def get_value_from_runner_past_results(runner, key_lookup, measure_name, error_if_missing = true)
   require 'openstudio'
   key_lookup = OpenStudio::toUnderscoreCase(key_lookup)
@@ -225,7 +239,7 @@ def get_value_from_runner_past_results(runner, key_lookup, measure_name, error_i
     step_result.stepValues.each do |step_value|
       next if step_value.name != key_lookup
 
-      return step_value.valueAsString
+      return get_value_from_workflow_step_value(step_value)
     end
   end
   if error_if_missing
@@ -239,7 +253,7 @@ def get_value_from_runner(runner, key_lookup, error_if_missing = true)
   runner.result.stepValues.each do |step_value|
     next if step_value.name != key_lookup
 
-    return step_value.valueAsString
+    return get_value_from_workflow_step_value(step_value)
   end
   if error_if_missing
     register_error("Could not find value for '#{key_lookup}'.", runner)
@@ -303,6 +317,13 @@ def register_value(runner, parameter_name, option_name)
   runner.registerValue(parameter_name, option_name)
 end
 
+# Accepts string option_apply_logic and tries to evaluate it based on
+# (parameter_name, option_name) pairs stored in runner.
+#
+# Returns a Boolean if evaluating and applying the logic is successful; nil
+# otherwise. Returning true means that the building as defined in runner belongs
+# to the downselect set (should be run); returning false means that this
+# building has been filtered out.
 def evaluate_logic(option_apply_logic, runner, past_results = true)
   # Convert to appropriate ruby statement for evaluation
   if option_apply_logic.count("(") != option_apply_logic.count(")")

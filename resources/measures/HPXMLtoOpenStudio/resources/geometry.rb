@@ -1360,7 +1360,7 @@ class Geometry
       return false
     end
 
-    if units.size > 1 and num_br.length == 1
+    if units.size > 1
       if num_br.length == 1
         num_br = Array.new(units.size, num_br[0])
       end
