@@ -52,29 +52,23 @@ jobs:
             sleep 60
             aws s3 cp s3://resbldg-datasets/resstock-progress/$DATESTRING/$QUERYID.csv ./
       - run:
-          name: P v M
+          name: Simulation output
           command: |
             source env/bin/activate
-            python scripts/progress.py
-            aws s3 sync ./progress/ s3://resbldg-datasets/resstock-progress/$DATESTRING/
-      - store_artifacts:
-            path: progress
-            destination: progress
+            python scripts/simulation_output.py
+            aws s3 sync ./simulation_output/ s3://resbldg-datasets/resstock-progress/$DATESTRING/
+      - run:
+          name: Graph
+          command: |
+            source env/bin/activate
+            aws s3 sync s3://resbldg-datasets/resstock-progress/ ./simulation_output/ --exclude "*" --include "**/simulation_output.csv"
+            python scripts/graph_progress.py
+            aws s3 cp ./simulation_output/simulation_output.png s3://resbldg-datasets/resstock-progress/$DATESTRING/
 workflows:
   version: 2
   commit:
     jobs:
       - test
-  # weekly:
-    # triggers:
-      # - schedule:
-          # cron: "0 0 * * 0"
-          # filters:
-            # branches:
-              # only:
-                # - workflow-schedule
-    # jobs:
-      # - progress
   daily:
     triggers:
       - schedule:
@@ -85,3 +79,13 @@ workflows:
                 - workflow-schedule
     jobs:
       - progress
+  # weekly:
+    # triggers:
+      # - schedule:
+          # cron: "0 0 * * 0"
+          # filters:
+            # branches:
+              # only:
+                # - workflow-schedule
+    # jobs:
+      # - progress
