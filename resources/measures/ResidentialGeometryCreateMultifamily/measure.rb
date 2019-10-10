@@ -389,7 +389,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     foundation_front_polygon = nil
     foundation_back_polygon = nil
 
-    # create the front prototype unit
+    # create the front prototype unit footprint
     nw_point = OpenStudio::Point3d.new(0, 0, 0)
     ne_point = OpenStudio::Point3d.new(x, 0, 0)
     sw_point = OpenStudio::Point3d.new(0, -y, 0)
@@ -439,6 +439,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     living_zone.setName("living zone")
 
     # first floor front
+    puts("living poly=", living_polygon)
     living_spaces_front = []
     living_space = OpenStudio::Model::Space::fromFloorPrint(living_polygon, wall_height, model)
     living_space = living_space.get
@@ -483,7 +484,9 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
 
     adiabatic_surf = adb_facade + horz_hash[horz_location] + level_hash[level]
     # Make surfaces adiabatic
+    puts(model.getSpaces)
     model.getSpaces.each do |space|
+      # puts(space)
       # Store has_rear_units to call in the door geometry measure
       space.surfaces.each do |surface|
         os_facade = Geometry.get_facade_for_surface(surface)
@@ -506,8 +509,8 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     ##############################################################################################
 
     # create the unit
-    unit_spaces_hash = {}
-    unit_spaces_hash[1] = living_spaces_front
+    # unit_spaces_hash = {}
+    # unit_spaces_hash[1] = living_spaces_front
 
     if (corridor_position == "Double-Loaded Interior")
       interior_corridor_width = corridor_width / 2 # Only half the corridor is attached to a unit
@@ -558,7 +561,6 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
       se_point = OpenStudio::Point3d.new(x, -y - corridor_width, wall_height)
 
       shading_surface = OpenStudio::Model::ShadingSurface.new(OpenStudio::Point3dVector.new([sw_point, se_point, ne_point, nw_point]), model)
-
       shading_surface_group = OpenStudio::Model::ShadingSurfaceGroup.new(model)
       shading_surface.setShadingSurfaceGroup(shading_surface_group)
       shading_surface.setName("Corridor shading")
@@ -592,6 +594,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     # foundation
     if foundation_height > 0
       foundation_spaces = []
+
       # foundation corridor
       if corridor_width > 0 and corridor_position == "Double-Loaded Interior"
         corridor_space = OpenStudio::Model::Space::fromFloorPrint(foundation_corr_polygon, foundation_height, model)
@@ -608,6 +611,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
 
       # foundation front
       foundation_space_front = []
+      puts("Foundation:")
       foundation_space = OpenStudio::Model::Space::fromFloorPrint(foundation_front_polygon, foundation_height, model)
       foundation_space = foundation_space.get
       m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4, 4, 0))
@@ -662,7 +666,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
           surfaces = space.surfaces
           surfaces.each do |surface|
             next if surface.surfaceType.downcase != "wall"
-
+      
             surface.setOutsideBoundaryCondition("Foundation")
           end
         end
@@ -670,15 +674,15 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
 
     end
 
-    unit_spaces_hash.each do |unit_num, spaces|
-      # Store building unit information
-      unit = OpenStudio::Model::BuildingUnit.new(model)
-      unit.setBuildingUnitType(Constants.BuildingUnitTypeResidential)
-      unit.setName(Constants.ObjectNameBuildingUnit(unit_num))
-      spaces.each do |space|
-        space.setBuildingUnit(unit)
-      end
-    end
+    # unit_spaces_hash.each do |unit_num, spaces|
+    #   # Store building unit information
+    #   unit = OpenStudio::Model::BuildingUnit.new(model)
+    #   unit.setBuildingUnitType(Constants.BuildingUnitTypeResidential)
+    #   unit.setName(Constants.ObjectNameBuildingUnit(unit_num))
+    #   spaces.each do |space|
+    #     space.setBuildingUnit(unit)
+    #   end
+    # end
 
     # put all of the spaces in the model into a vector
     spaces = OpenStudio::Model::SpaceVector.new
@@ -751,6 +755,20 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
 
     # reporting final condition of model
     runner.registerFinalCondition("The building finished with #{model.getSpaces.size} spaces.")
+
+    spaces = model.getSpaces
+    spaces.each do |space|
+      if Geometry.get_space_floor_z(space) + UnitConversions.convert(space.zOrigin, "m", "ft") < 0
+        surfaces = space.surfaces
+        surfaces.each do |surface|
+          puts(surface)
+          next if surface.surfaceType.downcase != "wall"
+    
+          surface.setOutsideBoundaryCondition("Foundation")
+        end
+      end
+    end
+
 
     return true
   end
