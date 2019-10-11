@@ -1,0 +1,37 @@
+stock_type: residential
+buildstock_directory: /home/aspeake/buildstock/OpenStudio-BuildStock  # Relative to this file or absolute
+project_directory: project_multifamily_beta  # Relative to buildstock_directory
+output_directory: /scratch/aspeake/singleunit/bldg_1
+#weather_files_url: https://s3.amazonaws.com/epwweatherfiles/project_resstock_national.zip
+weather_files_path: /shared-projects/buildstock/weather/project_resstock_national_weather.zip  # Relative to this file or absolute path to zipped weather files
+baseline:
+  buildstock_csv: ../buildstocks/buildstock_1.csv
+  n_buildings_represented: 80000000
+timeseries_csv_export:
+  reporting_frequency: Hourly
+  include_enduse_subcategories: true
+residential_simulation_controls:
+  timesteps_per_hr: 6
+  begin_month: 1
+  begin_day_of_month: 1
+  end_month: 12
+  end_day_of_month: 31
+  calendar_year: 2017
+eagle:
+  n_jobs: 1
+  minutes_per_sim: 5
+  account: enduse
+  sampling:
+    time: 5
+  postprocessing:
+    time: 15
+    n_workers: 1
+    aws:
+      region_name: 'us-west-2'
+      s3:
+        bucket: resbldg-datasets
+        prefix: single_unit
+      athena:
+        glue_service_role: service-role/AWSGlueServiceRole-default
+        database_name: singleunit
+        max_crawling_time: 300 #time to wait for the crawler to complete before aborting it
