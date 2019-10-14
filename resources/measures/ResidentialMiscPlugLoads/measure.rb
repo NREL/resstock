@@ -154,7 +154,7 @@ class ResidentialMiscElectricLoads < OpenStudio::Measure::ModelMeasure
           end
         end
 
-        mel_ann = (938.51 + 277.7 * noccupants + 0.46 * ffa) * mult
+        mel_ann = (912.07 + 276.17 * noccupants + 0.46 * ffa) * mult
       elsif option_type == Constants.OptionTypePlugLoadsEnergyUse
         mel_ann = energy_use
       end
