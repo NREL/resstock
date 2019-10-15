@@ -66,6 +66,16 @@ class ResidentialClothesDryerTest < MiniTest::Test
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank_ClothesWasher.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
+  def test_new_construction_premium_hp_elec
+    args_hash = {}
+    args_hash["cef"] = 4.5
+    args_hash["fuel_type"] = Constants.FuelTypeElectric
+    expected_num_del_objects = {}
+    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_values = { "Annual_kwh" => 617.8, "Annual_therm" => 0, "Annual_gal" => 0, "FuelType" => Constants.FuelTypeElectric, "Location" => args_hash["location"] }
+    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank_ClothesWasher.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
+  end
+
   def test_new_construction_standard_propane
     args_hash = {}
     args_hash["cef"] = 2.75 / 1.15
