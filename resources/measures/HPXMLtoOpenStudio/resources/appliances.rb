@@ -52,6 +52,7 @@ class Refrigerator
       frg.setEndUseSubcategory(unit_obj_name)
       frg.setSpace(space)
       frg_def.setName(unit_obj_name)
+      puts "frg design level #{design_level}"
       frg_def.setDesignLevel(design_level)
       frg_def.setFractionRadiant(0.0)
       frg_def.setFractionLatent(0.0)
@@ -449,6 +450,7 @@ class ClothesWasher
       cw.setEndUseSubcategory(unit_obj_name)
       cw.setSpace(space)
       cw_def.setName(unit_obj_name)
+      puts "cw design level #{design_level}"
       cw_def.setDesignLevel(design_level)
       cw_def.setFractionRadiant(0.48)
       cw_def.setFractionLatent(0.0)
@@ -711,6 +713,7 @@ class ClothesDryer
         cd.setEndUseSubcategory(unit_obj_name_e)
         cd.setSpace(space)
         cd_def.setName(unit_obj_name_e)
+        puts "cd design level #{design_level_e}"
         cd_def.setDesignLevel(design_level_e)
         cd_def.setFractionRadiant(0.09)
         cd_def.setFractionLatent(0.05)
@@ -905,6 +908,7 @@ class CookingRange
       rng.setEndUseSubcategory(unit_obj_name)
       rng.setSpace(space)
       rng_def.setName(unit_obj_name)
+      puts "range design level #{design_level_e}"
       rng_def.setDesignLevel(design_level_e)
       rng_def.setFractionRadiant(0.24)
       rng_def.setFractionLatent(0.3)
@@ -1221,6 +1225,7 @@ class Dishwasher
       dw.setEndUseSubcategory(unit_obj_name)
       dw.setSpace(space)
       dw_def.setName(unit_obj_name)
+      puts "dw design level #{design_level}"
       dw_def.setDesignLevel(design_level)
       dw_def.setFractionRadiant(0.36)
       dw_def.setFractionLatent(0.15)

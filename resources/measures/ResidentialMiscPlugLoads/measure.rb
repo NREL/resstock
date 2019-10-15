@@ -163,6 +163,7 @@ class ResidentialMiscElectricLoads < OpenStudio::Measure::ModelMeasure
         tot_mel_ann += mel_ann
       end
     end
+    puts "plug tot_mel_ann #{tot_mel_ann}"
 
     # Reporting
     if msgs.size > 1

@@ -180,6 +180,7 @@ class ResidentialCookingRange < OpenStudio::Measure::ModelMeasure
       tot_ann_f += ann_f
       tot_ann_i += ann_i
     end
+    puts "range tot_ann_e #{tot_ann_e}"
 
     # Reporting
     if msgs.size > 1
