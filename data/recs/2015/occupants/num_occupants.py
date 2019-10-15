@@ -23,6 +23,10 @@ import matplotlib.pyplot as plt
 print '2015'
 df = pd.read_csv('c:/recs2015/recs2015_public_v4.csv')
 
+# Filters
+# df = df[df['ZBEDROOMS']==0]
+# df = df[df['ZNHSLDMEM']==0]
+
 # SFD
 
 sfd = df.loc[df['TYPEHUQ'].isin([1, 2]), :]

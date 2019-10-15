@@ -28,7 +28,8 @@ print '2015'
 df = pd.read_csv('c:/recs2015/recs2015_public_v4.csv')
 df['TOTSQFT'] = df[['TOTHSQFT', 'TOTCSQFT']].max(axis=1)
 # df['MELS'] = df['KWHMICRO'] + df['KWHTVREL'] + df['KWHEVAPCOL'] + df['KWHDHUM'] + df['KWHHUM'] + df['KWHNEC']
-df['MELS'] = df['KWHMICRO'] + df['KWHTVREL'] + df['KWHDHUM'] + df['KWHHUM'] + df['KWHNEC']
+# df['MELS'] = df['KWHMICRO'] + df['KWHTVREL'] + df['KWHDHUM'] + df['KWHHUM'] + df['KWHNEC']
+df['MELS'] = df['KWHMICRO'] + df['KWHTVREL'] + df['KWHHUM'] + df['KWHNEC']
 
 # NHSLDMEM, TOTSQFT
 
