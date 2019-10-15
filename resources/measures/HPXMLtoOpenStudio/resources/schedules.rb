@@ -528,9 +528,10 @@ class HotWaterSchedule
     @sch_name = sch_name
     @schedule = nil
     @temperature_sch_name = temperature_sch_name
-    if num_bedrooms > 5
+    @nbeds = num_bedrooms.to_i
+    if @nbeds > 5
       @nbeds = 5
-    elsif num_bedrooms < 1
+    elsif @nbeds < 1
       @nbeds = 1
     end
     @target_water_temperature = UnitConversions.convert(target_water_temperature, "F", "C")
@@ -543,7 +544,6 @@ class HotWaterSchedule
 
     timestep_minutes = (60 / @model.getTimestep.numberOfTimestepsPerHour).to_i
     weeks = 1 # use a single week that repeats
-
     data = loadMinuteDrawProfileFromFile(timestep_minutes, days_shift, weeks)
     @totflow, @maxflow, @ontime = loadDrawProfileStatsFromFile()
     if data.nil? or @totflow.nil? or @maxflow.nil? or @ontime.nil?
