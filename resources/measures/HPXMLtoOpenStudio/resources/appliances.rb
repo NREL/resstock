@@ -244,7 +244,6 @@ class ClothesWasher
     # Eastment and Hendron, NREL/CP-550-39769, 2006).
     water_dens = Liquid.H2O_l.rho # lbm/ft^3
     water_sh = Liquid.H2O_l.cp # Btu/lbm-R
-
     dhw_use_per_cycle_test = ((UnitConversions.convert(gas_consumption_for_dhw_per_cycle_test, "therm", "kWh") *
                                 gas_dhw_heater_efficiency_test) / (dhw_deltaT_test *
                                 water_dens * water_sh * UnitConversions.convert(1.0, "Btu", "kWh") / UnitConversions.convert(1.0, "ft^3", "gal")))
@@ -275,6 +274,7 @@ class ClothesWasher
     # (eq. 14 Eastment and Hendron, NREL/CP-550-39769, 2006)
     actual_cycles_per_year = (cycles_per_year_test * (0.5 + nbeds / 6) *
                                 (12.5 / test_load)) # cycles/year
+
     total_daily_water_use = (actual_total_per_cycle_water_use * actual_cycles_per_year /
                              num_days_in_year) # gal/day
 
