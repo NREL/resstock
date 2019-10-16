@@ -39,15 +39,29 @@ class ResidentialClothesWasherTest < MiniTest::Test
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
-  def test_new_construction_energystar_most_efficient
+  def test_new_construction_energystar_more_efficient
     args_hash = {}
-    args_hash["imef"] = 2.92
-    args_hash["rated_annual_energy"] = 75
-    args_hash["annual_cost"] = 8.0
-    args_hash["drum_volume"] = 4.3
+    args_hash["imef"] = (3.28 - 0.503) / 0.95
+    args_hash["rated_annual_energy"] = 90
+    args_hash["annual_cost"] = 8
+    args_hash["drum_volume"] = 4.5
+    args_hash["test_date"] = 2013
     expected_num_del_objects = {}
     expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "WaterUseEquipmentDefinition" => 1, "WaterUseEquipment" => 1, "ScheduleRuleset" => 1, "ScheduleConstant" => 1 }
-    expected_values = { "Annual_kwh" => 34.9, "HotWater_gpd" => 2.27, "Location" => args_hash["location"] }
+    expected_values = { "Annual_kwh" => 33.2, "HotWater_gpd" => 0.98, "Location" => args_hash["location"] }
+    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
+  end
+
+  def test_new_construction_energystar_most_efficient
+    args_hash = {}
+    args_hash["imef"] = (3.28 - 0.503) / 0.95
+    args_hash["rated_annual_energy"] = 75
+    args_hash["annual_cost"] = 7
+    args_hash["drum_volume"] = 4.5
+    args_hash["test_date"] = 2013
+    expected_num_del_objects = {}
+    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "WaterUseEquipmentDefinition" => 1, "WaterUseEquipment" => 1, "ScheduleRuleset" => 1, "ScheduleConstant" => 1 }
+    expected_values = { "Annual_kwh" => 30.8, "HotWater_gpd" => 0.67, "Location" => args_hash["location"] }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 

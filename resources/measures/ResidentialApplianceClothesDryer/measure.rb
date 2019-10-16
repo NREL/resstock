@@ -145,7 +145,6 @@ class ResidentialClothesDryer < OpenStudio::Measure::ModelMeasure
       tot_ann_e += ann_e
       tot_ann_f += ann_f
     end
-    puts "cd tot_ann_e #{tot_ann_e}"
 
     # Reporting
     if msgs.size > 1
