@@ -52,7 +52,6 @@ class Refrigerator
       frg.setEndUseSubcategory(unit_obj_name)
       frg.setSpace(space)
       frg_def.setName(unit_obj_name)
-      puts "frg design level #{design_level}"
       frg_def.setDesignLevel(design_level)
       frg_def.setFractionRadiant(0.0)
       frg_def.setFractionLatent(0.0)
@@ -245,6 +244,7 @@ class ClothesWasher
     # Eastment and Hendron, NREL/CP-550-39769, 2006).
     water_dens = Liquid.H2O_l.rho # lbm/ft^3
     water_sh = Liquid.H2O_l.cp # Btu/lbm-R
+
     dhw_use_per_cycle_test = ((UnitConversions.convert(gas_consumption_for_dhw_per_cycle_test, "therm", "kWh") *
                                 gas_dhw_heater_efficiency_test) / (dhw_deltaT_test *
                                 water_dens * water_sh * UnitConversions.convert(1.0, "Btu", "kWh") / UnitConversions.convert(1.0, "ft^3", "gal")))
@@ -275,7 +275,6 @@ class ClothesWasher
     # (eq. 14 Eastment and Hendron, NREL/CP-550-39769, 2006)
     actual_cycles_per_year = (cycles_per_year_test * (0.5 + nbeds / 6) *
                                 (12.5 / test_load)) # cycles/year
-
     total_daily_water_use = (actual_total_per_cycle_water_use * actual_cycles_per_year /
                              num_days_in_year) # gal/day
 
@@ -450,7 +449,6 @@ class ClothesWasher
       cw.setEndUseSubcategory(unit_obj_name)
       cw.setSpace(space)
       cw_def.setName(unit_obj_name)
-      puts "cw design level #{design_level}"
       cw_def.setDesignLevel(design_level)
       cw_def.setFractionRadiant(0.48)
       cw_def.setFractionLatent(0.0)
@@ -713,7 +711,6 @@ class ClothesDryer
         cd.setEndUseSubcategory(unit_obj_name_e)
         cd.setSpace(space)
         cd_def.setName(unit_obj_name_e)
-        puts "cd design level #{design_level_e}"
         cd_def.setDesignLevel(design_level_e)
         cd_def.setFractionRadiant(0.09)
         cd_def.setFractionLatent(0.05)
@@ -908,7 +905,6 @@ class CookingRange
       rng.setEndUseSubcategory(unit_obj_name)
       rng.setSpace(space)
       rng_def.setName(unit_obj_name)
-      puts "range design level #{design_level_e}"
       rng_def.setDesignLevel(design_level_e)
       rng_def.setFractionRadiant(0.24)
       rng_def.setFractionLatent(0.3)
@@ -1225,7 +1221,6 @@ class Dishwasher
       dw.setEndUseSubcategory(unit_obj_name)
       dw.setSpace(space)
       dw_def.setName(unit_obj_name)
-      puts "dw design level #{design_level}"
       dw_def.setDesignLevel(design_level)
       dw_def.setFractionRadiant(0.36)
       dw_def.setFractionLatent(0.15)
@@ -1367,6 +1362,15 @@ class EnergyGuideLabel
     elsif date >= 2016
       # https://www.gpo.gov/fdsys/pkg/FR-2016-03-23/pdf/2016-06505.pdf
       return 93.2
+    elsif date >= 2017
+      # https://www.govinfo.gov/content/pkg/FR-2017-05-05/pdf/2017-09128.pdf
+      return 105.2
+    elsif date >= 2018
+      # https://www.govinfo.gov/content/pkg/FR-2018-04-24/pdf/2018-08519.pdf
+      return 102.2
+    elsif date >= 2019
+      # https://www.govinfo.gov/content/pkg/FR-2019-03-08/pdf/2019-04245.pdf
+      return 103.8
     end
   end
 
@@ -1450,6 +1454,15 @@ class EnergyGuideLabel
     elsif date >= 2016
       # https://www.gpo.gov/fdsys/pkg/FR-2016-03-23/pdf/2016-06505.pdf
       return 12.60
+    elsif date >= 2017
+      # https://www.govinfo.gov/content/pkg/FR-2017-05-05/pdf/2017-09128.pdf
+      return 12.90
+    elsif date >= 2018
+      # https://www.govinfo.gov/content/pkg/FR-2018-04-24/pdf/2018-08519.pdf
+      return 13.2
+    elsif date >= 2019
+      # https://www.govinfo.gov/content/pkg/FR-2019-03-08/pdf/2019-04245.pdf
+      return 13.2
     end
   end
 end

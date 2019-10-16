@@ -44,9 +44,10 @@ class ResidentialDishwasherTest < MiniTest::Test
     args_hash["num_settings"] = 12
     args_hash["rated_annual_energy"] = 270
     args_hash["annual_gas_cost"] = 23
+    args_hash["test_date"] = 2013
     expected_num_del_objects = {}
     expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "WaterUseEquipmentDefinition" => 1, "WaterUseEquipment" => 1, "ScheduleRuleset" => 1, "ScheduleConstant" => 1 }
-    expected_values = { "Annual_kwh" => 83.1, "HotWater_gpd" => 1.65, "Location" => args_hash["location"] }
+    expected_values = { "Annual_kwh" => 83.1, "HotWater_gpd" => 1.45, "Location" => args_hash["location"] }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
@@ -54,10 +55,23 @@ class ResidentialDishwasherTest < MiniTest::Test
     args_hash = {}
     args_hash["num_settings"] = 12
     args_hash["rated_annual_energy"] = 255
-    args_hash["annual_gas_cost"] = 23
+    args_hash["annual_gas_cost"] = 22
+    args_hash["test_date"] = 2013
     expected_num_del_objects = {}
     expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "WaterUseEquipmentDefinition" => 1, "WaterUseEquipment" => 1, "ScheduleRuleset" => 1, "ScheduleConstant" => 1 }
-    expected_values = { "Annual_kwh" => 83.1, "HotWater_gpd" => 1.65, "Location" => args_hash["location"] }
+    expected_values = { "Annual_kwh" => 81.6, "HotWater_gpd" => 1.32, "Location" => args_hash["location"] }
+    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
+  end
+
+  def test_new_construction_220_rated_kwh
+    args_hash = {}
+    args_hash["num_settings"] = 12
+    args_hash["rated_annual_energy"] = 220
+    args_hash["annual_gas_cost"] = 20
+    args_hash["test_date"] = 2017
+    expected_num_del_objects = {}
+    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "WaterUseEquipmentDefinition" => 1, "WaterUseEquipment" => 1, "ScheduleRuleset" => 1, "ScheduleConstant" => 1 }
+    expected_values = { "Annual_kwh" => 77.0, "HotWater_gpd" => 1.04, "Location" => args_hash["location"] }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
@@ -65,10 +79,23 @@ class ResidentialDishwasherTest < MiniTest::Test
     args_hash = {}
     args_hash["num_settings"] = 12
     args_hash["rated_annual_energy"] = 199
-    args_hash["annual_gas_cost"] = 23
+    args_hash["annual_gas_cost"] = 18
+    args_hash["test_date"] = 2017
     expected_num_del_objects = {}
     expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "WaterUseEquipmentDefinition" => 1, "WaterUseEquipment" => 1, "ScheduleRuleset" => 1, "ScheduleConstant" => 1 }
-    expected_values = { "Annual_kwh" => 83.1, "HotWater_gpd" => 1.65, "Location" => args_hash["location"] }
+    expected_values = { "Annual_kwh" => 68.8, "HotWater_gpd" => 0.96, "Location" => args_hash["location"] }
+    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
+  end
+
+  def test_new_construction_144_rated_kwh
+    args_hash = {}
+    args_hash["num_settings"] = 12
+    args_hash["rated_annual_energy"] = 144
+    args_hash["annual_gas_cost"] = 13
+    args_hash["test_date"] = 2013
+    expected_num_del_objects = {}
+    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "WaterUseEquipmentDefinition" => 1, "WaterUseEquipment" => 1, "ScheduleRuleset" => 1, "ScheduleConstant" => 1 }
+    expected_values = { "Annual_kwh" => 51.8, "HotWater_gpd" => 0.66, "Location" => args_hash["location"] }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
