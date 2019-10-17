@@ -66,7 +66,7 @@ class ResidentialGeometryFromFloorspaceJS_Test < MiniTest::Test
     args_hash["floorplan_path"] = File.join(File.dirname(__FILE__), "no_spaces_assigned_to_zones.json")
     expected_num_del_objects = {}
     expected_num_new_objects = { "Building" => 1, "Surface" => 40, "Space" => 4, "SpaceType" => 3, "ThermalZone" => 4, "BuildingUnit" => 1, "BuildingStory" => 3, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 2 }
-    expected_values = { "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 2.64 }
+    expected_values = { "Beds" => { "Building Unit 1" => 3 }, "Baths" => { "Building Unit 1" => 2 }, "NumOccupants" => 2.64 }
     model = _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
@@ -76,7 +76,7 @@ class ResidentialGeometryFromFloorspaceJS_Test < MiniTest::Test
     args_hash["floorplan_path"] = File.join(File.dirname(__FILE__), "SFD_UA.json")
     expected_num_del_objects = {}
     expected_num_new_objects = { "Building" => 1, "Surface" => 40, "Space" => 4, "SpaceType" => 3, "ThermalZone" => 3, "BuildingUnit" => 1, "BuildingStory" => 3, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 2 }
-    expected_values = { "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 2.64 }
+    expected_values = { "Beds" => { "Building Unit 1" => 3 }, "Baths" => { "Building Unit 1" => 2 }, "NumOccupants" => 2.64 }
     model = _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
@@ -86,7 +86,7 @@ class ResidentialGeometryFromFloorspaceJS_Test < MiniTest::Test
     args_hash["floorplan_path"] = File.join(File.dirname(__FILE__), "SFD_FA.json")
     expected_num_del_objects = {}
     expected_num_new_objects = { "Building" => 1, "Surface" => 40, "Space" => 4, "SpaceType" => 2, "ThermalZone" => 2, "BuildingUnit" => 1, "BuildingStory" => 3, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 2 }
-    expected_values = { "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 2.64 }
+    expected_values = { "Beds" => { "Building Unit 1" => 3 }, "Baths" => { "Building Unit 1" => 2 }, "NumOccupants" => 2.64 }
     model = _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
@@ -96,7 +96,7 @@ class ResidentialGeometryFromFloorspaceJS_Test < MiniTest::Test
     args_hash["floorplan_path"] = File.join(File.dirname(__FILE__), "SFA_2unit.json")
     expected_num_del_objects = {}
     expected_num_new_objects = { "Building" => 1, "Surface" => 71, "Space" => 8, "SpaceType" => 3, "ThermalZone" => 6, "BuildingUnit" => 2, "BuildingStory" => 3, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 2 }
-    expected_values = { "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 6.78 }
+    expected_values = { "Beds" => { "Building Unit 1" => 3, "Building Unit 2" => 3 }, "Baths" => { "Building Unit 1" => 2, "Building Unit 2" => 2 }, "NumOccupants" => 6.78 }
     model = _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
@@ -106,7 +106,7 @@ class ResidentialGeometryFromFloorspaceJS_Test < MiniTest::Test
     args_hash["floorplan_path"] = File.join(File.dirname(__FILE__), "MF_4unit.json")
     expected_num_del_objects = {}
     expected_num_new_objects = { "Building" => 1, "Surface" => 24, "Space" => 4, "SpaceType" => 1, "ThermalZone" => 4, "BuildingUnit" => 4, "BuildingStory" => 2, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 2 }
-    expected_values = { "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 13.56 }
+    expected_values = { "Beds" => { "Building Unit 1" => 3, "Building Unit 2" => 3, "Building Unit 3" => 3, "Building Unit 4" => 3 }, "Baths" => { "Building Unit 1" => 2, "Building Unit 2" => 2, "Building Unit 3" => 2, "Building Unit 4" => 2 }, "NumOccupants" => 13.56 }
     model = _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
@@ -116,7 +116,7 @@ class ResidentialGeometryFromFloorspaceJS_Test < MiniTest::Test
     args_hash["floorplan_path"] = File.join(File.dirname(__FILE__), "MF_corr_12unit.json")
     expected_num_del_objects = {}
     expected_num_new_objects = { "Building" => 1, "Surface" => 92, "Space" => 14, "SpaceType" => 2, "ThermalZone" => 14, "BuildingUnit" => 12, "BuildingStory" => 2, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 2 }
-    expected_values = { "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 40.68 }
+    expected_values = { "Beds" => { "Building Unit 1" => 3, "Building Unit 2" => 3, "Building Unit 3" => 3, "Building Unit 4" => 3, "Building Unit 5" => 3, "Building Unit 6" => 3, "Building Unit 7" => 3, "Building Unit 8" => 3, "Building Unit 9" => 3, "Building Unit 10" => 3, "Building Unit 11" => 3, "Building Unit 12" => 3 }, "Baths" => { "Building Unit 1" => 2, "Building Unit 2" => 2, "Building Unit 3" => 2, "Building Unit 4" => 2, "Building Unit 5" => 2, "Building Unit 6" => 2, "Building Unit 7" => 2, "Building Unit 8" => 2, "Building Unit 9" => 2, "Building Unit 10" => 2, "Building Unit 11" => 2, "Building Unit 12" => 2 }, "NumOccupants" => 40.68 }
     model = _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
@@ -126,7 +126,7 @@ class ResidentialGeometryFromFloorspaceJS_Test < MiniTest::Test
     args_hash["floorplan_path"] = File.join(File.dirname(__FILE__), "SFD_Multizone.json")
     expected_num_del_objects = {}
     expected_num_new_objects = { "Building" => 1, "Surface" => 80, "Space" => 12, "SpaceType" => 7, "ThermalZone" => 12, "BuildingUnit" => 1, "BuildingStory" => 3, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 2 }
-    expected_values = { "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 2.64 }
+    expected_values = { "Beds" => { "unit 1" => 3 }, "Baths" => { "unit 1" => 2 }, "NumOccupants" => 2.64 }
     model = _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
@@ -136,7 +136,18 @@ class ResidentialGeometryFromFloorspaceJS_Test < MiniTest::Test
     args_hash["floorplan_path"] = File.join(File.dirname(__FILE__), "MF_Multizone.json")
     expected_num_del_objects = {}
     expected_num_new_objects = { "Building" => 1, "Surface" => 181, "Space" => 26, "SpaceType" => 6, "ThermalZone" => 22, "BuildingUnit" => 2, "BuildingStory" => 3, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 2 }
-    expected_values = { "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 6.78 }
+    expected_values = { "Beds" => { "Building Unit 1" => 3, "Building Unit 2" => 3 }, "Baths" => { "Building Unit 1" => 2, "Building Unit 2" => 2 }, "NumOccupants" => 6.78 }
+    model = _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
+  end
+
+  def test_mf_with_corridor_bedrooms_assignment
+    num_finished_spaces = 12
+    args_hash = {}
+    args_hash["num_bedrooms"] = "1, 1, 2, 2, 3, 3, 1, 2, 3, 1, 2, 3"
+    args_hash["floorplan_path"] = File.join(File.dirname(__FILE__), "MF_corr_12unit.json")
+    expected_num_del_objects = {}
+    expected_num_new_objects = { "Building" => 1, "Surface" => 92, "Space" => 14, "SpaceType" => 2, "ThermalZone" => 14, "BuildingUnit" => 12, "BuildingStory" => 2, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 2 }
+    expected_values = { "Beds" => { "Building Unit 1" => 1, "Building Unit 2" => 1, "Building Unit 3" => 2, "Building Unit 4" => 2, "Building Unit 5" => 3, "Building Unit 6" => 3, "Building Unit 7" => 1, "Building Unit 8" => 2, "Building Unit 9" => 3, "Building Unit 10" => 1, "Building Unit 11" => 2, "Building Unit 12" => 3 }, "Baths" => { "Building Unit 1" => 2, "Building Unit 2" => 2, "Building Unit 3" => 2, "Building Unit 4" => 2, "Building Unit 5" => 2, "Building Unit 6" => 2, "Building Unit 7" => 2, "Building Unit 8" => 2, "Building Unit 9" => 2, "Building Unit 10" => 2, "Building Unit 11" => 2, "Building Unit 12" => 2 }, "NumOccupants" => 29.64 }
     model = _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
@@ -258,7 +269,7 @@ class ResidentialGeometryFromFloorspaceJS_Test < MiniTest::Test
     args_hash["num_occupants"] = "0"
     expected_num_del_objects = {}
     expected_num_new_objects = { "Building" => 1, "Surface" => 80, "Space" => 12, "SpaceType" => 7, "ThermalZone" => 12, "BuildingUnit" => 1, "BuildingStory" => 3 }
-    expected_values = { "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 0 }
+    expected_values = { "Beds" => { "unit 1" => 3 }, "Baths" => { "unit 1" => 2 }, "NumOccupants" => 0 }
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
@@ -268,7 +279,7 @@ class ResidentialGeometryFromFloorspaceJS_Test < MiniTest::Test
     args_hash["num_occupants"] = Constants.Auto
     expected_num_del_objects = {}
     expected_num_new_objects = { "Building" => 1, "Surface" => 80, "Space" => 12, "SpaceType" => 7, "ThermalZone" => 12, "BuildingUnit" => 1, "BuildingStory" => 3, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 2 }
-    expected_values = { "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 2.64 }
+    expected_values = { "Beds" => { "unit 1" => 3 }, "Baths" => { "unit 1" => 2 }, "NumOccupants" => 2.64 }
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
@@ -278,7 +289,7 @@ class ResidentialGeometryFromFloorspaceJS_Test < MiniTest::Test
     args_hash["num_occupants"] = "3"
     expected_num_del_objects = {}
     expected_num_new_objects = { "Building" => 1, "Surface" => 80, "Space" => 12, "SpaceType" => 7, "ThermalZone" => 12, "BuildingUnit" => 1, "BuildingStory" => 3, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 2 }
-    expected_values = { "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 3 }
+    expected_values = { "Beds" => { "unit 1" => 3 }, "Baths" => { "unit 1" => 2 }, "NumOccupants" => 3 }
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
@@ -373,9 +384,10 @@ class ResidentialGeometryFromFloorspaceJS_Test < MiniTest::Test
     check_num_objects(all_del_objects, expected_num_del_objects, "deleted")
 
     Geometry.get_building_units(model, runner).each do |unit|
+      unit_name = unit.name.to_s
       nbeds, nbaths = Geometry.get_unit_beds_baths(model, unit, runner)
-      assert_equal(expected_values["Beds"], nbeds)
-      assert_equal(expected_values["Baths"], nbaths)
+      assert_equal(expected_values["Beds"][unit_name], nbeds)
+      assert_equal(expected_values["Baths"][unit_name], nbaths)
     end
 
     actual_values = { "NumOccupants" => 0 }
