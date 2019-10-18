@@ -1,3 +1,5 @@
+# Helper methods related to tsv files and options lookup
+
 require 'csv'
 require "#{File.dirname(__FILE__)}/meta_measure"
 
