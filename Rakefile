@@ -421,7 +421,7 @@ def get_all_project_dir_names()
   return project_dir_names
 end
 
-desc 'Update all measure xmls, and regenerate example osws'
+desc 'Apply rubocop, update all measure xmls, and regenerate example osws'
 Rake::TestTask.new('update_measures') do |t|
   t.libs << 'test'
   t.test_files = Dir['test/test_update_measures.rb']
@@ -431,6 +431,11 @@ end
 
 def update_measures
   require 'openstudio'
+
+  # Apply rubocop
+  command = "rubocop --auto-correct --format simple --only Layout"
+  puts "Applying rubocop style to measures..."
+  system(command)
 
   [File.expand_path("../measures/", __FILE__), File.expand_path("../resources/measures/", __FILE__)].each do |measures_dir|
     # Update measure xmls
