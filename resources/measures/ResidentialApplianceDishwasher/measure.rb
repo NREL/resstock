@@ -51,7 +51,7 @@ class ResidentialDishwasher < OpenStudio::Measure::ModelMeasure
     # make a bool argument for cold water inlet only
     cold_inlet = OpenStudio::Measure::OSArgument::makeBoolArgument("cold_inlet", true)
     cold_inlet.setDisplayName("Cold Water Inlet Only")
-    cold_inlet.setDescription("Does the dishwasher use a cold water connection only.   Input obtained from manufacturer's literature.")
+    cold_inlet.setDescription("Does the dishwasher use a cold water connection only. Input obtained from manufacturer's literature.")
     cold_inlet.setDefaultValue("false")
     args << cold_inlet
 
@@ -74,7 +74,7 @@ class ResidentialDishwasher < OpenStudio::Measure::ModelMeasure
     annual_gas_cost = OpenStudio::Measure::OSArgument::makeDoubleArgument("annual_gas_cost", true)
     annual_gas_cost.setDisplayName("Energy Guide Annual Gas Cost")
     annual_gas_cost.setUnits("$/yr")
-    annual_gas_cost.setDescription("Annual cost of gas, as rated.  Obtained from the EnergyGuide label.")
+    annual_gas_cost.setDescription("Annual cost of gas, as rated. Obtained from the EnergyGuide label.")
     annual_gas_cost.setDefaultValue(23)
     args << annual_gas_cost
 
