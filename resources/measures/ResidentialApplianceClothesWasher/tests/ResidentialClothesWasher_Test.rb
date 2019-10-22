@@ -40,28 +40,30 @@ class ResidentialClothesWasherTest < MiniTest::Test
   end
 
   def test_new_construction_energystar_more_efficient
+    # https://www.kenmore.com/products/kenmore-41262-4-5-cu-ft-front-load-washer-white/
     args_hash = {}
-    args_hash["imef"] = (3.28 - 0.503) / 0.95
+    args_hash["imef"] = (3.2 - 0.503) / 0.95
     args_hash["rated_annual_energy"] = 90
     args_hash["annual_cost"] = 8
     args_hash["drum_volume"] = 4.5
     args_hash["test_date"] = 2013
     expected_num_del_objects = {}
     expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "WaterUseEquipmentDefinition" => 1, "WaterUseEquipment" => 1, "ScheduleRuleset" => 1, "ScheduleConstant" => 1 }
-    expected_values = { "Annual_kwh" => 33.2, "HotWater_gpd" => 0.98, "Location" => args_hash["location"] }
+    expected_values = { "Annual_kwh" => 33.2, "HotWater_gpd" => 0.93, "Location" => args_hash["location"] }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
   def test_new_construction_energystar_most_efficient
+    # https://www.lowes.com/pd/Samsung-AddWash-4-5-cu-ft-High-Efficiency-Stackable-Front-Load-Washer-White-ENERGY-STAR/1000041269
     args_hash = {}
     args_hash["imef"] = (3.28 - 0.503) / 0.95
-    args_hash["rated_annual_energy"] = 60
-    args_hash["annual_cost"] = 6
-    args_hash["drum_volume"] = 4.3
+    args_hash["rated_annual_energy"] = 75
+    args_hash["annual_cost"] = 7
+    args_hash["drum_volume"] = 4.5
     args_hash["test_date"] = 2013
     expected_num_del_objects = {}
     expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "WaterUseEquipmentDefinition" => 1, "WaterUseEquipment" => 1, "ScheduleRuleset" => 1, "ScheduleConstant" => 1 }
-    expected_values = { "Annual_kwh" => 29.7, "HotWater_gpd" => 0.43, "Location" => args_hash["location"] }
+    expected_values = { "Annual_kwh" => 30.8, "HotWater_gpd" => 0.67, "Location" => args_hash["location"] }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
