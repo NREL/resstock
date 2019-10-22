@@ -102,8 +102,11 @@ class ProcessCentralSystemFanCoil < OpenStudio::Measure::ModelMeasure
     end # unit
 
     unless hot_water_loop.nil?
-      pump_htg_program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
-      pump_htg_program.setName("Central pumps htg program")
+      pump_htg_energy_program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
+      pump_htg_energy_program.setName("Central pumps htg energy program")
+
+      pump_htg_power_program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
+      pump_htg_power_program.setName("Central pumps htg power program")
 
       hot_water_loop.supplyComponents.each do |supply_component|
         next unless supply_component.to_PumpVariableSpeed.is_initialized
@@ -111,28 +114,49 @@ class ProcessCentralSystemFanCoil < OpenStudio::Measure::ModelMeasure
         pump = supply_component.to_PumpVariableSpeed.get
         pump.setName("Central htg pump")
 
-        htg_pump_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Pump Electric Energy")
-        htg_pump_sensor.setName("#{pump.name.to_s.gsub("|", "_")} s")
-        htg_pump_sensor.setKeyName(pump.name.to_s)
+        htg_pump_energy_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Pump Electric Energy")
+        htg_pump_energy_sensor.setName("#{pump.name.to_s.gsub("|", "_")} e s")
+        htg_pump_energy_sensor.setKeyName(pump.name.to_s)
 
-        pump_htg_program.addLine("Set central_pumps_h = #{htg_pump_sensor.name}")
+        pump_htg_energy_program.addLine("Set central_pumps_h = #{htg_pump_energy_sensor.name}")
 
         pump_output_var = OpenStudio::Model::EnergyManagementSystemOutputVariable.new(model, "central_pumps_h")
-        pump_output_var.setName("Central htg pump:Pumps:Electricity")
+        pump_output_var.setName("Central htg pump:Pumps:Electricity:Energy")
         pump_output_var.setTypeOfDataInVariable("Summed")
         pump_output_var.setUpdateFrequency("SystemTimestep")
-        pump_output_var.setEMSProgramOrSubroutineName(pump_htg_program)
+        pump_output_var.setEMSProgramOrSubroutineName(pump_htg_energy_program)
+        pump_output_var.setUnits("J")
+
+        htg_pump_power_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Pump Electric Power")
+        htg_pump_power_sensor.setName("#{pump.name.to_s.gsub("|", "_")} p s")
+        htg_pump_power_sensor.setKeyName(pump.name.to_s)
+
+        pump_htg_power_program.addLine("Set central_pumps_h = #{htg_pump_power_sensor.name}")
+
+        pump_output_var = OpenStudio::Model::EnergyManagementSystemOutputVariable.new(model, "central_pumps_h")
+        pump_output_var.setName("Central htg pump:Pumps:Electricity:Power")
+        pump_output_var.setTypeOfDataInVariable("Summed")
+        pump_output_var.setUpdateFrequency("SystemTimestep")
+        pump_output_var.setEMSProgramOrSubroutineName(pump_htg_power_program)
         pump_output_var.setUnits("J")
       end
 
-      pump_htg_pcm = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
-      pump_htg_pcm.setName("Central pump htg program calling manager")
-      pump_htg_pcm.setCallingPoint("EndOfSystemTimestepBeforeHVACReporting")
-      pump_htg_pcm.addProgram(pump_htg_program)
+      pump_htg_energy_pcm = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
+      pump_htg_energy_pcm.setName("Central pump htg energy program calling manager")
+      pump_htg_energy_pcm.setCallingPoint("EndOfSystemTimestepBeforeHVACReporting")
+      pump_htg_energy_pcm.addProgram(pump_htg_energy_program)
+
+      pump_htg_power_pcm = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
+      pump_htg_power_pcm.setName("Central pump htg energy program calling manager")
+      pump_htg_power_pcm.setCallingPoint("EndOfSystemTimestepBeforeHVACReporting")
+      pump_htg_power_pcm.addProgram(pump_htg_power_program)
     end
 
-    pump_clg_program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
-    pump_clg_program.setName("Central pumps clg program")
+    pump_clg_energy_program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
+    pump_clg_energy_program.setName("Central pumps clg energy program")
+
+    pump_clg_power_program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
+    pump_clg_power_program.setName("Central pumps clg power program")
 
     chilled_water_loop.supplyComponents.each do |supply_component|
       next unless supply_component.to_PumpVariableSpeed.is_initialized
@@ -140,24 +164,42 @@ class ProcessCentralSystemFanCoil < OpenStudio::Measure::ModelMeasure
       pump = supply_component.to_PumpVariableSpeed.get
       pump.setName("Central clg pump")
 
-      clg_pump_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Pump Electric Energy")
-      clg_pump_sensor.setName("#{pump.name.to_s.gsub("|", "_")} s")
-      clg_pump_sensor.setKeyName(pump.name.to_s)
+      clg_pump_energy_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Pump Electric Energy")
+      clg_pump_energy_sensor.setName("#{pump.name.to_s.gsub("|", "_")} e s")
+      clg_pump_energy_sensor.setKeyName(pump.name.to_s)
 
-      pump_clg_program.addLine("Set central_pumps_c = #{clg_pump_sensor.name}")
+      pump_clg_energy_program.addLine("Set central_pumps_c = #{clg_pump_energy_sensor.name}")
 
       pump_output_var = OpenStudio::Model::EnergyManagementSystemOutputVariable.new(model, "central_pumps_c")
-      pump_output_var.setName("Central clg pump:Pumps:Electricity")
+      pump_output_var.setName("Central clg pump:Pumps:Electricity:Energy")
       pump_output_var.setTypeOfDataInVariable("Summed")
       pump_output_var.setUpdateFrequency("SystemTimestep")
-      pump_output_var.setEMSProgramOrSubroutineName(pump_clg_program)
+      pump_output_var.setEMSProgramOrSubroutineName(pump_clg_energy_program)
+      pump_output_var.setUnits("J")
+
+      clg_pump_power_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Pump Electric Power")
+      clg_pump_power_sensor.setName("#{pump.name.to_s.gsub("|", "_")} p s")
+      clg_pump_power_sensor.setKeyName(pump.name.to_s)
+
+      pump_clg_power_program.addLine("Set central_pumps_c = #{clg_pump_power_sensor.name}")
+
+      pump_output_var = OpenStudio::Model::EnergyManagementSystemOutputVariable.new(model, "central_pumps_c")
+      pump_output_var.setName("Central clg pump:Pumps:Electricity:Power")
+      pump_output_var.setTypeOfDataInVariable("Summed")
+      pump_output_var.setUpdateFrequency("SystemTimestep")
+      pump_output_var.setEMSProgramOrSubroutineName(pump_clg_power_program)
       pump_output_var.setUnits("J")
     end
 
-    pump_clg_pcm = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
-    pump_clg_pcm.setName("Central pump clg program calling manager")
-    pump_clg_pcm.setCallingPoint("EndOfSystemTimestepBeforeHVACReporting")
-    pump_clg_pcm.addProgram(pump_clg_program)
+    pump_clg_energy_pcm = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
+    pump_clg_energy_pcm.setName("Central pump clg energy program calling manager")
+    pump_clg_energy_pcm.setCallingPoint("EndOfSystemTimestepBeforeHVACReporting")
+    pump_clg_energy_pcm.addProgram(pump_clg_energy_program)
+
+    pump_clg_power_pcm = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
+    pump_clg_power_pcm.setName("Central pump clg power program calling manager")
+    pump_clg_power_pcm.setCallingPoint("EndOfSystemTimestepBeforeHVACReporting")
+    pump_clg_power_pcm.addProgram(pump_clg_power_program)
 
     simulation_control = model.getSimulationControl
     simulation_control.setRunSimulationforSizingPeriods(true) # indicate e+ autosizing
