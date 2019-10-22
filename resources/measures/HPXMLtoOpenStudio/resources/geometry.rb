@@ -1359,8 +1359,8 @@ class Geometry
     else
       num_ba = num_ba.map(&:to_f)
     end
-    if num_br.any? { |x| x <= 0 or x % 1 != 0 }
-      runner.registerError("Number of bedrooms must be a positive integer.")
+    if num_br.any? { |x| x < 0 or x % 1 != 0 }
+      runner.registerError("Number of bedrooms must be a non-negative integer.")
       return false
     end
     if num_ba.any? { |x| x <= 0 or x % 0.25 != 0 }
