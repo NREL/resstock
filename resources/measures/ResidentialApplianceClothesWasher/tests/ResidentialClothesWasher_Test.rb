@@ -40,7 +40,8 @@ class ResidentialClothesWasherTest < MiniTest::Test
   end
 
   def test_new_construction_energystar_more_efficient
-    # https://www.kenmore.com/products/kenmore-41262-4-5-cu-ft-front-load-washer-white/
+    # Kenmore - 4126#
+    # https://www.kenmore.com/products/kenmore-41262-4-5-cu-ft-front-load-washer-white
     args_hash = {}
     args_hash["imef"] = (3.2 - 0.503) / 0.95
     args_hash["rated_annual_energy"] = 90
@@ -54,6 +55,7 @@ class ResidentialClothesWasherTest < MiniTest::Test
   end
 
   def test_new_construction_energystar_most_efficient
+    # Samsung - WF45K62**A*
     # https://www.lowes.com/pd/Samsung-AddWash-4-5-cu-ft-High-Efficiency-Stackable-Front-Load-Washer-White-ENERGY-STAR/1000041269
     args_hash = {}
     args_hash["imef"] = (3.28 - 0.503) / 0.95
