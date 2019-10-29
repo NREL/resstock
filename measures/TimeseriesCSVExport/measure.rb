@@ -30,12 +30,12 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
   end
 
   def reporting_frequency_map
-    return { 
-      "Timestep" => "Zone Timestep", 
-      "Hourly" => "Hourly", 
-      "Daily" => "Daily", 
-      # "Monthly" => "Monthly", 
-      "RunPeriod" => "Run Period" 
+    return {
+      "Timestep" => "Zone Timestep",
+      "Hourly" => "Hourly",
+      "Daily" => "Daily",
+      # "Monthly" => "Monthly",
+      "RunPeriod" => "Run Period"
     }
   end
 
@@ -174,11 +174,10 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
       return false
     end
 
-    actual_year_timestamps = weather.actual_year_timestamps(reporting_frequency)
-
     # Initialize timeseries hash which will be exported to csv
     timeseries = {}
     timeseries["Time"] = datetimes # timestamps from the sqlfile (TMY)
+    actual_year_timestamps = weather.actual_year_timestamps(reporting_frequency)
     unless actual_year_timestamps.empty?
       timeseries["Time"] = actual_year_timestamps # timestamps constructed using run period and Time class (AMY)
     end

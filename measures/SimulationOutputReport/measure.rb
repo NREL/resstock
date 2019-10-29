@@ -203,25 +203,15 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     report_sim_output(runner, "electricity_interior_lighting_kwh", electricity.interior_lighting[0], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_exterior_lighting_kwh", electricity.exterior_lighting[0], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_interior_equipment_kwh", electricity.interior_equipment[0], "GJ", elec_site_units)
+    report_sim_output(runner, "electricity_water_systems_kwh", electricity.water_systems[0], "GJ", elec_site_units)
 
     # Initialize variables to check against sql file totals
     env_period_ix_query = "SELECT EnvironmentPeriodIndex FROM EnvironmentPeriods WHERE EnvironmentName='#{ann_env_pd}'"
     env_period_ix = sqlFile.execAndReturnFirstInt(env_period_ix_query).get
 
-    modeledElectricityPumpsHeating = 0.0
-    modeledElectricityPumpsCooling = 0.0
-    modeledElectricityFansHeating = 0.0
-    modeledElectricityFansCooling = 0.0
-
-    central_electricity_pumps_heating_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:ELECTRICITYPUMPSHEATING') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
-    unless sqlFile.execAndReturnFirstDouble(central_electricity_pumps_heating_query).empty?
-      modeledElectricityPumpsHeating = sqlFile.execAndReturnFirstDouble(central_electricity_pumps_heating_query).get.round(2)
-    end
-
-    central_electricity_pumps_cooling_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:ELECTRICITYPUMPSCOOLING') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
-    unless sqlFile.execAndReturnFirstDouble(central_electricity_pumps_cooling_query).empty?
-      modeledElectricityPumpsCooling = sqlFile.execAndReturnFirstDouble(central_electricity_pumps_cooling_query).get.round(2)
-    end
+    # Check disaggregated fan energy
+    modeledElectricityFansHeating = Vector.elements(Array.new(1, 0.0))
+    modeledElectricityFansCooling = Vector.elements(Array.new(1, 0.0))
 
     # Get building units
     units = Geometry.get_building_units(model, runner)
@@ -232,49 +222,43 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     total_units_represented = 0
     units.each do |unit|
       unit_name = unit.name.to_s.upcase
+      total_units_represented += output_meters.get_units_represented(unit)
 
-      units_represented = 1
-      if unit.additionalProperties.getFeatureAsInteger("Units Represented").is_initialized
-        units_represented = unit.additionalProperties.getFeatureAsInteger("Units Represented").get
-      end
-      total_units_represented += units_represented
-
-      electricity_fans_heating_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYFANSHEATING') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
-      unless sqlFile.execAndReturnFirstDouble(electricity_fans_heating_query).empty?
-        modeledElectricityFansHeating += sqlFile.execAndReturnFirstDouble(electricity_fans_heating_query).get.round(2)
-      end
-
-      electricity_fans_cooling_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYFANSCOOLING') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
-      unless sqlFile.execAndReturnFirstDouble(electricity_fans_cooling_query).empty?
-        modeledElectricityFansCooling += sqlFile.execAndReturnFirstDouble(electricity_fans_cooling_query).get.round(2)
-      end
+      modeledElectricityFansHeating = output_meters.add_unit(sqlFile, modeledElectricityFansHeating, 1, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYFANSHEATING') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
+      modeledElectricityFansCooling = output_meters.add_unit(sqlFile, modeledElectricityFansCooling, 1, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYFANSCOOLING') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
     end
 
     electricityFans = 0.0
     unless sqlFile.electricityFans.empty?
       electricityFans = sqlFile.electricityFans.get
     end
-    err = (modeledElectricityFansHeating + modeledElectricityFansCooling) - electricityFans
+    modeledElectricityFans = modeledElectricityFansHeating[0] + modeledElectricityFansCooling[0]
+    err = modeledElectricityFans - electricityFans
     if err.abs > 0.2
-      runner.registerError("Disaggregated fan energy (#{modeledElectricityFansHeating + modeledElectricityFansCooling} GJ) relative to building fan energy (#{electricityFans} GJ): #{err} GJ.")
+      runner.registerError("Disaggregated fan energy (#{modeledElectricityFans} GJ) relative to building fan energy (#{electricityFans} GJ): #{err} GJ.")
       return false
     end
     report_sim_output(runner, "electricity_fans_heating_kwh", electricity.fans_heating[0], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_fans_cooling_kwh", electricity.fans_cooling[0], "GJ", elec_site_units)
+
+    # Check disaggregated pump energy
+    modeledElectricityPumpsHeating = output_meters.add_unit(sqlFile, Vector.elements(Array.new(1, 0.0)), 1, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:ELECTRICITYPUMPSHEATING') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
+    modeledElectricityPumpsCooling = output_meters.add_unit(sqlFile, Vector.elements(Array.new(1, 0.0)), 1, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:ELECTRICITYPUMPSCOOLING') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
+
     electricityPumps = 0.0
     unless sqlFile.electricityPumps.empty?
       electricityPumps = sqlFile.electricityPumps.get
     end
-    err = (modeledElectricityPumpsHeating + modeledElectricityPumpsCooling) - electricityPumps
+    modeledElectricityPumps = modeledElectricityPumpsHeating[0] + modeledElectricityPumpsCooling[0]
+    err = modeledElectricityPumps - electricityPumps
     if err.abs > 0.2
-      runner.registerError("Disaggregated pump energy (#{modeledElectricityPumpsHeating + modeledElectricityPumpsCooling} GJ) relative to building pump energy (#{electricityPumps} GJ): #{err} GJ.")
+      runner.registerError("Disaggregated pump energy (#{modeledElectricityPumps} GJ) relative to building pump energy (#{electricityPumps} GJ): #{err} GJ.")
       return false
     end
     report_sim_output(runner, "electricity_pumps_heating_kwh", electricity.pumps_heating[0], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_central_system_pumps_heating_kwh", electricity.central_pumps_heating[0], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_pumps_cooling_kwh", electricity.pumps_cooling[0], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_central_system_pumps_cooling_kwh", electricity.central_pumps_cooling[0], "GJ", elec_site_units)
-    report_sim_output(runner, "electricity_water_systems_kwh", electricity.water_systems[0], "GJ", elec_site_units)
 
     # NATURAL GAS
 

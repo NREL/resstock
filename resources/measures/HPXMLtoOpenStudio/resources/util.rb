@@ -343,7 +343,7 @@ end
 class OutputMeters
   def initialize(model, runner, reporting_frequency, include_enduse_subcategories = false)
     require "matrix"
-  
+
     @model = model
     @runner = runner
     @reporting_frequency_os = reporting_frequency
@@ -354,34 +354,37 @@ class OutputMeters
       @steps_per_hour = @model.getSimulationControl.timestep.get.numberOfTimestepsPerHour
     end
 
-    reporting_frequency_map = { 
+    reporting_frequency_map = {
       "Timestep" => "Zone Timestep",
       "Hourly" => "Hourly",
       "Daily" => "Daily",
       # "Monthly" => "Monthly",
-      "RunPeriod" => "Run Period" 
+      "RunPeriod" => "Run Period"
     }
     @reporting_frequency_eplus = reporting_frequency_map[@reporting_frequency_os]
+  end
+
+  def steps_per_hour
+    return @steps_per_hour
   end
 
   def electricity(sql_file, ann_env_pd)
     env_period_ix_query = "SELECT EnvironmentPeriodIndex FROM EnvironmentPeriods WHERE EnvironmentName='#{ann_env_pd}'"
     env_period_ix = sql_file.execAndReturnFirstInt(env_period_ix_query).get
-
     num_ts = get_num_ts(sql_file)
 
     # Get meters that aren't tied to units (i.e., are metered at the building level)
     modeledCentralElectricityHeating = add_unit(sql_file, Vector.elements(Array.new(num_ts, 0.0)), 1, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:ELECTRICITYHEATING') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
     modeledCentralElectricityCooling = add_unit(sql_file, Vector.elements(Array.new(num_ts, 0.0)), 1, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:ELECTRICITYCOOLING') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
     modeledCentralElectricityExteriorLighting = add_unit(sql_file, Vector.elements(Array.new(num_ts, 0.0)), 1, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:ELECTRICITYEXTERIORLIGHTING') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
-    modeledCentralElectricityExteriorHolidayLighting = add_unit(sql_file, Vector.elements(Array.new(num_ts, 0.0)), 1, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:ELECTRICITYEXTERIORHOLIDAYLIGHTING') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')") 
-    modeledCentralElectricityPumpsHeating = add_unit(sql_file, Vector.elements(Array.new(num_ts, 0.0)), 1, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:ELECTRICITYPUMPSHEATING') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')") 
-    modeledCentralElectricityPumpsCooling = add_unit(sql_file, Vector.elements(Array.new(num_ts, 0.0)), 1, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:ELECTRICITYPUMPSCOOLING') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')") 
-    modeledCentralElectricityInteriorEquipment = add_unit(sql_file, Vector.elements(Array.new(num_ts, 0.0)), 1, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:ELECTRICITYINTERIOREQUIPMENT') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')") 
-    modeledCentralElectricityPhotovoltaics = add_unit(sql_file, Vector.elements(Array.new(num_ts, 0.0)), 1, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:ELECTRICITYPHOTOVOLTAICS') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')") 
-    modeledCentralElectricityExtraRefrigerator = add_unit(sql_file, Vector.elements(Array.new(num_ts, 0.0)), 1, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:ELECTRICITYEXTRAREFRIGERATOR') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')") 
-    modeledCentralElectricityFreezer = add_unit(sql_file, Vector.elements(Array.new(num_ts, 0.0)), 1, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:ELECTRICITYFREEZER') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')") 
-    modeledCentralElectricityGarageLighting = add_unit(sql_file, Vector.elements(Array.new(num_ts, 0.0)), 1, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:ELECTRICITYGARAGELIGHTING') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')") 
+    modeledCentralElectricityExteriorHolidayLighting = add_unit(sql_file, Vector.elements(Array.new(num_ts, 0.0)), 1, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:ELECTRICITYEXTERIORHOLIDAYLIGHTING') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
+    modeledCentralElectricityPumpsHeating = add_unit(sql_file, Vector.elements(Array.new(num_ts, 0.0)), 1, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:ELECTRICITYPUMPSHEATING') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
+    modeledCentralElectricityPumpsCooling = add_unit(sql_file, Vector.elements(Array.new(num_ts, 0.0)), 1, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:ELECTRICITYPUMPSCOOLING') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
+    modeledCentralElectricityInteriorEquipment = add_unit(sql_file, Vector.elements(Array.new(num_ts, 0.0)), 1, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:ELECTRICITYINTERIOREQUIPMENT') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
+    modeledCentralElectricityPhotovoltaics = add_unit(sql_file, Vector.elements(Array.new(num_ts, 0.0)), 1, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:ELECTRICITYPHOTOVOLTAICS') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
+    modeledCentralElectricityExtraRefrigerator = add_unit(sql_file, Vector.elements(Array.new(num_ts, 0.0)), 1, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:ELECTRICITYEXTRAREFRIGERATOR') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
+    modeledCentralElectricityFreezer = add_unit(sql_file, Vector.elements(Array.new(num_ts, 0.0)), 1, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:ELECTRICITYFREEZER') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
+    modeledCentralElectricityGarageLighting = add_unit(sql_file, Vector.elements(Array.new(num_ts, 0.0)), 1, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:ELECTRICITYGARAGELIGHTING') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
 
     # Separate these from non central systems
     centralElectricityHeating = Vector.elements(Array.new(num_ts, 0.0))
@@ -429,32 +432,22 @@ class OutputMeters
 
     units.each do |unit|
       unit_name = unit.name.to_s.upcase
-
-      units_represented = 1
-      if unit.additionalProperties.getFeatureAsInteger("Units Represented").is_initialized
-        units_represented = unit.additionalProperties.getFeatureAsInteger("Units Represented").get
-      end
+      units_represented = get_units_represented(unit)
 
       electricityHeating = add_unit(sql_file, electricityHeating, units_represented, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYHEATING') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
       centralElectricityHeating = apportion_central(centralElectricityHeating, modeledCentralElectricityHeating, units_represented, units.length)
-
       electricityCooling = add_unit(sql_file, electricityCooling, units_represented, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYCOOLING') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
       centralElectricityCooling = apportion_central(centralElectricityCooling, modeledCentralElectricityCooling, units_represented, units.length)
-
       electricityInteriorLighting = add_unit(sql_file, electricityInteriorLighting, units_represented, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYINTERIORLIGHTING') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
       electricityExteriorLighting = apportion_central(electricityExteriorLighting, modeledCentralElectricityExteriorLighting, units_represented, units.length)
-
       electricityInteriorEquipment = add_unit(sql_file, electricityInteriorEquipment, units_represented, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYINTERIOREQUIPMENT') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
       electricityInteriorEquipment = apportion_central(electricityInteriorEquipment, modeledCentralElectricityInteriorEquipment, units_represented, units.length)
-
       electricityFansHeating = add_unit(sql_file, electricityFansHeating, units_represented, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYFANSHEATING') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
       electricityFansCooling = add_unit(sql_file, electricityFansCooling, units_represented, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYFANSCOOLING') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
-
       electricityPumpsHeating = add_unit(sql_file, electricityPumpsHeating, units_represented, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYPUMPSHEATING') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
       centralElectricityPumpsHeating = apportion_central(centralElectricityPumpsHeating, modeledCentralElectricityPumpsHeating, units_represented, units.length)
       electricityPumpsCooling = add_unit(sql_file, electricityPumpsCooling, units_represented, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYPUMPSCOOLING') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
       centralElectricityPumpsCooling = apportion_central(centralElectricityPumpsCooling, modeledCentralElectricityPumpsCooling, units_represented, units.length)
-
       electricityWaterSystems = add_unit(sql_file, electricityWaterSystems, units_represented, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYWATERSYSTEMS') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
 
       if @include_enduse_subcategories
@@ -482,7 +475,6 @@ class OutputMeters
     end
 
     @electricity = Electricity.new
-
     @electricity.heating = electricityHeating
     @electricity.central_heating = centralElectricityHeating
     @electricity.cooling = electricityCooling
@@ -519,21 +511,21 @@ class OutputMeters
       @electricity.hot_tub_pump = electricityHotTubPump
       @electricity.well_pump = electricityWellPump
       @electricity.garage_lighting = electricityGarageLighting
-    end    
+    end
 
     @electricity.total_end_uses = @electricity.heating +
                                   @electricity.central_heating +
-                                  @electricity.cooling + 
+                                  @electricity.cooling +
                                   @electricity.central_cooling +
                                   @electricity.interior_lighting +
-                                  @electricity.exterior_lighting + 
+                                  @electricity.exterior_lighting +
                                   @electricity.exterior_holiday_lighting +
-                                  @electricity.interior_equipment + 
-                                  @electricity.fans_heating + 
-                                  @electricity.fans_cooling + 
-                                  @electricity.pumps_heating + 
+                                  @electricity.interior_equipment +
+                                  @electricity.fans_heating +
+                                  @electricity.fans_cooling +
+                                  @electricity.pumps_heating +
                                   @electricity.central_pumps_heating +
-                                  @electricity.pumps_cooling + 
+                                  @electricity.pumps_cooling +
                                   @electricity.central_pumps_cooling +
                                   @electricity.water_systems
 
@@ -543,19 +535,18 @@ class OutputMeters
   def natural_gas(sql_file, ann_env_pd)
     env_period_ix_query = "SELECT EnvironmentPeriodIndex FROM EnvironmentPeriods WHERE EnvironmentName='#{ann_env_pd}'"
     env_period_ix = sql_file.execAndReturnFirstInt(env_period_ix_query).get
-
     num_ts = get_num_ts(sql_file)
 
-    # Get meters that aren't tied to units (i.e., are metered at the building level)    
+    # Get meters that aren't tied to units (i.e., are metered at the building level)
     modeledCentralNaturalGasHeating = add_unit(sql_file, Vector.elements(Array.new(num_ts, 0.0)), 1, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:NATURALGASHEATING') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
     modeledCentralNaturalGasInteriorEquipment = add_unit(sql_file, Vector.elements(Array.new(num_ts, 0.0)), 1, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:NATURALGASINTERIOREQUIPMENT') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
     modeledCentralNaturalGasGrill = add_unit(sql_file, Vector.elements(Array.new(num_ts, 0.0)), 1, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:NATURALGASGRILL') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
     modeledCentralNaturalGasLighting = add_unit(sql_file, Vector.elements(Array.new(num_ts, 0.0)), 1, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:NATURALGASLIGHTING') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
     modeledCentralNaturalGasFireplace = add_unit(sql_file, Vector.elements(Array.new(num_ts, 0.0)), 1, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:NATURALGASFIREPLACE') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
-    
+
     # Separate these from non central systems
     centralNaturalGasHeating = Vector.elements(Array.new(num_ts, 0.0))
-    
+
     # Get meters that are tied to units, and apportion building level meters to these
     naturalGasHeating = Vector.elements(Array.new(num_ts, 0.0))
     naturalGasInteriorEquipment = Vector.elements(Array.new(num_ts, 0.0))
@@ -567,7 +558,7 @@ class OutputMeters
     naturalGasGrill = Vector.elements(Array.new(num_ts, 0.0))
     naturalGasLighting = Vector.elements(Array.new(num_ts, 0.0))
     naturalGasFireplace = Vector.elements(Array.new(num_ts, 0.0))
-    
+
     # Get building units
     units = Geometry.get_building_units(@model, @runner)
     if units.nil?
@@ -576,20 +567,14 @@ class OutputMeters
 
     units.each do |unit|
       unit_name = unit.name.to_s.upcase
+      units_represented = get_units_represented(unit)
 
-      units_represented = 1
-      if unit.additionalProperties.getFeatureAsInteger("Units Represented").is_initialized
-        units_represented = unit.additionalProperties.getFeatureAsInteger("Units Represented").get
-      end
-      
       naturalGasHeating = add_unit(sql_file, naturalGasHeating, units_represented, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:NATURALGASHEATING') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
       centralNaturalGasHeating = apportion_central(centralNaturalGasHeating, modeledCentralNaturalGasHeating, units_represented, units.length)
-      
       naturalGasInteriorEquipment = add_unit(sql_file, naturalGasInteriorEquipment, units_represented, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:NATURALGASINTERIOREQUIPMENT') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
       naturalGasInteriorEquipment = apportion_central(naturalGasInteriorEquipment, modeledCentralNaturalGasInteriorEquipment, units_represented, units.length)
-      
       naturalGasWaterSystems = add_unit(sql_file, naturalGasWaterSystems, units_represented, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:NATURALGASWATERSYSTEMS') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
-      
+
       if @include_enduse_subcategories
         naturalGasClothesDryer = add_unit(sql_file, naturalGasClothesDryer, units_represented, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:NATURALGASCLOTHESDRYER') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
         naturalGasCookingRange = add_unit(sql_file, naturalGasCookingRange, units_represented, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:NATURALGASCOOKINGRANGE') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
@@ -601,21 +586,15 @@ class OutputMeters
         naturalGasLighting = apportion_central(naturalGasLighting, modeledCentralNaturalGasLighting, units_represented, units.length)
         naturalGasFireplace = add_unit(sql_file, naturalGasFireplace, units_represented, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:NATURALGASFIREPLACE') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
         naturalGasFireplace = apportion_central(naturalGasFireplace, modeledCentralNaturalGasFireplace, units_represented, units.length)
-      end      
+      end
     end
-    
-    @natural_gas = NaturalGas.new
 
+    @natural_gas = NaturalGas.new
     @natural_gas.heating = naturalGasHeating
     @natural_gas.central_heating = centralNaturalGasHeating
     @natural_gas.interior_equipment = naturalGasInteriorEquipment
     @natural_gas.water_systems = naturalGasWaterSystems
-    
-    @natural_gas.total_end_uses = @natural_gas.heating +
-                                  @natural_gas.central_heating +
-                                  @natural_gas.interior_equipment +
-                                  @natural_gas.water_systems
-    
+
     if @include_enduse_subcategories
       @natural_gas.clothes_dryer = naturalGasClothesDryer
       @natural_gas.cooking_range = naturalGasCookingRange
@@ -625,27 +604,31 @@ class OutputMeters
       @natural_gas.lighting = naturalGasLighting
       @natural_gas.fireplace = naturalGasFireplace
     end
-    
+
+    @natural_gas.total_end_uses = @natural_gas.heating +
+                                  @natural_gas.central_heating +
+                                  @natural_gas.interior_equipment +
+                                  @natural_gas.water_systems
+
     return @natural_gas
   end
 
   def fuel_oil(sql_file, ann_env_pd)
     env_period_ix_query = "SELECT EnvironmentPeriodIndex FROM EnvironmentPeriods WHERE EnvironmentName='#{ann_env_pd}'"
     env_period_ix = sql_file.execAndReturnFirstInt(env_period_ix_query).get
-
     num_ts = get_num_ts(sql_file)
 
     # Get meters that aren't tied to units (i.e., are metered at the building level)
     modeledCentralFuelOilHeating = add_unit(sql_file, Vector.elements(Array.new(num_ts, 0.0)), 1, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:FUELOILHEATING') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
-    
+
     # Separate these from non central systems
     centralFuelOilHeating = Vector.elements(Array.new(num_ts, 0.0))
-    
+
     # Get meters that are tied to units, and apportion building level meters to these
     fuelOilHeating = Vector.elements(Array.new(num_ts, 0.0))
     fuelOilInteriorEquipment = Vector.elements(Array.new(num_ts, 0.0))
     fuelOilWaterSystems = Vector.elements(Array.new(num_ts, 0.0))
-    
+
     # Get building units
     units = Geometry.get_building_units(@model, @runner)
     if units.nil?
@@ -654,27 +637,20 @@ class OutputMeters
 
     units.each do |unit|
       unit_name = unit.name.to_s.upcase
+      units_represented = get_units_represented(unit)
 
-      units_represented = 1
-      if unit.additionalProperties.getFeatureAsInteger("Units Represented").is_initialized
-        units_represented = unit.additionalProperties.getFeatureAsInteger("Units Represented").get
-      end
-      
       fuelOilHeating = add_unit(sql_file, fuelOilHeating, units_represented, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:FUELOILHEATING') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
       centralFuelOilHeating = apportion_central(centralFuelOilHeating, modeledCentralFuelOilHeating, units_represented, units.length)
-
       fuelOilInteriorEquipment = add_unit(sql_file, fuelOilInteriorEquipment, units_represented, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:FUELOILINTERIOREQUIPMENT') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
-
       fuelOilWaterSystems = add_unit(sql_file, fuelOilWaterSystems, units_represented, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:FUELOILWATERSYSTEMS') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
     end
-    
-    @fuel_oil = FuelOil.new
 
+    @fuel_oil = FuelOil.new
     @fuel_oil.heating = fuelOilHeating
     @fuel_oil.central_heating = centralFuelOilHeating
     @fuel_oil.interior_equipment = fuelOilInteriorEquipment
     @fuel_oil.water_systems = fuelOilWaterSystems
-    
+
     @fuel_oil.total_end_uses = @fuel_oil.heating +
                                @fuel_oil.central_heating +
                                @fuel_oil.interior_equipment +
@@ -685,22 +661,21 @@ class OutputMeters
   def propane(sql_file, ann_env_pd)
     env_period_ix_query = "SELECT EnvironmentPeriodIndex FROM EnvironmentPeriods WHERE EnvironmentName='#{ann_env_pd}'"
     env_period_ix = sql_file.execAndReturnFirstInt(env_period_ix_query).get
-
     num_ts = get_num_ts(sql_file)
 
     # Get meters that aren't tied to units (i.e., are metered at the building level)
     modeledCentralPropaneHeating = add_unit(sql_file, Vector.elements(Array.new(num_ts, 0.0)), 1, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:PROPANEHEATING') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
-    
+
     # Separate these from non central systems
     centralPropaneHeating = Vector.elements(Array.new(num_ts, 0.0))
-    
+
     # Get meters that are tied to units, and apportion building level meters to these
     propaneHeating = Vector.elements(Array.new(num_ts, 0.0))
     propaneInteriorEquipment = Vector.elements(Array.new(num_ts, 0.0))
     propaneWaterSystems = Vector.elements(Array.new(num_ts, 0.0))
     propaneClothesDryer = Vector.elements(Array.new(num_ts, 0.0))
     propaneCookingRange = Vector.elements(Array.new(num_ts, 0.0))
-    
+
     # Get building units
     units = Geometry.get_building_units(@model, @runner)
     if units.nil?
@@ -709,56 +684,50 @@ class OutputMeters
 
     units.each do |unit|
       unit_name = unit.name.to_s.upcase
+      units_represented = get_units_represented(unit)
 
-      units_represented = 1
-      if unit.additionalProperties.getFeatureAsInteger("Units Represented").is_initialized
-        units_represented = unit.additionalProperties.getFeatureAsInteger("Units Represented").get
-      end
-      
       propaneHeating = add_unit(sql_file, propaneHeating, units_represented, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:PROPANEHEATING') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
       centralPropaneHeating = apportion_central(centralPropaneHeating, modeledCentralPropaneHeating, units_represented, units.length)
-
       propaneInteriorEquipment = add_unit(sql_file, propaneInteriorEquipment, units_represented, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:PROPANEINTERIOREQUIPMENT') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
-      
       propaneWaterSystems = add_unit(sql_file, propaneWaterSystems, units_represented, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:PROPANEWATERSYSTEMS') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
-      
+
       if @include_enduse_subcategories
         propaneClothesDryer = add_unit(sql_file, propaneClothesDryer, units_represented, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:PROPANECLOTHESDRYER') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
         propaneCookingRange = add_unit(sql_file, propaneCookingRange, units_represented, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:PROPANECOOKINGRANGE') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
       end
     end
-    
+
     @propane = Propane.new
-    
+
     @propane.heating = propaneHeating
     @propane.central_heating = centralPropaneHeating
     @propane.interior_equipment = propaneInteriorEquipment
     @propane.water_systems = propaneWaterSystems
-    
-    @propane.total_end_uses = @propane.heating +
-                              @propane.central_heating +
-                              @propane.interior_equipment +
-                              @propane.water_systems
-    
+
     if @include_enduse_subcategories
       @propane.clothes_dryer = propaneClothesDryer
       @propane.cooking_range = propaneCookingRange
     end
-    
+
+    @propane.total_end_uses = @propane.heating +
+                              @propane.central_heating +
+                              @propane.interior_equipment +
+                              @propane.water_systems
+
     return @propane
   end
-  
-  def hours_setpoint_not_met(sql_file)  
+
+  def hours_setpoint_not_met(sql_file)
     # Get meters that are tied to units, and apportion building level meters to these
     hoursHeatingSetpointNotMet = 0.0
     hoursCoolingSetpointNotMet = 0.0
-    
+
     # Get building units
     units = Geometry.get_building_units(@model, @runner)
     if units.nil?
       return false
     end
-    
+
     units.each do |unit|
       thermal_zones = []
       unit.spaces.each do |space|
@@ -768,14 +737,11 @@ class OutputMeters
         end
       end
 
-      units_represented = 1
-      if unit.additionalProperties.getFeatureAsInteger("Units Represented").is_initialized
-        units_represented = unit.additionalProperties.getFeatureAsInteger("Units Represented").get
-      end
+      units_represented = get_units_represented(unit)
 
       thermal_zones.each do |thermal_zone|
         thermal_zone_name = thermal_zone.name.to_s.upcase
-        
+
         hours_heating_setpoint_not_met_query = "SELECT Value FROM TabularDataWithStrings WHERE (ReportName='SystemSummary') AND (ReportForString='Entire Facility') AND (TableName='Time Setpoint Not Met') AND (RowName = '#{thermal_zone_name}') AND (ColumnName='During Heating') AND (Units = 'hr')"
         unless sql_file.execAndReturnFirstDouble(hours_heating_setpoint_not_met_query).empty?
           hoursHeatingSetpointNotMet += units_represented * sql_file.execAndReturnFirstDouble(hours_heating_setpoint_not_met_query).get
@@ -787,15 +753,22 @@ class OutputMeters
         end
       end
     end
-    
+
     @hours_setpoint_not_met = HoursSetpointNotMet.new
-    
     @hours_setpoint_not_met.heating = hoursHeatingSetpointNotMet
     @hours_setpoint_not_met.cooling = hoursCoolingSetpointNotMet
-    
+
     return @hours_setpoint_not_met
   end
-  
+
+  def get_units_represented(unit)
+    units_represented = 1
+    if unit.additionalProperties.getFeatureAsInteger("Units Represented").is_initialized
+      units_represented = unit.additionalProperties.getFeatureAsInteger("Units Represented").get
+    end
+    return units_represented
+  end
+
   def get_num_ts(sql_file)
     hrs_sim = 0
     if sql_file.hoursSimulated.is_initialized
@@ -818,7 +791,7 @@ class OutputMeters
     end
     return values
   end
-  
+
   def apportion_central(values, modeled_central, units_represented = 1, units_length = 1)
     values += units_represented * (modeled_central / units_length)
     return values
@@ -1955,9 +1928,9 @@ end
 class Electricity
   def initialize
   end
-  attr_accessor :heating, :central_heating, :cooling, :central_cooling, :interior_lighting, :exterior_lighting, :interior_equipment, 
-                :fans_heating, :fans_cooling, :pumps_heating, :central_pumps_heating, :pumps_cooling, :central_pumps_cooling, 
-                :water_systems, :photovoltaics, :refrigerator, :clothes_washer, :clothes_dryer, :cooking_range, :dishwasher, 
+  attr_accessor :heating, :central_heating, :cooling, :central_cooling, :interior_lighting, :exterior_lighting, :interior_equipment,
+                :fans_heating, :fans_cooling, :pumps_heating, :central_pumps_heating, :pumps_cooling, :central_pumps_cooling,
+                :water_systems, :photovoltaics, :refrigerator, :clothes_washer, :clothes_dryer, :cooking_range, :dishwasher,
                 :plug_loads, :house_fan, :range_fan, :bath_fan, :ceiling_fan, :extra_refrigerator, :freezer, :pool_heater, :pool_pump,
                 :hot_tub_heater, :hot_tub_pump, :well_pump, :garage_lighting, :exterior_holiday_lighting, :total_end_uses
 end
@@ -1965,7 +1938,7 @@ end
 class NaturalGas
   def initialize
   end
-  attr_accessor :heating, :central_heating, :interior_equipment, :water_systems, :clothes_dryer, :cooking_range, :pool_heater, 
+  attr_accessor :heating, :central_heating, :interior_equipment, :water_systems, :clothes_dryer, :cooking_range, :pool_heater,
                 :hot_tub_heater, :grill, :lighting, :fireplace, :total_end_uses
 end
 

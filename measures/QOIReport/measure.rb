@@ -20,7 +20,7 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
 
   # human readable description
   def description
-    return "TODO"
+    return "Reports uncertainty quantification quantities of interest."
   end
 
   # define the arguments that the user will input
@@ -48,7 +48,6 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
     output_meters = OutputMeters.new(model, runner, "Hourly")
     results = output_meters.create_custom_building_unit_meters
 
-    results << OpenStudio::IdfObject.load("Output:Meter,Electricity:Facility,Hourly;").get
     results << OpenStudio::IdfObject.load("Output:Variable,*,Site Outdoor Air Drybulb Temperature,Hourly;").get
 
     return results
@@ -56,9 +55,9 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
 
   def seasons
     return {
-      "winter" => [-1e9, 55],
-      "summer" => [70, 1e9],
-      "shoulder" => [55, 70]
+      Constants.SeasonHeating => [-1e9, 55],
+      Constants.SeasonCooling => [70, 1e9],
+      Constants.SeasonOverlap => [55, 70]
     }
   end
 
@@ -89,7 +88,7 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
   def top_ten_daily_seasonal_peak_magnitude_by_season
     output_names = []
     seasons.each do |season, temperature_range|
-      next if season == "shoulder"
+      next if season == Constants.SeasonOverlap
 
       output_names << "average_of_top_ten_highest_peaks_use_#{season}_kw"
     end
@@ -99,7 +98,7 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
   def top_ten_seasonal_timing_of_peak_by_season
     output_names = []
     seasons.each do |season, temperature_range|
-      next if season == "shoulder"
+      next if season == Constants.SeasonOverlap
 
       output_names << "average_of_top_ten_highest_peaks_timing_#{season}_hour"
     end
@@ -181,11 +180,7 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
 
     # ELECTRICITY
 
-    steps_per_hour = 6 # default OpenStudio timestep if none specified
-    if model.getSimulationControl.timestep.is_initialized
-      steps_per_hour = model.getSimulationControl.timestep.get.numberOfTimestepsPerHour
-    end
-    timeseries["total_site_electricity_kw"] = electricity.total_end_uses.map { |x| UnitConversions.convert(x, "GJ", "kW", nil, false, steps_per_hour) }
+    timeseries["total_site_electricity_kw"] = electricity.total_end_uses.map { |x| UnitConversions.convert(x, "GJ", "kW", nil, false, output_meters.steps_per_hour) }
 
     # Average daily base magnitude (by season) (3)
     seasons.each do |season, temperature_range|
@@ -204,11 +199,15 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
 
     # Top 10 daily seasonal peak magnitude (2)
     seasons.each do |season, temperature_range|
+      next if season == Constants.SeasonOverlap
+
       report_sim_output(runner, "average_of_top_ten_highest_peaks_use_#{season}_kw", average_of_top_daily_use(timeseries, temperature_range, "max"), "", "")
     end
 
     # Top 10 seasonal timing of peak (2)
     seasons.each do |season, temperature_range|
+      next if season == Constants.SeasonOverlap
+
       report_sim_output(runner, "average_of_top_ten_highest_peaks_timing_#{season}_hour", average_of_top_daily_timing(timeseries, temperature_range, "max"), "", "")
     end
 
