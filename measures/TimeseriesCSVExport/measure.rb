@@ -30,7 +30,13 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
   end
 
   def reporting_frequency_map
-    return { "Timestep" => "Zone Timestep", "Hourly" => "Hourly", "Daily" => "Daily", "RunPeriod" => "Run Period" }
+    return { 
+      "Timestep" => "Zone Timestep", 
+      "Hourly" => "Hourly", 
+      "Daily" => "Daily", 
+      # "Monthly" => "Monthly", 
+      "RunPeriod" => "Run Period" 
+    }
   end
 
   # define the arguments that the user will input
