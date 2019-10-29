@@ -70,23 +70,13 @@ workflows:
   commit:
     jobs:
       - test
-  daily:
+  weekly:
     triggers:
       - schedule:
-          cron: "0 0 * * *"
+          cron: "0 0 * * 0"
           filters:
             branches:
               only:
                 - workflow-schedule
-    # jobs:
-      # - progress
-  # weekly:
-    # triggers:
-      # - schedule:
-          # cron: "0 0 * * 0"
-          # filters:
-            # branches:
-              # only:
-                # - workflow-schedule
     jobs:
       - progress
