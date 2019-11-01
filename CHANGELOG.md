@@ -45,9 +45,17 @@ Fixes
 ###### April 17, 2019 - [Diff](https://github.com/NREL/OpenStudio-BuildStock/compare/v1.0.0...v2.0.0)
 
 Features
-- Update to OpenStudio v2.8.0
+- Update to OpenStudio v2.8.0 ([#151](https://github.com/NREL/OpenStudio-BuildStock/pull/151))
+- Add a multifamily project which includes housing characteristic distributions for single-family detached, single-family attached, and multifamily buildings ([#151](https://github.com/NREL/OpenStudio-BuildStock/pull/151))
+- Ability to add central systems (boiler with baseboards, fan coil, PTAC) to multifamily buildings using the openstudio-standards gem ([#151](https://github.com/NREL/OpenStudio-BuildStock/pull/151))
+- Ability to simulate large multifamily buildings using "collapsed" buildings with multipliers on building units ([#206](https://github.com/NREL/OpenStudio-BuildStock/pull/206))
+- Automatically generate dependency graphs and a dependency wheel for each project ([#211](https://github.com/NREL/OpenStudio-BuildStock/pull/211))
+
 
 Fixes
+- Reporting measures read from ReportMeterData table to get disaggregated fan and pump energy ([#151](https://github.com/NREL/OpenStudio-BuildStock/pull/151))
+- Break out central system heating, cooling, and pump energy in reporting measures ([#151](https://github.com/NREL/OpenStudio-BuildStock/pull/151))
+- Use custom unit conversions script instead of that provided by OpenStudio SDK ([#216](https://github.com/NREL/OpenStudio-BuildStock/pull/216))
 
 ## ResStock v1.0.0
 ###### April 17, 2019
