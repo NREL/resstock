@@ -231,7 +231,6 @@ End uses include:
 
   * Timestep
   * Daily
-  * Monthly
   * Runperiod
   
   Setting the reporting frequency to 'Timestep' will give you interval output equal to the zone timestep set by the :ref:`simulation-controls` measure. Thus, this measure will produce 10-min interval output when you select 'Timestep' and leave the :ref:`simulation-controls` measure at its default settings.
