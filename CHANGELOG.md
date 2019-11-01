@@ -1,10 +1,11 @@
 ## ResStock v2.1.0 (pending)
 
 Features
+- Update to OpenStudio v2.9.0 ([#322](https://github.com/NREL/OpenStudio-BuildStock/pull/322))
 - Unit tests and performance improvements for integrity checks ([#228](https://github.com/NREL/OpenStudio-BuildStock/pull/228), [#237](https://github.com/NREL/OpenStudio-BuildStock/pull/237), [#239](https://github.com/NREL/OpenStudio-BuildStock/pull/239))
 - Register climate zones (BA and IECC) based on the simulation EPW file ([#245](https://github.com/NREL/OpenStudio-BuildStock/pull/245))
 - Split ResidentialLighting into separate ResidentialLightingInterior and ResidentialLightingOther (with optional exterior holiday lighting) measures ([#244](https://github.com/NREL/OpenStudio-BuildStock/pull/244), [#252](https://github.com/NREL/OpenStudio-BuildStock/pull/252))
-- Additional example workflow osw files using TMY/ AMY2012/AMY2014 weather for use in regression testing ([#259](https://github.com/NREL/OpenStudio-BuildStock/pull/259), [#261](https://github.com/NREL/OpenStudio-BuildStock/pull/261))
+- Additional example workflow osw files using TMY/AMY2012/AMY2014 weather for use in regression testing ([#259](https://github.com/NREL/OpenStudio-BuildStock/pull/259), [#261](https://github.com/NREL/OpenStudio-BuildStock/pull/261))
 - Update all projects with new heating/cooling setpoint, offset, and magnitude distributions ([#272](https://github.com/NREL/OpenStudio-BuildStock/pull/272))
 - Add new ResidentialDemandResponse measure that allows for 8760 DR schedules to be applied to heating/cooling schedules ([#276](https://github.com/NREL/OpenStudio-BuildStock/pull/276))
 - Additional options for HVAC, dehumidifier, clothes washer, misc loads, infiltration, etc. ([#264](https://github.com/NREL/OpenStudio-BuildStock/pull/264), [#278](https://github.com/NREL/OpenStudio-BuildStock/pull/278), [#292](https://github.com/NREL/OpenStudio-BuildStock/pull/292))
@@ -20,7 +21,6 @@ Features
 - Create a pull request template to facilitate development ([#317](https://github.com/NREL/OpenStudio-BuildStock/pull/317))
 - Update documentation to clarify downselect logic parameters ([#321](https://github.com/NREL/OpenStudio-BuildStock/pull/321))
 - Additional options for EnergyStar clothes washer, clothes dryer, dishwasher ([#329](https://github.com/NREL/OpenStudio-BuildStock/pull/329), [#333](https://github.com/NREL/OpenStudio-BuildStock/pull/333))
-- Update to OpenStudio v2.9.0 ([#322](https://github.com/NREL/OpenStudio-BuildStock/pull/322))
 
 Fixes
 - Bugfix for assuming that all simulations are exactly 365 days ([#255](https://github.com/NREL/OpenStudio-BuildStock/pull/255))
@@ -50,7 +50,10 @@ Features
 - Ability to add central systems (boiler with baseboards, fan coil, PTAC) to multifamily buildings using the openstudio-standards gem ([#151](https://github.com/NREL/OpenStudio-BuildStock/pull/151))
 - Ability to simulate large multifamily buildings using "collapsed" buildings with multipliers on building units ([#206](https://github.com/NREL/OpenStudio-BuildStock/pull/206))
 - Automatically generate dependency graphs and a dependency wheel for each project ([#211](https://github.com/NREL/OpenStudio-BuildStock/pull/211))
-
+- Add measures for calculating construction properties, modeling power outages and calculating resilience metrics, and calculating utility bills ([#151](https://github.com/NREL/OpenStudio-BuildStock/pull/151))
+- Add measure for modeling shared multiifamily facades using adiabatic constructions ([#151](https://github.com/NREL/OpenStudio-BuildStock/pull/151))
+- Relocate all measure unit tests, test osw files, and test osm files from archived OpenStudio-BEopt and into this repository ([#151](https://github.com/NREL/OpenStudio-BuildStock/pull/151))
+- Create example workflow osw files for single-family detached, single-family attached, and multifamily buildings using TMY weather ([#151](https://github.com/NREL/OpenStudio-BuildStock/pull/151))
 
 Fixes
 - Reporting measures read from ReportMeterData table to get disaggregated fan and pump energy ([#151](https://github.com/NREL/OpenStudio-BuildStock/pull/151))
