@@ -1,4 +1,5 @@
-## ResStock v2.1.0 (pending)
+## ResStock v2.1.0
+###### November 5, 2019 - [Diff](https://github.com/NREL/OpenStudio-BuildStock/compare/v2.0.0...v2.1.0)
 
 Features
 - Update to OpenStudio v2.9.0 ([#322](https://github.com/NREL/OpenStudio-BuildStock/pull/322))
