@@ -1,3 +1,11 @@
+## ResStock v2.2.0 (pending)
+
+Features
+- Add new QOIReport measure for reporting seasonal quantities of interest for uncertainty quantification ([#334](https://github.com/NREL/OpenStudio-BuildStock/pull/334))
+
+Fixes
+- Move redundant output meter code from individual reporting measures out into shared resource file ([#334](https://github.com/NREL/OpenStudio-BuildStock/pull/334))
+
 ## ResStock v2.1.0
 ###### November 5, 2019 - [Diff](https://github.com/NREL/OpenStudio-BuildStock/compare/v2.0.0...v2.1.0)
 
@@ -60,6 +68,7 @@ Fixes
 - Reporting measures read from ReportMeterData table to get disaggregated fan and pump energy ([#151](https://github.com/NREL/OpenStudio-BuildStock/pull/151))
 - Break out central system heating, cooling, and pump energy in reporting measures ([#151](https://github.com/NREL/OpenStudio-BuildStock/pull/151))
 - Use custom unit conversions script instead of that provided by OpenStudio SDK ([#216](https://github.com/NREL/OpenStudio-BuildStock/pull/216))
+
 
 ## ResStock v1.0.0
 ###### April 17, 2019
