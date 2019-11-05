@@ -592,10 +592,12 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     # UPGRADE NAME
     upgrade_name = get_value_from_runner_past_results(runner, "upgrade_name", "apply_upgrade", false)
     if upgrade_name.nil?
-      upgrade_name = "(blank)"
+      register_value(runner, "upgrade_name", "")
+      runner.registerInfo("Registering (blank) for upgrade_name.")
+    else
+      register_value(runner, "upgrade_name", upgrade_name)
+      runner.registerInfo("Registering #{upgrade_name} for upgrade_name.")
     end
-    register_value(runner, "upgrade_name", upgrade_name)
-    runner.registerInfo("Registering #{upgrade_name} for upgrade_name.")
 
     # UPGRADE COSTS
 
