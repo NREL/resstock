@@ -36,7 +36,6 @@ class WorkflowTest < MiniTest::Test
   end
 
   def create_lib_folder(parent_dir)
-    puts parent_dir
     lib_dir = File.join(parent_dir, "..", "lib") # at top level
     resources_dir = File.join(parent_dir, "..", "resources")
     Dir.mkdir(lib_dir) unless File.exist?(lib_dir)
