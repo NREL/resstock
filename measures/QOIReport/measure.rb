@@ -9,6 +9,7 @@ else
   resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources"))
 end
 require File.join(resources_path, "unit_conversions")
+require File.join(resources_path, "constants")
 require "enumerator"
 
 # start the measure
@@ -201,14 +202,14 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
     seasons.each do |season, temperature_range|
       next if season == Constants.SeasonOverlap
 
-      report_sim_output(runner, "average_of_top_ten_highest_peaks_use_#{season}_kw", average_of_top_daily_use(timeseries, temperature_range, "max"), "", "")
+      report_sim_output(runner, "average_of_top_ten_highest_peaks_use_#{season}_kw", average_daily_use(timeseries, temperature_range, "max", 10), "", "")
     end
 
     # Top 10 seasonal timing of peak (2)
     seasons.each do |season, temperature_range|
       next if season == Constants.SeasonOverlap
 
-      report_sim_output(runner, "average_of_top_ten_highest_peaks_timing_#{season}_hour", average_of_top_daily_timing(timeseries, temperature_range, "max"), "", "")
+      report_sim_output(runner, "average_of_top_ten_highest_peaks_timing_#{season}_hour", average_daily_timing(timeseries, temperature_range, "max", 10), "", "")
     end
 
     sqlFile.close
@@ -216,39 +217,7 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
     return true
   end
 
-  def average_daily_use(timeseries, temperature_range, min_or_max)
-    daily_vals = []
-    timeseries["total_site_electricity_kw"].each_slice(24).with_index do |kws, i|
-      temps = timeseries["Temperature"][(24 * i)...(24 * i + 24)]
-      avg_temp = temps.inject { |sum, el| sum + el }.to_f / temps.size
-      if avg_temp > temperature_range[0] and avg_temp < temperature_range[1] # day is in this season
-        if min_or_max == "min"
-          daily_vals << kws.min
-        elsif min_or_max == "max"
-          daily_vals << kws.max
-        end
-      end
-    end
-    return daily_vals.inject { |sum, el| sum + el }.to_f / daily_vals.size
-  end
-
-  def average_daily_timing(timeseries, temperature_range, min_or_max)
-    daily_vals = []
-    timeseries["total_site_electricity_kw"].each_slice(24).with_index do |kws, i|
-      temps = timeseries["Temperature"][(24 * i)...(24 * i + 24)]
-      avg_temp = temps.inject { |sum, el| sum + el }.to_f / temps.size
-      if avg_temp > temperature_range[0] and avg_temp < temperature_range[1] # day is in this season
-        if min_or_max == "min"
-          daily_vals << kws.index(kws.min)
-        elsif min_or_max == "max"
-          daily_vals << kws.index(kws.max)
-        end
-      end
-    end
-    return daily_vals.inject { |sum, el| sum + el }.to_f / daily_vals.size
-  end
-
-  def average_of_top_daily_use(timeseries, temperature_range, min_or_max)
+  def average_daily_use(timeseries, temperature_range, min_or_max, top = 0)
     daily_vals = []
     timeseries["total_site_electricity_kw"].each_slice(24).with_index do |kws, i|
       temps = timeseries["Temperature"][(24 * i)...(24 * i + 24)]
@@ -262,11 +231,11 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
       end
     end
     daily_vals = daily_vals.sort.reverse
-    daily_vals = daily_vals[0...10]
+    daily_vals = daily_vals[0..(top - 1)]
     return daily_vals.inject { |sum, el| sum + el }.to_f / daily_vals.size
   end
 
-  def average_of_top_daily_timing(timeseries, temperature_range, min_or_max)
+  def average_daily_timing(timeseries, temperature_range, min_or_max, top = 0)
     daily_vals = { "hour" => [], "use" => [] }
     timeseries["total_site_electricity_kw"].each_slice(24).with_index do |kws, i|
       temps = timeseries["Temperature"][(24 * i)...(24 * i + 24)]
@@ -284,7 +253,7 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
       end
     end
     daily_vals["use"], daily_vals["hour"] = daily_vals["use"].zip(daily_vals["hour"]).sort.reverse.transpose
-    daily_vals = daily_vals["hour"][0...10]
+    daily_vals = daily_vals["hour"][0..(top - 1)]
     return daily_vals.inject { |sum, el| sum + el }.to_f / daily_vals.size
   end
 
