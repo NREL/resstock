@@ -8,8 +8,8 @@ elsif File.exists? File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, "HPXM
 else
   resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources"))
 end
-require File.join(resources_path, "unit_conversions")
 require File.join(resources_path, "constants")
+require File.join(resources_path, "unit_conversions")
 require "enumerator"
 
 # start the measure
