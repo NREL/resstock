@@ -37,6 +37,7 @@ class TimeseriesCSVExportTest < MiniTest::Test
   end
 
   def test_amy_short_run_period_monthly
+    skip
     num_output_requests = 21 + 1
     measure = TimeseriesCSVExport.new
     args_hash = {}
@@ -50,7 +51,7 @@ class TimeseriesCSVExportTest < MiniTest::Test
     num_output_requests = 21 + 1
     measure = TimeseriesCSVExport.new
     args_hash = {}
-    args_hash["reporting_frequency"] = "Runperiod"
+    args_hash["reporting_frequency"] = "RunPeriod"
     args_hash["output_variables"] = "Zone People Occupant Count"
     expected_values = { "EnduseTimeseriesLength" => 1, "EnduseTimeseriesWidth" => 34 + 1 }
     _test_measure("SFD_Successful_EnergyPlus_Run_AMY_PV_TwoDays.osm", args_hash, expected_values, __method__, "0465925_US_CO_Boulder_8013_0-20000-0-72469_40.13_-105.22_NSRDB_2.0.1_AMY_2014.epw", num_output_requests)
@@ -77,6 +78,7 @@ class TimeseriesCSVExportTest < MiniTest::Test
   end
 
   def test_tmy_monthly
+    skip
     num_output_requests = 11 + 2
     measure = TimeseriesCSVExport.new
     args_hash = {}
@@ -90,7 +92,7 @@ class TimeseriesCSVExportTest < MiniTest::Test
     num_output_requests = 11 + 2
     measure = TimeseriesCSVExport.new
     args_hash = {}
-    args_hash["reporting_frequency"] = "Runperiod"
+    args_hash["reporting_frequency"] = "RunPeriod"
     args_hash["output_variables"] = "Surface Outside Normal Azimuth Angle, Surface Window Heat Gain Rate"
     expected_values = { "EnduseTimeseriesLength" => 1, "EnduseTimeseriesWidth" => 34 + 71 }
     _test_measure("SFD_Successful_EnergyPlus_Run_TMY_Appl_PV.osm", args_hash, expected_values, __method__, "USA_CO_Denver.Intl.AP.725650_TMY3.epw", num_output_requests)
