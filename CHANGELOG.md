@@ -2,6 +2,7 @@
 
 Features
 - Add new QOIReport measure for reporting seasonal quantities of interest for uncertainty quantification ([#334](https://github.com/NREL/OpenStudio-BuildStock/pull/334))
+- Separate tsv files for bedrooms, cooking range schedule, corridor, holiday lighting, interior/other lighting use, pool schedule, plug loads schedule, and refrigeration schedule ([#338](https://github.com/NREL/OpenStudio-BuildStock/pull/338))
 
 Fixes
 - Move redundant output meter code from individual reporting measures out into shared resource file ([#334](https://github.com/NREL/OpenStudio-BuildStock/pull/334))
