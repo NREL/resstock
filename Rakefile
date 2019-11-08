@@ -240,6 +240,7 @@ def integrity_check(project_dir_name, housing_characteristics_dir = "housing_cha
       raise err
     end
 
+    err = ""
     last_size = parameters_processed.size
     parameter_names.each do |parameter_name|
       # Already processed? Skip
@@ -262,6 +263,15 @@ def integrity_check(project_dir_name, housing_characteristics_dir = "housing_cha
       puts "Checking for issues with #{project_dir_name}/#{parameter_name}..."
       parameters_processed << parameter_name
 
+      # Test that dependency options exist
+      tsvfile.dependency_options.each do |dependency, options|
+        options.each do |option|
+          if not tsvfiles[dependency].option_cols.keys.include? option
+            err += "ERROR: #{dependency}=#{option} not a valid dependency option.\n"
+          end
+        end
+      end
+
       # Test all possible combinations of dependency value combinations
       combo_hashes = get_combination_hashes(tsvfiles, tsvfile.dependency_cols.keys)
       if combo_hashes.size > 0
@@ -277,6 +287,9 @@ def integrity_check(project_dir_name, housing_characteristics_dir = "housing_cha
       get_measure_args_from_option_names(lookup_file, tsvfile.option_cols.keys, parameter_name)
     end
   end # parameter_name
+  if not err.empty?
+    raise err
+  end
 
   # Test sampling
   r = RunSampling.new
