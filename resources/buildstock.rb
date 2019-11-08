@@ -61,7 +61,7 @@ class TsvFile
       dependency_options[dependency] = []
       rows.each do |row|
         next if dependency_options[dependency].include? row[col]
-      
+
         dependency_options[dependency] << row[col]
       end
     end
