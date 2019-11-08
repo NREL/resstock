@@ -37,7 +37,6 @@ class TsvFile
     # Strip out everything but options and dependencies from header
     header = full_header.select { |el| el.start_with?(option_key) or el.start_with?(dep_key) }
 
-    # dependency_options = {"Location"=>["AL_Birmingham.Muni.AP.722280", "AL_Huntsville.Intl.AP-Jones.Field.723230", "AL_Mobile-Rgnl.AP.722230"]}
     # Get all option names/dependencies and corresponding column numbers on header row
     option_cols = {}
     dependency_cols = {}
@@ -56,6 +55,7 @@ class TsvFile
       register_error("No options found in #{@filename.to_s}.", @runner)
     end
 
+    # Get all dependencies and their listed options
     dependency_options = {}
     dependency_cols.each do |dependency, col|
       dependency_options[dependency] = []
