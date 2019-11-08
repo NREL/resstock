@@ -6,11 +6,11 @@ class TsvFile
     @full_path = full_path
     @filename = File.basename(full_path)
     @runner = runner
-    @rows, @option_cols, @dependency_cols, @full_header, @header = get_file_data()
+    @rows, @option_cols, @dependency_cols, @dependency_options, @full_header, @header = get_file_data()
     @rows_keys_s = construct_rows_keys_s()
   end
 
-  attr_accessor :dependency_cols, :rows, :option_cols, :header, :filename, :rows_keys_s
+  attr_accessor :dependency_cols, :dependency_options, :rows, :option_cols, :header, :filename, :rows_keys_s
 
   def get_file_data()
     option_key = "Option="
@@ -37,6 +37,7 @@ class TsvFile
     # Strip out everything but options and dependencies from header
     header = full_header.select { |el| el.start_with?(option_key) or el.start_with?(dep_key) }
 
+    # dependency_options = {"Location"=>["AL_Birmingham.Muni.AP.722280", "AL_Huntsville.Intl.AP-Jones.Field.723230", "AL_Mobile-Rgnl.AP.722230"]}
     # Get all option names/dependencies and corresponding column numbers on header row
     option_cols = {}
     dependency_cols = {}
@@ -55,7 +56,17 @@ class TsvFile
       register_error("No options found in #{@filename.to_s}.", @runner)
     end
 
-    return rows, option_cols, dependency_cols, full_header, header
+    dependency_options = {}
+    dependency_cols.each do |dependency, col|
+      dependency_options[dependency] = []
+      rows.each do |row|
+        next if dependency_options[dependency].include? row[col]
+      
+        dependency_options[dependency] << row[col]
+      end
+    end
+
+    return rows, option_cols, dependency_cols, dependency_options, full_header, header
   end
 
   def construct_rows_keys_s
@@ -209,6 +220,10 @@ def get_combination_hashes(tsvfiles, dependencies)
     combos_hashes << combo_hash
   end
   return combos_hashes
+end
+
+def get_dependency_options(dep)
+
 end
 
 def get_value_from_workflow_step_value(step_value)
