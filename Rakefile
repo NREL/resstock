@@ -286,10 +286,10 @@ def integrity_check(project_dir_name, housing_characteristics_dir = "housing_cha
       # Check for all options defined in options_lookup.tsv
       get_measure_args_from_option_names(lookup_file, tsvfile.option_cols.keys, parameter_name)
     end
+    if not err.empty?
+      raise err
+    end
   end # parameter_name
-  if not err.empty?
-    raise err
-  end
 
   # Test sampling
   r = RunSampling.new
