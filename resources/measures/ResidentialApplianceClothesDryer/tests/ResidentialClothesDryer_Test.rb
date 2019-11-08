@@ -40,6 +40,7 @@ class ResidentialClothesDryerTest < MiniTest::Test
     args_hash = {}
     args_hash["cef"] = 3.1 / 1.15
     args_hash["fuel_type"] = Constants.FuelTypeElectric
+    args_hash["fuel_split"] = 1
     expected_num_del_objects = {}
     expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
     expected_values = { "Annual_kwh" => 1026.4, "Annual_therm" => 0, "Annual_gal" => 0, "FuelType" => Constants.FuelTypeElectric, "Location" => args_hash["location"] }
@@ -50,19 +51,43 @@ class ResidentialClothesDryerTest < MiniTest::Test
     args_hash = {}
     args_hash["cef"] = 3.93 / 1.15
     args_hash["fuel_type"] = Constants.FuelTypeElectric
+    args_hash["fuel_split"] = 1
     expected_num_del_objects = {}
     expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
     expected_values = { "Annual_kwh" => 809.6, "Annual_therm" => 0, "Annual_gal" => 0, "FuelType" => Constants.FuelTypeElectric, "Location" => args_hash["location"] }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank_ClothesWasher.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
-  def test_new_construction_hp_elec
+  def test_new_construction_premium_elec_energystar
     args_hash = {}
-    args_hash["cef"] = 4.2 / 1.15
+    args_hash["cef"] = 4.5 / 1.15
     args_hash["fuel_type"] = Constants.FuelTypeElectric
+    args_hash["fuel_split"] = 1
     expected_num_del_objects = {}
     expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
-    expected_values = { "Annual_kwh" => 757.6, "Annual_therm" => 0, "Annual_gal" => 0, "FuelType" => Constants.FuelTypeElectric, "Location" => args_hash["location"] }
+    expected_values = { "Annual_kwh" => 710.5, "Annual_therm" => 0, "Annual_gal" => 0, "FuelType" => Constants.FuelTypeElectric, "Location" => args_hash["location"] }
+    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank_ClothesWasher.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
+  end
+
+  def test_new_construction_hp_elec
+    args_hash = {}
+    args_hash["cef"] = 5.2 / 1.15
+    args_hash["fuel_type"] = Constants.FuelTypeElectric
+    args_hash["fuel_split"] = 1
+    expected_num_del_objects = {}
+    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_values = { "Annual_kwh" => 617.8, "Annual_therm" => 0, "Annual_gal" => 0, "FuelType" => Constants.FuelTypeElectric, "Location" => args_hash["location"] }
+    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank_ClothesWasher.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
+  end
+
+  def test_new_construction_premium_hp_elec
+    args_hash = {}
+    args_hash["cef"] = 6.0 / 1.15
+    args_hash["fuel_type"] = Constants.FuelTypeElectric
+    args_hash["fuel_split"] = 1
+    expected_num_del_objects = {}
+    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_values = { "Annual_kwh" => 532.9, "Annual_therm" => 0, "Annual_gal" => 0, "FuelType" => Constants.FuelTypeElectric, "Location" => args_hash["location"] }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank_ClothesWasher.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
