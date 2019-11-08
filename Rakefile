@@ -267,7 +267,7 @@ def integrity_check(project_dir_name, housing_characteristics_dir = "housing_cha
       tsvfile.dependency_options.each do |dependency, options|
         options.each do |option|
           if not tsvfiles[dependency].option_cols.keys.include? option
-            err += "ERROR: #{dependency}=#{option} not a valid dependency option.\n"
+            err += "ERROR: #{dependency}=#{option} not a valid dependency option for #{parameter_name}.\n"
           end
         end
       end
