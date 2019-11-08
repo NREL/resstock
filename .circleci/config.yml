@@ -2,13 +2,17 @@ version: 2
 jobs:
   build:
     docker:
-      - image: nrel/openstudio:2.8.1
+      - image: nrel/openstudio:2.9.0
     steps:
       - checkout
       - run: 
           name: Install gems
           command: |
             rm -f Gemfile.lock && bundle install
+      - run:
+          name: Apply rubocop
+          command: |
+            rubocop --format simple --only Layout --debug
       - run:
           name: Update all measures
           command: |
