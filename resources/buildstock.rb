@@ -222,10 +222,6 @@ def get_combination_hashes(tsvfiles, dependencies)
   return combos_hashes
 end
 
-def get_dependency_options(dep)
-
-end
-
 def get_value_from_workflow_step_value(step_value)
   variant_type = step_value.variantType
   if variant_type == "Boolean".to_VariantType
