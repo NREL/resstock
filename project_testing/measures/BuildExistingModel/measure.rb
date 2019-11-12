@@ -3,6 +3,19 @@
 
 require 'csv'
 require 'openstudio'
+if File.exists? File.absolute_path(File.join(File.dirname(__FILE__), "../../lib/resources/measures/HPXMLtoOpenStudio/resources")) # Hack to run ResStock on AWS
+  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../../lib/resources/measures/HPXMLtoOpenStudio/resources"))
+elsif File.exists? File.absolute_path(File.join(File.dirname(__FILE__), "../../resources/measures/HPXMLtoOpenStudio/resources")) # Hack to run ResStock unit tests locally
+  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../../resources/measures/HPXMLtoOpenStudio/resources"))
+elsif File.exists? File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, "HPXMLtoOpenStudio/resources") # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
+  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, "HPXMLtoOpenStudio/resources")
+else
+  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources"))
+end
+require File.join(resources_path, "weather")
+
+# in addition to the above requires, this measure is expected to run in an
+# environment with OpenStudio-Buildstock/resources/buildstock.rb loaded
 
 # start the measure
 class BuildExistingModel < OpenStudio::Measure::ModelMeasure
@@ -50,6 +63,11 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     downselect_logic.setDescription("Logic that specifies the subset of the building stock to be considered in the analysis. Specify one or more parameter|option as found in resources\\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.")
     args << downselect_logic
 
+    measures_to_ignore = OpenStudio::Ruleset::OSArgument.makeStringArgument("measures_to_ignore", false)
+    measures_to_ignore.setDisplayName("Measures to Ignore")
+    measures_to_ignore.setDescription("Measures to exclude from the OpenStudio Workflow specified by listing one or more measure directories separated by '|'. Core ResStock measures cannot be ignored (this measure will fail). INTENDED FOR ADVANCED USERS/WORKFLOW DEVELOPERS.")
+    args << measures_to_ignore
+
     return args
   end
 
@@ -67,7 +85,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     number_of_buildings_represented = runner.getOptionalIntegerArgumentValue("number_of_buildings_represented", user_arguments)
     sample_weight = runner.getOptionalDoubleArgumentValue("sample_weight", user_arguments)
     downselect_logic = runner.getOptionalStringArgumentValue("downselect_logic", user_arguments)
-    sample_weight = runner.getOptionalDoubleArgumentValue("sample_weight", user_arguments)
+    measures_to_ignore = runner.getOptionalStringArgumentValue("measures_to_ignore", user_arguments)
 
     # Get file/dir paths
     resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), "..", "..", "lib", "resources")) # Should have been uploaded per 'Additional Analysis Files' in PAT
@@ -96,15 +114,15 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     # Retrieve order of parameters to run
     parameters_ordered = get_parameters_ordered_from_options_lookup_tsv(lookup_file, characteristics_dir)
 
-    # Obtain measures and arguments to be called
-    measures = {}
+    # Retrieve options that have been selected for this building_id
     parameters_ordered.each do |parameter_name|
-      # Get measure name and arguments associated with the option
+      # Register the option chosen for parameter_name with the runner
       option_name = bldg_data[parameter_name]
       register_value(runner, parameter_name, option_name)
     end
 
-    # Do the downselecting
+    # Determine whether this building_id has been downselected based on the
+    # {parameter_name: option_name} pairs
     if downselect_logic.is_initialized
 
       downselect_logic = downselect_logic.get
@@ -112,6 +130,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       downselected = evaluate_logic(downselect_logic, runner, past_results = false)
 
       if downselected.nil?
+        # unable to evaluate logic
         return false
       end
 
@@ -124,6 +143,8 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
 
     end
 
+    # Obtain measures and arguments to be called
+    measures = {}
     parameters_ordered.each do |parameter_name|
       option_name = bldg_data[parameter_name]
       print_option_assignment(parameter_name, option_name, runner)
@@ -145,9 +166,49 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       measures.delete("ResidentialGeometryCreateSingleFamilyAttached")
     end
 
+    # Remove any measures_to_ignore from the list of measures to run
+    if measures_to_ignore.is_initialized
+      measures_to_ignore = measures_to_ignore.get
+      # core ResStock measures are those specified in the default workflow json
+      # those should not be ignored ...
+      core_measures = get_measures(File.join(resources_dir, 'measure-info.json'))
+      measures_to_ignore.split("|").each do |measure_dir|
+        if core_measures.include? measure_dir
+          # fail if core ResStock measure is ignored
+          msg = "Core ResStock measure #{measure_dir} cannot be ignored"
+          runner.registerError(msg)
+          fail msg
+        end
+        runner.registerInfo("Ignoring/not running measure #{measure_dir}")
+        measures.delete(measure_dir)
+      end
+    end
+
     if not apply_measures(measures_dir, measures, runner, model, workflow_json, "measures.osw", true)
       return false
     end
+
+    # Report some additional location and model characteristics
+    weather = WeatherProcess.new(model, runner)
+    if !weather.error?
+      register_value(runner, "location_city", weather.header.City)
+      register_value(runner, "location_state", weather.header.State)
+      register_value(runner, "location_latitude", "#{weather.header.Latitude}")
+      register_value(runner, "location_longitude", "#{weather.header.Longitude}")
+      climate_zone_ba = Location.get_climate_zone_ba(weather.header.Station)
+      climate_zone_iecc = Location.get_climate_zone_iecc(weather.header.Station)
+      unless climate_zone_ba.nil?
+        register_value(runner, "climate_zone_ba", climate_zone_ba)
+      end
+      unless climate_zone_iecc.nil?
+        register_value(runner, "climate_zone_iecc", climate_zone_iecc)
+      end
+      if climate_zone_ba.nil? and climate_zone_iecc.nil?
+        runner.registerInfo("The weather station WMO has not been set appropriately in the EPW weather file header.")
+      end
+    end
+    register_value(runner, "units_represented", "#{model.getBuilding.additionalProperties.getFeatureAsInteger("Total Units Represented").get}")
+    register_value(runner, "units_modeled", "#{model.getBuilding.additionalProperties.getFeatureAsInteger("Total Units Modeled").get}")
 
     # Determine weight
     if number_of_buildings_represented.is_initialized
