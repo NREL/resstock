@@ -197,7 +197,7 @@ class ProcessUnitHeaterTest < MiniTest::Test
   def test_retrofit_replace_central_system_fan_coil
     num_units = 4
     args_hash = {}
-    expected_num_del_objects = { "PlantLoop" => 2, "PumpVariableSpeed" => 2, "BoilerHotWater" => 1, "ChillerElectricEIR" => 1, "ControllerWaterCoil" => 2 * num_units, "CoilCoolingWater" => num_units, "CoilHeatingWater" => num_units, "FanOnOff" => num_units, "ZoneHVACFourPipeFanCoil" => num_units, "SetpointManagerScheduled" => 2, "EnergyManagementSystemSensor" => 2, "EnergyManagementSystemProgram" => 1, "EnergyManagementSystemOutputVariable" => 2, "EnergyManagementSystemProgramCallingManager" => 1 }
+    expected_num_del_objects = { "PlantLoop" => 2, "PumpVariableSpeed" => 2, "BoilerHotWater" => 1, "ChillerElectricEIR" => 1, "ControllerWaterCoil" => 2 * num_units, "CoilCoolingWater" => num_units, "CoilHeatingWater" => num_units, "FanOnOff" => num_units, "ZoneHVACFourPipeFanCoil" => num_units, "SetpointManagerScheduled" => 2, "EnergyManagementSystemSensor" => 2, "EnergyManagementSystemProgram" => 2, "EnergyManagementSystemOutputVariable" => 2, "EnergyManagementSystemProgramCallingManager" => 2 }
     expected_num_new_objects = { "AirLoopHVACUnitarySystem" => num_units, "CoilHeatingGas" => num_units, "FanOnOff" => num_units }
     expected_values = { "Efficiency" => 0.78, "MaximumSupplyAirTemperature" => 48.88, "FuelType" => Constants.FuelTypeGas }
     _test_measure("SFA_4units_1story_SL_UA_3Beds_2Baths_Denver_Central_System_Fan_Coil.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units * 3 + 2)
@@ -257,6 +257,9 @@ class ProcessUnitHeaterTest < MiniTest::Test
     measure.run(model, runner, argument_map)
     result = runner.result
 
+    # show the output
+    show_output(result) unless result.value.valueName == 'Fail'
+
     # assert that it didn't run
     assert_equal("Fail", result.value.valueName)
     assert(result.errors.size == 1)
@@ -298,7 +301,7 @@ class ProcessUnitHeaterTest < MiniTest::Test
     measure.run(model, runner, argument_map)
     result = runner.result
 
-    # show_output(result)
+    show_output(result) unless result.value.valueName == 'Success'
 
     # assert that it ran correctly
     assert_equal("Success", result.value.valueName)
