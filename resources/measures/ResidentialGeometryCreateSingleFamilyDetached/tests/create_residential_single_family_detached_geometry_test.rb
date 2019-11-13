@@ -479,11 +479,11 @@ class CreateResidentialSingleFamilyDetachedGeometryTest < MiniTest::Test
     assert_includes(result.errors.map { |x| x.logMessage }, "Number of bathrooms must be a numerical value.")
   end
 
-  def test_argument_error_beds_not_positive_integer
+  def test_argument_error_beds_not_integer
     args_hash = {}
     args_hash["num_bedrooms"] = "3.0, 3.0, 3.5"
     result = _test_error(nil, args_hash)
-    assert_includes(result.errors.map { |x| x.logMessage }, "Number of bedrooms must be a positive integer.")
+    assert_includes(result.errors.map { |x| x.logMessage }, "Number of bedrooms must be a non-negative integer.")
   end
 
   def test_argument_error_baths_not_positive_multiple_of_0pt25
