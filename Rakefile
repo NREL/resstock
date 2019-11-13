@@ -72,7 +72,7 @@ def regenerate_osms
     measures = {}
     resources_measures = {}
     osw_hash["steps"].each do |step|
-      if ["ResidentialSimulationControls", "Outages"].include? step["measure_dir_name"]
+      if ["ResidentialSimulationControls", "PowerOutage"].include? step["measure_dir_name"]
         measures[step["measure_dir_name"]] = [step["arguments"]]
       else
         resources_measures[step["measure_dir_name"]] = [step["arguments"]]
