@@ -6,11 +6,11 @@ class TsvFile
     @full_path = full_path
     @filename = File.basename(full_path)
     @runner = runner
-    @rows, @option_cols, @dependency_cols, @full_header, @header = get_file_data()
+    @rows, @option_cols, @dependency_cols, @dependency_options, @full_header, @header = get_file_data()
     @rows_keys_s = construct_rows_keys_s()
   end
 
-  attr_accessor :dependency_cols, :rows, :option_cols, :header, :filename, :rows_keys_s
+  attr_accessor :dependency_cols, :dependency_options, :rows, :option_cols, :header, :filename, :rows_keys_s
 
   def get_file_data()
     option_key = "Option="
@@ -55,7 +55,18 @@ class TsvFile
       register_error("No options found in #{@filename.to_s}.", @runner)
     end
 
-    return rows, option_cols, dependency_cols, full_header, header
+    # Get all dependencies and their listed options
+    dependency_options = {}
+    dependency_cols.each do |dependency, col|
+      dependency_options[dependency] = []
+      rows.each do |row|
+        next if dependency_options[dependency].include? row[col]
+
+        dependency_options[dependency] << row[col]
+      end
+    end
+
+    return rows, option_cols, dependency_cols, dependency_options, full_header, header
   end
 
   def construct_rows_keys_s
