@@ -952,7 +952,6 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
 
       space.surfaces.each do |surface|
         if surface.adjacentSurface.is_initialized # only set to adiabatic if the corridor surface is adjacent to another surface
-          puts(surface.adjacentSurface.get)
           surface.adjacentSurface.get.setOutsideBoundaryCondition("Adiabatic")
           surface.setOutsideBoundaryCondition("Adiabatic")
         end
