@@ -457,7 +457,9 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     end
     living_spaces_front << living_space
 
-    ##############################################################################################
+    unit_spaces_hash = {}
+    unit_spaces_hash[1] = [living_spaces_front, 1]
+
     ##############################################################################################
     # Map unit location to adiabatic surfaces
     horz_hash = { "Left" => ["right"], "Right" => ["left"], "Middle" => ["left", "right"], "None" => [] }
@@ -499,7 +501,6 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
       end
     end
     ##############################################################################################
-    ##############################################################################################
 
     if (corridor_position == "Double-Loaded Interior")
       interior_corridor_width = corridor_width / 2 # Only half the corridor is attached to a unit
@@ -530,10 +531,11 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
           corridor_space_type.setStandardsSpaceType(Constants.SpaceTypeCorridor)
           space_types_hash[Constants.SpaceTypeCorridor] = corridor_space_type
         end
+
         corridor_space.setSpaceType(corridor_space_type)
         corridor_space.setThermalZone(corridor_zone)
 
-        # Make back wall of corridor adiabatic if there are rear units
+        # Make walls of corridor adiabatic
         if has_rear_units == true
           corridor_space.surfaces.each do |surface|
             os_facade = Geometry.get_facade_for_surface(surface)
@@ -637,15 +639,16 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
 
     end
 
-    # unit_spaces_hash.each do |unit_num, spaces|
-    #   # Store building unit information
-    #   unit = OpenStudio::Model::BuildingUnit.new(model)
-    #   unit.setBuildingUnitType(Constants.BuildingUnitTypeResidential)
-    #   unit.setName(Constants.ObjectNameBuildingUnit(unit_num))
-    #   spaces.each do |space|
-    #     space.setBuildingUnit(unit)
-    #   end
-    # end
+    unit_spaces_hash.each do |unit_num, unit_info|
+      spaces, units_represented = unit_info
+      # Store building unit information
+      unit = OpenStudio::Model::BuildingUnit.new(model)
+      unit.setBuildingUnitType(Constants.BuildingUnitTypeResidential)
+      unit.setName(Constants.ObjectNameBuildingUnit(1))
+      spaces.each do |space|
+        space.setBuildingUnit(unit)
+      end
+    end
 
     # put all of the spaces in the model into a vector
     spaces = OpenStudio::Model::SpaceVector.new
@@ -655,12 +658,10 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
 
     # intersect and match surfaces for each space in the vector
     OpenStudio::Model.intersectSurfaces(spaces)
-    # OpenStudio::Model.matchSurfaces(spaces)
+    OpenStudio::Model.matchSurfaces(spaces)
 
     # make all surfaces adjacent to corridor spaces into adiabatic surfaces
     model.getSpaces.each do |space|
-      space.surfaces.each do |surface|
-      end
       next unless Geometry.is_corridor(space)
 
       space.surfaces.each do |surface|
@@ -680,6 +681,8 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
 
     # Store number of units
     model.getBuilding.setStandardsNumberOfLivingUnits(num_units)
+    # model.getBuilding.setStandardsNumberOfLivingUnits(1)
+
 
     # Store number of stories
     model.getBuilding.setStandardsNumberOfAboveGroundStories(num_floors)
@@ -718,19 +721,6 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
 
     # reporting final condition of model
     runner.registerFinalCondition("The building finished with #{model.getSpaces.size} spaces.")
-
-    spaces = model.getSpaces
-    spaces.each do |space|
-      if Geometry.get_space_floor_z(space) + UnitConversions.convert(space.zOrigin, "m", "ft") < 0
-        surfaces = space.surfaces
-        surfaces.each do |surface|
-          next if surface.surfaceType.downcase != "wall"
-    
-          surface.setOutsideBoundaryCondition("Foundation")
-        end
-      end
-    end
-
 
     return true
   end
