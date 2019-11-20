@@ -18,7 +18,17 @@ def map_geometry_house_size(df):
     return df
 
 def map_bedrooms(df):
-    df['Bedrooms'] = df['BEDROOMS']
+    df['Bedrooms'] = df['BEDROOMS'].map({0: 1,
+                                         1: 1,
+                                         2: 2,
+                                         3: 3,
+                                         4: 4,
+                                         5: 5,
+                                         6: 5,
+                                         7: 5,
+                                         8: 5,
+                                         9: 5,
+                                         10: 5})
     return df
     
 def map_occupants(df):
