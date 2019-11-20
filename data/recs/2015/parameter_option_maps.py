@@ -1,6 +1,4 @@
 def map_geometry_building_type(df):
-    typehuqs = [1, 2, 3, 4, 5]
-    geometry_building_types = ['Mobile Home', 'Single-Family Detached', 'Single-Family Attached', 'Multi-Family with 2 -4 Units', 'Multi-Family with 5+ Units']
     df['Geometry Building Type'] = df['TYPEHUQ'].map({1: 'Mobile Home',
                                                       2: 'Single-Family Detached',
                                                       3: 'Single-Family Attached',
@@ -32,5 +30,16 @@ def map_bedrooms(df):
     return df
     
 def map_occupants(df):
-    df['Occupants'] = df['NHSLDMEM']
+    df['Occupants'] = df['NHSLDMEM'].map({1: 1,
+                                          2: 2,
+                                          3: 3,
+                                          4: 4,
+                                          5: 5,
+                                          6: 6,
+                                          7: 6,
+                                          8: 6,
+                                          9: 6,
+                                          10: 6,
+                                          11: 6,
+                                          12: 6})
     return df
