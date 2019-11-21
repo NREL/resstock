@@ -173,10 +173,10 @@
         "offcyc_power": "0",
         "oncyc_power": "0",
         "recovery_efficiency": "0.76",
-        "schedules_directory": "./resources",
-        "setpoint_schedule": "hourly_setpoint_schedule.csv",
+        "schedules_directory": "../HPXMLtoOpenStudio/resources/wh_schedules",
+        "setpoint_schedule": "Atlanta_wh_preheat.csv",
         "setpoint_temp": "125",
-        "setpoint_type": "constant",
+        "setpoint_type": "scheduled",
         "tank_model_type": "mixed",
         "tank_volume": "auto"
       },
@@ -251,10 +251,10 @@
         "season_end_month": "Dec",
         "season_start_month": "Jan",
         "use_auto_season": "false",
-        "weekday_offset_magnitude": "0",
-        "weekday_offset_schedule": "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0",
+        "weekday_offset_magnitude": "1",
+        "weekday_offset_schedule": "0,0,0,0,0,0,0,0,0,0,0,0,-4,-4,-4,-4,4,4,4,4,0,0,0,0",
         "weekday_setpoint": "76.0",
-        "weekend_offset_magnitude": "0",
+        "weekend_offset_magnitude": "1",
         "weekend_offset_schedule": "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0",
         "weekend_setpoint": "76.0"
       },
@@ -479,7 +479,8 @@
     {
       "arguments": {
         "include_enduse_subcategories": "false",
-        "reporting_frequency": "Hourly"
+        "reporting_frequency": "Hourly",
+        "output_variables": "Zone Thermostat Heating Setpoint Temperature,Zone Thermostat Cooling Setpoint Temperature,Water Heater Tank Temperature,Water Heater Heating Energy,Schedule Value"
       },
       "measure_dir_name": "TimeseriesCSVExport"
     }
