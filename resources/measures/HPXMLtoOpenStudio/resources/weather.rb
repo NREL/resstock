@@ -99,14 +99,16 @@ class WeatherProcess
     end
   end
 
-  def actual_year_timestamps(reporting_frequency, dst_start_datetime, dst_end_datetime)
+  def actual_year_timestamps(reporting_frequency, run_period_control_daylight_saving_time, dst_start_datetime, dst_end_datetime)
     start_actual_year = @epw_file.startDateActualYear
     end_actual_year = @epw_file.endDateActualYear
 
-    dst_start_date = dst_start_datetime.date
-    dst_start_time = dst_start_datetime.time
-    dst_end_date = dst_end_datetime.date
-    dst_end_time = dst_end_datetime.time
+    unless run_period_control_daylight_saving_time.nil?
+      dst_start_date = dst_start_datetime.date
+      dst_start_time = dst_start_datetime.time
+      dst_end_date = dst_end_datetime.date
+      dst_end_time = dst_end_datetime.time
+    end
 
     timestamps = []
     dst_timestamps = []
@@ -122,8 +124,10 @@ class WeatherProcess
       if reporting_frequency == "Timestep"
         tstep = @model.getTimestep.numberOfTimestepsPerHour
 
-        dst_start_ts = Time.new(dst_start_date.year, dst_start_date.monthOfYear.value, dst_start_date.dayOfMonth, dst_start_time.hours, dst_start_time.minutes)
-        dst_end_ts = Time.new(dst_end_date.year, dst_end_date.monthOfYear.value, dst_end_date.dayOfMonth, dst_end_time.hours, dst_end_time.minutes)
+        unless run_period_control_daylight_saving_time.nil?
+          dst_start_ts = Time.new(dst_start_date.year, dst_start_date.monthOfYear.value, dst_start_date.dayOfMonth, dst_start_time.hours, dst_start_time.minutes)
+          dst_end_ts = Time.new(dst_end_date.year, dst_end_date.monthOfYear.value, dst_end_date.dayOfMonth, dst_end_time.hours, dst_end_time.minutes)
+        end
 
         (start_actual_year..(end_actual_year + 1)).to_a.each do |year|
           (1..12).to_a.each do |month|
@@ -135,6 +139,7 @@ class WeatherProcess
                   next if ts < start_time or ts > end_time
 
                   timestamps << ts.strftime("%Y/%m/%d %H:%M:00")
+                  next if run_period_control_daylight_saving_time.nil?
 
                   if ts >= dst_start_ts and ts < dst_end_ts
                     dst_ts = ts + 60 * 60 # 1 hr shift forward
@@ -148,8 +153,10 @@ class WeatherProcess
           end
         end
       elsif reporting_frequency == "Hourly"
-        dst_start_ts = Time.new(dst_start_date.year, dst_start_date.monthOfYear.value, dst_start_date.dayOfMonth, dst_start_time.hours)
-        dst_end_ts = Time.new(dst_end_date.year, dst_end_date.monthOfYear.value, dst_end_date.dayOfMonth, dst_end_time.hours)
+        unless run_period_control_daylight_saving_time.nil?
+          dst_start_ts = Time.new(dst_start_date.year, dst_start_date.monthOfYear.value, dst_start_date.dayOfMonth, dst_start_time.hours)
+          dst_end_ts = Time.new(dst_end_date.year, dst_end_date.monthOfYear.value, dst_end_date.dayOfMonth, dst_end_time.hours)
+        end
 
         (start_actual_year..end_actual_year).to_a.each do |year|
           (1..12).to_a.each do |month|
@@ -160,6 +167,7 @@ class WeatherProcess
                 next if ts < start_time or ts > end_time
 
                 timestamps << ts.strftime("%Y/%m/%d %H:00:00")
+                next if run_period_control_daylight_saving_time.nil?
 
                 if ts >= dst_start_ts and ts < dst_end_ts
                   dst_ts = ts + 60 * 60 # 1 hr shift forward
@@ -172,8 +180,10 @@ class WeatherProcess
           end
         end
       elsif reporting_frequency == "Daily"
-        dst_start_ts = Time.new(dst_start_date.year, dst_start_date.monthOfYear.value, dst_start_date.dayOfMonth)
-        dst_end_ts = Time.new(dst_end_date.year, dst_end_date.monthOfYear.value, dst_end_date.dayOfMonth)
+        unless run_period_control_daylight_saving_time.nil?
+          dst_start_ts = Time.new(dst_start_date.year, dst_start_date.monthOfYear.value, dst_start_date.dayOfMonth)
+          dst_end_ts = Time.new(dst_end_date.year, dst_end_date.monthOfYear.value, dst_end_date.dayOfMonth)
+        end
 
         (start_actual_year..end_actual_year + 1).to_a.each do |year|
           (1..12).to_a.each do |month|
@@ -183,6 +193,7 @@ class WeatherProcess
               next if ts < start_time or ts > end_time
 
               timestamps << ts.strftime("%Y/%m/%d 00:00:00")
+              next if run_period_control_daylight_saving_time.nil?
 
               if ts >= dst_start_ts and ts < dst_end_ts
                 dst_ts = ts + 60 * 60 # 1 hr shift forward
@@ -194,8 +205,10 @@ class WeatherProcess
           end
         end
       elsif reporting_frequency == "Monthly"
-        dst_start_ts = Time.new(dst_start_date.year, dst_start_date.monthOfYear.value)
-        dst_end_ts = Time.new(dst_end_date.year, dst_end_date.monthOfYear.value)
+        unless run_period_control_daylight_saving_time.nil?
+          dst_start_ts = Time.new(dst_start_date.year, dst_start_date.monthOfYear.value)
+          dst_end_ts = Time.new(dst_end_date.year, dst_end_date.monthOfYear.value)
+        end
 
         (start_actual_year..end_actual_year + 1).to_a.each do |year|
           (1..12).to_a.each do |month|
@@ -203,6 +216,7 @@ class WeatherProcess
             next if ts < start_time or ts > end_time
 
             timestamps << ts.strftime("%Y/%m/01 00:00:00")
+            next if run_period_control_daylight_saving_time.nil?
 
             if ts >= dst_start_ts and ts < dst_end_ts
               dst_ts = ts + 60 * 60 # 1 hr shift forward
@@ -213,17 +227,21 @@ class WeatherProcess
           end
         end
       elsif reporting_frequency == "Runperiod"
-        dst_start_ts = Time.new(dst_start_date.year)
-        dst_end_ts = Time.new(dst_end_date.year)
+        unless run_period_control_daylight_saving_time.nil?
+          dst_start_ts = Time.new(dst_start_date.year)
+          dst_end_ts = Time.new(dst_end_date.year)
+        end
 
         ts = Time.new(end_actual_year + 1)
         timestamps << ts.strftime("%Y/01/01 00:00:00")
 
-        if ts >= dst_start_ts and ts < dst_end_ts
-          dst_ts = ts + 60 * 60 # 1 hr shift forward
-          dst_timestamps << dst_ts.strftime("%Y/01/01 00:00:00")
-        else
-          dst_timestamps << ts.strftime("%Y/01/01 00:00:00")
+        unless run_period_control_daylight_saving_time.nil?
+          if ts >= dst_start_ts and ts < dst_end_ts
+            dst_ts = ts + 60 * 60 # 1 hr shift forward
+            dst_timestamps << dst_ts.strftime("%Y/01/01 00:00:00")
+          else
+            dst_timestamps << ts.strftime("%Y/01/01 00:00:00")
+          end
         end
       end
     end

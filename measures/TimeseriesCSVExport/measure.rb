@@ -157,18 +157,28 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
       return false
     end
 
-    run_period_control_daylight_saving_time = model.getRunPeriodControlDaylightSavingTime
-    hour_of_dst_switch = OpenStudio::Time.new(0, 0, 0, 0) # Midnight
-    dst_start_date = run_period_control_daylight_saving_time.startDate
-    dst_start_datetime = OpenStudio::DateTime.new(dst_start_date, hour_of_dst_switch)
-    dst_end_date = run_period_control_daylight_saving_time.endDate
-    dst_end_datetime = OpenStudio::DateTime.new(dst_end_date, hour_of_dst_switch - OpenStudio::Time.new(0, 1, 0, 0))
+    run_period_control_daylight_saving_time = nil
+    model.getModelObjects.each do |model_object| # FIXME: getRunPeriodControlDaylightSavingTime creates the object with defaults
+      obj_type = model_object.to_s.split(',')[0].gsub('OS:', '').gsub(':', '')
+      next if obj_type != "RunPeriodControlDaylightSavingTime"
+
+      run_period_control_daylight_saving_time = model.getRunPeriodControlDaylightSavingTime
+      break
+    end
+    unless run_period_control_daylight_saving_time.nil?
+      hour_of_dst_switch = OpenStudio::Time.new(0, 0, 0, 0) # Midnight
+      dst_start_date = run_period_control_daylight_saving_time.startDate
+      dst_start_datetime = OpenStudio::DateTime.new(dst_start_date, hour_of_dst_switch)
+      dst_end_date = run_period_control_daylight_saving_time.endDate
+      dst_end_datetime = OpenStudio::DateTime.new(dst_end_date, hour_of_dst_switch - OpenStudio::Time.new(0, 1, 0, 0))
+    end
 
     datetimes = []
     dst_datetimes = []
     timeseries = sqlFile.timeSeries(ann_env_pd, reporting_frequency_map[reporting_frequency], "Electricity:Facility", "").get # assume every house consumes some electricity
     timeseries.dateTimes.each do |datetime|
       datetimes << format_datetime(datetime.to_s)
+      next if run_period_control_daylight_saving_time.nil?
 
       if datetime >= dst_start_datetime and datetime < dst_end_datetime
         dst_datetime = datetime + OpenStudio::Time.new(0, 1, 0, 0) # 1 hr shift forward
@@ -185,12 +195,18 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
 
     # Initialize timeseries hash which will be exported to csv
     timeseries = {}
-    actual_year_timestamps, dst_actual_year_timestamps = weather.actual_year_timestamps(reporting_frequency, dst_start_datetime, dst_end_datetime)
+    actual_year_timestamps, dst_actual_year_timestamps = weather.actual_year_timestamps(reporting_frequency, run_period_control_daylight_saving_time, dst_start_datetime, dst_end_datetime)
     if not actual_year_timestamps.empty?
       timeseries["Time"] = actual_year_timestamps # timestamps constructed using run period and Time class (AMY)
+      if dst_actual_year_timestamps.empty?
+        dst_actual_year_timestamps = actual_year_timestamps
+      end
       timeseries["TimeDST"] = dst_actual_year_timestamps # timestamps constructed using run period and Time class shifted forward an hour during DST
     else
       timeseries["Time"] = datetimes # timestamps from the sqlfile (TMY)
+      if dst_datetimes.empty?
+        dst_datetimes = datetimes
+      end
       timeseries["TimeDST"] = dst_datetimes # timestamps from the sqlifile (TMY), but shifted forward an hour during DST
     end
     if timeseries["Time"].length != datetimes.length
