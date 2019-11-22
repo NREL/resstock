@@ -47,7 +47,7 @@ class ConstructionPropertiesReportTest < MiniTest::Test
       # "crawl_zone"=>0, # crawl space air
       "unfinished_attic_zone" => 132 # unfinished attic space air
     }
-    _test_thermal_capacitances("example_single_family_detached.osm", thermal_capacitances)
+    _test_thermal_capacitances("SFD_Successful_EnergyPlus_Run_TMY.osm", thermal_capacitances)
   end
 
   def test_ua
@@ -85,7 +85,7 @@ class ConstructionPropertiesReportTest < MiniTest::Test
       # "res_furniture_construction_finished_basement_space"=>0, # furniture in finished basement
       # "res_furniture_construction_garage_space"=>0 # furniture in garage
     }
-    _test_uas("example_single_family_detached.osm", uas)
+    _test_uas("SFD_Successful_EnergyPlus_Run_TMY.osm", uas)
   end
 
   private
