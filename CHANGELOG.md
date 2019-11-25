@@ -1,10 +1,12 @@
 ## ResStock v2.2.0 (pending)
 
 Features
+- Include additional "daylight saving time" column to timeseries csv file for accounting for one hour forward and backward time shifts ([#346](https://github.com/NREL/OpenStudio-BuildStock/pull/346))
 - Add new QOIReport measure for reporting seasonal quantities of interest for uncertainty quantification ([#334](https://github.com/NREL/OpenStudio-BuildStock/pull/334))
 - Separate tsv files for bedrooms, cooking range schedule, corridor, holiday lighting, interior/other lighting use, pool schedule, plug loads schedule, and refrigeration schedule ([#338](https://github.com/NREL/OpenStudio-BuildStock/pull/338))
 
 Fixes
+- Update each PAT project's AMI selection to "2.9.0" ([#346](https://github.com/NREL/OpenStudio-BuildStock/pull/346))
 - Remove shared facades tsv files from the multifamily_beta and testing projects ([#301](https://github.com/NREL/OpenStudio-BuildStock/pull/301))
 - Move redundant output meter code from individual reporting measures out into shared resource file ([#334](https://github.com/NREL/OpenStudio-BuildStock/pull/334))
 - Fix for the power outages measure where the last hour of the day was not getting the new schedule applied ([#238](https://github.com/NREL/OpenStudio-BuildStock/pull/238))
