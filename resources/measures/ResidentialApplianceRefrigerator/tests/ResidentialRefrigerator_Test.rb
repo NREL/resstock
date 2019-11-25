@@ -35,7 +35,7 @@ class ResidentialRefrigeratorTest < MiniTest::Test
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
-  def test_new_construction_mult_0_95
+  def test_new_construction_ef_17_6_mult_0_95
     args_hash = {}
     args_hash["rated_annual_energy"] = 434.0
     args_hash["mult"] = 0.95
@@ -45,13 +45,71 @@ class ResidentialRefrigeratorTest < MiniTest::Test
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
-  def test_new_construction_mult_1_05
+  def test_new_construction_ef_17_6_mult_1_05
     args_hash = {}
     args_hash["rated_annual_energy"] = 434.0
     args_hash["mult"] = 1.05
     expected_num_del_objects = {}
     expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
     expected_values = { "Annual_kwh" => 455.7, "Location" => args_hash["location"] }
+    _test_measure("SFD_2000sqft_2story_FB_GRG_UA.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
+  end
+
+  def test_new_construction_ef_19_9
+    args_hash = {}
+    args_hash["rated_annual_energy"] = 400.0
+    expected_num_del_objects = {}
+    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_values = { "Annual_kwh" => 400.0, "Location" => args_hash["location"] }
+    _test_measure("SFD_2000sqft_2story_FB_GRG_UA.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
+  end
+
+  def test_new_construction_ef_19_9_mult_0_95
+    args_hash = {}
+    args_hash["rated_annual_energy"] = 400.0
+    args_hash["mult"] = 0.95
+    expected_num_del_objects = {}
+    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_values = { "Annual_kwh" => 380.0, "Location" => args_hash["location"] }
+    _test_measure("SFD_2000sqft_2story_FB_GRG_UA.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
+  end
+
+  def test_new_construction_ef_19_9_mult_1_05
+    args_hash = {}
+    args_hash["rated_annual_energy"] = 400.0
+    args_hash["mult"] = 1.05
+    expected_num_del_objects = {}
+    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_values = { "Annual_kwh" => 420.0, "Location" => args_hash["location"] }
+    _test_measure("SFD_2000sqft_2story_FB_GRG_UA.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
+  end
+
+  def test_new_construction_ef_21_9
+    args_hash = {}
+    args_hash["rated_annual_energy"] = 348.0
+    expected_num_del_objects = {}
+    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_values = { "Annual_kwh" => 348.0, "Location" => args_hash["location"] }
+    _test_measure("SFD_2000sqft_2story_FB_GRG_UA.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
+  end
+
+  def test_new_construction_ef_21_9_mult_0_95
+    args_hash = {}
+    args_hash["rated_annual_energy"] = 348.0
+    args_hash["mult"] = 0.95
+    expected_num_del_objects = {}
+    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_values = { "Annual_kwh" => 330.6, "Location" => args_hash["location"] }
+    _test_measure("SFD_2000sqft_2story_FB_GRG_UA.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
+  end
+
+  def test_new_construction_ef_21_9_mult_1_05
+    args_hash = {}
+    args_hash["rated_annual_energy"] = 348.0
+    args_hash["mult"] = 1.05
+    expected_num_del_objects = {}
+    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_values = { "Annual_kwh" => 365.4, "Location" => args_hash["location"] }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 

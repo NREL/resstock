@@ -131,4 +131,16 @@ class TestResStockErrors < MiniTest::Test
       flunk "Should have caused an error but didn't."
     end
   end
+
+  def test_housing_characteristics_nonexistent_dependency_option
+    begin
+      housing_characteristics_dir = "housing_characteristics_nonexistent_dependency_option"
+      integrity_check(@project_dir_name, housing_characteristics_dir, @lookup_file)
+      integrity_check_options_lookup_tsv(@project_dir_name, housing_characteristics_dir, @lookup_file)
+    rescue Exception => e
+      assert(e.message.include? "ERROR: Location=AL_Mobile-Rgnl.AP.722230 not a valid dependency option for Vintage.\n")
+    else
+      flunk "Should have caused an error but didn't."
+    end
+  end
 end
