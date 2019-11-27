@@ -65,7 +65,7 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
   def average_daily_base_magnitude_by_season
     output_names = []
     seasons.each do |season, temperature_range|
-      output_names << "average_minimum_daily_use_#{season}_kw"
+      output_names << "average_minimum_daily_use_#{season.downcase}_kw"
     end
     return output_names
   end
@@ -73,7 +73,7 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
   def average_daily_peak_magnitude_by_season
     output_names = []
     seasons.each do |season, temperature_range|
-      output_names << "average_maximum_daily_use_#{season}_kw"
+      output_names << "average_maximum_daily_use_#{season.downcase}_kw"
     end
     return output_names
   end
@@ -81,7 +81,7 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
   def average_daily_peak_timing_by_season
     output_names = []
     seasons.each do |season, temperature_range|
-      output_names << "average_maximum_daily_timing_#{season}_hour"
+      output_names << "average_maximum_daily_timing_#{season.downcase}_hour"
     end
     return output_names
   end
@@ -91,7 +91,7 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
     seasons.each do |season, temperature_range|
       next if season == Constants.SeasonOverlap
 
-      output_names << "average_of_top_ten_highest_peaks_use_#{season}_kw"
+      output_names << "average_of_top_ten_highest_peaks_use_#{season.downcase}_kw"
     end
     return output_names
   end
@@ -101,7 +101,7 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
     seasons.each do |season, temperature_range|
       next if season == Constants.SeasonOverlap
 
-      output_names << "average_of_top_ten_highest_peaks_timing_#{season}_hour"
+      output_names << "average_of_top_ten_highest_peaks_timing_#{season.downcase}_hour"
     end
     return output_names
   end
@@ -185,31 +185,31 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
 
     # Average daily base magnitude (by season) (3)
     seasons.each do |season, temperature_range|
-      report_sim_output(runner, "average_minimum_daily_use_#{season}_kw", average_daily_use(timeseries, temperature_range, "min"), "", "")
+      report_sim_output(runner, "average_minimum_daily_use_#{season.downcase}_kw", average_daily_use(timeseries, temperature_range, "min"), "", "")
     end
 
     # Average daily peak magnitude (by season) (3)
     seasons.each do |season, temperature_range|
-      report_sim_output(runner, "average_maximum_daily_use_#{season}_kw", average_daily_use(timeseries, temperature_range, "max"), "", "")
+      report_sim_output(runner, "average_maximum_daily_use_#{season.downcase}_kw", average_daily_use(timeseries, temperature_range, "max"), "", "")
     end
 
     # Average daily peak timing (by season) (3)
     seasons.each do |season, temperature_range|
-      report_sim_output(runner, "average_maximum_daily_timing_#{season}_hour", average_daily_timing(timeseries, temperature_range, "max"), "", "")
+      report_sim_output(runner, "average_maximum_daily_timing_#{season.downcase}_hour", average_daily_timing(timeseries, temperature_range, "max"), "", "")
     end
 
     # Top 10 daily seasonal peak magnitude (2)
     seasons.each do |season, temperature_range|
       next if season == Constants.SeasonOverlap
 
-      report_sim_output(runner, "average_of_top_ten_highest_peaks_use_#{season}_kw", average_daily_use(timeseries, temperature_range, "max", 10), "", "")
+      report_sim_output(runner, "average_of_top_ten_highest_peaks_use_#{season.downcase}_kw", average_daily_use(timeseries, temperature_range, "max", 10), "", "")
     end
 
     # Top 10 seasonal timing of peak (2)
     seasons.each do |season, temperature_range|
       next if season == Constants.SeasonOverlap
 
-      report_sim_output(runner, "average_of_top_ten_highest_peaks_timing_#{season}_hour", average_daily_timing(timeseries, temperature_range, "max", 10), "", "")
+      report_sim_output(runner, "average_of_top_ten_highest_peaks_timing_#{season.downcase}_hour", average_daily_timing(timeseries, temperature_range, "max", 10), "", "")
     end
 
     sqlFile.close
@@ -217,7 +217,7 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
     return true
   end
 
-  def average_daily_use(timeseries, temperature_range, min_or_max, top = 0)
+  def average_daily_use(timeseries, temperature_range, min_or_max, top = "all")
     daily_vals = []
     timeseries["total_site_electricity_kw"].each_slice(24).with_index do |kws, i|
       temps = timeseries["Temperature"][(24 * i)...(24 * i + 24)]
@@ -230,12 +230,21 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
         end
       end
     end
+    if daily_vals.empty?
+      return nil
+    end
+
+    if top == "all"
+      top = daily_vals.length
+    else
+      top = [top, daily_vals.length].min # don't try to access indexes that don't exist
+    end
     daily_vals = daily_vals.sort.reverse
-    daily_vals = daily_vals[0..(top - 1)]
+    daily_vals = daily_vals[0..top]
     return daily_vals.inject { |sum, el| sum + el }.to_f / daily_vals.size
   end
 
-  def average_daily_timing(timeseries, temperature_range, min_or_max, top = 0)
+  def average_daily_timing(timeseries, temperature_range, min_or_max, top = "all")
     daily_vals = { "hour" => [], "use" => [] }
     timeseries["total_site_electricity_kw"].each_slice(24).with_index do |kws, i|
       temps = timeseries["Temperature"][(24 * i)...(24 * i + 24)]
@@ -252,12 +261,25 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
         end
       end
     end
+    if daily_vals.empty?
+      return nil
+    end
+
+    if top == "all"
+      top = daily_vals.length
+    else
+      top = [top, daily_vals.length].min # don't try to access indexes that don't exist
+    end
     daily_vals["use"], daily_vals["hour"] = daily_vals["use"].zip(daily_vals["hour"]).sort.reverse.transpose
-    daily_vals = daily_vals["hour"][0..(top - 1)]
+    daily_vals = daily_vals["hour"][0..top]
     return daily_vals.inject { |sum, el| sum + el }.to_f / daily_vals.size
   end
 
   def report_sim_output(runner, name, total_val, os_units, desired_units, percent_of_val = 1.0)
+    if total_val.nil?
+      runner.registerInfo("Registering (blank) for #{name}.")
+      return
+    end
     total_val = total_val * percent_of_val
     if os_units.nil? or desired_units.nil? or os_units == desired_units
       valInUnits = total_val
