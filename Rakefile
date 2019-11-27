@@ -444,11 +444,11 @@ end
 
 def update_measures
   require 'openstudio'
-puts "HERE0"
+
   # Apply rubocop
-  # command = "rubocop --auto-correct --format simple --only Layout"
-  # puts "Applying rubocop style to measures..."
-  # system(command)
+  command = "rubocop --auto-correct --format simple --only Layout"
+  puts "Applying rubocop style to measures..."
+  system(command)
 
   # Generate example OSWs
 
@@ -457,32 +457,72 @@ puts "HERE0"
   data_hash = get_and_proof_measure_order_json()
 
   example_osws = {
-    'TMY' => 'USA_CO_Denver.Intl.AP.725650_TMY3.epw',
-    # 'AMY2012' => '0465925_US_CO_Boulder_8013_0-20000-0-72469_40.13_-105.22_NSRDB_2.0.1_AMY_2012.epw',
-    # 'AMY2014' => '0465925_US_CO_Boulder_8013_0-20000-0-72469_40.13_-105.22_NSRDB_2.0.1_AMY_2014.epw'
+    "TMY" => {
+      "weather_station_name" => "Denver, CO",
+      "weather_station_wmo" => "725650"
+    },
+    "AMY2012" => {
+      "weather_station_name" => "Boulder, CO",
+      "weather_station_wmo" => "0465925_2012"
+    },
+    "AMY2014" => {
+      "weather_station_name" => "Boulder, CO",
+      "weather_station_wmo" => "0465925_2014"
+    }
   }
-  example_osws.each do |weather_year, weather_file|
+  example_osws.each do |weather_year, weather_station|
     # SFD
+    include_args = {
+      "BuildResidentialHPXML" => {
+        "hpxml_output_path" => "run/in.xml",
+      },
+      "HPXMLtoOpenStudio" => {
+        "hpxml_path" => "run/in.xml"
+      }
+    }
+    include_args["BuildResidentialHPXML"].update(weather_station)
     generate_example_osws(data_hash,
-                          "example_single_family_detached_#{weather_year}.osw",
-                          weather_file)
+                          include_args,
+                          "example_single_family_detached_#{weather_year}.osw")
 
     # SFA
-    # generate_example_osws(data_hash,
-                          # "example_single_family_attached_#{weather_year}.osw",
-                          # weather_file)
+    include_args = {
+      "BuildResidentialHPXML" => {
+        "hpxml_output_path" => "run/in.xml",
+        "unit_type" => "single-family attached",
+        "ffa" => "900"
+      },
+      "HPXMLtoOpenStudio" => {
+        "hpxml_path" => "run/in.xml"
+      }
+    }
+    include_args["BuildResidentialHPXML"].update(weather_station)
+    generate_example_osws(data_hash,
+                          include_args,
+                          "example_single_family_attached_#{weather_year}.osw")
 
-    # # MF
-    # generate_example_osws(data_hash,
-                          # "example_multifamily_#{weather_year}.osw",
-                          # weather_file)
+    # MF
+    include_args = {
+      "BuildResidentialHPXML" => {
+        "hpxml_output_path" => "run/in.xml",
+        "unit_type" => "multifamily",
+        "ffa" => "900"
+      },
+      "HPXMLtoOpenStudio" => {
+        "hpxml_path" => "run/in.xml"
+      }
+    }
+    include_args["BuildResidentialHPXML"].update(weather_station)
+    generate_example_osws(data_hash,
+                          include_args,
+                          "example_multifamily_#{weather_year}.osw")
   end
 end
 
-def generate_example_osws(data_hash, osw_filename, weather_file, simplify = true)
+def generate_example_osws(data_hash, include_args, osw_filename, simplify = true)
   # This function will generate OpenStudio OSWs
   # with all the measures in it, in the order specified in /resources/measure-info.json
-puts "HERE1"
+
   require 'openstudio'
   require_relative 'resources/meta_measure'
 
@@ -511,7 +551,7 @@ puts "HERE1"
       end
     end
   end
-puts "HERE3"
+
   data_hash.each do |group|
     group["group_steps"].each do |group_step|
       # Default to first measure in step
@@ -544,6 +584,10 @@ puts "HERE3"
         elsif arg.required
           puts "No default value provided for #{measure} argument '#{arg.name}'."
         end
+      end
+
+      include_args[measure].each do |arg_name, arg_value|
+        step.setArgument(arg_name, arg_value)
       end
 
       # Push step in Steps
