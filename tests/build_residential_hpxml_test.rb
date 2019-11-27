@@ -10,19 +10,127 @@ require_relative '../resources/constants'
 require_relative '../resources/meta_measure'
 
 class HPXMLExporterTest < MiniTest::Test
-  def test_measure
-    this_dir = File.dirname(__FILE__)
-    _setup(this_dir)
+  @@this_dir = File.dirname(__FILE__)
+
+  def test_sfd_slab
+    _setup(@@this_dir)
     args_hash = {}
-    args_hash["cavity_r"] = 13
-    args_hash["hpxml_output_path"] = File.absolute_path(File.join(this_dir, "run", "in.xml"))
+    args_hash["unit_type"] = "single-family detached"
+    args_hash["hpxml_output_path"] = File.absolute_path(File.join(@@this_dir, "run", "in.xml"))
+    _test_measure(nil, args_hash)
+  end
+
+  def test_sfd_crawl
+    _setup(@@this_dir)
+    args_hash = {}
+    args_hash["unit_type"] = "single-family detached"
+    args_hash["foundation type"] = "crawlspace"
+    args_hash["hpxml_output_path"] = File.absolute_path(File.join(@@this_dir, "run", "in.xml"))
+    _test_measure(nil, args_hash)
+  end
+
+  def test_sfd_ufb
+    _setup(@@this_dir)
+    args_hash = {}
+    args_hash["unit_type"] = "single-family detached"
+    args_hash["foundation type"] = "unfinished basement"
+    args_hash["hpxml_output_path"] = File.absolute_path(File.join(@@this_dir, "run", "in.xml"))
+    _test_measure(nil, args_hash)
+  end
+
+  def test_sfd_fb
+    _setup(@@this_dir)
+    args_hash = {}
+    args_hash["unit_type"] = "single-family detached"
+    args_hash["foundation type"] = "finished basement"
+    args_hash["hpxml_output_path"] = File.absolute_path(File.join(@@this_dir, "run", "in.xml"))
+    _test_measure(nil, args_hash)
+  end
+
+  def test_sfd_pb
+    _setup(@@this_dir)
+    args_hash = {}
+    args_hash["unit_type"] = "single-family detached"
+    args_hash["foundation type"] = "pier and beam"
+    args_hash["hpxml_output_path"] = File.absolute_path(File.join(@@this_dir, "run", "in.xml"))
+    _test_measure(nil, args_hash)
+  end
+
+  def test_sfa_slab
+    skip
+    _setup(@@this_dir)
+    args_hash = {}
+    args_hash["unit_type"] = "single-family attached"
+    args_hash["hpxml_output_path"] = File.absolute_path(File.join(@@this_dir, "run", "in.xml"))
+    _test_measure(nil, args_hash)
+  end
+
+  def test_sfa_crawl
+    skip
+    _setup(@@this_dir)
+    args_hash = {}
+    args_hash["unit_type"] = "single-family attached"
+    args_hash["ffa"] = 900.0
+    args_hash["foundation type"] = "crawlspace"
+    args_hash["hpxml_output_path"] = File.absolute_path(File.join(@@this_dir, "run", "in.xml"))
+    _test_measure(nil, args_hash)
+  end
+
+  def test_sfa_ufb
+    skip
+    _setup(@@this_dir)
+    args_hash = {}
+    args_hash["unit_type"] = "single-family attached"
+    args_hash["ffa"] = 900.0
+    args_hash["foundation type"] = "unfinished basement"
+    args_hash["hpxml_output_path"] = File.absolute_path(File.join(@@this_dir, "run", "in.xml"))
+    _test_measure(nil, args_hash)
+  end
+
+  def test_sfa_fb
+    skip
+    _setup(@@this_dir)
+    args_hash = {}
+    args_hash["unit_type"] = "single-family attached"
+    args_hash["ffa"] = 900.0
+    args_hash["foundation type"] = "finished basement"
+    args_hash["hpxml_output_path"] = File.absolute_path(File.join(@@this_dir, "run", "in.xml"))
+    _test_measure(nil, args_hash)
+  end
+
+  def test_mf_slab
+    _setup(@@this_dir)
+    args_hash = {}
+    args_hash["unit_type"] = "multifamily"
+    args_hash["ffa"] = 900.0
+    args_hash["hpxml_output_path"] = File.absolute_path(File.join(@@this_dir, "run", "in.xml"))
+    _test_measure(nil, args_hash)
+  end
+
+  def test_mf_crawl
+    _setup(@@this_dir)
+    args_hash = {}
+    args_hash["unit_type"] = "multifamily"
+    args_hash["ffa"] = 900.0
+    args_hash["foundation type"] = "crawlspace"
+    args_hash["hpxml_output_path"] = File.absolute_path(File.join(@@this_dir, "run", "in.xml"))
+    _test_measure(nil, args_hash)
+  end
+
+  def test_mf_ufb
+    _setup(@@this_dir)
+    args_hash = {}
+    args_hash["unit_type"] = "multifamily"
+    args_hash["ffa"] = 900.0
+    args_hash["foundation type"] = "unfinished basement"
+    args_hash["hpxml_output_path"] = File.absolute_path(File.join(@@this_dir, "run", "in.xml"))
     _test_measure(nil, args_hash)
   end
 
   def test_workflows
-    this_dir = File.dirname(__FILE__)
-    _setup(this_dir)
-    test_dirs = [this_dir]
+    _setup(@@this_dir)
+    test_dirs = [@@this_dir]
+    measures_dir = File.join(@@this_dir, "../../")
 
     osws = []
     test_dirs.each do |test_dir|
@@ -39,7 +147,6 @@ class HPXMLExporterTest < MiniTest::Test
         measures[step["measure_dir_name"]] = [step["arguments"]]
         model = OpenStudio::Model::Model.new
         runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
-        measures_dir = File.join(this_dir, "../../")
 
         # Apply measure
         success = apply_measures(measures_dir, measures, runner, model)

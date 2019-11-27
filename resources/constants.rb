@@ -159,6 +159,10 @@ class Constants
     return 'right'
   end
 
+  def self.FacadeNone
+    return 'none'
+  end
+
   def self.FluidWater
     return 'water'
   end
