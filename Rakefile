@@ -13,7 +13,7 @@ namespace :test do
   desc 'Run unit tests for all projects/measures'
   Rake::TestTask.new('unit_tests') do |t|
     t.libs << 'test'
-    t.test_files = Dir['project_*/tests/*.rb'] + Dir['test/test_integrity_checks.rb'] + Dir['measures/*/tests/*.rb'] + Dir['resources/measures/*/tests/*.rb'] + Dir['test/test_measures_osw.rb']
+    t.test_files = Dir['project_*/tests/*.rb'] + Dir['test/test_integrity_checks.rb'] + Dir['test/test_measures_osw.rb']
     t.warning = false
     t.verbose = true
   end
@@ -26,119 +26,12 @@ namespace :test do
     t.verbose = true
   end
 
-  desc 'Regenerate test osms from osws'
-  Rake::TestTask.new('regenerate_osms') do |t|
-    t.libs << 'test'
-    t.test_files = Dir['test/osw_files/tests/*.rb']
-    t.warning = false
-    t.verbose = true
-  end
-
   desc 'Test creating measure osws'
   Rake::TestTask.new('measures_osw') do |t|
     t.libs << 'test'
     t.test_files = Dir['test/test_measures_osw.rb']
     t.warning = false
     t.verbose = true
-  end
-end
-
-def regenerate_osms
-  require 'openstudio'
-  require_relative 'resources/meta_measure'
-
-  OpenStudio::Logger.instance.standardOutLogger.setLogLevel(OpenStudio::Error)
-
-  start_time = Time.now
-  num_tot = 0
-  num_success = 0
-
-  osw_path = File.expand_path("../test/osw_files/", __FILE__)
-  osm_path = File.expand_path("../test/osm_files/", __FILE__)
-
-  osw_files = Dir.entries(osw_path).select { |entry| entry.end_with?(".osw") }
-  num_osws = osw_files.size
-
-  osw_files.each do |osw|
-    # Generate osm from osw
-    num_tot += 1
-
-    puts "[#{num_tot}/#{num_osws}] Regenerating osm from #{osw}..."
-    osw = File.expand_path("../test/osw_files/#{osw}", __FILE__)
-    update_and_format_osw(osw)
-    osw_hash = JSON.parse(File.read(osw))
-
-    # Create measures hashes for top-level measures and other residential measures
-    measures = {}
-    resources_measures = {}
-    osw_hash["steps"].each do |step|
-      if ["ResidentialSimulationControls", "PowerOutage"].include? step["measure_dir_name"]
-        measures[step["measure_dir_name"]] = [step["arguments"]]
-      else
-        resources_measures[step["measure_dir_name"]] = [step["arguments"]]
-      end
-    end
-
-    # Apply measures
-    model = OpenStudio::Model::Model.new
-    runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
-    success = apply_measures(File.expand_path("../measures/", __FILE__), measures, runner, model)
-    success = apply_measures(File.expand_path("../resources/measures", __FILE__), resources_measures, runner, model)
-
-    osm = File.expand_path("../test/osw_files/in.osm", __FILE__)
-    File.open(osm, 'w') { |f| f << model.to_s }
-
-    # Add auto-generated message to top of file
-    # Update EPW file paths to be relative for the CircleCI machine
-    file_text = File.readlines(osm)
-    File.open(osm, "w") do |f|
-      f.write("!- NOTE: Auto-generated from #{osw.gsub(File.dirname(__FILE__), "")}\n")
-      file_text.each do |file_line|
-        if file_line.strip.start_with?("file:///")
-          file_data = file_line.split('/')
-          epw_name = file_data[-1].split(',')[0]
-          if File.exists? File.join(File.dirname(__FILE__), "resources/measures/HPXMLtoOpenStudio/weather/#{epw_name}")
-            file_line = file_data[0] + "../weather/" + file_data[-1]
-          else
-            # File not found in weather dir, assume it's in measure's tests dir instead
-            file_line = file_data[0] + "../tests/" + file_data[-1]
-          end
-        end
-        f.write(file_line)
-      end
-    end
-
-    # Copy to osm dir
-    osm_new = File.join(osm_path, File.basename(osw).gsub(".osw", ".osm"))
-    FileUtils.mv(osm, osm_new)
-    num_success += 1
-  end
-
-  puts "Completed. #{num_success} of #{num_tot} osm files were regenerated successfully (#{Time.now - start_time} seconds)."
-end
-
-def update_and_format_osw(osw)
-  # Insert new step(s) into test osw files, if they don't already exist: {step1=>index1, step2=>index2, ...}
-  # e.g., new_steps = {{"measure_dir_name"=>"ResidentialSimulationControls"}=>0}
-  new_steps = {}
-  json = JSON.parse(File.read(osw), :symbolize_names => true)
-  steps = json[:steps]
-  new_steps.each do |new_step, ix|
-    insert_new_step = true
-    steps.each do |step|
-      step.each do |k, v|
-        next if k != :measure_dir_name
-        next if v != new_step.values[0] # already have this step
-
-        insert_new_step = false
-      end
-    end
-    next unless insert_new_step
-
-    json[:steps].insert(ix, new_step)
-  end
-  File.open(osw, "w") do |f|
-    f.write(JSON.pretty_generate(json)) # format nicely even if not updating the osw with new steps
   end
 end
 
@@ -370,7 +263,7 @@ def integrity_check_options_lookup_tsv(project_dir_name, housing_characteristics
   measures.keys.each do |measure_subdir|
     puts "Checking for issues with #{measure_subdir} measure..."
 
-    measurerb_path = File.absolute_path(File.join(File.dirname(lookup_file), 'measures', measure_subdir, 'measure.rb'))
+    measurerb_path = File.absolute_path(File.join(File.dirname(lookup_file), "..", "model-measures", measure_subdir, "measure.rb"))
     check_file_exists(measurerb_path, nil)
     measure_instance = get_measure_instance(measurerb_path)
 
@@ -462,56 +355,44 @@ def update_measures
       "weather_station_wmo" => "725650"
     },
     "AMY2012" => {
-      "weather_station_name" => "Boulder, CO",
-      "weather_station_wmo" => "0465925_2012"
+      "weather_station_name" => "Denver, CO", # FIXME: add AMY 2012 weather file to OpenStudio-HPXML repository
+      "weather_station_wmo" => "725650"
     },
     "AMY2014" => {
-      "weather_station_name" => "Boulder, CO",
-      "weather_station_wmo" => "0465925_2014"
+      "weather_station_name" => "Denver, CO", # FIXME: add AMY 2014 weather file to OpenStudio-HPXML repository
+      "weather_station_wmo" => "725650"
     }
   }
   example_osws.each do |weather_year, weather_station|
-    # SFD
     include_args = {
       "BuildResidentialHPXML" => {
-        "hpxml_output_path" => "run/in.xml",
+        "hpxml_output_path" => File.expand_path(File.join(File.dirname(__FILE__), "workflows/run/in.xml"))
       },
       "HPXMLtoOpenStudio" => {
-        "hpxml_path" => "run/in.xml"
+        "hpxml_path" => File.expand_path(File.join(File.dirname(__FILE__), "workflows/run/in.xml")),
+        "weather_dir" => File.expand_path(File.join(File.dirname(__FILE__), "model-measures/HPXMLtoOpenStudio/weather")),
+        "schemas_dir" => File.expand_path(File.join(File.dirname(__FILE__), "model-measures/HPXMLtoOpenStudio/hpxml_schemas")),
       }
     }
-    include_args["BuildResidentialHPXML"].update(weather_station)
+
+    # SFD
+    include_args["BuildResidentialHPXML"]["unit_type"] = "single-family detached"
+    include_args["BuildResidentialHPXML"]["ffa"] = "2000"
     generate_example_osws(data_hash,
                           include_args,
                           "example_single_family_detached_#{weather_year}.osw")
 
     # SFA
-    include_args = {
-      "BuildResidentialHPXML" => {
-        "hpxml_output_path" => "run/in.xml",
-        "unit_type" => "single-family attached",
-        "ffa" => "900"
-      },
-      "HPXMLtoOpenStudio" => {
-        "hpxml_path" => "run/in.xml"
-      }
-    }
+    include_args["BuildResidentialHPXML"]["unit_type"] = "single-family attached"
+    include_args["BuildResidentialHPXML"]["ffa"] = "900"
     include_args["BuildResidentialHPXML"].update(weather_station)
     generate_example_osws(data_hash,
                           include_args,
                           "example_single_family_attached_#{weather_year}.osw")
 
     # MF
-    include_args = {
-      "BuildResidentialHPXML" => {
-        "hpxml_output_path" => "run/in.xml",
-        "unit_type" => "multifamily",
-        "ffa" => "900"
-      },
-      "HPXMLtoOpenStudio" => {
-        "hpxml_path" => "run/in.xml"
-      }
-    }
+    include_args["BuildResidentialHPXML"]["unit_type"] = "multifamily"
+    include_args["BuildResidentialHPXML"]["ffa"] = "900"
     include_args["BuildResidentialHPXML"].update(weather_station)
     generate_example_osws(data_hash,
                           include_args,
