@@ -40,7 +40,7 @@ def apply_measures(measures_dir, measures, runner, model, workflow_json = nil, o
     # Create a workflow based on the measures we're going to call. Convenient for debugging.
     workflowJSON = OpenStudio::WorkflowJSON.new
     workflowJSON.setOswPath(File.expand_path("../#{osw_out}"))
-    workflowJSON.addMeasurePath("measures")
+    workflowJSON.addMeasurePath("model-measures")
     steps = OpenStudio::WorkflowStepVector.new
     workflow_order.each do |measure_subdir|
       measures[measure_subdir].each do |args|
