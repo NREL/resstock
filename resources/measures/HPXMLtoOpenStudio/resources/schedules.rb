@@ -187,6 +187,70 @@ class HourlyByMonthSchedule
   end
 end
 
+class ScheduleFile
+  def initialize(model, runner, sch_name, sch_path, col_name, rows_to_skip = 1, min_per_item = 60)
+    @validated = true
+    @model = model
+    @runner = runner
+    @sch_name = sch_name
+    @sch_path = sch_path
+    @col_name = col_name
+    @col_num = get_col_num
+    if @col_num.nil?
+      return
+    end
+
+    @rows_to_skip = rows_to_skip
+    @min_per_item = min_per_item
+    unless @validated
+      return
+    end
+
+    @maxval = 1.0 # TODO
+    @schadjust = 1.0 # TODO
+    @schedule = createSchedule
+  end
+
+  def validateValues(values)
+    # @validated = false # TODO
+  end
+
+  def validated?
+    return @validated
+  end
+
+  def schedule
+    return @schedule
+  end
+
+  def get_col_num
+    headers = CSV.open(@sch_path, "r") { |csv| csv.first }
+    col_num = headers.index(@col_name) + 1
+    return col_num
+  end
+
+  def createSchedule
+    external_file = OpenStudio::Model::ExternalFile::getExternalFile(@model, @sch_path)
+    if external_file.is_initialized
+      external_file = external_file.get
+    end
+    schedule_file = OpenStudio::Model::ScheduleFile.new(external_file)
+    schedule_file.setName(@sch_name)
+    schedule_file.setColumnNumber(@col_num)
+    schedule_file.setRowstoSkipatTop(@rows_to_skip)
+    schedule_file.setMinutesperItem("#{@min_per_item}")
+    return schedule_file
+  end
+
+  def calcDesignLevelFromDailykWh(daily_kwh)
+    return daily_kwh * @maxval * 1000 * @schadjust
+  end
+
+  def calcDesignLevelFromDailyTherm(daily_therm)
+    return calcDesignLevelFromDailykWh(UnitConversions.convert(daily_therm, "therm", "kWh"))
+  end
+end
+
 # Annual schedule defined by 24 weekday hourly values, 24 weekend hourly values, and 12 monthly values
 class MonthWeekdayWeekendSchedule
   # weekday_hourly_values can either be a comma-separated string of 24 numbers or a 24-element array of numbers.

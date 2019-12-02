@@ -37,7 +37,8 @@ class Refrigerator
 
       if sch.nil?
         # Create schedule
-        sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameRefrigerator + " schedule", weekday_sch, weekend_sch, monthly_sch, mult_weekday = 1.0, mult_weekend = 1.0, normalize_values = true, create_sch_object = true, winter_design_day_sch = winter_design_day_sch, summer_design_day_sch = summer_design_day_sch, schedule_type_limits_name = Constants.ScheduleTypeLimitsFraction)
+        sch_path = "c:/OpenStudio/OpenStudio-BuildStock/resources/measures/HPXMLtoOpenStudio/resources/3bed.csv"
+        sch = ScheduleFile.new(model, runner, "#{Constants.ObjectNameRefrigerator} schedule", sch_path, "refrigerator")
         if not sch.validated?
           return false
         end
