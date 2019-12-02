@@ -166,11 +166,11 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
       break
     end
     unless run_period_control_daylight_saving_time.nil?
-      hour_of_dst_switch = OpenStudio::Time.new(0, 0, 0, 0) # Midnight
+      hour_of_dst_switch = OpenStudio::Time.new(0, 1, 0, 0) # 1 AM
       dst_start_date = run_period_control_daylight_saving_time.startDate
       dst_start_datetime = OpenStudio::DateTime.new(dst_start_date, hour_of_dst_switch)
       dst_end_date = run_period_control_daylight_saving_time.endDate
-      dst_end_datetime = OpenStudio::DateTime.new(dst_end_date, hour_of_dst_switch - OpenStudio::Time.new(0, 1, 0, 0))
+      dst_end_datetime = OpenStudio::DateTime.new(dst_end_date + OpenStudio::Time.new(1, 0, 0, 0), hour_of_dst_switch)
     end
 
     datetimes = []
