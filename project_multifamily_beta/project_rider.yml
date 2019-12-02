@@ -1,0 +1,33 @@
+stock_type: residential
+buildstock_directory: ../OpenStudio-BuildStock  # Relative to this file or absolute
+project_directory: project_multifamily_beta  # Relative to buildstock_directory
+output_directory: /projects/rider/resstock/v0
+#weather_files_url: https:/d/s3.amazonaws.com/epwweatherfiles/project_resstock_national.zip
+weather_files_path: project_multifamily_beta/weather/project_resstock_efs_2012.zip  # Relative to this file or absolute path to zipped weather files
+baseline:
+  #buildstock_csv: ../OpenStudio-BuildStock/project_singlefamilydetached/housing_characteristics/buildstock.csv
+  n_datapoints: 15  # Comment this line out if using a custom buildstock csv file
+  n_buildings_represented: 109000000
+timeseries_csv_export:
+  reporting_frequency: Hourly
+  include_enduse_subcategories: true
+eagle:
+  n_jobs: 200
+  minutes_per_sim: 90
+  account: rider
+  sampling:
+    time: 240
+  postprocessing:
+    time: 240
+    n_workers: 1 # 20
+postprocessing:
+  aggregate_timeseries: false
+  aws:
+    region_name: 'us-west-2'
+    s3:
+      bucket: resbldg-datasets
+      prefix: rider
+    athena:
+      glue_service_role: service-role/AWSGlueServiceRole-default
+      database_name: rider
+      max_crawling_time: 300 #time to wait for the crawler to complete before aborting it
