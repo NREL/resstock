@@ -15,14 +15,14 @@ class TestResStockMeasuresOSW < MiniTest::Test
 
     buildstock_csv = create_buildstock_csv(project_dir, num_samples)
     lib_dir = create_lib_folder(parent_dir, project_dir, buildstock_csv)
-    weather_dir = create_weather_folder(parent_dir, project_dir)
+    weather_dir = create_weather_folder(parent_dir)
 
     measures_osw_dir = File.join(parent_dir, "measures_osw")
     Dir.mkdir(measures_osw_dir) unless File.exist?(measures_osw_dir)
-    (1..num_samples).to_a.each do |building_id|
+    (1..num_samples).to_a.each do |building_unit_id|
       Dir["#{parent_dir}/build_existing_model.osw"].each do |osw|
-        change_building_id(osw, building_id)
-        run_and_check(osw, parent_dir, measures_osw_dir, building_id)
+        change_building_unit_id(osw, building_unit_id)
+        run_and_check(osw, parent_dir, measures_osw_dir, building_unit_id)
       end
     end
 
@@ -36,7 +36,7 @@ class TestResStockMeasuresOSW < MiniTest::Test
     FileUtils.rm_rf(File.join(parent_dir, "reports"))
   end
 
-  def run_and_check(in_osw, parent_dir, measures_osw_dir, building_id)
+  def run_and_check(in_osw, parent_dir, measures_osw_dir, building_unit_id)
     # Create measures.osw
     cli_path = OpenStudio.getOpenStudioCLI
     command = "cd #{parent_dir} && \"#{cli_path}\" --no-ssl run -m -w #{in_osw}"
@@ -44,7 +44,7 @@ class TestResStockMeasuresOSW < MiniTest::Test
 
     # Check output file exists
     out_osw = File.join(parent_dir, "out.osw")
-    new_out_osw = File.join(measures_osw_dir, "#{building_id}.osw")
+    new_out_osw = File.join(measures_osw_dir, "#{building_unit_id}.osw")
     FileUtils.mv(out_osw, new_out_osw)
     assert(File.exists?(new_out_osw))
 
@@ -73,20 +73,20 @@ class TestResStockMeasuresOSW < MiniTest::Test
     return lib_dir
   end
 
-  def create_weather_folder(parent_dir, project_dir)
-    src = File.join(parent_dir, "..", "..", "resources", "measures", "HPXMLtoOpenStudio", "weather", project_dir)
+  def create_weather_folder(parent_dir)
+    src = File.join(parent_dir, "..", "..", "model-measures", "HPXMLtoOpenStudio", "weather")
     des = File.join(parent_dir, "..", "..", "weather")
     FileUtils.cp_r(src, des)
 
     return des
   end
 
-  def change_building_id(osw, building_id)
+  def change_building_unit_id(osw, building_unit_id)
     json = JSON.parse(File.read(osw), symbolize_names: true)
     json[:steps].each do |measure|
       next if measure[:measure_dir_name] != "BuildExistingModel"
 
-      measure[:arguments][:building_id] = "#{building_id}"
+      measure[:arguments][:building_unit_id] = "#{building_unit_id}"
     end
     File.open(osw, "w") do |f|
       f.write(JSON.pretty_generate(json))
