@@ -549,7 +549,7 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("heating_system_heating_efficiency_percent_1", true)
     arg.setDisplayName("Heating System 1: Installed Percent")
     arg.setDescription("The installed percent value of the first heating (only) system.")
-    arg.setDefaultValue(1)
+    arg.setDefaultValue(-1)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument("heating_system_heating_capacity_1", true)
@@ -586,7 +586,7 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("heating_system_heating_efficiency_percent_2", true)
     arg.setDisplayName("Heating System 2: Installed Percent")
     arg.setDescription("The installed percent value of the second heating (only) system.")
-    arg.setDefaultValue(1)
+    arg.setDefaultValue(-1)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument("heating_system_heating_capacity_2", true)
@@ -634,7 +634,7 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("cooling_system_cooling_efficiency_eer_1", true)
     arg.setDisplayName("Cooling System 1: Rated EER")
     arg.setDescription("The rated EER value of the first cooling (only) system.")
-    arg.setDefaultValue(8.5)
+    arg.setDefaultValue(-1)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument("cooling_system_cooling_capacity_1", true)
@@ -671,7 +671,7 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("cooling_system_cooling_efficiency_eer_2", true)
     arg.setDisplayName("Cooling System 2: Rated EER")
     arg.setDescription("The rated EER value of the second cooling (only) system.")
-    arg.setDefaultValue(8.5)
+    arg.setDefaultValue(-1)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument("cooling_system_cooling_capacity_2", true)
@@ -698,6 +698,7 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     heat_pump_type_choices << "ground-to-water"
 
     heat_pump_fuel_choices = OpenStudio::StringVector.new
+    heat_pump_fuel_choices << "none"
     heat_pump_fuel_choices << "electricity"
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("heat_pump_type_1", heat_pump_type_choices, true)
@@ -727,13 +728,13 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("heat_pump_heating_efficiency_cop_1", true)
     arg.setDisplayName("Heat Pump 1: Installed COP")
     arg.setDescription("The installed COP value of the first heat pump.")
-    arg.setDefaultValue(3.6)
+    arg.setDefaultValue(-1)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("heat_pump_cooling_efficiency_eer_1", true)
     arg.setDisplayName("Heat Pump 1: Installed EER")
     arg.setDescription("The installed EER value of the first heat pump.")
-    arg.setDefaultValue(16.6)
+    arg.setDefaultValue(-1)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument("heat_pump_heating_capacity_1", true)
@@ -808,13 +809,13 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("heat_pump_heating_efficiency_cop_2", true)
     arg.setDisplayName("Heat Pump 2: Installed COP")
     arg.setDescription("The installed COP value of the second heat pump.")
-    arg.setDefaultValue(3.6)
+    arg.setDefaultValue(-1)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("heat_pump_cooling_efficiency_eer_2", true)
     arg.setDisplayName("Heat Pump 2: Installed EER")
     arg.setDescription("The installed EER value of the second heat pump.")
-    arg.setDefaultValue(16.6)
+    arg.setDefaultValue(-1)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument("heat_pump_heating_capacity_2", true)
@@ -2086,7 +2087,7 @@ class HPXMLFile
   end
 
   def self.get_heating_systems_values(runner, args, hvac_distributions_values)
-    heating_system_values = []
+    heating_systems_values = []
     args[:heating_system_type].each_with_index do |heating_system_type, i|
       next if heating_system_type == "none"
 
@@ -2094,20 +2095,27 @@ class HPXMLFile
       if heating_capacity == Constants.SizingAuto
         heating_capacity = -1
       end
-      heating_system_values << { :id => "HeatingSystem#{i + 1}",
-                                 :distribution_system_idref => hvac_distributions_values[i][:id],
-                                 :heating_system_type => heating_system_type,
-                                 :heating_system_fuel => args[:heating_system_fuel][i],
-                                 :heating_capacity => heating_capacity,
-                                 :heating_efficiency_afue => args[:heating_system_heating_efficiency_afue][i],
-                                 :heating_efficiency_percent => args[:heating_system_heating_efficiency_percent][i],
-                                 :fraction_heat_load_served => args[:heating_system_fraction_heat_load_served][i] }
+      heating_system_values = { :id => "HeatingSystem#{i + 1}",
+                                :distribution_system_idref => hvac_distributions_values[i][:id],
+                                :heating_system_type => heating_system_type,
+                                :heating_system_fuel => args[:heating_system_fuel][i],
+                                :heating_capacity => heating_capacity,
+                                :fraction_heat_load_served => args[:heating_system_fraction_heat_load_served][i] }
+
+      if args[:heating_system_heating_efficiency_afue][i] != -1
+        heating_system_values[:heating_efficiency_afue] = args[:heating_system_heating_efficiency_afue][i]
+      end
+      if args[:heating_system_heating_efficiency_percent][i] != -1
+        heating_system_values[:heating_efficiency_percent] = args[:heating_system_heating_efficiency_percent][i]
+      end
+
+      heating_systems_values << heating_system_values
     end
-    return heating_system_values
+    return heating_systems_values
   end
 
   def self.get_cooling_systems_values(runner, args, hvac_distributions_values)
-    cooling_system_values = []
+    cooling_systems_values = []
     args[:cooling_system_type].each_with_index do |cooling_system_type, i|
       next if cooling_system_type == "none"
 
@@ -2115,20 +2123,27 @@ class HPXMLFile
       if cooling_capacity == Constants.SizingAuto
         cooling_capacity = -1
       end
-      cooling_system_values << { :id => "CoolingSystem#{i + 1}",
-                                 :distribution_system_idref => hvac_distributions_values[i][:id],
-                                 :cooling_system_type => cooling_system_type,
-                                 :cooling_system_fuel => args[:cooling_system_fuel][i],
-                                 :cooling_capacity => cooling_capacity,
-                                 :cooling_efficiency_seer => args[:cooling_system_cooling_efficiency_seer][i],
-                                 :cooling_efficiency_eer => args[:cooling_system_cooling_efficiency_eer][i],
-                                 :fraction_cool_load_served => args[:cooling_system_fraction_cool_load_served][i] }
+      cooling_system_values = { :id => "CoolingSystem#{i + 1}",
+                                :distribution_system_idref => hvac_distributions_values[i][:id],
+                                :cooling_system_type => cooling_system_type,
+                                :cooling_system_fuel => args[:cooling_system_fuel][i],
+                                :cooling_capacity => cooling_capacity,
+                                :fraction_cool_load_served => args[:cooling_system_fraction_cool_load_served][i] }
+
+      if args[:cooling_system_cooling_efficiency_seer][i] != -1
+        cooling_system_values[:cooling_efficiency_seer] = args[:cooling_system_cooling_efficiency_seer][i]
+      end
+      if args[:cooling_system_cooling_efficiency_eer][i] != -1
+        cooling_system_values[:cooling_efficiency_eer] = args[:cooling_system_cooling_efficiency_eer][i]
+      end
+
+      cooling_systems_values << cooling_system_values
     end
-    return cooling_system_values
+    return cooling_systems_values
   end
 
   def self.get_heat_pumps_values(runner, args, hvac_distributions_values)
-    heat_pump_values = []
+    heat_pumps_values = []
     args[:heat_pump_type].each_with_index do |heat_pump_type, i|
       next if heat_pump_type == "none"
 
@@ -2144,23 +2159,37 @@ class HPXMLFile
       if backup_heating_capacity == Constants.SizingAuto
         backup_heating_capacity = -1
       end
-      heat_pump_values << { :id => "HeatPump#{i + 1}",
-                            :distribution_system_idref => hvac_distributions_values[i][:id],
-                            :heat_pump_type => heat_pump_type,
-                            :heat_pump_fuel => args[:heat_pump_fuel][i],
-                            :backup_heating_fuel => args[:heat_pump_backup_fuel][i],
-                            :heating_efficiency_hspf => args[:heat_pump_heating_efficiency_hspf][i],
-                            :heating_efficiency_cop => args[:heat_pump_heating_efficiency_cop][i],
-                            :backup_heating_efficiency_percent => args[:heat_pump_backup_heating_efficiency_percent][i],
-                            :cooling_efficiency_seer => args[:heat_pump_cooling_efficiency_seer][i],
-                            :cooling_efficiency_eer => args[:heat_pump_cooling_efficiency_eer][i],
-                            :heating_capacity => heating_capacity,
-                            :cooling_capacity => cooling_capacity,
-                            :backup_heating_capacity => backup_heating_capacity,
-                            :fraction_heat_load_served => args[:heat_pump_fraction_heat_load_served][i],
-                            :fraction_cool_load_served => args[:heat_pump_fraction_cool_load_served][i] }
+      heat_pump_values = { :id => "HeatPump#{i + 1}",
+                           :distribution_system_idref => hvac_distributions_values[i][:id],
+                           :heat_pump_type => heat_pump_type,
+                           :heat_pump_fuel => args[:heat_pump_fuel][i],
+                           :heating_capacity => heating_capacity,
+                           :cooling_capacity => cooling_capacity,
+                           :fraction_heat_load_served => args[:heat_pump_fraction_heat_load_served][i],
+                           :fraction_cool_load_served => args[:heat_pump_fraction_cool_load_served][i] }
+
+      if args[:heat_pump_heating_efficiency_hspf][i] != -1
+        heat_pump_values[:heating_efficiency_hspf] = args[:heat_pump_heating_efficiency_hspf][i]
+      end
+      if args[:heat_pump_cooling_efficiency_seer][i] != -1
+        heat_pump_values[:cooling_efficiency_seer] = args[:heat_pump_cooling_efficiency_seer][i]
+      end
+      if args[:heat_pump_heating_efficiency_cop][i] != -1
+        heat_pump_values[:heating_efficiency_cop] = args[:heat_pump_heating_efficiency_cop][i]
+      end
+      if args[:heat_pump_cooling_efficiency_eer][i] != -1
+        heat_pump_values[:cooling_efficiency_eer] = args[:heat_pump_cooling_efficiency_eer][i]
+      end
+
+      next if args[:heat_pump_backup_fuel] == "none"
+
+      heat_pump_values[:backup_heating_fuel] = args[:heat_pump_backup_fuel][i]
+      heat_pump_values[:backup_heating_efficiency_percent] = args[:heat_pump_backup_heating_efficiency_percent][i]
+      heat_pump_values[:backup_heating_capacity] = backup_heating_capacity
+
+      heat_pumps_values << heat_pump_values
     end
-    return heat_pump_values
+    return heat_pumps_values
   end
 
   def self.get_hvac_control_values(runner, args)
