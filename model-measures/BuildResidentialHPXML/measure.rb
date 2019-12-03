@@ -224,6 +224,13 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(0.00333)
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("unfinished_attic_ceiling_r", true)
+    arg.setDisplayName("Unfinished Attic: Ceiling Insulation Nominal R-value")
+    arg.setUnits("h-ft^2-R/Btu")
+    arg.setDescription("Refers to the R-value of the insulation and not the overall R-value of the assembly.")
+    arg.setDefaultValue(30)
+    args << arg
+
     roof_type_choices = OpenStudio::StringVector.new
     roof_type_choices << "gable"
     roof_type_choices << "hip"
@@ -519,6 +526,7 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     heating_system_fuel_choices << "natural gas"
     heating_system_fuel_choices << "fuel oil"
     heating_system_fuel_choices << "propane"
+    heating_system_fuel_choices << "wood"
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("heating_system_type_1", heating_system_type_choices, true)
     arg.setDisplayName("Heating System 1: Type")
@@ -536,6 +544,12 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     arg.setDisplayName("Heating System 1: Installed AFUE")
     arg.setDescription("The installed AFUE value of the first heating (only) system.")
     arg.setDefaultValue(0.78)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("heating_system_heating_efficiency_percent_1", true)
+    arg.setDisplayName("Heating System 1: Installed Percent")
+    arg.setDescription("The installed percent value of the first heating (only) system.")
+    arg.setDefaultValue(1)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument("heating_system_heating_capacity_1", true)
@@ -567,6 +581,12 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     arg.setDisplayName("Heating System 2: Installed AFUE")
     arg.setDescription("The installed AFUE value of the second heating (only) system.")
     arg.setDefaultValue(0.78)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("heating_system_heating_efficiency_percent_2", true)
+    arg.setDisplayName("Heating System 2: Installed Percent")
+    arg.setDescription("The installed percent value of the second heating (only) system.")
+    arg.setDefaultValue(1)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument("heating_system_heating_capacity_2", true)
@@ -611,6 +631,12 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(13.0)
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("cooling_system_cooling_efficiency_eer_1", true)
+    arg.setDisplayName("Cooling System 1: Rated EER")
+    arg.setDescription("The rated EER value of the first cooling (only) system.")
+    arg.setDefaultValue(8.5)
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeStringArgument("cooling_system_cooling_capacity_1", true)
     arg.setDisplayName("Cooling System 1: Cooling Capacity")
     arg.setDescription("The output cooling capacity of the first cooling system. If using '#{Constants.SizingAuto}', the autosizing algorithm will use ACCA Manual S to set the capacity.")
@@ -640,6 +666,12 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     arg.setDisplayName("Cooling System 2: Rated SEER")
     arg.setDescription("The rated SEER value of the second cooling (only) system.")
     arg.setDefaultValue(13.0)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("cooling_system_cooling_efficiency_eer_2", true)
+    arg.setDisplayName("Cooling System 2: Rated EER")
+    arg.setDescription("The rated EER value of the second cooling (only) system.")
+    arg.setDefaultValue(8.5)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument("cooling_system_cooling_capacity_2", true)
@@ -692,6 +724,18 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(7.7)
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("heat_pump_heating_efficiency_cop_1", true)
+    arg.setDisplayName("Heat Pump 1: Installed COP")
+    arg.setDescription("The installed COP value of the first heat pump.")
+    arg.setDefaultValue(3.6)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("heat_pump_cooling_efficiency_eer_1", true)
+    arg.setDisplayName("Heat Pump 1: Installed EER")
+    arg.setDescription("The installed EER value of the first heat pump.")
+    arg.setDefaultValue(16.6)
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeStringArgument("heat_pump_heating_capacity_1", true)
     arg.setDisplayName("Heat Pump 1: Heating Capacity")
     arg.setDescription("The output heating capacity of the first heat pump. If using '#{Constants.SizingAuto}', the autosizing algorithm will use ACCA Manual S to set the capacity.")
@@ -718,6 +762,25 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(1)
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("heat_pump_backup_fuel_1", heat_pump_fuel_choices, true)
+    arg.setDisplayName("Heat Pump 1: Backup Fuel Type")
+    arg.setDescription("The backup fuel type of the first heat pump.")
+    arg.setDefaultValue("electricity")
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("heat_pump_backup_heating_efficiency_percent_1", true)
+    arg.setDisplayName("Heat Pump 1: Backup Installed Percent")
+    arg.setDescription("The backup installed percent value of the first heat pump.")
+    arg.setDefaultValue(1)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument("heat_pump_backup_heating_capacity_1", true)
+    arg.setDisplayName("Heat Pump 1: Backup Heating Capacity")
+    arg.setDescription("The backup output heating capacity of the first heat pump. If using '#{Constants.SizingAuto}', the autosizing algorithm will use ACCA Manual S to set the capacity.")
+    arg.setUnits("kBtu/hr")
+    arg.setDefaultValue(Constants.SizingAuto)
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("heat_pump_type_2", heat_pump_type_choices, true)
     arg.setDisplayName("Heat Pump 2: Type")
     arg.setDescription("The type of the second heat pump.")
@@ -740,6 +803,18 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     arg.setDisplayName("Heat Pump 2: Installed SEER")
     arg.setDescription("The installed SEER value of the second heat pump.")
     arg.setDefaultValue(7.7)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("heat_pump_heating_efficiency_cop_2", true)
+    arg.setDisplayName("Heat Pump 2: Installed COP")
+    arg.setDescription("The installed COP value of the second heat pump.")
+    arg.setDefaultValue(3.6)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("heat_pump_cooling_efficiency_eer_2", true)
+    arg.setDisplayName("Heat Pump 2: Installed EER")
+    arg.setDescription("The installed EER value of the second heat pump.")
+    arg.setDefaultValue(16.6)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument("heat_pump_heating_capacity_2", true)
@@ -766,6 +841,25 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     arg.setDisplayName("Heat Pump 2: Fraction Cool Load Served")
     arg.setDescription("The cool load served fraction of the second heat pump.")
     arg.setDefaultValue(1)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("heat_pump_backup_fuel_2", heat_pump_fuel_choices, true)
+    arg.setDisplayName("Heat Pump 2: Backup Fuel Type")
+    arg.setDescription("The backup fuel type of the second heat pump.")
+    arg.setDefaultValue("electricity")
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("heat_pump_backup_heating_efficiency_percent_2", true)
+    arg.setDisplayName("Heat Pump 2: Backup Installed Percent")
+    arg.setDescription("The backup installed percent value of the second heat pump.")
+    arg.setDefaultValue(1)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument("heat_pump_backup_heating_capacity_2", true)
+    arg.setDisplayName("Heat Pump 2: Backup Heating Capacity")
+    arg.setDescription("The backup output heating capacity of the second heat pump. If using '#{Constants.SizingAuto}', the autosizing algorithm will use ACCA Manual S to set the capacity.")
+    arg.setUnits("kBtu/hr")
+    arg.setDefaultValue(Constants.SizingAuto)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument("heating_setpoint_temp", true)
@@ -1338,6 +1432,7 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
              :crawl_ach => runner.getDoubleArgumentValue("crawl_ach", user_arguments),
              :attic_type => runner.getStringArgumentValue("attic_type", user_arguments),
              :unfinished_attic_sla => runner.getDoubleArgumentValue("unfinished_attic_sla", user_arguments),
+             :unfinished_attic_ceiling_r => runner.getDoubleArgumentValue("unfinished_attic_ceiling_r", user_arguments),
              :roof_type => runner.getStringArgumentValue("roof_type", user_arguments),
              :roof_pitch => { "1:12" => 1.0 / 12.0, "2:12" => 2.0 / 12.0, "3:12" => 3.0 / 12.0, "4:12" => 4.0 / 12.0, "5:12" => 5.0 / 12.0, "6:12" => 6.0 / 12.0, "7:12" => 7.0 / 12.0, "8:12" => 8.0 / 12.0, "9:12" => 9.0 / 12.0, "10:12" => 10.0 / 12.0, "11:12" => 11.0 / 12.0, "12:12" => 12.0 / 12.0 }[runner.getStringArgumentValue("roof_pitch", user_arguments)],
              :roof_structure => runner.getStringArgumentValue("roof_structure", user_arguments),
@@ -1381,21 +1476,28 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
              :heating_system_type => [runner.getStringArgumentValue("heating_system_type_1", user_arguments), runner.getStringArgumentValue("heating_system_type_2", user_arguments)],
              :heating_system_fuel => [runner.getStringArgumentValue("heating_system_fuel_1", user_arguments), runner.getStringArgumentValue("heating_system_fuel_2", user_arguments)],
              :heating_system_heating_efficiency_afue => [runner.getDoubleArgumentValue("heating_system_heating_efficiency_afue_1", user_arguments), runner.getDoubleArgumentValue("heating_system_heating_efficiency_afue_2", user_arguments)],
+             :heating_system_heating_efficiency_percent => [runner.getDoubleArgumentValue("heating_system_heating_efficiency_percent_1", user_arguments), runner.getDoubleArgumentValue("heating_system_heating_efficiency_percent_2", user_arguments)],
              :heating_system_heating_capacity => [runner.getStringArgumentValue("heating_system_heating_capacity_1", user_arguments), runner.getStringArgumentValue("heating_system_heating_capacity_2", user_arguments)],
              :heating_system_fraction_heat_load_served => [runner.getDoubleArgumentValue("heating_system_fraction_heat_load_served_1", user_arguments), runner.getDoubleArgumentValue("heating_system_fraction_heat_load_served_2", user_arguments)],
              :cooling_system_type => [runner.getStringArgumentValue("cooling_system_type_1", user_arguments), runner.getStringArgumentValue("cooling_system_type_2", user_arguments)],
              :cooling_system_fuel => [runner.getStringArgumentValue("cooling_system_fuel_1", user_arguments), runner.getStringArgumentValue("cooling_system_fuel_2", user_arguments)],
              :cooling_system_cooling_efficiency_seer => [runner.getDoubleArgumentValue("cooling_system_cooling_efficiency_seer_1", user_arguments), runner.getDoubleArgumentValue("cooling_system_cooling_efficiency_seer_2", user_arguments)],
+             :cooling_system_cooling_efficiency_eer => [runner.getDoubleArgumentValue("cooling_system_cooling_efficiency_eer_1", user_arguments), runner.getDoubleArgumentValue("cooling_system_cooling_efficiency_eer_2", user_arguments)],
              :cooling_system_cooling_capacity => [runner.getStringArgumentValue("cooling_system_cooling_capacity_1", user_arguments), runner.getStringArgumentValue("cooling_system_cooling_capacity_2", user_arguments)],
              :cooling_system_fraction_cool_load_served => [runner.getDoubleArgumentValue("cooling_system_fraction_cool_load_served_1", user_arguments), runner.getDoubleArgumentValue("cooling_system_fraction_cool_load_served_2", user_arguments)],
              :heat_pump_type => [runner.getStringArgumentValue("heat_pump_type_1", user_arguments), runner.getStringArgumentValue("heat_pump_type_2", user_arguments)],
              :heat_pump_fuel => [runner.getStringArgumentValue("heat_pump_fuel_1", user_arguments), runner.getStringArgumentValue("heat_pump_fuel_2", user_arguments)],
              :heat_pump_heating_efficiency_hspf => [runner.getDoubleArgumentValue("heat_pump_heating_efficiency_hspf_1", user_arguments), runner.getDoubleArgumentValue("heat_pump_heating_efficiency_hspf_2", user_arguments)],
              :heat_pump_cooling_efficiency_seer => [runner.getDoubleArgumentValue("heat_pump_cooling_efficiency_seer_1", user_arguments), runner.getDoubleArgumentValue("heat_pump_cooling_efficiency_seer_2", user_arguments)],
+             :heat_pump_heating_efficiency_cop => [runner.getDoubleArgumentValue("heat_pump_heating_efficiency_cop_1", user_arguments), runner.getDoubleArgumentValue("heat_pump_heating_efficiency_cop_2", user_arguments)],
+             :heat_pump_cooling_efficiency_eer => [runner.getDoubleArgumentValue("heat_pump_cooling_efficiency_eer_1", user_arguments), runner.getDoubleArgumentValue("heat_pump_cooling_efficiency_eer_2", user_arguments)],
              :heat_pump_heating_capacity => [runner.getStringArgumentValue("heat_pump_heating_capacity_1", user_arguments), runner.getStringArgumentValue("heat_pump_heating_capacity_2", user_arguments)],
              :heat_pump_cooling_capacity => [runner.getStringArgumentValue("heat_pump_cooling_capacity_1", user_arguments), runner.getStringArgumentValue("heat_pump_cooling_capacity_2", user_arguments)],
              :heat_pump_fraction_heat_load_served => [runner.getDoubleArgumentValue("heat_pump_fraction_heat_load_served_1", user_arguments), runner.getDoubleArgumentValue("heat_pump_fraction_heat_load_served_2", user_arguments)],
              :heat_pump_fraction_cool_load_served => [runner.getDoubleArgumentValue("heat_pump_fraction_cool_load_served_1", user_arguments), runner.getDoubleArgumentValue("heat_pump_fraction_cool_load_served_2", user_arguments)],
+             :heat_pump_backup_fuel => [runner.getStringArgumentValue("heat_pump_backup_fuel_1", user_arguments), runner.getStringArgumentValue("heat_pump_backup_fuel_2", user_arguments)],
+             :heat_pump_backup_heating_efficiency_percent => [runner.getStringArgumentValue("heat_pump_backup_heating_efficiency_percent_1", user_arguments), runner.getStringArgumentValue("heat_pump_backup_heating_efficiency_percent_2", user_arguments)],
+             :heat_pump_backup_heating_capacity => [runner.getStringArgumentValue("heat_pump_backup_heating_capacity_1", user_arguments), runner.getStringArgumentValue("heat_pump_backup_heating_capacity_2", user_arguments)],
              :heating_setpoint_temp => runner.getStringArgumentValue("heating_setpoint_temp", user_arguments),
              :cooling_setpoint_temp => runner.getStringArgumentValue("cooling_setpoint_temp", user_arguments),
              :distribution_system_type => [runner.getStringArgumentValue("distribution_system_type_1", user_arguments), runner.getStringArgumentValue("distribution_system_type_2", user_arguments)],
@@ -1882,11 +1984,16 @@ class HPXMLFile
       next if interior_adjacent_to == exterior_adjacent_to
       next if surface.surfaceType == "RoofCeiling" and exterior_adjacent_to == "outside"
 
-      framefloors_values << { :id => surface.name,
-                              :exterior_adjacent_to => exterior_adjacent_to,
-                              :interior_adjacent_to => interior_adjacent_to,
-                              :area => UnitConversions.convert(surface.netArea, "m^2", "ft^2"),
-                              :insulation_assembly_r_value => 0 }
+      framefloor_values = { :id => surface.name,
+                            :exterior_adjacent_to => exterior_adjacent_to,
+                            :interior_adjacent_to => interior_adjacent_to,
+                            :area => UnitConversions.convert(surface.netArea, "m^2", "ft^2") }
+
+      if interior_adjacent_to == "living space" and exterior_adjacent_to.include? "attic"
+        framefloor_values[:insulation_assembly_r_value] = args[:unfinished_attic_ceiling_r]
+      end
+
+      framefloors_values << framefloor_values
     end
     return framefloors_values
   end
@@ -1993,6 +2100,7 @@ class HPXMLFile
                                  :heating_system_fuel => args[:heating_system_fuel][i],
                                  :heating_capacity => heating_capacity,
                                  :heating_efficiency_afue => args[:heating_system_heating_efficiency_afue][i],
+                                 :heating_efficiency_percent => args[:heating_system_heating_efficiency_percent][i],
                                  :fraction_heat_load_served => args[:heating_system_fraction_heat_load_served][i] }
     end
     return heating_system_values
@@ -2012,8 +2120,9 @@ class HPXMLFile
                                  :cooling_system_type => cooling_system_type,
                                  :cooling_system_fuel => args[:cooling_system_fuel][i],
                                  :cooling_capacity => cooling_capacity,
-                                 :fraction_cool_load_served => args[:cooling_system_fraction_cool_load_served][i],
-                                 :cooling_efficiency_seer => args[:cooling_system_cooling_efficiency_seer][i] }
+                                 :cooling_efficiency_seer => args[:cooling_system_cooling_efficiency_seer][i],
+                                 :cooling_efficiency_eer => args[:cooling_system_cooling_efficiency_eer][i],
+                                 :fraction_cool_load_served => args[:cooling_system_fraction_cool_load_served][i] }
     end
     return cooling_system_values
   end
@@ -2031,14 +2140,23 @@ class HPXMLFile
       if cooling_capacity == Constants.SizingAuto
         cooling_capacity = -1
       end
+      backup_heating_capacity = args[:heat_pump_backup_heating_capacity][i]
+      if backup_heating_capacity == Constants.SizingAuto
+        backup_heating_capacity = -1
+      end
       heat_pump_values << { :id => "HeatPump#{i + 1}",
                             :distribution_system_idref => hvac_distributions_values[i][:id],
                             :heat_pump_type => heat_pump_type,
                             :heat_pump_fuel => args[:heat_pump_fuel][i],
+                            :backup_heating_fuel => args[:heat_pump_backup_fuel][i],
                             :heating_efficiency_hspf => args[:heat_pump_heating_efficiency_hspf][i],
+                            :heating_efficiency_cop => args[:heat_pump_heating_efficiency_cop][i],
+                            :backup_heating_efficiency_percent => args[:heat_pump_backup_heating_efficiency_percent][i],
                             :cooling_efficiency_seer => args[:heat_pump_cooling_efficiency_seer][i],
+                            :cooling_efficiency_eer => args[:heat_pump_cooling_efficiency_eer][i],
                             :heating_capacity => heating_capacity,
                             :cooling_capacity => cooling_capacity,
+                            :backup_heating_capacity => backup_heating_capacity,
                             :fraction_heat_load_served => args[:heat_pump_fraction_heat_load_served][i],
                             :fraction_cool_load_served => args[:heat_pump_fraction_cool_load_served][i] }
     end
