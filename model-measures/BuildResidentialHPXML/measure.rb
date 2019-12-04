@@ -863,18 +863,66 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(Constants.SizingAuto)
     args << arg
 
+    hvac_control_type_choices = OpenStudio::StringVector.new
+    hvac_control_type_choices << "manual thermostat"
+    hvac_control_type_choices << "programmable thermostat"
+
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("hvac_control_type", hvac_control_type_choices, true)
+    arg.setDisplayName("HVAC Control Type")
+    arg.setDescription("Specify a HVAC control type.")
+    arg.setDefaultValue("manual thermostat")
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeStringArgument("heating_setpoint_temp", true)
     arg.setDisplayName("Heating Setpoint Temperature")
-    arg.setDescription("Specify a single heating setpoint.")
+    arg.setDescription("Specify a single heating setpoint temperature.")
     arg.setUnits("degrees F")
     arg.setDefaultValue("#{Constants.DefaultHeatingSetpoint}")
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument("heating_setback_temp", true)
+    arg.setDisplayName("Heating Setback Temperature")
+    arg.setDescription("Specify a single heating setback temperature.")
+    arg.setUnits("degrees F")
+    arg.setDefaultValue("#{Constants.DefaultHeatingSetpoint}")
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("heating_setback_hours_per_week", true)
+    arg.setDisplayName("Heating Setpback Hours per Week")
+    arg.setDescription("Specify a single heating setback hours per week value.")
+    arg.setDefaultValue(0)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("heating_setback_start_hour", true)
+    arg.setDisplayName("Heating Setpback Start Hour")
+    arg.setDescription("Specify a single heating setback start hour value.")
+    arg.setDefaultValue(0)
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeStringArgument("cooling_setpoint_temp", true)
     arg.setDisplayName("Cooling Setpoint Temperature")
-    arg.setDescription("Specify a single cooling setpoint.")
+    arg.setDescription("Specify a single cooling setpoint temperature.")
     arg.setUnits("degrees F")
     arg.setDefaultValue("#{Constants.DefaultCoolingSetpoint}")
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument("cooling_setup_temp", true)
+    arg.setDisplayName("Cooling Setup Temperature")
+    arg.setDescription("Specify a single cooling setup temperature.")
+    arg.setUnits("degrees F")
+    arg.setDefaultValue("#{Constants.DefaultCoolingSetpoint}")
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("cooling_setup_hours_per_week", true)
+    arg.setDisplayName("Cooling Setup Hours per Week")
+    arg.setDescription("Specify a single cooling setup hours per week value.")
+    arg.setDefaultValue(0)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("cooling_setup_start_hour", true)
+    arg.setDisplayName("Cooling Setup Start Hour")
+    arg.setDescription("Specify a single cooling setup start hour value.")
+    arg.setDefaultValue(0)
     args << arg
 
     distribution_system_type_choices = OpenStudio::StringVector.new
@@ -1087,10 +1135,10 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(Constants.SizingAuto)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("water_heater_energy_factor_1", true)
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument("water_heater_energy_factor_1", true)
     arg.setDisplayName("Water Heater 1: Rated Energy Factor")
     arg.setDescription("Ratio of useful energy output from the first water heater to the total amount of energy delivered from the water heater. Enter #{Constants.Auto} for a water heater that meets the minimum federal efficiency requirements.")
-    arg.setDefaultValue(0.59)
+    arg.setDefaultValue("0.59")
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("water_heater_recovery_efficiency_1", true)
@@ -1138,10 +1186,10 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(Constants.SizingAuto)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("water_heater_energy_factor_2", true)
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument("water_heater_energy_factor_2", true)
     arg.setDisplayName("Water Heater 2: Rated Energy Factor")
     arg.setDescription("Ratio of useful energy output from the second water heater to the total amount of energy delivered from the water heater. Enter #{Constants.Auto} for a water heater that meets the minimum federal efficiency requirements.")
-    arg.setDefaultValue(0.59)
+    arg.setDefaultValue("0.59")
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("water_heater_recovery_efficiency_2", true)
@@ -1499,8 +1547,15 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
              :heat_pump_backup_fuel => [runner.getStringArgumentValue("heat_pump_backup_fuel_1", user_arguments), runner.getStringArgumentValue("heat_pump_backup_fuel_2", user_arguments)],
              :heat_pump_backup_heating_efficiency_percent => [runner.getStringArgumentValue("heat_pump_backup_heating_efficiency_percent_1", user_arguments), runner.getStringArgumentValue("heat_pump_backup_heating_efficiency_percent_2", user_arguments)],
              :heat_pump_backup_heating_capacity => [runner.getStringArgumentValue("heat_pump_backup_heating_capacity_1", user_arguments), runner.getStringArgumentValue("heat_pump_backup_heating_capacity_2", user_arguments)],
+             :hvac_control_type => runner.getStringArgumentValue("hvac_control_type", user_arguments),
              :heating_setpoint_temp => runner.getStringArgumentValue("heating_setpoint_temp", user_arguments),
+             :heating_setback_temp => runner.getStringArgumentValue("heating_setback_temp", user_arguments),
+             :heating_setback_hours_per_week => runner.getDoubleArgumentValue("heating_setback_hours_per_week", user_arguments),
+             :heating_setback_start_hour => runner.getDoubleArgumentValue("heating_setback_start_hour", user_arguments),
              :cooling_setpoint_temp => runner.getStringArgumentValue("cooling_setpoint_temp", user_arguments),
+             :cooling_setup_temp => runner.getStringArgumentValue("cooling_setup_temp", user_arguments),
+             :cooling_setup_hours_per_week => runner.getDoubleArgumentValue("cooling_setup_hours_per_week", user_arguments),
+             :cooling_setup_start_hour => runner.getDoubleArgumentValue("cooling_setup_start_hour", user_arguments),
              :distribution_system_type => [runner.getStringArgumentValue("distribution_system_type_1", user_arguments), runner.getStringArgumentValue("distribution_system_type_2", user_arguments)],
              :supply_duct_leakage_units => [runner.getStringArgumentValue("supply_duct_leakage_units_1", user_arguments), runner.getStringArgumentValue("supply_duct_leakage_units_2", user_arguments)],
              :return_duct_leakage_units => [runner.getStringArgumentValue("return_duct_leakage_units_1", user_arguments), runner.getStringArgumentValue("return_duct_leakage_units_2", user_arguments)],
@@ -1518,7 +1573,7 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
              :water_heater_tank_volume => [runner.getStringArgumentValue("water_heater_tank_volume_1", user_arguments), runner.getStringArgumentValue("water_heater_tank_volume_2", user_arguments)],
              :water_heater_fraction_dhw_load_served => [runner.getDoubleArgumentValue("water_heater_fraction_dhw_load_served_1", user_arguments), runner.getDoubleArgumentValue("water_heater_fraction_dhw_load_served_2", user_arguments)],
              :water_heater_heating_capacity => [runner.getStringArgumentValue("water_heater_heating_capacity_1", user_arguments), runner.getStringArgumentValue("water_heater_heating_capacity_2", user_arguments)],
-             :water_heater_energy_factor => [runner.getDoubleArgumentValue("water_heater_energy_factor_1", user_arguments), runner.getDoubleArgumentValue("water_heater_energy_factor_2", user_arguments)],
+             :water_heater_energy_factor => [runner.getStringArgumentValue("water_heater_energy_factor_1", user_arguments), runner.getStringArgumentValue("water_heater_energy_factor_2", user_arguments)],
              :water_heater_recovery_efficiency => [runner.getDoubleArgumentValue("water_heater_recovery_efficiency_1", user_arguments), runner.getDoubleArgumentValue("water_heater_recovery_efficiency_2", user_arguments)],
              :hot_water_distribution_system_type => runner.getStringArgumentValue("hot_water_distribution_system_type", user_arguments),
              :standard_piping_length => runner.getStringArgumentValue("standard_piping_length", user_arguments),
@@ -1603,6 +1658,7 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     # Validate input HPXML against EnergyPlus Use Case
     errors = EnergyPlusValidator.run_validator(hpxml_doc)
     errors.each do |error|
+      puts error
       runner.registerError("#{hpxml_path}: #{error}")
       is_valid = false
     end
@@ -2194,9 +2250,20 @@ class HPXMLFile
 
   def self.get_hvac_control_values(runner, args)
     hvac_control_values = { :id => "HVACControl",
-                            :control_type => "manual thermostat",
+                            :control_type => args[:hvac_control_type],
                             :heating_setpoint_temp => args[:heating_setpoint_temp],
                             :cooling_setpoint_temp => args[:cooling_setpoint_temp] }
+
+    if args[:heating_setpoint_temp] != args[:heating_setback_temp]
+      hvac_control_values[:heating_setback_temp] = args[:heating_setback_temp]
+      hvac_control_values[:heating_setback_hours_per_week] = args[:heating_setback_hours_per_week]
+      hvac_control_values[:heating_setback_start_hour] = args[:heating_setback_start_hour]
+    end
+    if args[:cooling_setpoint_temp] != args[:cooling_setup_temp]
+      hvac_control_values[:cooling_setup_temp] = args[:cooling_setup_temp]
+      hvac_control_values[:cooling_setup_hours_per_week] = args[:cooling_setup_hours_per_week]
+      hvac_control_values[:cooling_setup_start_hour] = args[:cooling_setup_start_hour]
+    end
     return hvac_control_values
   end
 
@@ -2256,22 +2323,35 @@ class HPXMLFile
     args[:water_heater_type].each_with_index do |water_heater_type, i|
       next if water_heater_type == "none"
 
-      water_heater_tank_volume = args[:water_heater_tank_volume][i]
-      if water_heater_tank_volume == Constants.Auto
-        water_heater_tank_volume = 40
+      tank_volume = args[:water_heater_tank_volume][i]
+      if tank_volume == Constants.Auto
+        tank_volume = 40
       end
-      water_heater_heating_capacity = args[:water_heater_heating_capacity][i]
-      if water_heater_heating_capacity == Constants.SizingAuto
-        water_heater_heating_capacity = 40
+      fuel_type = args[:water_heater_fuel_type][i]
+      energy_factor = args[:water_heater_energy_factor][i]
+      if energy_factor == Constants.Auto
+        if ["natural gas", "propane"].include? fuel_type
+          energy_factor = 0.67 - (0.0019 * tank_volume)
+        elsif fuel_type == "electricity"
+          energy_factor = 0.97 - (0.00132 * tank_volume)
+        else
+          energy_factor = 0.59 - (0.0019 * tank_volume)
+        end
+      else # user input energy factor
+        energy_factor = Float(energy_factor)
+      end
+      heating_capacity = args[:water_heater_heating_capacity][i]
+      if heating_capacity == Constants.SizingAuto
+        heating_capacity = 40
       end
       water_heating_systems_values << { :id => "WaterHeater#{i + 1}",
                                         :water_heater_type => args[:water_heater_type][i],
-                                        :fuel_type => args[:water_heater_fuel_type][i],
+                                        :fuel_type => fuel_type,
                                         :location => args[:water_heater_location][i],
-                                        :tank_volume => water_heater_tank_volume,
+                                        :tank_volume => tank_volume,
                                         :fraction_dhw_load_served => args[:water_heater_fraction_dhw_load_served][i],
-                                        :heating_capacity => water_heater_heating_capacity,
-                                        :energy_factor => args[:water_heater_energy_factor][i],
+                                        :heating_capacity => heating_capacity,
+                                        :energy_factor => energy_factor,
                                         :recovery_efficiency => args[:water_heater_recovery_efficiency][i] }
     end
     return water_heating_systems_values
@@ -2363,6 +2443,8 @@ class HPXMLFile
   end
 
   def self.get_ceiling_fan_values(runner, args)
+    return [] if args[:ceiling_fan_quantity] == 0
+
     ceiling_fans_values = [{ :id => "CeilingFan",
                              :efficiency => args[:ceiling_fan_efficiency],
                              :quantity => args[:ceiling_fan_quantity] }]
