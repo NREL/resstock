@@ -716,13 +716,13 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("heat_pump_heating_efficiency_hspf_1", true)
     arg.setDisplayName("Heat Pump 1: Installed HSPF")
     arg.setDescription("The installed HSPF value of the first heat pump.")
-    arg.setDefaultValue(13.0)
+    arg.setDefaultValue(7.7)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("heat_pump_cooling_efficiency_seer_1", true)
     arg.setDisplayName("Heat Pump 1: Installed SEER")
     arg.setDescription("The installed SEER value of the first heat pump.")
-    arg.setDefaultValue(7.7)
+    arg.setDefaultValue(13.0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("heat_pump_heating_efficiency_cop_1", true)
@@ -797,13 +797,13 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("heat_pump_heating_efficiency_hspf_2", true)
     arg.setDisplayName("Heat Pump 2: Installed HSPF")
     arg.setDescription("The installed HSPF value of the second heat pump.")
-    arg.setDefaultValue(13.0)
+    arg.setDefaultValue(7.7)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("heat_pump_cooling_efficiency_seer_2", true)
     arg.setDisplayName("Heat Pump 2: Installed SEER")
     arg.setDescription("The installed SEER value of the second heat pump.")
-    arg.setDefaultValue(7.7)
+    arg.setDefaultValue(13.0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("heat_pump_heating_efficiency_cop_2", true)
