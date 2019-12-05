@@ -1406,7 +1406,6 @@ class Geometry
 
   def self.process_occupants(model, runner, num_occ, occ_gain, sens_frac, lat_frac, weekday_sch, weekend_sch, monthly_sch)
     num_occ = num_occ.split(",").map(&:strip)
-    puts("NUM_OCC: #{num_occ}")
     # Error checking
     if occ_gain < 0
       runner.registerError("Internal gains cannot be negative.")
@@ -1431,7 +1430,6 @@ class Geometry
     if units.nil?
       return false
     end
-    puts("units: #{units}")
 
     # Error checking
     if num_occ.length > 1 and num_occ.length != units.size
@@ -1549,7 +1547,6 @@ class Geometry
             end
           end
 
-          puts("unit occ: #{unit_occ}")
           space_num_occ = unit_occ * UnitConversions.convert(space.floorArea, "m^2", "ft^2") / ffa
 
           if space_num_occ > 0
@@ -1583,7 +1580,6 @@ class Geometry
             occ.setActivityLevelSchedule(activity_sch)
             occ.setNumberofPeopleSchedule(people_sch.schedule)
 
-            puts(space_num_occ)
 
             total_num_occ += space_num_occ
 
