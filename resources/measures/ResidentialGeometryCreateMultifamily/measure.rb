@@ -313,7 +313,8 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     end
     num_units_per_floor = num_units / num_floors
     num_units_per_floor_actual = num_units_per_floor
-      
+    above_ground_floors = num_floors  
+
     if (num_floors > 1) and (level != "Bottom")
       runner.registerWarning("Unit is not on the bottom floor, setting foundation height to 0.")
       foundation_height = 0
@@ -718,6 +719,12 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     unless result
       return false
     end
+
+    #Store mf data on model
+    model.getBuilding.additionalProperties.setFeature("num_units", num_units)
+    model.getBuilding.additionalProperties.setFeature("has_rear_units", has_rear_units)
+    model.getBuilding.additionalProperties.setFeature("num_floors", above_ground_floors)
+    model.getBuilding.additionalProperties.setFeature("horz_location", horz_location)
 
     # reporting final condition of model
     runner.registerFinalCondition("The building finished with #{model.getSpaces.size} spaces.")
