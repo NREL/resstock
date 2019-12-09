@@ -540,31 +540,41 @@ class Airflow
       building.SLA = Airflow.get_infiltration_SLA_from_ACH50(infil.living_ach50, n_i, building.ag_ffa, building.above_grade_volume)
 
       #Calculate unit ELA proportional to exposed exterior wall
-      n_units = model.getBuilding.additionalProperties.getFeatureAsInteger("num_units").get
+      n_units = model.getBuilding.additionalProperties.getFeatureAsInteger("num_units").get.to_f
       has_rear_units = model.getBuilding.additionalProperties.getFeatureAsBoolean("has_rear_units").get
-      num_floors = model.getBuilding.additionalProperties.getFeatureAsInteger("num_floors").get
+      num_floors = model.getBuilding.additionalProperties.getFeatureAsInteger("num_floors").get.to_f
       horz_location = model.getBuilding.additionalProperties.getFeatureAsString("horz_location").get
 
       mf_building_ffa = unit_ag_ffa*n_units
       mf_building_ELA = mf_building_ffa*building.SLA
-      if has_rear_units
-        end_mid_ratio = 2.8 #Constant ratio of 
-        n_end_units = 4*num_floors
-      else
-        end_mid_ratio = 1.9
-        n_end_units = 2*num_floors
-      end
 
-      if horz_location == "Middle"
-        a_o = mf_building_ELA/(n_end_units*end_mid_ratio + (n_units-n_end_units))
-      else
-        a_o = mf_building_ELA/(n_end_units + ((n_units-n_end_units)/end_mid_ratio))
+      num_units_per_floor = n_units/num_floors
+      if num_units_per_floor == 1 or num_units_per_floor == 2 or num_units_per_floor == 4 #No middle unit(s)
+        a_o_frac = 1/num_floors/num_units_per_floor
+        a_o = mf_building_ELA * a_o_frac
+      else #Has middle unit(s)
+        if has_rear_units
+          end_mid_ratio = 2.8 #Constant ratio of 
+          n_end_units = 4*num_floors
+        else
+          end_mid_ratio = 1.9
+          n_end_units = 2*num_floors
+        end
+        #Calculate proportional ELA of unit based on external wall area
+        if horz_location == "Middle"
+          a_o = mf_building_ELA/(n_end_units*end_mid_ratio + (n_units-n_end_units))
+        else
+          a_o = mf_building_ELA/(n_end_units + ((n_units-n_end_units)/end_mid_ratio))
+        end
       end
-
-      # puts("ELA :: #{a_o}")
 
       # Effective Leakage Area (ft^2) - Unit
       # a_o = building.SLA * building.ag_ffa * (unit_ag_ext_wall_area / building.ag_ext_wall_area)
+
+      # puts("=====================unit======================")
+      # puts("ELA :: #{a_o}")
+
+
       # Calculate SLA for unit
       unit_living.SLA = a_o / unit_ag_ffa
 
@@ -702,9 +712,6 @@ class Airflow
       elsif space.inf_method == @infMethodASHRAE
         space.ELA = space.SLA * space.area # ft^2
       end
-
-      puts("space.area: #{space.area}")
-      puts("space.SLA: #{space.SLA}")
 
       space.zone.spaces.each do |s|
         next if Geometry.is_living(s)
