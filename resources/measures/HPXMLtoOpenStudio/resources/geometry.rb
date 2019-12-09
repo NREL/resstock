@@ -694,7 +694,7 @@ class Geometry
     surfaces = []
     model.getSurfaces.each do |surface|
       next if not surface.surfaceType.downcase == "wall"
-      next if (surface.outsideBoundaryCondition.downcase != "outdoors") and (surface.outsideBoundaryCondition.downcase != "adiabatic")
+      next if (surface.outsideBoundaryCondition.downcase != "outdoors") #and (surface.outsideBoundaryCondition.downcase != "adiabatic")
       # next if surface.outsideBoundaryCondition.downcase == "foundation"
       surfaces << surface
     end
@@ -712,7 +712,6 @@ class Geometry
         perimeter += length
       end
     end
-
     return UnitConversions.convert(perimeter, "m", "ft")
   end
 
