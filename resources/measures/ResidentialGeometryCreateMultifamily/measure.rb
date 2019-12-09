@@ -625,19 +625,23 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
         foundation_space.setSpaceType(foundation_space_type)
       end
 
-      # set foundation walls to ground
-      spaces = model.getSpaces
-      spaces.each do |space|
+      #Set foundation wall boundary conditions
+      adiabatic_surf = adb_facade + horz_hash[horz_location] + level_hash[level]
+      # Make surfaces adiabatic
+      model.getSpaces.each do |space|
         if Geometry.get_space_floor_z(space) + UnitConversions.convert(space.zOrigin, "m", "ft") < 0
           surfaces = space.surfaces
           surfaces.each do |surface|
             next if surface.surfaceType.downcase != "wall"
-      
-            surface.setOutsideBoundaryCondition("Foundation")
+            os_facade = Geometry.get_facade_for_surface(surface)
+            if adb_facade.include? os_facade
+              surface.setOutsideBoundaryCondition("Adiabatic")
+            else
+              surface.setOutsideBoundaryCondition("Foundation")
+            end
           end
         end
       end
-
     end
 
     unit_spaces_hash.each do |unit_num, unit_info|
