@@ -1,5 +1,6 @@
 # TODO: Need to handle vacations
 require_relative "unit_conversions"
+require "csv"
 
 # Annual schedule defined by 12 24-hour values for weekdays and weekends.
 class HourlyByMonthSchedule
@@ -184,70 +185,6 @@ class HourlyByMonthSchedule
     Schedule.set_schedule_type_limits(@model, schedule, @schedule_type_limits_name)
 
     return schedule
-  end
-end
-
-class ScheduleFile
-  def initialize(model, runner, sch_name, sch_path, col_name, rows_to_skip = 1, min_per_item = 60)
-    @validated = true
-    @model = model
-    @runner = runner
-    @sch_name = sch_name
-    @sch_path = sch_path
-    @col_name = col_name
-    @col_num = get_col_num
-    if @col_num.nil?
-      return
-    end
-
-    @rows_to_skip = rows_to_skip
-    @min_per_item = min_per_item
-    unless @validated
-      return
-    end
-
-    @maxval = 1.0 # TODO
-    @schadjust = 1.0 # TODO
-    @schedule = createSchedule
-  end
-
-  def validateValues(values)
-    # @validated = false # TODO
-  end
-
-  def validated?
-    return @validated
-  end
-
-  def schedule
-    return @schedule
-  end
-
-  def get_col_num
-    headers = CSV.open(@sch_path, "r") { |csv| csv.first }
-    col_num = headers.index(@col_name) + 1
-    return col_num
-  end
-
-  def createSchedule
-    external_file = OpenStudio::Model::ExternalFile::getExternalFile(@model, @sch_path)
-    if external_file.is_initialized
-      external_file = external_file.get
-    end
-    schedule_file = OpenStudio::Model::ScheduleFile.new(external_file)
-    schedule_file.setName(@sch_name)
-    schedule_file.setColumnNumber(@col_num)
-    schedule_file.setRowstoSkipatTop(@rows_to_skip)
-    schedule_file.setMinutesperItem("#{@min_per_item}")
-    return schedule_file
-  end
-
-  def calcDesignLevelFromDailykWh(daily_kwh)
-    return daily_kwh * @maxval * 1000 * @schadjust
-  end
-
-  def calcDesignLevelFromDailyTherm(daily_therm)
-    return calcDesignLevelFromDailykWh(UnitConversions.convert(daily_therm, "therm", "kWh"))
   end
 end
 
@@ -1071,5 +1008,108 @@ class Schedule
   def self.set_weekend_rule(rule)
     rule.setApplySaturday(true)
     rule.setApplySunday(true)
+  end
+end
+
+class ScheduleFile
+  def initialize(runner:,
+                 model:,
+                 schedules_output_path: nil,
+                 num_bedrooms: nil,
+                 num_occupants: nil,
+                 **remainder)
+    @validated = true
+    @runner = runner
+    @model = model
+    @schedules_output_path = schedules_output_path
+    @num_bedrooms = num_bedrooms
+    @num_occupants = num_occupants
+    @schedules = {}
+
+    @maxval = 1.0 # TODO
+    @schadjust = 1.0 # TODO
+
+    @schedule_file = nil
+  end
+
+  def validateValues(values:)
+    # @validated = false # TODO
+  end
+
+  def validated?
+    return @validated
+  end
+
+  def create_occupant_schedule
+    return false if @num_occupants.nil?
+
+    @schedules["occupants"] = [1, 2, 3]
+
+    return true
+  end
+
+  def create_refrigerator_schedule
+    @schedules["refrigerator"] = [4, 5, 6]
+
+    return true
+  end
+
+  def schedules
+    return @schedules
+  end
+
+  def getExternalFile
+    @model.getExternalFiles.each do |external_file|
+      next if external_file.fileName != @schedules_output_path
+
+      return external_file
+    end
+    external_file = OpenStudio::Model::ExternalFile::getExternalFile(@model, @schedules_output_path)
+    if external_file.is_initialized
+      external_file = external_file.get
+    end
+    return external_file
+  end
+
+  def get_col_num(col_name:)
+    headers = CSV.open(@schedules_output_path, "r") { |csv| csv.first }
+    col_num = headers.index(col_name) + 1
+    return col_num
+  end
+
+  def createScheduleFile(sch_file_name:,
+                         col_name:,
+                         rows_to_skip: 1,
+                         min_per_item: 60)
+
+    external_file = getExternalFile
+    @schedule_file = OpenStudio::Model::ScheduleFile.new(external_file)
+    @schedule_file.setName(sch_file_name)
+    @schedule_file.setColumnNumber(get_col_num(col_name: col_name))
+    @schedule_file.setRowstoSkipatTop(rows_to_skip)
+    @schedule_file.setMinutesperItem("#{min_per_item}")
+    return @schedule_file
+  end
+
+  def export
+    return false if @schedules_output_path.nil?
+
+    CSV.open(@schedules_output_path, "wb") do |csv|
+      csv << @schedules.keys
+      rows = @schedules.values.transpose
+      rows.each do |row|
+        csv << row
+      end
+    end
+
+    return true
+  end
+
+  def calcDesignLevelFromDailykWh(daily_kwh:)
+    return daily_kwh * @maxval * 1000 * @schadjust
+  end
+
+  def calcDesignLevelFromDailyTherm(daily_therm:)
+    return calcDesignLevelFromDailykWh(UnitConversions.convert(daily_therm, "therm", "kWh"))
   end
 end
