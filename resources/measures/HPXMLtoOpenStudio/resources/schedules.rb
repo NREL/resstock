@@ -1011,7 +1011,7 @@ class Schedule
   end
 end
 
-class ScheduleFile
+class SchedulesFile
   def initialize(runner:,
                  model:,
                  schedules_output_path: nil,
