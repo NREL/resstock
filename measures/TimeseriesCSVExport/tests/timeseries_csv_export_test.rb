@@ -14,7 +14,7 @@ class TimeseriesCSVExportTest < MiniTest::Test
     args_hash["include_enduse_subcategories"] = "true"
     args_hash["output_variables"] = "Zone Mean Air Temperature, Site Outdoor Air Drybulb Temperature"
     expected_values = { "EnduseTimeseriesLength" => 8784 * 6, "EnduseTimeseriesWidth" => 34 + 28 + 5 }
-    _test_measure("SFD_Successful_EnergyPlus_Run_AMY_PV.osm", args_hash, expected_values, __method__, "0465925_US_CO_Boulder_8013_0-20000-0-72469_40.13_-105.22_NSRDB_2.0.1_AMY_2012.epw", num_output_requests)
+    _test_measure("SFD_Successful_EnergyPlus_Run_AMY_PV.osm", args_hash, expected_values, __method__, "0465925_US_CO_Boulder_8013_0-20000-0-72469_40.13_-105.22_NSRDB_2.0.1_AMY_2012.epw", "3bed.csv", num_output_requests)
   end
 
   def test_amy_short_run_period_hourly
@@ -23,7 +23,7 @@ class TimeseriesCSVExportTest < MiniTest::Test
     args_hash = {}
     args_hash["output_variables"] = "Zone People Occupant Count"
     expected_values = { "EnduseTimeseriesLength" => 2 * 24, "EnduseTimeseriesWidth" => 34 + 1 }
-    _test_measure("SFD_Successful_EnergyPlus_Run_AMY_PV_TwoDays.osm", args_hash, expected_values, __method__, "0465925_US_CO_Boulder_8013_0-20000-0-72469_40.13_-105.22_NSRDB_2.0.1_AMY_2014.epw", num_output_requests)
+    _test_measure("SFD_Successful_EnergyPlus_Run_AMY_PV_TwoDays.osm", args_hash, expected_values, __method__, "0465925_US_CO_Boulder_8013_0-20000-0-72469_40.13_-105.22_NSRDB_2.0.1_AMY_2014.epw", "3bed.csv", num_output_requests)
   end
 
   def test_amy_short_run_period_daily
@@ -33,7 +33,7 @@ class TimeseriesCSVExportTest < MiniTest::Test
     args_hash["reporting_frequency"] = "Daily"
     args_hash["output_variables"] = "Zone People Occupant Count"
     expected_values = { "EnduseTimeseriesLength" => 2 * 1, "EnduseTimeseriesWidth" => 34 + 1 }
-    _test_measure("SFD_Successful_EnergyPlus_Run_AMY_PV_TwoDays.osm", args_hash, expected_values, __method__, "0465925_US_CO_Boulder_8013_0-20000-0-72469_40.13_-105.22_NSRDB_2.0.1_AMY_2014.epw", num_output_requests)
+    _test_measure("SFD_Successful_EnergyPlus_Run_AMY_PV_TwoDays.osm", args_hash, expected_values, __method__, "0465925_US_CO_Boulder_8013_0-20000-0-72469_40.13_-105.22_NSRDB_2.0.1_AMY_2014.epw", "3bed.csv", num_output_requests)
   end
 
   def test_amy_short_run_period_monthly
@@ -44,7 +44,7 @@ class TimeseriesCSVExportTest < MiniTest::Test
     args_hash["reporting_frequency"] = "Monthly"
     args_hash["output_variables"] = "Zone People Occupant Count"
     expected_values = { "EnduseTimeseriesLength" => 1, "EnduseTimeseriesWidth" => 34 + 1 }
-    _test_measure("SFD_Successful_EnergyPlus_Run_AMY_PV_TwoDays.osm", args_hash, expected_values, __method__, "0465925_US_CO_Boulder_8013_0-20000-0-72469_40.13_-105.22_NSRDB_2.0.1_AMY_2014.epw", num_output_requests)
+    _test_measure("SFD_Successful_EnergyPlus_Run_AMY_PV_TwoDays.osm", args_hash, expected_values, __method__, "0465925_US_CO_Boulder_8013_0-20000-0-72469_40.13_-105.22_NSRDB_2.0.1_AMY_2014.epw", "3bed.csv", num_output_requests)
   end
 
   def test_amy_short_run_period_runperiod
@@ -54,7 +54,7 @@ class TimeseriesCSVExportTest < MiniTest::Test
     args_hash["reporting_frequency"] = "RunPeriod"
     args_hash["output_variables"] = "Zone People Occupant Count"
     expected_values = { "EnduseTimeseriesLength" => 1, "EnduseTimeseriesWidth" => 34 + 1 }
-    _test_measure("SFD_Successful_EnergyPlus_Run_AMY_PV_TwoDays.osm", args_hash, expected_values, __method__, "0465925_US_CO_Boulder_8013_0-20000-0-72469_40.13_-105.22_NSRDB_2.0.1_AMY_2014.epw", num_output_requests)
+    _test_measure("SFD_Successful_EnergyPlus_Run_AMY_PV_TwoDays.osm", args_hash, expected_values, __method__, "0465925_US_CO_Boulder_8013_0-20000-0-72469_40.13_-105.22_NSRDB_2.0.1_AMY_2014.epw", "3bed.csv", num_output_requests)
   end
 
   def test_tmy_hourly
@@ -63,7 +63,7 @@ class TimeseriesCSVExportTest < MiniTest::Test
     args_hash = {}
     args_hash["output_variables"] = "Site Wind Direction"
     expected_values = { "EnduseTimeseriesLength" => 8760, "EnduseTimeseriesWidth" => 34 + 1 }
-    _test_measure("SFD_Successful_EnergyPlus_Run_TMY_Appl_PV.osm", args_hash, expected_values, __method__, "USA_CO_Denver.Intl.AP.725650_TMY3.epw", num_output_requests)
+    _test_measure("SFD_Successful_EnergyPlus_Run_TMY_Appl_PV.osm", args_hash, expected_values, __method__, "USA_CO_Denver.Intl.AP.725650_TMY3.epw", "3bed.csv", num_output_requests)
   end
 
   def test_tmy_daily_and_subcategories
@@ -74,7 +74,7 @@ class TimeseriesCSVExportTest < MiniTest::Test
     args_hash["reporting_frequency"] = "Daily"
     args_hash["output_variables"] = "Electric Equipment Electric Power, Zone Air Heat Balance Internal Convective Heat Gain Rate"
     expected_values = { "EnduseTimeseriesLength" => 365, "EnduseTimeseriesWidth" => 34 + 28 + 9 }
-    _test_measure("SFD_Successful_EnergyPlus_Run_TMY_Appl_PV.osm", args_hash, expected_values, __method__, "USA_CO_Denver.Intl.AP.725650_TMY3.epw", num_output_requests)
+    _test_measure("SFD_Successful_EnergyPlus_Run_TMY_Appl_PV.osm", args_hash, expected_values, __method__, "USA_CO_Denver.Intl.AP.725650_TMY3.epw", "3bed.csv", num_output_requests)
   end
 
   def test_tmy_monthly
@@ -85,7 +85,7 @@ class TimeseriesCSVExportTest < MiniTest::Test
     args_hash["reporting_frequency"] = "Monthly"
     args_hash["output_variables"] = "Other Equipment Total Heating Energy, Surface Window Glazing Beam to Diffuse Solar Transmittance"
     expected_values = { "EnduseTimeseriesLength" => 12, "EnduseTimeseriesWidth" => 34 + 12 }
-    _test_measure("SFD_Successful_EnergyPlus_Run_TMY_Appl_PV.osm", args_hash, expected_values, __method__, "USA_CO_Denver.Intl.AP.725650_TMY3.epw", num_output_requests)
+    _test_measure("SFD_Successful_EnergyPlus_Run_TMY_Appl_PV.osm", args_hash, expected_values, __method__, "USA_CO_Denver.Intl.AP.725650_TMY3.epw", "3bed.csv", num_output_requests)
   end
 
   def test_tmy_runperiod
@@ -95,7 +95,7 @@ class TimeseriesCSVExportTest < MiniTest::Test
     args_hash["reporting_frequency"] = "RunPeriod"
     args_hash["output_variables"] = "Surface Outside Normal Azimuth Angle, Surface Window Heat Gain Rate"
     expected_values = { "EnduseTimeseriesLength" => 1, "EnduseTimeseriesWidth" => 34 + 71 }
-    _test_measure("SFD_Successful_EnergyPlus_Run_TMY_Appl_PV.osm", args_hash, expected_values, __method__, "USA_CO_Denver.Intl.AP.725650_TMY3.epw", num_output_requests)
+    _test_measure("SFD_Successful_EnergyPlus_Run_TMY_Appl_PV.osm", args_hash, expected_values, __method__, "USA_CO_Denver.Intl.AP.725650_TMY3.epw", "3bed.csv", num_output_requests)
   end
 
   def test_tmy_daily_and_subcategories_mf
@@ -107,7 +107,7 @@ class TimeseriesCSVExportTest < MiniTest::Test
     args_hash["include_enduse_subcategories"] = "true"
     args_hash["output_variables"] = "Cooling Coil Runtime Fraction, Unitary System Ancillary Electric Power, System Node Temperature"
     expected_values = { "EnduseTimeseriesLength" => 365, "EnduseTimeseriesWidth" => 34 + 28 + 1 }
-    _test_measure("MF_Successful_EnergyPlus_Run_TMY_Appl_PV.osm", args_hash, expected_values, __method__, "USA_CO_Denver.Intl.AP.725650_TMY3.epw", num_output_requests)
+    _test_measure("MF_Successful_EnergyPlus_Run_TMY_Appl_PV.osm", args_hash, expected_values, __method__, "USA_CO_Denver.Intl.AP.725650_TMY3.epw", "3bed.csv", num_output_requests)
   end
 
   private
@@ -117,36 +117,36 @@ class TimeseriesCSVExportTest < MiniTest::Test
   end
 
   def epw_path_default(epw_name)
-    # make sure we have a weather data location
-    epw = nil
     epw = OpenStudio::Path.new("#{File.dirname(__FILE__)}/../../../resources/measures/HPXMLtoOpenStudio/weather/#{epw_name}")
     assert(File.exist?(epw.to_s))
     return epw.to_s
   end
 
-  def run_dir(test_name)
-    # always generate test output in specially named 'output' directory so result files are not made part of the measure
-    return "#{File.dirname(__FILE__)}/output/#{test_name}/run"
+  def sch_path_default(sch_name)
+    sch = OpenStudio::Path.new("#{File.dirname(__FILE__)}/../../../resources/measures/HPXMLtoOpenStudio/resources/#{sch_name}")
+    assert(File.exist?(sch.to_s))
+    return sch.to_s
   end
 
-  def tests_dir(test_name)
-    return "#{File.dirname(__FILE__)}/output/#{test_name}/tests"
+  def test_dir(test_name)
+    # always generate test output in specially named 'output' directory so result files are not made part of the measure
+    return "#{File.dirname(__FILE__)}/output/#{test_name}"
   end
 
   def model_out_path(osm_file_or_model, test_name)
-    return "#{run_dir(test_name)}/#{osm_file_or_model}"
+    return "#{test_dir(test_name)}/#{osm_file_or_model}"
   end
 
   def sql_path(test_name)
-    return "#{run_dir(test_name)}/run/eplusout.sql"
+    return "#{test_dir(test_name)}/run/eplusout.sql"
   end
 
   def enduse_timeseries_path(test_name)
-    return "#{run_dir(test_name)}/../enduse_timeseries.csv"
+    return "#{test_dir(test_name)}/enduse_timeseries.csv"
   end
 
   # create test files if they do not exist when the test first runs
-  def setup_test(osm_file_or_model, test_name, idf_output_requests, epw_path, model_in_path)
+  def setup_test(osm_file_or_model, test_name, idf_output_requests, epw_path, sch_path, model_in_path)
     # convert output requests to OSM for testing, OS App and PAT will add these to the E+ Idf
     workspace = OpenStudio::Workspace.new("Draft".to_StrictnessLevel, "EnergyPlus".to_IddFileType)
     workspace.addObjects(idf_output_requests)
@@ -160,7 +160,7 @@ class TimeseriesCSVExportTest < MiniTest::Test
     model.addObjects(request_model.objects)
     model.save(model_out_path(osm_file_or_model, test_name), true)
 
-    osw_path = File.join(run_dir(test_name), "in.osw")
+    osw_path = File.join(test_dir(test_name), "in.osw")
     osw_path = File.absolute_path(osw_path)
 
     workflow = OpenStudio::WorkflowJSON.new
@@ -168,21 +168,21 @@ class TimeseriesCSVExportTest < MiniTest::Test
     workflow.setWeatherFile(epw_path)
     workflow.saveAs(osw_path)
 
-    if !File.exist?("#{run_dir(test_name)}")
-      FileUtils.mkdir_p("#{run_dir(test_name)}")
+    if !File.exist?("#{test_dir(test_name)}")
+      FileUtils.mkdir_p("#{test_dir(test_name)}")
     end
+
+    FileUtils.cp(sch_path, "#{test_dir(test_name)}")
 
     cli_path = OpenStudio.getOpenStudioCLI
     cmd = "\"#{cli_path}\" --no-ssl run -w \"#{osw_path}\""
     puts cmd
     system(cmd)
 
-    FileUtils.cp(epw_path, "#{tests_dir(test_name)}")
-
     return model
   end
 
-  def _test_measure(osm_file_or_model, args_hash, expected_values, test_name, epw_name, num_output_requests)
+  def _test_measure(osm_file_or_model, args_hash, expected_values, test_name, epw_name, sch_name, num_output_requests)
     # create an instance of the measure
     measure = TimeseriesCSVExport.new
 
@@ -211,15 +211,10 @@ class TimeseriesCSVExportTest < MiniTest::Test
       argument_map[arg.name] = temp_arg_var
     end
 
-    if !File.exist?(run_dir(test_name))
-      FileUtils.mkdir_p(run_dir(test_name))
+    if !File.exist?(test_dir(test_name))
+      FileUtils.mkdir_p(test_dir(test_name))
     end
-    assert(File.exist?(run_dir(test_name)))
-
-    if !File.exist?(tests_dir(test_name))
-      FileUtils.mkdir_p(tests_dir(test_name))
-    end
-    assert(File.exist?(tests_dir(test_name)))
+    assert(File.exist?(test_dir(test_name)))
 
     assert(File.exist?(model_in_path_default(osm_file_or_model)))
 
@@ -232,17 +227,18 @@ class TimeseriesCSVExportTest < MiniTest::Test
     assert_equal(num_output_requests, idf_output_requests.size)
 
     # mimic the process of running this measure in OS App or PAT. Optionally set custom model_in_path and custom epw_path.
-    model = setup_test(osm_file_or_model, test_name, idf_output_requests, File.expand_path(epw_path_default(epw_name)), model_in_path_default(osm_file_or_model))
+    model = setup_test(osm_file_or_model, test_name, idf_output_requests, File.expand_path(epw_path_default(epw_name)), File.expand_path(sch_path_default(sch_name)), model_in_path_default(osm_file_or_model))
     assert(File.exist?(model_out_path(osm_file_or_model, test_name)))
     runner.setLastEnergyPlusSqlFilePath(OpenStudio::Path.new(sql_path(test_name)))
 
     # temporarily change directory to the run directory and run the measure
     start_dir = Dir.pwd
     begin
-      Dir.chdir(run_dir(test_name))
+      Dir.chdir(test_dir(test_name))
 
       # run the measure
       measure.run(runner, argument_map)
+      FileUtils.mv("../enduse_timeseries.csv", "enduse_timeseries.csv")
       result = runner.result
       show_output(result) unless result.value.valueName == 'Success'
     ensure
