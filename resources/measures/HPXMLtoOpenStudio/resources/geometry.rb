@@ -1539,7 +1539,7 @@ class Geometry
           if people_sch.nil?
             # Create schedule
             sch_path = "c:/OpenStudio/OpenStudio-BuildStock/resources/measures/HPXMLtoOpenStudio/resources/3bed.csv"
-            schedule_file = ScheduleFile.new(runner: runner, model: model, schedules_output_path: sch_path)
+            schedule_file = SchedulesFile.new(runner: runner, model: model, schedules_output_path: sch_path)
             if not schedule_file.validated?
               return false
             end
