@@ -571,10 +571,6 @@ class Airflow
       # Effective Leakage Area (ft^2) - Unit
       # a_o = building.SLA * building.ag_ffa * (unit_ag_ext_wall_area / building.ag_ext_wall_area)
 
-      # puts("=====================unit======================")
-      # puts("ELA :: #{a_o}")
-
-
       # Calculate SLA for unit
       unit_living.SLA = a_o / unit_ag_ffa
 
