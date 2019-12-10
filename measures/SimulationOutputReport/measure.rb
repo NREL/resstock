@@ -74,6 +74,8 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       "electricity_central_system_cooling_kwh",
       "electricity_interior_lighting_kwh",
       "electricity_exterior_lighting_kwh",
+      "electricity_exterior_holiday_lighting_kwh",
+      "electricity_garage_lighting_kwh",
       "electricity_interior_equipment_kwh",
       "electricity_fans_heating_kwh",
       "electricity_fans_cooling_kwh",
