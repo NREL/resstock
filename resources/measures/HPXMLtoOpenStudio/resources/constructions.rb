@@ -1444,7 +1444,9 @@ class FoundationConstructions
 
     # Assign surfaces to Kiva foundation
     wall_surfaces.each do |wall_surface|
-      wall_surface.setAdjacentFoundation(foundation)
+      if wall_surface.outsideBoundaryCondition != "Adiabatic"
+        wall_surface.setAdjacentFoundation(foundation)
+      end
     end
 
     if not apply_slab(runner, model, slab_surface, slab_constr_name,
@@ -2543,15 +2545,15 @@ class SurfaceTypes
           surfaces[Constants.SurfaceTypeWallIntFinInsUnfin] << surface
 
         # Exterior finished basement
-        elsif Geometry.is_finished_basement(space) and obc_is_foundation
+        elsif Geometry.is_finished_basement(space) and (obc_is_foundation or obc_is_adiabatic)
           surfaces[Constants.SurfaceTypeWallFndGrndFinB] << surface
 
         # Exterior unfinished basement
-        elsif Geometry.is_unfinished_basement(space) and obc_is_foundation
+        elsif Geometry.is_unfinished_basement(space) and (obc_is_foundation or obc_is_adiabatic)
           surfaces[Constants.SurfaceTypeWallFndGrndUnfinB] << surface
 
         # Exterior crawlspace
-        elsif Geometry.is_crawl(space) and obc_is_foundation
+        elsif Geometry.is_crawl(space) and (obc_is_foundation or obc_is_adiabatic)
           surfaces[Constants.SurfaceTypeWallFndGrndCS] << surface
 
         # Adiabatic finished

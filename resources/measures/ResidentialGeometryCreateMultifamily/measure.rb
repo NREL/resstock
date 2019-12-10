@@ -572,7 +572,6 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
         corridor_space.setXOrigin(0)
         corridor_space.setYOrigin(0)
         corridor_space.setZOrigin(0)
-        corridor_space.setName("foundation corridor")
         foundation_spaces << corridor_space
       end
 
@@ -634,14 +633,12 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
             next if surface.surfaceType.downcase != "wall"
             os_facade = Geometry.get_facade_for_surface(surface)
             if adb_facade.include? os_facade
-              if !surface.adjacentSurface.is_initialized 
-                surface.setOutsideBoundaryCondition("Adiabatic")
-              end
+              surface.setOutsideBoundaryCondition("Adiabatic")
             else
               surface.setOutsideBoundaryCondition("Foundation")
             end
           end
-        end
+        end 
       end
     end
 
@@ -671,6 +668,9 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
       next unless Geometry.is_corridor(space)
 
       space.surfaces.each do |surface|
+        if surface.surfaceType.downcase == "floor" #No heat transfer through floor
+          surface.setOutsideBoundaryCondition("Adiabatic")
+        end
         if surface.adjacentSurface.is_initialized # only set to adiabatic if the corridor surface is adjacent to another surface
           next if surface.surfaceType.downcase != "wall"
           surface.adjacentSurface.get.setOutsideBoundaryCondition("Adiabatic")
