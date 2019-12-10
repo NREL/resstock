@@ -480,7 +480,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
       adb_facade += ["back"]
     end
 
-    adiabatic_surf = adb_facade + horz_hash[horz_location] + level_hash[level]
+    adiabatic_surf = adb_facade + adb_level
     # Make surfaces adiabatic
     model.getSpaces.each do |space|
       # Store has_rear_units to call in the door geometry measure
@@ -563,18 +563,17 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
       foundation_spaces = []
 
       # foundation corridor
-      if corridor_width > 0 and corridor_position == "Double-Loaded Interior"
-        corridor_space = OpenStudio::Model::Space::fromFloorPrint(foundation_corr_polygon, foundation_height, model)
-        corridor_space = corridor_space.get
-        m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4, 4, 0))
-        m[2, 3] = foundation_height
-        corridor_space.changeTransformation(OpenStudio::Transformation.new(m))
-        corridor_space.setXOrigin(0)
-        corridor_space.setYOrigin(0)
-        corridor_space.setZOrigin(0)
-
-        foundation_spaces << corridor_space
-      end
+      # if corridor_width > 0 and corridor_position == "Double-Loaded Interior"
+      #   corridor_space = OpenStudio::Model::Space::fromFloorPrint(foundation_corr_polygon, foundation_height, model)
+      #   corridor_space = corridor_space.get
+      #   m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4, 4, 0))
+      #   m[2, 3] = foundation_height
+      #   corridor_space.changeTransformation(OpenStudio::Transformation.new(m))
+      #   corridor_space.setXOrigin(0)
+      #   corridor_space.setYOrigin(0)
+      #   corridor_space.setZOrigin(0)
+      #   foundation_spaces << corridor_space
+      # end
 
       # foundation front
       foundation_space_front = []
@@ -601,7 +600,8 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
       OpenStudio::Model.matchSurfaces(spaces)
 
       if (["crawlspace", "unfinished basement"].include? foundation_type)
-        foundation_space = Geometry.make_one_space_from_multiple_spaces(model, foundation_spaces)
+        # foundation_space = Geometry.make_one_space_from_multiple_spaces(model, foundation_spaces)
+        foundation_space = foundation_space
         if foundation_type == "crawlspace"
           foundation_space.setName("crawl space")
           foundation_zone = OpenStudio::Model::ThermalZone.new(model)
@@ -626,7 +626,6 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
       end
 
       #Set foundation wall boundary conditions
-      adiabatic_surf = adb_facade + horz_hash[horz_location] + level_hash[level]
       # Make surfaces adiabatic
       model.getSpaces.each do |space|
         if Geometry.get_space_floor_z(space) + UnitConversions.convert(space.zOrigin, "m", "ft") < 0
