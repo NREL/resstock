@@ -34,10 +34,6 @@ class MiscLoads
     summer_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
     summer_design_day_sch.addValue(OpenStudio::Time.new(0, 24, 0, 0), 1)
 
-    # Get number of days in months/year
-    year_description = model.getYearDescription
-    num_days_in_year = Constants.NumDaysInYear(year_description.isLeapYear)
-
     unit.spaces.each do |space|
       next if Geometry.space_is_unfinished(space)
 
@@ -68,13 +64,14 @@ class MiscLoads
 
       if annual_energy > 0
 
+        col_name = "plug_loads"
         if sch.nil?
           # Create schedule
-          sch = schedule_file.createScheduleFile(sch_file_name: "#{Constants.ObjectNameMiscPlugLoads} schedule", col_name: "plug_loads", normalize_values: true)
+          sch = schedule_file.createScheduleFile(sch_file_name: "#{Constants.ObjectNameMiscPlugLoads} schedule", col_name: col_name)
         end
 
         space_mel_ann = annual_energy * UnitConversions.convert(space.floorArea, "m^2", "ft^2") / ffa
-        space_design_level = schedule_file.calcDesignLevelFromDailykWh(daily_kwh: space_mel_ann / num_days_in_year)
+        space_design_level = schedule_file.calcDesignLevelFromAnnualkWh(col_name: col_name, annual_kwh: space_mel_ann)
 
         # Add electric equipment for the mel
         mel_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)

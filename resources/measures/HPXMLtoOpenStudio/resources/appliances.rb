@@ -24,20 +24,17 @@ class Refrigerator
     summer_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
     summer_design_day_sch.addValue(OpenStudio::Time.new(0, 24, 0, 0), 1)
 
-    # Get number of days in months/year
-    year_description = model.getYearDescription
-    num_days_in_year = Constants.NumDaysInYear(year_description.isLeapYear)
-
     # Calculate fridge daily energy use
     ann_e = rated_annual_energy * mult
 
     if ann_e > 0
 
+      col_name = "refrigerator"
       if sch.nil?
-        sch = schedule_file.createScheduleFile(sch_file_name: "#{Constants.ObjectNameRefrigerator} schedule", col_name: "refrigerator", normalize_values: true)
+        sch = schedule_file.createScheduleFile(sch_file_name: "#{Constants.ObjectNameRefrigerator} schedule", col_name: col_name)
       end
 
-      design_level = schedule_file.calcDesignLevelFromDailykWh(daily_kwh: ann_e / num_days_in_year)
+      design_level = schedule_file.calcDesignLevelFromAnnualkWh(col_name: col_name, annual_kwh: ann_e)
 
       # Add electric equipment for the fridge
       frg_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
@@ -822,10 +819,6 @@ class CookingRange
     summer_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
     summer_design_day_sch.addValue(OpenStudio::Time.new(0, 24, 0, 0), 1)
 
-    # Get number of days in months/year
-    year_description = model.getYearDescription
-    num_days_in_year = Constants.NumDaysInYear(year_description.isLeapYear)
-
     # Calculate range daily energy use
     if fuel_type == Constants.FuelTypeElectric
       ann_e = ((86.5 + 28.9 * nbeds) / cooktop_ef + (14.6 + 4.9 * nbeds) / oven_ef) * mult # kWh/yr
@@ -841,18 +834,19 @@ class CookingRange
       end
     end
 
+    col_name = "cooking_range"
     if ann_f > 0 or ann_e > 0
 
       if sch.nil?
-        sch = schedule_file.createScheduleFile(sch_file_name: "#{Constants.ObjectNameCookingRange(fuel_type, false)} schedule", col_name: "cooking_range", normalize_values: true)
+        sch = schedule_file.createScheduleFile(sch_file_name: "#{Constants.ObjectNameCookingRange(fuel_type, false)} schedule", col_name: col_name)
       end
 
     end
 
     if ann_f > 0
 
-      design_level_f = schedule_file.calcDesignLevelFromDailyTherm(daily_therm: ann_f / num_days_in_year)
-      design_level_i = schedule_file.calcDesignLevelFromDailykWh(daily_kwh: ann_i / num_days_in_year)
+      design_level_f = schedule_file.calcDesignLevelFromAnnualTherm(col_name: col_name, annual_therm: ann_f)
+      design_level_i = schedule_file.calcDesignLevelFromAnnualkWh(col_name: col_name, annual_kwh: ann_i)
 
       # Add equipment for the range
       if has_elec_ignition == true
@@ -885,7 +879,7 @@ class CookingRange
       rng.setSchedule(sch)
 
     elsif ann_e > 0
-      design_level_e = schedule_file.calcDesignLevelFromDailykWh(daily_kwh: ann_e / num_days_in_year)
+      design_level_e = schedule_file.calcDesignLevelFromAnnualkWh(col_name: "cooking_range", annual_kwh: ann_e)
 
       # Add equipment for the range
       rng_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)

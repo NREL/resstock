@@ -1311,6 +1311,7 @@ class HVACSizing
 
       # Get schedule
       if not gain.schedule.is_initialized
+        puts gain
         runner.registerError("Schedule not provided for object '#{gain.name.to_s}'. Skipping...")
         next
       end
