@@ -5,9 +5,7 @@ require_relative "schedules"
 require_relative "waterheater"
 
 class Refrigerator
-  def self.apply(model, unit, runner, rated_annual_energy, mult,
-                 weekday_sch, weekend_sch, monthly_sch, sch, space)
-
+  def self.apply(model, unit, runner, rated_annual_energy, mult, sch, space, schedule_file)
     # check for valid inputs
     if rated_annual_energy < 0
       runner.registerError("Rated annual consumption must be greater than or equal to 0.")
@@ -36,14 +34,10 @@ class Refrigerator
     if ann_e > 0
 
       if sch.nil?
-        # Create schedule
-        sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameRefrigerator + " schedule", weekday_sch, weekend_sch, monthly_sch, mult_weekday = 1.0, mult_weekend = 1.0, normalize_values = true, create_sch_object = true, winter_design_day_sch = winter_design_day_sch, summer_design_day_sch = summer_design_day_sch, schedule_type_limits_name = Constants.ScheduleTypeLimitsFraction)
-        if not sch.validated?
-          return false
-        end
+        sch = schedule_file.createScheduleFile(sch_file_name: "#{Constants.ObjectNameRefrigerator} schedule", col_name: "refrigerator", normalize_values: true)
       end
 
-      design_level = sch.calcDesignLevelFromDailykWh(ann_e / num_days_in_year)
+      design_level = schedule_file.calcDesignLevelFromDailykWh(daily_kwh: ann_e / num_days_in_year)
 
       # Add electric equipment for the fridge
       frg_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
@@ -56,7 +50,7 @@ class Refrigerator
       frg_def.setFractionRadiant(0.0)
       frg_def.setFractionLatent(0.0)
       frg_def.setFractionLost(0.0)
-      frg.setSchedule(sch.schedule)
+      frg.setSchedule(sch)
 
     end
 
@@ -798,8 +792,7 @@ end
 
 class CookingRange
   def self.apply(model, unit, runner, fuel_type, cooktop_ef, oven_ef,
-                 has_elec_ignition, mult, weekday_sch, weekend_sch, monthly_sch,
-                 sch, space)
+                 has_elec_ignition, mult, sch, space, schedule_file)
 
     # check for valid inputs
     if oven_ef <= 0 or oven_ef > 1
@@ -851,19 +844,15 @@ class CookingRange
     if ann_f > 0 or ann_e > 0
 
       if sch.nil?
-        # Create schedule
-        sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameCookingRange(fuel_type, false) + " schedule", weekday_sch, weekend_sch, monthly_sch, mult_weekday = 1.0, mult_weekend = 1.0, normalize_values = true, create_sch_object = true, winter_design_day_sch = winter_design_day_sch, summer_design_day_sch = summer_design_day_sch, schedule_type_limits_name = Constants.ScheduleTypeLimitsFraction)
-        if not sch.validated?
-          return false
-        end
+        sch = schedule_file.createScheduleFile(sch_file_name: "#{Constants.ObjectNameCookingRange(fuel_type, false)} schedule", col_name: "cooking_range", normalize_values: true)
       end
 
     end
 
     if ann_f > 0
 
-      design_level_f = sch.calcDesignLevelFromDailyTherm(ann_f / num_days_in_year)
-      design_level_i = sch.calcDesignLevelFromDailykWh(ann_i / num_days_in_year)
+      design_level_f = schedule_file.calcDesignLevelFromDailyTherm(daily_therm: ann_f / num_days_in_year)
+      design_level_i = schedule_file.calcDesignLevelFromDailykWh(daily_kwh: ann_i / num_days_in_year)
 
       # Add equipment for the range
       if has_elec_ignition == true
@@ -879,7 +868,7 @@ class CookingRange
         rng_def2.setFractionRadiant(0.24)
         rng_def2.setFractionLatent(0.3)
         rng_def2.setFractionLost(0.3)
-        rng2.setSchedule(sch.schedule)
+        rng2.setSchedule(sch)
       end
 
       rng_def = OpenStudio::Model::OtherEquipmentDefinition.new(model)
@@ -893,10 +882,10 @@ class CookingRange
       rng_def.setFractionRadiant(0.18)
       rng_def.setFractionLatent(0.2)
       rng_def.setFractionLost(0.5)
-      rng.setSchedule(sch.schedule)
+      rng.setSchedule(sch)
 
     elsif ann_e > 0
-      design_level_e = sch.calcDesignLevelFromDailykWh(ann_e / num_days_in_year)
+      design_level_e = schedule_file.calcDesignLevelFromDailykWh(daily_kwh: ann_e / num_days_in_year)
 
       # Add equipment for the range
       rng_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
@@ -909,7 +898,7 @@ class CookingRange
       rng_def.setFractionRadiant(0.24)
       rng_def.setFractionLatent(0.3)
       rng_def.setFractionLost(0.3)
-      rng.setSchedule(sch.schedule)
+      rng.setSchedule(sch)
 
     end
 

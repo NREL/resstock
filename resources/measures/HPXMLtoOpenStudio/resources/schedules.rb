@@ -1024,12 +1024,11 @@ class SchedulesFile
     @schedules_output_path = schedules_output_path
     @num_bedrooms = num_bedrooms
     @num_occupants = num_occupants
+
     @schedules = {}
-
-    @maxval = 1.0 # TODO
-    @schadjust = 1.0 # TODO
-
-    @schedule_file = nil
+    if File.exist? @schedules_output_path
+      @external_file = import
+    end
   end
 
   def validateValues(values:)
@@ -1058,37 +1057,63 @@ class SchedulesFile
     return @schedules
   end
 
-  def getExternalFile
-    @model.getExternalFiles.each do |external_file|
-      next if external_file.fileName != @schedules_output_path
-
-      return external_file
-    end
-    external_file = OpenStudio::Model::ExternalFile::getExternalFile(@model, @schedules_output_path)
-    if external_file.is_initialized
-      external_file = external_file.get
-    end
-    return external_file
+  def external_file
+    return @external_file
   end
 
-  def get_col_num(col_name:)
+  def get_col_index(col_name:)
     headers = CSV.open(@schedules_output_path, "r") { |csv| csv.first }
-    col_num = headers.index(col_name) + 1
+    col_num = headers.index(col_name)
     return col_num
   end
 
   def createScheduleFile(sch_file_name:,
                          col_name:,
                          rows_to_skip: 1,
-                         min_per_item: 60)
+                         min_per_item: 60,
+                         normalize_values: false)
 
-    external_file = getExternalFile
-    @schedule_file = OpenStudio::Model::ScheduleFile.new(external_file)
-    @schedule_file.setName(sch_file_name)
-    @schedule_file.setColumnNumber(get_col_num(col_name: col_name))
-    @schedule_file.setRowstoSkipatTop(rows_to_skip)
-    @schedule_file.setMinutesperItem("#{min_per_item}")
-    return @schedule_file
+    col_index = get_col_index(col_name: col_name)
+    schedule_file = OpenStudio::Model::ScheduleFile.new(@external_file)
+    schedule_file.setName(sch_file_name)
+    schedule_file.setColumnNumber(col_index + 1)
+    schedule_file.setRowstoSkipatTop(rows_to_skip)
+    schedule_file.setMinutesperItem("#{min_per_item}")
+
+    @maxval = 1.0
+    @schadjust = 1.0
+    if normalize_values
+      values = @schedules[col_name]
+      values = normalizeSumToOne(values: values)
+      @maxval = values.max
+      @schadjust = 1.0 # TODO
+    end
+
+    return schedule_file
+  end
+
+  def normalizeSumToOne(values:)
+    sum = values.reduce(:+).to_f
+    if sum == 0.0
+      return values
+    end
+
+    return values.map { |val| val / sum }
+  end
+
+  def import
+    columns = CSV.read(@schedules_output_path).transpose
+    columns.each do |col|
+      @schedules[col[0]] = col[1..-1].map { |v| v.to_f }
+    end
+
+    external_file = OpenStudio::Model::ExternalFile::getExternalFile(@model, @schedules_output_path)
+    if external_file.is_initialized
+      external_file = external_file.get
+      external_file.setName(external_file.fileName)
+    end
+
+    return external_file
   end
 
   def export
@@ -1110,6 +1135,6 @@ class SchedulesFile
   end
 
   def calcDesignLevelFromDailyTherm(daily_therm:)
-    return calcDesignLevelFromDailykWh(UnitConversions.convert(daily_therm, "therm", "kWh"))
+    return calcDesignLevelFromDailykWh(daily_kwh: UnitConversions.convert(daily_therm, "therm", "kWh"))
   end
 end

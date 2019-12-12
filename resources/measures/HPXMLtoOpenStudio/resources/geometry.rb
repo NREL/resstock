@@ -1404,7 +1404,7 @@ class Geometry
     return true
   end
 
-  def self.process_occupants(model, runner, num_occ, occ_gain, sens_frac, lat_frac)
+  def self.process_occupants(model, runner, num_occ, occ_gain, sens_frac, lat_frac, schedule_file)
     num_occ = num_occ.split(",").map(&:strip)
 
     # Error checking
@@ -1537,13 +1537,6 @@ class Geometry
         if space_num_occ > 0
 
           if people_sch.nil?
-            # Create schedule
-            sch_path = File.join(File.dirname(__FILE__), "3bed.csv")
-            schedule_file = SchedulesFile.new(runner: runner, model: model, schedules_output_path: sch_path)
-            if not schedule_file.validated?
-              return false
-            end
-
             people_sch = schedule_file.createScheduleFile(sch_file_name: "#{Constants.ObjectNameOccupants} schedule", col_name: "occupants")
           end
 
