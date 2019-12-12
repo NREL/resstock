@@ -221,7 +221,13 @@ class ResidentialGeometryFromFloorspaceJS < OpenStudio::Measure::ModelMeasure
       return false
     end
 
-    result = Geometry.process_occupants(model, runner, num_occupants, occ_gain = 384.0, sens_frac = 0.573, lat_frac = 0.427)
+    sch_path = File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources/schedules.csv")
+    schedule_file = SchedulesFile.new(runner: runner, model: model, schedules_output_path: sch_path)
+    if not schedule_file.validated?
+      return false
+    end
+
+    result = Geometry.process_occupants(model, runner, num_occupants, occ_gain = 384.0, sens_frac = 0.573, lat_frac = 0.427, schedule_file)
     unless result
       return false
     end

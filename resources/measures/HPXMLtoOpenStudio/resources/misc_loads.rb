@@ -3,9 +3,7 @@ require_relative "unit_conversions"
 require_relative "schedules"
 
 class MiscLoads
-  def self.apply_plug(model, unit, runner, annual_energy, sens_frac, lat_frac,
-                      weekday_sch, weekend_sch, monthly_sch, sch)
-
+  def self.apply_plug(model, unit, runner, annual_energy, sens_frac, lat_frac, sch, schedule_file)
     # check for valid inputs
     if annual_energy < 0
       runner.registerError("Annual energy use must be greater than or equal to 0.")
@@ -35,6 +33,10 @@ class MiscLoads
     winter_design_day_sch.addValue(OpenStudio::Time.new(0, 24, 0, 0), 0)
     summer_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
     summer_design_day_sch.addValue(OpenStudio::Time.new(0, 24, 0, 0), 1)
+
+    # Get number of days in months/year
+    year_description = model.getYearDescription
+    num_days_in_year = Constants.NumDaysInYear(year_description.isLeapYear)
 
     unit.spaces.each do |space|
       next if Geometry.space_is_unfinished(space)
@@ -68,14 +70,11 @@ class MiscLoads
 
         if sch.nil?
           # Create schedule
-          sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameMiscPlugLoads + " schedule", weekday_sch, weekend_sch, monthly_sch, mult_weekday = 1.0, mult_weekend = 1.0, normalize_values = true, create_sch_object = true, winter_design_day_sch = winter_design_day_sch, summer_design_day_sch = summer_design_day_sch, schedule_type_limits_name = Constants.ScheduleTypeLimitsFraction)
-          if not sch.validated?
-            return false
-          end
+          sch = schedule_file.createScheduleFile(sch_file_name: "#{Constants.ObjectNameMiscPlugLoads} schedule", col_name: "plug_loads", normalize_values: true)
         end
 
         space_mel_ann = annual_energy * UnitConversions.convert(space.floorArea, "m^2", "ft^2") / ffa
-        space_design_level = sch.calcDesignLevelFromDailykWh(space_mel_ann / 365.0)
+        space_design_level = schedule_file.calcDesignLevelFromDailykWh(daily_kwh: space_mel_ann / num_days_in_year)
 
         # Add electric equipment for the mel
         mel_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
@@ -88,7 +87,7 @@ class MiscLoads
         mel_def.setFractionRadiant(0.6 * sens_frac)
         mel_def.setFractionLatent(lat_frac)
         mel_def.setFractionLost(1 - sens_frac - lat_frac)
-        mel.setSchedule(sch.schedule)
+        mel.setSchedule(sch)
 
       end
     end
