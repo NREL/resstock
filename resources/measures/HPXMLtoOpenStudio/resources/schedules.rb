@@ -989,7 +989,7 @@ class Schedule
         schedule_type_limits.setLowerLimitValue(0)
         schedule_type_limits.setUpperLimitValue(1)
         schedule_type_limits.setNumericType("Discrete")
-      elsif schedule_type_limits_name == Constants.ScheduleTypeLimitsTemperature
+      elsif [Constants.ScheduleTypeLimitsTemperature, Constants.ScheduleTypeLimitsPower].include? schedule_type_limits_name
         schedule_type_limits.setNumericType("Continuous")
       end
     end
@@ -1018,6 +1018,7 @@ class SchedulesFile
                  num_bedrooms: nil,
                  num_occupants: nil,
                  **remainder)
+
     @validated = true
     @runner = runner
     @model = model
@@ -1029,10 +1030,6 @@ class SchedulesFile
     if File.exist? @schedules_output_path
       @external_file = import
     end
-  end
-
-  def validateValues(values:)
-    # @validated = false # TODO
   end
 
   def validated?
@@ -1070,8 +1067,7 @@ class SchedulesFile
   def createScheduleFile(sch_file_name:,
                          col_name:,
                          rows_to_skip: 1,
-                         min_per_item: 60,
-                         normalize_values: false)
+                         min_per_item: 60)
 
     col_index = get_col_index(col_name: col_name)
     schedule_file = OpenStudio::Model::ScheduleFile.new(@external_file)
@@ -1080,31 +1076,34 @@ class SchedulesFile
     schedule_file.setRowstoSkipatTop(rows_to_skip)
     schedule_file.setMinutesperItem("#{min_per_item}")
 
-    @maxval = 1.0
-    @schadjust = 1.0
-    if normalize_values
-      values = @schedules[col_name]
-      values = normalizeSumToOne(values: values)
-      @maxval = values.max
-      @schadjust = 1.0 # TODO
-    end
-
     return schedule_file
   end
 
-  def normalizeSumToOne(values:)
-    sum = values.reduce(:+).to_f
-    if sum == 0.0
-      return values
-    end
+  def calcDesignLevelFromAnnualkWh(col_name:,
+                                   annual_kwh:)
 
-    return values.map { |val| val / sum }
+    design_level = annual_kwh * 1000.0 / @schedules[col_name].reduce(:+) # W
+
+    return design_level
+  end
+
+  def calcDesignLevelFromAnnualTherm(col_name:,
+                                     annual_therm:)
+
+    annual_kwh = UnitConversions.convert(annual_therm, "therm", "kWh")
+    design_level = calcDesignLevelFromAnnualkWh(col_name: col_name, annual_kwh: annual_kwh)
+
+    return design_level
   end
 
   def import
     columns = CSV.read(@schedules_output_path).transpose
     columns.each do |col|
-      @schedules[col[0]] = col[1..-1].map { |v| v.to_f }
+      values = col[1..-1].map { |v| v.to_f }
+      if values.max > 1
+        @validated = false
+      end
+      @schedules[col[0]] = values
     end
 
     external_file = OpenStudio::Model::ExternalFile::getExternalFile(@model, @schedules_output_path)
@@ -1128,13 +1127,5 @@ class SchedulesFile
     end
 
     return true
-  end
-
-  def calcDesignLevelFromDailykWh(daily_kwh:)
-    return daily_kwh * @maxval * 1000 * @schadjust
-  end
-
-  def calcDesignLevelFromDailyTherm(daily_therm:)
-    return calcDesignLevelFromDailykWh(daily_kwh: UnitConversions.convert(daily_therm, "therm", "kWh"))
   end
 end
