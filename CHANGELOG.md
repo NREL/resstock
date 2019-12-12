@@ -6,6 +6,7 @@ Features
 - Separate tsv files for bedrooms, cooking range schedule, corridor, holiday lighting, interior/other lighting use, pool schedule, plug loads schedule, and refrigeration schedule ([#338](https://github.com/NREL/OpenStudio-BuildStock/pull/338))
 
 Fixes
+- Update the multifamily project's neighbors and orientation tsv files to have geometry building type dependency; remove the now obsolete "Geometry Is Multifamily Low Rise.tsv" file ([#350](https://github.com/NREL/OpenStudio-BuildStock/pull/350))
 - Fixes for custom output meters: total site electricity double-counting exterior holiday lighting, and garage lighting all zeroes ([#349](https://github.com/NREL/OpenStudio-BuildStock/pull/349))
 - Remove shared facades tsv files from the multifamily_beta and testing projects ([#301](https://github.com/NREL/OpenStudio-BuildStock/pull/301))
 - Move redundant output meter code from individual reporting measures out into shared resource file ([#334](https://github.com/NREL/OpenStudio-BuildStock/pull/334))
