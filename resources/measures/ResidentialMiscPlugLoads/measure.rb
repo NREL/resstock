@@ -105,7 +105,7 @@ class ResidentialMiscElectricLoads < OpenStudio::Measure::ModelMeasure
       MiscLoads.remove(runner, space, [Constants.ObjectNameMiscPlugLoads])
     end
 
-    sch_path = File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources/schedules_TMY_10min.csv")
+    sch_path = File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources/schedules_TMY_60min.csv")
     schedule_file = SchedulesFile.new(runner: runner, model: model, schedules_output_path: sch_path)
     if not schedule_file.validated?
       return false

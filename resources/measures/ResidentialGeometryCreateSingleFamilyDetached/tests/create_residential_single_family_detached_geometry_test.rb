@@ -518,7 +518,7 @@ class CreateResidentialSingleFamilyDetachedGeometryTest < MiniTest::Test
     args_hash = {}
     args_hash["num_occupants"] = "0"
     expected_num_del_objects = {}
-    expected_num_new_objects = { "Surface" => 17, "Space" => 3, "SpaceType" => 2, "ThermalZone" => 2, "BuildingUnit" => 1, "ShadingSurfaceGroup" => 2, "ShadingSurface" => 8 }
+    expected_num_new_objects = { "Surface" => 17, "Space" => 3, "SpaceType" => 2, "ThermalZone" => 2, "BuildingUnit" => 1, "ShadingSurfaceGroup" => 2, "ShadingSurface" => 8, "ExternalFile" => 1 }
     expected_values = { "FinishedFloorArea" => 2000, "UnfinishedAtticHeight" => 6.59, "UnfinishedAtticFloorArea" => 2000 / 2, "BuildingHeight" => 8 + 8 + 6.59, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 0, "EavesDepth" => 2 }
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
