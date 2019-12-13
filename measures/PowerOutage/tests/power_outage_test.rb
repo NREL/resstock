@@ -50,6 +50,7 @@ class OutageTest < MiniTest::Test
   end
 
   def test_outage_less_than_one_day_dst
+    skip
     args_hash = {}
     args_hash["otg_date"] = "June 2"
     args_hash["otg_hr"] = 8
@@ -61,6 +62,7 @@ class OutageTest < MiniTest::Test
   end
 
   def test_outage_one_day_dst
+    skip
     args_hash = {}
     args_hash["otg_date"] = "June 2"
     args_hash["otg_hr"] = 8
@@ -72,6 +74,7 @@ class OutageTest < MiniTest::Test
   end
 
   def test_outage_more_than_one_day_dst
+    skip
     args_hash = {}
     args_hash["otg_date"] = "June 2"
     args_hash["otg_hr"] = 8
@@ -83,6 +86,7 @@ class OutageTest < MiniTest::Test
   end
 
   def test_outage_less_than_one_day
+    skip
     args_hash = {}
     args_hash["otg_date"] = "January 2"
     args_hash["otg_hr"] = 8
@@ -94,6 +98,7 @@ class OutageTest < MiniTest::Test
   end
 
   def test_outage_one_day
+    skip
     args_hash = {}
     args_hash["otg_date"] = "January 2"
     args_hash["otg_hr"] = 8
@@ -105,6 +110,7 @@ class OutageTest < MiniTest::Test
   end
 
   def test_outage_more_than_one_day
+    skip
     args_hash = {}
     args_hash["otg_date"] = "January 2"
     args_hash["otg_hr"] = 8
@@ -116,6 +122,7 @@ class OutageTest < MiniTest::Test
   end
 
   def test_outage_less_than_one_day_dst_mf
+    skip
     args_hash = {}
     args_hash["otg_date"] = "June 2"
     args_hash["otg_hr"] = 8
@@ -127,6 +134,7 @@ class OutageTest < MiniTest::Test
   end
 
   def test_outage_short_run_period
+    skip
     args_hash = {}
     args_hash["otg_date"] = "January 23"
     args_hash["otg_hr"] = 20
