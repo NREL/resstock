@@ -794,6 +794,10 @@ class Schedule
 
   # return [Double] The total number of full load hours for this schedule.
   def self.annual_equivalent_full_load_hrs(year_description, schedule)
+    if schedule.to_ScheduleFile.is_initialized
+      # TODO
+    end
+
     if schedule.to_ScheduleInterval.is_initialized
       timeSeries = schedule.to_ScheduleInterval.get.timeSeries
       annual_flh = timeSeries.averageValue * Constants.NumHoursInYear(year_description.isLeapYear)
@@ -1066,15 +1070,18 @@ class SchedulesFile
 
   def createScheduleFile(sch_file_name:,
                          col_name:,
-                         rows_to_skip: 1,
-                         min_per_item: 60)
+                         rows_to_skip: 1)
 
+    year_description = @model.getYearDescription
+    num_hrs_in_year = Constants.NumHoursInYear(year_description.isLeapYear)
+    @min_per_item = 60.0 / (@schedules[col_name].length / num_hrs_in_year)
     col_index = get_col_index(col_name: col_name)
+
     schedule_file = OpenStudio::Model::ScheduleFile.new(@external_file)
     schedule_file.setName(sch_file_name)
     schedule_file.setColumnNumber(col_index + 1)
     schedule_file.setRowstoSkipatTop(rows_to_skip)
-    schedule_file.setMinutesperItem("#{min_per_item}")
+    schedule_file.setMinutesperItem("#{@min_per_item.to_i}")
 
     return schedule_file
   end
@@ -1082,7 +1089,8 @@ class SchedulesFile
   def calcDesignLevelFromAnnualkWh(col_name:,
                                    annual_kwh:)
 
-    design_level = annual_kwh * 1000.0 / @schedules[col_name].reduce(:+) # W
+    equiv_full_load_hrs = @schedules[col_name].reduce(:+) / (60.0 / @min_per_item)
+    design_level = annual_kwh * 1000.0 / equiv_full_load_hrs # W
 
     return design_level
   end
@@ -1096,13 +1104,18 @@ class SchedulesFile
     return design_level
   end
 
+  def validateValues(values:)
+    if values.max > 1
+      @validated = false
+    end
+    # TODO: validate min_per_item in [1, 2, 3, ..., 60]
+  end
+
   def import
     columns = CSV.read(@schedules_output_path).transpose
     columns.each do |col|
       values = col[1..-1].map { |v| v.to_f }
-      if values.max > 1
-        @validated = false
-      end
+      validateValues(values: values)
       @schedules[col[0]] = values
     end
 
