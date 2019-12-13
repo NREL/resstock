@@ -30,7 +30,7 @@ class ResidentialRefrigeratorTest < MiniTest::Test
     args_hash = {}
     args_hash["rated_annual_energy"] = 434.0
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 434.0, "Location" => args_hash["location"] }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
@@ -40,7 +40,7 @@ class ResidentialRefrigeratorTest < MiniTest::Test
     args_hash["rated_annual_energy"] = 434.0
     args_hash["mult"] = 0.95
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 412.3, "Location" => args_hash["location"] }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
@@ -50,7 +50,7 @@ class ResidentialRefrigeratorTest < MiniTest::Test
     args_hash["rated_annual_energy"] = 434.0
     args_hash["mult"] = 1.05
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 455.7, "Location" => args_hash["location"] }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
@@ -59,7 +59,7 @@ class ResidentialRefrigeratorTest < MiniTest::Test
     args_hash = {}
     args_hash["rated_annual_energy"] = 400.0
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 400.0, "Location" => args_hash["location"] }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
@@ -69,7 +69,7 @@ class ResidentialRefrigeratorTest < MiniTest::Test
     args_hash["rated_annual_energy"] = 400.0
     args_hash["mult"] = 0.95
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 380.0, "Location" => args_hash["location"] }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
@@ -79,7 +79,7 @@ class ResidentialRefrigeratorTest < MiniTest::Test
     args_hash["rated_annual_energy"] = 400.0
     args_hash["mult"] = 1.05
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 420.0, "Location" => args_hash["location"] }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
@@ -88,7 +88,7 @@ class ResidentialRefrigeratorTest < MiniTest::Test
     args_hash = {}
     args_hash["rated_annual_energy"] = 348.0
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 348.0, "Location" => args_hash["location"] }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
@@ -98,7 +98,7 @@ class ResidentialRefrigeratorTest < MiniTest::Test
     args_hash["rated_annual_energy"] = 348.0
     args_hash["mult"] = 0.95
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 330.6, "Location" => args_hash["location"] }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
@@ -108,7 +108,7 @@ class ResidentialRefrigeratorTest < MiniTest::Test
     args_hash["rated_annual_energy"] = 348.0
     args_hash["mult"] = 1.05
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 365.4, "Location" => args_hash["location"] }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
@@ -120,7 +120,7 @@ class ResidentialRefrigeratorTest < MiniTest::Test
     args_hash["weekend_sch"] = "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24"
     args_hash["monthly_sch"] = "1,2,3,4,5,6,7,8,9,10,11,12"
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 434.0, "Location" => args_hash["location"] }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
@@ -130,7 +130,7 @@ class ResidentialRefrigeratorTest < MiniTest::Test
     args_hash["rated_annual_energy"] = 434.0
     args_hash["location"] = Constants.SpaceTypeFinishedBasement
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 434.0, "Location" => args_hash["location"] }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
@@ -139,13 +139,13 @@ class ResidentialRefrigeratorTest < MiniTest::Test
     args_hash = {}
     args_hash["rated_annual_energy"] = 434.0
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 434.0, "Location" => args_hash["location"] }
     model = _test_measure("SFD_2000sqft_2story_FB_GRG_UA.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
     args_hash = {}
     args_hash["rated_annual_energy"] = 348.0
-    expected_num_del_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
-    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_del_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleFile" => 1 }
+    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 348.0, "Location" => args_hash["location"] }
     _test_measure(model, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
@@ -154,12 +154,12 @@ class ResidentialRefrigeratorTest < MiniTest::Test
     args_hash = {}
     args_hash["rated_annual_energy"] = 434.0
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 434.0, "Location" => args_hash["location"] }
     model = _test_measure("SFD_2000sqft_2story_FB_GRG_UA.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
     args_hash = {}
     args_hash["rated_annual_energy"] = 0.0
-    expected_num_del_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_del_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleFile" => 1 }
     expected_num_new_objects = {}
     expected_values = { "Annual_kwh" => 0, "Location" => args_hash["location"] }
     _test_measure(model, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
@@ -231,7 +231,7 @@ class ResidentialRefrigeratorTest < MiniTest::Test
     num_units = 4
     args_hash = {}
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ScheduleRuleset" => 1, "ElectricEquipment" => num_units, "ElectricEquipmentDefinition" => num_units }
+    expected_num_new_objects = { "ScheduleFile" => 1, "ElectricEquipment" => num_units, "ElectricEquipmentDefinition" => num_units }
     expected_values = { "Annual_kwh" => num_units * 434.35, "Location" => args_hash["location"] }
     _test_measure("SFA_4units_1story_FB_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
   end
@@ -241,7 +241,7 @@ class ResidentialRefrigeratorTest < MiniTest::Test
     args_hash = {}
     args_hash["location"] = Constants.SpaceTypeFinishedBasement
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ScheduleRuleset" => 1, "ElectricEquipment" => num_units, "ElectricEquipmentDefinition" => num_units }
+    expected_num_new_objects = { "ScheduleFile" => 1, "ElectricEquipment" => num_units, "ElectricEquipmentDefinition" => num_units }
     expected_values = { "Annual_kwh" => num_units * 434.35, "Location" => args_hash["location"] }
     _test_measure("SFA_4units_1story_FB_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
   end
@@ -251,7 +251,7 @@ class ResidentialRefrigeratorTest < MiniTest::Test
     args_hash = {}
     args_hash["location"] = Constants.SpaceTypeUnfinishedBasement
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ScheduleRuleset" => 1, "ElectricEquipment" => num_units, "ElectricEquipmentDefinition" => num_units }
+    expected_num_new_objects = { "ScheduleFile" => 1, "ElectricEquipment" => num_units, "ElectricEquipmentDefinition" => num_units }
     expected_values = { "Annual_kwh" => num_units * 434.35, "Location" => args_hash["location"] }
     _test_measure("SFA_4units_1story_UB_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
   end
@@ -260,7 +260,7 @@ class ResidentialRefrigeratorTest < MiniTest::Test
     num_units = 8
     args_hash = {}
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ScheduleRuleset" => 1, "ElectricEquipment" => num_units, "ElectricEquipmentDefinition" => num_units }
+    expected_num_new_objects = { "ScheduleFile" => 1, "ElectricEquipment" => num_units, "ElectricEquipmentDefinition" => num_units }
     expected_values = { "Annual_kwh" => num_units * 434.35, "Location" => args_hash["location"] }
     _test_measure("MF_8units_1story_SL_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
   end
