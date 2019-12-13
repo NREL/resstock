@@ -1322,6 +1322,8 @@ class HVACSizing
         sched = sched_base.to_ScheduleFixedInterval.get
       elsif sched_base.to_ScheduleConstant.is_initialized
         sched = sched_base.to_ScheduleConstant.get
+      elsif sched_base.to_ScheduleFile.get
+        sched = sched_base.to_ScheduleFile.get
       else
         runner.registerWarning("Expected type for object '#{gain.name.to_s}'. Skipping...")
         next
@@ -1329,7 +1331,7 @@ class HVACSizing
       next if sched.nil?
 
       # Get schedule hourly values
-      if sched.is_a? OpenStudio::Model::ScheduleRuleset or sched.is_a? OpenStudio::Model::ScheduleFixedInterval
+      if sched.is_a? OpenStudio::Model::ScheduleRuleset or sched.is_a? OpenStudio::Model::ScheduleFixedInterval or sched.is_a? OpenStudio::Model::ScheduleFile
         # Override any hot water schedules with smoothed schedules; TODO: Is there a better approach?
         max_mult = nil
         if gain.name.to_s.start_with?(Constants.ObjectNameShower)
@@ -1351,16 +1353,23 @@ class HVACSizing
           sched_values = [0.010, 0.006, 0.004, 0.002, 0.004, 0.006, 0.016, 0.032, 0.048, 0.068, 0.078, 0.081, 0.074, 0.067, 0.057, 0.061, 0.055, 0.054, 0.051, 0.051, 0.052, 0.054, 0.044, 0.024]
           max_mult = 1.15 * 1.04
         else
-          day_sched = sched.getDaySchedules(july_1, july_1)[0]
-          # Convert to 24 hour values
-          sched_values = []
-          previous_time_decimal = 0
-          day_sched.times.each_with_index do |time, i|
-            time_decimal = (time.days * 24.0) + time.hours + (time.minutes / 60.0) + (time.seconds / 3600.0)
-            # Back-fill in hourly values
-            for hr in sched_values.size + 1..time_decimal.floor
-              sched_values[hr - 1] = day_sched.values[i]
+          if sched.is_a? OpenStudio::Model::ScheduleRuleset or sched.is_a? OpenStudio::Model::ScheduleFixedInterval
+            day_sched = sched.getDaySchedules(july_1, july_1)[0]
+            # Convert to 24 hour values
+            sched_values = []
+            previous_time_decimal = 0
+            day_sched.times.each_with_index do |time, i|
+              time_decimal = (time.days * 24.0) + time.hours + (time.minutes / 60.0) + (time.seconds / 3600.0)
+              # Back-fill in hourly values
+              for hr in sched_values.size + 1..time_decimal.floor
+                sched_values[hr - 1] = day_sched.values[i]
+              end
             end
+          elsif sched.is_a? OpenStudio::Model::ScheduleFile
+            columnNumber = sched.columnNumber
+            csv_file = sched.csvFile.get
+            sched_values = csv_file.getColumnAsStringVector(columnNumber - 1).map { |v| v.to_f }
+            sched_values = sched_values[4000..4023] # FIXME: this needs to be 24 hour values on july 1
           end
         end
         if not max_mult.nil?

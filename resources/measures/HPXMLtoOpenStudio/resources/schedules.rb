@@ -989,7 +989,7 @@ class Schedule
         schedule_type_limits.setLowerLimitValue(0)
         schedule_type_limits.setUpperLimitValue(1)
         schedule_type_limits.setNumericType("Discrete")
-      elsif [Constants.ScheduleTypeLimitsTemperature, Constants.ScheduleTypeLimitsPower].include? schedule_type_limits_name
+      elsif schedule_type_limits_name == Constants.ScheduleTypeLimitsTemperature
         schedule_type_limits.setNumericType("Continuous")
       end
     end
@@ -1077,9 +1077,7 @@ class SchedulesFile
     year_description = @model.getYearDescription
     num_hrs_in_year = Constants.NumHoursInYear(year_description.isLeapYear)
     schedule_length = @schedules[col_name].length
-
     min_per_item = 60.0 / (schedule_length / num_hrs_in_year)
-    validateMinPerItem(min_per_item: min_per_item)
 
     schedule_file = OpenStudio::Model::ScheduleFile.new(@external_file)
     schedule_file.setName(sch_file_name)
@@ -1094,9 +1092,7 @@ class SchedulesFile
     year_description = @model.getYearDescription
     num_hrs_in_year = Constants.NumHoursInYear(year_description.isLeapYear)
     schedule_length = @schedules[col_name].length
-
     min_per_item = 60.0 / (schedule_length / num_hrs_in_year)
-    validateMinPerItem(min_per_item: min_per_item)
 
     ann_equiv_full_load_hrs = @schedules[col_name].reduce(:+) / (60.0 / min_per_item)
 
@@ -1121,15 +1117,19 @@ class SchedulesFile
     return design_level
   end
 
-  def validateValues(col_name:,
-                     values:)
+  def validateSchedule(col_name:,
+                       values:)
+
+    year_description = @model.getYearDescription
+    num_hrs_in_year = Constants.NumHoursInYear(year_description.isLeapYear)
+    schedule_length = values.length
+
     if values.max > 1
       @runner.registerError("The max value of schedule '#{col_name}' is greater than 1.")
       @validated = false
     end
-  end
 
-  def validateMinPerItem(min_per_item:)
+    min_per_item = 60.0 / (schedule_length / num_hrs_in_year)
     unless [1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30, 60].include? min_per_item
       @runner.registerError("Calculated an invalid schedule min_per_item=#{min_per_item}.")
       @validated = false
@@ -1141,7 +1141,7 @@ class SchedulesFile
     columns.each do |col|
       col_name = col[0]
       values = col[1..-1].map { |v| v.to_f }
-      validateValues(col_name: col_name, values: values)
+      validateSchedule(col_name: col_name, values: values)
       @schedules[col_name] = values
     end
 

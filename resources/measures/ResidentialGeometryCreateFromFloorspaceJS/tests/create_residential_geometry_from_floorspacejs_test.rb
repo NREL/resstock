@@ -226,7 +226,7 @@ class ResidentialGeometryFromFloorspaceJS_Test < MiniTest::Test
     args_hash = {}
     args_hash["num_occupants"] = "0"
     expected_num_del_objects = {}
-    expected_num_new_objects = { "Building" => 1, "Surface" => 80, "Space" => 12, "SpaceType" => 7, "ThermalZone" => 12, "BuildingUnit" => 1, "BuildingStory" => 3 }
+    expected_num_new_objects = { "Building" => 1, "Surface" => 80, "Space" => 12, "SpaceType" => 7, "ThermalZone" => 12, "BuildingUnit" => 1, "BuildingStory" => 3, "ExternalFile" => 1 }
     expected_values = { "Beds" => { "unit 1" => 3 }, "Baths" => { "unit 1" => 2 }, "NumOccupants" => 0 }
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end

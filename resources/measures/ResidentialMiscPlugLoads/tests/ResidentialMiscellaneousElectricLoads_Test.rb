@@ -10,7 +10,7 @@ class ResidentialMiscElectricLoadsTest < MiniTest::Test
     args_hash = {}
     args_hash["mult"] = 0.0
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ExternalFile" => 1 }
+    expected_num_new_objects = {}
     expected_values = { "Annual_kwh" => 0 }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
@@ -20,7 +20,7 @@ class ResidentialMiscElectricLoadsTest < MiniTest::Test
     args_hash = {}
     args_hash["option_type"] = Constants.OptionTypePlugLoadsEnergyUse
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ElectricEquipmentDefinition" => num_fin_spaces, "ElectricEquipment" => num_fin_spaces, "ExternalFile" => 1, "ScheduleFile" => 1 }
+    expected_num_new_objects = { "ElectricEquipmentDefinition" => num_fin_spaces, "ElectricEquipment" => num_fin_spaces, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 2000 }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
@@ -30,7 +30,7 @@ class ResidentialMiscElectricLoadsTest < MiniTest::Test
     args_hash = {}
     args_hash["mult"] = 1.0
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ElectricEquipmentDefinition" => num_fin_spaces, "ElectricEquipment" => num_fin_spaces, "ExternalFile" => 1, "ScheduleFile" => 1 }
+    expected_num_new_objects = { "ElectricEquipmentDefinition" => num_fin_spaces, "ElectricEquipment" => num_fin_spaces, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 2206 }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
@@ -40,7 +40,7 @@ class ResidentialMiscElectricLoadsTest < MiniTest::Test
     args_hash = {}
     args_hash["mult"] = 1.5
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ElectricEquipmentDefinition" => num_fin_spaces, "ElectricEquipment" => num_fin_spaces, "ExternalFile" => 1, "ScheduleFile" => 1 }
+    expected_num_new_objects = { "ElectricEquipmentDefinition" => num_fin_spaces, "ElectricEquipment" => num_fin_spaces, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 3309 }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
@@ -52,7 +52,7 @@ class ResidentialMiscElectricLoadsTest < MiniTest::Test
     args_hash["weekend_sch"] = "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24"
     args_hash["monthly_sch"] = "1,2,3,4,5,6,7,8,9,10,11,12"
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ElectricEquipmentDefinition" => num_fin_spaces, "ElectricEquipment" => num_fin_spaces, "ExternalFile" => 1, "ScheduleFile" => 1 }
+    expected_num_new_objects = { "ElectricEquipmentDefinition" => num_fin_spaces, "ElectricEquipment" => num_fin_spaces, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 2206 }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
@@ -61,7 +61,7 @@ class ResidentialMiscElectricLoadsTest < MiniTest::Test
     num_fin_spaces = 3
     args_hash = {}
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ElectricEquipmentDefinition" => num_fin_spaces, "ElectricEquipment" => num_fin_spaces, "ExternalFile" => 1, "ScheduleFile" => 1 }
+    expected_num_new_objects = { "ElectricEquipmentDefinition" => num_fin_spaces, "ElectricEquipment" => num_fin_spaces, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 2206 }
     model = _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
     args_hash = {}
@@ -76,7 +76,7 @@ class ResidentialMiscElectricLoadsTest < MiniTest::Test
     num_fin_spaces = 3
     args_hash = {}
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ElectricEquipmentDefinition" => num_fin_spaces, "ElectricEquipment" => num_fin_spaces, "ExternalFile" => 1, "ScheduleFile" => 1 }
+    expected_num_new_objects = { "ElectricEquipmentDefinition" => num_fin_spaces, "ElectricEquipment" => num_fin_spaces, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 2206 }
     model = _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
     args_hash = {}
@@ -106,7 +106,7 @@ class ResidentialMiscElectricLoadsTest < MiniTest::Test
     args_hash = {}
     args_hash["mult"] = 1.0
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ElectricEquipment" => num_fin_spaces, "ElectricEquipmentDefinition" => num_fin_spaces, "ExternalFile" => 1, "ScheduleFile" => 1 }
+    expected_num_new_objects = { "ElectricEquipment" => num_fin_spaces, "ElectricEquipmentDefinition" => num_fin_spaces, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 7589.07 }
     _test_measure("SFA_4units_1story_FB_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
   end
@@ -117,7 +117,7 @@ class ResidentialMiscElectricLoadsTest < MiniTest::Test
     args_hash = {}
     args_hash["mult"] = 1.0
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ElectricEquipment" => num_fin_spaces, "ElectricEquipmentDefinition" => num_fin_spaces, "ExternalFile" => 1, "ScheduleFile" => 1 }
+    expected_num_new_objects = { "ElectricEquipment" => num_fin_spaces, "ElectricEquipmentDefinition" => num_fin_spaces, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 15178.13 }
     _test_measure("MF_8units_1story_SL_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
   end
