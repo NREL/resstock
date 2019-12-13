@@ -117,7 +117,7 @@ class ResidentialCookingRange < OpenStudio::Measure::ModelMeasure
                           Constants.SpaceTypeUnfinishedBasement,
                           Constants.SpaceTypeGarage]
 
-    sch_path = File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources/schedules.csv")
+    sch_path = File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources/schedules_TMY_10min.csv")
     schedule_file = SchedulesFile.new(runner: runner, model: model, schedules_output_path: sch_path)
     if not schedule_file.validated?
       return false
