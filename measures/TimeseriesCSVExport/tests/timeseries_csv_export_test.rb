@@ -7,7 +7,6 @@ require 'fileutils'
 
 class TimeseriesCSVExportTest < MiniTest::Test
   def test_leap_year_timestep_and_subcategories
-    skip
     num_output_requests = 27 + 2
     measure = TimeseriesCSVExport.new
     args_hash = {}
@@ -15,7 +14,7 @@ class TimeseriesCSVExportTest < MiniTest::Test
     args_hash["include_enduse_subcategories"] = "true"
     args_hash["output_variables"] = "Zone Mean Air Temperature, Site Outdoor Air Drybulb Temperature"
     expected_values = { "EnduseTimeseriesLength" => 8784 * 6, "EnduseTimeseriesWidth" => 34 + 28 + 5 }
-    _test_measure("SFD_Successful_EnergyPlus_Run_AMY_PV.osm", args_hash, expected_values, __method__, "0465925_US_CO_Boulder_8013_0-20000-0-72469_40.13_-105.22_NSRDB_2.0.1_AMY_2012.epw", "schedules_TMY_60min.csv", num_output_requests)
+    _test_measure("SFD_Successful_EnergyPlus_Run_AMY_PV.osm", args_hash, expected_values, __method__, "0465925_US_CO_Boulder_8013_0-20000-0-72469_40.13_-105.22_NSRDB_2.0.1_AMY_2012.epw", "schedules_AMY2012_60min.csv", num_output_requests)
   end
 
   def test_amy_short_run_period_hourly
@@ -24,7 +23,7 @@ class TimeseriesCSVExportTest < MiniTest::Test
     args_hash = {}
     args_hash["output_variables"] = "Zone People Occupant Count"
     expected_values = { "EnduseTimeseriesLength" => 2 * 24, "EnduseTimeseriesWidth" => 34 + 1 }
-    _test_measure("SFD_Successful_EnergyPlus_Run_AMY_PV_TwoDays.osm", args_hash, expected_values, __method__, "0465925_US_CO_Boulder_8013_0-20000-0-72469_40.13_-105.22_NSRDB_2.0.1_AMY_2014.epw", "schedules_TMY_60min.csv", num_output_requests)
+    _test_measure("SFD_Successful_EnergyPlus_Run_AMY_PV_TwoDays.osm", args_hash, expected_values, __method__, "0465925_US_CO_Boulder_8013_0-20000-0-72469_40.13_-105.22_NSRDB_2.0.1_AMY_2014.epw", "schedules_AMY2014_60min.csv", num_output_requests)
   end
 
   def test_amy_short_run_period_daily
@@ -34,7 +33,7 @@ class TimeseriesCSVExportTest < MiniTest::Test
     args_hash["reporting_frequency"] = "Daily"
     args_hash["output_variables"] = "Zone People Occupant Count"
     expected_values = { "EnduseTimeseriesLength" => 2 * 1, "EnduseTimeseriesWidth" => 34 + 1 }
-    _test_measure("SFD_Successful_EnergyPlus_Run_AMY_PV_TwoDays.osm", args_hash, expected_values, __method__, "0465925_US_CO_Boulder_8013_0-20000-0-72469_40.13_-105.22_NSRDB_2.0.1_AMY_2014.epw", "schedules_TMY_60min.csv", num_output_requests)
+    _test_measure("SFD_Successful_EnergyPlus_Run_AMY_PV_TwoDays.osm", args_hash, expected_values, __method__, "0465925_US_CO_Boulder_8013_0-20000-0-72469_40.13_-105.22_NSRDB_2.0.1_AMY_2014.epw", "schedules_AMY2014_60min.csv", num_output_requests)
   end
 
   def test_amy_short_run_period_monthly
@@ -45,7 +44,7 @@ class TimeseriesCSVExportTest < MiniTest::Test
     args_hash["reporting_frequency"] = "Monthly"
     args_hash["output_variables"] = "Zone People Occupant Count"
     expected_values = { "EnduseTimeseriesLength" => 1, "EnduseTimeseriesWidth" => 34 + 1 }
-    _test_measure("SFD_Successful_EnergyPlus_Run_AMY_PV_TwoDays.osm", args_hash, expected_values, __method__, "0465925_US_CO_Boulder_8013_0-20000-0-72469_40.13_-105.22_NSRDB_2.0.1_AMY_2014.epw", "schedules_TMY_60min.csv", num_output_requests)
+    _test_measure("SFD_Successful_EnergyPlus_Run_AMY_PV_TwoDays.osm", args_hash, expected_values, __method__, "0465925_US_CO_Boulder_8013_0-20000-0-72469_40.13_-105.22_NSRDB_2.0.1_AMY_2014.epw", "schedules_AMY2014_60min.csv", num_output_requests)
   end
 
   def test_amy_short_run_period_runperiod
@@ -55,7 +54,7 @@ class TimeseriesCSVExportTest < MiniTest::Test
     args_hash["reporting_frequency"] = "RunPeriod"
     args_hash["output_variables"] = "Zone People Occupant Count"
     expected_values = { "EnduseTimeseriesLength" => 1, "EnduseTimeseriesWidth" => 34 + 1 }
-    _test_measure("SFD_Successful_EnergyPlus_Run_AMY_PV_TwoDays.osm", args_hash, expected_values, __method__, "0465925_US_CO_Boulder_8013_0-20000-0-72469_40.13_-105.22_NSRDB_2.0.1_AMY_2014.epw", "schedules_TMY_60min.csv", num_output_requests)
+    _test_measure("SFD_Successful_EnergyPlus_Run_AMY_PV_TwoDays.osm", args_hash, expected_values, __method__, "0465925_US_CO_Boulder_8013_0-20000-0-72469_40.13_-105.22_NSRDB_2.0.1_AMY_2014.epw", "schedules_AMY2014_60min.csv", num_output_requests)
   end
 
   def test_tmy_hourly
