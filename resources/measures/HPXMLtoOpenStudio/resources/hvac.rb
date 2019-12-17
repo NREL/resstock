@@ -3374,7 +3374,7 @@ class HVAC
         end
 
         space_mel_ann = mel_ann * UnitConversions.convert(space.floorArea, "m^2", "ft^2") / finished_floor_area
-        space_design_level = sch.calcDesignLevelFromAnnualkWh(space_mel_ann)
+        space_design_level = schedule_file.calcDesignLevelFromAnnualkWh(col_name: col_name, annual_kwh: space_mel_ann)
 
         mel_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
         mel = OpenStudio::Model::ElectricEquipment.new(mel_def)

@@ -317,8 +317,8 @@ class ResidentialLightingOther < OpenStudio::Measure::ModelMeasure
     when 2014
       sch_path = File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources/schedules/AMY2014_10-60min.csv")
     end
-    schedule_file = SchedulesFile.new(runner: runner, model: model, schedules_output_path: sch_path)
-    if not schedule_file.validated?
+    schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_output_path: sch_path)
+    if not schedules_file.validated?
       return false
     end
 
@@ -335,7 +335,7 @@ class ResidentialLightingOther < OpenStudio::Measure::ModelMeasure
       garage_ann = (common_bm_garage_e * (((hw_inc * er_inc + (1 - bab_frac_inc) * bab_er_inc) + (hw_cfl * er_cfl - bab_frac_cfl * bab_er_cfl) + (hw_led * er_led - bab_frac_led * bab_er_led) + (hw_lfl * er_lfl - bab_frac_lfl * bab_er_lfl)) * smrt_replace_f * 0.9 + 0.1))
     end
 
-    success = Lighting.apply_garage(model, runner, weather, garage_ann, schedule_file)
+    success = Lighting.apply_garage(model, runner, weather, garage_ann, schedules_file)
     return false if not success
 
     if garage_spaces.length > 0
@@ -354,7 +354,7 @@ class ResidentialLightingOther < OpenStudio::Measure::ModelMeasure
     end
 
     if exterior_ann > 0
-      success = Lighting.apply_exterior(model, runner, weather, exterior_ann, schedule_file)
+      success = Lighting.apply_exterior(model, runner, weather, exterior_ann, schedules_file)
       return false if not success
     end
 
@@ -394,7 +394,7 @@ class ResidentialLightingOther < OpenStudio::Measure::ModelMeasure
       num_holiday_days = (num_holiday_seconds / 3600 / 24).to_i + 1
       holiday_exterior_ann = num_holiday_days * holiday_daily_energy_use_exterior
 
-      success = Lighting.apply_exterior_holiday(model, runner, holiday_exterior_ann, schedule_file)
+      success = Lighting.apply_exterior_holiday(model, runner, holiday_exterior_ann, schedules_file)
       return false if not success
 
       msgs << "Holiday lighting with #{holiday_exterior_ann.round} kWhs annual energy consumption has been assigned to the exterior from #{holiday_start_date} until #{holiday_end_date}."

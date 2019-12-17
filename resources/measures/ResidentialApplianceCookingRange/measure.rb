@@ -125,8 +125,8 @@ class ResidentialCookingRange < OpenStudio::Measure::ModelMeasure
     when 2014
       sch_path = File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources/schedules/AMY2014_10-60min.csv")
     end
-    schedule_file = SchedulesFile.new(runner: runner, model: model, schedules_output_path: sch_path)
-    if not schedule_file.validated?
+    schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_output_path: sch_path)
+    if not schedules_file.validated?
       return false
     end
 
@@ -141,7 +141,7 @@ class ResidentialCookingRange < OpenStudio::Measure::ModelMeasure
       next if space.nil?
 
       success, ann_e, ann_f, ann_i, sch = CookingRange.apply(model, unit, runner, fuel_type, cooktop_ef, oven_ef,
-                                                             has_elec_ignition, mult, sch, space, schedule_file)
+                                                             has_elec_ignition, mult, sch, space, schedules_file)
 
       if not success
         return false

@@ -127,8 +127,8 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
     when 2014
       sch_path = File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources/schedules/AMY2014_10-60min.csv")
     end
-    schedule_file = SchedulesFile.new(runner: runner, model: model, schedules_output_path: sch_path)
-    if not schedule_file.validated?
+    schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_output_path: sch_path)
+    if not schedules_file.validated?
       return false
     end
 
@@ -136,7 +136,7 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
 
     if sh_mult > 0 or s_mult > 0 or b_mult > 0
       temperature_sch = OpenStudio::Model::ScheduleConstant.new(model)
-      temperature_sch.setValue(mixed_use_t)
+      temperature_sch.setValue(UnitConversions.convert(mixed_use_t, "F", "C"))
       temperature_sch.setName("fixtures temperature schedule")
       Schedule.set_schedule_type_limits(model, temperature_sch, Constants.ScheduleTypeLimitsTemperature)
     end
@@ -218,11 +218,11 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
         col_name = "showers"
         if sch_sh.nil?
           # Create schedule
-          sch_sh = schedule_file.createScheduleFile(sch_file_name: "#{Constants.ObjectNameShower} schedule", col_name: col_name)
+          sch_sh = schedules_file.createScheduleFile(sch_file_name: "#{Constants.ObjectNameShower} schedule", col_name: col_name)
         end
 
-        sh_peak_flow = schedule_file.calcPeakFlowFromDailygpm(col_name: col_name, gpd: sh_gpd)
-        sh_design_level = schedule_file.calcDesignLevelFromAnnualkWh(col_name: col_name, annual_kwh: sh_tot_load * num_days_in_year)
+        sh_peak_flow = schedules_file.calcPeakFlowFromDailygpm(col_name: col_name, gpd: sh_gpd)
+        sh_design_level = schedules_file.calcDesignLevelFromAnnualkWh(col_name: col_name, annual_kwh: sh_tot_load * num_days_in_year)
 
         # Add water use equipment objects
         sh_wu_def = OpenStudio::Model::WaterUseEquipmentDefinition.new(model)
@@ -277,11 +277,11 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
         col_name = "sinks"
         if sch_s.nil?
           # Create schedule
-          sch_s = schedule_file.createScheduleFile(sch_file_name: "#{Constants.ObjectNameSink} schedule", col_name: col_name)
+          sch_s = schedules_file.createScheduleFile(sch_file_name: "#{Constants.ObjectNameSink} schedule", col_name: col_name)
         end
 
-        s_peak_flow = schedule_file.calcPeakFlowFromDailygpm(col_name: col_name, gpd: s_gpd)
-        s_design_level = schedule_file.calcDesignLevelFromAnnualkWh(col_name: col_name, annual_kwh: s_tot_load * num_days_in_year)
+        s_peak_flow = schedules_file.calcPeakFlowFromDailygpm(col_name: col_name, gpd: s_gpd)
+        s_design_level = schedules_file.calcDesignLevelFromAnnualkWh(col_name: col_name, annual_kwh: s_tot_load * num_days_in_year)
 
         # Add water use equipment objects
         s_wu_def = OpenStudio::Model::WaterUseEquipmentDefinition.new(model)
@@ -316,11 +316,11 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
         col_name = "baths"
         if sch_b.nil?
           # Create schedule
-          sch_b = schedule_file.createScheduleFile(sch_file_name: "#{Constants.ObjectNameBath} schedule", col_name: col_name)
+          sch_b = schedules_file.createScheduleFile(sch_file_name: "#{Constants.ObjectNameBath} schedule", col_name: col_name)
         end
 
-        b_peak_flow = schedule_file.calcPeakFlowFromDailygpm(col_name: col_name, gpd: b_gpd)
-        b_design_level = schedule_file.calcDesignLevelFromAnnualkWh(col_name: col_name, annual_kwh: b_tot_load * num_days_in_year)
+        b_peak_flow = schedules_file.calcPeakFlowFromDailygpm(col_name: col_name, gpd: b_gpd)
+        b_design_level = schedules_file.calcDesignLevelFromAnnualkWh(col_name: col_name, annual_kwh: b_tot_load * num_days_in_year)
 
         # Add water use equipment objects
         b_wu_def = OpenStudio::Model::WaterUseEquipmentDefinition.new(model)

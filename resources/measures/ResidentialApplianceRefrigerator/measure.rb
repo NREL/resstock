@@ -94,8 +94,8 @@ class ResidentialRefrigerator < OpenStudio::Measure::ModelMeasure
     when 2014
       sch_path = File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources/schedules/AMY2014_10-60min.csv")
     end
-    schedule_file = SchedulesFile.new(runner: runner, model: model, schedules_output_path: sch_path)
-    if not schedule_file.validated?
+    schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_output_path: sch_path)
+    if not schedules_file.validated?
       return false
     end
 
@@ -107,7 +107,7 @@ class ResidentialRefrigerator < OpenStudio::Measure::ModelMeasure
       space = Geometry.get_space_from_location(unit, location, location_hierarchy)
       next if space.nil?
 
-      success, ann_e, sch = Refrigerator.apply(model, unit, runner, rated_annual_energy, mult, sch, space, schedule_file)
+      success, ann_e, sch = Refrigerator.apply(model, unit, runner, rated_annual_energy, mult, sch, space, schedules_file)
 
       if not success
         return false

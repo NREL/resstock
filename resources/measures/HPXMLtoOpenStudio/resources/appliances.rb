@@ -5,7 +5,7 @@ require_relative "schedules"
 require_relative "waterheater"
 
 class Refrigerator
-  def self.apply(model, unit, runner, rated_annual_energy, mult, sch, space, schedule_file)
+  def self.apply(model, unit, runner, rated_annual_energy, mult, sch, space, schedules_file)
     # check for valid inputs
     if rated_annual_energy < 0
       runner.registerError("Rated annual consumption must be greater than or equal to 0.")
@@ -31,10 +31,10 @@ class Refrigerator
 
       col_name = "refrigerator"
       if sch.nil?
-        sch = schedule_file.createScheduleFile(sch_file_name: "#{Constants.ObjectNameRefrigerator} schedule", col_name: col_name)
+        sch = schedules_file.createScheduleFile(sch_file_name: "#{Constants.ObjectNameRefrigerator} schedule", col_name: col_name)
       end
 
-      design_level = schedule_file.calcDesignLevelFromAnnualkWh(col_name: col_name, annual_kwh: ann_e)
+      design_level = schedules_file.calcDesignLevelFromAnnualkWh(col_name: col_name, annual_kwh: ann_e)
 
       # Add electric equipment for the fridge
       frg_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
@@ -789,7 +789,7 @@ end
 
 class CookingRange
   def self.apply(model, unit, runner, fuel_type, cooktop_ef, oven_ef,
-                 has_elec_ignition, mult, sch, space, schedule_file)
+                 has_elec_ignition, mult, sch, space, schedules_file)
 
     # check for valid inputs
     if oven_ef <= 0 or oven_ef > 1
@@ -838,15 +838,15 @@ class CookingRange
     if ann_f > 0 or ann_e > 0
 
       if sch.nil?
-        sch = schedule_file.createScheduleFile(sch_file_name: "#{Constants.ObjectNameCookingRange(fuel_type, false)} schedule", col_name: col_name)
+        sch = schedules_file.createScheduleFile(sch_file_name: "#{Constants.ObjectNameCookingRange(fuel_type, false)} schedule", col_name: col_name)
       end
 
     end
 
     if ann_f > 0
 
-      design_level_f = schedule_file.calcDesignLevelFromAnnualTherm(col_name: col_name, annual_therm: ann_f)
-      design_level_i = schedule_file.calcDesignLevelFromAnnualkWh(col_name: col_name, annual_kwh: ann_i)
+      design_level_f = schedules_file.calcDesignLevelFromAnnualTherm(col_name: col_name, annual_therm: ann_f)
+      design_level_i = schedules_file.calcDesignLevelFromAnnualkWh(col_name: col_name, annual_kwh: ann_i)
 
       # Add equipment for the range
       if has_elec_ignition == true
@@ -879,7 +879,7 @@ class CookingRange
       rng.setSchedule(sch)
 
     elsif ann_e > 0
-      design_level_e = schedule_file.calcDesignLevelFromAnnualkWh(col_name: "cooking_range", annual_kwh: ann_e)
+      design_level_e = schedules_file.calcDesignLevelFromAnnualkWh(col_name: "cooking_range", annual_kwh: ann_e)
 
       # Add equipment for the range
       rng_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
