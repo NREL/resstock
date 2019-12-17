@@ -315,9 +315,18 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     num_units_per_floor_actual = num_units_per_floor
     above_ground_floors = num_floors  
 
-    if (num_floors > 1) and (level != "Bottom")
+    if (num_floors > 1) and (level != "Bottom") and (foundation_height > 0.0)
       runner.registerWarning("Unit is not on the bottom floor, setting foundation height to 0.")
       foundation_height = 0
+    end
+
+    if num_floors == 1
+      level = "Bottom"
+    end
+
+    if (num_floors <= 2) and (level == "Middle")
+      runner.registerError("Building is #{num_floors} stories and does not have middle units")
+      return false
     end
 
     if (num_units_per_floor % 2 == 0) and (corridor_position == "Double-Loaded Interior" or corridor_position == "Double Exterior") 
@@ -696,6 +705,8 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     model.getBuilding.additionalProperties.setFeature("has_rear_units", has_rear_units)
     model.getBuilding.additionalProperties.setFeature("num_floors", above_ground_floors)
     model.getBuilding.additionalProperties.setFeature("horz_location", horz_location)
+    model.getBuilding.additionalProperties.setFeature("level", level)
+
 
     # Store number of units
     model.getBuilding.setStandardsNumberOfLivingUnits(num_units)
