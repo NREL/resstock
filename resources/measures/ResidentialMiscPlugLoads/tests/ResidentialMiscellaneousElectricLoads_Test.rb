@@ -216,15 +216,19 @@ class ResidentialMiscElectricLoadsTest < MiniTest::Test
     check_num_objects(all_del_objects, expected_num_del_objects, "deleted")
 
     actual_values = { "Annual_kwh" => 0 }
+    schedules_file = nil
     all_new_objects.each do |obj_type, new_objects|
       new_objects.each do |new_object|
         next if not new_object.respond_to?("to_#{obj_type}")
 
         new_object = new_object.public_send("to_#{obj_type}").get
         if obj_type == "ElectricEquipment"
-          sch_path = new_object.schedule.get.to_ScheduleFile.get.externalFile.filePath.to_s
-          schedule_file = SchedulesFile.new(runner: runner, model: model, schedules_output_path: sch_path)
-          full_load_hrs = schedule_file.annual_equivalent_full_load_hrs(col_name: "plug_loads")
+          if schedules_file.nil?
+            schedule_file = new_object.schedule.get.to_ScheduleFile.get
+            sch_path = schedule_file.externalFile.filePath.to_s
+            schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_output_path: sch_path)
+          end
+          full_load_hrs = schedules_file.annual_equivalent_full_load_hrs(col_name: "plug_loads")
           actual_values["Annual_kwh"] += UnitConversions.convert(full_load_hrs * new_object.designLevel.get * new_object.multiplier, "Wh", "kWh")
         end
       end

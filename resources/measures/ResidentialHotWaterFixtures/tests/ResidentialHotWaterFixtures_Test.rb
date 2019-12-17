@@ -122,7 +122,7 @@ class ResidentialHotWaterFixturesTest < MiniTest::Test
     num_units = 4
     args_hash = {}
     expected_num_del_objects = {}
-    expected_num_new_objects = { "OtherEquipmentDefinition" => num_units * 3, "OtherEquipment" => num_units * 3, "WaterUseEquipmentDefinition" => num_units * 3, "WaterUseEquipment" => num_units * 3, "ScheduleFile" => num_units * 3, "ScheduleConstant" => num_units }
+    expected_num_new_objects = { "OtherEquipmentDefinition" => num_units * 3, "OtherEquipment" => num_units * 3, "WaterUseEquipmentDefinition" => num_units * 3, "WaterUseEquipment" => num_units * 3, "ScheduleFile" => 3, "ScheduleConstant" => 1 }
     expected_values = { "Annual_kwh" => num_units * 445.1, "HotWater_gpd" => num_units * 60 }
     _test_measure("SFA_4units_1story_FB_UA_3Beds_2Baths_Denver_WHTank.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
   end
@@ -131,7 +131,7 @@ class ResidentialHotWaterFixturesTest < MiniTest::Test
     num_units = 8
     args_hash = {}
     expected_num_del_objects = {}
-    expected_num_new_objects = { "OtherEquipmentDefinition" => num_units * 3, "OtherEquipment" => num_units * 3, "WaterUseEquipmentDefinition" => num_units * 3, "WaterUseEquipment" => num_units * 3, "ScheduleFile" => num_units * 3, "ScheduleConstant" => num_units }
+    expected_num_new_objects = { "OtherEquipmentDefinition" => num_units * 3, "OtherEquipment" => num_units * 3, "WaterUseEquipmentDefinition" => num_units * 3, "WaterUseEquipment" => num_units * 3, "ScheduleFile" => 3, "ScheduleConstant" => 1 }
     expected_values = { "Annual_kwh" => num_units * 445.1, "HotWater_gpd" => num_units * 60 }
     _test_measure("MF_8units_1story_SL_3Beds_2Baths_Denver_WHTank.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
   end
@@ -239,24 +239,19 @@ class ResidentialHotWaterFixturesTest < MiniTest::Test
         next if not new_object.respond_to?("to_#{obj_type}")
 
         new_object = new_object.public_send("to_#{obj_type}").get
-
-        if new_object.name.to_s.include? Constants.ObjectNameShower
-          col_name = "showers"
-        elsif new_object.name.to_s.include? Constants.ObjectNameSink
-          col_name = "sinks"
-        elsif new_object.name.to_s.include? Constants.ObjectNameBath
-          col_name = "baths"
-        end
-
         if obj_type == "OtherEquipment"
-          sch_path = new_object.schedule.get.to_ScheduleFile.get.externalFile.filePath.to_s
-          schedule_file = SchedulesFile.new(runner: runner, model: model, schedules_output_path: sch_path)
-          full_load_hrs = schedule_file.annual_equivalent_full_load_hrs(col_name: col_name)
+          schedule_file = new_object.schedule.get.to_ScheduleFile.get
+          sch_path = schedule_file.externalFile.filePath.to_s
+          schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_output_path: sch_path)
+          col_name = schedules_file.get_col_name(col_index: schedule_file.columnNumber - 1)
+          full_load_hrs = schedules_file.annual_equivalent_full_load_hrs(col_name: col_name)
           actual_values["Annual_kwh"] += UnitConversions.convert(full_load_hrs * new_object.otherEquipmentDefinition.designLevel.get * new_object.multiplier, "Wh", "kWh")
         elsif obj_type == "WaterUseEquipment"
-          sch_path = new_object.flowRateFractionSchedule.get.to_ScheduleFile.get.externalFile.filePath.to_s
-          schedule_file = SchedulesFile.new(runner: runner, model: model, schedules_output_path: sch_path)
-          full_load_hrs = schedule_file.annual_equivalent_full_load_hrs(col_name: col_name)
+          schedule_file = new_object.flowRateFractionSchedule.get.to_ScheduleFile.get
+          sch_path = schedule_file.externalFile.filePath.to_s
+          schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_output_path: sch_path)
+          col_name = schedules_file.get_col_name(col_index: schedule_file.columnNumber - 1)
+          full_load_hrs = schedules_file.annual_equivalent_full_load_hrs(col_name: col_name)
           actual_values["HotWater_gpd"] += UnitConversions.convert(full_load_hrs * new_object.waterUseEquipmentDefinition.peakFlowRate * new_object.multiplier, "m^3/s", "gal/min") * 60.0 / num_days_in_year
         end
       end

@@ -3,7 +3,7 @@ require_relative "geometry"
 require_relative "unit_conversions"
 
 class Lighting
-  def self.apply_interior(model, unit, runner, weather, sch, interior_ann, schedule_file)
+  def self.apply_interior(model, unit, runner, weather, sch, interior_ann, schedules_file)
     # Get unit ffa and finished spaces
     unit_finished_spaces = Geometry.get_finished_spaces(unit.spaces)
     ffa = Geometry.get_finished_floor_area_from_spaces(unit.spaces, runner)
@@ -18,13 +18,13 @@ class Lighting
       col_name = "lighting_interior"
       if sch.nil?
         # Create schedule
-        sch = schedule_file.createScheduleFile(sch_file_name: "#{Constants.ObjectNameLightingInterior} schedule", col_name: col_name)
+        sch = schedules_file.createScheduleFile(sch_file_name: "#{Constants.ObjectNameLightingInterior} schedule", col_name: col_name)
       end
 
       if unit_finished_spaces.include?(space)
         space_ltg_ann = interior_ann * UnitConversions.convert(space.floorArea, "m^2", "ft^2") / ffa
       end
-      space_design_level = schedule_file.calcDesignLevelFromAnnualkWh(col_name: col_name, annual_kwh: space_ltg_ann)
+      space_design_level = schedules_file.calcDesignLevelFromAnnualkWh(col_name: col_name, annual_kwh: space_ltg_ann)
 
       # Add lighting
       ltg_def = OpenStudio::Model::LightsDefinition.new(model)
@@ -43,7 +43,7 @@ class Lighting
     return true, sch
   end
 
-  def self.apply_garage(model, runner, weather, garage_ann, schedule_file)
+  def self.apply_garage(model, runner, weather, garage_ann, schedules_file)
     sch = nil
     garage_spaces = Geometry.get_garage_spaces(model.getSpaces)
     gfa = Geometry.get_floor_area_from_spaces(garage_spaces)
@@ -54,10 +54,10 @@ class Lighting
       col_name = "lighting_garage"
       if sch.nil?
         # Create schedule
-        sch = schedule_file.createScheduleFile(sch_file_name: "#{Constants.ObjectNameLightingGarage} schedule", col_name: col_name)
+        sch = schedules_file.createScheduleFile(sch_file_name: "#{Constants.ObjectNameLightingGarage} schedule", col_name: col_name)
       end
 
-      space_design_level = schedule_file.calcDesignLevelFromAnnualkWh(col_name: col_name, annual_kwh: space_ltg_ann)
+      space_design_level = schedules_file.calcDesignLevelFromAnnualkWh(col_name: col_name, annual_kwh: space_ltg_ann)
 
       # Add lighting
       ltg_def = OpenStudio::Model::LightsDefinition.new(model)
@@ -76,15 +76,15 @@ class Lighting
     return true
   end
 
-  def self.apply_exterior(model, runner, weather, exterior_ann, schedule_file)
+  def self.apply_exterior(model, runner, weather, exterior_ann, schedules_file)
     col_name = "lighting_exterior"
 
     obj_name = Constants.ObjectNameLightingExterior
 
     # Create schedule
-    sch = schedule_file.createScheduleFile(sch_file_name: "#{obj_name} schedule", col_name: col_name)
+    sch = schedules_file.createScheduleFile(sch_file_name: "#{obj_name} schedule", col_name: col_name)
 
-    design_level = schedule_file.calcDesignLevelFromAnnualkWh(col_name: col_name, annual_kwh: exterior_ann)
+    design_level = schedules_file.calcDesignLevelFromAnnualkWh(col_name: col_name, annual_kwh: exterior_ann)
 
     # Add exterior lighting
     ltg_def = OpenStudio::Model::ExteriorLightsDefinition.new(model)
@@ -98,15 +98,15 @@ class Lighting
     return true
   end
 
-  def self.apply_exterior_holiday(model, runner, exterior_ann, schedule_file)
+  def self.apply_exterior_holiday(model, runner, exterior_ann, schedules_file)
     col_name = "lighting_exterior_holiday"
 
     obj_name = Constants.ObjectNameLightingExteriorHoliday
 
     # Create schedule
-    sch = schedule_file.createScheduleFile(sch_file_name: "#{obj_name} schedule", col_name: col_name)
+    sch = schedules_file.createScheduleFile(sch_file_name: "#{obj_name} schedule", col_name: col_name)
 
-    design_level = schedule_file.calcDesignLevelFromAnnualkWh(col_name: col_name, annual_kwh: exterior_ann)
+    design_level = schedules_file.calcDesignLevelFromAnnualkWh(col_name: col_name, annual_kwh: exterior_ann)
 
     # Add exterior lighting
     ltg_def = OpenStudio::Model::ExteriorLightsDefinition.new(model)
