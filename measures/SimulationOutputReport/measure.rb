@@ -74,6 +74,8 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       "electricity_central_system_cooling_kwh",
       "electricity_interior_lighting_kwh",
       "electricity_exterior_lighting_kwh",
+      "electricity_exterior_holiday_lighting_kwh",
+      "electricity_garage_lighting_kwh",
       "electricity_interior_equipment_kwh",
       "electricity_fans_heating_kwh",
       "electricity_fans_cooling_kwh",
@@ -193,7 +195,6 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
     # ELECTRICITY
 
-    report_sim_output(runner, "electricity_pv_kwh", electricity.photovoltaics[0], "GJ", elec_site_units)
     report_sim_output(runner, "total_site_electricity_kwh", electricity.total_end_uses[0], "GJ", elec_site_units)
     report_sim_output(runner, "net_site_electricity_kwh", electricity.total_end_uses[0] - electricity.photovoltaics[0], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_heating_kwh", electricity.heating[0], "GJ", elec_site_units)
@@ -202,8 +203,9 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     report_sim_output(runner, "electricity_central_system_cooling_kwh", electricity.central_cooling[0], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_interior_lighting_kwh", electricity.interior_lighting[0], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_exterior_lighting_kwh", electricity.exterior_lighting[0], "GJ", elec_site_units)
+    report_sim_output(runner, "electricity_exterior_holiday_lighting_kwh", electricity.exterior_holiday_lighting[0], "GJ", elec_site_units)
+    report_sim_output(runner, "electricity_garage_lighting_kwh", electricity.garage_lighting[0], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_interior_equipment_kwh", electricity.interior_equipment[0], "GJ", elec_site_units)
-    report_sim_output(runner, "electricity_water_systems_kwh", electricity.water_systems[0], "GJ", elec_site_units)
 
     # Initialize variables to check against sql file totals
     env_period_ix_query = "SELECT EnvironmentPeriodIndex FROM EnvironmentPeriods WHERE EnvironmentName='#{ann_env_pd}'"
@@ -261,6 +263,8 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     report_sim_output(runner, "electricity_central_system_pumps_heating_kwh", electricity.central_pumps_heating[0], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_pumps_cooling_kwh", electricity.pumps_cooling[0], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_central_system_pumps_cooling_kwh", electricity.central_pumps_cooling[0], "GJ", elec_site_units)
+    report_sim_output(runner, "electricity_water_systems_kwh", electricity.water_systems[0], "GJ", elec_site_units)
+    report_sim_output(runner, "electricity_pv_kwh", electricity.photovoltaics[0], "GJ", elec_site_units)
 
     # NATURAL GAS
 
