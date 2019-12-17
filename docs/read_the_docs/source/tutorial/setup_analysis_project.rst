@@ -216,6 +216,8 @@ End uses include:
   * central system cooling [electric] [kWh]
   * interior lighting [kWh]
   * exterior lighting [kWh]
+  * exterior holiday lighting [kWh]
+  * garage lighting [kWh]
   * interior equipment [electric/gas/oil/propane] [kWh/therm/MBtu/MBtu]
   * fans heating [kWh]
   * fans cooling [kWh]
@@ -257,9 +259,7 @@ End uses include:
   * gas grill [therm]
   * gas lighting [therm]
   * gas fireplace [therm]
-  * well pump [kWh]
-  * garage lighting [kWh]
-  * exterior holiday lighting [kWh]
+  * well pump [kWh]  
   
 **Output Variables**
   If you choose to report any output variables (e.g., "Zone Air Temperature" or "Site Outdoor Air Humidity Ratio"), enter a comma-separated list of output variable names. A list of available output variables can be viewed in EnergyPlus's ``.rdd`` file.
