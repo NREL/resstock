@@ -1083,6 +1083,7 @@ class SchedulesFile
     schedule_file.setName(sch_file_name)
     schedule_file.setColumnNumber(col_index + 1)
     schedule_file.setRowstoSkipatTop(rows_to_skip)
+    schedule_file.setNumberofHoursofData(num_hrs_in_year.to_i)
     schedule_file.setMinutesperItem("#{min_per_item.to_i}")
 
     return schedule_file
@@ -1117,6 +1118,14 @@ class SchedulesFile
     return design_level
   end
 
+  def calcPeakFlowFromDailygpm(col_name:,
+                               gpd:)
+
+    peak_flow = 0.00027469463117786927 # FIXME: use the HotWaterMinuteDrawProfilesMaxFlows.csv lookup for these?
+
+    return peak_flow
+  end
+
   def validateSchedule(col_name:,
                        values:)
 
@@ -1140,7 +1149,8 @@ class SchedulesFile
     columns = CSV.read(@schedules_output_path).transpose
     columns.each do |col|
       col_name = col[0]
-      values = col[1..-1].map { |v| v.to_f }
+      values = col[1..-1].reject { |v| v.nil? }
+      values = values.map { |v| v.to_f }
       validateSchedule(col_name: col_name, values: values)
       @schedules[col_name] = values
     end

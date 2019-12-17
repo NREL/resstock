@@ -193,7 +193,7 @@ class ResilienceMetricsReportTest < MiniTest::Test
   end
 
   def sch_path_default(sch_name)
-    sch = OpenStudio::Path.new("#{File.dirname(__FILE__)}/../../../resources/measures/HPXMLtoOpenStudio/resources/#{sch_name}")
+    sch = OpenStudio::Path.new("#{File.dirname(__FILE__)}/../../../resources/measures/HPXMLtoOpenStudio/resources/schedules/#{sch_name}")
     assert(File.exist?(sch.to_s))
     return sch.to_s
   end

@@ -137,15 +137,6 @@ class ResidentialLightingOtherTest < MiniTest::Test
     _test_measure(model, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 3)
   end
 
-  def test_new_construction_lighting_schedule_specified
-    args_hash = {}
-    args_hash["sch_option_type"] = Constants.OptionTypeLightingScheduleUserSpecified
-    expected_num_del_objects = {}
-    expected_num_new_objects = { "LightsDefinition" => 1, "Lights" => 1, "ExteriorLightsDefinition" => 1, "ExteriorLights" => 1, "ScheduleRuleset" => 2 }
-    expected_values = { "Annual_kwh" => 330 }
-    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 2)
-  end
-
   def test_new_construction_holiday_schedule_overlap_years
     args_hash = {}
     args_hash["holiday_daily_energy_use_exterior"] = "1.1" # for 41 days
@@ -326,70 +317,6 @@ class ResidentialLightingOtherTest < MiniTest::Test
     assert_equal(result.errors.map { |x| x.logMessage }[0], "#{Constants.OptionTypeLightingEnergyUses}: Exterior must be greater than or equal to 0.")
   end
 
-  def test_argument_error_weekday_sch_wrong_number_of_values
-    args_hash = {}
-    args_hash["sch_option_type"] = Constants.OptionTypeLightingScheduleUserSpecified
-    args_hash["weekday_sch"] = "1,1"
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_Denver.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "A comma-separated string of 24 numbers must be entered for the weekday schedule.")
-  end
-
-  def test_argument_error_weekday_sch_not_number
-    args_hash = {}
-    args_hash["sch_option_type"] = Constants.OptionTypeLightingScheduleUserSpecified
-    args_hash["weekday_sch"] = "str,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1"
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_Denver.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "A comma-separated string of 24 numbers must be entered for the weekday schedule.")
-  end
-
-  def test_argument_error_weekend_sch_wrong_number_of_values
-    args_hash = {}
-    args_hash["sch_option_type"] = Constants.OptionTypeLightingScheduleUserSpecified
-    args_hash["weekend_sch"] = "1,1"
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_Denver.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "A comma-separated string of 24 numbers must be entered for the weekend schedule.")
-  end
-
-  def test_argument_error_weekend_sch_not_number
-    args_hash = {}
-    args_hash["sch_option_type"] = Constants.OptionTypeLightingScheduleUserSpecified
-    args_hash["weekend_sch"] = "str,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1"
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_Denver.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "A comma-separated string of 24 numbers must be entered for the weekend schedule.")
-  end
-
-  def test_argument_error_monthly_sch_wrong_number_of_values
-    args_hash = {}
-    args_hash["sch_option_type"] = Constants.OptionTypeLightingScheduleUserSpecified
-    args_hash["monthly_sch"] = "1,1"
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_Denver.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "A comma-separated string of 12 numbers must be entered for the monthly schedule.")
-  end
-
-  def test_argument_error_monthly_sch_not_number
-    args_hash = {}
-    args_hash["sch_option_type"] = Constants.OptionTypeLightingScheduleUserSpecified
-    args_hash["monthly_sch"] = "str,1,1,1,1,1,1,1,1,1,1,1"
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_Denver.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "A comma-separated string of 12 numbers must be entered for the monthly schedule.")
-  end
-
-  def test_argument_error_holiday_sch_wrong_number_of_values
-    args_hash = {}
-    args_hash["holiday_daily_energy_use_exterior"] = "1.1"
-    args_hash["holiday_sch"] = "1,1"
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_Denver.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "A comma-separated string of 24 numbers must be entered for the holiday schedule.")
-  end
-
-  def test_argument_error_holiday_sch_not_number
-    args_hash = {}
-    args_hash["holiday_daily_energy_use_exterior"] = "1.1"
-    args_hash["holiday_sch"] = "str,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1"
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_Denver.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "A comma-separated string of 24 numbers must be entered for the holiday schedule.")
-  end
-
   def test_argument_error_holiday_period_month_invalid
     args_hash = {}
     args_hash["holiday_daily_energy_use_exterior"] = "1.1"
@@ -560,10 +487,14 @@ class ResidentialLightingOtherTest < MiniTest::Test
 
         new_object = new_object.public_send("to_#{obj_type}").get
         if obj_type == "Lights"
-          full_load_hrs = Schedule.annual_equivalent_full_load_hrs(model.getYearDescription, new_object.schedule.get)
+          sch_path = new_object.schedule.get.to_ScheduleFile.get.externalFile.filePath.to_s
+          schedule_file = SchedulesFile.new(runner: runner, model: model, schedules_output_path: sch_path)
+          full_load_hrs = schedule_file.annual_equivalent_full_load_hrs(col_name: "lighting_garage")
           actual_values["Annual_kwh"] += UnitConversions.convert(full_load_hrs * new_object.lightingLevel.get * new_object.multiplier * new_object.space.get.multiplier, "Wh", "kWh")
         elsif obj_type == "ExteriorLights"
-          full_load_hrs = Schedule.annual_equivalent_full_load_hrs(model.getYearDescription, new_object.schedule.get)
+          sch_path = new_object.schedule.get.to_ScheduleFile.get.externalFile.filePath.to_s
+          schedule_file = SchedulesFile.new(runner: runner, model: model, schedules_output_path: sch_path)
+          full_load_hrs = schedule_file.annual_equivalent_full_load_hrs(col_name: "lighting_exterior")
           actual_values["Annual_kwh"] += UnitConversions.convert(full_load_hrs * new_object.exteriorLightsDefinition.designLevel * new_object.multiplier, "Wh", "kWh")
         end
       end

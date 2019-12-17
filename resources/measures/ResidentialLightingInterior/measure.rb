@@ -135,23 +135,6 @@ class ResidentialLightingInterior < OpenStudio::Measure::ModelMeasure
     energy_use_interior.setDefaultValue(900)
     args << energy_use_interior
 
-    # make a choice argument for option type
-    choices = []
-    choices << Constants.OptionTypeLightingScheduleCalculated
-    choices << Constants.OptionTypeLightingScheduleUserSpecified
-    sch_option_type = OpenStudio::Measure::OSArgument::makeChoiceArgument("sch_option_type", choices, true)
-    sch_option_type.setDisplayName("Schedule Option Type")
-    sch_option_type.setDescription("Inputs are used/ignored below based on the option type specified.")
-    sch_option_type.setDefaultValue(Constants.OptionTypeLightingScheduleCalculated)
-    args << sch_option_type
-
-    # Make a string argument for 12 monthly schedule values
-    monthly_sch = OpenStudio::Measure::OSArgument::makeStringArgument("monthly_sch", true)
-    monthly_sch.setDisplayName("Month schedule")
-    monthly_sch.setDescription("Specify the 12-month schedule.")
-    monthly_sch.setDefaultValue("1.248, 1.257, 0.993, 0.989, 0.993, 0.827, 0.821, 0.821, 0.827, 0.99, 0.987, 1.248")
-    args << monthly_sch
-
     return args
   end # end the arguments method
 
@@ -178,8 +161,6 @@ class ResidentialLightingInterior < OpenStudio::Measure::ModelMeasure
     led_eff = runner.getDoubleArgumentValue("led_eff", user_arguments)
     lfl_eff = runner.getDoubleArgumentValue("lfl_eff", user_arguments)
     energy_use_interior = runner.getDoubleArgumentValue("energy_use_interior", user_arguments)
-    sch_option_type = runner.getStringArgumentValue("sch_option_type", user_arguments)
-    monthly_sch = runner.getStringArgumentValue("monthly_sch", user_arguments)
 
     # Check for valid inputs
     if option_type == Constants.OptionTypeLightingFractions
@@ -286,6 +267,19 @@ class ResidentialLightingInterior < OpenStudio::Measure::ModelMeasure
 
     Lighting.remove_interior(model, runner)
 
+    # FIXME: temporary until we have the generated schedules.csv of appropriate length
+    sch_path = File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources/schedules/TMY_10-60min.csv")
+    case model.getYearDescription.calendarYear.get
+    when 2012
+      sch_path = File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources/schedules/AMY2012_10-60min.csv")
+    when 2014
+      sch_path = File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources/schedules/AMY2014_10-60min.csv")
+    end
+    schedule_file = SchedulesFile.new(runner: runner, model: model, schedules_output_path: sch_path)
+    if not schedule_file.validated?
+      return false
+    end
+
     tot_ltg_e = 0
     msgs = []
     sch = nil
@@ -307,7 +301,7 @@ class ResidentialLightingInterior < OpenStudio::Measure::ModelMeasure
         interior_ann = int_hw_e + int_pg_e
       end
 
-      success, sch = Lighting.apply_interior(model, unit, runner, weather, sch, interior_ann, sch_option_type, monthly_sch)
+      success, sch = Lighting.apply_interior(model, unit, runner, weather, sch, interior_ann, schedule_file)
       return false if not success
 
       msgs << "Lighting with #{interior_ann.round} kWhs annual energy consumption has been assigned to unit '#{unit.name.to_s}'."
