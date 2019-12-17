@@ -1927,6 +1927,12 @@ class Geometry
       end
     end
 
+    num_floors = model.getBuilding.additionalProperties.getFeatureAsInteger("num_floors").get.to_f 
+    level = model.getBuilding.additionalProperties.getFeatureAsString("level").get
+
+    floor_mults = {"Bottom" => num_floors, "Middle" => 2, "Top" => 1 }
+    greatest_z = greatest_z*floor_mults[level]
+
     directions = [[Constants.FacadeLeft, left_neighbor_offset], [Constants.FacadeRight, right_neighbor_offset], [Constants.FacadeBack, back_neighbor_offset], [Constants.FacadeFront, front_neighbor_offset]]
 
     shading_surface_group = OpenStudio::Model::ShadingSurfaceGroup.new(model)
