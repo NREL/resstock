@@ -601,7 +601,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
 
       if (["crawlspace", "unfinished basement"].include? foundation_type)
         foundation_space = Geometry.make_one_space_from_multiple_spaces(model, foundation_spaces)
-        foundation_space = foundation_space
+        # foundation_space = foundation_space
         if foundation_type == "crawlspace"
           foundation_space.setName("crawl space")
           foundation_zone = OpenStudio::Model::ThermalZone.new(model)
@@ -630,10 +630,13 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
         if Geometry.get_space_floor_z(space) + UnitConversions.convert(space.zOrigin, "m", "ft") < 0 #Foundation
           surfaces = space.surfaces
           surfaces.each do |surface|
+            if (adb_level.include? surface.surfaceType)              
+              surface.setOutsideBoundaryCondition("Adiabatic")
+            end
             next if surface.surfaceType.downcase != "wall"
             os_facade = Geometry.get_facade_for_surface(surface)
             if adb_facade.include? os_facade
-              surface.setOutsideBoundaryCondition("Adiabatic")
+              surface.setOutsideBoundaryCondition("Adiabatic") 
             else
               surface.setOutsideBoundaryCondition("Foundation")
             end
@@ -666,15 +669,17 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     # make all surfaces adjacent to corridor spaces into adiabatic surfaces
     model.getSpaces.each do |space|
       next unless Geometry.is_corridor(space)
-
+      
       space.surfaces.each do |surface|
-        if surface.surfaceType.downcase == "floor" #No heat transfer through floor
-          surface.setOutsideBoundaryCondition("Adiabatic")
-        end
-        if surface.adjacentSurface.is_initialized # only set to adiabatic if the corridor surface is adjacent to another surface
-          next if surface.surfaceType.downcase != "wall"
+        if surface.adjacentSurface.is_initialized # adiabatic if the corridor surface is adjacent to another surface (wall to living and floor to basement)
           surface.adjacentSurface.get.setOutsideBoundaryCondition("Adiabatic")
           surface.setOutsideBoundaryCondition("Adiabatic")
+        end
+        os_facade = Geometry.get_facade_for_surface(surface)
+        if adb_facade.include? os_facade
+          surface.setOutsideBoundaryCondition("Adiabatic")
+        elsif (adb_level.include? surface.surfaceType)
+            surface.setOutsideBoundaryCondition("Adiabatic")
         end
       end
     end
@@ -686,10 +691,15 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
       surface.setOutsideBoundaryCondition("Foundation")
     end
 
+    #Store mf data on model
+    model.getBuilding.additionalProperties.setFeature("num_units", num_units)
+    model.getBuilding.additionalProperties.setFeature("has_rear_units", has_rear_units)
+    model.getBuilding.additionalProperties.setFeature("num_floors", above_ground_floors)
+    model.getBuilding.additionalProperties.setFeature("horz_location", horz_location)
+
     # Store number of units
     model.getBuilding.setStandardsNumberOfLivingUnits(num_units)
     # model.getBuilding.setStandardsNumberOfLivingUnits(1)
-
 
     # Store number of stories
     model.getBuilding.setStandardsNumberOfAboveGroundStories(num_floors)
@@ -725,12 +735,6 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     unless result
       return false
     end
-
-    #Store mf data on model
-    model.getBuilding.additionalProperties.setFeature("num_units", num_units)
-    model.getBuilding.additionalProperties.setFeature("has_rear_units", has_rear_units)
-    model.getBuilding.additionalProperties.setFeature("num_floors", above_ground_floors)
-    model.getBuilding.additionalProperties.setFeature("horz_location", horz_location)
 
     # reporting final condition of model
     runner.registerFinalCondition("The building finished with #{model.getSpaces.size} spaces.")
