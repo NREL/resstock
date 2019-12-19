@@ -693,8 +693,8 @@ class Geometry
     # Get bottom edges of exterior walls (building footprint)
     surfaces = []
     model.getSurfaces.each do |surface|
-      next if not surface.surfaceType.downcase == "wall"
-      next if (surface.outsideBoundaryCondition.downcase != "outdoors") #and (surface.outsideBoundaryCondition.downcase != "adiabatic")
+      next if not surface.surfaceType.downcase == "wall" 
+      next if (surface.outsideBoundaryCondition.downcase != "outdoors")
       # next if surface.outsideBoundaryCondition.downcase == "foundation"
       surfaces << surface
     end
@@ -1927,11 +1927,17 @@ class Geometry
       end
     end
 
-    num_floors = model.getBuilding.additionalProperties.getFeatureAsInteger("num_floors").get.to_f 
-    level = model.getBuilding.additionalProperties.getFeatureAsString("level").get
-
-    floor_mults = {"Bottom" => num_floors, "Middle" => 2, "Top" => 1 }
-    greatest_z = greatest_z*floor_mults[level]
+    #### NEIGHBORS FOR SINGLE UNIT ####
+    num_floors = model.getBuilding.additionalProperties.getFeatureAsInteger("num_floors")
+    level = model.getBuilding.additionalProperties.getFeatureAsString("level")
+    if (num_floors.is_initialized) and (level.is_initialized)
+      num_floors = num_floors.get.to_f
+      level = level.get
+  
+      floor_mults = {"Bottom" => num_floors, "Middle" => 2, "Top" => 1 }
+      greatest_z = greatest_z*floor_mults[level] 
+    end
+    ####################################
 
     directions = [[Constants.FacadeLeft, left_neighbor_offset], [Constants.FacadeRight, right_neighbor_offset], [Constants.FacadeBack, back_neighbor_offset], [Constants.FacadeFront, front_neighbor_offset]]
 
