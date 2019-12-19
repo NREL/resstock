@@ -1443,10 +1443,11 @@ class FoundationConstructions
     end
 
     # Assign surfaces to Kiva foundation
+    #EDIT
     wall_surfaces.each do |wall_surface|
-      if wall_surface.outsideBoundaryCondition != "Adiabatic"
-        wall_surface.setAdjacentFoundation(foundation)
-      end
+      # if wall_surface.outsideBoundaryCondition != "Adiabatic"
+      wall_surface.setAdjacentFoundation(foundation)
+      # end
     end
 
     if not apply_slab(runner, model, slab_surface, slab_constr_name,
@@ -1545,6 +1546,8 @@ class FoundationConstructions
       # runner.registerError("Calculated an exposed perimeter <= 0 for slab '#{surface.name.to_s}'.")
       # return false
     end
+
+    puts("exposed perimeter = #{exposed_perimeter}")
 
     # Assign surface to Kiva foundation
     surface.setAdjacentFoundation(foundation)
