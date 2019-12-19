@@ -492,7 +492,6 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     adiabatic_surf = adb_facade + adb_level
     # Make surfaces adiabatic
     model.getSpaces.each do |space|
-      # Store has_rear_units to call in the door geometry measure
       space.surfaces.each do |surface|
         os_facade = Geometry.get_facade_for_surface(surface)
         if surface.surfaceType == "Wall"
