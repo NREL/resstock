@@ -610,7 +610,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
 
       if (["crawlspace", "unfinished basement"].include? foundation_type)
         foundation_space = Geometry.make_one_space_from_multiple_spaces(model, foundation_spaces)
-        # foundation_space = foundation_space
+        foundation_space = foundation_space
         if foundation_type == "crawlspace"
           foundation_space.setName("crawl space")
           foundation_zone = OpenStudio::Model::ThermalZone.new(model)
@@ -696,7 +696,6 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     # set foundation outside boundary condition to Kiva "foundation"
     model.getSurfaces.each do |surface|
       next if surface.outsideBoundaryCondition.downcase != "ground"
-
       surface.setOutsideBoundaryCondition("Foundation")
     end
 

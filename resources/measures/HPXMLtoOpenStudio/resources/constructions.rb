@@ -1445,9 +1445,9 @@ class FoundationConstructions
     # Assign surfaces to Kiva foundation
     #EDIT
     wall_surfaces.each do |wall_surface|
-      # if wall_surface.outsideBoundaryCondition != "Adiabatic"
+      if wall_surface.outsideBoundaryCondition != "Adiabatic"
       wall_surface.setAdjacentFoundation(foundation)
-      # end
+      end
     end
 
     if not apply_slab(runner, model, slab_surface, slab_constr_name,
@@ -1541,7 +1541,7 @@ class FoundationConstructions
     if exposed_perimeter.nil?
       exposed_perimeter = Geometry.calculate_exposed_perimeter(model, [surface], has_fnd_walls)
     end
-    if exposed_perimeter <= 0
+    if exposed_perimeter == 0
       exposed_perimeter = 0.01
       # runner.registerError("Calculated an exposed perimeter <= 0 for slab '#{surface.name.to_s}'.")
       # return false
@@ -2536,10 +2536,6 @@ class SurfaceTypes
         end
         obc_is_adjacent = (not adjacent_space.nil?)
 
-        if obc_is_adiabatic
-          obc_is_adjacent = true
-        end
-
         # Exterior insulated finished
         if is_finished and obc_is_exterior
           surfaces[Constants.SurfaceTypeWallExtInsFin] << surface
@@ -2553,27 +2549,27 @@ class SurfaceTypes
           surfaces[Constants.SurfaceTypeWallExtUninsUnfin] << surface
 
         # Interior finished uninsulated finished
-        elsif is_finished and obc_is_adjacent #and Geometry.space_is_finished(adjacent_space)
+        elsif is_finished and obc_is_adjacent and Geometry.space_is_finished(adjacent_space)
           surfaces[Constants.SurfaceTypeWallIntFinUninsFin] << surface
 
         # Interior unfinished uninsulated unfinished
-        elsif not is_finished and obc_is_adjacent #and Geometry.space_is_unfinished(adjacent_space)
+        elsif not is_finished and obc_is_adjacent and Geometry.space_is_unfinished(adjacent_space)
           surfaces[Constants.SurfaceTypeWallIntUnfinUninsUnfin] << surface
 
         # Interior finished insulated unfinished
-        elsif is_finished and obc_is_adjacent #and Geometry.space_is_unfinished(adjacent_space)
+        elsif is_finished and obc_is_adjacent and Geometry.space_is_unfinished(adjacent_space)
           surfaces[Constants.SurfaceTypeWallIntFinInsUnfin] << surface
 
         # Exterior finished basement
-        elsif Geometry.is_finished_basement(space) and (obc_is_foundation) # or obc_is_adiabatic)
+        elsif Geometry.is_finished_basement(space) and (obc_is_foundation or obc_is_adiabatic)
           surfaces[Constants.SurfaceTypeWallFndGrndFinB] << surface
 
         # Exterior unfinished basement
-        elsif Geometry.is_unfinished_basement(space) and (obc_is_foundation) # or obc_is_adiabatic)
+        elsif Geometry.is_unfinished_basement(space) and (obc_is_foundation or obc_is_adiabatic)
           surfaces[Constants.SurfaceTypeWallFndGrndUnfinB] << surface
 
         # Exterior crawlspace
-        elsif Geometry.is_crawl(space) and (obc_is_foundation) #or obc_is_adiabatic)
+        elsif Geometry.is_crawl(space) and (obc_is_foundation or obc_is_adiabatic)
           surfaces[Constants.SurfaceTypeWallFndGrndCS] << surface
 
         # Adiabatic finished
@@ -2709,9 +2705,9 @@ class SurfaceTypes
         end
         obc_is_adjacent = (not adjacent_space.nil?)
 
-        if obc_is_adiabatic
-          obc_is_adjacent = true
-        end
+        # if obc_is_adiabatic
+        #   obc_is_adjacent = true
+        # end
 
         # Unfinished attic floor
         if obc_is_adjacent and Geometry.is_unfinished_attic(space) and Geometry.space_is_finished(adjacent_space)
