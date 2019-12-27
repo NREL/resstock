@@ -544,6 +544,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
       # create the back unit
       unit_spaces_hash[2] = [living_spaces_back, 1]
 
+      # create floors
       floor = 0
       pos = 0
       front_unit = true
@@ -766,6 +767,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
 
     end
 
+
     # foundation
     if foundation_height > 0
 
@@ -912,6 +914,9 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
 
     end
 
+    
+
+
     total_units_represented = 0
     unit_spaces_hash.each do |unit_num, unit_info|
       spaces, units_represented = unit_info
@@ -923,7 +928,6 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
       unit.additionalProperties.setFeature("Units Represented", units_represented)
       total_units_represented += units_represented
       spaces.each do |space|
-        space.setBuildingUnit(unit)
       end
     end
     if total_units_represented != num_units_actual
@@ -942,9 +946,14 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
       spaces << space
     end
 
+
+
+
     # intersect and match surfaces for each space in the vector
     OpenStudio::Model.intersectSurfaces(spaces)
     OpenStudio::Model.matchSurfaces(spaces)
+
+
 
     # make all surfaces adjacent to corridor spaces into adiabatic surfaces
     model.getSpaces.each do |space|
@@ -961,7 +970,6 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     # set foundation outside boundary condition to Kiva "foundation"
     model.getSurfaces.each do |surface|
       next if surface.outsideBoundaryCondition.downcase != "ground"
-
       surface.setOutsideBoundaryCondition("Foundation")
     end
 

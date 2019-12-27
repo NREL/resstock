@@ -2220,6 +2220,20 @@ class Construction
       end
       print_construction_assignment(runner, surface)
 
+      if surface.is_a? OpenStudio::Model::Surface and surface.outsideBoundaryCondition == "Adiabatic" and (surface.surfaceType == "RoofCeiling" or surface.surfaceType == "Wall")
+        if revconstr.nil?
+          revconstr = constr.reverseConstruction
+        end
+        # adjacent_surface = surface.adjacentSurface.get
+        surface.setConstruction(revconstr)
+        if not printed_revconstr
+          print_construction_creation(runner, surface)
+          printed_revconstr = true
+        end
+        print_construction_assignment(runner, surface)
+      end
+
+
       # Assign reverse construction to adjacent surface as needed
       next if surface.is_a? OpenStudio::Model::SubSurface or surface.is_a? OpenStudio::Model::InternalMassDefinition or not surface.adjacentSurface.is_initialized
 
@@ -2522,6 +2536,10 @@ class SurfaceTypes
         end
         obc_is_adjacent = (not adjacent_space.nil?)
 
+        if obc_is_adiabatic
+          obc_is_adjacent = true
+        end
+
         # Exterior insulated finished
         if is_finished and obc_is_exterior
           surfaces[Constants.SurfaceTypeWallExtInsFin] << surface
@@ -2535,15 +2553,15 @@ class SurfaceTypes
           surfaces[Constants.SurfaceTypeWallExtUninsUnfin] << surface
 
         # Interior finished uninsulated finished
-        elsif is_finished and obc_is_adjacent and Geometry.space_is_finished(adjacent_space)
+        elsif is_finished and obc_is_adjacent #and Geometry.space_is_finished(adjacent_space)
           surfaces[Constants.SurfaceTypeWallIntFinUninsFin] << surface
 
         # Interior unfinished uninsulated unfinished
-        elsif not is_finished and obc_is_adjacent and Geometry.space_is_unfinished(adjacent_space)
+        elsif not is_finished and obc_is_adjacent #and Geometry.space_is_unfinished(adjacent_space)
           surfaces[Constants.SurfaceTypeWallIntUnfinUninsUnfin] << surface
 
         # Interior finished insulated unfinished
-        elsif is_finished and obc_is_adjacent and Geometry.space_is_unfinished(adjacent_space)
+        elsif is_finished and obc_is_adjacent #and Geometry.space_is_unfinished(adjacent_space)
           surfaces[Constants.SurfaceTypeWallIntFinInsUnfin] << surface
 
         # Exterior finished basement
@@ -2578,6 +2596,7 @@ class SurfaceTypes
       Constants.SurfaceTypeRoofFinInsExt => [],
       Constants.SurfaceTypeRoofUnfinInsExt => [],
       Constants.SurfaceTypeRoofUnfinUninsExt => [],
+      Constants.SurfaceTypeRoofAdiabatic => [],
     }
 
     model.getSpaces.each do |space|
@@ -2610,7 +2629,7 @@ class SurfaceTypes
 
         # Adiabatic
         elsif obc_is_adiabatic
-          surfaces[Constants.SurfaceTypeRoofUnfinUninsExt] << surface
+          surfaces[Constants.SurfaceTypeRoofAdiabatic] << surface
 
         end
       end
@@ -2690,16 +2709,20 @@ class SurfaceTypes
         end
         obc_is_adjacent = (not adjacent_space.nil?)
 
+        if obc_is_adiabatic
+          obc_is_adjacent = true
+        end
+
         # Unfinished attic floor
         if obc_is_adjacent and Geometry.is_unfinished_attic(space) and Geometry.space_is_finished(adjacent_space)
           surfaces[Constants.SurfaceTypeFloorFinInsUnfinAttic] << surface
 
         # Floor between finished spaces
-        elsif is_finished and obc_is_adjacent and Geometry.space_is_finished(adjacent_space)
+        elsif is_finished and obc_is_adjacent #and Geometry.space_is_finished(adjacent_space)
           surfaces[Constants.SurfaceTypeFloorFinUninsFin] << surface
 
         # Floor between unfinished spaces
-        elsif not is_finished and obc_is_adjacent and not Geometry.space_is_finished(adjacent_space)
+        elsif not is_finished and obc_is_adjacent #and not Geometry.space_is_finished(adjacent_space)
           surfaces[Constants.SurfaceTypeFloorUnfinUninsUnfin] << surface
 
         # Finished basement floor

@@ -444,7 +444,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     living_zone = OpenStudio::Model::ThermalZone.new(model)
     living_zone.setName("living zone")
 
-    # first floor front
+    # living space
     living_spaces_front = []
     living_space = OpenStudio::Model::Space::fromFloorPrint(living_polygon, wall_height, model)
     living_space = living_space.get
@@ -506,6 +506,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
           if (adb_level.include? surface.surfaceType)
             surface.setOutsideBoundaryCondition("Adiabatic")
           end
+
         end
       end
     end
