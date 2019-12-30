@@ -150,6 +150,8 @@ class Geometry
       return nil
     end
 
+    puts("fetching building units... ")
+
     return_units = []
     model.getBuildingUnits.each do |unit|
       # Remove any units from list that have no associated spaces or are not residential
@@ -1358,6 +1360,7 @@ class Geometry
 
     # Get building units
     units = self.get_building_units(model, runner)
+    puts("====#{units}")
     if units.nil?
       return false
     end

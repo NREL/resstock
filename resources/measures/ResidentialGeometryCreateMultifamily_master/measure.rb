@@ -914,8 +914,6 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
 
     end
 
-    
-
 
     total_units_represented = 0
     unit_spaces_hash.each do |unit_num, unit_info|
@@ -946,14 +944,9 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
       spaces << space
     end
 
-
-
-
     # intersect and match surfaces for each space in the vector
     OpenStudio::Model.intersectSurfaces(spaces)
     OpenStudio::Model.matchSurfaces(spaces)
-
-
 
     # make all surfaces adjacent to corridor spaces into adiabatic surfaces
     model.getSpaces.each do |space|
@@ -986,6 +979,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     # Store the building type
     model.getBuilding.setStandardsBuildingType(Constants.BuildingTypeMultifamily)
 
+    puts("getting results")
     result = Geometry.process_beds_and_baths(model, runner, num_br, num_ba)
     unless result
       return false
