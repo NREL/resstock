@@ -432,7 +432,7 @@ class Geometry2
       # set foundation walls outside boundary condition
       spaces = model.getSpaces
       spaces.each do |space|
-        if Geometry.get_space_floor_z(space) + UnitConversions.convert(space.zOrigin, "m", "ft") < 0
+        if get_space_floor_z(space) + UnitConversions.convert(space.zOrigin, "m", "ft") < 0
           surfaces = space.surfaces
           surfaces.each do |surface|
             next if surface.surfaceType.downcase != "wall"
@@ -706,7 +706,7 @@ class Geometry2
     space.surfaces.each do |surface|
       next unless surface.surfaceType.downcase == "floor"
 
-      return self.getSurfaceZValues([surface])[0]
+      return Geometry.getSurfaceZValues([surface])[0]
     end
   end
 
@@ -1794,7 +1794,7 @@ class Geometry2
       # set foundation walls to ground
       spaces = model.getSpaces
       spaces.each do |space|
-        if Geometry.get_space_floor_z(space) + UnitConversions.convert(space.zOrigin, "m", "ft") < 0
+        if get_space_floor_z(space) + UnitConversions.convert(space.zOrigin, "m", "ft") < 0
           surfaces = space.surfaces
           surfaces.each do |surface|
             next if surface.surfaceType.downcase != "wall"

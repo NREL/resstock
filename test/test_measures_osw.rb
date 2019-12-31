@@ -15,7 +15,6 @@ class TestResStockMeasuresOSW < MiniTest::Test
 
     buildstock_csv = create_buildstock_csv(project_dir, num_samples)
     lib_dir = create_lib_folder(parent_dir, project_dir, buildstock_csv)
-    weather_dir = create_weather_folder(parent_dir)
 
     measures_osw_dir = File.join(parent_dir, "measures_osw")
     Dir.mkdir(measures_osw_dir) unless File.exist?(measures_osw_dir)
@@ -31,7 +30,6 @@ class TestResStockMeasuresOSW < MiniTest::Test
     end
 
     FileUtils.rm_rf(lib_dir) if File.exist?(lib_dir)
-    FileUtils.rm_rf(weather_dir) if File.exist?(weather_dir)
     FileUtils.rm_rf(File.join(parent_dir, "run"))
     FileUtils.rm_rf(File.join(parent_dir, "reports"))
   end
@@ -71,14 +69,6 @@ class TestResStockMeasuresOSW < MiniTest::Test
     FileUtils.cp(File.join(resources_dir, buildstock_csv), File.join(lib_dir, "housing_characteristics"))
 
     return lib_dir
-  end
-
-  def create_weather_folder(parent_dir)
-    src = File.join(parent_dir, "..", "..", "model-measures", "HPXMLtoOpenStudio", "weather")
-    des = File.join(parent_dir, "..", "..", "weather")
-    FileUtils.cp_r(src, des)
-
-    return des
   end
 
   def change_building_unit_id(osw, building_unit_id)

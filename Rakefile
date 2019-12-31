@@ -351,22 +351,20 @@ def update_measures
 
   example_osws = {
     "TMY" => {
-      "weather_station_name" => "Denver, CO",
-      "weather_station_wmo" => "725650"
+      "weather_station_epw_filename" => "USA_CO_Denver.Intl.AP.725650_TMY3.epw"
     },
     "AMY2012" => {
-      "weather_station_name" => "Denver, CO", # FIXME: add AMY 2012 weather file to OpenStudio-HPXML repository
-      "weather_station_wmo" => "725650"
+      "weather_station_epw_filename" => "USA_CO_Denver.Intl.AP.725650_TMY3.epw" # FIXME: add AMY 2012 weather file to OpenStudio-HPXML repository
     },
     "AMY2014" => {
-      "weather_station_name" => "Denver, CO", # FIXME: add AMY 2014 weather file to OpenStudio-HPXML repository
-      "weather_station_wmo" => "725650"
+      "weather_station_epw_filename" => "USA_CO_Denver.Intl.AP.725650_TMY3.epw" # FIXME: add AMY 2014 weather file to OpenStudio-HPXML repository
     }
   }
   example_osws.each do |weather_year, weather_station|
     include_args = {
       "BuildResidentialHPXML" => {
-        "hpxml_output_path" => File.expand_path(File.join(File.dirname(__FILE__), "workflows/run/in.xml"))
+        "hpxml_output_path" => File.expand_path(File.join(File.dirname(__FILE__), "workflows/run/in.xml")),
+        "schedules_output_path" => File.expand_path(File.join(File.dirname(__FILE__), "workflows/run/schedules.csv"))
       },
       "HPXMLtoOpenStudio" => {
         "hpxml_path" => File.expand_path(File.join(File.dirname(__FILE__), "workflows/run/in.xml")),
@@ -377,14 +375,15 @@ def update_measures
 
     # SFD
     include_args["BuildResidentialHPXML"]["unit_type"] = "single-family detached"
-    include_args["BuildResidentialHPXML"]["ffa"] = "2000"
+    include_args["BuildResidentialHPXML"]["cfa"] = "2000"
+    include_args["BuildResidentialHPXML"].update(weather_station)
     generate_example_osws(data_hash,
                           include_args,
                           "example_single_family_detached_#{weather_year}.osw")
 
     # SFA
     include_args["BuildResidentialHPXML"]["unit_type"] = "single-family attached"
-    include_args["BuildResidentialHPXML"]["ffa"] = "900"
+    include_args["BuildResidentialHPXML"]["cfa"] = "900"
     include_args["BuildResidentialHPXML"].update(weather_station)
     generate_example_osws(data_hash,
                           include_args,
@@ -392,7 +391,7 @@ def update_measures
 
     # MF
     include_args["BuildResidentialHPXML"]["unit_type"] = "multifamily"
-    include_args["BuildResidentialHPXML"]["ffa"] = "900"
+    include_args["BuildResidentialHPXML"]["cfa"] = "900"
     include_args["BuildResidentialHPXML"].update(weather_station)
     generate_example_osws(data_hash,
                           include_args,

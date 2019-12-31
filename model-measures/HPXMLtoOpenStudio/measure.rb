@@ -111,7 +111,7 @@ class HPXMLTranslator < OpenStudio::Measure::ModelMeasure
     map_tsv_dir = runner.getOptionalStringArgumentValue("map_tsv_dir", user_arguments)
 
     unless (Pathname.new hpxml_path).absolute?
-      hpxml_path = File.expand_path(File.join(File.dirname(__FILE__), hpxml_path))
+      # hpxml_path = File.expand_path(File.join(File.dirname(__FILE__), hpxml_path))
     end
     unless File.exists?(hpxml_path) and hpxml_path.downcase.end_with? ".xml"
       fail "'#{hpxml_path}' does not exist or is not an .xml file."

@@ -1967,6 +1967,8 @@ class HPXMLFile
 
       if interior_adjacent_to == "living space" and exterior_adjacent_to.include? "attic"
         framefloor_values[:insulation_assembly_r_value] = args[:unconditioned_attic_ceiling_r] # FIXME: Calculate
+      elsif interior_adjacent_to == "living space" and exterior_adjacent_to.include? "basement"
+        framefloor_values[:insulation_assembly_r_value] = 30.0 # FIXME: Calculate
       end
 
       framefloors_values << framefloor_values
