@@ -3,31 +3,25 @@ require_relative "unit_conversions"
 require_relative "schedules"
 
 class MiscLoads
-  def self.apply_plug(model, runner, misc_kwh, sens_frac, lat_frac,
+  def self.apply_plug(model, misc_kwh, sens_frac, lat_frac,
                       weekday_sch, weekend_sch, monthly_sch, tv_kwh, cfa,
                       living_space)
 
-    return true if misc_kwh + tv_kwh == 0
+    return if misc_kwh + tv_kwh == 0
 
     # check for valid inputs
     if sens_frac < 0 or sens_frac > 1
-      runner.registerError("Sensible fraction must be greater than or equal to 0 and less than or equal to 1.")
-      return false
+      fail "Sensible fraction must be greater than or equal to 0 and less than or equal to 1."
     end
     if lat_frac < 0 or lat_frac > 1
-      runner.registerError("Latent fraction must be greater than or equal to 0 and less than or equal to 1.")
-      return false
+      fail "Latent fraction must be greater than or equal to 0 and less than or equal to 1."
     end
     if lat_frac + sens_frac > 1
-      runner.registerError("Sum of sensible and latent fractions must be less than or equal to 1.")
-      return false
+      fail "Sum of sensible and latent fractions must be less than or equal to 1."
     end
 
     # Create schedule
-    sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameMiscPlugLoads + " schedule", weekday_sch, weekend_sch, monthly_sch, mult_weekday = 1.0, mult_weekend = 1.0, normalize_values = true, create_sch_object = true, schedule_type_limits_name = Constants.ScheduleTypeLimitsFraction)
-    if not sch.validated?
-      return false
-    end
+    sch = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameMiscPlugLoads + " schedule", weekday_sch, weekend_sch, monthly_sch, mult_weekday = 1.0, mult_weekend = 1.0, normalize_values = true, create_sch_object = true, schedule_type_limits_name = Constants.ScheduleTypeLimitsFraction)
 
     # Misc plug loads
     if misc_kwh > 0
@@ -67,8 +61,6 @@ class MiscLoads
       mel_def.setFractionLost(1 - tv_sens_frac - tv_lat_frac)
       mel.setSchedule(sch.schedule)
     end
-
-    return true
   end
 
   def self.get_residual_mels_values(cfa)

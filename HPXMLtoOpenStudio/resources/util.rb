@@ -1,4 +1,3 @@
-# Add classes or functions here than can be used across a variety of our python classes and modules.
 require_relative "constants"
 require_relative "unit_conversions"
 

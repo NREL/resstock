@@ -10,6 +10,7 @@ class Airflow
   def self.apply(model, runner, weather, infil, mech_vent, nat_vent, duct_systems,
                  cfa, infilvolume, nbeds, nbaths, ncfl, ncfl_ag, window_area, min_neighbor_distance)
 
+    @runner = runner
     @infMethodConstantCFM = 'CONSTANT_CFM'
     @infMethodAIM2 = 'AIM2' # aka ASHRAE Enhanced
     @infMethodELA = 'ELA'
@@ -21,19 +22,19 @@ class Airflow
     building.height = Geometry.get_max_z_of_spaces(model_spaces)
     model.getThermalZones.each do |thermal_zone|
       if Geometry.is_living(thermal_zone)
-        building.living = ZoneInfo.new(thermal_zone, Geometry.get_height_of_spaces(thermal_zone.spaces), UnitConversions.convert(thermal_zone.floorArea, "m^2", "ft^2"), Geometry.get_zone_volume(thermal_zone, runner), Geometry.get_z_origin_for_zone(thermal_zone), nil, nil)
+        building.living = ZoneInfo.new(thermal_zone, Geometry.get_height_of_spaces(thermal_zone.spaces), UnitConversions.convert(thermal_zone.floorArea, "m^2", "ft^2"), Geometry.get_zone_volume(thermal_zone), Geometry.get_z_origin_for_zone(thermal_zone), nil, nil)
       elsif Geometry.is_garage(thermal_zone)
-        building.garage = ZoneInfo.new(thermal_zone, Geometry.get_height_of_spaces(thermal_zone.spaces), UnitConversions.convert(thermal_zone.floorArea, "m^2", "ft^2"), Geometry.get_zone_volume(thermal_zone, runner), Geometry.get_z_origin_for_zone(thermal_zone), nil, nil)
+        building.garage = ZoneInfo.new(thermal_zone, Geometry.get_height_of_spaces(thermal_zone.spaces), UnitConversions.convert(thermal_zone.floorArea, "m^2", "ft^2"), Geometry.get_zone_volume(thermal_zone), Geometry.get_z_origin_for_zone(thermal_zone), nil, nil)
       elsif Geometry.is_unconditioned_basement(thermal_zone)
-        building.unconditioned_basement = ZoneInfo.new(thermal_zone, Geometry.get_height_of_spaces(thermal_zone.spaces), UnitConversions.convert(thermal_zone.floorArea, "m^2", "ft^2"), Geometry.get_zone_volume(thermal_zone, runner), Geometry.get_z_origin_for_zone(thermal_zone), infil.unconditioned_basement_ach, nil)
+        building.unconditioned_basement = ZoneInfo.new(thermal_zone, Geometry.get_height_of_spaces(thermal_zone.spaces), UnitConversions.convert(thermal_zone.floorArea, "m^2", "ft^2"), Geometry.get_zone_volume(thermal_zone), Geometry.get_z_origin_for_zone(thermal_zone), infil.unconditioned_basement_ach, nil)
       elsif Geometry.is_vented_crawl(thermal_zone)
-        building.vented_crawlspace = ZoneInfo.new(thermal_zone, Geometry.get_height_of_spaces(thermal_zone.spaces), UnitConversions.convert(thermal_zone.floorArea, "m^2", "ft^2"), Geometry.get_zone_volume(thermal_zone, runner), Geometry.get_z_origin_for_zone(thermal_zone), nil, infil.vented_crawl_sla)
+        building.vented_crawlspace = ZoneInfo.new(thermal_zone, Geometry.get_height_of_spaces(thermal_zone.spaces), UnitConversions.convert(thermal_zone.floorArea, "m^2", "ft^2"), Geometry.get_zone_volume(thermal_zone), Geometry.get_z_origin_for_zone(thermal_zone), nil, infil.vented_crawl_sla)
       elsif Geometry.is_unvented_crawl(thermal_zone)
-        building.unvented_crawlspace = ZoneInfo.new(thermal_zone, Geometry.get_height_of_spaces(thermal_zone.spaces), UnitConversions.convert(thermal_zone.floorArea, "m^2", "ft^2"), Geometry.get_zone_volume(thermal_zone, runner), Geometry.get_z_origin_for_zone(thermal_zone), nil, infil.unvented_crawl_sla)
+        building.unvented_crawlspace = ZoneInfo.new(thermal_zone, Geometry.get_height_of_spaces(thermal_zone.spaces), UnitConversions.convert(thermal_zone.floorArea, "m^2", "ft^2"), Geometry.get_zone_volume(thermal_zone), Geometry.get_z_origin_for_zone(thermal_zone), nil, infil.unvented_crawl_sla)
       elsif Geometry.is_vented_attic(thermal_zone)
-        building.vented_attic = ZoneInfo.new(thermal_zone, Geometry.get_height_of_spaces(thermal_zone.spaces), UnitConversions.convert(thermal_zone.floorArea, "m^2", "ft^2"), Geometry.get_zone_volume(thermal_zone, runner), Geometry.get_z_origin_for_zone(thermal_zone), infil.vented_attic_const_ach, infil.vented_attic_sla)
+        building.vented_attic = ZoneInfo.new(thermal_zone, Geometry.get_height_of_spaces(thermal_zone.spaces), UnitConversions.convert(thermal_zone.floorArea, "m^2", "ft^2"), Geometry.get_zone_volume(thermal_zone), Geometry.get_z_origin_for_zone(thermal_zone), infil.vented_attic_const_ach, infil.vented_attic_sla)
       elsif Geometry.is_unvented_attic(thermal_zone)
-        building.unvented_attic = ZoneInfo.new(thermal_zone, Geometry.get_height_of_spaces(thermal_zone.spaces), UnitConversions.convert(thermal_zone.floorArea, "m^2", "ft^2"), Geometry.get_zone_volume(thermal_zone, runner), Geometry.get_z_origin_for_zone(thermal_zone), nil, infil.unvented_attic_sla)
+        building.unvented_attic = ZoneInfo.new(thermal_zone, Geometry.get_height_of_spaces(thermal_zone.spaces), UnitConversions.convert(thermal_zone.floorArea, "m^2", "ft^2"), Geometry.get_zone_volume(thermal_zone), Geometry.get_z_origin_for_zone(thermal_zone), nil, infil.unvented_attic_sla)
       end
     end
     building.cfa = cfa
@@ -48,9 +49,7 @@ class Airflow
     building.window_area = window_area
 
     wind_speed = process_wind_speed_correction(infil.terrain, infil.shelter_coef, min_neighbor_distance, building.height)
-    if not process_infiltration(model, infil, wind_speed, building, weather)
-      return false
-    end
+    process_infiltration(model, infil, wind_speed, building, weather)
 
     # Global sensors
 
@@ -83,35 +82,24 @@ class Airflow
 
     # Update model
 
-    air_loop_objects = create_air_loop_objects(model, runner, model.getAirLoopHVACs, mech_vent, building)
-    return false if air_loop_objects.nil?
-
-    success = process_infiltration_for_conditioned_zones(model, runner, infil, wind_speed, building, weather)
-    return false if not success
-
-    success = process_mech_vent(model, runner, mech_vent, building, weather, infil)
-    return false if not success
+    air_loop_objects = create_air_loop_objects(model, model.getAirLoopHVACs, mech_vent, building)
+    process_infiltration_for_conditioned_zones(model, infil, wind_speed, building, weather)
+    process_mech_vent(model, mech_vent, building, weather, infil)
 
     if mech_vent.type == Constants.VentTypeCFIS
-      cfis_program = create_cfis_objects(model, runner, building, mech_vent)
-      return false if cfis_program.nil?
+      cfis_program = create_cfis_objects(model, building, mech_vent)
     end
 
-    nv_program = process_nat_vent(model, runner, nat_vent, tin_sensor, tout_sensor, pbar_sensor, vwind_sensor, wind_speed, infil, building, weather, wout_sensor)
-    return false if nv_program.nil?
+    nv_program = process_nat_vent(model, nat_vent, tin_sensor, tout_sensor, pbar_sensor, vwind_sensor, wind_speed, infil, building, weather, wout_sensor)
 
     duct_programs = {}
     duct_lks = {}
     duct_systems.each do |ducts, air_loop|
-      success = process_ducts(model, runner, ducts, building, air_loop)
-      return false if not success
-
-      success = create_ducts_objects(model, runner, building, ducts, mech_vent, tin_sensor, pbar_sensor, adiabatic_const, air_loop, duct_programs, duct_lks, air_loop_objects)
-      return false if not success
+      process_ducts(model, ducts, building, air_loop)
+      create_ducts_objects(model, building, ducts, mech_vent, tin_sensor, pbar_sensor, adiabatic_const, air_loop, duct_programs, duct_lks, air_loop_objects)
     end
 
-    infil_program = create_infil_mech_vent_objects(model, runner, building, infil, mech_vent, wind_speed, tin_sensor, tout_sensor, vwind_sensor, duct_lks, wout_sensor, pbar_sensor)
-    return false if infil_program.nil?
+    infil_program = create_infil_mech_vent_objects(model, building, infil, mech_vent, wind_speed, tin_sensor, tout_sensor, vwind_sensor, duct_lks, wout_sensor, pbar_sensor)
 
     create_ems_program_managers(model, infil_program, nv_program, cfis_program, duct_programs)
 
@@ -161,8 +149,6 @@ class Airflow
 
       obj.remove
     end
-
-    return true
   end
 
   def self.get_default_shelter_coefficient()
@@ -300,11 +286,9 @@ class Airflow
     end
 
     process_infiltration_for_spaces(model, spaces, wind_speed)
-
-    return true
   end
 
-  def self.create_air_loop_objects(model, runner, air_loops, mech_vent, building)
+  def self.create_air_loop_objects(model, air_loops, mech_vent, building)
     # Obtain data across all air loops (needed for ducts, CFIS w/ separate heating and cooling air loops)
     air_loop_objects = {}
     air_loops.each_with_index do |air_loop, air_loop_index|
@@ -356,7 +340,7 @@ class Airflow
     return air_loop_objects
   end
 
-  def self.process_infiltration_for_conditioned_zones(model, runner, infil, wind_speed, building, weather)
+  def self.process_infiltration_for_conditioned_zones(model, infil, wind_speed, building, weather)
     spaces = []
     spaces << building.living
 
@@ -411,9 +395,9 @@ class Airflow
         leakage_floor = 0.25
       end
       if leakkage_ceiling + leakage_walls + leakage_floor != 1
-        runner.registerError("Invalid air leakage distribution specified (#{leakkage_ceiling}, #{leakage_walls}, #{leakage_floor}); does not add up to 1.")
-        return false
+        fail "Invalid air leakage distribution specified (#{leakkage_ceiling}, #{leakage_walls}, #{leakage_floor}); does not add up to 1."
       end
+
       r_i = (leakkage_ceiling + leakage_floor)
       x_i = (leakkage_ceiling - leakage_floor)
       r_i = r_i * (1 - y_i)
@@ -499,8 +483,6 @@ class Airflow
     infil.wind_coef = wind_coef
     infil.y_i = y_i
     infil.s_wflue = s_wflue
-
-    return true
   end
 
   def self.process_infiltration_for_spaces(model, spaces, wind_speed)
@@ -546,11 +528,10 @@ class Airflow
     end
   end
 
-  def self.process_mech_vent(model, runner, mech_vent, building, weather, infil)
+  def self.process_mech_vent(model, mech_vent, building, weather, infil)
     if mech_vent.type == Constants.VentTypeCFIS
-      if not HVAC.has_ducted_equipment(model, runner, mech_vent.cfis_air_loop)
-        runner.registerError("A CFIS ventilation system has been specified but the building does not have central, forced air equipment.")
-        return false
+      if not HVAC.has_ducted_equipment(model, mech_vent.cfis_air_loop)
+        fail "A CFIS ventilation system has been specified but the building does not have central, forced air equipment."
       end
     end
 
@@ -562,16 +543,12 @@ class Airflow
     # Fraction of fan heat that goes to the space
     if mech_vent.type == Constants.VentTypeExhaust
       frac_fan_heat = 0.0 # Fan heat does not enter space
-      num_fans = 1
     elsif mech_vent.type == Constants.VentTypeSupply or mech_vent.type == Constants.VentTypeCFIS
       frac_fan_heat = 1.0 # Fan heat does enter space
-      num_fans = 1
     elsif mech_vent.type == Constants.VentTypeBalanced
       frac_fan_heat = 0.5 # Assumes supply fan heat enters space
-      num_fans = 2
     else
       frac_fan_heat = 0.0
-      num_fans = 0
     end
 
     # Get the clothes washer so we can use the day shift for the clothes dryer
@@ -596,7 +573,7 @@ class Airflow
     end
 
     if not has_dryer and mech_vent.dryer_exhaust > 0
-      runner.registerWarning("No clothes dryer object was found but the clothes dryer exhaust specified is non-zero. Overriding clothes dryer exhaust to be zero.")
+      @runner.registerWarning("No clothes dryer object was found but the clothes dryer exhaust specified is non-zero. Overriding clothes dryer exhaust to be zero.")
     end
 
     bathroom_hour_avg_exhaust = mech_vent.bathroom_exhaust * building.nbaths * bath_exhaust_sch_operation / 60.0 # cfm
@@ -610,11 +587,11 @@ class Airflow
 
     if mech_vent.type == Constants.VentTypeBalanced and (mech_vent.sensible_efficiency > 0 or mech_vent.sensible_efficiency_adjusted > 0) and mech_vent.whole_house_cfm > 0
       # Must assume an operating condition (HVI seems to use CSA 439)
-      t_sup_in = 0
+      t_sup_in = 0.0
       w_sup_in = 0.0028
-      t_exh_in = 22
+      t_exh_in = 22.0
       w_exh_in = 0.0065
-      cp_a = 1006
+      cp_a = 1006.0
       p_fan = mech_vent.fan_power_w # Watts
 
       m_fan = UnitConversions.convert(mech_vent.whole_house_cfm, "cfm", "m^3/s") * 16.02 * Psychrometrics.rhoD_fT_w_P(UnitConversions.convert(t_sup_in, "C", "F"), w_sup_in, 14.7) # kg/s
@@ -642,8 +619,7 @@ class Airflow
       sensible_effectiveness = (t_sup_out_gross - t_sup_in) / (t_exh_in - t_sup_in)
 
       if (sensible_effectiveness < 0.0) or (sensible_effectiveness > 1.0)
-        runner.registerError("The calculated ERV/HRV sensible effectiveness is #{sensible_effectiveness} but should be between 0 and 1. Please revise ERV/HRV efficiency values.")
-        return false
+        fail "The calculated ERV/HRV sensible effectiveness is #{sensible_effectiveness} but should be between 0 and 1. Please revise ERV/HRV efficiency values."
       end
 
       # Use summer test condition to determine the latent effectiveness since TRE is generally specified under the summer condition
@@ -675,8 +651,7 @@ class Airflow
         latent_effectiveness = [0.0, (w_sup_out - w_sup_in) / (w_exh_in - w_sup_in)].max
 
         if (latent_effectiveness < 0.0) or (latent_effectiveness > 1.0)
-          runner.registerError("The calculated ERV/HRV latent effectiveness is #{latent_effectiveness} but should be between 0 and 1. Please revise ERV/HRV efficiency values.")
-          return false
+          fail "The calculated ERV/HRV latent effectiveness is #{latent_effectiveness} but should be between 0 and 1. Please revise ERV/HRV efficiency values."
         end
 
       else
@@ -698,7 +673,6 @@ class Airflow
     model.getBuilding.additionalProperties.setFeature(Constants.SizingInfoMechVentWholeHouseRate, mech_vent.whole_house_cfm.to_f)
 
     mech_vent.frac_fan_heat = frac_fan_heat
-    mech_vent.num_fans = num_fans
     mech_vent.bathroom_hour_avg_exhaust = bathroom_hour_avg_exhaust
     mech_vent.range_hood_hour_avg_exhaust = range_hood_hour_avg_exhaust
     mech_vent.spot_fan_w_per_cfm = spot_fan_w_per_cfm
@@ -706,41 +680,34 @@ class Airflow
     mech_vent.sensible_effectiveness = sensible_effectiveness
     mech_vent.dryer_exhaust_day_shift = dryer_exhaust_day_shift
     mech_vent.has_dryer = has_dryer
-
-    return true
   end
 
-  def self.process_ducts(model, runner, ducts, building, air_loop)
+  def self.process_ducts(model, ducts, building, air_loop)
     # Validate Inputs
     ducts.each do |duct|
       if duct.leakage_frac.nil? == duct.leakage_cfm25.nil?
-        runner.registerError("Ducts: Must provide either leakage fraction or cfm25, but not both.")
-        return false
+        fail "Ducts: Must provide either leakage fraction or cfm25, but not both."
       end
       if not duct.leakage_frac.nil? and (duct.leakage_frac < 0 or duct.leakage_frac > 1)
-        runner.registerError("Ducts: Leakage Fraction must be greater than or equal to 0 and less than or equal to 1.")
-        return false
+        fail "Ducts: Leakage Fraction must be greater than or equal to 0 and less than or equal to 1."
       end
       if not duct.leakage_cfm25.nil? and duct.leakage_cfm25 < 0
-        runner.registerError("Ducts: Leakage CFM25 must be greater than or equal to 0.")
-        return false
+        fail "Ducts: Leakage CFM25 must be greater than or equal to 0."
       end
       if duct.rvalue < 0
-        runner.registerError("Ducts: Insulation Nominal R-Value must be greater than or equal to 0.")
-        return false
+        fail "Ducts: Insulation Nominal R-Value must be greater than or equal to 0."
       end
       if duct.area < 0
-        runner.registerError("Ducts: Surface Area must be greater than or equal to 0.")
-        return false
+        fail "Ducts: Surface Area must be greater than or equal to 0."
       end
     end
 
-    has_ducted_hvac = HVAC.has_ducted_equipment(model, runner, air_loop)
+    has_ducted_hvac = HVAC.has_ducted_equipment(model, air_loop)
     if ducts.size > 0 and not has_ducted_hvac
-      runner.registerWarning("No ducted HVAC equipment was found but ducts were specified. Overriding duct specification.")
+      @runner.registerWarning("No ducted HVAC equipment was found but ducts were specified. Overriding duct specification.")
       ducts.clear
     elsif ducts.size == 0 and has_ducted_hvac
-      runner.registerWarning("Ducted HVAC equipment was found but no ducts were specified. Proceeding without ducts.")
+      @runner.registerWarning("Ducted HVAC equipment was found but no ducts were specified. Proceeding without ducts.")
     end
 
     ducts.each do |duct|
@@ -764,60 +731,40 @@ class Airflow
       air_loop.additionalProperties.setFeature(Constants.SizingInfoDuctAreas, ducts.map { |duct| duct.area.to_f }.join(","))
       air_loop.additionalProperties.setFeature(Constants.SizingInfoDuctRvalues, ducts.map { |duct| duct.rvalue.to_f }.join(","))
     end
-
-    return true
   end
 
-  def self.process_nat_vent(model, runner, nat_vent, tin_sensor, tout_sensor, pbar_sensor, vwind_sensor, wind_speed, infil, building, weather, wout_sensor)
+  def self.process_nat_vent(model, nat_vent, tin_sensor, tout_sensor, pbar_sensor, vwind_sensor, wind_speed, infil, building, weather, wout_sensor)
     thermostatsetpointdualsetpoint = building.living.zone.thermostatSetpointDualSetpoint
 
-    # Get heating setpoints
-    heatingSetpointWeekday = Array.new
-    heatingSetpointWeekend = Array.new
-    coolingSetpointWeekday = Array.new
-    coolingSetpointWeekend = Array.new
-    if thermostatsetpointdualsetpoint.is_initialized
-      thermostatsetpointdualsetpoint = thermostatsetpointdualsetpoint.get
+    # Get setpoints
+    heatingSetpointWeekday = nat_vent.htg_weekday_setpoints
+    heatingSetpointWeekend = nat_vent.htg_weekend_setpoints
+    coolingSetpointWeekday = nat_vent.clg_weekday_setpoints
+    coolingSetpointWeekend = nat_vent.clg_weekend_setpoints
 
-      heatingSetpointWeekday = HVAC.get_setpoint_schedule(thermostatsetpointdualsetpoint.heatingSetpointTemperatureSchedule.get.to_Schedule.get.to_ScheduleRuleset.get, 'weekday', runner)
-      heatingSetpointWeekend = HVAC.get_setpoint_schedule(thermostatsetpointdualsetpoint.heatingSetpointTemperatureSchedule.get.to_Schedule.get.to_ScheduleRuleset.get, 'weekend', runner)
-      if heatingSetpointWeekday.nil? or heatingSetpointWeekend.nil?
-        return false
-      end
-
-      heatingSetpointWeekday = heatingSetpointWeekday[0].map { |j| UnitConversions.convert(j, "C", "F") } # get january hourly setpoints
-      heatingSetpointWeekend = heatingSetpointWeekend[0].map { |j| UnitConversions.convert(j, "C", "F") } # get january hourly setpoints
-
-      coolingSetpointWeekday = HVAC.get_setpoint_schedule(thermostatsetpointdualsetpoint.coolingSetpointTemperatureSchedule.get.to_Schedule.get.to_ScheduleRuleset.get, 'weekday', runner)
-      coolingSetpointWeekend = HVAC.get_setpoint_schedule(thermostatsetpointdualsetpoint.coolingSetpointTemperatureSchedule.get.to_Schedule.get.to_ScheduleRuleset.get, 'weekend', runner)
-      if coolingSetpointWeekday.nil? or coolingSetpointWeekend.nil?
-        return false
-      end
-
-      coolingSetpointWeekday = coolingSetpointWeekday[6].map { |j| UnitConversions.convert(j, "C", "F") } # get july hourly setpoints
-      coolingSetpointWeekend = coolingSetpointWeekend[6].map { |j| UnitConversions.convert(j, "C", "F") } # get july hourly setpoints
-    end
-
-    if heatingSetpointWeekday.empty?
-      runner.registerWarning("No heating setpoint schedule found. Assuming #{Constants.DefaultHeatingSetpoint} F for natural ventilation calculations.")
-      ovlp_ssn_hourly_temp = Array.new(24, UnitConversions.convert(Constants.DefaultHeatingSetpoint + nat_vent.ovlp_offset, "F", "C"))
-      heatingSetpointWeekday = Array.new(24, Constants.DefaultHeatingSetpoint)
-      heatingSetpointWeekend = Array.new(24, Constants.DefaultHeatingSetpoint)
+    if heatingSetpointWeekday.nil?
+      default_sp = HVAC.get_default_heating_setpoint("manual thermostat")[0]
+      @runner.registerWarning("No heating setpoint schedule found. Assuming #{default_sp} F for natural ventilation calculations.")
+      ovlp_ssn_hourly_temp = Array.new(24, UnitConversions.convert(default_sp + nat_vent.ovlp_offset, "F", "C"))
+      heatingSetpointWeekday = Array.new(24, default_sp)
+      heatingSetpointWeekend = Array.new(24, default_sp)
     else
+      heatingSetpointWeekday = heatingSetpointWeekday[0] # get January hourly setpoints
+      heatingSetpointWeekend = heatingSetpointWeekend[0] # get January hourly setpoints
       ovlp_ssn_hourly_temp = Array.new(24, UnitConversions.convert([heatingSetpointWeekday.max, heatingSetpointWeekend.max].max + nat_vent.ovlp_offset, "F", "C"))
     end
-    if coolingSetpointWeekday.empty?
-      runner.registerWarning("No cooling setpoint schedule found. Assuming #{Constants.DefaultCoolingSetpoint} F for natural ventilation calculations.")
-      coolingSetpointWeekday = Array.new(24, Constants.DefaultCoolingSetpoint)
-      coolingSetpointWeekend = Array.new(24, Constants.DefaultCoolingSetpoint)
+    if coolingSetpointWeekday.nil?
+      default_sp = HVAC.get_default_cooling_setpoint("manual thermostat")[0]
+      @runner.registerWarning("No cooling setpoint schedule found. Assuming #{default_sp} F for natural ventilation calculations.")
+      coolingSetpointWeekday = Array.new(24, default_sp)
+      coolingSetpointWeekend = Array.new(24, default_sp)
+    else
+      coolingSetpointWeekday = coolingSetpointWeekday[6] # get July hourly setpoints
+      coolingSetpointWeekend = coolingSetpointWeekend[6] # get July hourly setpoints
     end
-    ovlp_ssn_hourly_weekend_temp = ovlp_ssn_hourly_temp
 
     # Get heating and cooling seasons
-    heating_season, cooling_season = HVAC.calc_heating_and_cooling_seasons(model, weather, runner)
-    if heating_season.nil? or cooling_season.nil?
-      return false
-    end
+    heating_season, cooling_season = HVAC.calc_heating_and_cooling_seasons(model, weather)
 
     # Specify an array of hourly lower-temperature-limits for natural ventilation
     htg_ssn_hourly_temp = Array.new
@@ -872,13 +819,13 @@ class Airflow
         ssn_schedule_wked = clg_ssn_hourly_weekend_temp
       else
         ssn_schedule_wkdy = ovlp_ssn_hourly_temp
-        ssn_schedule_wked = ovlp_ssn_hourly_weekend_temp
+        ssn_schedule_wked = ovlp_ssn_hourly_temp
       end
       temp_hourly_wkdy << ssn_schedule_wkdy
       temp_hourly_wked << ssn_schedule_wked
     end
 
-    temp_sch = HourlyByMonthSchedule.new(model, runner, Constants.ObjectNameNaturalVentilation + " temp schedule", temp_hourly_wkdy, temp_hourly_wked, normalize_values = false, create_sch_object = true, schedule_type_limits_name = Constants.ScheduleTypeLimitsTemperature)
+    temp_sch = HourlyByMonthSchedule.new(model, Constants.ObjectNameNaturalVentilation + " temp schedule", temp_hourly_wkdy, temp_hourly_wked, normalize_values = false, create_sch_object = true, schedule_type_limits_name = Constants.ScheduleTypeLimitsTemperature)
 
     avail_sch = OpenStudio::Model::ScheduleRuleset.new(model)
     avail_sch.setName(Constants.ObjectNameNaturalVentilation + " avail schedule")
@@ -1049,8 +996,8 @@ class Airflow
     return actuator
   end
 
-  def self.create_ducts_objects(model, runner, building, ducts, mech_vent, tin_sensor, pbar_sensor, adiabatic_const, air_loop, duct_programs, duct_lks, air_loop_objects)
-    return true if ducts.size == 0 # No ducts
+  def self.create_ducts_objects(model, building, ducts, mech_vent, tin_sensor, pbar_sensor, adiabatic_const, air_loop, duct_programs, duct_lks, air_loop_objects)
+    return if ducts.size == 0 # No ducts
 
     duct_zones = ducts.map { |duct| duct.zone }.uniq
     living_space = building.living.zone.spaces[0]
@@ -1062,7 +1009,7 @@ class Airflow
 
       all_ducts_conditioned = false
     end
-    return true if all_ducts_conditioned
+    return if all_ducts_conditioned
 
     if building.living.zone.airLoopHVACs.include? air_loop # next if airloop doesn't serve this
 
@@ -1532,22 +1479,13 @@ class Airflow
         end
 
         duct_programs[air_loop_name_idx] = duct_program
-
-        if duct_zone.nil? # Outside
-          runner.registerInfo("Created outside ducts for #{air_loop.name}.")
-        else
-          runner.registerInfo("Created ducts for #{air_loop.name} and zone #{duct_zone.name.to_s}.")
-        end
       end
     end
-
-    return true
   end
 
-  def self.create_cfis_objects(model, runner, building, mech_vent)
+  def self.create_cfis_objects(model, building, mech_vent)
     if mech_vent.cfis_airflow_frac < 0 or mech_vent.cfis_airflow_frac > 1
-      runner.registerError("Mechanical Ventilation: CFIS blower airflow rate must be greater than or equal to 0 and less than or equal to 1.")
-      return nil
+      fail "Mechanical Ventilation: CFIS blower airflow rate must be greater than or equal to 0 and less than or equal to 1."
     end
 
     mech_vent.cfis_t_sum_open_var = OpenStudio::Model::EnergyManagementSystemGlobalVariable.new(model, "#{Constants.ObjectNameMechanicalVentilation.gsub(" ", "_")}_cfis_t_sum_open") # Sums the time during an hour the CFIS damper has been open
@@ -1573,30 +1511,28 @@ class Airflow
     cfis_program.addLine("Set #{mech_vent.cfis_on_for_hour_var.name} = 0")
     cfis_program.addLine("Set #{mech_vent.cfis_f_damper_open_var.name} = 0")
 
-    runner.registerInfo("Created a CFIS system.")
-
     return cfis_program
   end
 
-  def self.create_infil_mech_vent_objects(model, runner, building, infil, mech_vent, wind_speed, tin_sensor, tout_sensor, vwind_sensor, duct_lks, wout_sensor, pbar_sensor)
+  def self.create_infil_mech_vent_objects(model, building, infil, mech_vent, wind_speed, tin_sensor, tout_sensor, vwind_sensor, duct_lks, wout_sensor, pbar_sensor)
     # Sensors
 
     range_array = [0.0] * 24
     range_array[mech_vent.range_exhaust_hour - 1] = 1.0
-    range_hood_sch = HourlyByMonthSchedule.new(model, runner, Constants.ObjectNameMechanicalVentilation + " range exhaust schedule", [range_array] * 12, [range_array] * 12, normalize_values = false, create_sch_object = true, schedule_type_limits_name = Constants.ScheduleTypeLimitsOnOff)
+    range_hood_sch = HourlyByMonthSchedule.new(model, Constants.ObjectNameMechanicalVentilation + " range exhaust schedule", [range_array] * 12, [range_array] * 12, normalize_values = false, create_sch_object = true, schedule_type_limits_name = Constants.ScheduleTypeLimitsOnOff)
     range_sch_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Schedule Value")
     range_sch_sensor.setName("#{Constants.ObjectNameMechanicalVentilation} range sch s")
     range_sch_sensor.setKeyName(range_hood_sch.schedule.name.to_s)
 
     bathroom_array = [0.0] * 24
     bathroom_array[mech_vent.bathroom_exhaust_hour - 1] = 1.0
-    bath_exhaust_sch = HourlyByMonthSchedule.new(model, runner, Constants.ObjectNameMechanicalVentilation + " bath exhaust schedule", [bathroom_array] * 12, [bathroom_array] * 12, normalize_values = false, create_sch_object = true, schedule_type_limits_name = Constants.ScheduleTypeLimitsOnOff)
+    bath_exhaust_sch = HourlyByMonthSchedule.new(model, Constants.ObjectNameMechanicalVentilation + " bath exhaust schedule", [bathroom_array] * 12, [bathroom_array] * 12, normalize_values = false, create_sch_object = true, schedule_type_limits_name = Constants.ScheduleTypeLimitsOnOff)
     bath_sch_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Schedule Value")
     bath_sch_sensor.setName("#{Constants.ObjectNameMechanicalVentilation} bath sch s")
     bath_sch_sensor.setKeyName(bath_exhaust_sch.schedule.name.to_s)
 
     if mech_vent.has_dryer and mech_vent.dryer_exhaust > 0
-      dryer_exhaust_sch = HotWaterSchedule.new(model, runner, Constants.ObjectNameMechanicalVentilation + " dryer exhaust schedule", building.nbeds, 0, true)
+      dryer_exhaust_sch = HotWaterSchedule.new(model, Constants.ObjectNameMechanicalVentilation + " dryer exhaust schedule", building.nbeds, 0, true)
       dryer_sch_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Schedule Value")
       dryer_sch_sensor.setName("#{Constants.ObjectNameMechanicalVentilation} dryer sch s")
       dryer_sch_sensor.setKeyName(dryer_exhaust_sch.schedule.name.to_s)
@@ -2004,7 +1940,8 @@ class Infiltration
 end
 
 class NaturalVentilation
-  def initialize(htg_offset, clg_offset, ovlp_offset, htg_season, clg_season, ovlp_season, num_weekdays, num_weekends, frac_windows_open, frac_window_area_openable, max_oa_hr, max_oa_rh)
+  def initialize(htg_offset, clg_offset, ovlp_offset, htg_season, clg_season, ovlp_season, num_weekdays, num_weekends, frac_windows_open, frac_window_area_openable,
+                 max_oa_hr, max_oa_rh, htg_weekday_setpoints, htg_weekend_setpoints, clg_weekday_setpoints, clg_weekend_setpoints)
     @htg_offset = htg_offset
     @clg_offset = clg_offset
     @ovlp_offset = ovlp_offset
@@ -2017,8 +1954,13 @@ class NaturalVentilation
     @frac_window_area_openable = frac_window_area_openable
     @max_oa_hr = max_oa_hr
     @max_oa_rh = max_oa_rh
+    @htg_weekday_setpoints = htg_weekday_setpoints
+    @htg_weekend_setpoints = htg_weekend_setpoints
+    @clg_weekday_setpoints = clg_weekday_setpoints
+    @clg_weekend_setpoints = clg_weekend_setpoints
   end
-  attr_accessor(:htg_offset, :clg_offset, :ovlp_offset, :htg_season, :clg_season, :ovlp_season, :num_weekdays, :num_weekends, :frac_windows_open, :frac_window_area_openable, :max_oa_hr, :max_oa_rh)
+  attr_accessor(:htg_offset, :clg_offset, :ovlp_offset, :htg_season, :clg_season, :ovlp_season, :num_weekdays, :num_weekends, :frac_windows_open, :frac_window_area_openable,
+                :max_oa_hr, :max_oa_rh, :htg_weekday_setpoints, :htg_weekend_setpoints, :clg_weekday_setpoints, :clg_weekend_setpoints)
 end
 
 class MechanicalVentilation
@@ -2045,7 +1987,7 @@ class MechanicalVentilation
                 :dryer_exhaust, :range_exhaust, :range_exhaust_hour, :bathroom_exhaust, :bathroom_exhaust_hour,
                 :cfis_open_time, :cfis_airflow_frac, :cfis_air_loop, :cfis_t_sum_open_var, :cfis_on_for_hour_var,
                 :cfis_f_damper_open_var, :cfis_fan_mfr_max_var, :cfis_fan_rtf_sensor, :cfis_fan_pressure_rise, :cfis_fan_efficiency,
-                :frac_fan_heat, :num_fans, :bathroom_hour_avg_exhaust, :range_hood_hour_avg_exhaust,
+                :frac_fan_heat, :bathroom_hour_avg_exhaust, :range_hood_hour_avg_exhaust,
                 :spot_fan_w_per_cfm, :latent_effectiveness, :sensible_effectiveness, :dryer_exhaust_day_shift, :has_dryer)
 end
 

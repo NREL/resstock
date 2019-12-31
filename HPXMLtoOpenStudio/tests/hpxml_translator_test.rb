@@ -51,13 +51,15 @@ class HPXMLTranslatorTest < MiniTest::Test
     puts "Running #{xmls.size} HPXML files..."
     all_results = {}
     all_compload_results = {}
+    all_sizing_results = {}
     xmls.each do |xml|
-      all_results[xml], all_compload_results[xml] = _run_xml(xml, this_dir)
+      all_results[xml], all_compload_results[xml], all_sizing_results[xml] = _run_xml(xml, this_dir)
     end
 
     Dir.mkdir(results_dir)
     _write_summary_results(results_dir, all_results)
-    write_component_load_results(results_dir, all_compload_results)
+    _write_component_load_results(results_dir, all_compload_results)
+    _write_hvac_sizing_results(results_dir, all_sizing_results)
 
     # Cross simulation tests
     _test_multiple_hvac(xmls, hvac_multiple_dir, hvac_base_dir, all_results)
@@ -137,10 +139,14 @@ class HPXMLTranslatorTest < MiniTest::Test
                             'refrigerator-location-other.xml' => ["Expected [1] element(s) but found 0 element(s) for xpath: /HPXML/Building/BuildingDetails/Appliances/Refrigerator[Location="],
                             'repeated-relatedhvac-dhw-indirect.xml' => ["RelatedHVACSystem 'HeatingSystem' for water heating system 'WaterHeater2' is already attached to another water heating system."],
                             'repeated-relatedhvac-desuperheater.xml' => ["RelatedHVACSystem 'CoolingSystem' for water heating system 'WaterHeater2' is already attached to another water heating system."],
+                            'solar-thermal-system-with-combi-tankless.xml' => ["Water heating system 'WaterHeater' connected to solar thermal system 'SolarThermalSystem' cannot be a space-heating boiler."],
+                            'solar-thermal-system-with-desuperheater.xml' => ["Water heating system 'WaterHeater' connected to solar thermal system 'SolarThermalSystem' cannot be attached to a desuperheater."],
+                            'solar-thermal-system-with-dhw-indirect.xml' => ["Water heating system 'WaterHeater' connected to solar thermal system 'SolarThermalSystem' cannot be a space-heating boiler."],
                             'unattached-cfis.xml' => ["Attached HVAC distribution system 'foobar' not found for mechanical ventilation 'MechanicalVentilation'."],
                             'unattached-door.xml' => ["Attached wall 'foobar' not found for door 'DoorNorth'."],
                             'unattached-hvac-distribution.xml' => ["Attached HVAC distribution system 'foobar' cannot be found for HVAC system 'HeatingSystem'."],
                             'unattached-skylight.xml' => ["Attached roof 'foobar' not found for skylight 'SkylightNorth'."],
+                            'unattached-solar-thermal-system.xml' => ["Attached water heating system 'foobar' not found for solar thermal system 'SolarThermalSystem'."],
                             'unattached-window.xml' => ["Attached wall 'foobar' not found for window 'WindowNorth'."],
                             'water-heater-location.xml' => ["WaterHeatingSystem location is 'crawlspace - vented' but building does not have this location specified."],
                             'water-heater-location-other.xml' => ["Expected [1] element(s) but found 0 element(s) for xpath: /HPXML/Building/BuildingDetails/Systems/WaterHeating/WaterHeatingSystem[Location="] }
@@ -247,8 +253,8 @@ class HPXMLTranslatorTest < MiniTest::Test
     print "Testing #{File.basename(xml)}...\n"
     rundir = File.join(this_dir, "run")
     _test_schema_validation(this_dir, xml)
-    results, compload_results = _test_simulation(this_dir, xml, rundir, expect_error, expect_error_msgs)
-    return results, compload_results
+    results, compload_results, sizing_results = _test_simulation(this_dir, xml, rundir, expect_error, expect_error_msgs)
+    return results, compload_results, sizing_results
   end
 
   def _get_results(rundir, sim_time, workflow_time)
@@ -295,6 +301,7 @@ class HPXMLTranslatorTest < MiniTest::Test
     results = {}
     fueltypes.zip(full_categories, subcategories, units).each_with_index do |(fueltype, category, subcategory, fuel_units), index|
       next if ['District Cooling', 'District Heating'].include? fueltype # Exclude ideal loads results
+      next if subcategory.end_with? Constants.ObjectNameWaterHeaterAdjustment(nil) # Exclude water heater EC_adj, will retrieve later with higher precision
 
       query = "SELECT Value FROM #{tdws} WHERE ReportName='#{abups}' AND ReportForString='#{ef}' AND TableName='#{eubs}' AND TabularDataIndex='#{starting_index + index}'"
       val = sqlFile.execAndReturnFirstDouble(query).get
@@ -303,15 +310,10 @@ class HPXMLTranslatorTest < MiniTest::Test
       results[[fueltype, category, subcategory, fuel_units]] = val
     end
 
-    # Move EC_adj from Interior Equipment category to a single EC_adj subcategory in Water Systems
-    results.keys.each do |k|
-      if k[1] == "Interior Equipment" and k[2].end_with? Constants.ObjectNameWaterHeaterAdjustment(nil)
-        new_key = [k[0], "Water Systems", "EC_adj", k[3]]
-        results[new_key] = 0 if results[new_key].nil?
-        results[new_key] += results[k]
-        results.delete(k)
-      end
-    end
+    # Obtain water heater EC_adj
+    new_key = ["Any", "Water Systems", "EC_adj", "GJ"]
+    query = "SELECT SUM(VariableValue/1000000000) FROM ReportVariableData WHERE ReportVariableDataDictionaryIndex IN (SELECT ReportVariableDataDictionaryIndex FROM ReportVariableDataDictionary WHERE VariableType='Sum' AND KeyValue='EMS' AND VariableName LIKE '%#{Constants.ObjectNameWaterHeaterAdjustment(nil)} outvar' AND ReportingFrequency='Run Period' AND VariableUnits='J')"
+    results[new_key] = sqlFile.execAndReturnFirstDouble(query).get.round(2)
 
     # Disaggregate any crankcase and defrost energy from results
     query = "SELECT SUM(Value)/1000000000 FROM ReportData WHERE ReportDataDictionaryIndex IN (SELECT ReportDataDictionaryIndex FROM ReportDataDictionary WHERE Name='Cooling Coil Crankcase Heater Electric Energy')"
@@ -528,7 +530,28 @@ class HPXMLTranslatorTest < MiniTest::Test
     # Verify simulation outputs
     _verify_simulation_outputs(runner, rundir, args['hpxml_path'], results)
 
-    return results, compload_results
+    # Get HVAC sizing outputs
+    sizing_results = _get_sizing_results(runner)
+
+    return results, compload_results, sizing_results
+  end
+
+  def _get_sizing_results(runner)
+    results = {}
+    runner.result.stepInfo.each do |s_info|
+      s_info.split("\n").each do |s|
+        next unless s.start_with? "Heat " or s.start_with? "Cool "
+        next unless s.include? "="
+
+        vals = s.split("=")
+        prop = vals[0].strip
+        vals = vals[1].split(" ")
+        value = Float(vals[0].strip)
+        prop += " [#{vals[1].strip}]" # add units
+        results[prop] = value
+      end
+    end
+    return results
   end
 
   def _verify_simulation_outputs(runner, rundir, hpxml_path, results)
@@ -621,11 +644,9 @@ class HPXMLTranslatorTest < MiniTest::Test
     end
 
     num_expected_kiva_instances = { 'base-foundation-ambient.xml' => 0,               # no foundation in contact w/ ground
-                                    'base-foundation-ambient-autosize.xml' => 0,      # no foundation in contact w/ ground
                                     'base-foundation-multiple.xml' => 2,              # additional instance for 2nd foundation type
                                     'base-enclosure-2stories-garage.xml' => 2,        # additional instance for garage
                                     'base-enclosure-garage.xml' => 2,                 # additional instance for garage
-                                    'base-enclosure-garage-autosize.xml' => 2,        # additional instance for garage
                                     'base-enclosure-adiabatic-surfaces.xml' => 0,     # no foundation in contact w/ ground
                                     'base-foundation-walkout-basement.xml' => 4,      # 3 foundation walls plus a no-wall exposed perimeter
                                     'base-foundation-complex.xml' => 10 }
@@ -1200,7 +1221,7 @@ class HPXMLTranslatorTest < MiniTest::Test
     puts "Wrote summary results to #{csv_out}."
   end
 
-  def write_component_load_results(results_dir, all_compload_results)
+  def _write_component_load_results(results_dir, all_compload_results)
     require 'csv'
     csv_out = File.join(results_dir, 'results_component_loads.csv')
 
@@ -1223,6 +1244,31 @@ class HPXMLTranslatorTest < MiniTest::Test
     end
 
     puts "Wrote component load results to #{csv_out}."
+  end
+
+  def _write_hvac_sizing_results(results_dir, all_sizing_results)
+    require 'csv'
+    csv_out = File.join(results_dir, 'results_hvac_sizing.csv')
+
+    output_keys = nil
+    all_sizing_results.each do |xml, xml_results|
+      output_keys = xml_results.keys
+      break
+    end
+    return if output_keys.nil?
+
+    CSV.open(csv_out, 'w') do |csv|
+      csv << ['HPXML'] + output_keys
+      all_sizing_results.sort.each do |xml, xml_results|
+        csv_row = [xml]
+        output_keys.each do |key|
+          csv_row << xml_results[key]
+        end
+        csv << csv_row
+      end
+    end
+
+    puts "Wrote HVAC sizing results to #{csv_out}."
   end
 
   def _test_schema_validation(this_dir, xml)

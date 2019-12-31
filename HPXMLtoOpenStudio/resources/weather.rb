@@ -25,8 +25,6 @@ end
 
 class WeatherProcess
   def initialize(model, runner)
-    @error = false
-
     @model = model
     @runner = runner
 
@@ -34,22 +32,15 @@ class WeatherProcess
     @data = WeatherData.new
     @design = WeatherDesign.new
 
-    @epw_path = WeatherProcess.get_epw_path(@model, @runner)
-    if @epw_path.nil?
-      @error = true
-      return
-    end
+    @epw_path = WeatherProcess.get_epw_path(@model)
 
     if not File.exist?(@epw_path)
-      @runner.registerError("Cannot find weather file at #{epw_path}.")
-      @error = true
-      return
+      fail "Cannot find weather file at #{epw_path}."
     end
 
     @epw_file = OpenStudio::EpwFile.new(@epw_path, true)
 
-    cached = get_cached_weather(@model)
-    return if cached or @error
+    get_cached_weather(@model)
 
     process_epw
 
@@ -58,10 +49,6 @@ class WeatherProcess
 
   def epw_path
     return @epw_path
-  end
-
-  def error?
-    return @error
   end
 
   def cache_weather(model)
@@ -77,9 +64,7 @@ class WeatherProcess
       elsif ['Latitude', 'Longitude', 'Timezone', 'Altitude', 'LocalPressure', 'RecordsPerHour'].include? k
         wf_ap.setFeature("EPWHeader#{k}", @header.send(k).to_f)
       else
-        @runner.registerError("Weather header key #{k} not handled.")
-        @error = true
-        return false
+        fail "Weather header key #{k} not handled."
       end
     end
 
@@ -95,9 +80,7 @@ class WeatherProcess
              'MonthlyAvgDailyHighDrybulbs', 'MonthlyAvgDailyLowDrybulbs'].include? k
         wf_ap.setFeature("EPWData#{k}", @data.send(k).join(","))
       else
-        @runner.registerError("Weather data key #{k} not handled.")
-        @error = true
-        return false
+        fail "Weather data key #{k} not handled."
       end
     end
 
@@ -121,7 +104,7 @@ class WeatherProcess
 
   private
 
-  def self.get_epw_path(model, runner)
+  def self.get_epw_path(model)
     if model.weatherFile.is_initialized
 
       wf = model.weatherFile.get
@@ -137,8 +120,7 @@ class WeatherProcess
       return epw_path
     end
 
-    runner.registerError("Model has not been assigned a weather file.")
-    return nil
+    fail "Model has not been assigned a weather file."
   end
 
   def get_cached_weather(model)
@@ -150,19 +132,17 @@ class WeatherProcess
       # string
       if ['City', 'State', 'Country', 'DataSource', 'Station'].include? k
         @header.send(k + "=", wf_ap.getFeatureAsString("EPWHeader#{k}"))
-        return false if !@header.send(k).is_initialized
+        fail "Could not retrieve cached weather data." if !@header.send(k).is_initialized
 
         @header.send(k + "=", @header.send(k).get)
       # double
       elsif ['Latitude', 'Longitude', 'Timezone', 'Altitude', 'LocalPressure', 'RecordsPerHour'].include? k
         @header.send(k + "=", wf_ap.getFeatureAsDouble("EPWHeader#{k}"))
-        return false if !@header.send(k).is_initialized
+        fail "Could not retrieve cached weather data." if !@header.send(k).is_initialized
 
         @header.send(k + "=", @header.send(k).get)
       else
-        @runner.registerError("Weather header key #{k} not handled.")
-        @error = true
-        return false
+        fail "Weather header key #{k} not handled."
       end
     end
 
@@ -173,20 +153,18 @@ class WeatherProcess
       if ['AnnualAvgDrybulb', 'AnnualMinDrybulb', 'AnnualMaxDrybulb', 'CDD50F', 'CDD65F',
           'HDD50F', 'HDD65F', 'AnnualAvgWindspeed', 'WSF'].include? k
         @data.send(k + "=", wf_ap.getFeatureAsDouble("EPWData#{k}"))
-        return false if !@data.send(k).is_initialized
+        fail "Could not retrieve cached weather data." if !@data.send(k).is_initialized
 
         @data.send(k + "=", @data.send(k).get)
       # array
       elsif ['MonthlyAvgDrybulbs', 'GroundMonthlyTemps',
              'MonthlyAvgDailyHighDrybulbs', 'MonthlyAvgDailyLowDrybulbs'].include? k
         @data.send(k + "=", wf_ap.getFeatureAsString("EPWData#{k}"))
-        return false if !@data.send(k).is_initialized
+        fail "Could not retrieve cached weather data." if !@data.send(k).is_initialized
 
         @data.send(k + "=", @data.send(k).get.split(",").map(&:to_f))
       else
-        @runner.registerError("Weather data key #{k} not handled.")
-        @error = true
-        return false
+        fail "Weather data key #{k} not handled."
       end
     end
 
@@ -195,12 +173,10 @@ class WeatherProcess
       k = k.to_s
       # double
       @design.send(k + "=", wf_ap.getFeatureAsDouble("EPWDesign#{k}"))
-      return false if !@design.send(k).is_initialized
+      fail "Could not retrieve cached weather data." if !@design.send(k).is_initialized
 
       @design.send(k + "=", @design.send(k).get)
     end
-
-    return true
   end
 
   def process_epw
@@ -234,41 +210,32 @@ class WeatherProcess
       if epwdata.dryBulbTemperature.is_initialized
         rowdict['db'] = epwdata.dryBulbTemperature.get
       else
-        @runner.registerError("Cannot retrieve dryBulbTemperature from the EPW for hour #{rownum + 1}.")
-        @error = true
+        fail "Cannot retrieve dryBulbTemperature from the EPW for hour #{rownum + 1}."
       end
       if epwdata.dewPointTemperature.is_initialized
         rowdict['dp'] = epwdata.dewPointTemperature.get
       else
-        @runner.registerError("Cannot retrieve dewPointTemperature from the EPW for hour #{rownum + 1}.")
-        @error = true
+        fail "Cannot retrieve dewPointTemperature from the EPW for hour #{rownum + 1}."
       end
       if epwdata.relativeHumidity.is_initialized
         rowdict['rh'] = epwdata.relativeHumidity.get / 100.0
       else
-        @runner.registerError("Cannot retrieve relativeHumidity from the EPW for hour #{rownum + 1}.")
-        @error = true
+        fail "Cannot retrieve relativeHumidity from the EPW for hour #{rownum + 1}."
       end
       if epwdata.directNormalRadiation.is_initialized
         rowdict['dirnormal'] = epwdata.directNormalRadiation.get # W/m^2
       else
-        @runner.registerError("Cannot retrieve directNormalRadiation from the EPW for hour #{rownum + 1}.")
-        @error = true
+        fail "Cannot retrieve directNormalRadiation from the EPW for hour #{rownum + 1}."
       end
       if epwdata.diffuseHorizontalRadiation.is_initialized
         rowdict['diffhoriz'] = epwdata.diffuseHorizontalRadiation.get # W/m^2
       else
-        @runner.registerError("Cannot retrieve diffuseHorizontalRadiation from the EPW for hour #{rownum + 1}.")
-        @error = true
+        fail "Cannot retrieve diffuseHorizontalRadiation from the EPW for hour #{rownum + 1}."
       end
       if epwdata.windSpeed.is_initialized
         rowdict['ws'] = epwdata.windSpeed.get
       else
-        @runner.registerError("Cannot retrieve windSpeed from the EPW for hour #{rownum + 1}.")
-        @error = true
-      end
-      if @error
-        return
+        fail "Cannot retrieve windSpeed from the EPW for hour #{rownum + 1}."
       end
 
       rowdata << rowdict

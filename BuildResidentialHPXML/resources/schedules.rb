@@ -29,13 +29,13 @@ class SchedulesFile
   def create_occupant_schedule
     return false if @num_occupants.nil?
 
-    @schedules["occupants"] = [1, 2, 3]
+    @schedules["occupants"] = Array.new(8760) { rand }
 
     return true
   end
 
   def create_refrigerator_schedule
-    @schedules["refrigerator"] = [4, 5, 6]
+    @schedules["refrigerator"] = Array.new(8760) { rand }
 
     return true
   end

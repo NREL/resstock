@@ -114,8 +114,7 @@ class HPXMLTranslator < OpenStudio::Measure::ModelMeasure
       hpxml_path = File.expand_path(File.join(File.dirname(__FILE__), hpxml_path))
     end
     unless File.exists?(hpxml_path) and hpxml_path.downcase.end_with? ".xml"
-      runner.registerError("'#{hpxml_path}' does not exist or is not an .xml file.")
-      return false
+      fail "'#{hpxml_path}' does not exist or is not an .xml file."
     end
 
     hpxml_doc = XMLHelper.parse_file(hpxml_path)
@@ -138,8 +137,7 @@ class HPXMLTranslator < OpenStudio::Measure::ModelMeasure
       if not epw_path.nil?
         epw_path = File.join(weather_dir, epw_path)
         if not File.exists?(epw_path)
-          runner.registerError("'#{epw_path}' could not be found.")
-          return false
+          fail "'#{epw_path}' could not be found."
         end
       else
         weather_wmo = climate_and_risk_zones_values[:weather_station_wmo]
@@ -148,14 +146,13 @@ class HPXMLTranslator < OpenStudio::Measure::ModelMeasure
 
           epw_path = File.join(weather_dir, row["filename"])
           if not File.exists?(epw_path)
-            runner.registerError("'#{epw_path}' could not be found.")
-            return false
+            fail "'#{epw_path}' could not be found."
           end
+
           break
         end
         if epw_path.nil?
-          runner.registerError("Weather station WMO '#{weather_wmo}' could not be found in weather/data.csv.")
-          return false
+          fail "Weather station WMO '#{weather_wmo}' could not be found in weather/data.csv."
         end
       end
       cache_path = epw_path.gsub('.epw', '.cache')
@@ -165,11 +162,6 @@ class HPXMLTranslator < OpenStudio::Measure::ModelMeasure
         epw_file = OpenStudio::EpwFile.new(epw_path)
         OpenStudio::Model::WeatherFile.setWeatherFile(model, epw_file)
         weather = WeatherProcess.new(model, runner)
-        if weather.error? or weather.data.WSF.nil?
-          runner.registerError("Could not successfully process weather file.")
-          return false
-        end
-
         File.open(cache_path, "wb") do |file|
           Marshal.dump(weather, file)
         end
@@ -179,19 +171,17 @@ class HPXMLTranslator < OpenStudio::Measure::ModelMeasure
       end
 
       # Apply Location to obtain weather data
-      success, weather = Location.apply(model, runner, epw_path, "NA", "NA")
-      return false if not success
+      weather = Location.apply(model, runner, epw_path, "NA", "NA")
 
       # Create OpenStudio model
-      if not OSModel.create(hpxml_doc, runner, model, weather, map_tsv_dir, hpxml_path)
-        runner.registerError("Unsuccessful creation of OpenStudio model.")
-        return false
-      end
+      OSModel.create(hpxml_doc, runner, model, weather, map_tsv_dir, hpxml_path)
     rescue Exception => e
       if skip_validation
         # Something went wrong, check for invalid HPXML file now. This was previously
         # skipped to reduce runtime (see https://github.com/NREL/OpenStudio-ERI/issues/47).
-        validate_hpxml(runner, hpxml_path, hpxml_doc, schemas_dir)
+        if not validate_hpxml(runner, hpxml_path, hpxml_doc, schemas_dir)
+          return false
+        end
       end
 
       # Report exception
@@ -208,20 +198,19 @@ class HPXMLTranslator < OpenStudio::Measure::ModelMeasure
   end
 
   def validate_hpxml(runner, hpxml_path, hpxml_doc, schemas_dir)
-    is_valid = true
-
     if schemas_dir.is_initialized
       schemas_dir = schemas_dir.get
       unless (Pathname.new schemas_dir).absolute?
         schemas_dir = File.expand_path(File.join(File.dirname(__FILE__), schemas_dir))
       end
       unless Dir.exists?(schemas_dir)
-        runner.registerError("'#{schemas_dir}' does not exist.")
-        return false
+        fail "'#{schemas_dir}' does not exist."
       end
     else
       schemas_dir = nil
     end
+
+    is_valid = true
 
     # Validate input HPXML against schema
     if not schemas_dir.nil?
@@ -301,79 +290,49 @@ class OSModel
 
     # Simulation parameters
 
-    success = add_simulation_params(runner, model)
-    return false if not success
+    add_simulation_params(model)
 
     # Geometry/Envelope
 
-    spaces = {}
-    success = add_geometry_envelope(runner, model, building, weather, spaces)
-    return false if not success
+    spaces = add_geometry_envelope(runner, model, building, weather)
 
     # Bedrooms, Occupants
 
-    success = add_num_occupants(model, building, runner)
-    return false if not success
+    add_num_occupants(model, building, runner)
 
     # HVAC
 
     @total_frac_remaining_heat_load_served = 1.0
     @total_frac_remaining_cool_load_served = 1.0
 
-    success = add_cooling_system(runner, model, building)
-    return false if not success
-
-    success = add_heating_system(runner, model, building)
-    return false if not success
-
-    success = add_heat_pump(runner, model, building, weather)
-    return false if not success
-
-    success = add_residual_hvac(runner, model, building)
-    return false if not success
-
-    success = add_setpoints(runner, model, building, weather)
-    return false if not success
-
-    success = add_ceiling_fans(runner, model, building, weather)
-    return false if not success
+    add_cooling_system(runner, model, building)
+    add_heating_system(runner, model, building)
+    add_heat_pump(runner, model, building, weather)
+    add_residual_hvac(runner, model, building)
+    add_setpoints(runner, model, building, weather)
+    add_ceiling_fans(runner, model, building, weather)
 
     # Hot Water
 
-    success = add_hot_water_and_appliances(runner, model, building, weather, spaces)
-    return false if not success
+    add_hot_water_and_appliances(runner, model, building, weather, spaces)
 
     # Plug Loads & Lighting
 
-    success = add_mels(runner, model, building, spaces)
-    return false if not success
-
-    success = add_lighting(runner, model, building, weather, spaces)
-    return false if not success
+    add_mels(runner, model, building, spaces)
+    add_lighting(runner, model, building, weather, spaces)
 
     # Other
 
-    success = add_airflow(runner, model, building, weather, spaces)
-    return false if not success
-
-    success = add_hvac_sizing(runner, model, weather)
-    return false if not success
-
-    success = add_fuel_heating_eae(runner, model, building)
-    return false if not success
-
-    success = add_photovoltaics(runner, model, building)
-    return false if not success
-
-    success = add_outputs(runner, model, map_tsv_dir)
-    return false if not success
-
-    return true
+    add_airflow(runner, model, building, weather, spaces)
+    add_hvac_sizing(runner, model, weather)
+    add_fuel_heating_eae(runner, model, building)
+    add_photovoltaics(runner, model, building)
+    add_outputs(runner, model, map_tsv_dir)
   end
 
   private
 
-  def self.add_simulation_params(runner, model)
+  def self.add_simulation_params(model)
     sim = model.getSimulationControl
     sim.setRunSimulationforSizingPeriods(false)
 
@@ -395,66 +354,35 @@ class OSModel
 
     convlim = model.getConvergenceLimits
     convlim.setMinimumSystemTimestep(0)
-
-    return true
   end
 
-  def self.add_geometry_envelope(runner, model, building, weather, spaces)
+  def self.add_geometry_envelope(runner, model, building, weather)
+    spaces = {}
     @foundation_top, @walls_top = get_foundation_and_walls_top(building)
 
-    heating_season, cooling_season = HVAC.calc_heating_and_cooling_seasons(model, weather, runner)
-    return false if heating_season.nil? or cooling_season.nil?
-
-    success = add_roofs(runner, model, building, spaces)
-    return false if not success
-
-    success = add_walls(runner, model, building, spaces)
-    return false if not success
-
-    success = add_rim_joists(runner, model, building, spaces)
-    return false if not success
-
-    success = add_framefloors(runner, model, building, spaces)
-    return false if not success
-
-    success = add_foundation_walls_slabs(runner, model, building, spaces)
-    return false if not success
-
-    success = add_windows(runner, model, building, spaces, weather, cooling_season)
-    return false if not success
-
-    success = add_doors(runner, model, building, spaces)
-    return false if not success
-
-    success = add_skylights(runner, model, building, spaces, weather, cooling_season)
-    return false if not success
-
-    success = add_conditioned_floor_area(runner, model, building, spaces)
-    return false if not success
+    add_roofs(runner, model, building, spaces)
+    add_walls(runner, model, building, spaces)
+    add_rim_joists(runner, model, building, spaces)
+    add_framefloors(runner, model, building, spaces)
+    add_foundation_walls_slabs(runner, model, building, spaces)
+    is_sch = add_interior_shading_schedule(runner, model, weather)
+    add_windows(runner, model, building, spaces, weather, is_sch)
+    add_doors(runner, model, building, spaces)
+    add_skylights(runner, model, building, spaces, weather, is_sch)
+    add_conditioned_floor_area(runner, model, building, spaces)
 
     # update living space/zone global variable
     @living_space = get_space_of_type(spaces, Constants.SpaceTypeLiving)
     @living_zone = @living_space.thermalZone.get
 
-    success = add_thermal_mass(runner, model, building)
-    return false if not success
+    add_thermal_mass(runner, model, building)
+    modify_cond_basement_surface_properties(runner, model)
+    assign_view_factor(runner, model)
+    check_for_errors(runner, model)
+    set_zone_volumes(runner, model, building)
+    explode_surfaces(runner, model, building)
 
-    success = modify_cond_basement_surface_properties(runner, model)
-    return false if not success
-
-    success = assign_view_factor(runner, model)
-    return false if not success
-
-    success = check_for_errors(runner, model)
-    return false if not success
-
-    success = set_zone_volumes(runner, model, building)
-    return false if not success
-
-    success = explode_surfaces(runner, model, building)
-    return false if not success
-
-    return true
+    return spaces
   end
 
   def self.set_zone_volumes(runner, model, building)
@@ -523,8 +451,6 @@ class OSModel
     if zones_updated != thermal_zones.size
       fail "Unhandled volume calculations for thermal zones."
     end
-
-    return true
   end
 
   def self.explode_surfaces(runner, model, building)
@@ -573,8 +499,7 @@ class OSModel
     end
     explode_distance = max_azimuth_length / (2.0 * Math.tan(UnitConversions.convert(180.0 / nsides, "deg", "rad")))
 
-    success = add_neighbors(runner, model, building, max_azimuth_length)
-    return false if not success
+    add_neighbors(runner, model, building, max_azimuth_length)
 
     # Initial distance of shifts at 90-degrees to horizontal outward
     azimuth_side_shifts = {}
@@ -592,8 +517,7 @@ class OSModel
         distance = shading_surface.additionalProperties.getFeatureAsDouble("Distance").get
 
         unless azimuth_lengths.keys.include? azimuth
-          runner.registerError("A neighbor building has an azimuth (#{azimuth}) not equal to the azimuth of any wall.")
-          return false
+          fail "A neighbor building has an azimuth (#{azimuth}) not equal to the azimuth of any wall."
         end
 
         # Push out horizontally
@@ -666,8 +590,6 @@ class OSModel
 
       surfaces_moved << surface
     end
-
-    return true
   end
 
   def self.check_for_errors(runner, model)
@@ -699,24 +621,18 @@ class OSModel
       end
 
       if n_floors == 0
-        runner.registerError("'#{zone.name}' must have at least one floor surface.")
-        return false
+        fail "'#{zone.name}' must have at least one floor surface."
       end
       if n_roofceilings == 0
-        runner.registerError("'#{zone.name}' must have at least one roof/ceiling surface.")
-        return false
+        fail "'#{zone.name}' must have at least one roof/ceiling surface."
       end
       if n_walls == 0 and not [Constants.SpaceTypeUnventedAttic, Constants.SpaceTypeVentedAttic].include? zone.name.to_s
-        runner.registerError("'#{zone.name}' must have at least one wall surface.")
-        return false
+        fail "'#{zone.name}' must have at least one wall surface."
       end
       if n_exteriors == 0
-        runner.registerError("'#{zone.name}' must have at least one surface adjacent to outside/ground.")
-        return false
+        fail "'#{zone.name}' must have at least one surface adjacent to outside/ground."
       end
     end
-
-    return true
   end
 
   def self.modify_cond_basement_surface_properties(runner, model)
@@ -750,7 +666,6 @@ class OSModel
       innermost_material.setSolarAbsorptance(0.0)
       innermost_material.setVisibleAbsorptance(0.0)
     end
-    return true
   end
 
   def self.assign_view_factor(runner, model)
@@ -794,15 +709,13 @@ class OSModel
         else
           vf = vf_map_cb[from_surface][to_surface]
         end
-        next if vf < 0.01 # TODO: Remove this when https://github.com/NREL/OpenStudio/issues/3737 is resolved
+        next if vf < 0.01
 
         os_vf = OpenStudio::Model::ViewFactor.new(from_surface, to_surface, vf.round(10))
         zone_prop = @living_zone.getZonePropertyUserViewFactorsBySurfaceName
         zone_prop.addViewFactor(os_vf)
       end
     end
-
-    return true
   end
 
   def self.calc_approximate_view_factor(runner, model, all_surfaces)
@@ -1042,19 +955,16 @@ class OSModel
     end
     if num_occ > 0
       occ_gain, hrs_per_day, sens_frac, lat_frac = Geometry.get_occupancy_default_values()
-      weekday_sch = "1.00000, 1.00000, 1.00000, 1.00000, 1.00000, 1.00000, 1.00000, 0.88310, 0.40861, 0.24189, 0.24189, 0.24189, 0.24189, 0.24189, 0.24189, 0.24189, 0.29498, 0.55310, 0.89693, 0.89693, 0.89693, 1.00000, 1.00000, 1.00000" # TODO: Normalize schedule based on hrs_per_day
+      weekday_sch = "1.00000, 1.00000, 1.00000, 1.00000, 1.00000, 1.00000, 1.00000, 0.88310, 0.40861, 0.24189, 0.24189, 0.24189, 0.24189, 0.24189, 0.24189, 0.24189, 0.29498, 0.55310, 0.89693, 0.89693, 0.89693, 1.00000, 1.00000, 1.00000"
       weekday_sch_sum = weekday_sch.split(",").map(&:to_f).inject(0, :+)
       if (weekday_sch_sum - hrs_per_day).abs > 0.1
-        runner.registerError("Occupancy schedule inconsistent with hrs_per_day.")
-        return false
+        fail "Occupancy schedule inconsistent with hrs_per_day."
       end
+
       weekend_sch = weekday_sch
       monthly_sch = "1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0"
-      success = Geometry.process_occupants(model, runner, num_occ, occ_gain, sens_frac, lat_frac, weekday_sch, weekend_sch, monthly_sch, @cfa, @nbeds, @living_space)
-      return false if not success
+      Geometry.process_occupants(model, num_occ, occ_gain, sens_frac, lat_frac, weekday_sch, weekend_sch, monthly_sch, @cfa, @nbeds, @living_space)
     end
-
-    return true
   end
 
   def self.calc_subsurface_areas_by_surface(building)
@@ -1210,19 +1120,15 @@ class OSModel
 
       install_grade = 1
 
-      success = Constructions.apply_closed_cavity_roof(runner, model, surfaces, "#{roof_values[:id]} construction",
-                                                       cavity_r, install_grade,
-                                                       constr_set.stud.thick_in,
-                                                       true, constr_set.framing_factor,
-                                                       constr_set.drywall_thick_in,
-                                                       constr_set.osb_thick_in, constr_set.rigid_r,
-                                                       constr_set.exterior_material, has_radiant_barrier)
-      return false if not success
-
+      Constructions.apply_closed_cavity_roof(model, surfaces, "#{roof_values[:id]} construction",
+                                             cavity_r, install_grade,
+                                             constr_set.stud.thick_in,
+                                             true, constr_set.framing_factor,
+                                             constr_set.drywall_thick_in,
+                                             constr_set.osb_thick_in, constr_set.rigid_r,
+                                             constr_set.exterior_material, has_radiant_barrier)
       check_surface_assembly_rvalue(runner, surfaces, film_r, assembly_r, match)
     end
-
-    return true
   end
 
   def self.add_walls(runner, model, building, spaces)
@@ -1291,12 +1197,9 @@ class OSModel
         mat_ext_finish = nil
       end
 
-      success = apply_wall_construction(runner, model, surfaces, wall_values[:id], wall_values[:wall_type], wall_values[:insulation_assembly_r_value],
-                                        drywall_thick_in, film_r, mat_ext_finish)
-      return false if not success
+      apply_wall_construction(runner, model, surfaces, wall_values[:id], wall_values[:wall_type], wall_values[:insulation_assembly_r_value],
+                              drywall_thick_in, film_r, mat_ext_finish)
     end
-
-    return true
   end
 
   def self.add_rim_joists(runner, model, building, spaces)
@@ -1369,16 +1272,12 @@ class OSModel
       match, constr_set, cavity_r = pick_wood_stud_construction_set(assembly_r, constr_sets, film_r, rim_joist_values[:id])
       install_grade = 1
 
-      success = Constructions.apply_rim_joist(runner, model, surfaces, "#{rim_joist_values[:id]} construction",
-                                              cavity_r, install_grade, constr_set.framing_factor,
-                                              constr_set.drywall_thick_in, constr_set.osb_thick_in,
-                                              constr_set.rigid_r, constr_set.exterior_material)
-      return false if not success
-
+      Constructions.apply_rim_joist(model, surfaces, "#{rim_joist_values[:id]} construction",
+                                    cavity_r, install_grade, constr_set.framing_factor,
+                                    constr_set.drywall_thick_in, constr_set.osb_thick_in,
+                                    constr_set.rigid_r, constr_set.exterior_material)
       check_surface_assembly_rvalue(runner, surfaces, film_r, assembly_r, match)
     end
-
-    return true
   end
 
   def self.add_framefloors(runner, model, building, spaces)
@@ -1424,17 +1323,13 @@ class OSModel
       install_grade = 1
 
       # Floor
-      success = Constructions.apply_floor(runner, model, [surface], "#{framefloor_values[:id]} construction",
-                                          cavity_r, install_grade,
-                                          constr_set.framing_factor, constr_set.stud.thick_in,
-                                          constr_set.osb_thick_in, constr_set.rigid_r,
-                                          mat_floor_covering, constr_set.exterior_material)
-      return false if not success
-
+      Constructions.apply_floor(model, [surface], "#{framefloor_values[:id]} construction",
+                                cavity_r, install_grade,
+                                constr_set.framing_factor, constr_set.stud.thick_in,
+                                constr_set.osb_thick_in, constr_set.rigid_r,
+                                mat_floor_covering, constr_set.exterior_material)
       check_surface_assembly_rvalue(runner, [surface], film_r, assembly_r, match)
     end
-
-    return true
   end
 
   def self.add_foundation_walls_slabs(runner, model, building, spaces)
@@ -1508,7 +1403,6 @@ class OSModel
           fnd_wall_values = fnd_walls_values[fnd_wall]
           kiva_foundation = add_foundation_wall(runner, model, spaces, fnd_wall_values, slab_frac,
                                                 total_fnd_wall_length, total_slab_exp_perim)
-          return false if kiva_foundation.nil?
         end
 
         # Add single combined foundation slab surface (for similar surfaces)
@@ -1535,7 +1429,6 @@ class OSModel
         end
         kiva_foundation = add_foundation_slab(runner, model, spaces, slab_values, slab_exp_perim,
                                               slab_area, z_origin, kiva_foundation)
-        return false if kiva_foundation.nil?
       end
 
       # For each slab, create a no-wall Kiva slab instance if needed.
@@ -1547,7 +1440,6 @@ class OSModel
         slab_area = total_slab_area * no_wall_slab_exp_perim[slab] / total_slab_exp_perim
         kiva_foundation = add_foundation_slab(runner, model, spaces, slab_values, no_wall_slab_exp_perim[slab],
                                               slab_area, z_origin, nil)
-        return false if kiva_foundation.nil?
       end
 
       # Interzonal foundation wall surfaces
@@ -1594,13 +1486,14 @@ class OSModel
         assembly_r = fnd_wall_values[:insulation_assembly_r_value]
         if assembly_r.nil?
           concrete_thick_in = fnd_wall_values[:thickness]
-          assembly_r = fnd_wall_values[:insulation_r_value] + Material.Concrete(concrete_thick_in).rvalue + Material.GypsumWall(drywall_thick_in).rvalue + film_r
+          int_r = fnd_wall_values[:insulation_interior_r_value]
+          ext_r = fnd_wall_values[:insulation_exterior_r_value]
+          assembly_r = int_r + ext_r + Material.Concrete(concrete_thick_in).rvalue + Material.GypsumWall(drywall_thick_in).rvalue + film_r
         end
         mat_ext_finish = nil
 
-        success = apply_wall_construction(runner, model, [surface], fnd_wall_values[:id], wall_type, assembly_r,
-                                          drywall_thick_in, film_r, mat_ext_finish)
-        return false if not success
+        apply_wall_construction(runner, model, [surface], fnd_wall_values[:id], wall_type, assembly_r,
+                                drywall_thick_in, film_r, mat_ext_finish)
       end
     end
   end
@@ -1648,41 +1541,39 @@ class OSModel
     else
       drywall_thick_in = 0.0
     end
-    filled_cavity = true
     concrete_thick_in = fnd_wall_values[:thickness]
-    cavity_r = 0.0
-    cavity_depth_in = 0.0
-    install_grade = 1
-    framing_factor = 0.0
     assembly_r = fnd_wall_values[:insulation_assembly_r_value]
     if not assembly_r.nil?
-      rigid_height = height
+      ext_rigid_height = height
+      ext_rigid_offset = 0.0
       film_r = Material.AirFilmVertical.rvalue
-      rigid_r = assembly_r - Material.Concrete(concrete_thick_in).rvalue - Material.GypsumWall(drywall_thick_in).rvalue - film_r
-      if rigid_r < 0 # Try without drywall
+      ext_rigid_r = assembly_r - Material.Concrete(concrete_thick_in).rvalue - Material.GypsumWall(drywall_thick_in).rvalue - film_r
+      int_rigid_r = 0.0
+      if ext_rigid_r < 0 # Try without drywall
         drywall_thick_in = 0.0
-        rigid_r = assembly_r - Material.Concrete(concrete_thick_in).rvalue - Material.GypsumWall(drywall_thick_in).rvalue - film_r
+        ext_rigid_r = assembly_r - Material.Concrete(concrete_thick_in).rvalue - Material.GypsumWall(drywall_thick_in).rvalue - film_r
       end
-      if rigid_r > 0 and rigid_r < 0.1
-        rigid_r = 0.0 # Prevent tiny strip of insulation
+      if ext_rigid_r > 0 and ext_rigid_r < 0.1
+        ext_rigid_r = 0.0 # Prevent tiny strip of insulation
       end
-      if rigid_r < 0
-        rigid_r = 0.0
+      if ext_rigid_r < 0
+        ext_rigid_r = 0.0
         match = false
       else
         match = true
       end
     else
-      rigid_height = fnd_wall_values[:insulation_distance_to_bottom]
-      rigid_r = fnd_wall_values[:insulation_r_value]
+      ext_rigid_offset = fnd_wall_values[:insulation_exterior_distance_to_top]
+      ext_rigid_height = fnd_wall_values[:insulation_exterior_distance_to_bottom] - ext_rigid_offset
+      ext_rigid_r = fnd_wall_values[:insulation_exterior_r_value]
+      int_rigid_offset = fnd_wall_values[:insulation_interior_distance_to_top]
+      int_rigid_height = fnd_wall_values[:insulation_interior_distance_to_bottom] - int_rigid_offset
+      int_rigid_r = fnd_wall_values[:insulation_interior_r_value]
     end
 
-    success = Constructions.apply_foundation_wall(runner, model, [surface], "#{fnd_wall_values[:id]} construction",
-                                                  rigid_height, cavity_r, install_grade,
-                                                  cavity_depth_in, filled_cavity, framing_factor,
-                                                  rigid_r, drywall_thick_in, concrete_thick_in,
-                                                  height, height_ag)
-    return nil if not success
+    Constructions.apply_foundation_wall(model, [surface], "#{fnd_wall_values[:id]} construction",
+                                        ext_rigid_offset, int_rigid_offset, ext_rigid_height, int_rigid_height,
+                                        ext_rigid_r, int_rigid_r, drywall_thick_in, concrete_thick_in, height_ag)
 
     if not assembly_r.nil?
       check_surface_assembly_rvalue(runner, [surface], film_r, assembly_r, match)
@@ -1741,12 +1632,10 @@ class OSModel
                                          slab_values[:carpet_r_value])
     end
 
-    success = Constructions.apply_foundation_slab(runner, model, surface, "#{slab_values[:id]} construction",
-                                                  slab_under_r, slab_under_width, slab_gap_r, slab_perim_r,
-                                                  slab_perim_depth, slab_whole_r, slab_values[:thickness],
-                                                  slab_exp_perim, mat_carpet, kiva_foundation)
-    return nil if not success
-
+    Constructions.apply_foundation_slab(model, surface, "#{slab_values[:id]} construction",
+                                        slab_under_r, slab_under_width, slab_gap_r, slab_perim_r,
+                                        slab_perim_depth, slab_whole_r, slab_values[:thickness],
+                                        slab_exp_perim, mat_carpet, kiva_foundation)
     # FIXME: Temporary code for sizing
     surface.additionalProperties.setFeature(Constants.SizingInfoSlabRvalue, 10.0)
 
@@ -1754,7 +1643,6 @@ class OSModel
   end
 
   def self.add_conditioned_floor_area(runner, model, building, spaces)
-    # FIXME: Simplify this.
     # TODO: Use HPXML values not Model values
     cfa = @cfa.round(1)
 
@@ -1774,7 +1662,7 @@ class OSModel
     end
 
     addtl_cfa = cfa - model_cfa
-    return true unless addtl_cfa > 0
+    return unless addtl_cfa > 0
 
     conditioned_floor_width = Math::sqrt(addtl_cfa)
     conditioned_floor_length = addtl_cfa / conditioned_floor_width
@@ -1807,28 +1695,21 @@ class OSModel
     end
 
     # Apply Construction
-    success = apply_adiabatic_construction(runner, model, [floor_surface, ceiling_surface], "floor")
-    return false if not success
-
-    return true
+    apply_adiabatic_construction(runner, model, [floor_surface, ceiling_surface], "floor")
   end
 
   def self.add_thermal_mass(runner, model, building)
     drywall_thick_in = 0.5
     partition_frac_of_cfa = 1.0 # Ratio of partition wall area to conditioned floor area
     basement_frac_of_cfa = (@cfa - @cfa_ag) / @cfa
-    success = Constructions.apply_partition_walls(runner, model, "PartitionWallConstruction", drywall_thick_in, partition_frac_of_cfa,
-                                                  basement_frac_of_cfa, @cond_bsmnt_surfaces, @living_space)
-    return false if not success
+    Constructions.apply_partition_walls(model, "PartitionWallConstruction", drywall_thick_in, partition_frac_of_cfa,
+                                        basement_frac_of_cfa, @cond_bsmnt_surfaces, @living_space)
 
     mass_lb_per_sqft = 8.0
     density_lb_per_cuft = 40.0
     mat = BaseMaterial.Wood
-    success = Constructions.apply_furniture(runner, model, mass_lb_per_sqft, density_lb_per_cuft, mat,
-                                            basement_frac_of_cfa, @cond_bsmnt_surfaces, @living_space)
-    return false if not success
-
-    return true
+    Constructions.apply_furniture(model, mass_lb_per_sqft, density_lb_per_cuft, mat,
+                                  basement_frac_of_cfa, @cond_bsmnt_surfaces, @living_space)
   end
 
   def self.add_neighbors(runner, model, building, length)
@@ -1870,11 +1751,15 @@ class OSModel
         shading_surface.setShadingSurfaceGroup(shading_surface_group)
       end
     end
-
-    return true
   end
 
-  def self.add_windows(runner, model, building, spaces, weather, cooling_season)
+  def self.add_interior_shading_schedule(runner, model, weather)
+    heating_season, cooling_season = HVAC.calc_heating_and_cooling_seasons(model, weather)
+    sch = MonthWeekdayWeekendSchedule.new(model, "interior shading schedule", Array.new(24, 1), Array.new(24, 1), cooling_season, mult_weekday = 1.0, mult_weekend = 1.0, normalize_values = true, create_sch_object = true, schedule_type_limits_name = Constants.ScheduleTypeLimitsFraction)
+    return sch
+  end
+
+  def self.add_windows(runner, model, building, spaces, weather, is_sch)
     surfaces = []
     building.elements.each("BuildingDetails/Enclosure/Windows/Window") do |window|
       window_values = HPXML.get_window_values(window: window)
@@ -1935,20 +1820,16 @@ class OSModel
       if not window_values[:interior_shading_factor_winter].nil?
         heat_shade_mult = window_values[:interior_shading_factor_winter]
       end
-      success = Constructions.apply_window(runner, model, [sub_surface],
-                                           "WindowConstruction",
-                                           weather, cooling_season, ufactor, shgc,
-                                           heat_shade_mult, cool_shade_mult)
-      return false if not success
+      Constructions.apply_window(model, [sub_surface],
+                                 "WindowConstruction",
+                                 weather, is_sch, ufactor, shgc,
+                                 heat_shade_mult, cool_shade_mult)
     end
 
-    success = apply_adiabatic_construction(runner, model, surfaces, "wall")
-    return false if not success
-
-    return true
+    apply_adiabatic_construction(runner, model, surfaces, "wall")
   end
 
-  def self.add_skylights(runner, model, building, spaces, weather, cooling_season)
+  def self.add_skylights(runner, model, building, spaces, weather, is_sch)
     surfaces = []
     building.elements.each("BuildingDetails/Enclosure/Skylights/Skylight") do |skylight|
       skylight_values = HPXML.get_skylight_values(skylight: skylight)
@@ -2000,17 +1881,13 @@ class OSModel
       shgc = skylight_values[:shgc]
       cool_shade_mult = 1.0
       heat_shade_mult = 1.0
-      success = Constructions.apply_skylight(runner, model, [sub_surface],
-                                             "SkylightConstruction",
-                                             weather, cooling_season, ufactor, shgc,
-                                             heat_shade_mult, cool_shade_mult)
-      return false if not success
+      Constructions.apply_skylight(model, [sub_surface],
+                                   "SkylightConstruction",
+                                   weather, is_sch, ufactor, shgc,
+                                   heat_shade_mult, cool_shade_mult)
     end
 
-    success = apply_adiabatic_construction(runner, model, surfaces, "roof")
-    return false if not success
-
-    return true
+    apply_adiabatic_construction(runner, model, surfaces, "roof")
   end
 
   def self.add_doors(runner, model, building, spaces)
@@ -2049,14 +1926,10 @@ class OSModel
       # Apply construction
       ufactor = 1.0 / door_values[:r_value]
 
-      success = Constructions.apply_door(runner, model, [sub_surface], "Door", ufactor)
-      return false if not success
+      Constructions.apply_door(model, [sub_surface], "Door", ufactor)
     end
 
-    success = apply_adiabatic_construction(runner, model, surfaces, "wall")
-    return false if not success
-
-    return true
+    apply_adiabatic_construction(runner, model, surfaces, "wall")
   end
 
   def self.apply_adiabatic_construction(runner, model, surfaces, type)
@@ -2065,29 +1938,18 @@ class OSModel
     # adiabatic or surface net area is near zero.
 
     if type == "wall"
-
-      success = Constructions.apply_wood_stud_wall(runner, model, surfaces, "AdiabaticWallConstruction",
-                                                   0, 1, 3.5, true, 0.1, 0.5, 0, 999,
-                                                   Material.ExtFinishStuccoMedDark)
-      return false if not success
-
+      Constructions.apply_wood_stud_wall(model, surfaces, "AdiabaticWallConstruction",
+                                         0, 1, 3.5, true, 0.1, 0.5, 0, 999,
+                                         Material.ExtFinishStuccoMedDark)
     elsif type == "floor"
-
-      success = Constructions.apply_floor(runner, model, surfaces, "AdiabaticFloorConstruction",
-                                          0, 1, 0.07, 5.5, 0.75, 999,
-                                          Material.FloorWood, Material.CoveringBare)
-      return false if not success
-
+      Constructions.apply_floor(model, surfaces, "AdiabaticFloorConstruction",
+                                0, 1, 0.07, 5.5, 0.75, 999,
+                                Material.FloorWood, Material.CoveringBare)
     elsif type == "roof"
-
-      success = Constructions.apply_open_cavity_roof(runner, model, surfaces, "AdiabaticRoofConstruction",
-                                                     0, 1, 7.25, 0.07, 7.25, 0.75, 999,
-                                                     Material.RoofingAsphaltShinglesMed, false)
-      return false if not success
-
+      Constructions.apply_open_cavity_roof(model, surfaces, "AdiabaticRoofConstruction",
+                                           0, 1, 7.25, 0.07, 7.25, 0.75, 999,
+                                           Material.RoofingAsphaltShinglesMed, false)
     end
-
-    return true
   end
 
   def self.add_hot_water_and_appliances(runner, model, building, weather, spaces)
@@ -2159,6 +2021,7 @@ class OSModel
     end
 
     wh = building.elements["BuildingDetails/Systems/WaterHeating"]
+    sts = building.elements["BuildingDetails/Systems/SolarThermal/SolarThermalSystem"]
 
     # Fixtures
     has_low_flow_fixtures = false
@@ -2213,6 +2076,7 @@ class OSModel
     # Water Heater
     related_hvac_list = [] # list of heating systems referred in water heating system "RelatedHVACSystem" element
     dhw_loop_fracs = {}
+    water_heater_spaces = {}
     combi_sys_id_list = []
     if not wh.nil?
       wh.elements.each("WaterHeatingSystem") do |dhw|
@@ -2222,6 +2086,7 @@ class OSModel
         @dhw_map[sys_id] = []
 
         space = get_space_from_location(water_heating_system_values[:location], "WaterHeatingSystem", model, spaces)
+        water_heater_spaces[sys_id] = space
         setpoint_temp = Waterheater.get_default_hot_water_temperature(@eri_version)
         wh_type = water_heating_system_values[:water_heater_type]
         fuel = water_heating_system_values[:fuel_type]
@@ -2248,109 +2113,148 @@ class OSModel
           end
         end
 
+        # Check if simple solar water heater (defined by Solar Fraction) attached.
+        # Solar fraction is used to adjust water heater's tank losses and hot water use, because it is
+        # the portion of the total conventional hot water heating load (delivered energy + tank losses).
+        solar_fraction = nil
+        solar_thermal_values = HPXML.get_solar_thermal_system_values(solar_thermal_system: sts,
+                                                                     select: [:solar_fraction, :water_heating_system_idref])
+        if not solar_thermal_values.nil? and solar_thermal_values[:water_heating_system_idref] == sys_id
+          solar_fraction = solar_thermal_values[:solar_fraction]
+        end
+        solar_fraction = 0.0 if solar_fraction.nil?
+
         ec_adj = HotWaterAndAppliances.get_dist_energy_consumption_adjustment(@has_uncond_bsmnt, @cfa, @ncfl,
                                                                               dist_type, recirc_control_type,
                                                                               pipe_r, std_pipe_length, recirc_loop_length)
 
         runner.registerInfo("EC_adj=#{ec_adj}") # Pass value to tests
 
-        dhw_load_frac = water_heating_system_values[:fraction_dhw_load_served]
+        dhw_load_frac = water_heating_system_values[:fraction_dhw_load_served] * (1.0 - solar_fraction)
+
+        @dhw_map[sys_id] = []
 
         if wh_type == "storage water heater"
 
           tank_vol = water_heating_system_values[:tank_volume]
-          if fuel != "electricity"
-            re = water_heating_system_values[:recovery_efficiency]
-          else
-            re = 0.98
-          end
+          re = water_heating_system_values[:recovery_efficiency]
           capacity_kbtuh = water_heating_system_values[:heating_capacity] / 1000.0
-          oncycle_power = 0.0
-          offcycle_power = 0.0
-          success = Waterheater.apply_tank(model, runner, space, to_beopt_fuel(fuel),
-                                           capacity_kbtuh, tank_vol, ef, re, setpoint_temp,
-                                           oncycle_power, offcycle_power, ec_adj,
-                                           @nbeds, @dhw_map, sys_id, desuperheater_clg_coil, jacket_r)
-          return false if not success
+
+          Waterheater.apply_tank(model, space, to_beopt_fuel(fuel), capacity_kbtuh, tank_vol,
+                                 ef, re, setpoint_temp, ec_adj, @nbeds, @dhw_map,
+                                 sys_id, desuperheater_clg_coil, jacket_r, solar_fraction)
 
         elsif wh_type == "instantaneous water heater"
 
           cycling_derate = water_heating_system_values[:performance_adjustment]
-          if cycling_derate.nil?
-            cycling_derate = Waterheater.get_tankless_cycling_derate()
-          end
 
-          capacity_kbtuh = 100000000.0
-          oncycle_power = 0.0
-          offcycle_power = 0.0
-          success = Waterheater.apply_tankless(model, runner, space, to_beopt_fuel(fuel),
-                                               capacity_kbtuh, ef, cycling_derate,
-                                               setpoint_temp, oncycle_power, offcycle_power, ec_adj,
-                                               @nbeds, @dhw_map, sys_id, desuperheater_clg_coil)
-          return false if not success
+          Waterheater.apply_tankless(model, space, to_beopt_fuel(fuel), ef, cycling_derate,
+                                     setpoint_temp, ec_adj, @nbeds, @dhw_map,
+                                     sys_id, desuperheater_clg_coil, solar_fraction)
 
         elsif wh_type == "heat pump water heater"
 
           tank_vol = water_heating_system_values[:tank_volume]
-          success = Waterheater.apply_heatpump(model, runner, space, weather, setpoint_temp, tank_vol, ef, ec_adj,
-                                               @nbeds, @dhw_map, sys_id, jacket_r)
-          return false if not success
+
+          Waterheater.apply_heatpump(model, runner, space, weather, setpoint_temp, tank_vol, ef, ec_adj,
+                                     @nbeds, @dhw_map, sys_id, jacket_r, solar_fraction)
 
         elsif wh_type == "space-heating boiler with storage tank" or wh_type == "space-heating boiler with tankless coil"
-          # Check tank type to default tank volume for tankless coil
+
           combi_sys_id_list << sys_id
           heating_source_id = water_heating_system_values[:related_hvac]
           standby_loss = water_heating_system_values[:standby_loss]
+          vol = water_heating_system_values[:tank_volume]
           if not related_hvac_list.include? heating_source_id
             related_hvac_list << heating_source_id
-            boiler_sys = get_boiler_and_boiler_loop(@hvac_map, heating_source_id, sys_id)
+            boiler_sys = get_boiler_and_plant_loop(@hvac_map, heating_source_id, sys_id)
             boiler_fuel_type = to_beopt_fuel(Waterheater.get_combi_system_fuel(heating_source_id, building.elements["BuildingDetails"]))
           else
             fail "RelatedHVACSystem '#{heating_source_id}' for water heating system '#{sys_id}' is already attached to another water heating system."
           end
           @dhw_map[sys_id] << boiler_sys['boiler']
-          capacity_kbtuh = 0.0
-          oncycle_power = 0.0
-          offcycle_power = 0.0
-          success = Waterheater.apply_indirect(model, runner, space, capacity_kbtuh,
-                                               water_heating_system_values[:tank_volume], setpoint_temp, oncycle_power,
-                                               offcycle_power, ec_adj, @nbeds, boiler_sys['boiler'],
-                                               boiler_sys['plant_loop'], boiler_fuel_type,
-                                               @dhw_map, sys_id, wh_type, jacket_r, standby_loss)
-          return false if not success
+
+          Waterheater.apply_indirect(model, runner, space, vol, setpoint_temp, ec_adj, @nbeds,
+                                     boiler_sys['boiler'], boiler_sys['plant_loop'], boiler_fuel_type,
+                                     @dhw_map, sys_id, wh_type, jacket_r, standby_loss)
 
         else
 
           fail "Unhandled water heater (#{wh_type})."
 
         end
+
         dhw_loop_fracs[sys_id] = dhw_load_frac
       end
     end
+
     wh_setpoint = Waterheater.get_default_hot_water_temperature(@eri_version)
-    success = HotWaterAndAppliances.apply(model, runner, weather, @living_space,
-                                          @cfa, @nbeds, @ncfl, @has_uncond_bsmnt, wh_setpoint,
-                                          cw_mef, cw_ler, cw_elec_rate, cw_gas_rate,
-                                          cw_agc, cw_cap, cw_space, cd_fuel, cd_ef, cd_control,
-                                          cd_space, dw_ef, dw_cap, fridge_annual_kwh, fridge_space,
-                                          cook_fuel_type, cook_is_induction, oven_is_convection,
-                                          has_low_flow_fixtures, dist_type, pipe_r,
-                                          std_pipe_length, recirc_loop_length,
-                                          recirc_branch_length, recirc_control_type,
-                                          recirc_pump_power, dwhr_present,
-                                          dwhr_facilities_connected, dwhr_is_equal_flow,
-                                          dwhr_efficiency, dhw_loop_fracs, @eri_version,
-                                          @dhw_map, @hpxml_path)
-    return false if not success
+    HotWaterAndAppliances.apply(model, weather, @living_space,
+                                @cfa, @nbeds, @ncfl, @has_uncond_bsmnt, wh_setpoint,
+                                cw_mef, cw_ler, cw_elec_rate, cw_gas_rate,
+                                cw_agc, cw_cap, cw_space, cd_fuel, cd_ef, cd_control,
+                                cd_space, dw_ef, dw_cap, fridge_annual_kwh, fridge_space,
+                                cook_fuel_type, cook_is_induction, oven_is_convection,
+                                has_low_flow_fixtures, dist_type, pipe_r,
+                                std_pipe_length, recirc_loop_length,
+                                recirc_branch_length, recirc_control_type,
+                                recirc_pump_power, dwhr_present,
+                                dwhr_facilities_connected, dwhr_is_equal_flow,
+                                dwhr_efficiency, dhw_loop_fracs, @eri_version,
+                                @dhw_map, @hpxml_path)
+
+    solar_thermal_values = HPXML.get_solar_thermal_system_values(solar_thermal_system: sts)
+    if not solar_thermal_values.nil?
+      collector_area = solar_thermal_values[:collector_area]
+      dhw_system_idref = solar_thermal_values[:water_heating_system_idref]
+
+      wh.elements.each("WaterHeatingSystem") do |dhw|
+        water_heating_system_values = HPXML.get_water_heating_system_values(water_heating_system: dhw,
+                                                                            select: [:id, :water_heater_type, :uses_desuperheater])
+        next unless water_heating_system_values[:id] == dhw_system_idref
+
+        if ['space-heating boiler with storage tank', 'space-heating boiler with tankless coil'].include? water_heating_system_values[:water_heater_type]
+          fail "Water heating system '#{dhw_system_idref}' connected to solar thermal system '#{solar_thermal_values[:id]}' cannot be a space-heating boiler."
+        end
+
+        if water_heating_system_values[:uses_desuperheater]
+          fail "Water heating system '#{dhw_system_idref}' connected to solar thermal system '#{solar_thermal_values[:id]}' cannot be attached to a desuperheater."
+        end
+      end
+
+      if not collector_area.nil? # Detailed solar water heater
+        frta = solar_thermal_values[:collector_frta]
+        frul = solar_thermal_values[:collector_frul]
+        storage_vol = solar_thermal_values[:storage_volume]
+        loop_type = solar_thermal_values[:collector_loop_type]
+        azimuth = Float(solar_thermal_values[:collector_azimuth])
+        tilt = solar_thermal_values[:collector_tilt]
+        collector_type = solar_thermal_values[:collector_type]
+        space = water_heater_spaces[dhw_system_idref]
+
+        dhw_loop = nil
+        if @dhw_map.keys.include? dhw_system_idref
+          @dhw_map[dhw_system_idref].each do |dhw_object|
+            next unless dhw_object.is_a? OpenStudio::Model::PlantLoop
+
+            dhw_loop = dhw_object
+          end
+        else
+          fail "Attached water heating system '#{dhw_system_idref}' not found for solar thermal system '#{solar_thermal_values[:id]}'."
+        end
+
+        Waterheater.apply_solar_thermal(model, space, collector_area, frta, frul, storage_vol,
+                                        azimuth, tilt, collector_type, loop_type, dhw_loop, @dhw_map,
+                                        dhw_system_idref)
+      end
+    end
 
     # Add combi-system EMS program with water use equipment information
     @dhw_map.keys.each do |sys_id|
       next unless combi_sys_id_list.include? sys_id
 
-      Waterheater.apply_combi_system_EMS(model, runner, sys_id, @dhw_map)
+      Waterheater.apply_combi_system_EMS(model, sys_id, @dhw_map)
     end
-
-    return true
   end
 
   def self.get_desuperheatercoil(hvac_map, relatedhvac, wh_id)
@@ -2373,7 +2277,7 @@ class OSModel
   end
 
   def self.add_cooling_system(runner, model, building)
-    return true if @use_only_ideal_air
+    return if @use_only_ideal_air
 
     building.elements.each("BuildingDetails/Systems/HVAC/HVACPlant/CoolingSystem") do |clgsys|
       cooling_system_values = HPXML.get_cooling_system_values(cooling_system: clgsys)
@@ -2416,29 +2320,25 @@ class OSModel
           end
           fan_power_installed = get_fan_power_installed(seer)
           airflow_rate = cooling_system_values[:cooling_cfm] # Hidden feature; used only for HERS DSE test
-          success = HVAC.apply_central_ac_1speed(model, runner, seer, shrs,
-                                                 fan_power_installed, crankcase_kw, crankcase_temp,
-                                                 cool_capacity_btuh, airflow_rate, load_frac,
-                                                 sequential_load_frac, @living_zone,
-                                                 @hvac_map, sys_id)
-          return false if not success
-
+          HVAC.apply_central_ac_1speed(model, runner, seer, shrs,
+                                       fan_power_installed, crankcase_kw, crankcase_temp,
+                                       cool_capacity_btuh, airflow_rate, load_frac,
+                                       sequential_load_frac, @living_zone,
+                                       @hvac_map, sys_id)
         elsif num_speeds == "2-Speed"
 
           if cooling_system_values[:cooling_shr].nil?
             shrs = [0.71, 0.73]
           else
-            # TODO: is the following assumption correct (revist Dylan's data?)? OR should value from HPXML be used for both stages
+            # TODO: is the following assumption correct (revisit Dylan's data?)? OR should value from HPXML be used for both stages
             shrs = [cooling_system_values[:cooling_shr] - 0.02, cooling_system_values[:cooling_shr]]
           end
           fan_power_installed = get_fan_power_installed(seer)
-          success = HVAC.apply_central_ac_2speed(model, runner, seer, shrs,
-                                                 fan_power_installed, crankcase_kw, crankcase_temp,
-                                                 cool_capacity_btuh, load_frac,
-                                                 sequential_load_frac, @living_zone,
-                                                 @hvac_map, sys_id)
-          return false if not success
-
+          HVAC.apply_central_ac_2speed(model, runner, seer, shrs,
+                                       fan_power_installed, crankcase_kw, crankcase_temp,
+                                       cool_capacity_btuh, load_frac,
+                                       sequential_load_frac, @living_zone,
+                                       @hvac_map, sys_id)
         elsif num_speeds == "Variable-Speed"
 
           if cooling_system_values[:cooling_shr].nil?
@@ -2448,13 +2348,11 @@ class OSModel
             shrs = var_sp_shr_mult.map { |m| cooling_system_values[:cooling_shr] * m }
           end
           fan_power_installed = get_fan_power_installed(seer)
-          success = HVAC.apply_central_ac_4speed(model, runner, seer, shrs,
-                                                 fan_power_installed, crankcase_kw, crankcase_temp,
-                                                 cool_capacity_btuh, load_frac,
-                                                 sequential_load_frac, @living_zone,
-                                                 @hvac_map, sys_id)
-          return false if not success
-
+          HVAC.apply_central_ac_4speed(model, runner, seer, shrs,
+                                       fan_power_installed, crankcase_kw, crankcase_temp,
+                                       cool_capacity_btuh, load_frac,
+                                       sequential_load_frac, @living_zone,
+                                       @hvac_map, sys_id)
         else
 
           fail "Unexpected number of speeds (#{num_speeds}) for cooling system."
@@ -2472,28 +2370,22 @@ class OSModel
         end
 
         airflow_rate = 350.0
-        success = HVAC.apply_room_ac(model, runner, eer, shr,
-                                     airflow_rate, cool_capacity_btuh, load_frac,
-                                     sequential_load_frac, @living_zone,
-                                     @hvac_map, sys_id)
-        return false if not success
-
+        HVAC.apply_room_ac(model, runner, eer, shr,
+                           airflow_rate, cool_capacity_btuh, load_frac,
+                           sequential_load_frac, @living_zone,
+                           @hvac_map, sys_id)
       elsif clg_type == "evaporative cooler"
 
         is_ducted = XMLHelper.has_element(clgsys, "DistributionSystem")
-        success = HVAC.apply_evaporative_cooler(model, runner, load_frac,
-                                                sequential_load_frac, @living_zone,
-                                                @hvac_map, sys_id, is_ducted)
-        return false if not success
-
+        HVAC.apply_evaporative_cooler(model, runner, load_frac,
+                                      sequential_load_frac, @living_zone,
+                                      @hvac_map, sys_id, is_ducted)
       end
     end
-
-    return true
   end
 
   def self.add_heating_system(runner, model, building)
-    return true if @use_only_ideal_air
+    return if @use_only_ideal_air
 
     # We need to process furnaces attached to ACs before any other heating system
     # such that the sequential load heating fraction is properly applied.
@@ -2537,25 +2429,21 @@ class OSModel
           afue = heating_system_values[:heating_efficiency_afue]
           fan_power = 0.5 # For fuel furnaces, will be overridden by EAE later
           airflow_rate = heating_system_values[:heating_cfm] # Hidden feature; used only for HERS DSE test
-          success = HVAC.apply_furnace(model, runner, fuel, afue,
-                                       heat_capacity_btuh, airflow_rate, fan_power,
-                                       load_frac, sequential_load_frac,
-                                       attached_clg_system, @living_zone,
-                                       @hvac_map, sys_id)
-          return false if not success
-
+          HVAC.apply_furnace(model, runner, fuel, afue,
+                             heat_capacity_btuh, airflow_rate, fan_power,
+                             load_frac, sequential_load_frac,
+                             attached_clg_system, @living_zone,
+                             @hvac_map, sys_id)
         elsif htg_type == "WallFurnace"
 
           afue = heating_system_values[:heating_efficiency_afue]
           fan_power = 0.0
           airflow_rate = 0.0
-          success = HVAC.apply_unit_heater(model, runner, fuel,
-                                           afue, heat_capacity_btuh, fan_power,
-                                           airflow_rate, load_frac,
-                                           sequential_load_frac, @living_zone,
-                                           @hvac_map, sys_id)
-          return false if not success
-
+          HVAC.apply_unit_heater(model, runner, fuel,
+                                 afue, heat_capacity_btuh, fan_power,
+                                 airflow_rate, load_frac,
+                                 sequential_load_frac, @living_zone,
+                                 @hvac_map, sys_id)
         elsif htg_type == "Boiler"
 
           system_type = Constants.BoilerTypeForcedDraft
@@ -2566,43 +2454,35 @@ class OSModel
           oat_hwst_high = nil
           oat_hwst_low = nil
           design_temp = 180.0
-          success = HVAC.apply_boiler(model, runner, fuel, system_type, afue,
-                                      oat_reset_enabled, oat_high, oat_low, oat_hwst_high, oat_hwst_low,
-                                      heat_capacity_btuh, design_temp, load_frac,
-                                      sequential_load_frac, @living_zone,
-                                      @hvac_map, sys_id)
-          return false if not success
-
+          HVAC.apply_boiler(model, runner, fuel, system_type, afue,
+                            oat_reset_enabled, oat_high, oat_low, oat_hwst_high, oat_hwst_low,
+                            heat_capacity_btuh, design_temp, load_frac,
+                            sequential_load_frac, @living_zone,
+                            @hvac_map, sys_id)
         elsif htg_type == "ElectricResistance"
 
           efficiency = heating_system_values[:heating_efficiency_percent]
-          success = HVAC.apply_electric_baseboard(model, runner, efficiency,
-                                                  heat_capacity_btuh, load_frac,
-                                                  sequential_load_frac, @living_zone,
-                                                  @hvac_map, sys_id)
-          return false if not success
-
+          HVAC.apply_electric_baseboard(model, runner, efficiency,
+                                        heat_capacity_btuh, load_frac,
+                                        sequential_load_frac, @living_zone,
+                                        @hvac_map, sys_id)
         elsif htg_type == "Stove" or htg_type == "PortableHeater"
 
           efficiency = heating_system_values[:heating_efficiency_percent]
           airflow_rate = 125.0 # cfm/ton; doesn't affect energy consumption
           fan_power = 0.5 # For fuel equipment, will be overridden by EAE later
-          success = HVAC.apply_unit_heater(model, runner, fuel,
-                                           efficiency, heat_capacity_btuh, fan_power,
-                                           airflow_rate, load_frac,
-                                           sequential_load_frac, @living_zone,
-                                           @hvac_map, sys_id)
-          return false if not success
-
+          HVAC.apply_unit_heater(model, runner, fuel,
+                                 efficiency, heat_capacity_btuh, fan_power,
+                                 airflow_rate, load_frac,
+                                 sequential_load_frac, @living_zone,
+                                 @hvac_map, sys_id)
         end
       end
     end
-
-    return true
   end
 
   def self.add_heat_pump(runner, model, building, weather)
-    return true if @use_only_ideal_air
+    return if @use_only_ideal_air
 
     building.elements.each("BuildingDetails/Systems/HVAC/HVACPlant/HeatPump") do |hp|
       heat_pump_values = HPXML.get_heat_pump_values(heat_pump: hp)
@@ -2623,14 +2503,12 @@ class OSModel
 
       # Heating and cooling capacity must either both be Autosized or Fixed
       if (cool_capacity_btuh == Constants.SizingAuto) ^ (heat_capacity_btuh == Constants.SizingAuto)
-        runner.registerError("HeatPump '#{heat_pump_values[:id]}' CoolingCapacity and HeatingCapacity must either both be auto-sized or fixed-sized.")
-        return false
+        fail "HeatPump '#{heat_pump_values[:id]}' CoolingCapacity and HeatingCapacity must either both be auto-sized or fixed-sized."
       end
 
       heat_capacity_btuh_17F = heat_pump_values[:heating_capacity_17F]
       if heat_capacity_btuh == Constants.SizingAuto and not heat_capacity_btuh_17F.nil?
-        runner.registerError("HeatPump '#{heat_pump_values[:id]}' has HeatingCapacity17F provided but heating capacity is auto-sized.")
-        return false
+        fail "HeatPump '#{heat_pump_values[:id]}' has HeatingCapacity17F provided but heating capacity is auto-sized."
       end
 
       load_frac_heat = heat_pump_values[:fraction_heat_load_served]
@@ -2661,8 +2539,7 @@ class OSModel
 
         # Heating and backup heating capacity must either both be Autosized or Fixed
         if (backup_heat_capacity_btuh == Constants.SizingAuto) ^ (heat_capacity_btuh == Constants.SizingAuto)
-          runner.registerError("HeatPump '#{heat_pump_values[:id]}' BackupHeatingCapacity and HeatingCapacity must either both be auto-sized or fixed-sized.")
-          return false
+          fail "HeatPump '#{heat_pump_values[:id]}' BackupHeatingCapacity and HeatingCapacity must either both be auto-sized or fixed-sized."
         end
 
         if not heat_pump_values[:backup_heating_efficiency_percent].nil?
@@ -2715,33 +2592,29 @@ class OSModel
           end
 
           fan_power_installed = get_fan_power_installed(seer)
-          success = HVAC.apply_central_ashp_1speed(model, runner, seer, hspf, shrs,
-                                                   fan_power_installed, hp_compressor_min_temp, crankcase_kw, crankcase_temp,
-                                                   cool_capacity_btuh, heat_capacity_btuh, heat_capacity_btuh_17F,
-                                                   backup_heat_fuel, backup_heat_efficiency, backup_heat_capacity_btuh, supp_htg_max_outdoor_temp,
-                                                   load_frac_heat, load_frac_cool,
-                                                   sequential_load_frac_heat, sequential_load_frac_cool,
-                                                   @living_zone, @hvac_map, sys_id)
-          return false if not success
-
+          HVAC.apply_central_ashp_1speed(model, runner, seer, hspf, shrs,
+                                         fan_power_installed, hp_compressor_min_temp, crankcase_kw, crankcase_temp,
+                                         cool_capacity_btuh, heat_capacity_btuh, heat_capacity_btuh_17F,
+                                         backup_heat_fuel, backup_heat_efficiency, backup_heat_capacity_btuh, supp_htg_max_outdoor_temp,
+                                         load_frac_heat, load_frac_cool,
+                                         sequential_load_frac_heat, sequential_load_frac_cool,
+                                         @living_zone, @hvac_map, sys_id)
         elsif num_speeds == "2-Speed"
 
           if heat_pump_values[:cooling_shr].nil?
             shrs = [0.71, 0.724]
           else
-            # TODO: is the following assumption correct (revist Dylan's data?)? OR should value from HPXML be used for both stages?
+            # TODO: is the following assumption correct (revisit Dylan's data?)? OR should value from HPXML be used for both stages?
             shrs = [heat_pump_values[:cooling_shr] - 0.014, heat_pump_values[:cooling_shr]]
           end
           fan_power_installed = get_fan_power_installed(seer)
-          success = HVAC.apply_central_ashp_2speed(model, runner, seer, hspf, shrs,
-                                                   fan_power_installed, hp_compressor_min_temp, crankcase_kw, crankcase_temp,
-                                                   cool_capacity_btuh, heat_capacity_btuh, heat_capacity_btuh_17F,
-                                                   backup_heat_fuel, backup_heat_efficiency, backup_heat_capacity_btuh, supp_htg_max_outdoor_temp,
-                                                   load_frac_heat, load_frac_cool,
-                                                   sequential_load_frac_heat, sequential_load_frac_cool,
-                                                   @living_zone, @hvac_map, sys_id)
-          return false if not success
-
+          HVAC.apply_central_ashp_2speed(model, runner, seer, hspf, shrs,
+                                         fan_power_installed, hp_compressor_min_temp, crankcase_kw, crankcase_temp,
+                                         cool_capacity_btuh, heat_capacity_btuh, heat_capacity_btuh_17F,
+                                         backup_heat_fuel, backup_heat_efficiency, backup_heat_capacity_btuh, supp_htg_max_outdoor_temp,
+                                         load_frac_heat, load_frac_cool,
+                                         sequential_load_frac_heat, sequential_load_frac_cool,
+                                         @living_zone, @hvac_map, sys_id)
         elsif num_speeds == "Variable-Speed"
 
           if heat_pump_values[:cooling_shr].nil?
@@ -2751,15 +2624,13 @@ class OSModel
             shrs = var_sp_shr_mult.map { |m| heat_pump_values[:cooling_shr] * m }
           end
           fan_power_installed = get_fan_power_installed(seer)
-          success = HVAC.apply_central_ashp_4speed(model, runner, seer, hspf, shrs,
-                                                   fan_power_installed, hp_compressor_min_temp, crankcase_kw, crankcase_temp,
-                                                   cool_capacity_btuh, heat_capacity_btuh, heat_capacity_btuh_17F,
-                                                   backup_heat_fuel, backup_heat_efficiency, backup_heat_capacity_btuh, supp_htg_max_outdoor_temp,
-                                                   load_frac_heat, load_frac_cool,
-                                                   sequential_load_frac_heat, sequential_load_frac_cool,
-                                                   @living_zone, @hvac_map, sys_id)
-          return false if not success
-
+          HVAC.apply_central_ashp_4speed(model, runner, seer, hspf, shrs,
+                                         fan_power_installed, hp_compressor_min_temp, crankcase_kw, crankcase_temp,
+                                         cool_capacity_btuh, heat_capacity_btuh, heat_capacity_btuh_17F,
+                                         backup_heat_fuel, backup_heat_efficiency, backup_heat_capacity_btuh, supp_htg_max_outdoor_temp,
+                                         load_frac_heat, load_frac_cool,
+                                         sequential_load_frac_heat, sequential_load_frac_cool,
+                                         @living_zone, @hvac_map, sys_id)
         else
 
           fail "Unexpected number of speeds (#{num_speeds}) for heat pump system."
@@ -2802,20 +2673,18 @@ class OSModel
         pan_heater_power = 0.0
         fan_power = 0.07
         is_ducted = XMLHelper.has_element(hp, "DistributionSystem")
-        success = HVAC.apply_mshp(model, runner, seer, hspf, shr,
-                                  min_cooling_capacity, max_cooling_capacity,
-                                  min_cooling_airflow_rate, max_cooling_airflow_rate,
-                                  min_heating_capacity, max_heating_capacity,
-                                  min_heating_airflow_rate, max_heating_airflow_rate,
-                                  heating_capacity_offset, cap_retention_frac,
-                                  cap_retention_temp, pan_heater_power, fan_power,
-                                  is_ducted, cool_capacity_btuh, hp_compressor_min_temp,
-                                  backup_heat_fuel, backup_heat_efficiency, backup_heat_capacity_btuh,
-                                  supp_htg_max_outdoor_temp, load_frac_heat, load_frac_cool,
-                                  sequential_load_frac_heat, sequential_load_frac_cool,
-                                  @living_zone, @hvac_map, sys_id)
-        return false if not success
-
+        HVAC.apply_mshp(model, runner, seer, hspf, shr,
+                        min_cooling_capacity, max_cooling_capacity,
+                        min_cooling_airflow_rate, max_cooling_airflow_rate,
+                        min_heating_capacity, max_heating_capacity,
+                        min_heating_airflow_rate, max_heating_airflow_rate,
+                        heating_capacity_offset, cap_retention_frac,
+                        cap_retention_temp, pan_heater_power, fan_power,
+                        is_ducted, cool_capacity_btuh, hp_compressor_min_temp,
+                        backup_heat_fuel, backup_heat_efficiency, backup_heat_capacity_btuh,
+                        supp_htg_max_outdoor_temp, load_frac_heat, load_frac_cool,
+                        sequential_load_frac_heat, sequential_load_frac_cool,
+                        @living_zone, @hvac_map, sys_id)
       elsif hp_type == "ground-to-air"
 
         eer = heat_pump_values[:cooling_efficiency_eer]
@@ -2841,32 +2710,26 @@ class OSModel
         u_tube_leg_spacing = 0.9661
         u_tube_spacing_type = "b"
         fan_power = 0.5
-        success = HVAC.apply_gshp(model, runner, weather, cop, eer, shr,
-                                  ground_conductivity, grout_conductivity,
-                                  bore_config, bore_holes, bore_depth,
-                                  bore_spacing, bore_diameter, pipe_size,
-                                  ground_diffusivity, fluid_type, frac_glycol,
-                                  design_delta_t, pump_head,
-                                  u_tube_leg_spacing, u_tube_spacing_type,
-                                  fan_power, cool_capacity_btuh, heat_capacity_btuh,
-                                  backup_heat_efficiency, backup_heat_capacity_btuh,
-                                  load_frac_heat, load_frac_cool,
-                                  sequential_load_frac_heat, sequential_load_frac_cool,
-                                  @living_zone, @hvac_map, sys_id)
-        return false if not success
-
+        HVAC.apply_gshp(model, runner, weather, cop, eer, shr,
+                        ground_conductivity, grout_conductivity,
+                        bore_config, bore_holes, bore_depth,
+                        bore_spacing, bore_diameter, pipe_size,
+                        ground_diffusivity, fluid_type, frac_glycol,
+                        design_delta_t, pump_head,
+                        u_tube_leg_spacing, u_tube_spacing_type,
+                        fan_power, cool_capacity_btuh, heat_capacity_btuh,
+                        backup_heat_efficiency, backup_heat_capacity_btuh,
+                        load_frac_heat, load_frac_cool,
+                        sequential_load_frac_heat, sequential_load_frac_cool,
+                        @living_zone, @hvac_map, sys_id)
       end
     end
-
-    return true
   end
 
   def self.add_residual_hvac(runner, model, building)
     if @use_only_ideal_air
-      success = HVAC.apply_ideal_air_loads(model, runner, 1, 1, @living_zone)
-      return false if not success
-
-      return true
+      HVAC.apply_ideal_air_loads(model, runner, 1, 1, @living_zone)
+      return
     end
 
     # Adds an ideal air system to meet either:
@@ -2888,21 +2751,18 @@ class OSModel
       sequential_heat_load_frac = 0 # no heating system, don't add ideal air for heating either
     end
     if sequential_heat_load_frac > 0 or sequential_cool_load_frac > 0
-      success = HVAC.apply_ideal_air_loads(model, runner, sequential_cool_load_frac, sequential_heat_load_frac,
-                                           @living_zone)
-      return false if not success
+      HVAC.apply_ideal_air_loads(model, runner, sequential_cool_load_frac, sequential_heat_load_frac,
+                                 @living_zone)
     end
-
-    return true
   end
 
   def self.add_setpoints(runner, model, building, weather)
     hvac_control_values = HPXML.get_hvac_control_values(hvac_control: building.elements["BuildingDetails/Systems/HVAC/HVACControl"])
-    return true if hvac_control_values.nil?
+    return if hvac_control_values.nil?
 
     # Base heating setpoint
     htg_setpoint = hvac_control_values[:heating_setpoint_temp]
-    htg_weekday_setpoints = [[htg_setpoint] * 24] * 12
+    @htg_weekday_setpoints = [[htg_setpoint] * 24] * 12
 
     # Apply heating setback?
     htg_setback = hvac_control_values[:heating_setback_temp]
@@ -2911,23 +2771,15 @@ class OSModel
       htg_setback_start_hr = hvac_control_values[:heating_setback_start_hour]
       for m in 1..12
         for hr in htg_setback_start_hr..htg_setback_start_hr + Integer(htg_setback_hrs_per_week / 7.0) - 1
-          htg_weekday_setpoints[m - 1][hr % 24] = htg_setback
+          @htg_weekday_setpoints[m - 1][hr % 24] = htg_setback
         end
       end
     end
-
-    htg_weekend_setpoints = htg_weekday_setpoints
-    htg_use_auto_season = false
-    htg_season_start_month = 1
-    htg_season_end_month = 12
-    success = HVAC.apply_heating_setpoints(model, runner, weather, htg_weekday_setpoints, htg_weekend_setpoints,
-                                           htg_use_auto_season, htg_season_start_month, htg_season_end_month,
-                                           @living_zone)
-    return false if not success
+    @htg_weekend_setpoints = @htg_weekday_setpoints
 
     # Base cooling setpoint
     clg_setpoint = hvac_control_values[:cooling_setpoint_temp]
-    clg_weekday_setpoints = [[clg_setpoint] * 24] * 12
+    @clg_weekday_setpoints = [[clg_setpoint] * 24] * 12
 
     # Apply cooling setup?
     clg_setup = hvac_control_values[:cooling_setup_temp]
@@ -2936,7 +2788,7 @@ class OSModel
       clg_setup_start_hr = hvac_control_values[:cooling_setup_start_hour]
       for m in 1..12
         for hr in clg_setup_start_hr..clg_setup_start_hr + Integer(clg_setup_hrs_per_week / 7.0) - 1
-          clg_weekday_setpoints[m - 1][hr % 24] = clg_setup
+          @clg_weekday_setpoints[m - 1][hr % 24] = clg_setup
         end
       end
     end
@@ -2947,25 +2799,19 @@ class OSModel
       HVAC.get_ceiling_fan_operation_months(weather).each_with_index do |operation, m|
         next unless operation == 1
 
-        clg_weekday_setpoints[m] = [clg_weekday_setpoints[m], Array.new(24, clg_ceiling_fan_offset)].transpose.map { |i| i.reduce(:+) }
+        @clg_weekday_setpoints[m] = [@clg_weekday_setpoints[m], Array.new(24, clg_ceiling_fan_offset)].transpose.map { |i| i.reduce(:+) }
       end
     end
+    @clg_weekend_setpoints = @clg_weekday_setpoints
 
-    clg_weekend_setpoints = clg_weekday_setpoints
-    clg_use_auto_season = false
-    clg_season_start_month = 1
-    clg_season_end_month = 12
-    success = HVAC.apply_cooling_setpoints(model, runner, weather, clg_weekday_setpoints, clg_weekend_setpoints,
-                                           clg_use_auto_season, clg_season_start_month, clg_season_end_month,
-                                           @living_zone)
-    return false if not success
-
-    return true
+    HVAC.apply_setpoints(model, runner, weather, @living_zone,
+                         @htg_weekday_setpoints, @htg_weekend_setpoints, 1, 12,
+                         @clg_weekday_setpoints, @clg_weekend_setpoints, 1, 12)
   end
 
   def self.add_ceiling_fans(runner, model, building, weather)
     ceiling_fan_values = HPXML.get_ceiling_fan_values(ceiling_fan: building.elements["BuildingDetails/Lighting/CeilingFan"])
-    return true if ceiling_fan_values.nil?
+    return if ceiling_fan_values.nil?
 
     monthly_sch = HVAC.get_ceiling_fan_operation_months(weather)
     medium_cfm = 3000.0
@@ -2985,11 +2831,8 @@ class OSModel
     annual_kwh = UnitConversions.convert(quantity * medium_cfm / cfm_per_w * hrs_per_day * 365.0, "Wh", "kWh")
     annual_kwh *= monthly_sch.inject(:+) / 12.0
 
-    success = HVAC.apply_ceiling_fans(model, runner, annual_kwh, weekday_sch, weekend_sch, monthly_sch,
-                                      @cfa, @living_space)
-    return false if not success
-
-    return true
+    HVAC.apply_ceiling_fans(model, runner, annual_kwh, weekday_sch, weekend_sch, monthly_sch,
+                            @cfa, @living_space)
   end
 
   def self.check_distribution_system(building, system_values)
@@ -3011,7 +2854,7 @@ class OSModel
     end
   end
 
-  def self.get_boiler_and_boiler_loop(loop_hvacs, heating_source_id, sys_id)
+  def self.get_boiler_and_plant_loop(loop_hvacs, heating_source_id, sys_id)
     # Search for the right boiler OS object
     related_boiler_sys = {}
     if loop_hvacs.keys.include? heating_source_id
@@ -3078,17 +2921,14 @@ class OSModel
       tv_annual_kwh = 0
     end
 
-    success, sch = MiscLoads.apply_plug(model, runner, misc_annual_kwh, misc_sens_frac, misc_lat_frac,
-                                        misc_weekday_sch, misc_weekend_sch, misc_monthly_sch, tv_annual_kwh,
-                                        @cfa, @living_space)
-    return false if not success
-
-    return true
+    MiscLoads.apply_plug(model, misc_annual_kwh, misc_sens_frac, misc_lat_frac,
+                         misc_weekday_sch, misc_weekend_sch, misc_monthly_sch, tv_annual_kwh,
+                         @cfa, @living_space)
   end
 
   def self.add_lighting(runner, model, building, weather, spaces)
     lighting = building.elements["BuildingDetails/Lighting"]
-    return true if lighting.nil?
+    return if lighting.nil?
 
     lighting_values = HPXML.get_lighting_values(lighting: lighting)
 
@@ -3111,11 +2951,8 @@ class OSModel
                                                               lighting_values[:fraction_tier_ii_garage])
 
     garage_space = get_space_of_type(spaces, Constants.SpaceTypeGarage)
-    success, sch = Lighting.apply(model, runner, weather, int_kwh, grg_kwh, ext_kwh, @cfa, @gfa,
-                                  @living_space, garage_space)
-    return false if not success
-
-    return true
+    Lighting.apply(model, weather, int_kwh, grg_kwh, ext_kwh, @cfa, @gfa,
+                   @living_space, garage_space)
   end
 
   def self.add_airflow(runner, model, building, weather, spaces)
@@ -3215,7 +3052,8 @@ class OSModel
     nat_vent = NaturalVentilation.new(nat_vent_htg_offset, nat_vent_clg_offset, nat_vent_ovlp_offset, nat_vent_htg_season,
                                       nat_vent_clg_season, nat_vent_ovlp_season, nat_vent_num_weekdays,
                                       nat_vent_num_weekends, nat_vent_frac_windows_open, nat_vent_frac_window_area_openable,
-                                      nat_vent_max_oa_hr, nat_vent_max_oa_rh)
+                                      nat_vent_max_oa_hr, nat_vent_max_oa_rh, @htg_weekday_setpoints, @htg_weekend_setpoints,
+                                      @clg_weekday_setpoints, @clg_weekend_setpoints)
 
     # Ducts
     duct_systems = {}
@@ -3390,12 +3228,9 @@ class OSModel
       window_area += window_values[:area]
     end
 
-    success = Airflow.apply(model, runner, weather, infil, mech_vent, nat_vent, duct_systems,
-                            @cfa, @infilvolume, @nbeds, @nbaths, @ncfl, @ncfl_ag, window_area,
-                            @min_neighbor_distance)
-    return false if not success
-
-    return true
+    Airflow.apply(model, runner, weather, infil, mech_vent, nat_vent, duct_systems,
+                  @cfa, @infilvolume, @nbeds, @nbaths, @ncfl, @ncfl_ag, window_area,
+                  @min_neighbor_distance)
   end
 
   def self.create_ducts(air_distribution, model, spaces, dist_id)
@@ -3485,10 +3320,7 @@ class OSModel
   end
 
   def self.add_hvac_sizing(runner, model, weather)
-    success = HVACSizing.apply(model, runner, weather, @cfa, @infilvolume, @nbeds, @min_neighbor_distance, false, @living_space)
-    return false if not success
-
-    return true
+    HVACSizing.apply(model, runner, weather, @cfa, @infilvolume, @nbeds, @min_neighbor_distance, @living_space)
   end
 
   def self.add_fuel_heating_eae(runner, model, building)
@@ -3507,11 +3339,8 @@ class OSModel
       load_frac = heating_system_values[:fraction_heat_load_served]
       sys_id = heating_system_values[:id]
 
-      success = HVAC.apply_eae_to_heating_fan(runner, @hvac_map[sys_id], fuel_eae, fuel, load_frac, htg_type)
-      return false if not success
+      HVAC.apply_eae_to_heating_fan(runner, @hvac_map[sys_id], fuel_eae, fuel, load_frac, htg_type)
     end
-
-    return true
   end
 
   def self.add_photovoltaics(runner, model, building)
@@ -3540,25 +3369,15 @@ class OSModel
       inv_eff = pv_system_values[:inverter_efficiency]
       system_losses = pv_system_values[:system_losses_fraction]
 
-      success = PV.apply(model, runner, pv_id, power_w, module_type,
-                         system_losses, inv_eff, tilt, az, array_type)
-      return false if not success
+      PV.apply(model, pv_id, power_w, module_type,
+               system_losses, inv_eff, tilt, az, array_type)
     end
-
-    return true
   end
 
   def self.add_outputs(runner, model, map_tsv_dir)
-    success = add_output_variables(runner, model, map_tsv_dir)
-    return false if not success
-
-    success = add_output_meters(runner, model)
-    return false if not success
-
-    success = add_component_loads_output(runner, model)
-    return false if not success
-
-    return true
+    add_output_variables(runner, model, map_tsv_dir)
+    add_output_meters(runner, model)
+    add_component_loads_output(runner, model)
   end
 
   def self.add_output_variables(runner, model, map_tsv_dir)
@@ -3572,6 +3391,7 @@ class OSModel
 
     dhw_output_vars = [OutputVars.WaterHeatingElectricity,
                        OutputVars.WaterHeatingElectricityRecircPump,
+                       OutputVars.WaterHeatingElectricitySolarThermalPump,
                        OutputVars.WaterHeatingCombiBoilerHeatExchanger, # Needed to disaggregate hot water energy from heating energy
                        OutputVars.WaterHeatingCombiBoiler,              # Needed to disaggregate hot water energy from heating energy
                        OutputVars.WaterHeatingNaturalGas,
@@ -3579,7 +3399,8 @@ class OSModel
                        OutputVars.WaterHeatingPropane,
                        OutputVars.WaterHeatingLoad,
                        OutputVars.WaterHeatingLoadTankLosses,
-                       OutputVars.WaterHeaterLoadDesuperheater]
+                       OutputVars.WaterHeaterLoadDesuperheater,
+                       OutputVars.WaterHeaterLoadSolarThermal]
 
     # Remove objects that are not referenced by output vars and are not
     # EMS output vars.
@@ -3636,8 +3457,6 @@ class OSModel
       write_mapping(@hvac_map, File.join(map_tsv_dir, "map_hvac.tsv"))
       write_mapping(@dhw_map, File.join(map_tsv_dir, "map_water_heating.tsv"))
     end
-
-    return true
   end
 
   def self.add_output_variable(model, vars, object)
@@ -4207,8 +4026,6 @@ class OSModel
     program_calling_manager.setName("component loads program calling manager")
     program_calling_manager.setCallingPoint("EndOfZoneTimestepAfterZoneReporting")
     program_calling_manager.addProgram(program)
-
-    return true
   end
 
   def self.calc_non_cavity_r(film_r, constr_set)
@@ -4254,13 +4071,11 @@ class OSModel
       ]
       match, constr_set, cavity_r = pick_wood_stud_construction_set(assembly_r, constr_sets, film_r, wall_id)
 
-      success = Constructions.apply_wood_stud_wall(runner, model, surfaces, "#{wall_id} construction",
-                                                   cavity_r, install_grade, constr_set.stud.thick_in,
-                                                   cavity_filled, constr_set.framing_factor,
-                                                   constr_set.drywall_thick_in, constr_set.osb_thick_in,
-                                                   constr_set.rigid_r, constr_set.exterior_material)
-      return false if not success
-
+      Constructions.apply_wood_stud_wall(model, surfaces, "#{wall_id} construction",
+                                         cavity_r, install_grade, constr_set.stud.thick_in,
+                                         cavity_filled, constr_set.framing_factor,
+                                         constr_set.drywall_thick_in, constr_set.osb_thick_in,
+                                         constr_set.rigid_r, constr_set.exterior_material)
     elsif wall_type == "SteelFrame"
       install_grade = 1
       cavity_filled = true
@@ -4275,14 +4090,12 @@ class OSModel
       ]
       match, constr_set, cavity_r = pick_steel_stud_construction_set(assembly_r, constr_sets, film_r, "wall #{wall_id}")
 
-      success = Constructions.apply_steel_stud_wall(runner, model, surfaces, "#{wall_id} construction",
-                                                    cavity_r, install_grade, constr_set.cavity_thick_in,
-                                                    cavity_filled, constr_set.framing_factor,
-                                                    constr_set.corr_factor, constr_set.drywall_thick_in,
-                                                    constr_set.osb_thick_in, constr_set.rigid_r,
-                                                    constr_set.exterior_material)
-      return false if not success
-
+      Constructions.apply_steel_stud_wall(model, surfaces, "#{wall_id} construction",
+                                          cavity_r, install_grade, constr_set.cavity_thick_in,
+                                          cavity_filled, constr_set.framing_factor,
+                                          constr_set.corr_factor, constr_set.drywall_thick_in,
+                                          constr_set.osb_thick_in, constr_set.rigid_r,
+                                          constr_set.exterior_material)
     elsif wall_type == "DoubleWoodStud"
       install_grade = 1
       is_staggered = false
@@ -4293,14 +4106,12 @@ class OSModel
       ]
       match, constr_set, cavity_r = pick_double_stud_construction_set(assembly_r, constr_sets, film_r, "wall #{wall_id}")
 
-      success = Constructions.apply_double_stud_wall(runner, model, surfaces, "#{wall_id} construction",
-                                                     cavity_r, install_grade, constr_set.stud.thick_in,
-                                                     constr_set.stud.thick_in, constr_set.framing_factor,
-                                                     constr_set.framing_spacing, is_staggered,
-                                                     constr_set.drywall_thick_in, constr_set.osb_thick_in,
-                                                     constr_set.rigid_r, constr_set.exterior_material)
-      return false if not success
-
+      Constructions.apply_double_stud_wall(model, surfaces, "#{wall_id} construction",
+                                           cavity_r, install_grade, constr_set.stud.thick_in,
+                                           constr_set.stud.thick_in, constr_set.framing_factor,
+                                           constr_set.framing_spacing, is_staggered,
+                                           constr_set.drywall_thick_in, constr_set.osb_thick_in,
+                                           constr_set.rigid_r, constr_set.exterior_material)
     elsif wall_type == "ConcreteMasonryUnit"
       density = 119.0 # lb/ft^3
       furring_r = 0
@@ -4313,14 +4124,12 @@ class OSModel
       ]
       match, constr_set, rigid_r = pick_cmu_construction_set(assembly_r, constr_sets, film_r, "wall #{wall_id}")
 
-      success = Constructions.apply_cmu_wall(runner, model, surfaces, "#{wall_id} construction",
-                                             constr_set.thick_in, constr_set.cond_in, density,
-                                             constr_set.framing_factor, furring_r,
-                                             furring_cavity_depth_in, furring_spacing,
-                                             constr_set.drywall_thick_in, constr_set.osb_thick_in,
-                                             rigid_r, constr_set.exterior_material)
-      return false if not success
-
+      Constructions.apply_cmu_wall(model, surfaces, "#{wall_id} construction",
+                                   constr_set.thick_in, constr_set.cond_in, density,
+                                   constr_set.framing_factor, furring_r,
+                                   furring_cavity_depth_in, furring_spacing,
+                                   constr_set.drywall_thick_in, constr_set.osb_thick_in,
+                                   rigid_r, constr_set.exterior_material)
     elsif wall_type == "StructurallyInsulatedPanel"
       sheathing_thick_in = 0.44
       sheathing_type = Constants.MaterialOSB
@@ -4332,13 +4141,11 @@ class OSModel
       ]
       match, constr_set, cavity_r = pick_sip_construction_set(assembly_r, constr_sets, film_r, "wall #{wall_id}")
 
-      success = Constructions.apply_sip_wall(runner, model, surfaces, "#{wall_id} construction",
-                                             cavity_r, constr_set.thick_in, constr_set.framing_factor,
-                                             sheathing_type, constr_set.sheath_thick_in,
-                                             constr_set.drywall_thick_in, constr_set.osb_thick_in,
-                                             constr_set.rigid_r, constr_set.exterior_material)
-      return false if not success
-
+      Constructions.apply_sip_wall(model, surfaces, "#{wall_id} construction",
+                                   cavity_r, constr_set.thick_in, constr_set.framing_factor,
+                                   sheathing_type, constr_set.sheath_thick_in,
+                                   constr_set.drywall_thick_in, constr_set.osb_thick_in,
+                                   constr_set.rigid_r, constr_set.exterior_material)
     elsif wall_type == "InsulatedConcreteForms"
       constr_sets = [
         ICFConstructionSet.new(2.0, 4.0, 0.08, 0.0, 0.5, drywall_thick_in, mat_ext_finish), # ICF w/4" concrete and 2" rigid ins layers
@@ -4346,13 +4153,11 @@ class OSModel
       ]
       match, constr_set, icf_r = pick_icf_construction_set(assembly_r, constr_sets, film_r, "wall #{wall_id}")
 
-      success = Constructions.apply_icf_wall(runner, model, surfaces, "#{wall_id} construction",
-                                             icf_r, constr_set.ins_thick_in,
-                                             constr_set.concrete_thick_in, constr_set.framing_factor,
-                                             constr_set.drywall_thick_in, constr_set.osb_thick_in,
-                                             constr_set.rigid_r, constr_set.exterior_material)
-      return false if not success
-
+      Constructions.apply_icf_wall(model, surfaces, "#{wall_id} construction",
+                                   icf_r, constr_set.ins_thick_in,
+                                   constr_set.concrete_thick_in, constr_set.framing_factor,
+                                   constr_set.drywall_thick_in, constr_set.osb_thick_in,
+                                   constr_set.rigid_r, constr_set.exterior_material)
     elsif ["SolidConcrete", "StructuralBrick", "StrawBale", "Stone", "LogWall"].include? wall_type
       constr_sets = [
         GenericConstructionSet.new(10.0, 0.5, drywall_thick_in, mat_ext_finish), # w/R-10 rigid
@@ -4386,16 +4191,12 @@ class OSModel
       denss = [base_mat.rho]
       specheats = [base_mat.cp]
 
-      success = Constructions.apply_generic_layered_wall(runner, model, surfaces, "#{wall_id} construction",
-                                                         thick_ins, conds, denss, specheats,
-                                                         constr_set.drywall_thick_in, constr_set.osb_thick_in,
-                                                         constr_set.rigid_r, constr_set.exterior_material)
-      return false if not success
-
+      Constructions.apply_generic_layered_wall(model, surfaces, "#{wall_id} construction",
+                                               thick_ins, conds, denss, specheats,
+                                               constr_set.drywall_thick_in, constr_set.osb_thick_in,
+                                               constr_set.rigid_r, constr_set.exterior_material)
     else
-
       fail "Unexpected wall type '#{wall_type}'."
-
     end
 
     check_surface_assembly_rvalue(runner, surfaces, film_r, assembly_r, match)
@@ -4585,13 +4386,9 @@ class OSModel
 
       if surface.adjacentFoundation.is_initialized
         foundation = surface.adjacentFoundation.get
-        if foundation.interiorVerticalInsulationMaterial.is_initialized
-          int_mat = foundation.interiorVerticalInsulationMaterial.get.to_StandardOpaqueMaterial.get
-          constr_r += UnitConversions.convert(int_mat.thickness, "m", "ft") / UnitConversions.convert(int_mat.thermalConductivity, "W/(m*K)", "Btu/(hr*ft*R)")
-        end
-        if foundation.exteriorVerticalInsulationMaterial.is_initialized
-          ext_mat = foundation.exteriorVerticalInsulationMaterial.get.to_StandardOpaqueMaterial.get
-          constr_r += UnitConversions.convert(ext_mat.thickness, "m", "ft") / UnitConversions.convert(ext_mat.thermalConductivity, "W/(m*K)", "Btu/(hr*ft*R)")
+        foundation.customBlocks.each do |custom_block|
+          ins_mat = custom_block.material.to_StandardOpaqueMaterial.get
+          constr_r += UnitConversions.convert(ins_mat.thickness, "m", "ft") / UnitConversions.convert(ins_mat.thermalConductivity, "W/(m*K)", "Btu/(hr*ft*R)")
         end
       end
 
@@ -5036,6 +4833,10 @@ class OutputVars
              'OpenStudio::Model::CoilWaterHeatingAirToWaterHeatPumpWrapped' => ['Cooling Coil Water Heating Electric Energy'] }
   end
 
+  def self.WaterHeatingElectricitySolarThermalPump
+    return { 'OpenStudio::Model::PumpConstantSpeed' => ['Pump Electric Energy'] }
+  end
+
   def self.WaterHeatingElectricityRecircPump
     return { 'OpenStudio::Model::ElectricEquipment' => ['Electric Equipment Electric Energy'] }
   end
@@ -5074,6 +4875,10 @@ class OutputVars
 
   def self.WaterHeaterLoadDesuperheater
     return { 'OpenStudio::Model::CoilWaterHeatingDesuperheater' => ['Water Heater Heating Energy'] }
+  end
+
+  def self.WaterHeaterLoadSolarThermal
+    return { 'OpenStudio::Model::WaterHeaterStratified' => ['Water Heater Use Side Heat Transfer Energy'] }
   end
 end
 

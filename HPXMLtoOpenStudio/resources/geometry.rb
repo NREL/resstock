@@ -3,7 +3,7 @@ require_relative "unit_conversions"
 require_relative "util"
 
 class Geometry
-  def self.get_zone_volume(zone, runner = nil)
+  def self.get_zone_volume(zone)
     if zone.isVolumeAutocalculated or not zone.volume.is_initialized
       # Calculate volume from spaces
       volume = 0
@@ -13,10 +13,10 @@ class Geometry
     else
       volume = UnitConversions.convert(zone.volume.get, "m^3", "ft^3")
     end
-    if volume <= 0 and not runner.nil?
-      runner.registerError("Could not find any volume.")
-      return nil
+    if volume <= 0
+      fail "Could not find any volume."
     end
+
     return volume
   end
 
@@ -434,21 +434,18 @@ class Geometry
     return below_grade_exterior_floors
   end
 
-  def self.process_occupants(model, runner, num_occ, occ_gain, sens_frac, lat_frac, weekday_sch, weekend_sch, monthly_sch,
+  def self.process_occupants(model, num_occ, occ_gain, sens_frac, lat_frac, weekday_sch, weekend_sch, monthly_sch,
                              cfa, nbeds, space)
 
     # Error checking
     if sens_frac < 0 or sens_frac > 1
-      runner.registerError("Sensible fraction must be greater than or equal to 0 and less than or equal to 1.")
-      return false
+      fail "Sensible fraction must be greater than or equal to 0 and less than or equal to 1."
     end
     if lat_frac < 0 or lat_frac > 1
-      runner.registerError("Latent fraction must be greater than or equal to 0 and less than or equal to 1.")
-      return false
+      fail "Latent fraction must be greater than or equal to 0 and less than or equal to 1."
     end
     if lat_frac + sens_frac > 1
-      runner.registerError("Sum of sensible and latent fractions must be less than or equal to 1.")
-      return false
+      fail "Sum of sensible and latent fractions must be less than or equal to 1."
     end
 
     activity_per_person = UnitConversions.convert(occ_gain, "Btu/hr", "W")
@@ -464,10 +461,7 @@ class Geometry
     space_num_occ = num_occ * UnitConversions.convert(space.floorArea, "m^2", "ft^2") / cfa
 
     # Create schedule
-    people_sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameOccupants + " schedule", weekday_sch, weekend_sch, monthly_sch, mult_weekday = 1.0, mult_weekend = 1.0, normalize_values = true, create_sch_object = true, schedule_type_limits_name = Constants.ScheduleTypeLimitsFraction)
-    if not people_sch.validated?
-      return false
-    end
+    people_sch = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameOccupants + " schedule", weekday_sch, weekend_sch, monthly_sch, mult_weekday = 1.0, mult_weekend = 1.0, normalize_values = true, create_sch_object = true, schedule_type_limits_name = Constants.ScheduleTypeLimitsFraction)
 
     # Create schedule
     activity_sch = OpenStudio::Model::ScheduleRuleset.new(model, activity_per_person)
@@ -487,9 +481,6 @@ class Geometry
     occ_def.setEnableASHRAE55ComfortWarnings(false)
     occ.setActivityLevelSchedule(activity_sch)
     occ.setNumberofPeopleSchedule(people_sch.schedule)
-
-    runner.registerInfo("Space '#{space.name}' been assigned #{space_num_occ.round(2)} occupant(s).")
-    return true
   end
 
   def self.get_occupancy_default_num(nbeds)

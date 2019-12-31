@@ -47,8 +47,9 @@ The following building features/technologies are available for modeling:
     - Air Source Heat Pumps
     - Mini Split Heat Pumps
     - Ground Source Heat Pumps
+    - Dual-Fuel Heat Pumps
     
-  - Thermostat Type
+  - Setpoints
   - Ducts
   
 - Water Heating
@@ -61,6 +62,7 @@ The following building features/technologies are available for modeling:
     - Indirect Water Heater (Combination Boiler)
     - Tankless Coil (Combination Boiler)
 
+  - Solar Hot Water
   - Desuperheaters
   - Hot Water Distribution
   
