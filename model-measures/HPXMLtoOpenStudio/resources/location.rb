@@ -4,28 +4,14 @@ require_relative "unit_conversions"
 
 class Location
   def self.apply(model, runner, weather_file_path, dst_start_date, dst_end_date)
-    success, weather, epw_file = apply_weather_file(model, runner, weather_file_path)
-    return false if not success
-
-    success = apply_year(model, runner, epw_file)
-    return false if not success
-
-    success = apply_site(model, runner, epw_file)
-    return false if not success
-
-    success = apply_climate_zones(model, runner, epw_file)
-    return false if not success
-
-    success = apply_mains_temp(model, runner, weather)
-    return false if not success
-
-    success = apply_dst(model, runner, dst_start_date, dst_end_date)
-    return false if not success
-
-    success = apply_ground_temp(model, runner, weather)
-    return false if not success
-
-    return true, weather
+    weather, epw_file = apply_weather_file(model, runner, weather_file_path)
+    apply_year(model, epw_file)
+    apply_site(model, epw_file)
+    apply_climate_zones(model, epw_file)
+    apply_mains_temp(model, weather)
+    apply_dst(model, dst_start_date, dst_end_date)
+    apply_ground_temp(model, weather)
+    return weather
   end
 
   private
@@ -34,12 +20,10 @@ class Location
     if File.exists?(weather_file_path) and weather_file_path.downcase.end_with? ".epw"
       epw_file = OpenStudio::EpwFile.new(weather_file_path)
     else
-      runner.registerError("'#{weather_file_path}' does not exist or is not an .epw file.")
-      return false
+      fail "'#{weather_file_path}' does not exist or is not an .epw file."
     end
 
     OpenStudio::Model::WeatherFile.setWeatherFile(model, epw_file).get
-    runner.registerInfo("Setting weather file.")
 
     # Obtain weather object
     # Load from cache file if exists, as this is faster and doesn't require
@@ -50,38 +34,29 @@ class Location
       weather.cache_weather(model)
     else
       weather = WeatherProcess.new(model, runner)
-      if weather.error?
-        return false
-      end
     end
 
-    return true, weather, epw_file
+    return weather, epw_file
   end
 
-  def self.apply_site(model, runner, epw_file)
+  def self.apply_site(model, epw_file)
     site = model.getSite
     site.setName("#{epw_file.city}_#{epw_file.stateProvinceRegion}_#{epw_file.country}")
     site.setLatitude(epw_file.latitude)
     site.setLongitude(epw_file.longitude)
     site.setTimeZone(epw_file.timeZone)
     site.setElevation(epw_file.elevation)
-    runner.registerInfo("Setting site data.")
-
-    return true
   end
 
-  def self.apply_climate_zones(model, runner, epw_file)
+  def self.apply_climate_zones(model, epw_file)
     ba_zone = get_climate_zone_ba(epw_file.wmoNumber)
-    return true if ba_zone.nil?
+    return if ba_zone.nil?
 
     climateZones = model.getClimateZones
     climateZones.setClimateZone(Constants.BuildingAmericaClimateZone, ba_zone)
-    runner.registerInfo("Setting #{Constants.BuildingAmericaClimateZone} climate zone to #{ba_zone}.")
-
-    return true
   end
 
-  def self.apply_mains_temp(model, runner, weather)
+  def self.apply_mains_temp(model, weather)
     avgOAT = UnitConversions.convert(weather.data.AnnualAvgDrybulb, "F", "C")
     monthlyOAT = weather.data.MonthlyAvgDrybulbs
 
@@ -95,24 +70,18 @@ class Location
     swmt.setCalculationMethod "Correlation"
     swmt.setAnnualAverageOutdoorAirTemperature avgOAT
     swmt.setMaximumDifferenceInMonthlyAverageOutdoorAirTemperatures maxDiffOAT
-
-    runner.registerInfo("Setting mains water temperature profile.")
-
-    return true
   end
 
-  def self.apply_year(model, runner, epw_file)
+  def self.apply_year(model, epw_file)
     year_description = model.getYearDescription
     if epw_file.startDateActualYear.is_initialized # AMY
       year_description.setCalendarYear(epw_file.startDateActualYear.get)
     else # TMY
       year_description.setDayofWeekforStartDay('Monday') # For consistency with SAM utility bill calculations
     end
-
-    return true
   end
 
-  def self.apply_dst(model, runner, dst_start_date, dst_end_date)
+  def self.apply_dst(model, dst_start_date, dst_end_date)
     if not (dst_start_date.downcase == 'na' and dst_end_date.downcase == 'na')
       begin
         dst_start_date_month = OpenStudio::monthOfYear(dst_start_date.split[0])
@@ -123,26 +92,18 @@ class Location
         dst = model.getRunPeriodControlDaylightSavingTime
         dst.setStartDate(dst_start_date_month, dst_start_date_day)
         dst.setEndDate(dst_end_date_month, dst_end_date_day)
-        runner.registerInfo("Set daylight saving time from #{dst.startDate.to_s} to #{dst.endDate.to_s}.")
       rescue
-        runner.registerError("Invalid daylight saving date specified.")
-        return false
+        fail "Invalid daylight saving date specified."
       end
-    else
-      runner.registerInfo("No daylight saving time set.")
     end
-
-    return true
   end
 
-  def self.apply_ground_temp(model, runner, weather)
+  def self.apply_ground_temp(model, weather)
     annual_temps = Array.new(12, weather.data.AnnualAvgDrybulb)
     annual_temps = annual_temps.map { |i| UnitConversions.convert(i, "F", "C") }
     s_gt_d = model.getSiteGroundTemperatureDeep
     s_gt_d.resetAllMonths
     s_gt_d.setAllMonthlyTemperatures(annual_temps)
-
-    return true
   end
 
   def self.get_climate_zone_ba(wmo)

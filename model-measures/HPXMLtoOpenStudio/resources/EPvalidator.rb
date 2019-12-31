@@ -70,8 +70,9 @@ class EnergyPlusValidator
 
         "/HPXML/Building/BuildingDetails/Systems/MechanicalVentilation/VentilationFans/VentilationFan[UsedForWholeBuildingVentilation='true']" => zero_or_one, # See [MechanicalVentilation]
         "/HPXML/Building/BuildingDetails/Systems/WaterHeating/WaterHeatingSystem" => zero_or_more, # See [WaterHeatingSystem]
-        "/HPXML/Building/BuildingDetails/Systems/WaterHeating/WaterFixture" => zero_or_more, # See [WaterFixture]
         "/HPXML/Building/BuildingDetails/Systems/WaterHeating/HotWaterDistribution" => zero_or_one, # See [HotWaterDistribution]
+        "/HPXML/Building/BuildingDetails/Systems/WaterHeating/WaterFixture" => zero_or_more, # See [WaterFixture]
+        "/HPXML/Building/BuildingDetails/Systems/SolarThermal/SolarThermalSystem" => zero_or_one, # See [SolarThermalSystem]
         "/HPXML/Building/BuildingDetails/Systems/Photovoltaics/PVSystem" => zero_or_more, # See [PVSystem]
 
         "/HPXML/Building/BuildingDetails/Appliances/ClothesWasher" => zero_or_one, # See [ClothesWasher]
@@ -95,8 +96,8 @@ class EnergyPlusValidator
       # [NeighborBuilding]
       "/HPXML/Building/BuildingDetails/BuildingSummary/Site/extension/Neighbors/NeighborBuilding" => {
         "Azimuth" => one,
-        "Distance" => one,
-        "Height" => zero_or_one # if omitted, the neighbor is the same height as the main building
+        "Distance" => one, # ft
+        "Height" => zero_or_one # ft; if omitted, the neighbor is the same height as the main building
       },
 
       # [WeatherStation]
@@ -168,14 +169,21 @@ class EnergyPlusValidator
         "Thickness" => one,
         "DepthBelowGrade" => one,
         "Insulation/SystemIdentifier" => one, # Required by HPXML schema
-        # Either specify insulation layer R-value and insulation height OR assembly R-value:
-        "[DistanceToBottomOfInsulation | Insulation/AssemblyEffectiveRValue]" => one,
-        "[Insulation/Layer[InstallationType='continuous']/NominalRValue | Insulation/AssemblyEffectiveRValue]" => one,
+        # Insulation: either specify interior and exterior layers OR assembly R-value:
+        "Insulation/Layer[InstallationType='continuous - interior'] | Insulation/AssemblyEffectiveRValue" => one, # See [FoundationWallInsLayer]
+        "Insulation/Layer[InstallationType='continuous - exterior'] | Insulation/AssemblyEffectiveRValue" => one, # See [FoundationWallInsLayer]
       },
 
       ## [VentedCrawlspace]
       "/HPXML/Building/BuildingDetails/Enclosure/FoundationWalls/FoundationWall[InteriorAdjacentTo='crawlspace - vented']" => {
         "../../Foundations/Foundation[FoundationType/Crawlspace[Vented='true']]/VentilationRate[UnitofMeasure='SLA']/Value" => zero_or_one,
+      },
+
+      ## [FoundationWallInsLayer]
+      "/HPXML/Building/BuildingDetails/Enclosure/FoundationWalls/FoundationWall/Insulation/Layer[InstallationType='continuous - exterior' or InstallationType='continuous - interior']" => {
+        "NominalRValue" => one,
+        "extension/DistanceToTopOfInsulation" => one, # ft
+        "extension/DistanceToBottomOfInsulation" => one, # ft
       },
 
       # [FrameFloor]
@@ -202,7 +210,7 @@ class EnergyPlusValidator
         "PerimeterInsulation/Layer[InstallationType='continuous']/NominalRValue" => one,
         "UnderSlabInsulation/SystemIdentifier" => one, # Required by HPXML schema
         "UnderSlabInsulation/Layer[InstallationType='continuous']/NominalRValue" => one,
-        "extension/CarpetFraction" => one,
+        "extension/CarpetFraction" => one, # 0 - 1
         "extension/CarpetRValue" => one,
       },
 
@@ -385,7 +393,7 @@ class EnergyPlusValidator
         "SetbackTempHeatingSeason" => zero_or_one, # See [HVACControlType=HeatingSetback]
         "SetupTempCoolingSeason" => zero_or_one, # See [HVACControlType=CoolingSetup]
         "SetpointTempCoolingSeason" => one,
-        "extension/CeilingFanSetpointTempCoolingSeasonOffset" => zero_or_one,
+        "extension/CeilingFanSetpointTempCoolingSeasonOffset" => zero_or_one, # deg-F
       },
 
       ## [HVACControlType=HeatingSetback]
@@ -498,7 +506,7 @@ class EnergyPlusValidator
         "RelatedHVACSystem" => one, # HeatingSystem (boiler)
         "TankVolume" => one,
         "WaterHeaterInsulation/Jacket/JacketRValue" => zero_or_one, # Capable to model tank wrap insulation
-        "extension/StandbyLoss" => zero_or_one, # F/h, refer to https://www.ahridirectory.org/NewSearch?programId=28&searchTypeId=3
+        "extension/StandbyLoss" => zero_or_one, # deg-F/h, refer to https://www.ahridirectory.org/NewSearch?programId=28&searchTypeId=3
       },
 
       ## [WHType=CombiTankless]
@@ -545,6 +553,25 @@ class EnergyPlusValidator
         "SystemIdentifier" => one, # Required by HPXML schema
         "[WaterFixtureType='shower head' or WaterFixtureType='faucet']" => one, # Required by HPXML schema
         "LowFlow" => one,
+      },
+
+      # [SolarThermalSystem]
+      "/HPXML/Building/BuildingDetails/Systems/SolarThermal/SolarThermalSystem" => {
+        "SystemIdentifier" => one, # Required by HPXML schema
+        "[SystemType='hot water']" => one,
+        "[CollectorArea | SolarFraction]" => one, # See [SolarThermal=Detailed] if CollectorArea provided
+        "ConnectedTo" => one, # WaterHeatingSystem (any type but space-heating boiler)
+      },
+
+      ## [SolarThermal=Detailed]
+      "/HPXML/Building/BuildingDetails/Systems/SolarThermal/SolarThermalSystem[CollectorArea]" => {
+        "[CollectorLoopType='liquid indirect' or CollectorLoopType='liquid direct' or CollectorLoopType='passive thermosyphon']" => one,
+        "[CollectorType='single glazing black' or CollectorType='double glazing black' or CollectorType='evacuated tube' or CollectorType='integrated collector storage']" => one,
+        "CollectorAzimuth" => one,
+        "CollectorTilt" => one,
+        "CollectorRatedOpticalEfficiency" => one, # FRTA (y-intercept); see Directory of SRCC Certified Solar Collector Ratings
+        "CollectorRatedThermalLosses" => one, # FRUL (slope, in units of Btu/hr-ft^2-R); see Directory of SRCC Certified Solar Collector Ratings
+        "StorageVolume" => one,
       },
 
       # [PVSystem]

@@ -1,5 +1,5 @@
 class PV
-  def self.apply(model, runner, obj_name, size_w, module_type, system_losses,
+  def self.apply(model, obj_name, size_w, module_type, system_losses,
                  inverter_eff, tilt_abs, azimuth_abs, array_type)
 
     generator = OpenStudio::Model::GeneratorPVWatts.new(model, size_w)
@@ -19,8 +19,6 @@ class PV
 
     electric_load_center_dist.addGenerator(generator)
     electric_load_center_dist.setInverter(inverter)
-
-    return true
   end
 
   def self.calc_module_power_from_year(year_modules_manufactured)

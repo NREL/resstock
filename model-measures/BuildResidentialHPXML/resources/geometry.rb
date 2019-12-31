@@ -1,7 +1,8 @@
+# FIXME: Need to incorporate building orientation
 class Geometry2
   def self.create_single_family_detached(runner:,
                                          model:,
-                                         ffa:,
+                                         cfa:,
                                          wall_height:,
                                          num_floors:,
                                          aspect_ratio:,
@@ -29,8 +30,8 @@ class Geometry2
       runner.registerError("Invalid aspect ratio entered.")
       return false
     end
-    if foundation_type == "pier and beam" and (foundation_height <= 0.0)
-      runner.registerError("The pier & beam height must be greater than 0 ft.")
+    if foundation_type == "ambient" and (foundation_height <= 0.0)
+      runner.registerError("The ambient foundation height must be greater than 0 ft.")
       return false
     end
     if num_floors > 6
@@ -43,7 +44,7 @@ class Geometry2
     end
 
     # Convert to SI
-    ffa = UnitConversions.convert(ffa, "ft^2", "m^2")
+    cfa = UnitConversions.convert(cfa, "ft^2", "m^2")
     wall_height = UnitConversions.convert(wall_height, "ft", "m")
     garage_width = UnitConversions.convert(garage_width, "ft", "m")
     garage_depth = UnitConversions.convert(garage_depth, "ft", "m")
@@ -64,8 +65,8 @@ class Geometry2
       runner.registerError("Cannot handle protruding garage and attic ridge running from front to back.")
       return false
     end
-    if foundation_type == "pier and beam" and has_garage
-      runner.registerError("Cannot handle garages with a pier & beam foundation type.")
+    if foundation_type == "ambient" and has_garage
+      runner.registerError("Cannot handle garages with an ambient foundation type.")
       return false
     end
 
@@ -75,14 +76,14 @@ class Geometry2
       garage_area_inside_footprint = garage_area * (1.0 - garage_protrusion)
     end
     bonus_area_above_garage = garage_area * garage_protrusion
-    if foundation_type == "finished basement" and attic_type == "finished attic"
-      footprint = (ffa + 2 * garage_area_inside_footprint - (num_floors) * bonus_area_above_garage) / (num_floors + 2)
-    elsif foundation_type == "finished basement"
-      footprint = (ffa + 2 * garage_area_inside_footprint - (num_floors - 1) * bonus_area_above_garage) / (num_floors + 1)
-    elsif attic_type == "finished attic"
-      footprint = (ffa + garage_area_inside_footprint - (num_floors) * bonus_area_above_garage) / (num_floors + 1)
+    if foundation_type == "basement - conditioned" and attic_type == "attic - conditioned"
+      footprint = (cfa + 2 * garage_area_inside_footprint - (num_floors) * bonus_area_above_garage) / (num_floors + 2)
+    elsif foundation_type == "basement - conditioned"
+      footprint = (cfa + 2 * garage_area_inside_footprint - (num_floors - 1) * bonus_area_above_garage) / (num_floors + 1)
+    elsif attic_type == "attic - conditioned"
+      footprint = (cfa + garage_area_inside_footprint - (num_floors) * bonus_area_above_garage) / (num_floors + 1)
     else
-      footprint = (ffa + garage_area_inside_footprint - (num_floors - 1) * bonus_area_above_garage) / num_floors
+      footprint = (cfa + garage_area_inside_footprint - (num_floors - 1) * bonus_area_above_garage) / num_floors
     end
 
     # calculate the dimensions of the building
@@ -103,7 +104,7 @@ class Geometry2
     living_zone.setName("living zone")
 
     foundation_offset = 0.0
-    if foundation_type == "pier and beam"
+    if foundation_type == "ambient"
       foundation_offset = foundation_height
     end
 
@@ -348,18 +349,21 @@ class Geometry2
       surface_e_wall.setSpace(attic_space)
 
       # set these to the attic zone
-      if attic_type == "unfinished attic"
+      if attic_type == "attic - vented" or attic_type == "attic - unvented"
         # create attic zone
         attic_zone = OpenStudio::Model::ThermalZone.new(model)
-        attic_zone.setName("unfinished attic zone")
+        attic_zone.setName("#{attic_type} zone")
         attic_space.setThermalZone(attic_zone)
-        attic_space_name = "unfinished attic space"
-        attic_space_type_name = Constants.SpaceTypeVentedAttic
-      elsif attic_type == "finished attic"
+        if attic_type == "attic - vented"
+          attic_space_type_name = Constants.SpaceTypeVentedAttic
+        else
+          attic_space_type_name = Constants.SpaceTypeUnventedAttic
+        end
+      elsif attic_type == "attic - conditioned"
         attic_space.setThermalZone(living_zone)
-        attic_space_name = "finished attic space"
         attic_space_type_name = Constants.SpaceTypeLiving
       end
+      attic_space_name = "#{attic_type} space"
       attic_space.setName(attic_space_name)
       if space_types_hash.keys.include? attic_space_type_name
         attic_space_type = space_types_hash[attic_space_type_name]
@@ -380,21 +384,13 @@ class Geometry2
     end
 
     # Foundation
-    if ["crawlspace", "unfinished basement", "finished basement", "pier and beam"].include? foundation_type
+    if ["crawlspace - vented", "crawlspace - unvented", "basement - unconditioned", "basement - conditioned", "ambient"].include? foundation_type
 
       z = -foundation_height + foundation_offset
 
       # create foundation zone
       foundation_zone = OpenStudio::Model::ThermalZone.new(model)
-      if foundation_type == "crawlspace"
-        foundation_zone_name = "crawl zone"
-      elsif foundation_type == "unfinished basement"
-        foundation_zone_name = "unfinished basement zone"
-      elsif foundation_type == "finished basement"
-        foundation_zone_name = "finished basement zone"
-      elsif foundation_type == "pier and beam"
-        foundation_zone_name = "pier and beam zone"
-      end
+      foundation_zone_name = "#{foundation_type} zone"
       foundation_zone.setName(foundation_zone_name)
 
       # make polygons
@@ -407,19 +403,18 @@ class Geometry2
       # make space
       foundation_space = OpenStudio::Model::Space::fromFloorPrint(foundation_polygon, foundation_height, model)
       foundation_space = foundation_space.get
-      if foundation_type == "crawlspace"
-        foundation_space_name = "crawl space"
+      if foundation_type == "crawlspace - vented"
         foundation_space_type_name = Constants.SpaceTypeVentedCrawl
-      elsif foundation_type == "unfinished basement"
-        foundation_space_name = "unfinished basement space"
+      elsif foundation_type == "crawlspace - unvented"
+        foundation_space_type_name = Constants.SpaceTypeUnventedCrawl
+      elsif foundation_type == "basement - unconditioned"
         foundation_space_type_name = Constants.SpaceTypeUnconditionedBasement
-      elsif foundation_type == "finished basement"
-        foundation_space_name = "finished basement space"
+      elsif foundation_type == "basement - conditioned"
         foundation_space_type_name = Constants.SpaceTypeLiving
-      elsif foundation_type == "pier and beam"
-        foundation_space_name = "pier and beam space"
+      elsif foundation_type == "ambient"
         foundation_space_type_name = foundation_type
       end
+      foundation_space_name = "#{foundation_type} space"
       foundation_space.setName(foundation_space_name)
       if space_types_hash.keys.include? foundation_space_type_name
         foundation_space_type = space_types_hash[foundation_space_type_name]
@@ -498,7 +493,7 @@ class Geometry2
           end
 
           if num_floors == 1
-            if not attic_type == "finished attic"
+            if not attic_type == "attic - conditioned"
               nw_point = OpenStudio::Point3d.new(nw_point.x, nw_point.y, living_space.zOrigin + nw_point.z)
               ne_point = OpenStudio::Point3d.new(ne_point.x, ne_point.y, living_space.zOrigin + ne_point.z)
               sw_point = OpenStudio::Point3d.new(sw_point.x, sw_point.y, living_space.zOrigin + sw_point.z)
@@ -526,7 +521,7 @@ class Geometry2
           end
 
           if num_floors == 1
-            if not attic_type == "finished attic"
+            if not attic_type == "attic - conditioned"
               roof_n_point = OpenStudio::Point3d.new((nw_point.x + ne_point.x) / 2, nw_point.y + garage_attic_height / roof_pitch, living_space.zOrigin + wall_height + garage_attic_height)
               roof_s_point = OpenStudio::Point3d.new((sw_point.x + se_point.x) / 2, sw_point.y, living_space.zOrigin + wall_height + garage_attic_height)
             else
@@ -563,7 +558,7 @@ class Geometry2
           wall_n.setSpace(garage_attic_space)
           wall_s.setSpace(garage_attic_space)
 
-          if attic_type == "finished attic"
+          if attic_type == "attic - conditioned"
             garage_attic_space_type_name = Constants.SpaceTypeLiving
             garage_attic_space.setThermalZone(living_zone)
           else
@@ -597,7 +592,7 @@ class Geometry2
           OpenStudio::Model.intersectSurfaces(spaces)
           OpenStudio::Model.matchSurfaces(spaces)
 
-          # remove triangular surface between unfinished attic and garage attic
+          # remove triangular surface between unconditioned attic and garage attic
           unless attic_space.nil?
             attic_space.surfaces.each do |surface|
               next if roof_type == "hip"
@@ -611,7 +606,7 @@ class Geometry2
           end
 
           garage_attic_space.surfaces.each do |surface|
-            if num_floors > 1 or attic_type == "finished attic"
+            if num_floors > 1 or attic_type == "attic - conditioned"
               m = initialize_transformation_matrix(OpenStudio::Matrix.new(4, 4, 0))
               m[2, 3] = -attic_space.zOrigin
               transformation = OpenStudio::Transformation.new(m)
@@ -621,7 +616,7 @@ class Geometry2
             end
           end
 
-          if num_floors > 1 or attic_type == "finished attic"
+          if num_floors > 1 or attic_type == "attic - conditioned"
             garage_attic_space.remove
           end
 
@@ -687,7 +682,7 @@ class Geometry2
     return garage_spaces
   end
 
-  def self.space_is_finished(space)
+  def self.space_is_conditioned(space)
     unless space.isPlenum
       if space.spaceType.is_initialized
         if space.spaceType.get.standardsSpaceType.is_initialized
@@ -699,7 +694,7 @@ class Geometry2
   end
 
   def self.is_living_space_type(space_type)
-    if ["living", "finished basement", "kitchen", "bedroom",
+    if ["living", "basement - conditioned", "kitchen", "bedroom",
         "bathroom", "laundry room"].include? space_type
       return true
     end
@@ -761,7 +756,7 @@ class Geometry2
     constructions = {}
     window_warn_msg = nil
     skylight_warn_msg = nil
-    get_finished_spaces(model.getSpaces).each do |space|
+    get_conditioned_spaces(model.getSpaces).each do |space|
       space.surfaces.each do |surface|
         if surface.surfaceType.downcase == "wall" and surface.outsideBoundaryCondition.downcase == "outdoors"
           next if (90 - surface.tilt * 180 / Math::PI).abs > 0.01 # Not a vertical wall
@@ -1188,18 +1183,18 @@ class Geometry2
     end
   end
 
-  def self.get_finished_spaces(spaces)
-    finished_spaces = []
+  def self.get_conditioned_spaces(spaces)
+    conditioned_spaces = []
     spaces.each do |space|
-      next if self.space_is_unfinished(space)
+      next if self.space_is_unconditioned(space)
 
-      finished_spaces << space
+      conditioned_spaces << space
     end
-    return finished_spaces
+    return conditioned_spaces
   end
 
-  def self.space_is_unfinished(space)
-    return !self.space_is_finished(space)
+  def self.space_is_unconditioned(space)
+    return !self.space_is_conditioned(space)
   end
 
   def self.is_rectangular_wall(surface)
@@ -1282,7 +1277,7 @@ class Geometry2
     facades = [Constants.FacadeFront, Constants.FacadeBack]
     avail_walls = []
     facades.each do |facade|
-      get_finished_spaces(model.getSpaces).each do |space|
+      get_conditioned_spaces(model.getSpaces).each do |space|
         next if space_is_below_grade(space)
 
         space.surfaces.each do |surface|
@@ -1313,7 +1308,7 @@ class Geometry2
 
     # Get all corridor walls
     corridor_walls = []
-    get_finished_spaces(model.getSpaces).each do |space|
+    get_conditioned_spaces(model.getSpaces).each do |space|
       space.surfaces.each do |surface|
         next unless surface.surfaceType.downcase == "wall"
         next unless surface.outsideBoundaryCondition.downcase == "adiabatic"
@@ -1456,7 +1451,7 @@ class Geometry2
 
   def self.create_multifamily(runner:,
                               model:,
-                              ffa:,
+                              cfa:,
                               wall_height:,
                               aspect_ratio:,
                               level:,
@@ -1475,7 +1470,7 @@ class Geometry2
 
     if foundation_type == "slab"
       foundation_height = 0.0
-    elsif foundation_type == "unfinished basement"
+    elsif foundation_type == "basement - unconditioned"
       foundation_height = 8.0
     end
     num_units_per_floor = num_units / num_floors
@@ -1501,7 +1496,7 @@ class Geometry2
       runner.registerError("Starting model is not empty.")
       return false
     end
-    # if foundation_type == "crawlspace" and (foundation_height < 1.5 or foundation_height > 5.0)
+    # if foundation_type.include? "crawlspace" and (foundation_height < 1.5 or foundation_height > 5.0)
     #   runner.registerError("The crawlspace height can be set between 1.5 and 5 ft.")
     #   return false
     # end
@@ -1537,7 +1532,7 @@ class Geometry2
     end
 
     # Convert to SI
-    ffa = UnitConversions.convert(ffa, "ft^2", "m^2")
+    cfa = UnitConversions.convert(cfa, "ft^2", "m^2")
     wall_height = UnitConversions.convert(wall_height, "ft", "m")
     foundation_height = UnitConversions.convert(foundation_height, "ft", "m")
 
@@ -1547,7 +1542,7 @@ class Geometry2
     runner.registerInitialCondition("The building started with #{model.getSpaces.size} spaces.")
 
     # calculate the dimensions of the unit
-    footprint = ffa + inset_width * inset_depth
+    footprint = cfa + inset_width * inset_depth
     x = Math.sqrt(footprint / aspect_ratio)
     y = footprint / x
 
@@ -1767,20 +1762,24 @@ class Geometry2
       OpenStudio::Model.intersectSurfaces(spaces)
       OpenStudio::Model.matchSurfaces(spaces)
 
-      if (["crawlspace", "unfinished basement"].include? foundation_type)
+      if (["crawlspace - vented", "crawlspace - unvented", "basement - unconditioned"].include? foundation_type)
         foundation_space = Geometry.make_one_space_from_multiple_spaces(model, foundation_spaces)
-        if foundation_type == "crawlspace"
-          foundation_space.setName("crawl space")
+        if foundation_type == "crawlspace - vented" or foundation_type == "crawlspace - unvented"
+          foundation_space.setName("#{foundation_type} space")
           foundation_zone = OpenStudio::Model::ThermalZone.new(model)
-          foundation_zone.setName("crawl zone")
+          foundation_zone.setName("#{foundation_type} zone")
           foundation_space.setThermalZone(foundation_zone)
-          foundation_space_type_name = Constants.SpaceTypeCrawl
-        elsif foundation_type == "unfinished basement"
-          foundation_space.setName("unfinished basement space")
+          if foundation_type == "crawlspace - vented"
+            foundation_space_type_name = Constants.SpaceTypeVentedCrawl
+          else
+            foundation_space_type_name = Constants.SpaceTypeUnventedCrawl
+          end
+        elsif foundation_type == "basement - unconditioned"
+          foundation_space.setName("#{foundation_type} space")
           foundation_zone = OpenStudio::Model::ThermalZone.new(model)
-          foundation_zone.setName("unfinished basement zone")
+          foundation_zone.setName("#{foundation_type} zone")
           foundation_space.setThermalZone(foundation_zone)
-          foundation_space_type_name = Constants.SpaceTypeUnfinishedBasement
+          foundation_space_type_name = Constants.SpaceTypeUnconditionedBasement
         end
         if space_types_hash.keys.include? foundation_space_type_name
           foundation_space_type = space_types_hash[foundation_space_type_name]

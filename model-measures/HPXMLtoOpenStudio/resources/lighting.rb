@@ -3,7 +3,7 @@ require_relative "geometry"
 require_relative "unit_conversions"
 
 class Lighting
-  def self.apply(model, runner, weather, interior_kwh, garage_kwh, exterior_kwh, cfa, gfa,
+  def self.apply(model, weather, interior_kwh, garage_kwh, exterior_kwh, cfa, gfa,
                  living_space, garage_space)
     lat = weather.header.Latitude
     long = weather.header.Longitude
@@ -118,10 +118,7 @@ class Lighting
     end
 
     # Create schedule
-    sch = HourlyByMonthSchedule.new(model, runner, "lighting schedule", lighting_sch, lighting_sch, normalize_values = true, create_sch_object = true, schedule_type_limits_name = Constants.ScheduleTypeLimitsFraction)
-    if not sch.validated?
-      return false
-    end
+    sch = HourlyByMonthSchedule.new(model, "lighting schedule", lighting_sch, lighting_sch, normalize_values = true, create_sch_object = true, schedule_type_limits_name = Constants.ScheduleTypeLimitsFraction)
 
     # Add lighting to each conditioned space
     if interior_kwh > 0
@@ -170,8 +167,6 @@ class Lighting
       ltg_def.setDesignLevel(space_design_level)
       ltg.setSchedule(sch.schedule)
     end
-
-    return true
   end
 
   def self.get_reference_fractions()

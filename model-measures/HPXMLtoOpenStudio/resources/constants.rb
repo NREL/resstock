@@ -5,16 +5,8 @@ class Constants
     return 73.5 # deg-F
   end
 
-  def self.DefaultCoolingSetpoint
-    return 76.0
-  end
-
   def self.DefaultFramingFactorInterior
     return 0.16
-  end
-
-  def self.DefaultHeatingSetpoint
-    return 71.0
   end
 
   def self.DefaultHumiditySetpoint
@@ -35,6 +27,24 @@ class Constants
 
   def self.small
     return 1e-9
+  end
+
+  def self.NumDaysInMonths(is_leap_year = false)
+    num_days_in_months = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+    num_days_in_months[1] += 1 if is_leap_year
+    return num_days_in_months
+  end
+
+  def self.NumDaysInYear(is_leap_year = false)
+    num_days_in_months = NumDaysInMonths(is_leap_year)
+    num_days_in_year = num_days_in_months.reduce(:+)
+    return num_days_in_year.to_f
+  end
+
+  def self.NumHoursInYear(is_leap_year = false)
+    num_days_in_year = NumDaysInYear(is_leap_year)
+    num_hours_in_year = num_days_in_year * 24
+    return num_hours_in_year.to_f
   end
 
   # Strings --------------------
@@ -729,6 +739,34 @@ class Constants
 
   def self.SizingInfoZoneInfiltrationELA
     return __method__.to_s
+  end
+
+  def self.SolarThermalCollectorTypeEvacuatedTube
+    return 'evacuated tube'
+  end
+
+  def self.SolarThermalCollectorTypeGlazedFlatPlateSingle
+    return 'single glazing black'
+  end
+
+  def self.SolarThermalCollectorTypeGlazedFlatPlateDouble
+    return 'double glazing black'
+  end
+
+  def self.SolarThermalCollectorTypeICS
+    return 'integrated collector storage'
+  end
+
+  def self.SolarThermalLoopTypeDirect
+    return 'liquid direct'
+  end
+
+  def self.SolarThermalLoopTypeIndirect
+    return 'liquid indirect'
+  end
+
+  def self.SolarThermalLoopTypeThermosyphon
+    return 'passive thermosyphon'
   end
 
   def self.SpaceTypeVentedCrawl
