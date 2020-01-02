@@ -26,7 +26,7 @@ class TestResStockMeasuresOSW < MiniTest::Test
     end
 
     Dir["#{parent_dir}/build_existing_model.osw"].each do |osw|
-      change_building_id(osw, 1)
+      change_building_unit_id(osw, 1)
     end
 
     FileUtils.rm_rf(lib_dir) if File.exist?(lib_dir)

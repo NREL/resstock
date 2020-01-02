@@ -1551,6 +1551,7 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     # Validate input HPXML against schema
     if not schemas_dir.nil?
       XMLHelper.validate(hpxml_doc.to_s, File.join(schemas_dir, "HPXML.xsd"), runner).each do |error|
+        puts error
         runner.registerError("#{hpxml_path}: #{error.to_s}")
         is_valid = false
       end
