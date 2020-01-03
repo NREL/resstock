@@ -1820,6 +1820,10 @@ class OSModel
       if not window_values[:interior_shading_factor_winter].nil?
         heat_shade_mult = window_values[:interior_shading_factor_winter]
       end
+      if cool_shade_mult > heat_shade_mult
+        fail "SummerShadingCoefficient (#{cool_shade_mult}) must be less than or equal to WinterShadingCoefficient (#{heat_shade_mult}) for window '#{window_values[:id]}'."
+      end
+
       Constructions.apply_window(model, [sub_surface],
                                  "WindowConstruction",
                                  weather, is_sch, ufactor, shgc,
@@ -2981,6 +2985,8 @@ class OSModel
       building.elements.each("BuildingDetails/Enclosure/Attics/Attic[AtticType/Attic[Vented='true']]") do |vented_attic|
         vented_attic_values = HPXML.get_attic_values(attic: vented_attic,
                                                      select: [:vented_attic_sla, :vented_attic_constant_ach])
+        next if vented_attic_values[:vented_attic_sla].nil? and vented_attic_values[:vented_attic_constant_ach].nil? # skip additional attic elements
+
         vented_attic_sla = vented_attic_values[:vented_attic_sla]
         vented_attic_const_ach = vented_attic_values[:vented_attic_constant_ach]
       end
@@ -4564,11 +4570,10 @@ class OSModel
 
   def self.get_infiltration_volume(building)
     infilvolume = nil
-    building.elements.each("BuildingDetails/Enclosure/AirInfiltration/AirInfiltrationMeasurement") do |air_infiltration_measurement|
-      air_infiltration_measurement_values = HPXML.get_air_infiltration_measurement_values(air_infiltration_measurement: air_infiltration_measurement,
-                                                                                          select: [:infiltration_volume])
-      infilvolume = air_infiltration_measurement_values[:infiltration_volume] unless air_infiltration_measurement_values[:infiltration_volume].nil?
-    end
+    air_infiltration_measurement = building.elements["BuildingDetails/Enclosure/AirInfiltration/AirInfiltrationMeasurement[(HousePressure=50 and BuildingAirLeakage[UnitofMeasure='ACH' or UnitofMeasure='CFM']/AirLeakage) | extension/ConstantACHnatural]"] # only one measurement element has useful inputs
+    air_infiltration_measurement_values = HPXML.get_air_infiltration_measurement_values(air_infiltration_measurement: air_infiltration_measurement,
+                                                                                        select: [:infiltration_volume])
+    infilvolume = air_infiltration_measurement_values[:infiltration_volume]
     if infilvolume.nil?
       infilvolume = @cvolume
     end
