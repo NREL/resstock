@@ -31,7 +31,20 @@ def create_osws
     # 'base-single-family-attached.osw' => 'base-single-family-detached.osw',
     'base-multifamily.osw' => 'base-single-family-detached.osw',
     'base-enclosure-skylights.osw' => 'base-single-family-detached.osw',
+    'base-hvac-furnace-elec-only.osw' => 'base-single-family-detached.osw',
+    'base-hvac-boiler-elec-only.osw' => 'base-single-family-detached.osw',
+    'base-hvac-boiler-gas-only.osw' => 'base-single-family-detached.osw',
+    'base-hvac-elec-resistance-only.osw' => 'base-single-family-detached.osw',
+    'base-hvac-portable-heater-electric-only' => 'base-single-family-detached.osw',
+    'base-hvac-stove-oil-only.osw' => 'base-single-family-detached.osw',
+    'base-hvac-wall-furnace-propane-only.osw' => 'base-single-family-detached.osw',
+    'base-hvac-central-ac-only-1-speed.osw' => 'base-single-family-detached.osw',
+    'base-hvac-evap-cooler-only.osw' => 'base-single-family-detached.osw',
+    'base-hvac-room-ac-only.osw' => 'base-single-family-detached.osw',
     'base-hvac-air-to-air-heat-pump-1-speed.osw' => 'base-single-family-detached.osw',
+    'base-hvac-mini-split-heat-pump-ducted.osw' => 'base-single-family-detached.osw',
+    'base-hvac-ground-to-air-heat-pump.osw' => 'base-single-family-detached.osw',
+    'base-hvac-dual-fuel-air-to-air-heat-pump-1-speed.osw' => 'base-single-family-detached.osw',
     'base-hvac-furnace-gas-only-x2.osw' => 'base-single-family-detached.osw',
     'base-hvac-programmable-thermostat.osw' => 'base-single-family-detached.osw',
     'base-dhw-tank-gas.osw' => 'base-single-family-detached.osw',
@@ -147,12 +160,12 @@ def get_example_single_family_detached_values(osw_file, step)
     step.setArgument("living_ach50", 7)
     step.setArgument("heating_system_type_1", "Furnace")
     step.setArgument("heating_system_fuel_1", "natural gas")
-    step.setArgument("heating_system_heating_efficiency_1", 0.78)
+    step.setArgument("heating_system_heating_efficiency_1", 0.92)
     step.setArgument("heating_system_heating_capacity_1", Constants.SizingAuto)
     step.setArgument("heating_system_fraction_heat_load_served_1", 1)
     step.setArgument("heating_system_type_2", "none")
     step.setArgument("heating_system_fuel_2", "natural gas")
-    step.setArgument("heating_system_heating_efficiency_2", 0.78)
+    step.setArgument("heating_system_heating_efficiency_2", 0.92)
     step.setArgument("heating_system_heating_capacity_2", Constants.SizingAuto)
     step.setArgument("heating_system_fraction_heat_load_served_2", 1)
     step.setArgument("cooling_system_type_1", "central air conditioner")
@@ -274,7 +287,62 @@ def get_example_single_family_detached_values(osw_file, step)
     step.setArgument("attic_type", "attic - conditioned")
     step.setArgument("front_skylight_area", 10)
     step.setArgument("back_skylight_area", 10)
+  elsif ['base-hvac-furnace-elec-only.osw'].include? osw_file
+    step.setArgument("heating_system_fuel_1", "electricity")
+    step.setArgument("heating_system_heating_efficiency_1", 1.0)
+    step.setArgument("cooling_system_type_1", "none")
+  elsif ['base-hvac-boiler-elec-only.osw'].include? osw_file
+    step.setArgument("heating_system_type_1", "Boiler")
+    step.setArgument("heating_system_fuel_1", "electricity")
+    step.setArgument("cooling_system_type_1", "none")
+    step.setArgument("distribution_system_type_1", "HydronicDistribution")
+  elsif ['base-hvac-boiler-gas-only.osw'].include? osw_file
+    step.setArgument("heating_system_type_1", "Boiler")
+    step.setArgument("cooling_system_type_1", "none")
+    step.setArgument("distribution_system_type_1", "HydronicDistribution")
+  elsif ['base-hvac-elec-resistance-only.osw'].include? osw_file
+    step.setArgument("heating_system_type_1", "ElectricResistance")
+    step.setArgument("heating_system_fuel_1", "electricity")
+    step.setArgument("cooling_system_type_1", "none")
+    step.setArgument("distribution_system_type_1", "none")
+  elsif ['base-hvac-portable-heater-electric-only'].include? osw_file
+    step.setArgument("heating_system_type_1", "PortableHeater")
+    step.setArgument("heating_system_fuel_1", "electricity")
+    step.setArgument("cooling_system_type_1", "none")
+    step.setArgument("distribution_system_type_1", "none")
+  elsif ['base-hvac-stove-oil-only.osw'].include? osw_file
+    step.setArgument("heating_system_type_1", "Stove")
+    step.setArgument("heating_system_fuel_1", "fuel oil")
+    step.setArgument("cooling_system_type_1", "none")
+    step.setArgument("distribution_system_type_1", "none")
+  elsif ['base-hvac-wall-furnace-propane-only.osw'].include? osw_file
+    step.setArgument("heating_system_type_1", "WallFurnace")
+    step.setArgument("heating_system_fuel_1", "propane")
+    step.setArgument("cooling_system_type_1", "none")
+    step.setArgument("distribution_system_type_1", "none")
+  elsif ['base-hvac-central-ac-only-1-speed.osw'].include? osw_file
+    step.setArgument("heating_system_type_1", "none")
+  elsif ['base-hvac-evap-cooler-only.osw'].include? osw_file
+    step.setArgument("heating_system_type_1", "none")
+    step.setArgument("cooling_system_type_1", "evaporative cooler")
+    step.setArgument("distribution_system_type_1", "none")
+  elsif ['base-hvac-room-ac-only.osw'].include? osw_file
+    step.setArgument("heating_system_type_1", "none")
+    step.setArgument("cooling_system_type_1", "room air conditioner")
+    step.setArgument("distribution_system_type_1", "none")
   elsif ['base-hvac-air-to-air-heat-pump-1-speed.osw'].include? osw_file
+    step.setArgument("heating_system_type_1", "none")
+    step.setArgument("cooling_system_type_1", "none")
+    step.setArgument("heat_pump_type_1", "air-to-air")
+  elsif ['base-hvac-mini-split-heat-pump-ducted.osw' => 'base-single-family-detached.osw'].include? osw_file
+    step.setArgument("heating_system_type_1", "none")
+    step.setArgument("cooling_system_type_1", "none")
+    step.setArgument("heat_pump_type_1", "mini-split")
+  elsif ['base-hvac-ground-to-air-heat-pump.osw' => 'base-single-family-detached.osw'].include? osw_file
+    step.setArgument("heating_system_type_1", "none")
+    step.setArgument("cooling_system_type_1", "none")
+    step.setArgument("heat_pump_type_1", "ground-to-air")
+  elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-1-speed.osw' => 'base-single-family-detached.osw'].include? osw_file
     step.setArgument("heating_system_type_1", "none")
     step.setArgument("cooling_system_type_1", "none")
     step.setArgument("heat_pump_type_1", "air-to-air")
