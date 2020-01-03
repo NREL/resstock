@@ -2,13 +2,16 @@
 # http://nrel.github.io/OpenStudio-user-documentation/reference/measure_writing_guide/
 
 require 'openstudio'
+require_relative "../HPXMLtoOpenStudio/measure"
 require_relative "../HPXMLtoOpenStudio/resources/EPvalidator"
 require_relative "../HPXMLtoOpenStudio/resources/constructions"
 require_relative "../HPXMLtoOpenStudio/resources/hpxml"
 require_relative "../HPXMLtoOpenStudio/resources/schedules"
+require_relative "../HPXMLtoOpenStudio/resources/waterheater"
 
 require_relative "../BuildResidentialHPXML/resources/geometry"
 require_relative "../BuildResidentialHPXML/resources/schedules"
+require_relative "../BuildResidentialHPXML/resources/waterheater"
 
 # start the measure
 class HPXMLExporter < OpenStudio::Measure::ModelMeasure
@@ -1017,7 +1020,7 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("water_heater_fuel_type_1", water_heater_fuel_choices, true)
     arg.setDisplayName("Water Heater 1: Fuel Type")
     arg.setDescription("The fuel type of the first water heater.")
-    arg.setDefaultValue("natural gas")
+    arg.setDefaultValue("electricity")
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("water_heater_location_1", location_choices, true)
@@ -1046,17 +1049,17 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(Constants.SizingAuto)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("water_heater_energy_factor_1", true)
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument("water_heater_energy_factor_1", true)
     arg.setDisplayName("Water Heater 1: Rated Energy Factor")
     arg.setDescription("Ratio of useful energy output from the first water heater to the total amount of energy delivered from the water heater.")
-    arg.setDefaultValue(0.59)
+    arg.setDefaultValue(Constants.Auto)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("water_heater_recovery_efficiency_1", true)
     arg.setDisplayName("Water Heater 1: Recovery Efficiency")
     arg.setDescription("Ratio of energy delivered to the first water to the energy content of the fuel consumed by the water heater. Only used for non-electric water heaters.")
     arg.setUnits("Frac")
-    arg.setDefaultValue(0.76)
+    arg.setDefaultValue(-1)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("water_heater_type_2", water_heater_type_choices, true)
@@ -1068,7 +1071,7 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("water_heater_fuel_type_2", water_heater_fuel_choices, true)
     arg.setDisplayName("Water Heater 2: Fuel Type")
     arg.setDescription("The fuel type of the second water heater.")
-    arg.setDefaultValue("natural gas")
+    arg.setDefaultValue("electricity")
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("water_heater_location_2", location_choices, true)
@@ -1097,17 +1100,17 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(Constants.SizingAuto)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("water_heater_energy_factor_2", true)
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument("water_heater_energy_factor_2", true)
     arg.setDisplayName("Water Heater 2: Rated Energy Factor")
     arg.setDescription("Ratio of useful energy output from the second water heater to the total amount of energy delivered from the water heater.")
-    arg.setDefaultValue(0.59)
+    arg.setDefaultValue(Constants.Auto)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("water_heater_recovery_efficiency_2", true)
     arg.setDisplayName("Water Heater 2: Recovery Efficiency")
     arg.setDescription("Ratio of energy delivered to the second water to the energy content of the fuel consumed by the water heater. Only used for non-electric water heaters.")
     arg.setUnits("Frac")
-    arg.setDefaultValue(0.76)
+    arg.setDefaultValue(-1)
     args << arg
 
     hot_water_distribution_system_type_choices = OpenStudio::StringVector.new
@@ -1477,7 +1480,7 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
              :water_heater_tank_volume => [runner.getStringArgumentValue("water_heater_tank_volume_1", user_arguments), runner.getStringArgumentValue("water_heater_tank_volume_2", user_arguments)],
              :water_heater_fraction_dhw_load_served => [runner.getDoubleArgumentValue("water_heater_fraction_dhw_load_served_1", user_arguments), runner.getDoubleArgumentValue("water_heater_fraction_dhw_load_served_2", user_arguments)],
              :water_heater_heating_capacity => [runner.getStringArgumentValue("water_heater_heating_capacity_1", user_arguments), runner.getStringArgumentValue("water_heater_heating_capacity_2", user_arguments)],
-             :water_heater_energy_factor => [runner.getDoubleArgumentValue("water_heater_energy_factor_1", user_arguments), runner.getDoubleArgumentValue("water_heater_energy_factor_2", user_arguments)],
+             :water_heater_energy_factor => [runner.getStringArgumentValue("water_heater_energy_factor_1", user_arguments), runner.getStringArgumentValue("water_heater_energy_factor_2", user_arguments)],
              :water_heater_recovery_efficiency => [runner.getDoubleArgumentValue("water_heater_recovery_efficiency_1", user_arguments), runner.getDoubleArgumentValue("water_heater_recovery_efficiency_2", user_arguments)],
              :hot_water_distribution_system_type => runner.getStringArgumentValue("hot_water_distribution_system_type", user_arguments),
              :standard_piping_length => runner.getStringArgumentValue("standard_piping_length", user_arguments),
@@ -2256,28 +2259,37 @@ class HPXMLFile
   end
 
   def self.get_water_heating_system_values(runner, args)
+    num_water_heaters = 0
+    args[:water_heater_type].each do |water_heater_type|
+      next if water_heater_type == "none"
+
+      num_water_heaters += 1
+    end
+
     water_heating_systems_values = []
     args[:water_heater_type].each_with_index do |water_heater_type, i|
       next if water_heater_type == "none"
 
-      tank_volume = args[:water_heater_tank_volume][i]
-      if tank_volume == Constants.Auto
-        tank_volume = 40 # FIXME: Hard-coded
-      end
       fuel_type = args[:water_heater_fuel_type][i]
+      tank_volume = Waterheater2.calc_nom_tankvol(args[:water_heater_tank_volume][i], to_beopt_fuel(fuel_type), args[:num_bedrooms], args[:num_bathrooms])
+      energy_factor = Waterheater2.calc_ef(args[:water_heater_energy_factor][i], tank_volume, to_beopt_fuel(fuel_type))
       heating_capacity = args[:water_heater_heating_capacity][i]
       if heating_capacity == Constants.SizingAuto
-        heating_capacity = 40000 # FIXME: Hard-coded; call Waterheater.calc_water_heater_capacity()
+        heating_capacity = UnitConversions.convert(Waterheater.calc_water_heater_capacity(to_beopt_fuel(fuel_type), args[:num_bedrooms], num_water_heaters, args[:num_bathrooms]), "kBtu/hr", "Btu/hr")
+      end
+      recovery_efficiency = args[:water_heater_recovery_efficiency][i]
+      if recovery_efficiency == -1
+        recovery_efficiency = nil
       end
       water_heating_systems_values << { :id => "WaterHeater#{i + 1}",
-                                        :water_heater_type => args[:water_heater_type][i],
+                                        :water_heater_type => water_heater_type,
                                         :fuel_type => fuel_type,
                                         :location => args[:water_heater_location][i],
                                         :tank_volume => tank_volume,
                                         :fraction_dhw_load_served => args[:water_heater_fraction_dhw_load_served][i],
                                         :heating_capacity => heating_capacity,
-                                        :energy_factor => args[:water_heater_energy_factor][i],
-                                        :recovery_efficiency => args[:water_heater_recovery_efficiency][i] }
+                                        :energy_factor => energy_factor,
+                                        :recovery_efficiency => recovery_efficiency }
     end
     return water_heating_systems_values
   end

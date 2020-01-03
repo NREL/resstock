@@ -646,7 +646,7 @@ class Geometry2
       garage_space.surfaces.each do |surface|
         next if surface.surfaceType.downcase != "floor"
 
-        adjacent_wall_surfaces = Geometry.get_walls_connected_to_floor(foundation_walls, surface, false)
+        adjacent_wall_surfaces = get_walls_connected_to_floor(foundation_walls, surface, false)
         adjacent_wall_surfaces.each do |adjacent_wall_surface|
           adjacent_wall_surface.setOutsideBoundaryCondition("Adiabatic")
         end
@@ -1866,5 +1866,56 @@ class Geometry2
       end
     end
     return false
+  end
+
+  def self.is_point_between(p, v1, v2)
+    # Checks if point p is between points v1 and v2
+    is_between = false
+    tol = 0.001
+    if (p[2] - v1[2]).abs <= tol and (p[2] - v2[2]).abs <= tol # equal z
+      if (p[0] - v1[0]).abs <= tol and (p[0] - v2[0]).abs <= tol # equal x; vertical
+        if p[1] >= v1[1] - tol and p[1] <= v2[1] + tol
+          is_between = true
+        elsif p[1] <= v1[1] + tol and p[1] >= v2[1] - tol
+          is_between = true
+        end
+      elsif (p[1] - v1[1]).abs <= tol and (p[1] - v2[1]).abs <= tol # equal y; horizontal
+        if p[0] >= v1[0] - tol and p[0] <= v2[0] + tol
+          is_between = true
+        elsif p[0] <= v1[0] + tol and p[0] >= v2[0] - tol
+          is_between = true
+        end
+      end
+    end
+    return is_between
+  end
+
+  def self.get_walls_connected_to_floor(wall_surfaces, floor_surface, same_space = true)
+    adjacent_wall_surfaces = []
+
+    wall_surfaces.each do |wall_surface|
+      if same_space
+        next if wall_surface.space.get != floor_surface.space.get
+      else
+        next if wall_surface.space.get == floor_surface.space.get
+      end
+
+      wall_vertices = wall_surface.vertices
+      wall_vertices.each_with_index do |wv1, widx|
+        wv2 = wall_vertices[widx - 1]
+        floor_vertices = floor_surface.vertices
+        floor_vertices.each_with_index do |fv1, fidx|
+          fv2 = floor_vertices[fidx - 1]
+          # Wall within floor edge?
+          if is_point_between([wv1.x, wv1.y, wv1.z], [fv1.x, fv1.y, fv1.z], [fv2.x, fv2.y, fv2.z]) and is_point_between([wv2.x, wv2.y, wv2.z], [fv1.x, fv1.y, fv1.z], [fv2.x, fv2.y, fv2.z])
+            if not adjacent_wall_surfaces.include? wall_surface
+              adjacent_wall_surfaces << wall_surface
+            end
+          end
+        end
+      end
+    end
+
+    return adjacent_wall_surfaces
   end
 end

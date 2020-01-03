@@ -1,4 +1,3 @@
-# require_relative "../../HPXMLtoOpenStudio/unit_conversions"
 require "csv"
 
 class SchedulesFile
