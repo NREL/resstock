@@ -39,6 +39,66 @@ class ResidentialDishwasherTest < MiniTest::Test
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
+  def test_new_construction_270_rated_kwh
+    args_hash = {}
+    args_hash["num_settings"] = 12
+    args_hash["rated_annual_energy"] = 270
+    args_hash["annual_gas_cost"] = 22
+    args_hash["test_date"] = 2013
+    expected_num_del_objects = {}
+    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "WaterUseEquipmentDefinition" => 1, "WaterUseEquipment" => 1, "ScheduleRuleset" => 1, "ScheduleConstant" => 1 }
+    expected_values = { "Annual_kwh" => 73.5, "HotWater_gpd" => 1.60, "Location" => args_hash["location"] }
+    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
+  end
+
+  def test_new_construction_255_rated_kwh
+    args_hash = {}
+    args_hash["num_settings"] = 12
+    args_hash["rated_annual_energy"] = 255
+    args_hash["annual_gas_cost"] = 21
+    args_hash["test_date"] = 2013
+    expected_num_del_objects = {}
+    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "WaterUseEquipmentDefinition" => 1, "WaterUseEquipment" => 1, "ScheduleRuleset" => 1, "ScheduleConstant" => 1 }
+    expected_values = { "Annual_kwh" => 71.6, "HotWater_gpd" => 1.47, "Location" => args_hash["location"] }
+    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
+  end
+
+  def test_new_construction_220_rated_kwh
+    args_hash = {}
+    args_hash["num_settings"] = 12
+    args_hash["rated_annual_energy"] = 220
+    args_hash["annual_gas_cost"] = 19
+    args_hash["test_date"] = 2013
+    expected_num_del_objects = {}
+    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "WaterUseEquipmentDefinition" => 1, "WaterUseEquipment" => 1, "ScheduleRuleset" => 1, "ScheduleConstant" => 1 }
+    expected_values = { "Annual_kwh" => 70.6, "HotWater_gpd" => 1.14, "Location" => args_hash["location"] }
+    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
+  end
+
+  def test_new_construction_199_rated_kwh
+    args_hash = {}
+    args_hash["num_settings"] = 12
+    args_hash["rated_annual_energy"] = 199
+    args_hash["annual_gas_cost"] = 18
+    args_hash["test_date"] = 2017
+    expected_num_del_objects = {}
+    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "WaterUseEquipmentDefinition" => 1, "WaterUseEquipment" => 1, "ScheduleRuleset" => 1, "ScheduleConstant" => 1 }
+    expected_values = { "Annual_kwh" => 68.8, "HotWater_gpd" => 0.96, "Location" => args_hash["location"] }
+    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
+  end
+
+  def test_new_construction_144_rated_kwh
+    args_hash = {}
+    args_hash["num_settings"] = 12
+    args_hash["rated_annual_energy"] = 144
+    args_hash["annual_gas_cost"] = 13
+    args_hash["test_date"] = 2017
+    expected_num_del_objects = {}
+    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "WaterUseEquipmentDefinition" => 1, "WaterUseEquipment" => 1, "ScheduleRuleset" => 1, "ScheduleConstant" => 1 }
+    expected_values = { "Annual_kwh" => 49.6, "HotWater_gpd" => 0.70, "Location" => args_hash["location"] }
+    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
+  end
+
   def test_new_construction_318_rated_kwh_mult_0_80
     args_hash = {}
     args_hash["num_settings"] = 8
@@ -288,7 +348,7 @@ class ResidentialDishwasherTest < MiniTest::Test
     result = runner.result
 
     # show the output
-    # show_output(result)
+    show_output(result) unless result.value.valueName == 'Fail'
 
     # assert that it didn't run
     assert_equal("Fail", result.value.valueName)
@@ -332,7 +392,7 @@ class ResidentialDishwasherTest < MiniTest::Test
     result = runner.result
 
     # show the output
-    # show_output(result)
+    show_output(result) unless result.value.valueName == 'Success'
 
     # assert that it ran correctly
     assert_equal("Success", result.value.valueName)

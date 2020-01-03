@@ -62,8 +62,6 @@ class Location
     year_description = model.getYearDescription
     if epw_file.startDateActualYear.is_initialized # AMY
       year_description.setCalendarYear(epw_file.startDateActualYear.get)
-    else # TMY, 2007
-      year_description.setDayofWeekforStartDay('Monday') # this is consistent with SAM utilityrate3
     end
 
     return true
