@@ -2098,8 +2098,12 @@ class HPXMLFile
       if heating_capacity == Constants.SizingAuto
         heating_capacity = -1
       end
+      distribution_system_idref = nil
+      unless hvac_distributions_values[i].nil?
+        distribution_system_idref = hvac_distributions_values[i][:id]
+      end
       heating_system_values = { :id => "HeatingSystem#{i + 1}",
-                                :distribution_system_idref => hvac_distributions_values[i][:id],
+                                :distribution_system_idref => distribution_system_idref,
                                 :heating_system_type => heating_system_type,
                                 :heating_system_fuel => args[:heating_system_fuel][i],
                                 :heating_capacity => heating_capacity,
@@ -2124,9 +2128,16 @@ class HPXMLFile
       cooling_capacity = args[:cooling_system_cooling_capacity][i]
       if cooling_capacity == Constants.SizingAuto
         cooling_capacity = -1
+        if cooling_system_type == "evaporative cooler"
+          cooling_capacity = nil
+        end
+      end
+      distribution_system_idref = nil
+      unless hvac_distributions_values[i].nil?
+        distribution_system_idref = hvac_distributions_values[i][:id]
       end
       cooling_system_values = { :id => "CoolingSystem#{i + 1}",
-                                :distribution_system_idref => hvac_distributions_values[i][:id],
+                                :distribution_system_idref => distribution_system_idref,
                                 :cooling_system_type => cooling_system_type,
                                 :cooling_system_fuel => args[:cooling_system_fuel][i],
                                 :cooling_capacity => cooling_capacity,
@@ -2160,8 +2171,12 @@ class HPXMLFile
       if backup_heating_capacity == Constants.SizingAuto
         backup_heating_capacity = -1
       end
+      distribution_system_idref = nil
+      unless hvac_distributions_values[i].nil?
+        distribution_system_idref = hvac_distributions_values[i][:id]
+      end
       heat_pump_values = { :id => "HeatPump#{i + 1}",
-                           :distribution_system_idref => hvac_distributions_values[i][:id],
+                           :distribution_system_idref => distribution_system_idref,
                            :heat_pump_type => heat_pump_type,
                            :heat_pump_fuel => args[:heat_pump_fuel][i],
                            :heating_capacity => heating_capacity,
@@ -2277,8 +2292,11 @@ class HPXMLFile
       energy_factor = Waterheater2.calc_ef(args[:water_heater_energy_factor][i], tank_volume, to_beopt_fuel(fuel_type))
       heating_capacity = args[:water_heater_heating_capacity][i]
       if heating_capacity == Constants.SizingAuto
-        heating_capacity = UnitConversions.convert(Waterheater.calc_water_heater_capacity(to_beopt_fuel(fuel_type), args[:num_bedrooms], num_water_heaters, args[:num_bathrooms]), "kBtu/hr", "Btu/hr")
+        heating_capacity = Waterheater.calc_water_heater_capacity(to_beopt_fuel(fuel_type), args[:num_bedrooms], num_water_heaters, args[:num_bathrooms])
+      else
+        heating_capacity = Float(heating_capacity)
       end
+      heating_capacity = UnitConversions.convert(heating_capacity, "kBtu/hr", "Btu/hr")
       recovery_efficiency = args[:water_heater_recovery_efficiency][i]
       if recovery_efficiency == -1
         recovery_efficiency = nil

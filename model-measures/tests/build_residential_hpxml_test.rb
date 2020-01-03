@@ -218,6 +218,7 @@ class HPXMLExporterTest < MiniTest::Test
     puts "Running #{osws.size} OSW files..."
     measures = {}
     osws.each do |osw|
+      puts osw
       _setup(@@this_dir)
       osw_hash = JSON.parse(File.read(osw))
       osw_hash["steps"].each do |step|
