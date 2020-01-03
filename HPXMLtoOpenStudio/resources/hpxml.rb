@@ -111,14 +111,9 @@ class HPXML
   end
 
   def self.add_building_occupancy(hpxml:,
-                                  number_of_residents: nil,
-                                  schedules_output_path: nil,
-                                  schedules_column_name: nil)
+                                  number_of_residents: nil)
     building_occupancy = XMLHelper.create_elements_as_needed(hpxml, ["Building", "BuildingDetails", "BuildingSummary", "BuildingOccupancy"])
     XMLHelper.add_element(building_occupancy, "NumberofResidents", Float(number_of_residents)) unless number_of_residents.nil?
-    HPXML.add_extension(parent: building_occupancy,
-                        extensions: { "SchedulesOutputPath": schedules_output_path,
-                                      "SchedulesColumnName": schedules_column_name })
 
     return building_occupancy
   end
@@ -129,8 +124,6 @@ class HPXML
 
     vals = {}
     vals[:number_of_residents] = to_float_or_nil(XMLHelper.get_value(building_occupancy, "NumberofResidents")) if is_selected(select, :number_of_residents)
-    vals[:schedules_output_path] = XMLHelper.get_value(building_occupancy, "extension/SchedulesOutputPath") if is_selected(select, :schedules_output_path)
-    vals[:schedules_column_name] = XMLHelper.get_value(building_occupancy, "extension/SchedulesColumnName") if is_selected(select, :schedules_column_name)
     return vals
   end
 
@@ -1863,9 +1856,7 @@ class HPXML
                             id:,
                             location:,
                             rated_annual_kwh: nil,
-                            adjusted_annual_kwh: nil,
-                            schedules_output_path: nil,
-                            schedules_column_name: nil)
+                            adjusted_annual_kwh: nil)
     appliances = XMLHelper.create_elements_as_needed(hpxml, ["Building", "BuildingDetails", "Appliances"])
     refrigerator = XMLHelper.add_element(appliances, "Refrigerator")
     sys_id = XMLHelper.add_element(refrigerator, "SystemIdentifier")
@@ -1873,9 +1864,7 @@ class HPXML
     XMLHelper.add_element(refrigerator, "Location", location)
     XMLHelper.add_element(refrigerator, "RatedAnnualkWh", Float(rated_annual_kwh)) unless rated_annual_kwh.nil?
     HPXML.add_extension(parent: refrigerator,
-                        extensions: { "AdjustedAnnualkWh": to_float_or_nil(adjusted_annual_kwh),
-                                      "SchedulesOutputPath": schedules_output_path,
-                                      "SchedulesColumnName": schedules_column_name })
+                        extensions: { "AdjustedAnnualkWh": to_float_or_nil(adjusted_annual_kwh) })
 
     return refrigerator
   end
@@ -1889,8 +1878,6 @@ class HPXML
     vals[:location] = XMLHelper.get_value(refrigerator, "Location") if is_selected(select, :location)
     vals[:rated_annual_kwh] = to_float_or_nil(XMLHelper.get_value(refrigerator, "RatedAnnualkWh")) if is_selected(select, :rated_annual_kwh)
     vals[:adjusted_annual_kwh] = to_float_or_nil(XMLHelper.get_value(refrigerator, "extension/AdjustedAnnualkWh")) if is_selected(select, :adjusted_annual_kwh)
-    vals[:schedules_output_path] = to_float_or_nil(XMLHelper.get_value(refrigerator, "extension/SchedulesOutputPath")) if is_selected(select, :schedules_output_path)
-    vals[:schedules_column_name] = to_float_or_nil(XMLHelper.get_value(refrigerator, "extension/SchedulesColumnName")) if is_selected(select, :schedules_column_name)
     return vals
   end
 

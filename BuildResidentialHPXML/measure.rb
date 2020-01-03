@@ -1551,6 +1551,7 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     # Validate input HPXML against schema
     if not schemas_dir.nil?
       XMLHelper.validate(hpxml_doc.to_s, File.join(schemas_dir, "HPXML.xsd"), runner).each do |error|
+        puts error
         runner.registerError("#{hpxml_path}: #{error.to_s}")
         is_valid = false
       end
@@ -1719,6 +1720,9 @@ class HPXMLFile
     HPXML.add_extension(parent: hpxml_doc.elements["/HPXML/Building/BuildingDetails"],
                         extensions: { "UnitMultiplier": args[:unit_multiplier] })
 
+    success = remove_geometry_envelope(model)
+    return false if not success
+
     return hpxml_doc
   end
 
@@ -1737,6 +1741,23 @@ class HPXMLFile
 
     success = Geometry2.create_doors(runner: runner, model: model, **args)
     return false if not success
+
+    return true
+  end
+
+  def self.remove_geometry_envelope(model)
+    model.getSpaces.each do |space|
+      space.surfaces.each do |surface|
+        surface.remove
+      end
+      if space.thermalZone.is_initialized
+        space.thermalZone.get.remove
+      end
+      if space.spaceType.is_initialized
+        space.spaceType.get.remove
+      end
+      space.remove
+    end
 
     return true
   end
@@ -2246,7 +2267,7 @@ class HPXMLFile
       fuel_type = args[:water_heater_fuel_type][i]
       heating_capacity = args[:water_heater_heating_capacity][i]
       if heating_capacity == Constants.SizingAuto
-        heating_capacity = 40 # FIXME: Hard-coded; call Waterheater.calc_water_heater_capacity()
+        heating_capacity = 40000 # FIXME: Hard-coded; call Waterheater.calc_water_heater_capacity()
       end
       water_heating_systems_values << { :id => "WaterHeater#{i + 1}",
                                         :water_heater_type => args[:water_heater_type][i],

@@ -40,56 +40,11 @@ class WeatherProcess
 
     @epw_file = OpenStudio::EpwFile.new(@epw_path, true)
 
-    get_cached_weather(@model)
-
     process_epw
-
-    cache_weather(@model)
   end
 
   def epw_path
     return @epw_path
-  end
-
-  def cache_weather(model)
-    wf_ap = model.weatherFile.get.additionalProperties
-
-    # Header
-    WeatherHeader::ATTRS.each do |k|
-      k = k.to_s
-      # string
-      if ['City', 'State', 'Country', 'DataSource', 'Station'].include? k
-        wf_ap.setFeature("EPWHeader#{k}", @header.send(k).to_s)
-      # double
-      elsif ['Latitude', 'Longitude', 'Timezone', 'Altitude', 'LocalPressure', 'RecordsPerHour'].include? k
-        wf_ap.setFeature("EPWHeader#{k}", @header.send(k).to_f)
-      else
-        fail "Weather header key #{k} not handled."
-      end
-    end
-
-    # Data
-    WeatherData::ATTRS.each do |k|
-      k = k.to_s
-      # double
-      if ['AnnualAvgDrybulb', 'AnnualMinDrybulb', 'AnnualMaxDrybulb', 'CDD50F', 'CDD65F',
-          'HDD50F', 'HDD65F', 'AnnualAvgWindspeed', 'WSF'].include? k
-        wf_ap.setFeature("EPWData#{k}", @data.send(k).to_f)
-      # array
-      elsif ['MonthlyAvgDrybulbs', 'GroundMonthlyTemps',
-             'MonthlyAvgDailyHighDrybulbs', 'MonthlyAvgDailyLowDrybulbs'].include? k
-        wf_ap.setFeature("EPWData#{k}", @data.send(k).join(","))
-      else
-        fail "Weather data key #{k} not handled."
-      end
-    end
-
-    # Design
-    WeatherDesign::ATTRS.each do |k|
-      k = k.to_s
-      # double
-      wf_ap.setFeature("EPWDesign#{k}", @design.send(k).to_f)
-    end
   end
 
   def marshal_dump
@@ -121,62 +76,6 @@ class WeatherProcess
     end
 
     fail "Model has not been assigned a weather file."
-  end
-
-  def get_cached_weather(model)
-    wf_ap = model.weatherFile.get.additionalProperties
-
-    # Header
-    WeatherHeader::ATTRS.each do |k|
-      k = k.to_s
-      # string
-      if ['City', 'State', 'Country', 'DataSource', 'Station'].include? k
-        @header.send(k + "=", wf_ap.getFeatureAsString("EPWHeader#{k}"))
-        fail "Could not retrieve cached weather data." if !@header.send(k).is_initialized
-
-        @header.send(k + "=", @header.send(k).get)
-      # double
-      elsif ['Latitude', 'Longitude', 'Timezone', 'Altitude', 'LocalPressure', 'RecordsPerHour'].include? k
-        @header.send(k + "=", wf_ap.getFeatureAsDouble("EPWHeader#{k}"))
-        fail "Could not retrieve cached weather data." if !@header.send(k).is_initialized
-
-        @header.send(k + "=", @header.send(k).get)
-      else
-        fail "Weather header key #{k} not handled."
-      end
-    end
-
-    # Data
-    WeatherData::ATTRS.each do |k|
-      k = k.to_s
-      # double
-      if ['AnnualAvgDrybulb', 'AnnualMinDrybulb', 'AnnualMaxDrybulb', 'CDD50F', 'CDD65F',
-          'HDD50F', 'HDD65F', 'AnnualAvgWindspeed', 'WSF'].include? k
-        @data.send(k + "=", wf_ap.getFeatureAsDouble("EPWData#{k}"))
-        fail "Could not retrieve cached weather data." if !@data.send(k).is_initialized
-
-        @data.send(k + "=", @data.send(k).get)
-      # array
-      elsif ['MonthlyAvgDrybulbs', 'GroundMonthlyTemps',
-             'MonthlyAvgDailyHighDrybulbs', 'MonthlyAvgDailyLowDrybulbs'].include? k
-        @data.send(k + "=", wf_ap.getFeatureAsString("EPWData#{k}"))
-        fail "Could not retrieve cached weather data." if !@data.send(k).is_initialized
-
-        @data.send(k + "=", @data.send(k).get.split(",").map(&:to_f))
-      else
-        fail "Weather data key #{k} not handled."
-      end
-    end
-
-    # Design
-    WeatherDesign::ATTRS.each do |k|
-      k = k.to_s
-      # double
-      @design.send(k + "=", wf_ap.getFeatureAsDouble("EPWDesign#{k}"))
-      fail "Could not retrieve cached weather data." if !@design.send(k).is_initialized
-
-      @design.send(k + "=", @design.send(k).get)
-    end
   end
 
   def process_epw

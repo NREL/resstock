@@ -432,7 +432,7 @@ class Geometry2
       # set foundation walls outside boundary condition
       spaces = model.getSpaces
       spaces.each do |space|
-        if Geometry.get_space_floor_z(space) + UnitConversions.convert(space.zOrigin, "m", "ft") < 0
+        if get_space_floor_z(space) + UnitConversions.convert(space.zOrigin, "m", "ft") < 0
           surfaces = space.surfaces
           surfaces.each do |surface|
             next if surface.surfaceType.downcase != "wall"
@@ -656,6 +656,22 @@ class Geometry2
     return true
   end
 
+  def self.make_one_space_from_multiple_spaces(model, spaces)
+    new_space = OpenStudio::Model::Space.new(model)
+    spaces.each do |space|
+      space.surfaces.each do |surface|
+        if surface.adjacentSurface.is_initialized and surface.surfaceType.downcase == "wall"
+          surface.adjacentSurface.get.remove
+          surface.remove
+        else
+          surface.setSpace(new_space)
+        end
+      end
+      space.remove
+    end
+    return new_space
+  end
+
   def self.make_polygon(*pts)
     p = OpenStudio::Point3dVector.new
     pts.each do |pt|
@@ -706,7 +722,7 @@ class Geometry2
     space.surfaces.each do |surface|
       next unless surface.surfaceType.downcase == "floor"
 
-      return self.getSurfaceZValues([surface])[0]
+      return Geometry.getSurfaceZValues([surface])[0]
     end
   end
 
@@ -1445,6 +1461,8 @@ class Geometry2
   def self.create_single_family_attached(runner:,
                                          model:,
                                          **remainder)
+    success = create_multifamily(runner: runner, model: model, **remainder) # FIXME
+    return false if not success
 
     return true
   end
@@ -1465,8 +1483,9 @@ class Geometry2
                               foundation_type:,
                               foundation_height:,
                               **remainder)
-    num_units = 2
-    num_floors = 1
+    num_units = 2 # FIXME
+    num_floors = 1 # FIXME
+    corridor_position = "None" # FIXME
 
     if foundation_type == "slab"
       foundation_height = 0.0
@@ -1763,7 +1782,7 @@ class Geometry2
       OpenStudio::Model.matchSurfaces(spaces)
 
       if (["crawlspace - vented", "crawlspace - unvented", "basement - unconditioned"].include? foundation_type)
-        foundation_space = Geometry.make_one_space_from_multiple_spaces(model, foundation_spaces)
+        foundation_space = make_one_space_from_multiple_spaces(model, foundation_spaces)
         if foundation_type == "crawlspace - vented" or foundation_type == "crawlspace - unvented"
           foundation_space.setName("#{foundation_type} space")
           foundation_zone = OpenStudio::Model::ThermalZone.new(model)
@@ -1794,7 +1813,7 @@ class Geometry2
       # set foundation walls to ground
       spaces = model.getSpaces
       spaces.each do |space|
-        if Geometry.get_space_floor_z(space) + UnitConversions.convert(space.zOrigin, "m", "ft") < 0
+        if get_space_floor_z(space) + UnitConversions.convert(space.zOrigin, "m", "ft") < 0
           surfaces = space.surfaces
           surfaces.each do |surface|
             next if surface.surfaceType.downcase != "wall"
