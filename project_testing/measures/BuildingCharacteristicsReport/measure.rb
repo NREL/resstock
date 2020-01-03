@@ -19,8 +19,7 @@ class BuildingCharacteristicsReport < OpenStudio::Measure::ReportingMeasure
   def outputs
     result = OpenStudio::Measure::OSOutputVector.new
     # Outputs based on parameters in options_lookup.tsv
-    # Note: Not every parameter is used by every project; non-applicable outputs
-    #       for a given project can be removed via a server finalization script.
+    # Note: Not every parameter is used by every project; non-applicable outputs for a given project can be removed via a server finalization script.
     resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), "..", "..", "resources"))
     buildstock_file = File.join(resources_dir, "buildstock.rb")
     lookup_file = File.join(resources_dir, "options_lookup.tsv")
