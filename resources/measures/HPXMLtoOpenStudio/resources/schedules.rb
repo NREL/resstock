@@ -122,7 +122,7 @@ class HourlyByMonthSchedule
       if wkdy_vals == wknd_vals
         # Alldays
         wkdy_rule = OpenStudio::Model::ScheduleRule.new(schedule)
-        wkdy_rule.setName(@sch_name + " #{Schedule.allday_name} ruleset#{m}")
+        wkdy_rule.setName(@sch_name + " #{Schedule.allday_name} rule#{m}")
         wkdy[m] = wkdy_rule.daySchedule
         wkdy[m].setName(@sch_name + " #{Schedule.allday_name}#{m}")
         previous_value = wkdy_vals[1]
@@ -139,7 +139,7 @@ class HourlyByMonthSchedule
       else
         # Weekdays
         wkdy_rule = OpenStudio::Model::ScheduleRule.new(schedule)
-        wkdy_rule.setName(@sch_name + " #{Schedule.weekday_name} ruleset#{m}")
+        wkdy_rule.setName(@sch_name + " #{Schedule.weekday_name} rule#{m}")
         wkdy[m] = wkdy_rule.daySchedule
         wkdy[m].setName(@sch_name + " #{Schedule.weekday_name}#{m}")
         previous_value = wkdy_vals[1]
@@ -155,7 +155,7 @@ class HourlyByMonthSchedule
 
         # Weekends
         wknd_rule = OpenStudio::Model::ScheduleRule.new(schedule)
-        wknd_rule.setName(@sch_name + " #{Schedule.weekend_name} ruleset#{m}")
+        wknd_rule.setName(@sch_name + " #{Schedule.weekend_name} rule#{m}")
         wknd[m] = wknd_rule.daySchedule
         wknd[m].setName(@sch_name + " #{Schedule.weekend_name}#{m}")
         previous_value = wknd_vals[1]
@@ -364,6 +364,7 @@ class MonthWeekdayWeekendSchedule
 
       wkdy_vals = []
       wknd_vals = []
+
       for h in 1..24
         wkdy_vals[h] = (@monthly_values[m - 1] * @weekday_hourly_values[h - 1] * @mult_weekday) / @maxval
         wknd_vals[h] = (@monthly_values[m - 1] * @weekend_hourly_values[h - 1] * @mult_weekend) / @maxval
@@ -372,7 +373,7 @@ class MonthWeekdayWeekendSchedule
       if wkdy_vals == wknd_vals
         # Alldays
         wkdy_rule = OpenStudio::Model::ScheduleRule.new(schedule)
-        wkdy_rule.setName(@sch_name + " #{Schedule.allday_name} ruleset#{m}")
+        wkdy_rule.setName(@sch_name + " #{Schedule.allday_name} rule#{m}")
         wkdy[m] = wkdy_rule.daySchedule
         wkdy[m].setName(@sch_name + " #{Schedule.allday_name}#{m}")
         previous_value = wkdy_vals[1]
@@ -389,7 +390,7 @@ class MonthWeekdayWeekendSchedule
       else
         # Weekdays
         wkdy_rule = OpenStudio::Model::ScheduleRule.new(schedule)
-        wkdy_rule.setName(@sch_name + " #{Schedule.weekday_name} ruleset#{m}")
+        wkdy_rule.setName(@sch_name + " #{Schedule.weekday_name} rule#{m}")
         wkdy[m] = wkdy_rule.daySchedule
         wkdy[m].setName(@sch_name + " #{Schedule.weekday_name}#{m}")
         previous_value = wkdy_vals[1]
@@ -405,7 +406,7 @@ class MonthWeekdayWeekendSchedule
 
         # Weekends
         wknd_rule = OpenStudio::Model::ScheduleRule.new(schedule)
-        wknd_rule.setName(@sch_name + " #{Schedule.weekend_name} ruleset#{m}")
+        wknd_rule.setName(@sch_name + " #{Schedule.weekend_name} rule#{m}")
         wknd[m] = wknd_rule.daySchedule
         wknd[m].setName(@sch_name + " #{Schedule.weekend_name}#{m}")
         previous_value = wknd_vals[1]
@@ -434,6 +435,86 @@ class MonthWeekdayWeekendSchedule
     Schedule.set_schedule_type_limits(@model, schedule, @schedule_type_limits_name)
 
     return schedule
+  end
+end
+
+# Generic class for handling an hourly schedule (saved as a csv) with 8760 values. Currently used by water heater models.
+class HourlySchedule
+  def initialize(model, runner, sch_name, file, offset, convert_temp, validation_values)
+    @validated = true
+    @model = model
+    @runner = runner
+    @sch_name = sch_name
+    @schedule = nil
+    @offset = offset
+    @convert_temp = convert_temp
+    @validation_values = validation_values
+    @schedule, @schedule_array = createHourlyScheduleFromFile(runner, file, offset, convert_temp, validation_values)
+
+    if @schedule.nil?
+      @validated = false
+      return
+    end
+    schedule = @schedule
+  end
+
+  def validated?
+    return @validated
+  end
+
+  def schedule
+    return @schedule
+  end
+
+  def schedule_array
+    return @schedule_array
+  end
+
+  private
+
+  def createHourlyScheduleFromFile(runner, file, offset, convert_temp, validation_values)
+    data = []
+
+    # Get appropriate file
+    hourly_schedule = "#{file}"
+    if not File.file?(hourly_schedule)
+      @runner.registerError("Unable to find file: #{hourly_schedule}")
+      return nil
+    end
+
+    # Read data into hourly array
+    hour = 0
+    data = [] # Generalize for any length
+    File.open(file).each do |line|
+      linedata = line.strip.split(',')
+      if validation_values.empty?
+        if convert_temp == true
+          value = UnitConversions.convert((linedata[0].to_f + offset), "F", "C")
+        else
+          value = linedata[0].to_f + offset
+        end
+        data[hour] = value
+      else
+        if validation_values.include? linedata[0]
+          value = validation_values.find_index(linedata[0]).to_f / (validation_values.length.to_f - 1.0)
+          data[hour] = value
+        else
+          runner.registerError("Invalid value included in the hourly schedule file. The invalid data occurs at hour #{hour}")
+        end
+      end
+      hour += 1
+    end
+
+    year_description = @model.getYearDescription
+    start_date = year_description.makeDate(1, 1)
+    interval = OpenStudio::Time.new(0, 1, 0, 0)
+
+    time_series = OpenStudio::TimeSeries.new(start_date, interval, OpenStudio::createVector(data), "")
+
+    schedule = OpenStudio::Model::ScheduleFixedInterval.fromTimeSeries(time_series, @model).get
+    schedule.setName(@sch_name)
+
+    return schedule, data
   end
 end
 
@@ -798,6 +879,91 @@ class Schedule
     end
 
     return annual_flh
+  end
+
+  def self.ruleset_from_fixedinterval(model, hrly_sched, sch_name, winter_design_day_sch, summer_design_day_sch)
+    # Returns schedule rules from a fixed interval object (60 min interval only)
+    year_description = model.getYearDescription
+    assumed_year = year_description.assumedYear
+    run_period = model.getRunPeriod
+    run_period_start = Time.new(assumed_year, run_period.getBeginMonth, run_period.getBeginDayOfMonth)
+    start_day = run_period_start.yday
+
+    hrly_sched = hrly_sched.timeSeries.values
+    hrs = hrly_sched.length
+    days = hrs / 24
+    time = []
+    for h in 1..24
+      time[h] = OpenStudio::Time.new(0, h, 0, 0)
+    end
+
+    schedule = OpenStudio::Model::ScheduleRuleset.new(model)
+    schedule.setName(sch_name + " ruleset")
+    previous_value = hrly_sched[0]
+    day_rule_prev = OpenStudio::Model::ScheduleRule.new(schedule)
+    day_rule_prev.setName("DUMMY")
+    day_sched_prev = day_rule_prev.daySchedule
+    day_sched_prev.setName("DUMMY")
+
+    for day in start_day..start_day + days - 1
+      day_rule = OpenStudio::Model::ScheduleRule.new(schedule)
+      day_rule.setName("#{sch_name} rule day #{day}")
+      day_sched = day_rule.daySchedule
+      day_sched.setName("#{sch_name} day schedule")
+      day_ct = day - start_day + 1
+      previous_value = hrly_sched[(day_ct - 1) * 24]
+
+      for h in 1..24
+        hr = (day_ct - 1) * 24 + h - 1
+        next if h != 24 and hrly_sched[hr + 1] == previous_value
+
+        day_sched.addValue(time[h], previous_value)
+        if hr != hrs - 1
+          previous_value = hrly_sched[hr + 1]
+        end
+      end
+
+      if (day_sched_prev.values != day_sched.values) or (day_sched_prev.times != day_sched.times)
+        sdate = OpenStudio::Date.fromDayOfYear(day, assumed_year)
+        edate = OpenStudio::Date.fromDayOfYear(day, assumed_year)
+        day_rule.setStartDate(sdate)
+        day_rule.setEndDate(edate)
+
+        if day_ct == 1
+          day_sched_prev.remove
+          day_rule_prev.remove
+        end
+      else
+        sdate = day_rule_prev.startDate.get
+        edate = OpenStudio::Date.fromDayOfYear(day, assumed_year)
+        day_rule.setStartDate(sdate)
+        day_rule.setEndDate(edate)
+        day_sched_prev.remove
+        day_rule_prev.remove
+      end
+
+      day_rule.setApplySunday(true)
+      day_rule.setApplyMonday(true)
+      day_rule.setApplyTuesday(true)
+      day_rule.setApplyWednesday(true)
+      day_rule.setApplyThursday(true)
+      day_rule.setApplyFriday(true)
+      day_rule.setApplySaturday(true)
+
+      day_sched_prev = day_sched
+      day_rule_prev = day_rule
+    end
+
+    unless winter_design_day_sch.nil?
+      schedule.setWinterDesignDaySchedule(winter_design_day_sch)
+      schedule.winterDesignDaySchedule.setName("#{sch_name} winter design EDIT")
+    end
+    unless summer_design_day_sch.nil?
+      schedule.setSummerDesignDaySchedule(summer_design_day_sch)
+      schedule.summerDesignDaySchedule.setName("#{sch_name} summer design EDIT")
+    end
+
+    return schedule
   end
 
   def self.set_schedule_type_limits(model, schedule, schedule_type_limits_name)
