@@ -1891,7 +1891,6 @@ class HPXML
     vals[:adjusted_annual_kwh] = to_float_or_nil(XMLHelper.get_value(refrigerator, "extension/AdjustedAnnualkWh")) if is_selected(select, :adjusted_annual_kwh)
     vals[:schedules_output_path] = XMLHelper.get_value(refrigerator, "extension/SchedulesOutputPath") if is_selected(select, :schedules_output_path)
     vals[:schedules_column_name] = XMLHelper.get_value(refrigerator, "extension/SchedulesColumnName") if is_selected(select, :schedules_column_name)
-
     return vals
   end
 
