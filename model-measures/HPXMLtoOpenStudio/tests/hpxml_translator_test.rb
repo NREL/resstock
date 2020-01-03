@@ -12,6 +12,9 @@ require_relative '../resources/unit_conversions'
 require_relative '../resources/xmlhelper'
 
 class HPXMLTranslatorTest < MiniTest::Test
+  @@simulation_runtime_key = "Simulation Runtime"
+  @@workflow_runtime_key = "Workflow Runtime"
+
   def test_simulations
     OpenStudio::Logger.instance.standardOutLogger.setLogLevel(OpenStudio::Error)
     # OpenStudio::Logger.instance.standardOutLogger.setLogLevel(OpenStudio::Fatal)
@@ -19,9 +22,6 @@ class HPXMLTranslatorTest < MiniTest::Test
     this_dir = File.dirname(__FILE__)
     results_dir = File.join(this_dir, "results")
     _rm_path(results_dir)
-
-    @simulation_runtime_key = "Simulation Runtime"
-    @workflow_runtime_key = "Workflow Runtime"
 
     cfis_dir = File.absolute_path(File.join(this_dir, "cfis"))
     hvac_base_dir = File.absolute_path(File.join(this_dir, "hvac_base"))
@@ -103,6 +103,15 @@ class HPXMLTranslatorTest < MiniTest::Test
     assert(File.exists? sql_path)
   end
 
+  def test_weather_cache
+    this_dir = File.dirname(__FILE__)
+    cache_orig = File.join(this_dir, "..", "weather", "USA_CO_Denver.Intl.AP.725650_TMY3.cache")
+    cache_bak = cache_orig + ".bak"
+    File.rename(cache_orig, cache_bak)
+    _run_xml(File.absolute_path(File.join(this_dir, "base.xml")), this_dir)
+    File.rename(cache_bak, cache_orig) # Put original file back
+  end
+
   def test_invalid
     this_dir = File.dirname(__FILE__)
 
@@ -129,6 +138,7 @@ class HPXMLTranslatorTest < MiniTest::Test
                             'hvac-distribution-return-duct-leakage-missing.xml' => ["Return ducts exist but leakage was not specified for distribution system 'HVACDistribution'."],
                             'invalid-relatedhvac-dhw-indirect.xml' => ["RelatedHVACSystem 'HeatingSystem_bad' not found for water heating system 'WaterHeater'"],
                             'invalid-relatedhvac-desuperheater.xml' => ["RelatedHVACSystem 'CoolingSystem_bad' not found for water heating system 'WaterHeater'."],
+                            'invalid-window-interior-shading.xml' => ["SummerShadingCoefficient (0.85) must be less than or equal to WinterShadingCoefficient (0.7) for window 'WindowNorth'."],
                             'missing-elements.xml' => ["Expected [1] element(s) but found 0 element(s) for xpath: /HPXML/Building/BuildingDetails/BuildingSummary/BuildingConstruction/NumberofConditionedFloors",
                                                        "Expected [1] element(s) but found 0 element(s) for xpath: /HPXML/Building/BuildingDetails/BuildingSummary/BuildingConstruction/ConditionedFloorArea"],
                             'missing-surfaces.xml' => ["'garage' must have at least one floor surface."],
@@ -407,8 +417,8 @@ class HPXMLTranslatorTest < MiniTest::Test
     assert_operator(compload_results["Heating - Residual"], :<, 0.2)
     assert_operator(compload_results["Cooling - Residual"], :<, 0.2)
 
-    results[@simulation_runtime_key] = sim_time
-    results[@workflow_runtime_key] = workflow_time
+    results[@@simulation_runtime_key] = sim_time
+    results[@@workflow_runtime_key] = workflow_time
 
     return results, compload_results
   end
@@ -548,7 +558,8 @@ class HPXMLTranslatorTest < MiniTest::Test
         vals = vals[1].split(" ")
         value = Float(vals[0].strip)
         prop += " [#{vals[1].strip}]" # add units
-        results[prop] = value
+        results[prop] = 0.0 if results[prop].nil?
+        results[prop] += value
       end
     end
     return results
@@ -1191,8 +1202,8 @@ class HPXMLTranslatorTest < MiniTest::Test
     output_keys.sort!
 
     # Append runtimes at the end
-    output_keys << @simulation_runtime_key
-    output_keys << @workflow_runtime_key
+    output_keys << @@simulation_runtime_key
+    output_keys << @@workflow_runtime_key
 
     column_headers = ['HPXML']
     output_keys.each do |key|
@@ -1297,7 +1308,7 @@ class HPXMLTranslatorTest < MiniTest::Test
 
         # Compare results
         results_base.keys.each do |k|
-          next if [@simulation_runtime_key, @workflow_runtime_key].include? k
+          next if [@@simulation_runtime_key, @@workflow_runtime_key].include? k
 
           result_base = results_base[k].to_f
           result = results[k].to_f
@@ -1388,7 +1399,7 @@ class HPXMLTranslatorTest < MiniTest::Test
 
       # Compare results
       results_x3.keys.each do |k|
-        next if [@simulation_runtime_key, @workflow_runtime_key].include? k
+        next if [@@simulation_runtime_key, @@workflow_runtime_key].include? k
 
         result_x1 = results_x1[k].to_f
         result_x3 = results_x3[k].to_f
@@ -1449,7 +1460,7 @@ class HPXMLTranslatorTest < MiniTest::Test
 
     # Compare results
     results_base.keys.each do |k|
-      next if [@simulation_runtime_key, @workflow_runtime_key].include? k
+      next if [@@simulation_runtime_key, @@workflow_runtime_key].include? k
 
       assert_equal(results_base[k].to_f, results_collapsed[k].to_f)
     end

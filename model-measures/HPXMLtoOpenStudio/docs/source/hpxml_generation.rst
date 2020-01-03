@@ -157,12 +157,13 @@ Alternatively, an interior foundation wall between an 8 ft conditioned basement 
 
 Foundation wall insulation can be described in two ways: 
 
-Option 1. Interior/exterior continuous insulation layers with ``NominalRValue``, ``extension/DistanceToTopOfInsulation``, and ``extension/DistanceToBottomOfInsulation``. 
-Insulation layers are useful for describing foundation wall insulation that doesn't span the entire height (e.g., 4 ft of insulation for an 8 ft conditioned basement). 
-When an insulation layer R-value is specified, it is modeled with a concrete wall (whose ``Thickness`` is provided) as well as air film resistances as appropriate.
+Option 1. Both interior and exterior continuous insulation layers with ``NominalRValue``, ``extension/DistanceToTopOfInsulation``, and ``extension/DistanceToBottomOfInsulation``. 
+Insulation layers are particularly useful for describing foundation wall insulation that doesn't span the entire height (e.g., 4 ft of insulation for an 8 ft conditioned basement). 
+If there is not insulation on the interior and/or exterior of the foundation wall, the continuous insulation layer must still be provided -- with the nominal R-value, etc., set to zero.
+When insulation is specified with option 1, it is modeled with a concrete wall (whose ``Thickness`` is provided) as well as air film resistances as appropriate.
 
 Option 2. An ``AssemblyEffectiveRValue``. 
-When instead providing an assembly effective R-value, the R-value should include the concrete wall and an interior air film resistance. 
+The assembly effective R-value should include the concrete wall and an interior air film resistance. 
 The exterior air film resistance (for any above-grade exposure) or any soil thermal resistance should **not** be included.
 
 Frame Floors
@@ -200,6 +201,7 @@ Windows must reference a HPXML ``Enclosures/Walls/Wall`` element via the ``Attac
 Windows must also have an ``Azimuth`` specified, even if the attached wall does not.
 
 In addition, the summer/winter interior shading coefficients can be optionally entered as ``InteriorShading/SummerShadingCoefficient`` and ``InteriorShading/WinterShadingCoefficient``.
+The summer interior shading coefficient must be less than or equal to the winter interior shading coefficient.
 Note that a value of 0.7 indicates a 30% reduction in solar gains (i.e., 30% shading).
 If not provided, default values will be assumed.
 

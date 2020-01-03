@@ -49,6 +49,7 @@ def create_hpxmls
     'invalid_files/hvac-frac-load-served.xml' => 'base-hvac-multiple.xml',
     'invalid_files/invalid-relatedhvac-dhw-indirect.xml' => 'base-dhw-indirect.xml',
     'invalid_files/invalid-relatedhvac-desuperheater.xml' => 'base-hvac-central-ac-only-1-speed.xml',
+    'invalid_files/invalid-window-interior-shading.xml' => 'base.xml',
     'invalid_files/missing-elements.xml' => 'base.xml',
     'invalid_files/missing-surfaces.xml' => 'base.xml',
     'invalid_files/net-area-negative-roof.xml' => 'base-enclosure-skylights.xml',
@@ -1568,10 +1569,13 @@ def get_hpxml_file_windows_values(hpxml_file, windows_values)
     windows_values[0][:interior_shading_factor_winter] = 0.85
     windows_values[1][:interior_shading_factor_summer] = 0.01
     windows_values[1][:interior_shading_factor_winter] = 0.99
-    windows_values[2][:interior_shading_factor_summer] = 0.99
-    windows_values[2][:interior_shading_factor_winter] = 0.01
-    windows_values[3][:interior_shading_factor_summer] = 0.85
-    windows_values[3][:interior_shading_factor_winter] = 0.7
+    windows_values[2][:interior_shading_factor_summer] = 0.0
+    windows_values[2][:interior_shading_factor_winter] = 0.5
+    windows_values[3][:interior_shading_factor_summer] = 1.0
+    windows_values[3][:interior_shading_factor_winter] = 1.0
+  elsif ['invalid_files/invalid-window-interior-shading.xml'].include? hpxml_file
+    windows_values[0][:interior_shading_factor_summer] = 0.85
+    windows_values[0][:interior_shading_factor_winter] = 0.7
   elsif ['base-enclosure-windows-none.xml'].include? hpxml_file
     windows_values = []
   elsif ['invalid_files/net-area-negative-wall.xml'].include? hpxml_file
