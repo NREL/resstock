@@ -31,7 +31,6 @@ class Location
     cache_file = weather_file_path.gsub('.epw', '.cache')
     if File.exists? cache_file
       weather = Marshal.load(File.binread(cache_file))
-      weather.cache_weather(model)
     else
       weather = WeatherProcess.new(model, runner)
     end
