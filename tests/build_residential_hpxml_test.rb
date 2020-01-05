@@ -102,7 +102,6 @@ class HPXMLExporterTest < MiniTest::Test
   end
 
   def test_sfa_slab
-    skip
     _setup(@@this_dir)
     args_hash = {}
     args_hash["unit_type"] = "single-family attached"
@@ -112,7 +111,6 @@ class HPXMLExporterTest < MiniTest::Test
   end
 
   def test_sfa_vented_crawl
-    skip
     _setup(@@this_dir)
     args_hash = {}
     args_hash["unit_type"] = "single-family attached"
@@ -124,7 +122,6 @@ class HPXMLExporterTest < MiniTest::Test
   end
 
   def test_sfa_unvented_crawl
-    skip
     _setup(@@this_dir)
     args_hash = {}
     args_hash["unit_type"] = "single-family attached"
@@ -136,7 +133,6 @@ class HPXMLExporterTest < MiniTest::Test
   end
 
   def test_sfa_unconditioned_basement
-    skip
     _setup(@@this_dir)
     args_hash = {}
     args_hash["unit_type"] = "single-family attached"
@@ -148,7 +144,6 @@ class HPXMLExporterTest < MiniTest::Test
   end
 
   def test_sfa_conditioned_basement
-    skip
     _setup(@@this_dir)
     args_hash = {}
     args_hash["unit_type"] = "single-family attached"

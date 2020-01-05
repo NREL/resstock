@@ -651,8 +651,11 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     heat_pump_type_choices << "ground-to-air"
 
     heat_pump_fuel_choices = OpenStudio::StringVector.new
-    heat_pump_fuel_choices << "none"
     heat_pump_fuel_choices << "electricity"
+
+    heat_pump_backup_fuel_choices = OpenStudio::StringVector.new
+    heat_pump_backup_fuel_choices << "electricity"
+    heat_pump_backup_fuel_choices << "natural gas"
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("heat_pump_type_1", heat_pump_type_choices, true)
     arg.setDisplayName("Heat Pump 1: Type")
@@ -704,7 +707,7 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(1)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("heat_pump_backup_fuel_1", heat_pump_fuel_choices, true)
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("heat_pump_backup_fuel_1", heat_pump_backup_fuel_choices, true)
     arg.setDisplayName("Heat Pump 1: Backup Fuel Type")
     arg.setDescription("The backup fuel type of the first heat pump.")
     arg.setDefaultValue("electricity")
@@ -773,7 +776,7 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(1)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("heat_pump_backup_fuel_2", heat_pump_fuel_choices, true)
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("heat_pump_backup_fuel_2", heat_pump_backup_fuel_choices, true)
     arg.setDisplayName("Heat Pump 2: Backup Fuel Type")
     arg.setDescription("The backup fuel type of the second heat pump.")
     arg.setDefaultValue("electricity")
@@ -1026,7 +1029,7 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("water_heater_location_1", location_choices, true)
     arg.setDisplayName("Water Heater 1: Location")
     arg.setDescription("The location of the first water heater.")
-    arg.setDefaultValue("living space")
+    arg.setDefaultValue(Constants.Auto)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument("water_heater_tank_volume_1", true)
@@ -1059,7 +1062,7 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     arg.setDisplayName("Water Heater 1: Recovery Efficiency")
     arg.setDescription("Ratio of energy delivered to the first water to the energy content of the fuel consumed by the water heater. Only used for non-electric water heaters.")
     arg.setUnits("Frac")
-    arg.setDefaultValue(-1)
+    arg.setDefaultValue(0.76)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("water_heater_type_2", water_heater_type_choices, true)
@@ -1077,7 +1080,7 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("water_heater_location_2", location_choices, true)
     arg.setDisplayName("Water Heater 2: Location")
     arg.setDescription("The location of the second water heater.")
-    arg.setDefaultValue("living space")
+    arg.setDefaultValue(Constants.Auto)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument("water_heater_tank_volume_2", true)
@@ -1110,7 +1113,7 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     arg.setDisplayName("Water Heater 2: Recovery Efficiency")
     arg.setDescription("Ratio of energy delivered to the second water to the energy content of the fuel consumed by the water heater. Only used for non-electric water heaters.")
     arg.setUnits("Frac")
-    arg.setDefaultValue(-1)
+    arg.setDefaultValue(0.76)
     args << arg
 
     hot_water_distribution_system_type_choices = OpenStudio::StringVector.new
@@ -1874,23 +1877,23 @@ class HPXMLFile
     st = space.spaceType.get
     space_type = st.standardsSpaceType.get
 
-    if [Constants.SpaceTypeVentedCrawl].include? space_type
+    if ["vented crawlspace"].include? space_type
       return "crawlspace - vented"
-    elsif [Constants.SpaceTypeUnventedCrawl].include? space_type
+    elsif ["unvented crawlspace"].include? space_type
       return "crawlspace - unvented"
-    elsif [Constants.SpaceTypeGarage].include? space_type
+    elsif ["garage"].include? space_type
       return "garage"
-    elsif [Constants.SpaceTypeLiving].include? space_type
+    elsif ["living"].include? space_type
       if Geometry2.space_is_below_grade(space)
         return "basement - conditioned"
       else
         return "living space"
       end
-    elsif [Constants.SpaceTypeVentedAttic].include? space_type
+    elsif ["vented attic"].include? space_type
       return "attic - vented"
-    elsif [Constants.SpaceTypeUnventedAttic].include? space_type
+    elsif ["unvented attic"].include? space_type
       return "attic - unvented"
-    elsif [Constants.SpaceTypeUnconditionedBasement].include? space_type
+    elsif ["unconditioned basement"].include? space_type
       return "basement - unconditioned"
     elsif ["corridor"].include? space_type
       return "living space" # FIXME: update to handle new enum
@@ -2096,10 +2099,12 @@ class HPXMLFile
       if heating_capacity == Constants.SizingAuto
         heating_capacity = -1
       end
+
       distribution_system_idref = nil
       unless hvac_distributions_values[i].nil?
         distribution_system_idref = hvac_distributions_values[i][:id]
       end
+
       heating_system_values = { :id => "HeatingSystem#{i + 1}",
                                 :distribution_system_idref => distribution_system_idref,
                                 :heating_system_type => heating_system_type,
@@ -2126,14 +2131,16 @@ class HPXMLFile
       cooling_capacity = args[:cooling_system_cooling_capacity][i]
       if cooling_capacity == Constants.SizingAuto
         cooling_capacity = -1
-        if cooling_system_type == "evaporative cooler"
-          cooling_capacity = nil
-        end
       end
+      if cooling_system_type == "evaporative cooler"
+        cooling_capacity = nil
+      end
+
       distribution_system_idref = nil
       unless hvac_distributions_values[i].nil?
         distribution_system_idref = hvac_distributions_values[i][:id]
       end
+
       cooling_system_values = { :id => "CoolingSystem#{i + 1}",
                                 :distribution_system_idref => distribution_system_idref,
                                 :cooling_system_type => cooling_system_type,
@@ -2161,18 +2168,22 @@ class HPXMLFile
       if heating_capacity == Constants.SizingAuto
         heating_capacity = -1
       end
+
       cooling_capacity = args[:heat_pump_cooling_capacity][i]
       if cooling_capacity == Constants.SizingAuto
         cooling_capacity = -1
       end
+
       backup_heating_capacity = args[:heat_pump_backup_heating_capacity][i]
       if backup_heating_capacity == Constants.SizingAuto
         backup_heating_capacity = -1
       end
+
       distribution_system_idref = nil
       unless hvac_distributions_values[i].nil?
         distribution_system_idref = hvac_distributions_values[i][:id]
       end
+
       heat_pump_values = { :id => "HeatPump#{i + 1}",
                            :distribution_system_idref => distribution_system_idref,
                            :heat_pump_type => heat_pump_type,
@@ -2184,12 +2195,9 @@ class HPXMLFile
 
       if ["air-to-air", "mini-split"].include? heat_pump_type
         heat_pump_values[:heating_efficiency_hspf] = args[:heat_pump_heating_efficiency][i]
-      elsif ["ground-to-air"].include? heat_pump_type
-        heat_pump_values[:heating_efficiency_cop] = args[:heat_pump_heating_efficiency][i]
-      end
-      if ["air-to-air", "mini-split"].include? heat_pump_type
         heat_pump_values[:cooling_efficiency_seer] = args[:heat_pump_cooling_efficiency][i]
       elsif ["ground-to-air"].include? heat_pump_type
+        heat_pump_values[:heating_efficiency_cop] = args[:heat_pump_heating_efficiency][i]
         heat_pump_values[:cooling_efficiency_eer] = args[:heat_pump_cooling_efficiency][i]
       end
 
@@ -2286,23 +2294,33 @@ class HPXMLFile
       next if water_heater_type == "none"
 
       fuel_type = args[:water_heater_fuel_type][i]
-      tank_volume = Waterheater2.calc_nom_tankvol(args[:water_heater_tank_volume][i], to_beopt_fuel(fuel_type), args[:num_bedrooms], args[:num_bathrooms])
-      energy_factor = Waterheater2.calc_ef(args[:water_heater_energy_factor][i], tank_volume, to_beopt_fuel(fuel_type))
+
+      location = args[:water_heater_location][i]
+      if location == Constants.Auto
+        location = "living space" # FIXME
+      end
+
+      tank_volume = Waterheater2.calc_nom_tankvol(args[:water_heater_tank_volume][i], fuel_type, args[:num_bedrooms], args[:num_bathrooms])
+
       heating_capacity = args[:water_heater_heating_capacity][i]
       if heating_capacity == Constants.SizingAuto
-        heating_capacity = Waterheater.calc_water_heater_capacity(to_beopt_fuel(fuel_type), args[:num_bedrooms], num_water_heaters, args[:num_bathrooms])
+        heating_capacity = Waterheater.calc_water_heater_capacity(fuel_type, args[:num_bedrooms], num_water_heaters, args[:num_bathrooms])
       else
         heating_capacity = Float(heating_capacity)
       end
       heating_capacity = UnitConversions.convert(heating_capacity, "kBtu/hr", "Btu/hr")
+
+      energy_factor = Waterheater2.calc_ef(args[:water_heater_energy_factor][i], tank_volume, fuel_type)
+
       recovery_efficiency = args[:water_heater_recovery_efficiency][i]
-      if recovery_efficiency == -1
+      if fuel_type == "electricity"
         recovery_efficiency = nil
       end
+
       water_heating_systems_values << { :id => "WaterHeater#{i + 1}",
                                         :water_heater_type => water_heater_type,
                                         :fuel_type => fuel_type,
-                                        :location => args[:water_heater_location][i],
+                                        :location => location,
                                         :tank_volume => tank_volume,
                                         :fraction_dhw_load_served => args[:water_heater_fraction_dhw_load_served][i],
                                         :heating_capacity => heating_capacity,

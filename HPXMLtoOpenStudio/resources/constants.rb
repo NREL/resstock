@@ -137,10 +137,6 @@ class Constants
     return 'ERI Index Adjustment Reference Home'
   end
 
-  def self.CalcTypeStandard
-    return 'Standard'
-  end
-
   def self.DuctSideReturn
     return 'return'
   end
@@ -185,30 +181,6 @@ class Constants
     return 'ethylene-glycol'
   end
 
-  def self.FuelTypeElectric
-    return 'electric'
-  end
-
-  def self.FuelTypeGas
-    return 'gas'
-  end
-
-  def self.FuelTypePropane
-    return 'propane'
-  end
-
-  def self.FuelTypeOil
-    return 'oil'
-  end
-
-  def self.FuelTypeWood
-    return 'wood'
-  end
-
-  def self.FuelTypeWoodPellets
-    return 'pellets'
-  end
-
   def self.MaterialGypcrete
     return 'crete'
   end
@@ -223,38 +195,6 @@ class Constants
 
   def self.MonthNames
     return ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-  end
-
-  def self.PVArrayTypeFixedOpenRack
-    return 'FixedOpenRack'
-  end
-
-  def self.PVArrayTypeFixedRoofMount
-    return 'FixedRoofMounted'
-  end
-
-  def self.PVArrayTypeFixed1Axis
-    return 'OneAxis'
-  end
-
-  def self.PVArrayTypeFixed1AxisBacktracked
-    return 'OneAxisBacktracking'
-  end
-
-  def self.PVArrayTypeFixed2Axis
-    return 'TwoAxis'
-  end
-
-  def self.PVModuleTypeStandard
-    return 'Standard'
-  end
-
-  def self.PVModuleTypePremium
-    return 'Premium'
-  end
-
-  def self.PVModuleTypeThinFilm
-    return 'ThinFilm'
   end
 
   def self.ObjectNameAirflow
@@ -479,18 +419,6 @@ class Constants
 
   def self.PlantLoopSolarHotWater
     return "solar hot water loop"
-  end
-
-  def self.RecircTypeTimer
-    return 'timer'
-  end
-
-  def self.RecircTypeDemand
-    return 'demand'
-  end
-
-  def self.RecircTypeNone
-    return 'none'
   end
 
   def self.RoofMaterialAsphaltShingles
@@ -741,62 +669,6 @@ class Constants
     return __method__.to_s
   end
 
-  def self.SolarThermalCollectorTypeEvacuatedTube
-    return 'evacuated tube'
-  end
-
-  def self.SolarThermalCollectorTypeGlazedFlatPlateSingle
-    return 'single glazing black'
-  end
-
-  def self.SolarThermalCollectorTypeGlazedFlatPlateDouble
-    return 'double glazing black'
-  end
-
-  def self.SolarThermalCollectorTypeICS
-    return 'integrated collector storage'
-  end
-
-  def self.SolarThermalLoopTypeDirect
-    return 'liquid direct'
-  end
-
-  def self.SolarThermalLoopTypeIndirect
-    return 'liquid indirect'
-  end
-
-  def self.SolarThermalLoopTypeThermosyphon
-    return 'passive thermosyphon'
-  end
-
-  def self.SpaceTypeVentedCrawl
-    return 'vented crawlspace'
-  end
-
-  def self.SpaceTypeUnventedCrawl
-    return 'unvented crawlspace'
-  end
-
-  def self.SpaceTypeGarage
-    return 'garage'
-  end
-
-  def self.SpaceTypeLiving
-    return 'living'
-  end
-
-  def self.SpaceTypeVentedAttic
-    return 'vented attic'
-  end
-
-  def self.SpaceTypeUnventedAttic
-    return 'unvented attic'
-  end
-
-  def self.SpaceTypeUnconditionedBasement
-    return 'unconditioned basement'
-  end
-
   def self.TerrainOcean
     return 'ocean'
   end
@@ -815,37 +687,5 @@ class Constants
 
   def self.TerrainCity
     return 'city'
-  end
-
-  def self.VentTypeExhaust
-    return 'exhaust'
-  end
-
-  def self.VentTypeNone
-    return 'none'
-  end
-
-  def self.VentTypeSupply
-    return 'supply'
-  end
-
-  def self.VentTypeBalanced
-    return 'balanced'
-  end
-
-  def self.VentTypeCFIS
-    return 'central fan integrated supply'
-  end
-
-  def self.WaterHeaterTypeTankless
-    return 'tankless'
-  end
-
-  def self.WaterHeaterTypeTank
-    return 'tank'
-  end
-
-  def self.WaterHeaterTypeHeatPump
-    return 'heatpump'
   end
 end

@@ -27,10 +27,10 @@ class UnitConversions
     ['wh', 'btu'] => 3.412141633127942,
     ['wh', 'kbtu'] => 0.003412141633127942,
     ['kbtu', 'btu'] => 1000.0,
-    ['gal', 'btu', Constants.FuelTypePropane] => 91600.0,
-    ['gal', 'btu', Constants.FuelTypeOil] => 139000.0,
-    ['j', 'gal', Constants.FuelTypePropane] => 3412.141633127942 / 1000.0 / 3600.0 / 91600.0,
-    ['j', 'gal', Constants.FuelTypeOil] => 3412.141633127942 / 1000.0 / 3600.0 / 139000.0,
+    ['gal', 'btu', 'propane'] => 91600.0,
+    ['gal', 'btu', 'fuel oil'] => 139000.0,
+    ['j', 'gal', 'propane'] => 3412.141633127942 / 1000.0 / 3600.0 / 91600.0,
+    ['j', 'gal', 'fuel oil'] => 3412.141633127942 / 1000.0 / 3600.0 / 139000.0,
 
     # Power
     ['btu/hr', 'w'] => 0.2930710701722222,

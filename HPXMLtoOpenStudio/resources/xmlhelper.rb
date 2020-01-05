@@ -116,12 +116,12 @@ class XMLHelper
   end
 
   def self.validate(doc, xsd_path, runner = nil)
-    begin
+    if Gem::Specification::find_all_by_name('nokogiri').any?
       require 'nokogiri'
       xsd = Nokogiri::XML::Schema(File.open(xsd_path))
       doc = Nokogiri::XML(doc)
       return xsd.validate(doc)
-    rescue LoadError
+    else
       if not runner.nil?
         runner.registerWarning("Could not load nokogiri, no HPXML validation performed.")
       end

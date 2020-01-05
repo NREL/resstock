@@ -150,7 +150,7 @@ class HVAC
     clg_coil.setApplyLatentDegradationtoSpeedsGreaterthan1(false)
     clg_coil.setCrankcaseHeaterCapacity(UnitConversions.convert(crankcase_kw, "kW", "W"))
     clg_coil.setMaximumOutdoorDryBulbTemperatureforCrankcaseHeaterOperation(UnitConversions.convert(crankcase_temp, "F", "C"))
-    clg_coil.setFuelType("Electricity")
+    clg_coil.setFuelType('electricity')
     clg_coil_stage_data.each do |stage|
       clg_coil.addStage(stage)
     end
@@ -267,7 +267,7 @@ class HVAC
     clg_coil.setApplyLatentDegradationtoSpeedsGreaterthan1(false)
     clg_coil.setCrankcaseHeaterCapacity(UnitConversions.convert(crankcase_kw, "kW", "W"))
     clg_coil.setMaximumOutdoorDryBulbTemperatureforCrankcaseHeaterOperation(UnitConversions.convert(crankcase_temp, "F", "C"))
-    clg_coil.setFuelType("Electricity")
+    clg_coil.setFuelType('electricity')
     clg_coil_stage_data.each do |stage|
       clg_coil.addStage(stage)
     end
@@ -625,7 +625,7 @@ class HVAC
     htg_coil.setDefrostStrategy("ReverseCycle")
     htg_coil.setDefrostControl("OnDemand")
     htg_coil.setApplyPartLoadFractiontoSpeedsGreaterthan1(false)
-    htg_coil.setFuelType("Electricity")
+    htg_coil.setFuelType('electricity')
     htg_coil_stage_data.each do |stage|
       htg_coil.addStage(stage)
     end
@@ -639,7 +639,7 @@ class HVAC
     clg_coil.setCondenserType("AirCooled")
     clg_coil.setApplyPartLoadFractiontoSpeedsGreaterthan1(false)
     clg_coil.setApplyLatentDegradationtoSpeedsGreaterthan1(false)
-    clg_coil.setFuelType("Electricity")
+    clg_coil.setFuelType('electricity')
     clg_coil_stage_data.each do |stage|
       clg_coil.addStage(stage)
     end
@@ -782,7 +782,7 @@ class HVAC
     htg_coil.setDefrostStrategy("ReverseCycle")
     htg_coil.setDefrostControl("OnDemand")
     htg_coil.setApplyPartLoadFractiontoSpeedsGreaterthan1(false)
-    htg_coil.setFuelType("Electricity")
+    htg_coil.setFuelType('electricity')
     htg_coil_stage_data.each do |stage|
       htg_coil.addStage(stage)
     end
@@ -796,7 +796,7 @@ class HVAC
     clg_coil.setCondenserType("AirCooled")
     clg_coil.setApplyPartLoadFractiontoSpeedsGreaterthan1(false)
     clg_coil.setApplyLatentDegradationtoSpeedsGreaterthan1(false)
-    clg_coil.setFuelType("Electricity")
+    clg_coil.setFuelType('electricity')
     clg_coil_stage_data.each do |stage|
       clg_coil.addStage(stage)
     end
@@ -974,7 +974,7 @@ class HVAC
     htg_coil.setDefrostStrategy("ReverseCycle")
     htg_coil.setDefrostControl("OnDemand")
     htg_coil.setApplyPartLoadFractiontoSpeedsGreaterthan1(false)
-    htg_coil.setFuelType("Electricity")
+    htg_coil.setFuelType('electricity')
     htg_coil_stage_data.each do |stage|
       htg_coil.addStage(stage)
     end
@@ -989,7 +989,7 @@ class HVAC
     clg_coil.setApplyPartLoadFractiontoSpeedsGreaterthan1(false)
     clg_coil.setApplyLatentDegradationtoSpeedsGreaterthan1(false)
     clg_coil.setCrankcaseHeaterCapacity(0)
-    clg_coil.setFuelType("Electricity")
+    clg_coil.setFuelType('electricity')
     clg_coil_stage_data.each do |stage|
       clg_coil.addStage(stage)
     end
@@ -1462,7 +1462,7 @@ class HVAC
 
     # _processSystemHeatingCoil
 
-    if fuel_type == Constants.FuelTypeElectric
+    if fuel_type == 'electricity'
       htg_coil = OpenStudio::Model::CoilHeatingElectric.new(model)
       htg_coil.setEfficiency(afue)
     else
@@ -1780,7 +1780,7 @@ class HVAC
 
     # _processSystemHeatingCoil
 
-    if fuel_type == Constants.FuelTypeElectric
+    if fuel_type == 'electricity'
       htg_coil = OpenStudio::Model::CoilHeatingElectric.new(model)
       htg_coil.setEfficiency(efficiency)
     else
@@ -2267,15 +2267,15 @@ class HVAC
   def self.get_default_eae(htg_type, fuel, load_frac, furnace_capacity_kbtuh)
     # From ANSI/RESNET/ICC 301 Standard
     if htg_type == 'Boiler'
-      if fuel == Constants.FuelTypeGas or fuel == Constants.FuelTypePropane
+      if fuel == 'natural gas' or fuel == 'propane'
         return 170.0 * load_frac # kWh/yr
-      elsif fuel == Constants.FuelTypeOil
+      elsif fuel == 'fuel oil'
         return 330.0 * load_frac # kWh/yr
       end
     elsif htg_type == 'Furnace'
-      if fuel == Constants.FuelTypeGas or fuel == Constants.FuelTypePropane
+      if fuel == 'natural gas' or fuel == 'propane'
         return (149.0 + 10.3 * furnace_capacity_kbtuh) * load_frac # kWh/yr
-      elsif fuel == Constants.FuelTypeOil
+      elsif fuel == 'fuel oil'
         return (439.0 + 5.5 * furnace_capacity_kbtuh) * load_frac # kWh/yr
       end
     end
@@ -2506,7 +2506,7 @@ class HVAC
   private
 
   def self.apply_supplemental_htg_coil(model, obj_name, fuel_type, supplemental_efficiency, supplemental_capacity)
-    if fuel_type == Constants.FuelTypeElectric
+    if fuel_type == 'electricity'
       htg_supp_coil = OpenStudio::Model::CoilHeatingElectric.new(model, model.alwaysOnDiscreteSchedule)
       htg_supp_coil.setEfficiency(supplemental_efficiency)
     else
@@ -2773,8 +2773,6 @@ class HVAC
   end
 
   def self.calc_SEER_TwoSpeed(eers, c_d, capacity_ratios, fanspeed_ratios, fan_power_rated, coeff_eir, coeff_q)
-    # Two speed SEER calculation ported from BEopt v2.8 sim.py
-
     eir_A2 = calc_EIR_from_EER(eers[1], fan_power_rated)
     eir_B2 = eir_A2 * calc_biquad(coeff_eir[1], 67.0, 82.0)
 
@@ -2981,14 +2979,12 @@ class HVAC
   end
 
   def self.calc_HSPF_SingleSpeed(cop_47, c_d, fan_power_rated, coeff_eir, coeff_q)
-    # Single speed HSPF calculation ported from BEopt v2.8 sim.py
-
     eir_47 = calc_EIR_from_COP(cop_47, fan_power_rated)
     eir_35 = eir_47 * calc_biquad(coeff_eir[0], 70.0, 35.0)
     eir_17 = eir_47 * calc_biquad(coeff_eir[0], 70.0, 17.0)
 
     q_47 = 1.0
-    q_35 = 0.7519 # Hard code Q_35 from BEopt1
+    q_35 = 0.7519
     q_17 = q_47 * calc_biquad(coeff_q[0], 70.0, 17.0)
 
     cfm_Btu_h = 400.0 / 12000.0
@@ -4240,10 +4236,7 @@ class HVAC
   end
 
   def self.calc_mshp_heating_eirs(runner, heatingHSPF, supplyFanPower, min_hp_temp, c_d, cfms_cooling, num_speeds, capacity_ratios_heating, cfms_heating, hEAT_EIR_FT_SPEC, hEAT_CAP_FT_SPEC)
-    # COPs_Norm = [1.636, 1.757, 1.388, 1.240, 1.162, 1.119, 1.084, 1.062, 1.044, 1] #Report Avg
-    # COPs_Norm = [1.792, 1.502, 1.308, 1.207, 1.145, 1.105, 1.077, 1.056, 1.041, 1] #BEopt Default
-
-    cops_Norm = [1.792, 1.502, 1.308, 1.207, 1.145, 1.105, 1.077, 1.056, 1.041, 1] # BEopt Default
+    cops_Norm = [1.792, 1.502, 1.308, 1.207, 1.145, 1.105, 1.077, 1.056, 1.041, 1]
     fanPows_Norm = [0.577, 0.625, 0.673, 0.720, 0.768, 0.814, 0.861, 0.907, 0.954, 1]
 
     heating_eirs = [0.0] * num_speeds

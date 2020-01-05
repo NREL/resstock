@@ -1879,20 +1879,16 @@ class HVACSizing
     q_bal_Sens = 0.0
     q_bal_Lat = 0.0
 
-    if mechVentType == Constants.VentTypeExhaust
+    if ['exhaust only', 'supply only', 'central fan integrated supply'].include? mechVentType
       q_unb = mechVentWholeHouseRate
-    elsif mechVentType == Constants.VentTypeSupply or mechVentType == Constants.VentTypeCFIS
-      q_unb = mechVentWholeHouseRate
-    elsif mechVentType == Constants.VentTypeBalanced
+    elsif ['balanced', 'energy recovery ventilator', 'heat recovery ventilator'].include? mechVentType
       totalEfficiency = get_feature(model.getBuilding, Constants.SizingInfoMechVentTotalEfficiency, 'double')
       apparentSensibleEffectiveness = get_feature(model.getBuilding, Constants.SizingInfoMechVentApparentSensibleEffectiveness, 'double')
       latentEffectiveness = get_feature(model.getBuilding, Constants.SizingInfoMechVentLatentEffectiveness, 'double')
 
       q_bal_Sens = mechVentWholeHouseRate * (1.0 - apparentSensibleEffectiveness)
       q_bal_Lat = mechVentWholeHouseRate * (1.0 - latentEffectiveness)
-    elsif mechVentType == Constants.VentTypeNone
-      # nop
-    else
+    elsif mechVentType.length > 0
       fail "Unexpected mechanical ventilation type: #{mechVentType}."
     end
 

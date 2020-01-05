@@ -3,17 +3,17 @@ require_relative "unit_conversions"
 
 class HelperMethods
   def self.eplus_fuel_map(fuel)
-    if fuel == Constants.FuelTypeElectric
-      return "Electricity"
-    elsif fuel == Constants.FuelTypeGas
+    if fuel == 'electricity'
+      return 'electricity'
+    elsif fuel == 'natural gas'
       return "NaturalGas"
-    elsif fuel == Constants.FuelTypeOil
+    elsif fuel == 'fuel oil'
       return "FuelOil#1"
-    elsif fuel == Constants.FuelTypePropane
+    elsif fuel == 'propane'
       return "PropaneGas"
-    elsif fuel == Constants.FuelTypeWood
+    elsif fuel == 'wood'
       return "OtherFuel1"
-    elsif fuel == Constants.FuelTypeWoodPellets
+    elsif fuel == 'wood pellets'
       return "OtherFuel2"
     end
   end

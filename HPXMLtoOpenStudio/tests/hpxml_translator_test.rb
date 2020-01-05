@@ -439,7 +439,6 @@ class HPXMLTranslatorTest < MiniTest::Test
     args['osm_output_path'] = File.absolute_path(File.join(rundir, "in.osm"))
     args['hpxml_path'] = xml
     args['map_tsv_dir'] = rundir
-    args['skip_validation'] = false
     args['weather_dir'] = "weather"
 
     # Add measure to workflow
@@ -828,14 +827,14 @@ class HPXMLTranslatorTest < MiniTest::Test
     num_htg_sys = bldg_details.elements['count(Systems/HVAC/HVACPlant/HeatingSystem)']
     bldg_details.elements.each('Systems/HVAC/HVACPlant/HeatingSystem') do |htg_sys|
       htg_sys_type = XMLHelper.get_child_name(htg_sys, 'HeatingSystemType')
-      htg_sys_fuel = to_beopt_fuel(XMLHelper.get_value(htg_sys, 'HeatingSystemFuel'))
+      htg_sys_fuel = XMLHelper.get_value(htg_sys, 'HeatingSystemFuel')
       htg_load_frac = Float(XMLHelper.get_value(htg_sys, "FractionHeatLoadServed"))
 
       if htg_load_frac > 0
 
         # Electric Auxiliary Energy
         # For now, skip if multiple equipment
-        if num_htg_sys == 1 and ['Furnace', 'Boiler', 'WallFurnace', 'Stove'].include? htg_sys_type and htg_sys_fuel != Constants.FuelTypeElectric
+        if num_htg_sys == 1 and ['Furnace', 'Boiler', 'WallFurnace', 'Stove'].include? htg_sys_type and htg_sys_fuel != 'electricity'
           if XMLHelper.has_element(htg_sys, 'ElectricAuxiliaryEnergy')
             hpxml_value = Float(XMLHelper.get_value(htg_sys, 'ElectricAuxiliaryEnergy')) / 2.08
           else
@@ -1056,7 +1055,7 @@ class HPXMLTranslatorTest < MiniTest::Test
       end
 
       # CFIS
-      if XMLHelper.get_value(mv, "FanType") == "central fan integrated supply"
+      if XMLHelper.get_value(mv, "FanType") == 'central fan integrated supply'
         # Fan power
         hpxml_value = Float(XMLHelper.get_value(mv, "FanPower"))
         query = "SELECT Value FROM ReportData WHERE ReportDataDictionaryIndex IN (SELECT ReportDataDictionaryIndex FROM ReportDataDictionary WHERE Name= '#{@cfis_fan_power_output_var.variableName}')"
@@ -1076,12 +1075,11 @@ class HPXMLTranslatorTest < MiniTest::Test
     cw = bldg_details.elements["Appliances/ClothesWasher"]
     if not cw.nil? and not wh.nil?
       # Location
-      location = XMLHelper.get_value(cw, "Location")
-      hpxml_value = { nil => Constants.SpaceTypeLiving,
-                      'living space' => Constants.SpaceTypeLiving,
-                      'basement - conditioned' => Constants.SpaceTypeLiving,
-                      'basement - unconditioned' => Constants.SpaceTypeUnconditionedBasement,
-                      'garage' => Constants.SpaceTypeGarage }[location].upcase
+      hpxml_value = XMLHelper.get_value(cw, "Location")
+      if hpxml_value.nil? or hpxml_value == 'basement - conditioned'
+        hpxml_value = 'living space'
+      end
+      hpxml_value.upcase!
       query = "SELECT Value FROM TabularDataWithStrings WHERE TableName='ElectricEquipment Internal Gains Nominal' AND ColumnName='Zone Name' AND RowName=(SELECT RowName FROM TabularDataWithStrings WHERE TableName='ElectricEquipment Internal Gains Nominal' AND ColumnName='Name' AND Value='#{Constants.ObjectNameClothesWasher.upcase}')"
       sql_value = sqlFile.execAndReturnFirstString(query).get
       assert_equal(hpxml_value, sql_value)
@@ -1091,12 +1089,11 @@ class HPXMLTranslatorTest < MiniTest::Test
     cd = bldg_details.elements["Appliances/ClothesDryer"]
     if not cd.nil? and not wh.nil?
       # Location
-      location = XMLHelper.get_value(cd, "Location")
-      hpxml_value = { nil => Constants.SpaceTypeLiving,
-                      'living space' => Constants.SpaceTypeLiving,
-                      'basement - conditioned' => Constants.SpaceTypeLiving,
-                      'basement - unconditioned' => Constants.SpaceTypeUnconditionedBasement,
-                      'garage' => Constants.SpaceTypeGarage }[location].upcase
+      hpxml_value = XMLHelper.get_value(cd, "Location")
+      if hpxml_value.nil? or hpxml_value == 'basement - conditioned'
+        hpxml_value = 'living space'
+      end
+      hpxml_value.upcase!
       query = "SELECT Value FROM TabularDataWithStrings WHERE TableName='ElectricEquipment Internal Gains Nominal' AND ColumnName='Zone Name' AND RowName=(SELECT RowName FROM TabularDataWithStrings WHERE TableName='ElectricEquipment Internal Gains Nominal' AND ColumnName='Name' AND Value='#{Constants.ObjectNameClothesDryer.upcase}')"
       sql_value = sqlFile.execAndReturnFirstString(query).get
       assert_equal(hpxml_value, sql_value)
@@ -1106,12 +1103,11 @@ class HPXMLTranslatorTest < MiniTest::Test
     refr = bldg_details.elements["Appliances/Refrigerator"]
     if not refr.nil?
       # Location
-      location = XMLHelper.get_value(refr, "Location")
-      hpxml_value = { nil => Constants.SpaceTypeLiving,
-                      'living space' => Constants.SpaceTypeLiving,
-                      'basement - conditioned' => Constants.SpaceTypeLiving,
-                      'basement - unconditioned' => Constants.SpaceTypeUnconditionedBasement,
-                      'garage' => Constants.SpaceTypeGarage }[location].upcase
+      hpxml_value = XMLHelper.get_value(refr, "Location")
+      if hpxml_value.nil? or hpxml_value == 'basement - conditioned'
+        hpxml_value = 'living space'
+      end
+      hpxml_value.upcase!
       query = "SELECT Value FROM TabularDataWithStrings WHERE TableName='ElectricEquipment Internal Gains Nominal' AND ColumnName='Zone Name' AND RowName=(SELECT RowName FROM TabularDataWithStrings WHERE TableName='ElectricEquipment Internal Gains Nominal' AND ColumnName='Name' AND Value='#{Constants.ObjectNameRefrigerator.upcase}')"
       sql_value = sqlFile.execAndReturnFirstString(query).get
       assert_equal(hpxml_value, sql_value)

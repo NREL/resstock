@@ -18,7 +18,7 @@ def rm_path(path)
   end
 end
 
-def create_idf(basedir, rundir, hpxml, debug, skip_validation)
+def create_idf(basedir, rundir, hpxml, debug)
   OpenStudio::Logger.instance.standardOutLogger.setLogLevel(OpenStudio::Fatal)
 
   model = OpenStudio::Model::Model.new
@@ -36,7 +36,6 @@ def create_idf(basedir, rundir, hpxml, debug, skip_validation)
   if debug
     args['osm_output_path'] = File.join(rundir, "in.osm")
   end
-  args['skip_validation'] = skip_validation
   update_args_hash(measures, measure_subdir, args)
 
   # Apply measures
@@ -83,13 +82,13 @@ end
 def run_energyplus(rundir)
   # getEnergyPlusDirectory can be unreliable, using getOpenStudioCLI instead
   ep_path = File.absolute_path(File.join(OpenStudio.getOpenStudioCLI.to_s, '..', '..', 'EnergyPlus', 'energyplus'))
-  command = "cd #{rundir} && #{ep_path} -w in.epw in.idf > stdout-energyplus"
+  command = "cd \"#{rundir}\" && \"#{ep_path}\" -w in.epw in.idf > stdout-energyplus"
   system(command, :err => File::NULL)
 end
 
 options = {}
 OptionParser.new do |opts|
-  opts.banner = "Usage: #{File.basename(__FILE__)} -x building.xml\n e.g., #{File.basename(__FILE__)} -s -x tests/base.xml\n"
+  opts.banner = "Usage: #{File.basename(__FILE__)} -x building.xml\n e.g., #{File.basename(__FILE__)} -x tests/base.xml\n"
 
   opts.on('-x', '--xml <FILE>', 'HPXML file') do |t|
     options[:hpxml] = t
@@ -97,11 +96,6 @@ OptionParser.new do |opts|
 
   opts.on('-o', '--output-dir <DIR>', 'Output directory') do |t|
     options[:output_dir] = t
-  end
-
-  options[:skip_validation] = false
-  opts.on('-s', '--skip-validation', 'Skips HPXML validation') do |t|
-    options[:skip_validation] = true
   end
 
   options[:debug] = false
@@ -143,7 +137,7 @@ Dir.mkdir(rundir)
 # Run design
 puts "HPXML: #{options[:hpxml]}"
 puts "Creating input..."
-create_idf(basedir, rundir, options[:hpxml], options[:debug], options[:skip_validation])
+create_idf(basedir, rundir, options[:hpxml], options[:debug])
 
 puts "Running simulation..."
 run_energyplus(rundir)

@@ -86,7 +86,7 @@ class Airflow
     process_infiltration_for_conditioned_zones(model, infil, wind_speed, building, weather)
     process_mech_vent(model, mech_vent, building, weather, infil)
 
-    if mech_vent.type == Constants.VentTypeCFIS
+    if mech_vent.type == 'central fan integrated supply'
       cfis_program = create_cfis_objects(model, building, mech_vent)
     end
 
@@ -331,7 +331,7 @@ class Airflow
                                      :fan_mfr_max_var => fan_mfr_max_var,
                                      :fan_mfr_sensor => fan_mfr_sensor }
 
-      if mech_vent.type == Constants.VentTypeCFIS and air_loop == mech_vent.cfis_air_loop
+      if mech_vent.type == 'central fan integrated supply' and air_loop == mech_vent.cfis_air_loop
         mech_vent.cfis_fan_rtf_sensor = fan_rtf_sensor.name
         mech_vent.cfis_fan_mfr_max_var = fan_mfr_max_var.name
       end
@@ -529,7 +529,7 @@ class Airflow
   end
 
   def self.process_mech_vent(model, mech_vent, building, weather, infil)
-    if mech_vent.type == Constants.VentTypeCFIS
+    if mech_vent.type == 'central fan integrated supply'
       if not HVAC.has_ducted_equipment(model, mech_vent.cfis_air_loop)
         fail "A CFIS ventilation system has been specified but the building does not have central, forced air equipment."
       end
@@ -541,11 +541,11 @@ class Airflow
     range_hood_exhaust_operation = 60.0 # min/day, per HSP
 
     # Fraction of fan heat that goes to the space
-    if mech_vent.type == Constants.VentTypeExhaust
+    if ['exhaust only'].include? mech_vent.type
       frac_fan_heat = 0.0 # Fan heat does not enter space
-    elsif mech_vent.type == Constants.VentTypeSupply or mech_vent.type == Constants.VentTypeCFIS
+    elsif ['supply only', 'central fan integrated supply'].include? mech_vent.type
       frac_fan_heat = 1.0 # Fan heat does enter space
-    elsif mech_vent.type == Constants.VentTypeBalanced
+    elsif ['balanced', 'energy recovery ventilator', 'heat recovery ventilator'].include? mech_vent.type
       frac_fan_heat = 0.5 # Assumes supply fan heat enters space
     else
       frac_fan_heat = 0.0
@@ -585,7 +585,7 @@ class Airflow
     sensible_effectiveness = 0.0
     latent_effectiveness = 0.0
 
-    if mech_vent.type == Constants.VentTypeBalanced and (mech_vent.sensible_efficiency > 0 or mech_vent.sensible_efficiency_adjusted > 0) and mech_vent.whole_house_cfm > 0
+    if ['energy recovery ventilator', 'heat recovery ventilator'].include? mech_vent.type and mech_vent.whole_house_cfm > 0
       # Must assume an operating condition (HVI seems to use CSA 439)
       t_sup_in = 0.0
       w_sup_in = 0.0028
@@ -666,7 +666,7 @@ class Airflow
     end
 
     # Store info for HVAC Sizing measure
-    model.getBuilding.additionalProperties.setFeature(Constants.SizingInfoMechVentType, mech_vent.type)
+    model.getBuilding.additionalProperties.setFeature(Constants.SizingInfoMechVentType, mech_vent.type.to_s)
     model.getBuilding.additionalProperties.setFeature(Constants.SizingInfoMechVentTotalEfficiency, mech_vent.total_efficiency.to_f)
     model.getBuilding.additionalProperties.setFeature(Constants.SizingInfoMechVentLatentEffectiveness, latent_effectiveness.to_f)
     model.getBuilding.additionalProperties.setFeature(Constants.SizingInfoMechVentApparentSensibleEffectiveness, apparent_sensible_effectiveness.to_f)
@@ -1183,7 +1183,7 @@ class Airflow
         duct_actuators = {}
         [false, true].each do |is_cfis|
           if is_cfis
-            next unless (mech_vent.type == Constants.VentTypeCFIS and air_loop == mech_vent.cfis_air_loop)
+            next unless (mech_vent.type == 'central fan integrated supply' and air_loop == mech_vent.cfis_air_loop)
 
             prefix = "cfis_"
           else
@@ -1226,7 +1226,7 @@ class Airflow
 
         [false, true].each do |is_cfis|
           if is_cfis
-            next unless (mech_vent.type == Constants.VentTypeCFIS and air_loop == mech_vent.cfis_air_loop)
+            next unless (mech_vent.type == 'central fan integrated supply' and air_loop == mech_vent.cfis_air_loop)
 
             prefix = "cfis_"
           else
@@ -1443,7 +1443,7 @@ class Airflow
           duct_program.addLine("Set #{duct_actuators["liv_to_dz_flow_rate"].name} = #{duct_vars["liv_to_dz_flow_rate"].name}")
         end
 
-        if mech_vent.type == Constants.VentTypeCFIS and air_loop == mech_vent.cfis_air_loop
+        if mech_vent.type == 'central fan integrated supply' and air_loop == mech_vent.cfis_air_loop
 
           # Calculate CFIS duct losses
 
@@ -1628,7 +1628,7 @@ class Airflow
       infil_program.addLine("Set Qn = #{building.living.ACH * UnitConversions.convert(building.infilvolume, "ft^3", "m^3") / UnitConversions.convert(1.0, "hr", "s")}")
     end
 
-    if mech_vent.type == Constants.VentTypeBalanced and mech_vent.whole_house_cfm > 0
+    if ['balanced', 'energy recovery ventilator', 'heat recovery ventilator'].include? mech_vent.type and mech_vent.whole_house_cfm > 0
       # ERV/HRV/Balanced EMS load model
       # E+ ERV model is using standard density for MFR calculation, caused discrepancy with other system types.
       # E+ ERV model also does not meet setpoint perfectly.
@@ -1685,7 +1685,7 @@ class Airflow
 
     end
 
-    if mech_vent.type == Constants.VentTypeCFIS
+    if mech_vent.type == 'central fan integrated supply'
 
       infil_program.addLine("Set fan_rtf = #{mech_vent.cfis_fan_rtf_sensor}")
       if mech_vent.fan_power_w.nil?
@@ -1786,13 +1786,13 @@ class Airflow
     end
     infil_program.addLine("Set Qout = Qrange+Qbath+Qdryer+QhpwhOut+QductsOut")
     infil_program.addLine("Set Qin = QhpwhIn+QductsIn")
-    if mech_vent.type == Constants.VentTypeExhaust
+    if mech_vent.type == 'exhaust only'
       infil_program.addLine("Set Qout = Qout+QWHV")
-    elsif mech_vent.type == Constants.VentTypeSupply or mech_vent.type == Constants.VentTypeCFIS
+    elsif mech_vent.type == 'supply only' or mech_vent.type == 'central fan integrated supply'
       infil_program.addLine("Set Qin = Qin+QWHV")
     end
     infil_program.addLine("Set Qu = (@Abs (Qout-Qin))")
-    if mech_vent.type != Constants.VentTypeCFIS
+    if mech_vent.type != 'central fan integrated supply'
       if mech_vent.whole_house_cfm > 0
         infil_program.addLine("Set #{whole_house_fan_actuator.name} = QWHV * #{mech_vent.fan_power_w} / #{UnitConversions.convert(mech_vent.whole_house_cfm, "cfm", "m^3/s")}")
       else
@@ -1805,7 +1805,7 @@ class Airflow
     infil_program.addLine("Set Q_acctd_for_elsewhere = QhpwhOut+QhpwhIn+QductsOut+QductsIn")
     infil_program.addLine("Set Q_tot_flow = (((Qu^2)+(Qn^2))^0.5)-Q_acctd_for_elsewhere")
     infil_program.addLine("Set Q_tot_flow = (@Max Q_tot_flow 0)")
-    if mech_vent.type != Constants.VentTypeBalanced
+    if not ['balanced', 'energy recovery ventilator', 'heat recovery ventilator'].include? mech_vent.type
       infil_program.addLine("Set #{infil_flow_actuator.name} = Q_tot_flow - QWHV")
       infil_program.addLine("Set #{imbal_mechvent_flow_actuator.name} = QWHV")
     else

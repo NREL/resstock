@@ -73,7 +73,7 @@ class Geometry
   end
 
   def self.is_conditioned_space_type(space_type)
-    if [Constants.SpaceTypeLiving].include? space_type
+    if ['living space'].include? space_type
       return true
     end
 
@@ -199,32 +199,33 @@ class Geometry
     return true
   end
 
+  # TODO: Remove these methods
   def self.is_living(space_or_zone)
-    return self.space_or_zone_is_of_type(space_or_zone, Constants.SpaceTypeLiving)
+    return self.space_or_zone_is_of_type(space_or_zone, 'living space')
   end
 
   def self.is_vented_crawl(space_or_zone)
-    return self.space_or_zone_is_of_type(space_or_zone, Constants.SpaceTypeVentedCrawl)
+    return self.space_or_zone_is_of_type(space_or_zone, 'crawlspace - vented')
   end
 
   def self.is_unvented_crawl(space_or_zone)
-    return self.space_or_zone_is_of_type(space_or_zone, Constants.SpaceTypeUnventedCrawl)
+    return self.space_or_zone_is_of_type(space_or_zone, 'crawlspace - unvented')
   end
 
   def self.is_unconditioned_basement(space_or_zone)
-    return self.space_or_zone_is_of_type(space_or_zone, Constants.SpaceTypeUnconditionedBasement)
+    return self.space_or_zone_is_of_type(space_or_zone, 'basement - unconditioned')
   end
 
   def self.is_vented_attic(space_or_zone)
-    return self.space_or_zone_is_of_type(space_or_zone, Constants.SpaceTypeVentedAttic)
+    return self.space_or_zone_is_of_type(space_or_zone, 'attic - vented')
   end
 
   def self.is_unvented_attic(space_or_zone)
-    return self.space_or_zone_is_of_type(space_or_zone, Constants.SpaceTypeUnventedAttic)
+    return self.space_or_zone_is_of_type(space_or_zone, 'attic - unvented')
   end
 
   def self.is_garage(space_or_zone)
-    return self.space_or_zone_is_of_type(space_or_zone, Constants.SpaceTypeGarage)
+    return self.space_or_zone_is_of_type(space_or_zone, 'garage')
   end
 
   def self.space_or_zone_is_of_type(space_or_zone, space_type)
