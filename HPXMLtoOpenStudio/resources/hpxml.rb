@@ -129,9 +129,9 @@ class HPXML
     return @cache[building_occupancy] if @cache.key?(building_occupancy)
 
     vals = {}
-    vals[:number_of_residents] = to_float_or_nil(XMLHelper.get_value(building_occupancy, "NumberofResidents")) if is_selected(select, :number_of_residents)
-    vals[:schedules_output_path] = XMLHelper.get_value(building_occupancy, "extension/SchedulesOutputPath") if is_selected(select, :schedules_output_path)
-    vals[:schedules_column_name] = XMLHelper.get_value(building_occupancy, "extension/SchedulesColumnName") if is_selected(select, :schedules_column_name)
+    vals[:number_of_residents] = to_float_or_nil(XMLHelper.get_value(building_occupancy, "NumberofResidents"))
+    vals[:schedules_output_path] = XMLHelper.get_value(building_occupancy, "extension/SchedulesOutputPath")
+    vals[:schedules_column_name] = XMLHelper.get_value(building_occupancy, "extension/SchedulesColumnName")
     @cache[building_occupancy] = vals
     return vals
   end
