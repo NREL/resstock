@@ -28,14 +28,14 @@ def create_osws
   # Hash of OSW -> Parent OSW
   osws_files = {
     'base-single-family-detached.osw' => nil,
-    # 'base-single-family-attached.osw' => 'base-single-family-detached.osw',
+    'base-single-family-attached.osw' => 'base-single-family-detached.osw',
     'base-multifamily.osw' => 'base-single-family-detached.osw',
     'base-enclosure-skylights.osw' => 'base-single-family-detached.osw',
     'base-hvac-furnace-elec-only.osw' => 'base-single-family-detached.osw',
     'base-hvac-boiler-elec-only.osw' => 'base-single-family-detached.osw',
     'base-hvac-boiler-gas-only.osw' => 'base-single-family-detached.osw',
     'base-hvac-elec-resistance-only.osw' => 'base-single-family-detached.osw',
-    'base-hvac-portable-heater-electric-only' => 'base-single-family-detached.osw',
+    'base-hvac-portable-heater-electric-only.osw' => 'base-single-family-detached.osw',
     'base-hvac-stove-oil-only.osw' => 'base-single-family-detached.osw',
     'base-hvac-wall-furnace-propane-only.osw' => 'base-single-family-detached.osw',
     'base-hvac-central-ac-only-1-speed.osw' => 'base-single-family-detached.osw',
@@ -51,7 +51,7 @@ def create_osws
     'base-dhw-tank-heat-pump.osw' => 'base-single-family-detached.osw',
     'base-dhw-tankless-electric.osw' => 'base-single-family-detached.osw',
     'base-dhw-tankless-gas.osw' => 'base-single-family-detached.osw',
-    'base-dhw-storage-gas-x2.osw' => 'base-single-family-detached.osw'
+    'base-dhw-tank-electric-x2.osw' => 'base-single-family-detached.osw'
   }
 
   puts "Generating #{osws_files.size} OSW files..."
@@ -232,20 +232,20 @@ def get_example_single_family_detached_values(osw_file, step)
     step.setArgument("return_duct_surface_area_2", 50)
     step.setArgument("water_heater_type_1", "storage water heater")
     step.setArgument("water_heater_fuel_type_1", "electricity")
-    step.setArgument("water_heater_location_1", "living space")
+    step.setArgument("water_heater_location_1", Constants.Auto)
     step.setArgument("water_heater_tank_volume_1", Constants.Auto)
     step.setArgument("water_heater_fraction_dhw_load_served_1", 1)
     step.setArgument("water_heater_heating_capacity_1", Constants.SizingAuto)
     step.setArgument("water_heater_energy_factor_1", 0.95)
-    step.setArgument("water_heater_recovery_efficiency_1", -1)
+    step.setArgument("water_heater_recovery_efficiency_1", 0.76)
     step.setArgument("water_heater_type_2", "none")
     step.setArgument("water_heater_fuel_type_2", "electricity")
-    step.setArgument("water_heater_location_2", "living space")
+    step.setArgument("water_heater_location_2", Constants.Auto)
     step.setArgument("water_heater_tank_volume_2", Constants.Auto)
     step.setArgument("water_heater_fraction_dhw_load_served_2", 1)
     step.setArgument("water_heater_heating_capacity_2", Constants.SizingAuto)
     step.setArgument("water_heater_energy_factor_2", 0.95)
-    step.setArgument("water_heater_recovery_efficiency_2", -1)
+    step.setArgument("water_heater_recovery_efficiency_2", 0.76)
     step.setArgument("hot_water_distribution_system_type", "Standard")
     step.setArgument("standard_piping_length", 50)
     step.setArgument("recirculation_control_type", "no control")
@@ -280,6 +280,8 @@ def get_example_single_family_detached_values(osw_file, step)
     step.setArgument("plug_loads_weekend_fractions", "0.035, 0.033, 0.032, 0.031, 0.032, 0.033, 0.037, 0.042, 0.043, 0.043, 0.043, 0.044, 0.045, 0.045, 0.044, 0.046, 0.048, 0.052, 0.053, 0.05, 0.047, 0.045, 0.04, 0.036")
     step.setArgument("plug_loads_monthly_multipliers", "1.248, 1.257, 0.993, 0.989, 0.993, 0.827, 0.821, 0.821, 0.827, 0.99, 0.987, 1.248")
   elsif ['base-single-family-attached.osw'].include? osw_file
+    step.setArgument("unit_type", "single-family attached")
+    step.setArgument("cfa", 900.0)
   elsif ['base-multifamily.osw'].include? osw_file
     step.setArgument("unit_type", "multifamily")
     step.setArgument("cfa", 900.0)
@@ -305,7 +307,7 @@ def get_example_single_family_detached_values(osw_file, step)
     step.setArgument("heating_system_fuel_1", "electricity")
     step.setArgument("cooling_system_type_1", "none")
     step.setArgument("distribution_system_type_1", "none")
-  elsif ['base-hvac-portable-heater-electric-only'].include? osw_file
+  elsif ['base-hvac-portable-heater-electric-only.osw'].include? osw_file
     step.setArgument("heating_system_type_1", "PortableHeater")
     step.setArgument("heating_system_fuel_1", "electricity")
     step.setArgument("cooling_system_type_1", "none")
@@ -334,18 +336,20 @@ def get_example_single_family_detached_values(osw_file, step)
     step.setArgument("heating_system_type_1", "none")
     step.setArgument("cooling_system_type_1", "none")
     step.setArgument("heat_pump_type_1", "air-to-air")
-  elsif ['base-hvac-mini-split-heat-pump-ducted.osw' => 'base-single-family-detached.osw'].include? osw_file
+  elsif ['base-hvac-mini-split-heat-pump-ducted.osw'].include? osw_file
     step.setArgument("heating_system_type_1", "none")
     step.setArgument("cooling_system_type_1", "none")
     step.setArgument("heat_pump_type_1", "mini-split")
-  elsif ['base-hvac-ground-to-air-heat-pump.osw' => 'base-single-family-detached.osw'].include? osw_file
+  elsif ['base-hvac-ground-to-air-heat-pump.osw'].include? osw_file
     step.setArgument("heating_system_type_1", "none")
     step.setArgument("cooling_system_type_1", "none")
     step.setArgument("heat_pump_type_1", "ground-to-air")
-  elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-1-speed.osw' => 'base-single-family-detached.osw'].include? osw_file
+  elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-1-speed.osw'].include? osw_file
     step.setArgument("heating_system_type_1", "none")
     step.setArgument("cooling_system_type_1", "none")
     step.setArgument("heat_pump_type_1", "air-to-air")
+    step.setArgument("heat_pump_backup_fuel_1", "natural gas")
+    step.setArgument("heat_pump_backup_heating_efficiency_percent_1", 0.95)
   elsif ['base-hvac-furnace-gas-only-x2.osw'].include? osw_file
     step.setArgument("heating_system_type_2", "Furnace")
     step.setArgument("heating_system_fraction_heat_load_served_1", 0.5)
@@ -361,7 +365,6 @@ def get_example_single_family_detached_values(osw_file, step)
   elsif ['base-dhw-tank-gas.osw'].include? osw_file
     step.setArgument("water_heater_fuel_type_1", "natural gas")
     step.setArgument("water_heater_energy_factor_1", 0.59)
-    step.setArgument("water_heater_recovery_efficiency_1", 0.76)
   elsif ['base-dhw-tank-heat-pump.osw'].include? osw_file
     step.setArgument("water_heater_type_1", "heat pump water heater")
     step.setArgument("water_heater_energy_factor_1", 2.3)
@@ -372,7 +375,7 @@ def get_example_single_family_detached_values(osw_file, step)
     step.setArgument("water_heater_type_1", "instantaneous water heater")
     step.setArgument("water_heater_fuel_type_1", "natural gas")
     step.setArgument("water_heater_energy_factor_1", 0.82)
-  elsif ['base-dhw-tank-gas-x2.osw'].include? osw_file
+  elsif ['base-dhw-tank-electric-x2.osw'].include? osw_file
     step.setArgument("water_heater_type_2", "storage water heater")
     step.setArgument("water_heater_fraction_dhw_load_served_1", 0.5)
     step.setArgument("water_heater_fraction_dhw_load_served_2", 0.5)

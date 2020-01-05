@@ -72,12 +72,6 @@ class HPXMLTranslator < OpenStudio::Measure::ModelMeasure
     arg.setDescription("Absolute/relative path of the output OSM file.")
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument.makeBoolArgument("skip_validation", true)
-    arg.setDisplayName("Skip HPXML validation")
-    arg.setDescription("If true, only checks for and reports HPXML validation issues if an error occurs during processing. Used for faster runtime.")
-    arg.setDefaultValue(false)
-    args << arg
-
     arg = OpenStudio::Measure::OSArgument.makeStringArgument("map_tsv_dir", false)
     arg.setDisplayName("Map TSV Directory")
     arg.setDescription("Creates TSV files in the specified directory that map some HPXML object names to EnergyPlus object names. Required for ERI calculation.")
@@ -107,7 +101,6 @@ class HPXMLTranslator < OpenStudio::Measure::ModelMeasure
     schemas_dir = runner.getOptionalStringArgumentValue("schemas_dir", user_arguments)
     epw_output_path = runner.getOptionalStringArgumentValue("epw_output_path", user_arguments)
     osm_output_path = runner.getOptionalStringArgumentValue("osm_output_path", user_arguments)
-    skip_validation = runner.getBoolArgumentValue("skip_validation", user_arguments)
     map_tsv_dir = runner.getOptionalStringArgumentValue("map_tsv_dir", user_arguments)
 
     unless (Pathname.new hpxml_path).absolute?
@@ -119,11 +112,8 @@ class HPXMLTranslator < OpenStudio::Measure::ModelMeasure
 
     hpxml_doc = XMLHelper.parse_file(hpxml_path)
 
-    # Check for invalid HPXML file up front?
-    if not skip_validation
-      if not validate_hpxml(runner, hpxml_path, hpxml_doc, schemas_dir)
-        return false
-      end
+    if not validate_hpxml(runner, hpxml_path, hpxml_doc, schemas_dir)
+      return false
     end
 
     begin
@@ -131,8 +121,7 @@ class HPXMLTranslator < OpenStudio::Measure::ModelMeasure
       unless (Pathname.new weather_dir).absolute?
         weather_dir = File.expand_path(File.join(File.dirname(__FILE__), weather_dir))
       end
-      climate_and_risk_zones_values = HPXML.get_climate_and_risk_zones_values(climate_and_risk_zones: hpxml_doc.elements["/HPXML/Building/BuildingDetails/ClimateandRiskZones"],
-                                                                              select: [:weather_station_wmo, :weather_station_epw_filename])
+      climate_and_risk_zones_values = HPXML.get_climate_and_risk_zones_values(climate_and_risk_zones: hpxml_doc.elements["/HPXML/Building/BuildingDetails/ClimateandRiskZones"])
       epw_path = climate_and_risk_zones_values[:weather_station_epw_filename]
       if not epw_path.nil?
         epw_path = File.join(weather_dir, epw_path)
@@ -176,14 +165,6 @@ class HPXMLTranslator < OpenStudio::Measure::ModelMeasure
       # Create OpenStudio model
       OSModel.create(hpxml_doc, runner, model, weather, map_tsv_dir, hpxml_path)
     rescue Exception => e
-      if skip_validation
-        # Something went wrong, check for invalid HPXML file now. This was previously
-        # skipped to reduce runtime (see https://github.com/NREL/OpenStudio-ERI/issues/47).
-        if not validate_hpxml(runner, hpxml_path, hpxml_doc, schemas_dir)
-          return false
-        end
-      end
-
       # Report exception
       runner.registerError("#{e.message}\n#{e.backtrace.join("\n")}")
       return false
@@ -239,8 +220,7 @@ class OSModel
   def self.create(hpxml_doc, runner, model, weather, map_tsv_dir, hpxml_path)
     @hpxml_path = hpxml_path
     hpxml = hpxml_doc.elements["HPXML"]
-    hpxml_values = HPXML.get_hpxml_values(hpxml: hpxml,
-                                          select: [:eri_calculation_version])
+    hpxml_values = HPXML.get_hpxml_values(hpxml: hpxml)
     @eri_version = hpxml_values[:eri_calculation_version] # Hidden feature
     @eri_version = '2014AEG' if @eri_version.nil? # Use latest version/addenda implemented
 
@@ -253,14 +233,12 @@ class OSModel
     @cfa = construction_values[:conditioned_floor_area]
     @cfa_ag = @cfa
     enclosure.elements.each("Slabs/Slab[InteriorAdjacentTo='basement - conditioned']") do |slab|
-      slab_values = HPXML.get_slab_values(slab: slab,
-                                          select: [:area])
+      slab_values = HPXML.get_slab_values(slab: slab)
       @cfa_ag -= slab_values[:area]
     end
     @gfa = 0 # garage floor area
     enclosure.elements.each("Slabs/Slab[InteriorAdjacentTo='garage']") do |garage_slab|
-      slab_values = HPXML.get_slab_values(slab: garage_slab,
-                                          select: [:area])
+      slab_values = HPXML.get_slab_values(slab: garage_slab)
       @gfa += slab_values[:area]
     end
     @cvolume = construction_values[:conditioned_building_volume]
@@ -372,7 +350,7 @@ class OSModel
     add_conditioned_floor_area(runner, model, building, spaces)
 
     # update living space/zone global variable
-    @living_space = get_space_of_type(spaces, Constants.SpaceTypeLiving)
+    @living_space = get_space_of_type(spaces, 'living space')
     @living_zone = @living_space.thermalZone.get
 
     add_thermal_mass(runner, model, building)
@@ -626,7 +604,7 @@ class OSModel
       if n_roofceilings == 0
         fail "'#{zone.name}' must have at least one roof/ceiling surface."
       end
-      if n_walls == 0 and not [Constants.SpaceTypeUnventedAttic, Constants.SpaceTypeVentedAttic].include? zone.name.to_s
+      if n_walls == 0 and not ['attic - unvented', 'attic - vented'].include? zone.name.to_s
         fail "'#{zone.name}' must have at least one wall surface."
       end
       if n_exteriors == 0
@@ -943,8 +921,7 @@ class OSModel
   end
 
   def self.add_num_occupants(model, building, runner)
-    building_occupancy_values = HPXML.get_building_occupancy_values(building_occupancy: building.elements["BuildingDetails/BuildingSummary/BuildingOccupancy"],
-                                                                    select: [:number_of_residents])
+    building_occupancy_values = HPXML.get_building_occupancy_values(building_occupancy: building.elements["BuildingDetails/BuildingSummary/BuildingOccupancy"])
 
     # Occupants
     num_occ = Geometry.get_occupancy_default_num(@nbeds)
@@ -975,8 +952,7 @@ class OSModel
 
     # Windows
     building.elements.each("BuildingDetails/Enclosure/Windows/Window") do |window|
-      window_values = HPXML.get_window_values(window: window,
-                                              select: [:area, :wall_idref])
+      window_values = HPXML.get_window_values(window: window)
       wall_id = window_values[:wall_idref]
       subsurface_areas[wall_id] = 0 if subsurface_areas[wall_id].nil?
       subsurface_areas[wall_id] += window_values[:area]
@@ -984,8 +960,7 @@ class OSModel
 
     # Skylights
     building.elements.each("BuildingDetails/Enclosure/Skylights/Skylight") do |skylight|
-      skylight_values = HPXML.get_skylight_values(skylight: skylight,
-                                                  select: [:area, :roof_idref])
+      skylight_values = HPXML.get_skylight_values(skylight: skylight)
       roof_id = skylight_values[:roof_idref]
       subsurface_areas[roof_id] = 0 if subsurface_areas[roof_id].nil?
       subsurface_areas[roof_id] += skylight_values[:area]
@@ -993,8 +968,7 @@ class OSModel
 
     # Doors
     building.elements.each("BuildingDetails/Enclosure/Doors/Door") do |door|
-      door_values = HPXML.get_door_values(door: door,
-                                          select: [:area, :wall_idref])
+      door_values = HPXML.get_door_values(door: door)
       wall_id = door_values[:wall_idref]
       subsurface_areas[wall_id] = 0 if subsurface_areas[wall_id].nil?
       subsurface_areas[wall_id] += door_values[:area]
@@ -1358,8 +1332,7 @@ class OSModel
       # Obtain some wall/slab information
       fnd_wall_lengths = {}
       fnd_walls.each_with_index do |fnd_wall, fnd_wall_idx|
-        fnd_wall_values = HPXML.get_foundation_wall_values(foundation_wall: fnd_wall,
-                                                           select: [:exterior_adjacent_to, :area, :height])
+        fnd_wall_values = HPXML.get_foundation_wall_values(foundation_wall: fnd_wall)
         next unless fnd_wall_values[:exterior_adjacent_to] == "ground"
 
         fnd_wall_lengths[fnd_wall] = fnd_wall_values[:area] / fnd_wall_values[:height]
@@ -1367,8 +1340,7 @@ class OSModel
       slab_exp_perims = {}
       slab_areas = {}
       slabs.each_with_index do |slab, slab_idx|
-        slab_values = HPXML.get_slab_values(slab: slab,
-                                            select: [:exposed_perimeter, :area])
+        slab_values = HPXML.get_slab_values(slab: slab)
         slab_exp_perims[slab] = slab_values[:exposed_perimeter]
         slab_areas[slab] = slab_values[:area]
       end
@@ -1674,7 +1646,7 @@ class OSModel
     floor_surface.setWindExposure("NoWind")
     floor_surface.setName("inferred conditioned floor")
     floor_surface.setSurfaceType("Floor")
-    floor_surface.setSpace(create_or_get_space(model, spaces, Constants.SpaceTypeLiving))
+    floor_surface.setSpace(create_or_get_space(model, spaces, 'living space'))
     floor_surface.setOutsideBoundaryCondition("Adiabatic")
     floor_surface.additionalProperties.setFeature("SurfaceType", "InferredFloor")
 
@@ -1685,7 +1657,7 @@ class OSModel
     ceiling_surface.setWindExposure("NoWind")
     ceiling_surface.setName("inferred conditioned ceiling")
     ceiling_surface.setSurfaceType("RoofCeiling")
-    ceiling_surface.setSpace(create_or_get_space(model, spaces, Constants.SpaceTypeLiving))
+    ceiling_surface.setSpace(create_or_get_space(model, spaces, 'living space'))
     ceiling_surface.setOutsideBoundaryCondition("Adiabatic")
     ceiling_surface.additionalProperties.setFeature("SurfaceType", "InferredCeiling")
 
@@ -1843,8 +1815,7 @@ class OSModel
       # Obtain skylight tilt from attached roof
       skylight_tilt = nil
       building.elements.each("BuildingDetails/Enclosure/Roofs/Roof") do |roof|
-        roof_values = HPXML.get_roof_values(roof: roof,
-                                            select: [:id, :pitch])
+        roof_values = HPXML.get_roof_values(roof: roof)
         next unless roof_values[:id] == skylight_values[:roof_idref]
 
         skylight_tilt = roof_values[:pitch] / 12.0
@@ -1870,7 +1841,7 @@ class OSModel
       surface.additionalProperties.setFeature("SurfaceType", "Skylight")
       surface.setName("surface #{skylight_id}")
       surface.setSurfaceType("RoofCeiling")
-      surface.setSpace(create_or_get_space(model, spaces, Constants.SpaceTypeLiving)) # Ensures it is included in Manual J sizing
+      surface.setSpace(create_or_get_space(model, spaces, 'living space')) # Ensures it is included in Manual J sizing
       surface.setOutsideBoundaryCondition("Outdoors") # cannot be adiabatic because subsurfaces won't be created
       surfaces << surface
 
@@ -1979,7 +1950,7 @@ class OSModel
     clothes_dryer_values = HPXML.get_clothes_dryer_values(clothes_dryer: building.elements["BuildingDetails/Appliances/ClothesDryer"])
     if not clothes_dryer_values.nil?
       cd_space = get_space_from_location(clothes_dryer_values[:location], "ClothesDryer", model, spaces)
-      cd_fuel = to_beopt_fuel(clothes_dryer_values[:fuel_type])
+      cd_fuel = clothes_dryer_values[:fuel_type]
       cd_control = clothes_dryer_values[:control_type]
       cd_ef = clothes_dryer_values[:energy_factor]
       if cd_ef.nil?
@@ -2017,7 +1988,7 @@ class OSModel
     cooking_range_values = HPXML.get_cooking_range_values(cooking_range: building.elements["BuildingDetails/Appliances/CookingRange"])
     oven_values = HPXML.get_oven_values(oven: building.elements["BuildingDetails/Appliances/Oven"])
     if not cooking_range_values.nil? and not oven_values.nil?
-      cook_fuel_type = to_beopt_fuel(cooking_range_values[:fuel_type])
+      cook_fuel_type = cooking_range_values[:fuel_type]
       cook_is_induction = cooking_range_values[:is_induction]
       oven_is_convection = oven_values[:is_convection]
     else
@@ -2032,8 +2003,7 @@ class OSModel
     if not wh.nil?
       low_flow_fixtures_list = []
       wh.elements.each("WaterFixture[WaterFixtureType='shower head' or WaterFixtureType='faucet']") do |wf|
-        water_fixture_values = HPXML.get_water_fixture_values(water_fixture: wf,
-                                                              select: [:low_flow])
+        water_fixture_values = HPXML.get_water_fixture_values(water_fixture: wf)
         low_flow_fixtures_list << water_fixture_values[:low_flow]
       end
       low_flow_fixtures_list.uniq!
@@ -2113,7 +2083,7 @@ class OSModel
           uef = water_heating_system_values[:uniform_energy_factor]
           # allow systems not requiring EF and not specifying fuel type, e.g., indirect water heater
           if not uef.nil?
-            ef = Waterheater.calc_ef_from_uef(uef, to_beopt_wh_type(wh_type), to_beopt_fuel(fuel))
+            ef = Waterheater.calc_ef_from_uef(uef, wh_type, fuel)
           end
         end
 
@@ -2121,8 +2091,7 @@ class OSModel
         # Solar fraction is used to adjust water heater's tank losses and hot water use, because it is
         # the portion of the total conventional hot water heating load (delivered energy + tank losses).
         solar_fraction = nil
-        solar_thermal_values = HPXML.get_solar_thermal_system_values(solar_thermal_system: sts,
-                                                                     select: [:solar_fraction, :water_heating_system_idref])
+        solar_thermal_values = HPXML.get_solar_thermal_system_values(solar_thermal_system: sts)
         if not solar_thermal_values.nil? and solar_thermal_values[:water_heating_system_idref] == sys_id
           solar_fraction = solar_thermal_values[:solar_fraction]
         end
@@ -2144,7 +2113,7 @@ class OSModel
           re = water_heating_system_values[:recovery_efficiency]
           capacity_kbtuh = water_heating_system_values[:heating_capacity] / 1000.0
 
-          Waterheater.apply_tank(model, space, to_beopt_fuel(fuel), capacity_kbtuh, tank_vol,
+          Waterheater.apply_tank(model, space, fuel, capacity_kbtuh, tank_vol,
                                  ef, re, setpoint_temp, ec_adj, @nbeds, @dhw_map,
                                  sys_id, desuperheater_clg_coil, jacket_r, solar_fraction)
 
@@ -2152,7 +2121,7 @@ class OSModel
 
           cycling_derate = water_heating_system_values[:performance_adjustment]
 
-          Waterheater.apply_tankless(model, space, to_beopt_fuel(fuel), ef, cycling_derate,
+          Waterheater.apply_tankless(model, space, fuel, ef, cycling_derate,
                                      setpoint_temp, ec_adj, @nbeds, @dhw_map,
                                      sys_id, desuperheater_clg_coil, solar_fraction)
 
@@ -2172,7 +2141,7 @@ class OSModel
           if not related_hvac_list.include? heating_source_id
             related_hvac_list << heating_source_id
             boiler_sys = get_boiler_and_plant_loop(@hvac_map, heating_source_id, sys_id)
-            boiler_fuel_type = to_beopt_fuel(Waterheater.get_combi_system_fuel(heating_source_id, building.elements["BuildingDetails"]))
+            boiler_fuel_type = Waterheater.get_combi_system_fuel(heating_source_id, building.elements["BuildingDetails"])
           else
             fail "RelatedHVACSystem '#{heating_source_id}' for water heating system '#{sys_id}' is already attached to another water heating system."
           end
@@ -2213,8 +2182,7 @@ class OSModel
       dhw_system_idref = solar_thermal_values[:water_heating_system_idref]
 
       wh.elements.each("WaterHeatingSystem") do |dhw|
-        water_heating_system_values = HPXML.get_water_heating_system_values(water_heating_system: dhw,
-                                                                            select: [:id, :water_heater_type, :uses_desuperheater])
+        water_heating_system_values = HPXML.get_water_heating_system_values(water_heating_system: dhw)
         next unless water_heating_system_values[:id] == dhw_system_idref
 
         if ['space-heating boiler with storage tank', 'space-heating boiler with tankless coil'].include? water_heating_system_values[:water_heater_type]
@@ -2410,7 +2378,7 @@ class OSModel
           next if htg_type == "Furnace" and not attached_clg_system.nil?
         end
 
-        fuel = to_beopt_fuel(heating_system_values[:heating_system_fuel])
+        fuel = heating_system_values[:heating_system_fuel]
 
         heat_capacity_btuh = heating_system_values[:heating_capacity]
         if heat_capacity_btuh < 0
@@ -2531,10 +2499,8 @@ class OSModel
       end
       @total_frac_remaining_cool_load_served -= load_frac_cool
 
-      backup_heat_fuel_xml = heat_pump_values[:backup_heating_fuel]
-      if not backup_heat_fuel_xml.nil?
-
-        backup_heat_fuel = to_beopt_fuel(backup_heat_fuel_xml)
+      backup_heat_fuel = heat_pump_values[:backup_heating_fuel]
+      if not backup_heat_fuel.nil?
 
         backup_heat_capacity_btuh = heat_pump_values[:backup_heating_capacity]
         if backup_heat_capacity_btuh < 0
@@ -2555,7 +2521,7 @@ class OSModel
         backup_switchover_temp = heat_pump_values[:backup_heating_switchover_temp]
 
       else
-        backup_heat_fuel = Constants.FuelTypeElectric
+        backup_heat_fuel = 'electricity'
         backup_heat_capacity_btuh = 0.0
         backup_heat_efficiency = 1.0
         backup_switchover_temp = nil
@@ -2846,8 +2812,7 @@ class OSModel
     # Get attached distribution system
     found_attached_dist = false
     building.elements.each("BuildingDetails/Systems/HVAC/HVACDistribution") do |dist|
-      hvac_distribution_values = HPXML.get_hvac_distribution_values(hvac_distribution: dist,
-                                                                    select: [:id])
+      hvac_distribution_values = HPXML.get_hvac_distribution_values(hvac_distribution: dist)
       next if dist_id != hvac_distribution_values[:id]
 
       found_attached_dist = true
@@ -2914,8 +2879,7 @@ class OSModel
     end
 
     # Television
-    plug_load_values = HPXML.get_plug_load_values(plug_load: building.elements["BuildingDetails/MiscLoads/PlugLoad[PlugLoadType='TV other']"],
-                                                  select: [:kWh_per_year])
+    plug_load_values = HPXML.get_plug_load_values(plug_load: building.elements["BuildingDetails/MiscLoads/PlugLoad[PlugLoadType='TV other']"])
     if not plug_load_values.nil?
       tv_annual_kwh = plug_load_values[:kWh_per_year]
       if tv_annual_kwh.nil?
@@ -2954,14 +2918,13 @@ class OSModel
                                                               lighting_values[:fraction_tier_ii_exterior],
                                                               lighting_values[:fraction_tier_ii_garage])
 
-    garage_space = get_space_of_type(spaces, Constants.SpaceTypeGarage)
+    garage_space = get_space_of_type(spaces, 'garage')
     Lighting.apply(model, weather, int_kwh, grg_kwh, ext_kwh, @cfa, @gfa,
                    @living_space, garage_space)
   end
 
   def self.add_airflow(runner, model, building, weather, spaces)
-    site_values = HPXML.get_site_values(site: building.elements["BuildingDetails/BuildingSummary/Site"],
-                                        select: [:shelter_coefficient, :disable_natural_ventilation])
+    site_values = HPXML.get_site_values(site: building.elements["BuildingDetails/BuildingSummary/Site"])
     shelter_coef = site_values[:shelter_coefficient]
     disable_nat_vent = site_values[:disable_natural_ventilation]
 
@@ -2983,8 +2946,7 @@ class OSModel
     vented_attic_const_ach = nil
     if @has_vented_attic
       building.elements.each("BuildingDetails/Enclosure/Attics/Attic[AtticType/Attic[Vented='true']]") do |vented_attic|
-        vented_attic_values = HPXML.get_attic_values(attic: vented_attic,
-                                                     select: [:vented_attic_sla, :vented_attic_constant_ach])
+        vented_attic_values = HPXML.get_attic_values(attic: vented_attic)
         next if vented_attic_values[:vented_attic_sla].nil? and vented_attic_values[:vented_attic_constant_ach].nil? # skip additional attic elements
 
         vented_attic_sla = vented_attic_values[:vented_attic_sla]
@@ -3000,8 +2962,7 @@ class OSModel
     vented_crawl_sla = nil
     if @has_vented_crawl
       building.elements.each("BuildingDetails/Enclosure/Foundations/Foundation[FoundationType/Crawlspace[Vented='true']]") do |vented_crawl|
-        vented_crawl_values = HPXML.get_foundation_values(foundation: vented_crawl,
-                                                          select: [:vented_crawlspace_sla])
+        vented_crawl_values = HPXML.get_foundation_values(foundation: vented_crawl)
         vented_crawl_sla = vented_crawl_values[:vented_crawlspace_sla]
       end
       if vented_crawl_sla.nil?
@@ -3064,8 +3025,7 @@ class OSModel
     # Ducts
     duct_systems = {}
     building.elements.each("BuildingDetails/Systems/HVAC/HVACDistribution") do |hvac_distribution|
-      hvac_distribution_values = HPXML.get_hvac_distribution_values(hvac_distribution: hvac_distribution,
-                                                                    select: [:id])
+      hvac_distribution_values = HPXML.get_hvac_distribution_values(hvac_distribution: hvac_distribution)
 
       # Check for errors
       dist_id = hvac_distribution_values[:id]
@@ -3116,39 +3076,35 @@ class OSModel
     # Mechanical Ventilation
     mech_vent_fan = building.elements["BuildingDetails/Systems/MechanicalVentilation/VentilationFans/VentilationFan[UsedForWholeBuildingVentilation='true']"]
     mech_vent_fan_values = HPXML.get_ventilation_fan_values(ventilation_fan: mech_vent_fan)
-    mech_vent_type = Constants.VentTypeNone
+    mech_vent_type = nil
     mech_vent_total_efficiency = 0.0
     mech_vent_sensible_efficiency = 0.0
     mech_vent_fan_w = 0.0
     mech_vent_cfm = 0.0
     cfis_open_time = 0.0
     if not mech_vent_fan_values.nil?
-      fan_type = mech_vent_fan_values[:fan_type]
-      if fan_type == "supply only"
-        mech_vent_type = Constants.VentTypeSupply
+      mech_vent_type = mech_vent_fan_values[:fan_type]
+      if mech_vent_type == 'supply only'
         num_fans = 1.0
-      elsif fan_type == "exhaust only"
-        mech_vent_type = Constants.VentTypeExhaust
+      elsif mech_vent_type == 'exhaust only'
         num_fans = 1.0
-      elsif fan_type == "central fan integrated supply"
-        mech_vent_type = Constants.VentTypeCFIS
+      elsif mech_vent_type == 'central fan integrated supply'
         num_fans = 1.0
-      elsif ["balanced", "energy recovery ventilator", "heat recovery ventilator"].include? fan_type
-        mech_vent_type = Constants.VentTypeBalanced
+      elsif ['balanced', 'energy recovery ventilator', 'heat recovery ventilator'].include? mech_vent_type
         num_fans = 2.0
       end
       mech_vent_total_efficiency = 0.0
       mech_vent_total_efficiency_adjusted = 0.0
       mech_vent_sensible_efficiency = 0.0
       mech_vent_sensible_efficiency_adjusted = 0.0
-      if fan_type == "energy recovery ventilator" or fan_type == "heat recovery ventilator"
+      if mech_vent_type == 'energy recovery ventilator' or mech_vent_type == 'heat recovery ventilator'
         if mech_vent_fan_values[:sensible_recovery_efficiency_adjusted].nil?
           mech_vent_sensible_efficiency = mech_vent_fan_values[:sensible_recovery_efficiency]
         else
           mech_vent_sensible_efficiency_adjusted = mech_vent_fan_values[:sensible_recovery_efficiency_adjusted]
         end
       end
-      if fan_type == "energy recovery ventilator"
+      if mech_vent_type == 'energy recovery ventilator'
         if mech_vent_fan_values[:total_recovery_efficiency_adjusted].nil?
           mech_vent_total_efficiency = mech_vent_fan_values[:total_recovery_efficiency]
         else
@@ -3160,7 +3116,7 @@ class OSModel
         mech_vent_cfm = mech_vent_fan_values[:rated_flow_rate]
       end
       mech_vent_fan_w = mech_vent_fan_values[:fan_power]
-      if mech_vent_type == Constants.VentTypeCFIS
+      if mech_vent_type == 'central fan integrated supply'
         # CFIS: Specify minimum open time in minutes
         cfis_open_time = [mech_vent_fan_values[:hours_in_operation] / 24.0 * 60.0, 59.999].min
       else
@@ -3178,7 +3134,7 @@ class OSModel
 
     # Get AirLoop associated with CFIS
     cfis_airloop = nil
-    if mech_vent_type == Constants.VentTypeCFIS
+    if mech_vent_type == 'central fan integrated supply'
       # Get HVAC distribution system CFIS is attached to
       cfis_hvac_dist = nil
       building.elements.each("BuildingDetails/Systems/HVAC/HVACDistribution") do |hvac_dist|
@@ -3190,8 +3146,7 @@ class OSModel
         fail "Attached HVAC distribution system '#{mech_vent_fan.elements['AttachedToHVACDistributionSystem'].attributes['idref']}' not found for mechanical ventilation '#{mech_vent_fan.elements["SystemIdentifier"].attributes["id"]}'."
       end
 
-      cfis_hvac_dist_values = HPXML.get_hvac_distribution_values(hvac_distribution: cfis_hvac_dist,
-                                                                 select: [:distribution_system_type])
+      cfis_hvac_dist_values = HPXML.get_hvac_distribution_values(hvac_distribution: cfis_hvac_dist)
       if cfis_hvac_dist_values[:distribution_system_type] == 'HydronicDistribution'
         fail "Attached HVAC distribution system '#{mech_vent_fan.elements['AttachedToHVACDistributionSystem'].attributes['idref']}' cannot be hydronic for mechanical ventilation '#{mech_vent_fan.elements["SystemIdentifier"].attributes["id"]}'."
       end
@@ -3229,8 +3184,7 @@ class OSModel
 
     window_area = 0.0
     building.elements.each("BuildingDetails/Enclosure/Windows/Window") do |window|
-      window_values = HPXML.get_window_values(window: window,
-                                              select: [:area])
+      window_values = HPXML.get_window_values(window: window)
       window_area += window_values[:area]
     end
 
@@ -3338,8 +3292,8 @@ class OSModel
       htg_type = heating_system_values[:heating_system_type]
       next unless ["Furnace", "WallFurnace", "Stove", "Boiler"].include? htg_type
 
-      fuel = to_beopt_fuel(heating_system_values[:heating_system_fuel])
-      next if fuel == Constants.FuelTypeElectric
+      fuel = heating_system_values[:heating_system_fuel]
+      next if fuel == 'electricity'
 
       fuel_eae = heating_system_values[:electric_auxiliary_energy]
       load_frac = heating_system_values[:fraction_heat_load_served]
@@ -3350,24 +3304,24 @@ class OSModel
   end
 
   def self.add_photovoltaics(runner, model, building)
-    modules_map = { "standard" => Constants.PVModuleTypeStandard,
-                    "premium" => Constants.PVModuleTypePremium,
-                    "thin film" => Constants.PVModuleTypeThinFilm }
+    modules_map = { "standard" => 'Standard',
+                    "premium" => 'Premium',
+                    "thin film" => 'ThinFilm' }
 
     building.elements.each("BuildingDetails/Systems/Photovoltaics/PVSystem") do |pvsys|
       pv_system_values = HPXML.get_pv_system_values(pv_system: pvsys)
       pv_id = pv_system_values[:id]
       module_type = modules_map[pv_system_values[:module_type]]
       if pv_system_values[:tracking] == 'fixed' and pv_system_values[:location] == 'roof'
-        array_type = Constants.PVArrayTypeFixedRoofMount
+        array_type = 'FixedRoofMounted'
       elsif pv_system_values[:tracking] == 'fixed' and pv_system_values[:location] == 'ground'
-        array_type = Constants.PVArrayTypeFixedOpenRack
+        array_type = 'FixedOpenRack'
       elsif pv_system_values[:tracking] == '1-axis'
-        array_type = Constants.PVArrayTypeFixed1Axis
+        array_type = 'OneAxis'
       elsif pv_system_values[:tracking] == '1-axis backtracked'
-        array_type = Constants.PVArrayTypeFixed1AxisBacktracked
+        array_type = 'OneAxisBacktracking'
       elsif pv_system_values[:tracking] == '2-axis'
-        array_type = Constants.PVArrayTypeFixed2Axis
+        array_type = 'TwoAxis'
       end
       az = pv_system_values[:array_azimuth]
       tilt = pv_system_values[:array_tilt]
@@ -4415,8 +4369,7 @@ class OSModel
     # distribution system) to the current heating system.
     hvac_objects = []
     building.elements.each("BuildingDetails/Systems/HVAC/HVACPlant/CoolingSystem") do |clg_sys|
-      attached_system_values = HPXML.get_cooling_system_values(cooling_system: clg_sys,
-                                                               select: [:id, :distribution_system_idref])
+      attached_system_values = HPXML.get_cooling_system_values(cooling_system: clg_sys)
       next unless system_values[:distribution_system_idref] == attached_system_values[:distribution_system_idref]
 
       @hvac_map[attached_system_values[:id]].each do |hvac_object|
@@ -4434,54 +4387,26 @@ class OSModel
   end
 
   def self.set_surface_interior(model, spaces, surface, surface_id, interior_adjacent_to)
-    if ["living space"].include? interior_adjacent_to
-      surface.setSpace(create_or_get_space(model, spaces, Constants.SpaceTypeLiving))
-    elsif ["garage"].include? interior_adjacent_to
-      surface.setSpace(create_or_get_space(model, spaces, Constants.SpaceTypeGarage))
-    elsif ["basement - unconditioned"].include? interior_adjacent_to
-      surface.setSpace(create_or_get_space(model, spaces, Constants.SpaceTypeUnconditionedBasement))
-    elsif ["basement - conditioned"].include? interior_adjacent_to
-      surface.setSpace(create_or_get_space(model, spaces, Constants.SpaceTypeLiving))
+    if ['basement - conditioned'].include? interior_adjacent_to
+      surface.setSpace(create_or_get_space(model, spaces, 'living space'))
       @cond_bsmnt_surfaces << surface
-    elsif ["crawlspace - vented"].include? interior_adjacent_to
-      surface.setSpace(create_or_get_space(model, spaces, Constants.SpaceTypeVentedCrawl))
-    elsif ["crawlspace - unvented"].include? interior_adjacent_to
-      surface.setSpace(create_or_get_space(model, spaces, Constants.SpaceTypeUnventedCrawl))
-    elsif ["attic - vented"].include? interior_adjacent_to
-      surface.setSpace(create_or_get_space(model, spaces, Constants.SpaceTypeVentedAttic))
-    elsif ["attic - unvented"].include? interior_adjacent_to
-      surface.setSpace(create_or_get_space(model, spaces, Constants.SpaceTypeUnventedAttic))
     else
-      fail "Unhandled AdjacentTo value (#{interior_adjacent_to}) for surface '#{surface_id}'."
+      surface.setSpace(create_or_get_space(model, spaces, interior_adjacent_to))
     end
   end
 
   def self.set_surface_exterior(model, spaces, surface, surface_id, exterior_adjacent_to)
-    if ["outside"].include? exterior_adjacent_to
-      surface.setOutsideBoundaryCondition("Outdoors")
-    elsif ["ground"].include? exterior_adjacent_to
-      surface.setOutsideBoundaryCondition("Foundation")
-    elsif ["other housing unit", "other housing unit above", "other housing unit below"].include? exterior_adjacent_to
+    if ['outside'].include? exterior_adjacent_to
+      surface.setOutsideBoundaryCondition('Outdoors')
+    elsif ['ground'].include? exterior_adjacent_to
+      surface.setOutsideBoundaryCondition('Foundation')
+    elsif ['other housing unit', 'other housing unit above', 'other housing unit below'].include? exterior_adjacent_to
       surface.setOutsideBoundaryCondition("Adiabatic")
-    elsif ["living space"].include? exterior_adjacent_to
-      surface.createAdjacentSurface(create_or_get_space(model, spaces, Constants.SpaceTypeLiving))
-    elsif ["garage"].include? exterior_adjacent_to
-      surface.createAdjacentSurface(create_or_get_space(model, spaces, Constants.SpaceTypeGarage))
-    elsif ["basement - unconditioned"].include? exterior_adjacent_to
-      surface.createAdjacentSurface(create_or_get_space(model, spaces, Constants.SpaceTypeUnconditionedBasement))
-    elsif ["basement - conditioned"].include? exterior_adjacent_to
-      surface.createAdjacentSurface(create_or_get_space(model, spaces, Constants.SpaceTypeLiving))
+    elsif ['basement - conditioned'].include? exterior_adjacent_to
+      surface.createAdjacentSurface(create_or_get_space(model, spaces, 'living space'))
       @cond_bsmnt_surfaces << surface
-    elsif ["crawlspace - vented"].include? exterior_adjacent_to
-      surface.createAdjacentSurface(create_or_get_space(model, spaces, Constants.SpaceTypeVentedCrawl))
-    elsif ["crawlspace - unvented"].include? exterior_adjacent_to
-      surface.createAdjacentSurface(create_or_get_space(model, spaces, Constants.SpaceTypeUnventedCrawl))
-    elsif ["attic - vented"].include? exterior_adjacent_to
-      surface.createAdjacentSurface(create_or_get_space(model, spaces, Constants.SpaceTypeVentedAttic))
-    elsif ["attic - unvented"].include? exterior_adjacent_to
-      surface.createAdjacentSurface(create_or_get_space(model, spaces, Constants.SpaceTypeUnventedAttic))
     else
-      fail "Unhandled AdjacentTo value (#{exterior_adjacent_to}) for surface '#{surface_id}'."
+      surface.createAdjacentSurface(create_or_get_space(model, spaces, exterior_adjacent_to))
     end
   end
 
@@ -4493,27 +4418,10 @@ class OSModel
 
     num_orig_spaces = spaces.size
 
-    space = nil
-    if location == 'living space'
-      space = create_or_get_space(model, spaces, Constants.SpaceTypeLiving)
-    elsif location == 'basement - conditioned'
-      space = create_or_get_space(model, spaces, Constants.SpaceTypeLiving)
-    elsif location == 'basement - unconditioned'
-      space = create_or_get_space(model, spaces, Constants.SpaceTypeUnconditionedBasement)
-    elsif location == 'garage'
-      space = create_or_get_space(model, spaces, Constants.SpaceTypeGarage)
-    elsif location == 'attic - vented'
-      space = create_or_get_space(model, spaces, Constants.SpaceTypeVentedAttic)
-    elsif location == 'attic - unvented'
-      space = create_or_get_space(model, spaces, Constants.SpaceTypeUnventedAttic)
-    elsif location == 'crawlspace - vented'
-      space = create_or_get_space(model, spaces, Constants.SpaceTypeVentedCrawl)
-    elsif location == 'crawlspace - unvented'
-      space = create_or_get_space(model, spaces, Constants.SpaceTypeUnventedCrawl)
-    end
-
-    if space.nil?
-      fail "Unhandled #{object_name} location: #{location}."
+    if location == 'basement - conditioned'
+      space = create_or_get_space(model, spaces, 'living space')
+    else
+      space = create_or_get_space(model, spaces, location)
     end
 
     if spaces.size != num_orig_spaces
@@ -4545,8 +4453,7 @@ class OSModel
   def self.assign_space_to_subsurface(surface, subsurface_id, wall_idref, building, spaces, model, subsurface_type)
     # Check walls
     building.elements.each("BuildingDetails/Enclosure/Walls/Wall") do |wall|
-      wall_values = HPXML.get_wall_values(wall: wall,
-                                          select: [:id, :interior_adjacent_to])
+      wall_values = HPXML.get_wall_values(wall: wall)
       next unless wall_values[:id] == wall_idref
 
       set_surface_interior(model, spaces, surface, subsurface_id, wall_values[:interior_adjacent_to])
@@ -4555,8 +4462,7 @@ class OSModel
 
     # Check foundation walls
     building.elements.each("BuildingDetails/Enclosure/FoundationWalls/FoundationWall") do |fnd_wall|
-      fnd_wall_values = HPXML.get_foundation_wall_values(foundation_wall: fnd_wall,
-                                                         select: [:id, :interior_adjacent_to])
+      fnd_wall_values = HPXML.get_foundation_wall_values(foundation_wall: fnd_wall)
       next unless fnd_wall_values[:id] == wall_idref
 
       set_surface_interior(model, spaces, surface, subsurface_id, fnd_wall_values[:interior_adjacent_to])
@@ -4571,8 +4477,7 @@ class OSModel
   def self.get_infiltration_volume(building)
     infilvolume = nil
     air_infiltration_measurement = building.elements["BuildingDetails/Enclosure/AirInfiltration/AirInfiltrationMeasurement[(HousePressure=50 and BuildingAirLeakage[UnitofMeasure='ACH' or UnitofMeasure='CFM']/AirLeakage) | extension/ConstantACHnatural]"] # only one measurement element has useful inputs
-    air_infiltration_measurement_values = HPXML.get_air_infiltration_measurement_values(air_infiltration_measurement: air_infiltration_measurement,
-                                                                                        select: [:infiltration_volume])
+    air_infiltration_measurement_values = HPXML.get_air_infiltration_measurement_values(air_infiltration_measurement: air_infiltration_measurement)
     infilvolume = air_infiltration_measurement_values[:infiltration_volume]
     if infilvolume.nil?
       infilvolume = @cvolume
@@ -4583,8 +4488,7 @@ class OSModel
   def self.get_min_neighbor_distance(building)
     min_neighbor_distance = nil
     building.elements.each("BuildingDetails/BuildingSummary/Site/extension/Neighbors/NeighborBuilding") do |neighbor_building|
-      neighbor_building_values = HPXML.get_neighbor_building_values(neighbor_building: neighbor_building,
-                                                                    select: [:distance])
+      neighbor_building_values = HPXML.get_neighbor_building_values(neighbor_building: neighbor_building)
       if min_neighbor_distance.nil?
         min_neighbor_distance = 9e99
       end
@@ -4599,8 +4503,7 @@ class OSModel
     # Identify unique Kiva foundations that are required.
     kiva_fnd_walls = []
     fnd_walls.each_with_index do |fnd_wall, fnd_wall_idx|
-      fnd_wall_values = HPXML.get_foundation_wall_values(foundation_wall: fnd_wall,
-                                                         select: [:exterior_adjacent_to])
+      fnd_wall_values = HPXML.get_foundation_wall_values(foundation_wall: fnd_wall)
       next unless fnd_wall_values[:exterior_adjacent_to] == "ground"
 
       kiva_fnd_walls << fnd_wall
@@ -4704,21 +4607,6 @@ class GenericConstructionSet
   attr_accessor(:rigid_r, :osb_thick_in, :drywall_thick_in, :exterior_material)
 end
 
-def to_beopt_fuel(fuel)
-  return { "natural gas" => Constants.FuelTypeGas,
-           "fuel oil" => Constants.FuelTypeOil,
-           "propane" => Constants.FuelTypePropane,
-           "electricity" => Constants.FuelTypeElectric,
-           "wood" => Constants.FuelTypeWood,
-           "wood pellets" => Constants.FuelTypeWoodPellets }[fuel]
-end
-
-def to_beopt_wh_type(type)
-  return { 'storage water heater' => Constants.WaterHeaterTypeTank,
-           'instantaneous water heater' => Constants.WaterHeaterTypeTankless,
-           'heat pump water heater' => Constants.WaterHeaterTypeHeatPump }[type]
-end
-
 def is_thermal_boundary(surface_values)
   if ["other housing unit", "other housing unit above", "other housing unit below"].include? surface_values[:exterior_adjacent_to]
     return false # adiabatic
@@ -4750,8 +4638,7 @@ end
 def get_foundation_and_walls_top(building)
   foundation_top = 0
   building.elements.each("BuildingDetails/Enclosure/FoundationWalls/FoundationWall") do |fnd_wall|
-    fnd_wall_values = HPXML.get_foundation_wall_values(foundation_wall: fnd_wall,
-                                                       select: [:depth_below_grade, :height])
+    fnd_wall_values = HPXML.get_foundation_wall_values(foundation_wall: fnd_wall)
     top = -1 * fnd_wall_values[:depth_below_grade] + fnd_wall_values[:height]
     foundation_top = top if top > foundation_top
   end

@@ -228,7 +228,7 @@ class HotWaterAndAppliances
     else
       oven_ef = 1.0
     end
-    if fuel_type != Constants.FuelTypeElectric
+    if fuel_type != 'electricity'
       annual_kwh = 22.6 + 2.7 * nbeds
       annual_therm = oven_ef * (22.6 + 2.7 * nbeds)
       tot_btu = UnitConversions.convert(annual_kwh, "kWh", "Btu") + UnitConversions.convert(annual_therm, "therm", "Btu")
@@ -285,7 +285,7 @@ class HotWaterAndAppliances
   end
 
   def self.get_clothes_dryer_reference_cef(fuel_type)
-    if fuel_type == Constants.FuelTypeElectric
+    if fuel_type == 'electricity'
       return 2.62
     else
       return 2.32
@@ -304,7 +304,7 @@ class HotWaterAndAppliances
     elsif control_type == 'moisture'
       field_util_factor = 1.04
     end
-    if fuel_type == Constants.FuelTypeElectric
+    if fuel_type == 'electricity'
       annual_kwh = 12.5 * (164.0 + 46.5 * nbeds) * (field_util_factor / ef) * ((cw_cap / cw_mef) - cw_ler / 392.0) / (0.2184 * (cw_cap * 4.08 + 0.24)) # Eq 4.2-6
       annual_therm = 0.0
     else
@@ -314,7 +314,7 @@ class HotWaterAndAppliances
     end
     tot_btu = UnitConversions.convert(annual_kwh, "kWh", "Btu") + UnitConversions.convert(annual_therm, "therm", "Btu")
 
-    if fuel_type != Constants.FuelTypeElectric
+    if fuel_type != 'electricity'
       gains_sens = (738.0 + 209.0 * nbeds) * 365 # Btu
       gains_lat = (91.0 + 26.0 * nbeds) * 365 # Btu
     else

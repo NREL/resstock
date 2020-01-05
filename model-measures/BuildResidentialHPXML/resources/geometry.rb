@@ -142,12 +142,12 @@ class Geometry2
         garage_space = garage_space.get
         garage_space_name = "garage space"
         garage_space.setName(garage_space_name)
-        if space_types_hash.keys.include? Constants.SpaceTypeGarage
-          garage_space_type = space_types_hash[Constants.SpaceTypeGarage]
+        if space_types_hash.keys.include? "garage"
+          garage_space_type = space_types_hash["garage"]
         else
           garage_space_type = OpenStudio::Model::SpaceType.new(model)
-          garage_space_type.setStandardsSpaceType(Constants.SpaceTypeGarage)
-          space_types_hash[Constants.SpaceTypeGarage] = garage_space_type
+          garage_space_type.setStandardsSpaceType("garage")
+          space_types_hash["garage"] = garage_space_type
         end
         garage_space.setSpaceType(garage_space_type)
         runner.registerInfo("Set #{garage_space_name}.")
@@ -245,12 +245,12 @@ class Geometry2
         living_space_name = "living space"
       end
       living_space.setName(living_space_name)
-      if space_types_hash.keys.include? Constants.SpaceTypeLiving
-        living_space_type = space_types_hash[Constants.SpaceTypeLiving]
+      if space_types_hash.keys.include? "living"
+        living_space_type = space_types_hash["living"]
       else
         living_space_type = OpenStudio::Model::SpaceType.new(model)
-        living_space_type.setStandardsSpaceType(Constants.SpaceTypeLiving)
-        space_types_hash[Constants.SpaceTypeLiving] = living_space_type
+        living_space_type.setStandardsSpaceType("living")
+        space_types_hash["living"] = living_space_type
       end
       living_space.setSpaceType(living_space_type)
       runner.registerInfo("Set #{living_space_name}.")
@@ -355,13 +355,13 @@ class Geometry2
         attic_zone.setName("#{attic_type} zone")
         attic_space.setThermalZone(attic_zone)
         if attic_type == "attic - vented"
-          attic_space_type_name = Constants.SpaceTypeVentedAttic
+          attic_space_type_name = "vented attic"
         else
-          attic_space_type_name = Constants.SpaceTypeUnventedAttic
+          attic_space_type_name = "unvented attic"
         end
       elsif attic_type == "attic - conditioned"
         attic_space.setThermalZone(living_zone)
-        attic_space_type_name = Constants.SpaceTypeLiving
+        attic_space_type_name = "living"
       end
       attic_space_name = "#{attic_type} space"
       attic_space.setName(attic_space_name)
@@ -404,13 +404,13 @@ class Geometry2
       foundation_space = OpenStudio::Model::Space::fromFloorPrint(foundation_polygon, foundation_height, model)
       foundation_space = foundation_space.get
       if foundation_type == "crawlspace - vented"
-        foundation_space_type_name = Constants.SpaceTypeVentedCrawl
+        foundation_space_type_name = "vented crawlspace"
       elsif foundation_type == "crawlspace - unvented"
-        foundation_space_type_name = Constants.SpaceTypeUnventedCrawl
+        foundation_space_type_name = "unvented crawlspace"
       elsif foundation_type == "basement - unconditioned"
-        foundation_space_type_name = Constants.SpaceTypeUnconditionedBasement
+        foundation_space_type_name = "unconditioned basement"
       elsif foundation_type == "basement - conditioned"
-        foundation_space_type_name = Constants.SpaceTypeLiving
+        foundation_space_type_name = "living"
       elsif foundation_type == "ambient"
         foundation_space_type_name = foundation_type
       end
@@ -559,14 +559,14 @@ class Geometry2
           wall_s.setSpace(garage_attic_space)
 
           if attic_type == "attic - conditioned"
-            garage_attic_space_type_name = Constants.SpaceTypeLiving
+            garage_attic_space_type_name = "living"
             garage_attic_space.setThermalZone(living_zone)
           else
             if num_floors > 1
-              garage_attic_space_type_name = Constants.SpaceTypeVentedAttic
+              garage_attic_space_type_name = "vented attic"
               garage_attic_space.setThermalZone(attic_zone)
             else
-              garage_attic_space_type_name = Constants.SpaceTypeGarage
+              garage_attic_space_type_name = "garage"
               garage_attic_space.setThermalZone(garage_zone)
             end
           end
@@ -1623,12 +1623,12 @@ class Geometry2
     living_space = OpenStudio::Model::Space::fromFloorPrint(living_polygon, wall_height, model)
     living_space = living_space.get
     living_space.setName("living space")
-    if space_types_hash.keys.include? Constants.SpaceTypeLiving
-      living_space_type = space_types_hash[Constants.SpaceTypeLiving]
+    if space_types_hash.keys.include? "living"
+      living_space_type = space_types_hash["living"]
     else
       living_space_type = OpenStudio::Model::SpaceType.new(model)
-      living_space_type.setStandardsSpaceType(Constants.SpaceTypeLiving)
-      space_types_hash[Constants.SpaceTypeLiving] = living_space_type
+      living_space_type.setStandardsSpaceType("living")
+      space_types_hash["living"] = living_space_type
     end
     living_space.setSpaceType(living_space_type)
     living_space.setThermalZone(living_zone)
@@ -1789,16 +1789,16 @@ class Geometry2
           foundation_zone.setName("#{foundation_type} zone")
           foundation_space.setThermalZone(foundation_zone)
           if foundation_type == "crawlspace - vented"
-            foundation_space_type_name = Constants.SpaceTypeVentedCrawl
+            foundation_space_type_name = "vented crawlspace"
           else
-            foundation_space_type_name = Constants.SpaceTypeUnventedCrawl
+            foundation_space_type_name = "unvented crawlspace"
           end
         elsif foundation_type == "basement - unconditioned"
           foundation_space.setName("#{foundation_type} space")
           foundation_zone = OpenStudio::Model::ThermalZone.new(model)
           foundation_zone.setName("#{foundation_type} zone")
           foundation_space.setThermalZone(foundation_zone)
-          foundation_space_type_name = Constants.SpaceTypeUnconditionedBasement
+          foundation_space_type_name = "unconditioned basement"
         end
         if space_types_hash.keys.include? foundation_space_type_name
           foundation_space_type = space_types_hash[foundation_space_type_name]

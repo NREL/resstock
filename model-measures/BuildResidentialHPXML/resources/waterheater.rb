@@ -3,7 +3,7 @@ class Waterheater2
     # Calculates the volume of a water heater
     if vol == Constants.Auto
       # Based on the BA HSP
-      if fuel == Constants.FuelTypeElectric
+      if fuel == "electricity"
         # Source: Table 5 HUD-FHA Minimum Water Heater Capacities for One- and
         # Two-Family Living Units (ASHRAE HVAC Applications 2007)
         if num_baths < 2
@@ -60,9 +60,9 @@ class Waterheater2
   def self.calc_ef(ef, vol, fuel)
     # Calculate the energy factor as a function of the tank volume and fuel type
     if ef == Constants.Auto
-      if fuel == Constants.FuelTypePropane or fuel == Constants.FuelTypeGas
+      if fuel == "propane" or fuel == "natural gas"
         return 0.67 - (0.0019 * vol)
-      elsif fuel == Constants.FuelTypeElectric
+      elsif fuel == "electricity"
         return 0.97 - (0.00132 * vol)
       else
         return 0.59 - (0.0019 * vol)
