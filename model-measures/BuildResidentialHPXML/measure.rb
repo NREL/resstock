@@ -503,6 +503,9 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     heating_system_type_choices << "ElectricResistance"
     heating_system_type_choices << "Stove"
     heating_system_type_choices << "PortableHeater"
+    heating_system_type_choices << "air-to-air"
+    heating_system_type_choices << "mini-split"
+    heating_system_type_choices << "ground-to-air"
 
     heating_system_fuel_choices = OpenStudio::StringVector.new
     heating_system_fuel_choices << "electricity"
@@ -511,286 +514,99 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     heating_system_fuel_choices << "propane"
     heating_system_fuel_choices << "wood"
 
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("heating_system_type_1", heating_system_type_choices, true)
-    arg.setDisplayName("Heating System 1: Type")
-    arg.setDescription("The type of the first heating (only) system.")
-    arg.setDefaultValue("Furnace")
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("heating_system_fuel_1", heating_system_fuel_choices, true)
-    arg.setDisplayName("Heating System 1: Fuel Type")
-    arg.setDescription("The fuel type of the first heating (only) system.")
-    arg.setDefaultValue("natural gas")
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("heating_system_heating_efficiency_1", true)
-    arg.setDisplayName("Heating System 1: Rated Efficiency")
-    arg.setDescription("The rated efficiency value of the first heating (only) system.")
-    arg.setDefaultValue(0.78)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument("heating_system_heating_capacity_1", true)
-    arg.setDisplayName("Heating System 1: Heating Capacity")
-    arg.setDescription("The output heating capacity of the first heating system. If using '#{Constants.SizingAuto}', the autosizing algorithm will use ACCA Manual S to set the capacity.")
-    arg.setUnits("Btu/hr")
-    arg.setDefaultValue(Constants.SizingAuto)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("heating_system_fraction_heat_load_served_1", true)
-    arg.setDisplayName("Heating System 1: Fraction Heat Load Served")
-    arg.setDescription("The heat load served fraction of the first heating (only) system.")
-    arg.setDefaultValue(1)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("heating_system_type_2", heating_system_type_choices, true)
-    arg.setDisplayName("Heating System 2: Type")
-    arg.setDescription("The type of the second heating (only) system.")
-    arg.setDefaultValue("none")
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("heating_system_fuel_2", heating_system_fuel_choices, true)
-    arg.setDisplayName("Heating System 2: Fuel Type")
-    arg.setDescription("The fuel type of the second heating (only) system.")
-    arg.setDefaultValue("natural gas")
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("heating_system_heating_efficiency_2", true)
-    arg.setDisplayName("Heating System 2: Rated Efficiency")
-    arg.setDescription("The rated efficiency value of the second heating (only) system.")
-    arg.setDefaultValue(0.78)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument("heating_system_heating_capacity_2", true)
-    arg.setDisplayName("Heating System 2: Heating Capacity")
-    arg.setDescription("The output heating capacity of the second heating system. If using '#{Constants.SizingAuto}', the autosizing algorithm will use ACCA Manual S to set the capacity.")
-    arg.setUnits("Btu/hr")
-    arg.setDefaultValue(Constants.SizingAuto)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("heating_system_fraction_heat_load_served_2", true)
-    arg.setDisplayName("Heating System 2: Fraction Heat Load Served")
-    arg.setDescription("The heat load served fraction of the second heating (only) system.")
-    arg.setDefaultValue(1)
-    args << arg
-
     cooling_system_type_choices = OpenStudio::StringVector.new
     cooling_system_type_choices << "none"
     cooling_system_type_choices << "central air conditioner"
     cooling_system_type_choices << "room air conditioner"
     cooling_system_type_choices << "evaporative cooler"
+    cooling_system_type_choices << "air-to-air"
+    cooling_system_type_choices << "mini-split"
+    cooling_system_type_choices << "ground-to-air"
 
     cooling_system_fuel_choices = OpenStudio::StringVector.new
     cooling_system_fuel_choices << "electricity"
-
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("cooling_system_type_1", cooling_system_type_choices, true)
-    arg.setDisplayName("Cooling System 1: Type")
-    arg.setDescription("The type of the first cooling (only) system.")
-    arg.setDefaultValue("central air conditioner")
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("cooling_system_fuel_1", cooling_system_fuel_choices, true)
-    arg.setDisplayName("Cooling System 1: Fuel Type")
-    arg.setDescription("The fuel type of the first cooling (only) system.")
-    arg.setDefaultValue("electricity")
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("cooling_system_cooling_efficiency_1", true)
-    arg.setDisplayName("Cooling System 1: Rated Efficiency")
-    arg.setDescription("The rated efficiency value of the first cooling (only) system. SEER for central air conditioner, EER for room air conditioner, and ignored for evaporative cooler.")
-    arg.setDefaultValue(13.0)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument("cooling_system_cooling_capacity_1", true)
-    arg.setDisplayName("Cooling System 1: Cooling Capacity")
-    arg.setDescription("The output cooling capacity of the first cooling system. If using '#{Constants.SizingAuto}', the autosizing algorithm will use ACCA Manual S to set the capacity.")
-    arg.setUnits("tons")
-    arg.setDefaultValue(Constants.SizingAuto)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("cooling_system_fraction_cool_load_served_1", true)
-    arg.setDisplayName("Cooling System 1: Fraction Cool Load Served")
-    arg.setDescription("The cool load served fraction of the first cooling (only) system.")
-    arg.setDefaultValue(1)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("cooling_system_type_2", cooling_system_type_choices, true)
-    arg.setDisplayName("Cooling System 2: Type")
-    arg.setDescription("The type of the second cooling (only) system.")
-    arg.setDefaultValue("none")
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("cooling_system_fuel_2", cooling_system_fuel_choices, true)
-    arg.setDisplayName("Cooling System 2: Fuel Type")
-    arg.setDescription("The fuel type of the second cooling (only) system.")
-    arg.setDefaultValue("electricity")
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("cooling_system_cooling_efficiency_2", true)
-    arg.setDisplayName("Cooling System 2: Rated Efficiency")
-    arg.setDescription("The rated efficiency value of the second cooling (only) system. SEER for central air conditioner, EER for room air conditioner, and ignored for evaporative cooler.")
-    arg.setDefaultValue(13.0)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument("cooling_system_cooling_capacity_2", true)
-    arg.setDisplayName("Cooling System 2: Cooling Capacity")
-    arg.setDescription("The output cooling capacity of the second cooling system. If using '#{Constants.SizingAuto}', the autosizing algorithm will use ACCA Manual S to set the capacity.")
-    arg.setUnits("tons")
-    arg.setDefaultValue(Constants.SizingAuto)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("cooling_system_fraction_cool_load_served_2", true)
-    arg.setDisplayName("Cooling System 2: Fraction Cool Load Served")
-    arg.setDescription("The cool load served fraction of the second cooling (only) system.")
-    arg.setDefaultValue(1)
-    args << arg
-
-    heat_pump_type_choices = OpenStudio::StringVector.new
-    heat_pump_type_choices << "none"
-    heat_pump_type_choices << "air-to-air"
-    heat_pump_type_choices << "mini-split"
-    heat_pump_type_choices << "ground-to-air"
-
-    heat_pump_fuel_choices = OpenStudio::StringVector.new
-    heat_pump_fuel_choices << "electricity"
 
     heat_pump_backup_fuel_choices = OpenStudio::StringVector.new
     heat_pump_backup_fuel_choices << "electricity"
     heat_pump_backup_fuel_choices << "natural gas"
 
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("heat_pump_type_1", heat_pump_type_choices, true)
-    arg.setDisplayName("Heat Pump 1: Type")
-    arg.setDescription("The type of the first heat pump.")
-    arg.setDefaultValue("none")
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("heating_system_type", heating_system_type_choices, true)
+    arg.setDisplayName("Heating System: Type")
+    arg.setDescription("The type of the heating system.")
+    arg.setDefaultValue("Furnace")
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("heat_pump_fuel_1", heat_pump_fuel_choices, true)
-    arg.setDisplayName("Heat Pump 1: Fuel Type")
-    arg.setDescription("The fuel type of the first heat pump.")
-    arg.setDefaultValue("electricity")
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("heating_system_fuel", heating_system_fuel_choices, true)
+    arg.setDisplayName("Heating System: Fuel Type")
+    arg.setDescription("The fuel type of the heating system.")
+    arg.setDefaultValue("natural gas")
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("heat_pump_heating_efficiency_1", true)
-    arg.setDisplayName("Heat Pump 1: Rated Heating Efficiency")
-    arg.setDescription("The rated heating efficiency value of the first heat pump. HSFP for air-to-air/mini-split and COP for ground-to-air.")
-    arg.setDefaultValue(7.7)
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("heating_system_heating_efficiency", true)
+    arg.setDisplayName("Heating System: Rated Efficiency")
+    arg.setDescription("The rated efficiency value of the heating system. HSPF for air-to-air/mini-split and COP for ground-to-air.")
+    arg.setDefaultValue(0.78)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("heat_pump_cooling_efficiency_1", true)
-    arg.setDisplayName("Heat Pump 1: Rated Cooling Efficiency")
-    arg.setDescription("The rated cooling efficiency value of the first heat pump. SEER for air-to-air/mini-split and EER for ground-to-air.")
-    arg.setDefaultValue(13.0)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument("heat_pump_heating_capacity_1", true)
-    arg.setDisplayName("Heat Pump 1: Heating Capacity")
-    arg.setDescription("The output heating capacity of the first heat pump. If using '#{Constants.SizingAuto}', the autosizing algorithm will use ACCA Manual S to set the capacity.")
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument("heating_system_heating_capacity", true)
+    arg.setDisplayName("Heating System: Heating Capacity")
+    arg.setDescription("The output heating capacity of the heating system. If using '#{Constants.SizingAuto}', the autosizing algorithm will use ACCA Manual S to set the capacity.")
     arg.setUnits("Btu/hr")
     arg.setDefaultValue(Constants.SizingAuto)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument("heat_pump_cooling_capacity_1", true)
-    arg.setDisplayName("Heat Pump 1: Cooling Capacity")
-    arg.setDescription("The output cooling capacity of the first heat pump. If using '#{Constants.SizingAuto}', the autosizing algorithm will use ACCA Manual S to set the capacity.")
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("heating_system_fraction_heat_load_served", true)
+    arg.setDisplayName("Heating System: Fraction Heat Load Served")
+    arg.setDescription("The heat load served fraction of the heating system.")
+    arg.setDefaultValue(1)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("cooling_system_type", cooling_system_type_choices, true)
+    arg.setDisplayName("Cooling System: Type")
+    arg.setDescription("The type of the cooling system.")
+    arg.setDefaultValue("central air conditioner")
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("cooling_system_fuel", cooling_system_fuel_choices, true)
+    arg.setDisplayName("Cooling System: Fuel Type")
+    arg.setDescription("The fuel type of the cooling system.")
+    arg.setDefaultValue("electricity")
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("cooling_system_cooling_efficiency", true)
+    arg.setDisplayName("Cooling System: Rated Efficiency")
+    arg.setDescription("The rated efficiency value of the cooling system. SEER for central air conditioner/air-to-air/mini-split, EER for room air conditioner/ground-to-air, and ignored for evaporative cooler.")
+    arg.setDefaultValue(13.0)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument("cooling_system_cooling_capacity", true)
+    arg.setDisplayName("Cooling System: Cooling Capacity")
+    arg.setDescription("The output cooling capacity of the cooling system. If using '#{Constants.SizingAuto}', the autosizing algorithm will use ACCA Manual S to set the capacity.")
     arg.setUnits("tons")
     arg.setDefaultValue(Constants.SizingAuto)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("heat_pump_fraction_heat_load_served_1", true)
-    arg.setDisplayName("Heat Pump 1: Fraction Heat Load Served")
-    arg.setDescription("The heat load served fraction of the first heat pump.")
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("cooling_system_fraction_cool_load_served", true)
+    arg.setDisplayName("Cooling System: Fraction Cool Load Served")
+    arg.setDescription("The cool load served fraction of the cooling system.")
     arg.setDefaultValue(1)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("heat_pump_fraction_cool_load_served_1", true)
-    arg.setDisplayName("Heat Pump 1: Fraction Cool Load Served")
-    arg.setDescription("The cool load served fraction of the first heat pump.")
-    arg.setDefaultValue(1)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("heat_pump_backup_fuel_1", heat_pump_backup_fuel_choices, true)
-    arg.setDisplayName("Heat Pump 1: Backup Fuel Type")
-    arg.setDescription("The backup fuel type of the first heat pump.")
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("heat_pump_backup_fuel", heat_pump_backup_fuel_choices, true)
+    arg.setDisplayName("Heat Pump: Backup Fuel Type")
+    arg.setDescription("The backup fuel type of the heat pump.")
     arg.setDefaultValue("electricity")
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("heat_pump_backup_heating_efficiency_percent_1", true)
-    arg.setDisplayName("Heat Pump 1: Backup Rated Percent")
-    arg.setDescription("The backup rated percent value of the first heat pump.")
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("heat_pump_backup_heating_efficiency_percent", true)
+    arg.setDisplayName("Heat Pump: Backup Rated Percent")
+    arg.setDescription("The backup rated percent value of the heat pump.")
     arg.setDefaultValue(1)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument("heat_pump_backup_heating_capacity_1", true)
-    arg.setDisplayName("Heat Pump 1: Backup Heating Capacity")
-    arg.setDescription("The backup output heating capacity of the first heat pump. If using '#{Constants.SizingAuto}', the autosizing algorithm will use ACCA Manual S to set the capacity.")
-    arg.setUnits("Btu/hr")
-    arg.setDefaultValue(Constants.SizingAuto)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("heat_pump_type_2", heat_pump_type_choices, true)
-    arg.setDisplayName("Heat Pump 2: Type")
-    arg.setDescription("The type of the second heat pump.")
-    arg.setDefaultValue("none")
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("heat_pump_fuel_2", heat_pump_fuel_choices, true)
-    arg.setDisplayName("Heat Pump 2: Fuel Type")
-    arg.setDescription("The fuel type of the second heat pump.")
-    arg.setDefaultValue("electricity")
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("heat_pump_heating_efficiency_2", true)
-    arg.setDisplayName("Heat Pump 2: Rated Heating Efficiency")
-    arg.setDescription("The rated heating efficiency value of the second heat pump. HSFP for air-to-air/mini-split and COP for ground-to-air.")
-    arg.setDefaultValue(7.7)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("heat_pump_cooling_efficiency_2", true)
-    arg.setDisplayName("Heat Pump 2: Rated Cooling Efficiency")
-    arg.setDescription("The rated cooling efficiency value of the second heat pump. SEER for air-to-air/mini-split and EER for ground-to-air.")
-    arg.setDefaultValue(13.0)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument("heat_pump_heating_capacity_2", true)
-    arg.setDisplayName("Heat Pump 2: Heating Capacity")
-    arg.setDescription("The output heating capacity of the second heat pump. If using '#{Constants.SizingAuto}', the autosizing algorithm will use ACCA Manual S to set the capacity.")
-    arg.setUnits("Btu/hr")
-    arg.setDefaultValue(Constants.SizingAuto)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument("heat_pump_cooling_capacity_2", true)
-    arg.setDisplayName("Heat Pump 2: Cooling Capacity")
-    arg.setDescription("The output cooling capacity of the second heat pump. If using '#{Constants.SizingAuto}', the autosizing algorithm will use ACCA Manual S to set the capacity.")
-    arg.setUnits("tons")
-    arg.setDefaultValue(Constants.SizingAuto)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("heat_pump_fraction_heat_load_served_2", true)
-    arg.setDisplayName("Heat Pump 2: Fraction Heat Load Served")
-    arg.setDescription("The heat load served fraction of the second heat pump.")
-    arg.setDefaultValue(1)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("heat_pump_fraction_cool_load_served_2", true)
-    arg.setDisplayName("Heat Pump 2: Fraction Cool Load Served")
-    arg.setDescription("The cool load served fraction of the second heat pump.")
-    arg.setDefaultValue(1)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("heat_pump_backup_fuel_2", heat_pump_backup_fuel_choices, true)
-    arg.setDisplayName("Heat Pump 2: Backup Fuel Type")
-    arg.setDescription("The backup fuel type of the second heat pump.")
-    arg.setDefaultValue("electricity")
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("heat_pump_backup_heating_efficiency_percent_2", true)
-    arg.setDisplayName("Heat Pump 2: Backup Rated Percent")
-    arg.setDescription("The backup rated percent value of the second heat pump.")
-    arg.setDefaultValue(1)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument("heat_pump_backup_heating_capacity_2", true)
-    arg.setDisplayName("Heat Pump 2: Backup Heating Capacity")
-    arg.setDescription("The backup output heating capacity of the second heat pump. If using '#{Constants.SizingAuto}', the autosizing algorithm will use ACCA Manual S to set the capacity.")
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument("heat_pump_backup_heating_capacity", true)
+    arg.setDisplayName("Heat Pump: Backup Heating Capacity")
+    arg.setDescription("The backup output heating capacity of the heat pump. If using '#{Constants.SizingAuto}', the autosizing algorithm will use ACCA Manual S to set the capacity.")
     arg.setUnits("Btu/hr")
     arg.setDefaultValue(Constants.SizingAuto)
     args << arg
@@ -847,35 +663,6 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(0)
     args << arg
 
-    distribution_system_type_choices = OpenStudio::StringVector.new
-    distribution_system_type_choices << "none"
-    distribution_system_type_choices << "AirDistribution"
-    distribution_system_type_choices << "HydronicDistribution"
-
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("heating_distribution_system_type_1", distribution_system_type_choices, true)
-    arg.setDisplayName("Heating Distribution System 1: Type")
-    arg.setDescription("The type of the first heating distribution system.")
-    arg.setDefaultValue("AirDistribution")
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("heating_distribution_system_type_2", distribution_system_type_choices, true)
-    arg.setDisplayName("Heating Distribution System 2: Type")
-    arg.setDescription("The type of the second heating distribution system.")
-    arg.setDefaultValue("none")
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("cooling_distribution_system_type_1", distribution_system_type_choices, true)
-    arg.setDisplayName("Cooling Distribution System 1: Type")
-    arg.setDescription("The type of the first cooling distribution system.")
-    arg.setDefaultValue("AirDistribution")
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("cooling_distribution_system_type_2", distribution_system_type_choices, true)
-    arg.setDisplayName("Cooling Distribution System 2: Type")
-    arg.setDescription("The type of the second cooling distribution system.")
-    arg.setDefaultValue("none")
-    args << arg
-
     duct_leakage_units_choices = OpenStudio::StringVector.new
     duct_leakage_units_choices << "CFM25"
     duct_leakage_units_choices << "Percent"
@@ -883,123 +670,63 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     duct_location_choices = OpenStudio::StringVector.new
     duct_location_choices << "living space"
 
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("supply_duct_leakage_units_1", duct_leakage_units_choices, true)
-    arg.setDisplayName("Supply Duct 1: Leakage Units")
-    arg.setDescription("The leakage units of the first supply duct.")
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("supply_duct_leakage_units", duct_leakage_units_choices, true)
+    arg.setDisplayName("Supply Duct: Leakage Units")
+    arg.setDescription("The leakage units of the supply duct.")
     arg.setDefaultValue("CFM25")
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("return_duct_leakage_units_1", duct_leakage_units_choices, true)
-    arg.setDisplayName("Return Duct 1: Leakage Units")
-    arg.setDescription("The leakage units of the first return duct.")
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("return_duct_leakage_units", duct_leakage_units_choices, true)
+    arg.setDisplayName("Return Duct: Leakage Units")
+    arg.setDescription("The leakage units of the return duct.")
     arg.setDefaultValue("CFM25")
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("supply_duct_leakage_value_1", true)
-    arg.setDisplayName("Supply Duct 1: Leakage Value")
-    arg.setDescription("The leakage value of the first supply duct.")
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("supply_duct_leakage_value", true)
+    arg.setDisplayName("Supply Duct: Leakage Value")
+    arg.setDescription("The leakage value of the supply duct.")
     arg.setDefaultValue(75)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("return_duct_leakage_value_1", true)
-    arg.setDisplayName("Return Duct 1: Leakage Value")
-    arg.setDescription("The leakage value of the first return duct.")
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("return_duct_leakage_value", true)
+    arg.setDisplayName("Return Duct: Leakage Value")
+    arg.setDescription("The leakage value of the return duct.")
     arg.setDefaultValue(25)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("supply_duct_insulation_r_value_1", true)
-    arg.setDisplayName("Supply Duct 1: Insulation R-Value")
-    arg.setDescription("The insulation r-value of the first supply duct.")
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("supply_duct_insulation_r_value", true)
+    arg.setDisplayName("Supply Duct: Insulation R-Value")
+    arg.setDescription("The insulation r-value of the supply duct.")
     arg.setDefaultValue(0)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("return_duct_insulation_r_value_1", true)
-    arg.setDisplayName("Return Duct 2: Insulation R-Value")
-    arg.setDescription("The insulation r-value of the first return duct.")
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("return_duct_insulation_r_value", true)
+    arg.setDisplayName("Return Duct: Insulation R-Value")
+    arg.setDescription("The insulation r-value of the return duct.")
     arg.setDefaultValue(0)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("supply_duct_location_1", duct_location_choices, true)
-    arg.setDisplayName("Supply Duct 1: Location")
-    arg.setDescription("The location of the first supply duct.")
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("supply_duct_location", duct_location_choices, true)
+    arg.setDisplayName("Supply Duct: Location")
+    arg.setDescription("The location of the supply duct.")
     arg.setDefaultValue("living space")
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("return_duct_location_1", duct_location_choices, true)
-    arg.setDisplayName("Return Duct 1: Location")
-    arg.setDescription("The location of the first return duct.")
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("return_duct_location", duct_location_choices, true)
+    arg.setDisplayName("Return Duct: Location")
+    arg.setDescription("The location of the return duct.")
     arg.setDefaultValue("living space")
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("supply_duct_surface_area_1", true)
-    arg.setDisplayName("Supply Duct 1: Surface Area")
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("supply_duct_surface_area", true)
+    arg.setDisplayName("Supply Duct: Surface Area")
     arg.setDescription("The surface area of the first supply duct.")
     arg.setDefaultValue(150)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("return_duct_surface_area_1", true)
-    arg.setDisplayName("Return Duct 1: Surface Area")
-    arg.setDescription("The surface area of the first return duct.")
-    arg.setDefaultValue(50)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("supply_duct_leakage_units_2", duct_leakage_units_choices, true)
-    arg.setDisplayName("Supply Duct 2: Leakage Units")
-    arg.setDescription("The leakage units of the second supply duct.")
-    arg.setDefaultValue("CFM25")
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("return_duct_leakage_units_2", duct_leakage_units_choices, true)
-    arg.setDisplayName("Return Duct 2: Leakage Units")
-    arg.setDescription("The leakage units of the second return duct.")
-    arg.setDefaultValue("CFM25")
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("supply_duct_leakage_value_2", true)
-    arg.setDisplayName("Supply Duct 2: Leakage Value")
-    arg.setDescription("The leakage value of the second supply duct.")
-    arg.setDefaultValue(75)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("return_duct_leakage_value_2", true)
-    arg.setDisplayName("Return Duct 2: Leakage Value")
-    arg.setDescription("The leakage value of the second return duct.")
-    arg.setDefaultValue(25)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("supply_duct_insulation_r_value_2", true)
-    arg.setDisplayName("Supply Duct 2: Insulation R-Value")
-    arg.setDescription("The insulation r-value of the second supply duct.")
-    arg.setDefaultValue(0)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("return_duct_insulation_r_value_2", true)
-    arg.setDisplayName("Return Duct 2: Insulation R-Value")
-    arg.setDescription("The insulation r-value of the second return duct.")
-    arg.setDefaultValue(0)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("supply_duct_location_2", duct_location_choices, true)
-    arg.setDisplayName("Supply Duct 2: Location")
-    arg.setDescription("The location of the second supply duct.")
-    arg.setDefaultValue("living space")
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("return_duct_location_2", duct_location_choices, true)
-    arg.setDisplayName("Return Duct 2: Location")
-    arg.setDescription("The location of the second return duct.")
-    arg.setDefaultValue("living space")
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("supply_duct_surface_area_2", true)
-    arg.setDisplayName("Supply Duct 2: Surface Area")
-    arg.setDescription("The surface area of the second supply duct.")
-    arg.setDefaultValue(150)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("return_duct_surface_area_2", true)
-    arg.setDisplayName("Return Duct 2: Surface Area")
-    arg.setDescription("The surface area of the second return duct.")
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("return_duct_surface_area", true)
+    arg.setDisplayName("Return Duct: Surface Area")
+    arg.setDescription("The surface area of the return duct.")
     arg.setDefaultValue(50)
     args << arg
 
@@ -1449,27 +1176,19 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
              :door_area => runner.getDoubleArgumentValue("door_area", user_arguments),
              :door_ufactor => runner.getDoubleArgumentValue("door_ufactor", user_arguments),
              :living_ach50 => runner.getDoubleArgumentValue("living_ach50", user_arguments),
-             :heating_system_type => [runner.getStringArgumentValue("heating_system_type_1", user_arguments), runner.getStringArgumentValue("heating_system_type_2", user_arguments)],
-             :heating_system_fuel => [runner.getStringArgumentValue("heating_system_fuel_1", user_arguments), runner.getStringArgumentValue("heating_system_fuel_2", user_arguments)],
-             :heating_system_heating_efficiency => [runner.getDoubleArgumentValue("heating_system_heating_efficiency_1", user_arguments), runner.getDoubleArgumentValue("heating_system_heating_efficiency_2", user_arguments)],
-             :heating_system_heating_capacity => [runner.getStringArgumentValue("heating_system_heating_capacity_1", user_arguments), runner.getStringArgumentValue("heating_system_heating_capacity_2", user_arguments)],
-             :heating_system_fraction_heat_load_served => [runner.getDoubleArgumentValue("heating_system_fraction_heat_load_served_1", user_arguments), runner.getDoubleArgumentValue("heating_system_fraction_heat_load_served_2", user_arguments)],
-             :cooling_system_type => [runner.getStringArgumentValue("cooling_system_type_1", user_arguments), runner.getStringArgumentValue("cooling_system_type_2", user_arguments)],
-             :cooling_system_fuel => [runner.getStringArgumentValue("cooling_system_fuel_1", user_arguments), runner.getStringArgumentValue("cooling_system_fuel_2", user_arguments)],
-             :cooling_system_cooling_efficiency => [runner.getDoubleArgumentValue("cooling_system_cooling_efficiency_1", user_arguments), runner.getDoubleArgumentValue("cooling_system_cooling_efficiency_2", user_arguments)],
-             :cooling_system_cooling_capacity => [runner.getStringArgumentValue("cooling_system_cooling_capacity_1", user_arguments), runner.getStringArgumentValue("cooling_system_cooling_capacity_2", user_arguments)],
-             :cooling_system_fraction_cool_load_served => [runner.getDoubleArgumentValue("cooling_system_fraction_cool_load_served_1", user_arguments), runner.getDoubleArgumentValue("cooling_system_fraction_cool_load_served_2", user_arguments)],
-             :heat_pump_type => [runner.getStringArgumentValue("heat_pump_type_1", user_arguments), runner.getStringArgumentValue("heat_pump_type_2", user_arguments)],
-             :heat_pump_fuel => [runner.getStringArgumentValue("heat_pump_fuel_1", user_arguments), runner.getStringArgumentValue("heat_pump_fuel_2", user_arguments)],
-             :heat_pump_heating_efficiency => [runner.getDoubleArgumentValue("heat_pump_heating_efficiency_1", user_arguments), runner.getDoubleArgumentValue("heat_pump_heating_efficiency_2", user_arguments)],
-             :heat_pump_cooling_efficiency => [runner.getDoubleArgumentValue("heat_pump_cooling_efficiency_1", user_arguments), runner.getDoubleArgumentValue("heat_pump_cooling_efficiency_2", user_arguments)],
-             :heat_pump_heating_capacity => [runner.getStringArgumentValue("heat_pump_heating_capacity_1", user_arguments), runner.getStringArgumentValue("heat_pump_heating_capacity_2", user_arguments)],
-             :heat_pump_cooling_capacity => [runner.getStringArgumentValue("heat_pump_cooling_capacity_1", user_arguments), runner.getStringArgumentValue("heat_pump_cooling_capacity_2", user_arguments)],
-             :heat_pump_fraction_heat_load_served => [runner.getDoubleArgumentValue("heat_pump_fraction_heat_load_served_1", user_arguments), runner.getDoubleArgumentValue("heat_pump_fraction_heat_load_served_2", user_arguments)],
-             :heat_pump_fraction_cool_load_served => [runner.getDoubleArgumentValue("heat_pump_fraction_cool_load_served_1", user_arguments), runner.getDoubleArgumentValue("heat_pump_fraction_cool_load_served_2", user_arguments)],
-             :heat_pump_backup_fuel => [runner.getStringArgumentValue("heat_pump_backup_fuel_1", user_arguments), runner.getStringArgumentValue("heat_pump_backup_fuel_2", user_arguments)],
-             :heat_pump_backup_heating_efficiency_percent => [runner.getStringArgumentValue("heat_pump_backup_heating_efficiency_percent_1", user_arguments), runner.getStringArgumentValue("heat_pump_backup_heating_efficiency_percent_2", user_arguments)],
-             :heat_pump_backup_heating_capacity => [runner.getStringArgumentValue("heat_pump_backup_heating_capacity_1", user_arguments), runner.getStringArgumentValue("heat_pump_backup_heating_capacity_2", user_arguments)],
+             :heating_system_type => runner.getStringArgumentValue("heating_system_type", user_arguments),
+             :heating_system_fuel => runner.getStringArgumentValue("heating_system_fuel", user_arguments),
+             :heating_system_heating_efficiency => runner.getDoubleArgumentValue("heating_system_heating_efficiency", user_arguments),
+             :heating_system_heating_capacity => runner.getStringArgumentValue("heating_system_heating_capacity", user_arguments),
+             :heating_system_fraction_heat_load_served => runner.getDoubleArgumentValue("heating_system_fraction_heat_load_served", user_arguments),
+             :cooling_system_type => runner.getStringArgumentValue("cooling_system_type", user_arguments),
+             :cooling_system_fuel => runner.getStringArgumentValue("cooling_system_fuel", user_arguments),
+             :cooling_system_cooling_efficiency => runner.getDoubleArgumentValue("cooling_system_cooling_efficiency", user_arguments),
+             :cooling_system_cooling_capacity => runner.getStringArgumentValue("cooling_system_cooling_capacity", user_arguments),
+             :cooling_system_fraction_cool_load_served => runner.getDoubleArgumentValue("cooling_system_fraction_cool_load_served", user_arguments),
+             :heat_pump_backup_fuel => runner.getStringArgumentValue("heat_pump_backup_fuel", user_arguments),
+             :heat_pump_backup_heating_efficiency_percent => runner.getStringArgumentValue("heat_pump_backup_heating_efficiency_percent", user_arguments),
+             :heat_pump_backup_heating_capacity => runner.getStringArgumentValue("heat_pump_backup_heating_capacity", user_arguments),
              :heating_setpoint_temp => runner.getDoubleArgumentValue("heating_setpoint_temp", user_arguments),
              :heating_setback_temp => runner.getDoubleArgumentValue("heating_setback_temp", user_arguments),
              :heating_setback_hours_per_week => runner.getDoubleArgumentValue("heating_setback_hours_per_week", user_arguments),
@@ -1478,18 +1197,16 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
              :cooling_setup_temp => runner.getDoubleArgumentValue("cooling_setup_temp", user_arguments),
              :cooling_setup_hours_per_week => runner.getDoubleArgumentValue("cooling_setup_hours_per_week", user_arguments),
              :cooling_setup_start_hour => runner.getDoubleArgumentValue("cooling_setup_start_hour", user_arguments),
-             :heating_distribution_system_type => [runner.getStringArgumentValue("heating_distribution_system_type_1", user_arguments), runner.getStringArgumentValue("heating_distribution_system_type_2", user_arguments)],
-             :cooling_distribution_system_type => [runner.getStringArgumentValue("cooling_distribution_system_type_1", user_arguments), runner.getStringArgumentValue("cooling_distribution_system_type_2", user_arguments)],
-             :supply_duct_leakage_units => [runner.getStringArgumentValue("supply_duct_leakage_units_1", user_arguments), runner.getStringArgumentValue("supply_duct_leakage_units_2", user_arguments)],
-             :return_duct_leakage_units => [runner.getStringArgumentValue("return_duct_leakage_units_1", user_arguments), runner.getStringArgumentValue("return_duct_leakage_units_2", user_arguments)],
-             :supply_duct_leakage_value => [runner.getDoubleArgumentValue("supply_duct_leakage_value_1", user_arguments), runner.getDoubleArgumentValue("supply_duct_leakage_value_2", user_arguments)],
-             :return_duct_leakage_value => [runner.getDoubleArgumentValue("return_duct_leakage_value_1", user_arguments), runner.getDoubleArgumentValue("return_duct_leakage_value_2", user_arguments)],
-             :supply_duct_insulation_r_value => [runner.getDoubleArgumentValue("supply_duct_insulation_r_value_1", user_arguments), runner.getDoubleArgumentValue("supply_duct_insulation_r_value_2", user_arguments)],
-             :return_duct_insulation_r_value => [runner.getDoubleArgumentValue("return_duct_insulation_r_value_1", user_arguments), runner.getDoubleArgumentValue("return_duct_insulation_r_value_2", user_arguments)],
-             :supply_duct_location => [runner.getStringArgumentValue("supply_duct_location_1", user_arguments), runner.getStringArgumentValue("supply_duct_location_2", user_arguments)],
-             :return_duct_location => [runner.getStringArgumentValue("return_duct_location_1", user_arguments), runner.getStringArgumentValue("return_duct_location_2", user_arguments)],
-             :supply_duct_surface_area => [runner.getDoubleArgumentValue("supply_duct_surface_area_1", user_arguments), runner.getDoubleArgumentValue("supply_duct_surface_area_2", user_arguments)],
-             :return_duct_surface_area => [runner.getDoubleArgumentValue("return_duct_surface_area_1", user_arguments), runner.getDoubleArgumentValue("return_duct_surface_area_2", user_arguments)],
+             :supply_duct_leakage_units => runner.getStringArgumentValue("supply_duct_leakage_units", user_arguments),
+             :return_duct_leakage_units => runner.getStringArgumentValue("return_duct_leakage_units", user_arguments),
+             :supply_duct_leakage_value => runner.getDoubleArgumentValue("supply_duct_leakage_value", user_arguments),
+             :return_duct_leakage_value => runner.getDoubleArgumentValue("return_duct_leakage_value", user_arguments),
+             :supply_duct_insulation_r_value => runner.getDoubleArgumentValue("supply_duct_insulation_r_value", user_arguments),
+             :return_duct_insulation_r_value => runner.getDoubleArgumentValue("return_duct_insulation_r_value", user_arguments),
+             :supply_duct_location => runner.getStringArgumentValue("supply_duct_location", user_arguments),
+             :return_duct_location => runner.getStringArgumentValue("return_duct_location", user_arguments),
+             :supply_duct_surface_area => runner.getDoubleArgumentValue("supply_duct_surface_area", user_arguments),
+             :return_duct_surface_area => runner.getDoubleArgumentValue("return_duct_surface_area", user_arguments),
              :water_heater_type => [runner.getStringArgumentValue("water_heater_type_1", user_arguments), runner.getStringArgumentValue("water_heater_type_2", user_arguments)],
              :water_heater_fuel_type => [runner.getStringArgumentValue("water_heater_fuel_type_1", user_arguments), runner.getStringArgumentValue("water_heater_fuel_type_2", user_arguments)],
              :water_heater_location => [runner.getStringArgumentValue("water_heater_location_1", user_arguments), runner.getStringArgumentValue("water_heater_location_2", user_arguments)],
@@ -1626,13 +1343,13 @@ class HPXMLFile
     windows_values = get_windows_values(runner, model, args)
     skylights_values = get_skylights_values(runner, model, args)
     doors_values = get_doors_values(runner, model, args)
-    heating_hvac_distributions_values, cooling_hvac_distributions_values = get_hvac_distributions_values(runner, args)
-    heating_systems_values = get_heating_systems_values(runner, args, heating_hvac_distributions_values)
-    cooling_systems_values = get_cooling_systems_values(runner, args, cooling_hvac_distributions_values)
-    heat_pumps_values = get_heat_pumps_values(runner, args, heating_hvac_distributions_values, cooling_hvac_distributions_values)
+    hvac_distributions_values = []
+    heating_systems_values, hvac_distributions_values = get_heating_systems_values(runner, args, hvac_distributions_values)
+    cooling_systems_values, hvac_distributions_values = get_cooling_systems_values(runner, args, hvac_distributions_values)
+    heat_pumps_values, hvac_distributions_values = get_heat_pumps_values(runner, args, hvac_distributions_values)
     hvac_control_values = get_hvac_control_values(runner, args)
-    duct_leakage_measurements_values = get_duct_leakage_measurements_values(runner, args, heating_hvac_distributions_values, cooling_hvac_distributions_values)
-    ducts_values = get_ducts_values(runner, args, heating_hvac_distributions_values, cooling_hvac_distributions_values)
+    duct_leakage_measurements_values = get_duct_leakage_measurements_values(runner, args, hvac_distributions_values)
+    ducts_values = get_ducts_values(runner, args, hvac_distributions_values)
     ventilation_fans_values = get_ventilation_fan_values(runner, args)
     water_heating_systems_values = get_water_heating_system_values(runner, args)
     hot_water_distribution_values = get_hot_water_distribution_values(runner, args)
@@ -1696,26 +1413,15 @@ class HPXMLFile
       HPXML.add_heat_pump(hpxml: hpxml, **heat_pump_values)
     end
     HPXML.add_hvac_control(hpxml: hpxml, **hvac_control_values) unless hvac_control_values.empty?
-    hvac_distributions_values = []
-    heating_hvac_distributions_values.each do |hvac_distribution_values|
-      next if hvac_distributions_values.include? hvac_distribution_values
-
-      hvac_distributions_values << hvac_distribution_values
-    end
-    cooling_hvac_distributions_values.each do |hvac_distribution_values|
-      next if hvac_distributions_values.include? hvac_distribution_values
-
-      hvac_distributions_values << hvac_distribution_values
-    end
-    hvac_distributions_values.each do |hvac_distribution_values|
+    hvac_distributions_values.each_with_index do |hvac_distribution_values, i|
       hvac_distribution = HPXML.add_hvac_distribution(hpxml: hpxml, **hvac_distribution_values)
       air_distribution = hvac_distribution.elements["DistributionSystemType/AirDistribution"]
       next if air_distribution.nil?
 
-      duct_leakage_measurements_values[hvac_distribution_values[:id]].each do |duct_leakage_measurement_values|
+      duct_leakage_measurements_values[i].each do |duct_leakage_measurement_values|
         HPXML.add_duct_leakage_measurement(air_distribution: air_distribution, **duct_leakage_measurement_values)
       end
-      ducts_values[hvac_distribution_values[:id]].each do |duct_values|
+      ducts_values[i].each do |duct_values|
         HPXML.add_ducts(air_distribution: air_distribution, **duct_values)
       end
     end
@@ -2116,133 +1822,195 @@ class HPXMLFile
     return doors_values
   end
 
+  def self.distribution_system_types
+    return {
+      "Furnace" => "AirDistribution",
+      "WallFurnace" => nil,
+      "Boiler" => "HydronicDistribution",
+      "ElectricResistance" => nil,
+      "Stove" => nil,
+      "PortableHeater" => nil,
+      "central air conditioner" => "AirDistribution",
+      "room air conditioner" => nil,
+      "evaporative cooler" => nil,
+      "air-to-air" => "AirDistribution",
+      "mini-split" => "AirDistribution",
+      "ground-to-air" => "AirDistribution"
+    }
+  end
+
   def self.get_heating_systems_values(runner, args, hvac_distributions_values)
     heating_systems_values = []
-    args[:heating_system_type].each_with_index do |heating_system_type, i|
-      next if heating_system_type == "none"
 
-      heating_capacity = args[:heating_system_heating_capacity][i]
-      if heating_capacity == Constants.SizingAuto
-        heating_capacity = -1
-      end
+    heating_system_type = args[:heating_system_type]
 
-      distribution_system_idref = nil
-      unless hvac_distributions_values[i].nil?
-        distribution_system_idref = hvac_distributions_values[i][:id]
-      end
-
-      heating_system_values = { :id => "HeatingSystem#{i + 1}",
-                                :distribution_system_idref => distribution_system_idref,
-                                :heating_system_type => heating_system_type,
-                                :heating_system_fuel => args[:heating_system_fuel][i],
-                                :heating_capacity => heating_capacity,
-                                :fraction_heat_load_served => args[:heating_system_fraction_heat_load_served][i] }
-
-      if ["Furnace", "WallFurnace", "Boiler"].include? heating_system_type
-        heating_system_values[:heating_efficiency_afue] = args[:heating_system_heating_efficiency][i]
-      elsif ["ElectricResistance", "Stove", "PortableHeater"]
-        heating_system_values[:heating_efficiency_percent] = args[:heating_system_heating_efficiency][i]
-      end
-
-      heating_systems_values << heating_system_values
+    unless ["Furnace", "WallFurnace", "Boiler", "ElectricResistance", "Stove", "PortableHeater"].include? heating_system_type
+      return heating_systems_values, hvac_distributions_values
     end
-    return heating_systems_values
+
+    distribution_system_idref = nil
+    distribution_system_type = distribution_system_types[heating_system_type]
+    unless distribution_system_type.nil?
+      distribution_system_idref = "HVAC#{distribution_system_type}"
+      unless hvac_distributions_values.any? { |hvac_distribution_values| hvac_distribution_values[:id] == distribution_system_idref }
+        hvac_distributions_values << { :id => distribution_system_idref,
+                                       :distribution_system_type => distribution_system_type }
+      end
+    end
+
+    heating_capacity = args[:heating_system_heating_capacity]
+    if heating_capacity == Constants.SizingAuto
+      heating_capacity = -1
+    end
+
+    heating_system_values = { :id => "HeatingSystem",
+                              :heating_system_type => heating_system_type,
+                              :distribution_system_idref => distribution_system_idref,
+                              :heating_system_fuel => args[:heating_system_fuel],
+                              :heating_capacity => heating_capacity,
+                              :fraction_heat_load_served => args[:heating_system_fraction_heat_load_served] }
+
+    if ["Furnace", "WallFurnace", "Boiler"].include? heating_system_type
+      heating_system_values[:heating_efficiency_afue] = args[:heating_system_heating_efficiency]
+    elsif ["ElectricResistance", "Stove", "PortableHeater"]
+      heating_system_values[:heating_efficiency_percent] = args[:heating_system_heating_efficiency]
+    end
+
+    heating_systems_values << heating_system_values
+
+    return heating_systems_values, hvac_distributions_values
   end
 
   def self.get_cooling_systems_values(runner, args, hvac_distributions_values)
     cooling_systems_values = []
-    args[:cooling_system_type].each_with_index do |cooling_system_type, i|
-      next if cooling_system_type == "none"
 
-      cooling_capacity = args[:cooling_system_cooling_capacity][i]
-      if cooling_capacity == Constants.SizingAuto
-        cooling_capacity = -1
-      end
-      if cooling_system_type == "evaporative cooler"
-        cooling_capacity = nil
-      end
+    cooling_system_type = args[:cooling_system_type]
 
-      distribution_system_idref = nil
-      unless hvac_distributions_values[i].nil?
-        distribution_system_idref = hvac_distributions_values[i][:id]
-      end
-
-      cooling_system_values = { :id => "CoolingSystem#{i + 1}",
-                                :distribution_system_idref => distribution_system_idref,
-                                :cooling_system_type => cooling_system_type,
-                                :cooling_system_fuel => args[:cooling_system_fuel][i],
-                                :cooling_capacity => cooling_capacity,
-                                :fraction_cool_load_served => args[:cooling_system_fraction_cool_load_served][i] }
-
-      if ["central air conditioner"].include? cooling_system_type
-        cooling_system_values[:cooling_efficiency_seer] = args[:cooling_system_cooling_efficiency][i]
-      elsif ["room air conditioner"].include? cooling_system_type
-        cooling_system_values[:cooling_efficiency_eer] = args[:cooling_system_cooling_efficiency][i]
-      end
-
-      cooling_systems_values << cooling_system_values
+    unless ["central air conditioner", "room air conditioner", "evaporative cooler"].include? cooling_system_type
+      return cooling_systems_values, hvac_distributions_values
     end
-    return cooling_systems_values
+
+    distribution_system_idref = nil
+    distribution_system_type = distribution_system_types[cooling_system_type]
+    unless distribution_system_type.nil?
+      distribution_system_idref = "HVAC#{distribution_system_type}"
+      unless hvac_distributions_values.any? { |hvac_distribution_values| hvac_distribution_values[:id] == distribution_system_idref }
+        hvac_distributions_values << { :id => distribution_system_idref,
+                                       :distribution_system_type => distribution_system_type }
+      end
+    end
+
+    cooling_capacity = args[:cooling_system_cooling_capacity]
+    if cooling_capacity == Constants.SizingAuto
+      cooling_capacity = -1
+    end
+    if cooling_system_type == "evaporative cooler"
+      cooling_capacity = nil
+    end
+
+    cooling_system_values = { :id => "CoolingSystem",
+                              :cooling_system_type => cooling_system_type,
+                              :distribution_system_idref => distribution_system_idref,
+                              :cooling_system_fuel => args[:cooling_system_fuel],
+                              :cooling_capacity => cooling_capacity,
+                              :fraction_cool_load_served => args[:cooling_system_fraction_cool_load_served] }
+
+    if ["central air conditioner"].include? cooling_system_type
+      cooling_system_values[:cooling_efficiency_seer] = args[:cooling_system_cooling_efficiency]
+    elsif ["room air conditioner"].include? cooling_system_type
+      cooling_system_values[:cooling_efficiency_eer] = args[:cooling_system_cooling_efficiency]
+    end
+
+    cooling_systems_values << cooling_system_values
+
+    return cooling_systems_values, hvac_distributions_values
   end
 
-  def self.get_heat_pumps_values(runner, args, heating_hvac_distributions_values, cooling_hvac_distributions_values)
+  def self.get_heat_pumps_values(runner, args, hvac_distributions_values)
     heat_pumps_values = []
-    args[:heat_pump_type].each_with_index do |heat_pump_type, i|
-      next if heat_pump_type == "none"
 
-      heating_capacity = args[:heat_pump_heating_capacity][i]
-      if heating_capacity == Constants.SizingAuto
-        heating_capacity = -1
+    heating_system_type = args[:heating_system_type]
+    cooling_system_type = args[:cooling_system_type]
+
+    if not ["air-to-air", "mini-split", "ground-to-air"].include? heating_system_type and not ["air-to-air", "mini-split", "ground-to-air"].include? cooling_system_type
+      return heat_pumps_values, hvac_distributions_values
+    end
+
+    heat_pump_type = heating_system_type
+
+    distribution_system_idref = nil
+    distribution_system_type = distribution_system_types[heating_system_type]
+    unless distribution_system_type.nil?
+      distribution_system_idref = "HVAC#{distribution_system_type}"
+      unless hvac_distributions_values.any? { |hvac_distribution_values| hvac_distribution_values[:id] == distribution_system_idref }
+        hvac_distributions_values << { :id => distribution_system_idref,
+                                       :distribution_system_type => distribution_system_type }
       end
+    end
 
-      cooling_capacity = args[:heat_pump_cooling_capacity][i]
-      if cooling_capacity == Constants.SizingAuto
-        cooling_capacity = -1
-      end
+    heating_system_fuel = args[:heating_system_fuel]
+    heating_system_fraction_heat_load_served = args[:heating_system_fraction_heat_load_served]
 
-      backup_heating_capacity = args[:heat_pump_backup_heating_capacity][i]
+    heating_capacity = args[:heating_system_heating_capacity]
+    if heating_capacity == Constants.SizingAuto
+      heating_capacity = -1
+    end
+
+    if ["Furnace", "WallFurnace", "Boiler", "ElectricResistance", "Stove", "PortableHeater"].include? heating_system_type
+      heat_pump_type = cooling_system_type
+      heating_system_fuel = "electricity"
+      heating_system_fraction_heat_load_served = 0.0
+    end
+
+    if args[:heat_pump_backup_fuel] != "none"
+      backup_heating_capacity = args[:heat_pump_backup_heating_capacity]
       if backup_heating_capacity == Constants.SizingAuto
         backup_heating_capacity = -1
       end
 
-      distribution_system_idref = nil
-      unless heating_hvac_distributions_values[i].nil?
-        if heating_hvac_distributions_values[i][:distribution_system_type] == "AirDistribution"
-          distribution_system_idref = heating_hvac_distributions_values[i][:id]
-        end
-      end
-      unless cooling_hvac_distributions_values[i].nil?
-        if cooling_hvac_distributions_values[i][:distribution_system_type] == "AirDistribution"
-          distribution_system_idref = cooling_hvac_distributions_values[i][:id]
-        end
-      end
-
-      heat_pump_values = { :id => "HeatPump#{i + 1}",
-                           :distribution_system_idref => distribution_system_idref,
-                           :heat_pump_type => heat_pump_type,
-                           :heat_pump_fuel => args[:heat_pump_fuel][i],
-                           :heating_capacity => heating_capacity,
-                           :cooling_capacity => cooling_capacity,
-                           :fraction_heat_load_served => args[:heat_pump_fraction_heat_load_served][i],
-                           :fraction_cool_load_served => args[:heat_pump_fraction_cool_load_served][i] }
-
-      if ["air-to-air", "mini-split"].include? heat_pump_type
-        heat_pump_values[:heating_efficiency_hspf] = args[:heat_pump_heating_efficiency][i]
-        heat_pump_values[:cooling_efficiency_seer] = args[:heat_pump_cooling_efficiency][i]
-      elsif ["ground-to-air"].include? heat_pump_type
-        heat_pump_values[:heating_efficiency_cop] = args[:heat_pump_heating_efficiency][i]
-        heat_pump_values[:cooling_efficiency_eer] = args[:heat_pump_cooling_efficiency][i]
-      end
-
-      next if args[:heat_pump_backup_fuel] == "none"
-
-      heat_pump_values[:backup_heating_fuel] = args[:heat_pump_backup_fuel][i]
-      heat_pump_values[:backup_heating_efficiency_percent] = args[:heat_pump_backup_heating_efficiency_percent][i]
-      heat_pump_values[:backup_heating_capacity] = backup_heating_capacity
-
-      heat_pumps_values << heat_pump_values
+      backup_heating_fuel = args[:heat_pump_backup_fuel]
+      backup_heating_efficiency_percent = args[:heat_pump_backup_heating_efficiency_percent]
     end
-    return heat_pumps_values
+
+    cooling_system_fraction_cool_load_served = args[:cooling_system_fraction_cool_load_served]
+
+    if ["central air conditioner", "room air conditioner", "evaporative cooler"].include? cooling_system_type
+      heat_pump_type = heating_system_type
+      cooling_system_fraction_cool_load_served = 0.0
+    end
+
+    cooling_capacity = args[:cooling_system_cooling_capacity]
+    if cooling_capacity == Constants.SizingAuto
+      cooling_capacity = -1
+    end
+
+    heat_pump_values = { :id => "HeatPump",
+                         :heat_pump_type => heat_pump_type,
+                         :distribution_system_idref => distribution_system_idref,
+                         :heat_pump_fuel => heating_system_fuel,
+                         :heating_capacity => heating_capacity,
+                         :cooling_capacity => cooling_capacity,
+                         :fraction_heat_load_served => heating_system_fraction_heat_load_served,
+                         :fraction_cool_load_served => cooling_system_fraction_cool_load_served,
+                         :backup_heating_fuel => backup_heating_fuel,
+                         :backup_heating_efficiency_percent => backup_heating_efficiency_percent,
+                         :backup_heating_capacity => backup_heating_capacity }
+
+    if ["air-to-air", "mini-split", "Furnace", "WallFurnace", "Boiler", "ElectricResistance", "Stove", "PortableHeater"].include? heating_system_type
+      heat_pump_values[:heating_efficiency_hspf] = args[:heating_system_heating_efficiency]
+    elsif ["ground-to-air"].include? heating_system_type
+      heat_pump_values[:heating_efficiency_cop] = args[:heating_system_heating_efficiency]
+    end
+
+    if ["air-to-air", "mini-split", "central air conditioner", "room air conditioner", "evaporative cooler"].include? cooling_system_type
+      heat_pump_values[:cooling_efficiency_seer] = args[:cooling_system_cooling_efficiency]
+    elsif ["ground-to-air"].include? cooling_system_type
+      heat_pump_values[:cooling_efficiency_eer] = args[:cooling_system_cooling_efficiency]
+    end
+
+    heat_pumps_values << heat_pump_values
+
+    return heat_pumps_values, hvac_distributions_values
   end
 
   def self.get_hvac_control_values(runner, args)
@@ -2263,88 +2031,39 @@ class HPXMLFile
     return hvac_control_values
   end
 
-  def self.get_hvac_distributions_values(runner, args)
-    heating_hvac_distributions_values = []
-    cooling_hvac_distributions_values = []
-
-    args[:heating_distribution_system_type].each_with_index do |distribution_system_type, i|
-      next if distribution_system_type == "none" or (args[:heating_system_type][i] == "none" and args[:heat_pump_type][i] == "none")
-
-      heating_hvac_distributions_values << { :id => "HVAC#{distribution_system_type}#{i + 1}",
-                                             :distribution_system_type => distribution_system_type }
+  def self.get_duct_leakage_measurements_values(runner, args, hvac_distributions_values)
+    duct_leakage_measurements_values = []
+    hvac_distributions_values.each_with_index do |hvac_distribution_values, i|
+      if hvac_distribution_values[:distribution_system_type] == "AirDistribution"
+        duct_leakage_measurements_values << [{ :duct_type => "supply",
+                                               :duct_leakage_units => args[:supply_duct_leakage_units],
+                                               :duct_leakage_value => args[:supply_duct_leakage_value] },
+                                             { :duct_type => "return",
+                                               :duct_leakage_units => args[:return_duct_leakage_units],
+                                               :duct_leakage_value => args[:return_duct_leakage_value] }]
+      else
+        duct_leakage_measurements_values << []
+      end
     end
-
-    args[:cooling_distribution_system_type].each_with_index do |distribution_system_type, i|
-      next if distribution_system_type == "none" or (args[:cooling_system_type][i] == "none" and args[:heat_pump_type][i] == "none")
-
-      cooling_hvac_distributions_values << { :id => "HVAC#{distribution_system_type}#{i + 1}",
-                                             :distribution_system_type => distribution_system_type }
-    end
-
-    return heating_hvac_distributions_values, cooling_hvac_distributions_values
-  end
-
-  def self.get_duct_leakage_measurements_values(runner, args, heating_hvac_distributions_values, cooling_hvac_distributions_values)
-    duct_leakage_measurements_values = {}
-
-    heating_hvac_distributions_values.each_with_index do |heating_hvac_distribution_values, i|
-      next if heating_hvac_distribution_values[:distribution_system_type] != "AirDistribution"
-      next if duct_leakage_measurements_values.keys.include? heating_hvac_distribution_values[:id]
-
-      duct_leakage_measurements_values[heating_hvac_distribution_values[:id]] = [{ :duct_type => "supply",
-                                                                                   :duct_leakage_units => args[:supply_duct_leakage_units][i],
-                                                                                   :duct_leakage_value => args[:supply_duct_leakage_value][i] },
-                                                                                 { :duct_type => "return",
-                                                                                   :duct_leakage_units => args[:return_duct_leakage_units][i],
-                                                                                   :duct_leakage_value => args[:return_duct_leakage_value][i] }]
-    end
-
-    cooling_hvac_distributions_values.each_with_index do |cooling_hvac_distribution_values, i|
-      next if cooling_hvac_distribution_values[:distribution_system_type] != "AirDistribution"
-      next if duct_leakage_measurements_values.keys.include? cooling_hvac_distribution_values[:id]
-
-      duct_leakage_measurements_values[cooling_hvac_distribution_values[:id]] = [{ :duct_type => "supply",
-                                                                                   :duct_leakage_units => args[:supply_duct_leakage_units][i],
-                                                                                   :duct_leakage_value => args[:supply_duct_leakage_value][i] },
-                                                                                 { :duct_type => "return",
-                                                                                   :duct_leakage_units => args[:return_duct_leakage_units][i],
-                                                                                   :duct_leakage_value => args[:return_duct_leakage_value][i] }]
-    end
-
     return duct_leakage_measurements_values
   end
 
-  def self.get_ducts_values(runner, args, heating_hvac_distributions_values, cooling_hvac_distributions_values)
-    ducts_values = {}
-
-    heating_hvac_distributions_values.each_with_index do |heating_hvac_distribution_values, i|
-      next if heating_hvac_distribution_values[:distribution_system_type] != "AirDistribution"
-      next if ducts_values.keys.include? heating_hvac_distribution_values[:id]
-
-      ducts_values[heating_hvac_distribution_values[:id]] = [{ :duct_type => "supply",
-                                                               :duct_insulation_r_value => args[:supply_duct_insulation_r_value][i],
-                                                               :duct_location => args[:supply_duct_location][i],
-                                                               :duct_surface_area => args[:supply_duct_surface_area][i] },
-                                                             { :duct_type => "return",
-                                                               :duct_insulation_r_value => args[:return_duct_insulation_r_value][i],
-                                                               :duct_location => args[:return_duct_location][i],
-                                                               :duct_surface_area => args[:return_duct_surface_area][i] }]
+  def self.get_ducts_values(runner, args, hvac_distributions_values)
+    ducts_values = []
+    hvac_distributions_values.each_with_index do |hvac_distribution_values, i|
+      if hvac_distribution_values[:distribution_system_type] != "AirDistribution"
+        ducts_values << [{ :duct_type => "supply",
+                           :duct_insulation_r_value => args[:supply_duct_insulation_r_value],
+                           :duct_location => args[:supply_duct_location],
+                           :duct_surface_area => args[:supply_duct_surface_area] },
+                         { :duct_type => "return",
+                           :duct_insulation_r_value => args[:return_duct_insulation_r_value],
+                           :duct_location => args[:return_duct_location],
+                           :duct_surface_area => args[:return_duct_surface_area] }]
+      else
+        ducts_values << []
+      end
     end
-
-    cooling_hvac_distributions_values.each_with_index do |cooling_hvac_distribution_values, i|
-      next if cooling_hvac_distribution_values[:distribution_system_type] != "AirDistribution"
-      next if ducts_values.keys.include? cooling_hvac_distribution_values[:id]
-
-      ducts_values[cooling_hvac_distribution_values[:id]] = [{ :duct_type => "supply",
-                                                               :duct_insulation_r_value => args[:supply_duct_insulation_r_value][i],
-                                                               :duct_location => args[:supply_duct_location][i],
-                                                               :duct_surface_area => args[:supply_duct_surface_area][i] },
-                                                             { :duct_type => "return",
-                                                               :duct_insulation_r_value => args[:return_duct_insulation_r_value][i],
-                                                               :duct_location => args[:return_duct_location][i],
-                                                               :duct_surface_area => args[:return_duct_surface_area][i] }]
-    end
-
     return ducts_values
   end
 
