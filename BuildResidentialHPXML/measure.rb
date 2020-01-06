@@ -852,10 +852,28 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     distribution_system_type_choices << "AirDistribution"
     distribution_system_type_choices << "HydronicDistribution"
 
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("distribution_system_type_1", distribution_system_type_choices, true)
-    arg.setDisplayName("Distribution System 1: Type")
-    arg.setDescription("The type of the first distribution system.")
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("heating_distribution_system_type_1", distribution_system_type_choices, true)
+    arg.setDisplayName("Heating Distribution System 1: Type")
+    arg.setDescription("The type of the first heating distribution system.")
     arg.setDefaultValue("AirDistribution")
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("heating_distribution_system_type_2", distribution_system_type_choices, true)
+    arg.setDisplayName("Heating Distribution System 2: Type")
+    arg.setDescription("The type of the second heating distribution system.")
+    arg.setDefaultValue("none")
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("cooling_distribution_system_type_1", distribution_system_type_choices, true)
+    arg.setDisplayName("Cooling Distribution System 1: Type")
+    arg.setDescription("The type of the first cooling distribution system.")
+    arg.setDefaultValue("AirDistribution")
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("cooling_distribution_system_type_2", distribution_system_type_choices, true)
+    arg.setDisplayName("Cooling Distribution System 2: Type")
+    arg.setDescription("The type of the second cooling distribution system.")
+    arg.setDefaultValue("none")
     args << arg
 
     duct_leakage_units_choices = OpenStudio::StringVector.new
@@ -923,12 +941,6 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     arg.setDisplayName("Return Duct 1: Surface Area")
     arg.setDescription("The surface area of the first return duct.")
     arg.setDefaultValue(50)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("distribution_system_type_2", distribution_system_type_choices, true)
-    arg.setDisplayName("Distribution System 2: Type")
-    arg.setDescription("The type of the second distribution system.")
-    arg.setDefaultValue("none")
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("supply_duct_leakage_units_2", duct_leakage_units_choices, true)
@@ -1466,7 +1478,8 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
              :cooling_setup_temp => runner.getDoubleArgumentValue("cooling_setup_temp", user_arguments),
              :cooling_setup_hours_per_week => runner.getDoubleArgumentValue("cooling_setup_hours_per_week", user_arguments),
              :cooling_setup_start_hour => runner.getDoubleArgumentValue("cooling_setup_start_hour", user_arguments),
-             :distribution_system_type => [runner.getStringArgumentValue("distribution_system_type_1", user_arguments), runner.getStringArgumentValue("distribution_system_type_2", user_arguments)],
+             :heating_distribution_system_type => [runner.getStringArgumentValue("heating_distribution_system_type_1", user_arguments), runner.getStringArgumentValue("heating_distribution_system_type_2", user_arguments)],
+             :cooling_distribution_system_type => [runner.getStringArgumentValue("cooling_distribution_system_type_1", user_arguments), runner.getStringArgumentValue("cooling_distribution_system_type_2", user_arguments)],
              :supply_duct_leakage_units => [runner.getStringArgumentValue("supply_duct_leakage_units_1", user_arguments), runner.getStringArgumentValue("supply_duct_leakage_units_2", user_arguments)],
              :return_duct_leakage_units => [runner.getStringArgumentValue("return_duct_leakage_units_1", user_arguments), runner.getStringArgumentValue("return_duct_leakage_units_2", user_arguments)],
              :supply_duct_leakage_value => [runner.getDoubleArgumentValue("supply_duct_leakage_value_1", user_arguments), runner.getDoubleArgumentValue("supply_duct_leakage_value_2", user_arguments)],
@@ -1613,13 +1626,13 @@ class HPXMLFile
     windows_values = get_windows_values(runner, model, args)
     skylights_values = get_skylights_values(runner, model, args)
     doors_values = get_doors_values(runner, model, args)
-    hvac_distributions_values = get_hvac_distributions_values(runner, args)
-    heating_systems_values = get_heating_systems_values(runner, args, hvac_distributions_values)
-    cooling_systems_values = get_cooling_systems_values(runner, args, hvac_distributions_values)
-    heat_pumps_values = get_heat_pumps_values(runner, args, hvac_distributions_values)
+    heating_hvac_distributions_values, cooling_hvac_distributions_values = get_hvac_distributions_values(runner, args)
+    heating_systems_values = get_heating_systems_values(runner, args, heating_hvac_distributions_values)
+    cooling_systems_values = get_cooling_systems_values(runner, args, cooling_hvac_distributions_values)
+    heat_pumps_values = get_heat_pumps_values(runner, args, heating_hvac_distributions_values, cooling_hvac_distributions_values)
     hvac_control_values = get_hvac_control_values(runner, args)
-    duct_leakage_measurements_values = get_duct_leakage_measurements_values(runner, args)
-    ducts_values = get_ducts_values(runner, args)
+    duct_leakage_measurements_values = get_duct_leakage_measurements_values(runner, args, heating_hvac_distributions_values, cooling_hvac_distributions_values)
+    ducts_values = get_ducts_values(runner, args, heating_hvac_distributions_values, cooling_hvac_distributions_values)
     ventilation_fans_values = get_ventilation_fan_values(runner, args)
     water_heating_systems_values = get_water_heating_system_values(runner, args)
     hot_water_distribution_values = get_hot_water_distribution_values(runner, args)
@@ -1683,15 +1696,26 @@ class HPXMLFile
       HPXML.add_heat_pump(hpxml: hpxml, **heat_pump_values)
     end
     HPXML.add_hvac_control(hpxml: hpxml, **hvac_control_values) unless hvac_control_values.empty?
-    hvac_distributions_values.each_with_index do |hvac_distribution_values, i|
+    hvac_distributions_values = []
+    heating_hvac_distributions_values.each do |hvac_distribution_values|
+      next if hvac_distributions_values.include? hvac_distribution_values
+
+      hvac_distributions_values << hvac_distribution_values
+    end
+    cooling_hvac_distributions_values.each do |hvac_distribution_values|
+      next if hvac_distributions_values.include? hvac_distribution_values
+
+      hvac_distributions_values << hvac_distribution_values
+    end
+    hvac_distributions_values.each do |hvac_distribution_values|
       hvac_distribution = HPXML.add_hvac_distribution(hpxml: hpxml, **hvac_distribution_values)
       air_distribution = hvac_distribution.elements["DistributionSystemType/AirDistribution"]
       next if air_distribution.nil?
 
-      duct_leakage_measurements_values[i].each do |duct_leakage_measurement_values|
+      duct_leakage_measurements_values[hvac_distribution_values[:id]].each do |duct_leakage_measurement_values|
         HPXML.add_duct_leakage_measurement(air_distribution: air_distribution, **duct_leakage_measurement_values)
       end
-      ducts_values[i].each do |duct_values|
+      ducts_values[hvac_distribution_values[:id]].each do |duct_values|
         HPXML.add_ducts(air_distribution: air_distribution, **duct_values)
       end
     end
@@ -2159,7 +2183,7 @@ class HPXMLFile
     return cooling_systems_values
   end
 
-  def self.get_heat_pumps_values(runner, args, hvac_distributions_values)
+  def self.get_heat_pumps_values(runner, args, heating_hvac_distributions_values, cooling_hvac_distributions_values)
     heat_pumps_values = []
     args[:heat_pump_type].each_with_index do |heat_pump_type, i|
       next if heat_pump_type == "none"
@@ -2180,8 +2204,15 @@ class HPXMLFile
       end
 
       distribution_system_idref = nil
-      unless hvac_distributions_values[i].nil?
-        distribution_system_idref = hvac_distributions_values[i][:id]
+      unless heating_hvac_distributions_values[i].nil?
+        if heating_hvac_distributions_values[i][:distribution_system_type] == "AirDistribution"
+          distribution_system_idref = heating_hvac_distributions_values[i][:id]
+        end
+      end
+      unless cooling_hvac_distributions_values[i].nil?
+        if cooling_hvac_distributions_values[i][:distribution_system_type] == "AirDistribution"
+          distribution_system_idref = cooling_hvac_distributions_values[i][:id]
+        end
       end
 
       heat_pump_values = { :id => "HeatPump#{i + 1}",
@@ -2231,48 +2262,87 @@ class HPXMLFile
   end
 
   def self.get_hvac_distributions_values(runner, args)
-    hvac_distributions_values = []
-    args[:distribution_system_type].each_with_index do |distribution_system_type, i|
-      next if distribution_system_type == "none"
+    heating_hvac_distributions_values = []
+    cooling_hvac_distributions_values = []
 
-      hvac_distributions_values << { :id => "HVACDistribution#{i + 1}",
-                                     :distribution_system_type => distribution_system_type }
+    args[:heating_distribution_system_type].each_with_index do |distribution_system_type, i|
+      next if distribution_system_type == "none" or (args[:heating_system_type][i] == "none" and args[:heat_pump_type][i] == "none")
+
+      heating_hvac_distributions_values << { :id => "HVAC#{distribution_system_type}#{i + 1}",
+                                             :distribution_system_type => distribution_system_type }
     end
-    return hvac_distributions_values
+
+    args[:cooling_distribution_system_type].each_with_index do |distribution_system_type, i|
+      next if distribution_system_type == "none" or (args[:cooling_system_type][i] == "none" and args[:heat_pump_type][i] == "none")
+
+      cooling_hvac_distributions_values << { :id => "HVAC#{distribution_system_type}#{i + 1}",
+                                             :distribution_system_type => distribution_system_type }
+    end
+
+    return heating_hvac_distributions_values, cooling_hvac_distributions_values
   end
 
-  def self.get_duct_leakage_measurements_values(runner, args)
-    duct_leakage_measurements_values = []
-    args[:distribution_system_type].each_with_index do |distribution_system_type, i|
-      next if distribution_system_type != "AirDistribution"
+  def self.get_duct_leakage_measurements_values(runner, args, heating_hvac_distributions_values, cooling_hvac_distributions_values)
+    duct_leakage_measurements_values = {}
 
-      duct_leakage_measurements_values << [{ :duct_type => "supply",
-                                             :duct_leakage_units => args[:supply_duct_leakage_units][i],
-                                             :duct_leakage_value => args[:supply_duct_leakage_value][i] },
-                                           { :duct_type => "return",
-                                             :duct_leakage_units => args[:return_duct_leakage_units][i],
-                                             :duct_leakage_value => args[:return_duct_leakage_value][i] }]
-    end
-    if args[:distribution_system_type] == "AirDistribution"
+    heating_hvac_distributions_values.each_with_index do |heating_hvac_distribution_values, i|
+      next if heating_hvac_distribution_values[:distribution_system_type] != "AirDistribution"
+      next if duct_leakage_measurements_values.keys.include? heating_hvac_distribution_values[:id]
 
+      duct_leakage_measurements_values[heating_hvac_distribution_values[:id]] = [{ :duct_type => "supply",
+                                                                                   :duct_leakage_units => args[:supply_duct_leakage_units][i],
+                                                                                   :duct_leakage_value => args[:supply_duct_leakage_value][i] },
+                                                                                 { :duct_type => "return",
+                                                                                   :duct_leakage_units => args[:return_duct_leakage_units][i],
+                                                                                   :duct_leakage_value => args[:return_duct_leakage_value][i] }]
     end
+
+    cooling_hvac_distributions_values.each_with_index do |cooling_hvac_distribution_values, i|
+      next if cooling_hvac_distribution_values[:distribution_system_type] != "AirDistribution"
+      next if duct_leakage_measurements_values.keys.include? cooling_hvac_distribution_values[:id]
+
+      duct_leakage_measurements_values[cooling_hvac_distribution_values[:id]] = [{ :duct_type => "supply",
+                                                                                   :duct_leakage_units => args[:supply_duct_leakage_units][i],
+                                                                                   :duct_leakage_value => args[:supply_duct_leakage_value][i] },
+                                                                                 { :duct_type => "return",
+                                                                                   :duct_leakage_units => args[:return_duct_leakage_units][i],
+                                                                                   :duct_leakage_value => args[:return_duct_leakage_value][i] }]
+    end
+
     return duct_leakage_measurements_values
   end
 
-  def self.get_ducts_values(runner, args)
-    ducts_values = []
-    args[:distribution_system_type].each_with_index do |distribution_system_type, i|
-      next if distribution_system_type != "AirDistribution"
+  def self.get_ducts_values(runner, args, heating_hvac_distributions_values, cooling_hvac_distributions_values)
+    ducts_values = {}
 
-      ducts_values << [{ :duct_type => "supply",
-                         :duct_insulation_r_value => args[:supply_duct_insulation_r_value][i],
-                         :duct_location => args[:supply_duct_location][i],
-                         :duct_surface_area => args[:supply_duct_surface_area][i] },
-                       { :duct_type => "return",
-                         :duct_insulation_r_value => args[:return_duct_insulation_r_value][i],
-                         :duct_location => args[:return_duct_location][i],
-                         :duct_surface_area => args[:return_duct_surface_area][i] }]
+    heating_hvac_distributions_values.each_with_index do |heating_hvac_distribution_values, i|
+      next if heating_hvac_distribution_values[:distribution_system_type] != "AirDistribution"
+      next if ducts_values.keys.include? heating_hvac_distribution_values[:id]
+
+      ducts_values[heating_hvac_distribution_values[:id]] = [{ :duct_type => "supply",
+                                                               :duct_insulation_r_value => args[:supply_duct_insulation_r_value][i],
+                                                               :duct_location => args[:supply_duct_location][i],
+                                                               :duct_surface_area => args[:supply_duct_surface_area][i] },
+                                                             { :duct_type => "return",
+                                                               :duct_insulation_r_value => args[:return_duct_insulation_r_value][i],
+                                                               :duct_location => args[:return_duct_location][i],
+                                                               :duct_surface_area => args[:return_duct_surface_area][i] }]
     end
+
+    cooling_hvac_distributions_values.each_with_index do |cooling_hvac_distribution_values, i|
+      next if cooling_hvac_distribution_values[:distribution_system_type] != "AirDistribution"
+      next if ducts_values.keys.include? cooling_hvac_distribution_values[:id]
+
+      ducts_values[cooling_hvac_distribution_values[:id]] = [{ :duct_type => "supply",
+                                                               :duct_insulation_r_value => args[:supply_duct_insulation_r_value][i],
+                                                               :duct_location => args[:supply_duct_location][i],
+                                                               :duct_surface_area => args[:supply_duct_surface_area][i] },
+                                                             { :duct_type => "return",
+                                                               :duct_insulation_r_value => args[:return_duct_insulation_r_value][i],
+                                                               :duct_location => args[:return_duct_location][i],
+                                                               :duct_surface_area => args[:return_duct_surface_area][i] }]
+    end
+
     return ducts_values
   end
 
