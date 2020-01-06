@@ -926,6 +926,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
       unit.additionalProperties.setFeature("Units Represented", units_represented)
       total_units_represented += units_represented
       spaces.each do |space|
+        space.setBuildingUnit(unit)
       end
     end
     if total_units_represented != num_units_actual
