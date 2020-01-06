@@ -45,6 +45,8 @@ def create_osws
     'base-hvac-mini-split-heat-pump-ducted.osw' => 'base-single-family-detached.osw',
     'base-hvac-ground-to-air-heat-pump.osw' => 'base-single-family-detached.osw',
     'base-hvac-dual-fuel-air-to-air-heat-pump-1-speed.osw' => 'base-single-family-detached.osw',
+    'base-hvac-central-ac-plus-air-to-air-heat-pump-heating.osw' => 'base-single-family-detached.osw',
+    'base-hvac-boiler-gas-central-ac-1-speed.osw' => 'base-single-family-detached.osw',
     'base-hvac-furnace-gas-only-x2.osw' => 'base-single-family-detached.osw',
     'base-hvac-programmable-thermostat.osw' => 'base-single-family-detached.osw',
     'base-dhw-tank-gas.osw' => 'base-single-family-detached.osw',
@@ -208,8 +210,10 @@ def get_example_single_family_detached_values(osw_file, step)
     step.setArgument("cooling_setup_temp", 76)
     step.setArgument("cooling_setup_hours_per_week", 0)
     step.setArgument("cooling_setup_start_hour", 0)
-    step.setArgument("distribution_system_type_1", "AirDistribution")
-    step.setArgument("distribution_system_type_2", "none")
+    step.setArgument("heating_distribution_system_type_1", "AirDistribution")
+    step.setArgument("heating_distribution_system_type_2", "none")
+    step.setArgument("cooling_distribution_system_type_1", "AirDistribution")
+    step.setArgument("cooling_distribution_system_type_2", "none")
     step.setArgument("supply_duct_leakage_units_1", "CFM25")
     step.setArgument("return_duct_leakage_units_1", "CFM25")
     step.setArgument("supply_duct_leakage_value_1", 75)
@@ -297,41 +301,41 @@ def get_example_single_family_detached_values(osw_file, step)
     step.setArgument("heating_system_type_1", "Boiler")
     step.setArgument("heating_system_fuel_1", "electricity")
     step.setArgument("cooling_system_type_1", "none")
-    step.setArgument("distribution_system_type_1", "HydronicDistribution")
+    step.setArgument("heating_distribution_system_type_1", "HydronicDistribution")
   elsif ['base-hvac-boiler-gas-only.osw'].include? osw_file
     step.setArgument("heating_system_type_1", "Boiler")
     step.setArgument("cooling_system_type_1", "none")
-    step.setArgument("distribution_system_type_1", "HydronicDistribution")
+    step.setArgument("heating_distribution_system_type_1", "HydronicDistribution")
   elsif ['base-hvac-elec-resistance-only.osw'].include? osw_file
     step.setArgument("heating_system_type_1", "ElectricResistance")
     step.setArgument("heating_system_fuel_1", "electricity")
     step.setArgument("cooling_system_type_1", "none")
-    step.setArgument("distribution_system_type_1", "none")
+    step.setArgument("heating_distribution_system_type_1", "none")
   elsif ['base-hvac-portable-heater-electric-only.osw'].include? osw_file
     step.setArgument("heating_system_type_1", "PortableHeater")
     step.setArgument("heating_system_fuel_1", "electricity")
     step.setArgument("cooling_system_type_1", "none")
-    step.setArgument("distribution_system_type_1", "none")
+    step.setArgument("heating_distribution_system_type_1", "none")
   elsif ['base-hvac-stove-oil-only.osw'].include? osw_file
     step.setArgument("heating_system_type_1", "Stove")
     step.setArgument("heating_system_fuel_1", "fuel oil")
     step.setArgument("cooling_system_type_1", "none")
-    step.setArgument("distribution_system_type_1", "none")
+    step.setArgument("heating_distribution_system_type_1", "none")
   elsif ['base-hvac-wall-furnace-propane-only.osw'].include? osw_file
     step.setArgument("heating_system_type_1", "WallFurnace")
     step.setArgument("heating_system_fuel_1", "propane")
     step.setArgument("cooling_system_type_1", "none")
-    step.setArgument("distribution_system_type_1", "none")
+    step.setArgument("heating_distribution_system_type_1", "none")
   elsif ['base-hvac-central-ac-only-1-speed.osw'].include? osw_file
     step.setArgument("heating_system_type_1", "none")
   elsif ['base-hvac-evap-cooler-only.osw'].include? osw_file
     step.setArgument("heating_system_type_1", "none")
     step.setArgument("cooling_system_type_1", "evaporative cooler")
-    step.setArgument("distribution_system_type_1", "none")
+    step.setArgument("cooling_distribution_system_type_1", "none")
   elsif ['base-hvac-room-ac-only.osw'].include? osw_file
     step.setArgument("heating_system_type_1", "none")
     step.setArgument("cooling_system_type_1", "room air conditioner")
-    step.setArgument("distribution_system_type_1", "none")
+    step.setArgument("cooling_distribution_system_type_1", "none")
   elsif ['base-hvac-air-to-air-heat-pump-1-speed.osw'].include? osw_file
     step.setArgument("heating_system_type_1", "none")
     step.setArgument("cooling_system_type_1", "none")
@@ -350,11 +354,18 @@ def get_example_single_family_detached_values(osw_file, step)
     step.setArgument("heat_pump_type_1", "air-to-air")
     step.setArgument("heat_pump_backup_fuel_1", "natural gas")
     step.setArgument("heat_pump_backup_heating_efficiency_percent_1", 0.95)
+  elsif ['base-hvac-central-ac-plus-air-to-air-heat-pump-heating.osw'].include? osw_file
+    step.setArgument("heating_system_type_1", "none")
+    step.setArgument("heat_pump_type_1", "air-to-air")
+    step.setArgument("heat_pump_fraction_cool_load_served_1", 0)
+  elsif ['base-hvac-boiler-gas-central-ac-1-speed.osw'].include? osw_file
+    step.setArgument("heating_system_type_1", "Boiler")
+    step.setArgument("heating_distribution_system_type_1", "HydronicDistribution")
   elsif ['base-hvac-furnace-gas-only-x2.osw'].include? osw_file
     step.setArgument("heating_system_type_2", "Furnace")
     step.setArgument("heating_system_fraction_heat_load_served_1", 0.5)
     step.setArgument("heating_system_fraction_heat_load_served_2", 0.5)
-    step.setArgument("distribution_system_type_2", "AirDistribution")
+    step.setArgument("heating_distribution_system_type_2", "AirDistribution")
   elsif ['base-hvac-programmable-thermostat.osw'].include? osw_file
     step.setArgument("heating_setback_temp", 66)
     step.setArgument("heating_setback_hours_per_week", 49)
