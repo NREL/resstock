@@ -1,0 +1,4035 @@
+stock_type: residential
+buildstock_directory: ./  # Relative to this file or absolute
+project_directory: project_singlefamilydetached
+output_directory: /projects/enduse/geb-potential/Run_Results/GEB_combind_test2
+weather_files_path: /shared-projects/buildstock/weather/project_resstock_national_weather.zip
+baseline:
+  n_datapoints: 140
+  n_buildings_represented: 81221016 
+residential_simulation_controls:
+  timesteps_per_hr: 6
+  begin_month: 1
+  begin_day_of_month: 1
+  end_month: 12
+  end_day_of_month: 31
+  calendar_year: 2006 #2006 starts on Sunday, 2007 starts on Monday
+
+# downselect:
+#   resample: false
+#   logic:
+#     or:
+#       - Location|FL_Orlando.Intl.AP.722050
+#       - Location|AZ_Tucson.Intl.AP.722740
+#       - Location|GA_Atlanta-Hartsfield-Jackson.Intl.AP.722190
+#       - Location|TX_El.Paso.Intl.AP.722700
+#       - Location|CA_San.Diego-Lindbergh.Field.722900
+#       - Location|NY_New.York-J.F.Kennedy.Intl.AP.744860
+#       - Location|NM_Albuquerque.Intl.AP.723650
+#       - Location|WA_Seattle-Tacoma.Intl.AP.727930
+#       - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699
+#       - Location|WA_Quillayute.State.AP.727970
+#       - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280
+#       - Location|MN_Rochester.Intl.AP.726440
+#       - Location|MT_Great.Falls.Intl.AP.727750
+#       - Location|MN_International.Falls.Intl.AP.727470
+
+upgrades:
+
+#note: no reference scenarios. Everything happens today.  
+
+##up1 - package 1a - EE CAC
+  - upgrade_name: Package 1a EE CAC
+    options: 
+      #Best CAC
+      - option: HVAC System Cooling|AC, SEER 18
+        apply_logic:
+          or:
+            - HVAC System Cooling|AC, SEER 8
+            - HVAC System Cooling|AC, SEER 10
+            - HVAC System Cooling|AC, SEER 13
+            - HVAC System Cooling|AC, SEER 14
+            - HVAC System Cooling|AC, SEER 15
+        costs:
+          - value: 3200
+            multiplier: Fixed (1)
+          - value: 42
+            multiplier: Size, Cooling System (kBtu/h)
+        lifetime: 16
+##up2 - package 1b - EE ASHP
+  - upgrade_name: Package 1b EE ASHP
+    options: 
+      #Best ASHP
+      - option: HVAC System Heat Pump|ASHP, SEER 22, 10 HSPF
+        apply_logic: 
+          or:
+            - HVAC System Heat Pump|ASHP, SEER 10, 6.2 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 10.3, 7.0 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 11.5, 7.5 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 13, 7.7 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 13, 8.0 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 14, 8.2 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 14.3, 8.5 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 15, 8.5 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 16, 9.0 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 17, 8.7 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 18, 9.3 HSPF
+            #removed upgrades from electric resistance heating to ensure no house is included in both the ASHP and CAC upgrade packages
+        costs:
+          - value: 4200
+            multiplier: Fixed (1)
+          - value: 42
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 15
+
+##up2.1 - package 1bpart2 - EE ASHP
+  - upgrade_name: Package 1b EE ASHP
+    options: 
+      #Best ASHP
+      - option: HVAC System Heat Pump|ASHP, SEER 22, 10 HSPF
+        apply_logic: 
+          or:
+            - HVAC System Heat Pump|ASHP, SEER 10, 6.2 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 10.3, 7.0 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 11.5, 7.5 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 13, 7.7 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 13, 8.0 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 14, 8.2 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 14.3, 8.5 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 15, 8.5 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 16, 9.0 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 17, 8.7 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 18, 9.3 HSPF
+            - HVAC System Heating Electricity|Electric Furnace  # Electric Baseboard and Electric Boiler upgrade in another run
+            #removed upgrades from electric resistance heating to ensure no house is included in both the ASHP and CAC upgrade packages
+        costs:
+          - value: 4200
+            multiplier: Fixed (1)
+          - value: 42
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 15
+  
+##up3 - package 1c - EE best smart thermostat
+  - upgrade_name: Package 1c EE Best Smart Thermostat
+    #Best Smart Thermostat
+    options:
+      - option: Nightsetback|San Diego
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|San Diego
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: Fullsetback|San Diego
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|San Diego
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: Nightsetback|Tampa
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Tampa
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: Fullsetback|Tampa
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Tampa
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: Nightsetback|Tucson
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Tucson
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: Fullsetback|Tucson
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Tucson
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: Nightsetback|Albuquerque
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Albuquerque
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: Fullsetback|Albuquerque
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Albuquerque
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: Nightsetback|Atlanta
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Atlanta
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: Fullsetback|Atlanta
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Atlanta
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: Nightsetback|Seattle
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Seattle
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: Fullsetback|Seattle
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Seattle
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: Nightsetback|Great Falls
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Great Falls
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: Fullsetback|Great Falls
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Great Falls
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: Nightsetback|Denver
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Denver
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: Fullsetback|Denver
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Denver
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: Nightsetback|Buffalo
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Buffalo
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: Fullsetback|Buffalo
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Buffalo
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: Nightsetback|New York
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|New York
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: Fullsetback|New York
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|New York
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: Nightsetback|Port Angeles
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Port Angeles
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: Fullsetback|Port Angeles
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Port Angeles
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: Nightsetback|El Paso
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|El Paso
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: Fullsetback|El Paso
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|El Paso
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: Nightsetback|International Falls
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|International Falls
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: Fullsetback|International Falls
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|International Falls
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: Nightsetback|Rochester
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Rochester
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: Fullsetback|Rochester
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Rochester
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+##up4 - package 1d - EE best envelope
+  - upgrade_name: Package 1d EE Best Envelope
+    options: 
+      #Best walls
+      - option: Insulation Wall|Wood Stud, R-13, R-20 external XPS
+        apply_logic:
+          or:
+            - Insulation Wall|Wood Stud, Uninsulated
+            - Insulation Wall|Wood Stud, R-7
+            - Insulation Wall|Wood Stud, R-11
+            - Insulation Wall|Wood Stud, R-13
+            - Insulation Wall|Wood Stud, R-19
+            - Insulation Wall|Wood Stud, R-19, Grade 2
+            - Insulation Wall|Wood Stud, R-19, Grade 3
+            - Insulation Wall|Wood Stud, R-23 Closed Cell Spray Foam, 2x4, 16 in o.c.
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      #Best roofs
+      - option: Insulation Unfinished Attic|Ceiling R-49, Vented
+        apply_logic: 
+          or:
+            - Insulation Unfinished Attic|Uninsulated, Vented
+            - Insulation Unfinished Attic|Ceiling R-7, Vented
+            - Insulation Unfinished Attic|Ceiling R-13, Vented
+            - Insulation Unfinished Attic|Ceiling R-19, Vented
+            - Insulation Unfinished Attic|Ceiling R-30, Vented
+            - Insulation Unfinished Attic|Ceiling R-38, Vented
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      #Best air sealing
+      - option: Infiltration|1 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Mechanical Ventilation|Exhaust, 2010 ASHRAE 62.2
+        apply_logic: 
+            - Mechanical Ventilation|None
+        costs: 
+          - value: 360
+            multiplier: Fixed (1)
+        lifetime: 999
+      #Best windows
+      - option: Windows|SCOUT 5.88 R, 0.49 SHGC
+        apply_logic:
+          or:
+            - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+            - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+            - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Windows|SCOUT 5.88 R, 0.42 SHGC
+        apply_logic:
+          or:
+            - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+            - Location|WA_Quillayute.State.AP.727970 #AIA2
+            - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+            - Location|MN_Rochester.Intl.AP.726440 #AIA2
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Windows|SCOUT 5.88 R, 0.27 SHGC
+        apply_logic:
+          or:
+            - Location|FL_Orlando.Intl.AP.722050 #AIA5
+            - Location|AZ_Tucson.Intl.AP.722740 #AIA4
+            - Location|GA_Atlanta-Hartsfield-Jackson.Intl.AP.722190 #AIA5
+            - Location|TX_El.Paso.Intl.AP.722700 #AIA5
+            - Location|CA_San.Diego-Lindbergh.Field.722900 #AIA4
+            - Location|NY_New.York-J.F.Kennedy.Intl.AP.744860 #AIA3
+            - Location|WA_Seattle-Tacoma.Intl.AP.727930 #AIA3
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      #Best floors:
+      - option: Insulation Slab|R20 Option 1
+        apply_logic: 
+          and:
+            - Insulation Slab|Uninsulated
+            - or:
+              - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+              - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+              - Location|WA_Quillayute.State.AP.727970 #AIA2
+              - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+              - Location|MN_Rochester.Intl.AP.726440 #AIA2
+              - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+              - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Insulation Slab|R20 Option 2
+        apply_logic: 
+          and:
+            - Insulation Slab|2ft R5 Perimeter, R5 Gap
+            - or:
+              - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+              - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+              - Location|WA_Quillayute.State.AP.727970 #AIA2
+              - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+              - Location|MN_Rochester.Intl.AP.726440 #AIA2
+              - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+              - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Insulation Slab|R20 Option 3
+        apply_logic: 
+          and:
+            - Insulation Slab|2ft R10 Perimeter, R10 Gap
+            - or:
+              - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+              - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+              - Location|WA_Quillayute.State.AP.727970 #AIA2
+              - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+              - Location|MN_Rochester.Intl.AP.726440 #AIA2
+              - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+              - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Insulation Slab|R20 Option 4
+        apply_logic: 
+          and:
+            - Insulation Slab|4ft R5 Perimeter, R5 Gap
+            - or:
+              - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+              - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+              - Location|WA_Quillayute.State.AP.727970 #AIA2
+              - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+              - Location|MN_Rochester.Intl.AP.726440 #AIA2
+              - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+              - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999      
+      - option: Insulation Slab|R20 Option 5
+        apply_logic: 
+          and:
+            - Insulation Slab|2ft R5 Exterior
+            - or:
+              - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+              - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+              - Location|WA_Quillayute.State.AP.727970 #AIA2
+              - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+              - Location|MN_Rochester.Intl.AP.726440 #AIA2
+              - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+              - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Insulation Slab|R20 Option 6
+        apply_logic: 
+          and:
+            - Insulation Slab|2ft R10 Exterior
+            - or:
+              - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+              - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+              - Location|WA_Quillayute.State.AP.727970 #AIA2
+              - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+              - Location|MN_Rochester.Intl.AP.726440 #AIA2
+              - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+              - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Insulation Slab|R20 Option 7
+        apply_logic: 
+          and:
+            - Insulation Slab|R10 Whole Slab, R5 Gap
+            - or:
+              - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+              - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+              - Location|WA_Quillayute.State.AP.727970 #AIA2
+              - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+              - Location|MN_Rochester.Intl.AP.726440 #AIA2
+              - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+              - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Insulation Slab|R20 Option 8
+        apply_logic: 
+          and:
+            - Insulation Slab|R20 Whole Slab
+            - or:
+              - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+              - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+              - Location|WA_Quillayute.State.AP.727970 #AIA2
+              - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+              - Location|MN_Rochester.Intl.AP.726440 #AIA2
+              - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+              - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+    ##end floors
+
+##up5 - package 1e - EE best appliances (1st)
+  - upgrade_name: Package 1e EE Best Appliances
+    options: 
+      #Best LEDs
+      - option: Lighting|100% LED, High Efficacy
+        apply_logic:
+          or:
+            - Lighting|100% Incandescent
+            - Lighting|60% CFL Hardwired, 34% CFL Plugin
+            - Lighting|60% CFL
+            - Lighting|100% CFL
+            - Lighting|100% LED
+            - Lighting|20% LED
+            - Lighting|100% LED
+            - Lighting|100% LED, Low Efficacy
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      # Best Refrigerator
+      - option: Refrigerator|EF 22.2, EnergyStar Most Efficient
+        apply_logic: 
+          or:
+            - Refrigerator|EF 17.6
+            - Refrigerator|EF 17.6, 105% Usage
+            - Refrigerator|EF 17.6, 95% Usage
+            - Refrigerator|EF 15.9
+            - Refrigerator|EF 10.5
+            - Refrigerator|EF 10.2
+            - Refrigerator|EF 6.7
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 17.4
+      # Best HPWH
+      - option: Water Heater|Electric Heat Pump, 80 gal
+        apply_logic: 
+          or:
+            - Water Heater|Electric Standard
+            - Water Heater|Electric Premium
+            - Water Heater|Electric Benchmark
+            - Water Heater|Electric Heat Pump, 50 gal
+            - Water Heater|Electric Heat Pump, 50 gal, 140F
+            #removed tankless and in confined space
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 12
+      # Best clothes washer
+      - option: Clothes Washer|EnergyStar Most Efficient, 80% Usage
+        apply_logic:
+          or:
+            - Clothes Washer|EnergyStar, 80% Usage
+            - Clothes Washer|Standard, 80% Usage
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Clothes Washer|EnergyStar Most Efficient, 100% Usage
+        apply_logic:
+          or:
+            - Clothes Washer|EnergyStar, 100% Usage
+            - Clothes Washer|Standard, 100% Usage
+            - Clothes Washer|Standard, 100% Usage, Cold Only
+            - Clothes Washer|EnergyStar, Cold Only
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Clothes Washer|EnergyStar Most Efficient, 120% Usage
+        apply_logic:
+          or:
+            - Clothes Washer|EnergyStar, 120% Usage
+            - Clothes Washer|Standard, 120% Usage
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      # Best clothes dryer
+      - option: Clothes Dryer|Electric, Heat Pump, Ventless
+        apply_logic:
+          or:
+            - Clothes Dryer|Electric, 80% Usage
+            - Clothes Dryer|Electric, 100% Usage
+            - Clothes Dryer|Electric, 120% Usage
+            - Clothes Dryer|Electric, Premium
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      # Best dishwasher
+      - option: Dishwasher|199 Rated kWh, EnergyStar Most Efficient, 80% Usage
+        apply_logic: 
+          or:
+            - Dishwasher|318 Rated kWh, 80% Usage
+            - Dishwasher|290 Rated kWh, 80% Usage
+        costs:
+          - value: 1000
+            multiplier: Fixed (1)
+        lifetime: 11
+      - option: Dishwasher|199 Rated kWh, EnergyStar Most Efficient, 100% Usage
+        apply_logic: 
+          or:
+            - Dishwasher|318 Rated kWh, 100% Usage
+            - Dishwasher|290 Rated kWh, 100% Usage
+        costs:
+          - value: 1000
+            multiplier: Fixed (1)
+        lifetime: 11
+      - option: Dishwasher|199 Rated kWh, EnergyStar Most Efficient, 120% Usage
+        apply_logic: 
+          or:
+            - Dishwasher|318 Rated kWh, 120% Usage
+            - Dishwasher|290 Rated kWh, 120% Usage
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 11
+      #Best pool pump
+      - option: Misc Pool Pump|0.75 HP Pump
+        apply_logic: Misc Pool Pump|1.0 HP Pump
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      #Best electronics
+      - option: Plug Loads|25%
+        apply_logic:
+            - Plug Loads|50%
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Plug Loads|50%
+        apply_logic:
+            - Plug Loads|100%
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Plug Loads|100%
+        apply_logic:
+            - Plug Loads|200%
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+
+##up6 - package 1f - Best CAC Homes, best CAC, smart thermostat and envelope (1st)
+  - upgrade_name: Package 1f EE CAC with smart thermostat and envelope
+    package_apply_logic:
+      or:
+            - HVAC System Cooling|AC, SEER 8
+            - HVAC System Cooling|AC, SEER 10
+            - HVAC System Cooling|AC, SEER 13
+            - HVAC System Cooling|AC, SEER 14
+            - HVAC System Cooling|AC, SEER 15
+    options: 
+      #Best CAC
+      - option: HVAC System Cooling|AC, SEER 18
+        apply_logic:
+          or:
+            - HVAC System Cooling|AC, SEER 8
+            - HVAC System Cooling|AC, SEER 10
+            - HVAC System Cooling|AC, SEER 13
+            - HVAC System Cooling|AC, SEER 14
+            - HVAC System Cooling|AC, SEER 15
+        costs:
+          - value: 3200
+            multiplier: Fixed (1)
+          - value: 42
+            multiplier: Size, Cooling System (kBtu/h)
+        lifetime: 16
+      #Best smart thermostat
+      - option: Nightsetback|San Diego
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|San Diego
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: Fullsetback|San Diego
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|San Diego
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: Nightsetback|Tampa
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Tampa
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: Fullsetback|Tampa
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Tampa
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: Nightsetback|Tucson
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Tucson
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: Fullsetback|Tucson
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Tucson
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: Nightsetback|Albuquerque
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Albuquerque
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: Fullsetback|Albuquerque
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Albuquerque
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: Nightsetback|Atlanta
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Atlanta
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: Fullsetback|Atlanta
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Atlanta
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: Nightsetback|Seattle
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Seattle
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: Fullsetback|Seattle
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Seattle
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: Nightsetback|Great Falls
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Great Falls
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: Fullsetback|Great Falls
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Great Falls
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: Nightsetback|Denver
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Denver
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: Fullsetback|Denver
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Denver
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: Nightsetback|Buffalo
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Buffalo
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: Fullsetback|Buffalo
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Buffalo
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: Nightsetback|New York
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|New York
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: Fullsetback|New York
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|New York
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: Nightsetback|Port Angeles
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Port Angeles
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: Fullsetback|Port Angeles
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Port Angeles
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: Nightsetback|El Paso
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|El Paso
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: Fullsetback|El Paso
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|El Paso
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: Nightsetback|International Falls
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|International Falls
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: Fullsetback|International Falls
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|International Falls
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: Nightsetback|Rochester
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Rochester
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: Fullsetback|Rochester
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Rochester
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      #Best walls
+      - option: Insulation Wall|Wood Stud, R-13, R-20 external XPS
+        apply_logic:
+          or:
+            - Insulation Wall|Wood Stud, Uninsulated
+            - Insulation Wall|Wood Stud, R-7
+            - Insulation Wall|Wood Stud, R-11
+            - Insulation Wall|Wood Stud, R-13
+            - Insulation Wall|Wood Stud, R-19
+            - Insulation Wall|Wood Stud, R-19, Grade 2
+            - Insulation Wall|Wood Stud, R-19, Grade 3
+            - Insulation Wall|Wood Stud, R-23 Closed Cell Spray Foam, 2x4, 16 in o.c.
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      #Best roofs
+      - option: Insulation Unfinished Attic|Ceiling R-49, Vented
+        apply_logic: 
+          or:
+            - Insulation Unfinished Attic|Uninsulated, Vented
+            - Insulation Unfinished Attic|Ceiling R-7, Vented
+            - Insulation Unfinished Attic|Ceiling R-13, Vented
+            - Insulation Unfinished Attic|Ceiling R-19, Vented
+            - Insulation Unfinished Attic|Ceiling R-30, Vented
+            - Insulation Unfinished Attic|Ceiling R-38, Vented
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      #Best air sealing
+      - option: Infiltration|1 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Mechanical Ventilation|Exhaust, 2010 ASHRAE 62.2
+        apply_logic: 
+            - Mechanical Ventilation|None
+        costs: 
+          - value: 360
+            multiplier: Fixed (1)
+        lifetime: 999
+      #Best windows
+      - option: Windows|SCOUT 5.88 R, 0.49 SHGC
+        apply_logic:
+          or:
+            - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+            - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+            - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Windows|SCOUT 5.88 R, 0.42 SHGC
+        apply_logic:
+          or:
+            - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+            - Location|WA_Quillayute.State.AP.727970 #AIA2
+            - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+            - Location|MN_Rochester.Intl.AP.726440 #AIA2
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Windows|SCOUT 5.88 R, 0.27 SHGC
+        apply_logic:
+          or:
+            - Location|FL_Orlando.Intl.AP.722050 #AIA5
+            - Location|AZ_Tucson.Intl.AP.722740 #AIA4
+            - Location|GA_Atlanta-Hartsfield-Jackson.Intl.AP.722190 #AIA5
+            - Location|TX_El.Paso.Intl.AP.722700 #AIA5
+            - Location|CA_San.Diego-Lindbergh.Field.722900 #AIA4
+            - Location|NY_New.York-J.F.Kennedy.Intl.AP.744860 #AIA3
+            - Location|WA_Seattle-Tacoma.Intl.AP.727930 #AIA3
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      #Best floors:
+      - option: Insulation Slab|R20 Option 1
+        apply_logic: 
+          and:
+            - Insulation Slab|Uninsulated
+            - or:
+              - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+              - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+              - Location|WA_Quillayute.State.AP.727970 #AIA2
+              - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+              - Location|MN_Rochester.Intl.AP.726440 #AIA2
+              - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+              - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Insulation Slab|R20 Option 2
+        apply_logic: 
+          and:
+            - Insulation Slab|2ft R5 Perimeter, R5 Gap
+            - or:
+              - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+              - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+              - Location|WA_Quillayute.State.AP.727970 #AIA2
+              - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+              - Location|MN_Rochester.Intl.AP.726440 #AIA2
+              - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+              - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Insulation Slab|R20 Option 3
+        apply_logic: 
+          and:
+            - Insulation Slab|2ft R10 Perimeter, R10 Gap
+            - or:
+              - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+              - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+              - Location|WA_Quillayute.State.AP.727970 #AIA2
+              - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+              - Location|MN_Rochester.Intl.AP.726440 #AIA2
+              - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+              - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Insulation Slab|R20 Option 4
+        apply_logic: 
+          and:
+            - Insulation Slab|4ft R5 Perimeter, R5 Gap
+            - or:
+              - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+              - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+              - Location|WA_Quillayute.State.AP.727970 #AIA2
+              - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+              - Location|MN_Rochester.Intl.AP.726440 #AIA2
+              - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+              - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999      
+      - option: Insulation Slab|R20 Option 5
+        apply_logic: 
+          and:
+            - Insulation Slab|2ft R5 Exterior
+            - or:
+              - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+              - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+              - Location|WA_Quillayute.State.AP.727970 #AIA2
+              - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+              - Location|MN_Rochester.Intl.AP.726440 #AIA2
+              - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+              - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Insulation Slab|R20 Option 6
+        apply_logic: 
+          and:
+            - Insulation Slab|2ft R10 Exterior
+            - or:
+              - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+              - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+              - Location|WA_Quillayute.State.AP.727970 #AIA2
+              - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+              - Location|MN_Rochester.Intl.AP.726440 #AIA2
+              - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+              - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Insulation Slab|R20 Option 7
+        apply_logic: 
+          and:
+            - Insulation Slab|R10 Whole Slab, R5 Gap
+            - or:
+              - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+              - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+              - Location|WA_Quillayute.State.AP.727970 #AIA2
+              - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+              - Location|MN_Rochester.Intl.AP.726440 #AIA2
+              - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+              - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Insulation Slab|R20 Option 8
+        apply_logic: 
+          and:
+            - Insulation Slab|R20 Whole Slab
+            - or:
+              - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+              - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+              - Location|WA_Quillayute.State.AP.727970 #AIA2
+              - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+              - Location|MN_Rochester.Intl.AP.726440 #AIA2
+              - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+              - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+##up7 - package 1g - Best ASHP, smart thermostat (*only for homes with ASHP upgrade), and envelope (1st)
+  - upgrade_name: Package 1g EE ASHP with smart thermostat and best envelope
+    package_apply_logic:
+      or:
+            - HVAC System Heat Pump|ASHP, SEER 10, 6.2 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 10.3, 7.0 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 11.5, 7.5 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 13, 7.7 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 13, 8.0 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 14, 8.2 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 14.3, 8.5 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 15, 8.5 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 16, 9.0 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 17, 8.7 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 18, 9.3 HSPF     
+    options: 
+      #Best ASHP
+      - option: HVAC System Heat Pump|ASHP, SEER 22, 10 HSPF
+        apply_logic: 
+          or:
+            - HVAC System Heat Pump|ASHP, SEER 10, 6.2 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 10.3, 7.0 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 11.5, 7.5 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 13, 7.7 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 13, 8.0 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 14, 8.2 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 14.3, 8.5 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 15, 8.5 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 16, 9.0 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 17, 8.7 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 18, 9.3 HSPF
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      #Best Smart Thermostat
+      - option: Nightsetback|San Diego
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|San Diego
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: Fullsetback|San Diego
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|San Diego
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: Nightsetback|Tampa
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Tampa
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: Fullsetback|Tampa
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Tampa
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: Nightsetback|Tucson
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Tucson
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: Fullsetback|Tucson
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Tucson
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: Nightsetback|Albuquerque
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Albuquerque
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: Fullsetback|Albuquerque
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Albuquerque
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: Nightsetback|Atlanta
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Atlanta
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: Fullsetback|Atlanta
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Atlanta
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: Nightsetback|Seattle
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Seattle
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: Fullsetback|Seattle
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Seattle
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: Nightsetback|Great Falls
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Great Falls
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: Fullsetback|Great Falls
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Great Falls
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: Nightsetback|Denver
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Denver
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: Fullsetback|Denver
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Denver
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: Nightsetback|Buffalo
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Buffalo
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: Fullsetback|Buffalo
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Buffalo
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: Nightsetback|New York
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|New York
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: Fullsetback|New York
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|New York
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: Nightsetback|Port Angeles
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Port Angeles
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: Fullsetback|Port Angeles
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Port Angeles
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: Nightsetback|El Paso
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|El Paso
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: Fullsetback|El Paso
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|El Paso
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: Nightsetback|International Falls
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|International Falls
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: Fullsetback|International Falls
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|International Falls
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: Nightsetback|Rochester
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Rochester
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: Fullsetback|Rochester
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Rochester
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      #Best walls
+      - option: Insulation Wall|Wood Stud, R-13, R-20 external XPS
+        apply_logic:
+          or:
+            - Insulation Wall|Wood Stud, Uninsulated
+            - Insulation Wall|Wood Stud, R-7
+            - Insulation Wall|Wood Stud, R-11
+            - Insulation Wall|Wood Stud, R-13
+            - Insulation Wall|Wood Stud, R-19
+            - Insulation Wall|Wood Stud, R-19, Grade 2
+            - Insulation Wall|Wood Stud, R-19, Grade 3
+            - Insulation Wall|Wood Stud, R-23 Closed Cell Spray Foam, 2x4, 16 in o.c.
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      #Best roofs
+      - option: Insulation Unfinished Attic|Ceiling R-49, Vented
+        apply_logic: 
+          or:
+            - Insulation Unfinished Attic|Uninsulated, Vented
+            - Insulation Unfinished Attic|Ceiling R-7, Vented
+            - Insulation Unfinished Attic|Ceiling R-13, Vented
+            - Insulation Unfinished Attic|Ceiling R-19, Vented
+            - Insulation Unfinished Attic|Ceiling R-30, Vented
+            - Insulation Unfinished Attic|Ceiling R-38, Vented
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      #Best air sealing
+      - option: Infiltration|1 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Mechanical Ventilation|Exhaust, 2010 ASHRAE 62.2
+        apply_logic: 
+            - Mechanical Ventilation|None
+        costs: 
+          - value: 360
+            multiplier: Fixed (1)
+        lifetime: 999
+      #Best windows
+      - option: Windows|SCOUT 5.88 R, 0.49 SHGC
+        apply_logic:
+          or:
+            - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+            - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+            - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Windows|SCOUT 5.88 R, 0.42 SHGC
+        apply_logic:
+          or:
+            - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+            - Location|WA_Quillayute.State.AP.727970 #AIA2
+            - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+            - Location|MN_Rochester.Intl.AP.726440 #AIA2
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Windows|SCOUT 5.88 R, 0.27 SHGC
+        apply_logic:
+          or:
+            - Location|FL_Orlando.Intl.AP.722050 #AIA5
+            - Location|AZ_Tucson.Intl.AP.722740 #AIA4
+            - Location|GA_Atlanta-Hartsfield-Jackson.Intl.AP.722190 #AIA5
+            - Location|TX_El.Paso.Intl.AP.722700 #AIA5
+            - Location|CA_San.Diego-Lindbergh.Field.722900 #AIA4
+            - Location|NY_New.York-J.F.Kennedy.Intl.AP.744860 #AIA3
+            - Location|WA_Seattle-Tacoma.Intl.AP.727930 #AIA3
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      #Best floors:
+      - option: Insulation Slab|R20 Option 1
+        apply_logic: 
+          and:
+            - Insulation Slab|Uninsulated
+            - or:
+              - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+              - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+              - Location|WA_Quillayute.State.AP.727970 #AIA2
+              - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+              - Location|MN_Rochester.Intl.AP.726440 #AIA2
+              - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+              - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Insulation Slab|R20 Option 2
+        apply_logic: 
+          and:
+            - Insulation Slab|2ft R5 Perimeter, R5 Gap
+            - or:
+              - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+              - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+              - Location|WA_Quillayute.State.AP.727970 #AIA2
+              - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+              - Location|MN_Rochester.Intl.AP.726440 #AIA2
+              - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+              - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Insulation Slab|R20 Option 3
+        apply_logic: 
+          and:
+            - Insulation Slab|2ft R10 Perimeter, R10 Gap
+            - or:
+              - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+              - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+              - Location|WA_Quillayute.State.AP.727970 #AIA2
+              - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+              - Location|MN_Rochester.Intl.AP.726440 #AIA2
+              - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+              - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Insulation Slab|R20 Option 4
+        apply_logic: 
+          and:
+            - Insulation Slab|4ft R5 Perimeter, R5 Gap
+            - or:
+              - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+              - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+              - Location|WA_Quillayute.State.AP.727970 #AIA2
+              - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+              - Location|MN_Rochester.Intl.AP.726440 #AIA2
+              - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+              - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999      
+      - option: Insulation Slab|R20 Option 5
+        apply_logic: 
+          and:
+            - Insulation Slab|2ft R5 Exterior
+            - or:
+              - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+              - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+              - Location|WA_Quillayute.State.AP.727970 #AIA2
+              - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+              - Location|MN_Rochester.Intl.AP.726440 #AIA2
+              - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+              - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Insulation Slab|R20 Option 6
+        apply_logic: 
+          and:
+            - Insulation Slab|2ft R10 Exterior
+            - or:
+              - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+              - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+              - Location|WA_Quillayute.State.AP.727970 #AIA2
+              - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+              - Location|MN_Rochester.Intl.AP.726440 #AIA2
+              - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+              - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Insulation Slab|R20 Option 7
+        apply_logic: 
+          and:
+            - Insulation Slab|R10 Whole Slab, R5 Gap
+            - or:
+              - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+              - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+              - Location|WA_Quillayute.State.AP.727970 #AIA2
+              - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+              - Location|MN_Rochester.Intl.AP.726440 #AIA2
+              - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+              - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Insulation Slab|R20 Option 8
+        apply_logic: 
+          and:
+            - Insulation Slab|R20 Whole Slab
+            - or:
+              - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+              - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+              - Location|WA_Quillayute.State.AP.727970 #AIA2
+              - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+              - Location|MN_Rochester.Intl.AP.726440 #AIA2
+              - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+              - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+##up8 - package 1h - Smart thermostat (*only homes w/o CAC or ASHP upgrade), envelope (1st)
+  - upgrade_name: Package 1h EE smart thermostat & envelope when not upgrading CAC or ASHP
+    package_apply_logic:
+      not:
+        - or:
+            - HVAC System Heat Pump|ASHP, SEER 10, 6.2 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 10.3, 7.0 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 11.5, 7.5 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 13, 7.7 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 13, 8.0 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 14, 8.2 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 14.3, 8.5 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 15, 8.5 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 16, 9.0 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 17, 8.7 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 18, 9.3 HSPF
+            - HVAC System Cooling|AC, SEER 8
+            - HVAC System Cooling|AC, SEER 10
+            - HVAC System Cooling|AC, SEER 13
+            - HVAC System Cooling|AC, SEER 14
+            - HVAC System Cooling|AC, SEER 15
+    options: 
+      #Best smart thermostat
+      - option: Nightsetback|San Diego
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|San Diego
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: Fullsetback|San Diego
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|San Diego
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: Nightsetback|Tampa
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Tampa
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: Fullsetback|Tampa
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Tampa
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: Nightsetback|Tucson
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Tucson
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: Fullsetback|Tucson
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Tucson
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: Nightsetback|Albuquerque
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Albuquerque
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: Fullsetback|Albuquerque
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Albuquerque
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: Nightsetback|Atlanta
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Atlanta
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: Fullsetback|Atlanta
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Atlanta
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: Nightsetback|Seattle
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Seattle
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: Fullsetback|Seattle
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Seattle
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: Nightsetback|Great Falls
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Great Falls
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: Fullsetback|Great Falls
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Great Falls
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: Nightsetback|Denver
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Denver
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: Fullsetback|Denver
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Denver
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: Nightsetback|Buffalo
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Buffalo
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: Fullsetback|Buffalo
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Buffalo
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: Nightsetback|New York
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|New York
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: Fullsetback|New York
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|New York
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: Nightsetback|Port Angeles
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Port Angeles
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: Fullsetback|Port Angeles
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Port Angeles
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: Nightsetback|El Paso
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|El Paso
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: Fullsetback|El Paso
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|El Paso
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: Nightsetback|International Falls
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|International Falls
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: Fullsetback|International Falls
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|International Falls
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: Nightsetback|Rochester
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Rochester
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: Fullsetback|Rochester
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Rochester
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      #Best walls
+      - option: Insulation Wall|Wood Stud, R-13, R-20 external XPS
+        apply_logic:
+          or:
+            - Insulation Wall|Wood Stud, Uninsulated
+            - Insulation Wall|Wood Stud, R-7
+            - Insulation Wall|Wood Stud, R-11
+            - Insulation Wall|Wood Stud, R-13
+            - Insulation Wall|Wood Stud, R-19
+            - Insulation Wall|Wood Stud, R-19, Grade 2
+            - Insulation Wall|Wood Stud, R-19, Grade 3
+            - Insulation Wall|Wood Stud, R-23 Closed Cell Spray Foam, 2x4, 16 in o.c.
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      #Best roofs
+      - option: Insulation Unfinished Attic|Ceiling R-49, Vented
+        apply_logic: 
+          or:
+            - Insulation Unfinished Attic|Uninsulated, Vented
+            - Insulation Unfinished Attic|Ceiling R-7, Vented
+            - Insulation Unfinished Attic|Ceiling R-13, Vented
+            - Insulation Unfinished Attic|Ceiling R-19, Vented
+            - Insulation Unfinished Attic|Ceiling R-30, Vented
+            - Insulation Unfinished Attic|Ceiling R-38, Vented
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      #Best air sealing
+      - option: Infiltration|1 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Mechanical Ventilation|Exhaust, 2010 ASHRAE 62.2
+        apply_logic: 
+            - Mechanical Ventilation|None
+        costs: 
+          - value: 360
+            multiplier: Fixed (1)
+        lifetime: 999
+      #Best windows
+      - option: Windows|SCOUT 5.88 R, 0.49 SHGC
+        apply_logic:
+          or:
+            - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+            - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+            - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Windows|SCOUT 5.88 R, 0.42 SHGC
+        apply_logic:
+          or:
+            - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+            - Location|WA_Quillayute.State.AP.727970 #AIA2
+            - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+            - Location|MN_Rochester.Intl.AP.726440 #AIA2
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Windows|SCOUT 5.88 R, 0.27 SHGC
+        apply_logic:
+          or:
+            - Location|FL_Orlando.Intl.AP.722050 #AIA5
+            - Location|AZ_Tucson.Intl.AP.722740 #AIA4
+            - Location|GA_Atlanta-Hartsfield-Jackson.Intl.AP.722190 #AIA5
+            - Location|TX_El.Paso.Intl.AP.722700 #AIA5
+            - Location|CA_San.Diego-Lindbergh.Field.722900 #AIA4
+            - Location|NY_New.York-J.F.Kennedy.Intl.AP.744860 #AIA3
+            - Location|WA_Seattle-Tacoma.Intl.AP.727930 #AIA3
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      #Best floors:
+      - option: Insulation Slab|R20 Option 1
+        apply_logic: 
+          and:
+            - Insulation Slab|Uninsulated
+            - or:
+              - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+              - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+              - Location|WA_Quillayute.State.AP.727970 #AIA2
+              - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+              - Location|MN_Rochester.Intl.AP.726440 #AIA2
+              - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+              - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Insulation Slab|R20 Option 2
+        apply_logic: 
+          and:
+            - Insulation Slab|2ft R5 Perimeter, R5 Gap
+            - or:
+              - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+              - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+              - Location|WA_Quillayute.State.AP.727970 #AIA2
+              - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+              - Location|MN_Rochester.Intl.AP.726440 #AIA2
+              - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+              - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Insulation Slab|R20 Option 3
+        apply_logic: 
+          and:
+            - Insulation Slab|2ft R10 Perimeter, R10 Gap
+            - or:
+              - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+              - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+              - Location|WA_Quillayute.State.AP.727970 #AIA2
+              - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+              - Location|MN_Rochester.Intl.AP.726440 #AIA2
+              - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+              - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Insulation Slab|R20 Option 4
+        apply_logic: 
+          and:
+            - Insulation Slab|4ft R5 Perimeter, R5 Gap
+            - or:
+              - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+              - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+              - Location|WA_Quillayute.State.AP.727970 #AIA2
+              - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+              - Location|MN_Rochester.Intl.AP.726440 #AIA2
+              - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+              - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999      
+      - option: Insulation Slab|R20 Option 5
+        apply_logic: 
+          and:
+            - Insulation Slab|2ft R5 Exterior
+            - or:
+              - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+              - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+              - Location|WA_Quillayute.State.AP.727970 #AIA2
+              - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+              - Location|MN_Rochester.Intl.AP.726440 #AIA2
+              - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+              - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Insulation Slab|R20 Option 6
+        apply_logic: 
+          and:
+            - Insulation Slab|2ft R10 Exterior
+            - or:
+              - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+              - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+              - Location|WA_Quillayute.State.AP.727970 #AIA2
+              - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+              - Location|MN_Rochester.Intl.AP.726440 #AIA2
+              - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+              - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Insulation Slab|R20 Option 7
+        apply_logic: 
+          and:
+            - Insulation Slab|R10 Whole Slab, R5 Gap
+            - or:
+              - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+              - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+              - Location|WA_Quillayute.State.AP.727970 #AIA2
+              - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+              - Location|MN_Rochester.Intl.AP.726440 #AIA2
+              - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+              - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Insulation Slab|R20 Option 8
+        apply_logic: 
+          and:
+            - Insulation Slab|R20 Whole Slab
+            - or:
+              - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+              - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+              - Location|WA_Quillayute.State.AP.727970 #AIA2
+              - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+              - Location|MN_Rochester.Intl.AP.726440 #AIA2
+              - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+              - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+
+
+##up9 - package 2 - DR (wh and thermostat)
+  - upgrade_name: package 2 DR only
+    options: 
+      - option: Appliance DR Apply|TRUE
+        costs:
+          - value: 0
+      #Water heater DR
+      - option: Water Heater DR|WHDR Tank Tampa
+        apply_logic:
+          - Location|FL_Orlando.Intl.AP.722050
+          - Water Heater DR|WH Tank False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tank Tucson
+        apply_logic:
+          - Location|AZ_Tucson.Intl.AP.722740
+          - Water Heater DR|WH Tank False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tank Atlanta
+        apply_logic:
+          - Location|GA_Atlanta-Hartsfield-Jackson.Intl.AP.722190
+          - Water Heater DR|WH Tank False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tank El Paso
+        apply_logic:
+          - Location|TX_El.Paso.Intl.AP.722700
+          - Water Heater DR|WH Tank False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tank San Diego
+        apply_logic:
+          - Location|CA_San.Diego-Lindbergh.Field.722900
+          - Water Heater DR|WH Tank False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tank New York
+        apply_logic:
+          - Location|NY_New.York-J.F.Kennedy.Intl.AP.744860
+          - Water Heater DR|WH Tank False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tank Albuquerque
+        apply_logic:
+          - Location|NM_Albuquerque.Intl.AP.723650
+          - Water Heater DR|WH Tank False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tank Seattle
+        apply_logic:
+          - Location|WA_Seattle-Tacoma.Intl.AP.727930
+          - Water Heater DR|WH Tank False
+          - Water Heater Fuel Type|Electric     
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tank Denver
+        apply_logic:
+          - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699
+          - Water Heater DR|WH Tank False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tank Port Angeles
+        apply_logic:
+          - Location|WA_Quillayute.State.AP.727970
+          - Water Heater DR|WH Tank False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tank Buffalo
+        apply_logic:
+          - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280
+          - Water Heater DR|WH Tank False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tank Rochester
+        apply_logic:
+          - Location|MN_Rochester.Intl.AP.726440
+          - Water Heater DR|WH Tank False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tank Great Falls
+        apply_logic:
+          - Location|MT_Great.Falls.Intl.AP.727750
+          - Water Heater DR|WH Tank False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tank International Falls
+        apply_logic:
+          - Location|MN_International.Falls.Intl.AP.727470
+          - Water Heater DR|WH Tank False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+          
+      - option: Water Heater DR|WHDR Tankless Tampa
+        apply_logic:
+          - Location|FL_Orlando.Intl.AP.722050
+          - Water Heater DR|WH Tankless False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tankless Tucson
+        apply_logic:
+          - Location|AZ_Tucson.Intl.AP.722740
+          - Water Heater DR|WH Tankless False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tankless Atlanta
+        apply_logic:
+          - Location|GA_Atlanta-Hartsfield-Jackson.Intl.AP.722190
+          - Water Heater DR|WH Tankless False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tankless El Paso
+        apply_logic:
+          - Location|TX_El.Paso.Intl.AP.722700
+          - Water Heater DR|WH Tankless False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tankless San Diego
+        apply_logic:
+          - Location|CA_San.Diego-Lindbergh.Field.722900
+          - Water Heater DR|WH Tankless False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tankless New York
+        apply_logic:
+          - Location|NY_New.York-J.F.Kennedy.Intl.AP.744860
+          - Water Heater DR|WH Tankless False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tankless Albuquerque
+        apply_logic:
+          - Location|NM_Albuquerque.Intl.AP.723650
+          - Water Heater DR|WH Tankless False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tankless Seattle
+        apply_logic:
+          - Location|WA_Seattle-Tacoma.Intl.AP.727930
+          - Water Heater DR|WH Tankless False
+          - Water Heater Fuel Type|Electric  
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tankless Denver
+        apply_logic:
+          - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699
+          - Water Heater DR|WH Tankless False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tankless Port Angeles
+        apply_logic:
+          - Location|WA_Quillayute.State.AP.727970
+          - Water Heater DR|WH Tankless False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tankless Buffalo
+        apply_logic:
+          - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280
+          - Water Heater DR|WH Tankless False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tankless Rochester
+        apply_logic:
+          - Location|MN_Rochester.Intl.AP.726440
+          - Water Heater DR|WH Tankless False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tankless Great Falls
+        apply_logic:
+          - Location|MT_Great.Falls.Intl.AP.727750
+          - Water Heater DR|WH Tankless False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tankless International Falls
+        apply_logic:
+          - Location|MN_International.Falls.Intl.AP.727470
+          - Water Heater DR|WH Tankless False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      #Thermostat DR
+      - option: ThermoDR|San Diego
+        apply_logic: City|San Diego
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: ThermoDR|Tampa
+        apply_logic: City|Tampa
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: ThermoDR|Tucson
+        apply_logic: City|Tucson
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: ThermoDR|Albuquerque
+        apply_logic: City|Albuquerque
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: ThermoDR|Atlanta
+        apply_logic: City|Atlanta
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: ThermoDR|Seattle
+        apply_logic: City|Seattle
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: ThermoDR|Great Falls
+        apply_logic: City|Great Falls
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: ThermoDR|Denver
+        apply_logic: City|Denver
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: ThermoDR|Buffalo
+        apply_logic: City|Buffalo
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: ThermoDR|New York
+        apply_logic: City|New York
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: ThermoDR|Port Angeles
+        apply_logic: City|Port Angeles
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: ThermoDR|El Paso
+        apply_logic: City|El Paso
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: ThermoDR|International Falls
+        apply_logic: City|International Falls
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: ThermoDR|Rochester
+        apply_logic: City|Rochester
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+##up10 - package 3a - CAC upgrade with pre heating/cooling, smart thermostat, envelope
+  - upgrade_name: Package 3a Pre-heating/cooling, smart thermostat, and envelope for CAC upgrades
+    package_apply_logic:
+      or:
+          - HVAC System Cooling|AC, SEER 8
+          - HVAC System Cooling|AC, SEER 10
+          - HVAC System Cooling|AC, SEER 13
+          - HVAC System Cooling|AC, SEER 14
+          - HVAC System Cooling|AC, SEER 15
+    options:
+      #Best CAC
+      - option: HVAC System Cooling|AC, SEER 18
+        apply_logic:
+          or:
+            - HVAC System Cooling|AC, SEER 8
+            - HVAC System Cooling|AC, SEER 10
+            - HVAC System Cooling|AC, SEER 13
+            - HVAC System Cooling|AC, SEER 14
+            - HVAC System Cooling|AC, SEER 15
+        costs:
+          - value: 3200
+            multiplier: Fixed (1)
+          - value: 42
+            multiplier: Size, Cooling System (kBtu/h)
+        lifetime: 16
+      #smart thermostat    
+      - option: ThermoDR_and_nightsetback|San Diego
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|San Diego
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: ThermoDR_and_fullsetback|San Diego
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|San Diego
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: ThermoDR_and_nightsetback|Tampa
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Tampa
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: ThermoDR_and_fullsetback|Tampa
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Tampa
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: ThermoDR_and_nightsetback|Tucson
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Tucson
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: ThermoDR_and_fullsetback|Tucson
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Tucson
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: ThermoDR_and_nightsetback|Albuquerque
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Albuquerque
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: ThermoDR_and_fullsetback|Albuquerque
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Albuquerque
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: ThermoDR_and_nightsetback|Atlanta
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Atlanta
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: ThermoDR_and_fullsetback|Atlanta
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Atlanta
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: ThermoDR_and_nightsetback|Seattle
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Seattle
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: ThermoDR_and_fullsetback|Seattle
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Seattle
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: ThermoDR_and_nightsetback|Great Falls
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Great Falls
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: ThermoDR_and_fullsetback|Great Falls
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Great Falls
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: ThermoDR_and_nightsetback|Denver
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Denver
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: ThermoDR_and_fullsetback|Denver
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Denver
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: ThermoDR_and_nightsetback|Buffalo
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Buffalo
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: ThermoDR_and_fullsetback|Buffalo
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Buffalo
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: ThermoDR_and_nightsetback|New York
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|New York
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: ThermoDR_and_fullsetback|New York
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|New York
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: ThermoDR_and_nightsetback|Port Angeles
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Port Angeles
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: ThermoDR_and_fullsetback|Port Angeles
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Port Angeles
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: ThermoDR_and_nightsetback|El Paso
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|El Paso
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: ThermoDR_and_fullsetback|El Paso
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|El Paso
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: ThermoDR_and_nightsetback|International Falls
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|International Falls
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: ThermoDR_and_fullsetback|International Falls
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|International Falls
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: ThermoDR_and_nightsetback|Rochester
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Rochester
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: ThermoDR_and_fullsetback|Rochester
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Rochester
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+    
+      ##envelope
+      #Best walls
+      - option: Insulation Wall|Wood Stud, R-13, R-20 external XPS
+        apply_logic:
+          or:
+            - Insulation Wall|Wood Stud, Uninsulated
+            - Insulation Wall|Wood Stud, R-7
+            - Insulation Wall|Wood Stud, R-11
+            - Insulation Wall|Wood Stud, R-13
+            - Insulation Wall|Wood Stud, R-19
+            - Insulation Wall|Wood Stud, R-19, Grade 2
+            - Insulation Wall|Wood Stud, R-19, Grade 3
+            - Insulation Wall|Wood Stud, R-23 Closed Cell Spray Foam, 2x4, 16 in o.c.
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      #Best roofs
+      - option: Insulation Unfinished Attic|Ceiling R-49, Vented
+        apply_logic: 
+          or:
+            - Insulation Unfinished Attic|Uninsulated, Vented
+            - Insulation Unfinished Attic|Ceiling R-7, Vented
+            - Insulation Unfinished Attic|Ceiling R-13, Vented
+            - Insulation Unfinished Attic|Ceiling R-19, Vented
+            - Insulation Unfinished Attic|Ceiling R-30, Vented
+            - Insulation Unfinished Attic|Ceiling R-38, Vented
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      #Best air sealing
+      - option: Infiltration|1 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Mechanical Ventilation|Exhaust, 2010 ASHRAE 62.2
+        apply_logic: 
+            - Mechanical Ventilation|None
+        costs: 
+          - value: 360
+            multiplier: Fixed (1)
+        lifetime: 999
+      #Best windows
+      - option: Windows|SCOUT 5.88 R, 0.49 SHGC
+        apply_logic:
+          or:
+            - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+            - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+            - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Windows|SCOUT 5.88 R, 0.42 SHGC
+        apply_logic:
+          or:
+            - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+            - Location|WA_Quillayute.State.AP.727970 #AIA2
+            - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+            - Location|MN_Rochester.Intl.AP.726440 #AIA2
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Windows|SCOUT 5.88 R, 0.27 SHGC
+        apply_logic:
+          or:
+            - Location|FL_Orlando.Intl.AP.722050 #AIA5
+            - Location|AZ_Tucson.Intl.AP.722740 #AIA4
+            - Location|GA_Atlanta-Hartsfield-Jackson.Intl.AP.722190 #AIA5
+            - Location|TX_El.Paso.Intl.AP.722700 #AIA5
+            - Location|CA_San.Diego-Lindbergh.Field.722900 #AIA4
+            - Location|NY_New.York-J.F.Kennedy.Intl.AP.744860 #AIA3
+            - Location|WA_Seattle-Tacoma.Intl.AP.727930 #AIA3
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      #Best floors:
+      - option: Insulation Slab|R20 Option 1
+        apply_logic: 
+          and:
+            - Insulation Slab|Uninsulated
+            - or:
+              - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+              - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+              - Location|WA_Quillayute.State.AP.727970 #AIA2
+              - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+              - Location|MN_Rochester.Intl.AP.726440 #AIA2
+              - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+              - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Insulation Slab|R20 Option 2
+        apply_logic: 
+          and:
+            - Insulation Slab|2ft R5 Perimeter, R5 Gap
+            - or:
+              - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+              - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+              - Location|WA_Quillayute.State.AP.727970 #AIA2
+              - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+              - Location|MN_Rochester.Intl.AP.726440 #AIA2
+              - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+              - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Insulation Slab|R20 Option 3
+        apply_logic: 
+          and:
+            - Insulation Slab|2ft R10 Perimeter, R10 Gap
+            - or:
+              - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+              - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+              - Location|WA_Quillayute.State.AP.727970 #AIA2
+              - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+              - Location|MN_Rochester.Intl.AP.726440 #AIA2
+              - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+              - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Insulation Slab|R20 Option 4
+        apply_logic: 
+          and:
+            - Insulation Slab|4ft R5 Perimeter, R5 Gap
+            - or:
+              - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+              - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+              - Location|WA_Quillayute.State.AP.727970 #AIA2
+              - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+              - Location|MN_Rochester.Intl.AP.726440 #AIA2
+              - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+              - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999      
+      - option: Insulation Slab|R20 Option 5
+        apply_logic: 
+          and:
+            - Insulation Slab|2ft R5 Exterior
+            - or:
+              - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+              - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+              - Location|WA_Quillayute.State.AP.727970 #AIA2
+              - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+              - Location|MN_Rochester.Intl.AP.726440 #AIA2
+              - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+              - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Insulation Slab|R20 Option 6
+        apply_logic: 
+          and:
+            - Insulation Slab|2ft R10 Exterior
+            - or:
+              - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+              - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+              - Location|WA_Quillayute.State.AP.727970 #AIA2
+              - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+              - Location|MN_Rochester.Intl.AP.726440 #AIA2
+              - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+              - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Insulation Slab|R20 Option 7
+        apply_logic: 
+          and:
+            - Insulation Slab|R10 Whole Slab, R5 Gap
+            - or:
+              - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+              - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+              - Location|WA_Quillayute.State.AP.727970 #AIA2
+              - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+              - Location|MN_Rochester.Intl.AP.726440 #AIA2
+              - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+              - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Insulation Slab|R20 Option 8
+        apply_logic: 
+          and:
+            - Insulation Slab|R20 Whole Slab
+            - or:
+              - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+              - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+              - Location|WA_Quillayute.State.AP.727970 #AIA2
+              - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+              - Location|MN_Rochester.Intl.AP.726440 #AIA2
+              - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+              - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+    ##end floors
+
+
+
+##up11 - package 3b - ASHP upgrade with pre heating/cooling, smart thermostat, envelope
+  - upgrade_name: Package 3b Pre-heating/cooling, smart thermostat, and envelope for ASHP upgrades
+    package_apply_logic:
+      or:
+          - HVAC System Heat Pump|ASHP, SEER 10, 6.2 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 10.3, 7.0 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 11.5, 7.5 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 13, 7.7 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 13, 8.0 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 14, 8.2 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 14.3, 8.5 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 15, 8.5 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 16, 9.0 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 17, 8.7 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 18, 9.3 HSPF
+    options:
+      - option: HVAC System Heat Pump|ASHP, SEER 22, 10 HSPF
+        apply_logic: 
+          or:
+            - HVAC System Heat Pump|ASHP, SEER 10, 6.2 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 10.3, 7.0 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 11.5, 7.5 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 13, 7.7 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 13, 8.0 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 14, 8.2 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 14.3, 8.5 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 15, 8.5 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 16, 9.0 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 17, 8.7 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 18, 9.3 HSPF
+            #removed upgrades from electric resistance heating to ensure no house is included in both the ASHP and CAC upgrade packages
+        costs:
+          - value: 4200
+            multiplier: Fixed (1)
+          - value: 42
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 15
+      #smart thermostat
+      - option: ThermoDR_and_nightsetback|San Diego
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|San Diego
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: ThermoDR_and_fullsetback|San Diego
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|San Diego
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: ThermoDR_and_nightsetback|Tampa
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Tampa
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: ThermoDR_and_fullsetback|Tampa
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Tampa
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: ThermoDR_and_nightsetback|Tucson
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Tucson
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: ThermoDR_and_fullsetback|Tucson
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Tucson
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: ThermoDR_and_nightsetback|Albuquerque
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Albuquerque
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: ThermoDR_and_fullsetback|Albuquerque
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Albuquerque
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: ThermoDR_and_nightsetback|Atlanta
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Atlanta
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: ThermoDR_and_fullsetback|Atlanta
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Atlanta
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: ThermoDR_and_nightsetback|Seattle
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Seattle
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: ThermoDR_and_fullsetback|Seattle
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Seattle
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: ThermoDR_and_nightsetback|Great Falls
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Great Falls
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: ThermoDR_and_fullsetback|Great Falls
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Great Falls
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: ThermoDR_and_nightsetback|Denver
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Denver
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: ThermoDR_and_fullsetback|Denver
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Denver
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: ThermoDR_and_nightsetback|Buffalo
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Buffalo
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: ThermoDR_and_fullsetback|Buffalo
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Buffalo
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: ThermoDR_and_nightsetback|New York
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|New York
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: ThermoDR_and_fullsetback|New York
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|New York
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: ThermoDR_and_nightsetback|Port Angeles
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Port Angeles
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: ThermoDR_and_fullsetback|Port Angeles
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Port Angeles
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: ThermoDR_and_nightsetback|El Paso
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|El Paso
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: ThermoDR_and_fullsetback|El Paso
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|El Paso
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: ThermoDR_and_nightsetback|International Falls
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|International Falls
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: ThermoDR_and_fullsetback|International Falls
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|International Falls
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: ThermoDR_and_nightsetback|Rochester
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Rochester
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: ThermoDR_and_fullsetback|Rochester
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Rochester
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      #envelope
+            #Best walls
+      - option: Insulation Wall|Wood Stud, R-13, R-20 external XPS
+        apply_logic:
+          or:
+            - Insulation Wall|Wood Stud, Uninsulated
+            - Insulation Wall|Wood Stud, R-7
+            - Insulation Wall|Wood Stud, R-11
+            - Insulation Wall|Wood Stud, R-13
+            - Insulation Wall|Wood Stud, R-19
+            - Insulation Wall|Wood Stud, R-19, Grade 2
+            - Insulation Wall|Wood Stud, R-19, Grade 3
+            - Insulation Wall|Wood Stud, R-23 Closed Cell Spray Foam, 2x4, 16 in o.c.
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      #Best roofs
+      - option: Insulation Unfinished Attic|Ceiling R-49, Vented
+        apply_logic: 
+          or:
+            - Insulation Unfinished Attic|Uninsulated, Vented
+            - Insulation Unfinished Attic|Ceiling R-7, Vented
+            - Insulation Unfinished Attic|Ceiling R-13, Vented
+            - Insulation Unfinished Attic|Ceiling R-19, Vented
+            - Insulation Unfinished Attic|Ceiling R-30, Vented
+            - Insulation Unfinished Attic|Ceiling R-38, Vented
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      #Best air sealing
+      - option: Infiltration|1 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Mechanical Ventilation|Exhaust, 2010 ASHRAE 62.2
+        apply_logic: 
+            - Mechanical Ventilation|None
+        costs: 
+          - value: 360
+            multiplier: Fixed (1)
+        lifetime: 999
+      #Best windows
+      - option: Windows|SCOUT 5.88 R, 0.49 SHGC
+        apply_logic:
+          or:
+            - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+            - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+            - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Windows|SCOUT 5.88 R, 0.42 SHGC
+        apply_logic:
+          or:
+            - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+            - Location|WA_Quillayute.State.AP.727970 #AIA2
+            - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+            - Location|MN_Rochester.Intl.AP.726440 #AIA2
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Windows|SCOUT 5.88 R, 0.27 SHGC
+        apply_logic:
+          or:
+            - Location|FL_Orlando.Intl.AP.722050 #AIA5
+            - Location|AZ_Tucson.Intl.AP.722740 #AIA4
+            - Location|GA_Atlanta-Hartsfield-Jackson.Intl.AP.722190 #AIA5
+            - Location|TX_El.Paso.Intl.AP.722700 #AIA5
+            - Location|CA_San.Diego-Lindbergh.Field.722900 #AIA4
+            - Location|NY_New.York-J.F.Kennedy.Intl.AP.744860 #AIA3
+            - Location|WA_Seattle-Tacoma.Intl.AP.727930 #AIA3
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      #Best floors:
+      - option: Insulation Slab|R20 Option 1
+        apply_logic: 
+          and:
+            - Insulation Slab|Uninsulated
+            - or:
+              - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+              - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+              - Location|WA_Quillayute.State.AP.727970 #AIA2
+              - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+              - Location|MN_Rochester.Intl.AP.726440 #AIA2
+              - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+              - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Insulation Slab|R20 Option 2
+        apply_logic: 
+          and:
+            - Insulation Slab|2ft R5 Perimeter, R5 Gap
+            - or:
+              - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+              - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+              - Location|WA_Quillayute.State.AP.727970 #AIA2
+              - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+              - Location|MN_Rochester.Intl.AP.726440 #AIA2
+              - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+              - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Insulation Slab|R20 Option 3
+        apply_logic: 
+          and:
+            - Insulation Slab|2ft R10 Perimeter, R10 Gap
+            - or:
+              - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+              - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+              - Location|WA_Quillayute.State.AP.727970 #AIA2
+              - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+              - Location|MN_Rochester.Intl.AP.726440 #AIA2
+              - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+              - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Insulation Slab|R20 Option 4
+        apply_logic: 
+          and:
+            - Insulation Slab|4ft R5 Perimeter, R5 Gap
+            - or:
+              - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+              - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+              - Location|WA_Quillayute.State.AP.727970 #AIA2
+              - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+              - Location|MN_Rochester.Intl.AP.726440 #AIA2
+              - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+              - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999      
+      - option: Insulation Slab|R20 Option 5
+        apply_logic: 
+          and:
+            - Insulation Slab|2ft R5 Exterior
+            - or:
+              - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+              - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+              - Location|WA_Quillayute.State.AP.727970 #AIA2
+              - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+              - Location|MN_Rochester.Intl.AP.726440 #AIA2
+              - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+              - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Insulation Slab|R20 Option 6
+        apply_logic: 
+          and:
+            - Insulation Slab|2ft R10 Exterior
+            - or:
+              - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+              - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+              - Location|WA_Quillayute.State.AP.727970 #AIA2
+              - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+              - Location|MN_Rochester.Intl.AP.726440 #AIA2
+              - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+              - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Insulation Slab|R20 Option 7
+        apply_logic: 
+          and:
+            - Insulation Slab|R10 Whole Slab, R5 Gap
+            - or:
+              - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+              - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+              - Location|WA_Quillayute.State.AP.727970 #AIA2
+              - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+              - Location|MN_Rochester.Intl.AP.726440 #AIA2
+              - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+              - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Insulation Slab|R20 Option 8
+        apply_logic: 
+          and:
+            - Insulation Slab|R20 Whole Slab
+            - or:
+              - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+              - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+              - Location|WA_Quillayute.State.AP.727970 #AIA2
+              - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+              - Location|MN_Rochester.Intl.AP.726440 #AIA2
+              - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+              - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+    ##end floors
+
+##up12 - package 3c - No CAC/ASHP upgrade, with pre heating/cooling, smart thermostat, envelope
+  - upgrade_name: Package 3c Pre-heating/cooling, smart thermostat, and envelope for no HVAC upgrades
+    package_apply_logic:
+      not:
+        - or:
+            - HVAC System Heat Pump|ASHP, SEER 10, 6.2 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 10.3, 7.0 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 11.5, 7.5 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 13, 7.7 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 13, 8.0 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 14, 8.2 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 14.3, 8.5 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 15, 8.5 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 16, 9.0 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 17, 8.7 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 18, 9.3 HSPF
+            - HVAC System Cooling|AC, SEER 8
+            - HVAC System Cooling|AC, SEER 10
+            - HVAC System Cooling|AC, SEER 13
+            - HVAC System Cooling|AC, SEER 14
+            - HVAC System Cooling|AC, SEER 15
+    options:
+      #smart thermostat
+      - option: ThermoDR_and_nightsetback|San Diego
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|San Diego
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: ThermoDR_and_fullsetback|San Diego
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|San Diego
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: ThermoDR_and_nightsetback|Tampa
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Tampa
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: ThermoDR_and_fullsetback|Tampa
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Tampa
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: ThermoDR_and_nightsetback|Tucson
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Tucson
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: ThermoDR_and_fullsetback|Tucson
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Tucson
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: ThermoDR_and_nightsetback|Albuquerque
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Albuquerque
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: ThermoDR_and_fullsetback|Albuquerque
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Albuquerque
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: ThermoDR_and_nightsetback|Atlanta
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Atlanta
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: ThermoDR_and_fullsetback|Atlanta
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Atlanta
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: ThermoDR_and_nightsetback|Seattle
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Seattle
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: ThermoDR_and_fullsetback|Seattle
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Seattle
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: ThermoDR_and_nightsetback|Great Falls
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Great Falls
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: ThermoDR_and_fullsetback|Great Falls
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Great Falls
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: ThermoDR_and_nightsetback|Denver
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Denver
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: ThermoDR_and_fullsetback|Denver
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Denver
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: ThermoDR_and_nightsetback|Buffalo
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Buffalo
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: ThermoDR_and_fullsetback|Buffalo
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Buffalo
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: ThermoDR_and_nightsetback|New York
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|New York
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: ThermoDR_and_fullsetback|New York
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|New York
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: ThermoDR_and_nightsetback|Port Angeles
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Port Angeles
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: ThermoDR_and_fullsetback|Port Angeles
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Port Angeles
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: ThermoDR_and_nightsetback|El Paso
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|El Paso
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: ThermoDR_and_fullsetback|El Paso
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|El Paso
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: ThermoDR_and_nightsetback|International Falls
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|International Falls
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: ThermoDR_and_fullsetback|International Falls
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|International Falls
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      - option: ThermoDR_and_nightsetback|Rochester
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - City|Rochester
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: ThermoDR_and_fullsetback|Rochester
+        apply_logic:
+          - Somebody at home in weekday|No
+          - City|Rochester
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+
+      #envelope
+            #Best walls
+      - option: Insulation Wall|Wood Stud, R-13, R-20 external XPS
+        apply_logic:
+          or:
+            - Insulation Wall|Wood Stud, Uninsulated
+            - Insulation Wall|Wood Stud, R-7
+            - Insulation Wall|Wood Stud, R-11
+            - Insulation Wall|Wood Stud, R-13
+            - Insulation Wall|Wood Stud, R-19
+            - Insulation Wall|Wood Stud, R-19, Grade 2
+            - Insulation Wall|Wood Stud, R-19, Grade 3
+            - Insulation Wall|Wood Stud, R-23 Closed Cell Spray Foam, 2x4, 16 in o.c.
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      #Best roofs
+      - option: Insulation Unfinished Attic|Ceiling R-49, Vented
+        apply_logic: 
+          or:
+            - Insulation Unfinished Attic|Uninsulated, Vented
+            - Insulation Unfinished Attic|Ceiling R-7, Vented
+            - Insulation Unfinished Attic|Ceiling R-13, Vented
+            - Insulation Unfinished Attic|Ceiling R-19, Vented
+            - Insulation Unfinished Attic|Ceiling R-30, Vented
+            - Insulation Unfinished Attic|Ceiling R-38, Vented
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      #Best air sealing
+      - option: Infiltration|1 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Mechanical Ventilation|Exhaust, 2010 ASHRAE 62.2
+        apply_logic: 
+            - Mechanical Ventilation|None
+        costs: 
+          - value: 360
+            multiplier: Fixed (1)
+        lifetime: 999
+      #Best windows
+      - option: Windows|SCOUT 5.88 R, 0.49 SHGC
+        apply_logic:
+          or:
+            - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+            - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+            - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Windows|SCOUT 5.88 R, 0.42 SHGC
+        apply_logic:
+          or:
+            - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+            - Location|WA_Quillayute.State.AP.727970 #AIA2
+            - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+            - Location|MN_Rochester.Intl.AP.726440 #AIA2
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Windows|SCOUT 5.88 R, 0.27 SHGC
+        apply_logic:
+          or:
+            - Location|FL_Orlando.Intl.AP.722050 #AIA5
+            - Location|AZ_Tucson.Intl.AP.722740 #AIA4
+            - Location|GA_Atlanta-Hartsfield-Jackson.Intl.AP.722190 #AIA5
+            - Location|TX_El.Paso.Intl.AP.722700 #AIA5
+            - Location|CA_San.Diego-Lindbergh.Field.722900 #AIA4
+            - Location|NY_New.York-J.F.Kennedy.Intl.AP.744860 #AIA3
+            - Location|WA_Seattle-Tacoma.Intl.AP.727930 #AIA3
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      #Best floors:
+      - option: Insulation Slab|R20 Option 1
+        apply_logic: 
+          and:
+            - Insulation Slab|Uninsulated
+            - or:
+              - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+              - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+              - Location|WA_Quillayute.State.AP.727970 #AIA2
+              - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+              - Location|MN_Rochester.Intl.AP.726440 #AIA2
+              - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+              - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Insulation Slab|R20 Option 2
+        apply_logic: 
+          and:
+            - Insulation Slab|2ft R5 Perimeter, R5 Gap
+            - or:
+              - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+              - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+              - Location|WA_Quillayute.State.AP.727970 #AIA2
+              - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+              - Location|MN_Rochester.Intl.AP.726440 #AIA2
+              - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+              - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Insulation Slab|R20 Option 3
+        apply_logic: 
+          and:
+            - Insulation Slab|2ft R10 Perimeter, R10 Gap
+            - or:
+              - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+              - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+              - Location|WA_Quillayute.State.AP.727970 #AIA2
+              - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+              - Location|MN_Rochester.Intl.AP.726440 #AIA2
+              - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+              - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Insulation Slab|R20 Option 4
+        apply_logic: 
+          and:
+            - Insulation Slab|4ft R5 Perimeter, R5 Gap
+            - or:
+              - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+              - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+              - Location|WA_Quillayute.State.AP.727970 #AIA2
+              - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+              - Location|MN_Rochester.Intl.AP.726440 #AIA2
+              - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+              - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999      
+      - option: Insulation Slab|R20 Option 5
+        apply_logic: 
+          and:
+            - Insulation Slab|2ft R5 Exterior
+            - or:
+              - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+              - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+              - Location|WA_Quillayute.State.AP.727970 #AIA2
+              - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+              - Location|MN_Rochester.Intl.AP.726440 #AIA2
+              - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+              - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Insulation Slab|R20 Option 6
+        apply_logic: 
+          and:
+            - Insulation Slab|2ft R10 Exterior
+            - or:
+              - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+              - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+              - Location|WA_Quillayute.State.AP.727970 #AIA2
+              - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+              - Location|MN_Rochester.Intl.AP.726440 #AIA2
+              - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+              - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Insulation Slab|R20 Option 7
+        apply_logic: 
+          and:
+            - Insulation Slab|R10 Whole Slab, R5 Gap
+            - or:
+              - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+              - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+              - Location|WA_Quillayute.State.AP.727970 #AIA2
+              - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+              - Location|MN_Rochester.Intl.AP.726440 #AIA2
+              - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+              - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Insulation Slab|R20 Option 8
+        apply_logic: 
+          and:
+            - Insulation Slab|R20 Whole Slab
+            - or:
+              - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+              - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+              - Location|WA_Quillayute.State.AP.727970 #AIA2
+              - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+              - Location|MN_Rochester.Intl.AP.726440 #AIA2
+              - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+              - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+    ##end floors
+##up13 - package 3d - Appliance EE + DR
+  - upgrade_name: package 3d appliance EE+DR
+    options: 
+      #Best LEDs
+      - option: Lighting|100% LED, High Efficacy
+        apply_logic:
+          or:
+            - Lighting|100% Incandescent
+            - Lighting|60% CFL Hardwired, 34% CFL Plugin
+            - Lighting|60% CFL
+            - Lighting|100% CFL
+            - Lighting|100% LED
+            - Lighting|20% LED
+            - Lighting|100% LED
+            - Lighting|100% LED, Low Efficacy
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      # Best Refrigerator
+      - option: Refrigerator|EF 22.2, EnergyStar Most Efficient
+        apply_logic: 
+          or:
+            - Refrigerator|EF 17.6
+            - Refrigerator|EF 17.6, 105% Usage
+            - Refrigerator|EF 17.6, 95% Usage
+            - Refrigerator|EF 15.9
+            - Refrigerator|EF 10.5
+            - Refrigerator|EF 10.2
+            - Refrigerator|EF 6.7
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 17.4
+      # Best HPWH
+      - option: Water Heater|Electric Heat Pump, 80 gal
+        apply_logic: 
+          or:
+            - Water Heater|Electric Standard
+            - Water Heater|Electric Premium
+            - Water Heater|Electric Benchmark
+            - Water Heater|Electric Heat Pump, 50 gal
+            - Water Heater|Electric Heat Pump, 50 gal, 140F
+            #removed tankless and in confined space
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 12
+      # Best clothes washer
+      - option: Clothes Washer|EnergyStar Most Efficient, 80% Usage
+        apply_logic:
+          or:
+            - Clothes Washer|EnergyStar, 80% Usage
+            - Clothes Washer|Standard, 80% Usage
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Clothes Washer|EnergyStar Most Efficient, 100% Usage
+        apply_logic:
+          or:
+            - Clothes Washer|EnergyStar, 100% Usage
+            - Clothes Washer|Standard, 100% Usage
+            - Clothes Washer|Standard, 100% Usage, Cold Only
+            - Clothes Washer|EnergyStar, Cold Only
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Clothes Washer|EnergyStar Most Efficient, 120% Usage
+        apply_logic:
+          or:
+            - Clothes Washer|EnergyStar, 120% Usage
+            - Clothes Washer|Standard, 120% Usage
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      # Best clothes dryer
+      - option: Clothes Dryer|Electric, Heat Pump, Ventless
+        apply_logic:
+          or:
+            - Clothes Dryer|Electric, 80% Usage
+            - Clothes Dryer|Electric, 100% Usage
+            - Clothes Dryer|Electric, 120% Usage
+            - Clothes Dryer|Electric, Premium
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      # Best dishwasher
+      - option: Dishwasher|199 Rated kWh, EnergyStar Most Efficient, 80% Usage
+        apply_logic: 
+          or:
+            - Dishwasher|318 Rated kWh, 80% Usage
+            - Dishwasher|290 Rated kWh, 80% Usage
+        costs:
+          - value: 1000
+            multiplier: Fixed (1)
+        lifetime: 11
+      - option: Dishwasher|199 Rated kWh, EnergyStar Most Efficient, 100% Usage
+        apply_logic: 
+          or:
+            - Dishwasher|318 Rated kWh, 100% Usage
+            - Dishwasher|290 Rated kWh, 100% Usage
+        costs:
+          - value: 1000
+            multiplier: Fixed (1)
+        lifetime: 11
+      - option: Dishwasher|199 Rated kWh, EnergyStar Most Efficient, 120% Usage
+        apply_logic: 
+          or:
+            - Dishwasher|318 Rated kWh, 120% Usage
+            - Dishwasher|290 Rated kWh, 120% Usage
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 11
+      #Best pool pump
+      - option: Misc Pool Pump|0.75 HP Pump
+        apply_logic: Misc Pool Pump|1.0 HP Pump
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      #Best electronics
+      - option: Plug Loads|25%
+        apply_logic:
+            - Plug Loads|50%
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Plug Loads|50%
+        apply_logic:
+            - Plug Loads|100%
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Plug Loads|100%
+        apply_logic:
+            - Plug Loads|200%
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      #Appliance DR measures (including water heaters)
+      - option: Appliance DR Apply|TRUE
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tank Tampa
+        apply_logic:
+          - Location|FL_Orlando.Intl.AP.722050
+          - Water Heater DR|WH Tank False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tank Tucson
+        apply_logic:
+          - Location|AZ_Tucson.Intl.AP.722740
+          - Water Heater DR|WH Tank False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tank Atlanta
+        apply_logic:
+          - Location|GA_Atlanta-Hartsfield-Jackson.Intl.AP.722190
+          - Water Heater DR|WH Tank False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tank El Paso
+        apply_logic:
+          - Location|TX_El.Paso.Intl.AP.722700
+          - Water Heater DR|WH Tank False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tank San Diego
+        apply_logic:
+          - Location|CA_San.Diego-Lindbergh.Field.722900
+          - Water Heater DR|WH Tank False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tank New York
+        apply_logic:
+          - Location|NY_New.York-J.F.Kennedy.Intl.AP.744860
+          - Water Heater DR|WH Tank False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tank Albuquerque
+        apply_logic:
+          - Location|NM_Albuquerque.Intl.AP.723650
+          - Water Heater DR|WH Tank False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tank Seattle
+        apply_logic:
+          - Location|WA_Seattle-Tacoma.Intl.AP.727930
+          - Water Heater DR|WH Tank False
+          - Water Heater Fuel Type|Electric     
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tank Denver
+        apply_logic:
+          - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699
+          - Water Heater DR|WH Tank False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tank Port Angeles
+        apply_logic:
+          - Location|WA_Quillayute.State.AP.727970
+          - Water Heater DR|WH Tank False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tank Buffalo
+        apply_logic:
+          - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280
+          - Water Heater DR|WH Tank False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tank Rochester
+        apply_logic:
+          - Location|MN_Rochester.Intl.AP.726440
+          - Water Heater DR|WH Tank False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tank Great Falls
+        apply_logic:
+          - Location|MT_Great.Falls.Intl.AP.727750
+          - Water Heater DR|WH Tank False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tank International Falls
+        apply_logic:
+          - Location|MN_International.Falls.Intl.AP.727470
+          - Water Heater DR|WH Tank False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+          
+      - option: Water Heater DR|WHDR Tankless Tampa
+        apply_logic:
+          - Location|FL_Orlando.Intl.AP.722050
+          - Water Heater DR|WH Tankless False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tankless Tucson
+        apply_logic:
+          - Location|AZ_Tucson.Intl.AP.722740
+          - Water Heater DR|WH Tankless False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tankless Atlanta
+        apply_logic:
+          - Location|GA_Atlanta-Hartsfield-Jackson.Intl.AP.722190
+          - Water Heater DR|WH Tankless False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tankless El Paso
+        apply_logic:
+          - Location|TX_El.Paso.Intl.AP.722700
+          - Water Heater DR|WH Tankless False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tankless San Diego
+        apply_logic:
+          - Location|CA_San.Diego-Lindbergh.Field.722900
+          - Water Heater DR|WH Tankless False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tankless New York
+        apply_logic:
+          - Location|NY_New.York-J.F.Kennedy.Intl.AP.744860
+          - Water Heater DR|WH Tankless False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tankless Albuquerque
+        apply_logic:
+          - Location|NM_Albuquerque.Intl.AP.723650
+          - Water Heater DR|WH Tankless False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tankless Seattle
+        apply_logic:
+          - Location|WA_Seattle-Tacoma.Intl.AP.727930
+          - Water Heater DR|WH Tankless False
+          - Water Heater Fuel Type|Electric  
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tankless Denver
+        apply_logic:
+          - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699
+          - Water Heater DR|WH Tankless False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tankless Port Angeles
+        apply_logic:
+          - Location|WA_Quillayute.State.AP.727970
+          - Water Heater DR|WH Tankless False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tankless Buffalo
+        apply_logic:
+          - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280
+          - Water Heater DR|WH Tankless False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tankless Rochester
+        apply_logic:
+          - Location|MN_Rochester.Intl.AP.726440
+          - Water Heater DR|WH Tankless False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tankless Great Falls
+        apply_logic:
+          - Location|MT_Great.Falls.Intl.AP.727750
+          - Water Heater DR|WH Tankless False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tankless International Falls
+        apply_logic:
+          - Location|MN_International.Falls.Intl.AP.727470
+          - Water Heater DR|WH Tankless False
+          - Water Heater Fuel Type|Electric
+        costs: 
+          - value: 360
+
+timeseries_csv_export:
+  reporting_frequency: Hourly
+  include_enduse_subcategories: true
+eagle:
+  account: enduse
+  n_jobs: 20
+  minutes_per_sim: 5
+  postprocessing:
+    time: 90
+postprocessing:
+  aws:
+    region_name: 'us-west-2'
+    s3:
+      bucket: resbldg-datasets
+      prefix: resstock-athena/geb-potential-upgrades
+    athena:
+      glue_service_role: service-role/AWSGlueServiceRole-default
+      database_name: geb_potential
+      max_crawling_time: 600 #time to wait for the crawler to complete before aborting it
