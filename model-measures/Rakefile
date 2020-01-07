@@ -2,6 +2,7 @@ require 'rake'
 require 'rake/testtask'
 require 'ci/reporter/rake/minitest'
 require_relative "HPXMLtoOpenStudio/resources/constants"
+require 'json'
 
 desc 'update all measures'
 task :update_measures do
@@ -99,6 +100,8 @@ def create_osws
   osws_files.each do |derivative, parent|
     print "."
 
+    osw_path = File.absolute_path(File.join(tests_dir, derivative))
+
     begin
       osw_files = [derivative]
       unless parent.nil?
@@ -114,7 +117,7 @@ def create_osws
       end
 
       workflow = OpenStudio::WorkflowJSON.new
-      workflow.setOswPath(File.absolute_path(File.join(tests_dir, derivative)))
+      workflow.setOswPath(osw_path)
       workflow.addMeasurePath(".")
       steps = OpenStudio::WorkflowStepVector.new
       step = OpenStudio::MeasureStep.new("BuildResidentialHPXML")
@@ -126,6 +129,14 @@ def create_osws
       steps.push(step)
       workflow.setWorkflowSteps(steps)
       workflow.save
+
+      workflow_hash = JSON.parse(File.read(osw_path))
+      workflow_hash.delete("created_at")
+      workflow_hash.delete("updated_at")
+
+      File.open(osw_path, "w") do |f|
+        f.write(JSON.pretty_generate(workflow_hash))
+      end
     rescue Exception => e
       puts "\n#{e}\n#{e.backtrace.join('\n')}"
       puts "\nError: Did not successfully generate #{derivative}."
