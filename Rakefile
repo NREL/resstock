@@ -32,6 +32,8 @@ def create_osws
     'base-single-family-attached.osw' => 'base.osw',
     'base-multifamily.osw' => 'base.osw',
 
+    'base-appliances-none.osw' => 'base.osw',
+
     'base-foundation-ambient.osw' => 'base.osw',
     'base-foundation-complex.osw' => 'base.osw',
     'base-foundation-conditioned-basement-slab-insulation.osw' => 'base.osw',
@@ -172,10 +174,10 @@ def get_values(osw_file, step)
     step.setArgument("foundation_height", 8.0)
     step.setArgument("foundation_ceiling_r", 30)
     step.setArgument("foundation_wall_r", 0)
-    step.setArgument("perimeter_insulation_r", 0)
-    step.setArgument("under_slab_insulation_r", 0)
+    step.setArgument("slab_perimeter_r", 0)
+    step.setArgument("slab_under_r", 0)
     step.setArgument("attic_type", "attic - vented")
-    step.setArgument("unconditioned_attic_ceiling_r", 30)
+    step.setArgument("attic_ceiling_r", 30)
     step.setArgument("roof_type", "gable")
     step.setArgument("roof_pitch", "6:12")
     step.setArgument("roof_structure", "truss, cantilever")
@@ -189,6 +191,7 @@ def get_values(osw_file, step)
     step.setArgument("neighbor_front_offset", 0)
     step.setArgument("orientation", 180.0)
     step.setArgument("wall_type", "WoodStud")
+    step.setArgument("wall_r", 13)
     step.setArgument("front_wwr", 0.18)
     step.setArgument("back_wwr", 0.18)
     step.setArgument("left_wwr", 0.18)
@@ -197,14 +200,9 @@ def get_values(osw_file, step)
     step.setArgument("back_window_area", 0)
     step.setArgument("left_window_area", 0)
     step.setArgument("right_window_area", 0)
+    step.setArgument("window_aspect_ratio", 1.333)
     step.setArgument("window_ufactor", 0.37)
     step.setArgument("window_shgc", 0.3)
-    step.setArgument("window_aspect_ratio", 1.333)
-    step.setArgument("overhangs_depth", 2.0)
-    step.setArgument("overhangs_front_facade", false)
-    step.setArgument("overhangs_back_facade", false)
-    step.setArgument("overhangs_left_facade", false)
-    step.setArgument("overhangs_right_facade", false)
     step.setArgument("winter_shading_coefficient_front_facade", 1)
     step.setArgument("summer_shading_coefficient_front_facade", 1)
     step.setArgument("winter_shading_coefficient_back_facade", 1)
@@ -213,6 +211,11 @@ def get_values(osw_file, step)
     step.setArgument("summer_shading_coefficient_left_facade", 1)
     step.setArgument("winter_shading_coefficient_right_facade", 1)
     step.setArgument("summer_shading_coefficient_right_facade", 1)
+    step.setArgument("overhangs_front_facade", false)
+    step.setArgument("overhangs_back_facade", false)
+    step.setArgument("overhangs_left_facade", false)
+    step.setArgument("overhangs_right_facade", false)
+    step.setArgument("overhangs_depth", 2.0)
     step.setArgument("front_skylight_area", 0)
     step.setArgument("back_skylight_area", 0)
     step.setArgument("left_skylight_area", 0)
@@ -310,12 +313,15 @@ def get_values(osw_file, step)
     step.setArgument("unit_type", "multifamily")
     step.setArgument("foundation_type", "slab")
     step.setArgument("cfa", 900.0)
+  elsif ['base-appliances-none.osw'].include? osw_file
+    step.setArgument("cooking_range_fuel_type", "none")
+    step.setArgument("clothes_dryer_fuel_type", "none")
   elsif ['base-foundation-ambient.osw'].include? osw_file
     step.setArgument("foundation_type", "ambient")
   elsif ['base-foundation-complex.osw'].include? osw_file
 
   elsif ['base-foundation-conditioned-basement-slab-insulation.osw'].include? osw_file
-    step.setArgument("under_slab_insulation_r", 10)
+    step.setArgument("slab_under_r", 10)
   elsif ['base-foundation-conditioned-basement-wall-interior-insulation.osw'].include? osw_file
     step.setArgument("foundation_ceiling_r", 0)
     step.setArgument("foundation_wall_r", 30)
@@ -323,7 +329,7 @@ def get_values(osw_file, step)
 
   elsif ['base-foundation-slab.osw'].include? osw_file
     step.setArgument("foundation_type", "slab")
-    step.setArgument("perimeter_insulation_r", 5)
+    step.setArgument("slab_perimeter_r", 5)
   elsif ['base-foundation-unconditioned-basement.osw'].include? osw_file
     step.setArgument("foundation_type", "basement - unconditioned")
   elsif ['base-foundation-unconditioned-basement-above-grade.osw'].include? osw_file
