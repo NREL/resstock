@@ -1817,27 +1817,37 @@ class HPXMLFile
       next if ["ambient"].include? surface.space.get.spaceType.get.standardsSpaceType.get # FIXME
 
       interior_adjacent_to = get_adjacent_to(model, surface)
-      next if interior_adjacent_to != "living space"
+      next unless ["living space", "garage"].include? interior_adjacent_to
 
       exterior_adjacent_to = "outside"
       if surface.adjacentSurface.is_initialized
-        # next if ["ambient"].include? surface.adjacentSurface.get.space.get.spaceType.get.standardsSpaceType.get # FIXME
-
         exterior_adjacent_to = get_adjacent_to(model, surface.adjacentSurface.get)
       end
       next if interior_adjacent_to == exterior_adjacent_to
       next if surface.surfaceType == "RoofCeiling" and exterior_adjacent_to == "outside"
-      next if exterior_adjacent_to == "basement - conditioned"
+      next if ["living space", "basement - conditioned"].include? exterior_adjacent_to
 
       framefloor_values = { :id => surface.name.to_s,
                             :exterior_adjacent_to => exterior_adjacent_to,
                             :interior_adjacent_to => interior_adjacent_to,
                             :area => UnitConversions.convert(surface.netArea, "m^2", "ft^2") }
 
-      if interior_adjacent_to == "living space" and (exterior_adjacent_to.include? "attic - unvented" or exterior_adjacent_to.include? "attic - vented")
+      if interior_adjacent_to == "living space" and exterior_adjacent_to.include? "attic - unvented"
         framefloor_values[:insulation_assembly_r_value] = args[:attic_ceiling_r] # FIXME: Calculate
-      elsif interior_adjacent_to == "living space" and (exterior_adjacent_to.include? "crawlspace" or exterior_adjacent_to.include? "basement - unconditioned" or exterior_adjacent_to.include? "outside")
+      elsif interior_adjacent_to == "living space" and exterior_adjacent_to.include? "attic - vented"
+        framefloor_values[:insulation_assembly_r_value] = args[:attic_ceiling_r] # FIXME: Calculate
+      elsif interior_adjacent_to == "living space" and exterior_adjacent_to.include? "crawlspace"
         framefloor_values[:insulation_assembly_r_value] = args[:foundation_ceiling_r] # FIXME: Calculate
+      elsif interior_adjacent_to == "living space" and exterior_adjacent_to.include? "basement - unconditioned"
+        framefloor_values[:insulation_assembly_r_value] = args[:foundation_ceiling_r] # FIXME: Calculate
+      elsif interior_adjacent_to == "living space" and exterior_adjacent_to.include? "outside"
+        framefloor_values[:insulation_assembly_r_value] = args[:foundation_ceiling_r] # FIXME: Calculate
+      elsif interior_adjacent_to == "garage" and exterior_adjacent_to == "attic - unvented"
+        framefloor_values[:insulation_assembly_r_value] = args[:attic_ceiling_r] # FIXME: Calculate
+      elsif interior_adjacent_to == "garage" and exterior_adjacent_to == "attic - vented"
+        framefloor_values[:insulation_assembly_r_value] = args[:attic_ceiling_r] # FIXME: Calculate
+      elsif interior_adjacent_to == "living space" and exterior_adjacent_to == "garage"
+        framefloor_values[:insulation_assembly_r_value] = args[:attic_ceiling_r] # FIXME: Calculate
       end
 
       framefloors_values << framefloor_values
