@@ -220,6 +220,27 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(3.0)
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("ambient_ceiling_r", true)
+    arg.setDisplayName("Ambient: Ceiling Insulation Nominal R-value")
+    arg.setUnits("h-ft^2-R/Btu")
+    arg.setDescription("Refers to the R-value of the insulation and not the overall R-value of the assembly.")
+    arg.setDefaultValue(30)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("crawlspace_ceiling_r", true)
+    arg.setDisplayName("Crawlspace: Ceiling Insulation Nominal R-value")
+    arg.setUnits("h-ft^2-R/Btu")
+    arg.setDescription("Refers to the R-value of the insulation and not the overall R-value of the assembly.")
+    arg.setDefaultValue(30)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("unconditioned_basement_ceiling_r", true)
+    arg.setDisplayName("Unconditioned Basement: Ceiling Insulation Nominal R-value")
+    arg.setUnits("h-ft^2-R/Btu")
+    arg.setDescription("Refers to the R-value of the insulation and not the overall R-value of the assembly.")
+    arg.setDefaultValue(30)
+    args << arg
+
     attic_type_choices = OpenStudio::StringVector.new
     attic_type_choices << "attic - vented"
     attic_type_choices << "attic - unvented"
@@ -339,6 +360,25 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(180.0)
     args << arg
 
+    wall_type_choices = OpenStudio::StringVector.new
+    wall_type_choices << "WoodStud"
+    wall_type_choices << "ConcreteMasonryUnit"
+    wall_type_choices << "DoubleWoodStud"
+    wall_type_choices << "InsulatedConcreteForms"
+    wall_type_choices << "LogWall"
+    wall_type_choices << "StructurallyInsulatedPanel"
+    wall_type_choices << "SolidConcrete"
+    wall_type_choices << "SteelFrame"
+    wall_type_choices << "Stone"
+    wall_type_choices << "StrawBale"
+    wall_type_choices << "StructuralBrick"
+
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("wall_type", wall_type_choices, true)
+    arg.setDisplayName("Walls: Type")
+    arg.setDescription("The type of the exterior walls.")
+    arg.setDefaultValue("WoodStud")
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("front_wwr", true)
     arg.setDisplayName("Windows: Front Window-to-Wall Ratio")
     arg.setDescription("The ratio of window area to wall area for the building's front facade. Enter 0 if specifying Front Window Area instead.")
@@ -437,6 +477,54 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(true)
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("winter_shading_coefficient_front_facade", true)
+    arg.setDisplayName("Interior Shading: Front Facade Winter Shading Coefficient")
+    arg.setDescription("Interior shading multiplier for heating season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc.")
+    arg.setDefaultValue(1)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("summer_shading_coefficient_front_facade", true)
+    arg.setDisplayName("Interior Shading: Front Facade Summer Shading Coefficient")
+    arg.setDescription("Interior shading multiplier for cooling season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc.")
+    arg.setDefaultValue(1)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("winter_shading_coefficient_back_facade", true)
+    arg.setDisplayName("Interior Shading: Back Facade Winter Shading Coefficient")
+    arg.setDescription("Interior shading multiplier for heating season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc.")
+    arg.setDefaultValue(1)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("summer_shading_coefficient_back_facade", true)
+    arg.setDisplayName("Interior Shading: Back Facade Summer Shading Coefficient")
+    arg.setDescription("Interior shading multiplier for cooling season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc.")
+    arg.setDefaultValue(1)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("winter_shading_coefficient_left_facade", true)
+    arg.setDisplayName("Interior Shading: Left Facade Winter Shading Coefficient")
+    arg.setDescription("Interior shading multiplier for heating season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc.")
+    arg.setDefaultValue(1)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("summer_shading_coefficient_left_facade", true)
+    arg.setDisplayName("Interior Shading: Left Facade Summer Shading Coefficient")
+    arg.setDescription("Interior shading multiplier for cooling season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc.")
+    arg.setDefaultValue(1)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("winter_shading_coefficient_right_facade", true)
+    arg.setDisplayName("Interior Shading: Right Facade Winter Shading Coefficient")
+    arg.setDescription("Interior shading multiplier for heating season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc.")
+    arg.setDefaultValue(1)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("summer_shading_coefficient_right_facade", true)
+    arg.setDisplayName("Interior Shading: Right Facade Summer Shading Coefficient")
+    arg.setDescription("Interior shading multiplier for cooling season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc.")
+    arg.setDefaultValue(1)
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("front_skylight_area", true)
     arg.setDisplayName("Skylights: Front Roof Area")
     arg.setDescription("The amount of skylight area on the building's front conditioned roof facade.")
@@ -481,11 +569,11 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(20.0)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("door_ufactor", true)
-    arg.setDisplayName("Doors: U-Factor")
-    arg.setUnits("Btu/hr-ft^2-R")
-    arg.setDescription("The heat transfer coefficient of the doors adjacent to conditioned space.")
-    arg.setDefaultValue(0.2)
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("door_rvalue", true)
+    arg.setDisplayName("Doors: R-value")
+    arg.setUnits("h-ft^2-R/Btu")
+    arg.setDescription("Refers to the R-value of the doors adjacent to conditioned space.")
+    arg.setDefaultValue(5.0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("living_ach50", true)
@@ -669,6 +757,7 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
 
     duct_location_choices = OpenStudio::StringVector.new
     duct_location_choices << "living space"
+    duct_location_choices << "attic - unvented"
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("supply_duct_leakage_units", duct_leakage_units_choices, true)
     arg.setDisplayName("Supply Duct: Leakage Units")
@@ -1137,6 +1226,9 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
              :garage_position => runner.getStringArgumentValue("garage_position", user_arguments),
              :foundation_type => runner.getStringArgumentValue("foundation_type", user_arguments),
              :foundation_height => runner.getDoubleArgumentValue("foundation_height", user_arguments),
+             :ambient_ceiling_r => runner.getDoubleArgumentValue("ambient_ceiling_r", user_arguments),
+             :crawlspace_ceiling_r => runner.getDoubleArgumentValue("crawlspace_ceiling_r", user_arguments),
+             :unconditioned_basement_ceiling_r => runner.getDoubleArgumentValue("unconditioned_basement_ceiling_r", user_arguments),
              :attic_type => runner.getStringArgumentValue("attic_type", user_arguments),
              :unconditioned_attic_ceiling_r => runner.getDoubleArgumentValue("unconditioned_attic_ceiling_r", user_arguments),
              :roof_type => runner.getStringArgumentValue("roof_type", user_arguments),
@@ -1146,11 +1238,9 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
              :num_bedrooms => runner.getDoubleArgumentValue("num_bedrooms", user_arguments),
              :num_bathrooms => runner.getDoubleArgumentValue("num_bathrooms", user_arguments),
              :num_occupants => runner.getStringArgumentValue("num_occupants", user_arguments),
-             :neighbor_left_offset => runner.getDoubleArgumentValue("neighbor_left_offset", user_arguments),
-             :neighbor_right_offset => runner.getDoubleArgumentValue("neighbor_right_offset", user_arguments),
-             :neighbor_back_offset => runner.getDoubleArgumentValue("neighbor_back_offset", user_arguments),
-             :neighbor_front_offset => runner.getDoubleArgumentValue("neighbor_front_offset", user_arguments),
+             :neighbor_offset => [runner.getDoubleArgumentValue("neighbor_front_offset", user_arguments), runner.getDoubleArgumentValue("neighbor_back_offset", user_arguments), runner.getDoubleArgumentValue("neighbor_left_offset", user_arguments), runner.getDoubleArgumentValue("neighbor_right_offset", user_arguments)],
              :orientation => runner.getDoubleArgumentValue("orientation", user_arguments),
+             :wall_type => runner.getStringArgumentValue("wall_type", user_arguments),
              :front_wwr => runner.getDoubleArgumentValue("front_wwr", user_arguments),
              :back_wwr => runner.getDoubleArgumentValue("back_wwr", user_arguments),
              :left_wwr => runner.getDoubleArgumentValue("left_wwr", user_arguments),
@@ -1163,10 +1253,10 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
              :window_shgc => runner.getDoubleArgumentValue("window_shgc", user_arguments),
              :window_aspect_ratio => runner.getDoubleArgumentValue("window_aspect_ratio", user_arguments),
              :overhangs_depth => runner.getDoubleArgumentValue("overhangs_depth", user_arguments),
-             :overhangs_front_facade => runner.getBoolArgumentValue("overhangs_front_facade", user_arguments),
-             :overhangs_back_facade => runner.getBoolArgumentValue("overhangs_back_facade", user_arguments),
-             :overhangs_left_facade => runner.getBoolArgumentValue("overhangs_left_facade", user_arguments),
-             :overhangs_right_facade => runner.getBoolArgumentValue("overhangs_right_facade", user_arguments),
+             :overhangs => [runner.getBoolArgumentValue("overhangs_front_facade", user_arguments), runner.getBoolArgumentValue("overhangs_back_facade", user_arguments), runner.getBoolArgumentValue("overhangs_left_facade", user_arguments), runner.getBoolArgumentValue("overhangs_right_facade", user_arguments)],
+             :interior_shading_factor_winter => [runner.getDoubleArgumentValue("winter_shading_coefficient_front_facade", user_arguments)],
+             :interior_shading_factor_summer => [runner.getDoubleArgumentValue("summer_shading_coefficient_front_facade", user_arguments)],
+             :window_aspect_ratio => runner.getDoubleArgumentValue("window_aspect_ratio", user_arguments),
              :front_skylight_area => runner.getDoubleArgumentValue("front_skylight_area", user_arguments),
              :back_skylight_area => runner.getDoubleArgumentValue("back_skylight_area", user_arguments),
              :left_skylight_area => runner.getDoubleArgumentValue("left_skylight_area", user_arguments),
@@ -1174,7 +1264,7 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
              :skylight_ufactor => runner.getDoubleArgumentValue("skylight_ufactor", user_arguments),
              :skylight_shgc => runner.getDoubleArgumentValue("skylight_shgc", user_arguments),
              :door_area => runner.getDoubleArgumentValue("door_area", user_arguments),
-             :door_ufactor => runner.getDoubleArgumentValue("door_ufactor", user_arguments),
+             :door_rvalue => runner.getDoubleArgumentValue("door_rvalue", user_arguments),
              :living_ach50 => runner.getDoubleArgumentValue("living_ach50", user_arguments),
              :heating_system_type => runner.getStringArgumentValue("heating_system_type", user_arguments),
              :heating_system_fuel => runner.getStringArgumentValue("heating_system_fuel", user_arguments),
@@ -1354,6 +1444,7 @@ class HPXMLFile
     water_heating_systems_values = get_water_heating_system_values(runner, args)
     hot_water_distribution_values = get_hot_water_distribution_values(runner, args)
     water_fixtures_values = get_water_fixtures_values(runner, args)
+    solar_thermal_system_values = get_solar_thermal_values(runner, args)
     pv_systems_values = get_pv_system_values(runner, args)
     clothes_washer_values = get_clothes_washer_values(runner, args)
     clothes_dryer_values = get_clothes_dryer_values(runner, args)
@@ -1435,6 +1526,7 @@ class HPXMLFile
     water_fixtures_values.each do |water_fixture_values|
       HPXML.add_water_fixture(hpxml: hpxml, **water_fixture_values)
     end
+    HPXML.add_solar_thermal_system(hpxml: hpxml, **solar_thermal_system_values) unless solar_thermal_system_values.empty?
     pv_systems_values.each do |pv_system_values|
       HPXML.add_pv_system(hpxml: hpxml, **pv_system_values)
     end
@@ -1521,13 +1613,13 @@ class HPXMLFile
   def self.get_site_neighbors_values(runner, args)
     # FIXME: Need to incorporate building orientation
     site_neighbors_values = [{ :azimuth => 0,
-                               :distance => args[:neighbor_front_offset] },
+                               :distance => args[:neighbor_offset][0] },
                              { :azimuth => 90,
-                               :distance => args[:neighbor_left_offset] },
+                               :distance => args[:neighbor_offset][1] },
                              { :azimuth => 180,
-                               :distance => args[:neighbor_back_offset] },
+                               :distance => args[:neighbor_offset][2] },
                              { :azimuth => 270,
-                               :distance => args[:neighbor_right_offset] }]
+                               :distance => args[:neighbor_offset][3] }]
     return site_neighbors_values
   end
 
@@ -1585,6 +1677,7 @@ class HPXMLFile
       foundation_values[:foundation_type] = "UnventedCrawlspace"
     elsif args[:foundation_type] == "basement - unconditioned"
       foundation_values[:foundation_type] = "UnconditionedBasement"
+      foundation_values[:unconditioned_basement_thermal_boundary] = "frame floor" # FIXME: Calculate
     elsif args[:foundation_type] == "basement - conditioned"
       foundation_values[:foundation_type] = "ConditionedBasement"
     elsif args[:foundation_type] == "ambient"
@@ -1627,6 +1720,8 @@ class HPXMLFile
       return "basement - unconditioned"
     elsif ["corridor"].include? space_type
       return "living space" # FIXME: update to handle new enum
+    elsif ["ambient"].include? space_type
+      return "outside"
     else
       fail "Unhandled SpaceType value (#{space_type}) for surface '#{surface.name}'."
     end
@@ -1654,6 +1749,7 @@ class HPXMLFile
   def self.get_rim_joists_values(runner, model, args)
     rim_joists_values = []
     model.getSurfaces.each do |surface|
+      # TODO
     end
     return rim_joists_values
   end
@@ -1668,7 +1764,7 @@ class HPXMLFile
       walls_values << { :id => surface.name.to_s,
                         :exterior_adjacent_to => "outside",
                         :interior_adjacent_to => get_adjacent_to(model, surface),
-                        :wall_type => "WoodStud", # FIXME: Get from wall construction
+                        :wall_type => args[:wall_type],
                         :area => UnitConversions.convert(surface.netArea, "m^2", "ft^2"),
                         :azimuth => nil, # FIXME: Get from model
                         :solar_absorptance => 0.7, # FIXME: Get from exterior finish
@@ -1710,22 +1806,27 @@ class HPXMLFile
 
       exterior_adjacent_to = "outside"
       if surface.adjacentSurface.is_initialized
-        next if ["ambient"].include? surface.adjacentSurface.get.space.get.spaceType.get.standardsSpaceType.get # FIXME
+        # next if ["ambient"].include? surface.adjacentSurface.get.space.get.spaceType.get.standardsSpaceType.get # FIXME
 
         exterior_adjacent_to = get_adjacent_to(model, surface.adjacentSurface.get)
       end
       next if interior_adjacent_to == exterior_adjacent_to
       next if surface.surfaceType == "RoofCeiling" and exterior_adjacent_to == "outside"
+      next if exterior_adjacent_to == "basement - conditioned"
 
       framefloor_values = { :id => surface.name.to_s,
                             :exterior_adjacent_to => exterior_adjacent_to,
                             :interior_adjacent_to => interior_adjacent_to,
                             :area => UnitConversions.convert(surface.netArea, "m^2", "ft^2") }
 
-      if interior_adjacent_to == "living space" and exterior_adjacent_to.include? "attic"
+      if interior_adjacent_to == "living space" and (exterior_adjacent_to.include? "attic - unvented" or exterior_adjacent_to.include? "attic - vented")
         framefloor_values[:insulation_assembly_r_value] = args[:unconditioned_attic_ceiling_r] # FIXME: Calculate
-      elsif interior_adjacent_to == "living space" and exterior_adjacent_to.include? "basement"
-        framefloor_values[:insulation_assembly_r_value] = 30.0 # FIXME: Calculate
+      elsif interior_adjacent_to == "living space" and exterior_adjacent_to.include? "crawlspace"
+        framefloor_values[:insulation_assembly_r_value] = args[:crawlspace_ceiling_r] # FIXME: Calculate
+      elsif interior_adjacent_to == "living space" and exterior_adjacent_to.include? "basement - unconditioned"
+        framefloor_values[:insulation_assembly_r_value] = args[:unconditioned_basement_ceiling_r] # FIXME: Calculate
+      elsif interior_adjacent_to == "living space" and exterior_adjacent_to.include? "outside"
+        framefloor_values[:insulation_assembly_r_value] = args[:ambient_ceiling_r] # FIXME: Calculate
       end
 
       framefloors_values << framefloor_values
@@ -1766,24 +1867,33 @@ class HPXMLFile
         next if sub_surface.subSurfaceType != "FixedWindow"
 
         sub_surface_facade = Geometry.get_facade_for_surface(sub_surface)
-        if (sub_surface_facade == Constants.FacadeFront and args[:overhangs_front_facade]) or
-           (sub_surface_facade == Constants.FacadeBack and args[:overhangs_back_facade]) or
-           (sub_surface_facade == Constants.FacadeLeft and args[:overhangs_left_facade]) or
-           (sub_surface_facade == Constants.FacadeRight and args[:overhangs_right_facade])
+        if (sub_surface_facade == Constants.FacadeFront and args[:overhangs][0]) or
+           (sub_surface_facade == Constants.FacadeBack and args[:overhangs][1]) or
+           (sub_surface_facade == Constants.FacadeLeft and args[:overhangs][2]) or
+           (sub_surface_facade == Constants.FacadeRight and args[:overhangs][3])
           overhangs_depth = args[:overhangs_depth]
           overhangs_distance_to_top_of_window = 0.5 # FIXME: Calculate from model
           overhangs_distance_to_bottom_of_window = overhangs_distance_to_top_of_window + Geometry.surface_height(sub_surface)
         end
 
-        windows_values << { :id => sub_surface.name.to_s,
-                            :area => UnitConversions.convert(sub_surface.netArea, "m^2", "ft^2"),
-                            :azimuth => 0, # FIXME: Get from model
-                            :ufactor => args[:window_ufactor],
-                            :shgc => args[:window_shgc],
-                            :overhangs_depth => overhangs_depth,
-                            :overhangs_distance_to_top_of_window => overhangs_distance_to_top_of_window,
-                            :overhangs_distance_to_bottom_of_window => overhangs_distance_to_bottom_of_window,
-                            :wall_idref => surface.name }
+        window_values = { :id => sub_surface.name.to_s,
+                          :area => UnitConversions.convert(sub_surface.netArea, "m^2", "ft^2"),
+                          :azimuth => 0, # FIXME: Get from model
+                          :ufactor => args[:window_ufactor],
+                          :shgc => args[:window_shgc],
+                          :overhangs_depth => overhangs_depth,
+                          :overhangs_distance_to_top_of_window => overhangs_distance_to_top_of_window,
+                          :overhangs_distance_to_bottom_of_window => overhangs_distance_to_bottom_of_window,
+                          :wall_idref => surface.name }
+
+        if args[:interior_shading_factor_winter][0] != 1
+          window_values[:interior_shading_factor_winter] = args[:interior_shading_factor_winter][0]
+        end
+        if args[:interior_shading_factor_summer][0] != 1
+          window_values[:interior_shading_factor_summer] = args[:interior_shading_factor_summer][0]
+        end
+
+        windows_values << window_values
       end
     end
     return windows_values
@@ -1816,7 +1926,7 @@ class HPXMLFile
                           :wall_idref => surface.name,
                           :area => UnitConversions.convert(sub_surface.netArea, "m^2", "ft^2"),
                           :azimuth => 0, # FIXME: Get from model
-                          :r_value => 1.0 / args[:door_ufactor] }
+                          :r_value => args[:door_rvalue] }
       end
     end
     return doors_values
@@ -2051,7 +2161,7 @@ class HPXMLFile
   def self.get_ducts_values(runner, args, hvac_distributions_values)
     ducts_values = []
     hvac_distributions_values.each_with_index do |hvac_distribution_values, i|
-      if hvac_distribution_values[:distribution_system_type] != "AirDistribution"
+      if hvac_distribution_values[:distribution_system_type] == "AirDistribution"
         ducts_values << [{ :duct_type => "supply",
                            :duct_insulation_r_value => args[:supply_duct_insulation_r_value],
                            :duct_location => args[:supply_duct_location],
@@ -2143,8 +2253,13 @@ class HPXMLFile
     return water_fixtures_values
   end
 
+  def self.get_solar_thermal_values(runner, args)
+    solar_thermal_system_values = {} # TODO
+    return solar_thermal_system_values
+  end
+
   def self.get_pv_system_values(runner, args)
-    pv_systems_values = []
+    pv_systems_values = [] # TODO
     return pv_systems_values
   end
 
