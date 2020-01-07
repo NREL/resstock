@@ -48,6 +48,9 @@ def create_osws
     'base-foundation-vented-crawlspace.osw' => 'base.osw',
     'base-foundation-walkout-basement.osw' => 'base.osw',
 
+    'base-enclosure-2stories.osw' => 'base.osw',
+    'base-enclosure-2stories-garage.osw' => 'base.osw',
+    'base-enclosure-adiabatic-surfaces.osw' => 'base.osw',
     'base-enclosure-beds-1.osw' => 'base.osw',
     'base-enclosure-beds-2.osw' => 'base.osw',
     'base-enclosure-beds-4.osw' => 'base.osw',
@@ -347,6 +350,15 @@ def get_values(osw_file, step)
     step.setArgument("foundation_type", "crawlspace - vented")
     step.setArgument("foundation_height", 3.0)
   elsif ['base-foundation-walkout-basement.osw'].include? osw_file
+
+  elsif ['base-enclosure-2stories.osw'].include? osw_file
+    step.setArgument("cfa", 4050.0)
+    step.setArgument("num_floors", 2)
+  elsif ['base-enclosure-2stories-garage.osw'].include? osw_file
+    step.setArgument("cfa", 4050.0)
+    step.setArgument("num_floors", 2)
+    step.setArgument("garage_width", 12.0)
+  elsif ['base-enclosure-adiabatic-surfaces.osw'].include? osw_file
 
   elsif ['base-enclosure-beds-1.osw'].include? osw_file
     step.setArgument("num_bedrooms", 1)
