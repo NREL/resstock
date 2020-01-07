@@ -231,7 +231,7 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     arg.setDisplayName("Foundation: Wall Insulation Nominal R-value")
     arg.setUnits("h-ft^2-R/Btu")
     arg.setDescription("Refers to the overall R-value of the assembly.")
-    arg.setDefaultValue(0)
+    arg.setDefaultValue(1.32)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("slab_perimeter_r", true)
@@ -305,6 +305,13 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     arg.setDisplayName("Geometry: Roof Structure")
     arg.setDescription("The roof structure of the building.")
     arg.setDefaultValue("truss, cantilever")
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("roof_ceiling_r", true)
+    arg.setDisplayName("Roof: Ceiling Insulation Nominal R-value")
+    arg.setUnits("h-ft^2-R/Btu")
+    arg.setDescription("Refers to the overall R-value of the assembly.")
+    arg.setDefaultValue(2.3)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("eaves_depth", true)
@@ -771,6 +778,7 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
 
     duct_location_choices = OpenStudio::StringVector.new
     duct_location_choices << "living space"
+    duct_location_choices << "attic - vented"
     duct_location_choices << "attic - unvented"
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("supply_duct_leakage_units", duct_leakage_units_choices, true)
@@ -1249,6 +1257,7 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
              :roof_type => runner.getStringArgumentValue("roof_type", user_arguments),
              :roof_pitch => { "1:12" => 1.0 / 12.0, "2:12" => 2.0 / 12.0, "3:12" => 3.0 / 12.0, "4:12" => 4.0 / 12.0, "5:12" => 5.0 / 12.0, "6:12" => 6.0 / 12.0, "7:12" => 7.0 / 12.0, "8:12" => 8.0 / 12.0, "9:12" => 9.0 / 12.0, "10:12" => 10.0 / 12.0, "11:12" => 11.0 / 12.0, "12:12" => 12.0 / 12.0 }[runner.getStringArgumentValue("roof_pitch", user_arguments)],
              :roof_structure => runner.getStringArgumentValue("roof_structure", user_arguments),
+             :roof_ceiling_r => runner.getDoubleArgumentValue("roof_ceiling_r", user_arguments),
              :eaves_depth => UnitConversions.convert(runner.getDoubleArgumentValue("eaves_depth", user_arguments), "ft", "m"),
              :num_bedrooms => runner.getDoubleArgumentValue("num_bedrooms", user_arguments),
              :num_bathrooms => runner.getDoubleArgumentValue("num_bathrooms", user_arguments),
@@ -1756,7 +1765,7 @@ class HPXMLFile
                         :emittance => 0.92, # FIXME: Get from roof material
                         :pitch => args[:roof_pitch],
                         :radiant_barrier => false, # FIXME: Get from radiant barrier
-                        :insulation_assembly_r_value => 0 } # FIXME: Calculate
+                        :insulation_assembly_r_value => args[:roof_ceiling_r] } # FIXME: Calculate
     end
     return roofs_values
   end

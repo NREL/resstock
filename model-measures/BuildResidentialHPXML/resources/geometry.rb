@@ -1486,6 +1486,9 @@ class Geometry2
     num_units = 2 # FIXME
     num_floors = 1 # FIXME
     corridor_position = "None" # FIXME
+    if foundation_type == "basement - conditioned"
+      foundation_type = "basement - unconditioned" # FIXME
+    end
 
     if foundation_type == "slab"
       foundation_height = 0.0
