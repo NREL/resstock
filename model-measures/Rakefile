@@ -159,9 +159,10 @@ def get_values(osw_file, step)
     step.setArgument("garage_position", "Right")
     step.setArgument("foundation_type", "basement - conditioned")
     step.setArgument("foundation_height", 8.0)
-    step.setArgument("ambient_ceiling_r", 30)
-    step.setArgument("crawlspace_ceiling_r", 30)
-    step.setArgument("unconditioned_basement_ceiling_r", 30)
+    step.setArgument("foundation_ceiling_r", 30)
+    step.setArgument("foundation_wall_r", 0)
+    step.setArgument("perimeter_insulation_r", 0)
+    step.setArgument("under_slab_insulation_r", 0)
     step.setArgument("attic_type", "attic - vented")
     step.setArgument("unconditioned_attic_ceiling_r", 30)
     step.setArgument("roof_type", "gable")
@@ -303,13 +304,15 @@ def get_values(osw_file, step)
   elsif ['base-foundation-complex.osw'].include? osw_file
 
   elsif ['base-foundation-conditioned-basement-slab-insulation.osw'].include? osw_file
-
+    step.setArgument("under_slab_insulation_r", 10)
   elsif ['base-foundation-conditioned-basement-wall-interior-insulation.osw'].include? osw_file
-
+    step.setArgument("foundation_ceiling_r", 0)
+    step.setArgument("foundation_wall_r", 30)
   elsif ['base-foundation-multiple.osw'].include? osw_file
 
   elsif ['base-foundation-slab.osw'].include? osw_file
     step.setArgument("foundation_type", "slab")
+    step.setArgument("perimeter_insulation_r", 5)
   elsif ['base-foundation-unconditioned-basement.osw'].include? osw_file
     step.setArgument("foundation_type", "basement - unconditioned")
   elsif ['base-foundation-unconditioned-basement-above-grade.osw'].include? osw_file
@@ -318,6 +321,8 @@ def get_values(osw_file, step)
     step.setArgument("foundation_type", "basement - unconditioned")
   elsif ['base-foundation-unconditioned-basement-wall-insulation.osw'].include? osw_file
     step.setArgument("foundation_type", "basement - unconditioned")
+    step.setArgument("foundation_ceiling_r", 0)
+    step.setArgument("foundation_wall_r", 30)
   elsif ['base-foundation-unvented-crawlspace.osw'].include? osw_file
     step.setArgument("foundation_type", "crawlspace - unvented")
     step.setArgument("foundation_height", 3.0)

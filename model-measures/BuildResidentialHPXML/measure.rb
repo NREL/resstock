@@ -220,25 +220,32 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(3.0)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("ambient_ceiling_r", true)
-    arg.setDisplayName("Ambient: Ceiling Insulation Nominal R-value")
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("foundation_ceiling_r", true)
+    arg.setDisplayName("Foundation: Ceiling Insulation Nominal R-value")
     arg.setUnits("h-ft^2-R/Btu")
-    arg.setDescription("Refers to the R-value of the insulation and not the overall R-value of the assembly.")
+    arg.setDescription("Refers to the overall R-value of the assembly.")
     arg.setDefaultValue(30)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("crawlspace_ceiling_r", true)
-    arg.setDisplayName("Crawlspace: Ceiling Insulation Nominal R-value")
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("foundation_wall_r", true)
+    arg.setDisplayName("Foundation: Wall Insulation Nominal R-value")
     arg.setUnits("h-ft^2-R/Btu")
-    arg.setDescription("Refers to the R-value of the insulation and not the overall R-value of the assembly.")
-    arg.setDefaultValue(30)
+    arg.setDescription("Refers to the overall R-value of the assembly.")
+    arg.setDefaultValue(0)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("unconditioned_basement_ceiling_r", true)
-    arg.setDisplayName("Unconditioned Basement: Ceiling Insulation Nominal R-value")
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("perimeter_insulation_r", true)
+    arg.setDisplayName("Slab: Perimeter Insulation Nominal R-value")
     arg.setUnits("h-ft^2-R/Btu")
-    arg.setDescription("Refers to the R-value of the insulation and not the overall R-value of the assembly.")
-    arg.setDefaultValue(30)
+    arg.setDescription("Refers to the overall R-value of the assembly.")
+    arg.setDefaultValue(0)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("under_slab_insulation_r", true)
+    arg.setDisplayName("Slab: Under Slab Insulation Nominal R-value")
+    arg.setUnits("h-ft^2-R/Btu")
+    arg.setDescription("Refers to the overall R-value of the assembly.")
+    arg.setDefaultValue(0)
     args << arg
 
     attic_type_choices = OpenStudio::StringVector.new
@@ -255,7 +262,7 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("unconditioned_attic_ceiling_r", true)
     arg.setDisplayName("Unconditioned Attic: Ceiling Insulation Nominal R-value")
     arg.setUnits("h-ft^2-R/Btu")
-    arg.setDescription("Refers to the R-value of the insulation and not the overall R-value of the assembly.")
+    arg.setDescription("Refers to the overall R-value of the assembly.")
     arg.setDefaultValue(30)
     args << arg
 
@@ -1226,9 +1233,10 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
              :garage_position => runner.getStringArgumentValue("garage_position", user_arguments),
              :foundation_type => runner.getStringArgumentValue("foundation_type", user_arguments),
              :foundation_height => runner.getDoubleArgumentValue("foundation_height", user_arguments),
-             :ambient_ceiling_r => runner.getDoubleArgumentValue("ambient_ceiling_r", user_arguments),
-             :crawlspace_ceiling_r => runner.getDoubleArgumentValue("crawlspace_ceiling_r", user_arguments),
-             :unconditioned_basement_ceiling_r => runner.getDoubleArgumentValue("unconditioned_basement_ceiling_r", user_arguments),
+             :foundation_ceiling_r => runner.getDoubleArgumentValue("foundation_ceiling_r", user_arguments),
+             :foundation_wall_r => runner.getDoubleArgumentValue("foundation_wall_r", user_arguments),
+             :perimeter_insulation_r_value => runner.getDoubleArgumentValue("perimeter_insulation_r", user_arguments),
+             :under_slab_insulation_r_value => runner.getDoubleArgumentValue("under_slab_insulation_r", user_arguments),
              :attic_type => runner.getStringArgumentValue("attic_type", user_arguments),
              :unconditioned_attic_ceiling_r => runner.getDoubleArgumentValue("unconditioned_attic_ceiling_r", user_arguments),
              :roof_type => runner.getStringArgumentValue("roof_type", user_arguments),
@@ -1256,7 +1264,6 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
              :overhangs => [runner.getBoolArgumentValue("overhangs_front_facade", user_arguments), runner.getBoolArgumentValue("overhangs_back_facade", user_arguments), runner.getBoolArgumentValue("overhangs_left_facade", user_arguments), runner.getBoolArgumentValue("overhangs_right_facade", user_arguments)],
              :interior_shading_factor_winter => [runner.getDoubleArgumentValue("winter_shading_coefficient_front_facade", user_arguments)],
              :interior_shading_factor_summer => [runner.getDoubleArgumentValue("summer_shading_coefficient_front_facade", user_arguments)],
-             :window_aspect_ratio => runner.getDoubleArgumentValue("window_aspect_ratio", user_arguments),
              :front_skylight_area => runner.getDoubleArgumentValue("front_skylight_area", user_arguments),
              :back_skylight_area => runner.getDoubleArgumentValue("back_skylight_area", user_arguments),
              :left_skylight_area => runner.getDoubleArgumentValue("left_skylight_area", user_arguments),
@@ -1789,7 +1796,7 @@ class HPXMLFile
                                    :azimuth => nil, # FIXME: Get from model
                                    :thickness => 8,
                                    :depth_below_grade => args[:foundation_height], # TODO: Add as input?
-                                   :insulation_assembly_r_value => 0 } # FIXME: Calculate
+                                   :insulation_assembly_r_value => args[:foundation_wall_r] } # FIXME: Calculate
     end
     return foundation_walls_values
   end
@@ -1821,12 +1828,8 @@ class HPXMLFile
 
       if interior_adjacent_to == "living space" and (exterior_adjacent_to.include? "attic - unvented" or exterior_adjacent_to.include? "attic - vented")
         framefloor_values[:insulation_assembly_r_value] = args[:unconditioned_attic_ceiling_r] # FIXME: Calculate
-      elsif interior_adjacent_to == "living space" and exterior_adjacent_to.include? "crawlspace"
-        framefloor_values[:insulation_assembly_r_value] = args[:crawlspace_ceiling_r] # FIXME: Calculate
-      elsif interior_adjacent_to == "living space" and exterior_adjacent_to.include? "basement - unconditioned"
-        framefloor_values[:insulation_assembly_r_value] = args[:unconditioned_basement_ceiling_r] # FIXME: Calculate
-      elsif interior_adjacent_to == "living space" and exterior_adjacent_to.include? "outside"
-        framefloor_values[:insulation_assembly_r_value] = args[:ambient_ceiling_r] # FIXME: Calculate
+      elsif interior_adjacent_to == "living space" and (exterior_adjacent_to.include? "crawlspace" or exterior_adjacent_to.include? "basement - unconditioned" or exterior_adjacent_to.include? "outside")
+        framefloor_values[:insulation_assembly_r_value] = args[:foundation_ceiling_r] # FIXME: Calculate
       end
 
       framefloors_values << framefloor_values
@@ -1852,8 +1855,8 @@ class HPXMLFile
                         :perimeter_insulation_depth => 0, # FIXME: Get from construction
                         :under_slab_insulation_width => 0, # FIXME: Get from construction
                         :depth_below_grade => 0,
-                        :perimeter_insulation_r_value => 0, # FIXME: Get from construction
-                        :under_slab_insulation_r_value => 0, # FIXME: Get from construction
+                        :perimeter_insulation_r_value => args[:perimeter_insulation_r_value], # FIXME: Get from construction
+                        :under_slab_insulation_r_value => args[:under_slab_insulation_r_value], # FIXME: Get from construction
                         :carpet_fraction => 0, # TODO: Revisit
                         :carpet_r_value => 0 } # TODO: Revisit
     end
