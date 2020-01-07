@@ -1845,7 +1845,6 @@ class HPXMLFile
       next if ["ambient"].include? surface.space.get.spaceType.get.standardsSpaceType.get # FIXME
 
       interior_adjacent_to = get_adjacent_to(model, surface)
-      next if interior_adjacent_to.include? "crawlspace"
 
       slabs_values << { :id => surface.name.to_s,
                         :interior_adjacent_to => interior_adjacent_to,
