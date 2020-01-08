@@ -108,7 +108,7 @@ class ResidentialScheduleGenerator < OpenStudio::Measure::ModelMeasure
       all_simulated_values << Matrix[*simulated_values]
     end
 
-    #all_simulated_values = NArray.to_narray(all_simulated_values) # shape is [7, 35040, 2] (states, timesteps, occupants)
+    # shape of all_simulated_values is [2, 35040, 7] i.e. (num_occupants, period_in_a_year, number_of_states)
     daily_plugload_sch = CSV.read(schedules_path + "/plugload_sch.csv")
     daily_lighting_sch = CSV.read(schedules_path + "/lighting_sch.csv")
     daily_refrigerator_sch = CSV.read(schedules_path + "/refrigerator_sch.csv")
@@ -155,11 +155,11 @@ class ResidentialScheduleGenerator < OpenStudio::Measure::ModelMeasure
         step_per_hour = 60 / minutes_per_steps
 
         def sum_across_occupants(all_simulated_values, activity_index, time_index)
-            sum = 0
-            all_simulated_values.size.times do |i|
-              sum += all_simulated_values[i][time_index, activity_index]
-            end
-            return sum
+          sum = 0
+          all_simulated_values.size.times do |i|
+            sum += all_simulated_values[i][time_index, activity_index]
+          end
+          return sum
         end
 
         # the schedule is set as the sum of values of individual occupants
@@ -191,7 +191,6 @@ class ResidentialScheduleGenerator < OpenStudio::Measure::ModelMeasure
     output_csv_file = schedules_path + "/appliances_schedules.csv"
     puts("Generated the Schedules")
     CSV.open(output_csv_file, "w") do |csv|
-      #csv << ["This is unbelievable"]
       csv << ["occupants", "cooking_range", "plug_loads", "refrigerator", "lighting_interior", "lighting_exterior",
               "lighting_garage", "lighting_exterior_holiday", "clothes_washer", "clothes_dryer", "dishwasher", "baths", "showers", "sinks", "ceiling_fan"]
       shower_schedule.size.times do |i|
