@@ -163,19 +163,19 @@ class ResidentialScheduleGenerator < OpenStudio::Measure::ModelMeasure
         end
 
         # the schedule is set as the sum of values of individual occupants
-        sleeping_schedule << sum_across_occupants(all_simulated_values, 0, index_15)/num_occupants
-        shower_schedule << sum_across_occupants(all_simulated_values, 1, index_15)/num_occupants
-        clothes_washer_schedule << sum_across_occupants(all_simulated_values, 2, index_15)/num_occupants
+        sleeping_schedule << sum_across_occupants(all_simulated_values, 0, index_15) / num_occupants
+        shower_schedule << sum_across_occupants(all_simulated_values, 1, index_15) / num_occupants
+        clothes_washer_schedule << sum_across_occupants(all_simulated_values, 2, index_15) / num_occupants
         hour_before_washer = clothes_washer_schedule[-step_per_hour]
         if hour_before_washer.nil?
           clothes_dryer_schedule << 0
         else
           clothes_dryer_schedule << hour_before_washer
         end
-        cooking_schedule << sum_across_occupants(all_simulated_values, 3, index_15)/num_occupants
-        dish_washer_schedule << sum_across_occupants(all_simulated_values, 4, index_15)/num_occupants
-        away_schedule << sum_across_occupants(all_simulated_values, 5, index_15)/num_occupants
-        idle_schedule << sum_across_occupants(all_simulated_values, 6, index_15)/num_occupants
+        cooking_schedule << sum_across_occupants(all_simulated_values, 3, index_15) / num_occupants
+        dish_washer_schedule << sum_across_occupants(all_simulated_values, 4, index_15) / num_occupants
+        away_schedule << sum_across_occupants(all_simulated_values, 5, index_15) / num_occupants
+        idle_schedule << sum_across_occupants(all_simulated_values, 6, index_15) / num_occupants
 
         plugload_schedule << get_value_from_daily_sch(daily_plugload_sch, month, is_weekday, minute)
         refrigerator_schedule << get_value_from_daily_sch(daily_refrigerator_sch, month, is_weekday, minute)
