@@ -1780,6 +1780,8 @@ class HPXMLFile
         roof_values[:insulation_assembly_r_value] = args[:attic_ceiling_r] # FIXME: Calculate
       elsif interior_adjacent_to == "living space"
         roof_values[:insulation_assembly_r_value] = args[:roof_ceiling_r] # FIXME: Calculate
+      elsif interior_adjacent_to == "garage"
+        roof_values[:insulation_assembly_r_value] = args[:attic_ceiling_r] # FIXME: Calculate
       end
 
       roofs_values << roof_values
