@@ -163,19 +163,19 @@ class ResidentialScheduleGenerator < OpenStudio::Measure::ModelMeasure
         end
 
         # the schedule is set as the sum of values of individual occupants
-        sleeping_schedule << sum_across_occupants(all_simulated_values, 0, index_15)
-        shower_schedule << sum_across_occupants(all_simulated_values, 1, index_15)
-        clothes_washer_schedule << sum_across_occupants(all_simulated_values, 2, index_15)
+        sleeping_schedule << sum_across_occupants(all_simulated_values, 0, index_15)/num_occupants
+        shower_schedule << sum_across_occupants(all_simulated_values, 1, index_15)/num_occupants
+        clothes_washer_schedule << sum_across_occupants(all_simulated_values, 2, index_15)/num_occupants
         hour_before_washer = clothes_washer_schedule[-step_per_hour]
         if hour_before_washer.nil?
           clothes_dryer_schedule << 0
         else
           clothes_dryer_schedule << hour_before_washer
         end
-        cooking_schedule << sum_across_occupants(all_simulated_values, 3, index_15)
-        dish_washer_schedule << sum_across_occupants(all_simulated_values, 4, index_15)
-        away_schedule << sum_across_occupants(all_simulated_values, 5, index_15)
-        idle_schedule << sum_across_occupants(all_simulated_values, 6, index_15)
+        cooking_schedule << sum_across_occupants(all_simulated_values, 3, index_15)/num_occupants
+        dish_washer_schedule << sum_across_occupants(all_simulated_values, 4, index_15)/num_occupants
+        away_schedule << sum_across_occupants(all_simulated_values, 5, index_15)/num_occupants
+        idle_schedule << sum_across_occupants(all_simulated_values, 6, index_15)/num_occupants
 
         plugload_schedule << get_value_from_daily_sch(daily_plugload_sch, month, is_weekday, minute)
         refrigerator_schedule << get_value_from_daily_sch(daily_refrigerator_sch, month, is_weekday, minute)
@@ -194,7 +194,7 @@ class ResidentialScheduleGenerator < OpenStudio::Measure::ModelMeasure
       csv << ["occupants", "cooking_range", "plug_loads", "refrigerator", "lighting_interior", "lighting_exterior",
               "lighting_garage", "lighting_exterior_holiday", "clothes_washer", "clothes_dryer", "dishwasher", "baths", "showers", "sinks", "ceiling_fan"]
       shower_schedule.size.times do |i|
-        csv << [(num_occupants - away_schedule[i]) / num_occupants, cooking_schedule[i], plugload_schedule[i], refrigerator_schedule[i],
+        csv << [(1 - away_schedule[i]), cooking_schedule[i], plugload_schedule[i], refrigerator_schedule[i],
                 lighting_interior_schedule[i], lighting_exterior_schedule[i], lighting_garage_schedule[i], lighting_holiday_schedule[i],
                 clothes_washer_schedule[i], clothes_dryer_schedule[i], dish_washer_schedule[i], bath_schedule[i],
                 shower_schedule[i], sink_schedule[i], ceiling_fan_schedule[i]]
