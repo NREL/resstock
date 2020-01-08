@@ -894,15 +894,7 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
     end
 
     # FIXME: temporary until we have the generated schedules.csv of appropriate length
-    sch_path = File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources/schedules/TMY_10-60min.csv")
-    if model.getYearDescription.calendarYear.is_initialized
-      case model.getYearDescription.calendarYear.get
-      when 2012
-        sch_path = File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources/schedules/AMY2012_10-60min.csv")
-      when 2014
-        sch_path = File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources/schedules/AMY2014_10-60min.csv")
-      end
-    end
+    sch_path = File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources/schedules/appliances_schedules.csv")
     schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_output_path: sch_path)
     if not schedules_file.validated?
       return false
