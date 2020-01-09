@@ -1921,4 +1921,105 @@ class Geometry2
 
     return adjacent_wall_surfaces
   end
+
+  # Takes in a list of floor surfaces for which to calculate the exposed perimeter.
+  # Returns the total exposed perimeter.
+  # NOTE: Does not work for buildings with non-orthogonal walls.
+  def self.calculate_exposed_perimeter(model, ground_floor_surfaces, has_foundation_walls = false)
+    perimeter = 0
+
+    # Get ground edges
+    if not has_foundation_walls
+      # Use edges from floor surface
+      ground_edges = self.get_edges_for_surfaces(ground_floor_surfaces, false)
+    else
+      # Use top edges from foundation walls instead
+      surfaces = []
+      ground_floor_surfaces.each do |ground_floor_surface|
+        next if not ground_floor_surface.space.is_initialized
+
+        foundation_space = ground_floor_surface.space.get
+        wall_surfaces = []
+        foundation_space.surfaces.each do |surface|
+          next if not surface.surfaceType.downcase == "wall"
+          next if surface.adjacentSurface.is_initialized
+
+          wall_surfaces << surface
+        end
+        get_walls_connected_to_floor(wall_surfaces, ground_floor_surface).each do |surface|
+          next if surfaces.include? surface
+
+          surfaces << surface
+        end
+      end
+      ground_edges = get_edges_for_surfaces(surfaces, true)
+    end
+    # Get bottom edges of exterior walls (building footprint)
+    surfaces = []
+    model.getSurfaces.each do |surface|
+      next if not surface.surfaceType.downcase == "wall"
+      next if surface.outsideBoundaryCondition.downcase != "outdoors"
+
+      surfaces << surface
+    end
+    model_edges = get_edges_for_surfaces(surfaces, false)
+
+    # compare edges for overlap
+    ground_edges.each do |e1|
+      model_edges.each do |e2|
+        next if not self.is_point_between(e2[0], e1[0], e1[1])
+        next if not self.is_point_between(e2[1], e1[0], e1[1])
+
+        point_one = OpenStudio::Point3d.new(e2[0][0], e2[0][1], e2[0][2])
+        point_two = OpenStudio::Point3d.new(e2[1][0], e2[1][1], e2[1][2])
+        length = OpenStudio::Vector3d.new(point_one - point_two).length
+        perimeter += length
+      end
+    end
+
+    return UnitConversions.convert(perimeter, "m", "ft")
+  end
+
+  def self.get_edges_for_surfaces(surfaces, use_top_edge)
+    top_z = -99999
+    bottom_z = 99999
+    surfaces.each do |surface|
+      top_z = [Geometry.getSurfaceZValues([surface]).max, top_z].max
+      bottom_z = [Geometry.getSurfaceZValues([surface]).min, bottom_z].min
+    end
+    edges = []
+    edge_counter = 0
+    surfaces.each do |surface|
+      if use_top_edge
+        matchz = top_z
+      else
+        matchz = bottom_z
+      end
+
+      # get vertices
+      vertex_hash = {}
+      vertex_counter = 0
+      surface.vertices.each do |vertex|
+        next if (UnitConversions.convert(vertex.z, "m", "ft") - matchz).abs > 0.0001 # ensure we only process bottom/top edge of wall surfaces
+
+        vertex_counter += 1
+        vertex_hash[vertex_counter] = [vertex.x + surface.space.get.xOrigin,
+                                       vertex.y + surface.space.get.yOrigin,
+                                       vertex.z + surface.space.get.zOrigin]
+      end
+      # make edges
+      counter = 0
+      vertex_hash.each do |k, v|
+        edge_counter += 1
+        counter += 1
+        if vertex_hash.size != counter
+          edges << [v, vertex_hash[counter + 1], Geometry.get_facade_for_surface(surface)]
+        elsif vertex_hash.size > 2 # different code for wrap around vertex (if > 2 vertices)
+          edges << [v, vertex_hash[1], Geometry.get_facade_for_surface(surface)]
+        end
+      end
+    end
+
+    return edges
+  end
 end

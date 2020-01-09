@@ -8,194 +8,10 @@ require 'rexml/document'
 require 'rexml/xpath'
 require_relative '../HPXMLtoOpenStudio/resources/constants'
 require_relative '../HPXMLtoOpenStudio/resources/meta_measure'
+require_relative '../HPXMLtoOpenStudio/tests/hpxml_translator_test'
 
 class HPXMLExporterTest < MiniTest::Test
   @@this_dir = File.dirname(__FILE__)
-
-  def test_sfd_slab
-    _setup(@@this_dir)
-    args_hash = {}
-    args_hash["unit_type"] = "single-family detached"
-    args_hash["hpxml_output_path"] = File.absolute_path(File.join(@@this_dir, "run", "in.xml"))
-    args_hash["schedules_output_path"] = File.absolute_path(File.join(@@this_dir, "run", "schedules.csv"))
-    _test_measure(nil, args_hash)
-  end
-
-  def test_sfd_vented_attic
-    _setup(@@this_dir)
-    args_hash = {}
-    args_hash["unit_type"] = "single-family detached"
-    args_hash["attic_type"] = "attic - vented"
-    args_hash["hpxml_output_path"] = File.absolute_path(File.join(@@this_dir, "run", "in.xml"))
-    args_hash["schedules_output_path"] = File.absolute_path(File.join(@@this_dir, "run", "schedules.csv"))
-    _test_measure(nil, args_hash)
-  end
-
-  def test_sfd_unvented_attic
-    _setup(@@this_dir)
-    args_hash = {}
-    args_hash["unit_type"] = "single-family detached"
-    args_hash["attic_type"] = "attic - unvented"
-    args_hash["hpxml_output_path"] = File.absolute_path(File.join(@@this_dir, "run", "in.xml"))
-    args_hash["schedules_output_path"] = File.absolute_path(File.join(@@this_dir, "run", "schedules.csv"))
-    _test_measure(nil, args_hash)
-  end
-
-  def test_sfd_conditioned_attic
-    _setup(@@this_dir)
-    args_hash = {}
-    args_hash["unit_type"] = "single-family detached"
-    args_hash["attic_type"] = "attic - conditioned"
-    args_hash["hpxml_output_path"] = File.absolute_path(File.join(@@this_dir, "run", "in.xml"))
-    args_hash["schedules_output_path"] = File.absolute_path(File.join(@@this_dir, "run", "schedules.csv"))
-    _test_measure(nil, args_hash)
-  end
-
-  def test_sfd_vented_crawl
-    _setup(@@this_dir)
-    args_hash = {}
-    args_hash["unit_type"] = "single-family detached"
-    args_hash["foundation type"] = "crawlspace - vented"
-    args_hash["hpxml_output_path"] = File.absolute_path(File.join(@@this_dir, "run", "in.xml"))
-    args_hash["schedules_output_path"] = File.absolute_path(File.join(@@this_dir, "run", "schedules.csv"))
-    _test_measure(nil, args_hash)
-  end
-
-  def test_sfd_unvented_crawl
-    _setup(@@this_dir)
-    args_hash = {}
-    args_hash["unit_type"] = "single-family detached"
-    args_hash["foundation type"] = "crawlspace - unvented"
-    args_hash["hpxml_output_path"] = File.absolute_path(File.join(@@this_dir, "run", "in.xml"))
-    args_hash["schedules_output_path"] = File.absolute_path(File.join(@@this_dir, "run", "schedules.csv"))
-    _test_measure(nil, args_hash)
-  end
-
-  def test_sfd_uconditioned_basement
-    _setup(@@this_dir)
-    args_hash = {}
-    args_hash["unit_type"] = "single-family detached"
-    args_hash["foundation type"] = "basement - unconditioned"
-    args_hash["hpxml_output_path"] = File.absolute_path(File.join(@@this_dir, "run", "in.xml"))
-    args_hash["schedules_output_path"] = File.absolute_path(File.join(@@this_dir, "run", "schedules.csv"))
-    _test_measure(nil, args_hash)
-  end
-
-  def test_sfd_conditioned_basement
-    _setup(@@this_dir)
-    args_hash = {}
-    args_hash["unit_type"] = "single-family detached"
-    args_hash["foundation type"] = "basement - conditioned"
-    args_hash["hpxml_output_path"] = File.absolute_path(File.join(@@this_dir, "run", "in.xml"))
-    args_hash["schedules_output_path"] = File.absolute_path(File.join(@@this_dir, "run", "schedules.csv"))
-    _test_measure(nil, args_hash)
-  end
-
-  def test_sfd_ambient
-    _setup(@@this_dir)
-    args_hash = {}
-    args_hash["unit_type"] = "single-family detached"
-    args_hash["foundation type"] = "ambient"
-    args_hash["hpxml_output_path"] = File.absolute_path(File.join(@@this_dir, "run", "in.xml"))
-    args_hash["schedules_output_path"] = File.absolute_path(File.join(@@this_dir, "run", "schedules.csv"))
-    _test_measure(nil, args_hash)
-  end
-
-  def test_sfa_slab
-    _setup(@@this_dir)
-    args_hash = {}
-    args_hash["unit_type"] = "single-family attached"
-    args_hash["hpxml_output_path"] = File.absolute_path(File.join(@@this_dir, "run", "in.xml"))
-    args_hash["schedules_output_path"] = File.absolute_path(File.join(@@this_dir, "run", "schedules.csv"))
-    _test_measure(nil, args_hash)
-  end
-
-  def test_sfa_vented_crawl
-    _setup(@@this_dir)
-    args_hash = {}
-    args_hash["unit_type"] = "single-family attached"
-    args_hash["cfa"] = 900.0
-    args_hash["foundation type"] = "crawlspace - vented"
-    args_hash["hpxml_output_path"] = File.absolute_path(File.join(@@this_dir, "run", "in.xml"))
-    args_hash["schedules_output_path"] = File.absolute_path(File.join(@@this_dir, "run", "schedules.csv"))
-    _test_measure(nil, args_hash)
-  end
-
-  def test_sfa_unvented_crawl
-    _setup(@@this_dir)
-    args_hash = {}
-    args_hash["unit_type"] = "single-family attached"
-    args_hash["cfa"] = 900.0
-    args_hash["foundation type"] = "crawlspace - unvented"
-    args_hash["hpxml_output_path"] = File.absolute_path(File.join(@@this_dir, "run", "in.xml"))
-    args_hash["schedules_output_path"] = File.absolute_path(File.join(@@this_dir, "run", "schedules.csv"))
-    _test_measure(nil, args_hash)
-  end
-
-  def test_sfa_unconditioned_basement
-    _setup(@@this_dir)
-    args_hash = {}
-    args_hash["unit_type"] = "single-family attached"
-    args_hash["cfa"] = 900.0
-    args_hash["foundation type"] = "basement - unconditioned"
-    args_hash["hpxml_output_path"] = File.absolute_path(File.join(@@this_dir, "run", "in.xml"))
-    args_hash["schedules_output_path"] = File.absolute_path(File.join(@@this_dir, "run", "schedules.csv"))
-    _test_measure(nil, args_hash)
-  end
-
-  def test_sfa_conditioned_basement
-    _setup(@@this_dir)
-    args_hash = {}
-    args_hash["unit_type"] = "single-family attached"
-    args_hash["cfa"] = 900.0
-    args_hash["foundation type"] = "basement - conditioned"
-    args_hash["hpxml_output_path"] = File.absolute_path(File.join(@@this_dir, "run", "in.xml"))
-    args_hash["schedules_output_path"] = File.absolute_path(File.join(@@this_dir, "run", "schedules.csv"))
-    _test_measure(nil, args_hash)
-  end
-
-  def test_mf_slab
-    _setup(@@this_dir)
-    args_hash = {}
-    args_hash["unit_type"] = "multifamily"
-    args_hash["cfa"] = 900.0
-    args_hash["hpxml_output_path"] = File.absolute_path(File.join(@@this_dir, "run", "in.xml"))
-    args_hash["schedules_output_path"] = File.absolute_path(File.join(@@this_dir, "run", "schedules.csv"))
-    _test_measure(nil, args_hash)
-  end
-
-  def test_mf_vented_crawl
-    _setup(@@this_dir)
-    args_hash = {}
-    args_hash["unit_type"] = "multifamily"
-    args_hash["cfa"] = 900.0
-    args_hash["foundation type"] = "crawlspace - vented"
-    args_hash["hpxml_output_path"] = File.absolute_path(File.join(@@this_dir, "run", "in.xml"))
-    args_hash["schedules_output_path"] = File.absolute_path(File.join(@@this_dir, "run", "schedules.csv"))
-    _test_measure(nil, args_hash)
-  end
-
-  def test_mf_unvented_crawl
-    _setup(@@this_dir)
-    args_hash = {}
-    args_hash["unit_type"] = "multifamily"
-    args_hash["cfa"] = 900.0
-    args_hash["foundation type"] = "crawlspace - unvented"
-    args_hash["hpxml_output_path"] = File.absolute_path(File.join(@@this_dir, "run", "in.xml"))
-    args_hash["schedules_output_path"] = File.absolute_path(File.join(@@this_dir, "run", "schedules.csv"))
-    _test_measure(nil, args_hash)
-  end
-
-  def test_mf_unconditioned_basement
-    _setup(@@this_dir)
-    args_hash = {}
-    args_hash["unit_type"] = "multifamily"
-    args_hash["cfa"] = 900.0
-    args_hash["foundation type"] = "basement - unconditioned"
-    args_hash["hpxml_output_path"] = File.absolute_path(File.join(@@this_dir, "run", "in.xml"))
-    args_hash["schedules_output_path"] = File.absolute_path(File.join(@@this_dir, "run", "schedules.csv"))
-    _test_measure(nil, args_hash)
-  end
 
   def test_workflows
     require 'json'
@@ -210,10 +26,22 @@ class HPXMLExporterTest < MiniTest::Test
       end
     end
 
+    this_dir = File.expand_path(File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/tests"))
+    results_dir = File.join(this_dir, "results")
+    _rm_path(results_dir)
+    test_dir = File.join(this_dir, "build_res_hpxml")
+    _rm_path(test_dir)
+    Dir.mkdir(test_dir)
+
     puts "Running #{osws.size} OSW files..."
+    all_results = {}
+    all_compload_results = {}
+    all_sizing_results = {}
+    hpxml_translator_test = HPXMLTranslatorTest.new(nil)
     measures = {}
     osws.each do |osw|
-      puts osw
+      puts "\nTesting #{File.basename(osw)}..."
+
       _setup(@@this_dir)
       osw_hash = JSON.parse(File.read(osw))
       osw_hash["steps"].each do |step|
@@ -233,8 +61,21 @@ class HPXMLExporterTest < MiniTest::Test
         end
 
         assert(success)
+
+        if ["base-single-family-attached.osw", "base-multifamily.osw"].include? File.basename(osw)
+          next
+        end
+
+        # Translate the hpxml to osm
+        xml = "#{File.join(test_dir, File.basename(osw, ".*"))}.xml"
+        all_results[xml], all_compload_results[xml], all_sizing_results[xml] = hpxml_translator_test._run_xml(xml, this_dir)
       end
     end
+
+    Dir.mkdir(results_dir)
+    hpxml_translator_test._write_summary_results(results_dir, all_results)
+    hpxml_translator_test._write_component_load_results(results_dir, all_compload_results)
+    hpxml_translator_test._write_hvac_sizing_results(results_dir, all_sizing_results)
   end
 
   private
