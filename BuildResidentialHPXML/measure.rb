@@ -1719,7 +1719,7 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("plug_loads_plug_load_type_2", plug_loads_plug_load_type_choices, true)
     arg.setDisplayName("Plug Load 2: Type")
     arg.setDescription("Type of the second plug load.")
-    arg.setDefaultValue("other")
+    arg.setDefaultValue("TV other")
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("plug_loads_annual_kwh_2", true)
@@ -2273,13 +2273,14 @@ class HPXMLFile
         azimuth == 270
       end
 
-      height = nil
       if distance > 0
-        height = args[:neighbor_height][i]
+        if args[:neighbor_height][i] > 0
+          height = args[:neighbor_height][i]
+        end
       end
 
       site_neighbors_values << { :azimuth => azimuth,
-                                 :distanace => distance,
+                                 :distance => distance,
                                  :height => height }
     end
     return site_neighbors_values
@@ -2915,7 +2916,6 @@ class HPXMLFile
   def self.get_ventilation_fan_values(runner, args, hvac_distributions_values)
     return [] if args[:mech_vent_fan_type] == "none"
 
-    puts hvac_distributions_values
     tested_flow_rate = args[:mech_vent_tested_flow_rate]
     if args[:mech_vent_rated_flow_rate] > 0
       rated_flow_rate = args[:mech_vent_rated_flow_rate]
@@ -2934,6 +2934,15 @@ class HPXMLFile
       if args[:mech_vent_adjusted_sensible_recovery_efficiency] > 0
         sensible_recovery_efficiency_adjusted = args[:mech_vent_adjusted_sensible_recovery_efficiency]
         sensible_recovery_efficiency = nil
+      end
+    end
+
+    distribution_system_idref = nil
+    if args[:mech_vent_fan_type] == "central fan integrated supply"
+      hvac_distributions_values.each do |hvac_distribution_values|
+        next unless hvac_distribution_values[:distribution_system_type] == "AirDistribution"
+
+        distribution_system_idref = hvac_distribution_values[:id]
       end
     end
 
