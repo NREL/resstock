@@ -1048,7 +1048,7 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("water_heater_uniform_energy_factor_2", true)
     arg.setDisplayName("Water Heater 2: Uniform Energy Factor")
     arg.setDescription("The uniform energy factor of the second water heater.")
-    arg.setDefaultValue(Constants.Auto)
+    arg.setDefaultValue(0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("water_heater_recovery_efficiency_2", true)
@@ -1380,16 +1380,16 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(12)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("refrigerator_location", location_choices, true)
-    arg.setDisplayName("Refrigerator: Location")
-    arg.setDescription("The space type for the refrigerator location.")
-    arg.setDefaultValue("living space")
-    args << arg
-
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument("has_refrigerator", true)
     arg.setDisplayName("Refrigerator: Has")
     arg.setDescription("Whether there is a refrigerator.")
     arg.setDefaultValue(true)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("refrigerator_location", location_choices, true)
+    arg.setDisplayName("Refrigerator: Location")
+    arg.setDescription("The space type for the refrigerator location.")
+    arg.setDefaultValue("living space")
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("refrigerator_rated_annual_kwh", true)
