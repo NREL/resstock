@@ -28,7 +28,7 @@ def create_osws
 
   # Hash of OSW -> Parent OSW
   osws_files = {
-    'base.osw' => nil,
+    'base.osw' => nil, # single-family detached
     'base-single-family-attached.osw' => 'base.osw',
     'base-multifamily.osw' => 'base.osw',
 
@@ -48,66 +48,6 @@ def create_osws
     'base-atticroof-radiant-barrier.osw' => 'base.osw',
     'base-atticroof-unvented-insulated-roof.osw' => 'base.osw',
     'base-atticroof-vented.osw' => 'base.osw',
-
-    'base-foundation-ambient.osw' => 'base.osw',
-    # 'base-foundation-complex.osw' => 'base.osw', # 1 kiva object instead of 10
-    'base-foundation-conditioned-basement-slab-insulation.osw' => 'base.osw',
-    'base-foundation-conditioned-basement-wall-interior-insulation.osw' => 'base.osw',
-    # 'base-foundation-multiple.osw' => 'base.osw', # 1 kiva object instead of 2
-    'base-foundation-slab.osw' => 'base.osw',
-    'base-foundation-unconditioned-basement.osw' => 'base.osw',
-    'base-foundation-unconditioned-basement-above-grade.osw' => 'base.osw',
-    'base-foundation-unconditioned-basement-assembly-r.osw' => 'base.osw',
-    'base-foundation-unconditioned-basement-wall-insulation.osw' => 'base.osw',
-    'base-foundation-unvented-crawlspace.osw' => 'base.osw',
-    'base-foundation-vented-crawlspace.osw' => 'base.osw',
-    # 'base-foundation-walkout-basement.osw' => 'base.osw', # 1 kiva object instead of 4
-
-    'base-enclosure-2stories.osw' => 'base.osw',
-    'base-enclosure-2stories-garage.osw' => 'base.osw',
-    # 'base-enclosure-adiabatic-surfaces.osw' => 'base.osw', # 1 kiva object instead of 0
-    'base-enclosure-beds-1.osw' => 'base.osw',
-    'base-enclosure-beds-2.osw' => 'base.osw',
-    'base-enclosure-beds-4.osw' => 'base.osw',
-    'base-enclosure-beds-5.osw' => 'base.osw',
-    'base-enclosure-garage.osw' => 'base.osw',
-    'base-enclosure-infil-cfm50.osw' => 'base.osw',
-    'base-enclosure-no-natural-ventilation.osw' => 'base.osw',
-    'base-enclosure-overhangs.osw' => 'base.osw',
-    # 'base-enclosure-skylights.osw' => 'base.osw', # There are no front roof surfaces, but 15.0 ft^2 of skylights were specified.
-    'base-enclosure-split-surfaces.osw' => 'base.osw',
-    'base-enclosure-walltype-cmu.osw' => 'base.osw',
-    'base-enclosure-walltype-doublestud.osw' => 'base.osw',
-    'base-enclosure-walltype-icf.osw' => 'base.osw',
-    'base-enclosure-walltype-log.osw' => 'base.osw',
-    'base-enclosure-walltype-sip.osw' => 'base.osw',
-    'base-enclosure-walltype-solidconcrete.osw' => 'base.osw',
-    'base-enclosure-walltype-steelstud.osw' => 'base.osw',
-    'base-enclosure-walltype-stone.osw' => 'base.osw',
-    'base-enclosure-walltype-strawbale.osw' => 'base.osw',
-    'base-enclosure-walltype-structuralbrick.osw' => 'base.osw',
-    'base-enclosure-windows-interior-shading.osw' => 'base.osw',
-    'base-enclosure-windows-none.osw' => 'base.osw',
-
-    'base-hvac-furnace-elec-only.osw' => 'base.osw',
-    'base-hvac-boiler-elec-only.osw' => 'base.osw',
-    'base-hvac-boiler-gas-only.osw' => 'base.osw',
-    'base-hvac-elec-resistance-only.osw' => 'base.osw',
-    'base-hvac-portable-heater-electric-only.osw' => 'base.osw',
-    'base-hvac-stove-oil-only.osw' => 'base.osw',
-    'base-hvac-wall-furnace-propane-only.osw' => 'base.osw',
-    'base-hvac-central-ac-only-1-speed.osw' => 'base.osw',
-    'base-hvac-evap-cooler-only.osw' => 'base.osw',
-    'base-hvac-room-ac-only.osw' => 'base.osw',
-    'base-hvac-air-to-air-heat-pump-1-speed.osw' => 'base.osw',
-    'base-hvac-mini-split-heat-pump-ducted.osw' => 'base.osw',
-    'base-hvac-ground-to-air-heat-pump.osw' => 'base.osw',
-    'base-hvac-dual-fuel-air-to-air-heat-pump-1-speed.osw' => 'base.osw',
-    'base-hvac-central-ac-plus-air-to-air-heat-pump-heating.osw' => 'base.osw',
-    'base-hvac-furnace-gas-plus-air-to-air-heat-pump-cooling.osw' => 'base.osw',
-    'base-hvac-boiler-gas-central-ac-1-speed.osw' => 'base.osw',
-    # 'base-hvac-programmable-thermostat.osw' => 'base.osw', # assert_operator(compload_results["Heating - Residual"], :<, 0.2)
-    # TODO: add remaining hvac test files
 
     'base-dhw-combi-tankless.osw' => 'base.osw',
     'base-dhw-combi-tankless-outside.osw' => 'base.osw',
@@ -161,13 +101,152 @@ def create_osws
     'base-dhw-tank-wood.osw' => 'base.osw',
     'base-dhw-uef.osw' => 'base.osw',
 
-    # TODO: add remaining infiltration test files
-    # TODO: add remaining location test files
-    # TODO: add remaining mechvent test files
-    # TODO: add remaining misc test files
-    # TODO: add remaining pv test files
+    'base-enclosure-2stories.osw' => 'base.osw',
+    'base-enclosure-2stories-garage.osw' => 'base.osw',
+    # 'base-enclosure-adiabatic-surfaces.osw' => 'base.osw', # 1 kiva object instead of 0
+    'base-enclosure-beds-1.osw' => 'base.osw',
+    'base-enclosure-beds-2.osw' => 'base.osw',
+    'base-enclosure-beds-4.osw' => 'base.osw',
+    'base-enclosure-beds-5.osw' => 'base.osw',
+    'base-enclosure-garage.osw' => 'base.osw',
+    'base-enclosure-infil-cfm50.osw' => 'base.osw',
+    'base-enclosure-no-natural-ventilation.osw' => 'base.osw',
+    'base-enclosure-overhangs.osw' => 'base.osw',
+    # 'base-enclosure-skylights.osw' => 'base.osw', # There are no front roof surfaces, but 15.0 ft^2 of skylights were specified.
+    'base-enclosure-split-surfaces.osw' => 'base.osw',
+    'base-enclosure-walltype-cmu.osw' => 'base.osw',
+    'base-enclosure-walltype-doublestud.osw' => 'base.osw',
+    'base-enclosure-walltype-icf.osw' => 'base.osw',
+    'base-enclosure-walltype-log.osw' => 'base.osw',
+    'base-enclosure-walltype-sip.osw' => 'base.osw',
+    'base-enclosure-walltype-solidconcrete.osw' => 'base.osw',
+    'base-enclosure-walltype-steelstud.osw' => 'base.osw',
+    'base-enclosure-walltype-stone.osw' => 'base.osw',
+    'base-enclosure-walltype-strawbale.osw' => 'base.osw',
+    'base-enclosure-walltype-structuralbrick.osw' => 'base.osw',
+    'base-enclosure-windows-interior-shading.osw' => 'base.osw',
+    'base-enclosure-windows-none.osw' => 'base.osw',
 
-    'base-site-neighbors.osw' => 'base.osw' # TODO: Add neighbor_xxx_height arguments?
+    'base-foundation-ambient.osw' => 'base.osw',
+    # 'base-foundation-complex.osw' => 'base.osw', # 1 kiva object instead of 10
+    'base-foundation-conditioned-basement-slab-insulation.osw' => 'base.osw',
+    'base-foundation-conditioned-basement-wall-interior-insulation.osw' => 'base.osw',
+    # 'base-foundation-multiple.osw' => 'base.osw', # 1 kiva object instead of 2
+    'base-foundation-slab.osw' => 'base.osw',
+    'base-foundation-unconditioned-basement.osw' => 'base.osw',
+    'base-foundation-unconditioned-basement-above-grade.osw' => 'base.osw',
+    'base-foundation-unconditioned-basement-assembly-r.osw' => 'base.osw',
+    'base-foundation-unconditioned-basement-wall-insulation.osw' => 'base.osw',
+    'base-foundation-unvented-crawlspace.osw' => 'base.osw',
+    'base-foundation-vented-crawlspace.osw' => 'base.osw',
+    # 'base-foundation-walkout-basement.osw' => 'base.osw', # 1 kiva object instead of 4
+
+    'base-hvac-air-to-air-heat-pump-1-speed.osw' => 'base.osw',
+    # 'base-hvac-air-to-air-heat-pump-1-speed.detailed.osw' => 'base.osw', # TODO: add HeatingCapacity17F, CoolingSensibleHeatFraction
+    'base-hvac-ait-to-air-heat-pump-2-speed.osw' => 'base.osw',
+    # 'base-hvac-air-to-air-heat-pump-2-speed-detailed.osw' => 'base.osw', # TODO: add HeatingCapacity17F, CoolingSensibleHeatFraction
+    'base-hvac-air-to-air-heat-pump-var-speed.osw' => 'base.osw',
+    # 'base-hvac-air-to-air-heat-pump-var-speed-detailed.osw' => 'base.osw', # TODO: add HeatingCapacity17F, CoolingSensibleHeatFraction
+    'base-hvac-boiler-elec-only.osw' => 'base.osw',
+    'base-hvac-boiler-gas-central-ac-1-speed.osw' => 'base.osw',
+    'base-hvac-boiler-gas-only.osw' => 'base.osw',
+    'base-hvac-boiler-gas-only-no-eae.osw' => 'base.osw',
+    'base-hvac-boiler-oil-only.osw' => 'base.osw',
+    'base-hvac-boiler-propane-only.osw' => 'base.osw',
+    'base-hvac-boiler-wood-only.osw' => 'base.osw',
+    'base-hvac-central-ac-only-1-speed.osw' => 'base.osw',
+    # 'base-hvac-central-ac-only-1-speed-detailed.osw' => 'base.osw', # TODO: add SensibleHeatFraction
+    'base-hvac-central-ac-only-2-speed.osw' => 'base.osw',
+    # 'base-hvac-central-ac-only-2-speed-detailed.osw' => 'base.osw', # TODO: add SensibleHeatFraction
+    'base-hvac-central-ac-only-var-speed.osw' => 'base.osw',
+    # 'base-hvac-central-ac-only-var-speed-detailed.osw' => 'base.osw', # TODO: add SensibleHeatFraction
+    'base-hvac-central-ac-plus-air-to-air-heat-pump-heating.osw' => 'base.osw',
+    'base-hvac-dse.osw' => 'base.osw',
+    'base-hvac-dual-fuel-air-to-air-heat-pump-1-speed.osw' => 'base.osw',
+    'base-hvac-dual-fuel-air-to-air-heat-pump-1-speed-electric.osw' => 'base.osw',
+    'base-hvac-dual-fuel-air-to-air-heat-pump-1-speed-oil.osw' => 'base.osw',
+    'base-hvac-dual-fuel-air-to-air-heat-pump-1-speed-propane.osw' => 'base.osw',
+    'base-hvac-dual-fuel-air-to-air-heat-pump-2-speed.osw' => 'base.osw',
+    'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed.osw' => 'base.osw',
+    'base-hvac-dual-fuel-mini-split-heat-pump-ducted.osw' => 'base.osw',
+    'base-hvac-ducts-in-conditioned-space.osw' => 'base.osw',
+    'base-hvac-ducts-leakage-percent.osw' => 'base.osw',
+    'base-hvac-ducts-locations.osw' => 'base.osw',
+    # 'base-hvac-ducts-multiple.osw' => 'base.osw', TODO: not sure how to do multiple ducts
+    'base-hvac-ducts-outside.osw' => 'base.osw',
+    'base-hvac-elec-resistance-only.osw' => 'base.osw',
+    'base-hvac-evap-cooler-furnace-gas.osw' => 'base.osw',
+    'base-hvac-evap-cooler-only.osw' => 'base.osw',
+    'base-hvac-evap-cooler-only-ducted.osw' => 'base.osw',
+    'base-hvac-flowrate.osw' => 'base.osw',
+    'base-hvac-furnace-elec-only.osw' => 'base.osw',
+    'base-hvac-furnace-gas-central-ac-2-speed.osw' => 'base.osw',
+    'base-hvac-furnace-gas-central-ac-var-speed.osw' => 'base.osw',
+    'base-hvac-furnace-gas-only.osw' => 'base.osw',
+    'base-hvac-furnace-gas-only-no-eae.osw' => 'base.osw',
+    'base-hvac-furnace-gas-room-ac.osw' => 'base.osw',
+    'base-hvac-furnace-oil-only.osw' => 'base.osw',
+    'base-hvac-furnace-propane-only.osw' => 'base.osw',
+    'base-hvac-furnace-wood-only.osw' => 'base.osw',
+    # 'base-hvac-furnace-x3-dse.osw' => 'base.osw',
+    'base-hvac-ground-to-air-heat-pump.osw' => 'base.osw',
+    # 'base-hvac-ground-to-air-heat-pump-detailed.osw' => 'base.osw', # TODO: add CoolingSensibleHeatFraction
+    # 'base-hvac-ideal-air.osw' => 'base.osw',
+    'base-hvac-mini-split-heat-pump-ducted.osw' => 'base.osw',
+    # 'base-hvac-mini-split-heat-pump-ducted-detailed.osw' => 'base.osw', # TODO: add HeatingCapacity17F, CoolingSensibleHeatFraction
+    'base-hvac-mini-split-heat-pump-ductless.osw' => 'base.osw',
+    'base-hvac-mini-split-heat-pump-ductless-no-backup.osw' => 'base.osw',
+    # 'base-hvac-multiple.osw' => 'base.osw',
+    'base-hvac-none.osw' => 'base.osw',
+    # 'base-hvac-none-no-fuel-access.osw' => 'base.osw',
+    'base-hvac-portable-heater-electric-only.osw' => 'base.osw',
+    'base-hvac-programmable-thermostat.osw' => 'base.osw',
+    'base-hvac-room-ac-only.osw' => 'base.osw',
+    # 'base-hvac-room-ac-only-detailed.osw' => 'base.osw', # TODO: add SensibleHeatFraction
+    'base-hvac-setpoints.osw' => 'base.osw',
+    'base-hvac-stove-oil-only.osw' => 'base.osw',
+    'base-hvac-stove-oil-only-no-eae.osw' => 'base.osw',
+    'base-hvac-stove-wood-only.osw' => 'base.osw',
+    'base-hvac-undersized.osw' => 'base.osw',
+    'base-hvac-wall-furnace-elec-only.osw' => 'base.osw',
+    'base-hvac-wall-furnace-propane-only.osw' => 'base.osw',
+    'base-hvac-wall-furnace-propane-only-no-eae.osw' => 'base.osw',
+    'base-hvac-wall-furnace-wood-only.osw' => 'base.osw',
+
+    'base-infiltration-ach-natural.osw' => 'base.osw',
+
+    'base-location-baltimore-md.osw' => 'base.osw',
+    'base-location-dallas-tx.osw' => 'base.osw',
+    'base-location-duluth-mn.osw' => 'base.osw',
+    # 'base-location-epw-filename.osw' => 'base.osw',
+    'base-location-miami-fl.osw' => 'base.osw',
+
+    'base-mechvent-balanced.osw' => 'base.osw',
+    'base-mechvent-cfis.osw' => 'base.osw',
+    'base-mechvent-cfis-24hrs.osw' => 'base.osw',
+    'base-mechvent-erv.osw' => 'base.osw',
+    'base-mechvent-erv-atre-asre.osw' => 'base.osw',
+    'base-mechvent-exhaust.osw' => 'base.osw',
+    'base-mechvent-exhaust-rated-flow-rate.osw' => 'base.osw',
+    'base-mechvent-hrv.osw' => 'base.osw',
+    'base-mechvent-hrv-asre.osw' => 'base.osw',
+    'base-mechvent-supply.osw' => 'base.osw',
+
+    # 'base-misc-ceiling-fans.osw' => 'base.osw', # TODO: add another argument?
+    'base-misc-lighting-none.osw' => 'base.osw',
+    'base-misc-loads-detailed.osw' => 'base.osw',
+    'base-misc-number-of-occupants.osw' => 'base.osw',
+
+    'base-pv-array-1axis.osw' => 'base.osw',
+    'base-pv-array-1axis-backtracked.osw' => 'base.osw',
+    'base-pv-array-2axis.osw' => 'base.osw',
+    'base-pv-array-fixed-open-rack.osw' => 'base.osw',
+    'base-pv-array-module-premium.osw' => 'base.osw',
+    'base-pv-array-module-standard.osw' => 'base.osw',
+    'base-pv-array-module-thinfilm.osw' => 'base.osw',
+    # 'base-pv-multiple.osw' => 'base.osw',
+
+    'base-site-neighbors.osw' => 'base.osw'
   }
 
   puts "Generating #{osws_files.size} OSW files..."
@@ -265,10 +344,14 @@ def get_values(osw_file, step)
     step.setArgument("num_bedrooms", 3)
     step.setArgument("num_bathrooms", 2)
     step.setArgument("num_occupants", Constants.Auto)
-    step.setArgument("neighbor_left_offset", 0)
-    step.setArgument("neighbor_right_offset", 0)
-    step.setArgument("neighbor_back_offset", 0)
-    step.setArgument("neighbor_front_offset", 0)
+    step.setArgument("neighbor_front_distance", 0)
+    step.setArgument("neighbor_back_distance", 0)
+    step.setArgument("neighbor_left_distance", 0)
+    step.setArgument("neighbor_right_distance", 0)
+    step.setArgument("neighbor_front_height", 0)
+    step.setArgument("neighbor_back_height", 0)
+    step.setArgument("neighbor_left_height", 0)
+    step.setArgument("neighbor_right_height", 0)
     step.setArgument("orientation", 180.0)
     step.setArgument("wall_type", "WoodStud")
     step.setArgument("wall_r", 13)
@@ -304,24 +387,31 @@ def get_values(osw_file, step)
     step.setArgument("skylight_shgc", 0.45)
     step.setArgument("door_area", 40.0)
     step.setArgument("door_rvalue", 4.4)
-    step.setArgument("living_ach50", 3)
+    step.setArgument("living_ach_50", 3)
+    step.setArgument("living_constant_ach_natural", 0)
+    step.setArgument("vented_crawlspace_sla", 0.00667)
     step.setArgument("heating_system_type", "Furnace")
     step.setArgument("heating_system_fuel", "natural gas")
     step.setArgument("heating_system_heating_efficiency", 0.92)
-    step.setArgument("heating_system_heating_capacity", Constants.SizingAuto)
+    step.setArgument("heating_system_heating_capacity", 64000.0)
     step.setArgument("heating_system_fraction_heat_load_served", 1)
     step.setArgument("heating_system_electric_auxiliary_energy", 0)
     step.setArgument("cooling_system_type", "central air conditioner")
     step.setArgument("cooling_system_fuel", "electricity")
     step.setArgument("cooling_system_cooling_efficiency", 13.0)
-    step.setArgument("cooling_system_cooling_capacity", Constants.SizingAuto)
+    step.setArgument("cooling_system_cooling_capacity", 48000.0)
     step.setArgument("cooling_system_fraction_cool_load_served", 1)
-    step.setArgument("heat_pump_backup_fuel", "electricity")
-    step.setArgument("heat_pump_backup_heating_efficiency_percent", 1)
-    step.setArgument("heat_pump_backup_heating_capacity", Constants.SizingAuto)
+    step.setArgument("heat_pump_backup_fuel", "none")
+    step.setArgument("heat_pump_backup_heating_efficiency", 1)
+    step.setArgument("heat_pump_backup_heating_capacity", 34121.0)
+    step.setArgument("mini_split_is_ducted", false)
+    step.setArgument("evap_cooler_is_ducted", false)
+    step.setArgument("heating_system_flow_rate", 0)
+    step.setArgument("cooling_system_flow_rate", 0)
     step.setArgument("hvac_distribution_system_type_dse", false)
     step.setArgument("annual_heating_dse", 0.8)
     step.setArgument("annual_cooling_dse", 0.7)
+    step.setArgument("hvac_control_type", "manual thermostat")
     step.setArgument("heating_setpoint_temp", 68)
     step.setArgument("heating_setback_temp", 68)
     step.setArgument("heating_setback_hours_per_week", 0)
@@ -340,6 +430,15 @@ def get_values(osw_file, step)
     step.setArgument("return_duct_location", "attic - unvented")
     step.setArgument("supply_duct_surface_area", 150.0)
     step.setArgument("return_duct_surface_area", 50.0)
+    step.setArgument("mech_vent_fan_type", "none")
+    step.setArgument("mech_vent_tested_flow_rate", 110)
+    step.setArgument("mech_vent_rated_flow_rate", 0)
+    step.setArgument("mech_vent_hours_in_operation", 24)
+    step.setArgument("mech_vent_total_recovery_efficiency", 0.48)
+    step.setArgument("mech_vent_adjusted_total_recovery_efficiency", 0)
+    step.setArgument("mech_vent_sensible_recovery_efficiency", 0.72)
+    step.setArgument("mech_vent_adjusted_sensible_recovery_efficiency", 0)
+    step.setArgument("mech_vent_fan_power", 30)
     step.setArgument("water_heater_type_1", "storage water heater")
     step.setArgument("water_heater_fuel_type_1", "electricity")
     step.setArgument("water_heater_location_1", "living space")
@@ -386,6 +485,14 @@ def get_values(osw_file, step)
     step.setArgument("solar_thermal_collector_rated_thermal_losses", 0.2799)
     step.setArgument("solar_thermal_storage_volume", 60)
     step.setArgument("solar_thermal_solar_fraction", 0)
+    step.setArgument("pv_system_module_type", "none")
+    step.setArgument("pv_system_location", "roof")
+    step.setArgument("pv_system_tracking", "fixed")
+    step.setArgument("pv_system_array_azimuth", 180)
+    step.setArgument("pv_system_array_tilt", 20)
+    step.setArgument("pv_system_max_power_output", 4000)
+    step.setArgument("pv_system_inverter_efficiency", 0.96)
+    step.setArgument("pv_system_system_losses_fraction", 0.14)
     step.setArgument("has_clothes_washer", true)
     step.setArgument("clothes_washer_location", "living space")
     step.setArgument("clothes_washer_integrated_modified_energy_factor", 0.8)
@@ -413,10 +520,17 @@ def get_values(osw_file, step)
     step.setArgument("cooking_range_is_induction", false)
     step.setArgument("has_oven", true)
     step.setArgument("oven_is_convection", false)
+    step.setArgument("has_lighting", true)
     step.setArgument("ceiling_fan_efficiency", 100)
     step.setArgument("ceiling_fan_quantity", 0)
-    step.setArgument("plug_loads_frac_sensible", 0.93)
-    step.setArgument("plug_loads_frac_latent", 0.021)
+    step.setArgument("plug_loads_plug_load_type_1", "other")
+    step.setArgument("plug_loads_annual_kwh_1", 0)
+    step.setArgument("plug_loads_frac_sensible_1", 0)
+    step.setArgument("plug_loads_frac_latent_1", 0)
+    step.setArgument("plug_loads_plug_load_type_2", "TV other")
+    step.setArgument("plug_loads_annual_kwh_2", 0)
+    step.setArgument("plug_loads_frac_sensible_2", 0)
+    step.setArgument("plug_loads_frac_latent_2", 0)
     step.setArgument("plug_loads_weekday_fractions", "0.035, 0.033, 0.032, 0.031, 0.032, 0.033, 0.037, 0.042, 0.043, 0.043, 0.043, 0.044, 0.045, 0.045, 0.044, 0.046, 0.048, 0.052, 0.053, 0.05, 0.047, 0.045, 0.04, 0.036")
     step.setArgument("plug_loads_weekend_fractions", "0.035, 0.033, 0.032, 0.031, 0.032, 0.033, 0.037, 0.042, 0.043, 0.043, 0.043, 0.044, 0.045, 0.045, 0.044, 0.046, 0.048, 0.052, 0.053, 0.05, 0.047, 0.045, 0.04, 0.036")
     step.setArgument("plug_loads_monthly_multipliers", "1.248, 1.257, 0.993, 0.989, 0.993, 0.827, 0.821, 0.821, 0.827, 0.99, 0.987, 1.248")
@@ -487,171 +601,6 @@ def get_values(osw_file, step)
     step.setArgument("attic_type", "attic - vented")
     step.setArgument("supply_duct_location", "attic - vented")
     step.setArgument("return_duct_location", "attic - vented")
-  elsif ['base-foundation-ambient.osw'].include? osw_file
-    step.setArgument("foundation_type", "ambient")
-  elsif ['base-foundation-complex.osw'].include? osw_file
-
-  elsif ['base-foundation-conditioned-basement-slab-insulation.osw'].include? osw_file
-    step.setArgument("slab_under_r", 10)
-  elsif ['base-foundation-conditioned-basement-wall-interior-insulation.osw'].include? osw_file
-    step.setArgument("foundation_ceiling_r", 0)
-    step.setArgument("foundation_wall_interior_r", 10.0)
-  elsif ['base-foundation-multiple.osw'].include? osw_file
-
-  elsif ['base-foundation-slab.osw'].include? osw_file
-    step.setArgument("foundation_type", "slab")
-    step.setArgument("slab_perimeter_r", 5)
-  elsif ['base-foundation-unconditioned-basement.osw'].include? osw_file
-    step.setArgument("foundation_type", "basement - unconditioned")
-  elsif ['base-foundation-unconditioned-basement-above-grade.osw'].include? osw_file
-    step.setArgument("foundation_type", "basement - unconditioned")
-  elsif ['base-foundation-unconditioned-basement-assembly-r.osw'].include? osw_file
-    step.setArgument("foundation_type", "basement - unconditioned")
-  elsif ['base-foundation-unconditioned-basement-wall-insulation.osw'].include? osw_file
-    step.setArgument("foundation_type", "basement - unconditioned")
-    step.setArgument("foundation_ceiling_r", 0)
-  elsif ['base-foundation-unvented-crawlspace.osw'].include? osw_file
-    step.setArgument("foundation_type", "crawlspace - unvented")
-    step.setArgument("foundation_height", 3.0)
-  elsif ['base-foundation-vented-crawlspace.osw'].include? osw_file
-    step.setArgument("foundation_type", "crawlspace - vented")
-    step.setArgument("foundation_height", 3.0)
-  elsif ['base-foundation-walkout-basement.osw'].include? osw_file
-
-  elsif ['base-enclosure-2stories.osw'].include? osw_file
-    step.setArgument("cfa", 4050.0)
-    step.setArgument("num_floors", 2)
-  elsif ['base-enclosure-2stories-garage.osw'].include? osw_file
-    step.setArgument("cfa", 4050.0)
-    step.setArgument("num_floors", 2)
-    step.setArgument("garage_width", 12.0)
-  elsif ['base-enclosure-adiabatic-surfaces.osw'].include? osw_file
-
-  elsif ['base-enclosure-beds-1.osw'].include? osw_file
-    step.setArgument("num_bedrooms", 1)
-  elsif ['base-enclosure-beds-2.osw'].include? osw_file
-    step.setArgument("num_bedrooms", 2)
-  elsif ['base-enclosure-beds-4.osw'].include? osw_file
-    step.setArgument("num_bedrooms", 4)
-  elsif ['base-enclosure-beds-5.osw'].include? osw_file
-    step.setArgument("num_bedrooms", 5)
-  elsif ['base-enclosure-garage.osw'].include? osw_file
-    step.setArgument("garage_width", 12.0)
-  elsif ['base-enclosure-infil-cfm50.osw'].include? osw_file
-
-  elsif ['base-enclosure-no-natural-ventilation.osw'].include? osw_file
-
-  elsif ['base-enclosure-overhangs.osw'].include? osw_file
-    step.setArgument("overhangs_front_facade", true)
-    step.setArgument("overhangs_back_facade", true)
-    step.setArgument("overhangs_left_facade", true)
-    step.setArgument("overhangs_right_facade", true)
-  elsif ['base-enclosure-skylights.osw'].include? osw_file
-    step.setArgument("front_skylight_area", 15)
-    step.setArgument("back_skylight_area", 15)
-  elsif ['base-enclosure-split-surfaces.osw'].include? osw_file
-
-  elsif ['base-enclosure-walltype-cmu.osw'].include? osw_file
-    step.setArgument("wall_type", "ConcreteMasonryUnit")
-  elsif ['base-enclosure-walltype-doublestud.osw'].include? osw_file
-    step.setArgument("wall_type", "DoubleWoodStud")
-  elsif ['base-enclosure-walltype-icf.osw'].include? osw_file
-    step.setArgument("wall_type", "InsulatedConcreteForms")
-  elsif ['base-enclosure-walltype-log.osw'].include? osw_file
-    step.setArgument("wall_type", "LogWall")
-  elsif ['base-enclosure-walltype-sip.osw'].include? osw_file
-    step.setArgument("wall_type", "StructurallyInsulatedPanel")
-  elsif ['base-enclosure-walltype-solidconcrete.osw'].include? osw_file
-    step.setArgument("wall_type", "SolidConcrete")
-  elsif ['base-enclosure-walltype-steelstud.osw'].include? osw_file
-    step.setArgument("wall_type", "SteelFrame")
-  elsif ['base-enclosure-walltype-stone.osw'].include? osw_file
-    step.setArgument("wall_type", "Stone")
-  elsif ['base-enclosure-walltype-strawbale.osw'].include? osw_file
-    step.setArgument("wall_type", "StrawBale")
-  elsif ['base-enclosure-walltype-structuralbrick.osw'].include? osw_file
-    step.setArgument("wall_type", "StructuralBrick")
-  elsif ['base-enclosure-windows-interior-shading.osw'].include? osw_file
-    step.setArgument("winter_shading_coefficient_front_facade", 0.85)
-    step.setArgument("summer_shading_coefficient_front_facade", 0.7)
-    step.setArgument("winter_shading_coefficient_back_facade", 0.85)
-    step.setArgument("summer_shading_coefficient_back_facade", 0.7)
-    step.setArgument("winter_shading_coefficient_left_facade", 0.85)
-    step.setArgument("summer_shading_coefficient_left_facade", 0.7)
-    step.setArgument("winter_shading_coefficient_right_facade", 0.85)
-    step.setArgument("summer_shading_coefficient_right_facade", 0.7)
-  elsif ['base-enclosure-windows-none.osw'].include? osw_file
-    step.setArgument("front_wwr", 0)
-    step.setArgument("back_wwr", 0)
-    step.setArgument("left_wwr", 0)
-    step.setArgument("right_wwr", 0)
-  elsif ['base-hvac-furnace-elec-only.osw'].include? osw_file
-    step.setArgument("heating_system_fuel", "electricity")
-    step.setArgument("heating_system_heating_efficiency", 1.0)
-    step.setArgument("cooling_system_type", "none")
-  elsif ['base-hvac-boiler-elec-only.osw'].include? osw_file
-    step.setArgument("heating_system_type", "Boiler")
-    step.setArgument("heating_system_fuel", "electricity")
-    step.setArgument("cooling_system_type", "none")
-  elsif ['base-hvac-boiler-gas-only.osw'].include? osw_file
-    step.setArgument("heating_system_type", "Boiler")
-    step.setArgument("cooling_system_type", "none")
-  elsif ['base-hvac-elec-resistance-only.osw'].include? osw_file
-    step.setArgument("heating_system_type", "ElectricResistance")
-    step.setArgument("heating_system_fuel", "electricity")
-    step.setArgument("cooling_system_type", "none")
-  elsif ['base-hvac-portable-heater-electric-only.osw'].include? osw_file
-    step.setArgument("heating_system_type", "PortableHeater")
-    step.setArgument("heating_system_fuel", "electricity")
-    step.setArgument("cooling_system_type", "none")
-  elsif ['base-hvac-stove-oil-only.osw'].include? osw_file
-    step.setArgument("heating_system_type", "Stove")
-    step.setArgument("heating_system_fuel", "fuel oil")
-    step.setArgument("cooling_system_type", "none")
-  elsif ['base-hvac-wall-furnace-propane-only.osw'].include? osw_file
-    step.setArgument("heating_system_type", "WallFurnace")
-    step.setArgument("heating_system_fuel", "propane")
-    step.setArgument("cooling_system_type", "none")
-  elsif ['base-hvac-central-ac-only-1-speed.osw'].include? osw_file
-    step.setArgument("heating_system_type", "none")
-  elsif ['base-hvac-evap-cooler-only.osw'].include? osw_file
-    step.setArgument("heating_system_type", "none")
-    step.setArgument("cooling_system_type", "evaporative cooler")
-  elsif ['base-hvac-room-ac-only.osw'].include? osw_file
-    step.setArgument("heating_system_type", "none")
-    step.setArgument("cooling_system_type", "room air conditioner")
-  elsif ['base-hvac-air-to-air-heat-pump-1-speed.osw'].include? osw_file
-    step.setArgument("heating_system_type", "air-to-air")
-    step.setArgument("heating_system_fuel", "electricity")
-    step.setArgument("cooling_system_type", "air-to-air")
-  elsif ['base-hvac-mini-split-heat-pump-ducted.osw'].include? osw_file
-    step.setArgument("heating_system_type", "mini-split")
-    step.setArgument("heating_system_fuel", "electricity")
-    step.setArgument("cooling_system_type", "mini-split")
-  elsif ['base-hvac-ground-to-air-heat-pump.osw'].include? osw_file
-    step.setArgument("heating_system_type", "ground-to-air")
-    step.setArgument("heating_system_fuel", "electricity")
-    step.setArgument("cooling_system_type", "ground-to-air")
-  elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-1-speed.osw'].include? osw_file
-    step.setArgument("heating_system_type", "air-to-air")
-    step.setArgument("heating_system_fuel", "electricity")
-    step.setArgument("cooling_system_type", "air-to-air")
-    step.setArgument("heat_pump_backup_fuel", "natural gas")
-    step.setArgument("heat_pump_backup_heating_efficiency_percent", 0.95)
-  elsif ['base-hvac-central-ac-plus-air-to-air-heat-pump-heating.osw'].include? osw_file
-    step.setArgument("heating_system_type", "air-to-air")
-    step.setArgument("heating_system_fuel", "electricity")
-  elsif ['base-hvac-furnace-gas-plus-air-to-air-heat-pump-cooling.osw'].include? osw_file
-    step.setArgument("cooling_system_type", "air-to-air")
-  elsif ['base-hvac-boiler-gas-central-ac-1-speed.osw'].include? osw_file
-    step.setArgument("heating_system_type", "Boiler")
-  elsif ['base-hvac-programmable-thermostat.osw'].include? osw_file
-    step.setArgument("heating_setback_temp", 66)
-    step.setArgument("heating_setback_hours_per_week", 49)
-    step.setArgument("heating_setback_start_hour", 23)
-    step.setArgument("cooling_setup_temp", 80)
-    step.setArgument("cooling_setup_hours_per_week", 42)
-    step.setArgument("cooling_setup_start_hour", 9)
   elsif ['base-dhw-combi-tankless.osw'].include? osw_file
     step.setArgument("heating_system_type", "Boiler")
     step.setArgument("heating_system_electric_auxiliary_energy", 200.0)
@@ -674,8 +623,10 @@ def get_values(osw_file, step)
     step.setArgument("heating_system_type", "ground-to-air")
     step.setArgument("heating_system_fuel", "electricity")
     step.setArgument("heating_system_heating_efficiency", 3.6)
+    step.setArgument("heating_system_heating_capacity", 42000.0)
     step.setArgument("cooling_system_type", "ground-to-air")
     step.setArgument("cooling_system_cooling_efficiency", 16.6)
+    step.setArgument("heat_pump_backup_fuel", "electricity")
     step.setArgument("water_heater_uses_desuperheater_1", true)
   elsif ['base-dhw-desuperheater-tankless.osw'].include? osw_file
     step.setArgument("heating_system_type", "none")
@@ -841,9 +792,498 @@ def get_values(osw_file, step)
     step.setArgument("water_heater_fuel_type_1", "wood")
   elsif ['base-dhw-uef.osw'].include? osw_file
     step.setArgument("water_heater_uniform_energy_factor_1", 0.93)
+  elsif ['base-enclosure-2stories.osw'].include? osw_file
+    step.setArgument("cfa", 4050.0)
+    step.setArgument("num_floors", 2)
+  elsif ['base-enclosure-2stories-garage.osw'].include? osw_file
+    step.setArgument("cfa", 4050.0)
+    step.setArgument("num_floors", 2)
+    step.setArgument("garage_width", 12.0)
+  elsif ['base-enclosure-adiabatic-surfaces.osw'].include? osw_file
+
+  elsif ['base-enclosure-beds-1.osw'].include? osw_file
+    step.setArgument("num_bedrooms", 1)
+  elsif ['base-enclosure-beds-2.osw'].include? osw_file
+    step.setArgument("num_bedrooms", 2)
+  elsif ['base-enclosure-beds-4.osw'].include? osw_file
+    step.setArgument("num_bedrooms", 4)
+  elsif ['base-enclosure-beds-5.osw'].include? osw_file
+    step.setArgument("num_bedrooms", 5)
+  elsif ['base-enclosure-garage.osw'].include? osw_file
+    step.setArgument("garage_width", 12.0)
+  elsif ['base-enclosure-infil-cfm50.osw'].include? osw_file
+
+  elsif ['base-enclosure-no-natural-ventilation.osw'].include? osw_file
+
+  elsif ['base-enclosure-overhangs.osw'].include? osw_file
+    step.setArgument("overhangs_front_facade", true)
+    step.setArgument("overhangs_back_facade", true)
+    step.setArgument("overhangs_left_facade", true)
+    step.setArgument("overhangs_right_facade", true)
+  elsif ['base-enclosure-skylights.osw'].include? osw_file
+    step.setArgument("front_skylight_area", 15)
+    step.setArgument("back_skylight_area", 15)
+  elsif ['base-enclosure-split-surfaces.osw'].include? osw_file
+
+  elsif ['base-enclosure-walltype-cmu.osw'].include? osw_file
+    step.setArgument("wall_type", "ConcreteMasonryUnit")
+  elsif ['base-enclosure-walltype-doublestud.osw'].include? osw_file
+    step.setArgument("wall_type", "DoubleWoodStud")
+  elsif ['base-enclosure-walltype-icf.osw'].include? osw_file
+    step.setArgument("wall_type", "InsulatedConcreteForms")
+  elsif ['base-enclosure-walltype-log.osw'].include? osw_file
+    step.setArgument("wall_type", "LogWall")
+  elsif ['base-enclosure-walltype-sip.osw'].include? osw_file
+    step.setArgument("wall_type", "StructurallyInsulatedPanel")
+  elsif ['base-enclosure-walltype-solidconcrete.osw'].include? osw_file
+    step.setArgument("wall_type", "SolidConcrete")
+  elsif ['base-enclosure-walltype-steelstud.osw'].include? osw_file
+    step.setArgument("wall_type", "SteelFrame")
+  elsif ['base-enclosure-walltype-stone.osw'].include? osw_file
+    step.setArgument("wall_type", "Stone")
+  elsif ['base-enclosure-walltype-strawbale.osw'].include? osw_file
+    step.setArgument("wall_type", "StrawBale")
+  elsif ['base-enclosure-walltype-structuralbrick.osw'].include? osw_file
+    step.setArgument("wall_type", "StructuralBrick")
+  elsif ['base-enclosure-windows-interior-shading.osw'].include? osw_file
+    step.setArgument("winter_shading_coefficient_front_facade", 0.85)
+    step.setArgument("summer_shading_coefficient_front_facade", 0.7)
+    step.setArgument("winter_shading_coefficient_back_facade", 0.85)
+    step.setArgument("summer_shading_coefficient_back_facade", 0.7)
+    step.setArgument("winter_shading_coefficient_left_facade", 0.85)
+    step.setArgument("summer_shading_coefficient_left_facade", 0.7)
+    step.setArgument("winter_shading_coefficient_right_facade", 0.85)
+    step.setArgument("summer_shading_coefficient_right_facade", 0.7)
+  elsif ['base-enclosure-windows-none.osw'].include? osw_file
+    step.setArgument("front_wwr", 0)
+    step.setArgument("back_wwr", 0)
+    step.setArgument("left_wwr", 0)
+    step.setArgument("right_wwr", 0)
+  elsif ['base-foundation-ambient.osw'].include? osw_file
+    step.setArgument("foundation_type", "ambient")
+  elsif ['base-foundation-complex.osw'].include? osw_file
+
+  elsif ['base-foundation-conditioned-basement-slab-insulation.osw'].include? osw_file
+    step.setArgument("slab_under_r", 10)
+  elsif ['base-foundation-conditioned-basement-wall-interior-insulation.osw'].include? osw_file
+    step.setArgument("foundation_ceiling_r", 0)
+    step.setArgument("foundation_wall_interior_r", 10.0)
+  elsif ['base-foundation-multiple.osw'].include? osw_file
+
+  elsif ['base-foundation-slab.osw'].include? osw_file
+    step.setArgument("foundation_type", "slab")
+    step.setArgument("slab_perimeter_r", 5)
+  elsif ['base-foundation-unconditioned-basement.osw'].include? osw_file
+    step.setArgument("foundation_type", "basement - unconditioned")
+  elsif ['base-foundation-unconditioned-basement-above-grade.osw'].include? osw_file
+    step.setArgument("foundation_type", "basement - unconditioned")
+  elsif ['base-foundation-unconditioned-basement-assembly-r.osw'].include? osw_file
+    step.setArgument("foundation_type", "basement - unconditioned")
+  elsif ['base-foundation-unconditioned-basement-wall-insulation.osw'].include? osw_file
+    step.setArgument("foundation_type", "basement - unconditioned")
+    step.setArgument("foundation_ceiling_r", 0)
+  elsif ['base-foundation-unvented-crawlspace.osw'].include? osw_file
+    step.setArgument("foundation_type", "crawlspace - unvented")
+    step.setArgument("foundation_height", 3.0)
+  elsif ['base-foundation-vented-crawlspace.osw'].include? osw_file
+    step.setArgument("foundation_type", "crawlspace - vented")
+    step.setArgument("foundation_height", 3.0)
+    step.setArgument("vented_crawlspace_sla", 0.00667)
+  elsif ['base-foundation-walkout-basement.osw'].include? osw_file
+
+  elsif ['base-hvac-air-to-air-heat-pump-1-speed.osw'].include? osw_file
+    step.setArgument("heating_system_type", "air-to-air")
+    step.setArgument("heating_system_fuel", "electricity")
+    step.setArgument("heating_system_heating_efficiency", 7.7)
+    step.setArgument("cooling_system_type", "air-to-air")
+  elsif ['base-hvac-air-to-air-heat-pump-1-speed.detailed.osw'].include? osw_file
+
+  elsif ['base-hvac-ait-to-air-heat-pump-2-speed.osw'].include? osw_file
+    step.setArgument("heating_system_type", "air-to-air")
+    step.setArgument("heating_system_fuel", "electricity")
+    step.setArgument("heating_system_heating_efficiency", 9.3)
+    step.setArgument("cooling_system_type", "air-to-air")
+    step.setArgument("cooling_system_cooling_efficiency", 18.0)
+  elsif ['base-hvac-air-to-air-heat-pump-2-speed-detailed.osw'].include? osw_file
+
+  elsif ['base-hvac-air-to-air-heat-pump-var-speed.osw'].include? osw_file
+    step.setArgument("heating_system_type", "air-to-air")
+    step.setArgument("heating_system_fuel", "electricity")
+    step.setArgument("heating_system_heating_efficiency", 10.0)
+    step.setArgument("cooling_system_type", "air-to-air")
+    step.setArgument("cooling_system_cooling_efficiency", 22.0)
+  elsif ['base-hvac-air-to-air-heat-pump-var-speed-detailed.osw'].include? osw_file
+
+  elsif ['base-hvac-boiler-elec-only.osw'].include? osw_file # HERE
+    step.setArgument("heating_system_type", "Boiler")
+    step.setArgument("heating_system_fuel", "electricity")
+    step.setArgument("heating_system_heating_efficiency", 1.0)
+    step.setArgument("cooling_system_type", "none")
+  elsif ['base-hvac-boiler-gas-central-ac-1-speed.osw'].include? osw_file
+    step.setArgument("heating_system_type", "Boiler")
+    step.setArgument("heating_system_electric_auxiliary_energy", 200.0)
+  elsif ['base-hvac-boiler-gas-only.osw'].include? osw_file
+    step.setArgument("heating_system_type", "Boiler")
+    step.setArgument("heating_system_electric_auxiliary_energy", 200.0)
+    step.setArgument("cooling_system_type", "none")
+  elsif ['base-hvac-boiler-gas-only-no-eae.osw'].include? osw_file
+    step.setArgument("heating_system_type", "Boiler")
+    step.setArgument("cooling_system_type", "none")
+  elsif ['base-hvac-boiler-oil-only.osw'].include? osw_file
+    step.setArgument("heating_system_type", "Boiler")
+    step.setArgument("heating_system_fuel", "fuel oil")
+    step.setArgument("cooling_system_type", "none")
+  elsif ['base-hvac-boiler-propane-only.osw'].include? osw_file
+    step.setArgument("heating_system_type", "Boiler")
+    step.setArgument("heating_system_fuel", "propane")
+    step.setArgument("cooling_system_type", "none")
+  elsif ['base-hvac-boiler-wood-only.osw'].include? osw_file
+    step.setArgument("heating_system_type", "Boiler")
+    step.setArgument("heating_system_fuel", "wood")
+    step.setArgument("cooling_system_type", "none")
+  elsif ['base-hvac-central-ac-only-1-speed.osw'].include? osw_file
+    step.setArgument("heating_system_type", "none")
+  elsif ['base-hvac-central-ac-only-1-speed-detailed.osw'].include? osw_file
+
+  elsif ['base-hvac-central-ac-only-2-speed.osw'].include? osw_file
+    step.setArgument("heating_system_type", "none")
+    step.setArgument("cooling_system_cooling_efficiency", 18.0)
+  elsif ['base-hvac-central-ac-only-2-speed-detailed.osw'].include? osw_file
+
+  elsif ['base-hvac-central-ac-only-var-speed.osw'].include? osw_file
+    step.setArgument("heating_system_type", "none")
+    step.setArgument("cooling_system_cooling_efficiency", 24.0)
+  elsif ['base-hvac-central-ac-only-var-speed-detailed.osw'].include? osw_file
+
+  elsif ['base-hvac-central-ac-plus-air-to-air-heat-pump-heating.osw'].include? osw_file
+    step.setArgument("heating_system_type", "air-to-air")
+    step.setArgument("heating_system_fuel", "electricity")
+    step.setArgument("heating_system_heating_efficiency", 7.7)
+  elsif ['base-hvac-dse.osw'].include? osw_file
+    step.setArgument("hvac_distribution_system_type_dse", true)
+  elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-1-speed.osw'].include? osw_file
+    step.setArgument("heating_system_type", "air-to-air")
+    step.setArgument("heating_system_fuel", "electricity")
+    step.setArgument("heating_system_heating_efficiency", 7.7)
+    step.setArgument("heating_system_heating_capacity", 42000.0)
+    step.setArgument("cooling_system_type", "air-to-air")
+    step.setArgument("heat_pump_backup_fuel", "natural gas")
+    step.setArgument("heat_pump_backup_heating_efficiency", 0.95)
+    step.setArgument("heat_pump_backup_heating_capacity", 36000.0)
+  elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-1-speed-electric.osw'].include? osw_file
+    step.setArgument("heating_system_type", "air-to-air")
+    step.setArgument("heating_system_fuel", "electricity")
+    step.setArgument("heating_system_heating_efficiency", 7.7)
+    step.setArgument("heating_system_heating_capacity", 42000.0)
+    step.setArgument("cooling_system_type", "air-to-air")
+    step.setArgument("heat_pump_backup_fuel", "electricity")
+    step.setArgument("heat_pump_backup_heating_capacity", 36000.0)
+  elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-1-speed-oil.osw'].include? osw_file
+    step.setArgument("heating_system_type", "air-to-air")
+    step.setArgument("heating_system_fuel", "electricity")
+    step.setArgument("heating_system_heating_efficiency", 7.7)
+    step.setArgument("heating_system_heating_capacity", 42000.0)
+    step.setArgument("cooling_system_type", "air-to-air")
+    step.setArgument("heat_pump_backup_fuel", "fuel oil")
+    step.setArgument("heat_pump_backup_heating_efficiency", 0.95)
+    step.setArgument("heat_pump_backup_heating_capacity", 36000.0)
+  elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-1-speed-propane.osw'].include? osw_file
+    step.setArgument("heating_system_type", "air-to-air")
+    step.setArgument("heating_system_fuel", "electricity")
+    step.setArgument("heating_system_heating_efficiency", 7.7)
+    step.setArgument("heating_system_heating_capacity", 42000.0)
+    step.setArgument("cooling_system_type", "air-to-air")
+    step.setArgument("heat_pump_backup_fuel", "propane")
+    step.setArgument("heat_pump_backup_heating_efficiency", 0.95)
+    step.setArgument("heat_pump_backup_heating_capacity", 36000.0)
+  elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-2-speed.osw'].include? osw_file
+    step.setArgument("heating_system_type", "air-to-air")
+    step.setArgument("heating_system_fuel", "electricity")
+    step.setArgument("heating_system_heating_efficiency", 9.3)
+    step.setArgument("heating_system_heating_capacity", 42000.0)
+    step.setArgument("cooling_system_type", "air-to-air")
+    step.setArgument("cooling_system_cooling_efficiency", 18.0)
+    step.setArgument("heat_pump_backup_fuel", "natural gas")
+    step.setArgument("heat_pump_backup_heating_efficiency", 0.95)
+    step.setArgument("heat_pump_backup_heating_capacity", 36000.0)
+  elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-var-speed.osw'].include? osw_file
+    step.setArgument("heating_system_type", "air-to-air")
+    step.setArgument("heating_system_fuel", "electricity")
+    step.setArgument("heating_system_heating_efficiency", 10.0)
+    step.setArgument("heating_system_heating_capacity", 42000.0)
+    step.setArgument("cooling_system_type", "air-to-air")
+    step.setArgument("cooling_system_cooling_efficiency", 22.0)
+    step.setArgument("heat_pump_backup_fuel", "natural gas")
+    step.setArgument("heat_pump_backup_heating_efficiency", 0.95)
+    step.setArgument("heat_pump_backup_heating_capacity", 36000.0)
+  elsif ['base-hvac-dual-fuel-mini-split-heat-pump-ducted.osw'].include? osw_file
+    step.setArgument("heating_system_type", "mini-split")
+    step.setArgument("heating_system_fuel", "electricity")
+    step.setArgument("heating_system_heating_efficiency", 10.0)
+    step.setArgument("heating_system_heating_capacity", 52000.0)
+    step.setArgument("cooling_system_type", "mini-split")
+    step.setArgument("cooling_system_cooling_efficiency", 19.0)
+    step.setArgument("heat_pump_backup_fuel", "natural gas")
+    step.setArgument("heat_pump_backup_heating_efficiency", 0.95)
+    step.setArgument("heat_pump_backup_heating_capacity", 36000.0)
+    step.setArgument("mini_split_is_ducted", true)
+    step.setArgument("supply_duct_leakage_value", 15.0)
+    step.setArgument("return_duct_leakage_value", 5.0)
+    step.setArgument("supply_duct_insulation_r_value", 0.0)
+    step.setArgument("supply_duct_surface_area", 30.0)
+    step.setArgument("return_duct_surface_area", 10.0)
+  elsif ['base-hvac-ducts-in-conditioned-space.osw'].include? osw_file
+    step.setArgument("supply_duct_leakage_value", 1.5)
+    step.setArgument("return_duct_leakage_value", 1.5)
+    step.setArgument("supply_duct_location", "living space")
+    step.setArgument("return_duct_location", "living space")
+  elsif ['base-hvac-ducts-leakage-percent.osw'].include? osw_file
+    step.setArgument("supply_duct_leakage_units", "Percent")
+    step.setArgument("return_duct_leakage_units", "Percent")
+    step.setArgument("supply_duct_leakage_value", 0.1)
+    step.setArgument("return_duct_leakage_value", 0.05)
+  elsif ['base-hvac-ducts-locations.osw'].include? osw_file
+    step.setArgument("cfa", 1350.0)
+    step.setArgument("foundation_type", "crawlspace - vented")
+    step.setArgument("supply_duct_location", "crawlspace - vented")
+    step.setArgument("water_heater_location_1", "crawlspace - vented")
+  elsif ['base-hvac-ducts-multiple.osw'].include? osw_file
+
+  elsif ['base-hvac-ducts-outside.osw'].include? osw_file
+    step.setArgument("supply_duct_location", "outside")
+    step.setArgument("return_duct_location", "outside")
+  elsif ['base-hvac-elec-resistance-only.osw'].include? osw_file
+    step.setArgument("heating_system_type", "ElectricResistance")
+    step.setArgument("heating_system_fuel", "electricity")
+    step.setArgument("heating_system_heating_efficiency", 1.0)
+    step.setArgument("cooling_system_type", "none")
+  elsif ['base-hvac-evap-cooler-furnace-gas.osw'].include? osw_file
+    step.setArgument("cooling_system_type", "evaporative cooler")
+  elsif ['base-hvac-evap-cooler-only.osw'].include? osw_file
+    step.setArgument("heating_system_type", "none")
+    step.setArgument("cooling_system_type", "evaporative cooler")
+  elsif ['base-hvac-evap-cooler-only-ducted.osw'].include? osw_file
+    step.setArgument("heating_system_type", "none")
+    step.setArgument("cooling_system_type", "evaporative cooler")
+    step.setArgument("evap_cooler_is_ducted", true)
+  elsif ['base-hvac-flowrate.osw'].include? osw_file
+    step.setArgument("heating_system_flow_rate", 1920.0)
+    step.setArgument("cooling_system_flow_rate", 1440.0)
+  elsif ['base-hvac-furnace-elec-only.osw'].include? osw_file
+    step.setArgument("heating_system_fuel", "electricity")
+    step.setArgument("heating_system_heating_efficiency", 1.0)
+    step.setArgument("cooling_system_type", "none")
+  elsif ['base-hvac-furnace-gas-central-ac-2-speed.osw'].include? osw_file
+    step.setArgument("cooling_system_cooling_efficiency", 18.0)
+  elsif ['base-hvac-furnace-gas-central-ac-var-speed.osw'].include? osw_file
+    step.setArgument("cooling_system_cooling_efficiency", 24.0)
+  elsif ['base-hvac-furnace-gas-only.osw'].include? osw_file
+    step.setArgument("heating_system_electric_auxiliary_energy", 700.0)
+    step.setArgument("cooling_system_type", "none")
+  elsif ['base-hvac-furnace-gas-only-no-eae.osw'].include? osw_file
+    step.setArgument("cooling_system_type", "none")
+  elsif ['base-hvac-furnace-gas-room-ac.osw'].include? osw_file
+    step.setArgument("cooling_system_type", "room air conditioner")
+    step.setArgument("cooling_system_cooling_efficiency", 8.5)
+  elsif ['base-hvac-furnace-oil-only.osw'].include? osw_file
+    step.setArgument("heating_system_fuel", "fuel oil")
+    step.setArgument("cooling_system_type", "none")
+  elsif ['base-hvac-furnace-propane-only.osw'].include? osw_file
+    step.setArgument("heating_system_fuel", "propane")
+    step.setArgument("cooling_system_type", "none")
+  elsif ['base-hvac-furnace-wood-only.osw'].include? osw_file
+    step.setArgument("heating_system_fuel", "wood")
+    step.setArgument("cooling_system_type", "none")
+  elsif ['base-hvac-furnace-x3-dse.osw'].include? osw_file
+
+  elsif ['base-hvac-ground-to-air-heat-pump.osw'].include? osw_file
+    step.setArgument("heating_system_type", "ground-to-air")
+    step.setArgument("heating_system_fuel", "electricity")
+    step.setArgument("heating_system_heating_efficiency", 3.6)
+    step.setArgument("cooling_system_type", "ground-to-air")
+    step.setArgument("cooling_system_cooling_efficiency", 16.6)
+  elsif ['base-hvac-ground-to-air-heat-pump-detailed.osw'].include? osw_file
+
+  elsif ['base-hvac-ideal-air.osw'].include? osw_file
+
+  elsif ['base-hvac-mini-split-heat-pump-ducted.osw'].include? osw_file
+    step.setArgument("heating_system_type", "mini-split")
+    step.setArgument("heating_system_fuel", "electricity")
+    step.setArgument("heating_system_heating_efficiency", 10.0)
+    step.setArgument("cooling_system_type", "mini-split")
+    step.setArgument("cooling_system_cooling_efficiency", 19.0)
+    step.setArgument("mini_split_is_ducted", true)
+  elsif ['base-hvac-mini-split-heat-pump-ducted-detailed.osw'].include? osw_file
+
+  elsif ['base-hvac-mini-split-heat-pump-ductless.osw'].include? osw_file
+    step.setArgument("heating_system_type", "mini-split")
+    step.setArgument("heating_system_fuel", "electricity")
+    step.setArgument("heating_system_heating_efficiency", 10.0)
+    step.setArgument("cooling_system_type", "mini-split")
+    step.setArgument("cooling_system_cooling_efficiency", 19.0)
+  elsif ['base-hvac-mini-split-heat-pump-ductless-no-backup.osw'].include? osw_file
+    step.setArgument("heating_system_type", "mini-split")
+    step.setArgument("heating_system_fuel", "electricity")
+    step.setArgument("heating_system_heating_efficiency", 10.0)
+    step.setArgument("cooling_system_type", "mini-split")
+    step.setArgument("cooling_system_cooling_efficiency", 19.0)
+    step.setArgument("heat_pump_backup_fuel", "none")
+  elsif ['base-hvac-multiple.osw'].include? osw_file
+
+  elsif ['base-hvac-none.osw'].include? osw_file
+    step.setArgument("heating_system_type", "none")
+    step.setArgument("cooling_system_type", "none")
+  elsif ['base-hvac-none-no-fuel-access.osw'].include? osw_file
+
+  elsif ['base-hvac-portable-heater-electric-only.osw'].include? osw_file
+    step.setArgument("heating_system_type", "PortableHeater")
+    step.setArgument("heating_system_fuel", "electricity")
+    step.setArgument("heating_system_heating_efficiency", 1.0)
+    step.setArgument("cooling_system_type", "none")
+  elsif ['base-hvac-programmable-thermostat.osw'].include? osw_file
+    step.setArgument("hvac_control_type", "programmable thermostat")
+    step.setArgument("heating_setback_temp", 66)
+    step.setArgument("heating_setback_hours_per_week", 49)
+    step.setArgument("heating_setback_start_hour", 23)
+    step.setArgument("cooling_setup_temp", 80)
+    step.setArgument("cooling_setup_hours_per_week", 42)
+    step.setArgument("cooling_setup_start_hour", 9)
+  elsif ['base-hvac-room-ac-only.osw'].include? osw_file
+    step.setArgument("heating_system_type", "none")
+    step.setArgument("cooling_system_type", "room air conditioner")
+    step.setArgument("cooling_system_cooling_efficiency", 8.5)
+  elsif ['base-hvac-room-ac-only-detailed.osw'].include? osw_file
+
+  elsif ['base-hvac-setpoints.osw'].include? osw_file
+    step.setArgument("heating_setpoint_temp", 60.0)
+    step.setArgument("cooling_setpoint_temp", 80.0)
+  elsif ['base-hvac-stove-oil-only.osw'].include? osw_file
+    step.setArgument("heating_system_type", "Stove")
+    step.setArgument("heating_system_fuel", "fuel oil")
+    step.setArgument("heating_system_heating_efficiency", 0.8)
+    step.setArgument("heating_system_electric_auxiliary_energy", 200.0)
+    step.setArgument("cooling_system_type", "none")
+  elsif ['base-hvac-stove-oil-only-no-eae.osw'].include? osw_file
+    step.setArgument("heating_system_type", "Stove")
+    step.setArgument("heating_system_fuel", "fuel oil")
+    step.setArgument("heating_system_heating_efficiency", 0.8)
+    step.setArgument("cooling_system_type", "none")
+  elsif ['base-hvac-stove-wood-only.osw'].include? osw_file
+    step.setArgument("heating_system_type", "Stove")
+    step.setArgument("heating_system_fuel", "wood")
+    step.setArgument("heating_system_heating_efficiency", 0.8)
+    step.setArgument("heating_system_electric_auxiliary_energy", 200.0)
+    step.setArgument("cooling_system_type", "none")
+  elsif ['base-hvac-undersized.osw'].include? osw_file
+    step.setArgument("heating_system_heating_capacity", 6400.0)
+    step.setArgument("cooling_system_cooling_capacity", 4800.0)
+  elsif ['base-hvac-wall-furnace-elec-only.osw'].include? osw_file
+    step.setArgument("heating_system_type", "WallFurnace")
+    step.setArgument("heating_system_fuel", "electricity")
+    step.setArgument("heating_system_heating_efficiency", 1.0)
+    step.setArgument("heating_system_electric_auxiliary_energy", 200.0)
+    step.setArgument("cooling_system_type", "none")
+  elsif ['base-hvac-wall-furnace-propane-only.osw'].include? osw_file
+    step.setArgument("heating_system_type", "WallFurnace")
+    step.setArgument("heating_system_fuel", "propane")
+    step.setArgument("heating_system_heating_efficiency", 0.8)
+    step.setArgument("heating_system_electric_auxiliary_energy", 200.0)
+    step.setArgument("cooling_system_type", "none")
+  elsif ['base-hvac-wall-furnace-propane-only-no-eae.osw'].include? osw_file
+    step.setArgument("heating_system_type", "WallFurnace")
+    step.setArgument("heating_system_fuel", "propane")
+    step.setArgument("heating_system_heating_efficiency", 0.8)
+    step.setArgument("cooling_system_type", "none")
+  elsif ['base-hvac-wall-furnace-wood-only.osw'].include? osw_file
+    step.setArgument("heating_system_type", "WallFurnace")
+    step.setArgument("heating_system_fuel", "wood")
+    step.setArgument("heating_system_heating_efficiency", 0.8)
+    step.setArgument("heating_system_electric_auxiliary_energy", 200.0)
+    step.setArgument("cooling_system_type", "none")
+  elsif ['base-infiltration-ach-natural.osw'].include? osw_file
+    step.setArgument("living_constant_ach_natural", 0.67)
+  elsif ['base-location-baltimore-md.osw'].include? osw_file
+    step.setArgument("weather_station_epw_filename", "../weather/USA_MD_Baltimore-Washington.Intl.AP.724060_TMY3.epw")
+  elsif ['base-location-dallas-tx.osw'].include? osw_file
+    step.setArgument("weather_station_epw_filename", "../weather/USA_TX_Dallas-Fort.Worth.Intl.AP.722590_TMY3.epw")
+  elsif ['base-location-duluth-mn.osw'].include? osw_file
+    step.setArgument("weather_station_epw_filename", "../weather/USA_MN_Duluth.Intl.AP.727450_TMY3.epw")
+  elsif ['base-location-epw-filename.osw'].include? osw_file
+
+  elsif ['base-location-miami-fl.osw'].include? osw_file
+    step.setArgument("weather_station_epw_filename", "../weather/USA_FL_Miami.Intl.AP.722020_TMY3.epw")
+  elsif ['base-mechvent-balanced.osw'].include? osw_file
+    step.setArgument("mech_vent_fan_type", "balanced")
+    step.setArgument("mech_vent_fan_power", 60)
+  elsif ['base-mechvent-cfis.osw'].include? osw_file
+    step.setArgument("mech_vent_fan_type", "central fan integrated supply")
+    step.setArgument("mech_vent_tested_flow_rate", 330)
+    step.setArgument("mech_vent_hours_in_operation", 8)
+    step.setArgument("mech_vent_fan_power", 300)
+  elsif ['base-mechvent-cfis-24hrs.osw'].include? osw_file
+    step.setArgument("mech_vent_fan_type", "central fan integrated supply")
+    step.setArgument("mech_vent_tested_flow_rate", 330)
+    step.setArgument("mech_vent_fan_power", 300)
+  elsif ['base-mechvent-erv.osw'].include? osw_file
+    step.setArgument("mech_vent_fan_type", "energy recovery ventilator")
+    step.setArgument("mech_vent_fan_power", 60)
+  elsif ['base-mechvent-erv-atre-asre.osw'].include? osw_file
+    step.setArgument("mech_vent_fan_type", "energy recovery ventilator")
+    step.setArgument("mech_vent_adjusted_total_recovery_efficiency", 0.526)
+    step.setArgument("mech_vent_adjusted_sensible_recovery_efficiency", 0.79)
+    step.setArgument("mech_vent_fan_power", 60)
+  elsif ['base-mechvent-exhaust.osw'].include? osw_file
+    step.setArgument("mech_vent_fan_type", "exhaust only")
+  elsif ['base-mechvent-exhaust-rated-flow-rate.osw'].include? osw_file
+    step.setArgument("mech_vent_fan_type", "exhaust only")
+    step.setArgument("mech_vent_rated_flow_rate", 110)
+  elsif ['base-mechvent-hrv.osw'].include? osw_file
+    step.setArgument("mech_vent_fan_type", "heat recovery ventilator")
+    step.setArgument("mech_vent_fan_power", 60)
+  elsif ['base-mechvent-hrv-asre.osw'].include? osw_file
+    step.setArgument("mech_vent_fan_type", "heat recovery ventilator")
+    step.setArgument("mech_vent_adjusted_sensible_recovery_efficiency", 0.79)
+    step.setArgument("mech_vent_fan_power", 60)
+  elsif ['base-mechvent-supply.osw'].include? osw_file
+    step.setArgument("mech_vent_fan_type", "supply only")
+  elsif ['base-misc-ceiling-fans.osw'].include? osw_file
+
+  elsif ['base-misc-lighting-none.osw'].include? osw_file
+    step.setArgument("has_lighting", false)
+  elsif ['base-misc-loads-detailed.osw'].include? osw_file
+    step.setArgument("plug_loads_annual_kwh_1", 7302.0)
+    step.setArgument("plug_loads_frac_sensible_1", 0.82)
+    step.setArgument("plug_loads_frac_latent_1", 0.18)
+    step.setArgument("plug_loads_annual_kwh_2", 400.0)
+  elsif ['base-misc-number-of-occupants.osw'].include? osw_file
+    step.setArgument("num_occupants", 5.0)
+  elsif ['base-pv-array-1axis.osw'].include? osw_file
+    step.setArgument("pv_system_module_type", "standard")
+    step.setArgument("pv_system_location", "ground")
+    step.setArgument("pv_system_tracking", "1-axis")
+  elsif ['base-pv-array-1axis-backtracked.osw'].include? osw_file
+    step.setArgument("pv_system_module_type", "standard")
+    step.setArgument("pv_system_location", "ground")
+    step.setArgument("pv_system_tracking", "1-axis backtracked")
+  elsif ['base-pv-array-2axis.osw'].include? osw_file
+    step.setArgument("pv_system_module_type", "standard")
+    step.setArgument("pv_system_location", "ground")
+    step.setArgument("pv_system_tracking", "2-axis")
+  elsif ['base-pv-array-fixed-open-rack.osw'].include? osw_file
+    step.setArgument("pv_system_module_type", "standard")
+    step.setArgument("pv_system_location", "ground")
+  elsif ['base-pv-array-module-premium.osw'].include? osw_file
+    step.setArgument("pv_system_module_type", "standard")
+  elsif ['base-pv-array-module-standard.osw'].include? osw_file
+    step.setArgument("pv_system_module_type", "standard")
+  elsif ['base-pv-array-module-thinfilm.osw'].include? osw_file
+    step.setArgument("pv_system_module_type", "thin film")
+  elsif ['base-pv-multiple.osw'].include? osw_file
+
   elsif ['base-site-neighbors.osw'].include? osw_file
-    step.setArgument("neighbor_left_offset", 10)
-    step.setArgument("neighbor_right_offset", 15)
+    step.setArgument("neighbor_left_distance", 10)
+    step.setArgument("neighbor_right_distance", 15)
+    step.setArgument("neighbor_right_height", 12)
   end
   return step
 end

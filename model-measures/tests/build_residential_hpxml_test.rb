@@ -63,7 +63,7 @@ class HPXMLExporterTest < MiniTest::Test
         assert(success)
 
         if ["base-single-family-attached.osw", "base-multifamily.osw"].include? File.basename(osw)
-          next
+          next # FIXME: should this be temporary?
         end
 
         # Translate the hpxml to osm
