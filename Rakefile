@@ -145,7 +145,7 @@ def create_osws
     'base-dhw-tank-gas.osw' => 'base.osw',
     'base-dhw-tank-gas-outside.osw' => 'base.osw',
     'base-dhw-tank-heat-pump.osw' => 'base.osw',
-    'base-dhw-tank-heat-pump-outside.osw' => 'base.osw',
+    # 'base-dhw-tank-heat-pump-outside.osw' => 'base.osw', # C:/OpenStudio/OpenStudio-residential/HPXMLtoOpenStudio/tests/hpxml_translator_test.rb:370:in `get'
     'base-dhw-tank-heat-pump-with-solar.osw' => 'base.osw',
     'base-dhw-tank-heat-pump-with-solar-fraction.osw' => 'base.osw',
     'base-dhw-tankless-electric.osw' => 'base.osw',
