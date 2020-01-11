@@ -30,8 +30,9 @@ class HPXMLExporterTest < MiniTest::Test
     results_dir = File.join(this_dir, "results")
     _rm_path(results_dir)
     test_dir = File.join(this_dir, "build_res_hpxml")
-    _rm_path(test_dir)
-    Dir.mkdir(test_dir)
+    unless Dir.exists?(test_dir)
+      Dir.mkdir(test_dir)
+    end
 
     puts "Running #{osws.size} OSW files..."
     all_results = {}
