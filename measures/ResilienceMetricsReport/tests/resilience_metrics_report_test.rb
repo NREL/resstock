@@ -65,7 +65,7 @@ class ResilienceMetricsReportTest < MiniTest::Test
     expected_num_del_objects = {}
     expected_num_new_objects = {}
     expected_values = {}
-    _test_measure("SFD_Successful_EnergyPlus_Run_TMY_Outages.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__, "USA_CO_Denver.Intl.AP.725650_TMY3.epw", "appliances_schedules.csv", 11, 0, 5)
+    _test_measure("SFD_Successful_EnergyPlus_Run_TMY_Outages.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__, "USA_CO_Denver.Intl.AP.725650_TMY3.epw", "TMY_10-60min.csv", 11, 0, 5)
   end
 
   private
@@ -193,7 +193,7 @@ class ResilienceMetricsReportTest < MiniTest::Test
   end
 
   def sch_path_default(sch_name)
-    sch = OpenStudio::Path.new("#{File.dirname(__FILE__)}/../../../resources/measures/HPXMLtoOpenStudio/resources/schedules/#{sch_name}")
+    sch = OpenStudio::Path.new("#{File.dirname(__FILE__)}/../../../test/schedules/#{sch_name}")
     assert(File.exist?(sch.to_s))
     return sch.to_s
   end

@@ -221,7 +221,7 @@ class ResidentialScheduleGenerator < OpenStudio::Measure::ModelMeasure
         bath_schedule << shower_schedule[-1]
       end
     end
-    output_csv_file = "../appliances_schedules.csv"
+    output_csv_file = File.expand_path("../appliances_schedules.csv")
     CSV.open(output_csv_file, "w") do |csv|
       csv << ["occupants", "cooking_range", "plug_loads", "refrigerator", "lighting_interior", "lighting_exterior",
               "lighting_garage", "lighting_exterior_holiday", "clothes_washer", "clothes_dryer", "dishwasher", "baths", "showers", "sinks", "ceiling_fan"]
