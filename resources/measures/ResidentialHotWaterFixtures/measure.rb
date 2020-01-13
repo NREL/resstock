@@ -119,8 +119,15 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
     year_description = model.getYearDescription
     num_days_in_year = Constants.NumDaysInYear(year_description.isLeapYear)
 
-    # FIXME: temporary until we have the generated schedules.csv of appropriate length
-    sch_path = File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources/schedules/appliances_schedules.csv")
+    sch_path = model.getBuilding.additionalProperties.getFeatureAsString("Schedule Path")
+    if not sch_path.is_initialized
+      sch_path = File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources/schedules/appliances_schedules.csv")
+      if model.getYearDescription.isLeapYear
+        sch_path = File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources/schedules/appliances_schedules_leap.csv")
+      end
+    else
+      sch_path = sch_path.get
+    end
     schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_output_path: sch_path)
     if not schedules_file.validated?
       return false

@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>residential_schedule_generator</name>
   <uid>079880ce-1837-4d67-ba8d-65c595160d3d</uid>
-  <version_id>737182fd-22b5-4bb5-b39f-3fb5422f6c75</version_id>
-  <version_modified>20200113T154948Z</version_modified>
+  <version_id>db57fd65-930e-4b98-aa31-95af0c8b70b1</version_id>
+  <version_modified>20200113T184627Z</version_modified>
   <xml_checksum>3C1C8C0F</xml_checksum>
   <class_name>ResidentialScheduleGenerator</class_name>
   <display_name>Generate Appliance schedules</display_name>
@@ -11,9 +11,28 @@
   <modeler_description>a</modeler_description>
   <arguments>
     <argument>
+      <name>num_units</name>
+      <display_name>Num Units</display_name>
+      <description>The number of units.</description>
+      <type>Integer</type>
+      <units>#</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>1</default_value>
+    </argument>
+    <argument>
+      <name>num_bedrooms</name>
+      <display_name>Number of Bedrooms</display_name>
+      <description>Specify the number of bedrooms.</description>
+      <type>Double</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>3</default_value>
+    </argument>
+    <argument>
       <name>num_occupants</name>
       <display_name>Number of Occupants</display_name>
-      <description>Specify the number of occupants. A value of 'auto' will calculate the average number of occupants from the number of bedrooms.</description>
+      <description>Specify the number of occupants.</description>
       <type>String</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -34,6 +53,12 @@
   </attributes>
   <files>
     <file>
+      <filename>ResidentialScheduleGenerator_Test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>2A4036CE</checksum>
+    </file>
+    <file>
       <version>
         <software_program>OpenStudio</software_program>
         <identifier>2.7.0</identifier>
@@ -42,13 +67,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>F4B3048A</checksum>
-    </file>
-    <file>
-      <filename>ResidentialScheduleGenerator_Test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>B443D468</checksum>
+      <checksum>438BEB74</checksum>
     </file>
   </files>
 </measure>

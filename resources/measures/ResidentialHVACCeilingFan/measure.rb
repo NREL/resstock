@@ -129,10 +129,17 @@ class ProcessCeilingFan < OpenStudio::Measure::ModelMeasure
       return false
     end
 
-    # FIXME: temporary until we have the generated schedules.csv of appropriate length
-    sch_path = File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources/schedules/appliances_schedules.csv")
-    schedule_file = SchedulesFile.new(runner: runner, model: model, schedules_output_path: sch_path)
-    if not schedule_file.validated?
+    sch_path = model.getBuilding.additionalProperties.getFeatureAsString("Schedule Path")
+    if not sch_path.is_initialized
+      sch_path = File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources/schedules/appliances_schedules.csv")
+      if model.getYearDescription.isLeapYear
+        sch_path = File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources/schedules/appliances_schedules_leap.csv")
+      end
+    else
+      sch_path = sch_path.get
+    end
+    schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_output_path: sch_path)
+    if not schedules_file.validated?
       return false
     end
 
@@ -142,7 +149,7 @@ class ProcessCeilingFan < OpenStudio::Measure::ModelMeasure
 
       success, sch = HVAC.apply_ceiling_fans(model, unit, runner, coverage, specified_num, power,
                                              control, use_benchmark_energy, cooling_setpoint_offset,
-                                             mult, sch, schedule_file)
+                                             mult, sch, schedules_file)
       return false if not success
     end # units
 

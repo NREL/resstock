@@ -27,12 +27,27 @@ class ResidentialScheduleGenerator < OpenStudio::Measure::ModelMeasure
   def arguments(model)
     args = OpenStudio::Measure::OSArgumentVector.new
 
+    # make an argument for number of units
+    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument("num_units", true)
+    arg.setDisplayName("Num Units")
+    arg.setUnits("#")
+    arg.setDescription("The number of units.")
+    arg.setDefaultValue(1)
+    args << arg
+
+    # make a string argument for number of bedrooms
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("num_bedrooms", true)
+    arg.setDisplayName("Number of Bedrooms")
+    arg.setDescription("Specify the number of bedrooms.")
+    arg.setDefaultValue(3)
+    args << arg
+
     # Make a string argument for occupants (auto or number)
-    num_occupants = OpenStudio::Measure::OSArgument::makeStringArgument("num_occupants", true)
-    num_occupants.setDisplayName("Number of Occupants")
-    num_occupants.setDescription("Specify the number of occupants. A value of '#{Constants.Auto}' will calculate the average number of occupants from the number of bedrooms.")
-    num_occupants.setDefaultValue(Constants.Auto)
-    args << num_occupants
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument("num_occupants", true)
+    arg.setDisplayName("Number of Occupants")
+    arg.setDescription("Specify the number of occupants.")
+    arg.setDefaultValue(Constants.Auto)
+    args << arg
 
     return args
   end
@@ -40,9 +55,27 @@ class ResidentialScheduleGenerator < OpenStudio::Measure::ModelMeasure
   # define what happens when the measure is run
   def run(model, runner, user_arguments)
     super(model, runner, user_arguments)
+
+    # use the built-in error checking
+    if !runner.validateUserArguments(arguments(model), user_arguments)
+      return false
+    end
+
     # assign the user inputs to variables
+    num_units = runner.getIntegerArgumentValue("num_units", user_arguments)
+    num_bedrooms = runner.getDoubleArgumentValue("num_bedrooms", user_arguments)
     num_occupants = runner.getStringArgumentValue("num_occupants", user_arguments)
-    num_occupants = num_occupants.to_i
+
+    if num_occupants == Constants.Auto
+      if num_units > 1 # multifamily equation
+        num_occupants = 0.63 + 0.92 * num_bedrooms
+      else # single-family equation
+        num_occupants = 0.87 + 0.59 * num_bedrooms
+      end
+    else
+      num_occupants = num_occupants.to_i
+    end
+
     minutes_per_steps = 10
     if model.getSimulationControl.timestep.is_initialized
       minutes_per_steps = 60 / model.getSimulationControl.timestep.get.numberOfTimestepsPerHour
@@ -188,8 +221,7 @@ class ResidentialScheduleGenerator < OpenStudio::Measure::ModelMeasure
         bath_schedule << shower_schedule[-1]
       end
     end
-    output_csv_file = schedules_path + "/appliances_schedules.csv"
-    puts("Generated the Schedules")
+    output_csv_file = "../appliances_schedules.csv"
     CSV.open(output_csv_file, "w") do |csv|
       csv << ["occupants", "cooking_range", "plug_loads", "refrigerator", "lighting_interior", "lighting_exterior",
               "lighting_garage", "lighting_exterior_holiday", "clothes_washer", "clothes_dryer", "dishwasher", "baths", "showers", "sinks", "ceiling_fan"]
@@ -200,6 +232,11 @@ class ResidentialScheduleGenerator < OpenStudio::Measure::ModelMeasure
                 shower_schedule[i], sink_schedule[i], ceiling_fan_schedule[i]]
       end
     end
+
+    runner.registerInfo("Generated schedule file: #{File.expand_path(output_csv_file)}")
+
+    model.getBuilding.additionalProperties.setFeature("Schedule Path", File.expand_path(output_csv_file))
+
     return true
   end
 end # end the measure
