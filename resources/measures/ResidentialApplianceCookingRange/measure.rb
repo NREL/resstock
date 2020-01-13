@@ -119,9 +119,12 @@ class ResidentialCookingRange < OpenStudio::Measure::ModelMeasure
 
     sch_path = model.getBuilding.additionalProperties.getFeatureAsString("Schedule Path")
     if not sch_path.is_initialized
-      sch_path = File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources/schedules/appliances_schedules.csv")
-      if model.getYearDescription.isLeapYear
-        sch_path = File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources/schedules/appliances_schedules_leap.csv")
+      sch_path = File.join(File.dirname(__FILE__), "../../../test/schedules/TMY_10-60min.csv")
+      case model.getYearDescription.calendarYear.get
+      when 2012
+        sch_path = File.join(File.dirname(__FILE__), "../../../test/schedules/AMY2012_10-60min.csv")
+      when 2014
+        sch_path = File.join(File.dirname(__FILE__), "../../../test/schedules/AMY2014_10-60min.csv")
       end
     else
       sch_path = sch_path.get

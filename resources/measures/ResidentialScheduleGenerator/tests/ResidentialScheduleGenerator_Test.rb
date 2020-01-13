@@ -6,358 +6,82 @@ require_relative '../measure.rb'
 require 'fileutils'
 
 class ResidentialScheduleGeneratorTest < MiniTest::Test
-  # def test_new_construction_none
-  # # Using energy multiplier
-  # args_hash = {}
-  # args_hash["num_occupants"] = "2"
-  # expected_num_del_objects = {}
-  # expected_num_new_objects = {}
-  # expected_values = {}
-  # puts("Skipping the test!!!")
-  # _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank_ClothesWasher.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
-  # end
+  def test_default_values
+    args_hash = {}
+    expected_values = { "SchedulesLength" => 52560, "SchedulesWidth" => 15 }
+    _test_measure("Denver.osm", args_hash, expected_values, __method__, "USA_CO_Denver.Intl.AP.725650_TMY3.epw")
+  end
 
-  # def test_new_construction_standard_gas
-  #   args_hash = {}
-  #   args_hash["cef"] = 2.75 / 1.15
-  #   args_hash["fuel_type"] = Constants.FuelTypeGas
-  #   expected_num_del_objects = {}
-  #   expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "OtherEquipmentDefinition" => 1, "OtherEquipment" => 1, "ScheduleRuleset" => 1 }
-  #   expected_values = { "Annual_kwh" => 81.0, "Annual_therm" => 36.7, "Annual_gal" => 0, "FuelType" => Constants.FuelTypeGas, "Location" => args_hash["location"] }
-  #   _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank_ClothesWasher.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
-  # end
-  #
-  # def test_new_construction_premium_gas
-  #   args_hash = {}
-  #   args_hash["cef"] = 3.48 / 1.15
-  #   args_hash["fuel_type"] = Constants.FuelTypeGas
-  #   expected_num_del_objects = {}
-  #   expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "OtherEquipmentDefinition" => 1, "OtherEquipment" => 1, "ScheduleRuleset" => 1 }
-  #   expected_values = { "Annual_kwh" => 64.0, "Annual_therm" => 29.0, "Annual_gal" => 0, "FuelType" => Constants.FuelTypeGas, "Location" => args_hash["location"] }
-  #   _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank_ClothesWasher.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
-  # end
-  #
-  # def test_new_construction_standard_elec
-  #   args_hash = {}
-  #   args_hash["cef"] = 3.1 / 1.15
-  #   args_hash["fuel_type"] = Constants.FuelTypeElectric
-  #   args_hash["fuel_split"] = 1
-  #   expected_num_del_objects = {}
-  #   expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
-  #   expected_values = { "Annual_kwh" => 1026.4, "Annual_therm" => 0, "Annual_gal" => 0, "FuelType" => Constants.FuelTypeElectric, "Location" => args_hash["location"] }
-  #   _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank_ClothesWasher.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
-  # end
-  #
-  # def test_new_construction_premium_elec
-  #   args_hash = {}
-  #   args_hash["cef"] = 3.93 / 1.15
-  #   args_hash["fuel_type"] = Constants.FuelTypeElectric
-  #   args_hash["fuel_split"] = 1
-  #   expected_num_del_objects = {}
-  #   expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
-  #   expected_values = { "Annual_kwh" => 809.6, "Annual_therm" => 0, "Annual_gal" => 0, "FuelType" => Constants.FuelTypeElectric, "Location" => args_hash["location"] }
-  #   _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank_ClothesWasher.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
-  # end
-  #
-  # def test_new_construction_premium_elec_energystar
-  #   args_hash = {}
-  #   args_hash["cef"] = 4.5 / 1.15
-  #   args_hash["fuel_type"] = Constants.FuelTypeElectric
-  #   args_hash["fuel_split"] = 1
-  #   expected_num_del_objects = {}
-  #   expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
-  #   expected_values = { "Annual_kwh" => 710.5, "Annual_therm" => 0, "Annual_gal" => 0, "FuelType" => Constants.FuelTypeElectric, "Location" => args_hash["location"] }
-  #   _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank_ClothesWasher.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
-  # end
-  #
-  # def test_new_construction_hp_elec
-  #   args_hash = {}
-  #   args_hash["cef"] = 5.2 / 1.15
-  #   args_hash["fuel_type"] = Constants.FuelTypeElectric
-  #   args_hash["fuel_split"] = 1
-  #   expected_num_del_objects = {}
-  #   expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
-  #   expected_values = { "Annual_kwh" => 617.8, "Annual_therm" => 0, "Annual_gal" => 0, "FuelType" => Constants.FuelTypeElectric, "Location" => args_hash["location"] }
-  #   _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank_ClothesWasher.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
-  # end
-  #
-  # def test_new_construction_premium_hp_elec
-  #   args_hash = {}
-  #   args_hash["cef"] = 6.0 / 1.15
-  #   args_hash["fuel_type"] = Constants.FuelTypeElectric
-  #   args_hash["fuel_split"] = 1
-  #   expected_num_del_objects = {}
-  #   expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
-  #   expected_values = { "Annual_kwh" => 532.9, "Annual_therm" => 0, "Annual_gal" => 0, "FuelType" => Constants.FuelTypeElectric, "Location" => args_hash["location"] }
-  #   _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank_ClothesWasher.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
-  # end
-  #
-  # def test_new_construction_standard_propane
-  #   args_hash = {}
-  #   args_hash["cef"] = 2.75 / 1.15
-  #   args_hash["fuel_type"] = Constants.FuelTypePropane
-  #   expected_num_del_objects = {}
-  #   expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "OtherEquipmentDefinition" => 1, "OtherEquipment" => 1, "ScheduleRuleset" => 1 }
-  #   expected_values = { "Annual_kwh" => 81.0, "Annual_therm" => 0, "Annual_gal" => 40.1, "FuelType" => Constants.FuelTypePropane, "Location" => args_hash["location"] }
-  #   _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank_ClothesWasher.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
-  # end
-  #
-  # def test_new_construction_premium_propane
-  #   args_hash = {}
-  #   args_hash["cef"] = 3.48 / 1.15
-  #   args_hash["fuel_type"] = Constants.FuelTypePropane
-  #   expected_num_del_objects = {}
-  #   expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "OtherEquipmentDefinition" => 1, "OtherEquipment" => 1, "ScheduleRuleset" => 1 }
-  #   expected_values = { "Annual_kwh" => 64.0, "Annual_therm" => 0, "Annual_gal" => 31.7, "FuelType" => Constants.FuelTypePropane, "Location" => args_hash["location"] }
-  #   _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank_ClothesWasher.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
-  # end
-  #
-  # def test_new_construction_mult_0_80
-  #   args_hash = {}
-  #   args_hash["cef"] = 2.75 / 1.15
-  #   args_hash["mult"] = 0.8
-  #   args_hash["fuel_type"] = Constants.FuelTypeGas
-  #   expected_num_del_objects = {}
-  #   expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "OtherEquipmentDefinition" => 1, "OtherEquipment" => 1, "ScheduleRuleset" => 1 }
-  #   expected_values = { "Annual_kwh" => 64.8, "Annual_therm" => 29.4, "Annual_gal" => 0, "FuelType" => Constants.FuelTypeGas, "Location" => args_hash["location"] }
-  #   _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank_ClothesWasher.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
-  # end
-  #
-  # def test_new_construction_split_0_05
-  #   args_hash = {}
-  #   args_hash["cef"] = 2.75 / 1.15
-  #   args_hash["fuel_split"] = 0.05
-  #   args_hash["fuel_type"] = Constants.FuelTypeGas
-  #   expected_num_del_objects = {}
-  #   expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "OtherEquipmentDefinition" => 1, "OtherEquipment" => 1, "ScheduleRuleset" => 1 }
-  #   expected_values = { "Annual_kwh" => 57.8, "Annual_therm" => 37.5, "Annual_gal" => 0, "FuelType" => Constants.FuelTypeGas, "Location" => args_hash["location"] }
-  #   _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank_ClothesWasher.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
-  # end
-  #
-  # def test_new_construction_basement
-  #   args_hash = {}
-  #   args_hash["cef"] = 2.75 / 1.15
-  #   args_hash["location"] = Constants.SpaceTypeFinishedBasement
-  #   args_hash["fuel_type"] = Constants.FuelTypeGas
-  #   expected_num_del_objects = {}
-  #   expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "OtherEquipmentDefinition" => 1, "OtherEquipment" => 1, "ScheduleRuleset" => 1 }
-  #   expected_values = { "Annual_kwh" => 81.0, "Annual_therm" => 36.7, "Annual_gal" => 0, "FuelType" => Constants.FuelTypeGas, "Location" => args_hash["location"] }
-  #   _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank_ClothesWasher.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
-  # end
-  #
-  # def test_new_construction_garage
-  #   args_hash = {}
-  #   args_hash["cef"] = 2.75 / 1.15
-  #   args_hash["location"] = Constants.SpaceTypeGarage
-  #   args_hash["fuel_type"] = Constants.FuelTypeGas
-  #   expected_num_del_objects = {}
-  #   expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "OtherEquipmentDefinition" => 1, "OtherEquipment" => 1, "ScheduleRuleset" => 1 }
-  #   expected_values = { "Annual_kwh" => 81.0, "Annual_therm" => 36.7, "Annual_gal" => 0, "FuelType" => Constants.FuelTypeGas, "Location" => args_hash["location"] }
-  #   _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank_ClothesWasher.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
-  # end
-  #
-  # def test_retrofit_replace_gas_with_propane
-  #   args_hash = {}
-  #   args_hash["cef"] = 2.75 / 1.15
-  #   args_hash["fuel_type"] = Constants.FuelTypeGas
-  #   expected_num_del_objects = {}
-  #   expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "OtherEquipmentDefinition" => 1, "OtherEquipment" => 1, "ScheduleRuleset" => 1 }
-  #   expected_values = { "Annual_kwh" => 81.0, "Annual_therm" => 36.7, "Annual_gal" => 0, "FuelType" => Constants.FuelTypeGas, "Location" => args_hash["location"] }
-  #   model = _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank_ClothesWasher.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
-  #   args_hash = {}
-  #   args_hash["cef"] = 3.48 / 1.15
-  #   args_hash["fuel_type"] = Constants.FuelTypePropane
-  #   expected_num_del_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "OtherEquipmentDefinition" => 1, "OtherEquipment" => 1, "ScheduleRuleset" => 1 }
-  #   expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "OtherEquipmentDefinition" => 1, "OtherEquipment" => 1, "ScheduleRuleset" => 1 }
-  #   expected_values = { "Annual_kwh" => 64.0, "Annual_therm" => 0, "Annual_gal" => 31.7, "FuelType" => Constants.FuelTypePropane, "Location" => args_hash["location"] }
-  #   _test_measure(model, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
-  # end
-  #
-  # def test_retrofit_replace_propane_with_gas
-  #   args_hash = {}
-  #   args_hash["cef"] = 2.75 / 1.15
-  #   args_hash["fuel_type"] = Constants.FuelTypePropane
-  #   expected_num_del_objects = {}
-  #   expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "OtherEquipmentDefinition" => 1, "OtherEquipment" => 1, "ScheduleRuleset" => 1 }
-  #   expected_values = { "Annual_kwh" => 81.0, "Annual_therm" => 0, "Annual_gal" => 40.1, "FuelType" => Constants.FuelTypePropane, "Location" => args_hash["location"] }
-  #   model = _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank_ClothesWasher.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
-  #   args_hash = {}
-  #   args_hash["cef"] = 3.48 / 1.15
-  #   args_hash["fuel_type"] = Constants.FuelTypeGas
-  #   expected_num_del_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "OtherEquipmentDefinition" => 1, "OtherEquipment" => 1, "ScheduleRuleset" => 1 }
-  #   expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "OtherEquipmentDefinition" => 1, "OtherEquipment" => 1, "ScheduleRuleset" => 1 }
-  #   expected_values = { "Annual_kwh" => 64.0, "Annual_therm" => 29.0, "Annual_gal" => 0, "FuelType" => Constants.FuelTypeGas, "Location" => args_hash["location"] }
-  #   _test_measure(model, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
-  # end
-  #
-  # def test_retrofit_replace_elec_with_gas
-  #   args_hash = {}
-  #   args_hash["cef"] = 3.1 / 1.15
-  #   args_hash["fuel_type"] = Constants.FuelTypeElectric
-  #   expected_num_del_objects = {}
-  #   expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
-  #   expected_values = { "Annual_kwh" => 1026.4, "Annual_therm" => 0, "Annual_gal" => 0, "FuelType" => Constants.FuelTypeElectric, "Location" => args_hash["location"] }
-  #   model = _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank_ClothesWasher.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
-  #   args_hash = {}
-  #   args_hash["cef"] = 3.48 / 1.15
-  #   args_hash["fuel_type"] = Constants.FuelTypeGas
-  #   expected_num_del_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
-  #   expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "OtherEquipmentDefinition" => 1, "OtherEquipment" => 1, "ScheduleRuleset" => 1 }
-  #   expected_values = { "Annual_kwh" => 64.0, "Annual_therm" => 29.0, "Annual_gal" => 0, "FuelType" => Constants.FuelTypeGas, "Location" => args_hash["location"] }
-  #   _test_measure(model, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
-  # end
-  #
-  # def test_retrofit_remove
-  #   args_hash = {}
-  #   args_hash["cef"] = 2.75 / 1.15
-  #   args_hash["fuel_type"] = Constants.FuelTypeGas
-  #   expected_num_del_objects = {}
-  #   expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "OtherEquipmentDefinition" => 1, "OtherEquipment" => 1, "ScheduleRuleset" => 1 }
-  #   expected_values = { "Annual_kwh" => 81.0, "Annual_therm" => 36.7, "Annual_gal" => 0, "FuelType" => Constants.FuelTypeGas, "Location" => args_hash["location"] }
-  #   model = _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank_ClothesWasher.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
-  #   args_hash = {}
-  #   args_hash["mult"] = 0.0
-  #   expected_num_del_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "OtherEquipmentDefinition" => 1, "OtherEquipment" => 1, "ScheduleRuleset" => 1 }
-  #   expected_num_new_objects = {}
-  #   expected_values = { "Annual_kwh" => 0, "Annual_therm" => 0, "Annual_gal" => 0, "FuelType" => nil, "Location" => args_hash["location"] }
-  #   _test_measure(model, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
-  # end
-  #
-  # def test_argument_error_cd_cef_negative
-  #   args_hash = {}
-  #   args_hash["cef"] = -1
-  #   result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank_ClothesWasher.osm", args_hash)
-  #   assert_equal(result.errors.map { |x| x.logMessage }[0], "Combined energy factor must be greater than 0.0.")
-  # end
-  #
-  # def test_argument_error_cd_cef_zero
-  #   args_hash = {}
-  #   args_hash["cef"] = 0
-  #   result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank_ClothesWasher.osm", args_hash)
-  #   assert_equal(result.errors.map { |x| x.logMessage }[0], "Combined energy factor must be greater than 0.0.")
-  # end
-  #
-  # def test_argument_error_cd_fuel_split_lt_0
-  #   args_hash = {}
-  #   args_hash["fuel_split"] = -1
-  #   result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank_ClothesWasher.osm", args_hash)
-  #   assert_equal(result.errors.map { |x| x.logMessage }[0], "Assumed fuel electric split must be greater than or equal to 0.0 and less than or equal to 1.0.")
-  # end
-  #
-  # def test_argument_error_cd_fuel_split_gt_1
-  #   args_hash = {}
-  #   args_hash["fuel_split"] = 2
-  #   result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank_ClothesWasher.osm", args_hash)
-  #   assert_equal(result.errors.map { |x| x.logMessage }[0], "Assumed fuel electric split must be greater than or equal to 0.0 and less than or equal to 1.0.")
-  # end
-  #
-  # def test_argument_error_cd_mult_negative
-  #   args_hash = {}
-  #   args_hash["mult"] = -1
-  #   result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank_ClothesWasher.osm", args_hash)
-  #   assert_equal(result.errors.map { |x| x.logMessage }[0], "Occupancy energy multiplier must be greater than or equal to 0.0.")
-  # end
-  #
-  # def test_error_missing_cw
-  #   args_hash = {}
-  #   result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash)
-  #   assert_equal(result.errors.map { |x| x.logMessage }[0], "Could not find clothes washer equipment.")
-  # end
-  #
-  # def test_error_missing_geometry
-  #   args_hash = {}
-  #   result = _test_error(nil, args_hash)
-  #   assert_equal(result.errors.map { |x| x.logMessage }[0], "No building geometry has been defined.")
-  # end
-  #
-  # def test_single_family_attached_new_construction
-  #   num_units = 4
-  #   args_hash = {}
-  #   args_hash["fuel_type"] = Constants.FuelTypeGas
-  #   expected_num_del_objects = {}
-  #   expected_num_new_objects = { "OtherEquipment" => num_units, "OtherEquipmentDefinition" => num_units, "ElectricEquipment" => num_units, "ElectricEquipmentDefinition" => num_units, "ScheduleRuleset" => 1 }
-  #   expected_values = { "Annual_kwh" => num_units * 80.98, "Annual_therm" => num_units * 36.71, "Annual_gal" => 0, "FuelType" => Constants.FuelTypeGas, "Location" => args_hash["location"] }
-  #   _test_measure("SFA_4units_1story_FB_UA_3Beds_2Baths_Denver_WHTank_ClothesWasher.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
-  # end
-  #
-  # def test_single_family_attached_new_construction_finished_basement
-  #   num_units = 4
-  #   args_hash = {}
-  #   args_hash["fuel_type"] = Constants.FuelTypeGas
-  #   args_hash["location"] = Constants.SpaceTypeFinishedBasement
-  #   expected_num_del_objects = {}
-  #   expected_num_new_objects = { "OtherEquipment" => num_units, "OtherEquipmentDefinition" => num_units, "ElectricEquipment" => num_units, "ElectricEquipmentDefinition" => num_units, "ScheduleRuleset" => 1 }
-  #   expected_values = { "Annual_kwh" => num_units * 80.98, "Annual_therm" => num_units * 36.71, "Annual_gal" => 0, "FuelType" => Constants.FuelTypeGas, "Location" => args_hash["location"] }
-  #   _test_measure("SFA_4units_1story_FB_UA_3Beds_2Baths_Denver_WHTank_ClothesWasher.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
-  # end
-  #
-  # def test_single_family_attached_new_construction_unfinished_basement
-  #   num_units = 4
-  #   args_hash = {}
-  #   args_hash["fuel_type"] = Constants.FuelTypeGas
-  #   args_hash["location"] = Constants.SpaceTypeUnfinishedBasement
-  #   expected_num_del_objects = {}
-  #   expected_num_new_objects = { "OtherEquipment" => num_units, "OtherEquipmentDefinition" => num_units, "ElectricEquipment" => num_units, "ElectricEquipmentDefinition" => num_units, "ScheduleRuleset" => 1 }
-  #   expected_values = { "Annual_kwh" => num_units * 80.98, "Annual_therm" => num_units * 36.71, "Annual_gal" => 0, "FuelType" => Constants.FuelTypeGas, "Location" => args_hash["location"] }
-  #   _test_measure("SFA_4units_1story_UB_UA_3Beds_2Baths_Denver_WHTank_ClothesWasher.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
-  # end
-  #
-  # def test_multifamily_new_construction
-  #   num_units = 8
-  #   args_hash = {}
-  #   args_hash["fuel_type"] = Constants.FuelTypeGas
-  #   expected_num_del_objects = {}
-  #   expected_num_new_objects = { "OtherEquipment" => num_units, "OtherEquipmentDefinition" => num_units, "ElectricEquipment" => num_units, "ElectricEquipmentDefinition" => num_units, "ScheduleRuleset" => 1 }
-  #   expected_values = { "Annual_kwh" => 647.81, "Annual_therm" => 293.69, "Annual_gal" => 0, "FuelType" => Constants.FuelTypeGas, "Location" => args_hash["location"] }
-  #   _test_measure("MF_8units_1story_SL_3Beds_2Baths_Denver_WHTank_ClothesWasher.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
-  # end
-  #
-  # private
-  #
-  # def _test_error(osm_file, args_hash)
-  #   # create an instance of the measure
-  #   measure = ResidentialClothesDryer.new
-  #
-  #   # create an instance of a runner
-  #   runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
-  #
-  #   model = get_model(File.dirname(__FILE__), osm_file)
-  #
-  #   # get arguments
-  #   arguments = measure.arguments(model)
-  #   argument_map = OpenStudio::Measure.convertOSArgumentVectorToMap(arguments)
-  #
-  #   # populate argument with specified hash value if specified
-  #   arguments.each do |arg|
-  #     temp_arg_var = arg.clone
-  #     if args_hash.has_key?(arg.name)
-  #       assert(temp_arg_var.setValue(args_hash[arg.name]))
-  #     end
-  #     argument_map[arg.name] = temp_arg_var
-  #   end
-  #
-  #   # run the measure
-  #   measure.run(model, runner, argument_map)
-  #   result = runner.result
-  #
-  #   # show the output
-  #   show_output(result) unless result.value.valueName == 'Fail'
-  #
-  #   # assert that it didn't run
-  #   assert_equal("Fail", result.value.valueName)
-  #   assert(result.errors.size == 1)
-  #
-  #   return result
-  # end
+  private
 
-  def _test_measure(osm_file_or_model, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_infos = 0, num_warnings = 0)
+  def model_in_path_default(osm_file_or_model)
+    return File.absolute_path(File.join(File.dirname(__FILE__), "..", "..", "..", "..", "test", "osm_files", osm_file_or_model))
+  end
+
+  def epw_path_default(epw_name)
+    epw = OpenStudio::Path.new("#{File.dirname(__FILE__)}/../../../../resources/measures/HPXMLtoOpenStudio/weather/#{epw_name}")
+    assert(File.exist?(epw.to_s))
+    return epw.to_s
+  end
+
+  def test_dir(test_name)
+    # always generate test output in specially named 'output' directory so result files are not made part of the measure
+    return "#{File.dirname(__FILE__)}/output/#{test_name}"
+  end
+
+  def model_out_path(osm_file_or_model, test_name)
+    return "#{test_dir(test_name)}/#{osm_file_or_model}"
+  end
+
+  def sql_path(test_name)
+    return "#{test_dir(test_name)}/run/eplusout.sql"
+  end
+
+  def schedule_file_path(test_name)
+    return "#{test_dir(test_name)}/appliances_schedules.csv"
+  end
+
+  # create test files if they do not exist when the test first runs
+  def setup_test(osm_file_or_model, test_name, epw_path, model_in_path)
+    # convert output requests to OSM for testing, OS App and PAT will add these to the E+ Idf
+    workspace = OpenStudio::Workspace.new("Draft".to_StrictnessLevel, "EnergyPlus".to_IddFileType)
+    rt = OpenStudio::EnergyPlus::ReverseTranslator.new
+    request_model = rt.translateWorkspace(workspace)
+
+    translator = OpenStudio::OSVersion::VersionTranslator.new
+    model = translator.loadModel(model_in_path)
+    assert((not model.empty?))
+    model = model.get
+    model.addObjects(request_model.objects)
+    model.save(model_out_path(osm_file_or_model, test_name), true)
+
+    osw_path = File.join(test_dir(test_name), "in.osw")
+    osw_path = File.absolute_path(osw_path)
+
+    workflow = OpenStudio::WorkflowJSON.new
+    workflow.setSeedFile(File.absolute_path(model_out_path(osm_file_or_model, test_name)))
+    workflow.setWeatherFile(epw_path)
+    workflow.saveAs(osw_path)
+
+    if !File.exist?("#{test_dir(test_name)}")
+      FileUtils.mkdir_p("#{test_dir(test_name)}")
+    end
+
+    cli_path = OpenStudio.getOpenStudioCLI
+    cmd = "\"#{cli_path}\" --no-ssl run -m -w \"#{osw_path}\""
+    puts cmd
+    system(cmd)
+
+    return model
+  end
+
+  def _test_measure(osm_file_or_model, args_hash, expected_values, test_name, epw_name)
     # create an instance of the measure
     measure = ResidentialScheduleGenerator.new
 
     # check for standard methods
     assert(!measure.name.empty?)
     assert(!measure.description.empty?)
-    assert(!measure.modeler_description.empty?)
 
     # create an instance of a runner
     runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
@@ -380,31 +104,58 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
       argument_map[arg.name] = temp_arg_var
     end
 
-    # run the measure
-    measure.run(model, runner, argument_map)
-    result = runner.result
+    if !File.exist?(test_dir(test_name))
+      FileUtils.mkdir_p(test_dir(test_name))
+    end
+    assert(File.exist?(test_dir(test_name)))
 
-    # show the output
-    show_output(result) unless result.value.valueName == 'Success'
+    assert(File.exist?(model_in_path_default(osm_file_or_model)))
+
+    # set up runner, this will happen automatically when measure is run in PAT or OpenStudio
+    runner.setLastOpenStudioModelPath(OpenStudio::Path.new(model_in_path_default(osm_file_or_model)))
+    runner.setLastEpwFilePath(File.expand_path(epw_path_default(epw_name)))
+
+    # mimic the process of running this measure in OS App or PAT. Optionally set custom model_in_path and custom epw_path.
+    model = setup_test(osm_file_or_model, test_name, File.expand_path(epw_path_default(epw_name)), model_in_path_default(osm_file_or_model))
+    assert(File.exist?(model_out_path(osm_file_or_model, test_name)))
+    runner.setLastEnergyPlusSqlFilePath(OpenStudio::Path.new(sql_path(test_name)))
+
+    # temporarily change directory to the run directory and run the measure
+    start_dir = Dir.pwd
+    begin
+      Dir.chdir(test_dir(test_name))
+
+      # run the measure
+      measure.run(model, runner, argument_map)
+      FileUtils.mv("../appliances_schedules.csv", "appliances_schedules.csv")
+      result = runner.result
+      show_output(result) unless result.value.valueName == 'Success'
+    ensure
+      Dir.chdir(start_dir)
+    end
+
+    # make sure the enduse report file exists
+    if expected_values.keys.include? "SchedulesLength" and expected_values.keys.include? "SchedulesWidth"
+      assert(File.exist?(schedule_file_path(test_name)))
+
+      # make sure you're reporting at correct frequency
+      schedules_length, schedules_width = get_schedule_file(schedule_file_path(test_name))
+      assert_equal(expected_values["SchedulesLength"], schedules_length)
+      assert_equal(expected_values["SchedulesWidth"], schedules_width)
+    end
 
     # assert that it ran correctly
     assert_equal("Success", result.value.valueName)
-    assert_equal(num_infos, result.info.size)
-    assert_equal(num_warnings, result.warnings.size)
-    assert(result.finalCondition.is_initialized)
-
-    # get the final objects in the model
-    final_objects = get_objects(model)
-
-    # get new and deleted objects
-    obj_type_exclusions = ["ScheduleRule", "ScheduleDay", "ScheduleTypeLimits"]
-    all_new_objects = get_object_additions(initial_objects, final_objects, obj_type_exclusions)
-    all_del_objects = get_object_additions(final_objects, initial_objects, obj_type_exclusions)
-
-    # check we have the expected number of new/deleted objects
-    check_num_objects(all_new_objects, expected_num_new_objects, "added")
-    check_num_objects(all_del_objects, expected_num_del_objects, "deleted")
+    assert(result.info.size > 0)
 
     return model
+  end
+
+  def get_schedule_file(schedule_file)
+    rows = CSV.read(File.expand_path(schedule_file))
+    schedules_length = rows.length - 1
+    cols = rows.transpose
+    schedules_width = cols.length
+    return schedules_length, schedules_width
   end
 end
