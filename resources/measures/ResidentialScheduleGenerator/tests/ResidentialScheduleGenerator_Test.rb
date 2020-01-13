@@ -6,16 +6,16 @@ require_relative '../measure.rb'
 require 'fileutils'
 
 class ResidentialScheduleGeneratorTest < MiniTest::Test
-  def test_new_construction_none
-    # Using energy multiplier
-    args_hash = {}
-    args_hash["num_occupants"] = "2"
-    expected_num_del_objects = {}
-    expected_num_new_objects = {}
-    expected_values = {}
-    puts("Skipping the test!!!")
-    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank_ClothesWasher.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
-  end
+  # def test_new_construction_none
+  # # Using energy multiplier
+  # args_hash = {}
+  # args_hash["num_occupants"] = "2"
+  # expected_num_del_objects = {}
+  # expected_num_new_objects = {}
+  # expected_values = {}
+  # puts("Skipping the test!!!")
+  # _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank_ClothesWasher.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
+  # end
 
   # def test_new_construction_standard_gas
   #   args_hash = {}

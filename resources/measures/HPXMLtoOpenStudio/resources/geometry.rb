@@ -1404,7 +1404,7 @@ class Geometry
     return true
   end
 
-  def self.process_occupants(model, runner, num_occ, occ_gain, sens_frac, lat_frac, schedule_file)
+  def self.process_occupants(model, runner, num_occ, occ_gain, sens_frac, lat_frac, schedules_file)
     num_occ = num_occ.split(",").map(&:strip)
 
     # Error checking
@@ -1537,7 +1537,7 @@ class Geometry
         if space_num_occ > 0
 
           if people_sch.nil?
-            people_sch = schedule_file.createScheduleFile(sch_file_name: "#{Constants.ObjectNameOccupants} schedule", col_name: "occupants")
+            people_sch = schedules_file.createScheduleFile(sch_file_name: "#{Constants.ObjectNameOccupants} schedule", col_name: "occupants")
           end
 
           if activity_sch.nil?

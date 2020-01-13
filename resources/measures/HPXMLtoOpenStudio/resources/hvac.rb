@@ -3148,7 +3148,7 @@ class HVAC
 
   def self.apply_ceiling_fans(model, unit, runner, coverage, specified_num, power,
                               control, use_benchmark_energy, cooling_setpoint_offset,
-                              mult, sch, schedule_file)
+                              mult, sch, schedules_file)
 
     # check for valid inputs
     if mult < 0
@@ -3370,11 +3370,11 @@ class HVAC
 
         col_name = "ceiling_fan"
         if sch.nil?
-          sch = schedule_file.createScheduleFile(sch_file_name: "#{space_obj_name} schedule", col_name: col_name)
+          sch = schedules_file.createScheduleFile(sch_file_name: "#{space_obj_name} schedule", col_name: col_name)
         end
 
         space_mel_ann = mel_ann * UnitConversions.convert(space.floorArea, "m^2", "ft^2") / finished_floor_area
-        space_design_level = schedule_file.calcDesignLevelFromAnnualkWh(col_name: col_name, annual_kwh: space_mel_ann)
+        space_design_level = schedules_file.calcDesignLevelFromAnnualkWh(col_name: col_name, annual_kwh: space_mel_ann)
 
         mel_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
         mel = OpenStudio::Model::ElectricEquipment.new(mel_def)
