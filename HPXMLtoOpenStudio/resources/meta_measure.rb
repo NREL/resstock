@@ -44,10 +44,14 @@ end
 
 def get_measure_instance(measure_rb_path)
   # Parse XML file for class name
-  require 'rexml/document'
-  require 'rexml/xpath'
-  xmldoc = REXML::Document.new(File.read(measure_rb_path.sub(".rb", ".xml")))
-  measure_class = REXML::XPath.first(xmldoc, "//measure/class_name").text
+  # Avoid REXML for performance reasons
+  measure_class = nil
+  File.readlines(measure_rb_path.sub(".rb", ".xml")).each do |xml_line|
+    next unless xml_line.include? "<class_name>"
+
+    measure_class = xml_line.gsub("<class_name>", "").gsub("</class_name>", "").strip
+    break
+  end
   # Create new instance
   require (File.absolute_path(measure_rb_path))
   measure = eval(measure_class).new
