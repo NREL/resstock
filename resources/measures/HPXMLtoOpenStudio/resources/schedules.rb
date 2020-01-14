@@ -1196,4 +1196,22 @@ class SchedulesFile
 
     return true
   end
+  
+  def self.get_schedule_file_path(model)
+    sch_path = model.getBuilding.additionalProperties.getFeatureAsString("Schedule Path")
+    if not sch_path.is_initialized
+      sch_path = File.join(File.dirname(__FILE__), "../../../../test/schedules/TMY_10-60min.csv")
+      if model.getYearDescription.calendarYear.is_initialized
+        case model.getYearDescription.calendarYear.get
+        when 2012
+          sch_path = File.join(File.dirname(__FILE__), "../../../../test/schedules/AMY2012_10-60min.csv")
+        when 2014
+          sch_path = File.join(File.dirname(__FILE__), "../../../../test/schedules/AMY2014_10-60min.csv")
+        end
+      end
+    else
+      sch_path = sch_path.get
+    end
+    return sch_path
+  end
 end
