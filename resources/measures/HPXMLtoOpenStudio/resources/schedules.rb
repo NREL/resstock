@@ -1196,7 +1196,7 @@ class SchedulesFile
 
     return true
   end
-  
+
   def self.get_schedule_file_path(model)
     sch_path = model.getBuilding.additionalProperties.getFeatureAsString("Schedule Path")
     if not sch_path.is_initialized
