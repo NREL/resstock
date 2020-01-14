@@ -2632,7 +2632,7 @@ class HVAC
   end
 
   def self.apply_heating_setpoints(model, runner, weather, htg_wkdy_monthly, htg_wked_monthly,
-                                   use_auto_season, season_start_month, season_end_month)
+                                   use_auto_season, season_start_month, season_end_month, onoff_thermostat_deadband)
 
     # Get heating season
     if use_auto_season
@@ -2783,6 +2783,8 @@ class HVAC
 
       end
 
+      thermostat_setpoint.setTemperatureDifferenceBetweenCutoutAndSetpoint(UnitConversions.convert(onoff_thermostat_deadband, "r", "k"))
+
       runner.registerInfo("Set the heating setpoint schedule for #{thermostat_setpoint.name}.")
     end
 
@@ -2796,7 +2798,7 @@ class HVAC
   end
 
   def self.apply_cooling_setpoints(model, runner, weather, clg_wkdy_monthly, clg_wked_monthly,
-                                   use_auto_season, season_start_month, season_end_month)
+                                   use_auto_season, season_start_month, season_end_month, onoff_thermostat_deadband)
 
     # Get cooling season
     if use_auto_season
@@ -2942,6 +2944,7 @@ class HVAC
         finished_zone.setThermostatSetpointDualSetpoint(thermostat_setpoint)
         runner.registerInfo("Set a dummy heating setpoint schedule for #{thermostat_setpoint.name}.")
       end
+      thermostat_setpoint.setTemperatureDifferenceBetweenCutoutAndSetpoint(UnitConversions.convert(onoff_thermostat_deadband, "r", "k"))
 
       runner.registerInfo("Set the cooling setpoint schedule for #{thermostat_setpoint.name}.")
     end

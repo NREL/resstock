@@ -278,6 +278,15 @@ class ProcessHeatingSetpointsTest < MiniTest::Test
     _test_measure("SFD_2000sqft_2story_SL_UA_3Beds_2Baths_Denver_Furnace_NoSetpoints.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 3)
   end
 
+  def test_thermostat_deadband
+    args_hash = {}
+    args_hash["onoff_thermostat_deadband"] = "2.0"
+    expected_num_del_objects = {}
+    expected_num_new_objects = { "ScheduleRule" => 36, "ScheduleRuleset" => 3, "ThermostatSetpointDualSetpoint" => 1 }
+    expected_values = { "h_during_h_season" => [Constants.DefaultHeatingSetpoint] * 24, "h_during_c_season" => [Constants.DefaultHeatingSetpoint] * 24, "h_during_o_season" => [Constants.DefaultHeatingSetpoint] * 24, "c_during_c_season" => [Constants.DefaultCoolingSetpoint] * 24, "c_during_h_season" => [Constants.DefaultCoolingSetpoint] * 24, "c_during_o_season" => [Constants.DefaultCoolingSetpoint] * 24, "thermostat_deadband" => 2.0 }
+    _test_measure("SFD_2000sqft_2story_SL_UA_3Beds_2Baths_Denver_Furnace_NoSetpoints.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 3)
+  end
+
   private
 
   def _test_error(osm_file_or_model, args_hash)
@@ -371,6 +380,11 @@ class ProcessHeatingSetpointsTest < MiniTest::Test
 
     all_new_objects.each do |obj_type, new_objects|
       new_objects.each do |new_object|
+        if not args_hash["onoff_thermostat_deadband"].nil? and obj_type == "ThermostatSetpointDualSetpoint"
+          new_object = new_object.to_ThermostatSetpointDualSetpoint.get
+          actual_value = UnitConversions.convert(new_object.temperatureDifferenceBetweenCutoutAndSetpoint, "k", "r")
+          assert_in_epsilon(actual_value, expected_values["thermostat_deadband"], 0.01)
+        end
         next unless obj_type == "ScheduleRule"
         next if not new_object.respond_to?("to_#{obj_type}")
 

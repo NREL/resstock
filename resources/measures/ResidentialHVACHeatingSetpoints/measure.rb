@@ -116,8 +116,14 @@ class ProcessHeatingSetpoints < OpenStudio::Measure::ModelMeasure
     season_end_month.setDescription("End month of the heating season.")
     season_end_month.setDefaultValue("Dec")
     args << season_end_month
-    
-    #TODO: Add thermostat deadband argument
+
+    # Make a string argument for thermostat deadband
+    onoff_thermostat_deadband = OpenStudio::Measure::OSArgument::makeStringArgument("onoff_thermostat_deadband", true)
+    onoff_thermostat_deadband.setDisplayName("OnOff Thermostat Deadband")
+    onoff_thermostat_deadband.setDescription("Specify a positive value of deadband between setpoint and cutout temperature to model on/off thermostat behavior. The sama value applies to both heating and cooling. Default is 0.0(traditional E+ thermostat).")
+    onoff_thermostat_deadband.setUnits("degrees F")
+    onoff_thermostat_deadband.setDefaultValue("0.0")
+    args << onoff_thermostat_deadband
 
     return args
   end # end the arguments method
@@ -143,6 +149,8 @@ class ProcessHeatingSetpoints < OpenStudio::Measure::ModelMeasure
     use_auto_season = runner.getBoolArgumentValue("use_auto_season", user_arguments)
     season_start_month = runner.getOptionalStringArgumentValue("season_start_month", user_arguments)
     season_end_month = runner.getOptionalStringArgumentValue("season_end_month", user_arguments)
+
+    onoff_thermostat_deadband = runner.getStringArgumentValue("onoff_thermostat_deadband", user_arguments).to_f
 
     weather = WeatherProcess.new(model, runner)
     if weather.error?
@@ -216,7 +224,7 @@ class ProcessHeatingSetpoints < OpenStudio::Measure::ModelMeasure
     end
 
     success = HVAC.apply_heating_setpoints(model, runner, weather, [weekday_setpoints] * 12, [weekend_setpoints] * 12,
-                                           use_auto_season, season_start_month, season_end_month)
+                                           use_auto_season, season_start_month, season_end_month, onoff_thermostat_deadband)
     return false if not success
 
     return true
