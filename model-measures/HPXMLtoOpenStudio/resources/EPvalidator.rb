@@ -23,6 +23,7 @@ class EnergyPlusValidator
     zero_or_one = [0, 1]
     zero_or_more = nil
     one_or_more = []
+    zero_or_six = [0, 6]
 
     requirements = {
 
@@ -633,16 +634,11 @@ class EnergyPlusValidator
 
       # [Lighting]
       "/HPXML/Building/BuildingDetails/Lighting" => {
-        "LightingGroup[ThirdPartyCertification='ERI Tier I' and Location='interior']" => one, # See [LightingGroup]
-        "LightingGroup[ThirdPartyCertification='ERI Tier I' and Location='exterior']" => one, # See [LightingGroup]
-        "LightingGroup[ThirdPartyCertification='ERI Tier I' and Location='garage']" => one, # See [LightingGroup]
-        "LightingGroup[ThirdPartyCertification='ERI Tier II' and Location='interior']" => one, # See [LightingGroup]
-        "LightingGroup[ThirdPartyCertification='ERI Tier II' and Location='exterior']" => one, # See [LightingGroup]
-        "LightingGroup[ThirdPartyCertification='ERI Tier II' and Location='garage']" => one, # See [LightingGroup]
+        "LightingGroup[(ThirdPartyCertification='ERI Tier I' or ThirdPartyCertification='ERI Tier II') and (Location='interior' or Location='exterior' or Location='garage')]" => zero_or_six, # See [LightingGroup]
       },
 
       ## [LightingGroup]
-      "/HPXML/Building/BuildingDetails/Lighting/LightingGroup[ThirdPartyCertification='ERI Tier I' or ThirdPartyCertification='ERI Tier II'][Location='interior' or Location='exterior' or Location='garage']" => {
+      "/HPXML/Building/BuildingDetails/Lighting/LightingGroup[(ThirdPartyCertification='ERI Tier I' or ThirdPartyCertification='ERI Tier II') and (Location='interior' or Location='exterior' or Location='garage')]" => {
         "SystemIdentifier" => one, # Required by HPXML schema
         "FractionofUnitsInLocation" => one,
       },

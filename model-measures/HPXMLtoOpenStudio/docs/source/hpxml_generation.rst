@@ -518,9 +518,10 @@ The building's lighting is described by six ``Lighting/LightingGroup`` elements,
 
 The fraction of lamps of the given type in the given location are provided as the ``LightingGroup/FractionofUnitsInLocation``.
 The fractions for a given location cannot sum to greater than 1.
+If the fractions sum to less than 1, the remainder is assumed to be incandescent lighting.
 Garage lighting values are ignored if the building has no garage.
 
-If the ``Lighting`` element is not provided, lighting will not be modeled.
+To model a building without any lighting, all six ``Lighting/LightingGroup`` elements must be excluded.
 
 Ceiling Fans
 ~~~~~~~~~~~~
