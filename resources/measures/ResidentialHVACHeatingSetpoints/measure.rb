@@ -116,6 +116,8 @@ class ProcessHeatingSetpoints < OpenStudio::Measure::ModelMeasure
     season_end_month.setDescription("End month of the heating season.")
     season_end_month.setDefaultValue("Dec")
     args << season_end_month
+    
+    #TODO: Add thermostat deadband argument
 
     return args
   end # end the arguments method
