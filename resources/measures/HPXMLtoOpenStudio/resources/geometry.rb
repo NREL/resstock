@@ -1458,32 +1458,16 @@ class Geometry
     units.each_with_index do |unit, unit_index|
       unit_occ = num_occ[unit_index]
 
-      if unit_occ != Constants.Auto
-        if not MathTools.valid_float?(unit_occ)
-          runner.registerError("Number of Occupants must be either '#{Constants.Auto}' or a number greater than or equal to 0.")
-          return false
-        elsif unit_occ.to_f < 0
-          runner.registerError("Number of Occupants must be either '#{Constants.Auto}' or a number greater than or equal to 0.")
-          return false
-        end
-      end
-
-      # Get number of beds
-      nbeds, nbaths = self.get_unit_beds_baths(model, unit, runner)
-      if nbeds.nil?
+      if not MathTools.valid_float?(unit_occ)
+        runner.registerError("Number of Occupants must be a number greater than or equal to 0.")
+        return false
+      elsif unit_occ.to_f < 0
+        runner.registerError("Number of Occupants must be a number greater than or equal to 0.")
         return false
       end
 
       # Calculate number of occupants for this unit
-      if unit_occ == Constants.Auto
-        if units.size > 1 # multifamily equation
-          unit_occ = 0.63 + 0.92 * nbeds
-        else # single-family equation
-          unit_occ = 0.87 + 0.59 * nbeds
-        end
-      else
-        unit_occ = unit_occ.to_f
-      end
+      unit_occ = unit_occ.to_f
 
       # Get spaces
       bedroom_ffa_spaces = self.get_bedroom_spaces(unit.spaces)
