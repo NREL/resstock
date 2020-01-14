@@ -221,37 +221,51 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("foundation_ceiling_r", true)
-    arg.setDisplayName("Foundation: Ceiling Insulation Nominal R-value")
+    arg.setDisplayName("Foundation: Ceiling Insulation Assembly R-value")
     arg.setUnits("h-ft^2-R/Btu")
     arg.setDescription("Refers to the overall R-value of the assembly.")
     arg.setDefaultValue(30)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("foundation_wall_interior_r", true)
-    arg.setDisplayName("Foundation: Wall Interior Insulation Nominal R-value")
+    arg.setDisplayName("Foundation: Wall Interior Insulation Assembly R-value")
     arg.setUnits("h-ft^2-R/Btu")
     arg.setDescription("Refers to the overall R-value of the assembly.")
     arg.setDefaultValue(0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("foundation_wall_exterior_r", true)
-    arg.setDisplayName("Foundation: Wall Exterior Insulation Nominal R-value")
+    arg.setDisplayName("Foundation: Wall Exterior Insulation Assembly R-value")
     arg.setUnits("h-ft^2-R/Btu")
     arg.setDescription("Refers to the overall R-value of the assembly.")
     arg.setDefaultValue(0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("slab_perimeter_r", true)
-    arg.setDisplayName("Slab: Perimeter Insulation Nominal R-value")
+    arg.setDisplayName("Slab: Perimeter Insulation Assembly R-value")
     arg.setUnits("h-ft^2-R/Btu")
     arg.setDescription("Refers to the overall R-value of the assembly.")
     arg.setDefaultValue(0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("slab_under_r", true)
-    arg.setDisplayName("Slab: Under Slab Insulation Nominal R-value")
+    arg.setDisplayName("Slab: Under Slab Insulation Assembly R-value")
     arg.setUnits("h-ft^2-R/Btu")
     arg.setDescription("Refers to the overall R-value of the assembly.")
+    arg.setDefaultValue(0)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("carpet_fraction", true)
+    arg.setDisplayName("Carpet: Fraction")
+    arg.setUnits("Frac")
+    arg.setDescription("Fraction of the carpet.")
+    arg.setDefaultValue(0)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("carpet_r_value", true)
+    arg.setDisplayName("Carpet: R-value")
+    arg.setUnits("h-ft^2-R/Btu")
+    arg.setDescription("R-value of the carpet.")
     arg.setDefaultValue(0)
     args << arg
 
@@ -267,14 +281,14 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("attic_floor_r", true)
-    arg.setDisplayName("Attic: Floor Insulation Nominal R-value")
+    arg.setDisplayName("Attic: Floor Insulation Assembly R-value")
     arg.setUnits("h-ft^2-R/Btu")
     arg.setDescription("Refers to the overall R-value of the assembly.")
     arg.setDefaultValue(30)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("attic_ceiling_r", true)
-    arg.setDisplayName("Attic: Ceiling Insulation Nominal R-value")
+    arg.setDisplayName("Attic: Ceiling Insulation Assembly R-value")
     arg.setUnits("h-ft^2-R/Btu")
     arg.setDescription("Refers to the overall R-value of the assembly.")
     arg.setDefaultValue(2.3)
@@ -322,7 +336,7 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("roof_ceiling_r", true)
-    arg.setDisplayName("Roof: Ceiling Insulation Nominal R-value")
+    arg.setDisplayName("Roof: Ceiling Insulation Assembly R-value")
     arg.setUnits("h-ft^2-R/Btu")
     arg.setDescription("Refers to the overall R-value of the assembly.")
     arg.setDefaultValue(2.3)
@@ -454,7 +468,7 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("wall_r", true)
-    arg.setDisplayName("Walls: Cavity Insulation Nominal R-value")
+    arg.setDisplayName("Walls: Cavity Insulation Assembly R-value")
     arg.setUnits("h-ft^2-R/Btu")
     arg.setDescription("Refers to the overall R-value of the assembly.")
     arg.setDefaultValue(13)
@@ -728,7 +742,7 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("heating_system_heating_efficiency", true)
     arg.setDisplayName("Heating System: Rated Efficiency")
-    arg.setDescription("The rated efficiency value of the heating system. HSPF for air-to-air/mini-split and COP for ground-to-air.")
+    arg.setDescription("The rated efficiency value of the heating system. AFUE for Furnace/WallFurnace/Boiler. Percent for ElectricResistance/Stove/PortableHeater. HSPF for air-to-air/mini-split. COP for ground-to-air.")
     arg.setDefaultValue(0.78)
     args << arg
 
@@ -742,6 +756,7 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("heating_system_fraction_heat_load_served", true)
     arg.setDisplayName("Heating System: Fraction Heat Load Served")
     arg.setDescription("The heat load served fraction of the heating system.")
+    arg.setUnits("Frac")
     arg.setDefaultValue(1)
     args << arg
 
@@ -765,7 +780,7 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("cooling_system_cooling_efficiency", true)
     arg.setDisplayName("Cooling System: Rated Efficiency")
-    arg.setDescription("The rated efficiency value of the cooling system. SEER for central air conditioner/air-to-air/mini-split, EER for room air conditioner/ground-to-air, and ignored for evaporative cooler.")
+    arg.setDescription("The rated efficiency value of the cooling system. SEER for central air conditioner/air-to-air/mini-split. EER for room air conditioner/ground-to-air. Ignored for evaporative cooler.")
     arg.setDefaultValue(13.0)
     args << arg
 
@@ -779,6 +794,7 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("cooling_system_fraction_cool_load_served", true)
     arg.setDisplayName("Cooling System: Fraction Cool Load Served")
     arg.setDescription("The cool load served fraction of the cooling system.")
+    arg.setUnits("Frac")
     arg.setDefaultValue(1)
     args << arg
 
@@ -790,7 +806,7 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("heat_pump_backup_heating_efficiency", true)
     arg.setDisplayName("Heat Pump: Backup Rated Efficiency")
-    arg.setDescription("The backup rated AFUE or Percent value of the heat pump.")
+    arg.setDescription("The backup rated efficiency value of the heat pump. Percent for electricity fuel type. AFUE otherwise.")
     arg.setDefaultValue(1)
     args << arg
 
@@ -945,12 +961,14 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("supply_duct_insulation_r_value", true)
     arg.setDisplayName("Supply Duct: Insulation R-Value")
     arg.setDescription("The insulation r-value of the supply duct.")
+    arg.setUnits("h-ft^2-R/Btu")
     arg.setDefaultValue(0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("return_duct_insulation_r_value", true)
     arg.setDisplayName("Return Duct: Insulation R-Value")
     arg.setDescription("The insulation r-value of the return duct.")
+    arg.setUnits("h-ft^2-R/Btu")
     arg.setDefaultValue(0)
     args << arg
 
@@ -969,12 +987,14 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("supply_duct_surface_area", true)
     arg.setDisplayName("Supply Duct: Surface Area")
     arg.setDescription("The surface area of the first supply duct.")
+    arg.setUnits("ft^2")
     arg.setDefaultValue(150)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("return_duct_surface_area", true)
     arg.setDisplayName("Return Duct: Surface Area")
     arg.setDescription("The surface area of the return duct.")
+    arg.setUnits("ft^2")
     arg.setDefaultValue(50)
     args << arg
 
@@ -1104,6 +1124,7 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("water_heater_fraction_dhw_load_served_1", true)
     arg.setDisplayName("Water Heater 1: Fraction DHW Load Served")
     arg.setDescription("The dhw load served fraction of the first water heater.")
+    arg.setUnits("Frac")
     arg.setDefaultValue(1)
     args << arg
 
@@ -1181,6 +1202,7 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("water_heater_fraction_dhw_load_served_2", true)
     arg.setDisplayName("Water Heater 2: Fraction DHW Load Served")
     arg.setDescription("The dhw load served fraction of the second water heater.")
+    arg.setUnits("Frac")
     arg.setDefaultValue(1)
     args << arg
 
@@ -1673,15 +1695,22 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("ceiling_fan_efficiency", true)
     arg.setDisplayName("Ceiling Fan: Efficiency")
     arg.setUnits("CFM/watt")
-    arg.setDescription("The efficiency rating of the ceiling fan at medium speed.")
+    arg.setDescription("The efficiency rating of the ceiling fan(s) at medium speed.")
     arg.setDefaultValue(100)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("ceiling_fan_quantity", true)
+    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument("ceiling_fan_quantity", true)
     arg.setDisplayName("Ceiling Fan: Quantity")
     arg.setUnits("#")
     arg.setDescription("Total number of ceiling fans.")
     arg.setDefaultValue(2)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("ceiling_fan_cooling_setpoint_temp_offset", true)
+    arg.setDisplayName("Ceiling Fan: Cooling Setpoint Temperature Offset")
+    arg.setUnits("degrees F")
+    arg.setDescription("The setpoint temperature offset during cooling season for the ceiling fan(s).")
+    arg.setDefaultValue(0)
     args << arg
 
     plug_loads_plug_load_type_choices = OpenStudio::StringVector.new
@@ -1741,6 +1770,12 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     arg.setDescription("Fraction of internal gains that are latent for the second plug load.")
     arg.setUnits("Frac")
     arg.setDefaultValue(0)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument("plug_loads_schedule_values", true)
+    arg.setDisplayName("Plug Loads: Use Schedule Values")
+    arg.setDescription("Whether to use the schedule values.")
+    arg.setDefaultValue(false)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument("plug_loads_weekday_fractions", true)
@@ -1808,6 +1843,8 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
              :foundation_wall_exterior_r => runner.getDoubleArgumentValue("foundation_wall_exterior_r", user_arguments),
              :perimeter_insulation_r_value => runner.getDoubleArgumentValue("slab_perimeter_r", user_arguments),
              :under_slab_insulation_r_value => runner.getDoubleArgumentValue("slab_under_r", user_arguments),
+             :carpet_fraction => runner.getDoubleArgumentValue("carpet_fraction", user_arguments),
+             :carpet_r_value => runner.getDoubleArgumentValue("carpet_r_value", user_arguments),
              :attic_type => runner.getStringArgumentValue("attic_type", user_arguments),
              :attic_floor_r => runner.getDoubleArgumentValue("attic_floor_r", user_arguments),
              :attic_ceiling_r => runner.getDoubleArgumentValue("attic_ceiling_r", user_arguments),
@@ -1972,11 +2009,13 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
              :oven_is_convection => runner.getStringArgumentValue("oven_is_convection", user_arguments),
              :has_lighting => runner.getBoolArgumentValue("has_lighting", user_arguments),
              :ceiling_fan_efficiency => runner.getDoubleArgumentValue("ceiling_fan_efficiency", user_arguments),
-             :ceiling_fan_quantity => runner.getDoubleArgumentValue("ceiling_fan_quantity", user_arguments),
+             :ceiling_fan_quantity => runner.getIntegerArgumentValue("ceiling_fan_quantity", user_arguments),
+             :ceiling_fan_cooling_setpoint_temp_offset => runner.getDoubleArgumentValue("ceiling_fan_cooling_setpoint_temp_offset", user_arguments),
              :plug_loads_plug_load_type => [runner.getStringArgumentValue("plug_loads_plug_load_type_1", user_arguments), runner.getStringArgumentValue("plug_loads_plug_load_type_2", user_arguments)],
              :plug_loads_annual_kwh => [runner.getDoubleArgumentValue("plug_loads_annual_kwh_1", user_arguments), runner.getDoubleArgumentValue("plug_loads_annual_kwh_2", user_arguments)],
              :plug_loads_frac_sensible => [runner.getDoubleArgumentValue("plug_loads_frac_sensible_1", user_arguments), runner.getDoubleArgumentValue("plug_loads_frac_sensible_2", user_arguments)],
              :plug_loads_frac_latent => [runner.getDoubleArgumentValue("plug_loads_frac_latent_1", user_arguments), runner.getDoubleArgumentValue("plug_loads_frac_latent_2", user_arguments)],
+             :plug_loads_schedule_values => runner.getBoolArgumentValue("plug_loads_schedule_values", user_arguments),
              :plug_loads_weekday_fractions => runner.getStringArgumentValue("plug_loads_weekday_fractions", user_arguments),
              :plug_loads_weekend_fractions => runner.getStringArgumentValue("plug_loads_weekend_fractions", user_arguments),
              :plug_loads_monthly_multipliers => runner.getStringArgumentValue("plug_loads_monthly_multipliers", user_arguments) }
@@ -2556,6 +2595,10 @@ class HPXMLFile
       end
       exposed_perimeter = Geometry2.calculate_exposed_perimeter(model, [surface], has_foundation_walls)
 
+      if ["living space", "garage"].include? interior_adjacent_to
+        depth_below_grade = 0
+      end
+
       slabs_values << { :id => surface.name.to_s,
                         :interior_adjacent_to => interior_adjacent_to,
                         :area => UnitConversions.convert(surface.netArea, "m^2", "ft^2"),
@@ -2563,11 +2606,11 @@ class HPXMLFile
                         :exposed_perimeter => exposed_perimeter,
                         :perimeter_insulation_depth => 0, # FIXME: Get from construction
                         :under_slab_insulation_width => 0, # FIXME: Get from construction
-                        :depth_below_grade => 0,
                         :perimeter_insulation_r_value => args[:perimeter_insulation_r_value], # FIXME: Get from construction
                         :under_slab_insulation_r_value => args[:under_slab_insulation_r_value], # FIXME: Get from construction
-                        :carpet_fraction => 0, # TODO: Revisit
-                        :carpet_r_value => 0 } # TODO: Revisit
+                        :depth_below_grade => depth_below_grade,
+                        :carpet_fraction => args[:carpet_fraction],
+                        :carpet_r_value => args[:carpet_r_value] }
     end
     return slabs_values
   end
@@ -2700,6 +2743,12 @@ class HPXMLFile
     if heating_capacity == Constants.SizingAuto
       heating_capacity = -1
     end
+    heating_capacity = Float(heating_capacity)
+
+    fraction_heat_load_served = args[:heating_system_fraction_heat_load_served]
+    if heating_capacity != -1
+      heating_capacity *= fraction_heat_load_served
+    end
 
     if args[:heating_system_electric_auxiliary_energy] > 0
       electric_auxiliary_energy = args[:heating_system_electric_auxiliary_energy]
@@ -2714,7 +2763,7 @@ class HPXMLFile
                               :distribution_system_idref => distribution_system_idref,
                               :heating_system_fuel => args[:heating_system_fuel],
                               :heating_capacity => heating_capacity,
-                              :fraction_heat_load_served => args[:heating_system_fraction_heat_load_served],
+                              :fraction_heat_load_served => fraction_heat_load_served,
                               :electric_auxiliary_energy => electric_auxiliary_energy,
                               :heating_cfm => heating_cfm }
 
@@ -2744,6 +2793,13 @@ class HPXMLFile
     if cooling_capacity == Constants.SizingAuto
       cooling_capacity = -1
     end
+    cooling_capacity = Float(cooling_capacity)
+
+    fraction_cool_load_served = args[:cooling_system_fraction_cool_load_served]
+    if cooling_capacity != -1
+      cooling_capacity *= fraction_cool_load_served
+    end
+
     if cooling_system_type == "evaporative cooler"
       cooling_capacity = nil
     end
@@ -2757,7 +2813,7 @@ class HPXMLFile
                               :distribution_system_idref => distribution_system_idref,
                               :cooling_system_fuel => args[:cooling_system_fuel],
                               :cooling_capacity => cooling_capacity,
-                              :fraction_cool_load_served => args[:cooling_system_fraction_cool_load_served],
+                              :fraction_cool_load_served => fraction_cool_load_served,
                               :cooling_cfm => cooling_cfm }
 
     if ["central air conditioner"].include? cooling_system_type
@@ -2792,11 +2848,16 @@ class HPXMLFile
     if heating_capacity == Constants.SizingAuto
       heating_capacity = -1
     end
+    heating_capacity = Float(heating_capacity)
 
     if ["Furnace", "WallFurnace", "Boiler", "ElectricResistance", "Stove", "PortableHeater"].include? heating_system_type
       heat_pump_type = cooling_system_type
       heating_system_fuel = "electricity"
       heating_system_fraction_heat_load_served = 0.0
+    end
+
+    if heating_capacity != -1
+      heating_capacity *= heating_system_fraction_heat_load_served
     end
 
     if args[:heat_pump_backup_fuel] != "none"
@@ -2805,6 +2866,11 @@ class HPXMLFile
       backup_heating_capacity = args[:heat_pump_backup_heating_capacity]
       if backup_heating_capacity == Constants.SizingAuto
         backup_heating_capacity = -1
+      end
+      backup_heating_capacity = Float(backup_heating_capacity)
+
+      if backup_heating_capacity != -1
+        backup_heating_capacity *= heating_system_fraction_heat_load_served
       end
 
       if backup_heating_fuel == "electricity"
@@ -2825,6 +2891,11 @@ class HPXMLFile
     cooling_capacity = args[:cooling_system_cooling_capacity]
     if cooling_capacity == Constants.SizingAuto
       cooling_capacity = -1
+    end
+    cooling_capacity = Float(cooling_capacity)
+
+    if cooling_capacity != -1
+      cooling_capacity *= cooling_system_fraction_cool_load_served
     end
 
     heat_pump_values = { :id => "HeatPump",
@@ -2869,11 +2940,17 @@ class HPXMLFile
       hvac_control_values[:heating_setback_hours_per_week] = args[:heating_setback_hours_per_week]
       hvac_control_values[:heating_setback_start_hour] = args[:heating_setback_start_hour]
     end
+
     if args[:cooling_setpoint_temp] != args[:cooling_setup_temp]
       hvac_control_values[:cooling_setup_temp] = args[:cooling_setup_temp]
       hvac_control_values[:cooling_setup_hours_per_week] = args[:cooling_setup_hours_per_week]
       hvac_control_values[:cooling_setup_start_hour] = args[:cooling_setup_start_hour]
     end
+
+    if args[:ceiling_fan_cooling_setpoint_temp_offset] > 0
+      hvac_control_values[:ceiling_fan_cooling_setpoint_temp_offset] = args[:ceiling_fan_cooling_setpoint_temp_offset]
+    end
+
     return hvac_control_values
   end
 
@@ -3278,6 +3355,8 @@ class HPXMLFile
   end
 
   def self.get_misc_load_schedule_values(runner, args)
+    return {} unless args[:plug_loads_schedule_values]
+
     misc_load_schedule_values = { :weekday_fractions => args[:plug_loads_weekday_fractions],
                                   :weekend_fractions => args[:plug_loads_weekend_fractions],
                                   :monthly_multipliers => args[:plug_loads_monthly_multipliers] }

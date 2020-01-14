@@ -1,6 +1,5 @@
 require_relative "constants"
 require_relative "util"
-require_relative "weather"
 require_relative "geometry"
 require_relative "schedules"
 require_relative "unit_conversions"

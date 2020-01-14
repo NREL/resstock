@@ -21,6 +21,7 @@ require_relative "resources/pv"
 require_relative "resources/unit_conversions"
 require_relative "resources/util"
 require_relative "resources/waterheater"
+require_relative "resources/weather"
 require_relative "resources/xmlhelper"
 require_relative "resources/hpxml"
 
@@ -144,15 +145,15 @@ class HPXMLTranslator < OpenStudio::Measure::ModelMeasure
           fail "Weather station WMO '#{weather_wmo}' could not be found in weather/data.csv."
         end
       end
-      cache_path = epw_path.gsub('.epw', '.cache')
+      cache_path = epw_path.gsub('.epw', '-cache.csv')
       if not File.exists?(cache_path)
-        # Process weather file to create .cache
+        # Process weather file to create cache .csv
         runner.registerWarning("'#{cache_path}' could not be found; regenerating it.")
         epw_file = OpenStudio::EpwFile.new(epw_path)
         OpenStudio::Model::WeatherFile.setWeatherFile(model, epw_file)
         weather = WeatherProcess.new(model, runner)
         File.open(cache_path, "wb") do |file|
-          Marshal.dump(weather, file)
+          weather.dump_to_csv(file)
         end
       end
       if epw_output_path.is_initialized
@@ -160,7 +161,7 @@ class HPXMLTranslator < OpenStudio::Measure::ModelMeasure
       end
 
       # Apply Location to obtain weather data
-      weather = Location.apply(model, runner, epw_path, "NA", "NA")
+      weather = Location.apply(model, runner, epw_path, cache_path, "NA", "NA")
 
       # Create OpenStudio model
       OSModel.create(hpxml_doc, runner, model, weather, map_tsv_dir, hpxml_path)
@@ -619,12 +620,6 @@ class OSModel
     @cond_bsmnt_surfaces.each do |cond_bsmnt_surface|
       const = cond_bsmnt_surface.construction.get
       layered_const = const.to_LayeredConstruction.get
-      if layered_const.numLayers() == 1
-        # split single layer into two to prevent influencing exterior solar radiation
-        layer_mat = layered_const.layers[0].to_StandardOpaqueMaterial.get
-        layer_mat.setThickness(layer_mat.thickness / 2)
-        layered_const.insertLayer(1, layer_mat.clone.to_StandardOpaqueMaterial.get)
-      end
       innermost_material = layered_const.layers[layered_const.numLayers() - 1].to_StandardOpaqueMaterial.get
       # check if target surface is sharing its interior material/construction object with other surfaces
       # if so, need to clone the material/construction and make changes there, then reassign it to target surface
@@ -634,13 +629,22 @@ class OSModel
         # create new construction + new material for these surfaces
         new_const = const.clone.to_Construction.get
         cond_bsmnt_surface.setConstruction(new_const)
-        innermost_material = innermost_material.clone.to_StandardOpaqueMaterial.get
-        new_const.to_LayeredConstruction.get.setLayer(layered_const.numLayers() - 1, innermost_material)
+        new_material = innermost_material.clone.to_StandardOpaqueMaterial.get
+        layered_const = new_const.to_LayeredConstruction.get
+        layered_const.setLayer(layered_const.numLayers() - 1, new_material)
       elsif mat_share
         # create new material for existing unique construction
-        innermost_material = innermost_material.clone.to_StandardOpaqueMaterial.get
-        const.to_LayeredConstruction.get.setLayer(layered_const.numLayers() - 1, innermost_material)
+        new_material = innermost_material.clone.to_StandardOpaqueMaterial.get
+        layered_const.setLayer(layered_const.numLayers() - 1, new_material)
       end
+      if layered_const.numLayers() == 1
+        # split single layer into two to only change its inside facing property
+        layer_mat = layered_const.layers[0].to_StandardOpaqueMaterial.get
+        layer_mat.setThickness(layer_mat.thickness / 2)
+        layered_const.insertLayer(1, layer_mat.clone.to_StandardOpaqueMaterial.get)
+      end
+      # Re-read innermost material and assign properties after adjustment
+      innermost_material = layered_const.layers[layered_const.numLayers() - 1].to_StandardOpaqueMaterial.get
       innermost_material.setSolarAbsorptance(0.0)
       innermost_material.setVisibleAbsorptance(0.0)
     end
@@ -2271,9 +2275,10 @@ class OSModel
       end
       @total_frac_remaining_cool_load_served -= load_frac
 
-      check_distribution_system(building, cooling_system_values)
-
       sys_id = cooling_system_values[:id]
+
+      check_distribution_system(building, cooling_system_values[:distribution_system_idref], sys_id, clg_type)
+
       @hvac_map[sys_id] = []
 
       if clg_type == "central air conditioner"
@@ -2367,8 +2372,9 @@ class OSModel
         heating_system_values = HPXML.get_heating_system_values(heating_system: htgsys)
 
         htg_type = heating_system_values[:heating_system_type]
+        sys_id = heating_system_values[:id]
 
-        check_distribution_system(building, heating_system_values)
+        check_distribution_system(building, heating_system_values[:distribution_system_idref], sys_id, htg_type)
 
         attached_clg_system = get_attached_clg_system(heating_system_values, building)
 
@@ -2393,7 +2399,6 @@ class OSModel
         end
         @total_frac_remaining_heat_load_served -= load_frac
 
-        sys_id = heating_system_values[:id]
         @hvac_map[sys_id] = []
 
         if htg_type == "Furnace"
@@ -2459,9 +2464,10 @@ class OSModel
     building.elements.each("BuildingDetails/Systems/HVAC/HVACPlant/HeatPump") do |hp|
       heat_pump_values = HPXML.get_heat_pump_values(heat_pump: hp)
 
-      check_distribution_system(building, heat_pump_values)
-
       hp_type = heat_pump_values[:heat_pump_type]
+      sys_id = heat_pump_values[:id]
+
+      check_distribution_system(building, heat_pump_values[:distribution_system_idref], sys_id, hp_type)
 
       cool_capacity_btuh = heat_pump_values[:cooling_capacity]
       if cool_capacity_btuh < 0
@@ -2475,12 +2481,12 @@ class OSModel
 
       # Heating and cooling capacity must either both be Autosized or Fixed
       if (cool_capacity_btuh == Constants.SizingAuto) ^ (heat_capacity_btuh == Constants.SizingAuto)
-        fail "HeatPump '#{heat_pump_values[:id]}' CoolingCapacity and HeatingCapacity must either both be auto-sized or fixed-sized."
+        fail "HeatPump '#{sys_id}' CoolingCapacity and HeatingCapacity must either both be auto-sized or fixed-sized."
       end
 
       heat_capacity_btuh_17F = heat_pump_values[:heating_capacity_17F]
       if heat_capacity_btuh == Constants.SizingAuto and not heat_capacity_btuh_17F.nil?
-        fail "HeatPump '#{heat_pump_values[:id]}' has HeatingCapacity17F provided but heating capacity is auto-sized."
+        fail "HeatPump '#{sys_id}' has HeatingCapacity17F provided but heating capacity is auto-sized."
       end
 
       load_frac_heat = heat_pump_values[:fraction_heat_load_served]
@@ -2509,7 +2515,7 @@ class OSModel
 
         # Heating and backup heating capacity must either both be Autosized or Fixed
         if (backup_heat_capacity_btuh == Constants.SizingAuto) ^ (heat_capacity_btuh == Constants.SizingAuto)
-          fail "HeatPump '#{heat_pump_values[:id]}' BackupHeatingCapacity and HeatingCapacity must either both be auto-sized or fixed-sized."
+          fail "HeatPump '#{sys_id}' BackupHeatingCapacity and HeatingCapacity must either both be auto-sized or fixed-sized."
         end
 
         if not heat_pump_values[:backup_heating_efficiency_percent].nil?
@@ -2527,7 +2533,6 @@ class OSModel
         backup_switchover_temp = nil
       end
 
-      sys_id = heat_pump_values[:id]
       @hvac_map[sys_id] = []
 
       if not backup_switchover_temp.nil?
@@ -2805,21 +2810,34 @@ class OSModel
                             @cfa, @living_space)
   end
 
-  def self.check_distribution_system(building, system_values)
-    dist_id = system_values[:distribution_system_idref]
+  def self.check_distribution_system(building, dist_id, system_id, system_type)
     return if dist_id.nil?
+
+    hvac_distribution_type_map = { "Furnace" => ["AirDistribution", "DSE"],
+                                   "Boiler" => ["HydronicDistribution", "DSE"],
+                                   "central air conditioner" => ["AirDistribution", "DSE"],
+                                   "evaporative cooler" => ["AirDistribution", "DSE"],
+                                   "air-to-air" => ["AirDistribution", "DSE"],
+                                   "mini-split" => ["AirDistribution", "DSE"],
+                                   "ground-to-air" => ["AirDistribution", "DSE"] }
 
     # Get attached distribution system
     found_attached_dist = false
+    type_match = true
     building.elements.each("BuildingDetails/Systems/HVAC/HVACDistribution") do |dist|
       hvac_distribution_values = HPXML.get_hvac_distribution_values(hvac_distribution: dist)
       next if dist_id != hvac_distribution_values[:id]
 
       found_attached_dist = true
+      type_match = hvac_distribution_type_map[system_type].include? hvac_distribution_values[:distribution_system_type]
     end
 
     if not found_attached_dist
-      fail "Attached HVAC distribution system '#{dist_id}' cannot be found for HVAC system '#{system_values[:id]}'."
+      fail "Attached HVAC distribution system '#{dist_id}' cannot be found for HVAC system '#{system_id}'."
+    elsif not type_match
+      # EPvalidator.rb only checks that a HVAC distribution system of the correct type (for the given HVAC system) exists
+      # in the HPXML file, not that it is attached to this HVAC system. So here we perform the more rigorous check.
+      fail "Incorrect HVAC distribution system type for HVAC type: '#{system_type}'. Should be one of: #{hvac_distribution_type_map[system_type]}"
     end
   end
 
@@ -4671,106 +4689,6 @@ def get_fan_power_installed(seer)
     return 0.365 # W/cfm
   else
     return 0.14 # W/cfm
-  end
-end
-
-class OutputVars
-  def self.SpaceHeatingElectricity
-    return { 'OpenStudio::Model::CoilHeatingDXSingleSpeed' => ['Heating Coil Electric Energy', 'Heating Coil Crankcase Heater Electric Energy', 'Heating Coil Defrost Electric Energy'],
-             'OpenStudio::Model::CoilHeatingDXMultiSpeed' => ['Heating Coil Electric Energy', 'Heating Coil Crankcase Heater Electric Energy', 'Heating Coil Defrost Electric Energy'],
-             'OpenStudio::Model::CoilHeatingElectric' => ['Heating Coil Electric Energy', 'Heating Coil Crankcase Heater Electric Energy', 'Heating Coil Defrost Electric Energy'],
-             'OpenStudio::Model::CoilHeatingWaterToAirHeatPumpEquationFit' => ['Heating Coil Electric Energy', 'Heating Coil Crankcase Heater Electric Energy', 'Heating Coil Defrost Electric Energy'],
-             'OpenStudio::Model::ZoneHVACBaseboardConvectiveElectric' => ['Baseboard Electric Energy'],
-             'OpenStudio::Model::BoilerHotWater' => ['Boiler Electric Energy'] }
-  end
-
-  def self.SpaceHeatingNaturalGas
-    return { 'OpenStudio::Model::CoilHeatingGas' => ['Heating Coil Gas Energy'],
-             'OpenStudio::Model::ZoneHVACBaseboardConvectiveElectric' => ['Baseboard Gas Energy'],
-             'OpenStudio::Model::BoilerHotWater' => ['Boiler Gas Energy'] }
-  end
-
-  def self.SpaceHeatingFuelOil
-    return { 'OpenStudio::Model::CoilHeatingGas' => ['Heating Coil FuelOil#1 Energy'],
-             'OpenStudio::Model::ZoneHVACBaseboardConvectiveElectric' => ['Baseboard FuelOil#1 Energy'],
-             'OpenStudio::Model::BoilerHotWater' => ['Boiler FuelOil#1 Energy'] }
-  end
-
-  def self.SpaceHeatingPropane
-    return { 'OpenStudio::Model::CoilHeatingGas' => ['Heating Coil Propane Energy'],
-             'OpenStudio::Model::ZoneHVACBaseboardConvectiveElectric' => ['Baseboard Propane Energy'],
-             'OpenStudio::Model::BoilerHotWater' => ['Boiler Propane Energy'] }
-  end
-
-  def self.SpaceHeatingDFHPPrimaryLoad
-    return { 'OpenStudio::Model::CoilHeatingDXSingleSpeed' => ['Heating Coil Heating Energy'],
-             'OpenStudio::Model::CoilHeatingDXMultiSpeed' => ['Heating Coil Heating Energy'] }
-  end
-
-  def self.SpaceHeatingDFHPBackupLoad
-    return { 'OpenStudio::Model::CoilHeatingElectric' => ['Heating Coil Heating Energy'],
-             'OpenStudio::Model::CoilHeatingGas' => ['Heating Coil Heating Energy'] }
-  end
-
-  def self.SpaceCoolingElectricity
-    return { 'OpenStudio::Model::CoilCoolingDXSingleSpeed' => ['Cooling Coil Electric Energy', 'Cooling Coil Crankcase Heater Electric Energy'],
-             'OpenStudio::Model::CoilCoolingDXMultiSpeed' => ['Cooling Coil Electric Energy', 'Cooling Coil Crankcase Heater Electric Energy'],
-             'OpenStudio::Model::CoilCoolingWaterToAirHeatPumpEquationFit' => ['Cooling Coil Electric Energy', 'Cooling Coil Crankcase Heater Electric Energy'],
-             'OpenStudio::Model::EvaporativeCoolerDirectResearchSpecial' => ['Evaporative Cooler Electric Energy'] }
-  end
-
-  def self.WaterHeatingElectricity
-    return { 'OpenStudio::Model::WaterHeaterMixed' => ['Water Heater Electric Energy', 'Water Heater Off Cycle Parasitic Electric Energy', 'Water Heater On Cycle Parasitic Electric Energy'],
-             'OpenStudio::Model::WaterHeaterStratified' => ['Water Heater Electric Energy', 'Water Heater Off Cycle Parasitic Electric Energy', 'Water Heater On Cycle Parasitic Electric Energy'],
-             'OpenStudio::Model::CoilWaterHeatingAirToWaterHeatPumpWrapped' => ['Cooling Coil Water Heating Electric Energy'] }
-  end
-
-  def self.WaterHeatingElectricitySolarThermalPump
-    return { 'OpenStudio::Model::PumpConstantSpeed' => ['Pump Electric Energy'] }
-  end
-
-  def self.WaterHeatingElectricityRecircPump
-    return { 'OpenStudio::Model::ElectricEquipment' => ['Electric Equipment Electric Energy'] }
-  end
-
-  def self.WaterHeatingCombiBoilerHeatExchanger
-    return { 'OpenStudio::Model::HeatExchangerFluidToFluid' => ['Fluid Heat Exchanger Heat Transfer Energy'] }
-  end
-
-  def self.WaterHeatingCombiBoiler
-    return { 'OpenStudio::Model::BoilerHotWater' => ['Boiler Heating Energy'] }
-  end
-
-  def self.WaterHeatingNaturalGas
-    return { 'OpenStudio::Model::WaterHeaterMixed' => ['Water Heater Gas Energy'],
-             'OpenStudio::Model::WaterHeaterStratified' => ['Water Heater Gas Energy'] }
-  end
-
-  def self.WaterHeatingFuelOil
-    return { 'OpenStudio::Model::WaterHeaterMixed' => ['Water Heater FuelOil#1 Energy'],
-             'OpenStudio::Model::WaterHeaterStratified' => ['Water Heater FuelOil#1 Energy'] }
-  end
-
-  def self.WaterHeatingPropane
-    return { 'OpenStudio::Model::WaterHeaterMixed' => ['Water Heater Propane Energy'],
-             'OpenStudio::Model::WaterHeaterStratified' => ['Water Heater Propane Energy'] }
-  end
-
-  def self.WaterHeatingLoad
-    return { 'OpenStudio::Model::WaterUseConnections' => ['Water Use Connections Plant Hot Water Energy'] }
-  end
-
-  def self.WaterHeatingLoadTankLosses
-    return { 'OpenStudio::Model::WaterHeaterMixed' => ['Water Heater Heat Loss Energy'],
-             'OpenStudio::Model::WaterHeaterStratified' => ['Water Heater Heat Loss Energy'] }
-  end
-
-  def self.WaterHeaterLoadDesuperheater
-    return { 'OpenStudio::Model::CoilWaterHeatingDesuperheater' => ['Water Heater Heating Energy'] }
-  end
-
-  def self.WaterHeaterLoadSolarThermal
-    return { 'OpenStudio::Model::WaterHeaterStratified' => ['Water Heater Use Side Heat Transfer Energy'] }
   end
 end
 
