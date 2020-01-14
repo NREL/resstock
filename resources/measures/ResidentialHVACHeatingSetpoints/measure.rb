@@ -118,7 +118,7 @@ class ProcessHeatingSetpoints < OpenStudio::Measure::ModelMeasure
     args << season_end_month
 
     # Make a string argument for thermostat deadband
-    onoff_thermostat_deadband = OpenStudio::Measure::OSArgument::makeStringArgument("onoff_thermostat_deadband", true)
+    onoff_thermostat_deadband = OpenStudio::Measure::OSArgument::makeStringArgument("onoff_thermostat_deadband", false)
     onoff_thermostat_deadband.setDisplayName("OnOff Thermostat Deadband")
     onoff_thermostat_deadband.setDescription("Specify a positive value of deadband between setpoint and cutout temperature to model on/off thermostat behavior. The sama value applies to both heating and cooling. Default is 0.0(traditional E+ thermostat).")
     onoff_thermostat_deadband.setUnits("degrees F")
