@@ -1,7 +1,6 @@
 require_relative "constants"
 require_relative "unit_conversions"
 require_relative "schedules"
-require_relative "weather"
 require_relative "util"
 require_relative "psychrometrics"
 require_relative "hvac"

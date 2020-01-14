@@ -86,6 +86,20 @@ def run_energyplus(rundir)
   system(command, :err => File::NULL)
 end
 
+def check_for_output(rundir)
+  sql_path = File.join(rundir, "eplusout.sql")
+  if not File.exists? sql_path
+    puts "Simulation unsuccessful."
+    exit!(1)
+  end
+
+  sqlFile = OpenStudio::SqlFile.new(sql_path, false)
+  if not sqlFile.totalSiteEnergy.is_initialized
+    puts "Simulation unsuccessful."
+    exit!(1)
+  end
+end
+
 options = {}
 OptionParser.new do |opts|
   opts.banner = "Usage: #{File.basename(__FILE__)} -x building.xml\n e.g., #{File.basename(__FILE__)} -x tests/base.xml\n"
@@ -141,5 +155,7 @@ create_idf(basedir, rundir, options[:hpxml], options[:debug])
 
 puts "Running simulation..."
 run_energyplus(rundir)
+
+check_for_output(rundir)
 
 puts "Completed in #{(Time.now - start_time).round(1)} seconds."

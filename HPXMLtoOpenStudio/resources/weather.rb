@@ -24,13 +24,18 @@ class WeatherDesign
 end
 
 class WeatherProcess
-  def initialize(model, runner)
-    @model = model
-    @runner = runner
-
+  def initialize(model, runner, csv_path = nil)
     @header = WeatherHeader.new
     @data = WeatherData.new
     @design = WeatherDesign.new
+
+    if not csv_path.nil?
+      load_from_csv(csv_path)
+      return
+    end
+
+    @model = model
+    @runner = runner
 
     @epw_path = WeatherProcess.get_epw_path(@model)
 
@@ -47,12 +52,56 @@ class WeatherProcess
     return @epw_path
   end
 
-  def marshal_dump
-    return [@header, @data, @design]
+  def dump_to_csv(csv_path)
+    require 'csv'
+
+    def to_columns(data)
+      if not data.is_a? Array
+        return [data.class, data]
+      end
+
+      return [data.class] + data
+    end
+
+    results_out = []
+    WeatherHeader::ATTRS.each do |k|
+      results_out << ["WeatherHeader.#{k}"] + to_columns(@header.send(k))
+    end
+    WeatherData::ATTRS.each do |k|
+      results_out << ["WeatherData.#{k}"] + to_columns(@data.send(k))
+    end
+    WeatherDesign::ATTRS.each do |k|
+      results_out << ["WeatherDesign.#{k}"] + to_columns(@design.send(k))
+    end
+
+    CSV.open(csv_path, "wb") { |csv| results_out.to_a.each { |elem| csv << elem } }
   end
 
-  def marshal_load(array)
-    @header, @data, @design = array
+  def load_from_csv(csv_path)
+    csv_data = CSV.read(csv_path, headers: false)
+
+    def to_datatype(data, dataclass)
+      if dataclass == "String"
+        return data[0].to_s
+      elsif dataclass == "Float"
+        return data[0].to_f
+      elsif dataclass == "Fixnum"
+        return data[0].to_i
+      elsif dataclass == "Array"
+        return data.map(&:to_f)
+      end
+    end
+
+    csv_data.each do |data|
+      dataname = data[0].split(".")[1]
+      if data[0].start_with? "WeatherHeader"
+        @header.send(dataname + "=", to_datatype(data[2..-1], data[1]))
+      elsif data[0].start_with? "WeatherData"
+        @data.send(dataname + "=", to_datatype(data[2..-1], data[1]))
+      elsif data[0].start_with? "WeatherDesign"
+        @design.send(dataname + "=", to_datatype(data[2..-1], data[1]))
+      end
+    end
   end
 
   attr_accessor(:header, :data, :design)
@@ -303,6 +352,18 @@ class WeatherProcess
   end
 
   def calc_ashrae_622_wsf(rowdata)
+    require 'csv'
+    ashrae_csv = File.join(File.dirname(__FILE__), 'ASHRAE622WSF.csv')
+
+    wsf = nil
+    CSV.read(ashrae_csv, headers: false).each do |data|
+      next unless data[0] == @header.Station
+
+      wsf = Float(data[1]).round(2)
+    end
+    return wsf unless wsf.nil?
+
+    # If not available in ASHRAE622WSF.csv...
     # Calculates the wSF value per report LBNL-5795E "Infiltration as Ventilation: Weather-Induced Dilution"
 
     # Constants

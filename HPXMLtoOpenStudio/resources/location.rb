@@ -1,10 +1,10 @@
-require_relative "weather"
 require_relative "constants"
 require_relative "unit_conversions"
+require_relative "weather"
 
 class Location
-  def self.apply(model, runner, weather_file_path, dst_start_date, dst_end_date)
-    weather, epw_file = apply_weather_file(model, runner, weather_file_path)
+  def self.apply(model, runner, weather_file_path, weather_cache_path, dst_start_date, dst_end_date)
+    weather, epw_file = apply_weather_file(model, runner, weather_file_path, weather_cache_path)
     apply_year(model, epw_file)
     apply_site(model, epw_file)
     apply_climate_zones(model, epw_file)
@@ -16,7 +16,7 @@ class Location
 
   private
 
-  def self.apply_weather_file(model, runner, weather_file_path)
+  def self.apply_weather_file(model, runner, weather_file_path, weather_cache_path)
     if File.exists?(weather_file_path) and weather_file_path.downcase.end_with? ".epw"
       epw_file = OpenStudio::EpwFile.new(weather_file_path)
     else
@@ -26,11 +26,10 @@ class Location
     OpenStudio::Model::WeatherFile.setWeatherFile(model, epw_file).get
 
     # Obtain weather object
-    # Load from cache file if exists, as this is faster and doesn't require
+    # Load from cache .csv file if exists, as this is faster and doesn't require
     # parsing the weather file.
-    cache_file = weather_file_path.gsub('.epw', '.cache')
-    if File.exists? cache_file
-      weather = Marshal.load(File.binread(cache_file))
+    if File.exists? weather_cache_path
+      weather = WeatherProcess.new(nil, nil, weather_cache_path)
     else
       weather = WeatherProcess.new(model, runner)
     end

@@ -8,6 +8,14 @@ This repository contains an [OpenStudio measure](http://nrel.github.io/OpenStudi
 
 For more information, please visit the [documentation](https://openstudio-hpxml.readthedocs.io/en/latest).
 
+## Projects
+
+This core OpenStudio measure is used by a number of other residential projects, including:
+- [Energy Rating Index (ERI)](https://github.com/NREL/OpenStudio-ERI)
+- Home Energy Score (private repository)
+- Weatherization Assistant (private repository)
+- ResStock (pending)
+
 ## License
 
 This project is available under a BSD-3-like license, which is a free, open-source, and permissive license. For more information, check out the [license file](https://github.com/NREL/OpenStudio-HPXML/blob/master/LICENSE.md).
