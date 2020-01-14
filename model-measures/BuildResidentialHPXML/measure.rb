@@ -242,17 +242,37 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("slab_perimeter_r", true)
-    arg.setDisplayName("Slab: Perimeter Insulation Assembly R-value")
+    arg.setDisplayName("Slab: Perimeter Insulation Nominal R-value")
     arg.setUnits("h-ft^2-R/Btu")
-    arg.setDescription("Refers to the overall R-value of the assembly.")
+    arg.setDescription("Refers to the nominal R-value of the perimeter insulation.")
+    arg.setDefaultValue(0)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("slab_perimeter_depth", true)
+    arg.setDisplayName("Slab: Perimeter Insulation Depth")
+    arg.setUnits("ft")
+    arg.setDescription("Refers to the depth of the perimeter insulation.")
     arg.setDefaultValue(0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("slab_under_r", true)
-    arg.setDisplayName("Slab: Under Slab Insulation Assembly R-value")
+    arg.setDisplayName("Slab: Under Slab Insulation Nominal R-value")
     arg.setUnits("h-ft^2-R/Btu")
-    arg.setDescription("Refers to the overall R-value of the assembly.")
+    arg.setDescription("Refers to the nominal R-value of the under slab insulation.")
     arg.setDefaultValue(0)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("slab_under_width", true)
+    arg.setDisplayName("Slab: Under Slab Insulation Width")
+    arg.setUnits("ft")
+    arg.setDescription("Refers to the width of the under slab insulation.")
+    arg.setDefaultValue(0)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument("slab_under_spans_entire_slab", true)
+    arg.setDisplayName("Slab: Under Slab Insulation Spans Entire Slab")
+    arg.setDescription("Specifies whether the under slab insulation spans the entire slab.")
+    arg.setDefaultValue(false)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("carpet_fraction", true)
@@ -1842,7 +1862,10 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
              :foundation_wall_interior_r => runner.getDoubleArgumentValue("foundation_wall_interior_r", user_arguments),
              :foundation_wall_exterior_r => runner.getDoubleArgumentValue("foundation_wall_exterior_r", user_arguments),
              :perimeter_insulation_r_value => runner.getDoubleArgumentValue("slab_perimeter_r", user_arguments),
+             :perimeter_insulation_depth => runner.getDoubleArgumentValue("slab_perimeter_depth", user_arguments),
              :under_slab_insulation_r_value => runner.getDoubleArgumentValue("slab_under_r", user_arguments),
+             :under_slab_insulation_width => runner.getDoubleArgumentValue("slab_under_width", user_arguments),
+             :under_slab_insulation_spans_entire_slab => runner.getBoolArgumentValue("slab_under_spans_entire_slab", user_arguments),
              :carpet_fraction => runner.getDoubleArgumentValue("carpet_fraction", user_arguments),
              :carpet_r_value => runner.getDoubleArgumentValue("carpet_r_value", user_arguments),
              :attic_type => runner.getStringArgumentValue("attic_type", user_arguments),
@@ -2599,15 +2622,22 @@ class HPXMLFile
         depth_below_grade = 0
       end
 
+      under_slab_insulation_spans_entire_slab = args[:under_slab_insulation_spans_entire_slab]
+      unless under_slab_insulation_spans_entire_slab
+        under_slab_insulation_width = args[:under_slab_insulation_width]
+        under_slab_insulation_spans_entire_slab = nil
+      end
+
       slabs_values << { :id => surface.name.to_s,
                         :interior_adjacent_to => interior_adjacent_to,
                         :area => UnitConversions.convert(surface.netArea, "m^2", "ft^2"),
                         :thickness => 4,
                         :exposed_perimeter => exposed_perimeter,
-                        :perimeter_insulation_depth => 0, # FIXME: Get from construction
-                        :under_slab_insulation_width => 0, # FIXME: Get from construction
-                        :perimeter_insulation_r_value => args[:perimeter_insulation_r_value], # FIXME: Get from construction
-                        :under_slab_insulation_r_value => args[:under_slab_insulation_r_value], # FIXME: Get from construction
+                        :perimeter_insulation_depth => args[:perimeter_insulation_depth],
+                        :under_slab_insulation_width => under_slab_insulation_width,
+                        :perimeter_insulation_r_value => args[:perimeter_insulation_r_value],
+                        :under_slab_insulation_r_value => args[:under_slab_insulation_r_value],
+                        :under_slab_insulation_spans_entire_slab => under_slab_insulation_spans_entire_slab,
                         :depth_below_grade => depth_below_grade,
                         :carpet_fraction => args[:carpet_fraction],
                         :carpet_r_value => args[:carpet_r_value] }
