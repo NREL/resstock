@@ -129,18 +129,7 @@ class ProcessCeilingFan < OpenStudio::Measure::ModelMeasure
       return false
     end
 
-    sch_path = model.getBuilding.additionalProperties.getFeatureAsString("Schedule Path")
-    if not sch_path.is_initialized
-      sch_path = File.join(File.dirname(__FILE__), "../../../test/schedules/TMY_10-60min.csv")
-      case model.getYearDescription.calendarYear.get
-      when 2012
-        sch_path = File.join(File.dirname(__FILE__), "../../../test/schedules/AMY2012_10-60min.csv")
-      when 2014
-        sch_path = File.join(File.dirname(__FILE__), "../../../test/schedules/AMY2014_10-60min.csv")
-      end
-    else
-      sch_path = sch_path.get
-    end
+    sch_path = SchedulesFile.get_schedule_file_path(model)
     schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_output_path: sch_path)
     if not schedules_file.validated?
       return false
