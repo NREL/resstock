@@ -85,7 +85,7 @@ def create_osws
     'base-dhw-tank-gas.osw' => 'base.osw',
     'base-dhw-tank-gas-outside.osw' => 'base.osw',
     'base-dhw-tank-heat-pump.osw' => 'base.osw',
-    # 'base-dhw-tank-heat-pump-outside.osw' => 'base.osw', # C:/OpenStudio/OpenStudio-residential/HPXMLtoOpenStudio/tests/hpxml_translator_test.rb:370:in `get'
+    'base-dhw-tank-heat-pump-outside.osw' => 'base.osw',
     'base-dhw-tank-heat-pump-with-solar.osw' => 'base.osw',
     'base-dhw-tank-heat-pump-with-solar-fraction.osw' => 'base.osw',
     'base-dhw-tankless-electric.osw' => 'base.osw',
@@ -771,17 +771,25 @@ def get_values(osw_file, step)
     step.setArgument("water_heater_location_1", "other exterior")
   elsif ['base-dhw-tank-heat-pump.osw'].include? osw_file
     step.setArgument("water_heater_type_1", "heat pump water heater")
+    step.setArgument("water_heater_tank_volume_1", 80.0)
+    step.setArgument("water_heater_energy_factor_1", 2.3)
   elsif ['base-dhw-tank-heat-pump-outside.osw'].include? osw_file
     step.setArgument("water_heater_type_1", "heat pump water heater")
     step.setArgument("water_heater_location_1", "other exterior")
+    step.setArgument("water_heater_tank_volume_1", 80.0)
+    step.setArgument("water_heater_energy_factor_1", 2.3)
   elsif ['base-dhw-tank-heat-pump-with-solar.osw'].include? osw_file
     step.setArgument("water_heater_type_1", "heat pump water heater")
+    step.setArgument("water_heater_tank_volume_1", 80.0)
+    step.setArgument("water_heater_energy_factor_1", 2.3)
     step.setArgument("solar_thermal_system_type", "hot water")
     step.setArgument("solar_thermal_collector_loop_type", "liquid indirect")
     step.setArgument("solar_thermal_collector_rated_optical_efficiency", 0.77)
     step.setArgument("solar_thermal_collector_rated_thermal_losses", 0.793)
   elsif ['base-dhw-tank-heat-pump-with-solar-fraction.osw'].include? osw_file
     step.setArgument("water_heater_type_1", "heat pump water heater")
+    step.setArgument("water_heater_tank_volume_1", 80.0)
+    step.setArgument("water_heater_energy_factor_1", 2.3)
     step.setArgument("solar_thermal_system_type", "hot water")
     step.setArgument("solar_thermal_solar_fraction", 0.65)
   elsif ['base-dhw-tankless-electric.osw'].include? osw_file
