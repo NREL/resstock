@@ -1,6 +1,6 @@
 stock_type: residential
 buildstock_directory: ./  # Relative to this file or absolute
-output_directory: /projects/enduse/geb-potential/Run_Results/DR_test
+output_directory: /projects/enduse/geb-potential/Run_Results/DR_test_2
 project_directory: project_singlefamilydetached
 weather_files_path: /shared-projects/buildstock/weather/project_resstock_national_weather.zip
 baseline:
@@ -248,7 +248,6 @@ upgrades:
         costs:
           - value: 0
             multiplier: Fixed (1)
-
 ##up6 - package 1f - Best CAC Homes, best CAC, smart thermostat and envelope (1st)
   - upgrade_name: Package 1f EE CAC with smart thermostat and envelope
     package_apply_logic:
@@ -1588,8 +1587,6 @@ upgrades:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 999
-
-
 ##up9 - package 2 - DR (wh and thermostat)
   - upgrade_name: package 2 DR only
     options: 
@@ -1878,7 +1875,6 @@ upgrades:
         costs:
           - value: 0
             multiplier: Fixed (1)
-
 ##up10 - package 3a - CAC upgrade with pre heating/cooling, smart thermostat, envelope
   - upgrade_name: Package 3a Pre-heating/cooling, smart thermostat, and envelope for CAC upgrades
     package_apply_logic:
@@ -2326,9 +2322,6 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 999
     ##end floors
-
-
-
 ##up11 - package 3b - ASHP upgrade with pre heating/cooling, smart thermostat, envelope
   - upgrade_name: Package 3b Pre-heating/cooling, smart thermostat, and envelope for ASHP upgrades
     package_apply_logic:
@@ -2787,7 +2780,6 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 999
     ##end floors
-
 ##up12 - package 3c - No CAC/ASHP upgrade, with pre heating/cooling, smart thermostat, envelope 
   - upgrade_name: Package 3c Pre-heating/cooling, smart thermostat, and envelope for no HVAC upgrades
     package_apply_logic:
@@ -3583,14 +3575,13 @@ upgrades:
 timeseries_csv_export:
   reporting_frequency: Hourly
   include_enduse_subcategories: true
-  output_variables:
-    - Zone Thermostat Heating Setpoint Temperature
-    - Zone Thermostat Cooling Setpoint Temperature
-    - Water Heater Tank Temperature
+  output_variables: Zone Thermostat Heating Setpoint Temperature, Zone Thermostat Cooling Setpoint Temperature, Water Heater Tank Temperature
 eagle:
   account: windowsaving
   n_jobs: 5
   minutes_per_sim: 5
+  sampling:
+    time: 5
   postprocessing:
     time: 15
 postprocessing:
