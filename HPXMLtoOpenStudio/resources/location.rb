@@ -104,36 +104,22 @@ class Location
     s_gt_d.setAllMonthlyTemperatures(annual_temps)
   end
 
-  def self.get_climate_zones
+  def self.get_climate_zone_ba(wmo)
+    ba_zone = nil
+
     zones_csv = File.join(File.dirname(__FILE__), "climate_zones.csv")
     if not File.exists?(zones_csv)
-      return nil
+      return ba_zone
     end
-
-    return zones_csv
-  end
-
-  def self.get_climate_zone_ba(wmo)
-    zones_csv = get_climate_zones
-    return nil if zones_csv.nil?
 
     require "csv"
     CSV.foreach(zones_csv) do |row|
-      return row[5].to_s if row[0].to_s == wmo.to_s
+      if row[0].to_s == wmo.to_s
+        ba_zone = row[5].to_s
+        break
+      end
     end
 
-    return nil
-  end
-
-  def self.get_climate_zone_iecc(wmo)
-    zones_csv = get_climate_zones
-    return nil if zones_csv.nil?
-
-    require "csv"
-    CSV.foreach(zones_csv) do |row|
-      return row[6].to_s if row[0].to_s == wmo.to_s
-    end
-
-    return nil
+    return ba_zone
   end
 end
