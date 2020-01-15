@@ -263,6 +263,9 @@ def integrity_check(project_dir_name, housing_characteristics_dir = "housing_cha
       puts "Checking for issues with #{project_dir_name}/#{parameter_name}..."
       parameters_processed << parameter_name
 
+      # Check file format to be consistent with specified guidelines
+      check_parameter_file_format(tsvpath,tsvfile.dependency_cols.length(),parameter_name)
+      
       # Test that dependency options exist
       tsvfile.dependency_options.each do |dependency, options|
         options.each do |option|
@@ -422,6 +425,44 @@ def check_for_illegal_chars(name, name_type)
     raise "ERROR: Illegal character ('#{char}') found in #{name_type} name '#{name}'."
   end
 end
+
+def check_parameter_file_format(tsvpath,n_deps,name)
+  # For each line in file
+  i = 1
+  File.foreach(tsvpath) do |line|
+    # Check endline character
+    if line.include? "\r\n"
+      # Do not perform other checks if the line is the header
+      if i > 1
+        # Check float format
+        # Remove endline character and split the string into array
+        line = line.split("\r\n")[0].split("\t")
+        # For each non dependency entry check format
+        for j in n_deps..line.length()-1 do
+          # Check for scientific format
+          if (line[j].include?("e") || line[j].include?("E"))
+            raise "ERROR: Scientific format found in '#{name}', line '#{i}'"
+          end
+          # Try to get the float precision
+          begin
+            float_precision = line[j].split(".")[1].length()
+          rescue NoMethodError
+            # Catch non floats
+            raise "ERROR: Incorrect non float found in '#{name}', line '#{i}'"
+          end
+          # If float precision is not 6 digits, raise error
+          if float_precision != 6
+            raise "ERROR: Incorrect float precision found in '#{name}', line '#{i}'"
+          end # End float precision
+        end # End non dependency loop
+      end # End header check
+    else
+      # Found wrong endline format
+      raise "ERROR: Incorrect newline character found in '#{name}', line '#{i}'"
+    end # End checks
+    i+=1
+  end # End line of file loop
+end 
 
 def get_all_project_dir_names()
   project_dir_names = []
