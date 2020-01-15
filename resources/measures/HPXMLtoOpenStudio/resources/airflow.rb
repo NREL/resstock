@@ -547,6 +547,11 @@ class Airflow
 
       # Infiltration for single unit
       if (n_units.is_initialized) and (has_rear_units.is_initialized) and (num_floors.is_initialized) and (horz_location.is_initialized)
+        singleunit = true
+      else
+        singleunit = false
+      end
+      if singleunit
         n_units = n_units.get.to_f
         has_rear_units = has_rear_units.get
         num_floors = num_floors.get.to_f
@@ -587,8 +592,11 @@ class Airflow
 
       if infil.has_flue_chimney
         y_i = 0.2 # Fraction of leakage through the flue; 0.2 is a "typical" value according to THE ALBERTA AIR INFILTRATION MODEL, Walker and Wilson, 1990
-        # flue_height = building.building_height + 2.0 # ft
-        flue_height = unit_living.height*num_floors + 2.0 #ft
+        if singleunit
+          flue_height = unit_living.height*num_floors + 2.0 #ft
+        else
+          flue_height = building.building_height + 2.0 # ft
+        end
         s_wflue = 1.0 # Flue Shelter Coefficient
       else
         y_i = 0.0 # Fraction of leakage through the flu
