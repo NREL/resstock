@@ -168,8 +168,15 @@ class ResidentialDishwasher < OpenStudio::Measure::ModelMeasure
                           Constants.SpaceTypeUnfinishedBasement,
                           Constants.SpaceTypeGarage]
 
+    sch_path = SchedulesFile.get_schedule_file_path(model)
+    schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_output_path: sch_path)
+    if not schedules_file.validated?
+      return false
+    end
+
     tot_ann_e = 0
     msgs = []
+    sch = nil
     mains_temps = nil
     units.each_with_index do |unit, unit_index|
       # Get space
@@ -185,7 +192,7 @@ class ResidentialDishwasher < OpenStudio::Measure::ModelMeasure
       success, ann_e, mains_temps = Dishwasher.apply(model, unit, runner, num_settings, rated_annual_energy,
                                                      cold_inlet, has_internal_heater, cold_use, test_date,
                                                      annual_gas_cost, mult_e, mult_hw, d_sh, space, plant_loop,
-                                                     mains_temps)
+                                                     mains_temps, sch, schedules_file)
 
       if not success
         return false
