@@ -5,7 +5,9 @@ require_relative "schedules"
 require_relative "waterheater"
 
 class Refrigerator
-  def self.apply(model, unit, runner, rated_annual_energy, mult, sch, space, schedules_file)
+  def self.apply(model, unit, runner, rated_annual_energy, mult,
+                 weekday_sch, weekend_sch, monthly_sch, sch, space)
+
     # check for valid inputs
     if rated_annual_energy < 0
       runner.registerError("Rated annual consumption must be greater than or equal to 0.")
@@ -24,17 +26,24 @@ class Refrigerator
     summer_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
     summer_design_day_sch.addValue(OpenStudio::Time.new(0, 24, 0, 0), 1)
 
+    # Get number of days in months/year
+    year_description = model.getYearDescription
+    num_days_in_year = Constants.NumDaysInYear(year_description.isLeapYear)
+
     # Calculate fridge daily energy use
     ann_e = rated_annual_energy * mult
 
     if ann_e > 0
 
-      col_name = "refrigerator"
       if sch.nil?
-        sch = schedules_file.createScheduleFile(sch_file_name: "#{Constants.ObjectNameRefrigerator} schedule", col_name: col_name)
+        # Create schedule
+        sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameRefrigerator + " schedule", weekday_sch, weekend_sch, monthly_sch, mult_weekday = 1.0, mult_weekend = 1.0, normalize_values = true, create_sch_object = true, winter_design_day_sch = winter_design_day_sch, summer_design_day_sch = summer_design_day_sch, schedule_type_limits_name = Constants.ScheduleTypeLimitsFraction)
+        if not sch.validated?
+          return false
+        end
       end
 
-      design_level = schedules_file.calcDesignLevelFromAnnualkWh(col_name: col_name, annual_kwh: ann_e)
+      design_level = sch.calcDesignLevelFromDailykWh(ann_e / num_days_in_year)
 
       # Add electric equipment for the fridge
       frg_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
@@ -47,7 +56,7 @@ class Refrigerator
       frg_def.setFractionRadiant(0.0)
       frg_def.setFractionLatent(0.0)
       frg_def.setFractionLost(0.0)
-      frg.setSchedule(sch)
+      frg.setSchedule(sch.schedule)
 
     end
 
@@ -937,7 +946,7 @@ class Dishwasher
   def self.apply(model, unit, runner, num_settings, rated_annual_energy,
                  cold_inlet, has_internal_heater, cold_use, test_date,
                  annual_gas_cost, mult_e, mult_hw, d_sh, space, plant_loop,
-                 mains_temps)
+                 mains_temps, sch, schedules_file)
 
     # Check for valid inputs
     if num_settings < 1
@@ -1169,15 +1178,11 @@ class Dishwasher
       return false
     end
 
+    col_name = "dishwasher"
     if ann_e > 0
 
-      # Create schedule
-      sch = HotWaterSchedule.new(model, runner, Constants.ObjectNameDishwasher + " schedule",
-                                 Constants.ObjectNameDishwasher + " temperature schedule",
-                                 nbeds, d_sh, "Dishwasher", wh_setpoint,
-                                 create_sch_object = true, schedule_type_limits_name = Constants.ScheduleTypeLimitsFraction)
-      if not sch.validated?
-        return false
+      if sch.nil?
+        sch = schedules_file.createScheduleFile(sch_file_name: "#{Constants.ObjectNameDishwasher} schedule", col_name: col_name)
       end
 
       # Reuse existing water use connection if possible
@@ -1194,8 +1199,15 @@ class Dishwasher
         plant_loop.addDemandBranchForComponent(water_use_connection)
       end
 
-      design_level = sch.calcDesignLevelFromDailykWh(daily_energy)
-      peak_flow = sch.calcPeakFlowFromDailygpm(daily_water)
+      temperature_sch = OpenStudio::Model::ScheduleConstant.new(model) # FIXME
+      temperature_sch.setValue(52.666)
+      temperature_sch.setName("#{Constants.ObjectNameDishwasher} temperature schedule")
+      Schedule.set_schedule_type_limits(model, temperature_sch, Constants.ScheduleTypeLimitsTemperature)
+
+      totflow = 4.40271808 # FIXME
+      maxflow = 2.8186 # FIXME
+      design_level = UnitConversions.convert(daily_energy * Constants.NumDaysInYear(year_description.isLeapYear) * 60 / (Constants.NumDaysInYear(year_description.isLeapYear) * totflow / maxflow), "kW", "W") # FIXME
+      peak_flow = UnitConversions.convert(maxflow * daily_water / totflow, "gal/min", "m^3/s") # FIXME
 
       # Add electric equipment for the dw
       dw_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
@@ -1208,7 +1220,7 @@ class Dishwasher
       dw_def.setFractionRadiant(0.36)
       dw_def.setFractionLatent(0.15)
       dw_def.setFractionLost(0.25)
-      dw.setSchedule(sch.schedule)
+      dw.setSchedule(sch)
 
       # Add water use equipment for the dw
       dw_def2 = OpenStudio::Model::WaterUseEquipmentDefinition.new(model)
@@ -1218,8 +1230,8 @@ class Dishwasher
       dw_def2.setName(unit_obj_name)
       dw_def2.setPeakFlowRate(peak_flow)
       dw_def2.setEndUseSubcategory(unit_obj_name)
-      dw2.setFlowRateFractionSchedule(sch.schedule)
-      dw_def2.setTargetTemperatureSchedule(sch.temperatureSchedule)
+      dw2.setFlowRateFractionSchedule(sch)
+      dw_def2.setTargetTemperatureSchedule(temperature_sch)
       water_use_connection.addWaterUseEquipment(dw2)
 
     end

@@ -1015,16 +1015,12 @@ class SchedulesFile
   def initialize(runner:,
                  model:,
                  schedules_output_path: nil,
-                 num_bedrooms: nil,
-                 num_occupants: nil,
                  **remainder)
 
     @validated = true
     @runner = runner
     @model = model
     @schedules_output_path = schedules_output_path
-    @num_bedrooms = num_bedrooms
-    @num_occupants = num_occupants
 
     @schedules = {}
     if File.exist? @schedules_output_path
@@ -1034,20 +1030,6 @@ class SchedulesFile
 
   def validated?
     return @validated
-  end
-
-  def create_occupant_schedule
-    return false if @num_occupants.nil?
-
-    @schedules["occupants"] = [1, 2, 3]
-
-    return true
-  end
-
-  def create_refrigerator_schedule
-    @schedules["refrigerator"] = [4, 5, 6]
-
-    return true
   end
 
   def schedules
