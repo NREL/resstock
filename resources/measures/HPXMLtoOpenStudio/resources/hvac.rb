@@ -2783,7 +2783,12 @@ class HVAC
 
       end
 
-      thermostat_setpoint.setTemperatureDifferenceBetweenCutoutAndSetpoint(UnitConversions.convert(onoff_thermostat_deadband, "r", "k"))
+      exist_deadband = thermostat_setpoint.temperatureDifferenceBetweenCutoutAndSetpoint
+      if not exist_deadband == 0.0 and not exist_deadband == UnitConversions.convert(onoff_thermostat_deadband, "r", "k")
+        fail "More than one on/off thermostat deadband are specified. Please remove one."
+      else
+        thermostat_setpoint.setTemperatureDifferenceBetweenCutoutAndSetpoint(UnitConversions.convert(onoff_thermostat_deadband, "r", "k"))
+      end
 
       runner.registerInfo("Set the heating setpoint schedule for #{thermostat_setpoint.name}.")
     end
@@ -2944,7 +2949,13 @@ class HVAC
         finished_zone.setThermostatSetpointDualSetpoint(thermostat_setpoint)
         runner.registerInfo("Set a dummy heating setpoint schedule for #{thermostat_setpoint.name}.")
       end
-      thermostat_setpoint.setTemperatureDifferenceBetweenCutoutAndSetpoint(UnitConversions.convert(onoff_thermostat_deadband, "r", "k"))
+
+      exist_deadband = thermostat_setpoint.temperatureDifferenceBetweenCutoutAndSetpoint
+      if not exist_deadband == 0.0 and not exist_deadband == UnitConversions.convert(onoff_thermostat_deadband, "r", "k")
+        fail "More than one on/off thermostat deadband are specified. Please remove one."
+      else
+        thermostat_setpoint.setTemperatureDifferenceBetweenCutoutAndSetpoint(UnitConversions.convert(onoff_thermostat_deadband, "r", "k"))
+      end
 
       runner.registerInfo("Set the cooling setpoint schedule for #{thermostat_setpoint.name}.")
     end
