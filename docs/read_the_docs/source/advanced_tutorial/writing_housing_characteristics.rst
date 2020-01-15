@@ -6,7 +6,5 @@ This section provides a description the standard format for the housing characte
 Guidelines
 =============
 
-1. All line terminators are '\\r\\n'.
-2. All Option columns have format '%.6f'.
-3. All [For Reference Only] Source Sample Size columns are type 'int'.
-4. All [For Reference Only] Source Weight columns are type 'int'.
+1. All lines have the end line character '\\r\\n'.
+2. All non-dependency columns have format '%.6f'.
