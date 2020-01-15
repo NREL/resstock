@@ -392,6 +392,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     y = footprint / x
 
     z = 2.4384
+    z=0
 
     foundation_corr_polygon = nil
     foundation_front_polygon = nil
