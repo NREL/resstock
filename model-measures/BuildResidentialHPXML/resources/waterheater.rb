@@ -1,4 +1,4 @@
-class Waterheater2
+class Waterheater
   def self.calc_nom_tankvol(vol, fuel, num_beds, num_baths)
     # Calculates the volume of a water heater
     if vol == Constants.Auto

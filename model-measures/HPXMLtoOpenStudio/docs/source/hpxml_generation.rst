@@ -186,10 +186,10 @@ So, a basement slab edge adjacent to a garage or crawlspace, for example, should
 Vertical insulation adjacent to the slab can be described by a ``PerimeterInsulation/Layer/NominalRValue`` and a ``PerimeterInsulationDepth``.
 
 Horizontal insulation under the slab can be described by a ``UnderSlabInsulation/Layer/NominalRValue``. 
-The insulation can either have a depth (``UnderSlabInsulationWidth``) or can span the entire slab (``UnderSlabInsulationSpansEntireSlab``).
+The insulation can either have a fixed width (``UnderSlabInsulationWidth``) or can span the entire slab (``UnderSlabInsulationSpansEntireSlab``).
 
 For foundation types without walls, the ``DepthBelowGrade`` element must be provided.
-For foundation types with walls, the slab's position relative to grade is determined by the ``FoundationWall/DepthBelowGrade`` values.
+For foundation types with walls, the ``DepthBelowGrade`` element is not used; instead the slab's position relative to grade is determined by the ``FoundationWall/DepthBelowGrade`` values.
 
 Windows
 *******

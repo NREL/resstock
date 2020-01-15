@@ -12,6 +12,7 @@ require_relative "../HPXMLtoOpenStudio/resources/waterheater"
 require_relative "../BuildResidentialHPXML/resources/geometry"
 require_relative "../BuildResidentialHPXML/resources/schedules"
 require_relative "../BuildResidentialHPXML/resources/waterheater"
+require_relative "../BuildResidentialHPXML/resources/constants"
 
 # start the measure
 class HPXMLExporter < OpenStudio::Measure::ModelMeasure
@@ -265,14 +266,8 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("slab_under_width", true)
     arg.setDisplayName("Slab: Under Slab Insulation Width")
     arg.setUnits("ft")
-    arg.setDescription("Refers to the width of the under slab insulation.")
+    arg.setDescription("Refers to the width of the under slab insulation. Enter 999 to specify that the under slab insulation spans the entire slab.")
     arg.setDefaultValue(0)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeBoolArgument("slab_under_spans_entire_slab", true)
-    arg.setDisplayName("Slab: Under Slab Insulation Spans Entire Slab")
-    arg.setDescription("Specifies whether the under slab insulation spans the entire slab.")
-    arg.setDefaultValue(false)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("carpet_fraction", true)
@@ -1116,161 +1111,85 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     location_choices << "crawlspace - unvented"
     location_choices << "other exterior"
 
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("water_heater_type_1", water_heater_type_choices, true)
-    arg.setDisplayName("Water Heater 1: Type")
-    arg.setDescription("The type of the first water heater.")
-    arg.setDefaultValue("storage water heater")
-    args << arg
+    (1..Constants.MaxNumWaterHeaters).to_a.each do |n|
+      arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("water_heater_type_#{n}", water_heater_type_choices, true)
+      arg.setDisplayName("Water Heater #{n}: Type")
+      arg.setDescription("The type of water heater #{n}.")
+      arg.setDefaultValue("storage water heater")
+      args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("water_heater_fuel_type_1", water_heater_fuel_choices, true)
-    arg.setDisplayName("Water Heater 1: Fuel Type")
-    arg.setDescription("The fuel type of the first water heater.")
-    arg.setDefaultValue("electricity")
-    args << arg
+      arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("water_heater_fuel_type_#{n}", water_heater_fuel_choices, true)
+      arg.setDisplayName("Water Heater #{n}: Fuel Type")
+      arg.setDescription("The fuel type of water heater #{n}.")
+      arg.setDefaultValue("electricity")
+      args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("water_heater_location_1", location_choices, true)
-    arg.setDisplayName("Water Heater 1: Location")
-    arg.setDescription("The location of the first water heater.")
-    arg.setDefaultValue(Constants.Auto)
-    args << arg
+      arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("water_heater_location_#{n}", location_choices, true)
+      arg.setDisplayName("Water Heater #{n}: Location")
+      arg.setDescription("The location of water heater #{n}.")
+      arg.setDefaultValue(Constants.Auto)
+      args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument("water_heater_tank_volume_1", true)
-    arg.setDisplayName("Water Heater 1: Tank Volume")
-    arg.setDescription("Nominal volume of the of the first water heater tank. Set to #{Constants.Auto} to have volume autosized.")
-    arg.setUnits("gal")
-    arg.setDefaultValue(Constants.Auto)
-    args << arg
+      arg = OpenStudio::Measure::OSArgument::makeStringArgument("water_heater_tank_volume_#{n}", true)
+      arg.setDisplayName("Water Heater #{n}: Tank Volume")
+      arg.setDescription("Nominal volume of water heater tank #{n}. Set to #{Constants.Auto} to have volume autosized.")
+      arg.setUnits("gal")
+      arg.setDefaultValue(Constants.Auto)
+      args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("water_heater_fraction_dhw_load_served_1", true)
-    arg.setDisplayName("Water Heater 1: Fraction DHW Load Served")
-    arg.setDescription("The dhw load served fraction of the first water heater.")
-    arg.setUnits("Frac")
-    arg.setDefaultValue(1)
-    args << arg
+      arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("water_heater_fraction_dhw_load_served_#{n}", true)
+      arg.setDisplayName("Water Heater #{n}: Fraction DHW Load Served")
+      arg.setDescription("The dhw load served fraction of water heater #{n}.")
+      arg.setUnits("Frac")
+      arg.setDefaultValue(1)
+      args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument("water_heater_heating_capacity_1", true)
-    arg.setDisplayName("Water Heater 1: Input Capacity")
-    arg.setDescription("The maximum energy input rating of the first water heater. Set to #{Constants.SizingAuto} to have this field autosized.")
-    arg.setUnits("Btu/hr")
-    arg.setDefaultValue(Constants.SizingAuto)
-    args << arg
+      arg = OpenStudio::Measure::OSArgument::makeStringArgument("water_heater_heating_capacity_#{n}", true)
+      arg.setDisplayName("Water Heater #{n}: Input Capacity")
+      arg.setDescription("The maximum energy input rating of water heater #{n}. Set to #{Constants.SizingAuto} to have this field autosized.")
+      arg.setUnits("Btu/hr")
+      arg.setDefaultValue(Constants.SizingAuto)
+      args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument("water_heater_energy_factor_1", true)
-    arg.setDisplayName("Water Heater 1: Rated Energy Factor")
-    arg.setDescription("Ratio of useful energy output from the first water heater to the total amount of energy delivered from the water heater.")
-    arg.setDefaultValue(Constants.Auto)
-    args << arg
+      arg = OpenStudio::Measure::OSArgument::makeStringArgument("water_heater_energy_factor_#{n}", true)
+      arg.setDisplayName("Water Heater #{n}: Rated Energy Factor")
+      arg.setDescription("Ratio of useful energy output from water heater #{n} to the total amount of energy delivered from the water heater.")
+      arg.setDefaultValue(Constants.Auto)
+      args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("water_heater_uniform_energy_factor_1", true)
-    arg.setDisplayName("Water Heater 1: Uniform Energy Factor")
-    arg.setDescription("The uniform energy factor of the first water heater.")
-    arg.setDefaultValue(0)
-    args << arg
+      arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("water_heater_uniform_energy_factor_#{n}", true)
+      arg.setDisplayName("Water Heater #{n}: Uniform Energy Factor")
+      arg.setDescription("The uniform energy factor of water heater #{n}.")
+      arg.setDefaultValue(0)
+      args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("water_heater_recovery_efficiency_1", true)
-    arg.setDisplayName("Water Heater 1: Recovery Efficiency")
-    arg.setDescription("Ratio of energy delivered to the first water to the energy content of the fuel consumed by the water heater. Only used for non-electric water heaters.")
-    arg.setUnits("Frac")
-    arg.setDefaultValue(0.76)
-    args << arg
+      arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("water_heater_recovery_efficiency_#{n}", true)
+      arg.setDisplayName("Water Heater #{n}: Recovery Efficiency")
+      arg.setDescription("Ratio of energy delivered to water heater #{n} to the energy content of the fuel consumed by the water heater. Only used for non-electric water heaters.")
+      arg.setUnits("Frac")
+      arg.setDefaultValue(0.76)
+      args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeBoolArgument("water_heater_uses_desuperheater_1", true)
-    arg.setDisplayName("Water Heater 1: Uses Desuperheater")
-    arg.setDescription("Whether the first water heater uses desuperheater.")
-    arg.setDefaultValue(false)
-    args << arg
+      arg = OpenStudio::Measure::OSArgument::makeBoolArgument("water_heater_uses_desuperheater_#{n}", true)
+      arg.setDisplayName("Water Heater #{n}: Uses Desuperheater")
+      arg.setDescription("Whether water heater #{n} uses desuperheater.")
+      arg.setDefaultValue(false)
+      args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("water_heater_standby_loss_1", true)
-    arg.setDisplayName("Water Heater 1: Standby Loss")
-    arg.setDescription("The standby loss of the first water heater.")
-    arg.setUnits("Frac")
-    arg.setDefaultValue(0)
-    args << arg
+      arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("water_heater_standby_loss_#{n}", true)
+      arg.setDisplayName("Water Heater #{n}: Standby Loss")
+      arg.setDescription("The standby loss of water heater #{n}.")
+      arg.setUnits("Frac")
+      arg.setDefaultValue(0)
+      args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("water_heater_jacket_rvalue_1", true)
-    arg.setDisplayName("Water Heater 1: Jacket R-value")
-    arg.setDescription("The jacket R-value of the first water heater.")
-    arg.setUnits("h-ft^2-R/Btu")
-    arg.setDefaultValue(0)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("water_heater_type_2", water_heater_type_choices, true)
-    arg.setDisplayName("Water Heater 2: Type")
-    arg.setDescription("The type of the second water heater.")
-    arg.setDefaultValue("none")
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("water_heater_fuel_type_2", water_heater_fuel_choices, true)
-    arg.setDisplayName("Water Heater 2: Fuel Type")
-    arg.setDescription("The fuel type of the second water heater.")
-    arg.setDefaultValue("electricity")
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("water_heater_location_2", location_choices, true)
-    arg.setDisplayName("Water Heater 2: Location")
-    arg.setDescription("The location of the second water heater.")
-    arg.setDefaultValue(Constants.Auto)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument("water_heater_tank_volume_2", true)
-    arg.setDisplayName("Water Heater 2: Tank Volume")
-    arg.setDescription("Nominal volume of the of the second water heater tank. Set to #{Constants.Auto} to have volume autosized.")
-    arg.setUnits("gal")
-    arg.setDefaultValue(Constants.Auto)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("water_heater_fraction_dhw_load_served_2", true)
-    arg.setDisplayName("Water Heater 2: Fraction DHW Load Served")
-    arg.setDescription("The dhw load served fraction of the second water heater.")
-    arg.setUnits("Frac")
-    arg.setDefaultValue(1)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument("water_heater_heating_capacity_2", true)
-    arg.setDisplayName("Water Heater 2: Input Capacity")
-    arg.setDescription("The maximum energy input rating of the second water heater. Set to #{Constants.SizingAuto} to have this field autosized.")
-    arg.setUnits("Btu/hr")
-    arg.setDefaultValue(Constants.SizingAuto)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument("water_heater_energy_factor_2", true)
-    arg.setDisplayName("Water Heater 2: Rated Energy Factor")
-    arg.setDescription("Ratio of useful energy output from the second water heater to the total amount of energy delivered from the water heater.")
-    arg.setDefaultValue(Constants.Auto)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("water_heater_uniform_energy_factor_2", true)
-    arg.setDisplayName("Water Heater 2: Uniform Energy Factor")
-    arg.setDescription("The uniform energy factor of the second water heater.")
-    arg.setDefaultValue(0)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("water_heater_recovery_efficiency_2", true)
-    arg.setDisplayName("Water Heater 2: Recovery Efficiency")
-    arg.setDescription("Ratio of energy delivered to the second water to the energy content of the fuel consumed by the water heater. Only used for non-electric water heaters.")
-    arg.setUnits("Frac")
-    arg.setDefaultValue(0.76)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeBoolArgument("water_heater_uses_desuperheater_2", true)
-    arg.setDisplayName("Water Heater 2: Uses Desuperheater")
-    arg.setDescription("Whether the second water heater uses desuperheater.")
-    arg.setDefaultValue(false)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("water_heater_standby_loss_2", true)
-    arg.setDisplayName("Water Heater 2: Standby Loss")
-    arg.setDescription("The standby loss of the second water heater.")
-    arg.setUnits("Frac")
-    arg.setDefaultValue(0)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("water_heater_jacket_rvalue_2", true)
-    arg.setDisplayName("Water Heater 2: Jacket R-value")
-    arg.setDescription("The jacket R-value of the second water heater.")
-    arg.setUnits("h-ft^2-R/Btu")
-    arg.setDefaultValue(0)
-    args << arg
+      arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("water_heater_jacket_rvalue_#{n}", true)
+      arg.setDisplayName("Water Heater #{n}: Jacket R-value")
+      arg.setDescription("The jacket R-value of water heater #{n}.")
+      arg.setUnits("h-ft^2-R/Btu")
+      arg.setDefaultValue(0)
+      args << arg
+    end
 
     hot_water_distribution_system_type_choices = OpenStudio::StringVector.new
     hot_water_distribution_system_type_choices << "Standard"
@@ -1738,59 +1657,34 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     plug_loads_plug_load_type_choices << "other"
     plug_loads_plug_load_type_choices << "TV other"
 
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("plug_loads_plug_load_type_1", plug_loads_plug_load_type_choices, true)
-    arg.setDisplayName("Plug Load 1: Type")
-    arg.setDescription("Type of the first plug load.")
-    arg.setDefaultValue("other")
-    args << arg
+    (1..Constants.MaxNumPlugLoads).to_a.each do |n|
+      arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("plug_loads_plug_load_type_#{n}", plug_loads_plug_load_type_choices, true)
+      arg.setDisplayName("Plug Load #{n}: Type")
+      arg.setDescription("Type of plug load #{n}.")
+      arg.setDefaultValue("other")
+      args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("plug_loads_annual_kwh_1", true)
-    arg.setDisplayName("Plug Load 1: Annual kWh")
-    arg.setDescription("The annual energy consumption of the first plug load.")
-    arg.setUnits("kWh/yr")
-    arg.setDefaultValue(0)
-    args << arg
+      arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("plug_loads_annual_kwh_#{n}", true)
+      arg.setDisplayName("Plug Load #{n}: Annual kWh")
+      arg.setDescription("The annual energy consumption of plug load #{n}.")
+      arg.setUnits("kWh/yr")
+      arg.setDefaultValue(0)
+      args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("plug_loads_frac_sensible_1", true)
-    arg.setDisplayName("Plug Load 1: Sensible Fraction")
-    arg.setDescription("Fraction of internal gains that are sensible for the first plug load.")
-    arg.setUnits("Frac")
-    arg.setDefaultValue(0)
-    args << arg
+      arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("plug_loads_frac_sensible_#{n}", true)
+      arg.setDisplayName("Plug Load #{n}: Sensible Fraction")
+      arg.setDescription("Fraction of internal gains that are sensible for plug load #{n}.")
+      arg.setUnits("Frac")
+      arg.setDefaultValue(0)
+      args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("plug_loads_frac_latent_1", true)
-    arg.setDisplayName("Plug Load 1: Latent Fraction")
-    arg.setDescription("Fraction of internal gains that are latent for the first plug load.")
-    arg.setUnits("Frac")
-    arg.setDefaultValue(0)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("plug_loads_plug_load_type_2", plug_loads_plug_load_type_choices, true)
-    arg.setDisplayName("Plug Load 2: Type")
-    arg.setDescription("Type of the second plug load.")
-    arg.setDefaultValue("TV other")
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("plug_loads_annual_kwh_2", true)
-    arg.setDisplayName("Plug Load 2: Annual kWh")
-    arg.setDescription("The annual energy consumption of the second plug load.")
-    arg.setUnits("kWh/yr")
-    arg.setDefaultValue(0)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("plug_loads_frac_sensible_2", true)
-    arg.setDisplayName("Plug Load 2: Sensible Fraction")
-    arg.setDescription("Fraction of internal gains that are sensible for the second plug load.")
-    arg.setUnits("Frac")
-    arg.setDefaultValue(0)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("plug_loads_frac_latent_2", true)
-    arg.setDisplayName("Plug Load 2: Latent Fraction")
-    arg.setDescription("Fraction of internal gains that are latent for the second plug load.")
-    arg.setUnits("Frac")
-    arg.setDefaultValue(0)
-    args << arg
+      arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("plug_loads_frac_latent_#{n}", true)
+      arg.setDisplayName("Plug Load #{n}: Latent Fraction")
+      arg.setDescription("Fraction of internal gains that are latent for plug load #{n}.")
+      arg.setUnits("Frac")
+      arg.setDefaultValue(0)
+      args << arg
+    end
 
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument("plug_loads_schedule_values", true)
     arg.setDisplayName("Plug Loads: Use Schedule Values")
@@ -1865,7 +1759,6 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
              :perimeter_insulation_depth => runner.getDoubleArgumentValue("slab_perimeter_depth", user_arguments),
              :under_slab_insulation_r_value => runner.getDoubleArgumentValue("slab_under_r", user_arguments),
              :under_slab_insulation_width => runner.getDoubleArgumentValue("slab_under_width", user_arguments),
-             :under_slab_insulation_spans_entire_slab => runner.getBoolArgumentValue("slab_under_spans_entire_slab", user_arguments),
              :carpet_fraction => runner.getDoubleArgumentValue("carpet_fraction", user_arguments),
              :carpet_r_value => runner.getDoubleArgumentValue("carpet_r_value", user_arguments),
              :attic_type => runner.getStringArgumentValue("attic_type", user_arguments),
@@ -1961,18 +1854,18 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
              :mech_vent_sensible_recovery_efficiency => runner.getDoubleArgumentValue("mech_vent_adjusted_sensible_recovery_efficiency", user_arguments),
              :mech_vent_adjusted_sensible_recovery_efficiency => runner.getDoubleArgumentValue("mech_vent_sensible_recovery_efficiency", user_arguments),
              :mech_vent_fan_power => runner.getDoubleArgumentValue("mech_vent_fan_power", user_arguments),
-             :water_heater_type => [runner.getStringArgumentValue("water_heater_type_1", user_arguments), runner.getStringArgumentValue("water_heater_type_2", user_arguments)],
-             :water_heater_fuel_type => [runner.getStringArgumentValue("water_heater_fuel_type_1", user_arguments), runner.getStringArgumentValue("water_heater_fuel_type_2", user_arguments)],
-             :water_heater_location => [runner.getStringArgumentValue("water_heater_location_1", user_arguments), runner.getStringArgumentValue("water_heater_location_2", user_arguments)],
-             :water_heater_tank_volume => [runner.getStringArgumentValue("water_heater_tank_volume_1", user_arguments), runner.getStringArgumentValue("water_heater_tank_volume_2", user_arguments)],
-             :water_heater_fraction_dhw_load_served => [runner.getDoubleArgumentValue("water_heater_fraction_dhw_load_served_1", user_arguments), runner.getDoubleArgumentValue("water_heater_fraction_dhw_load_served_2", user_arguments)],
-             :water_heater_heating_capacity => [runner.getStringArgumentValue("water_heater_heating_capacity_1", user_arguments), runner.getStringArgumentValue("water_heater_heating_capacity_2", user_arguments)],
-             :water_heater_energy_factor => [runner.getStringArgumentValue("water_heater_energy_factor_1", user_arguments), runner.getStringArgumentValue("water_heater_energy_factor_2", user_arguments)],
-             :water_heater_uniform_energy_factor => [runner.getDoubleArgumentValue("water_heater_uniform_energy_factor_1", user_arguments), runner.getDoubleArgumentValue("water_heater_uniform_energy_factor_2", user_arguments)],
-             :water_heater_recovery_efficiency => [runner.getDoubleArgumentValue("water_heater_recovery_efficiency_1", user_arguments), runner.getDoubleArgumentValue("water_heater_recovery_efficiency_2", user_arguments)],
-             :water_heater_uses_desuperheater => [runner.getBoolArgumentValue("water_heater_uses_desuperheater_1", user_arguments), runner.getBoolArgumentValue("water_heater_uses_desuperheater_2", user_arguments)],
-             :water_heater_standby_loss => [runner.getDoubleArgumentValue("water_heater_standby_loss_1", user_arguments), runner.getDoubleArgumentValue("water_heater_standby_loss_1", user_arguments)],
-             :water_heater_jacket_rvalue => [runner.getDoubleArgumentValue("water_heater_jacket_rvalue_1", user_arguments), runner.getDoubleArgumentValue("water_heater_jacket_rvalue_2", user_arguments)],
+             :water_heater_type => (1..Constants.MaxNumWaterHeaters).to_a.map { |n| runner.getStringArgumentValue("water_heater_type_#{n}", user_arguments) },
+             :water_heater_fuel_type => (1..Constants.MaxNumWaterHeaters).to_a.map { |n| runner.getStringArgumentValue("water_heater_fuel_type_#{n}", user_arguments) },
+             :water_heater_location => (1..Constants.MaxNumWaterHeaters).to_a.map { |n| runner.getStringArgumentValue("water_heater_location_#{n}", user_arguments) },
+             :water_heater_tank_volume => (1..Constants.MaxNumWaterHeaters).to_a.map { |n| runner.getStringArgumentValue("water_heater_tank_volume_#{n}", user_arguments) },
+             :water_heater_fraction_dhw_load_served => (1..Constants.MaxNumWaterHeaters).to_a.map { |n| runner.getDoubleArgumentValue("water_heater_fraction_dhw_load_served_#{n}", user_arguments) },
+             :water_heater_heating_capacity => (1..Constants.MaxNumWaterHeaters).to_a.map { |n| runner.getStringArgumentValue("water_heater_heating_capacity_#{n}", user_arguments) },
+             :water_heater_energy_factor => (1..Constants.MaxNumWaterHeaters).to_a.map { |n| runner.getStringArgumentValue("water_heater_energy_factor_#{n}", user_arguments) },
+             :water_heater_uniform_energy_factor => (1..Constants.MaxNumWaterHeaters).to_a.map { |n| runner.getDoubleArgumentValue("water_heater_uniform_energy_factor_#{n}", user_arguments) },
+             :water_heater_recovery_efficiency => (1..Constants.MaxNumWaterHeaters).to_a.map { |n| runner.getDoubleArgumentValue("water_heater_recovery_efficiency_#{n}", user_arguments) },
+             :water_heater_uses_desuperheater => (1..Constants.MaxNumWaterHeaters).to_a.map { |n| runner.getBoolArgumentValue("water_heater_uses_desuperheater_#{n}", user_arguments) },
+             :water_heater_standby_loss => (1..Constants.MaxNumWaterHeaters).to_a.map { |n| runner.getDoubleArgumentValue("water_heater_standby_loss_#{n}", user_arguments) },
+             :water_heater_jacket_rvalue => (1..Constants.MaxNumWaterHeaters).to_a.map { |n| runner.getDoubleArgumentValue("water_heater_jacket_rvalue_#{n}", user_arguments) },
              :hot_water_distribution_system_type => runner.getStringArgumentValue("hot_water_distribution_system_type", user_arguments),
              :standard_piping_length => runner.getStringArgumentValue("standard_piping_length", user_arguments),
              :recirculation_control_type => runner.getStringArgumentValue("recirculation_control_type", user_arguments),
@@ -2034,10 +1927,10 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
              :ceiling_fan_efficiency => runner.getDoubleArgumentValue("ceiling_fan_efficiency", user_arguments),
              :ceiling_fan_quantity => runner.getIntegerArgumentValue("ceiling_fan_quantity", user_arguments),
              :ceiling_fan_cooling_setpoint_temp_offset => runner.getDoubleArgumentValue("ceiling_fan_cooling_setpoint_temp_offset", user_arguments),
-             :plug_loads_plug_load_type => [runner.getStringArgumentValue("plug_loads_plug_load_type_1", user_arguments), runner.getStringArgumentValue("plug_loads_plug_load_type_2", user_arguments)],
-             :plug_loads_annual_kwh => [runner.getDoubleArgumentValue("plug_loads_annual_kwh_1", user_arguments), runner.getDoubleArgumentValue("plug_loads_annual_kwh_2", user_arguments)],
-             :plug_loads_frac_sensible => [runner.getDoubleArgumentValue("plug_loads_frac_sensible_1", user_arguments), runner.getDoubleArgumentValue("plug_loads_frac_sensible_2", user_arguments)],
-             :plug_loads_frac_latent => [runner.getDoubleArgumentValue("plug_loads_frac_latent_1", user_arguments), runner.getDoubleArgumentValue("plug_loads_frac_latent_2", user_arguments)],
+             :plug_loads_plug_load_type => (1..Constants.MaxNumPlugLoads).to_a.map { |n| runner.getStringArgumentValue("plug_loads_plug_load_type_#{n}", user_arguments) },
+             :plug_loads_annual_kwh => (1..Constants.MaxNumPlugLoads).to_a.map { |n| runner.getDoubleArgumentValue("plug_loads_annual_kwh_#{n}", user_arguments) },
+             :plug_loads_frac_sensible => (1..Constants.MaxNumPlugLoads).to_a.map { |n| runner.getDoubleArgumentValue("plug_loads_frac_sensible_#{n}", user_arguments) },
+             :plug_loads_frac_latent => (1..Constants.MaxNumPlugLoads).to_a.map { |n| runner.getDoubleArgumentValue("plug_loads_frac_latent_#{n}", user_arguments) },
              :plug_loads_schedule_values => runner.getBoolArgumentValue("plug_loads_schedule_values", user_arguments),
              :plug_loads_weekday_fractions => runner.getStringArgumentValue("plug_loads_weekday_fractions", user_arguments),
              :plug_loads_weekend_fractions => runner.getStringArgumentValue("plug_loads_weekend_fractions", user_arguments),
@@ -2260,18 +2153,18 @@ class HPXMLFile
 
   def self.create_geometry_envelope(runner, model, args)
     if args[:unit_type] == "single-family detached"
-      success = Geometry2.create_single_family_detached(runner: runner, model: model, **args)
+      success = Geometry.create_single_family_detached(runner: runner, model: model, **args)
     elsif args[:unit_type] == "single-family attached"
-      success = Geometry2.create_single_family_attached(runner: runner, model: model, **args)
+      success = Geometry.create_single_family_attached(runner: runner, model: model, **args)
     elsif args[:unit_type] == "multifamily"
-      success = Geometry2.create_multifamily(runner: runner, model: model, **args)
+      success = Geometry.create_multifamily(runner: runner, model: model, **args)
     end
     return false if not success
 
-    success = Geometry2.create_windows_and_skylights(runner: runner, model: model, **args)
+    success = Geometry.create_windows_and_skylights(runner: runner, model: model, **args)
     return false if not success
 
-    success = Geometry2.create_doors(runner: runner, model: model, **args)
+    success = Geometry.create_doors(runner: runner, model: model, **args)
     return false if not success
 
     return true
@@ -2443,8 +2336,8 @@ class HPXMLFile
       return "crawlspace - unvented"
     elsif ["garage"].include? space_type
       return "garage"
-    elsif ["living"].include? space_type
-      if Geometry2.space_is_below_grade(space)
+    elsif ["living space"].include? space_type
+      if Geometry.space_is_below_grade(space)
         return "basement - conditioned"
       else
         return "living space"
@@ -2616,16 +2509,16 @@ class HPXMLFile
       if ["crawlspace - vented", "crawlspace - unvented", "basement - unconditioned", "basement - conditioned", "ambient"].include? interior_adjacent_to
         has_foundation_walls = true
       end
-      exposed_perimeter = Geometry2.calculate_exposed_perimeter(model, [surface], has_foundation_walls)
+      exposed_perimeter = Geometry.calculate_exposed_perimeter(model, [surface], has_foundation_walls)
 
       if ["living space", "garage"].include? interior_adjacent_to
         depth_below_grade = 0
       end
 
-      under_slab_insulation_spans_entire_slab = args[:under_slab_insulation_spans_entire_slab]
-      unless under_slab_insulation_spans_entire_slab
-        under_slab_insulation_width = args[:under_slab_insulation_width]
-        under_slab_insulation_spans_entire_slab = nil
+      under_slab_insulation_width = args[:under_slab_insulation_width]
+      if under_slab_insulation_width == 999
+        under_slab_insulation_width = nil
+        under_slab_insulation_spans_entire_slab = true
       end
 
       slabs_values << { :id => surface.name.to_s,
@@ -3086,7 +2979,7 @@ class HPXMLFile
         location = "living space" # FIXME
       end
 
-      tank_volume = Waterheater2.calc_nom_tankvol(args[:water_heater_tank_volume][i], fuel_type, args[:num_bedrooms], args[:num_bathrooms])
+      tank_volume = Waterheater.calc_nom_tankvol(args[:water_heater_tank_volume][i], fuel_type, args[:num_bedrooms], args[:num_bathrooms])
 
       heating_capacity = args[:water_heater_heating_capacity][i]
       if heating_capacity == Constants.SizingAuto
@@ -3096,7 +2989,7 @@ class HPXMLFile
       end
       heating_capacity = UnitConversions.convert(heating_capacity, "kBtu/hr", "Btu/hr")
 
-      energy_factor = Waterheater2.calc_ef(args[:water_heater_energy_factor][i], tank_volume, fuel_type)
+      energy_factor = Waterheater.calc_ef(args[:water_heater_energy_factor][i], tank_volume, fuel_type)
       if args[:water_heater_uniform_energy_factor][i] > 0
         energy_factor = nil
         uniform_energy_factor = args[:water_heater_uniform_energy_factor][i]

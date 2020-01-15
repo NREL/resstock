@@ -1,5 +1,5 @@
 # FIXME: Need to incorporate building orientation
-class Geometry2
+class Geometry
   def self.create_single_family_detached(runner:,
                                          model:,
                                          cfa:,
@@ -245,12 +245,12 @@ class Geometry2
         living_space_name = "living space"
       end
       living_space.setName(living_space_name)
-      if space_types_hash.keys.include? "living"
-        living_space_type = space_types_hash["living"]
+      if space_types_hash.keys.include? "living space"
+        living_space_type = space_types_hash["living space"]
       else
         living_space_type = OpenStudio::Model::SpaceType.new(model)
-        living_space_type.setStandardsSpaceType("living")
-        space_types_hash["living"] = living_space_type
+        living_space_type.setStandardsSpaceType("living space")
+        space_types_hash["living space"] = living_space_type
       end
       living_space.setSpaceType(living_space_type)
       runner.registerInfo("Set #{living_space_name}.")
@@ -361,7 +361,7 @@ class Geometry2
         end
       elsif attic_type == "attic - conditioned"
         attic_space.setThermalZone(living_zone)
-        attic_space_type_name = "living"
+        attic_space_type_name = "living space"
       end
       attic_space_name = "#{attic_type} space"
       attic_space.setName(attic_space_name)
@@ -410,7 +410,7 @@ class Geometry2
       elsif foundation_type == "basement - unconditioned"
         foundation_space_type_name = "unconditioned basement"
       elsif foundation_type == "basement - conditioned"
-        foundation_space_type_name = "living"
+        foundation_space_type_name = "living space"
       elsif foundation_type == "ambient"
         foundation_space_type_name = foundation_type
       end
@@ -559,7 +559,7 @@ class Geometry2
           wall_s.setSpace(garage_attic_space)
 
           if attic_type == "attic - conditioned"
-            garage_attic_space_type_name = "living"
+            garage_attic_space_type_name = "living space"
             garage_attic_space.setThermalZone(living_zone)
           else
             if num_floors > 1
@@ -698,26 +698,6 @@ class Geometry2
     return garage_spaces
   end
 
-  def self.space_is_conditioned(space)
-    unless space.isPlenum
-      if space.spaceType.is_initialized
-        if space.spaceType.get.standardsSpaceType.is_initialized
-          return self.is_living_space_type(space.spaceType.get.standardsSpaceType.get)
-        end
-      end
-    end
-    return false
-  end
-
-  def self.is_living_space_type(space_type)
-    if ["living", "basement - conditioned", "kitchen", "bedroom",
-        "bathroom", "laundry room"].include? space_type
-      return true
-    end
-
-    return false
-  end
-
   def self.get_space_floor_z(space)
     space.surfaces.each do |surface|
       next unless surface.surfaceType.downcase == "floor"
@@ -760,14 +740,14 @@ class Geometry2
     skylight_areas[Constants.FacadeBack] = back_skylight_area
     skylight_areas[Constants.FacadeLeft] = left_skylight_area
     skylight_areas[Constants.FacadeRight] = right_skylight_area
-    skylight_areas[Constants.FacadeNone] = 0
+    skylight_areas["none"] = 0
 
     # Remove existing windows and store surfaces that should get windows by facade
     wall_surfaces = { Constants.FacadeFront => [], Constants.FacadeBack => [],
                       Constants.FacadeLeft => [], Constants.FacadeRight => [] }
     roof_surfaces = { Constants.FacadeFront => [], Constants.FacadeBack => [],
                       Constants.FacadeLeft => [], Constants.FacadeRight => [],
-                      Constants.FacadeNone => [] }
+                      "none" => [] }
     # flat_roof_surfaces = []
     constructions = {}
     window_warn_msg = nil
@@ -822,7 +802,7 @@ class Geometry2
           facade = Geometry.get_facade_for_surface(surface)
           if facade.nil?
             if surface.tilt == 0 # flat roof
-              roof_surfaces[Constants.FacadeNone] << surface
+              roof_surfaces["none"] << surface
             end
             next
           end
@@ -998,13 +978,13 @@ class Geometry2
     end
 
     # Skylights
-    unless roof_surfaces[Constants.FacadeNone].empty?
+    unless roof_surfaces["none"].empty?
       tot_sky_area = 0
       skylight_areas.each do |facade, skylight_area|
-        next if facade == Constants.FacadeNone
+        next if facade == "none"
 
-        skylight_area /= roof_surfaces[Constants.FacadeNone].length
-        skylight_areas[Constants.FacadeNone] += skylight_area
+        skylight_area /= roof_surfaces["none"].length
+        skylight_areas["none"] += skylight_area
         skylight_areas[facade] = 0
       end
     end
@@ -1015,7 +995,7 @@ class Geometry2
 
       surfaces = roof_surfaces[facade]
 
-      if surfaces.empty? and not facade == Constants.FacadeNone
+      if surfaces.empty? and not facade == "none"
         runner.registerError("There are no #{facade} roof surfaces, but #{skylight_area} ft^2 of skylights were specified.")
         return false
       end
@@ -1034,7 +1014,7 @@ class Geometry2
         leftx = skylight_bottom_left.x
         lefty = skylight_bottom_left.y
         bottomz = skylight_bottom_left.z
-        if facade == Constants.FacadeFront or facade == Constants.FacadeNone
+        if facade == Constants.FacadeFront or facade == "none"
           skylight_top_left = OpenStudio::Point3d.new(leftx, lefty + Math.cos(surface.tilt) * skylight_length, bottomz + Math.sin(surface.tilt) * skylight_length)
           skylight_top_right = OpenStudio::Point3d.new(leftx + skylight_width, lefty + Math.cos(surface.tilt) * skylight_length, bottomz + Math.sin(surface.tilt) * skylight_length)
           skylight_bottom_right = OpenStudio::Point3d.new(leftx + skylight_width, lefty, bottomz)
@@ -1202,7 +1182,7 @@ class Geometry2
   def self.get_conditioned_spaces(spaces)
     conditioned_spaces = []
     spaces.each do |space|
-      next if self.space_is_unconditioned(space)
+      next if space_is_unconditioned(space)
 
       conditioned_spaces << space
     end
@@ -1210,7 +1190,7 @@ class Geometry2
   end
 
   def self.space_is_unconditioned(space)
-    return !self.space_is_conditioned(space)
+    return !Geometry.space_is_conditioned(space)
   end
 
   def self.is_rectangular_wall(surface)
@@ -1247,7 +1227,7 @@ class Geometry2
     end
 
     space = surface.space.get
-    if not self.space_has_roof(space)
+    if not space_has_roof(space)
       return false
     end
 
@@ -1626,12 +1606,12 @@ class Geometry2
     living_space = OpenStudio::Model::Space::fromFloorPrint(living_polygon, wall_height, model)
     living_space = living_space.get
     living_space.setName("living space")
-    if space_types_hash.keys.include? "living"
-      living_space_type = space_types_hash["living"]
+    if space_types_hash.keys.include? "living space"
+      living_space_type = space_types_hash["living space"]
     else
       living_space_type = OpenStudio::Model::SpaceType.new(model)
-      living_space_type.setStandardsSpaceType("living")
-      space_types_hash["living"] = living_space_type
+      living_space_type.setStandardsSpaceType("living space")
+      space_types_hash["living space"] = living_space_type
     end
     living_space.setSpaceType(living_space_type)
     living_space.setThermalZone(living_zone)
@@ -1931,7 +1911,7 @@ class Geometry2
     # Get ground edges
     if not has_foundation_walls
       # Use edges from floor surface
-      ground_edges = self.get_edges_for_surfaces(ground_floor_surfaces, false)
+      ground_edges = get_edges_for_surfaces(ground_floor_surfaces, false)
     else
       # Use top edges from foundation walls instead
       surfaces = []
@@ -1967,8 +1947,8 @@ class Geometry2
     # compare edges for overlap
     ground_edges.each do |e1|
       model_edges.each do |e2|
-        next if not self.is_point_between(e2[0], e1[0], e1[1])
-        next if not self.is_point_between(e2[1], e1[0], e1[1])
+        next if not is_point_between(e2[0], e1[0], e1[1])
+        next if not is_point_between(e2[1], e1[0], e1[1])
 
         point_one = OpenStudio::Point3d.new(e2[0][0], e2[0][1], e2[0][2])
         point_two = OpenStudio::Point3d.new(e2[1][0], e2[1][1], e2[1][2])
