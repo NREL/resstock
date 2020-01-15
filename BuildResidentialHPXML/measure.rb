@@ -1112,10 +1112,15 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     location_choices << "other exterior"
 
     (1..Constants.MaxNumWaterHeaters).to_a.each do |n|
+      water_heater_type = "none"
+      if n == 1
+        water_heater_type = "storage water heater"
+      end
+
       arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("water_heater_type_#{n}", water_heater_type_choices, true)
       arg.setDisplayName("Water Heater #{n}: Type")
       arg.setDescription("The type of water heater #{n}.")
-      arg.setDefaultValue("storage water heater")
+      arg.setDefaultValue(water_heater_type)
       args << arg
 
       arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("water_heater_fuel_type_#{n}", water_heater_fuel_choices, true)
@@ -1658,10 +1663,15 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     plug_loads_plug_load_type_choices << "TV other"
 
     (1..Constants.MaxNumPlugLoads).to_a.each do |n|
+      plug_load_type = "none"
+      if n == 1
+        plug_load_type = "other"
+      end
+
       arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("plug_loads_plug_load_type_#{n}", plug_loads_plug_load_type_choices, true)
       arg.setDisplayName("Plug Load #{n}: Type")
       arg.setDescription("Type of plug load #{n}.")
-      arg.setDefaultValue("other")
+      arg.setDefaultValue(plug_load_type)
       args << arg
 
       arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("plug_loads_annual_kwh_#{n}", true)
@@ -2989,6 +2999,10 @@ class HPXMLFile
       end
       heating_capacity = UnitConversions.convert(heating_capacity, "kBtu/hr", "Btu/hr")
 
+      if water_heater_type == "heat pump water heater"
+        heating_capacity = nil
+      end
+
       energy_factor = Waterheater.calc_ef(args[:water_heater_energy_factor][i], tank_volume, fuel_type)
       if args[:water_heater_uniform_energy_factor][i] > 0
         energy_factor = nil
@@ -3000,8 +3014,8 @@ class HPXMLFile
         recovery_efficiency = nil
       end
 
-      uses_desuperheater = args[:water_heater_uses_desuperheater][i]
-      if uses_desuperheater
+      if args[:water_heater_uses_desuperheater][i]
+        uses_desuperheater = args[:water_heater_uses_desuperheater][i]
         unless cooling_systems_values[i].nil?
           related_hvac = cooling_systems_values[i][:id]
         end
