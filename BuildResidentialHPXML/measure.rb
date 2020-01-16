@@ -310,11 +310,18 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue("attic - vented")
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("attic_floor_r", true)
-    arg.setDisplayName("Attic: Floor Insulation Assembly R-value")
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("attic_floor_conditioned_r", true)
+    arg.setDisplayName("Attic: Floor (Adjacent To Conditioned) Insulation Assembly R-value")
     arg.setUnits("h-ft^2-R/Btu")
     arg.setDescription("Refers to the overall R-value of the assembly.")
     arg.setDefaultValue(30)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("attic_floor_unconditioned_r", true)
+    arg.setDisplayName("Attic: Floor (Adjacent To Unconditioned) Insulation Assembly R-value")
+    arg.setUnits("h-ft^2-R/Btu")
+    arg.setDescription("Refers to the overall R-value of the assembly.")
+    arg.setDefaultValue(2.1)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("attic_ceiling_r", true)
@@ -497,11 +504,30 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue("WoodStud")
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("wall_r", true)
-    arg.setDisplayName("Walls: Cavity Insulation Assembly R-value")
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("wall_conditioned_r", true)
+    arg.setDisplayName("Walls: Cavity (Adjacent To Conditioned) Insulation Assembly R-value")
     arg.setUnits("h-ft^2-R/Btu")
     arg.setDescription("Refers to the overall R-value of the assembly.")
     arg.setDefaultValue(13)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("wall_unconditioned_r", true)
+    arg.setDisplayName("Walls: Cavity (Adjacent To Unconditioned) Insulation Assembly R-value")
+    arg.setUnits("h-ft^2-R/Btu")
+    arg.setDescription("Refers to the overall R-value of the assembly.")
+    arg.setDefaultValue(4)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("wall_solar_absorptance", true)
+    arg.setDisplayName("Wall: Solar Absorptance")
+    arg.setDescription("The solar absorptance of the exterior walls.")
+    arg.setDefaultValue(0.7)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("wall_emittance", true)
+    arg.setDisplayName("Wall: Emittance")
+    arg.setDescription("The emittance of the exterior walls.")
+    arg.setDefaultValue(0.92)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("front_wwr", true)
@@ -1789,7 +1815,8 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
              :carpet_fraction => runner.getDoubleArgumentValue("carpet_fraction", user_arguments),
              :carpet_r_value => runner.getDoubleArgumentValue("carpet_r_value", user_arguments),
              :attic_type => runner.getStringArgumentValue("attic_type", user_arguments),
-             :attic_floor_r => runner.getDoubleArgumentValue("attic_floor_r", user_arguments),
+             :attic_floor_conditioned_r => runner.getDoubleArgumentValue("attic_floor_conditioned_r", user_arguments),
+             :attic_floor_unconditioned_r => runner.getDoubleArgumentValue("attic_floor_unconditioned_r", user_arguments),
              :attic_ceiling_r => runner.getDoubleArgumentValue("attic_ceiling_r", user_arguments),
              :roof_type => runner.getStringArgumentValue("roof_type", user_arguments),
              :roof_pitch => { "1:12" => 1.0 / 12.0, "2:12" => 2.0 / 12.0, "3:12" => 3.0 / 12.0, "4:12" => 4.0 / 12.0, "5:12" => 5.0 / 12.0, "6:12" => 6.0 / 12.0, "7:12" => 7.0 / 12.0, "8:12" => 8.0 / 12.0, "9:12" => 9.0 / 12.0, "10:12" => 10.0 / 12.0, "11:12" => 11.0 / 12.0, "12:12" => 12.0 / 12.0 }[runner.getStringArgumentValue("roof_pitch", user_arguments)],
@@ -1806,7 +1833,10 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
              :neighbor_height => [runner.getDoubleArgumentValue("neighbor_front_height", user_arguments), runner.getDoubleArgumentValue("neighbor_back_height", user_arguments), runner.getDoubleArgumentValue("neighbor_left_height", user_arguments), runner.getDoubleArgumentValue("neighbor_right_height", user_arguments)],
              :orientation => runner.getDoubleArgumentValue("orientation", user_arguments),
              :wall_type => runner.getStringArgumentValue("wall_type", user_arguments),
-             :wall_r => runner.getDoubleArgumentValue("wall_r", user_arguments),
+             :wall_conditioned_r => runner.getDoubleArgumentValue("wall_conditioned_r", user_arguments),
+             :wall_unconditioned_r => runner.getDoubleArgumentValue("wall_unconditioned_r", user_arguments),
+             :wall_solar_absorptance => runner.getDoubleArgumentValue("wall_solar_absorptance", user_arguments),
+             :wall_emittance => runner.getDoubleArgumentValue("wall_emittance", user_arguments),
              :front_wwr => runner.getDoubleArgumentValue("front_wwr", user_arguments),
              :back_wwr => runner.getDoubleArgumentValue("back_wwr", user_arguments),
              :left_wwr => runner.getDoubleArgumentValue("left_wwr", user_arguments),
@@ -2427,19 +2457,35 @@ class HPXMLFile
   def self.get_walls_values(runner, model, args)
     walls_values = []
     model.getSurfaces.each do |surface|
-      next unless ["Outdoors"].include? surface.outsideBoundaryCondition
       next if surface.surfaceType != "Wall"
       next if ["ambient"].include? surface.space.get.spaceType.get.standardsSpaceType.get # FIXME
 
-      walls_values << { :id => surface.name.to_s,
-                        :exterior_adjacent_to => "outside",
-                        :interior_adjacent_to => get_adjacent_to(model, surface),
-                        :wall_type => args[:wall_type],
-                        :area => UnitConversions.convert(surface.netArea, "m^2", "ft^2"),
-                        :azimuth => nil, # FIXME: Get from model
-                        :solar_absorptance => 0.7, # FIXME: Get from exterior finish
-                        :emittance => 0.92, # FIXME: Get from exterior finish
-                        :insulation_assembly_r_value => args[:wall_r] } # FIXME: Calculate
+      interior_adjacent_to = get_adjacent_to(model, surface)
+      next unless ["living space", "attic - unvented", "attic - vented", "garage"].include? interior_adjacent_to
+
+      exterior_adjacent_to = "outside"
+      if surface.adjacentSurface.is_initialized
+        exterior_adjacent_to = get_adjacent_to(model, surface.adjacentSurface.get)
+      end
+      next if interior_adjacent_to == exterior_adjacent_to
+      next if ["living space", "basement - conditioned"].include? exterior_adjacent_to
+
+      wall_values = { :id => surface.name.to_s,
+                      :exterior_adjacent_to => exterior_adjacent_to,
+                      :interior_adjacent_to => interior_adjacent_to,
+                      :wall_type => args[:wall_type],
+                      :area => UnitConversions.convert(surface.netArea, "m^2", "ft^2"),
+                      :azimuth => nil, # FIXME: Get from model
+                      :solar_absorptance => args[:wall_solar_absorptance],
+                      :emittance => args[:wall_emittance] }
+
+      if ["living space"].include? interior_adjacent_to
+        wall_values[:insulation_assembly_r_value] = args[:wall_conditioned_r]
+      elsif ["attic - unvented", "attic - vented", "garage"].include? interior_adjacent_to
+        wall_values[:insulation_assembly_r_value] = args[:wall_unconditioned_r]
+      end
+
+      walls_values << wall_values
     end
     return walls_values
   end
@@ -2492,21 +2538,21 @@ class HPXMLFile
                             :area => UnitConversions.convert(surface.netArea, "m^2", "ft^2") }
 
       if interior_adjacent_to == "living space" and exterior_adjacent_to.include? "attic - unvented"
-        framefloor_values[:insulation_assembly_r_value] = args[:attic_floor_r] # FIXME: Calculate
+        framefloor_values[:insulation_assembly_r_value] = args[:attic_floor_conditioned_r]
       elsif interior_adjacent_to == "living space" and exterior_adjacent_to.include? "attic - vented"
-        framefloor_values[:insulation_assembly_r_value] = args[:attic_floor_r] # FIXME: Calculate
+        framefloor_values[:insulation_assembly_r_value] = args[:attic_floor_conditioned_r]
       elsif interior_adjacent_to == "living space" and exterior_adjacent_to.include? "crawlspace"
-        framefloor_values[:insulation_assembly_r_value] = args[:foundation_ceiling_r] # FIXME: Calculate
+        framefloor_values[:insulation_assembly_r_value] = args[:foundation_ceiling_r]
       elsif interior_adjacent_to == "living space" and exterior_adjacent_to.include? "basement - unconditioned"
-        framefloor_values[:insulation_assembly_r_value] = args[:foundation_ceiling_r] # FIXME: Calculate
+        framefloor_values[:insulation_assembly_r_value] = args[:foundation_ceiling_r]
       elsif interior_adjacent_to == "living space" and exterior_adjacent_to.include? "outside"
-        framefloor_values[:insulation_assembly_r_value] = args[:foundation_ceiling_r] # FIXME: Calculate
+        framefloor_values[:insulation_assembly_r_value] = args[:foundation_ceiling_r]
       elsif interior_adjacent_to == "garage" and exterior_adjacent_to == "attic - unvented"
-        framefloor_values[:insulation_assembly_r_value] = args[:attic_floor_r] # FIXME: Calculate
+        framefloor_values[:insulation_assembly_r_value] = args[:attic_floor_unconditioned_r]
       elsif interior_adjacent_to == "garage" and exterior_adjacent_to == "attic - vented"
-        framefloor_values[:insulation_assembly_r_value] = args[:attic_floor_r] # FIXME: Calculate
+        framefloor_values[:insulation_assembly_r_value] = args[:attic_floor_unconditioned_r]
       elsif interior_adjacent_to == "living space" and exterior_adjacent_to == "garage"
-        framefloor_values[:insulation_assembly_r_value] = args[:attic_floor_r] # FIXME: Calculate
+        framefloor_values[:insulation_assembly_r_value] = args[:attic_floor_conditioned_r]
       end
 
       framefloors_values << framefloor_values
