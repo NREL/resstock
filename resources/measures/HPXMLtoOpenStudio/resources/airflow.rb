@@ -58,7 +58,21 @@ class Airflow
     building.ag_ffa = Geometry.get_above_grade_finished_floor_area_from_spaces(model_spaces, runner)
     return false if building.ag_ffa.nil?
 
-    wind_speed = process_wind_speed_correction(infil.terrain, infil.shelter_coef, Geometry.get_closest_neighbor_distance(model), building.building_height)
+    building_height = nil
+    num_floors = model.getBuilding.additionalProperties.getFeatureAsInteger("num_floors")
+    if num_floors.is_initialized
+      units.each do |unit|
+        Geometry.get_thermal_zones_from_spaces(unit.spaces).each do |thermal_zone|
+          if Geometry.is_living(thermal_zone)
+            building_height = num_floors.get.to_f*Geometry.get_height_of_spaces(thermal_zone.spaces)
+          end
+        end
+      end
+    else
+      building_height = building.building_height
+    end
+
+    wind_speed = process_wind_speed_correction(infil.terrain, infil.shelter_coef, Geometry.get_closest_neighbor_distance(model), building_height)
     if not process_infiltration(model, infil, wind_speed, building, weather)
       return false
     end
@@ -566,7 +580,7 @@ class Airflow
           a_o = mf_building_ELA * a_o_frac
         else #Has middle unit(s)
           if has_rear_units
-            end_mid_ratio = 2.8 #Constant ratio of 
+            end_mid_ratio = 2.8
             n_end_units = 4*num_floors
           else
             end_mid_ratio = 1.9
@@ -687,7 +701,10 @@ class Airflow
 
       wind_coef = f_w * UnitConversions.convert(outside_air_density / 2.0, "lbm/ft^3", "inH2O/mph^2")**n_i # inH2O^n/mph^2n
 
-      unit_living.ACH = Airflow.get_infiltration_ACH_from_SLA(unit_living.SLA, building.stories, weather)
+      if not singleunit
+        num_floors = building.stories
+      end
+      unit_living.ACH = Airflow.get_infiltration_ACH_from_SLA(unit_living.SLA, num_floors, weather)
 
       # Convert living space ACH to cfm:
       unit_living.inf_flow = unit_living.ACH / UnitConversions.convert(1.0, "hr", "min") * unit_living.volume # cfm
@@ -728,7 +745,7 @@ class Airflow
 
       space.zone.spaces.each do |s|
         next if Geometry.is_living(s)
-
+    
         obj_name = "#{Constants.ObjectNameInfiltration}|#{s.name}"
         if space.inf_method == @infMethodRes and space.ACH.to_f > 0
           flow_rate = OpenStudio::Model::SpaceInfiltrationDesignFlowRate.new(model)
