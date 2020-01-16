@@ -1463,8 +1463,8 @@ class Geometry
                               foundation_type:,
                               foundation_height:,
                               **remainder)
-    num_units = 2 # FIXME
-    num_floors = 1 # FIXME
+    num_units = 9 # FIXME
+    num_floors = 3 # FIXME
     corridor_position = "None" # FIXME
     if foundation_type == "basement - conditioned"
       foundation_type = "basement - unconditioned" # FIXME
