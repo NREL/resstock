@@ -2487,6 +2487,12 @@ class HPXMLFile
 
       if interior_adjacent_to == "living space" and exterior_adjacent_to == "outside"
         wall_values[:insulation_assembly_r_value] = args[:wall_conditioned_r]
+      elsif interior_adjacent_to == "living space" and exterior_adjacent_to == "garage"
+        wall_values[:insulation_assembly_r_value] = args[:wall_conditioned_r]
+      elsif interior_adjacent_to == "living space" and exterior_adjacent_to == "attic - unvented"
+        wall_values[:insulation_assembly_r_value] = args[:wall_unconditioned_r]
+      elsif interior_adjacent_to == "living space" and exterior_adjacent_to == "attic - vented"
+        wall_values[:insulation_assembly_r_value] = args[:wall_unconditioned_r]
       elsif interior_adjacent_to == "living space" and exterior_adjacent_to == "other housing unit"
         wall_values[:insulation_assembly_r_value] = args[:wall_unconditioned_r]
       elsif ["attic - unvented", "attic - vented", "garage"].include? interior_adjacent_to
