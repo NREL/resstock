@@ -2332,6 +2332,8 @@ class HPXMLFile
   end
 
   def self.get_attic_values(runner, model, args)
+    return {} if args[:unit_type] == "multifamily"
+
     attic_values = {}
     if args[:attic_type] == "attic - vented"
       attic_values[:attic_type] = "VentedAttic"
@@ -2343,6 +2345,8 @@ class HPXMLFile
   end
 
   def self.get_foundation_values(runner, model, args)
+    return {} if args[:unit_type] == "multifamily"
+
     foundation_values = {}
     if args[:foundation_type] == "slab"
       foundation_values[:foundation_type] = "SlabOnGrade"
@@ -2466,6 +2470,8 @@ class HPXMLFile
       exterior_adjacent_to = "outside"
       if surface.adjacentSurface.is_initialized
         exterior_adjacent_to = get_adjacent_to(model, surface.adjacentSurface.get)
+      elsif surface.outsideBoundaryCondition == "Adiabatic"
+        exterior_adjacent_to = "other housing unit"
       end
       next if interior_adjacent_to == exterior_adjacent_to
       next if ["living space", "basement - conditioned"].include? exterior_adjacent_to
@@ -2479,8 +2485,10 @@ class HPXMLFile
                       :solar_absorptance => args[:wall_solar_absorptance],
                       :emittance => args[:wall_emittance] }
 
-      if ["living space"].include? interior_adjacent_to
+      if interior_adjacent_to == "living space" and exterior_adjacent_to == "outside"
         wall_values[:insulation_assembly_r_value] = args[:wall_conditioned_r]
+      elsif interior_adjacent_to == "living space" and exterior_adjacent_to == "other housing unit"
+        wall_values[:insulation_assembly_r_value] = args[:wall_unconditioned_r]
       elsif ["attic - unvented", "attic - vented", "garage"].include? interior_adjacent_to
         wall_values[:insulation_assembly_r_value] = args[:wall_unconditioned_r]
       end
@@ -2527,6 +2535,12 @@ class HPXMLFile
       exterior_adjacent_to = "outside"
       if surface.adjacentSurface.is_initialized
         exterior_adjacent_to = get_adjacent_to(model, surface.adjacentSurface.get)
+      elsif surface.outsideBoundaryCondition == "Adiabatic"
+        if surface.surfaceType == "Floor"
+          exterior_adjacent_to = "other housing unit below"
+        elsif surface.surfaceType == "RoofCeiling"
+          exterior_adjacent_to = "other housing unit above"
+        end
       end
       next if interior_adjacent_to == exterior_adjacent_to
       next if surface.surfaceType == "RoofCeiling" and exterior_adjacent_to == "outside"
@@ -2553,6 +2567,10 @@ class HPXMLFile
         framefloor_values[:insulation_assembly_r_value] = args[:attic_floor_unconditioned_r]
       elsif interior_adjacent_to == "living space" and exterior_adjacent_to == "garage"
         framefloor_values[:insulation_assembly_r_value] = args[:attic_floor_conditioned_r]
+      elsif interior_adjacent_to == "living space" and exterior_adjacent_to == "other housing unit below"
+        framefloor_values[:insulation_assembly_r_value] = args[:attic_floor_unconditioned_r]
+      elsif interior_adjacent_to == "living space" and exterior_adjacent_to == "other housing unit above"
+        framefloor_values[:insulation_assembly_r_value] = args[:attic_floor_unconditioned_r]
       end
 
       framefloors_values << framefloor_values

@@ -103,7 +103,7 @@ def create_osws
 
     'base-enclosure-2stories.osw' => 'base.osw',
     'base-enclosure-2stories-garage.osw' => 'base.osw',
-    # 'base-enclosure-adiabatic-surfaces.osw' => 'base.osw', # 1 kiva object instead of 0
+    'base-enclosure-adiabatic-surfaces.osw' => 'base.osw',
     'base-enclosure-beds-1.osw' => 'base.osw',
     'base-enclosure-beds-2.osw' => 'base.osw',
     'base-enclosure-beds-4.osw' => 'base.osw',
@@ -569,12 +569,14 @@ def get_values(osw_file, step)
     step.setArgument("plug_loads_monthly_multipliers", "1.248, 1.257, 0.993, 0.989, 0.993, 0.827, 0.821, 0.821, 0.827, 0.99, 0.987, 1.248")
   elsif ['base-single-family-attached.osw'].include? osw_file
     step.setArgument("unit_type", "single-family attached")
-    step.setArgument("foundation_type", "slab")
     step.setArgument("cfa", 900.0)
   elsif ['base-multifamily.osw'].include? osw_file
     step.setArgument("unit_type", "multifamily")
-    step.setArgument("foundation_type", "slab")
     step.setArgument("cfa", 900.0)
+    step.setArgument("supply_duct_leakage_value", 0)
+    step.setArgument("return_duct_leakage_value", 0)
+    step.setArgument("supply_duct_location", "living space")
+    step.setArgument("return_duct_location", "living space")
   elsif ['base-appliances-dishwasher-ef.osw'].include? osw_file
     step.setArgument("dishwasher_energy_factor", 0.5)
     step.setArgument("dishwasher_rated_annual_kwh", 0)
@@ -841,7 +843,14 @@ def get_values(osw_file, step)
     step.setArgument("num_floors", 2)
     step.setArgument("garage_width", 12.0)
   elsif ['base-enclosure-adiabatic-surfaces.osw'].include? osw_file
-
+    step.setArgument("unit_type", "multifamily")
+    step.setArgument("cfa", 1350.0)
+    step.setArgument("level", "Middle")
+    step.setArgument("horizontal_location", "Middle")
+    step.setArgument("supply_duct_leakage_value", 0)
+    step.setArgument("return_duct_leakage_value", 0)
+    step.setArgument("supply_duct_location", "living space")
+    step.setArgument("return_duct_location", "living space")
   elsif ['base-enclosure-beds-1.osw'].include? osw_file
     step.setArgument("num_bedrooms", 1)
   elsif ['base-enclosure-beds-2.osw'].include? osw_file
