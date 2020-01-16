@@ -13,6 +13,7 @@ require_relative "../BuildResidentialHPXML/resources/geometry"
 require_relative "../BuildResidentialHPXML/resources/schedules"
 require_relative "../BuildResidentialHPXML/resources/waterheater"
 require_relative "../BuildResidentialHPXML/resources/constants"
+require_relative "../BuildResidentialHPXML/resources/location"
 
 # start the measure
 class HPXMLExporter < OpenStudio::Measure::ModelMeasure
@@ -228,18 +229,32 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(30)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("foundation_wall_interior_r", true)
-    arg.setDisplayName("Foundation: Wall Interior Insulation Assembly R-value")
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("foundation_wall_r", true)
+    arg.setDisplayName("Foundation: Wall Insulation R-value")
     arg.setUnits("h-ft^2-R/Btu")
     arg.setDescription("Refers to the overall R-value of the assembly.")
     arg.setDefaultValue(0)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("foundation_wall_exterior_r", true)
-    arg.setDisplayName("Foundation: Wall Exterior Insulation Assembly R-value")
-    arg.setUnits("h-ft^2-R/Btu")
-    arg.setDescription("Refers to the overall R-value of the assembly.")
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("foundation_wall_distance_to_top", true)
+    arg.setDisplayName("Foundation: Wall Insulation Distance To Top")
+    arg.setUnits("ft")
+    arg.setDescription("The distance to the top of the foundation wall insulation.")
     arg.setDefaultValue(0)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("foundation_wall_distance_to_bottom", true)
+    arg.setDisplayName("Foundation: Wall Insulation Distance To Bottom")
+    arg.setUnits("ft")
+    arg.setDescription("The distance to the bottom of the foundation wall insulation.")
+    arg.setDefaultValue(0)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("foundation_wall_depth_below_grade", true)
+    arg.setDisplayName("Foundation: Wall Depth Below Grade")
+    arg.setUnits("ft")
+    arg.setDescription("The depth below grade of the foundation wall.")
+    arg.setDefaultValue(3.0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("slab_perimeter_r", true)
@@ -1763,8 +1778,10 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
              :foundation_type => runner.getStringArgumentValue("foundation_type", user_arguments),
              :foundation_height => runner.getDoubleArgumentValue("foundation_height", user_arguments),
              :foundation_ceiling_r => runner.getDoubleArgumentValue("foundation_ceiling_r", user_arguments),
-             :foundation_wall_interior_r => runner.getDoubleArgumentValue("foundation_wall_interior_r", user_arguments),
-             :foundation_wall_exterior_r => runner.getDoubleArgumentValue("foundation_wall_exterior_r", user_arguments),
+             :foundation_wall_r => runner.getDoubleArgumentValue("foundation_wall_r", user_arguments),
+             :foundation_wall_distance_to_top => runner.getDoubleArgumentValue("foundation_wall_distance_to_top", user_arguments),
+             :foundation_wall_distance_to_bottom => runner.getDoubleArgumentValue("foundation_wall_distance_to_bottom", user_arguments),
+             :foundation_wall_depth_below_grade => runner.getDoubleArgumentValue("foundation_wall_depth_below_grade", user_arguments),
              :perimeter_insulation_r_value => runner.getDoubleArgumentValue("slab_perimeter_r", user_arguments),
              :perimeter_insulation_depth => runner.getDoubleArgumentValue("slab_perimeter_depth", user_arguments),
              :under_slab_insulation_r_value => runner.getDoubleArgumentValue("slab_under_r", user_arguments),
@@ -2433,15 +2450,6 @@ class HPXMLFile
       next unless ["Foundation"].include? surface.outsideBoundaryCondition
       next if surface.surfaceType != "Wall"
 
-      insulation_interior_distance_to_bottom = 0
-      if args[:foundation_wall_interior_r] > 0
-        insulation_interior_distance_to_bottom = args[:foundation_height]
-      end
-      insulation_exterior_distance_to_bottom = 0
-      if args[:foundation_wall_exterior_r] > 0
-        insulation_exterior_distance_to_bottom = args[:foundation_height]
-      end
-
       foundation_walls_values << { :id => surface.name.to_s,
                                    :exterior_adjacent_to => "ground",
                                    :interior_adjacent_to => get_adjacent_to(model, surface),
@@ -2449,13 +2457,13 @@ class HPXMLFile
                                    :area => UnitConversions.convert(surface.netArea, "m^2", "ft^2"),
                                    :azimuth => nil, # FIXME: Get from model
                                    :thickness => 8,
-                                   :depth_below_grade => args[:foundation_height], # TODO: Add as input?
-                                   :insulation_interior_r_value => args[:foundation_wall_interior_r], # FIXME: Calculate
-                                   :insulation_interior_distance_to_top => 0, # TODO: Add as input?
-                                   :insulation_interior_distance_to_bottom => insulation_interior_distance_to_bottom, # TODO: Add as input?
-                                   :insulation_exterior_r_value => args[:foundation_wall_exterior_r], # FIXME: Calculate
-                                   :insulation_exterior_distance_to_top => 0, # TODO: Add as input?
-                                   :insulation_exterior_distance_to_bottom => insulation_exterior_distance_to_bottom } # TODO: Add as input?
+                                   :depth_below_grade => args[:foundation_wall_depth_below_grade],
+                                   :insulation_interior_r_value => 0,
+                                   :insulation_interior_distance_to_top => 0,
+                                   :insulation_interior_distance_to_bottom => 0,
+                                   :insulation_exterior_r_value => args[:foundation_wall_r],
+                                   :insulation_exterior_distance_to_top => args[:foundation_wall_distance_to_top],
+                                   :insulation_exterior_distance_to_bottom => args[:foundation_wall_distance_to_bottom] }
     end
     return foundation_walls_values
   end

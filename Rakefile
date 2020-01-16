@@ -135,7 +135,7 @@ def create_osws
     'base-foundation-slab.osw' => 'base.osw',
     'base-foundation-unconditioned-basement.osw' => 'base.osw',
     'base-foundation-unconditioned-basement-above-grade.osw' => 'base.osw',
-    'base-foundation-unconditioned-basement-assembly-r.osw' => 'base.osw',
+    # 'base-foundation-unconditioned-basement-assembly-r.osw' => 'base.osw',
     'base-foundation-unconditioned-basement-wall-insulation.osw' => 'base.osw',
     'base-foundation-unvented-crawlspace.osw' => 'base.osw',
     'base-foundation-vented-crawlspace.osw' => 'base.osw',
@@ -346,9 +346,11 @@ def get_values(osw_file, step)
     step.setArgument("garage_position", "Right")
     step.setArgument("foundation_type", "basement - conditioned")
     step.setArgument("foundation_height", 8.0)
-    step.setArgument("foundation_ceiling_r", 30)
-    step.setArgument("foundation_wall_interior_r", 0)
-    step.setArgument("foundation_wall_exterior_r", 8.9)
+    step.setArgument("foundation_ceiling_r", 0)
+    step.setArgument("foundation_wall_r", 8.9)
+    step.setArgument("foundation_wall_distance_to_top", 0.0)
+    step.setArgument("foundation_wall_distance_to_bottom", 8.0)
+    step.setArgument("foundation_wall_depth_below_grade", 8.0)
     step.setArgument("slab_perimeter_r", 0)
     step.setArgument("slab_perimeter_depth", 0)
     step.setArgument("slab_under_r", 0)
@@ -896,41 +898,56 @@ def get_values(osw_file, step)
     step.setArgument("right_wwr", 0)
   elsif ['base-foundation-ambient.osw'].include? osw_file
     step.setArgument("foundation_type", "ambient")
+    step.setArgument("foundation_ceiling_r", 18.7)
   elsif ['base-foundation-complex.osw'].include? osw_file
 
   elsif ['base-foundation-conditioned-basement-slab-insulation.osw'].include? osw_file
     step.setArgument("slab_under_r", 10)
+    step.setArgument("slab_under_width", 4)
   elsif ['base-foundation-conditioned-basement-wall-interior-insulation.osw'].include? osw_file
-    step.setArgument("foundation_ceiling_r", 0)
-    step.setArgument("foundation_wall_interior_r", 10.0)
+    step.setArgument("foundation_wall_r", 18.9)
   elsif ['base-foundation-multiple.osw'].include? osw_file
 
   elsif ['base-foundation-slab.osw'].include? osw_file
     step.setArgument("foundation_type", "slab")
+    step.setArgument("foundation_wall_depth_below_grade", 0.0)
     step.setArgument("slab_under_r", 5)
     step.setArgument("slab_under_width", 999)
     step.setArgument("carpet_fraction", 1.0)
     step.setArgument("carpet_r_value", 2.5)
   elsif ['base-foundation-unconditioned-basement.osw'].include? osw_file
     step.setArgument("foundation_type", "basement - unconditioned")
+    step.setArgument("foundation_wall_r", 0)
+    step.setArgument("foundation_wall_distance_to_bottom", 0)
   elsif ['base-foundation-unconditioned-basement-above-grade.osw'].include? osw_file
     step.setArgument("foundation_type", "basement - unconditioned")
+    step.setArgument("foundation_wall_r", 0)
+    step.setArgument("foundation_wall_distance_to_bottom", 0)
+    step.setArgument("foundation_wall_depth_below_grade", 4)
   elsif ['base-foundation-unconditioned-basement-assembly-r.osw'].include? osw_file
-    step.setArgument("foundation_type", "basement - unconditioned")
+
   elsif ['base-foundation-unconditioned-basement-wall-insulation.osw'].include? osw_file
     step.setArgument("foundation_type", "basement - unconditioned")
-    step.setArgument("foundation_ceiling_r", 0)
+    step.setArgument("foundation_ceiling_r", 2.1)
+    step.setArgument("foundation_wall_distance_to_bottom", 4)
   elsif ['base-foundation-unvented-crawlspace.osw'].include? osw_file
-    step.setArgument("carpet_r_value", 2.5)
     step.setArgument("foundation_type", "crawlspace - unvented")
     step.setArgument("foundation_height", 3.0)
-  elsif ['base-foundation-vented-crawlspace.osw'].include? osw_file
+    step.setArgument("foundation_ceiling_r", 18.7)
+    step.setArgument("foundation_wall_distance_to_bottom", 4.0)
+    step.setArgument("foundation_wall_depth_below_grade", 3.0)
     step.setArgument("carpet_r_value", 2.5)
+  elsif ['base-foundation-vented-crawlspace.osw'].include? osw_file
     step.setArgument("foundation_type", "crawlspace - vented")
     step.setArgument("foundation_height", 3.0)
+    step.setArgument("foundation_ceiling_r", 18.7)
+    step.setArgument("foundation_wall_distance_to_bottom", 4.0)
+    step.setArgument("foundation_wall_depth_below_grade", 3.0)
+    step.setArgument("carpet_r_value", 2.5)
     step.setArgument("vented_crawlspace_sla", 0.00667)
   elsif ['base-foundation-walkout-basement.osw'].include? osw_file
-
+    step.setArgument("foundation_wall_distance_to_bottom", 4.0)
+    step.setArgument("foundation_wall_depth_below_grade", 3.0)
   elsif ['base-hvac-air-to-air-heat-pump-1-speed.osw'].include? osw_file
     step.setArgument("heating_system_type", "air-to-air")
     step.setArgument("heating_system_fuel", "electricity")
