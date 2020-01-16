@@ -192,8 +192,8 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
     # Make a string argument for occupants (auto or number)
     num_occupants = OpenStudio::Measure::OSArgument::makeStringArgument("num_occupants", true)
     num_occupants.setDisplayName("Number of Occupants")
-    num_occupants.setDescription("Specify the number of occupants. Used to specify the internal gains from people only.")
-    num_occupants.setDefaultValue("3")
+    num_occupants.setDescription("Specify the number of occupants. A value of '#{Constants.Auto}' will calculate the average number of occupants from the number of bedrooms. Used to specify the internal gains from people only.")
+    num_occupants.setDefaultValue(Constants.Auto)
     args << num_occupants
 
     # Make a string argument for 24 weekday schedule values
