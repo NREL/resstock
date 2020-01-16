@@ -9,6 +9,42 @@ class TestResStockErrors < MiniTest::Test
     @lookup_file = File.join(File.dirname(__FILE__), '..', 'resources', 'test_options_lookup.tsv')
   end
 
+  def test_housing_characteristics_float_precision
+    begin
+      housing_characteristics_dir = "housing_characteristics_float_precision"
+      integrity_check(@project_dir_name, housing_characteristics_dir, @lookup_file)
+      integrity_check_options_lookup_tsv(@project_dir_name, housing_characteristics_dir, @lookup_file)
+    rescue Exception => e
+      assert_equal("ERROR: Incorrect float precision found in 'Location', line '2'.", e.message)
+    else
+      flunk "Should have caused an error but didn't."
+    end
+  end
+
+  def test_housing_characteristics_newline_character
+    begin
+      housing_characteristics_dir = "housing_characteristics_newline_character"
+      integrity_check(@project_dir_name, housing_characteristics_dir, @lookup_file)
+      integrity_check_options_lookup_tsv(@project_dir_name, housing_characteristics_dir, @lookup_file)
+    rescue Exception => e
+      assert_equal("ERROR: Incorrect newline character found in 'Location', line '1'.", e.message)
+    else
+      flunk "Should have caused an error but didn't."
+    end
+  end
+
+  def test_housing_characteristics_scientific_notation
+    begin
+      housing_characteristics_dir = "housing_characteristics_scientific_notation"
+      integrity_check(@project_dir_name, housing_characteristics_dir, @lookup_file)
+      integrity_check_options_lookup_tsv(@project_dir_name, housing_characteristics_dir, @lookup_file)
+    rescue Exception => e
+      assert_equal("ERROR: Scientific notation found in 'Location', line '2'.", e.message)
+    else
+      flunk "Should have caused an error but didn't."
+    end
+  end
+
   def test_housing_characteristics_sum_not_one
     begin
       housing_characteristics_dir = "housing_characteristics_sum_not_one"
