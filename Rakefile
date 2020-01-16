@@ -263,9 +263,6 @@ def integrity_check(project_dir_name, housing_characteristics_dir = "housing_cha
       puts "Checking for issues with #{project_dir_name}/#{parameter_name}..."
       parameters_processed << parameter_name
 
-      # Check file format to be consistent with specified guidelines
-      check_parameter_file_format(tsvpath, tsvfile.dependency_cols.length(), parameter_name)
-
       # Test that dependency options exist
       tsvfile.dependency_options.each do |dependency, options|
         options.each do |option|
@@ -285,6 +282,9 @@ def integrity_check(project_dir_name, housing_characteristics_dir = "housing_cha
         # global distribution
         _matched_option_name, _matched_row_num = tsvfile.get_option_name_from_sample_number(1.0, nil)
       end
+
+      # Check file format to be consistent with specified guidelines
+      check_parameter_file_format(tsvpath, tsvfile.dependency_cols.length(), parameter_name)
 
       # Check for all options defined in options_lookup.tsv
       get_measure_args_from_option_names(lookup_file, tsvfile.option_cols.keys, parameter_name)
@@ -440,7 +440,8 @@ def check_parameter_file_format(tsvpath, n_deps, name)
         # For each non dependency entry check format
         for j in n_deps..line.length() - 1 do
           # Check for scientific format
-          if (line[j].include?('e') || line[j].include?('E'))
+          if (line[j].include?('e-') || line[j].include?('e+') ||
+              line[j].include?('E-') || line[j].include?('E+'))
             raise "ERROR: Scientific format found in '#{name}', line '#{i}'"
           end
 
