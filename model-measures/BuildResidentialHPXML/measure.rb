@@ -13,6 +13,7 @@ require_relative "../BuildResidentialHPXML/resources/geometry"
 require_relative "../BuildResidentialHPXML/resources/schedules"
 require_relative "../BuildResidentialHPXML/resources/waterheater"
 require_relative "../BuildResidentialHPXML/resources/constants"
+require_relative "../BuildResidentialHPXML/resources/location"
 
 # start the measure
 class HPXMLExporter < OpenStudio::Measure::ModelMeasure
