@@ -442,24 +442,24 @@ def check_parameter_file_format(tsvpath, n_deps, name)
           # Check for scientific format
           if (line[j].include?('e-') || line[j].include?('e+') ||
               line[j].include?('E-') || line[j].include?('E+'))
-            raise "ERROR: Scientific format found in '#{name}', line '#{i}'"
+            raise "ERROR: Scientific notation found in '#{name}', line '#{i}'."
           end
 
           begin # Try to get the float precision
             float_precision = line[j].split('.')[1].length()
           rescue NoMethodError
             # Catch non floats
-            raise "ERROR: Incorrect non float found in '#{name}', line '#{i}'"
+            raise "ERROR: Incorrect non float found in '#{name}', line '#{i}'."
           end
           # If float precision is not 6 digits, raise error
           if float_precision != 6
-            raise "ERROR: Incorrect float precision found in '#{name}', line '#{i}'"
+            raise "ERROR: Incorrect float precision found in '#{name}', line '#{i}'."
           end
         end
       end
     else
       # Found wrong endline format
-      raise "ERROR: Incorrect newline character found in '#{name}', line '#{i}'"
+      raise "ERROR: Incorrect newline character found in '#{name}', line '#{i}'."
     end # End checks
     i += 1
   end
