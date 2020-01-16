@@ -117,12 +117,12 @@ class ProcessHeatingSetpoints < OpenStudio::Measure::ModelMeasure
     season_end_month.setDefaultValue("Dec")
     args << season_end_month
 
-    # Make a string argument for thermostat deadband
-    onoff_thermostat_deadband = OpenStudio::Measure::OSArgument::makeStringArgument("onoff_thermostat_deadband", false)
+    # Make a double argument for thermostat deadband
+    onoff_thermostat_deadband = OpenStudio::Measure::OSArgument::makeDoubleArgument("onoff_thermostat_deadband", true)
     onoff_thermostat_deadband.setDisplayName("OnOff Thermostat Deadband")
     onoff_thermostat_deadband.setDescription("Specify a positive value of deadband between setpoint and cutout temperature to model on/off thermostat behavior. The sama value applies to both heating and cooling. Default is 0.0(traditional E+ thermostat).")
     onoff_thermostat_deadband.setUnits("degrees F")
-    onoff_thermostat_deadband.setDefaultValue("0.0")
+    onoff_thermostat_deadband.setDefaultValue(0.0)
     args << onoff_thermostat_deadband
 
     return args
@@ -150,7 +150,7 @@ class ProcessHeatingSetpoints < OpenStudio::Measure::ModelMeasure
     season_start_month = runner.getOptionalStringArgumentValue("season_start_month", user_arguments)
     season_end_month = runner.getOptionalStringArgumentValue("season_end_month", user_arguments)
 
-    onoff_thermostat_deadband = runner.getStringArgumentValue("onoff_thermostat_deadband", user_arguments).to_f
+    onoff_thermostat_deadband = runner.getDoubleArgumentValue("onoff_thermostat_deadband", user_arguments)
 
     weather = WeatherProcess.new(model, runner)
     if weather.error?
@@ -198,6 +198,12 @@ class ProcessHeatingSetpoints < OpenStudio::Measure::ModelMeasure
 
     if weekend_offset_schedule.length != 24
       err_msg = "A comma-separated string of 24 numbers must be entered for the weekend offset time of day schedule."
+      runner.registerError(err_msg)
+      return false
+    end
+
+    if onoff_thermostat_deadband < 0.0
+      err_msg = "A negative thermostat deadband is specified. Please double check."
       runner.registerError(err_msg)
       return false
     end

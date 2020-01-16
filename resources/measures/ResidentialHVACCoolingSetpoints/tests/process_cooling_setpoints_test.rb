@@ -40,6 +40,13 @@ class ProcessCoolingSetpointsTest < MiniTest::Test
     assert_includes(result.errors.map { |x| x.logMessage }, "A comma-separated string of 24 numbers must be entered for the weekend offset time of day schedule.")
   end
 
+  def test_negative_deadband_error
+    args_hash = {}
+    args_hash["onoff_thermostat_deadband"] = -1.0
+    result = _test_error("SFD_2000sqft_2story_SL_UA_3Beds_2Baths_Denver_CentralAC_NoSetpoints.osm", args_hash)
+    assert_includes(result.errors.map { |x| x.logMessage }, "A negative thermostat deadband is specified. Please double check.")
+  end
+
   def test_no_equip
     args_hash = {}
     expected_num_del_objects = {}
@@ -255,7 +262,7 @@ class ProcessCoolingSetpointsTest < MiniTest::Test
 
   def test_thermostat_deadband
     args_hash = {}
-    args_hash["onoff_thermostat_deadband"] = "1.0"
+    args_hash["onoff_thermostat_deadband"] = 1.0
     expected_num_del_objects = {}
     expected_num_new_objects = { "ScheduleRule" => 36, "ScheduleRuleset" => 3, "ThermostatSetpointDualSetpoint" => 1 }
     expected_values = { "h_during_h_season" => [Constants.DefaultHeatingSetpoint] * 24, "h_during_c_season" => [Constants.DefaultHeatingSetpoint] * 24, "h_during_o_season" => [Constants.DefaultHeatingSetpoint] * 24, "c_during_c_season" => [Constants.DefaultCoolingSetpoint] * 24, "c_during_h_season" => [Constants.DefaultCoolingSetpoint] * 24, "c_during_o_season" => [Constants.DefaultCoolingSetpoint] * 24, "thermostat_deadband" => 1.0 }
