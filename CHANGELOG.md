@@ -1,6 +1,7 @@
 ## ResStock v2.2.0 (pending)
 
 Features
+- Made housing characteristics a consistent format. Added integrity check to ensure housing characteristics follow the guildelines specified in read-the-docs ([#353](https://github.com/NREL/OpenStudio-BuildStock/pull/353))
 - Update bedrooms and occupants tsv files with options and probability distributions based on RECS 2015 data ([#340](https://github.com/NREL/OpenStudio-BuildStock/pull/340))
 - Add new QOIReport measure for reporting seasonal quantities of interest for uncertainty quantification ([#334](https://github.com/NREL/OpenStudio-BuildStock/pull/334))
 - Separate tsv files for bedrooms, cooking range schedule, corridor, holiday lighting, interior/other lighting use, pool schedule, plug loads schedule, and refrigeration schedule ([#338](https://github.com/NREL/OpenStudio-BuildStock/pull/338))
