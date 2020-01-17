@@ -1,5 +1,5 @@
 def map_geometry_building_type(df):
-    df['Geometry Building Type'] = df['TYPEHUQ'].map({1: 'Mobile Home',
+    df['Geometry Building Type RECS'] = df['TYPEHUQ'].map({1: 'Mobile Home',
                                                       2: 'Single-Family Detached',
                                                       3: 'Single-Family Attached',
                                                       4: 'Multi-Family with 2 - 4 Units',
