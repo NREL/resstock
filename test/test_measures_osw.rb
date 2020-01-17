@@ -8,7 +8,7 @@ require_relative '../resources/run_sampling'
 
 class TestResStockMeasuresOSW < MiniTest::Test
   def test_measures_osw
-    project_dir = "project_testing"
+    project_dir = "project_singlefamilydetached"
     num_samples = 200
 
     parent_dir = File.absolute_path(File.join(File.dirname(__FILE__), "test_measures_osw"))
