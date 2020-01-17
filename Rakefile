@@ -429,9 +429,9 @@ end
 def check_parameter_file_format(tsvpath, n_deps, name)
   # For each line in file
   i = 1
-  File.foreach(tsvpath) do |line|
+  File.read(tsvpath, mode: "rb").each_line do |line|
     # Check endline character
-    if (line.include? "\r\n")
+    if line.include? "\r\n"
       # Do not perform other checks if the line is the header
       if i > 1
         # Check float format
