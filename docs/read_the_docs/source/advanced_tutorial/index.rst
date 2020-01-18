@@ -12,6 +12,7 @@ If your changes are intended to be merged into the master branch of the `OpenStu
 .. toctree::
 
    modifying_probability_distributions
+   writing_housing_characteristics
    installer_setup
    rake_tasks
    options_lookup
