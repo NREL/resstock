@@ -945,7 +945,7 @@ end
 class Dishwasher
   def self.apply(model, unit, runner, num_settings, rated_annual_energy,
                  cold_inlet, has_internal_heater, cold_use, test_date,
-                 annual_gas_cost, mult_e, mult_hw, d_sh, space, plant_loop,
+                 annual_gas_cost, mult_e, mult_hw, space, plant_loop,
                  mains_temps, sch, schedules_file)
 
     # Check for valid inputs
@@ -975,10 +975,6 @@ class Dishwasher
     end
     if mult_hw < 0
       runner.registerError("Occupancy hot water multiplier must be greater than or equal to 0.")
-      return false
-    end
-    if d_sh < 0 or d_sh > 364
-      runner.registerError("Hot water draw profile can only be shifted by 0-364 days.")
       return false
     end
 
