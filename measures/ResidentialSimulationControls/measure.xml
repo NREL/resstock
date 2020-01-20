@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>residential_simulation_controls</name>
   <uid>874f921e-8f3c-458a-a82f-01b7d51a547e</uid>
-  <version_id>b9258fa8-94ae-4f8e-b4f3-af203eae89cc</version_id>
-  <version_modified>20190709T162534Z</version_modified>
+  <version_id>db33596a-d422-49e6-95c1-0191bd5546b4</version_id>
+  <version_modified>20191202T190451Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>ResidentialSimulationControls</class_name>
   <display_name>Set Residential Simulation Controls</display_name>
@@ -56,13 +56,13 @@
       <default_value>31</default_value>
     </argument>
     <argument>
-      <name>calendar_year</name>
-      <display_name>Calendar Year</display_name>
-      <description>This numeric field should contain the calendar year that determines the start day of week. If you are running simulations using AMY weather files, the value entered for calendar year will not be used; it will be overridden by the actual year found in the AMY weather file.</description>
-      <type>Integer</type>
+      <name>start_day_of_week</name>
+      <display_name>Start Day of Week</display_name>
+      <description>This field should contain the start day of week. If you are running simulations using AMY weather files, the value entered will be overridden by the start day of week for the actual year.</description>
+      <type>String</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>2007</default_value>
+      <default_value>Monday</default_value>
     </argument>
   </arguments>
   <outputs/>
@@ -82,7 +82,7 @@
       <filename>set_simulation_controls_test.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
-      <checksum>056A2C0C</checksum>
+      <checksum>1B959458</checksum>
     </file>
     <file>
       <version>
@@ -93,7 +93,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>0036CB06</checksum>
+      <checksum>8716DBF2</checksum>
     </file>
   </files>
 </measure>

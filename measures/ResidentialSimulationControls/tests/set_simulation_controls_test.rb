@@ -61,21 +61,21 @@ class ResidentialSimulationControlsTest < MiniTest::Test
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 3)
   end
 
-  def test_error_bad_calendar_year
+  def test_error_bad_start_day_of_week
     args_hash = {}
-    args_hash["calendar_year"] = "209"
+    args_hash["start_day_of_week"] = "Frday"
     result = _test_error_or_NA(nil, args_hash)
     assert(result.errors.size == 1)
     assert_equal("Fail", result.value.valueName)
-    assert_includes(result.errors.map { |x| x.logMessage }, "Your calendar year value of #{args_hash["calendar_year"]} is not in the range 1600-9999.")
+    assert_includes(result.errors.map { |x| x.logMessage }, "User-entered '#{args_hash["start_day_of_week"]}' is not a valid start day of the week.")
   end
 
-  def test_calendar_year_nondefault
+  def test_start_day_of_week_nondefault
     args_hash = {}
-    args_hash["calendar_year"] = "2006"
+    args_hash["start_day_of_week"] = "Friday"
     expected_num_del_objects = {}
     expected_num_new_objects = { "SimulationControl" => 1, "Timestep" => 1, "ShadowCalculation" => 1, "ZoneCapacitanceMultiplierResearchSpecial" => 1, "RunPeriod" => 1 }
-    expected_values = { "TimestepsPerHour" => 6, "BeginMonth" => 1, "BeginDayOfMonth" => 1, "EndMonth" => 12, "EndDayOfMonth" => 31, "StartDayOfWeek" => "Sunday" }
+    expected_values = { "TimestepsPerHour" => 6, "BeginMonth" => 1, "BeginDayOfMonth" => 1, "EndMonth" => 12, "EndDayOfMonth" => 31, "StartDayOfWeek" => "Friday" }
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 3)
   end
 
