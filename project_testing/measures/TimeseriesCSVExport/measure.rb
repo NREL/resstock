@@ -166,11 +166,11 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
       break
     end
     unless run_period_control_daylight_saving_time.nil?
-      hour_of_dst_switch = OpenStudio::Time.new(0, 0, 0, 0) # Midnight
+      hour_of_dst_switch = OpenStudio::Time.new(0, 1, 0, 0) # 1 AM
       dst_start_date = run_period_control_daylight_saving_time.startDate
       dst_start_datetime = OpenStudio::DateTime.new(dst_start_date, hour_of_dst_switch)
       dst_end_date = run_period_control_daylight_saving_time.endDate
-      dst_end_datetime = OpenStudio::DateTime.new(dst_end_date, hour_of_dst_switch - OpenStudio::Time.new(0, 1, 0, 0))
+      dst_end_datetime = OpenStudio::DateTime.new(dst_end_date + OpenStudio::Time.new(1, 0, 0, 0), hour_of_dst_switch)
     end
 
     datetimes = []
@@ -236,6 +236,8 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     report_ts_output(runner, timeseries, "electricity_central_system_cooling_kwh", electricity.central_cooling, "GJ", elec_site_units)
     report_ts_output(runner, timeseries, "electricity_interior_lighting_kwh", electricity.interior_lighting, "GJ", elec_site_units)
     report_ts_output(runner, timeseries, "electricity_exterior_lighting_kwh", electricity.exterior_lighting, "GJ", elec_site_units)
+    report_ts_output(runner, timeseries, "electricity_exterior_holiday_lighting_kwh", electricity.exterior_holiday_lighting, "GJ", elec_site_units)
+    report_ts_output(runner, timeseries, "electricity_garage_lighting_kwh", electricity.garage_lighting, "GJ", elec_site_units)
     report_ts_output(runner, timeseries, "electricity_interior_equipment_kwh", electricity.interior_equipment, "GJ", elec_site_units)
     report_ts_output(runner, timeseries, "electricity_fans_heating_kwh", electricity.fans_heating, "GJ", elec_site_units)
     report_ts_output(runner, timeseries, "electricity_fans_cooling_kwh", electricity.fans_cooling, "GJ", elec_site_units)
@@ -309,8 +311,6 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
       report_ts_output(runner, timeseries, "natural_gas_lighting_therm", natural_gas.lighting, "GJ", gas_site_units)
       report_ts_output(runner, timeseries, "natural_gas_fireplace_therm", natural_gas.fireplace, "GJ", gas_site_units)
       report_ts_output(runner, timeseries, "electricity_well_pump_kwh", electricity.well_pump, "GJ", elec_site_units)
-      report_ts_output(runner, timeseries, "electricity_garage_lighting_kwh", electricity.garage_lighting, "GJ", elec_site_units)
-      report_ts_output(runner, timeseries, "electricity_exterior_holiday_lighting_kwh", electricity.exterior_holiday_lighting, "GJ", elec_site_units)
     end
 
     output_vars.each do |output_var|
