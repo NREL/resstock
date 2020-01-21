@@ -193,7 +193,7 @@ Leave this alone.
 Simulation Output Report
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-Leave this alone.
+Leave this alone if you do not want to report annual totals for end use subcategories. Select **Include End Use Subcategories** if you want to report them. See below for a listing of available end use subcategories.
 
 .. _timeseries-csv-export:
 
