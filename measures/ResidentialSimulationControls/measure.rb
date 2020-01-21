@@ -72,11 +72,11 @@ class ResidentialSimulationControls < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(31)
     args << arg
 
-    # make an argument for the start day of week
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument("start_day_of_week", true)
-    arg.setDisplayName("Start Day of Week")
-    arg.setDescription("This field should contain the start day of week. If you are running simulations using AMY weather files, the value entered will be overridden by the start day of week for the actual year.")
-    arg.setDefaultValue("Monday")
+    # make an argument for the calendar year; this determines the day of week for start day
+    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument("calendar_year", true)
+    arg.setDisplayName("Calendar Year")
+    arg.setDescription("This numeric field should contain the calendar year that determines the start day of week. If you are running simulations using AMY weather files, the value entered for calendar year will not be used; it will be overridden by the actual year found in the AMY weather file.")
+    arg.setDefaultValue(2007)
     args << arg
 
     return args
@@ -96,7 +96,7 @@ class ResidentialSimulationControls < OpenStudio::Measure::ModelMeasure
     begin_day_of_month = runner.getIntegerArgumentValue("begin_day_of_month", user_arguments)
     end_month = runner.getIntegerArgumentValue("end_month", user_arguments)
     end_day_of_month = runner.getIntegerArgumentValue("end_day_of_month", user_arguments)
-    start_day_of_week = runner.getStringArgumentValue("start_day_of_week", user_arguments)
+    calendar_year = runner.getIntegerArgumentValue("calendar_year", user_arguments)
 
     # Error checking
     if timesteps_per_hr < 1 or timesteps_per_hr > 60
@@ -128,12 +128,12 @@ class ResidentialSimulationControls < OpenStudio::Measure::ModelMeasure
       end
     end
 
-    unless ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].include? start_day_of_week
-      runner.registerError("User-entered '#{start_day_of_week}' is not a valid start day of the week.")
+    if calendar_year < 1600 or calendar_year > 9999
+      runner.registerError("Your calendar year value of #{calendar_year} is not in the range 1600-9999.")
       return false
     end
 
-    success = Simulation.apply(model, runner, timesteps_per_hr, min_system_timestep_mins = nil, begin_month, begin_day_of_month, end_month, end_day_of_month, start_day_of_week)
+    success = Simulation.apply(model, runner, timesteps_per_hr, min_system_timestep_mins = nil, begin_month, begin_day_of_month, end_month, end_day_of_month, calendar_year)
     return false if not success
 
     runner.registerInfo("Set the simulation timesteps per hour to #{timesteps_per_hr}.")
