@@ -1021,11 +1021,9 @@ class SchedulesFile
     @runner = runner
     @model = model
     @schedules_output_path = schedules_output_path
+    @external_file = get_external_file
 
     @schedules = {}
-    if File.exist? @schedules_output_path
-      @external_file = import
-    end
   end
 
   def validated?
@@ -1034,10 +1032,6 @@ class SchedulesFile
 
   def schedules
     return @schedules
-  end
-
-  def external_file
-    return @external_file
   end
 
   def get_col_index(col_name:)
@@ -1055,6 +1049,7 @@ class SchedulesFile
   def createScheduleFile(sch_file_name:,
                          col_name:,
                          rows_to_skip: 1)
+    import(col_name: col_name)
 
     if @schedules[col_name].nil?
       @runner.registerError("Could not find the '#{col_name}' schedule.")
@@ -1146,23 +1141,33 @@ class SchedulesFile
     end
   end
 
-  def import
+  def external_file
+    return @external_file
+  end
+
+  def get_external_file
+    if File.exist? @schedules_output_path
+      external_file = OpenStudio::Model::ExternalFile::getExternalFile(@model, @schedules_output_path)
+      if external_file.is_initialized
+        external_file = external_file.get
+        external_file.setName(external_file.fileName)
+      end
+    end
+    return external_file
+  end
+
+  def import(col_name:)
+    return if @schedules.keys.include? col_name
+
     columns = CSV.read(@schedules_output_path).transpose
     columns.each do |col|
-      col_name = col[0]
+      next if col_name != col[0]
+
       values = col[1..-1].reject { |v| v.nil? }
       values = values.map { |v| v.to_f }
       validateSchedule(col_name: col_name, values: values)
       @schedules[col_name] = values
     end
-
-    external_file = OpenStudio::Model::ExternalFile::getExternalFile(@model, @schedules_output_path)
-    if external_file.is_initialized
-      external_file = external_file.get
-      external_file.setName(external_file.fileName)
-    end
-
-    return external_file
   end
 
   def export
