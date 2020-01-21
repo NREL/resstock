@@ -1073,6 +1073,8 @@ class SchedulesFile
   end
 
   def annual_equivalent_full_load_hrs(col_name:)
+    import(col_name: col_name)
+
     year_description = @model.getYearDescription
     num_hrs_in_year = Constants.NumHoursInYear(year_description.isLeapYear)
     schedule_length = @schedules[col_name].length
