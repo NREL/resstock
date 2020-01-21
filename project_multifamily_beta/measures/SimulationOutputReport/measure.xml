@@ -2,14 +2,34 @@
   <schema_version>3.0</schema_version>
   <name>simulation_output_report</name>
   <uid>fc337100-8634-404e-8966-01243d292a79</uid>
-  <version_id>452c3c75-928b-4c49-93f5-dc319088b009</version_id>
-  <version_modified>20191210T220251Z</version_modified>
+  <version_id>5b499a45-7da6-4545-8be2-50749ca25654</version_id>
+  <version_modified>20200121T182323Z</version_modified>
   <xml_checksum>2C8A3EEF</xml_checksum>
   <class_name>SimulationOutputReport</class_name>
   <display_name>Simulation Output Report</display_name>
   <description>Reports simulation outputs of interest.</description>
   <modeler_description>Change me</modeler_description>
-  <arguments/>
+  <arguments>
+    <argument>
+      <name>include_enduse_subcategories</name>
+      <display_name>Include End Use Subcategories</display_name>
+      <description>Whether to report end use subcategories: appliances, plug loads, fans, large uncommon loads.</description>
+      <type>Boolean</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+  </arguments>
   <outputs>
     <output>
       <name>total_site_energy_mbtu</name>
@@ -299,9 +319,184 @@
       <model_dependent>false</model_dependent>
     </output>
     <output>
-      <name>weight</name>
-      <display_name>weight</display_name>
-      <short_name>weight</short_name>
+      <name>electricity_refrigerator_kwh</name>
+      <display_name>electricity_refrigerator_kwh</display_name>
+      <short_name>electricity_refrigerator_kwh</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>electricity_clothes_washer_kwh</name>
+      <display_name>electricity_clothes_washer_kwh</display_name>
+      <short_name>electricity_clothes_washer_kwh</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>electricity_clothes_dryer_kwh</name>
+      <display_name>electricity_clothes_dryer_kwh</display_name>
+      <short_name>electricity_clothes_dryer_kwh</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>natural_gas_clothes_dryer_therm</name>
+      <display_name>natural_gas_clothes_dryer_therm</display_name>
+      <short_name>natural_gas_clothes_dryer_therm</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>propane_clothes_dryer_mbtu</name>
+      <display_name>propane_clothes_dryer_mbtu</display_name>
+      <short_name>propane_clothes_dryer_mbtu</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>electricity_cooking_range_kwh</name>
+      <display_name>electricity_cooking_range_kwh</display_name>
+      <short_name>electricity_cooking_range_kwh</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>natural_gas_cooking_range_therm</name>
+      <display_name>natural_gas_cooking_range_therm</display_name>
+      <short_name>natural_gas_cooking_range_therm</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>propane_cooking_range_mbtu</name>
+      <display_name>propane_cooking_range_mbtu</display_name>
+      <short_name>propane_cooking_range_mbtu</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>electricity_dishwasher_kwh</name>
+      <display_name>electricity_dishwasher_kwh</display_name>
+      <short_name>electricity_dishwasher_kwh</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>electricity_plug_loads_kwh</name>
+      <display_name>electricity_plug_loads_kwh</display_name>
+      <short_name>electricity_plug_loads_kwh</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>electricity_house_fan_kwh</name>
+      <display_name>electricity_house_fan_kwh</display_name>
+      <short_name>electricity_house_fan_kwh</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>electricity_range_fan_kwh</name>
+      <display_name>electricity_range_fan_kwh</display_name>
+      <short_name>electricity_range_fan_kwh</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>electricity_bath_fan_kwh</name>
+      <display_name>electricity_bath_fan_kwh</display_name>
+      <short_name>electricity_bath_fan_kwh</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>electricity_ceiling_fan_kwh</name>
+      <display_name>electricity_ceiling_fan_kwh</display_name>
+      <short_name>electricity_ceiling_fan_kwh</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>electricity_extra_refrigerator_kwh</name>
+      <display_name>electricity_extra_refrigerator_kwh</display_name>
+      <short_name>electricity_extra_refrigerator_kwh</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>electricity_freezer_kwh</name>
+      <display_name>electricity_freezer_kwh</display_name>
+      <short_name>electricity_freezer_kwh</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>electricity_pool_heater_kwh</name>
+      <display_name>electricity_pool_heater_kwh</display_name>
+      <short_name>electricity_pool_heater_kwh</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>natural_gas_pool_heater_therm</name>
+      <display_name>natural_gas_pool_heater_therm</display_name>
+      <short_name>natural_gas_pool_heater_therm</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>electricity_pool_pump_kwh</name>
+      <display_name>electricity_pool_pump_kwh</display_name>
+      <short_name>electricity_pool_pump_kwh</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>electricity_hot_tub_heater_kwh</name>
+      <display_name>electricity_hot_tub_heater_kwh</display_name>
+      <short_name>electricity_hot_tub_heater_kwh</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>natural_gas_hot_tub_heater_therm</name>
+      <display_name>natural_gas_hot_tub_heater_therm</display_name>
+      <short_name>natural_gas_hot_tub_heater_therm</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>electricity_hot_tub_pump_kwh</name>
+      <display_name>electricity_hot_tub_pump_kwh</display_name>
+      <short_name>electricity_hot_tub_pump_kwh</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>natural_gas_grill_therm</name>
+      <display_name>natural_gas_grill_therm</display_name>
+      <short_name>natural_gas_grill_therm</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>natural_gas_lighting_therm</name>
+      <display_name>natural_gas_lighting_therm</display_name>
+      <short_name>natural_gas_lighting_therm</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>natural_gas_fireplace_therm</name>
+      <display_name>natural_gas_fireplace_therm</display_name>
+      <short_name>natural_gas_fireplace_therm</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>electricity_well_pump_kwh</name>
+      <display_name>electricity_well_pump_kwh</display_name>
+      <short_name>electricity_well_pump_kwh</short_name>
       <type>Double</type>
       <model_dependent>false</model_dependent>
     </output>
@@ -793,7 +988,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>0EBF3BC0</checksum>
+      <checksum>C9ADF737</checksum>
     </file>
   </files>
 </measure>
