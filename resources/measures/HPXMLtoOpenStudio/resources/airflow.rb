@@ -619,7 +619,11 @@ class Airflow
       end
 
       vented_crawl = false
-      if (not building.crawlspace.nil? and building.crawlspace.ACH > 0) or (not building.pierbeam.nil? and building.pierbeam.ACH > 0)
+      # if (not building.crawlspace.nil? and building.crawlspace.ACH > 0) or (not building.pierbeam.nil? and building.pierbeam.ACH > 0)
+      #   vented_crawl = true
+      # end
+
+      if (infil.crawl_ach > 0) or (infil.pier_beam_ach > 0)
         vented_crawl = true
       end
 
@@ -722,6 +726,21 @@ class Airflow
       unit_finished_basement.inf_method = @infMethodRes # Used for constant ACH
       unit_finished_basement.inf_flow = unit_finished_basement.ACH / UnitConversions.convert(1.0, "hr", "min") * unit_finished_basement.volume
     end
+
+    # puts("r_i: #{r_i}")
+    # puts("n_i: #{n_i}")
+    # puts("r_x: #{r_x}")
+    # puts("y_i: #{y_i}")
+    # puts("y_x: #{y_x}")
+    # puts("x_s: #{x_s}")
+    # puts("x_x: #{x_x}")
+    # puts("f_w: #{f_w}")
+    # puts("j_i: #{j_i}")
+    # puts("wind_coef: #{wind_coef}")
+    # puts("stack_coef: #{stack_coef}")
+    # puts("s_wflue: #{s_wflue}")
+    # puts("a_o: #{a_o}")
+    # puts("c_i: #{c_i}")
 
     process_infiltration_for_spaces(model, spaces, wind_speed)
 
