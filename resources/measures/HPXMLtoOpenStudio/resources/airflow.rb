@@ -526,6 +526,7 @@ class Airflow
       building.unfinished_attic.inf_flow = building.unfinished_attic.ACH / UnitConversions.convert(1.0, "hr", "min") * building.unfinished_attic.volume
     end
 
+    puts("------Process infiltration for unfinished spaces-------")
     process_infiltration_for_spaces(model, spaces, wind_speed)
 
     return true
@@ -619,12 +620,15 @@ class Airflow
       end
 
       vented_crawl = false
-      # if (not building.crawlspace.nil? and building.crawlspace.ACH > 0) or (not building.pierbeam.nil? and building.pierbeam.ACH > 0)
-      #   vented_crawl = true
-      # end
-
-      if (infil.crawl_ach > 0) or (infil.pier_beam_ach > 0)
+      if (not building.crawlspace.nil? and building.crawlspace.ACH > 0) or (not building.pierbeam.nil? and building.pierbeam.ACH > 0)
         vented_crawl = true
+      end
+
+      found_type = model.getBuilding.additionalProperties.getFeatureAsString("found_type")
+      if not found_type.nil?
+        if (infil.crawl_ach > -10 and found_type =="crawlspace") or (infil.pier_beam_ach > 0 and found_type == "pier and beam")
+          vented_crawl = true
+        end
       end
 
       # Leakage distributions per Iain Walker (LBL) recommendations
@@ -719,7 +723,6 @@ class Airflow
 
       unit_living.ACH = infil.living_constant_ach
       unit_living.inf_flow = unit_living.ACH / UnitConversions.convert(1.0, "hr", "min") * unit_living.volume # cfm
-
     end
 
     unless unit_finished_basement.nil?
@@ -727,6 +730,7 @@ class Airflow
       unit_finished_basement.inf_flow = unit_finished_basement.ACH / UnitConversions.convert(1.0, "hr", "min") * unit_finished_basement.volume
     end
 
+    # puts("-----------Process infiltration for finished spaces------------------------")
     # puts("r_i: #{r_i}")
     # puts("n_i: #{n_i}")
     # puts("r_x: #{r_x}")
@@ -761,6 +765,23 @@ class Airflow
       elsif space.inf_method == @infMethodASHRAE
         space.ELA = space.SLA * space.area # ft^2
       end
+
+      # puts("space.inf_method: #{space.inf_method}")
+      # # puts("space.inf_method: #{space.inf_method}")
+      # puts("space.height: #{space.height}")
+      # puts("space.coord_z: #{space.coord_z}")
+      # puts("space.f_s_SG: #{space.f_s_SG}")
+      # puts("space.hor_lk_frac: #{space.hor_lk_frac}")
+      # puts("space.neutral_level: #{space.neutral_level}")
+      # puts("space.f_w_SG: #{space.f_w_SG}")
+      # puts("space.f_t_SG: #{space.f_t_SG}")
+      # puts("space.C_s_SG: #{space.C_s_SG}")
+      # puts("space.SLA: #{space.SLA}")
+      # puts("space.ELA: #{space.ELA}")
+      # puts("wind_speed.terrain_multiplier: #{wind_speed.terrain_multiplier}")
+      # puts("wind_speed.height: #{wind_speed.height}")
+      # puts("wind_speed.site_terrain_exponent: #{wind_speed.site_terrain_exponent}")
+      # puts("space.ACH: #{space.ACH}")
 
       space.zone.spaces.each do |s|
         next if Geometry.is_living(s)
@@ -1367,6 +1388,16 @@ class Airflow
     nv_program.addLine("Else")
     nv_program.addLine("  Set #{natvent_flow_actuator.name} = 0")
     nv_program.addLine("EndIf")
+
+
+    # puts("====Nat Vent=====")
+    # puts("nv_output.temp_sch.schedule.name.to_s: #{nv_output.temp_sch.schedule.name.to_s}")
+    # puts("nv_output.area: #{nv_output.area}")
+    # puts("nv_output.c_s: #{nv_output.c_s}")
+    # puts("nv_output.c_w: #{nv_output.c_w}")
+    # puts("nv_output.max_flow_rate: #{nv_output.max_flow_rate}")
+    # puts("nat_vent.max_oa_hr: #{nat_vent.max_oa_hr}")
+    # puts("nat_vent.max_oa_rh: #{nat_vent.max_oa_rh}")
 
     return nv_program
   end
@@ -2069,6 +2100,32 @@ class Airflow
     elsif unit_living.inf_method == @infMethodRes
       infil_program.addLine("Set Qn = #{unit_living.ACH * UnitConversions.convert(unit_living.volume, "ft^3", "m^3") / UnitConversions.convert(1.0, "hr", "s")}")
     end
+
+    # puts("====Mech Vent=====")
+    # puts("unit_living.inf_method: #{unit_living.inf_method}")
+    # puts("wind_speed.ashrae_terrain_exponent: #{wind_speed.ashrae_terrain_exponent}")
+    # puts("wind_speed.ashrae_site_terrain_exponent: #{wind_speed.ashrae_site_terrain_exponent}")
+    # puts("wind_speed.ashrae_terrain_thickness: #{wind_speed.ashrae_terrain_thickness}")
+    # puts("wind_speed.ashrae_site_terrain_thickness: #{wind_speed.ashrae_site_terrain_thickness}")
+    # puts("wind_speed.height: #{wind_speed.height}")
+    # puts("unit_living.height: #{unit_living.height}")
+    # puts("infil_output.c_i: #{infil_output.c_i}")
+    # puts("infil_output.n_i: #{infil_output.n_i}")
+    # puts("infil_output.stack_coef: #{infil_output.stack_coef}")
+    # puts("infil_output.wind_coef: #{infil_output.wind_coef}")
+    # puts("wind_speed.S_wo: #{wind_speed.S_wo}")
+    # puts("infil_output.y_i: #{infil_output.y_i}")
+    # puts("infil_output.s_wflue: #{infil_output.s_wflue}")
+
+    # puts("unit_living.ACH: #{unit_living.ACH}")
+    # puts("unit_living.volume: #{unit_living.volume}")
+    # puts("mv_output.whole_house_vent_rate: #{mv_output.whole_house_vent_rate}")
+
+
+    # puts("mv_output.range_hood_hour_avg_exhaust: #{mv_output.range_hood_hour_avg_exhaust}")
+    # puts("mech_vent.dryer_exhaust: #{mech_vent.dryer_exhaust}")
+    # puts("mv_output.bathroom_hour_avg_exhaust: #{mv_output.bathroom_hour_avg_exhaust}")
+
 
     infil_program.addLine("Set Tdiff = #{tin_sensor.name}-#{tout_sensor.name}")
     infil_program.addLine("Set dT = @Abs Tdiff")
