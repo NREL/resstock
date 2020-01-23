@@ -187,10 +187,13 @@ class ResidentialScheduleGenerator < OpenStudio::Measure::ModelMeasure
         index_hour = (minute / 60).to_i
         step_per_hour = 60 / minutes_per_steps
 
-        def sum_across_occupants(all_simulated_values, activity_index, time_index)
+        def sum_across_occupants(all_simulated_values, activity_index, time_index, max_clip=nil)
           sum = 0
           all_simulated_values.size.times do |i|
             sum += all_simulated_values[i][time_index, activity_index]
+          end
+          if not max_clip.nil? and sum > max_clip
+              sum=max_clip
           end
           return sum
         end
@@ -205,8 +208,8 @@ class ResidentialScheduleGenerator < OpenStudio::Measure::ModelMeasure
         else
           clothes_dryer_schedule << hour_before_washer
         end
-        cooking_schedule << sum_across_occupants(all_simulated_values, 3, index_15) / num_occupants
-        dish_washer_schedule << sum_across_occupants(all_simulated_values, 4, index_15) / num_occupants
+        cooking_schedule << sum_across_occupants(all_simulated_values, 3, index_15, max_clip=1)
+        dish_washer_schedule << sum_across_occupants(all_simulated_values, 4, index_15, max_clip=1)
         away_schedule << sum_across_occupants(all_simulated_values, 5, index_15) / num_occupants
         idle_schedule << sum_across_occupants(all_simulated_values, 6, index_15) / num_occupants
 
