@@ -833,7 +833,6 @@ class OutputMeters
       natural_gas_interior_equipment(custom_meter_infos, unit, thermal_zones)
       natural_gas_water_systems(custom_meter_infos, unit, thermal_zones)
       fuel_oil_heating(custom_meter_infos, unit, thermal_zones)
-      fuel_oil_interior_equipment(custom_meter_infos, unit, thermal_zones)
       fuel_oil_water_systems(custom_meter_infos, unit, thermal_zones)
       propane_heating(custom_meter_infos, unit, thermal_zones)
       propane_interior_equipment(custom_meter_infos, unit, thermal_zones)
@@ -1419,27 +1418,6 @@ class OutputMeters
           end
 
         end
-      end
-    end
-  end
-
-  def fuel_oil_interior_equipment(custom_meter_infos, unit, thermal_zones)
-    custom_meter_infos["#{unit.name}:FuelOilInteriorEquipment"] = { "fuel_type" => "FuelOil#1", "key_var_groups" => [] }
-    unit.spaces.each do |space|
-      space.otherEquipment.each do |equip|
-        next if equip.fuelType != "FuelOil#1"
-
-        custom_meter_infos["#{unit.name}:FuelOilInteriorEquipment"]["key_var_groups"] << ["#{equip.name}", "Other Equipment FuelOil#1 Energy"]
-      end
-    end
-    custom_meter_infos["Central:FuelOilInteriorEquipment"] = { "fuel_type" => "FuelOil#1", "key_var_groups" => [] }
-    @model.getSpaces.each do |space|
-      next if space.buildingUnit.is_initialized
-
-      space.otherEquipment.each do |equip|
-        next if equip.fuelType != "FuelOil#1"
-
-        custom_meter_infos["Central:FuelOilInteriorEquipment"]["key_var_groups"] << ["#{equip.name}", "Other Equipment FuelOil#1 Energy"]
       end
     end
   end
