@@ -66,6 +66,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       "total_site_natural_gas_therm",
       "total_site_fuel_oil_mbtu",
       "total_site_propane_mbtu",
+      "total_site_wood_mbtu",
       "net_site_energy_mbtu", # Incorporates PV
       "net_site_electricity_kwh", # Incorporates PV
       "electricity_heating_kwh",
@@ -97,6 +98,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       "propane_central_system_heating_mbtu",
       "propane_interior_equipment_mbtu",
       "propane_water_systems_mbtu",
+      "wood_heating_mbtu",
       "hours_heating_setpoint_not_met",
       "hours_cooling_setpoint_not_met",
       "hvac_cooling_capacity_w",
@@ -191,6 +193,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     natural_gas = output_meters.natural_gas(sqlFile, ann_env_pd)
     fuel_oil = output_meters.fuel_oil(sqlFile, ann_env_pd)
     propane = output_meters.propane(sqlFile, ann_env_pd)
+    wood = output_meters.wood(sqlFile, ann_env_pd)
     hours_setpoint_not_met = output_meters.hours_setpoint_not_met(sqlFile)
 
     # ELECTRICITY
@@ -290,12 +293,18 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     report_sim_output(runner, "propane_interior_equipment_mbtu", propane.interior_equipment[0], "GJ", other_fuel_site_units)
     report_sim_output(runner, "propane_water_systems_mbtu", propane.water_systems[0], "GJ", other_fuel_site_units)
 
+    # WOOD
+
+    report_sim_output(runner, "total_site_wood_mbtu", wood.total_end_uses[0], "GJ", other_fuel_site_units)
+    report_sim_output(runner, "wood_heating_mbtu", wood.heating[0], "GJ", other_fuel_site_units)
+
     # TOTAL
 
     totalSiteEnergy = electricity.total_end_uses[0] +
                       natural_gas.total_end_uses[0] +
                       fuel_oil.total_end_uses[0] +
-                      propane.total_end_uses[0]
+                      propane.total_end_uses[0] +
+                      wood.total_end_uses[0]
 
     if units.length == total_units_represented
       err = totalSiteEnergy - sqlFile.totalSiteEnergy.get
