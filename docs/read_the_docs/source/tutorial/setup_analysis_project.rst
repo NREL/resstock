@@ -218,7 +218,7 @@ End uses include:
   * exterior lighting [kWh]
   * exterior holiday lighting [kWh]
   * garage lighting [kWh]
-  * interior equipment [electric/gas/oil/propane] [kWh/therm/MBtu/MBtu]
+  * interior equipment [electric/gas/propane] [kWh/therm/MBtu/MBtu]
   * fans heating [kWh]
   * fans cooling [kWh]
   * pumps heating [kWh]
