@@ -20,7 +20,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
   end
 
   def description
-    return "Reports simulation ou tputs of interest."
+    return "Reports simulation outputs of interest."
   end
 
   def num_options
