@@ -625,8 +625,9 @@ class Airflow
       end
 
       found_type = model.getBuilding.additionalProperties.getFeatureAsString("found_type")
-      if not found_type.nil?
-        if (infil.crawl_ach > -10 and found_type =="crawlspace") or (infil.pier_beam_ach > 0 and found_type == "pier and beam")
+      if found_type.is_initialized
+        found_type = found_type.get
+        if (infil.crawl_ach > 0.0 and found_type =="crawlspace") or (infil.pier_beam_ach > 0 and found_type == "pier and beam")
           vented_crawl = true
         end
       end
