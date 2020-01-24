@@ -136,6 +136,8 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       "natural_gas_lighting_therm",
       "natural_gas_fireplace_therm",
       "electricity_well_pump_kwh",
+      "electricity_recirc_pump_kwh",
+      "electricity_vehicle_kwh",
       "upgrade_cost_usd"
     ]
     buildstock_outputs += cost_mult_types.values
@@ -366,54 +368,57 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
     # END USE SUBCATEGORIES
 
-    electricityInteriorEquipment = electricity.refrigerator[0] +
-                                   electricity.clothes_washer[0] +
-                                   electricity.clothes_dryer[0] +
-                                   electricity.cooking_range[0] +
-                                   electricity.dishwasher[0] +
-                                   electricity.plug_loads[0] +
-                                   electricity.house_fan[0] +
-                                   electricity.range_fan[0] +
-                                   electricity.bath_fan[0] +
-                                   electricity.ceiling_fan[0] +
-                                   electricity.extra_refrigerator[0] +
-                                   electricity.freezer[0] +
-                                   electricity.pool_heater[0] +
-                                   electricity.pool_pump[0] +
-                                   electricity.hot_tub_heater[0] +
-                                   electricity.hot_tub_pump[0] +
-                                   electricity.well_pump[0]
-
-    err = electricityInteriorEquipment - electricity.interior_equipment[0]
-    if err.abs > 0.1
-      runner.registerError("Disaggregated electricity interior equipment (#{electricityInteriorEquipment} GJ) relative to total electricity interior equipment (#{electricity.interior_equipment[0]} GJ): #{err} GJ.")
-      return false
-    end
-
-    naturalGasInteriorEquipment = natural_gas.clothes_dryer[0] +
-                                  natural_gas.cooking_range[0] +
-                                  natural_gas.pool_heater[0] +
-                                  natural_gas.hot_tub_heater[0] +
-                                  natural_gas.grill[0] +
-                                  natural_gas.lighting[0] +
-                                  natural_gas.fireplace[0]
-
-    err = naturalGasInteriorEquipment - natural_gas.interior_equipment[0]
-    if err.abs > 0.1
-      runner.registerError("Disaggregated natural gas interior equipment (#{naturalGasInteriorEquipment} GJ) relative to total natural gas interior equipment (#{natural_gas.interior_equipment[0]} GJ): #{err} GJ.")
-      return false
-    end
-
-    propaneInteriorEquipment = propane.clothes_dryer[0] +
-                               propane.cooking_range[0]
-
-    err = propaneInteriorEquipment - propane.interior_equipment[0]
-    if err.abs > 0.1
-      runner.registerError("Disaggregated propane interior equipment (#{propaneInteriorEquipment} GJ) relative to total propane interior equipment (#{propane.interior_equipment[0]} GJ): #{err} GJ.")
-      return false
-    end
-
     if include_enduse_subcategories
+
+      electricityInteriorEquipment = electricity.refrigerator[0] +
+                                     electricity.clothes_washer[0] +
+                                     electricity.clothes_dryer[0] +
+                                     electricity.cooking_range[0] +
+                                     electricity.dishwasher[0] +
+                                     electricity.plug_loads[0] +
+                                     electricity.house_fan[0] +
+                                     electricity.range_fan[0] +
+                                     electricity.bath_fan[0] +
+                                     electricity.ceiling_fan[0] +
+                                     electricity.extra_refrigerator[0] +
+                                     electricity.freezer[0] +
+                                     electricity.pool_heater[0] +
+                                     electricity.pool_pump[0] +
+                                     electricity.hot_tub_heater[0] +
+                                     electricity.hot_tub_pump[0] +
+                                     electricity.well_pump[0] +
+                                     electricity.recirc_pump[0] +
+                                     electricity.vehicle[0]
+
+      err = electricityInteriorEquipment - electricity.interior_equipment[0]
+      if err.abs > 0.1
+        runner.registerError("Disaggregated electricity interior equipment (#{electricityInteriorEquipment} GJ) relative to total electricity interior equipment (#{electricity.interior_equipment[0]} GJ): #{err} GJ.")
+        return false
+      end
+
+      naturalGasInteriorEquipment = natural_gas.clothes_dryer[0] +
+                                    natural_gas.cooking_range[0] +
+                                    natural_gas.pool_heater[0] +
+                                    natural_gas.hot_tub_heater[0] +
+                                    natural_gas.grill[0] +
+                                    natural_gas.lighting[0] +
+                                    natural_gas.fireplace[0]
+
+      err = naturalGasInteriorEquipment - natural_gas.interior_equipment[0]
+      if err.abs > 0.1
+        runner.registerError("Disaggregated natural gas interior equipment (#{naturalGasInteriorEquipment} GJ) relative to total natural gas interior equipment (#{natural_gas.interior_equipment[0]} GJ): #{err} GJ.")
+        return false
+      end
+
+      propaneInteriorEquipment = propane.clothes_dryer[0] +
+                                 propane.cooking_range[0]
+
+      err = propaneInteriorEquipment - propane.interior_equipment[0]
+      if err.abs > 0.1
+        runner.registerError("Disaggregated propane interior equipment (#{propaneInteriorEquipment} GJ) relative to total propane interior equipment (#{propane.interior_equipment[0]} GJ): #{err} GJ.")
+        return false
+      end
+
       report_sim_output(runner, "electricity_refrigerator_kwh", electricity.refrigerator[0], "GJ", elec_site_units)
       report_sim_output(runner, "electricity_clothes_washer_kwh", electricity.clothes_washer[0], "GJ", elec_site_units)
       report_sim_output(runner, "electricity_clothes_dryer_kwh", electricity.clothes_dryer[0], "GJ", elec_site_units)
@@ -440,6 +445,8 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       report_sim_output(runner, "natural_gas_lighting_therm", natural_gas.lighting[0], "GJ", gas_site_units)
       report_sim_output(runner, "natural_gas_fireplace_therm", natural_gas.fireplace[0], "GJ", gas_site_units)
       report_sim_output(runner, "electricity_well_pump_kwh", electricity.well_pump[0], "GJ", elec_site_units)
+      report_sim_output(runner, "electricity_recirc_pump_kwh", electricity.recirc_pump[0], "GJ", elec_site_units)
+      report_sim_output(runner, "electricity_vehicle_kwh", electricity.vehicle[0], "GJ", elec_site_units)
     end
 
     sqlFile.close

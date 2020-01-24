@@ -13,7 +13,7 @@ class TimeseriesCSVExportTest < MiniTest::Test
     args_hash["reporting_frequency"] = "Timestep"
     args_hash["include_enduse_subcategories"] = "true"
     args_hash["output_variables"] = "Zone Mean Air Temperature, Site Outdoor Air Drybulb Temperature"
-    expected_values = { "EnduseTimeseriesLength" => 8784 * 6, "EnduseTimeseriesWidth" => 34 + 28 + 5 }
+    expected_values = { "EnduseTimeseriesLength" => 8784 * 6, "EnduseTimeseriesWidth" => 36 + 28 + 5 }
     _test_measure("SFD_Successful_EnergyPlus_Run_AMY_PV.osm", args_hash, expected_values, __method__, "0465925_US_CO_Boulder_8013_0-20000-0-72469_40.13_-105.22_NSRDB_2.0.1_AMY_2012.epw", num_output_requests)
   end
 
@@ -73,7 +73,7 @@ class TimeseriesCSVExportTest < MiniTest::Test
     args_hash["include_enduse_subcategories"] = "true"
     args_hash["reporting_frequency"] = "Daily"
     args_hash["output_variables"] = "Electric Equipment Electric Power, Zone Air Heat Balance Internal Convective Heat Gain Rate"
-    expected_values = { "EnduseTimeseriesLength" => 365, "EnduseTimeseriesWidth" => 34 + 28 + 9 }
+    expected_values = { "EnduseTimeseriesLength" => 365, "EnduseTimeseriesWidth" => 36 + 28 + 9 }
     _test_measure("SFD_Successful_EnergyPlus_Run_TMY_Appl_PV.osm", args_hash, expected_values, __method__, "USA_CO_Denver.Intl.AP.725650_TMY3.epw", num_output_requests)
   end
 
@@ -106,7 +106,7 @@ class TimeseriesCSVExportTest < MiniTest::Test
     args_hash["reporting_frequency"] = "Daily"
     args_hash["include_enduse_subcategories"] = "true"
     args_hash["output_variables"] = "Cooling Coil Runtime Fraction, Unitary System Ancillary Electric Power, System Node Temperature"
-    expected_values = { "EnduseTimeseriesLength" => 365, "EnduseTimeseriesWidth" => 34 + 28 + 1 }
+    expected_values = { "EnduseTimeseriesLength" => 365, "EnduseTimeseriesWidth" => 36 + 28 + 1 }
     _test_measure("MF_Successful_EnergyPlus_Run_TMY_Appl_PV.osm", args_hash, expected_values, __method__, "USA_CO_Denver.Intl.AP.725650_TMY3.epw", num_output_requests)
   end
 
