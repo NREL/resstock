@@ -1,6 +1,7 @@
 ## ResStock v2.2.0 (pending)
 
 Features
+- The results csv now optionally reports anunal totals for all end use subcategories, including appliances, plug loads, etc. ([#371](https://github.com/NREL/OpenStudio-BuildStock/pull/371))
 - Split out national average options so not all homes have all miscellaneous equipment, and add none options to appliances ([#362](https://github.com/NREL/OpenStudio-BuildStock/pull/362))
 - Update the single-family detached project with a Geometry Wall Type tsv file for sampling between wood stud and masonry walls ([#357](https://github.com/NREL/OpenStudio-BuildStock/pull/357))
 - Made housing characteristics a consistent format. Added integrity check to ensure housing characteristics follow the guildelines specified in read-the-docs ([#353](https://github.com/NREL/OpenStudio-BuildStock/pull/353))
@@ -10,6 +11,7 @@ Features
 
 Fixes
 - Allow Wood Stove option as an upgrade, and account for wood heating energy in simulation output ([#372](https://github.com/NREL/OpenStudio-BuildStock/pull/372))
+- Custom meters for ceiling fan, hot water recirc pump, and vehicle end use subcategories were not properly implemented ([#371](https://github.com/NREL/OpenStudio-BuildStock/pull/371))
 - Some re-labeling of tsv files, such as "Geometry Building Type" to "Geometry Building Type RECS" and "Geometry Building Type FPL" to "Geometry Building Type ACS" ([#356](https://github.com/NREL/OpenStudio-BuildStock/pull/356))
 - Removes option "Auto" from parameter "Occupants" in the options lookup file ([#360](https://github.com/NREL/OpenStudio-BuildStock/pull/360))
 - Update the multifamily project's neighbors and orientation tsv files to have geometry building type dependency; remove the now obsolete "Geometry Is Multifamily Low Rise.tsv" file ([#350](https://github.com/NREL/OpenStudio-BuildStock/pull/350))
