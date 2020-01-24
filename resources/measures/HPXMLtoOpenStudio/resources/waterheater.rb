@@ -501,7 +501,7 @@ class Waterheater
     tank.setNode10AdditionalLossCoefficient(0)
     tank.setNode11AdditionalLossCoefficient(0)
     tank.setNode12AdditionalLossCoefficient(0)
-    tank.setUseSideDesignFlowRate((UnitConversions.convert(v_actual, "gal", "m^3")) / 60.1)
+    tank.setUseSideDesignFlowRate((UnitConversions.convert(v_actual, "gal", "m^3")) / 60.1) # 60.1 (seconds) ensures that the autosizing doesn't draw the whole tank volume in one minute
     tank.setSourceSideDesignFlowRate(0)
     tank.setSourceSideFlowControlMode("")
     tank.setSourceSideInletHeight(0)

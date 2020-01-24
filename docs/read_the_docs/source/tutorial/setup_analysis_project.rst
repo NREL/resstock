@@ -144,7 +144,10 @@ This measure creates the baseline scenario. It incrementally applies OpenStudio 
   The number of buildings each simulation represents. Total number of buildings / Number of simulations. This argument is optional (it is only needed for running simulations on NREL HPC), so you can leave it blank.
   
 **Downselect Logic**
-  Logic that specifies the subset of the building stock to be considered in the analysis. Specify one or more ``parameter|option`` as found in the ``resources/options_lookup.tsv``. (This uses the same syntax as the :ref:`tutorial-apply-upgrade` measure.) For example, if you wanted to only simulate California homes you could enter ``Location Region|CR11`` in this field (CR refers to "Custom Region", which is based on RECS 2009 reportable domains aggregated into groups with similar climates; see the entire `custom region map`_). Datapoints that are excluded from the downselect logic will result in "completed invalid workflow".
+  Logic that specifies the subset of the building stock to be considered in the analysis. Specify one or more ``parameter|option`` as found in the ``resources/options_lookup.tsv``. (This uses the same syntax as the :ref:`tutorial-apply-upgrade` measure.) For example, if you wanted to only simulate California homes you could enter ``Location Region|CR11`` in this field (CR refers to "Custom Region", which is based on RECS 2009 reportable domains aggregated into groups with similar climates; see the entire `custom region map`_). Datapoints that are excluded from the downselect logic will result in "completed invalid workflow". Note that the **Building ID - Max** input refers to the number of datapoints *before* downselection, not after. This means that the number of datapoints remaining after downselection would be somewhere between zero (i.e., no datapoints matched the downselect logic) and **Building ID - Max** (i.e., all datapoints matched the downselect logic).
+
+**Measures to Ignore**
+  **INTENDED FOR ADVANCED USERS/WORKFLOW DEVELOPERS ONLY.** Measures to exclude from the OpenStudio Workflow specified by listing one or more measure directories separated by '|'. Core ResStock measures cannot be ignored (the Build Existing Model measure will fail).
 
 .. _custom region map: https://github.com/NREL/OpenStudio-BuildStock/wiki/Custom-Region-(CR)-Map
 
@@ -213,6 +216,8 @@ End uses include:
   * central system cooling [electric] [kWh]
   * interior lighting [kWh]
   * exterior lighting [kWh]
+  * exterior holiday lighting [kWh]
+  * garage lighting [kWh]
   * interior equipment [electric/gas/oil/propane] [kWh/therm/MBtu/MBtu]
   * fans heating [kWh]
   * fans cooling [kWh]
@@ -255,9 +260,7 @@ End uses include:
   * gas grill [therm]
   * gas lighting [therm]
   * gas fireplace [therm]
-  * well pump [kWh]
-  * garage lighting [kWh]
-  * exterior holiday lighting [kWh]
+  * well pump [kWh]  
   
 **Output Variables**
   If you choose to report any output variables (e.g., "Zone Air Temperature" or "Site Outdoor Air Humidity Ratio"), enter a comma-separated list of output variable names. A list of available output variables can be viewed in EnergyPlus's ``.rdd`` file.

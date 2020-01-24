@@ -99,9 +99,17 @@ class WeatherProcess
     end
   end
 
-  def actual_year_timestamps(reporting_frequency, run_period_control_daylight_saving_time, dst_start_datetime, dst_end_datetime)
+  def actual_year_timestamps(reporting_frequency, run_period_control_daylight_saving_time, dst_start_datetime,
+                             dst_end_datetime, utc_offset_hr_float)
     start_actual_year = @epw_file.startDateActualYear
     end_actual_year = @epw_file.endDateActualYear
+    utc_offset_sec = (utc_offset_hr_float * 60 * 60).to_i
+    unless run_period_control_daylight_saving_time.nil?
+      dst_start_date = dst_start_datetime.date
+      dst_start_time = dst_start_datetime.time
+      dst_end_date = dst_end_datetime.date
+      dst_end_time = dst_end_datetime.time
+    end
 
     unless run_period_control_daylight_saving_time.nil?
       dst_start_date = dst_start_datetime.date
@@ -112,6 +120,7 @@ class WeatherProcess
 
     timestamps = []
     dst_timestamps = []
+    utc_timestamps = []
     if start_actual_year.is_initialized and end_actual_year.is_initialized
       start_actual_year = start_actual_year.get
       end_actual_year = end_actual_year.get
@@ -139,6 +148,7 @@ class WeatherProcess
                   next if ts < start_time or ts > end_time
 
                   timestamps << ts.strftime("%Y/%m/%d %H:%M:00")
+                  utc_timestamps << (ts - utc_offset_sec).strftime("%Y/%m/%d %H:%M:00")
                   next if run_period_control_daylight_saving_time.nil?
 
                   if ts >= dst_start_ts and ts < dst_end_ts
@@ -167,6 +177,8 @@ class WeatherProcess
                 next if ts < start_time or ts > end_time
 
                 timestamps << ts.strftime("%Y/%m/%d %H:00:00")
+                utc_timestamps << (ts - utc_offset_sec).strftime("%Y/%m/%d %H:%M:00")
+
                 next if run_period_control_daylight_saving_time.nil?
 
                 if ts >= dst_start_ts and ts < dst_end_ts
@@ -193,6 +205,7 @@ class WeatherProcess
               next if ts < start_time or ts > end_time
 
               timestamps << ts.strftime("%Y/%m/%d 00:00:00")
+              utc_timestamps << (ts - utc_offset_sec).strftime("%Y/%m/%d %H:%M:00")
               next if run_period_control_daylight_saving_time.nil?
 
               if ts >= dst_start_ts and ts < dst_end_ts
@@ -216,6 +229,7 @@ class WeatherProcess
             next if ts < start_time or ts > end_time
 
             timestamps << ts.strftime("%Y/%m/01 00:00:00")
+            utc_timestamps << (ts - utc_offset_sec).strftime("%Y/%m/%d %H:%M:00")
             next if run_period_control_daylight_saving_time.nil?
 
             if ts >= dst_start_ts and ts < dst_end_ts
@@ -234,7 +248,7 @@ class WeatherProcess
 
         ts = Time.new(end_actual_year + 1)
         timestamps << ts.strftime("%Y/01/01 00:00:00")
-
+        utc_timestamps << (ts - utc_offset_sec).strftime("%Y/%m/%d %H:%M:00")
         unless run_period_control_daylight_saving_time.nil?
           if ts >= dst_start_ts and ts < dst_end_ts
             dst_ts = ts + 60 * 60 # 1 hr shift forward
@@ -245,7 +259,7 @@ class WeatherProcess
         end
       end
     end
-    return timestamps, dst_timestamps
+    return timestamps, dst_timestamps, utc_timestamps
   end
 
   def error?
