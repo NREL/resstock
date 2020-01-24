@@ -173,11 +173,19 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
       dst_end_datetime = OpenStudio::DateTime.new(dst_end_date + OpenStudio::Time.new(1, 0, 0, 0), hour_of_dst_switch)
     end
 
+    utc_offset_hr_float = model.getSite.timeZone
+    if utc_offset_hr_float < 0
+
+    end
+    utc_offset_hr_int = utc_offset_hr_float.to_i
+    utc_offset_min_int = ((utc_offset_hr_float - utc_offset_hr_int) * 60).to_i
     datetimes = []
     dst_datetimes = []
+    utc_datetimes = []
     timeseries = sqlFile.timeSeries(ann_env_pd, reporting_frequency_map[reporting_frequency], "Electricity:Facility", "").get # assume every house consumes some electricity
     timeseries.dateTimes.each do |datetime|
       datetimes << format_datetime(datetime.to_s)
+      utc_datetimes << format_datetime((datetime - OpenStudio::Time.new(0, utc_offset_hr_int, utc_offset_min_int, 0)).to_s)
       next if run_period_control_daylight_saving_time.nil?
 
       if datetime >= dst_start_datetime and datetime < dst_end_datetime
@@ -195,19 +203,21 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
 
     # Initialize timeseries hash which will be exported to csv
     timeseries = {}
-    actual_year_timestamps, dst_actual_year_timestamps = weather.actual_year_timestamps(reporting_frequency, run_period_control_daylight_saving_time, dst_start_datetime, dst_end_datetime)
+    actual_year_timestamps, dst_actual_year_timestamps, utc_actual_year_timestamps = weather.actual_year_timestamps(reporting_frequency, run_period_control_daylight_saving_time, dst_start_datetime, dst_end_datetime, utc_offset_hr_float)
     if not actual_year_timestamps.empty?
       timeseries["Time"] = actual_year_timestamps # timestamps constructed using run period and Time class (AMY)
       if dst_actual_year_timestamps.empty?
         dst_actual_year_timestamps = actual_year_timestamps
       end
       timeseries["TimeDST"] = dst_actual_year_timestamps # timestamps constructed using run period and Time class shifted forward an hour during DST
+      timeseries["TimeUTC"] = utc_actual_year_timestamps
     else
       timeseries["Time"] = datetimes # timestamps from the sqlfile (TMY)
       if dst_datetimes.empty?
         dst_datetimes = datetimes
       end
       timeseries["TimeDST"] = dst_datetimes # timestamps from the sqlifile (TMY), but shifted forward an hour during DST
+      timeseries["TimeUTC"] = utc_datetimes
     end
     if timeseries["Time"].length != datetimes.length
       runner.registerError("The timestamps array length does not equal that of the sqlfile timeseries. You may be ignoring leap days in your AMY weather file.")
@@ -225,6 +235,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     natural_gas = output_meters.natural_gas(sqlFile, ann_env_pd)
     fuel_oil = output_meters.fuel_oil(sqlFile, ann_env_pd)
     propane = output_meters.propane(sqlFile, ann_env_pd)
+    wood = output_meters.wood(sqlFile, ann_env_pd)
 
     # ELECTRICITY
 
@@ -272,12 +283,18 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     report_ts_output(runner, timeseries, "propane_interior_equipment_mbtu", propane.interior_equipment, "GJ", other_fuel_site_units)
     report_ts_output(runner, timeseries, "propane_water_systems_mbtu", propane.water_systems, "GJ", other_fuel_site_units)
 
+    # WOOD
+
+    report_ts_output(runner, timeseries, "total_site_wood_mbtu", wood.total_end_uses, "GJ", other_fuel_site_units)
+    report_ts_output(runner, timeseries, "wood_heating_mbtu", wood.heating, "GJ", other_fuel_site_units)
+
     # TOTAL
 
     totalSiteEnergy = electricity.total_end_uses +
                       natural_gas.total_end_uses +
                       fuel_oil.total_end_uses +
-                      propane.total_end_uses
+                      propane.total_end_uses +
+                      wood.total_end_uses
 
     report_ts_output(runner, timeseries, "total_site_energy_mbtu", totalSiteEnergy, "GJ", total_site_units)
     report_ts_output(runner, timeseries, "net_site_energy_mbtu", totalSiteEnergy - electricity.photovoltaics, "GJ", total_site_units)
@@ -311,6 +328,8 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
       report_ts_output(runner, timeseries, "natural_gas_lighting_therm", natural_gas.lighting, "GJ", gas_site_units)
       report_ts_output(runner, timeseries, "natural_gas_fireplace_therm", natural_gas.fireplace, "GJ", gas_site_units)
       report_ts_output(runner, timeseries, "electricity_well_pump_kwh", electricity.well_pump, "GJ", elec_site_units)
+      report_ts_output(runner, timeseries, "electricity_recirc_pump_kwh", electricity.recirc_pump, "GJ", elec_site_units)
+      report_ts_output(runner, timeseries, "electricity_vehicle_kwh", electricity.vehicle, "GJ", elec_site_units)
     end
 
     output_vars.each do |output_var|
