@@ -1182,6 +1182,21 @@ class Airflow
       location_name = unit_living.zone.name.to_s
     end
 
+    # num_floors = model.getBuilding.additionalProperties.getFeatureAsInteger("num_floors")
+    # found_type = model.getBuilding.additionalProperties.getFeatureAsString("found_type")
+
+    # if num_floors.is_initialized #single unit
+    #   num_stories = num_floors.get
+    #   if found_type.get == "finished basement"
+    #     num_stories +=  1
+    #   end
+    # else #MF
+    #   num_stories = building.stories
+    #   if not unit_finished_basement.nil?
+    #     num_stories +=  1
+    #   end
+    # end
+
     num_stories = building.stories
     unless unit_finished_basement.nil?
       num_stories +=  1
@@ -2371,6 +2386,9 @@ class Airflow
   end
 
   def self.get_location_frac_leakage(location_frac, stories)
+    puts("location_frac: #{location_frac}")
+    puts("stories: #{stories}")
+
     if location_frac == Constants.Auto
       # Duct location fraction per 2010 BA Benchmark
       if stories == 1
