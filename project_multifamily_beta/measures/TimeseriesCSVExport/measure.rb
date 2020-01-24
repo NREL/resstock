@@ -285,6 +285,8 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
       report_ts_output(runner, timeseries, "natural_gas_lighting_therm", natural_gas.lighting, "GJ", gas_site_units)
       report_ts_output(runner, timeseries, "natural_gas_fireplace_therm", natural_gas.fireplace, "GJ", gas_site_units)
       report_ts_output(runner, timeseries, "electricity_well_pump_kwh", electricity.well_pump, "GJ", elec_site_units)
+      report_ts_output(runner, timeseries, "electricity_recirc_pump_kwh", electricity.recirc_pump, "GJ", elec_site_units)
+      report_ts_output(runner, timeseries, "electricity_vehicle_kwh", electricity.vehicle, "GJ", elec_site_units)
     end
 
     output_vars.each do |output_var|
