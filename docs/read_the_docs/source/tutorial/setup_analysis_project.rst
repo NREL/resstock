@@ -260,6 +260,8 @@ End uses include:
   * gas lighting [therm]
   * gas fireplace [therm]
   * well pump [kWh]  
+  * hot water recirculation pump [kWh]
+  * vehicle [kWh]
   
 **Output Variables**
   If you choose to report any output variables (e.g., "Zone Air Temperature" or "Site Outdoor Air Humidity Ratio"), enter a comma-separated list of output variable names. A list of available output variables can be viewed in EnergyPlus's ``.rdd`` file.
