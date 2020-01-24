@@ -208,9 +208,9 @@ End uses include:
 
   * total site energy [MBtu]
   * net site energy [MBtu]
-  * total site [electric/gas/oil/propane] [kWh/therm/MBtu/MBtu]
+  * total site [electric/gas/oil/propane/wood] [kWh/therm/MBtu/MBtu/MBtu]
   * net site [electric] [kWh]
-  * heating [electric/gas/oil/propane] [kWh/therm/MBtu/MBtu]
+  * heating [electric/gas/oil/propane/wood] [kWh/therm/MBtu/MBtu/MBtu]
   * cooling [kWh]
   * central system heating [electric/gas/oil/propane] [kWh/therm/MBtu/MBtu]
   * central system cooling [electric] [kWh]

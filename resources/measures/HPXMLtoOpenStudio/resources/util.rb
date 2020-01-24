@@ -725,6 +725,36 @@ class OutputMeters
     return @propane
   end
 
+  def wood(sql_file, ann_env_pd)
+    env_period_ix_query = "SELECT EnvironmentPeriodIndex FROM EnvironmentPeriods WHERE EnvironmentName='#{ann_env_pd}'"
+    env_period_ix = sql_file.execAndReturnFirstInt(env_period_ix_query).get
+    num_ts = get_num_ts(sql_file)
+
+    # Get meters that are tied to units, and apportion building level meters to these
+    woodHeating = Vector.elements(Array.new(num_ts, 0.0))
+
+    # Get building units
+    units = Geometry.get_building_units(@model, @runner)
+    if units.nil?
+      return false
+    end
+
+    units.each do |unit|
+      unit_name = unit.name.to_s.upcase
+      units_represented = get_units_represented(unit)
+
+      woodHeating = add_unit(sql_file, woodHeating, units_represented, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:WOODHEATING') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
+    end
+
+    @wood = Wood.new
+
+    @wood.heating = woodHeating
+
+    @wood.total_end_uses = @wood.heating
+
+    return @wood
+  end
+
   def hours_setpoint_not_met(sql_file)
     # Get meters that are tied to units, and apportion building level meters to these
     hoursHeatingSetpointNotMet = 0.0
@@ -843,6 +873,7 @@ class OutputMeters
       propane_heating(custom_meter_infos, unit, thermal_zones)
       propane_interior_equipment(custom_meter_infos, unit, thermal_zones)
       propane_water_systems(custom_meter_infos, unit, thermal_zones)
+      wood_heating(custom_meter_infos, unit, thermal_zones)
 
       if @include_enduse_subcategories
         electricity_refrigerator(custom_meter_infos, unit, thermal_zones)
@@ -1574,6 +1605,24 @@ class OutputMeters
     end
   end
 
+  def wood_heating(custom_meter_infos, unit, thermal_zones)
+    custom_meter_infos["#{unit.name}:WoodHeating"] = { "fuel_type" => "OtherFuel1", "key_var_groups" => [] }
+    thermal_zones.each do |thermal_zone|
+      heating_equipment = HVAC.existing_heating_equipment(@model, @runner, thermal_zone)
+      heating_equipment.each do |htg_equip|
+        clg_coil, htg_coil, supp_htg_coil = HVAC.get_coils_from_hvac_equip(htg_equip)
+
+        if htg_equip.is_a? OpenStudio::Model::AirLoopHVACUnitarySystem
+          if htg_coil.is_a? OpenStudio::Model::CoilHeatingGas
+            next if htg_coil.fuelType != "OtherFuel1"
+          end
+
+          custom_meter_infos["#{unit.name}:WoodHeating"]["key_var_groups"] << ["#{htg_coil.name}", "Heating Coil OtherFuel1 Energy"]
+        end
+      end
+    end
+  end
+
   def electricity_refrigerator(custom_meter_infos, unit, thermal_zones)
     custom_meter_infos["#{unit.name}:ElectricityRefrigerator"] = { "fuel_type" => "Electricity", "key_var_groups" => [] }
     unit.spaces.each do |space|
@@ -1969,6 +2018,12 @@ class Propane
   def initialize
   end
   attr_accessor :heating, :central_heating, :interior_equipment, :water_systems, :clothes_dryer, :cooking_range, :total_end_uses
+end
+
+class Wood
+  def initialize
+  end
+  attr_accessor :heating, :total_end_uses
 end
 
 class HoursSetpointNotMet
