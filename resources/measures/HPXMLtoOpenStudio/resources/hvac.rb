@@ -3324,6 +3324,7 @@ class HVAC
     equip_def.setName(obj_name + " non benchmark equip")
     equip = OpenStudio::Model::ElectricEquipment.new(equip_def)
     equip.setName(equip_def.name.to_s)
+    equip.setEndUseSubcategory(obj_name)
     equip.setSpace(living_zone.spaces[0])
     equip_def.setDesignLevel(UnitConversions.convert(ceiling_fans_max_power, "kW", "W"))
     equip_def.setFractionRadiant(0.558)

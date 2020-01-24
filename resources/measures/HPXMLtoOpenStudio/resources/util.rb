@@ -398,6 +398,7 @@ class OutputMeters
     electricityInteriorLighting = Vector.elements(Array.new(num_ts, 0.0))
     electricityExteriorLighting = Vector.elements(Array.new(num_ts, 0.0))
     electricityExteriorHolidayLighting = Vector.elements(Array.new(num_ts, 0.0))
+    electricityGarageLighting = Vector.elements(Array.new(num_ts, 0.0))
     electricityInteriorEquipment = Vector.elements(Array.new(num_ts, 0.0))
     electricityFansHeating = Vector.elements(Array.new(num_ts, 0.0))
     electricityFansCooling = Vector.elements(Array.new(num_ts, 0.0))
@@ -422,7 +423,8 @@ class OutputMeters
     electricityHotTubHeater = Vector.elements(Array.new(num_ts, 0.0))
     electricityHotTubPump = Vector.elements(Array.new(num_ts, 0.0))
     electricityWellPump = Vector.elements(Array.new(num_ts, 0.0))
-    electricityGarageLighting = Vector.elements(Array.new(num_ts, 0.0))
+    electricityRecircPump = Vector.elements(Array.new(num_ts, 0.0))
+    electricityVehicle = Vector.elements(Array.new(num_ts, 0.0))
 
     # Get building units
     units = Geometry.get_building_units(@model, @runner)
@@ -472,6 +474,8 @@ class OutputMeters
         electricityHotTubHeater = add_unit(sql_file, electricityHotTubHeater, units_represented, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYHOTTUBHEATER') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
         electricityHotTubPump = add_unit(sql_file, electricityHotTubPump, units_represented, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYHOTTUBPUMP') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
         electricityWellPump = add_unit(sql_file, electricityWellPump, units_represented, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYWELLPUMP') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
+        electricityRecircPump = add_unit(sql_file, electricityRecircPump, units_represented, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYRECIRCPUMP') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
+        electricityVehicle = add_unit(sql_file, electricityVehicle, units_represented, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYVEHICLE') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
       end
     end
 
@@ -512,6 +516,8 @@ class OutputMeters
       @electricity.hot_tub_heater = electricityHotTubHeater
       @electricity.hot_tub_pump = electricityHotTubPump
       @electricity.well_pump = electricityWellPump
+      @electricity.recirc_pump = electricityRecircPump
+      @electricity.vehicle = electricityVehicle
     end
 
     @electricity.total_end_uses = @electricity.heating +
@@ -863,7 +869,6 @@ class OutputMeters
       natural_gas_interior_equipment(custom_meter_infos, unit, thermal_zones)
       natural_gas_water_systems(custom_meter_infos, unit, thermal_zones)
       fuel_oil_heating(custom_meter_infos, unit, thermal_zones)
-      fuel_oil_interior_equipment(custom_meter_infos, unit, thermal_zones)
       fuel_oil_water_systems(custom_meter_infos, unit, thermal_zones)
       propane_heating(custom_meter_infos, unit, thermal_zones)
       propane_interior_equipment(custom_meter_infos, unit, thermal_zones)
@@ -897,6 +902,8 @@ class OutputMeters
         natural_gas_lighting(custom_meter_infos, unit, thermal_zones)
         natural_gas_fireplace(custom_meter_infos, unit, thermal_zones)
         electricity_well_pump(custom_meter_infos, unit, thermal_zones)
+        electricity_recirc_pump(custom_meter_infos, unit, thermal_zones)
+        electricity_vehicle(custom_meter_infos, unit, thermal_zones)
       end
     end
 
@@ -1105,6 +1112,15 @@ class OutputMeters
       if exterior_lights.endUseSubcategory.include? Constants.ObjectNameLightingExteriorHoliday
         custom_meter_infos["Central:ElectricityExteriorHolidayLighting"]["key_var_groups"] << ["#{exterior_lights.name}", "Exterior Lights Electric Energy"]
       end
+    end
+  end
+
+  def electricity_garage_lighting(custom_meter_infos, unit, thermal_zones)
+    custom_meter_infos["Central:ElectricityGarageLighting"] = { "fuel_type" => "Electricity", "key_var_groups" => [] }
+    @model.getLightss.each do |lights|
+      next unless lights.endUseSubcategory.include? Constants.ObjectNameLightingGarage
+
+      custom_meter_infos["Central:ElectricityGarageLighting"]["key_var_groups"] << ["#{lights.name}", "Lights Electric Energy"]
     end
   end
 
@@ -1450,27 +1466,6 @@ class OutputMeters
           end
 
         end
-      end
-    end
-  end
-
-  def fuel_oil_interior_equipment(custom_meter_infos, unit, thermal_zones)
-    custom_meter_infos["#{unit.name}:FuelOilInteriorEquipment"] = { "fuel_type" => "FuelOil#1", "key_var_groups" => [] }
-    unit.spaces.each do |space|
-      space.otherEquipment.each do |equip|
-        next if equip.fuelType != "FuelOil#1"
-
-        custom_meter_infos["#{unit.name}:FuelOilInteriorEquipment"]["key_var_groups"] << ["#{equip.name}", "Other Equipment FuelOil#1 Energy"]
-      end
-    end
-    custom_meter_infos["Central:FuelOilInteriorEquipment"] = { "fuel_type" => "FuelOil#1", "key_var_groups" => [] }
-    @model.getSpaces.each do |space|
-      next if space.buildingUnit.is_initialized
-
-      space.otherEquipment.each do |equip|
-        next if equip.fuelType != "FuelOil#1"
-
-        custom_meter_infos["Central:FuelOilInteriorEquipment"]["key_var_groups"] << ["#{equip.name}", "Other Equipment FuelOil#1 Energy"]
       end
     end
   end
@@ -1973,12 +1968,25 @@ class OutputMeters
     end
   end
 
-  def electricity_garage_lighting(custom_meter_infos, unit, thermal_zones)
-    custom_meter_infos["Central:ElectricityGarageLighting"] = { "fuel_type" => "Electricity", "key_var_groups" => [] }
-    @model.getLightss.each do |lights|
-      next unless lights.endUseSubcategory.include? Constants.ObjectNameLightingGarage
+  def electricity_recirc_pump(custom_meter_infos, unit, thermal_zones)
+    custom_meter_infos["#{unit.name}:ElectricityRecircPump"] = { "fuel_type" => "Electricity", "key_var_groups" => [] }
+    unit.spaces.each do |space|
+      space.electricEquipment.each do |equip|
+        next unless equip.endUseSubcategory.include? Constants.ObjectNameHotWaterRecircPump
 
-      custom_meter_infos["Central:ElectricityGarageLighting"]["key_var_groups"] << ["#{lights.name}", "Lights Electric Energy"]
+        custom_meter_infos["#{unit.name}:ElectricityRecircPump"]["key_var_groups"] << ["#{equip.name}", "Electric Equipment Electric Energy"]
+      end
+    end
+  end
+
+  def electricity_vehicle(custom_meter_infos, unit, thermal_zones)
+    custom_meter_infos["#{unit.name}:ElectricityVehicle"] = { "fuel_type" => "Electricity", "key_var_groups" => [] }
+    unit.spaces.each do |space|
+      space.electricEquipment.each do |equip|
+        next unless equip.endUseSubcategory.include? Constants.ObjectNameElectricVehicle
+
+        custom_meter_infos["#{unit.name}:ElectricityVehicle"]["key_var_groups"] << ["#{equip.name}", "Electric Equipment Electric Energy"]
+      end
     end
   end
 end
@@ -1986,11 +1994,11 @@ end
 class Electricity
   def initialize
   end
-  attr_accessor :heating, :central_heating, :cooling, :central_cooling, :interior_lighting, :exterior_lighting, :interior_equipment,
-                :fans_heating, :fans_cooling, :pumps_heating, :central_pumps_heating, :pumps_cooling, :central_pumps_cooling,
-                :water_systems, :photovoltaics, :refrigerator, :clothes_washer, :clothes_dryer, :cooking_range, :dishwasher,
-                :plug_loads, :house_fan, :range_fan, :bath_fan, :ceiling_fan, :extra_refrigerator, :freezer, :pool_heater, :pool_pump,
-                :hot_tub_heater, :hot_tub_pump, :well_pump, :garage_lighting, :exterior_holiday_lighting, :total_end_uses
+  attr_accessor :heating, :central_heating, :cooling, :central_cooling, :interior_lighting, :exterior_lighting, :exterior_holiday_lighting,
+                :garage_lighting, :interior_equipment, :fans_heating, :fans_cooling, :pumps_heating, :central_pumps_heating, :pumps_cooling,
+                :central_pumps_cooling, :water_systems, :photovoltaics, :refrigerator, :clothes_washer, :clothes_dryer, :cooking_range,
+                :dishwasher, :plug_loads, :house_fan, :range_fan, :bath_fan, :ceiling_fan, :extra_refrigerator, :freezer, :pool_heater,
+                :pool_pump, :hot_tub_heater, :hot_tub_pump, :well_pump, :recirc_pump, :vehicle, :total_end_uses
 end
 
 class NaturalGas
