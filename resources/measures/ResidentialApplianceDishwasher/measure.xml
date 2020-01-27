@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>residential_dishwasher</name>
   <uid>09ea4570-4666-4a55-812f-5e90091f5325</uid>
-  <version_id>83b1cbef-9409-4e9c-b9ec-af77a17bddc5</version_id>
-  <version_modified>20191016T190852Z</version_modified>
+  <version_id>c43dd3b1-bc62-4cd7-85bc-967a20edb28a</version_id>
+  <version_modified>20190725T163150Z</version_modified>
   <xml_checksum>126F1C43</xml_checksum>
   <class_name>ResidentialDishwasher</class_name>
   <display_name>Set Residential Dishwasher</display_name>
@@ -52,7 +52,7 @@
     <argument>
       <name>cold_inlet</name>
       <display_name>Cold Water Inlet Only</display_name>
-      <description>Does the dishwasher use a cold water connection only. Input obtained from manufacturer's literature.</description>
+      <description>Does the dishwasher use a cold water connection only.   Input obtained from manufacturer's literature.</description>
       <type>Boolean</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -90,7 +90,7 @@
     <argument>
       <name>annual_gas_cost</name>
       <display_name>Energy Guide Annual Gas Cost</display_name>
-      <description>Annual cost of gas, as rated. Obtained from the EnergyGuide label.</description>
+      <description>Annual cost of gas, as rated.  Obtained from the EnergyGuide label.</description>
       <type>Double</type>
       <units>$/yr</units>
       <required>true</required>
@@ -154,6 +154,25 @@
       <model_dependent>false</model_dependent>
       <default_value>0</default_value>
     </argument>
+    <argument>
+      <name>draw_profile_type</name>
+      <display_name>Draw Profile Type</display_name>
+      <description>The 'smooth' option uses the BA HSP smooth 24 hour curves, and the 'realistic' uses the DHWESG draw profiles.</description>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>true</model_dependent>
+      <default_value>realistic</default_value>
+      <choices>
+        <choice>
+          <value>realistic</value>
+          <display_name>realistic</display_name>
+        </choice>
+        <choice>
+          <value>smooth</value>
+          <display_name>smooth</display_name>
+        </choice>
+      </choices>
+    </argument>
   </arguments>
   <outputs/>
   <provenances/>
@@ -182,13 +201,13 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>A1A34A45</checksum>
+      <checksum>1DFE2ED4</checksum>
     </file>
     <file>
       <filename>ResidentialDishwasher_Test.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
-      <checksum>E61783B4</checksum>
+      <checksum>4FBA7AB1</checksum>
     </file>
   </files>
 </measure>
