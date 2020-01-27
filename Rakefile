@@ -176,6 +176,9 @@ def integrity_check(project_dir_name, housing_characteristics_dir = "housing_cha
         _matched_option_name, _matched_row_num = tsvfile.get_option_name_from_sample_number(1.0, nil)
       end
 
+      # Check file format to be consistent with specified guidelines
+      check_parameter_file_format(tsvpath, tsvfile.dependency_cols.length(), parameter_name)
+
       # Check for all options defined in options_lookup.tsv
       get_measure_args_from_option_names(lookup_file, tsvfile.option_cols.keys, parameter_name)
     end
@@ -313,6 +316,45 @@ def check_for_illegal_chars(name, name_type)
     next unless name.include? char
 
     raise "ERROR: Illegal character ('#{char}') found in #{name_type} name '#{name}'."
+  end
+end
+
+def check_parameter_file_format(tsvpath, n_deps, name)
+  # For each line in file
+  i = 1
+  File.read(tsvpath, mode: "rb").each_line do |line|
+    # Check endline character
+    if line.include? "\r\n"
+      # Do not perform other checks if the line is the header
+      if i > 1
+        # Check float format
+        # Remove endline character and split the string into array
+        line = line.split("\r\n")[0].split("\t")
+        # For each non dependency entry check format
+        for j in n_deps..line.length() - 1 do
+          # Check for scientific format
+          if (line[j].include?('e-') || line[j].include?('e+') ||
+              line[j].include?('E-') || line[j].include?('E+'))
+            raise "ERROR: Scientific notation found in '#{name}', line '#{i}'."
+          end
+
+          begin # Try to get the float precision
+            float_precision = line[j].split('.')[1].length()
+          rescue NoMethodError
+            # Catch non floats
+            raise "ERROR: Incorrect non float found in '#{name}', line '#{i}'."
+          end
+          # If float precision is not 6 digits, raise error
+          if float_precision != 6
+            raise "ERROR: Incorrect float precision found in '#{name}', line '#{i}'."
+          end
+        end
+      end
+    else
+      # Found wrong endline format
+      raise "ERROR: Incorrect newline character found in '#{name}', line '#{i}'."
+    end # End checks
+    i += 1
   end
 end
 
