@@ -72,7 +72,7 @@ def regenerate_osms
     measures = {}
     resources_measures = {}
     osw_hash["steps"].each do |step|
-      if ["ResidentialSimulationControls", "PowerOutage"].include? step["measure_dir_name"]
+      if ["ResidentialSimulationControls", "Outages"].include? step["measure_dir_name"]
         measures[step["measure_dir_name"]] = [step["arguments"]]
       else
         resources_measures[step["measure_dir_name"]] = [step["arguments"]]
@@ -240,7 +240,6 @@ def integrity_check(project_dir_name, housing_characteristics_dir = "housing_cha
       raise err
     end
 
-    err = ""
     last_size = parameters_processed.size
     parameter_names.each do |parameter_name|
       # Already processed? Skip
@@ -263,15 +262,6 @@ def integrity_check(project_dir_name, housing_characteristics_dir = "housing_cha
       puts "Checking for issues with #{project_dir_name}/#{parameter_name}..."
       parameters_processed << parameter_name
 
-      # Test that dependency options exist
-      tsvfile.dependency_options.each do |dependency, options|
-        options.each do |option|
-          if not tsvfiles[dependency].option_cols.keys.include? option
-            err += "ERROR: #{dependency}=#{option} not a valid dependency option for #{parameter_name}.\n"
-          end
-        end
-      end
-
       # Test all possible combinations of dependency value combinations
       combo_hashes = get_combination_hashes(tsvfiles, tsvfile.dependency_cols.keys)
       if combo_hashes.size > 0
@@ -283,14 +273,8 @@ def integrity_check(project_dir_name, housing_characteristics_dir = "housing_cha
         _matched_option_name, _matched_row_num = tsvfile.get_option_name_from_sample_number(1.0, nil)
       end
 
-      # Check file format to be consistent with specified guidelines
-      check_parameter_file_format(tsvpath, tsvfile.dependency_cols.length(), parameter_name)
-
       # Check for all options defined in options_lookup.tsv
       get_measure_args_from_option_names(lookup_file, tsvfile.option_cols.keys, parameter_name)
-    end
-    if not err.empty?
-      raise err
     end
   end # parameter_name
 
@@ -334,16 +318,12 @@ def integrity_check_options_lookup_tsv(project_dir_name, housing_characteristics
   # Gather all options/arguments
   parameter_names = get_parameters_ordered_from_options_lookup_tsv(lookup_file)
   parameter_names.each do |parameter_name|
-    check_for_illegal_chars(parameter_name, 'parameter')
-
     tsvpath = File.join(project_dir_name, housing_characteristics_dir, "#{parameter_name}.tsv")
     next if not File.exist?(tsvpath) # Not every parameter used by every project
 
     option_names = get_options_for_parameter_from_options_lookup_tsv(lookup_file, parameter_name)
     options_measure_args = get_measure_args_from_option_names(lookup_file, option_names, parameter_name, nil)
     option_names.each do |option_name|
-      check_for_illegal_chars(option_name, 'option')
-
       # Check for (parameter, option) names
       # Get measure name and arguments associated with the option
       options_measure_args[option_name].each do |measure_subdir, args_hash|
@@ -413,55 +393,6 @@ def integrity_check_options_lookup_tsv(project_dir_name, housing_characteristics
     all_measure_args.shuffle.each_with_index do |measure_args, idx|
       validate_measure_args(measure_instance.arguments(model), measure_args, lookup_file, measure_subdir, nil)
     end
-  end
-end
-
-def check_for_illegal_chars(name, name_type)
-  # Check for illegal characters in parameter/option names. These characters are
-  # reserved for use in the apply upgrade logic.
-  ['(', ')', '|', '&'].each do |char|
-    next unless name.include? char
-
-    raise "ERROR: Illegal character ('#{char}') found in #{name_type} name '#{name}'."
-  end
-end
-
-def check_parameter_file_format(tsvpath, n_deps, name)
-  # For each line in file
-  i = 1
-  File.read(tsvpath, mode: "rb").each_line do |line|
-    # Check endline character
-    if line.include? "\r\n"
-      # Do not perform other checks if the line is the header
-      if i > 1
-        # Check float format
-        # Remove endline character and split the string into array
-        line = line.split("\r\n")[0].split("\t")
-        # For each non dependency entry check format
-        for j in n_deps..line.length() - 1 do
-          # Check for scientific format
-          if (line[j].include?('e-') || line[j].include?('e+') ||
-              line[j].include?('E-') || line[j].include?('E+'))
-            raise "ERROR: Scientific notation found in '#{name}', line '#{i}'."
-          end
-
-          begin # Try to get the float precision
-            float_precision = line[j].split('.')[1].length()
-          rescue NoMethodError
-            # Catch non floats
-            raise "ERROR: Incorrect non float found in '#{name}', line '#{i}'."
-          end
-          # If float precision is not 6 digits, raise error
-          if float_precision != 6
-            raise "ERROR: Incorrect float precision found in '#{name}', line '#{i}'."
-          end
-        end
-      end
-    else
-      # Found wrong endline format
-      raise "ERROR: Incorrect newline character found in '#{name}', line '#{i}'."
-    end # End checks
-    i += 1
   end
 end
 
@@ -552,7 +483,7 @@ def generate_example_osws(data_hash, include_measures, exclude_measures,
   # with all the measures in it, in the order specified in /resources/measure-info.json
 
   require 'openstudio'
-  require_relative 'resources/meta_measure'
+  require_relative 'resources/measures/HPXMLtoOpenStudio/resources/meta_measure'
 
   puts "Updating #{osw_filename}..."
 
@@ -662,6 +593,7 @@ def get_and_proof_measure_order_json()
   measure_folder = File.expand_path("../measures/", __FILE__)
   resources_measure_folder = File.expand_path("../resources/measures/", __FILE__)
   all_measures = Dir.entries(measure_folder).select { |entry| entry.start_with?('Residential') } + Dir.entries(resources_measure_folder).select { |entry| entry.start_with?('Residential') }
+  all_measures += ['TimeseriesCSVExport']
 
   # Load json, and get all measures in there
   json_file = "resources/measure-info.json"

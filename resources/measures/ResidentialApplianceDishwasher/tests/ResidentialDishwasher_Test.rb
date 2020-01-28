@@ -53,6 +53,7 @@ class ResidentialDishwasherTest < MiniTest::Test
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
+<<<<<<< HEAD
   def test_new_construction_270_rated_kwh
 >>>>>>> parent of 4f5fc0a0c... fixes for integrity checks after merge
     args_hash = {}
@@ -77,6 +78,8 @@ class ResidentialDishwasherTest < MiniTest::Test
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
+=======
+>>>>>>> parent of e5500722f... Merge remote-tracking branch 'origin/issue-344' into geb-potential
   def test_new_construction_318_rated_kwh_mult_0_80
     args_hash = {}
     args_hash["num_settings"] = 8

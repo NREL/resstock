@@ -1362,15 +1362,6 @@ class EnergyGuideLabel
     elsif date >= 2016
       # https://www.gpo.gov/fdsys/pkg/FR-2016-03-23/pdf/2016-06505.pdf
       return 93.2
-    elsif date >= 2017
-      # https://www.govinfo.gov/content/pkg/FR-2017-05-05/pdf/2017-09128.pdf
-      return 105.2
-    elsif date >= 2018
-      # https://www.govinfo.gov/content/pkg/FR-2018-04-24/pdf/2018-08519.pdf
-      return 102.2
-    elsif date >= 2019
-      # https://www.govinfo.gov/content/pkg/FR-2019-03-08/pdf/2019-04245.pdf
-      return 103.8
     end
   end
 
@@ -1454,15 +1445,6 @@ class EnergyGuideLabel
     elsif date >= 2016
       # https://www.gpo.gov/fdsys/pkg/FR-2016-03-23/pdf/2016-06505.pdf
       return 12.60
-    elsif date >= 2017
-      # https://www.govinfo.gov/content/pkg/FR-2017-05-05/pdf/2017-09128.pdf
-      return 12.90
-    elsif date >= 2018
-      # https://www.govinfo.gov/content/pkg/FR-2018-04-24/pdf/2018-08519.pdf
-      return 13.2
-    elsif date >= 2019
-      # https://www.govinfo.gov/content/pkg/FR-2019-03-08/pdf/2019-04245.pdf
-      return 13.2
     end
   end
 end

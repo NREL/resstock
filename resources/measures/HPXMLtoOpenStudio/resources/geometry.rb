@@ -174,19 +174,6 @@ class Geometry
       end
     end
 
-    # Sort the building units
-    unit_numbers = {}
-    return_units.each do |unit|
-      unit_number = Float(unit.name.to_s.split(" ")[-1])
-      unit_numbers[unit] = unit_number
-    end
-
-    unit_numbers = unit_numbers.sort_by { |k, v| v }
-    return_units = []
-    unit_numbers.each do |unit, number|
-      return_units << unit
-    end
-
     return return_units
   end
 

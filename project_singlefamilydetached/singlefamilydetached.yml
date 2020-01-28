@@ -1,30 +1,30 @@
 stock_type: residential
 buildstock_directory: ../../OpenStudio-BuildStock # Relative to this file or absolute
 project_directory: project_singlefamilydetached # Relative to buildstock_directory
-output_directory: /scratch/<username>/outputs/project_singlefamilydetached
+output_directory: /scratch/jrobert1/outputs/project_singlefamilydetached
 weather_files_path: /shared-projects/buildstock/weather/project_resstock_national_weather.zip  # Relative to this file or absolute path to zipped weather files
 baseline:
   n_datapoints: 350000
   n_buildings_represented: 80000000
 residential_simulation_controls:
-  timesteps_per_hr: 6
+  timesteps_per_hr: 4
   begin_month: 1
   begin_day_of_month: 1
   end_month: 12
   end_day_of_month: 31
   calendar_year: 2007
 timeseries_csv_export:
-  reporting_frequency: Hourly
+  reporting_frequency: Timestep
   include_enduse_subcategories: true
 eagle:
   n_jobs: 3
   minutes_per_sim: 10
-  account: <account you are authorized to use>
+  account: enduse
   postprocessing:
-    time: 20
-    n_workers: 1
+    time: 180
+    n_workers: 3
   sampling:
-    time: 5
+    time: 20
 postprocessing:
   aws:
     region_name: 'us-west-2'

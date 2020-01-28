@@ -50,6 +50,7 @@ class ResidentialClothesWasherTest < MiniTest::Test
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
+<<<<<<< HEAD
   def test_new_construction_energystar_more_efficient
     # Kenmore - 4126#
     # https://www.kenmore.com/products/kenmore-41262-4-5-cu-ft-front-load-washer-white
@@ -75,6 +76,8 @@ class ResidentialClothesWasherTest < MiniTest::Test
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
+=======
+>>>>>>> parent of e5500722f... Merge remote-tracking branch 'origin/issue-344' into geb-potential
   def test_new_construction_standard_2003
     args_hash = {}
     args_hash["imef"] = (1.41 - 0.503) / 0.95

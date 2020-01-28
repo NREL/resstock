@@ -22,7 +22,11 @@ class TimeseriesCSVExportTest < MiniTest::Test
     measure = TimeseriesCSVExport.new
     args_hash = {}
     args_hash["output_variables"] = "Zone People Occupant Count"
+<<<<<<< HEAD
     expected_values = { "EnduseTimeseriesLength" => 2 * 24, "EnduseTimeseriesWidth" => 3 + 38 + 1 }
+=======
+    expected_values = { "EnduseTimeseriesLength" => 2 * 24, "EnduseTimeseriesWidth" => 2 + 33 + 1 }
+>>>>>>> parent of e5500722f... Merge remote-tracking branch 'origin/issue-344' into geb-potential
     _test_measure("SFD_Successful_EnergyPlus_Run_AMY_PV_TwoDays.osm", args_hash, expected_values, __method__, "0465925_US_CO_Boulder_8013_0-20000-0-72469_40.13_-105.22_NSRDB_2.0.1_AMY_2014.epw", num_output_requests)
   end
 
@@ -32,7 +36,11 @@ class TimeseriesCSVExportTest < MiniTest::Test
     args_hash = {}
     args_hash["reporting_frequency"] = "Daily"
     args_hash["output_variables"] = "Zone People Occupant Count"
+<<<<<<< HEAD
     expected_values = { "EnduseTimeseriesLength" => 2 * 1, "EnduseTimeseriesWidth" => 3 + 38 + 1 }
+=======
+    expected_values = { "EnduseTimeseriesLength" => 2 * 1, "EnduseTimeseriesWidth" => 2 + 33 + 1 }
+>>>>>>> parent of e5500722f... Merge remote-tracking branch 'origin/issue-344' into geb-potential
     _test_measure("SFD_Successful_EnergyPlus_Run_AMY_PV_TwoDays.osm", args_hash, expected_values, __method__, "0465925_US_CO_Boulder_8013_0-20000-0-72469_40.13_-105.22_NSRDB_2.0.1_AMY_2014.epw", num_output_requests)
   end
 
@@ -42,7 +50,11 @@ class TimeseriesCSVExportTest < MiniTest::Test
     args_hash = {}
     args_hash["reporting_frequency"] = "Monthly"
     args_hash["output_variables"] = "Zone People Occupant Count"
+<<<<<<< HEAD
     expected_values = { "EnduseTimeseriesLength" => 1, "EnduseTimeseriesWidth" => 3 + 38 + 1 }
+=======
+    expected_values = { "EnduseTimeseriesLength" => 1, "EnduseTimeseriesWidth" => 2 + 33 + 1 }
+>>>>>>> parent of e5500722f... Merge remote-tracking branch 'origin/issue-344' into geb-potential
     _test_measure("SFD_Successful_EnergyPlus_Run_AMY_PV_TwoDays.osm", args_hash, expected_values, __method__, "0465925_US_CO_Boulder_8013_0-20000-0-72469_40.13_-105.22_NSRDB_2.0.1_AMY_2014.epw", num_output_requests)
   end
 
@@ -52,7 +64,11 @@ class TimeseriesCSVExportTest < MiniTest::Test
     args_hash = {}
     args_hash["reporting_frequency"] = "RunPeriod"
     args_hash["output_variables"] = "Zone People Occupant Count"
+<<<<<<< HEAD
     expected_values = { "EnduseTimeseriesLength" => 1, "EnduseTimeseriesWidth" => 3 + 38 + 1 }
+=======
+    expected_values = { "EnduseTimeseriesLength" => 1, "EnduseTimeseriesWidth" => 2 + 33 + 1 }
+>>>>>>> parent of e5500722f... Merge remote-tracking branch 'origin/issue-344' into geb-potential
     _test_measure("SFD_Successful_EnergyPlus_Run_AMY_PV_TwoDays.osm", args_hash, expected_values, __method__, "0465925_US_CO_Boulder_8013_0-20000-0-72469_40.13_-105.22_NSRDB_2.0.1_AMY_2014.epw", num_output_requests)
   end
 
@@ -61,7 +77,11 @@ class TimeseriesCSVExportTest < MiniTest::Test
     measure = TimeseriesCSVExport.new
     args_hash = {}
     args_hash["output_variables"] = "Site Wind Direction"
+<<<<<<< HEAD
     expected_values = { "EnduseTimeseriesLength" => 8760, "EnduseTimeseriesWidth" => 3 + 38 + 1 }
+=======
+    expected_values = { "EnduseTimeseriesLength" => 8760, "EnduseTimeseriesWidth" => 2 + 33 + 1 }
+>>>>>>> parent of e5500722f... Merge remote-tracking branch 'origin/issue-344' into geb-potential
     _test_measure("SFD_Successful_EnergyPlus_Run_TMY_Appl_PV.osm", args_hash, expected_values, __method__, "USA_CO_Denver.Intl.AP.725650_TMY3.epw", num_output_requests)
   end
 
@@ -82,7 +102,11 @@ class TimeseriesCSVExportTest < MiniTest::Test
     args_hash = {}
     args_hash["reporting_frequency"] = "Monthly"
     args_hash["output_variables"] = "Other Equipment Total Heating Energy, Surface Window Glazing Beam to Diffuse Solar Transmittance"
+<<<<<<< HEAD
     expected_values = { "EnduseTimeseriesLength" => 12, "EnduseTimeseriesWidth" => 3 + 38 + 12 }
+=======
+    expected_values = { "EnduseTimeseriesLength" => 12, "EnduseTimeseriesWidth" => 2 + 33 + 12 }
+>>>>>>> parent of e5500722f... Merge remote-tracking branch 'origin/issue-344' into geb-potential
     _test_measure("SFD_Successful_EnergyPlus_Run_TMY_Appl_PV.osm", args_hash, expected_values, __method__, "USA_CO_Denver.Intl.AP.725650_TMY3.epw", num_output_requests)
   end
 
@@ -92,7 +116,11 @@ class TimeseriesCSVExportTest < MiniTest::Test
     args_hash = {}
     args_hash["reporting_frequency"] = "RunPeriod"
     args_hash["output_variables"] = "Surface Outside Normal Azimuth Angle, Surface Window Heat Gain Rate"
+<<<<<<< HEAD
     expected_values = { "EnduseTimeseriesLength" => 1, "EnduseTimeseriesWidth" => 3 + 38 + 71 }
+=======
+    expected_values = { "EnduseTimeseriesLength" => 1, "EnduseTimeseriesWidth" => 2 + 33 + 71 }
+>>>>>>> parent of e5500722f... Merge remote-tracking branch 'origin/issue-344' into geb-potential
     _test_measure("SFD_Successful_EnergyPlus_Run_TMY_Appl_PV.osm", args_hash, expected_values, __method__, "USA_CO_Denver.Intl.AP.725650_TMY3.epw", num_output_requests)
   end
 

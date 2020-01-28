@@ -14,7 +14,7 @@ First, you will need some AWS credentials to allow PAT to start compute instance
 Cluster Settings and Starting the Cluster
 -----------------------------------------
 
-Ensure that your project's AMI selection matches "2.9.0" (this should also be the version of OpenStudio/PAT that you are using). We will leave most of the rest of the settings at their defaults, but because we're doing a small analysis here, we're going to set the number of worker nodes to zero. For guidance on cluster settings for your analysis including instance selection and worker nodes see :doc:`../aws_cluster_config`.
+Ensure that your project's AMI selection matches "2.8.1" (this should also be the version of OpenStudio/PAT that you are using). We will leave most of the rest of the settings at their defaults, but because we're doing a small analysis here, we're going to set the number of worker nodes to zero. For guidance on cluster settings for your analysis including instance selection and worker nodes see :doc:`../aws_cluster_config`.
 
 .. image:: ../images/tutorial/run_on_cloud.png
 
@@ -56,7 +56,7 @@ Sometimes you will need *all* the simulation results including timeseries result
    
    .. code-block:: bash
    
-      $ c:/openstudio-2.9.0/bin/openstudio.exe scripts/download_datapoints.rb -p project_singlefamilydetached -s http://ec2-107-23-165-146.compute-1.amazonaws.com -a 706c3b4a-9685-4924-bb13-c6bec77aa397
+      $ c:/openstudio-2.8.1/bin/openstudio.exe scripts/download_datapoints.rb -p project_singlefamilydetached -s http://ec2-107-23-165-146.compute-1.amazonaws.com -a 706c3b4a-9685-4924-bb13-c6bec77aa397
    
    Additionally, the script has an optional argument to unzip each datapoint zip file on the fly.
 
