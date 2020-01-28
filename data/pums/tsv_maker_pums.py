@@ -111,6 +111,29 @@ class TSVMaker(object):
         # drop all observations where puma_df equals 0
         self.puma_df = self.puma_df[~self.puma_df.isin(df_equals_zero)].dropna()
 
+        # create new column in puma file with State Abbreviation
+        print("Create longPUMA column...")
+        sheet_state_abbrev = pd.read_excel(self.dep_mapping, sheet_name = "STATEFIP")
+
+        # remove Hawaii, Puerto Rico and Alaska states
+        sheet_state_abbrev =  sheet_state_abbrev[~sheet_state_abbrev['State (FIPS code)'].str.contains('Hawaii|Puerto Rico|Alaska')]
+
+        self.puma_df = pd.merge(self.puma_df, sheet_state_abbrev[['STATEFIP', "StateAbbrev"]], on = "STATEFIP")
+
+        self.puma_df['PUMA'] = self.puma_df['PUMA'].astype(int)
+
+        # add leading zeros to those digits less than 5
+        self.puma_df['PUMA'] = self.puma_df['PUMA'].apply(lambda x: '{0:0>5}'.format(x))
+
+        # convert type to string
+        self.puma_df['PUMA'] = self.puma_df['PUMA'].astype(str)
+
+        # reformat PUMA mame to include
+        self.puma_df['longPUMA'] = self.puma_df["StateAbbrev"] + ", " + self.puma_df["PUMA"]
+
+        # Copy integers from Built year to built year acs (will be different after mapping)
+        self.puma_df['BUILTYR2_ACS'] = self.puma_df['BUILTYR2'].copy()        
+
         print("Loading PUMS data complete.")
 
     def create_mapping_files(self):
@@ -119,17 +142,11 @@ class TSVMaker(object):
         self.df = self.puma_df.copy()
 
         # create list of columns that will be mapped to their correct names
-        if self.dep_list == ["PUMA"] :
+        if self.dep_list == ["longPUMA"] :
             sheets_mapped = self.option_col
         else:
            sheets_mapped = self.dep_list + self.option_col
-           sheets_mapped.remove("PUMA")
-
-        # accounting for Vintage FPL as it is only a copy of the Vintage column
-        if "BUILTYR2_ACS" in sheets_mapped:
-            self.df['BUILTYR2_ACS'] = self.df['BUILTYR2'].copy()
-        else:
-            pass
+           sheets_mapped.remove("longPUMA")
 
         # rename all columns in the PUMA data tsv file
         for i in sheets_mapped:
@@ -161,29 +178,6 @@ class TSVMaker(object):
         # Create Mapping
         print('Creating mapping...')
         self.create_mapping_files()
-
-        # create new column in puma file with State Abbreviation
-        print("Create longPUMA column...")
-        sheet_state_abbrev = pd.read_excel(self.dep_mapping, sheet_name = "STATEFIP")
-
-        # remove Hawaii, Puerto Rico and Alaska states
-        sheet_state_abbrev =  sheet_state_abbrev[~sheet_state_abbrev['State (FIPS code)'].str.contains('Hawaii|Puerto Rico|Alaska')]
-
-        self.df = pd.merge(self.df, sheet_state_abbrev[['STATEFIP', "StateAbbrev"]], on = "STATEFIP")
-
-        self.df['PUMA'] = self.df['PUMA'].astype(int)
-
-        # add leading zeros to those digits less than 5
-        self.df['PUMA'] = self.df['PUMA'].apply(lambda x: '{0:0>5}'.format(x))
-
-        # convert type to string
-        self.df['PUMA'] = self.df['PUMA'].astype(str)
-
-        # reformat PUMA mame to include
-        self.df['longPUMA'] = self.df["StateAbbrev"] + ", " + self.df["PUMA"]
-
-        self.dep_list.remove("PUMA")
-        self.dep_list.insert(0, "longPUMA")
 
         print("Pivoting table...")
         self.pivot_df = pd.pivot_table(self.df, values = "HHWT", columns = self.option_col, index = self.dep_list, aggfunc = np.sum, dropna = False, fill_value = 0)
