@@ -43,14 +43,12 @@ upgrades:
       #Best CAC
       - option: HVAC System Cooling|AC, SEER 18
         apply_logic:
-          - or:
+          or:
             - HVAC System Cooling|AC, SEER 8
             - HVAC System Cooling|AC, SEER 10
             - HVAC System Cooling|AC, SEER 13
             - HVAC System Cooling|AC, SEER 14
             - HVAC System Cooling|AC, SEER 15
-          - not:
-            - HVAC System Heating Electricity|Electric Furnace
         costs:
           - value: 3200
             multiplier: Fixed (1)
@@ -58,30 +56,30 @@ upgrades:
             multiplier: Size, Cooling System (kBtu/h)
         lifetime: 16
 ##up2 - package 1b - EE ASHP
-  # - upgrade_name: Package 1b EE ASHP
-  #   options: 
-  #     #Best ASHP
-  #     - option: HVAC System Heat Pump|ASHP, SEER 22, 10 HSPF
-  #       apply_logic: 
-  #         or:
-  #           - HVAC System Heat Pump|ASHP, SEER 10, 6.2 HSPF
-  #           - HVAC System Heat Pump|ASHP, SEER 10.3, 7.0 HSPF
-  #           - HVAC System Heat Pump|ASHP, SEER 11.5, 7.5 HSPF
-  #           - HVAC System Heat Pump|ASHP, SEER 13, 7.7 HSPF
-  #           - HVAC System Heat Pump|ASHP, SEER 13, 8.0 HSPF
-  #           - HVAC System Heat Pump|ASHP, SEER 14, 8.2 HSPF
-  #           - HVAC System Heat Pump|ASHP, SEER 14.3, 8.5 HSPF
-  #           - HVAC System Heat Pump|ASHP, SEER 15, 8.5 HSPF
-  #           - HVAC System Heat Pump|ASHP, SEER 16, 9.0 HSPF
-  #           - HVAC System Heat Pump|ASHP, SEER 17, 8.7 HSPF
-  #           - HVAC System Heat Pump|ASHP, SEER 18, 9.3 HSPF
-  #           #removed upgrades from electric resistance heating to ensure no house is included in both the ASHP and CAC upgrade packages
-  #       costs:
-  #         - value: 4200
-  #           multiplier: Fixed (1)
-  #         - value: 42
-  #           multiplier: Size, Heating System (kBtu/h)
-  #       lifetime: 15
+  - upgrade_name: Package 1b EE ASHP
+    options: 
+      #Best ASHP
+      - option: HVAC System Heat Pump|ASHP, SEER 22, 10 HSPF
+        apply_logic: 
+          or:
+            - HVAC System Heat Pump|ASHP, SEER 10, 6.2 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 10.3, 7.0 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 11.5, 7.5 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 13, 7.7 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 13, 8.0 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 14, 8.2 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 14.3, 8.5 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 15, 8.5 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 16, 9.0 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 17, 8.7 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 18, 9.3 HSPF
+            #removed upgrades from electric resistance heating to ensure no house is included in both the ASHP and CAC upgrade packages
+        costs:
+          - value: 4200
+            multiplier: Fixed (1)
+          - value: 42
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 15
 
 ##up2.1 - package 1bpart2 - EE ASHP
   - upgrade_name: Package 1b EE ASHP
@@ -616,34 +614,19 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 999
       # Best clothes dryer
-      - option: Clothes Dryer|Electric, Heat Pump, Ventless, 80% Usage
+      - option: Clothes Dryer|Electric, Heat Pump, Ventless
         apply_logic:
           or:
             - Clothes Dryer|Electric, 80% Usage
-        costs:
-          - value: 0
-            multiplier: Fixed (1)
-        lifetime: 999
-      - option: Clothes Dryer|Electric, Heat Pump, Ventless, 100% Usage
-        apply_logic:
-          or:
             - Clothes Dryer|Electric, 100% Usage
+            - Clothes Dryer|Electric, 120% Usage
             - Clothes Dryer|Electric, Premium
         costs:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 999
-      - option: Clothes Dryer|Electric, Heat Pump, Ventless, 120% Usage
-        apply_logic:
-          or:
-            - Clothes Dryer|Electric, 120% Usage
-        costs:
-          - value: 0
-            multiplier: Fixed (1)
-        lifetime: 999
-      
       # Best dishwasher
-      - option: Dishwasher|199 Rated kWh, 80% Usage
+      - option: Dishwasher|199 Rated kWh, EnergyStar Most Efficient, 80% Usage
         apply_logic: 
           or:
             - Dishwasher|318 Rated kWh, 80% Usage
@@ -652,7 +635,7 @@ upgrades:
           - value: 1000
             multiplier: Fixed (1)
         lifetime: 11
-      - option: Dishwasher|199 Rated kWh, 100% Usage
+      - option: Dishwasher|199 Rated kWh, EnergyStar Most Efficient, 100% Usage
         apply_logic: 
           or:
             - Dishwasher|318 Rated kWh, 100% Usage
@@ -661,7 +644,7 @@ upgrades:
           - value: 1000
             multiplier: Fixed (1)
         lifetime: 11
-      - option: Dishwasher|199 Rated kWh, 120% Usage
+      - option: Dishwasher|199 Rated kWh, EnergyStar Most Efficient, 120% Usage
         apply_logic: 
           or:
             - Dishwasher|318 Rated kWh, 120% Usage
@@ -3760,36 +3743,20 @@ upgrades:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 999
-      
       # Best clothes dryer
-      - option: Clothes Dryer|Electric, Heat Pump, Ventless, 80% Usage
+      - option: Clothes Dryer|Electric, Heat Pump, Ventless
         apply_logic:
           or:
             - Clothes Dryer|Electric, 80% Usage
-        costs:
-          - value: 0
-            multiplier: Fixed (1)
-        lifetime: 999
-      - option: Clothes Dryer|Electric, Heat Pump, Ventless, 100% Usage
-        apply_logic:
-          or:
             - Clothes Dryer|Electric, 100% Usage
+            - Clothes Dryer|Electric, 120% Usage
             - Clothes Dryer|Electric, Premium
         costs:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 999
-      - option: Clothes Dryer|Electric, Heat Pump, Ventless, 120% Usage
-        apply_logic:
-          or:
-            - Clothes Dryer|Electric, 120% Usage
-        costs:
-          - value: 0
-            multiplier: Fixed (1)
-        lifetime: 999
-      
       # Best dishwasher
-      - option: Dishwasher|199 Rated kWh, 80% Usage
+      - option: Dishwasher|199 Rated kWh, EnergyStar Most Efficient, 80% Usage
         apply_logic: 
           or:
             - Dishwasher|318 Rated kWh, 80% Usage
@@ -3798,7 +3765,7 @@ upgrades:
           - value: 1000
             multiplier: Fixed (1)
         lifetime: 11
-      - option: Dishwasher|199 Rated kWh, 100% Usage
+      - option: Dishwasher|199 Rated kWh, EnergyStar Most Efficient, 100% Usage
         apply_logic: 
           or:
             - Dishwasher|318 Rated kWh, 100% Usage
@@ -3807,7 +3774,7 @@ upgrades:
           - value: 1000
             multiplier: Fixed (1)
         lifetime: 11
-      - option: Dishwasher|199 Rated kWh, 120% Usage
+      - option: Dishwasher|199 Rated kWh, EnergyStar Most Efficient, 120% Usage
         apply_logic: 
           or:
             - Dishwasher|318 Rated kWh, 120% Usage
@@ -3816,7 +3783,6 @@ upgrades:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 11
-      
       #Best pool pump
       - option: Misc Pool Pump|0.75 HP Pump
         apply_logic: Misc Pool Pump|1.0 HP Pump
