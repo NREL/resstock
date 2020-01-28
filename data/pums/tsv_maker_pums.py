@@ -145,30 +145,13 @@ class TSVMaker(object):
         if self.dep_list == ["longPUMA"] :
             sheets_mapped = self.option_col
         else:
-           sheets_mapped = self.dep_list + self.option_col
-           sheets_mapped.remove("longPUMA")
+            sheets_mapped = self.dep_list + self.option_col
+            sheets_mapped.remove("longPUMA")
 
-        # rename all columns in the PUMA data tsv file
-        for i in sheets_mapped:
-            # getting the sheets for the files needed for remapping
-            dep_sheet = pd.read_excel(self.dep_mapping, sheet_name = i)
-            # check the number of columns in sheet. If there are two columns, then
-            # we are using the PUMA mapping. If not, ResStock has its own mapping which is then used
-            actual = dep_sheet.iloc[:, 0].tolist()
-            actual = list(map(str,actual))
-            if dep_sheet.shape[1] == 3:
-                mappedval = dep_sheet.iloc[:, 2].tolist()
-                mappedval = list(map(str,mappedval))
-            else:
-                mappedval = dep_sheet.iloc[:, 1].tolist()
-                mappedval = list(map(str,mappedval))
-            dict_mapped = dict(zip(actual, mappedval))
-
-            # convert column to string then strip trailing zero
-            self.df[i] = self.df[i].astype(str).str.strip('.0')
-
-            # replace column with dictionary
-            self.df[i] = self.df[i].replace(dict_mapped)
+        dep_mapping = os.path.join('various_datasets','puma_files','ColumnsCoding.xlsx')
+        for col in sheets_mapped:
+            dep_sheet = pd.read_excel(self.dep_mapping, sheet_name = col)
+            self.df[col] = self.df[col].map(dep_sheet.set_index(col)[dep_sheet.columns.values[2]])
 
     def create_tsv_with_dependencies(self,dep_list,option_col):
         # Set members
