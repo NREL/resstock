@@ -50,6 +50,31 @@ class ResidentialClothesWasherTest < MiniTest::Test
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
+  def test_new_construction_energystar_more_efficient
+    # Kenmore - 4126#
+    # https://www.kenmore.com/products/kenmore-41262-4-5-cu-ft-front-load-washer-white
+    args_hash = {}
+    args_hash["imef"] = (1.41 - 0.503) / 0.95
+    args_hash["rated_annual_energy"] = 387
+    args_hash["draw_profile_type"] = Constants.WaterHeaterDrawProfileTypeSmooth
+    expected_num_del_objects = {}
+    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "WaterUseEquipmentDefinition" => 1, "WaterUseEquipment" => 1, "ScheduleRuleset" => 1, "ScheduleConstant" => 1 }
+    expected_values = { "Annual_kwh" => 42.9, "HotWater_gpd" => 10.00, "Location" => args_hash["location"] }
+    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
+  end
+
+  def test_new_construction_energystar
+    args_hash = {}
+    args_hash["imef"] = (2.47 - 0.503) / 0.95
+    args_hash["rated_annual_energy"] = 123
+    args_hash["annual_cost"] = 9.0
+    args_hash["drum_volume"] = 3.68
+    expected_num_del_objects = {}
+    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "WaterUseEquipmentDefinition" => 1, "WaterUseEquipment" => 1, "ScheduleRuleset" => 1, "ScheduleConstant" => 1 }
+    expected_values = { "Annual_kwh" => 34.9, "HotWater_gpd" => 2.27, "Location" => args_hash["location"] }
+    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
+  end
+
   def test_new_construction_standard_2003
     args_hash = {}
     args_hash["imef"] = (1.41 - 0.503) / 0.95
