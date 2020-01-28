@@ -1,0 +1,22 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: nrel/openstudio:2.9.1
+    steps:
+      - checkout
+      - run: 
+          name: Install gems
+          command: |
+            rm -f Gemfile.lock && bundle install
+      - run:
+          name: Apply rubocop
+          command: |
+            rubocop --format simple --only Layout --debug
+      - run: 
+          name: Run tests
+          command: |
+            ruby tests/build_residential_hpxml_test.rb -n test_workflows
+      - store_artifacts:
+          path: HPXMLtoOpenStudio/tests/results
+          destination: results
