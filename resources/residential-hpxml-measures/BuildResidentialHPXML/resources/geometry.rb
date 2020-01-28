@@ -691,7 +691,7 @@ class Geometry
   def self.get_garage_spaces(spaces)
     garage_spaces = []
     spaces.each do |space|
-      next if not Geometry.is_garage(space)
+      next if not is_garage(space)
 
       garage_spaces << space
     end
@@ -702,7 +702,7 @@ class Geometry
     space.surfaces.each do |surface|
       next unless surface.surfaceType.downcase == "floor"
 
-      return Geometry.getSurfaceZValues([surface])[0]
+      return getSurfaceZValues([surface])[0]
     end
   end
 
@@ -774,7 +774,7 @@ class Geometry
           if win_removed
             runner.registerInfo("Removed fixed window(s) from #{surface.name}.")
           end
-          facade = Geometry.get_facade_for_surface(surface)
+          facade = get_facade_for_surface(surface)
           next if facade.nil?
 
           wall_surfaces[facade] << surface
@@ -799,7 +799,7 @@ class Geometry
           if sky_removed
             runner.registerInfo("Removed fixed skylight(s) from #{surface.name}.")
           end
-          facade = Geometry.get_facade_for_surface(surface)
+          facade = get_facade_for_surface(surface)
           if facade.nil?
             if surface.tilt == 0 # flat roof
               roof_surfaces["none"] << surface
@@ -1001,10 +1001,10 @@ class Geometry
       end
 
       surfaces.each do |surface|
-        if (UnitConversions.convert(surface.grossArea, "m^2", "ft^2") / Geometry.get_surface_length(surface)) > Geometry.get_surface_length(surface)
-          skylight_aspect_ratio = Geometry.get_surface_length(surface) / (UnitConversions.convert(surface.grossArea, "m^2", "ft^2") / Geometry.get_surface_length(surface)) # aspect ratio of the roof surface
+        if (UnitConversions.convert(surface.grossArea, "m^2", "ft^2") / get_surface_length(surface)) > get_surface_length(surface)
+          skylight_aspect_ratio = get_surface_length(surface) / (UnitConversions.convert(surface.grossArea, "m^2", "ft^2") / get_surface_length(surface)) # aspect ratio of the roof surface
         else
-          skylight_aspect_ratio = (UnitConversions.convert(surface.grossArea, "m^2", "ft^2") / Geometry.get_surface_length(surface)) / Geometry.get_surface_length(surface) # aspect ratio of the roof surface
+          skylight_aspect_ratio = (UnitConversions.convert(surface.grossArea, "m^2", "ft^2") / get_surface_length(surface)) / get_surface_length(surface) # aspect ratio of the roof surface
         end
 
         skylight_width = Math.sqrt(UnitConversions.convert(skylight_area, "ft^2", "m^2") / skylight_aspect_ratio)
@@ -1065,18 +1065,18 @@ class Geometry
     end
 
     # Can't fit the smallest window?
-    if Geometry.get_surface_length(surface) < min_window_width
+    if get_surface_length(surface) < min_window_width
       return 0.0
     end
 
     # Wall too short?
-    if min_wall_height_for_window > Geometry.get_surface_height(surface)
+    if min_wall_height_for_window > get_surface_height(surface)
       return 0.0
     end
 
     # Gable too short?
     # TODO: super crude safety factor of 1.5
-    if is_gable_wall(surface) and min_wall_height_for_window > Geometry.get_surface_height(surface) / 1.5
+    if is_gable_wall(surface) and min_wall_height_for_window > get_surface_height(surface) / 1.5
       return 0.0
     end
 
@@ -1084,8 +1084,8 @@ class Geometry
   end
 
   def self.add_windows_to_wall(surface, window_area, window_gap_y, window_gap_x, window_aspect_ratio, max_single_window_area, facade, constructions, model, runner)
-    wall_width = Geometry.get_surface_length(surface)
-    wall_height = Geometry.get_surface_height(surface)
+    wall_width = get_surface_length(surface)
+    wall_height = get_surface_height(surface)
 
     # Calculate number of windows needed
     num_windows = (window_area / max_single_window_area).ceil
@@ -1156,13 +1156,13 @@ class Geometry
       multy = 1
     end
     if facade == Constants.FacadeBack or facade == Constants.FacadeLeft
-      leftx = Geometry.getSurfaceXValues([surface]).max
-      lefty = Geometry.getSurfaceYValues([surface]).max
+      leftx = getSurfaceXValues([surface]).max
+      lefty = getSurfaceYValues([surface]).max
     else
-      leftx = Geometry.getSurfaceXValues([surface]).min
-      lefty = Geometry.getSurfaceYValues([surface]).min
+      leftx = getSurfaceXValues([surface]).min
+      lefty = getSurfaceYValues([surface]).min
     end
-    bottomz = Geometry.getSurfaceZValues([surface]).min
+    bottomz = getSurfaceZValues([surface]).min
     [upperleft, lowerleft, lowerright, upperright].each do |coord|
       newx = UnitConversions.convert(leftx + multx * coord[0], "ft", "m")
       newy = UnitConversions.convert(lefty + multy * coord[0], "ft", "m")
@@ -1190,7 +1190,7 @@ class Geometry
   end
 
   def self.space_is_unconditioned(space)
-    return !Geometry.space_is_conditioned(space)
+    return !space_is_conditioned(space)
   end
 
   def self.is_rectangular_wall(surface)
@@ -1201,9 +1201,9 @@ class Geometry
       return false
     end
 
-    xvalues = Geometry.getSurfaceXValues([surface])
-    yvalues = Geometry.getSurfaceYValues([surface])
-    zvalues = Geometry.getSurfaceZValues([surface])
+    xvalues = getSurfaceXValues([surface])
+    yvalues = getSurfaceYValues([surface])
+    zvalues = getSurfaceZValues([surface])
     if not ((xvalues.uniq.size == 1 and yvalues.uniq.size == 2) or
             (xvalues.uniq.size == 2 and yvalues.uniq.size == 1))
       return false
@@ -1277,7 +1277,7 @@ class Geometry
         next if space_is_below_grade(space)
 
         space.surfaces.each do |surface|
-          next if Geometry.get_facade_for_surface(surface) != facade
+          next if get_facade_for_surface(surface) != facade
           next if surface.outsideBoundaryCondition.downcase != "outdoors"
           next if (90 - surface.tilt * 180 / Math::PI).abs > 0.01 # Not a vertical wall
 
@@ -1291,7 +1291,7 @@ class Geometry
     min_story_avail_walls = []
     min_story_avail_wall_minz = 99999
     avail_walls.each do |avail_wall|
-      zvalues = Geometry.getSurfaceZValues([avail_wall])
+      zvalues = getSurfaceZValues([avail_wall])
       minz = zvalues.min + avail_wall.space.get.zOrigin
       if minz < min_story_avail_wall_minz
         min_story_avail_walls.clear
@@ -1325,7 +1325,7 @@ class Geometry
     min_story_corridor_walls = []
     min_story_corridor_wall_minz = 99999
     corridor_walls.each do |corridor_wall|
-      zvalues = Geometry.getSurfaceZValues([corridor_wall])
+      zvalues = getSurfaceZValues([corridor_wall])
       minz = zvalues.min + corridor_wall.space.get.zOrigin
       if minz < min_story_corridor_wall_minz
         min_story_corridor_walls.clear
@@ -1354,7 +1354,7 @@ class Geometry
       # Try to place door on any surface with enough area
       next if door_area >= wall_gross_area
 
-      facade = Geometry.get_facade_for_surface(min_story_avail_wall)
+      facade = get_facade_for_surface(min_story_avail_wall)
 
       if (door_offset + door_width) * door_height > wall_gross_area
         # Reduce door offset to fit door on surface
@@ -1391,13 +1391,13 @@ class Geometry
         multy = 1
       end
       if facade == Constants.FacadeBack or facade == Constants.FacadeLeft
-        leftx = Geometry.getSurfaceXValues([min_story_avail_wall]).max
-        lefty = Geometry.getSurfaceYValues([min_story_avail_wall]).max
+        leftx = getSurfaceXValues([min_story_avail_wall]).max
+        lefty = getSurfaceYValues([min_story_avail_wall]).max
       else
-        leftx = Geometry.getSurfaceXValues([min_story_avail_wall]).min
-        lefty = Geometry.getSurfaceYValues([min_story_avail_wall]).min
+        leftx = getSurfaceXValues([min_story_avail_wall]).min
+        lefty = getSurfaceYValues([min_story_avail_wall]).min
       end
-      bottomz = Geometry.getSurfaceZValues([min_story_avail_wall]).min
+      bottomz = getSurfaceZValues([min_story_avail_wall]).min
 
       [upperleft, lowerleft, lowerright, upperright].each do |coord|
         newx = UnitConversions.convert(leftx + multx * coord[0], "ft", "m")
@@ -1648,12 +1648,12 @@ class Geometry
     model.getSpaces.each do |space|
       # Store has_rear_units to call in the door geometry measure
       space.surfaces.each do |surface|
-        os_facade = Geometry.get_facade_for_surface(surface)
+        os_facade = get_facade_for_surface(surface)
         if surface.surfaceType == "Wall"
           if adb_facade.include? os_facade
             x_ft = UnitConversions.convert(x, "m", "ft")
-            max_x = Geometry.getSurfaceXValues([surface]).max
-            min_x = Geometry.getSurfaceXValues([surface]).min
+            max_x = getSurfaceXValues([surface]).max
+            min_x = getSurfaceXValues([surface]).min
             next if ((max_x - x_ft).abs >= 0.01) and min_x > 0
 
             surface.setOutsideBoundaryCondition("Adiabatic")
@@ -1703,7 +1703,7 @@ class Geometry
         # Make walls of corridor adiabatic
         if has_rear_units == true
           corridor_space.surfaces.each do |surface|
-            os_facade = Geometry.get_facade_for_surface(surface)
+            os_facade = get_facade_for_surface(surface)
           end
         end
       end
@@ -1964,8 +1964,8 @@ class Geometry
     top_z = -99999
     bottom_z = 99999
     surfaces.each do |surface|
-      top_z = [Geometry.getSurfaceZValues([surface]).max, top_z].max
-      bottom_z = [Geometry.getSurfaceZValues([surface]).min, bottom_z].min
+      top_z = [getSurfaceZValues([surface]).max, top_z].max
+      bottom_z = [getSurfaceZValues([surface]).min, bottom_z].min
     end
     edges = []
     edge_counter = 0
@@ -1993,9 +1993,9 @@ class Geometry
         edge_counter += 1
         counter += 1
         if vertex_hash.size != counter
-          edges << [v, vertex_hash[counter + 1], Geometry.get_facade_for_surface(surface)]
+          edges << [v, vertex_hash[counter + 1], get_facade_for_surface(surface)]
         elsif vertex_hash.size > 2 # different code for wrap around vertex (if > 2 vertices)
-          edges << [v, vertex_hash[1], Geometry.get_facade_for_surface(surface)]
+          edges << [v, vertex_hash[1], get_facade_for_surface(surface)]
         end
       end
     end
