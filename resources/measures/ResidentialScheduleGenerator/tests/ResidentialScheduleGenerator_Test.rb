@@ -153,9 +153,21 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
 
   def get_schedule_file(schedule_file)
     rows = CSV.read(File.expand_path(schedule_file))
+    check_columns(rows.transpose)
     schedules_length = rows.length - 1
     cols = rows.transpose
     schedules_width = cols.length
     return schedules_length, schedules_width
+  end
+
+  def check_columns(cols)
+    cols.each do |col|
+      col_name = col[0]
+      next if ["clothes_washer", "clothes_dryer", "dishwasher"].include? col_name
+
+      puts "Checking #{col_name}..."
+      col = col[1..-1].map { |x| Float(x) }
+      assert(!col.all? { |x| x == 0 })
+    end
   end
 end
