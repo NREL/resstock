@@ -18,7 +18,7 @@ import pandas as pd
 
 
 class TSVMaker(object):
-    def __init__(self,project,dep_list,option_col):
+    def __init__(self,project):
         print('Initializing PUMA TSVMaker')
         print('---------------------')
         # Define file paths
@@ -29,13 +29,12 @@ class TSVMaker(object):
         # data dictionary file path
         self.dep_mapping = os.path.join('various_datasets','puma_files','ColumnsCoding.xlsx')
 
-        self.dep_list = dep_list
-
-        # this is a list so it can be easily merged later
-        self.option_col = [option_col]
-
         # Define the projects to copy the tsvs
         self.project = project
+
+        # Set members
+        self.dep_list = []
+        self.option_col = []
 
         #Create an s3 client
         self.s3_client = boto3.client('s3')
@@ -43,9 +42,8 @@ class TSVMaker(object):
         #Download Data from s3
         self.download_data_s3()
 
-        # rename integer columns for PUMA data csv to actual names
-        self.create_mapping_files()
-
+        # Load PUMS data intp memory
+        self.load_pums_data()
 
     def s3_download_dir(self,prefix, local, bucket, client):
         """Download a directory from s3
@@ -98,8 +96,7 @@ class TSVMaker(object):
             s3_prefix = os.path.join('various_datasets','puma_files')
             self.s3_download_dir(s3_prefix,'.', s3_bucket,self.s3_client)
 
-
-    def create_mapping_files(self):
+    def load_pums_data(self):
         print ("Loading PUMA data csv file - this may take a while")
         # read in puma file
         chunks = pd.read_csv(self.puma_file, chunksize = 100000)
@@ -114,7 +111,14 @@ class TSVMaker(object):
         # drop all observations where puma_df equals 0
         self.puma_df = self.puma_df[~self.puma_df.isin(df_equals_zero)].dropna()
 
-        # create list of  columns that will be mapped to their correct names
+        print("Loading PUMS data complete.")
+
+    def create_mapping_files(self):
+
+        # Copy PUMS data
+        self.df = self.puma_df.copy()
+
+        # create list of columns that will be mapped to their correct names
         if self.dep_list == ["PUMA"] :
             sheets_mapped = self.option_col
         else:
@@ -122,8 +126,8 @@ class TSVMaker(object):
            sheets_mapped.remove("PUMA")
 
         # accounting for Vintage FPL as it is only a copy of the Vintage column
-        if "BUILTYR2_FPL" in sheets_mapped:
-            self.puma_df['BUILTYR2_FPL'] = self.puma_df['BUILTYR2'].copy()
+        if "BUILTYR2_ACS" in sheets_mapped:
+            self.df['BUILTYR2_ACS'] = self.df['BUILTYR2'].copy()
         else:
             pass
 
@@ -144,41 +148,48 @@ class TSVMaker(object):
             dict_mapped = dict(zip(actual, mappedval))
 
             # convert column to string then strip trailing zero
-            self.puma_df[i] = self.puma_df[i].astype(str).str.strip('.0')
+            self.df[i] = self.df[i].astype(str).str.strip('.0')
 
             # replace column with dictionary
-            self.puma_df[i] = self.puma_df[i].replace(dict_mapped)
+            self.df[i] = self.df[i].replace(dict_mapped)
 
+    def create_tsv_with_dependencies(self,dep_list,option_col):
+        # Set members
+        self.dep_list = dep_list
+        self.option_col = [option_col]
 
+        # Create Mapping
+        print('Creating mapping...')
+        self.create_mapping_files()
 
-    def create_tsv_with_dependencies(self):
         # create new column in puma file with State Abbreviation
+        print("Create longPUMA column...")
         sheet_state_abbrev = pd.read_excel(self.dep_mapping, sheet_name = "STATEFIP")
 
         # remove Hawaii, Puerto Rico and Alaska states
         sheet_state_abbrev =  sheet_state_abbrev[~sheet_state_abbrev['State (FIPS code)'].str.contains('Hawaii|Puerto Rico|Alaska')]
 
-        self.puma_df = pd.merge(self.puma_df, sheet_state_abbrev[['STATEFIP', "StateAbbrev"]], on = "STATEFIP")
+        self.df = pd.merge(self.df, sheet_state_abbrev[['STATEFIP', "StateAbbrev"]], on = "STATEFIP")
 
-        self.puma_df['PUMA'] = self.puma_df['PUMA'].astype(int)
+        self.df['PUMA'] = self.df['PUMA'].astype(int)
 
         # add leading zeros to those digits less than 5
-        self.puma_df['PUMA'] = self.puma_df['PUMA'].apply(lambda x: '{0:0>5}'.format(x))
+        self.df['PUMA'] = self.df['PUMA'].apply(lambda x: '{0:0>5}'.format(x))
 
         # convert type to string
-        self.puma_df['PUMA'] = self.puma_df['PUMA'].astype(str)
+        self.df['PUMA'] = self.df['PUMA'].astype(str)
 
         # reformat PUMA mame to include
-        self.puma_df['longPUMA'] = self.puma_df["StateAbbrev"] + ", " + self.puma_df["PUMA"]
-
+        self.df['longPUMA'] = self.df["StateAbbrev"] + ", " + self.df["PUMA"]
 
         self.dep_list.remove("PUMA")
         self.dep_list.insert(0, "longPUMA")
 
-
-        self.pivot_df = pd.pivot_table(self.puma_df, values = "HHWT", columns = self.option_col, index = self.dep_list, aggfunc = np.sum, dropna = False, fill_value = 0)
+        print("Pivoting table...")
+        self.pivot_df = pd.pivot_table(self.df, values = "HHWT", columns = self.option_col, index = self.dep_list, aggfunc = np.sum, dropna = False, fill_value = 0)
 
         # reweight columns to 1
+        print("Formating table into tsv...")
         self.pivot_df = self.pivot_df.div(self.pivot_df.sum(axis=1),axis=0)
 
         # get shape of self.pivot_df and fill nas with a weighted average
@@ -192,7 +203,9 @@ class TSVMaker(object):
         # Add Dependency to columns
         self.pivot_df = self.rename_dependencies(self.pivot_df)
 
-
+        # Reset members
+        self.dep_list = []
+        self.option_col = []
 
     def rename_dependencies(self, df):
         """Add 'Depedency=' to all dependency columns
@@ -204,10 +217,10 @@ class TSVMaker(object):
         """Here, we also get the updated tsv file name """
 
         # columns from PUMA data csv
-        original_columns = ['OWNERSHP', 'BUILTYR2', 'BUILTYR2_FPL', 'UNITSSTR', 'BEDROOMS', 'FUELHEAT']
+        original_columns = ['OWNERSHP', 'BUILTYR2', 'BUILTYR2_ACS', 'UNITSSTR', 'BEDROOMS', 'FUELHEAT']
 
         # renaming those column names
-        new_columns = ['Occupancy Status', 'Vintage', 'Vintage FPL','Geometry Building Type FPL', 'Bedrooms', 'Heating Fuel']
+        new_columns = ['Occupancy Status', 'Vintage', 'Vintage ACS','Geometry Building Type ACS', 'Bedrooms', 'Heating Fuel']
 
         # get the new filename
         self.tsv_name = new_columns[original_columns.index(self.option_col[0])]
@@ -239,7 +252,7 @@ class TSVMaker(object):
     def write_tsv_to_projects(self):
         """Write new tsv to projects member"""
         try:
-            write_path = os.path.join('..',self.project, '{}.tsv'.format(self.tsv_name))
+            write_path = os.path.join(self.project, '{}.tsv'.format(self.tsv_name))
             self.pivot_df.to_csv(write_path,sep='\t',index=False, line_terminator='\r\n', float_format='%.6f')
         except AttributeError:
             self.create_tsv_with_dependencies()
