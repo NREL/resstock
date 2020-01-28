@@ -133,6 +133,10 @@ class TSVMaker(object):
 
         # Copy integers from Built year to built year acs (will be different after mapping)
         self.puma_df['BUILTYR2_ACS'] = self.puma_df['BUILTYR2'].copy()        
+        self.puma_df['GBT_RECS'] = self.puma_df['UNITSSTR'].copy()  
+
+        # Add a count column
+        self.puma_df['COUNT'] = 1
 
         print("Loading PUMS data complete.")
 
@@ -146,7 +150,10 @@ class TSVMaker(object):
             sheets_mapped = self.option_col
         else:
             sheets_mapped = self.dep_list + self.option_col
-            sheets_mapped.remove("longPUMA")
+            try:
+                sheets_mapped.remove("longPUMA")
+            except ValueError:
+                pass
 
         dep_mapping = os.path.join('various_datasets','puma_files','ColumnsCoding.xlsx')
         for col in sheets_mapped:
@@ -165,20 +172,29 @@ class TSVMaker(object):
         print("Pivoting table...")
         self.pivot_df = pd.pivot_table(self.df, values = "HHWT", columns = self.option_col, index = self.dep_list, aggfunc = np.sum, dropna = False, fill_value = 0)
 
-        # reweight columns to 1
+        # Get Counts and Weights
+        counts = pd.pivot_table(self.df, values = "COUNT", columns = self.option_col, index = self.dep_list, aggfunc = np.sum, dropna = False, fill_value = 0)
+        counts = np.array(counts.sum(axis=1))
+        weights = np.array(self.pivot_df.sum(axis=1))
+
+        # Reweight columns to 1
         print("Formating table into tsv...")
         self.pivot_df = self.pivot_df.div(self.pivot_df.sum(axis=1),axis=0)
 
-        # get shape of self.pivot_df and fill nas with a weighted average
-        # Note, the na rows will never be called anyway as the probability of that
-        # row occurrence is zero. This is done to ensure all the rows sum to 1
-        self.pivot_df = self.pivot_df.fillna(1/self.pivot_df.shape[1])
+        # Fill Nans with 0 (Correct in notebook)
+        self.pivot_df = self.pivot_df.fillna(0.0)
 
         # Add Option= to each column
         self.pivot_df = self.add_option_string_to_columns(self.pivot_df).reset_index()
 
         # Add Dependency to columns
         self.pivot_df = self.rename_dependencies(self.pivot_df)
+
+        # Add Weight Column
+        self.pivot_df['source_count'] = counts
+        self.pivot_df['source_count'] = self.pivot_df['source_count'].astype(float)
+        self.pivot_df['source_weight'] = weights
+        self.pivot_df['source_weight'] = self.pivot_df['source_weight'].astype(float)
 
         # Reset members
         self.dep_list = []
@@ -194,10 +210,10 @@ class TSVMaker(object):
         """Here, we also get the updated tsv file name """
 
         # columns from PUMA data csv
-        original_columns = ['OWNERSHP', 'BUILTYR2', 'BUILTYR2_ACS', 'UNITSSTR', 'BEDROOMS', 'FUELHEAT']
+        original_columns = ['OWNERSHP', 'BUILTYR2', 'BUILTYR2_ACS', 'UNITSSTR', 'BEDROOMS', 'FUELHEAT', 'GBT_RECS']
 
         # renaming those column names
-        new_columns = ['Occupancy Status', 'Vintage', 'Vintage ACS','Geometry Building Type ACS', 'Bedrooms', 'Heating Fuel']
+        new_columns = ['Occupancy Status', 'Vintage', 'Vintage ACS','Geometry Building Type ACS', 'Bedrooms', 'Heating Fuel', 'Geometry Building Type RECS']
 
         # get the new filename
         self.tsv_name = new_columns[original_columns.index(self.option_col[0])]
