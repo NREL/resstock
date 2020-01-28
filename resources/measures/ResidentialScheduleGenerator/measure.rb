@@ -82,35 +82,26 @@ class ResidentialScheduleGenerator < OpenStudio::Measure::ModelMeasure
     end
     model.getYearDescription.isLeapYear ? total_days_in_year = 366 : total_days_in_year = 365
 
-    schedules_path =  File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources/schedules")
-    resources_path =  File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources")
+    schedules_path = File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources/schedules")
+    building_id = model.getBuilding.additionalProperties.getFeatureAsInteger("Building ID") # this becomes the seeds
+    if not building_id.is_initialized
+      runner.registerWarning("Unable to retrieve the Building ID (seed for schedule generator); setting it to 1.")
+      building_id = 1
+    else
+      building_id = building_id.get
+    end
 
     occupancy_cluster_types_tsv_path = schedules_path + "/Occupancy_Types.tsv"
     occ_types_dist = CSV.read(occupancy_cluster_types_tsv_path, { :col_sep => "\t" })
     occ_types = occ_types_dist[0].map { |i| i.split('=')[1] }
     occ_prob = occ_types_dist[1].map { |i| i.to_f }
-    # use the built-in error checking
-    def weighted_random(weights)
-      n = rand()
-      cum_weights = 0
-      weights.each_with_index do |w, index|
-        cum_weights += w
-        if n <= cum_weights
-          return index
-        end
-      end
-    end
-
-    unless runner.validateUserArguments(arguments(model), user_arguments)
-      return false
-    end
 
     all_simulated_values = []
     (1..num_occupants).each do |i|
       num_states = 7
       num_ts_per_day = 96
 
-      occ_index = weighted_random(occ_prob)
+      occ_index = weighted_random(occ_prob, building_id)
       occ_type = occ_types[occ_index]
       init_prob_file = schedules_path + "/mkv_chain_probabilities/mkv_chain_initial_prob_cluster_#{occ_index}.csv"
       initial_prob = CSV.read(init_prob_file)
@@ -121,7 +112,7 @@ class ResidentialScheduleGenerator < OpenStudio::Measure::ModelMeasure
       transition_matrix = transition_matrix.map { |x| x.map { |y| y.to_f } }
       simulated_values = []
       total_days_in_year.times do
-        init_sate_val = weighted_random(initial_prob)
+        init_sate_val = weighted_random(initial_prob, building_id)
         init_state = [0] * num_states
         init_state[init_sate_val] = 1
         simulated_values << init_state
@@ -132,7 +123,7 @@ class ResidentialScheduleGenerator < OpenStudio::Measure::ModelMeasure
           current_state_vec = Matrix.row_vector(current_state)
           new_prob = current_state_vec * transition_probs_matrix
           new_prob = new_prob.to_a[0]
-          init_sate_val = weighted_random(new_prob)
+          init_sate_val = weighted_random(new_prob, building_id)
           new_state = [0] * num_states
           new_state[init_sate_val] = 1
           simulated_values << new_state
@@ -238,6 +229,18 @@ class ResidentialScheduleGenerator < OpenStudio::Measure::ModelMeasure
     model.getBuilding.additionalProperties.setFeature("Schedule Path", File.expand_path(output_csv_file))
 
     return true
+  end
+
+  def weighted_random(weights, seed)
+    prng = Random.new(seed)
+    n = prng.rand
+    cum_weights = 0
+    weights.each_with_index do |w, index|
+      cum_weights += w
+      if n <= cum_weights
+        return index
+      end
+    end
   end
 end # end the measure
 
