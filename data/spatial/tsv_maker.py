@@ -439,7 +439,7 @@ class TSVMaker():
 
         # Rename dependency column
         dependency_fields = ['climate_zone']
-        dependency_cols = ['Dependency=ASHRAE 169 Climate Zone']
+        dependency_cols = ['Dependency=ASHRAE IECC Climate Zone 2004']
         for i in range(len(dependency_cols)):
             self.county_df.rename(columns={dependency_fields[i]:dependency_cols[i]},inplace=True)
 
@@ -589,7 +589,7 @@ class TSVMaker():
         """Write new tsvs to all projects in the self.projects member."""
         for project in self.projects:
             # ASHRAE 169 Climate Zone
-            write_path = os.path.join('..','..',project,'housing_characteristics','ASHRAE 169 Climate Zone.tsv')
+            write_path = os.path.join('..','..',project,'housing_characteristics','ASHRAE IECC Climate Zone 2004.tsv')
             try:
                 self.ashrae_169_cz_df.to_csv(write_path,sep='\t',index=False, line_terminator='\r\n', float_format='%.6f')
             except AttributeError:
