@@ -115,6 +115,10 @@ class TsvFile
 
     rownum = @rows_keys_s.index(key_s_downcase)
 
+    if ((rownum % 10000 == 0) & (rownum > 0))
+      puts "    Still working. Checked #{rownum} rows."
+    end
+
     row = @rows[rownum]
 
     # Convert data to numeric row values

@@ -264,6 +264,7 @@ def integrity_check(project_dir_name, housing_characteristics_dir = "housing_cha
       parameters_processed << parameter_name
 
       # Test that dependency options exist
+      puts "  Testing that dependency options exist"
       tsvfile.dependency_options.each do |dependency, options|
         options.each do |option|
           if not tsvfiles[dependency].option_cols.keys.include? option
@@ -273,6 +274,7 @@ def integrity_check(project_dir_name, housing_characteristics_dir = "housing_cha
       end
 
       # Test all possible combinations of dependency value combinations
+      puts "  Testing all possible combinations of dependency value combinations"
       combo_hashes = get_combination_hashes(tsvfiles, tsvfile.dependency_cols.keys)
       if combo_hashes.size > 0
         combo_hashes.each do |combo_hash|
@@ -284,10 +286,13 @@ def integrity_check(project_dir_name, housing_characteristics_dir = "housing_cha
       end
 
       # Check file format to be consistent with specified guidelines
+      puts "  Checking housing characteristic file format"
       check_parameter_file_format(tsvpath, tsvfile.dependency_cols.length(), parameter_name)
 
       # Check for all options defined in options_lookup.tsv
+      puts "  Checking for all options defined in options_lookup.tsv"
       get_measure_args_from_option_names(lookup_file, tsvfile.option_cols.keys, parameter_name)
+      puts
     end
     if not err.empty?
       raise err
@@ -430,7 +435,7 @@ def check_parameter_file_format(tsvpath, n_deps, name)
   # For each line in file
   i = 1
   File.open(tsvpath, mode: "rb") do |f|
-    while ((line = f.gets) != nil)
+    while (((line = f.gets) != nil) & (i < 1000))
       # Check endline character
       if line.include? "\r\n"
         # Do not perform other checks if the line is the header
