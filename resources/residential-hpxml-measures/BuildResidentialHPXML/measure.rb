@@ -36,20 +36,20 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
   def arguments(model)
     args = OpenStudio::Measure::OSArgumentVector.new
 
-    arg = OpenStudio::Measure::OSArgument.makeStringArgument("weather_station_epw_filename", true)
-    arg.setDisplayName("EnergyPlus Weather (EPW) File Path")
-    arg.setDescription("Absolute (or relative) path to the EPW file.")
-    arg.setDefaultValue("../HPXMLtoOpenStudio/weather/USA_CO_Denver.Intl.AP.725650_TMY3.epw")
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument.makeStringArgument("hpxml_output_path", true)
-    arg.setDisplayName("HPXML Output File Path")
-    arg.setDescription("Absolute (or relative) path of the output HPXML file.")
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument("hpxml_path", true)
+    arg.setDisplayName("HPXML File Path")
+    arg.setDescription("Absolute/relative path of the HPXML file.")
     args << arg
 
     arg = OpenStudio::Measure::OSArgument.makeStringArgument("schedules_output_path", true)
     arg.setDisplayName("Schedules Output File Path")
     arg.setDescription("Absolute (or relative) path of the output schedules file.")
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument("weather_station_epw_filename", true)
+    arg.setDisplayName("EnergyPlus Weather (EPW) Filename")
+    arg.setDescription("Name of the EPW file.")
+    arg.setDefaultValue("USA_CO_Denver.Intl.AP.725650_TMY3.epw")
     args << arg
 
     unit_type_choices = OpenStudio::StringVector.new
@@ -1789,7 +1789,7 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
 
     # assign the user inputs to variables
     args = { :weather_station_epw_filename => runner.getStringArgumentValue("weather_station_epw_filename", user_arguments),
-             :hpxml_output_path => runner.getStringArgumentValue("hpxml_output_path", user_arguments),
+             :hpxml_path => runner.getStringArgumentValue("hpxml_path", user_arguments),
              :schedules_output_path => runner.getStringArgumentValue("schedules_output_path", user_arguments),
              :unit_type => runner.getStringArgumentValue("unit_type", user_arguments),
              :unit_multiplier => runner.getIntegerArgumentValue("unit_multiplier", user_arguments),
@@ -2010,17 +2010,22 @@ class HPXMLExporter < OpenStudio::Measure::ModelMeasure
       return false
     end
 
+    hpxml_path = args[:hpxml_path]
+    unless (Pathname.new hpxml_path).absolute?
+      hpxml_path = File.expand_path(File.join(File.dirname(__FILE__), hpxml_path))
+    end
+
     # Check for invalid HPXML file
     schemas_dir = File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/hpxml_schemas")
     skip_validation = false
     if not skip_validation
-      if not validate_hpxml(runner, args[:hpxml_output_path], hpxml_doc, schemas_dir)
+      if not validate_hpxml(runner, hpxml_path, hpxml_doc, schemas_dir)
         return false
       end
     end
 
-    XMLHelper.write_file(hpxml_doc, args[:hpxml_output_path])
-    runner.registerInfo("Wrote file: #{args[:hpxml_output_path]}")
+    XMLHelper.write_file(hpxml_doc, hpxml_path)
+    runner.registerInfo("Wrote file: #{hpxml_path}")
   end
 
   def validate_hpxml(runner, hpxml_path, hpxml_doc, schemas_dir)
@@ -2337,7 +2342,7 @@ class HPXMLFile
 
   def self.get_climate_and_risk_zones_values(runner, args)
     climate_and_risk_zones_values = { :weather_station_id => "WeatherStation",
-                                      :weather_station_name => File.basename(args[:weather_station_epw_filename]),
+                                      :weather_station_name => args[:weather_station_epw_filename].gsub(".epw", ""),
                                       :weather_station_epw_filename => args[:weather_station_epw_filename] }
     return climate_and_risk_zones_values
   end

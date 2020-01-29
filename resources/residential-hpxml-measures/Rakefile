@@ -321,10 +321,10 @@ def create_osws
 end
 
 def get_values(osw_file, step)
-  step.setArgument("hpxml_output_path", "HPXMLtoOpenStudio/tests/build_res_hpxml/#{File.basename(osw_file, ".*")}.xml")
+  step.setArgument("hpxml_path", File.expand_path(File.join(File.dirname(__FILE__), "HPXMLtoOpenStudio/tests/build_res_hpxml/#{File.basename(osw_file, ".*")}.xml")))
 
   if ['base.osw'].include? osw_file
-    step.setArgument("weather_station_epw_filename", "../weather/USA_CO_Denver.Intl.AP.725650_TMY3.epw")
+    step.setArgument("weather_station_epw_filename", "USA_CO_Denver.Intl.AP.725650_TMY3.epw")
     step.setArgument("schedules_output_path", "tests/run/schedules.csv")
     step.setArgument("unit_type", "single-family detached")
     step.setArgument("unit_multiplier", 1)
@@ -1281,15 +1281,15 @@ def get_values(osw_file, step)
   elsif ['base-infiltration-ach-natural.osw'].include? osw_file
     step.setArgument("living_constant_ach_natural", 0.67)
   elsif ['base-location-baltimore-md.osw'].include? osw_file
-    step.setArgument("weather_station_epw_filename", "../weather/USA_MD_Baltimore-Washington.Intl.AP.724060_TMY3.epw")
+    step.setArgument("weather_station_epw_filename", "USA_MD_Baltimore-Washington.Intl.AP.724060_TMY3.epw")
   elsif ['base-location-dallas-tx.osw'].include? osw_file
-    step.setArgument("weather_station_epw_filename", "../weather/USA_TX_Dallas-Fort.Worth.Intl.AP.722590_TMY3.epw")
+    step.setArgument("weather_station_epw_filename", "USA_TX_Dallas-Fort.Worth.Intl.AP.722590_TMY3.epw")
   elsif ['base-location-duluth-mn.osw'].include? osw_file
-    step.setArgument("weather_station_epw_filename", "../weather/USA_MN_Duluth.Intl.AP.727450_TMY3.epw")
+    step.setArgument("weather_station_epw_filename", "USA_MN_Duluth.Intl.AP.727450_TMY3.epw")
   elsif ['base-location-epw-filename.osw'].include? osw_file
 
   elsif ['base-location-miami-fl.osw'].include? osw_file
-    step.setArgument("weather_station_epw_filename", "../weather/USA_FL_Miami.Intl.AP.722020_TMY3.epw")
+    step.setArgument("weather_station_epw_filename", "USA_FL_Miami.Intl.AP.722020_TMY3.epw")
   elsif ['base-mechvent-balanced.osw'].include? osw_file
     step.setArgument("mech_vent_fan_type", "balanced")
     step.setArgument("mech_vent_fan_power", 60)
