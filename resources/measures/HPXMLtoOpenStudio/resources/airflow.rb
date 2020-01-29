@@ -39,6 +39,7 @@ class Airflow
       runner.registerError("Cannot determine the number of above grade stories.")
       return false
     end
+
     building.stories = model.getBuilding.standardsNumberOfAboveGroundStories.get
     building.above_grade_volume = Geometry.get_above_grade_finished_volume(model, runner)
     building.ag_ext_wall_area = Geometry.calculate_above_grade_exterior_wall_area(model_spaces)
@@ -60,15 +61,14 @@ class Airflow
 
     building_height = nil
     num_floors = model.getBuilding.additionalProperties.getFeatureAsInteger("num_floors")
-    if num_floors.is_initialized
+    if num_floors.is_initialized #singleunit
       units.each do |unit|
         Geometry.get_thermal_zones_from_spaces(unit.spaces).each do |thermal_zone|
-          if Geometry.is_living(thermal_zone)
-            building_height = num_floors.get.to_f*Geometry.get_height_of_spaces(thermal_zone.spaces)
-          end
+          next unless Geometry.is_living(thermal_zone) 
+          building_height = num_floors.get.to_f*Geometry.get_height_of_spaces(thermal_zone.spaces)
         end
       end
-    else
+    else #multifamily
       building_height = building.building_height
     end
 
@@ -134,6 +134,8 @@ class Airflow
       if unit_has_mshp and not HVAC.has_ducted_mshp(model, runner, unit_living.zone)
         has_forced_air_equipment = false
       end
+
+      puts("has_forced_air_equipment: #{has_forced_air_equipment}")
 
       # Common sensors
 
@@ -478,6 +480,15 @@ class Airflow
 
     # S-G Shielding Coefficients are roughly 1/3 of AIM2 Shelter Coefficients
     wind_speed.shielding_coef = wind_speed.S_wo / 3.0
+
+    # puts("wind_speed.S_wo: #{wind_speed.S_wo}")
+    # puts("shelter_coef: #{shelter_coef}")
+    # puts("terrain: #{terrain}")
+    # puts("wind_speed.site_terrain_exponent: #{wind_speed.site_terrain_exponent}")
+    # puts("wind_speed.site_terrain_multiplier: #{wind_speed.site_terrain_multiplier}")
+    # puts("wind_speed.ashrae_site_terrain_thickness: #{wind_speed.ashrae_site_terrain_thickness}")
+    # puts("wind_speed.ashrae_site_terrain_exponent: #{wind_speed.ashrae_site_terrain_exponent}")
+
 
     return wind_speed
   end
@@ -2126,9 +2137,11 @@ class Airflow
     # puts("wind_speed.height: #{wind_speed.height}")
     # puts("unit_living.height: #{unit_living.height}")
     # puts("infil_output.c_i: #{infil_output.c_i}")
-    # puts("infil_output.n_i: #{infil_output.n_i}")
-    # puts("infil_output.stack_coef: #{infil_output.stack_coef}")
-    # puts("infil_output.wind_coef: #{infil_output.wind_coef}")
+    puts("infil_output.n_i: #{infil_output.n_i}")
+    puts("infil_output.stack_coef: #{infil_output.stack_coef}")
+    puts("infil_output.wind_coef: #{infil_output.wind_coef}")
+
+    puts("Set Cw = #{(infil_output.wind_coef * (UnitConversions.convert(1.0, "inH2O/mph^2", "Pa*s^2/m^2")**infil_output.n_i)).round(4)}")
     # puts("wind_speed.S_wo: #{wind_speed.S_wo}")
     # puts("infil_output.y_i: #{infil_output.y_i}")
     # puts("infil_output.s_wflue: #{infil_output.s_wflue}")
@@ -2386,9 +2399,6 @@ class Airflow
   end
 
   def self.get_location_frac_leakage(location_frac, stories)
-    puts("location_frac: #{location_frac}")
-    puts("stories: #{stories}")
-
     if location_frac == Constants.Auto
       # Duct location fraction per 2010 BA Benchmark
       if stories == 1
