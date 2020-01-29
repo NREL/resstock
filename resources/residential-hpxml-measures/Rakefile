@@ -321,7 +321,7 @@ def create_osws
 end
 
 def get_values(osw_file, step)
-  step.setArgument("hpxml_path", File.expand_path(File.join(File.dirname(__FILE__), "HPXMLtoOpenStudio/tests/build_res_hpxml/#{File.basename(osw_file, ".*")}.xml")))
+  step.setArgument("hpxml_path", "../HPXMLtoOpenStudio/tests/build_res_hpxml/#{File.basename(osw_file, ".*")}.xml")
 
   if ['base.osw'].include? osw_file
     step.setArgument("weather_station_epw_filename", "USA_CO_Denver.Intl.AP.725650_TMY3.epw")
