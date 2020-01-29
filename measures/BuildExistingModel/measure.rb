@@ -172,6 +172,10 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       end
     end
 
+    # Get the absolute path of the exported xml relative to this meta measure in the run directory
+    measures["BuildResidentialHPXML"][0]["hpxml_path"] = File.expand_path(measures["BuildResidentialHPXML"][0]["hpxml_path"])
+    measures["HPXMLtoOpenStudio"][0]["hpxml_path"] = File.expand_path(measures["HPXMLtoOpenStudio"][0]["hpxml_path"])
+
     if not apply_measures(measures_dir, measures, runner, model, workflow_json, "measures.osw", true)
       return false
     end

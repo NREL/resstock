@@ -396,21 +396,21 @@ def update_measures
       "weather_station_epw_filename" => "USA_CO_Denver.Intl.AP.725650_TMY3.epw"
     },
     "AMY2012" => {
-      "weather_station_epw_filename" => "USA_CO_Denver.Intl.AP.725650_TMY3.epw" # FIXME: add AMY 2012 weather file to OpenStudio-HPXML repository
+      "weather_station_epw_filename" => "0465925_US_CO_Boulder_8013_0-20000-0-72469_40.13_-105.22_NSRDB_2.0.1_AMY_2012.epw"
     },
     "AMY2014" => {
-      "weather_station_epw_filename" => "USA_CO_Denver.Intl.AP.725650_TMY3.epw" # FIXME: add AMY 2014 weather file to OpenStudio-HPXML repository
+      "weather_station_epw_filename" => "0465925_US_CO_Boulder_8013_0-20000-0-72469_40.13_-105.22_NSRDB_2.0.1_AMY_2014.epw"
     }
   }
   example_osws.each do |weather_year, weather_station|
     include_args = {
       "BuildResidentialHPXML" => {
-        "hpxml_output_path" => File.expand_path(File.join(File.dirname(__FILE__), "workflows/run/in.xml")),
+        "hpxml_path" => File.expand_path(File.join(File.dirname(__FILE__), "workflows/run/in.xml")),
         "schedules_output_path" => File.expand_path(File.join(File.dirname(__FILE__), "workflows/run/schedules.csv"))
       },
       "HPXMLtoOpenStudio" => {
         "hpxml_path" => File.expand_path(File.join(File.dirname(__FILE__), "workflows/run/in.xml")),
-        "weather_dir" => File.expand_path(File.join(File.dirname(__FILE__), "resources/residential-hpxml-measures/HPXMLtoOpenStudio/weather")),
+        "weather_dir" => File.expand_path(File.join(File.dirname(__FILE__), "weather")),
         "schemas_dir" => File.expand_path(File.join(File.dirname(__FILE__), "resources/residential-hpxml-measures/HPXMLtoOpenStudio/hpxml_schemas")),
       }
     }
