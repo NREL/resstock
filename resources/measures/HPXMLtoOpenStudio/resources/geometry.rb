@@ -1930,12 +1930,22 @@ class Geometry
     #### NEIGHBORS FOR SINGLE UNIT ####
     num_floors = model.getBuilding.additionalProperties.getFeatureAsInteger("num_floors")
     level = model.getBuilding.additionalProperties.getFeatureAsString("level")
+    has_rear_units =  model.getBuilding.additionalProperties.getFeatureAsBoolean("has_rear_units")
+
     if (num_floors.is_initialized) and (level.is_initialized)
       num_floors = num_floors.get.to_f
       level = level.get
   
       floor_mults = {"Bottom" => num_floors, "Middle" => 2, "Top" => 1 }
       greatest_z = greatest_z*floor_mults[level] 
+      unit_length = greatest_y - least_y
+      unit_width = greatest_x - least_x
+      if has_rear_units
+        greatest_y += unit_length
+      end
+
+      #FIXME: does not check where the unit is horizontally (for front and back neighbors)
+      # greatest_x += unit_width 
     end
     ####################################
 
@@ -1951,6 +1961,7 @@ class Geometry
       vertices = OpenStudio::Point3dVector.new
       m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4, 4, 0))
       transformation = OpenStudio::Transformation.new(m)
+
       if facade == Constants.FacadeLeft
         vertices << OpenStudio::Point3d.new(least_x - neighbor_offset, least_y, 0)
         vertices << OpenStudio::Point3d.new(least_x - neighbor_offset, least_y, greatest_z)
