@@ -8,7 +8,7 @@ require 'fileutils'
 class ResidentialScheduleGeneratorTest < MiniTest::Test
   def test_default_values
     args_hash = {}
-    expected_values = { "SchedulesLength" => 52560, "SchedulesWidth" => 15 }
+    expected_values = { "SchedulesLength" => 52560, "SchedulesWidth" => 14 }
     _test_measure("Denver.osm", args_hash, expected_values, __method__, "USA_CO_Denver.Intl.AP.725650_TMY3.epw")
   end
 
