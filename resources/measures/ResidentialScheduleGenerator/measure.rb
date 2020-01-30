@@ -144,13 +144,10 @@ class ResidentialScheduleGenerator < OpenStudio::Measure::ModelMeasure
     # shape of all_simulated_values is [2, 35040, 7] i.e. (num_occupants, period_in_a_year, number_of_states)
     daily_plugload_sch = CSV.read(schedules_path + "/plugload_sch.csv")
     daily_lighting_sch = CSV.read(schedules_path + "/lighting_sch.csv")
-    daily_refrigerator_sch = CSV.read(schedules_path + "/refrigerator_sch.csv")
     daily_ceiling_fan_sch = CSV.read(schedules_path + "/ceiling_fan_sch.csv")
-
-    # "occupants", "cooking_range", "plug_loads", "refrigerator", "lighting_interior", "lighting_exterior", "lighting_garage", "clothes_washer", "clothes_dryer", "dishwasher", "baths", "showers", "sinks", "ceiling_fan"
+    # "occupants", "cooking_range", "plug_loads", lighting_interior", "lighting_exterior", "lighting_garage", "clothes_washer", "clothes_dryer", "dishwasher", "baths", "showers", "sinks", "ceiling_fan"
 
     plugload_schedule = []
-    refrigerator_schedule = []
     lighting_interior_schedule = []
     lighting_exterior_schedule = []
     lighting_garage_schedule = []
@@ -168,9 +165,11 @@ class ResidentialScheduleGenerator < OpenStudio::Measure::ModelMeasure
     idle_schedule = []
     sleeping_schedule = []
 
-    def get_value_from_daily_sch(daily_sch, month, is_weekday, minute)
+    def get_value_from_daily_sch(daily_sch, month, is_weekday, minute, active_occupant_percentage)
       is_weekday ? sch = daily_sch[0] : sch = daily_sch[1]
-      return sch[(minute / 60).to_i].to_f * daily_sch[2][month].to_f
+      sch = sch.map{|x| x.to_f}
+      full_occupancy_current_val =  sch[(minute / 60).to_i].to_f * daily_sch[2][month].to_f
+      return sch.min + (full_occupancy_current_val - sch.min)*active_occupant_percentage
     end
 
     sim_year = model.getYearDescription.calendarYear.get
@@ -181,6 +180,9 @@ class ResidentialScheduleGenerator < OpenStudio::Measure::ModelMeasure
       day_of_week = today.wday
       [0, 6].include?(day_of_week) ? is_weekday = false : is_weekday = true
       steps_in_day = 24 * 60 / minutes_per_steps
+
+      pending_shower = 0
+      pending_clothes_washer = 0
       steps_in_day.times do |step|
         minute = step * minutes_per_steps
         index_15 = (minute / 15).to_i
@@ -198,10 +200,24 @@ class ResidentialScheduleGenerator < OpenStudio::Measure::ModelMeasure
           return sum
         end
 
+
         # the schedule is set as the sum of values of individual occupants
         sleeping_schedule << sum_across_occupants(all_simulated_values, 0, index_15) / num_occupants
+
         shower_schedule << sum_across_occupants(all_simulated_values, 1, index_15) / num_occupants
-        clothes_washer_schedule << sum_across_occupants(all_simulated_values, 2, index_15) / num_occupants
+
+        # clothes washer
+        clothes_washing_count = sum_across_occupants(all_simulated_values, 2, index_15)
+        if clothes_washing_count > 0
+          pending_clothes_washer += clothes_washing_count - 1
+          clothes_washing = 1
+        elsif pending_clothes_washer > 0
+          pending_clothes_washer -= 1
+          clothes_washing = 1
+        else
+          clothes_washing = 0
+        end
+        clothes_washer_schedule << clothes_washing
         hour_before_washer = clothes_washer_schedule[-step_per_hour]
         if hour_before_washer.nil?
           clothes_dryer_schedule << 0
@@ -213,23 +229,23 @@ class ResidentialScheduleGenerator < OpenStudio::Measure::ModelMeasure
         away_schedule << sum_across_occupants(all_simulated_values, 5, index_15) / num_occupants
         idle_schedule << sum_across_occupants(all_simulated_values, 6, index_15) / num_occupants
 
-        plugload_schedule << get_value_from_daily_sch(daily_plugload_sch, month, is_weekday, minute)
-        refrigerator_schedule << get_value_from_daily_sch(daily_refrigerator_sch, month, is_weekday, minute)
-        lighting_interior_schedule << get_value_from_daily_sch(daily_lighting_sch, month, is_weekday, minute)
+        active_occupancy_percentage = 1 - (away_schedule[-1] + sleeping_schedule[-1])
+        plugload_schedule << get_value_from_daily_sch(daily_plugload_sch, month, is_weekday, minute, active_occupancy_percentage)
+        lighting_interior_schedule << get_value_from_daily_sch(daily_lighting_sch, month, is_weekday, minute, active_occupancy_percentage)
         lighting_exterior_schedule << lighting_interior_schedule[-1]
         lighting_garage_schedule << lighting_interior_schedule[-1]
         lighting_holiday_schedule << lighting_interior_schedule[-1]
-        ceiling_fan_schedule << get_value_from_daily_sch(daily_ceiling_fan_sch, month, is_weekday, minute)
+        ceiling_fan_schedule << get_value_from_daily_sch(daily_ceiling_fan_sch, month, is_weekday, minute, active_occupancy_percentage)
         sink_schedule << shower_schedule[-1]
         bath_schedule << shower_schedule[-1]
       end
     end
     output_csv_file = File.expand_path("../appliances_schedules.csv")
     CSV.open(output_csv_file, "w") do |csv|
-      csv << ["occupants", "cooking_range", "plug_loads", "refrigerator", "lighting_interior", "lighting_exterior",
+      csv << ["occupants", "cooking_range", "plug_loads", "lighting_interior", "lighting_exterior",
               "lighting_garage", "lighting_exterior_holiday", "clothes_washer", "clothes_dryer", "dishwasher", "baths", "showers", "sinks", "ceiling_fan"]
       shower_schedule.size.times do |i|
-        csv << [(1 - away_schedule[i]), cooking_schedule[i], plugload_schedule[i], refrigerator_schedule[i],
+        csv << [(1 - away_schedule[i]), cooking_schedule[i], plugload_schedule[i],
                 lighting_interior_schedule[i], lighting_exterior_schedule[i], lighting_garage_schedule[i], lighting_holiday_schedule[i],
                 clothes_washer_schedule[i], clothes_dryer_schedule[i], dish_washer_schedule[i], bath_schedule[i],
                 shower_schedule[i], sink_schedule[i], ceiling_fan_schedule[i]]
@@ -237,7 +253,6 @@ class ResidentialScheduleGenerator < OpenStudio::Measure::ModelMeasure
     end
 
     runner.registerInfo("Generated schedule file: #{File.expand_path(output_csv_file)}")
-
     model.getBuilding.additionalProperties.setFeature("Schedule Path", File.expand_path(output_csv_file))
 
     return true
