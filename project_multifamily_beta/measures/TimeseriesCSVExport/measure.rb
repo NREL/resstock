@@ -192,6 +192,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     natural_gas = output_meters.natural_gas(sqlFile, ann_env_pd)
     fuel_oil = output_meters.fuel_oil(sqlFile, ann_env_pd)
     propane = output_meters.propane(sqlFile, ann_env_pd)
+    wood = output_meters.wood(sqlFile, ann_env_pd)
 
     # ELECTRICITY
 
@@ -239,12 +240,18 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     report_ts_output(runner, timeseries, "propane_interior_equipment_mbtu", propane.interior_equipment, "GJ", other_fuel_site_units)
     report_ts_output(runner, timeseries, "propane_water_systems_mbtu", propane.water_systems, "GJ", other_fuel_site_units)
 
+    # WOOD
+
+    report_ts_output(runner, timeseries, "total_site_wood_mbtu", wood.total_end_uses, "GJ", other_fuel_site_units)
+    report_ts_output(runner, timeseries, "wood_heating_mbtu", wood.heating, "GJ", other_fuel_site_units)
+
     # TOTAL
 
     totalSiteEnergy = electricity.total_end_uses +
                       natural_gas.total_end_uses +
                       fuel_oil.total_end_uses +
-                      propane.total_end_uses
+                      propane.total_end_uses +
+                      wood.total_end_uses
 
     report_ts_output(runner, timeseries, "total_site_energy_mbtu", totalSiteEnergy, "GJ", total_site_units)
     report_ts_output(runner, timeseries, "net_site_energy_mbtu", totalSiteEnergy - electricity.photovoltaics, "GJ", total_site_units)
@@ -278,6 +285,8 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
       report_ts_output(runner, timeseries, "natural_gas_lighting_therm", natural_gas.lighting, "GJ", gas_site_units)
       report_ts_output(runner, timeseries, "natural_gas_fireplace_therm", natural_gas.fireplace, "GJ", gas_site_units)
       report_ts_output(runner, timeseries, "electricity_well_pump_kwh", electricity.well_pump, "GJ", elec_site_units)
+      report_ts_output(runner, timeseries, "electricity_recirc_pump_kwh", electricity.recirc_pump, "GJ", elec_site_units)
+      report_ts_output(runner, timeseries, "electricity_vehicle_kwh", electricity.vehicle, "GJ", elec_site_units)
     end
 
     output_vars.each do |output_var|

@@ -1015,47 +1015,23 @@ class SchedulesFile
   def initialize(runner:,
                  model:,
                  schedules_output_path: nil,
-                 num_bedrooms: nil,
-                 num_occupants: nil,
                  **remainder)
 
     @validated = true
     @runner = runner
     @model = model
     @schedules_output_path = schedules_output_path
-    @num_bedrooms = num_bedrooms
-    @num_occupants = num_occupants
+    @external_file = get_external_file
 
     @schedules = {}
-    if File.exist? @schedules_output_path
-      @external_file = import
-    end
   end
 
   def validated?
     return @validated
   end
 
-  def create_occupant_schedule
-    return false if @num_occupants.nil?
-
-    @schedules["occupants"] = [1, 2, 3]
-
-    return true
-  end
-
-  def create_refrigerator_schedule
-    @schedules["refrigerator"] = [4, 5, 6]
-
-    return true
-  end
-
   def schedules
     return @schedules
-  end
-
-  def external_file
-    return @external_file
   end
 
   def get_col_index(col_name:)
@@ -1073,6 +1049,7 @@ class SchedulesFile
   def createScheduleFile(sch_file_name:,
                          col_name:,
                          rows_to_skip: 1)
+    import(col_name: col_name)
 
     if @schedules[col_name].nil?
       @runner.registerError("Could not find the '#{col_name}' schedule.")
@@ -1096,6 +1073,8 @@ class SchedulesFile
   end
 
   def annual_equivalent_full_load_hrs(col_name:)
+    import(col_name: col_name)
+
     year_description = @model.getYearDescription
     num_hrs_in_year = Constants.NumHoursInYear(year_description.isLeapYear)
     schedule_length = @schedules[col_name].length
@@ -1164,23 +1143,33 @@ class SchedulesFile
     end
   end
 
-  def import
+  def external_file
+    return @external_file
+  end
+
+  def get_external_file
+    if File.exist? @schedules_output_path
+      external_file = OpenStudio::Model::ExternalFile::getExternalFile(@model, @schedules_output_path)
+      if external_file.is_initialized
+        external_file = external_file.get
+        external_file.setName(external_file.fileName)
+      end
+    end
+    return external_file
+  end
+
+  def import(col_name:)
+    return if @schedules.keys.include? col_name
+
     columns = CSV.read(@schedules_output_path).transpose
     columns.each do |col|
-      col_name = col[0]
+      next if col_name != col[0]
+
       values = col[1..-1].reject { |v| v.nil? }
       values = values.map { |v| v.to_f }
       validateSchedule(col_name: col_name, values: values)
       @schedules[col_name] = values
     end
-
-    external_file = OpenStudio::Model::ExternalFile::getExternalFile(@model, @schedules_output_path)
-    if external_file.is_initialized
-      external_file = external_file.get
-      external_file.setName(external_file.fileName)
-    end
-
-    return external_file
   end
 
   def export

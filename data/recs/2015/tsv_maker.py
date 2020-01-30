@@ -33,7 +33,7 @@ class TSVMaker():
         df = parameter_option_maps.map_geometry_house_size(df)
         df = parameter_option_maps.map_bedrooms(df)
         
-        dependency_cols = ['Geometry Building Type', 'Geometry House Size']
+        dependency_cols = ['Geometry Building Type RECS', 'Geometry House Size']
         option_col = 'Bedrooms'
         
         for project in projects:
@@ -54,7 +54,7 @@ class TSVMaker():
         df = parameter_option_maps.map_bedrooms(df)
         df = parameter_option_maps.map_occupants(df)
         
-        dependency_cols = ['Geometry Building Type', 'Bedrooms']
+        dependency_cols = ['Geometry Building Type RECS', 'Bedrooms']
         option_col = 'Occupants'
         
         for project in projects:
@@ -153,7 +153,7 @@ class TSVMaker():
             new_dependency_cols.append(new_dependency_col)
             
         if 'singlefamilydetached' in project:
-            df = df[df['Dependency=Geometry Building Type']=='Single-Family Detached']
+            df = df[df['Dependency=Geometry Building Type RECS']=='Single-Family Detached']
             
         df = df.set_index(new_dependency_cols)
         for col in list(df.columns.values):
