@@ -155,13 +155,15 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     end
 
     # FIXME: Hack to run the correct ResStock geometry measure
-    if ["Single-Family Detached", "Mobile Home"].include? bldg_data["Geometry Building Type"]
+    if ["Single-Family Detached", "Mobile Home"].include? bldg_data["Geometry Building Type RECS"]
       measures.delete("ResidentialGeometryCreateSingleFamilyAttached")
       measures.delete("ResidentialGeometryCreateMultifamily")
-    elsif bldg_data["Geometry Building Type"] == "Single-Family Attached"
+      measures.delete("ResidentialConstructionsFinishedRoof")
+    elsif bldg_data["Geometry Building Type RECS"] == "Single-Family Attached"
       measures.delete("ResidentialGeometryCreateSingleFamilyDetached")
       measures.delete("ResidentialGeometryCreateMultifamily")
-    elsif ["Multi-Family with 2 - 4 Units", "Multi-Family with 5+ Units"].include? bldg_data["Geometry Building Type"]
+      measures.delete("ResidentialConstructionsFinishedRoof")
+    elsif ["Multi-Family with 2 - 4 Units", "Multi-Family with 5+ Units"].include? bldg_data["Geometry Building Type RECS"]
       measures.delete("ResidentialGeometryCreateSingleFamilyDetached")
       measures.delete("ResidentialGeometryCreateSingleFamilyAttached")
     end

@@ -39,6 +39,27 @@ class ResidentialRefrigerator < OpenStudio::Measure::ModelMeasure
     mult.setDefaultValue(1)
     args << mult
 
+    # Make a string argument for 24 weekday schedule values
+    weekday_sch = OpenStudio::Measure::OSArgument::makeStringArgument("weekday_sch")
+    weekday_sch.setDisplayName("Weekday schedule")
+    weekday_sch.setDescription("Specify the 24-hour weekday schedule.")
+    weekday_sch.setDefaultValue("0.040, 0.039, 0.038, 0.037, 0.036, 0.036, 0.038, 0.040, 0.041, 0.041, 0.040, 0.040, 0.042, 0.042, 0.042, 0.041, 0.044, 0.048, 0.050, 0.048, 0.047, 0.046, 0.044, 0.041")
+    args << weekday_sch
+
+    # Make a string argument for 24 weekend schedule values
+    weekend_sch = OpenStudio::Measure::OSArgument::makeStringArgument("weekend_sch")
+    weekend_sch.setDisplayName("Weekend schedule")
+    weekend_sch.setDescription("Specify the 24-hour weekend schedule.")
+    weekend_sch.setDefaultValue("0.040, 0.039, 0.038, 0.037, 0.036, 0.036, 0.038, 0.040, 0.041, 0.041, 0.040, 0.040, 0.042, 0.042, 0.042, 0.041, 0.044, 0.048, 0.050, 0.048, 0.047, 0.046, 0.044, 0.041")
+    args << weekend_sch
+
+    # Make a string argument for 12 monthly schedule values
+    monthly_sch = OpenStudio::Measure::OSArgument::makeStringArgument("monthly_sch")
+    monthly_sch.setDisplayName("Month schedule")
+    monthly_sch.setDescription("Specify the 12-month schedule.")
+    monthly_sch.setDefaultValue("0.837, 0.835, 1.084, 1.084, 1.084, 1.096, 1.096, 1.096, 1.096, 0.931, 0.925, 0.837")
+    args << monthly_sch
+
     # make a choice argument for location
     location_args = OpenStudio::StringVector.new
     location_args << Constants.Auto
@@ -66,6 +87,9 @@ class ResidentialRefrigerator < OpenStudio::Measure::ModelMeasure
     # assign the user inputs to variables
     rated_annual_energy = runner.getDoubleArgumentValue("rated_annual_energy", user_arguments)
     mult = runner.getDoubleArgumentValue("mult", user_arguments)
+    weekday_sch = runner.getStringArgumentValue("weekday_sch", user_arguments)
+    weekend_sch = runner.getStringArgumentValue("weekend_sch", user_arguments)
+    monthly_sch = runner.getStringArgumentValue("monthly_sch", user_arguments)
     location = runner.getStringArgumentValue("location", user_arguments)
 
     # Get building units
@@ -86,12 +110,6 @@ class ResidentialRefrigerator < OpenStudio::Measure::ModelMeasure
                           Constants.SpaceTypeLiving,
                           Constants.SpaceTypeUnfinishedBasement]
 
-    sch_path = SchedulesFile.get_schedule_file_path(model)
-    schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_output_path: sch_path)
-    if not schedules_file.validated?
-      return false
-    end
-
     tot_ann_e = 0
     msgs = []
     sch = nil
@@ -100,7 +118,8 @@ class ResidentialRefrigerator < OpenStudio::Measure::ModelMeasure
       space = Geometry.get_space_from_location(unit, location, location_hierarchy)
       next if space.nil?
 
-      success, ann_e, sch = Refrigerator.apply(model, unit, runner, rated_annual_energy, mult, sch, space, schedules_file)
+      success, ann_e, sch = Refrigerator.apply(model, unit, runner, rated_annual_energy, mult,
+                                               weekday_sch, weekend_sch, monthly_sch, sch, space)
 
       if not success
         return false
