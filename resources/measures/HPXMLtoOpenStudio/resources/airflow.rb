@@ -135,8 +135,6 @@ class Airflow
         has_forced_air_equipment = false
       end
 
-      puts("has_forced_air_equipment: #{has_forced_air_equipment}")
-
       # Common sensors
 
       tin_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Zone Mean Air Temperature")
@@ -189,6 +187,8 @@ class Airflow
         duct_programs, cfis_programs = create_ducts_objects(model, runner, unit, unit_living, unit_finished_basement, mech_vent, ducts_output, tin_sensor, pbar_sensor, has_forced_air_equipment, adiabatic_const, air_loops, duct_programs, duct_lks, cfis_programs)
       end
 
+      # puts("====Mech Vent=====")
+      # puts("-----------------#{unit_living.zone.name}------------------------")
       infil_program = create_infil_mech_vent_objects(model, runner, obj_name_infil, obj_name_mech_vent, unit_living, infil, mech_vent, wind_speed, mv_output, infil_output, tin_sensor, tout_sensor, vwind_sensor, duct_lks, cfis_programs, nbeds)
 
       create_ems_program_managers(model, infil_program, nv_program, cfis_programs, duct_programs, obj_name_airflow, obj_name_mech_vent)
@@ -537,7 +537,6 @@ class Airflow
       building.unfinished_attic.inf_flow = building.unfinished_attic.ACH / UnitConversions.convert(1.0, "hr", "min") * building.unfinished_attic.volume
     end
 
-    puts("------Process infiltration for unfinished spaces-------")
     process_infiltration_for_spaces(model, spaces, wind_speed)
 
     return true
@@ -1265,6 +1264,18 @@ class Airflow
     end
 
     total_unbalance = (supply_loss - return_loss).abs
+
+    # puts("==================DUCTS==============================")
+    # puts("supply_surface_area: #{supply_surface_area}")
+    # puts("return_surface_area: #{return_surface_area}")
+    # puts("ducts.num_returns: #{ducts.num_returns}")
+    # puts("location_frac_conduction: #{location_frac_conduction}")
+    # puts("ducts.norm_leakage_25pa: #{ducts.norm_leakage_25pa}")
+    # puts("supply_loss: #{supply_loss}")
+    # puts("return_loss: #{return_loss}")
+    # puts("total_unbalance: #{total_unbalance}")
+    # puts("supply_r: #{supply_r}")
+    # puts("return_r: #{return_r}")
 
     if not location_name == unit_living.zone.name.to_s and not location_name == "none"
       # Calculate d.frac_oa = fraction of unbalanced make-up air that is outside air
@@ -2127,34 +2138,6 @@ class Airflow
     elsif unit_living.inf_method == @infMethodRes
       infil_program.addLine("Set Qn = #{unit_living.ACH * UnitConversions.convert(unit_living.volume, "ft^3", "m^3") / UnitConversions.convert(1.0, "hr", "s")}")
     end
-
-    # puts("====Mech Vent=====")
-    # puts("unit_living.inf_method: #{unit_living.inf_method}")
-    # puts("wind_speed.ashrae_terrain_exponent: #{wind_speed.ashrae_terrain_exponent}")
-    # puts("wind_speed.ashrae_site_terrain_exponent: #{wind_speed.ashrae_site_terrain_exponent}")
-    # puts("wind_speed.ashrae_terrain_thickness: #{wind_speed.ashrae_terrain_thickness}")
-    # puts("wind_speed.ashrae_site_terrain_thickness: #{wind_speed.ashrae_site_terrain_thickness}")
-    # puts("wind_speed.height: #{wind_speed.height}")
-    # puts("unit_living.height: #{unit_living.height}")
-    # puts("infil_output.c_i: #{infil_output.c_i}")
-    puts("infil_output.n_i: #{infil_output.n_i}")
-    puts("infil_output.stack_coef: #{infil_output.stack_coef}")
-    puts("infil_output.wind_coef: #{infil_output.wind_coef}")
-
-    puts("Set Cw = #{(infil_output.wind_coef * (UnitConversions.convert(1.0, "inH2O/mph^2", "Pa*s^2/m^2")**infil_output.n_i)).round(4)}")
-    # puts("wind_speed.S_wo: #{wind_speed.S_wo}")
-    # puts("infil_output.y_i: #{infil_output.y_i}")
-    # puts("infil_output.s_wflue: #{infil_output.s_wflue}")
-
-    # puts("unit_living.ACH: #{unit_living.ACH}")
-    # puts("unit_living.volume: #{unit_living.volume}")
-    # puts("mv_output.whole_house_vent_rate: #{mv_output.whole_house_vent_rate}")
-
-
-    # puts("mv_output.range_hood_hour_avg_exhaust: #{mv_output.range_hood_hour_avg_exhaust}")
-    # puts("mech_vent.dryer_exhaust: #{mech_vent.dryer_exhaust}")
-    # puts("mv_output.bathroom_hour_avg_exhaust: #{mv_output.bathroom_hour_avg_exhaust}")
-
 
     infil_program.addLine("Set Tdiff = #{tin_sensor.name}-#{tout_sensor.name}")
     infil_program.addLine("Set dT = @Abs Tdiff")
