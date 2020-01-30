@@ -489,7 +489,6 @@ class Airflow
     # puts("wind_speed.ashrae_site_terrain_thickness: #{wind_speed.ashrae_site_terrain_thickness}")
     # puts("wind_speed.ashrae_site_terrain_exponent: #{wind_speed.ashrae_site_terrain_exponent}")
 
-
     return wind_speed
   end
 
