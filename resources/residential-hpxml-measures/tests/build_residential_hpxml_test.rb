@@ -11,13 +11,16 @@ require_relative '../HPXMLtoOpenStudio/resources/meta_measure'
 require_relative '../HPXMLtoOpenStudio/tests/hpxml_translator_test'
 
 class HPXMLExporterTest < MiniTest::Test
-  @@this_dir = File.dirname(__FILE__)
-
   def test_workflows
     require 'json'
 
-    test_dirs = [@@this_dir]
-    measures_dir = File.join(@@this_dir, "../")
+    this_dir = File.dirname(__FILE__)
+
+    hvac_partial_dir = File.absolute_path(File.join(this_dir, "hvac_partial"))
+    test_dirs = [this_dir,
+                 hvac_partial_dir]
+
+    measures_dir = File.join(this_dir, "../")
 
     osws = []
     test_dirs.each do |test_dir|
@@ -26,12 +29,12 @@ class HPXMLExporterTest < MiniTest::Test
       end
     end
 
-    this_dir = File.expand_path(File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/tests"))
-    results_dir = File.join(this_dir, "results")
+    tests_dir = File.expand_path(File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/tests"))
+    results_dir = File.join(tests_dir, "results")
     _rm_path(results_dir)
-    test_dir = File.join(this_dir, "build_res_hpxml")
-    unless Dir.exists?(test_dir)
-      Dir.mkdir(test_dir)
+    built_dir = File.join(tests_dir, "build_res_hpxml")
+    unless Dir.exists?(built_dir)
+      Dir.mkdir(built_dir)
     end
 
     puts "Running #{osws.size} OSW files..."
@@ -43,7 +46,7 @@ class HPXMLExporterTest < MiniTest::Test
     osws.each do |osw|
       puts "\nTesting #{File.basename(osw)}..."
 
-      _setup(@@this_dir)
+      _setup(this_dir)
       osw_hash = JSON.parse(File.read(osw))
       osw_hash["steps"].each do |step|
         measures[step["measure_dir_name"]] = [step["arguments"]]
@@ -68,8 +71,8 @@ class HPXMLExporterTest < MiniTest::Test
         end
 
         # Translate the hpxml to osm
-        xml = "#{File.join(test_dir, File.basename(osw, ".*"))}.xml"
-        all_results[xml], all_compload_results[xml], all_sizing_results[xml] = hpxml_translator_test._run_xml(xml, this_dir)
+        xml = "#{File.join(built_dir, File.basename(osw, ".*"))}.xml"
+        all_results[xml], all_compload_results[xml], all_sizing_results[xml] = hpxml_translator_test._run_xml(xml, tests_dir)
       end
     end
 
