@@ -435,7 +435,7 @@ def check_parameter_file_format(tsvpath, n_deps, name)
   # For each line in file
   i = 1
   File.open(tsvpath, mode: "rb") do |f|
-    while (((line = f.gets) != nil) & (i < 1000))
+    while ((line = f.gets) != nil)
       # Check endline character
       if line.include? "\r\n"
         # Do not perform other checks if the line is the header
