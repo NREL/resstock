@@ -90,6 +90,8 @@ class ResidentialScheduleGenerator < OpenStudio::Measure::ModelMeasure
     else
       building_id = building_id.get
     end
+    #initialize a random number generator using building_id
+    prng = Random.new(building_id)
 
     occupancy_cluster_types_tsv_path = schedules_path + "/Occupancy_Types.tsv"
     occ_types_dist = CSV.read(occupancy_cluster_types_tsv_path, { :col_sep => "\t" })
@@ -101,7 +103,7 @@ class ResidentialScheduleGenerator < OpenStudio::Measure::ModelMeasure
       num_states = 7
       num_ts_per_day = 96
 
-      occ_index = weighted_random(occ_prob, building_id)
+      occ_index = weighted_random(occ_prob, prng)
       occ_type = occ_types[occ_index]
       init_prob_file = schedules_path + "/mkv_chain_probabilities/mkv_chain_initial_prob_cluster_#{occ_index}.csv"
       initial_prob = CSV.read(init_prob_file)
@@ -112,7 +114,7 @@ class ResidentialScheduleGenerator < OpenStudio::Measure::ModelMeasure
       transition_matrix = transition_matrix.map { |x| x.map { |y| y.to_f } }
       simulated_values = []
       total_days_in_year.times do
-        init_sate_val = weighted_random(initial_prob, building_id)
+        init_sate_val = weighted_random(initial_prob, prng)
         init_state = [0] * num_states
         init_state[init_sate_val] = 1
         simulated_values << init_state
@@ -123,7 +125,7 @@ class ResidentialScheduleGenerator < OpenStudio::Measure::ModelMeasure
           current_state_vec = Matrix.row_vector(current_state)
           new_prob = current_state_vec * transition_probs_matrix
           new_prob = new_prob.to_a[0]
-          init_sate_val = weighted_random(new_prob, building_id)
+          init_sate_val = weighted_random(new_prob, prng)
           new_state = [0] * num_states
           new_state[init_sate_val] = 1
           simulated_values << new_state
@@ -249,8 +251,7 @@ class ResidentialScheduleGenerator < OpenStudio::Measure::ModelMeasure
     return true
   end
 
-  def weighted_random(weights, seed)
-    prng = Random.new(seed)
+  def weighted_random(weights, prng)
     n = prng.rand
     cum_weights = 0
     weights.each_with_index do |w, index|
