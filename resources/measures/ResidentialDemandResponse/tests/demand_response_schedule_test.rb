@@ -100,8 +100,8 @@ class DemandResponseScheduleTest < MiniTest::Test
                         "cool_tsp_non_dr" => 76,
                         "cool_tsp_dr_plus" => 79,
                         "cool_tsp_dr_minus" => 73 }
-    _test_measure("example_single_family_detached_FebruaryRunPeriod.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 7)
-    # 7 assertions: 2 DR sched found, 2 Thermostat found, 2 setting thermostat, 1 no appliance DR
+    _test_measure("SFD_Successful_EnergyPlus_Run_TMY_February.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 6)
+    # 6 assertions: 2 DR sched found, 2 Thermostat found, 2 setting thermostat
   end
 
   def test_short_period_8760_DR
@@ -120,8 +120,8 @@ class DemandResponseScheduleTest < MiniTest::Test
                         "cool_tsp_non_dr" => 76,
                         "cool_tsp_dr_plus" => 79,
                         "cool_tsp_dr_minus" => 73 }
-    _test_measure("example_single_family_detached_FebruaryRunPeriod.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 7)
-    # 7 assertions: 2 DR sched found, 2 Thermostat found, 2 setting thermostat, 1 no appliance DR
+    _test_measure("SFD_Successful_EnergyPlus_Run_TMY_February.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 6)
+    # 6 assertions: 2 DR sched found, 2 Thermostat found, 2 setting thermostat
   end
 
   # Inverted setpoints with overlapping seasons

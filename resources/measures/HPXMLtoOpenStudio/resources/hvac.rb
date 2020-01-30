@@ -2349,6 +2349,7 @@ class HVAC
         baseboard_heater = OpenStudio::Model::ZoneHVACBaseboardConvectiveWater.new(model, model.alwaysOnDiscreteSchedule, baseboard_coil)
         baseboard_heater.setName(obj_name + " #{zone.name} convective water")
         baseboard_heater.addToThermalZone(zone)
+        baseboard_heater.additionalProperties.setFeature("CentralSystem", false)
         runner.registerInfo("Added '#{baseboard_heater.name}' to '#{zone.name}' of #{unit.name}")
 
         prioritize_zone_hvac(model, runner, zone)
@@ -2498,6 +2499,7 @@ class HVAC
 
     baseboards = std.model_add_baseboard(model, zones, hot_water_loop: hot_water_loop)
     baseboards.each do |baseboard|
+      baseboard.additionalProperties.setFeature("CentralSystem", true)
       runner.registerInfo("Added '#{baseboard.name}' onto '#{hot_water_loop.name}' for '#{unit.name}'.")
     end
 
@@ -3322,6 +3324,7 @@ class HVAC
     equip_def.setName(obj_name + " non benchmark equip")
     equip = OpenStudio::Model::ElectricEquipment.new(equip_def)
     equip.setName(equip_def.name.to_s)
+    equip.setEndUseSubcategory(obj_name)
     equip.setSpace(living_zone.spaces[0])
     equip_def.setDesignLevel(UnitConversions.convert(ceiling_fans_max_power, "kW", "W"))
     equip_def.setFractionRadiant(0.558)
@@ -4256,7 +4259,7 @@ class HVAC
     # Returns the central water baseboard(s) if available
     baseboards = []
     model.getZoneHVACBaseboardConvectiveWaters.each do |baseboard|
-      next unless model.getSimulationControl.runSimulationforSizingPeriods
+      next unless baseboard.additionalProperties.getFeatureAsBoolean("CentralSystem").get
       next unless thermal_zone.handle.to_s == baseboard.thermalZone.get.handle.to_s
 
       baseboards << baseboard
@@ -4291,7 +4294,7 @@ class HVAC
     # Returns the water baseboard if available
     baseboards = []
     model.getZoneHVACBaseboardConvectiveWaters.each do |baseboard|
-      next if model.getSimulationControl.runSimulationforSizingPeriods
+      next if baseboard.additionalProperties.getFeatureAsBoolean("CentralSystem").get
       next unless thermal_zone.handle.to_s == baseboard.thermalZone.get.handle.to_s
 
       baseboards << baseboard
