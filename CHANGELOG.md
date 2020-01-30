@@ -1,4 +1,5 @@
-## ResStock v2.2.0 (pending)
+## ResStock v2.2.0
+###### January 30, 2020 - [Diff](https://github.com/NREL/OpenStudio-BuildStock/compare/v2.1.0...v2.2.0)
 
 Features
 - The results csv now optionally reports anunal totals for all end use subcategories, including appliances, plug loads, etc. ([#371](https://github.com/NREL/OpenStudio-BuildStock/pull/371))
