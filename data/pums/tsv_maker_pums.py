@@ -1,12 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Jan  9 16:11:32 2020
-
-@author: oadekany
-"""
-
-# just rerun file and check
 import os
 import json
 import boto3
@@ -16,6 +7,15 @@ import itertools
 import numpy as np
 import pandas as pd
 
+this_file = os.path.basename(__file__)
+dir_of_this_file = os.path.basename(os.path.dirname(__file__))
+parent_dir_of_this_file = os.path.basename(os.path.dirname(os.path.dirname(__file__)))
+created_by = os.path.join(parent_dir_of_this_file, dir_of_this_file, this_file)
+this_file = os.path.basename(__file__)
+source = ' using unit counts from the American Community Survey 5-yr 2016; spatial data from U.S. Census 2010; climate zone data from ASHRAE 169 2006, IECC 2004, and M.C. Baechler 2015; ISO and RTO regions from EIA Form 861.'
+
+count_col_label = 'source_count'
+weight_col_label = 'source_weight'
 
 class TSVMaker(object):
     def __init__(self,project):
@@ -196,10 +196,6 @@ class TSVMaker(object):
         self.pivot_df['source_weight'] = weights
         self.pivot_df['source_weight'] = self.pivot_df['source_weight'].astype(float)
 
-        # Reset members
-        self.dep_list = []
-        self.option_col = []
-
     def rename_dependencies(self, df):
         """Add 'Depedency=' to all dependency columns
         Args:
@@ -241,17 +237,43 @@ class TSVMaker(object):
         #    df[col] = df[col].astype(float)
         return df
 
+    def enforce_float_format(self,df):
+        """Ensure that all non Dependency= Columuns are floats.
+        Args:
+            df (pandas.DataFrame): the dataframe that the non "Dependency=" columns are converted to floats
+        Returns:
+            df (pandas.DataFrame): the same dataframe as the input argument except with non dependency columns as floats
+        """
+        matching = [s for s in df.columns.values if not "Dependency=" in s]
+        for col in matching:
+            df[col] = df[col].astype(float)
+        return df
+
+    def export_and_tag(self, df, filepath, project):
+        """
+        Add bottom-left script and source tag to dataframe (for non testing projects). Save dataframe to tsv file.
+        Parameters:
+          df (dataframe): A pandas dataframe with dependency/option columns and fractions.
+          filepath (str): The path of the tsv file to export.
+          project (str): Name of the project.
+        """
+        # Write the data file
+        df = self.enforce_float_format(df)
+        df.to_csv(filepath,sep='\t',index=False, line_terminator='\r\n', float_format='%.6f')
+
+        # Append the created by line
+        if 'testing' not in project:
+            tag = "# Created by:" + created_by
+            tag += source
+            tag += "\r\n"
+            with open(filepath, "a") as file_object:
+                file_object.write(tag)
+        print('{}...'.format(filepath))
 
     def write_tsv_to_projects(self):
         """Write new tsv to projects member"""
-        try:
-            write_path = os.path.join(self.project, '{}.tsv'.format(self.tsv_name))
-            self.pivot_df.to_csv(write_path,sep='\t',index=False, line_terminator='\r\n', float_format='%.6f')
-        except AttributeError:
-            self.create_tsv_with_dependencies()
-            write_path = os.path.join('..',self.project, '{}.tsv'.format(self.tsv_name))
-            self.pivot_df.to_csv(write_path,sep='\t',index=False, line_terminator='\r\n', float_format='%.6f')
-        print ('All done! file(s) written into tsv paths!')
+        write_path = os.path.join(self.project, '{}.tsv'.format(self.tsv_name))
+        self.export_and_tag(self.pivot_df, write_path, self.project)
 
 
 

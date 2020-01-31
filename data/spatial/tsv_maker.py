@@ -13,6 +13,11 @@ this_file = os.path.basename(__file__)
 dir_of_this_file = os.path.basename(os.path.dirname(__file__))
 parent_dir_of_this_file = os.path.basename(os.path.dirname(os.path.dirname(__file__)))
 created_by = os.path.join(parent_dir_of_this_file, dir_of_this_file, this_file)
+this_file = os.path.basename(__file__)
+source = ' using unit counts from the American Community Survey 5-yr 2016; spatial data from U.S. Census 2010; climate zone data from ASHRAE 169 2006, IECC 2004, and M.C. Baechler 2015; ISO and RTO regions from EIA Form 861.'
+
+count_col_label = 'source_count'
+weight_col_label = 'source_weight'
 
 class TSVMaker():
     
@@ -585,85 +590,106 @@ class TSVMaker():
         # Enforce float format
         self.location_df = self.enforce_float_format(self.location_df)
 
+    def export_and_tag(self, df, filepath, project):
+        """
+        Add bottom-left script and source tag to dataframe (for non testing projects). Save dataframe to tsv file.
+        Parameters:
+          df (dataframe): A pandas dataframe with dependency/option columns and fractions.
+          filepath (str): The path of the tsv file to export.
+          project (str): Name of the project.
+        """
+        # Write the data file
+        df = self.enforce_float_format(df)
+        df.to_csv(filepath,sep='\t',index=False, line_terminator='\r\n', float_format='%.6f')
+
+        # Append the created by line
+        if 'testing' not in project:
+            tag = "# Created by:" + created_by
+            tag += source
+            tag += "\r\n"
+            with open(filepath, "a") as file_object:
+                file_object.write(tag)
+        print('{}...'.format(filepath))
+
     def write_tsvs_to_projects(self):
         """Write new tsvs to all projects in the self.projects member."""
         for project in self.projects:
             # ASHRAE 169 Climate Zone
             write_path = os.path.join('..','..',project,'housing_characteristics','ASHRAE IECC Climate Zone 2004.tsv')
             try:
-                self.ashrae_169_cz_df.to_csv(write_path,sep='\t',index=False, line_terminator='\r\n', float_format='%.6f')
+                self.export_and_tag(self.ashrae_169_cz_df, write_path, project)
             except AttributeError:
                 self.create_ashrae_169_climate_zone_tsv()
-                self.ashrae_169_cz_df.to_csv(write_path,sep='\t',index=False, line_terminator='\r\n', float_format='%.6f')
-
+                self.export_and_tag(self.ashrae_169_cz_df, write_path, project)
+            
             # State
             write_path = os.path.join('..','..',project,'housing_characteristics','State.tsv')
             try:
-                self.state_df.to_csv(write_path,sep='\t',index=False, line_terminator='\r\n', float_format='%.6f')
+                self.export_and_tag(self.state_df, write_path, project)
             except AttributeError:
                 self.create_state_tsv()
-                self.state_df.to_csv(write_path,sep='\t',index=False, line_terminator='\r\n', float_format='%.6f')
+                self.export_and_tag(self.state_df, write_path, project)
 
             # Census Division
             write_path = os.path.join('..','..',project,'housing_characteristics','Census Division.tsv')
             try:
-                self.census_division_df.to_csv(write_path,sep='\t',index=False, line_terminator='\r\n', float_format='%.6f')
+                self.export_and_tag(self.census_division_df, write_path, project)
             except AttributeError:
                 self.create_census_division_tsv()
-                self.census_division_df.to_csv(write_path,sep='\t',index=False, line_terminator='\r\n', float_format='%.6f')
+                self.export_and_tag(self.census_division_df, write_path, project)
 
             # Census Region
             write_path = os.path.join('..','..',project,'housing_characteristics','Census Region.tsv')
             try:
-                self.census_region_df.to_csv(write_path,sep='\t',index=False, line_terminator='\r\n', float_format='%.6f')
+                self.export_and_tag(self.census_region_df, write_path, project)
             except AttributeError:
                 self.create_census_region_tsv()
-                self.census_region_df.to_csv(write_path,sep='\t',index=False, line_terminator='\r\n', float_format='%.6f')
+                self.export_and_tag(self.census_region_df, write_path, project)
 
             # Location Region
             write_path = os.path.join('..','..',project,'housing_characteristics','Location Region.tsv')
             try:
-                self.location_region_df.to_csv(write_path,sep='\t',index=False, line_terminator='\r\n', float_format='%.6f')
+                self.export_and_tag(self.location_region_df, write_path, project)
             except AttributeError:
                 self.create_location_region_tsv()
-                self.location_region_df.to_csv(write_path,sep='\t',index=False, line_terminator='\r\n', float_format='%.6f')
+                self.export_and_tag(self.location_region_df, write_path, project)
 
             # ISO/RTO Region
             write_path = os.path.join('..','..',project,'housing_characteristics','ISO RTO Region.tsv')
             try:
-                self.iso_rto_df.to_csv(write_path,sep='\t',index=False, line_terminator='\r\n', float_format='%.6f')
+                self.export_and_tag(self.iso_rto_df, write_path, project)
             except AttributeError:
                 self.create_iso_rto_region_tsv()
-                self.iso_rto_df.to_csv(write_path,sep='\t',index=False, line_terminator='\r\n', float_format='%.6f')
+                self.export_and_tag(self.iso_rto_df, write_path, project)
 
             # Location
             write_path = os.path.join('..','..',project,'housing_characteristics','Location.tsv')
             try:
-                self.location_df.to_csv(write_path,sep='\t',index=False, line_terminator='\r\n', float_format='%.6f')
+                self.export_and_tag(self.location_df, write_path, project)
             except AttributeError:
                 self.create_location_tsv()
-                self.location_df.to_csv(write_path,sep='\t',index=False, line_terminator='\r\n', float_format='%.6f')
+                self.export_and_tag(self.location_df, write_path, project)
 
             # Location
             write_path = os.path.join('..','..',project,'housing_characteristics','Building America Climate Zone.tsv')
             try:
-                self.ba_cz_df.to_csv(write_path,sep='\t',index=False, line_terminator='\r\n', float_format='%.6f')
+                self.export_and_tag(self.ba_cz_df, write_path, project)
             except AttributeError:
                 self.create_building_america_climate_zone_tsv()
-                self.ba_cz_df.to_csv(write_path,sep='\t',index=False, line_terminator='\r\n', float_format='%.6f')
+                self.export_and_tag(self.ba_cz_df, write_path, project)
 
             # County
             write_path = os.path.join('..','..',project,'housing_characteristics','County.tsv')
             try:
-                self.county_df.to_csv(write_path,sep='\t',index=False, line_terminator='\r\n', float_format='%.6f')
+                self.export_and_tag(self.county_df, write_path, project)
             except AttributeError:
                 self.create_county_tsv()
-                self.county_df.to_csv(write_path,sep='\t',index=False, line_terminator='\r\n', float_format='%.6f')
+                self.export_and_tag(self.county_df, write_path, project)
 
             # PUMA
             write_path = os.path.join('..','..',project,'housing_characteristics','PUMA.tsv')
             try:
-                self.puma_df.to_csv(write_path,sep='\t',index=False, line_terminator='\r\n', float_format='%.6f')
+                self.export_and_tag(self.puma_df, write_path, project)
             except AttributeError:
                 self.create_puma_tsv()
-                self.puma_df.to_csv(write_path,sep='\t',index=False, line_terminator='\r\n', float_format='%.6f')
+                self.export_and_tag(self.puma_df, write_path, project)
