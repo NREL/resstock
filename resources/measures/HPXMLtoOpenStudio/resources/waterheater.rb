@@ -745,7 +745,7 @@ class Waterheater
     end
 
     if hpwh_param == 80
-  
+
       hpwh_ctrl_program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
       hpwh_ctrl_program.setName("#{obj_name_hpwh} Control")
       if ducting == Constants.VentTypeSupply or ducting == Constants.VentTypeBalanced
@@ -925,7 +925,7 @@ class Waterheater
               objects_to_remove << hpwh.tank
               objects_to_remove << hpwh
             end
-            
+
             objects_to_remove << wh
             objects_to_remove << wh.to_WaterHeaterStratified.get.heater1SetpointTemperatureSchedule
             objects_to_remove << wh.to_WaterHeaterStratified.get.heater2SetpointTemperatureSchedule
@@ -1425,6 +1425,7 @@ class Waterheater
       unless new_schedule.validated?
         return false
       end
+
       wh_setpoint = new_schedule.schedule
       new_heater.heater1SetpointTemperatureSchedule.remove
       new_heater.heater2SetpointTemperatureSchedule.remove

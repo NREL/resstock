@@ -674,7 +674,7 @@ class ClothesDryer
       ann_f = daily_energy_fuel * num_days_in_year # therms/yr
     end
 
-    #FIXME: should either add a profile type argument to clothes dryer, or inherit the profile type from clothes washer (using AdditionalProperties most likely) [A. Speake]
+    # FIXME: should either add a profile type argument to clothes dryer, or inherit the profile type from clothes washer (using AdditionalProperties most likely) [A. Speake]
     prof_type = Constants.WaterHeaterDrawProfileTypeRealistic
 
     if ann_e > 0 or ann_f > 0

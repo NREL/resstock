@@ -1847,9 +1847,9 @@ class Airflow
     bath_sch_sensor.setKeyName(bath_exhaust_sch.schedule.name.to_s)
 
     if mv_output.has_dryer and mech_vent.dryer_exhaust > 0
-      #FIXME: should either add a profile type argument to clothes dryer, or inherit the profile type from clothes washer (using AdditionalProperties most likely) [A. Speake]
+      # FIXME: should either add a profile type argument to clothes dryer, or inherit the profile type from clothes washer (using AdditionalProperties most likely) [A. Speake]
       prof_type = Constants.WaterHeaterDrawProfileTypeRealistic
-      
+
       dryer_exhaust_sch = HotWaterSchedule.new(model, runner, obj_name_mech_vent + " dryer exhaust schedule", obj_name_mech_vent + " dryer exhaust temperature schedule", nbeds, mv_output.dryer_exhaust_day_shift, "ClothesDryerExhaust", 0, prof_type, create_sch_object = true, schedule_type_limits_name = Constants.ScheduleTypeLimitsFraction)
       dryer_sch_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Schedule Value")
       dryer_sch_sensor.setName("#{obj_name_infil} dryer sch s")
