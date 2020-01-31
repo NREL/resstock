@@ -16,18 +16,17 @@ class TestResStockMeasuresOSW < MiniTest::Test
     measures_osw_dir = File.join(parent_dir, "measures_osws")
     Dir.mkdir(measures_osw_dir) unless File.exist?(measures_osw_dir)
 
+    all_results = []
     Dir["project_*"].each do |project_dir|
       buildstock_csv = create_buildstock_csv(project_dir, num_samples)
       lib_dir = create_lib_folder(parent_dir, project_dir, buildstock_csv)
       weather_dir = create_weather_folder(parent_dir, project_dir)
 
-      all_results = []
-      measures_osw_dir = File.join(parent_dir, "measures_osws", project_dir)
       Dir.mkdir(measures_osw_dir) unless File.exist?(measures_osw_dir)
       (1..num_samples).to_a.each do |building_id|
         Dir["#{parent_dir}/build_existing_model.osw"].each do |osw|
           change_building_id(osw, building_id)
-          all_results << run_and_check(osw, parent_dir, measures_osw_dir, building_id)
+          all_results << run_and_check(osw, parent_dir, measures_osw_dir, building_id, project_dir)
         end
       end
 
@@ -35,18 +34,18 @@ class TestResStockMeasuresOSW < MiniTest::Test
         change_building_id(osw, 1)
       end
 
-      results_dir = File.join(parent_dir, "#{project_dir}_results")
-      _rm_path(results_dir)
-      write_summary_results(results_dir, all_results)
-
       _rm_path(lib_dir)
       _rm_path(weather_dir)
     end
+
+    results_dir = File.join(parent_dir, "build_existing_model_results")
+    _rm_path(results_dir)
+    write_summary_results(results_dir, all_results)
   end
 
   private
 
-  def run_and_check(in_osw, parent_dir, measures_osw_dir, building_id)
+  def run_and_check(in_osw, parent_dir, measures_osw_dir, building_id, project_dir)
     # Create measures.osw
     cli_path = OpenStudio.getOpenStudioCLI
     command = "cd #{parent_dir} && \"#{cli_path}\" --no-ssl run -w #{in_osw}"
@@ -56,18 +55,22 @@ class TestResStockMeasuresOSW < MiniTest::Test
 
     # Check output file exists
     out_osw = File.join(parent_dir, "out.osw")
-    new_out_osw = File.join(measures_osw_dir, "#{building_id}.osw")
-    FileUtils.mv(out_osw, new_out_osw)
-    assert(File.exists?(new_out_osw))
+    measures_osw = File.join(parent_dir, "run", "measures.osw")
+    new_measures_osw = File.join(measures_osw_dir, "#{building_id}_#{project_dir}.osw")
+    FileUtils.mv(measures_osw, new_measures_osw)
+    assert(File.exists?(new_measures_osw))
 
     # Check workflow was successful
-    data_hash = JSON.parse(File.read(new_out_osw))
+    data_hash = JSON.parse(File.read(out_osw))
     assert_equal(data_hash["completed_status"], "Success")
 
     data_point_out = File.join(parent_dir, "run", "data_point_out.json")
-    result = { "OSW" => File.basename(new_out_osw) }
-    result = get_simulation_output_report(result, data_point_out)
-    result["simulation_time"] = sim_time
+    result = {
+      "OSW" => File.basename(new_measures_osw),
+      "PROJECT" => project_dir,
+      "SIM_TIME" => sim_time
+    }
+    result = get_output_report(result, data_point_out)
     return result
   end
 
@@ -111,8 +114,9 @@ class TestResStockMeasuresOSW < MiniTest::Test
     end
   end
 
-  def get_simulation_output_report(result, data_point_out)
+  def get_output_report(result, data_point_out)
     rows = JSON.parse(File.read(File.expand_path(data_point_out)))
+    result = result.merge(rows["BuildExistingModel"])
     result = result.merge(rows["SimulationOutputReport"])
     result.delete("applicable")
     result.delete("upgrade_name")
