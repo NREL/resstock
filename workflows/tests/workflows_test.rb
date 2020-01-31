@@ -18,7 +18,7 @@ class WorkflowTest < MiniTest::Test
       all_results << run_and_check(osw, parent_dir)
     end
 
-    results_dir = File.join(parent_dir, "results")
+    results_dir = File.join(parent_dir, "example_osws_results")
     _rm_path(results_dir)
     write_summary_results(results_dir, all_results)
   end
@@ -52,7 +52,7 @@ class WorkflowTest < MiniTest::Test
     system(command)
     sim_time = (Time.now - simulation_start).round(1)
 
-    # Check all output files exist
+    # Check output file exist
     out_osw = File.join(parent_dir, "out.osw")
     assert(File.exists?(out_osw))
 
