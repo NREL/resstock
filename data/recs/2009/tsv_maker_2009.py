@@ -112,6 +112,14 @@ class TSVMaker():
 
             geometry_wall_type, count, weight = self.groupby_and_pivot(
                 geometry_wall_type, dependency_cols, option_col)
+
+                # Add in 2010s
+            geometry_wall_type = geometry_wall_type.reset_index()
+            test_df = geometry_wall_type.loc[geometry_wall_type['Vintage'] == '2000s']
+            test_df["Vintage"] = '2010s'
+            geometry_wall_type = pd.concat([geometry_wall_type,test_df])
+            geometry_wall_type =geometry_wall_type.set_index(["Location Region", "Vintage"])
+
             geometry_wall_type = self.add_missing_dependency_rows(
                 geometry_wall_type, project, count, weight)
             geometry_wall_type = self.rename_cols(
@@ -250,6 +258,7 @@ class TSVMaker():
             del df[weight_col_label]
 
         cols_to_float = [x for x in df.columns if "Option=" in x] + [count_col_label, weight_col_label]
+        #cols_to_float = df.columns
         df[cols_to_float] = df[cols_to_float].apply(pd.to_numeric, downcast='float').fillna(0)
         df.to_csv(filepath, sep='\t', index=False, line_terminator='\r\n', float_format='%.6f')
         # print '{}...'.format(filepath)
@@ -274,6 +283,7 @@ class TSVMaker():
 
 if __name__ == '__main__':
     recs_filepath = '~/Documents/Data/recs2009_public.csv'  # raw recs microdata
+    #recs_filepath_2015 = '~/Documents/Data/recs2009_public.csv'
 
     tsv_maker = TSVMaker(recs_filepath)
 
