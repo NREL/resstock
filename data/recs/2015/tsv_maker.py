@@ -4,6 +4,7 @@ import parameter_option_maps
 import itertools
 import shutil
 import numpy as np
+import boto3
 
 this_file = os.path.basename(__file__)
 dir_of_this_file = os.path.basename(os.path.dirname(__file__))
@@ -17,14 +18,71 @@ for project in projects:
     if not os.path.exists(project_dir):
         os.mkdir(project_dir)
 
-count_col_label = '[For Reference Only] Source Sample Size'
-weight_col_label = '[For Reference Only] Source Weight'
+count_col_label = 'source_count'
+weight_col_label = 'source_weight'
 
 class TSVMaker():
     
-    def __init__(self, file):
-        self.df = pd.read_csv(file, index_col=['DOEID'])
+    def __init__(self):
+        # Create an s3 client
+        self.s3_client = boto3.client('s3')
+
+        # Download Data from s3
+        self.download_data_s3()
+
+        # Read file into memory
+        filepath = os.path.join('various_datasets','recs_2015','recs2015_public_v4.csv')
+        self.df = pd.read_csv(filepath, index_col=['DOEID'])
         self.df[count_col_label] = 1
+
+    def s3_download_dir(self,prefix, local, bucket, client):
+        """Download a directory from s3
+        Args:
+            prefix (string): pattern to match in s3
+            local (string): local path to folder in which to place files
+            bucket (string): s3 bucket with target contents
+            client (boto3.client): initialized s3 client object
+        """
+        keys = []
+        dirs = []
+        next_token = ''
+        base_kwargs = {
+            'Bucket':bucket,
+            'Prefix':prefix
+        }
+        while next_token is not None:
+            kwargs = base_kwargs.copy()
+            if next_token != '':
+                kwargs.update({'ContinuationToken': next_token})
+            results = client.list_objects_v2(**kwargs)
+            contents = results.get('Contents')
+            for i in contents:
+                k = i.get('Key')
+                if k[-1] != '/':
+                    keys.append(k)
+                else:
+                    dirs.append(k)
+            next_token = results.get('NextContinuationToken')
+        for d in dirs:
+            dest_pathname = os.path.join(local, d)
+            if not os.path.exists(os.path.dirname(dest_pathname)):
+                os.makedirs(os.path.dirname(dest_pathname))
+        for k in keys:
+            dest_pathname = os.path.join(local, k)
+            if not os.path.exists(os.path.dirname(dest_pathname)):
+                os.makedirs(os.path.dirname(dest_pathname))
+            client.download_file(bucket, k, dest_pathname)
+
+    def download_data_s3(self):
+        """Go to s3 and download data needed for this tsv_maker."""
+        recs_2015_data_path = os.path.join('various_datasets','recs_2015')
+        if not os.path.exists(recs_2015_data_path):
+            print('Downloading data from s3')
+            # Download climate zone and county data
+            print('  RECS 2015...')
+            s3_bucket = 'resbldg-datasets'
+            s3_prefix = os.path.join('various_datasets','recs_2015')
+            self.s3_download_dir(s3_prefix,'.', s3_bucket,self.s3_client)
 
     def bedrooms(self):
         df = self.df.copy()
@@ -166,37 +224,22 @@ class TSVMaker():
     def export_and_tag(self, df, filepath, project):
         """
         Add bottom-left script and source tag to dataframe (for non testing projects). Save dataframe to tsv file.
-
         Parameters:
           df (dataframe): A pandas dataframe with dependency/option columns and fractions.
           filepath (str): The path of the tsv file to export.
           project (str): Name of the project.
-
         """
-        names = df.index.names
+        # Write the data file
+        df.to_csv(filepath,sep='\t', line_terminator='\r\n', float_format='%.6f')
 
-        tag = created_by
+        # Append the created by line
         if 'testing' not in project:
+            tag = "# Created by:" + created_by
             tag += source
-
-        tag_row = {names[0]: 'Created by: {}'.format(tag)}
-        for name in names[1:] + list(df.columns.values):
-            tag_row[name] = np.nan
-        df = df.reset_index()
-        for col in list(df.columns.values):
-            if col == count_col_label:
-                df[col] = df[col].astype(int)
-            else:
-                df[col] = df[col].astype(str)
-        df = df.append(tag_row, ignore_index=True, verify_integrity=True)
-        df[count_col_label] = df[count_col_label].apply(lambda x: str(int(x)) if pd.notnull(x) else x)
-        
-        if 'testing' in project:
-            del df[count_col_label]
-            del df[weight_col_label]
-        
-        df.to_csv(filepath, sep='\t', index=False)
-        print '{}...'.format(filepath)
+            tag += "\r\n"
+            with open(filepath, "a") as file_object:
+                file_object.write(tag)
+        print('{}...'.format(filepath))
 
     def copy_file_to_project(self, filepath, project):
         """
@@ -207,15 +250,14 @@ class TSVMaker():
           project (str): Name of the project.
 
         """
-        resstock_projects_dir = 'c:/OpenStudio/OpenStudio-BuildStock'
+        resstock_projects_dir = os.path.join('..','..','..')
     
         project_dir = os.path.join(resstock_projects_dir, project, 'housing_characteristics')
         shutil.copy(filepath, project_dir)
 
 if __name__ == '__main__':    
-    recs_filepath = 'c:/recs2015/recs2015_public_v4.csv'
 
-    tsv_maker = TSVMaker(recs_filepath)
+    tsv_maker = TSVMaker()
 
     tsv_maker.bedrooms()
     tsv_maker.occupants()
