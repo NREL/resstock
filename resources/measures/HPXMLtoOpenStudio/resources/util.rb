@@ -1377,7 +1377,7 @@ class OutputMeters
     custom_meter_infos["#{unit.name}:NaturalGasWaterSystems"] = { "fuel_type" => "NaturalGas", "key_var_groups" => [] }
     @model.getPlantLoops.each do |plant_loop|
       if plant_loop.name.to_s == Constants.PlantLoopDomesticWater(unit.name.to_s)
-        water_heater = Waterheater.get_water_heater(model, plant_loop, runner)
+        water_heater = Waterheater.get_water_heater(@model, plant_loop, @runner)
         if water_heater.is_a? OpenStudio::Model::WaterHeaterMixed or water_heater.is_a? OpenStudio::Model::WaterHeaterStratified
           next if water_heater.heaterFuelType != "NaturalGas"
 
@@ -1480,7 +1480,7 @@ class OutputMeters
     custom_meter_infos["#{unit.name}:FuelOilWaterSystems"] = { "fuel_type" => "FuelOil#1", "key_var_groups" => [] }
     @model.getPlantLoops.each do |plant_loop|
       if plant_loop.name.to_s == Constants.PlantLoopDomesticWater(unit.name.to_s)
-        water_heater = Waterheater.get_water_heater(model, plant_loop, runner)
+        water_heater = Waterheater.get_water_heater(@model, plant_loop, @runner)
         if water_heater.is_a? OpenStudio::Model::WaterHeaterMixed or water_heater.is_a? OpenStudio::Model::WaterHeaterStratified
           next if water_heater.heaterFuelType != "FuelOil#1"
 
@@ -1603,7 +1603,7 @@ class OutputMeters
     custom_meter_infos["#{unit.name}:PropaneWaterSystems"] = { "fuel_type" => "PropaneGas", "key_var_groups" => [] }
     @model.getPlantLoops.each do |plant_loop|
       if plant_loop.name.to_s == Constants.PlantLoopDomesticWater(unit.name.to_s)
-        water_heater = Waterheater.get_water_heater(model, plant_loop, runner)
+        water_heater = Waterheater.get_water_heater(@model, plant_loop, @runner)
         if water_heater.is_a? OpenStudio::Model::WaterHeaterMixed or water_heater.is_a? OpenStudio::Model::WaterHeaterStratified
           next if water_heater.heaterFuelType != "PropaneGas"
 
