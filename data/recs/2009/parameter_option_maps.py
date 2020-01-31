@@ -65,7 +65,7 @@ def map_geometry_wall_type(df):
 
 
 def map_vintage(df):
-    df['Vintage'] = df['YEARMADERANGE'].map({1: '<1950',
+    df['Vintage'] = df['YEARMADERANGE'].map({1: '1940s',
                                              2: '1950s',
                                              3: '1960s',
                                              4: '1970s',
@@ -73,6 +73,10 @@ def map_vintage(df):
                                              6: '1990s',
                                              7: '2000s',
                                              8: '2000s'})
+
+    # Pull out pre-1940s buildings
+    df.loc[(df['YEARMADERANGE'] == 1) & (
+        df['YEARMADE'] < 1940), ['Vintage']] = '<1940'
 
     return df
 
