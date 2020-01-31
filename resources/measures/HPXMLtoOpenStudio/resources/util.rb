@@ -358,7 +358,7 @@ class OutputMeters
       "Timestep" => "Zone Timestep",
       "Hourly" => "Hourly",
       "Daily" => "Daily",
-      # "Monthly" => "Monthly",
+      "Monthly" => "Monthly",
       "RunPeriod" => "Run Period"
     }
     @reporting_frequency_eplus = reporting_frequency_map[@reporting_frequency_os]
@@ -817,6 +817,11 @@ class OutputMeters
       num_ts = hrs_sim
     elsif @reporting_frequency_os == "Daily"
       num_ts = (hrs_sim / 24.0).to_i
+    elsif @reporting_frequency_os == "Monthly"
+      run_period = @model.getRunPeriod
+      begin_month = run_period.getBeginMonth
+      end_month = run_period.getEndMonth
+      num_ts = (end_month - begin_month) + 1
     elsif @reporting_frequency_os == "RunPeriod"
       num_ts = 1
     end
