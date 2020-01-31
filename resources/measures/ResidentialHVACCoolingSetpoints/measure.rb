@@ -117,6 +117,12 @@ class ProcessCoolingSetpoints < OpenStudio::Measure::ModelMeasure
     season_end_month.setDefaultValue("Dec")
     args << season_end_month
 
+    apply_offset = OpenStudio::Measure::OSArgument::makeBoolArgument("apply_offset", true)
+    apply_offset.setDisplayName("Apply Cooling Setpoint Offset")
+    apply_offset.setDescription("Specifies whether to apply the setpoint offsets defined in weekend_offset_schedule and weekday_offset_schedule. If false, the offsets are set to 0 and the constant cooling setpoint is used.")
+    apply_offset.setDefaultValue(true)
+    args << apply_offset
+
     return args
   end # end the arguments method
 
@@ -142,6 +148,8 @@ class ProcessCoolingSetpoints < OpenStudio::Measure::ModelMeasure
     season_start_month = runner.getOptionalStringArgumentValue("season_start_month", user_arguments)
     season_end_month = runner.getOptionalStringArgumentValue("season_end_month", user_arguments)
 
+    apply_offset = runner.getBoolArgumentValue("apply_offset", user_arguments)
+
     weather = WeatherProcess.new(model, runner)
     if weather.error?
       return false
@@ -157,6 +165,11 @@ class ProcessCoolingSetpoints < OpenStudio::Measure::ModelMeasure
       weekend_setpoints = Array.new(24, weekend_setpoint.to_f)
     else
       weekend_setpoints = weekend_setpoint.split(",").map(&:to_f)
+    end
+
+    if not apply_offset
+      weekday_offset_magnitude = 0
+      weekend_offset_magnitude = 0
     end
 
     # Convert the string of weekday/end-offset magnitude value into a 24 valued float array
