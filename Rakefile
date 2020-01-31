@@ -436,6 +436,9 @@ def check_parameter_file_format(tsvpath, n_deps, name)
   i = 1
   File.open(tsvpath, mode: "rb") do |f|
     while ((line = f.gets) != nil)
+      # If not a comment line
+      next if line[0].start_with? "\#"
+
       # Check endline character
       if line.include? "\r\n"
         # Do not perform other checks if the line is the header
