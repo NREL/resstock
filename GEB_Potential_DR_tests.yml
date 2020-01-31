@@ -1,10 +1,10 @@
 stock_type: residential
 buildstock_directory: ./  # Relative to this file or absolute
-output_directory: /projects/enduse/geb-potential/Run_Results/DR_test_13
+output_directory: /projects/enduse/geb-potential/Run_Results/DR_test_6
 project_directory: project_singlefamilydetached
 weather_files_path: /shared-projects/buildstock/weather/project_resstock_national_weather.zip
 baseline:
-  n_datapoints: 10
+  n_datapoints: 140
   n_buildings_represented: 81221016 
 residential_simulation_controls:
   timesteps_per_hr: 6
@@ -12,26 +12,8 @@ residential_simulation_controls:
   begin_day_of_month: 1
   end_month: 12
   end_day_of_month: 31
+  # start_day_of_week: Sunday
   calendar_year: 2006 #2006 starts on Sunday, 2007 starts on Monday
-
-# downselect:
-#   resample: false
-#   logic:
-#     or:
-#       - Location|FL_Orlando.Intl.AP.722050
-#       - Location|AZ_Tucson.Intl.AP.722740
-#       - Location|GA_Atlanta-Hartsfield-Jackson.Intl.AP.722190
-#       - Location|TX_El.Paso.Intl.AP.722700
-#       - Location|CA_San.Diego-Lindbergh.Field.722900
-#       - Location|NY_New.York-J.F.Kennedy.Intl.AP.744860
-#       - Location|NM_Albuquerque.Intl.AP.723650
-#       - Location|WA_Seattle-Tacoma.Intl.AP.727930
-#       - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699
-#       - Location|WA_Quillayute.State.AP.727970
-#       - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280
-#       - Location|MN_Rochester.Intl.AP.726440
-#       - Location|MT_Great.Falls.Intl.AP.727750
-#       - Location|MN_International.Falls.Intl.AP.727470
 
 upgrades:
 #note: no reference scenarios. Everything happens today.  
@@ -39,6 +21,19 @@ upgrades:
   - upgrade_name: Package 1c EE Best Smart Thermostat
     #Best Smart Thermostat
     options:
+      - option: Cooling Setpoint Apply Offset|True
+        apply_logic:
+          - Cooling Setpoint Has Offset|No
+      - option: Heating Setpoint Apply Offset|True
+        apply_logic:
+          - Heating Setpoint Has Offset|No
+      - option: Cooling Setpoint Apply Offset|False
+        apply_logic:
+          - Cooling Setpoint Has Offset|Yes
+      - option: Heating Setpoint Apply Offset|False
+        apply_logic:
+          - Heating Setpoint Has Offset|Yes
+          
       - option: Nightsetback|San Diego
         apply_logic:
           - Somebody at home in weekday|Yes
@@ -248,7 +243,6 @@ upgrades:
         costs:
           - value: 0
             multiplier: Fixed (1)
-
 ##up6 - package 1f - Best CAC Homes, best CAC, smart thermostat and envelope (1st)
   - upgrade_name: Package 1f EE CAC with smart thermostat and envelope
     package_apply_logic:
@@ -275,6 +269,20 @@ upgrades:
             multiplier: Size, Cooling System (kBtu/h)
         lifetime: 16
       #Best smart thermostat
+      - option: Cooling Setpoint Apply Offset|True
+        apply_logic:
+          - Cooling Setpoint Has Offset|No
+      - option: Heating Setpoint Apply Offset|True
+        apply_logic:
+          - Heating Setpoint Has Offset|No
+      - option: Cooling Setpoint Apply Offset|False
+        apply_logic:
+          - Cooling Setpoint Has Offset|Yes
+      - option: Heating Setpoint Apply Offset|False
+        apply_logic:
+          - Heating Setpoint Has Offset|Yes
+      
+      
       - option: Nightsetback|San Diego
         apply_logic:
           - Somebody at home in weekday|Yes
@@ -729,6 +737,19 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 999
       #Best Smart Thermostat
+      - option: Cooling Setpoint Apply Offset|True
+        apply_logic:
+          - Cooling Setpoint Has Offset|No
+      - option: Heating Setpoint Apply Offset|True
+        apply_logic:
+          - Heating Setpoint Has Offset|No
+      - option: Cooling Setpoint Apply Offset|False
+        apply_logic:
+          - Cooling Setpoint Has Offset|Yes
+      - option: Heating Setpoint Apply Offset|False
+        apply_logic:
+          - Heating Setpoint Has Offset|Yes
+          
       - option: Nightsetback|San Diego
         apply_logic:
           - Somebody at home in weekday|Yes
@@ -1170,6 +1191,20 @@ upgrades:
             - HVAC System Cooling|AC, SEER 15
     options: 
       #Best smart thermostat
+      - option: Cooling Setpoint Apply Offset|True
+        apply_logic:
+          - Cooling Setpoint Has Offset|No
+      - option: Heating Setpoint Apply Offset|True
+        apply_logic:
+          - Heating Setpoint Has Offset|No
+      - option: Cooling Setpoint Apply Offset|False
+        apply_logic:
+          - Cooling Setpoint Has Offset|Yes
+      - option: Heating Setpoint Apply Offset|False
+        apply_logic:
+          - Heating Setpoint Has Offset|Yes
+      
+      
       - option: Nightsetback|San Diego
         apply_logic:
           - Somebody at home in weekday|Yes
@@ -1588,8 +1623,6 @@ upgrades:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 999
-
-
 ##up9 - package 2 - DR (wh and thermostat)
   - upgrade_name: package 2 DR only
     options: 
@@ -1878,7 +1911,213 @@ upgrades:
         costs:
           - value: 0
             multiplier: Fixed (1)
-
+##up9b - WH DR
+  - upgrade_name: package 2b WHDR only
+    options: 
+      #Water heater DR
+      - option: Water Heater DR|WHDR Tank Tampa
+        apply_logic:
+          - Location|FL_Orlando.Intl.AP.722050
+          - Water Heater DR|WH Tank False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tank Tucson
+        apply_logic:
+          - Location|AZ_Tucson.Intl.AP.722740
+          - Water Heater DR|WH Tank False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tank Atlanta
+        apply_logic:
+          - Location|GA_Atlanta-Hartsfield-Jackson.Intl.AP.722190
+          - Water Heater DR|WH Tank False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tank El Paso
+        apply_logic:
+          - Location|TX_El.Paso.Intl.AP.722700
+          - Water Heater DR|WH Tank False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tank San Diego
+        apply_logic:
+          - Location|CA_San.Diego-Lindbergh.Field.722900
+          - Water Heater DR|WH Tank False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tank New York
+        apply_logic:
+          - Location|NY_New.York-J.F.Kennedy.Intl.AP.744860
+          - Water Heater DR|WH Tank False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tank Albuquerque
+        apply_logic:
+          - Location|NM_Albuquerque.Intl.AP.723650
+          - Water Heater DR|WH Tank False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tank Seattle
+        apply_logic:
+          - Location|WA_Seattle-Tacoma.Intl.AP.727930
+          - Water Heater DR|WH Tank False
+          - Water Heater Fuel Type|Electric     
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tank Denver
+        apply_logic:
+          - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699
+          - Water Heater DR|WH Tank False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tank Port Angeles
+        apply_logic:
+          - Location|WA_Quillayute.State.AP.727970
+          - Water Heater DR|WH Tank False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tank Buffalo
+        apply_logic:
+          - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280
+          - Water Heater DR|WH Tank False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tank Rochester
+        apply_logic:
+          - Location|MN_Rochester.Intl.AP.726440
+          - Water Heater DR|WH Tank False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tank Great Falls
+        apply_logic:
+          - Location|MT_Great.Falls.Intl.AP.727750
+          - Water Heater DR|WH Tank False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tank International Falls
+        apply_logic:
+          - Location|MN_International.Falls.Intl.AP.727470
+          - Water Heater DR|WH Tank False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+          
+      - option: Water Heater DR|WHDR Tankless Tampa
+        apply_logic:
+          - Location|FL_Orlando.Intl.AP.722050
+          - Water Heater DR|WH Tankless False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tankless Tucson
+        apply_logic:
+          - Location|AZ_Tucson.Intl.AP.722740
+          - Water Heater DR|WH Tankless False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tankless Atlanta
+        apply_logic:
+          - Location|GA_Atlanta-Hartsfield-Jackson.Intl.AP.722190
+          - Water Heater DR|WH Tankless False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tankless El Paso
+        apply_logic:
+          - Location|TX_El.Paso.Intl.AP.722700
+          - Water Heater DR|WH Tankless False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tankless San Diego
+        apply_logic:
+          - Location|CA_San.Diego-Lindbergh.Field.722900
+          - Water Heater DR|WH Tankless False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tankless New York
+        apply_logic:
+          - Location|NY_New.York-J.F.Kennedy.Intl.AP.744860
+          - Water Heater DR|WH Tankless False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tankless Albuquerque
+        apply_logic:
+          - Location|NM_Albuquerque.Intl.AP.723650
+          - Water Heater DR|WH Tankless False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tankless Seattle
+        apply_logic:
+          - Location|WA_Seattle-Tacoma.Intl.AP.727930
+          - Water Heater DR|WH Tankless False
+          - Water Heater Fuel Type|Electric  
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tankless Denver
+        apply_logic:
+          - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699
+          - Water Heater DR|WH Tankless False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tankless Port Angeles
+        apply_logic:
+          - Location|WA_Quillayute.State.AP.727970
+          - Water Heater DR|WH Tankless False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tankless Buffalo
+        apply_logic:
+          - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280
+          - Water Heater DR|WH Tankless False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tankless Rochester
+        apply_logic:
+          - Location|MN_Rochester.Intl.AP.726440
+          - Water Heater DR|WH Tankless False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tankless Great Falls
+        apply_logic:
+          - Location|MT_Great.Falls.Intl.AP.727750
+          - Water Heater DR|WH Tankless False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+      - option: Water Heater DR|WHDR Tankless International Falls
+        apply_logic:
+          - Location|MN_International.Falls.Intl.AP.727470
+          - Water Heater DR|WH Tankless False
+          - Water Heater Fuel Type|Electric
+        costs:
+          - value: 0
+##up9c - Appliance DR
+  - upgrade_name: package 2c appliance only
+    options: 
+      - option: Appliance DR Apply|TRUE
+        costs:
+          - value: 0
 ##up10 - package 3a - CAC upgrade with pre heating/cooling, smart thermostat, envelope
   - upgrade_name: Package 3a Pre-heating/cooling, smart thermostat, and envelope for CAC upgrades
     package_apply_logic:
@@ -2326,9 +2565,6 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 999
     ##end floors
-
-
-
 ##up11 - package 3b - ASHP upgrade with pre heating/cooling, smart thermostat, envelope
   - upgrade_name: Package 3b Pre-heating/cooling, smart thermostat, and envelope for ASHP upgrades
     package_apply_logic:
@@ -2787,7 +3023,6 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 999
     ##end floors
-
 ##up12 - package 3c - No CAC/ASHP upgrade, with pre heating/cooling, smart thermostat, envelope 
   - upgrade_name: Package 3c Pre-heating/cooling, smart thermostat, and envelope for no HVAC upgrades
     package_apply_logic:
@@ -3310,19 +3545,33 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 999
       # Best clothes dryer
-      - option: Clothes Dryer|Electric, Heat Pump, Ventless
+      - option: Clothes Dryer|Electric, Heat Pump, Ventless, 80% Usage
         apply_logic:
           or:
             - Clothes Dryer|Electric, 80% Usage
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Clothes Dryer|Electric, Heat Pump, Ventless, 100% Usage
+        apply_logic:
+          or:
             - Clothes Dryer|Electric, 100% Usage
-            - Clothes Dryer|Electric, 120% Usage
             - Clothes Dryer|Electric, Premium
         costs:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 999
+      - option: Clothes Dryer|Electric, Heat Pump, Ventless, 120% Usage
+        apply_logic:
+          or:
+            - Clothes Dryer|Electric, 120% Usage
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
       # Best dishwasher
-      - option: Dishwasher|199 Rated kWh, EnergyStar Most Efficient, 80% Usage
+      - option: Dishwasher|199 Rated kWh, 80% Usage
         apply_logic: 
           or:
             - Dishwasher|318 Rated kWh, 80% Usage
@@ -3331,7 +3580,7 @@ upgrades:
           - value: 1000
             multiplier: Fixed (1)
         lifetime: 11
-      - option: Dishwasher|199 Rated kWh, EnergyStar Most Efficient, 100% Usage
+      - option: Dishwasher|199 Rated kWh, 100% Usage
         apply_logic: 
           or:
             - Dishwasher|318 Rated kWh, 100% Usage
@@ -3340,7 +3589,7 @@ upgrades:
           - value: 1000
             multiplier: Fixed (1)
         lifetime: 11
-      - option: Dishwasher|199 Rated kWh, EnergyStar Most Efficient, 120% Usage
+      - option: Dishwasher|199 Rated kWh, 120% Usage
         apply_logic: 
           or:
             - Dishwasher|318 Rated kWh, 120% Usage
