@@ -48,30 +48,24 @@ jobs:
       - run: 
           name: Run BuildExistingModel test
           command: |
-            export NUM_SAMPLES=10
+            export NUM_SAMPLES=5
             rake test:build_existing_model
       - store_artifacts:
-            path: workflows/project_singlefamilydetached_results
-            destination: project_singlefamilydetached_results
-      - store_artifacts:
-            path: workflows/project_multifamily_beta_results
-            destination: project_multifamily_beta_results
-      - store_artifacts:
-            path: workflows/project_testing_results
-            destination: project_testing_results
+            path: workflows/build_existing_model_results
+            destination: results
 workflows:
   version: 2
   commit:
     jobs:
-      - build
+      # - build
       - regression
-  weekly:
-    triggers:
-      - schedule:
-          cron: "0 0 * * 0"
-          filters:
-            branches:
-              only:
-                - automated-runs
-    jobs:
-      - regression 
+  # weekly:
+    # triggers:
+      # - schedule:
+          # cron: "0 0 * * 0"
+          # filters:
+            # branches:
+              # only:
+                # - automated-runs
+    # jobs:
+      # - regression 
