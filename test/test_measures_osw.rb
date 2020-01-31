@@ -39,7 +39,7 @@ class TestResStockMeasuresOSW < MiniTest::Test
   def run_and_check(in_osw, parent_dir, measures_osw_dir, building_id)
     # Create measures.osw
     cli_path = OpenStudio.getOpenStudioCLI
-    command = "cd #{parent_dir} && \"#{cli_path}\" --no-ssl run -m -w #{in_osw}"
+    command = "cd #{parent_dir} && \"#{cli_path}\" --no-ssl run -w #{in_osw}"
     system(command)
 
     # Check output file exists

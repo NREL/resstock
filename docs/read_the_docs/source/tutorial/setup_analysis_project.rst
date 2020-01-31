@@ -193,7 +193,7 @@ Leave this alone.
 Simulation Output Report
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-Leave this alone.
+Leave this alone if you do not want to report annual totals for end use subcategories. Select **Include End Use Subcategories** if you want to report them. See below for a listing of available end use subcategories.
 
 .. _timeseries-csv-export:
 
@@ -208,9 +208,9 @@ End uses include:
 
   * total site energy [MBtu]
   * net site energy [MBtu]
-  * total site [electric/gas/oil/propane] [kWh/therm/MBtu/MBtu]
+  * total site [electric/gas/oil/propane/wood] [kWh/therm/MBtu/MBtu/MBtu]
   * net site [electric] [kWh]
-  * heating [electric/gas/oil/propane] [kWh/therm/MBtu/MBtu]
+  * heating [electric/gas/oil/propane/wood] [kWh/therm/MBtu/MBtu/MBtu]
   * cooling [kWh]
   * central system heating [electric/gas/oil/propane] [kWh/therm/MBtu/MBtu]
   * central system cooling [electric] [kWh]
@@ -218,7 +218,7 @@ End uses include:
   * exterior lighting [kWh]
   * exterior holiday lighting [kWh]
   * garage lighting [kWh]
-  * interior equipment [electric/gas/oil/propane] [kWh/therm/MBtu/MBtu]
+  * interior equipment [electric/gas/propane] [kWh/therm/MBtu/MBtu]
   * fans heating [kWh]
   * fans cooling [kWh]
   * pumps heating [kWh]
@@ -233,6 +233,7 @@ End uses include:
 
   * Timestep
   * Daily
+  * Monthly
   * Runperiod
   
   Setting the reporting frequency to 'Timestep' will give you interval output equal to the zone timestep set by the :ref:`simulation-controls` measure. Thus, this measure will produce 10-min interval output when you select 'Timestep' and leave the :ref:`simulation-controls` measure at its default settings.
@@ -260,6 +261,8 @@ End uses include:
   * gas lighting [therm]
   * gas fireplace [therm]
   * well pump [kWh]  
+  * hot water recirculation pump [kWh]
+  * vehicle [kWh]
   
 **Output Variables**
   If you choose to report any output variables (e.g., "Zone Air Temperature" or "Site Outdoor Air Humidity Ratio"), enter a comma-separated list of output variable names. A list of available output variables can be viewed in EnergyPlus's ``.rdd`` file.
