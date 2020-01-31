@@ -26,9 +26,52 @@ jobs:
           command: |
             rake test:unit_tests
       - run:
-          name: Run all regression tests
+          name: Run all example osws
           command: |
-            rake test:regression_tests
+            rake test:example_osws
+      - run: 
+          name: Run BuildExistingModel test
+          command: |
+            rake test:build_existing_model
       - store_artifacts:
-            path: workflows/results
+            path: workflows/example_osws_results
             destination: results
+  regression:
+    docker:
+      - image: nrel/openstudio:2.9.0
+    steps:
+      - checkout
+      - run: 
+          name: Install gems
+          command: |
+            rm -f Gemfile.lock && bundle install
+      - run: 
+          name: Run BuildExistingModel test
+          command: |
+            export NUM_SAMPLES=10
+            rake test:build_existing_model
+      - store_artifacts:
+            path: workflows/project_singlefamilydetached_results
+            destination: project_singlefamilydetached_results
+      - store_artifacts:
+            path: workflows/project_multifamily_beta_results
+            destination: project_multifamily_beta_results
+      - store_artifacts:
+            path: workflows/project_testing_results
+            destination: project_testing_results
+workflows:
+  version: 2
+  commit:
+    jobs:
+      - build
+      - regression
+  weekly:
+    triggers:
+      - schedule:
+          cron: "0 0 * * 0"
+          filters:
+            branches:
+              only:
+                - automated-runs
+    jobs:
+      - regression 
