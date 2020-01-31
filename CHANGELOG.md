@@ -1,8 +1,9 @@
-## ResStock v2.3.0 (Pending)
+## ResStock v2.3.0 (pending)
 
-###### Features
-
+Features
 - Add more detailed spatial specification (State, County, PUMA, Census Division, Census Region, ISO/RTO region, ASHRAE/IECC climate zone, Building America climate zone). Include housing characteristics based on PUMS (Geometry Building Type ACS, Vintage, Heating Fuel). ([#377](https://github.com/NREL/OpenStudio-BuildStock/pull/377))
+
+Fixes
 
 ## ResStock v2.2.0
 
