@@ -66,7 +66,7 @@ for project in df['PROJECT'].unique():
       os.makedirs(os.path.join(progressdir, date, project))
 
   for values in ['TOTAL_SITE_PER_UNIT', 'SITE_EUI_PER_UNIT']:
-    print '{}, {}...'.format(project, values)
+    print('{}, {}...'.format(project, values))
 
     d = t.copy()
 
