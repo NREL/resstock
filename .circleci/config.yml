@@ -48,7 +48,7 @@ jobs:
       - run: 
           name: Run BuildExistingModel test
           command: |
-            export NUM_SAMPLES=10
+            export NUM_SAMPLES=20
             rake test:build_existing_model
       - store_artifacts:
             path: workflows/build_existing_model_results
@@ -75,9 +75,9 @@ jobs:
           name: Upload csv to s3
           command: |
             source env/bin/activate
-            KEY="$(date '+%Y-%m-%d') ($(git describe --tags))"
+            KEY="$(date '+%Y-%m-%d') ($(git describe --tags --long))"
             aws configure list
-            aws s3 sync /tmp/workflows/build_existing_model_results s3://resbldg-datasets/resstock-regression/$KEY/
+            aws s3 sync /tmp/workflows/build_existing_model_results "s3://resbldg-datasets/resstock-regression/$KEY"
       - run:
           name: Download csvs from s3
           command: |
