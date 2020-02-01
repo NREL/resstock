@@ -37,6 +37,9 @@ jobs:
             path: workflows/example_osws_results
             destination: results
   regression:
+    branches:
+      only:
+        - automated-runs # TODO: change to master
     docker:
       - image: nrel/openstudio:2.9.0
     steps:
@@ -58,6 +61,9 @@ jobs:
           paths:
             - build_existing_model_results
   process:
+    branches:
+      only:
+        - automated-runs # TODO: change to master
     docker:
       - image: circleci/python:3
     steps:
@@ -97,9 +103,6 @@ workflows:
     # jobs:
       # - build
   regressions:
-    branches:
-      only:
-        - automated-runs # TODO: change to master
     jobs:
       - regression
       - process
