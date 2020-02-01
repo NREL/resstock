@@ -98,7 +98,11 @@ workflows:
       - build
   regressions:
     jobs:
-      - regression
-      - process
+      - regression:
+          filters:
+            branches:
+              only:
+                - automated-runs # TODO: change to master
+      - process:
           requires:
             - regression
