@@ -1,4 +1,5 @@
 import os
+import sys
 import pandas as pd
 import parameter_option_maps
 import itertools
@@ -23,7 +24,10 @@ weight_col_label = 'source_weight'
 
 class TSVMaker():
     
-    def __init__(self):
+    def __init__(self,resstock_projects_dir):
+        # Initialize members
+        self.resstock_projects_dir = resstock_projects_dir
+
         # Create an s3 client
         self.s3_client = boto3.client('s3')
 
@@ -31,7 +35,7 @@ class TSVMaker():
         self.download_data_s3()
 
         # Read file into memory
-        filepath = os.path.join('various_datasets','recs_2015','recs2015_public_v4.csv')
+        filepath = os.path.join(self.resstock_projects_dir,'data','recs','2015','various_datasets','recs_2015','recs2015_public_v4.csv')
         self.df = pd.read_csv(filepath, index_col=['DOEID'])
         self.df[count_col_label] = 1
 
@@ -250,14 +254,12 @@ class TSVMaker():
           project (str): Name of the project.
 
         """
-        resstock_projects_dir = os.path.join('..','..','..')
-    
-        project_dir = os.path.join(resstock_projects_dir, project, 'housing_characteristics')
+        project_dir = os.path.join(self.resstock_projects_dir, project, 'housing_characteristics')
         shutil.copy(filepath, project_dir)
 
 if __name__ == '__main__':    
 
-    tsv_maker = TSVMaker()
+    tsv_maker = TSVMaker(sys.argv[1])
 
     tsv_maker.bedrooms()
     tsv_maker.occupants()
