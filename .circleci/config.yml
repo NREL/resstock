@@ -67,7 +67,6 @@ jobs:
       - run:
           name: Install env
           command: |
-            ls
             python3 -m venv env
             source env/bin/activate
             pip install awscli
@@ -76,14 +75,13 @@ jobs:
           command: |
             source env/bin/activate
             KEY="$(date '+%Y-%m-%d')_$(git describe --tags)"
-            echo $KEY
             aws configure list
             aws s3 sync /tmp/workflows/build_existing_model_results s3://resbldg-datasets/resstock-regression/$KEY/
       - run:
           name: Download csvs from s3
           command: |
             source env/bin/activate
-            aws s3 sync s3://resbldg-datasets/resstock-regression/ /resstock-regression
+            aws s3 sync s3://resbldg-datasets/resstock-regression/ /tmp/resstock-regression
       - run:
           name: Graph results
           command: |
