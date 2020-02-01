@@ -17,7 +17,7 @@ class TestResStockMeasuresOSW < MiniTest::Test
     Dir.mkdir(measures_osw_dir) unless File.exist?(measures_osw_dir)
 
     all_results = []
-    Dir["project_*"].each do |project_dir|
+    Dir["project_sin*"].each do |project_dir|
       buildstock_csv = create_buildstock_csv(project_dir, num_samples)
       lib_dir = create_lib_folder(parent_dir, project_dir, buildstock_csv)
       weather_dir = create_weather_folder(parent_dir, project_dir)
