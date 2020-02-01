@@ -53,11 +53,16 @@ jobs:
       - store_artifacts:
             path: workflows/build_existing_model_results
             destination: results
+      - persist_to_workspace:
+          root: workflows
+          paths:
+            - build_existing_model_results
   process:
     docker:
       - image: circleci/python:3
     steps:
-      - checkout
+      - attach_workspace:
+          at: /tmp/workflows
       - run:
           name: Install env
           command: |
@@ -68,14 +73,15 @@ jobs:
           name: Upload csv to s3
           command: |
             source env/bin/activate
-            DATESTRING="$(date '+%Y-%m-%d')_$(CIRCLE_TAG)"
+            KEY="$(date '+%Y-%m-%d')_$(git describe --tags)"
+            echo $KEY
             aws configure list
-            aws s3 sync workflows/build_existing_model_results s3://resbldg-datasets/resstock-regression/$DATESTRING/
+            aws s3 sync /tmp/workflows/build_existing_model_results s3://resbldg-datasets/resstock-regression/$KEY/
       - run:
           name: Download csvs from s3
           command: |
             source env/bin/activate
-            aws s3 sync s3://resbldg-datasets/resstock-regression/ resstock-regression
+            aws s3 sync s3://resbldg-datasets/resstock-regression/ /resstock-regression
       - run:
           name: Graph results
           command: |
