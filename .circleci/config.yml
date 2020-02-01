@@ -48,7 +48,7 @@ jobs:
       - run: 
           name: Run BuildExistingModel test
           command: |
-            export NUM_SAMPLES=1
+            export NUM_SAMPLES=10
             rake test:build_existing_model
       - store_artifacts:
             path: workflows/build_existing_model_results
@@ -70,11 +70,12 @@ jobs:
             python3 -m venv env
             source env/bin/activate
             pip install awscli
+            pip install plotly
       - run:
           name: Upload csv to s3
           command: |
             source env/bin/activate
-            KEY="$(date '+%Y-%m-%d')_$(git describe --tags)"
+            KEY="$(date '+%Y-%m-%d') ($(git describe --tags))"
             aws configure list
             aws s3 sync /tmp/workflows/build_existing_model_results s3://resbldg-datasets/resstock-regression/$KEY/
       - run:
@@ -85,17 +86,18 @@ jobs:
       - run:
           name: Graph results
           command: |
-            echo TODO
+            source env/bin/activate
+            python scripts/regression.py
       - run:
-          name: Upload png to s3
+          name: Upload htmls to s3
           command: |
             source env/bin/activate
-            echo TODO
+            aws s3 sync /tmp/resstock-regression s3://resbldg-datasets/resstock-regression/ --exclude "*" --include "**/**/*.html"
 workflows:
   version: 2
-  commit:
-    jobs:
-      - build
+  # commit:
+    # jobs:
+      # - build
   regressions:
     jobs:
       - regression:
