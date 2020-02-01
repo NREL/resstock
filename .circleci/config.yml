@@ -1,9 +1,6 @@
 version: 2
 jobs:
   build:
-    branches:
-      only:
-        - master # TODO: remove this filter
     docker:
       - image: nrel/openstudio:2.9.0
     steps:
@@ -40,9 +37,6 @@ jobs:
             path: workflows/example_osws_results
             destination: results
   regression:
-    branches:
-      only:
-        - automated-runs # TODO: change to master
     docker:
       - image: nrel/openstudio:2.9.0
     steps:
@@ -64,9 +58,6 @@ jobs:
           paths:
             - build_existing_model_results
   process:
-    branches:
-      only:
-        - automated-runs # TODO: change to master
     docker:
       - image: circleci/python:3
     steps:
