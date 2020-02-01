@@ -93,23 +93,15 @@ jobs:
             echo TODO
 workflows:
   version: 2
-  commit:
-    jobs:
+  # commit:
+    # jobs:
       # - build
+  regressions:
+    branches:
+      only:
+        - automated-runs # TODO: change to master
+    jobs:
       - regression
-      - process:
+      - process
           requires:
             - regression
-  # weekly:
-    # triggers:
-      # - schedule:
-          # cron: "0 0 * * 0"
-          # filters:
-            # branches:
-              # only:
-                # - automated-runs
-    # jobs:
-      # - regression
-      # - process
-          # requires:
-            # - regression
