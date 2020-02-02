@@ -39,8 +39,19 @@ for path, subdirs, files in os.walk(progressdir):
     if not 'v' in subdir:
       continue
 
+    if not os.path.exists(os.path.join(progressdir, subdir, 'results.csv')):
+      continue
+
     filepath = os.path.join(progressdir, subdir, 'results.csv')
     df = pd.read_csv(filepath)
+
+    df = df.rename(columns={'geometry_building_type': 'geometry_building_type_recs'}) # for backwards compatibility
+    df['PROJECT'] = df['PROJECT'].replace({'project_resstock_national': 'project_singlefamilydetached', 'project_resstock_multifamily': 'project_multifamily_beta'}) # for backwards compatibility
+    df['geometry_building_number_units_sfa'] = df['geometry_building_number_units_sfa'].replace({'None': 0}).astype(float)
+    df['geometry_building_number_units_mf'] = df['geometry_building_number_units_mf'].replace({'None': 0}).astype(float)
+
+    df = df[['PROJECT', 'geometry_building_type_recs', 'floor_area_conditioned_ft_2', 'geometry_building_number_units_sfa', 'geometry_building_number_units_mf', 'total_site_energy_mbtu']]
+    df = df.groupby(['PROJECT', 'geometry_building_type_recs']).sum().reset_index()
 
     df['VERSION'] = subdir
     df['TOTAL_SITE_PER_UNIT'] = df.apply(lambda x: total_per_unit(x['total_site_energy_mbtu'], x['geometry_building_type_recs'], x['geometry_building_number_units_sfa'], x['geometry_building_number_units_mf']), axis=1)
@@ -51,7 +62,6 @@ for path, subdirs, files in os.walk(progressdir):
     dfs.append(df)
 
 df = pd.concat(dfs, ignore_index=True)
-df = df.groupby(['PROJECT', 'VERSION', 'geometry_building_type_recs']).mean().reset_index()
 
 layout = go.Layout(
     xaxis=dict(title='month')
