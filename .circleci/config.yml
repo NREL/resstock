@@ -48,7 +48,7 @@ jobs:
       - run: 
           name: Run BuildExistingModel test
           command: |
-            export NUM_SAMPLES=15
+            export NUM_SAMPLES=12
             rake test:build_existing_model
       - store_artifacts:
             path: workflows/build_existing_model_results
@@ -83,7 +83,7 @@ jobs:
           name: Download csvs from s3
           command: |
             source env/bin/activate
-            aws s3 sync s3://resbldg-datasets/resstock-regression/ /tmp/resstock-regression
+            aws s3 sync s3://resbldg-datasets/resstock-regression/ /resstock-regression
       - run:
           name: Graph results
           command: |
@@ -93,7 +93,7 @@ jobs:
           name: Upload htmls to s3
           command: |
             source env/bin/activate
-            aws s3 sync /tmp/resstock-regression s3://resbldg-datasets/resstock-regression/ --exclude "*" --include "**/**/*.html"
+            aws s3 sync /resstock-regression s3://resbldg-datasets/resstock-regression/ --exclude "*" --include "*.html"
 workflows:
   version: 2
   # commit:
