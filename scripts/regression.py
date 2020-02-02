@@ -3,10 +3,14 @@ import pandas as pd
 import plotly
 import plotly.graph_objects as go
 
-thisdir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
-parentdir = os.path.join(thisdir, '..')
+if 'CI' in os.environ.keys():
+  progressdir = '/tmp/resstock-regression'
+else:
+  thisdir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+  parentdir = os.path.join(thisdir, '..')
+  progressdir = os.path.join(parentdir, 'resstock-regression')
 
-progressdir = os.path.join(parentdir, 'tmp', 'resstock-regression')
+print('Reading from directory: {}...'.format(os.path.abspath(progressdir)))
 
 def total_per_unit(total, building_type, num_units_sfa, num_units_mf):
   if building_type in ['Single-Family Detached', 'Mobile Home']:
