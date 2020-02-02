@@ -2,12 +2,11 @@ import os
 import pandas as pd
 import plotly
 import plotly.graph_objects as go
-from datetime import date
 
 thisdir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 parentdir = os.path.join(thisdir, '..')
 
-progressdir = os.path.join(parentdir, 'resstock-regression')
+progressdir = os.path.join(parentdir, 'tmp', 'resstock-regression')
 
 def total_per_unit(total, building_type, num_units_sfa, num_units_mf):
   if building_type in ['Single-Family Detached', 'Mobile Home']:
@@ -47,29 +46,24 @@ for path, subdirs, files in os.walk(progressdir):
 
     dfs.append(df)
 
-df = pd.concat(dfs)
+df = pd.concat(dfs, ignore_index=True)
+df = df.groupby(['PROJECT', 'VERSION', 'geometry_building_type_recs']).mean().reset_index()
 
 layout = go.Layout(
     xaxis=dict(title='month')
-) 
-
-date = date.today().strftime('%Y-%m-%d')
-if not os.path.exists(os.path.join(progressdir, date)):
-    os.makedirs(os.path.join(progressdir, date))
+)
 
 for project in df['PROJECT'].unique():
   t = df.copy()
-
   t = t[t['PROJECT']==project]
 
-  if not os.path.exists(os.path.join(progressdir, date, project)):
-      os.makedirs(os.path.join(progressdir, date, project))
+  if not os.path.exists(os.path.join(progressdir, project)):
+      os.makedirs(os.path.join(progressdir, project))
 
   for values in ['TOTAL_SITE_PER_UNIT', 'SITE_EUI_PER_UNIT']:
     print('{}, {}...'.format(project, values))
 
     d = t.copy()
-
     d = d.pivot(index='VERSION', columns='geometry_building_type_recs', values=values)
 
     fig = go.Figure()
@@ -81,4 +75,4 @@ for project in df['PROJECT'].unique():
         tickangle = -90
       )
     )
-    plotly.offline.plot(fig, filename=os.path.join(progressdir, date, project, '{}.html'.format(values)), auto_open=False)
+    plotly.offline.plot(fig, filename=os.path.join(progressdir, project, '{}.html'.format(values)), auto_open=False)
