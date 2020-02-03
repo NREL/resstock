@@ -6,18 +6,14 @@ def map_geometry_building_type(df):
                                                            5: 'Multi-Family with 5+ Units'})
     return df
 
-
 def map_geometry_house_size(df):
     df['TOTSQFT'] = df[['TOTHSQFT', 'TOTCSQFT']].max(axis=1)
     df.loc[:, 'Geometry House Size'] = 0
     df.loc[(df['TOTSQFT'] < 1500), 'Geometry House Size'] = '0-1499'
-    df.loc[(df['TOTSQFT'] >= 1500) & (df['TOTSQFT'] < 2500),
-           'Geometry House Size'] = '1500-2499'
-    df.loc[(df['TOTSQFT'] >= 2500) & (df['TOTSQFT'] < 3500),
-           'Geometry House Size'] = '2500-3499'
+    df.loc[(df['TOTSQFT'] >= 1500) & (df['TOTSQFT'] < 2500), 'Geometry House Size'] = '1500-2499'
+    df.loc[(df['TOTSQFT'] >= 2500) & (df['TOTSQFT'] < 3500), 'Geometry House Size'] = '2500-3499'
     df.loc[(df['TOTSQFT'] >= 3500), 'Geometry House Size'] = '3500+'
     return df
-
 
 def map_bedrooms(df):
     df['Bedrooms'] = df['BEDROOMS'].map({0: 1,
@@ -32,7 +28,6 @@ def map_bedrooms(df):
                                          9: 5,
                                          10: 5})
     return df
-
 
 def map_occupants(df):
     df['Occupants'] = df['NHSLDMEM'].map({1: 1,
@@ -49,7 +44,6 @@ def map_occupants(df):
                                           12: 6})
     return df
 
-
 def map_geometry_wall_type(df):
     df['Geometry Wall Type'] = df['WALLTYPE'].map({1: 'Masonry',
                                                    2: 'WoodStud',
@@ -63,7 +57,6 @@ def map_geometry_wall_type(df):
 
     return df
 
-
 def map_vintage(df):
     df['Vintage'] = df['YEARMADERANGE'].map({1: '1940s',
                                              2: '1950s',
@@ -75,11 +68,9 @@ def map_vintage(df):
                                              8: '2000s'})
 
     # Pull out pre-1940s buildings
-    df.loc[(df['YEARMADERANGE'] == 1) & (
-        df['YEARMADE'] < 1940), ['Vintage']] = '<1940'
+    df.loc[(df['YEARMADERANGE'] == 1) & (df['YEARMADE'] < 1940), ['Vintage']] = '<1940'
 
     return df
-
 
 def map_location_region(df):
     df['Location Region'] = df['REPORTABLE_DOMAIN'].map({1:'CR03',
@@ -111,7 +102,6 @@ def map_location_region(df):
                                                          27: 'CR06',
                                                          })
     # Split out Kentucky and put in 8:
-    df.loc[(df['REPORTABLE_DOMAIN'] == 18) & (
-        df['AIA_Zone'] == 3), ['Location Region']] = 'CR08'
+    df.loc[(df['REPORTABLE_DOMAIN'] == 18) & (df['AIA_Zone'] == 3), ['Location Region']] = 'CR08'
 
     return df
