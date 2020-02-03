@@ -134,7 +134,7 @@ class TSVMaker:
           cols.append(col)
         df[cols] = df[cols].apply(pd.to_numeric, downcast='float')
         df.to_csv(filepath, sep='\t', index=False, float_format='%.6f', line_terminator='\r\n')
-        print '{}...'.format(filepath)
+        #print '{}...'.format(filepath)
 
     def copy_file_to_project(self, filepath, project):
         """
