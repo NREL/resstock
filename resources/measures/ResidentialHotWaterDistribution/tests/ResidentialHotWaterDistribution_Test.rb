@@ -383,10 +383,12 @@ class ResidentialHotWaterDistributionTest < MiniTest::Test
     assert_equal(result.errors.map { |x| x.logMessage }[0], "Mains water temperature has not been set.")
   end
 
-  def test_error_missing_water_heater
+  def test_warning_missing_water_heater
     args_hash = {}
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "Could not find plant loop.")
+    expected_num_del_objects = {}
+    expected_num_new_objects = {}
+    expected_values = { "ShowerDailyWater_gpd" => 0, "SinkDailyWater_gpd" => 0, "BathDailyWater_gpd" => 0, "InternalLoadAnnual_MBtu" => 0, "RecircPumpAnnual_kWh" => 0, "RecircPumpFractionLost" => 0 }
+    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 0, 1)
   end
 
   def test_error_missing_hot_water_fixtures

@@ -179,7 +179,7 @@ class ResidentialDishwasher < OpenStudio::Measure::ModelMeasure
       # Get plant loop
       plant_loop = Waterheater.get_plant_loop_from_string(model, runner, plant_loop_s, unit)
       if plant_loop.nil?
-        return false
+        next
       end
 
       success, ann_e, mains_temps = Dishwasher.apply(model, unit, runner, num_settings, rated_annual_energy,

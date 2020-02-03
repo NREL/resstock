@@ -1021,7 +1021,7 @@ class Waterheater
       return plant_loop
     end
 
-    runner.registerError("Could not find plant loop.")
+    runner.registerWarning("Could not find plant loop.")
     return nil
   end
 

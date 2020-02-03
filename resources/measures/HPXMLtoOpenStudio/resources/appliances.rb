@@ -596,8 +596,8 @@ class ClothesDryer
       cw = ee
     end
     if cw.nil?
-      runner.registerError("Could not find clothes washer equipment.")
-      return false
+      runner.registerWarning("Could not find clothes washer equipment.")
+      return nil
     end
     drum_volume = cw.additionalProperties.getFeatureAsDouble(Constants.ClothesWasherDrumVolume)
     imef = cw.additionalProperties.getFeatureAsDouble(Constants.ClothesWasherIMEF)
