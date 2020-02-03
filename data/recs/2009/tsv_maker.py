@@ -16,7 +16,7 @@ for project in projects:
     if not os.path.exists(project_dir):
         os.mkdir(project_dir)
 
-count_col_label = '[For Reference Only] Source Sample Size'
+count_col_label = 'sample_size'
 
 class RECS2009(TSVMaker):
 
@@ -24,7 +24,7 @@ class RECS2009(TSVMaker):
         self.df = pd.read_csv(file, index_col=['DOEID'])
         self.df[count_col_label] = 1
 
-        # Strip out Alaska and Hawaii
+        # Split out Hawaii
         hawaii_rows = self.df[(self.df['REPORTABLE_DOMAIN'] == 27) & ((self.df['AIA_Zone'] == 5) | (self.df['HDD65'] < 4000))].index
 
         # Split out Alaska:
