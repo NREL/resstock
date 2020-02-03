@@ -100,7 +100,6 @@ class TestResStockMeasuresOSW < MiniTest::Test
 
   def create_weather_folder(parent_dir)
     require 'aws-sdk-s3'
-    require 'zip'
 
     Aws.config.update({
                         region: 'us-east-1',
