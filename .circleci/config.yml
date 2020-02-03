@@ -26,9 +26,87 @@ jobs:
           command: |
             rake test:unit_tests
       - run:
-          name: Run all regression tests
+          name: Run all example osws
           command: |
-            rake test:regression_tests
+            rake test:example_osws
+      - run: 
+          name: Run BuildExistingModel test
+          command: |
+            rake test:build_existing_model
       - store_artifacts:
-            path: workflows/results
+            path: workflows/example_osws_results
             destination: results
+  regression:
+    docker:
+      - image: nrel/openstudio:2.9.0
+    steps:
+      - checkout
+      - run: 
+          name: Install gems
+          command: |
+            rm -f Gemfile.lock && bundle install
+      - run: 
+          name: Run BuildExistingModel test
+          command: |
+            export NUM_SAMPLES=17
+            rake test:build_existing_model
+      - store_artifacts:
+            path: workflows/build_existing_model_results
+            destination: results
+      - persist_to_workspace:
+          root: workflows
+          paths:
+            - build_existing_model_results
+  process:
+    docker:
+      - image: circleci/python:3
+    steps:
+      - checkout
+      - attach_workspace:
+          at: /tmp/workflows
+      - run:
+          name: Install env
+          command: |
+            python3 -m venv env
+            source env/bin/activate
+            pip install awscli
+            pip install pandas
+            pip install plotly
+      - run:
+          name: Upload csv to s3
+          command: |
+            source env/bin/activate
+            KEY="$(date '+%Y-%m-%d') ($(git describe --tags --long))"
+            aws configure list
+            aws s3 sync /tmp/workflows/build_existing_model_results "s3://resbldg-datasets/resstock-regression/$KEY"
+      - run:
+          name: Download csvs from s3
+          command: |
+            source env/bin/activate
+            aws s3 sync s3://resbldg-datasets/resstock-regression/ /tmp/resstock-regression
+      - run:
+          name: Graph results
+          command: |
+            source env/bin/activate
+            python scripts/regression.py
+      - run:
+          name: Upload htmls to s3
+          command: |
+            source env/bin/activate
+            KEY="$(date '+%Y-%m-%d') ($(git describe --tags --long))"
+            aws s3 sync /tmp/resstock-regression "s3://resbldg-datasets/resstock-regression/$KEY" --exclude "*" --include "*.html"
+workflows:
+  version: 2
+  # commit:
+    # jobs:
+      # - build
+  regressions:
+    jobs:
+      - regression:
+          filters:
+            branches:
+              only:
+                - automated-runs-2 # TODO: change to master
+      - process:
+          requires:
+            - regression
