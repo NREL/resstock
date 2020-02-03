@@ -7,7 +7,6 @@ require 'ci/reporter/rake/minitest'
 require 'pp'
 require 'colored'
 require 'json'
-require 'csv'
 
 desc 'Perform tasks related to unit tests'
 namespace :test do
@@ -188,6 +187,7 @@ def integrity_check(project_dir_name, housing_characteristics_dir = "housing_cha
   resources_dir = File.join(File.dirname(__FILE__), 'resources')
   require File.join(resources_dir, 'buildstock')
   require File.join(resources_dir, 'run_sampling')
+  require 'csv'
 
   # Setup
   if lookup_file.nil?
@@ -288,7 +288,7 @@ def integrity_check(project_dir_name, housing_characteristics_dir = "housing_cha
       check_parameter_file_format(tsvpath, tsvfile.dependency_cols.length(), parameter_name)
 
       # Check for all options defined in options_lookup.tsv
-      options_measure_args = get_measure_args_from_option_names(lookup_file, tsvfile.option_cols.keys, parameter_name)
+      get_measure_args_from_option_names(lookup_file, tsvfile.option_cols.keys, parameter_name)
     end
     if not err.empty?
       raise err
@@ -374,7 +374,6 @@ def integrity_check_options_lookup_tsv(project_dir_name, housing_characteristics
 
     option_names = get_options_for_parameter_from_options_lookup_tsv(lookup_file, parameter_name)
     options_measure_args = get_measure_args_from_option_names(lookup_file, option_names, parameter_name, nil)
-
     option_names.each do |option_name|
       check_for_illegal_chars(option_name, 'option')
 
