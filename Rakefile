@@ -7,6 +7,7 @@ require 'ci/reporter/rake/minitest'
 require 'pp'
 require 'colored'
 require 'json'
+require 'csv'
 
 desc 'Perform tasks related to unit tests'
 namespace :test do
@@ -287,7 +288,7 @@ def integrity_check(project_dir_name, housing_characteristics_dir = "housing_cha
       check_parameter_file_format(tsvpath, tsvfile.dependency_cols.length(), parameter_name)
 
       # Check for all options defined in options_lookup.tsv
-      get_measure_args_from_option_names(lookup_file, tsvfile.option_cols.keys, parameter_name)
+      options_measure_args = get_measure_args_from_option_names(lookup_file, tsvfile.option_cols.keys, parameter_name)
     end
     if not err.empty?
       raise err
@@ -297,6 +298,38 @@ def integrity_check(project_dir_name, housing_characteristics_dir = "housing_cha
   # Test sampling
   r = RunSampling.new
   output_file = r.run(project_dir_name, 1000, 'buildstock.csv', housing_characteristics_dir, lookup_file)
+
+  # Check that measure arguments aren't getting overwritten
+  CSV.foreach(output_file, headers: true) do |row|
+    next if row["Building"].to_i > 1
+
+    options_args = []
+    row.each do |parameter_name, option_name|
+      next if parameter_name == "Building"    
+
+      options_measure_args = get_measure_args_from_option_names(lookup_file, [option_name], parameter_name)
+      options_measure_args.each do |option_name, measure_args|
+        measure_args.each do |measure, args|
+          args.each do |arg, value|
+            next unless options_args.include?({measure => arg})
+
+            raise "ERROR: Duplicate measure argument assignment(s) across parameters. (#{measure} => #{arg}) already assigned."
+          end
+        end
+      end
+
+      options_measure_args.each do |option, measure_args|
+        measure_args.each do |measure, args|
+          args.each do |arg, value|
+            next if options_args.include?({measure => arg})
+
+            options_args << {measure => arg}
+          end
+        end
+      end
+    end
+  end
+
   if File.exist?(output_file)
     File.delete(output_file) # Clean up
   end
@@ -331,7 +364,7 @@ def integrity_check_options_lookup_tsv(project_dir_name, housing_characteristics
   measures = {}
   model = OpenStudio::Model::Model.new
 
-  # Gather all options/arguments
+  # Gather all options/arguments  
   parameter_names = get_parameters_ordered_from_options_lookup_tsv(lookup_file)
   parameter_names.each do |parameter_name|
     check_for_illegal_chars(parameter_name, 'parameter')
@@ -341,6 +374,7 @@ def integrity_check_options_lookup_tsv(project_dir_name, housing_characteristics
 
     option_names = get_options_for_parameter_from_options_lookup_tsv(lookup_file, parameter_name)
     options_measure_args = get_measure_args_from_option_names(lookup_file, option_names, parameter_name, nil)
+
     option_names.each do |option_name|
       check_for_illegal_chars(option_name, 'option')
 
