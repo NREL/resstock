@@ -16,13 +16,14 @@ class TestResStockMeasuresOSW < MiniTest::Test
     measures_osw_dir = File.join(parent_dir, "measures_osws")
     Dir.mkdir(measures_osw_dir) unless File.exist?(measures_osw_dir)
 
+    weather_dir = create_weather_folder(parent_dir)
+
     all_results = []
     Dir["project_*"].each do |project_dir|
       next if project_dir.include? "testing"
-    
+
       buildstock_csv = create_buildstock_csv(project_dir, num_samples)
       lib_dir = create_lib_folder(parent_dir, project_dir, buildstock_csv)
-      weather_dir = create_weather_folder(parent_dir, project_dir)
 
       Dir.mkdir(measures_osw_dir) unless File.exist?(measures_osw_dir)
       (1..num_samples).to_a.each do |building_id|
@@ -37,8 +38,9 @@ class TestResStockMeasuresOSW < MiniTest::Test
       end
 
       _rm_path(lib_dir)
-      _rm_path(weather_dir)
     end
+
+    _rm_path(weather_dir)
 
     results_dir = File.join(parent_dir, "build_existing_model_results")
     _rm_path(results_dir)
@@ -96,10 +98,33 @@ class TestResStockMeasuresOSW < MiniTest::Test
     return lib_dir
   end
 
-  def create_weather_folder(parent_dir, project_dir)
-    src = File.join(parent_dir, "..", "resources", "measures", "HPXMLtoOpenStudio", "weather", project_dir)
+  def create_weather_folder(parent_dir)
+    require 'aws-sdk-s3'
+    require 'zip'
+
+    Aws.config.update({
+      region: 'us-east-1',
+      access_key_id: ENV['AWS_ACCESS_KEY_ID'],
+      secret_access_key: ENV['AWS_SECRET_ACCESS_KEY']
+    })
+    Aws.use_bundled_cert!
+
+    s3 = Aws::S3::Resource.new
+    bucket = s3.bucket("epwweatherfiles")
+
+    filename = "project_resstock_national.zip"
+    obj = bucket.object(filename)
+    response_target = File.join(parent_dir, "..", filename)
+    obj.get(response_target: response_target)
+
     des = File.join(parent_dir, "..", "weather")
-    FileUtils.cp_r(src, des)
+    Zip::ZipFile.open(response_target) { |zip_file|
+         zip_file.each { |f|
+         f_path = File.join(des, f.name)
+         FileUtils.mkdir_p(File.dirname(f_path))
+         zip_file.extract(f, f_path) unless File.exist?(f_path) } }
+
+    FileUtils.rm(response_target)
 
     return des
   end
