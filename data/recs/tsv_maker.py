@@ -4,7 +4,7 @@ import itertools
 import shutil
 import numpy as np
 
-count_col_label = 'sample_size'
+count_col_label = 'sample_count'
 weight_col_label = 'sample_weight'
 
 class TSVMaker:

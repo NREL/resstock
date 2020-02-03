@@ -16,7 +16,7 @@ for project in projects:
     if not os.path.exists(project_dir):
         os.mkdir(project_dir)
 
-count_col_label = 'sample_size'
+count_col_label = 'sample_count'
 
 class RECS2009(TSVMaker):
 
