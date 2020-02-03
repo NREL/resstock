@@ -257,10 +257,12 @@ class ResidentialClothesDryerTest < MiniTest::Test
     assert_equal(result.errors.map { |x| x.logMessage }[0], "Occupancy energy multiplier must be greater than or equal to 0.0.")
   end
 
-  def test_error_missing_cw
+  def test_warning_missing_cw
     args_hash = {}
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "Could not find clothes washer equipment.")
+    expected_num_del_objects = {}
+    expected_num_new_objects = {}
+    expected_values = { "Annual_kwh" => 0, "Annual_therm" => 0, "Annual_gal" => 0, "FuelType" => nil, "Location" => nil }
+    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 0, 1)
   end
 
   def test_error_missing_geometry

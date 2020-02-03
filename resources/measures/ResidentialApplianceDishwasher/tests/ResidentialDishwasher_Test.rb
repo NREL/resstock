@@ -275,10 +275,12 @@ class ResidentialDishwasherTest < MiniTest::Test
     assert_equal(result.errors.map { |x| x.logMessage }[0], "No building geometry has been defined.")
   end
 
-  def test_error_missing_water_heater
+  def test_warning_missing_water_heater
     args_hash = {}
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "Could not find plant loop.")
+    expected_num_del_objects = {}
+    expected_num_new_objects = {}
+    expected_values = { "Annual_kwh" => 0, "HotWater_gpd" => 0, "Location" => nil }
+    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 0, 1)
   end
 
   def test_single_family_attached_new_construction

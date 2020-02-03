@@ -120,7 +120,9 @@ class ResidentialClothesDryer < OpenStudio::Measure::ModelMeasure
       success, ann_e, ann_f, sch = ClothesDryer.apply(model, unit, runner, sch, cef, mult,
                                                       space, fuel_type, fuel_split)
 
-      if not success
+      if success.nil?
+        next
+      elsif not success
         return false
       end
 
