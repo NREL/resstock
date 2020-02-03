@@ -2784,7 +2784,7 @@ class HVAC
       end
 
       exist_deadband = thermostat_setpoint.temperatureDifferenceBetweenCutoutAndSetpoint
-      if not exist_deadband == 0.0 and not exist_deadband == UnitConversions.convert(onoff_thermostat_deadband, "r", "k")
+      if exist_deadband != 0.0 and (exist_deadband - UnitConversions.convert(onoff_thermostat_deadband, "r", "k")).abs > 0.00001
         fail "More than one on/off thermostat deadband are specified. Please remove one."
       else
         thermostat_setpoint.setTemperatureDifferenceBetweenCutoutAndSetpoint(UnitConversions.convert(onoff_thermostat_deadband, "r", "k"))
@@ -2951,7 +2951,7 @@ class HVAC
       end
 
       exist_deadband = thermostat_setpoint.temperatureDifferenceBetweenCutoutAndSetpoint
-      if not exist_deadband == 0.0 and not exist_deadband == UnitConversions.convert(onoff_thermostat_deadband, "r", "k")
+      if exist_deadband != 0.0 and (exist_deadband - UnitConversions.convert(onoff_thermostat_deadband, "r", "k")).abs > 0.00001
         fail "More than one on/off thermostat deadband are specified. Please remove one."
       else
         thermostat_setpoint.setTemperatureDifferenceBetweenCutoutAndSetpoint(UnitConversions.convert(onoff_thermostat_deadband, "r", "k"))
