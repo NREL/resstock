@@ -25,10 +25,10 @@ class RECS2015(TSVMaker):
         self.df[count_col_label] = 1
 
         # Split out Hawaii
-        hawaii_rows = self.df[(self.df['DIVISION'] == 10) & (self.df['IECC_CLIMATE_PUB'] == '1A-2A')].index#(self.df['HDD65'] < 4000)].index
+        hawaii_rows = self.df[(self.df['DIVISION'] == 10) & (self.df['IECC_CLIMATE_PUB'] == '1A-2A')].index
 
         # Split out Alaska:
-        alaska_rows = self.df[(self.df['DIVISION'] == 10) & (self.df['IECC_CLIMATE_PUB'] == '7A-7B-7AK-8AK')].index#((self.df['HDD65'] > 6930))].index # Source for 6930 HDD: Dennis Barley
+        alaska_rows = self.df[(self.df['DIVISION'] == 10) & (self.df['IECC_CLIMATE_PUB'] == '7A-7B-7AK-8AK')].index
 
         # Drop Alaska and Hawaii
         self.df.drop(hawaii_rows, inplace=True)
