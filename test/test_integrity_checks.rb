@@ -6,7 +6,7 @@ load 'Rakefile'
 class TestResStockErrors < MiniTest::Test
   def before_setup
     @project_dir_name = File.basename(File.dirname(__FILE__))
-    @lookup_file = File.join(File.dirname(__FILE__), '..', 'resources', 'test_good_options_lookup.tsv')
+    @lookup_file = File.join(File.dirname(__FILE__), '..', 'resources', 'test_options_lookup.tsv')
   end
 
   def test_housing_characteristics_float_precision
@@ -207,7 +207,7 @@ class TestResStockErrors < MiniTest::Test
   def test_options_lookup_multiple_measure_argument_assignments
     begin
       housing_characteristics_dir = "housing_characteristics_cooling_setpoint"
-      lookup_file = File.join(File.dirname(__FILE__), '..', 'resources', 'test_bad_options_lookup.tsv')
+      lookup_file = File.join(File.dirname(__FILE__), '..', 'resources', 'test_options_lookup.tsv')
       integrity_check(@project_dir_name, housing_characteristics_dir, lookup_file)
       integrity_check_options_lookup_tsv(@project_dir_name, housing_characteristics_dir, lookup_file)
     rescue Exception => e
