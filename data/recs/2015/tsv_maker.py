@@ -16,13 +16,24 @@ for project in projects:
     if not os.path.exists(project_dir):
         os.mkdir(project_dir)
 
-count_col_label = '[For Reference Only] Source Sample Size'
+count_col_label = 'sample_size'
 
 class RECS2015(TSVMaker):
     
     def __init__(self, file):
         self.df = pd.read_csv(file, index_col=['DOEID'])
         self.df[count_col_label] = 1
+
+        # Split out Hawaii
+        hawaii_rows = self.df[(self.df['REPORTABLE_DOMAIN'] == 27) & ((self.df['AIA_Zone'] == 5) | (self.df['HDD65'] < 4000))].index
+
+        # Split out Alaska:
+        alaska_rows = self.df[(self.df['REPORTABLE_DOMAIN'] == 27) & ((self.df['HDD65'] > 6930))].index # Source for 6930 HDD: Dennis Barley
+
+        # Drop Alaska and Hawaii
+        self.df.drop(hawaii_rows, inplace=True)
+        self.df.drop(alaska_rows, inplace=True)
+
 
     def bedrooms(self):
         df = self.df.copy()
