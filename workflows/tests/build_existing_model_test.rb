@@ -103,10 +103,10 @@ class TestResStockMeasuresOSW < MiniTest::Test
     require 'zip'
 
     Aws.config.update({
-      region: 'us-east-1',
-      access_key_id: ENV['AWS_ACCESS_KEY_ID'],
-      secret_access_key: ENV['AWS_SECRET_ACCESS_KEY']
-    })
+                        region: 'us-east-1',
+                        access_key_id: ENV['AWS_ACCESS_KEY_ID'],
+                        secret_access_key: ENV['AWS_SECRET_ACCESS_KEY']
+                      })
     Aws.use_bundled_cert!
 
     s3 = Aws::S3::Resource.new
@@ -119,10 +119,12 @@ class TestResStockMeasuresOSW < MiniTest::Test
 
     des = File.join(parent_dir, "..", "weather")
     Zip::ZipFile.open(response_target) { |zip_file|
-         zip_file.each { |f|
-         f_path = File.join(des, f.name)
-         FileUtils.mkdir_p(File.dirname(f_path))
-         zip_file.extract(f, f_path) unless File.exist?(f_path) } }
+      zip_file.each { |f|
+        f_path = File.join(des, f.name)
+        FileUtils.mkdir_p(File.dirname(f_path))
+        zip_file.extract(f, f_path) unless File.exist?(f_path)
+      }
+    }
 
     FileUtils.rm(response_target)
 
