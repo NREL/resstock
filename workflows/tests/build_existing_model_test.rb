@@ -114,7 +114,7 @@ class TestResStockMeasuresOSW < MiniTest::Test
     filename = "project_resstock_national.zip"
     obj = bucket.object(filename)
     response_target = File.join(parent_dir, "..", filename)
-    # obj.get(response_target: response_target)
+    obj.get(response_target: response_target)
 
     des = File.join(parent_dir, "..", "weather")
 
