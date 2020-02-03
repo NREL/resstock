@@ -305,13 +305,13 @@ def integrity_check(project_dir_name, housing_characteristics_dir = "housing_cha
 
     options_args = []
     row.each do |parameter_name, option_name|
-      next if parameter_name == "Building"    
+      next if parameter_name == "Building"
 
       options_measure_args = get_measure_args_from_option_names(lookup_file, [option_name], parameter_name)
       options_measure_args.each do |option_name, measure_args|
         measure_args.each do |measure, args|
           args.each do |arg, value|
-            next unless options_args.include?({measure => arg})
+            next unless options_args.include?({ measure => arg })
 
             raise "ERROR: Duplicate measure argument assignment(s) across parameters. (#{measure} => #{arg}) already assigned."
           end
@@ -321,9 +321,9 @@ def integrity_check(project_dir_name, housing_characteristics_dir = "housing_cha
       options_measure_args.each do |option, measure_args|
         measure_args.each do |measure, args|
           args.each do |arg, value|
-            next if options_args.include?({measure => arg})
+            next if options_args.include?({ measure => arg })
 
-            options_args << {measure => arg}
+            options_args << { measure => arg }
           end
         end
       end
@@ -364,7 +364,7 @@ def integrity_check_options_lookup_tsv(project_dir_name, housing_characteristics
   measures = {}
   model = OpenStudio::Model::Model.new
 
-  # Gather all options/arguments  
+  # Gather all options/arguments
   parameter_names = get_parameters_ordered_from_options_lookup_tsv(lookup_file)
   parameter_names.each do |parameter_name|
     check_for_illegal_chars(parameter_name, 'parameter')
