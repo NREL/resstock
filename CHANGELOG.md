@@ -4,6 +4,8 @@ Features
 - Add more detailed spatial specification (State, County, PUMA, Census Division, Census Region, ISO/RTO region, ASHRAE/IECC climate zone, Building America climate zone). Include housing characteristics based on PUMS (Geometry Building Type ACS, Vintage, Heating Fuel). ([#377](https://github.com/NREL/OpenStudio-BuildStock/pull/377))
 
 Fixes
+- Update the multifamily project with a Geometry Wall Type tsv file for sampling between wood stud and masonry walls ([#382](https://github.com/NREL/OpenStudio-BuildStock/pull/382))
+- Refactor the RECS tsv makers for years 2009 and 2015 ([#382](https://github.com/NREL/OpenStudio-BuildStock/pull/382))
 
 ## ResStock v2.2.0
 

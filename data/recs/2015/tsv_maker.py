@@ -1,11 +1,12 @@
-import os
-import sys
+#!/usr/bin/env python3
+
+import os, sys
 import pandas as pd
-import parameter_option_maps
 import itertools
-import shutil
-import numpy as np
 import boto3
+import parameter_option_maps
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")))
+from recs.tsv_maker import TSVMaker
 
 this_file = os.path.basename(__file__)
 dir_of_this_file = os.path.basename(os.path.dirname(__file__))
@@ -22,7 +23,7 @@ for project in projects:
 count_col_label = 'source_count'
 weight_col_label = 'source_weight'
 
-class TSVMaker():
+class RECS2015(TSVMaker):
     
     def __init__(self,resstock_projects_dir):
         # Initialize members
@@ -38,6 +39,16 @@ class TSVMaker():
         filepath = os.path.join(self.resstock_projects_dir,'data','recs','2015','various_datasets','recs_2015','recs2015_public_v4.csv')
         self.df = pd.read_csv(filepath, index_col=['DOEID'])
         self.df[count_col_label] = 1
+
+        # Split out Hawaii
+        hawaii_rows = self.df[(self.df['DIVISION'] == 10) & (self.df['IECC_CLIMATE_PUB'] == '1A-2A')].index
+
+        # Split out Alaska
+        alaska_rows = self.df[(self.df['DIVISION'] == 10) & (self.df['IECC_CLIMATE_PUB'] == '7A-7B-7AK-8AK')].index
+
+        # Drop Alaska and Hawaii
+        self.df.drop(hawaii_rows, inplace=True)
+        self.df.drop(alaska_rows, inplace=True)
 
     def s3_download_dir(self,prefix, local, bucket, client):
         """Download a directory from s3
@@ -87,50 +98,6 @@ class TSVMaker():
             s3_bucket = 'resbldg-datasets'
             s3_prefix = os.path.join('various_datasets','recs_2015')
             self.s3_download_dir(s3_prefix,'.', s3_bucket,self.s3_client)
-
-    def bedrooms(self):
-        df = self.df.copy()
-        
-        df = parameter_option_maps.map_geometry_building_type(df)
-        df = parameter_option_maps.map_geometry_house_size(df)
-        df = parameter_option_maps.map_bedrooms(df)
-        
-        dependency_cols = ['Geometry Building Type RECS', 'Geometry House Size']
-        option_col = 'Bedrooms'
-        
-        for project in projects:
-            bedrooms = df.copy()
-            
-            bedrooms, count, weight = self.groupby_and_pivot(bedrooms, dependency_cols, option_col)
-            bedrooms = self.add_missing_dependency_rows(bedrooms, project, count, weight)
-            bedrooms = self.rename_cols(bedrooms, dependency_cols, project)
-            
-            filepath = os.path.join(os.path.dirname(__file__), project, '{}.tsv'.format(option_col))        
-            self.export_and_tag(bedrooms, filepath, project)
-            self.copy_file_to_project(filepath, project)
-
-    def occupants(self):
-        df = self.df.copy()
-        
-        df = parameter_option_maps.map_geometry_building_type(df)
-        df = parameter_option_maps.map_bedrooms(df)
-        df = parameter_option_maps.map_occupants(df)
-        
-        dependency_cols = ['Geometry Building Type RECS', 'Bedrooms']
-        option_col = 'Occupants'
-        
-        for project in projects:
-            occupants = df.copy()
-        
-            occupants, count, weight = self.groupby_and_pivot(occupants, dependency_cols, option_col)
-            occupants = self.add_missing_dependency_rows(occupants, project, count, weight)
-            occupants = self.rename_cols(occupants, dependency_cols, project)
-            
-            filepath = os.path.join(os.path.dirname(__file__), project, '{}.tsv'.format(option_col))        
-            self.export_and_tag(occupants, filepath, project)
-            self.copy_file_to_project(filepath, project)
-        
-        return occupants
   
     def groupby_and_pivot(self, df, dependency_cols, option_col):
         """
@@ -245,21 +212,51 @@ class TSVMaker():
                 file_object.write(tag)
         print('{}...'.format(filepath))
 
-    def copy_file_to_project(self, filepath, project):
-        """
-        Copy the exported tsv file out into the housing_characteristics folders of projects.
+    def bedrooms(self):
+        df = self.df.copy()
 
-        Parameters:
-          filepath (str): The path of the tsv file to copy to projects' housing_characteristics folders.
-          project (str): Name of the project.
+        df = parameter_option_maps.map_geometry_building_type(df)
+        df = parameter_option_maps.map_geometry_house_size(df)
+        df = parameter_option_maps.map_bedrooms(df)
 
-        """
-        project_dir = os.path.join(self.resstock_projects_dir, project, 'housing_characteristics')
-        shutil.copy(filepath, project_dir)
+        dependency_cols = ['Geometry Building Type RECS', 'Geometry House Size']
+        option_col = 'Bedrooms'
+
+        for project in projects:
+            bedrooms = df.copy()
+
+            bedrooms, count, weight = self.groupby_and_pivot(bedrooms, dependency_cols, option_col)
+            bedrooms = self.add_missing_dependency_rows(bedrooms, project, count, weight)
+            bedrooms = self.rename_cols(bedrooms, dependency_cols, project)
+
+            filepath = os.path.join(self.resstock_projects_dir, project, 'housing_characteristics', '{}.tsv'.format(option_col))
+            self.export_and_tag(bedrooms, filepath, project)
+
+    def occupants(self):
+        df = self.df.copy()
+        
+        df = parameter_option_maps.map_geometry_building_type(df)
+        df = parameter_option_maps.map_bedrooms(df)
+        df = parameter_option_maps.map_occupants(df)
+        
+        dependency_cols = ['Geometry Building Type RECS', 'Bedrooms']
+        option_col = 'Occupants'
+
+        for project in projects:
+            occupants = df.copy()
+
+            occupants, count, weight = self.groupby_and_pivot(occupants, dependency_cols, option_col)
+            occupants = self.add_missing_dependency_rows(occupants, project, count, weight)
+            occupants = self.rename_cols(occupants, dependency_cols, project)
+            
+            filepath = os.path.join(self.resstock_projects_dir, project, 'housing_characteristics', '{}.tsv'.format(option_col))        
+            self.export_and_tag(occupants, filepath, project)
+        
+        return occupants
 
 if __name__ == '__main__':    
 
-    tsv_maker = TSVMaker(sys.argv[1])
+    tsv_maker = RECS2015(sys.argv[1])
 
     tsv_maker.bedrooms()
     tsv_maker.occupants()
