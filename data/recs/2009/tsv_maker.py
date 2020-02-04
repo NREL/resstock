@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import os, sys
 import pandas as pd
 import parameter_option_maps
@@ -16,18 +18,16 @@ for project in projects:
     if not os.path.exists(project_dir):
         os.mkdir(project_dir)
 
-count_col_label = 'sample_count'
-
 class RECS2009(TSVMaker):
 
     def __init__(self, file):
         self.df = pd.read_csv(file, index_col=['DOEID'])
-        self.df[count_col_label] = 1
+        self.df[self.count_col_label()] = 1
 
         # Split out Hawaii
         hawaii_rows = self.df[(self.df['REPORTABLE_DOMAIN'] == 27) & ((self.df['AIA_Zone'] == 5) | (self.df['HDD65'] < 4000))].index
 
-        # Split out Alaska:
+        # Split out Alaska
         alaska_rows = self.df[(self.df['REPORTABLE_DOMAIN'] == 27) & ((self.df['HDD65'] > 6930))].index # Source for 6930 HDD: Dennis Barley
 
         # Drop Alaska and Hawaii
@@ -59,7 +59,7 @@ class RECS2009(TSVMaker):
             geometry_wall_type = self.add_missing_dependency_rows(geometry_wall_type, project, count, weight)
             geometry_wall_type = self.rename_cols(geometry_wall_type, dependency_cols, project)
 
-            filepath = os.path.join(os.path.dirname(__file__), project, '{}.tsv'.format(option_col))
+            filepath = os.path.normpath(os.path.join(os.path.dirname(__file__), project, '{}.tsv'.format(option_col)))
             self.export_and_tag(geometry_wall_type, filepath, project, created_by, source)
             self.copy_file_to_project(filepath, project)
 

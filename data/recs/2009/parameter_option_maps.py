@@ -54,7 +54,6 @@ def map_geometry_wall_type(df):
                                                    7: 'Masonry',
                                                    8: 'WoodStud',
                                                    9: 'WoodStud'})
-
     return df
 
 def map_vintage(df):
@@ -66,10 +65,8 @@ def map_vintage(df):
                                              6: '1990s',
                                              7: '2000s',
                                              8: '2000s'})
-
     # Pull out pre-1940s buildings
     df.loc[(df['YEARMADERANGE'] == 1) & (df['YEARMADE'] < 1940), ['Vintage']] = '<1940'
-
     return df
 
 def map_location_region(df):
@@ -103,5 +100,4 @@ def map_location_region(df):
                                                          })
     # Split out Kentucky and put in 8:
     df.loc[(df['REPORTABLE_DOMAIN'] == 18) & (df['AIA_Zone'] == 3), ['Location Region']] = 'CR08'
-
     return df

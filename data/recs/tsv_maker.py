@@ -1,16 +1,21 @@
+#!/usr/bin/env python3
+
 import os
 import pandas as pd
 import itertools
 import shutil
 import numpy as np
 
-count_col_label = 'sample_count'
-weight_col_label = 'sample_weight'
-
 class TSVMaker:
 
     def __init__(self):
         pass
+
+    def count_col_label(self):
+      return 'sample_count'
+
+    def weight_col_label(self):
+      return 'sample_weight'
 
     def groupby_and_pivot(self, df, dependency_cols, option_col):
         """
@@ -25,18 +30,18 @@ class TSVMaker:
           count (dataframe): A pandas dataframe with dependency columns and source sample sizes.
           weight (dataframe): A pandas dataframe with dependency columns and source weights.
         """
-        df = df[dependency_cols + [option_col] + [count_col_label] + ['NWEIGHT']]
+        df = df[dependency_cols + [option_col] + [self.count_col_label()] + ['NWEIGHT']]
         groups = df.groupby(dependency_cols + [option_col]).sum()
         df = groups.reset_index()
-        count = df[dependency_cols + [count_col_label]]
+        count = df[dependency_cols + [self.count_col_label()]]
         count = count.groupby(dependency_cols).sum()
         count = count.reset_index()        
         df = df.pivot_table(index=dependency_cols, columns=option_col, values='NWEIGHT')
         option_cols = df.columns.values
-        df[weight_col_label] = df.sum(axis=1)
-        weight = df[[weight_col_label]]
+        df[self.weight_col_label()] = df.sum(axis=1)
+        weight = df[[self.weight_col_label()]]
         weight = weight.reset_index()
-        df = df[list(option_cols)].div(df[weight_col_label], axis=0)
+        df = df[list(option_cols)].div(df[self.weight_col_label()], axis=0)
         df = df[option_cols]
         df = df.fillna(0)
         return df, count, weight
@@ -56,10 +61,10 @@ class TSVMaker:
         names = df.index.names
         option_cols = df.columns.values
         df = df.reset_index()
-        
+
         if 'testing' in project:
             df = df[0: 0]
-        
+
         for group in itertools.product(*levels):
             if not group in list(df.groupby(names).groups):
                 data = dict(zip(names, group))
@@ -85,13 +90,13 @@ class TSVMaker:
             new_dependency_col = 'Dependency={}'.format(dependency_col)
             df = df.rename(columns={dependency_col: new_dependency_col})
             new_dependency_cols.append(new_dependency_col)
-            
+
         if 'singlefamilydetached' in project:
             df = df[df['Dependency=Geometry Building Type RECS']=='Single-Family Detached']
-            
+
         df = df.set_index(new_dependency_cols)
         for col in list(df.columns.values):
-            if col in [count_col_label, weight_col_label]:
+            if col in [self.count_col_label(), self.weight_col_label()]:
                 continue
             df = df.rename(columns={col: 'Option={}'.format(col)})
         df = df.sort_values(by=new_dependency_cols)
@@ -116,25 +121,26 @@ class TSVMaker:
             tag_row[name] = np.nan
         df = df.reset_index()
         for col in list(df.columns.values):
-            if col == count_col_label:
+            if col == self.count_col_label():
                 df[col] = df[col].astype(int)
             else:
                 df[col] = df[col].astype(str)
         df = df.append(tag_row, ignore_index=True, verify_integrity=True)
-        df[count_col_label] = df[count_col_label].apply(lambda x: str(int(x)) if pd.notnull(x) else x)
-        
+        df[self.count_col_label()] = df[self.count_col_label()].apply(lambda x: str(int(x)) if pd.notnull(x) else x)
+
         if 'testing' in project:
-            del df[count_col_label]
-            del df[weight_col_label]
+            del df[self.count_col_label()]
+            del df[self.weight_col_label()]
 
         cols = []
         for col in df.columns:
-          if 'Dependency' in col:
-            continue
-          cols.append(col)
+            if 'Dependency' in col:
+                continue
+            cols.append(col)
+
         df[cols] = df[cols].apply(pd.to_numeric, downcast='float')
         df.to_csv(filepath, sep='\t', index=False, float_format='%.6f', line_terminator='\r\n')
-        #print '{}...'.format(filepath)
+        print('{}...'.format(filepath))
 
     def copy_file_to_project(self, filepath, project):
         """
@@ -144,6 +150,6 @@ class TSVMaker:
           project (str): Name of the project.
         """
         resstock_projects_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-    
+
         project_dir = os.path.join(resstock_projects_dir, project, 'housing_characteristics')
         shutil.copy(filepath, project_dir)
