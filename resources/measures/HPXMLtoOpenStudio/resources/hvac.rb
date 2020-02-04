@@ -2766,29 +2766,32 @@ class HVAC
     finished_zones.each do |finished_zone|
       thermostat_setpoint = finished_zone.thermostatSetpointDualSetpoint
       if thermostat_setpoint.is_initialized
-
         thermostat_setpoint = thermostat_setpoint.get
-        thermostat_setpoint.setHeatingSetpointTemperatureSchedule(heating_setpoint.schedule)
-        thermostat_setpoint.setCoolingSetpointTemperatureSchedule(cooling_setpoint.schedule)
-
+        exist_deadband = thermostat_setpoint.temperatureDifferenceBetweenCutoutAndSetpoint
+        if exist_deadband != 0.0 and (exist_deadband - UnitConversions.convert(onoff_thermostat_deadband, "r", "k")).abs > 0.00001
+          fail "More than one on/off thermostat deadband are specified. Please remove one."
+        end
       else
-
         thermostat_setpoint = OpenStudio::Model::ThermostatSetpointDualSetpoint.new(model)
         thermostat_setpoint.setName("#{finished_zone.name} temperature setpoint")
         runner.registerInfo("Created new thermostat #{thermostat_setpoint.name} for #{finished_zone.name}.")
-        thermostat_setpoint.setHeatingSetpointTemperatureSchedule(heating_setpoint.schedule)
-        thermostat_setpoint.setCoolingSetpointTemperatureSchedule(cooling_setpoint.schedule)
-        finished_zone.setThermostatSetpointDualSetpoint(thermostat_setpoint)
-        runner.registerInfo("Set a dummy cooling setpoint schedule for #{thermostat_setpoint.name}.")
 
+        if onoff_thermostat_deadband != 0.0
+          # cooling setpoint is not shifted yet
+          shift_setpoint_by_deadband(cooling_setpoint, onoff_thermostat_deadband, true)
+        end
+
+        runner.registerInfo("Set a dummy cooling setpoint schedule for #{thermostat_setpoint.name}.")
+        finished_zone.setThermostatSetpointDualSetpoint(thermostat_setpoint)
       end
 
-      exist_deadband = thermostat_setpoint.temperatureDifferenceBetweenCutoutAndSetpoint
-      if exist_deadband != 0.0 and (exist_deadband - UnitConversions.convert(onoff_thermostat_deadband, "r", "k")).abs > 0.00001
-        fail "More than one on/off thermostat deadband are specified. Please remove one."
-      else
+      if onoff_thermostat_deadband != 0.0
+        shift_setpoint_by_deadband(heating_setpoint, onoff_thermostat_deadband, false)
         thermostat_setpoint.setTemperatureDifferenceBetweenCutoutAndSetpoint(UnitConversions.convert(onoff_thermostat_deadband, "r", "k"))
       end
+
+      thermostat_setpoint.setHeatingSetpointTemperatureSchedule(heating_setpoint.schedule)
+      thermostat_setpoint.setCoolingSetpointTemperatureSchedule(cooling_setpoint.schedule)
 
       runner.registerInfo("Set the heating setpoint schedule for #{thermostat_setpoint.name}.")
     end
@@ -2938,24 +2941,31 @@ class HVAC
       thermostat_setpoint = finished_zone.thermostatSetpointDualSetpoint
       if thermostat_setpoint.is_initialized
         thermostat_setpoint = thermostat_setpoint.get
-        thermostat_setpoint.setHeatingSetpointTemperatureSchedule(heating_setpoint.schedule)
-        thermostat_setpoint.setCoolingSetpointTemperatureSchedule(cooling_setpoint.schedule)
+        exist_deadband = thermostat_setpoint.temperatureDifferenceBetweenCutoutAndSetpoint
+        if exist_deadband != 0.0 and (exist_deadband - UnitConversions.convert(onoff_thermostat_deadband, "r", "k")).abs > 0.00001
+          fail "More than one on/off thermostat deadband are specified. Please remove one."
+        end
       else
         thermostat_setpoint = OpenStudio::Model::ThermostatSetpointDualSetpoint.new(model)
         thermostat_setpoint.setName("#{finished_zone.name} temperature setpoint")
         runner.registerInfo("Created new thermostat #{thermostat_setpoint.name} for #{finished_zone.name}.")
-        thermostat_setpoint.setHeatingSetpointTemperatureSchedule(heating_setpoint.schedule)
-        thermostat_setpoint.setCoolingSetpointTemperatureSchedule(cooling_setpoint.schedule)
-        finished_zone.setThermostatSetpointDualSetpoint(thermostat_setpoint)
+
+        if onoff_thermostat_deadband != 0.0
+          # heating setpoint is not shifted yet
+          shift_setpoint_by_deadband(heating_setpoint, onoff_thermostat_deadband, false)
+        end
+
         runner.registerInfo("Set a dummy heating setpoint schedule for #{thermostat_setpoint.name}.")
+        finished_zone.setThermostatSetpointDualSetpoint(thermostat_setpoint)
       end
 
-      exist_deadband = thermostat_setpoint.temperatureDifferenceBetweenCutoutAndSetpoint
-      if exist_deadband != 0.0 and (exist_deadband - UnitConversions.convert(onoff_thermostat_deadband, "r", "k")).abs > 0.00001
-        fail "More than one on/off thermostat deadband are specified. Please remove one."
-      else
+      if onoff_thermostat_deadband != 0.0
+        shift_setpoint_by_deadband(cooling_setpoint, onoff_thermostat_deadband, true)
         thermostat_setpoint.setTemperatureDifferenceBetweenCutoutAndSetpoint(UnitConversions.convert(onoff_thermostat_deadband, "r", "k"))
       end
+
+      thermostat_setpoint.setHeatingSetpointTemperatureSchedule(heating_setpoint.schedule)
+      thermostat_setpoint.setCoolingSetpointTemperatureSchedule(cooling_setpoint.schedule)
 
       runner.registerInfo("Set the cooling setpoint schedule for #{thermostat_setpoint.name}.")
     end
@@ -2967,6 +2977,22 @@ class HVAC
     end
 
     return true
+  end
+
+  def self.shift_setpoint_by_deadband(setpoint, deadband, is_cooling)
+    setpoint.schedule.scheduleRules.each do |rule|
+      rule.daySchedule.values.each_with_index do |setpoint_value, index|
+        # Modify cut-in temperature by half of thermostat deadband
+        if is_cooling
+          setpoint_value += UnitConversions.convert(deadband, "r", "k") / 2.0
+        else
+          setpoint_value -= UnitConversions.convert(deadband, "r", "k") / 2.0
+        end
+        time = rule.daySchedule.times[index]
+        rule.daySchedule.removeValue(time)
+        rule.daySchedule.addValue(time, setpoint_value)
+      end
+    end
   end
 
   def self.get_setpoint_schedule(schedule_ruleset, weekday_or_weekend, runner)

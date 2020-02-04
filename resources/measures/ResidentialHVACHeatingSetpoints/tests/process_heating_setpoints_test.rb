@@ -86,6 +86,31 @@ class ProcessHeatingSetpointsTest < MiniTest::Test
     _test_measure("SFD_2000sqft_2story_SL_UA_3Beds_2Baths_Denver_Furnace_NoSetpoints.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 3)
   end
 
+  def test_wkdy_wked_with_offsets_deadband_shifted
+    args_hash = {}
+    args_hash["weekday_setpoint"] = "72"
+    args_hash["weekday_offset_magnitude"] = "-3.0"
+    args_hash["weekday_offset_schedule"] = "0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0"
+    args_hash["onoff_thermostat_deadband"] = 2.0
+
+    expected_num_del_objects = {}
+    expected_num_new_objects = { "ScheduleRule" => 48, "ScheduleRuleset" => 3, "ThermostatSetpointDualSetpoint" => 1 }
+    expected_values = { "h_during_h_season" => [71, 71, 71, 71, 71, 71, 68, 68, 68, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71],
+                        "h_during_c_season" => [71, 71, 71, 71, 71, 71, 68, 68, 68, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71],
+                        "h_during_o_season" => [71, 71, 71, 71, 71, 71, 68, 68, 68, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71],
+                        "c_during_c_season" => [Constants.DefaultCoolingSetpoint + 1.0] * 24,
+                        "c_during_h_season" => [Constants.DefaultCoolingSetpoint + 1.0] * 24,
+                        "c_during_o_season" => [Constants.DefaultCoolingSetpoint + 1.0] * 24,
+                        "wked_h_during_h_season" => [Constants.DefaultHeatingSetpoint - 1.0] * 24,
+                        "wked_h_during_c_season" => [Constants.DefaultHeatingSetpoint - 1.0] * 24,
+                        "wked_h_during_o_season" => [Constants.DefaultHeatingSetpoint - 1.0] * 24,
+                        "wked_c_during_c_season" => [Constants.DefaultCoolingSetpoint + 1.0] * 24,
+                        "wked_c_during_h_season" => [Constants.DefaultCoolingSetpoint + 1.0] * 24,
+                        "wked_c_during_o_season" => [Constants.DefaultCoolingSetpoint + 1.0] * 24,
+                        "thermostat_deadband" => 2.0 }
+    _test_measure("SFD_2000sqft_2story_SL_UA_3Beds_2Baths_Denver_CentralAC_NoSetpoints.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 3)
+  end
+
   def test_furnace
     args_hash = {}
     expected_num_del_objects = {}
@@ -290,7 +315,7 @@ class ProcessHeatingSetpointsTest < MiniTest::Test
     args_hash["onoff_thermostat_deadband"] = 2.0
     expected_num_del_objects = {}
     expected_num_new_objects = { "ScheduleRule" => 36, "ScheduleRuleset" => 3, "ThermostatSetpointDualSetpoint" => 1 }
-    expected_values = { "h_during_h_season" => [Constants.DefaultHeatingSetpoint] * 24, "h_during_c_season" => [Constants.DefaultHeatingSetpoint] * 24, "h_during_o_season" => [Constants.DefaultHeatingSetpoint] * 24, "c_during_c_season" => [Constants.DefaultCoolingSetpoint] * 24, "c_during_h_season" => [Constants.DefaultCoolingSetpoint] * 24, "c_during_o_season" => [Constants.DefaultCoolingSetpoint] * 24, "thermostat_deadband" => 2.0 }
+    expected_values = { "h_during_h_season" => [Constants.DefaultHeatingSetpoint - 1] * 24, "h_during_c_season" => [Constants.DefaultHeatingSetpoint - 1] * 24, "h_during_o_season" => [Constants.DefaultHeatingSetpoint - 1] * 24, "c_during_c_season" => [Constants.DefaultCoolingSetpoint + 1] * 24, "c_during_h_season" => [Constants.DefaultCoolingSetpoint + 1] * 24, "c_during_o_season" => [Constants.DefaultCoolingSetpoint + 1] * 24, "thermostat_deadband" => 2.0 }
     _test_measure("SFD_2000sqft_2story_SL_UA_3Beds_2Baths_Denver_Furnace_NoSetpoints.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 3)
   end
 
