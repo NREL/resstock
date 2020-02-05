@@ -1,0 +1,419 @@
+<measure>
+  <schema_version>3.0</schema_version>
+  <name>simulation_output_report</name>
+  <uid>df9d170c-c21a-4130-866d-0d46b06073fd</uid>
+  <version_id>03843cd6-64e9-4a96-9be8-50091189eb55</version_id>
+  <version_modified>20200203T191209Z</version_modified>
+  <xml_checksum>9BF1E6AC</xml_checksum>
+  <class_name>SimulationOutputReport</class_name>
+  <display_name>HPXML Simulation Output Report</display_name>
+  <description>Reports simulation outputs for residential HPXML-based models.</description>
+  <modeler_description>Processes EnergyPlus simulation outputs in order to generate an annual output CSV file and an optional timeseries output CSV file.</modeler_description>
+  <arguments>
+    <argument>
+      <name>timeseries_frequency</name>
+      <display_name>Timeseries Reporting Frequency</display_name>
+      <description>The frequency at which to report timeseries output data.</description>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>hourly</default_value>
+      <choices>
+        <choice>
+          <value>timestep</value>
+          <display_name>timestep</display_name>
+        </choice>
+        <choice>
+          <value>hourly</value>
+          <display_name>hourly</display_name>
+        </choice>
+        <choice>
+          <value>daily</value>
+          <display_name>daily</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>include_timeseries_zone_temperatures</name>
+      <display_name>Generate Timeseries Output: Zone Temperatures</display_name>
+      <description>Generates timeseries temperatures for each thermal zone.</description>
+      <type>Boolean</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>include_timeseries_fuel_consumptions</name>
+      <display_name>Generate Timeseries Output: Fuel Consumptions</display_name>
+      <description>Generates timeseries energy consumptions for each fuel type.</description>
+      <type>Boolean</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>include_timeseries_end_use_consumptions</name>
+      <display_name>Generate Timeseries Output: End Use Consumptions</display_name>
+      <description>Generates timeseries energy consumptions for each end use.</description>
+      <type>Boolean</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>include_timeseries_total_loads</name>
+      <display_name>Generate Timeseries Output: Total Loads</display_name>
+      <description>Generates timeseries heating/cooling loads.</description>
+      <type>Boolean</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>include_timeseries_component_loads</name>
+      <display_name>Generate Timeseries Output: Component Loads</display_name>
+      <description>Generates timeseries heating/cooling loads disaggregated by component type.</description>
+      <type>Boolean</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+  </arguments>
+  <outputs>
+    <output>
+      <name>Electricity: Total MBtu</name>
+      <display_name>Electricity: Total MBtu</display_name>
+      <short_name>Electricity: Total MBtu</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>Natural Gas: Total MBtu</name>
+      <display_name>Natural Gas: Total MBtu</display_name>
+      <short_name>Natural Gas: Total MBtu</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>Fuel Oil: Total MBtu</name>
+      <display_name>Fuel Oil: Total MBtu</display_name>
+      <short_name>Fuel Oil: Total MBtu</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>Propane: Total MBtu</name>
+      <display_name>Propane: Total MBtu</display_name>
+      <short_name>Propane: Total MBtu</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>Electricity: Heating MBtu</name>
+      <display_name>Electricity: Heating MBtu</display_name>
+      <short_name>Electricity: Heating MBtu</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>Electricity: Cooling MBtu</name>
+      <display_name>Electricity: Cooling MBtu</display_name>
+      <short_name>Electricity: Cooling MBtu</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>Electricity: Hot Water MBtu</name>
+      <display_name>Electricity: Hot Water MBtu</display_name>
+      <short_name>Electricity: Hot Water MBtu</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>Electricity: Hot Water Recirc Pump MBtu</name>
+      <display_name>Electricity: Hot Water Recirc Pump MBtu</display_name>
+      <short_name>Electricity: Hot Water Recirc Pump MBtu</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>Electricity: Hot Water Solar Thermal Pump MBtu</name>
+      <display_name>Electricity: Hot Water Solar Thermal Pump MBtu</display_name>
+      <short_name>Electricity: Hot Water Solar Thermal Pump MBtu</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>Electricity: Lighting Interior MBtu</name>
+      <display_name>Electricity: Lighting Interior MBtu</display_name>
+      <short_name>Electricity: Lighting Interior MBtu</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>Electricity: Lighting Garage MBtu</name>
+      <display_name>Electricity: Lighting Garage MBtu</display_name>
+      <short_name>Electricity: Lighting Garage MBtu</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>Electricity: Lighting Exterior MBtu</name>
+      <display_name>Electricity: Lighting Exterior MBtu</display_name>
+      <short_name>Electricity: Lighting Exterior MBtu</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>Electricity: Mech Vent MBtu</name>
+      <display_name>Electricity: Mech Vent MBtu</display_name>
+      <short_name>Electricity: Mech Vent MBtu</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>Electricity: Whole House Fan MBtu</name>
+      <display_name>Electricity: Whole House Fan MBtu</display_name>
+      <short_name>Electricity: Whole House Fan MBtu</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>Electricity: Refrigerator MBtu</name>
+      <display_name>Electricity: Refrigerator MBtu</display_name>
+      <short_name>Electricity: Refrigerator MBtu</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>Electricity: Dishwasher MBtu</name>
+      <display_name>Electricity: Dishwasher MBtu</display_name>
+      <short_name>Electricity: Dishwasher MBtu</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>Electricity: Clothes Washer MBtu</name>
+      <display_name>Electricity: Clothes Washer MBtu</display_name>
+      <short_name>Electricity: Clothes Washer MBtu</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>Electricity: Clothes Dryer MBtu</name>
+      <display_name>Electricity: Clothes Dryer MBtu</display_name>
+      <short_name>Electricity: Clothes Dryer MBtu</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>Electricity: Range/Oven MBtu</name>
+      <display_name>Electricity: Range/Oven MBtu</display_name>
+      <short_name>Electricity: Range/Oven MBtu</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>Electricity: Ceiling Fan MBtu</name>
+      <display_name>Electricity: Ceiling Fan MBtu</display_name>
+      <short_name>Electricity: Ceiling Fan MBtu</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>Electricity: Television MBtu</name>
+      <display_name>Electricity: Television MBtu</display_name>
+      <short_name>Electricity: Television MBtu</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>Electricity: Plug Loads MBtu</name>
+      <display_name>Electricity: Plug Loads MBtu</display_name>
+      <short_name>Electricity: Plug Loads MBtu</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>Electricity: PV MBtu</name>
+      <display_name>Electricity: PV MBtu</display_name>
+      <short_name>Electricity: PV MBtu</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>Natural Gas: Heating MBtu</name>
+      <display_name>Natural Gas: Heating MBtu</display_name>
+      <short_name>Natural Gas: Heating MBtu</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>Natural Gas: Hot Water MBtu</name>
+      <display_name>Natural Gas: Hot Water MBtu</display_name>
+      <short_name>Natural Gas: Hot Water MBtu</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>Natural Gas: Clothes Dryer MBtu</name>
+      <display_name>Natural Gas: Clothes Dryer MBtu</display_name>
+      <short_name>Natural Gas: Clothes Dryer MBtu</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>Natural Gas: Range/Oven MBtu</name>
+      <display_name>Natural Gas: Range/Oven MBtu</display_name>
+      <short_name>Natural Gas: Range/Oven MBtu</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>Fuel Oil: Heating MBtu</name>
+      <display_name>Fuel Oil: Heating MBtu</display_name>
+      <short_name>Fuel Oil: Heating MBtu</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>Fuel Oil: Hot Water MBtu</name>
+      <display_name>Fuel Oil: Hot Water MBtu</display_name>
+      <short_name>Fuel Oil: Hot Water MBtu</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>Fuel Oil: Clothes Dryer MBtu</name>
+      <display_name>Fuel Oil: Clothes Dryer MBtu</display_name>
+      <short_name>Fuel Oil: Clothes Dryer MBtu</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>Fuel Oil: Range/Oven MBtu</name>
+      <display_name>Fuel Oil: Range/Oven MBtu</display_name>
+      <short_name>Fuel Oil: Range/Oven MBtu</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>Propane: Heating MBtu</name>
+      <display_name>Propane: Heating MBtu</display_name>
+      <short_name>Propane: Heating MBtu</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>Propane: Hot Water MBtu</name>
+      <display_name>Propane: Hot Water MBtu</display_name>
+      <short_name>Propane: Hot Water MBtu</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>Propane: Clothes Dryer MBtu</name>
+      <display_name>Propane: Clothes Dryer MBtu</display_name>
+      <short_name>Propane: Clothes Dryer MBtu</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+    <output>
+      <name>Propane: Range/Oven MBtu</name>
+      <display_name>Propane: Range/Oven MBtu</display_name>
+      <short_name>Propane: Range/Oven MBtu</short_name>
+      <type>Double</type>
+      <model_dependent>false</model_dependent>
+    </output>
+  </outputs>
+  <provenances/>
+  <tags>
+    <tag>Reporting.QAQC</tag>
+  </tags>
+  <attributes>
+    <attribute>
+      <name>Measure Type</name>
+      <value>ReportingMeasure</value>
+      <datatype>string</datatype>
+    </attribute>
+    <attribute>
+      <name>Intended Software Tool</name>
+      <value>OpenStudio Application</value>
+      <datatype>string</datatype>
+    </attribute>
+    <attribute>
+      <name>Intended Software Tool</name>
+      <value>Parametric Analysis Tool</value>
+      <datatype>string</datatype>
+    </attribute>
+  </attributes>
+  <files>
+    <file>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>2.9.1</identifier>
+        <min_compatible>2.9.1</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>script</usage_type>
+      <checksum>A52E15D8</checksum>
+    </file>
+    <file>
+      <filename>constants.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>16900A77</checksum>
+    </file>
+  </files>
+</measure>
