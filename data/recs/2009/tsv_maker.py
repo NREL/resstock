@@ -54,7 +54,7 @@ class RECS2009(TSVMaker):
             test_df = geometry_wall_type.loc[geometry_wall_type['Vintage'] == '2000s'].copy()
             test_df["Vintage"] = '2010s'
             geometry_wall_type = pd.concat([geometry_wall_type, test_df])
-            geometry_wall_type =geometry_wall_type.set_index(["Location Region", "Vintage"])
+            geometry_wall_type = geometry_wall_type.set_index(dependency_cols)
 
             geometry_wall_type = self.add_missing_dependency_rows(geometry_wall_type, project, count, weight)
             geometry_wall_type = self.rename_cols(geometry_wall_type, dependency_cols, project)
