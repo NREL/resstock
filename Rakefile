@@ -411,7 +411,6 @@ def update_measures
       "HPXMLtoOpenStudio" => {
         "hpxml_path" => File.expand_path(File.join(File.dirname(__FILE__), "workflows/run/in.xml")),
         "weather_dir" => File.expand_path(File.join(File.dirname(__FILE__), "weather")),
-        "schemas_dir" => File.expand_path(File.join(File.dirname(__FILE__), "resources/residential-hpxml-measures/HPXMLtoOpenStudio/hpxml_schemas")),
       }
     }
 
