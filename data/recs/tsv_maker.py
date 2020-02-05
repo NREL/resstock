@@ -116,7 +116,7 @@ class TSVMaker:
         if 'testing' not in project:
             tag += source
 
-        tag_row = {names[0]: 'Created by: {}'.format(tag)}
+        tag_row = {names[0]: '# Created by: {}'.format(tag)}
         for name in names[1:] + list(df.columns.values):
             tag_row[name] = np.nan
         df = df.reset_index()
