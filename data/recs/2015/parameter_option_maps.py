@@ -28,7 +28,7 @@ def map_bedrooms(df):
                                          9: 5,
                                          10: 5})
     return df
-    
+
 def map_occupants(df):
     df['Occupants'] = df['NHSLDMEM'].map({1: 1,
                                           2: 2,
