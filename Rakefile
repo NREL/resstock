@@ -299,35 +299,53 @@ def integrity_check(project_dir_name, housing_characteristics_dir = "housing_cha
   r = RunSampling.new
   output_file = r.run(project_dir_name, 1000, 'buildstock.csv', housing_characteristics_dir, lookup_file)
 
-  # Check that measure arguments aren't getting overwritten
-  CSV.foreach(output_file, headers: true) do |row|
-    next if row["Building"].to_i > 1
-
-    options_args = []
+  # Cache {parameter => options}
+  parameters_options = {}
+  CSV.foreach(output_file, headers: true).each do |row|
     row.each do |parameter_name, option_name|
       next if parameter_name == "Building"
 
-      options_measure_args = get_measure_args_from_option_names(lookup_file, [option_name], parameter_name)
-      options_measure_args.each do |option_name, measure_args|
-        measure_args.each do |measure, args|
-          args.each do |arg, value|
-            next unless options_args.include?({ measure => arg })
-
-            raise "ERROR: Duplicate measure argument assignment(s) across parameters. (#{measure} => #{arg}) already assigned."
-          end
-        end
+      unless parameters_options.keys.include? parameter_name
+        parameters_options[parameter_name] = []
       end
 
-      options_measure_args.each do |option, measure_args|
-        measure_args.each do |measure, args|
-          args.each do |arg, value|
-            next if options_args.include?({ measure => arg })
+      unless parameters_options[parameter_name].include? option_name
+        parameters_options[parameter_name] << option_name
+      end
+    end
+  end
 
-            options_args << { measure => arg }
+  # Cache {parameter => {option => {measure => {arg => value}}}}
+  parameters_options_measure_args = {}
+  parameters_options.each do |parameter_name, option_names|
+    parameters_options_measure_args[parameter_name] = get_measure_args_from_option_names(lookup_file, option_names, parameter_name)
+  end
+
+  # Check that measure arguments aren't getting overwritten
+  err = ""
+  CSV.foreach(output_file, headers: true).each do |row|
+    row.each do |parameter_name, option_name|
+      next if parameter_name == "Building"
+
+      parameters_options_measure_args[parameter_name][option_name].each do |measure_name, args|
+        parameters_options_measure_args.each do |parameter_name_2, options|
+          next if parameter_name == parameter_name_2
+
+          parameters_options_measure_args[parameter_name_2][row[parameter_name_2]].each do |measure_name_2, args_2|
+            next if measure_name != measure_name_2
+
+            arg_names = args.keys & args_2.keys
+            next if arg_names.empty?
+            next if err.include? parameter_name and err.include? parameter_name_2 and err.include? measure_name
+
+            err += "ERROR: Duplicate measure argument assignment(s) across #{[parameter_name, parameter_name_2]} parameters. (#{measure_name} => #{arg_names}) already assigned.\n"
           end
         end
       end
     end
+  end
+  if not err.empty?
+    raise err
   end
 
   if File.exist?(output_file)
