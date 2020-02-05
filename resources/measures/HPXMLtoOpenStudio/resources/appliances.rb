@@ -92,7 +92,7 @@ class ClothesWasher
   def self.apply(model, unit, runner, imef, rated_annual_energy, annual_cost,
                  test_date, drum_volume, cold_cycle, thermostatic_control,
                  internal_heater, fill_sensor, mult_e, mult_hw, d_sh, cd_sch,
-                 space, plant_loop, mains_temps)
+                 space, plant_loop, mains_temps, sch, schedules_file)
 
     # Check for valid inputs
     if imef <= 0
@@ -414,15 +414,11 @@ class ClothesWasher
 
     cd_updated = false
 
+    col_name = "clothes_washer"
     if ann_e > 0
 
-      # Create schedule
-      sch = HotWaterSchedule.new(model, runner, Constants.ObjectNameClothesWasher + " schedule",
-                                 Constants.ObjectNameClothesWasher + " temperature schedule",
-                                 nbeds, d_sh, "ClothesWasher", water_temp,
-                                 create_sch_object = true, schedule_type_limits_name = Constants.ScheduleTypeLimitsFraction)
-      if not sch.validated?
-        return false
+      if sch.nil?
+        sch = schedules_file.createScheduleFile(sch_file_name: "#{Constants.ObjectNameClothesWasher} schedule", col_name: col_name)
       end
 
       # Reuse existing water use connection if possible
@@ -439,8 +435,20 @@ class ClothesWasher
         plant_loop.addDemandBranchForComponent(water_use_connection)
       end
 
-      design_level = sch.calcDesignLevelFromDailykWh(daily_energy)
-      peak_flow = sch.calcPeakFlowFromDailygpm(total_daily_water_use)
+      temperature_sch = OpenStudio::Model::ScheduleConstant.new(model) # FIXME
+      temperature_sch.setValue(52.666)
+      temperature_sch.setName("#{Constants.ObjectNameClothesWasher} temperature schedule")
+      Schedule.set_schedule_type_limits(model, temperature_sch, Constants.ScheduleTypeLimitsTemperature)
+
+      max_flow = model.getBuilding.additionalProperties.getFeatureAsDouble("Clothes Washer Max Flow Rate")
+      if not max_flow.is_initialized
+        runner.registerError("Unable to retrieve Clothes Washer Max Flow Rate.")
+        return false
+      else
+        max_flow = max_flow.get
+      end
+      design_level = schedules_file.calcDesignLevelFromDailykWh(col_name: col_name, daily_kwh: daily_energy, per_day: total_daily_water_use, per_min: max_flow)
+      peak_flow = max_flow
 
       # Add equipment for the cw
       cw_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
@@ -453,7 +461,7 @@ class ClothesWasher
       cw_def.setFractionRadiant(0.48)
       cw_def.setFractionLatent(0.0)
       cw_def.setFractionLost(0.2)
-      cw.setSchedule(sch.schedule)
+      cw.setSchedule(sch)
 
       # Add water use equipment for the dw
       cw_def2 = OpenStudio::Model::WaterUseEquipmentDefinition.new(model)
@@ -463,8 +471,8 @@ class ClothesWasher
       cw_def2.setName(unit_obj_name)
       cw_def2.setPeakFlowRate(peak_flow)
       cw_def2.setEndUseSubcategory(unit_obj_name)
-      cw2.setFlowRateFractionSchedule(sch.schedule)
-      cw_def2.setTargetTemperatureSchedule(sch.temperatureSchedule)
+      cw2.setFlowRateFractionSchedule(sch)
+      cw_def2.setTargetTemperatureSchedule(temperature_sch)
       water_use_connection.addWaterUseEquipment(cw2)
 
       # Store some info for Clothes Dryer measures
@@ -563,7 +571,7 @@ class ClothesWasher
 end
 
 class ClothesDryer
-  def self.apply(model, unit, runner, sch, cef, mult, space, fuel_type, fuel_split)
+  def self.apply(model, unit, runner, cef, mult, space, fuel_type, fuel_split, sch, schedules_file)
     # Check for valid inputs
     if cef <= 0
       runner.registerError("Combined energy factor must be greater than 0.0.")
@@ -686,24 +694,17 @@ class ClothesDryer
       ann_f = daily_energy_fuel * num_days_in_year # therms/yr
     end
 
+    col_name = "clothes_dryer"
     if ann_e > 0 or ann_f > 0
 
       if sch.nil?
-        # Create schedule
-        hr_shift = day_shift - 1.0 / 24.0
-        sch = HotWaterSchedule.new(model, runner, unit_obj_name_f + " schedule",
-                                   unit_obj_name_f + " temperature schedule", nbeds,
-                                   hr_shift, "ClothesDryer", 0,
-                                   create_sch_object = true, schedule_type_limits_name = Constants.ScheduleTypeLimitsFraction)
-        if not sch.validated?
-          return false
-        end
+        sch = schedules_file.createScheduleFile(sch_file_name: "#{unit_obj_name_f} schedule", col_name: col_name)
       end
 
       # Add equipment for the cd
       if fuel_type == Constants.FuelTypeElectric
 
-        design_level_e = sch.calcDesignLevelFromDailykWh(daily_energy_elec)
+        design_level_e = schedules_file.calcDesignLevelFromAnnualkWh(col_name: col_name, annual_kwh: ann_e)
 
         cd_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
         cd = OpenStudio::Model::ElectricEquipment.new(cd_def)
@@ -715,11 +716,11 @@ class ClothesDryer
         cd_def.setFractionRadiant(0.09)
         cd_def.setFractionLatent(0.05)
         cd_def.setFractionLost(0.8)
-        cd.setSchedule(sch.schedule)
+        cd.setSchedule(sch)
 
       else
 
-        design_level_e = sch.calcDesignLevelFromDailykWh(daily_energy_elec)
+        design_level_e = schedules_file.calcDesignLevelFromAnnualkWh(col_name: col_name, annual_kwh: ann_e)
 
         if design_level_e > 0
           cd_def2 = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
@@ -732,10 +733,10 @@ class ClothesDryer
           cd_def2.setFractionRadiant(0.6)
           cd_def2.setFractionLatent(0.0)
           cd_def2.setFractionLost(0.0)
-          cd2.setSchedule(sch.schedule)
+          cd2.setSchedule(sch)
         end
 
-        design_level_f = sch.calcDesignLevelFromDailyTherm(daily_energy_fuel)
+        design_level_f = schedules_file.calcDesignLevelFromAnnualTherm(col_name: col_name, annual_therm: ann_f)
 
         cd_def = OpenStudio::Model::OtherEquipmentDefinition.new(model)
         cd = OpenStudio::Model::OtherEquipment.new(cd_def)
@@ -748,7 +749,7 @@ class ClothesDryer
         cd_def.setFractionRadiant(0.06)
         cd_def.setFractionLatent(0.05)
         cd_def.setFractionLost(0.85)
-        cd.setSchedule(sch.schedule)
+        cd.setSchedule(sch)
 
       end
 
@@ -1200,10 +1201,15 @@ class Dishwasher
       temperature_sch.setName("#{Constants.ObjectNameDishwasher} temperature schedule")
       Schedule.set_schedule_type_limits(model, temperature_sch, Constants.ScheduleTypeLimitsTemperature)
 
-      totflow = 4.40271808 # FIXME
-      maxflow = 2.8186 # FIXME
-      design_level = UnitConversions.convert(daily_energy * Constants.NumDaysInYear(year_description.isLeapYear) * 60 / (Constants.NumDaysInYear(year_description.isLeapYear) * totflow / maxflow), "kW", "W") # FIXME
-      peak_flow = UnitConversions.convert(maxflow * daily_water / totflow, "gal/min", "m^3/s") # FIXME
+      max_flow = model.getBuilding.additionalProperties.getFeatureAsDouble("Dishwasher Max Flow Rate")
+      if not max_flow.is_initialized
+        runner.registerError("Unable to retrieve Dishwasher Max Flow Rate.")
+        return false
+      else
+        max_flow = max_flow.get
+      end
+      design_level = schedules_file.calcDesignLevelFromDailykWh(col_name: col_name, daily_kwh: daily_energy, per_day: daily_water, per_min: max_flow)
+      peak_flow = max_flow
 
       # Add electric equipment for the dw
       dw_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)

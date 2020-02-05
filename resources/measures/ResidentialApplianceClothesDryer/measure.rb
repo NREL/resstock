@@ -108,6 +108,12 @@ class ResidentialClothesDryer < OpenStudio::Measure::ModelMeasure
                           Constants.SpaceTypeUnfinishedBasement,
                           Constants.SpaceTypeGarage]
 
+    sch_path = SchedulesFile.get_schedule_file_path(model)
+    schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_output_path: sch_path)
+    if not schedules_file.validated?
+      return false
+    end
+
     tot_ann_e = 0
     tot_ann_f = 0
     msgs = []
@@ -117,8 +123,8 @@ class ResidentialClothesDryer < OpenStudio::Measure::ModelMeasure
       space = Geometry.get_space_from_location(unit, location, location_hierarchy)
       next if space.nil?
 
-      success, ann_e, ann_f, sch = ClothesDryer.apply(model, unit, runner, sch, cef, mult,
-                                                      space, fuel_type, fuel_split)
+      success, ann_e, ann_f, sch = ClothesDryer.apply(model, unit, runner, cef, mult, space,
+                                                      fuel_type, fuel_split, sch, schedules_file)
 
       if not success
         return false

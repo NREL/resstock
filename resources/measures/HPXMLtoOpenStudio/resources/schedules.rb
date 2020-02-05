@@ -557,7 +557,7 @@ class HotWaterSchedule
   end
 
   def calcDesignLevelFromDailykWh(daily_kWh)
-    return UnitConversions.convert(daily_kWh * Constants.NumDaysInYear(@model.getYearDescription.isLeapYear) * 60 / (Constants.NumDaysInYear(@model.getYearDescription.isLeapYear) * @totflow / @maxflow), "kW", "W")
+    return UnitConversions.convert(daily_kWh * 60 / (@totflow / @maxflow), "kW", "W")
   end
 
   def calcPeakFlowFromDailygpm(daily_water)
@@ -1177,6 +1177,21 @@ class ScheduleGenerator
       end
     end
 
+    dishwasher_max_flow_rate = 2.8186 # gal/min # FIXME: calculate this from unnormalized schedule
+    @model.getBuilding.additionalProperties.setFeature("Dishwasher Max Flow Rate", dishwasher_max_flow_rate)
+
+    clothes_washer_max_flow_rate = 5.0354 # gal/min # FIXME: calculate this from unnormalized schedule
+    @model.getBuilding.additionalProperties.setFeature("Clothes Washer Max Flow Rate", clothes_washer_max_flow_rate)
+
+    shower_max_flow_rate = 4.079 # gal/min # FIXME: calculate this from unnormalized schedule
+    @model.getBuilding.additionalProperties.setFeature("Shower Max Flow Rate", shower_max_flow_rate)
+
+    sink_max_flow_rate = 3.2739 # gal/min # FIXME: calculate this from unnormalized schedule
+    @model.getBuilding.additionalProperties.setFeature("Sink Max Flow Rate", sink_max_flow_rate)
+
+    bath_max_flow_rate = 7.0312 # gal/min # FIXME: calculate this from unnormalized schedule
+    @model.getBuilding.additionalProperties.setFeature("Bath Max Flow Rate", bath_max_flow_rate)
+
     return true
   end
 
@@ -1317,25 +1332,25 @@ class SchedulesFile
     return design_level
   end
 
-  def calcPeakFlowFromDailygpm(col_name:,
-                               gpd:)
-    # TODO: see if we can calculate totflow, maxflow based on the schedule for col_name
+  def calcDesignLevelFromDailykWh(col_name:,
+                                  daily_kwh:,
+                                  per_day:,
+                                  per_min:)
 
-    num_bedrooms = 3
-    totflow = 0
-    maxflow = 0
-    if col_name == "showers"
-      totflow = { 1 => 19.10272055, 2 => 22.81405205, 3 => 26.24088767, 4 => 30.64040822, 5 => 38.98717534 }[num_bedrooms] # daily gal/day
-      maxflow = { 1 => 4.7433, 2 => 4.581, 3 => 4.079, 4 => 4.3076, 5 => 4.6671 }[num_bedrooms]
-    elsif col_name == "sinks"
-      totflow = { 1 => 16.68882466, 2 => 20.81769863, 3 => 24.29216986, 4 => 29.01383014, 5 => 32.21229589 }[num_bedrooms] # daily gal/day
-      maxflow = { 1 => 3.2868, 2 => 3.2756, 3 => 3.2739, 4 => 3.2699, 5 => 3.3317 }[num_bedrooms]
-    elsif col_name == "baths"
-      totflow = { 1 => 4.566756164, 2 => 5.94980274, 3 => 7.238115068, 4 => 8.160882192, 5 => 9.739778082 }[num_bedrooms] # daily gal/day
-      maxflow = { 1 => 7.2874, 2 => 6.6424, 3 => 7.0312, 4 => 7.7795, 5 => 6.7725 }[num_bedrooms]
-    end
+    design_level = UnitConversions.convert(daily_kwh * 60 / (per_day / per_min), "kW", "W")
 
-    return UnitConversions.convert(maxflow * gpd / totflow, "gal/min", "m^3/s")
+    return design_level
+  end
+
+  def calcDesignLevelFromDailyTherm(col_name:,
+                                    daily_therm:,
+                                    per_day:,
+                                    per_min:)
+
+    daily_kwh = UnitConversions.convert(daily_therm, "therm", "kWh")
+    design_level = calcDesignLevelFromDailykWh(col_name: col_name, daily_kwh: daily_kwh, per_day: per_day, per_min: per_min)
+
+    return design_level
   end
 
   def validateSchedule(col_name:,
