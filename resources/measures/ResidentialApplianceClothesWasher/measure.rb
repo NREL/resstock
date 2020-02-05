@@ -184,8 +184,15 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
                           Constants.SpaceTypeUnfinishedBasement,
                           Constants.SpaceTypeGarage]
 
+    sch_path = SchedulesFile.get_schedule_file_path(model)
+    schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_output_path: sch_path)
+    if not schedules_file.validated?
+      return false
+    end
+
     tot_ann_e = 0
     msgs = []
+    sch = nil
     cd_msgs = []
     cd_sch = nil
     mains_temps = nil
@@ -203,7 +210,7 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
       success, ann_e, cd_updated, cd_sch, mains_temps = ClothesWasher.apply(model, unit, runner, imef, rated_annual_energy, annual_cost,
                                                                             test_date, drum_volume, cold_cycle, thermostatic_control,
                                                                             internal_heater, fill_sensor, mult_e, mult_hw, d_sh, cd_sch,
-                                                                            space, plant_loop, mains_temps)
+                                                                            space, plant_loop, mains_temps, sch, schedules_file)
 
       if not success
         return false

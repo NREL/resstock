@@ -214,7 +214,14 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
           sch_sh = schedules_file.createScheduleFile(sch_file_name: "#{Constants.ObjectNameShower} schedule", col_name: col_name)
         end
 
-        sh_peak_flow = schedules_file.calcPeakFlowFromDailygpm(col_name: col_name, gpd: sh_gpd)
+        sh_max_flow = model.getBuilding.additionalProperties.getFeatureAsDouble("Shower Max Flow Rate")
+        if not sh_max_flow.is_initialized
+          runner.registerError("Unable to retrieve Shower Max Flow Rate.")
+          return false
+        else
+          sh_max_flow = sh_max_flow.get
+        end
+        sh_peak_flow = sh_max_flow
         sh_design_level = schedules_file.calcDesignLevelFromAnnualkWh(col_name: col_name, annual_kwh: sh_tot_load * num_days_in_year)
 
         # Add water use equipment objects
@@ -273,7 +280,14 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
           sch_s = schedules_file.createScheduleFile(sch_file_name: "#{Constants.ObjectNameSink} schedule", col_name: col_name)
         end
 
-        s_peak_flow = schedules_file.calcPeakFlowFromDailygpm(col_name: col_name, gpd: s_gpd)
+        s_max_flow = model.getBuilding.additionalProperties.getFeatureAsDouble("Sink Max Flow Rate")
+        if not s_max_flow.is_initialized
+          runner.registerError("Unable to retrieve Sink Max Flow Rate.")
+          return false
+        else
+          s_max_flow = s_max_flow.get
+        end
+        s_peak_flow = s_max_flow
         s_design_level = schedules_file.calcDesignLevelFromAnnualkWh(col_name: col_name, annual_kwh: s_tot_load * num_days_in_year)
 
         # Add water use equipment objects
@@ -312,7 +326,14 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
           sch_b = schedules_file.createScheduleFile(sch_file_name: "#{Constants.ObjectNameBath} schedule", col_name: col_name)
         end
 
-        b_peak_flow = schedules_file.calcPeakFlowFromDailygpm(col_name: col_name, gpd: b_gpd)
+        b_max_flow = model.getBuilding.additionalProperties.getFeatureAsDouble("Bath Max Flow Rate")
+        if not b_max_flow.is_initialized
+          runner.registerError("Unable to retrieve Bath Max Flow Rate.")
+          return false
+        else
+          b_max_flow = b_max_flow.get
+        end
+        b_peak_flow = b_max_flow
         b_design_level = schedules_file.calcDesignLevelFromAnnualkWh(col_name: col_name, annual_kwh: b_tot_load * num_days_in_year)
 
         # Add water use equipment objects
