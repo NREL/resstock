@@ -216,8 +216,7 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
 
         sh_max_flow = model.getBuilding.additionalProperties.getFeatureAsDouble("Shower Max Flow Rate")
         if not sh_max_flow.is_initialized
-          runner.registerError("Unable to retrieve Shower Max Flow Rate.")
-          return false
+          sh_max_flow = 4.079
         else
           sh_max_flow = sh_max_flow.get
         end
@@ -282,8 +281,7 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
 
         s_max_flow = model.getBuilding.additionalProperties.getFeatureAsDouble("Sink Max Flow Rate")
         if not s_max_flow.is_initialized
-          runner.registerError("Unable to retrieve Sink Max Flow Rate.")
-          return false
+          s_max_flow = 3.2739
         else
           s_max_flow = s_max_flow.get
         end
@@ -328,8 +326,7 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
 
         b_max_flow = model.getBuilding.additionalProperties.getFeatureAsDouble("Bath Max Flow Rate")
         if not b_max_flow.is_initialized
-          runner.registerError("Unable to retrieve Bath Max Flow Rate.")
-          return false
+          b_max_flow = 7.0312
         else
           b_max_flow = b_max_flow.get
         end

@@ -442,8 +442,7 @@ class ClothesWasher
 
       max_flow = model.getBuilding.additionalProperties.getFeatureAsDouble("Clothes Washer Max Flow Rate")
       if not max_flow.is_initialized
-        runner.registerError("Unable to retrieve Clothes Washer Max Flow Rate.")
-        return false
+        max_flow = 5.0354
       else
         max_flow = max_flow.get
       end
@@ -1192,8 +1191,7 @@ class Dishwasher
 
       max_flow = model.getBuilding.additionalProperties.getFeatureAsDouble("Dishwasher Max Flow Rate")
       if not max_flow.is_initialized
-        runner.registerError("Unable to retrieve Dishwasher Max Flow Rate.")
-        return false
+        max_flow = 2.8186
       else
         max_flow = max_flow.get
       end
