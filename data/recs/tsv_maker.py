@@ -97,7 +97,8 @@ class TSVMaker:
             new_dependency_cols.append(new_dependency_col)
 
         if 'singlefamilydetached' in project:
-            df = df[df['Dependency=Geometry Building Type RECS']=='Single-Family Detached']
+            if 'Dependency=Geometry Building Type RECS' in df.columns:
+                df = df[df['Dependency=Geometry Building Type RECS']=='Single-Family Detached']
 
         df = df.set_index(new_dependency_cols)
         for col in list(df.columns.values):

@@ -26,7 +26,7 @@ def map_bedrooms(df):
                                          7: 5,
                                          8: 5,
                                          9: 5,
-                                         10: 5})
+                                        10: 5})
     return df
 
 def map_occupants(df):
@@ -39,9 +39,9 @@ def map_occupants(df):
                                           7: 6,
                                           8: 6,
                                           9: 6,
-                                          10: 6,
-                                          11: 6,
-                                          12: 6})
+                                         10: 6,
+                                         11: 6,
+                                         12: 6})
     return df
 
 def map_geometry_wall_type(df):
@@ -70,7 +70,7 @@ def map_vintage(df):
     return df
 
 def map_location_region(df):
-    df['Location Region'] = df['REPORTABLE_DOMAIN'].map({1:'CR03',
+    df['Location Region'] = df['REPORTABLE_DOMAIN'].map({1: 'CR03',
                                                          2: 'CR03',
                                                          3: 'CR07',
                                                          4: 'CR07',
@@ -79,25 +79,24 @@ def map_location_region(df):
                                                          7: 'CR04',
                                                          8: 'CR04',
                                                          9: 'CR02',
-                                                         10: 'CR02',
-                                                         11: 'CR08',
-                                                         12: 'CR08',
-                                                         13: 'CR08',
-                                                         14: 'CR08',
-                                                         15: 'CR09',
-                                                         16: 'CR09',
-                                                         17: 'CR09',
-                                                         18: 'CR09',
-                                                         19: 'CR08',
-                                                         20: 'CR09',
-                                                         21: 'CR09',
-                                                         22: 'CR05',
-                                                         23: 'CR05',
-                                                         24: 'CR10',
-                                                         25: 'CR10',
-                                                         26: 'CR11',
-                                                         27: 'CR06',
-                                                         })
+                                                        10: 'CR02',
+                                                        11: 'CR08',
+                                                        12: 'CR08',
+                                                        13: 'CR08',
+                                                        14: 'CR08',
+                                                        15: 'CR09',
+                                                        16: 'CR09',
+                                                        17: 'CR09',
+                                                        18: 'CR09',
+                                                        19: 'CR08',
+                                                        20: 'CR09',
+                                                        21: 'CR09',
+                                                        22: 'CR05',
+                                                        23: 'CR05',
+                                                        24: 'CR10',
+                                                        25: 'CR10',
+                                                        26: 'CR11',
+                                                        27: 'CR06'})
     # Split out Kentucky and put in 8:
     df.loc[(df['REPORTABLE_DOMAIN'] == 18) & (df['AIA_Zone'] == 3), ['Location Region']] = 'CR08'
     return df
@@ -106,4 +105,26 @@ def map_misc_pool(df):
     df['Misc Pool'] = df['SWIMPOOL'].map({-2: 'None',
                                            0: 'None',
                                            1: 'Has Pool'})
+    return df
+
+def map_misc_pool_heater(df):
+    df['Misc Pool Heater'] = df['FUELPOOL'].map({-2: 'None',
+                                                  1: 'Gas',
+                                                  2: 'None',
+                                                  3: 'None',
+                                                  4: 'None',
+                                                  5: 'Electric',
+                                                  8: 'Solar',
+                                                 21: 'None'})
+    return df
+
+def map_misc_hot_tub_spa(df):
+    df['Misc Hot Tub Spa'] = df['FUELTUB'].map({-2: 'None',
+                                                 1: 'Gas',
+                                                 2: 'None',
+                                                 3: 'None',
+                                                 4: 'None',
+                                                 5: 'Electric',
+                                                 8: 'None',
+                                                21: 'None'})
     return df

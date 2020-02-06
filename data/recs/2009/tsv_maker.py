@@ -53,11 +53,12 @@ class RECS2009(TSVMaker):
             geometry_wall_type, count, weight = self.groupby_and_pivot(geometry_wall_type, dependency_cols, option_col)
 
             # Add in 2010s
-            geometry_wall_type = geometry_wall_type.reset_index()
-            test_df = geometry_wall_type.loc[geometry_wall_type['Vintage'] == '2000s'].copy()
-            test_df["Vintage"] = '2010s'
-            geometry_wall_type = pd.concat([geometry_wall_type, test_df])
-            geometry_wall_type = geometry_wall_type.set_index(dependency_cols)
+            if project == 'project_multifamily_beta':
+                geometry_wall_type = geometry_wall_type.reset_index()
+                test_df = geometry_wall_type.loc[geometry_wall_type['Vintage'] == '2000s'].copy()
+                test_df["Vintage"] = '2010s'
+                geometry_wall_type = pd.concat([geometry_wall_type, test_df])
+                geometry_wall_type = geometry_wall_type.set_index(dependency_cols)
 
             geometry_wall_type = self.add_missing_dependency_rows(geometry_wall_type, project, count, weight)
             geometry_wall_type = self.rename_cols(geometry_wall_type, dependency_cols, project)
@@ -71,14 +72,65 @@ class RECS2009(TSVMaker):
     def misc_pool(self):
         df = self.df.copy()
 
-        df = parameter_option_maps.map_location_region(df)
         df = parameter_option_maps.map_geometry_building_type(df)
+        df = parameter_option_maps.map_location_region(df)
         df = parameter_option_maps.map_misc_pool(df)
 
-        dependency_cols = ['Geometry Building Type RECS', 'Location Region']
-        option_col = 'Misc Pool'
+        for project in projects:
+            dependency_cols = ['Geometry Building Type RECS', 'Location Region']
+            option_col = 'Misc Pool'
+
+            if project == 'project_testing':
+                dependency_cols.remove('Location Region')
+            
+            misc_pool = df.copy()
+
+            misc_pool, count, weight = self.groupby_and_pivot(misc_pool, dependency_cols, option_col)
+            misc_pool = self.add_missing_dependency_rows(misc_pool, project, count, weight)
+            misc_pool = self.rename_cols(misc_pool, dependency_cols, project)
+
+            filepath = os.path.normpath(os.path.join(os.path.dirname(__file__), project, '{}.tsv'.format(option_col)))
+            self.export_and_tag(misc_pool, filepath, project, created_by, source)
+            self.copy_file_to_project(filepath, project)
+
+    def misc_pool_heater(self):
+        df = self.df.copy()
+
+        df = parameter_option_maps.map_misc_pool(df)
+        df = parameter_option_maps.map_location_region(df)
+        df = parameter_option_maps.map_misc_pool_heater(df)
 
         for project in projects:
+            dependency_cols = ['Misc Pool', 'Location Region']
+            option_col = 'Misc Pool Heater'
+
+            if project == 'project_testing':
+                dependency_cols.remove('Location Region')
+
+            misc_pool = df.copy()
+
+            misc_pool, count, weight = self.groupby_and_pivot(misc_pool, dependency_cols, option_col)
+            misc_pool = self.add_missing_dependency_rows(misc_pool, project, count, weight)
+            misc_pool = self.rename_cols(misc_pool, dependency_cols, project)
+
+            filepath = os.path.normpath(os.path.join(os.path.dirname(__file__), project, '{}.tsv'.format(option_col)))
+            self.export_and_tag(misc_pool, filepath, project, created_by, source)
+            self.copy_file_to_project(filepath, project)
+
+    def misc_hot_tub_spa(self):
+        df = self.df.copy()
+
+        df = parameter_option_maps.map_geometry_building_type(df)
+        df = parameter_option_maps.map_location_region(df)
+        df = parameter_option_maps.map_misc_hot_tub_spa(df)
+
+        for project in projects:
+            dependency_cols = ['Geometry Building Type RECS', 'Location Region']
+            option_col = 'Misc Hot Tub Spa'
+
+            if project == 'project_testing':
+                dependency_cols.remove('Location Region')
+
             misc_pool = df.copy()
 
             misc_pool, count, weight = self.groupby_and_pivot(misc_pool, dependency_cols, option_col)
@@ -96,3 +148,5 @@ if __name__ == '__main__':
 
     tsv_maker.geometry_wall_type()
     tsv_maker.misc_pool()
+    tsv_maker.misc_pool_heater()
+    tsv_maker.misc_hot_tub_spa()
