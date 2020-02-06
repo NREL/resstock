@@ -5,7 +5,7 @@ Features
 
 Fixes
 - Refactor the RECS tsv makers for years 2009 and 2015 ([#382](https://github.com/NREL/OpenStudio-BuildStock/pull/382))
-- Add generation of the Misc Pool tsv file to the 2015 RECS tsv maker; this corrects having pool pumps for all homes ([#387](https://github.com/NREL/OpenStudio-BuildStock/pull/387))
+- Add generation of the Misc Pool tsv file (with Geometry Building Type and Location Region dependencies) to the 2009 RECS tsv maker; this also corrects having pool pumps for all homes ([#387](https://github.com/NREL/OpenStudio-BuildStock/pull/387))
 
 ## ResStock v2.2.0
 ###### January 30, 2020 - [Diff](https://github.com/NREL/OpenStudio-BuildStock/compare/v2.1.0...v2.2.0)
