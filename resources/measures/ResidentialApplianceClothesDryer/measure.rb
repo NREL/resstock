@@ -123,8 +123,20 @@ class ResidentialClothesDryer < OpenStudio::Measure::ModelMeasure
       space = Geometry.get_space_from_location(unit, location, location_hierarchy)
       next if space.nil?
 
+      # Get clothes washer properties
+      cw = nil
+      model.getElectricEquipments.each do |ee|
+        next if ee.name.to_s != Constants.ObjectNameClothesWasher(unit.name.to_s)
+
+        cw = ee
+      end
+      if cw.nil?
+        runner.registerInfo("Could not find clothes washer equipment for '#{unit.name}', so no clothes dryer added.")
+        next
+      end
+
       success, ann_e, ann_f, sch = ClothesDryer.apply(model, unit, runner, cef, mult, space,
-                                                      fuel_type, fuel_split, sch, schedules_file)
+                                                      fuel_type, fuel_split, cw, sch, schedules_file)
 
       if not success
         return false

@@ -516,7 +516,7 @@ class ClothesWasher
         cd_space = cd.space.get
         ClothesDryer.remove(runner, cd_space, cd_unit_obj_name, false)
         success, cd_ann_e, cd_ann_f, cd_sch = ClothesDryer.apply(model, unit, runner, cd_sch, cd_cef, cd_mult,
-                                                                 cd_space, cd_fuel_type, cd_fuel_split)
+                                                                 cd_space, cd_fuel_type, cd_fuel_split, cw)
 
         if not success
           return false
@@ -571,7 +571,7 @@ class ClothesWasher
 end
 
 class ClothesDryer
-  def self.apply(model, unit, runner, cef, mult, space, fuel_type, fuel_split, sch, schedules_file)
+  def self.apply(model, unit, runner, cef, mult, space, fuel_type, fuel_split, cw, sch, schedules_file)
     # Check for valid inputs
     if cef <= 0
       runner.registerError("Combined energy factor must be greater than 0.0.")
@@ -596,17 +596,6 @@ class ClothesDryer
     year_description = model.getYearDescription
     num_days_in_year = Constants.NumDaysInYear(year_description.isLeapYear)
 
-    # Get clothes washer properties
-    cw = nil
-    model.getElectricEquipments.each do |ee|
-      next if ee.name.to_s != Constants.ObjectNameClothesWasher(unit.name.to_s)
-
-      cw = ee
-    end
-    if cw.nil?
-      runner.registerError("Could not find clothes washer equipment.")
-      return false
-    end
     drum_volume = cw.additionalProperties.getFeatureAsDouble(Constants.ClothesWasherDrumVolume)
     imef = cw.additionalProperties.getFeatureAsDouble(Constants.ClothesWasherIMEF)
     rated_annual_energy = cw.additionalProperties.getFeatureAsDouble(Constants.ClothesWasherRatedAnnualEnergy)
