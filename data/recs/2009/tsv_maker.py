@@ -45,19 +45,20 @@ class RECS2009(TSVMaker):
         option_col = 'Geometry Wall Type'
 
         for project in projects:
-            if project != 'project_multifamily_beta':
-                continue
+            if project == 'project_singlefamily':
+                df = parameter_option_maps.map_vintage_sf(df)
 
             geometry_wall_type = df.copy()
 
             geometry_wall_type, count, weight = self.groupby_and_pivot(geometry_wall_type, dependency_cols, option_col)
 
-            # Add in 2010s
-            geometry_wall_type = geometry_wall_type.reset_index()
-            test_df = geometry_wall_type.loc[geometry_wall_type['Vintage'] == '2000s'].copy()
-            test_df["Vintage"] = '2010s'
-            geometry_wall_type = pd.concat([geometry_wall_type, test_df])
-            geometry_wall_type = geometry_wall_type.set_index(dependency_cols)
+            if project == 'project_multifamily_beta':
+                # Add in 2010s
+                geometry_wall_type = geometry_wall_type.reset_index()
+                test_df = geometry_wall_type.loc[geometry_wall_type['Vintage'] == '2000s'].copy()
+                test_df["Vintage"] = '2010s'
+                geometry_wall_type = pd.concat([geometry_wall_type, test_df])
+                geometry_wall_type = geometry_wall_type.set_index(dependency_cols)
 
             geometry_wall_type = self.add_missing_dependency_rows(geometry_wall_type, project, count, weight)
             geometry_wall_type = self.rename_cols(geometry_wall_type, dependency_cols, project)
@@ -141,7 +142,8 @@ class RECS2009(TSVMaker):
             self.copy_file_to_project(filepath, project)
 
 if __name__ == '__main__':
-    recs_filepath = 'c:/recs2009/recs2009_public.csv' # raw recs microdata
+    #recs_filepath = 'c:/recs2009/recs2009_public.csv'
+    recs_filepath = '~/Documents/Data/recs2009_public.csv' # raw recs microdata
 
     tsv_maker = RECS2009(recs_filepath)
 
