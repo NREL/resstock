@@ -191,4 +191,17 @@ class TestResStockErrors < MiniTest::Test
       flunk "Should have caused an error but didn't."
     end
   end
+
+  def test_options_lookup_multiple_measure_argument_assignments
+    begin
+      housing_characteristics_dir = "housing_characteristics_cooling_setpoint"
+      lookup_file = File.join(File.dirname(__FILE__), '..', 'resources', 'test_options_lookup.tsv')
+      integrity_check(@project_dir_name, housing_characteristics_dir, lookup_file)
+      integrity_check_options_lookup_tsv(@project_dir_name, housing_characteristics_dir, lookup_file)
+    rescue Exception => e
+      assert(e.message.include? 'ERROR: Duplicate measure argument assignment(s) across ["Cooling Setpoint", "Cooling Setpoint Offset Magnitude"] parameters. (ResidentialHVACCoolingSetpoints => ["weekday_offset_magnitude", "weekend_offset_magnitude"]) already assigned.')
+    else
+      flunk "Should have caused an error but didn't."
+    end
+  end
 end
