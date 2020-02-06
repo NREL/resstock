@@ -43,9 +43,3 @@ def map_occupants(df):
                                           11: 6,
                                           12: 6})
     return df
-
-def map_misc_pool(df):
-    df['Misc Pool'] = df['SWIMPOOL'].map({-2: 'None',
-                                           0: 'None',
-                                           1: 'Has Pool'})
-    return df

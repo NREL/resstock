@@ -101,3 +101,9 @@ def map_location_region(df):
     # Split out Kentucky and put in 8:
     df.loc[(df['REPORTABLE_DOMAIN'] == 18) & (df['AIA_Zone'] == 3), ['Location Region']] = 'CR08'
     return df
+
+def map_misc_pool(df):
+    df['Misc Pool'] = df['SWIMPOOL'].map({-2: 'None',
+                                           0: 'None',
+                                           1: 'Has Pool'})
+    return df
