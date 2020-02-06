@@ -53,12 +53,11 @@ class RECS2009(TSVMaker):
             geometry_wall_type, count, weight = self.groupby_and_pivot(geometry_wall_type, dependency_cols, option_col)
 
             # Add in 2010s
-            if project == 'project_multifamily_beta':
-                geometry_wall_type = geometry_wall_type.reset_index()
-                test_df = geometry_wall_type.loc[geometry_wall_type['Vintage'] == '2000s'].copy()
-                test_df["Vintage"] = '2010s'
-                geometry_wall_type = pd.concat([geometry_wall_type, test_df])
-                geometry_wall_type = geometry_wall_type.set_index(dependency_cols)
+            geometry_wall_type = geometry_wall_type.reset_index()
+            test_df = geometry_wall_type.loc[geometry_wall_type['Vintage'] == '2000s'].copy()
+            test_df["Vintage"] = '2010s'
+            geometry_wall_type = pd.concat([geometry_wall_type, test_df])
+            geometry_wall_type = geometry_wall_type.set_index(dependency_cols)
 
             geometry_wall_type = self.add_missing_dependency_rows(geometry_wall_type, project, count, weight)
             geometry_wall_type = self.rename_cols(geometry_wall_type, dependency_cols, project)
