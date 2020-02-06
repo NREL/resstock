@@ -12,7 +12,7 @@ parent_dir_of_this_file = os.path.basename(os.path.dirname(os.path.dirname(__fil
 created_by = os.path.join(parent_dir_of_this_file, dir_of_this_file, this_file)
 source = ' using U.S. EIA 2009 Residential Energy Consumption Survey (RECS) microdata'
 
-projects = ['project_multifamily_beta']
+projects = ['project_singlefamilydetached', 'project_multifamily_beta', 'project_testing']
 for project in projects:
     project_dir = os.path.join(os.path.dirname(__file__), project)
     if not os.path.exists(project_dir):
@@ -45,6 +45,9 @@ class RECS2009(TSVMaker):
         option_col = 'Geometry Wall Type'
 
         for project in projects:
+            if project != 'project_multifamily_beta':
+                continue
+
             geometry_wall_type = df.copy()
 
             geometry_wall_type, count, weight = self.groupby_and_pivot(geometry_wall_type, dependency_cols, option_col)
@@ -65,9 +68,31 @@ class RECS2009(TSVMaker):
 
         return geometry_wall_type
 
+    def misc_pool(self):
+        df = self.df.copy()
+
+        df = parameter_option_maps.map_location_region(df)
+        df = parameter_option_maps.map_geometry_building_type(df)
+        df = parameter_option_maps.map_misc_pool(df)
+
+        dependency_cols = ['Geometry Building Type RECS', 'Location Region']
+        option_col = 'Misc Pool'
+
+        for project in projects:
+            misc_pool = df.copy()
+
+            misc_pool, count, weight = self.groupby_and_pivot(misc_pool, dependency_cols, option_col)
+            misc_pool = self.add_missing_dependency_rows(misc_pool, project, count, weight)
+            misc_pool = self.rename_cols(misc_pool, dependency_cols, project)
+
+            filepath = os.path.normpath(os.path.join(os.path.dirname(__file__), project, '{}.tsv'.format(option_col)))
+            self.export_and_tag(misc_pool, filepath, project, created_by, source)
+            self.copy_file_to_project(filepath, project)
+
 if __name__ == '__main__':
     recs_filepath = 'c:/recs2009/recs2009_public.csv' # raw recs microdata
 
     tsv_maker = RECS2009(recs_filepath)
 
     tsv_maker.geometry_wall_type()
+    tsv_maker.misc_pool()
