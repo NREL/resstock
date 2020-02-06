@@ -560,14 +560,14 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     elsif corridor_position == "Double Exterior" or corridor_position == "Single Exterior (Front)"
       interior_corridor_width = 0
       # front access
-      nw_point = OpenStudio::Point3d.new(0, -y, wall_height)
-      sw_point = OpenStudio::Point3d.new(0, -y - corridor_width, wall_height)
-      ne_point = OpenStudio::Point3d.new(x, -y, wall_height)
-      se_point = OpenStudio::Point3d.new(x, -y - corridor_width, wall_height)
-      # nw_point = OpenStudio::Point3d.new(-x, -y, wall_height+z)
-      # sw_point = OpenStudio::Point3d.new(-x, -y - corridor_width, wall_height+z)
-      # ne_point = OpenStudio::Point3d.new(2*x, -y, wall_height+z)
-      # se_point = OpenStudio::Point3d.new(2*x, -y - corridor_width, wall_height+z)
+      # nw_point = OpenStudio::Point3d.new(0, -y, wall_height)
+      # sw_point = OpenStudio::Point3d.new(0, -y - corridor_width, wall_height)
+      # ne_point = OpenStudio::Point3d.new(x, -y, wall_height)
+      # se_point = OpenStudio::Point3d.new(x, -y - corridor_width, wall_height)
+      nw_point = OpenStudio::Point3d.new(0, -y, wall_height+z)
+      sw_point = OpenStudio::Point3d.new(0, -y - corridor_width, wall_height+z)
+      ne_point = OpenStudio::Point3d.new(x, -y, wall_height+z)
+      se_point = OpenStudio::Point3d.new(x, -y - corridor_width, wall_height+z)
 
       shading_surface = OpenStudio::Model::ShadingSurface.new(OpenStudio::Point3dVector.new([sw_point, se_point, ne_point, nw_point]), model)
       shading_surface_group = OpenStudio::Model::ShadingSurfaceGroup.new(model)
