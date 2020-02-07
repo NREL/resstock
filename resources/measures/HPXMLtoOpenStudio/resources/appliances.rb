@@ -443,11 +443,13 @@ class ClothesWasher
       max_flow = model.getBuilding.additionalProperties.getFeatureAsDouble("Clothes Washer Max Flow Rate")
       if not max_flow.is_initialized
         max_flow = 5.0354
+        tot_flow = 4.556512329
       else
         max_flow = max_flow.get
+        tot_flow = total_daily_water_use
       end
-      design_level = schedules_file.calcDesignLevelFromDailykWh(col_name: col_name, daily_kwh: daily_energy, per_day: total_daily_water_use, per_min: max_flow)
-      peak_flow = max_flow
+      design_level = schedules_file.calcDesignLevelFromDailykWh(daily_kwh: daily_energy, tot_flow: tot_flow, max_flow: max_flow)
+      peak_flow = schedules_file.calcPeakFlowFromDailygpm(daily_water: total_daily_water_use, tot_flow: tot_flow, max_flow: max_flow)
 
       # Add equipment for the cw
       cw_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
@@ -514,8 +516,8 @@ class ClothesWasher
         # Update clothes dryer
         cd_space = cd.space.get
         ClothesDryer.remove(runner, cd_space, cd_unit_obj_name, false)
-        success, cd_ann_e, cd_ann_f, cd_sch = ClothesDryer.apply(model, unit, runner, cd_sch, cd_cef, cd_mult,
-                                                                 cd_space, cd_fuel_type, cd_fuel_split, cw)
+        success, cd_ann_e, cd_ann_f, cd_sch = ClothesDryer.apply(model, unit, runner, cd_cef, cd_mult, cd_space,
+                                                              cd_fuel_type, cd_fuel_split, cw, cd_sch, schedules_file)
 
         if not success
           return false
@@ -1192,11 +1194,13 @@ class Dishwasher
       max_flow = model.getBuilding.additionalProperties.getFeatureAsDouble("Dishwasher Max Flow Rate")
       if not max_flow.is_initialized
         max_flow = 2.8186
+        tot_flow = 4.402717808
       else
         max_flow = max_flow.get
+        tot_flow = daily_water
       end
-      design_level = schedules_file.calcDesignLevelFromDailykWh(col_name: col_name, daily_kwh: daily_energy, per_day: daily_water, per_min: max_flow)
-      peak_flow = max_flow
+      design_level = schedules_file.calcDesignLevelFromDailykWh(daily_kwh: daily_energy, tot_flow: tot_flow, max_flow: max_flow)
+      peak_flow = schedules_file.calcPeakFlowFromDailygpm(daily_water: daily_water, tot_flow: tot_flow, max_flow: max_flow)
 
       # Add electric equipment for the dw
       dw_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)

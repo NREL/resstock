@@ -1332,25 +1332,32 @@ class SchedulesFile
     return design_level
   end
 
-  def calcDesignLevelFromDailykWh(col_name:,
-                                  daily_kwh:,
-                                  per_day:,
-                                  per_min:)
+  def calcDesignLevelFromDailykWh(daily_kwh:,
+                                  tot_flow:,
+                                  max_flow:)
 
-    design_level = UnitConversions.convert(daily_kwh * 60 / (per_day / per_min), "kW", "W")
+    design_level = UnitConversions.convert(daily_kwh * 60 / (tot_flow / max_flow), "kW", "W")
 
     return design_level
   end
 
-  def calcDesignLevelFromDailyTherm(col_name:,
-                                    daily_therm:,
-                                    per_day:,
-                                    per_min:)
+  def calcDesignLevelFromDailyTherm(daily_therm:,
+                                    tot_flow:,
+                                    max_flow:)
 
     daily_kwh = UnitConversions.convert(daily_therm, "therm", "kWh")
-    design_level = calcDesignLevelFromDailykWh(col_name: col_name, daily_kwh: daily_kwh, per_day: per_day, per_min: per_min)
+    design_level = calcDesignLevelFromDailykWh(daily_kwh: daily_kwh, tot_flow: tot_flow, max_flow: max_flow)
 
     return design_level
+  end
+
+  def calcPeakFlowFromDailygpm(daily_water:,
+                               tot_flow:,
+                               max_flow:)
+
+    peak_flow = UnitConversions.convert(max_flow * daily_water / tot_flow, "gal/min", "m^3/s")
+
+    return peak_flow
   end
 
   def validateSchedule(col_name:,
