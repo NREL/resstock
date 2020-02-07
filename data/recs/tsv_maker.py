@@ -57,7 +57,10 @@ class TSVMaker:
         Returns:
           df (dataframe): A pandas dataframe updated with missing dependency rows, source sample sizes, and source weights.
         """
-        levels = df.index.levels
+        try:
+          levels = df.index.levels # MultiIndex
+        except:
+          levels = [df.index] # Index
         names = df.index.names
         option_cols = df.columns.values
         df = df.reset_index()
@@ -66,6 +69,8 @@ class TSVMaker:
             df = df[0: 0]
 
         for group in itertools.product(*levels):
+            if len(group) == 1 and not 'testing' in project:
+                group = group[0]
             if not group in list(df.groupby(names).groups):
                 data = dict(zip(names, group))
                 data.update(dict(zip(option_cols, [1.0 / len(option_cols)] * len(option_cols))))
@@ -91,8 +96,9 @@ class TSVMaker:
             df = df.rename(columns={dependency_col: new_dependency_col})
             new_dependency_cols.append(new_dependency_col)
 
-        if 'singlefamilydetached' in project:
-            df = df[df['Dependency=Geometry Building Type RECS']=='Single-Family Detached']
+        if project == 'project_singlefamilydetached':
+            if 'Dependency=Geometry Building Type RECS' in df.columns:
+                df = df[df['Dependency=Geometry Building Type RECS']=='Single-Family Detached']
 
         df = df.set_index(new_dependency_cols)
         for col in list(df.columns.values):
