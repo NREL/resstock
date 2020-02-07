@@ -17,7 +17,7 @@ class TSVMaker:
     def weight_col_label(self):
       return 'sample_weight'
 
-    def groupby_and_pivot(self, df, dependency_cols, option_col, project):
+    def groupby_and_pivot(self, df, dependency_cols, option_col):
         """
         Subset the dataframe to columns of interest. Pivot the table, row sum the source weights, and divide each element by its row sum.
         Parameters:
@@ -95,9 +95,10 @@ class TSVMaker:
             new_dependency_col = 'Dependency={}'.format(dependency_col)
             df = df.rename(columns={dependency_col: new_dependency_col})
             new_dependency_cols.append(new_dependency_col)
-            if project == 'project_singlefamilydetached':
-                if 'Dependency=Geometry Building Type RECS' in df.columns:
-                    df = df[df['Dependency=Geometry Building Type RECS']=='Single-Family Detached']
+
+        if project == 'project_singlefamilydetached':
+            if 'Dependency=Geometry Building Type RECS' in df.columns:
+                df = df[df['Dependency=Geometry Building Type RECS']=='Single-Family Detached']
 
         df = df.set_index(new_dependency_cols)
         for col in list(df.columns.values):
