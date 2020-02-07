@@ -1,4 +1,5 @@
-## ResStock v2.2.1 (pending)
+## ResStock v2.2.1
+###### February 7, 2020 - [Diff](https://github.com/NREL/OpenStudio-BuildStock/compare/v2.2.0...v2.2.1)
 
 Features
 - Update the multifamily project with a Geometry Wall Type tsv file for sampling between wood stud and masonry walls ([#382](https://github.com/NREL/OpenStudio-BuildStock/pull/382))
