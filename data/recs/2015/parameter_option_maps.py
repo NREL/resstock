@@ -26,7 +26,7 @@ def map_bedrooms(df):
                                          7: 5,
                                          8: 5,
                                          9: 5,
-                                         10: 5})
+                                        10: 5})
     return df
 
 def map_occupants(df):
@@ -39,7 +39,7 @@ def map_occupants(df):
                                           7: 6,
                                           8: 6,
                                           9: 6,
-                                          10: 6,
-                                          11: 6,
-                                          12: 6})
+                                         10: 6,
+                                         11: 6,
+                                         12: 6})
     return df

@@ -1,16 +1,18 @@
-## ResStock v2.3.0 (pending)
+## ResStock v2.2.1 (pending)
 
 Features
 - Update the multifamily project with a Geometry Wall Type tsv file for sampling between wood stud and masonry walls ([#382](https://github.com/NREL/OpenStudio-BuildStock/pull/382))
 
 Fixes
+- Add generation of the Geometry Wall Type tsv file for the single-family detached project to the 2009 RECS tsv maker; this corrects the tsv file ([#387](https://github.com/NREL/OpenStudio-BuildStock/pull/387))
+- Add generation of the Misc Pool tsv file (with Geometry Building Type and Location Region dependencies) to the 2009 RECS tsv maker; this also corrects having pool pumps for all homes ([#387](https://github.com/NREL/OpenStudio-BuildStock/pull/387))
 - Refactor the RECS tsv makers for years 2009 and 2015 ([#382](https://github.com/NREL/OpenStudio-BuildStock/pull/382))
 
 ## ResStock v2.2.0
 ###### January 30, 2020 - [Diff](https://github.com/NREL/OpenStudio-BuildStock/compare/v2.1.0...v2.2.0)
 
 Features
-- The results csv now optionally reports anunal totals for all end use subcategories, including appliances, plug loads, etc. ([#371](https://github.com/NREL/OpenStudio-BuildStock/pull/371))
+- The results csv now optionally reports annual totals for all end use subcategories, including appliances, plug loads, etc. ([#371](https://github.com/NREL/OpenStudio-BuildStock/pull/371))
 - Split out national average options so not all homes have all miscellaneous equipment, and add none options to appliances ([#362](https://github.com/NREL/OpenStudio-BuildStock/pull/362))
 - Update the single-family detached project with a Geometry Wall Type tsv file for sampling between wood stud and masonry walls ([#357](https://github.com/NREL/OpenStudio-BuildStock/pull/357))
 - Made housing characteristics a consistent format. Added integrity check to ensure housing characteristics follow the guildelines specified in read-the-docs ([#353](https://github.com/NREL/OpenStudio-BuildStock/pull/353))
