@@ -217,11 +217,13 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
         sh_max_flow = model.getBuilding.additionalProperties.getFeatureAsDouble("Shower Max Flow Rate")
         if not sh_max_flow.is_initialized
           sh_max_flow = 4.079
+          sh_tot_flow = 26.24088767
         else
           sh_max_flow = sh_max_flow.get
+          sh_tot_flow = sh_gpd
         end
-        sh_peak_flow = sh_max_flow
-        sh_design_level = schedules_file.calcDesignLevelFromAnnualkWh(col_name: col_name, annual_kwh: sh_tot_load * num_days_in_year)
+        sh_peak_flow = schedules_file.calcPeakFlowFromDailygpm(daily_water: sh_gpd, tot_flow: sh_tot_flow, max_flow: sh_max_flow)
+        sh_design_level = schedules_file.calcDesignLevelFromDailykWh(daily_kwh: sh_tot_load, tot_flow: sh_tot_flow, max_flow: sh_max_flow)
 
         # Add water use equipment objects
         sh_wu_def = OpenStudio::Model::WaterUseEquipmentDefinition.new(model)
@@ -282,11 +284,13 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
         s_max_flow = model.getBuilding.additionalProperties.getFeatureAsDouble("Sink Max Flow Rate")
         if not s_max_flow.is_initialized
           s_max_flow = 3.2739
+          s_tot_flow = 24.29216986
         else
           s_max_flow = s_max_flow.get
+          s_tot_flow = s_gpd
         end
-        s_peak_flow = s_max_flow
-        s_design_level = schedules_file.calcDesignLevelFromAnnualkWh(col_name: col_name, annual_kwh: s_tot_load * num_days_in_year)
+        s_peak_flow = schedules_file.calcPeakFlowFromDailygpm(daily_water: s_gpd, tot_flow: s_tot_flow, max_flow: s_max_flow)
+        s_design_level = schedules_file.calcDesignLevelFromDailykWh(daily_kwh: s_tot_load, tot_flow: s_tot_flow, max_flow: s_max_flow)
 
         # Add water use equipment objects
         s_wu_def = OpenStudio::Model::WaterUseEquipmentDefinition.new(model)
@@ -327,11 +331,13 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
         b_max_flow = model.getBuilding.additionalProperties.getFeatureAsDouble("Bath Max Flow Rate")
         if not b_max_flow.is_initialized
           b_max_flow = 7.0312
+          b_tot_flow = 7.238115068
         else
           b_max_flow = b_max_flow.get
+          b_tot_flow = b_gpd
         end
-        b_peak_flow = b_max_flow
-        b_design_level = schedules_file.calcDesignLevelFromAnnualkWh(col_name: col_name, annual_kwh: b_tot_load * num_days_in_year)
+        b_peak_flow = schedules_file.calcPeakFlowFromDailygpm(daily_water: b_gpd, tot_flow: b_tot_flow, max_flow: b_max_flow)
+        b_design_level = schedules_file.calcDesignLevelFromDailykWh(daily_kwh: b_tot_load, tot_flow: b_tot_flow, max_flow: b_max_flow)
 
         # Add water use equipment objects
         b_wu_def = OpenStudio::Model::WaterUseEquipmentDefinition.new(model)
