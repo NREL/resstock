@@ -1,3 +1,11 @@
+## ResStock v2.3.0 (pending)
+
+Features
+- Remove the single-family detached project and rename the multifamily project to "project_national_beta" ([#389](https://github.com/NREL/OpenStudio-BuildStock/pull/389))
+
+Fixes
+- Update documentation and each PAT project's AMI selection to "2.9.1" ([#389](https://github.com/NREL/OpenStudio-BuildStock/pull/389))
+
 ## ResStock v2.2.1
 ###### February 7, 2020 - [Diff](https://github.com/NREL/OpenStudio-BuildStock/compare/v2.2.0...v2.2.1)
 
