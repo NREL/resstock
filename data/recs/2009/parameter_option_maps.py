@@ -69,7 +69,7 @@ def map_vintage(df):
     df.loc[(df['YEARMADERANGE'] == 1) & (df['YEARMADE'] < 1940), ['Vintage']] = '<1940'
     return df
 
-def map_vintage_sf(df):
+def map_vintage_sfd(df):
     df['Vintage'] = df['YEARMADERANGE'].map({1: '<1950s',
                                              2: '1950s',
                                              3: '1960s',
