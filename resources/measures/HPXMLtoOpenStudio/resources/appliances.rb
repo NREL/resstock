@@ -517,7 +517,7 @@ class ClothesWasher
         cd_space = cd.space.get
         ClothesDryer.remove(runner, cd_space, cd_unit_obj_name, false)
         success, cd_ann_e, cd_ann_f, cd_sch = ClothesDryer.apply(model, unit, runner, cd_cef, cd_mult, cd_space,
-                                                              cd_fuel_type, cd_fuel_split, cw, cd_sch, schedules_file)
+                                                                 cd_fuel_type, cd_fuel_split, cw, cd_sch, schedules_file)
 
         if not success
           return false
