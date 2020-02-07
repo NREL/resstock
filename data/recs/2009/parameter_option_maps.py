@@ -69,17 +69,6 @@ def map_vintage(df):
     df.loc[(df['YEARMADERANGE'] == 1) & (df['YEARMADE'] < 1940), ['Vintage']] = '<1940'
     return df
 
-def map_vintage_sfd(df):
-    df['Vintage'] = df['YEARMADERANGE'].map({1: '<1950s',
-                                             2: '1950s',
-                                             3: '1960s',
-                                             4: '1970s',
-                                             5: '1980s',
-                                             6: '1990s',
-                                             7: '2000s',
-                                             8: '2000s'})
-    return df
-
 def map_location_region(df):
     df['Location Region'] = df['REPORTABLE_DOMAIN'].map({1: 'CR03',
                                                          2: 'CR03',

@@ -12,7 +12,7 @@ parent_dir_of_this_file = os.path.basename(os.path.dirname(os.path.dirname(__fil
 created_by = os.path.join(parent_dir_of_this_file, dir_of_this_file, this_file)
 source = ' using U.S. EIA 2015 Residential Energy Consumption Survey (RECS) microdata'
 
-projects = ['project_singlefamilydetached', 'project_multifamily_beta', 'project_testing']
+projects = ['project_national_beta', 'project_testing']
 for project in projects:
     project_dir = os.path.join(os.path.dirname(__file__), project)
     if not os.path.exists(project_dir):
@@ -49,7 +49,7 @@ class RECS2015(TSVMaker):
 
             bedrooms, count, weight = self.groupby_and_pivot(bedrooms, dependency_cols, option_col)
             bedrooms = self.add_missing_dependency_rows(bedrooms, project, count, weight)
-            bedrooms = self.rename_cols(bedrooms, dependency_cols, project)
+            bedrooms = self.rename_cols(bedrooms, dependency_cols)
 
             filepath = os.path.normpath(os.path.join(os.path.dirname(__file__), project, '{}.tsv'.format(option_col)))
             self.export_and_tag(bedrooms, filepath, project, created_by, source)
@@ -70,7 +70,7 @@ class RECS2015(TSVMaker):
 
             occupants, count, weight = self.groupby_and_pivot(occupants, dependency_cols, option_col)
             occupants = self.add_missing_dependency_rows(occupants, project, count, weight)
-            occupants = self.rename_cols(occupants, dependency_cols, project)
+            occupants = self.rename_cols(occupants, dependency_cols)
 
             filepath = os.path.normpath(os.path.join(os.path.dirname(__file__), project, '{}.tsv'.format(option_col)))
             self.export_and_tag(occupants, filepath, project, created_by, source)

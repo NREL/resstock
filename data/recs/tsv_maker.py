@@ -80,13 +80,12 @@ class TSVMaker:
         df = df.fillna(0)
         return df
 
-    def rename_cols(self, df, dependency_cols, project):
+    def rename_cols(self, df, dependency_cols):
         """
         Prepend 'Dependency=' to dependency columns and 'Option=' to option columns. Sort by levels in order of dependencies from left to right.
         Parameters:
           df (dataframe): A pandas dataframe with dependency/option columns and fractions.
           dependency_cols (list): A list of the dependency column names.
-          project (str): Name of the project.
         Returns:
           df (dataframe): A pandas dataframe with updated dependency/column names.
         """
@@ -95,10 +94,6 @@ class TSVMaker:
             new_dependency_col = 'Dependency={}'.format(dependency_col)
             df = df.rename(columns={dependency_col: new_dependency_col})
             new_dependency_cols.append(new_dependency_col)
-
-        if project == 'project_singlefamilydetached':
-            if 'Dependency=Geometry Building Type RECS' in df.columns:
-                df = df[df['Dependency=Geometry Building Type RECS']=='Single-Family Detached']
 
         df = df.set_index(new_dependency_cols)
         for col in list(df.columns.values):

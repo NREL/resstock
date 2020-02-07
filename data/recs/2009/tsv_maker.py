@@ -12,7 +12,7 @@ parent_dir_of_this_file = os.path.basename(os.path.dirname(os.path.dirname(__fil
 created_by = os.path.join(parent_dir_of_this_file, dir_of_this_file, this_file)
 source = ' using U.S. EIA 2009 Residential Energy Consumption Survey (RECS) microdata'
 
-projects = ['project_singlefamilydetached', 'project_multifamily_beta', 'project_testing']
+projects = ['project_national_beta', 'project_testing']
 for project in projects:
     project_dir = os.path.join(os.path.dirname(__file__), project)
     if not os.path.exists(project_dir):
@@ -52,7 +52,7 @@ class RECS2009(TSVMaker):
 
             geometry_wall_type, count, weight = self.groupby_and_pivot(geometry_wall_type, dependency_cols, option_col)
             geometry_wall_type = self.add_missing_dependency_rows(geometry_wall_type, project, count, weight)
-            geometry_wall_type = self.rename_cols(geometry_wall_type, dependency_cols, project)
+            geometry_wall_type = self.rename_cols(geometry_wall_type, dependency_cols)
 
             filepath = os.path.normpath(os.path.join(os.path.dirname(__file__), project, '{}.tsv'.format(option_col)))
             self.export_and_tag(geometry_wall_type, filepath, project, created_by, source)
@@ -78,7 +78,7 @@ class RECS2009(TSVMaker):
 
             misc_pool, count, weight = self.groupby_and_pivot(misc_pool, dependency_cols, option_col)
             misc_pool = self.add_missing_dependency_rows(misc_pool, project, count, weight)
-            misc_pool = self.rename_cols(misc_pool, dependency_cols, project)
+            misc_pool = self.rename_cols(misc_pool, dependency_cols)
 
             filepath = os.path.normpath(os.path.join(os.path.dirname(__file__), project, '{}.tsv'.format(option_col)))
             self.export_and_tag(misc_pool, filepath, project, created_by, source)
@@ -102,7 +102,7 @@ class RECS2009(TSVMaker):
 
             misc_pool, count, weight = self.groupby_and_pivot(misc_pool, dependency_cols, option_col)
             misc_pool = self.add_missing_dependency_rows(misc_pool, project, count, weight)
-            misc_pool = self.rename_cols(misc_pool, dependency_cols, project)
+            misc_pool = self.rename_cols(misc_pool, dependency_cols)
 
             filepath = os.path.normpath(os.path.join(os.path.dirname(__file__), project, '{}.tsv'.format(option_col)))
             self.export_and_tag(misc_pool, filepath, project, created_by, source)
@@ -126,7 +126,7 @@ class RECS2009(TSVMaker):
 
             misc_pool, count, weight = self.groupby_and_pivot(misc_pool, dependency_cols, option_col)
             misc_pool = self.add_missing_dependency_rows(misc_pool, project, count, weight)
-            misc_pool = self.rename_cols(misc_pool, dependency_cols, project)
+            misc_pool = self.rename_cols(misc_pool, dependency_cols)
 
             filepath = os.path.normpath(os.path.join(os.path.dirname(__file__), project, '{}.tsv'.format(option_col)))
             self.export_and_tag(misc_pool, filepath, project, created_by, source)
