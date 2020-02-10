@@ -96,11 +96,17 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
     appl_winter_peak.setDefaultValue("0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0")
     args << appl_winter_peak
 
-    appl_winter_take = OpenStudio::Measure::OSArgument::makeStringArgument("appl_winter_take", false)
-    appl_winter_take.setDisplayName("Hours for the winter during which the load is low")
-    appl_winter_take.setDescription("Period for the winter months in 24-hour format a-b,c-d inclusive all hours, when the load is low") # ##fix
-    appl_winter_take.setDefaultValue("0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0") # 10-14
-    args << appl_winter_take
+    appl_winter_take_1 = OpenStudio::Measure::OSArgument::makeStringArgument("appl_winter_take_1", false)
+    appl_winter_take_1.setDisplayName("Hours for the winter during which the load is low")
+    appl_winter_take_1.setDescription("Period for the winter months in 24-hour format a-b,c-d inclusive all hours, when the load is low") # ##fix
+    appl_winter_take_1.setDefaultValue("0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0")
+    args << appl_winter_take_1
+
+    appl_winter_take_2 = OpenStudio::Measure::OSArgument::makeStringArgument("appl_winter_take_2", false)
+    appl_winter_take_2.setDisplayName("Hours for the winter during which the load is low")
+    appl_winter_take_2.setDescription("Period for the winter months in 24-hour format a-b,c-d inclusive all hours, when the load is low") # ##fix
+    appl_winter_take_2.setDefaultValue("0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0") 
+    args << appl_winter_take_2
 
     appl_summer_season = OpenStudio::Measure::OSArgument::makeStringArgument("appl_summer_season", false)
     appl_summer_season.setDisplayName("Which months count as summer")
@@ -182,7 +188,8 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
     appl_summer_peak = runner.getStringArgumentValue("appl_summer_peak", user_arguments)
     appl_summer_take = runner.getStringArgumentValue("appl_summer_take", user_arguments)
     appl_winter_peak = runner.getStringArgumentValue("appl_winter_peak", user_arguments)
-    appl_winter_take = runner.getStringArgumentValue("appl_winter_take", user_arguments)
+    appl_winter_take_1 = runner.getStringArgumentValue("appl_winter_take_1", user_arguments)
+    appl_winter_take_2 = runner.getStringArgumentValue("appl_winter_take_2", user_arguments)
     appl_summer_season = runner.getStringArgumentValue("appl_summer_season", user_arguments)
     appl_winter_season = runner.getStringArgumentValue("appl_winter_season", user_arguments)
     shift_CW = runner.getBoolArgumentValue("shift_CW", user_arguments)
@@ -196,7 +203,8 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
     appl_summer_peak = appl_summer_peak.split(",").map(&:to_f)
     appl_summer_take = appl_summer_take.split(",").map(&:to_f)
     appl_winter_peak = appl_winter_peak.split(",").map(&:to_f)
-    appl_winter_take = appl_winter_take.split(",").map(&:to_f)
+    appl_winter_take_1 = appl_winter_take_1.split(",").map(&:to_f)
+    appl_winter_take_2 = appl_winter_take_2.split(",").map(&:to_f)
     appl_summer_season = appl_summer_season.split(",").map(&:to_f)
     appl_winter_season = appl_winter_season.split(",").map(&:to_f)
 
@@ -584,7 +592,8 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
     summer_peak_hours = get_array_of_intervals(appl_summer_peak)
     winter_peak_hours = get_array_of_intervals(appl_winter_peak)
     summer_take_hours = get_array_of_intervals(appl_summer_take)
-    winter_take_hours = get_array_of_intervals(appl_winter_take)
+    winter_take_hours_1 = get_array_of_intervals(appl_winter_take_1)
+    winter_take_hours_2 = get_array_of_intervals(appl_winter_take_2)
     summer_months = get_month_list(appl_summer_season)
     winter_months = get_month_list(appl_winter_season)
 
@@ -684,7 +693,7 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
                     take_hour = []
                   else
                     fractions = [0, 1]
-                    take_hour = winter_take_hours[0] # use only the first take_hour if a list is provided.
+                    take_hour = winter_take_hours_1[0] # use only the first take_hour if a list is provided.
                   end
                   winter_sch = avoid_peaks(day_sch, winter_peak_hours, model, take_hour, true, fractions)
                   winter_rule = OpenStudio::Model::ScheduleRule.new(new_schedule, winter_sch)
