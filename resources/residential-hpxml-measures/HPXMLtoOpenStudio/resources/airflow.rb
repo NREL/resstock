@@ -866,7 +866,8 @@ class Airflow
     nv_and_whf_program.addLine("Set Tnvsp = #{nv_sp_sensor.name}")
     nv_and_whf_program.addLine("Set NVavail = #{nv_avail_sensor.name}")
     nv_and_whf_program.addLine("Set WHFavail = #{whf_avail_sensor.name}")
-    nv_and_whf_program.addLine("If (Wout < MaxHR) && (Phiout < MaxRH) && (Tin > Tout) && (Tin > Tnvsp)")
+    nv_and_whf_program.addLine("Set ClgSsnAvail = #{nat_vent.clg_ssn_sensor.name}")
+    nv_and_whf_program.addLine("If (Wout < MaxHR) && (Phiout < MaxRH) && (Tin > Tout) && (Tin > Tnvsp) && (ClgSsnAvail > 0)")
     nv_and_whf_program.addLine("  Set WHF_Flow = #{UnitConversions.convert(whf.cfm, "cfm", "m^3/s")}")
     nv_and_whf_program.addLine("  Set Adj = (Tin-Tnvsp)/(Tin-Tout)")
     nv_and_whf_program.addLine("  Set Adj = (@Min Adj 1)")
@@ -1887,7 +1888,7 @@ end
 
 class NaturalVentilation
   def initialize(frac_windows_open, frac_window_area_openable, max_oa_hr, max_oa_rh, nv_num_days_per_week,
-                 htg_weekday_setpoints, htg_weekend_setpoints, clg_weekday_setpoints, clg_weekend_setpoints)
+                 htg_weekday_setpoints, htg_weekend_setpoints, clg_weekday_setpoints, clg_weekend_setpoints, clg_ssn_sensor)
     @frac_windows_open = frac_windows_open
     @frac_window_area_openable = frac_window_area_openable
     @max_oa_hr = max_oa_hr
@@ -1897,9 +1898,10 @@ class NaturalVentilation
     @htg_weekend_setpoints = htg_weekend_setpoints
     @clg_weekday_setpoints = clg_weekday_setpoints
     @clg_weekend_setpoints = clg_weekend_setpoints
+    @clg_ssn_sensor = clg_ssn_sensor
   end
   attr_accessor(:frac_windows_open, :frac_window_area_openable, :max_oa_hr, :max_oa_rh, :nv_num_days_per_week,
-                :htg_weekday_setpoints, :htg_weekend_setpoints, :clg_weekday_setpoints, :clg_weekend_setpoints)
+                :htg_weekday_setpoints, :htg_weekend_setpoints, :clg_weekday_setpoints, :clg_weekend_setpoints, :clg_ssn_sensor)
 end
 
 class WholeHouseFan
