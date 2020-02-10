@@ -137,7 +137,6 @@ def integrity_check(project_dir_name, housing_characteristics_dir = "housing_cha
     err = ""
     last_size = parameters_processed.size
     parameter_names.each do |parameter_name|
-
       # Already processed? Skip
       next if parameters_processed.include?(parameter_name)
 
@@ -559,8 +558,10 @@ def generate_example_osws(data_hash, include_args, osw_filename, simplify = true
         end
       end
 
-      include_args[measure].each do |arg_name, arg_value|
-        step.setArgument(arg_name, arg_value)
+      if include_args.keys.include? measure
+        include_args[measure].each do |arg_name, arg_value|
+          step.setArgument(arg_name, arg_value)
+        end
       end
 
       # Push step in Steps

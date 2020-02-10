@@ -80,6 +80,7 @@
         "has_lighting": "true",
         "has_oven": "true",
         "has_refrigerator": "true",
+        "has_whole_house_fan": "false",
         "heat_pump_backup_fuel": "none",
         "heat_pump_backup_heating_capacity": "autosize",
         "heat_pump_backup_heating_efficiency": "1",
@@ -97,7 +98,7 @@
         "horizontal_location": "Left",
         "hot_water_distribution_pipe_r_value": "0",
         "hot_water_distribution_system_type": "Standard",
-        "hpxml_path": "C:/OpenStudio/OpenStudio-BuildStock-master/workflows/run/in.xml",
+        "hpxml_path": "C:/OpenStudio/OpenStudio-BuildStock/workflows/run/in.xml",
         "hvac_control_type": "manual thermostat",
         "hvac_distribution_system_type_dse": "false",
         "inset_depth": "0",
@@ -180,7 +181,7 @@
         "roof_solar_absorptance": "0.7",
         "roof_structure": "truss, cantilever",
         "roof_type": "gable",
-        "schedules_output_path": "C:/OpenStudio/OpenStudio-BuildStock-master/workflows/run/schedules.csv",
+        "schedules_output_path": "C:/OpenStudio/OpenStudio-BuildStock/workflows/run/schedules.csv",
         "shelter_coefficient": "auto",
         "shower_low_flow": "false",
         "sink_low_flow": "false",
@@ -244,6 +245,8 @@
         "water_heater_uses_desuperheater_1": "false",
         "water_heater_uses_desuperheater_2": "false",
         "weather_station_epw_filename": "0465925_US_CO_Boulder_8013_0-20000-0-72469_40.13_-105.22_NSRDB_2.0.1_AMY_2014.epw",
+        "whole_house_fan_power": "300",
+        "whole_house_fan_rated_flow_rate": "4500",
         "window_aspect_ratio": "1.333",
         "window_shgc": "0.3",
         "window_ufactor": "0.37",
@@ -256,10 +259,21 @@
     },
     {
       "arguments": {
-        "hpxml_path": "C:/OpenStudio/OpenStudio-BuildStock-master/workflows/run/in.xml",
-        "weather_dir": "C:/OpenStudio/OpenStudio-BuildStock-master/weather"
+        "hpxml_path": "C:/OpenStudio/OpenStudio-BuildStock/workflows/run/in.xml",
+        "weather_dir": "C:/OpenStudio/OpenStudio-BuildStock/weather"
       },
       "measure_dir_name": "HPXMLtoOpenStudio"
+    },
+    {
+      "arguments": {
+        "include_timeseries_component_loads": "false",
+        "include_timeseries_end_use_consumptions": "false",
+        "include_timeseries_fuel_consumptions": "false",
+        "include_timeseries_total_loads": "false",
+        "include_timeseries_zone_temperatures": "false",
+        "timeseries_frequency": "hourly"
+      },
+      "measure_dir_name": "SimulationOutputReport"
     }
   ]
 }
