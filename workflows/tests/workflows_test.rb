@@ -13,7 +13,7 @@ class WorkflowTest < MiniTest::Test
     Dir["#{parent_dir}/*.osw"].each do |osw|
       next if File.basename(osw).include? "out"
 
-      # add_simulation_output_report(osw) # FIXME
+      add_simulation_output_report(osw)
       lib_dir = create_lib_folder(parent_dir)
       all_results << run_and_check(osw, parent_dir)
     end
@@ -27,7 +27,7 @@ class WorkflowTest < MiniTest::Test
 
   def add_simulation_output_report(osw)
     json = JSON.parse(File.read(osw))
-    simulation_output_report = { "arguments": { "include_enduse_subcategories": true }, "measure_dir_name": "SimulationOutputReport" }
+    simulation_output_report = { "measure_dir_name": "SimulationOutputReport" }
     json["steps"] << simulation_output_report
 
     File.open(osw, "w") do |f|
@@ -62,7 +62,7 @@ class WorkflowTest < MiniTest::Test
 
     data_point_out = File.join(parent_dir, "run", "data_point_out.json")
     result = { "OSW" => File.basename(in_osw) }
-    # result = get_simulation_output_report(result, data_point_out) # FIXME
+    result = get_simulation_output_report(result, data_point_out)
     result["simulation_time"] = sim_time
     return result
   end
