@@ -9,7 +9,9 @@ end
 class EUT
   # End Use Types
   Heating = "Heating"
+  HeatingFanPump = "Heating Fans/Pumps"
   Cooling = "Cooling"
+  CoolingFanPump = "Cooling Fans/Pumps"
   HotWater = "Hot Water"
   HotWaterRecircPump = "Hot Water Recirc Pump"
   HotWaterSolarThermalPump = "Hot Water Solar Thermal Pump"

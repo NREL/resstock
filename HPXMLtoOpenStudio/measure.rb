@@ -319,10 +319,10 @@ class OSModel
     add_rim_joists(runner, model, building, spaces)
     add_framefloors(runner, model, building, spaces)
     add_foundation_walls_slabs(runner, model, building, spaces)
-    is_sch = add_interior_shading_schedule(runner, model, weather)
-    add_windows(runner, model, building, spaces, weather, is_sch)
+    add_interior_shading_schedule(runner, model, weather)
+    add_windows(runner, model, building, spaces, weather)
     add_doors(runner, model, building, spaces)
-    add_skylights(runner, model, building, spaces, weather, is_sch)
+    add_skylights(runner, model, building, spaces, weather)
     add_conditioned_floor_area(runner, model, building, spaces)
 
     # update living space/zone global variable
@@ -1706,11 +1706,14 @@ class OSModel
 
   def self.add_interior_shading_schedule(runner, model, weather)
     heating_season, cooling_season = HVAC.calc_heating_and_cooling_seasons(model, weather)
-    sch = MonthWeekdayWeekendSchedule.new(model, "interior shading schedule", Array.new(24, 1), Array.new(24, 1), cooling_season, 1.0, 1.0, true, true, Constants.ScheduleTypeLimitsFraction)
-    return sch
+    @clg_season_sch = MonthWeekdayWeekendSchedule.new(model, "cooling season schedule", Array.new(24, 1), Array.new(24, 1), cooling_season, 1.0, 1.0, true, true, Constants.ScheduleTypeLimitsFraction)
+
+    @clg_ssn_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Schedule Value")
+    @clg_ssn_sensor.setName("cool_season")
+    @clg_ssn_sensor.setKeyName(@clg_season_sch.schedule.name.to_s)
   end
 
-  def self.add_windows(runner, model, building, spaces, weather, is_sch)
+  def self.add_windows(runner, model, building, spaces, weather)
     surfaces = []
     building.elements.each("BuildingDetails/Enclosure/Windows/Window") do |window|
       window_values = HPXML.get_window_values(window: window)
@@ -1777,14 +1780,14 @@ class OSModel
 
       Constructions.apply_window(model, [sub_surface],
                                  "WindowConstruction",
-                                 weather, is_sch, ufactor, shgc,
+                                 weather, @clg_season_sch, ufactor, shgc,
                                  heat_shade_mult, cool_shade_mult)
     end
 
     apply_adiabatic_construction(runner, model, surfaces, "wall")
   end
 
-  def self.add_skylights(runner, model, building, spaces, weather, is_sch)
+  def self.add_skylights(runner, model, building, spaces, weather)
     surfaces = []
     building.elements.each("BuildingDetails/Enclosure/Skylights/Skylight") do |skylight|
       skylight_values = HPXML.get_skylight_values(skylight: skylight)
@@ -1837,7 +1840,7 @@ class OSModel
       heat_shade_mult = 1.0
       Constructions.apply_skylight(model, [sub_surface],
                                    "SkylightConstruction",
-                                   weather, is_sch, ufactor, shgc,
+                                   weather, @clg_season_sch, ufactor, shgc,
                                    heat_shade_mult, cool_shade_mult)
     end
 
@@ -2994,7 +2997,7 @@ class OSModel
     nv_max_oa_hr = 0.0115
     nv_max_oa_rh = 0.7
     nat_vent = NaturalVentilation.new(nv_frac_windows_open, nv_frac_window_area_openable, nv_max_oa_hr, nv_max_oa_rh, nv_num_days_per_week,
-                                      @htg_weekday_setpoints, @htg_weekend_setpoints, @clg_weekday_setpoints, @clg_weekend_setpoints)
+                                      @htg_weekday_setpoints, @htg_weekend_setpoints, @clg_weekday_setpoints, @clg_weekend_setpoints, @clg_ssn_sensor)
 
     # Ducts
     duct_systems = {}
@@ -3356,25 +3359,13 @@ class OSModel
     liv_load_sensors[:clg] = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Cooling:EnergyTransfer:Zone:#{@living_zone.name.to_s.upcase}")
     liv_load_sensors[:clg].setName("clg_load_liv")
 
-    setpoint_sensors = {}
+    tot_load_sensors = {}
 
-    setpoint_sensors[:htg] = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Zone Thermostat Heating Setpoint Temperature")
-    setpoint_sensors[:htg].setName("htg_setpoint_temp")
-    setpoint_sensors[:htg].setKeyName(@living_zone.name.to_s)
+    tot_load_sensors[:htg] = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Heating:EnergyTransfer")
+    tot_load_sensors[:htg].setName("htg_load_tot")
 
-    setpoint_sensors[:clg] = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Zone Thermostat Cooling Setpoint Temperature")
-    setpoint_sensors[:clg].setName("clg_setpoint_temp")
-    setpoint_sensors[:clg].setKeyName(@living_zone.name.to_s)
-
-    prev_hr_load_vars = {}
-
-    prev_hr_load_vars[:htg] = OpenStudio::Model::EnergyManagementSystemGlobalVariable.new(model, "prev_hr_htg_load_liv")
-    prev_hr_load_vars[:clg] = OpenStudio::Model::EnergyManagementSystemGlobalVariable.new(model, "prev_hr_clg_load_liv")
-
-    prev_hr_setpoint_vars = {}
-
-    prev_hr_setpoint_vars[:htg] = OpenStudio::Model::EnergyManagementSystemGlobalVariable.new(model, "prev_hr_htg_setpoint")
-    prev_hr_setpoint_vars[:clg] = OpenStudio::Model::EnergyManagementSystemGlobalVariable.new(model, "prev_hr_clg_setpoint")
+    tot_load_sensors[:clg] = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Cooling:EnergyTransfer")
+    tot_load_sensors[:clg].setName("clg_load_tot")
 
     # EMS Sensors: Surfaces, SubSurfaces, InternalMass
 
@@ -3406,12 +3397,18 @@ class OSModel
                 "Skylight" => :skylights }[surface_type]
         fail "Unexpected subsurface for component loads: '#{ss.name}'." if key.nil?
 
-        vars = { "Surface Inside Face Convection Heat Gain Energy" => "ss_conv",
-                 "Surface Inside Face Internal Gains Radiation Heat Gain Energy" => "ss_ig",
-                 "Surface Inside Face Net Surface Thermal Radiation Heat Gain Energy" => "ss_surf" }
-
         if surface_type == "Window" or surface_type == "Skylight"
-          vars["Surface Window Transmitted Solar Radiation Energy"] = "ss_sol"
+          vars = { "Surface Window Net Heat Transfer Energy" => "ss_net",
+                   "Surface Inside Face Internal Gains Radiation Heat Gain Energy" => "ss_ig",
+                   "Surface Window Total Glazing Layers Absorbed Shortwave Radiation Rate" => "ss_sw_abs",
+                   "Surface Window Total Glazing Layers Absorbed Solar Radiation Energy" => "ss_sol_abs",
+                   "Surface Inside Face Initial Transmitted Diffuse Transmitted Out Window Solar Radiation Rate" => "ss_sol_out" }
+        else
+          vars = { "Surface Inside Face Convection Heat Gain Energy" => "ss_conv",
+                   "Surface Inside Face Internal Gains Radiation Heat Gain Energy" => "ss_ig",
+                   "Surface Inside Face Net Surface Thermal Radiation Heat Gain Energy" => "ss_surf",
+                   "Surface Inside Face Solar Radiation Heat Gain Energy" => "ss_sol",
+                   "Surface Inside Face Lights Radiation Heat Gain Energy" => "ss_lgt" }
         end
 
         surfaces_sensors[key] << []
@@ -3708,8 +3705,10 @@ class OSModel
       surface_sensors.each do |sensors|
         s = "Set hr_#{k.to_s} = hr_#{k.to_s}"
         sensors.each do |sensor|
-          if sensor.name.to_s.start_with? "ss_sol"
+          if sensor.name.to_s.start_with? "ss_net" or sensor.name.to_s.start_with? "ss_sol_abs"
             s += " - #{sensor.name}"
+          elsif sensor.name.to_s.start_with? "ss_sw_abs" or sensor.name.to_s.start_with? "ss_sol_out"
+            s += " + #{sensor.name} * ZoneTimestep * 3600"
           else
             s += " + #{sensor.name}"
           end
@@ -3758,54 +3757,40 @@ class OSModel
     end
 
     # EMS program: Heating vs Cooling logic
+    program.addLine("Set htg_mode = 0")
+    program.addLine("Set clg_mode = 0")
+    program.addLine("If (#{liv_load_sensors[:htg].name} > 0)") # Assign hour to heating if heating load
+    program.addLine("  Set htg_mode = 1")
+    program.addLine("ElseIf (#{liv_load_sensors[:clg].name} > 0)") # Assign hour to cooling if cooling load
+    program.addLine("  Set clg_mode = 1")
+    program.addLine("ElseIf (#{@clg_ssn_sensor.name} > 0)") # No load, assign hour to cooling if in cooling season definition (Note: natural ventilation & whole house fan only operate during the cooling season)
+    program.addLine("  Set clg_mode = 1")
+    program.addLine("Else") # No load, assign hour to heating if not in cooling season definition
+    program.addLine("  Set htg_mode = 1")
+    program.addLine("EndIf")
+
     [:htg, :clg].each do |mode|
       if mode == :htg
         sign = ""
       else
         sign = "-"
       end
-      program.addLine("Set #{mode}_mode = 0")
-      program.addLine("If #{liv_load_sensors[mode].name} > 0")
-      program.addLine("  Set #{mode}_mode = 1")
-      program.addLine("EndIf")
       surfaces_sensors.keys.each do |k|
-        program.addLine("Set #{mode}_#{k.to_s} = #{sign}hr_#{k.to_s} * #{mode}_mode")
+        program.addLine("Set loads_#{mode}_#{k.to_s} = #{sign}hr_#{k.to_s} * #{mode}_mode")
       end
       nonsurf_names.each do |nonsurf_name|
-        program.addLine("Set #{mode}_#{nonsurf_name} = #{sign}hr_#{nonsurf_name} * #{mode}_mode")
+        program.addLine("Set loads_#{mode}_#{nonsurf_name} = #{sign}hr_#{nonsurf_name} * #{mode}_mode")
       end
-
-      # If setpoint change or partial load hour, ratio the loads to equal the total for this hour.
-      program.addLine("Set #{mode}_ratio = 0")
-      program.addLine("If (#{setpoint_sensors[mode].name} <> #{prev_hr_setpoint_vars[mode].name}) && (#{mode}_mode > 0)")
-      program.addLine("  Set #{mode}_ratio = 1")
-      program.addLine("ElseIf (#{liv_load_sensors[mode].name} * #{prev_hr_load_vars[mode].name} == 0) && (#{mode}_mode > 0)")
-      program.addLine("  Set #{mode}_ratio = 1")
-      program.addLine("EndIf")
-      program.addLine("If #{mode}_ratio > 0")
-      program.addLine("  Set #{mode}_sum = 0")
-      surfaces_sensors.keys.each do |k|
-        program.addLine("  Set #{mode}_sum = #{mode}_sum + #{mode}_#{k.to_s}")
-      end
-      nonsurf_names.each do |nonsurf_name|
-        program.addLine("  Set #{mode}_sum = #{mode}_sum + #{mode}_#{nonsurf_name}")
-      end
-      program.addLine("  If #{mode}_sum <> 0")
-      program.addLine("    Set #{mode}_load_ratio = #{liv_load_sensors[mode].name} / #{mode}_sum")
-      program.addLine("Else")
-      program.addLine("    Set #{mode}_load_ratio = 1")
-      program.addLine("EndIf")
-      surfaces_sensors.keys.each do |k|
-        program.addLine("  Set #{mode}_#{k.to_s} = #{mode}_#{k.to_s} * #{mode}_load_ratio")
-      end
-      nonsurf_names.each do |nonsurf_name|
-        program.addLine("  Set #{mode}_#{nonsurf_name} = #{mode}_#{nonsurf_name} * #{mode}_load_ratio")
-      end
-      program.addLine("EndIf")
-
-      program.addLine("Set #{prev_hr_load_vars[mode].name} = #{liv_load_sensors[mode].name}")
-      program.addLine("Set #{prev_hr_setpoint_vars[mode].name} = #{setpoint_sensors[mode].name}")
     end
+
+    # EMS program: Total loads
+    program.addLine("Set loads_htg_tot = 0")
+    program.addLine("Set loads_clg_tot = 0")
+    program.addLine("If #{liv_load_sensors[:htg].name} > 0")
+    program.addLine("  Set loads_htg_tot = #{tot_load_sensors[:htg].name} - #{tot_load_sensors[:clg].name}")
+    program.addLine("ElseIf #{liv_load_sensors[:clg].name} > 0")
+    program.addLine("  Set loads_clg_tot = #{tot_load_sensors[:clg].name} - #{tot_load_sensors[:htg].name}")
+    program.addLine("EndIf")
 
     # EMS calling manager
     program_calling_manager = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
