@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>build_residential_hpxml</name>
   <uid>a13a8983-2b01-4930-8af2-42030b6e4233</uid>
-  <version_id>b45bbc78-73c1-4f5c-8241-217f2e0a1c28</version_id>
-  <version_modified>20200211T170532Z</version_modified>
+  <version_id>72cd9635-b3ab-4bb0-b8ef-e37a8441a24e</version_id>
+  <version_modified>20200211T184823Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>BuildResidentialHPXML</class_name>
   <display_name>HPXML Exporter</display_name>
@@ -3022,6 +3022,16 @@
       </choices>
     </argument>
     <argument>
+      <name>clothes_washer_modified_energy_factor</name>
+      <display_name>Clothes Washer: Modified Energy Factor</display_name>
+      <description>The Modified Energy Factor (MEF) is the capacity of the clothes container divided by the total clothes washer energy consumption per cycle, where the energy consumption is the sum of the machine electrical energy consumption, the hot water energy consumption, the energy required for removal of the remaining moisture in the wash load, standby energy, and off-mode energy consumption. If only a Modified Energy Factor (MEF) is available, convert using the equation: IMEF = (MEF - 0.503) / 0.95.</description>
+      <type>Double</type>
+      <units>ft^3/kWh-cycle</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0.8</default_value>
+    </argument>
+    <argument>
       <name>clothes_washer_integrated_modified_energy_factor</name>
       <display_name>Clothes Washer: Integrated Modified Energy Factor</display_name>
       <description>The Integrated Modified Energy Factor (IMEF) is the capacity of the clothes container divided by the total clothes washer energy consumption per cycle, where the energy consumption is the sum of the machine electrical energy consumption, the hot water energy consumption, the energy required for removal of the remaining moisture in the wash load, standby energy, and off-mode energy consumption. If only a Modified Energy Factor (MEF) is available, convert using the equation: IMEF = (MEF - 0.503) / 0.95.</description>
@@ -3029,7 +3039,7 @@
       <units>ft^3/kWh-cycle</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>0.95</default_value>
+      <default_value>0</default_value>
     </argument>
     <argument>
       <name>clothes_washer_rated_annual_kwh</name>
@@ -3807,12 +3817,6 @@
       <checksum>972FCB04</checksum>
     </file>
     <file>
-      <filename>base-dhw-desuperheater-gshp.osw</filename>
-      <filetype>osw</filetype>
-      <usage_type>test</usage_type>
-      <checksum>BDB6D38E</checksum>
-    </file>
-    <file>
       <filename>base-dhw-desuperheater-tankless.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
@@ -4461,30 +4465,6 @@
       <checksum>0442EF0B</checksum>
     </file>
     <file>
-      <filename>base-hvac-ground-to-air-heat-pump.osw</filename>
-      <filetype>osw</filetype>
-      <usage_type>test</usage_type>
-      <checksum>905279AD</checksum>
-    </file>
-    <file>
-      <filename>base-hvac-mini-split-heat-pump-ducted.osw</filename>
-      <filetype>osw</filetype>
-      <usage_type>test</usage_type>
-      <checksum>C363BE6B</checksum>
-    </file>
-    <file>
-      <filename>base-hvac-mini-split-heat-pump-ductless-no-backup.osw</filename>
-      <filetype>osw</filetype>
-      <usage_type>test</usage_type>
-      <checksum>ED6682B6</checksum>
-    </file>
-    <file>
-      <filename>base-hvac-mini-split-heat-pump-ductless.osw</filename>
-      <filetype>osw</filetype>
-      <usage_type>test</usage_type>
-      <checksum>01EDF311</checksum>
-    </file>
-    <file>
       <filename>base-hvac-none.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
@@ -4755,17 +4735,6 @@
       <checksum>633B73C3</checksum>
     </file>
     <file>
-      <version>
-        <software_program>OpenStudio</software_program>
-        <identifier>2.9.0</identifier>
-        <min_compatible>2.9.0</min_compatible>
-      </version>
-      <filename>measure.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>script</usage_type>
-      <checksum>497D9163</checksum>
-    </file>
-    <file>
       <filename>base-hvac-air-to-air-heat-pump-1-speed.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
@@ -4820,10 +4789,51 @@
       <checksum>056EBE00</checksum>
     </file>
     <file>
+      <filename>base-dhw-desuperheater-gshp.osw</filename>
+      <filetype>osw</filetype>
+      <usage_type>test</usage_type>
+      <checksum>88B3A8E9</checksum>
+    </file>
+    <file>
+      <filename>base-hvac-ground-to-air-heat-pump.osw</filename>
+      <filetype>osw</filetype>
+      <usage_type>test</usage_type>
+      <checksum>2A8F5327</checksum>
+    </file>
+    <file>
+      <filename>base-hvac-mini-split-heat-pump-ducted.osw</filename>
+      <filetype>osw</filetype>
+      <usage_type>test</usage_type>
+      <checksum>19EA91A0</checksum>
+    </file>
+    <file>
+      <filename>base-hvac-mini-split-heat-pump-ductless-no-backup.osw</filename>
+      <filetype>osw</filetype>
+      <usage_type>test</usage_type>
+      <checksum>3972D9BA</checksum>
+    </file>
+    <file>
+      <filename>base-hvac-mini-split-heat-pump-ductless.osw</filename>
+      <filetype>osw</filetype>
+      <usage_type>test</usage_type>
+      <checksum>1A6F8983</checksum>
+    </file>
+    <file>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>2.9.0</identifier>
+        <min_compatible>2.9.0</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>script</usage_type>
+      <checksum>484BABE3</checksum>
+    </file>
+    <file>
       <filename>build_residential_hpxml_test.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
-      <checksum>A8A5497E</checksum>
+      <checksum>12FA3310</checksum>
     </file>
   </files>
 </measure>

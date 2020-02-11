@@ -1568,11 +1568,18 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(Constants.Auto)
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("clothes_washer_modified_energy_factor", true)
+    arg.setDisplayName("Clothes Washer: Modified Energy Factor")
+    arg.setUnits("ft^3/kWh-cycle")
+    arg.setDescription("The Modified Energy Factor (MEF) is the capacity of the clothes container divided by the total clothes washer energy consumption per cycle, where the energy consumption is the sum of the machine electrical energy consumption, the hot water energy consumption, the energy required for removal of the remaining moisture in the wash load, standby energy, and off-mode energy consumption. If only a Modified Energy Factor (MEF) is available, convert using the equation: IMEF = (MEF - 0.503) / 0.95.")
+    arg.setDefaultValue(0.8)
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("clothes_washer_integrated_modified_energy_factor", true)
     arg.setDisplayName("Clothes Washer: Integrated Modified Energy Factor")
     arg.setUnits("ft^3/kWh-cycle")
     arg.setDescription("The Integrated Modified Energy Factor (IMEF) is the capacity of the clothes container divided by the total clothes washer energy consumption per cycle, where the energy consumption is the sum of the machine electrical energy consumption, the hot water energy consumption, the energy required for removal of the remaining moisture in the wash load, standby energy, and off-mode energy consumption. If only a Modified Energy Factor (MEF) is available, convert using the equation: IMEF = (MEF - 0.503) / 0.95.")
-    arg.setDefaultValue(0.95)
+    arg.setDefaultValue(0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("clothes_washer_rated_annual_kwh", true)
@@ -2051,6 +2058,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
              :pv_system_system_losses_fraction => runner.getDoubleArgumentValue("pv_system_system_losses_fraction", user_arguments),
              :has_clothes_washer => runner.getBoolArgumentValue("has_clothes_washer", user_arguments),
              :clothes_washer_location => runner.getStringArgumentValue("clothes_washer_location", user_arguments),
+             :clothes_washer_modified_energy_factor => runner.getDoubleArgumentValue("clothes_washer_modified_energy_factor", user_arguments),
              :clothes_washer_integrated_modified_energy_factor => runner.getDoubleArgumentValue("clothes_washer_integrated_modified_energy_factor", user_arguments),
              :clothes_washer_rated_annual_kwh => runner.getDoubleArgumentValue("clothes_washer_rated_annual_kwh", user_arguments),
              :clothes_washer_label_electric_rate => runner.getDoubleArgumentValue("clothes_washer_label_electric_rate", user_arguments),
@@ -2539,7 +2547,7 @@ class HPXMLFile
 
       roof_values = { :id => surface.name.to_s,
                       :interior_adjacent_to => get_adjacent_to(model, surface),
-                      :area => UnitConversions.convert(surface.netArea, "m^2", "ft^2").round(1),
+                      :area => UnitConversions.convert(surface.netArea, "m^2", "ft^2").round,
                       :azimuth => nil, # FIXME: Get from model
                       :solar_absorptance => args[:roof_solar_absorptance],
                       :emittance => args[:roof_emittance],
@@ -2589,7 +2597,7 @@ class HPXMLFile
                       :exterior_adjacent_to => exterior_adjacent_to,
                       :interior_adjacent_to => interior_adjacent_to,
                       :wall_type => args[:wall_type],
-                      :area => UnitConversions.convert(surface.netArea, "m^2", "ft^2"),
+                      :area => UnitConversions.convert(surface.netArea, "m^2", "ft^2").round,
                       :azimuth => nil, # FIXME: Get from model
                       :solar_absorptance => args[:wall_solar_absorptance],
                       :emittance => args[:wall_emittance] }
@@ -2623,7 +2631,7 @@ class HPXMLFile
                                    :exterior_adjacent_to => "ground",
                                    :interior_adjacent_to => get_adjacent_to(model, surface),
                                    :height => args[:foundation_height],
-                                   :area => UnitConversions.convert(surface.netArea, "m^2", "ft^2"),
+                                   :area => UnitConversions.convert(surface.netArea, "m^2", "ft^2").round,
                                    :azimuth => nil, # FIXME: Get from model
                                    :thickness => 8,
                                    :depth_below_grade => args[:foundation_wall_depth_below_grade],
@@ -2664,7 +2672,7 @@ class HPXMLFile
       framefloor_values = { :id => surface.name.to_s,
                             :exterior_adjacent_to => exterior_adjacent_to,
                             :interior_adjacent_to => interior_adjacent_to,
-                            :area => UnitConversions.convert(surface.netArea, "m^2", "ft^2") }
+                            :area => UnitConversions.convert(surface.netArea, "m^2", "ft^2").round }
 
       if interior_adjacent_to == "living space" and exterior_adjacent_to.include? "attic - unvented"
         framefloor_values[:insulation_assembly_r_value] = args[:attic_floor_conditioned_r]
@@ -2720,7 +2728,7 @@ class HPXMLFile
 
       slabs_values << { :id => surface.name.to_s,
                         :interior_adjacent_to => interior_adjacent_to,
-                        :area => UnitConversions.convert(surface.netArea, "m^2", "ft^2"),
+                        :area => UnitConversions.convert(surface.netArea, "m^2", "ft^2").round,
                         :thickness => 4,
                         :exposed_perimeter => exposed_perimeter,
                         :perimeter_insulation_depth => args[:perimeter_insulation_depth],
@@ -2775,7 +2783,7 @@ class HPXMLFile
         end
 
         window_values = { :id => sub_surface.name.to_s,
-                          :area => UnitConversions.convert(sub_surface.netArea, "m^2", "ft^2"),
+                          :area => UnitConversions.convert(sub_surface.netArea, "m^2", "ft^2").round,
                           :azimuth => 0, # FIXME: Get from model
                           :ufactor => args[:window_ufactor],
                           :shgc => args[:window_shgc],
@@ -2804,7 +2812,7 @@ class HPXMLFile
         next if sub_surface.subSurfaceType != "Skylight"
 
         skylights_values << { :id => sub_surface.name.to_s,
-                              :area => UnitConversions.convert(sub_surface.netArea, "m^2", "ft^2"),
+                              :area => UnitConversions.convert(sub_surface.netArea, "m^2", "ft^2").round,
                               :azimuth => 0, # FIXME: Get from model
                               :ufactor => args[:skylight_ufactor],
                               :shgc => args[:skylight_shgc],
@@ -2822,7 +2830,7 @@ class HPXMLFile
 
         doors_values << { :id => sub_surface.name.to_s,
                           :wall_idref => surface.name,
-                          :area => UnitConversions.convert(sub_surface.netArea, "m^2", "ft^2"),
+                          :area => UnitConversions.convert(sub_surface.netArea, "m^2", "ft^2").round,
                           :azimuth => 0, # FIXME: Get from model
                           :r_value => args[:door_rvalue] }
       end
@@ -3225,7 +3233,7 @@ class HPXMLFile
       else
         heating_capacity = Float(heating_capacity)
       end
-      heating_capacity = UnitConversions.convert(heating_capacity, "kBtu/hr", "Btu/hr")
+      heating_capacity = UnitConversions.convert(heating_capacity, "kBtu/hr", "Btu/hr").round
 
       if water_heater_type == "heat pump water heater"
         heating_capacity = nil
@@ -3397,9 +3405,20 @@ class HPXMLFile
       location = "living space" # FIXME
     end
 
+    modified_energy_factor = nil
+    if args[:clothes_washer_modified_energy_factor] > 0
+      modified_energy_factor = args[:clothes_washer_modified_energy_factor]
+    end
+
+    integrated_modified_energy_factor = nil
+    if args[:clothes_washer_integrated_modified_energy_factor] > 0
+      integrated_modified_energy_factor = args[:clothes_washer_integrated_modified_energy_factor]
+    end
+
     clothes_washer_values = { :id => "ClothesWasher",
                               :location => location,
-                              :integrated_modified_energy_factor => args[:clothes_washer_integrated_modified_energy_factor],
+                              :modified_energy_factor => modified_energy_factor,
+                              :integrated_modified_energy_factor => integrated_modified_energy_factor,
                               :rated_annual_kwh => args[:clothes_washer_rated_annual_kwh],
                               :label_electric_rate => args[:clothes_washer_label_electric_rate],
                               :label_gas_rate => args[:clothes_washer_label_gas_rate],
