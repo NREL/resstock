@@ -403,10 +403,10 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(3)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("num_bathrooms", true)
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument("num_bathrooms", true)
     arg.setDisplayName("Geometry: Number of Bathrooms")
     arg.setDescription("Specify the number of bathrooms.")
-    arg.setDefaultValue(2)
+    arg.setDefaultValue(Constants.Auto)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument("num_occupants", true)
@@ -754,9 +754,6 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     heating_system_type_choices << "ElectricResistance"
     heating_system_type_choices << "Stove"
     heating_system_type_choices << "PortableHeater"
-    heating_system_type_choices << "air-to-air"
-    heating_system_type_choices << "mini-split"
-    heating_system_type_choices << "ground-to-air"
 
     heating_system_fuel_choices = OpenStudio::StringVector.new
     heating_system_fuel_choices << "electricity"
@@ -770,12 +767,18 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     cooling_system_type_choices << "central air conditioner"
     cooling_system_type_choices << "room air conditioner"
     cooling_system_type_choices << "evaporative cooler"
-    cooling_system_type_choices << "air-to-air"
-    cooling_system_type_choices << "mini-split"
-    cooling_system_type_choices << "ground-to-air"
 
     cooling_system_fuel_choices = OpenStudio::StringVector.new
     cooling_system_fuel_choices << "electricity"
+
+    heat_pump_type_choices = OpenStudio::StringVector.new
+    heat_pump_type_choices << "none"
+    heat_pump_type_choices << "air-to-air"
+    heat_pump_type_choices << "mini-split"
+    heat_pump_type_choices << "ground-to-air"
+
+    heat_pump_fuel_choices = OpenStudio::StringVector.new
+    heat_pump_fuel_choices << "electricity"
 
     heat_pump_backup_fuel_choices = OpenStudio::StringVector.new
     heat_pump_backup_fuel_choices << "none"
@@ -798,7 +801,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("heating_system_heating_efficiency", true)
     arg.setDisplayName("Heating System: Rated Efficiency")
-    arg.setDescription("The rated efficiency value of the heating system. AFUE for Furnace/WallFurnace/Boiler. Percent for ElectricResistance/Stove/PortableHeater. HSPF for air-to-air/mini-split. COP for ground-to-air.")
+    arg.setDescription("The rated efficiency value of the heating system. AFUE for Furnace/WallFurnace/Boiler. Percent for ElectricResistance/Stove/PortableHeater.")
     arg.setDefaultValue(0.78)
     args << arg
 
@@ -836,7 +839,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("cooling_system_cooling_efficiency", true)
     arg.setDisplayName("Cooling System: Rated Efficiency")
-    arg.setDescription("The rated efficiency value of the cooling system. SEER for central air conditioner/air-to-air/mini-split. EER for room air conditioner/ground-to-air. Ignored for evaporative cooler.")
+    arg.setDescription("The rated efficiency value of the cooling system. SEER for central air conditioner. EER for room air conditioner. Ignored for evaporative cooler.")
     arg.setDefaultValue(13.0)
     args << arg
 
@@ -850,6 +853,58 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("cooling_system_fraction_cool_load_served", true)
     arg.setDisplayName("Cooling System: Fraction Cool Load Served")
     arg.setDescription("The cool load served fraction of the cooling system.")
+    arg.setUnits("Frac")
+    arg.setDefaultValue(1)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("heat_pump_type", heat_pump_type_choices, true)
+    arg.setDisplayName("Heat Pump: Type")
+    arg.setDescription("The type of the heat pump.")
+    arg.setDefaultValue("none")
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument("heat_pump_fuel", heat_pump_fuel_choices, true)
+    arg.setDisplayName("Heat Pump: Fuel Type")
+    arg.setDescription("The fuel type of the heat pump.")
+    arg.setDefaultValue("electricity")
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("heat_pump_heating_efficiency", true)
+    arg.setDisplayName("Heat Pump: Rated Heating Efficiency")
+    arg.setDescription("The rated heating efficiency value of the heat pump. HSPF for air-to-air/mini-split. COP for ground-to-air.")
+    arg.setDefaultValue(7.7)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("heat_pump_cooling_efficiency", true)
+    arg.setDisplayName("Heat Pump: Rated Cooling Efficiency")
+    arg.setDescription("The rated cooling efficiency value of the heat pump. SEER for air-to-air/mini-split. EER for ground-to-air.")
+    arg.setDefaultValue(13.0)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument("heat_pump_heating_capacity", true)
+    arg.setDisplayName("Heat Pump: Heating Capacity")
+    arg.setDescription("The output heating capacity of the heat pump. If using '#{Constants.SizingAuto}', the autosizing algorithm will use ACCA Manual S to set the capacity.")
+    arg.setUnits("Btu/hr")
+    arg.setDefaultValue(Constants.SizingAuto)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument("heat_pump_cooling_capacity", true)
+    arg.setDisplayName("Heat Pump: Cooling Capacity")
+    arg.setDescription("The output cooling capacity of the heat pump. If using '#{Constants.SizingAuto}', the autosizing algorithm will use ACCA Manual S to set the capacity.")
+    arg.setUnits("Btu/hr")
+    arg.setDefaultValue(Constants.SizingAuto)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("heat_pump_fraction_heat_load_served", true)
+    arg.setDisplayName("Heat Pump: Fraction Heat Load Served")
+    arg.setDescription("The heat load served fraction of the heat pump.")
+    arg.setUnits("Frac")
+    arg.setDefaultValue(1)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("heat_pump_fraction_cool_load_served", true)
+    arg.setDisplayName("Heat Pump: Fraction Cool Load Served")
+    arg.setDescription("The cool load served fraction of the heat pump.")
     arg.setUnits("Frac")
     arg.setDefaultValue(1)
     args << arg
@@ -1855,7 +1910,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
              :roof_radiant_barrier => runner.getBoolArgumentValue("roof_radiant_barrier", user_arguments),
              :eaves_depth => runner.getDoubleArgumentValue("eaves_depth", user_arguments),
              :num_bedrooms => runner.getDoubleArgumentValue("num_bedrooms", user_arguments),
-             :num_bathrooms => runner.getDoubleArgumentValue("num_bathrooms", user_arguments),
+             :num_bathrooms => runner.getStringArgumentValue("num_bathrooms", user_arguments),
              :num_occupants => runner.getStringArgumentValue("num_occupants", user_arguments),
              :neighbor_distance => [runner.getDoubleArgumentValue("neighbor_front_distance", user_arguments), runner.getDoubleArgumentValue("neighbor_back_distance", user_arguments), runner.getDoubleArgumentValue("neighbor_left_distance", user_arguments), runner.getDoubleArgumentValue("neighbor_right_distance", user_arguments)],
              :neighbor_height => [runner.getDoubleArgumentValue("neighbor_front_height", user_arguments), runner.getDoubleArgumentValue("neighbor_back_height", user_arguments), runner.getDoubleArgumentValue("neighbor_left_height", user_arguments), runner.getDoubleArgumentValue("neighbor_right_height", user_arguments)],
@@ -1903,6 +1958,14 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
              :cooling_system_cooling_efficiency => runner.getDoubleArgumentValue("cooling_system_cooling_efficiency", user_arguments),
              :cooling_system_cooling_capacity => runner.getStringArgumentValue("cooling_system_cooling_capacity", user_arguments),
              :cooling_system_fraction_cool_load_served => runner.getDoubleArgumentValue("cooling_system_fraction_cool_load_served", user_arguments),
+             :heat_pump_type => runner.getStringArgumentValue("heat_pump_type", user_arguments),
+             :heat_pump_fuel => runner.getStringArgumentValue("heat_pump_fuel", user_arguments),
+             :heat_pump_heating_efficiency => runner.getDoubleArgumentValue("heat_pump_heating_efficiency", user_arguments),
+             :heat_pump_cooling_efficiency => runner.getDoubleArgumentValue("heat_pump_cooling_efficiency", user_arguments),
+             :heat_pump_heating_capacity => runner.getStringArgumentValue("heat_pump_heating_capacity", user_arguments),
+             :heat_pump_cooling_capacity => runner.getStringArgumentValue("heat_pump_cooling_capacity", user_arguments),
+             :heat_pump_fraction_heat_load_served => runner.getDoubleArgumentValue("heat_pump_fraction_heat_load_served", user_arguments),
+             :heat_pump_fraction_cool_load_served => runner.getDoubleArgumentValue("heat_pump_fraction_cool_load_served", user_arguments),
              :heat_pump_backup_fuel => runner.getStringArgumentValue("heat_pump_backup_fuel", user_arguments),
              :heat_pump_backup_heating_efficiency => runner.getStringArgumentValue("heat_pump_backup_heating_efficiency", user_arguments),
              :heat_pump_backup_heating_capacity => runner.getStringArgumentValue("heat_pump_backup_heating_capacity", user_arguments),
@@ -2349,15 +2412,22 @@ class HPXMLFile
 
   def self.get_building_construction_values(runner, args)
     number_of_conditioned_floors_above_grade = args[:num_floors]
+
     number_of_conditioned_floors = number_of_conditioned_floors_above_grade
     if args[:foundation_type] == "basement - conditioned"
       number_of_conditioned_floors += 1
     end
+
+    if args[:num_bathrooms] != Constants.Auto
+      number_of_bathrooms = args[:num_bathrooms]
+    end
+
     conditioned_building_volume = args[:cfa] * args[:wall_height]
+
     building_construction_values = { :number_of_conditioned_floors => number_of_conditioned_floors,
                                      :number_of_conditioned_floors_above_grade => number_of_conditioned_floors_above_grade,
                                      :number_of_bedrooms => args[:num_bedrooms],
-                                     :number_of_bathrooms => args[:num_bathrooms],
+                                     :number_of_bathrooms => number_of_bathrooms,
                                      :conditioned_floor_area => args[:cfa],
                                      :conditioned_building_volume => conditioned_building_volume }
     return building_construction_values
@@ -2469,7 +2539,7 @@ class HPXMLFile
 
       roof_values = { :id => surface.name.to_s,
                       :interior_adjacent_to => get_adjacent_to(model, surface),
-                      :area => UnitConversions.convert(surface.netArea, "m^2", "ft^2"),
+                      :area => UnitConversions.convert(surface.netArea, "m^2", "ft^2").round(1),
                       :azimuth => nil, # FIXME: Get from model
                       :solar_absorptance => args[:roof_solar_absorptance],
                       :emittance => args[:roof_emittance],
@@ -2903,34 +2973,25 @@ class HPXMLFile
   def self.get_heat_pumps_values(runner, args, hvac_distributions_values)
     heat_pumps_values = []
 
-    heating_system_type = args[:heating_system_type]
-    cooling_system_type = args[:cooling_system_type]
+    heat_pump_type = args[:heat_pump_type]
 
-    if not ["air-to-air", "mini-split", "ground-to-air"].include? heating_system_type and not ["air-to-air", "mini-split", "ground-to-air"].include? cooling_system_type
+    if not ["air-to-air", "mini-split", "ground-to-air"].include? heat_pump_type
       return heat_pumps_values, hvac_distributions_values
     end
 
-    heat_pump_type = heating_system_type
-
     hvac_distributions_values, distribution_system_idref = get_hvac_distribution(runner, args, hvac_distributions_values, heat_pump_type)
 
-    heating_system_fuel = args[:heating_system_fuel]
-    heating_system_fraction_heat_load_served = args[:heating_system_fraction_heat_load_served]
+    heat_pump_fuel = args[:heat_pump_fuel]
 
-    heating_capacity = args[:heating_system_heating_capacity]
+    heating_capacity = args[:heat_pump_heating_capacity]
     if heating_capacity == Constants.SizingAuto
       heating_capacity = -1
     end
     heating_capacity = Float(heating_capacity)
 
-    if ["Furnace", "WallFurnace", "Boiler", "ElectricResistance", "Stove", "PortableHeater"].include? heating_system_type
-      heat_pump_type = cooling_system_type
-      heating_system_fuel = "electricity"
-      heating_system_fraction_heat_load_served = 0.0
-    end
-
+    heat_pump_fraction_heat_load_served = args[:heat_pump_fraction_heat_load_served]
     if heating_capacity != -1
-      heating_capacity *= heating_system_fraction_heat_load_served
+      heating_capacity *= heat_pump_fraction_heat_load_served
     end
 
     if args[:heat_pump_backup_fuel] != "none"
@@ -2943,7 +3004,7 @@ class HPXMLFile
       backup_heating_capacity = Float(backup_heating_capacity)
 
       if backup_heating_capacity != -1
-        backup_heating_capacity *= heating_system_fraction_heat_load_served
+        backup_heating_capacity *= heat_pump_fraction_heat_load_served
       end
 
       if backup_heating_fuel == "electricity"
@@ -2954,47 +3015,37 @@ class HPXMLFile
       end
     end
 
-    cooling_system_fraction_cool_load_served = args[:cooling_system_fraction_cool_load_served]
-
-    if ["central air conditioner", "room air conditioner", "evaporative cooler"].include? cooling_system_type
-      heat_pump_type = heating_system_type
-      cooling_system_fraction_cool_load_served = 0.0
-    end
-
-    cooling_capacity = args[:cooling_system_cooling_capacity]
+    cooling_capacity = args[:heat_pump_cooling_capacity]
     if cooling_capacity == Constants.SizingAuto
       cooling_capacity = -1
     end
     cooling_capacity = Float(cooling_capacity)
 
+    heat_pump_fraction_cool_load_served = args[:heat_pump_fraction_cool_load_served]
     if cooling_capacity != -1
-      cooling_capacity *= cooling_system_fraction_cool_load_served
+      cooling_capacity *= heat_pump_fraction_cool_load_served
     end
 
     heat_pump_values = { :id => "HeatPump",
                          :heat_pump_type => heat_pump_type,
                          :distribution_system_idref => distribution_system_idref,
-                         :heat_pump_fuel => heating_system_fuel,
+                         :heat_pump_fuel => heat_pump_fuel,
                          :heating_capacity => heating_capacity,
                          :cooling_capacity => cooling_capacity,
-                         :fraction_heat_load_served => heating_system_fraction_heat_load_served,
-                         :fraction_cool_load_served => cooling_system_fraction_cool_load_served,
+                         :fraction_heat_load_served => heat_pump_fraction_heat_load_served,
+                         :fraction_cool_load_served => heat_pump_fraction_cool_load_served,
                          :backup_heating_fuel => backup_heating_fuel,
                          :backup_heating_capacity => backup_heating_capacity,
                          :backup_heating_efficiency_afue => backup_heating_efficiency_afue,
                          :backup_heating_efficiency_percent => backup_heating_efficiency_percent,
                          :backup_heating_switchover_temp => backup_heating_switchover_temp }
 
-    if ["air-to-air", "mini-split", "Furnace", "WallFurnace", "Boiler", "ElectricResistance", "Stove", "PortableHeater"].include? heating_system_type
-      heat_pump_values[:heating_efficiency_hspf] = args[:heating_system_heating_efficiency]
-    elsif ["ground-to-air"].include? heating_system_type
-      heat_pump_values[:heating_efficiency_cop] = args[:heating_system_heating_efficiency]
-    end
-
-    if ["air-to-air", "mini-split", "central air conditioner", "room air conditioner", "evaporative cooler"].include? cooling_system_type
-      heat_pump_values[:cooling_efficiency_seer] = args[:cooling_system_cooling_efficiency]
-    elsif ["ground-to-air"].include? cooling_system_type
-      heat_pump_values[:cooling_efficiency_eer] = args[:cooling_system_cooling_efficiency]
+    if ["air-to-air", "mini-split"].include? heat_pump_type
+      heat_pump_values[:heating_efficiency_hspf] = args[:heat_pump_heating_efficiency]
+      heat_pump_values[:cooling_efficiency_seer] = args[:heat_pump_cooling_efficiency]
+    elsif ["ground-to-air"].include? heat_pump_type
+      heat_pump_values[:heating_efficiency_cop] = args[:heat_pump_heating_efficiency]
+      heat_pump_values[:cooling_efficiency_eer] = args[:heat_pump_cooling_efficiency]
     end
 
     heat_pumps_values << heat_pump_values
@@ -3162,11 +3213,15 @@ class HPXMLFile
         location = "living space" # FIXME
       end
 
-      tank_volume = Waterheater.calc_nom_tankvol(args[:water_heater_tank_volume][i], fuel_type, args[:num_bedrooms], args[:num_bathrooms])
+      num_bathrooms = args[:num_bathrooms]
+      if num_bathrooms == Constants.Auto
+        num_bathrooms = 2 # FIXME
+      end
+      tank_volume = Waterheater.calc_nom_tankvol(args[:water_heater_tank_volume][i], fuel_type, args[:num_bedrooms], num_bathrooms)
 
       heating_capacity = args[:water_heater_heating_capacity][i]
       if heating_capacity == Constants.SizingAuto
-        heating_capacity = Waterheater.calc_water_heater_capacity(fuel_type, args[:num_bedrooms], num_water_heaters, args[:num_bathrooms])
+        heating_capacity = Waterheater.calc_water_heater_capacity(fuel_type, args[:num_bedrooms], num_water_heaters, num_bathrooms)
       else
         heating_capacity = Float(heating_capacity)
       end
