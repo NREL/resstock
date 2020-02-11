@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>build_residential_hpxml</name>
   <uid>a13a8983-2b01-4930-8af2-42030b6e4233</uid>
-  <version_id>8035fc10-28ab-4616-9016-00ef2d874a86</version_id>
-  <version_modified>20200207T234301Z</version_modified>
+  <version_id>b45bbc78-73c1-4f5c-8241-217f2e0a1c28</version_id>
+  <version_modified>20200211T170532Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>BuildResidentialHPXML</class_name>
   <display_name>HPXML Exporter</display_name>
@@ -668,10 +668,10 @@
       <name>num_bathrooms</name>
       <display_name>Geometry: Number of Bathrooms</display_name>
       <description>Specify the number of bathrooms.</description>
-      <type>Double</type>
+      <type>String</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>2</default_value>
+      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>num_occupants</name>
@@ -1273,18 +1273,6 @@
           <value>PortableHeater</value>
           <display_name>PortableHeater</display_name>
         </choice>
-        <choice>
-          <value>air-to-air</value>
-          <display_name>air-to-air</display_name>
-        </choice>
-        <choice>
-          <value>mini-split</value>
-          <display_name>mini-split</display_name>
-        </choice>
-        <choice>
-          <value>ground-to-air</value>
-          <display_name>ground-to-air</display_name>
-        </choice>
       </choices>
     </argument>
     <argument>
@@ -1321,7 +1309,7 @@
     <argument>
       <name>heating_system_heating_efficiency</name>
       <display_name>Heating System: Rated Efficiency</display_name>
-      <description>The rated efficiency value of the heating system. AFUE for Furnace/WallFurnace/Boiler. Percent for ElectricResistance/Stove/PortableHeater. HSPF for air-to-air/mini-split. COP for ground-to-air.</description>
+      <description>The rated efficiency value of the heating system. AFUE for Furnace/WallFurnace/Boiler. Percent for ElectricResistance/Stove/PortableHeater.</description>
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -1381,18 +1369,6 @@
           <value>evaporative cooler</value>
           <display_name>evaporative cooler</display_name>
         </choice>
-        <choice>
-          <value>air-to-air</value>
-          <display_name>air-to-air</display_name>
-        </choice>
-        <choice>
-          <value>mini-split</value>
-          <display_name>mini-split</display_name>
-        </choice>
-        <choice>
-          <value>ground-to-air</value>
-          <display_name>ground-to-air</display_name>
-        </choice>
       </choices>
     </argument>
     <argument>
@@ -1413,7 +1389,7 @@
     <argument>
       <name>cooling_system_cooling_efficiency</name>
       <display_name>Cooling System: Rated Efficiency</display_name>
-      <description>The rated efficiency value of the cooling system. SEER for central air conditioner/air-to-air/mini-split. EER for room air conditioner/ground-to-air. Ignored for evaporative cooler.</description>
+      <description>The rated efficiency value of the cooling system. SEER for central air conditioner. EER for room air conditioner. Ignored for evaporative cooler.</description>
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -1433,6 +1409,106 @@
       <name>cooling_system_fraction_cool_load_served</name>
       <display_name>Cooling System: Fraction Cool Load Served</display_name>
       <description>The cool load served fraction of the cooling system.</description>
+      <type>Double</type>
+      <units>Frac</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>1</default_value>
+    </argument>
+    <argument>
+      <name>heat_pump_type</name>
+      <display_name>Heat Pump: Type</display_name>
+      <description>The type of the heat pump.</description>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>none</default_value>
+      <choices>
+        <choice>
+          <value>none</value>
+          <display_name>none</display_name>
+        </choice>
+        <choice>
+          <value>air-to-air</value>
+          <display_name>air-to-air</display_name>
+        </choice>
+        <choice>
+          <value>mini-split</value>
+          <display_name>mini-split</display_name>
+        </choice>
+        <choice>
+          <value>ground-to-air</value>
+          <display_name>ground-to-air</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>heat_pump_fuel</name>
+      <display_name>Heat Pump: Fuel Type</display_name>
+      <description>The fuel type of the heat pump.</description>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>electricity</default_value>
+      <choices>
+        <choice>
+          <value>electricity</value>
+          <display_name>electricity</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>heat_pump_heating_efficiency</name>
+      <display_name>Heat Pump: Rated Heating Efficiency</display_name>
+      <description>The rated heating efficiency value of the heat pump. HSPF for air-to-air/mini-split. COP for ground-to-air.</description>
+      <type>Double</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>7.7</default_value>
+    </argument>
+    <argument>
+      <name>heat_pump_cooling_efficiency</name>
+      <display_name>Heat Pump: Rated Cooling Efficiency</display_name>
+      <description>The rated cooling efficiency value of the heat pump. SEER for air-to-air/mini-split. EER for ground-to-air.</description>
+      <type>Double</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>13</default_value>
+    </argument>
+    <argument>
+      <name>heat_pump_heating_capacity</name>
+      <display_name>Heat Pump: Heating Capacity</display_name>
+      <description>The output heating capacity of the heat pump. If using 'autosize', the autosizing algorithm will use ACCA Manual S to set the capacity.</description>
+      <type>String</type>
+      <units>Btu/hr</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>autosize</default_value>
+    </argument>
+    <argument>
+      <name>heat_pump_cooling_capacity</name>
+      <display_name>Heat Pump: Cooling Capacity</display_name>
+      <description>The output cooling capacity of the heat pump. If using 'autosize', the autosizing algorithm will use ACCA Manual S to set the capacity.</description>
+      <type>String</type>
+      <units>Btu/hr</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>autosize</default_value>
+    </argument>
+    <argument>
+      <name>heat_pump_fraction_heat_load_served</name>
+      <display_name>Heat Pump: Fraction Heat Load Served</display_name>
+      <description>The heat load served fraction of the heat pump.</description>
+      <type>Double</type>
+      <units>Frac</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>1</default_value>
+    </argument>
+    <argument>
+      <name>heat_pump_fraction_cool_load_served</name>
+      <display_name>Heat Pump: Fraction Cool Load Served</display_name>
+      <description>The cool load served fraction of the heat pump.</description>
       <type>Double</type>
       <units>Frac</units>
       <required>true</required>
@@ -3644,1099 +3720,1039 @@
       <filename>base.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>3D258550</checksum>
+      <checksum>9D9A0C70</checksum>
     </file>
     <file>
       <filename>base-appliances-gas.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>9EE0CEED</checksum>
+      <checksum>EF4FDCAC</checksum>
     </file>
     <file>
       <filename>base-appliances-none.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>6A5E8E0A</checksum>
+      <checksum>1D53B199</checksum>
     </file>
     <file>
       <filename>base-appliances-oil.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>9CFB4879</checksum>
+      <checksum>BDF09C02</checksum>
     </file>
     <file>
       <filename>base-appliances-propane.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>A198F3CB</checksum>
+      <checksum>0D238065</checksum>
     </file>
     <file>
       <filename>base-appliances-wood.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>2A79AE2A</checksum>
+      <checksum>06C25136</checksum>
     </file>
     <file>
       <filename>base-atticroof-cathedral.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>74C53176</checksum>
+      <checksum>8F1C220B</checksum>
     </file>
     <file>
       <filename>base-atticroof-conditioned.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>69205305</checksum>
+      <checksum>C26B9120</checksum>
     </file>
     <file>
       <filename>base-atticroof-flat.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>1794EEFC</checksum>
+      <checksum>8A57A89A</checksum>
     </file>
     <file>
       <filename>base-atticroof-radiant-barrier.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>A3D6A3E4</checksum>
+      <checksum>4D8EB0D1</checksum>
     </file>
     <file>
       <filename>base-atticroof-unvented-insulated-roof.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>344FDA15</checksum>
+      <checksum>56A68914</checksum>
     </file>
     <file>
       <filename>base-atticroof-vented.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>75E32B96</checksum>
+      <checksum>C6AA01E4</checksum>
     </file>
     <file>
       <filename>base-dhw-combi-tankless-outside.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>4225ED92</checksum>
+      <checksum>EE458676</checksum>
     </file>
     <file>
       <filename>base-dhw-combi-tankless.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>DB28EB68</checksum>
+      <checksum>DE880B8B</checksum>
     </file>
     <file>
       <filename>base-dhw-desuperheater-2-speed.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>542BF338</checksum>
+      <checksum>972FCB04</checksum>
     </file>
     <file>
       <filename>base-dhw-desuperheater-gshp.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>1C47BBC4</checksum>
+      <checksum>BDB6D38E</checksum>
     </file>
     <file>
       <filename>base-dhw-desuperheater-tankless.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>CDFD0B4B</checksum>
+      <checksum>1FCE6132</checksum>
     </file>
     <file>
       <filename>base-dhw-desuperheater-var-speed.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>268BE575</checksum>
+      <checksum>7B1318C8</checksum>
     </file>
     <file>
       <filename>base-dhw-desuperheater.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>C27E61B2</checksum>
+      <checksum>B2F2548A</checksum>
     </file>
     <file>
       <filename>base-dhw-dwhr.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>9085CD81</checksum>
+      <checksum>6CB2A145</checksum>
     </file>
     <file>
       <filename>base-dhw-indirect-dse.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>BF5907B3</checksum>
+      <checksum>473689B2</checksum>
     </file>
     <file>
       <filename>base-dhw-indirect-outside.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>74BA2878</checksum>
+      <checksum>1955FBFC</checksum>
     </file>
     <file>
       <filename>base-dhw-indirect-standbyloss.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>95214069</checksum>
+      <checksum>95B43B8D</checksum>
     </file>
     <file>
       <filename>base-dhw-indirect.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>952C0B51</checksum>
+      <checksum>B8C63787</checksum>
     </file>
     <file>
       <filename>base-dhw-jacket-electric.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>DA781A15</checksum>
+      <checksum>E2516D2B</checksum>
     </file>
     <file>
       <filename>base-dhw-jacket-gas.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>C5F36ABD</checksum>
+      <checksum>EC3B0124</checksum>
     </file>
     <file>
       <filename>base-dhw-jacket-indirect.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>66CFCAF1</checksum>
+      <checksum>1D616C78</checksum>
     </file>
     <file>
       <filename>base-dhw-low-flow-fixtures.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>33569508</checksum>
+      <checksum>D0C0A300</checksum>
     </file>
     <file>
       <filename>base-dhw-multiple.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>EBEA79CD</checksum>
+      <checksum>697F0F0C</checksum>
     </file>
     <file>
       <filename>base-dhw-none.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>6ACC4E70</checksum>
+      <checksum>9F7389DE</checksum>
     </file>
     <file>
       <filename>base-dhw-recirc-demand.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>73B0AF2B</checksum>
+      <checksum>CE5A266D</checksum>
     </file>
     <file>
       <filename>base-dhw-recirc-manual.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>7F594EB8</checksum>
+      <checksum>E5BB1562</checksum>
     </file>
     <file>
       <filename>base-dhw-recirc-nocontrol.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>27A643CF</checksum>
+      <checksum>3C60D66B</checksum>
     </file>
     <file>
       <filename>base-dhw-recirc-temperature.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>58CEE5A7</checksum>
+      <checksum>5A33327E</checksum>
     </file>
     <file>
       <filename>base-dhw-recirc-timer.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>45E5D7C6</checksum>
+      <checksum>7B605F80</checksum>
     </file>
     <file>
       <filename>base-dhw-solar-direct-evacuated-tube.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>C5E449CB</checksum>
+      <checksum>77FDA0AB</checksum>
     </file>
     <file>
       <filename>base-dhw-solar-direct-flat-plate.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>B9F0E918</checksum>
+      <checksum>018DAAE0</checksum>
     </file>
     <file>
       <filename>base-dhw-solar-direct-ics.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>946138A3</checksum>
+      <checksum>8593AF7F</checksum>
     </file>
     <file>
       <filename>base-dhw-solar-fraction.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>564D0A05</checksum>
+      <checksum>3B124CAA</checksum>
     </file>
     <file>
       <filename>base-dhw-solar-indirect-evacuated-tube.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>793E696E</checksum>
+      <checksum>2C029F90</checksum>
     </file>
     <file>
       <filename>base-dhw-solar-indirect-flat-plate.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>2A338DC1</checksum>
+      <checksum>E418E791</checksum>
     </file>
     <file>
       <filename>base-dhw-solar-thermosyphon-evacuated-tube.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>87F792B3</checksum>
+      <checksum>9B6BCE1E</checksum>
     </file>
     <file>
       <filename>base-dhw-solar-thermosyphon-flat-plate.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>146A88D8</checksum>
+      <checksum>0F7FD1C5</checksum>
     </file>
     <file>
       <filename>base-dhw-solar-thermosyphon-ics.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>D1298ADF</checksum>
+      <checksum>CA03B283</checksum>
     </file>
     <file>
       <filename>base-dhw-tank-gas-outside.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>0D68BD1A</checksum>
+      <checksum>0263822F</checksum>
     </file>
     <file>
       <filename>base-dhw-tank-gas.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>CEDF592B</checksum>
+      <checksum>8076346B</checksum>
     </file>
     <file>
       <filename>base-dhw-tank-heat-pump-outside.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>033EBF90</checksum>
+      <checksum>2FEBC710</checksum>
     </file>
     <file>
       <filename>base-dhw-tank-heat-pump-with-solar-fraction.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>BE513B02</checksum>
+      <checksum>D5B4D43F</checksum>
     </file>
     <file>
       <filename>base-dhw-tank-heat-pump-with-solar.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>A35B29D9</checksum>
+      <checksum>D1C7DBBF</checksum>
     </file>
     <file>
       <filename>base-dhw-tank-heat-pump.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>8DA8487A</checksum>
+      <checksum>46F5E006</checksum>
     </file>
     <file>
       <filename>base-dhw-tank-oil.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>7AC2D6DB</checksum>
+      <checksum>AEBA513D</checksum>
     </file>
     <file>
       <filename>base-dhw-tank-propane.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>A837721A</checksum>
+      <checksum>283FA733</checksum>
     </file>
     <file>
       <filename>base-dhw-tank-wood.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>2B56C64D</checksum>
+      <checksum>245D13C3</checksum>
     </file>
     <file>
       <filename>base-dhw-tankless-electric-outside.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>944CEA28</checksum>
+      <checksum>B1EFC484</checksum>
     </file>
     <file>
       <filename>base-dhw-tankless-electric.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>CC2055B5</checksum>
+      <checksum>64346F05</checksum>
     </file>
     <file>
       <filename>base-dhw-tankless-gas-with-solar-fraction.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>3F7A8D34</checksum>
+      <checksum>4C6144A0</checksum>
     </file>
     <file>
       <filename>base-dhw-tankless-gas-with-solar.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>0FEDF62A</checksum>
+      <checksum>A0E2881E</checksum>
     </file>
     <file>
       <filename>base-dhw-tankless-gas.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>DC0B7FD2</checksum>
+      <checksum>0BC06E50</checksum>
     </file>
     <file>
       <filename>base-dhw-tankless-oil.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>D6E4B032</checksum>
+      <checksum>313111AE</checksum>
     </file>
     <file>
       <filename>base-dhw-tankless-propane.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>FAAD6B8A</checksum>
+      <checksum>4CCCA265</checksum>
     </file>
     <file>
       <filename>base-dhw-tankless-wood.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>94A40F5F</checksum>
+      <checksum>0BC03E97</checksum>
     </file>
     <file>
       <filename>base-dhw-uef.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>8702EC39</checksum>
+      <checksum>13B01638</checksum>
     </file>
     <file>
       <filename>base-enclosure-2stories-garage.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>E7AAEE9A</checksum>
+      <checksum>2BA77B83</checksum>
     </file>
     <file>
       <filename>base-enclosure-2stories.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>9209B66E</checksum>
+      <checksum>56872E84</checksum>
     </file>
     <file>
       <filename>base-enclosure-adiabatic-surfaces.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>92A59C2A</checksum>
+      <checksum>1D23A4A9</checksum>
     </file>
     <file>
       <filename>base-enclosure-beds-1.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>7B8CA6D8</checksum>
+      <checksum>46642500</checksum>
     </file>
     <file>
       <filename>base-enclosure-beds-2.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>6C49EF53</checksum>
+      <checksum>0837E938</checksum>
     </file>
     <file>
       <filename>base-enclosure-beds-4.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>43C37C45</checksum>
+      <checksum>94907148</checksum>
     </file>
     <file>
       <filename>base-enclosure-beds-5.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>F850B903</checksum>
+      <checksum>1871C89F</checksum>
     </file>
     <file>
       <filename>base-enclosure-garage.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>784BBC68</checksum>
+      <checksum>7F3641BE</checksum>
     </file>
     <file>
       <filename>base-enclosure-infil-cfm50.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>CC4A618E</checksum>
+      <checksum>F13285A4</checksum>
     </file>
     <file>
       <filename>base-enclosure-no-natural-ventilation.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>072920B6</checksum>
+      <checksum>B71324A0</checksum>
     </file>
     <file>
       <filename>base-enclosure-overhangs.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>B03AAE3F</checksum>
+      <checksum>61C03A64</checksum>
     </file>
     <file>
       <filename>base-enclosure-split-surfaces.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>F8B52C68</checksum>
+      <checksum>BC9B2637</checksum>
     </file>
     <file>
       <filename>base-enclosure-walltype-cmu.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>A81760BE</checksum>
+      <checksum>2D804AA3</checksum>
     </file>
     <file>
       <filename>base-enclosure-walltype-doublestud.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>5FB1C61C</checksum>
+      <checksum>18F3CB79</checksum>
     </file>
     <file>
       <filename>base-enclosure-walltype-icf.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>5EDAEB62</checksum>
+      <checksum>1CA1FC02</checksum>
     </file>
     <file>
       <filename>base-enclosure-walltype-log.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>852BD413</checksum>
+      <checksum>C4C60634</checksum>
     </file>
     <file>
       <filename>base-enclosure-walltype-sip.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>82AC4953</checksum>
+      <checksum>6D85599F</checksum>
     </file>
     <file>
       <filename>base-enclosure-walltype-solidconcrete.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>8330825A</checksum>
+      <checksum>168B227C</checksum>
     </file>
     <file>
       <filename>base-enclosure-walltype-steelstud.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>EE66374C</checksum>
+      <checksum>98259A6E</checksum>
     </file>
     <file>
       <filename>base-enclosure-walltype-stone.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>9467A524</checksum>
+      <checksum>6E3ED525</checksum>
     </file>
     <file>
       <filename>base-enclosure-walltype-strawbale.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>B6C5E4C3</checksum>
+      <checksum>96B870BE</checksum>
     </file>
     <file>
       <filename>base-enclosure-walltype-structuralbrick.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>63768FD4</checksum>
+      <checksum>A7743CFF</checksum>
     </file>
     <file>
       <filename>base-enclosure-windows-interior-shading.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>61BF9FF9</checksum>
+      <checksum>9E8D796A</checksum>
     </file>
     <file>
       <filename>base-enclosure-windows-none.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>A329340B</checksum>
+      <checksum>61F176E8</checksum>
     </file>
     <file>
       <filename>base-foundation-ambient.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>0341AEA7</checksum>
+      <checksum>18FC83C7</checksum>
     </file>
     <file>
       <filename>base-foundation-conditioned-basement-slab-insulation.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>630D145B</checksum>
+      <checksum>150BE638</checksum>
     </file>
     <file>
       <filename>base-foundation-conditioned-basement-wall-interior-insulation.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>26DEC2EE</checksum>
+      <checksum>CB161912</checksum>
     </file>
     <file>
       <filename>base-foundation-slab.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>FC64ABF7</checksum>
+      <checksum>F6BF65EF</checksum>
     </file>
     <file>
       <filename>base-foundation-unconditioned-basement-above-grade.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>3AFC052B</checksum>
+      <checksum>B485FE1C</checksum>
     </file>
     <file>
       <filename>base-foundation-unconditioned-basement-wall-insulation.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>326DCDF6</checksum>
+      <checksum>42A02FC7</checksum>
     </file>
     <file>
       <filename>base-foundation-unconditioned-basement.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>98BEA253</checksum>
+      <checksum>818EA269</checksum>
     </file>
     <file>
       <filename>base-foundation-unvented-crawlspace.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>E2452284</checksum>
+      <checksum>19AF5D27</checksum>
     </file>
     <file>
       <filename>base-foundation-vented-crawlspace.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>3B124F56</checksum>
-    </file>
-    <file>
-      <filename>base-hvac-air-to-air-heat-pump-1-speed.osw</filename>
-      <filetype>osw</filetype>
-      <usage_type>test</usage_type>
-      <checksum>7948AD75</checksum>
-    </file>
-    <file>
-      <filename>base-hvac-air-to-air-heat-pump-2-speed.osw</filename>
-      <filetype>osw</filetype>
-      <usage_type>test</usage_type>
-      <checksum>DC029315</checksum>
-    </file>
-    <file>
-      <filename>base-hvac-air-to-air-heat-pump-var-speed.osw</filename>
-      <filetype>osw</filetype>
-      <usage_type>test</usage_type>
-      <checksum>DB7AEF0D</checksum>
+      <checksum>699D040F</checksum>
     </file>
     <file>
       <filename>base-hvac-boiler-elec-only.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>A812A0ED</checksum>
+      <checksum>13B36043</checksum>
     </file>
     <file>
       <filename>base-hvac-boiler-gas-central-ac-1-speed.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>BE0DF4DD</checksum>
+      <checksum>CC29CEDC</checksum>
     </file>
     <file>
       <filename>base-hvac-boiler-gas-only-no-eae.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>5C3F5D2B</checksum>
+      <checksum>69AB7DD9</checksum>
     </file>
     <file>
       <filename>base-hvac-boiler-gas-only.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>9D66E134</checksum>
+      <checksum>41AA3EBC</checksum>
     </file>
     <file>
       <filename>base-hvac-boiler-oil-only.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>5155D310</checksum>
+      <checksum>AD391AD9</checksum>
     </file>
     <file>
       <filename>base-hvac-boiler-propane-only.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>DE96B3B1</checksum>
+      <checksum>E3A339DF</checksum>
     </file>
     <file>
       <filename>base-hvac-boiler-wood-only.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>3CF071FC</checksum>
+      <checksum>B6C89AA8</checksum>
     </file>
     <file>
       <filename>base-hvac-central-ac-only-1-speed.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>70761E1A</checksum>
+      <checksum>52209B40</checksum>
     </file>
     <file>
       <filename>base-hvac-central-ac-only-2-speed.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>6BD6AF00</checksum>
+      <checksum>097E63FC</checksum>
     </file>
     <file>
       <filename>base-hvac-central-ac-only-var-speed.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>24905CBA</checksum>
-    </file>
-    <file>
-      <filename>base-hvac-central-ac-plus-air-to-air-heat-pump-heating.osw</filename>
-      <filetype>osw</filetype>
-      <usage_type>test</usage_type>
-      <checksum>5302B908</checksum>
+      <checksum>FFF43C4D</checksum>
     </file>
     <file>
       <filename>base-hvac-dse.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>71C0C520</checksum>
-    </file>
-    <file>
-      <filename>base-hvac-dual-fuel-air-to-air-heat-pump-1-speed-electric.osw</filename>
-      <filetype>osw</filetype>
-      <usage_type>test</usage_type>
-      <checksum>2780DBF1</checksum>
-    </file>
-    <file>
-      <filename>base-hvac-dual-fuel-air-to-air-heat-pump-1-speed.osw</filename>
-      <filetype>osw</filetype>
-      <usage_type>test</usage_type>
-      <checksum>B171278B</checksum>
-    </file>
-    <file>
-      <filename>base-hvac-dual-fuel-air-to-air-heat-pump-2-speed.osw</filename>
-      <filetype>osw</filetype>
-      <usage_type>test</usage_type>
-      <checksum>6B6AAE9F</checksum>
-    </file>
-    <file>
-      <filename>base-hvac-dual-fuel-air-to-air-heat-pump-var-speed.osw</filename>
-      <filetype>osw</filetype>
-      <usage_type>test</usage_type>
-      <checksum>E225465F</checksum>
-    </file>
-    <file>
-      <filename>base-hvac-dual-fuel-mini-split-heat-pump-ducted.osw</filename>
-      <filetype>osw</filetype>
-      <usage_type>test</usage_type>
-      <checksum>4FA7058E</checksum>
+      <checksum>67B26B9E</checksum>
     </file>
     <file>
       <filename>base-hvac-ducts-in-conditioned-space.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>A004C61A</checksum>
+      <checksum>D745829A</checksum>
     </file>
     <file>
       <filename>base-hvac-ducts-leakage-percent.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>3BF8C9E9</checksum>
+      <checksum>663D562E</checksum>
     </file>
     <file>
       <filename>base-hvac-ducts-locations.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>F01AC971</checksum>
+      <checksum>11E2206C</checksum>
     </file>
     <file>
       <filename>base-hvac-ducts-outside.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>80A63B62</checksum>
+      <checksum>CB9BB4BA</checksum>
     </file>
     <file>
       <filename>base-hvac-elec-resistance-only.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>4D3B5885</checksum>
+      <checksum>91C0287C</checksum>
     </file>
     <file>
       <filename>base-hvac-evap-cooler-furnace-gas.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>6D39AEF7</checksum>
+      <checksum>0F3C185C</checksum>
     </file>
     <file>
       <filename>base-hvac-evap-cooler-only-ducted.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>A9BCF511</checksum>
+      <checksum>428D0C92</checksum>
     </file>
     <file>
       <filename>base-hvac-evap-cooler-only.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>85D25E72</checksum>
+      <checksum>DDC9B517</checksum>
     </file>
     <file>
       <filename>base-hvac-flowrate.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>B52FC407</checksum>
+      <checksum>95108A28</checksum>
     </file>
     <file>
       <filename>base-hvac-furnace-elec-only.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>BFCEAF61</checksum>
+      <checksum>16948B06</checksum>
     </file>
     <file>
       <filename>base-hvac-furnace-gas-central-ac-2-speed.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>21B50EDF</checksum>
+      <checksum>2F149F8E</checksum>
     </file>
     <file>
       <filename>base-hvac-furnace-gas-central-ac-var-speed.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>4117ADBD</checksum>
+      <checksum>591B893A</checksum>
     </file>
     <file>
       <filename>base-hvac-furnace-gas-only-no-eae.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>4F08A228</checksum>
+      <checksum>F80897A8</checksum>
     </file>
     <file>
       <filename>base-hvac-furnace-gas-only.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>F0715EDF</checksum>
+      <checksum>688AEAA3</checksum>
     </file>
     <file>
       <filename>base-hvac-furnace-gas-room-ac.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>389A446B</checksum>
+      <checksum>E8265E41</checksum>
     </file>
     <file>
       <filename>base-hvac-furnace-oil-only.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>0FB445B5</checksum>
+      <checksum>3B3BBACA</checksum>
     </file>
     <file>
       <filename>base-hvac-furnace-propane-only.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>057CD8D1</checksum>
+      <checksum>2EDA7C7A</checksum>
     </file>
     <file>
       <filename>base-hvac-furnace-wood-only.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>E0A42EE4</checksum>
+      <checksum>0442EF0B</checksum>
     </file>
     <file>
       <filename>base-hvac-ground-to-air-heat-pump.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>EB5104B6</checksum>
+      <checksum>905279AD</checksum>
     </file>
     <file>
       <filename>base-hvac-mini-split-heat-pump-ducted.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>ACBE5B73</checksum>
+      <checksum>C363BE6B</checksum>
     </file>
     <file>
       <filename>base-hvac-mini-split-heat-pump-ductless-no-backup.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>7D1698F0</checksum>
+      <checksum>ED6682B6</checksum>
     </file>
     <file>
       <filename>base-hvac-mini-split-heat-pump-ductless.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>FB794B15</checksum>
+      <checksum>01EDF311</checksum>
     </file>
     <file>
       <filename>base-hvac-none.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>ACE47125</checksum>
+      <checksum>97785166</checksum>
     </file>
     <file>
       <filename>base-hvac-portable-heater-electric-only.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>053833D5</checksum>
+      <checksum>2DED8DAF</checksum>
     </file>
     <file>
       <filename>base-hvac-programmable-thermostat.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>86E2B415</checksum>
+      <checksum>5E480A84</checksum>
     </file>
     <file>
       <filename>base-hvac-room-ac-only.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>03011795</checksum>
+      <checksum>94195662</checksum>
     </file>
     <file>
       <filename>base-hvac-setpoints.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>55881D7E</checksum>
+      <checksum>E64A5BF6</checksum>
     </file>
     <file>
       <filename>base-hvac-stove-oil-only-no-eae.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>EE29CCBD</checksum>
+      <checksum>C776E3AB</checksum>
     </file>
     <file>
       <filename>base-hvac-stove-oil-only.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>B929227C</checksum>
+      <checksum>1906F117</checksum>
     </file>
     <file>
       <filename>base-hvac-stove-wood-only.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>419696EB</checksum>
+      <checksum>F55D6AF3</checksum>
     </file>
     <file>
       <filename>base-hvac-undersized.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>C258E93D</checksum>
+      <checksum>083578DF</checksum>
     </file>
     <file>
       <filename>base-hvac-wall-furnace-elec-only.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>03F74725</checksum>
+      <checksum>C5673DF0</checksum>
     </file>
     <file>
       <filename>base-hvac-wall-furnace-propane-only-no-eae.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>FAFEE903</checksum>
+      <checksum>E785E7D3</checksum>
     </file>
     <file>
       <filename>base-hvac-wall-furnace-propane-only.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>588F775B</checksum>
+      <checksum>7246309C</checksum>
     </file>
     <file>
       <filename>base-hvac-wall-furnace-wood-only.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>89A25957</checksum>
+      <checksum>8774C93B</checksum>
     </file>
     <file>
       <filename>base-infiltration-ach-natural.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>A87EBAA9</checksum>
+      <checksum>23EDCBB5</checksum>
     </file>
     <file>
       <filename>base-location-baltimore-md.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>BE159763</checksum>
+      <checksum>F42BE9CF</checksum>
     </file>
     <file>
       <filename>base-location-dallas-tx.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>2DD053E0</checksum>
+      <checksum>AB98673B</checksum>
     </file>
     <file>
       <filename>base-location-duluth-mn.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>449F4362</checksum>
+      <checksum>86E2E374</checksum>
     </file>
     <file>
       <filename>base-location-miami-fl.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>5BD985CF</checksum>
+      <checksum>956ADD27</checksum>
     </file>
     <file>
       <filename>base-mechvent-balanced.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>CA448FB5</checksum>
+      <checksum>8D1E6B8A</checksum>
     </file>
     <file>
       <filename>base-mechvent-cfis.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>CE77E5C5</checksum>
+      <checksum>0C1181EA</checksum>
     </file>
     <file>
       <filename>base-mechvent-erv-atre-asre.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>0AA8F406</checksum>
+      <checksum>65C6E3B6</checksum>
     </file>
     <file>
       <filename>base-mechvent-erv.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>02D441C1</checksum>
+      <checksum>AA6B4033</checksum>
     </file>
     <file>
       <filename>base-mechvent-exhaust-rated-flow-rate.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>86B164A9</checksum>
+      <checksum>361927C3</checksum>
     </file>
     <file>
       <filename>base-mechvent-exhaust.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>17E722B2</checksum>
+      <checksum>525C8524</checksum>
     </file>
     <file>
       <filename>base-mechvent-hrv-asre.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>6093E98F</checksum>
+      <checksum>D1BAF42E</checksum>
     </file>
     <file>
       <filename>base-mechvent-hrv.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>AA519DC7</checksum>
+      <checksum>D445BFBB</checksum>
     </file>
     <file>
       <filename>base-mechvent-supply.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>CFC636E6</checksum>
+      <checksum>05018194</checksum>
     </file>
     <file>
       <filename>base-misc-ceiling-fans.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>F0AAEC74</checksum>
+      <checksum>0D906ED1</checksum>
     </file>
     <file>
       <filename>base-misc-lighting-none.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>FF1EB21B</checksum>
+      <checksum>D6EC34F6</checksum>
     </file>
     <file>
       <filename>base-misc-loads-detailed.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>B6CD8273</checksum>
+      <checksum>D75C0C13</checksum>
     </file>
     <file>
       <filename>base-misc-number-of-occupants.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>970259A7</checksum>
+      <checksum>4D5FDC1B</checksum>
     </file>
     <file>
       <filename>base-multifamily.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>BE77581D</checksum>
+      <checksum>C79206E5</checksum>
     </file>
     <file>
       <filename>base-pv-array-1axis-backtracked.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>2C159620</checksum>
+      <checksum>4A960096</checksum>
     </file>
     <file>
       <filename>base-pv-array-1axis.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>00837E79</checksum>
+      <checksum>2EDB3839</checksum>
     </file>
     <file>
       <filename>base-pv-array-2axis.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>324532D4</checksum>
+      <checksum>58F140BA</checksum>
     </file>
     <file>
       <filename>base-pv-array-fixed-open-rack.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>F567326C</checksum>
+      <checksum>28ABF2C0</checksum>
     </file>
     <file>
       <filename>base-pv-array-module-premium.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>036BC81D</checksum>
+      <checksum>CED5875D</checksum>
     </file>
     <file>
       <filename>base-pv-array-module-standard.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>8AC27AFD</checksum>
+      <checksum>79CFF02F</checksum>
     </file>
     <file>
       <filename>base-pv-array-module-thinfilm.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>26D8EAFF</checksum>
+      <checksum>A8C58C88</checksum>
     </file>
     <file>
       <filename>base-single-family-attached.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>3684E035</checksum>
+      <checksum>55803673</checksum>
     </file>
     <file>
       <filename>base-site-neighbors.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>D17EE592</checksum>
+      <checksum>3A1C5B55</checksum>
     </file>
     <file>
       <filename>base-dhw-jacket-hpwh.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>9C873DB4</checksum>
+      <checksum>7277AA83</checksum>
     </file>
     <file>
       <filename>base-appliances-modified.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>55A5F621</checksum>
+      <checksum>5E05E431</checksum>
     </file>
     <file>
       <filename>base-misc-whole-house-fan.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>8082D129</checksum>
+      <checksum>2605922C</checksum>
     </file>
     <file>
       <filename>base-mechvent-cfis-evap-cooler-only-ducted.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>BD6CEA25</checksum>
-    </file>
-    <file>
-      <filename>build_residential_hpxml_test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>E2EE595B</checksum>
+      <checksum>633B73C3</checksum>
     </file>
     <file>
       <version>
@@ -4747,7 +4763,67 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>16398EC5</checksum>
+      <checksum>497D9163</checksum>
+    </file>
+    <file>
+      <filename>base-hvac-air-to-air-heat-pump-1-speed.osw</filename>
+      <filetype>osw</filetype>
+      <usage_type>test</usage_type>
+      <checksum>94D7CA8A</checksum>
+    </file>
+    <file>
+      <filename>base-hvac-air-to-air-heat-pump-2-speed.osw</filename>
+      <filetype>osw</filetype>
+      <usage_type>test</usage_type>
+      <checksum>2FE80B35</checksum>
+    </file>
+    <file>
+      <filename>base-hvac-air-to-air-heat-pump-var-speed.osw</filename>
+      <filetype>osw</filetype>
+      <usage_type>test</usage_type>
+      <checksum>9990CBA8</checksum>
+    </file>
+    <file>
+      <filename>base-hvac-central-ac-plus-air-to-air-heat-pump-heating.osw</filename>
+      <filetype>osw</filetype>
+      <usage_type>test</usage_type>
+      <checksum>C733E2B8</checksum>
+    </file>
+    <file>
+      <filename>base-hvac-dual-fuel-air-to-air-heat-pump-1-speed-electric.osw</filename>
+      <filetype>osw</filetype>
+      <usage_type>test</usage_type>
+      <checksum>04CA958B</checksum>
+    </file>
+    <file>
+      <filename>base-hvac-dual-fuel-air-to-air-heat-pump-1-speed.osw</filename>
+      <filetype>osw</filetype>
+      <usage_type>test</usage_type>
+      <checksum>A8803085</checksum>
+    </file>
+    <file>
+      <filename>base-hvac-dual-fuel-air-to-air-heat-pump-2-speed.osw</filename>
+      <filetype>osw</filetype>
+      <usage_type>test</usage_type>
+      <checksum>E5263EC7</checksum>
+    </file>
+    <file>
+      <filename>base-hvac-dual-fuel-air-to-air-heat-pump-var-speed.osw</filename>
+      <filetype>osw</filetype>
+      <usage_type>test</usage_type>
+      <checksum>59E86D6D</checksum>
+    </file>
+    <file>
+      <filename>base-hvac-dual-fuel-mini-split-heat-pump-ducted.osw</filename>
+      <filetype>osw</filetype>
+      <usage_type>test</usage_type>
+      <checksum>056EBE00</checksum>
+    </file>
+    <file>
+      <filename>build_residential_hpxml_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>A8A5497E</checksum>
     </file>
   </files>
 </measure>
