@@ -3225,6 +3225,8 @@ class HPXMLFile
       if num_bathrooms == Constants.Auto
         num_bathrooms = 2 # FIXME
       end
+      num_bathrooms = Float(num_bathrooms)
+
       tank_volume = Waterheater.calc_nom_tankvol(args[:water_heater_tank_volume][i], fuel_type, args[:num_bedrooms], num_bathrooms)
 
       heating_capacity = args[:water_heater_heating_capacity][i]
