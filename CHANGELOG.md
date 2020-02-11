@@ -3,6 +3,7 @@
 
 Features
 - Update the multifamily project with a Geometry Wall Type tsv file for sampling between wood stud and masonry walls ([#382](https://github.com/NREL/OpenStudio-BuildStock/pull/382))
+- Update the multifamily project with a more up to date lighting stock distribution. ([#392](https://github.com/NREL/OpenStudio-BuildStock/pull/392))
 
 Fixes
 - Add generation of the Geometry Wall Type tsv file for the single-family detached project to the 2009 RECS tsv maker; this corrects the tsv file ([#387](https://github.com/NREL/OpenStudio-BuildStock/pull/387))
