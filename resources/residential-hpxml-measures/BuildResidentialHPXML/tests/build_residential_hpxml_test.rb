@@ -16,8 +16,10 @@ class BuildResidentialHPXMLTest < MiniTest::Test
     this_dir = File.dirname(__FILE__)
 
     hvac_partial_dir = File.absolute_path(File.join(this_dir, "hvac_partial"))
-    test_dirs = [this_dir,
-                 hvac_partial_dir]
+    test_dirs = [
+      this_dir,
+      hvac_partial_dir
+    ]
 
     measures_dir = File.join(this_dir, "../..")
 
@@ -66,9 +68,10 @@ class BuildResidentialHPXMLTest < MiniTest::Test
         end
 
         # Compare the hpxml to the manually created one
+        test_dir = File.basename(File.dirname(osw))
         hpxml_path = step["arguments"]["hpxml_path"]
         begin
-          _check_hpxmls(workflow_dir, built_dir, hpxml_path)
+          _check_hpxmls(workflow_dir, built_dir, test_dir, hpxml_path)
         rescue Exception => e
           puts e
           fail = true
@@ -81,9 +84,13 @@ class BuildResidentialHPXMLTest < MiniTest::Test
 
   private
 
-  def _check_hpxmls(workflow_dir, built_dir, hpxml_path)
+  def _check_hpxmls(workflow_dir, built_dir, test_dir, hpxml_path)
+    if test_dir == "tests"
+      test_dir = ""
+    end
+
     hpxml_path = {
-      "Rakefile" => File.join(workflow_dir, File.basename(hpxml_path)),
+      "Rakefile" => File.join(workflow_dir, test_dir, File.basename(hpxml_path)),
       "BuildResidentialHPXML" => File.join(built_dir, File.basename(hpxml_path))
     }
 
@@ -120,16 +127,38 @@ class BuildResidentialHPXMLTest < MiniTest::Test
     compare_xml = CompareXML.equivalent?(hpxml_docs["Rakefile"], hpxml_docs["BuildResidentialHPXML"], opts)
     discrepancies = ""
     compare_xml.each do |discrepancy|
-      next if discrepancy[:node1].attributes.keys.include? "id"
-      next if discrepancy[:node1].attributes.keys.include? "idref"
+      unless discrepancy[:node1].nil?
+        next if discrepancy[:node1].attributes.keys.include? "id"
+        next if discrepancy[:node1].attributes.keys.include? "idref"
+      end
 
-      parent = discrepancy[:node1].parent
-      parent_id = parent.xpath("SystemIdentifier").attribute("id")
+      parent_id = "nil"
+      parent_element = "nil"
+      if not discrepancy[:node1].nil?
+        parent_element = discrepancy[:node1].name
+        parent = discrepancy[:node1].parent
+        parent_sysid = parent.xpath("SystemIdentifier")
+        if not parent_sysid.empty?
+          parent_id = parent_sysid.attribute("id").to_s
+        end
+      end
+      parent_text = discrepancy[:diff1]
 
-      child = discrepancy[:node2].parent
-      child_id = child.xpath("SystemIdentifier").attribute("id")
+      next if parent_id.include? "WallAtticGable" # FIXME
 
-      discrepancies << "#{parent_id}: #{discrepancy[:diff1]}, #{child_id}: #{discrepancy[:diff2]}\n"
+      child_id = "nil"
+      child_element = "nil"
+      if not discrepancy[:node2].nil?
+        child_element = discrepancy[:node2].name
+        child = discrepancy[:node2].parent
+        child_sysid = child.xpath("SystemIdentifier")
+        if not child_sysid.empty?
+          child_id = child_sysid.attribute("id").to_s
+        end
+      end
+      child_text = discrepancy[:diff2]
+
+      discrepancies << "(#{parent_id}: #{parent_element}: #{parent_text}) : (#{child_id}: #{child_element}: #{child_text}}\n"
     end
 
     unless discrepancies.empty?

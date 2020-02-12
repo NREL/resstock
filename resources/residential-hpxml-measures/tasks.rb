@@ -149,7 +149,7 @@ def create_osws
     'base-hvac-evap-cooler-furnace-gas.osw' => 'base.osw',
     'base-hvac-evap-cooler-only.osw' => 'base.osw',
     'base-hvac-evap-cooler-only-ducted.osw' => 'base.osw',
-    'base-hvac-flowrate.osw' => 'base.osw',
+    # 'base-hvac-flowrate.osw' => 'base.osw',
     'base-hvac-furnace-elec-only.osw' => 'base.osw',
     'base-hvac-furnace-gas-central-ac-2-speed.osw' => 'base.osw',
     'base-hvac-furnace-gas-central-ac-var-speed.osw' => 'base.osw',
@@ -322,7 +322,7 @@ def get_values(osw_file, step)
     step.setArgument("cfa", 2700.0)
     step.setArgument("wall_height", 8.0)
     step.setArgument("num_floors", 1)
-    step.setArgument("aspect_ratio", 2.0)
+    step.setArgument("aspect_ratio", 1.5)
     step.setArgument("level", "Bottom")
     step.setArgument("horizontal_location", "Left")
     step.setArgument("corridor_position", "Double-Loaded Interior")
@@ -341,7 +341,7 @@ def get_values(osw_file, step)
     step.setArgument("foundation_wall_r", 8.9)
     step.setArgument("foundation_wall_distance_to_top", 0.0)
     step.setArgument("foundation_wall_distance_to_bottom", 8.0)
-    step.setArgument("foundation_wall_depth_below_grade", 8.0)
+    step.setArgument("foundation_wall_depth_below_grade", 7.0)
     step.setArgument("slab_perimeter_r", 0)
     step.setArgument("slab_perimeter_depth", 0)
     step.setArgument("slab_under_r", 0)
@@ -437,12 +437,9 @@ def get_values(osw_file, step)
     step.setArgument("heat_pump_backup_heating_capacity", 34121.0)
     step.setArgument("mini_split_is_ducted", false)
     step.setArgument("evap_cooler_is_ducted", false)
-    step.setArgument("heating_system_flow_rate", 0)
-    step.setArgument("cooling_system_flow_rate", 0)
     step.setArgument("hvac_distribution_system_type_dse", false)
     step.setArgument("annual_heating_dse", 0.8)
     step.setArgument("annual_cooling_dse", 0.7)
-    step.setArgument("hvac_control_type", "manual thermostat")
     step.setArgument("heating_setpoint_temp", 68)
     step.setArgument("heating_setback_temp", 68)
     step.setArgument("heating_setback_hours_per_week", 0)
@@ -462,13 +459,12 @@ def get_values(osw_file, step)
     step.setArgument("supply_duct_surface_area", 150.0)
     step.setArgument("return_duct_surface_area", 50.0)
     step.setArgument("mech_vent_fan_type", "none")
-    step.setArgument("mech_vent_tested_flow_rate", 110)
     step.setArgument("mech_vent_rated_flow_rate", 0)
     step.setArgument("mech_vent_hours_in_operation", 24)
+    step.setArgument("mech_vent_total_recovery_efficiency_type", "Unadjusted")
     step.setArgument("mech_vent_total_recovery_efficiency", 0.48)
-    step.setArgument("mech_vent_adjusted_total_recovery_efficiency", 0)
+    step.setArgument("mech_vent_sensible_recovery_efficiency_type", "Unadjusted")
     step.setArgument("mech_vent_sensible_recovery_efficiency", 0.72)
-    step.setArgument("mech_vent_adjusted_sensible_recovery_efficiency", 0)
     step.setArgument("mech_vent_fan_power", 30)
     step.setArgument("has_whole_house_fan", false)
     step.setArgument("whole_house_fan_rated_flow_rate", 4500)
@@ -479,8 +475,8 @@ def get_values(osw_file, step)
     step.setArgument("water_heater_tank_volume_1", "40")
     step.setArgument("water_heater_fraction_dhw_load_served_1", 1)
     step.setArgument("water_heater_heating_capacity_1", Constants.SizingAuto)
-    step.setArgument("water_heater_energy_factor_1", Constants.Auto)
-    step.setArgument("water_heater_uniform_energy_factor_1", 0)
+    step.setArgument("water_heater_efficiency_type_1", "EnergyFactor")
+    step.setArgument("water_heater_efficiency_1", 0.95)
     step.setArgument("water_heater_recovery_efficiency_1", 0.76)
     step.setArgument("water_heater_uses_desuperheater_1", false)
     step.setArgument("water_heater_standby_loss_1", 0)
@@ -491,8 +487,8 @@ def get_values(osw_file, step)
     step.setArgument("water_heater_tank_volume_2", Constants.Auto)
     step.setArgument("water_heater_fraction_dhw_load_served_2", 1)
     step.setArgument("water_heater_heating_capacity_2", Constants.SizingAuto)
-    step.setArgument("water_heater_energy_factor_2", Constants.Auto)
-    step.setArgument("water_heater_uniform_energy_factor_2", 0)
+    step.setArgument("water_heater_efficiency_type_2", "EnergyFactor")
+    step.setArgument("water_heater_efficiency_2", Constants.Auto)
     step.setArgument("water_heater_recovery_efficiency_2", 0.76)
     step.setArgument("water_heater_uses_desuperheater_2", false)
     step.setArgument("water_heater_standby_loss_2", 0)
@@ -529,8 +525,8 @@ def get_values(osw_file, step)
     step.setArgument("pv_system_system_losses_fraction", 0.14)
     step.setArgument("has_clothes_washer", true)
     step.setArgument("clothes_washer_location", Constants.Auto)
-    step.setArgument("clothes_washer_modified_energy_factor", 0.8)
-    step.setArgument("clothes_washer_integrated_modified_energy_factor", 0)
+    step.setArgument("clothes_washer_efficiency_type", "ModifiedEnergyFactor")
+    step.setArgument("clothes_washer_efficiency", 0.8)
     step.setArgument("clothes_washer_rated_annual_kwh", 700.0)
     step.setArgument("clothes_washer_label_electric_rate", 0.1)
     step.setArgument("clothes_washer_label_gas_rate", 0.6)
@@ -539,12 +535,12 @@ def get_values(osw_file, step)
     step.setArgument("has_clothes_dryer", true)
     step.setArgument("clothes_dryer_location", "living space")
     step.setArgument("clothes_dryer_fuel_type", "electricity")
-    step.setArgument("clothes_dryer_energy_factor", 2.95)
-    step.setArgument("clothes_dryer_combined_energy_factor", 0)
+    step.setArgument("clothes_dryer_efficiency_type", "EnergyFactor")
+    step.setArgument("clothes_dryer_efficiency", 2.95)
     step.setArgument("clothes_dryer_control_type", "timer")
     step.setArgument("has_dishwasher", true)
-    step.setArgument("dishwasher_energy_factor", 0)
-    step.setArgument("dishwasher_rated_annual_kwh", 450.0)
+    step.setArgument("dishwasher_efficiency_type", "RatedAnnualkWh")
+    step.setArgument("dishwasher_efficiency", 450.0)
     step.setArgument("dishwasher_place_setting_capacity", 12)
     step.setArgument("has_refrigerator", true)
     step.setArgument("refrigerator_location", Constants.Auto)
@@ -583,15 +579,17 @@ def get_values(osw_file, step)
     step.setArgument("return_duct_location", Constants.Auto)
   elsif ['base-appliances-gas.osw'].include? osw_file
     step.setArgument("clothes_dryer_fuel_type", "natural gas")
-    step.setArgument("clothes_dryer_energy_factor", 2.67)
+    step.setArgument("clothes_dryer_efficiency", 2.67)
     step.setArgument("clothes_dryer_control_type", "moisture")
+    step.setArgument("cooking_range_fuel_type", "natural gas")
   elsif ['base-appliances-modified.osw'].include? osw_file
-    step.setArgument("clothes_washer_integrated_modified_energy_factor", 0.73)
-    step.setArgument("clothes_dryer_energy_factor", 0)
-    step.setArgument("clothes_dryer_combined_energy_factor", 2.62)
+    step.setArgument("clothes_washer_efficiency_type", "IntegratedModifiedEnergyFactor")
+    step.setArgument("clothes_washer_efficiency", 0.73)
+    step.setArgument("clothes_dryer_efficiency_type", "CombinedEnergyFactor")
+    step.setArgument("clothes_dryer_efficiency", 2.62)
     step.setArgument("clothes_dryer_control_type", "moisture")
-    step.setArgument("dishwasher_energy_factor", 0.5)
-    step.setArgument("dishwasher_rated_annual_kwh", 0)
+    step.setArgument("dishwasher_efficiency_type", "EnergyFactor")
+    step.setArgument("dishwasher_efficiency", 0.5)
     step.setArgument("refrigerator_adjusted_annual_kwh", 600.0)
   elsif ['base-appliances-none.osw'].include? osw_file
     step.setArgument("has_clothes_washer", false)
@@ -602,16 +600,19 @@ def get_values(osw_file, step)
     step.setArgument("has_oven", false)
   elsif ['base-appliances-oil.osw'].include? osw_file
     step.setArgument("clothes_dryer_fuel_type", "fuel oil")
-    step.setArgument("clothes_dryer_energy_factor", 2.67)
+    step.setArgument("clothes_dryer_efficiency", 2.67)
     step.setArgument("clothes_dryer_control_type", "moisture")
+    step.setArgument("cooking_range_fuel_type", "fuel oil")
   elsif ['base-appliances-propane.osw'].include? osw_file
     step.setArgument("clothes_dryer_fuel_type", "propane")
-    step.setArgument("clothes_dryer_energy_factor", 2.67)
+    step.setArgument("clothes_dryer_efficiency", 2.67)
     step.setArgument("clothes_dryer_control_type", "moisture")
+    step.setArgument("cooking_range_fuel_type", "propane")
   elsif ['base-appliances-wood.osw'].include? osw_file
     step.setArgument("clothes_dryer_fuel_type", "wood")
-    step.setArgument("clothes_dryer_energy_factor", 2.67)
+    step.setArgument("clothes_dryer_efficiency", 2.67)
     step.setArgument("clothes_dryer_control_type", "moisture")
+    step.setArgument("cooking_range_fuel_type", "wood")
   elsif ['base-atticroof-cathedral.osw'].include? osw_file
     step.setArgument("attic_type", "attic - conditioned")
     step.setArgument("roof_ceiling_r", 25.8)
@@ -703,7 +704,7 @@ def get_values(osw_file, step)
   elsif ['base-dhw-jacket-hpwh.osw'].include? osw_file
     step.setArgument("water_heater_type_1", "heat pump water heater")
     step.setArgument("water_heater_tank_volume_1", 80.0)
-    step.setArgument("water_heater_energy_factor_1", 2.3)
+    step.setArgument("water_heater_efficiency_1", 2.3)
     step.setArgument("water_heater_jacket_rvalue_1", 10.0)
   elsif ['base-dhw-jacket-indirect.osw'].include? osw_file
     step.setArgument("heating_system_type", "Boiler")
@@ -783,16 +784,16 @@ def get_values(osw_file, step)
   elsif ['base-dhw-tank-heat-pump.osw'].include? osw_file
     step.setArgument("water_heater_type_1", "heat pump water heater")
     step.setArgument("water_heater_tank_volume_1", 80.0)
-    step.setArgument("water_heater_energy_factor_1", 2.3)
+    step.setArgument("water_heater_efficiency_1", 2.3)
   elsif ['base-dhw-tank-heat-pump-outside.osw'].include? osw_file
     step.setArgument("water_heater_type_1", "heat pump water heater")
     step.setArgument("water_heater_location_1", "other exterior")
     step.setArgument("water_heater_tank_volume_1", 80.0)
-    step.setArgument("water_heater_energy_factor_1", 2.3)
+    step.setArgument("water_heater_efficiency_1", 2.3)
   elsif ['base-dhw-tank-heat-pump-with-solar.osw'].include? osw_file
     step.setArgument("water_heater_type_1", "heat pump water heater")
     step.setArgument("water_heater_tank_volume_1", 80.0)
-    step.setArgument("water_heater_energy_factor_1", 2.3)
+    step.setArgument("water_heater_efficiency_1", 2.3)
     step.setArgument("solar_thermal_system_type", "hot water")
     step.setArgument("solar_thermal_collector_loop_type", "liquid indirect")
     step.setArgument("solar_thermal_collector_rated_optical_efficiency", 0.77)
@@ -800,7 +801,7 @@ def get_values(osw_file, step)
   elsif ['base-dhw-tank-heat-pump-with-solar-fraction.osw'].include? osw_file
     step.setArgument("water_heater_type_1", "heat pump water heater")
     step.setArgument("water_heater_tank_volume_1", 80.0)
-    step.setArgument("water_heater_energy_factor_1", 2.3)
+    step.setArgument("water_heater_efficiency_1", 2.3)
     step.setArgument("solar_thermal_system_type", "hot water")
     step.setArgument("solar_thermal_solar_fraction", 0.65)
   elsif ['base-dhw-tankless-electric.osw'].include? osw_file
@@ -837,7 +838,8 @@ def get_values(osw_file, step)
   elsif ['base-dhw-tank-wood.osw'].include? osw_file
     step.setArgument("water_heater_fuel_type_1", "wood")
   elsif ['base-dhw-uef.osw'].include? osw_file
-    step.setArgument("water_heater_uniform_energy_factor_1", 0.93)
+    step.setArgument("water_heater_efficiency_type_1", "UniformEnergyFactor")
+    step.setArgument("water_heater_efficiency_1", 0.93)
   elsif ['base-enclosure-2stories.osw'].include? osw_file
     step.setArgument("cfa", 4050.0)
     step.setArgument("num_floors", 2)
@@ -940,7 +942,7 @@ def get_values(osw_file, step)
     step.setArgument("foundation_type", "basement - unconditioned")
     step.setArgument("foundation_wall_r", 0)
     step.setArgument("foundation_wall_distance_to_bottom", 0)
-    step.setArgument("foundation_wall_depth_below_grade", 4)
+    step.setArgument("foundation_wall_depth_below_grade", 4.0)
   elsif ['base-foundation-unconditioned-basement-assembly-r.osw'].include? osw_file
 
   elsif ['base-foundation-unconditioned-basement-wall-insulation.osw'].include? osw_file
@@ -992,7 +994,7 @@ def get_values(osw_file, step)
     step.setArgument("heat_pump_backup_fuel", "electricity")
   elsif ['base-hvac-air-to-air-heat-pump-var-speed-detailed.osw'].include? osw_file
 
-  elsif ['base-hvac-boiler-elec-only.osw'].include? osw_file # HERE
+  elsif ['base-hvac-boiler-elec-only.osw'].include? osw_file
     step.setArgument("heating_system_type", "Boiler")
     step.setArgument("heating_system_fuel", "electricity")
     step.setArgument("heating_system_heating_efficiency", 1.0)
@@ -1131,8 +1133,7 @@ def get_values(osw_file, step)
     step.setArgument("cooling_system_type", "evaporative cooler")
     step.setArgument("evap_cooler_is_ducted", true)
   elsif ['base-hvac-flowrate.osw'].include? osw_file
-    step.setArgument("heating_system_flow_rate", 1920.0)
-    step.setArgument("cooling_system_flow_rate", 1440.0)
+
   elsif ['base-hvac-furnace-elec-only.osw'].include? osw_file
     step.setArgument("heating_system_fuel", "electricity")
     step.setArgument("heating_system_heating_efficiency", 1.0)
@@ -1205,7 +1206,6 @@ def get_values(osw_file, step)
     step.setArgument("heating_system_heating_efficiency", 1.0)
     step.setArgument("cooling_system_type", "none")
   elsif ['base-hvac-programmable-thermostat.osw'].include? osw_file
-    step.setArgument("hvac_control_type", "programmable thermostat")
     step.setArgument("heating_setback_temp", 66)
     step.setArgument("heating_setback_hours_per_week", 49)
     step.setArgument("heating_setback_start_hour", 23)
@@ -1281,7 +1281,7 @@ def get_values(osw_file, step)
     step.setArgument("mech_vent_fan_power", 60)
   elsif ['base-mechvent-cfis.osw'].include? osw_file
     step.setArgument("mech_vent_fan_type", "central fan integrated supply")
-    step.setArgument("mech_vent_tested_flow_rate", 330)
+    step.setArgument("mech_vent_rated_flow_rate", 330)
     step.setArgument("mech_vent_hours_in_operation", 8)
     step.setArgument("mech_vent_fan_power", 300)
   elsif ['base-mechvent-cfis-evap-cooler-only-ducted.osw'].include? osw_file
@@ -1289,7 +1289,7 @@ def get_values(osw_file, step)
     step.setArgument("cooling_system_type", "evaporative cooler")
     step.setArgument("evap_cooler_is_ducted", true)
     step.setArgument("mech_vent_fan_type", "central fan integrated supply")
-    step.setArgument("mech_vent_tested_flow_rate", 330)
+    step.setArgument("mech_vent_rated_flow_rate", 330)
     step.setArgument("mech_vent_hours_in_operation", 8)
     step.setArgument("mech_vent_fan_power", 300)
   elsif ['base-mechvent-erv.osw'].include? osw_file
@@ -1297,8 +1297,10 @@ def get_values(osw_file, step)
     step.setArgument("mech_vent_fan_power", 60)
   elsif ['base-mechvent-erv-atre-asre.osw'].include? osw_file
     step.setArgument("mech_vent_fan_type", "energy recovery ventilator")
-    step.setArgument("mech_vent_adjusted_total_recovery_efficiency", 0.526)
-    step.setArgument("mech_vent_adjusted_sensible_recovery_efficiency", 0.79)
+    step.setArgument("mech_vent_total_recovery_efficiency_type", "Adjusted")
+    step.setArgument("mech_vent_total_recovery_efficiency", 0.526)
+    step.setArgument("mech_vent_sensible_recovery_efficiency_type", "Adjusted")
+    step.setArgument("mech_vent_sensible_recovery_efficiency", 0.79)
     step.setArgument("mech_vent_fan_power", 60)
   elsif ['base-mechvent-exhaust.osw'].include? osw_file
     step.setArgument("mech_vent_fan_type", "exhaust only")
@@ -1310,7 +1312,8 @@ def get_values(osw_file, step)
     step.setArgument("mech_vent_fan_power", 60)
   elsif ['base-mechvent-hrv-asre.osw'].include? osw_file
     step.setArgument("mech_vent_fan_type", "heat recovery ventilator")
-    step.setArgument("mech_vent_adjusted_sensible_recovery_efficiency", 0.79)
+    step.setArgument("mech_vent_sensible_recovery_efficiency_type", "unadjusted")
+    step.setArgument("mech_vent_sensible_recovery_efficiency", 0.79)
     step.setArgument("mech_vent_fan_power", 60)
   elsif ['base-mechvent-supply.osw'].include? osw_file
     step.setArgument("mech_vent_fan_type", "supply only")
@@ -1355,55 +1358,55 @@ def get_values(osw_file, step)
     step.setArgument("neighbor_left_distance", 10)
     step.setArgument("neighbor_right_distance", 15)
     step.setArgument("neighbor_right_height", 12)
-  elsif ['base-33percent.osw'].include? osw_file
+  elsif ['hvac_partial/base-33percent.osw'].include? osw_file
     step.setArgument("heating_system_fraction_heat_load_served", 0.33333)
     step.setArgument("cooling_system_fraction_cool_load_served", 0.33333)
-  elsif ['base-hvac-air-to-air-heat-pump-1-speed-33percent.osw'].include? osw_file
+  elsif ['hvac_partial/base-hvac-air-to-air-heat-pump-1-speed-33percent.osw'].include? osw_file
     step.setArgument("heating_system_fraction_heat_load_served", 0.33333)
     step.setArgument("cooling_system_fraction_cool_load_served", 0.33333)
-  elsif ['base-hvac-air-to-air-heat-pump-2-speed-33percent.osw'].include? osw_file
+  elsif ['hvac_partial/base-hvac-air-to-air-heat-pump-2-speed-33percent.osw'].include? osw_file
     step.setArgument("heating_system_fraction_heat_load_served", 0.33333)
     step.setArgument("cooling_system_fraction_cool_load_served", 0.33333)
-  elsif ['base-hvac-air-to-air-heat-pump-var-speed-33percent.osw'].include? osw_file
+  elsif ['hvac_partial/base-hvac-air-to-air-heat-pump-var-speed-33percent.osw'].include? osw_file
     step.setArgument("heating_system_fraction_heat_load_served", 0.33333)
     step.setArgument("cooling_system_fraction_cool_load_served", 0.33333)
-  elsif ['base-hvac-boiler-gas-only-33percent.osw'].include? osw_file
+  elsif ['hvac_partial/base-hvac-boiler-gas-only-33percent.osw'].include? osw_file
     step.setArgument("heating_system_fraction_heat_load_served", 0.33333)
-  elsif ['base-hvac-central-ac-only-1-speed-33percent.osw'].include? osw_file
+  elsif ['hvac_partial/base-hvac-central-ac-only-1-speed-33percent.osw'].include? osw_file
     step.setArgument("cooling_system_fraction_cool_load_served", 0.33333)
-  elsif ['base-hvac-central-ac-only-2-speed-33percent.osw'].include? osw_file
+  elsif ['hvac_partial/base-hvac-central-ac-only-2-speed-33percent.osw'].include? osw_file
     step.setArgument("cooling_system_fraction_cool_load_served", 0.33333)
-  elsif ['base-hvac-central-ac-only-var-speed-33percent.osw'].include? osw_file
+  elsif ['hvac_partial/base-hvac-central-ac-only-var-speed-33percent.osw'].include? osw_file
     step.setArgument("cooling_system_fraction_cool_load_served", 0.33333)
-  elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-1-speed-33percent.osw'].include? osw_file
-    step.setArgument("heating_system_fraction_heat_load_served", 0.33333)
-    step.setArgument("cooling_system_fraction_cool_load_served", 0.33333)
-  elsif ['base-hvac-elec-resistance-only-33percent.osw'].include? osw_file
-    step.setArgument("heating_system_fraction_heat_load_served", 0.33333)
-  elsif ['base-hvac-evap-cooler-only-33percent.osw'].include? osw_file
-    step.setArgument("cooling_system_fraction_cool_load_served", 0.33333)
-  elsif ['base-hvac-furnace-gas-central-ac-2-speed-33percent.osw'].include? osw_file
+  elsif ['hvac_partial/base-hvac-dual-fuel-air-to-air-heat-pump-1-speed-33percent.osw'].include? osw_file
     step.setArgument("heating_system_fraction_heat_load_served", 0.33333)
     step.setArgument("cooling_system_fraction_cool_load_served", 0.33333)
-  elsif ['base-hvac-furnace-gas-central-ac-var-speed-33percent.osw'].include? osw_file
+  elsif ['hvac_partial/base-hvac-elec-resistance-only-33percent.osw'].include? osw_file
+    step.setArgument("heating_system_fraction_heat_load_served", 0.33333)
+  elsif ['hvac_partial/base-hvac-evap-cooler-only-33percent.osw'].include? osw_file
+    step.setArgument("cooling_system_fraction_cool_load_served", 0.33333)
+  elsif ['hvac_partial/base-hvac-furnace-gas-central-ac-2-speed-33percent.osw'].include? osw_file
     step.setArgument("heating_system_fraction_heat_load_served", 0.33333)
     step.setArgument("cooling_system_fraction_cool_load_served", 0.33333)
-  elsif ['base-hvac-furnace-gas-only-33percent.osw'].include? osw_file
-    step.setArgument("heating_system_fraction_heat_load_served", 0.33333)
-  elsif ['base-hvac-furnace-gas-room-ac-33percent.osw'].include? osw_file
+  elsif ['hvac_partial/base-hvac-furnace-gas-central-ac-var-speed-33percent.osw'].include? osw_file
     step.setArgument("heating_system_fraction_heat_load_served", 0.33333)
     step.setArgument("cooling_system_fraction_cool_load_served", 0.33333)
-  elsif ['base-hvac-ground-to-air-heat-pump-33percent.osw'].include? osw_file
+  elsif ['hvac_partial/base-hvac-furnace-gas-only-33percent.osw'].include? osw_file
+    step.setArgument("heating_system_fraction_heat_load_served", 0.33333)
+  elsif ['hvac_partial/base-hvac-furnace-gas-room-ac-33percent.osw'].include? osw_file
     step.setArgument("heating_system_fraction_heat_load_served", 0.33333)
     step.setArgument("cooling_system_fraction_cool_load_served", 0.33333)
-  elsif ['base-hvac-mini-split-heat-pump-ducted-33percent.osw'].include? osw_file
+  elsif ['hvac_partial/base-hvac-ground-to-air-heat-pump-33percent.osw'].include? osw_file
     step.setArgument("heating_system_fraction_heat_load_served", 0.33333)
     step.setArgument("cooling_system_fraction_cool_load_served", 0.33333)
-  elsif ['base-hvac-room-ac-only-33percent.osw'].include? osw_file
-    step.setArgument("cooling_system_fraction_cool_load_served", 0.33333)
-  elsif ['base-hvac-stove-oil-only-33percent.osw'].include? osw_file
+  elsif ['hvac_partial/base-hvac-mini-split-heat-pump-ducted-33percent.osw'].include? osw_file
     step.setArgument("heating_system_fraction_heat_load_served", 0.33333)
-  elsif ['base-hvac-wall-furnace-propane-only-33percent.osw'].include? osw_file
+    step.setArgument("cooling_system_fraction_cool_load_served", 0.33333)
+  elsif ['hvac_partial/base-hvac-room-ac-only-33percent.osw'].include? osw_file
+    step.setArgument("cooling_system_fraction_cool_load_served", 0.33333)
+  elsif ['hvac_partial/base-hvac-stove-oil-only-33percent.osw'].include? osw_file
+    step.setArgument("heating_system_fraction_heat_load_served", 0.33333)
+  elsif ['hvac_partial/base-hvac-wall-furnace-propane-only-33percent.osw'].include? osw_file
     step.setArgument("heating_system_fraction_heat_load_served", 0.33333)
   end
   return step
