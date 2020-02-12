@@ -1,0 +1,524 @@
+stock_type: residential
+buildstock_directory: ./  # Relative to this file or absolute
+project_directory: project_singlefamilydetached #Is this ok?
+output_directory: /projects/enduse/geb-potential/Run_Results/LBNL_support_1
+weather_files_path: /shared-projects/buildstock/weather/ResStock_2016.zip
+baseline:
+  n_datapoints: 140
+  n_buildings_represented: 81221016 
+residential_simulation_controls:
+  timesteps_per_hr: 6
+  begin_month: 1
+  begin_day_of_month: 1
+  end_month: 12
+  end_day_of_month: 31
+  calendar_year: 2006 #2006 starts on Sunday, 2007 starts on Monday
+
+definitions:
+  options:
+    - option: &best-thermostat-controls
+      - option: Cooling Setpoint Apply Offset|TRUE
+        apply_logic:
+          - Cooling Setpoint Has Offset|No
+      - option: Heating Setpoint Apply Offset|TRUE
+        apply_logic:
+          - Heating Setpoint Has Offset|No
+      - option: Cooling Setpoint Apply Offset|FALSE
+        apply_logic:
+          - Cooling Setpoint Has Offset|Yes
+      - option: Heating Setpoint Apply Offset|FALSE
+        apply_logic:
+          - Heating Setpoint Has Offset|Yes
+      - option: Nightsetback|National
+        apply_logic:
+          - Somebody at home in weekday|Yes
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: Fullsetback|National
+        apply_logic:
+          - Somebody at home in weekday|No
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+    - option: &best-envelope
+      - option: Insulation Wall|Wood Stud, R-13, R-20 external XPS
+        apply_logic:
+          or:
+            - Insulation Wall|Wood Stud, Uninsulated
+            - Insulation Wall|Wood Stud, R-7
+            - Insulation Wall|Wood Stud, R-11
+            - Insulation Wall|Wood Stud, R-13
+            - Insulation Wall|Wood Stud, R-19
+            - Insulation Wall|Wood Stud, R-19, Grade 2
+            - Insulation Wall|Wood Stud, R-19, Grade 3
+            - Insulation Wall|Wood Stud, R-23 Closed Cell Spray Foam, 2x4, 16 in o.c.
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      #Best roofs
+      - option: Insulation Unfinished Attic|Ceiling R-49, Vented
+        apply_logic: 
+          or:
+            - Insulation Unfinished Attic|Uninsulated, Vented
+            - Insulation Unfinished Attic|Ceiling R-7, Vented
+            - Insulation Unfinished Attic|Ceiling R-13, Vented
+            - Insulation Unfinished Attic|Ceiling R-19, Vented
+            - Insulation Unfinished Attic|Ceiling R-30, Vented
+            - Insulation Unfinished Attic|Ceiling R-38, Vented
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      #Best air sealing
+      - option: Infiltration|1 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Mechanical Ventilation|Exhaust, 2010 ASHRAE 62.2
+        apply_logic: 
+            - Mechanical Ventilation|None
+        costs: 
+          - value: 360
+            multiplier: Fixed (1)
+        lifetime: 999
+      #Best windows
+      - option: Windows|SCOUT 5.88 R, 0.49 SHGC #AIA1
+        apply_logic:
+          or:
+              - Location Weather Filename|1423380_US_ME_Aroostook_23003_0-20000-0-72712_46.85_-68.02_NSRDB_2.0.1_AMY.epw
+              - Location Weather Filename|1351103_US_ME_Cumberland_23005_0-20000-0-72606_43.65_-70.3_NSRDB_2.0.1_AMY.epw
+              - Location Weather Filename|1311916_US_NH_Merrimack_33013_0-20000-0-72605_43.21_-71.5_NSRDB_2.0.1_AMY.epw
+              - Location Weather Filename|1259256_US_VT_Chittenden_50007_0-20000-0-72617_44.45_-73.14_NSRDB_2.0.1_AMY.epw
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Windows|SCOUT 5.88 R, 0.42 SHGC #AIA2
+        apply_logic:
+          or:
+              - Location Weather Filename|1259614_US_CT_Fairfield_9001_0-20000-0-72504_41.17_-73.14_NSRDB_2.0.1_AMY.epw
+              - Location Weather Filename|1272835_US_CT_Hartford_9003_0-20000-0-72508_41.93_-72.7_NSRDB_2.0.1_AMY.epw
+              - Location Weather Filename|1299055_US_MA_Worcester_25027_0-20000-0-72510_42.25_-71.9_NSRDB_2.0.1_AMY.epw
+              - Location Weather Filename|1327892_US_MA_Suffolk_25025_0-20000-0-72509_42.37_-71.02_NSRDB_2.0.1_AMY.epw             
+              - Location Weather Filename|0165368_US_NV_Washoe_32031_0-20000-0-72488_39.49_-119.78_NSRDB_2.0.1_AMY.epw
+              - Location Weather Filename|1239413_US_NY_Albany_36001_0-20000-0-72518_42.77_-73.78_NSRDB_2.0.1_AMY.epw               - Location Weather Filename|1327892_US_MA_Suffolk_25025_0-20000-0-72509_42.37_-71.02_NSRDB_2.0.1_AMY.epw 
+              - Location Weather Filename|1314625_US_RI_Kent_44003_0-20000-0-72507_41.73_-71.42_NSRDB_2.0.1_AMY.epw
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Windows|SCOUT 5.88 R, 0.27 SHGC #AIA3-5
+        apply_logic:
+          not:
+              - Location Weather Filename|1423380_US_ME_Aroostook_23003_0-20000-0-72712_46.85_-68.02_NSRDB_2.0.1_AMY.epw
+              - Location Weather Filename|1351103_US_ME_Cumberland_23005_0-20000-0-72606_43.65_-70.3_NSRDB_2.0.1_AMY.epw
+              - Location Weather Filename|1311916_US_NH_Merrimack_33013_0-20000-0-72605_43.21_-71.5_NSRDB_2.0.1_AMY.epw
+              - Location Weather Filename|1259256_US_VT_Chittenden_50007_0-20000-0-72617_44.45_-73.14_NSRDB_2.0.1_AMY.epw
+              - Location Weather Filename|1259614_US_CT_Fairfield_9001_0-20000-0-72504_41.17_-73.14_NSRDB_2.0.1_AMY.epw
+              - Location Weather Filename|1272835_US_CT_Hartford_9003_0-20000-0-72508_41.93_-72.7_NSRDB_2.0.1_AMY.epw
+              - Location Weather Filename|1299055_US_MA_Worcester_25027_0-20000-0-72510_42.25_-71.9_NSRDB_2.0.1_AMY.epw
+              - Location Weather Filename|1327892_US_MA_Suffolk_25025_0-20000-0-72509_42.37_-71.02_NSRDB_2.0.1_AMY.epw
+              - Location Weather Filename|1272835_US_CT_Hartford_9003_0-20000-0-72508_41.93_-72.7_NSRDB_2.0.1_AMY.epw
+              - Location Weather Filename|1299055_US_MA_Worcester_25027_0-20000-0-72510_42.25_-71.9_NSRDB_2.0.1_AMY.epw
+              - Location Weather Filename|1327892_US_MA_Suffolk_25025_0-20000-0-72509_42.37_-71.02_NSRDB_2.0.1_AMY.epw             
+              - Location Weather Filename|0165368_US_NV_Washoe_32031_0-20000-0-72488_39.49_-119.78_NSRDB_2.0.1_AMY.epw
+              - Location Weather Filename|1239413_US_NY_Albany_36001_0-20000-0-72518_42.77_-73.78_NSRDB_2.0.1_AMY.epw               - Location Weather Filename|1327892_US_MA_Suffolk_25025_0-20000-0-72509_42.37_-71.02_NSRDB_2.0.1_AMY.epw 
+              - Location Weather Filename|1314625_US_RI_Kent_44003_0-20000-0-72507_41.73_-71.42_NSRDB_2.0.1_AMY.epw             
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      #Best floors:
+      - option: Insulation Slab|R20 Option 1
+        apply_logic: 
+          and:
+            - Insulation Slab|Uninsulated
+            - or:
+              - Location Weather Filename|1423380_US_ME_Aroostook_23003_0-20000-0-72712_46.85_-68.02_NSRDB_2.0.1_AMY.epw
+              - Location Weather Filename|1351103_US_ME_Cumberland_23005_0-20000-0-72606_43.65_-70.3_NSRDB_2.0.1_AMY.epw
+              - Location Weather Filename|1311916_US_NH_Merrimack_33013_0-20000-0-72605_43.21_-71.5_NSRDB_2.0.1_AMY.epw
+              - Location Weather Filename|1259256_US_VT_Chittenden_50007_0-20000-0-72617_44.45_-73.14_NSRDB_2.0.1_AMY.epw
+              - Location Weather Filename|1259614_US_CT_Fairfield_9001_0-20000-0-72504_41.17_-73.14_NSRDB_2.0.1_AMY.epw
+              - Location Weather Filename|1272835_US_CT_Hartford_9003_0-20000-0-72508_41.93_-72.7_NSRDB_2.0.1_AMY.epw
+              - Location Weather Filename|1299055_US_MA_Worcester_25027_0-20000-0-72510_42.25_-71.9_NSRDB_2.0.1_AMY.epw
+              - Location Weather Filename|1327892_US_MA_Suffolk_25025_0-20000-0-72509_42.37_-71.02_NSRDB_2.0.1_AMY.epw
+              - Location Weather Filename|1272835_US_CT_Hartford_9003_0-20000-0-72508_41.93_-72.7_NSRDB_2.0.1_AMY.epw
+              - Location Weather Filename|1299055_US_MA_Worcester_25027_0-20000-0-72510_42.25_-71.9_NSRDB_2.0.1_AMY.epw
+              - Location Weather Filename|1327892_US_MA_Suffolk_25025_0-20000-0-72509_42.37_-71.02_NSRDB_2.0.1_AMY.epw             
+              - Location Weather Filename|0165368_US_NV_Washoe_32031_0-20000-0-72488_39.49_-119.78_NSRDB_2.0.1_AMY.epw
+              - Location Weather Filename|1239413_US_NY_Albany_36001_0-20000-0-72518_42.77_-73.78_NSRDB_2.0.1_AMY.epw               - Location Weather Filename|1327892_US_MA_Suffolk_25025_0-20000-0-72509_42.37_-71.02_NSRDB_2.0.1_AMY.epw 
+              - Location Weather Filename|1314625_US_RI_Kent_44003_0-20000-0-72507_41.73_-71.42_NSRDB_2.0.1_AMY.epw             
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Insulation Slab|R20 Option 2
+        apply_logic: 
+          and:
+            - Insulation Slab|2ft R5 Perimeter, R5 Gap
+            - or:
+              - Location Weather Filename|1423380_US_ME_Aroostook_23003_0-20000-0-72712_46.85_-68.02_NSRDB_2.0.1_AMY.epw
+              - Location Weather Filename|1351103_US_ME_Cumberland_23005_0-20000-0-72606_43.65_-70.3_NSRDB_2.0.1_AMY.epw
+              - Location Weather Filename|1311916_US_NH_Merrimack_33013_0-20000-0-72605_43.21_-71.5_NSRDB_2.0.1_AMY.epw
+              - Location Weather Filename|1259256_US_VT_Chittenden_50007_0-20000-0-72617_44.45_-73.14_NSRDB_2.0.1_AMY.epw
+              - Location Weather Filename|1259614_US_CT_Fairfield_9001_0-20000-0-72504_41.17_-73.14_NSRDB_2.0.1_AMY.epw
+              - Location Weather Filename|1272835_US_CT_Hartford_9003_0-20000-0-72508_41.93_-72.7_NSRDB_2.0.1_AMY.epw
+              - Location Weather Filename|1299055_US_MA_Worcester_25027_0-20000-0-72510_42.25_-71.9_NSRDB_2.0.1_AMY.epw
+              - Location Weather Filename|1327892_US_MA_Suffolk_25025_0-20000-0-72509_42.37_-71.02_NSRDB_2.0.1_AMY.epw
+              - Location Weather Filename|1272835_US_CT_Hartford_9003_0-20000-0-72508_41.93_-72.7_NSRDB_2.0.1_AMY.epw
+              - Location Weather Filename|1299055_US_MA_Worcester_25027_0-20000-0-72510_42.25_-71.9_NSRDB_2.0.1_AMY.epw
+              - Location Weather Filename|1327892_US_MA_Suffolk_25025_0-20000-0-72509_42.37_-71.02_NSRDB_2.0.1_AMY.epw             
+              - Location Weather Filename|0165368_US_NV_Washoe_32031_0-20000-0-72488_39.49_-119.78_NSRDB_2.0.1_AMY.epw
+              - Location Weather Filename|1239413_US_NY_Albany_36001_0-20000-0-72518_42.77_-73.78_NSRDB_2.0.1_AMY.epw               - Location Weather Filename|1327892_US_MA_Suffolk_25025_0-20000-0-72509_42.37_-71.02_NSRDB_2.0.1_AMY.epw 
+              - Location Weather Filename|1314625_US_RI_Kent_44003_0-20000-0-72507_41.73_-71.42_NSRDB_2.0.1_AMY.epw 
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Insulation Slab|R20 Option 3
+        apply_logic: 
+          and:
+            - Insulation Slab|2ft R10 Perimeter, R10 Gap
+            - or:
+              - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+              - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+              - Location|WA_Quillayute.State.AP.727970 #AIA2
+              - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+              - Location|MN_Rochester.Intl.AP.726440 #AIA2
+              - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+              - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Insulation Slab|R20 Option 4
+        apply_logic: 
+          and:
+            - Insulation Slab|4ft R5 Perimeter, R5 Gap
+            - or:
+              - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+              - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+              - Location|WA_Quillayute.State.AP.727970 #AIA2
+              - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+              - Location|MN_Rochester.Intl.AP.726440 #AIA2
+              - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+              - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999      
+      - option: Insulation Slab|R20 Option 5
+        apply_logic: 
+          and:
+            - Insulation Slab|2ft R5 Exterior
+            - or:
+              - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+              - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+              - Location|WA_Quillayute.State.AP.727970 #AIA2
+              - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+              - Location|MN_Rochester.Intl.AP.726440 #AIA2
+              - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+              - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Insulation Slab|R20 Option 6
+        apply_logic: 
+          and:
+            - Insulation Slab|2ft R10 Exterior
+            - or:
+              - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+              - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+              - Location|WA_Quillayute.State.AP.727970 #AIA2
+              - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+              - Location|MN_Rochester.Intl.AP.726440 #AIA2
+              - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+              - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Insulation Slab|R20 Option 7
+        apply_logic: 
+          and:
+            - Insulation Slab|R10 Whole Slab, R5 Gap
+            - or:
+              - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+              - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+              - Location|WA_Quillayute.State.AP.727970 #AIA2
+              - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+              - Location|MN_Rochester.Intl.AP.726440 #AIA2
+              - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+              - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Insulation Slab|R20 Option 8
+        apply_logic: 
+          and:
+            - Insulation Slab|R20 Whole Slab
+            - or:
+              - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+              - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+              - Location|WA_Quillayute.State.AP.727970 #AIA2
+              - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+              - Location|MN_Rochester.Intl.AP.726440 #AIA2
+              - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+              - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+        ##end floors
+    - option: &best-CAC-ASHP
+      - option: HVAC System Cooling|AC, SEER 18
+        apply_logic:
+          - or:
+            - HVAC System Cooling|AC, SEER 8
+            - HVAC System Cooling|AC, SEER 10
+            - HVAC System Cooling|AC, SEER 13
+            - HVAC System Cooling|AC, SEER 14
+            - HVAC System Cooling|AC, SEER 15
+          - not:
+            - HVAC System Heating Electricity|Electric Furnace
+        costs:
+          - value: 3200
+            multiplier: Fixed (1)
+          - value: 42
+            multiplier: Size, Cooling System (kBtu/h)
+        lifetime: 16
+      - option: HVAC System Heat Pump|ASHP, SEER 22, 10 HSPF
+        apply_logic: 
+          or:
+            - HVAC System Heat Pump|ASHP, SEER 10, 6.2 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 10.3, 7.0 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 11.5, 7.5 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 13, 7.7 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 13, 8.0 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 14, 8.2 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 14.3, 8.5 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 15, 8.5 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 16, 9.0 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 17, 8.7 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 18, 9.3 HSPF
+            - HVAC System Heating Electricity|Electric Furnace  # Electric Baseboard and Electric Boiler upgrade in another run
+            #removed upgrades from electric resistance heating to ensure no house is included in both the ASHP and CAC upgrade packages
+        costs:
+          - value: 4200
+            multiplier: Fixed (1)
+          - value: 42
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 15
+    - option: &best-water-heater
+      - option: Water Heater|Electric Heat Pump, 80 gal
+        apply_logic: 
+          or:
+            - Water Heater|Electric Standard
+            - Water Heater|Electric Premium
+            - Water Heater|Electric Benchmark
+            - Water Heater|Electric Heat Pump, 50 gal
+            - Water Heater|Electric Heat Pump, 50 gal, 140F
+            #removed tankless and in confined space
+    - option: &best-pool-pump
+      - option: Misc Pool Pump|0.75 HP Pump
+        apply_logic: Misc Pool Pump|1.0 HP Pump
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+    - option: &best-diwshwasher
+      - option: Dishwasher|199 Rated kWh, 80% Usage
+        apply_logic: 
+          or:
+            - Dishwasher|318 Rated kWh, 80% Usage
+            - Dishwasher|290 Rated kWh, 80% Usage
+        costs:
+          - value: 1000
+            multiplier: Fixed (1)
+        lifetime: 11
+      - option: Dishwasher|199 Rated kWh, 100% Usage
+        apply_logic: 
+          or:
+            - Dishwasher|318 Rated kWh, 100% Usage
+            - Dishwasher|290 Rated kWh, 100% Usage
+        costs:
+          - value: 1000
+            multiplier: Fixed (1)
+        lifetime: 11
+      - option: Dishwasher|199 Rated kWh, 120% Usage
+        apply_logic: 
+          or:
+            - Dishwasher|318 Rated kWh, 120% Usage
+            - Dishwasher|290 Rated kWh, 120% Usage
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 11
+    - option: &best-clothes-washer
+      - option: Clothes Washer|EnergyStar Most Efficient, 80% Usage
+        apply_logic:
+          or:
+            - Clothes Washer|EnergyStar, 80% Usage
+            - Clothes Washer|Standard, 80% Usage
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Clothes Washer|EnergyStar Most Efficient, 100% Usage
+        apply_logic:
+          or:
+            - Clothes Washer|EnergyStar, 100% Usage
+            - Clothes Washer|Standard, 100% Usage
+            - Clothes Washer|Standard, 100% Usage, Cold Only
+            - Clothes Washer|EnergyStar, Cold Only
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Clothes Washer|EnergyStar Most Efficient, 120% Usage
+        apply_logic:
+          or:
+            - Clothes Washer|EnergyStar, 120% Usage
+            - Clothes Washer|Standard, 120% Usage
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+    - option: &best-clothes-dryer
+      - option: Clothes Dryer|Electric, Heat Pump, Ventless, 80% Usage
+        apply_logic:
+          or:
+            - Clothes Dryer|Electric, 80% Usage
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Clothes Dryer|Electric, Heat Pump, Ventless, 100% Usage
+        apply_logic:
+          or:
+            - Clothes Dryer|Electric, 100% Usage
+            - Clothes Dryer|Electric, Premium
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Clothes Dryer|Electric, Heat Pump, Ventless, 120% Usage
+        apply_logic:
+          or:
+            - Clothes Dryer|Electric, 120% Usage
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+    - option: &best-LEDs
+      - option: Lighting|100% LED, High Efficacy
+        apply_logic:
+          or:
+            - Lighting|100% Incandescent
+            - Lighting|60% CFL Hardwired, 34% CFL Plugin
+            - Lighting|60% CFL
+            - Lighting|100% CFL
+            - Lighting|100% LED
+            - Lighting|20% LED
+            - Lighting|100% LED
+            - Lighting|100% LED, Low Efficacy
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+    - option: &best-refrigeration
+      - option: Refrigerator|EF 22.2, EnergyStar Most Efficient
+        apply_logic: 
+          or:
+            - Refrigerator|EF 15.9
+            - Refrigerator|EF 10.5
+            - Refrigerator|EF 10.2
+            - Refrigerator|EF 6.7
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 17.4
+    - option: &best-electronics
+      - option: Plug Loads|25%
+        apply_logic:
+            - Plug Loads|50%
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Plug Loads|50%
+        apply_logic:
+            - Plug Loads|100%
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Plug Loads|100%
+        apply_logic:
+            - Plug Loads|200%
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+
+upgrades:
+  - upgrade_name: Equipment Only
+    options:
+      - option: *best-CAC-ASHP
+      - option: *best-water-heater
+      - option: *best-pool-pump
+      - option: *best-diwshwasher
+      - option: *best-clothes-washer
+      - option: *best-clothes-dryer
+      - option: *best-LEDs
+      - option: *best-refrigeration
+      - option: *best-electronics
+  - upgrade_name: Controls Only
+    options:
+      - option: *best-thermostat-controls
+  - upgrade_name: Envelope Only
+    options:
+      - option: *best-envelope
+  - upgrade_name: Controls and Envelope
+    options:
+      - option: *best-thermostat-controls
+      - option: *best-envelope
+  - upgrade_name: All LBNL Support upgrades
+    options:
+      - option: *best-thermostat-controls
+      - option: *best-envelope
+      - option: *best-CAC-ASHP
+      - option: *best-water-heater
+      - option: *best-pool-pump
+      - option: *best-diwshwasher
+      - option: *best-clothes-washer
+      - option: *best-clothes-dryer
+      - option: *best-LEDs
+      - option: *best-refrigeration
+      - option: *best-electronics
+
+
+timeseries_csv_export:
+  reporting_frequency: Hourly
+  include_enduse_subcategories: true
+eagle:
+  account: enduse
+  n_jobs: 20
+  minutes_per_sim: 5
+  postprocessing:
+    time: 90
+postprocessing:
+  aws:
+    region_name: 'us-west-2'
+    s3:
+      bucket: resbldg-datasets
+      prefix: resstock-athena/geb-potential-upgrades
+    athena:
+      glue_service_role: service-role/AWSGlueServiceRole-default
+      database_name: geb_potential
+      max_crawling_time: 600 #time to wait for the crawler to complete before aborting it
