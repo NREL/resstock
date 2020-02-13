@@ -17,6 +17,43 @@ class TSVMaker:
     def weight_col_label(self):
       return 'sample_weight'
 
+    def s3_download_dir(self,prefix, local, bucket, client,dest_path):
+        """Download a directory from s3
+        Args:
+            prefix (string): pattern to match in s3
+            local (string): local path to folder in which to place files
+            bucket (string): s3 bucket with target contents
+            client (boto3.client): initialized s3 client object
+        """
+        keys = []
+        dirs = []
+        next_token = ''
+        base_kwargs = {
+            'Bucket':bucket,
+            'Prefix':prefix
+        }
+        while next_token is not None:
+            kwargs = base_kwargs.copy()
+            if next_token != '':
+                kwargs.update({'ContinuationToken': next_token})
+            results = client.list_objects_v2(**kwargs)
+            contents = results.get('Contents')
+            for i in contents:
+                k = i.get('Key')
+                if k[-1] != '/':
+                    keys.append(k)
+                else:
+                    dirs.append(k)
+            next_token = results.get('NextContinuationToken')
+        for d in dirs:
+            if not os.path.exists(os.path.dirname(dest_path)):
+                os.makedirs(os.path.dirname(dest_path))
+        for k in keys:
+            dest_pathname = dest_path + os.path.basename(k)
+            if not os.path.exists(os.path.dirname(dest_pathname)):
+                os.makedirs(os.path.dirname(dest_pathname))
+            client.download_file(bucket, k, dest_pathname)
+
     def groupby_and_pivot(self, df, dependency_cols, option_col):
         """
         Subset the dataframe to columns of interest. Pivot the table, row sum the source weights, and divide each element by its row sum.
@@ -155,7 +192,7 @@ class TSVMaker:
           filepath (str): The path of the tsv file to copy to projects' housing_characteristics folders.
           project (str): Name of the project.
         """
-        resstock_projects_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-
+        resstock_projects_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
         project_dir = os.path.join(resstock_projects_dir, project, 'housing_characteristics')
+        
         shutil.copy(filepath, project_dir)
