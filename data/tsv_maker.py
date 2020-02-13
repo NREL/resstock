@@ -17,13 +17,15 @@ class TSVMaker:
     def weight_col_label(self):
       return 'sample_weight'
 
-    def s3_download_dir(self,prefix, local, bucket, client,dest_path):
-        """Download a directory from s3
-        Args:
-            prefix (string): pattern to match in s3
-            local (string): local path to folder in which to place files
-            bucket (string): s3 bucket with target contents
-            client (boto3.client): initialized s3 client object
+    def s3_download_dir(self, prefix, local, bucket, client, dest_path):
+        """
+        Download a directory from s3.
+        Parameters:
+          prefix (str): Pattern to match in s3.
+          local (str): Local path to folder in which to place files.
+          bucket (str): The s3 bucket with target contents.
+          client (boto3.client): Initialized s3 client object.
+          dest_path (str): Destination path.
         """
         keys = []
         dirs = []
@@ -152,6 +154,8 @@ class TSVMaker:
           df (dataframe): A pandas dataframe with dependency/option columns and fractions.
           filepath (str): The path of the tsv file to export.
           project (str): Name of the project.
+          created_by (str): Path to tsv maker file.
+          source (str): Description of source data.
         """
         # Enforce float format
         cols = []
@@ -162,8 +166,11 @@ class TSVMaker:
         df[cols] = df[cols].apply(pd.to_numeric, downcast='float')
 
         if 'testing' in project:
-            del df[self.count_col_label()]
-            del df[self.weight_col_label()]
+            try:
+                del df[self.count_col_label()]
+                del df[self.weight_col_label()]
+            except:
+                pass
 
         # Write tsv
         df.to_csv(filepath, sep='\t', index=False, float_format='%.6f', line_terminator='\r\n')
