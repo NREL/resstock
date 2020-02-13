@@ -49,7 +49,7 @@ class TSVMaker:
             if not os.path.exists(os.path.dirname(dest_path)):
                 os.makedirs(os.path.dirname(dest_path))
         for k in keys:
-            dest_pathname = dest_path + os.path.basename(k)
+            dest_pathname = os.path.join(dest_path, os.path.basename(k))
             if not os.path.exists(os.path.dirname(dest_pathname)):
                 os.makedirs(os.path.dirname(dest_pathname))
             client.download_file(bucket, k, dest_pathname)
