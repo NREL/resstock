@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 
 import os, sys
+import boto3
 import pandas as pd
 import parameter_option_maps
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")))
-from recs.tsv_maker import TSVMaker
+
+openstudio_buildstock_path = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)),"..", "..", ".."))
+sys.path.append(openstudio_buildstock_path)
+from data.tsv_maker import TSVMaker
 
 this_file = os.path.basename(__file__)
 dir_of_this_file = os.path.basename(os.path.dirname(__file__))
@@ -20,8 +23,17 @@ for project in projects:
 
 class RECS2015(TSVMaker):
 
-    def __init__(self, file):
-        self.df = pd.read_csv(file, index_col=['DOEID'])
+    def __init__(self):
+        # Initialize members
+        self.data_path = os.path.join(openstudio_buildstock_path,'data','recs','2015','data')
+        self.data_file = os.path.join(self.data_path, 'recs2015_public_v4.csv') 
+
+        # Download data if the data file does not exist
+        if not os.path.exists(self.data_file):
+            self.download_recs_2015_data_s3()
+        
+        # Load RECS 2009 microdata
+        self.df = pd.read_csv(self.data_file, index_col=['DOEID'],low_memory=False)
         self.df[self.count_col_label()] = 1
 
         # Split out Hawaii
@@ -33,6 +45,16 @@ class RECS2015(TSVMaker):
         # Drop Alaska and Hawaii
         self.df.drop(hawaii_rows, inplace=True)
         self.df.drop(alaska_rows, inplace=True)
+
+    def download_recs_2015_data_s3(self):
+        """Go to s3 and download data needed for this tsv_maker."""
+        print("Downloading RECS 2015 Data from s3...")        
+        # Initialize members
+        self.s3_client = boto3.client('s3')
+
+        s3_bucket = 'resbldg-datasets'
+        s3_prefix = os.path.join('various_datasets','recs_2015')
+        self.s3_download_dir(s3_prefix,'.', s3_bucket,self.s3_client,self.data_path)
 
     def bedrooms(self):
         df = self.df.copy()
@@ -79,9 +101,9 @@ class RECS2015(TSVMaker):
         return occupants
 
 if __name__ == '__main__':    
-    recs_filepath = 'c:/recs2015/recs2015_public_v4.csv' # raw recs microdata
+    # Initialize object
+    tsv_maker = RECS2015()
 
-    tsv_maker = RECS2015(recs_filepath)
-
+    # Create housing characteristics
     tsv_maker.bedrooms()
     tsv_maker.occupants()
