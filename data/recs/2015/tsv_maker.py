@@ -72,6 +72,7 @@ class RECS2015(TSVMaker):
             bedrooms, count, weight = self.groupby_and_pivot(bedrooms, dependency_cols, option_col)
             bedrooms = self.add_missing_dependency_rows(bedrooms, project, count, weight)
             bedrooms = self.rename_cols(bedrooms, dependency_cols, project)
+            bedrooms.reset_index(inplace=True,drop=False)
 
             filepath = os.path.normpath(os.path.join(os.path.dirname(__file__), project, '{}.tsv'.format(option_col)))
             self.export_and_tag(bedrooms, filepath, project, created_by, source)
@@ -93,6 +94,7 @@ class RECS2015(TSVMaker):
             occupants, count, weight = self.groupby_and_pivot(occupants, dependency_cols, option_col)
             occupants = self.add_missing_dependency_rows(occupants, project, count, weight)
             occupants = self.rename_cols(occupants, dependency_cols, project)
+            occupants.reset_index(inplace=True,drop=False)
 
             filepath = os.path.normpath(os.path.join(os.path.dirname(__file__), project, '{}.tsv'.format(option_col)))
             self.export_and_tag(occupants, filepath, project, created_by, source)
