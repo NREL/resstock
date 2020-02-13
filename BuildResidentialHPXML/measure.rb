@@ -3159,7 +3159,7 @@ class HPXMLFile
   end
 
   def self.get_duct_location_auto(args) # FIXME
-    if args[:roof_type] != "flat" and ["attic - vented", "attic - unvented"].include? args[:attic_type]
+    if args[:roof_type] != "flat" and ["attic - vented", "attic - unvented"].include? args[:attic_type] and not ["single-family attached", "multifamily"].include? args[:unit_type] # FIXME
       location = args[:attic_type]
     elsif args[:foundation_type].include? "basement" or args[:foundation_type].include? "crawlspace"
       location = args[:foundation_type]
