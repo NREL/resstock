@@ -1,5 +1,24 @@
-# FIXME: Need to incorporate building orientation
 class Geometry
+  def self.get_abs_azimuth(azimuth_type, relative_azimuth, building_orientation, offset = 180.0)
+    azimuth = nil
+    if azimuth_type == Constants.CoordRelative
+      azimuth = relative_azimuth + building_orientation + offset
+    elsif azimuth_type == Constants.CoordAbsolute
+      azimuth = relative_azimuth + offset
+    end
+
+    # Ensure azimuth is >=0 and <=360
+    while azimuth < 0.0
+      azimuth += 360.0
+    end
+
+    while azimuth >= 360.0
+      azimuth -= 360.0
+    end
+
+    return azimuth
+  end
+
   def self.create_single_family_detached(runner:,
                                          model:,
                                          cfa:,
