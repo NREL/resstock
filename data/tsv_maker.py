@@ -179,7 +179,7 @@ class TSVMaker:
         tag = "Created by: " + created_by
         if not "testing" in project:
             tag += source
-        tag += "\r\n"
+        tag = tag.replace('/', '\\')
         with open(filepath, "a") as file_object:
             file_object.write(tag)
         print('{}...'.format(filepath))

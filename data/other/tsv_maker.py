@@ -50,7 +50,7 @@ class OtherSources(TSVMaker):
             else:
                 cols = [
                     'Option=100% Incandescent',
-                    'Option=60% CFL Hardwired, 34% CFL Plugin''Option=100% CFL',
+                    'Option=60% CFL Hardwired, 34% CFL Plugin',
                     'Option=60% LED Hardwired, 34% CFL Plugin',
                     'Option=60% CFL',
                     'Option=100% CFL',
