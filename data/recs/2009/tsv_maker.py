@@ -26,17 +26,17 @@ class RECS2009(TSVMaker):
 
     def __init__(self):
         # Initialize members
-        self.data_path = os.path.join(openstudio_buildstock_path,'data','recs','2009','data')
+        self.data_path = os.path.join(openstudio_buildstock_path, 'data', 'recs', '2009', 'data')
         self.data_file = os.path.join(self.data_path, 'recs2009_public.csv') 
 
         # Download data if the data file does not exist
         if not os.path.exists(self.data_file):
             self.download_recs_2009_data_s3()
-        
+
         # Load RECS 2009 microdata
-        self.df = pd.read_csv(self.data_file, index_col=['DOEID'],low_memory=False)
+        self.df = pd.read_csv(self.data_file, index_col=['DOEID'], low_memory=False)
         self.df[self.count_col_label()] = 1
-        
+
         # Split out Hawaii
         hawaii_rows = self.df[(self.df['REPORTABLE_DOMAIN'] == 27) & ((self.df['AIA_Zone'] == 5) | (self.df['HDD65'] < 4000))].index
 
@@ -51,11 +51,11 @@ class RECS2009(TSVMaker):
         """Go to s3 and download data needed for this tsv_maker."""
         print("Downloading RECS 2009 Data from s3...")        
         # Initialize members
-        self.s3_client = boto3.client('s3')
+        s3_client = boto3.client('s3')
 
         s3_bucket = 'resbldg-datasets'
-        s3_prefix = os.path.join('various_datasets','recs_2009')
-        self.s3_download_dir(s3_prefix,'.', s3_bucket,self.s3_client,self.data_path)
+        s3_prefix = os.path.join('various_datasets', 'recs_2009')
+        self.s3_download_dir(s3_prefix, '.', s3_bucket, s3_client, self.data_path)
 
     def geometry_wall_type(self): # for WoodStud or Masonry walls
         df = self.df.copy()
@@ -76,7 +76,7 @@ class RECS2009(TSVMaker):
             geometry_wall_type, count, weight = self.groupby_and_pivot(geometry_wall_type, dependency_cols, option_col)
             geometry_wall_type = self.add_missing_dependency_rows(geometry_wall_type, project, count, weight)
             geometry_wall_type = self.rename_cols(geometry_wall_type, dependency_cols, project)
-            geometry_wall_type.reset_index(inplace=True,drop=False)
+            geometry_wall_type.reset_index(inplace=True, drop=False)
 
             filepath = os.path.normpath(os.path.join(os.path.dirname(__file__), project, '{}.tsv'.format(option_col)))
             self.export_and_tag(geometry_wall_type, filepath, project, created_by, source)
@@ -103,7 +103,7 @@ class RECS2009(TSVMaker):
             misc_pool, count, weight = self.groupby_and_pivot(misc_pool, dependency_cols, option_col)
             misc_pool = self.add_missing_dependency_rows(misc_pool, project, count, weight)
             misc_pool = self.rename_cols(misc_pool, dependency_cols, project)
-            misc_pool.reset_index(inplace=True,drop=False)
+            misc_pool.reset_index(inplace=True, drop=False)
 
             filepath = os.path.normpath(os.path.join(os.path.dirname(__file__), project, '{}.tsv'.format(option_col)))
             self.export_and_tag(misc_pool, filepath, project, created_by, source)
@@ -128,7 +128,7 @@ class RECS2009(TSVMaker):
             misc_pool, count, weight = self.groupby_and_pivot(misc_pool, dependency_cols, option_col)
             misc_pool = self.add_missing_dependency_rows(misc_pool, project, count, weight)
             misc_pool = self.rename_cols(misc_pool, dependency_cols, project)
-            misc_pool.reset_index(inplace=True,drop=False)
+            misc_pool.reset_index(inplace=True, drop=False)
 
             filepath = os.path.normpath(os.path.join(os.path.dirname(__file__), project, '{}.tsv'.format(option_col)))
             self.export_and_tag(misc_pool, filepath, project, created_by, source)
@@ -153,7 +153,7 @@ class RECS2009(TSVMaker):
             misc_pool, count, weight = self.groupby_and_pivot(misc_pool, dependency_cols, option_col)
             misc_pool = self.add_missing_dependency_rows(misc_pool, project, count, weight)
             misc_pool = self.rename_cols(misc_pool, dependency_cols, project)
-            misc_pool.reset_index(inplace=True,drop=False)
+            misc_pool.reset_index(inplace=True, drop=False)
 
             filepath = os.path.normpath(os.path.join(os.path.dirname(__file__), project, '{}.tsv'.format(option_col)))
             self.export_and_tag(misc_pool, filepath, project, created_by, source)
