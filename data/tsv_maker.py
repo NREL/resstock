@@ -153,36 +153,28 @@ class TSVMaker:
           filepath (str): The path of the tsv file to export.
           project (str): Name of the project.
         """
-        names = df.index.names
-
-        tag = created_by
-        if 'testing' not in project:
-            tag += source
-
-        tag_row = {names[0]: 'Created by: {}'.format(tag)}
-        for name in names[1:] + list(df.columns.values):
-            tag_row[name] = np.nan
-        df = df.reset_index()
-        for col in list(df.columns.values):
-            if col == self.count_col_label():
-                df[col] = df[col].astype(int)
-            else:
-                df[col] = df[col].astype(str)
-        df = df.append(tag_row, ignore_index=True, verify_integrity=True)
-        df[self.count_col_label()] = df[self.count_col_label()].apply(lambda x: str(int(x)) if pd.notnull(x) else x)
-
-        if 'testing' in project:
-            del df[self.count_col_label()]
-            del df[self.weight_col_label()]
-
+        # Enforce float format
         cols = []
         for col in df.columns:
             if 'Dependency' in col:
                 continue
             cols.append(col)
-
         df[cols] = df[cols].apply(pd.to_numeric, downcast='float')
+
+        if 'testing' in project:
+            del df[self.count_col_label()]
+            del df[self.weight_col_label()]
+
+        # Write tsv
         df.to_csv(filepath, sep='\t', index=False, float_format='%.6f', line_terminator='\r\n')
+
+        # Append the created by line
+        tag = "Created by: " + created_by
+        if not "testing" in project:
+            tag += source
+        tag += "\r\n"
+        with open(filepath, "a") as file_object:
+            file_object.write(tag)
         print('{}...'.format(filepath))
 
     def copy_file_to_project(self, filepath, project):
