@@ -17,6 +17,45 @@ class TSVMaker:
     def weight_col_label(self):
       return 'sample_weight'
 
+    def s3_download_dir(self, prefix, local, bucket, client, dest_path):
+        """
+        Download a directory from s3.
+        Parameters:
+          prefix (str): Pattern to match in s3.
+          local (str): Local path to folder in which to place files.
+          bucket (str): The s3 bucket with target contents.
+          client (boto3.client): Initialized s3 client object.
+          dest_path (str): Destination path.
+        """
+        keys = []
+        dirs = []
+        next_token = ''
+        base_kwargs = {
+            'Bucket':bucket,
+            'Prefix':prefix
+        }
+        while next_token is not None:
+            kwargs = base_kwargs.copy()
+            if next_token != '':
+                kwargs.update({'ContinuationToken': next_token})
+            results = client.list_objects_v2(**kwargs)
+            contents = results.get('Contents')
+            for i in contents:
+                k = i.get('Key')
+                if k[-1] != '/':
+                    keys.append(k)
+                else:
+                    dirs.append(k)
+            next_token = results.get('NextContinuationToken')
+        for d in dirs:
+            if not os.path.exists(os.path.dirname(dest_path)):
+                os.makedirs(os.path.dirname(dest_path))
+        for k in keys:
+            dest_pathname = os.path.join(dest_path, os.path.basename(k))
+            if not os.path.exists(os.path.dirname(dest_pathname)):
+                os.makedirs(os.path.dirname(dest_pathname))
+            client.download_file(bucket, k, dest_pathname)
+
     def groupby_and_pivot(self, df, dependency_cols, option_col):
         """
         Subset the dataframe to columns of interest. Pivot the table, row sum the source weights, and divide each element by its row sum.
@@ -115,37 +154,34 @@ class TSVMaker:
           df (dataframe): A pandas dataframe with dependency/option columns and fractions.
           filepath (str): The path of the tsv file to export.
           project (str): Name of the project.
+          created_by (str): Path to tsv maker file.
+          source (str): Description of source data.
         """
-        names = df.index.names
-
-        tag = created_by
-        if 'testing' not in project:
-            tag += source
-
-        tag_row = {names[0]: 'Created by: {}'.format(tag)}
-        for name in names[1:] + list(df.columns.values):
-            tag_row[name] = np.nan
-        df = df.reset_index()
-        for col in list(df.columns.values):
-            if col == self.count_col_label():
-                df[col] = df[col].astype(int)
-            else:
-                df[col] = df[col].astype(str)
-        df = df.append(tag_row, ignore_index=True, verify_integrity=True)
-        df[self.count_col_label()] = df[self.count_col_label()].apply(lambda x: str(int(x)) if pd.notnull(x) else x)
-
-        if 'testing' in project:
-            del df[self.count_col_label()]
-            del df[self.weight_col_label()]
-
+        # Enforce float format
         cols = []
         for col in df.columns:
             if 'Dependency' in col:
                 continue
             cols.append(col)
-
         df[cols] = df[cols].apply(pd.to_numeric, downcast='float')
+
+        if 'testing' in project:
+            try:
+                del df[self.count_col_label()]
+                del df[self.weight_col_label()]
+            except:
+                pass
+
+        # Write tsv
         df.to_csv(filepath, sep='\t', index=False, float_format='%.6f', line_terminator='\r\n')
+
+        # Append the created by line
+        tag = "Created by: " + created_by
+        if not "testing" in project:
+            tag += source
+        tag = tag.replace('/', '\\')
+        with open(filepath, "a") as file_object:
+            file_object.write(tag)
         print('{}...'.format(filepath))
 
     def copy_file_to_project(self, filepath, project):
@@ -155,7 +191,7 @@ class TSVMaker:
           filepath (str): The path of the tsv file to copy to projects' housing_characteristics folders.
           project (str): Name of the project.
         """
-        resstock_projects_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-
+        resstock_projects_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
         project_dir = os.path.join(resstock_projects_dir, project, 'housing_characteristics')
+        
         shutil.copy(filepath, project_dir)
