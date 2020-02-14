@@ -56,7 +56,7 @@ Sometimes you will need *all* the simulation results including timeseries result
    
    .. code-block:: bash
    
-      $ c:/openstudio-2.9.0/bin/openstudio.exe scripts/download_datapoints.rb -p project_singlefamilydetached -s http://ec2-107-23-165-146.compute-1.amazonaws.com -a 706c3b4a-9685-4924-bb13-c6bec77aa397
+      $ c:/openstudio-2.9.0/bin/openstudio.exe scripts/download_datapoints.rb -p project_multifamily_beta -s http://ec2-107-23-165-146.compute-1.amazonaws.com -a 706c3b4a-9685-4924-bb13-c6bec77aa397
    
    Additionally, the script has an optional argument to unzip each datapoint zip file on the fly.
 
