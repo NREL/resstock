@@ -84,7 +84,7 @@ def create_osws
     # 'base-enclosure-garage.osw' => 'base.osw',
     'base-enclosure-infil-cfm50.osw' => 'base.osw',
     # 'base-enclosure-no-natural-ventilation.osw' => 'base.osw',
-    # 'base-enclosure-overhangs.osw' => 'base.osw', # TODO: change DistanceToBottomOfWindow from 7.0 to 6.0
+    'base-enclosure-overhangs.osw' => 'base.osw',
     # 'base-enclosure-skylights.osw' => 'base.osw', # There are no front roof surfaces, but 15.0 ft^2 of skylights were specified.
     # 'base-enclosure-split-surfaces.osw' => 'base.osw',
     'base-enclosure-walltype-cmu.osw' => 'base.osw',
@@ -146,7 +146,7 @@ def create_osws
     # 'base-hvac-ducts-multiple.osw' => 'base.osw', TODO: not sure how to do multiple ducts
     'base-hvac-ducts-outside.osw' => 'base.osw',
     'base-hvac-elec-resistance-only.osw' => 'base.osw',
-    # 'base-hvac-evap-cooler-furnace-gas.osw' => 'base.osw', # TODO: need to remove return ducts
+    'base-hvac-evap-cooler-furnace-gas.osw' => 'base.osw',
     'base-hvac-evap-cooler-only.osw' => 'base.osw',
     'base-hvac-evap-cooler-only-ducted.osw' => 'base.osw',
     # 'base-hvac-flowrate.osw' => 'base.osw',
@@ -1245,7 +1245,6 @@ def get_values(osw_file, step)
     step.setArgument("cooling_system_type", "none")
   elsif ['base-hvac-evap-cooler-furnace-gas.osw'].include? osw_file
     step.setArgument("cooling_system_type", "evaporative cooler")
-    step.setArgument("evap_cooler_is_ducted", true)
   elsif ['base-hvac-evap-cooler-only.osw'].include? osw_file
     step.setArgument("heating_system_type", "none")
     step.setArgument("cooling_system_type", "evaporative cooler")
