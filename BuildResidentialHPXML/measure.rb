@@ -3144,7 +3144,7 @@ class HPXMLFile
                                              :duct_leakage_units => args[:supply_duct_leakage_units],
                                              :duct_leakage_value => args[:supply_duct_leakage_value] }]
 
-        if args[:cooling_system_type] != "evaporative cooler"
+        if not (args[:cooling_system_type] == "evaporative cooler" and args[:evap_cooler_is_ducted])
           duct_leakage_measurement_values << { :duct_type => "return",
                                                :duct_leakage_units => args[:return_duct_leakage_units],
                                                :duct_leakage_value => args[:return_duct_leakage_value] }
@@ -3203,7 +3203,7 @@ class HPXMLFile
                          :duct_location => supply_duct_location,
                          :duct_surface_area => args[:supply_duct_surface_area] }]
 
-        if args[:cooling_system_type] != "evaporative cooler"
+        if not (args[:cooling_system_type] == "evaporative cooler" and args[:evap_cooler_is_ducted])
           duct_values << { :duct_type => "return",
                            :duct_insulation_r_value => args[:return_duct_insulation_r_value],
                            :duct_location => return_duct_location,
