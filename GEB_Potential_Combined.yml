@@ -58,7 +58,7 @@ upgrades:
             - HVAC System Heat Pump|ASHP, SEER 16, 9.0 HSPF
             - HVAC System Heat Pump|ASHP, SEER 17, 8.7 HSPF
             - HVAC System Heat Pump|ASHP, SEER 18, 9.3 HSPF
-            - HVAC System Heating Electricity|Electric Furnace  # Electric Baseboard and Electric Boiler upgrade in another run
+            - HVAC System Heating Electricity|Electric Furnace  
             #removed upgrades from electric resistance heating to ensure no house is included in both the ASHP and CAC upgrade packages
         costs:
           - value: 4200
@@ -142,9 +142,8 @@ upgrades:
             - Insulation Wall|Wood Stud, R-11
             - Insulation Wall|Wood Stud, R-13
             - Insulation Wall|Wood Stud, R-19
-            - Insulation Wall|Wood Stud, R-19, Grade 2
-            - Insulation Wall|Wood Stud, R-19, Grade 3
-            - Insulation Wall|Wood Stud, R-23 Closed Cell Spray Foam, 2x4, 16 in o.c.
+            - Insulation Wall|Wood Stud, R-19, Grade 2 #not in baseline
+            - Insulation Wall|Wood Stud, R-19, Grade 3 #not in baseline
         costs:
           - value: 0
             multiplier: Fixed (1)
@@ -402,22 +401,17 @@ upgrades:
 ##up6 - package 1f - Best CAC Homes, best CAC, smart thermostat and envelope (1st)
   - upgrade_name: Package 1f EE CAC with smart thermostat and envelope
     package_apply_logic:
-      or:
-            - HVAC System Cooling|AC, SEER 8
-            - HVAC System Cooling|AC, SEER 10
-            - HVAC System Cooling|AC, SEER 13
-            - HVAC System Cooling|AC, SEER 14
-            - HVAC System Cooling|AC, SEER 15
+      - or:
+        - HVAC System Cooling|AC, SEER 8
+        - HVAC System Cooling|AC, SEER 10
+        - HVAC System Cooling|AC, SEER 13
+        - HVAC System Cooling|AC, SEER 14
+        - HVAC System Cooling|AC, SEER 15
+      - not:
+        - HVAC System Heating Electricity|Electric Furnace
     options: 
       ## Best CAC
       - option: HVAC System Cooling|AC, SEER 18
-        apply_logic:
-          or:
-            - HVAC System Cooling|AC, SEER 8
-            - HVAC System Cooling|AC, SEER 10
-            - HVAC System Cooling|AC, SEER 13
-            - HVAC System Cooling|AC, SEER 14
-            - HVAC System Cooling|AC, SEER 15
         costs:
           - value: 3200
             multiplier: Fixed (1)
@@ -492,9 +486,8 @@ upgrades:
             - Insulation Wall|Wood Stud, R-11
             - Insulation Wall|Wood Stud, R-13
             - Insulation Wall|Wood Stud, R-19
-            - Insulation Wall|Wood Stud, R-19, Grade 2
-            - Insulation Wall|Wood Stud, R-19, Grade 3
-            - Insulation Wall|Wood Stud, R-23 Closed Cell Spray Foam, 2x4, 16 in o.c.
+            - Insulation Wall|Wood Stud, R-19, Grade 2 #not in baseline
+            - Insulation Wall|Wood Stud, R-19, Grade 3 #not in baseline
         costs:
           - value: 0
             multiplier: Fixed (1)
@@ -592,7 +585,7 @@ upgrades:
  
 ##up7 - package 1g - Best ASHP, smart thermostat (*only for homes with ASHP upgrade), and envelope (1st)
   - upgrade_name: Package 1g EE ASHP with smart thermostat and best envelope
-    package_apply_logic:
+    package_apply_logic: #same as 1b
       or:
             - HVAC System Heat Pump|ASHP, SEER 10, 6.2 HSPF
             - HVAC System Heat Pump|ASHP, SEER 10.3, 7.0 HSPF
@@ -604,23 +597,11 @@ upgrades:
             - HVAC System Heat Pump|ASHP, SEER 15, 8.5 HSPF
             - HVAC System Heat Pump|ASHP, SEER 16, 9.0 HSPF
             - HVAC System Heat Pump|ASHP, SEER 17, 8.7 HSPF
-            - HVAC System Heat Pump|ASHP, SEER 18, 9.3 HSPF     
+            - HVAC System Heat Pump|ASHP, SEER 18, 9.3 HSPF
+            - HVAC System Heating Electricity|Electric Furnace              
     options: 
       ## Best ASHP
       - option: HVAC System Heat Pump|ASHP, SEER 22, 10 HSPF
-        apply_logic: 
-          or:
-            - HVAC System Heat Pump|ASHP, SEER 10, 6.2 HSPF
-            - HVAC System Heat Pump|ASHP, SEER 10.3, 7.0 HSPF
-            - HVAC System Heat Pump|ASHP, SEER 11.5, 7.5 HSPF
-            - HVAC System Heat Pump|ASHP, SEER 13, 7.7 HSPF
-            - HVAC System Heat Pump|ASHP, SEER 13, 8.0 HSPF
-            - HVAC System Heat Pump|ASHP, SEER 14, 8.2 HSPF
-            - HVAC System Heat Pump|ASHP, SEER 14.3, 8.5 HSPF
-            - HVAC System Heat Pump|ASHP, SEER 15, 8.5 HSPF
-            - HVAC System Heat Pump|ASHP, SEER 16, 9.0 HSPF
-            - HVAC System Heat Pump|ASHP, SEER 17, 8.7 HSPF
-            - HVAC System Heat Pump|ASHP, SEER 18, 9.3 HSPF
         costs:
           - value: 0
             multiplier: Fixed (1)
@@ -691,9 +672,8 @@ upgrades:
             - Insulation Wall|Wood Stud, R-11
             - Insulation Wall|Wood Stud, R-13
             - Insulation Wall|Wood Stud, R-19
-            - Insulation Wall|Wood Stud, R-19, Grade 2
-            - Insulation Wall|Wood Stud, R-19, Grade 3
-            - Insulation Wall|Wood Stud, R-23 Closed Cell Spray Foam, 2x4, 16 in o.c.
+            - Insulation Wall|Wood Stud, R-19, Grade 2 #not in baseline
+            - Insulation Wall|Wood Stud, R-19, Grade 3 #not in baseline
         costs:
           - value: 0
             multiplier: Fixed (1)
@@ -811,6 +791,7 @@ upgrades:
             - HVAC System Cooling|AC, SEER 13
             - HVAC System Cooling|AC, SEER 14
             - HVAC System Cooling|AC, SEER 15
+            - HVAC System Heating Electricity|Electric Furnace        
     options: 
       #Best smart thermostat
       - option: Cooling Setpoint Apply Offset|TRUE
@@ -878,9 +859,8 @@ upgrades:
             - Insulation Wall|Wood Stud, R-11
             - Insulation Wall|Wood Stud, R-13
             - Insulation Wall|Wood Stud, R-19
-            - Insulation Wall|Wood Stud, R-19, Grade 2
-            - Insulation Wall|Wood Stud, R-19, Grade 3
-            - Insulation Wall|Wood Stud, R-23 Closed Cell Spray Foam, 2x4, 16 in o.c.
+            - Insulation Wall|Wood Stud, R-19, Grade 2 #not in baseline
+            - Insulation Wall|Wood Stud, R-19, Grade 3 #not in baseline
         costs:
           - value: 0
             multiplier: Fixed (1)
@@ -975,7 +955,126 @@ upgrades:
             - Insulation Finished Basement|Wall R-5
             - Insulation Finished Basement|Wall R-15
   
-##up9 - package 2 - DR (wh and thermostat)
+  
+  
+##up9 - package 1j - EE best opaque envelope [component]
+  - upgrade_name: package 1k EE best opaque envelope
+    options:
+      ## Best walls
+      - option: Insulation Wall|Wood Stud, R-13, R-20 external XPS
+        apply_logic:
+          or:
+            - Insulation Wall|Wood Stud, Uninsulated
+            - Insulation Wall|Wood Stud, R-7
+            - Insulation Wall|Wood Stud, R-11
+            - Insulation Wall|Wood Stud, R-13
+            - Insulation Wall|Wood Stud, R-19
+            - Insulation Wall|Wood Stud, R-19, Grade 2 #not in baseline
+            - Insulation Wall|Wood Stud, R-19, Grade 3 #not in baseline
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      ## Best roofs
+      - option: Insulation Unfinished Attic|Ceiling R-49, Vented
+        apply_logic: 
+          or:
+            - Insulation Unfinished Attic|Uninsulated, Vented
+            - Insulation Unfinished Attic|Ceiling R-7, Vented
+            - Insulation Unfinished Attic|Ceiling R-13, Vented
+            - Insulation Unfinished Attic|Ceiling R-19, Vented
+            - Insulation Unfinished Attic|Ceiling R-30, Vented
+            - Insulation Unfinished Attic|Ceiling R-38, Vented
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      #Best foundation:
+      - option: Insulation Crawlspace|Ceiling R-30, Vented
+        apply_logic:
+        - or:
+            - Insulation Crawlspace|Uninsulated, Vented
+            - Insulation Crawlspace|Ceiling R-13, Vented
+            - Insulation Crawlspace|Ceiling R-19, Vented
+      - option: Insulation Crawlspace|Wall R-13, Unvented
+        apply_logic:
+        - or:
+            - Insulation Crawlspace|Uninsulated, Unvented
+            - Insulation Crawlspace|Wall R-5, Unvented
+            - Insulation Crawlspace|Wall R-10, Unvented
+      
+      - option: Insulation Unfinished Basement|Ceiling R-19
+        apply_logic:
+        - or:
+            - Insulation Unfinished Basement|Uninsulated
+            - Insulation Unfinished Basement|Ceiling R-13
+        
+      - option: Insulation Finished Basement|Wall R-15
+        apply_logic:
+        - or:
+            - Insulation Finished Basement|Uninsulated
+            - Insulation Finished Basement|Wall R-5
+            - Insulation Finished Basement|Wall R-15
+       
+##up10 - package 1k - EE best air sealing [component]
+  - upgrade_name: package 1k EE best air sealing
+    options:
+      ## Best air sealing
+      - option: Infiltration|1 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Mechanical Ventilation|Exhaust, 2010 ASHRAE 62.2
+        apply_logic: 
+            - Mechanical Ventilation|None
+        costs: 
+          - value: 360
+            multiplier: Fixed (1)
+        lifetime: 999
+
+##up11 - package 1m - EE best windows [component]
+  - upgrade_name: package 1m EE best windows
+    options:
+      ## Best windows
+      - option: Windows|SCOUT 5.88 R, 0.49 SHGC
+        apply_logic:
+          or:
+            - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+            - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+            - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Windows|SCOUT 5.88 R, 0.42 SHGC
+        apply_logic:
+          or:
+            - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+            - Location|WA_Quillayute.State.AP.727970 #AIA2
+            - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+            - Location|MN_Rochester.Intl.AP.726440 #AIA2
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Windows|SCOUT 5.88 R, 0.27 SHGC
+        apply_logic:
+          or:
+            - Location|FL_Orlando.Intl.AP.722050 #AIA5
+            - Location|AZ_Tucson.Intl.AP.722740 #AIA4
+            - Location|GA_Atlanta-Hartsfield-Jackson.Intl.AP.722190 #AIA5
+            - Location|TX_El.Paso.Intl.AP.722700 #AIA5
+            - Location|CA_San.Diego-Lindbergh.Field.722900 #AIA4
+            - Location|NY_New.York-J.F.Kennedy.Intl.AP.744860 #AIA3
+            - Location|WA_Seattle-Tacoma.Intl.AP.727930 #AIA3
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+  
+  
+##up12 - package 2 - DR (wh and thermostat)
   - upgrade_name: package 2 DR only
     options: 
       - option: Appliance DR Apply|TRUE
@@ -983,185 +1082,95 @@ upgrades:
       - option: Water Heater DR|WHDR Tank Tampa
         apply_logic:
           - City|Tampa
-          - Water Heater DR|WH Tank False
+          - Water Heater Type|Tank
           - Water Heater Fuel Type|Electric
       - option: Water Heater DR|WHDR Tank Tucson
         apply_logic:
           - City|Tucson
-          - Water Heater DR|WH Tank False
+          - Water Heater Type|Tank
           - Water Heater Fuel Type|Electric
       - option: Water Heater DR|WHDR Tank Atlanta_1
         apply_logic:
           - City|Atlanta_1
-          - Water Heater DR|WH Tank False
+          - Water Heater Type|Tank
           - Water Heater Fuel Type|Electric
       - option: Water Heater DR|WHDR Tank Atlanta_2
         apply_logic:
           - City|Atlanta_2
-          - Water Heater DR|WH Tank False
+          - Water Heater Type|Tank
           - Water Heater Fuel Type|Electric
       - option: Water Heater DR|WHDR Tank Midland
         apply_logic:
           - City|Midland
-          - Water Heater DR|WH Tank False
+          - Water Heater Type|Tank
           - Water Heater Fuel Type|Electric
       - option: Water Heater DR|WHDR Tank San Diego
         apply_logic:
           - City|San Diego
-          - Water Heater DR|WH Tank False
+          - Water Heater Type|Tank
           - Water Heater Fuel Type|Electric
       - option: Water Heater DR|WHDR Tank New York_1
         apply_logic:
           - City|New York_1
-          - Water Heater DR|WH Tank False
+          - Water Heater Type|Tank
           - Water Heater Fuel Type|Electric
       - option: Water Heater DR|WHDR Tank New York_2
         apply_logic:
           - City|New York_2
-          - Water Heater DR|WH Tank False
+          - Water Heater Type|Tank
           - Water Heater Fuel Type|Electric
       - option: Water Heater DR|WHDR Tank Albuquerque
         apply_logic:
           - City|Albuquerque
-          - Water Heater DR|WH Tank False
+          - Water Heater Type|Tank
           - Water Heater Fuel Type|Electric
       - option: Water Heater DR|WHDR Tank Seattle
         apply_logic:
           - City|Seattle
-          - Water Heater DR|WH Tank False
+          - Water Heater Type|Tank
           - Water Heater Fuel Type|Electric     
       - option: Water Heater DR|WHDR Tank Denver
         apply_logic:
           - City|Denver
-          - Water Heater DR|WH Tank False
+          - Water Heater Type|Tank
           - Water Heater Fuel Type|Electric
       - option: Water Heater DR|WHDR Tank Port Angeles
         apply_logic:
           - City|Port Angeles
-          - Water Heater DR|WH Tank False
+          - Water Heater Type|Tank
           - Water Heater Fuel Type|Electric
       - option: Water Heater DR|WHDR Tank Buffalo_1
         apply_logic:
           - City|Buffalo_1
-          - Water Heater DR|WH Tank False
+          - Water Heater Type|Tank
           - Water Heater Fuel Type|Electric
       - option: Water Heater DR|WHDR Tank Buffalo_2
         apply_logic:
           - City|Buffalo_2
-          - Water Heater DR|WH Tank False
+          - Water Heater Type|Tank
           - Water Heater Fuel Type|Electric
       - option: Water Heater DR|WHDR Tank Rochester_1
         apply_logic:
           - City|Rochester_1
-          - Water Heater DR|WH Tank False
+          - Water Heater Type|Tank
           - Water Heater Fuel Type|Electric
       - option: Water Heater DR|WHDR Tank Rochester_2
         apply_logic:
           - City|Rochester_2
-          - Water Heater DR|WH Tank False
+          - Water Heater Type|Tank
           - Water Heater Fuel Type|Electric
       - option: Water Heater DR|WHDR Tank Great Falls
         apply_logic:
           - City|Great Falls
-          - Water Heater DR|WH Tank False
+          - Water Heater Type|Tank
           - Water Heater Fuel Type|Electric
       - option: Water Heater DR|WHDR Tank International Falls
         apply_logic:
           - City|International Falls
-          - Water Heater DR|WH Tank False
+          - Water Heater Type|Tank
           - Water Heater Fuel Type|Electric
           
-      - option: Water Heater DR|WHDR Tankless Tampa
-        apply_logic:
-          - City|Tampa
-          - Water Heater DR|WH Tankless False
-          - Water Heater Fuel Type|Electric
-      - option: Water Heater DR|WHDR Tankless Tucson
-        apply_logic:
-          - City|Tucson
-          - Water Heater DR|WH Tankless False
-          - Water Heater Fuel Type|Electric
-      - option: Water Heater DR|WHDR Tankless Atlanta_1
-        apply_logic:
-          - Water Heater DR|WHDR Tankless Atlanta_1
-          - Water Heater DR|WH Tankless False
-          - Water Heater Fuel Type|Electric
-      - option: Water Heater DR|WHDR Tankless Atlanta_2
-        apply_logic:
-          - Water Heater DR|WHDR Tankless Atlanta_2
-          - Water Heater DR|WH Tankless False
-          - Water Heater Fuel Type|Electric
-      - option: Water Heater DR|WHDR Tankless Midland
-        apply_logic:
-          - City|Midland
-          - Water Heater DR|WH Tankless False
-          - Water Heater Fuel Type|Electric
-      - option: Water Heater DR|WHDR Tankless San Diego
-        apply_logic:
-          - City|San Diego
-          - Water Heater DR|WH Tankless False
-          - Water Heater Fuel Type|Electric
-      - option: Water Heater DR|WHDR Tankless New York_1
-        apply_logic:
-          - City|New York_1
-          - Water Heater DR|WH Tankless False
-      - option: Water Heater DR|WHDR Tankless New York_2
-        apply_logic:
-          - City|New York_2
-          - Water Heater DR|WH Tankless False
-          - Water Heater Fuel Type|Electric
-      - option: Water Heater DR|WHDR Tankless Albuquerque
-        apply_logic:
-          - City|Albuquerque
-          - Water Heater DR|WH Tankless False
-          - Water Heater Fuel Type|Electric
-      - option: Water Heater DR|WHDR Tankless Seattle
-        apply_logic:
-          - City|Seattle
-          - Water Heater DR|WH Tankless False
-          - Water Heater Fuel Type|Electric  
-      - option: Water Heater DR|WHDR Tankless Denver
-        apply_logic:
-          - City|Denver
-          - Water Heater DR|WH Tankless False
-          - Water Heater Fuel Type|Electric
-      - option: Water Heater DR|WHDR Tankless Port Angeles
-        apply_logic:
-          - City|Port Angeles
-          - Water Heater DR|WH Tankless False
-          - Water Heater Fuel Type|Electric
-      - option: Water Heater DR|WHDR Tankless Buffalo_1
-        apply_logic:
-          - City|Buffalo_1
-          - Water Heater DR|WH Tankless False
-          - Water Heater Fuel Type|Electric
-      - option: Water Heater DR|WHDR Tankless Buffalo_2
-        apply_logic:
-          - City|Buffalo_2
-          - Water Heater DR|WH Tankless False
-          - Water Heater Fuel Type|Electric
-      - option: Water Heater DR|WHDR Tankless Rochester_1
-        apply_logic:
-          - City|Rochester_1
-          - Water Heater DR|WH Tankless False
-          - Water Heater Fuel Type|Electric
-      - option: Water Heater DR|WHDR Tankless Rochester_2
-        apply_logic:
-          - City|Rochester_2
-          - Water Heater DR|WH Tankless False
-          - Water Heater Fuel Type|Electric
-      - option: Water Heater DR|WHDR Tankless Great Falls
-        apply_logic:
-          - City|Great Falls
-          - Water Heater DR|WH Tankless False
-          - Water Heater Fuel Type|Electric
-      - option: Water Heater DR|WHDR Tankless International Falls
-        apply_logic:
-          - City|International Falls
-          - Water Heater DR|WH Tankless False
-          - Water Heater Fuel Type|Electric
-
-      #Thermostat DR (-3..+3)
+    #Thermostat DR (-3..+3)
       - option: Cooling Setpoint Apply Offset|TRUE
         apply_logic:
           - not: Cooling Setpoint|60F
@@ -1229,25 +1238,20 @@ upgrades:
       - option: ThermoDR|Rochester_2
         apply_logic: City|Rochester_2
 
-##up10 - package 3a - CAC upgrade with pre heating/cooling, smart thermostat, envelope
+##up13 - package 3a - CAC upgrade with pre heating/cooling, smart thermostat, envelope
   - upgrade_name: Package 3a Pre-heating/cooling, smart thermostat, and envelope for CAC upgrades
     package_apply_logic:
-      or:
+      - or:
           - HVAC System Cooling|AC, SEER 8
           - HVAC System Cooling|AC, SEER 10
           - HVAC System Cooling|AC, SEER 13
           - HVAC System Cooling|AC, SEER 14
           - HVAC System Cooling|AC, SEER 15
+      - not:
+          - HVAC System Heating Electricity|Electric Furnace
     options:
       #Best CAC
       - option: HVAC System Cooling|AC, SEER 18
-        apply_logic:
-          or:
-            - HVAC System Cooling|AC, SEER 8
-            - HVAC System Cooling|AC, SEER 10
-            - HVAC System Cooling|AC, SEER 13
-            - HVAC System Cooling|AC, SEER 14
-            - HVAC System Cooling|AC, SEER 15
         costs:
           - value: 3200
             multiplier: Fixed (1)
@@ -1280,9 +1284,8 @@ upgrades:
             - Insulation Wall|Wood Stud, R-11
             - Insulation Wall|Wood Stud, R-13
             - Insulation Wall|Wood Stud, R-19
-            - Insulation Wall|Wood Stud, R-19, Grade 2
-            - Insulation Wall|Wood Stud, R-19, Grade 3
-            - Insulation Wall|Wood Stud, R-23 Closed Cell Spray Foam, 2x4, 16 in o.c.
+            - Insulation Wall|Wood Stud, R-19, Grade 2 #not in baseline
+            - Insulation Wall|Wood Stud, R-19, Grade 3 #not in baseline
         costs:
           - value: 0
             multiplier: Fixed (1)
@@ -1379,9 +1382,9 @@ upgrades:
   
 
 
-##up11 - package 3b - ASHP upgrade with pre heating/cooling, smart thermostat, envelope
+##up14 - package 3b - ASHP upgrade with pre heating/cooling, smart thermostat, envelope
   - upgrade_name: Package 3b Pre-heating/cooling, smart thermostat, and envelope for ASHP upgrades
-    package_apply_logic:
+    package_apply_logic: #same as 1b
       or:
           - HVAC System Heat Pump|ASHP, SEER 10, 6.2 HSPF
           - HVAC System Heat Pump|ASHP, SEER 10.3, 7.0 HSPF
@@ -1394,22 +1397,9 @@ upgrades:
           - HVAC System Heat Pump|ASHP, SEER 16, 9.0 HSPF
           - HVAC System Heat Pump|ASHP, SEER 17, 8.7 HSPF
           - HVAC System Heat Pump|ASHP, SEER 18, 9.3 HSPF
+          - HVAC System Heating Electricity|Electric Furnace  
     options:
       - option: HVAC System Heat Pump|ASHP, SEER 22, 10 HSPF
-        apply_logic: 
-          or:
-            - HVAC System Heat Pump|ASHP, SEER 10, 6.2 HSPF
-            - HVAC System Heat Pump|ASHP, SEER 10.3, 7.0 HSPF
-            - HVAC System Heat Pump|ASHP, SEER 11.5, 7.5 HSPF
-            - HVAC System Heat Pump|ASHP, SEER 13, 7.7 HSPF
-            - HVAC System Heat Pump|ASHP, SEER 13, 8.0 HSPF
-            - HVAC System Heat Pump|ASHP, SEER 14, 8.2 HSPF
-            - HVAC System Heat Pump|ASHP, SEER 14.3, 8.5 HSPF
-            - HVAC System Heat Pump|ASHP, SEER 15, 8.5 HSPF
-            - HVAC System Heat Pump|ASHP, SEER 16, 9.0 HSPF
-            - HVAC System Heat Pump|ASHP, SEER 17, 8.7 HSPF
-            - HVAC System Heat Pump|ASHP, SEER 18, 9.3 HSPF
-            #removed upgrades from electric resistance heating to ensure no house is included in both the ASHP and CAC upgrade packages
         costs:
           - value: 4200
             multiplier: Fixed (1)
@@ -1443,9 +1433,8 @@ upgrades:
             - Insulation Wall|Wood Stud, R-11
             - Insulation Wall|Wood Stud, R-13
             - Insulation Wall|Wood Stud, R-19
-            - Insulation Wall|Wood Stud, R-19, Grade 2
-            - Insulation Wall|Wood Stud, R-19, Grade 3
-            - Insulation Wall|Wood Stud, R-23 Closed Cell Spray Foam, 2x4, 16 in o.c.
+            - Insulation Wall|Wood Stud, R-19, Grade 2 #not in baseline
+            - Insulation Wall|Wood Stud, R-19, Grade 3 #not in baseline
         costs:
           - value: 0
             multiplier: Fixed (1)
@@ -1541,7 +1530,7 @@ upgrades:
             - Insulation Finished Basement|Wall R-15
   
 
-##up12 - package 3c - No CAC/ASHP upgrade, with pre heating/cooling, smart thermostat, envelope
+##up15 - package 3c - No CAC/ASHP upgrade, with pre heating/cooling, smart thermostat, envelope
   - upgrade_name: Package 3c Pre-heating/cooling, smart thermostat, and envelope for no HVAC upgrades
     package_apply_logic:
       not:
@@ -1562,6 +1551,7 @@ upgrades:
             - HVAC System Cooling|AC, SEER 13
             - HVAC System Cooling|AC, SEER 14
             - HVAC System Cooling|AC, SEER 15
+            - HVAC System Heating Electricity|Electric Furnace
     options:      
       #smart thermostat (default setbacks from sampling: apply offset=FALSE; DR+Night if weekday occupancy; DR+Full if not weekday occupancy; thermo DR is specific to city in sampling
       - option: Cooling Setpoint Apply Offset|TRUE #(-3..+4) Cooling - [DR+Night setback] & [DR+Full setback] (ignore daytime/unoccupied setback comfort)
@@ -1589,9 +1579,8 @@ upgrades:
             - Insulation Wall|Wood Stud, R-11
             - Insulation Wall|Wood Stud, R-13
             - Insulation Wall|Wood Stud, R-19
-            - Insulation Wall|Wood Stud, R-19, Grade 2
-            - Insulation Wall|Wood Stud, R-19, Grade 3
-            - Insulation Wall|Wood Stud, R-23 Closed Cell Spray Foam, 2x4, 16 in o.c.
+            - Insulation Wall|Wood Stud, R-19, Grade 2 #not in baseline
+            - Insulation Wall|Wood Stud, R-19, Grade 3 #not in baseline
         costs:
           - value: 0
             multiplier: Fixed (1)
@@ -1686,7 +1675,7 @@ upgrades:
             - Insulation Finished Basement|Wall R-5
             - Insulation Finished Basement|Wall R-15
   
-##up13 - package 3d - Appliance EE + DR
+##up16 - package 3d - Appliance EE + DR
   - upgrade_name: package 3d appliance EE+DR
     options: 
       #Best LEDs
@@ -1721,15 +1710,14 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 17.4
       # Best HPWH
-      - option: Water Heater|Electric Heat Pump, 80 gal
+      - option: Water Heater|Electric Heat Pump, 80 gal, no schedule #schedule is applied in water heater DR options
         apply_logic: 
           or:
             - Water Heater|Electric Standard
             - Water Heater|Electric Premium
             - Water Heater|Electric Benchmark
-            - Water Heater|Electric Heat Pump, 50 gal
-            - Water Heater|Electric Heat Pump, 50 gal, 140F
-            #removed tankless and in confined space
+            - Water Heater|Electric Heat Pump, 50 gal #not in baseline
+            - Water Heater|Electric Heat Pump, 50 gal, 140F #not in baseline
         costs:
           - value: 0
             multiplier: Fixed (1)
@@ -1850,190 +1838,101 @@ upgrades:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 999
-      #Appliance DR measures (including water heaters)
+      #Appliance DR measures
       - option: Appliance DR Apply|TRUE
-      - option: Water Heater DR|WHDR Tank Tampa
+      #Water heater DR
+      - option: Water Heater DR|WHDR HPWH Tampa
         apply_logic:
           - City|Tampa
-          - Water Heater DR|WH Tank False
+          - Water Heater Type|Tank 
           - Water Heater Fuel Type|Electric
-      - option: Water Heater DR|WHDR Tank Tucson
+      - option: Water Heater DR|WHDR HPWH Tucson
         apply_logic:
           - City|Tucson
-          - Water Heater DR|WH Tank False
+          - Water Heater Type|Tank
           - Water Heater Fuel Type|Electric
-      - option: Water Heater DR|WHDR Tank Atlanta_1
+      - option: Water Heater DR|WHDR HPWH Atlanta_1
         apply_logic:
           - City|Atlanta_1
-          - Water Heater DR|WH Tank False
+          - Water Heater Type|Tank
           - Water Heater Fuel Type|Electric
-      - option: Water Heater DR|WHDR Tank Atlanta_2
+      - option: Water Heater DR|WHDR HPWH Atlanta_2
         apply_logic:
           - City|Atlanta_2
-          - Water Heater DR|WH Tank False
+          - Water Heater Type|Tank
           - Water Heater Fuel Type|Electric
-      - option: Water Heater DR|WHDR Tank Midland
+      - option: Water Heater DR|WHDR HPWH Midland
         apply_logic:
           - City|Midland
-          - Water Heater DR|WH Tank False
+          - Water Heater Type|Tank
           - Water Heater Fuel Type|Electric
-      - option: Water Heater DR|WHDR Tank San Diego
+      - option: Water Heater DR|WHDR HPWH San Diego
         apply_logic:
           - City|San Diego
-          - Water Heater DR|WH Tank False
+          - Water Heater Type|Tank
           - Water Heater Fuel Type|Electric
-      - option: Water Heater DR|WHDR Tank New York_1
+      - option: Water Heater DR|WHDR HPWH New York_1
         apply_logic:
           - City|New York_1
-          - Water Heater DR|WH Tank False
+          - Water Heater Type|Tank
           - Water Heater Fuel Type|Electric
-      - option: Water Heater DR|WHDR Tank New York_2
+      - option: Water Heater DR|WHDR HPWH New York_2
         apply_logic:
           - City|New York_2
-          - Water Heater DR|WH Tank False
+          - Water Heater Type|Tank
           - Water Heater Fuel Type|Electric
-      - option: Water Heater DR|WHDR Tank Albuquerque
+      - option: Water Heater DR|WHDR HPWH Albuquerque
         apply_logic:
           - City|Albuquerque
-          - Water Heater DR|WH Tank False
+          - Water Heater Type|Tank
           - Water Heater Fuel Type|Electric
-      - option: Water Heater DR|WHDR Tank Seattle
+      - option: Water Heater DR|WHDR HPWH Seattle
         apply_logic:
           - City|Seattle
-          - Water Heater DR|WH Tank False
+          - Water Heater Type|Tank
           - Water Heater Fuel Type|Electric     
-      - option: Water Heater DR|WHDR Tank Denver
+      - option: Water Heater DR|WHDR HPWH Denver
         apply_logic:
           - City|Denver
-          - Water Heater DR|WH Tank False
+          - Water Heater Type|Tank
           - Water Heater Fuel Type|Electric
-      - option: Water Heater DR|WHDR Tank Port Angeles
+      - option: Water Heater DR|WHDR HPWH Port Angeles
         apply_logic:
           - City|Port Angeles
-          - Water Heater DR|WH Tank False
+          - Water Heater Type|Tank
           - Water Heater Fuel Type|Electric
-      - option: Water Heater DR|WHDR Tank Buffalo_1
+      - option: Water Heater DR|WHDR HPWH Buffalo_1
         apply_logic:
           - City|Buffalo_1
-          - Water Heater DR|WH Tank False
+          - Water Heater Type|Tank
           - Water Heater Fuel Type|Electric
-      - option: Water Heater DR|WHDR Tank Buffalo_2
+      - option: Water Heater DR|WHDR HPWH Buffalo_2
         apply_logic:
           - City|Buffalo_2
-          - Water Heater DR|WH Tank False
+          - Water Heater Type|Tank
           - Water Heater Fuel Type|Electric
-      - option: Water Heater DR|WHDR Tank Rochester_1
+      - option: Water Heater DR|WHDR HPWH Rochester_1
         apply_logic:
           - City|Rochester_1
-          - Water Heater DR|WH Tank False
+          - Water Heater Type|Tank
           - Water Heater Fuel Type|Electric
-      - option: Water Heater DR|WHDR Tank Rochester_2
+      - option: Water Heater DR|WHDR HPWH Rochester_2
         apply_logic:
           - City|Rochester_2
-          - Water Heater DR|WH Tank False
+          - Water Heater Type|Tank
           - Water Heater Fuel Type|Electric
-      - option: Water Heater DR|WHDR Tank Great Falls
+      - option: Water Heater DR|WHDR HPWH Great Falls
         apply_logic:
           - City|Great Falls
-          - Water Heater DR|WH Tank False
+          - Water Heater Type|Tank
           - Water Heater Fuel Type|Electric
-      - option: Water Heater DR|WHDR Tank International Falls
+      - option: Water Heater DR|WHDR HPWH International Falls
         apply_logic:
           - City|International Falls
-          - Water Heater DR|WH Tank False
+          - Water Heater Type|Tank
           - Water Heater Fuel Type|Electric
-         
-      - option: Water Heater DR|WHDR Tankless Tampa
-        apply_logic:
-          - City|Tampa
-          - Water Heater DR|WH Tankless False
-          - Water Heater Fuel Type|Electric
-      - option: Water Heater DR|WHDR Tankless Tucson
-        apply_logic:
-          - City|Tucson
-          - Water Heater DR|WH Tankless False
-          - Water Heater Fuel Type|Electric
-      - option: Water Heater DR|WHDR Tankless Atlanta_1
-        apply_logic:
-          - Water Heater DR|WHDR Tankless Atlanta_1
-          - Water Heater DR|WH Tankless False
-          - Water Heater Fuel Type|Electric
-      - option: Water Heater DR|WHDR Tankless Atlanta_2
-        apply_logic:
-          - Water Heater DR|WHDR Tankless Atlanta_2
-          - Water Heater DR|WH Tankless False
-          - Water Heater Fuel Type|Electric
-      - option: Water Heater DR|WHDR Tankless Midland
-        apply_logic:
-          - City|Midland
-          - Water Heater DR|WH Tankless False
-          - Water Heater Fuel Type|Electric
-      - option: Water Heater DR|WHDR Tankless San Diego
-        apply_logic:
-          - City|San Diego
-          - Water Heater DR|WH Tankless False
-          - Water Heater Fuel Type|Electric
-      - option: Water Heater DR|WHDR Tankless New York_1
-        apply_logic:
-          - City|New York_1
-          - Water Heater DR|WH Tankless False
-          - Water Heater Fuel Type|Electric
-      - option: Water Heater DR|WHDR Tankless New York_2
-        apply_logic:
-          - City|New York_2
-          - Water Heater DR|WH Tankless False
-          - Water Heater Fuel Type|Electric
-      - option: Water Heater DR|WHDR Tankless Albuquerque
-        apply_logic:
-          - City|Albuquerque
-          - Water Heater DR|WH Tankless False
-          - Water Heater Fuel Type|Electric
-      - option: Water Heater DR|WHDR Tankless Seattle
-        apply_logic:
-          - City|Seattle
-          - Water Heater DR|WH Tankless False
-          - Water Heater Fuel Type|Electric  
-      - option: Water Heater DR|WHDR Tankless Denver
-        apply_logic:
-          - City|Denver
-          - Water Heater DR|WH Tankless False
-          - Water Heater Fuel Type|Electric
-      - option: Water Heater DR|WHDR Tankless Port Angeles
-        apply_logic:
-          - City|Port Angeles
-          - Water Heater DR|WH Tankless False
-          - Water Heater Fuel Type|Electric
-      - option: Water Heater DR|WHDR Tankless Buffalo_1
-        apply_logic:
-          - City|Buffalo_1
-          - Water Heater DR|WH Tankless False
-          - Water Heater Fuel Type|Electric
-      - option: Water Heater DR|WHDR Tankless Buffalo_2
-        apply_logic:
-          - City|Buffalo_2
-          - Water Heater DR|WH Tankless False
-          - Water Heater Fuel Type|Electric
-      - option: Water Heater DR|WHDR Tankless Rochester_1
-        apply_logic:
-          - City|Rochester_1
-          - Water Heater DR|WH Tankless False
-          - Water Heater Fuel Type|Electric
-      - option: Water Heater DR|WHDR Tankless Rochester_2
-        apply_logic:
-          - City|Rochester_2
-          - Water Heater DR|WH Tankless False
-          - Water Heater Fuel Type|Electric
-      - option: Water Heater DR|WHDR Tankless Great Falls
-        apply_logic:
-          - City|Great Falls
-          - Water Heater DR|WH Tankless False
-          - Water Heater Fuel Type|Electric
-      - option: Water Heater DR|WHDR Tankless International Falls
-        apply_logic:
-          - City|International Falls
-          - Water Heater DR|WH Tankless False
-          - Water Heater Fuel Type|Electric
-
+          
+ 
 timeseries_csv_export:
   reporting_frequency: Hourly
   include_enduse_subcategories: true
