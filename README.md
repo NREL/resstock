@@ -3,6 +3,7 @@ The `master` branch is under active development. Find the latest release [here](
 OpenStudio-BuildStock
 ===================
 
+[![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/NREL/OpenStudio-BuildStock?include_prereleases)](https://github.com/NREL/OpenStudio-BuildStock/releases)
 [![CircleCI](https://circleci.com/gh/NREL/OpenStudio-BuildStock.svg?style=shield)](https://circleci.com/gh/NREL/OpenStudio-BuildStock)
 [![Documentation Status](https://readthedocs.org/projects/resstock/badge/?version=v2.2.1)](https://resstock.readthedocs.io/en/v2.2.1/?badge=v2.2.1)
 [![codecov](https://codecov.io/gh/NREL/OpenStudio-BuildStock/branch/master/graph/badge.svg)](https://codecov.io/gh/NREL/OpenStudio-BuildStock)
