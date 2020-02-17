@@ -1,2 +1,0 @@
-###Readme for 'mapping rbsa to beopt' csv files
-The files in this folder map RBSA field value strings to BEopt option name strings and GUIDs. Each file is named to match a worksheet in 'ArchetypeVariantProbabilities.xlsx' (e.g., Wall.csv for the Walls worksheet).
