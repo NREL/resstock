@@ -78,7 +78,6 @@ def move_cluster(sch, cluster_times, distance, timeClass)
   sch_values.reject!.with_index { |value, index| to_remove_schedule_indexs.include?(index) }
   moved_cluster_start_time = moved_cluster[0][0].totalMinutes
   moved_cluster_end_time = moved_cluster[-1][0].totalMinutes
-
   len = sch_times.length
   insert_just_before_index = len - 1
   sch_times.each_with_index do |time, index|
@@ -103,8 +102,13 @@ def move_cluster(sch, cluster_times, distance, timeClass)
     new_sch_times = sch_times[0..insert_just_before_index - 1] + moved_cluster.transpose[0] + sch_times[insert_just_before_index..len]
     new_sch_values = sch_values[0..insert_just_before_index - 1] + moved_cluster.transpose[1] + sch_values[insert_just_before_index..len]
   else
-    new_sch_times = moved_cluster.transpose[0] + sch_times[insert_just_before_index..len]
-    new_sch_values = moved_cluster.transpose[1] + sch_values[insert_just_before_index..len]
+    if sch_times.any?
+      new_sch_times = moved_cluster.transpose[0] + sch_times[insert_just_before_index..len]
+      new_sch_values = moved_cluster.transpose[1] + sch_values[insert_just_before_index..len]
+    else
+      new_sch_times = moved_cluster.transpose[0]
+      new_sch_values = moved_cluster.transpose[1]
+    end
   end
   return new_sch_times, new_sch_values
 end
