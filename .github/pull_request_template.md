@@ -10,7 +10,6 @@ Not all may apply:
 
 - [ ] Unit tests have been added or updated
 - [ ] All rake tasks have been run, and pass
-- [ ] PAT project measures/outputs have been updated
 - [ ] Documentation has been modified appropriately
 - [ ] Any new options are added to `project_testing`
 - [ ] `project_testing` runs without any failures
