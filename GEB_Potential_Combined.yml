@@ -1,13 +1,13 @@
 stock_type: residential
 buildstock_directory: ./  # Relative to this file or absolute
 project_directory: project_singlefamilydetached
-# output_directory: /projects/enduse/geb-potential/Run_Results/GEB_combind_test2
-output_directory: ./local_sampling/GEB_combined_test_sample
-# weather_files_path: /shared-projects/buildstock/weather/project_resstock_national_weather.zip
-weather_files_path: ./resources/measures/HPXMLtoOpenStudio/weather/project_resstock_national.zip
+output_directory: /projects/enduse/geb-potential/testing/GEB_combined_1
+# output_directory: ./local_sampling/GEB_combined_test_sample
+weather_files_path: /shared-projects/buildstock/weather/project_resstock_national_weather.zip
+# weather_files_path: ./resources/measures/HPXMLtoOpenStudio/weather/project_resstock_national.zip
 
 baseline:
-  n_datapoints: 180
+  n_datapoints: 900 #50 per city
   n_buildings_represented: 81221016 
 residential_simulation_controls:
   timesteps_per_hr: 6
@@ -127,8 +127,6 @@ upgrades:
             - Heating Setpoint|62F
             - Heating Setpoint|65F
             - Heating Setpoint|67F
-
-
 
 ##up4 - package 1d - EE best envelope
   - upgrade_name: Package 1d EE Best Envelope
@@ -768,8 +766,6 @@ upgrades:
             - Insulation Finished Basement|Wall R-5
             - Insulation Finished Basement|Wall R-15
   
-
-
 ##up8 - package 1h - Smart thermostat (*only homes w/o CAC or ASHP upgrade), envelope (1st)
   - upgrade_name: Package 1h EE smart thermostat & envelope when not upgrading CAC or ASHP
     package_apply_logic:
@@ -955,8 +951,6 @@ upgrades:
             - Insulation Finished Basement|Wall R-5
             - Insulation Finished Basement|Wall R-15
   
-  
-  
 ##up9 - package 1j - EE best opaque envelope [component]
   - upgrade_name: package 1k EE best opaque envelope
     options:
@@ -1072,8 +1066,7 @@ upgrades:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 999
-  
-  
+   
 ##up12 - package 2 - DR (wh and thermostat)
   - upgrade_name: package 2 DR only
     options: 
@@ -1380,8 +1373,6 @@ upgrades:
             - Insulation Finished Basement|Wall R-5
             - Insulation Finished Basement|Wall R-15
   
-
-
 ##up14 - package 3b - ASHP upgrade with pre heating/cooling, smart thermostat, envelope
   - upgrade_name: Package 3b Pre-heating/cooling, smart thermostat, and envelope for ASHP upgrades
     package_apply_logic: #same as 1b
@@ -1529,7 +1520,6 @@ upgrades:
             - Insulation Finished Basement|Wall R-5
             - Insulation Finished Basement|Wall R-15
   
-
 ##up15 - package 3c - No CAC/ASHP upgrade, with pre heating/cooling, smart thermostat, envelope
   - upgrade_name: Package 3c Pre-heating/cooling, smart thermostat, and envelope for no HVAC upgrades
     package_apply_logic:
@@ -1932,13 +1922,12 @@ upgrades:
           - Water Heater Type|Tank
           - Water Heater Fuel Type|Electric
           
- 
 timeseries_csv_export:
   reporting_frequency: Hourly
   include_enduse_subcategories: true
 eagle:
   account: enduse
-  n_jobs: 20
+  n_jobs: 40
   minutes_per_sim: 5
   postprocessing:
     time: 90
