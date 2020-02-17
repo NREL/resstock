@@ -1,7 +1,7 @@
 stock_type: residential
 buildstock_directory: ./  # Relative to this file or absolute
 project_directory: project_singlefamilydetached
-output_directory: /projects/enduse/geb-potential/testing/GEB_combined_1
+output_directory: /projects/enduse/geb-potential/testing/GEB_combined_2
 # output_directory: ./local_sampling/GEB_combined_test_sample
 weather_files_path: /shared-projects/buildstock/weather/project_resstock_national_weather.zip
 # weather_files_path: ./resources/measures/HPXMLtoOpenStudio/weather/project_resstock_national.zip
@@ -952,7 +952,7 @@ upgrades:
             - Insulation Finished Basement|Wall R-15
   
 ##up9 - package 1j - EE best opaque envelope [component]
-  - upgrade_name: package 1k EE best opaque envelope
+  - upgrade_name: package 1j EE best opaque envelope
     options:
       ## Best walls
       - option: Insulation Wall|Wood Stud, R-13, R-20 external XPS
@@ -1265,7 +1265,20 @@ upgrades:
           - not: Heating Setpoint|67F
           - not: Heating Setpoint|65F 
           - not: Heating Setpoint|62F
-          - not: Heating Setpoint|60F       
+          - not: Heating Setpoint|60F      
+          Existing SEtback|No
+      - option: Heating Setpoint Apply Offset|TRUE #(-3..+3) Heating - [DR+Night setback] & [DR+Full setback]
+        apply_logic:
+          - not: Heating Setpoint|80F
+          - not: Heating Setpoint|78F
+          - not: Heating Setpoint|62F
+          - not: Heating Setpoint|60F   
+          Existing Setback|Yes 
+
+      - option: ThermoDR|San Diego
+        apply_logic:
+          city|San Diego
+          Existing Setback|Yes
       
       ##envelope
       #Best walls
