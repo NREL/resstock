@@ -11,10 +11,10 @@ class TestProjectSingleFamilyDetached < MiniTest::Test
       integrity_check(project_dir_name)
       integrity_check_options_lookup_tsv(project_dir_name)
     rescue Exception => e
-      flunk e
+      # flunk e
 
       # Need a backtrace? Uncomment below
-      # flunk "#{e}\n#{e.backtrace.join('\n')}"
+      flunk "#{e}\n#{e.backtrace.join('\n')}"
     end
   end
 
