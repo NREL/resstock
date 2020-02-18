@@ -5,7 +5,7 @@ Features
 - Update the single-family detached and multifamily projects with more up-to-date lighting stock distributions ([#392](https://github.com/NREL/OpenStudio-BuildStock/pull/392))
 
 Fixes
-- Exclude total site energy consumption for each fuel type when `include_enduse_subcategories` argument in SimulationOutputReport and TimeseriesCSVExport measures is set to true ([#405](https://github.com/NREL/OpenStudio-BuildStock/pull/405))
+- Exclude net site energy consumption from annual and timeseries simulation output ("total" now reflects net of pv); change `include_enduse_subcategories` argument default to "true"; report either total interior equipment OR each of its components ([#405](https://github.com/NREL/OpenStudio-BuildStock/pull/405))
 - Refactor the tsv maker classes to accommodate more data sources ([#392](https://github.com/NREL/OpenStudio-BuildStock/pull/392))
 
 ## ResStock v2.2.1
