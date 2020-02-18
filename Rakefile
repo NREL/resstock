@@ -150,14 +150,6 @@ Rake::TestTask.new('integrity_check_all') do |t|
   t.verbose = true
 end # rake task
 
-desc 'Perform integrity check on inputs for project_singlefamilydetached'
-Rake::TestTask.new('integrity_check_singlefamilydetached') do |t|
-  t.libs << 'test'
-  t.test_files = Dir['project_singlefamilydetached/tests/*.rb']
-  t.warning = false
-  t.verbose = true
-end # rake task
-
 desc 'Perform integrity check on inputs for project_multifamily_beta'
 Rake::TestTask.new('integrity_check_multifamily_beta') do |t|
   t.libs << 'test'

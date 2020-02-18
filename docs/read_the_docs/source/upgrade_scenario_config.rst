@@ -3,8 +3,6 @@ Upgrade Scenario Configuration
 
 There is quite a bit more flexibility and capability in defining an upgrade scenario than was discussed in the :ref:`tutorial <tutorial-apply-upgrade>`. Here we will go through each field in the **Apply Upgrade** measure and discuss how it can be used to build more complicated real-life scenarios for upgrades.
 
-.. image:: images/upgrade_scenario_config.png
-
 Upgrade Name
 ============
 
