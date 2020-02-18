@@ -40,7 +40,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
   end
 
   # define the arguments that the user will input
-  def arguments()
+  def arguments
     args = OpenStudio::Measure::OSArgumentVector.new
 
     # make an argument for the frequency
@@ -56,9 +56,9 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
 
     # make an argument for including optional end use subcategories
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument("include_enduse_subcategories", true)
-    arg.setDisplayName("Include Disaggregated Interior Equipment")
-    arg.setDescription("Whether to report interior equipment broken out into components: appliances, plug loads, exhaust fans, large uncommon loads, etc. For each fuel type, total/net energy consumption will not be reported.")
-    arg.setDefaultValue(false)
+    arg.setDisplayName("Report Disaggregated Interior Equipment")
+    arg.setDescription("Whether to report interior equipment broken out into components: appliances, plug loads, exhaust fans, large uncommon loads, etc.")
+    arg.setDefaultValue(true)
     args << arg
 
     # make an argument for optional output variables
@@ -239,10 +239,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
 
     # ELECTRICITY
 
-    unless include_enduse_subcategories
-      report_ts_output(runner, timeseries, "total_site_electricity_kwh", electricity.total_end_uses, "GJ", elec_site_units)
-      report_ts_output(runner, timeseries, "net_site_electricity_kwh", electricity.total_end_uses + electricity.photovoltaics, "GJ", elec_site_units)
-    end
+    report_ts_output(runner, timeseries, "total_site_electricity_kwh", electricity.total_end_uses + electricity.photovoltaics, "GJ", elec_site_units)
     report_ts_output(runner, timeseries, "electricity_heating_kwh", electricity.heating, "GJ", elec_site_units)
     report_ts_output(runner, timeseries, "electricity_central_system_heating_kwh", electricity.central_heating, "GJ", elec_site_units)
     report_ts_output(runner, timeseries, "electricity_cooling_kwh", electricity.cooling, "GJ", elec_site_units)
@@ -285,9 +282,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
 
     # NATURAL GAS
 
-    unless include_enduse_subcategories
-      report_ts_output(runner, timeseries, "total_site_natural_gas_therm", natural_gas.total_end_uses, "GJ", gas_site_units)
-    end
+    report_ts_output(runner, timeseries, "total_site_natural_gas_therm", natural_gas.total_end_uses, "GJ", gas_site_units)
     report_ts_output(runner, timeseries, "natural_gas_heating_therm", natural_gas.heating, "GJ", gas_site_units)
     report_ts_output(runner, timeseries, "natural_gas_central_system_heating_therm", natural_gas.central_heating, "GJ", gas_site_units)
     if include_enduse_subcategories
@@ -305,18 +300,14 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
 
     # FUEL OIL
 
-    unless include_enduse_subcategories
-      report_ts_output(runner, timeseries, "total_site_fuel_oil_mbtu", fuel_oil.total_end_uses, "GJ", other_fuel_site_units)
-    end
+    report_ts_output(runner, timeseries, "total_site_fuel_oil_mbtu", fuel_oil.total_end_uses, "GJ", other_fuel_site_units)
     report_ts_output(runner, timeseries, "fuel_oil_heating_mbtu", fuel_oil.heating, "GJ", other_fuel_site_units)
     report_ts_output(runner, timeseries, "fuel_oil_central_system_heating_mbtu", fuel_oil.central_heating, "GJ", other_fuel_site_units)
     report_ts_output(runner, timeseries, "fuel_oil_water_systems_mbtu", fuel_oil.water_systems, "GJ", other_fuel_site_units)
 
     # PROPANE
 
-    unless include_enduse_subcategories
-      report_ts_output(runner, timeseries, "total_site_propane_mbtu", propane.total_end_uses, "GJ", other_fuel_site_units)
-    end
+    report_ts_output(runner, timeseries, "total_site_propane_mbtu", propane.total_end_uses, "GJ", other_fuel_site_units)
     report_ts_output(runner, timeseries, "propane_heating_mbtu", propane.heating, "GJ", other_fuel_site_units)
     report_ts_output(runner, timeseries, "propane_central_system_heating_mbtu", propane.central_heating, "GJ", other_fuel_site_units)
     if include_enduse_subcategories
@@ -329,9 +320,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
 
     # WOOD
 
-    unless include_enduse_subcategories
-      report_ts_output(runner, timeseries, "total_site_wood_mbtu", wood.total_end_uses, "GJ", other_fuel_site_units)
-    end
+    report_ts_output(runner, timeseries, "total_site_wood_mbtu", wood.total_end_uses, "GJ", other_fuel_site_units)
     report_ts_output(runner, timeseries, "wood_heating_mbtu", wood.heating, "GJ", other_fuel_site_units)
 
     # TOTAL
@@ -342,10 +331,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
                       propane.total_end_uses +
                       wood.total_end_uses
 
-    unless include_enduse_subcategories
-      report_ts_output(runner, timeseries, "total_site_energy_mbtu", totalSiteEnergy, "GJ", total_site_units)
-      report_ts_output(runner, timeseries, "net_site_energy_mbtu", totalSiteEnergy + electricity.photovoltaics, "GJ", total_site_units)
-    end
+    report_ts_output(runner, timeseries, "total_site_energy_mbtu", totalSiteEnergy + electricity.photovoltaics, "GJ", total_site_units)
 
     output_vars.each do |output_var|
       sqlFile.availableKeyValues(ann_env_pd, reporting_frequency_map[reporting_frequency], output_var).each do |key_value|
