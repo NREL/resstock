@@ -1,3 +1,9 @@
+## ResStock v2.2.2
+###### February 19, 2020 - [Diff](https://github.com/NREL/OpenStudio-BuildStock/compare/v2.2.1...v2.2.2)
+
+Fixes
+- Update the datapoint initialization script to download weather files to a common zip filename ([#406](https://github.com/NREL/OpenStudio-BuildStock/pull/406))
+
 ## ResStock v2.2.1
 ###### February 7, 2020 - [Diff](https://github.com/NREL/OpenStudio-BuildStock/compare/v2.2.0...v2.2.1)
 
