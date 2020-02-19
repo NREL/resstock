@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>process_cooling_setpoints</name>
   <uid>2daa9d28-8891-4074-a1d1-bce3cb3d7ac6</uid>
-  <version_id>471f1d0e-ad9b-464f-aa90-3fc4d555a82e</version_id>
-  <version_modified>20190701T173020Z</version_modified>
+  <version_id>9d243c53-e444-4f6f-9ae1-d9c48c064fad</version_id>
+  <version_modified>20200219T191629Z</version_modified>
   <xml_checksum>356BE47F</xml_checksum>
   <class_name>ProcessCoolingSetpoints</class_name>
   <display_name>Set Residential Cooling Setpoints and Schedules</display_name>
@@ -207,6 +207,25 @@
         </choice>
       </choices>
     </argument>
+    <argument>
+      <name>apply_offset</name>
+      <display_name>Apply Cooling Setpoint Offset</display_name>
+      <description>Specifies whether to apply the setpoint offsets defined in weekend_offset_schedule and weekday_offset_schedule. If false, the offsets are set to 0 and the constant cooling setpoint is used.</description>
+      <type>Boolean</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
   </arguments>
   <outputs/>
   <provenances/>
@@ -237,6 +256,12 @@
   </attributes>
   <files>
     <file>
+      <filename>process_cooling_setpoints_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>32CE4BDD</checksum>
+    </file>
+    <file>
       <version>
         <software_program>OpenStudio</software_program>
         <identifier>1.11.5</identifier>
@@ -245,13 +270,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>F7E7B35C</checksum>
-    </file>
-    <file>
-      <filename>process_cooling_setpoints_test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>32CE4BDD</checksum>
+      <checksum>3379FB58</checksum>
     </file>
   </files>
 </measure>
