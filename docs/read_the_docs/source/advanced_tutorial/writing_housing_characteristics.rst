@@ -8,3 +8,4 @@ Guidelines
 
 1. All lines have the line ending characters '\\r\\n' (i.e., "crlf" or "carriage return, line feed").
 2. All non-dependency columns have format '%.6f'.
+3. Comment lines at the end of a housing characteristics file, indicated by the "#" symbol, can be added.
