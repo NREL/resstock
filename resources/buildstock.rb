@@ -19,6 +19,8 @@ class TsvFile
     full_header = nil
     rows = []
     CSV.foreach(@full_path, { :col_sep => "\t" }) do |row|
+      next if row[0].start_with? "\#"
+
       row.delete_if { |x| x.nil? or x.size == 0 } # purge trailing empty fields
 
       # Store one header line
@@ -114,9 +116,12 @@ class TsvFile
     end
 
     rownum = @rows_keys_s.index(key_s_downcase)
-
     row = @rows[rownum]
 
+    if row[0].start_with? "\#"
+      rownum += 1
+      row = @rows[rownum]
+    end
     # Convert data to numeric row values
     rowvals = {}
     @option_cols.each do |option_name, option_col|
