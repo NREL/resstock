@@ -60,7 +60,7 @@ class TsvFile
     dependency_cols.each do |dependency, col|
       dependency_options[dependency] = []
       rows.each do |row|
-        next if row[0].start_with? "Created by:"
+        next if row[0].start_with? "\#"
         next if dependency_options[dependency].include? row[col]
 
         dependency_options[dependency] << row[col]
@@ -74,7 +74,7 @@ class TsvFile
     # Caches data for faster tsv lookups
     rows_keys_s = []
     @rows.each_with_index do |row, rownum|
-      next if row[0].start_with? "Created by:"
+      next if row[0].start_with? "\#"
 
       row_key_values = {}
       @dependency_cols.each do |dep, dep_col|
