@@ -5,7 +5,7 @@ OpenStudio-BuildStock
 
 [![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/NREL/OpenStudio-BuildStock?include_prereleases)](https://github.com/NREL/OpenStudio-BuildStock/releases)
 [![CircleCI](https://circleci.com/gh/NREL/OpenStudio-BuildStock.svg?style=shield)](https://circleci.com/gh/NREL/OpenStudio-BuildStock)
-[![Documentation Status](https://readthedocs.org/projects/resstock/badge/?version=v2.2.2)](https://resstock.readthedocs.io/en/v2.2.2/?badge=v2.2.2)
+[![Documentation Status](https://readthedocs.org/projects/resstock/badge/?version=latest)](https://resstock.readthedocs.io/en/latest/?badge=latest)
 [![codecov](https://codecov.io/gh/NREL/OpenStudio-BuildStock/branch/master/graph/badge.svg)](https://codecov.io/gh/NREL/OpenStudio-BuildStock)
 
 BuildStock, built on the [OpenStudio platform](http://openstudio.net), is a project geared at modeling the existing building stock for, e.g., national, regional, or local analysis, using the [EnergyPlus simulation engine](http://energyplus.net). It consists of ResStock™ and ComStock™, sister tools for modeling the residential and commercial building stock, respectively. 
