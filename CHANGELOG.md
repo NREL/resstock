@@ -11,6 +11,12 @@ Fixes
 - Exclude net site energy consumption from annual and timeseries simulation output ("total" now reflects net of pv); change `include_enduse_subcategories` argument default to "true"; report either total interior equipment OR each of its components ([#405](https://github.com/NREL/OpenStudio-BuildStock/pull/405))
 - Refactor the tsv maker classes to accommodate more data sources ([#392](https://github.com/NREL/OpenStudio-BuildStock/pull/392))
 
+## ResStock v2.2.2
+###### February 19, 2020 - [Diff](https://github.com/NREL/OpenStudio-BuildStock/compare/v2.2.1...v2.2.2)
+
+Fixes
+- Update the datapoint initialization script to download weather files to a common zip filename ([#406](https://github.com/NREL/OpenStudio-BuildStock/pull/406))
+
 ## ResStock v2.2.1
 ###### February 7, 2020 - [Diff](https://github.com/NREL/OpenStudio-BuildStock/compare/v2.2.0...v2.2.1)
 
