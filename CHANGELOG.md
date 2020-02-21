@@ -10,7 +10,7 @@ Features
 
 Fixes
 - Refactor the tsv maker classes to accommodate more data sources ([#392](https://github.com/NREL/OpenStudio-BuildStock/pull/392))
-- Revert plug load schedule to RBSA ([#355](https://github.com/NREL/OpenStudio-BuildStock/pull/355))
+- Revert plug load schedule to RBSA for the National Average option([#355](https://github.com/NREL/OpenStudio-BuildStock/pull/355))
 
 ## ResStock v2.2.1
 ###### February 7, 2020 - [Diff](https://github.com/NREL/OpenStudio-BuildStock/compare/v2.2.0...v2.2.1)
