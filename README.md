@@ -12,8 +12,6 @@ BuildStock, built on the [OpenStudio platform](http://openstudio.net), is a proj
 
 This project is a <b>work-in-progress</b>. We recommend using the latest [release](https://github.com/NREL/OpenStudio-BuildStock/releases).
 
-For more information, visit the latest [documentation](https://resstock.readthedocs.io/en/latest/?badge=latest).
-
 ![BuildStock workflow](https://user-images.githubusercontent.com/5861765/32569254-da2895c8-c47d-11e7-93cb-05fb4c8806d7.png)
 
 ## ResStock for Multifamily Low-Rise
