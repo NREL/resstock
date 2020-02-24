@@ -313,7 +313,7 @@ end
 if __FILE__ == $PROGRAM_NAME
   options = {}
   OptionParser.new do |opts|
-    opts.banner = "Usage: #{File.basename(__FILE__)} -p project_name -n num_datapoints -o outfile\n e.g., #{File.basename(__FILE__)} -p project_singlefamilydetached -n 10000 -o buildstock.csv"
+    opts.banner = "Usage: #{File.basename(__FILE__)} -p project_name -n num_datapoints -o outfile\n e.g., #{File.basename(__FILE__)} -p project_multifamily_beta -n 10000 -o buildstock.csv"
 
     opts.on('-p', '--project <STRING>', 'Project Name') do |t|
       options[:project] = t
