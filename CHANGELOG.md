@@ -9,6 +9,7 @@ Features
 - Add ability to ignore comment lines with the "#" symbol ([#408](https://github.com/NREL/OpenStudio-BuildStock/pull/408))
 
 Fixes
+- Exclude net site energy consumption from annual and timeseries simulation output ("total" now reflects net of pv); change `include_enduse_subcategories` argument default to "true"; report either total interior equipment OR each of its components ([#405](https://github.com/NREL/OpenStudio-BuildStock/pull/405))
 - Refactor the tsv maker classes to accommodate more data sources ([#392](https://github.com/NREL/OpenStudio-BuildStock/pull/392))
 - Revert plug load schedule to RBSA for the National Average option([#355](https://github.com/NREL/OpenStudio-BuildStock/pull/355))
 
