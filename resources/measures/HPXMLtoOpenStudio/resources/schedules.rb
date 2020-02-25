@@ -544,6 +544,7 @@ class HotWaterSchedule
 
     timestep_minutes = (60 / @model.getTimestep.numberOfTimestepsPerHour).to_i
     weeks = 1 # use a single week that repeats
+
     data = loadMinuteDrawProfileFromFile(timestep_minutes, days_shift, weeks)
     @totflow, @maxflow, @ontime = loadDrawProfileStatsFromFile()
     if data.nil? or @totflow.nil? or @maxflow.nil? or @ontime.nil?

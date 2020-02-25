@@ -1476,16 +1476,10 @@ class Geometry
 
       # Calculate number of occupants for this unit
       if unit_occ == Constants.Auto
-        if [Constants.BuildingTypeMultifamily, Constants.BuildingTypeSingleFamilyAttached].include? get_building_type(model)
+        if [Constants.BuildingTypeMultifamily, Constants.BuildingTypeSingleFamilyAttached].include? get_building_type(model) or units.size > 1
           unit_occ = 1.17 + 0.56 * nbeds # multifamily equation
-        elsif [Constants.BuildingTypeSingleFamilyDetached].include? get_building_type(model)
+        elsif [Constants.BuildingTypeSingleFamilyDetached].include? get_building_type(model) or units.size == 1
           unit_occ = 1.15 + 0.5 * nbeds # single-family equation
-        else # building type not called out
-          if units.size > 1
-            unit_occ = 1.17 + 0.56 * nbeds # multifamily equation
-          else
-            unit_occ = 1.15 + 0.5 * nbeds # single-family equation
-          end
         end
       else
         unit_occ = unit_occ.to_f
