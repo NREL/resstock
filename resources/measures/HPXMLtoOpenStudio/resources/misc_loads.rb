@@ -114,11 +114,12 @@ class MiscLoads
     ann_e = annual_energy * mult # kWh/yr
 
     if scale_energy
-      # Get unit beds/baths
+      # Get unit beds/baths/occupants
       nbeds, nbaths = Geometry.get_unit_beds_baths(model, unit, runner)
       if nbeds.nil? or nbaths.nil?
         return false
       end
+      noccupants = unit.additionalProperties.getFeatureAsDouble(Constants.BuildingUnitFeatureNumOccupants)
 
       # Get unit ffa
       ffa = Geometry.get_finished_floor_area_from_spaces(unit.spaces, runner)
@@ -130,7 +131,13 @@ class MiscLoads
       constant = 1.0 / 2
       nbr_coef = 1.0 / 4 / 3
       ffa_coef = 1.0 / 4 / 1920
-      ann_e = ann_e * (constant + nbr_coef * nbeds + ffa_coef * ffa) # kWh/yr
+      if [Constants.BuildingTypeMultifamily, Constants.BuildingTypeSingleFamilyAttached].include? get_building_type(model) or units.size > 1 # multifamily equation
+        # ann_e = ann_e * (constant + nbr_coef * nbeds + ffa_coef * ffa) # kWh/yr
+        ann_e = ann_e * (constant + nbr_coef * (-0.68 + 1.09 * noccupants) + ffa_coef * ffa) # kWh/yr
+      elsif [Constants.BuildingTypeSingleFamilyDetached].include? get_building_type(model) or units.size == 1 # single-family equation
+        # ann_e = ann_e * (constant + nbr_coef * nbeds + ffa_coef * ffa) # kWh/yr
+        ann_e = ann_e * (constant + nbr_coef * (-1.47 + 1.69 * noccupants) + ffa_coef * ffa) # kWh/yr
+      end
     end
 
     # Design day schedules used when autosizing
@@ -200,11 +207,12 @@ class MiscLoads
     ann_g = annual_energy * mult # therm/yr
 
     if scale_energy
-      # Get unit beds/baths
+      # Get unit beds/baths/occupants
       nbeds, nbaths = Geometry.get_unit_beds_baths(model, unit, runner)
       if nbeds.nil? or nbaths.nil?
         return false
       end
+      noccupants = unit.additionalProperties.getFeatureAsDouble(Constants.BuildingUnitFeatureNumOccupants)
 
       # Get unit ffa
       ffa = Geometry.get_finished_floor_area_from_spaces(unit.spaces, runner)
@@ -216,7 +224,13 @@ class MiscLoads
       constant = 1.0 / 2
       nbr_coef = 1.0 / 4 / 3
       ffa_coef = 1.0 / 4 / 1920
-      ann_g = ann_g * (constant + nbr_coef * nbeds + ffa_coef * ffa) # therm/yr
+      if [Constants.BuildingTypeMultifamily, Constants.BuildingTypeSingleFamilyAttached].include? get_building_type(model) or units.size > 1 # multifamily equation
+        # ann_g = ann_g * (constant + nbr_coef * nbeds + ffa_coef * ffa) # therm/yr
+        ann_g = ann_g * (constant + nbr_coef * (-0.68 + 1.09 * unit_occ) + ffa_coef * ffa) # therm/yr
+      elsif [Constants.BuildingTypeSingleFamilyDetached].include? get_building_type(model) or units.size == 1 # single-family equation
+        # ann_g = ann_g * (constant + nbr_coef * nbeds + ffa_coef * ffa) # therm/yr
+        ann_g = ann_g * (constant + nbr_coef * (-1.47 + 1.69 * unit_occ) + ffa_coef * ffa) # therm/yr
+      end
     end
 
     # Design day schedules used when autosizing
