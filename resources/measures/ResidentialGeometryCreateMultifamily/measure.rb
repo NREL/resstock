@@ -313,7 +313,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     end
     num_units_per_floor = num_units / num_floors
     num_units_per_floor_actual = num_units_per_floor
-    above_ground_floors = num_floors  
+    above_ground_floors = num_floors
 
     if (num_floors > 1) and (level != "Bottom") and (foundation_height > 0.0)
       runner.registerWarning("Unit is not on the bottom floor, setting foundation height to 0.")
@@ -329,7 +329,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
       return false
     end
 
-    if (num_units_per_floor % 2 == 0) and (corridor_position == "Double-Loaded Interior" or corridor_position == "Double Exterior") 
+    if (num_units_per_floor % 2 == 0) and (corridor_position == "Double-Loaded Interior" or corridor_position == "Double Exterior")
       unit_depth = 2
       unit_width = num_units_per_floor / 2
       has_rear_units = true
@@ -391,8 +391,8 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     x = Math.sqrt(footprint / unit_aspect_ratio)
     y = footprint / x
 
-    story_hash = { "Bottom" => 0, "Middle" => 1, "Top" => num_floors-1}
-    z = wall_height*story_hash[level]
+    story_hash = { "Bottom" => 0, "Middle" => 1, "Top" => num_floors - 1 }
+    z = wall_height * story_hash[level]
     # z=0
 
     foundation_corr_polygon = nil
@@ -404,7 +404,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     ne_point = OpenStudio::Point3d.new(x, 0, z)
     sw_point = OpenStudio::Point3d.new(0, -y, z)
     se_point = OpenStudio::Point3d.new(x, -y, z)
-    
+
     if inset_width * inset_depth > 0
       if inset_position == "Right"
         # unit footprint
@@ -435,10 +435,10 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
           shading_surface = OpenStudio::Model::ShadingSurface.new(OpenStudio::Point3dVector.new([front_point, sw_point, side_point, inset_point]), model)
         end
       end
-    else  
+    else
       living_polygon = Geometry.make_polygon(sw_point, nw_point, ne_point, se_point)
     end
-    
+
     # foundation
     if foundation_height > 0 and foundation_front_polygon.nil?
       foundation_front_polygon = living_polygon
@@ -504,6 +504,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
             max_x = Geometry.getSurfaceXValues([surface]).max
             min_x = Geometry.getSurfaceXValues([surface]).min
             next if ((max_x - x_ft).abs >= 0.01) and min_x > 0
+
             surface.setOutsideBoundaryCondition("Adiabatic")
           end
         else
@@ -564,10 +565,10 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
       # sw_point = OpenStudio::Point3d.new(0, -y - corridor_width, wall_height)
       # ne_point = OpenStudio::Point3d.new(x, -y, wall_height)
       # se_point = OpenStudio::Point3d.new(x, -y - corridor_width, wall_height)
-      nw_point = OpenStudio::Point3d.new(0, -y, wall_height+z)
-      sw_point = OpenStudio::Point3d.new(0, -y - corridor_width, wall_height+z)
-      ne_point = OpenStudio::Point3d.new(x, -y, wall_height+z)
-      se_point = OpenStudio::Point3d.new(x, -y - corridor_width, wall_height+z)
+      nw_point = OpenStudio::Point3d.new(0, -y, wall_height + z)
+      sw_point = OpenStudio::Point3d.new(0, -y - corridor_width, wall_height + z)
+      ne_point = OpenStudio::Point3d.new(x, -y, wall_height + z)
+      se_point = OpenStudio::Point3d.new(x, -y - corridor_width, wall_height + z)
 
       shading_surface = OpenStudio::Model::ShadingSurface.new(OpenStudio::Point3dVector.new([sw_point, se_point, ne_point, nw_point]), model)
       shading_surface_group = OpenStudio::Model::ShadingSurfaceGroup.new(model)
@@ -652,23 +653,24 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
         foundation_space.setSpaceType(foundation_space_type)
       end
 
-      #Set foundation wall boundary conditions
+      # Set foundation wall boundary conditions
       model.getSpaces.each do |space|
-        if Geometry.get_space_floor_z(space) + UnitConversions.convert(space.zOrigin, "m", "ft") < 0 #Foundation
+        if Geometry.get_space_floor_z(space) + UnitConversions.convert(space.zOrigin, "m", "ft") < 0 # Foundation
           surfaces = space.surfaces
           surfaces.each do |surface|
-            if (adb_level.include? surface.surfaceType)              
+            if (adb_level.include? surface.surfaceType)
               surface.setOutsideBoundaryCondition("Adiabatic")
             end
             next if surface.surfaceType.downcase != "wall"
+
             os_facade = Geometry.get_facade_for_surface(surface)
             if adb_facade.include? os_facade
-              surface.setOutsideBoundaryCondition("Adiabatic") 
+              surface.setOutsideBoundaryCondition("Adiabatic")
             else
               surface.setOutsideBoundaryCondition("Foundation")
             end
           end
-        end 
+        end
       end
     end
 
@@ -696,7 +698,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     # make all surfaces adjacent to corridor spaces into adiabatic surfaces
     model.getSpaces.each do |space|
       next unless Geometry.is_corridor(space)
-      
+
       space.surfaces.each do |surface|
         if surface.adjacentSurface.is_initialized # adiabatic if the corridor surface is adjacent to another surface (wall to living and floor to basement)
           surface.adjacentSurface.get.setOutsideBoundaryCondition("Adiabatic")
@@ -705,8 +707,8 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
         # os_facade = Geometry.get_facade_for_surface(surface)
         # if adb_facade.include? os_facade
         #   surface.setOutsideBoundaryCondition("Adiabatic")
-        if (adb_level.include? surface.surfaceType) #prevents eaves
-            surface.setOutsideBoundaryCondition("Adiabatic")
+        if (adb_level.include? surface.surfaceType) # prevents eaves
+          surface.setOutsideBoundaryCondition("Adiabatic")
         end
       end
     end
@@ -714,10 +716,11 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     # set foundation outside boundary condition to Kiva "foundation"
     model.getSurfaces.each do |surface|
       next if surface.outsideBoundaryCondition.downcase != "ground"
+
       surface.setOutsideBoundaryCondition("Foundation")
     end
 
-    #Store mf data on model
+    # Store mf data on model
     model.getBuilding.additionalProperties.setFeature("num_units", num_units)
     model.getBuilding.additionalProperties.setFeature("has_rear_units", has_rear_units)
     model.getBuilding.additionalProperties.setFeature("num_floors", above_ground_floors)

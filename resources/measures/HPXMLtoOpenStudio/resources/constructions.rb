@@ -1443,7 +1443,7 @@ class FoundationConstructions
     end
 
     # Assign surfaces to Kiva foundation
-    #EDIT
+    # EDIT
     horz_location = model.getBuilding.additionalProperties.getFeatureAsString("horz_location")
     if horz_location.is_initialized
       singleunit = true
@@ -1451,7 +1451,7 @@ class FoundationConstructions
       singleunit = false
     end
     wall_surfaces.each do |wall_surface|
-      if singleunit and wall_surface.outsideBoundaryCondition != "Adiabatic" 
+      if singleunit and wall_surface.outsideBoundaryCondition != "Adiabatic"
         wall_surface.setAdjacentFoundation(foundation)
       elsif not singleunit
         wall_surface.setAdjacentFoundation(foundation)
@@ -2228,7 +2228,7 @@ class Construction
       end
       print_construction_assignment(runner, surface)
 
-      #If single unit approach
+      # If single unit approach
       horz_location = model.getBuilding.additionalProperties.getFeatureAsString("horz_location")
       if horz_location.is_initialized
         if surface.is_a? OpenStudio::Model::Surface and surface.outsideBoundaryCondition == "Adiabatic" and (surface.surfaceType == "RoofCeiling" or surface.surfaceType == "Wall")
@@ -2674,12 +2674,11 @@ class SurfaceTypes
           # Adiabatic
           if obc_is_adiabatic
             surfaces[Constants.SurfaceTypeRoofAdiabatic] << surface
-          end 
+          end
 
         elsif obc_is_adiabatic
           surfaces[Constants.SurfaceTypeRoofUnfinUninsExt] << surface
         end
-
       end
     end
 
@@ -2708,7 +2707,7 @@ class SurfaceTypes
     else
       singleunit = false
     end
-    
+
     # Ceilings
     model.getSpaces.each do |space|
       space.surfaces.each do |surface|

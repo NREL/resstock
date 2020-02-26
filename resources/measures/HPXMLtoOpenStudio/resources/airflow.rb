@@ -61,14 +61,15 @@ class Airflow
 
     building_height = nil
     num_floors = model.getBuilding.additionalProperties.getFeatureAsInteger("num_floors")
-    if num_floors.is_initialized #singleunit
+    if num_floors.is_initialized # singleunit
       units.each do |unit|
         Geometry.get_thermal_zones_from_spaces(unit.spaces).each do |thermal_zone|
-          next unless Geometry.is_living(thermal_zone) 
-          building_height = num_floors.get.to_f*Geometry.get_height_of_spaces(thermal_zone.spaces)
+          next unless Geometry.is_living(thermal_zone)
+
+          building_height = num_floors.get.to_f * Geometry.get_height_of_spaces(thermal_zone.spaces)
         end
       end
-    else #multifamily
+    else # multifamily
       building_height = building.building_height
     end
 
@@ -563,7 +564,7 @@ class Airflow
       # Calculate SLA for above-grade portion of the building
       building.SLA = Airflow.get_infiltration_SLA_from_ACH50(infil.living_ach50, n_i, building.ag_ffa, building.above_grade_volume)
 
-      #Calculate unit ELA proportional to exposed exterior wall
+      # Calculate unit ELA proportional to exposed exterior wall
       n_units = model.getBuilding.additionalProperties.getFeatureAsInteger("num_units")
       has_rear_units = model.getBuilding.additionalProperties.getFeatureAsBoolean("has_rear_units")
       num_floors = model.getBuilding.additionalProperties.getFeatureAsInteger("num_floors")
@@ -581,26 +582,26 @@ class Airflow
         num_floors = num_floors.get.to_f
         horz_location = horz_location.get
 
-        mf_building_ffa = unit_ag_ffa*n_units
-        mf_building_ELA = mf_building_ffa*building.SLA
+        mf_building_ffa = unit_ag_ffa * n_units
+        mf_building_ELA = mf_building_ffa * building.SLA
 
-        num_units_per_floor = n_units/num_floors
-        if num_units_per_floor == 1 or num_units_per_floor == 2 or num_units_per_floor == 4 #No middle unit(s)
-          a_o_frac = 1/num_floors/num_units_per_floor
+        num_units_per_floor = n_units / num_floors
+        if num_units_per_floor == 1 or num_units_per_floor == 2 or num_units_per_floor == 4 # No middle unit(s)
+          a_o_frac = 1 / num_floors / num_units_per_floor
           a_o = mf_building_ELA * a_o_frac
-        else #Has middle unit(s)
+        else # Has middle unit(s)
           if has_rear_units
             end_mid_ratio = 2.8
-            n_end_units = 4*num_floors
+            n_end_units = 4 * num_floors
           else
             end_mid_ratio = 1.9
-            n_end_units = 2*num_floors
+            n_end_units = 2 * num_floors
           end
-          #Calculate proportional ELA of unit based on external wall area
+          # Calculate proportional ELA of unit based on external wall area
           if horz_location == "Middle"
-            a_o = mf_building_ELA/(n_end_units*end_mid_ratio + (n_units-n_end_units))
+            a_o = mf_building_ELA / (n_end_units * end_mid_ratio + (n_units - n_end_units))
           else
-            a_o = mf_building_ELA/(n_end_units + ((n_units-n_end_units)/end_mid_ratio))
+            a_o = mf_building_ELA / (n_end_units + ((n_units - n_end_units) / end_mid_ratio))
           end
         end
       # Infiltration for MF
@@ -617,7 +618,7 @@ class Airflow
       if infil.has_flue_chimney
         y_i = 0.2 # Fraction of leakage through the flue; 0.2 is a "typical" value according to THE ALBERTA AIR INFILTRATION MODEL, Walker and Wilson, 1990
         if singleunit
-          flue_height = unit_living.height*num_floors + 2.0 #ft
+          flue_height = unit_living.height * num_floors + 2.0 # ft
         else
           flue_height = building.building_height + 2.0 # ft
         end
@@ -636,7 +637,7 @@ class Airflow
       found_type = model.getBuilding.additionalProperties.getFeatureAsString("found_type")
       if found_type.is_initialized
         found_type = found_type.get
-        if (infil.crawl_ach > 0.0 and found_type =="crawlspace") or (infil.pier_beam_ach > 0 and found_type == "pier and beam")
+        if (infil.crawl_ach > 0.0 and found_type == "crawlspace") or (infil.pier_beam_ach > 0 and found_type == "pier and beam")
           vented_crawl = true
         end
       end
@@ -795,7 +796,7 @@ class Airflow
 
       space.zone.spaces.each do |s|
         next if Geometry.is_living(s)
-    
+
         obj_name = "#{Constants.ObjectNameInfiltration}|#{s.name}"
         if space.inf_method == @infMethodRes and space.ACH.to_f > 0
           flow_rate = OpenStudio::Model::SpaceInfiltrationDesignFlowRate.new(model)
@@ -1425,7 +1426,6 @@ class Airflow
     nv_program.addLine("Else")
     nv_program.addLine("  Set #{natvent_flow_actuator.name} = 0")
     nv_program.addLine("EndIf")
-
 
     # puts("====Nat Vent=====")
     # puts("nv_output.temp_sch.schedule.name.to_s: #{nv_output.temp_sch.schedule.name.to_s}")
