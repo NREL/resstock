@@ -1004,11 +1004,12 @@ class Dishwasher
       return false
     end
 
-    # Get unit beds/baths
+    # Get unit beds/baths/occupants
     nbeds, nbaths = Geometry.get_unit_beds_baths(model, unit, runner)
     if nbeds.nil? or nbaths.nil?
       return false
     end
+    noccupants = unit.additionalProperties.getFeatureAsDouble(Constants.BuildingUnitFeatureNumOccupants)
 
     # Get water heater setpoint
     wh_setpoint = Waterheater.get_water_heater_setpoint(model, plant_loop, runner)
@@ -1130,7 +1131,13 @@ class Dishwasher
     end
 
     # (eq. 16 Eastment and Hendron, NREL/CP-550-39769, 2006)
-    actual_cycles_per_year = 215 * (0.5 + nbeds / 6) * (8 / num_settings) # cycles/year
+    if [Constants.BuildingTypeMultifamily, Constants.BuildingTypeSingleFamilyAttached].include? get_building_type(model) or units.size > 1 # multifamily equation
+      # actual_cycles_per_year = 215 * (0.5 + nbeds / 6) * (8 / num_settings) # cycles/year
+      actual_cycles_per_year = 215 * (0.5 + (-0.68 + 1.09 * noccupants) / 6) * (8 / num_settings) # cycles/year
+    elsif [Constants.BuildingTypeSingleFamilyDetached].include? get_building_type(model) or units.size == 1 # single-family equation
+      # actual_cycles_per_year = 215 * (0.5 + nbeds / 6) * (8 / num_settings) # cycles/year
+      actual_cycles_per_year = 215 * (0.5 + (-1.47 + 1.69 * noccupants) / 6) * (8 / num_settings) # cycles/year
+    end
 
     daily_dishwasher_dhw = actual_cycles_per_year * test_dhw_use_per_cycle / num_days_in_year # gal/day (hot water)
 
@@ -1139,7 +1146,15 @@ class Dishwasher
       # From the 2010 BA Benchmark for dishwasher hot water
       # consumption. Should be appropriate for cold-water-inlet-only
       # dishwashers also.
-      daily_water = 2.5 + 0.833 * nbeds # gal/day
+      if [Constants.BuildingTypeMultifamily, Constants.BuildingTypeSingleFamilyAttached].include? get_building_type(model) or units.size > 1 # multifamily equation
+        # daily_water = 2.5 + 0.833 * nbeds # gal/day
+        # daily_water = 2.5 + 0.833 * (-0.68 + 1.09 * unit_occ) # gal/day
+        daily_water = 1.93 + 0.91 * noccupants # gal/day
+      elsif [Constants.BuildingTypeSingleFamilyDetached].include? get_building_type(model) or units.size == 1 # single-family equation
+        # daily_water = 2.5 + 0.833 * nbeds # gal/day
+        # daily_water = 2.5 + 0.833 * (-1.47 + 1.69 * unit_occ) # gal/day
+        daily_water = 1.28 + 1.41 * noccupants # gal/day
+      end
     else
       # Dishwasher uses only hot water so total water usage = DHW usage.
       daily_water = daily_dishwasher_dhw # gal/day
