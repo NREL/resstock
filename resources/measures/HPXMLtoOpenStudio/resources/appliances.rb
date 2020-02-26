@@ -804,11 +804,12 @@ class CookingRange
       return false
     end
 
-    # Get unit beds/baths
+    # Get unit beds/baths/occupants
     nbeds, nbaths = Geometry.get_unit_beds_baths(model, unit, runner)
     if nbeds.nil? or nbaths.nil?
       return false
     end
+    noccupants = unit.additionalProperties.getFeatureAsDouble(Constants.BuildingUnitFeatureNumOccupants)
 
     unit_obj_name = Constants.ObjectNameCookingRange(fuel_type, unit.name.to_s)
 
@@ -824,14 +825,38 @@ class CookingRange
 
     # Calculate range daily energy use
     if fuel_type == Constants.FuelTypeElectric
-      ann_e = ((86.5 + 28.9 * nbeds) / cooktop_ef + (14.6 + 4.9 * nbeds) / oven_ef) * mult # kWh/yr
+      if [Constants.BuildingTypeMultifamily, Constants.BuildingTypeSingleFamilyAttached].include? get_building_type(model) or units.size > 1 # multifamily equation
+        # ann_e = ((86.5 + 28.9 * nbeds) / cooktop_ef + (14.6 + 4.9 * nbeds) / oven_ef) * mult # kWh/yr
+        # ann_e = ((86.5 + 28.9 * (-0.68 + 1.09 * unit_occ)) / cooktop_ef + (14.6 + 4.9 * (-0.68 + 1.09 * unit_occ)) / oven_ef) * mult # kWh/yr
+        ann_e = ((66.8 + 31.5 * noccupants) / cooktop_ef + (11.3 + 5.3 * noccupants) / oven_ef) * mult # kWh/yr
+      elsif [Constants.BuildingTypeSingleFamilyDetached].include? get_building_type(model) or units.size == 1 # single-family equation
+        # ann_e = ((86.5 + 28.9 * nbeds) / cooktop_ef + (14.6 + 4.9 * nbeds) / oven_ef) * mult # kWh/yr
+        # ann_e = ((86.5 + 28.9 * (-1.47 + 1.69 * unit_occ)) / cooktop_ef + (14.6 + 4.9 * (-1.47 + 1.69 * unit_occ)) / oven_ef) * mult # kWh/yr
+        ann_e = ((44.0 + 48.8 * noccupants) / cooktop_ef + (7.4 + 8.3 * noccupants) / oven_ef) * mult # kWh/yr
+      end
       ann_f = 0
       ann_i = 0
     else
       ann_e = 0
-      ann_f = ((2.64 + 0.88 * nbeds) / cooktop_ef + (0.44 + 0.15 * nbeds) / oven_ef) * mult # therm/yr
+      if [Constants.BuildingTypeMultifamily, Constants.BuildingTypeSingleFamilyAttached].include? get_building_type(model) or units.size > 1 # multifamily equation
+        # ann_f = ((2.64 + 0.88 * nbeds) / cooktop_ef + (0.44 + 0.15 * nbeds) / oven_ef) * mult # therm/yr
+        # ann_f = ((2.64 + 0.88 * (-0.68 + 1.09 * unit_occ)) / cooktop_ef + (0.44 + 0.15 * (-0.68 + 1.09 * unit_occ)) / oven_ef) * mult # therm/yr
+        ann_f = ((2.04 + 0.96 * noccupants) / cooktop_ef + (0.34 + 0.16 * noccupants) / oven_ef) * mult # therm/yr
+      elsif [Constants.BuildingTypeSingleFamilyDetached].include? get_building_type(model) or units.size == 1 # single-family equation
+        # ann_f = ((2.64 + 0.88 * nbeds) / cooktop_ef + (0.44 + 0.15 * nbeds) / oven_ef) * mult # therm/yr
+        # ann_f = ((2.64 + 0.88 * (-1.47 + 1.69 * unit_occ)) / cooktop_ef + (0.44 + 0.15 * (-1.47 + 1.69 * unit_occ)) / oven_ef) * mult # therm/yr
+        ann_f = ((1.35 + 1.49 * noccupants) / cooktop_ef + (0.22 + 0.25 * noccupants) / oven_ef) * mult # therm/yr
+      end
       if has_elec_ignition == true
-        ann_i = (40 + 13.3 * nbeds) * mult # kWh/yr
+        if [Constants.BuildingTypeMultifamily, Constants.BuildingTypeSingleFamilyAttached].include? get_building_type(model) or units.size > 1 # multifamily equation
+          # ann_i = (40 + 13.3 * nbeds) * mult # kWh/yr
+          # ann_i = (40 + 13.3 * (-0.68 + 1.09 * unit_occ)) * mult # kWh/yr
+          ann_i = (30.95 + 14.50 * noccupants) * mult # kWh/yr
+        elsif [Constants.BuildingTypeSingleFamilyDetached].include? get_building_type(model) or units.size == 1 # single-family equation
+          # ann_i = (40 + 13.3 * nbeds) * mult # kWh/yr
+          # ann_i = (40 + 13.3 * (-1.47 + 1.69 * unit_occ)) * mult # kWh/yr
+          ann_i = (20.45 + 22.48 * noccupants) * mult # kWh/yr
+        end
       else
         ann_i = 0
       end
