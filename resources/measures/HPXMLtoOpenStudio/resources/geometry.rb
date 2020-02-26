@@ -206,6 +206,19 @@ class Geometry
     return [nbeds, nbaths]
   end
 
+  def self.get_unit_occupants(model, unit, runner = nil)
+    noccupants = unit.additionalProperties.getFeatureAsDouble(Constants.BuildingUnitFeatureNumOccupants)
+    if not noccupants.is_initialized
+      if !runner.nil?
+        runner.registerError("Could not determine number of occupants.")
+      end
+      return nil
+    else
+      noccupants = noccupants.get.to_f
+    end
+    return noccupants
+  end
+
   def self.get_unit_adjacent_common_spaces(unit)
     # Returns a list of spaces adjacent to the unit that are not assigned
     # to a building unit.
@@ -1476,10 +1489,10 @@ class Geometry
 
       # Calculate number of occupants for this unit
       if unit_occ == Constants.Auto
-        if [Constants.BuildingTypeMultifamily, Constants.BuildingTypeSingleFamilyAttached].include? get_building_type(model) or units.size > 1 # multifamily equation
+        if [Constants.BuildingTypeMultifamily, Constants.BuildingTypeSingleFamilyAttached].include? get_building_type(model) # multifamily equation
           unit_occ = 0.63 + 0.92 * nbeds
           # nbeds = -0.68 + 1.09 * unit_occ
-        elsif [Constants.BuildingTypeSingleFamilyDetached].include? get_building_type(model) or units.size == 1 # single-family equation
+        elsif [Constants.BuildingTypeSingleFamilyDetached].include? get_building_type(model) # single-family equation
           unit_occ = 0.87 + 0.59 * nbeds
           # nbeds = -1.47 + 1.69 * unit_occ
         end

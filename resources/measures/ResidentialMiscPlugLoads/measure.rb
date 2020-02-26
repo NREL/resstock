@@ -141,7 +141,7 @@ class ResidentialMiscElectricLoads < OpenStudio::Measure::ModelMeasure
           return false
         end
 
-        noccupants = unit.additionalProperties.getFeatureAsDouble(Constants.BuildingUnitFeatureNumOccupants)
+        noccupants = Geometry.get_unit_occupants(model, unit, runner)
 
         # Get unit ffa
         ffa = Geometry.get_finished_floor_area_from_spaces(unit.spaces, runner)
@@ -156,11 +156,11 @@ class ResidentialMiscElectricLoads < OpenStudio::Measure::ModelMeasure
         # end
         # end
 
-        if [Constants.BuildingTypeMultifamily, Constants.BuildingTypeSingleFamilyAttached].include? get_building_type(model) or units.size > 1 # multifamily equation
+        if [Constants.BuildingTypeMultifamily, Constants.BuildingTypeSingleFamilyAttached].include? Geometry.get_building_type(model) # multifamily equation
           # mel_ann = (1108.1 + 180.2 * nbeds + 0.2785 * ffa) * mult
           # mel_ann = (1108.1 + 180.2 * (-0.68 + 1.09 * unit_occ) + 0.2785 * ffa) * mult
           mel_ann = (985.6 + 196.4 * noccupants + 0.2785 * ffa) * mult
-        elsif [Constants.BuildingTypeSingleFamilyDetached].include? get_building_type(model) or units.size == 1 # single-family equation
+        elsif [Constants.BuildingTypeSingleFamilyDetached].include? Geometry.get_building_type(model) # single-family equation
           # mel_ann = (1108.1 + 180.2 * nbeds + 0.2785 * ffa) * mult
           # mel_ann = (1108.1 + 180.2 * (-1.47 + 1.69 * unit_occ) + 0.2785 * ffa) * mult
           mel_ann = (843.2 + 304.5 * noccupants + 0.2785 * ffa) * mult
