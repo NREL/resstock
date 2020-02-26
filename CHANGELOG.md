@@ -1,16 +1,40 @@
 ## ResStock v2.3.0 (pending)
 
 Features
+
+- Remove the single-family detached project, and remove PAT from the testing and multifamily projects ([#402](https://github.com/NREL/OpenStudio-BuildStock/pull/402))
+- Relocate the data folder, along with tsv makers, to a separate private repository ([#401](https://github.com/NREL/OpenStudio-BuildStock/pull/401))
+- Update the single-family detached and multifamily projects with more up-to-date lighting stock distributions ([#392](https://github.com/NREL/OpenStudio-BuildStock/pull/392))
+- Update Insulation Finished Attic tsv with more options for insulation levels ([#395](https://github.com/NREL/OpenStudio-BuildStock/pull/395))
+- Add ability to ignore comment lines with the "#" symbol ([#408](https://github.com/NREL/OpenStudio-BuildStock/pull/408))
+
+Fixes
+- Exclude net site energy consumption from annual and timeseries simulation output ("total" now reflects net of pv); change `include_enduse_subcategories` argument default to "true"; report either total interior equipment OR each of its components ([#405](https://github.com/NREL/OpenStudio-BuildStock/pull/405))
+- Refactor the tsv maker classes to accommodate more data sources ([#392](https://github.com/NREL/OpenStudio-BuildStock/pull/392))
+- Revert plug load schedule to RBSA for the National Average option([#355](https://github.com/NREL/OpenStudio-BuildStock/pull/355))
+
+## ResStock v2.2.2
+###### February 19, 2020 - [Diff](https://github.com/NREL/OpenStudio-BuildStock/compare/v2.2.1...v2.2.2)
+
+Fixes
+- Update the datapoint initialization script to download weather files to a common zip filename ([#406](https://github.com/NREL/OpenStudio-BuildStock/pull/406))
+
+## ResStock v2.2.1
+###### February 7, 2020 - [Diff](https://github.com/NREL/OpenStudio-BuildStock/compare/v2.2.0...v2.2.1)
+
+Features
 - Update the multifamily project with a Geometry Wall Type tsv file for sampling between wood stud and masonry walls ([#382](https://github.com/NREL/OpenStudio-BuildStock/pull/382))
 
 Fixes
+- Add generation of the Geometry Wall Type tsv file for the single-family detached project to the 2009 RECS tsv maker; this corrects the tsv file ([#387](https://github.com/NREL/OpenStudio-BuildStock/pull/387))
+- Add generation of the Misc Pool tsv file (with Geometry Building Type and Location Region dependencies) to the 2009 RECS tsv maker; this also corrects having pool pumps for all homes ([#387](https://github.com/NREL/OpenStudio-BuildStock/pull/387))
 - Refactor the RECS tsv makers for years 2009 and 2015 ([#382](https://github.com/NREL/OpenStudio-BuildStock/pull/382))
 
 ## ResStock v2.2.0
 ###### January 30, 2020 - [Diff](https://github.com/NREL/OpenStudio-BuildStock/compare/v2.1.0...v2.2.0)
 
 Features
-- The results csv now optionally reports anunal totals for all end use subcategories, including appliances, plug loads, etc. ([#371](https://github.com/NREL/OpenStudio-BuildStock/pull/371))
+- The results csv now optionally reports annual totals for all end use subcategories, including appliances, plug loads, etc. ([#371](https://github.com/NREL/OpenStudio-BuildStock/pull/371))
 - Split out national average options so not all homes have all miscellaneous equipment, and add none options to appliances ([#362](https://github.com/NREL/OpenStudio-BuildStock/pull/362))
 - Update the single-family detached project with a Geometry Wall Type tsv file for sampling between wood stud and masonry walls ([#357](https://github.com/NREL/OpenStudio-BuildStock/pull/357))
 - Made housing characteristics a consistent format. Added integrity check to ensure housing characteristics follow the guildelines specified in read-the-docs ([#353](https://github.com/NREL/OpenStudio-BuildStock/pull/353))
