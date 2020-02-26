@@ -135,11 +135,12 @@ class ResidentialMiscElectricLoads < OpenStudio::Measure::ModelMeasure
     units.each do |unit|
       # Calculate electric mel daily energy use
       if option_type == Constants.OptionTypePlugLoadsMultiplier
-        # Get unit beds/baths
+        # Get unit beds/baths/occupants
         nbeds, nbaths = Geometry.get_unit_beds_baths(model, unit, runner)
         if nbeds.nil? or nbaths.nil?
           return false
         end
+        noccupants = unit.additionalProperties.getFeatureAsDouble(Constants.BuildingUnitFeatureNumOccupants)
 
         # Get unit ffa
         ffa = Geometry.get_finished_floor_area_from_spaces(unit.spaces, runner)
@@ -147,14 +148,23 @@ class ResidentialMiscElectricLoads < OpenStudio::Measure::ModelMeasure
           return false
         end
 
-        noccupants = 0.0
-        unit.spaces.each do |space|
-          space.people.each do |ppl|
-            noccupants += ppl.peopleDefinition.numberofPeople.get
-          end
-        end
+        # noccupants = 0.0
+        # unit.spaces.each do |space|
+          # space.people.each do |ppl|
+            # noccupants += ppl.peopleDefinition.numberofPeople.get
+          # end
+        # end
 
-        mel_ann = (908.91 + 277.75 * noccupants + 0.39 * ffa) * mult
+        if [Constants.BuildingTypeMultifamily, Constants.BuildingTypeSingleFamilyAttached].include? get_building_type(model) or units.size > 1 # multifamily equation
+          # mel_ann = (1108.1 + 180.2 * nbeds + 0.2785 * ffa) * mult
+          # mel_ann = (1108.1 + 180.2 * (-0.68 + 1.09 * unit_occ) + 0.2785 * ffa) * mult
+          mel_ann = (985.6 + 196.4 * noccupants + 0.2785 * ffa) * mult
+        elsif [Constants.BuildingTypeSingleFamilyDetached].include? get_building_type(model) or units.size == 1 # single-family equation
+          # mel_ann = (1108.1 + 180.2 * nbeds + 0.2785 * ffa) * mult
+          # mel_ann = (1108.1 + 180.2 * (-1.47 + 1.69 * unit_occ) + 0.2785 * ffa) * mult
+          mel_ann = (843.2 + 304.5 * noccupants) + 0.2785 * ffa) * mult
+        end
+        # mel_ann = (908.91 + 277.75 * noccupants + 0.39 * ffa) * mult # RECS 2015
       elsif option_type == Constants.OptionTypePlugLoadsEnergyUse
         mel_ann = energy_use
       end
