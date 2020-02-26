@@ -1067,15 +1067,36 @@ class ScheduleGenerator
 
       occ_index = weighted_random(occ_prob, prng)
       occ_type = occ_types[occ_index]
-      init_prob_file = @schedules_path + "/mkv_chain_probabilities/mkv_chain_initial_prob_cluster_#{occ_index}.csv"
-      initial_prob = CSV.read(init_prob_file)
-      initial_prob = initial_prob.map { |x| x[0].to_f }
-      # initial_prob = Matrix.build(7,1){|i, j| initial_prob[i][0].to_f}
-      transition_matrix_file = @schedules_path + "/mkv_chain_probabilities/mkv_chain_transition_prob_cluster_#{occ_index}.csv"
-      transition_matrix = CSV.read(transition_matrix_file)
-      transition_matrix = transition_matrix.map { |x| x.map { |y| y.to_f } }
+      init_prob_file_weekday = @schedules_path + "/weekday/mkv_chain_initial_prob_cluster_#{occ_index}.csv"
+      initial_prob_weekday = CSV.read(init_prob_file_weekday)
+      initial_prob_weekday = initial_prob_weekday.map { |x| x[0].to_f }
+      init_prob_file_weekend = @schedules_path + "/weekend/mkv_chain_initial_prob_cluster_#{occ_index}.csv"
+      initial_prob_weekend = CSV.read(init_prob_file_weekend)
+      initial_prob_weekend = initial_prob_weekend.map { |x| x[0].to_f }
+
+      transition_matrix_file_weekday = @schedules_path + "/weekday/mkv_chain_transition_prob_cluster_#{occ_index}.csv"
+      transition_matrix_weekday = CSV.read(transition_matrix_file_weekday)
+      transition_matrix_weekday = transition_matrix_weekday.map { |x| x.map { |y| y.to_f } }
+      transition_matrix_file_weekend = @schedules_path + "/weekend/mkv_chain_transition_prob_cluster_#{occ_index}.csv"
+      transition_matrix_weekend = CSV.read(transition_matrix_file_weekend)
+      transition_matrix_weekend = transition_matrix_weekend.map { |x| x.map { |y| y.to_f } }
+
       simulated_values = []
-      total_days_in_year.times do
+      sim_year = @model.getYearDescription.calendarYear.get
+      start_day = DateTime.new(sim_year, 1, 1)
+      total_days_in_year.times do |day|
+        today = start_day + day
+        day_of_week = today.wday
+        if [0, 6].include?(day_of_week)
+          # Weekend
+          initial_prob = initial_prob_weekend
+          transition_matrix = transition_matrix_weekend
+        else
+          # weekday
+          initial_prob = initial_prob_weekday
+          transition_matrix = transition_matrix_weekday
+        end
+
         init_sate_val = weighted_random(initial_prob, prng)
         init_state = [0] * num_states
         init_state[init_sate_val] = 1
