@@ -1476,14 +1476,18 @@ class Geometry
 
       # Calculate number of occupants for this unit
       if unit_occ == Constants.Auto
-        if [Constants.BuildingTypeMultifamily, Constants.BuildingTypeSingleFamilyAttached].include? get_building_type(model) or units.size > 1
-          unit_occ = 1.17 + 0.56 * nbeds # multifamily equation
-        elsif [Constants.BuildingTypeSingleFamilyDetached].include? get_building_type(model) or units.size == 1
-          unit_occ = 1.15 + 0.5 * nbeds # single-family equation
+        if [Constants.BuildingTypeMultifamily, Constants.BuildingTypeSingleFamilyAttached].include? get_building_type(model) or units.size > 1 # multifamily equation
+          unit_occ = 0.63 + 0.92 * nbeds
+          # nbeds = -0.68 + 1.09 * unit_occ
+        elsif [Constants.BuildingTypeSingleFamilyDetached].include? get_building_type(model) or units.size == 1 # single-family equation
+          unit_occ = 0.87 + 0.59 * nbeds
+          # nbeds = -1.47 + 1.69 * unit_occ
         end
       else
         unit_occ = unit_occ.to_f
       end
+
+      unit.additionalProperties.setFeature(Constants.BuildingUnitFeatureNumOccupants, unit_occ)
 
       # Get spaces
       bedroom_ffa_spaces = self.get_bedroom_spaces(unit.spaces)
