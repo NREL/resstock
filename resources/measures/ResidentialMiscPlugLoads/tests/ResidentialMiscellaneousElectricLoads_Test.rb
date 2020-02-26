@@ -149,7 +149,7 @@ class ResidentialMiscElectricLoadsTest < MiniTest::Test
     args_hash["mult"] = 1.0
     expected_num_del_objects = {}
     expected_num_new_objects = { "ElectricEquipment" => num_fin_spaces, "ElectricEquipmentDefinition" => num_fin_spaces, "ScheduleRuleset" => 1 }
-    expected_values = { "Annual_kwh" => 2051 * num_units }
+    expected_values = { "Annual_kwh" => 2200 * num_units }
     _test_measure("SFA_4units_1story_FB_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
   end
 
@@ -160,7 +160,7 @@ class ResidentialMiscElectricLoadsTest < MiniTest::Test
     args_hash["mult"] = 1.0
     expected_num_del_objects = {}
     expected_num_new_objects = { "ElectricEquipment" => num_fin_spaces, "ElectricEquipmentDefinition" => num_fin_spaces, "ScheduleRuleset" => 1 }
-    expected_values = { "Annual_kwh" => 2051 * num_units }
+    expected_values = { "Annual_kwh" => 2200 * num_units }
     _test_measure("MF_8units_1story_SL_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
   end
 

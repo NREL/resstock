@@ -149,23 +149,7 @@ class ResidentialMiscElectricLoads < OpenStudio::Measure::ModelMeasure
           return false
         end
 
-        # noccupants = 0.0
-        # unit.spaces.each do |space|
-        # space.people.each do |ppl|
-        # noccupants += ppl.peopleDefinition.numberofPeople.get
-        # end
-        # end
-
-        if [Constants.BuildingTypeMultifamily, Constants.BuildingTypeSingleFamilyAttached].include? Geometry.get_building_type(model) # multifamily equation
-          # mel_ann = (1108.1 + 180.2 * nbeds + 0.2785 * ffa) * mult
-          # mel_ann = (1108.1 + 180.2 * (-0.68 + 1.09 * unit_occ) + 0.2785 * ffa) * mult
-          mel_ann = (985.6 + 196.4 * noccupants + 0.2785 * ffa) * mult
-        elsif [Constants.BuildingTypeSingleFamilyDetached].include? Geometry.get_building_type(model) # single-family equation
-          # mel_ann = (1108.1 + 180.2 * nbeds + 0.2785 * ffa) * mult
-          # mel_ann = (1108.1 + 180.2 * (-1.47 + 1.69 * unit_occ) + 0.2785 * ffa) * mult
-          mel_ann = (843.2 + 304.5 * noccupants + 0.2785 * ffa) * mult
-        end
-        # mel_ann = (908.91 + 277.75 * noccupants + 0.39 * ffa) * mult # RECS 2015
+        mel_ann = (908.91 + 277.75 * noccupants + 0.39 * ffa) * mult # RECS 2015
       elsif option_type == Constants.OptionTypePlugLoadsEnergyUse
         mel_ann = energy_use
       end
