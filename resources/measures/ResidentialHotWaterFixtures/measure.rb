@@ -139,7 +139,7 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
         return false
       end
 
-      noccupants = unit.additionalProperties.getFeatureAsDouble(Constants.BuildingUnitFeatureNumOccupants)
+      noccupants = Geometry.get_unit_occupants(model, unit, runner)
 
       # Get space
       space = Geometry.get_space_from_location(unit, Constants.Auto, location_hierarchy)
@@ -159,7 +159,7 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
 
       mixed_use_t = Constants.MixedUseT # F
 
-      if [Constants.BuildingTypeMultifamily, Constants.BuildingTypeSingleFamilyAttached].include? get_building_type(model) or units.size > 1 # multifamily equation
+      if [Constants.BuildingTypeMultifamily, Constants.BuildingTypeSingleFamilyAttached].include? Geometry.get_building_type(model) # multifamily equation
         # # Calc daily gpm and annual gain of each end use
         # sh_gpd = (14.0 + 4.67 * nbeds) * sh_mult
         # s_gpd = (12.5 + 4.16 * nbeds) * s_mult
@@ -205,7 +205,7 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
         b_lat_load = 0 # Btu/day
         b_tot_load = UnitConversions.convert(b_sens_load + b_lat_load, "Btu", "kWh") # kWh/day
         b_lat = b_lat_load / (b_lat_load + b_sens_load)
-      elsif [Constants.BuildingTypeSingleFamilyDetached].include? get_building_type(model) or units.size == 1 # single-family equation
+      elsif [Constants.BuildingTypeSingleFamilyDetached].include? Geometry.get_building_type(model) # single-family equation
         # # Calc daily gpm and annual gain of each end use
         # sh_gpd = (14.0 + 4.67 * nbeds) * sh_mult
         # s_gpd = (12.5 + 4.16 * nbeds) * s_mult

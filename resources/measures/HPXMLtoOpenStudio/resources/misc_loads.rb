@@ -120,7 +120,7 @@ class MiscLoads
         return false
       end
 
-      noccupants = unit.additionalProperties.getFeatureAsDouble(Constants.BuildingUnitFeatureNumOccupants)
+      noccupants = Geometry.get_unit_occupants(model, unit, runner)
 
       # Get unit ffa
       ffa = Geometry.get_finished_floor_area_from_spaces(unit.spaces, runner)
@@ -132,10 +132,10 @@ class MiscLoads
       constant = 1.0 / 2
       nbr_coef = 1.0 / 4 / 3
       ffa_coef = 1.0 / 4 / 1920
-      if [Constants.BuildingTypeMultifamily, Constants.BuildingTypeSingleFamilyAttached].include? get_building_type(model) or units.size > 1 # multifamily equation
+      if [Constants.BuildingTypeMultifamily, Constants.BuildingTypeSingleFamilyAttached].include? Geometry.get_building_type(model) # multifamily equation
         # ann_e = ann_e * (constant + nbr_coef * nbeds + ffa_coef * ffa) # kWh/yr
         ann_e = ann_e * (constant + nbr_coef * (-0.68 + 1.09 * noccupants) + ffa_coef * ffa) # kWh/yr
-      elsif [Constants.BuildingTypeSingleFamilyDetached].include? get_building_type(model) or units.size == 1 # single-family equation
+      elsif [Constants.BuildingTypeSingleFamilyDetached].include? Geometry.get_building_type(model) # single-family equation
         # ann_e = ann_e * (constant + nbr_coef * nbeds + ffa_coef * ffa) # kWh/yr
         ann_e = ann_e * (constant + nbr_coef * (-1.47 + 1.69 * noccupants) + ffa_coef * ffa) # kWh/yr
       end
@@ -214,7 +214,7 @@ class MiscLoads
         return false
       end
 
-      noccupants = unit.additionalProperties.getFeatureAsDouble(Constants.BuildingUnitFeatureNumOccupants)
+      noccupants = Geometry.get_unit_occupants(model, unit, runner)
 
       # Get unit ffa
       ffa = Geometry.get_finished_floor_area_from_spaces(unit.spaces, runner)
@@ -226,12 +226,12 @@ class MiscLoads
       constant = 1.0 / 2
       nbr_coef = 1.0 / 4 / 3
       ffa_coef = 1.0 / 4 / 1920
-      if [Constants.BuildingTypeMultifamily, Constants.BuildingTypeSingleFamilyAttached].include? get_building_type(model) or units.size > 1 # multifamily equation
+      if [Constants.BuildingTypeMultifamily, Constants.BuildingTypeSingleFamilyAttached].include? Geometry.get_building_type(model) # multifamily equation
         # ann_g = ann_g * (constant + nbr_coef * nbeds + ffa_coef * ffa) # therm/yr
-        ann_g = ann_g * (constant + nbr_coef * (-0.68 + 1.09 * unit_occ) + ffa_coef * ffa) # therm/yr
-      elsif [Constants.BuildingTypeSingleFamilyDetached].include? get_building_type(model) or units.size == 1 # single-family equation
+        ann_g = ann_g * (constant + nbr_coef * (-0.68 + 1.09 * noccupants) + ffa_coef * ffa) # therm/yr
+      elsif [Constants.BuildingTypeSingleFamilyDetached].include? Geometry.get_building_type(model) # single-family equation
         # ann_g = ann_g * (constant + nbr_coef * nbeds + ffa_coef * ffa) # therm/yr
-        ann_g = ann_g * (constant + nbr_coef * (-1.47 + 1.69 * unit_occ) + ffa_coef * ffa) # therm/yr
+        ann_g = ann_g * (constant + nbr_coef * (-1.47 + 1.69 * noccupants) + ffa_coef * ffa) # therm/yr
       end
     end
 
