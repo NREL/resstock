@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>timeseries_csv_export</name>
   <uid>2a3442c1-944d-4e91-9e11-11e0cf368c64</uid>
-  <version_id>64696f29-6d80-4418-b20d-61f5bdff5495</version_id>
-  <version_modified>20191210T220251Z</version_modified>
+  <version_id>e740ab3b-df53-413e-af45-0c585442f61c</version_id>
+  <version_modified>20200218T154010Z</version_modified>
   <xml_checksum>15BF4E57</xml_checksum>
   <class_name>TimeseriesCSVExport</class_name>
   <display_name>Timeseries CSV Export</display_name>
@@ -32,6 +32,10 @@
           <display_name>Daily</display_name>
         </choice>
         <choice>
+          <value>Monthly</value>
+          <display_name>Monthly</display_name>
+        </choice>
+        <choice>
           <value>RunPeriod</value>
           <display_name>RunPeriod</display_name>
         </choice>
@@ -39,12 +43,12 @@
     </argument>
     <argument>
       <name>include_enduse_subcategories</name>
-      <display_name>Include End Use Subcategories</display_name>
-      <description>Whether to report end use subcategories: appliances, plug loads, fans, large uncommon loads.</description>
+      <display_name>Report Disaggregated Interior Equipment</display_name>
+      <description>Whether to report interior equipment broken out into components: appliances, plug loads, exhaust fans, large uncommon loads, etc.</description>
       <type>Boolean</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>false</default_value>
+      <default_value>true</default_value>
       <choices>
         <choice>
           <value>true</value>
@@ -87,13 +91,13 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>6C92E878</checksum>
+      <checksum>41ECFDFC</checksum>
     </file>
     <file>
       <filename>timeseries_csv_export_test.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
-      <checksum>F8C982FF</checksum>
+      <checksum>A41C0749</checksum>
     </file>
   </files>
 </measure>

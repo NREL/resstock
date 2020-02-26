@@ -6,6 +6,12 @@ require_relative '../measure.rb'
 require 'fileutils'
 
 class TimeseriesCSVExportTest < MiniTest::Test
+  # "EnduseTimeseriesWidth" => num_time_indexes + num_electricity + num_natural_gas + num_fuel_oil + num_propane + num_wood + num_energy + num_output_variables
+  @@include_enduse_subcategories = {
+    "false" => 3 + 18 + 5 + 4 + 5 + 2 + 1,
+    "true" => 3 + 36 + 11 + 4 + 6 + 2 + 1
+  }
+
   def test_leap_year_timestep_and_subcategories
     num_output_requests = 27 + 2
     measure = TimeseriesCSVExport.new
@@ -13,7 +19,7 @@ class TimeseriesCSVExportTest < MiniTest::Test
     args_hash["reporting_frequency"] = "Timestep"
     args_hash["include_enduse_subcategories"] = "true"
     args_hash["output_variables"] = "Zone Mean Air Temperature, Site Outdoor Air Drybulb Temperature"
-    expected_values = { "EnduseTimeseriesLength" => 8784 * 6, "EnduseTimeseriesWidth" => 34 + 28 + 5 }
+    expected_values = { "EnduseTimeseriesLength" => 8784 * 6, "EnduseTimeseriesWidth" => @@include_enduse_subcategories[args_hash["include_enduse_subcategories"]] + 5 }
     _test_measure("SFD_Successful_EnergyPlus_Run_AMY_PV.osm", args_hash, expected_values, __method__, "0465925_US_CO_Boulder_8013_0-20000-0-72469_40.13_-105.22_NSRDB_2.0.1_AMY_2012.epw", num_output_requests)
   end
 
@@ -21,8 +27,9 @@ class TimeseriesCSVExportTest < MiniTest::Test
     num_output_requests = 21 + 1
     measure = TimeseriesCSVExport.new
     args_hash = {}
+    args_hash["include_enduse_subcategories"] = "false"
     args_hash["output_variables"] = "Zone People Occupant Count"
-    expected_values = { "EnduseTimeseriesLength" => 2 * 24, "EnduseTimeseriesWidth" => 36 + 1 }
+    expected_values = { "EnduseTimeseriesLength" => 2 * 24, "EnduseTimeseriesWidth" => @@include_enduse_subcategories[args_hash["include_enduse_subcategories"]] + 1 }
     _test_measure("SFD_Successful_EnergyPlus_Run_AMY_PV_TwoDays.osm", args_hash, expected_values, __method__, "0465925_US_CO_Boulder_8013_0-20000-0-72469_40.13_-105.22_NSRDB_2.0.1_AMY_2014.epw", num_output_requests)
   end
 
@@ -31,19 +38,20 @@ class TimeseriesCSVExportTest < MiniTest::Test
     measure = TimeseriesCSVExport.new
     args_hash = {}
     args_hash["reporting_frequency"] = "Daily"
+    args_hash["include_enduse_subcategories"] = "false"
     args_hash["output_variables"] = "Zone People Occupant Count"
-    expected_values = { "EnduseTimeseriesLength" => 2 * 1, "EnduseTimeseriesWidth" => 36 + 1 }
+    expected_values = { "EnduseTimeseriesLength" => 2 * 1, "EnduseTimeseriesWidth" => @@include_enduse_subcategories[args_hash["include_enduse_subcategories"]] + 1 }
     _test_measure("SFD_Successful_EnergyPlus_Run_AMY_PV_TwoDays.osm", args_hash, expected_values, __method__, "0465925_US_CO_Boulder_8013_0-20000-0-72469_40.13_-105.22_NSRDB_2.0.1_AMY_2014.epw", num_output_requests)
   end
 
   def test_amy_short_run_period_monthly
-    skip
     num_output_requests = 21 + 1
     measure = TimeseriesCSVExport.new
     args_hash = {}
     args_hash["reporting_frequency"] = "Monthly"
+    args_hash["include_enduse_subcategories"] = "false"
     args_hash["output_variables"] = "Zone People Occupant Count"
-    expected_values = { "EnduseTimeseriesLength" => 1, "EnduseTimeseriesWidth" => 34 + 1 }
+    expected_values = { "EnduseTimeseriesLength" => 1, "EnduseTimeseriesWidth" => @@include_enduse_subcategories[args_hash["include_enduse_subcategories"]] + 1 }
     _test_measure("SFD_Successful_EnergyPlus_Run_AMY_PV_TwoDays.osm", args_hash, expected_values, __method__, "0465925_US_CO_Boulder_8013_0-20000-0-72469_40.13_-105.22_NSRDB_2.0.1_AMY_2014.epw", num_output_requests)
   end
 
@@ -52,8 +60,9 @@ class TimeseriesCSVExportTest < MiniTest::Test
     measure = TimeseriesCSVExport.new
     args_hash = {}
     args_hash["reporting_frequency"] = "RunPeriod"
+    args_hash["include_enduse_subcategories"] = "false"
     args_hash["output_variables"] = "Zone People Occupant Count"
-    expected_values = { "EnduseTimeseriesLength" => 1, "EnduseTimeseriesWidth" => 36 + 1 }
+    expected_values = { "EnduseTimeseriesLength" => 1, "EnduseTimeseriesWidth" => @@include_enduse_subcategories[args_hash["include_enduse_subcategories"]] + 1 }
     _test_measure("SFD_Successful_EnergyPlus_Run_AMY_PV_TwoDays.osm", args_hash, expected_values, __method__, "0465925_US_CO_Boulder_8013_0-20000-0-72469_40.13_-105.22_NSRDB_2.0.1_AMY_2014.epw", num_output_requests)
   end
 
@@ -61,8 +70,9 @@ class TimeseriesCSVExportTest < MiniTest::Test
     num_output_requests = 11 + 1
     measure = TimeseriesCSVExport.new
     args_hash = {}
+    args_hash["include_enduse_subcategories"] = "false"
     args_hash["output_variables"] = "Site Wind Direction"
-    expected_values = { "EnduseTimeseriesLength" => 8760, "EnduseTimeseriesWidth" => 36 + 1 }
+    expected_values = { "EnduseTimeseriesLength" => 8760, "EnduseTimeseriesWidth" => @@include_enduse_subcategories[args_hash["include_enduse_subcategories"]] + 1 }
     _test_measure("SFD_Successful_EnergyPlus_Run_TMY_Appl_PV.osm", args_hash, expected_values, __method__, "USA_CO_Denver.Intl.AP.725650_TMY3.epw", num_output_requests)
   end
 
@@ -70,21 +80,21 @@ class TimeseriesCSVExportTest < MiniTest::Test
     num_output_requests = 27 + 2
     measure = TimeseriesCSVExport.new
     args_hash = {}
-    args_hash["include_enduse_subcategories"] = "true"
     args_hash["reporting_frequency"] = "Daily"
+    args_hash["include_enduse_subcategories"] = "true"
     args_hash["output_variables"] = "Electric Equipment Electric Power, Zone Air Heat Balance Internal Convective Heat Gain Rate"
-    expected_values = { "EnduseTimeseriesLength" => 365, "EnduseTimeseriesWidth" => 34 + 28 + 9 }
+    expected_values = { "EnduseTimeseriesLength" => 365, "EnduseTimeseriesWidth" => @@include_enduse_subcategories[args_hash["include_enduse_subcategories"]] + 9 }
     _test_measure("SFD_Successful_EnergyPlus_Run_TMY_Appl_PV.osm", args_hash, expected_values, __method__, "USA_CO_Denver.Intl.AP.725650_TMY3.epw", num_output_requests)
   end
 
   def test_tmy_monthly
-    skip
     num_output_requests = 11 + 2
     measure = TimeseriesCSVExport.new
     args_hash = {}
     args_hash["reporting_frequency"] = "Monthly"
+    args_hash["include_enduse_subcategories"] = "false"
     args_hash["output_variables"] = "Other Equipment Total Heating Energy, Surface Window Glazing Beam to Diffuse Solar Transmittance"
-    expected_values = { "EnduseTimeseriesLength" => 12, "EnduseTimeseriesWidth" => 34 + 12 }
+    expected_values = { "EnduseTimeseriesLength" => 12, "EnduseTimeseriesWidth" => @@include_enduse_subcategories[args_hash["include_enduse_subcategories"]] + 12 }
     _test_measure("SFD_Successful_EnergyPlus_Run_TMY_Appl_PV.osm", args_hash, expected_values, __method__, "USA_CO_Denver.Intl.AP.725650_TMY3.epw", num_output_requests)
   end
 
@@ -93,8 +103,9 @@ class TimeseriesCSVExportTest < MiniTest::Test
     measure = TimeseriesCSVExport.new
     args_hash = {}
     args_hash["reporting_frequency"] = "RunPeriod"
+    args_hash["include_enduse_subcategories"] = "false"
     args_hash["output_variables"] = "Surface Outside Normal Azimuth Angle, Surface Window Heat Gain Rate"
-    expected_values = { "EnduseTimeseriesLength" => 1, "EnduseTimeseriesWidth" => 36 + 71 }
+    expected_values = { "EnduseTimeseriesLength" => 1, "EnduseTimeseriesWidth" => @@include_enduse_subcategories[args_hash["include_enduse_subcategories"]] + 71 }
     _test_measure("SFD_Successful_EnergyPlus_Run_TMY_Appl_PV.osm", args_hash, expected_values, __method__, "USA_CO_Denver.Intl.AP.725650_TMY3.epw", num_output_requests)
   end
 
@@ -106,7 +117,7 @@ class TimeseriesCSVExportTest < MiniTest::Test
     args_hash["reporting_frequency"] = "Daily"
     args_hash["include_enduse_subcategories"] = "true"
     args_hash["output_variables"] = "Cooling Coil Runtime Fraction, Unitary System Ancillary Electric Power, System Node Temperature"
-    expected_values = { "EnduseTimeseriesLength" => 365, "EnduseTimeseriesWidth" => 34 + 28 + 1 }
+    expected_values = { "EnduseTimeseriesLength" => 365, "EnduseTimeseriesWidth" => @@include_enduse_subcategories[args_hash["include_enduse_subcategories"]] + 1 }
     _test_measure("MF_Successful_EnergyPlus_Run_TMY_Appl_PV.osm", args_hash, expected_values, __method__, "USA_CO_Denver.Intl.AP.725650_TMY3.epw", num_output_requests)
   end
 
@@ -270,7 +281,7 @@ class TimeseriesCSVExportTest < MiniTest::Test
     rows = CSV.read(File.expand_path(enduse_timeseries))
     timeseries_length = rows.length - 1
     cols = rows.transpose
-    timeseries_width = cols.length - 1
+    timeseries_width = cols.length
     return timeseries_length, timeseries_width
   end
 end
