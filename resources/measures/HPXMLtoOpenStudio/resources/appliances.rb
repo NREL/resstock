@@ -584,11 +584,12 @@ class ClothesDryer
       return false
     end
 
-    # Get unit beds/baths
+    # Get unit beds/baths/occupants
     nbeds, nbaths = Geometry.get_unit_beds_baths(model, unit, runner)
     if nbeds.nil? or nbaths.nil?
       return false
     end
+    noccupants = unit.additionalProperties.getFeatureAsDouble(Constants.BuildingUnitFeatureNumOccupants)
 
     # Get number of days in months/year
     year_description = model.getYearDescription
@@ -664,8 +665,13 @@ class ClothesDryer
     end
 
     # (eq. 14 Eastment and Hendron, NREL/CP-550-39769, 2006)
-    actual_cycles_per_year = (cycles_per_year_test * (0.5 + nbeds / 6) *
-                                (12.5 / test_load)) # cycles/year
+    if [Constants.BuildingTypeMultifamily, Constants.BuildingTypeSingleFamilyAttached].include? get_building_type(model) or units.size > 1 # multifamily equation
+      # actual_cycles_per_year = (cycles_per_year_test * (0.5 + nbeds / 6) * (12.5 / test_load)) # cycles/year
+      actual_cycles_per_year = (cycles_per_year_test * (0.5 + (-0.68 + 1.09 * unit_occ) / 6) * (12.5 / test_load)) # cycles/year
+    elsif [Constants.BuildingTypeSingleFamilyDetached].include? get_building_type(model) or units.size == 1 # single-family equation
+      # actual_cycles_per_year = (cycles_per_year_test * (0.5 + nbeds / 6) * (12.5 / test_load)) # cycles/year
+      actual_cycles_per_year = (cycles_per_year_test * (0.5 + (-1.47 + 1.69 * unit_occ) / 6) * (12.5 / test_load)) # cycles/year
+    end
 
     # eq. 15 of Eastment and Hendron, NREL/CP-550-39769, 2006
     actual_cd_cycles_per_year = dryer_usage_factor * actual_cycles_per_year # cycles/year
