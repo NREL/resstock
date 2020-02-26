@@ -138,6 +138,7 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
       if nbeds.nil? or nbaths.nil?
         return false
       end
+
       noccupants = unit.additionalProperties.getFeatureAsDouble(Constants.BuildingUnitFeatureNumOccupants)
 
       # Get space

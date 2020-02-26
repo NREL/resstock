@@ -119,6 +119,7 @@ class MiscLoads
       if nbeds.nil? or nbaths.nil?
         return false
       end
+
       noccupants = unit.additionalProperties.getFeatureAsDouble(Constants.BuildingUnitFeatureNumOccupants)
 
       # Get unit ffa
@@ -212,6 +213,7 @@ class MiscLoads
       if nbeds.nil? or nbaths.nil?
         return false
       end
+
       noccupants = unit.additionalProperties.getFeatureAsDouble(Constants.BuildingUnitFeatureNumOccupants)
 
       # Get unit ffa

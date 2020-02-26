@@ -133,6 +133,7 @@ class ClothesWasher
     if nbeds.nil? or nbaths.nil?
       return false
     end
+
     noccupants = unit.additionalProperties.getFeatureAsDouble(Constants.BuildingUnitFeatureNumOccupants)
 
     # Get water heater setpoint
@@ -589,6 +590,7 @@ class ClothesDryer
     if nbeds.nil? or nbaths.nil?
       return false
     end
+
     noccupants = unit.additionalProperties.getFeatureAsDouble(Constants.BuildingUnitFeatureNumOccupants)
 
     # Get number of days in months/year
@@ -821,6 +823,7 @@ class CookingRange
     if nbeds.nil? or nbaths.nil?
       return false
     end
+
     noccupants = unit.additionalProperties.getFeatureAsDouble(Constants.BuildingUnitFeatureNumOccupants)
 
     unit_obj_name = Constants.ObjectNameCookingRange(fuel_type, unit.name.to_s)
@@ -1021,6 +1024,7 @@ class Dishwasher
     if nbeds.nil? or nbaths.nil?
       return false
     end
+
     noccupants = unit.additionalProperties.getFeatureAsDouble(Constants.BuildingUnitFeatureNumOccupants)
 
     # Get water heater setpoint
