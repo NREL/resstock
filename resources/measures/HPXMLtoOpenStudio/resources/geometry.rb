@@ -693,13 +693,14 @@ class Geometry
     # Get bottom edges of exterior walls (building footprint)
     surfaces = []
     model.getSurfaces.each do |surface|
-      next if not surface.surfaceType.downcase == "wall" 
+      next if not surface.surfaceType.downcase == "wall"
       next if (surface.outsideBoundaryCondition.downcase != "outdoors")
+
       # next if surface.outsideBoundaryCondition.downcase == "foundation"
       surfaces << surface
     end
     model_edges = self.get_edges_for_surfaces(surfaces, false)
-    
+
     # compare edges for overlap
     ground_edges.each do |e1|
       model_edges.each do |e2|
@@ -1579,7 +1580,6 @@ class Geometry
             occ.setActivityLevelSchedule(activity_sch)
             occ.setNumberofPeopleSchedule(people_sch.schedule)
 
-
             total_num_occ += space_num_occ
 
             runner.registerInfo("#{unit.name.to_s} has been assigned #{space_num_occ.round(2)} occupant(s) for space '#{space.name}'.")
@@ -1930,13 +1930,13 @@ class Geometry
     #### NEIGHBORS FOR SINGLE UNIT ####
     num_floors = model.getBuilding.additionalProperties.getFeatureAsInteger("num_floors")
     level = model.getBuilding.additionalProperties.getFeatureAsString("level")
-    has_rear_units =  model.getBuilding.additionalProperties.getFeatureAsBoolean("has_rear_units")
+    has_rear_units = model.getBuilding.additionalProperties.getFeatureAsBoolean("has_rear_units")
 
     if (num_floors.is_initialized) and (level.is_initialized)
       num_floors = num_floors.get.to_f
       level = level.get
-  
-      floor_mults = {"Bottom" => num_floors, "Middle" => 2, "Top" => 1 }
+
+      floor_mults = { "Bottom" => num_floors, "Middle" => 2, "Top" => 1 }
       # greatest_z = greatest_z*floor_mults[level] #uncomment if unit origin is at z=0
       unit_length = greatest_y - least_y
       unit_width = greatest_x - least_x
@@ -1944,8 +1944,8 @@ class Geometry
         greatest_y += unit_length
       end
 
-      #FIXME: does not check where the unit is horizontally (for front and back neighbors)
-      # greatest_x += unit_width 
+      # FIXME: does not check where the unit is horizontally (for front and back neighbors)
+      # greatest_x += unit_width
     end
     ####################################
 

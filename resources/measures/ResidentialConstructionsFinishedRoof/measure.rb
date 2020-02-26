@@ -155,7 +155,7 @@ class ProcessConstructionsFinishedRoof < OpenStudio::Measure::ModelMeasure
     else
       singleunit = false
     end
-    #Adiabatic roofs (shared surface with above floor)
+    # Adiabatic roofs (shared surface with above floor)
     if singleunit
       # Because no above unit is defined, adiabatic roofs are constructed as reverse floors
       if not FloorConstructions.apply_uninsulated(runner, model,
