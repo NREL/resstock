@@ -35,6 +35,13 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
   def arguments
     args = OpenStudio::Ruleset::OSArgumentVector.new
 
+    # make an argument for including optional end use subcategories
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument("include_enduse_subcategories", true)
+    arg.setDisplayName("Report Disaggregated Interior Equipment")
+    arg.setDescription("Whether to report interior equipment broken out into components: appliances, plug loads, exhaust fans, large uncommon loads, etc.")
+    arg.setDefaultValue(true)
+    args << arg
+
     return args
   end # end the arguments method
 
@@ -44,6 +51,8 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
     return OpenStudio::IdfObjectVector.new if runner.halted
 
+    include_enduse_subcategories = runner.getBoolArgumentValue("include_enduse_subcategories", user_arguments)
+
     # get the last model and sql file
     model = runner.lastOpenStudioModel
     if model.empty?
@@ -52,70 +61,10 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     end
     model = model.get
 
-    output_meters = OutputMeters.new(model, runner, "RunPeriod")
+    output_meters = OutputMeters.new(model, runner, "RunPeriod", include_enduse_subcategories)
     results = output_meters.create_custom_building_unit_meters
 
     return results
-  end
-
-  def outputs
-    result = OpenStudio::Measure::OSOutputVector.new
-    buildstock_outputs = [
-      "total_site_energy_mbtu",
-      "total_site_electricity_kwh",
-      "total_site_natural_gas_therm",
-      "total_site_fuel_oil_mbtu",
-      "total_site_propane_mbtu",
-      "net_site_energy_mbtu", # Incorporates PV
-      "net_site_electricity_kwh", # Incorporates PV
-      "electricity_heating_kwh",
-      "electricity_central_system_heating_kwh",
-      "electricity_cooling_kwh",
-      "electricity_central_system_cooling_kwh",
-      "electricity_interior_lighting_kwh",
-      "electricity_exterior_lighting_kwh",
-      "electricity_exterior_holiday_lighting_kwh",
-      "electricity_garage_lighting_kwh",
-      "electricity_interior_equipment_kwh",
-      "electricity_fans_heating_kwh",
-      "electricity_fans_cooling_kwh",
-      "electricity_pumps_heating_kwh",
-      "electricity_central_system_pumps_heating_kwh",
-      "electricity_pumps_cooling_kwh",
-      "electricity_central_system_pumps_cooling_kwh",
-      "electricity_water_systems_kwh",
-      "electricity_pv_kwh",
-      "natural_gas_heating_therm",
-      "natural_gas_central_system_heating_therm",
-      "natural_gas_interior_equipment_therm",
-      "natural_gas_water_systems_therm",
-      "fuel_oil_heating_mbtu",
-      "fuel_oil_central_system_heating_mbtu",
-      "fuel_oil_interior_equipment_mbtu",
-      "fuel_oil_water_systems_mbtu",
-      "propane_heating_mbtu",
-      "propane_central_system_heating_mbtu",
-      "propane_interior_equipment_mbtu",
-      "propane_water_systems_mbtu",
-      "hours_heating_setpoint_not_met",
-      "hours_cooling_setpoint_not_met",
-      "hvac_cooling_capacity_w",
-      "hvac_heating_capacity_w",
-      "hvac_heating_supp_capacity_w",
-      "weight",
-      "upgrade_cost_usd"
-    ]
-    buildstock_outputs += cost_mult_types.values
-    for option_num in 1..num_options
-      buildstock_outputs << "option_%02d_cost_usd" % option_num
-      buildstock_outputs << "option_%02d_lifetime_yrs" % option_num
-    end
-    buildstock_outputs.each do |output|
-      result << OpenStudio::Measure::OSOutput.makeDoubleOutput(output)
-    end
-    result << OpenStudio::Measure::OSOutput.makeStringOutput("upgrade_name")
-
-    return result
   end
 
   def cost_mult_types
@@ -144,6 +93,9 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     if not runner.validateUserArguments(arguments(), user_arguments)
       return false
     end
+
+    # Assign the user inputs to variables
+    include_enduse_subcategories = runner.getBoolArgumentValue("include_enduse_subcategories", user_arguments)
 
     # get the last model and sql file
     model = runner.lastOpenStudioModel
@@ -185,18 +137,18 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     gas_site_units = "therm"
     other_fuel_site_units = "MBtu"
 
-    output_meters = OutputMeters.new(model, runner, "RunPeriod")
+    output_meters = OutputMeters.new(model, runner, "RunPeriod", include_enduse_subcategories)
 
     electricity = output_meters.electricity(sqlFile, ann_env_pd)
     natural_gas = output_meters.natural_gas(sqlFile, ann_env_pd)
     fuel_oil = output_meters.fuel_oil(sqlFile, ann_env_pd)
     propane = output_meters.propane(sqlFile, ann_env_pd)
+    wood = output_meters.wood(sqlFile, ann_env_pd)
     hours_setpoint_not_met = output_meters.hours_setpoint_not_met(sqlFile)
 
     # ELECTRICITY
 
-    report_sim_output(runner, "total_site_electricity_kwh", electricity.total_end_uses[0], "GJ", elec_site_units)
-    report_sim_output(runner, "net_site_electricity_kwh", electricity.total_end_uses[0] - electricity.photovoltaics[0], "GJ", elec_site_units)
+    report_sim_output(runner, "total_site_electricity_kwh", electricity.total_end_uses[0] + electricity.photovoltaics[0], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_heating_kwh", electricity.heating[0], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_central_system_heating_kwh", electricity.central_heating[0], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_cooling_kwh", electricity.cooling[0], "GJ", elec_site_units)
@@ -205,7 +157,9 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     report_sim_output(runner, "electricity_exterior_lighting_kwh", electricity.exterior_lighting[0], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_exterior_holiday_lighting_kwh", electricity.exterior_holiday_lighting[0], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_garage_lighting_kwh", electricity.garage_lighting[0], "GJ", elec_site_units)
-    report_sim_output(runner, "electricity_interior_equipment_kwh", electricity.interior_equipment[0], "GJ", elec_site_units)
+    unless include_enduse_subcategories
+      report_sim_output(runner, "electricity_interior_equipment_kwh", electricity.interior_equipment[0], "GJ", elec_site_units)
+    end
 
     # Initialize variables to check against sql file totals
     env_period_ix_query = "SELECT EnvironmentPeriodIndex FROM EnvironmentPeriods WHERE EnvironmentName='#{ann_env_pd}'"
@@ -271,7 +225,9 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     report_sim_output(runner, "total_site_natural_gas_therm", natural_gas.total_end_uses[0], "GJ", gas_site_units)
     report_sim_output(runner, "natural_gas_heating_therm", natural_gas.heating[0], "GJ", gas_site_units)
     report_sim_output(runner, "natural_gas_central_system_heating_therm", natural_gas.central_heating[0], "GJ", gas_site_units)
-    report_sim_output(runner, "natural_gas_interior_equipment_therm", natural_gas.interior_equipment[0], "GJ", gas_site_units)
+    unless include_enduse_subcategories
+      report_sim_output(runner, "natural_gas_interior_equipment_therm", natural_gas.interior_equipment[0], "GJ", gas_site_units)
+    end
     report_sim_output(runner, "natural_gas_water_systems_therm", natural_gas.water_systems[0], "GJ", gas_site_units)
 
     # FUEL OIL
@@ -279,7 +235,6 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     report_sim_output(runner, "total_site_fuel_oil_mbtu", fuel_oil.total_end_uses[0], "GJ", other_fuel_site_units)
     report_sim_output(runner, "fuel_oil_heating_mbtu", fuel_oil.heating[0], "GJ", other_fuel_site_units)
     report_sim_output(runner, "fuel_oil_central_system_heating_mbtu", fuel_oil.central_heating[0], "GJ", other_fuel_site_units)
-    report_sim_output(runner, "fuel_oil_interior_equipment_mbtu", fuel_oil.interior_equipment[0], "GJ", other_fuel_site_units)
     report_sim_output(runner, "fuel_oil_water_systems_mbtu", fuel_oil.water_systems[0], "GJ", other_fuel_site_units)
 
     # PROPANE
@@ -287,15 +242,23 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     report_sim_output(runner, "total_site_propane_mbtu", propane.total_end_uses[0], "GJ", other_fuel_site_units)
     report_sim_output(runner, "propane_heating_mbtu", propane.heating[0], "GJ", other_fuel_site_units)
     report_sim_output(runner, "propane_central_system_heating_mbtu", propane.central_heating[0], "GJ", other_fuel_site_units)
-    report_sim_output(runner, "propane_interior_equipment_mbtu", propane.interior_equipment[0], "GJ", other_fuel_site_units)
+    unless include_enduse_subcategories
+      report_sim_output(runner, "propane_interior_equipment_mbtu", propane.interior_equipment[0], "GJ", other_fuel_site_units)
+    end
     report_sim_output(runner, "propane_water_systems_mbtu", propane.water_systems[0], "GJ", other_fuel_site_units)
+
+    # WOOD
+
+    report_sim_output(runner, "total_site_wood_mbtu", wood.total_end_uses[0], "GJ", other_fuel_site_units)
+    report_sim_output(runner, "wood_heating_mbtu", wood.heating[0], "GJ", other_fuel_site_units)
 
     # TOTAL
 
     totalSiteEnergy = electricity.total_end_uses[0] +
                       natural_gas.total_end_uses[0] +
                       fuel_oil.total_end_uses[0] +
-                      propane.total_end_uses[0]
+                      propane.total_end_uses[0] +
+                      wood.total_end_uses[0]
 
     if units.length == total_units_represented
       err = totalSiteEnergy - sqlFile.totalSiteEnergy.get
@@ -304,8 +267,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
         return false
       end
     end
-    report_sim_output(runner, "total_site_energy_mbtu", totalSiteEnergy, "GJ", total_site_units)
-    report_sim_output(runner, "net_site_energy_mbtu", totalSiteEnergy - electricity.photovoltaics[0], "GJ", total_site_units)
+    report_sim_output(runner, "total_site_energy_mbtu", totalSiteEnergy + electricity.photovoltaics[0], "GJ", total_site_units)
 
     # LOADS NOT MET
 
@@ -328,6 +290,89 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     return false if hvac_heating_supp_capacity_kbtuh.nil?
 
     report_sim_output(runner, "hvac_heating_supp_capacity_w", hvac_heating_supp_capacity_kbtuh, "kBtu/hr", "W")
+
+    # END USE SUBCATEGORIES
+
+    if include_enduse_subcategories
+
+      electricityInteriorEquipment = electricity.refrigerator[0] +
+                                     electricity.clothes_washer[0] +
+                                     electricity.clothes_dryer[0] +
+                                     electricity.cooking_range[0] +
+                                     electricity.dishwasher[0] +
+                                     electricity.plug_loads[0] +
+                                     electricity.house_fan[0] +
+                                     electricity.range_fan[0] +
+                                     electricity.bath_fan[0] +
+                                     electricity.ceiling_fan[0] +
+                                     electricity.extra_refrigerator[0] +
+                                     electricity.freezer[0] +
+                                     electricity.pool_heater[0] +
+                                     electricity.pool_pump[0] +
+                                     electricity.hot_tub_heater[0] +
+                                     electricity.hot_tub_pump[0] +
+                                     electricity.well_pump[0] +
+                                     electricity.recirc_pump[0] +
+                                     electricity.vehicle[0]
+
+      err = electricityInteriorEquipment - electricity.interior_equipment[0]
+      if err.abs > 0.1
+        runner.registerError("Disaggregated electricity interior equipment (#{electricityInteriorEquipment} GJ) relative to total electricity interior equipment (#{electricity.interior_equipment[0]} GJ): #{err} GJ.")
+        return false
+      end
+
+      naturalGasInteriorEquipment = natural_gas.clothes_dryer[0] +
+                                    natural_gas.cooking_range[0] +
+                                    natural_gas.pool_heater[0] +
+                                    natural_gas.hot_tub_heater[0] +
+                                    natural_gas.grill[0] +
+                                    natural_gas.lighting[0] +
+                                    natural_gas.fireplace[0]
+
+      err = naturalGasInteriorEquipment - natural_gas.interior_equipment[0]
+      if err.abs > 0.1
+        runner.registerError("Disaggregated natural gas interior equipment (#{naturalGasInteriorEquipment} GJ) relative to total natural gas interior equipment (#{natural_gas.interior_equipment[0]} GJ): #{err} GJ.")
+        return false
+      end
+
+      propaneInteriorEquipment = propane.clothes_dryer[0] +
+                                 propane.cooking_range[0]
+
+      err = propaneInteriorEquipment - propane.interior_equipment[0]
+      if err.abs > 0.1
+        runner.registerError("Disaggregated propane interior equipment (#{propaneInteriorEquipment} GJ) relative to total propane interior equipment (#{propane.interior_equipment[0]} GJ): #{err} GJ.")
+        return false
+      end
+
+      report_sim_output(runner, "electricity_refrigerator_kwh", electricity.refrigerator[0], "GJ", elec_site_units)
+      report_sim_output(runner, "electricity_clothes_washer_kwh", electricity.clothes_washer[0], "GJ", elec_site_units)
+      report_sim_output(runner, "electricity_clothes_dryer_kwh", electricity.clothes_dryer[0], "GJ", elec_site_units)
+      report_sim_output(runner, "natural_gas_clothes_dryer_therm", natural_gas.clothes_dryer[0], "GJ", gas_site_units)
+      report_sim_output(runner, "propane_clothes_dryer_mbtu", propane.clothes_dryer[0], "GJ", other_fuel_site_units)
+      report_sim_output(runner, "electricity_cooking_range_kwh", electricity.cooking_range[0], "GJ", elec_site_units)
+      report_sim_output(runner, "natural_gas_cooking_range_therm", natural_gas.cooking_range[0], "GJ", gas_site_units)
+      report_sim_output(runner, "propane_cooking_range_mbtu", propane.cooking_range[0], "GJ", other_fuel_site_units)
+      report_sim_output(runner, "electricity_dishwasher_kwh", electricity.dishwasher[0], "GJ", elec_site_units)
+      report_sim_output(runner, "electricity_plug_loads_kwh", electricity.plug_loads[0], "GJ", elec_site_units)
+      report_sim_output(runner, "electricity_house_fan_kwh", electricity.house_fan[0], "GJ", elec_site_units)
+      report_sim_output(runner, "electricity_range_fan_kwh", electricity.range_fan[0], "GJ", elec_site_units)
+      report_sim_output(runner, "electricity_bath_fan_kwh", electricity.bath_fan[0], "GJ", elec_site_units)
+      report_sim_output(runner, "electricity_ceiling_fan_kwh", electricity.ceiling_fan[0], "GJ", elec_site_units)
+      report_sim_output(runner, "electricity_extra_refrigerator_kwh", electricity.extra_refrigerator[0], "GJ", elec_site_units)
+      report_sim_output(runner, "electricity_freezer_kwh", electricity.freezer[0], "GJ", elec_site_units)
+      report_sim_output(runner, "electricity_pool_heater_kwh", electricity.pool_heater[0], "GJ", elec_site_units)
+      report_sim_output(runner, "natural_gas_pool_heater_therm", natural_gas.pool_heater[0], "GJ", gas_site_units)
+      report_sim_output(runner, "electricity_pool_pump_kwh", electricity.pool_pump[0], "GJ", elec_site_units)
+      report_sim_output(runner, "electricity_hot_tub_heater_kwh", electricity.hot_tub_heater[0], "GJ", elec_site_units)
+      report_sim_output(runner, "natural_gas_hot_tub_heater_therm", natural_gas.hot_tub_heater[0], "GJ", gas_site_units)
+      report_sim_output(runner, "electricity_hot_tub_pump_kwh", electricity.hot_tub_pump[0], "GJ", elec_site_units)
+      report_sim_output(runner, "natural_gas_grill_therm", natural_gas.grill[0], "GJ", gas_site_units)
+      report_sim_output(runner, "natural_gas_lighting_therm", natural_gas.lighting[0], "GJ", gas_site_units)
+      report_sim_output(runner, "natural_gas_fireplace_therm", natural_gas.fireplace[0], "GJ", gas_site_units)
+      report_sim_output(runner, "electricity_well_pump_kwh", electricity.well_pump[0], "GJ", elec_site_units)
+      report_sim_output(runner, "electricity_recirc_pump_kwh", electricity.recirc_pump[0], "GJ", elec_site_units)
+      report_sim_output(runner, "electricity_vehicle_kwh", electricity.vehicle[0], "GJ", elec_site_units)
+    end
 
     sqlFile.close
 
