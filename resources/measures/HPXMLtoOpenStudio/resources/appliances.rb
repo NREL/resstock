@@ -128,11 +128,12 @@ class ClothesWasher
       return false
     end
 
-    # Get unit beds/baths
+    # Get unit beds/baths/occupants
     nbeds, nbaths = Geometry.get_unit_beds_baths(model, unit, runner)
     if nbeds.nil? or nbaths.nil?
       return false
     end
+    noccupants = unit.additionalProperties.getFeatureAsDouble(Constants.BuildingUnitFeatureNumOccupants)
 
     # Get water heater setpoint
     wh_setpoint = Waterheater.get_water_heater_setpoint(model, plant_loop, runner)
@@ -272,8 +273,13 @@ class ClothesWasher
     end
 
     # (eq. 14 Eastment and Hendron, NREL/CP-550-39769, 2006)
-    actual_cycles_per_year = (cycles_per_year_test * (0.5 + nbeds / 6) *
-                                (12.5 / test_load)) # cycles/year
+    if [Constants.BuildingTypeMultifamily, Constants.BuildingTypeSingleFamilyAttached].include? get_building_type(model) or units.size > 1 # multifamily equation
+      # actual_cycles_per_year = (cycles_per_year_test * (0.5 + nbeds / 6) * (12.5 / test_load)) # cycles/year
+      actual_cycles_per_year = (cycles_per_year_test * (0.5 + (-0.68 + 1.09 * noccupants) / 6) * (12.5 / test_load)) # cycles/year
+    elsif [Constants.BuildingTypeSingleFamilyDetached].include? get_building_type(model) or units.size == 1 # single-family equation
+      # actual_cycles_per_year = (cycles_per_year_test * (0.5 + nbeds / 6) * (12.5 / test_load)) # cycles/year
+      actual_cycles_per_year = (cycles_per_year_test * (0.5 + (-1.47 + 1.69 * noccupants) / 6) * (12.5 / test_load)) # cycles/year
+    end
 
     total_daily_water_use = (actual_total_per_cycle_water_use * actual_cycles_per_year /
                              num_days_in_year) # gal/day
