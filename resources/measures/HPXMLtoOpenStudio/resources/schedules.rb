@@ -1153,7 +1153,7 @@ class ScheduleGenerator
       pending_shower = 0
       pending_clothes_washer = 0
       steps_in_day.times do |step|
-        minute = day*1440 + step * minutes_per_steps
+        minute = day * 1440 + step * minutes_per_steps
         index_15 = (minute / 15).to_i
         index_hour = (minute / 60).to_i
         step_per_hour = 60 / minutes_per_steps
