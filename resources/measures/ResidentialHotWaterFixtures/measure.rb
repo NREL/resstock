@@ -160,29 +160,6 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
       mixed_use_t = Constants.MixedUseT # F
 
       if [Constants.BuildingTypeMultifamily, Constants.BuildingTypeSingleFamilyAttached].include? Geometry.get_building_type(model) # multifamily equation
-        # # Calc daily gpm and annual gain of each end use
-        # sh_gpd = (14.0 + 4.67 * nbeds) * sh_mult
-        # s_gpd = (12.5 + 4.16 * nbeds) * s_mult
-        # b_gpd = (3.5 + 1.17 * nbeds) * b_mult
-
-        # # Shower internal gains
-        # sh_sens_load = (741 + 247 * nbeds) * sh_mult # Btu/day
-        # sh_lat_load = (703 + 235 * nbeds) * sh_mult # Btu/day
-        # sh_tot_load = UnitConversions.convert(sh_sens_load + sh_lat_load, "Btu", "kWh") # kWh/day
-        # sh_lat = sh_lat_load / (sh_lat_load + sh_sens_load)
-
-        # # Sink internal gains
-        # s_sens_load = (310 + 103 * nbeds) * s_mult # Btu/day
-        # s_lat_load = (140 + 47 * nbeds) * s_mult # Btu/day
-        # s_tot_load = UnitConversions.convert(s_sens_load + s_lat_load, "Btu", "kWh") # kWh/day
-        # s_lat = s_lat_load / (s_lat_load + s_sens_load)
-
-        # # Bath internal gains
-        # b_sens_load = (185 + 62 * nbeds) * b_mult # Btu/day
-        # b_lat_load = 0 # Btu/day
-        # b_tot_load = UnitConversions.convert(b_sens_load + b_lat_load, "Btu", "kWh") # kWh/day
-        # b_lat = b_lat_load / (b_lat_load + b_sens_load)
-
         # Calc daily gpm and annual gain of each end use
         sh_gpd = (14.0 + 4.67 * (-0.68 + 1.09 * noccupants)) * sh_mult
         s_gpd = (12.5 + 4.16 * (-0.68 + 1.09 * noccupants)) * s_mult
@@ -206,29 +183,6 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
         b_tot_load = UnitConversions.convert(b_sens_load + b_lat_load, "Btu", "kWh") # kWh/day
         b_lat = b_lat_load / (b_lat_load + b_sens_load)
       elsif [Constants.BuildingTypeSingleFamilyDetached].include? Geometry.get_building_type(model) # single-family equation
-        # # Calc daily gpm and annual gain of each end use
-        # sh_gpd = (14.0 + 4.67 * nbeds) * sh_mult
-        # s_gpd = (12.5 + 4.16 * nbeds) * s_mult
-        # b_gpd = (3.5 + 1.17 * nbeds) * b_mult
-
-        # # Shower internal gains
-        # sh_sens_load = (741 + 247 * nbeds) * sh_mult # Btu/day
-        # sh_lat_load = (703 + 235 * nbeds) * sh_mult # Btu/day
-        # sh_tot_load = UnitConversions.convert(sh_sens_load + sh_lat_load, "Btu", "kWh") # kWh/day
-        # sh_lat = sh_lat_load / (sh_lat_load + sh_sens_load)
-
-        # # Sink internal gains
-        # s_sens_load = (310 + 103 * nbeds) * s_mult # Btu/day
-        # s_lat_load = (140 + 47 * nbeds) * s_mult # Btu/day
-        # s_tot_load = UnitConversions.convert(s_sens_load + s_lat_load, "Btu", "kWh") # kWh/day
-        # s_lat = s_lat_load / (s_lat_load + s_sens_load)
-
-        # # Bath internal gains
-        # b_sens_load = (185 + 62 * nbeds) * b_mult # Btu/day
-        # b_lat_load = 0 # Btu/day
-        # b_tot_load = UnitConversions.convert(b_sens_load + b_lat_load, "Btu", "kWh") # kWh/day
-        # b_lat = b_lat_load / (b_lat_load + b_sens_load)
-
         # Calc daily gpm and annual gain of each end use
         sh_gpd = (14.0 + 4.67 * (-1.47 + 1.69 * noccupants)) * sh_mult
         s_gpd = (12.5 + 4.16 * (-1.47 + 1.69 * noccupants)) * s_mult

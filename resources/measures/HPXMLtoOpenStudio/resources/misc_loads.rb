@@ -133,10 +133,8 @@ class MiscLoads
       nbr_coef = 1.0 / 4 / 3
       ffa_coef = 1.0 / 4 / 1920
       if [Constants.BuildingTypeMultifamily, Constants.BuildingTypeSingleFamilyAttached].include? Geometry.get_building_type(model) # multifamily equation
-        # ann_e = ann_e * (constant + nbr_coef * nbeds + ffa_coef * ffa) # kWh/yr
         ann_e = ann_e * (constant + nbr_coef * (-0.68 + 1.09 * noccupants) + ffa_coef * ffa) # kWh/yr
       elsif [Constants.BuildingTypeSingleFamilyDetached].include? Geometry.get_building_type(model) # single-family equation
-        # ann_e = ann_e * (constant + nbr_coef * nbeds + ffa_coef * ffa) # kWh/yr
         ann_e = ann_e * (constant + nbr_coef * (-1.47 + 1.69 * noccupants) + ffa_coef * ffa) # kWh/yr
       end
     end
@@ -227,10 +225,8 @@ class MiscLoads
       nbr_coef = 1.0 / 4 / 3
       ffa_coef = 1.0 / 4 / 1920
       if [Constants.BuildingTypeMultifamily, Constants.BuildingTypeSingleFamilyAttached].include? Geometry.get_building_type(model) # multifamily equation
-        # ann_g = ann_g * (constant + nbr_coef * nbeds + ffa_coef * ffa) # therm/yr
         ann_g = ann_g * (constant + nbr_coef * (-0.68 + 1.09 * noccupants) + ffa_coef * ffa) # therm/yr
       elsif [Constants.BuildingTypeSingleFamilyDetached].include? Geometry.get_building_type(model) # single-family equation
-        # ann_g = ann_g * (constant + nbr_coef * nbeds + ffa_coef * ffa) # therm/yr
         ann_g = ann_g * (constant + nbr_coef * (-1.47 + 1.69 * noccupants) + ffa_coef * ffa) # therm/yr
       end
     end

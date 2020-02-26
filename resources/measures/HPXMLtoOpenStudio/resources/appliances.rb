@@ -275,10 +275,8 @@ class ClothesWasher
 
     # (eq. 14 Eastment and Hendron, NREL/CP-550-39769, 2006)
     if [Constants.BuildingTypeMultifamily, Constants.BuildingTypeSingleFamilyAttached].include? Geometry.get_building_type(model) # multifamily equation
-      # actual_cycles_per_year = (cycles_per_year_test * (0.5 + nbeds / 6) * (12.5 / test_load)) # cycles/year
       actual_cycles_per_year = (cycles_per_year_test * (0.5 + (-0.68 + 1.09 * noccupants) / 6) * (12.5 / test_load)) # cycles/year
     elsif [Constants.BuildingTypeSingleFamilyDetached].include? Geometry.get_building_type(model) # single-family equation
-      # actual_cycles_per_year = (cycles_per_year_test * (0.5 + nbeds / 6) * (12.5 / test_load)) # cycles/year
       actual_cycles_per_year = (cycles_per_year_test * (0.5 + (-1.47 + 1.69 * noccupants) / 6) * (12.5 / test_load)) # cycles/year
     end
 
@@ -668,11 +666,9 @@ class ClothesDryer
 
     # (eq. 14 Eastment and Hendron, NREL/CP-550-39769, 2006)
     if [Constants.BuildingTypeMultifamily, Constants.BuildingTypeSingleFamilyAttached].include? Geometry.get_building_type(model) # multifamily equation
-      # actual_cycles_per_year = (cycles_per_year_test * (0.5 + nbeds / 6) * (12.5 / test_load)) # cycles/year
-      actual_cycles_per_year = (cycles_per_year_test * (0.5 + (-0.68 + 1.09 * unit_occ) / 6) * (12.5 / test_load)) # cycles/year
+      actual_cycles_per_year = (cycles_per_year_test * (0.5 + (-0.68 + 1.09 * noccupants) / 6) * (12.5 / test_load)) # cycles/year
     elsif [Constants.BuildingTypeSingleFamilyDetached].include? Geometry.get_building_type(model) # single-family equation
-      # actual_cycles_per_year = (cycles_per_year_test * (0.5 + nbeds / 6) * (12.5 / test_load)) # cycles/year
-      actual_cycles_per_year = (cycles_per_year_test * (0.5 + (-1.47 + 1.69 * unit_occ) / 6) * (12.5 / test_load)) # cycles/year
+      actual_cycles_per_year = (cycles_per_year_test * (0.5 + (-1.47 + 1.69 * noccupants) / 6) * (12.5 / test_load)) # cycles/year
     end
 
     # eq. 15 of Eastment and Hendron, NREL/CP-550-39769, 2006
@@ -841,12 +837,8 @@ class CookingRange
     # Calculate range daily energy use
     if fuel_type == Constants.FuelTypeElectric
       if [Constants.BuildingTypeMultifamily, Constants.BuildingTypeSingleFamilyAttached].include? Geometry.get_building_type(model) # multifamily equation
-        # ann_e = ((86.5 + 28.9 * nbeds) / cooktop_ef + (14.6 + 4.9 * nbeds) / oven_ef) * mult # kWh/yr
-        # ann_e = ((86.5 + 28.9 * (-0.68 + 1.09 * unit_occ)) / cooktop_ef + (14.6 + 4.9 * (-0.68 + 1.09 * unit_occ)) / oven_ef) * mult # kWh/yr
         ann_e = ((66.8 + 31.5 * noccupants) / cooktop_ef + (11.3 + 5.3 * noccupants) / oven_ef) * mult # kWh/yr
       elsif [Constants.BuildingTypeSingleFamilyDetached].include? Geometry.get_building_type(model) # single-family equation
-        # ann_e = ((86.5 + 28.9 * nbeds) / cooktop_ef + (14.6 + 4.9 * nbeds) / oven_ef) * mult # kWh/yr
-        # ann_e = ((86.5 + 28.9 * (-1.47 + 1.69 * unit_occ)) / cooktop_ef + (14.6 + 4.9 * (-1.47 + 1.69 * unit_occ)) / oven_ef) * mult # kWh/yr
         ann_e = ((44.0 + 48.8 * noccupants) / cooktop_ef + (7.4 + 8.3 * noccupants) / oven_ef) * mult # kWh/yr
       end
       ann_f = 0
@@ -854,22 +846,14 @@ class CookingRange
     else
       ann_e = 0
       if [Constants.BuildingTypeMultifamily, Constants.BuildingTypeSingleFamilyAttached].include? Geometry.get_building_type(model) # multifamily equation
-        # ann_f = ((2.64 + 0.88 * nbeds) / cooktop_ef + (0.44 + 0.15 * nbeds) / oven_ef) * mult # therm/yr
-        # ann_f = ((2.64 + 0.88 * (-0.68 + 1.09 * unit_occ)) / cooktop_ef + (0.44 + 0.15 * (-0.68 + 1.09 * unit_occ)) / oven_ef) * mult # therm/yr
         ann_f = ((2.04 + 0.96 * noccupants) / cooktop_ef + (0.34 + 0.16 * noccupants) / oven_ef) * mult # therm/yr
       elsif [Constants.BuildingTypeSingleFamilyDetached].include? Geometry.get_building_type(model) # single-family equation
-        # ann_f = ((2.64 + 0.88 * nbeds) / cooktop_ef + (0.44 + 0.15 * nbeds) / oven_ef) * mult # therm/yr
-        # ann_f = ((2.64 + 0.88 * (-1.47 + 1.69 * unit_occ)) / cooktop_ef + (0.44 + 0.15 * (-1.47 + 1.69 * unit_occ)) / oven_ef) * mult # therm/yr
         ann_f = ((1.35 + 1.49 * noccupants) / cooktop_ef + (0.22 + 0.25 * noccupants) / oven_ef) * mult # therm/yr
       end
       if has_elec_ignition == true
         if [Constants.BuildingTypeMultifamily, Constants.BuildingTypeSingleFamilyAttached].include? Geometry.get_building_type(model) # multifamily equation
-          # ann_i = (40 + 13.3 * nbeds) * mult # kWh/yr
-          # ann_i = (40 + 13.3 * (-0.68 + 1.09 * unit_occ)) * mult # kWh/yr
           ann_i = (30.95 + 14.50 * noccupants) * mult # kWh/yr
         elsif [Constants.BuildingTypeSingleFamilyDetached].include? Geometry.get_building_type(model) # single-family equation
-          # ann_i = (40 + 13.3 * nbeds) * mult # kWh/yr
-          # ann_i = (40 + 13.3 * (-1.47 + 1.69 * unit_occ)) * mult # kWh/yr
           ann_i = (20.45 + 22.48 * noccupants) * mult # kWh/yr
         end
       else
@@ -1148,10 +1132,8 @@ class Dishwasher
 
     # (eq. 16 Eastment and Hendron, NREL/CP-550-39769, 2006)
     if [Constants.BuildingTypeMultifamily, Constants.BuildingTypeSingleFamilyAttached].include? Geometry.get_building_type(model) # multifamily equation
-      # actual_cycles_per_year = 215 * (0.5 + nbeds / 6) * (8 / num_settings) # cycles/year
       actual_cycles_per_year = 215 * (0.5 + (-0.68 + 1.09 * noccupants) / 6) * (8 / num_settings) # cycles/year
     elsif [Constants.BuildingTypeSingleFamilyDetached].include? Geometry.get_building_type(model) # single-family equation
-      # actual_cycles_per_year = 215 * (0.5 + nbeds / 6) * (8 / num_settings) # cycles/year
       actual_cycles_per_year = 215 * (0.5 + (-1.47 + 1.69 * noccupants) / 6) * (8 / num_settings) # cycles/year
     end
 
@@ -1163,12 +1145,8 @@ class Dishwasher
       # consumption. Should be appropriate for cold-water-inlet-only
       # dishwashers also.
       if [Constants.BuildingTypeMultifamily, Constants.BuildingTypeSingleFamilyAttached].include? Geometry.get_building_type(model) # multifamily equation
-        # daily_water = 2.5 + 0.833 * nbeds # gal/day
-        # daily_water = 2.5 + 0.833 * (-0.68 + 1.09 * unit_occ) # gal/day
         daily_water = 1.93 + 0.91 * noccupants # gal/day
       elsif [Constants.BuildingTypeSingleFamilyDetached].include? Geometry.get_building_type(model) # single-family equation
-        # daily_water = 2.5 + 0.833 * nbeds # gal/day
-        # daily_water = 2.5 + 0.833 * (-1.47 + 1.69 * unit_occ) # gal/day
         daily_water = 1.28 + 1.41 * noccupants # gal/day
       end
     else
