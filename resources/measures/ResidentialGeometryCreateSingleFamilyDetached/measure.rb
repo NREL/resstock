@@ -961,8 +961,7 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Measure::Model
       return false
     end
 
-    sch_path = SchedulesFile.get_schedule_file_path(model)
-    schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_output_path: sch_path)
+    schedules_file = SchedulesFile.new(runner: runner, model: model)
     if not schedules_file.validated?
       return false
     end

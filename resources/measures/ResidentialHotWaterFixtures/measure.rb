@@ -119,8 +119,7 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
     year_description = model.getYearDescription
     num_days_in_year = Constants.NumDaysInYear(year_description.isLeapYear)
 
-    sch_path = SchedulesFile.get_schedule_file_path(model)
-    schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_output_path: sch_path)
+    schedules_file = SchedulesFile.new(runner: runner, model: model)
     if not schedules_file.validated?
       return false
     end
@@ -215,13 +214,15 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
         end
 
         sh_max_flow = model.getBuilding.additionalProperties.getFeatureAsDouble("Shower Max Flow Rate")
-        if not sh_max_flow.is_initialized
-          sh_max_flow = 4.079
-          sh_tot_flow = 26.24088767
+        sh_tot_flow = model.getBuilding.additionalProperties.getFeatureAsDouble("Shower Total Flow Rate")
+        if not sh_max_flow.is_initialized or not sh_tot_flow.is_initialized
+          runner.registerError("Could not find max or total flow for shower.")
+          return false
         else
           sh_max_flow = sh_max_flow.get
-          sh_tot_flow = sh_gpd
+          sh_tot_flow = sh_tot_flow.get
         end
+
         sh_peak_flow = schedules_file.calcPeakFlowFromDailygpm(daily_water: sh_gpd, tot_flow: sh_tot_flow, max_flow: sh_max_flow)
         sh_design_level = schedules_file.calcDesignLevelFromDailykWh(daily_kwh: sh_tot_load, tot_flow: sh_tot_flow, max_flow: sh_max_flow)
 
@@ -282,13 +283,15 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
         end
 
         s_max_flow = model.getBuilding.additionalProperties.getFeatureAsDouble("Sink Max Flow Rate")
-        if not s_max_flow.is_initialized
-          s_max_flow = 3.2739
-          s_tot_flow = 24.29216986
+        s_tot_flow = model.getBuilding.additionalProperties.getFeatureAsDouble("Sink Total Flow Rate")
+        if not s_max_flow.is_initialized or not s_tot_flow.is_initialized
+          runner.registerError("Could not find max or total flow for sink.")
+          return false
         else
           s_max_flow = s_max_flow.get
-          s_tot_flow = s_gpd
+          s_tot_flow = s_tot_flow.get
         end
+
         s_peak_flow = schedules_file.calcPeakFlowFromDailygpm(daily_water: s_gpd, tot_flow: s_tot_flow, max_flow: s_max_flow)
         s_design_level = schedules_file.calcDesignLevelFromDailykWh(daily_kwh: s_tot_load, tot_flow: s_tot_flow, max_flow: s_max_flow)
 
@@ -329,13 +332,15 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
         end
 
         b_max_flow = model.getBuilding.additionalProperties.getFeatureAsDouble("Bath Max Flow Rate")
-        if not b_max_flow.is_initialized
-          b_max_flow = 7.0312
-          b_tot_flow = 7.238115068
+        b_tot_flow = model.getBuilding.additionalProperties.getFeatureAsDouble("Bath Total Flow Rate")
+        if not b_max_flow.is_initialized or not b_tot_flow.is_initialized
+          runner.registerError("Could not find max or total flow for bath.")
+          return false
         else
           b_max_flow = b_max_flow.get
-          b_tot_flow = b_gpd
+          b_tot_flow = b_tot_flow.get
         end
+
         b_peak_flow = schedules_file.calcPeakFlowFromDailygpm(daily_water: b_gpd, tot_flow: b_tot_flow, max_flow: b_max_flow)
         b_design_level = schedules_file.calcDesignLevelFromDailykWh(daily_kwh: b_tot_load, tot_flow: b_tot_flow, max_flow: b_max_flow)
 
