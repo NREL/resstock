@@ -441,13 +441,15 @@ class ClothesWasher
       Schedule.set_schedule_type_limits(model, temperature_sch, Constants.ScheduleTypeLimitsTemperature)
 
       max_flow = model.getBuilding.additionalProperties.getFeatureAsDouble("Clothes Washer Max Flow Rate")
-      if not max_flow.is_initialized
-        max_flow = 5.0354
-        tot_flow = 4.556512329
+      tot_flow = model.getBuilding.additionalProperties.getFeatureAsDouble("Clothes Washer Total Flow Rate")
+      if not max_flow.is_initialized or not tot_flow.is_initialized
+        runner.registerError("Could not find max or total flow for clothes washer.")
+        return false
       else
         max_flow = max_flow.get
-        tot_flow = total_daily_water_use
+        tot_flow = tot_flow.get
       end
+
       design_level = schedules_file.calcDesignLevelFromDailykWh(daily_kwh: daily_energy, tot_flow: tot_flow, max_flow: max_flow)
       peak_flow = schedules_file.calcPeakFlowFromDailygpm(daily_water: total_daily_water_use, tot_flow: tot_flow, max_flow: max_flow)
 
@@ -1192,13 +1194,15 @@ class Dishwasher
       Schedule.set_schedule_type_limits(model, temperature_sch, Constants.ScheduleTypeLimitsTemperature)
 
       max_flow = model.getBuilding.additionalProperties.getFeatureAsDouble("Dishwasher Max Flow Rate")
-      if not max_flow.is_initialized
-        max_flow = 2.8186
-        tot_flow = 4.402717808
+      tot_flow = model.getBuilding.additionalProperties.getFeatureAsDouble("Dishwasher Total Flow Rate")
+      if not max_flow.is_initialized or not tot_flow.is_initialized
+        runner.registerError("Could not find max or total flow for dishwasher.")
+        return false
       else
         max_flow = max_flow.get
-        tot_flow = daily_water
+        tot_flow = tot_flow.get
       end
+
       design_level = schedules_file.calcDesignLevelFromDailykWh(daily_kwh: daily_energy, tot_flow: tot_flow, max_flow: max_flow)
       peak_flow = schedules_file.calcPeakFlowFromDailygpm(daily_water: daily_water, tot_flow: tot_flow, max_flow: max_flow)
 

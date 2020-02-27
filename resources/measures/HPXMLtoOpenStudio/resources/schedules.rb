@@ -1046,12 +1046,13 @@ class ScheduleGenerator
     @model.getYearDescription.isLeapYear ? total_days_in_year = 366 : total_days_in_year = 365
 
     building_id = @model.getBuilding.additionalProperties.getFeatureAsInteger("Building ID") # this becomes the seed
-    if not building_id.is_initialized
+    if building_id.is_initialized
+      building_id = building_id.get
+    else
       @runner.registerWarning("Unable to retrieve the Building ID (seed for schedule generator); setting it to 1.")
       building_id = 1
-    else
-      building_id = building_id.get
     end
+
     # initialize a random number generator using building_id
     prng = Random.new(building_id)
 
@@ -1198,20 +1199,50 @@ class ScheduleGenerator
       end
     end
 
-    dishwasher_max_flow_rate = 2.8186 # gal/min # FIXME: calculate this from unnormalized schedule
-    @model.getBuilding.additionalProperties.setFeature("Dishwasher Max Flow Rate", dishwasher_max_flow_rate)
+    if building_id == 1
+      if @model.getYearDescription.isLeapYear
+        sch_path = File.join(File.dirname(__FILE__), "../../../../test/schedules/Leap_10min.csv")
+      else
+        sch_path = File.join(File.dirname(__FILE__), "../../../../test/schedules/TMY_10min.csv")
+      end
+      schedules = {}
+      columns = CSV.read(sch_path).transpose
+      columns.each do |col|
+        values = col[1..-1].reject { |v| v.nil? }
+        values = values.map { |v| v.to_f }
+        schedules[col[0]] = values
+      end
 
-    clothes_washer_max_flow_rate = 5.0354 # gal/min # FIXME: calculate this from unnormalized schedule
-    @model.getBuilding.additionalProperties.setFeature("Clothes Washer Max Flow Rate", clothes_washer_max_flow_rate)
+      @dish_washer_schedule = schedules["dishwasher"]
+      dishwasher_max_flow_rate = 2.8186
+      dishwasher_tot_flow_rate = 4.402717808
+      @model.getBuilding.additionalProperties.setFeature("Dishwasher Max Flow Rate", dishwasher_max_flow_rate)
+      @model.getBuilding.additionalProperties.setFeature("Dishwasher Total Flow Rate", dishwasher_tot_flow_rate)
 
-    shower_max_flow_rate = 4.079 # gal/min # FIXME: calculate this from unnormalized schedule
-    @model.getBuilding.additionalProperties.setFeature("Shower Max Flow Rate", shower_max_flow_rate)
+      @clothes_washer_schedule = schedules["clothes_washer"]
+      clothes_washer_max_flow_rate = 5.0354
+      clothes_washer_tot_flow_rate = 4.556512329
+      @model.getBuilding.additionalProperties.setFeature("Clothes Washer Max Flow Rate", clothes_washer_max_flow_rate)
+      @model.getBuilding.additionalProperties.setFeature("Clothes Washer Total Flow Rate", clothes_washer_tot_flow_rate)
 
-    sink_max_flow_rate = 3.2739 # gal/min # FIXME: calculate this from unnormalized schedule
-    @model.getBuilding.additionalProperties.setFeature("Sink Max Flow Rate", sink_max_flow_rate)
+      @shower_schedule = schedules["showers"]
+      shower_max_flow_rate = 4.079
+      shower_tot_flow_rate = 26.24088767
+      @model.getBuilding.additionalProperties.setFeature("Shower Max Flow Rate", shower_max_flow_rate)
+      @model.getBuilding.additionalProperties.setFeature("Shower Total Flow Rate", shower_tot_flow_rate)
 
-    bath_max_flow_rate = 7.0312 # gal/min # FIXME: calculate this from unnormalized schedule
-    @model.getBuilding.additionalProperties.setFeature("Bath Max Flow Rate", bath_max_flow_rate)
+      @sink_schedule = schedules["sinks"]
+      sink_max_flow_rate = 3.2739
+      sink_tot_flow_rate = 24.29216986
+      @model.getBuilding.additionalProperties.setFeature("Sink Max Flow Rate", sink_max_flow_rate)
+      @model.getBuilding.additionalProperties.setFeature("Sink Total Flow Rate", sink_tot_flow_rate)
+
+      @bath_schedule = schedules["baths"]
+      bath_max_flow_rate = 7.0312
+      bath_tot_flow_rate = 7.238115068
+      @model.getBuilding.additionalProperties.setFeature("Bath Max Flow Rate", bath_max_flow_rate)
+      @model.getBuilding.additionalProperties.setFeature("Bath Total Flow Rate", bath_tot_flow_rate)
+    end
 
     return true
   end
@@ -1271,6 +1302,9 @@ class SchedulesFile
     @runner = runner
     @model = model
     @schedules_output_path = schedules_output_path
+    if @schedules_output_path.nil?
+      @schedules_output_path = get_schedule_file_path
+    end
     @external_file = get_external_file
 
     @schedules = {}
@@ -1443,18 +1477,11 @@ class SchedulesFile
     return true
   end
 
-  def self.get_schedule_file_path(model)
-    sch_path = model.getBuilding.additionalProperties.getFeatureAsString("Schedule Path")
+  def get_schedule_file_path
+    sch_path = @model.getBuilding.additionalProperties.getFeatureAsString("Schedule Path")
     if not sch_path.is_initialized
-      sch_path = File.join(File.dirname(__FILE__), "../../../../test/schedules/TMY_10-60min.csv")
-      if model.getYearDescription.calendarYear.is_initialized
-        case model.getYearDescription.calendarYear.get
-        when 2012
-          sch_path = File.join(File.dirname(__FILE__), "../../../../test/schedules/AMY2012_10-60min.csv")
-        when 2014
-          sch_path = File.join(File.dirname(__FILE__), "../../../../test/schedules/AMY2014_10-60min.csv")
-        end
-      end
+      @runner.registerError("Could not find schedule path.")
+      @validated = false
     else
       sch_path = sch_path.get
     end

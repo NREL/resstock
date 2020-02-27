@@ -16,7 +16,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     args_hash = {}
     args_hash["num_floors"] = 3
     args_hash["num_units"] = 10
-    result = _test_error(nil, args_hash)
+    result = _test_error("Denver_Schedules.osm", args_hash)
     assert_includes(result.errors.map { |x| x.logMessage }, "The number of units must be divisible by the number of floors.")
   end
 
@@ -24,21 +24,21 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     args_hash = {}
     args_hash["foundation_type"] = "crawlspace"
     args_hash["foundation_height"] = 0
-    result = _test_error(nil, args_hash)
+    result = _test_error("Denver_Schedules.osm", args_hash)
     assert_includes(result.errors.map { |x| x.logMessage }, "The crawlspace height can be set between 1.5 and 5 ft.")
   end
 
   def test_argument_error_aspect_ratio_invalid
     args_hash = {}
     args_hash["unit_aspect_ratio"] = -1.0
-    result = _test_error(nil, args_hash)
+    result = _test_error("Denver_Schedules.osm", args_hash)
     assert_includes(result.errors.map { |x| x.logMessage }, "Invalid aspect ratio entered.")
   end
 
   def test_error_no_corr
     args_hash = {}
     args_hash["corridor_width"] = -1
-    result = _test_error(nil, args_hash)
+    result = _test_error("Denver_Schedules.osm", args_hash)
     assert_includes(result.errors.map { |x| x.logMessage }, "Invalid corridor width entered.")
   end
 
@@ -49,7 +49,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     expected_num_del_objects = {}
     expected_num_new_objects = { "BuildingUnit" => 3, "Surface" => 26, "ThermalZone" => 1 + 3, "Space" => 1 + 3, "SpaceType" => 2, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 1, "ShadingSurfaceGroup" => 2, "ShadingSurface" => 11, "ExternalFile" => 1, "ScheduleFile" => 1 }
     expected_values = { "FinishedFloorArea" => 900 * 3, "BuildingHeight" => 8, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 10.17, "EavesDepth" => 2, "NumAdiabaticSurfaces" => 6 }
-    _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
+    _test_measure("Denver_Schedules.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
   def test_warning_balc_but_no_inset
@@ -60,7 +60,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     expected_num_del_objects = {}
     expected_num_new_objects = { "BuildingUnit" => 2, "Surface" => 12, "ThermalZone" => 2, "Space" => 2, "SpaceType" => 1, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 1, "ShadingSurfaceGroup" => 2, "ShadingSurface" => 8, "ExternalFile" => 1, "ScheduleFile" => 1 }
     expected_values = { "FinishedFloorArea" => 900 * 2, "BuildingHeight" => 8, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 6.78, "EavesDepth" => 2, "NumAdiabaticSurfaces" => 0 }
-    _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
+    _test_measure("Denver_Schedules.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
   def test_two_story_double_exterior
@@ -75,7 +75,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     expected_num_del_objects = {}
     expected_num_new_objects = { "BuildingUnit" => 2 * 4, "Surface" => 68, "ThermalZone" => 2 * 4, "Space" => 2 * 4, "SpaceType" => 1, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 1, "ShadingSurfaceGroup" => 14, "ShadingSurface" => 30, "ExternalFile" => 1, "ScheduleFile" => 1 }
     expected_values = { "FinishedFloorArea" => 900 * 2 * 4, "BuildingHeight" => 2 * 8, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 27.12, "EavesDepth" => 2, "NumAdiabaticSurfaces" => 0 }
-    _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
+    _test_measure("Denver_Schedules.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
   def test_multiplex_right_inset
@@ -89,7 +89,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     expected_num_del_objects = {}
     expected_num_new_objects = { "BuildingUnit" => 8 * 6, "Surface" => 538, "ThermalZone" => 8 * 6 + 1 + 1, "Space" => 8 * 6 + 1 + 8, "SpaceType" => 3, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 1, "ShadingSurfaceGroup" => 2, "ShadingSurface" => 26, "ExternalFile" => 1, "ScheduleFile" => 1 }
     expected_values = { "FinishedFloorArea" => 900 * 8 * 6, "UnfinishedBasementHeight" => 8, "UnfinishedBasementFloorArea" => 6 * 900 + 3 * 21.77 * 10, "BuildingHeight" => 8 + 8 * 8, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 162.72, "EavesDepth" => 2, "NumAdiabaticSurfaces" => 112 }
-    _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
+    _test_measure("Denver_Schedules.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
   def test_multiplex_left_inset
@@ -105,7 +105,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     expected_num_del_objects = {}
     expected_num_new_objects = { "BuildingUnit" => 8 * 6, "Surface" => 538, "ThermalZone" => 8 * 6 + 1 + 1, "Space" => 8 * 6 + 1 + 8, "SpaceType" => 3, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 1, "ShadingSurfaceGroup" => 50, "ShadingSurface" => 74, "ExternalFile" => 1, "ScheduleFile" => 1 }
     expected_values = { "FinishedFloorArea" => 900 * 8 * 6, "UnfinishedBasementHeight" => 8, "UnfinishedBasementFloorArea" => 6 * 900 + 3 * 21.77 * 10, "BuildingHeight" => 8 + 8 * 8, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 162.72, "EavesDepth" => 2, "NumAdiabaticSurfaces" => 112 }
-    _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
+    _test_measure("Denver_Schedules.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
   def test_crawl_single_exterior
@@ -118,7 +118,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     expected_num_del_objects = {}
     expected_num_new_objects = { "BuildingUnit" => 2 * 12, "Surface" => 194, "ThermalZone" => 2 * 12 + 1, "Space" => 2 * 12 + 1, "SpaceType" => 2, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 1, "ShadingSurfaceGroup" => 4, "ShadingSurface" => 30, "ExternalFile" => 1, "ScheduleFile" => 1 }
     expected_values = { "FinishedFloorArea" => 900 * 2 * 12, "CrawlspaceHeight" => 3, "CrawlspaceFloorArea" => 12 * 900, "BuildingHeight" => 3 + 2 * 8, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 81.36, "EavesDepth" => 2, "NumAdiabaticSurfaces" => 0 }
-    _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
+    _test_measure("Denver_Schedules.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
   def test_crawlspace_double_loaded_corr
@@ -129,7 +129,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     expected_num_del_objects = {}
     expected_num_new_objects = { "BuildingUnit" => 1 * 4, "Surface" => 52, "ThermalZone" => 1 * 4 + 1 + 1, "Space" => 1 * 4 + 1 + 1, "SpaceType" => 3, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 1, "ShadingSurfaceGroup" => 2, "ShadingSurface" => 12, "ExternalFile" => 1, "ScheduleFile" => 1 }
     expected_values = { "FinishedFloorArea" => 900 * 1 * 4, "CrawlspaceHeight" => 3, "CrawlspaceFloorArea" => 4 * 900, "BuildingHeight" => 3 + 8, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 13.56, "EavesDepth" => 2, "NumAdiabaticSurfaces" => 10 }
-    _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
+    _test_measure("Denver_Schedules.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
   def test_ufbasement_double_loaded_corr
@@ -140,7 +140,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     expected_num_del_objects = {}
     expected_num_new_objects = { "BuildingUnit" => 1 * 4, "Surface" => 52, "ThermalZone" => 1 * 4 + 1 + 1, "Space" => 1 * 4 + 1 + 1, "SpaceType" => 3, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 1, "ShadingSurfaceGroup" => 2, "ShadingSurface" => 12, "ExternalFile" => 1, "ScheduleFile" => 1 }
     expected_values = { "FinishedFloorArea" => 900 * 1 * 4, "UnfinishedBasementHeight" => 8, "UnfinishedBasementFloorArea" => 4 * 900 + 2 * 21.21 * 10, "BuildingHeight" => 8 + 8, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 13.56, "EavesDepth" => 2, "NumAdiabaticSurfaces" => 10 }
-    _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
+    _test_measure("Denver_Schedules.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
   def test_one_unit_per_floor_with_rear_units
@@ -151,7 +151,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     expected_num_del_objects = {}
     expected_num_new_objects = { "BuildingUnit" => 2, "Surface" => 12, "ThermalZone" => 2, "Space" => 2, "SpaceType" => 1, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 1, "ShadingSurfaceGroup" => 4, "ShadingSurface" => 8, "ExternalFile" => 1, "ScheduleFile" => 1 }
     expected_values = { "FinishedFloorArea" => 900 * 2, "BuildingHeight" => 8 + 8, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 6.78, "EavesDepth" => 2, "NumAdiabaticSurfaces" => 0 }
-    _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
+    _test_measure("Denver_Schedules.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
   def test_two_units_per_floor_with_rear_units
@@ -162,7 +162,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     expected_num_del_objects = {}
     expected_num_new_objects = { "BuildingUnit" => 8, "Surface" => 72, "ThermalZone" => 8 + 1, "Space" => 12, "SpaceType" => 2, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 1, "ShadingSurfaceGroup" => 2, "ShadingSurface" => 10, "ExternalFile" => 1, "ScheduleFile" => 1 }
     expected_values = { "FinishedFloorArea" => 900 * 8, "BuildingHeight" => 4 * 8, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 27.12, "EavesDepth" => 2, "NumAdiabaticSurfaces" => 22 }
-    _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
+    _test_measure("Denver_Schedules.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
   def test_one_unit_per_floor_with_no_rear_units
@@ -174,7 +174,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     expected_num_del_objects = {}
     expected_num_new_objects = { "BuildingUnit" => 4, "Surface" => 24, "ThermalZone" => 4, "Space" => 4, "SpaceType" => 1, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 1, "ShadingSurfaceGroup" => 2, "ShadingSurface" => 6, "ExternalFile" => 1, "ScheduleFile" => 1 }
     expected_values = { "FinishedFloorArea" => 900 * 4, "BuildingHeight" => 4 * 8, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 13.56, "EavesDepth" => 2, "NumAdiabaticSurfaces" => 0 }
-    _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
+    _test_measure("Denver_Schedules.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
   def test_corr_width_zero_but_corr_not_none
@@ -184,7 +184,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     expected_num_del_objects = {}
     expected_num_new_objects = { "BuildingUnit" => 2, "Surface" => 12, "ThermalZone" => 2, "Space" => 2, "SpaceType" => 1, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 1, "ShadingSurfaceGroup" => 2, "ShadingSurface" => 8, "ExternalFile" => 1, "ScheduleFile" => 1 }
     expected_values = { "FinishedFloorArea" => 900 * 2, "BuildingHeight" => 8, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 6.78, "EavesDepth" => 2, "NumAdiabaticSurfaces" => 0 }
-    _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
+    _test_measure("Denver_Schedules.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
   def test_odd_units_per_floor_double_exterior
@@ -196,77 +196,77 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     expected_num_del_objects = {}
     expected_num_new_objects = { "BuildingUnit" => num_finished_spaces, "Surface" => 60, "ThermalZone" => num_finished_spaces, "Space" => num_finished_spaces, "SpaceType" => 1, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 1, "ShadingSurfaceGroup" => 6, "ShadingSurface" => 16, "ExternalFile" => 1, "ScheduleFile" => 1 }
     expected_values = { "FinishedFloorArea" => 900 * num_finished_spaces, "BuildingHeight" => 2 * 8, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 33.9, "EavesDepth" => 2, "NumAdiabaticSurfaces" => 0 }
-    _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
+    _test_measure("Denver_Schedules.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
   def test_argument_error_beds_not_equal_to_baths
     args_hash = {}
     args_hash["num_bedrooms"] = "3.0, 3.0, 3.0"
     args_hash["num_bathrooms"] = "2.0, 2.0"
-    result = _test_error(nil, args_hash)
+    result = _test_error("Denver_Schedules.osm", args_hash)
     assert_includes(result.errors.map { |x| x.logMessage }, "Number of bedroom elements specified inconsistent with number of bathroom elements specified.")
   end
 
   def test_argument_error_beds_not_equal_to_units
     args_hash = {}
     args_hash["num_bedrooms"] = "3.0, 3.0, 3.0"
-    result = _test_error(nil, args_hash)
+    result = _test_error("Denver_Schedules.osm", args_hash)
     assert_includes(result.errors.map { |x| x.logMessage }, "Number of bedroom elements specified inconsistent with number of multifamily units defined in the model.")
   end
 
   def test_argument_error_baths_not_equal_to_units
     args_hash = {}
     args_hash["num_bathrooms"] = "2.0, 2.0, 2.0"
-    result = _test_error(nil, args_hash)
+    result = _test_error("Denver_Schedules.osm", args_hash)
     assert_includes(result.errors.map { |x| x.logMessage }, "Number of bathroom elements specified inconsistent with number of multifamily units defined in the model.")
   end
 
   def test_argument_error_beds_not_numerical
     args_hash = {}
     args_hash["num_bedrooms"] = "3.0, 3.0, typo"
-    result = _test_error(nil, args_hash)
+    result = _test_error("Denver_Schedules.osm", args_hash)
     assert_includes(result.errors.map { |x| x.logMessage }, "Number of bedrooms must be a numerical value.")
   end
 
   def test_argument_error_baths_not_numerical
     args_hash = {}
     args_hash["num_bathrooms"] = "2.0, 2.0, typo"
-    result = _test_error(nil, args_hash)
+    result = _test_error("Denver_Schedules.osm", args_hash)
     assert_includes(result.errors.map { |x| x.logMessage }, "Number of bathrooms must be a numerical value.")
   end
 
   def test_argument_error_beds_not_positive_integer
     args_hash = {}
     args_hash["num_bedrooms"] = "3.0, 3.0, 3.5"
-    result = _test_error(nil, args_hash)
+    result = _test_error("Denver_Schedules.osm", args_hash)
     assert_includes(result.errors.map { |x| x.logMessage }, "Number of bedrooms must be a positive integer.")
   end
 
   def test_argument_error_baths_not_positive_multiple_of_0pt25
     args_hash = {}
     args_hash["num_bathrooms"] = "2.0, 2.0, 2.8"
-    result = _test_error(nil, args_hash)
+    result = _test_error("Denver_Schedules.osm", args_hash)
     assert_includes(result.errors.map { |x| x.logMessage }, "Number of bathrooms must be a positive multiple of 0.25.")
   end
 
   def test_argument_error_num_occ_bad_string
     args_hash = {}
     args_hash["num_occupants"] = "hello"
-    result = _test_error(nil, args_hash)
+    result = _test_error("Denver_Schedules.osm", args_hash)
     assert_includes(result.errors.map { |x| x.logMessage }, "Number of Occupants must be either '#{Constants.Auto}' or a number greater than or equal to 0.")
   end
 
   def test_argument_error_num_occ_negative
     args_hash = {}
     args_hash["num_occupants"] = "-1"
-    result = _test_error(nil, args_hash)
+    result = _test_error("Denver_Schedules.osm", args_hash)
     assert_includes(result.errors.map { |x| x.logMessage }, "Number of Occupants must be either '#{Constants.Auto}' or a number greater than or equal to 0.")
   end
 
   def test_argument_error_num_occ_incorrect_num_elements
     args_hash = {}
     args_hash["num_occupants"] = "2, 3, 4"
-    result = _test_error(nil, args_hash)
+    result = _test_error("Denver_Schedules.osm", args_hash)
     assert_includes(result.errors.map { |x| x.logMessage }, "Number of occupant elements specified inconsistent with number of multifamily units defined in the model.")
   end
 
@@ -277,7 +277,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     expected_num_del_objects = {}
     expected_num_new_objects = { "Surface" => 18, "Space" => 3, "SpaceType" => 2, "ThermalZone" => 3, "BuildingUnit" => 2, "ShadingSurfaceGroup" => 2, "ShadingSurface" => 10, "ExternalFile" => 1 }
     expected_values = { "FinishedFloorArea" => 900 * 2, "BuildingHeight" => 8, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 0, "EavesDepth" => 2, "NumAdiabaticSurfaces" => 4 }
-    _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
+    _test_measure("Denver_Schedules.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
   def test_new_construction_auto
@@ -287,7 +287,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     expected_num_del_objects = {}
     expected_num_new_objects = { "Surface" => 18, "Space" => 3, "SpaceType" => 2, "ThermalZone" => 3, "BuildingUnit" => 2, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 1, "ShadingSurfaceGroup" => 2, "ShadingSurface" => 10, "ExternalFile" => 1, "ScheduleFile" => 1 }
     expected_values = { "FinishedFloorArea" => 900 * 2, "BuildingHeight" => 8, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 6.78, "EavesDepth" => 2, "NumAdiabaticSurfaces" => 4 }
-    _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
+    _test_measure("Denver_Schedules.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
   def test_new_construction_fixed_3
@@ -297,13 +297,13 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     expected_num_del_objects = {}
     expected_num_new_objects = { "Surface" => 18, "Space" => 3, "SpaceType" => 2, "ThermalZone" => 3, "BuildingUnit" => 2, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 1, "ShadingSurfaceGroup" => 2, "ShadingSurface" => 10, "ExternalFile" => 1, "ScheduleFile" => 1 }
     expected_values = { "FinishedFloorArea" => 900 * 2, "BuildingHeight" => 8, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 3 * 2, "EavesDepth" => 2, "NumAdiabaticSurfaces" => 4 }
-    _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
+    _test_measure("Denver_Schedules.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
   def test_error_invalid_eaves_depth
     args_hash = {}
     args_hash["eaves_depth"] = -1
-    result = _test_error(nil, args_hash)
+    result = _test_error("Denver_Schedules.osm", args_hash)
     assert(result.errors.size == 1)
     assert_equal("Fail", result.value.valueName)
     assert_includes(result.errors.map { |x| x.logMessage }, "Eaves depth must be greater than or equal to 0.")
@@ -312,7 +312,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
   def test_error_invalid_neighbor_offset
     args_hash = {}
     args_hash["neighbor_left_offset"] = -10
-    result = _test_error(nil, args_hash)
+    result = _test_error("Denver_Schedules.osm", args_hash)
     assert(result.errors.size == 1)
     assert_equal("Fail", result.value.valueName)
     assert_includes(result.errors.map { |x| x.logMessage }, "Neighbor offsets must be greater than or equal to 0.")
@@ -321,7 +321,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
   def test_error_invalid_orientation
     args_hash = {}
     args_hash["orientation"] = -180
-    result = _test_error(nil, args_hash)
+    result = _test_error("Denver_Schedules.osm", args_hash)
     assert_includes(result.errors.map { |x| x.logMessage }, "Invalid orientation entered.")
   end
 
@@ -334,7 +334,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     expected_num_del_objects = {}
     expected_num_new_objects = { "Surface" => 138, "Space" => num_finished_spaces + 3, "SpaceType" => 2, "ThermalZone" => num_finished_spaces + 1, "BuildingUnit" => num_finished_spaces, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 1, "ShadingSurfaceGroup" => 2, "ShadingSurface" => 14, "ExternalFile" => 1, "ScheduleFile" => 1 }
     expected_values = { "FinishedFloorArea" => 900 * num_finished_spaces, "BuildingHeight" => 8 * 3, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 3.39 * num_finished_spaces, "EavesDepth" => 2, "NumAdiabaticSurfaces" => 40 }
-    _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
+    _test_measure("Denver_Schedules.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
   def test_minimal_collapsed_medium_building
@@ -346,7 +346,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     expected_num_del_objects = {}
     expected_num_new_objects = { "Surface" => 92, "Space" => num_finished_spaces + 2, "SpaceType" => 2, "ThermalZone" => num_finished_spaces + 1, "BuildingUnit" => num_finished_spaces, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 1, "ShadingSurfaceGroup" => 2, "ShadingSurface" => 14, "ExternalFile" => 1, "ScheduleFile" => 1 }
     expected_values = { "FinishedFloorArea" => 900 * num_finished_spaces, "BuildingHeight" => 8 * 2, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 3.39 * num_finished_spaces, "EavesDepth" => 2, "NumAdiabaticSurfaces" => 26 }
-    _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
+    _test_measure("Denver_Schedules.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
   def test_minimal_collapsed_small_building
@@ -359,7 +359,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     expected_num_del_objects = {}
     expected_num_new_objects = { "Surface" => 18, "Space" => num_finished_spaces, "SpaceType" => 1, "ThermalZone" => num_finished_spaces, "BuildingUnit" => num_finished_spaces, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 1, "ShadingSurfaceGroup" => 3, "ShadingSurface" => 11, "ExternalFile" => 1, "ScheduleFile" => 1 }
     expected_values = { "FinishedFloorArea" => 900 * num_finished_spaces, "BuildingHeight" => 8 * 1, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 3.39 * num_finished_spaces, "EavesDepth" => 2, "NumAdiabaticSurfaces" => 0 }
-    _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
+    _test_measure("Denver_Schedules.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
   private
