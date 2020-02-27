@@ -225,8 +225,7 @@ class ResidentialMiscElectricLoadsTest < MiniTest::Test
         if obj_type == "ElectricEquipment"
           if schedules_file.nil?
             schedule_file = new_object.schedule.get.to_ScheduleFile.get
-            sch_path = schedule_file.externalFile.filePath.to_s
-            schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_output_path: sch_path)
+            schedules_file = SchedulesFile.new(runner: runner, model: model)
           end
           full_load_hrs = schedules_file.annual_equivalent_full_load_hrs(col_name: "plug_loads")
           actual_values["Annual_kwh"] += UnitConversions.convert(full_load_hrs * new_object.designLevel.get * new_object.multiplier, "Wh", "kWh")

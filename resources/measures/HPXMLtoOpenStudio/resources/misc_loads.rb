@@ -61,7 +61,7 @@ class MiscLoads
         col_name = "plug_loads"
         if sch.nil?
           # Create schedule
-          sch = schedules_file.createScheduleFile(sch_file_name: "#{Constants.ObjectNameMiscPlugLoads} schedule", col_name: col_name)
+          sch = schedules_file.createScheduleFile(col_name: col_name)
         end
 
         space_mel_ann = annual_energy * UnitConversions.convert(space.floorArea, "m^2", "ft^2") / ffa

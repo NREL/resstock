@@ -414,18 +414,14 @@ class ResidentialClothesDryerTest < MiniTest::Test
         new_object = new_object.public_send("to_#{obj_type}").get
         if obj_type == "ElectricEquipment"
           schedule_file = new_object.schedule.get.to_ScheduleFile.get
-          sch_path = schedule_file.externalFile.filePath.to_s
-          schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_output_path: sch_path)
-          col_name = schedules_file.get_col_name(col_index: schedule_file.columnNumber - 1)
-          full_load_hrs = schedules_file.annual_equivalent_full_load_hrs(col_name: col_name)
+          schedules_file = SchedulesFile.new(runner: runner, model: model)
+          full_load_hrs = schedules_file.annual_equivalent_full_load_hrs(col_name: schedule_file.name.to_s)
           actual_values["Annual_kwh"] += UnitConversions.convert(full_load_hrs * new_object.designLevel.get * new_object.multiplier, "Wh", "kWh")
           actual_values["Location"] << new_object.space.get.spaceType.get.standardsSpaceType.get
         elsif obj_type == "OtherEquipment"
           schedule_file = new_object.schedule.get.to_ScheduleFile.get
-          sch_path = schedule_file.externalFile.filePath.to_s
-          schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_output_path: sch_path)
-          col_name = schedules_file.get_col_name(col_index: schedule_file.columnNumber - 1)
-          full_load_hrs = schedules_file.annual_equivalent_full_load_hrs(col_name: col_name)
+          schedules_file = SchedulesFile.new(runner: runner, model: model)
+          full_load_hrs = schedules_file.annual_equivalent_full_load_hrs(col_name: schedule_file.name.to_s)
           if args_hash["fuel_type"] == Constants.FuelTypeGas
             actual_values["Annual_therm"] += UnitConversions.convert(full_load_hrs * new_object.otherEquipmentDefinition.designLevel.get * new_object.multiplier, "Wh", "therm")
           else

@@ -65,7 +65,7 @@ class ResilienceMetricsReportTest < MiniTest::Test
     expected_num_del_objects = {}
     expected_num_new_objects = {}
     expected_values = {}
-    _test_measure("SFD_Successful_EnergyPlus_Run_TMY_Outages.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__, "USA_CO_Denver.Intl.AP.725650_TMY3.epw", "TMY_10-60min.csv", 11, 0, 5)
+    _test_measure("SFD_Successful_EnergyPlus_Run_TMY_Outages.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__, "USA_CO_Denver.Intl.AP.725650_TMY3.epw", "TMY_10min.csv", 11, 0, 5)
   end
 
   private
@@ -238,7 +238,7 @@ class ResilienceMetricsReportTest < MiniTest::Test
       FileUtils.mkdir_p("#{test_dir(test_name)}")
     end
 
-    FileUtils.cp(sch_path, "#{test_dir(test_name)}")
+    FileUtils.cp(sch_path, "#{test_dir(test_name)}/appliances_schedules.csv")
 
     cli_path = OpenStudio.getOpenStudioCLI
     cmd = "\"#{cli_path}\" --no-ssl run -w \"#{osw_path}\""

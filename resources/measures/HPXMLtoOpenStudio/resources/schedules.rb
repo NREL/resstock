@@ -1199,7 +1199,7 @@ class ScheduleGenerator
       end
     end
 
-    if building_id == 1
+    if not @model.getBuilding.additionalProperties.getFeatureAsInteger("Building ID").is_initialized # this is a test
       if @model.getYearDescription.isLeapYear
         sch_path = File.join(File.dirname(__FILE__), "../../../../test/schedules/Leap_10min.csv")
       else
@@ -1306,7 +1306,6 @@ class SchedulesFile
       @schedules_output_path = get_schedule_file_path
     end
     @external_file = get_external_file
-
     @schedules = {}
   end
 
@@ -1330,8 +1329,7 @@ class SchedulesFile
     return col_name
   end
 
-  def createScheduleFile(sch_file_name:,
-                         col_name:,
+  def createScheduleFile(col_name:,
                          rows_to_skip: 1)
     import(col_name: col_name)
 
@@ -1347,10 +1345,10 @@ class SchedulesFile
     min_per_item = 60.0 / (schedule_length / num_hrs_in_year)
 
     schedule_file = OpenStudio::Model::ScheduleFile.new(@external_file)
-    schedule_file.setName(sch_file_name)
+    schedule_file.setName(col_name)
     schedule_file.setColumnNumber(col_index + 1)
     schedule_file.setRowstoSkipatTop(rows_to_skip)
-    schedule_file.setNumberofHoursofData(num_hrs_in_year.to_i)
+    schedule_file.setNumberofHoursofData(num_hrs_in_year.to_i)    
     schedule_file.setMinutesperItem("#{min_per_item.to_i}")
 
     return schedule_file

@@ -210,7 +210,7 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
         col_name = "showers"
         if sch_sh.nil?
           # Create schedule
-          sch_sh = schedules_file.createScheduleFile(sch_file_name: "#{Constants.ObjectNameShower} schedule", col_name: col_name)
+          sch_sh = schedules_file.createScheduleFile(col_name: col_name)
         end
 
         sh_max_flow = model.getBuilding.additionalProperties.getFeatureAsDouble("Shower Max Flow Rate")
@@ -279,7 +279,7 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
         col_name = "sinks"
         if sch_s.nil?
           # Create schedule
-          sch_s = schedules_file.createScheduleFile(sch_file_name: "#{Constants.ObjectNameSink} schedule", col_name: col_name)
+          sch_s = schedules_file.createScheduleFile(col_name: col_name)
         end
 
         s_max_flow = model.getBuilding.additionalProperties.getFeatureAsDouble("Sink Max Flow Rate")
@@ -328,7 +328,7 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
         col_name = "baths"
         if sch_b.nil?
           # Create schedule
-          sch_b = schedules_file.createScheduleFile(sch_file_name: "#{Constants.ObjectNameBath} schedule", col_name: col_name)
+          sch_b = schedules_file.createScheduleFile(col_name: col_name)
         end
 
         b_max_flow = model.getBuilding.additionalProperties.getFeatureAsDouble("Bath Max Flow Rate")
