@@ -467,19 +467,17 @@ class ResidentialCookingRangeTest < MiniTest::Test
         if obj_type == "ElectricEquipment"
           if schedules_file.nil?
             schedule_file = new_object.schedule.get.to_ScheduleFile.get
-            sch_path = schedule_file.externalFile.filePath.to_s
-            schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_output_path: sch_path)
+            schedules_file = SchedulesFile.new(runner: runner, model: model)
           end
-          full_load_hrs = schedules_file.annual_equivalent_full_load_hrs(col_name: "cooking_range")
+          full_load_hrs = schedules_file.annual_equivalent_full_load_hrs(col_name: schedule_file.name.to_s)
           actual_values["Annual_kwh"] += UnitConversions.convert(full_load_hrs * new_object.designLevel.get * new_object.multiplier, "Wh", "kWh")
           actual_values["Location"] << new_object.space.get.spaceType.get.standardsSpaceType.get
         elsif obj_type == "OtherEquipment"
           if schedules_file.nil?
             schedule_file = new_object.schedule.get.to_ScheduleFile.get
-            sch_path = schedule_file.externalFile.filePath.to_s
-            schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_output_path: sch_path)
+            schedules_file = SchedulesFile.new(runner: runner, model: model)
           end
-          full_load_hrs = schedules_file.annual_equivalent_full_load_hrs(col_name: "cooking_range")
+          full_load_hrs = schedules_file.annual_equivalent_full_load_hrs(col_name: schedule_file.name.to_s)
           if args_hash["fuel_type"] == Constants.FuelTypeGas
             actual_values["Annual_therm"] += UnitConversions.convert(full_load_hrs * new_object.otherEquipmentDefinition.designLevel.get * new_object.multiplier, "Wh", "therm")
           else

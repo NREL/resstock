@@ -18,7 +18,7 @@ class Lighting
       col_name = "lighting_interior"
       if sch.nil?
         # Create schedule
-        sch = schedules_file.createScheduleFile(sch_file_name: "#{Constants.ObjectNameLightingInterior} schedule", col_name: col_name)
+        sch = schedules_file.createScheduleFile(col_name: col_name)
       end
 
       if unit_finished_spaces.include?(space)
@@ -54,7 +54,7 @@ class Lighting
       col_name = "lighting_garage"
       if sch.nil?
         # Create schedule
-        sch = schedules_file.createScheduleFile(sch_file_name: "#{Constants.ObjectNameLightingGarage} schedule", col_name: col_name)
+        sch = schedules_file.createScheduleFile(col_name: col_name)
       end
 
       space_design_level = schedules_file.calcDesignLevelFromAnnualkWh(col_name: col_name, annual_kwh: space_ltg_ann)
@@ -82,7 +82,7 @@ class Lighting
     obj_name = Constants.ObjectNameLightingExterior
 
     # Create schedule
-    sch = schedules_file.createScheduleFile(sch_file_name: "#{obj_name} schedule", col_name: col_name)
+    sch = schedules_file.createScheduleFile(col_name: col_name)
 
     design_level = schedules_file.calcDesignLevelFromAnnualkWh(col_name: col_name, annual_kwh: exterior_ann)
 
@@ -104,7 +104,7 @@ class Lighting
     obj_name = Constants.ObjectNameLightingExteriorHoliday
 
     # Create schedule
-    sch = schedules_file.createScheduleFile(sch_file_name: "#{obj_name} schedule", col_name: col_name)
+    sch = schedules_file.createScheduleFile(col_name: col_name)
 
     design_level = schedules_file.calcDesignLevelFromAnnualkWh(col_name: col_name, annual_kwh: exterior_ann)
 

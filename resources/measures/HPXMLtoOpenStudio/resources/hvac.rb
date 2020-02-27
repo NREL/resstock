@@ -3371,7 +3371,7 @@ class HVAC
 
         col_name = "ceiling_fan"
         if sch.nil?
-          sch = schedules_file.createScheduleFile(sch_file_name: "#{space_obj_name} schedule", col_name: col_name)
+          sch = schedules_file.createScheduleFile(col_name: col_name)
         end
 
         space_mel_ann = mel_ann * UnitConversions.convert(space.floorArea, "m^2", "ft^2") / finished_floor_area

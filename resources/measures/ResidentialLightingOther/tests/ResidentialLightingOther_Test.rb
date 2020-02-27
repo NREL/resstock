@@ -488,14 +488,12 @@ class ResidentialLightingOtherTest < MiniTest::Test
         new_object = new_object.public_send("to_#{obj_type}").get
         if obj_type == "Lights"
           schedule_file = new_object.schedule.get.to_ScheduleFile.get
-          sch_path = schedule_file.externalFile.filePath.to_s
-          schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_output_path: sch_path)
+          schedules_file = SchedulesFile.new(runner: runner, model: model)
           full_load_hrs = schedules_file.annual_equivalent_full_load_hrs(col_name: "lighting_garage")
           actual_values["Annual_kwh"] += UnitConversions.convert(full_load_hrs * new_object.lightingLevel.get * new_object.multiplier * new_object.space.get.multiplier, "Wh", "kWh")
         elsif obj_type == "ExteriorLights"
           schedule_file = new_object.schedule.get.to_ScheduleFile.get
-          sch_path = schedule_file.externalFile.filePath.to_s
-          schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_output_path: sch_path)
+          schedules_file = SchedulesFile.new(runner: runner, model: model)
           col_name = schedules_file.get_col_name(col_index: schedule_file.columnNumber - 1)
           full_load_hrs = schedules_file.annual_equivalent_full_load_hrs(col_name: col_name)
           actual_values["Annual_kwh"] += UnitConversions.convert(full_load_hrs * new_object.exteriorLightsDefinition.designLevel * new_object.multiplier, "Wh", "kWh")

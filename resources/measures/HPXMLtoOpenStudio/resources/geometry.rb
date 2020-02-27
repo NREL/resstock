@@ -1537,7 +1537,7 @@ class Geometry
         if space_num_occ > 0
 
           if people_sch.nil?
-            people_sch = schedules_file.createScheduleFile(sch_file_name: "#{Constants.ObjectNameOccupants} schedule", col_name: "occupants")
+            people_sch = schedules_file.createScheduleFile(col_name: "occupants")
           end
 
           if activity_sch.nil?

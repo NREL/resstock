@@ -960,12 +960,12 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Measure::Model
     unless result
       return false
     end
-
+puts "HERE0"
     schedules_file = SchedulesFile.new(runner: runner, model: model)
     if not schedules_file.validated?
       return false
     end
-
+puts "HERE1"
     result = Geometry.process_occupants(model, runner, num_occupants, occ_gain = 384.0, sens_frac = 0.573, lat_frac = 0.427, schedules_file)
     unless result
       return false

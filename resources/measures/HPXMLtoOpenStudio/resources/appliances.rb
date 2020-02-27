@@ -418,7 +418,7 @@ class ClothesWasher
     if ann_e > 0
 
       if sch.nil?
-        sch = schedules_file.createScheduleFile(sch_file_name: "#{Constants.ObjectNameClothesWasher} schedule", col_name: col_name)
+        sch = schedules_file.createScheduleFile(col_name: col_name)
       end
 
       # Reuse existing water use connection if possible
@@ -690,7 +690,7 @@ class ClothesDryer
     if ann_e > 0 or ann_f > 0
 
       if sch.nil?
-        sch = schedules_file.createScheduleFile(sch_file_name: "#{unit_obj_name_f} schedule", col_name: col_name)
+        sch = schedules_file.createScheduleFile(col_name: col_name)
       end
 
       # Add equipment for the cd
@@ -840,7 +840,7 @@ class CookingRange
     if ann_f > 0 or ann_e > 0
 
       if sch.nil?
-        sch = schedules_file.createScheduleFile(sch_file_name: "#{Constants.ObjectNameCookingRange(fuel_type, false)} schedule", col_name: col_name)
+        sch = schedules_file.createScheduleFile(col_name: col_name)
       end
 
     end
@@ -1171,7 +1171,7 @@ class Dishwasher
     if ann_e > 0
 
       if sch.nil?
-        sch = schedules_file.createScheduleFile(sch_file_name: "#{Constants.ObjectNameDishwasher} schedule", col_name: col_name)
+        sch = schedules_file.createScheduleFile(col_name: col_name)
       end
 
       # Reuse existing water use connection if possible
