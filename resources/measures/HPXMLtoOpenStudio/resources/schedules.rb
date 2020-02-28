@@ -1014,6 +1014,7 @@ end
 class ScheduleGenerator
   def initialize(runner:,
                  model:,
+                 building_id: nil,
                  num_occupants:,
                  schedules_path:,
                  num_units: nil,
@@ -1022,6 +1023,7 @@ class ScheduleGenerator
 
     @runner = runner
     @model = model
+    @building_id = building_id
     @num_occupants = num_occupants
     @schedules_path = schedules_path
     @num_units = num_units
@@ -1045,12 +1047,16 @@ class ScheduleGenerator
     end
     @model.getYearDescription.isLeapYear ? total_days_in_year = 366 : total_days_in_year = 365
 
-    building_id = @model.getBuilding.additionalProperties.getFeatureAsInteger("Building ID") # this becomes the seed
-    if building_id.is_initialized
-      building_id = building_id.get
+    if @building_id.nil?
+      building_id = @model.getBuilding.additionalProperties.getFeatureAsInteger("Building ID") # this becomes the seed
+      if building_id.is_initialized
+        building_id = building_id.get
+      else
+        @runner.registerWarning("Unable to retrieve the Building ID (seed for schedule generator); setting it to 1.")
+        building_id = 1
+      end
     else
-      @runner.registerWarning("Unable to retrieve the Building ID (seed for schedule generator); setting it to 1.")
-      building_id = 1
+      building_id = @building_id
     end
 
     # initialize a random number generator using building_id
@@ -1199,7 +1205,7 @@ class ScheduleGenerator
       end
     end
 
-    if not @model.getBuilding.additionalProperties.getFeatureAsInteger("Building ID").is_initialized # this is a test
+    if not @model.getBuilding.additionalProperties.getFeatureAsInteger("Building ID").is_initialized and @building_id.nil? # this is a test
       if @model.getYearDescription.isLeapYear
         sch_path = File.join(File.dirname(__FILE__), "../../../../test/schedules/8784.csv")
       else

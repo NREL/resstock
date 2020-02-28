@@ -12,6 +12,13 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
     _test_measure("Denver.osm", args_hash, expected_values, __method__, "USA_CO_Denver.Intl.AP.725650_TMY3.epw")
   end
 
+  def test_building_id_12345
+    args_hash = {}
+    args_hash["building_id"] = 12345
+    expected_values = { "SchedulesLength" => 52560, "SchedulesWidth" => 14 }
+    _test_measure("Denver.osm", args_hash, expected_values, __method__, "USA_CO_Denver.Intl.AP.725650_TMY3.epw")
+  end
+
   private
 
   def model_in_path_default(osm_file_or_model)
@@ -139,7 +146,7 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
       assert(File.exist?(schedule_file_path(test_name)))
 
       # make sure you're reporting at correct frequency
-      schedules_length, schedules_width = get_schedule_file(schedule_file_path(test_name))
+      schedules_length, schedules_width = get_schedule_file(model, runner, schedule_file_path(test_name))
       assert_equal(expected_values["SchedulesLength"], schedules_length)
       assert_equal(expected_values["SchedulesWidth"], schedules_width)
     end
@@ -151,23 +158,38 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
     return model
   end
 
-  def get_schedule_file(schedule_file)
+  def get_schedule_file(model, runner, schedule_file)
+    schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_output_path: schedule_file)
+    if not schedules_file.validated?
+      return false
+    end
+
     rows = CSV.read(File.expand_path(schedule_file))
-    check_columns(rows.transpose)
+    check_columns(rows[0], schedules_file)
     schedules_length = rows.length - 1
     cols = rows.transpose
     schedules_width = cols.length
     return schedules_length, schedules_width
   end
 
-  def check_columns(cols)
-    cols.each do |col|
-      col_name = col[0]
-      next if ["clothes_washer", "clothes_dryer", "dishwasher"].include? col_name
+  def check_columns(col_names, schedules_file)
+    passes = true
+    col_names.each do |col_name|
+      full_load_hrs = schedules_file.annual_equivalent_full_load_hrs(col_name: col_name)
+      if full_load_hrs > 0
+        full_load_hrs = "#{full_load_hrs.round(1)}".green
+      else
+        full_load_hrs = "#{full_load_hrs.round(1)}".red
+        passes = false
+      end
 
-      puts "Checking #{col_name}..."
-      col = col[1..-1].map { |x| Float(x) }
-      assert(!col.all? { |x| x == 0 })
+      puts "Checking #{col_name}... Full Load Hrs: #{full_load_hrs}"
     end
+    assert(passes)
   end
+end
+
+class String
+def red;            "\e[31m#{self}\e[0m" end
+def green;          "\e[32m#{self}\e[0m" end
 end
