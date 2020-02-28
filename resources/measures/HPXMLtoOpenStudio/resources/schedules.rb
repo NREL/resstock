@@ -1201,9 +1201,9 @@ class ScheduleGenerator
 
     if not @model.getBuilding.additionalProperties.getFeatureAsInteger("Building ID").is_initialized # this is a test
       if @model.getYearDescription.isLeapYear
-        sch_path = File.join(File.dirname(__FILE__), "../../../../test/schedules/Leap_10min.csv")
+        sch_path = File.join(File.dirname(__FILE__), "../../../../test/schedules/8784.csv")
       else
-        sch_path = File.join(File.dirname(__FILE__), "../../../../test/schedules/TMY_10min.csv")
+        sch_path = File.join(File.dirname(__FILE__), "../../../../test/schedules/8760.csv")
       end
       schedules = {}
       columns = CSV.read(sch_path).transpose
@@ -1212,6 +1212,8 @@ class ScheduleGenerator
         values = values.map { |v| v.to_f }
         schedules[col[0]] = values
       end
+
+      @ceiling_fan_schedule = schedules["ceiling_fan"]
 
       @dish_washer_schedule = schedules["dishwasher"]
       dishwasher_max_flow_rate = 2.8186
@@ -1331,6 +1333,12 @@ class SchedulesFile
 
   def createScheduleFile(col_name:,
                          rows_to_skip: 1)
+    @model.getScheduleFiles.each do |schedule_file|
+      next if schedule_file.name.to_s != col_name
+
+      return schedule_file
+    end
+
     import(col_name: col_name)
 
     if @schedules[col_name].nil?
