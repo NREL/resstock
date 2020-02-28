@@ -183,7 +183,7 @@ class TimeseriesCSVExportTest < MiniTest::Test
       FileUtils.mkdir_p("#{test_dir(test_name)}")
     end
 
-    FileUtils.cp(sch_path, "#{test_dir(test_name)}")
+    FileUtils.cp(sch_path, "#{test_dir(test_name)}/schedules.csv")
 
     cli_path = OpenStudio.getOpenStudioCLI
     cmd = "\"#{cli_path}\" --no-ssl run -w \"#{osw_path}\""
