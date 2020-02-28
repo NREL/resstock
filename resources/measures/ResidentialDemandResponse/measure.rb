@@ -105,7 +105,7 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
     appl_winter_take_2 = OpenStudio::Measure::OSArgument::makeStringArgument("appl_winter_take_2", false)
     appl_winter_take_2.setDisplayName("Hours for the winter during which the load is low")
     appl_winter_take_2.setDescription("Period for the winter months in 24-hour format a-b,c-d inclusive all hours, when the load is low") # ##fix
-    appl_winter_take_2.setDefaultValue("0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0") 
+    appl_winter_take_2.setDefaultValue("0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0")
     args << appl_winter_take_2
 
     appl_summer_season = OpenStudio::Measure::OSArgument::makeStringArgument("appl_summer_season", false)

@@ -133,7 +133,7 @@ upgrades:
 ##up4 - package 1d - EE best envelope
   - upgrade_name: Package 1d EE Best Envelope
     options: 
-      #Best walls
+      ## Best walls
       - option: Insulation Wall|Wood Stud, R-13, R-20 external XPS
         apply_logic:
           or:
@@ -141,13 +141,18 @@ upgrades:
             - Insulation Wall|Wood Stud, R-7
             - Insulation Wall|Wood Stud, R-11
             - Insulation Wall|Wood Stud, R-13
-            - Insulation Wall|Wood Stud, R-19
-            - Insulation Wall|Wood Stud, R-19, Grade 2 #not in baseline
-            - Insulation Wall|Wood Stud, R-19, Grade 3 #not in baseline
-        costs:
-          - value: 0
-            multiplier: Fixed (1)
-        lifetime: 999
+      - option: Insulation Wall|Wood Stud, R-19, R-20 external XPS
+        apply_logic: Insulation Wall|Wood Stud, R-19
+      - option: Insulation Wall|CMU, 6-in Hollow, R-5.5, R-20 XPS
+        apply_logic: Insulation Wall|CMU, 6-in Hollow, Uninsulated
+      - option: Insulation Wall Upgrade|CMU, R-20 XPS Upgrade
+        apply_logic:
+          or:
+            - Insulation Wall|CMU, 6-in Hollow, R-7
+            - Insulation Wall|CMU, 6-in Hollow, R-11
+            - Insulation Wall|CMU, 6-in Hollow, R-15
+            - Insulation Wall|CMU, 6-in Hollow, R-19
+
       #Best roofs
       - option: Insulation Unfinished Attic|Ceiling R-49, Vented
         apply_logic: 
@@ -175,17 +180,13 @@ upgrades:
           - value: 360
             multiplier: Fixed (1)
         lifetime: 999
-      #Best windows
+      ## Best windows
       - option: Windows|SCOUT 5.88 R, 0.49 SHGC
         apply_logic:
           or:
             - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
             - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
             - Location|MN_International.Falls.Intl.AP.727470 #AIA1
-        costs:
-          - value: 0
-            multiplier: Fixed (1)
-        lifetime: 999
       - option: Windows|SCOUT 5.88 R, 0.42 SHGC
         apply_logic:
           or:
@@ -193,24 +194,19 @@ upgrades:
             - Location|WA_Quillayute.State.AP.727970 #AIA2
             - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
             - Location|MN_Rochester.Intl.AP.726440 #AIA2
-        costs:
-          - value: 0
-            multiplier: Fixed (1)
-        lifetime: 999
       - option: Windows|SCOUT 5.88 R, 0.27 SHGC
         apply_logic:
           or:
-            - Location|FL_Orlando.Intl.AP.722050 #AIA5
+            - Location|NY_New.York-J.F.Kennedy.Intl.AP.744860 #AIA3
+            - Location|WA_Seattle-Tacoma.Intl.AP.727930 #AIA3
+      - option: Windows|SCOUT 5.88 R, 0.25 SHGC
+        apply_logic:
+          or:
+            - Location|CA_San.Diego-Lindbergh.Field.722900 #AIA4
             - Location|AZ_Tucson.Intl.AP.722740 #AIA4
             - Location|GA_Atlanta-Hartsfield-Jackson.Intl.AP.722190 #AIA5
             - Location|TX_El.Paso.Intl.AP.722700 #AIA5
-            - Location|CA_San.Diego-Lindbergh.Field.722900 #AIA4
-            - Location|NY_New.York-J.F.Kennedy.Intl.AP.744860 #AIA3
-            - Location|WA_Seattle-Tacoma.Intl.AP.727930 #AIA3
-        costs:
-          - value: 0
-            multiplier: Fixed (1)
-        lifetime: 999
+            - Location|FL_Orlando.Intl.AP.722050 #AIA5
       #Best foundation:
       - option: Insulation Crawlspace|Ceiling R-30, Vented
         apply_logic:
@@ -514,13 +510,18 @@ upgrades:
             - Insulation Wall|Wood Stud, R-7
             - Insulation Wall|Wood Stud, R-11
             - Insulation Wall|Wood Stud, R-13
-            - Insulation Wall|Wood Stud, R-19
-            - Insulation Wall|Wood Stud, R-19, Grade 2 #not in baseline
-            - Insulation Wall|Wood Stud, R-19, Grade 3 #not in baseline
-        costs:
-          - value: 0
-            multiplier: Fixed (1)
-        lifetime: 999
+      - option: Insulation Wall|Wood Stud, R-19, R-20 external XPS
+        apply_logic: Insulation Wall|Wood Stud, R-19
+      - option: Insulation Wall|CMU, 6-in Hollow, R-5.5, R-20 XPS
+        apply_logic: Insulation Wall|CMU, 6-in Hollow, Uninsulated
+      - option: Insulation Wall Upgrade|CMU, R-20 XPS Upgrade
+        apply_logic:
+          or:
+            - Insulation Wall|CMU, 6-in Hollow, R-7
+            - Insulation Wall|CMU, 6-in Hollow, R-11
+            - Insulation Wall|CMU, 6-in Hollow, R-15
+            - Insulation Wall|CMU, 6-in Hollow, R-19
+
       ## Best roofs
       - option: Insulation Unfinished Attic|Ceiling R-49, Vented
         apply_logic: 
@@ -573,17 +574,16 @@ upgrades:
       - option: Windows|SCOUT 5.88 R, 0.27 SHGC
         apply_logic:
           or:
-            - Location|FL_Orlando.Intl.AP.722050 #AIA5
+            - Location|NY_New.York-J.F.Kennedy.Intl.AP.744860 #AIA3
+            - Location|WA_Seattle-Tacoma.Intl.AP.727930 #AIA3
+      - option: Windows|SCOUT 5.88 R, 0.25 SHGC
+        apply_logic:
+          or:
+            - Location|CA_San.Diego-Lindbergh.Field.722900 #AIA4
             - Location|AZ_Tucson.Intl.AP.722740 #AIA4
             - Location|GA_Atlanta-Hartsfield-Jackson.Intl.AP.722190 #AIA5
             - Location|TX_El.Paso.Intl.AP.722700 #AIA5
-            - Location|CA_San.Diego-Lindbergh.Field.722900 #AIA4
-            - Location|NY_New.York-J.F.Kennedy.Intl.AP.744860 #AIA3
-            - Location|WA_Seattle-Tacoma.Intl.AP.727930 #AIA3
-        costs:
-          - value: 0
-            multiplier: Fixed (1)
-        lifetime: 999
+            - Location|FL_Orlando.Intl.AP.722050 #AIA5
         
       #Best foundation:
       - option: Insulation Crawlspace|Ceiling R-30, Vented
@@ -730,13 +730,18 @@ upgrades:
             - Insulation Wall|Wood Stud, R-7
             - Insulation Wall|Wood Stud, R-11
             - Insulation Wall|Wood Stud, R-13
-            - Insulation Wall|Wood Stud, R-19
-            - Insulation Wall|Wood Stud, R-19, Grade 2 #not in baseline
-            - Insulation Wall|Wood Stud, R-19, Grade 3 #not in baseline
-        costs:
-          - value: 0
-            multiplier: Fixed (1)
-        lifetime: 999
+      - option: Insulation Wall|Wood Stud, R-19, R-20 external XPS
+        apply_logic: Insulation Wall|Wood Stud, R-19
+      - option: Insulation Wall|CMU, 6-in Hollow, R-5.5, R-20 XPS
+        apply_logic: Insulation Wall|CMU, 6-in Hollow, Uninsulated
+      - option: Insulation Wall Upgrade|CMU, R-20 XPS Upgrade
+        apply_logic:
+          or:
+            - Insulation Wall|CMU, 6-in Hollow, R-7
+            - Insulation Wall|CMU, 6-in Hollow, R-11
+            - Insulation Wall|CMU, 6-in Hollow, R-15
+            - Insulation Wall|CMU, 6-in Hollow, R-19
+
       ## Best roofs
       - option: Insulation Unfinished Attic|Ceiling R-49, Vented
         apply_logic: 
@@ -789,17 +794,17 @@ upgrades:
       - option: Windows|SCOUT 5.88 R, 0.27 SHGC
         apply_logic:
           or:
-            - Location|FL_Orlando.Intl.AP.722050 #AIA5
+            - Location|NY_New.York-J.F.Kennedy.Intl.AP.744860 #AIA3
+            - Location|WA_Seattle-Tacoma.Intl.AP.727930 #AIA3
+      - option: Windows|SCOUT 5.88 R, 0.25 SHGC
+        apply_logic:
+          or:
+            - Location|CA_San.Diego-Lindbergh.Field.722900 #AIA4
             - Location|AZ_Tucson.Intl.AP.722740 #AIA4
             - Location|GA_Atlanta-Hartsfield-Jackson.Intl.AP.722190 #AIA5
             - Location|TX_El.Paso.Intl.AP.722700 #AIA5
-            - Location|CA_San.Diego-Lindbergh.Field.722900 #AIA4
-            - Location|NY_New.York-J.F.Kennedy.Intl.AP.744860 #AIA3
-            - Location|WA_Seattle-Tacoma.Intl.AP.727930 #AIA3
-        costs:
-          - value: 0
-            multiplier: Fixed (1)
-        lifetime: 999
+            - Location|FL_Orlando.Intl.AP.722050 #AIA5
+
       #Best foundation:
       - option: Insulation Crawlspace|Ceiling R-30, Vented
         apply_logic:
@@ -945,13 +950,18 @@ upgrades:
             - Insulation Wall|Wood Stud, R-7
             - Insulation Wall|Wood Stud, R-11
             - Insulation Wall|Wood Stud, R-13
-            - Insulation Wall|Wood Stud, R-19
-            - Insulation Wall|Wood Stud, R-19, Grade 2 #not in baseline
-            - Insulation Wall|Wood Stud, R-19, Grade 3 #not in baseline
-        costs:
-          - value: 0
-            multiplier: Fixed (1)
-        lifetime: 999
+      - option: Insulation Wall|Wood Stud, R-19, R-20 external XPS
+        apply_logic: Insulation Wall|Wood Stud, R-19
+      - option: Insulation Wall|CMU, 6-in Hollow, R-5.5, R-20 XPS
+        apply_logic: Insulation Wall|CMU, 6-in Hollow, Uninsulated
+      - option: Insulation Wall Upgrade|CMU, R-20 XPS Upgrade
+        apply_logic:
+          or:
+            - Insulation Wall|CMU, 6-in Hollow, R-7
+            - Insulation Wall|CMU, 6-in Hollow, R-11
+            - Insulation Wall|CMU, 6-in Hollow, R-15
+            - Insulation Wall|CMU, 6-in Hollow, R-19
+
       ## Best roofs
       - option: Insulation Unfinished Attic|Ceiling R-49, Vented
         apply_logic: 
@@ -1004,17 +1014,17 @@ upgrades:
       - option: Windows|SCOUT 5.88 R, 0.27 SHGC
         apply_logic:
           or:
-            - Location|FL_Orlando.Intl.AP.722050 #AIA5
+            - Location|NY_New.York-J.F.Kennedy.Intl.AP.744860 #AIA3
+            - Location|WA_Seattle-Tacoma.Intl.AP.727930 #AIA3
+      - option: Windows|SCOUT 5.88 R, 0.25 SHGC
+        apply_logic:
+          or:
+            - Location|CA_San.Diego-Lindbergh.Field.722900 #AIA4
             - Location|AZ_Tucson.Intl.AP.722740 #AIA4
             - Location|GA_Atlanta-Hartsfield-Jackson.Intl.AP.722190 #AIA5
             - Location|TX_El.Paso.Intl.AP.722700 #AIA5
-            - Location|CA_San.Diego-Lindbergh.Field.722900 #AIA4
-            - Location|NY_New.York-J.F.Kennedy.Intl.AP.744860 #AIA3
-            - Location|WA_Seattle-Tacoma.Intl.AP.727930 #AIA3
-        costs:
-          - value: 0
-            multiplier: Fixed (1)
-        lifetime: 999
+            - Location|FL_Orlando.Intl.AP.722050 #AIA5
+            
       #Best foundation:
       - option: Insulation Crawlspace|Ceiling R-30, Vented
         apply_logic:
@@ -1083,13 +1093,17 @@ upgrades:
             - Insulation Wall|Wood Stud, R-7
             - Insulation Wall|Wood Stud, R-11
             - Insulation Wall|Wood Stud, R-13
-            - Insulation Wall|Wood Stud, R-19
-            - Insulation Wall|Wood Stud, R-19, Grade 2 #not in baseline
-            - Insulation Wall|Wood Stud, R-19, Grade 3 #not in baseline
-        costs:
-          - value: 0
-            multiplier: Fixed (1)
-        lifetime: 999
+      - option: Insulation Wall|Wood Stud, R-19, R-20 external XPS
+        apply_logic: Insulation Wall|Wood Stud, R-19
+      - option: Insulation Wall|CMU, 6-in Hollow, R-5.5, R-20 XPS
+        apply_logic: Insulation Wall|CMU, 6-in Hollow, Uninsulated
+      - option: Insulation Wall Upgrade|CMU, R-20 XPS Upgrade
+        apply_logic:
+          or:
+            - Insulation Wall|CMU, 6-in Hollow, R-7
+            - Insulation Wall|CMU, 6-in Hollow, R-11
+            - Insulation Wall|CMU, 6-in Hollow, R-15
+            - Insulation Wall|CMU, 6-in Hollow, R-19
       ## Best roofs
       - option: Insulation Unfinished Attic|Ceiling R-49, Vented
         apply_logic: 
@@ -1206,17 +1220,16 @@ upgrades:
       - option: Windows|SCOUT 5.88 R, 0.27 SHGC
         apply_logic:
           or:
-            - Location|FL_Orlando.Intl.AP.722050 #AIA5
+            - Location|NY_New.York-J.F.Kennedy.Intl.AP.744860 #AIA3
+            - Location|WA_Seattle-Tacoma.Intl.AP.727930 #AIA3
+      - option: Windows|SCOUT 5.88 R, 0.25 SHGC
+        apply_logic:
+          or:
+            - Location|CA_San.Diego-Lindbergh.Field.722900 #AIA4
             - Location|AZ_Tucson.Intl.AP.722740 #AIA4
             - Location|GA_Atlanta-Hartsfield-Jackson.Intl.AP.722190 #AIA5
             - Location|TX_El.Paso.Intl.AP.722700 #AIA5
-            - Location|CA_San.Diego-Lindbergh.Field.722900 #AIA4
-            - Location|NY_New.York-J.F.Kennedy.Intl.AP.744860 #AIA3
-            - Location|WA_Seattle-Tacoma.Intl.AP.727930 #AIA3
-        costs:
-          - value: 0
-            multiplier: Fixed (1)
-        lifetime: 999
+            - Location|FL_Orlando.Intl.AP.722050 #AIA5
    
 ##up12 - package 2 - DR (wh, thermostat, appliance)
   - upgrade_name: package 2 DR only
@@ -1435,7 +1448,7 @@ upgrades:
           - Heating Setpoint Has Offset|Yes
       
       ##envelope
-      #Best walls
+      ## Best walls
       - option: Insulation Wall|Wood Stud, R-13, R-20 external XPS
         apply_logic:
           or:
@@ -1443,13 +1456,17 @@ upgrades:
             - Insulation Wall|Wood Stud, R-7
             - Insulation Wall|Wood Stud, R-11
             - Insulation Wall|Wood Stud, R-13
-            - Insulation Wall|Wood Stud, R-19
-            - Insulation Wall|Wood Stud, R-19, Grade 2 #not in baseline
-            - Insulation Wall|Wood Stud, R-19, Grade 3 #not in baseline
-        costs:
-          - value: 0
-            multiplier: Fixed (1)
-        lifetime: 999
+      - option: Insulation Wall|Wood Stud, R-19, R-20 external XPS
+        apply_logic: Insulation Wall|Wood Stud, R-19
+      - option: Insulation Wall|CMU, 6-in Hollow, R-5.5, R-20 XPS
+        apply_logic: Insulation Wall|CMU, 6-in Hollow, Uninsulated
+      - option: Insulation Wall Upgrade|CMU, R-20 XPS Upgrade
+        apply_logic:
+          or:
+            - Insulation Wall|CMU, 6-in Hollow, R-7
+            - Insulation Wall|CMU, 6-in Hollow, R-11
+            - Insulation Wall|CMU, 6-in Hollow, R-15
+            - Insulation Wall|CMU, 6-in Hollow, R-19
       #Best roofs
       - option: Insulation Unfinished Attic|Ceiling R-49, Vented
         apply_logic: 
@@ -1625,10 +1642,9 @@ upgrades:
           - not: Heating Setpoint|62F
           - not: Heating Setpoint|60F   
           - Heating Setpoint Has Offset|Yes 
-        
-      
+          
       #envelope
-      #Best walls
+      ## Best walls
       - option: Insulation Wall|Wood Stud, R-13, R-20 external XPS
         apply_logic:
           or:
@@ -1636,13 +1652,18 @@ upgrades:
             - Insulation Wall|Wood Stud, R-7
             - Insulation Wall|Wood Stud, R-11
             - Insulation Wall|Wood Stud, R-13
-            - Insulation Wall|Wood Stud, R-19
-            - Insulation Wall|Wood Stud, R-19, Grade 2 #not in baseline
-            - Insulation Wall|Wood Stud, R-19, Grade 3 #not in baseline
-        costs:
-          - value: 0
-            multiplier: Fixed (1)
-        lifetime: 999
+      - option: Insulation Wall|Wood Stud, R-19, R-20 external XPS
+        apply_logic: Insulation Wall|Wood Stud, R-19
+      - option: Insulation Wall|CMU, 6-in Hollow, R-5.5, R-20 XPS
+        apply_logic: Insulation Wall|CMU, 6-in Hollow, Uninsulated
+      - option: Insulation Wall Upgrade|CMU, R-20 XPS Upgrade
+        apply_logic:
+          or:
+            - Insulation Wall|CMU, 6-in Hollow, R-7
+            - Insulation Wall|CMU, 6-in Hollow, R-11
+            - Insulation Wall|CMU, 6-in Hollow, R-15
+            - Insulation Wall|CMU, 6-in Hollow, R-19
+
       #Best roofs
       - option: Insulation Unfinished Attic|Ceiling R-49, Vented
         apply_logic: 
@@ -1827,13 +1848,18 @@ upgrades:
             - Insulation Wall|Wood Stud, R-7
             - Insulation Wall|Wood Stud, R-11
             - Insulation Wall|Wood Stud, R-13
-            - Insulation Wall|Wood Stud, R-19
-            - Insulation Wall|Wood Stud, R-19, Grade 2 #not in baseline
-            - Insulation Wall|Wood Stud, R-19, Grade 3 #not in baseline
-        costs:
-          - value: 0
-            multiplier: Fixed (1)
-        lifetime: 999
+      - option: Insulation Wall|Wood Stud, R-19, R-20 external XPS
+        apply_logic: Insulation Wall|Wood Stud, R-19
+      - option: Insulation Wall|CMU, 6-in Hollow, R-5.5, R-20 XPS
+        apply_logic: Insulation Wall|CMU, 6-in Hollow, Uninsulated
+      - option: Insulation Wall Upgrade|CMU, R-20 XPS Upgrade
+        apply_logic:
+          or:
+            - Insulation Wall|CMU, 6-in Hollow, R-7
+            - Insulation Wall|CMU, 6-in Hollow, R-11
+            - Insulation Wall|CMU, 6-in Hollow, R-15
+            - Insulation Wall|CMU, 6-in Hollow, R-19
+
       ## Best roofs
       - option: Insulation Unfinished Attic|Ceiling R-49, Vented
         apply_logic: 
@@ -1886,17 +1912,16 @@ upgrades:
       - option: Windows|SCOUT 5.88 R, 0.27 SHGC
         apply_logic:
           or:
-            - Location|FL_Orlando.Intl.AP.722050 #AIA5
+            - Location|NY_New.York-J.F.Kennedy.Intl.AP.744860 #AIA3
+            - Location|WA_Seattle-Tacoma.Intl.AP.727930 #AIA3
+      - option: Windows|SCOUT 5.88 R, 0.25 SHGC
+        apply_logic:
+          or:
+            - Location|CA_San.Diego-Lindbergh.Field.722900 #AIA4
             - Location|AZ_Tucson.Intl.AP.722740 #AIA4
             - Location|GA_Atlanta-Hartsfield-Jackson.Intl.AP.722190 #AIA5
             - Location|TX_El.Paso.Intl.AP.722700 #AIA5
-            - Location|CA_San.Diego-Lindbergh.Field.722900 #AIA4
-            - Location|NY_New.York-J.F.Kennedy.Intl.AP.744860 #AIA3
-            - Location|WA_Seattle-Tacoma.Intl.AP.727930 #AIA3
-        costs:
-          - value: 0
-            multiplier: Fixed (1)
-        lifetime: 999
+            - Location|FL_Orlando.Intl.AP.722050 #AIA5
       #Best foundation:
       - option: Insulation Crawlspace|Ceiling R-30, Vented
         apply_logic:
