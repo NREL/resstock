@@ -31,7 +31,7 @@ class ResidentialScheduleGenerator < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeIntegerArgument("building_id", false)
     arg.setDisplayName("Building ID")
     arg.setUnits("#")
-    arg.setDefaultValue(1)
+    arg.setDefaultValue(0)
     args << arg
 
     # make an argument for number of units
