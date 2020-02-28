@@ -457,7 +457,6 @@ class ResidentialCookingRangeTest < MiniTest::Test
     check_num_objects(all_new_objects, expected_num_new_objects, "added")
     check_num_objects(all_del_objects, expected_num_del_objects, "deleted")
 
-    schedules_file = nil
     actual_values = { "Annual_kwh" => 0, "Annual_therm" => 0, "Annual_gal" => 0, "Location" => [] }
     all_new_objects.each do |obj_type, new_objects|
       new_objects.each do |new_object|
@@ -465,18 +464,14 @@ class ResidentialCookingRangeTest < MiniTest::Test
 
         new_object = new_object.public_send("to_#{obj_type}").get
         if obj_type == "ElectricEquipment"
-          if schedules_file.nil?
-            schedule_file = new_object.schedule.get.to_ScheduleFile.get
-            schedules_file = SchedulesFile.new(runner: runner, model: model)
-          end
+          schedule_file = new_object.schedule.get.to_ScheduleFile.get
+          schedules_file = SchedulesFile.new(runner: runner, model: model)
           full_load_hrs = schedules_file.annual_equivalent_full_load_hrs(col_name: schedule_file.name.to_s)
           actual_values["Annual_kwh"] += UnitConversions.convert(full_load_hrs * new_object.designLevel.get * new_object.multiplier, "Wh", "kWh")
           actual_values["Location"] << new_object.space.get.spaceType.get.standardsSpaceType.get
         elsif obj_type == "OtherEquipment"
-          if schedules_file.nil?
-            schedule_file = new_object.schedule.get.to_ScheduleFile.get
-            schedules_file = SchedulesFile.new(runner: runner, model: model)
-          end
+          schedule_file = new_object.schedule.get.to_ScheduleFile.get
+          schedules_file = SchedulesFile.new(runner: runner, model: model)
           full_load_hrs = schedules_file.annual_equivalent_full_load_hrs(col_name: schedule_file.name.to_s)
           if args_hash["fuel_type"] == Constants.FuelTypeGas
             actual_values["Annual_therm"] += UnitConversions.convert(full_load_hrs * new_object.otherEquipmentDefinition.designLevel.get * new_object.multiplier, "Wh", "therm")
