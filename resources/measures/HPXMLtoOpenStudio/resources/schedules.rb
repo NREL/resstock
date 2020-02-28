@@ -1023,7 +1023,7 @@ class ScheduleGenerator
 
     @runner = runner
     @model = model
-    @building_id = building_id
+    @building_id = building_id # this is used for testing
     @num_occupants = num_occupants
     @schedules_path = schedules_path
     @num_units = num_units
@@ -1205,7 +1205,7 @@ class ScheduleGenerator
       end
     end
 
-    if not @model.getBuilding.additionalProperties.getFeatureAsInteger("Building ID").is_initialized and @building_id.nil? # this is a test
+    if building_id == 0 # this is a test
       if @model.getYearDescription.isLeapYear
         sch_path = File.join(File.dirname(__FILE__), "../../../../test/schedules/8784.csv")
       else
