@@ -193,7 +193,7 @@ class ResilienceMetricsReportTest < MiniTest::Test
   end
 
   def sch_path_default(sch_name)
-    sch = OpenStudio::Path.new("#{File.dirname(__FILE__)}/../../../test/schedules/#{sch_name}")
+    sch = OpenStudio::Path.new("#{File.dirname(__FILE__)}/../../../files/#{sch_name}")
     assert(File.exist?(sch.to_s))
     return sch.to_s
   end
@@ -238,7 +238,7 @@ class ResilienceMetricsReportTest < MiniTest::Test
       FileUtils.mkdir_p("#{test_dir(test_name)}")
     end
 
-    FileUtils.cp(sch_path, "#{test_dir(test_name)}/appliances_schedules.csv")
+    FileUtils.cp(sch_path, "#{test_dir(test_name)}")
 
     cli_path = OpenStudio.getOpenStudioCLI
     cmd = "\"#{cli_path}\" --no-ssl run -w \"#{osw_path}\""

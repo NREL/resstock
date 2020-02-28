@@ -6,27 +6,43 @@ require_relative '../measure.rb'
 require 'fileutils'
 
 class ResidentialScheduleGeneratorTest < MiniTest::Test
-  def test_default_values
+  def test_two_occupants
     args_hash = {}
+    args_hash[:num_occupants] = 2
     expected_values = { "SchedulesLength" => 52560, "SchedulesWidth" => 14 }
-    _test_measure("Denver.osm", args_hash, expected_values, __method__, "USA_CO_Denver.Intl.AP.725650_TMY3.epw")
+    _test_measure("SFD_2000sqft_2story_FB_UA_Denver.osm", args_hash, expected_values, __method__, "USA_CO_Denver.Intl.AP.725650_TMY3.epw")
   end
 
-  def test_building_id_12345
+  def test_three_occupants
     args_hash = {}
-    args_hash["building_id"] = 12345
+    args_hash[:num_occupants] = 3
     expected_values = { "SchedulesLength" => 52560, "SchedulesWidth" => 14 }
-    _test_measure("Denver.osm", args_hash, expected_values, __method__, "USA_CO_Denver.Intl.AP.725650_TMY3.epw")
+    _test_measure("SFD_2000sqft_2story_FB_UA_Denver.osm", args_hash, expected_values, __method__, "USA_CO_Denver.Intl.AP.725650_TMY3.epw")
+  end
+
+  def test_four_occupants
+    args_hash = {}
+    args_hash[:num_occupants] = 4
+    expected_values = { "SchedulesLength" => 52560, "SchedulesWidth" => 14 }
+    _test_measure("SFD_2000sqft_2story_FB_UA_Denver.osm", args_hash, expected_values, __method__, "USA_CO_Denver.Intl.AP.725650_TMY3.epw")
+  end
+
+  def test_three_occupants_building_id_100
+    args_hash = {}
+    args_hash[:building_id] = 100
+    args_hash[:num_occupants] = 3
+    expected_values = { "SchedulesLength" => 52560, "SchedulesWidth" => 14 }
+    _test_measure("SFD_2000sqft_2story_FB_UA_Denver.osm", args_hash, expected_values, __method__, "USA_CO_Denver.Intl.AP.725650_TMY3.epw")
   end
 
   private
 
   def model_in_path_default(osm_file_or_model)
-    return File.absolute_path(File.join(File.dirname(__FILE__), "..", "..", "..", "..", "test", "osm_files", osm_file_or_model))
+    return File.absolute_path(File.join(File.dirname(__FILE__), "../../../../test/osm_files", osm_file_or_model))
   end
 
   def epw_path_default(epw_name)
-    epw = OpenStudio::Path.new("#{File.dirname(__FILE__)}/../../../../resources/measures/HPXMLtoOpenStudio/weather/#{epw_name}")
+    epw = OpenStudio::Path.new("#{File.dirname(__FILE__)}/../../HPXMLtoOpenStudio/weather/#{epw_name}")
     assert(File.exist?(epw.to_s))
     return epw.to_s
   end
@@ -45,7 +61,7 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
   end
 
   def schedule_file_path(test_name)
-    return "#{test_dir(test_name)}/appliances_schedules.csv"
+    return "#{test_dir(test_name)}/schedules.csv"
   end
 
   # create test files if they do not exist when the test first runs
@@ -95,22 +111,6 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
 
     model = get_model(File.dirname(__FILE__), osm_file_or_model)
 
-    # get the initial objects in the model
-    initial_objects = get_objects(model)
-
-    # get arguments
-    arguments = measure.arguments(model)
-    argument_map = OpenStudio::Measure.convertOSArgumentVectorToMap(arguments)
-
-    # populate argument with specified hash value if specified
-    arguments.each do |arg|
-      temp_arg_var = arg.clone
-      if args_hash.has_key?(arg.name)
-        assert(temp_arg_var.setValue(args_hash[arg.name]))
-      end
-      argument_map[arg.name] = temp_arg_var
-    end
-
     if !File.exist?(test_dir(test_name))
       FileUtils.mkdir_p(test_dir(test_name))
     end
@@ -127,19 +127,11 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
     assert(File.exist?(model_out_path(osm_file_or_model, test_name)))
     runner.setLastEnergyPlusSqlFilePath(OpenStudio::Path.new(sql_path(test_name)))
 
-    # temporarily change directory to the run directory and run the measure
-    start_dir = Dir.pwd
-    begin
-      Dir.chdir(test_dir(test_name))
+    args_hash[:schedules_path] = File.join(File.dirname(__FILE__), "../../HPXMLtoOpenStudio/resources/schedules")
 
-      # run the measure
-      measure.run(model, runner, argument_map)
-      FileUtils.mv("../appliances_schedules.csv", "appliances_schedules.csv")
-      result = runner.result
-      show_output(result) unless result.value.valueName == 'Success'
-    ensure
-      Dir.chdir(start_dir)
-    end
+    schedule_generator = ScheduleGenerator.new(runner: runner, model: model, **args_hash)
+    success = schedule_generator.create
+    success = schedule_generator.export(output_path: schedule_file_path(test_name))
 
     # make sure the enduse report file exists
     if expected_values.keys.include? "SchedulesLength" and expected_values.keys.include? "SchedulesWidth"
@@ -151,15 +143,11 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
       assert_equal(expected_values["SchedulesWidth"], schedules_width)
     end
 
-    # assert that it ran correctly
-    assert_equal("Success", result.value.valueName)
-    assert(result.info.size > 0)
-
     return model
   end
 
   def get_schedule_file(model, runner, schedule_file)
-    schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_output_path: schedule_file)
+    schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_path: schedule_file)
     if not schedules_file.validated?
       return false
     end
@@ -183,7 +171,7 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
         passes = false
       end
 
-      puts "Checking #{col_name}... Full Load Hrs: #{full_load_hrs}"
+      puts "#{col_name}... Full Load Hrs: #{full_load_hrs}"
     end
     assert(passes)
   end

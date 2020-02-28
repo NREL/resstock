@@ -1023,7 +1023,7 @@ class ScheduleGenerator
 
     @runner = runner
     @model = model
-    @building_id = building_id # this is used for testing
+    @building_id = building_id
     @num_occupants = num_occupants
     @schedules_path = schedules_path
     @num_units = num_units
@@ -1205,52 +1205,30 @@ class ScheduleGenerator
       end
     end
 
-    if building_id == 0 # this is a test
-      if @model.getYearDescription.isLeapYear
-        sch_path = File.join(File.dirname(__FILE__), "../../../../test/schedules/8784.csv")
-      else
-        sch_path = File.join(File.dirname(__FILE__), "../../../../test/schedules/8760.csv")
-      end
-      schedules = {}
-      columns = CSV.read(sch_path).transpose
-      columns.each do |col|
-        values = col[1..-1].reject { |v| v.nil? }
-        values = values.map { |v| v.to_f }
-        schedules[col[0]] = values
-      end
+    dishwasher_max_flow_rate = 2.8186 # FIXME
+    dishwasher_tot_flow_rate = 4.402717808 # FIXME
+    @model.getBuilding.additionalProperties.setFeature("Dishwasher Max Flow Rate", dishwasher_max_flow_rate)
+    @model.getBuilding.additionalProperties.setFeature("Dishwasher Total Flow Rate", dishwasher_tot_flow_rate)
 
-      @ceiling_fan_schedule = schedules["ceiling_fan"]
+    clothes_washer_max_flow_rate = 5.0354 # FIXME
+    clothes_washer_tot_flow_rate = 4.556512329 # FIXME
+    @model.getBuilding.additionalProperties.setFeature("Clothes Washer Max Flow Rate", clothes_washer_max_flow_rate)
+    @model.getBuilding.additionalProperties.setFeature("Clothes Washer Total Flow Rate", clothes_washer_tot_flow_rate)
 
-      @dish_washer_schedule = schedules["dishwasher"]
-      dishwasher_max_flow_rate = 2.8186
-      dishwasher_tot_flow_rate = 4.402717808
-      @model.getBuilding.additionalProperties.setFeature("Dishwasher Max Flow Rate", dishwasher_max_flow_rate)
-      @model.getBuilding.additionalProperties.setFeature("Dishwasher Total Flow Rate", dishwasher_tot_flow_rate)
+    shower_max_flow_rate = 4.079 # FIXME
+    shower_tot_flow_rate = 26.24088767 # FIXME
+    @model.getBuilding.additionalProperties.setFeature("Shower Max Flow Rate", shower_max_flow_rate)
+    @model.getBuilding.additionalProperties.setFeature("Shower Total Flow Rate", shower_tot_flow_rate)
 
-      @clothes_washer_schedule = schedules["clothes_washer"]
-      clothes_washer_max_flow_rate = 5.0354
-      clothes_washer_tot_flow_rate = 4.556512329
-      @model.getBuilding.additionalProperties.setFeature("Clothes Washer Max Flow Rate", clothes_washer_max_flow_rate)
-      @model.getBuilding.additionalProperties.setFeature("Clothes Washer Total Flow Rate", clothes_washer_tot_flow_rate)
+    sink_max_flow_rate = 3.2739 # FIXME
+    sink_tot_flow_rate = 24.29216986 # FIXME
+    @model.getBuilding.additionalProperties.setFeature("Sink Max Flow Rate", sink_max_flow_rate)
+    @model.getBuilding.additionalProperties.setFeature("Sink Total Flow Rate", sink_tot_flow_rate)
 
-      @shower_schedule = schedules["showers"]
-      shower_max_flow_rate = 4.079
-      shower_tot_flow_rate = 26.24088767
-      @model.getBuilding.additionalProperties.setFeature("Shower Max Flow Rate", shower_max_flow_rate)
-      @model.getBuilding.additionalProperties.setFeature("Shower Total Flow Rate", shower_tot_flow_rate)
-
-      @sink_schedule = schedules["sinks"]
-      sink_max_flow_rate = 3.2739
-      sink_tot_flow_rate = 24.29216986
-      @model.getBuilding.additionalProperties.setFeature("Sink Max Flow Rate", sink_max_flow_rate)
-      @model.getBuilding.additionalProperties.setFeature("Sink Total Flow Rate", sink_tot_flow_rate)
-
-      @bath_schedule = schedules["baths"]
-      bath_max_flow_rate = 7.0312
-      bath_tot_flow_rate = 7.238115068
-      @model.getBuilding.additionalProperties.setFeature("Bath Max Flow Rate", bath_max_flow_rate)
-      @model.getBuilding.additionalProperties.setFeature("Bath Total Flow Rate", bath_tot_flow_rate)
-    end
+    bath_max_flow_rate = 7.0312 # FIXME
+    bath_tot_flow_rate = 7.238115068 # FIXME
+    @model.getBuilding.additionalProperties.setFeature("Bath Max Flow Rate", bath_max_flow_rate)
+    @model.getBuilding.additionalProperties.setFeature("Bath Total Flow Rate", bath_tot_flow_rate)
 
     return true
   end
@@ -1303,15 +1281,15 @@ end
 class SchedulesFile
   def initialize(runner:,
                  model:,
-                 schedules_output_path: nil,
+                 schedules_path: nil,
                  **remainder)
 
     @validated = true
     @runner = runner
     @model = model
-    @schedules_output_path = schedules_output_path
-    if @schedules_output_path.nil?
-      @schedules_output_path = get_schedule_file_path
+    @schedules_path = schedules_path
+    if @schedules_path.nil?
+      @schedules_path = get_schedules_path
     end
     @external_file = get_external_file
     @schedules = {}
@@ -1326,13 +1304,13 @@ class SchedulesFile
   end
 
   def get_col_index(col_name:)
-    headers = CSV.open(@schedules_output_path, "r") { |csv| csv.first }
+    headers = CSV.open(@schedules_path, "r") { |csv| csv.first }
     col_num = headers.index(col_name)
     return col_num
   end
 
   def get_col_name(col_index:)
-    headers = CSV.open(@schedules_output_path, "r") { |csv| csv.first }
+    headers = CSV.open(@schedules_path, "r") { |csv| csv.first }
     col_name = headers[col_index]
     return col_name
   end
@@ -1451,8 +1429,8 @@ class SchedulesFile
   end
 
   def get_external_file
-    if File.exist? @schedules_output_path
-      external_file = OpenStudio::Model::ExternalFile::getExternalFile(@model, @schedules_output_path)
+    if File.exist? @schedules_path
+      external_file = OpenStudio::Model::ExternalFile::getExternalFile(@model, @schedules_path)
       if external_file.is_initialized
         external_file = external_file.get
         external_file.setName(external_file.fileName)
@@ -1464,7 +1442,7 @@ class SchedulesFile
   def import(col_name:)
     return if @schedules.keys.include? col_name
 
-    columns = CSV.read(@schedules_output_path).transpose
+    columns = CSV.read(@schedules_path).transpose
     columns.each do |col|
       next if col_name != col[0]
 
@@ -1476,9 +1454,9 @@ class SchedulesFile
   end
 
   def export
-    return false if @schedules_output_path.nil?
+    return false if @schedules_path.nil?
 
-    CSV.open(@schedules_output_path, "wb") do |csv|
+    CSV.open(@schedules_path, "wb") do |csv|
       csv << @schedules.keys
       rows = @schedules.values.transpose
       rows.each do |row|
@@ -1489,14 +1467,45 @@ class SchedulesFile
     return true
   end
 
-  def get_schedule_file_path
-    sch_path = @model.getBuilding.additionalProperties.getFeatureAsString("Schedule Path")
-    if not sch_path.is_initialized
-      @runner.registerError("Could not find schedule path.")
-      @validated = false
+  def get_schedules_path
+    sch_path = @model.getBuilding.additionalProperties.getFeatureAsString("Schedules Path")
+    if not sch_path.is_initialized # ResidentialScheduleGenerator not in workflow
+      if @model.getYearDescription.isLeapYear
+        sch_path = File.join(File.dirname(__FILE__), "../../../../files/8784.csv")
+      else
+        sch_path = File.join(File.dirname(__FILE__), "../../../../files/8760.csv")
+      end
+      set_test_flow_rates
     else
       sch_path = sch_path.get
     end
     return sch_path
+  end
+
+  def set_test_flow_rates
+    dishwasher_max_flow_rate = 2.8186
+    dishwasher_tot_flow_rate = 4.402717808
+    @model.getBuilding.additionalProperties.setFeature("Dishwasher Max Flow Rate", dishwasher_max_flow_rate)
+    @model.getBuilding.additionalProperties.setFeature("Dishwasher Total Flow Rate", dishwasher_tot_flow_rate)
+
+    clothes_washer_max_flow_rate = 5.0354
+    clothes_washer_tot_flow_rate = 4.556512329
+    @model.getBuilding.additionalProperties.setFeature("Clothes Washer Max Flow Rate", clothes_washer_max_flow_rate)
+    @model.getBuilding.additionalProperties.setFeature("Clothes Washer Total Flow Rate", clothes_washer_tot_flow_rate)
+
+    shower_max_flow_rate = 4.079
+    shower_tot_flow_rate = 26.24088767
+    @model.getBuilding.additionalProperties.setFeature("Shower Max Flow Rate", shower_max_flow_rate)
+    @model.getBuilding.additionalProperties.setFeature("Shower Total Flow Rate", shower_tot_flow_rate)
+
+    sink_max_flow_rate = 3.2739
+    sink_tot_flow_rate = 24.29216986
+    @model.getBuilding.additionalProperties.setFeature("Sink Max Flow Rate", sink_max_flow_rate)
+    @model.getBuilding.additionalProperties.setFeature("Sink Total Flow Rate", sink_tot_flow_rate)
+
+    bath_max_flow_rate = 7.0312
+    bath_tot_flow_rate = 7.238115068
+    @model.getBuilding.additionalProperties.setFeature("Bath Max Flow Rate", bath_max_flow_rate)
+    @model.getBuilding.additionalProperties.setFeature("Bath Total Flow Rate", bath_tot_flow_rate)
   end
 end

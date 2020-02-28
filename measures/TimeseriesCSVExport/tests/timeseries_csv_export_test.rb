@@ -124,7 +124,7 @@ class TimeseriesCSVExportTest < MiniTest::Test
   private
 
   def model_in_path_default(osm_file_or_model)
-    return File.absolute_path(File.join(File.dirname(__FILE__), "../../..", "test", "osm_files", osm_file_or_model))
+    return File.absolute_path(File.join(File.dirname(__FILE__), "../../../test/osm_files", osm_file_or_model))
   end
 
   def epw_path_default(epw_name)
@@ -134,7 +134,7 @@ class TimeseriesCSVExportTest < MiniTest::Test
   end
 
   def sch_path_default(sch_name)
-    sch = OpenStudio::Path.new("#{File.dirname(__FILE__)}/../../../test/schedules/#{sch_name}")
+    sch = OpenStudio::Path.new("#{File.dirname(__FILE__)}/../../../files/#{sch_name}")
     assert(File.exist?(sch.to_s))
     return sch.to_s
   end
@@ -183,7 +183,7 @@ class TimeseriesCSVExportTest < MiniTest::Test
       FileUtils.mkdir_p("#{test_dir(test_name)}")
     end
 
-    FileUtils.cp(sch_path, "#{test_dir(test_name)}/appliances_schedules.csv")
+    FileUtils.cp(sch_path, "#{test_dir(test_name)}")
 
     cli_path = OpenStudio.getOpenStudioCLI
     cmd = "\"#{cli_path}\" --no-ssl run -w \"#{osw_path}\""
@@ -226,7 +226,7 @@ class TimeseriesCSVExportTest < MiniTest::Test
       FileUtils.mkdir_p(test_dir(test_name))
     end
     assert(File.exist?(test_dir(test_name)))
-
+    puts model_in_path_default(osm_file_or_model)
     assert(File.exist?(model_in_path_default(osm_file_or_model)))
 
     # set up runner, this will happen automatically when measure is run in PAT or OpenStudio
