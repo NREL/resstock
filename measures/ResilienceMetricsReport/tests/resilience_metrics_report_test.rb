@@ -183,7 +183,7 @@ class ResilienceMetricsReportTest < MiniTest::Test
   end
 
   def model_in_path_default(osm_file_or_model)
-    return File.absolute_path(File.join(File.dirname(__FILE__), "..", "..", "..", "test", "osm_files", osm_file_or_model))
+    return File.absolute_path(File.join(File.dirname(__FILE__), "../../../test/osm_files", osm_file_or_model))
   end
 
   def epw_path_default(epw_name)
@@ -238,7 +238,7 @@ class ResilienceMetricsReportTest < MiniTest::Test
       FileUtils.mkdir_p("#{test_dir(test_name)}")
     end
 
-    FileUtils.cp(sch_path, "#{test_dir(test_name)}/schedules.csv")
+    FileUtils.cp(sch_path, "#{test_dir(test_name)}")
 
     cli_path = OpenStudio.getOpenStudioCLI
     cmd = "\"#{cli_path}\" --no-ssl run -w \"#{osw_path}\""

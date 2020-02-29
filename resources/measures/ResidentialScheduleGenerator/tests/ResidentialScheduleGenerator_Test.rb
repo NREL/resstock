@@ -6,6 +6,13 @@ require_relative '../measure.rb'
 require 'fileutils'
 
 class ResidentialScheduleGeneratorTest < MiniTest::Test
+  def test_one_occupant
+    args_hash = {}
+    args_hash[:num_occupants] = 1
+    expected_values = { "SchedulesLength" => 52560, "SchedulesWidth" => 14 }
+    _test_measure("SFD_2000sqft_2story_FB_UA_Denver.osm", args_hash, expected_values, __method__, "USA_CO_Denver.Intl.AP.725650_TMY3.epw")
+  end
+
   def test_two_occupants
     args_hash = {}
     args_hash[:num_occupants] = 2
@@ -21,9 +28,25 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
   end
 
   def test_four_occupants
-    skip # FIXME
+    skip # FIXME: showers, sinks, baths = 0
     args_hash = {}
     args_hash[:num_occupants] = 4
+    expected_values = { "SchedulesLength" => 52560, "SchedulesWidth" => 14 }
+    _test_measure("SFD_2000sqft_2story_FB_UA_Denver.osm", args_hash, expected_values, __method__, "USA_CO_Denver.Intl.AP.725650_TMY3.epw")
+  end
+
+  def test_five_occupants
+    skip # FIXME: showers, sinks, baths = 0
+    args_hash = {}
+    args_hash[:num_occupants] = 5
+    expected_values = { "SchedulesLength" => 52560, "SchedulesWidth" => 14 }
+    _test_measure("SFD_2000sqft_2story_FB_UA_Denver.osm", args_hash, expected_values, __method__, "USA_CO_Denver.Intl.AP.725650_TMY3.epw")
+  end
+
+  def test_six_occupants
+    skip # FIXME: showers, sinks, baths = 0
+    args_hash = {}
+    args_hash[:num_occupants] = 6
     expected_values = { "SchedulesLength" => 52560, "SchedulesWidth" => 14 }
     _test_measure("SFD_2000sqft_2story_FB_UA_Denver.osm", args_hash, expected_values, __method__, "USA_CO_Denver.Intl.AP.725650_TMY3.epw")
   end
@@ -33,6 +56,18 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
     args_hash[:building_id] = 100
     args_hash[:num_occupants] = 3
     expected_values = { "SchedulesLength" => 52560, "SchedulesWidth" => 14 }
+    _test_measure("SFD_2000sqft_2story_FB_UA_Denver.osm", args_hash, expected_values, __method__, "USA_CO_Denver.Intl.AP.725650_TMY3.epw")
+  end
+
+  def test_3bed_8760 # these are the old schedules
+    args_hash = {}
+    expected_values = { "SchedulesLength" => 8760, "SchedulesWidth" => 14 }
+    _test_measure("SFD_2000sqft_2story_FB_UA_Denver.osm", args_hash, expected_values, __method__, "USA_CO_Denver.Intl.AP.725650_TMY3.epw")
+  end
+  
+  def test_3bed_8784 # these are the old schedules
+    args_hash = {}
+    expected_values = { "SchedulesLength" => 8784, "SchedulesWidth" => 14 }
     _test_measure("SFD_2000sqft_2story_FB_UA_Denver.osm", args_hash, expected_values, __method__, "USA_CO_Denver.Intl.AP.725650_TMY3.epw")
   end
 
@@ -130,16 +165,23 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
 
     args_hash[:schedules_path] = File.join(File.dirname(__FILE__), "../../HPXMLtoOpenStudio/resources/schedules")
 
-    schedule_generator = ScheduleGenerator.new(runner: runner, model: model, **args_hash)
-    success = schedule_generator.create
-    success = schedule_generator.export(output_path: schedule_file_path(test_name))
+    if "#{test_name}".include? "8760"
+      schedules_path = File.join(File.dirname(__FILE__), "../../../../files/8760.csv")
+    elsif "#{test_name}".include? "8784"
+      schedules_path = File.join(File.dirname(__FILE__), "../../../../files/8784.csv")
+    else
+      schedules_path = schedule_file_path(test_name)
+      schedule_generator = ScheduleGenerator.new(runner: runner, model: model, **args_hash)
+      success = schedule_generator.create
+      success = schedule_generator.export(output_path: schedules_path)
+    end
 
     # make sure the enduse report file exists
     if expected_values.keys.include? "SchedulesLength" and expected_values.keys.include? "SchedulesWidth"
-      assert(File.exist?(schedule_file_path(test_name)))
+      assert(File.exist?(schedules_path))
 
       # make sure you're reporting at correct frequency
-      schedules_length, schedules_width = get_schedule_file(model, runner, schedule_file_path(test_name))
+      schedules_length, schedules_width = get_schedule_file(model, runner, schedules_path)
       assert_equal(expected_values["SchedulesLength"], schedules_length)
       assert_equal(expected_values["SchedulesWidth"], schedules_width)
     end
@@ -147,13 +189,13 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
     return model
   end
 
-  def get_schedule_file(model, runner, schedule_file)
-    schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_path: schedule_file)
+  def get_schedule_file(model, runner, schedules_path)
+    schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_path: schedules_path)
     if not schedules_file.validated?
       return false
     end
 
-    rows = CSV.read(File.expand_path(schedule_file))
+    rows = CSV.read(File.expand_path(schedules_path))
     check_columns(rows[0], schedules_file)
     schedules_length = rows.length - 1
     cols = rows.transpose
@@ -166,9 +208,9 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
     col_names.each do |col_name|
       full_load_hrs = schedules_file.annual_equivalent_full_load_hrs(col_name: col_name)
       if full_load_hrs > 0
-        full_load_hrs = "#{full_load_hrs.round(1)}".green
+        full_load_hrs = "#{full_load_hrs.round(2)}".green
       else
-        full_load_hrs = "#{full_load_hrs.round(1)}".red
+        full_load_hrs = "#{full_load_hrs.round(2)}".red
         passes = false
       end
 
