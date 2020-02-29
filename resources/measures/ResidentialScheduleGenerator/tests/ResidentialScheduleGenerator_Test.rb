@@ -64,7 +64,7 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
     expected_values = { "SchedulesLength" => 8760, "SchedulesWidth" => 14 }
     _test_measure("SFD_2000sqft_2story_FB_UA_Denver.osm", args_hash, expected_values, __method__, "USA_CO_Denver.Intl.AP.725650_TMY3.epw")
   end
-  
+
   def test_3bed_8784 # these are the old schedules
     args_hash = {}
     expected_values = { "SchedulesLength" => 8784, "SchedulesWidth" => 14 }
