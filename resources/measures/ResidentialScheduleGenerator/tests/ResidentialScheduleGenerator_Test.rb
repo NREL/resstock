@@ -9,21 +9,21 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
   def test_one_occupant
     args_hash = {}
     args_hash[:num_occupants] = 1
-    expected_values = { "SchedulesLength" => 52560, "SchedulesWidth" => 14 }
+    expected_values = { "SchedulesLength" => 52560, "SchedulesWidth" => 15 }
     _test_measure("SFD_2000sqft_2story_FB_UA_Denver.osm", args_hash, expected_values, __method__, "USA_CO_Denver.Intl.AP.725650_TMY3.epw")
   end
 
   def test_two_occupants
     args_hash = {}
     args_hash[:num_occupants] = 2
-    expected_values = { "SchedulesLength" => 52560, "SchedulesWidth" => 14 }
+    expected_values = { "SchedulesLength" => 52560, "SchedulesWidth" => 15 }
     _test_measure("SFD_2000sqft_2story_FB_UA_Denver.osm", args_hash, expected_values, __method__, "USA_CO_Denver.Intl.AP.725650_TMY3.epw")
   end
 
   def test_three_occupants
     args_hash = {}
     args_hash[:num_occupants] = 3
-    expected_values = { "SchedulesLength" => 52560, "SchedulesWidth" => 14 }
+    expected_values = { "SchedulesLength" => 52560, "SchedulesWidth" => 15 }
     _test_measure("SFD_2000sqft_2story_FB_UA_Denver.osm", args_hash, expected_values, __method__, "USA_CO_Denver.Intl.AP.725650_TMY3.epw")
   end
 
@@ -31,7 +31,7 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
     skip # FIXME: showers, sinks, baths = 0
     args_hash = {}
     args_hash[:num_occupants] = 4
-    expected_values = { "SchedulesLength" => 52560, "SchedulesWidth" => 14 }
+    expected_values = { "SchedulesLength" => 52560, "SchedulesWidth" => 15 }
     _test_measure("SFD_2000sqft_2story_FB_UA_Denver.osm", args_hash, expected_values, __method__, "USA_CO_Denver.Intl.AP.725650_TMY3.epw")
   end
 
@@ -39,7 +39,7 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
     skip # FIXME: showers, sinks, baths = 0
     args_hash = {}
     args_hash[:num_occupants] = 5
-    expected_values = { "SchedulesLength" => 52560, "SchedulesWidth" => 14 }
+    expected_values = { "SchedulesLength" => 52560, "SchedulesWidth" => 15 }
     _test_measure("SFD_2000sqft_2story_FB_UA_Denver.osm", args_hash, expected_values, __method__, "USA_CO_Denver.Intl.AP.725650_TMY3.epw")
   end
 
@@ -47,7 +47,7 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
     skip # FIXME: showers, sinks, baths = 0
     args_hash = {}
     args_hash[:num_occupants] = 6
-    expected_values = { "SchedulesLength" => 52560, "SchedulesWidth" => 14 }
+    expected_values = { "SchedulesLength" => 52560, "SchedulesWidth" => 15 }
     _test_measure("SFD_2000sqft_2story_FB_UA_Denver.osm", args_hash, expected_values, __method__, "USA_CO_Denver.Intl.AP.725650_TMY3.epw")
   end
 
@@ -55,19 +55,19 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
     args_hash = {}
     args_hash[:building_id] = 100
     args_hash[:num_occupants] = 3
-    expected_values = { "SchedulesLength" => 52560, "SchedulesWidth" => 14 }
+    expected_values = { "SchedulesLength" => 52560, "SchedulesWidth" => 15 }
     _test_measure("SFD_2000sqft_2story_FB_UA_Denver.osm", args_hash, expected_values, __method__, "USA_CO_Denver.Intl.AP.725650_TMY3.epw")
   end
 
   def test_3bed_8760 # these are the old schedules
     args_hash = {}
-    expected_values = { "SchedulesLength" => 8760, "SchedulesWidth" => 14 }
+    expected_values = { "SchedulesLength" => 8760, "SchedulesWidth" => 15 }
     _test_measure("SFD_2000sqft_2story_FB_UA_Denver.osm", args_hash, expected_values, __method__, "USA_CO_Denver.Intl.AP.725650_TMY3.epw")
   end
 
   def test_3bed_8784 # these are the old schedules
     args_hash = {}
-    expected_values = { "SchedulesLength" => 8784, "SchedulesWidth" => 14 }
+    expected_values = { "SchedulesLength" => 8784, "SchedulesWidth" => 15 }
     _test_measure("SFD_2000sqft_2story_FB_UA_Denver.osm", args_hash, expected_values, __method__, "USA_CO_Denver.Intl.AP.725650_TMY3.epw")
   end
 

@@ -126,6 +126,11 @@ class ResidentialHotWaterDistribution < OpenStudio::Measure::ModelMeasure
     maxDiffMonthlyAvgOAT = UnitConversions.convert(waterMainsTemperature.maximumDifferenceInMonthlyAverageOutdoorAirTemperatures.get, "K", "R")
     mainsMonthlyTemps = WeatherProcess.calc_mains_temperatures(avgOAT, maxDiffMonthlyAvgOAT, site.latitude, num_days_in_year)[1]
 
+    schedules_file = SchedulesFile.new(runner: runner, model: model)
+    if not schedules_file.validated?
+      return false
+    end
+
     tot_pump_e_ann = 0
     msgs = []
     units.each do |unit|
@@ -224,18 +229,39 @@ class ResidentialHotWaterDistribution < OpenStudio::Measure::ModelMeasure
         return false
       end
 
-      # Create temporary HotWaterSchedule objects solely to calculate daily gpm
-      # Since this is only used to calculate the gpm, it doesn't need to have the correct day shift
-      sch_sh = HotWaterSchedule.new(model, runner, "", "", nbeds, 0, "Shower", Constants.MixedUseT, false)
-      sch_s = HotWaterSchedule.new(model, runner, "",  "", nbeds, 0, "Sink", Constants.MixedUseT, false)
-      sch_b = HotWaterSchedule.new(model, runner, "",  "", nbeds, 0, "Bath", Constants.MixedUseT, false)
-      if not sch_sh.validated? or not sch_s.validated? or not sch_b.validated?
+      sh_max_flow = model.getBuilding.additionalProperties.getFeatureAsDouble("Shower Max Flow Rate")
+      sh_tot_flow = model.getBuilding.additionalProperties.getFeatureAsDouble("Shower Total Flow Rate")
+      if not sh_max_flow.is_initialized or not sh_tot_flow.is_initialized
+        runner.registerError("Could not find max or total flow for shower.")
         return false
+      else
+        sh_max_flow = sh_max_flow.get
+        sh_tot_flow = sh_tot_flow.get
       end
 
-      shower_daily = sch_sh.calcDailyGpmFromPeakFlow(shower_max)
-      sink_daily = sch_s.calcDailyGpmFromPeakFlow(sink_max)
-      bath_daily = sch_b.calcDailyGpmFromPeakFlow(bath_max)
+      s_max_flow = model.getBuilding.additionalProperties.getFeatureAsDouble("Sink Max Flow Rate")
+      s_tot_flow = model.getBuilding.additionalProperties.getFeatureAsDouble("Sink Total Flow Rate")
+      if not s_max_flow.is_initialized or not s_tot_flow.is_initialized
+        runner.registerError("Could not find max or total flow for sink.")
+        return false
+      else
+        s_max_flow = s_max_flow.get
+        s_tot_flow = s_tot_flow.get
+      end
+
+      b_max_flow = model.getBuilding.additionalProperties.getFeatureAsDouble("Bath Max Flow Rate")
+      b_tot_flow = model.getBuilding.additionalProperties.getFeatureAsDouble("Bath Total Flow Rate")
+      if not b_max_flow.is_initialized or not b_tot_flow.is_initialized
+        runner.registerError("Could not find max or total flow for bath.")
+        return false
+      else
+        b_max_flow = b_max_flow.get
+        b_tot_flow = b_tot_flow.get
+      end
+
+      shower_daily = schedules_file.calcDailygpmFromPeakFlow(peak_flow: shower_max, tot_flow: sh_tot_flow, max_flow: sh_max_flow)
+      sink_daily = schedules_file.calcDailygpmFromPeakFlow(peak_flow: sink_max, tot_flow: s_tot_flow, max_flow: s_max_flow)
+      bath_daily = schedules_file.calcDailygpmFromPeakFlow(peak_flow: bath_max, tot_flow: b_tot_flow, max_flow: b_max_flow)
 
       # Calculate the pump energy consumption (in kWh/day)
       daily_recovery_load = Array.new(12, 0)
@@ -505,9 +531,9 @@ class ResidentialHotWaterDistribution < OpenStudio::Measure::ModelMeasure
       new_sink_daily = sink_daily + recovery_load_inc + daily_sink_inc - s_prev_dist
       new_bath_daily = bath_daily + recovery_load_inc + daily_bath_inc - b_prev_dist
 
-      sh_new_peak_flow = sch_sh.calcPeakFlowFromDailygpm(new_shower_daily)
-      s_new_peak_flow = sch_s.calcPeakFlowFromDailygpm(new_sink_daily)
-      b_new_peak_flow = sch_b.calcPeakFlowFromDailygpm(new_bath_daily)
+      sh_new_peak_flow = schedules_file.calcPeakFlowFromDailygpm(daily_water: new_shower_daily, tot_flow: sh_tot_flow, max_flow: sh_max_flow)
+      s_new_peak_flow = schedules_file.calcPeakFlowFromDailygpm(daily_water: new_sink_daily, tot_flow: s_tot_flow, max_flow: s_max_flow)
+      b_new_peak_flow = schedules_file.calcPeakFlowFromDailygpm(daily_water: new_bath_daily, tot_flow: b_tot_flow, max_flow: b_max_flow)
 
       shower_wu_def.setPeakFlowRate(sh_new_peak_flow)
       sink_wu_def.setPeakFlowRate(s_new_peak_flow)
