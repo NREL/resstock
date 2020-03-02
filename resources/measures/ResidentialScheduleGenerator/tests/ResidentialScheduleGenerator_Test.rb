@@ -6,6 +6,30 @@ require_relative '../measure.rb'
 require 'fileutils'
 
 class ResidentialScheduleGeneratorTest < MiniTest::Test
+  @@design_w = {
+    "cooking_range" => 224.973993584886,
+    "plug_loads" => 200.0,
+    "lighting_interior" => 500.0,
+    "lighting_exterior" => 500.0,
+    "lighting_garage" => 500.0,
+    "lighting_exterior_holiday" => 500.0,
+    "clothes_washer" => 7801.0,
+    "clothes_dryer" => 187363.17384556,
+    "dishwasher" => 11687.9379760899,
+    "baths" => 6337.0,
+    "showers" => 7900.0,
+    "sinks" => 2133.0,
+    "ceiling_fan" => 22.5,
+    "clothes_dryer_exhaust" => 10000.0
+  }
+  @@peak_flow = {
+    "clothes_washer" => 0.00069711761379102,
+    "dishwasher" => 0.000125164807534193,
+    "baths" => 0.000429619381723578,
+    "showers" => 0.000274694631177869,
+    "sinks" => 0.000212399462858359,
+  }
+
   def test_one_occupant
     args_hash = {}
     args_hash[:num_occupants] = 1
@@ -206,15 +230,20 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
   def check_columns(col_names, schedules_file)
     passes = true
     col_names.each do |col_name|
+      puts "\n#{col_name}:"
+
       full_load_hrs = schedules_file.annual_equivalent_full_load_hrs(col_name: col_name)
+
+      puts "\tAnnual_kwh: #{UnitConversions.convert(full_load_hrs * @@design_w[col_name], "Wh", "kWh")}" unless @@design_w[col_name].nil?
+      puts "\tHotWater_gpd: #{UnitConversions.convert(full_load_hrs * @@peak_flow[col_name], "m^3/s", "gal/min") * 60.0 / 365.0}" unless @@peak_flow[col_name].nil?
+
       if full_load_hrs > 0
         full_load_hrs = "#{full_load_hrs.round(2)}".green
       else
         full_load_hrs = "#{full_load_hrs.round(2)}".red
         passes = false
       end
-
-      puts "#{col_name}... Full Load Hrs: #{full_load_hrs}"
+      puts "\tFull Load Hrs: #{full_load_hrs}"
     end
     assert(passes)
   end

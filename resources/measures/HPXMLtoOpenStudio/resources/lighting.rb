@@ -18,13 +18,13 @@ class Lighting
       col_name = "lighting_interior"
       if sch.nil?
         # Create schedule
-        sch = schedules_file.createScheduleFile(col_name: col_name)
+        sch = schedules_file.create_schedule_file(col_name: col_name)
       end
 
       if unit_finished_spaces.include?(space)
         space_ltg_ann = interior_ann * UnitConversions.convert(space.floorArea, "m^2", "ft^2") / ffa
       end
-      space_design_level = schedules_file.calcDesignLevelFromAnnualkWh(col_name: col_name, annual_kwh: space_ltg_ann)
+      space_design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: col_name, annual_kwh: space_ltg_ann)
 
       # Add lighting
       ltg_def = OpenStudio::Model::LightsDefinition.new(model)
@@ -54,10 +54,10 @@ class Lighting
       col_name = "lighting_garage"
       if sch.nil?
         # Create schedule
-        sch = schedules_file.createScheduleFile(col_name: col_name)
+        sch = schedules_file.create_schedule_file(col_name: col_name)
       end
 
-      space_design_level = schedules_file.calcDesignLevelFromAnnualkWh(col_name: col_name, annual_kwh: space_ltg_ann)
+      space_design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: col_name, annual_kwh: space_ltg_ann)
 
       # Add lighting
       ltg_def = OpenStudio::Model::LightsDefinition.new(model)
@@ -82,9 +82,9 @@ class Lighting
     obj_name = Constants.ObjectNameLightingExterior
 
     # Create schedule
-    sch = schedules_file.createScheduleFile(col_name: col_name)
+    sch = schedules_file.create_schedule_file(col_name: col_name)
 
-    design_level = schedules_file.calcDesignLevelFromAnnualkWh(col_name: col_name, annual_kwh: exterior_ann)
+    design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: col_name, annual_kwh: exterior_ann)
 
     # Add exterior lighting
     ltg_def = OpenStudio::Model::ExteriorLightsDefinition.new(model)
@@ -104,9 +104,9 @@ class Lighting
     obj_name = Constants.ObjectNameLightingExteriorHoliday
 
     # Create schedule
-    sch = schedules_file.createScheduleFile(col_name: col_name)
+    sch = schedules_file.create_schedule_file(col_name: col_name)
 
-    design_level = schedules_file.calcDesignLevelFromAnnualkWh(col_name: col_name, annual_kwh: exterior_ann)
+    design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: col_name, annual_kwh: exterior_ann)
 
     # Add exterior lighting
     ltg_def = OpenStudio::Model::ExteriorLightsDefinition.new(model)

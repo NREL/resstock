@@ -210,7 +210,7 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
         col_name = "showers"
         if sch_sh.nil?
           # Create schedule
-          sch_sh = schedules_file.createScheduleFile(col_name: col_name)
+          sch_sh = schedules_file.create_schedule_file(col_name: col_name)
         end
 
         sh_max_flow = model.getBuilding.additionalProperties.getFeatureAsDouble("Shower Max Flow Rate")
@@ -223,8 +223,8 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
           sh_tot_flow = sh_tot_flow.get
         end
 
-        sh_peak_flow = schedules_file.calcPeakFlowFromDailygpm(daily_water: sh_gpd, tot_flow: sh_tot_flow, max_flow: sh_max_flow)
-        sh_design_level = schedules_file.calcDesignLevelFromDailykWh(daily_kwh: sh_tot_load, tot_flow: sh_tot_flow, max_flow: sh_max_flow)
+        sh_peak_flow = schedules_file.calc_peak_flow_from_daily_gpm(daily_water: sh_gpd, tot_flow: sh_tot_flow, max_flow: sh_max_flow)
+        sh_design_level = schedules_file.calc_design_level_from_daily_kwh(daily_kwh: sh_tot_load, tot_flow: sh_tot_flow, max_flow: sh_max_flow)
 
         # Add water use equipment objects
         sh_wu_def = OpenStudio::Model::WaterUseEquipmentDefinition.new(model)
@@ -279,7 +279,7 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
         col_name = "sinks"
         if sch_s.nil?
           # Create schedule
-          sch_s = schedules_file.createScheduleFile(col_name: col_name)
+          sch_s = schedules_file.create_schedule_file(col_name: col_name)
         end
 
         s_max_flow = model.getBuilding.additionalProperties.getFeatureAsDouble("Sink Max Flow Rate")
@@ -292,8 +292,8 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
           s_tot_flow = s_tot_flow.get
         end
 
-        s_peak_flow = schedules_file.calcPeakFlowFromDailygpm(daily_water: s_gpd, tot_flow: s_tot_flow, max_flow: s_max_flow)
-        s_design_level = schedules_file.calcDesignLevelFromDailykWh(daily_kwh: s_tot_load, tot_flow: s_tot_flow, max_flow: s_max_flow)
+        s_peak_flow = schedules_file.calc_peak_flow_from_daily_gpm(daily_water: s_gpd, tot_flow: s_tot_flow, max_flow: s_max_flow)
+        s_design_level = schedules_file.calc_design_level_from_daily_kwh(daily_kwh: s_tot_load, tot_flow: s_tot_flow, max_flow: s_max_flow)
 
         # Add water use equipment objects
         s_wu_def = OpenStudio::Model::WaterUseEquipmentDefinition.new(model)
@@ -328,7 +328,7 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
         col_name = "baths"
         if sch_b.nil?
           # Create schedule
-          sch_b = schedules_file.createScheduleFile(col_name: col_name)
+          sch_b = schedules_file.create_schedule_file(col_name: col_name)
         end
 
         b_max_flow = model.getBuilding.additionalProperties.getFeatureAsDouble("Bath Max Flow Rate")
@@ -341,8 +341,8 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
           b_tot_flow = b_tot_flow.get
         end
 
-        b_peak_flow = schedules_file.calcPeakFlowFromDailygpm(daily_water: b_gpd, tot_flow: b_tot_flow, max_flow: b_max_flow)
-        b_design_level = schedules_file.calcDesignLevelFromDailykWh(daily_kwh: b_tot_load, tot_flow: b_tot_flow, max_flow: b_max_flow)
+        b_peak_flow = schedules_file.calc_peak_flow_from_daily_gpm(daily_water: b_gpd, tot_flow: b_tot_flow, max_flow: b_max_flow)
+        b_design_level = schedules_file.calc_design_level_from_daily_kwh(daily_kwh: b_tot_load, tot_flow: b_tot_flow, max_flow: b_max_flow)
 
         # Add water use equipment objects
         b_wu_def = OpenStudio::Model::WaterUseEquipmentDefinition.new(model)

@@ -61,11 +61,11 @@ class MiscLoads
         col_name = "plug_loads"
         if sch.nil?
           # Create schedule
-          sch = schedules_file.createScheduleFile(col_name: col_name)
+          sch = schedules_file.create_schedule_file(col_name: col_name)
         end
 
         space_mel_ann = annual_energy * UnitConversions.convert(space.floorArea, "m^2", "ft^2") / ffa
-        space_design_level = schedules_file.calcDesignLevelFromAnnualkWh(col_name: col_name, annual_kwh: space_mel_ann)
+        space_design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: col_name, annual_kwh: space_mel_ann)
 
         # Add electric equipment for the mel
         mel_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)

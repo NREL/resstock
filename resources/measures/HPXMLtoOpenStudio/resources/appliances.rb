@@ -43,7 +43,7 @@ class Refrigerator
         end
       end
 
-      design_level = sch.calcDesignLevelFromDailykWh(ann_e / num_days_in_year)
+      design_level = sch.calc_design_level_from_daily_kwh(ann_e / num_days_in_year)
 
       # Add electric equipment for the fridge
       frg_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
@@ -418,7 +418,7 @@ class ClothesWasher
     if ann_e > 0
 
       if sch.nil?
-        sch = schedules_file.createScheduleFile(col_name: col_name)
+        sch = schedules_file.create_schedule_file(col_name: col_name)
       end
 
       # Reuse existing water use connection if possible
@@ -450,8 +450,8 @@ class ClothesWasher
         tot_flow = tot_flow.get
       end
 
-      design_level = schedules_file.calcDesignLevelFromDailykWh(daily_kwh: daily_energy, tot_flow: tot_flow, max_flow: max_flow)
-      peak_flow = schedules_file.calcPeakFlowFromDailygpm(daily_water: total_daily_water_use, tot_flow: tot_flow, max_flow: max_flow)
+      design_level = schedules_file.calc_design_level_from_daily_kwh(daily_kwh: daily_energy, tot_flow: tot_flow, max_flow: max_flow)
+      peak_flow = schedules_file.calc_peak_flow_from_daily_gpm(daily_water: total_daily_water_use, tot_flow: tot_flow, max_flow: max_flow)
 
       # Add equipment for the cw
       cw_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
@@ -690,13 +690,13 @@ class ClothesDryer
     if ann_e > 0 or ann_f > 0
 
       if sch.nil?
-        sch = schedules_file.createScheduleFile(col_name: col_name)
+        sch = schedules_file.create_schedule_file(col_name: col_name)
       end
 
       # Add equipment for the cd
       if fuel_type == Constants.FuelTypeElectric
 
-        design_level_e = schedules_file.calcDesignLevelFromAnnualkWh(col_name: col_name, annual_kwh: ann_e)
+        design_level_e = schedules_file.calc_design_level_from_annual_kwh(col_name: col_name, annual_kwh: ann_e)
 
         cd_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
         cd = OpenStudio::Model::ElectricEquipment.new(cd_def)
@@ -712,7 +712,7 @@ class ClothesDryer
 
       else
 
-        design_level_e = schedules_file.calcDesignLevelFromAnnualkWh(col_name: col_name, annual_kwh: ann_e)
+        design_level_e = schedules_file.calc_design_level_from_annual_kwh(col_name: col_name, annual_kwh: ann_e)
 
         if design_level_e > 0
           cd_def2 = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
@@ -728,7 +728,7 @@ class ClothesDryer
           cd2.setSchedule(sch)
         end
 
-        design_level_f = schedules_file.calcDesignLevelFromAnnualTherm(col_name: col_name, annual_therm: ann_f)
+        design_level_f = schedules_file.calc_design_level_from_annual_therm(col_name: col_name, annual_therm: ann_f)
 
         cd_def = OpenStudio::Model::OtherEquipmentDefinition.new(model)
         cd = OpenStudio::Model::OtherEquipment.new(cd_def)
@@ -840,15 +840,15 @@ class CookingRange
     if ann_f > 0 or ann_e > 0
 
       if sch.nil?
-        sch = schedules_file.createScheduleFile(col_name: col_name)
+        sch = schedules_file.create_schedule_file(col_name: col_name)
       end
 
     end
 
     if ann_f > 0
 
-      design_level_f = schedules_file.calcDesignLevelFromAnnualTherm(col_name: col_name, annual_therm: ann_f)
-      design_level_i = schedules_file.calcDesignLevelFromAnnualkWh(col_name: col_name, annual_kwh: ann_i)
+      design_level_f = schedules_file.calc_design_level_from_annual_therm(col_name: col_name, annual_therm: ann_f)
+      design_level_i = schedules_file.calc_design_level_from_annual_kwh(col_name: col_name, annual_kwh: ann_i)
 
       # Add equipment for the range
       if has_elec_ignition == true
@@ -881,7 +881,7 @@ class CookingRange
       rng.setSchedule(sch)
 
     elsif ann_e > 0
-      design_level_e = schedules_file.calcDesignLevelFromAnnualkWh(col_name: "cooking_range", annual_kwh: ann_e)
+      design_level_e = schedules_file.calc_design_level_from_annual_kwh(col_name: "cooking_range", annual_kwh: ann_e)
 
       # Add equipment for the range
       rng_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
@@ -1171,7 +1171,7 @@ class Dishwasher
     if ann_e > 0
 
       if sch.nil?
-        sch = schedules_file.createScheduleFile(col_name: col_name)
+        sch = schedules_file.create_schedule_file(col_name: col_name)
       end
 
       # Reuse existing water use connection if possible
@@ -1203,8 +1203,8 @@ class Dishwasher
         tot_flow = tot_flow.get
       end
 
-      design_level = schedules_file.calcDesignLevelFromDailykWh(daily_kwh: daily_energy, tot_flow: tot_flow, max_flow: max_flow)
-      peak_flow = schedules_file.calcPeakFlowFromDailygpm(daily_water: daily_water, tot_flow: tot_flow, max_flow: max_flow)
+      design_level = schedules_file.calc_design_level_from_daily_kwh(daily_kwh: daily_energy, tot_flow: tot_flow, max_flow: max_flow)
+      peak_flow = schedules_file.calc_peak_flow_from_daily_gpm(daily_water: daily_water, tot_flow: tot_flow, max_flow: max_flow)
 
       # Add electric equipment for the dw
       dw_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
