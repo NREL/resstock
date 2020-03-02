@@ -1854,7 +1854,7 @@ class Airflow
 
     if mv_output.has_dryer and mech_vent.dryer_exhaust > 0
       if sch.nil?
-        sch = schedules_file.createScheduleFile(col_name: "clothes_dryer_exhaust")
+        sch = schedules_file.create_schedule_file(col_name: "clothes_dryer_exhaust")
       end
 
       dryer_sch_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Schedule Value")

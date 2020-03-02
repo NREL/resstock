@@ -1123,8 +1123,8 @@ class SchedulesFile
     return col_name
   end
 
-  def createScheduleFile(col_name:,
-                         rows_to_skip: 1)
+  def create_schedule_file(col_name:,
+                           rows_to_skip: 1)
     @model.getScheduleFiles.each do |schedule_file|
       next if schedule_file.name.to_s != col_name
 
@@ -1167,8 +1167,8 @@ class SchedulesFile
     return ann_equiv_full_load_hrs
   end
 
-  def calcDesignLevelFromAnnualkWh(col_name:,
-                                   annual_kwh:)
+  def calc_design_level_from_annual_kwh(col_name:,
+                                        annual_kwh:)
 
     ann_equiv_full_load_hrs = annual_equivalent_full_load_hrs(col_name: col_name)
     design_level = annual_kwh * 1000.0 / ann_equiv_full_load_hrs # W
@@ -1176,54 +1176,54 @@ class SchedulesFile
     return design_level
   end
 
-  def calcDesignLevelFromAnnualTherm(col_name:,
-                                     annual_therm:)
+  def calc_design_level_from_annual_therm(col_name:,
+                                          annual_therm:)
 
     annual_kwh = UnitConversions.convert(annual_therm, "therm", "kWh")
-    design_level = calcDesignLevelFromAnnualkWh(col_name: col_name, annual_kwh: annual_kwh)
+    design_level = calc_design_level_from_annual_kwh(col_name: col_name, annual_kwh: annual_kwh)
 
     return design_level
   end
 
-  def calcDesignLevelFromDailykWh(daily_kwh:,
-                                  tot_flow:,
-                                  max_flow:)
+  def calc_design_level_from_daily_kwh(daily_kwh:,
+                                       tot_flow:,
+                                       max_flow:)
 
     design_level = UnitConversions.convert(daily_kwh * 60 / (tot_flow / max_flow), "kW", "W")
 
     return design_level
   end
 
-  def calcDesignLevelFromDailyTherm(daily_therm:,
-                                    tot_flow:,
-                                    max_flow:)
+  def calc_design_level_from_daily_therm(daily_therm:,
+                                         tot_flow:,
+                                         max_flow:)
 
     daily_kwh = UnitConversions.convert(daily_therm, "therm", "kWh")
-    design_level = calcDesignLevelFromDailykWh(daily_kwh: daily_kwh, tot_flow: tot_flow, max_flow: max_flow)
+    design_level = calc_design_level_from_daily_kwh(daily_kwh: daily_kwh, tot_flow: tot_flow, max_flow: max_flow)
 
     return design_level
   end
 
-  def calcPeakFlowFromDailygpm(daily_water:,
-                               tot_flow:,
-                               max_flow:)
+  def calc_peak_flow_from_daily_gpm(daily_water:,
+                                    tot_flow:,
+                                    max_flow:)
 
     peak_flow = UnitConversions.convert(max_flow * daily_water / tot_flow, "gal/min", "m^3/s")
 
     return peak_flow
   end
 
-  def calcDailygpmFromPeakFlow(peak_flow:,
-                               tot_flow:,
-                               max_flow:)
+  def calc_daily_gpm_from_peak_flow(peak_flow:,
+                                    tot_flow:,
+                                    max_flow:)
 
     daily_water = UnitConversions.convert(tot_flow * peak_flow / max_flow, "m^3/s", "gal/min")
 
     return daily_water
   end
 
-  def validateSchedule(col_name:,
-                       values:)
+  def validate_schedule(col_name:,
+                        values:)
 
     year_description = @model.getYearDescription
     num_hrs_in_year = Constants.NumHoursInYear(year_description.isLeapYear)
@@ -1265,7 +1265,7 @@ class SchedulesFile
 
       values = col[1..-1].reject { |v| v.nil? }
       values = values.map { |v| v.to_f }
-      validateSchedule(col_name: col_name, values: values)
+      validate_schedule(col_name: col_name, values: values)
       @schedules[col_name] = values
     end
   end
