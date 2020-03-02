@@ -7,12 +7,14 @@ Features
 - Update the single-family detached and multifamily projects with more up-to-date lighting stock distributions ([#392](https://github.com/NREL/OpenStudio-BuildStock/pull/392))
 - Update Insulation Finished Attic tsv with more options for insulation levels ([#395](https://github.com/NREL/OpenStudio-BuildStock/pull/395))
 - Add ability to ignore comment lines with the "#" symbol ([#408](https://github.com/NREL/OpenStudio-BuildStock/pull/408))
-- New geospatial characteristics have been added or updated. New geospatial caracteristics are as follows: ASHRAE IECC Climate Zone 2004, State, County, PUMA, Census Division, Census Region, Building America Climate Zone, and ISO/RTO Region. ([#416](https://github.com/NREL/OpenStudio-BuildStock/pull/416)).
+- New geospatial characteristics have been added or updated. New geospatial characteristics are as follows: ASHRAE IECC Climate Zone 2004, State, County, PUMA, Census Division, Census Region, Building America Climate Zone, and ISO/RTO Region. ([#416](https://github.com/NREL/OpenStudio-BuildStock/pull/416)).
 
 Fixes
 - Exclude net site energy consumption from annual and timeseries simulation output ("total" now reflects net of pv); change `include_enduse_subcategories` argument default to "true"; report either total interior equipment OR each of its components ([#405](https://github.com/NREL/OpenStudio-BuildStock/pull/405))
 - Refactor the tsv maker classes to accommodate more data sources ([#392](https://github.com/NREL/OpenStudio-BuildStock/pull/392))
 - Revert plug load schedule to RBSA for the National Average option([#355](https://github.com/NREL/OpenStudio-BuildStock/pull/355))
+- Removed the "Geometry Unit Stories SF" and "Geometry Unit Stories MF" housing characteristics ([#416](https://github.com/NREL/OpenStudio-BuildStock/pull/416)).
+
 
 ## ResStock v2.2.2
 ###### February 19, 2020 - [Diff](https://github.com/NREL/OpenStudio-BuildStock/compare/v2.2.1...v2.2.2)
