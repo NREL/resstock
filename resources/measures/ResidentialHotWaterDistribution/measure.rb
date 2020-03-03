@@ -229,39 +229,9 @@ class ResidentialHotWaterDistribution < OpenStudio::Measure::ModelMeasure
         return false
       end
 
-      sh_max_flow = model.getBuilding.additionalProperties.getFeatureAsDouble("Shower Max Flow Rate")
-      sh_tot_flow = model.getBuilding.additionalProperties.getFeatureAsDouble("Shower Total Flow Rate")
-      if not sh_max_flow.is_initialized or not sh_tot_flow.is_initialized
-        runner.registerError("Could not find max or total flow for shower.")
-        return false
-      else
-        sh_max_flow = sh_max_flow.get
-        sh_tot_flow = sh_tot_flow.get
-      end
-
-      s_max_flow = model.getBuilding.additionalProperties.getFeatureAsDouble("Sink Max Flow Rate")
-      s_tot_flow = model.getBuilding.additionalProperties.getFeatureAsDouble("Sink Total Flow Rate")
-      if not s_max_flow.is_initialized or not s_tot_flow.is_initialized
-        runner.registerError("Could not find max or total flow for sink.")
-        return false
-      else
-        s_max_flow = s_max_flow.get
-        s_tot_flow = s_tot_flow.get
-      end
-
-      b_max_flow = model.getBuilding.additionalProperties.getFeatureAsDouble("Bath Max Flow Rate")
-      b_tot_flow = model.getBuilding.additionalProperties.getFeatureAsDouble("Bath Total Flow Rate")
-      if not b_max_flow.is_initialized or not b_tot_flow.is_initialized
-        runner.registerError("Could not find max or total flow for bath.")
-        return false
-      else
-        b_max_flow = b_max_flow.get
-        b_tot_flow = b_tot_flow.get
-      end
-
-      shower_daily = schedules_file.calcDailygpmFromPeakFlow(peak_flow: shower_max, tot_flow: sh_tot_flow, max_flow: sh_max_flow)
-      sink_daily = schedules_file.calcDailygpmFromPeakFlow(peak_flow: sink_max, tot_flow: s_tot_flow, max_flow: s_max_flow)
-      bath_daily = schedules_file.calcDailygpmFromPeakFlow(peak_flow: bath_max, tot_flow: b_tot_flow, max_flow: b_max_flow)
+      shower_daily = schedules_file.calc_daily_gpm_from_peak_flow(col_name: "showers", peak_flow: shower_max)
+      sink_daily = schedules_file.calc_daily_gpm_from_peak_flow(col_name: "sinks", peak_flow: sink_max)
+      bath_daily = schedules_file.calc_daily_gpm_from_peak_flow(col_name: "baths", peak_flow: bath_max)
 
       # Calculate the pump energy consumption (in kWh/day)
       daily_recovery_load = Array.new(12, 0)
@@ -531,9 +501,9 @@ class ResidentialHotWaterDistribution < OpenStudio::Measure::ModelMeasure
       new_sink_daily = sink_daily + recovery_load_inc + daily_sink_inc - s_prev_dist
       new_bath_daily = bath_daily + recovery_load_inc + daily_bath_inc - b_prev_dist
 
-      sh_new_peak_flow = schedules_file.calc_peak_flow_from_daily_gpm(daily_water: new_shower_daily, tot_flow: sh_tot_flow, max_flow: sh_max_flow)
-      s_new_peak_flow = schedules_file.calc_peak_flow_from_daily_gpm(daily_water: new_sink_daily, tot_flow: s_tot_flow, max_flow: s_max_flow)
-      b_new_peak_flow = schedules_file.calc_peak_flow_from_daily_gpm(daily_water: new_bath_daily, tot_flow: b_tot_flow, max_flow: b_max_flow)
+      sh_new_peak_flow = schedules_file.calc_peak_flow_from_daily_gpm(col_name: "showers", daily_water: new_shower_daily)
+      s_new_peak_flow = schedules_file.calc_peak_flow_from_daily_gpm(col_name: "sinks", daily_water: new_sink_daily)
+      b_new_peak_flow = schedules_file.calc_peak_flow_from_daily_gpm(col_name: "baths", daily_water: new_bath_daily)
 
       shower_wu_def.setPeakFlowRate(sh_new_peak_flow)
       sink_wu_def.setPeakFlowRate(s_new_peak_flow)
@@ -563,7 +533,7 @@ class ResidentialHotWaterDistribution < OpenStudio::Measure::ModelMeasure
 
       # Add in an electricEquipment object for the recirculation pump
       if pump_e_ann > 0
-        recirc_pump_design_level = sch_sh.calcDesignLevelFromDailykWh(pump_e_ann / num_days_in_year)
+        recirc_pump_design_level = schedules_file.calc_design_level_from_daily_kwh(col_name: "showers", daily_kwh: pump_e_ann / num_days_in_year)
         recirc_pump_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
         recirc_pump = OpenStudio::Model::ElectricEquipment.new(recirc_pump_def)
         recirc_pump.setName(obj_name_recirc_pump)
