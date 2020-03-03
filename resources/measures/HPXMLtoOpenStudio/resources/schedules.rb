@@ -983,30 +983,8 @@ class ScheduleGenerator
       end
     end
 
-    dishwasher_max_flow_rate = 2.8186 # FIXME
-    dishwasher_tot_flow_rate = 4.402717808 # FIXME
-    @model.getBuilding.additionalProperties.setFeature("Dishwasher Max Flow Rate", dishwasher_max_flow_rate)
-    @model.getBuilding.additionalProperties.setFeature("Dishwasher Total Flow Rate", dishwasher_tot_flow_rate)
-
-    clothes_washer_max_flow_rate = 5.0354 # FIXME
-    clothes_washer_tot_flow_rate = 4.556512329 # FIXME
-    @model.getBuilding.additionalProperties.setFeature("Clothes Washer Max Flow Rate", clothes_washer_max_flow_rate)
-    @model.getBuilding.additionalProperties.setFeature("Clothes Washer Total Flow Rate", clothes_washer_tot_flow_rate)
-
-    shower_max_flow_rate = 4.079 # FIXME
-    shower_tot_flow_rate = 26.24088767 # FIXME
-    @model.getBuilding.additionalProperties.setFeature("Shower Max Flow Rate", shower_max_flow_rate)
-    @model.getBuilding.additionalProperties.setFeature("Shower Total Flow Rate", shower_tot_flow_rate)
-
-    sink_max_flow_rate = 3.2739 # FIXME
-    sink_tot_flow_rate = 24.29216986 # FIXME
-    @model.getBuilding.additionalProperties.setFeature("Sink Max Flow Rate", sink_max_flow_rate)
-    @model.getBuilding.additionalProperties.setFeature("Sink Total Flow Rate", sink_tot_flow_rate)
-
-    bath_max_flow_rate = 7.0312 # FIXME
-    bath_tot_flow_rate = 7.238115068 # FIXME
-    @model.getBuilding.additionalProperties.setFeature("Bath Max Flow Rate", bath_max_flow_rate)
-    @model.getBuilding.additionalProperties.setFeature("Bath Total Flow Rate", bath_tot_flow_rate)
+    # FIXME: clothes_washer, dishwasher, shower, sink, bath
+    # Divide unnormalized schedules by Constants.PeakFlowRate
 
     @clothes_dryer_exhaust_schedule = @clothes_dryer_schedule # FIXME
 
@@ -1185,39 +1163,38 @@ class SchedulesFile
     return design_level
   end
 
-  def calc_design_level_from_daily_kwh(daily_kwh:,
-                                       tot_flow:,
-                                       max_flow:)
+  def calc_design_level_from_daily_kwh(col_name:,
+                                       daily_kwh:)
 
-    design_level = UnitConversions.convert(daily_kwh * 60 / (tot_flow / max_flow), "kW", "W")
+    full_load_hrs = annual_equivalent_full_load_hrs(col_name: col_name)
+    year_description = @model.getYearDescription
+    num_days_in_year = Constants.NumDaysInYear(year_description.isLeapYear)
+    design_level = UnitConversions.convert(daily_kwh / (full_load_hrs / num_days_in_year), "kW", "W")
 
     return design_level
   end
 
-  def calc_design_level_from_daily_therm(daily_therm:,
-                                         tot_flow:,
-                                         max_flow:)
+  def calc_design_level_from_daily_therm(col_name:,
+                                         daily_therm:)
 
     daily_kwh = UnitConversions.convert(daily_therm, "therm", "kWh")
-    design_level = calc_design_level_from_daily_kwh(daily_kwh: daily_kwh, tot_flow: tot_flow, max_flow: max_flow)
+    design_level = calc_design_level_from_daily_kwh(col_name: col_name, daily_kwh: daily_kwh)
 
     return design_level
   end
 
-  def calc_peak_flow_from_daily_gpm(daily_water:,
-                                    tot_flow:,
-                                    max_flow:)
+  def calc_peak_flow_from_daily_gpm(col_name:,
+                                    daily_water:)
 
-    peak_flow = UnitConversions.convert(max_flow * daily_water / tot_flow, "gal/min", "m^3/s")
+    peak_flow = UnitConversions.convert(Constants.PeakFlowRate * daily_water, "gal/min", "m^3/s")
 
     return peak_flow
   end
 
-  def calc_daily_gpm_from_peak_flow(peak_flow:,
-                                    tot_flow:,
-                                    max_flow:)
+  def calc_daily_gpm_from_peak_flow(col_name:,
+                                    peak_flow:)
 
-    daily_water = UnitConversions.convert(tot_flow * peak_flow / max_flow, "m^3/s", "gal/min")
+    daily_water = UnitConversions.convert(peak_flow / Constants.PeakFlowRate, "m^3/s", "gal/min")
 
     return daily_water
   end
@@ -1292,37 +1269,9 @@ class SchedulesFile
       else
         sch_path = File.join(File.dirname(__FILE__), "../../../../files/8760.csv")
       end
-      set_test_flow_rates
     else
       sch_path = sch_path.get
     end
     return sch_path
-  end
-
-  def set_test_flow_rates
-    dishwasher_max_flow_rate = 2.8186
-    dishwasher_tot_flow_rate = 4.402717808
-    @model.getBuilding.additionalProperties.setFeature("Dishwasher Max Flow Rate", dishwasher_max_flow_rate)
-    @model.getBuilding.additionalProperties.setFeature("Dishwasher Total Flow Rate", dishwasher_tot_flow_rate)
-
-    clothes_washer_max_flow_rate = 5.0354
-    clothes_washer_tot_flow_rate = 4.556512329
-    @model.getBuilding.additionalProperties.setFeature("Clothes Washer Max Flow Rate", clothes_washer_max_flow_rate)
-    @model.getBuilding.additionalProperties.setFeature("Clothes Washer Total Flow Rate", clothes_washer_tot_flow_rate)
-
-    shower_max_flow_rate = 4.079
-    shower_tot_flow_rate = 26.24088767
-    @model.getBuilding.additionalProperties.setFeature("Shower Max Flow Rate", shower_max_flow_rate)
-    @model.getBuilding.additionalProperties.setFeature("Shower Total Flow Rate", shower_tot_flow_rate)
-
-    sink_max_flow_rate = 3.2739
-    sink_tot_flow_rate = 24.29216986
-    @model.getBuilding.additionalProperties.setFeature("Sink Max Flow Rate", sink_max_flow_rate)
-    @model.getBuilding.additionalProperties.setFeature("Sink Total Flow Rate", sink_tot_flow_rate)
-
-    bath_max_flow_rate = 7.0312
-    bath_tot_flow_rate = 7.238115068
-    @model.getBuilding.additionalProperties.setFeature("Bath Max Flow Rate", bath_max_flow_rate)
-    @model.getBuilding.additionalProperties.setFeature("Bath Total Flow Rate", bath_tot_flow_rate)
   end
 end

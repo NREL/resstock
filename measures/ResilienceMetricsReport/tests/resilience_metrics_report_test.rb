@@ -313,6 +313,9 @@ class ResilienceMetricsReportTest < MiniTest::Test
 
     # assert that it ran correctly
     assert_equal("Success", result.value.valueName)
+    result.info.each do |i|
+      puts i.logMessage
+    end
     assert_equal(num_infos, result.info.size)
     assert_equal(num_warnings, result.warnings.size)
 

@@ -6,28 +6,22 @@ require_relative '../measure.rb'
 require 'fileutils'
 
 class ResidentialScheduleGeneratorTest < MiniTest::Test
-  @@design_w = {
-    "cooking_range" => 224.973993584886,
-    "plug_loads" => 200.0,
-    "lighting_interior" => 500.0,
-    "lighting_exterior" => 500.0,
-    "lighting_garage" => 500.0,
-    "lighting_exterior_holiday" => 500.0,
-    "clothes_washer" => 7801.0,
-    "clothes_dryer" => 187363.17384556,
-    "dishwasher" => 11687.9379760899,
-    "baths" => 6337.0,
-    "showers" => 7900.0,
-    "sinks" => 2133.0,
-    "ceiling_fan" => 22.5,
-    "clothes_dryer_exhaust" => 10000.0
-  }
-  @@peak_flow = {
-    "clothes_washer" => 0.00069711761379102,
-    "dishwasher" => 0.000125164807534193,
-    "baths" => 0.000429619381723578,
-    "showers" => 0.000274694631177869,
-    "sinks" => 0.000212399462858359,
+  @@full_load_hrs_range = {
+    "occupants" => [0, 8784], # TODO
+    "cooking_range" => [0, 8784], # TODO
+    "plug_loads" => [0, 8784], # TODO
+    "lighting_interior" => [0, 8784], # TODO
+    "lighting_exterior" => [0, 8784], # TODO
+    "lighting_garage" => [0, 8784], # TODO
+    "lighting_exterior_holiday" => [0, 8784], # TODO
+    "clothes_washer" => [0, 8784], # TODO
+    "clothes_dryer" => [0, 8784], # TODO
+    "dishwasher" => [0, 8784], # TODO
+    "baths" => [0, 8784], # TODO
+    "showers" => [0, 8784], # TODO
+    "sinks" => [0, 8784], # TODO
+    "ceiling_fan" => [0, 8784], # TODO
+    "clothes_dryer_exhaust" => [0, 8784] # TODO
   }
 
   def test_one_occupant
@@ -52,7 +46,7 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
   end
 
   def test_four_occupants
-    skip # FIXME: showers, sinks, baths = 0
+    skip # FIXME
     args_hash = {}
     args_hash[:num_occupants] = 4
     expected_values = { "SchedulesLength" => 52560, "SchedulesWidth" => 15 }
@@ -60,7 +54,7 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
   end
 
   def test_five_occupants
-    skip # FIXME: showers, sinks, baths = 0
+    skip # FIXME
     args_hash = {}
     args_hash[:num_occupants] = 5
     expected_values = { "SchedulesLength" => 52560, "SchedulesWidth" => 15 }
@@ -68,7 +62,7 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
   end
 
   def test_six_occupants
-    skip # FIXME: showers, sinks, baths = 0
+    skip # FIXME
     args_hash = {}
     args_hash[:num_occupants] = 6
     expected_values = { "SchedulesLength" => 52560, "SchedulesWidth" => 15 }
@@ -92,7 +86,7 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
   def test_3bed_8784 # these are the old schedules
     args_hash = {}
     expected_values = { "SchedulesLength" => 8784, "SchedulesWidth" => 15 }
-    _test_measure("SFD_2000sqft_2story_FB_UA_Denver.osm", args_hash, expected_values, __method__, "USA_CO_Denver.Intl.AP.725650_TMY3.epw")
+    _test_measure("SFD_Successful_EnergyPlus_Run_AMY_PV.osm", args_hash, expected_values, __method__, "USA_CO_Denver.Intl.AP.725650_TMY3.epw")
   end
 
   private
@@ -230,27 +224,25 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
   def check_columns(col_names, schedules_file)
     passes = true
     col_names.each do |col_name|
-      puts "\n#{col_name}:"
-
       full_load_hrs = schedules_file.annual_equivalent_full_load_hrs(col_name: col_name)
-
-      puts "\tAnnual_kwh: #{UnitConversions.convert(full_load_hrs * @@design_w[col_name], "Wh", "kWh")}" unless @@design_w[col_name].nil?
-      puts "\tHotWater_gpd: #{UnitConversions.convert(full_load_hrs * @@peak_flow[col_name], "m^3/s", "gal/min") * 60.0 / 365.0}" unless @@peak_flow[col_name].nil?
-
-      if full_load_hrs > 0
+      if full_load_hrs > @@full_load_hrs_range[col_name][0] and full_load_hrs <= @@full_load_hrs_range[col_name][1]
         full_load_hrs = "#{full_load_hrs.round(2)}".green
       else
         full_load_hrs = "#{full_load_hrs.round(2)}".red
         passes = false
       end
-      puts "\tFull Load Hrs: #{full_load_hrs}"
+      puts "#{col_name}: full load hrs: #{full_load_hrs}"
     end
     assert(passes)
   end
 end
 
 class String
-  def red;            "\e[31m#{self}\e[0m" end
+  def red
+    return "\e[31m#{self}\e[0m"
+  end
 
-  def green;          "\e[32m#{self}\e[0m" end
+  def green
+    return "\e[32m#{self}\e[0m"
+  end
 end
