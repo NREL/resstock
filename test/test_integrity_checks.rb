@@ -9,6 +9,54 @@ class TestResStockErrors < MiniTest::Test
     @lookup_file = File.join(File.dirname(__FILE__), '..', 'resources', 'test_options_lookup.tsv')
   end
 
+  def test_housing_characteristics_float_precision
+    begin
+      housing_characteristics_dir = "housing_characteristics_float_precision"
+      integrity_check(@project_dir_name, housing_characteristics_dir, @lookup_file)
+      integrity_check_options_lookup_tsv(@project_dir_name, housing_characteristics_dir, @lookup_file)
+    rescue Exception => e
+      assert_equal("ERROR: Incorrect float precision found in 'Location', line '2'.", e.message)
+    else
+      flunk "Should have caused an error but didn't."
+    end
+  end
+
+  def test_housing_characteristics_newline_character
+    begin
+      housing_characteristics_dir = "housing_characteristics_newline_character"
+      integrity_check(@project_dir_name, housing_characteristics_dir, @lookup_file)
+      integrity_check_options_lookup_tsv(@project_dir_name, housing_characteristics_dir, @lookup_file)
+    rescue Exception => e
+      assert_equal("ERROR: Incorrect newline character found in 'Location', line '1'.", e.message)
+    else
+      flunk "Should have caused an error but didn't."
+    end
+  end
+
+  def test_housing_characteristics_scientific_notation
+    begin
+      housing_characteristics_dir = "housing_characteristics_scientific_notation"
+      integrity_check(@project_dir_name, housing_characteristics_dir, @lookup_file)
+      integrity_check_options_lookup_tsv(@project_dir_name, housing_characteristics_dir, @lookup_file)
+    rescue Exception => e
+      assert_equal("ERROR: Scientific notation found in 'Location', line '2'.", e.message)
+    else
+      flunk "Should have caused an error but didn't."
+    end
+  end
+
+  def test_housing_characteristics_non_float
+    begin
+      housing_characteristics_dir = "housing_characteristics_non_float"
+      integrity_check(@project_dir_name, housing_characteristics_dir, @lookup_file)
+      integrity_check_options_lookup_tsv(@project_dir_name, housing_characteristics_dir, @lookup_file)
+    rescue Exception => e
+      assert_equal("ERROR: Incorrect non float found in 'Location', line '2'.", e.message)
+    else
+      flunk "Should have caused an error but didn't."
+    end
+  end
+
   def test_housing_characteristics_sum_not_one
     begin
       housing_characteristics_dir = "housing_characteristics_sum_not_one"
@@ -127,6 +175,31 @@ class TestResStockErrors < MiniTest::Test
     rescue Exception => e
       assert(e.message.include? "ERROR: Cannot find file")
       assert(e.message.include? "ResidentialMissingMeasure/measure.rb")
+    else
+      flunk "Should have caused an error but didn't."
+    end
+  end
+
+  def test_housing_characteristics_nonexistent_dependency_option
+    begin
+      housing_characteristics_dir = "housing_characteristics_nonexistent_dependency_option"
+      integrity_check(@project_dir_name, housing_characteristics_dir, @lookup_file)
+      integrity_check_options_lookup_tsv(@project_dir_name, housing_characteristics_dir, @lookup_file)
+    rescue Exception => e
+      assert(e.message.include? "ERROR: Location=AL_Mobile-Rgnl.AP.722230 not a valid dependency option for Vintage.\n")
+    else
+      flunk "Should have caused an error but didn't."
+    end
+  end
+
+  def test_options_lookup_multiple_measure_argument_assignments
+    begin
+      housing_characteristics_dir = "housing_characteristics_cooling_setpoint"
+      lookup_file = File.join(File.dirname(__FILE__), '..', 'resources', 'test_options_lookup.tsv')
+      integrity_check(@project_dir_name, housing_characteristics_dir, lookup_file)
+      integrity_check_options_lookup_tsv(@project_dir_name, housing_characteristics_dir, lookup_file)
+    rescue Exception => e
+      assert(e.message.include? 'ERROR: Duplicate measure argument assignment(s) across ["Cooling Setpoint", "Cooling Setpoint Offset Magnitude"] parameters. (ResidentialHVACCoolingSetpoints => ["weekday_offset_magnitude", "weekend_offset_magnitude"]) already assigned.')
     else
       flunk "Should have caused an error but didn't."
     end
