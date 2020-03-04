@@ -2,7 +2,7 @@ class UnitConversions
   # As there is a performance penalty to using OpenStudio's built-in unit convert()
   # method, we use, our own methods here.
 
-  def self.convert(x, from, to, fuel_type = nil, is_leap_year = false)
+  def self.convert(x, from, to, fuel_type = nil, is_leap_year = false, steps_per_hour = 6)
     from.downcase!
     to.downcase!
 
@@ -119,6 +119,22 @@ class UnitConversions
       return x / 0.2930710701722222
     elsif from == 'kbtu/hr' and to == 'kw'
       return x * 0.2930710701722222
+
+    # Energy to Power
+    elsif from == 'j' and to == 'w'
+      return x / (3600.0 / steps_per_hour)
+    elsif from == 'j' and to == 'kw'
+      return x / (1000.0 * (3600.0 / steps_per_hour))
+    elsif from == 'gj' and to == 'kw'
+      return x * 1000000000.0 / (1000.0 * (3600.0 / steps_per_hour))
+
+    # Power to Energy
+    elsif from == 'w' and to == 'j'
+      return x * 3600.0 / steps_per_hour
+    elsif from == 'kw' and to == 'j'
+      return x * 1000.0 * (3600.0 / steps_per_hour)
+    elsif from == 'kw' and to == 'gj'
+      return x * 1000.0 * (3600.0 / steps_per_hour) / 1000000000.0
 
     # Power Flux
     elsif from == 'w/m^2' and to == 'btu/(hr*ft^2)'
