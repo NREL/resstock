@@ -128,11 +128,13 @@ class ClothesWasher
       return false
     end
 
-    # Get unit beds/baths
+    # Get unit beds/baths/occupants
     nbeds, nbaths = Geometry.get_unit_beds_baths(model, unit, runner)
     if nbeds.nil? or nbaths.nil?
       return false
     end
+
+    noccupants = Geometry.get_unit_occupants(model, unit, runner)
 
     # Get water heater setpoint
     wh_setpoint = Waterheater.get_water_heater_setpoint(model, plant_loop, runner)
@@ -272,8 +274,11 @@ class ClothesWasher
     end
 
     # (eq. 14 Eastment and Hendron, NREL/CP-550-39769, 2006)
-    actual_cycles_per_year = (cycles_per_year_test * (0.5 + nbeds / 6) *
-                                (12.5 / test_load)) # cycles/year
+    if [Constants.BuildingTypeMultifamily, Constants.BuildingTypeSingleFamilyAttached].include? Geometry.get_building_type(model) # multifamily equation
+      actual_cycles_per_year = (cycles_per_year_test * (0.5 + (-0.68 + 1.09 * noccupants) / 6) * (12.5 / test_load)) # cycles/year
+    elsif [Constants.BuildingTypeSingleFamilyDetached].include? Geometry.get_building_type(model) # single-family equation
+      actual_cycles_per_year = (cycles_per_year_test * (0.5 + (-1.47 + 1.69 * noccupants) / 6) * (12.5 / test_load)) # cycles/year
+    end
 
     total_daily_water_use = (actual_total_per_cycle_water_use * actual_cycles_per_year /
                              num_days_in_year) # gal/day
@@ -578,11 +583,13 @@ class ClothesDryer
       return false
     end
 
-    # Get unit beds/baths
+    # Get unit beds/baths/occupants
     nbeds, nbaths = Geometry.get_unit_beds_baths(model, unit, runner)
     if nbeds.nil? or nbaths.nil?
       return false
     end
+
+    noccupants = Geometry.get_unit_occupants(model, unit, runner)
 
     # Get number of days in months/year
     year_description = model.getYearDescription
@@ -658,8 +665,11 @@ class ClothesDryer
     end
 
     # (eq. 14 Eastment and Hendron, NREL/CP-550-39769, 2006)
-    actual_cycles_per_year = (cycles_per_year_test * (0.5 + nbeds / 6) *
-                                (12.5 / test_load)) # cycles/year
+    if [Constants.BuildingTypeMultifamily, Constants.BuildingTypeSingleFamilyAttached].include? Geometry.get_building_type(model) # multifamily equation
+      actual_cycles_per_year = (cycles_per_year_test * (0.5 + (-0.68 + 1.09 * noccupants) / 6) * (12.5 / test_load)) # cycles/year
+    elsif [Constants.BuildingTypeSingleFamilyDetached].include? Geometry.get_building_type(model) # single-family equation
+      actual_cycles_per_year = (cycles_per_year_test * (0.5 + (-1.47 + 1.69 * noccupants) / 6) * (12.5 / test_load)) # cycles/year
+    end
 
     # eq. 15 of Eastment and Hendron, NREL/CP-550-39769, 2006
     actual_cd_cycles_per_year = dryer_usage_factor * actual_cycles_per_year # cycles/year
@@ -804,11 +814,13 @@ class CookingRange
       return false
     end
 
-    # Get unit beds/baths
+    # Get unit beds/baths/occupants
     nbeds, nbaths = Geometry.get_unit_beds_baths(model, unit, runner)
     if nbeds.nil? or nbaths.nil?
       return false
     end
+
+    noccupants = Geometry.get_unit_occupants(model, unit, runner)
 
     unit_obj_name = Constants.ObjectNameCookingRange(fuel_type, unit.name.to_s)
 
@@ -824,14 +836,26 @@ class CookingRange
 
     # Calculate range daily energy use
     if fuel_type == Constants.FuelTypeElectric
-      ann_e = ((86.5 + 28.9 * nbeds) / cooktop_ef + (14.6 + 4.9 * nbeds) / oven_ef) * mult # kWh/yr
+      if [Constants.BuildingTypeMultifamily, Constants.BuildingTypeSingleFamilyAttached].include? Geometry.get_building_type(model) # multifamily equation
+        ann_e = ((66.8 + 31.5 * noccupants) / cooktop_ef + (11.3 + 5.3 * noccupants) / oven_ef) * mult # kWh/yr
+      elsif [Constants.BuildingTypeSingleFamilyDetached].include? Geometry.get_building_type(model) # single-family equation
+        ann_e = ((44.0 + 48.8 * noccupants) / cooktop_ef + (7.4 + 8.3 * noccupants) / oven_ef) * mult # kWh/yr
+      end
       ann_f = 0
       ann_i = 0
     else
       ann_e = 0
-      ann_f = ((2.64 + 0.88 * nbeds) / cooktop_ef + (0.44 + 0.15 * nbeds) / oven_ef) * mult # therm/yr
+      if [Constants.BuildingTypeMultifamily, Constants.BuildingTypeSingleFamilyAttached].include? Geometry.get_building_type(model) # multifamily equation
+        ann_f = ((2.04 + 0.96 * noccupants) / cooktop_ef + (0.34 + 0.16 * noccupants) / oven_ef) * mult # therm/yr
+      elsif [Constants.BuildingTypeSingleFamilyDetached].include? Geometry.get_building_type(model) # single-family equation
+        ann_f = ((1.35 + 1.49 * noccupants) / cooktop_ef + (0.22 + 0.25 * noccupants) / oven_ef) * mult # therm/yr
+      end
       if has_elec_ignition == true
-        ann_i = (40 + 13.3 * nbeds) * mult # kWh/yr
+        if [Constants.BuildingTypeMultifamily, Constants.BuildingTypeSingleFamilyAttached].include? Geometry.get_building_type(model) # multifamily equation
+          ann_i = (30.95 + 14.50 * noccupants) * mult # kWh/yr
+        elsif [Constants.BuildingTypeSingleFamilyDetached].include? Geometry.get_building_type(model) # single-family equation
+          ann_i = (20.45 + 22.48 * noccupants) * mult # kWh/yr
+        end
       else
         ann_i = 0
       end
@@ -979,11 +1003,13 @@ class Dishwasher
       return false
     end
 
-    # Get unit beds/baths
+    # Get unit beds/baths/occupants
     nbeds, nbaths = Geometry.get_unit_beds_baths(model, unit, runner)
     if nbeds.nil? or nbaths.nil?
       return false
     end
+
+    noccupants = Geometry.get_unit_occupants(model, unit, runner)
 
     # Get water heater setpoint
     wh_setpoint = Waterheater.get_water_heater_setpoint(model, plant_loop, runner)
@@ -1105,7 +1131,11 @@ class Dishwasher
     end
 
     # (eq. 16 Eastment and Hendron, NREL/CP-550-39769, 2006)
-    actual_cycles_per_year = 215 * (0.5 + nbeds / 6) * (8 / num_settings) # cycles/year
+    if [Constants.BuildingTypeMultifamily, Constants.BuildingTypeSingleFamilyAttached].include? Geometry.get_building_type(model) # multifamily equation
+      actual_cycles_per_year = 215 * (0.5 + (-0.68 + 1.09 * noccupants) / 6) * (8 / num_settings) # cycles/year
+    elsif [Constants.BuildingTypeSingleFamilyDetached].include? Geometry.get_building_type(model) # single-family equation
+      actual_cycles_per_year = 215 * (0.5 + (-1.47 + 1.69 * noccupants) / 6) * (8 / num_settings) # cycles/year
+    end
 
     daily_dishwasher_dhw = actual_cycles_per_year * test_dhw_use_per_cycle / num_days_in_year # gal/day (hot water)
 
@@ -1114,7 +1144,11 @@ class Dishwasher
       # From the 2010 BA Benchmark for dishwasher hot water
       # consumption. Should be appropriate for cold-water-inlet-only
       # dishwashers also.
-      daily_water = 2.5 + 0.833 * nbeds # gal/day
+      if [Constants.BuildingTypeMultifamily, Constants.BuildingTypeSingleFamilyAttached].include? Geometry.get_building_type(model) # multifamily equation
+        daily_water = 1.93 + 0.91 * noccupants # gal/day
+      elsif [Constants.BuildingTypeSingleFamilyDetached].include? Geometry.get_building_type(model) # single-family equation
+        daily_water = 1.28 + 1.41 * noccupants # gal/day
+      end
     else
       # Dishwasher uses only hot water so total water usage = DHW usage.
       daily_water = daily_dishwasher_dhw # gal/day
