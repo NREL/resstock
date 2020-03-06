@@ -1550,7 +1550,6 @@ class FoundationConstructions
       exposed_perimeter = Geometry.calculate_exposed_perimeter(model, [surface], has_fnd_walls)
     end
     if exposed_perimeter == 0
-      # exposed_perimeter = 0.01
       runner.registerError("Calculated an exposed perimeter <= 0 for slab '#{surface.name.to_s}'.")
       return false
     end
