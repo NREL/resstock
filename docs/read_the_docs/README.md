@@ -13,7 +13,7 @@ pip install -r requirements.txt
 With your environment activated, run the following command on Windows
 
 ```
-make.bat livehtml
+./make.bat livehtml
 ```
 
 And on Mac/Linux
