@@ -29,15 +29,30 @@ jobs:
           name: Run all regression tests
           command: |
             rake test:regression_tests
+      - store_artifacts:
+            path: workflows/results
+            destination: results
+  docs:
+    docker:
+      - image: circleci/python:3
+    steps:
+      - checkout
       - run:
-          name: Build readthedocs
+          name: Build documentation
           command: |
             cd docs/read_the_docs
             pip install -r requirements.txt
             make livehtml
       - store_artifacts:
-            path: workflows/results
-            destination: results
-      - store_artifacts:
             path: docs/read_the_docs/build
             destination: readthedocs
+workflows:
+  version: 2
+  commit:
+    jobs:
+      - build
+  documentation:
+    jobs:
+      - docs:
+          requires:
+            - build
