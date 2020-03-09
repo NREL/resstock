@@ -135,11 +135,13 @@ class ResidentialMiscElectricLoads < OpenStudio::Measure::ModelMeasure
     units.each do |unit|
       # Calculate electric mel daily energy use
       if option_type == Constants.OptionTypePlugLoadsMultiplier
-        # Get unit beds/baths
+        # Get unit beds/baths/occupants
         nbeds, nbaths = Geometry.get_unit_beds_baths(model, unit, runner)
         if nbeds.nil? or nbaths.nil?
           return false
         end
+
+        noccupants = Geometry.get_unit_occupants(model, unit, runner)
 
         # Get unit ffa
         ffa = Geometry.get_finished_floor_area_from_spaces(unit.spaces, runner)
@@ -147,7 +149,7 @@ class ResidentialMiscElectricLoads < OpenStudio::Measure::ModelMeasure
           return false
         end
 
-        mel_ann = (1108.1 + 180.2 * nbeds + 0.2785 * ffa) * mult
+        mel_ann = (908.91 + 277.75 * noccupants + 0.39 * ffa) * mult # RECS 2015
       elsif option_type == Constants.OptionTypePlugLoadsEnergyUse
         mel_ann = energy_use
       end
