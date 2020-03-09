@@ -344,10 +344,10 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
       runner.registerError("Starting model is not empty.")
       return false
     end
-    # if foundation_type == "crawlspace" and (foundation_height < 1.5 or foundation_height > 5.0)
-    #   runner.registerError("The crawlspace height can be set between 1.5 and 5 ft.")
-    #   return false
-    # end
+    if foundation_type == "crawlspace" and (foundation_height < 1.5 or foundation_height > 5.0)
+      runner.registerError("The crawlspace height can be set between 1.5 and 5 ft.")
+      return false
+    end
     if num_units % num_floors != 0
       runner.registerError("The number of units must be divisible by the number of floors.")
       return false
@@ -375,7 +375,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
       balcony_depth = 0
     end
     if unit_width < 3 and horz_location == "Middle"
-      runner.registerError("No middle horizontal location exists.")
+      runner.registerError("Invalid horizontal location entered, no middle location exists.")
       return false
     end
 

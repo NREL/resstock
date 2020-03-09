@@ -695,7 +695,6 @@ class Geometry
     model.getSurfaces.each do |surface|
       next if not surface.surfaceType.downcase == "wall"
       next if (surface.outsideBoundaryCondition.downcase != "outdoors")
-
       # next if surface.outsideBoundaryCondition.downcase == "foundation"
       surfaces << surface
     end
@@ -1706,6 +1705,10 @@ class Geometry
             scale = z / eaves_depth
           end
 
+          if Math.cos(tilt) < 0.001
+            z = 0
+          end
+
           m = self.initialize_transformation_matrix(OpenStudio::Matrix.new(4, 4, 0))
           m[0, 3] = dir_vector_n.x * eaves_depth * scale
           m[1, 3] = dir_vector_n.y * eaves_depth * scale
@@ -1733,9 +1736,11 @@ class Geometry
           m[2, 3] = roof_surface.space.get.zOrigin
           new_vertices = OpenStudio::Transformation.new(m) * new_vertices
 
-          shading_surface = OpenStudio::Model::ShadingSurface.new(new_vertices, model)
-          shading_surface.setName("#{roof_surface.name} - #{Constants.ObjectNameEaves}")
-          shading_surface.setShadingSurfaceGroup(shading_surface_group)
+          if z > 0 #no eaves on a vertical roof surface
+            shading_surface = OpenStudio::Model::ShadingSurface.new(new_vertices, model)
+            shading_surface.setName("#{roof_surface.name} - #{Constants.ObjectNameEaves}")
+            shading_surface.setShadingSurfaceGroup(shading_surface_group)
+          end
         end
 
       elsif roof_surface.vertices.length == 3
@@ -1831,7 +1836,7 @@ class Geometry
 
         polygon = OpenStudio::subtract(roof_surface_vertices, [new_shading_vertices], 0.001)[0]
 
-        if OpenStudio::getArea(roof_surface_vertices).get - OpenStudio::getArea(polygon).get > 0.001
+        if not polygon.nil? and (OpenStudio::getArea(roof_surface_vertices).get - OpenStudio::getArea(polygon).get > 0.001) 
           shading_surfaces_to_remove << shading_surface
         end
       end
