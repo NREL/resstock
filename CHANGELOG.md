@@ -2,7 +2,7 @@
 ###### March 9, 2020 - [Diff](https://github.com/NREL/OpenStudio-BuildStock/compare/v2.2.2...v2.2.3)
 
 Fixes
-- Update the weather zip file url in each PAT project to point to data.nrel.gov ([#XXX](https://github.com/NREL/OpenStudio-BuildStock/pull/XXX))
+- Update the weather zip file url in each PAT project to point to data.nrel.gov ([#422](https://github.com/NREL/OpenStudio-BuildStock/pull/422))
 
 ## ResStock v2.2.2
 ###### February 19, 2020 - [Diff](https://github.com/NREL/OpenStudio-BuildStock/compare/v2.2.1...v2.2.2)
