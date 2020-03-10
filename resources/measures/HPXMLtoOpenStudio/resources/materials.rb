@@ -299,6 +299,10 @@ class Material
       return self.RoofMaterial("Composition Shingles", 0.91, 0.85)
   end
 
+  def self.RoofingCompositionShinglesWhiteCool
+    return self.RoofMaterial("Asphalt Shingles, White or Cool Colors", 0.91, 0.75)
+  end
+
   def self.RoofingTileConcrete
       return self.RoofMaterial("Tile, Concrete", 0.88, 0.89)
   end
