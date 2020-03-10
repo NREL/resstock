@@ -1084,10 +1084,17 @@ class RoofConstructions
     mats << Material.RoofingTileLight
     mats << Material.RoofingTileWhite
     mats << Material.RoofingMetalDark
+    mats << Material.RoofingMetalCool
     mats << Material.RoofingMetalMed
     mats << Material.RoofingMetalLight
     mats << Material.RoofingMetalWhite
     mats << Material.RoofingGalvanizedSteel
+    mats << Material.RoofingTileClayorCeramic
+    mats << Material.RoofingTileClayorCeramicWhiteCool
+    mats << Material.RoofingWoodShingles
+    mats << Material.RoofingCompositionShingles
+    mats << Material.RoofingCompositionShinglesWhiteCool
+    mats << Material.RoofingSlate
     return mats
   end
 
