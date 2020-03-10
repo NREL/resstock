@@ -309,7 +309,7 @@ def integrity_check_options_lookup_tsv(project_dir_name, housing_characteristics
   measures.keys.each do |measure_subdir|
     puts "Checking for issues with #{measure_subdir} measure..."
 
-    measurerb_path = File.absolute_path(File.join(File.dirname(lookup_file), "..", "resources", "residential-hpxml-measures", measure_subdir, "measure.rb"))
+    measurerb_path = File.absolute_path(File.join(File.dirname(lookup_file), "..", "resources", "hpxml-measures", measure_subdir, "measure.rb"))
     check_file_exists(measurerb_path, nil)
     measure_instance = get_measure_instance(measurerb_path)
 
@@ -504,7 +504,7 @@ def generate_example_osws(data_hash, include_args, osw_filename, simplify = true
 
   workflowJSON = OpenStudio::WorkflowJSON.new
   workflowJSON.setOswPath(osw_path)
-  workflowJSON.addMeasurePath("../resources/residential-hpxml-measures")
+  workflowJSON.addMeasurePath("../resources/hpxml-measures")
   workflowJSON.addMeasurePath("../measures")
 
   steps = OpenStudio::WorkflowStepVector.new
@@ -524,7 +524,7 @@ def generate_example_osws(data_hash, include_args, osw_filename, simplify = true
       # Default to first measure in step
       measure = group_step["measures"][0]
 
-      measure_path = File.expand_path(File.join("../resources/residential-hpxml-measures", measure), workflowJSON.oswDir.to_s)
+      measure_path = File.expand_path(File.join("../resources/hpxml-measures", measure), workflowJSON.oswDir.to_s)
       unless File.exist? measure_path
         measure_path = File.expand_path(File.join("../measures", measure), workflowJSON.oswDir.to_s) # for ResidentialSimulationControls, ResidentialDemandResponse
       end
@@ -584,7 +584,7 @@ def get_and_proof_measure_order_json()
   # @return {data_hash} of measure-info.json
 
   # List all measures in measures/ folders
-  model_measure_folder = File.expand_path("../resources/residential-hpxml-measures/", __FILE__)
+  model_measure_folder = File.expand_path("../resources/hpxml-measures/", __FILE__)
   resstock_measure_folder = File.expand_path("../measures/", __FILE__)
   all_measures = Dir.entries(model_measure_folder).select { |entry| entry.include?("HPXML") } + Dir.entries(resstock_measure_folder).select { |entry| entry.start_with?("Residential") }
 
