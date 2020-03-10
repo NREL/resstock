@@ -1,0 +1,30 @@
+{
+  "run_directory": "run",
+  "measure_paths": [
+    ".."
+  ],
+  "steps": [
+    {
+      "arguments": {
+        "hpxml_path": "../workflow/sample_files/base.xml"
+      },
+      "measure_dir_name": "HPXMLtoOpenStudio"
+    },
+    {
+      "arguments": {
+        "timeseries_frequency": "hourly",
+        "include_timeseries_zone_temperatures": false,
+        "include_timeseries_fuel_consumptions": false,
+        "include_timeseries_end_use_consumptions": false,
+        "include_timeseries_total_loads": false,
+        "include_timeseries_component_loads": false
+      },
+      "measure_dir_name": "SimulationOutputReport"
+    }
+  ],
+  "run_options": {
+    "fast": true,
+    "skip_expand_objects": true,
+    "skip_energyplus_preprocess": true
+  }
+}
