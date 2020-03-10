@@ -80,8 +80,8 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeIntegerArgument("num_units", true)
     arg.setDisplayName("Geometry: Number of Units")
     arg.setUnits("#")
-    arg.setDescription("The number of units in the building.")
-    arg.setDefaultValue(1)
+    arg.setDescription("The number of units in the building. This is not used for single-family detached buildings.")
+    arg.setDefaultValue(2)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeIntegerArgument("num_floors", true)

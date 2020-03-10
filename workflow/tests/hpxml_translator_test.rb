@@ -751,6 +751,7 @@ class HPXMLTest < MiniTest::Test
     # Enclosure Walls/RimJoists/FoundationWalls
     (hpxml.walls + hpxml.rim_joists + hpxml.foundation_walls).each do |wall|
       next unless ['outside', 'ground'].include? wall.exterior_adjacent_to
+
       wall_id = wall.id.upcase
 
       # R-value

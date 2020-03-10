@@ -912,11 +912,13 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
     @hpxml.heating_systems.each do |htg_system|
       next unless htg_system.fraction_heat_load_served > 0
+
       sys_id = get_system_or_seed_id(htg_system)
       heat_fuels[sys_id] = htg_system.heating_system_fuel
     end
     @hpxml.heat_pumps.each do |heat_pump|
       next unless heat_pump.fraction_heat_load_served > 0
+
       sys_id = get_system_or_seed_id(heat_pump)
       heat_fuels[sys_id] = heat_pump.heat_pump_fuel
       if is_dfhp(heat_pump)
@@ -932,6 +934,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
     @hpxml.water_heating_systems.each do |dhw_system|
       next unless dhw_system.fraction_dhw_load_served > 0
+
       sys_id = dhw_system.id
       if ['space-heating boiler with tankless coil', 'space-heating boiler with storage tank'].include? dhw_system.water_heater_type
         @hpxml.heating_systems.each do |heating_system|
@@ -952,10 +955,12 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
     @hpxml.heating_systems.each do |htg_system|
       next unless htg_system.fraction_heat_load_served > 0
+
       sys_ids << get_system_or_seed_id(htg_system)
     end
     @hpxml.heat_pumps.each do |heat_pump|
       next unless heat_pump.fraction_heat_load_served > 0
+
       sys_ids << get_system_or_seed_id(heat_pump)
       if is_dfhp(heat_pump)
         sys_ids << dfhp_backup_sys_id(sys_ids[-1])
@@ -970,10 +975,12 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
     @hpxml.cooling_systems.each do |clg_system|
       next unless clg_system.fraction_cool_load_served > 0
+
       sys_ids << get_system_or_seed_id(clg_system)
     end
     @hpxml.heat_pumps.each do |heat_pump|
       next unless heat_pump.fraction_cool_load_served > 0
+
       sys_ids << get_system_or_seed_id(heat_pump)
     end
 
@@ -985,6 +992,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
     @hpxml.water_heating_systems.each do |dhw_system|
       next unless dhw_system.fraction_dhw_load_served > 0
+
       sys_ids << dhw_system.id
     end
 
@@ -996,6 +1004,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
     @hpxml.heating_systems.each do |htg_system|
       next unless htg_system.fraction_heat_load_served > 0
+
       sys_id = get_system_or_seed_id(htg_system)
       if not htg_system.heating_efficiency_afue.nil?
         eec_heats[sys_id] = get_eri_eec_value_numerator('AFUE') / htg_system.heating_efficiency_afue
@@ -1005,6 +1014,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     end
     @hpxml.heat_pumps.each do |heat_pump|
       next unless heat_pump.fraction_heat_load_served > 0
+
       sys_id = get_system_or_seed_id(heat_pump)
       if not heat_pump.heating_efficiency_hspf.nil?
         eec_heats[sys_id] = get_eri_eec_value_numerator('HSPF') / heat_pump.heating_efficiency_hspf
@@ -1028,6 +1038,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
     @hpxml.cooling_systems.each do |clg_system|
       next unless clg_system.fraction_cool_load_served > 0
+
       sys_id = get_system_or_seed_id(clg_system)
       if not clg_system.cooling_efficiency_seer.nil?
         eec_cools[sys_id] = get_eri_eec_value_numerator('SEER') / clg_system.cooling_efficiency_seer
@@ -1041,6 +1052,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     end
     @hpxml.heat_pumps.each do |heat_pump|
       next unless heat_pump.fraction_cool_load_served > 0
+
       sys_id = get_system_or_seed_id(heat_pump)
       if not heat_pump.cooling_efficiency_seer.nil?
         eec_cools[sys_id] = get_eri_eec_value_numerator('SEER') / heat_pump.cooling_efficiency_seer
@@ -1057,6 +1069,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
     @hpxml.water_heating_systems.each do |dhw_system|
       next unless dhw_system.fraction_dhw_load_served > 0
+
       sys_id = dhw_system.id
       value = dhw_system.energy_factor
       wh_type = dhw_system.water_heater_type
@@ -1216,6 +1229,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     end
     @hpxml.heat_pumps.each do |heat_pump|
       next unless heat_pump.fraction_heat_load_served > 0
+
       load_fraction = 1.0
       if is_dfhp(heat_pump)
         if dfhp_primary_sys_id(sys_id) == sys_id
@@ -1261,6 +1275,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     if not system.backup_heating_switchover_temp.nil? and system.backup_heating_fuel != "electricity"
       return true
     end
+
     return false
   end
 
