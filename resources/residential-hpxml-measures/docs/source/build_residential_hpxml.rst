@@ -1,4 +1,0 @@
-BuildResidentialHPXML Measure
-=============================
-
-TODO
