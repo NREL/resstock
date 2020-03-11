@@ -1094,6 +1094,8 @@ class RoofConstructions
     mats << Material.RoofingWoodShingles
     mats << Material.RoofingCompositionShingles
     mats << Material.RoofingCompositionShinglesWhiteCool
+    mats << Material.RoofingTileConcrete
+    mats << Material.RoofingTileConcreteWhiteCool
     mats << Material.RoofingSlate
     return mats
   end
