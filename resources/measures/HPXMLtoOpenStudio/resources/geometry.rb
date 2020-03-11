@@ -1942,7 +1942,7 @@ class Geometry
       level = level.get
 
       floor_mults = { "Bottom" => num_floors, "Middle" => 2, "Top" => 1 }
-      # greatest_z = greatest_z*floor_mults[level] #uncomment if unit origin is at z=0
+      greatest_z = greatest_z*floor_mults[level] #uncomment if unit origin is at z=0
       unit_length = greatest_y - least_y
       unit_width = greatest_x - least_x
       if has_rear_units
