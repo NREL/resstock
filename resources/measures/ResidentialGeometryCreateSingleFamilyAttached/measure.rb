@@ -685,6 +685,11 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
     # Store the building type
     model.getBuilding.setStandardsBuildingType(Constants.BuildingTypeSingleFamilyAttached)
 
+    #Store whole building variables
+    model.getBuilding.additionalProperties.setFeature("num_units", num_units)
+    model.getBuilding.additionalProperties.setFeature("has_rear_units", has_rear_units)
+    model.getBuilding.additionalProperties.setFeature("horz_location", horz_location)
+
     result = Geometry.process_beds_and_baths(model, runner, num_br, num_ba)
     unless result
       return false
