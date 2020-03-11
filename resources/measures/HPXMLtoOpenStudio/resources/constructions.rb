@@ -1444,18 +1444,21 @@ class FoundationConstructions
 
     # Assign surfaces to Kiva foundation
     # EDIT
-    horz_location = model.getBuilding.additionalProperties.getFeatureAsString("horz_location")
-    if horz_location.is_initialized
-      singleunit = true
-    else
-      singleunit = false
-    end
+    # horz_location = model.getBuilding.additionalProperties.getFeatureAsString("horz_location")
+    # if horz_location.is_initialized
+    #   singleunit = true
+    # else
+    #   singleunit = false
+    # end
     wall_surfaces.each do |wall_surface|
-      if singleunit and wall_surface.outsideBoundaryCondition != "Adiabatic"
-        wall_surface.setAdjacentFoundation(foundation)
-      elsif not singleunit
+      if wall_surface.outsideBoundaryCondition != "Adiabatic"
         wall_surface.setAdjacentFoundation(foundation)
       end
+      # if singleunit and wall_surface.outsideBoundaryCondition != "Adiabatic"
+      #   wall_surface.setAdjacentFoundation(foundation)
+      # elsif not singleunit
+      #   wall_surface.setAdjacentFoundation(foundation)
+      # end
     end
 
     if not apply_slab(runner, model, slab_surface, slab_constr_name,
@@ -2532,7 +2535,7 @@ class SurfaceTypes
 
     horz_location = model.getBuilding.additionalProperties.getFeatureAsString("horz_location")
     if horz_location.is_initialized
-      singleunit = true
+      singleunit = true #mf or sfa
     else
       singleunit = false
     end
@@ -2635,10 +2638,11 @@ class SurfaceTypes
     }
 
     horz_location = model.getBuilding.additionalProperties.getFeatureAsString("horz_location")
-    if horz_location.is_initialized
-      singleunit = true
+    level = model.getBuilding.additionalProperties.getFeatureAsString("level")
+    if horz_location.is_initialized and level.is_initialized
+      singleunit_mf = true
     else
-      singleunit = false
+      singleunit_mf = false
     end
 
     model.getSpaces.each do |space|
@@ -2669,7 +2673,7 @@ class SurfaceTypes
         elsif obc_is_exterior
           surfaces[Constants.SurfaceTypeRoofUnfinUninsExt] << surface
 
-        elsif singleunit
+        elsif singleunit_mf
           # Adiabatic
           if obc_is_adiabatic
             surfaces[Constants.SurfaceTypeRoofAdiabatic] << surface
@@ -2701,10 +2705,11 @@ class SurfaceTypes
     }
 
     horz_location = model.getBuilding.additionalProperties.getFeatureAsString("horz_location")
-    if horz_location.is_initialized
-      singleunit = true
+    level = model.getBuilding.additionalProperties.getFeatureAsString("level")
+    if horz_location.is_initialized and level.is_initialized
+      singleunit_mf = true
     else
-      singleunit = false
+      singleunit_mf = false
     end
 
     # Ceilings
@@ -2767,19 +2772,19 @@ class SurfaceTypes
           surfaces[Constants.SurfaceTypeFloorFinInsUnfinAttic] << surface
 
         # Floor between finished spaces [MF]
-        elsif not singleunit and is_finished and obc_is_adjacent and Geometry.space_is_finished(adjacent_space)
+        elsif not singleunit_mf and is_finished and obc_is_adjacent and Geometry.space_is_finished(adjacent_space)
           surfaces[Constants.SurfaceTypeFloorFinUninsFin] << surface
 
         # Floor between unfinished spaces [MF]
-        elsif not singleunit and not is_finished and obc_is_adjacent and not Geometry.space_is_finished(adjacent_space)
+        elsif not singleunit_mf and not is_finished and obc_is_adjacent and not Geometry.space_is_finished(adjacent_space)
           surfaces[Constants.SurfaceTypeFloorUnfinUninsUnfin] << surface
 
         # Floor between finished spaces [SINGLE]
-        elsif singleunit and is_finished and obc_is_adiabatic
+        elsif singleunit_mf and is_finished and obc_is_adiabatic
           surfaces[Constants.SurfaceTypeFloorFinUninsFin] << surface
 
         # Floor between unfinished spaces [SINGLE]
-        elsif singleunit and not is_finished and obc_is_adiabatic
+        elsif singleunit_mf and not is_finished and obc_is_adiabatic
           surfaces[Constants.SurfaceTypeFloorUnfinUninsUnfin] << surface
 
         # Finished basement floor

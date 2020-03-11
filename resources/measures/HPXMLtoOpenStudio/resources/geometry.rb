@@ -1474,11 +1474,12 @@ class Geometry
 
       # Calculate number of occupants for this unit
       if unit_occ == Constants.Auto
-        if units.size > 1 # multifamily equation
+        # if units.size > 1 # multifamily equation
+        horz_location = model.getBuilding.additionalProperties.getFeatureAsInteger("horz_location")
+        if (horz_location.is_initialized) or (units.size > 1) #SFA/MF single unit or whole-building approach
           unit_occ = 0.63 + 0.92 * nbeds
         else # single-family equation
-          # unit_occ = 0.87 + 0.59 * nbeds
-          unit_occ = 0.63 + 0.92 * nbeds
+          unit_occ = 0.87 + 0.59 * nbeds
         end
       else
         unit_occ = unit_occ.to_f
@@ -1705,7 +1706,7 @@ class Geometry
             scale = z / eaves_depth
           end
 
-          if Math.cos(tilt) < 0.001
+          if Math.cos(tilt) < 0.001 #Roof is vertical (occurs with SFA w/ rear units single unit approach)
             z = 0
           end
 
@@ -1937,7 +1938,7 @@ class Geometry
     level = model.getBuilding.additionalProperties.getFeatureAsString("level")
     has_rear_units = model.getBuilding.additionalProperties.getFeatureAsBoolean("has_rear_units")
 
-    if (num_floors.is_initialized) and (level.is_initialized)
+    if (num_floors.is_initialized) and (level.is_initialized) #single unit, MF
       num_floors = num_floors.get.to_f
       level = level.get
 

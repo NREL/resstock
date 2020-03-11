@@ -71,6 +71,7 @@ class Airflow
       end
     else # multifamily
       building_height = building.building_height
+      puts("!!!! #{building_height}")
     end
 
     wind_speed = process_wind_speed_correction(infil.terrain, infil.shelter_coef, Geometry.get_closest_neighbor_distance(model), building_height)
@@ -601,7 +602,7 @@ class Airflow
           if horz_location == "Middle"
             a_o = mf_building_ELA / (n_end_units * end_mid_ratio + (n_units - n_end_units))
           else
-            a_o = mf_building_ELA / (n_end_units + ((n_units - n_end_units) / end_mid_ratio))
+            a_o = mf_building_ELA/ (n_end_units + ((n_units - n_end_units) / end_mid_ratio))
           end
         end
       # Infiltration for MF
@@ -634,6 +635,7 @@ class Airflow
         vented_crawl = true
       end
 
+      # MF vented_crawl
       found_type = model.getBuilding.additionalProperties.getFeatureAsString("found_type")
       if found_type.is_initialized
         found_type = found_type.get
