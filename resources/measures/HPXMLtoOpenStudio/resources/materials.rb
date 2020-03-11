@@ -300,7 +300,7 @@ class Material
   end
 
   def self.RoofingCompositionShinglesWhiteCool
-    return self.RoofMaterial("Asphalt Shingles, White or Cool Colors", 0.91, 0.75)
+    return self.RoofMaterial("Composition Shingles, White or Cool Colors", 0.91, 0.75)
   end
 
   def self.RoofingTileConcrete
