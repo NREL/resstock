@@ -1475,7 +1475,7 @@ class Geometry
       # Calculate number of occupants for this unit
       if unit_occ == Constants.Auto
         # if units.size > 1 # multifamily equation
-        horz_location = model.getBuilding.additionalProperties.getFeatureAsInteger("horz_location")
+        horz_location = model.getBuilding.additionalProperties.getFeatureAsString("horz_location")
         if (horz_location.is_initialized) or (units.size > 1) #SFA/MF single unit or whole-building approach
           unit_occ = 0.63 + 0.92 * nbeds
         else # single-family equation
