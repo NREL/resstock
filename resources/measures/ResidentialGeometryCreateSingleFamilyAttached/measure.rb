@@ -422,13 +422,24 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
 
     #Adiabatic surfaces for walls
     ##############################################################################################
-    # Map unit location to adiabatic surfaces
+    # Map unit location to adiabatic surfaces (#if `key` unit then make `value(s)` adiabatic)
     horz_hash = { "Left" => ["right"], "Right" => ["left"], "Middle" => ["left", "right"], "None" => [] }
     adb_facade = horz_hash[horz_location]
-
-    # Check for exposed left and right facades
     if (has_rear_units == true)
       adb_facade += ["back"]
+    end
+
+    if adb_facade.include? "left"
+      left_neighbor_offset = 0
+    end
+    if adb_facade.include? "right"
+      right_neighbor_offset = 0
+    end
+    if adb_facade.include? "back"
+      back_neighbor_offset = 0
+    end
+    if adb_facade.include? "front"
+      front_neighbor_offset = 0
     end
 
     adiabatic_surf = adb_facade

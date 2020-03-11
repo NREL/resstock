@@ -344,10 +344,11 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
       runner.registerError("Starting model is not empty.")
       return false
     end
-    if foundation_type == "crawlspace" and (foundation_height < 1.5 or foundation_height > 5.0)
-      runner.registerError("The crawlspace height can be set between 1.5 and 5 ft.")
-      return false
-    end
+    #Commented out to allow for 0ft crawlspace on non-ground floor units
+    # if foundation_type == "crawlspace" and (foundation_height < 1.5 or foundation_height > 5.0)
+    #   runner.registerError("The crawlspace height can be set between 1.5 and 5 ft.")
+    #   return false
+    # end
     if num_units % num_floors != 0
       runner.registerError("The number of units must be divisible by the number of floors.")
       return false
@@ -491,6 +492,20 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     end
     if (has_rear_units == true)
       adb_facade += ["back"]
+    end
+
+    #Remove neighbors
+    if adb_facade.include? "left"
+      left_neighbor_offset = 0
+    end
+    if adb_facade.include? "right"
+      right_neighbor_offset = 0
+    end
+    if adb_facade.include? "back"
+      back_neighbor_offset = 0
+    end
+    if adb_facade.include? "front"
+      front_neighbor_offset = 0
     end
 
     adiabatic_surf = adb_facade + adb_level
