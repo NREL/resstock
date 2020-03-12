@@ -1,21 +1,28 @@
 ## ResStock v2.3.0 (pending)
 
 Features
-
 - Remove the single-family detached project, and remove PAT from the testing and multifamily projects ([#402](https://github.com/NREL/OpenStudio-BuildStock/pull/402))
 - Relocate the data folder, along with tsv makers, to a separate private repository ([#401](https://github.com/NREL/OpenStudio-BuildStock/pull/401))
 - Update the single-family detached and multifamily projects with more up-to-date lighting stock distributions ([#392](https://github.com/NREL/OpenStudio-BuildStock/pull/392))
 - Update Insulation Finished Attic tsv with more options for insulation levels ([#395](https://github.com/NREL/OpenStudio-BuildStock/pull/395))
 - Add ability to ignore comment lines with the "#" symbol ([#408](https://github.com/NREL/OpenStudio-BuildStock/pull/408))
+- Update occupant and plug loads equations based on RECS 2015 data; replace floor area with occupants as independent variable in plug loads equation; allow modeling of zero-bedroom units (e.g., studios) ([#324](https://github.com/NREL/OpenStudio-BuildStock/pull/324))
 - New geospatial characteristics have been added or updated. New geospatial characteristics are as follows: ASHRAE IECC Climate Zone 2004, State, County, PUMA, Census Division, Census Region, Building America Climate Zone, and ISO/RTO Region. The top level housing characteristic is now ASHRAE IECC Climate Zone 2004. Now using data from the American Community Survey Public Use Microdata Sample (ACS PUMS) for Building Type, Vintage, and Heating Fuel ([#416](https://github.com/NREL/OpenStudio-BuildStock/pull/416)).
-- Update HVAC System Cooling TSV with air-conditioning saturations ("None", "Room AC", or "Central AC") from American Housing Survey for Custom Region 04. Efficiency probabilities remain based on RECS 2009([#418](https://github.com/NREL/OpenStudio-BuildStock/pull/418))
+- Update HVAC System Cooling TSV with air-conditioning saturations ("None", "Room AC", or "Central AC") from American Housing Survey for Custom Region 04. Efficiency probabilities remain based on RECS 2009 ([#418](https://github.com/NREL/OpenStudio-BuildStock/pull/418))
+- Diversify the timing heating and cooling setpoint setbacks ([#414](https://github.com/NREL/OpenStudio-BuildStock/pull/414)).
+- Reduce the number of appliances in multifamily units. Adding RECS building type as a dependencies to clothes washers, clothes dryers, dishwashers, refrigerators, extra refrigerators, and stand-alone freezers. Update refrigeration levels based on RECS 2009 age and shipment-weighted efficiency by year. Now using the American Housing Survey (AHS) for clothes washer and clothes dryer saturations. New geographic field, AHS Region, which uses the top 15 largest Core Based Statistical Areas (CBSAs) and Non-CBSA Census Divisions. ([420](https://github.com/NREL/OpenStudio-BuildStock/pull/420)).
 
 Fixes
 - Exclude net site energy consumption from annual and timeseries simulation output ("total" now reflects net of pv); change `include_enduse_subcategories` argument default to "true"; report either total interior equipment OR each of its components ([#405](https://github.com/NREL/OpenStudio-BuildStock/pull/405))
 - Refactor the tsv maker classes to accommodate more data sources ([#392](https://github.com/NREL/OpenStudio-BuildStock/pull/392))
-- Revert plug load schedule to RBSA for the National Average option([#355](https://github.com/NREL/OpenStudio-BuildStock/pull/355))
-- Removed the "Geometry Unit Stories SF" and "Geometry Unit Stories MF" housing characteristics. Unit stories are instead represented by the "Geometry Stories" housing characteristic. ([#416](https://github.com/NREL/OpenStudio-BuildStock/pull/416)).
+- Revert plug load schedule to RBSA for the National Average option ([#355](https://github.com/NREL/OpenStudio-BuildStock/pull/355))
+- Removed the "Geometry Unit Stories SF" and "Geometry Unit Stories MF" housing characteristics. Unit stories are instead represented by the "Geometry Stories" housing characteristic ([#416](https://github.com/NREL/OpenStudio-BuildStock/pull/416)).
 
+## ResStock v2.2.3
+###### March 9, 2020 - [Diff](https://github.com/NREL/OpenStudio-BuildStock/compare/v2.2.2...v2.2.3)
+
+Fixes
+- Update the weather zip file url in each PAT project to point to data.nrel.gov ([#422](https://github.com/NREL/OpenStudio-BuildStock/pull/422))
 
 ## ResStock v2.2.2
 ###### February 19, 2020 - [Diff](https://github.com/NREL/OpenStudio-BuildStock/compare/v2.2.1...v2.2.2)
