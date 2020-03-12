@@ -2,13 +2,13 @@
   <schema_version>3.0</schema_version>
   <name>create_residential_multifamily_geometry</name>
   <uid>9bc07973-98a4-46fc-b643-e280628817c5</uid>
-  <version_id>030709f1-d988-4148-a631-8037e4e8f45c</version_id>
-  <version_modified>20200226T215031Z</version_modified>
+  <version_id>22ed0eba-4362-4701-8301-84ecaafd7d38</version_id>
+  <version_modified>20191015T140430Z</version_modified>
   <xml_checksum>2AF3A68E</xml_checksum>
   <class_name>CreateResidentialMultifamilyGeometry</class_name>
-  <display_name>CreateResidentialMultifamilyGeometry</display_name>
-  <description>Sets the geometry for a single unit in a multifamily building based on the user-specified location of the unit. Sets the number of bedrooms, bathrooms, and occupants in the unit. See https://github.com/NREL/OpenStudio-BuildStock#workflows for supported workflows using this measure.</description>
-  <modeler_description>Creates multifamily geometry for a single unit. Also, sets (or replaces) BuildingUnit objects that store the number of bedrooms and bathrooms associated with the model. Sets (or replaces) the People object for each finished space in the model.</modeler_description>
+  <display_name>Create Residential Multifamily Geometry</display_name>
+  <description>Sets the basic geometry for the multifamily building, where all units are 1 story and stacked if the building is multiple stories. Sets the number of bedrooms, bathrooms, and occupants in the building. See https://github.com/NREL/OpenStudio-BuildStock#workflows for supported workflows using this measure.</description>
+  <modeler_description>Creates multifamily geometry. Also, sets (or replaces) BuildingUnit objects that store the number of bedrooms and bathrooms associated with the model. Sets (or replaces) the People object for each finished space in the model.</modeler_description>
   <arguments>
     <argument>
       <name>unit_ffa</name>
@@ -294,24 +294,6 @@
       <default_value>180</default_value>
     </argument>
     <argument>
-      <name>level</name>
-      <display_name>Unit Level</display_name>
-      <description>The level of the unit (Top, Middle, Bottom)</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>Bottom</default_value>
-    </argument>
-    <argument>
-      <name>horz_location</name>
-      <display_name>Horizontal Location of the Unit</display_name>
-      <description>The horizontal location of the unit when viewing the front of the building (Left, Middle, Right)</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>Left</default_value>
-    </argument>
-    <argument>
       <name>minimal_collapsed</name>
       <display_name>Minimal Collapsed Building</display_name>
       <description>Collapse the building down into only corner, end, and/or middle units.</description>
@@ -360,21 +342,21 @@
   </attributes>
   <files>
     <file>
-      <filename>create_residential_multifamily_geometry_test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>F9BEFD4B</checksum>
-    </file>
-    <file>
       <version>
         <software_program>OpenStudio</software_program>
-        <identifier>2.7.0</identifier>
-        <min_compatible>2.7.0</min_compatible>
+        <identifier>1.12.2</identifier>
+        <min_compatible>2.0.4</min_compatible>
       </version>
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>A51C06B9</checksum>
+      <checksum>E9015CAC</checksum>
+    </file>
+    <file>
+      <filename>create_residential_multifamily_geometry_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>86F0CFB7</checksum>
     </file>
   </files>
 </measure>
