@@ -32,3 +32,25 @@ jobs:
       - store_artifacts:
             path: workflows/results
             destination: results
+  docs:
+    docker:
+      - image: circleci/python:3
+    steps:
+      - checkout
+      - run:
+          name: Build documentation
+          command: |
+            cd docs/read_the_docs
+            pip install -r requirements.txt
+            make html
+      - store_artifacts:
+            path: docs/read_the_docs/build
+            destination: readthedocs
+workflows:
+  version: 2
+  commit:
+    jobs:
+      - build
+      - docs:
+          requires:
+            - build
