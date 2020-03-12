@@ -345,10 +345,10 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
       return false
     end
     #Commented out to allow for 0ft crawlspace on non-ground floor units
-    # if foundation_type == "crawlspace" and (foundation_height < 1.5 or foundation_height > 5.0)
-    #   runner.registerError("The crawlspace height can be set between 1.5 and 5 ft.")
-    #   return false
-    # end
+    if foundation_type == "crawlspace" and (foundation_height < 1.5 or foundation_height > 5.0) and level == "Bottom"
+      runner.registerError("The crawlspace height can be set between 1.5 and 5 ft.")
+      return false
+    end
     if num_units % num_floors != 0
       runner.registerError("The number of units must be divisible by the number of floors.")
       return false
@@ -742,6 +742,8 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     model.getBuilding.additionalProperties.setFeature("horz_location", horz_location)
     model.getBuilding.additionalProperties.setFeature("level", level)
     model.getBuilding.additionalProperties.setFeature("found_type", foundation_type)
+
+    puts("horz_location: #{horz_location}")
 
     # Store number of units
     model.getBuilding.setStandardsNumberOfLivingUnits(num_units)
