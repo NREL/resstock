@@ -1,0 +1,888 @@
+stock_type: residential
+buildstock_directory: ../  # Relative to this file or absolute
+project_directory: project_multifamily_beta
+output_directory: /projects/enduse/grid_benefit_analysis/testrun_2016
+weather_files_path: /shared-projects/buildstock/weather/ResStock_2016.zip
+#output_directory: ../national_test_outputs
+#weather_files_path: ../weatherfiles/ResStock_2016.zip
+baseline:
+  n_datapoints: 10000
+  n_buildings_represented: 109105332 
+residential_simulation_controls:
+  timesteps_per_hr: 6
+  begin_month: 1
+  begin_day_of_month: 1
+  end_month: 12
+  end_day_of_month: 31
+  calendar_year: 2016 # 2006 starts on Sunday, 2007 starts on Monday
+
+downselect:
+  resample: false #change to false
+  logic:
+    or:
+      - Location|NC_Asheville.Rgnl.AP.723150
+      - Location|NC_Greensboro-Piedmont.Triad.Intl.AP.723170
+      - Location|NC_Charlotte-Douglas.Intl.AP.723140
+      - Location|SC_Greer.Greenville-Spartanburg.AP.723120
+      - Location|FL_Tallahassee.Rgnl.AP.722140
+      - Location|FL_Jacksonville.Intl.AP.722060
+      - Location|FL_Orlando.Intl.AP.722050
+      - Location|FL_Daytona.Beach.Intl.AP.722056
+           
+upgrades:
+  - upgrade_name: Envelope Only
+    options: 
+        # 25% air leakage reduction applied from current ACH50 levels
+      - option: Infiltration|18.5 ACH50
+        apply_logic: Infiltration|25 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Infiltration|15 ACH50
+        apply_logic: Infiltration|20 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Infiltration|11.25 ACH50
+        apply_logic: Infiltration|15 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Infiltration|7.5 ACH50
+        apply_logic: Infiltration|10 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Infiltration|6 ACH50
+        apply_logic: Infiltration|8 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Infiltration|5.25 ACH50
+        apply_logic: Infiltration|7 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Infiltration|4.5 ACH50
+        apply_logic: Infiltration|6 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Infiltration|3.75 ACH50
+        apply_logic: Infiltration|5 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Infiltration|3 ACH50
+        apply_logic: Infiltration|4 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Infiltration|2.25 ACH50
+        apply_logic: Infiltration|3 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Infiltration|1.5 ACH50
+        apply_logic: Infiltration|2 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      # Insulate vented attics to R-49
+      # All different in anticipation of including cost-effectiveness prices in the future
+      - option: Insulation Unfinished Attic|Ceiling R-49, Vented
+        apply_logic: Insulation Unfinished Attic|Uninsulated, Vented
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Insulation Unfinished Attic|Ceiling R-49, Vented
+        apply_logic: Insulation Unfinished Attic|Ceiling R-7, Vented
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Insulation Unfinished Attic|Ceiling R-49, Vented
+        apply_logic: Insulation Unfinished Attic|Ceiling R-13, Vented
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Insulation Unfinished Attic|Ceiling R-49, Vented
+        apply_logic: Insulation Unfinished Attic|Ceiling R-19, Vented
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      # Duct leakage reduction to 10%, insulate attic to R-8
+      # All different in anticipation of including cost-effectiveness prices in the future
+      - option: Ducts|10% Leakage, R-8
+        apply_logic:
+          - or:
+              - Ducts|85% Leakage, Uninsulated
+              - Ducts|53% Leakage, Uninsulated
+              - Ducts|34% Leakage, Uninsulated
+              - Ducts|30% Leakage, Uninsulated
+              - Ducts|85% Leakage, R-4
+              - Ducts|85% Leakage, R-6
+              - Ducts|53% Leakage, R-4
+              - Ducts|53% Leakage, R-6
+              - Ducts|34% Leakage, R-4
+              - Ducts|34% Leakage, R-6
+              - Ducts|30% Leakage, R-4
+              - Ducts|30% Leakage, R-6
+          - not: 
+              or:
+                - Ducts|None
+                - Ducts|In Finished Space
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - option: Ducts|10% Leakage, R-8
+        apply_logic:
+          - or:
+            - Ducts|85% Leakage, R-8
+            - Ducts|53% Leakage, R-8
+            - Ducts|34% Leakage, R-8
+            - Ducts|30% Leakage, R-8
+          - not: 
+              or:
+                - Ducts|None
+                - Ducts|In Finished Space
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - option: Ducts|10% Leakage, R-8
+        apply_logic:
+          - or:
+            - Ducts|24% Leakage, Uninsulated
+            - Ducts|24% Leakage, R-4
+            - Ducts|24% Leakage, R-6
+            - Ducts|20% Leakage, Uninsulated
+            - Ducts|20% Leakage, R-4
+            - Ducts|20% Leakage, R-6
+          - not: 
+              or:
+                - Ducts|None
+                - Ducts|In Finished Space
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - option: Ducts|10% Leakage, R-8
+        apply_logic:
+          - or:
+            - Ducts|24% Leakage, R-8
+            - Ducts|20% Leakage, R-8
+          - not: 
+              or:
+                - Ducts|None
+                - Ducts|In Finished Space
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - option: Ducts|10% Leakage, R-8
+        apply_logic:
+          - or:
+            - Ducts|15% Leakage, Uninsulated
+            - Ducts|15% Leakage, R-4
+            - Ducts|15% Leakage, R-6
+            - Ducts|14% Leakage, Uninsulated
+            - Ducts|14% Leakage, R-4
+            - Ducts|14% Leakage, R-6
+            - Ducts|15% Leakage, R-6, 50% Surface Area, 1 return
+          - not: 
+              or:
+                - Ducts|None
+                - Ducts|In Finished Space
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - option: Ducts|10% Leakage, R-8
+        apply_logic:
+          - or:
+            - Ducts|15% Leakage, R-8
+            - Ducts|14% Leakage, R-8
+          - not: 
+              or:
+                - Ducts|None
+                - Ducts|In Finished Space
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - option: Ducts|10% Leakage, R-8
+        apply_logic: 
+          - or:
+            - Ducts|10% Leakage, Uninsulated
+            - Ducts|10% Leakage, R-4
+            - Ducts|10% Leakage, R-6
+          - not: 
+              or:
+                - Ducts|None
+                - Ducts|In Finished Space
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - option: Ducts|7.5% Leakage, R-8
+        apply_logic:
+          - or:
+            - Ducts|7.5% Leakage, Uninsulated
+            - Ducts|7.5% Leakage, R-4
+            - Ducts|7.5% Leakage, R-6
+          - not: 
+              or:
+                - Ducts|None
+                - Ducts|In Finished Space
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - option: Ducts|6% Leakage, R-8
+        apply_logic:
+          - or:
+            - Ducts|6% Leakage, Uninsulated
+            - Ducts|6% Leakage, R-4
+            - Ducts|6% Leakage, R-6
+          - not: 
+              or:
+                - Ducts|None
+                - Ducts|In Finished Space
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      # Windows with U-factor 0.27 and SHGC 0.2
+      - option: Windows|Clear, Double, Non-metal, L-Gain
+        apply_logic:
+          or:
+            - Windows|1 Pane
+            - Windows|2+ Pane 
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      # cool roofs upgrade scenario
+      - option: Roof Material|Asphalt Shingles, White or Cool Colors
+        apply_logic:
+          - Roof Material|Asphalt Shingles, Medium
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - option: Roof Material|Tile, Clay or Ceramic, White or Cool Colors
+        apply_logic:
+          - Roof Material|Tile, Clay or Ceramic
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - option: Roof Material|Tile, Concrete, White or Cool Colors
+        apply_logic:
+          - Roof Material|Tile, Concrete
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - option: Roof Material|Metal, Cool Colors
+        apply_logic:
+          - Roof Material|Metal, Dark
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - option: Roof Material|Composition Shingles, White or Cool Colors
+        apply_logic:
+          - Roof Material|Composition Shingles
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+      - option: Roof Material|Wood Shingles
+        apply_logic:
+          - Roof Material|Wood Shingles
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - option: Roof Material|Slate
+        apply_logic:
+          - Roof Material|Slate
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+  # Water Heating upgrade
+  - upgrade_name: Water Heating Only
+    options:
+      - option: Water Heater|Electric Heat Pump, 80 gal
+        apply_logic:
+          or:
+            - Water Heater|Electric Standard
+            - Water Heater|Electric Premium
+            - Water Heater|Electric Benchmark
+            - Water Heater|Electric Heat Pump, 50 gal
+            - Water Heater|Electric Heat Pump, 50 gal, 140F 
+        costs:
+            - value: 0
+              multiplier: Fixed (1)
+        lifetime: 13
+  # CAC, ASHP upgrade
+  - upgrade_name: Energy Efficient HVAC Only
+    options: 
+    # An EER of 14 is assumed for AC, SEER 16
+    - option: HVAC System Cooling|AC, SEER 16 
+      apply_logic:
+        and:
+          - or:
+            - HVAC System Cooling|AC, SEER 8
+            - HVAC System Cooling|AC, SEER 10
+            - HVAC System Cooling|AC, SEER 13
+            - HVAC System Cooling|AC, SEER 14
+            - HVAC System Cooling|AC, SEER 15
+          - or:
+            - HVAC System Heating Electricity|Electric Baseboard
+            - HVAC System Heating Electricity|Electric Boiler
+            - HVAC System Heating Electricity|None
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 16
+      # ASHP upgrade
+    - option: HVAC System Heat Pump|ASHP, SEER 16, 9.0 HSPF
+      apply_logic: 
+        or:
+          - HVAC System Heat Pump|ASHP, SEER 10, 6.2 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 10.3, 7.0 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 11.5, 7.5 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 13, 7.7 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 13, 8.0 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 14, 8.2 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 14.3, 8.5 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 15, 8.5 HSPF
+          - HVAC System Heating Electricity|Electric Furnace
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 15
+    reference_scenario: Reference HVAC
+   # Reference HVAC  
+  - upgrade_name: Reference HVAC Only
+    options: 
+    - option: HVAC System Cooling|AC, SEER 14 
+      apply_logic:
+        and:
+          - or:
+            - HVAC System Cooling|AC, SEER 8
+            - HVAC System Cooling|AC, SEER 10
+            - HVAC System Cooling|AC, SEER 13
+          - or:
+            - HVAC System Heating Electricity|Electric Baseboard
+            - HVAC System Heating Electricity|Electric Boiler
+            - HVAC System Heating Electricity|None
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 16
+    # Reference ASHP upgrade
+    - option: HVAC System Heat Pump|ASHP, SEER 14, 8.2 HSPF
+      apply_logic: 
+        or:
+          - HVAC System Heat Pump|ASHP, SEER 10, 6.2 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 10.3, 7.0 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 11.5, 7.5 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 13, 7.7 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 13, 8.0 HSPF
+          - HVAC System Heating Electricity|Electric Furnace
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 15
+    # Thermostat Upgrade    
+  - upgrade_name: Thermostat Only
+    options:
+    # Thermostat controls 
+    - option: Cooling Setpoint Apply Offset|TRUE
+      apply_logic:
+        - Cooling Setpoint Has Offset|No
+    - option: Heating Setpoint Apply Offset|TRUE
+      apply_logic:
+        - Heating Setpoint Has Offset|No
+    - option: Cooling Setpoint Apply Offset|FALSE
+      apply_logic:
+        - Cooling Setpoint Has Offset|Yes
+    - option: Heating Setpoint Apply Offset|FALSE
+      apply_logic:
+        - Heating Setpoint Has Offset|Yes
+    - option: Dayoccupied|National
+      apply_logic:
+        - Somebody at home in weekday|Yes
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+    - option: Dayvacant|National
+      apply_logic:
+        - Somebody at home in weekday|No
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+  # Combination of HVAC and Thermostat Upgrades
+  - upgrade_name: HVAC and Thermostat
+    options: 
+    # An EER of 14 is assumed for AC, SEER 16
+    - option: HVAC System Cooling|AC, SEER 16 
+      apply_logic:
+        and:
+          - or:
+            - HVAC System Cooling|AC, SEER 8
+            - HVAC System Cooling|AC, SEER 10
+            - HVAC System Cooling|AC, SEER 13
+            - HVAC System Cooling|AC, SEER 14
+            - HVAC System Cooling|AC, SEER 15
+          - or:
+            - HVAC System Heating Electricity|Electric Baseboard
+            - HVAC System Heating Electricity|Electric Boiler
+            - HVAC System Heating Electricity|None
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 16
+      # ASHP upgrade
+    - option: HVAC System Heat Pump|ASHP, SEER 16, 9.0 HSPF
+      apply_logic: 
+        or:
+          - HVAC System Heat Pump|ASHP, SEER 10, 6.2 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 10.3, 7.0 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 11.5, 7.5 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 13, 7.7 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 13, 8.0 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 14, 8.2 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 14.3, 8.5 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 15, 8.5 HSPF
+          - HVAC System Heating Electricity|Electric Furnace
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 15
+    # Thermostat controls 
+    - option: Cooling Setpoint Apply Offset|TRUE
+      apply_logic:
+        - Cooling Setpoint Has Offset|No
+    - option: Heating Setpoint Apply Offset|TRUE
+      apply_logic:
+        - Heating Setpoint Has Offset|No
+    - option: Cooling Setpoint Apply Offset|FALSE
+      apply_logic:
+        - Cooling Setpoint Has Offset|Yes
+    - option: Heating Setpoint Apply Offset|FALSE
+      apply_logic:
+        - Heating Setpoint Has Offset|Yes
+    - option: Dayoccupied|National
+      apply_logic:
+        - Somebody at home in weekday|Yes
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+    - option: Dayvacant|National
+      apply_logic:
+        - Somebody at home in weekday|No
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+    reference_scenario: Reference HVAC
+  # Combination of HVAC and Thermostat and Envelope Upgrades
+  - upgrade_name: HVAC and Thermostat and Envelope
+    options: 
+    # An EER of 14 is assumed for AC, SEER 16
+    - option: HVAC System Cooling|AC, SEER 16 
+      apply_logic:
+        and:
+          - or:
+            - HVAC System Cooling|AC, SEER 8
+            - HVAC System Cooling|AC, SEER 10
+            - HVAC System Cooling|AC, SEER 13
+            - HVAC System Cooling|AC, SEER 14
+            - HVAC System Cooling|AC, SEER 15
+          - or:
+            - HVAC System Heating Electricity|Electric Baseboard
+            - HVAC System Heating Electricity|Electric Boiler
+            - HVAC System Heating Electricity|None
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 16
+      # ASHP upgrade
+    - option: HVAC System Heat Pump|ASHP, SEER 16, 9.0 HSPF
+      apply_logic: 
+        or:
+          - HVAC System Heat Pump|ASHP, SEER 10, 6.2 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 10.3, 7.0 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 11.5, 7.5 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 13, 7.7 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 13, 8.0 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 14, 8.2 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 14.3, 8.5 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 15, 8.5 HSPF
+          - HVAC System Heating Electricity|Electric Furnace
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 15
+    # Thermostat controls 
+    - option: Cooling Setpoint Apply Offset|TRUE
+      apply_logic:
+        - Cooling Setpoint Has Offset|No
+    - option: Heating Setpoint Apply Offset|TRUE
+      apply_logic:
+        - Heating Setpoint Has Offset|No
+    - option: Cooling Setpoint Apply Offset|FALSE
+      apply_logic:
+        - Cooling Setpoint Has Offset|Yes
+    - option: Heating Setpoint Apply Offset|FALSE
+      apply_logic:
+        - Heating Setpoint Has Offset|Yes
+    - option: Dayoccupied|National
+      apply_logic:
+        - Somebody at home in weekday|Yes
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+    - option: Dayvacant|National
+      apply_logic:
+        - Somebody at home in weekday|No
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+    # All Envelope Upgrades
+    - option: Infiltration|18.5 ACH50
+      apply_logic: Infiltration|25 ACH50
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Infiltration|15 ACH50
+      apply_logic: Infiltration|20 ACH50
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Infiltration|11.25 ACH50
+      apply_logic: Infiltration|15 ACH50
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Infiltration|7.5 ACH50
+      apply_logic: Infiltration|10 ACH50
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Infiltration|6 ACH50
+      apply_logic: Infiltration|8 ACH50
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Infiltration|5.25 ACH50
+      apply_logic: Infiltration|7 ACH50
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Infiltration|4.5 ACH50
+      apply_logic: Infiltration|6 ACH50
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Infiltration|3.75 ACH50
+      apply_logic: Infiltration|5 ACH50
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Infiltration|3 ACH50
+      apply_logic: Infiltration|4 ACH50
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Infiltration|2.25 ACH50
+      apply_logic: Infiltration|3 ACH50
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Infiltration|1.5 ACH50
+      apply_logic: Infiltration|2 ACH50
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    # Insulate vented attics to R-49
+    # All different in anticipation of including cost-effectiveness prices in the future
+    - option: Insulation Unfinished Attic|Ceiling R-49, Vented
+      apply_logic: Insulation Unfinished Attic|Uninsulated, Vented
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Insulation Unfinished Attic|Ceiling R-49, Vented
+      apply_logic: Insulation Unfinished Attic|Ceiling R-7, Vented
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Insulation Unfinished Attic|Ceiling R-49, Vented
+      apply_logic: Insulation Unfinished Attic|Ceiling R-13, Vented
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Insulation Unfinished Attic|Ceiling R-49, Vented
+      apply_logic: Insulation Unfinished Attic|Ceiling R-19, Vented
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    # Duct leakage reduction to 10%, insulate attic to R-8
+    # All different in anticipation of including cost-effectiveness prices in the future
+    - option: Ducts|10% Leakage, R-8
+      apply_logic:
+        - or:
+            - Ducts|85% Leakage, Uninsulated
+            - Ducts|53% Leakage, Uninsulated
+            - Ducts|34% Leakage, Uninsulated
+            - Ducts|30% Leakage, Uninsulated
+            - Ducts|85% Leakage, R-4
+            - Ducts|85% Leakage, R-6
+            - Ducts|53% Leakage, R-4
+            - Ducts|53% Leakage, R-6
+            - Ducts|34% Leakage, R-4
+            - Ducts|34% Leakage, R-6
+            - Ducts|30% Leakage, R-4
+            - Ducts|30% Leakage, R-6
+        - not: 
+            or:
+              - Ducts|None
+              - Ducts|In Finished Space
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 30
+    - option: Ducts|10% Leakage, R-8
+      apply_logic:
+        - or:
+          - Ducts|85% Leakage, R-8
+          - Ducts|53% Leakage, R-8
+          - Ducts|34% Leakage, R-8
+          - Ducts|30% Leakage, R-8
+        - not: 
+            or:
+              - Ducts|None
+              - Ducts|In Finished Space
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 30
+    - option: Ducts|10% Leakage, R-8
+      apply_logic:
+        - or:
+          - Ducts|24% Leakage, Uninsulated
+          - Ducts|24% Leakage, R-4
+          - Ducts|24% Leakage, R-6
+          - Ducts|20% Leakage, Uninsulated
+          - Ducts|20% Leakage, R-4
+          - Ducts|20% Leakage, R-6
+        - not: 
+            or:
+              - Ducts|None
+              - Ducts|In Finished Space
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 30
+    - option: Ducts|10% Leakage, R-8
+      apply_logic:
+        - or:
+          - Ducts|24% Leakage, R-8
+          - Ducts|20% Leakage, R-8
+        - not: 
+            or:
+              - Ducts|None
+              - Ducts|In Finished Space
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 30
+    - option: Ducts|10% Leakage, R-8
+      apply_logic:
+        - or:
+          - Ducts|15% Leakage, Uninsulated
+          - Ducts|15% Leakage, R-4
+          - Ducts|15% Leakage, R-6
+          - Ducts|14% Leakage, Uninsulated
+          - Ducts|14% Leakage, R-4
+          - Ducts|14% Leakage, R-6
+          - Ducts|15% Leakage, R-6, 50% Surface Area, 1 return
+        - not: 
+            or:
+              - Ducts|None
+              - Ducts|In Finished Space
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 30
+    - option: Ducts|10% Leakage, R-8
+      apply_logic:
+        - or:
+          - Ducts|15% Leakage, R-8
+          - Ducts|14% Leakage, R-8
+        - not: 
+            or:
+              - Ducts|None
+              - Ducts|In Finished Space
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 30
+    - option: Ducts|10% Leakage, R-8
+      apply_logic: 
+        - or:
+          - Ducts|10% Leakage, Uninsulated
+          - Ducts|10% Leakage, R-4
+          - Ducts|10% Leakage, R-6
+        - not: 
+            or:
+              - Ducts|None
+              - Ducts|In Finished Space
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 30
+    - option: Ducts|7.5% Leakage, R-8
+      apply_logic:
+        - or:
+          - Ducts|7.5% Leakage, Uninsulated
+          - Ducts|7.5% Leakage, R-4
+          - Ducts|7.5% Leakage, R-6
+        - not: 
+            or:
+              - Ducts|None
+              - Ducts|In Finished Space
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 30
+    - option: Ducts|6% Leakage, R-8
+      apply_logic:
+        - or:
+          - Ducts|6% Leakage, Uninsulated
+          - Ducts|6% Leakage, R-4
+          - Ducts|6% Leakage, R-6
+        - not: 
+            or:
+              - Ducts|None
+              - Ducts|In Finished Space
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 30
+    # Windows with U-factor 0.27 and SHGC 0.2
+    - option: Windows|Clear, Double, Non-metal, L-Gain
+      apply_logic:
+        or:
+          - Windows|1 Pane
+          - Windows|2+ Pane 
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 30
+    # cool roofs upgrade scenario
+    - option: Roof Material|Asphalt Shingles, White or Cool Colors
+      apply_logic:
+        - Roof Material|Asphalt Shingles, Medium
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 30
+    - option: Roof Material|Tile, Clay or Ceramic, White or Cool Colors
+      apply_logic:
+        - Roof Material|Tile, Clay or Ceramic
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 30
+    - option: Roof Material|Tile, Concrete, White or Cool Colors
+      apply_logic:
+        - Roof Material|Tile, Concrete
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 30
+    - option: Roof Material|Metal, Cool Colors
+      apply_logic:
+        - Roof Material|Metal, Dark
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 30
+    - option: Roof Material|Composition Shingles, White or Cool Colors
+      apply_logic:
+        - Roof Material|Composition Shingles
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+    - option: Roof Material|Wood Shingles
+      apply_logic:
+        - Roof Material|Wood Shingles
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 30
+    - option: Roof Material|Slate
+      apply_logic:
+        - Roof Material|Slate
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 30
+    reference_scenario: Reference HVAC
+
+timeseries_csv_export:
+  reporting_frequency: Hourly
+  include_enduse_subcategories: true
+eagle:
+  account: windowsaving
+  n_jobs: 20 #change to 200
+  minutes_per_sim: 90
+  postprocessing:
+    time: 240
+    n_workers: 20
+
+postprocessing:
+  aws:
+    region_name: 'us-west-2'
+    s3:
+      bucket: resbldg-datasets
+      prefix: resstock-athena/grid_benefit_analysis_testrun
+    athena:
+      glue_service_role: service-role/AWSGlueServiceRole-default
+      database_name: gba_support
+      max_crawling_time: 1000 #time to wait for the crawler to complete before aborting it
