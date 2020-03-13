@@ -142,7 +142,7 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
       else
         full_load_hrs = "#{full_load_hrs.round(2)}".red
         passes = false
-      end      
+      end
       puts "#{col_name}: full load hrs: #{full_load_hrs}"
     end
     assert(passes)
