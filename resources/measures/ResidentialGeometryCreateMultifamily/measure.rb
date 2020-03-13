@@ -375,9 +375,20 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
       runner.registerWarning("Specified a balcony, but there is no inset.")
       balcony_depth = 0
     end
+    if unit_width > 1 and horz_location == "None"
+      runner.registerError("Specified incompatible horizontal location for the corridor and unit configuration.")
+      return false
+    end 
+    if unit_width == 1 and horz_location != "None"
+      runner.registerError("Invalid horizontal location enetered, no #{horz_location} location exists.")
+      return false
+    end
     if unit_width < 3 and horz_location == "Middle"
       runner.registerError("Invalid horizontal location entered, no middle location exists.")
       return false
+    end
+    if num_floors != 1 and level != "Top"
+      eaves_depth = 0
     end
 
     # Convert to SI
@@ -485,10 +496,6 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     # Check levels
     if num_floors == 1
       adb_level = []
-    end
-    # Check for exposed left and right facades
-    if num_units_per_floor == 1 or (num_units_per_floor == 2 and has_rear_units == true)
-      adb_facade = []
     end
     if (has_rear_units == true)
       adb_facade += ["back"]
@@ -742,8 +749,6 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     model.getBuilding.additionalProperties.setFeature("horz_location", horz_location)
     model.getBuilding.additionalProperties.setFeature("level", level)
     model.getBuilding.additionalProperties.setFeature("found_type", foundation_type)
-
-    puts("horz_location: #{horz_location}")
 
     # Store number of units
     model.getBuilding.setStandardsNumberOfLivingUnits(num_units)
