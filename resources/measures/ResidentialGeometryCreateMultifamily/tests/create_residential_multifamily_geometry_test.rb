@@ -159,7 +159,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
-#---- 1 [No horizontal, 1 unit/floor]
+#- [No horizontal, 1 unit/floor]
   #Top, No horz, Double cor, 1 unit/floor (default to single exterior)
   def test_top_one_unit_per_floor_with_corridor
     num_finished_spaces = 1
@@ -242,7 +242,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
   end
 
 
-#---- 2 [No horizontal, 2 unit/floor]
+#- [No horizontal, 2 unit/floor]
   #Top, No Horz, Double cor, 2 unit/floor
   def test_top_two_unit_per_floor_double_corridor
     num_finished_spaces = 1
@@ -327,8 +327,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
-
-#---- 3 [Left Horizontal, 1 unit/floor]
+#- [Left Horizontal, 1 unit/floor]
   #Top, Left horz, No cor, 1 unit/floor
   def test_top_left_one_unit_per_floor_no_corridor
     num_finished_spaces = 1
@@ -420,7 +419,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
   end
 
 
-#---- 4 [Left horizontal, 2 unit/floor]
+#- [Left horizontal, 2 unit/floor]
   #Top, Left Horz, Double cor, 2 unit/floor
   def test_top_left_two_unit_per_floor_double_corridor
     num_finished_spaces = 1
@@ -556,7 +555,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
-#---- 5 [Middle Horizontal, 3 unit/floor]
+#- [Middle Horizontal, 3 unit/floor]
   #Top, Middle Horz, Double cor, 3 unit/floor
   def test_top_mid_three_unit_per_floor_double_corridor
     num_finished_spaces = 1
@@ -602,7 +601,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
-#---- 6 [Left Horizontal, 4 unit/floor]
+#- [Left Horizontal, 4 unit/floor]
   #Top, Left Horz, Double cor, 4 unit/floor
   def test_top_left_four_unit_per_floor_double_corridor
     num_finished_spaces = 1
@@ -648,7 +647,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
-#---- 7 [Middle Horizontal, 6 unit/floor]
+#- [Middle Horizontal, 6 unit/floor]
   #Top, Middle Horz, Double cor, 6 unit/floor
   def test_top_mid_six_unit_per_floor_double_corridor
     num_finished_spaces = 1
@@ -740,6 +739,39 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
   end
 
 
+
+
+#-
+
+  def test_argument_error_invalid_none_horizontal
+    args_hash = {}
+    args_hash["num_floors"] = 3
+    args_hash["num_units"] = 6
+    args_hash["horz_location"] = "None"
+    args_hash["corridor_position"] = "None"
+    result = _test_error(nil, args_hash)
+    assert_includes(result.errors.map { |x| x.logMessage }, "Specified incompatible horizontal location for the corridor and unit configuration.")
+  end 
+
+  def test_argument_error_invalid_middle_horizontal
+    args_hash = {}
+    args_hash["num_floors"] = 3
+    args_hash["num_units"] = 6
+    args_hash["horz_location"] = "Middle"
+    args_hash["corridor_position"] = "None"
+    result = _test_error(nil, args_hash)
+    assert_includes(result.errors.map { |x| x.logMessage }, "Invalid horizontal location entered, no middle location exists.")
+  end 
+
+  def test_argument_error_invalid_middle_level
+    args_hash = {}
+    args_hash["num_floors"] = 2
+    args_hash["num_units"] = 6
+    args_hash["level"] = "Middle"
+    args_hash["corridor_position"] = "None"
+    result = _test_error(nil, args_hash)
+    assert_includes(result.errors.map { |x| x.logMessage }, "Building is 2 stories and does not have middle units")
+  end 
 
   def test_corr_width_zero_but_corr_not_none
     num_finished_spaces = 1
