@@ -253,7 +253,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     horz_location = OpenStudio::Measure::OSArgument::makeStringArgument("horz_location", true)
     horz_location.setDisplayName("Horizontal Location of the Unit")
     horz_location.setDescription("The horizontal location of the unit when viewing the front of the building (Left, Middle, Right)")
-    horz_location.setDefaultValue("Left")
+    horz_location.setDefaultValue("None")
     args << horz_location
 
     # make a bool argument for minimal collapsed building
@@ -375,14 +375,14 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
       runner.registerWarning("Specified a balcony, but there is no inset.")
       balcony_depth = 0
     end
+    if unit_width == 1 and horz_location != "None"
+      runner.registerWarning("No #{horz_location} location exists, setting horz_location to 'None'")
+      horz_location = "None"
+    end
     if unit_width > 1 and horz_location == "None"
       runner.registerError("Specified incompatible horizontal location for the corridor and unit configuration.")
       return false
     end 
-    if unit_width == 1 and horz_location != "None"
-      runner.registerError("Invalid horizontal location enetered, no #{horz_location} location exists.")
-      return false
-    end
     if unit_width < 3 and horz_location == "Middle"
       runner.registerError("Invalid horizontal location entered, no middle location exists.")
       return false
