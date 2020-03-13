@@ -53,23 +53,8 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
-  def test_two_story_double_exterior
-    num_finished_spaces = 8
-    args_hash = {}
-    args_hash["num_floors"] = 2
-    args_hash["num_units"] = 2 * 4
-    args_hash["corridor_position"] = "Double Exterior"
-    args_hash["inset_width"] = 8
-    args_hash["inset_depth"] = 6
-    args_hash["balcony_depth"] = 6
-    expected_num_del_objects = {}
-    expected_num_new_objects = { "BuildingUnit" => 2 * 4, "Surface" => 68, "ThermalZone" => 2 * 4, "Space" => 2 * 4, "SpaceType" => 1, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 2, "ShadingSurfaceGroup" => 14, "ShadingSurface" => 30 }
-    expected_values = { "FinishedFloorArea" => 900 * 2 * 4, "BuildingHeight" => 2 * 8, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 27.12, "EavesDepth" => 2, "NumAdiabaticSurfaces" => 0 }
-    _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
-  end
-
   def test_multiplex_right_inset
-    num_finished_spaces = 48
+    num_finished_spaces = 1
     args_hash = {}
     args_hash["num_floors"] = 8
     args_hash["num_units"] = 8 * 6
@@ -77,13 +62,13 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     args_hash["inset_depth"] = 6
     args_hash["foundation_type"] = "unfinished basement"
     expected_num_del_objects = {}
-    expected_num_new_objects = { "BuildingUnit" => 8 * 6, "Surface" => 538, "ThermalZone" => 8 * 6 + 1 + 1, "Space" => 8 * 6 + 1 + 8, "SpaceType" => 3, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 2, "ShadingSurfaceGroup" => 2, "ShadingSurface" => 26 }
-    expected_values = { "FinishedFloorArea" => 900 * 8 * 6, "UnfinishedBasementHeight" => 8, "UnfinishedBasementFloorArea" => 6 * 900 + 3 * 21.77 * 10, "BuildingHeight" => 8 + 8 * 8, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 162.72, "EavesDepth" => 2, "NumAdiabaticSurfaces" => 112 }
+    expected_num_new_objects = { "BuildingUnit" => 1, "Surface" => 26, "ThermalZone" => 1 + 1 + 1, "Space" => 1 + 1 + 1, "SpaceType" => 3, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 2, "ShadingSurfaceGroup" => 1, "ShadingSurface" => 1 }
+    expected_values = { "FinishedFloorArea" => 900, "UnfinishedBasementHeight" => 8, "UnfinishedBasementFloorArea" => 900 + 0.5 * 21.77 * 10, "BuildingHeight" => 8 + 8, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 3.39, "EavesDepth" => 2, "NumAdiabaticSurfaces" => 11 }
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
-  def test_multiplex_left_inset
-    num_finished_spaces = 48
+  def test_multiplex_left_inset_balcony
+    num_finished_spaces = 1
     args_hash = {}
     args_hash["num_floors"] = 8
     args_hash["num_units"] = 8 * 6
@@ -93,43 +78,84 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     args_hash["balcony_depth"] = 6
     args_hash["foundation_type"] = "unfinished basement"
     expected_num_del_objects = {}
-    expected_num_new_objects = { "BuildingUnit" => 8 * 6, "Surface" => 538, "ThermalZone" => 8 * 6 + 1 + 1, "Space" => 8 * 6 + 1 + 8, "SpaceType" => 3, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 2, "ShadingSurfaceGroup" => 50, "ShadingSurface" => 74 }
-    expected_values = { "FinishedFloorArea" => 900 * 8 * 6, "UnfinishedBasementHeight" => 8, "UnfinishedBasementFloorArea" => 6 * 900 + 3 * 21.77 * 10, "BuildingHeight" => 8 + 8 * 8, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 162.72, "EavesDepth" => 2, "NumAdiabaticSurfaces" => 112 }
+    expected_num_new_objects = { "BuildingUnit" => 1, "Surface" => 26, "ThermalZone" => 1 + 1 + 1, "Space" => 1 + 1 + 1, "SpaceType" => 3, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 2, "ShadingSurfaceGroup" => 2, "ShadingSurface" => 2 }
+    expected_values = { "FinishedFloorArea" => 900, "UnfinishedBasementHeight" => 8, "UnfinishedBasementFloorArea" => 900 + 0.5 * 21.77 * 10, "BuildingHeight" => 8 + 8, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 3.39, "EavesDepth" => 2, "NumAdiabaticSurfaces" => 10 }
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
-  def test_crawl_single_exterior
-    num_finished_spaces = 24
+#---- Foundation tests
+  def test_bot_ufbasement_double_loaded_corr
+    num_finished_spaces = 1
+    args_hash = {}
+    args_hash["num_units"] = 4
+    args_hash["foundation_type"] = "unfinished basement"
+    expected_num_del_objects = {}
+    expected_num_new_objects = { "BuildingUnit" => 1, "Surface" => 22, "ThermalZone" => 1 + 1 + 1, "Space" => 1 + 1 + 1, "SpaceType" => 3, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 2, "ShadingSurfaceGroup" => 2, "ShadingSurface" => 7 }
+    expected_values = { "FinishedFloorArea" => 900 * 1, "UnfinishedBasementHeight" => 8, "UnfinishedBasementFloorArea" => 900 + 0.5 * 21.21 * 10, "BuildingHeight" => 8 + 8, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 3.39, "EavesDepth" => 2, "NumAdiabaticSurfaces" => 8 }
+    _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
+  end
+
+  def test_top_ufbasement_double_loaded_corr
+    num_finished_spaces = 1
+    args_hash = {}
+    args_hash["num_units"] = 8
+    args_hash["foundation_type"] = "unfinished basement"
+    args_hash["num_floors"] = 2
+    args_hash["level"] = "Top"
+    expected_num_del_objects = {}
+    expected_num_new_objects = { "BuildingUnit" => 1, "Surface" => 12, "ThermalZone" => 1 + 1, "Space" => 1 + 1, "SpaceType" => 2, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 2, "ShadingSurfaceGroup" => 2, "ShadingSurface" => 7 }
+    expected_values = { "FinishedFloorArea" => 900 * 1, "UnfinishedBasementHeight" => 0, "UnfinishedBasementFloorArea" => 0, "BuildingHeight" => 8, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 3.39, "EavesDepth" => 2, "NumAdiabaticSurfaces" => 5 }
+    _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
+  end
+
+  def test_bot_crawl_single_exterior
+    num_finished_spaces = 1 
     args_hash = {}
     args_hash["num_floors"] = 2
     args_hash["num_units"] = 12 * 2
     args_hash["corridor_position"] = "Single Exterior (Front)"
     args_hash["foundation_type"] = "crawlspace"
     expected_num_del_objects = {}
-    expected_num_new_objects = { "BuildingUnit" => 2 * 12, "Surface" => 194, "ThermalZone" => 2 * 12 + 1, "Space" => 2 * 12 + 1, "SpaceType" => 2, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 2, "ShadingSurfaceGroup" => 4, "ShadingSurface" => 30 }
-    expected_values = { "FinishedFloorArea" => 900 * 2 * 12, "CrawlspaceHeight" => 3, "CrawlspaceFloorArea" => 12 * 900, "BuildingHeight" => 3 + 2 * 8, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 81.36, "EavesDepth" => 2, "NumAdiabaticSurfaces" => 0 }
+    expected_num_new_objects = { "BuildingUnit" => 1, "Surface" => 12, "ThermalZone" => 2, "Space" => 2, "SpaceType" => 2, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 2, "ShadingSurfaceGroup" => 2, "ShadingSurface" =>  2}
+    expected_values = { "FinishedFloorArea" => 900, "CrawlspaceHeight" => 3, "CrawlspaceFloorArea" => 1 * 900, "BuildingHeight" => 3 + 8, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 3.39, "EavesDepth" => 2, "NumAdiabaticSurfaces" => 3 }
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
-  def test_crawlspace_double_loaded_corr
-    num_finished_spaces = 4
+  def test_top_crawl_single_exterior
+    num_finished_spaces = 1 
+    args_hash = {}
+    args_hash["num_floors"] = 2
+    args_hash["num_units"] = 12 * 2
+    args_hash["corridor_position"] = "Single Exterior (Front)"
+    args_hash["foundation_type"] = "crawlspace"
+    args_hash["level"] = "Top"
+    expected_num_del_objects = {}
+    expected_num_new_objects = { "BuildingUnit" => 1, "Surface" => 6, "ThermalZone" => 1, "Space" => 1, "SpaceType" => 1, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 2, "ShadingSurfaceGroup" => 3, "ShadingSurface" =>  6}
+    expected_values = { "FinishedFloorArea" => 900, "CrawlspaceHeight" => 0, "CrawlspaceFloorArea" => 0, "BuildingHeight" => 8, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 3.39, "EavesDepth" => 2, "NumAdiabaticSurfaces" => 2 }
+    _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
+  end
+
+  def test_bot_crawlspace_double_loaded_corr
+    num_finished_spaces = 1
     args_hash = {}
     args_hash["num_units"] = 4
     args_hash["foundation_type"] = "crawlspace"
     expected_num_del_objects = {}
-    expected_num_new_objects = { "BuildingUnit" => 1 * 4, "Surface" => 52, "ThermalZone" => 1 * 4 + 1 + 1, "Space" => 1 * 4 + 1 + 1, "SpaceType" => 3, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 2, "ShadingSurfaceGroup" => 2, "ShadingSurface" => 12 }
-    expected_values = { "FinishedFloorArea" => 900 * 1 * 4, "CrawlspaceHeight" => 3, "CrawlspaceFloorArea" => 4 * 900, "BuildingHeight" => 3 + 8, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 13.56, "EavesDepth" => 2, "NumAdiabaticSurfaces" => 10 }
+    expected_num_new_objects = { "BuildingUnit" => 1, "Surface" => 22, "ThermalZone" => 1 + 1 + 1, "Space" => 1 + 1 + 1, "SpaceType" => 3, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 2, "ShadingSurfaceGroup" => 2, "ShadingSurface" => 7 }
+    expected_values = { "FinishedFloorArea" => 900 * 1, "CrawlspaceHeight" => 3, "CrawlspaceFloorArea" => 900 + 0.5 * 21.21 * 10, "BuildingHeight" => 3 + 8, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 3.39, "EavesDepth" => 2, "NumAdiabaticSurfaces" => 8 }
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
-  def test_ufbasement_double_loaded_corr
-    num_finished_spaces = 4
+  def test_top_crawlspace_double_loaded_corr
+    num_finished_spaces = 1
     args_hash = {}
-    args_hash["num_units"] = 4
-    args_hash["foundation_type"] = "unfinished basement"
+    args_hash["num_units"] = 8
+    args_hash["num_floors"] = 2
+    args_hash["foundation_type"] = "crawlspace"
+    args_hash["level"] = "Top"
     expected_num_del_objects = {}
-    expected_num_new_objects = { "BuildingUnit" => 1 * 4, "Surface" => 52, "ThermalZone" => 1 * 4 + 1 + 1, "Space" => 1 * 4 + 1 + 1, "SpaceType" => 3, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 2, "ShadingSurfaceGroup" => 2, "ShadingSurface" => 12 }
-    expected_values = { "FinishedFloorArea" => 900 * 1 * 4, "UnfinishedBasementHeight" => 8, "UnfinishedBasementFloorArea" => 4 * 900 + 2 * 21.21 * 10, "BuildingHeight" => 8 + 8, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 13.56, "EavesDepth" => 2, "NumAdiabaticSurfaces" => 10 }
+    expected_num_new_objects = { "BuildingUnit" => 1, "Surface" => 12, "ThermalZone" => 1 + 1, "Space" => 1 + 1, "SpaceType" => 2, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 2, "ShadingSurfaceGroup" => 2, "ShadingSurface" => 7 }
+    expected_values = { "FinishedFloorArea" => 900 * 1, "CrawlspaceHeight" => 0, "CrawlspaceFloorArea" => 0, "BuildingHeight" => 8, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 3.39, "EavesDepth" => 2, "NumAdiabaticSurfaces" => 5 }
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
@@ -712,7 +738,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     expected_values = { "FinishedFloorArea" => 900 * 1, "BuildingHeight" => 8, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 3.39, "EavesDepth" => 2, "NumAdiabaticSurfaces" => 4 }
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
-#---- Foundation tests
+
 
 
   def test_corr_width_zero_but_corr_not_none
@@ -998,7 +1024,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
           if new_object.name.to_s.start_with?("unfinished basement")
             actual_values["UnfinishedBasementHeight"] = Geometry.get_height_of_spaces([new_object])
             actual_values["UnfinishedBasementFloorArea"] += UnitConversions.convert(new_object.floorArea, "m^2", "ft^2")
-          elsif new_object.name.to_s.start_with?("crawlspace")
+          elsif new_object.name.to_s.start_with?("crawl")
             actual_values["CrawlspaceHeight"] = Geometry.get_height_of_spaces([new_object])
             actual_values["CrawlspaceFloorArea"] += UnitConversions.convert(new_object.floorArea, "m^2", "ft^2")
           end
@@ -1033,7 +1059,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
       assert_in_epsilon(expected_values["UnfinishedBasementHeight"], actual_values["UnfinishedBasementHeight"], 0.01)
       assert_in_epsilon(expected_values["UnfinishedBasementFloorArea"], actual_values["UnfinishedBasementFloorArea"], 0.01)
     end
-    if new_spaces.any? { |new_space| new_space.name.to_s.start_with?("crawlspace") }
+    if new_spaces.any? { |new_space| new_space.name.to_s.start_with?("crawl") }
       assert_in_epsilon(expected_values["CrawlspaceHeight"], actual_values["CrawlspaceHeight"], 0.01)
       assert_in_epsilon(expected_values["CrawlspaceFloorArea"], actual_values["CrawlspaceFloorArea"], 0.01)
     end
