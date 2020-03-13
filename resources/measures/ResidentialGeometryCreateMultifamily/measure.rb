@@ -253,7 +253,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     horz_location = OpenStudio::Measure::OSArgument::makeStringArgument("horz_location", true)
     horz_location.setDisplayName("Horizontal Location of the Unit")
     horz_location.setDescription("The horizontal location of the unit when viewing the front of the building (Left, Middle, Right)")
-    horz_location.setDefaultValue("None")
+    horz_location.setDefaultValue("Left")
     args << horz_location
 
     # make a bool argument for minimal collapsed building
@@ -344,7 +344,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
       runner.registerError("Starting model is not empty.")
       return false
     end
-    #Commented out to allow for 0ft crawlspace on non-ground floor units
+    # Commented out to allow for 0ft crawlspace on non-ground floor units
     if foundation_type == "crawlspace" and (foundation_height < 1.5 or foundation_height > 5.0) and level == "Bottom"
       runner.registerError("The crawlspace height can be set between 1.5 and 5 ft.")
       return false
@@ -382,7 +382,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     if unit_width > 1 and horz_location == "None"
       runner.registerError("Specified incompatible horizontal location for the corridor and unit configuration.")
       return false
-    end 
+    end
     if unit_width < 3 and horz_location == "Middle"
       runner.registerError("Invalid horizontal location entered, no middle location exists.")
       return false
@@ -501,7 +501,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
       adb_facade += ["back"]
     end
 
-    #Remove neighbors
+    # Remove neighbors
     if adb_facade.include? "left"
       left_neighbor_offset = 0
     end

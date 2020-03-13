@@ -83,7 +83,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
-#---- Foundation tests
+  #---- Foundation tests
   def test_bot_ufbasement_double_loaded_corr
     num_finished_spaces = 1
     args_hash = {}
@@ -109,20 +109,20 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
   end
 
   def test_bot_crawl_single_exterior
-    num_finished_spaces = 1 
+    num_finished_spaces = 1
     args_hash = {}
     args_hash["num_floors"] = 2
     args_hash["num_units"] = 12 * 2
     args_hash["corridor_position"] = "Single Exterior (Front)"
     args_hash["foundation_type"] = "crawlspace"
     expected_num_del_objects = {}
-    expected_num_new_objects = { "BuildingUnit" => 1, "Surface" => 12, "ThermalZone" => 2, "Space" => 2, "SpaceType" => 2, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 2, "ShadingSurfaceGroup" => 2, "ShadingSurface" =>  2}
+    expected_num_new_objects = { "BuildingUnit" => 1, "Surface" => 12, "ThermalZone" => 2, "Space" => 2, "SpaceType" => 2, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 2, "ShadingSurfaceGroup" => 2, "ShadingSurface" => 2 }
     expected_values = { "FinishedFloorArea" => 900, "CrawlspaceHeight" => 3, "CrawlspaceFloorArea" => 1 * 900, "BuildingHeight" => 3 + 8, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 3.39, "EavesDepth" => 2, "NumAdiabaticSurfaces" => 3 }
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
   def test_top_crawl_single_exterior
-    num_finished_spaces = 1 
+    num_finished_spaces = 1
     args_hash = {}
     args_hash["num_floors"] = 2
     args_hash["num_units"] = 12 * 2
@@ -130,7 +130,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     args_hash["foundation_type"] = "crawlspace"
     args_hash["level"] = "Top"
     expected_num_del_objects = {}
-    expected_num_new_objects = { "BuildingUnit" => 1, "Surface" => 6, "ThermalZone" => 1, "Space" => 1, "SpaceType" => 1, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 2, "ShadingSurfaceGroup" => 3, "ShadingSurface" =>  6}
+    expected_num_new_objects = { "BuildingUnit" => 1, "Surface" => 6, "ThermalZone" => 1, "Space" => 1, "SpaceType" => 1, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 2, "ShadingSurfaceGroup" => 3, "ShadingSurface" => 6 }
     expected_values = { "FinishedFloorArea" => 900, "CrawlspaceHeight" => 0, "CrawlspaceFloorArea" => 0, "BuildingHeight" => 8, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 3.39, "EavesDepth" => 2, "NumAdiabaticSurfaces" => 2 }
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
@@ -159,8 +159,8 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
-#- [No horizontal, 1 unit/floor]
-  #Top, No horz, Double cor, 1 unit/floor (default to single exterior)
+  #- [No horizontal, 1 unit/floor]
+  # Top, No horz, Double cor, 1 unit/floor (default to single exterior)
   def test_top_one_unit_per_floor_with_corridor
     num_finished_spaces = 1
     args_hash = {}
@@ -173,7 +173,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
-  #Top, No horz, No cor, 1 unit/floor
+  # Top, No horz, No cor, 1 unit/floor
   def test_top_one_unit_per_floor_no_corridor
     num_finished_spaces = 1
     args_hash = {}
@@ -187,7 +187,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
-  #Middle, No horz, Double cor, 1 unit/floor (default to single exterior)
+  # Middle, No horz, Double cor, 1 unit/floor (default to single exterior)
   def test_mid_one_unit_per_floor_with_corridor
     num_finished_spaces = 1
     args_hash = {}
@@ -200,7 +200,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
-  #Middle, No horz, No cor, 1 unit/floor
+  # Middle, No horz, No cor, 1 unit/floor
   def test_mid_one_unit_per_floor_no_corridor
     num_finished_spaces = 1
     args_hash = {}
@@ -214,7 +214,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
-  #Bottom, No horz, Double cor, 1 unit/floor (default to single exterior)
+  # Bottom, No horz, Double cor, 1 unit/floor (default to single exterior)
   def test_bot_one_unit_per_floor_with_corridor
     num_finished_spaces = 1
     args_hash = {}
@@ -227,7 +227,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
-  #Bottom, No horz, No cor, 1 unit/floor
+  # Bottom, No horz, No cor, 1 unit/floor
   def test_bot_one_unit_per_floor_no_corridor
     num_finished_spaces = 1
     args_hash = {}
@@ -241,9 +241,8 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
-
-#- [No horizontal, 2 unit/floor]
-  #Top, No Horz, Double cor, 2 unit/floor
+  #- [No horizontal, 2 unit/floor]
+  # Top, No Horz, Double cor, 2 unit/floor
   def test_top_two_unit_per_floor_double_corridor
     num_finished_spaces = 1
     args_hash = {}
@@ -257,7 +256,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
-  #Top, No Horz, Ext cor, 2 unit/floor
+  # Top, No Horz, Ext cor, 2 unit/floor
   def test_top_two_unit_per_floor_exterior_corridor
     num_finished_spaces = 1
     args_hash = {}
@@ -271,7 +270,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
-  #Middle, No Horz, Double cor, 2 unit/floor
+  # Middle, No Horz, Double cor, 2 unit/floor
   def test_mid_two_unit_per_floor_double_corridor
     num_finished_spaces = 1
     args_hash = {}
@@ -285,7 +284,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
-  #Middle, No Horz, Ext cor, 2 unit/floor
+  # Middle, No Horz, Ext cor, 2 unit/floor
   def test_mid_two_unit_per_floor_exterior_corridor
     num_finished_spaces = 1
     args_hash = {}
@@ -298,8 +297,8 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     expected_values = { "FinishedFloorArea" => 900 * 1, "BuildingHeight" => 8, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 3.39, "EavesDepth" => 2, "NumAdiabaticSurfaces" => 3 }
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
-  
-  #Bottom, No horz, Double cor, 2 unit/floor
+
+  # Bottom, No horz, Double cor, 2 unit/floor
   def test_bot_two_unit_per_floor_double_corridor
     num_finished_spaces = 1
     args_hash = {}
@@ -313,7 +312,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
-  #Bottom, No Horz, Ext cor, 2 unit/floor
+  # Bottom, No Horz, Ext cor, 2 unit/floor
   def test_bot_two_unit_per_floor_exterior_corridor
     num_finished_spaces = 1
     args_hash = {}
@@ -327,8 +326,8 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
-#- [Left Horizontal, 1 unit/floor]
-  #Top, Left horz, No cor, 1 unit/floor
+  #- [Left Horizontal, 1 unit/floor]
+  # Top, Left horz, No cor, 1 unit/floor
   def test_top_left_one_unit_per_floor_no_corridor
     num_finished_spaces = 1
     args_hash = {}
@@ -343,7 +342,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
-  #Top, Left horz, single cor, 1 unit/floor
+  # Top, Left horz, single cor, 1 unit/floor
   def test_top_left_one_unit_per_floor_single_corridor
     num_finished_spaces = 1
     args_hash = {}
@@ -358,7 +357,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
-  #Middle, Left horz, No cor, 1 unit/floor
+  # Middle, Left horz, No cor, 1 unit/floor
   def test_mid_left_one_unit_per_floor_no_corridor
     num_finished_spaces = 1
     args_hash = {}
@@ -373,7 +372,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
-  #Middle, Left horz, Single cor, 1 unit/floor
+  # Middle, Left horz, Single cor, 1 unit/floor
   def test_mid_left_one_unit_per_floor_single_corridor
     num_finished_spaces = 1
     args_hash = {}
@@ -388,7 +387,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
-  #Bottom, Left horz, No cor, 1 unit/floor
+  # Bottom, Left horz, No cor, 1 unit/floor
   def test_bot_left_one_unit_per_floor_no_corridor
     num_finished_spaces = 1
     args_hash = {}
@@ -403,7 +402,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
-  #Bottom, Left horz, Single cor, 1 unit/floor
+  # Bottom, Left horz, Single cor, 1 unit/floor
   def test_bot_left_one_unit_per_floor_single_corridor
     num_finished_spaces = 1
     args_hash = {}
@@ -418,9 +417,8 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
-
-#- [Left horizontal, 2 unit/floor]
-  #Top, Left Horz, Double cor, 2 unit/floor
+  #- [Left horizontal, 2 unit/floor]
+  # Top, Left Horz, Double cor, 2 unit/floor
   def test_top_left_two_unit_per_floor_double_corridor
     num_finished_spaces = 1
     args_hash = {}
@@ -428,14 +426,14 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     args_hash["num_units"] = 6
     args_hash["level"] = "Top"
     args_hash["corridor_position"] = "Double-Loaded Interior"
-    args_hash["horz_location"] = "Left" #reverts to none
+    args_hash["horz_location"] = "Left" # reverts to none
     expected_num_del_objects = {}
     expected_num_new_objects = { "BuildingUnit" => 1, "Surface" => 12, "ThermalZone" => 2, "Space" => 2, "SpaceType" => 2, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 2, "ShadingSurfaceGroup" => 2, "ShadingSurface" => 8 }
     expected_values = { "FinishedFloorArea" => 900 * 1, "BuildingHeight" => 8, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 3.39, "EavesDepth" => 2, "NumAdiabaticSurfaces" => 4 }
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
-  #Top, Left Horz, Single cor, 2 unit/floor
+  # Top, Left Horz, Single cor, 2 unit/floor
   def test_top_left_two_unit_per_floor_single_corridor
     num_finished_spaces = 1
     args_hash = {}
@@ -443,14 +441,14 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     args_hash["num_units"] = 6
     args_hash["level"] = "Top"
     args_hash["corridor_position"] = "Single Exterior (Front)"
-    args_hash["horz_location"] = "Left" 
+    args_hash["horz_location"] = "Left"
     expected_num_del_objects = {}
     expected_num_new_objects = { "BuildingUnit" => 1, "Surface" => 6, "ThermalZone" => 1, "Space" => 1, "SpaceType" => 1, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 2, "ShadingSurfaceGroup" => 3, "ShadingSurface" => 6 }
     expected_values = { "FinishedFloorArea" => 900 * 1, "BuildingHeight" => 8, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 3.39, "EavesDepth" => 2, "NumAdiabaticSurfaces" => 2 }
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
-  #Top, Left Horz, No cor, 2 unit/floor
+  # Top, Left Horz, No cor, 2 unit/floor
   def test_top_left_two_unit_per_floor_no_corridor
     num_finished_spaces = 1
     args_hash = {}
@@ -465,7 +463,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
-  #Middle, Left Horz, Double cor, 2 unit/floor
+  # Middle, Left Horz, Double cor, 2 unit/floor
   def test_mid_left_two_unit_per_floor_double_corridor
     num_finished_spaces = 1
     args_hash = {}
@@ -473,14 +471,14 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     args_hash["num_units"] = 6
     args_hash["level"] = "Middle"
     args_hash["corridor_position"] = "Double-Loaded Interior"
-    args_hash["horz_location"] = "Left" #reverts to none
+    args_hash["horz_location"] = "Left" # reverts to none
     expected_num_del_objects = {}
     expected_num_new_objects = { "BuildingUnit" => 1, "Surface" => 12, "ThermalZone" => 2, "Space" => 2, "SpaceType" => 2, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 2, "ShadingSurfaceGroup" => 1, "ShadingSurface" => 2 }
     expected_values = { "FinishedFloorArea" => 900 * 1, "BuildingHeight" => 8, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 3.39, "EavesDepth" => 2, "NumAdiabaticSurfaces" => 6 }
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
-  #Middle, Left Horz, Single cor, 2 unit/floor
+  # Middle, Left Horz, Single cor, 2 unit/floor
   def test_mid_left_two_unit_per_floor_single_corridor
     num_finished_spaces = 1
     args_hash = {}
@@ -495,7 +493,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
-  #Middle, Left Horz, No cor, 2 unit/floor
+  # Middle, Left Horz, No cor, 2 unit/floor
   def test_mid_left_two_unit_per_floor_no_corridor
     num_finished_spaces = 1
     args_hash = {}
@@ -509,8 +507,8 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     expected_values = { "FinishedFloorArea" => 900 * 1, "BuildingHeight" => 8, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 3.39, "EavesDepth" => 2, "NumAdiabaticSurfaces" => 3 }
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
-  
-  #Bottom, Left horz, Double cor, 2 unit/floor
+
+  # Bottom, Left horz, Double cor, 2 unit/floor
   def test_bot_left_two_unit_per_floor_double_corridor
     num_finished_spaces = 1
     args_hash = {}
@@ -518,14 +516,14 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     args_hash["num_units"] = 6
     args_hash["level"] = "Bottom"
     args_hash["corridor_position"] = "Double-Loaded Interior"
-    args_hash["horz_location"] = "Left" #reverts to none
+    args_hash["horz_location"] = "Left" # reverts to none
     expected_num_del_objects = {}
     expected_num_new_objects = { "BuildingUnit" => 1, "Surface" => 12, "ThermalZone" => 2, "Space" => 2, "SpaceType" => 2, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 2, "ShadingSurfaceGroup" => 1, "ShadingSurface" => 2 }
     expected_values = { "FinishedFloorArea" => 900 * 1, "BuildingHeight" => 8, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 3.39, "EavesDepth" => 2, "NumAdiabaticSurfaces" => 4 }
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
-  #Bottom, Left Horz, Single cor, 2 unit/floor
+  # Bottom, Left Horz, Single cor, 2 unit/floor
   def test_bot_left_two_unit_per_floor_single_corridor
     num_finished_spaces = 1
     args_hash = {}
@@ -540,7 +538,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
-  #Bottom, Left Horz, No cor, 2 unit/floor
+  # Bottom, Left Horz, No cor, 2 unit/floor
   def test_bot_left_two_unit_per_floor_no_corridor
     num_finished_spaces = 1
     args_hash = {}
@@ -555,8 +553,8 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
-#- [Middle Horizontal, 3 unit/floor]
-  #Top, Middle Horz, Double cor, 3 unit/floor
+  #- [Middle Horizontal, 3 unit/floor]
+  # Top, Middle Horz, Double cor, 3 unit/floor
   def test_top_mid_three_unit_per_floor_double_corridor
     num_finished_spaces = 1
     args_hash = {}
@@ -571,7 +569,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
-  #Middle, Middle Horz, Double cor, 3 unit/floor
+  # Middle, Middle Horz, Double cor, 3 unit/floor
   def test_mid_mid_three_unit_per_floor_double_corridor
     num_finished_spaces = 1
     args_hash = {}
@@ -586,7 +584,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
-  #Bottom, Middle Horz, Double cor, 3 unit/floor
+  # Bottom, Middle Horz, Double cor, 3 unit/floor
   def test_bot_mid_three_unit_per_floor_double_corridor
     num_finished_spaces = 1
     args_hash = {}
@@ -601,8 +599,8 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
-#- [Left Horizontal, 4 unit/floor]
-  #Top, Left Horz, Double cor, 4 unit/floor
+  #- [Left Horizontal, 4 unit/floor]
+  # Top, Left Horz, Double cor, 4 unit/floor
   def test_top_left_four_unit_per_floor_double_corridor
     num_finished_spaces = 1
     args_hash = {}
@@ -617,7 +615,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
-  #Middle, Left Horz, Double cor, 4 unit/floor
+  # Middle, Left Horz, Double cor, 4 unit/floor
   def test_mid_left_four_unit_per_floor_double_corridor
     num_finished_spaces = 1
     args_hash = {}
@@ -631,8 +629,8 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     expected_values = { "FinishedFloorArea" => 900 * 1, "BuildingHeight" => 8, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 3.39, "EavesDepth" => 2, "NumAdiabaticSurfaces" => 7 }
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
-  
-  #Bottom, Left Horz, Double cor, 4 unit/floor
+
+  # Bottom, Left Horz, Double cor, 4 unit/floor
   def test_bot_left_four_unit_per_floor_double_corridor
     num_finished_spaces = 1
     args_hash = {}
@@ -647,8 +645,8 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
-#- [Middle Horizontal, 6 unit/floor]
-  #Top, Middle Horz, Double cor, 6 unit/floor
+  #- [Middle Horizontal, 6 unit/floor]
+  # Top, Middle Horz, Double cor, 6 unit/floor
   def test_top_mid_six_unit_per_floor_double_corridor
     num_finished_spaces = 1
     args_hash = {}
@@ -663,7 +661,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
-  #Top, Middle Horz, Double ext cor, 6 unit/floor
+  # Top, Middle Horz, Double ext cor, 6 unit/floor
   def test_top_mid_six_unit_per_floor_double_ext_corridor
     num_finished_spaces = 1
     args_hash = {}
@@ -678,7 +676,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
-  #Middle, Middle Horz, Double cor, 6 unit/floor
+  # Middle, Middle Horz, Double cor, 6 unit/floor
   def test_mid_mid_six_unit_per_floor_double_corridor
     num_finished_spaces = 1
     args_hash = {}
@@ -693,7 +691,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
-  #Middle, Middle Horz, Double ext cor, 6 unit/floor
+  # Middle, Middle Horz, Double ext cor, 6 unit/floor
   def test_mid_mid_six_unit_per_floor_double_ext_corridor
     num_finished_spaces = 1
     args_hash = {}
@@ -708,7 +706,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
-  #Bottom, Middle Horz, Double cor, 6 unit/floor
+  # Bottom, Middle Horz, Double cor, 6 unit/floor
   def test_bot_mid_six_unit_per_floor_double_corridor
     num_finished_spaces = 1
     args_hash = {}
@@ -723,7 +721,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
-  #Bottom, Middle Horz, Double ext cor, 6 unit/floor
+  # Bottom, Middle Horz, Double ext cor, 6 unit/floor
   def test_bot_mid_six_unit_per_floor_double_ext_corridor
     num_finished_spaces = 1
     args_hash = {}
@@ -738,10 +736,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
-
-
-
-#-
+  #-
 
   def test_argument_error_invalid_none_horizontal
     args_hash = {}
@@ -751,7 +746,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     args_hash["corridor_position"] = "None"
     result = _test_error(nil, args_hash)
     assert_includes(result.errors.map { |x| x.logMessage }, "Specified incompatible horizontal location for the corridor and unit configuration.")
-  end 
+  end
 
   def test_argument_error_invalid_middle_horizontal
     args_hash = {}
@@ -761,7 +756,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     args_hash["corridor_position"] = "None"
     result = _test_error(nil, args_hash)
     assert_includes(result.errors.map { |x| x.logMessage }, "Invalid horizontal location entered, no middle location exists.")
-  end 
+  end
 
   def test_argument_error_invalid_middle_level
     args_hash = {}
@@ -771,7 +766,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     args_hash["corridor_position"] = "None"
     result = _test_error(nil, args_hash)
     assert_includes(result.errors.map { |x| x.logMessage }, "Building is 2 stories and does not have middle units")
-  end 
+  end
 
   def test_corr_width_zero_but_corr_not_none
     num_finished_spaces = 1
