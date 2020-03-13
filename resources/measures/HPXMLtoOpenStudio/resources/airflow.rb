@@ -599,7 +599,7 @@ class Airflow
           if horz_location == "Middle"
             a_o = mf_building_ELA / (n_end_units * end_mid_ratio + (n_units - n_end_units))
           else
-            a_o = mf_building_ELA/ (n_end_units + ((n_units - n_end_units) / end_mid_ratio))
+            a_o = mf_building_ELA / (n_end_units + ((n_units - n_end_units) / end_mid_ratio))
           end
         end
       # Infiltration for MF

@@ -2535,7 +2535,7 @@ class SurfaceTypes
 
     horz_location = model.getBuilding.additionalProperties.getFeatureAsString("horz_location")
     if horz_location.is_initialized
-      singleunit = true #mf or sfa
+      singleunit = true # mf or sfa
     else
       singleunit = false
     end

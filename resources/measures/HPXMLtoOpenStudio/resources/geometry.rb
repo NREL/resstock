@@ -695,6 +695,7 @@ class Geometry
     model.getSurfaces.each do |surface|
       next if not surface.surfaceType.downcase == "wall"
       next if (surface.outsideBoundaryCondition.downcase != "outdoors")
+
       # next if surface.outsideBoundaryCondition.downcase == "foundation"
       surfaces << surface
     end
@@ -1476,7 +1477,7 @@ class Geometry
       if unit_occ == Constants.Auto
         # if units.size > 1 # multifamily equation
         horz_location = model.getBuilding.additionalProperties.getFeatureAsString("horz_location")
-        if (horz_location.is_initialized) or (units.size > 1) #SFA/MF single unit or whole-building approach
+        if (horz_location.is_initialized) or (units.size > 1) # SFA/MF single unit or whole-building approach
           unit_occ = 0.63 + 0.92 * nbeds
         else # single-family equation
           unit_occ = 0.87 + 0.59 * nbeds
@@ -1706,7 +1707,7 @@ class Geometry
             scale = z / eaves_depth
           end
 
-          if Math.cos(tilt) < 0.001 #Roof is vertical (occurs with SFA w/ rear units single unit approach)
+          if Math.cos(tilt) < 0.001 # Roof is vertical (occurs with SFA w/ rear units single unit approach)
             z = 0
           end
 
@@ -1737,7 +1738,7 @@ class Geometry
           m[2, 3] = roof_surface.space.get.zOrigin
           new_vertices = OpenStudio::Transformation.new(m) * new_vertices
 
-          if z > 0 #no eaves on a vertical roof surface
+          if z > 0 # no eaves on a vertical roof surface
             shading_surface = OpenStudio::Model::ShadingSurface.new(new_vertices, model)
             shading_surface.setName("#{roof_surface.name} - #{Constants.ObjectNameEaves}")
             shading_surface.setShadingSurfaceGroup(shading_surface_group)
@@ -1837,7 +1838,7 @@ class Geometry
 
         polygon = OpenStudio::subtract(roof_surface_vertices, [new_shading_vertices], 0.001)[0]
 
-        if not polygon.nil? and (OpenStudio::getArea(roof_surface_vertices).get - OpenStudio::getArea(polygon).get > 0.001) 
+        if not polygon.nil? and (OpenStudio::getArea(roof_surface_vertices).get - OpenStudio::getArea(polygon).get > 0.001)
           shading_surfaces_to_remove << shading_surface
         end
       end
@@ -1938,12 +1939,12 @@ class Geometry
     level = model.getBuilding.additionalProperties.getFeatureAsString("level")
     has_rear_units = model.getBuilding.additionalProperties.getFeatureAsBoolean("has_rear_units")
 
-    if (num_floors.is_initialized) and (level.is_initialized) #single unit, MF
+    if (num_floors.is_initialized) and (level.is_initialized) # single unit, MF
       num_floors = num_floors.get.to_f
       level = level.get
 
       floor_mults = { "Bottom" => num_floors, "Middle" => 2, "Top" => 1 }
-      greatest_z = greatest_z*floor_mults[level] #uncomment if unit origin is at z=0
+      greatest_z = greatest_z * floor_mults[level] # uncomment if unit origin is at z=0
       unit_length = greatest_y - least_y
       unit_width = greatest_x - least_x
       if has_rear_units
