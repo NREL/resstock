@@ -1653,10 +1653,15 @@ class Geometry
       next unless roof_surface.surfaceType.downcase == "roofceiling"
       next unless roof_surface.outsideBoundaryCondition.downcase == "outdoors"
 
+      build_type = model.getBuilding.additionalProperties.getFeatureAsString("build_type")
       if roof_structure == Constants.RoofStructureTrussCantilever
 
         l, w, h = self.get_surface_dimensions(roof_surface)
-        lift = (h / [l, w].min) * eaves_depth
+        if build_type == "SFA"        
+          lift = (h / w) * eaves_depth
+        else
+          lift = (h / [l,w].min) * eaves_depth
+        end
 
         m = self.initialize_transformation_matrix(OpenStudio::Matrix.new(4, 4, 0))
         m[2, 3] = lift
@@ -1698,7 +1703,11 @@ class Geometry
           dir_vector_n = OpenStudio::Vector3d.new(dir_vector.x / dir_vector.length, dir_vector.y / dir_vector.length, dir_vector.z / dir_vector.length) # normalize
 
           l, w, h = self.get_surface_dimensions(roof_surface)
-          tilt = Math.atan(h / [l, w].min)
+          if build_type == "SFA"        
+            tilt = Math.atan(h / w)
+          else
+            tilt = Math.atan(h / [l,w].min)
+          end
 
           z = eaves_depth / Math.cos(tilt)
           if dir_vector_n.z == 0
@@ -1837,7 +1846,6 @@ class Geometry
         end
 
         polygon = OpenStudio::subtract(roof_surface_vertices, [new_shading_vertices], 0.001)[0]
-
         if not polygon.nil? and (OpenStudio::getArea(roof_surface_vertices).get - OpenStudio::getArea(polygon).get > 0.001)
           shading_surfaces_to_remove << shading_surface
         end
@@ -1938,6 +1946,7 @@ class Geometry
     num_floors = model.getBuilding.additionalProperties.getFeatureAsInteger("num_floors")
     level = model.getBuilding.additionalProperties.getFeatureAsString("level")
     has_rear_units = model.getBuilding.additionalProperties.getFeatureAsBoolean("has_rear_units")
+    build_type
 
     if (num_floors.is_initialized) and (level.is_initialized) # single unit, MF
       num_floors = num_floors.get.to_f
