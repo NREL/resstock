@@ -36,7 +36,7 @@ class CreateResidentialSingleFamilyAttachedGeometryTest < MiniTest::Test
     assert_includes(result.errors.map { |x| x.logMessage }, "Specified a building with rear units and an odd number of units.")
   end
 
-  #Left horizontal, 2 story, no rear
+  # Left horizontal, 2 story, no rear
   def test_two_story_left_front_units_gable
     num_finished_spaces = 3
     args_hash = {}
@@ -50,7 +50,7 @@ class CreateResidentialSingleFamilyAttachedGeometryTest < MiniTest::Test
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
-  #Left horizontal, 2 story, has rear
+  # Left horizontal, 2 story, has rear
   def test_two_story_left_rear_units_gable
     num_finished_spaces = 3
     args_hash = {}
@@ -65,7 +65,7 @@ class CreateResidentialSingleFamilyAttachedGeometryTest < MiniTest::Test
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
-  #Middle horizontal, 2 story, no rear
+  # Middle horizontal, 2 story, no rear
   def test_two_story_mid_front_units_gable
     num_finished_spaces = 3
     args_hash = {}
@@ -79,7 +79,7 @@ class CreateResidentialSingleFamilyAttachedGeometryTest < MiniTest::Test
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
-  #Middle horizontal, 2 story, has rear
+  # Middle horizontal, 2 story, has rear
   def test_two_story_mid_rear_units_gable
     num_finished_spaces = 3
     args_hash = {}
@@ -94,7 +94,7 @@ class CreateResidentialSingleFamilyAttachedGeometryTest < MiniTest::Test
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
-  #Left Horizontal, 1 story, no rear
+  # Left Horizontal, 1 story, no rear
   def test_one_story_left_front_units_gable
     num_finished_spaces = 2
     args_hash = {}
@@ -108,7 +108,7 @@ class CreateResidentialSingleFamilyAttachedGeometryTest < MiniTest::Test
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
-  #Left Horizontal, 1 story, has rear
+  # Left Horizontal, 1 story, has rear
   def test_one_story_left_rear_units_gable
     num_finished_spaces = 2
     args_hash = {}
@@ -123,7 +123,7 @@ class CreateResidentialSingleFamilyAttachedGeometryTest < MiniTest::Test
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
-  #Middle Horizontal, 1 story, no rear
+  # Middle Horizontal, 1 story, no rear
   def test_one_story_mid_front_units_gable
     num_finished_spaces = 2
     args_hash = {}
@@ -137,7 +137,7 @@ class CreateResidentialSingleFamilyAttachedGeometryTest < MiniTest::Test
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
-  #Middle Horizontal, 1 story, has rear
+  # Middle Horizontal, 1 story, has rear
   def test_one_story_mid_rear_units_gable
     num_finished_spaces = 2
     args_hash = {}
@@ -153,7 +153,7 @@ class CreateResidentialSingleFamilyAttachedGeometryTest < MiniTest::Test
   end
 
   def test_two_story_fourplex_rear_units_hip
-    skip #hip roof not implemented
+    skip # hip roof not implemented
     num_finished_spaces = 12
     args_hash = {}
     args_hash["num_floors"] = 2
@@ -199,7 +199,7 @@ class CreateResidentialSingleFamilyAttachedGeometryTest < MiniTest::Test
   end
 
   def test_fourplex_finished_hip_roof
-    skip #hip roof not implemented
+    skip # hip roof not implemented
     num_finished_spaces = 8
     args_hash = {}
     args_hash["num_units"] = 4
@@ -213,7 +213,7 @@ class CreateResidentialSingleFamilyAttachedGeometryTest < MiniTest::Test
   end
 
   def test_fourplex_finished_hip_roof_with_rear_units
-    skip #hip roof not implemented
+    skip # hip roof not implemented
     num_finished_spaces = 8
     args_hash = {}
     args_hash["num_units"] = 4
@@ -240,7 +240,7 @@ class CreateResidentialSingleFamilyAttachedGeometryTest < MiniTest::Test
   end
 
   def test_fourplex_hip_roof
-    skip #hip roof not implemented
+    skip # hip roof not implemented
     num_finished_spaces = 4
     args_hash = {}
     args_hash["num_units"] = 4
@@ -253,7 +253,7 @@ class CreateResidentialSingleFamilyAttachedGeometryTest < MiniTest::Test
   end
 
   def test_fourplex_hip_roof_aspect_ratio_half_offset
-    skip #hip roof not implemented
+    skip # hip roof not implemented
     num_finished_spaces = 4
     args_hash = {}
     args_hash["num_units"] = 4

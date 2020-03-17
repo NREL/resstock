@@ -1657,10 +1657,10 @@ class Geometry
       if roof_structure == Constants.RoofStructureTrussCantilever
 
         l, w, h = self.get_surface_dimensions(roof_surface)
-        if build_type == "SFA"        
+        if build_type == "SFA"
           lift = (h / w) * eaves_depth
         else
-          lift = (h / [l,w].min) * eaves_depth
+          lift = (h / [l, w].min) * eaves_depth
         end
 
         m = self.initialize_transformation_matrix(OpenStudio::Matrix.new(4, 4, 0))
@@ -1703,10 +1703,10 @@ class Geometry
           dir_vector_n = OpenStudio::Vector3d.new(dir_vector.x / dir_vector.length, dir_vector.y / dir_vector.length, dir_vector.z / dir_vector.length) # normalize
 
           l, w, h = self.get_surface_dimensions(roof_surface)
-          if build_type == "SFA"        
+          if build_type == "SFA"
             tilt = Math.atan(h / w)
           else
-            tilt = Math.atan(h / [l,w].min)
+            tilt = Math.atan(h / [l, w].min)
           end
 
           z = eaves_depth / Math.cos(tilt)

@@ -629,7 +629,7 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
       end
     end
     ################################################################
-    
+
     # put all of the spaces in the model into a vector
     spaces = OpenStudio::Model::SpaceVector.new
     model.getSpaces.each do |space|
@@ -725,7 +725,7 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
     # if y_tot >= x_tot
     #   attic_height = (x_tot / 2.0) * roof_pitch
     # else
-    #   attic_height = (y_tot / 2.0) * roof_pitch 
+    #   attic_height = (y_tot / 2.0) * roof_pitch
     # end
 
     attic_height = (y_tot / 2.0) * roof_pitch # Roof always has same orientation
