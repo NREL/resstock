@@ -629,30 +629,7 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
       end
     end
     ################################################################
-
-    # total_units_represented = 0
-    # unit_spaces_hash.each do |unit_num, unit_info|
-    #   spaces, units_represented = unit_info
-
-    #   # Store building unit information
-    #   unit = OpenStudio::Model::BuildingUnit.new(model)
-    #   unit.setBuildingUnitType(Constants.BuildingUnitTypeResidential)
-    #   unit.setName(Constants.ObjectNameBuildingUnit(unit_num))
-    #   unit.additionalProperties.setFeature("Units Represented", units_represented)
-    #   total_units_represented += units_represented
-    #   spaces.each do |space|
-    #     space.setBuildingUnit(unit)
-    #   end
-    # end
-
-    # if total_units_represented != num_units_actual
-    #   runner.registerError("The specified number of building units does not equal the number of building units represented in the model.")
-    #   return false
-    # end
-    model.getBuilding.additionalProperties.setFeature("Total Units Represented", num_units_actual)
-    model.getBuilding.additionalProperties.setFeature("Total Units Modeled", num_units)
-    runner.registerInfo("The #{num_units_actual}-unit building will be modeled using #{num_units} building units.")
-
+    
     # put all of the spaces in the model into a vector
     spaces = OpenStudio::Model::SpaceVector.new
     model.getSpaces.each do |space|
@@ -690,6 +667,7 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
     model.getBuilding.additionalProperties.setFeature("num_units", num_units)
     model.getBuilding.additionalProperties.setFeature("has_rear_units", has_rear_units)
     model.getBuilding.additionalProperties.setFeature("horz_location", horz_location)
+    model.getBuilding.additionalProperties.setFeature("build_type", "SFA")
 
     result = Geometry.process_beds_and_baths(model, runner, num_br, num_ba)
     unless result
@@ -744,11 +722,13 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
     # end
     attic_polygon = Geometry.make_polygon(sw_point, nw_point, ne_point, se_point)
 
-    if y_tot >= x_tot
-      attic_height = (x_tot / 2.0) * roof_pitch
-    else
-      attic_height = (y_tot / 2.0) * roof_pitch # Roof always has same orientation
-    end
+    # if y_tot >= x_tot
+    #   attic_height = (x_tot / 2.0) * roof_pitch
+    # else
+    #   attic_height = (y_tot / 2.0) * roof_pitch 
+    # end
+
+    attic_height = (y_tot / 2.0) * roof_pitch # Roof always has same orientation
 
     side_type = nil
     if roof_type == Constants.RoofTypeGable
