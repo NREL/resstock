@@ -528,7 +528,12 @@ class HotWaterSchedule
     @sch_name = sch_name
     @schedule = nil
     @temperature_sch_name = temperature_sch_name
-    @nbeds = ([num_bedrooms, 5].min).to_i
+    @nbeds = num_bedrooms.to_i
+    if @nbeds > 5
+      @nbeds = 5
+    elsif @nbeds < 1
+      @nbeds = 1
+    end
     @target_water_temperature = UnitConversions.convert(target_water_temperature, "F", "C")
     @schedule_type_limits_name = schedule_type_limits_name
     if file_prefix == "ClothesDryer"

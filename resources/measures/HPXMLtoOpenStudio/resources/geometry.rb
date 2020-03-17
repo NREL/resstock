@@ -206,6 +206,19 @@ class Geometry
     return [nbeds, nbaths]
   end
 
+  def self.get_unit_occupants(model, unit, runner = nil)
+    noccupants = unit.additionalProperties.getFeatureAsDouble(Constants.BuildingUnitFeatureNumOccupants)
+    if not noccupants.is_initialized
+      if !runner.nil?
+        runner.registerError("Could not determine number of occupants.")
+      end
+      return nil
+    else
+      noccupants = noccupants.get.to_f
+    end
+    return noccupants
+  end
+
   def self.get_unit_adjacent_common_spaces(unit)
     # Returns a list of spaces adjacent to the unit that are not assigned
     # to a building unit.
@@ -1344,8 +1357,8 @@ class Geometry
     else
       num_ba = num_ba.map(&:to_f)
     end
-    if num_br.any? { |x| x <= 0 or x % 1 != 0 }
-      runner.registerError("Number of bedrooms must be a positive integer.")
+    if num_br.any? { |x| x < 0 or x % 1 != 0 }
+      runner.registerError("Number of bedrooms must be a non-negative integer.")
       return false
     end
     if num_ba.any? { |x| x <= 0 or x % 0.25 != 0 }
@@ -1475,16 +1488,18 @@ class Geometry
 
       # Calculate number of occupants for this unit
       if unit_occ == Constants.Auto
-        # if units.size > 1 # multifamily equation
-        horz_location = model.getBuilding.additionalProperties.getFeatureAsString("horz_location")
-        if (horz_location.is_initialized) or (units.size > 1) # SFA/MF single unit or whole-building approach
+        if [Constants.BuildingTypeMultifamily, Constants.BuildingTypeSingleFamilyAttached].include? get_building_type(model) # multifamily equation
           unit_occ = 0.63 + 0.92 * nbeds
-        else # single-family equation
+          # nbeds = -0.68 + 1.09 * unit_occ
+        elsif [Constants.BuildingTypeSingleFamilyDetached].include? get_building_type(model) # single-family equation
           unit_occ = 0.87 + 0.59 * nbeds
+          # nbeds = -1.47 + 1.69 * unit_occ
         end
       else
         unit_occ = unit_occ.to_f
       end
+
+      unit.additionalProperties.setFeature(Constants.BuildingUnitFeatureNumOccupants, unit_occ)
 
       # Get spaces
       bedroom_ffa_spaces = self.get_bedroom_spaces(unit.spaces)
@@ -1653,11 +1668,9 @@ class Geometry
       next unless roof_surface.surfaceType.downcase == "roofceiling"
       next unless roof_surface.outsideBoundaryCondition.downcase == "outdoors"
 
-      build_type = model.getBuilding.additionalProperties.getFeatureAsString("build_type")
       if roof_structure == Constants.RoofStructureTrussCantilever
-
         l, w, h = self.get_surface_dimensions(roof_surface)
-        if build_type == "SFA"
+        if get_building_type(model)  == Constants.BuildingTypeSingleFamilyAttached
           lift = (h / w) * eaves_depth
         else
           lift = (h / [l, w].min) * eaves_depth
@@ -1703,7 +1716,7 @@ class Geometry
           dir_vector_n = OpenStudio::Vector3d.new(dir_vector.x / dir_vector.length, dir_vector.y / dir_vector.length, dir_vector.z / dir_vector.length) # normalize
 
           l, w, h = self.get_surface_dimensions(roof_surface)
-          if build_type == "SFA"
+          if get_building_type(model)  == Constants.BuildingTypeSingleFamilyAttached
             tilt = Math.atan(h / w)
           else
             tilt = Math.atan(h / [l, w].min)
@@ -1946,7 +1959,6 @@ class Geometry
     num_floors = model.getBuilding.additionalProperties.getFeatureAsInteger("num_floors")
     level = model.getBuilding.additionalProperties.getFeatureAsString("level")
     has_rear_units = model.getBuilding.additionalProperties.getFeatureAsBoolean("has_rear_units")
-    build_type
 
     if (num_floors.is_initialized) and (level.is_initialized) # single unit, MF
       num_floors = num_floors.get.to_f

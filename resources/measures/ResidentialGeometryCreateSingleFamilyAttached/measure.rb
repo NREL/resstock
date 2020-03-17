@@ -667,7 +667,6 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
     model.getBuilding.additionalProperties.setFeature("num_units", num_units)
     model.getBuilding.additionalProperties.setFeature("has_rear_units", has_rear_units)
     model.getBuilding.additionalProperties.setFeature("horz_location", horz_location)
-    model.getBuilding.additionalProperties.setFeature("build_type", "SFA")
 
     result = Geometry.process_beds_and_baths(model, runner, num_br, num_ba)
     unless result
