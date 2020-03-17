@@ -49,15 +49,17 @@ class CreateResidentialSingleFamilyAttachedGeometryTest < MiniTest::Test
   end
 
   def test_two_story_fourplex_rear_units_gable
-    num_finished_spaces = 12
+    num_finished_spaces = 24
+    units = 4
     args_hash = {}
     args_hash["num_floors"] = 2
-    args_hash["num_units"] = 4
+    args_hash["num_units"] = units
     args_hash["foundation_type"] = "finished basement"
     args_hash["has_rear_units"] = "true"
     expected_num_del_objects = {}
-    expected_num_new_objects = { "BuildingUnit" => 4, "Surface" => 80, "ThermalZone" => 2 * 4 + 1, "Space" => (2 + 1) * 4 + 1, "SpaceType" => 3, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 2, "ShadingSurfaceGroup" => 2, "ShadingSurface" => 8 }
-    expected_values = { "FinishedFloorArea" => 900 * 4, "FinishedBasementHeight" => 8, "FinishedBasementFloorArea" => 300 * 4, "UnfinishedAtticHeight" => 7.12, "UnfinishedAtticFloorArea" => 300 * 4, "BuildingHeight" => 8 + 8 + 8 + 7.12, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 13.56, "EavesDepth" => 2, "NumAdiabaticSurfaces" => 0 }
+    expected_num_new_objects = { "BuildingUnit" => units, "Surface" => 156, "ThermalZone" => 2 * units + 1, "Space" => (2 + 1) * units + 1, "SpaceType" => 3, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 2, "ShadingSurfaceGroup" => 2, "ShadingSurface" => 8 }
+    # expected_num_new_objects = { "BuildingUnit" => 4, "Surface" => 80, "ThermalZone" => 2 * 4 + 1, "Space" => (2 + 1) * 4 + 1, "SpaceType" => 3, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 2, "ShadingSurfaceGroup" => 2, "ShadingSurface" => 8 }
+    expected_values = { "FinishedFloorArea" => 900 * units, "FinishedBasementHeight" => 8, "FinishedBasementFloorArea" => 300 * units, "UnfinishedAtticHeight" => 6.62, "UnfinishedAtticFloorArea" => 300 * units, "BuildingHeight" => 8 + 8 + 8 + 6.62, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 3.39*units, "EavesDepth" => 2, "NumAdiabaticSurfaces" => 0 }
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
@@ -520,6 +522,7 @@ class CreateResidentialSingleFamilyAttachedGeometryTest < MiniTest::Test
       assert_in_epsilon(expected_values["CrawlspaceFloorArea"], actual_values["CrawlspaceFloorArea"], 0.01)
     end
     if new_spaces.any? { |new_space| new_space.name.to_s.start_with?("unfinished attic") }
+      puts("attic height **** #{actual_values["UnfinishedAtticHeight"]}")
       assert_in_epsilon(expected_values["UnfinishedAtticHeight"], actual_values["UnfinishedAtticHeight"], 0.01)
       assert_in_epsilon(expected_values["UnfinishedAtticFloorArea"], actual_values["UnfinishedAtticFloorArea"], 0.01)
     end
