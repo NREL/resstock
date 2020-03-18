@@ -54,8 +54,8 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
     hot_water_gpd["num_occupants"] << 2.64
     full_load_hours, annual_energy_use, hot_water_gpd = _test_measure("SFD_Successful_EnergyPlus_Run_AMY_PV.osm", args_hash, expected_values, "8784", "USA_CO_Denver.Intl.AP.725650_TMY3.epw", full_load_hours, annual_energy_use, hot_water_gpd)
 
-    num_building_ids = 1
-    num_occupants = 1
+    num_building_ids = 20
+    num_occupants = 6
     expected_values = { "SchedulesLength" => 52560, "SchedulesWidth" => 15 }
     (1..num_building_ids).to_a.each do |building_id|
       building_id = rand(1..450000)
