@@ -171,7 +171,7 @@ class ProcessHeatingSetpoints < OpenStudio::Measure::ModelMeasure
       weekday_offset_magnitude = 0
       weekend_offset_magnitude = 0
     end
-    
+
     # Convert the string of weekday/end-offset magnitude value into a 24 valued float array
     weekday_offset_magnitude = Array.new(24, weekday_offset_magnitude)
     weekend_offset_magnitude = Array.new(24, weekend_offset_magnitude)

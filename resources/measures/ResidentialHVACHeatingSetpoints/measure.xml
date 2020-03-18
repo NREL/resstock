@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>process_heating_setpoints</name>
   <uid>2b167665-f760-462d-8c9d-1d909da7b628</uid>
-  <version_id>f62a0560-3fbd-4e23-bfc3-118d154029f4</version_id>
-  <version_modified>20190701T173020Z</version_modified>
+  <version_id>0f79fb3e-46e1-4b54-98e2-d485db682efe</version_id>
+  <version_modified>20200318T232757Z</version_modified>
   <xml_checksum>2C877DEB</xml_checksum>
   <class_name>ProcessHeatingSetpoints</class_name>
   <display_name>Set Residential Heating Setpoints and Schedules</display_name>
@@ -207,6 +207,25 @@
         </choice>
       </choices>
     </argument>
+    <argument>
+      <name>apply_offset</name>
+      <display_name>Apply Heating Setpoint Offset</display_name>
+      <description>Specifies whether to apply the setpoint offsets defined in weekend_offset_schedule and weekday_offset_schedule. If false, the offsets are set to 0 and the constant heating setpoint is used.</description>
+      <type>Boolean</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
   </arguments>
   <outputs/>
   <provenances/>
@@ -227,6 +246,12 @@
   </attributes>
   <files>
     <file>
+      <filename>process_heating_setpoints_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>47B8CB24</checksum>
+    </file>
+    <file>
       <version>
         <software_program>OpenStudio</software_program>
         <identifier>1.4.0</identifier>
@@ -235,13 +260,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>8726C15C</checksum>
-    </file>
-    <file>
-      <filename>process_heating_setpoints_test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>47B8CB24</checksum>
+      <checksum>F1B05848</checksum>
     </file>
   </files>
 </measure>
