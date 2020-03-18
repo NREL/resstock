@@ -229,9 +229,9 @@ class ResidentialHotWaterDistribution < OpenStudio::Measure::ModelMeasure
         return false
       end
 
-      shower_daily = schedules_file.calc_daily_gpm_from_peak_flow(col_name: "showers", peak_flow: shower_max)
-      sink_daily = schedules_file.calc_daily_gpm_from_peak_flow(col_name: "sinks", peak_flow: sink_max)
-      bath_daily = schedules_file.calc_daily_gpm_from_peak_flow(col_name: "baths", peak_flow: bath_max)
+      shower_daily = schedules_file.calc_daily_gpm_from_peak_flow(peak_flow: shower_max)
+      sink_daily = schedules_file.calc_daily_gpm_from_peak_flow(peak_flow: sink_max)
+      bath_daily = schedules_file.calc_daily_gpm_from_peak_flow(peak_flow: bath_max)
 
       # Calculate the pump energy consumption (in kWh/day)
       daily_recovery_load = Array.new(12, 0)
@@ -501,9 +501,9 @@ class ResidentialHotWaterDistribution < OpenStudio::Measure::ModelMeasure
       new_sink_daily = sink_daily + recovery_load_inc + daily_sink_inc - s_prev_dist
       new_bath_daily = bath_daily + recovery_load_inc + daily_bath_inc - b_prev_dist
 
-      sh_new_peak_flow = schedules_file.calc_peak_flow_from_daily_gpm(col_name: "showers", daily_water: new_shower_daily)
-      s_new_peak_flow = schedules_file.calc_peak_flow_from_daily_gpm(col_name: "sinks", daily_water: new_sink_daily)
-      b_new_peak_flow = schedules_file.calc_peak_flow_from_daily_gpm(col_name: "baths", daily_water: new_bath_daily)
+      sh_new_peak_flow = schedules_file.calc_peak_flow_from_daily_gpm(daily_water: new_shower_daily)
+      s_new_peak_flow = schedules_file.calc_peak_flow_from_daily_gpm(daily_water: new_sink_daily)
+      b_new_peak_flow = schedules_file.calc_peak_flow_from_daily_gpm(daily_water: new_bath_daily)
 
       shower_wu_def.setPeakFlowRate(sh_new_peak_flow)
       sink_wu_def.setPeakFlowRate(s_new_peak_flow)
