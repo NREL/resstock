@@ -1982,7 +1982,7 @@ class ThermalMassConstructions
                  partition_wall_frac_of_ffa = 1.0, furniture_frac_of_ffa = 0.4)
 
     if not apply_partition_walls(runner, model,
-                                 walls_by_type[Constants.SurfaceTypeWallIntFinUninsFin],
+                                 [],
                                  Constants.SurfaceTypeWallIntFinUninsFin,
                                  drywall_thick_in, partition_wall_frac_of_ffa)
       return false
@@ -2021,7 +2021,8 @@ class ThermalMassConstructions
       end
 
       # Determine additional partition wall mass required
-      addtl_surface_area = frac_of_ffa * space.floorArea - existing_surface_area * 2 / spaces.size.to_f
+      surface_area_per_unit = existing_surface_area / spaces.size.to_f
+      addtl_surface_area = frac_of_ffa * space.floorArea - 2 * surface_area_per_unit
 
       # Remove any existing internal mass
       space.internalMass.each do |im|
@@ -2568,7 +2569,7 @@ class SurfaceTypes
         elsif not is_finished and obc_is_exterior
           surfaces[Constants.SurfaceTypeWallExtUninsUnfin] << surface
 
-        # Interior finished uninsulated finished
+        # Interior finished uninsulated finished (shared walls)
         elsif is_finished and obc_is_adjacent and Geometry.space_is_finished(adjacent_space)
           surfaces[Constants.SurfaceTypeWallIntFinUninsFin] << surface
 
@@ -2580,7 +2581,7 @@ class SurfaceTypes
         elsif is_finished and obc_is_adjacent and Geometry.space_is_unfinished(adjacent_space)
           surfaces[Constants.SurfaceTypeWallIntFinInsUnfin] << surface
 
-        elsif singleunit
+        elsif singleunit #for testing against multifamily modelling aproach
           # Exterior finished basement
           if Geometry.is_finished_basement(space) and (obc_is_foundation or obc_is_adiabatic)
             surfaces[Constants.SurfaceTypeWallFndGrndFinB] << surface
