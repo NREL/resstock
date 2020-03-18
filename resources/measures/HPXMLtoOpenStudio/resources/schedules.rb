@@ -1183,17 +1183,13 @@ class SchedulesFile
     return design_level
   end
 
-  def calc_peak_flow_from_daily_gpm(col_name:,
-                                    daily_water:)
-
+  def calc_peak_flow_from_daily_gpm(daily_water:)
     peak_flow = UnitConversions.convert(Constants.PeakFlowRate * daily_water, "gal/min", "m^3/s")
 
     return peak_flow
   end
 
-  def calc_daily_gpm_from_peak_flow(col_name:,
-                                    peak_flow:)
-
+  def calc_daily_gpm_from_peak_flow(peak_flow:)
     daily_water = UnitConversions.convert(peak_flow / Constants.PeakFlowRate, "m^3/s", "gal/min")
 
     return daily_water

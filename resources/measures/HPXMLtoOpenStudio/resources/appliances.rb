@@ -446,7 +446,7 @@ class ClothesWasher
       Schedule.set_schedule_type_limits(model, temperature_sch, Constants.ScheduleTypeLimitsTemperature)
 
       design_level = schedules_file.calc_design_level_from_daily_kwh(col_name: col_name, daily_kwh: daily_energy)
-      peak_flow = schedules_file.calc_peak_flow_from_daily_gpm(col_name: col_name, daily_water: total_daily_water_use)
+      peak_flow = schedules_file.calc_peak_flow_from_daily_gpm(daily_water: total_daily_water_use)
 
       # Add equipment for the cw
       cw_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
@@ -1218,7 +1218,7 @@ class Dishwasher
       Schedule.set_schedule_type_limits(model, temperature_sch, Constants.ScheduleTypeLimitsTemperature)
 
       design_level = schedules_file.calc_design_level_from_daily_kwh(col_name: col_name, daily_kwh: daily_energy)
-      peak_flow = schedules_file.calc_peak_flow_from_daily_gpm(col_name: col_name, daily_water: daily_water)
+      peak_flow = schedules_file.calc_peak_flow_from_daily_gpm(daily_water: daily_water)
 
       # Add electric equipment for the dw
       dw_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
