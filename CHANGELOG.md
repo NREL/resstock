@@ -15,6 +15,7 @@ Features
 - Increase the diversity of the floor areas that are simulated. Geometry House Size has been replaced by Geometry Floor Area Bin and Geometry Floor Area. Now using AHS for specifying the floor area. Floor areas differ by non-Core Based Statistical Areas (CBSAs) Census Divisions and the top 15 largest CBSAs ([#425](https://github.com/NREL/OpenStudio-BuildStock/pull/425)).
 
 Fixes
+- Restructure unfinished attic and finished roof -related tsv files (i.e., insulation, roof material, and radiant barrier) and options ([#426](https://github.com/NREL/OpenStudio-BuildStock/pull/426))
 - Exclude net site energy consumption from annual and timeseries simulation output ("total" now reflects net of pv); change `include_enduse_subcategories` argument default to "true"; report either total interior equipment OR each of its components ([#405](https://github.com/NREL/OpenStudio-BuildStock/pull/405))
 - Refactor the tsv maker classes to accommodate more data sources ([#392](https://github.com/NREL/OpenStudio-BuildStock/pull/392))
 - Revert plug load schedule to RBSA for the National Average option ([#355](https://github.com/NREL/OpenStudio-BuildStock/pull/355))
