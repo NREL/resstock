@@ -1,20 +1,20 @@
-require_relative "constants"
-require_relative "unit_conversions"
-require_relative "util"
+require_relative 'constants'
+require_relative 'unit_conversions'
+require_relative 'util'
 
 class Geometry
   def self.get_zone_volume(zone)
-    if zone.isVolumeAutocalculated or not zone.volume.is_initialized
+    if zone.isVolumeAutocalculated || (not zone.volume.is_initialized)
       # Calculate volume from spaces
       volume = 0
       zone.spaces.each do |space|
-        volume += UnitConversions.convert(space.volume, "m^3", "ft^3")
+        volume += UnitConversions.convert(space.volume, 'm^3', 'ft^3')
       end
     else
-      volume = UnitConversions.convert(zone.volume.get, "m^3", "ft^3")
+      volume = UnitConversions.convert(zone.volume.get, 'm^3', 'ft^3')
     end
     if volume <= 0
-      fail "Could not find any volume."
+      fail 'Could not find any volume.'
     end
 
     return volume
@@ -25,9 +25,9 @@ class Geometry
     minzs = []
     maxzs = []
     spaces.each do |space|
-      zvalues = self.getSurfaceZValues(space.surfaces)
-      minzs << zvalues.min + UnitConversions.convert(space.zOrigin, "m", "ft")
-      maxzs << zvalues.max + UnitConversions.convert(space.zOrigin, "m", "ft")
+      zvalues = getSurfaceZValues(space.surfaces)
+      minzs << zvalues.min + UnitConversions.convert(space.zOrigin, 'm', 'ft')
+      maxzs << zvalues.max + UnitConversions.convert(space.zOrigin, 'm', 'ft')
     end
     return maxzs.max - minzs.min
   end
@@ -35,15 +35,15 @@ class Geometry
   def self.get_max_z_of_spaces(spaces)
     maxzs = []
     spaces.each do |space|
-      zvalues = self.getSurfaceZValues(space.surfaces)
-      maxzs << zvalues.max + UnitConversions.convert(space.zOrigin, "m", "ft")
+      zvalues = getSurfaceZValues(space.surfaces)
+      maxzs << zvalues.max + UnitConversions.convert(space.zOrigin, 'm', 'ft')
     end
     return maxzs.max
   end
 
   # Calculates the surface height as the max z coordinate minus the min z coordinate
   def self.surface_height(surface)
-    zvalues = self.getSurfaceZValues([surface])
+    zvalues = getSurfaceZValues([surface])
     minz = zvalues.min
     maxz = zvalues.max
     return maxz - minz
@@ -65,7 +65,7 @@ class Geometry
     unless space.isPlenum
       if space.spaceType.is_initialized
         if space.spaceType.get.standardsSpaceType.is_initialized
-          return self.is_conditioned_space_type(space.spaceType.get.standardsSpaceType.get)
+          return is_conditioned_space_type(space.spaceType.get.standardsSpaceType.get)
         end
       end
     end
@@ -73,7 +73,7 @@ class Geometry
   end
 
   def self.is_conditioned_space_type(space_type)
-    if ['living space'].include? space_type
+    if [HPXML::LocationLivingSpace].include? space_type
       return true
     end
 
@@ -84,7 +84,7 @@ class Geometry
     if location == Constants.Auto
       location_hierarchy.each do |space_type|
         model.getSpaces.each do |space|
-          next if not self.space_is_of_type(space, space_type)
+          next if not space_is_of_type(space, space_type)
 
           return space
         end
@@ -98,7 +98,7 @@ class Geometry
         return space
       end
     end
-    return nil
+    return
   end
 
   # Return an array of x values for surfaces passed in. The values will be relative to the parent origin. This was intended for spaces.
@@ -106,7 +106,7 @@ class Geometry
     xValueArray = []
     surfaceArray.each do |surface|
       surface.vertices.each do |vertex|
-        xValueArray << UnitConversions.convert(vertex.x, "m", "ft")
+        xValueArray << UnitConversions.convert(vertex.x, 'm', 'ft')
       end
     end
     return xValueArray
@@ -117,7 +117,7 @@ class Geometry
     yValueArray = []
     surfaceArray.each do |surface|
       surface.vertices.each do |vertex|
-        yValueArray << UnitConversions.convert(vertex.y, "m", "ft")
+        yValueArray << UnitConversions.convert(vertex.y, 'm', 'ft')
       end
     end
     return yValueArray
@@ -128,7 +128,7 @@ class Geometry
     zValueArray = []
     surfaceArray.each do |surface|
       surface.vertices.each do |vertex|
-        zValueArray << UnitConversions.convert(vertex.z, "m", "ft")
+        zValueArray << UnitConversions.convert(vertex.z, 'm', 'ft')
       end
     end
     return zValueArray
@@ -137,7 +137,7 @@ class Geometry
   def self.get_z_origin_for_zone(zone)
     z_origins = []
     zone.spaces.each do |space|
-      z_origins << UnitConversions.convert(space.zOrigin, "m", "ft")
+      z_origins << UnitConversions.convert(space.zOrigin, 'm', 'ft')
     end
     return z_origins.min
   end
@@ -147,10 +147,10 @@ class Geometry
     wall_area = 0
     spaces.each do |space|
       space.surfaces.each do |surface|
-        next if surface.surfaceType.downcase != "wall"
-        next if surface.outsideBoundaryCondition.downcase == "foundation"
+        next if surface.surfaceType.downcase != 'wall'
+        next if surface.outsideBoundaryCondition.downcase == 'foundation'
 
-        wall_area += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
+        wall_area += UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2')
       end
     end
     return wall_area
@@ -160,12 +160,12 @@ class Geometry
     wall_area = 0
     spaces.each do |space|
       space.surfaces.each do |surface|
-        next if surface.surfaceType.downcase != "wall"
-        next if surface.outsideBoundaryCondition.downcase != "outdoors"
-        next if surface.outsideBoundaryCondition.downcase == "foundation"
-        next unless self.space_is_conditioned(surface.space.get)
+        next if surface.surfaceType.downcase != 'wall'
+        next if surface.outsideBoundaryCondition.downcase != 'outdoors'
+        next if surface.outsideBoundaryCondition.downcase == 'foundation'
+        next unless space_is_conditioned(surface.space.get)
 
-        wall_area += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
+        wall_area += UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2')
       end
     end
     return wall_area
@@ -174,17 +174,17 @@ class Geometry
   def self.get_roof_pitch(surfaces)
     tilts = []
     surfaces.each do |surface|
-      next if surface.surfaceType.downcase != "roofceiling"
-      next if surface.outsideBoundaryCondition.downcase != "outdoors" and surface.outsideBoundaryCondition.downcase != "adiabatic"
+      next if surface.surfaceType.downcase != 'roofceiling'
+      next if (surface.outsideBoundaryCondition.downcase != 'outdoors') && (surface.outsideBoundaryCondition.downcase != 'adiabatic')
 
       tilts << surface.tilt
     end
-    return UnitConversions.convert(tilts.max, "rad", "deg")
+    return UnitConversions.convert(tilts.max, 'rad', 'deg')
   end
 
   # Checks if the surface is between conditioned and unconditioned space
   def self.is_interzonal_surface(surface)
-    if surface.outsideBoundaryCondition.downcase != "surface" or not surface.space.is_initialized or not surface.adjacentSurface.is_initialized
+    if (surface.outsideBoundaryCondition.downcase != 'surface') || (not surface.space.is_initialized) || (not surface.adjacentSurface.is_initialized)
       return false
     end
 
@@ -192,7 +192,7 @@ class Geometry
     if not adjacent_surface.space.is_initialized
       return false
     end
-    if self.space_is_conditioned(surface.space.get) == self.space_is_conditioned(adjacent_surface.space.get)
+    if space_is_conditioned(surface.space.get) == space_is_conditioned(adjacent_surface.space.get)
       return false
     end
 
@@ -201,38 +201,38 @@ class Geometry
 
   # TODO: Remove these methods
   def self.is_living(space_or_zone)
-    return self.space_or_zone_is_of_type(space_or_zone, 'living space')
+    return space_or_zone_is_of_type(space_or_zone, HPXML::LocationLivingSpace)
   end
 
   def self.is_vented_crawl(space_or_zone)
-    return self.space_or_zone_is_of_type(space_or_zone, 'crawlspace - vented')
+    return space_or_zone_is_of_type(space_or_zone, HPXML::LocationCrawlspaceVented)
   end
 
   def self.is_unvented_crawl(space_or_zone)
-    return self.space_or_zone_is_of_type(space_or_zone, 'crawlspace - unvented')
+    return space_or_zone_is_of_type(space_or_zone, HPXML::LocationCrawlspaceUnvented)
   end
 
   def self.is_unconditioned_basement(space_or_zone)
-    return self.space_or_zone_is_of_type(space_or_zone, 'basement - unconditioned')
+    return space_or_zone_is_of_type(space_or_zone, HPXML::LocationBasementUnconditioned)
   end
 
   def self.is_vented_attic(space_or_zone)
-    return self.space_or_zone_is_of_type(space_or_zone, 'attic - vented')
+    return space_or_zone_is_of_type(space_or_zone, HPXML::LocationAtticVented)
   end
 
   def self.is_unvented_attic(space_or_zone)
-    return self.space_or_zone_is_of_type(space_or_zone, 'attic - unvented')
+    return space_or_zone_is_of_type(space_or_zone, HPXML::LocationAtticUnvented)
   end
 
   def self.is_garage(space_or_zone)
-    return self.space_or_zone_is_of_type(space_or_zone, 'garage')
+    return space_or_zone_is_of_type(space_or_zone, HPXML::LocationGarage)
   end
 
   def self.space_or_zone_is_of_type(space_or_zone, space_type)
     if space_or_zone.is_a? OpenStudio::Model::Space
-      return self.space_is_of_type(space_or_zone, space_type)
+      return space_is_of_type(space_or_zone, space_type)
     elsif space_or_zone.is_a? OpenStudio::Model::ThermalZone
-      return self.zone_is_of_type(space_or_zone, space_type)
+      return zone_is_of_type(space_or_zone, space_type)
     end
   end
 
@@ -249,7 +249,7 @@ class Geometry
 
   def self.zone_is_of_type(zone, space_type)
     zone.spaces.each do |space|
-      return self.space_is_of_type(space, space_type)
+      return space_is_of_type(space, space_type)
     end
   end
 
@@ -257,24 +257,24 @@ class Geometry
     tol = 0.001
     n = surface.outwardNormal
     facade = nil
-    if (n.z).abs < tol
-      if (n.x).abs < tol and (n.y + 1).abs < tol
+    if n.z.abs < tol
+      if (n.x.abs < tol) && ((n.y + 1).abs < tol)
         facade = Constants.FacadeFront
-      elsif (n.x - 1).abs < tol and (n.y).abs < tol
+      elsif ((n.x - 1).abs < tol) && (n.y.abs < tol)
         facade = Constants.FacadeRight
-      elsif (n.x).abs < tol and (n.y - 1).abs < tol
+      elsif (n.x.abs < tol) && ((n.y - 1).abs < tol)
         facade = Constants.FacadeBack
-      elsif (n.x + 1).abs < tol and (n.y).abs < tol
+      elsif ((n.x + 1).abs < tol) && (n.y.abs < tol)
         facade = Constants.FacadeLeft
       end
     else
-      if (n.x).abs < tol and n.y < 0
+      if (n.x.abs < tol) && (n.y < 0)
         facade = Constants.FacadeFront
-      elsif n.x > 0 and (n.y).abs < tol
+      elsif (n.x > 0) && (n.y.abs < tol)
         facade = Constants.FacadeRight
-      elsif (n.x).abs < tol and n.y > 0
+      elsif (n.x.abs < tol) && (n.y > 0)
         facade = Constants.FacadeBack
-      elsif n.x < 0 and (n.y).abs < tol
+      elsif (n.x < 0) && (n.y.abs < tol)
         facade = Constants.FacadeLeft
       end
     end
@@ -282,8 +282,8 @@ class Geometry
   end
 
   def self.get_surface_length(surface)
-    xvalues = self.getSurfaceXValues([surface])
-    yvalues = self.getSurfaceYValues([surface])
+    xvalues = getSurfaceXValues([surface])
+    yvalues = getSurfaceYValues([surface])
     xrange = xvalues.max - xvalues.min
     yrange = yvalues.max - yvalues.min
     if xrange > yrange
@@ -294,15 +294,15 @@ class Geometry
   end
 
   def self.get_surface_height(surface)
-    zvalues = self.getSurfaceZValues([surface])
+    zvalues = getSurfaceZValues([surface])
     zrange = zvalues.max - zvalues.min
     return zrange
   end
 
   def self.space_has_foundation_walls(space)
     space.surfaces.each do |surface|
-      next if surface.surfaceType.downcase != "wall"
-      next if surface.outsideBoundaryCondition.downcase != "foundation"
+      next if surface.surfaceType.downcase != 'wall'
+      next if surface.outsideBoundaryCondition.downcase != 'foundation'
 
       return true
     end
@@ -316,8 +316,8 @@ class Geometry
 
       space.surfaces.each do |surface|
         next if above_grade_exterior_walls.include?(surface)
-        next if surface.surfaceType.downcase != "wall"
-        next if surface.outsideBoundaryCondition.downcase != "outdoors"
+        next if surface.surfaceType.downcase != 'wall'
+        next if surface.outsideBoundaryCondition.downcase != 'outdoors'
 
         above_grade_exterior_walls << surface
       end
@@ -332,8 +332,8 @@ class Geometry
 
       space.surfaces.each do |surface|
         next if above_grade_exterior_floors.include?(surface)
-        next if surface.surfaceType.downcase != "floor"
-        next if surface.outsideBoundaryCondition.downcase != "outdoors"
+        next if surface.surfaceType.downcase != 'floor'
+        next if surface.outsideBoundaryCondition.downcase != 'outdoors'
 
         above_grade_exterior_floors << surface
       end
@@ -349,8 +349,8 @@ class Geometry
 
       space.surfaces.each do |surface|
         next if above_grade_ground_floors.include?(surface)
-        next if surface.surfaceType.downcase != "floor"
-        next if surface.outsideBoundaryCondition.downcase != "foundation"
+        next if surface.surfaceType.downcase != 'floor'
+        next if surface.outsideBoundaryCondition.downcase != 'foundation'
 
         above_grade_ground_floors << surface
       end
@@ -365,8 +365,8 @@ class Geometry
 
       space.surfaces.each do |surface|
         next if above_grade_exterior_roofs.include?(surface)
-        next if surface.surfaceType.downcase != "roofceiling"
-        next if surface.outsideBoundaryCondition.downcase != "outdoors"
+        next if surface.surfaceType.downcase != 'roofceiling'
+        next if surface.outsideBoundaryCondition.downcase != 'outdoors'
 
         above_grade_exterior_roofs << surface
       end
@@ -379,8 +379,8 @@ class Geometry
     spaces.each do |space|
       space.surfaces.each do |surface|
         next if interzonal_walls.include?(surface)
-        next if surface.surfaceType.downcase != "wall"
-        next if not self.is_interzonal_surface(surface)
+        next if surface.surfaceType.downcase != 'wall'
+        next if not is_interzonal_surface(surface)
 
         interzonal_walls << surface
       end
@@ -393,8 +393,8 @@ class Geometry
     spaces.each do |space|
       space.surfaces.each do |surface|
         next if interzonal_floors.include?(surface)
-        next if surface.surfaceType.downcase != "floor" and surface.surfaceType.downcase != "roofceiling"
-        next if not self.is_interzonal_surface(surface)
+        next if (surface.surfaceType.downcase != 'floor') && (surface.surfaceType.downcase != 'roofceiling')
+        next if not is_interzonal_surface(surface)
 
         interzonal_floors << surface
       end
@@ -409,8 +409,8 @@ class Geometry
 
       space.surfaces.each do |surface|
         next if below_grade_exterior_walls.include?(surface)
-        next if surface.surfaceType.downcase != "wall"
-        next if surface.outsideBoundaryCondition.downcase != "foundation"
+        next if surface.surfaceType.downcase != 'wall'
+        next if surface.outsideBoundaryCondition.downcase != 'foundation'
 
         below_grade_exterior_walls << surface
       end
@@ -426,8 +426,8 @@ class Geometry
 
       space.surfaces.each do |surface|
         next if below_grade_exterior_floors.include?(surface)
-        next if surface.surfaceType.downcase != "floor"
-        next if surface.outsideBoundaryCondition.downcase != "foundation"
+        next if surface.surfaceType.downcase != 'floor'
+        next if surface.outsideBoundaryCondition.downcase != 'foundation'
 
         below_grade_exterior_floors << surface
       end
@@ -439,17 +439,17 @@ class Geometry
                              cfa, nbeds, space)
 
     # Error checking
-    if sens_frac < 0 or sens_frac > 1
-      fail "Sensible fraction must be greater than or equal to 0 and less than or equal to 1."
+    if (sens_frac < 0) || (sens_frac > 1)
+      fail 'Sensible fraction must be greater than or equal to 0 and less than or equal to 1.'
     end
-    if lat_frac < 0 or lat_frac > 1
-      fail "Latent fraction must be greater than or equal to 0 and less than or equal to 1."
+    if (lat_frac < 0) || (lat_frac > 1)
+      fail 'Latent fraction must be greater than or equal to 0 and less than or equal to 1.'
     end
     if lat_frac + sens_frac > 1
-      fail "Sum of sensible and latent fractions must be less than or equal to 1."
+      fail 'Sum of sensible and latent fractions must be less than or equal to 1.'
     end
 
-    activity_per_person = UnitConversions.convert(occ_gain, "Btu/hr", "W")
+    activity_per_person = UnitConversions.convert(occ_gain, 'Btu/hr', 'W')
 
     # Hard-coded convective, radiative, latent, and lost fractions
     occ_lat = lat_frac
@@ -459,10 +459,10 @@ class Geometry
     occ_lost = 1 - occ_lat - occ_conv - occ_rad
 
     space_obj_name = "#{Constants.ObjectNameOccupants}"
-    space_num_occ = num_occ * UnitConversions.convert(space.floorArea, "m^2", "ft^2") / cfa
+    space_num_occ = num_occ * UnitConversions.convert(space.floorArea, 'm^2', 'ft^2') / cfa
 
     # Create schedule
-    people_sch = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameOccupants + " schedule", weekday_sch, weekend_sch, monthly_sch, 1.0, 1.0, true, true, Constants.ScheduleTypeLimitsFraction)
+    people_sch = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameOccupants + ' schedule', weekday_sch, weekend_sch, monthly_sch, 1.0, 1.0, true, true, Constants.ScheduleTypeLimitsFraction)
 
     # Create schedule
     activity_sch = OpenStudio::Model::ScheduleRuleset.new(model, activity_per_person)
@@ -473,11 +473,11 @@ class Geometry
     occ.setName(space_obj_name)
     occ.setSpace(space)
     occ_def.setName(space_obj_name)
-    occ_def.setNumberOfPeopleCalculationMethod("People", 1)
+    occ_def.setNumberOfPeopleCalculationMethod('People', 1)
     occ_def.setNumberofPeople(space_num_occ)
     occ_def.setFractionRadiant(occ_rad)
     occ_def.setSensibleHeatFraction(occ_sens)
-    occ_def.setMeanRadiantTemperatureCalculationType("ZoneAveraged")
+    occ_def.setMeanRadiantTemperatureCalculationType('ZoneAveraged')
     occ_def.setCarbonDioxideGenerationRate(0)
     occ_def.setEnableASHRAE55ComfortWarnings(false)
     occ.setActivityLevelSchedule(activity_sch)

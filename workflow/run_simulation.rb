@@ -4,60 +4,60 @@ require 'fileutils'
 require 'optparse'
 require 'pathname'
 require 'openstudio'
-require_relative "../HPXMLtoOpenStudio/resources/meta_measure"
+require_relative '../HPXMLtoOpenStudio/resources/meta_measure'
 
 basedir = File.expand_path(File.dirname(__FILE__))
 
 def rm_path(path)
-  if Dir.exists?(path)
+  if Dir.exist?(path)
     FileUtils.rm_r(path)
   end
   while true
-    break if not Dir.exists?(path)
+    break if not Dir.exist?(path)
 
     sleep(0.01)
   end
 end
 
 def run_workflow(basedir, rundir, hpxml, debug, hourly_outputs)
-  puts "Creating input..."
+  puts 'Creating input...'
 
   OpenStudio::Logger.instance.standardOutLogger.setLogLevel(OpenStudio::Fatal)
 
   model = OpenStudio::Model::Model.new
   runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
-  measures_dir = File.join(basedir, "..")
+  measures_dir = File.join(basedir, '..')
 
   measures = {}
 
   # Add HPXML translator measure to workflow
-  measure_subdir = "HPXMLtoOpenStudio"
+  measure_subdir = 'HPXMLtoOpenStudio'
   args = {}
   args['hpxml_path'] = hpxml
-  args['weather_dir'] = "weather"
-  args['epw_output_path'] = File.join(rundir, "in.epw")
+  args['weather_dir'] = 'weather'
+  args['epw_output_path'] = File.join(rundir, 'in.epw')
   if debug
-    args['osm_output_path'] = File.join(rundir, "in.osm")
+    args['osm_output_path'] = File.join(rundir, 'in.osm')
   end
   update_args_hash(measures, measure_subdir, args)
 
   # Add reporting measure to workflow
-  measure_subdir = "SimulationOutputReport"
+  measure_subdir = 'SimulationOutputReport'
   args = {}
   args['timeseries_frequency'] = 'hourly'
-  args['include_timeseries_zone_temperatures'] = hourly_outputs.include? "temperatures"
-  args['include_timeseries_fuel_consumptions'] = hourly_outputs.include? "fuels"
-  args['include_timeseries_end_use_consumptions'] = hourly_outputs.include? "enduses"
-  args['include_timeseries_total_loads'] = hourly_outputs.include? "loads"
-  args['include_timeseries_component_loads'] = hourly_outputs.include? "componentloads"
+  args['include_timeseries_zone_temperatures'] = hourly_outputs.include? 'temperatures'
+  args['include_timeseries_fuel_consumptions'] = hourly_outputs.include? 'fuels'
+  args['include_timeseries_end_use_consumptions'] = hourly_outputs.include? 'enduses'
+  args['include_timeseries_total_loads'] = hourly_outputs.include? 'loads'
+  args['include_timeseries_component_loads'] = hourly_outputs.include? 'componentloads'
   update_args_hash(measures, measure_subdir, args)
 
   # Apply measures
-  success = apply_measures(measures_dir, measures, runner, model, true, "OpenStudio::Measure::ModelMeasure")
+  success = apply_measures(measures_dir, measures, runner, model, true, 'OpenStudio::Measure::ModelMeasure')
   report_measure_errors_warnings(runner, rundir, debug)
 
   if not success
-    fail "Simulation unsuccessful."
+    fail 'Simulation unsuccessful.'
   end
 
   # Translate model to IDF
@@ -70,34 +70,34 @@ def run_workflow(basedir, rundir, hpxml, debug, hourly_outputs)
   apply_energyplus_output_requests(measures_dir, measures, runner, model, model_idf)
 
   # Write IDF to file
-  File.open(File.join(rundir, "in.idf"), 'w') { |f| f << model_idf.to_s }
+  File.open(File.join(rundir, 'in.idf'), 'w') { |f| f << model_idf.to_s }
 
-  puts "Running simulation..."
+  puts 'Running simulation...'
 
   # getEnergyPlusDirectory can be unreliable, using getOpenStudioCLI instead
   ep_path = File.absolute_path(File.join(OpenStudio.getOpenStudioCLI.to_s, '..', '..', 'EnergyPlus', 'energyplus'))
   command = "cd \"#{rundir}\" && \"#{ep_path}\" -w in.epw in.idf > stdout-energyplus"
-  system(command, :err => File::NULL)
+  system(command, err: File::NULL)
 
-  puts "Processing output..."
+  puts 'Processing output...'
 
   # Apply reporting measures
-  runner.setLastEnergyPlusSqlFilePath(File.join(rundir, "eplusout.sql"))
-  success = apply_measures(measures_dir, measures, runner, model, true, "OpenStudio::Measure::ReportingMeasure")
+  runner.setLastEnergyPlusSqlFilePath(File.join(rundir, 'eplusout.sql'))
+  success = apply_measures(measures_dir, measures, runner, model, true, 'OpenStudio::Measure::ReportingMeasure')
   report_measure_errors_warnings(runner, rundir, debug)
 
-  annual_csv_path = File.join(rundir, "results_annual.csv")
-  if File.exists? annual_csv_path
+  annual_csv_path = File.join(rundir, 'results_annual.csv')
+  if File.exist? annual_csv_path
     puts "Wrote output file: #{annual_csv_path}."
   end
 
-  timeseries_csv_path = File.join(rundir, "results_timeseries.csv")
-  if File.exists? timeseries_csv_path
+  timeseries_csv_path = File.join(rundir, 'results_timeseries.csv')
+  if File.exist? timeseries_csv_path
     puts "Wrote output file: #{timeseries_csv_path}."
   end
 
   if not success
-    puts "Processing output unsuccessful."
+    fail 'Processing output unsuccessful.'
   end
 end
 
@@ -130,7 +130,7 @@ def report_ft_errors_warnings(forward_translator, designdir)
   end
 end
 
-hourly_types = ["ALL", "fuels", "enduses", "loads", "componentloads", "temperatures"]
+hourly_types = ['ALL', 'fuels', 'enduses', 'loads', 'componentloads', 'temperatures']
 
 options = {}
 OptionParser.new do |opts|
@@ -166,12 +166,12 @@ OptionParser.new do |opts|
 end.parse!
 
 if options[:version]
-  workflow_version = "0.8.0"
+  workflow_version = '0.8.0'
   puts "OpenStudio-HPXML v#{workflow_version}"
   exit!
 end
 
-if options[:hourly_outputs].include? "ALL"
+if options[:hourly_outputs].include? 'ALL'
   options[:hourly_outputs] = hourly_types[1..-1]
 end
 
@@ -182,7 +182,7 @@ end
 unless (Pathname.new options[:hpxml]).absolute?
   options[:hpxml] = File.expand_path(options[:hpxml])
 end
-unless File.exists?(options[:hpxml]) and options[:hpxml].downcase.end_with? ".xml"
+unless File.exist?(options[:hpxml]) && options[:hpxml].downcase.end_with?('.xml')
   fail "'#{options[:hpxml]}' does not exist or is not an .xml file."
 end
 
@@ -191,12 +191,12 @@ if options[:output_dir].nil?
 end
 options[:output_dir] = File.expand_path(options[:output_dir])
 
-unless Dir.exists?(options[:output_dir])
+unless Dir.exist?(options[:output_dir])
   FileUtils.mkdir_p(options[:output_dir])
 end
 
 # Create run dir
-rundir = File.join(options[:output_dir], "run")
+rundir = File.join(options[:output_dir], 'run')
 rm_path(rundir)
 Dir.mkdir(rundir)
 

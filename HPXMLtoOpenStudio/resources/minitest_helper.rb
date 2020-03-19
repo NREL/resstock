@@ -12,12 +12,12 @@ if not called_from_cli # cli can't load codecov gem
   # save to CircleCI's artifacts directory if we're on CircleCI
   if ENV['CI']
     if ENV['CIRCLE_ARTIFACTS']
-      dir = File.join(ENV['CIRCLE_ARTIFACTS'], "coverage")
+      dir = File.join(ENV['CIRCLE_ARTIFACTS'], 'coverage')
       SimpleCov.coverage_dir(dir)
     end
     SimpleCov.formatter = SimpleCov::Formatter::Codecov
   else
-    SimpleCov.coverage_dir("coverage")
+    SimpleCov.coverage_dir('coverage')
   end
   SimpleCov.start
 
@@ -39,9 +39,9 @@ def get_model(measure_dir, osm_file_or_model)
   else
     # load the test model
     translator = OpenStudio::OSVersion::VersionTranslator.new
-    osm_path = File.join(measure_dir, "..", "..", "..", "test", "osm_files", osm_file_or_model)
+    osm_path = File.join(measure_dir, '..', '..', '..', 'test', 'osm_files', osm_file_or_model)
     unless File.exist? osm_path
-      osm_path = File.join(measure_dir, "..", "..", "..", "..", "test", "osm_files", osm_file_or_model)
+      osm_path = File.join(measure_dir, '..', '..', '..', '..', 'test', 'osm_files', osm_file_or_model)
     end
     path = OpenStudio::Path.new(osm_path)
     model = translator.loadModel(path)
@@ -56,7 +56,7 @@ def get_objects(model)
   objects = []
   model.modelObjects.each do |obj|
     obj_type = get_model_object_type(obj)
-    if ["AdditionalProperties", "YearDescription"].include? obj_type
+    if ['AdditionalProperties', 'YearDescription'].include? obj_type
       next # Remove this eventually?
     end
 
@@ -71,8 +71,8 @@ def get_object_additions(list1, list2, obj_type_exclusions = nil, obj_name_exclu
   additions = {}
   list2.each do |obj_type2, obj2|
     next if list1.include?([obj_type2, obj2])
-    next if not obj_type_exclusions.nil? and obj_type_exclusions.include?(obj_type2)
-    next if not obj_name_exclusions.nil? and obj_name_exclusions.include?(obj2.name.to_s)
+    next if (not obj_type_exclusions.nil?) && obj_type_exclusions.include?(obj_type2)
+    next if (not obj_name_exclusions.nil?) && obj_name_exclusions.include?(obj2.name.to_s)
 
     if not additions.keys.include?(obj_type2)
       additions[obj_type2] = []
@@ -85,12 +85,12 @@ end
 def get_model_object_type(model_object)
   # Hacky; is there a better way to get this?
   obj_type = model_object.to_s.split(',')[0].gsub('OS:', '').gsub(':', '')
-  if obj_type == "MaterialNoMass"
-    obj_type = "Material"
-  elsif obj_type == "WindowMaterialSimpleGlazingSystem"
-    obj_type = "SimpleGlazing"
-  elsif obj_type == "SizingPeriodDesignDay"
-    obj_type = "DesignDay"
+  if obj_type == 'MaterialNoMass'
+    obj_type = 'Material'
+  elsif obj_type == 'WindowMaterialSimpleGlazingSystem'
+    obj_type = 'SimpleGlazing'
+  elsif obj_type == 'SizingPeriodDesignDay'
+    obj_type = 'DesignDay'
   end
   return obj_type
 end
@@ -124,9 +124,9 @@ def check_ems(model)
   # check that all set variables are used somewhere (i.e., no typos)
   (model.getEnergyManagementSystemPrograms + model.getEnergyManagementSystemSubroutines).each do |ems|
     ems.to_s.each_line do |line|
-      next unless line.downcase.strip.start_with?("set ")
+      next unless line.downcase.strip.start_with?('set ')
 
-      var = line.split("=")[0].strip.split(" ")[1]
+      var = line.split('=')[0].strip.split(' ')[1]
       count = 0
       (model.getEnergyManagementSystemSensors + model.getEnergyManagementSystemActuators + model.getEnergyManagementSystemPrograms + model.getEnergyManagementSystemOutputVariables + model.getEnergyManagementSystemSubroutines + model.getEnergyManagementSystemGlobalVariables).each do |ems|
         count += ems.to_s.scan(/(?=#{var})/).count
@@ -140,7 +140,7 @@ def check_ems(model)
 
   # check that no lines exceed 100 characters
   model.to_s.each_line do |line|
-    next unless line.strip.start_with?("Set", "If", "Else", "EndIf")
+    next unless line.strip.start_with?('Set', 'If', 'Else', 'EndIf')
 
     if line.include? '!-' # Remove comments
       line.slice!(line.index('!-')..line.length)

@@ -1,6 +1,6 @@
-require_relative "constants"
-require_relative "unit_conversions"
-require_relative "weather"
+require_relative 'constants'
+require_relative 'unit_conversions'
+require_relative 'weather'
 
 class Location
   def self.apply(model, runner, weather_file_path, weather_cache_path, dst_start_date, dst_end_date)
@@ -16,7 +16,7 @@ class Location
   private
 
   def self.apply_weather_file(model, runner, weather_file_path, weather_cache_path)
-    if File.exists?(weather_file_path) and weather_file_path.downcase.end_with? ".epw"
+    if File.exist?(weather_file_path) && weather_file_path.downcase.end_with?('.epw')
       epw_file = OpenStudio::EpwFile.new(weather_file_path)
     else
       fail "'#{weather_file_path}' does not exist or is not an .epw file."
@@ -27,7 +27,7 @@ class Location
     # Obtain weather object
     # Load from cache .csv file if exists, as this is faster and doesn't require
     # parsing the weather file.
-    if File.exists? weather_cache_path
+    if File.exist? weather_cache_path
       weather = WeatherProcess.new(nil, nil, weather_cache_path)
     else
       weather = WeatherProcess.new(model, runner)
@@ -54,17 +54,17 @@ class Location
   end
 
   def self.apply_mains_temp(model, weather)
-    avgOAT = UnitConversions.convert(weather.data.AnnualAvgDrybulb, "F", "C")
+    avgOAT = UnitConversions.convert(weather.data.AnnualAvgDrybulb, 'F', 'C')
     monthlyOAT = weather.data.MonthlyAvgDrybulbs
 
     min_temp = monthlyOAT.min
     max_temp = monthlyOAT.max
 
-    maxDiffOAT = UnitConversions.convert(max_temp, "F", "C") - UnitConversions.convert(min_temp, "F", "C")
+    maxDiffOAT = UnitConversions.convert(max_temp, 'F', 'C') - UnitConversions.convert(min_temp, 'F', 'C')
 
     # Calc annual average mains temperature to report
     swmt = model.getSiteWaterMainsTemperature
-    swmt.setCalculationMethod "Correlation"
+    swmt.setCalculationMethod 'Correlation'
     swmt.setAnnualAverageOutdoorAirTemperature avgOAT
     swmt.setMaximumDifferenceInMonthlyAverageOutdoorAirTemperatures maxDiffOAT
   end
@@ -79,7 +79,7 @@ class Location
   end
 
   def self.apply_dst(model, dst_start_date, dst_end_date)
-    if not (dst_start_date.downcase == 'na' and dst_end_date.downcase == 'na')
+    if not ((dst_start_date.downcase == 'na') && (dst_end_date.downcase == 'na'))
       begin
         dst_start_date_month = OpenStudio::monthOfYear(dst_start_date.split[0])
         dst_start_date_day = dst_start_date.split[1].to_i
@@ -90,7 +90,7 @@ class Location
         dst.setStartDate(dst_start_date_month, dst_start_date_day)
         dst.setEndDate(dst_end_date_month, dst_end_date_day)
       rescue
-        fail "Invalid daylight saving date specified."
+        fail 'Invalid daylight saving date specified.'
       end
     end
   end
@@ -98,12 +98,12 @@ class Location
   def self.get_climate_zone_ba(wmo)
     ba_zone = nil
 
-    zones_csv = File.join(File.dirname(__FILE__), "climate_zones.csv")
-    if not File.exists?(zones_csv)
+    zones_csv = File.join(File.dirname(__FILE__), 'climate_zones.csv')
+    if not File.exist?(zones_csv)
       return ba_zone
     end
 
-    require "csv"
+    require 'csv'
     CSV.foreach(zones_csv) do |row|
       if row[0].to_s == wmo.to_s
         ba_zone = row[5].to_s

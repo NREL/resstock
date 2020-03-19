@@ -567,16 +567,17 @@ Solar hot water systems can be described with either simple or detailed inputs.
 
 If using simple inputs, the following element is required:
 
-- ``SolarFraction``
+- ``SolarFraction``: Portion of total conventional hot water heating load (delivered energy and tank standby losses). Can be obtained from Directory of SRCC OG-300 Solar Water Heating System Ratings or NREL's `System Advisor Model <https://sam.nrel.gov/>`_ or equivalent.
 
 If using detailed inputs, the following elements are required:
 
+- ``CollectorArea``
 - ``CollectorLoopType``: 'liquid indirect' or 'liquid direct' or 'passive thermosyphon'
 - ``CollectorType``: 'single glazing black' or 'double glazing black' or 'evacuated tube' or 'integrated collector storage'
 - ``CollectorAzimuth``
 - ``CollectorTilt``
-- ``CollectorRatedOpticalEfficiency``: FRTA (y-intercept); see Directory of SRCC Certified Solar Collector Ratings
-- ``CollectorRatedThermalLosses``: FRUL (slope, in units of Btu/hr-ft^2-R); see Directory of SRCC Certified Solar Collector Ratings
+- ``CollectorRatedOpticalEfficiency``: FRTA (y-intercept); see Directory of SRCC OG-100 Certified Solar Collector Ratings
+- ``CollectorRatedThermalLosses``: FRUL (slope, in units of Btu/hr-ft^2-R); see Directory of SRCC OG-100 Certified Solar Collector Ratings
 - ``StorageVolume``
 
 Photovoltaics

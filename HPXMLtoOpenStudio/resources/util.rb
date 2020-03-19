@@ -1,20 +1,20 @@
-require_relative "constants"
-require_relative "unit_conversions"
+require_relative 'constants'
+require_relative 'unit_conversions'
 
 class HelperMethods
   def self.eplus_fuel_map(fuel)
-    if fuel == 'electricity'
+    if fuel == HPXML::FuelTypeElectricity
       return 'electricity'
-    elsif fuel == 'natural gas'
-      return "NaturalGas"
-    elsif fuel == 'fuel oil'
-      return "FuelOil#1"
-    elsif fuel == 'propane'
-      return "PropaneGas"
-    elsif fuel == 'wood'
-      return "OtherFuel1"
-    elsif fuel == 'wood pellets'
-      return "OtherFuel2"
+    elsif fuel == HPXML::FuelTypeNaturalGas
+      return 'NaturalGas'
+    elsif fuel == HPXML::FuelTypeOil
+      return 'FuelOil#1'
+    elsif fuel == HPXML::FuelTypePropane
+      return 'PropaneGas'
+    elsif fuel == HPXML::FuelTypeWood
+      return 'OtherFuel1'
+    elsif fuel == HPXML::FuelTypeWoodPellets
+      return 'OtherFuel2'
     end
   end
 end
@@ -60,7 +60,7 @@ class MathTools
         z       float      result of biquadratic polynomial
     '''
     if c.length != 6
-      puts "Error: There must be 6 coefficients in a biquadratic polynomial"
+      puts 'Error: There must be 6 coefficients in a biquadratic polynomial'
     end
     z = c[0] + c[1] * x + c[2] * x**2 + c[3] * y + c[4] * y**2 + c[5] * y * x
     return z
@@ -85,7 +85,7 @@ class MathTools
         y       float      result of biquadratic polynomial
     '''
     if c.size != 3
-      puts "Error: There must be 3 coefficients in a quadratic polynomial"
+      puts 'Error: There must be 3 coefficients in a quadratic polynomial'
     end
     y = c[0] + c[1] * x + c[2] * x**2
 
@@ -113,7 +113,7 @@ class MathTools
         z       float      result of bicubic polynomial
     '''
     if c.size != 10
-      puts "Error: There must be 10 coefficients in a bicubic polynomial"
+      puts 'Error: There must be 10 coefficients in a bicubic polynomial'
     end
     z = c[0] + c[1] * x + c[2] * y + c[3] * x**2 + c[4] * x * y + c[5] * y**2 + \
         c[6] * x**3 + c[7] * y * x**2 + c[8] * x * y**2 + c[9] * y**3
@@ -176,7 +176,7 @@ class MathTools
     dx = 0.1
 
     # Test for convergence
-    if ((x0 - x1).abs < tolRel * [x0.abs, Constants.small].max and icount != 1) or f0 == 0
+    if (((x0 - x1).abs < tolRel * [x0.abs, Constants.small].max) && (icount != 1)) || (f0 == 0)
       x_new = x0
       cvg = true
     else
@@ -225,7 +225,7 @@ class MathTools
                 x_new = -b / (2 * c)
               end
 
-              if f1 * f0 > 0 and f2 * f0 > 0 # If the previous two f(x) were the same sign as the new
+              if (f1 * f0 > 0) && (f2 * f0 > 0) # If the previous two f(x) were the same sign as the new
                 if f2.abs > f1.abs
                   x2 = x1
                   f2 = f1
