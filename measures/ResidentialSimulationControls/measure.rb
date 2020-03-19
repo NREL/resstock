@@ -3,14 +3,14 @@
 # see the URL below for information on how to write OpenStudio measures
 # http://nrel.github.io/OpenStudio-user-documentation/reference/measure_writing_guide/
 
-if File.exists? File.absolute_path(File.join(File.dirname(__FILE__), "../../lib/resources/measures/HPXMLtoOpenStudio/resources")) # Hack to run ResStock on AWS
-  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../../lib/resources/measures/HPXMLtoOpenStudio/resources"))
-elsif File.exists? File.absolute_path(File.join(File.dirname(__FILE__), "../../resources/measures/HPXMLtoOpenStudio/resources")) # Hack to run ResStock unit tests locally
-  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../../resources/measures/HPXMLtoOpenStudio/resources"))
-elsif File.exists? File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, "HPXMLtoOpenStudio/resources") # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
-  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, "HPXMLtoOpenStudio/resources")
+if File.exists? File.absolute_path(File.join(File.dirname(__FILE__), "../../lib/resources/hpxml-measures/BuildResidentialHPXML/resources")) # Hack to run ResStock on AWS
+  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../../lib/resources/hpxml-measures/BuildResidentialHPXML/resources"))
+elsif File.exists? File.absolute_path(File.join(File.dirname(__FILE__), "../../resources/hpxml-measures/BuildResidentialHPXML/resources")) # Hack to run ResStock unit tests locally
+  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../../resources/hpxml-measures/BuildResidentialHPXML/resources"))
+elsif File.exists? File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, "BuildResidentialHPXML/resources") # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
+  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, "BuildResidentialHPXML/resources")
 else
-  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources"))
+  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../BuildResidentialHPXML/resources"))
 end
 require File.join(resources_path, "constants")
 require File.join(resources_path, "simulation")

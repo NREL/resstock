@@ -505,7 +505,6 @@ def generate_example_osws(data_hash, include_args, osw_filename, simplify = true
   workflowJSON = OpenStudio::WorkflowJSON.new
   workflowJSON.setOswPath(osw_path)
   workflowJSON.addMeasurePath("../resources/hpxml-measures")
-  workflowJSON.addMeasurePath("../measures")
 
   steps = OpenStudio::WorkflowStepVector.new
 
@@ -523,18 +522,9 @@ def generate_example_osws(data_hash, include_args, osw_filename, simplify = true
     group["group_steps"].each do |group_step|
       # Default to first measure in step
       measure = group_step["measures"][0]
-
       measure_path = File.expand_path(File.join("../resources/hpxml-measures", measure), workflowJSON.oswDir.to_s)
-      unless File.exist? measure_path
-        measure_path = File.expand_path(File.join("../measures", measure), workflowJSON.oswDir.to_s) # for ResidentialSimulationControls, ResidentialDemandResponse
-      end
       measure_instance = get_measure_instance("#{measure_path}/measure.rb")
-
-      begin
-        measure_args = measure_instance.arguments(model).sort_by { |arg| arg.name }
-      rescue
-        measure_args = measure_instance.arguments.sort_by { |arg| arg.name } # for reporting measures
-      end
+      measure_args = measure_instance.arguments(model).sort_by { |arg| arg.name }
 
       step = OpenStudio::MeasureStep.new(measure)
       if not simplify

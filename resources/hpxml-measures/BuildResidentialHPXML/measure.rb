@@ -2,11 +2,19 @@
 # http://nrel.github.io/OpenStudio-user-documentation/reference/measure_writing_guide/
 
 require 'openstudio'
+
 require_relative 'resources/geometry'
 require_relative 'resources/schedules'
 require_relative 'resources/waterheater'
 require_relative 'resources/constants'
 require_relative 'resources/location'
+
+require_relative '../HPXMLtoOpenStudio/measure'
+require_relative '../HPXMLtoOpenStudio/resources/EPvalidator'
+require_relative '../HPXMLtoOpenStudio/resources/constructions'
+require_relative '../HPXMLtoOpenStudio/resources/hpxml'
+require_relative '../HPXMLtoOpenStudio/resources/schedules'
+require_relative '../HPXMLtoOpenStudio/resources/waterheater'
 
 # start the measure
 class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
@@ -34,7 +42,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDescription('Absolute/relative path of the HPXML file.')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('simulation_control_timestep', true)
+    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('simulation_control_timestep', false)
     arg.setDisplayName('Simulation Control: Timestep')
     arg.setUnits('min')
     arg.setDescription('Value must be a divisor of 60.')
@@ -219,7 +227,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('foundation_type', foundation_type_choices, true)
     arg.setDisplayName('Geometry: Foundation Type')
     arg.setDescription('The foundation type of the building.')
-    arg.setDefaultValue('slab')
+    arg.setDefaultValue(HPXML::FoundationTypeSlab)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('foundation_height', true)
@@ -314,7 +322,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('attic_type', attic_type_choices, true)
     arg.setDisplayName('Geometry: Attic Type')
     arg.setDescription('The attic type of the building. Ignored if the building has a flat roof.')
-    arg.setDefaultValue(HPXML::LocationAtticVented)
+    arg.setDefaultValue(HPXML::AtticTypeVented)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('attic_floor_conditioned_r', true)
@@ -1852,13 +1860,6 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
       return false
     end
 
-    require_relative '../HPXMLtoOpenStudio/measure'
-    require_relative '../HPXMLtoOpenStudio/resources/EPvalidator'
-    require_relative '../HPXMLtoOpenStudio/resources/constructions'
-    require_relative '../HPXMLtoOpenStudio/resources/hpxml'
-    require_relative '../HPXMLtoOpenStudio/resources/schedules'
-    require_relative '../HPXMLtoOpenStudio/resources/waterheater'
-
     # Check for correct versions of OS
     os_version = '2.9.1'
     if OpenStudio.openStudioVersion != os_version
@@ -3003,9 +3004,9 @@ class HPXMLFile
   end
 
   def self.get_duct_location_auto(args, hpxml) # FIXME
-    if args[:roof_type] != 'flat' && hpxml.attics.size > 0 && [HPXML::AtticTypeVented, HPXML::AtticTypeUnvented].include?(args[:attic_type])
+    if args[:roof_type] != 'flat' && hpxml.attics.size > 0 && [HPXML::LocationAtticVented, HPXML::LocationAtticUnvented].include?(args[:attic_type])
       location = hpxml.attics[0].to_location
-    elsif hpxml.foundations.size > 0 && (args[:foundation_type].downcase.include?('basement') || args[:foundation_type].downcase.include?('crawlspace'))
+    elsif hpxml.foundations.size > 0 && (args[:foundation_type].downcase.include?('Basement') || args[:foundation_type].downcase.include?('Crawlspace'))
       location = hpxml.foundations[0].to_location
     else
       location = HPXML::LocationLivingSpace
