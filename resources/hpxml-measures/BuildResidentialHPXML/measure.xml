@@ -1,10 +1,9 @@
 <measure>
   <schema_version>3.0</schema_version>
-  <error>uninitialized constant BuildResidentialHPXML::HPXML</error>
   <name>build_residential_hpxml</name>
   <uid>a13a8983-2b01-4930-8af2-42030b6e4233</uid>
-  <version_id>c4cc434f-8353-4502-9db6-ac7d7faf21fb</version_id>
-  <version_modified>20200318T204726Z</version_modified>
+  <version_id>dec870c1-a37d-4299-8a46-8e054d74b981</version_id>
+  <version_modified>20200319T193507Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>BuildResidentialHPXML</class_name>
   <display_name>HPXML Builder</display_name>
@@ -18,6 +17,16 @@
       <type>String</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>simulation_control_timestep</name>
+      <display_name>Simulation Control: Timestep</display_name>
+      <description>Value must be a divisor of 60.</description>
+      <type>Integer</type>
+      <units>min</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>60</default_value>
     </argument>
     <argument>
       <name>schedules_output_path</name>
@@ -92,12 +101,12 @@
     <argument>
       <name>num_units</name>
       <display_name>Geometry: Number of Units</display_name>
-      <description>The number of units in the building.</description>
+      <description>The number of units in the building. This is not used for single-family detached buildings.</description>
       <type>Integer</type>
       <units>#</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>1</default_value>
+      <default_value>2</default_value>
     </argument>
     <argument>
       <name>num_floors</name>
@@ -307,31 +316,31 @@
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>slab</default_value>
+      <default_value>SlabOnGrade</default_value>
       <choices>
         <choice>
-          <value>slab</value>
-          <display_name>slab</display_name>
+          <value>SlabOnGrade</value>
+          <display_name>SlabOnGrade</display_name>
         </choice>
         <choice>
-          <value>crawlspace - vented</value>
-          <display_name>crawlspace - vented</display_name>
+          <value>VentedCrawlspace</value>
+          <display_name>VentedCrawlspace</display_name>
         </choice>
         <choice>
-          <value>crawlspace - unvented</value>
-          <display_name>crawlspace - unvented</display_name>
+          <value>UnventedCrawlspace</value>
+          <display_name>UnventedCrawlspace</display_name>
         </choice>
         <choice>
-          <value>basement - unconditioned</value>
-          <display_name>basement - unconditioned</display_name>
+          <value>UnconditionedBasement</value>
+          <display_name>UnconditionedBasement</display_name>
         </choice>
         <choice>
-          <value>basement - conditioned</value>
-          <display_name>basement - conditioned</display_name>
+          <value>ConditionedBasement</value>
+          <display_name>ConditionedBasement</display_name>
         </choice>
         <choice>
-          <value>ambient</value>
-          <display_name>ambient</display_name>
+          <value>Ambient</value>
+          <display_name>Ambient</display_name>
         </choice>
       </choices>
     </argument>
@@ -462,19 +471,19 @@
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>attic - vented</default_value>
+      <default_value>VentedAttic</default_value>
       <choices>
         <choice>
-          <value>attic - vented</value>
-          <display_name>attic - vented</display_name>
+          <value>VentedAttic</value>
+          <display_name>VentedAttic</display_name>
         </choice>
         <choice>
-          <value>attic - unvented</value>
-          <display_name>attic - unvented</display_name>
+          <value>UnventedAttic</value>
+          <display_name>UnventedAttic</display_name>
         </choice>
         <choice>
-          <value>attic - conditioned</value>
-          <display_name>attic - conditioned</display_name>
+          <value>ConditionedAttic</value>
+          <display_name>ConditionedAttic</display_name>
         </choice>
       </choices>
     </argument>
@@ -1222,15 +1231,15 @@
           <display_name>CFM50</display_name>
         </choice>
         <choice>
-          <value>ConstantACHnatural</value>
-          <display_name>ConstantACHnatural</display_name>
+          <value>ACHnatural</value>
+          <display_name>ACHnatural</display_name>
         </choice>
       </choices>
     </argument>
     <argument>
       <name>living_air_leakage_value</name>
       <display_name>Air Leakage: Above-Grade Living Value</display_name>
-      <description>ACH50=Air exchange rate, in Air Changes per Hour at 50 Pascals (ACH50), for above-grade living space (including conditioned attic). CFM50= Air exchange rate, in CFM at 50 Pascals (CFM50), for above-grade living space (including conditioned attic). ConstantACHnatural=Air exchange rate, in constant natural Air Changes per Hour, for above-grade living space (including conditioned attic).</description>
+      <description>ACH50=Air exchange rate, in Air Changes per Hour at 50 Pascals (ACH50), for above-grade living space (including conditioned attic). CFM50= Air exchange rate, in CFM at 50 Pascals (CFM50), for above-grade living space (including conditioned attic). ACHnatural=Air exchange rate, in constant natural Air Changes per Hour, for above-grade living space (including conditioned attic).</description>
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -2371,6 +2380,10 @@
           <display_name>none</display_name>
         </choice>
         <choice>
+          <value>one</value>
+          <display_name>one</display_name>
+        </choice>
+        <choice>
           <value>all</value>
           <display_name>all</display_name>
         </choice>
@@ -2511,6 +2524,10 @@
         <choice>
           <value>single glazing black</value>
           <display_name>single glazing black</display_name>
+        </choice>
+        <choice>
+          <value>double glazing black</value>
+          <display_name>double glazing black</display_name>
         </choice>
         <choice>
           <value>integrated collector storage</value>
@@ -3622,17 +3639,6 @@
       <checksum>9276DD66</checksum>
     </file>
     <file>
-      <version>
-        <software_program>OpenStudio</software_program>
-        <identifier>2.9.0</identifier>
-        <min_compatible>2.9.0</min_compatible>
-      </version>
-      <filename>measure.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>script</usage_type>
-      <checksum>F7A4C9D6</checksum>
-    </file>
-    <file>
       <filename>base-mechvent-cfis.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
@@ -4575,10 +4581,21 @@
       <checksum>F2A3D970</checksum>
     </file>
     <file>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>2.9.0</identifier>
+        <min_compatible>2.9.0</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>script</usage_type>
+      <checksum>D7EB5061</checksum>
+    </file>
+    <file>
       <filename>base-misc-timestep-10-mins.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>D44EDA40</checksum>
+      <checksum>6A6CDFBB</checksum>
     </file>
   </files>
 </measure>
