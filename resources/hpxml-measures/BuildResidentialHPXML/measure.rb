@@ -9,7 +9,6 @@ require_relative 'resources/waterheater'
 require_relative 'resources/constants'
 require_relative 'resources/location'
 
-require_relative '../HPXMLtoOpenStudio/measure'
 require_relative '../HPXMLtoOpenStudio/resources/EPvalidator'
 require_relative '../HPXMLtoOpenStudio/resources/constructions'
 require_relative '../HPXMLtoOpenStudio/resources/hpxml'
@@ -1860,6 +1859,8 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
       return false
     end
 
+    require_relative '../HPXMLtoOpenStudio/measure'
+
     # Check for correct versions of OS
     os_version = '2.9.1'
     if OpenStudio.openStudioVersion != os_version
@@ -2385,6 +2386,7 @@ class HPXMLFile
 
   def self.set_attics(hpxml, runner, model, args)
     return if args[:unit_type] == 'multifamily'
+    return if args[:unit_type] == 'single-family attached' # TODO: remove when we can model single-family attached units
 
     hpxml.attics.add(id: args[:attic_type],
                      attic_type: args[:attic_type])
@@ -3004,7 +3006,7 @@ class HPXMLFile
   end
 
   def self.get_duct_location_auto(args, hpxml) # FIXME
-    if args[:roof_type] != 'flat' && hpxml.attics.size > 0 && [HPXML::LocationAtticVented, HPXML::LocationAtticUnvented].include?(args[:attic_type])
+    if args[:roof_type] != 'flat' && hpxml.attics.size > 0 && [HPXML::AtticTypeVented, HPXML::AtticTypeUnvented].include?(args[:attic_type])
       location = hpxml.attics[0].to_location
     elsif hpxml.foundations.size > 0 && (args[:foundation_type].downcase.include?('Basement') || args[:foundation_type].downcase.include?('Crawlspace'))
       location = hpxml.foundations[0].to_location

@@ -11,6 +11,7 @@ class WorkflowTest < MiniTest::Test
     all_results = []
     parent_dir = File.absolute_path(File.join(File.dirname(__FILE__), ".."))
     Dir["#{parent_dir}/*.osw"].each do |osw|
+      puts "\nOSW: #{osw} ...\n"
       next if File.basename(osw).include? "out"
 
       add_simulation_output_report(osw)
