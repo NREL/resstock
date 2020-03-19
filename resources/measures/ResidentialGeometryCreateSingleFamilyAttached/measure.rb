@@ -630,6 +630,18 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
     end
     ################################################################
 
+    total_units_represented = 0
+    unit_spaces_hash.each do |unit_num, unit_info|
+      spaces, units_represented = unit_info
+      # Store building unit information
+      unit = OpenStudio::Model::BuildingUnit.new(model)
+      unit.setBuildingUnitType(Constants.BuildingUnitTypeResidential)
+      unit.setName(Constants.ObjectNameBuildingUnit(unit_num))
+      spaces.each do |space|
+        space.setBuildingUnit(unit)
+      end
+    end
+    
     # put all of the spaces in the model into a vector
     spaces = OpenStudio::Model::SpaceVector.new
     model.getSpaces.each do |space|
