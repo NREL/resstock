@@ -2,11 +2,18 @@
 # http://nrel.github.io/OpenStudio-user-documentation/reference/measure_writing_guide/
 
 require 'openstudio'
+
 require_relative 'resources/geometry'
 require_relative 'resources/schedules'
 require_relative 'resources/waterheater'
 require_relative 'resources/constants'
 require_relative 'resources/location'
+
+require_relative '../HPXMLtoOpenStudio/resources/EPvalidator'
+require_relative '../HPXMLtoOpenStudio/resources/constructions'
+require_relative '../HPXMLtoOpenStudio/resources/hpxml'
+require_relative '../HPXMLtoOpenStudio/resources/schedules'
+require_relative '../HPXMLtoOpenStudio/resources/waterheater'
 
 # start the measure
 class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
@@ -34,7 +41,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDescription('Absolute/relative path of the HPXML file.')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('simulation_control_timestep', true)
+    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('simulation_control_timestep', false)
     arg.setDisplayName('Simulation Control: Timestep')
     arg.setUnits('min')
     arg.setDescription('Value must be a divisor of 60.')
@@ -219,7 +226,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('foundation_type', foundation_type_choices, true)
     arg.setDisplayName('Geometry: Foundation Type')
     arg.setDescription('The foundation type of the building.')
-    arg.setDefaultValue('slab')
+    arg.setDefaultValue(HPXML::FoundationTypeSlab)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('foundation_height', true)
@@ -314,7 +321,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('attic_type', attic_type_choices, true)
     arg.setDisplayName('Geometry: Attic Type')
     arg.setDescription('The attic type of the building. Ignored if the building has a flat roof.')
-    arg.setDefaultValue(HPXML::LocationAtticVented)
+    arg.setDefaultValue(HPXML::AtticTypeVented)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('attic_floor_conditioned_r', true)
@@ -1853,11 +1860,6 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     end
 
     require_relative '../HPXMLtoOpenStudio/measure'
-    require_relative '../HPXMLtoOpenStudio/resources/EPvalidator'
-    require_relative '../HPXMLtoOpenStudio/resources/constructions'
-    require_relative '../HPXMLtoOpenStudio/resources/hpxml'
-    require_relative '../HPXMLtoOpenStudio/resources/schedules'
-    require_relative '../HPXMLtoOpenStudio/resources/waterheater'
 
     # Check for correct versions of OS
     os_version = '2.9.1'
@@ -2384,6 +2386,7 @@ class HPXMLFile
 
   def self.set_attics(hpxml, runner, model, args)
     return if args[:unit_type] == 'multifamily'
+    return if args[:unit_type] == 'single-family attached' # TODO: remove when we can model single-family attached units
 
     hpxml.attics.add(id: args[:attic_type],
                      attic_type: args[:attic_type])
