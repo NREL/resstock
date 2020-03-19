@@ -6,7 +6,7 @@ class XMLHelper
   # child element.
   def self.add_element(parent, element_name, value = nil)
     added = nil
-    element_name.split("/").each do |name|
+    element_name.split('/').each do |name|
       added = REXML::Element.new(name)
       parent << added
       parent = added
@@ -68,7 +68,7 @@ class XMLHelper
       return parent.elements[element_name].elements[1].name
     rescue
     end
-    return nil
+    return
   end
 
   # Returns true if the element exists.
@@ -79,15 +79,15 @@ class XMLHelper
 
   # Returns the attribute added
   def self.add_attribute(element, attr_name, attr_val)
-    attr_val = self.valid_attr(attr_val).to_s
+    attr_val = valid_attr(attr_val).to_s
     added = element.add_attribute(attr_name, attr_val)
     return added
   end
 
   def self.valid_attr(attr)
     attr = attr.to_s
-    attr = attr.gsub(" ", "_")
-    attr = attr.gsub("|", "_")
+    attr = attr.gsub(' ', '_')
+    attr = attr.gsub('|', '_')
     return attr
   end
 
@@ -100,7 +100,7 @@ class XMLHelper
       dest << element.dup
     elsif not backup_val.nil?
       # Element didn't exist in src, assign backup value instead
-      add_element(dest, element_name.split("/")[-1], backup_val)
+      add_element(dest, element_name.split('/')[-1], backup_val)
     end
   end
 
@@ -123,7 +123,7 @@ class XMLHelper
       return xsd.validate(doc)
     else
       if not runner.nil?
-        runner.registerWarning("Could not load nokogiri, no HPXML validation performed.")
+        runner.registerWarning('Could not load nokogiri, no HPXML validation performed.')
       end
       return []
     end
@@ -158,9 +158,9 @@ def Boolean(val)
     return true
   elsif val.is_a? FalseClass
     return false
-  elsif val.downcase.to_s == "true" or val == "1"
+  elsif (val.downcase.to_s == 'true') || (val == '1')
     return true
-  elsif val.downcase.to_s == "false" or val == "0"
+  elsif (val.downcase.to_s == 'false') || (val == '0')
     return false
   end
 

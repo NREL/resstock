@@ -1,4 +1,4 @@
-require "csv"
+require 'csv'
 
 class SchedulesFile
   def initialize(runner:,
@@ -28,13 +28,13 @@ class SchedulesFile
   def create_occupant_schedule
     return false if @num_occupants.nil?
 
-    @schedules["occupants"] = Array.new(8760) { rand }
+    @schedules['occupants'] = Array.new(8760) { rand }
 
     return true
   end
 
   def create_refrigerator_schedule
-    @schedules["refrigerator"] = Array.new(8760) { rand }
+    @schedules['refrigerator'] = Array.new(8760) { rand }
 
     return true
   end
@@ -48,7 +48,7 @@ class SchedulesFile
   end
 
   def get_col_index(col_name:)
-    headers = CSV.open(@schedules_output_path, "r") { |csv| csv.first }
+    headers = CSV.open(@schedules_output_path, 'r') { |csv| csv.first }
     col_num = headers.index(col_name)
     return col_num
   end
@@ -101,7 +101,7 @@ class SchedulesFile
   def calcDesignLevelFromAnnualTherm(col_name:,
                                      annual_therm:)
 
-    annual_kwh = UnitConversions.convert(annual_therm, "therm", "kWh")
+    annual_kwh = UnitConversions.convert(annual_therm, 'therm', 'kWh')
     design_level = calcDesignLevelFromAnnualkWh(col_name: col_name, annual_kwh: annual_kwh)
 
     return design_level
@@ -156,7 +156,7 @@ class SchedulesFile
   def export
     return false if @schedules_output_path.nil?
 
-    CSV.open(@schedules_output_path, "wb") do |csv|
+    CSV.open(@schedules_output_path, 'wb') do |csv|
       csv << @schedules.keys
       rows = @schedules.values.transpose
       rows.each do |row|

@@ -1,6 +1,6 @@
-require_relative "constants"
-require_relative "unit_conversions"
-require_relative "schedules"
+require_relative 'constants'
+require_relative 'unit_conversions'
+require_relative 'schedules'
 
 class MiscLoads
   def self.apply_plug(model, misc_kwh, sens_frac, lat_frac,
@@ -10,18 +10,18 @@ class MiscLoads
     return if misc_kwh + tv_kwh == 0
 
     # check for valid inputs
-    if sens_frac < 0 or sens_frac > 1
-      fail "Sensible fraction must be greater than or equal to 0 and less than or equal to 1."
+    if (sens_frac < 0) || (sens_frac > 1)
+      fail 'Sensible fraction must be greater than or equal to 0 and less than or equal to 1.'
     end
-    if lat_frac < 0 or lat_frac > 1
-      fail "Latent fraction must be greater than or equal to 0 and less than or equal to 1."
+    if (lat_frac < 0) || (lat_frac > 1)
+      fail 'Latent fraction must be greater than or equal to 0 and less than or equal to 1.'
     end
     if lat_frac + sens_frac > 1
-      fail "Sum of sensible and latent fractions must be less than or equal to 1."
+      fail 'Sum of sensible and latent fractions must be less than or equal to 1.'
     end
 
     # Create schedule
-    sch = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameMiscPlugLoads + " schedule", weekday_sch, weekend_sch, monthly_sch, 1.0, 1.0, true, true, Constants.ScheduleTypeLimitsFraction)
+    sch = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameMiscPlugLoads + ' schedule', weekday_sch, weekend_sch, monthly_sch, 1.0, 1.0, true, true, Constants.ScheduleTypeLimitsFraction)
 
     # Misc plug loads
     if misc_kwh > 0
@@ -70,7 +70,7 @@ class MiscLoads
     # Table 4.2.2(3). Internal Gains for Reference Homes
     load_sens = 7.27 * cfa # Btu/day
     load_lat = 0.38 * cfa # Btu/day
-    total = UnitConversions.convert(annual_kwh, "kWh", "Btu") / 365.0 # Btu/day
+    total = UnitConversions.convert(annual_kwh, 'kWh', 'Btu') / 365.0 # Btu/day
 
     return annual_kwh, load_sens / total, load_lat / total
   end
@@ -82,7 +82,7 @@ class MiscLoads
     # Table 4.2.2(3). Internal Gains for Reference Homes
     load_sens = 3861.0 + 645.0 * nbeds # Btu/day
     load_lat = 0.0 # Btu/day
-    total = UnitConversions.convert(annual_kwh, "kWh", "Btu") / 365.0 # Btu/day
+    total = UnitConversions.convert(annual_kwh, 'kWh', 'Btu') / 365.0 # Btu/day
 
     return annual_kwh, load_sens / total, load_lat / total
   end

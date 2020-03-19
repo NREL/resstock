@@ -1,4 +1,5 @@
-require_relative "constants"
+require_relative 'constants'
+require_relative 'hpxml'
 
 class UnitConversions
   # As there is a performance penalty to using OpenStudio's built-in unit convert()
@@ -31,10 +32,10 @@ class UnitConversions
     ['wh', 'kbtu'] => 0.003412141633127942,
     ['kbtu', 'btu'] => 1000.0,
     ['kbtu', 'mbtu'] => 0.001,
-    ['gal', 'btu', 'propane'] => 91600.0,
-    ['gal', 'btu', 'fuel oil'] => 139000.0,
-    ['j', 'gal', 'propane'] => 3412.141633127942 / 1000.0 / 3600.0 / 91600.0,
-    ['j', 'gal', 'fuel oil'] => 3412.141633127942 / 1000.0 / 3600.0 / 139000.0,
+    ['gal', 'btu', HPXML::FuelTypePropane] => 91600.0,
+    ['gal', 'btu', HPXML::FuelTypeOil] => 139000.0,
+    ['j', 'gal', HPXML::FuelTypePropane] => 3412.141633127942 / 1000.0 / 3600.0 / 91600.0,
+    ['j', 'gal', HPXML::FuelTypeOil] => 3412.141633127942 / 1000.0 / 3600.0 / 139000.0,
 
     # Power
     ['btu/hr', 'w'] => 0.2930710701722222,

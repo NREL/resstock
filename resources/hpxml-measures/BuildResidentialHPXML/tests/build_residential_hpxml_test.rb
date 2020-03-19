@@ -16,13 +16,13 @@ class BuildResidentialHPXMLTest < MiniTest::Test
 
     this_dir = File.dirname(__FILE__)
 
-    hvac_partial_dir = File.absolute_path(File.join(this_dir, "hvac_partial"))
+    hvac_partial_dir = File.absolute_path(File.join(this_dir, 'hvac_partial'))
     test_dirs = [
       this_dir,
       # hvac_partial_dir
     ]
 
-    measures_dir = File.join(this_dir, "../..")
+    measures_dir = File.join(this_dir, '../..')
 
     osws = []
     test_dirs.each do |test_dir|
@@ -31,10 +31,10 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       end
     end
 
-    workflow_dir = File.expand_path(File.join(File.dirname(__FILE__), "../../workflow/sample_files"))
-    tests_dir = File.expand_path(File.join(File.dirname(__FILE__), "../../BuildResidentialHPXML/tests"))
-    built_dir = File.join(tests_dir, "built_residential_hpxml")
-    unless Dir.exists?(built_dir)
+    workflow_dir = File.expand_path(File.join(File.dirname(__FILE__), '../../workflow/sample_files'))
+    tests_dir = File.expand_path(File.join(File.dirname(__FILE__), '../../BuildResidentialHPXML/tests'))
+    built_dir = File.join(tests_dir, 'built_residential_hpxml')
+    unless Dir.exist?(built_dir)
       Dir.mkdir(built_dir)
     end
 
@@ -46,8 +46,8 @@ class BuildResidentialHPXMLTest < MiniTest::Test
 
       _setup(tests_dir)
       osw_hash = JSON.parse(File.read(osw))
-      osw_hash["steps"].each do |step|
-        measures[step["measure_dir_name"]] = [step["arguments"]]
+      osw_hash['steps'].each do |step|
+        measures[step['measure_dir_name']] = [step['arguments']]
         model = OpenStudio::Model::Model.new
         runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
 
@@ -64,13 +64,13 @@ class BuildResidentialHPXMLTest < MiniTest::Test
 
         assert(success)
 
-        if ["base-single-family-attached.osw", "base-multifamily.osw"].include? File.basename(osw)
+        if ['base-single-family-attached.osw', 'base-multifamily.osw'].include? File.basename(osw)
           next # FIXME: should this be temporary?
         end
 
         # Compare the hpxml to the manually created one
         test_dir = File.basename(File.dirname(osw))
-        hpxml_path = step["arguments"]["hpxml_path"]
+        hpxml_path = step['arguments']['hpxml_path']
         begin
           _check_hpxmls(workflow_dir, built_dir, test_dir, hpxml_path)
         rescue Exception => e
@@ -78,6 +78,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
           fail = true
         end
       end
+      break if fail # FIXME: Temporary
     end
 
     assert false if fail
@@ -85,10 +86,10 @@ class BuildResidentialHPXMLTest < MiniTest::Test
 
   def test_invalid_workflows
     this_dir = File.dirname(__FILE__)
-    measures_dir = File.join(this_dir, "../..")
+    measures_dir = File.join(this_dir, '../..')
 
     expected_error_msgs = {
-      'non-electric-heat-pump-water-heater.osw' => "water_heater_type=heat pump water heater and water_heater_fuel_type=natural gas"
+      'non-electric-heat-pump-water-heater.osw' => 'water_heater_type=heat pump water heater and water_heater_fuel_type=natural gas'
     }
 
     measures = {}
@@ -97,8 +98,8 @@ class BuildResidentialHPXMLTest < MiniTest::Test
 
       _setup(this_dir)
       osw_hash = JSON.parse(File.read(osw))
-      osw_hash["steps"].each do |step|
-        measures[step["measure_dir_name"]] = [step["arguments"]]
+      osw_hash['steps'].each do |step|
+        measures[step['measure_dir_name']] = [step['arguments']]
         model = OpenStudio::Model::Model.new
         runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
 
@@ -122,18 +123,18 @@ class BuildResidentialHPXMLTest < MiniTest::Test
   private
 
   def _check_hpxmls(workflow_dir, built_dir, test_dir, hpxml_path)
-    if test_dir == "tests"
-      test_dir = ""
+    if test_dir == 'tests'
+      test_dir = ''
     end
 
     hpxml_path = {
-      "Rakefile" => File.join(workflow_dir, test_dir, File.basename(hpxml_path)),
-      "BuildResidentialHPXML" => File.join(built_dir, File.basename(hpxml_path))
+      'Rakefile' => File.join(workflow_dir, test_dir, File.basename(hpxml_path)),
+      'BuildResidentialHPXML' => File.join(built_dir, File.basename(hpxml_path))
     }
 
     hpxml_objs = {
-      "Rakefile" => HPXML.new(hpxml_path: hpxml_path["Rakefile"]),
-      "BuildResidentialHPXML" => HPXML.new(hpxml_path: hpxml_path["BuildResidentialHPXML"])
+      'Rakefile' => HPXML.new(hpxml_path: hpxml_path['Rakefile']),
+      'BuildResidentialHPXML' => HPXML.new(hpxml_path: hpxml_path['BuildResidentialHPXML'])
     }
 
     hpxml_objs.each do |version, hpxml|
@@ -149,7 +150,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       # Delete elements that we aren't going to diff
       hpxml.header.xml_type = nil
       hpxml.header.xml_generated_by = nil
-      hpxml.header.created_date_and_time = Time.new(2000, 1, 1).strftime("%Y-%m-%dT%H:%M:%S%:z")
+      hpxml.header.created_date_and_time = Time.new(2000, 1, 1).strftime('%Y-%m-%dT%H:%M:%S%:z')
       hpxml.set_site()
       hpxml.set_building_occupancy()
       hpxml.set_climate_and_risk_zones()
@@ -157,9 +158,11 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       hpxml.foundations.clear()
       hpxml.rim_joists.clear()
       hpxml.doors.clear()
-      hpxml.refrigerator.adjusted_annual_kwh = nil
-      hpxml.refrigerator.schedules_output_path = nil
-      hpxml.refrigerator.schedules_column_name = nil
+      hpxml.refrigerators.each do |refrigerator|
+        refrigerator.adjusted_annual_kwh = nil
+        refrigerator.schedules_output_path = nil
+        refrigerator.schedules_column_name = nil
+      end
     end
 
     # Convert to REXML docs
@@ -169,42 +172,42 @@ class BuildResidentialHPXMLTest < MiniTest::Test
     end
 
     hpxml_docs = {
-      "Rakefile" => Nokogiri::XML(hpxml_docs["Rakefile"].to_s).remove_namespaces!,
-      "BuildResidentialHPXML" => Nokogiri::XML(hpxml_docs["BuildResidentialHPXML"].to_s).remove_namespaces!
+      'Rakefile' => Nokogiri::XML(hpxml_docs['Rakefile'].to_s).remove_namespaces!,
+      'BuildResidentialHPXML' => Nokogiri::XML(hpxml_docs['BuildResidentialHPXML'].to_s).remove_namespaces!
     }
 
     opts = { verbose: true }
-    compare_xml = CompareXML.equivalent?(hpxml_docs["Rakefile"], hpxml_docs["BuildResidentialHPXML"], opts)
-    discrepancies = ""
+    compare_xml = CompareXML.equivalent?(hpxml_docs['Rakefile'], hpxml_docs['BuildResidentialHPXML'], opts)
+    discrepancies = ''
     compare_xml.each do |discrepancy|
       unless discrepancy[:node1].nil?
-        next if discrepancy[:node1].attributes.keys.include? "id"
-        next if discrepancy[:node1].attributes.keys.include? "idref"
+        next if discrepancy[:node1].attributes.keys.include? 'id'
+        next if discrepancy[:node1].attributes.keys.include? 'idref'
       end
 
-      parent_id = "nil"
-      parent_element = "nil"
+      parent_id = 'nil'
+      parent_element = 'nil'
       if not discrepancy[:node1].nil?
         parent_element = discrepancy[:node1].name
         parent = discrepancy[:node1].parent
-        parent_sysid = parent.xpath("SystemIdentifier")
+        parent_sysid = parent.xpath('SystemIdentifier')
         if not parent_sysid.empty?
-          parent_id = parent_sysid.attribute("id").to_s
+          parent_id = parent_sysid.attribute('id').to_s
         end
       end
       parent_text = discrepancy[:diff1]
 
-      next if parent_id == "WallAtticGable" and parent_element == "Area" # FIXME
-      next if parent_element == "DistanceToBottomOfWindow" # FIXME
+      next if (parent_id == 'WallAtticGable') && (parent_element == 'Area') # FIXME
+      next if parent_element == 'DistanceToBottomOfWindow' # FIXME
 
-      child_id = "nil"
-      child_element = "nil"
+      child_id = 'nil'
+      child_element = 'nil'
       if not discrepancy[:node2].nil?
         child_element = discrepancy[:node2].name
         child = discrepancy[:node2].parent
-        child_sysid = child.xpath("SystemIdentifier")
+        child_sysid = child.xpath('SystemIdentifier')
         if not child_sysid.empty?
-          child_id = child_sysid.attribute("id").to_s
+          child_id = child_sysid.attribute('id').to_s
         end
       end
       child_text = discrepancy[:diff2]
@@ -218,7 +221,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
   end
 
   def _setup(this_dir)
-    rundir = File.join(this_dir, "run")
+    rundir = File.join(this_dir, 'run')
     _rm_path(rundir)
     Dir.mkdir(rundir)
   end
@@ -254,18 +257,18 @@ class BuildResidentialHPXMLTest < MiniTest::Test
     result = runner.result
 
     # show the output
-    show_output(result) unless result.value.valueName == "Success"
+    show_output(result) unless result.value.valueName == 'Success'
 
     # assert that it ran correctly
-    assert_equal("Success", result.value.valueName)
+    assert_equal('Success', result.value.valueName)
   end
 
   def _rm_path(path)
-    if Dir.exists?(path)
+    if Dir.exist?(path)
       FileUtils.rm_r(path)
     end
     while true
-      break if not Dir.exists?(path)
+      break if not Dir.exist?(path)
 
       sleep(0.01)
     end

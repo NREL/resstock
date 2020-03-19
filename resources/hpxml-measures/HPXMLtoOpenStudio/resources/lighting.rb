@@ -1,6 +1,6 @@
-require_relative "schedules"
-require_relative "geometry"
-require_relative "unit_conversions"
+require_relative 'schedules'
+require_relative 'geometry'
+require_relative 'unit_conversions'
 
 class Lighting
   def self.apply(model, weather, interior_kwh, garage_kwh, exterior_kwh, cfa, gfa,
@@ -19,7 +19,7 @@ class Lighting
       if lat < 51.49
         m_num = month + 1
         jul_day = m_num * 30 - 15
-        if not (m_num < 4 or m_num > 10)
+        if not ((m_num < 4) || (m_num > 10))
           offset = 1
         else
           offset = 0
@@ -29,7 +29,7 @@ class Lighting
         rad_deg = 1 / deg_rad
         b = (jul_day - 1) * 0.9863
         equation_of_time = (0.01667 * (0.01719 + 0.42815 * Math.cos(deg_rad * b) - 7.35205 * Math.sin(deg_rad * b) - 3.34976 * Math.cos(deg_rad * (2 * b)) - 9.37199 * Math.sin(deg_rad * (2 * b))))
-        sunset_hour_angle = rad_deg * (Math.acos(-1 * Math.tan(deg_rad * lat) * Math.tan(deg_rad * declination)))
+        sunset_hour_angle = rad_deg * Math.acos(-1 * Math.tan(deg_rad * lat) * Math.tan(deg_rad * declination))
         sunrise_hour[month] = offset + (12.0 - 1 * sunset_hour_angle / 15.0) - equation_of_time - (std_long + long) / 15
         sunset_hour[month] = offset + (12.0 + 1 * sunset_hour_angle / 15.0) - equation_of_time - (std_long + long) / 15
       else
@@ -72,7 +72,7 @@ class Lighting
       for hourNum in 45..46
         hour = (hourNum + 1.0) * 0.5
         temp1 = (monthHalfHourKWHs[44] + amplConst1 * Math.exp((-1.0 * (hour - (sunset_hour[month] + sunsetLag1))**2) / (2.0 * ((25.5 / ((6.5 - monthNum).abs + 20.0)) * stdDevCons1)**2)) / ((25.5 / ((6.5 - monthNum).abs + 20.0)) * stdDevCons1 * (2.0 * pi)**0.5))
-        temp2 = (0.04 + amplConst2 * Math.exp((-1.0 * (hour - (sunsetLag2))**2) / (2.0 * (stdDevCons2)**2)) / (stdDevCons2 * (2.0 * pi)**0.5))
+        temp2 = (0.04 + amplConst2 * Math.exp((-1.0 * (hour - sunsetLag2)**2) / (2.0 * stdDevCons2**2)) / (stdDevCons2 * (2.0 * pi)**0.5))
         if sunsetLag2 < sunset_hour[month] + sunsetLag1
           monthHalfHourKWHs[hourNum] = [temp1, temp2].min
         else
@@ -81,19 +81,19 @@ class Lighting
       end
       for hourNum in 46..47
         hour = (hourNum + 1) * 0.5
-        monthHalfHourKWHs[hourNum] = (0.04 + amplConst2 * Math.exp((-1.0 * (hour - (sunsetLag2))**2) / (2.0 * (stdDevCons2)**2)) / (stdDevCons2 * (2.0 * pi)**0.5))
+        monthHalfHourKWHs[hourNum] = (0.04 + amplConst2 * Math.exp((-1.0 * (hour - sunsetLag2)**2) / (2.0 * stdDevCons2**2)) / (stdDevCons2 * (2.0 * pi)**0.5))
       end
 
       sum_kWh = 0.0
       for timenum in 0..47
-        sum_kWh = sum_kWh + monthHalfHourKWHs[timenum]
+        sum_kWh += monthHalfHourKWHs[timenum]
       end
       for hour in 0..23
         ltg_hour = (monthHalfHourKWHs[hour * 2] + monthHalfHourKWHs[hour * 2 + 1]).to_f
         normalized_hourly_lighting[month][hour] = ltg_hour / sum_kWh
         monthly_kwh_per_day[month] = sum_kWh / 2.0
      end
-      wtd_avg_monthly_kwh_per_day = wtd_avg_monthly_kwh_per_day + monthly_kwh_per_day[month] * days_m[month] / 365.0
+      wtd_avg_monthly_kwh_per_day += monthly_kwh_per_day[month] * days_m[month] / 365.0
     end
 
     # Calculate normalized monthly lighting fractions
@@ -118,7 +118,7 @@ class Lighting
     end
 
     # Create schedule
-    sch = HourlyByMonthSchedule.new(model, "lighting schedule", lighting_sch, lighting_sch, true, true, Constants.ScheduleTypeLimitsFraction)
+    sch = HourlyByMonthSchedule.new(model, 'lighting schedule', lighting_sch, lighting_sch, true, true, Constants.ScheduleTypeLimitsFraction)
 
     # Add lighting to each conditioned space
     if interior_kwh > 0
@@ -190,7 +190,7 @@ class Lighting
   end
 
   def self.calc_lighting_energy(eri_version, cfa, gfa, fFI_int, fFI_ext, fFI_grg, fFII_int, fFII_ext, fFII_grg)
-    if eri_version.include? "G"
+    if not ['2014', '2014A', '2014AE'].include? eri_version # 2014 w/ Addendum G or newer
       # ANSI/RESNET/ICC 301-2014 Addendum G-2018, Solid State Lighting
       int_kwh = 0.9 / 0.925 * (455.0 + 0.8 * cfa) * ((1.0 - fFII_int - fFI_int) + fFI_int * 15.0 / 60.0 + fFII_int * 15.0 / 90.0) + 0.1 * (455.0 + 0.8 * cfa) # Eq 4.2-2)
       ext_kwh = (100.0 + 0.05 * cfa) * (1.0 - fFI_ext - fFII_ext) + 15.0 / 60.0 * (100.0 + 0.05 * cfa) * fFI_ext + 15.0 / 90.0 * (100.0 + 0.05 * cfa) * fFII_ext # Eq 4.2-3
