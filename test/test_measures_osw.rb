@@ -1,9 +1,5 @@
 require 'openstudio'
-require 'openstudio/ruleset/ShowRunnerOutput'
 require_relative 'minitest_helper'
-require 'minitest/autorun'
-require 'fileutils'
-require 'json'
 require_relative '../resources/run_sampling'
 
 class TestResStockMeasuresOSW < MiniTest::Test

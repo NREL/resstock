@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: nrel/openstudio:2.9.1
+      - image: nrel/openstudio:3.0.0-beta
     steps:
       - checkout
       - run: 
@@ -10,17 +10,17 @@ jobs:
           command: |
             rm -f Gemfile.lock && bundle install
       - run:
-          name: Apply rubocop
+          name: Run all integrity checks
           command: |
-            rubocop --format simple --only Layout --debug
-      - run:
-          name: Update all measures
-          command: |
-            rake update_measures
+            rake test:integrity_checks
       - run: 
           name: Run all unit tests
           command: |
             rake test:unit_tests
+      - run: 
+          name: Run measures osw test
+          command: |
+            rake test:measures_osw
       - run:
           name: Run all regression tests
           command: |

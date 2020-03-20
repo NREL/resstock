@@ -1,7 +1,5 @@
 require_relative 'minitest_helper'
-require 'minitest/autorun'
-$LOAD_PATH.unshift File.join(File.dirname(__FILE__), "..")
-load 'Rakefile'
+require_relative '../tasks.rb'
 
 class TestResStockErrors < MiniTest::Test
   def before_setup

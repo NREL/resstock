@@ -1,9 +1,5 @@
 require 'openstudio'
-require 'openstudio/ruleset/ShowRunnerOutput'
 require_relative '../../test/minitest_helper'
-require 'minitest/autorun'
-require 'fileutils'
-require 'json'
 require 'csv'
 
 class WorkflowTest < MiniTest::Test
