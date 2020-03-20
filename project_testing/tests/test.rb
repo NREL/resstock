@@ -1,3 +1,5 @@
+require_relative '../../test/minitest_helper'
+
 class TestProjectTesting < MiniTest::Test
   def test_housing_characteristics
     begin
