@@ -112,7 +112,7 @@ class HPXMLTest < MiniTest::Test
 
     expected_error_msgs = { 'bad-wmo.xml' => ["Weather station WMO '999999' could not be found in weather/data.csv."],
                             'bad-site-neighbor-azimuth.xml' => ['A neighbor building has an azimuth (145) not equal to the azimuth of any wall.'],
-                            'cfis-with-hydronic-distribution.xml' => ["Attached HVAC distribution system 'HVACDistribution' cannot be hydronic for mechanical ventilation 'MechanicalVentilation'."],
+                            'cfis-with-hydronic-distribution.xml' => ["Attached HVAC distribution system 'HVACDistribution' cannot be hydronic for ventilation fan 'MechanicalVentilation'."],
                             'clothes-dryer-location.xml' => ["ClothesDryer location is 'garage' but building does not have this location specified."],
                             'clothes-dryer-location-other.xml' => ['Expected [1] element(s) but found 0 element(s) for xpath: /HPXML/Building/BuildingDetails/Appliances/ClothesDryer[Location='],
                             'clothes-washer-location.xml' => ["ClothesWasher location is 'garage' but building does not have this location specified."],
@@ -120,6 +120,7 @@ class HPXMLTest < MiniTest::Test
                             'dhw-frac-load-served.xml' => ['Expected FractionDHWLoadServed to sum to 1, but calculated sum is 1.15.'],
                             'duct-location.xml' => ["Duct location is 'garage' but building does not have this location specified."],
                             'duct-location-other.xml' => ["Expected [1] element(s) but found 0 element(s) for xpath: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACDistribution/DistributionSystemType/AirDistribution/Ducts[DuctType='supply' or DuctType='return'][DuctLocation="],
+                            'duplicate-id.xml' => ["Duplicate SystemIdentifier IDs detected for 'Wall'."],
                             'heat-pump-mixed-fixed-and-autosize-capacities.xml' => ["HeatPump 'HeatPump' CoolingCapacity and HeatingCapacity must either both be auto-sized or fixed-sized."],
                             'heat-pump-mixed-fixed-and-autosize-capacities2.xml' => ["HeatPump 'HeatPump' CoolingCapacity and HeatingCapacity must either both be auto-sized or fixed-sized."],
                             'heat-pump-mixed-fixed-and-autosize-capacities3.xml' => ["HeatPump 'HeatPump' has HeatingCapacity17F provided but heating capacity is auto-sized."],
@@ -137,6 +138,7 @@ class HPXMLTest < MiniTest::Test
                             'invalid-timestep.xml' => ['Timestep (45) must be one of: 60, 30, 20, 15, 12, 10, 6, 5, 4, 3, 2, 1.'],
                             'invalid-window-height.xml' => ["For Window 'WindowEast', overhangs distance to bottom (2.0) must be greater than distance to top (2.0)."],
                             'invalid-window-interior-shading.xml' => ["SummerShadingCoefficient (0.85) must be less than or equal to WinterShadingCoefficient (0.7) for window 'WindowNorth'."],
+                            'lighting-fractions.xml' => ['Sum of fractions of interior lighting (1.05) is greater than 1.'],
                             'missing-elements.xml' => ['Expected [1] element(s) but found 0 element(s) for xpath: /HPXML/Building/BuildingDetails/BuildingSummary/BuildingConstruction/NumberofConditionedFloors',
                                                        'Expected [1] element(s) but found 0 element(s) for xpath: /HPXML/Building/BuildingDetails/BuildingSummary/BuildingConstruction/ConditionedFloorArea'],
                             'missing-surfaces.xml' => ["'garage' must have at least one floor surface."],
@@ -145,15 +147,15 @@ class HPXMLTest < MiniTest::Test
                             'orphaned-hvac-distribution.xml' => ["Distribution system 'HVACDistribution' found but no HVAC system attached to it."],
                             'refrigerator-location.xml' => ["Refrigerator location is 'garage' but building does not have this location specified."],
                             'refrigerator-location-other.xml' => ['Expected [1] element(s) but found 0 element(s) for xpath: /HPXML/Building/BuildingDetails/Appliances/Refrigerator[Location='],
-                            'repeated-relatedhvac-dhw-indirect.xml' => ["RelatedHVACSystem 'HeatingSystem' for water heating system 'WaterHeater2' is already attached to another water heating system."],
-                            'repeated-relatedhvac-desuperheater.xml' => ["RelatedHVACSystem 'CoolingSystem' for water heating system 'WaterHeater2' is already attached to another water heating system."],
+                            'repeated-relatedhvac-dhw-indirect.xml' => ["RelatedHVACSystem 'HeatingSystem' is attached to multiple water heating systems."],
+                            'repeated-relatedhvac-desuperheater.xml' => ["RelatedHVACSystem 'CoolingSystem' is attached to multiple water heating systems."],
                             'slab-zero-exposed-perimeter.xml' => ["Exposed perimeter for Slab 'Slab' must be greater than zero."],
                             'solar-thermal-system-with-combi-tankless.xml' => ["Water heating system 'WaterHeater' connected to solar thermal system 'SolarThermalSystem' cannot be a space-heating boiler."],
                             'solar-thermal-system-with-desuperheater.xml' => ["Water heating system 'WaterHeater' connected to solar thermal system 'SolarThermalSystem' cannot be attached to a desuperheater."],
                             'solar-thermal-system-with-dhw-indirect.xml' => ["Water heating system 'WaterHeater' connected to solar thermal system 'SolarThermalSystem' cannot be a space-heating boiler."],
-                            'unattached-cfis.xml' => ["Attached HVAC distribution system 'foobar' not found for mechanical ventilation 'MechanicalVentilation'."],
+                            'unattached-cfis.xml' => ["Attached HVAC distribution system 'foobar' not found for ventilation fan 'MechanicalVentilation'."],
                             'unattached-door.xml' => ["Attached wall 'foobar' not found for door 'DoorNorth'."],
-                            'unattached-hvac-distribution.xml' => ["Attached HVAC distribution system 'foobar' cannot be found for HVAC system 'HeatingSystem'."],
+                            'unattached-hvac-distribution.xml' => ["Attached HVAC distribution system 'foobar' not found for HVAC system 'HeatingSystem'."],
                             'unattached-skylight.xml' => ["Attached roof 'foobar' not found for skylight 'SkylightNorth'."],
                             'unattached-solar-thermal-system.xml' => ["Attached water heating system 'foobar' not found for solar thermal system 'SolarThermalSystem'."],
                             'unattached-window.xml' => ["Attached wall 'foobar' not found for window 'WindowNorth'."],
@@ -262,7 +264,7 @@ class HPXMLTest < MiniTest::Test
   def _run_xml(xml, this_dir, expect_error = false, expect_error_msgs = nil)
     print "Testing #{File.basename(xml)}...\n"
     rundir = File.join(this_dir, 'run')
-    _test_schema_validation(this_dir, xml)
+    _test_schema_validation(this_dir, xml) unless expect_error
     results, compload_results, sizing_results = _test_simulation(this_dir, xml, rundir, expect_error, expect_error_msgs)
     return results, compload_results, sizing_results
   end
