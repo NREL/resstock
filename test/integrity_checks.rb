@@ -185,7 +185,7 @@ def integrity_check_options_lookup_tsv(project_dir_name, housing_characteristics
   require 'openstudio'
 
   # Load helper file and sampling file
-  resources_dir = File.join(File.dirname(__FILE__), 'resources')
+  resources_dir = File.join(File.dirname(__FILE__), '../resources')
   require File.join(resources_dir, 'buildstock')
 
   # Setup
