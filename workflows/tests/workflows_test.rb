@@ -44,7 +44,7 @@ class WorkflowTest < MiniTest::Test
   def run_and_check(in_osw, parent_dir)
     # Run workflow
     cli_path = OpenStudio.getOpenStudioCLI
-    command = "cd #{parent_dir} && \"#{cli_path}\" --no-ssl run -w #{in_osw}"
+    command = "cd #{parent_dir} && \"#{cli_path}\" run -w #{in_osw}"
     simulation_start = Time.now
     system(command)
     sim_time = (Time.now - simulation_start).round(1)
