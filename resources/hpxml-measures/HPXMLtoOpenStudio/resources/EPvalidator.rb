@@ -713,36 +713,6 @@ class EnergyPlusValidator
       end
     end
 
-    # Check sum of FractionCoolLoadServeds <= 1
-    frac_cool_load = hpxml_doc.elements['sum(/HPXML/Building/BuildingDetails/Systems/HVAC/HVACPlant/CoolingSystem/FractionCoolLoadServed/text())']
-    frac_cool_load += hpxml_doc.elements['sum(/HPXML/Building/BuildingDetails/Systems/HVAC/HVACPlant/HeatPump/FractionCoolLoadServed/text())']
-    if frac_cool_load > 1.01 # Use 1.01 in case of rounding
-      errors << "Expected FractionCoolLoadServed to sum to <= 1, but calculated sum is #{frac_cool_load.round(2)}."
-    end
-
-    # Check sum of FractionHeatLoadServeds <= 1
-    frac_heat_load = hpxml_doc.elements['sum(/HPXML/Building/BuildingDetails/Systems/HVAC/HVACPlant/HeatingSystem/FractionHeatLoadServed/text())']
-    frac_heat_load += hpxml_doc.elements['sum(/HPXML/Building/BuildingDetails/Systems/HVAC/HVACPlant/HeatPump/FractionHeatLoadServed/text())']
-    if frac_heat_load > 1.01 # Use 1.01 in case of rounding
-      errors << "Expected FractionHeatLoadServed to sum to <= 1, but calculated sum is #{frac_heat_load.round(2)}."
-    end
-
-    # Check sum of FractionDHWLoadServed == 1
-    frac_dhw_load = hpxml_doc.elements['sum(/HPXML/Building/BuildingDetails/Systems/WaterHeating/WaterHeatingSystem/FractionDHWLoadServed/text())']
-    if (frac_dhw_load > 0) && ((frac_dhw_load < 0.99) || (frac_dhw_load > 1.01)) # Use 0.99/1.01 in case of rounding
-      errors << "Expected FractionDHWLoadServed to sum to 1, but calculated sum is #{frac_dhw_load.round(2)}."
-    end
-
-    # Check for unique SystemIdentifier IDs
-    sys_ids = {}
-    REXML::XPath.each(hpxml_doc, '//SystemIdentifier/@id') do |sys_id|
-      sys_ids[sys_id.value] = 0 if sys_ids[sys_id.value].nil?
-      sys_ids[sys_id.value] += 1
-    end
-    sys_ids.each do |sys_id, cnt|
-      errors << "Duplicate SystemIdentifier IDs detected for '#{sys_id}'." if cnt > 1
-    end
-
     return errors
   end
 

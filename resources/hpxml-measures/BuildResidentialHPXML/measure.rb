@@ -765,19 +765,19 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     args << arg
 
     living_air_leakage_units_choices = OpenStudio::StringVector.new
-    living_air_leakage_units_choices << HPXML::UnitsACH
-    living_air_leakage_units_choices << HPXML::UnitsCFM
+    living_air_leakage_units_choices << HPXML::UnitsACH50
+    living_air_leakage_units_choices << HPXML::UnitsCFM50
     living_air_leakage_units_choices << HPXML::UnitsACHNatural
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('living_air_leakage_units', living_air_leakage_units_choices, true)
     arg.setDisplayName('Air Leakage: Above-Grade Living Unit of Measure')
     arg.setDescription('The unit of measure for the above-grade living air leakage.')
-    arg.setDefaultValue(HPXML::UnitsACH)
+    arg.setDefaultValue(HPXML::UnitsACH50)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('living_air_leakage_value', true)
     arg.setDisplayName('Air Leakage: Above-Grade Living Value')
-    arg.setDescription("#{HPXML::UnitsACH}=Air exchange rate, in Air Changes per Hour at 50 Pascals (ACH50), for above-grade living space (including conditioned attic). #{HPXML::UnitsCFM}= Air exchange rate, in CFM at 50 Pascals (CFM50), for above-grade living space (including conditioned attic). #{HPXML::UnitsACHNatural}=Air exchange rate, in constant natural Air Changes per Hour, for above-grade living space (including conditioned attic).")
+    arg.setDescription("#{HPXML::UnitsACH50}=Air exchange rate, in Air Changes per Hour at 50 Pascals (ACH50), for above-grade living space (including conditioned attic). #{HPXML::UnitsCFM50}= Air exchange rate, in CFM at 50 Pascals (CFM50), for above-grade living space (including conditioned attic). #{HPXML::UnitsACHNatural}=Air exchange rate, in constant natural Air Changes per Hour, for above-grade living space (including conditioned attic).")
     arg.setDefaultValue(3)
     args << arg
 
@@ -2404,11 +2404,11 @@ class HPXMLFile
   end
 
   def self.set_air_infiltration_measurements(hpxml, runner, args)
-    if args[:living_air_leakage_units] == HPXML::UnitsACH
+    if args[:living_air_leakage_units] == HPXML::UnitsACH50
       house_pressure = 50
       unit_of_measure = HPXML::UnitsACH
       air_leakage = args[:living_air_leakage_value]
-    elsif args[:living_air_leakage_units] == HPXML::UnitsCFM
+    elsif args[:living_air_leakage_units] == HPXML::UnitsCFM50
       house_pressure = 50
       unit_of_measure = HPXML::UnitsCFM
       air_leakage = args[:living_air_leakage_value]
@@ -3008,7 +3008,7 @@ class HPXMLFile
   def self.get_duct_location_auto(args, hpxml) # FIXME
     if args[:roof_type] != 'flat' && hpxml.attics.size > 0 && [HPXML::AtticTypeVented, HPXML::AtticTypeUnvented].include?(args[:attic_type])
       location = hpxml.attics[0].to_location
-    elsif hpxml.foundations.size > 0 && (args[:foundation_type].downcase.include?('Basement') || args[:foundation_type].downcase.include?('Crawlspace'))
+    elsif hpxml.foundations.size > 0 && (args[:foundation_type].downcase.include?('basement') || args[:foundation_type].downcase.include?('crawlspace'))
       location = hpxml.foundations[0].to_location
     else
       location = HPXML::LocationLivingSpace
