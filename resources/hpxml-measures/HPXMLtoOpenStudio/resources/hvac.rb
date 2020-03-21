@@ -1682,7 +1682,6 @@ class HVAC
       boiler.setEfficiencyCurveTemperatureEvaluationVariable('LeavingBoiler')
     end
     boiler.setNormalizedBoilerEfficiencyCurve(boiler_eff_curve)
-    boiler.setDesignWaterOutletTemperature(UnitConversions.convert(design_temp - 32.0, 'R', 'K'))
     boiler.setMinimumPartLoadRatio(0.0)
     boiler.setMaximumPartLoadRatio(1.0)
     boiler.setBoilerFlowMode('LeavingSetpointModulated')
@@ -1905,8 +1904,8 @@ class HVAC
       var = 'Heating Coil Electric Energy'
       if htg_object.is_a? OpenStudio::Model::CoilHeatingGas
         var = { 'NaturalGas' => 'Heating Coil Gas Energy',
-                'PropaneGas' => 'Heating Coil Propane Energy',
-                'FuelOil#1' => 'Heating Coil FuelOil#1 Energy',
+                'Propane' => 'Heating Coil Propane Energy',
+                'FuelOilNo1' => 'Heating Coil FuelOil#1 Energy',
                 'OtherFuel1' => 'Heating Coil OtherFuel1 Energy',
                 'OtherFuel2' => 'Heating Coil OtherFuel2 Energy' }[htg_object.fuelType]
         fail "Unexpected heating coil '#{htg_object.name}'." if var.nil?
@@ -1926,8 +1925,8 @@ class HVAC
       var = 'Heating Coil Electric Energy'
       if backup_htg_object.is_a? OpenStudio::Model::CoilHeatingGas
         var = { 'NaturalGas' => 'Heating Coil Gas Energy',
-                'PropaneGas' => 'Heating Coil Propane Energy',
-                'FuelOil#1' => 'Heating Coil FuelOil#1 Energy',
+                'Propane' => 'Heating Coil Propane Energy',
+                'FuelOilNo1' => 'Heating Coil FuelOil#1 Energy',
                 'OtherFuel1' => 'Heating Coil OtherFuel1 Energy',
                 'OtherFuel2' => 'Heating Coil OtherFuel2 Energy' }[backup_htg_object.fuelType]
         fail "Unexpected heating coil '#{backup_htg_object.name}'." if var.nil?
