@@ -1,5 +1,5 @@
 require_relative 'minitest_helper'
-require_relative '../tasks.rb'
+require_relative 'integrity_checks'
 
 class TestResStockErrors < MiniTest::Test
   def before_setup
