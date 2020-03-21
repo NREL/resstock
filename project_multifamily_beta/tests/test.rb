@@ -1,4 +1,5 @@
 require_relative '../../test/minitest_helper'
+require_relative '../../test/integrity_checks'
 
 class TestProjectMultifamilyBeta < MiniTest::Test
   def test_housing_characteristics
