@@ -6,6 +6,11 @@ class WorkflowTest < MiniTest::Test
   def test_osw
     all_results = []
     parent_dir = File.absolute_path(File.join(File.dirname(__FILE__), ".."))
+
+    cli_path = OpenStudio.getOpenStudioCLI
+    command = "cd #{parent_dir}/.. && \"#{cli_path}\" tasks.rb update_measures"
+    system(command)
+
     Dir["#{parent_dir}/*.osw"].each do |osw|
       puts "\nOSW: #{osw} ...\n"
       next if File.basename(osw).include? "out"
