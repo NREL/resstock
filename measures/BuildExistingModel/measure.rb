@@ -3,16 +3,16 @@
 
 require 'csv'
 require 'openstudio'
-if File.exists? File.absolute_path(File.join(File.dirname(__FILE__), "../../lib/resources/hpxml-measures/HPXMLtoOpenStudio/resources")) # Hack to run ResStock on AWS
-  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../../lib/resources/hpxml-measures/HPXMLtoOpenStudio/resources"))
-elsif File.exists? File.absolute_path(File.join(File.dirname(__FILE__), "../../resources/hpxml-measures/HPXMLtoOpenStudio/resources")) # Hack to run ResStock unit tests locally
-  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../../resources/hpxml-measures/HPXMLtoOpenStudio/resources"))
-elsif File.exists? File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, "HPXMLtoOpenStudio/resources") # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
-  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, "HPXMLtoOpenStudio/resources")
+if File.exist? File.absolute_path(File.join(File.dirname(__FILE__), '../../lib/resources/hpxml-measures/HPXMLtoOpenStudio/resources')) # Hack to run ResStock on AWS
+  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../../lib/resources/hpxml-measures/HPXMLtoOpenStudio/resources'))
+elsif File.exist? File.absolute_path(File.join(File.dirname(__FILE__), '../../resources/hpxml-measures/HPXMLtoOpenStudio/resources')) # Hack to run ResStock unit tests locally
+  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../../resources/hpxml-measures/HPXMLtoOpenStudio/resources'))
+elsif File.exist? File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources') # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
+  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources')
 else
-  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources"))
+  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../HPXMLtoOpenStudio/resources'))
 end
-require File.join(resources_path, "weather")
+require File.join(resources_path, 'weather')
 
 # in addition to the above requires, this measure is expected to run in an
 # environment with OpenStudio-Buildstock/resources/buildstock.rb loaded
@@ -21,50 +21,50 @@ require File.join(resources_path, "weather")
 class BuildExistingModel < OpenStudio::Measure::ModelMeasure
   # human readable name
   def name
-    return "Build Existing Model"
+    return 'Build Existing Model'
   end
 
   # human readable description
   def description
-    return "Builds the OpenStudio Model for an existing building."
+    return 'Builds the OpenStudio Model for an existing building.'
   end
 
   # human readable description of modeling approach
   def modeler_description
-    return "Builds the OpenStudio Model using the sampling csv file, which contains the specified parameters for each existing building. Based on the supplied building number, those parameters are used to run the OpenStudio measures with appropriate arguments and build up the OpenStudio model."
+    return 'Builds the OpenStudio Model using the sampling csv file, which contains the specified parameters for each existing building. Based on the supplied building number, those parameters are used to run the OpenStudio measures with appropriate arguments and build up the OpenStudio model.'
   end
 
   # define the arguments that the user will input
   def arguments(model)
     args = OpenStudio::Ruleset::OSArgumentVector.new
 
-    arg = OpenStudio::Ruleset::OSArgument.makeIntegerArgument("building_unit_id", true)
-    arg.setDisplayName("Building Unit ID")
-    arg.setDescription("The building unit number (between 1 and the number of samples).")
+    arg = OpenStudio::Ruleset::OSArgument.makeIntegerArgument('building_unit_id', true)
+    arg.setDisplayName('Building Unit ID')
+    arg.setDescription('The building unit number (between 1 and the number of samples).')
     args << arg
 
-    arg = OpenStudio::Ruleset::OSArgument.makeStringArgument("workflow_json", false)
-    arg.setDisplayName("Workflow JSON")
-    arg.setDescription("The name of the JSON file (in the resources dir) that dictates the order in which measures are to be run. If not provided, the order specified in resources/options_lookup.tsv will be used.")
+    arg = OpenStudio::Ruleset::OSArgument.makeStringArgument('workflow_json', false)
+    arg.setDisplayName('Workflow JSON')
+    arg.setDescription('The name of the JSON file (in the resources dir) that dictates the order in which measures are to be run. If not provided, the order specified in resources/options_lookup.tsv will be used.')
     args << arg
 
-    arg = OpenStudio::Ruleset::OSArgument.makeIntegerArgument("number_of_buildings_represented", false)
-    arg.setDisplayName("Number of Buildings Represented")
-    arg.setDescription("The total number of buildings represented by the existing building models.")
+    arg = OpenStudio::Ruleset::OSArgument.makeIntegerArgument('number_of_buildings_represented', false)
+    arg.setDisplayName('Number of Buildings Represented')
+    arg.setDescription('The total number of buildings represented by the existing building models.')
     args << arg
 
-    arg = OpenStudio::Ruleset::OSArgument.makeDoubleArgument("sample_weight", false)
-    arg.setDisplayName("Sample Weight of Simulation")
-    arg.setDescription("Number of buildings this simulation represents.")
+    arg = OpenStudio::Ruleset::OSArgument.makeDoubleArgument('sample_weight', false)
+    arg.setDisplayName('Sample Weight of Simulation')
+    arg.setDescription('Number of buildings this simulation represents.')
     args << arg
 
-    arg = OpenStudio::Ruleset::OSArgument.makeStringArgument("downselect_logic", false)
-    arg.setDisplayName("Downselect Logic")
+    arg = OpenStudio::Ruleset::OSArgument.makeStringArgument('downselect_logic', false)
+    arg.setDisplayName('Downselect Logic')
     arg.setDescription("Logic that specifies the subset of the building stock to be considered in the analysis. Specify one or more parameter|option as found in resources\\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.")
     args << arg
 
-    arg = OpenStudio::Ruleset::OSArgument.makeStringArgument("measures_to_ignore", false)
-    arg.setDisplayName("Measures to Ignore")
+    arg = OpenStudio::Ruleset::OSArgument.makeStringArgument('measures_to_ignore', false)
+    arg.setDisplayName('Measures to Ignore')
     arg.setDescription("Measures to exclude from the OpenStudio Workflow specified by listing one or more measure directories separated by '|'. Core ResStock measures cannot be ignored (this measure will fail). INTENDED FOR ADVANCED USERS/WORKFLOW DEVELOPERS.")
     args << arg
 
@@ -80,20 +80,20 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       return false
     end
 
-    building_unit_id = runner.getIntegerArgumentValue("building_unit_id", user_arguments)
-    workflow_json = runner.getOptionalStringArgumentValue("workflow_json", user_arguments)
-    number_of_buildings_represented = runner.getOptionalIntegerArgumentValue("number_of_buildings_represented", user_arguments)
-    sample_weight = runner.getOptionalDoubleArgumentValue("sample_weight", user_arguments)
-    downselect_logic = runner.getOptionalStringArgumentValue("downselect_logic", user_arguments)
-    measures_to_ignore = runner.getOptionalStringArgumentValue("measures_to_ignore", user_arguments)
+    building_unit_id = runner.getIntegerArgumentValue('building_unit_id', user_arguments)
+    workflow_json = runner.getOptionalStringArgumentValue('workflow_json', user_arguments)
+    number_of_buildings_represented = runner.getOptionalIntegerArgumentValue('number_of_buildings_represented', user_arguments)
+    sample_weight = runner.getOptionalDoubleArgumentValue('sample_weight', user_arguments)
+    downselect_logic = runner.getOptionalStringArgumentValue('downselect_logic', user_arguments)
+    measures_to_ignore = runner.getOptionalStringArgumentValue('measures_to_ignore', user_arguments)
 
     # Get file/dir paths
-    resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), "..", "..", "lib", "resources")) # Should have been uploaded per 'Additional Analysis Files' in PAT
-    characteristics_dir = File.absolute_path(File.join(File.dirname(__FILE__), "..", "..", "lib", "housing_characteristics")) # Should have been uploaded per 'Additional Analysis Files' in PAT
-    buildstock_file = File.join(resources_dir, "buildstock.rb")
-    measures_dir = File.join(File.dirname(__FILE__), "..", "..", "resources/hpxml-measures")
-    lookup_file = File.join(resources_dir, "options_lookup.tsv")
-    buildstock_csv = File.absolute_path(File.join(characteristics_dir, "buildstock.csv")) # Should have been generated by the Worker Initialization Script (run_sampling.rb) or provided by the project
+    resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), '..', '..', 'lib', 'resources')) # Should have been uploaded per 'Additional Analysis Files' in PAT
+    characteristics_dir = File.absolute_path(File.join(File.dirname(__FILE__), '..', '..', 'lib', 'housing_characteristics')) # Should have been uploaded per 'Additional Analysis Files' in PAT
+    buildstock_file = File.join(resources_dir, 'buildstock.rb')
+    measures_dir = File.join(File.dirname(__FILE__), '..', '..', 'resources/hpxml-measures')
+    lookup_file = File.join(resources_dir, 'options_lookup.tsv')
+    buildstock_csv = File.absolute_path(File.join(characteristics_dir, 'buildstock.csv')) # Should have been generated by the Worker Initialization Script (run_sampling.rb) or provided by the project
     if workflow_json.is_initialized
       workflow_json = File.join(resources_dir, workflow_json.get)
     else
@@ -136,7 +136,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
 
       unless downselected
         # Not in downselection; don't run existing home simulation
-        runner.registerInfo("Sample is not in downselected parameters; will be registered as invalid.")
+        runner.registerInfo('Sample is not in downselected parameters; will be registered as invalid.')
         runner.haltWorkflow('Invalid')
         return false
       end
@@ -160,7 +160,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       # core ResStock measures are those specified in the default workflow json
       # those should not be ignored ...
       core_measures = get_measures(File.join(resources_dir, 'measure-info.json'))
-      measures_to_ignore.split("|").each do |measure_dir|
+      measures_to_ignore.split('|').each do |measure_dir|
         if core_measures.include? measure_dir
           # fail if core ResStock measure is ignored
           msg = "Core ResStock measure #{measure_dir} cannot be ignored"
@@ -173,34 +173,34 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     end
 
     # Get the absolute path of the exported xml relative to this meta measure in the run directory
-    measures["BuildResidentialHPXML"][0]["hpxml_path"] = File.expand_path(measures["BuildResidentialHPXML"][0]["hpxml_path"])
-    measures["HPXMLtoOpenStudio"][0]["hpxml_path"] = File.expand_path(measures["HPXMLtoOpenStudio"][0]["hpxml_path"])
+    measures['BuildResidentialHPXML'][0]['hpxml_path'] = File.expand_path(measures['BuildResidentialHPXML'][0]['hpxml_path'])
+    measures['HPXMLtoOpenStudio'][0]['hpxml_path'] = File.expand_path(measures['HPXMLtoOpenStudio'][0]['hpxml_path'])
 
     # Get registered values from ResidentialSimulationControls and pass them to BuildResidentialHPXML
-    timesteps_per_hr = get_value_from_runner_past_results(runner, "timesteps_per_hr", "residential_simulation_controls", false)
+    timesteps_per_hr = get_value_from_runner_past_results(runner, 'timesteps_per_hr', 'residential_simulation_controls', false)
     simulation_control_timestep = 60 / timesteps_per_hr
-    measures["BuildResidentialHPXML"][0]["simulation_control_timestep"] = simulation_control_timestep
+    measures['BuildResidentialHPXML'][0]['simulation_control_timestep'] = simulation_control_timestep
 
-    if not apply_measures(measures_dir, measures, runner, model, workflow_json, "measures.osw", true)
+    if not apply_measures(measures_dir, measures, runner, model, workflow_json, 'measures.osw', true)
       return false
     end
 
     # Report some additional location and model characteristics
     weather = WeatherProcess.new(model, runner)
-    register_value(runner, "location_city", weather.header.City)
-    register_value(runner, "location_state", weather.header.State)
-    register_value(runner, "location_latitude", "#{weather.header.Latitude}")
-    register_value(runner, "location_longitude", "#{weather.header.Longitude}")
+    register_value(runner, 'location_city', weather.header.City)
+    register_value(runner, 'location_state', weather.header.State)
+    register_value(runner, 'location_latitude', "#{weather.header.Latitude}")
+    register_value(runner, 'location_longitude', "#{weather.header.Longitude}")
     climate_zone_ba = Location.get_climate_zone_ba(weather.header.Station)
     climate_zone_iecc = Location.get_climate_zone_iecc(weather.header.Station)
     unless climate_zone_ba.nil?
-      register_value(runner, "climate_zone_ba", climate_zone_ba)
+      register_value(runner, 'climate_zone_ba', climate_zone_ba)
     end
     unless climate_zone_iecc.nil?
-      register_value(runner, "climate_zone_iecc", climate_zone_iecc)
+      register_value(runner, 'climate_zone_iecc', climate_zone_iecc)
     end
-    if climate_zone_ba.nil? and climate_zone_iecc.nil?
-      runner.registerInfo("The weather station WMO has not been set appropriately in the EPW weather file header.")
+    if climate_zone_ba.nil? && climate_zone_iecc.nil?
+      runner.registerInfo('The weather station WMO has not been set appropriately in the EPW weather file header.')
     end
 
     # Determine weight
@@ -216,15 +216,15 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
         end
       end
       if total_samples.nil?
-        runner.registerError("Could not retrieve value for number_of_buildings_represented.")
+        runner.registerError('Could not retrieve value for number_of_buildings_represented.')
         return false
       end
       weight = number_of_buildings_represented.get / total_samples
-      register_value(runner, "weight", weight.to_s)
+      register_value(runner, 'weight', weight.to_s)
     end
 
     if sample_weight.is_initialized
-      register_value(runner, "weight", sample_weight.get.to_s)
+      register_value(runner, 'weight', sample_weight.get.to_s)
     end
 
     return true
@@ -232,12 +232,12 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
 
   def get_data_for_sample(buildstock_csv, building_unit_id, runner)
     CSV.foreach(buildstock_csv, headers: true) do |sample|
-      next if sample["Building Unit"].to_i != building_unit_id
+      next if sample['Building Unit'].to_i != building_unit_id
 
       return sample
     end
     # If we got this far, couldn't find the sample #
-    msg = "Could not find row for #{building_unit_id.to_s} in #{File.basename(buildstock_csv).to_s}."
+    msg = "Could not find row for #{building_unit_id} in #{File.basename(buildstock_csv)}."
     runner.registerError(msg)
     fail msg
   end

@@ -1,27 +1,27 @@
 require 'openstudio'
-if File.exists? File.absolute_path(File.join(File.dirname(__FILE__), "../../lib/resources/measures/HPXMLtoOpenStudio/resources")) # Hack to run ResStock on AWS
-  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../../lib/resources/measures/HPXMLtoOpenStudio/resources"))
-elsif File.exists? File.absolute_path(File.join(File.dirname(__FILE__), "../../resources/measures/HPXMLtoOpenStudio/resources")) # Hack to run ResStock unit tests locally
-  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../../resources/measures/HPXMLtoOpenStudio/resources"))
-elsif File.exists? File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, "HPXMLtoOpenStudio/resources") # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
-  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, "HPXMLtoOpenStudio/resources")
+if File.exist? File.absolute_path(File.join(File.dirname(__FILE__), '../../lib/resources/measures/HPXMLtoOpenStudio/resources')) # Hack to run ResStock on AWS
+  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../../lib/resources/measures/HPXMLtoOpenStudio/resources'))
+elsif File.exist? File.absolute_path(File.join(File.dirname(__FILE__), '../../resources/measures/HPXMLtoOpenStudio/resources')) # Hack to run ResStock unit tests locally
+  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../../resources/measures/HPXMLtoOpenStudio/resources'))
+elsif File.exist? File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources') # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
+  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources')
 else
-  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources"))
+  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../HPXMLtoOpenStudio/resources'))
 end
-require File.join(resources_path, "constants")
-require File.join(resources_path, "unit_conversions")
-require "enumerator"
+require File.join(resources_path, 'constants')
+require File.join(resources_path, 'unit_conversions')
+require 'enumerator'
 
 # start the measure
 class QOIReport < OpenStudio::Measure::ReportingMeasure
   # human readable name
   def name
-    return "QOI Report"
+    return 'QOI Report'
   end
 
   # human readable description
   def description
-    return "Reports uncertainty quantification quantities of interest."
+    return 'Reports uncertainty quantification quantities of interest.'
   end
 
   # define the arguments that the user will input
@@ -41,15 +41,15 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
     # get the last model and sql file
     model = runner.lastOpenStudioModel
     if model.empty?
-      runner.registerError("Cannot find last model.")
+      runner.registerError('Cannot find last model.')
       return false
     end
     model = model.get
 
-    output_meters = OutputMeters.new(model, runner, "Hourly")
+    output_meters = OutputMeters.new(model, runner, 'Hourly')
     results = output_meters.create_custom_building_unit_meters
 
-    results << OpenStudio::IdfObject.load("Output:Variable,*,Site Outdoor Air Drybulb Temperature,Hourly;").get
+    results << OpenStudio::IdfObject.load('Output:Variable,*,Site Outdoor Air Drybulb Temperature,Hourly;').get
 
     return results
   end
@@ -134,14 +134,14 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
     # get the last model and sql file
     model = runner.lastOpenStudioModel
     if model.empty?
-      runner.registerError("Cannot find last model.")
+      runner.registerError('Cannot find last model.')
       return false
     end
     model = model.get
 
     sqlFile = runner.lastEnergyPlusSqlFile
     if sqlFile.empty?
-      runner.registerError("Cannot find last sql file.")
+      runner.registerError('Cannot find last sql file.')
       return false
     end
     sqlFile = sqlFile.get
@@ -150,10 +150,9 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
     ann_env_pd = nil
     sqlFile.availableEnvPeriods.each do |env_pd|
       env_type = sqlFile.environmentType(env_pd)
-      if env_type.is_initialized
-        if env_type.get == OpenStudio::EnvironmentType.new("WeatherRunPeriod")
-          ann_env_pd = env_pd
-        end
+      next unless env_type.is_initialized
+      if env_type.get == OpenStudio::EnvironmentType.new('WeatherRunPeriod')
+        ann_env_pd = env_pd
       end
     end
     if ann_env_pd == false
@@ -162,7 +161,7 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
     end
 
     # Initialize timeseries hash
-    timeseries = { "Temperature" => [] }
+    timeseries = { 'Temperature' => [] }
 
     env_period_ix_query = "SELECT EnvironmentPeriodIndex FROM EnvironmentPeriods WHERE EnvironmentName='#{ann_env_pd}'"
     env_period_ix = sqlFile.execAndReturnFirstInt(env_period_ix_query).get
@@ -171,45 +170,45 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
     unless sqlFile.execAndReturnVectorOfDouble(temperature_query).get.empty?
       temperatures = sqlFile.execAndReturnVectorOfDouble(temperature_query).get
       temperatures.each do |val|
-        timeseries["Temperature"] << UnitConversions.convert(val, "C", "F")
+        timeseries['Temperature'] << UnitConversions.convert(val, 'C', 'F')
       end
     end
 
-    output_meters = OutputMeters.new(model, runner, "Hourly")
+    output_meters = OutputMeters.new(model, runner, 'Hourly')
 
     electricity = output_meters.electricity(sqlFile, ann_env_pd)
 
     # ELECTRICITY
 
-    timeseries["total_site_electricity_kw"] = electricity.total_end_uses.map { |x| UnitConversions.convert(x, "GJ", "kW", nil, false, output_meters.steps_per_hour) }
+    timeseries['total_site_electricity_kw'] = electricity.total_end_uses.map { |x| UnitConversions.convert(x, 'GJ', 'kW', nil, false, output_meters.steps_per_hour) }
 
     # Average daily base magnitude (by season) (3)
     seasons.each do |season, temperature_range|
-      report_sim_output(runner, "average_minimum_daily_use_#{season.downcase}_kw", average_daily_use(timeseries, temperature_range, "min"), "", "")
+      report_sim_output(runner, "average_minimum_daily_use_#{season.downcase}_kw", average_daily_use(timeseries, temperature_range, 'min'), '', '')
     end
 
     # Average daily peak magnitude (by season) (3)
     seasons.each do |season, temperature_range|
-      report_sim_output(runner, "average_maximum_daily_use_#{season.downcase}_kw", average_daily_use(timeseries, temperature_range, "max"), "", "")
+      report_sim_output(runner, "average_maximum_daily_use_#{season.downcase}_kw", average_daily_use(timeseries, temperature_range, 'max'), '', '')
     end
 
     # Average daily peak timing (by season) (3)
     seasons.each do |season, temperature_range|
-      report_sim_output(runner, "average_maximum_daily_timing_#{season.downcase}_hour", average_daily_timing(timeseries, temperature_range, "max"), "", "")
+      report_sim_output(runner, "average_maximum_daily_timing_#{season.downcase}_hour", average_daily_timing(timeseries, temperature_range, 'max'), '', '')
     end
 
     # Top 10 daily seasonal peak magnitude (2)
     seasons.each do |season, temperature_range|
       next if season == Constants.SeasonOverlap
 
-      report_sim_output(runner, "average_of_top_ten_highest_peaks_use_#{season.downcase}_kw", average_daily_use(timeseries, temperature_range, "max", 10), "", "")
+      report_sim_output(runner, "average_of_top_ten_highest_peaks_use_#{season.downcase}_kw", average_daily_use(timeseries, temperature_range, 'max', 10), '', '')
     end
 
     # Top 10 seasonal timing of peak (2)
     seasons.each do |season, temperature_range|
       next if season == Constants.SeasonOverlap
 
-      report_sim_output(runner, "average_of_top_ten_highest_peaks_timing_#{season.downcase}_hour", average_daily_timing(timeseries, temperature_range, "max", 10), "", "")
+      report_sim_output(runner, "average_of_top_ten_highest_peaks_timing_#{season.downcase}_hour", average_daily_timing(timeseries, temperature_range, 'max', 10), '', '')
     end
 
     sqlFile.close
@@ -217,24 +216,24 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
     return true
   end
 
-  def average_daily_use(timeseries, temperature_range, min_or_max, top = "all")
+  def average_daily_use(timeseries, temperature_range, min_or_max, top = 'all')
     daily_vals = []
-    timeseries["total_site_electricity_kw"].each_slice(24).with_index do |kws, i|
-      temps = timeseries["Temperature"][(24 * i)...(24 * i + 24)]
+    timeseries['total_site_electricity_kw'].each_slice(24).with_index do |kws, i|
+      temps = timeseries['Temperature'][(24 * i)...(24 * i + 24)]
       avg_temp = temps.inject { |sum, el| sum + el }.to_f / temps.size
-      if avg_temp > temperature_range[0] and avg_temp < temperature_range[1] # day is in this season
-        if min_or_max == "min"
+      if (avg_temp > temperature_range[0]) && (avg_temp < temperature_range[1]) # day is in this season
+        if min_or_max == 'min'
           daily_vals << kws.min
-        elsif min_or_max == "max"
+        elsif min_or_max == 'max'
           daily_vals << kws.max
         end
       end
     end
     if daily_vals.empty?
-      return nil
+      return
     end
 
-    if top == "all"
+    if top == 'all'
       top = daily_vals.length
     else
       top = [top, daily_vals.length].min # don't try to access indexes that don't exist
@@ -244,34 +243,34 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
     return daily_vals.inject { |sum, el| sum + el }.to_f / daily_vals.size
   end
 
-  def average_daily_timing(timeseries, temperature_range, min_or_max, top = "all")
-    daily_vals = { "hour" => [], "use" => [] }
-    timeseries["total_site_electricity_kw"].each_slice(24).with_index do |kws, i|
-      temps = timeseries["Temperature"][(24 * i)...(24 * i + 24)]
+  def average_daily_timing(timeseries, temperature_range, min_or_max, top = 'all')
+    daily_vals = { 'hour' => [], 'use' => [] }
+    timeseries['total_site_electricity_kw'].each_slice(24).with_index do |kws, i|
+      temps = timeseries['Temperature'][(24 * i)...(24 * i + 24)]
       avg_temp = temps.inject { |sum, el| sum + el }.to_f / temps.size
-      if avg_temp > temperature_range[0] and avg_temp < temperature_range[1] # day is in this season
-        if min_or_max == "min"
+      if (avg_temp > temperature_range[0]) && (avg_temp < temperature_range[1]) # day is in this season
+        if min_or_max == 'min'
           hour = kws.index(kws.min)
-          daily_vals["hour"] << hour
-          daily_vals["use"] << kws.min
-        elsif min_or_max == "max"
+          daily_vals['hour'] << hour
+          daily_vals['use'] << kws.min
+        elsif min_or_max == 'max'
           hour = kws.index(kws.max)
-          daily_vals["hour"] << hour
-          daily_vals["use"] << kws.max
+          daily_vals['hour'] << hour
+          daily_vals['use'] << kws.max
         end
       end
     end
     if daily_vals.empty?
-      return nil
+      return
     end
 
-    if top == "all"
+    if top == 'all'
       top = daily_vals.length
     else
       top = [top, daily_vals.length].min # don't try to access indexes that don't exist
     end
-    daily_vals["use"], daily_vals["hour"] = daily_vals["use"].zip(daily_vals["hour"]).sort.reverse.transpose
-    daily_vals = daily_vals["hour"][0..top]
+    daily_vals['use'], daily_vals['hour'] = daily_vals['use'].zip(daily_vals['hour']).sort.reverse.transpose
+    daily_vals = daily_vals['hour'][0..top]
     return daily_vals.inject { |sum, el| sum + el }.to_f / daily_vals.size
   end
 
@@ -280,8 +279,8 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
       runner.registerInfo("Registering (blank) for #{name}.")
       return
     end
-    total_val = total_val * percent_of_val
-    if os_units.nil? or desired_units.nil? or os_units == desired_units
+    total_val *= percent_of_val
+    if os_units.nil? || desired_units.nil? || (os_units == desired_units)
       valInUnits = total_val
     else
       valInUnits = UnitConversions.convert(total_val, os_units, desired_units)

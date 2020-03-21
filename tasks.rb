@@ -16,25 +16,25 @@ def generate_example_osws(data_hash, include_args, osw_filename, simplify = true
 
   workflowJSON = OpenStudio::WorkflowJSON.new
   workflowJSON.setOswPath(osw_path)
-  workflowJSON.addMeasurePath("../resources/hpxml-measures")
+  workflowJSON.addMeasurePath('../resources/hpxml-measures')
 
   steps = OpenStudio::WorkflowStepVector.new
 
   # Check for invalid measure names
   all_measures = []
   data_hash.each do |group|
-    group["group_steps"].each do |group_step|
-      group_step["measures"].each do |measure|
+    group['group_steps'].each do |group_step|
+      group_step['measures'].each do |measure|
         all_measures << measure
       end
     end
   end
 
   data_hash.each do |group|
-    group["group_steps"].each do |group_step|
+    group['group_steps'].each do |group_step|
       # Default to first measure in step
-      measure = group_step["measures"][0]
-      measure_path = File.expand_path(File.join("../resources/hpxml-measures", measure), workflowJSON.oswDir.to_s)
+      measure = group_step['measures'][0]
+      measure_path = File.expand_path(File.join('../resources/hpxml-measures', measure), workflowJSON.oswDir.to_s)
       measure_instance = get_measure_instance("#{measure_path}/measure.rb")
       measure_args = measure_instance.arguments(model).sort_by { |arg| arg.name }
 
@@ -73,8 +73,8 @@ def generate_example_osws(data_hash, include_args, osw_filename, simplify = true
   require 'json'
   file = File.read(osw_path)
   data_hash = JSON.parse(file)
-  data_hash.delete("created_at")
-  data_hash.delete("updated_at")
+  data_hash.delete('created_at')
+  data_hash.delete('updated_at')
   File.write(osw_path, JSON.pretty_generate(data_hash))
 end
 
@@ -86,32 +86,32 @@ def get_and_proof_measure_order_json()
   # @return {data_hash} of measure-info.json
 
   # List all measures in measures/ folders
-  model_measure_folder = File.expand_path("../resources/hpxml-measures/", __FILE__)
-  resstock_measure_folder = File.expand_path("../measures/", __FILE__)
-  all_measures = Dir.entries(model_measure_folder).select { |entry| entry.include?("HPXML") } + Dir.entries(resstock_measure_folder).select { |entry| entry.start_with?("Residential") }
+  model_measure_folder = File.expand_path('../resources/hpxml-measures/', __FILE__)
+  resstock_measure_folder = File.expand_path('../measures/', __FILE__)
+  all_measures = Dir.entries(model_measure_folder).select { |entry| entry.include?('HPXML') } + Dir.entries(resstock_measure_folder).select { |entry| entry.start_with?('Residential') }
 
   # Load json, and get all measures in there
-  json_file = "resources/measure-info.json"
+  json_file = 'resources/measure-info.json'
   json_path = File.expand_path("../#{json_file}", __FILE__)
   data_hash = JSON.parse(File.read(json_path))
 
   measures_json = []
   data_hash.each do |group|
-    group["group_steps"].each do |group_step|
-      measures_json += group_step["measures"]
+    group['group_steps'].each do |group_step|
+      measures_json += group_step['measures']
     end
   end
 
   # Check for missing in JSON file
   missing_in_json = all_measures - measures_json
   if missing_in_json.size > 0
-    puts "Warning: There are #{missing_in_json.size} measures missing in '#{json_file}': #{missing_in_json.join(",")}"
+    puts "Warning: There are #{missing_in_json.size} measures missing in '#{json_file}': #{missing_in_json.join(',')}"
   end
 
   # Check for measures in JSON that don't have a corresponding folder
   extra_in_json = measures_json - all_measures
   if extra_in_json.size > 0
-    puts "Warning: There are #{extra_in_json.size} measures extra in '#{json_file}': #{extra_in_json.join(",")}"
+    puts "Warning: There are #{extra_in_json.size} measures extra in '#{json_file}': #{extra_in_json.join(',')}"
   end
 
   return data_hash
@@ -162,7 +162,7 @@ if ARGV[0].to_sym == :update_measures
   commands = ["\"require 'rubocop/rake_task'\"",
               "\"RuboCop::RakeTask.new(:rubocop) do |t| t.options = ['--auto-correct', '--format', 'simple', '--only', '#{cops.join(',')}'] end\"",
               '"Rake.application[:rubocop].invoke"']
-  command = "openstudio -e #{commands.join(' -e ')}"
+  command = "#{OpenStudio.getOpenStudioCLI} -e #{commands.join(' -e ')}"
   puts 'Applying rubocop auto-correct to measures...'
   system(command)
 
@@ -178,48 +178,48 @@ if ARGV[0].to_sym == :update_measures
   data_hash = get_and_proof_measure_order_json()
 
   example_osws = {
-    "TMY" => {
-      "weather_station_epw_filename" => "USA_CO_Denver.Intl.AP.725650_TMY3.epw"
+    'TMY' => {
+      'weather_station_epw_filename' => 'USA_CO_Denver.Intl.AP.725650_TMY3.epw'
     },
-    "AMY2012" => {
-      "weather_station_epw_filename" => "0465925_US_CO_Boulder_8013_0-20000-0-72469_40.13_-105.22_NSRDB_2.0.1_AMY_2012.epw"
+    'AMY2012' => {
+      'weather_station_epw_filename' => '0465925_US_CO_Boulder_8013_0-20000-0-72469_40.13_-105.22_NSRDB_2.0.1_AMY_2012.epw'
     },
-    "AMY2014" => {
-      "weather_station_epw_filename" => "0465925_US_CO_Boulder_8013_0-20000-0-72469_40.13_-105.22_NSRDB_2.0.1_AMY_2014.epw"
+    'AMY2014' => {
+      'weather_station_epw_filename' => '0465925_US_CO_Boulder_8013_0-20000-0-72469_40.13_-105.22_NSRDB_2.0.1_AMY_2014.epw'
     }
   }
   example_osws.each do |weather_year, weather_station|
     include_args = {
-      "BuildResidentialHPXML" => {
-        "hpxml_path" => File.expand_path(File.join(File.dirname(__FILE__), "workflows/run/in.xml")),
-        "schedules_output_path" => File.expand_path(File.join(File.dirname(__FILE__), "workflows/run/schedules.csv"))
+      'BuildResidentialHPXML' => {
+        'hpxml_path' => File.expand_path(File.join(File.dirname(__FILE__), 'workflows/run/in.xml')),
+        'schedules_output_path' => File.expand_path(File.join(File.dirname(__FILE__), 'workflows/run/schedules.csv'))
       },
-      "HPXMLtoOpenStudio" => {
-        "hpxml_path" => File.expand_path(File.join(File.dirname(__FILE__), "workflows/run/in.xml")),
-        "weather_dir" => File.expand_path(File.join(File.dirname(__FILE__), "weather"))
+      'HPXMLtoOpenStudio' => {
+        'hpxml_path' => File.expand_path(File.join(File.dirname(__FILE__), 'workflows/run/in.xml')),
+        'weather_dir' => File.expand_path(File.join(File.dirname(__FILE__), 'weather'))
       }
     }
 
     # SFD
-    include_args["BuildResidentialHPXML"]["unit_type"] = "single-family detached"
-    include_args["BuildResidentialHPXML"]["cfa"] = "2000"
-    include_args["BuildResidentialHPXML"].update(weather_station)
+    include_args['BuildResidentialHPXML']['unit_type'] = 'single-family detached'
+    include_args['BuildResidentialHPXML']['cfa'] = '2000'
+    include_args['BuildResidentialHPXML'].update(weather_station)
     generate_example_osws(data_hash,
                           include_args,
                           "example_single_family_detached_#{weather_year}.osw")
 
     # SFA
-    include_args["BuildResidentialHPXML"]["unit_type"] = "single-family attached"
-    include_args["BuildResidentialHPXML"]["cfa"] = "900"
-    include_args["BuildResidentialHPXML"].update(weather_station)
+    include_args['BuildResidentialHPXML']['unit_type'] = 'single-family attached'
+    include_args['BuildResidentialHPXML']['cfa'] = '900'
+    include_args['BuildResidentialHPXML'].update(weather_station)
     generate_example_osws(data_hash,
                           include_args,
                           "example_single_family_attached_#{weather_year}.osw")
 
     # MF
-    include_args["BuildResidentialHPXML"]["unit_type"] = "multifamily"
-    include_args["BuildResidentialHPXML"]["cfa"] = "900"
-    include_args["BuildResidentialHPXML"].update(weather_station)
+    include_args['BuildResidentialHPXML']['unit_type'] = 'multifamily'
+    include_args['BuildResidentialHPXML']['cfa'] = '900'
+    include_args['BuildResidentialHPXML'].update(weather_station)
     generate_example_osws(data_hash,
                           include_args,
                           "example_multifamily_#{weather_year}.osw")
@@ -231,7 +231,7 @@ end
 if ARGV[0].to_sym == :integrity_check_multifamily_beta
   require_relative 'test/integrity_checks'
 
-  project_dir_name = "project_multifamily_beta"
+  project_dir_name = 'project_multifamily_beta'
   integrity_check(project_dir_name)
   integrity_check_options_lookup_tsv(project_dir_name)
 end
@@ -239,7 +239,7 @@ end
 if ARGV[0].to_sym == :integrity_check_testing
   require_relative 'test/integrity_checks'
 
-  project_dir_name = "project_testing"
+  project_dir_name = 'project_testing'
   integrity_check(project_dir_name)
   integrity_check_options_lookup_tsv(project_dir_name)
 end
