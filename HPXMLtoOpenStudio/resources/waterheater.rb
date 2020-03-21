@@ -501,7 +501,7 @@ class Waterheater
         hpwh_ducting_program.addLine("Set #{lat_act_actuator.name} = 0")
       elsif ducting == 'supply only'
         hpwh_ducting_program.addLine('Set rho = (@RhoAirFnPbTdbW HPWH_amb_P HPWHTair_out HPWHWair_out)')
-        hpwh_ducting_program.addLine('Set cp = (@CpAirFnWTdb HPWHWair_out HPWHTair_out)')
+        hpwh_ducting_program.addLine('Set cp = (@CpAirFnW HPWHWair_out)')
         hpwh_ducting_program.addLine('Set h = (@HFnTdbW HPWHTair_out HPWHWair_out)')
         hpwh_ducting_program.addLine("Set HPWH_sens_gain = rho*cp*(HPWHTair_out-#{amb_temp_sensor.name})*V_airHPWH")
         hpwh_ducting_program.addLine("Set HPWH_lat_gain = h*rho*(HPWHWair_out-#{amb_w_sensor.name})*V_airHPWH")
@@ -512,7 +512,7 @@ class Waterheater
         hpwh_ducting_program.addLine("Set #{lat_act_actuator.name} = HPWH_lat_gain")
       elsif ducting == 'exhaust only'
         hpwh_ducting_program.addLine('Set rho = (@RhoAirFnPbTdbW HPWH_amb_P HPWHTair_out HPWHWair_out)')
-        hpwh_ducting_program.addLine('Set cp = (@CpAirFnWTdb HPWHWair_out HPWHTair_out)')
+        hpwh_ducting_program.addLine('Set cp = (@CpAirFnW HPWHWair_out)')
         hpwh_ducting_program.addLine('Set h = (@HFnTdbW HPWHTair_out HPWHWair_out)')
         hpwh_ducting_program.addLine("Set HPWH_sens_gain = rho*cp*(#{tout_sensor.name}-#{amb_temp_sensor.name})*V_airHPWH")
         hpwh_ducting_program.addLine("Set HPWH_lat_gain = h*rho*(Wout-#{amb_w_sensor.name})*V_airHPWH")
