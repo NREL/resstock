@@ -277,50 +277,31 @@ class HPXMLTest < MiniTest::Test
     abups = 'AnnualBuildingUtilityPerformanceSummary'
     ef = 'Entire Facility'
     eubs = 'End Uses By Subcategory'
-    s = 'Subcategory'
 
     # Obtain fueltypes
-    query = "SELECT ColumnName FROM #{tdws} WHERE ReportName='#{abups}' AND ReportForString='#{ef}' AND TableName='#{eubs}' and ColumnName!='#{s}'"
+    query = "SELECT ColumnName FROM #{tdws} WHERE ReportName='#{abups}' AND ReportForString='#{ef}' AND TableName='#{eubs}'"
     fueltypes = sqlFile.execAndReturnVectorOfString(query).get
 
     # Obtain units
-    query = "SELECT Units FROM #{tdws} WHERE ReportName='#{abups}' AND ReportForString='#{ef}' AND TableName='#{eubs}' and ColumnName!='#{s}'"
+    query = "SELECT Units FROM #{tdws} WHERE ReportName='#{abups}' AND ReportForString='#{ef}' AND TableName='#{eubs}'"
     units = sqlFile.execAndReturnVectorOfString(query).get
 
     # Obtain categories
-    query = "SELECT RowName FROM #{tdws} WHERE ReportName='#{abups}' AND ReportForString='#{ef}' AND TableName='#{eubs}' AND ColumnName='#{s}'"
+    query = "SELECT RowName FROM #{tdws} WHERE ReportName='#{abups}' AND ReportForString='#{ef}' AND TableName='#{eubs}'"
     categories = sqlFile.execAndReturnVectorOfString(query).get
-    # Fill in blanks based on previous non-blank value
-    full_categories = []
-    (0..categories.size - 1).each do |i|
-      full_categories << categories[i]
-      next if full_categories[i].size > 0
 
-      full_categories[i] = full_categories[i - 1]
-    end
-    full_categories *= fueltypes.uniq.size # Expand to size of fueltypes
+    # Obtain values
+    query = "SELECT Value FROM #{tdws} WHERE ReportName='#{abups}' AND ReportForString='#{ef}' AND TableName='#{eubs}'"
+    values = sqlFile.execAndReturnVectorOfDouble(query).get
 
-    # Obtain subcategories
-    query = "SELECT Value FROM #{tdws} WHERE ReportName='#{abups}' AND ReportForString='#{ef}' AND TableName='#{eubs}' AND ColumnName='#{s}'"
-    subcategories = sqlFile.execAndReturnVectorOfString(query).get
-    subcategories *= fueltypes.uniq.size # Expand to size of fueltypes
-
-    # Obtain starting position of results
-    query = "SELECT MIN(TabularDataIndex) FROM #{tdws} WHERE ReportName='#{abups}' AND ReportForString='#{ef}' AND TableName='#{eubs}' AND ColumnName='#{fueltypes[0]}'"
-    starting_index = sqlFile.execAndReturnFirstInt(query).get
-
-    # TabularDataWithStrings table is positional, so we access results by position.
-    # TODO: When using E+ 9.3, update these queries based on https://github.com/NREL/EnergyPlus/pull/7584
     results = {}
-    fueltypes.zip(full_categories, subcategories, units).each_with_index do |(fueltype, category, subcategory, fuel_units), index|
+    fueltypes.zip(categories, units, values).each_with_index do |(fueltype, category, fuel_units, value), index|
+      category, subcategory = category.split(':')
       next if ['District Cooling', 'District Heating'].include? fueltype # Exclude ideal loads results
       next if subcategory.end_with? Constants.ObjectNameWaterHeaterAdjustment(nil) # Exclude water heater EC_adj, will retrieve later with higher precision
+      next if value == 0
 
-      query = "SELECT Value FROM #{tdws} WHERE ReportName='#{abups}' AND ReportForString='#{ef}' AND TableName='#{eubs}' AND TabularDataIndex='#{starting_index + index}'"
-      val = sqlFile.execAndReturnFirstDouble(query).get
-      next if val == 0
-
-      results[[fueltype, category, subcategory, fuel_units]] = val
+      results[[fueltype, category, subcategory, fuel_units]] = value
     end
 
     # Obtain water heater EC_adj
@@ -362,11 +343,27 @@ class HPXMLTest < MiniTest::Test
     results[['Volume', 'Hot Water', 'General', 'gal']] = UnitConversions.convert(sqlFile.execAndReturnFirstDouble(query).get, 'm^3', 'gal').round(2)
 
     # Obtain HVAC capacities
-    query = "SELECT SUM(Value) FROM ComponentSizes WHERE (CompType LIKE 'Coil:Heating:%' OR CompType LIKE 'Boiler:%' OR CompType LIKE 'ZONEHVAC:BASEBOARD:%') AND Description LIKE '%User-Specified%Capacity' AND Description NOT LIKE '%Supplemental%' AND Units='W'"
-    results[['Capacity', 'Heating', 'General', 'W']] = sqlFile.execAndReturnFirstDouble(query).get.round(2)
+    htg_cap_w = 0
+    for spd in [4, 2]
+      # Get capacity of highest speed for multispeed coil
+      query = "SELECT SUM(Value) FROM ComponentSizes WHERE CompType='Coil:Heating:DX:MultiSpeed' AND Description LIKE '%User-Specified Speed #{spd}%Capacity' AND Units='W'"
+      htg_cap_w += sqlFile.execAndReturnFirstDouble(query).get
+      break if htg_cap_w > 0
+    end
+    query = "SELECT SUM(Value) FROM ComponentSizes WHERE ((CompType LIKE 'Coil:Heating:%' OR CompType LIKE 'Boiler:%' OR CompType LIKE 'ZONEHVAC:BASEBOARD:%') AND CompType!='Coil:Heating:DX:MultiSpeed') AND Description LIKE '%User-Specified%Capacity' AND Units='W'"
+    htg_cap_w += sqlFile.execAndReturnFirstDouble(query).get
+    results[['Capacity', 'Heating', 'General', 'W']] = htg_cap_w
 
-    query = "SELECT SUM(Value) FROM ComponentSizes WHERE CompType LIKE 'Coil:Cooling:%' AND Description LIKE '%User-Specified%Total%Capacity' AND Units='W'"
-    results[['Capacity', 'Cooling', 'General', 'W']] = sqlFile.execAndReturnFirstDouble(query).get.round(2)
+    clg_cap_w = 0
+    for spd in [4, 2]
+      # Get capacity of highest speed for multispeed coil
+      query = "SELECT SUM(Value) FROM ComponentSizes WHERE CompType='Coil:Cooling:DX:MultiSpeed' AND Description LIKE 'User-Specified Speed #{spd}%Total%Capacity' AND Units='W'"
+      clg_cap_w += sqlFile.execAndReturnFirstDouble(query).get
+      break if clg_cap_w > 0
+    end
+    query = "SELECT SUM(Value) FROM ComponentSizes WHERE CompType LIKE 'Coil:Cooling:%' AND CompType!='Coil:Cooling:DX:MultiSpeed' AND Description LIKE '%User-Specified%Total%Capacity' AND Units='W'"
+    clg_cap_w += sqlFile.execAndReturnFirstDouble(query).get
+    results[['Capacity', 'Cooling', 'General', 'W']] = clg_cap_w
 
     # Obtain loads
     # TODO: Move to reporting measure tests or workflow tests (and remove temporary components() method)
@@ -940,8 +937,6 @@ class HPXMLTest < MiniTest::Test
     # HVAC Capacities
     htg_cap = nil
     clg_cap = nil
-    has_multispeed_dx_heating_coil = false # FIXME: Remove this when https://github.com/NREL/EnergyPlus/issues/7381 is fixed
-    has_gshp_coil = false # FIXME: Remove this when https://github.com/NREL/EnergyPlus/issues/7381 is fixed
     hpxml.heating_systems.each do |heating_system|
       htg_sys_cap = heating_system.heating_capacity
       if htg_sys_cap > 0
@@ -960,28 +955,28 @@ class HPXMLTest < MiniTest::Test
       hp_type = heat_pump.heat_pump_type
       hp_cap_clg = heat_pump.cooling_capacity
       hp_cap_htg = heat_pump.heating_capacity
+      clg_cap_mult = 1.0
+      htg_cap_mult = 1.0
       if hp_type == HPXML::HVACTypeHeatPumpMiniSplit
-        hp_cap_clg *= 1.20 # TODO: Generalize this
-        hp_cap_htg *= 1.20 # TODO: Generalize this
+        # TODO: Generalize this
+        clg_cap_mult = 1.20
+        htg_cap_mult = 1.20
+      elsif (hp_type == HPXML::HVACTypeHeatPumpAirToAir) && (heat_pump.cooling_efficiency_seer > 21)
+        # TODO: Generalize this
+        htg_cap_mult = 1.17
       end
       supp_hp_cap = heat_pump.backup_heating_capacity.to_f
       if hp_cap_clg > 0
         clg_cap = 0 if clg_cap.nil?
-        clg_cap += hp_cap_clg
+        clg_cap += (hp_cap_clg * clg_cap_mult)
       end
       if hp_cap_htg > 0
         htg_cap = 0 if htg_cap.nil?
-        htg_cap += hp_cap_htg
+        htg_cap += (hp_cap_htg * htg_cap_mult)
       end
       if supp_hp_cap > 0
         htg_cap = 0 if htg_cap.nil?
         htg_cap += supp_hp_cap
-      end
-      if heat_pump.cooling_efficiency_seer.to_f > 15
-        has_multispeed_dx_heating_coil = true
-      end
-      if hp_type == HPXML::HVACTypeHeatPumpGroundToAir
-        has_gshp_coil = true
       end
     end
     if not clg_cap.nil?
@@ -994,7 +989,7 @@ class HPXMLTest < MiniTest::Test
         assert_operator(sql_value, :>, 1)
       end
     end
-    if (not htg_cap.nil?) && (not (has_multispeed_dx_heating_coil || has_gshp_coil))
+    if not htg_cap.nil?
       sql_value = UnitConversions.convert(results[['Capacity', 'Heating', 'General', 'W']], 'W', 'Btu/hr')
       if htg_cap == 0
         assert_operator(sql_value, :<, 1)
