@@ -29,7 +29,7 @@ class WorkflowTest < MiniTest::Test
 
   def add_simulation_output_report(osw)
     json = JSON.parse(File.read(osw))
-    simulation_output_report = { "measure_dir_name": "SimulationOutputReport" }
+    simulation_output_report = { 'measure_dir_name' => 'SimulationOutputReport' }
     json["steps"] << simulation_output_report
 
     File.open(osw, "w") do |f|

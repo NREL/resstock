@@ -2239,7 +2239,7 @@ class HPXMLFile
 
     hpxml_doc = hpxml.to_rexml()
     HPXML::add_extension(parent: hpxml_doc.elements['/HPXML/Building/BuildingDetails'],
-                         extensions: { "UnitMultiplier": args[:unit_multiplier] })
+                         extensions: { 'UnitMultiplier' => args[:unit_multiplier] })
 
     return hpxml_doc
   end
