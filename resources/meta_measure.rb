@@ -5,7 +5,7 @@ def get_measures(workflow_json, include_only = nil)
   JSON.parse(File.read(workflow_json), :symbolize_names => true).each do |group|
     group[:group_steps].each do |step|
       step[:measures].each do |measure_dir|
-        if (not include_only.nil?) and (not include_only.include? measure_dir)
+        if (not include_only.nil?) && (not include_only.include? measure_dir)
           next
         end
 
@@ -40,7 +40,7 @@ def apply_measures(measures_dir, measures, runner, model, workflow_json = nil, o
     # Create a workflow based on the measures we're going to call. Convenient for debugging.
     workflowJSON = OpenStudio::WorkflowJSON.new
     workflowJSON.setOswPath(File.expand_path("../#{osw_out}"))
-    workflowJSON.addMeasurePath("resources/hpxml-measures")
+    workflowJSON.addMeasurePath('resources/hpxml-measures')
     steps = OpenStudio::WorkflowStepVector.new
     workflow_order.each do |measure_subdir|
       measures[measure_subdir].each do |args|
@@ -60,7 +60,7 @@ def apply_measures(measures_dir, measures, runner, model, workflow_json = nil, o
   # Call each measure in the specified order
   workflow_order.each do |measure_subdir|
     # Gather measure arguments and call measure
-    full_measure_path = File.join(measures_dir, measure_subdir, "measure.rb")
+    full_measure_path = File.join(measures_dir, measure_subdir, 'measure.rb')
     check_file_exists(full_measure_path, runner)
     measure_instance = get_measure_instance(full_measure_path)
     measures[measure_subdir].each do |args|
@@ -79,11 +79,11 @@ def apply_measures(measures_dir, measures, runner, model, workflow_json = nil, o
 end
 
 def print_measure_call(measure_args, measure_dir, runner)
-  if measure_args.nil? or measure_dir.nil?
+  if measure_args.nil? || measure_dir.nil?
     return
   end
 
-  args_s = hash_to_string(measure_args, delim = " -> ", separator = " \n")
+  args_s = hash_to_string(measure_args, delim = ' -> ', separator = ' \n')
   if args_s.size > 0
     runner.registerInfo("Calling #{measure_dir.to_s} measure with arguments:\n#{args_s}")
   else
