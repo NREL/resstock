@@ -9,7 +9,7 @@ class TestResStockErrors < MiniTest::Test
 
   def test_housing_characteristics_float_precision
     begin
-      housing_characteristics_dir = "housing_characteristics_float_precision"
+      housing_characteristics_dir = 'housing_characteristics_float_precision'
       integrity_check(@project_dir_name, housing_characteristics_dir, @lookup_file)
       integrity_check_options_lookup_tsv(@project_dir_name, housing_characteristics_dir, @lookup_file)
     rescue Exception => e
@@ -21,7 +21,7 @@ class TestResStockErrors < MiniTest::Test
 
   def test_housing_characteristics_newline_character
     begin
-      housing_characteristics_dir = "housing_characteristics_newline_character"
+      housing_characteristics_dir = 'housing_characteristics_newline_character'
       integrity_check(@project_dir_name, housing_characteristics_dir, @lookup_file)
       integrity_check_options_lookup_tsv(@project_dir_name, housing_characteristics_dir, @lookup_file)
     rescue Exception => e
@@ -33,7 +33,7 @@ class TestResStockErrors < MiniTest::Test
 
   def test_housing_characteristics_scientific_notation
     begin
-      housing_characteristics_dir = "housing_characteristics_scientific_notation"
+      housing_characteristics_dir = 'housing_characteristics_scientific_notation'
       integrity_check(@project_dir_name, housing_characteristics_dir, @lookup_file)
       integrity_check_options_lookup_tsv(@project_dir_name, housing_characteristics_dir, @lookup_file)
     rescue Exception => e
@@ -45,7 +45,7 @@ class TestResStockErrors < MiniTest::Test
 
   def test_housing_characteristics_non_float
     begin
-      housing_characteristics_dir = "housing_characteristics_non_float"
+      housing_characteristics_dir = 'housing_characteristics_non_float'
       integrity_check(@project_dir_name, housing_characteristics_dir, @lookup_file)
       integrity_check_options_lookup_tsv(@project_dir_name, housing_characteristics_dir, @lookup_file)
     rescue Exception => e
@@ -57,11 +57,11 @@ class TestResStockErrors < MiniTest::Test
 
   def test_housing_characteristics_sum_not_one
     begin
-      housing_characteristics_dir = "housing_characteristics_sum_not_one"
+      housing_characteristics_dir = 'housing_characteristics_sum_not_one'
       integrity_check(@project_dir_name, housing_characteristics_dir, @lookup_file)
       integrity_check_options_lookup_tsv(@project_dir_name, housing_characteristics_dir, @lookup_file)
     rescue Exception => e
-      assert_equal("ERROR: Values in Vintage.tsv incorrectly sum to 1.09.", e.message)
+      assert_equal('ERROR: Values in Vintage.tsv incorrectly sum to 1.09.', e.message)
     else
       flunk "Should have caused an error but didn't."
     end
@@ -69,11 +69,11 @@ class TestResStockErrors < MiniTest::Test
 
   def test_housing_characteristics_duplicate_rows
     begin
-      housing_characteristics_dir = "housing_characteristics_duplicate_rows"
+      housing_characteristics_dir = 'housing_characteristics_duplicate_rows'
       integrity_check(@project_dir_name, housing_characteristics_dir, @lookup_file)
       integrity_check_options_lookup_tsv(@project_dir_name, housing_characteristics_dir, @lookup_file)
     rescue Exception => e
-      assert_equal("ERROR: Multiple rows found in Vintage.tsv with dependencies: Location=AL_Huntsville.Intl.AP-Jones.Field.723230.", e.message)
+      assert_equal('ERROR: Multiple rows found in Vintage.tsv with dependencies: Location=AL_Huntsville.Intl.AP-Jones.Field.723230.', e.message)
     else
       flunk "Should have caused an error but didn't."
     end
@@ -81,11 +81,11 @@ class TestResStockErrors < MiniTest::Test
 
   def test_housing_characteristics_missing_row
     begin
-      housing_characteristics_dir = "housing_characteristics_missing_row"
+      housing_characteristics_dir = 'housing_characteristics_missing_row'
       integrity_check(@project_dir_name, housing_characteristics_dir, @lookup_file)
       integrity_check_options_lookup_tsv(@project_dir_name, housing_characteristics_dir, @lookup_file)
     rescue Exception => e
-      assert_equal("ERROR: Could not determine appropriate option in Vintage.tsv for sample value 1.0 with dependencies: Location=AL_Huntsville.Intl.AP-Jones.Field.723230.", e.message)
+      assert_equal('ERROR: Could not determine appropriate option in Vintage.tsv for sample value 1.0 with dependencies: Location=AL_Huntsville.Intl.AP-Jones.Field.723230.', e.message)
     else
       flunk "Should have caused an error but didn't."
     end
@@ -93,7 +93,7 @@ class TestResStockErrors < MiniTest::Test
 
   def test_housing_characteristics_bad_value
     begin
-      housing_characteristics_dir = "housing_characteristics_bad_value"
+      housing_characteristics_dir = 'housing_characteristics_bad_value'
       integrity_check(@project_dir_name, housing_characteristics_dir, @lookup_file)
       integrity_check_options_lookup_tsv(@project_dir_name, housing_characteristics_dir, @lookup_file)
     rescue Exception => e
@@ -105,7 +105,7 @@ class TestResStockErrors < MiniTest::Test
 
   def test_housing_characteristics_missing_parent
     begin
-      housing_characteristics_dir = "housing_characteristics_missing_parent"
+      housing_characteristics_dir = 'housing_characteristics_missing_parent'
       integrity_check(@project_dir_name, housing_characteristics_dir, @lookup_file)
       integrity_check_options_lookup_tsv(@project_dir_name, housing_characteristics_dir, @lookup_file)
     rescue Exception => e
@@ -117,7 +117,7 @@ class TestResStockErrors < MiniTest::Test
 
   def test_housing_characteristics_unused_tsv
     begin
-      housing_characteristics_dir = "housing_characteristics_unused_tsv"
+      housing_characteristics_dir = 'housing_characteristics_unused_tsv'
       integrity_check(@project_dir_name, housing_characteristics_dir, @lookup_file)
       integrity_check_options_lookup_tsv(@project_dir_name, housing_characteristics_dir, @lookup_file)
     rescue Exception => e
@@ -130,7 +130,7 @@ class TestResStockErrors < MiniTest::Test
   def test_housing_characteristics_measure_missing_argument
     skip
     begin
-      housing_characteristics_dir = "housing_characteristics_measure_missing_argument"
+      housing_characteristics_dir = 'housing_characteristics_measure_missing_argument'
       integrity_check(@project_dir_name, housing_characteristics_dir, @lookup_file)
       integrity_check_options_lookup_tsv(@project_dir_name, housing_characteristics_dir, @lookup_file)
     rescue Exception => e
@@ -144,7 +144,7 @@ class TestResStockErrors < MiniTest::Test
   def test_housing_characteristics_measure_extra_argument
     skip
     begin
-      housing_characteristics_dir = "housing_characteristics_measure_extra_argument"
+      housing_characteristics_dir = 'housing_characteristics_measure_extra_argument'
       integrity_check(@project_dir_name, housing_characteristics_dir, @lookup_file)
       integrity_check_options_lookup_tsv(@project_dir_name, housing_characteristics_dir, @lookup_file)
     rescue Exception => e
@@ -158,7 +158,7 @@ class TestResStockErrors < MiniTest::Test
   def test_housing_characteristics_measure_bad_argument_value
     skip
     begin
-      housing_characteristics_dir = "housing_characteristics_measure_bad_argument_value"
+      housing_characteristics_dir = 'housing_characteristics_measure_bad_argument_value'
       integrity_check(@project_dir_name, housing_characteristics_dir, @lookup_file)
       integrity_check_options_lookup_tsv(@project_dir_name, housing_characteristics_dir, @lookup_file)
     rescue Exception => e
@@ -171,14 +171,14 @@ class TestResStockErrors < MiniTest::Test
   def test_housing_characteristics_measure_missing
     skip
     begin
-      housing_characteristics_dir = "housing_characteristics_measure_missing"
+      housing_characteristics_dir = 'housing_characteristics_measure_missing'
       integrity_check(@project_dir_name, housing_characteristics_dir, @lookup_file)
       integrity_check_options_lookup_tsv(@project_dir_name, housing_characteristics_dir, @lookup_file)
     rescue Exception => e
       puts e.message
-      assert(e.message.include? "ERROR: Cannot find file")
-      assert(e.message.include? "ResidentialMissingMeasure/measure.rb")
-      puts "HERE1"
+      assert(e.message.include? 'ERROR: Cannot find file')
+      assert(e.message.include? 'ResidentialMissingMeasure/measure.rb')
+      puts 'HERE1'
     else
       flunk "Should have caused an error but didn't."
     end
@@ -186,7 +186,7 @@ class TestResStockErrors < MiniTest::Test
 
   def test_housing_characteristics_nonexistent_dependency_option
     begin
-      housing_characteristics_dir = "housing_characteristics_nonexistent_dependency_option"
+      housing_characteristics_dir = 'housing_characteristics_nonexistent_dependency_option'
       integrity_check(@project_dir_name, housing_characteristics_dir, @lookup_file)
       integrity_check_options_lookup_tsv(@project_dir_name, housing_characteristics_dir, @lookup_file)
     rescue Exception => e
@@ -198,7 +198,7 @@ class TestResStockErrors < MiniTest::Test
 
   def test_options_lookup_multiple_measure_argument_assignments
     begin
-      housing_characteristics_dir = "housing_characteristics_cooling_setpoint"
+      housing_characteristics_dir = 'housing_characteristics_cooling_setpoint'
       lookup_file = File.join(File.dirname(__FILE__), '..', 'resources', 'test_options_lookup.tsv')
       integrity_check(@project_dir_name, housing_characteristics_dir, lookup_file)
       integrity_check_options_lookup_tsv(@project_dir_name, housing_characteristics_dir, lookup_file)

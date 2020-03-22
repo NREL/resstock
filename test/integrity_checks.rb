@@ -1,4 +1,4 @@
-def integrity_check(project_dir_name, housing_characteristics_dir = "housing_characteristics", lookup_file = nil)
+def integrity_check(project_dir_name, housing_characteristics_dir = 'housing_characteristics', lookup_file = nil)
   # Load helper file and sampling file
   resources_dir = File.join(File.dirname(__FILE__), '../resources')
   require File.join(resources_dir, 'buildstock')
@@ -57,7 +57,7 @@ def integrity_check(project_dir_name, housing_characteristics_dir = "housing_cha
       raise err
     end
 
-    err = ""
+    err = ''
     last_size = parameters_processed.size
     parameter_names.each do |parameter_name|
       # Already processed? Skip
@@ -119,7 +119,7 @@ def integrity_check(project_dir_name, housing_characteristics_dir = "housing_cha
   parameters_options = {}
   CSV.foreach(output_file, headers: true).each do |row|
     row.each do |parameter_name, option_name|
-      next if parameter_name == "Building Unit"
+      next if parameter_name == 'Building Unit'
 
       unless parameters_options.keys.include? parameter_name
         parameters_options[parameter_name] = []
@@ -138,10 +138,10 @@ def integrity_check(project_dir_name, housing_characteristics_dir = "housing_cha
   end
 
   # Check that measure arguments aren't getting overwritten
-  err = ""
+  err = ''
   CSV.foreach(output_file, headers: true).each do |row|
     row.each do |parameter_name, option_name|
-      next if parameter_name == "Building Unit"
+      next if parameter_name == 'Building Unit'
 
       parameters_options_measure_args[parameter_name][option_name].each do |measure_name, args|
         parameters_options_measure_args.each do |parameter_name_2, options|
@@ -152,7 +152,7 @@ def integrity_check(project_dir_name, housing_characteristics_dir = "housing_cha
 
             arg_names = args.keys & args_2.keys
             next if arg_names.empty?
-            next if err.include? parameter_name and err.include? parameter_name_2 and err.include? measure_name
+            next if err.include?(parameter_name) && err.include?(parameter_name_2) && err.include?(measure_name)
 
             err += "ERROR: Duplicate measure argument assignment(s) across #{[parameter_name, parameter_name_2]} parameters. (#{measure_name} => #{arg_names}) already assigned.\n"
           end
@@ -169,9 +169,9 @@ def integrity_check(project_dir_name, housing_characteristics_dir = "housing_cha
   end
 
   # Unused TSVs?
-  err = ""
-  Dir[File.join(project_dir_name, housing_characteristics_dir, "*.tsv")].each do |tsvpath|
-    parameter_name = File.basename(tsvpath, ".*")
+  err = ''
+  Dir[File.join(project_dir_name, housing_characteristics_dir, '*.tsv')].each do |tsvpath|
+    parameter_name = File.basename(tsvpath, '.*')
     if not parameter_names.include? parameter_name
       err += "ERROR: TSV file #{tsvpath} not used in options_lookup.tsv.\n"
     end
@@ -181,7 +181,7 @@ def integrity_check(project_dir_name, housing_characteristics_dir = "housing_cha
   end
 end
 
-def integrity_check_options_lookup_tsv(project_dir_name, housing_characteristics_dir = "housing_characteristics", lookup_file = nil)
+def integrity_check_options_lookup_tsv(project_dir_name, housing_characteristics_dir = 'housing_characteristics', lookup_file = nil)
   require 'openstudio'
 
   # Load helper file and sampling file
@@ -240,7 +240,7 @@ def integrity_check_options_lookup_tsv(project_dir_name, housing_characteristics
   measures.keys.each do |measure_subdir|
     puts "Checking for issues with #{measure_subdir} measure..."
 
-    measurerb_path = File.absolute_path(File.join(File.dirname(lookup_file), "..", "resources", "hpxml-measures", measure_subdir, "measure.rb"))
+    measurerb_path = File.absolute_path(File.join(File.dirname(lookup_file), '..', 'resources', 'hpxml-measures', measure_subdir, 'measure.rb'))
     check_file_exists(measurerb_path, nil)
     measure_instance = get_measure_instance(measurerb_path)
 
@@ -296,7 +296,7 @@ end
 def check_parameter_file_format(tsvpath, n_deps, name)
   # For each line in file
   i = 1
-  File.read(tsvpath, mode: "rb").each_line do |line|
+  File.read(tsvpath, mode: 'rb').each_line do |line|
     # If not a comment line
     next if line.start_with? "\#"
 
