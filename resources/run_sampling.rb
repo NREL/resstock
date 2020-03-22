@@ -333,7 +333,7 @@ if __FILE__ == $PROGRAM_NAME
     end
   end.parse!
 
-  if not options[:project] || not options[:numdps] || not options[:outfile]
+  if (not options[:project]) || (not options[:numdps]) || (not options[:outfile])
     fail "ERROR: All 3 arguments are required. Call #{File.basename(__FILE__)} -h for usage."
   end
 
