@@ -7,7 +7,7 @@ class Simulation
     tstep.setNumberOfTimestepsPerHour(timesteps_per_hr) # Timesteps/hour
 
     shad = model.getShadowCalculation
-    shad.setShadingCalculationUpdateFrequency(20)
+    shad.setCalculationFrequency(20)
     shad.setMaximumFiguresInShadowOverlapCalculations(200)
 
     outsurf = model.getOutsideSurfaceConvectionAlgorithm
