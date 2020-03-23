@@ -1862,7 +1862,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     require_relative '../HPXMLtoOpenStudio/measure'
 
     # Check for correct versions of OS
-    os_version = '3.0.0'
+    os_version = '2.9.1'
     if OpenStudio.openStudioVersion != os_version
       fail "OpenStudio version #{os_version} is required."
     end

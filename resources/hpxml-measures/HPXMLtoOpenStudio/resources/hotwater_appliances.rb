@@ -58,21 +58,15 @@ class HotWaterAndAppliances
       # Calculate mixed water fractions
       dwhr_eff_adj, dwhr_iFrac, dwhr_plc, dwhr_locF, dwhr_fixF = get_dwhr_factors(nbeds, dist_type, std_pipe_length, recirc_branch_length, dwhr_is_equal_flow, dwhr_facilities_connected, has_low_flow_fixtures)
       daily_wh_inlet_temperatures = calc_water_heater_daily_inlet_temperatures(weather, dwhr_present, dwhr_iFrac, dwhr_efficiency, dwhr_eff_adj, dwhr_plc, dwhr_locF, dwhr_fixF)
+      daily_wh_inlet_temperatures_c = daily_wh_inlet_temperatures.map { |t| UnitConversions.convert(t, 'F', 'C') }
       daily_mw_fractions = calc_mixed_water_daily_fractions(daily_wh_inlet_temperatures, wh_setpoint, t_mix)
 
-      # Set mains water temperature schedule with water heater inlet temperatures.
-      if not dwhr_present
-        # Use standard correlation
-        swmt = model.getSiteWaterMainsTemperature
-        swmt.setCalculationMethod 'CorrelationFromWeatherFile'
-      else
-        # Need to set custom schedule
-        daily_wh_inlet_temperatures_c = daily_wh_inlet_temperatures.map { |t| UnitConversions.convert(t, 'F', 'C') }
-        time_series_tmains = OpenStudio::TimeSeries.new(start_date, timestep_day, OpenStudio::createVector(daily_wh_inlet_temperatures_c), 'C')
-        schedule_tmains = OpenStudio::Model::ScheduleInterval.fromTimeSeries(time_series_tmains, model).get
-        schedule_tmains.setName('mains temperature schedule')
-        model.getSiteWaterMainsTemperature.setTemperatureSchedule(schedule_tmains)
-      end
+      # Replace mains water temperature schedule with water heater inlet temperature schedule.
+      # These are identical unless there is a DWHR.
+      time_series_tmains = OpenStudio::TimeSeries.new(start_date, timestep_day, OpenStudio::createVector(daily_wh_inlet_temperatures_c), 'C')
+      schedule_tmains = OpenStudio::Model::ScheduleInterval.fromTimeSeries(time_series_tmains, model).get
+      schedule_tmains.setName('mains temperature schedule')
+      model.getSiteWaterMainsTemperature.setTemperatureSchedule(schedule_tmains)
     end
 
     # Clothes washer
