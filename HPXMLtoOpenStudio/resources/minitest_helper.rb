@@ -1,4 +1,3 @@
-  
 called_from_cli = true
 begin
   OpenStudio.getOpenStudioCLI
