@@ -594,8 +594,8 @@ class HPXML < Object
       building_occupancy = XMLHelper.create_elements_as_needed(doc, ['HPXML', 'Building', 'BuildingDetails', 'BuildingSummary', 'BuildingOccupancy'])
       XMLHelper.add_element(building_occupancy, 'NumberofResidents', Float(@number_of_residents)) unless @number_of_residents.nil?
       HPXML::add_extension(parent: building_occupancy,
-                           extensions: { "SchedulesOutputPath": schedules_output_path,
-                                         "SchedulesColumnName": schedules_column_name })
+                           extensions: { 'SchedulesOutputPath' => schedules_output_path,
+                                         'SchedulesColumnName' => schedules_column_name })
     end
 
     def from_rexml(hpxml)

@@ -11,7 +11,7 @@ class Constants
     return 'autosize'
   end
 
-  def self.FuelTypeElectric
+ def self.FuelTypeElectric
     return 'electric'
   end
 

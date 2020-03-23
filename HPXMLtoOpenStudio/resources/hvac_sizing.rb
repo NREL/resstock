@@ -2355,7 +2355,12 @@ class HVACSizing
           hvac.FixedHeatingCapacity = UnitConversions.convert(htg_coil.heatingDesignCapacity.get, 'W', 'ton')
         end
 
-        hvac.BoilerDesignTemp = UnitConversions.convert(htg_coil.plantLoop.get.sizingPlant.designLoopExitTemperature, 'C', 'F')
+        htg_coil.plantLoop.get.components.each do |component|
+          if component.to_BoilerHotWater.is_initialized
+            boiler = component.to_BoilerHotWater.get
+            hvac.BoilerDesignTemp = UnitConversions.convert(boiler.designWaterOutletTemperature.get, 'C', 'F')
+          end
+        end
 
       elsif htg_coil.is_a? OpenStudio::Model::CoilHeatingDXSingleSpeed
         hvac.NumSpeedsHeating = 1
