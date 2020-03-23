@@ -46,7 +46,14 @@ class ResidentialScheduleGenerator < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeStringArgument("num_occupants", true)
     arg.setDisplayName("Number of Occupants")
     arg.setDescription("Specify the number of occupants.")
-    arg.setDefaultValue(Constants.Auto)
+    arg.setDefaultValue("2")
+    args << arg
+
+    # Make a string argument for occupants (auto or number)
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument("modify_plugs_and_lighting", true)
+    arg.setDisplayName("Modify plugload and lighting")
+    arg.setDescription("Whether to modify plugloads, lighting and the ceiling fan based on occupancy")
+    arg.setDefaultValue(false)
     args << arg
 
     return args
