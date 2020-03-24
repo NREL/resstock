@@ -225,7 +225,7 @@ class ProcessDehumidifierTest < MiniTest::Test
   end
 
   def test_single_family_attached_new_construction
-    num_units = 4
+    num_units = 1
     args_hash = {}
     expected_num_del_objects = {}
     expected_num_new_objects = { "ScheduleConstant" => num_units + 1, "ZoneHVACDehumidifierDX" => num_units, "ZoneControlHumidistat" => num_units }
@@ -234,7 +234,7 @@ class ProcessDehumidifierTest < MiniTest::Test
   end
 
   def test_multifamily_new_construction
-    num_units = 8
+    num_units = 1
     args_hash = {}
     expected_num_del_objects = {}
     expected_num_new_objects = { "ScheduleConstant" => num_units + 1, "ZoneHVACDehumidifierDX" => num_units, "ZoneControlHumidistat" => num_units }

@@ -81,7 +81,7 @@ class ProcessCeilingFanTest < MiniTest::Test
   end
 
   def test_single_family_attached_new_construction
-    num_units = 4
+    num_units = 1
     args_hash = {}
     args_hash["use_benchmark_energy"] = "false"
     expected_num_del_objects = {}
@@ -91,7 +91,7 @@ class ProcessCeilingFanTest < MiniTest::Test
   end
 
   def test_multifamily_new_construction
-    num_units = 8
+    num_units = 1
     args_hash = {}
     args_hash["use_benchmark_energy"] = "false"
     expected_num_del_objects = {}

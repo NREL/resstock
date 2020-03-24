@@ -186,7 +186,7 @@ class ProcessTwoSpeedAirSourceHeatPumpTest < MiniTest::Test
   end
 
   def test_retrofit_replace_central_system_boiler_baseboards
-    num_units = 4
+    num_units = 1
     args_hash = {}
     expected_num_del_objects = { "PlantLoop" => 1, "PumpVariableSpeed" => 1, "BoilerHotWater" => 1, "CoilHeatingWaterBaseboard" => num_units, "ZoneHVACBaseboardConvectiveWater" => num_units, "SetpointManagerScheduled" => 1, "EnergyManagementSystemSensor" => 1, "EnergyManagementSystemProgram" => 1, "EnergyManagementSystemOutputVariable" => 1, "EnergyManagementSystemProgramCallingManager" => 1 }
     expected_num_new_objects = { "AirLoopHVACUnitarySystem" => num_units * 2, "AirLoopHVAC" => num_units * 2, "CoilCoolingDXMultiSpeed" => num_units, "FanOnOff" => num_units * 2, "AirTerminalSingleDuctConstantVolumeNoReheat" => num_units * 2, "CoilHeatingElectric" => num_units, "CoilHeatingDXMultiSpeed" => num_units, "CoilCoolingDXMultiSpeedStageData" => num_units * 2, "CoilHeatingDXMultiSpeedStageData" => num_units * 2, "UnitarySystemPerformanceMultispeed" => num_units * 2 }
@@ -195,7 +195,7 @@ class ProcessTwoSpeedAirSourceHeatPumpTest < MiniTest::Test
   end
 
   def test_retrofit_replace_central_system_fan_coil
-    num_units = 4
+    num_units = 1
     args_hash = {}
     expected_num_del_objects = { "PlantLoop" => 2, "PumpVariableSpeed" => 2, "BoilerHotWater" => 1, "ChillerElectricEIR" => 1, "ControllerWaterCoil" => 2 * num_units, "CoilCoolingWater" => num_units, "CoilHeatingWater" => num_units, "FanOnOff" => num_units, "ZoneHVACFourPipeFanCoil" => num_units, "SetpointManagerScheduled" => 2, "EnergyManagementSystemSensor" => 2, "EnergyManagementSystemProgram" => 2, "EnergyManagementSystemOutputVariable" => 2, "EnergyManagementSystemProgramCallingManager" => 2 }
     expected_num_new_objects = { "AirLoopHVACUnitarySystem" => num_units * 2, "AirLoopHVAC" => num_units * 2, "CoilCoolingDXMultiSpeed" => num_units, "FanOnOff" => num_units * 2, "AirTerminalSingleDuctConstantVolumeNoReheat" => num_units * 2, "CoilHeatingElectric" => num_units, "CoilHeatingDXMultiSpeed" => num_units, "CoilCoolingDXMultiSpeedStageData" => num_units * 2, "CoilHeatingDXMultiSpeedStageData" => num_units * 2, "UnitarySystemPerformanceMultispeed" => num_units * 2 }
@@ -204,7 +204,7 @@ class ProcessTwoSpeedAirSourceHeatPumpTest < MiniTest::Test
   end
 
   def test_retrofit_replace_central_system_ptac
-    num_units = 4
+    num_units = 1
     args_hash = {}
     expected_num_del_objects = { "PlantLoop" => 1, "PumpVariableSpeed" => 1, "BoilerHotWater" => 1, "ControllerWaterCoil" => num_units, "CoilHeatingWater" => num_units, "FanConstantVolume" => num_units, "CoilCoolingDXSingleSpeed" => num_units, "ZoneHVACPackagedTerminalAirConditioner" => num_units, "SetpointManagerScheduled" => 1, "EnergyManagementSystemSensor" => 1, "EnergyManagementSystemProgram" => 1, "EnergyManagementSystemOutputVariable" => 1, "EnergyManagementSystemProgramCallingManager" => 1 }
     expected_num_new_objects = { "AirLoopHVACUnitarySystem" => num_units * 2, "AirLoopHVAC" => num_units * 2, "CoilCoolingDXMultiSpeed" => num_units, "FanOnOff" => num_units * 2, "AirTerminalSingleDuctConstantVolumeNoReheat" => num_units * 2, "CoilHeatingElectric" => num_units, "CoilHeatingDXMultiSpeed" => num_units, "CoilCoolingDXMultiSpeedStageData" => num_units * 2, "CoilHeatingDXMultiSpeedStageData" => num_units * 2, "UnitarySystemPerformanceMultispeed" => num_units * 2 }
@@ -213,7 +213,7 @@ class ProcessTwoSpeedAirSourceHeatPumpTest < MiniTest::Test
   end
 
   def test_multifamily_new_construction
-    num_units = 8
+    num_units = 1
     args_hash = {}
     expected_num_del_objects = {}
     expected_num_new_objects = { "AirLoopHVACUnitarySystem" => num_units * 2, "AirLoopHVAC" => num_units * 2, "CoilCoolingDXMultiSpeed" => num_units, "FanOnOff" => num_units * 2, "AirTerminalSingleDuctConstantVolumeNoReheat" => num_units * 2, "CoilHeatingElectric" => num_units, "CoilHeatingDXMultiSpeed" => num_units, "CoilCoolingDXMultiSpeedStageData" => num_units * 2, "CoilHeatingDXMultiSpeedStageData" => num_units * 2, "UnitarySystemPerformanceMultispeed" => num_units * 2 }

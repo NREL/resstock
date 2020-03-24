@@ -235,7 +235,7 @@ class ProcessMiniSplitHeatPumpTest < MiniTest::Test
   end
 
   def test_retrofit_replace_central_system_boiler_baseboards
-    num_units = 4
+    num_units = 1
     args_hash = {}
     args_hash["max_cooling_capacity"] = 1.5
     args_hash["max_heating_capacity"] = 1.5
@@ -246,7 +246,7 @@ class ProcessMiniSplitHeatPumpTest < MiniTest::Test
   end
 
   def test_retrofit_replace_central_system_fan_coil
-    num_units = 4
+    num_units = 1
     args_hash = {}
     args_hash["max_cooling_capacity"] = 1.5
     args_hash["max_heating_capacity"] = 1.5
@@ -257,7 +257,7 @@ class ProcessMiniSplitHeatPumpTest < MiniTest::Test
   end
 
   def test_retrofit_replace_central_system_ptac
-    num_units = 4
+    num_units = 1
     args_hash = {}
     args_hash["max_cooling_capacity"] = 1.5
     args_hash["max_heating_capacity"] = 1.5
@@ -268,7 +268,7 @@ class ProcessMiniSplitHeatPumpTest < MiniTest::Test
   end
 
   def test_multifamily_new_construction
-    num_units = 8
+    num_units = 1
     args_hash = {}
     args_hash["pan_heater_power"] = 150.0
     args_hash["max_cooling_capacity"] = 1.5
