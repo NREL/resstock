@@ -848,7 +848,7 @@ class ScheduleGenerator
       num_states = 7
       num_ts_per_day = 96
 
-      occ_type_id = weighted_random(occ_prob, prng)
+      occ_type_id = weighted_random(prng, occ_prob)
       occ_type = occ_types[occ_type_id]
       init_prob_file_weekday = @schedules_path + "/weekday/mkv_chain_initial_prob_cluster_#{occ_type_id}.csv"
       initial_prob_weekday = CSV.read(init_prob_file_weekday)
@@ -884,10 +884,10 @@ class ScheduleGenerator
         j = 0
         state_prob = initial_prob
         while j < (num_ts_per_day) do
-          active_state = weighted_random(state_prob, prng)
+          active_state = weighted_random(prng, state_prob)
           state_vector = [0] * num_states
           state_vector[active_state] = 1
-          activity_duration = sample_activity_duration(occ_type_id, active_state, day_type, j / 4, prng)
+          activity_duration = sample_activity_duration(prng, occ_type_id, active_state, day_type, j / 4)
           activity_duration.times do |repeat_activity_count|
             # repeat the same activity for the duration times
             simulated_values << state_vector
@@ -1028,15 +1028,15 @@ class ScheduleGenerator
         todays_probablities = todays_probable_mins.map.with_index { |p, i| p * hourly_onset_prob[i / 60] }
         prob_sum = todays_probablities.reduce(0, :+)
         normalized_probabilities = todays_probablities.map { |p| p * 1 / prob_sum }
-        cluster_start_index = weighted_random(normalized_probabilities, prng)
-        num_events = weighted_random(events_per_cluster_probs, prng) + 1
+        cluster_start_index = weighted_random(prng, normalized_probabilities)
+        num_events = weighted_random(prng, events_per_cluster_probs) + 1
         s = (day * 1440) + cluster_start_index
         num_events.times do |event_count|
-          duration = weighted_random(sink_duration_probs, prng) + 1
+          duration = weighted_random(prng, sink_duration_probs) + 1
           if cluster_start_index + duration > 1440 then duration = (1440 - cluster_start_index) + 1 end
           flow_rate_mean = 1.14
           flow_rate_std = 0.61
-          flow_rate = gaussian_rand(flow_rate_mean, flow_rate_std, prng)
+          flow_rate = gaussian_rand(prng, flow_rate_mean, flow_rate_std, 0)
           sink_activity_sch[s...(s + duration)] = [flow_rate] * duration
           sink_activtiy_probable_mins[s...(s + duration)] = [0] * duration # Make those slots unavailable for another cluster
           s += duration + sink_between_event_gap # Two minutes gap between sink activity
@@ -1073,8 +1073,8 @@ class ScheduleGenerator
         r = prng.rand
         if r <= bath_ratio
           # fill in bath for this time
-          flow_rate = gaussian_rand(bath_flow_rate_mean, bath_flow_rate_std, prng)
-          duration = gaussian_rand(bath_duration_mean, bath_duration_std, prng)
+          flow_rate = gaussian_rand(prng, bath_flow_rate_mean, bath_flow_rate_std, 0)
+          duration = gaussian_rand(prng, bath_duration_mean, bath_duration_std, 0)
           int_duration = duration.ceil
           flow_rate *= duration / int_duration
           # since we are rounding duration to integer minute, we compensate by scaling flow rate
@@ -1091,10 +1091,10 @@ class ScheduleGenerator
           end
         else
           # fill in the shower
-          num_events = sample_activity_cluster_size("shower", prng)
+          num_events = sample_activity_cluster_size(prng, "shower")
           num_events.times do
-            flow_rate = gaussian_rand(shower_flow_rate_mean, shower_flow_rate_std, prng)
-            duration = sample_event_duration("shower", prng)
+            flow_rate = gaussian_rand(prng, shower_flow_rate_mean, shower_flow_rate_std, 0)
+            duration = sample_event_duration(prng, "shower")
             int_duration = duration.ceil
             flow_rate *= duration / int_duration
             # since we are rounding duration to integer minute, we compensate by scaling flow rate
@@ -1134,10 +1134,10 @@ class ScheduleGenerator
     m = 0
     while m < mins_in_year
       if @dish_washer_schedule[m / 15] > 0
-        num_events = sample_activity_cluster_size("dishwasher", prng)
+        num_events = sample_activity_cluster_size(prng, "dishwasher")
         num_events.times do
-          flow_rate = gaussian_rand(dw_flow_rate_mean, dw_flow_rate_std, prng)
-          duration = sample_event_duration("dishwasher", prng)
+          flow_rate = gaussian_rand(prng, dw_flow_rate_mean, dw_flow_rate_std, 0)
+          duration = sample_event_duration(prng, "dishwasher")
           int_duration = duration.ceil
           flow_rate *= duration / int_duration
           int_duration.times do
@@ -1169,12 +1169,12 @@ class ScheduleGenerator
     m = 0
     while m < mins_in_year
       if @dish_washer_schedule[m / 15] > 0
-        num_loads = weighted_random(cw_load_size_probability, prng) + 1
+        num_loads = weighted_random(prng, cw_load_size_probability) + 1
         num_loads.times do
-          num_events = sample_activity_cluster_size("clothes_washer", prng)
+          num_events = sample_activity_cluster_size(prng, "clothes_washer")
           num_events.times do
-            flow_rate = gaussian_rand(cw_flow_rate_mean, cw_flow_rate_std, prng)
-            duration = sample_event_duration("clothes_washer", prng)
+            flow_rate = gaussian_rand(prng, cw_flow_rate_mean, cw_flow_rate_std, 0)
+            duration = sample_event_duration(prng, "clothes_washer")
             int_duration = duration.ceil
             flow_rate *= duration / int_duration
             int_duration.times do
@@ -1242,22 +1242,22 @@ class ScheduleGenerator
     return new_array
   end
 
-  def sample_activity_cluster_size(activity_type_name, prng)
+  def sample_activity_cluster_size(prng, activity_type_name)
     cluster_size_file = @schedules_path + "/#{activity_type_name}_cluster_size_probability.csv"
     cluster_size_probabilities = CSV.read(cluster_size_file)
     cluster_size_probabilities = cluster_size_probabilities.map { |entry| entry[0].to_f }
-    return weighted_random(cluster_size_probabilities, prng) + 1
+    return weighted_random(prng, cluster_size_probabilities) + 1
   end
 
-  def sample_event_duration(event_type, prng)
+  def sample_event_duration(prng, event_type)
     duration_file = @schedules_path + "/#{event_type}_event_duration_probability.csv"
     duration_probabilities = CSV.read(duration_file)
     durations = duration_probabilities.map { |entry| (entry[0].to_f) / 60 } # convert to minute
     probabilities = duration_probabilities.map { |entry| entry[1].to_f }
-    return durations[weighted_random(probabilities, prng)]
+    return durations[weighted_random(prng, probabilities)]
   end
 
-  def sample_activity_duration(occ_type_id, activity, day_type, hour, prng)
+  def sample_activity_duration(prng, occ_type_id, activity, day_type, hour)
     # States are: 'sleeping','shower','laundry','cooking', 'dishwashing', 'absent', 'nothingAtHome'
     if hour < 8
       time_of_day = "morning"
@@ -1283,7 +1283,7 @@ class ScheduleGenerator
     duration_probabilities = CSV.read(duration_file)
     durations = duration_probabilities.map { |entry| entry[0].to_i }
     probabilities = duration_probabilities.map { |entry| entry[1].to_f }
-    return durations[weighted_random(probabilities, prng)]
+    return durations[weighted_random(prng, probabilities)]
   end
 
   def export(output_path:)
@@ -1329,11 +1329,13 @@ class ScheduleGenerator
     return true
   end
 
-  def gaussian_rand(mean, std, prng)
+  def gaussian_rand(prng, mean, std, min = nil, max = nil)
     t = 2 * Math::PI * prng.rand
     r = Math.sqrt(-2 * Math.log(1 - prng.rand))
     scale = std * r
     x = mean + scale * Math.cos(t)
+    if not min.nil? and x < min then x = min end
+    if not max.nil? and x > max then x = max end
     # y = mean + scale * Math.sin(t)
     return x
   end
@@ -1356,7 +1358,7 @@ class ScheduleGenerator
     return sch.min + (full_occupancy_current_val - sch.min) * active_occupant_percentage
   end
 
-  def weighted_random(weights, prng)
+  def weighted_random(prng, weights)
     n = prng.rand
     cum_weights = 0
     weights.each_with_index do |w, index|
