@@ -641,7 +641,7 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
         space.setBuildingUnit(unit)
       end
     end
-    
+
     # put all of the spaces in the model into a vector
     spaces = OpenStudio::Model::SpaceVector.new
     model.getSpaces.each do |space|

@@ -1443,22 +1443,10 @@ class FoundationConstructions
     end
 
     # Assign surfaces to Kiva foundation
-    # EDIT
-    # horz_location = model.getBuilding.additionalProperties.getFeatureAsString("horz_location")
-    # if horz_location.is_initialized
-    #   singleunit = true
-    # else
-    #   singleunit = false
-    # end
     wall_surfaces.each do |wall_surface|
       if wall_surface.outsideBoundaryCondition != "Adiabatic"
         wall_surface.setAdjacentFoundation(foundation)
       end
-      # if singleunit and wall_surface.outsideBoundaryCondition != "Adiabatic"
-      #   wall_surface.setAdjacentFoundation(foundation)
-      # elsif not singleunit
-      #   wall_surface.setAdjacentFoundation(foundation)
-      # end
     end
 
     if not apply_slab(runner, model, slab_surface, slab_constr_name,
@@ -2581,7 +2569,7 @@ class SurfaceTypes
         elsif is_finished and obc_is_adjacent and Geometry.space_is_unfinished(adjacent_space)
           surfaces[Constants.SurfaceTypeWallIntFinInsUnfin] << surface
 
-        elsif singleunit #for testing against multifamily modelling aproach
+        elsif singleunit # for testing against multifamily modelling aproach
           # Exterior finished basement
           if Geometry.is_finished_basement(space) and (obc_is_foundation or obc_is_adiabatic)
             surfaces[Constants.SurfaceTypeWallFndGrndFinB] << surface

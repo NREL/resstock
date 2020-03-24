@@ -549,7 +549,7 @@ class Airflow
     inf_conv_factor = 776.25 # [ft/min]/[inH2O^(1/2)*ft^(3/2)/lbm^(1/2)]
     delta_pref = 0.016 # inH2O
 
-    # Living Space Infiltration
+    # Living Space Infiltrationgit
     if not infil.living_ach50.nil?
       unit_living.inf_method = @infMethodASHRAE
 
@@ -568,8 +568,11 @@ class Airflow
       num_floors = model.getBuilding.additionalProperties.getFeatureAsInteger("num_floors")
       horz_location = model.getBuilding.additionalProperties.getFeatureAsString("horz_location")
 
+      h = 0
+      ext_wall_area_building = 0
+
       # Infiltration for single unit
-      if (n_units.is_initialized) and (has_rear_units.is_initialized) and (num_floors.is_initialized) and (horz_location.is_initialized)
+      if horz_location.is_initialized
         singleunit = true
       else
         singleunit = false
@@ -577,34 +580,63 @@ class Airflow
       if singleunit
         n_units = n_units.get.to_f
         has_rear_units = has_rear_units.get
-        num_floors = num_floors.get.to_f
+
         horz_location = horz_location.get
 
-        mf_building_ffa = unit_ag_ffa * n_units
-        mf_building_ELA = mf_building_ffa * building.SLA
+        wall_lengths = []
+        wall_widths = []
+        model.getThermalZones.each do |thermal_zone|
+          next unless thermal_zone.name.to_s.start_with? "living"
 
-        num_units_per_floor = n_units / num_floors
-        if num_units_per_floor == 1 or num_units_per_floor == 2 or num_units_per_floor == 4 # No middle unit(s)
-          a_o_frac = 1 / num_floors / num_units_per_floor
+          thermal_zone.spaces.each do |space|
+            space.surfaces.each do |surface|
+              next if surface.surfaceType.downcase != "wall"
+              next if surface.outsideBoundaryCondition.downcase == "foundation"
+
+              # next unless self.space_is_finished(surface.space.get)
+              l, w, h = Geometry.get_surface_dimensions(surface)
+              wall_lengths << l
+              wall_widths << w
+            end
+          end
+        end
+
+        wall_width = wall_widths.max # long side
+        wall_length = wall_lengths.max # short side
+        building_ag_ffa = unit_ag_ffa * n_units
+        mf_building_ELA = building_ag_ffa * building.SLA
+
+        if Geometry.get_building_type(model) == Constants.BuildingTypeMultifamily
+          num_floors = num_floors.get.to_f
+          num_units_per_floor = n_units / num_floors
+        elsif Geometry.get_building_type(model) == Constants.BuildingTypeSingleFamilyAttached
+          num_floors = 1
+          num_units_per_floor = n_units
+        end
+        if num_units_per_floor == 1 or num_units_per_floor == 2 or (num_units_per_floor == 4 and has_rear_units) # No middle unit(s)
+          a_o_frac = 1 / num_floors / num_units_per_floor # all units have same exterior wall area
           a_o = mf_building_ELA * a_o_frac
         else # Has middle unit(s)
           if has_rear_units
-            end_mid_ratio = 2.8
             n_end_units = 4 * num_floors
+            n_mid_units = n_units - n_end_units
+            ext_wall_area_end = (wall_length + wall_width) * h
+            ext_wall_area_mid = wall_length * h
+            ext_wall_area_building = (n_end_units * ext_wall_area_end) + (n_mid_units * ext_wall_area_mid)
+            ext_wall_area_building = UnitConversions.convert(ext_wall_area_building, "m^2", "ft^2")
           else
-            end_mid_ratio = 1.9
             n_end_units = 2 * num_floors
+            n_mid_units = n_units - n_end_units
+            ext_wall_area_end = (2 * wall_length + wall_width) * h
+            ext_wall_area_mid = 2 * wall_length * h
+            ext_wall_area_building = (n_end_units * ext_wall_area_end) + (n_mid_units * ext_wall_area_mid)
+            ext_wall_area_building = UnitConversions.convert(ext_wall_area_building, "m^2", "ft^2")
           end
-          # Calculate proportional ELA of unit based on external wall area
-          if horz_location == "Middle"
-            a_o = mf_building_ELA / (n_end_units * end_mid_ratio + (n_units - n_end_units))
-          else
-            a_o = mf_building_ELA / (n_end_units + ((n_units - n_end_units) / end_mid_ratio))
-          end
+          a_o = building.SLA * building_ag_ffa * (unit_ag_ext_wall_area / ext_wall_area_building) # Effective Leakage Area (ft^2) - Unit
         end
-      # Infiltration for MF
-      else
+      else # Infiltration for MF
         a_o = building.SLA * building.ag_ffa * (unit_ag_ext_wall_area / building.ag_ext_wall_area) # Effective Leakage Area (ft^2) - Unit
+        building_ag_ffa = building.ag_ffa
       end
 
       # Calculate SLA for unit
@@ -615,7 +647,7 @@ class Airflow
 
       if infil.has_flue_chimney
         y_i = 0.2 # Fraction of leakage through the flue; 0.2 is a "typical" value according to THE ALBERTA AIR INFILTRATION MODEL, Walker and Wilson, 1990
-        if singleunit
+        if singleunit and Geometry.get_building_type(model) == Constants.BuildingTypeMultifamily
           flue_height = unit_living.height * num_floors + 2.0 # ft
         else
           flue_height = building.building_height + 2.0 # ft

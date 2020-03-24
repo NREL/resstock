@@ -135,7 +135,6 @@ class ProcessConstructionsSlab < OpenStudio::Measure::ModelMeasure
 
     surfaces.each do |surface|
       slabExtPerimeter = Geometry.calculate_exposed_perimeter(model, [surface], false)
-
       if slabExtPerimeter > 0
         effective_slab_Rvalue = slabArea / (slabExtPerimeter * slab_perimeter_conduction)
       else
