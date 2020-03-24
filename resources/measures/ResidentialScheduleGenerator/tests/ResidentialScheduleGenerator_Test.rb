@@ -57,8 +57,10 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
     num_building_ids = 20
     num_occupants = 6
     expected_values = { "SchedulesLength" => 52560, "SchedulesWidth" => 15 }
+    prng = Random.new(1) #initialize with certain seed
     (1..num_building_ids).to_a.each do |building_id|
       building_id = rand(1..450000)
+      #building_id = prng.rand(1..450000) # uncomment to use deterministic testing
       (1..num_occupants).to_a.each do |num_occupant|
         puts "\nBUILDING ID: #{building_id}, NUM_OCCUPANTS: #{num_occupant}"
         full_load_hours["building_id"] << building_id
