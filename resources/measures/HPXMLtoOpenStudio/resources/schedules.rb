@@ -953,9 +953,9 @@ class ScheduleGenerator
         step_per_hour = 60 / minutes_per_steps
 
         # the schedule is set as the sum of values of individual occupants
-        sleeping_schedule << sum_across_occupants(all_simulated_values, 0, index_15) / @num_occupants
+        sleeping_schedule << sum_across_occupants(all_simulated_values, 0, index_15).to_f / @num_occupants
 
-        @shower_schedule << sum_across_occupants(all_simulated_values, 1, index_15) / @num_occupants
+        @shower_schedule << sum_across_occupants(all_simulated_values, 1, index_15).to_f / @num_occupants
 
         # clothes washer
         clothes_washing_count = sum_across_occupants(all_simulated_values, 2, index_15)
@@ -977,8 +977,8 @@ class ScheduleGenerator
         end
         @cooking_schedule << sum_across_occupants(all_simulated_values, 3, index_15, max_clip = 1)
         @dish_washer_schedule << sum_across_occupants(all_simulated_values, 4, index_15, max_clip = 1)
-        @away_schedule << sum_across_occupants(all_simulated_values, 5, index_15) / @num_occupants
-        idle_schedule << sum_across_occupants(all_simulated_values, 6, index_15) / @num_occupants
+        @away_schedule << sum_across_occupants(all_simulated_values, 5, index_15).to_f / @num_occupants
+        idle_schedule << sum_across_occupants(all_simulated_values, 6, index_15).to_f / @num_occupants
 
         active_occupancy_percentage = 1 - (@away_schedule[-1] + sleeping_schedule[-1])
         @plugload_schedule << get_value_from_daily_sch(daily_plugload_sch, month, is_weekday, minute, active_occupancy_percentage)
