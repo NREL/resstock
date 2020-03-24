@@ -576,6 +576,16 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
         if has_rear_units == true
           corridor_space.surfaces.each do |surface|
             os_facade = Geometry.get_facade_for_surface(surface)
+
+            if adb_facade.include? os_facade
+              surface.setOutsideBoundaryCondition("Adiabatic")
+            elsif (adb_level.include? surface.surfaceType)
+              surface.setOutsideBoundaryCondition("Adiabatic")
+            end
+
+            if surface.surfaceType.include? "Floor" # To avoid Kiva exposed perimeter error when all walls are adiabatic
+              surface.setOutsideBoundaryCondition("Adiabatic")
+            end
           end
         end
       end
