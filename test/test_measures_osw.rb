@@ -14,14 +14,18 @@ class TestResStockMeasuresOSW < MiniTest::Test
 
     measures_osw_dir = File.join(parent_dir, 'measures_osw')
     Dir.mkdir(measures_osw_dir) unless File.exist?(measures_osw_dir)
+
+    measures_upgrade_osw_dir = File.join(parent_dir, 'measures_upgrade_osw')
+    Dir.mkdir(measures_upgrade_osw_dir) unless File.exist?(measures_upgrade_osw_dir)
+
     (1..num_samples).to_a.each do |building_unit_id|
-      Dir["#{parent_dir}/build_existing_model.osw"].each do |osw|
+      Dir["#{parent_dir}/workflow.osw"].each do |osw|
         change_building_unit_id(osw, building_unit_id)
-        run_and_check(osw, parent_dir, measures_osw_dir, building_unit_id)
+        run_and_check(osw, parent_dir, measures_osw_dir, measures_upgrade_osw_dir, building_unit_id)
       end
     end
 
-    Dir["#{parent_dir}/build_existing_model.osw"].each do |osw|
+    Dir["#{parent_dir}/workflow.osw"].each do |osw|
       change_building_unit_id(osw, 1)
     end
 
@@ -30,23 +34,30 @@ class TestResStockMeasuresOSW < MiniTest::Test
     FileUtils.rm_rf(File.join(parent_dir, 'reports'))
   end
 
-  def run_and_check(in_osw, parent_dir, measures_osw_dir, building_unit_id)
+  def run_and_check(in_osw, parent_dir, measures_osw_dir, measures_upgrade_osw_dir, building_unit_id)
     puts "\nBuilding Unit ID: #{building_unit_id} ...\n"
 
-    # Create measures.osw
     cli_path = OpenStudio.getOpenStudioCLI
     command = "cd #{parent_dir} && \"#{cli_path}\" run -w #{in_osw}"
     system(command)
 
     # Check output file exists
     out_osw = File.join(parent_dir, 'out.osw')
-    new_out_osw = File.join(measures_osw_dir, "#{building_unit_id}.osw")
-    FileUtils.mv(out_osw, new_out_osw)
-    assert(File.exist?(new_out_osw))
+    assert(File.exist?(out_osw))
 
     # Check workflow was successful
-    data_hash = JSON.parse(File.read(new_out_osw))
+    data_hash = JSON.parse(File.read(out_osw))
     assert_equal(data_hash['completed_status'], 'Success')
+
+    # Save measures.osw
+    measures_osw = File.join(parent_dir, 'run', 'measures.osw')
+    new_measures_osw = File.join(measures_osw_dir, "#{building_unit_id}.osw")
+    FileUtils.mv(measures_osw, new_measures_osw)
+
+    # Save measures-upgrade.osw
+    measures_upgrade_osw = File.join(parent_dir, 'run', 'measures-upgrade.osw')
+    new_measures_upgrade_osw = File.join(measures_upgrade_osw_dir, "#{building_unit_id}.osw")
+    FileUtils.mv(measures_upgrade_osw, new_measures_upgrade_osw)
   end
 
   def create_buildstock_csv(project_dir, num_samples)

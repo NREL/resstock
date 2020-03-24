@@ -1,21 +1,16 @@
 # see the URL below for information on how to write OpenStudio measures
 # http://nrel.github.io/OpenStudio-user-documentation/measures/measure_writing_guide/
 
-# Adapted from Measure Picker measure
-# https://github.com/NREL/OpenStudio-measures/blob/develop/NREL%20working%20measures/measure_picker/measure.rb
-
 require 'csv'
 require 'openstudio'
-
-require 'openstudio'
-if File.exist? File.absolute_path(File.join(File.dirname(__FILE__), '../../lib/resources/measures/HPXMLtoOpenStudio/resources')) # Hack to run ResStock on AWS
-  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../../lib/resources/measures/HPXMLtoOpenStudio/resources'))
-elsif File.exist? File.absolute_path(File.join(File.dirname(__FILE__), '../../resources/measures/HPXMLtoOpenStudio/resources')) # Hack to run ResStock unit tests locally
-  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../../resources/measures/HPXMLtoOpenStudio/resources'))
-elsif File.exist? File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources') # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
-  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources')
+if File.exist? File.absolute_path(File.join(File.dirname(__FILE__), '../../lib/resources/hpxml-measures/BuildResidentialHPXML/resources')) # Hack to run ResStock on AWS
+  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../../lib/resources/hpxml-measures/BuildResidentialHPXML/resources'))
+elsif File.exist? File.absolute_path(File.join(File.dirname(__FILE__), '../../resources/hpxml-measures/BuildResidentialHPXML/resources')) # Hack to run ResStock unit tests locally
+  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../../resources/hpxml-measures/BuildResidentialHPXML/resources'))
+elsif File.exist? File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'BuildResidentialHPXML/resources') # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
+  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'BuildResidentialHPXML/resources')
 else
-  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../HPXMLtoOpenStudio/resources'))
+  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../BuildResidentialHPXML/resources'))
 end
 require File.join(resources_path, 'constants')
 
@@ -205,16 +200,18 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
     end
 
     # Get file/dir paths
-    resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), '..', '..', 'lib', 'resources')) # Should have been uploaded per 'Additional Analysis Files' in PAT
-    check_dir_exists(resources_dir, runner)
-    characteristics_dir = File.absolute_path(File.join(File.dirname(__FILE__), '..', '..', 'lib', 'housing_characteristics')) # Should have been uploaded per 'Additional Analysis Files' in PAT
-    check_dir_exists(characteristics_dir, runner)
+    resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), '../../lib/resources')) # Should have been uploaded per 'Additional Analysis Files' in PAT
+    characteristics_dir = File.absolute_path(File.join(File.dirname(__FILE__), '../../lib/housing_characteristics')) # Should have been uploaded per 'Additional Analysis Files' in PAT
     buildstock_file = File.join(resources_dir, 'buildstock.rb')
-    measures_dir = File.join(resources_dir, 'measures')
+    measures_dir = File.join(resources_dir, '../../resources/hpxml-measures')
     lookup_file = File.join(resources_dir, 'options_lookup.tsv')
 
     # Load buildstock_file
     require File.join(File.dirname(buildstock_file), File.basename(buildstock_file, File.extname(buildstock_file)))
+
+    # Check file/dir paths exist
+    check_dir_exists(resources_dir, runner)
+    check_dir_exists(characteristics_dir, runner)
 
     # Retrieve workflow_json from BuildExistingModel measure if provided
     workflow_json = get_value_from_runner_past_results(runner, 'workflow_json', 'build_existing_model', false)
@@ -304,6 +301,15 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
           end
         end
       end
+
+      # Get the absolute path of the exported xml relative to this meta measure in the run directory
+      measures['BuildResidentialHPXML'][0]['hpxml_path'] = File.expand_path('../upgraded.xml')
+      measures['HPXMLtoOpenStudio'] = [{ 'hpxml_path' => File.expand_path('../upgraded.xml'), 'weather_dir' => '../../weather' }]
+
+      # Get registered values from ResidentialSimulationControls and pass them to BuildResidentialHPXML
+      timesteps_per_hr = get_value_from_runner_past_results(runner, 'timesteps_per_hr', 'residential_simulation_controls', false)
+      simulation_control_timestep = 60 / timesteps_per_hr
+      measures['BuildResidentialHPXML'][0]['simulation_control_timestep'] = simulation_control_timestep
 
       if not apply_measures(measures_dir, measures, runner, model, workflow_json, 'measures-upgrade.osw', true)
         return false

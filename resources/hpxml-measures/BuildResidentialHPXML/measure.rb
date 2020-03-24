@@ -2186,7 +2186,9 @@ end
 
 class HPXMLFile
   def self.create(runner, model, args)
-    success = create_geometry_envelope(runner, model, args)
+    model_geometry = OpenStudio::Model::Model.new
+
+    success = create_geometry_envelope(runner, model_geometry, args)
     return false if not success
 
     success = create_schedules(runner, model, args)
@@ -2201,17 +2203,17 @@ class HPXMLFile
     set_building_construction(hpxml, runner, args)
     set_climate_and_risk_zones(hpxml, runner, args)
     set_air_infiltration_measurements(hpxml, runner, args)
-    set_attics(hpxml, runner, model, args)
-    set_foundations(hpxml, runner, model, args)
-    set_roofs(hpxml, runner, model, args)
-    set_rim_joists(hpxml, runner, model, args)
-    set_walls(hpxml, runner, model, args)
-    set_foundation_walls(hpxml, runner, model, args)
-    set_frame_floors(hpxml, runner, model, args)
-    set_slabs(hpxml, runner, model, args)
-    set_windows(hpxml, runner, model, args)
-    set_skylights(hpxml, runner, model, args)
-    set_doors(hpxml, runner, model, args)
+    set_attics(hpxml, runner, model_geometry, args)
+    set_foundations(hpxml, runner, model_geometry, args)
+    set_roofs(hpxml, runner, model_geometry, args)
+    set_rim_joists(hpxml, runner, model_geometry, args)
+    set_walls(hpxml, runner, model_geometry, args)
+    set_foundation_walls(hpxml, runner, model_geometry, args)
+    set_frame_floors(hpxml, runner, model_geometry, args)
+    set_slabs(hpxml, runner, model_geometry, args)
+    set_windows(hpxml, runner, model_geometry, args)
+    set_skylights(hpxml, runner, model_geometry, args)
+    set_doors(hpxml, runner, model_geometry, args)
     set_heating_systems(hpxml, runner, args)
     set_cooling_systems(hpxml, runner, args)
     set_heat_pumps(hpxml, runner, args)
@@ -2233,9 +2235,6 @@ class HPXMLFile
     set_ceiling_fans(hpxml, runner, args)
     set_plug_loads(hpxml, runner, args)
     set_misc_loads_schedule(hpxml, runner, args)
-
-    success = remove_geometry_envelope(model)
-    return false if not success
 
     hpxml_doc = hpxml.to_rexml()
     HPXML::add_extension(parent: hpxml_doc.elements['/HPXML/Building/BuildingDetails'],
@@ -2264,23 +2263,6 @@ class HPXMLFile
 
     success = Geometry.create_doors(runner: runner, model: model, **args)
     return false if not success
-
-    return true
-  end
-
-  def self.remove_geometry_envelope(model)
-    model.getSpaces.each do |space|
-      space.surfaces.each do |surface|
-        surface.remove
-      end
-      if space.thermalZone.is_initialized
-        space.thermalZone.get.remove
-      end
-      if space.spaceType.is_initialized
-        space.spaceType.get.remove
-      end
-      space.remove
-    end
 
     return true
   end

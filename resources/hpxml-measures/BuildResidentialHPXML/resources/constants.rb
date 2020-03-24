@@ -30,4 +30,12 @@ class Constants
     num_hours_in_year = num_days_in_year * 24
     return num_hours_in_year.to_f
   end
+
+  def self.NumApplyUpgradeOptions
+    return 25
+  end
+
+  def self.NumApplyUpgradesCostsPerOption
+    return 2
+  end
 end
