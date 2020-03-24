@@ -1,34 +1,6 @@
 class Constants
-  def self.Auto
-    return 'auto'
-  end
-
   def self.CoordRelative
     return 'relative'
-  end
-
-  def self.SizingAuto
-    return 'autosize'
-  end
-
-  def self.FuelTypeElectric
-    return 'electric'
-  end
-
-  def self.FuelTypeGas
-    return 'gas'
-  end
-
-  def self.FuelTypePropane
-    return 'propane'
-  end
-
-  def self.FuelTypeOil
-    return 'oil'
-  end
-
-  def self.FuelTypeWood
-    return 'wood'
   end
 
   # Numbers --------------------
