@@ -332,7 +332,7 @@ class ResidentialClothesWasherTest < MiniTest::Test
     num_units = 4
     args_hash = {}
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ElectricEquipment" => num_units, "ElectricEquipmentDefinition" => num_units, "ScheduleConstant" => num_units, "ScheduleFile" => num_units, "WaterUseEquipment" => num_units, "WaterUseEquipmentDefinition" => num_units }
+    expected_num_new_objects = { "ElectricEquipment" => num_units, "ElectricEquipmentDefinition" => num_units, "ScheduleConstant" => num_units, "ScheduleFile" => 1, "WaterUseEquipment" => num_units, "WaterUseEquipmentDefinition" => num_units }
     expected_values = { "Annual_kwh" => num_units * 42.94, "HotWater_gpd" => num_units * 9.99, "Location" => args_hash["location"] }
     _test_measure("SFA_4units_1story_FB_UA_3Beds_2Baths_Denver_WHTank.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
   end
@@ -342,7 +342,7 @@ class ResidentialClothesWasherTest < MiniTest::Test
     args_hash = {}
     args_hash["location"] = Constants.SpaceTypeFinishedBasement
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ElectricEquipment" => num_units, "ElectricEquipmentDefinition" => num_units, "ScheduleConstant" => num_units, "ScheduleFile" => num_units, "WaterUseEquipment" => num_units, "WaterUseEquipmentDefinition" => num_units }
+    expected_num_new_objects = { "ElectricEquipment" => num_units, "ElectricEquipmentDefinition" => num_units, "ScheduleConstant" => num_units, "ScheduleFile" => 1, "WaterUseEquipment" => num_units, "WaterUseEquipmentDefinition" => num_units }
     expected_values = { "Annual_kwh" => num_units * 42.94, "HotWater_gpd" => num_units * 9.99, "Location" => args_hash["location"] }
     _test_measure("SFA_4units_1story_FB_UA_3Beds_2Baths_Denver_WHTank.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
   end
@@ -352,7 +352,7 @@ class ResidentialClothesWasherTest < MiniTest::Test
     args_hash = {}
     args_hash["location"] = Constants.SpaceTypeUnfinishedBasement
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ElectricEquipment" => num_units, "ElectricEquipmentDefinition" => num_units, "ScheduleConstant" => num_units, "ScheduleFile" => num_units, "WaterUseEquipment" => num_units, "WaterUseEquipmentDefinition" => num_units }
+    expected_num_new_objects = { "ElectricEquipment" => num_units, "ElectricEquipmentDefinition" => num_units, "ScheduleConstant" => num_units, "ScheduleFile" => 1, "WaterUseEquipment" => num_units, "WaterUseEquipmentDefinition" => num_units }
     expected_values = { "Annual_kwh" => num_units * 42.94, "HotWater_gpd" => num_units * 9.99, "Location" => args_hash["location"] }
     _test_measure("SFA_4units_1story_UB_UA_3Beds_2Baths_Denver_WHTank.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
   end
@@ -361,7 +361,7 @@ class ResidentialClothesWasherTest < MiniTest::Test
     num_units = 8
     args_hash = {}
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ElectricEquipment" => num_units, "ElectricEquipmentDefinition" => num_units, "ScheduleConstant" => num_units, "ScheduleFile" => num_units, "WaterUseEquipment" => num_units, "WaterUseEquipmentDefinition" => num_units }
+    expected_num_new_objects = { "ElectricEquipment" => num_units, "ElectricEquipmentDefinition" => num_units, "ScheduleConstant" => num_units, "ScheduleFile" => 1, "WaterUseEquipment" => num_units, "WaterUseEquipmentDefinition" => num_units }
     expected_values = { "Annual_kwh" => 343.54, "HotWater_gpd" => 79.99, "Location" => args_hash["location"] }
     _test_measure("MF_8units_1story_SL_3Beds_2Baths_Denver_WHTank.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
   end
@@ -470,18 +470,14 @@ class ResidentialClothesWasherTest < MiniTest::Test
 
         if obj_type == "ElectricEquipment"
           schedule_file = new_object.schedule.get.to_ScheduleFile.get
-          sch_path = schedule_file.externalFile.filePath.to_s
-          schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_output_path: sch_path)
-          col_name = schedules_file.get_col_name(col_index: schedule_file.columnNumber - 1)
-          full_load_hrs = schedules_file.annual_equivalent_full_load_hrs(col_name: col_name)
+          schedules_file = SchedulesFile.new(runner: runner, model: model)
+          full_load_hrs = schedules_file.annual_equivalent_full_load_hrs(col_name: schedule_file.name.to_s)
           actual_values["Annual_kwh"] += UnitConversions.convert(full_load_hrs * new_object.designLevel.get * new_object.multiplier, "Wh", "kWh")
           actual_values["Location"] << new_object.space.get.spaceType.get.standardsSpaceType.get
         elsif obj_type == "WaterUseEquipment"
           schedule_file = new_object.flowRateFractionSchedule.get.to_ScheduleFile.get
-          sch_path = schedule_file.externalFile.filePath.to_s
-          schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_output_path: sch_path)
-          col_name = schedules_file.get_col_name(col_index: schedule_file.columnNumber - 1)
-          full_load_hrs = schedules_file.annual_equivalent_full_load_hrs(col_name: col_name)
+          schedules_file = SchedulesFile.new(runner: runner, model: model)
+          full_load_hrs = schedules_file.annual_equivalent_full_load_hrs(col_name: schedule_file.name.to_s)
           actual_values["HotWater_gpd"] += UnitConversions.convert(full_load_hrs * new_object.waterUseEquipmentDefinition.peakFlowRate * new_object.multiplier, "m^3/s", "gal/min") * 60.0 / 365.0
           actual_values["Location"] << new_object.space.get.spaceType.get.standardsSpaceType.get
         end

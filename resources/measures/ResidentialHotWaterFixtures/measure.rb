@@ -119,8 +119,7 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
     year_description = model.getYearDescription
     num_days_in_year = Constants.NumDaysInYear(year_description.isLeapYear)
 
-    sch_path = SchedulesFile.get_schedule_file_path(model)
-    schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_output_path: sch_path)
+    schedules_file = SchedulesFile.new(runner: runner, model: model)
     if not schedules_file.validated?
       return false
     end
@@ -142,11 +141,13 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
     sch_s = nil
     sch_b = nil
     units.each_with_index do |unit, unit_index|
-      # Get unit beds/baths
+      # Get unit beds/baths/occupants
       nbeds, nbaths = Geometry.get_unit_beds_baths(model, unit, runner)
       if nbeds.nil? or nbaths.nil?
         return false
       end
+
+      noccupants = Geometry.get_unit_occupants(model, unit, runner)
 
       # Get space
       space = Geometry.get_space_from_location(unit, Constants.Auto, location_hierarchy)
@@ -164,28 +165,53 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
       obj_name_b = Constants.ObjectNameBath(unit.name.to_s)
       obj_name_recirc_pump = Constants.ObjectNameHotWaterRecircPump(unit.name.to_s)
 
-      # Calc daily gpm and annual gain of each end use
-      sh_gpd = (14.0 + 4.67 * nbeds) * sh_mult
-      s_gpd = (12.5 + 4.16 * nbeds) * s_mult
-      b_gpd = (3.5 + 1.17 * nbeds) * b_mult
+      if [Constants.BuildingTypeMultifamily, Constants.BuildingTypeSingleFamilyAttached].include? Geometry.get_building_type(model) # multifamily equation
+        # Calc daily gpm and annual gain of each end use
+        sh_gpd = (14.0 + 4.67 * (-0.68 + 1.09 * noccupants)) * sh_mult
+        s_gpd = (12.5 + 4.16 * (-0.68 + 1.09 * noccupants)) * s_mult
+        b_gpd = (3.5 + 1.17 * (-0.68 + 1.09 * noccupants)) * b_mult
 
-      # Shower internal gains
-      sh_sens_load = (741 + 247 * nbeds) * sh_mult # Btu/day
-      sh_lat_load = (703 + 235 * nbeds) * sh_mult # Btu/day
-      sh_tot_load = UnitConversions.convert(sh_sens_load + sh_lat_load, "Btu", "kWh") # kWh/day
-      sh_lat = sh_lat_load / (sh_lat_load + sh_sens_load)
+        # Shower internal gains
+        sh_sens_load = (741 + 247 * (-0.68 + 1.09 * noccupants)) * sh_mult # Btu/day
+        sh_lat_load = (703 + 235 * (-0.68 + 1.09 * noccupants)) * sh_mult # Btu/day
+        sh_tot_load = UnitConversions.convert(sh_sens_load + sh_lat_load, "Btu", "kWh") # kWh/day
+        sh_lat = sh_lat_load / (sh_lat_load + sh_sens_load)
 
-      # Sink internal gains
-      s_sens_load = (310 + 103 * nbeds) * s_mult # Btu/day
-      s_lat_load = (140 + 47 * nbeds) * s_mult # Btu/day
-      s_tot_load = UnitConversions.convert(s_sens_load + s_lat_load, "Btu", "kWh") # kWh/day
-      s_lat = s_lat_load / (s_lat_load + s_sens_load)
+        # Sink internal gains
+        s_sens_load = (310 + 103 * (-0.68 + 1.09 * noccupants)) * s_mult # Btu/day
+        s_lat_load = (140 + 47 * (-0.68 + 1.09 * noccupants)) * s_mult # Btu/day
+        s_tot_load = UnitConversions.convert(s_sens_load + s_lat_load, "Btu", "kWh") # kWh/day
+        s_lat = s_lat_load / (s_lat_load + s_sens_load)
 
-      # Bath internal gains
-      b_sens_load = (185 + 62 * nbeds) * b_mult # Btu/day
-      b_lat_load = 0 # Btu/day
-      b_tot_load = UnitConversions.convert(b_sens_load + b_lat_load, "Btu", "kWh") # kWh/day
-      b_lat = b_lat_load / (b_lat_load + b_sens_load)
+        # Bath internal gains
+        b_sens_load = (185 + 62 * (-0.68 + 1.09 * noccupants)) * b_mult # Btu/day
+        b_lat_load = 0 # Btu/day
+        b_tot_load = UnitConversions.convert(b_sens_load + b_lat_load, "Btu", "kWh") # kWh/day
+        b_lat = b_lat_load / (b_lat_load + b_sens_load)
+      elsif [Constants.BuildingTypeSingleFamilyDetached].include? Geometry.get_building_type(model) # single-family equation
+        # Calc daily gpm and annual gain of each end use
+        sh_gpd = (14.0 + 4.67 * (-1.47 + 1.69 * noccupants)) * sh_mult
+        s_gpd = (12.5 + 4.16 * (-1.47 + 1.69 * noccupants)) * s_mult
+        b_gpd = (3.5 + 1.17 * (-1.47 + 1.69 * noccupants)) * b_mult
+
+        # Shower internal gains
+        sh_sens_load = (741 + 247 * (-1.47 + 1.69 * noccupants)) * sh_mult # Btu/day
+        sh_lat_load = (703 + 235 * (-1.47 + 1.69 * noccupants)) * sh_mult # Btu/day
+        sh_tot_load = UnitConversions.convert(sh_sens_load + sh_lat_load, "Btu", "kWh") # kWh/day
+        sh_lat = sh_lat_load / (sh_lat_load + sh_sens_load)
+
+        # Sink internal gains
+        s_sens_load = (310 + 103 * (-1.47 + 1.69 * noccupants)) * s_mult # Btu/day
+        s_lat_load = (140 + 47 * (-1.47 + 1.69 * noccupants)) * s_mult # Btu/day
+        s_tot_load = UnitConversions.convert(s_sens_load + s_lat_load, "Btu", "kWh") # kWh/day
+        s_lat = s_lat_load / (s_lat_load + s_sens_load)
+
+        # Bath internal gains
+        b_sens_load = (185 + 62 * (-1.47 + 1.69 * noccupants)) * b_mult # Btu/day
+        b_lat_load = 0 # Btu/day
+        b_tot_load = UnitConversions.convert(b_sens_load + b_lat_load, "Btu", "kWh") # kWh/day
+        b_lat = b_lat_load / (b_lat_load + b_sens_load)
+      end
 
       if sh_gpd > 0 or s_gpd > 0 or b_gpd > 0
 
@@ -211,19 +237,11 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
         col_name = "showers"
         if sch_sh.nil?
           # Create schedule
-          sch_sh = schedules_file.createScheduleFile(sch_file_name: "#{Constants.ObjectNameShower} schedule", col_name: col_name)
+          sch_sh = schedules_file.create_schedule_file(col_name: col_name)
         end
 
-        sh_max_flow = model.getBuilding.additionalProperties.getFeatureAsDouble("Shower Max Flow Rate")
-        if not sh_max_flow.is_initialized
-          sh_max_flow = 4.079
-          sh_tot_flow = 26.24088767
-        else
-          sh_max_flow = sh_max_flow.get
-          sh_tot_flow = sh_gpd
-        end
-        sh_peak_flow = schedules_file.calcPeakFlowFromDailygpm(daily_water: sh_gpd, tot_flow: sh_tot_flow, max_flow: sh_max_flow)
-        sh_design_level = schedules_file.calcDesignLevelFromDailykWh(daily_kwh: sh_tot_load, tot_flow: sh_tot_flow, max_flow: sh_max_flow)
+        sh_peak_flow = schedules_file.calc_peak_flow_from_daily_gpm(daily_water: sh_gpd)
+        sh_design_level = schedules_file.calc_design_level_from_daily_kwh(col_name: col_name, daily_kwh: sh_tot_load)
 
         # Add water use equipment objects
         sh_wu_def = OpenStudio::Model::WaterUseEquipmentDefinition.new(model)
@@ -278,19 +296,11 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
         col_name = "sinks"
         if sch_s.nil?
           # Create schedule
-          sch_s = schedules_file.createScheduleFile(sch_file_name: "#{Constants.ObjectNameSink} schedule", col_name: col_name)
+          sch_s = schedules_file.create_schedule_file(col_name: col_name)
         end
 
-        s_max_flow = model.getBuilding.additionalProperties.getFeatureAsDouble("Sink Max Flow Rate")
-        if not s_max_flow.is_initialized
-          s_max_flow = 3.2739
-          s_tot_flow = 24.29216986
-        else
-          s_max_flow = s_max_flow.get
-          s_tot_flow = s_gpd
-        end
-        s_peak_flow = schedules_file.calcPeakFlowFromDailygpm(daily_water: s_gpd, tot_flow: s_tot_flow, max_flow: s_max_flow)
-        s_design_level = schedules_file.calcDesignLevelFromDailykWh(daily_kwh: s_tot_load, tot_flow: s_tot_flow, max_flow: s_max_flow)
+        s_peak_flow = schedules_file.calc_peak_flow_from_daily_gpm(daily_water: s_gpd)
+        s_design_level = schedules_file.calc_design_level_from_daily_kwh(col_name: col_name, daily_kwh: s_tot_load)
 
         # Add water use equipment objects
         s_wu_def = OpenStudio::Model::WaterUseEquipmentDefinition.new(model)
@@ -325,19 +335,11 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
         col_name = "baths"
         if sch_b.nil?
           # Create schedule
-          sch_b = schedules_file.createScheduleFile(sch_file_name: "#{Constants.ObjectNameBath} schedule", col_name: col_name)
+          sch_b = schedules_file.create_schedule_file(col_name: col_name)
         end
 
-        b_max_flow = model.getBuilding.additionalProperties.getFeatureAsDouble("Bath Max Flow Rate")
-        if not b_max_flow.is_initialized
-          b_max_flow = 7.0312
-          b_tot_flow = 7.238115068
-        else
-          b_max_flow = b_max_flow.get
-          b_tot_flow = b_gpd
-        end
-        b_peak_flow = schedules_file.calcPeakFlowFromDailygpm(daily_water: b_gpd, tot_flow: b_tot_flow, max_flow: b_max_flow)
-        b_design_level = schedules_file.calcDesignLevelFromDailykWh(daily_kwh: b_tot_load, tot_flow: b_tot_flow, max_flow: b_max_flow)
+        b_peak_flow = schedules_file.calc_peak_flow_from_daily_gpm(daily_water: b_gpd)
+        b_design_level = schedules_file.calc_design_level_from_daily_kwh(col_name: col_name, daily_kwh: b_tot_load)
 
         # Add water use equipment objects
         b_wu_def = OpenStudio::Model::WaterUseEquipmentDefinition.new(model)

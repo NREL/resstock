@@ -439,8 +439,7 @@ class ResidentialLightingInteriorTest < MiniTest::Test
         if obj_type == "Lights"
           if schedules_file.nil?
             schedule_file = new_object.schedule.get.to_ScheduleFile.get
-            sch_path = schedule_file.externalFile.filePath.to_s
-            schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_output_path: sch_path)
+            schedules_file = SchedulesFile.new(runner: runner, model: model)
           end
           full_load_hrs = schedules_file.annual_equivalent_full_load_hrs(col_name: "lighting_interior")
           actual_values["Annual_kwh"] += UnitConversions.convert(full_load_hrs * new_object.lightingLevel.get * new_object.multiplier * new_object.space.get.multiplier, "Wh", "kWh")

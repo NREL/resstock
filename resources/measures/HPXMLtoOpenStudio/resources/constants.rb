@@ -71,6 +71,10 @@ class Constants
     return 1e-9
   end
 
+  def self.PeakFlowRate
+    return 10 # gal/min
+  end
+
   # Strings --------------------
 
   def self.AirFilm
@@ -203,6 +207,10 @@ class Constants
 
   def self.BuildingUnitFeatureNumBedrooms
     return 'NumberOfBedrooms'
+  end
+
+  def self.BuildingUnitFeatureNumOccupants
+    return 'NumberOfOccupants'
   end
 
   def self.BuildingUnitTypeResidential
