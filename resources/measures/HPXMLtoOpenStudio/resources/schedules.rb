@@ -570,7 +570,7 @@ class Schedule
         end
       end
     end
-    return {'min' => min, 'max' => max} # this doesn't include summer and winter design day
+    return { 'min' => min, 'max' => max } # this doesn't include summer and winter design day
   end
 
   # return [Double] The total number of full load hours for this schedule.
@@ -812,12 +812,11 @@ class ScheduleGenerator
   end
 
   def create
-
     @num_occupants = @num_occupants.to_i
     minutes_per_steps = 10
     if @model.getSimulationControl.timestep.is_initialized
       minutes_per_steps = 60 / @model.getSimulationControl.timestep.get.numberOfTimestepsPerHour
-      #minutes_per_steps = 1
+      # minutes_per_steps = 1
     else
       minutes_per_steps = 1
     end
@@ -840,7 +839,7 @@ class ScheduleGenerator
     prng = Random.new(building_id)
 
     occupancy_cluster_types_tsv_path = @schedules_path + "/Occupancy_Types.tsv"
-    occ_types_dist = CSV.read(occupancy_cluster_types_tsv_path, {:col_sep => "\t"})
+    occ_types_dist = CSV.read(occupancy_cluster_types_tsv_path, { :col_sep => "\t" })
     occ_types = occ_types_dist[0].map { |i| i.split('=')[1] }
     occ_prob = occ_types_dist[1].map { |i| i.to_f }
 
@@ -893,13 +892,10 @@ class ScheduleGenerator
             # repeat the same activity for the duration times
             simulated_values << state_vector
             j += 1
-            if j >= num_ts_per_day # break as soon as we have filled for the day
-              break
-            end
+            if j >= num_ts_per_day then break end # break as soon as we have filled for the day
           end
-          if j >= num_ts_per_day # break as soon as we have filled for the day
-            break
-          end
+          if j >= num_ts_per_day then break end # break as soon as we have filled for the day
+
           transition_probs = transition_matrix[(j - 1) * 7...(j) * 7]
           transition_probs_matrix = Matrix[*transition_probs]
           current_state_vec = Matrix.row_vector(state_vector)
@@ -1054,7 +1050,7 @@ class ScheduleGenerator
     # 3. If it is shower
     #   a. Determine the number of events in the shower cluster (there can be multiple showers)
     #   b. For each event, sample the shower duration, and flow rate
-    #   c. Fill in the time period of personal hygiene using that many events of corresponding duration. 
+    #   c. Fill in the time period of personal hygiene using that many events of corresponding duration.
     #      If there is room in the mkc personal hygiene slot, shift uniform randomly
     # 4. If it is bath
     #   a. Sample the bath duration and flow rate
@@ -1072,7 +1068,7 @@ class ScheduleGenerator
     shower_activity_sch = [0] * mins_in_year
     bath_activity_sch = [0] * mins_in_year
     while m < mins_in_year
-      if @shower_schedule[m/15] > 0
+      if @shower_schedule[m / 15] > 0
         # TODO Also take into account the fractional shower_schedule means multiple occupants taking shower
         r = prng.rand
         if r <= bath_ratio
@@ -1080,7 +1076,7 @@ class ScheduleGenerator
           flow_rate = gaussian_rand(bath_flow_rate_mean, bath_flow_rate_std, prng)
           duration = gaussian_rand(bath_duration_mean, bath_duration_std, prng)
           int_duration = duration.ceil
-          flow_rate *= duration/int_duration
+          flow_rate *= duration / int_duration
           # since we are rounding duration to integer minute, we compensate by scaling flow rate
           int_duration.times do
             bath_activity_sch[m] = flow_rate
@@ -1088,7 +1084,8 @@ class ScheduleGenerator
             if m >= mins_in_year then break end
           end
           if m >= mins_in_year then break end
-          while @shower_schedule[m/15] > 0 or m < mins_in_year
+
+          while @shower_schedule[m / 15] > 0 or m < mins_in_year
             # skip till the end of this slot
             m += 1
           end
@@ -1099,7 +1096,7 @@ class ScheduleGenerator
             flow_rate = gaussian_rand(shower_flow_rate_mean, shower_flow_rate_std, prng)
             duration = sample_event_duration("shower", prng)
             int_duration = duration.ceil
-            flow_rate *= duration/int_duration
+            flow_rate *= duration / int_duration
             # since we are rounding duration to integer minute, we compensate by scaling flow rate
             int_duration.times do
               shower_activity_sch[m] = flow_rate
@@ -1113,7 +1110,7 @@ class ScheduleGenerator
             end
             if m >= mins_in_year then break end
           end
-          while @shower_schedule[m/15] > 0 and m < mins_in_year
+          while @shower_schedule[m / 15] > 0 and m < mins_in_year
             # skip till the end of this slot
             m += 1
           end
@@ -1124,8 +1121,8 @@ class ScheduleGenerator
     end
 
     # Generate minute level schedule for dishwasher and clothes washer
-    # 1. Identify the dishwasher/clothes washer time slots from the mkc schedule. 
-    # 2. Determine the number of events in the dishwasher/clothes washer cluster 
+    # 1. Identify the dishwasher/clothes washer time slots from the mkc schedule.
+    # 2. Determine the number of events in the dishwasher/clothes washer cluster
     #    (it's typically composed of multiple water draw events)
     # 3. For each event, sample the event duration, and flow rate
     # 4. Fill in the dishwasher/clothes washer time slot using those water draw events
@@ -1136,13 +1133,13 @@ class ScheduleGenerator
     dw_activity_sch = [0] * mins_in_year
     m = 0
     while m < mins_in_year
-      if @dish_washer_schedule[m/15] > 0
+      if @dish_washer_schedule[m / 15] > 0
         num_events = sample_activity_cluster_size("dishwasher", prng)
         num_events.times do
           flow_rate = gaussian_rand(dw_flow_rate_mean, dw_flow_rate_std, prng)
           duration = sample_event_duration("dishwasher", prng)
           int_duration = duration.ceil
-          flow_rate *= duration/int_duration
+          flow_rate *= duration / int_duration
           int_duration.times do
             dw_activity_sch[m] = flow_rate
             m += 1
@@ -1155,7 +1152,7 @@ class ScheduleGenerator
           end
           if m >= mins_in_year then break end
         end
-        while @dish_washer_schedule[m/15] > 0 and m < mins_in_year
+        while @dish_washer_schedule[m / 15] > 0 and m < mins_in_year
           # skip till the end of this slot
           m += 1
         end
@@ -1171,7 +1168,7 @@ class ScheduleGenerator
     cw_load_size_probability = [0.682926829, 0.227642276, 0.056910569, 0.032520325]
     m = 0
     while m < mins_in_year
-      if @dish_washer_schedule[m/15] > 0
+      if @dish_washer_schedule[m / 15] > 0
         num_loads = weighted_random(cw_load_size_probability, prng) + 1
         num_loads.times do
           num_events = sample_activity_cluster_size("clothes_washer", prng)
@@ -1179,7 +1176,7 @@ class ScheduleGenerator
             flow_rate = gaussian_rand(cw_flow_rate_mean, cw_flow_rate_std, prng)
             duration = sample_event_duration("clothes_washer", prng)
             int_duration = duration.ceil
-            flow_rate *= duration/int_duration
+            flow_rate *= duration / int_duration
             int_duration.times do
               cw_activity_sch[m] = flow_rate
               m += 1
@@ -1193,7 +1190,7 @@ class ScheduleGenerator
             if m >= mins_in_year then break end
           end
         end
-        while @dish_washer_schedule[m/15] > 0 and m < mins_in_year
+        while @dish_washer_schedule[m / 15] > 0 and m < mins_in_year
           # skip till the end of this slot
           m += 1
         end
@@ -1209,40 +1206,42 @@ class ScheduleGenerator
     dw_activity_sch = aggregate_array(dw_activity_sch, minutes_per_steps)
     dishwasher_max_flow_rate = dw_activity_sch.max
     @dish_washer_schedule = dw_activity_sch.map { |flow| flow / dishwasher_max_flow_rate }
-    #dishwasher_max_flow_rate = 2.8186 # gal/min # FIXME: calculate this from unnormalized schedule
+    # dishwasher_max_flow_rate = 2.8186 # gal/min # FIXME: calculate this from unnormalized schedule
     @model.getBuilding.additionalProperties.setFeature("Dishwasher Max Flow Rate", dishwasher_max_flow_rate)
 
     cw_activity_sch = aggregate_array(cw_activity_sch, minutes_per_steps)
     clothes_washer_max_flow_rate = cw_activity_sch.max
     @clothes_washer_schedule = cw_activity_sch.map { |flow| flow / clothes_washer_max_flow_rate }
-    #clothes_washer_max_flow_rate = 5.0354 # gal/min # FIXME: calculate this from unnormalized schedule
+    # clothes_washer_max_flow_rate = 5.0354 # gal/min # FIXME: calculate this from unnormalized schedule
     @model.getBuilding.additionalProperties.setFeature("Clothes Washer Max Flow Rate", clothes_washer_max_flow_rate)
 
     shower_activity_sch = aggregate_array(shower_activity_sch, minutes_per_steps)
     shower_max_flow_rate = shower_activity_sch.max
     @shower_schedule = shower_activity_sch.map { |flow| flow / shower_max_flow_rate }
-    #shower_max_flow_rate = 4.079 # gal/min # FIXME: calculate this from unnormalized schedule
+    # shower_max_flow_rate = 4.079 # gal/min # FIXME: calculate this from unnormalized schedule
     @model.getBuilding.additionalProperties.setFeature("Shower Max Flow Rate", shower_max_flow_rate)
 
     @model.getBuilding.additionalProperties.setFeature("Sink Max Flow Rate", sink_max_flow_rate)
 
     bath_activity_sch = aggregate_array(bath_activity_sch, minutes_per_steps)
     bath_max_flow_rate = bath_activity_sch.max
-    @bath_schedule = bath_activity_sch.map { |flow| flow / bath_max_flow_rate}
-    #bath_max_flow_rate = 7.0312 # gal/min # FIXME: calculate this from unnormalized schedule
+    @bath_schedule = bath_activity_sch.map { |flow| flow / bath_max_flow_rate }
+    # bath_max_flow_rate = 7.0312 # gal/min # FIXME: calculate this from unnormalized schedule
     @model.getBuilding.additionalProperties.setFeature("Bath Max Flow Rate", bath_max_flow_rate)
     @clothes_dryer_exhaust_schedule = @clothes_dryer_schedule
 
     return true
   end
+
   def aggregate_array(array, group_size)
     new_array_size = array.size / group_size
-    new_array = [0]*new_array_size
+    new_array = [0] * new_array_size
     new_array_size.times do |j|
-      new_array[j] = array[(j*group_size)...(j+1)*group_size].reduce(0,:+)
+      new_array[j] = array[(j * group_size)...(j + 1) * group_size].reduce(0, :+)
     end
     return new_array
   end
+
   def sample_activity_cluster_size(activity_type_name, prng)
     cluster_size_file = @schedules_path + "/#{activity_type_name}_cluster_size_probability.csv"
     cluster_size_probabilities = CSV.read(cluster_size_file)
@@ -1335,7 +1334,7 @@ class ScheduleGenerator
     r = Math.sqrt(-2 * Math.log(1 - prng.rand))
     scale = std * r
     x = mean + scale * Math.cos(t)
-    #y = mean + scale * Math.sin(t)
+    # y = mean + scale * Math.sin(t)
     return x
   end
 
