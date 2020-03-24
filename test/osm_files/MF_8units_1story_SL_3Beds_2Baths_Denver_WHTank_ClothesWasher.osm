@@ -1,41 +1,41 @@
 !- NOTE: Auto-generated from /test/osw_files/MF_8units_1story_SL_3Beds_2Baths_Denver_WHTank_ClothesWasher.osw
 
 OS:Version,
-  {9fccf35c-6875-41f6-a02e-baa304abfd5a}, !- Handle
+  {1d07d0f2-944e-4ac8-a3cc-ce9af3cbc612}, !- Handle
   2.9.0;                                  !- Version Identifier
 
 OS:SimulationControl,
-  {54c0ff4e-12a6-4c8b-851e-6f744fa5b492}, !- Handle
+  {5522381c-9592-4684-adeb-e15ad5eaa66e}, !- Handle
   ,                                       !- Do Zone Sizing Calculation
   ,                                       !- Do System Sizing Calculation
   ,                                       !- Do Plant Sizing Calculation
   No;                                     !- Run Simulation for Sizing Periods
 
 OS:Timestep,
-  {7d2d052f-fb4d-473a-9ca4-68e513ab0b1d}, !- Handle
+  {0274ee2c-3f09-4bb7-b2e2-5da13c0e3b40}, !- Handle
   6;                                      !- Number of Timesteps per Hour
 
 OS:ShadowCalculation,
-  {7d7bb8d7-b470-43b5-ad0d-d9a5c5d69bdc}, !- Handle
+  {a037fe73-ffb8-4b2a-a126-a375a71e0f13}, !- Handle
   20,                                     !- Calculation Frequency
   200;                                    !- Maximum Figures in Shadow Overlap Calculations
 
 OS:SurfaceConvectionAlgorithm:Outside,
-  {c3264d44-b9af-40d5-be5d-f49ec5b0931c}, !- Handle
+  {cd9a6782-dfa0-4cf9-b488-f222ac6c8fc6}, !- Handle
   DOE-2;                                  !- Algorithm
 
 OS:SurfaceConvectionAlgorithm:Inside,
-  {bd9e0bfe-2889-4b13-af25-b710dbac3f44}, !- Handle
+  {2d3c426b-b721-420f-a277-d2fc90b87278}, !- Handle
   TARP;                                   !- Algorithm
 
 OS:ZoneCapacitanceMultiplier:ResearchSpecial,
-  {c786f245-75a6-41b8-91b5-6fcfb785d4bb}, !- Handle
+  {6eced2a1-8d70-40f4-89b8-0d858bbc84a3}, !- Handle
   ,                                       !- Temperature Capacity Multiplier
   15,                                     !- Humidity Capacity Multiplier
   ;                                       !- Carbon Dioxide Capacity Multiplier
 
 OS:RunPeriod,
-  {649d40fd-404b-4607-b3c5-5d4c91e3af6f}, !- Handle
+  {911ff893-0370-4b6d-b4b2-747bf5f50ff1}, !- Handle
   Run Period 1,                           !- Name
   1,                                      !- Begin Month
   1,                                      !- Begin Day of Month
@@ -49,8 +49,2929 @@ OS:RunPeriod,
   ;                                       !- Number of Times Runperiod to be Repeated
 
 OS:YearDescription,
-  {b712d707-cc62-47e5-8f77-10a933ae8eb3}, !- Handle
+  {38c62296-706b-40d7-8a23-f2ffb465f0fe}, !- Handle
   2007,                                   !- Calendar Year
   ,                                       !- Day of Week for Start Day
   ;                                       !- Is Leap Year
+
+OS:ThermalZone,
+  {0c6c7985-27ee-4835-952a-d89688fa9912}, !- Handle
+  living zone,                            !- Name
+  ,                                       !- Multiplier
+  ,                                       !- Ceiling Height {m}
+  ,                                       !- Volume {m3}
+  ,                                       !- Floor Area {m2}
+  ,                                       !- Zone Inside Convection Algorithm
+  ,                                       !- Zone Outside Convection Algorithm
+  ,                                       !- Zone Conditioning Equipment List Name
+  {3c2c18cc-9dbb-4f9d-8343-7446381915c4}, !- Zone Air Inlet Port List
+  {6b09b7b6-13ef-4216-bbd8-e50a5f1c72cb}, !- Zone Air Exhaust Port List
+  {318e9aca-5340-4f2c-8576-057913d1aedf}, !- Zone Air Node Name
+  {b4a4f71f-f505-4126-bea6-40ad97742828}, !- Zone Return Air Port List
+  ,                                       !- Primary Daylighting Control Name
+  ,                                       !- Fraction of Zone Controlled by Primary Daylighting Control
+  ,                                       !- Secondary Daylighting Control Name
+  ,                                       !- Fraction of Zone Controlled by Secondary Daylighting Control
+  ,                                       !- Illuminance Map Name
+  ,                                       !- Group Rendering Name
+  ,                                       !- Thermostat Name
+  No;                                     !- Use Ideal Air Loads
+
+OS:Node,
+  {bf5d01c1-5f1e-46c9-9606-55c78567b1b0}, !- Handle
+  Node 1,                                 !- Name
+  {318e9aca-5340-4f2c-8576-057913d1aedf}, !- Inlet Port
+  ;                                       !- Outlet Port
+
+OS:Connection,
+  {318e9aca-5340-4f2c-8576-057913d1aedf}, !- Handle
+  {45225567-bd70-4f01-81e8-119b42578601}, !- Name
+  {0c6c7985-27ee-4835-952a-d89688fa9912}, !- Source Object
+  11,                                     !- Outlet Port
+  {bf5d01c1-5f1e-46c9-9606-55c78567b1b0}, !- Target Object
+  2;                                      !- Inlet Port
+
+OS:PortList,
+  {3c2c18cc-9dbb-4f9d-8343-7446381915c4}, !- Handle
+  {dfcfd2a9-723c-452c-8649-100e207ffa64}, !- Name
+  {0c6c7985-27ee-4835-952a-d89688fa9912}; !- HVAC Component
+
+OS:PortList,
+  {6b09b7b6-13ef-4216-bbd8-e50a5f1c72cb}, !- Handle
+  {e5c3cd62-2cf3-4421-b2a1-75eb79938ec8}, !- Name
+  {0c6c7985-27ee-4835-952a-d89688fa9912}; !- HVAC Component
+
+OS:PortList,
+  {b4a4f71f-f505-4126-bea6-40ad97742828}, !- Handle
+  {e01e97f7-0c2d-4e05-af75-b0b8f7f8ca12}, !- Name
+  {0c6c7985-27ee-4835-952a-d89688fa9912}; !- HVAC Component
+
+OS:Sizing:Zone,
+  {6d2f94b6-09d1-462d-a5f4-c74ec1be3411}, !- Handle
+  {0c6c7985-27ee-4835-952a-d89688fa9912}, !- Zone or ZoneList Name
+  SupplyAirTemperature,                   !- Zone Cooling Design Supply Air Temperature Input Method
+  14,                                     !- Zone Cooling Design Supply Air Temperature {C}
+  11.11,                                  !- Zone Cooling Design Supply Air Temperature Difference {deltaC}
+  SupplyAirTemperature,                   !- Zone Heating Design Supply Air Temperature Input Method
+  40,                                     !- Zone Heating Design Supply Air Temperature {C}
+  11.11,                                  !- Zone Heating Design Supply Air Temperature Difference {deltaC}
+  0.0085,                                 !- Zone Cooling Design Supply Air Humidity Ratio {kg-H2O/kg-air}
+  0.008,                                  !- Zone Heating Design Supply Air Humidity Ratio {kg-H2O/kg-air}
+  ,                                       !- Zone Heating Sizing Factor
+  ,                                       !- Zone Cooling Sizing Factor
+  DesignDay,                              !- Cooling Design Air Flow Method
+  ,                                       !- Cooling Design Air Flow Rate {m3/s}
+  ,                                       !- Cooling Minimum Air Flow per Zone Floor Area {m3/s-m2}
+  ,                                       !- Cooling Minimum Air Flow {m3/s}
+  ,                                       !- Cooling Minimum Air Flow Fraction
+  DesignDay,                              !- Heating Design Air Flow Method
+  ,                                       !- Heating Design Air Flow Rate {m3/s}
+  ,                                       !- Heating Maximum Air Flow per Zone Floor Area {m3/s-m2}
+  ,                                       !- Heating Maximum Air Flow {m3/s}
+  ,                                       !- Heating Maximum Air Flow Fraction
+  ,                                       !- Design Zone Air Distribution Effectiveness in Cooling Mode
+  ,                                       !- Design Zone Air Distribution Effectiveness in Heating Mode
+  No,                                     !- Account for Dedicated Outdoor Air System
+  NeutralSupplyAir,                       !- Dedicated Outdoor Air System Control Strategy
+  autosize,                               !- Dedicated Outdoor Air Low Setpoint Temperature for Design {C}
+  autosize;                               !- Dedicated Outdoor Air High Setpoint Temperature for Design {C}
+
+OS:ZoneHVAC:EquipmentList,
+  {b225cc02-a04d-467c-b85b-109a4aeed4cd}, !- Handle
+  Zone HVAC Equipment List 1,             !- Name
+  {0c6c7985-27ee-4835-952a-d89688fa9912}; !- Thermal Zone
+
+OS:Space,
+  {9f7f2e36-d873-4b96-b2e0-f48e0e6eb9f6}, !- Handle
+  living space,                           !- Name
+  {132944fc-60cc-4f12-b320-1bc07cc362ac}, !- Space Type Name
+  ,                                       !- Default Construction Set Name
+  ,                                       !- Default Schedule Set Name
+  ,                                       !- Direction of Relative North {deg}
+  ,                                       !- X Origin {m}
+  ,                                       !- Y Origin {m}
+  ,                                       !- Z Origin {m}
+  ,                                       !- Building Story Name
+  {0c6c7985-27ee-4835-952a-d89688fa9912}, !- Thermal Zone Name
+  ,                                       !- Part of Total Floor Area
+  ,                                       !- Design Specification Outdoor Air Object Name
+  {9413f015-bbcb-48a2-81a4-edd740caa8e6}; !- Building Unit Name
+
+OS:Surface,
+  {8eb2ea4f-f9a5-463f-8499-1f92f5faf855}, !- Handle
+  Surface 1,                              !- Name
+  Floor,                                  !- Surface Type
+  ,                                       !- Construction Name
+  {9f7f2e36-d873-4b96-b2e0-f48e0e6eb9f6}, !- Space Name
+  Foundation,                             !- Outside Boundary Condition
+  ,                                       !- Outside Boundary Condition Object
+  NoSun,                                  !- Sun Exposure
+  NoWind,                                 !- Wind Exposure
+  ,                                       !- View Factor to Ground
+  ,                                       !- Number of Vertices
+  0, -12.9315688143396, 0,                !- X,Y,Z Vertex 1 {m}
+  0, 0, 0,                                !- X,Y,Z Vertex 2 {m}
+  6.46578440716979, 0, 0,                 !- X,Y,Z Vertex 3 {m}
+  6.46578440716979, -12.9315688143396, 0; !- X,Y,Z Vertex 4 {m}
+
+OS:Surface,
+  {83f4d0b9-bfbf-42a4-9329-41cc9482d2e2}, !- Handle
+  Surface 2,                              !- Name
+  Wall,                                   !- Surface Type
+  ,                                       !- Construction Name
+  {9f7f2e36-d873-4b96-b2e0-f48e0e6eb9f6}, !- Space Name
+  Outdoors,                               !- Outside Boundary Condition
+  ,                                       !- Outside Boundary Condition Object
+  SunExposed,                             !- Sun Exposure
+  WindExposed,                            !- Wind Exposure
+  ,                                       !- View Factor to Ground
+  ,                                       !- Number of Vertices
+  0, 0, 2.4384,                           !- X,Y,Z Vertex 1 {m}
+  0, 0, 0,                                !- X,Y,Z Vertex 2 {m}
+  0, -12.9315688143396, 0,                !- X,Y,Z Vertex 3 {m}
+  0, -12.9315688143396, 2.4384;           !- X,Y,Z Vertex 4 {m}
+
+OS:Surface,
+  {a5e51a78-2d6c-4c60-a4ce-8bfba95052a4}, !- Handle
+  Surface 3,                              !- Name
+  Wall,                                   !- Surface Type
+  ,                                       !- Construction Name
+  {9f7f2e36-d873-4b96-b2e0-f48e0e6eb9f6}, !- Space Name
+  Adiabatic,                              !- Outside Boundary Condition
+  ,                                       !- Outside Boundary Condition Object
+  NoSun,                                  !- Sun Exposure
+  NoWind,                                 !- Wind Exposure
+  ,                                       !- View Factor to Ground
+  ,                                       !- Number of Vertices
+  6.46578440716979, 0, 2.4384,            !- X,Y,Z Vertex 1 {m}
+  6.46578440716979, 0, 0,                 !- X,Y,Z Vertex 2 {m}
+  0, 0, 0,                                !- X,Y,Z Vertex 3 {m}
+  0, 0, 2.4384;                           !- X,Y,Z Vertex 4 {m}
+
+OS:Surface,
+  {6960f09b-f89c-40a0-8557-2a9018935452}, !- Handle
+  Surface 4,                              !- Name
+  Wall,                                   !- Surface Type
+  ,                                       !- Construction Name
+  {9f7f2e36-d873-4b96-b2e0-f48e0e6eb9f6}, !- Space Name
+  Adiabatic,                              !- Outside Boundary Condition
+  ,                                       !- Outside Boundary Condition Object
+  NoSun,                                  !- Sun Exposure
+  NoWind,                                 !- Wind Exposure
+  ,                                       !- View Factor to Ground
+  ,                                       !- Number of Vertices
+  6.46578440716979, -12.9315688143396, 2.4384, !- X,Y,Z Vertex 1 {m}
+  6.46578440716979, -12.9315688143396, 0, !- X,Y,Z Vertex 2 {m}
+  6.46578440716979, 0, 0,                 !- X,Y,Z Vertex 3 {m}
+  6.46578440716979, 0, 2.4384;            !- X,Y,Z Vertex 4 {m}
+
+OS:Surface,
+  {3199c7e9-3608-4877-9c2e-c762b9cc5c90}, !- Handle
+  Surface 5,                              !- Name
+  Wall,                                   !- Surface Type
+  ,                                       !- Construction Name
+  {9f7f2e36-d873-4b96-b2e0-f48e0e6eb9f6}, !- Space Name
+  Outdoors,                               !- Outside Boundary Condition
+  ,                                       !- Outside Boundary Condition Object
+  SunExposed,                             !- Sun Exposure
+  WindExposed,                            !- Wind Exposure
+  ,                                       !- View Factor to Ground
+  ,                                       !- Number of Vertices
+  0, -12.9315688143396, 2.4384,           !- X,Y,Z Vertex 1 {m}
+  0, -12.9315688143396, 0,                !- X,Y,Z Vertex 2 {m}
+  6.46578440716979, -12.9315688143396, 0, !- X,Y,Z Vertex 3 {m}
+  6.46578440716979, -12.9315688143396, 2.4384; !- X,Y,Z Vertex 4 {m}
+
+OS:Surface,
+  {16452488-5a9f-4a91-90a9-4ab5a987f47b}, !- Handle
+  Surface 6,                              !- Name
+  RoofCeiling,                            !- Surface Type
+  ,                                       !- Construction Name
+  {9f7f2e36-d873-4b96-b2e0-f48e0e6eb9f6}, !- Space Name
+  Outdoors,                               !- Outside Boundary Condition
+  ,                                       !- Outside Boundary Condition Object
+  SunExposed,                             !- Sun Exposure
+  WindExposed,                            !- Wind Exposure
+  ,                                       !- View Factor to Ground
+  ,                                       !- Number of Vertices
+  6.46578440716979, -12.9315688143396, 2.4384, !- X,Y,Z Vertex 1 {m}
+  6.46578440716979, 0, 2.4384,            !- X,Y,Z Vertex 2 {m}
+  0, 0, 2.4384,                           !- X,Y,Z Vertex 3 {m}
+  0, -12.9315688143396, 2.4384;           !- X,Y,Z Vertex 4 {m}
+
+OS:SpaceType,
+  {132944fc-60cc-4f12-b320-1bc07cc362ac}, !- Handle
+  Space Type 1,                           !- Name
+  ,                                       !- Default Construction Set Name
+  ,                                       !- Default Schedule Set Name
+  ,                                       !- Group Rendering Name
+  ,                                       !- Design Specification Outdoor Air Object Name
+  ,                                       !- Standards Template
+  ,                                       !- Standards Building Type
+  living;                                 !- Standards Space Type
+
+OS:ThermalZone,
+  {2b6d0b22-5ffc-4662-9f7b-85881320464d}, !- Handle
+  corridor zone,                          !- Name
+  ,                                       !- Multiplier
+  ,                                       !- Ceiling Height {m}
+  ,                                       !- Volume {m3}
+  ,                                       !- Floor Area {m2}
+  ,                                       !- Zone Inside Convection Algorithm
+  ,                                       !- Zone Outside Convection Algorithm
+  ,                                       !- Zone Conditioning Equipment List Name
+  {ea453958-ea52-4737-855b-c0ee9d661cd4}, !- Zone Air Inlet Port List
+  {4bad244f-91a5-472a-8b2a-a9fbc3a069bc}, !- Zone Air Exhaust Port List
+  {33736677-795e-42bd-83fb-bfbbe73c851e}, !- Zone Air Node Name
+  {ba13bda2-77ba-43e5-8bdd-0324e797e878}, !- Zone Return Air Port List
+  ,                                       !- Primary Daylighting Control Name
+  ,                                       !- Fraction of Zone Controlled by Primary Daylighting Control
+  ,                                       !- Secondary Daylighting Control Name
+  ,                                       !- Fraction of Zone Controlled by Secondary Daylighting Control
+  ,                                       !- Illuminance Map Name
+  ,                                       !- Group Rendering Name
+  ,                                       !- Thermostat Name
+  No;                                     !- Use Ideal Air Loads
+
+OS:Node,
+  {ef1855dd-e975-40e6-bce0-3d731b1740de}, !- Handle
+  Node 2,                                 !- Name
+  {33736677-795e-42bd-83fb-bfbbe73c851e}, !- Inlet Port
+  ;                                       !- Outlet Port
+
+OS:Connection,
+  {33736677-795e-42bd-83fb-bfbbe73c851e}, !- Handle
+  {387ea198-e750-4c2b-b1be-62c4ed85ee52}, !- Name
+  {2b6d0b22-5ffc-4662-9f7b-85881320464d}, !- Source Object
+  11,                                     !- Outlet Port
+  {ef1855dd-e975-40e6-bce0-3d731b1740de}, !- Target Object
+  2;                                      !- Inlet Port
+
+OS:PortList,
+  {ea453958-ea52-4737-855b-c0ee9d661cd4}, !- Handle
+  {47194724-b7b0-4071-81ec-e6a28aaa3206}, !- Name
+  {2b6d0b22-5ffc-4662-9f7b-85881320464d}; !- HVAC Component
+
+OS:PortList,
+  {4bad244f-91a5-472a-8b2a-a9fbc3a069bc}, !- Handle
+  {0b627f53-a55e-4a52-96e8-6f5ff934c42a}, !- Name
+  {2b6d0b22-5ffc-4662-9f7b-85881320464d}; !- HVAC Component
+
+OS:PortList,
+  {ba13bda2-77ba-43e5-8bdd-0324e797e878}, !- Handle
+  {795eb5c1-8d25-4972-9304-c569c2793798}, !- Name
+  {2b6d0b22-5ffc-4662-9f7b-85881320464d}; !- HVAC Component
+
+OS:Sizing:Zone,
+  {b40a7541-fe09-4129-a96a-2699fdf486be}, !- Handle
+  {2b6d0b22-5ffc-4662-9f7b-85881320464d}, !- Zone or ZoneList Name
+  SupplyAirTemperature,                   !- Zone Cooling Design Supply Air Temperature Input Method
+  14,                                     !- Zone Cooling Design Supply Air Temperature {C}
+  11.11,                                  !- Zone Cooling Design Supply Air Temperature Difference {deltaC}
+  SupplyAirTemperature,                   !- Zone Heating Design Supply Air Temperature Input Method
+  40,                                     !- Zone Heating Design Supply Air Temperature {C}
+  11.11,                                  !- Zone Heating Design Supply Air Temperature Difference {deltaC}
+  0.0085,                                 !- Zone Cooling Design Supply Air Humidity Ratio {kg-H2O/kg-air}
+  0.008,                                  !- Zone Heating Design Supply Air Humidity Ratio {kg-H2O/kg-air}
+  ,                                       !- Zone Heating Sizing Factor
+  ,                                       !- Zone Cooling Sizing Factor
+  DesignDay,                              !- Cooling Design Air Flow Method
+  ,                                       !- Cooling Design Air Flow Rate {m3/s}
+  ,                                       !- Cooling Minimum Air Flow per Zone Floor Area {m3/s-m2}
+  ,                                       !- Cooling Minimum Air Flow {m3/s}
+  ,                                       !- Cooling Minimum Air Flow Fraction
+  DesignDay,                              !- Heating Design Air Flow Method
+  ,                                       !- Heating Design Air Flow Rate {m3/s}
+  ,                                       !- Heating Maximum Air Flow per Zone Floor Area {m3/s-m2}
+  ,                                       !- Heating Maximum Air Flow {m3/s}
+  ,                                       !- Heating Maximum Air Flow Fraction
+  ,                                       !- Design Zone Air Distribution Effectiveness in Cooling Mode
+  ,                                       !- Design Zone Air Distribution Effectiveness in Heating Mode
+  No,                                     !- Account for Dedicated Outdoor Air System
+  NeutralSupplyAir,                       !- Dedicated Outdoor Air System Control Strategy
+  autosize,                               !- Dedicated Outdoor Air Low Setpoint Temperature for Design {C}
+  autosize;                               !- Dedicated Outdoor Air High Setpoint Temperature for Design {C}
+
+OS:ZoneHVAC:EquipmentList,
+  {1d84c055-52e8-4206-8786-bda61fe7654a}, !- Handle
+  Zone HVAC Equipment List 2,             !- Name
+  {2b6d0b22-5ffc-4662-9f7b-85881320464d}; !- Thermal Zone
+
+OS:Space,
+  {987ab884-abbc-4de2-843b-ff44f39aa402}, !- Handle
+  corridor space,                         !- Name
+  {e4681cee-d5a7-45d6-84e5-832e7f76701a}, !- Space Type Name
+  ,                                       !- Default Construction Set Name
+  ,                                       !- Default Schedule Set Name
+  ,                                       !- Direction of Relative North {deg}
+  ,                                       !- X Origin {m}
+  ,                                       !- Y Origin {m}
+  ,                                       !- Z Origin {m}
+  ,                                       !- Building Story Name
+  {2b6d0b22-5ffc-4662-9f7b-85881320464d}; !- Thermal Zone Name
+
+OS:Surface,
+  {d0f929d0-02dd-4d2c-9a74-62dcbc2fa71d}, !- Handle
+  Surface 7,                              !- Name
+  Floor,                                  !- Surface Type
+  ,                                       !- Construction Name
+  {987ab884-abbc-4de2-843b-ff44f39aa402}, !- Space Name
+  Adiabatic,                              !- Outside Boundary Condition
+  ,                                       !- Outside Boundary Condition Object
+  NoSun,                                  !- Sun Exposure
+  NoWind,                                 !- Wind Exposure
+  ,                                       !- View Factor to Ground
+  ,                                       !- Number of Vertices
+  0, 0, 0,                                !- X,Y,Z Vertex 1 {m}
+  0, 1.524, 0,                            !- X,Y,Z Vertex 2 {m}
+  6.46578440716979, 1.524, 0,             !- X,Y,Z Vertex 3 {m}
+  6.46578440716979, 0, 0;                 !- X,Y,Z Vertex 4 {m}
+
+OS:Surface,
+  {6b07adaf-c6b3-4d47-a525-cbed5758370f}, !- Handle
+  Surface 8,                              !- Name
+  Wall,                                   !- Surface Type
+  ,                                       !- Construction Name
+  {987ab884-abbc-4de2-843b-ff44f39aa402}, !- Space Name
+  Outdoors,                               !- Outside Boundary Condition
+  ,                                       !- Outside Boundary Condition Object
+  SunExposed,                             !- Sun Exposure
+  WindExposed,                            !- Wind Exposure
+  ,                                       !- View Factor to Ground
+  ,                                       !- Number of Vertices
+  0, 1.524, 2.4384,                       !- X,Y,Z Vertex 1 {m}
+  0, 1.524, 0,                            !- X,Y,Z Vertex 2 {m}
+  0, 0, 0,                                !- X,Y,Z Vertex 3 {m}
+  0, 0, 2.4384;                           !- X,Y,Z Vertex 4 {m}
+
+OS:Surface,
+  {e758f363-b80c-4257-bf20-c425008d0c5c}, !- Handle
+  Surface 9,                              !- Name
+  Wall,                                   !- Surface Type
+  ,                                       !- Construction Name
+  {987ab884-abbc-4de2-843b-ff44f39aa402}, !- Space Name
+  Adiabatic,                              !- Outside Boundary Condition
+  ,                                       !- Outside Boundary Condition Object
+  NoSun,                                  !- Sun Exposure
+  NoWind,                                 !- Wind Exposure
+  ,                                       !- View Factor to Ground
+  ,                                       !- Number of Vertices
+  6.46578440716979, 1.524, 2.4384,        !- X,Y,Z Vertex 1 {m}
+  6.46578440716979, 1.524, 0,             !- X,Y,Z Vertex 2 {m}
+  0, 1.524, 0,                            !- X,Y,Z Vertex 3 {m}
+  0, 1.524, 2.4384;                       !- X,Y,Z Vertex 4 {m}
+
+OS:Surface,
+  {6fa69268-7544-4fa5-9967-ca0e704e2b81}, !- Handle
+  Surface 10,                             !- Name
+  Wall,                                   !- Surface Type
+  ,                                       !- Construction Name
+  {987ab884-abbc-4de2-843b-ff44f39aa402}, !- Space Name
+  Adiabatic,                              !- Outside Boundary Condition
+  ,                                       !- Outside Boundary Condition Object
+  NoSun,                                  !- Sun Exposure
+  NoWind,                                 !- Wind Exposure
+  ,                                       !- View Factor to Ground
+  ,                                       !- Number of Vertices
+  6.46578440716979, 0, 2.4384,            !- X,Y,Z Vertex 1 {m}
+  6.46578440716979, 0, 0,                 !- X,Y,Z Vertex 2 {m}
+  6.46578440716979, 1.524, 0,             !- X,Y,Z Vertex 3 {m}
+  6.46578440716979, 1.524, 2.4384;        !- X,Y,Z Vertex 4 {m}
+
+OS:Surface,
+  {89c7aa4b-5662-4af9-80d3-0528c8d4fc30}, !- Handle
+  Surface 11,                             !- Name
+  Wall,                                   !- Surface Type
+  ,                                       !- Construction Name
+  {987ab884-abbc-4de2-843b-ff44f39aa402}, !- Space Name
+  Adiabatic,                              !- Outside Boundary Condition
+  ,                                       !- Outside Boundary Condition Object
+  NoSun,                                  !- Sun Exposure
+  NoWind,                                 !- Wind Exposure
+  ,                                       !- View Factor to Ground
+  ,                                       !- Number of Vertices
+  0, 0, 2.4384,                           !- X,Y,Z Vertex 1 {m}
+  0, 0, 0,                                !- X,Y,Z Vertex 2 {m}
+  6.46578440716979, 0, 0,                 !- X,Y,Z Vertex 3 {m}
+  6.46578440716979, 0, 2.4384;            !- X,Y,Z Vertex 4 {m}
+
+OS:Surface,
+  {e95c9e8e-22b3-4417-b75f-15cde452525f}, !- Handle
+  Surface 12,                             !- Name
+  RoofCeiling,                            !- Surface Type
+  ,                                       !- Construction Name
+  {987ab884-abbc-4de2-843b-ff44f39aa402}, !- Space Name
+  Outdoors,                               !- Outside Boundary Condition
+  ,                                       !- Outside Boundary Condition Object
+  SunExposed,                             !- Sun Exposure
+  WindExposed,                            !- Wind Exposure
+  ,                                       !- View Factor to Ground
+  ,                                       !- Number of Vertices
+  6.46578440716979, 0, 2.4384,            !- X,Y,Z Vertex 1 {m}
+  6.46578440716979, 1.524, 2.4384,        !- X,Y,Z Vertex 2 {m}
+  0, 1.524, 2.4384,                       !- X,Y,Z Vertex 3 {m}
+  0, 0, 2.4384;                           !- X,Y,Z Vertex 4 {m}
+
+OS:SpaceType,
+  {e4681cee-d5a7-45d6-84e5-832e7f76701a}, !- Handle
+  Space Type 2,                           !- Name
+  ,                                       !- Default Construction Set Name
+  ,                                       !- Default Schedule Set Name
+  ,                                       !- Group Rendering Name
+  ,                                       !- Design Specification Outdoor Air Object Name
+  ,                                       !- Standards Template
+  ,                                       !- Standards Building Type
+  corridor;                               !- Standards Space Type
+
+OS:BuildingUnit,
+  {9413f015-bbcb-48a2-81a4-edd740caa8e6}, !- Handle
+  unit 1,                                 !- Name
+  ,                                       !- Rendering Color
+  Residential;                            !- Building Unit Type
+
+OS:Building,
+  {91c70eb7-0008-4f44-a177-2eae9fd4d486}, !- Handle
+  Building 1,                             !- Name
+  ,                                       !- Building Sector Type
+  0,                                      !- North Axis {deg}
+  ,                                       !- Nominal Floor to Floor Height {m}
+  ,                                       !- Space Type Name
+  ,                                       !- Default Construction Set Name
+  ,                                       !- Default Schedule Set Name
+  1,                                      !- Standards Number of Stories
+  1,                                      !- Standards Number of Above Ground Stories
+  ,                                       !- Standards Template
+  multifamily,                            !- Standards Building Type
+  8;                                      !- Standards Number of Living Units
+
+OS:AdditionalProperties,
+  {95d8e8ed-979f-4be2-9da0-ae542770544e}, !- Handle
+  {91c70eb7-0008-4f44-a177-2eae9fd4d486}, !- Object Name
+  num_units,                              !- Feature Name 1
+  Integer,                                !- Feature Data Type 1
+  8,                                      !- Feature Value 1
+  has_rear_units,                         !- Feature Name 2
+  Boolean,                                !- Feature Data Type 2
+  true,                                   !- Feature Value 2
+  num_floors,                             !- Feature Name 3
+  Integer,                                !- Feature Data Type 3
+  1,                                      !- Feature Value 3
+  horz_location,                          !- Feature Name 4
+  String,                                 !- Feature Data Type 4
+  Left,                                   !- Feature Value 4
+  level,                                  !- Feature Name 5
+  String,                                 !- Feature Data Type 5
+  Bottom,                                 !- Feature Value 5
+  found_type,                             !- Feature Name 6
+  String,                                 !- Feature Data Type 6
+  slab;                                   !- Feature Value 6
+
+OS:AdditionalProperties,
+  {4bffe937-1fbb-4b63-b180-050022efedf3}, !- Handle
+  {9413f015-bbcb-48a2-81a4-edd740caa8e6}, !- Object Name
+  NumberOfBedrooms,                       !- Feature Name 1
+  Integer,                                !- Feature Data Type 1
+  3,                                      !- Feature Value 1
+  NumberOfBathrooms,                      !- Feature Name 2
+  Double,                                 !- Feature Data Type 2
+  2,                                      !- Feature Value 2
+  NumberOfOccupants,                      !- Feature Name 3
+  Double,                                 !- Feature Data Type 3
+  3.3900000000000001;                     !- Feature Value 3
+
+OS:Schedule:Day,
+  {bf10ec9e-6eec-4805-b5af-4dbe2720b94c}, !- Handle
+  Schedule Day 1,                         !- Name
+  ,                                       !- Schedule Type Limits Name
+  ,                                       !- Interpolate to Timestep
+  24,                                     !- Hour 1
+  0,                                      !- Minute 1
+  0;                                      !- Value Until Time 1
+
+OS:Schedule:Day,
+  {a599ab01-8134-41e6-bb10-b1d3de32057a}, !- Handle
+  Schedule Day 2,                         !- Name
+  ,                                       !- Schedule Type Limits Name
+  ,                                       !- Interpolate to Timestep
+  24,                                     !- Hour 1
+  0,                                      !- Minute 1
+  1;                                      !- Value Until Time 1
+
+OS:Schedule:Ruleset,
+  {63f0517b-3632-4aa8-9d9f-b35d2155b669}, !- Handle
+  res occupants schedule,                 !- Name
+  {1797d3b9-8b6f-43b5-82b2-c05f81638eb2}, !- Schedule Type Limits Name
+  {981a7847-77e4-47f5-9143-4a1cb44fd9cc}, !- Default Day Schedule Name
+  {50f04ccd-3c1a-4308-a92f-26b5aef88026}, !- Summer Design Day Schedule Name
+  {1f092af9-5ea2-4ab7-9f1a-66703bf1705c}; !- Winter Design Day Schedule Name
+
+OS:Schedule:Day,
+  {981a7847-77e4-47f5-9143-4a1cb44fd9cc}, !- Handle
+  Schedule Day 3,                         !- Name
+  {1797d3b9-8b6f-43b5-82b2-c05f81638eb2}, !- Schedule Type Limits Name
+  ,                                       !- Interpolate to Timestep
+  24,                                     !- Hour 1
+  0,                                      !- Minute 1
+  0;                                      !- Value Until Time 1
+
+OS:Schedule:Rule,
+  {a9e74592-2e08-4333-a74a-e97248a84e56}, !- Handle
+  res occupants schedule allday rule1,    !- Name
+  {63f0517b-3632-4aa8-9d9f-b35d2155b669}, !- Schedule Ruleset Name
+  11,                                     !- Rule Order
+  {df227e00-51b0-4ef9-8d78-1d1a512c57b6}, !- Day Schedule Name
+  Yes,                                    !- Apply Sunday
+  Yes,                                    !- Apply Monday
+  Yes,                                    !- Apply Tuesday
+  Yes,                                    !- Apply Wednesday
+  Yes,                                    !- Apply Thursday
+  Yes,                                    !- Apply Friday
+  Yes,                                    !- Apply Saturday
+  ,                                       !- Apply Holiday
+  DateRange,                              !- Date Specification Type
+  1,                                      !- Start Month
+  1,                                      !- Start Day
+  1,                                      !- End Month
+  31;                                     !- End Day
+
+OS:Schedule:Day,
+  {df227e00-51b0-4ef9-8d78-1d1a512c57b6}, !- Handle
+  res occupants schedule allday1,         !- Name
+  {1797d3b9-8b6f-43b5-82b2-c05f81638eb2}, !- Schedule Type Limits Name
+  ,                                       !- Interpolate to Timestep
+  7,                                      !- Hour 1
+  0,                                      !- Minute 1
+  1,                                      !- Value Until Time 1
+  8,                                      !- Hour 2
+  0,                                      !- Minute 2
+  0.88,                                   !- Value Until Time 2
+  9,                                      !- Hour 3
+  0,                                      !- Minute 3
+  0.41,                                   !- Value Until Time 3
+  16,                                     !- Hour 4
+  0,                                      !- Minute 4
+  0.24,                                   !- Value Until Time 4
+  17,                                     !- Hour 5
+  0,                                      !- Minute 5
+  0.29,                                   !- Value Until Time 5
+  18,                                     !- Hour 6
+  0,                                      !- Minute 6
+  0.55,                                   !- Value Until Time 6
+  21,                                     !- Hour 7
+  0,                                      !- Minute 7
+  0.9,                                    !- Value Until Time 7
+  24,                                     !- Hour 8
+  0,                                      !- Minute 8
+  1;                                      !- Value Until Time 8
+
+OS:Schedule:Rule,
+  {6b82ee7a-f2e8-4353-8752-695139d2d8c9}, !- Handle
+  res occupants schedule allday rule2,    !- Name
+  {63f0517b-3632-4aa8-9d9f-b35d2155b669}, !- Schedule Ruleset Name
+  10,                                     !- Rule Order
+  {adaf1623-fd81-423b-b620-3114058e3a83}, !- Day Schedule Name
+  Yes,                                    !- Apply Sunday
+  Yes,                                    !- Apply Monday
+  Yes,                                    !- Apply Tuesday
+  Yes,                                    !- Apply Wednesday
+  Yes,                                    !- Apply Thursday
+  Yes,                                    !- Apply Friday
+  Yes,                                    !- Apply Saturday
+  ,                                       !- Apply Holiday
+  DateRange,                              !- Date Specification Type
+  2,                                      !- Start Month
+  1,                                      !- Start Day
+  2,                                      !- End Month
+  28;                                     !- End Day
+
+OS:Schedule:Day,
+  {adaf1623-fd81-423b-b620-3114058e3a83}, !- Handle
+  res occupants schedule allday2,         !- Name
+  {1797d3b9-8b6f-43b5-82b2-c05f81638eb2}, !- Schedule Type Limits Name
+  ,                                       !- Interpolate to Timestep
+  7,                                      !- Hour 1
+  0,                                      !- Minute 1
+  1,                                      !- Value Until Time 1
+  8,                                      !- Hour 2
+  0,                                      !- Minute 2
+  0.88,                                   !- Value Until Time 2
+  9,                                      !- Hour 3
+  0,                                      !- Minute 3
+  0.41,                                   !- Value Until Time 3
+  16,                                     !- Hour 4
+  0,                                      !- Minute 4
+  0.24,                                   !- Value Until Time 4
+  17,                                     !- Hour 5
+  0,                                      !- Minute 5
+  0.29,                                   !- Value Until Time 5
+  18,                                     !- Hour 6
+  0,                                      !- Minute 6
+  0.55,                                   !- Value Until Time 6
+  21,                                     !- Hour 7
+  0,                                      !- Minute 7
+  0.9,                                    !- Value Until Time 7
+  24,                                     !- Hour 8
+  0,                                      !- Minute 8
+  1;                                      !- Value Until Time 8
+
+OS:Schedule:Rule,
+  {aca4119b-2ac1-4f21-a422-7b81bb0b7f44}, !- Handle
+  res occupants schedule allday rule3,    !- Name
+  {63f0517b-3632-4aa8-9d9f-b35d2155b669}, !- Schedule Ruleset Name
+  9,                                      !- Rule Order
+  {de1818a0-cdb7-4f86-9d6b-f584b0219a8c}, !- Day Schedule Name
+  Yes,                                    !- Apply Sunday
+  Yes,                                    !- Apply Monday
+  Yes,                                    !- Apply Tuesday
+  Yes,                                    !- Apply Wednesday
+  Yes,                                    !- Apply Thursday
+  Yes,                                    !- Apply Friday
+  Yes,                                    !- Apply Saturday
+  ,                                       !- Apply Holiday
+  DateRange,                              !- Date Specification Type
+  3,                                      !- Start Month
+  1,                                      !- Start Day
+  3,                                      !- End Month
+  31;                                     !- End Day
+
+OS:Schedule:Day,
+  {de1818a0-cdb7-4f86-9d6b-f584b0219a8c}, !- Handle
+  res occupants schedule allday3,         !- Name
+  {1797d3b9-8b6f-43b5-82b2-c05f81638eb2}, !- Schedule Type Limits Name
+  ,                                       !- Interpolate to Timestep
+  7,                                      !- Hour 1
+  0,                                      !- Minute 1
+  1,                                      !- Value Until Time 1
+  8,                                      !- Hour 2
+  0,                                      !- Minute 2
+  0.88,                                   !- Value Until Time 2
+  9,                                      !- Hour 3
+  0,                                      !- Minute 3
+  0.41,                                   !- Value Until Time 3
+  16,                                     !- Hour 4
+  0,                                      !- Minute 4
+  0.24,                                   !- Value Until Time 4
+  17,                                     !- Hour 5
+  0,                                      !- Minute 5
+  0.29,                                   !- Value Until Time 5
+  18,                                     !- Hour 6
+  0,                                      !- Minute 6
+  0.55,                                   !- Value Until Time 6
+  21,                                     !- Hour 7
+  0,                                      !- Minute 7
+  0.9,                                    !- Value Until Time 7
+  24,                                     !- Hour 8
+  0,                                      !- Minute 8
+  1;                                      !- Value Until Time 8
+
+OS:Schedule:Rule,
+  {b2b40936-1762-4a41-b903-7117c30279d7}, !- Handle
+  res occupants schedule allday rule4,    !- Name
+  {63f0517b-3632-4aa8-9d9f-b35d2155b669}, !- Schedule Ruleset Name
+  8,                                      !- Rule Order
+  {eef158aa-9f39-4583-9303-25a8d5541991}, !- Day Schedule Name
+  Yes,                                    !- Apply Sunday
+  Yes,                                    !- Apply Monday
+  Yes,                                    !- Apply Tuesday
+  Yes,                                    !- Apply Wednesday
+  Yes,                                    !- Apply Thursday
+  Yes,                                    !- Apply Friday
+  Yes,                                    !- Apply Saturday
+  ,                                       !- Apply Holiday
+  DateRange,                              !- Date Specification Type
+  4,                                      !- Start Month
+  1,                                      !- Start Day
+  4,                                      !- End Month
+  30;                                     !- End Day
+
+OS:Schedule:Day,
+  {eef158aa-9f39-4583-9303-25a8d5541991}, !- Handle
+  res occupants schedule allday4,         !- Name
+  {1797d3b9-8b6f-43b5-82b2-c05f81638eb2}, !- Schedule Type Limits Name
+  ,                                       !- Interpolate to Timestep
+  7,                                      !- Hour 1
+  0,                                      !- Minute 1
+  1,                                      !- Value Until Time 1
+  8,                                      !- Hour 2
+  0,                                      !- Minute 2
+  0.88,                                   !- Value Until Time 2
+  9,                                      !- Hour 3
+  0,                                      !- Minute 3
+  0.41,                                   !- Value Until Time 3
+  16,                                     !- Hour 4
+  0,                                      !- Minute 4
+  0.24,                                   !- Value Until Time 4
+  17,                                     !- Hour 5
+  0,                                      !- Minute 5
+  0.29,                                   !- Value Until Time 5
+  18,                                     !- Hour 6
+  0,                                      !- Minute 6
+  0.55,                                   !- Value Until Time 6
+  21,                                     !- Hour 7
+  0,                                      !- Minute 7
+  0.9,                                    !- Value Until Time 7
+  24,                                     !- Hour 8
+  0,                                      !- Minute 8
+  1;                                      !- Value Until Time 8
+
+OS:Schedule:Rule,
+  {acbadfcb-3116-45c5-a1bb-e6ce29b029fb}, !- Handle
+  res occupants schedule allday rule5,    !- Name
+  {63f0517b-3632-4aa8-9d9f-b35d2155b669}, !- Schedule Ruleset Name
+  7,                                      !- Rule Order
+  {5b5b5a0b-91b4-4e58-876d-a7c7bf883f01}, !- Day Schedule Name
+  Yes,                                    !- Apply Sunday
+  Yes,                                    !- Apply Monday
+  Yes,                                    !- Apply Tuesday
+  Yes,                                    !- Apply Wednesday
+  Yes,                                    !- Apply Thursday
+  Yes,                                    !- Apply Friday
+  Yes,                                    !- Apply Saturday
+  ,                                       !- Apply Holiday
+  DateRange,                              !- Date Specification Type
+  5,                                      !- Start Month
+  1,                                      !- Start Day
+  5,                                      !- End Month
+  31;                                     !- End Day
+
+OS:Schedule:Day,
+  {5b5b5a0b-91b4-4e58-876d-a7c7bf883f01}, !- Handle
+  res occupants schedule allday5,         !- Name
+  {1797d3b9-8b6f-43b5-82b2-c05f81638eb2}, !- Schedule Type Limits Name
+  ,                                       !- Interpolate to Timestep
+  7,                                      !- Hour 1
+  0,                                      !- Minute 1
+  1,                                      !- Value Until Time 1
+  8,                                      !- Hour 2
+  0,                                      !- Minute 2
+  0.88,                                   !- Value Until Time 2
+  9,                                      !- Hour 3
+  0,                                      !- Minute 3
+  0.41,                                   !- Value Until Time 3
+  16,                                     !- Hour 4
+  0,                                      !- Minute 4
+  0.24,                                   !- Value Until Time 4
+  17,                                     !- Hour 5
+  0,                                      !- Minute 5
+  0.29,                                   !- Value Until Time 5
+  18,                                     !- Hour 6
+  0,                                      !- Minute 6
+  0.55,                                   !- Value Until Time 6
+  21,                                     !- Hour 7
+  0,                                      !- Minute 7
+  0.9,                                    !- Value Until Time 7
+  24,                                     !- Hour 8
+  0,                                      !- Minute 8
+  1;                                      !- Value Until Time 8
+
+OS:Schedule:Rule,
+  {1dde0aee-4bc7-4e86-85ba-3eb4990d13e0}, !- Handle
+  res occupants schedule allday rule6,    !- Name
+  {63f0517b-3632-4aa8-9d9f-b35d2155b669}, !- Schedule Ruleset Name
+  6,                                      !- Rule Order
+  {815ae46e-5e98-48b5-89b2-8741d162c6dc}, !- Day Schedule Name
+  Yes,                                    !- Apply Sunday
+  Yes,                                    !- Apply Monday
+  Yes,                                    !- Apply Tuesday
+  Yes,                                    !- Apply Wednesday
+  Yes,                                    !- Apply Thursday
+  Yes,                                    !- Apply Friday
+  Yes,                                    !- Apply Saturday
+  ,                                       !- Apply Holiday
+  DateRange,                              !- Date Specification Type
+  6,                                      !- Start Month
+  1,                                      !- Start Day
+  6,                                      !- End Month
+  30;                                     !- End Day
+
+OS:Schedule:Day,
+  {815ae46e-5e98-48b5-89b2-8741d162c6dc}, !- Handle
+  res occupants schedule allday6,         !- Name
+  {1797d3b9-8b6f-43b5-82b2-c05f81638eb2}, !- Schedule Type Limits Name
+  ,                                       !- Interpolate to Timestep
+  7,                                      !- Hour 1
+  0,                                      !- Minute 1
+  1,                                      !- Value Until Time 1
+  8,                                      !- Hour 2
+  0,                                      !- Minute 2
+  0.88,                                   !- Value Until Time 2
+  9,                                      !- Hour 3
+  0,                                      !- Minute 3
+  0.41,                                   !- Value Until Time 3
+  16,                                     !- Hour 4
+  0,                                      !- Minute 4
+  0.24,                                   !- Value Until Time 4
+  17,                                     !- Hour 5
+  0,                                      !- Minute 5
+  0.29,                                   !- Value Until Time 5
+  18,                                     !- Hour 6
+  0,                                      !- Minute 6
+  0.55,                                   !- Value Until Time 6
+  21,                                     !- Hour 7
+  0,                                      !- Minute 7
+  0.9,                                    !- Value Until Time 7
+  24,                                     !- Hour 8
+  0,                                      !- Minute 8
+  1;                                      !- Value Until Time 8
+
+OS:Schedule:Rule,
+  {29ba0152-96e2-4d11-98cc-c6981fa1c858}, !- Handle
+  res occupants schedule allday rule7,    !- Name
+  {63f0517b-3632-4aa8-9d9f-b35d2155b669}, !- Schedule Ruleset Name
+  5,                                      !- Rule Order
+  {53d22c9a-c4a7-4857-b2d6-6a9d5bc404df}, !- Day Schedule Name
+  Yes,                                    !- Apply Sunday
+  Yes,                                    !- Apply Monday
+  Yes,                                    !- Apply Tuesday
+  Yes,                                    !- Apply Wednesday
+  Yes,                                    !- Apply Thursday
+  Yes,                                    !- Apply Friday
+  Yes,                                    !- Apply Saturday
+  ,                                       !- Apply Holiday
+  DateRange,                              !- Date Specification Type
+  7,                                      !- Start Month
+  1,                                      !- Start Day
+  7,                                      !- End Month
+  31;                                     !- End Day
+
+OS:Schedule:Day,
+  {53d22c9a-c4a7-4857-b2d6-6a9d5bc404df}, !- Handle
+  res occupants schedule allday7,         !- Name
+  {1797d3b9-8b6f-43b5-82b2-c05f81638eb2}, !- Schedule Type Limits Name
+  ,                                       !- Interpolate to Timestep
+  7,                                      !- Hour 1
+  0,                                      !- Minute 1
+  1,                                      !- Value Until Time 1
+  8,                                      !- Hour 2
+  0,                                      !- Minute 2
+  0.88,                                   !- Value Until Time 2
+  9,                                      !- Hour 3
+  0,                                      !- Minute 3
+  0.41,                                   !- Value Until Time 3
+  16,                                     !- Hour 4
+  0,                                      !- Minute 4
+  0.24,                                   !- Value Until Time 4
+  17,                                     !- Hour 5
+  0,                                      !- Minute 5
+  0.29,                                   !- Value Until Time 5
+  18,                                     !- Hour 6
+  0,                                      !- Minute 6
+  0.55,                                   !- Value Until Time 6
+  21,                                     !- Hour 7
+  0,                                      !- Minute 7
+  0.9,                                    !- Value Until Time 7
+  24,                                     !- Hour 8
+  0,                                      !- Minute 8
+  1;                                      !- Value Until Time 8
+
+OS:Schedule:Rule,
+  {c9823b7a-3b0e-4cde-8aa7-234efb6fcd89}, !- Handle
+  res occupants schedule allday rule8,    !- Name
+  {63f0517b-3632-4aa8-9d9f-b35d2155b669}, !- Schedule Ruleset Name
+  4,                                      !- Rule Order
+  {9ee47673-eef6-4f99-9830-7a69db2ed1f9}, !- Day Schedule Name
+  Yes,                                    !- Apply Sunday
+  Yes,                                    !- Apply Monday
+  Yes,                                    !- Apply Tuesday
+  Yes,                                    !- Apply Wednesday
+  Yes,                                    !- Apply Thursday
+  Yes,                                    !- Apply Friday
+  Yes,                                    !- Apply Saturday
+  ,                                       !- Apply Holiday
+  DateRange,                              !- Date Specification Type
+  8,                                      !- Start Month
+  1,                                      !- Start Day
+  8,                                      !- End Month
+  31;                                     !- End Day
+
+OS:Schedule:Day,
+  {9ee47673-eef6-4f99-9830-7a69db2ed1f9}, !- Handle
+  res occupants schedule allday8,         !- Name
+  {1797d3b9-8b6f-43b5-82b2-c05f81638eb2}, !- Schedule Type Limits Name
+  ,                                       !- Interpolate to Timestep
+  7,                                      !- Hour 1
+  0,                                      !- Minute 1
+  1,                                      !- Value Until Time 1
+  8,                                      !- Hour 2
+  0,                                      !- Minute 2
+  0.88,                                   !- Value Until Time 2
+  9,                                      !- Hour 3
+  0,                                      !- Minute 3
+  0.41,                                   !- Value Until Time 3
+  16,                                     !- Hour 4
+  0,                                      !- Minute 4
+  0.24,                                   !- Value Until Time 4
+  17,                                     !- Hour 5
+  0,                                      !- Minute 5
+  0.29,                                   !- Value Until Time 5
+  18,                                     !- Hour 6
+  0,                                      !- Minute 6
+  0.55,                                   !- Value Until Time 6
+  21,                                     !- Hour 7
+  0,                                      !- Minute 7
+  0.9,                                    !- Value Until Time 7
+  24,                                     !- Hour 8
+  0,                                      !- Minute 8
+  1;                                      !- Value Until Time 8
+
+OS:Schedule:Rule,
+  {e0a02172-4799-4870-bb04-7964e330e179}, !- Handle
+  res occupants schedule allday rule9,    !- Name
+  {63f0517b-3632-4aa8-9d9f-b35d2155b669}, !- Schedule Ruleset Name
+  3,                                      !- Rule Order
+  {35cc1f7f-b6a8-4c01-8b18-175012fff113}, !- Day Schedule Name
+  Yes,                                    !- Apply Sunday
+  Yes,                                    !- Apply Monday
+  Yes,                                    !- Apply Tuesday
+  Yes,                                    !- Apply Wednesday
+  Yes,                                    !- Apply Thursday
+  Yes,                                    !- Apply Friday
+  Yes,                                    !- Apply Saturday
+  ,                                       !- Apply Holiday
+  DateRange,                              !- Date Specification Type
+  9,                                      !- Start Month
+  1,                                      !- Start Day
+  9,                                      !- End Month
+  30;                                     !- End Day
+
+OS:Schedule:Day,
+  {35cc1f7f-b6a8-4c01-8b18-175012fff113}, !- Handle
+  res occupants schedule allday9,         !- Name
+  {1797d3b9-8b6f-43b5-82b2-c05f81638eb2}, !- Schedule Type Limits Name
+  ,                                       !- Interpolate to Timestep
+  7,                                      !- Hour 1
+  0,                                      !- Minute 1
+  1,                                      !- Value Until Time 1
+  8,                                      !- Hour 2
+  0,                                      !- Minute 2
+  0.88,                                   !- Value Until Time 2
+  9,                                      !- Hour 3
+  0,                                      !- Minute 3
+  0.41,                                   !- Value Until Time 3
+  16,                                     !- Hour 4
+  0,                                      !- Minute 4
+  0.24,                                   !- Value Until Time 4
+  17,                                     !- Hour 5
+  0,                                      !- Minute 5
+  0.29,                                   !- Value Until Time 5
+  18,                                     !- Hour 6
+  0,                                      !- Minute 6
+  0.55,                                   !- Value Until Time 6
+  21,                                     !- Hour 7
+  0,                                      !- Minute 7
+  0.9,                                    !- Value Until Time 7
+  24,                                     !- Hour 8
+  0,                                      !- Minute 8
+  1;                                      !- Value Until Time 8
+
+OS:Schedule:Rule,
+  {1cd07738-63d8-4e4c-830a-1d77c7501f81}, !- Handle
+  res occupants schedule allday rule10,   !- Name
+  {63f0517b-3632-4aa8-9d9f-b35d2155b669}, !- Schedule Ruleset Name
+  2,                                      !- Rule Order
+  {09298b57-c69b-4feb-a326-654214fe7c4d}, !- Day Schedule Name
+  Yes,                                    !- Apply Sunday
+  Yes,                                    !- Apply Monday
+  Yes,                                    !- Apply Tuesday
+  Yes,                                    !- Apply Wednesday
+  Yes,                                    !- Apply Thursday
+  Yes,                                    !- Apply Friday
+  Yes,                                    !- Apply Saturday
+  ,                                       !- Apply Holiday
+  DateRange,                              !- Date Specification Type
+  10,                                     !- Start Month
+  1,                                      !- Start Day
+  10,                                     !- End Month
+  31;                                     !- End Day
+
+OS:Schedule:Day,
+  {09298b57-c69b-4feb-a326-654214fe7c4d}, !- Handle
+  res occupants schedule allday10,        !- Name
+  {1797d3b9-8b6f-43b5-82b2-c05f81638eb2}, !- Schedule Type Limits Name
+  ,                                       !- Interpolate to Timestep
+  7,                                      !- Hour 1
+  0,                                      !- Minute 1
+  1,                                      !- Value Until Time 1
+  8,                                      !- Hour 2
+  0,                                      !- Minute 2
+  0.88,                                   !- Value Until Time 2
+  9,                                      !- Hour 3
+  0,                                      !- Minute 3
+  0.41,                                   !- Value Until Time 3
+  16,                                     !- Hour 4
+  0,                                      !- Minute 4
+  0.24,                                   !- Value Until Time 4
+  17,                                     !- Hour 5
+  0,                                      !- Minute 5
+  0.29,                                   !- Value Until Time 5
+  18,                                     !- Hour 6
+  0,                                      !- Minute 6
+  0.55,                                   !- Value Until Time 6
+  21,                                     !- Hour 7
+  0,                                      !- Minute 7
+  0.9,                                    !- Value Until Time 7
+  24,                                     !- Hour 8
+  0,                                      !- Minute 8
+  1;                                      !- Value Until Time 8
+
+OS:Schedule:Rule,
+  {4f8be1de-fe0a-4872-ae2e-2f73a9dd62f6}, !- Handle
+  res occupants schedule allday rule11,   !- Name
+  {63f0517b-3632-4aa8-9d9f-b35d2155b669}, !- Schedule Ruleset Name
+  1,                                      !- Rule Order
+  {904a6cba-7e07-40e2-a4d9-bac3716fa877}, !- Day Schedule Name
+  Yes,                                    !- Apply Sunday
+  Yes,                                    !- Apply Monday
+  Yes,                                    !- Apply Tuesday
+  Yes,                                    !- Apply Wednesday
+  Yes,                                    !- Apply Thursday
+  Yes,                                    !- Apply Friday
+  Yes,                                    !- Apply Saturday
+  ,                                       !- Apply Holiday
+  DateRange,                              !- Date Specification Type
+  11,                                     !- Start Month
+  1,                                      !- Start Day
+  11,                                     !- End Month
+  30;                                     !- End Day
+
+OS:Schedule:Day,
+  {904a6cba-7e07-40e2-a4d9-bac3716fa877}, !- Handle
+  res occupants schedule allday11,        !- Name
+  {1797d3b9-8b6f-43b5-82b2-c05f81638eb2}, !- Schedule Type Limits Name
+  ,                                       !- Interpolate to Timestep
+  7,                                      !- Hour 1
+  0,                                      !- Minute 1
+  1,                                      !- Value Until Time 1
+  8,                                      !- Hour 2
+  0,                                      !- Minute 2
+  0.88,                                   !- Value Until Time 2
+  9,                                      !- Hour 3
+  0,                                      !- Minute 3
+  0.41,                                   !- Value Until Time 3
+  16,                                     !- Hour 4
+  0,                                      !- Minute 4
+  0.24,                                   !- Value Until Time 4
+  17,                                     !- Hour 5
+  0,                                      !- Minute 5
+  0.29,                                   !- Value Until Time 5
+  18,                                     !- Hour 6
+  0,                                      !- Minute 6
+  0.55,                                   !- Value Until Time 6
+  21,                                     !- Hour 7
+  0,                                      !- Minute 7
+  0.9,                                    !- Value Until Time 7
+  24,                                     !- Hour 8
+  0,                                      !- Minute 8
+  1;                                      !- Value Until Time 8
+
+OS:Schedule:Rule,
+  {633012fa-2a63-4070-84af-d30c10034bf8}, !- Handle
+  res occupants schedule allday rule12,   !- Name
+  {63f0517b-3632-4aa8-9d9f-b35d2155b669}, !- Schedule Ruleset Name
+  0,                                      !- Rule Order
+  {1fab9337-d8a3-4140-8678-f5f08e26627e}, !- Day Schedule Name
+  Yes,                                    !- Apply Sunday
+  Yes,                                    !- Apply Monday
+  Yes,                                    !- Apply Tuesday
+  Yes,                                    !- Apply Wednesday
+  Yes,                                    !- Apply Thursday
+  Yes,                                    !- Apply Friday
+  Yes,                                    !- Apply Saturday
+  ,                                       !- Apply Holiday
+  DateRange,                              !- Date Specification Type
+  12,                                     !- Start Month
+  1,                                      !- Start Day
+  12,                                     !- End Month
+  31;                                     !- End Day
+
+OS:Schedule:Day,
+  {1fab9337-d8a3-4140-8678-f5f08e26627e}, !- Handle
+  res occupants schedule allday12,        !- Name
+  {1797d3b9-8b6f-43b5-82b2-c05f81638eb2}, !- Schedule Type Limits Name
+  ,                                       !- Interpolate to Timestep
+  7,                                      !- Hour 1
+  0,                                      !- Minute 1
+  1,                                      !- Value Until Time 1
+  8,                                      !- Hour 2
+  0,                                      !- Minute 2
+  0.88,                                   !- Value Until Time 2
+  9,                                      !- Hour 3
+  0,                                      !- Minute 3
+  0.41,                                   !- Value Until Time 3
+  16,                                     !- Hour 4
+  0,                                      !- Minute 4
+  0.24,                                   !- Value Until Time 4
+  17,                                     !- Hour 5
+  0,                                      !- Minute 5
+  0.29,                                   !- Value Until Time 5
+  18,                                     !- Hour 6
+  0,                                      !- Minute 6
+  0.55,                                   !- Value Until Time 6
+  21,                                     !- Hour 7
+  0,                                      !- Minute 7
+  0.9,                                    !- Value Until Time 7
+  24,                                     !- Hour 8
+  0,                                      !- Minute 8
+  1;                                      !- Value Until Time 8
+
+OS:Schedule:Day,
+  {1f092af9-5ea2-4ab7-9f1a-66703bf1705c}, !- Handle
+  res occupants schedule winter design,   !- Name
+  {1797d3b9-8b6f-43b5-82b2-c05f81638eb2}, !- Schedule Type Limits Name
+  ,                                       !- Interpolate to Timestep
+  24,                                     !- Hour 1
+  0,                                      !- Minute 1
+  0;                                      !- Value Until Time 1
+
+OS:Schedule:Day,
+  {50f04ccd-3c1a-4308-a92f-26b5aef88026}, !- Handle
+  res occupants schedule summer design,   !- Name
+  {1797d3b9-8b6f-43b5-82b2-c05f81638eb2}, !- Schedule Type Limits Name
+  ,                                       !- Interpolate to Timestep
+  24,                                     !- Hour 1
+  0,                                      !- Minute 1
+  1;                                      !- Value Until Time 1
+
+OS:ScheduleTypeLimits,
+  {1797d3b9-8b6f-43b5-82b2-c05f81638eb2}, !- Handle
+  Fractional,                             !- Name
+  0,                                      !- Lower Limit Value
+  1,                                      !- Upper Limit Value
+  Continuous;                             !- Numeric Type
+
+OS:Schedule:Ruleset,
+  {af7e0919-e134-4ef2-be59-c7db440219b0}, !- Handle
+  Schedule Ruleset 1,                     !- Name
+  {b500e996-dc76-4fd4-a248-c0fed7dd0942}, !- Schedule Type Limits Name
+  {1535649a-b03c-41d3-9454-1db81fc0a53d}; !- Default Day Schedule Name
+
+OS:Schedule:Day,
+  {1535649a-b03c-41d3-9454-1db81fc0a53d}, !- Handle
+  Schedule Day 4,                         !- Name
+  {b500e996-dc76-4fd4-a248-c0fed7dd0942}, !- Schedule Type Limits Name
+  ,                                       !- Interpolate to Timestep
+  24,                                     !- Hour 1
+  0,                                      !- Minute 1
+  112.539290946133;                       !- Value Until Time 1
+
+OS:People:Definition,
+  {e9e3d389-2b71-4760-8a69-ba21cbc5ea22}, !- Handle
+  res occupants|living space,             !- Name
+  People,                                 !- Number of People Calculation Method
+  3.39,                                   !- Number of People {people}
+  ,                                       !- People per Space Floor Area {person/m2}
+  ,                                       !- Space Floor Area per Person {m2/person}
+  0.319734,                               !- Fraction Radiant
+  0.573,                                  !- Sensible Heat Fraction
+  0,                                      !- Carbon Dioxide Generation Rate {m3/s-W}
+  No,                                     !- Enable ASHRAE 55 Comfort Warnings
+  ZoneAveraged;                           !- Mean Radiant Temperature Calculation Type
+
+OS:People,
+  {7533b7d3-7e92-4e07-bd0d-55d6eb17836f}, !- Handle
+  res occupants|living space,             !- Name
+  {e9e3d389-2b71-4760-8a69-ba21cbc5ea22}, !- People Definition Name
+  {9f7f2e36-d873-4b96-b2e0-f48e0e6eb9f6}, !- Space or SpaceType Name
+  {63f0517b-3632-4aa8-9d9f-b35d2155b669}, !- Number of People Schedule Name
+  {af7e0919-e134-4ef2-be59-c7db440219b0}, !- Activity Level Schedule Name
+  ,                                       !- Surface Name/Angle Factor List Name
+  ,                                       !- Work Efficiency Schedule Name
+  ,                                       !- Clothing Insulation Schedule Name
+  ,                                       !- Air Velocity Schedule Name
+  1;                                      !- Multiplier
+
+OS:ScheduleTypeLimits,
+  {b500e996-dc76-4fd4-a248-c0fed7dd0942}, !- Handle
+  ActivityLevel,                          !- Name
+  0,                                      !- Lower Limit Value
+  ,                                       !- Upper Limit Value
+  Continuous,                             !- Numeric Type
+  ActivityLevel;                          !- Unit Type
+
+OS:WeatherFile,
+  {6f94ad6c-a367-4d19-8589-63224b2ff275}, !- Handle
+  Denver Intl Ap,                         !- City
+  CO,                                     !- State Province Region
+  USA,                                    !- Country
+  TMY3,                                   !- Data Source
+  725650,                                 !- WMO Number
+  39.83,                                  !- Latitude {deg}
+  -104.65,                                !- Longitude {deg}
+  -7,                                     !- Time Zone {hr}
+  1650,                                   !- Elevation {m}
+  file:../weather/USA_CO_Denver.Intl.AP.725650_TMY3.epw, !- Url
+  E23378AA;                               !- Checksum
+
+OS:AdditionalProperties,
+  {27ee284a-69e7-4244-b4cc-cb04b3e66ef5}, !- Handle
+  {6f94ad6c-a367-4d19-8589-63224b2ff275}, !- Object Name
+  EPWHeaderCity,                          !- Feature Name 1
+  String,                                 !- Feature Data Type 1
+  Denver Intl Ap,                         !- Feature Value 1
+  EPWHeaderState,                         !- Feature Name 2
+  String,                                 !- Feature Data Type 2
+  CO,                                     !- Feature Value 2
+  EPWHeaderCountry,                       !- Feature Name 3
+  String,                                 !- Feature Data Type 3
+  USA,                                    !- Feature Value 3
+  EPWHeaderDataSource,                    !- Feature Name 4
+  String,                                 !- Feature Data Type 4
+  TMY3,                                   !- Feature Value 4
+  EPWHeaderStation,                       !- Feature Name 5
+  String,                                 !- Feature Data Type 5
+  725650,                                 !- Feature Value 5
+  EPWHeaderLatitude,                      !- Feature Name 6
+  Double,                                 !- Feature Data Type 6
+  39.829999999999998,                     !- Feature Value 6
+  EPWHeaderLongitude,                     !- Feature Name 7
+  Double,                                 !- Feature Data Type 7
+  -104.65000000000001,                    !- Feature Value 7
+  EPWHeaderTimezone,                      !- Feature Name 8
+  Double,                                 !- Feature Data Type 8
+  -7,                                     !- Feature Value 8
+  EPWHeaderAltitude,                      !- Feature Name 9
+  Double,                                 !- Feature Data Type 9
+  5413.3858267716532,                     !- Feature Value 9
+  EPWHeaderLocalPressure,                 !- Feature Name 10
+  Double,                                 !- Feature Data Type 10
+  0.81937567683596546,                    !- Feature Value 10
+  EPWHeaderRecordsPerHour,                !- Feature Name 11
+  Double,                                 !- Feature Data Type 11
+  0,                                      !- Feature Value 11
+  EPWDataAnnualAvgDrybulb,                !- Feature Name 12
+  Double,                                 !- Feature Data Type 12
+  51.575616438356228,                     !- Feature Value 12
+  EPWDataAnnualMinDrybulb,                !- Feature Name 13
+  Double,                                 !- Feature Data Type 13
+  -2.9200000000000017,                    !- Feature Value 13
+  EPWDataAnnualMaxDrybulb,                !- Feature Name 14
+  Double,                                 !- Feature Data Type 14
+  104,                                    !- Feature Value 14
+  EPWDataCDD50F,                          !- Feature Name 15
+  Double,                                 !- Feature Data Type 15
+  3072.2925000000005,                     !- Feature Value 15
+  EPWDataCDD65F,                          !- Feature Name 16
+  Double,                                 !- Feature Data Type 16
+  883.62000000000035,                     !- Feature Value 16
+  EPWDataHDD50F,                          !- Feature Name 17
+  Double,                                 !- Feature Data Type 17
+  2497.1925000000001,                     !- Feature Value 17
+  EPWDataHDD65F,                          !- Feature Name 18
+  Double,                                 !- Feature Data Type 18
+  5783.5200000000013,                     !- Feature Value 18
+  EPWDataAnnualAvgWindspeed,              !- Feature Name 19
+  Double,                                 !- Feature Data Type 19
+  3.9165296803649667,                     !- Feature Value 19
+  EPWDataMonthlyAvgDrybulbs,              !- Feature Name 20
+  String,                                 !- Feature Data Type 20
+  33.4191935483871&#4431.90142857142857&#4443.02620967741937&#4442.48624999999999&#4459.877741935483854&#4473.57574999999997&#4472.07975806451608&#4472.70008064516134&#4466.49200000000006&#4450.079112903225806&#4437.218250000000005&#4434.582177419354835, !- Feature Value 20
+  EPWDataGroundMonthlyTemps,              !- Feature Name 21
+  String,                                 !- Feature Data Type 21
+  44.08306285945173&#4440.89570904991865&#4440.64045432632048&#4442.153016571250646&#4448.225111118704206&#4454.268919273837525&#4459.508577937551024&#4462.82777283423508&#4463.10975667174995&#4460.41014950381947&#4455.304105212311526&#4449.445696474514364, !- Feature Value 21
+  EPWDataWSF,                             !- Feature Name 22
+  Double,                                 !- Feature Data Type 22
+  0.58999999999999997,                    !- Feature Value 22
+  EPWDataMonthlyAvgDailyHighDrybulbs,     !- Feature Name 23
+  String,                                 !- Feature Data Type 23
+  47.41032258064516&#4446.58642857142857&#4455.15032258064517&#4453.708&#4472.80193548387098&#4488.67600000000002&#4486.1858064516129&#4485.87225806451613&#4482.082&#4463.18064516129033&#4448.73400000000001&#4448.87935483870968, !- Feature Value 23
+  EPWDataMonthlyAvgDailyLowDrybulbs,      !- Feature Name 24
+  String,                                 !- Feature Data Type 24
+  19.347741935483874&#4419.856428571428573&#4430.316129032258065&#4431.112&#4447.41612903225806&#4457.901999999999994&#4459.063870967741934&#4460.956774193548384&#4452.352000000000004&#4438.41612903225806&#4427.002000000000002&#4423.02903225806451, !- Feature Value 24
+  EPWDesignHeatingDrybulb,                !- Feature Name 25
+  Double,                                 !- Feature Data Type 25
+  12.02,                                  !- Feature Value 25
+  EPWDesignHeatingWindspeed,              !- Feature Name 26
+  Double,                                 !- Feature Data Type 26
+  2.8062500000000004,                     !- Feature Value 26
+  EPWDesignCoolingDrybulb,                !- Feature Name 27
+  Double,                                 !- Feature Data Type 27
+  91.939999999999998,                     !- Feature Value 27
+  EPWDesignCoolingWetbulb,                !- Feature Name 28
+  Double,                                 !- Feature Data Type 28
+  59.95131430195849,                      !- Feature Value 28
+  EPWDesignCoolingHumidityRatio,          !- Feature Name 29
+  Double,                                 !- Feature Data Type 29
+  0.0059161086834698092,                  !- Feature Value 29
+  EPWDesignCoolingWindspeed,              !- Feature Name 30
+  Double,                                 !- Feature Data Type 30
+  3.7999999999999989,                     !- Feature Value 30
+  EPWDesignDailyTemperatureRange,         !- Feature Name 31
+  Double,                                 !- Feature Data Type 31
+  24.915483870967748,                     !- Feature Value 31
+  EPWDesignDehumidDrybulb,                !- Feature Name 32
+  Double,                                 !- Feature Data Type 32
+  67.996785714285721,                     !- Feature Value 32
+  EPWDesignDehumidHumidityRatio,          !- Feature Name 33
+  Double,                                 !- Feature Data Type 33
+  0.012133744170488724,                   !- Feature Value 33
+  EPWDesignCoolingDirectNormal,           !- Feature Name 34
+  Double,                                 !- Feature Data Type 34
+  985,                                    !- Feature Value 34
+  EPWDesignCoolingDiffuseHorizontal,      !- Feature Name 35
+  Double,                                 !- Feature Data Type 35
+  84;                                     !- Feature Value 35
+
+OS:Site,
+  {fe50460d-8390-415d-98a7-d811ae668e3e}, !- Handle
+  Denver Intl Ap_CO_USA,                  !- Name
+  39.83,                                  !- Latitude {deg}
+  -104.65,                                !- Longitude {deg}
+  -7,                                     !- Time Zone {hr}
+  1650,                                   !- Elevation {m}
+  ;                                       !- Terrain
+
+OS:ClimateZones,
+  {61719cc7-fee3-4644-b032-ff6adf274f38}, !- Handle
+  ,                                       !- Active Institution
+  ,                                       !- Active Year
+  ,                                       !- Climate Zone Institution Name 1
+  ,                                       !- Climate Zone Document Name 1
+  ,                                       !- Climate Zone Document Year 1
+  ,                                       !- Climate Zone Value 1
+  Building America,                       !- Climate Zone Institution Name 2
+  ,                                       !- Climate Zone Document Name 2
+  0,                                      !- Climate Zone Document Year 2
+  Cold;                                   !- Climate Zone Value 2
+
+OS:Site:WaterMainsTemperature,
+  {52a568a8-d483-4325-8cfc-5b6f3c91484c}, !- Handle
+  Correlation,                            !- Calculation Method
+  ,                                       !- Temperature Schedule Name
+  10.8753424657535,                       !- Annual Average Outdoor Air Temperature {C}
+  23.1524007936508;                       !- Maximum Difference In Monthly Average Outdoor Air Temperatures {deltaC}
+
+OS:RunPeriodControl:DaylightSavingTime,
+  {204839bd-9bdf-4d71-8ed9-0e1b5f8ac778}, !- Handle
+  4/7,                                    !- Start Date
+  10/26;                                  !- End Date
+
+OS:Site:GroundTemperature:Deep,
+  {0916c51d-82fd-4b85-a720-ea8d9fa4833e}, !- Handle
+  10.8753424657535,                       !- January Deep Ground Temperature {C}
+  10.8753424657535,                       !- February Deep Ground Temperature {C}
+  10.8753424657535,                       !- March Deep Ground Temperature {C}
+  10.8753424657535,                       !- April Deep Ground Temperature {C}
+  10.8753424657535,                       !- May Deep Ground Temperature {C}
+  10.8753424657535,                       !- June Deep Ground Temperature {C}
+  10.8753424657535,                       !- July Deep Ground Temperature {C}
+  10.8753424657535,                       !- August Deep Ground Temperature {C}
+  10.8753424657535,                       !- September Deep Ground Temperature {C}
+  10.8753424657535,                       !- October Deep Ground Temperature {C}
+  10.8753424657535,                       !- November Deep Ground Temperature {C}
+  10.8753424657535;                       !- December Deep Ground Temperature {C}
+
+OS:PlantLoop,
+  {17b403d7-c53f-4404-818c-15e9f1fa7165}, !- Handle
+  Domestic Hot Water Loop,                !- Name
+  ,                                       !- Fluid Type
+  0,                                      !- Glycol Concentration
+  ,                                       !- User Defined Fluid Type
+  ,                                       !- Plant Equipment Operation Heating Load
+  ,                                       !- Plant Equipment Operation Cooling Load
+  ,                                       !- Primary Plant Equipment Operation Scheme
+  {09edab14-8d15-4311-b1d4-809d451ccef6}, !- Loop Temperature Setpoint Node Name
+  ,                                       !- Maximum Loop Temperature {C}
+  ,                                       !- Minimum Loop Temperature {C}
+  0.01,                                   !- Maximum Loop Flow Rate {m3/s}
+  ,                                       !- Minimum Loop Flow Rate {m3/s}
+  0.003,                                  !- Plant Loop Volume {m3}
+  {868b9940-fede-48d0-8d74-de1002bf7e5f}, !- Plant Side Inlet Node Name
+  {85537e9f-f3a1-48d6-908a-3326a33a7c08}, !- Plant Side Outlet Node Name
+  ,                                       !- Plant Side Branch List Name
+  {afae5737-7b8e-4a8f-a377-54422bcb40b7}, !- Demand Side Inlet Node Name
+  {6fc4240d-6df5-4e7e-b3d2-e71c8c114e9e}, !- Demand Side Outlet Node Name
+  ,                                       !- Demand Side Branch List Name
+  ,                                       !- Demand Side Connector List Name
+  Optimal,                                !- Load Distribution Scheme
+  {bd86969d-bcac-4dcf-8551-66592815507a}, !- Availability Manager List Name
+  ,                                       !- Plant Loop Demand Calculation Scheme
+  ,                                       !- Common Pipe Simulation
+  ,                                       !- Pressure Simulation Type
+  ,                                       !- Plant Equipment Operation Heating Load Schedule
+  ,                                       !- Plant Equipment Operation Cooling Load Schedule
+  ,                                       !- Primary Plant Equipment Operation Scheme Schedule
+  ,                                       !- Component Setpoint Operation Scheme Schedule
+  {86f02aff-1cdd-4835-b06b-1f5cf3f95479}, !- Demand Mixer Name
+  {12493114-fb4c-4984-af7a-c37ba3a0cc22}, !- Demand Splitter Name
+  {f4ee0c6b-e28a-4398-8219-a3bb59422148}, !- Supply Mixer Name
+  {19a45838-25ff-4399-893c-a8af8ac0c25e}; !- Supply Splitter Name
+
+OS:Node,
+  {08274c1b-e64b-4783-94f9-8c059e4d50f7}, !- Handle
+  Node 3,                                 !- Name
+  {868b9940-fede-48d0-8d74-de1002bf7e5f}, !- Inlet Port
+  {2c8b14ca-1ca2-465d-8873-5d1775b0675f}; !- Outlet Port
+
+OS:Node,
+  {09edab14-8d15-4311-b1d4-809d451ccef6}, !- Handle
+  Node 4,                                 !- Name
+  {0aaf26b2-18bc-4e22-89da-5a4e75ad63fa}, !- Inlet Port
+  {85537e9f-f3a1-48d6-908a-3326a33a7c08}; !- Outlet Port
+
+OS:Node,
+  {51f9da63-0dab-44b8-82a7-9e21ea31ba1c}, !- Handle
+  Node 5,                                 !- Name
+  {c208953a-c55e-4764-89e3-271af27990e5}, !- Inlet Port
+  {e0c3953b-e536-4d17-a6d8-c3ae6d74f0d3}; !- Outlet Port
+
+OS:Connector:Mixer,
+  {f4ee0c6b-e28a-4398-8219-a3bb59422148}, !- Handle
+  Connector Mixer 1,                      !- Name
+  {7f64cdef-82d9-42c3-a7c4-ea09f328833b}, !- Outlet Branch Name
+  {f6a398ac-8eb3-48f5-aea8-26d38f511542}, !- Inlet Branch Name 1
+  {14801d7b-fb8d-464c-9fff-d4da3da4dc7f}; !- Inlet Branch Name 2
+
+OS:Connector:Splitter,
+  {19a45838-25ff-4399-893c-a8af8ac0c25e}, !- Handle
+  Connector Splitter 1,                   !- Name
+  {8357fe46-74da-4de8-8b6b-9a4de74478c4}, !- Inlet Branch Name
+  {c208953a-c55e-4764-89e3-271af27990e5}, !- Outlet Branch Name 1
+  {5428d119-620c-44dc-901e-5babc0e44753}; !- Outlet Branch Name 2
+
+OS:Connection,
+  {868b9940-fede-48d0-8d74-de1002bf7e5f}, !- Handle
+  {a8e15f05-16eb-4694-8a77-719c854e858e}, !- Name
+  {17b403d7-c53f-4404-818c-15e9f1fa7165}, !- Source Object
+  14,                                     !- Outlet Port
+  {08274c1b-e64b-4783-94f9-8c059e4d50f7}, !- Target Object
+  2;                                      !- Inlet Port
+
+OS:Connection,
+  {c208953a-c55e-4764-89e3-271af27990e5}, !- Handle
+  {d5a91388-40b5-4d2d-bfc0-bb8945a3d6ee}, !- Name
+  {19a45838-25ff-4399-893c-a8af8ac0c25e}, !- Source Object
+  3,                                      !- Outlet Port
+  {51f9da63-0dab-44b8-82a7-9e21ea31ba1c}, !- Target Object
+  2;                                      !- Inlet Port
+
+OS:Connection,
+  {85537e9f-f3a1-48d6-908a-3326a33a7c08}, !- Handle
+  {e727b49f-5157-462c-918c-8186e554a72c}, !- Name
+  {09edab14-8d15-4311-b1d4-809d451ccef6}, !- Source Object
+  3,                                      !- Outlet Port
+  {17b403d7-c53f-4404-818c-15e9f1fa7165}, !- Target Object
+  15;                                     !- Inlet Port
+
+OS:Node,
+  {b346f810-e510-4767-8e59-43d63eb4730c}, !- Handle
+  Node 6,                                 !- Name
+  {afae5737-7b8e-4a8f-a377-54422bcb40b7}, !- Inlet Port
+  {b546f976-2046-4f56-8834-425f626feb12}; !- Outlet Port
+
+OS:Node,
+  {fc5fc4f1-10f9-4b3e-9520-a0eb13942000}, !- Handle
+  Node 7,                                 !- Name
+  {005d19e9-04c3-450b-bd9c-8d700ff28483}, !- Inlet Port
+  {6fc4240d-6df5-4e7e-b3d2-e71c8c114e9e}; !- Outlet Port
+
+OS:Node,
+  {c266caa5-14fb-4399-b08b-939f53b6e0fd}, !- Handle
+  Node 8,                                 !- Name
+  {02c4d994-b8fa-4447-a062-027ab5de156d}, !- Inlet Port
+  {3f9516e4-46cb-4e80-bf5c-01fc4ce64d40}; !- Outlet Port
+
+OS:Connector:Mixer,
+  {86f02aff-1cdd-4835-b06b-1f5cf3f95479}, !- Handle
+  Connector Mixer 2,                      !- Name
+  {005d19e9-04c3-450b-bd9c-8d700ff28483}, !- Outlet Branch Name
+  {4e3c57e6-faeb-44d2-9f03-3082423f37d7}; !- Inlet Branch Name 1
+
+OS:Connector:Splitter,
+  {12493114-fb4c-4984-af7a-c37ba3a0cc22}, !- Handle
+  Connector Splitter 2,                   !- Name
+  {b546f976-2046-4f56-8834-425f626feb12}, !- Inlet Branch Name
+  {02c4d994-b8fa-4447-a062-027ab5de156d}; !- Outlet Branch Name 1
+
+OS:Connection,
+  {afae5737-7b8e-4a8f-a377-54422bcb40b7}, !- Handle
+  {2ea5b6ed-49bb-4b01-a0bf-6971192da396}, !- Name
+  {17b403d7-c53f-4404-818c-15e9f1fa7165}, !- Source Object
+  17,                                     !- Outlet Port
+  {b346f810-e510-4767-8e59-43d63eb4730c}, !- Target Object
+  2;                                      !- Inlet Port
+
+OS:Connection,
+  {b546f976-2046-4f56-8834-425f626feb12}, !- Handle
+  {d551e87b-dc58-4df6-84b0-1adbd11ed7cd}, !- Name
+  {b346f810-e510-4767-8e59-43d63eb4730c}, !- Source Object
+  3,                                      !- Outlet Port
+  {12493114-fb4c-4984-af7a-c37ba3a0cc22}, !- Target Object
+  2;                                      !- Inlet Port
+
+OS:Connection,
+  {02c4d994-b8fa-4447-a062-027ab5de156d}, !- Handle
+  {648caa3b-49b5-4177-8eb9-ee5047fecf3a}, !- Name
+  {12493114-fb4c-4984-af7a-c37ba3a0cc22}, !- Source Object
+  3,                                      !- Outlet Port
+  {c266caa5-14fb-4399-b08b-939f53b6e0fd}, !- Target Object
+  2;                                      !- Inlet Port
+
+OS:Connection,
+  {005d19e9-04c3-450b-bd9c-8d700ff28483}, !- Handle
+  {e3d13deb-e8b0-4d41-b7d0-2f7c229db66d}, !- Name
+  {86f02aff-1cdd-4835-b06b-1f5cf3f95479}, !- Source Object
+  2,                                      !- Outlet Port
+  {fc5fc4f1-10f9-4b3e-9520-a0eb13942000}, !- Target Object
+  2;                                      !- Inlet Port
+
+OS:Connection,
+  {6fc4240d-6df5-4e7e-b3d2-e71c8c114e9e}, !- Handle
+  {012b85e1-3f55-4979-a40d-e668d8749341}, !- Name
+  {fc5fc4f1-10f9-4b3e-9520-a0eb13942000}, !- Source Object
+  3,                                      !- Outlet Port
+  {17b403d7-c53f-4404-818c-15e9f1fa7165}, !- Target Object
+  18;                                     !- Inlet Port
+
+OS:Sizing:Plant,
+  {ae94b0b6-83b1-44ab-8e0d-b0303224d3ff}, !- Handle
+  {17b403d7-c53f-4404-818c-15e9f1fa7165}, !- Plant or Condenser Loop Name
+  Heating,                                !- Loop Type
+  52.6666666666667,                       !- Design Loop Exit Temperature {C}
+  5.55555555555556,                       !- Loop Design Temperature Difference {deltaC}
+  NonCoincident,                          !- Sizing Option
+  1,                                      !- Zone Timesteps in Averaging Window
+  None;                                   !- Coincident Sizing Factor Mode
+
+OS:AvailabilityManagerAssignmentList,
+  {bd86969d-bcac-4dcf-8551-66592815507a}, !- Handle
+  Plant Loop 1 AvailabilityManagerAssignmentList; !- Name
+
+OS:Pipe:Adiabatic,
+  {be32f73f-cde4-408d-b7aa-1be722eb1ba8}, !- Handle
+  Pipe Adiabatic 1,                       !- Name
+  {e0c3953b-e536-4d17-a6d8-c3ae6d74f0d3}, !- Inlet Node Name
+  {73377d3a-767f-4e41-931f-fee2f6849552}; !- Outlet Node Name
+
+OS:Pipe:Adiabatic,
+  {8efe6309-6b44-4336-9689-f599caa951b0}, !- Handle
+  Pipe Adiabatic 2,                       !- Name
+  {abc3bae5-c370-4c2f-aa3c-b5ad444e7c78}, !- Inlet Node Name
+  {0aaf26b2-18bc-4e22-89da-5a4e75ad63fa}; !- Outlet Node Name
+
+OS:Node,
+  {8eb23e5d-38dc-4213-b942-9acf386d25fa}, !- Handle
+  Node 9,                                 !- Name
+  {73377d3a-767f-4e41-931f-fee2f6849552}, !- Inlet Port
+  {f6a398ac-8eb3-48f5-aea8-26d38f511542}; !- Outlet Port
+
+OS:Connection,
+  {e0c3953b-e536-4d17-a6d8-c3ae6d74f0d3}, !- Handle
+  {a6ac474e-1790-4f67-8444-ea4d9c20b018}, !- Name
+  {51f9da63-0dab-44b8-82a7-9e21ea31ba1c}, !- Source Object
+  3,                                      !- Outlet Port
+  {be32f73f-cde4-408d-b7aa-1be722eb1ba8}, !- Target Object
+  2;                                      !- Inlet Port
+
+OS:Connection,
+  {73377d3a-767f-4e41-931f-fee2f6849552}, !- Handle
+  {9d39297b-e295-4285-afb5-d40c9993a940}, !- Name
+  {be32f73f-cde4-408d-b7aa-1be722eb1ba8}, !- Source Object
+  3,                                      !- Outlet Port
+  {8eb23e5d-38dc-4213-b942-9acf386d25fa}, !- Target Object
+  2;                                      !- Inlet Port
+
+OS:Connection,
+  {f6a398ac-8eb3-48f5-aea8-26d38f511542}, !- Handle
+  {63bec0bf-4be9-429d-9b3f-3aa8773f6f79}, !- Name
+  {8eb23e5d-38dc-4213-b942-9acf386d25fa}, !- Source Object
+  3,                                      !- Outlet Port
+  {f4ee0c6b-e28a-4398-8219-a3bb59422148}, !- Target Object
+  3;                                      !- Inlet Port
+
+OS:Node,
+  {ecd59822-3143-439b-99e5-eb0088ce0fe2}, !- Handle
+  Node 10,                                !- Name
+  {7f64cdef-82d9-42c3-a7c4-ea09f328833b}, !- Inlet Port
+  {abc3bae5-c370-4c2f-aa3c-b5ad444e7c78}; !- Outlet Port
+
+OS:Connection,
+  {7f64cdef-82d9-42c3-a7c4-ea09f328833b}, !- Handle
+  {0f1deee1-608a-4c84-86b3-34d65c90fa34}, !- Name
+  {f4ee0c6b-e28a-4398-8219-a3bb59422148}, !- Source Object
+  2,                                      !- Outlet Port
+  {ecd59822-3143-439b-99e5-eb0088ce0fe2}, !- Target Object
+  2;                                      !- Inlet Port
+
+OS:Connection,
+  {abc3bae5-c370-4c2f-aa3c-b5ad444e7c78}, !- Handle
+  {b9ab3a91-6bba-44f0-a6ad-a785dead4007}, !- Name
+  {ecd59822-3143-439b-99e5-eb0088ce0fe2}, !- Source Object
+  3,                                      !- Outlet Port
+  {8efe6309-6b44-4336-9689-f599caa951b0}, !- Target Object
+  2;                                      !- Inlet Port
+
+OS:Connection,
+  {0aaf26b2-18bc-4e22-89da-5a4e75ad63fa}, !- Handle
+  {d17c5277-b5b9-4099-a506-d95069647480}, !- Name
+  {8efe6309-6b44-4336-9689-f599caa951b0}, !- Source Object
+  3,                                      !- Outlet Port
+  {09edab14-8d15-4311-b1d4-809d451ccef6}, !- Target Object
+  2;                                      !- Inlet Port
+
+OS:Pump:VariableSpeed,
+  {220c686e-bf46-4d7c-be93-afe507d0fc08}, !- Handle
+  Pump Variable Speed 1,                  !- Name
+  {2c8b14ca-1ca2-465d-8873-5d1775b0675f}, !- Inlet Node Name
+  {e8de3629-ed77-47f3-9569-1e9589a7ce93}, !- Outlet Node Name
+  0.01,                                   !- Rated Flow Rate {m3/s}
+  1,                                      !- Rated Pump Head {Pa}
+  0,                                      !- Rated Power Consumption {W}
+  1,                                      !- Motor Efficiency
+  0,                                      !- Fraction of Motor Inefficiencies to Fluid Stream
+  0,                                      !- Coefficient 1 of the Part Load Performance Curve
+  1,                                      !- Coefficient 2 of the Part Load Performance Curve
+  0,                                      !- Coefficient 3 of the Part Load Performance Curve
+  0,                                      !- Coefficient 4 of the Part Load Performance Curve
+  ,                                       !- Minimum Flow Rate {m3/s}
+  Intermittent,                           !- Pump Control Type
+  ,                                       !- Pump Flow Rate Schedule Name
+  ,                                       !- Pump Curve Name
+  ,                                       !- Impeller Diameter {m}
+  ,                                       !- VFD Control Type
+  ,                                       !- Pump RPM Schedule Name
+  ,                                       !- Minimum Pressure Schedule {Pa}
+  ,                                       !- Maximum Pressure Schedule {Pa}
+  ,                                       !- Minimum RPM Schedule {rev/min}
+  ,                                       !- Maximum RPM Schedule {rev/min}
+  ,                                       !- Zone Name
+  0.5,                                    !- Skin Loss Radiative Fraction
+  PowerPerFlowPerPressure,                !- Design Power Sizing Method
+  348701.1,                               !- Design Electric Power per Unit Flow Rate {W/(m3/s)}
+  1.282051282,                            !- Design Shaft Power per Unit Flow Rate per Unit Head {W-s/m3-Pa}
+  0,                                      !- Design Minimum Flow Rate Fraction
+  General;                                !- End-Use Subcategory
+
+OS:Node,
+  {7557febc-1097-433a-8235-623e464b15d7}, !- Handle
+  Node 11,                                !- Name
+  {e8de3629-ed77-47f3-9569-1e9589a7ce93}, !- Inlet Port
+  {8357fe46-74da-4de8-8b6b-9a4de74478c4}; !- Outlet Port
+
+OS:Connection,
+  {2c8b14ca-1ca2-465d-8873-5d1775b0675f}, !- Handle
+  {a0344f66-888f-4474-81ee-d580a0563829}, !- Name
+  {08274c1b-e64b-4783-94f9-8c059e4d50f7}, !- Source Object
+  3,                                      !- Outlet Port
+  {220c686e-bf46-4d7c-be93-afe507d0fc08}, !- Target Object
+  2;                                      !- Inlet Port
+
+OS:Connection,
+  {e8de3629-ed77-47f3-9569-1e9589a7ce93}, !- Handle
+  {23e41ba7-a3bd-47b9-b568-3009d7f025d5}, !- Name
+  {220c686e-bf46-4d7c-be93-afe507d0fc08}, !- Source Object
+  3,                                      !- Outlet Port
+  {7557febc-1097-433a-8235-623e464b15d7}, !- Target Object
+  2;                                      !- Inlet Port
+
+OS:Connection,
+  {8357fe46-74da-4de8-8b6b-9a4de74478c4}, !- Handle
+  {d6f0e2ae-f3c9-4450-a555-5bfed2b294a2}, !- Name
+  {7557febc-1097-433a-8235-623e464b15d7}, !- Source Object
+  3,                                      !- Outlet Port
+  {19a45838-25ff-4399-893c-a8af8ac0c25e}, !- Target Object
+  2;                                      !- Inlet Port
+
+OS:Schedule:Constant,
+  {95145c09-34a7-4330-a25c-45f90915a8e6}, !- Handle
+  dhw temp,                               !- Name
+  {3bacd900-54b9-415f-a6a8-f3fd5f655d0a}, !- Schedule Type Limits Name
+  52.6666666666667;                       !- Value
+
+OS:SetpointManager:Scheduled,
+  {26da4528-abb2-48ef-acf0-7aa6ba07144b}, !- Handle
+  Setpoint Manager Scheduled 1,           !- Name
+  Temperature,                            !- Control Variable
+  {95145c09-34a7-4330-a25c-45f90915a8e6}, !- Schedule Name
+  {09edab14-8d15-4311-b1d4-809d451ccef6}; !- Setpoint Node or NodeList Name
+
+OS:ScheduleTypeLimits,
+  {3bacd900-54b9-415f-a6a8-f3fd5f655d0a}, !- Handle
+  Temperature,                            !- Name
+  ,                                       !- Lower Limit Value
+  ,                                       !- Upper Limit Value
+  Continuous,                             !- Numeric Type
+  Temperature;                            !- Unit Type
+
+OS:WaterHeater:Mixed,
+  {f45ead4e-3b48-446d-8c95-1a0711ee43cb}, !- Handle
+  res wh,                                 !- Name
+  0.143845647790854,                      !- Tank Volume {m3}
+  {f59d39f3-2085-4ec2-9e08-e6e17fadd26f}, !- Setpoint Temperature Schedule Name
+  2,                                      !- Deadband Temperature Difference {deltaC}
+  99,                                     !- Maximum Temperature Limit {C}
+  Cycle,                                  !- Heater Control Type
+  11722.8428068889,                       !- Heater Maximum Capacity {W}
+  0,                                      !- Heater Minimum Capacity {W}
+  ,                                       !- Heater Ignition Minimum Flow Rate {m3/s}
+  ,                                       !- Heater Ignition Delay {s}
+  NaturalGas,                             !- Heater Fuel Type
+  0.773298241318794,                      !- Heater Thermal Efficiency
+  ,                                       !- Part Load Factor Curve Name
+  0,                                      !- Off Cycle Parasitic Fuel Consumption Rate {W}
+  Electricity,                            !- Off Cycle Parasitic Fuel Type
+  0,                                      !- Off Cycle Parasitic Heat Fraction to Tank
+  0,                                      !- On Cycle Parasitic Fuel Consumption Rate {W}
+  Electricity,                            !- On Cycle Parasitic Fuel Type
+  0,                                      !- On Cycle Parasitic Heat Fraction to Tank
+  ThermalZone,                            !- Ambient Temperature Indicator
+  ,                                       !- Ambient Temperature Schedule Name
+  {0c6c7985-27ee-4835-952a-d89688fa9912}, !- Ambient Temperature Thermal Zone Name
+  ,                                       !- Ambient Temperature Outdoor Air Node Name
+  4.15693173076374,                       !- Off Cycle Loss Coefficient to Ambient Temperature {W/K}
+  0.64,                                   !- Off Cycle Loss Fraction to Thermal Zone
+  4.15693173076374,                       !- On Cycle Loss Coefficient to Ambient Temperature {W/K}
+  1,                                      !- On Cycle Loss Fraction to Thermal Zone
+  ,                                       !- Peak Use Flow Rate {m3/s}
+  ,                                       !- Use Flow Rate Fraction Schedule Name
+  ,                                       !- Cold Water Supply Temperature Schedule Name
+  {ec59eab4-630c-459d-98b8-14097c6715c8}, !- Use Side Inlet Node Name
+  {60117b0b-4afe-4b2d-a764-f0a8289f676f}, !- Use Side Outlet Node Name
+  1,                                      !- Use Side Effectiveness
+  ,                                       !- Source Side Inlet Node Name
+  ,                                       !- Source Side Outlet Node Name
+  1,                                      !- Source Side Effectiveness
+  autosize,                               !- Use Side Design Flow Rate {m3/s}
+  autosize,                               !- Source Side Design Flow Rate {m3/s}
+  1.5,                                    !- Indirect Water Heating Recovery Time {hr}
+  IndirectHeatPrimarySetpoint,            !- Source Side Flow Control Mode
+  ,                                       !- Indirect Alternate Setpoint Temperature Schedule Name
+  res wh;                                 !- End-Use Subcategory
+
+OS:Schedule:Constant,
+  {f59d39f3-2085-4ec2-9e08-e6e17fadd26f}, !- Handle
+  WH Setpoint Temp,                       !- Name
+  {3bacd900-54b9-415f-a6a8-f3fd5f655d0a}, !- Schedule Type Limits Name
+  52.6666666666667;                       !- Value
+
+OS:Node,
+  {c10ee262-2530-418f-b41c-807ad849b13a}, !- Handle
+  Node 12,                                !- Name
+  {5428d119-620c-44dc-901e-5babc0e44753}, !- Inlet Port
+  {ec59eab4-630c-459d-98b8-14097c6715c8}; !- Outlet Port
+
+OS:Connection,
+  {5428d119-620c-44dc-901e-5babc0e44753}, !- Handle
+  {44f9db39-3c72-4f43-b9eb-42a815745a3d}, !- Name
+  {19a45838-25ff-4399-893c-a8af8ac0c25e}, !- Source Object
+  4,                                      !- Outlet Port
+  {c10ee262-2530-418f-b41c-807ad849b13a}, !- Target Object
+  2;                                      !- Inlet Port
+
+OS:Node,
+  {0dba7fdd-96e0-4419-9aa2-d8a2af60ce16}, !- Handle
+  Node 13,                                !- Name
+  {60117b0b-4afe-4b2d-a764-f0a8289f676f}, !- Inlet Port
+  {14801d7b-fb8d-464c-9fff-d4da3da4dc7f}; !- Outlet Port
+
+OS:Connection,
+  {ec59eab4-630c-459d-98b8-14097c6715c8}, !- Handle
+  {71ff8325-e3a1-4bc7-81ff-6a6f6a3a7938}, !- Name
+  {c10ee262-2530-418f-b41c-807ad849b13a}, !- Source Object
+  3,                                      !- Outlet Port
+  {f45ead4e-3b48-446d-8c95-1a0711ee43cb}, !- Target Object
+  31;                                     !- Inlet Port
+
+OS:Connection,
+  {60117b0b-4afe-4b2d-a764-f0a8289f676f}, !- Handle
+  {885e95d9-ab77-42d9-913a-ec4bed0c2170}, !- Name
+  {f45ead4e-3b48-446d-8c95-1a0711ee43cb}, !- Source Object
+  32,                                     !- Outlet Port
+  {0dba7fdd-96e0-4419-9aa2-d8a2af60ce16}, !- Target Object
+  2;                                      !- Inlet Port
+
+OS:Connection,
+  {14801d7b-fb8d-464c-9fff-d4da3da4dc7f}, !- Handle
+  {4c0ce2e9-ce94-4c4f-ac8b-f00fc36a8b87}, !- Name
+  {0dba7fdd-96e0-4419-9aa2-d8a2af60ce16}, !- Source Object
+  3,                                      !- Outlet Port
+  {f4ee0c6b-e28a-4398-8219-a3bb59422148}, !- Target Object
+  4;                                      !- Inlet Port
+
+OS:Schedule:Ruleset,
+  {e87ef21c-8eea-42a3-944d-f86aa8474d78}, !- Handle
+  res cw schedule,                        !- Name
+  {1797d3b9-8b6f-43b5-82b2-c05f81638eb2}, !- Schedule Type Limits Name
+  {10edc1bb-01b0-4836-9ea7-b73ef267feb5}; !- Default Day Schedule Name
+
+OS:Schedule:Day,
+  {10edc1bb-01b0-4836-9ea7-b73ef267feb5}, !- Handle
+  Schedule Day 5,                         !- Name
+  {1797d3b9-8b6f-43b5-82b2-c05f81638eb2}, !- Schedule Type Limits Name
+  ,                                       !- Interpolate to Timestep
+  24,                                     !- Hour 1
+  0,                                      !- Minute 1
+  0;                                      !- Value Until Time 1
+
+OS:Schedule:Rule,
+  {803af49e-457e-412d-9b36-892a8b338664}, !- Handle
+  res cw schedule allday ruleset1,        !- Name
+  {e87ef21c-8eea-42a3-944d-f86aa8474d78}, !- Schedule Ruleset Name
+  6,                                      !- Rule Order
+  {cc93dcb6-bb82-4da1-9edb-bb65b26b8521}, !- Day Schedule Name
+  Yes,                                    !- Apply Sunday
+  Yes,                                    !- Apply Monday
+  Yes,                                    !- Apply Tuesday
+  Yes,                                    !- Apply Wednesday
+  Yes,                                    !- Apply Thursday
+  Yes,                                    !- Apply Friday
+  Yes,                                    !- Apply Saturday
+  ,                                       !- Apply Holiday
+  SpecificDates,                          !- Date Specification Type
+  ,                                       !- Start Month
+  ,                                       !- Start Day
+  ,                                       !- End Month
+  ,                                       !- End Day
+  1,                                      !- Specific Month 1
+  1,                                      !- Specific Day 1
+  1,                                      !- Specific Month 2
+  8,                                      !- Specific Day 2
+  1,                                      !- Specific Month 3
+  15,                                     !- Specific Day 3
+  1,                                      !- Specific Month 4
+  22,                                     !- Specific Day 4
+  1,                                      !- Specific Month 5
+  29,                                     !- Specific Day 5
+  2,                                      !- Specific Month 6
+  5,                                      !- Specific Day 6
+  2,                                      !- Specific Month 7
+  12,                                     !- Specific Day 7
+  2,                                      !- Specific Month 8
+  19,                                     !- Specific Day 8
+  2,                                      !- Specific Month 9
+  26,                                     !- Specific Day 9
+  3,                                      !- Specific Month 10
+  5,                                      !- Specific Day 10
+  3,                                      !- Specific Month 11
+  12,                                     !- Specific Day 11
+  3,                                      !- Specific Month 12
+  19,                                     !- Specific Day 12
+  3,                                      !- Specific Month 13
+  26,                                     !- Specific Day 13
+  4,                                      !- Specific Month 14
+  2,                                      !- Specific Day 14
+  4,                                      !- Specific Month 15
+  9,                                      !- Specific Day 15
+  4,                                      !- Specific Month 16
+  16,                                     !- Specific Day 16
+  4,                                      !- Specific Month 17
+  23,                                     !- Specific Day 17
+  4,                                      !- Specific Month 18
+  30,                                     !- Specific Day 18
+  5,                                      !- Specific Month 19
+  7,                                      !- Specific Day 19
+  5,                                      !- Specific Month 20
+  14,                                     !- Specific Day 20
+  5,                                      !- Specific Month 21
+  21,                                     !- Specific Day 21
+  5,                                      !- Specific Month 22
+  28,                                     !- Specific Day 22
+  6,                                      !- Specific Month 23
+  4,                                      !- Specific Day 23
+  6,                                      !- Specific Month 24
+  11,                                     !- Specific Day 24
+  6,                                      !- Specific Month 25
+  18,                                     !- Specific Day 25
+  6,                                      !- Specific Month 26
+  25,                                     !- Specific Day 26
+  7,                                      !- Specific Month 27
+  2,                                      !- Specific Day 27
+  7,                                      !- Specific Month 28
+  9,                                      !- Specific Day 28
+  7,                                      !- Specific Month 29
+  16,                                     !- Specific Day 29
+  7,                                      !- Specific Month 30
+  23,                                     !- Specific Day 30
+  7,                                      !- Specific Month 31
+  30,                                     !- Specific Day 31
+  8,                                      !- Specific Month 32
+  6,                                      !- Specific Day 32
+  8,                                      !- Specific Month 33
+  13,                                     !- Specific Day 33
+  8,                                      !- Specific Month 34
+  20,                                     !- Specific Day 34
+  8,                                      !- Specific Month 35
+  27,                                     !- Specific Day 35
+  9,                                      !- Specific Month 36
+  3,                                      !- Specific Day 36
+  9,                                      !- Specific Month 37
+  10,                                     !- Specific Day 37
+  9,                                      !- Specific Month 38
+  17,                                     !- Specific Day 38
+  9,                                      !- Specific Month 39
+  24,                                     !- Specific Day 39
+  10,                                     !- Specific Month 40
+  1,                                      !- Specific Day 40
+  10,                                     !- Specific Month 41
+  8,                                      !- Specific Day 41
+  10,                                     !- Specific Month 42
+  15,                                     !- Specific Day 42
+  10,                                     !- Specific Month 43
+  22,                                     !- Specific Day 43
+  10,                                     !- Specific Month 44
+  29,                                     !- Specific Day 44
+  11,                                     !- Specific Month 45
+  5,                                      !- Specific Day 45
+  11,                                     !- Specific Month 46
+  12,                                     !- Specific Day 46
+  11,                                     !- Specific Month 47
+  19,                                     !- Specific Day 47
+  11,                                     !- Specific Month 48
+  26,                                     !- Specific Day 48
+  12,                                     !- Specific Month 49
+  3,                                      !- Specific Day 49
+  12,                                     !- Specific Month 50
+  10,                                     !- Specific Day 50
+  12,                                     !- Specific Month 51
+  17,                                     !- Specific Day 51
+  12,                                     !- Specific Month 52
+  24,                                     !- Specific Day 52
+  12,                                     !- Specific Month 53
+  31;                                     !- Specific Day 53
+
+OS:Schedule:Day,
+  {cc93dcb6-bb82-4da1-9edb-bb65b26b8521}, !- Handle
+  res cw schedule allday1,                !- Name
+  {1797d3b9-8b6f-43b5-82b2-c05f81638eb2}, !- Schedule Type Limits Name
+  ,                                       !- Interpolate to Timestep
+  8,                                      !- Hour 1
+  0,                                      !- Minute 1
+  0,                                      !- Value Until Time 1
+  8,                                      !- Hour 2
+  10,                                     !- Minute 2
+  0.0422513,                              !- Value Until Time 2
+  8,                                      !- Hour 3
+  20,                                     !- Minute 3
+  0.139377,                               !- Value Until Time 3
+  15,                                     !- Hour 4
+  40,                                     !- Minute 4
+  0,                                      !- Value Until Time 4
+  15,                                     !- Hour 5
+  50,                                     !- Minute 5
+  0.0351558,                              !- Value Until Time 5
+  24,                                     !- Hour 6
+  0,                                      !- Minute 6
+  0;                                      !- Value Until Time 6
+
+OS:Schedule:Rule,
+  {7cef373f-6096-4bdf-9d7d-906d5a5712b6}, !- Handle
+  res cw schedule allday ruleset2,        !- Name
+  {e87ef21c-8eea-42a3-944d-f86aa8474d78}, !- Schedule Ruleset Name
+  5,                                      !- Rule Order
+  {a651a9b5-f52a-449f-8a32-df4d30613d87}, !- Day Schedule Name
+  Yes,                                    !- Apply Sunday
+  Yes,                                    !- Apply Monday
+  Yes,                                    !- Apply Tuesday
+  Yes,                                    !- Apply Wednesday
+  Yes,                                    !- Apply Thursday
+  Yes,                                    !- Apply Friday
+  Yes,                                    !- Apply Saturday
+  ,                                       !- Apply Holiday
+  SpecificDates,                          !- Date Specification Type
+  ,                                       !- Start Month
+  ,                                       !- Start Day
+  ,                                       !- End Month
+  ,                                       !- End Day
+  1,                                      !- Specific Month 1
+  2,                                      !- Specific Day 1
+  1,                                      !- Specific Month 2
+  9,                                      !- Specific Day 2
+  1,                                      !- Specific Month 3
+  16,                                     !- Specific Day 3
+  1,                                      !- Specific Month 4
+  23,                                     !- Specific Day 4
+  1,                                      !- Specific Month 5
+  30,                                     !- Specific Day 5
+  2,                                      !- Specific Month 6
+  6,                                      !- Specific Day 6
+  2,                                      !- Specific Month 7
+  13,                                     !- Specific Day 7
+  2,                                      !- Specific Month 8
+  20,                                     !- Specific Day 8
+  2,                                      !- Specific Month 9
+  27,                                     !- Specific Day 9
+  3,                                      !- Specific Month 10
+  6,                                      !- Specific Day 10
+  3,                                      !- Specific Month 11
+  13,                                     !- Specific Day 11
+  3,                                      !- Specific Month 12
+  20,                                     !- Specific Day 12
+  3,                                      !- Specific Month 13
+  27,                                     !- Specific Day 13
+  4,                                      !- Specific Month 14
+  3,                                      !- Specific Day 14
+  4,                                      !- Specific Month 15
+  10,                                     !- Specific Day 15
+  4,                                      !- Specific Month 16
+  17,                                     !- Specific Day 16
+  4,                                      !- Specific Month 17
+  24,                                     !- Specific Day 17
+  5,                                      !- Specific Month 18
+  1,                                      !- Specific Day 18
+  5,                                      !- Specific Month 19
+  8,                                      !- Specific Day 19
+  5,                                      !- Specific Month 20
+  15,                                     !- Specific Day 20
+  5,                                      !- Specific Month 21
+  22,                                     !- Specific Day 21
+  5,                                      !- Specific Month 22
+  29,                                     !- Specific Day 22
+  6,                                      !- Specific Month 23
+  5,                                      !- Specific Day 23
+  6,                                      !- Specific Month 24
+  12,                                     !- Specific Day 24
+  6,                                      !- Specific Month 25
+  19,                                     !- Specific Day 25
+  6,                                      !- Specific Month 26
+  26,                                     !- Specific Day 26
+  7,                                      !- Specific Month 27
+  3,                                      !- Specific Day 27
+  7,                                      !- Specific Month 28
+  10,                                     !- Specific Day 28
+  7,                                      !- Specific Month 29
+  17,                                     !- Specific Day 29
+  7,                                      !- Specific Month 30
+  24,                                     !- Specific Day 30
+  7,                                      !- Specific Month 31
+  31,                                     !- Specific Day 31
+  8,                                      !- Specific Month 32
+  7,                                      !- Specific Day 32
+  8,                                      !- Specific Month 33
+  14,                                     !- Specific Day 33
+  8,                                      !- Specific Month 34
+  21,                                     !- Specific Day 34
+  8,                                      !- Specific Month 35
+  28,                                     !- Specific Day 35
+  9,                                      !- Specific Month 36
+  4,                                      !- Specific Day 36
+  9,                                      !- Specific Month 37
+  11,                                     !- Specific Day 37
+  9,                                      !- Specific Month 38
+  18,                                     !- Specific Day 38
+  9,                                      !- Specific Month 39
+  25,                                     !- Specific Day 39
+  10,                                     !- Specific Month 40
+  2,                                      !- Specific Day 40
+  10,                                     !- Specific Month 41
+  9,                                      !- Specific Day 41
+  10,                                     !- Specific Month 42
+  16,                                     !- Specific Day 42
+  10,                                     !- Specific Month 43
+  23,                                     !- Specific Day 43
+  10,                                     !- Specific Month 44
+  30,                                     !- Specific Day 44
+  11,                                     !- Specific Month 45
+  6,                                      !- Specific Day 45
+  11,                                     !- Specific Month 46
+  13,                                     !- Specific Day 46
+  11,                                     !- Specific Month 47
+  20,                                     !- Specific Day 47
+  11,                                     !- Specific Month 48
+  27,                                     !- Specific Day 48
+  12,                                     !- Specific Month 49
+  4,                                      !- Specific Day 49
+  12,                                     !- Specific Month 50
+  11,                                     !- Specific Day 50
+  12,                                     !- Specific Month 51
+  18,                                     !- Specific Day 51
+  12,                                     !- Specific Month 52
+  25;                                     !- Specific Day 52
+
+OS:Schedule:Day,
+  {a651a9b5-f52a-449f-8a32-df4d30613d87}, !- Handle
+  res cw schedule allday2,                !- Name
+  {1797d3b9-8b6f-43b5-82b2-c05f81638eb2}, !- Schedule Type Limits Name
+  ,                                       !- Interpolate to Timestep
+  24,                                     !- Hour 1
+  0,                                      !- Minute 1
+  0;                                      !- Value Until Time 1
+
+OS:Schedule:Rule,
+  {3b0084db-1701-4c3c-bfae-7861b623c73b}, !- Handle
+  res cw schedule allday ruleset3,        !- Name
+  {e87ef21c-8eea-42a3-944d-f86aa8474d78}, !- Schedule Ruleset Name
+  4,                                      !- Rule Order
+  {04b6d944-943d-45a3-80d9-0d86aa236632}, !- Day Schedule Name
+  Yes,                                    !- Apply Sunday
+  Yes,                                    !- Apply Monday
+  Yes,                                    !- Apply Tuesday
+  Yes,                                    !- Apply Wednesday
+  Yes,                                    !- Apply Thursday
+  Yes,                                    !- Apply Friday
+  Yes,                                    !- Apply Saturday
+  ,                                       !- Apply Holiday
+  SpecificDates,                          !- Date Specification Type
+  ,                                       !- Start Month
+  ,                                       !- Start Day
+  ,                                       !- End Month
+  ,                                       !- End Day
+  1,                                      !- Specific Month 1
+  3,                                      !- Specific Day 1
+  1,                                      !- Specific Month 2
+  10,                                     !- Specific Day 2
+  1,                                      !- Specific Month 3
+  17,                                     !- Specific Day 3
+  1,                                      !- Specific Month 4
+  24,                                     !- Specific Day 4
+  1,                                      !- Specific Month 5
+  31,                                     !- Specific Day 5
+  2,                                      !- Specific Month 6
+  7,                                      !- Specific Day 6
+  2,                                      !- Specific Month 7
+  14,                                     !- Specific Day 7
+  2,                                      !- Specific Month 8
+  21,                                     !- Specific Day 8
+  2,                                      !- Specific Month 9
+  28,                                     !- Specific Day 9
+  3,                                      !- Specific Month 10
+  7,                                      !- Specific Day 10
+  3,                                      !- Specific Month 11
+  14,                                     !- Specific Day 11
+  3,                                      !- Specific Month 12
+  21,                                     !- Specific Day 12
+  3,                                      !- Specific Month 13
+  28,                                     !- Specific Day 13
+  4,                                      !- Specific Month 14
+  4,                                      !- Specific Day 14
+  4,                                      !- Specific Month 15
+  11,                                     !- Specific Day 15
+  4,                                      !- Specific Month 16
+  18,                                     !- Specific Day 16
+  4,                                      !- Specific Month 17
+  25,                                     !- Specific Day 17
+  5,                                      !- Specific Month 18
+  2,                                      !- Specific Day 18
+  5,                                      !- Specific Month 19
+  9,                                      !- Specific Day 19
+  5,                                      !- Specific Month 20
+  16,                                     !- Specific Day 20
+  5,                                      !- Specific Month 21
+  23,                                     !- Specific Day 21
+  5,                                      !- Specific Month 22
+  30,                                     !- Specific Day 22
+  6,                                      !- Specific Month 23
+  6,                                      !- Specific Day 23
+  6,                                      !- Specific Month 24
+  13,                                     !- Specific Day 24
+  6,                                      !- Specific Month 25
+  20,                                     !- Specific Day 25
+  6,                                      !- Specific Month 26
+  27,                                     !- Specific Day 26
+  7,                                      !- Specific Month 27
+  4,                                      !- Specific Day 27
+  7,                                      !- Specific Month 28
+  11,                                     !- Specific Day 28
+  7,                                      !- Specific Month 29
+  18,                                     !- Specific Day 29
+  7,                                      !- Specific Month 30
+  25,                                     !- Specific Day 30
+  8,                                      !- Specific Month 31
+  1,                                      !- Specific Day 31
+  8,                                      !- Specific Month 32
+  8,                                      !- Specific Day 32
+  8,                                      !- Specific Month 33
+  15,                                     !- Specific Day 33
+  8,                                      !- Specific Month 34
+  22,                                     !- Specific Day 34
+  8,                                      !- Specific Month 35
+  29,                                     !- Specific Day 35
+  9,                                      !- Specific Month 36
+  5,                                      !- Specific Day 36
+  9,                                      !- Specific Month 37
+  12,                                     !- Specific Day 37
+  9,                                      !- Specific Month 38
+  19,                                     !- Specific Day 38
+  9,                                      !- Specific Month 39
+  26,                                     !- Specific Day 39
+  10,                                     !- Specific Month 40
+  3,                                      !- Specific Day 40
+  10,                                     !- Specific Month 41
+  10,                                     !- Specific Day 41
+  10,                                     !- Specific Month 42
+  17,                                     !- Specific Day 42
+  10,                                     !- Specific Month 43
+  24,                                     !- Specific Day 43
+  10,                                     !- Specific Month 44
+  31,                                     !- Specific Day 44
+  11,                                     !- Specific Month 45
+  7,                                      !- Specific Day 45
+  11,                                     !- Specific Month 46
+  14,                                     !- Specific Day 46
+  11,                                     !- Specific Month 47
+  21,                                     !- Specific Day 47
+  11,                                     !- Specific Month 48
+  28,                                     !- Specific Day 48
+  12,                                     !- Specific Month 49
+  5,                                      !- Specific Day 49
+  12,                                     !- Specific Month 50
+  12,                                     !- Specific Day 50
+  12,                                     !- Specific Month 51
+  19,                                     !- Specific Day 51
+  12,                                     !- Specific Month 52
+  26;                                     !- Specific Day 52
+
+OS:Schedule:Day,
+  {04b6d944-943d-45a3-80d9-0d86aa236632}, !- Handle
+  res cw schedule allday3,                !- Name
+  {1797d3b9-8b6f-43b5-82b2-c05f81638eb2}, !- Schedule Type Limits Name
+  ,                                       !- Interpolate to Timestep
+  24,                                     !- Hour 1
+  0,                                      !- Minute 1
+  0;                                      !- Value Until Time 1
+
+OS:Schedule:Rule,
+  {34c33042-8118-4163-9182-4562eda7668f}, !- Handle
+  res cw schedule allday ruleset4,        !- Name
+  {e87ef21c-8eea-42a3-944d-f86aa8474d78}, !- Schedule Ruleset Name
+  3,                                      !- Rule Order
+  {38f95c50-d666-4411-9a1f-3c15343270c4}, !- Day Schedule Name
+  Yes,                                    !- Apply Sunday
+  Yes,                                    !- Apply Monday
+  Yes,                                    !- Apply Tuesday
+  Yes,                                    !- Apply Wednesday
+  Yes,                                    !- Apply Thursday
+  Yes,                                    !- Apply Friday
+  Yes,                                    !- Apply Saturday
+  ,                                       !- Apply Holiday
+  SpecificDates,                          !- Date Specification Type
+  ,                                       !- Start Month
+  ,                                       !- Start Day
+  ,                                       !- End Month
+  ,                                       !- End Day
+  1,                                      !- Specific Month 1
+  4,                                      !- Specific Day 1
+  1,                                      !- Specific Month 2
+  11,                                     !- Specific Day 2
+  1,                                      !- Specific Month 3
+  18,                                     !- Specific Day 3
+  1,                                      !- Specific Month 4
+  25,                                     !- Specific Day 4
+  2,                                      !- Specific Month 5
+  1,                                      !- Specific Day 5
+  2,                                      !- Specific Month 6
+  8,                                      !- Specific Day 6
+  2,                                      !- Specific Month 7
+  15,                                     !- Specific Day 7
+  2,                                      !- Specific Month 8
+  22,                                     !- Specific Day 8
+  3,                                      !- Specific Month 9
+  1,                                      !- Specific Day 9
+  3,                                      !- Specific Month 10
+  8,                                      !- Specific Day 10
+  3,                                      !- Specific Month 11
+  15,                                     !- Specific Day 11
+  3,                                      !- Specific Month 12
+  22,                                     !- Specific Day 12
+  3,                                      !- Specific Month 13
+  29,                                     !- Specific Day 13
+  4,                                      !- Specific Month 14
+  5,                                      !- Specific Day 14
+  4,                                      !- Specific Month 15
+  12,                                     !- Specific Day 15
+  4,                                      !- Specific Month 16
+  19,                                     !- Specific Day 16
+  4,                                      !- Specific Month 17
+  26,                                     !- Specific Day 17
+  5,                                      !- Specific Month 18
+  3,                                      !- Specific Day 18
+  5,                                      !- Specific Month 19
+  10,                                     !- Specific Day 19
+  5,                                      !- Specific Month 20
+  17,                                     !- Specific Day 20
+  5,                                      !- Specific Month 21
+  24,                                     !- Specific Day 21
+  5,                                      !- Specific Month 22
+  31,                                     !- Specific Day 22
+  6,                                      !- Specific Month 23
+  7,                                      !- Specific Day 23
+  6,                                      !- Specific Month 24
+  14,                                     !- Specific Day 24
+  6,                                      !- Specific Month 25
+  21,                                     !- Specific Day 25
+  6,                                      !- Specific Month 26
+  28,                                     !- Specific Day 26
+  7,                                      !- Specific Month 27
+  5,                                      !- Specific Day 27
+  7,                                      !- Specific Month 28
+  12,                                     !- Specific Day 28
+  7,                                      !- Specific Month 29
+  19,                                     !- Specific Day 29
+  7,                                      !- Specific Month 30
+  26,                                     !- Specific Day 30
+  8,                                      !- Specific Month 31
+  2,                                      !- Specific Day 31
+  8,                                      !- Specific Month 32
+  9,                                      !- Specific Day 32
+  8,                                      !- Specific Month 33
+  16,                                     !- Specific Day 33
+  8,                                      !- Specific Month 34
+  23,                                     !- Specific Day 34
+  8,                                      !- Specific Month 35
+  30,                                     !- Specific Day 35
+  9,                                      !- Specific Month 36
+  6,                                      !- Specific Day 36
+  9,                                      !- Specific Month 37
+  13,                                     !- Specific Day 37
+  9,                                      !- Specific Month 38
+  20,                                     !- Specific Day 38
+  9,                                      !- Specific Month 39
+  27,                                     !- Specific Day 39
+  10,                                     !- Specific Month 40
+  4,                                      !- Specific Day 40
+  10,                                     !- Specific Month 41
+  11,                                     !- Specific Day 41
+  10,                                     !- Specific Month 42
+  18,                                     !- Specific Day 42
+  10,                                     !- Specific Month 43
+  25,                                     !- Specific Day 43
+  11,                                     !- Specific Month 44
+  1,                                      !- Specific Day 44
+  11,                                     !- Specific Month 45
+  8,                                      !- Specific Day 45
+  11,                                     !- Specific Month 46
+  15,                                     !- Specific Day 46
+  11,                                     !- Specific Month 47
+  22,                                     !- Specific Day 47
+  11,                                     !- Specific Month 48
+  29,                                     !- Specific Day 48
+  12,                                     !- Specific Month 49
+  6,                                      !- Specific Day 49
+  12,                                     !- Specific Month 50
+  13,                                     !- Specific Day 50
+  12,                                     !- Specific Month 51
+  20,                                     !- Specific Day 51
+  12,                                     !- Specific Month 52
+  27;                                     !- Specific Day 52
+
+OS:Schedule:Day,
+  {38f95c50-d666-4411-9a1f-3c15343270c4}, !- Handle
+  res cw schedule allday4,                !- Name
+  {1797d3b9-8b6f-43b5-82b2-c05f81638eb2}, !- Schedule Type Limits Name
+  ,                                       !- Interpolate to Timestep
+  24,                                     !- Hour 1
+  0,                                      !- Minute 1
+  0;                                      !- Value Until Time 1
+
+OS:Schedule:Rule,
+  {103d93ab-c44a-4f32-9c91-6463c599dd04}, !- Handle
+  res cw schedule allday ruleset5,        !- Name
+  {e87ef21c-8eea-42a3-944d-f86aa8474d78}, !- Schedule Ruleset Name
+  2,                                      !- Rule Order
+  {af2073b4-73f0-4205-9a3a-3a9ef85b44db}, !- Day Schedule Name
+  Yes,                                    !- Apply Sunday
+  Yes,                                    !- Apply Monday
+  Yes,                                    !- Apply Tuesday
+  Yes,                                    !- Apply Wednesday
+  Yes,                                    !- Apply Thursday
+  Yes,                                    !- Apply Friday
+  Yes,                                    !- Apply Saturday
+  ,                                       !- Apply Holiday
+  SpecificDates,                          !- Date Specification Type
+  ,                                       !- Start Month
+  ,                                       !- Start Day
+  ,                                       !- End Month
+  ,                                       !- End Day
+  1,                                      !- Specific Month 1
+  5,                                      !- Specific Day 1
+  1,                                      !- Specific Month 2
+  12,                                     !- Specific Day 2
+  1,                                      !- Specific Month 3
+  19,                                     !- Specific Day 3
+  1,                                      !- Specific Month 4
+  26,                                     !- Specific Day 4
+  2,                                      !- Specific Month 5
+  2,                                      !- Specific Day 5
+  2,                                      !- Specific Month 6
+  9,                                      !- Specific Day 6
+  2,                                      !- Specific Month 7
+  16,                                     !- Specific Day 7
+  2,                                      !- Specific Month 8
+  23,                                     !- Specific Day 8
+  3,                                      !- Specific Month 9
+  2,                                      !- Specific Day 9
+  3,                                      !- Specific Month 10
+  9,                                      !- Specific Day 10
+  3,                                      !- Specific Month 11
+  16,                                     !- Specific Day 11
+  3,                                      !- Specific Month 12
+  23,                                     !- Specific Day 12
+  3,                                      !- Specific Month 13
+  30,                                     !- Specific Day 13
+  4,                                      !- Specific Month 14
+  6,                                      !- Specific Day 14
+  4,                                      !- Specific Month 15
+  13,                                     !- Specific Day 15
+  4,                                      !- Specific Month 16
+  20,                                     !- Specific Day 16
+  4,                                      !- Specific Month 17
+  27,                                     !- Specific Day 17
+  5,                                      !- Specific Month 18
+  4,                                      !- Specific Day 18
+  5,                                      !- Specific Month 19
+  11,                                     !- Specific Day 19
+  5,                                      !- Specific Month 20
+  18,                                     !- Specific Day 20
+  5,                                      !- Specific Month 21
+  25,                                     !- Specific Day 21
+  6,                                      !- Specific Month 22
+  1,                                      !- Specific Day 22
+  6,                                      !- Specific Month 23
+  8,                                      !- Specific Day 23
+  6,                                      !- Specific Month 24
+  15,                                     !- Specific Day 24
+  6,                                      !- Specific Month 25
+  22,                                     !- Specific Day 25
+  6,                                      !- Specific Month 26
+  29,                                     !- Specific Day 26
+  7,                                      !- Specific Month 27
+  6,                                      !- Specific Day 27
+  7,                                      !- Specific Month 28
+  13,                                     !- Specific Day 28
+  7,                                      !- Specific Month 29
+  20,                                     !- Specific Day 29
+  7,                                      !- Specific Month 30
+  27,                                     !- Specific Day 30
+  8,                                      !- Specific Month 31
+  3,                                      !- Specific Day 31
+  8,                                      !- Specific Month 32
+  10,                                     !- Specific Day 32
+  8,                                      !- Specific Month 33
+  17,                                     !- Specific Day 33
+  8,                                      !- Specific Month 34
+  24,                                     !- Specific Day 34
+  8,                                      !- Specific Month 35
+  31,                                     !- Specific Day 35
+  9,                                      !- Specific Month 36
+  7,                                      !- Specific Day 36
+  9,                                      !- Specific Month 37
+  14,                                     !- Specific Day 37
+  9,                                      !- Specific Month 38
+  21,                                     !- Specific Day 38
+  9,                                      !- Specific Month 39
+  28,                                     !- Specific Day 39
+  10,                                     !- Specific Month 40
+  5,                                      !- Specific Day 40
+  10,                                     !- Specific Month 41
+  12,                                     !- Specific Day 41
+  10,                                     !- Specific Month 42
+  19,                                     !- Specific Day 42
+  10,                                     !- Specific Month 43
+  26,                                     !- Specific Day 43
+  11,                                     !- Specific Month 44
+  2,                                      !- Specific Day 44
+  11,                                     !- Specific Month 45
+  9,                                      !- Specific Day 45
+  11,                                     !- Specific Month 46
+  16,                                     !- Specific Day 46
+  11,                                     !- Specific Month 47
+  23,                                     !- Specific Day 47
+  11,                                     !- Specific Month 48
+  30,                                     !- Specific Day 48
+  12,                                     !- Specific Month 49
+  7,                                      !- Specific Day 49
+  12,                                     !- Specific Month 50
+  14,                                     !- Specific Day 50
+  12,                                     !- Specific Month 51
+  21,                                     !- Specific Day 51
+  12,                                     !- Specific Month 52
+  28;                                     !- Specific Day 52
+
+OS:Schedule:Day,
+  {af2073b4-73f0-4205-9a3a-3a9ef85b44db}, !- Handle
+  res cw schedule allday5,                !- Name
+  {1797d3b9-8b6f-43b5-82b2-c05f81638eb2}, !- Schedule Type Limits Name
+  ,                                       !- Interpolate to Timestep
+  5,                                      !- Hour 1
+  0,                                      !- Minute 1
+  0,                                      !- Value Until Time 1
+  5,                                      !- Hour 2
+  10,                                     !- Minute 2
+  0.0062714,                              !- Value Until Time 2
+  5,                                      !- Hour 3
+  20,                                     !- Minute 3
+  0.086794,                               !- Value Until Time 3
+  5,                                      !- Hour 4
+  30,                                     !- Minute 4
+  0.0340302,                              !- Value Until Time 4
+  10,                                     !- Hour 5
+  0,                                      !- Minute 5
+  0,                                      !- Value Until Time 5
+  10,                                     !- Hour 6
+  10,                                     !- Minute 6
+  0.0069146,                              !- Value Until Time 6
+  10,                                     !- Hour 7
+  20,                                     !- Minute 7
+  0.1094272,                              !- Value Until Time 7
+  19,                                     !- Hour 8
+  0,                                      !- Minute 8
+  0,                                      !- Value Until Time 8
+  19,                                     !- Hour 9
+  10,                                     !- Minute 9
+  0.0524824,                              !- Value Until Time 9
+  20,                                     !- Hour 10
+  10,                                     !- Minute 10
+  0,                                      !- Value Until Time 10
+  20,                                     !- Hour 11
+  20,                                     !- Minute 11
+  0.0193769,                              !- Value Until Time 11
+  21,                                     !- Hour 12
+  30,                                     !- Minute 12
+  0,                                      !- Value Until Time 12
+  21,                                     !- Hour 13
+  40,                                     !- Minute 13
+  0.0743518,                              !- Value Until Time 13
+  24,                                     !- Hour 14
+  0,                                      !- Minute 14
+  0;                                      !- Value Until Time 14
+
+OS:Schedule:Rule,
+  {dce23ddf-66d3-4c7e-8c31-7795d060abf9}, !- Handle
+  res cw schedule allday ruleset6,        !- Name
+  {e87ef21c-8eea-42a3-944d-f86aa8474d78}, !- Schedule Ruleset Name
+  1,                                      !- Rule Order
+  {b1ab7380-073f-4712-be43-5815095e14fa}, !- Day Schedule Name
+  Yes,                                    !- Apply Sunday
+  Yes,                                    !- Apply Monday
+  Yes,                                    !- Apply Tuesday
+  Yes,                                    !- Apply Wednesday
+  Yes,                                    !- Apply Thursday
+  Yes,                                    !- Apply Friday
+  Yes,                                    !- Apply Saturday
+  ,                                       !- Apply Holiday
+  SpecificDates,                          !- Date Specification Type
+  ,                                       !- Start Month
+  ,                                       !- Start Day
+  ,                                       !- End Month
+  ,                                       !- End Day
+  1,                                      !- Specific Month 1
+  6,                                      !- Specific Day 1
+  1,                                      !- Specific Month 2
+  13,                                     !- Specific Day 2
+  1,                                      !- Specific Month 3
+  20,                                     !- Specific Day 3
+  1,                                      !- Specific Month 4
+  27,                                     !- Specific Day 4
+  2,                                      !- Specific Month 5
+  3,                                      !- Specific Day 5
+  2,                                      !- Specific Month 6
+  10,                                     !- Specific Day 6
+  2,                                      !- Specific Month 7
+  17,                                     !- Specific Day 7
+  2,                                      !- Specific Month 8
+  24,                                     !- Specific Day 8
+  3,                                      !- Specific Month 9
+  3,                                      !- Specific Day 9
+  3,                                      !- Specific Month 10
+  10,                                     !- Specific Day 10
+  3,                                      !- Specific Month 11
+  17,                                     !- Specific Day 11
+  3,                                      !- Specific Month 12
+  24,                                     !- Specific Day 12
+  3,                                      !- Specific Month 13
+  31,                                     !- Specific Day 13
+  4,                                      !- Specific Month 14
+  7,                                      !- Specific Day 14
+  4,                                      !- Specific Month 15
+  14,                                     !- Specific Day 15
+  4,                                      !- Specific Month 16
+  21,                                     !- Specific Day 16
+  4,                                      !- Specific Month 17
+  28,                                     !- Specific Day 17
+  5,                                      !- Specific Month 18
+  5,                                      !- Specific Day 18
+  5,                                      !- Specific Month 19
+  12,                                     !- Specific Day 19
+  5,                                      !- Specific Month 20
+  19,                                     !- Specific Day 20
+  5,                                      !- Specific Month 21
+  26,                                     !- Specific Day 21
+  6,                                      !- Specific Month 22
+  2,                                      !- Specific Day 22
+  6,                                      !- Specific Month 23
+  9,                                      !- Specific Day 23
+  6,                                      !- Specific Month 24
+  16,                                     !- Specific Day 24
+  6,                                      !- Specific Month 25
+  23,                                     !- Specific Day 25
+  6,                                      !- Specific Month 26
+  30,                                     !- Specific Day 26
+  7,                                      !- Specific Month 27
+  7,                                      !- Specific Day 27
+  7,                                      !- Specific Month 28
+  14,                                     !- Specific Day 28
+  7,                                      !- Specific Month 29
+  21,                                     !- Specific Day 29
+  7,                                      !- Specific Month 30
+  28,                                     !- Specific Day 30
+  8,                                      !- Specific Month 31
+  4,                                      !- Specific Day 31
+  8,                                      !- Specific Month 32
+  11,                                     !- Specific Day 32
+  8,                                      !- Specific Month 33
+  18,                                     !- Specific Day 33
+  8,                                      !- Specific Month 34
+  25,                                     !- Specific Day 34
+  9,                                      !- Specific Month 35
+  1,                                      !- Specific Day 35
+  9,                                      !- Specific Month 36
+  8,                                      !- Specific Day 36
+  9,                                      !- Specific Month 37
+  15,                                     !- Specific Day 37
+  9,                                      !- Specific Month 38
+  22,                                     !- Specific Day 38
+  9,                                      !- Specific Month 39
+  29,                                     !- Specific Day 39
+  10,                                     !- Specific Month 40
+  6,                                      !- Specific Day 40
+  10,                                     !- Specific Month 41
+  13,                                     !- Specific Day 41
+  10,                                     !- Specific Month 42
+  20,                                     !- Specific Day 42
+  10,                                     !- Specific Month 43
+  27,                                     !- Specific Day 43
+  11,                                     !- Specific Month 44
+  3,                                      !- Specific Day 44
+  11,                                     !- Specific Month 45
+  10,                                     !- Specific Day 45
+  11,                                     !- Specific Month 46
+  17,                                     !- Specific Day 46
+  11,                                     !- Specific Month 47
+  24,                                     !- Specific Day 47
+  12,                                     !- Specific Month 48
+  1,                                      !- Specific Day 48
+  12,                                     !- Specific Month 49
+  8,                                      !- Specific Day 49
+  12,                                     !- Specific Month 50
+  15,                                     !- Specific Day 50
+  12,                                     !- Specific Month 51
+  22,                                     !- Specific Day 51
+  12,                                     !- Specific Month 52
+  29;                                     !- Specific Day 52
+
+OS:Schedule:Day,
+  {b1ab7380-073f-4712-be43-5815095e14fa}, !- Handle
+  res cw schedule allday6,                !- Name
+  {1797d3b9-8b6f-43b5-82b2-c05f81638eb2}, !- Schedule Type Limits Name
+  ,                                       !- Interpolate to Timestep
+  24,                                     !- Hour 1
+  0,                                      !- Minute 1
+  0;                                      !- Value Until Time 1
+
+OS:Schedule:Rule,
+  {3a5c3d0b-10c0-4536-964b-cb5c99657391}, !- Handle
+  res cw schedule allday ruleset7,        !- Name
+  {e87ef21c-8eea-42a3-944d-f86aa8474d78}, !- Schedule Ruleset Name
+  0,                                      !- Rule Order
+  {ffa197cd-726d-46aa-a165-a933ab14dc71}, !- Day Schedule Name
+  Yes,                                    !- Apply Sunday
+  Yes,                                    !- Apply Monday
+  Yes,                                    !- Apply Tuesday
+  Yes,                                    !- Apply Wednesday
+  Yes,                                    !- Apply Thursday
+  Yes,                                    !- Apply Friday
+  Yes,                                    !- Apply Saturday
+  ,                                       !- Apply Holiday
+  SpecificDates,                          !- Date Specification Type
+  ,                                       !- Start Month
+  ,                                       !- Start Day
+  ,                                       !- End Month
+  ,                                       !- End Day
+  1,                                      !- Specific Month 1
+  7,                                      !- Specific Day 1
+  1,                                      !- Specific Month 2
+  14,                                     !- Specific Day 2
+  1,                                      !- Specific Month 3
+  21,                                     !- Specific Day 3
+  1,                                      !- Specific Month 4
+  28,                                     !- Specific Day 4
+  2,                                      !- Specific Month 5
+  4,                                      !- Specific Day 5
+  2,                                      !- Specific Month 6
+  11,                                     !- Specific Day 6
+  2,                                      !- Specific Month 7
+  18,                                     !- Specific Day 7
+  2,                                      !- Specific Month 8
+  25,                                     !- Specific Day 8
+  3,                                      !- Specific Month 9
+  4,                                      !- Specific Day 9
+  3,                                      !- Specific Month 10
+  11,                                     !- Specific Day 10
+  3,                                      !- Specific Month 11
+  18,                                     !- Specific Day 11
+  3,                                      !- Specific Month 12
+  25,                                     !- Specific Day 12
+  4,                                      !- Specific Month 13
+  1,                                      !- Specific Day 13
+  4,                                      !- Specific Month 14
+  8,                                      !- Specific Day 14
+  4,                                      !- Specific Month 15
+  15,                                     !- Specific Day 15
+  4,                                      !- Specific Month 16
+  22,                                     !- Specific Day 16
+  4,                                      !- Specific Month 17
+  29,                                     !- Specific Day 17
+  5,                                      !- Specific Month 18
+  6,                                      !- Specific Day 18
+  5,                                      !- Specific Month 19
+  13,                                     !- Specific Day 19
+  5,                                      !- Specific Month 20
+  20,                                     !- Specific Day 20
+  5,                                      !- Specific Month 21
+  27,                                     !- Specific Day 21
+  6,                                      !- Specific Month 22
+  3,                                      !- Specific Day 22
+  6,                                      !- Specific Month 23
+  10,                                     !- Specific Day 23
+  6,                                      !- Specific Month 24
+  17,                                     !- Specific Day 24
+  6,                                      !- Specific Month 25
+  24,                                     !- Specific Day 25
+  7,                                      !- Specific Month 26
+  1,                                      !- Specific Day 26
+  7,                                      !- Specific Month 27
+  8,                                      !- Specific Day 27
+  7,                                      !- Specific Month 28
+  15,                                     !- Specific Day 28
+  7,                                      !- Specific Month 29
+  22,                                     !- Specific Day 29
+  7,                                      !- Specific Month 30
+  29,                                     !- Specific Day 30
+  8,                                      !- Specific Month 31
+  5,                                      !- Specific Day 31
+  8,                                      !- Specific Month 32
+  12,                                     !- Specific Day 32
+  8,                                      !- Specific Month 33
+  19,                                     !- Specific Day 33
+  8,                                      !- Specific Month 34
+  26,                                     !- Specific Day 34
+  9,                                      !- Specific Month 35
+  2,                                      !- Specific Day 35
+  9,                                      !- Specific Month 36
+  9,                                      !- Specific Day 36
+  9,                                      !- Specific Month 37
+  16,                                     !- Specific Day 37
+  9,                                      !- Specific Month 38
+  23,                                     !- Specific Day 38
+  9,                                      !- Specific Month 39
+  30,                                     !- Specific Day 39
+  10,                                     !- Specific Month 40
+  7,                                      !- Specific Day 40
+  10,                                     !- Specific Month 41
+  14,                                     !- Specific Day 41
+  10,                                     !- Specific Month 42
+  21,                                     !- Specific Day 42
+  10,                                     !- Specific Month 43
+  28,                                     !- Specific Day 43
+  11,                                     !- Specific Month 44
+  4,                                      !- Specific Day 44
+  11,                                     !- Specific Month 45
+  11,                                     !- Specific Day 45
+  11,                                     !- Specific Month 46
+  18,                                     !- Specific Day 46
+  11,                                     !- Specific Month 47
+  25,                                     !- Specific Day 47
+  12,                                     !- Specific Month 48
+  2,                                      !- Specific Day 48
+  12,                                     !- Specific Month 49
+  9,                                      !- Specific Day 49
+  12,                                     !- Specific Month 50
+  16,                                     !- Specific Day 50
+  12,                                     !- Specific Month 51
+  23,                                     !- Specific Day 51
+  12,                                     !- Specific Month 52
+  30;                                     !- Specific Day 52
+
+OS:Schedule:Day,
+  {ffa197cd-726d-46aa-a165-a933ab14dc71}, !- Handle
+  res cw schedule allday7,                !- Name
+  {1797d3b9-8b6f-43b5-82b2-c05f81638eb2}, !- Schedule Type Limits Name
+  ,                                       !- Interpolate to Timestep
+  12,                                     !- Hour 1
+  10,                                     !- Minute 1
+  0,                                      !- Value Until Time 1
+  12,                                     !- Hour 2
+  20,                                     !- Minute 2
+  0.0228141,                              !- Value Until Time 2
+  13,                                     !- Hour 3
+  30,                                     !- Minute 3
+  0,                                      !- Value Until Time 3
+  13,                                     !- Hour 4
+  40,                                     !- Minute 4
+  0.0017487,                              !- Value Until Time 4
+  24,                                     !- Hour 5
+  0,                                      !- Minute 5
+  0;                                      !- Value Until Time 5
+
+OS:WaterUse:Connections,
+  {6ed4e61b-e242-4667-b1d6-9c993c0300a5}, !- Handle
+  Water Use Connections 1,                !- Name
+  {3f9516e4-46cb-4e80-bf5c-01fc4ce64d40}, !- Inlet Node Name
+  {e0e5357a-1eae-435e-9088-e6cd1aab8b8d}, !- Outlet Node Name
+  ,                                       !- Supply Water Storage Tank Name
+  ,                                       !- Reclamation Water Storage Tank Name
+  ,                                       !- Hot Water Supply Temperature Schedule Name
+  ,                                       !- Cold Water Supply Temperature Schedule Name
+  ,                                       !- Drain Water Heat Exchanger Type
+  ,                                       !- Drain Water Heat Exchanger Destination
+  ,                                       !- Drain Water Heat Exchanger U-Factor Times Area {W/K}
+  {8843d676-9efc-4fee-8c09-511c33db9207}; !- Water Use Equipment Name 1
+
+OS:Node,
+  {bf6ad892-361f-412a-a70c-971143be87f1}, !- Handle
+  Node 14,                                !- Name
+  {e0e5357a-1eae-435e-9088-e6cd1aab8b8d}, !- Inlet Port
+  {4e3c57e6-faeb-44d2-9f03-3082423f37d7}; !- Outlet Port
+
+OS:Connection,
+  {3f9516e4-46cb-4e80-bf5c-01fc4ce64d40}, !- Handle
+  {15c66e3b-76f4-4ede-97ff-cf68e6ceafb0}, !- Name
+  {c266caa5-14fb-4399-b08b-939f53b6e0fd}, !- Source Object
+  3,                                      !- Outlet Port
+  {6ed4e61b-e242-4667-b1d6-9c993c0300a5}, !- Target Object
+  2;                                      !- Inlet Port
+
+OS:Connection,
+  {e0e5357a-1eae-435e-9088-e6cd1aab8b8d}, !- Handle
+  {831fbbf5-80c9-46b6-8b2e-85bdc84a1b53}, !- Name
+  {6ed4e61b-e242-4667-b1d6-9c993c0300a5}, !- Source Object
+  3,                                      !- Outlet Port
+  {bf6ad892-361f-412a-a70c-971143be87f1}, !- Target Object
+  2;                                      !- Inlet Port
+
+OS:Connection,
+  {4e3c57e6-faeb-44d2-9f03-3082423f37d7}, !- Handle
+  {31580715-7611-455f-a192-40ece0874be3}, !- Name
+  {bf6ad892-361f-412a-a70c-971143be87f1}, !- Source Object
+  3,                                      !- Outlet Port
+  {86f02aff-1cdd-4835-b06b-1f5cf3f95479}, !- Target Object
+  3;                                      !- Inlet Port
+
+OS:ElectricEquipment:Definition,
+  {2cd2c964-21b0-4d6b-9c6c-052cfe8b0d2a}, !- Handle
+  res cw,                                 !- Name
+  EquipmentLevel,                         !- Design Level Calculation Method
+  7820.5289146491,                        !- Design Level {W}
+  ,                                       !- Watts per Space Floor Area {W/m2}
+  ,                                       !- Watts per Person {W/person}
+  0,                                      !- Fraction Latent
+  0.48,                                   !- Fraction Radiant
+  0.2;                                    !- Fraction Lost
+
+OS:ElectricEquipment,
+  {d79b6ef7-b22b-4a0e-a88b-50b9520157c6}, !- Handle
+  res cw,                                 !- Name
+  {2cd2c964-21b0-4d6b-9c6c-052cfe8b0d2a}, !- Electric Equipment Definition Name
+  {9f7f2e36-d873-4b96-b2e0-f48e0e6eb9f6}, !- Space or SpaceType Name
+  {e87ef21c-8eea-42a3-944d-f86aa8474d78}, !- Schedule Name
+  ,                                       !- Multiplier
+  res cw;                                 !- End-Use Subcategory
+
+OS:WaterUse:Equipment:Definition,
+  {771d9131-92b5-46f2-88ee-1f492f87a9d4}, !- Handle
+  res cw,                                 !- Name
+  res cw,                                 !- End-Use Subcategory
+  0.000698872026452394,                   !- Peak Flow Rate {m3/s}
+  {1c144f01-a19d-4c8d-b691-748e5cae7abb}; !- Target Temperature Schedule Name
+
+OS:WaterUse:Equipment,
+  {8843d676-9efc-4fee-8c09-511c33db9207}, !- Handle
+  res cw,                                 !- Name
+  {771d9131-92b5-46f2-88ee-1f492f87a9d4}, !- Water Use Equipment Definition Name
+  {9f7f2e36-d873-4b96-b2e0-f48e0e6eb9f6}, !- Space Name
+  {e87ef21c-8eea-42a3-944d-f86aa8474d78}; !- Flow Rate Fraction Schedule Name
+
+OS:Schedule:Constant,
+  {daf40a78-fb30-4054-b84c-115a7574d006}, !- Handle
+  Always On Discrete,                     !- Name
+  {94c68c20-9ac0-4355-8730-838e63818dc7}, !- Schedule Type Limits Name
+  1;                                      !- Value
+
+OS:ScheduleTypeLimits,
+  {94c68c20-9ac0-4355-8730-838e63818dc7}, !- Handle
+  OnOff,                                  !- Name
+  0,                                      !- Lower Limit Value
+  1,                                      !- Upper Limit Value
+  Discrete,                               !- Numeric Type
+  Availability;                           !- Unit Type
+
+OS:Schedule:Constant,
+  {1c144f01-a19d-4c8d-b691-748e5cae7abb}, !- Handle
+  res cw temperature schedule,            !- Name
+  {3bacd900-54b9-415f-a6a8-f3fd5f655d0a}, !- Schedule Type Limits Name
+  33.6111111111111;                       !- Value
+
+OS:AdditionalProperties,
+  {fa69eab8-0950-487c-a045-c5750c8c62ba}, !- Handle
+  {d79b6ef7-b22b-4a0e-a88b-50b9520157c6}, !- Object Name
+  ClothesWasherIMEF,                      !- Feature Name 1
+  Double,                                 !- Feature Data Type 1
+  0.94999999999999996,                    !- Feature Value 1
+  ClothesWasherRatedAnnualEnergy,         !- Feature Name 2
+  Double,                                 !- Feature Data Type 2
+  387,                                    !- Feature Value 2
+  ClothesWasherDrumVolume,                !- Feature Name 3
+  Double,                                 !- Feature Data Type 3
+  3.5,                                    !- Feature Value 3
+  ClothesWasherDayShift,                  !- Feature Name 4
+  Double,                                 !- Feature Data Type 4
+  0;                                      !- Feature Value 4
 
