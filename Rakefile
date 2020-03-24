@@ -150,14 +150,6 @@ Rake::TestTask.new('integrity_check_all') do |t|
   t.verbose = true
 end # rake task
 
-desc 'Perform integrity check on inputs for project_singlefamilydetached'
-Rake::TestTask.new('integrity_check_singlefamilydetached') do |t|
-  t.libs << 'test'
-  t.test_files = Dir['project_singlefamilydetached/tests/*.rb']
-  t.warning = false
-  t.verbose = true
-end # rake task
-
 desc 'Perform integrity check on inputs for project_multifamily_beta'
 Rake::TestTask.new('integrity_check_multifamily_beta') do |t|
   t.libs << 'test'
@@ -187,6 +179,7 @@ def integrity_check(project_dir_name, housing_characteristics_dir = "housing_cha
   resources_dir = File.join(File.dirname(__FILE__), 'resources')
   require File.join(resources_dir, 'buildstock')
   require File.join(resources_dir, 'run_sampling')
+  require 'csv'
 
   # Setup
   if lookup_file.nil?
@@ -297,6 +290,56 @@ def integrity_check(project_dir_name, housing_characteristics_dir = "housing_cha
   # Test sampling
   r = RunSampling.new
   output_file = r.run(project_dir_name, 1000, 'buildstock.csv', housing_characteristics_dir, lookup_file)
+
+  # Cache {parameter => options}
+  parameters_options = {}
+  CSV.foreach(output_file, headers: true).each do |row|
+    row.each do |parameter_name, option_name|
+      next if parameter_name == "Building"
+
+      unless parameters_options.keys.include? parameter_name
+        parameters_options[parameter_name] = []
+      end
+
+      unless parameters_options[parameter_name].include? option_name
+        parameters_options[parameter_name] << option_name
+      end
+    end
+  end
+
+  # Cache {parameter => {option => {measure => {arg => value}}}}
+  parameters_options_measure_args = {}
+  parameters_options.each do |parameter_name, option_names|
+    parameters_options_measure_args[parameter_name] = get_measure_args_from_option_names(lookup_file, option_names, parameter_name)
+  end
+
+  # Check that measure arguments aren't getting overwritten
+  err = ""
+  CSV.foreach(output_file, headers: true).each do |row|
+    row.each do |parameter_name, option_name|
+      next if parameter_name == "Building"
+
+      parameters_options_measure_args[parameter_name][option_name].each do |measure_name, args|
+        parameters_options_measure_args.each do |parameter_name_2, options|
+          next if parameter_name == parameter_name_2
+
+          parameters_options_measure_args[parameter_name_2][row[parameter_name_2]].each do |measure_name_2, args_2|
+            next if measure_name != measure_name_2
+
+            arg_names = args.keys & args_2.keys
+            next if arg_names.empty?
+            next if err.include? parameter_name and err.include? parameter_name_2 and err.include? measure_name
+
+            err += "ERROR: Duplicate measure argument assignment(s) across #{[parameter_name, parameter_name_2]} parameters. (#{measure_name} => #{arg_names}) already assigned.\n"
+          end
+        end
+      end
+    end
+  end
+  if not err.empty?
+    raise err
+  end
+
   if File.exist?(output_file)
     File.delete(output_file) # Clean up
   end
@@ -430,6 +473,9 @@ def check_parameter_file_format(tsvpath, n_deps, name)
   # For each line in file
   i = 1
   File.read(tsvpath, mode: "rb").each_line do |line|
+    # If not a comment line
+    next if line.start_with? "\#"
+
     # Check endline character
     if line.include? "\r\n"
       # Do not perform other checks if the line is the header

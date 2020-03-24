@@ -241,17 +241,13 @@ class ResidentialHotWaterFixturesTest < MiniTest::Test
         new_object = new_object.public_send("to_#{obj_type}").get
         if obj_type == "OtherEquipment"
           schedule_file = new_object.schedule.get.to_ScheduleFile.get
-          sch_path = schedule_file.externalFile.filePath.to_s
-          schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_output_path: sch_path)
-          col_name = schedules_file.get_col_name(col_index: schedule_file.columnNumber - 1)
-          full_load_hrs = schedules_file.annual_equivalent_full_load_hrs(col_name: col_name)
+          schedules_file = SchedulesFile.new(runner: runner, model: model)
+          full_load_hrs = schedules_file.annual_equivalent_full_load_hrs(col_name: schedule_file.name.to_s)
           actual_values["Annual_kwh"] += UnitConversions.convert(full_load_hrs * new_object.otherEquipmentDefinition.designLevel.get * new_object.multiplier, "Wh", "kWh")
         elsif obj_type == "WaterUseEquipment"
           schedule_file = new_object.flowRateFractionSchedule.get.to_ScheduleFile.get
-          sch_path = schedule_file.externalFile.filePath.to_s
-          schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_output_path: sch_path)
-          col_name = schedules_file.get_col_name(col_index: schedule_file.columnNumber - 1)
-          full_load_hrs = schedules_file.annual_equivalent_full_load_hrs(col_name: col_name)
+          schedules_file = SchedulesFile.new(runner: runner, model: model)
+          full_load_hrs = schedules_file.annual_equivalent_full_load_hrs(col_name: schedule_file.name.to_s)
           actual_values["HotWater_gpd"] += UnitConversions.convert(full_load_hrs * new_object.waterUseEquipmentDefinition.peakFlowRate * new_object.multiplier, "m^3/s", "gal/min") * 60.0 / num_days_in_year
         end
       end

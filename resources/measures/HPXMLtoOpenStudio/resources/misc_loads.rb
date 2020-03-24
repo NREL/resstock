@@ -61,11 +61,11 @@ class MiscLoads
         col_name = "plug_loads"
         if sch.nil?
           # Create schedule
-          sch = schedules_file.createScheduleFile(sch_file_name: "#{Constants.ObjectNameMiscPlugLoads} schedule", col_name: col_name)
+          sch = schedules_file.create_schedule_file(col_name: col_name)
         end
 
         space_mel_ann = annual_energy * UnitConversions.convert(space.floorArea, "m^2", "ft^2") / ffa
-        space_design_level = schedules_file.calcDesignLevelFromAnnualkWh(col_name: col_name, annual_kwh: space_mel_ann)
+        space_design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: col_name, annual_kwh: space_mel_ann)
 
         # Add electric equipment for the mel
         mel_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
@@ -104,11 +104,13 @@ class MiscLoads
     ann_e = annual_energy * mult # kWh/yr
 
     if scale_energy
-      # Get unit beds/baths
+      # Get unit beds/baths/occupants
       nbeds, nbaths = Geometry.get_unit_beds_baths(model, unit, runner)
       if nbeds.nil? or nbaths.nil?
         return false
       end
+
+      noccupants = Geometry.get_unit_occupants(model, unit, runner)
 
       # Get unit ffa
       ffa = Geometry.get_finished_floor_area_from_spaces(unit.spaces, runner)
@@ -120,7 +122,11 @@ class MiscLoads
       constant = 1.0 / 2
       nbr_coef = 1.0 / 4 / 3
       ffa_coef = 1.0 / 4 / 1920
-      ann_e = ann_e * (constant + nbr_coef * nbeds + ffa_coef * ffa) # kWh/yr
+      if [Constants.BuildingTypeMultifamily, Constants.BuildingTypeSingleFamilyAttached].include? Geometry.get_building_type(model) # multifamily equation
+        ann_e = ann_e * (constant + nbr_coef * (-0.68 + 1.09 * noccupants) + ffa_coef * ffa) # kWh/yr
+      elsif [Constants.BuildingTypeSingleFamilyDetached].include? Geometry.get_building_type(model) # single-family equation
+        ann_e = ann_e * (constant + nbr_coef * (-1.47 + 1.69 * noccupants) + ffa_coef * ffa) # kWh/yr
+      end
     end
 
     # Design day schedules used when autosizing
@@ -190,11 +196,13 @@ class MiscLoads
     ann_g = annual_energy * mult # therm/yr
 
     if scale_energy
-      # Get unit beds/baths
+      # Get unit beds/baths/occupants
       nbeds, nbaths = Geometry.get_unit_beds_baths(model, unit, runner)
       if nbeds.nil? or nbaths.nil?
         return false
       end
+
+      noccupants = Geometry.get_unit_occupants(model, unit, runner)
 
       # Get unit ffa
       ffa = Geometry.get_finished_floor_area_from_spaces(unit.spaces, runner)
@@ -206,7 +214,11 @@ class MiscLoads
       constant = 1.0 / 2
       nbr_coef = 1.0 / 4 / 3
       ffa_coef = 1.0 / 4 / 1920
-      ann_g = ann_g * (constant + nbr_coef * nbeds + ffa_coef * ffa) # therm/yr
+      if [Constants.BuildingTypeMultifamily, Constants.BuildingTypeSingleFamilyAttached].include? Geometry.get_building_type(model) # multifamily equation
+        ann_g = ann_g * (constant + nbr_coef * (-0.68 + 1.09 * noccupants) + ffa_coef * ffa) # therm/yr
+      elsif [Constants.BuildingTypeSingleFamilyDetached].include? Geometry.get_building_type(model) # single-family equation
+        ann_g = ann_g * (constant + nbr_coef * (-1.47 + 1.69 * noccupants) + ffa_coef * ffa) # therm/yr
+      end
     end
 
     # Design day schedules used when autosizing

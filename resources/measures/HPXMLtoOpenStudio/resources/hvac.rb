@@ -3371,11 +3371,11 @@ class HVAC
 
         col_name = "ceiling_fan"
         if sch.nil?
-          sch = schedules_file.createScheduleFile(sch_file_name: "#{space_obj_name} schedule", col_name: col_name)
+          sch = schedules_file.create_schedule_file(col_name: col_name)
         end
 
         space_mel_ann = mel_ann * UnitConversions.convert(space.floorArea, "m^2", "ft^2") / finished_floor_area
-        space_design_level = schedules_file.calcDesignLevelFromAnnualkWh(col_name: col_name, annual_kwh: space_mel_ann)
+        space_design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: col_name, annual_kwh: space_mel_ann)
 
         mel_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
         mel = OpenStudio::Model::ElectricEquipment.new(mel_def)

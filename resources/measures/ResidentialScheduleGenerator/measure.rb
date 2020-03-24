@@ -82,12 +82,12 @@ class ResidentialScheduleGenerator < OpenStudio::Measure::ModelMeasure
     return false if not success
 
     # export the schedule
-    output_csv_file = File.expand_path("../appliances_schedules.csv")
+    output_csv_file = File.expand_path("../schedules.csv")
     success = schedule_generator.export(output_path: output_csv_file)
     return false if not success
 
     runner.registerInfo("Generated schedule file: #{output_csv_file}")
-    model.getBuilding.additionalProperties.setFeature("Schedule Path", output_csv_file)
+    model.getBuilding.additionalProperties.setFeature("Schedules Path", output_csv_file)
 
     return true
   end
