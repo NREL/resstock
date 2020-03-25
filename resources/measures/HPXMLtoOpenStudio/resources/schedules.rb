@@ -977,9 +977,6 @@ class ScheduleGenerator
         idle_schedule << sum_across_occupants(all_simulated_values, 6, index_15).to_f / @num_occupants
 
         active_occupancy_percentage = 1 - (@away_schedule[-1] + sleeping_schedule[-1])
-        if minute > 482400
-          rajendra = 1
-        end
         @plugload_schedule << get_value_from_daily_sch(daily_plugload_sch, month, is_weekday, minute, active_occupancy_percentage)
         @lighting_interior_schedule << get_value_from_daily_sch(daily_lighting_sch, month, is_weekday, minute, active_occupancy_percentage)
         @lighting_exterior_schedule << @lighting_interior_schedule[-1]
