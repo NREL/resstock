@@ -977,6 +977,9 @@ class ScheduleGenerator
         idle_schedule << sum_across_occupants(all_simulated_values, 6, index_15).to_f / @num_occupants
 
         active_occupancy_percentage = 1 - (@away_schedule[-1] + sleeping_schedule[-1])
+        if minute > 482400
+          rajendra = 1
+        end
         @plugload_schedule << get_value_from_daily_sch(daily_plugload_sch, month, is_weekday, minute, active_occupancy_percentage)
         @lighting_interior_schedule << get_value_from_daily_sch(daily_lighting_sch, month, is_weekday, minute, active_occupancy_percentage)
         @lighting_exterior_schedule << @lighting_interior_schedule[-1]
@@ -1022,6 +1025,9 @@ class ScheduleGenerator
     total_clusters = 6000
     sink_between_event_gap = 2
     cluster_per_day = total_clusters / total_days_in_year
+    sink_flow_rate_mean = 1.14
+    sink_flow_rate_std = 0.61
+    sink_flow_rate = gaussian_rand(prng, sink_flow_rate_mean, sink_flow_rate_std, 0.1)
     total_days_in_year.times do |day|
       cluster_per_day.times do |cluster_count|
         todays_probable_mins = sink_activtiy_probable_mins[(day) * 1440...((day + 1) * 1440)]
@@ -1034,10 +1040,7 @@ class ScheduleGenerator
         num_events.times do |event_count|
           duration = weighted_random(prng, sink_duration_probs) + 1
           if cluster_start_index + duration > 1440 then duration = (1440 - cluster_start_index) + 1 end
-          flow_rate_mean = 1.14
-          flow_rate_std = 0.61
-          flow_rate = gaussian_rand(prng, flow_rate_mean, flow_rate_std, 0)
-          sink_activity_sch[s...(s + duration)] = [flow_rate] * duration
+          sink_activity_sch[s...(s + duration)] = [sink_flow_rate] * duration
           sink_activtiy_probable_mins[s...(s + duration)] = [0] * duration # Make those slots unavailable for another cluster
           s += duration + sink_between_event_gap # Two minutes gap between sink activity
           if s > 1440 then break end
@@ -1067,16 +1070,17 @@ class ScheduleGenerator
     m = 0
     shower_activity_sch = [0] * mins_in_year
     bath_activity_sch = [0] * mins_in_year
+    bath_flow_rate =gaussian_rand(prng, bath_flow_rate_mean, bath_flow_rate_std, 0.1)
+    shower_flow_rate = gaussian_rand(prng, shower_flow_rate_mean, shower_flow_rate_std, 0.1)
     while m < mins_in_year
       if @shower_schedule[m / 15] > 0
         # TODO Also take into account the fractional shower_schedule means multiple occupants taking shower
         r = prng.rand
         if r <= bath_ratio
           # fill in bath for this time
-          flow_rate = gaussian_rand(prng, bath_flow_rate_mean, bath_flow_rate_std, 0)
-          duration = gaussian_rand(prng, bath_duration_mean, bath_duration_std, 0)
+          duration = gaussian_rand(prng, bath_duration_mean, bath_duration_std, 0.1)
           int_duration = duration.ceil
-          flow_rate *= duration / int_duration
+          flow_rate = bath_flow_rate * duration / int_duration
           # since we are rounding duration to integer minute, we compensate by scaling flow rate
           int_duration.times do
             bath_activity_sch[m] = flow_rate
@@ -1085,7 +1089,7 @@ class ScheduleGenerator
           end
           if m >= mins_in_year then break end
 
-          while @shower_schedule[m / 15] > 0 or m < mins_in_year
+          while @shower_schedule[m / 15] > 0 and m < mins_in_year
             # skip till the end of this slot
             m += 1
           end
@@ -1093,10 +1097,10 @@ class ScheduleGenerator
           # fill in the shower
           num_events = sample_activity_cluster_size(prng, "shower")
           num_events.times do
-            flow_rate = gaussian_rand(prng, shower_flow_rate_mean, shower_flow_rate_std, 0)
+
             duration = sample_event_duration(prng, "shower")
             int_duration = duration.ceil
-            flow_rate *= duration / int_duration
+            flow_rate = shower_flow_rate * duration / int_duration
             # since we are rounding duration to integer minute, we compensate by scaling flow rate
             int_duration.times do
               shower_activity_sch[m] = flow_rate
@@ -1132,14 +1136,14 @@ class ScheduleGenerator
     dw_event_interval = (0.16 * 60).to_i
     dw_activity_sch = [0] * mins_in_year
     m = 0
+    dw_flow_rate = gaussian_rand(prng, dw_flow_rate_mean, dw_flow_rate_std, 0)
     while m < mins_in_year
       if @dish_washer_schedule[m / 15] > 0
         num_events = sample_activity_cluster_size(prng, "dishwasher")
         num_events.times do
-          flow_rate = gaussian_rand(prng, dw_flow_rate_mean, dw_flow_rate_std, 0)
           duration = sample_event_duration(prng, "dishwasher")
           int_duration = duration.ceil
-          flow_rate *= duration / int_duration
+          flow_rate = dw_flow_rate * duration / int_duration
           int_duration.times do
             dw_activity_sch[m] = flow_rate
             m += 1
@@ -1167,16 +1171,16 @@ class ScheduleGenerator
     cw_activity_sch = [0] * mins_in_year
     cw_load_size_probability = [0.682926829, 0.227642276, 0.056910569, 0.032520325]
     m = 0
+    cw_flow_rate = gaussian_rand(prng, cw_flow_rate_mean, cw_flow_rate_std, 0)
     while m < mins_in_year
-      if @dish_washer_schedule[m / 15] > 0
+      if @clothes_washer_schedule[m / 15] > 0
         num_loads = weighted_random(prng, cw_load_size_probability) + 1
         num_loads.times do
           num_events = sample_activity_cluster_size(prng, "clothes_washer")
           num_events.times do
-            flow_rate = gaussian_rand(prng, cw_flow_rate_mean, cw_flow_rate_std, 0)
             duration = sample_event_duration(prng, "clothes_washer")
             int_duration = duration.ceil
-            flow_rate *= duration / int_duration
+            flow_rate = cw_flow_rate * duration.to_f / int_duration
             int_duration.times do
               cw_activity_sch[m] = flow_rate
               m += 1
@@ -1190,7 +1194,7 @@ class ScheduleGenerator
             if m >= mins_in_year then break end
           end
         end
-        while @dish_washer_schedule[m / 15] > 0 and m < mins_in_year
+        while @clothes_washer_schedule[m / 15] > 0 and m < mins_in_year
           # skip till the end of this slot
           m += 1
         end
@@ -1354,7 +1358,7 @@ class ScheduleGenerator
   def get_value_from_daily_sch(daily_sch, month, is_weekday, minute, active_occupant_percentage)
     is_weekday ? sch = daily_sch[0] : sch = daily_sch[1]
     sch = sch.map { |x| x.to_f }
-    full_occupancy_current_val = sch[(minute / 60).to_i].to_f * daily_sch[2][month].to_f
+    full_occupancy_current_val = sch[((minute % 1440) / 60).to_i].to_f * daily_sch[2][month-1].to_f
     return sch.min + (full_occupancy_current_val - sch.min) * active_occupant_percentage
   end
 
