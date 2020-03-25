@@ -1067,7 +1067,7 @@ class ScheduleGenerator
     m = 0
     shower_activity_sch = [0] * mins_in_year
     bath_activity_sch = [0] * mins_in_year
-    bath_flow_rate =gaussian_rand(prng, bath_flow_rate_mean, bath_flow_rate_std, 0.1)
+    bath_flow_rate = gaussian_rand(prng, bath_flow_rate_mean, bath_flow_rate_std, 0.1)
     shower_flow_rate = gaussian_rand(prng, shower_flow_rate_mean, shower_flow_rate_std, 0.1)
     while m < mins_in_year
       if @shower_schedule[m / 15] > 0
@@ -1094,7 +1094,6 @@ class ScheduleGenerator
           # fill in the shower
           num_events = sample_activity_cluster_size(prng, "shower")
           num_events.times do
-
             duration = sample_event_duration(prng, "shower")
             int_duration = duration.ceil
             flow_rate = shower_flow_rate * duration / int_duration
@@ -1355,7 +1354,7 @@ class ScheduleGenerator
   def get_value_from_daily_sch(daily_sch, month, is_weekday, minute, active_occupant_percentage)
     is_weekday ? sch = daily_sch[0] : sch = daily_sch[1]
     sch = sch.map { |x| x.to_f }
-    full_occupancy_current_val = sch[((minute % 1440) / 60).to_i].to_f * daily_sch[2][month-1].to_f
+    full_occupancy_current_val = sch[((minute % 1440) / 60).to_i].to_f * daily_sch[2][month - 1].to_f
     return sch.min + (full_occupancy_current_val - sch.min) * active_occupant_percentage
   end
 
