@@ -68,22 +68,6 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     return args
   end
 
-  def starting_model_objects
-    return [
-      'Version',
-      'Building',
-      'Facility',
-      'Site',
-      'SimulationControl',
-      'SizingParameters',
-      'Timestep',
-      'ShadowCalculation',
-      'HeatBalanceAlgorithm',
-      'RunPeriod',
-      'LifeCycleCostParameters'
-    ]
-  end
-
   # define what happens when the measure is run
   def run(model, runner, user_arguments)
     super(model, runner, user_arguments)
@@ -93,19 +77,13 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
       return false
     end
 
-    # Tear down the existing model to only "starting model objects"
-    model_reset = false
-    model.objects.each do |model_object|
-      begin
-        model_object_type = model_object.to_s.split(',')[0].gsub('OS:', '').gsub(':', '')
-        next if starting_model_objects.include? model_object_type
-
-        model_object.remove
-        reset = true
-      rescue
-      end
+    # Tear down the existing model if it exists
+    handles = OpenStudio::UUIDVector.new
+    model.objects.each do |obj|
+      handles << obj.handle
     end
-    if model_reset
+    model.removeObjects(handles)
+    unless handles.empty?
       runner.registerWarning("The model was 'reset'.")
     end
 
