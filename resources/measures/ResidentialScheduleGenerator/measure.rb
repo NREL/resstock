@@ -8,6 +8,7 @@ require File.join(resources_path, "constants")
 require File.join(resources_path, "geometry")
 require File.join(resources_path, "unit_conversions")
 require File.join(resources_path, "appliances")
+require File.join(resources_path, "weather")
 
 # start the measure
 class ResidentialScheduleGenerator < OpenStudio::Measure::ModelMeasure
@@ -74,7 +75,12 @@ class ResidentialScheduleGenerator < OpenStudio::Measure::ModelMeasure
 
     args[:schedules_path] = File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources/schedules")
 
-    schedule_generator = ScheduleGenerator.new(runner: runner, model: model, **args)
+    weather = WeatherProcess.new(model, runner) # required for lighting schedule generation
+    if weather.error?
+      return false
+    end
+
+    schedule_generator = ScheduleGenerator.new(runner: runner, model: model, weather: weather, **args)
 
     # create the schedule
     success = schedule_generator.create

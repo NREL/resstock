@@ -4,6 +4,13 @@ require 'openstudio/ruleset/ShowRunnerOutput'
 require 'minitest/autorun'
 require_relative '../measure.rb'
 require 'fileutils'
+resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../../HPXMLtoOpenStudio/resources"))
+unless File.exists? resources_path
+  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, "HPXMLtoOpenStudio/resources") # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
+end
+
+require File.join(resources_path, "weather")
+
 
 class ResidentialScheduleGeneratorTest < MiniTest::Test
   @@design_levels_e = {
@@ -127,6 +134,7 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
 
     model = get_model(File.dirname(__FILE__), osm_file_or_model)
 
+
     args_hash[:schedules_path] = File.join(File.dirname(__FILE__), "../../HPXMLtoOpenStudio/resources/schedules")
 
     if "#{test_name}".include? "8760"
@@ -137,9 +145,12 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
       if !File.exist?("#{test_dir(test_name)}")
         FileUtils.mkdir_p("#{test_dir(test_name)}")
       end
-
+      weather = WeatherProcess.new(model, runner) # required for lighting schedule generation
+      if weather.error?
+        return false
+      end
       schedules_path = schedule_file_path(test_name)
-      schedule_generator = ScheduleGenerator.new(runner: runner, model: model, **args_hash)
+      schedule_generator = ScheduleGenerator.new(runner: runner, model: model, weather: weather, **args_hash)
       success = schedule_generator.create
       success = schedule_generator.export(output_path: schedules_path)
     end
