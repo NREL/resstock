@@ -196,7 +196,8 @@ if ARGV[0].to_sym == :update_measures
       },
       'HPXMLtoOpenStudio' => {
         'hpxml_path' => File.expand_path(File.join(File.dirname(__FILE__), 'workflows/run/in.xml')),
-        'weather_dir' => File.expand_path(File.join(File.dirname(__FILE__), 'weather'))
+        'weather_dir' => File.expand_path(File.join(File.dirname(__FILE__), 'weather')),
+        'output_path' => File.expand_path(File.join(File.dirname(__FILE__), 'workflows/run'))
       }
     }
 
