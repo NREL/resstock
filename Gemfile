@@ -8,4 +8,3 @@ gem 'simplecov', '~> 0.17.0'
 gem 'codecov'
 gem 'minitest-reporters'
 gem 'minitest-ci' # For CircleCI Automatic test metadata collection
-gem 'compare-xml'

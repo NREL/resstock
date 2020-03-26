@@ -46,10 +46,6 @@ class Waterheater
 
     cap = 100000000.0
 
-    if cd.nil?
-      cd = Waterheater.get_tankless_cycling_derate()
-    end
-
     loop = Waterheater.create_new_loop(model, Constants.PlantLoopDomesticWater, t_set, HPXML::WaterHeaterTypeTankless)
     dhw_map[sys_id] << loop
 
@@ -841,12 +837,14 @@ class Waterheater
 
     if wh_type == HPXML::WaterHeaterTypeCombiStorage
       tank_type = HPXML::WaterHeaterTypeStorage
-      act_vol = calc_storage_tank_actual_vol(vol, nil)
-      a_side = calc_tank_areas(act_vol)[1]
-      standby_loss = get_indirect_standbyloss(standby_loss, act_vol)
+      if standby_loss <= 0
+        fail 'Indirect water heater standby loss is negative, double check TankVolume to be <829 gal or StandbyLoss to be >0.0 F/hr.'
+      end
       if standby_loss > 10.0
         runner.registerWarning('Indirect water heater standby loss is over 10.0 F/hr, double check water heater inputs.')
       end
+      act_vol = calc_storage_tank_actual_vol(vol, nil)
+      a_side = calc_tank_areas(act_vol)[1]
       ua = calc_indirect_ua_with_standbyloss(act_vol, standby_loss, jacket_r, a_side)
     else
       tank_type = HPXML::WaterHeaterTypeTankless
@@ -1212,21 +1210,6 @@ class Waterheater
     surface_area = 2.0 * a_top + a_side # sqft
 
     return surface_area, a_side
-  end
-
-  def self.get_indirect_standbyloss(standby_loss, act_vol)
-    # Tank geometry
-    surface_area = calc_tank_areas(act_vol)[0]
-    if standby_loss.nil? # Swiched to standby_loss equation fit from AHRI database
-      # calculate independent variable SurfaceArea/vol(physically linear to standby_loss/skin_u under test condition) to fit the linear equation from AHRI database
-      sqft_by_gal = surface_area / act_vol # sqft/gal
-      standby_loss = 2.9721 * sqft_by_gal - 0.4732 # linear equation assuming a constant u, F/hr
-    end
-    if standby_loss <= 0
-      fail 'Indirect water heater standby loss is negative, double check TankVolume to be <829 gal or StandbyLoss to be >0.0 F/hr.'
-    end
-
-    return standby_loss
   end
 
   def self.calc_indirect_ua_with_standbyloss(act_vol, standby_loss, jacket_r, a_side)

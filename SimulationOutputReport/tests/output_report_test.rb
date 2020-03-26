@@ -393,7 +393,7 @@ class SimulationOutputReportTest < MiniTest::Test
   end
 
   def test_timeseries_timestep_ALL_60min
-    args_hash = { 'hpxml_path' => '../workflow/sample_files/base-misc-timestep-60-mins.xml',
+    args_hash = { 'hpxml_path' => '../workflow/sample_files/base.xml',
                   'timeseries_frequency' => 'timestep',
                   'include_timeseries_zone_temperatures' => true,
                   'include_timeseries_fuel_consumptions' => true,
@@ -435,9 +435,9 @@ class SimulationOutputReportTest < MiniTest::Test
     [Constants.CalcTypeERIReferenceHome, Constants.CalcTypeERIReferenceHome].each do |eri_design|
       new_hpxml_path = File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-eri.xml')
       FileUtils.cp(old_hpxml_path, new_hpxml_path)
-      hpxml_doc = XMLHelper.parse_file(new_hpxml_path)
-      XMLHelper.add_element(hpxml_doc.elements['/HPXML/SoftwareInfo'], 'extension/ERICalculation/Design', eri_design)
-      XMLHelper.write_file(hpxml_doc, new_hpxml_path)
+      hpxml = HPXML.new(hpxml_path: new_hpxml_path)
+      hpxml.header.eri_design = eri_design
+      XMLHelper.write_file(hpxml.to_rexml(), new_hpxml_path)
 
       # Run tests
       args_hash = { 'hpxml_path' => '../workflow/sample_files/base-eri.xml',
