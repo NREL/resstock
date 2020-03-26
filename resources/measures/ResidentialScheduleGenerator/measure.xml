@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>residential_schedule_generator</name>
   <uid>079880ce-1837-4d67-ba8d-65c595160d3d</uid>
-  <version_id>9443094c-daa3-455c-87ad-2c136650f9cf</version_id>
-  <version_modified>20200318T154322Z</version_modified>
+  <version_id>e1248793-e3ee-4f91-9131-541689222ec0</version_id>
+  <version_modified>20200326T223752Z</version_modified>
   <xml_checksum>3C1C8C0F</xml_checksum>
   <class_name>ResidentialScheduleGenerator</class_name>
   <display_name>Generate Appliance schedules</display_name>
@@ -36,7 +36,26 @@
       <type>String</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
+      <default_value>2</default_value>
+    </argument>
+    <argument>
+      <name>modify_plugs_and_lighting</name>
+      <display_name>Modify plugload and lighting</display_name>
+      <description>Whether to modify plugloads, lighting and the ceiling fan based on occupancy</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
     </argument>
   </arguments>
   <outputs/>
@@ -61,13 +80,13 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>CBF123F0</checksum>
+      <checksum>13072478</checksum>
     </file>
     <file>
       <filename>ResidentialScheduleGenerator_Test.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
-      <checksum>937105F3</checksum>
+      <checksum>502CF509</checksum>
     </file>
   </files>
 </measure>
