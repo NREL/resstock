@@ -795,6 +795,7 @@ end
 class ScheduleGenerator
   def initialize(runner:,
                  model:,
+                 weather:,
                  building_id: nil,
                  num_occupants:,
                  schedules_path:,
@@ -804,6 +805,7 @@ class ScheduleGenerator
 
     @runner = runner
     @model = model
+    @weather = weather
     @building_id = building_id
     @num_occupants = num_occupants
     @schedules_path = schedules_path
@@ -908,10 +910,28 @@ class ScheduleGenerator
     end
 
     # shape of all_simulated_values is [2, 35040, 7] i.e. (num_occupants, period_in_a_year, number_of_states)
-    daily_plugload_sch = CSV.read(@schedules_path + "/plugload_sch.csv")
-    daily_lighting_sch = CSV.read(@schedules_path + "/lighting_sch.csv")
-    daily_ceiling_fan_sch = CSV.read(@schedules_path + "/ceiling_fan_sch.csv")
+    plugload_sch = CSV.read(@schedules_path + "/plugload_sch.csv")
+    lighting_sch = CSV.read(@schedules_path + "/lighting_sch.csv")
+    ceiling_fan_sch = CSV.read(@schedules_path + "/ceiling_fan_sch.csv")
     # "occupants", "cooking_range", "plug_loads", lighting_interior", "lighting_exterior", "lighting_garage", "clothes_washer", "clothes_dryer", "dishwasher", "baths", "showers", "sinks", "ceiling_fan", "clothes_dryer_exhaust"
+
+    weekday_lighting_schedule = lighting_sch[0].map{|x| x.to_f}
+    weekend_lighting_schedule = lighting_sch[1].map{|x| x.to_f}
+    monthly_lighting_schedule = lighting_sch[2].map{|x| x.to_f}
+    holiday_lighting_schedule = lighting_sch[3].map{|x| x.to_f}
+
+
+    sch_option_type = Constants.OptionTypeLightingScheduleCalculated
+    interior_lighting_schedule = get_interior_lighting_sch(@model, @runner, @weather, sch_option_type,
+                                                           monthly_lighting_schedule)
+    sch_option_type = Constants.OptionTypeLightingScheduleUserSpecified
+    other_lighting_schedule = get_other_lighting_sch(@model, @runner, @weather, sch_option_type,
+                                                         weekday_lighting_schedule, weekend_lighting_schedule,
+                                                         monthly_lighting_schedule)
+    holiday_lighting_schedule = get_holiday_lighting_sch(@model, @runner, holiday_lighting_schedule)
+
+
+
 
     @plugload_schedule = []
     @lighting_interior_schedule = []
@@ -977,12 +997,12 @@ class ScheduleGenerator
         idle_schedule << sum_across_occupants(all_simulated_values, 6, index_15).to_f / @num_occupants
 
         active_occupancy_percentage = 1 - (@away_schedule[-1] + sleeping_schedule[-1])
-        @plugload_schedule << get_value_from_daily_sch(daily_plugload_sch, month, is_weekday, minute, active_occupancy_percentage)
-        @lighting_interior_schedule << get_value_from_daily_sch(daily_lighting_sch, month, is_weekday, minute, active_occupancy_percentage)
-        @lighting_exterior_schedule << @lighting_interior_schedule[-1]
-        @lighting_garage_schedule << @lighting_interior_schedule[-1]
-        @lighting_holiday_schedule << @lighting_interior_schedule[-1]
-        @ceiling_fan_schedule << get_value_from_daily_sch(daily_ceiling_fan_sch, month, is_weekday, minute, active_occupancy_percentage)
+        @plugload_schedule << get_value_from_daily_sch(plugload_sch, month, is_weekday, minute, active_occupancy_percentage)
+        @lighting_interior_schedule << scale_lighting_by_occupancy(interior_lighting_schedule, minute, active_occupancy_percentage)
+        @lighting_exterior_schedule << get_value_from_daily_sch(lighting_sch, month, is_weekday, minute, active_occupancy_percentage)
+        @lighting_garage_schedule << get_value_from_daily_sch(lighting_sch, month, is_weekday, minute, active_occupancy_percentage)
+        @lighting_holiday_schedule << scale_lighting_by_occupancy(holiday_lighting_schedule, minute, active_occupancy_percentage)
+        @ceiling_fan_schedule << get_value_from_daily_sch(ceiling_fan_sch, month, is_weekday, minute, active_occupancy_percentage)
         @bath_schedule << @shower_schedule[-1]
       end
     end
@@ -1351,6 +1371,14 @@ class ScheduleGenerator
     return sum
   end
 
+  def scale_lighting_by_occupancy(lighting_sch, minute, active_occupant_percentage)
+    day_start = minute / 1440
+    day_sch = lighting_sch[day_start*24, 24]
+    current_val = lighting_sch[minute / 60]
+    return day_sch.min + (current_val - day_sch.min)*active_occupant_percentage
+
+  end
+
   def get_value_from_daily_sch(daily_sch, month, is_weekday, minute, active_occupant_percentage)
     is_weekday ? sch = daily_sch[0] : sch = daily_sch[1]
     sch = sch.map { |x| x.to_f }
@@ -1368,6 +1396,189 @@ class ScheduleGenerator
       end
     end
     return weights.size - 1 # If the prob weight don't sum to n, return last index
+  end
+
+  def get_holiday_lighting_sch(model, runner, holiday_sch)
+    holiday_start_day = 332 # November 27
+    holiday_end_day = 6 #Jan 6
+    @model.getYearDescription.isLeapYear ? total_days_in_year = 366 : total_days_in_year = 365
+    sch = [0]*24*total_days_in_year
+    final_days = total_days_in_year - holiday_start_day + 1
+    beginning_days = holiday_end_day
+    sch[0...(holiday_end_day)*24] = holiday_sch*beginning_days
+    sch[(holiday_start_day-1)*24..-1] = holiday_sch*final_days
+    return sch
+  end
+
+  def get_other_lighting_sch(model, runner, weather, sch_option_type, weekday_sch, weekend_sch, monthly_sch)
+    # TODO fix this to return 24*num_of_days_in_year values
+    lighting_sch = nil
+    if sch_option_type == Constants.OptionTypeLightingScheduleCalculated
+      lighting_sch = get_interior_lighting_sch(model, runner, weather, sch_option_type, monthly_sch)
+    end
+
+    # Design day schedules used when autosizing
+    winter_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
+    winter_design_day_sch.addValue(OpenStudio::Time.new(0, 24, 0, 0), 0)
+    summer_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
+    summer_design_day_sch.addValue(OpenStudio::Time.new(0, 24, 0, 0), 1)
+    # Create schedule
+    if lighting_sch.nil?
+      sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameLightingGarage, weekday_sch,
+                                            weekend_sch, monthly_sch, mult_weekday = 1.0, mult_weekend = 1.0,
+                                            normalize_values = true, create_sch_object = true,
+                                            winter_design_day_sch, summer_design_day_sch)
+    else
+      sch = HourlyByMonthSchedule.new(model, runner, Constants.ObjectNameLightingGarage,
+                                      lighting_sch, lighting_sch, normalize_values = true, create_sch_object = true,
+                                      winter_design_day_sch, summer_design_day_sch)
+    end
+    return sch
+  end
+
+  def get_interior_lighting_sch(model, runner, weather, sch_option_type, monthly_sch)
+
+    lat = weather.header.Latitude
+    long = weather.header.Longitude
+    tz = weather.header.Timezone
+    std_long = -tz * 15
+    pi = Math::PI
+
+    # Get number of days in months/year
+    year_description = model.getYearDescription
+    num_days_in_months = Constants.NumDaysInMonths(year_description.isLeapYear)
+    num_days_in_year = Constants.NumDaysInYear(year_description.isLeapYear)
+
+    # Sunrise and sunset hours
+    sunrise_hour = []
+    sunset_hour = []
+    normalized_hourly_lighting = [[1..24], [1..24], [1..24], [1..24], [1..24], [1..24], [1..24], [1..24], [1..24], [1..24], [1..24], [1..24]]
+    for month in 0..11
+      if lat < 51.49
+        m_num = month + 1
+        jul_day = m_num * 30 - 15
+        if not (m_num < 4 or m_num > 10)
+          offset = 1
+        else
+          offset = 0
+        end
+        declination = 23.45 * Math.sin(0.9863 * (284 + jul_day) * 0.01745329)
+        deg_rad = pi / 180
+        rad_deg = 1 / deg_rad
+        b = (jul_day - 1) * 0.9863
+        equation_of_time = (0.01667 * (0.01719 + 0.42815 * Math.cos(deg_rad * b) - 7.35205 * Math.sin(deg_rad * b) - 3.34976 * Math.cos(deg_rad * (2 * b)) - 9.37199 * Math.sin(deg_rad * (2 * b))))
+        sunset_hour_angle = rad_deg * (Math.acos(-1 * Math.tan(deg_rad * lat) * Math.tan(deg_rad * declination)))
+        sunrise_hour[month] = offset + (12.0 - 1 * sunset_hour_angle / 15.0) - equation_of_time - (std_long + long) / 15
+        sunset_hour[month] = offset + (12.0 + 1 * sunset_hour_angle / 15.0) - equation_of_time - (std_long + long) / 15
+      else
+        sunrise_hour = [8.125726064, 7.449258072, 6.388688653, 6.232405257, 5.27722936, 4.84705384, 5.127512162, 5.860163988, 6.684378904, 7.521267411, 7.390441945, 8.080667697]
+        sunset_hour = [16.22214058, 17.08642353, 17.98324493, 19.83547864, 20.65149672, 21.20662992, 21.12124777, 20.37458274, 19.25834757, 18.08155615, 16.14359164, 15.75571306]
+      end
+    end
+
+    dec_kws = [0.075, 0.055, 0.040, 0.035, 0.030, 0.025, 0.025, 0.025, 0.025, 0.025, 0.025, 0.030, 0.045, 0.075, 0.130, 0.160, 0.140, 0.100, 0.075, 0.065, 0.060, 0.050, 0.045, 0.045, 0.045, 0.045, 0.045, 0.045, 0.050, 0.060, 0.080, 0.130, 0.190, 0.230, 0.250, 0.260, 0.260, 0.250, 0.240, 0.225, 0.225, 0.220, 0.210, 0.200, 0.180, 0.155, 0.125, 0.100]
+    june_kws = [0.060, 0.040, 0.035, 0.025, 0.020, 0.020, 0.020, 0.020, 0.020, 0.020, 0.020, 0.020, 0.020, 0.025, 0.030, 0.030, 0.025, 0.020, 0.015, 0.015, 0.015, 0.015, 0.015, 0.015, 0.015, 0.015, 0.015, 0.015, 0.015, 0.015, 0.015, 0.015, 0.020, 0.020, 0.020, 0.025, 0.025, 0.030, 0.030, 0.035, 0.045, 0.060, 0.085, 0.125, 0.145, 0.130, 0.105, 0.080]
+    lighting_seasonal_multiplier =   [1.075, 1.064951905, 1.0375, 1.0, 0.9625, 0.935048095, 0.925, 0.935048095, 0.9625, 1.0, 1.0375, 1.064951905]
+    amplConst1 = 0.929707907917098
+    sunsetLag1 = 2.45016230615269
+    stdDevCons1 = 1.58679810983444
+    amplConst2 = 1.1372291802273
+    sunsetLag2 = 20.1501965859073
+    stdDevCons2 = 2.36567663279954
+
+    monthly_kwh_per_day = []
+    wtd_avg_monthly_kwh_per_day = 0
+    for monthNum in 1..12
+      month = monthNum - 1
+      monthHalfHourKWHs = [0]
+      for hourNum in 0..9
+        monthHalfHourKWHs[hourNum] = june_kws[hourNum]
+      end
+      for hourNum in 9..17
+        hour = (hourNum + 1.0) * 0.5
+        monthHalfHourKWHs[hourNum] = (monthHalfHourKWHs[8] - (0.15 / (2 * pi)) * Math.sin((2 * pi) * (hour - 4.5) / 3.5) + (0.15 / 3.5) * (hour - 4.5)) * lighting_seasonal_multiplier[month]
+      end
+      for hourNum in 17..29
+        hour = (hourNum + 1.0) * 0.5
+        monthHalfHourKWHs[hourNum] = (monthHalfHourKWHs[16] - (-0.02 / (2 * pi)) * Math.sin((2 * pi) * (hour - 8.5) / 5.5) + (-0.02 / 5.5) * (hour - 8.5)) * lighting_seasonal_multiplier[month]
+      end
+      for hourNum in 29..45
+        hour = (hourNum + 1.0) * 0.5
+        monthHalfHourKWHs[hourNum] = (monthHalfHourKWHs[28] + amplConst1 * Math.exp((-1.0 * (hour - (sunset_hour[month] + sunsetLag1))**2) / (2.0 * ((25.5 / ((6.5 - monthNum).abs + 20.0)) * stdDevCons1)**2)) / ((25.5 / ((6.5 - monthNum).abs + 20.0)) * stdDevCons1 * (2.0 * pi)**0.5))
+      end
+      for hourNum in 45..46
+        hour = (hourNum + 1.0) * 0.5
+        temp1 = (monthHalfHourKWHs[44] + amplConst1 * Math.exp((-1.0 * (hour - (sunset_hour[month] + sunsetLag1))**2) / (2.0 * ((25.5 / ((6.5 - monthNum).abs + 20.0)) * stdDevCons1)**2)) / ((25.5 / ((6.5 - monthNum).abs + 20.0)) * stdDevCons1 * (2.0 * pi)**0.5))
+        temp2 = (0.04 + amplConst2 * Math.exp((-1.0 * (hour - (sunsetLag2))**2) / (2.0 * (stdDevCons2)**2)) / (stdDevCons2 * (2.0 * pi)**0.5))
+        if sunsetLag2 < sunset_hour[month] + sunsetLag1
+          monthHalfHourKWHs[hourNum] = [temp1, temp2].min
+        else
+          monthHalfHourKWHs[hourNum] = [temp1, temp2].max
+        end
+      end
+      for hourNum in 46..47
+        hour = (hourNum + 1) * 0.5
+        monthHalfHourKWHs[hourNum] = (0.04 + amplConst2 * Math.exp((-1.0 * (hour - (sunsetLag2))**2) / (2.0 * (stdDevCons2)**2)) / (stdDevCons2 * (2.0 * pi)**0.5))
+      end
+
+      sum_kWh = 0.0
+      for timenum in 0..47
+        sum_kWh = sum_kWh + monthHalfHourKWHs[timenum]
+      end
+      for hour in 0..23
+        ltg_hour = (monthHalfHourKWHs[hour * 2] + monthHalfHourKWHs[hour * 2 + 1]).to_f
+        normalized_hourly_lighting[month][hour] = ltg_hour / sum_kWh
+        monthly_kwh_per_day[month] = sum_kWh / 2.0
+      end
+      wtd_avg_monthly_kwh_per_day = wtd_avg_monthly_kwh_per_day + monthly_kwh_per_day[month] * num_days_in_months[month] / num_days_in_year
+    end
+
+    # Get the seasonal multipliers
+    seasonal_multiplier = []
+    if sch_option_type == Constants.OptionTypeLightingScheduleCalculated
+      for month in 0..11
+        seasonal_multiplier[month] = (monthly_kwh_per_day[month] / wtd_avg_monthly_kwh_per_day)
+      end
+    elsif sch_option_type == Constants.OptionTypeLightingScheduleUserSpecified
+      vals = monthly_sch.split(",")
+      vals.each do |val|
+        begin Float(val)
+        rescue
+          runner.registerError("A comma-separated string of 12 numbers must be entered for the monthly schedule.")
+          return false
+        end
+      end
+      seasonal_multiplier = vals.map { |i| i.to_f }
+      if seasonal_multiplier.length != 12
+        runner.registerError("A comma-separated string of 12 numbers must be entered for the monthly schedule.")
+        return false
+      end
+    end
+
+    # Calculate normalized monthly lighting fractions
+    sumproduct_seasonal_multiplier = 0
+    for month in 0..11
+      sumproduct_seasonal_multiplier += seasonal_multiplier[month] * num_days_in_months[month]
+    end
+
+    normalized_monthly_lighting = seasonal_multiplier
+    for month in 0..11
+      normalized_monthly_lighting[month] = seasonal_multiplier[month] * num_days_in_months[month] / sumproduct_seasonal_multiplier
+    end
+
+    # Calc schedule values
+    lighting_sch = [[], [], [], [], [], [], [], [], [], [], [], []]
+    for month in 0..11
+      for hour in 0..23
+        lighting_sch[month][hour] = normalized_monthly_lighting[month] * normalized_hourly_lighting[month][hour] / num_days_in_months[month]
+      end
+    end
+    sch = []
+    for month in 0..11
+      sch << lighting_sch[month]*num_days_in_months[month]
+    end
+    sch = sch.flatten
+    return sch
   end
 end
 
