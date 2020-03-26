@@ -26,9 +26,6 @@
           <NumberofBedrooms>3</NumberofBedrooms>
           <ConditionedFloorArea>2700.0</ConditionedFloorArea>
           <ConditionedBuildingVolume>21600.0</ConditionedBuildingVolume>
-          <extension>
-            <FractionofOperableWindowArea>0.33</FractionofOperableWindowArea>
-          </extension>
         </BuildingConstruction>
       </BuildingSummary>
       <ClimateandRiskZones>
@@ -51,7 +48,6 @@
               <UnitofMeasure>ACH</UnitofMeasure>
               <AirLeakage>3.0</AirLeakage>
             </BuildingAirLeakage>
-            <InfiltrationVolume>21600.0</InfiltrationVolume>
           </AirInfiltrationMeasurement>
         </AirInfiltration>
         <Attics>
@@ -261,19 +257,31 @@
       <Systems>
         <HVAC>
           <HVACPlant>
+            <HeatingSystem>
+              <SystemIdentifier id='HeatingSystem'/>
+              <DistributionSystem idref='HVACDistribution'/>
+              <HeatingSystemType>
+                <Furnace/>
+              </HeatingSystemType>
+              <HeatingSystemFuel>natural gas</HeatingSystemFuel>
+              <HeatingCapacity>64000.0</HeatingCapacity>
+              <AnnualHeatingEfficiency>
+                <Units>AFUE</Units>
+                <Value>0.92</Value>
+              </AnnualHeatingEfficiency>
+              <FractionHeatLoadServed>1.0</FractionHeatLoadServed>
+            </HeatingSystem>
             <CoolingSystem>
               <SystemIdentifier id='CoolingSystem'/>
               <DistributionSystem idref='HVACDistribution'/>
               <CoolingSystemType>central air conditioner</CoolingSystemType>
               <CoolingSystemFuel>electricity</CoolingSystemFuel>
               <CoolingCapacity>48000.0</CoolingCapacity>
-              <CompressorType>single stage</CompressorType>
               <FractionCoolLoadServed>1.0</FractionCoolLoadServed>
               <AnnualCoolingEfficiency>
                 <Units>SEER</Units>
                 <Value>13.0</Value>
               </AnnualCoolingEfficiency>
-              <SensibleHeatFraction>0.7</SensibleHeatFraction>
             </CoolingSystem>
           </HVACPlant>
           <HVACControl>
@@ -427,6 +435,9 @@
           <FractionofUnitsInLocation>0.25</FractionofUnitsInLocation>
           <ThirdPartyCertification>ERI Tier II</ThirdPartyCertification>
         </LightingGroup>
+        <CeilingFan>
+          <SystemIdentifier id='CeilingFan'/>
+        </CeilingFan>
       </Lighting>
       <MiscLoads>
         <PlugLoad>

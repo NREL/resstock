@@ -35,10 +35,8 @@ def run_workflow(basedir, rundir, hpxml, debug, hourly_outputs)
   args = {}
   args['hpxml_path'] = hpxml
   args['weather_dir'] = 'weather'
-  args['epw_output_path'] = File.join(rundir, 'in.epw')
-  if debug
-    args['osm_output_path'] = File.join(rundir, 'in.osm')
-  end
+  args['output_path'] = rundir
+  args['debug'] = debug
   update_args_hash(measures, measure_subdir, args)
 
   # Add reporting measure to workflow

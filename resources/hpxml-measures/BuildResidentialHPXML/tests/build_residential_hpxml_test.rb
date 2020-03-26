@@ -6,7 +6,6 @@ require_relative '../measure.rb'
 require 'fileutils'
 require 'rexml/document'
 require 'rexml/xpath'
-require 'compare-xml'
 require_relative '../../HPXMLtoOpenStudio/resources/meta_measure'
 require_relative '../../HPXMLtoOpenStudio/resources/hpxml'
 
@@ -85,6 +84,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
   end
 
   def test_invalid_workflows
+    require 'json'
     this_dir = File.dirname(__FILE__)
     measures_dir = File.join(this_dir, '../..')
 
@@ -145,7 +145,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       hpxml.foundation_walls.sort_by! { |foundation_wall| foundation_wall.area }
       hpxml.frame_floors.sort_by! { |frame_floor| frame_floor.exterior_adjacent_to }
       hpxml.slabs.sort_by! { |slab| slab.area }
-      hpxml.windows.sort_by! { |window| window.azimuth }
+      hpxml.windows.sort_by! { |window| [window.azimuth, window.area] }
 
       # Delete elements that we aren't going to diff
       hpxml.header.xml_type = nil
@@ -163,60 +163,44 @@ class BuildResidentialHPXMLTest < MiniTest::Test
         refrigerator.schedules_output_path = nil
         refrigerator.schedules_column_name = nil
       end
-    end
+      hpxml.walls.each do |wall|
+        next unless wall.exterior_adjacent_to == HPXML::LocationOutside
+        next unless [HPXML::LocationAtticUnvented, HPXML::LocationAtticVented].include? wall.interior_adjacent_to
 
-    # Convert to REXML docs
-    hpxml_docs = {}
-    hpxml_objs.each do |version, hpxml|
-      hpxml_docs[version] = hpxml.to_rexml()
-    end
-
-    hpxml_docs = {
-      'Rakefile' => Nokogiri::XML(hpxml_docs['Rakefile'].to_s).remove_namespaces!,
-      'BuildResidentialHPXML' => Nokogiri::XML(hpxml_docs['BuildResidentialHPXML'].to_s).remove_namespaces!
-    }
-
-    opts = { verbose: true }
-    compare_xml = CompareXML.equivalent?(hpxml_docs['Rakefile'], hpxml_docs['BuildResidentialHPXML'], opts)
-    discrepancies = ''
-    compare_xml.each do |discrepancy|
-      unless discrepancy[:node1].nil?
-        next if discrepancy[:node1].attributes.keys.include? 'id'
-        next if discrepancy[:node1].attributes.keys.include? 'idref'
+        wall.area = nil # Attic gable wall areas
+      end
+      hpxml.windows.each do |window|
+        window.area = window.area.round(2)
+        window.overhangs_distance_to_bottom_of_window = nil # Height of windows
       end
 
-      parent_id = 'nil'
-      parent_element = 'nil'
-      if not discrepancy[:node1].nil?
-        parent_element = discrepancy[:node1].name
-        parent = discrepancy[:node1].parent
-        parent_sysid = parent.xpath('SystemIdentifier')
-        if not parent_sysid.empty?
-          parent_id = parent_sysid.attribute('id').to_s
+      # Replace IDs/IDREFs with blank strings
+      HPXML::HPXML_ATTRS.each do |attr|
+        hpxml_obj = hpxml.send(attr)
+        next unless hpxml_obj.is_a? HPXML::BaseArrayElement
+
+        hpxml_obj.each do |obj|
+          obj.class::ATTRS.each do |obj_attr|
+            next unless (obj_attr.to_s == 'id') || obj_attr.to_s.end_with?('_idref')
+
+            obj.send(obj_attr.to_s + '=', '')
+          end
         end
       end
-      parent_text = discrepancy[:diff1]
-
-      next if (parent_id == 'WallAtticGable') && (parent_element == 'Area') # FIXME
-      next if parent_element == 'DistanceToBottomOfWindow' # FIXME
-
-      child_id = 'nil'
-      child_element = 'nil'
-      if not discrepancy[:node2].nil?
-        child_element = discrepancy[:node2].name
-        child = discrepancy[:node2].parent
-        child_sysid = child.xpath('SystemIdentifier')
-        if not child_sysid.empty?
-          child_id = child_sysid.attribute('id').to_s
-        end
-      end
-      child_text = discrepancy[:diff2]
-
-      discrepancies << "(#{parent_id}: #{parent_element}: #{parent_text}) : (#{child_id}: #{child_element}: #{child_text}}\n"
     end
 
-    unless discrepancies.empty?
-      raise discrepancies
+    rakefile_doc = hpxml_objs['Rakefile'].to_rexml
+    measure_doc = hpxml_objs['BuildResidentialHPXML'].to_rexml
+
+    # Write files for inspection?
+    if rakefile_doc.to_s != measure_doc.to_s
+      rakefile_path = File.join(File.dirname(__FILE__), 'test_rakefile.xml')
+      XMLHelper.write_file(rakefile_doc, rakefile_path)
+      measure_path = File.join(File.dirname(__FILE__), 'test_measure.xml')
+      XMLHelper.write_file(measure_doc, measure_path)
+      flunk "ERROR: HPXML files don't match. Wrote #{rakefile_path} and #{measure_path} for inspection."
+    else
+      pass
     end
   end
 
