@@ -197,7 +197,7 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
       # Get plant loop
       plant_loop = Waterheater.get_plant_loop_from_string(model, runner, plant_loop_s, unit)
       if plant_loop.nil?
-        return false
+        next
       end
 
       success, ann_e, cd_updated, cd_sch, mains_temps = ClothesWasher.apply(model, unit, runner, imef, rated_annual_energy, annual_cost,
