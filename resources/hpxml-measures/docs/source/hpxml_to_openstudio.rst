@@ -311,7 +311,7 @@ Overhangs (e.g., a roof eave) can optionally be defined for a window by specifyi
 Overhangs are defined by the vertical distance between the overhang and the top of the window (``DistanceToTopOfWindow``), and the vertical distance between the overhang and the bottom of the window (``DistanceToBottomOfWindow``).
 The difference between these two values equals the height of the window.
 
-Finally, windows can be optionally described as ``Operable``.
+Finally, windows can be optionally described with ``FractionOperable``.
 If not provided, it is assumed that 33% of the window area is operable.
 Of this operable window area, 20% is assumed to be open whenever there are favorable outdoor conditions for cooling.
 

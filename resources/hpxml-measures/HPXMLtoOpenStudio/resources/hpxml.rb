@@ -53,6 +53,12 @@ class HPXML < Object
   AtticTypeFlatRoof = 'FlatRoof'
   AtticTypeUnvented = 'UnventedAttic'
   AtticTypeVented = 'VentedAttic'
+  ResidentialTypeApartment = 'apartment unit'
+  ResidentialTypeManufactured = 'manufactured home'
+  ResidentialTypeMF2to4 = '2-4 unit building'
+  ResidentialTypeMF5plus = '5+ unit building'
+  ResidentialTypeSFA = 'single-family attached'
+  ResidentialTypeSFD = 'single-family detached'
   ClothesDryerControlTypeMoisture = 'moisture'
   ClothesDryerControlTypeTimer = 'timer'
   DHWRecirControlTypeManual = 'manual demand control'
@@ -64,6 +70,8 @@ class HPXML < Object
   DHWDistTypeStandard = 'Standard'
   DuctInsulationMaterialUnknown = 'Unknown'
   DuctInsulationMaterialNone = 'None'
+  DuctLeakageTotal = 'total'
+  DuctLeakageToOutside = 'to outside'
   DuctTypeReturn = 'return'
   DuctTypeSupply = 'supply'
   DWHRFacilitiesConnectedAll = 'all'
@@ -276,7 +284,7 @@ class HPXML < Object
   def fraction_of_window_area_operable()
     # Calculates the fraction of window area that is operable.
     window_area_total = @windows.map { |w| w.area }.inject(0, :+)
-    window_area_operable = @windows.select { |w| w.operable }.map { |w| w.area }.inject(0, :+)
+    window_area_operable = @windows.map { |w| w.fraction_operable * w.area }.inject(0, :+)
     if window_area_total <= 0
       return 0.0
     end
@@ -634,6 +642,7 @@ class HPXML < Object
       return if nil?
 
       building_construction = XMLHelper.create_elements_as_needed(doc, ['HPXML', 'Building', 'BuildingDetails', 'BuildingSummary', 'BuildingConstruction'])
+      XMLHelper.add_element(building_construction, 'ResidentialFacilityType', @residential_facility_type) unless @residential_facility_type.nil?
       XMLHelper.add_element(building_construction, 'NumberofConditionedFloors', Integer(@number_of_conditioned_floors)) unless @number_of_conditioned_floors.nil?
       XMLHelper.add_element(building_construction, 'NumberofConditionedFloorsAboveGrade', Integer(@number_of_conditioned_floors_above_grade)) unless @number_of_conditioned_floors_above_grade.nil?
       XMLHelper.add_element(building_construction, 'NumberofBedrooms', Integer(@number_of_bedrooms)) unless @number_of_bedrooms.nil?
@@ -1789,7 +1798,7 @@ class HPXML < Object
              :glass_type, :gas_fill, :ufactor, :shgc, :interior_shading_factor_summer,
              :interior_shading_factor_winter, :exterior_shading, :overhangs_depth,
              :overhangs_distance_to_top_of_window, :overhangs_distance_to_bottom_of_window,
-             :operable, :wall_idref]
+             :fraction_operable, :wall_idref]
     attr_accessor(*ATTRS)
 
     def wall
@@ -1865,7 +1874,7 @@ class HPXML < Object
         XMLHelper.add_element(overhangs, 'DistanceToTopOfWindow', Float(@overhangs_distance_to_top_of_window)) unless @overhangs_distance_to_top_of_window.nil?
         XMLHelper.add_element(overhangs, 'DistanceToBottomOfWindow', Float(@overhangs_distance_to_bottom_of_window)) unless @overhangs_distance_to_bottom_of_window.nil?
       end
-      XMLHelper.add_element(window, 'Operable', Boolean(@operable)) unless @operable.nil?
+      XMLHelper.add_element(window, 'FractionOperable', Float(@fraction_operable)) unless @fraction_operable.nil?
       if not @wall_idref.nil?
         attached_to_wall = XMLHelper.add_element(window, 'AttachedToWall')
         XMLHelper.add_attribute(attached_to_wall, 'idref', @wall_idref)
@@ -1892,7 +1901,7 @@ class HPXML < Object
       @overhangs_depth = HPXML::to_float_or_nil(XMLHelper.get_value(window, 'Overhangs/Depth'))
       @overhangs_distance_to_top_of_window = HPXML::to_float_or_nil(XMLHelper.get_value(window, 'Overhangs/DistanceToTopOfWindow'))
       @overhangs_distance_to_bottom_of_window = HPXML::to_float_or_nil(XMLHelper.get_value(window, 'Overhangs/DistanceToBottomOfWindow'))
-      @operable = HPXML::to_bool_or_nil(XMLHelper.get_value(window, 'Operable'))
+      @fraction_operable = HPXML::to_float_or_nil(XMLHelper.get_value(window, 'FractionOperable'))
       @wall_idref = HPXML::get_idref(window.elements['AttachedToWall'])
     end
   end
@@ -2493,13 +2502,13 @@ class HPXML < Object
   end
 
   class HVACDistribution < BaseElement
-    def initialize(*args)
-      @duct_leakage_measurements = DuctLeakageMeasurements.new(@hpxml_object)
-      @ducts = Ducts.new(@hpxml_object)
-      super(*args)
+    def initialize(hpxml_object, *args)
+      @duct_leakage_measurements = DuctLeakageMeasurements.new(hpxml_object)
+      @ducts = Ducts.new(hpxml_object)
+      super(hpxml_object, *args)
     end
     ATTRS = [:id, :distribution_system_type, :distribution_system_type, :annual_heating_dse,
-             :annual_cooling_dse, :duct_system_sealed]
+             :annual_cooling_dse, :duct_system_sealed, :duct_leakage_testing_exemption]
     attr_accessor(*ATTRS)
     attr_reader(:duct_leakage_measurements, :ducts)
 
@@ -2572,6 +2581,9 @@ class HPXML < Object
 
       @duct_leakage_measurements.to_rexml(air_distribution)
       @ducts.to_rexml(air_distribution)
+
+      HPXML::add_extension(parent: air_distribution,
+                           extensions: { 'DuctLeakageTestingExemption' => HPXML::to_bool_or_nil(@duct_leakage_testing_exemption) })
     end
 
     def from_rexml(hvac_distribution)
@@ -2585,6 +2597,7 @@ class HPXML < Object
       @annual_heating_dse = HPXML::to_float_or_nil(XMLHelper.get_value(hvac_distribution, 'AnnualHeatingDistributionSystemEfficiency'))
       @annual_cooling_dse = HPXML::to_float_or_nil(XMLHelper.get_value(hvac_distribution, 'AnnualCoolingDistributionSystemEfficiency'))
       @duct_system_sealed = HPXML::to_bool_or_nil(XMLHelper.get_value(hvac_distribution, 'HVACDistributionImprovement/DuctSystemSealed'))
+      @duct_leakage_testing_exemption = HPXML::to_bool_or_nil(XMLHelper.get_value(hvac_distribution, 'DistributionSystemType/AirDistribution/extension/DuctLeakageTestingExemption'))
 
       @duct_leakage_measurements.from_rexml(hvac_distribution)
       @ducts.from_rexml(hvac_distribution)
@@ -2610,6 +2623,13 @@ class HPXML < Object
              :duct_leakage_total_or_to_outside]
     attr_accessor(*ATTRS)
 
+    def delete
+      @hpxml_object.hvac_distributions.each do |hvac_distribution|
+        next unless hvac_distribution.duct_leakage_measurements.include? self
+        hvac_distribution.duct_leakage_measurements.delete(self)
+      end
+    end
+
     def check_for_errors
       errors = []
       return errors
@@ -2617,12 +2637,12 @@ class HPXML < Object
 
     def to_rexml(air_distribution)
       duct_leakage_measurement_el = XMLHelper.add_element(air_distribution, 'DuctLeakageMeasurement')
-      XMLHelper.add_element(duct_leakage_measurement_el, 'DuctType', @duct_type)
+      XMLHelper.add_element(duct_leakage_measurement_el, 'DuctType', @duct_type) unless @duct_type.nil?
       if not @duct_leakage_value.nil?
         duct_leakage_el = XMLHelper.add_element(duct_leakage_measurement_el, 'DuctLeakage')
-        XMLHelper.add_element(duct_leakage_el, 'Units', @duct_leakage_units)
+        XMLHelper.add_element(duct_leakage_el, 'Units', @duct_leakage_units) unless @duct_leakage_units.nil?
         XMLHelper.add_element(duct_leakage_el, 'Value', Float(@duct_leakage_value))
-        XMLHelper.add_element(duct_leakage_el, 'TotalOrToOutside', 'to outside')
+        XMLHelper.add_element(duct_leakage_el, 'TotalOrToOutside', @duct_leakage_total_or_to_outside) unless @duct_leakage_total_or_to_outside.nil?
       end
     end
 
@@ -2655,6 +2675,13 @@ class HPXML < Object
     ATTRS = [:duct_type, :duct_insulation_r_value, :duct_insulation_material, :duct_location,
              :duct_fraction_area, :duct_surface_area]
     attr_accessor(*ATTRS)
+
+    def delete
+      @hpxml_object.hvac_distributions.each do |hvac_distribution|
+        next unless hvac_distribution.ducts.include? self
+        hvac_distribution.ducts.delete(self)
+      end
+    end
 
     def check_for_errors
       errors = []
@@ -3645,7 +3672,7 @@ class HPXML < Object
     return doc
   end
 
-  def collapse_enclosure_surfaces(additional_attrs_to_ignore = [])
+  def collapse_enclosure_surfaces()
     # Collapses like surfaces into a single surface with, e.g., aggregate surface area.
     # This can significantly speed up performance for HPXML files with lots of individual
     # surfaces (e.g., windows).
@@ -3666,7 +3693,6 @@ class HPXML < Object
                        :under_slab_insulation_id,
                        :area,
                        :exposed_perimeter]
-    attrs_to_ignore += additional_attrs_to_ignore
 
     # Look for pairs of surfaces that can be collapsed
     surf_types.each do |surf_type, surfaces|

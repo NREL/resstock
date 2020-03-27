@@ -190,7 +190,7 @@ class Lighting
   end
 
   def self.calc_lighting_energy(eri_version, cfa, gfa, fFI_int, fFI_ext, fFI_grg, fFII_int, fFII_ext, fFII_grg)
-    if not ['2014', '2014A', '2014AE'].include? eri_version # 2014 w/ Addendum G or newer
+    if Constants.ERIVersions.index(eri_version) >= Constants.ERIVersions.index('2014ADEG')
       # ANSI/RESNET/ICC 301-2014 Addendum G-2018, Solid State Lighting
       int_kwh = 0.9 / 0.925 * (455.0 + 0.8 * cfa) * ((1.0 - fFII_int - fFI_int) + fFI_int * 15.0 / 60.0 + fFII_int * 15.0 / 90.0) + 0.1 * (455.0 + 0.8 * cfa) # Eq 4.2-2)
       ext_kwh = (100.0 + 0.05 * cfa) * (1.0 - fFI_ext - fFII_ext) + 15.0 / 60.0 * (100.0 + 0.05 * cfa) * fFI_ext + 15.0 / 90.0 * (100.0 + 0.05 * cfa) * fFII_ext # Eq 4.2-3
