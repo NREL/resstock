@@ -2756,8 +2756,7 @@ class HPXMLFile
           interior_shading_factor_winter = 0.0
         end
 
-        next unless args[:window_fraction_of_operable_area] > 0
-        hpxml.windows.add(id: "#{sub_surface.name}_#{sub_surface_facade}_Operable",
+        hpxml.windows.add(id: "#{sub_surface.name}_#{sub_surface_facade}",
                           area: UnitConversions.convert(sub_surface.grossArea, 'm^2', 'ft^2'),
                           azimuth: UnitConversions.convert(sub_surface.azimuth, 'rad', 'deg').round,
                           ufactor: args[:window_ufactor],
