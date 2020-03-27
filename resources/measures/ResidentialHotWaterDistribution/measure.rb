@@ -143,7 +143,7 @@ class ResidentialHotWaterDistribution < OpenStudio::Measure::ModelMeasure
       # Get plant loop
       plant_loop = Waterheater.get_plant_loop_from_string(model, runner, Constants.Auto, unit)
       if plant_loop.nil?
-        return false
+        next
       end
 
       # Get water heater setpoint

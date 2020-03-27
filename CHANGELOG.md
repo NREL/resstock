@@ -18,6 +18,7 @@ Features
 Fixes
 - Exclude net site energy consumption from annual and timeseries simulation output ("total" now reflects net of pv); change `include_enduse_subcategories` argument default to "true"; report either total interior equipment OR each of its components ([#405](https://github.com/NREL/OpenStudio-BuildStock/pull/405))
 - Refactor the tsv maker classes to accommodate more data sources ([#392](https://github.com/NREL/OpenStudio-BuildStock/pull/392))
+- Allow a building to be simulated with no water heater; map the "Other Fuel" option from the Water Heater tsv to no water heater ([#375](https://github.com/NREL/OpenStudio-BuildStock/pull/375))
 - Revert plug load schedule to RBSA for the National Average option ([#355](https://github.com/NREL/OpenStudio-BuildStock/pull/355))
 - Removed the "Geometry Unit Stories SF" and "Geometry Unit Stories MF" housing characteristics. Unit stories are instead represented by the "Geometry Stories" housing characteristic ([#416](https://github.com/NREL/OpenStudio-BuildStock/pull/416)).
 - Diversify window to wall ratio variation using the Residential Building Stock Assessment (RBSA) II data ([#412](https://github.com/NREL/OpenStudio-BuildStock/pull/412)).
