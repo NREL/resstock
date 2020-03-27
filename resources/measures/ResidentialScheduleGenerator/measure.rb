@@ -28,21 +28,6 @@ class ResidentialScheduleGenerator < OpenStudio::Measure::ModelMeasure
   def arguments(model)
     args = OpenStudio::Measure::OSArgumentVector.new
 
-    # make an argument for number of units
-    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument("num_units", true)
-    arg.setDisplayName("Num Units")
-    arg.setUnits("#")
-    arg.setDescription("The number of units.")
-    arg.setDefaultValue(1)
-    args << arg
-
-    # make a string argument for number of bedrooms
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("num_bedrooms", true)
-    arg.setDisplayName("Number of Bedrooms")
-    arg.setDescription("Specify the number of bedrooms.")
-    arg.setDefaultValue(3)
-    args << arg
-
     # Make a string argument for occupants (auto or number)
     arg = OpenStudio::Measure::OSArgument::makeStringArgument("num_occupants", true)
     arg.setDisplayName("Number of Occupants")
@@ -69,9 +54,7 @@ class ResidentialScheduleGenerator < OpenStudio::Measure::ModelMeasure
     end
 
     # assign the user inputs to variables
-    args = { :num_units => runner.getIntegerArgumentValue("num_units", user_arguments),
-             :num_bedrooms => runner.getDoubleArgumentValue("num_bedrooms", user_arguments),
-             :num_occupants => runner.getStringArgumentValue("num_occupants", user_arguments) }
+    args = { :num_occupants => runner.getStringArgumentValue("num_occupants", user_arguments) }
 
     args[:schedules_path] = File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources/schedules")
 

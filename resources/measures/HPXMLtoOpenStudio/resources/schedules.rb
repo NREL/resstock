@@ -799,8 +799,6 @@ class ScheduleGenerator
                  building_id: nil,
                  num_occupants:,
                  schedules_path:,
-                 num_units: nil,
-                 num_bedrooms: nil,
                  **remainder)
 
     @runner = runner
@@ -809,8 +807,6 @@ class ScheduleGenerator
     @building_id = building_id
     @num_occupants = num_occupants
     @schedules_path = schedules_path
-    @num_units = num_units
-    @num_bedrooms = num_bedrooms
   end
 
   def create
@@ -915,23 +911,19 @@ class ScheduleGenerator
     ceiling_fan_sch = CSV.read(@schedules_path + "/ceiling_fan_sch.csv")
     # "occupants", "cooking_range", "plug_loads", lighting_interior", "lighting_exterior", "lighting_garage", "clothes_washer", "clothes_dryer", "dishwasher", "baths", "showers", "sinks", "ceiling_fan", "clothes_dryer_exhaust"
 
-    weekday_lighting_schedule = lighting_sch[0].map{|x| x.to_f}
-    weekend_lighting_schedule = lighting_sch[1].map{|x| x.to_f}
-    monthly_lighting_schedule = lighting_sch[2].map{|x| x.to_f}
-    holiday_lighting_schedule = lighting_sch[3].map{|x| x.to_f}
-
+    weekday_lighting_schedule = lighting_sch[0].map { |x| x.to_f }
+    weekend_lighting_schedule = lighting_sch[1].map { |x| x.to_f }
+    monthly_lighting_schedule = lighting_sch[2].map { |x| x.to_f }
+    holiday_lighting_schedule = lighting_sch[3].map { |x| x.to_f }
 
     sch_option_type = Constants.OptionTypeLightingScheduleCalculated
     interior_lighting_schedule = get_interior_lighting_sch(@model, @runner, @weather, sch_option_type,
                                                            monthly_lighting_schedule)
     sch_option_type = Constants.OptionTypeLightingScheduleUserSpecified
     other_lighting_schedule = get_other_lighting_sch(@model, @runner, @weather, sch_option_type,
-                                                         weekday_lighting_schedule, weekend_lighting_schedule,
-                                                         monthly_lighting_schedule)
+                                                     weekday_lighting_schedule, weekend_lighting_schedule,
+                                                     monthly_lighting_schedule)
     holiday_lighting_schedule = get_holiday_lighting_sch(@model, @runner, holiday_lighting_schedule)
-
-
-
 
     @plugload_schedule = []
     @lighting_interior_schedule = []
@@ -1373,10 +1365,9 @@ class ScheduleGenerator
 
   def scale_lighting_by_occupancy(lighting_sch, minute, active_occupant_percentage)
     day_start = minute / 1440
-    day_sch = lighting_sch[day_start*24, 24]
+    day_sch = lighting_sch[day_start * 24, 24]
     current_val = lighting_sch[minute / 60]
-    return day_sch.min + (current_val - day_sch.min)*active_occupant_percentage
-
+    return day_sch.min + (current_val - day_sch.min) * active_occupant_percentage
   end
 
   def get_value_from_daily_sch(daily_sch, month, is_weekday, minute, active_occupant_percentage)
@@ -1400,13 +1391,13 @@ class ScheduleGenerator
 
   def get_holiday_lighting_sch(model, runner, holiday_sch)
     holiday_start_day = 332 # November 27
-    holiday_end_day = 6 #Jan 6
+    holiday_end_day = 6 # Jan 6
     @model.getYearDescription.isLeapYear ? total_days_in_year = 366 : total_days_in_year = 365
-    sch = [0]*24*total_days_in_year
+    sch = [0] * 24 * total_days_in_year
     final_days = total_days_in_year - holiday_start_day + 1
     beginning_days = holiday_end_day
-    sch[0...(holiday_end_day)*24] = holiday_sch*beginning_days
-    sch[(holiday_start_day-1)*24..-1] = holiday_sch*final_days
+    sch[0...(holiday_end_day) * 24] = holiday_sch * beginning_days
+    sch[(holiday_start_day - 1) * 24..-1] = holiday_sch * final_days
     return sch
   end
 
@@ -1437,7 +1428,6 @@ class ScheduleGenerator
   end
 
   def get_interior_lighting_sch(model, runner, weather, sch_option_type, monthly_sch)
-
     lat = weather.header.Latitude
     long = weather.header.Longitude
     tz = weather.header.Timezone
@@ -1575,7 +1565,7 @@ class ScheduleGenerator
     end
     sch = []
     for month in 0..11
-      sch << lighting_sch[month]*num_days_in_months[month]
+      sch << lighting_sch[month] * num_days_in_months[month]
     end
     sch = sch.flatten
     return sch
