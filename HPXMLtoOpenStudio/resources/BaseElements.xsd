@@ -334,6 +334,7 @@
 			<xs:extension base="ApplianceTypeSummaryInfo">
 				<xs:sequence>
 					<xs:element minOccurs="0" name="Type" type="DishwasherType"/>
+					<xs:element minOccurs="0" name="Location" type="RefrigeratorLocation"/>
 					<xs:element minOccurs="0" name="Fuel" type="FuelType"/>
 					<xs:element name="HeatDryDefaultOff" type="HPXMLBoolean" minOccurs="0"/>
 					<xs:element name="AuxillaryWaterHeaterDefaultOff" type="HPXMLBoolean" minOccurs="0"/>
@@ -465,6 +466,7 @@
 		<xs:complexContent>
 			<xs:extension base="ApplianceTypeSummaryInfo">
 				<xs:sequence>
+					<xs:element minOccurs="0" name="Location" type="RefrigeratorLocation"/>
 					<xs:element name="FuelType" type="FuelType" minOccurs="0"/>
 					<xs:element minOccurs="0" name="IsInduction" type="HPXMLBoolean"/>
 					<xs:element ref="extension" minOccurs="0"/>
@@ -1747,8 +1749,8 @@
 									</xs:element>
 									<xs:element minOccurs="0" name="CollectorRatedOpticalEfficiency" type="CollectorRatedOpticalEfficiency">
 										<xs:annotation>
-											<xs:documentation>Often referred to as Fr-tau-alpha (FRta), this describes the optical efficiency portion of the overall collector efficiency. In the OG-100
-												SRCC Certified Solar Thermal Collector Directory, this is the y-intercept of the efficiency curve.</xs:documentation>
+											<xs:documentation>[Btu/h-ft^2-F] Often referred to as Fr-tau-alpha (FRta), this describes the optical efficiency portion of the overall collector efficiency. 
+												In the OG-100 SRCC Certified Solar Thermal Collector Directory, this is the y-intercept of the efficiency curve.</xs:documentation>
 										</xs:annotation>
 									</xs:element>
 									<xs:element minOccurs="0" name="CollectorRatedThermalLosses" type="CollectorRatedThermalLosses">
@@ -4510,7 +4512,16 @@
 						<xs:group ref="SystemInfo"/>
 						<xs:element minOccurs="0" name="GlassType" type="GlassType"/>
 						<xs:element minOccurs="0" name="FrameType" type="WindowFrameType"/>
-						<xs:element minOccurs="0" name="Operable" type="HPXMLBoolean"/>
+						<xs:element minOccurs="0" name="Operable" type="HPXMLBoolean">
+							<xs:annotation>
+								<xs:documentation>DEPRECATED. This will be removed in v4.0. Use FractionOperable element instead.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element minOccurs="0" name="FractionOperable" type="HPXMLBoolean">
+							<xs:annotation>
+								<xs:documentation>If the Window/Skylight element represents a single window/skylight, the value should be 0 or 1, otherwise the fraction of area that is operable.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
 						<xs:element minOccurs="0" name="Condition" type="WindowCondition"/>
 						<xs:element minOccurs="0" ref="extension"/>
 					</xs:sequence>
@@ -4553,7 +4564,16 @@
 				</xs:complexType>
 			</xs:element>
 			<xs:element minOccurs="0" name="WeatherStripping" type="HPXMLBoolean"/>
-			<xs:element minOccurs="0" name="Operable" type="HPXMLBoolean"/>
+			<xs:element minOccurs="0" name="Operable" type="HPXMLBoolean">
+				<xs:annotation>
+					<xs:documentation>DEPRECATED. This will be removed in v4.0. Use FractionOperable element instead.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element minOccurs="0" name="FractionOperable" type="Fraction">
+				<xs:annotation>
+					<xs:documentation>If the Window/Skylight element represents a single window/skylight, the value should be 0 or 1, otherwise the fraction of area that is operable.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
 			<xs:element minOccurs="0" name="LeakinessDescription" type="BuildingLeakiness"/>
 		</xs:sequence>
 	</xs:group>

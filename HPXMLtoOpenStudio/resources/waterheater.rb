@@ -1353,7 +1353,8 @@ class Waterheater
 
   def self.get_default_hot_water_temperature(eri_version)
     # Returns hot water temperature in deg-F
-    if eri_version != '2014' # 2014 w/ Addendum A or newer
+    if Constants.ERIVersions.index(eri_version) >= Constants.ERIVersions.index('2014A')
+      # 2014 w/ Addendum A or newer
       return 125.0
     else
       return 120.0

@@ -60,14 +60,15 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     args << arg
 
     unit_type_choices = OpenStudio::StringVector.new
-    unit_type_choices << 'single-family detached'
-    unit_type_choices << 'single-family attached'
-    unit_type_choices << 'multifamily'
+    unit_type_choices << HPXML::ResidentialTypeSFD
+    unit_type_choices << HPXML::ResidentialTypeSFA
+    unit_type_choices << HPXML::ResidentialTypeMF2to4
+    unit_type_choices << HPXML::ResidentialTypeMF5plus
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('unit_type', unit_type_choices, true)
     arg.setDisplayName('Geometry: Unit Type')
     arg.setDescription('The type of unit.')
-    arg.setDefaultValue('single-family detached')
+    arg.setDefaultValue(HPXML::ResidentialTypeSFD)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('unit_multiplier', true)
@@ -1083,6 +1084,10 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     duct_leakage_units_choices << HPXML::UnitsCFM25
     duct_leakage_units_choices << HPXML::UnitsPercent
 
+    duct_leakage_total_or_to_outside_choices = OpenStudio::StringVector.new
+    duct_leakage_total_or_to_outside_choices << HPXML::DuctLeakageTotal
+    duct_leakage_total_or_to_outside_choices << HPXML::DuctLeakageToOutside
+
     duct_location_choices = OpenStudio::StringVector.new
     duct_location_choices << Constants.Auto
     duct_location_choices << HPXML::LocationLivingSpace
@@ -1117,6 +1122,18 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDisplayName('Return Duct: Leakage Value')
     arg.setDescription('The leakage value of the return duct.')
     arg.setDefaultValue(25)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('supply_duct_leakage_total_or_to_outside', duct_leakage_total_or_to_outside_choices, true)
+    arg.setDisplayName('Supply Duct: Leakage Total or To Outside')
+    arg.setDescription('Whether the supply duct leakage is Total or To Outside.')
+    arg.setDefaultValue(HPXML::DuctLeakageToOutside)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('return_duct_leakage_total_or_to_outside', duct_leakage_total_or_to_outside_choices, true)
+    arg.setDisplayName('Return Duct: Leakage Total or To Outside')
+    arg.setDescription('Whether the return duct leakage is Total or To Outside.')
+    arg.setDefaultValue(HPXML::DuctLeakageToOutside)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('supply_duct_insulation_r_value', true)
@@ -2051,6 +2068,8 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
              supply_duct_leakage_units: runner.getStringArgumentValue('supply_duct_leakage_units', user_arguments),
              return_duct_leakage_units: runner.getStringArgumentValue('return_duct_leakage_units', user_arguments),
              supply_duct_leakage_value: runner.getDoubleArgumentValue('supply_duct_leakage_value', user_arguments),
+             supply_duct_leakage_total_or_to_outside: runner.getStringArgumentValue('supply_duct_leakage_total_or_to_outside', user_arguments),
+             return_duct_leakage_total_or_to_outside: runner.getStringArgumentValue('return_duct_leakage_total_or_to_outside', user_arguments),
              return_duct_leakage_value: runner.getDoubleArgumentValue('return_duct_leakage_value', user_arguments),
              supply_duct_insulation_r_value: runner.getDoubleArgumentValue('supply_duct_insulation_r_value', user_arguments),
              return_duct_insulation_r_value: runner.getDoubleArgumentValue('return_duct_insulation_r_value', user_arguments),
@@ -2294,16 +2313,16 @@ class HPXMLFile
   end
 
   def self.create_geometry_envelope(runner, model, args)
-    if (args[:unit_type] == 'multifamily') && (args[:level] != 'Bottom')
+    if ([HPXML::ResidentialTypeMF2to4, HPXML::ResidentialTypeMF5plus].include? args[:unit_type]) && (args[:level] != 'Bottom')
       args[:foundation_type] = HPXML::LocationOtherHousingUnitBelow
       args[:foundation_height] = 0.0
     end
 
-    if args[:unit_type] == 'single-family detached'
+    if args[:unit_type] == HPXML::ResidentialTypeSFD
       success = Geometry.create_single_family_detached(runner: runner, model: model, **args)
-    elsif args[:unit_type] == 'single-family attached'
+    elsif args[:unit_type] == HPXML::ResidentialTypeSFA
       success = Geometry.create_single_family_attached(runner: runner, model: model, **args)
-    elsif args[:unit_type] == 'multifamily'
+    elsif [HPXML::ResidentialTypeMF2to4, HPXML::ResidentialTypeMF5plus].include? args[:unit_type]
       success = Geometry.create_multifamily(runner: runner, model: model, **args)
     end
     return false if not success
@@ -2401,7 +2420,8 @@ class HPXMLFile
                                     number_of_bedrooms: args[:num_bedrooms],
                                     number_of_bathrooms: number_of_bathrooms,
                                     conditioned_floor_area: args[:cfa],
-                                    conditioned_building_volume: conditioned_building_volume)
+                                    conditioned_building_volume: conditioned_building_volume,
+                                    residential_facility_type: args[:unit_type])
   end
 
   def self.set_climate_and_risk_zones(hpxml, runner, args)
@@ -2411,15 +2431,15 @@ class HPXMLFile
   end
 
   def self.set_attics(hpxml, runner, model, args)
-    return if args[:unit_type] == 'multifamily'
-    return if args[:unit_type] == 'single-family attached' # TODO: remove when we can model single-family attached units
+    return if [HPXML::ResidentialTypeMF2to4, HPXML::ResidentialTypeMF5plus].include? args[:unit_type]
+    return if args[:unit_type] == HPXML::ResidentialTypeSFA # TODO: remove when we can model single-family attached units
 
     hpxml.attics.add(id: args[:attic_type],
                      attic_type: args[:attic_type])
   end
 
   def self.set_foundations(hpxml, runner, model, args)
-    return if args[:unit_type] == 'multifamily'
+    return if [HPXML::ResidentialTypeMF2to4, HPXML::ResidentialTypeMF5plus].include? args[:unit_type]
 
     hpxml.foundations.add(id: args[:foundation_type],
                           foundation_type: args[:foundation_type])
@@ -2756,7 +2776,7 @@ class HPXMLFile
 
         if args[:window_fraction_of_operable_area] > 0
           hpxml.windows.add(id: "#{sub_surface.name}_#{sub_surface_facade}_Operable",
-                            area: (UnitConversions.convert(sub_surface.grossArea, 'm^2', 'ft^2') * args[:window_fraction_of_operable_area]).round(2),
+                            area: UnitConversions.convert(sub_surface.grossArea, 'm^2', 'ft^2'),
                             azimuth: UnitConversions.convert(sub_surface.azimuth, 'rad', 'deg').round,
                             ufactor: args[:window_ufactor],
                             shgc: args[:window_shgc],
@@ -2765,23 +2785,9 @@ class HPXMLFile
                             overhangs_distance_to_bottom_of_window: overhangs_distance_to_bottom_of_window,
                             interior_shading_factor_winter: interior_shading_factor_winter,
                             interior_shading_factor_summer: interior_shading_factor_summer,
-                            operable: true,
+                            fraction_operable: args[:window_fraction_of_operable_area],
                             wall_idref: surface.name)
         end
-
-        next unless args[:window_fraction_of_operable_area] < 1
-        hpxml.windows.add(id: "#{sub_surface.name}_#{sub_surface_facade}_Inoperable",
-                          area: (UnitConversions.convert(sub_surface.grossArea, 'm^2', 'ft^2') * (1.0 - args[:window_fraction_of_operable_area])).round(2),
-                          azimuth: UnitConversions.convert(sub_surface.azimuth, 'rad', 'deg').round,
-                          ufactor: args[:window_ufactor],
-                          shgc: args[:window_shgc],
-                          overhangs_depth: overhangs_depth,
-                          overhangs_distance_to_top_of_window: overhangs_distance_to_top_of_window,
-                          overhangs_distance_to_bottom_of_window: overhangs_distance_to_bottom_of_window,
-                          interior_shading_factor_winter: interior_shading_factor_winter,
-                          interior_shading_factor_summer: interior_shading_factor_summer,
-                          operable: false,
-                          wall_idref: surface.name)
       end # sub_surfaces
     end # surfaces
   end
@@ -3010,12 +3016,14 @@ class HPXMLFile
     # Duct Leakage
     hpxml.hvac_distributions[-1].duct_leakage_measurements.add(duct_type: HPXML::DuctTypeSupply,
                                                                duct_leakage_units: args[:supply_duct_leakage_units],
-                                                               duct_leakage_value: args[:supply_duct_leakage_value])
+                                                               duct_leakage_value: args[:supply_duct_leakage_value],
+                                                               duct_leakage_total_or_to_outside: args[:supply_duct_leakage_total_or_to_outside])
 
     if not ((args[:cooling_system_type] == HPXML::HVACTypeEvaporativeCooler) && args[:evap_cooler_is_ducted])
       hpxml.hvac_distributions[-1].duct_leakage_measurements.add(duct_type: HPXML::DuctTypeReturn,
                                                                  duct_leakage_units: args[:return_duct_leakage_units],
-                                                                 duct_leakage_value: args[:return_duct_leakage_value])
+                                                                 duct_leakage_value: args[:return_duct_leakage_value],
+                                                                 duct_leakage_total_or_to_outside: args[:return_duct_leakage_total_or_to_outside])
     end
 
     # Ducts

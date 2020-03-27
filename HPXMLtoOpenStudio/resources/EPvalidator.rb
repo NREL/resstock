@@ -231,7 +231,7 @@ class EnergyPlusValidator
         'InteriorShading/SummerShadingCoefficient' => zero_or_one, # Uses ERI assumption if not provided
         'InteriorShading/WinterShadingCoefficient' => zero_or_one, # Uses ERI assumption if not provided
         'Overhangs' => zero_or_one, # See [WindowOverhang]
-        'Operable' => zero_or_one,
+        'FractionOperable' => zero_or_one,
         'AttachedToWall' => one,
       },
 

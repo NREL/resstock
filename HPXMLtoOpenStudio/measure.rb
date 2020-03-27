@@ -369,18 +369,10 @@ class OSModel
     end
 
     # Default window fraction operable
-    default_operable_frac = Airflow.get_default_fraction_of_operable_window_area()
     @hpxml.windows.each do |window|
-      next unless window.operable.nil?
-      # Split into operable/inoperable windows
-      @hpxml.windows << window.dup
-      @hpxml.windows[-1].id += 'Inoperable'
-      @hpxml.windows[-1].operable = false
-      @hpxml.windows[-1].area = (@hpxml.windows[-1].area * (1.0 - default_operable_frac)).round(2)
+      next unless window.fraction_operable.nil?
 
-      window.id += 'Operable'
-      window.operable = true
-      window.area = (window.area * default_operable_frac).round(2)
+      window.fraction_operable = Airflow.get_default_fraction_of_operable_window_area()
     end
     @frac_window_area_operable = @hpxml.fraction_of_window_area_operable()
 
@@ -535,17 +527,6 @@ class OSModel
   def self.add_geometry_envelope(runner, model, weather)
     spaces = {}
     @foundation_top, @walls_top = get_foundation_and_walls_top()
-
-    # Since we've already obtained the fraction of operable window area, further
-    # collapse windows irrespective of their operable property. For example, if
-    # there are two identical windows that only otherwise differ based on their
-    # operable property, we will combine them so as to model a single window in
-    # EnergyPlus for reasons of speed. Also reset the operable property since it
-    # is now arbitrary and we don't want to accidentally use it.
-    @hpxml.collapse_enclosure_surfaces([:operable])
-    @hpxml.windows.each do |window|
-      window.operable = nil
-    end
 
     add_roofs(runner, model, spaces)
     add_walls(runner, model, spaces)

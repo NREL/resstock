@@ -267,7 +267,8 @@ class HotWaterAndAppliances
     frac_sens = gains_sens / tot_btu
     frac_lat = gains_lat / tot_btu
 
-    if eri_version != '2014' # 2014 w/ Addendum A or newer
+    if Constants.ERIVersions.index(eri_version) >= Constants.ERIVersions.index('2014A')
+      # 2014 w/ Addendum A or newer
       gpd = dwcpy * (4.6415 * (1.0 / ef) - 1.9295) / 365.0 # Eq. 4.2-11 (DWgpd)
     else
       gpd = ((88.4 + 34.9 * nbeds) * 8.16 - (88.4 + 34.9 * nbeds) * 12.0 / cap * (4.6415 * (1.0 / ef) - 1.9295)) / 365.0 # Eq 4.2-8b
@@ -359,7 +360,8 @@ class HotWaterAndAppliances
   def self.calc_clothes_washer_energy_gpd(eri_version, nbeds, ler, elec_rate, gas_rate, agc, cap)
     # Eq 4.2-9a
     ncy = (3.0 / 2.847) * (164 + nbeds * 45.6)
-    if eri_version != '2014' # 2014 w/ Addendum A or newer
+    if Constants.ERIVersions.index(eri_version) >= Constants.ERIVersions.index('2014A')
+      # 2014 w/ Addendum A or newer
       ncy = (3.0 / 2.847) * (164 + nbeds * 46.5)
     end
     acy = ncy * ((3.0 * 2.08 + 1.59) / (cap * 2.08 + 1.59)) # Adjusted Cycles per Year
@@ -372,7 +374,8 @@ class HotWaterAndAppliances
     frac_lat = gains_lat / tot_btu
 
     gpd = 60.0 * ((ler * elec_rate - agc) / (21.9825 * elec_rate - gas_rate) / 392.0) * acy / 365.0
-    if eri_version == '2014' # 2014 w/o Addendum A
+    if Constants.ERIVersions.index(eri_version) < Constants.ERIVersions.index('2014A')
+      # 2014 w/o Addendum A
       gpd -= 3.97 # Section 4.2.2.5.2.10
     end
 
@@ -573,7 +576,8 @@ class HotWaterAndAppliances
   end
 
   def self.get_fixtures_gpd(eri_version, nbeds, has_low_flow_fixtures, daily_mw_fractions)
-    if eri_version == '2014' # 2014 w/o Addendum A
+    if Constants.ERIVersions.index(eri_version) < Constants.ERIVersions.index('2014A')
+      # 2014 w/o Addendum A
       hw_gpd = 30.0 + 10.0 * nbeds # Table 4.2.2(1) Service water heating systems
       # Convert to mixed water gpd
       avg_mw_fraction = daily_mw_fractions.reduce(:+) / daily_mw_fractions.size.to_f
@@ -597,7 +601,8 @@ class HotWaterAndAppliances
   def self.get_dist_waste_gpd(eri_version, nbeds, has_uncond_bsmnt, cfa, ncfl,
                               dist_type, pipe_r, std_pipe_length,
                               recirc_branch_length, has_low_flow_fixtures)
-    if eri_version == '2014' # 2014 w/o Addendum A
+    if Constants.ERIVersions.index(eri_version) < Constants.ERIVersions.index('2014A')
+      # 2014 w/o Addendum A
       return 0.0
     end
 
