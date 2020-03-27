@@ -2756,20 +2756,19 @@ class HPXMLFile
           interior_shading_factor_winter = 0.0
         end
 
-        if args[:window_fraction_of_operable_area] > 0
-          hpxml.windows.add(id: "#{sub_surface.name}_#{sub_surface_facade}_Operable",
-                            area: UnitConversions.convert(sub_surface.grossArea, 'm^2', 'ft^2'),
-                            azimuth: UnitConversions.convert(sub_surface.azimuth, 'rad', 'deg').round,
-                            ufactor: args[:window_ufactor],
-                            shgc: args[:window_shgc],
-                            overhangs_depth: overhangs_depth,
-                            overhangs_distance_to_top_of_window: overhangs_distance_to_top_of_window,
-                            overhangs_distance_to_bottom_of_window: overhangs_distance_to_bottom_of_window,
-                            interior_shading_factor_winter: interior_shading_factor_winter,
-                            interior_shading_factor_summer: interior_shading_factor_summer,
-                            fraction_operable: args[:window_fraction_of_operable_area],
-                            wall_idref: surface.name)
-        end
+        next unless args[:window_fraction_of_operable_area] > 0
+        hpxml.windows.add(id: "#{sub_surface.name}_#{sub_surface_facade}_Operable",
+                          area: UnitConversions.convert(sub_surface.grossArea, 'm^2', 'ft^2'),
+                          azimuth: UnitConversions.convert(sub_surface.azimuth, 'rad', 'deg').round,
+                          ufactor: args[:window_ufactor],
+                          shgc: args[:window_shgc],
+                          overhangs_depth: overhangs_depth,
+                          overhangs_distance_to_top_of_window: overhangs_distance_to_top_of_window,
+                          overhangs_distance_to_bottom_of_window: overhangs_distance_to_bottom_of_window,
+                          interior_shading_factor_winter: interior_shading_factor_winter,
+                          interior_shading_factor_summer: interior_shading_factor_summer,
+                          fraction_operable: args[:window_fraction_of_operable_area],
+                          wall_idref: surface.name)
       end # sub_surfaces
     end # surfaces
   end
