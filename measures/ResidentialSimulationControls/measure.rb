@@ -11,7 +11,6 @@ else
   resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../BuildResidentialHPXML/resources'))
 end
 require File.join(resources_path, 'constants')
-require File.join(resources_path, 'simulation')
 
 # start the measure
 class ResidentialSimulationControls < OpenStudio::Measure::ModelMeasure
@@ -129,9 +128,6 @@ class ResidentialSimulationControls < OpenStudio::Measure::ModelMeasure
       runner.registerError("Your calendar year value of #{calendar_year} is not in the range 1600-9999.")
       return false
     end
-
-    success = Simulation.apply(model, runner, timesteps_per_hr, min_system_timestep_mins = nil, begin_month, begin_day_of_month, end_month, end_day_of_month, calendar_year)
-    return false if not success
 
     runner.registerInfo("Set the simulation timesteps per hour to #{timesteps_per_hr}.")
     runner.registerInfo("Set the run period begin and end month/day to #{begin_month}/#{begin_day_of_month} and #{end_month}/#{end_day_of_month}, respectively.")
