@@ -115,7 +115,7 @@ class ResidentialHotWaterFixturesTest < MiniTest::Test
   def test_warning_missing_water_heater
     args_hash = {}
     expected_num_del_objects = {}
-    expected_num_new_objects = {}
+    expected_num_new_objects = { "ScheduleConstant" => 1 }
     expected_values = { "Annual_kwh" => 0, "HotWater_gpd" => 0 }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 0, 1)
   end
