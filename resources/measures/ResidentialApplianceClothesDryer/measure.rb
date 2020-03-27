@@ -122,7 +122,7 @@ class ResidentialClothesDryer < OpenStudio::Measure::ModelMeasure
       space = Geometry.get_space_from_location(unit, location, location_hierarchy)
       next if space.nil?
 
-      success, ann_e, ann_f, sch = ClothesDryer.apply(model, unit, runner, sch, cef, mult,
+      success, ann_e, ann_f, sch = ClothesDryer.apply(model, unit, runner, cef, mult,
                                                       space, fuel_type, fuel_split, sch, schedules_files)
 
       if success.nil?

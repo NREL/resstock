@@ -570,7 +570,7 @@ class ClothesWasher
 end
 
 class ClothesDryer
-  def self.apply(model, unit, runner, sch, cef, mult, space, fuel_type, fuel_split, sch, schedules_files)
+  def self.apply(model, unit, runner, cef, mult, space, fuel_type, fuel_split, sch, schedules_files)
     # Check for valid inputs
     if cef <= 0
       runner.registerError("Combined energy factor must be greater than 0.0.")
