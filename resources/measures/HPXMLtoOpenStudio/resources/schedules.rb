@@ -942,7 +942,7 @@ class ScheduleGenerator
     @cooking_schedule = []
     @away_schedule = []
     idle_schedule = []
-    sleeping_schedule = []
+    @sleeping_schedule = []
 
     sim_year = @model.getYearDescription.calendarYear.get
     start_day = DateTime.new(sim_year, 1, 1)
@@ -961,7 +961,7 @@ class ScheduleGenerator
         step_per_hour = 60 / minutes_per_steps
 
         # the schedule is set as the sum of values of individual occupants
-        sleeping_schedule << sum_across_occupants(all_simulated_values, 0, index_15).to_f / @num_occupants
+        @sleeping_schedule << sum_across_occupants(all_simulated_values, 0, index_15).to_f / @num_occupants
 
         @shower_schedule << sum_across_occupants(all_simulated_values, 1, index_15).to_f / @num_occupants
 
@@ -988,7 +988,7 @@ class ScheduleGenerator
         @away_schedule << sum_across_occupants(all_simulated_values, 5, index_15).to_f / @num_occupants
         idle_schedule << sum_across_occupants(all_simulated_values, 6, index_15).to_f / @num_occupants
 
-        active_occupancy_percentage = 1 - (@away_schedule[-1] + sleeping_schedule[-1])
+        active_occupancy_percentage = 1 - (@away_schedule[-1] + @sleeping_schedule[-1])
         @plugload_schedule << get_value_from_daily_sch(plugload_sch, month, is_weekday, minute, active_occupancy_percentage)
         @lighting_interior_schedule << scale_lighting_by_occupancy(interior_lighting_schedule, minute, active_occupancy_percentage)
         @lighting_exterior_schedule << get_value_from_daily_sch(lighting_sch, month, is_weekday, minute, active_occupancy_percentage)
@@ -998,6 +998,12 @@ class ScheduleGenerator
         @bath_schedule << @shower_schedule[-1]
       end
     end
+    @plugload_schedule = normalize(@plugload_schedule)
+    @lighting_interior_schedule = normalize(@lighting_interior_schedule)
+    @lighting_exterior_schedule = normalize(@lighting_exterior_schedule)
+    @lighting_garage_schedule = normalize(@lighting_garage_schedule)
+    @lighting_holiday_schedule = normalize(@lighting_holiday_schedule)
+    @ceiling_fan_schedule = normalize(@ceiling_fan_schedule)
 
     # Generate the Sink Schedule
     # 1. Find indexes (minutes) when no one is active and add to invalid_index.
@@ -1315,7 +1321,8 @@ class ScheduleGenerator
         "showers",
         "sinks",
         "ceiling_fan",
-        "clothes_dryer_exhaust"
+        "clothes_dryer_exhaust",
+        "sleep"
       ]
       @shower_schedule.size.times do |i|
         csv << [
@@ -1333,7 +1340,8 @@ class ScheduleGenerator
           @shower_schedule[i],
           @sink_schedule[i],
           @ceiling_fan_schedule[i],
-          @clothes_dryer_exhaust_schedule[i]
+          @clothes_dryer_exhaust_schedule[i],
+          @sleeping_schedule[i]
         ]
       end
     end
@@ -1361,6 +1369,12 @@ class ScheduleGenerator
       sum = max_clip
     end
     return sum
+  end
+
+  def normalize(arr)
+    m = arr.max
+    arr = arr.map { |a| a / m }
+    return arr
   end
 
   def scale_lighting_by_occupancy(lighting_sch, minute, active_occupant_percentage)
@@ -1398,6 +1412,8 @@ class ScheduleGenerator
     beginning_days = holiday_end_day
     sch[0...(holiday_end_day) * 24] = holiday_sch * beginning_days
     sch[(holiday_start_day - 1) * 24..-1] = holiday_sch * final_days
+    m = sch.max
+    sch = sch.map { |s| s / m }
     return sch
   end
 
@@ -1568,6 +1584,8 @@ class ScheduleGenerator
       sch << lighting_sch[month] * num_days_in_months[month]
     end
     sch = sch.flatten
+    m = sch.max
+    sch = sch.map { |s| s / m }
     return sch
   end
 end
