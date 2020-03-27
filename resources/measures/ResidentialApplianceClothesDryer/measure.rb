@@ -123,7 +123,7 @@ class ResidentialClothesDryer < OpenStudio::Measure::ModelMeasure
       next if space.nil?
 
       success, ann_e, ann_f, sch = ClothesDryer.apply(model, unit, runner, cef, mult,
-                                                      space, fuel_type, fuel_split, sch, schedules_files)
+                                                      space, fuel_type, fuel_split, sch, schedules_file)
 
       if success.nil?
         next
