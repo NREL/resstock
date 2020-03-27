@@ -901,6 +901,7 @@ class ScheduleGenerator
           state_prob = state_prob.to_a[0]
         end
       end
+      simulated_values = simulated_values.rotate(-4 * 4) # 4am shifting
       all_simulated_values << Matrix[*simulated_values]
       # States are: 'sleeping','shower','laundry','cooking', 'dishwashing', 'absent', 'nothingAtHome'
     end
@@ -1216,7 +1217,7 @@ class ScheduleGenerator
         m += 1
       end
     end
-
+    sink_activity_sch = sink_activity_sch.rotate(-4 * 60) # 4 am shifting
     sink_activity_sch = aggregate_array(sink_activity_sch, minutes_per_steps)
     sink_max_flow_rate = sink_activity_sch.max
     @sink_schedule = sink_activity_sch.map { |flow| flow / sink_max_flow_rate }
