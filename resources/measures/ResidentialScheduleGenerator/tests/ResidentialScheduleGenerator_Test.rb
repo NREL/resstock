@@ -11,7 +11,6 @@ end
 
 require File.join(resources_path, "weather")
 
-
 class ResidentialScheduleGeneratorTest < MiniTest::Test
   @@design_levels_e = {
     "cooking_range" => 224.799466698323, # test_new_construction_electric
@@ -134,7 +133,6 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
 
     model = get_model(File.dirname(__FILE__), osm_file_or_model)
 
-
     args_hash[:schedules_path] = File.join(File.dirname(__FILE__), "../../HPXMLtoOpenStudio/resources/schedules")
 
     if "#{test_name}".include? "8760"
@@ -149,6 +147,7 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
       if weather.error?
         return false
       end
+
       schedules_path = schedule_file_path(test_name)
       schedule_generator = ScheduleGenerator.new(runner: runner, model: model, weather: weather, **args_hash)
       success = schedule_generator.create
