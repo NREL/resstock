@@ -140,6 +140,7 @@ end
 if ARGV[0].to_sym == :update_measures
   require 'openstudio'
   require 'json'
+  require_relative 'resources/hpxml-measures/HPXMLtoOpenStudio/resources/hpxml'
 
   # Prevent NREL error regarding U: drive when not VPNed in
   ENV['HOME'] = 'C:' if !ENV['HOME'].nil? && ENV['HOME'].start_with?('U:')
@@ -202,7 +203,7 @@ if ARGV[0].to_sym == :update_measures
     }
 
     # SFD
-    include_args['BuildResidentialHPXML']['unit_type'] = 'single-family detached'
+    include_args['BuildResidentialHPXML']['unit_type'] = HPXML::ResidentialTypeSFD
     include_args['BuildResidentialHPXML']['cfa'] = '2000'
     include_args['BuildResidentialHPXML'].update(weather_station)
     generate_example_osws(data_hash,
@@ -210,7 +211,7 @@ if ARGV[0].to_sym == :update_measures
                           "example_single_family_detached_#{weather_year}.osw")
 
     # SFA
-    include_args['BuildResidentialHPXML']['unit_type'] = 'single-family attached'
+    include_args['BuildResidentialHPXML']['unit_type'] = HPXML::ResidentialTypeSFA
     include_args['BuildResidentialHPXML']['cfa'] = '900'
     include_args['BuildResidentialHPXML'].update(weather_station)
     generate_example_osws(data_hash,
@@ -218,7 +219,7 @@ if ARGV[0].to_sym == :update_measures
                           "example_single_family_attached_#{weather_year}.osw")
 
     # MF
-    include_args['BuildResidentialHPXML']['unit_type'] = 'multifamily'
+    include_args['BuildResidentialHPXML']['unit_type'] = HPXML::ResidentialTypeMF2to4
     include_args['BuildResidentialHPXML']['cfa'] = '900'
     include_args['BuildResidentialHPXML'].update(weather_station)
     generate_example_osws(data_hash,
