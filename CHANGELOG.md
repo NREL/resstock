@@ -1,6 +1,8 @@
 ## ResStock v2.3.0 (pending)
 
 Features
+
+- Remove location weather filename, location weather year, and update options lookup to reflect updated weather file changes([#432](https://github.com/NREL/OpenStudio-BuildStock/pull/432))
 - Remove the single-family detached project, and remove PAT from the testing and multifamily projects ([#402](https://github.com/NREL/OpenStudio-BuildStock/pull/402))
 - Relocate the data folder, along with tsv makers, to a separate private repository ([#401](https://github.com/NREL/OpenStudio-BuildStock/pull/401))
 - Update the single-family detached and multifamily projects with more up-to-date lighting stock distributions ([#392](https://github.com/NREL/OpenStudio-BuildStock/pull/392))
