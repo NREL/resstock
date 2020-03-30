@@ -992,9 +992,9 @@ class ScheduleGenerator
         active_occupancy_percentage = 1 - (@away_schedule[-1] + @sleeping_schedule[-1])
         @plugload_schedule << get_value_from_daily_sch(plugload_sch, month, is_weekday, minute, active_occupancy_percentage)
         @lighting_interior_schedule << scale_lighting_by_occupancy(interior_lighting_schedule, minute, active_occupancy_percentage)
-        @lighting_exterior_schedule << get_value_from_daily_sch(lighting_sch, month, is_weekday, minute, active_occupancy_percentage)
-        @lighting_garage_schedule << get_value_from_daily_sch(lighting_sch, month, is_weekday, minute, active_occupancy_percentage)
-        @lighting_holiday_schedule << scale_lighting_by_occupancy(holiday_lighting_schedule, minute, active_occupancy_percentage)
+        @lighting_exterior_schedule << get_value_from_daily_sch(lighting_sch, month, is_weekday, minute, 1)
+        @lighting_garage_schedule << get_value_from_daily_sch(lighting_sch, month, is_weekday, minute, 1)
+        @lighting_holiday_schedule << scale_lighting_by_occupancy(holiday_lighting_schedule, minute, 1)
         @ceiling_fan_schedule << get_value_from_daily_sch(ceiling_fan_sch, month, is_weekday, minute, active_occupancy_percentage)
         @bath_schedule << @shower_schedule[-1]
       end
