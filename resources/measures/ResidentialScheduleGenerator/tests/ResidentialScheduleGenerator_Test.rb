@@ -61,13 +61,13 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
     full_load_hours, annual_energy_use, hot_water_gpd = _test_measure("SFD_Successful_EnergyPlus_Run_AMY_PV.osm", args_hash, expected_values, "8784", "USA_CO_Denver.Intl.AP.725650_TMY3.epw", full_load_hours, annual_energy_use, hot_water_gpd)
 
     num_building_ids = 1
-    num_occupants = 1
+    num_occupants = [3]
     expected_values = { "SchedulesLength" => 52560, "SchedulesWidth" => 16 }
     prng = Random.new(1) # initialize with certain seed
     (1..num_building_ids).to_a.each do |building_id|
       building_id = rand(1..450000)
       # building_id = prng.rand(1..450000) # uncomment to use deterministic testing
-      (1..num_occupants).to_a.each do |num_occupant|
+      num_occupants.each do |num_occupant|
         puts "\nBUILDING ID: #{building_id}, NUM_OCCUPANTS: #{num_occupant}"
         full_load_hours["building_id"] << building_id
         full_load_hours["num_occupants"] << num_occupant
