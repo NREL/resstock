@@ -89,7 +89,6 @@ class BuildResidentialHPXMLTest < MiniTest::Test
     measures_dir = File.join(this_dir, '../..')
 
     expected_error_msgs = {
-      'non-electric-heat-pump-water-heater.osw' => 'water_heater_type=heat pump water heater and water_heater_fuel_type=natural gas'
     }
 
     measures = {}
@@ -170,6 +169,10 @@ class BuildResidentialHPXMLTest < MiniTest::Test
         refrigerator.adjusted_annual_kwh = nil
         refrigerator.schedules_output_path = nil
         refrigerator.schedules_column_name = nil
+      end
+      hpxml.foundation_walls.each do |foundation_wall|
+        next if foundation_wall.insulation_assembly_r_value.nil?
+        foundation_wall.insulation_assembly_r_value = foundation_wall.insulation_assembly_r_value.round(2)
       end
       hpxml.walls.each do |wall|
         next unless wall.exterior_adjacent_to == HPXML::LocationOutside
