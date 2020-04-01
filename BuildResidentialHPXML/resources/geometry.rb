@@ -21,21 +21,36 @@ class Geometry
 
   def self.create_single_family_detached(runner:,
                                          model:,
-                                         cfa:,
-                                         wall_height:,
-                                         num_floors:,
-                                         aspect_ratio:,
-                                         garage_width:,
-                                         garage_depth:,
-                                         garage_protrusion:,
-                                         garage_position:,
-                                         foundation_type:,
-                                         foundation_height:,
-                                         attic_type:,
-                                         roof_type:,
-                                         roof_pitch:,
-                                         roof_structure:,
+                                         geometry_cfa:,
+                                         geometry_wall_height:,
+                                         geometry_num_floors_above_grade:,
+                                         geometry_aspect_ratio:,
+                                         geometry_garage_width:,
+                                         geometry_garage_depth:,
+                                         geometry_garage_protrusion:,
+                                         geometry_garage_position:,
+                                         geometry_foundation_type:,
+                                         geometry_foundation_height:,
+                                         geometry_attic_type:,
+                                         geometry_roof_type:,
+                                         geometry_roof_pitch:,
+                                         geometry_roof_structure:,
                                          **remainder)
+    cfa = geometry_cfa
+    wall_height = geometry_wall_height
+    num_floors = geometry_num_floors_above_grade
+    aspect_ratio = geometry_aspect_ratio
+    garage_width = geometry_garage_width
+    garage_depth = geometry_garage_depth
+    garage_protrusion = geometry_garage_protrusion
+    garage_position = geometry_garage_position
+    foundation_type = geometry_foundation_type
+    foundation_height = geometry_foundation_height
+    attic_type = geometry_attic_type
+    roof_type = geometry_roof_type
+    roof_pitch = geometry_roof_pitch
+    roof_structure = geometry_roof_structure
+
     if foundation_type == HPXML::FoundationTypeSlab
       foundation_height = 0.0
     end
@@ -726,38 +741,38 @@ class Geometry
 
   def self.create_windows_and_skylights(runner:,
                                         model:,
-                                        front_wwr:,
-                                        back_wwr:,
-                                        left_wwr:,
-                                        right_wwr:,
-                                        front_window_area:,
-                                        back_window_area:,
-                                        left_window_area:,
-                                        right_window_area:,
+                                        window_front_wwr:,
+                                        window_back_wwr:,
+                                        window_left_wwr:,
+                                        window_right_wwr:,
+                                        window_area_front:,
+                                        window_area_back:,
+                                        window_area_left:,
+                                        window_area_right:,
                                         window_aspect_ratio:,
-                                        front_skylight_area:,
-                                        back_skylight_area:,
-                                        left_skylight_area:,
-                                        right_skylight_area:,
+                                        skylight_area_front:,
+                                        skylight_area_back:,
+                                        skylight_area_left:,
+                                        skylight_area_right:,
                                         **remainder)
     facades = [Constants.FacadeFront, Constants.FacadeBack, Constants.FacadeLeft, Constants.FacadeRight]
 
     wwrs = {}
-    wwrs[Constants.FacadeFront] = front_wwr
-    wwrs[Constants.FacadeBack] = back_wwr
-    wwrs[Constants.FacadeLeft] = left_wwr
-    wwrs[Constants.FacadeRight] = right_wwr
+    wwrs[Constants.FacadeFront] = window_front_wwr
+    wwrs[Constants.FacadeBack] = window_back_wwr
+    wwrs[Constants.FacadeLeft] = window_left_wwr
+    wwrs[Constants.FacadeRight] = window_right_wwr
     window_areas = {}
-    window_areas[Constants.FacadeFront] = front_window_area
-    window_areas[Constants.FacadeBack] = back_window_area
-    window_areas[Constants.FacadeLeft] = left_window_area
-    window_areas[Constants.FacadeRight] = right_window_area
+    window_areas[Constants.FacadeFront] = window_area_front
+    window_areas[Constants.FacadeBack] = window_area_back
+    window_areas[Constants.FacadeLeft] = window_area_left
+    window_areas[Constants.FacadeRight] = window_area_right
     # width_extension = UnitConversions.convert(runner.getDoubleArgumentValue("width_extension",user_arguments), "ft", "m")
     skylight_areas = {}
-    skylight_areas[Constants.FacadeFront] = front_skylight_area
-    skylight_areas[Constants.FacadeBack] = back_skylight_area
-    skylight_areas[Constants.FacadeLeft] = left_skylight_area
-    skylight_areas[Constants.FacadeRight] = right_skylight_area
+    skylight_areas[Constants.FacadeFront] = skylight_area_front
+    skylight_areas[Constants.FacadeBack] = skylight_area_back
+    skylight_areas[Constants.FacadeLeft] = skylight_area_left
+    skylight_areas[Constants.FacadeRight] = skylight_area_right
     skylight_areas['none'] = 0
 
     # Remove existing windows and store surfaces that should get windows by facade
@@ -1427,8 +1442,8 @@ class Geometry
 
       door_sub_surface = OpenStudio::Model::SubSurface.new(door_polygon, model)
       door_sub_surface.setName("#{min_story_avail_wall.name} - Door")
-      door_sub_surface.setSubSurfaceType('Door')
       door_sub_surface.setSurface(min_story_avail_wall)
+      door_sub_surface.setSubSurfaceType('Door')
       if not construction.nil?
         door_sub_surface.setConstruction(construction)
       end
@@ -1467,22 +1482,39 @@ class Geometry
 
   def self.create_multifamily(runner:,
                               model:,
-                              cfa:,
-                              wall_height:,
-                              num_units:,
-                              num_floors:,
-                              aspect_ratio:,
-                              level:,
-                              horizontal_location:,
-                              corridor_position:,
-                              corridor_width:,
-                              inset_width:,
-                              inset_depth:,
-                              inset_position:,
-                              balcony_depth:,
-                              foundation_type:,
-                              foundation_height:,
+                              geometry_cfa:,
+                              geometry_wall_height:,
+                              geometry_num_units:,
+                              geometry_num_floors_above_grade:,
+                              geometry_aspect_ratio:,
+                              geometry_level:,
+                              geometry_horizontal_location:,
+                              geometry_corridor_position:,
+                              geometry_corridor_width:,
+                              geometry_inset_width:,
+                              geometry_inset_depth:,
+                              geometry_inset_position:,
+                              geometry_balcony_depth:,
+                              geometry_foundation_type:,
+                              geometry_foundation_height:,
                               **remainder)
+
+    cfa = geometry_cfa
+    wall_height = geometry_wall_height
+    num_units = geometry_num_units
+    num_floors = geometry_num_floors_above_grade
+    aspect_ratio = geometry_aspect_ratio
+    level = geometry_level
+    horizontal_location = geometry_horizontal_location
+    corridor_position = geometry_corridor_position
+    corridor_width = geometry_corridor_width
+    inset_width = geometry_inset_width
+    inset_depth = geometry_inset_depth
+    inset_position = geometry_inset_position
+    balcony_depth = geometry_balcony_depth
+    foundation_type = geometry_foundation_type
+    foundation_height = geometry_foundation_height
+
     corridor_position = 'None' # FIXME
     if foundation_type == HPXML::FoundationTypeBasementConditioned
       foundation_type = HPXML::FoundationTypeBasementUnconditioned # FIXME
