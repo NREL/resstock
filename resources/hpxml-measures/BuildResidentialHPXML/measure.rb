@@ -2161,6 +2161,12 @@ class HPXMLFile
     set_plug_loads(hpxml, runner, args)
     set_misc_loads_schedule(hpxml, runner, args)
 
+    # Check for errors in the HPXML object
+    errors = hpxml.check_for_errors()
+    if errors.size > 0
+      fail "ERROR: Invalid HPXML object produced.\n#{errors}"
+    end
+
     hpxml_doc = hpxml.to_rexml()
     HPXML::add_extension(parent: hpxml_doc.elements['/HPXML/Building/BuildingDetails'],
                          extensions: { 'UnitMultiplier' => args[:geometry_unit_multiplier] })
@@ -2601,7 +2607,7 @@ class HPXMLFile
                           interior_shading_factor_winter: args[:window_interior_shading_winter],
                           interior_shading_factor_summer: args[:window_interior_shading_summer],
                           fraction_operable: args[:window_fraction_of_operable_area],
-                          wall_idref: surface.name)
+                          wall_idref: "#{surface.name}")
       end # sub_surfaces
     end # surfaces
   end
@@ -2618,7 +2624,7 @@ class HPXMLFile
                             azimuth: UnitConversions.convert(sub_surface.azimuth, 'rad', 'deg').round,
                             ufactor: args[:skylight_ufactor],
                             shgc: args[:skylight_shgc],
-                            roof_idref: surface.name)
+                            roof_idref: "#{surface.name}")
       end
     end
   end
@@ -2631,7 +2637,7 @@ class HPXMLFile
         sub_surface_facade = Geometry.get_facade_for_surface(sub_surface)
 
         hpxml.doors.add(id: "#{sub_surface.name}_#{sub_surface_facade}",
-                        wall_idref: surface.name,
+                        wall_idref: "#{surface.name}",
                         area: UnitConversions.convert(sub_surface.grossArea, 'm^2', 'ft^2').round,
                         azimuth: args[:geometry_orientation],
                         r_value: args[:door_rvalue])
