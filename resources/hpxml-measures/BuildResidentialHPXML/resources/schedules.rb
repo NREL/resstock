@@ -4,16 +4,16 @@ class SchedulesFile
   def initialize(runner:,
                  model:,
                  schedules_output_path: nil,
-                 num_bedrooms: nil,
-                 num_occupants: nil,
+                 geometry_num_bedrooms: nil,
+                 geometry_num_occupants: nil,
                  **remainder)
 
     @validated = true
     @runner = runner
     @model = model
     @schedules_output_path = schedules_output_path
-    @num_bedrooms = num_bedrooms
-    @num_occupants = num_occupants
+    @geometry_num_bedrooms = geometry_num_bedrooms
+    @geometry_num_occupants = geometry_num_occupants
 
     @schedules = {}
     if File.exist? @schedules_output_path
@@ -26,7 +26,7 @@ class SchedulesFile
   end
 
   def create_occupant_schedule
-    return false if @num_occupants.nil?
+    return false if @geometry_num_occupants.nil?
 
     @schedules['occupants'] = Array.new(8760) { rand }
 

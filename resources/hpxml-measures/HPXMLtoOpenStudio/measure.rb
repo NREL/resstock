@@ -55,9 +55,9 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue('weather')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument.makeStringArgument('output_path', true)
-    arg.setDisplayName('Path for Output Files')
-    arg.setDescription('Absolute/relative path for the output files.')
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('output_dir', false)
+    arg.setDisplayName('Directory for Output Files')
+    arg.setDescription('Absolute/relative path for the output files directory.')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument.makeBoolArgument('debug', false)
@@ -94,15 +94,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
       return false
     end
 
-    # Tear down the existing model if it exists
-    handles = OpenStudio::UUIDVector.new
-    model.objects.each do |obj|
-      handles << obj.handle
-    end
-    model.removeObjects(handles)
-    unless handles.empty?
-      runner.registerWarning('The model contains existing objects and is being reset.')
-    end
+    tear_down_model(model, runner)
 
     # Check for correct versions of OS
     os_version = '2.9.1'
@@ -113,7 +105,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     # assign the user inputs to variables
     hpxml_path = runner.getStringArgumentValue('hpxml_path', user_arguments)
     weather_dir = runner.getStringArgumentValue('weather_dir', user_arguments)
-    output_path = runner.getStringArgumentValue('output_path', user_arguments)
+    output_dir = runner.getOptionalStringArgumentValue('output_dir', user_arguments)
     debug = runner.getBoolArgumentValue('debug', user_arguments)
 
     unless (Pathname.new hpxml_path).absolute?
@@ -123,78 +115,47 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
       fail "'#{hpxml_path}' does not exist or is not an .xml file."
     end
 
-    unless (Pathname.new output_path).absolute?
-      output_path = File.expand_path(File.join(File.dirname(__FILE__), output_path))
+    unless (Pathname.new weather_dir).absolute?
+      weather_dir = File.expand_path(File.join(File.dirname(__FILE__), '..', weather_dir))
     end
-
-    model.getBuilding.additionalProperties.setFeature('hpxml_path', hpxml_path)
-
-    hpxml = HPXML.new(hpxml_path: hpxml_path)
-
-    if not validate_hpxml(runner, hpxml_path, hpxml)
-      return false
+    if output_dir.is_initialized
+      output_dir = output_dir.get
+      unless (Pathname.new output_dir).absolute?
+        output_dir = File.expand_path(File.join(File.dirname(__FILE__), output_dir))
+      end
+    else
+      output_dir = nil
     end
 
     begin
-      # Weather file
-      unless (Pathname.new weather_dir).absolute?
-        weather_dir = File.expand_path(File.join(File.dirname(__FILE__), '..', weather_dir))
+      hpxml = HPXML.new(hpxml_path: hpxml_path)
+
+      if not validate_hpxml(runner, hpxml_path, hpxml)
+        return false
       end
-      epw_path = hpxml.climate_and_risk_zones.weather_station_epw_filename
-      if not epw_path.nil?
-        epw_path = File.join(weather_dir, epw_path)
-        if not File.exist?(epw_path)
-          fail "'#{epw_path}' could not be found."
-        end
-      else
-        weather_wmo = hpxml.climate_and_risk_zones.weather_station_wmo
-        CSV.foreach(File.join(weather_dir, 'data.csv'), headers: true) do |row|
-          next if row['wmo'] != weather_wmo
 
-          epw_path = File.join(weather_dir, row['filename'])
-          if not File.exist?(epw_path)
-            fail "'#{epw_path}' could not be found."
-          end
+      epw_path, cache_path = process_weather(hpxml, runner, model, weather_dir, output_dir)
 
-          break
-        end
-        if epw_path.nil?
-          fail "Weather station WMO '#{weather_wmo}' could not be found in weather/data.csv."
-        end
-      end
-      cache_path = epw_path.gsub('.epw', '-cache.csv')
-      if not File.exist?(cache_path)
-        # Process weather file to create cache .csv
-        runner.registerWarning("'#{cache_path}' could not be found; regenerating it.")
-        epw_file = OpenStudio::EpwFile.new(epw_path)
-        OpenStudio::Model::WeatherFile.setWeatherFile(model, epw_file)
-        weather = WeatherProcess.new(model, runner)
-        File.open(cache_path, 'wb') do |file|
-          weather.dump_to_csv(file)
-        end
-      end
-      epw_output_path = File.join(output_path, 'in.epw')
-      FileUtils.cp(epw_path, epw_output_path)
-      runner.registerInfo("Copied EPW to: #{epw_output_path}")
-
-      # Apply Location to obtain weather data
-      weather = Location.apply(model, runner, epw_path, cache_path, 'NA', 'NA')
-
-      # Create OpenStudio model
-      OSModel.create(hpxml, runner, model, weather, hpxml_path, output_path, debug)
+      OSModel.create(hpxml, runner, model, hpxml_path, epw_path, cache_path, output_dir, debug)
     rescue Exception => e
-      # Report exception
       runner.registerError("#{e.message}\n#{e.backtrace.join("\n")}")
       return false
     end
 
-    if debug
-      osm_output_path = File.join(output_path, 'in.osm')
-      File.write(osm_output_path, model.to_s)
-      runner.registerInfo("Wrote file: #{osm_output_path}")
-    end
-
     return true
+  end
+
+  def tear_down_model(model, runner)
+    # Tear down the existing model if it exists
+    has_existing_objects = (model.getThermalZones.size > 0)
+    handles = OpenStudio::UUIDVector.new
+    model.objects.each do |obj|
+      handles << obj.handle
+    end
+    model.removeObjects(handles)
+    if has_existing_objects
+      runner.registerWarning('The model contains existing objects and is being reset.')
+    end
   end
 
   def validate_hpxml(runner, hpxml_path, hpxml)
@@ -224,31 +185,93 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
 
     return is_valid
   end
+
+  def process_weather(hpxml, runner, model, weather_dir, output_dir)
+    epw_path = hpxml.climate_and_risk_zones.weather_station_epw_filename
+
+    if not epw_path.nil?
+      epw_path = File.join(weather_dir, epw_path)
+      if not File.exist?(epw_path)
+        fail "'#{epw_path}' could not be found."
+      end
+    else
+      weather_wmo = hpxml.climate_and_risk_zones.weather_station_wmo
+      CSV.foreach(File.join(weather_dir, 'data.csv'), headers: true) do |row|
+        next if row['wmo'] != weather_wmo
+
+        epw_path = File.join(weather_dir, row['filename'])
+        if not File.exist?(epw_path)
+          fail "'#{epw_path}' could not be found."
+        end
+
+        break
+      end
+      if epw_path.nil?
+        fail "Weather station WMO '#{weather_wmo}' could not be found in #{File.join(weather_dir, 'data.csv')}."
+      end
+    end
+
+    cache_path = epw_path.gsub('.epw', '-cache.csv')
+    if not File.exist?(cache_path)
+      # Process weather file to create cache .csv
+      runner.registerWarning("'#{cache_path}' could not be found; regenerating it.")
+      epw_file = OpenStudio::EpwFile.new(epw_path)
+      OpenStudio::Model::WeatherFile.setWeatherFile(model, epw_file)
+      weather = WeatherProcess.new(model, runner)
+      File.open(cache_path, 'wb') do |file|
+        weather.dump_to_csv(file)
+      end
+    end
+
+    if not output_dir.nil?
+      epw_output_path = File.join(output_dir, 'in.epw')
+      FileUtils.cp(epw_path, epw_output_path)
+      runner.registerInfo("Copied EPW to: #{epw_output_path}")
+    end
+
+    return epw_path, cache_path
+  end
 end
 
 class OSModel
-  def self.create(hpxml, runner, model, weather, hpxml_path, output_path, debug)
+  def self.create(hpxml, runner, model, hpxml_path, epw_path, cache_path, output_dir, debug)
     @hpxml = hpxml
     @hpxml_path = hpxml_path
-    @output_path = output_path
+    @output_dir = output_dir
     @debug = debug
 
     @eri_version = @hpxml.header.eri_calculation_version # Hidden feature
     @eri_version = 'latest' if @eri_version.nil?
     @eri_version = Constants.ERIVersions[-1] if @eri_version == 'latest'
 
+    # Init
+    weather = Location.apply(model, runner, epw_path, cache_path, 'NA', 'NA')
     set_defaults_and_globals(runner)
-
-    # Simulation parameters
-
     add_simulation_params(model)
 
     # Geometry/Envelope
 
-    spaces = add_geometry_envelope(runner, model, weather)
-
-    # Bedrooms, Occupants
-
+    spaces = {}
+    create_or_get_space(model, spaces, HPXML::LocationLivingSpace)
+    @living_space = spaces[HPXML::LocationLivingSpace]
+    @living_zone = @living_space.thermalZone.get
+    @foundation_top, @walls_top = get_foundation_and_walls_top()
+    add_roofs(runner, model, spaces)
+    add_walls(runner, model, spaces)
+    add_rim_joists(runner, model, spaces)
+    add_frame_floors(runner, model, spaces)
+    add_foundation_walls_slabs(runner, model, spaces)
+    add_interior_shading_schedule(runner, model, weather)
+    add_windows(runner, model, spaces, weather)
+    add_doors(runner, model, spaces)
+    add_skylights(runner, model, spaces, weather)
+    add_conditioned_floor_area(runner, model, spaces)
+    add_thermal_mass(runner, model)
+    modify_cond_basement_surface_properties(runner, model)
+    assign_view_factor(runner, model)
+    check_for_errors(runner, model)
+    set_zone_volumes(runner, model)
+    explode_surfaces(runner, model)
     add_num_occupants(model, hpxml, runner)
 
     # HVAC
@@ -275,7 +298,14 @@ class OSModel
     add_hvac_sizing(runner, model, weather)
     add_fuel_heating_eae(runner, model)
     add_photovoltaics(runner, model)
-    add_outputs(runner, model)
+    add_additional_properties(runner, model)
+    add_component_loads_output(runner, model)
+
+    if debug && (not output_dir.nil?)
+      osm_output_path = File.join(output_dir, 'in.osm')
+      File.write(osm_output_path, model.to_s)
+      runner.registerInfo("Wrote file: #{osm_output_path}")
+    end
   end
 
   private
@@ -380,17 +410,20 @@ class OSModel
     @hpxml.cooling_systems.each do |cooling_system|
       next unless cooling_system.cooling_system_type == HPXML::HVACTypeCentralAirConditioner
       next unless cooling_system.compressor_type.nil?
+
       cooling_system.compressor_type = HVAC.get_default_compressor_type(cooling_system.cooling_efficiency_seer)
     end
     @hpxml.heat_pumps.each do |heat_pump|
       next unless heat_pump.heat_pump_type == HPXML::HVACTypeHeatPumpAirToAir
       next unless heat_pump.compressor_type.nil?
+
       heat_pump.compressor_type = HVAC.get_default_compressor_type(heat_pump.cooling_efficiency_seer)
     end
 
     # Default AC/HP sensible heat ratio
     @hpxml.cooling_systems.each do |cooling_system|
       next unless cooling_system.cooling_shr.nil?
+
       if cooling_system.cooling_system_type == HPXML::HVACTypeCentralAirConditioner
         if cooling_system.compressor_type == HPXML::HVACCompressorTypeSingleStage
           cooling_system.cooling_shr = 0.73
@@ -405,6 +438,7 @@ class OSModel
     end
     @hpxml.heat_pumps.each do |heat_pump|
       next unless heat_pump.cooling_shr.nil?
+
       if heat_pump.heat_pump_type == HPXML::HVACTypeHeatPumpAirToAir
         if heat_pump.compressor_type == HPXML::HVACCompressorTypeSingleStage
           heat_pump.cooling_shr = 0.73
@@ -426,6 +460,7 @@ class OSModel
     # Default hot water temperature
     @hpxml.water_heating_systems.each do |water_heating_system|
       next unless water_heating_system.temperature.nil?
+
       water_heating_system.temperature = Waterheater.get_default_hot_water_temperature(@eri_version)
     end
 
@@ -433,6 +468,7 @@ class OSModel
     @hpxml.water_heating_systems.each do |water_heating_system|
       next unless water_heating_system.water_heater_type == HPXML::WaterHeaterTypeTankless
       next unless water_heating_system.performance_adjustment.nil?
+
       water_heating_system.performance_adjustment = Waterheater.get_tankless_cycling_derate()
     end
 
@@ -440,6 +476,7 @@ class OSModel
     @hpxml.water_heating_systems.each do |water_heating_system|
       next unless [HPXML::WaterHeaterTypeCombiStorage].include? water_heating_system.water_heater_type
       next unless water_heating_system.standby_loss.nil?
+
       # Use equation fit from AHRI database
       # calculate independent variable SurfaceArea/vol(physically linear to standby_loss/skin_u under test condition) to fit the linear equation from AHRI database
       act_vol = Waterheater.calc_storage_tank_actual_vol(water_heating_system.tank_volume, nil)
@@ -492,9 +529,9 @@ class OSModel
       @hpxml.misc_loads_schedule.monthly_multipliers = '1.248, 1.257, 0.993, 0.989, 0.993, 0.827, 0.821, 0.821, 0.827, 0.99, 0.987, 1.248'
     end
 
-    if @debug
+    if @debug && (not @output_dir.nil?)
       # Write updated HPXML object to file
-      hpxml_defaults_path = File.join(@output_path, 'in.xml')
+      hpxml_defaults_path = File.join(@output_dir, 'in.xml')
       XMLHelper.write_file(@hpxml.to_rexml, hpxml_defaults_path)
       runner.registerInfo("Wrote file: #{hpxml_defaults_path}")
     end
@@ -522,35 +559,6 @@ class OSModel
 
     convlim = model.getConvergenceLimits
     convlim.setMinimumSystemTimestep(0)
-  end
-
-  def self.add_geometry_envelope(runner, model, weather)
-    spaces = {}
-    @foundation_top, @walls_top = get_foundation_and_walls_top()
-
-    add_roofs(runner, model, spaces)
-    add_walls(runner, model, spaces)
-    add_rim_joists(runner, model, spaces)
-    add_frame_floors(runner, model, spaces)
-    add_foundation_walls_slabs(runner, model, spaces)
-    add_interior_shading_schedule(runner, model, weather)
-    add_windows(runner, model, spaces, weather)
-    add_doors(runner, model, spaces)
-    add_skylights(runner, model, spaces, weather)
-    add_conditioned_floor_area(runner, model, spaces)
-
-    # update living space/zone global variable
-    @living_space = get_space_of_type(spaces, HPXML::LocationLivingSpace)
-    @living_zone = @living_space.thermalZone.get
-
-    add_thermal_mass(runner, model)
-    modify_cond_basement_surface_properties(runner, model)
-    assign_view_factor(runner, model)
-    check_for_errors(runner, model)
-    set_zone_volumes(runner, model)
-    explode_surfaces(runner, model)
-
-    return spaces
   end
 
   def self.set_zone_volumes(runner, model)
@@ -2904,7 +2912,7 @@ class OSModel
                                                               fractions[[HPXML::LocationExterior, HPXML::LightingTypeTierII]],
                                                               fractions[[HPXML::LocationGarage, HPXML::LightingTypeTierII]])
 
-    garage_space = get_space_of_type(spaces, HPXML::LocationGarage)
+    garage_space = spaces[HPXML::LocationGarage]
     Lighting.apply(model, weather, int_kwh, grg_kwh, ext_kwh, @cfa, @gfa,
                    @living_space, garage_space)
   end
@@ -3225,12 +3233,12 @@ class OSModel
     end
   end
 
-  def self.add_outputs(runner, model)
+  def self.add_additional_properties(runner, model)
     # Store some data for use in reporting measure
-    model.getBuilding.additionalProperties.setFeature('hvac_map', map_to_string(@hvac_map))
-    model.getBuilding.additionalProperties.setFeature('dhw_map', map_to_string(@dhw_map))
-
-    add_component_loads_output(runner, model)
+    additionalProperties = model.getBuilding.additionalProperties
+    additionalProperties.setFeature('hpxml_path', @hpxml_path)
+    additionalProperties.setFeature('hvac_map', map_to_string(@hvac_map))
+    additionalProperties.setFeature('dhw_map', map_to_string(@dhw_map))
   end
 
   def self.map_to_string(map)
@@ -4139,25 +4147,6 @@ class OSModel
     end
 
     return space
-  end
-
-  def self.get_spaces_of_type(spaces, space_types_list)
-    spaces_of_type = []
-    space_types_list.each do |space_type|
-      spaces_of_type << spaces[space_type] unless spaces[space_type].nil?
-    end
-    return spaces_of_type
-  end
-
-  def self.get_space_of_type(spaces, space_type)
-    spaces_of_type = get_spaces_of_type(spaces, [space_type])
-    if spaces_of_type.size > 1
-      fail 'Unexpected number of spaces.'
-    elsif spaces_of_type.size == 1
-      return spaces_of_type[0]
-    end
-
-    return
   end
 
   def self.get_min_neighbor_distance()
