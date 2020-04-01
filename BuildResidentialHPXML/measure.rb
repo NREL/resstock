@@ -328,39 +328,38 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(Constants.Auto)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('foundation_ceiling_assembly_r', true)
-    arg.setDisplayName('Foundation: Ceiling Assembly R-value')
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('floor_assembly_r', true)
+    arg.setDisplayName('Floor: Assembly R-value')
     arg.setUnits('h-ft^2-R/Btu')
-    arg.setDescription('Assembly R-value for the foundation ceiling.')
+    arg.setDescription('Assembly R-value for the floor (foundation ceiling). Ignored if a slab foundation.')
     arg.setDefaultValue(30)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('foundation_wall_assembly_r', true)
-    arg.setDisplayName('Foundation: Wall Assembly R-value')
-    arg.setUnits('h-ft^2-R/Btu')
-    arg.setDescription('Assembly R-value for the foundation walls. Only applies to basements/crawlspaces.')
-    arg.setDefaultValue(0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('foundation_wall_insulation_r', true)
     arg.setDisplayName('Foundation: Wall Insulation Nominal R-value')
     arg.setUnits('h-ft^2-R/Btu')
-    arg.setDescription('Nominal R-value for the foundation wall insulation. Only applies to basements/crawlspaces and when assembly R-value is not provided (zero).')
+    arg.setDescription('Nominal R-value for the foundation wall insulation. Only applies to basements/crawlspaces.')
     arg.setDefaultValue(0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('foundation_wall_insulation_distance_to_top', true)
     arg.setDisplayName('Foundation: Wall Insulation Distance To Top')
     arg.setUnits('ft')
-    arg.setDescription('The distance from the top of the foundation wall to the top of the foundation wall insulation. Only applies to basements/crawlspaces and when assembly R-value is not provided (zero).')
+    arg.setDescription('The distance from the top of the foundation wall to the top of the foundation wall insulation. Only applies to basements/crawlspaces.')
     arg.setDefaultValue(0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('foundation_wall_insulation_distance_to_bottom', true)
     arg.setDisplayName('Foundation: Wall Insulation Distance To Bottom')
     arg.setUnits('ft')
-    arg.setDescription('The distance from the top of the foundation wall to the bottom of the foundation wall insulation. Only applies to basements/crawlspaces and when assembly R-value is not provided (zero).')
+    arg.setDescription('The distance from the top of the foundation wall to the bottom of the foundation wall insulation. Only applies to basements/crawlspaces.')
     arg.setDefaultValue(0)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('foundation_wall_assembly_r', false)
+    arg.setDisplayName('Foundation: Wall Assembly R-value')
+    arg.setUnits('h-ft^2-R/Btu')
+    arg.setDescription('Assembly R-value for the foundation walls. Only applies to basements/crawlspaces. If provided, overrides the previous foundation wall insulation inputs.')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('slab_perimeter_insulation_r', true)
@@ -465,32 +464,32 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(10.0)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('neighbor_front_height', true)
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('neighbor_front_height', true)
     arg.setDisplayName('Neighbor: Front Height')
     arg.setUnits('ft')
-    arg.setDescription('The height of the neighboring building to the front.')
-    arg.setDefaultValue(12.0)
+    arg.setDescription("The height of the neighboring building to the front. A value of '#{Constants.Auto}' will use the same height as this building.")
+    arg.setDefaultValue(Constants.Auto)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('neighbor_back_height', true)
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('neighbor_back_height', true)
     arg.setDisplayName('Neighbor: Back Height')
     arg.setUnits('ft')
-    arg.setDescription('The height of the neighboring building to the back.')
-    arg.setDefaultValue(12.0)
+    arg.setDescription("The height of the neighboring building to the back. A value of '#{Constants.Auto}' will use the same height as this building.")
+    arg.setDefaultValue(Constants.Auto)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('neighbor_left_height', true)
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('neighbor_left_height', true)
     arg.setDisplayName('Neighbor: Left Height')
     arg.setUnits('ft')
-    arg.setDescription('The height of the neighboring building to the left.')
-    arg.setDefaultValue(12.0)
+    arg.setDescription("The height of the neighboring building to the left. A value of '#{Constants.Auto}' will use the same height as this building.")
+    arg.setDefaultValue(Constants.Auto)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('neighbor_right_height', true)
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('neighbor_right_height', true)
     arg.setDisplayName('Neighbor: Right Height')
     arg.setUnits('ft')
-    arg.setDescription('The height of the neighboring building to the right.')
-    arg.setDefaultValue(12.0)
+    arg.setDescription("The height of the neighboring building to the right. A value of '#{Constants.Auto}' will use the same height as this building.")
+    arg.setDefaultValue(Constants.Auto)
     args << arg
 
     wall_type_choices = OpenStudio::StringVector.new
@@ -512,7 +511,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(HPXML::WallTypeWoodStud)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('wall_assmebly_r', true)
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('wall_assembly_r', true)
     arg.setDisplayName('Walls: Assembly R-value')
     arg.setUnits('h-ft^2-R/Btu')
     arg.setDescription('Assembly R-value of the exterior walls.')
@@ -1843,8 +1842,8 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
              geometry_garage_position: runner.getStringArgumentValue('geometry_garage_position', user_arguments),
              geometry_foundation_type: runner.getStringArgumentValue('geometry_foundation_type', user_arguments),
              geometry_foundation_height: runner.getDoubleArgumentValue('geometry_foundation_height', user_arguments),
-             foundation_ceiling_assembly_r: runner.getDoubleArgumentValue('foundation_ceiling_assembly_r', user_arguments),
-             foundation_wall_assembly_r: runner.getDoubleArgumentValue('foundation_wall_assembly_r', user_arguments),
+             floor_assembly_r: runner.getDoubleArgumentValue('floor_assembly_r', user_arguments),
+             foundation_wall_assembly_r: runner.getOptionalDoubleArgumentValue('foundation_wall_assembly_r', user_arguments),
              foundation_wall_insulation_r: runner.getDoubleArgumentValue('foundation_wall_insulation_r', user_arguments),
              foundation_wall_insulation_distance_to_top: runner.getDoubleArgumentValue('foundation_wall_insulation_distance_to_top', user_arguments),
              foundation_wall_insulation_distance_to_bottom: runner.getDoubleArgumentValue('foundation_wall_insulation_distance_to_bottom', user_arguments),
@@ -1869,10 +1868,10 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
              geometry_num_bathrooms: runner.getStringArgumentValue('geometry_num_bathrooms', user_arguments),
              geometry_num_occupants: runner.getStringArgumentValue('geometry_num_occupants', user_arguments),
              neighbor_distance: [runner.getDoubleArgumentValue('neighbor_front_distance', user_arguments), runner.getDoubleArgumentValue('neighbor_back_distance', user_arguments), runner.getDoubleArgumentValue('neighbor_left_distance', user_arguments), runner.getDoubleArgumentValue('neighbor_right_distance', user_arguments)],
-             neighbor_height: [runner.getDoubleArgumentValue('neighbor_front_height', user_arguments), runner.getDoubleArgumentValue('neighbor_back_height', user_arguments), runner.getDoubleArgumentValue('neighbor_left_height', user_arguments), runner.getDoubleArgumentValue('neighbor_right_height', user_arguments)],
+             neighbor_height: [runner.getStringArgumentValue('neighbor_front_height', user_arguments), runner.getStringArgumentValue('neighbor_back_height', user_arguments), runner.getStringArgumentValue('neighbor_left_height', user_arguments), runner.getStringArgumentValue('neighbor_right_height', user_arguments)],
              geometry_orientation: runner.getDoubleArgumentValue('geometry_orientation', user_arguments),
              wall_type: runner.getStringArgumentValue('wall_type', user_arguments),
-             wall_assmebly_r: runner.getDoubleArgumentValue('wall_assmebly_r', user_arguments),
+             wall_assembly_r: runner.getDoubleArgumentValue('wall_assembly_r', user_arguments),
              wall_solar_absorptance: runner.getDoubleArgumentValue('wall_solar_absorptance', user_arguments),
              wall_emittance: runner.getDoubleArgumentValue('wall_emittance', user_arguments),
              window_front_wwr: runner.getDoubleArgumentValue('window_front_wwr', user_arguments),
@@ -2237,11 +2236,8 @@ class HPXMLFile
         azimuth = Geometry.get_abs_azimuth(Constants.CoordRelative, 270, args[:geometry_orientation], 0)
       end
 
-      height = nil
-      if distance > 0
-        if args[:neighbor_height][i] > 0
-          height = args[:neighbor_height][i]
-        end
+      if (distance > 0) && (args[:neighbor_height][i] != Constants.Auto)
+        height = Float(args[:neighbor_height][i])
       end
 
       hpxml.neighbor_buildings.add(azimuth: azimuth,
@@ -2425,7 +2421,7 @@ class HPXMLFile
       end
 
       if hpxml.walls[-1].is_thermal_boundary || is_uncond_attic_roof_insulated # Assume wall is insulated if roof is insulated
-        hpxml.walls[-1].insulation_assembly_r_value = args[:wall_assmebly_r]
+        hpxml.walls[-1].insulation_assembly_r_value = args[:wall_assembly_r]
       else
         hpxml.walls[-1].insulation_assembly_r_value = 4.0 # Uninsulated
       end
@@ -2437,7 +2433,7 @@ class HPXMLFile
       next unless ['Foundation'].include? surface.outsideBoundaryCondition
       next if surface.surfaceType != 'Wall'
 
-      if args[:foundation_wall_assembly_r] > 0
+      if args[:foundation_wall_assembly_r].is_initialized && (args[:foundation_wall_assembly_r].get > 0)
         insulation_assembly_r_value = args[:foundation_wall_assembly_r]
       else
         insulation_exterior_r_value = args[:foundation_wall_insulation_r]
@@ -2497,7 +2493,7 @@ class HPXMLFile
         if [HPXML::LocationAtticUnvented, HPXML::LocationAtticVented, HPXML::LocationGarage].include? exterior_adjacent_to
           hpxml.frame_floors[-1].insulation_assembly_r_value = args[:ceiling_assembly_r]
         else
-          hpxml.frame_floors[-1].insulation_assembly_r_value = args[:foundation_ceiling_assembly_r]
+          hpxml.frame_floors[-1].insulation_assembly_r_value = args[:floor_assembly_r]
         end
       else
         hpxml.frame_floors[-1].insulation_assembly_r_value = 2.1 # Uninsulated
