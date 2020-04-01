@@ -166,7 +166,6 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     # Get the absolute path of the exported xml relative to this meta measure in the run directory
     measures['BuildResidentialHPXML'][0]['hpxml_path'] = File.expand_path(measures['BuildResidentialHPXML'][0]['hpxml_path'])
     measures['HPXMLtoOpenStudio'][0]['hpxml_path'] = File.expand_path(measures['HPXMLtoOpenStudio'][0]['hpxml_path'])
-    measures['HPXMLtoOpenStudio'][0]['output_path'] = File.expand_path(measures['HPXMLtoOpenStudio'][0]['output_path'])
 
     # Get registered values from ResidentialSimulationControls and pass them to BuildResidentialHPXML
     timesteps_per_hr = get_value_from_runner_past_results(runner, 'timesteps_per_hr', 'residential_simulation_controls', false)
