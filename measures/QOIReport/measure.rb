@@ -266,10 +266,15 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
     end
 
     if top == "all"
-      top = daily_vals.length
+      top = daily_vals["hour"].length
     else
-      top = [top, daily_vals.length].min # don't try to access indexes that don't exist
+      top = [top, daily_vals["hour"].length].min # don't try to access indexes that don't exist
     end
+
+    if top.zero?
+      return nil
+    end
+
     daily_vals["use"], daily_vals["hour"] = daily_vals["use"].zip(daily_vals["hour"]).sort.reverse.transpose
     daily_vals = daily_vals["hour"][0..top]
     return daily_vals.inject { |sum, el| sum + el }.to_f / daily_vals.size
