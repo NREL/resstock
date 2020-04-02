@@ -218,6 +218,16 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
   end
 
   def average_daily_use(timeseries, temperature_range, min_or_max, top = "all")
+    """
+    Calculates the average of daily base or peak use values during heating, cooling, or overlap seasons.
+    Parameters:
+      timeseries (hash): { 'Temperature' => [...], 'total_site_electricity_kw' => [...] }
+      temperature_range (array): [lower, upper]
+      min_or_max (str): 'min' or 'max'
+      top: integer or 'all'
+    Returns:
+      average_daily_use: float or nil
+    """
     daily_vals = []
     timeseries["total_site_electricity_kw"].each_slice(24).with_index do |kws, i|
       temps = timeseries["Temperature"][(24 * i)...(24 * i + 24)]
@@ -245,6 +255,16 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
   end
 
   def average_daily_timing(timeseries, temperature_range, min_or_max, top = "all")
+    """
+    Calculates the average hour of daily base or peak use values during heating, cooling, or overlap seasons.
+    Parameters:
+      timeseries (hash): { 'Temperature' => [...], 'total_site_electricity_kw' => [...] }
+      temperature_range (array): [lower, upper]
+      min_or_max (str): 'min' or 'max'
+      top: integer or 'all'
+    Returns:
+      average_daily_use: float or nil
+    """
     daily_vals = { "hour" => [], "use" => [] }
     timeseries["total_site_electricity_kw"].each_slice(24).with_index do |kws, i|
       temps = timeseries["Temperature"][(24 * i)...(24 * i + 24)]
