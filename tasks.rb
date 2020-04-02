@@ -193,7 +193,8 @@ if ARGV[0].to_sym == :update_measures
     include_args = {
       'BuildResidentialHPXML' => {
         'hpxml_path' => File.expand_path(File.join(File.dirname(__FILE__), 'workflows/run/in.xml')),
-        'schedules_output_path' => File.expand_path(File.join(File.dirname(__FILE__), 'workflows/run/schedules.csv'))
+        'schedules_output_path' => File.expand_path(File.join(File.dirname(__FILE__), 'workflows/run/schedules.csv')),
+        'weather_dir' => File.expand_path(File.join(File.dirname(__FILE__), 'weather'))
       },
       'HPXMLtoOpenStudio' => {
         'hpxml_path' => File.expand_path(File.join(File.dirname(__FILE__), 'workflows/run/in.xml')),

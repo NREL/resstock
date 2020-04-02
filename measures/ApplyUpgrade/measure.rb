@@ -303,7 +303,9 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
 
       # Get the absolute path of the exported xml relative to this meta measure in the run directory
       measures['BuildResidentialHPXML'][0]['hpxml_path'] = File.expand_path('../upgraded.xml')
-      measures['HPXMLtoOpenStudio'] = [{ 'hpxml_path' => File.expand_path('../upgraded.xml'), 'weather_dir' => '../../weather' }]
+      measures['BuildResidentialHPXML'][0]['weather_dir'] = '../../weather'
+      measures['HPXMLtoOpenStudio'][0]['hpxml_path'] = File.expand_path('../upgraded.xml')
+      measures['HPXMLtoOpenStudio'][0]['weather_dir'] = '../../weather'
 
       # Get registered values from ResidentialSimulationControls and pass them to BuildResidentialHPXML
       timesteps_per_hr = get_value_from_runner_past_results(runner, 'timesteps_per_hr', 'residential_simulation_controls', false)
