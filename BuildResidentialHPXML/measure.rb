@@ -41,6 +41,12 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDescription('Absolute/relative path of the HPXML file.')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('weather_dir', true)
+    arg.setDisplayName('Weather Directory')
+    arg.setDescription('Absolute/relative path of the weather directory.')
+    arg.setDefaultValue('weather')
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('simulation_control_timestep', false)
     arg.setDisplayName('Simulation Control: Timestep')
     arg.setUnits('min')
@@ -1416,11 +1422,11 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(180)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('solar_thermal_collector_tilt', true)
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('solar_thermal_collector_tilt', true)
     arg.setDisplayName('Solar Thermal: Collector Tilt')
     arg.setUnits('degrees')
-    arg.setDescription('The collector tilt of the solar thermal system.')
-    arg.setDefaultValue(20)
+    arg.setDescription('The collector tilt of the solar thermal system. Can also enter, e.g., RoofPitch, RoofPitch+20, Latitude, Latitude-15, etc.')
+    arg.setDefaultValue('RoofPitch')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('solar_thermal_collector_rated_optical_efficiency', true)
@@ -1493,11 +1499,11 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
       arg.setDefaultValue(180)
       args << arg
 
-      arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("pv_system_array_tilt_#{n}", true)
+      arg = OpenStudio::Measure::OSArgument::makeStringArgument("pv_system_array_tilt_#{n}", true)
       arg.setDisplayName("Photovoltaics #{n}: Array Tilt")
       arg.setUnits('degrees')
-      arg.setDescription("Array tilt of the PV system #{n}.")
-      arg.setDefaultValue(20)
+      arg.setDescription("Array tilt of the PV system #{n}. Can also enter, e.g., RoofPitch, RoofPitch+20, Latitude, Latitude-15, etc.")
+      arg.setDefaultValue('RoofPitch')
       args << arg
 
       arg = OpenStudio::Measure::OSArgument::makeDoubleArgument("pv_system_max_power_output_#{n}", true)
@@ -1819,6 +1825,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     # assign the user inputs to variables
     args = { weather_station_epw_filename: runner.getStringArgumentValue('weather_station_epw_filename', user_arguments),
              hpxml_path: runner.getStringArgumentValue('hpxml_path', user_arguments),
+             weather_dir: runner.getStringArgumentValue('weather_dir', user_arguments),
              timestep: runner.getIntegerArgumentValue('simulation_control_timestep', user_arguments),
              schedules_output_path: runner.getStringArgumentValue('schedules_output_path', user_arguments),
              geometry_unit_type: runner.getStringArgumentValue('geometry_unit_type', user_arguments),
@@ -1992,7 +1999,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
              solar_thermal_collector_loop_type: runner.getStringArgumentValue('solar_thermal_collector_loop_type', user_arguments),
              solar_thermal_collector_type: runner.getStringArgumentValue('solar_thermal_collector_type', user_arguments),
              solar_thermal_collector_azimuth: runner.getDoubleArgumentValue('solar_thermal_collector_azimuth', user_arguments),
-             solar_thermal_collector_tilt: runner.getDoubleArgumentValue('solar_thermal_collector_tilt', user_arguments),
+             solar_thermal_collector_tilt: runner.getStringArgumentValue('solar_thermal_collector_tilt', user_arguments),
              solar_thermal_collector_rated_optical_efficiency: runner.getDoubleArgumentValue('solar_thermal_collector_rated_optical_efficiency', user_arguments),
              solar_thermal_collector_rated_thermal_losses: runner.getDoubleArgumentValue('solar_thermal_collector_rated_thermal_losses', user_arguments),
              solar_thermal_storage_volume: runner.getStringArgumentValue('solar_thermal_storage_volume', user_arguments),
@@ -2001,7 +2008,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
              pv_system_location: (1..Constants.MaxNumPhotovoltaics).to_a.map { |n| runner.getStringArgumentValue("pv_system_location_#{n}", user_arguments) },
              pv_system_tracking: (1..Constants.MaxNumPhotovoltaics).to_a.map { |n| runner.getStringArgumentValue("pv_system_tracking_#{n}", user_arguments) },
              pv_system_array_azimuth: (1..Constants.MaxNumPhotovoltaics).to_a.map { |n| runner.getDoubleArgumentValue("pv_system_array_azimuth_#{n}", user_arguments) },
-             pv_system_array_tilt: (1..Constants.MaxNumPhotovoltaics).to_a.map { |n| runner.getDoubleArgumentValue("pv_system_array_tilt_#{n}", user_arguments) },
+             pv_system_array_tilt: (1..Constants.MaxNumPhotovoltaics).to_a.map { |n| runner.getStringArgumentValue("pv_system_array_tilt_#{n}", user_arguments) },
              pv_system_max_power_output: (1..Constants.MaxNumPhotovoltaics).to_a.map { |n| runner.getDoubleArgumentValue("pv_system_max_power_output_#{n}", user_arguments) },
              pv_system_inverter_efficiency: (1..Constants.MaxNumPhotovoltaics).to_a.map { |n| runner.getDoubleArgumentValue("pv_system_inverter_efficiency_#{n}", user_arguments) },
              pv_system_system_losses_fraction: (1..Constants.MaxNumPhotovoltaics).to_a.map { |n| runner.getDoubleArgumentValue("pv_system_system_losses_fraction_#{n}", user_arguments) },
@@ -2044,8 +2051,32 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
              plug_loads_weekend_fractions: runner.getStringArgumentValue('plug_loads_weekend_fractions', user_arguments),
              plug_loads_monthly_multipliers: runner.getStringArgumentValue('plug_loads_monthly_multipliers', user_arguments) }
 
+    # Get weather object
+    weather_dir = args[:weather_dir]
+    unless (Pathname.new weather_dir).absolute?
+      weather_dir = File.expand_path(File.join(File.dirname(__FILE__), '..', weather_dir))
+    end
+    epw_path = File.join(weather_dir, args[:weather_station_epw_filename])
+    if not File.exist?(epw_path)
+      runner.registerError("Could not find EPW file at '#{epw_path}'.")
+      return false
+    end
+    cache_path = epw_path.gsub('.epw', '-cache.csv')
+    if not File.exist?(cache_path)
+      # Process weather file to create cache .csv
+      runner.registerWarning("'#{cache_path}' could not be found; regenerating it.")
+      epw_file = OpenStudio::EpwFile.new(epw_path)
+      OpenStudio::Model::WeatherFile.setWeatherFile(model, epw_file)
+      weather = WeatherProcess.new(model, runner)
+      File.open(cache_path, 'wb') do |file|
+        weather.dump_to_csv(file)
+      end
+    else
+      weather = WeatherProcess.new(nil, nil, cache_path)
+    end
+
     # Create HPXML file
-    hpxml_doc = HPXMLFile.create(runner, model, args)
+    hpxml_doc = HPXMLFile.create(runner, model, args, weather)
     if not hpxml_doc
       runner.registerError('Unsuccessful creation of HPXML file.')
       return false
@@ -2110,7 +2141,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 end
 
 class HPXMLFile
-  def self.create(runner, model, args)
+  def self.create(runner, model, args, weather)
     model_geometry = OpenStudio::Model::Model.new
 
     success = create_geometry_envelope(runner, model_geometry, args)
@@ -2148,8 +2179,8 @@ class HPXMLFile
     set_water_heating_systems(hpxml, runner, args)
     set_hot_water_distribution(hpxml, runner, args)
     set_water_fixtures(hpxml, runner, args)
-    set_solar_thermal(hpxml, runner, args)
-    set_pv_systems(hpxml, runner, args)
+    set_solar_thermal(hpxml, runner, args, weather)
+    set_pv_systems(hpxml, runner, args, weather)
     set_clothes_washer(hpxml, runner, args)
     set_clothes_dryer(hpxml, runner, args)
     set_dishwasher(hpxml, runner, args)
@@ -3136,7 +3167,19 @@ class HPXMLFile
                              low_flow: args[:water_fixtures_sink_low_flow])
   end
 
-  def self.set_solar_thermal(hpxml, runner, args)
+  def self.get_absolute_tilt(tilt_str, roof_pitch, weather)
+    tilt_str = tilt_str.downcase
+    if tilt_str.start_with? 'roofpitch'
+      roof_angle = Math.atan(roof_pitch / 12.0) * 180.0 / Math::PI
+      return Float(eval(tilt_str.gsub('roofpitch', roof_angle.to_s)))
+    elsif tilt_str.start_with? 'latitude'
+      return Float(eval(tilt_str.gsub('latitude', weather.header.Latitude.to_s)))
+    else
+      return Float(tilt_str)
+    end
+  end
+
+  def self.set_solar_thermal(hpxml, runner, args, weather)
     return if args[:solar_thermal_system_type] == 'none'
 
     if args[:solar_thermal_solar_fraction] > 0
@@ -3146,7 +3189,7 @@ class HPXMLFile
       collector_loop_type = args[:solar_thermal_collector_loop_type]
       collector_type = args[:solar_thermal_collector_type]
       collector_azimuth = args[:solar_thermal_collector_azimuth]
-      collector_tilt = args[:solar_thermal_collector_tilt]
+      collector_tilt = get_absolute_tilt(args[:solar_thermal_collector_tilt], hpxml.roofs[-1].pitch, weather)
       collector_frta = args[:solar_thermal_collector_rated_optical_efficiency]
       collector_frul = args[:solar_thermal_collector_rated_thermal_losses]
 
@@ -3174,7 +3217,7 @@ class HPXMLFile
                                     solar_fraction: solar_fraction)
   end
 
-  def self.set_pv_systems(hpxml, runner, args)
+  def self.set_pv_systems(hpxml, runner, args, weather)
     args[:pv_system_module_type].each_with_index do |module_type, i|
       next if module_type == 'none'
 
@@ -3183,7 +3226,7 @@ class HPXMLFile
                            module_type: module_type,
                            tracking: args[:pv_system_tracking][i],
                            array_azimuth: args[:pv_system_array_azimuth][i],
-                           array_tilt: args[:pv_system_array_tilt][i],
+                           array_tilt: get_absolute_tilt(args[:pv_system_array_tilt][i], hpxml.roofs[-1].pitch, weather),
                            max_power_output: args[:pv_system_max_power_output][i],
                            inverter_efficiency: args[:pv_system_inverter_efficiency][i],
                            system_losses_fraction: args[:pv_system_system_losses_fraction][i])
