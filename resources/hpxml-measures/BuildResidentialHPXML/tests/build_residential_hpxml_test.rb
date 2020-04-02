@@ -18,7 +18,6 @@ class BuildResidentialHPXMLTest < MiniTest::Test
     hvac_partial_dir = File.absolute_path(File.join(this_dir, 'hvac_partial'))
     test_dirs = [
       this_dir,
-      # hvac_partial_dir
     ]
 
     measures_dir = File.join(this_dir, '../..')
@@ -26,6 +25,9 @@ class BuildResidentialHPXMLTest < MiniTest::Test
     osws = []
     test_dirs.each do |test_dir|
       Dir["#{test_dir}/base*.osw"].sort.each do |osw|
+        osws << File.absolute_path(osw)
+      end
+      Dir["#{test_dir}/extra*.osw"].sort.each do |osw|
         osws << File.absolute_path(osw)
       end
     end
@@ -65,6 +67,10 @@ class BuildResidentialHPXMLTest < MiniTest::Test
 
         if ['base-single-family-attached.osw', 'base-multifamily.osw'].include? File.basename(osw)
           next # FIXME: should this be temporary?
+        end
+
+        if File.basename(osw).start_with? 'extra-'
+          next # No corresponding sample file
         end
 
         # Compare the hpxml to the manually created one
