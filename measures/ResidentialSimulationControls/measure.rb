@@ -69,13 +69,6 @@ class ResidentialSimulationControls < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(31)
     args << arg
 
-    # make an argument for the calendar year; this determines the day of week for start day
-    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('calendar_year', true)
-    arg.setDisplayName('Calendar Year')
-    arg.setDescription('This numeric field should contain the calendar year that determines the start day of week. If you are running simulations using AMY weather files, the value entered for calendar year will not be used; it will be overridden by the actual year found in the AMY weather file.')
-    arg.setDefaultValue(2007)
-    args << arg
-
     return args
   end
 
@@ -93,7 +86,6 @@ class ResidentialSimulationControls < OpenStudio::Measure::ModelMeasure
     begin_day_of_month = runner.getIntegerArgumentValue('begin_day_of_month', user_arguments)
     end_month = runner.getIntegerArgumentValue('end_month', user_arguments)
     end_day_of_month = runner.getIntegerArgumentValue('end_day_of_month', user_arguments)
-    calendar_year = runner.getIntegerArgumentValue('calendar_year', user_arguments)
 
     # Error checking
     if (timesteps_per_hr < 1) || (timesteps_per_hr > 60)
@@ -121,11 +113,6 @@ class ResidentialSimulationControls < OpenStudio::Measure::ModelMeasure
       elsif i == 1
         runner.registerError("Invalid end day of month (#{end_day_of_month}) entered.")
       end
-      return false
-    end
-
-    if (calendar_year < 1600) || (calendar_year > 9999)
-      runner.registerError("Your calendar year value of #{calendar_year} is not in the range 1600-9999.")
       return false
     end
 

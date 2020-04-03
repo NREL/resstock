@@ -168,9 +168,16 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     measures['HPXMLtoOpenStudio'][0]['hpxml_path'] = File.expand_path(measures['HPXMLtoOpenStudio'][0]['hpxml_path'])
 
     # Get registered values from ResidentialSimulationControls and pass them to BuildResidentialHPXML
-    timesteps_per_hr = get_value_from_runner_past_results(runner, 'timesteps_per_hr', 'residential_simulation_controls', false)
-    simulation_control_timestep = 60 / timesteps_per_hr
+    simulation_control_timestep = 60 / get_value_from_runner_past_results(runner, 'timesteps_per_hr', 'residential_simulation_controls', false)
+    simulation_control_begin_month = get_value_from_runner_past_results(runner, 'begin_month', 'residential_simulation_controls', false)
+    simulation_control_begin_day_of_month = get_value_from_runner_past_results(runner, 'begin_day_of_month', 'residential_simulation_controls', false)
+    simulation_control_end_month = get_value_from_runner_past_results(runner, 'end_month', 'residential_simulation_controls', false)
+    simulation_control_end_day_of_month = get_value_from_runner_past_results(runner, 'end_day_of_month', 'residential_simulation_controls', false)
     measures['BuildResidentialHPXML'][0]['simulation_control_timestep'] = simulation_control_timestep
+    measures['BuildResidentialHPXML'][0]['simulation_control_begin_month'] = simulation_control_begin_month
+    measures['BuildResidentialHPXML'][0]['simulation_control_begin_day_of_month'] = simulation_control_begin_day_of_month
+    measures['BuildResidentialHPXML'][0]['simulation_control_end_month'] = simulation_control_end_month
+    measures['BuildResidentialHPXML'][0]['simulation_control_end_day_of_month'] = simulation_control_end_day_of_month
 
     if not apply_measures(measures_dir, measures, runner, model, workflow_json, 'measures.osw', true)
       return false
