@@ -186,6 +186,7 @@ def create_osws
     'base-pv.osw' => 'base.osw',
     'base-site-neighbors.osw' => 'base.osw',
     # Extra test files that don't correspond with sample files
+    'extra-auto.osw' => 'base.osw',
     'extra-pv-roofpitch.osw' => 'base.osw',
     'extra-dhw-solar-latitude.osw' => 'base.osw',
   }
@@ -296,7 +297,7 @@ def get_values(osw_file, step)
     step.setArgument('geometry_eaves_depth', 0)
     step.setArgument('geometry_num_bedrooms', 3)
     step.setArgument('geometry_num_bathrooms', Constants.Auto)
-    step.setArgument('geometry_num_occupants', Constants.Auto)
+    step.setArgument('geometry_num_occupants', '3')
     step.setArgument('geometry_orientation', 180.0)
     step.setArgument('geometry_attic_type', HPXML::AtticTypeUnvented)
     step.setArgument('geometry_roof_type', 'gable')
@@ -403,8 +404,8 @@ def get_values(osw_file, step)
     step.setArgument('ducts_return_leakage_value', 25.0)
     step.setArgument('ducts_supply_insulation_r', 4.0)
     step.setArgument('ducts_return_insulation_r', 0.0)
-    step.setArgument('ducts_supply_location', Constants.Auto)
-    step.setArgument('ducts_return_location', Constants.Auto)
+    step.setArgument('ducts_supply_location', HPXML::LocationAtticUnvented)
+    step.setArgument('ducts_return_location', HPXML::LocationAtticUnvented)
     step.setArgument('ducts_supply_surface_area', 150.0)
     step.setArgument('ducts_return_surface_area', 50.0)
     step.setArgument('mech_vent_fan_type', 'none')
@@ -430,7 +431,7 @@ def get_values(osw_file, step)
     step.setArgument('water_heater_jacket_rvalue', 0)
     step.setArgument('water_heater_setpoint_temperature', 125)
     step.setArgument('dhw_distribution_system_type', HPXML::DHWDistTypeStandard)
-    step.setArgument('dhw_distribution_standard_piping_length', 50)
+    step.setArgument('dhw_distribution_standard_piping_length', '50')
     step.setArgument('dhw_distribution_recirc_control_type', HPXML::DHWRecirControlTypeNone)
     step.setArgument('dhw_distribution_recirc_piping_length', 50)
     step.setArgument('dhw_distribution_recirc_branch_piping_length', 50)
@@ -487,7 +488,7 @@ def get_values(osw_file, step)
     step.setArgument('dishwasher_efficiency', 450.0)
     step.setArgument('dishwasher_place_setting_capacity', 12)
     step.setArgument('refrigerator_present', true)
-    step.setArgument('refrigerator_location', Constants.Auto)
+    step.setArgument('refrigerator_location', HPXML::LocationLivingSpace)
     step.setArgument('refrigerator_rated_annual_kwh', 650.0)
     step.setArgument('cooking_range_present', true)
     step.setArgument('cooking_range_fuel_type', HPXML::FuelTypeElectricity)
@@ -581,15 +582,17 @@ def get_values(osw_file, step)
     step.setArgument('ducts_return_location', HPXML::LocationLivingSpace)
     step.setArgument('ducts_supply_leakage_value', 0.0)
     step.setArgument('ducts_return_leakage_value', 0.0)
-    step.setArgument('water_heater_location', Constants.Auto)
-    step.setArgument('clothes_washer_location', Constants.Auto)
-    step.setArgument('clothes_dryer_location', Constants.Auto)
+    step.setArgument('water_heater_location', HPXML::LocationBasementConditioned)
+    step.setArgument('clothes_washer_location', HPXML::LocationBasementConditioned)
+    step.setArgument('clothes_dryer_location', HPXML::LocationBasementConditioned)
     step.setArgument('refrigerator_location', HPXML::LocationBasementConditioned)
   elsif ['base-atticroof-flat.osw'].include? osw_file
     step.setArgument('geometry_roof_type', 'flat')
     step.setArgument('roof_assembly_r', 25.8)
     step.setArgument('ducts_supply_leakage_value', 0.0)
     step.setArgument('ducts_return_leakage_value', 0.0)
+    step.setArgument('ducts_supply_location', HPXML::LocationBasementConditioned)
+    step.setArgument('ducts_return_location', HPXML::LocationBasementConditioned)
   elsif ['base-atticroof-radiant-barrier.osw'].include? osw_file
     step.setArgument('roof_radiant_barrier', true)
   elsif ['base-atticroof-unvented-insulated-roof.osw'].include? osw_file
@@ -598,6 +601,8 @@ def get_values(osw_file, step)
   elsif ['base-atticroof-vented.osw'].include? osw_file
     step.setArgument('geometry_attic_type', HPXML::AtticTypeVented)
     step.setArgument('water_heater_location', HPXML::LocationAtticVented)
+    step.setArgument('ducts_supply_location', HPXML::LocationAtticVented)
+    step.setArgument('ducts_return_location', HPXML::LocationAtticVented)
   elsif ['base-dhw-combi-tankless.osw'].include? osw_file
     step.setArgument('heating_system_type', HPXML::HVACTypeBoiler)
     step.setArgument('heating_system_electric_auxiliary_energy', 200.0)
@@ -828,17 +833,21 @@ def get_values(osw_file, step)
     step.setArgument('ducts_return_location', HPXML::LocationLivingSpace)
   elsif ['base-enclosure-beds-1.osw'].include? osw_file
     step.setArgument('geometry_num_bedrooms', 1)
+    step.setArgument('geometry_num_occupants', '1')
     step.setArgument('water_heater_heating_capacity', '18.767')
     step.setArgument('plug_loads_television_annual_kwh', 482.0)
   elsif ['base-enclosure-beds-2.osw'].include? osw_file
     step.setArgument('geometry_num_bedrooms', 2)
+    step.setArgument('geometry_num_occupants', '2')
     step.setArgument('water_heater_heating_capacity', '18.767')
     step.setArgument('plug_loads_television_annual_kwh', 551.0)
   elsif ['base-enclosure-beds-4.osw'].include? osw_file
     step.setArgument('geometry_num_bedrooms', 4)
+    step.setArgument('geometry_num_occupants', '4')
     step.setArgument('plug_loads_television_annual_kwh', 689.0)
   elsif ['base-enclosure-beds-5.osw'].include? osw_file
     step.setArgument('geometry_num_bedrooms', 5)
+    step.setArgument('geometry_num_occupants', '5')
     step.setArgument('plug_loads_television_annual_kwh', 758.0)
   elsif ['base-enclosure-garage.osw'].include? osw_file
     step.setArgument('geometry_garage_width', 30.0)
@@ -895,9 +904,9 @@ def get_values(osw_file, step)
     step.setArgument('foundation_wall_insulation_distance_to_bottom', 0)
     step.setArgument('ducts_supply_location', HPXML::LocationBasementUnconditioned)
     step.setArgument('ducts_return_location', HPXML::LocationBasementUnconditioned)
-    step.setArgument('water_heater_location', Constants.Auto)
-    step.setArgument('clothes_washer_location', Constants.Auto)
-    step.setArgument('clothes_dryer_location', Constants.Auto)
+    step.setArgument('water_heater_location', HPXML::LocationBasementUnconditioned)
+    step.setArgument('clothes_washer_location', HPXML::LocationBasementUnconditioned)
+    step.setArgument('clothes_dryer_location', HPXML::LocationBasementUnconditioned)
     step.setArgument('refrigerator_location', HPXML::LocationBasementUnconditioned)
     step.setArgument('plug_loads_other_annual_kwh', 1228.5)
   elsif ['base-foundation-unconditioned-basement-above-grade.osw'].include? osw_file
@@ -908,9 +917,9 @@ def get_values(osw_file, step)
     step.setArgument('foundation_wall_insulation_distance_to_bottom', 0)
     step.setArgument('ducts_supply_location', HPXML::LocationBasementUnconditioned)
     step.setArgument('ducts_return_location', HPXML::LocationBasementUnconditioned)
-    step.setArgument('water_heater_location', Constants.Auto)
-    step.setArgument('clothes_washer_location', Constants.Auto)
-    step.setArgument('clothes_dryer_location', Constants.Auto)
+    step.setArgument('water_heater_location', HPXML::LocationBasementUnconditioned)
+    step.setArgument('clothes_washer_location', HPXML::LocationBasementUnconditioned)
+    step.setArgument('clothes_dryer_location', HPXML::LocationBasementUnconditioned)
     step.setArgument('refrigerator_location', HPXML::LocationBasementUnconditioned)
     step.setArgument('plug_loads_other_annual_kwh', 1228.5)
   elsif ['base-foundation-unconditioned-basement-assembly-r.osw'].include? osw_file
@@ -920,9 +929,9 @@ def get_values(osw_file, step)
     step.setArgument('foundation_wall_assembly_r', 10.69)
     step.setArgument('ducts_supply_location', HPXML::LocationBasementUnconditioned)
     step.setArgument('ducts_return_location', HPXML::LocationBasementUnconditioned)
-    step.setArgument('water_heater_location', Constants.Auto)
-    step.setArgument('clothes_washer_location', Constants.Auto)
-    step.setArgument('clothes_dryer_location', Constants.Auto)
+    step.setArgument('water_heater_location', HPXML::LocationBasementUnconditioned)
+    step.setArgument('clothes_washer_location', HPXML::LocationBasementUnconditioned)
+    step.setArgument('clothes_dryer_location', HPXML::LocationBasementUnconditioned)
     step.setArgument('refrigerator_location', HPXML::LocationBasementUnconditioned)
     step.setArgument('plug_loads_other_annual_kwh', 1228.5)
   elsif ['base-foundation-unconditioned-basement-wall-insulation.osw'].include? osw_file
@@ -932,9 +941,9 @@ def get_values(osw_file, step)
     step.setArgument('foundation_wall_insulation_distance_to_bottom', 4)
     step.setArgument('ducts_supply_location', HPXML::LocationBasementUnconditioned)
     step.setArgument('ducts_return_location', HPXML::LocationBasementUnconditioned)
-    step.setArgument('water_heater_location', Constants.Auto)
-    step.setArgument('clothes_washer_location', Constants.Auto)
-    step.setArgument('clothes_dryer_location', Constants.Auto)
+    step.setArgument('water_heater_location', HPXML::LocationBasementUnconditioned)
+    step.setArgument('clothes_washer_location', HPXML::LocationBasementUnconditioned)
+    step.setArgument('clothes_dryer_location', HPXML::LocationBasementUnconditioned)
     step.setArgument('refrigerator_location', HPXML::LocationBasementUnconditioned)
     step.setArgument('plug_loads_other_annual_kwh', 1228.5)
   elsif ['base-foundation-unvented-crawlspace.osw'].include? osw_file
@@ -947,7 +956,7 @@ def get_values(osw_file, step)
     step.setArgument('slab_carpet_r', 2.5)
     step.setArgument('ducts_supply_location', HPXML::LocationCrawlspaceUnvented)
     step.setArgument('ducts_return_location', HPXML::LocationCrawlspaceUnvented)
-    step.setArgument('water_heater_location', Constants.Auto)
+    step.setArgument('water_heater_location', HPXML::LocationCrawlspaceUnvented)
     step.setArgument('plug_loads_other_annual_kwh', 1228.5)
   elsif ['base-foundation-vented-crawlspace.osw'].include? osw_file
     step.setArgument('geometry_cfa', 1350.0)
@@ -959,7 +968,7 @@ def get_values(osw_file, step)
     step.setArgument('slab_carpet_r', 2.5)
     step.setArgument('ducts_supply_location', HPXML::LocationCrawlspaceVented)
     step.setArgument('ducts_return_location', HPXML::LocationCrawlspaceVented)
-    step.setArgument('water_heater_location', Constants.Auto)
+    step.setArgument('water_heater_location', HPXML::LocationCrawlspaceVented)
     step.setArgument('plug_loads_other_annual_kwh', 1228.5)
   elsif ['base-foundation-walkout-basement.osw'].include? osw_file
     step.setArgument('geometry_foundation_height_above_grade', 5.0)
@@ -1125,7 +1134,7 @@ def get_values(osw_file, step)
     step.setArgument('slab_carpet_r', 2.5)
     step.setArgument('ducts_supply_location', HPXML::LocationCrawlspaceVented)
     step.setArgument('ducts_return_location', HPXML::LocationAtticUnvented)
-    step.setArgument('water_heater_location', Constants.Auto)
+    step.setArgument('water_heater_location', HPXML::LocationCrawlspaceVented)
     step.setArgument('plug_loads_other_annual_kwh', 1228.5)
   elsif ['base-hvac-ducts-outside.osw'].include? osw_file
     step.setArgument('ducts_supply_location', HPXML::LocationOutside)
@@ -1365,6 +1374,15 @@ def get_values(osw_file, step)
     step.setArgument('neighbor_back_distance', 10)
     step.setArgument('neighbor_front_distance', 15)
     step.setArgument('neighbor_front_height', '12')
+  elsif ['extra-auto.osw'].include? osw_file
+    step.setArgument('geometry_num_occupants', Constants.Auto)
+    step.setArgument('water_heater_location', Constants.Auto)
+    step.setArgument('water_heater_tank_volume', Constants.Auto)
+    step.setArgument('water_heater_efficiency', Constants.Auto)
+    step.setArgument('dhw_distribution_standard_piping_length', Constants.Auto)
+    step.setArgument('clothes_washer_location', Constants.Auto)
+    step.setArgument('clothes_dryer_location', Constants.Auto)
+    step.setArgument('refrigerator_location', Constants.Auto)
   elsif ['extra-pv-roofpitch.osw'].include? osw_file
     step.setArgument('pv_system_module_type_1', HPXML::PVModuleTypeStandard)
     step.setArgument('pv_system_module_type_2', HPXML::PVModuleTypeStandard)
@@ -1909,6 +1927,9 @@ def set_hpxml_building_construction(hpxml_file, hpxml)
     hpxml.building_construction.number_of_conditioned_floors_above_grade += 1
     hpxml.building_construction.conditioned_floor_area += 1350
     hpxml.building_construction.conditioned_building_volume += 1350 * 8
+  elsif ['base-misc-defaults.xml'].include? hpxml_file
+    hpxml.building_construction.conditioned_building_volume = nil
+    hpxml.building_construction.average_ceiling_height = 8
   elsif ['base-enclosure-adiabatic-surfaces.xml'].include? hpxml_file
     hpxml.building_construction.residential_facility_type = HPXML::ResidentialTypeApartment
   end
@@ -4147,6 +4168,7 @@ def set_hpxml_water_heating_systems(hpxml_file, hpxml)
   hpxml.water_heating_systems.each do |water_heating_system|
     if ['base-misc-defaults.xml'].include? hpxml_file
       water_heating_system.temperature = nil
+      water_heating_system.location = nil
     else
       water_heating_system.temperature = Waterheater.get_default_hot_water_temperature(Constants.ERIVersions[-1])
     end
@@ -4197,6 +4219,8 @@ def set_hpxml_hot_water_distribution(hpxml_file, hpxml)
     hpxml.hot_water_distributions[0].recirculation_pump_power = 50
   elsif ['base-dhw-none.xml'].include? hpxml_file
     hpxml.hot_water_distributions.clear()
+  elsif ['base-misc-defaults.xml'].include? hpxml_file
+    hpxml.hot_water_distributions[0].standard_piping_length = nil
   end
 end
 
@@ -4311,6 +4335,17 @@ def set_hpxml_pv_systems(hpxml_file, hpxml)
                          max_power_output: 1500,
                          inverter_efficiency: 0.96,
                          system_losses_fraction: 0.14)
+  elsif ['base-misc-defaults.xml'].include? hpxml_file
+    hpxml.pv_systems.add(id: 'PVSystem',
+                         module_type: HPXML::PVModuleTypeStandard,
+                         location: HPXML::LocationRoof,
+                         tracking: HPXML::PVTrackingTypeFixed,
+                         array_azimuth: 180,
+                         array_tilt: 20,
+                         max_power_output: 4000,
+                         inverter_efficiency: nil,
+                         system_losses_fraction: nil,
+                         year_modules_manufactured: 2015)
   end
 end
 
@@ -4338,6 +4373,15 @@ def set_hpxml_clothes_washer(hpxml_file, hpxml)
     hpxml.clothes_washers[0].location = HPXML::LocationGarage
   elsif ['invalid_files/clothes-washer-location-other.xml'].include? hpxml_file
     hpxml.clothes_washers[0].location = 'other'
+  elsif ['base-misc-defaults.xml'].include? hpxml_file
+    hpxml.clothes_washers[0].location = nil
+    hpxml.clothes_washers[0].modified_energy_factor = nil
+    hpxml.clothes_washers[0].integrated_modified_energy_factor = nil
+    hpxml.clothes_washers[0].rated_annual_kwh = nil
+    hpxml.clothes_washers[0].label_electric_rate = nil
+    hpxml.clothes_washers[0].label_gas_rate = nil
+    hpxml.clothes_washers[0].label_annual_gas_cost = nil
+    hpxml.clothes_washers[0].capacity = nil
   end
 end
 
@@ -4388,6 +4432,11 @@ def set_hpxml_clothes_dryer(hpxml_file, hpxml)
     hpxml.clothes_dryers[0].location = HPXML::LocationGarage
   elsif ['invalid_files/clothes-dryer-location-other.xml'].include? hpxml_file
     hpxml.clothes_dryers[0].location = 'other'
+  elsif ['base-misc-defaults.xml'].include? hpxml_file
+    hpxml.clothes_dryers[0].location = nil
+    hpxml.clothes_dryers[0].energy_factor = nil
+    hpxml.clothes_dryers[0].combined_energy_factor = nil
+    hpxml.clothes_dryers[0].control_type = nil
   end
 end
 
@@ -4403,6 +4452,10 @@ def set_hpxml_dishwasher(hpxml_file, hpxml)
     hpxml.dishwashers.add(id: 'Dishwasher',
                           energy_factor: 0.5,
                           place_setting_capacity: 12)
+  elsif ['base-misc-defaults.xml'].include? hpxml_file
+    hpxml.dishwashers[0].rated_annual_kwh = nil
+    hpxml.dishwashers[0].energy_factor = nil
+    hpxml.dishwashers[0].place_setting_capacity = nil
   end
 end
 
@@ -4424,6 +4477,10 @@ def set_hpxml_refrigerator(hpxml_file, hpxml)
     hpxml.refrigerators[0].location = HPXML::LocationGarage
   elsif ['invalid_files/refrigerator-location-other.xml'].include? hpxml_file
     hpxml.refrigerators[0].location = 'other'
+  elsif ['base-misc-defaults.xml'].include? hpxml_file
+    hpxml.refrigerators[0].location = nil
+    hpxml.refrigerators[0].rated_annual_kwh = nil
+    hpxml.refrigerators[0].adjusted_annual_kwh = nil
   end
 end
 
@@ -4445,6 +4502,8 @@ def set_hpxml_cooking_range(hpxml_file, hpxml)
   elsif ['base-appliances-wood.xml'].include? hpxml_file
     hpxml.cooking_ranges[0].fuel_type = HPXML::FuelTypeWood
     hpxml.cooking_ranges[0].is_induction = false
+  elsif ['base-misc-defaults.xml'].include? hpxml_file
+    hpxml.cooking_ranges[0].is_induction = nil
   end
 end
 
@@ -4454,6 +4513,8 @@ def set_hpxml_oven(hpxml_file, hpxml)
                     is_convection: false)
   elsif ['base-appliances-none.xml'].include? hpxml_file
     hpxml.ovens.clear()
+  elsif ['base-misc-defaults.xml'].include? hpxml_file
+    hpxml.ovens[0].is_convection = nil
   end
 end
 
@@ -4496,7 +4557,9 @@ def set_hpxml_ceiling_fans(hpxml_file, hpxml)
                            efficiency: 100,
                            quantity: 2)
   elsif ['base-misc-defaults.xml'].include? hpxml_file
-    hpxml.ceiling_fans.add(id: 'CeilingFan')
+    hpxml.ceiling_fans.add(id: 'CeilingFan',
+                           efficiency: nil,
+                           quantity: nil)
   end
 end
 

@@ -510,8 +510,24 @@ Water Heaters
 *************
 
 Each water heater should be entered as a ``Systems/WaterHeating/WaterHeatingSystem``.
-Inputs including ``WaterHeaterType``, ``Location``, and ``FractionDHWLoadServed`` must be provided.
-The setpoint temperature may be provided as ``HotWaterTemperature``; if not provided, 125 deg-F is assumed.
+Inputs including ``WaterHeaterType`` and ``FractionDHWLoadServed`` must be provided.
+The water heater ``Location`` can be optionally entered; if not provided, a default water heater location will be assumed based on Building America (BA) climate zone and space types in the residence. 
+
++------------------+---------------------------------------------------------------------------------------+
+| BA Climate Zone  | Default Water Heater Location                                                         |
++==================+=======================================================================================+
+| | Hot-Dry        | | Garage, if a garage presents in the residence                                       |
+| | Hot-Humid      | | Living Space, else                                                                  |
++------------------+---------------------------------------------------------------------------------------+
+| | Marine         | | Conditioned Basement, if a conditioned basement presents in the residence           | 
+| | Mixed-Humid    | | Unconditioned Basement, else if an unconditioned basement presents in the residence |
+| | Mixed-Dry      | | Living Space, else                                                                  |
+| | Cold           |                                                                                       |
+| | Very Cold      |                                                                                       |
+| | Subarctic      |                                                                                       |                                                
++------------------+---------------------------------------------------------------------------------------+
+
+The setpoint temperature may be provided as ``HotWaterTemperature``; if not provided, 125°F is assumed.
 
 Depending on the type of water heater specified, additional elements are required/available:
 
@@ -529,7 +545,7 @@ For tankless water heaters, an annual energy derate due to cycling inefficiencie
 If not provided, a value of 0.08 (8%) will be assumed.
 
 For combi boiler systems, the ``RelatedHVACSystem`` must point to a ``HeatingSystem`` of type "Boiler".
-For combi boiler systems with a storage tank, the storage tank losses (deg-F/hr) can be entered as ``StandbyLoss``; if not provided, an average value will be used.
+For combi boiler systems with a storage tank, the storage tank losses (°F/hr) can be entered as ``StandbyLoss``; if not provided, an average value will be used.
 
 For water heaters that are connected to a desuperheater, the ``RelatedHVACSystem`` must either point to a ``HeatPump`` or a ``CoolingSystem``.
 
@@ -539,9 +555,20 @@ Hot Water Distribution
 A ``Systems/WaterHeating/HotWaterDistribution`` must be provided if any water heating systems are specified.
 Inputs including ``SystemType`` and ``PipeInsulation/PipeRValue`` must be provided.
 
-For a ``SystemType/Standard`` (non-recirculating) system, the following element is required:
+For a ``SystemType/Standard`` (non-recirculating) system, the following element can be optionally entered:
 
 - ``PipingLength``: Measured length of hot water piping from the hot water heater to the farthest hot water fixture, measured longitudinally from plans, assuming the hot water piping does not run diagonally, plus 10 feet of piping for each floor level, plus 5 feet of piping for unconditioned basements (if any)
+
+If ``PipingLength`` is not provided, a default ``PipingLength`` will be assumed. The default ``PipingLength`` will be calculated using the equation :eq:`std_piping_length`.  
+
+.. math:: PipeL = 2.0 \cdot (\frac{CFA}{NCfl})^{0.5} + 10.0 \cdot NCfl + 5.0 \cdot bsmnt
+  :label: std_piping_length
+  
+Where, 
+PipeL = piping length [ft], 
+CFA = conditioned floor area [ft²],
+NCfl = number of conditioned floor levels number of conditioned floor levels in the residence, including conditioned basements, 
+bsmnt = presence = 1.0 or absence = 0.0 of an unconditioned basement in the residence.
 
 For a ``SystemType/Recirculation`` system, the following elements are required:
 
@@ -600,8 +627,23 @@ The following elements, some adopted from the `PVWatts model <https://pvwatts.nr
 - ``ArrayAzimuth``
 - ``ArrayTilt``
 - ``MaxPowerOutput``
-- ``InverterEfficiency``: Default is 0.96.
-- ``SystemLossesFraction``: Default is 0.14. System losses include soiling, shading, snow, mismatch, wiring, degradation, etc.
+
+Inputs including ``InverterEfficiency``, ``SystemLossesFraction``, and ``YearModulesManufactured`` can be optionally entered.
+Note that system losses include soiling, shading, snow, mismatch, wiring, degradation, etc.
+If ``InverterEfficiency`` is not provided and ``SystemLossesFraction`` or ``YearModulesManufactured`` is not provided, default values will be assumed as follows:
+
+=======================  ==============
+Element Name             Default Value
+=======================  ==============
+Inverter Efficiency      0.96
+System Losses Fraction   0.14
+=======================  ==============
+
+If ``YearModulesManufactured`` is provided, ``SystemLossesFraction`` will be calculated based on ``YearModulesManufactured`` using the equation :eq:`pv_loss`.  
+In this case, the user entered ``SystemLossesFraction`` will be ignored.
+
+.. math:: System Losses Fraction = 1.0 - (1.0 - 0.14) \cdot (1.0 - (1.0 - 0.995^{(Current Year - Year Modules Manufactured)}))
+  :label: pv_loss
 
 Appliances
 ~~~~~~~~~~
@@ -609,41 +651,107 @@ Appliances
 This section describes elements specified in HPXML's ``Appliances``.
 Many of the appliances' inputs are derived from EnergyGuide labels.
 
-The ``Location`` for clothes washers, clothes dryers, and refrigerators can be provided, while dishwashers and cooking ranges are assumed to be in the living space.
+The ``Location`` for clothes washers, clothes dryers, and refrigerators can be optionally provided; if not provided, they are assumed to be in the living space.
+The ``Location`` for dishwashers and cooking ranges are assumed to be in the living space.
 
 Clothes Washer
 **************
 
 An ``Appliances/ClothesWasher`` element can be specified; if not provided, a clothes washer will not be modeled.
+Inputs including the efficiency of the clothes washer, ``RatedAnnualkWh``, ``LabelElectricRate``, ``LabelGasRate``, ``LabelAnnualGasCost``, and ``Capacity`` can be optionally provided.
 The efficiency of the clothes washer can either be entered as a ``ModifiedEnergyFactor`` or an ``IntegratedModifiedEnergyFactor``.
-Several other inputs from the EnergyGuide label must be provided as well.
+If ``IntegratedModifiedEnergyFactor`` is provided, ``IntegratedModifiedEnergyFactor`` will be converted into ``ModifiedEnergyFactor`` using the equation :eq:`cw_mef`.  
+This equation is based on ANSI/RESNET 301-2004.
+
+.. math:: Modified Energy Factor = 0.503 + 0.95 \cdot Integrated Modified EnergyFactor
+  :label: cw_mef
+
+If ``ModifiedEnergyFactor`` and ``IntegratedModifiedEnergyFactor`` are not provided, the default value of ``IntegratedModifiedEnergyFactor`` will be used in the equation :eq:`cw_mef` to calculate the default ``ModifiedEnergyFactor``.  
+The following default values will be assumed unless a complete set of the optional variables is provided. 
+
+==================================  ==================
+Element Name                        Default Value
+==================================  ==================
+Integrated Modified Energy Factor   0.331  [unitless]
+Rated Annual kWh                    704.0  [kWh/yr]
+Label Electric Rate                 0.0803  [$/kWh]
+Label Gas Rate                      0.58  [$/therm]
+Label Annual Gas Cost               23.0  [$]
+Capacity                            2.874  [ft³]
+==================================  ==================
 
 Clothes Dryer
 *************
 
 An ``Appliances/ClothesDryer`` element can be specified; if not provided, a clothes dryer will not be modeled.
-The dryer's ``FuelType`` and ``ControlType`` ("timer" or "moisture") must be provided.
+The dryer's ``FuelType`` must be provided.
+Inputs including the efficiency of the clothes dryer and ``ControlType`` ("timer" or "moisture") can be optionally provided.
 The efficiency of the clothes dryer can either be entered as an ``EnergyFactor`` or ``CombinedEnergyFactor``.
+If ``CombinedEnergyFactor`` is provided, ``CombinedEnergyFactor`` will be converted into ``EnergyFactor`` using the equation :eq:`cd_ef`.  
+This equation is based on ANSI/RESNET 301-2004.
 
+.. math:: Energy Factor = 1.15 \cdot Combined Energy Factor
+  :label: cd_ef 
+
+If ``EnergyFactor`` and ``CombinedEnergyFactor`` are not provided, the default value of ``CombinedEnergyFactor`` will be used in the equation :eq:`cd_ef` to calculate the default ``EnergyFactor``.
+Depending on the fuel type, two different default values may be used.  
+The following default values will be assumed unless a complete set of the optional variables is provided.
+
+=======================  ===============================================
+Element Name             Default Value
+=======================  ===============================================
+Combined Energy Factor   2.62, if fuel type is electricity;  2.32, else
+Control Type             timer
+=======================  ===============================================
 
 Dishwasher
 **********
 
 An ``Appliances/Dishwasher`` element can be specified; if not provided, a dishwasher will not be modeled.
-The dishwasher's ``PlaceSettingCapacity`` must be provided.
+Inputs including the efficiency of the dishwasher and ``PlaceSettingCapacity`` can be optionally provided.
 The efficiency of the dishwasher can either be entered as an ``EnergyFactor`` or ``RatedAnnualkWh``.
+If ``RatedAnnualkWh`` is provided, ``RatedAnnualkWh`` will be converted into ``EnergyFactor`` using the equation :eq:`dw_ef`.  
+This equation is based on ANSI/RESNET 301-2004.
+
+.. math:: Energy Factor = \frac{215.0}{Rated Annual kWh}
+  :label: dw_ef 
+
+If ``EnergyFactor`` and ``RatedAnnualkWh`` are not provided, the default value of ``EnergyFactor`` will be used.
+The following default values will be assumed unless a complete set of the optional variables is provided.
+
+=======================  =================
+Element Name             Default Value
+=======================  =================
+Energy Factor            0.46  [unitless]
+Place Setting Capacity   12.0  [unitless]
+=======================  =================
+
 
 Refrigerator
 ************
 
 An ``Appliances/Refrigerator`` element can be specified; if not provided, a refrigerator will not be modeled.
-The efficiency of the refrigerator must be entered as ``RatedAnnualkWh``.
+The efficiency of the refrigerator can be optionally entered as ``RatedAnnualkWh``.
+If ``RatedAnnualkWh`` is not provided, ``RatedAnnualkWh`` will be calculated based on the number of bedrooms using the equation :eq:`refrig_kwh`.  
+This equation is based on ANSI/RESNET 301-2004.
+
+.. math:: Rated Annual kWh = 637.0 + 18.0 \cdot Number of bedrooms
+  :label: refrig_kwh 
 
 Cooking Range/Oven
 ******************
 
 ``Appliances/CookingRange`` and ``Appliances/Oven`` elements can be specified; if not provided, a range/oven will not be modeled.
-The ``FuelType`` of the range and whether it ``IsInduction``, as well as whether the oven ``IsConvection``, must be provided.
+The ``FuelType`` of the range must be provided.
+Inputs including ``IsInduction`` (for the cooking range) and ``IsConvection`` (for the oven) can be optionally provided.
+The following default values will be assumed unless a complete set of the optional variables is provided.
+
+=============  ==============
+Element Name   Default Value
+=============  ==============
+IsInduction    false
+IsConvection   false
+=============  ==============
 
 Lighting
 ~~~~~~~~
