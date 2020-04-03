@@ -674,4 +674,36 @@ class Constants
   def self.TerrainCity
     return 'city'
   end
+
+  def self.BAZoneHotDry
+    return 'Hot-Dry'
+  end
+
+  def self.BAZoneHotHumid
+    return 'Hot-Humid'
+  end
+
+  def self.BAZoneMarine
+    return 'Marine'
+  end
+
+  def self.BAZoneMixedHumid
+    return 'Mixed-Humid'
+  end
+
+  def self.BAZoneMixedDry
+    return 'Mixed-Dry'
+  end
+
+  def self.BAZoneCold
+    return 'Cold'
+  end
+
+  def self.BAZoneVeryCold
+    return 'Very Cold'
+  end
+
+  def self.BAZoneSubarctic
+    return 'Subarctic'
+  end
 end

@@ -1223,17 +1223,17 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     water_heater_fuel_choices << HPXML::FuelTypePropane
     water_heater_fuel_choices << HPXML::FuelTypeWood
 
-    location_choices = OpenStudio::StringVector.new
-    location_choices << Constants.Auto
-    location_choices << HPXML::LocationLivingSpace
-    location_choices << HPXML::LocationBasementConditioned
-    location_choices << HPXML::LocationBasementUnconditioned
-    location_choices << HPXML::LocationGarage
-    location_choices << HPXML::LocationAtticVented
-    location_choices << HPXML::LocationAtticUnvented
-    location_choices << HPXML::LocationCrawlspaceVented
-    location_choices << HPXML::LocationCrawlspaceUnvented
-    location_choices << HPXML::LocationOtherExterior
+    water_heater_location_choices = OpenStudio::StringVector.new
+    water_heater_location_choices << Constants.Auto
+    water_heater_location_choices << HPXML::LocationLivingSpace
+    water_heater_location_choices << HPXML::LocationBasementConditioned
+    water_heater_location_choices << HPXML::LocationBasementUnconditioned
+    water_heater_location_choices << HPXML::LocationGarage
+    water_heater_location_choices << HPXML::LocationAtticVented
+    water_heater_location_choices << HPXML::LocationAtticUnvented
+    water_heater_location_choices << HPXML::LocationCrawlspaceVented
+    water_heater_location_choices << HPXML::LocationCrawlspaceUnvented
+    water_heater_location_choices << HPXML::LocationOtherExterior
 
     water_heater_efficiency_type_choices = OpenStudio::StringVector.new
     water_heater_efficiency_type_choices << 'EnergyFactor'
@@ -1251,7 +1251,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(HPXML::FuelTypeElectricity)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('water_heater_location', location_choices, true)
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('water_heater_location', water_heater_location_choices, true)
     arg.setDisplayName('Water Heater: Location')
     arg.setDescription('The location of water heater.')
     arg.setDefaultValue(Constants.Auto)
@@ -1319,11 +1319,11 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(HPXML::DHWDistTypeStandard)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('dhw_distribution_standard_piping_length', true)
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('dhw_distribution_standard_piping_length', true)
     arg.setDisplayName('Hot Water Distribution: Standard Piping Length')
     arg.setUnits('ft')
-    arg.setDescription("If the distribution system is #{HPXML::DHWDistTypeStandard}, the length of the piping.")
-    arg.setDefaultValue(50)
+    arg.setDescription("If the distribution system is #{HPXML::DHWDistTypeStandard}, the length of the piping. A value of '#{Constants.Auto}' will use a default.")
+    arg.setDefaultValue(Constants.Auto)
     args << arg
 
     recirculation_control_type_choices = OpenStudio::StringVector.new
@@ -1562,11 +1562,18 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(true)
     args << arg
 
+    appliance_location_choices = OpenStudio::StringVector.new
+    appliance_location_choices << Constants.Auto
+    appliance_location_choices << HPXML::LocationLivingSpace
+    appliance_location_choices << HPXML::LocationBasementConditioned
+    appliance_location_choices << HPXML::LocationBasementUnconditioned
+    appliance_location_choices << HPXML::LocationGarage
+
     clothes_washer_efficiency_type_choices = OpenStudio::StringVector.new
     clothes_washer_efficiency_type_choices << 'ModifiedEnergyFactor'
     clothes_washer_efficiency_type_choices << 'IntegratedModifiedEnergyFactor'
 
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('clothes_washer_location', location_choices, true)
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('clothes_washer_location', appliance_location_choices, true)
     arg.setDisplayName('Clothes Washer: Location')
     arg.setDescription('The space type for the clothes washer location.')
     arg.setDefaultValue(Constants.Auto)
@@ -1626,7 +1633,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(true)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('clothes_dryer_location', location_choices, true)
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('clothes_dryer_location', appliance_location_choices, true)
     arg.setDisplayName('Clothes Dryer: Location')
     arg.setDescription('The space type for the clothes dryer location.')
     arg.setDefaultValue(Constants.Auto)
@@ -1707,7 +1714,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(true)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('refrigerator_location', location_choices, true)
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('refrigerator_location', appliance_location_choices, true)
     arg.setDisplayName('Refrigerator: Location')
     arg.setDescription('The space type for the refrigerator location.')
     arg.setDefaultValue(Constants.Auto)
@@ -2324,9 +2331,7 @@ class HPXMLFile
   end
 
   def self.set_building_occupancy(hpxml, runner, args)
-    if args[:geometry_num_occupants] == Constants.Auto
-      hpxml.building_occupancy.number_of_residents = args[:geometry_num_bedrooms]
-    else
+    if args[:geometry_num_occupants] != Constants.Auto
       hpxml.building_occupancy.number_of_residents = args[:geometry_num_occupants]
     end
     hpxml.building_occupancy.schedules_output_path = args[:schedules_output_path]
@@ -2353,6 +2358,7 @@ class HPXMLFile
     hpxml.building_construction.number_of_bathrooms = number_of_bathrooms
     hpxml.building_construction.conditioned_floor_area = args[:geometry_cfa]
     hpxml.building_construction.conditioned_building_volume = conditioned_building_volume
+    hpxml.building_construction.average_ceiling_height = args[:geometry_wall_height]
     hpxml.building_construction.residential_facility_type = args[:geometry_unit_type]
   end
 
@@ -3003,20 +3009,6 @@ class HPXMLFile
     return location
   end
 
-  def self.get_kitchen_appliance_location_auto(args) # FIXME
-    location = HPXML::LocationLivingSpace
-    return location
-  end
-
-  def self.get_other_appliance_location_auto(args, hpxml) # FIXME
-    if hpxml.foundations.size > 0 && (args[:geometry_foundation_type].downcase.include?('basement') || args[:geometry_foundation_type].downcase.include?('crawlspace'))
-      location = hpxml.foundations[0].to_location
-    else
-      location = HPXML::LocationLivingSpace
-    end
-    return location
-  end
-
   def self.set_ventilation_fans(hpxml, runner, args)
     if args[:mech_vent_fan_type] != 'none'
 
@@ -3080,9 +3072,8 @@ class HPXMLFile
       fuel_type = HPXML::FuelTypeElectricity
     end
 
-    location = args[:water_heater_location]
-    if location == Constants.Auto
-      location = get_other_appliance_location_auto(args, hpxml)
+    if args[:water_heater_location] != Constants.Auto
+      location = args[:water_heater_location]
     end
 
     num_bathrooms = args[:geometry_num_bathrooms]
@@ -3175,7 +3166,9 @@ class HPXMLFile
     end
 
     if args[:dhw_distribution_system_type] == HPXML::DHWDistTypeStandard
-      standard_piping_length = args[:dhw_distribution_standard_piping_length]
+      if args[:dhw_distribution_standard_piping_length] != Constants.Auto
+        standard_piping_length = args[:dhw_distribution_standard_piping_length]
+      end
     else
       recirculation_control_type = args[:dhw_distribution_recirc_control_type]
       recirculation_piping_length = args[:dhw_distribution_recirc_piping_length]
@@ -3276,9 +3269,8 @@ class HPXMLFile
   def self.set_clothes_washer(hpxml, runner, args)
     return unless args[:clothes_washer_present]
 
-    location = args[:clothes_washer_location]
-    if location == Constants.Auto
-      location = get_other_appliance_location_auto(args, hpxml)
+    if args[:clothes_washer_location] != Constants.Auto
+      location = args[:clothes_washer_location]
     end
 
     if args[:clothes_washer_efficiency_type] == 'ModifiedEnergyFactor'
@@ -3307,9 +3299,8 @@ class HPXMLFile
       combined_energy_factor = args[:clothes_dryer_efficiency]
     end
 
-    location = args[:clothes_dryer_location]
-    if location == Constants.Auto
-      location = get_other_appliance_location_auto(args, hpxml)
+    if args[:clothes_dryer_location] != Constants.Auto
+      location = args[:clothes_dryer_location]
     end
 
     hpxml.clothes_dryers.add(id: 'ClothesDryer',
@@ -3338,9 +3329,8 @@ class HPXMLFile
   def self.set_refrigerator(hpxml, runner, args)
     return unless args[:refrigerator_present]
 
-    location = args[:refrigerator_location]
-    if location == Constants.Auto
-      location = get_kitchen_appliance_location_auto(args)
+    if args[:refrigerator_location] != Constants.Auto
+      location = args[:refrigerator_location]
     end
 
     hpxml.refrigerators.add(id: 'Refrigerator',

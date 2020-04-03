@@ -690,6 +690,7 @@ class HPXML < Object
       XMLHelper.add_element(building_construction, 'ResidentialFacilityType', @residential_facility_type) unless @residential_facility_type.nil?
       XMLHelper.add_element(building_construction, 'NumberofConditionedFloors', Integer(@number_of_conditioned_floors)) unless @number_of_conditioned_floors.nil?
       XMLHelper.add_element(building_construction, 'NumberofConditionedFloorsAboveGrade', Integer(@number_of_conditioned_floors_above_grade)) unless @number_of_conditioned_floors_above_grade.nil?
+      XMLHelper.add_element(building_construction, 'AverageCeilingHeight', Float(@average_ceiling_height)) unless @average_ceiling_height.nil?
       XMLHelper.add_element(building_construction, 'NumberofBedrooms', Integer(@number_of_bedrooms)) unless @number_of_bedrooms.nil?
       XMLHelper.add_element(building_construction, 'NumberofBathrooms', Integer(@number_of_bathrooms)) unless @number_of_bathrooms.nil?
       XMLHelper.add_element(building_construction, 'ConditionedFloorArea', Float(@conditioned_floor_area)) unless @conditioned_floor_area.nil?
@@ -3202,6 +3203,7 @@ class HPXML < Object
       XMLHelper.add_element(pv_system, 'MaxPowerOutput', Float(@max_power_output)) unless @max_power_output.nil?
       XMLHelper.add_element(pv_system, 'InverterEfficiency', Float(@inverter_efficiency)) unless @inverter_efficiency.nil?
       XMLHelper.add_element(pv_system, 'SystemLossesFraction', Float(@system_losses_fraction)) unless @system_losses_fraction.nil?
+      XMLHelper.add_element(pv_system, 'YearModulesManufactured', Integer(@year_modules_manufactured)) unless @year_modules_manufactured.nil?
     end
 
     def from_rexml(pv_system)
