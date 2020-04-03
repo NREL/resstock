@@ -54,6 +54,34 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(60)
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('simulation_control_begin_month', false)
+    arg.setDisplayName('Simulation Control: Run Period Begin Month')
+    arg.setUnits('month')
+    arg.setDescription('This numeric field should contain the starting month number (1 = January, 2 = February, etc.) for the annual run period desired.')
+    arg.setDefaultValue(1)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('simulation_control_begin_day_of_month', false)
+    arg.setDisplayName('Simulation Control: Run Period Begin Day of Month')
+    arg.setUnits('day')
+    arg.setDescription('This numeric field should contain the starting day of the starting month (must be valid for month) for the annual run period desired.')
+    arg.setDefaultValue(1)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('simulation_control_end_month', false)
+    arg.setDisplayName('Simulation Control: Run Period End Month')
+    arg.setUnits('month')
+    arg.setDescription('This numeric field should contain the end month number (1 = January, 2 = February, etc.) for the annual run period desired.')
+    arg.setDefaultValue(12)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('simulation_control_end_day_of_month', false)
+    arg.setDisplayName('Simulation Control: Run Period End Day of Month')
+    arg.setUnits('day')
+    arg.setDescription('This numeric field should contain the ending day of the ending month (must be valid for month) for the annual run period desired.')
+    arg.setDefaultValue(31)
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('schedules_output_path', true)
     arg.setDisplayName('Schedules Output File Path')
     arg.setDescription('Absolute (or relative) path of the output schedules file.')
@@ -1827,6 +1855,10 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
              hpxml_path: runner.getStringArgumentValue('hpxml_path', user_arguments),
              weather_dir: runner.getStringArgumentValue('weather_dir', user_arguments),
              timestep: runner.getIntegerArgumentValue('simulation_control_timestep', user_arguments),
+             begin_month: runner.getIntegerArgumentValue('simulation_control_begin_month', user_arguments),
+             begin_day_of_month: runner.getIntegerArgumentValue('simulation_control_begin_day_of_month', user_arguments),
+             end_month: runner.getIntegerArgumentValue('simulation_control_end_month', user_arguments),
+             end_day_of_month: runner.getIntegerArgumentValue('simulation_control_end_day_of_month', user_arguments),
              schedules_output_path: runner.getStringArgumentValue('schedules_output_path', user_arguments),
              geometry_unit_type: runner.getStringArgumentValue('geometry_unit_type', user_arguments),
              geometry_unit_multiplier: runner.getIntegerArgumentValue('geometry_unit_multiplier', user_arguments),
@@ -2249,6 +2281,14 @@ class HPXMLFile
     hpxml.header.xml_generated_by = 'BuildResidentialHPXML'
     hpxml.header.transaction = 'create'
     hpxml.header.timestep = args[:timestep]
+    if not (args[:begin_month] == 1 && args[:begin_day_of_month] == 1)
+      hpxml.header.begin_month = args[:begin_month]
+      hpxml.header.begin_day_of_month = args[:begin_day_of_month]
+    end
+    if not (args[:end_month] == 12 && args[:end_day_of_month] == 31)
+      hpxml.header.end_month = args[:end_month]
+      hpxml.header.end_day_of_month = args[:end_day_of_month]
+    end
     hpxml.header.building_id = 'MyBuilding'
     hpxml.header.event_type = 'proposed workscope'
   end

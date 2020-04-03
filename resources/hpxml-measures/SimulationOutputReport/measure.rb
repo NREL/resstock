@@ -270,9 +270,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       timeseries_output_csv_path = File.join(output_dir, 'results_timeseries.csv')
     end
 
-    @timeseries_size = { 'hourly' => 8760,
-                         'daily' => 365,
-                         'timestep' => @model.getTimestep.numberOfTimestepsPerHour * 8760 }[timeseries_frequency]
+    @timeseries_size = get_timeseries_size(timeseries_frequency)
     fail "Unexpected timeseries_frequency: #{timeseries_frequency}." if @timeseries_size.nil?
 
     # Retrieve outputs
@@ -300,6 +298,27 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     @sqlFile.close()
 
     return true
+  end
+
+  def get_timeseries_size(timeseries_frequency)
+    year_description = @model.getYearDescription
+    run_period = @model.getRunPeriod
+
+    start_time = Time.new(year_description.assumedYear, run_period.getBeginMonth, run_period.getBeginDayOfMonth)
+    end_time = Time.new(year_description.assumedYear, run_period.getEndMonth, run_period.getEndDayOfMonth, 24)
+
+    timeseries_size = (end_time - start_time).to_i # seconds
+    if timeseries_frequency == 'hourly'
+      timeseries_size /= 3600
+    elsif timeseries_frequency == 'daily'
+      timeseries_size /= 3600
+      timeseries_size /= 24
+    elsif timeseries_frequency == 'timestep'
+      timeseries_size /= 3600
+      timeseries_size *= @model.getTimestep.numberOfTimestepsPerHour
+    end
+
+    return timeseries_size
   end
 
   def get_outputs(timeseries_frequency,

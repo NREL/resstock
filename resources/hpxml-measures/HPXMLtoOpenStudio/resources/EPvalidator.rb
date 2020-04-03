@@ -21,6 +21,7 @@ class EnergyPlusValidator
     zero = [0]
     one = [1]
     zero_or_one = [0, 1]
+    zero_or_two = [0, 2]
     zero_or_more = nil
     one_or_more = []
     zero_or_six = [0, 6]
@@ -92,6 +93,8 @@ class EnergyPlusValidator
       # [SimulationControl]
       '/HPXML/SoftwareInfo/extension/SimulationControl' => {
         'Timestep' => zero_or_one, # minutes; must be a divisor of 60
+        'BeginMonth | BeginDayOfMonth' => zero_or_two, # integer
+        'EndMonth | EndDayOfMonth' => zero_or_two, # integer
       },
 
       # [Neighbors]

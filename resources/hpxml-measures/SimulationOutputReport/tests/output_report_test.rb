@@ -426,6 +426,57 @@ class SimulationOutputReportTest < MiniTest::Test
     assert_equal(52560, File.readlines(timeseries_csv).size - 2)
   end
 
+  def test_timeseries_hourly_ALL_runperiod_Jan
+    args_hash = { 'hpxml_path' => '../workflow/sample_files/base-misc-runperiod-1-month.xml',
+                  'timeseries_frequency' => 'hourly',
+                  'include_timeseries_zone_temperatures' => true,
+                  'include_timeseries_fuel_consumptions' => true,
+                  'include_timeseries_end_use_consumptions' => true,
+                  'include_timeseries_total_loads' => true,
+                  'include_timeseries_component_loads' => true }
+    annual_csv, timeseries_csv, eri_csv = _test_measure(args_hash)
+    assert(File.exist?(annual_csv))
+    assert(File.exist?(timeseries_csv))
+    expected_timeseries_cols = ['Hour'] + TimeseriesColsFuels + TimeseriesColsEndUses + TimeseriesColsTotalLoads + TimeseriesColsComponentLoads + TimeseriesColsTemperatures
+    actual_timeseries_cols = File.readlines(timeseries_csv)[0].strip.split(',')
+    assert_equal(expected_timeseries_cols.sort, actual_timeseries_cols.sort)
+    assert_equal(31 * 24, File.readlines(timeseries_csv).size - 2)
+  end
+
+  def test_timeseries_daily_ALL_runperiod_Jan
+    args_hash = { 'hpxml_path' => '../workflow/sample_files/base-misc-runperiod-1-month.xml',
+                  'timeseries_frequency' => 'daily',
+                  'include_timeseries_zone_temperatures' => true,
+                  'include_timeseries_fuel_consumptions' => true,
+                  'include_timeseries_end_use_consumptions' => true,
+                  'include_timeseries_total_loads' => true,
+                  'include_timeseries_component_loads' => true }
+    annual_csv, timeseries_csv, eri_csv = _test_measure(args_hash)
+    assert(File.exist?(annual_csv))
+    assert(File.exist?(timeseries_csv))
+    expected_timeseries_cols = ['Day'] + TimeseriesColsFuels + TimeseriesColsEndUses + TimeseriesColsTotalLoads + TimeseriesColsComponentLoads + TimeseriesColsTemperatures
+    actual_timeseries_cols = File.readlines(timeseries_csv)[0].strip.split(',')
+    assert_equal(expected_timeseries_cols.sort, actual_timeseries_cols.sort)
+    assert_equal(31, File.readlines(timeseries_csv).size - 2)
+  end
+
+  def test_timeseries_timestep_ALL_60min_runperiod_Jan
+    args_hash = { 'hpxml_path' => '../workflow/sample_files/base-misc-runperiod-1-month.xml',
+                  'timeseries_frequency' => 'timestep',
+                  'include_timeseries_zone_temperatures' => true,
+                  'include_timeseries_fuel_consumptions' => true,
+                  'include_timeseries_end_use_consumptions' => true,
+                  'include_timeseries_total_loads' => true,
+                  'include_timeseries_component_loads' => true }
+    annual_csv, timeseries_csv, eri_csv = _test_measure(args_hash)
+    assert(File.exist?(annual_csv))
+    assert(File.exist?(timeseries_csv))
+    expected_timeseries_cols = ['Timestep'] + TimeseriesColsFuels + TimeseriesColsEndUses + TimeseriesColsTotalLoads + TimeseriesColsComponentLoads + TimeseriesColsTemperatures
+    actual_timeseries_cols = File.readlines(timeseries_csv)[0].strip.split(',')
+    assert_equal(expected_timeseries_cols.sort, actual_timeseries_cols.sort)
+    assert_equal(31 * 24, File.readlines(timeseries_csv).size - 2)
+  end
+
   def test_eri_designs
     # Create derivative HPXML file w/ ERI design type set
     require 'fileutils'
