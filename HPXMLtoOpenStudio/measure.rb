@@ -345,6 +345,10 @@ class OSModel
 
     # Default misc
     @hpxml.header.timestep = 60 if @hpxml.header.timestep.nil?
+    @hpxml.header.begin_month = 1 if @hpxml.header.begin_month.nil?
+    @hpxml.header.begin_day_of_month = 1 if @hpxml.header.begin_day_of_month.nil?
+    @hpxml.header.end_month = 12 if @hpxml.header.end_month.nil?
+    @hpxml.header.end_day_of_month = 31 if @hpxml.header.end_day_of_month.nil?
     @hpxml.site.shelter_coefficient = Airflow.get_default_shelter_coefficient() if @hpxml.site.shelter_coefficient.nil?
     @hpxml.building_occupancy.number_of_residents = Geometry.get_occupancy_default_num(@nbeds) if @hpxml.building_occupancy.number_of_residents.nil?
 
@@ -559,6 +563,12 @@ class OSModel
 
     convlim = model.getConvergenceLimits
     convlim.setMinimumSystemTimestep(0)
+
+    run_period = model.getRunPeriod
+    run_period.setBeginMonth(@hpxml.header.begin_month)
+    run_period.setBeginDayOfMonth(@hpxml.header.begin_day_of_month)
+    run_period.setEndMonth(@hpxml.header.end_month)
+    run_period.setEndDayOfMonth(@hpxml.header.end_day_of_month)
   end
 
   def self.set_zone_volumes(runner, model)

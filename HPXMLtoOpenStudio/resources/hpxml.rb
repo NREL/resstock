@@ -443,7 +443,8 @@ class HPXML < Object
   class Header < BaseElement
     ATTRS = [:xml_type, :xml_generated_by, :created_date_and_time, :transaction,
              :software_program_used, :software_program_version, :eri_calculation_version,
-             :eri_design, :timestep, :building_id, :event_type, :state_code]
+             :eri_design, :timestep, :building_id, :event_type, :state_code,
+             :begin_month, :begin_day_of_month, :end_month, :end_day_of_month]
     attr_accessor(*ATTRS)
 
     def check_for_errors
@@ -453,6 +454,46 @@ class HPXML < Object
         valid_tsteps = [60, 30, 20, 15, 12, 10, 6, 5, 4, 3, 2, 1]
         if not valid_tsteps.include? @timestep
           fail "Timestep (#{@timestep}) must be one of: #{valid_tsteps.join(', ')}."
+        end
+      end
+
+      if not @begin_month.nil?
+        valid_months = (1..12).to_a
+        if not valid_months.include? @begin_month
+          fail "Begin Month (#{@begin_month}) must be one of: #{valid_months.join(', ')}."
+        end
+      end
+
+      if not @end_month.nil?
+        valid_months = (1..12).to_a
+        if not valid_months.include? @end_month
+          fail "End Month (#{@end_month}) must be one of: #{valid_months.join(', ')}."
+        end
+      end
+
+      months_days = { [1, 3, 5, 7, 8, 10, 12] => (1..31).to_a, [4, 6, 9, 11] => (1..30).to_a, [2] => (1..28).to_a }
+      months_days.each do |months, valid_days|
+        if (not @begin_day_of_month.nil?) && (months.include? @begin_month)
+          if not valid_days.include? @begin_day_of_month
+            fail "Begin Day of Month (#{@begin_day_of_month}) must be one of: #{valid_days.join(', ')}."
+          end
+        end
+        next unless (not @end_day_of_month.nil?) && (months.include? @end_month)
+        if not valid_days.include? @end_day_of_month
+          fail "End Day of Month (#{@end_day_of_month}) must be one of: #{valid_days.join(', ')}."
+        end
+      end
+
+      if (not @begin_month.nil?) && (not @end_month.nil?)
+        if @begin_month > @end_month
+          fail "Begin Month (#{@begin_month}) cannot come after End Month (#{@end_month})."
+        end
+        if (not @begin_day_of_month.nil?) && (not @end_day_of_month.nil?)
+          if @begin_month == @end_month
+            if @begin_day_of_month > @end_day_of_month
+              fail "Begin Day of Month (#{@begin_day_of_month}) cannot come after End Day of Month (#{@end_day_of_month}) for the same month (#{@begin_month})."
+            end
+          end
         end
       end
 
@@ -476,10 +517,23 @@ class HPXML < Object
       software_info = XMLHelper.add_element(hpxml, 'SoftwareInfo')
       XMLHelper.add_element(software_info, 'SoftwareProgramUsed', @software_program_used) unless @software_program_used.nil?
       XMLHelper.add_element(software_info, 'SoftwareProgramVersion', software_program_version) unless software_program_version.nil?
-      HPXML::add_extension(parent: software_info,
-                           extensions: { 'ERICalculation/Version' => @eri_calculation_version,
-                                         'ERICalculation/Design' => @eri_design,
-                                         'SimulationControl/Timestep' => HPXML::to_integer_or_nil(@timestep) })
+      extension = XMLHelper.add_element(software_info, 'extension')
+      if (not @eri_calculation_version.nil?) || (not @eri_design.nil?)
+        eri_calculation = XMLHelper.add_element(extension, 'ERICalculation')
+        XMLHelper.add_element(eri_calculation, 'Version', @eri_calculation_version)
+        XMLHelper.add_element(eri_calculation, 'Design', @eri_design)
+      end
+      if (not @timestep.nil?) || (not @begin_month.nil?) || (not @begin_day_of_month.nil?) || (not @end_month.nil?) || (not @end_day_of_month.nil?)
+        simulation_control = XMLHelper.add_element(extension, 'SimulationControl')
+        XMLHelper.add_element(simulation_control, 'Timestep', HPXML::to_integer_or_nil(@timestep)) unless @timestep.nil?
+        XMLHelper.add_element(simulation_control, 'BeginMonth', HPXML::to_integer_or_nil(@begin_month)) unless @begin_month.nil?
+        XMLHelper.add_element(simulation_control, 'BeginDayOfMonth', HPXML::to_integer_or_nil(@begin_day_of_month)) unless @begin_day_of_month.nil?
+        XMLHelper.add_element(simulation_control, 'EndMonth', HPXML::to_integer_or_nil(@end_month)) unless @end_month.nil?
+        XMLHelper.add_element(simulation_control, 'EndDayOfMonth', HPXML::to_integer_or_nil(@end_day_of_month)) unless @end_day_of_month.nil?
+      end
+      if extension.elements['ERICalculation'].nil? && extension.elements['SimulationControl'].nil?
+        extension.remove
+      end
 
       building = XMLHelper.add_element(hpxml, 'Building')
       building_building_id = XMLHelper.add_element(building, 'BuildingID')
@@ -500,6 +554,10 @@ class HPXML < Object
       @eri_calculation_version = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/ERICalculation/Version')
       @eri_design = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/ERICalculation/Design')
       @timestep = HPXML::to_integer_or_nil(XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/SimulationControl/Timestep'))
+      @begin_month = HPXML::to_integer_or_nil(XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/SimulationControl/BeginMonth'))
+      @begin_day_of_month = HPXML::to_integer_or_nil(XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/SimulationControl/BeginDayOfMonth'))
+      @end_month = HPXML::to_integer_or_nil(XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/SimulationControl/EndMonth'))
+      @end_day_of_month = HPXML::to_integer_or_nil(XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/SimulationControl/EndDayOfMonth'))
       @building_id = HPXML::get_id(hpxml, 'Building/BuildingID')
       @event_type = XMLHelper.get_value(hpxml, 'Building/ProjectStatus/EventType')
       @state_code = XMLHelper.get_value(hpxml, 'Building/Site/Address/StateCode')
