@@ -212,6 +212,7 @@ if ARGV[0].to_sym == :update_measures
 
     # SFA
     include_args['BuildResidentialHPXML']['geometry_unit_type'] = HPXML::ResidentialTypeSFA
+    include_args['BuildResidentialHPXML']['geometry_num_units'] = '2'
     include_args['BuildResidentialHPXML']['geometry_cfa'] = '900'
     include_args['BuildResidentialHPXML'].update(weather_station)
     generate_example_osws(data_hash,
@@ -220,6 +221,7 @@ if ARGV[0].to_sym == :update_measures
 
     # MF
     include_args['BuildResidentialHPXML']['geometry_unit_type'] = HPXML::ResidentialTypeMF2to4
+    include_args['BuildResidentialHPXML']['geometry_num_units'] = '2'
     include_args['BuildResidentialHPXML']['geometry_cfa'] = '900'
     include_args['BuildResidentialHPXML'].update(weather_station)
     generate_example_osws(data_hash,
