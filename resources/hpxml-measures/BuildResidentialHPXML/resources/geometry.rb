@@ -1501,7 +1501,7 @@ class Geometry
 
     cfa = geometry_cfa
     wall_height = geometry_wall_height
-    num_units = geometry_num_units
+    num_units = geometry_num_units.get
     num_floors = geometry_num_floors_above_grade
     aspect_ratio = geometry_aspect_ratio
     level = geometry_level
@@ -1553,7 +1553,7 @@ class Geometry
       return false
     end
     if num_units % num_floors != 0
-      runner.registerError('The number of units must be divisible by the number of floors.')
+      runner.registerError("The number of units (#{num_units}) must be divisible by the number of floors (#{num_floors}).")
       return false
     end
     if !has_rear_units && ((corridor_position == 'Double-Loaded Interior') || (corridor_position == 'Double Exterior'))
