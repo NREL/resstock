@@ -2,7 +2,7 @@ stock_type: residential
 buildstock_directory: ../  # Relative to this file or absolute
 project_directory: project_multifamily_beta
 output_directory: /projects/enduse/grid_benefit_analysis/fullrun_2016
-weather_files_path: /shared-projects/buildstock/weather/ResStock_2016_new.zip
+weather_files_path: /shared-projects/buildstock/weather/ResStock_2016_flat.zip
 #output_directory: ../national_test_outputs
 #weather_files_path: ../weatherfiles/ResStock_2016.zip
 baseline:
@@ -970,8 +970,10 @@ timeseries_csv_export:
   include_enduse_subcategories: true
 eagle:
   account: windowsaving
-  n_jobs: 20 #change to 200
+  n_jobs: 200 #change to 200
   minutes_per_sim: 90
+  sampling:
+    time: 240
   postprocessing:
     time: 240
     n_workers: 20
