@@ -168,7 +168,7 @@ if ARGV[0].to_sym == :update_measures
   system(command)
 
   # Update measures XMLs
-  command = "#{OpenStudio.getOpenStudioCLI} measure -t '#{File.dirname(__FILE__)}'"
+  command = "#{OpenStudio.getOpenStudioCLI} measure -t '#{File.join(File.dirname(__FILE__), 'measures')}'"
   puts 'Updating measure.xmls...'
   system(command, [:out, :err] => File::NULL)
 
