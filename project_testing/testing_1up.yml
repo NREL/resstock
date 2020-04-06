@@ -1,10 +1,10 @@
 stock_type: residential
 buildstock_directory: ../../OpenStudio-BuildStock # Relative to this file or absolute
 project_directory: project_testing # Relative to buildstock_directory
-output_directory: c:/OpenStudio/OpenStudio-BuildStock/outputs
+output_directory: c:/OpenStudio/OpenStudio-BuildStock/project_testing/outputs/
 weather_files_path: c:/Users/jrobert1/Downloads/project_resstock_testing.zip  # Relative to this file or absolute path to zipped weather files
 baseline:
-  n_datapoints: 1
+  n_datapoints: 4
   n_buildings_represented: 80000000
 residential_simulation_controls:
   timesteps_per_hr: 6
@@ -12,7 +12,6 @@ residential_simulation_controls:
   begin_day_of_month: 1
   end_month: 12
   end_day_of_month: 31
-  calendar_year: 2007
 upgrades:
   - upgrade_name: Triple-Pane Windows
     options:
@@ -21,18 +20,10 @@ upgrades:
           - value: 45.77
             multiplier: Window Area (ft^2)
         lifetime: 30
-  - upgrade_name: R-13 Wall Insulation
-    options:
-      - option: Insulation Wall|Wood Stud, R-13
-        apply_logic: Insulation Wall|Wood Stud, Uninsulated
-        costs:
-          - value: 2.21
-            multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
-        lifetime: 999
 simulation_output:
   timeseries_frequency: hourly
   include_timeseries_zone_temperatures: false
   include_timeseries_fuel_consumptions: false
-  include_timeseries_end_use_consumptions: false
+  include_timeseries_end_use_consumptions: true
   include_timeseries_total_loads: false
   include_timeseries_component_loads: false
