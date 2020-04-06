@@ -105,18 +105,16 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(HPXML::ResidentialTypeSFD)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('geometry_unit_multiplier', true)
+    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('geometry_unit_multiplier', false)
     arg.setDisplayName('Geometry: Unit Multiplier')
     arg.setUnits('#')
     arg.setDescription('The number of actual units this single unit represents.')
-    arg.setDefaultValue(1)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('geometry_num_units', true)
+    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('geometry_num_units', false)
     arg.setDisplayName('Geometry: Number of Units')
     arg.setUnits('#')
-    arg.setDescription('The number of units in the building. This is not used for single-family detached buildings.')
-    arg.setDefaultValue(2)
+    arg.setDescription("The number of units in the building. This is only required for #{HPXML::ResidentialTypeSFA}, #{HPXML::ResidentialTypeMF2to4}, and #{HPXML::ResidentialTypeMF5plus} buildings.")
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('geometry_cfa', true)
@@ -1868,10 +1866,10 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
              end_day_of_month: runner.getIntegerArgumentValue('simulation_control_end_day_of_month', user_arguments),
              schedules_output_path: runner.getStringArgumentValue('schedules_output_path', user_arguments),
              geometry_unit_type: runner.getStringArgumentValue('geometry_unit_type', user_arguments),
-             geometry_unit_multiplier: runner.getIntegerArgumentValue('geometry_unit_multiplier', user_arguments),
+             geometry_unit_multiplier: runner.getOptionalIntegerArgumentValue('geometry_unit_multiplier', user_arguments),
+             geometry_num_units: runner.getOptionalIntegerArgumentValue('geometry_num_units', user_arguments),
              geometry_cfa: runner.getDoubleArgumentValue('geometry_cfa', user_arguments),
              geometry_wall_height: runner.getDoubleArgumentValue('geometry_wall_height', user_arguments),
-             geometry_num_units: runner.getIntegerArgumentValue('geometry_num_units', user_arguments),
              geometry_num_floors_above_grade: runner.getIntegerArgumentValue('geometry_num_floors_above_grade', user_arguments),
              geometry_aspect_ratio: runner.getDoubleArgumentValue('geometry_aspect_ratio', user_arguments),
              geometry_level: runner.getStringArgumentValue('geometry_level', user_arguments),
@@ -2238,8 +2236,10 @@ class HPXMLFile
     end
 
     hpxml_doc = hpxml.to_rexml()
-    HPXML::add_extension(parent: hpxml_doc.elements['/HPXML/Building/BuildingDetails'],
-                         extensions: { 'UnitMultiplier' => args[:geometry_unit_multiplier] })
+    if args[:geometry_unit_multiplier].is_initialized
+      HPXML::add_extension(parent: hpxml_doc.elements['/HPXML/Building/BuildingDetails'],
+                           extensions: { 'UnitMultiplier' => args[:geometry_unit_multiplier].get })
+    end
 
     return hpxml_doc
   end

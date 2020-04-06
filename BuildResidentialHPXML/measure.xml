@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>build_residential_hpxml</name>
   <uid>a13a8983-2b01-4930-8af2-42030b6e4233</uid>
-  <version_id>02f7a3db-e923-42ca-a5d3-878746010e9c</version_id>
-  <version_modified>20200403T223911Z</version_modified>
+  <version_id>848f7547-e70a-47d8-bf73-8e1a0fe06bdc</version_id>
+  <version_modified>20200406T210047Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>BuildResidentialHPXML</class_name>
   <display_name>HPXML Builder</display_name>
@@ -127,19 +127,17 @@
       <description>The number of actual units this single unit represents.</description>
       <type>Integer</type>
       <units>#</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>1</default_value>
     </argument>
     <argument>
       <name>geometry_num_units</name>
       <display_name>Geometry: Number of Units</display_name>
-      <description>The number of units in the building. This is not used for single-family detached buildings.</description>
+      <description>The number of units in the building. This is only required for single-family attached, 2-4 unit building, and 5+ unit building buildings.</description>
       <type>Integer</type>
       <units>#</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>2</default_value>
     </argument>
     <argument>
       <name>geometry_cfa</name>
@@ -3511,12 +3509,6 @@
       <checksum>F5E5E8BE</checksum>
     </file>
     <file>
-      <filename>geometry.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>8FE05891</checksum>
-    </file>
-    <file>
       <filename>build_residential_hpxml_test.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
@@ -4417,6 +4409,12 @@
       <checksum>63E73609</checksum>
     </file>
     <file>
+      <filename>geometry.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>425831B7</checksum>
+    </file>
+    <file>
       <version>
         <software_program>OpenStudio</software_program>
         <identifier>2.9.0</identifier>
@@ -4425,25 +4423,13 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>E00DC331</checksum>
+      <checksum>E5E5DF4C</checksum>
     </file>
     <file>
-      <filename>extra-defaults.osw</filename>
+      <filename>extra-auto.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>DA1C8018</checksum>
-    </file>
-    <file>
-      <filename>test_measure.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>D9838B8C</checksum>
-    </file>
-    <file>
-      <filename>test_rakefile.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>2A57080A</checksum>
+      <checksum>820DCE41</checksum>
     </file>
   </files>
 </measure>
