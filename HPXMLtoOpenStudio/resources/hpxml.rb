@@ -668,6 +668,8 @@ class HPXML < Object
       return if building_occupancy.nil?
 
       @number_of_residents = HPXML::to_float_or_nil(XMLHelper.get_value(building_occupancy, 'NumberofResidents'))
+      @schedules_output_path = XMLHelper.get_value(building_occupancy, 'extension/SchedulesOutputPath')
+      @schedules_column_name = XMLHelper.get_value(building_occupancy, 'extension/SchedulesColumnName')
     end
   end
 
