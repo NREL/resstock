@@ -2184,8 +2184,8 @@ class HPXMLFile
     success = create_geometry_envelope(runner, model_geometry, args)
     return false if not success
 
-    success = create_schedules(runner, model, args)
-    return false if not success
+    # success = create_schedules(runner, model, args)
+    # return false if not success
 
     hpxml = HPXML.new
 
@@ -2270,7 +2270,7 @@ class HPXMLFile
 
   def self.create_schedules(runner, model, args)
     schedule_file = SchedulesFile.new(runner: runner, model: model, **args)
-
+puts "HERE0"
     success = schedule_file.create_occupant_schedule
     return false if not success
 
@@ -2673,9 +2673,19 @@ class HPXMLFile
           overhangs_distance_to_bottom_of_window = (overhangs_distance_to_top_of_window + sub_surface_height).round
         end
 
+        if sub_surface_facade == Constants.FacadeFront
+          azimuth = Geometry.get_abs_azimuth(Constants.CoordRelative, 0, args[:geometry_orientation], 0)
+        elsif sub_surface_facade == Constants.FacadeBack
+          azimuth = Geometry.get_abs_azimuth(Constants.CoordRelative, 180, args[:geometry_orientation], 0)
+        elsif sub_surface_facade == Constants.FacadeLeft
+          azimuth = Geometry.get_abs_azimuth(Constants.CoordRelative, 90, args[:geometry_orientation], 0)
+        elsif sub_surface_facade == Constants.FacadeRight
+          azimuth = Geometry.get_abs_azimuth(Constants.CoordRelative, 270, args[:geometry_orientation], 0)
+        end
+
         hpxml.windows.add(id: "#{sub_surface.name}_#{sub_surface_facade}",
                           area: UnitConversions.convert(sub_surface.grossArea, 'm^2', 'ft^2').round(1),
-                          azimuth: UnitConversions.convert(sub_surface.azimuth, 'rad', 'deg').round,
+                          azimuth: azimuth,
                           ufactor: args[:window_ufactor],
                           shgc: args[:window_shgc],
                           overhangs_depth: overhangs_depth,
