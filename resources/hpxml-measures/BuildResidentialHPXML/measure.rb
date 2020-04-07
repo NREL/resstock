@@ -2270,7 +2270,7 @@ class HPXMLFile
 
   def self.create_schedules(runner, model, args)
     schedule_file = SchedulesFile.new(runner: runner, model: model, **args)
-puts "HERE0"
+
     success = schedule_file.create_occupant_schedule
     return false if not success
 
