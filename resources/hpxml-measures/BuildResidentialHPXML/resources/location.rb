@@ -1,6 +1,6 @@
 class Location
   def self.get_climate_zones
-    zones_csv = File.join(File.dirname(__FILE__), 'climate_zones.csv')
+    zones_csv = File.join(File.dirname(__FILE__), '../../HPXMLtoOpenStudio/resources/climate_zones.csv')
     if not File.exist?(zones_csv)
       return
     end

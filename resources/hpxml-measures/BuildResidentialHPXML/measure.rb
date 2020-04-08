@@ -1580,49 +1580,56 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('clothes_washer_efficiency_type', clothes_washer_efficiency_type_choices, true)
     arg.setDisplayName('Clothes Washer: Efficiency Type')
     arg.setDescription('The efficiency type of clothes washer.')
-    arg.setDefaultValue('ModifiedEnergyFactor')
+    arg.setDefaultValue('IntegratedModifiedEnergyFactor')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('clothes_washer_efficiency', true)
     arg.setDisplayName('Clothes Washer: Efficiency')
     arg.setUnits('ft^3/kWh-cycle')
     arg.setDescription('The Modified Energy Factor (MEF) is the capacity of the clothes container divided by the total clothes washer energy consumption per cycle, where the energy consumption is the sum of the machine electrical energy consumption, the hot water energy consumption, the energy required for removal of the remaining moisture in the wash load, standby energy, and off-mode energy consumption. If only a Modified Energy Factor (MEF) is available, convert using the equation: IMEF = (MEF - 0.503) / 0.95.')
-    arg.setDefaultValue(0.8)
+    arg.setDefaultValue(1.0)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('clothes_washer_usage', true)
+    arg.setDisplayName('Clothes Washer: Usage')
+    arg.setUnits('cyc/wk')
+    arg.setDescription('The clothes washer loads per week.')
+    arg.setDefaultValue(6.0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('clothes_washer_rated_annual_kwh', true)
     arg.setDisplayName('Clothes Washer: Rated Annual Consumption')
     arg.setUnits('kWh')
     arg.setDescription('The annual energy consumed by the clothes washer, as rated, obtained from the EnergyGuide label. This includes both the appliance electricity consumption and the energy required for water heating.')
-    arg.setDefaultValue(387.0)
+    arg.setDefaultValue(400.0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('clothes_washer_label_electric_rate', true)
     arg.setDisplayName('Clothes Washer: Label Electric Rate')
-    arg.setUnits('kWh')
+    arg.setUnits('$/kWh')
     arg.setDescription('The annual energy consumed by the clothes washer, as rated, obtained from the EnergyGuide label. This includes both the appliance electricity consumption and the energy required for water heating.')
-    arg.setDefaultValue(0.1065)
+    arg.setDefaultValue(0.12)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('clothes_washer_label_gas_rate', true)
     arg.setDisplayName('Clothes Washer: Label Gas Rate')
-    arg.setUnits('kWh')
+    arg.setUnits('$/therm')
     arg.setDescription('The annual energy consumed by the clothes washer, as rated, obtained from the EnergyGuide label. This includes both the appliance electricity consumption and the energy required for water heating.')
-    arg.setDefaultValue(1.218)
+    arg.setDefaultValue(1.09)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('clothes_washer_label_annual_gas_cost', true)
     arg.setDisplayName('Clothes Washer: Annual Cost with Gas DHW')
     arg.setUnits('$')
     arg.setDescription('The annual cost of using the system under test conditions. Input is obtained from the EnergyGuide label.')
-    arg.setDefaultValue(24.0)
+    arg.setDefaultValue(27.0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('clothes_washer_capacity', true)
     arg.setDisplayName('Clothes Washer: Drum Volume')
     arg.setUnits('ft^3')
     arg.setDescription("Volume of the washer drum. Obtained from the EnergyStar website or the manufacturer's literature.")
-    arg.setDefaultValue(3.5)
+    arg.setDefaultValue(3.0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument('clothes_dryer_present', true)
@@ -1661,14 +1668,14 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('clothes_dryer_efficiency_type', clothes_dryer_efficiency_type_choices, true)
     arg.setDisplayName('Clothes Dryer: Efficiency Type')
     arg.setDescription('The efficiency type of clothes dryer.')
-    arg.setDefaultValue('EnergyFactor')
+    arg.setDefaultValue('CombinedEnergyFactor')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('clothes_dryer_efficiency', true)
     arg.setDisplayName('Clothes Dryer: Efficiency')
     arg.setUnits('lb/kWh')
     arg.setDescription('The Combined Energy Factor (CEF) measures the pounds of clothing that can be dried per kWh (Fuel equivalent) of electricity, including energy consumed during Stand-by and Off modes. If only an Energy Factor (EF) is available, convert using the equation: CEF = EF / 1.15.')
-    arg.setDefaultValue(2.95)
+    arg.setDefaultValue(3.01)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('clothes_dryer_control_type', clothes_dryer_control_type_choices, true)
@@ -1683,20 +1690,32 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(true)
     args << arg
 
-    dishwasher_efficiency_type_choices = OpenStudio::StringVector.new
-    dishwasher_efficiency_type_choices << 'RatedAnnualkWh'
-    dishwasher_efficiency_type_choices << 'EnergyFactor'
-
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('dishwasher_efficiency_type', dishwasher_efficiency_type_choices, true)
-    arg.setDisplayName('Dishwasher: Efficiency Type')
-    arg.setDescription('The efficiency type of dishwasher.')
-    arg.setDefaultValue('RatedAnnualkWh')
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('dishwasher_rated_annual_kwh', true)
+    arg.setDisplayName('Dishwasher: Rated Annual Consumption')
+    arg.setUnits('kWh')
+    arg.setDescription('The EnergyGuide rated annual energy consumption for a dishwasher.')
+    arg.setDefaultValue(467.0)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('dishwasher_efficiency', true)
-    arg.setDisplayName('Dishwasher: Efficiency')
-    arg.setDescription('The efficiency of the dishwasher.')
-    arg.setDefaultValue(290)
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('dishwasher_label_electric_rate', true)
+    arg.setDisplayName('Dishwasher: Label Electric Rate')
+    arg.setUnits('$/kWh')
+    arg.setDescription('The label electric rate of the dishwasher.')
+    arg.setDefaultValue(0.12)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('dishwasher_label_gas_rate', true)
+    arg.setDisplayName('Dishwasher: Label Gas Rate')
+    arg.setUnits('$/therm')
+    arg.setDescription('The label gas rate of the dishwasher.')
+    arg.setDefaultValue(1.09)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('dishwasher_label_annual_gas_cost', true)
+    arg.setDisplayName('Dishwasher: Label Annual Gas Cost')
+    arg.setUnits('$')
+    arg.setDescription('The label annual gas cost of the dishwasher.')
+    arg.setDefaultValue(33.12)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('dishwasher_place_setting_capacity', true)
@@ -2053,6 +2072,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
              clothes_washer_location: runner.getStringArgumentValue('clothes_washer_location', user_arguments),
              clothes_washer_efficiency_type: runner.getStringArgumentValue('clothes_washer_efficiency_type', user_arguments),
              clothes_washer_efficiency: runner.getDoubleArgumentValue('clothes_washer_efficiency', user_arguments),
+             clothes_washer_usage: runner.getDoubleArgumentValue('clothes_washer_usage', user_arguments),
              clothes_washer_rated_annual_kwh: runner.getDoubleArgumentValue('clothes_washer_rated_annual_kwh', user_arguments),
              clothes_washer_label_electric_rate: runner.getDoubleArgumentValue('clothes_washer_label_electric_rate', user_arguments),
              clothes_washer_label_gas_rate: runner.getDoubleArgumentValue('clothes_washer_label_gas_rate', user_arguments),
@@ -2065,8 +2085,10 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
              clothes_dryer_efficiency: runner.getDoubleArgumentValue('clothes_dryer_efficiency', user_arguments),
              clothes_dryer_control_type: runner.getStringArgumentValue('clothes_dryer_control_type', user_arguments),
              dishwasher_present: runner.getBoolArgumentValue('dishwasher_present', user_arguments),
-             dishwasher_efficiency_type: runner.getStringArgumentValue('dishwasher_efficiency_type', user_arguments),
-             dishwasher_efficiency: runner.getDoubleArgumentValue('dishwasher_efficiency', user_arguments),
+             dishwasher_rated_annual_kwh: runner.getDoubleArgumentValue('dishwasher_rated_annual_kwh', user_arguments),
+             dishwasher_label_electric_rate: runner.getDoubleArgumentValue('dishwasher_label_electric_rate', user_arguments),
+             dishwasher_label_gas_rate: runner.getDoubleArgumentValue('dishwasher_label_gas_rate', user_arguments),
+             dishwasher_label_annual_gas_cost: runner.getDoubleArgumentValue('dishwasher_label_annual_gas_cost', user_arguments),
              dishwasher_place_setting_capacity: runner.getIntegerArgumentValue('dishwasher_place_setting_capacity', user_arguments),
              refrigerator_present: runner.getBoolArgumentValue('refrigerator_present', user_arguments),
              refrigerator_location: runner.getStringArgumentValue('refrigerator_location', user_arguments),
@@ -2194,7 +2216,7 @@ class HPXMLFile
     set_neighbor_buildings(hpxml, runner, args)
     set_building_occupancy(hpxml, runner, args)
     set_building_construction(hpxml, runner, args)
-    set_climate_and_risk_zones(hpxml, runner, args)
+    set_climate_and_risk_zones(hpxml, runner, args, weather)
     set_air_infiltration_measurements(hpxml, runner, args)
     set_attics(hpxml, runner, model_geometry, args)
     set_foundations(hpxml, runner, model_geometry, args)
@@ -2362,8 +2384,10 @@ class HPXMLFile
     hpxml.building_construction.residential_facility_type = args[:geometry_unit_type]
   end
 
-  def self.set_climate_and_risk_zones(hpxml, runner, args)
+  def self.set_climate_and_risk_zones(hpxml, runner, args, weather)
     hpxml.climate_and_risk_zones.weather_station_id = 'WeatherStation'
+    hpxml.climate_and_risk_zones.iecc_year = 2006
+    hpxml.climate_and_risk_zones.iecc_zone = Location.get_climate_zone_iecc(weather.header.Station)
     hpxml.climate_and_risk_zones.weather_station_name = args[:weather_station_epw_filename].gsub('.epw', '')
     hpxml.climate_and_risk_zones.weather_station_epw_filename = args[:weather_station_epw_filename]
   end
@@ -3293,6 +3317,7 @@ class HPXMLFile
                               location: location,
                               modified_energy_factor: modified_energy_factor,
                               integrated_modified_energy_factor: integrated_modified_energy_factor,
+                              usage: args[:clothes_washer_usage],
                               rated_annual_kwh: args[:clothes_washer_rated_annual_kwh],
                               label_electric_rate: args[:clothes_washer_label_electric_rate],
                               label_gas_rate: args[:clothes_washer_label_gas_rate],
@@ -3324,15 +3349,11 @@ class HPXMLFile
   def self.set_dishwasher(hpxml, runner, args)
     return unless args[:dishwasher_present]
 
-    if args[:dishwasher_efficiency_type] == 'RatedAnnualkWh'
-      rated_annual_kwh = args[:dishwasher_efficiency]
-    elsif args[:dishwasher_efficiency_type] == 'EnergyFactor'
-      energy_factor = args[:dishwasher_efficiency]
-    end
-
     hpxml.dishwashers.add(id: 'Dishwasher',
-                          rated_annual_kwh: rated_annual_kwh,
-                          energy_factor: energy_factor,
+                          rated_annual_kwh: args[:dishwasher_rated_annual_kwh],
+                          label_electric_rate: args[:dishwasher_label_electric_rate],
+                          label_gas_rate: args[:dishwasher_label_gas_rate],
+                          label_annual_gas_cost: args[:dishwasher_label_annual_gas_cost],
                           place_setting_capacity: args[:dishwasher_place_setting_capacity])
   end
 
