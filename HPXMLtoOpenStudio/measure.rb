@@ -3194,11 +3194,11 @@ class OSModel
     hvac_distribution.ducts.each do |ducts|
       next if [HPXML::LocationLivingSpace, HPXML::LocationBasementConditioned].include? ducts.duct_location
       next if ducts.duct_type.nil?
+      next if total_unconditioned_duct_area[ducts.duct_type] <= 0
 
-      duct_area = ducts.duct_surface_area
       duct_space = get_space_from_location(ducts.duct_location, 'Duct', model, spaces)
       # Apportion leakage to individual ducts by surface area
-      duct_leakage_value = leakage_to_outside[ducts.duct_type][0] * duct_area / total_unconditioned_duct_area[ducts.duct_type]
+      duct_leakage_value = leakage_to_outside[ducts.duct_type][0] * ducts.duct_surface_area / total_unconditioned_duct_area[ducts.duct_type]
       duct_leakage_units = leakage_to_outside[ducts.duct_type][1]
 
       duct_leakage_cfm = nil
@@ -3211,7 +3211,7 @@ class OSModel
         fail "#{ducts.duct_type.capitalize} ducts exist but leakage was not specified for distribution system '#{hvac_distribution.id}'."
       end
 
-      air_ducts << Duct.new(ducts.duct_type, duct_space, duct_leakage_frac, duct_leakage_cfm, duct_area, ducts.duct_insulation_r_value)
+      air_ducts << Duct.new(ducts.duct_type, duct_space, duct_leakage_frac, duct_leakage_cfm, ducts.duct_surface_area, ducts.duct_insulation_r_value)
     end
 
     # If all ducts are in conditioned space, model leakage as going to outside

@@ -518,7 +518,7 @@ The water heater ``Location`` can be optionally entered; if not provided, a defa
 +====================+============================================================================================+
 | 1-3, excluding 3A  | Garage if present, else Living Space                                                       |
 +--------------------+--------------------------------------------------------------------------------------------+
-| 3A, 4-8            | Conditioned Basement if present, else Unconditioned Basement if present, else Living Space |
+| 3A, 4-8, unknown   | Conditioned Basement if present, else Unconditioned Basement if present, else Living Space |
 +--------------------+--------------------------------------------------------------------------------------------+
 
 The setpoint temperature may be provided as ``HotWaterTemperature``; if not provided, 125°F is assumed.
