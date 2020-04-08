@@ -1366,18 +1366,13 @@ class Waterheater
     return 0.08
   end
 
-  def self.get_default_location(hpxml, ba_cz_name)
-    if [Constants.BAZoneHotDry, Constants.BAZoneHotHumid].include? ba_cz_name
+  def self.get_default_location(hpxml, iecc_zone)
+    if ['1A', '1B', '1C', '2A', '2B', '2C', '3B', '3C'].include? iecc_zone
       location_hierarchy = [HPXML::LocationGarage,
                             HPXML::LocationLivingSpace]
-    elsif [Constants.BAZoneMarine, Constants.BAZoneMixedHumid, Constants.BAZoneMixedDry, Constants.BAZoneCold, Constants.BAZoneVeryCold, Constants.BAZoneSubarctic].include? ba_cz_name
+    elsif ['3A', '4A', '4B', '4C', '5A', '5B', '5C', '6A', '6B', '6C', '7', '8'].include? iecc_zone
       location_hierarchy = [HPXML::LocationBasementConditioned,
                             HPXML::LocationBasementUnconditioned,
-                            HPXML::LocationLivingSpace]
-    elsif ba_cz_name.nil?
-      location_hierarchy = [HPXML::LocationBasementConditioned,
-                            HPXML::LocationBasementUnconditioned,
-                            HPXML::LocationGarage,
                             HPXML::LocationLivingSpace]
     end
     location_hierarchy.each do |space_type|

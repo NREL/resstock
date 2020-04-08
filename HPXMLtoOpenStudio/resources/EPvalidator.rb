@@ -19,13 +19,16 @@ class EnergyPlusValidator
     #
 
     zero = [0]
-    one = [1]
     zero_or_one = [0, 1]
     zero_or_two = [0, 2]
-    zero_or_more = nil
-    one_or_more = []
-    zero_or_two = [0, 2]
+    zero_or_three = [0, 3]
+    zero_or_four = [0, 4]
+    zero_or_five = [0, 5]
     zero_or_six = [0, 6]
+    zero_or_seven = [0, 7]
+    zero_or_more = nil
+    one = [1]
+    one_or_more = []
 
     requirements = {
 
@@ -46,6 +49,7 @@ class EnergyPlusValidator
         '/HPXML/Building/BuildingDetails/BuildingSummary/BuildingConstruction' => one, # See [BuildingConstruction]
         '/HPXML/Building/BuildingDetails/BuildingSummary/Site/extension/Neighbors' => zero_or_one, # See [Neighbors]
 
+        '/HPXML/Building/BuildingDetails/ClimateandRiskZones/ClimateZoneIECC' => one, # See [ClimateZone]
         '/HPXML/Building/BuildingDetails/ClimateandRiskZones/WeatherStation' => one, # See [WeatherStation]
 
         '/HPXML/Building/BuildingDetails/Enclosure/AirInfiltration/AirInfiltrationMeasurement[HousePressure=50]/BuildingAirLeakage[UnitofMeasure="ACH" or UnitofMeasure="CFM"]/AirLeakage | /HPXML/Building/BuildingDetails/Enclosure/AirInfiltration/AirInfiltrationMeasurement/extension/ConstantACHnatural' => one, # see [AirInfiltration]
@@ -113,6 +117,12 @@ class EnergyPlusValidator
         'Azimuth' => one,
         'Distance' => one, # ft
         'Height' => zero_or_one # ft; if omitted, the neighbor is the same height as the main building
+      },
+
+      # [ClimateZone]
+      '/HPXML/Building/BuildingDetails/ClimateandRiskZones/ClimateZoneIECC' => {
+        'Year' => one,
+        '[ClimateZone="1A" or ClimateZone="1B" or ClimateZone="1C" or ClimateZone="2A" or ClimateZone="2B" or ClimateZone="2C" or ClimateZone="3A" or ClimateZone="3B" or ClimateZone="3C" or ClimateZone="4A" or ClimateZone="4B" or ClimateZone="4C" or ClimateZone="5A" or ClimateZone="5B" or ClimateZone="5C" or ClimateZone="6A" or ClimateZone="6B" or ClimateZone="6C" or ClimateZone="7" or ClimateZone="8"]' => one,
       },
 
       # [WeatherStation]
@@ -619,7 +629,7 @@ class EnergyPlusValidator
       '/HPXML/Building/BuildingDetails/Appliances/ClothesWasher' => {
         'SystemIdentifier' => one, # Required by HPXML schema
         '[not(Location) or Location="living space" or Location="basement - conditioned" or Location="basement - unconditioned" or Location="garage"]' => one,
-        '[ModifiedEnergyFactor | IntegratedModifiedEnergyFactor] | RatedAnnualkWh | LabelElectricRate | LabelGasRate | LabelAnnualGasCost | Capacity' => zero_or_six,
+        '[ModifiedEnergyFactor | IntegratedModifiedEnergyFactor] | Usage | RatedAnnualkWh | LabelElectricRate | LabelGasRate | LabelAnnualGasCost | Capacity' => zero_or_seven,
       },
 
       # [ClothesDryer]
@@ -633,7 +643,7 @@ class EnergyPlusValidator
       # [Dishwasher]
       '/HPXML/Building/BuildingDetails/Appliances/Dishwasher' => {
         'SystemIdentifier' => one, # Required by HPXML schema
-        '[EnergyFactor | RatedAnnualkWh] | PlaceSettingCapacity' => zero_or_two,
+        'RatedAnnualkWh | LabelElectricRate | LabelGasRate | LabelAnnualGasCost | PlaceSettingCapacity' => zero_or_five,
       },
 
       # [Refrigerator]

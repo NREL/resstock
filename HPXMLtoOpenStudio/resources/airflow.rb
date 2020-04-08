@@ -1074,10 +1074,7 @@ class Airflow
       duct_zones.each_with_index do |duct_zone, i|
         next if (not duct_zone.nil?) && (duct_zone.name.to_s == building.living.zone.name.to_s)
 
-        air_loop_name_idx = air_loop.name.to_s
-        if i > 0
-          air_loop_name_idx = "#{air_loop.name}_#{i}"
-        end
+        air_loop_name_idx = "#{air_loop.name}_#{i}"
 
         # -- Sensors --
 

@@ -4,10 +4,8 @@ require_relative 'weather'
 class HotWaterAndAppliances
   def self.apply(model, weather, living_space,
                  cfa, nbeds, ncfl, has_uncond_bsmnt, wh_setpoint,
-                 cw_mef, cw_ler, cw_elec_rate, cw_gas_rate,
-                 cw_agc, cw_cap, cw_space, cd_fuel, cd_ef, cd_control,
-                 cd_space, dw_ef, dw_cap, fridge_annual_kwh, fridge_space,
-                 cook_fuel_type, cook_is_induction, oven_is_convection,
+                 clothes_washer, cw_space, clothes_dryer, cd_space,
+                 dishwasher, refrigerator, rf_space, cooking_range, oven,
                  has_low_flow_fixtures, dist_type, pipe_r,
                  std_pipe_length, recirc_loop_length,
                  recirc_branch_length, recirc_control_type,
@@ -70,8 +68,8 @@ class HotWaterAndAppliances
     end
 
     # Clothes washer
-    if (not dist_type.nil?) && (not cw_mef.nil?)
-      cw_annual_kwh, cw_frac_sens, cw_frac_lat, cw_gpd = calc_clothes_washer_energy_gpd(eri_version, nbeds, cw_ler, cw_elec_rate, cw_gas_rate, cw_agc, cw_cap)
+    if (not dist_type.nil?) && (not clothes_washer.nil?)
+      cw_annual_kwh, cw_frac_sens, cw_frac_lat, cw_gpd = calc_clothes_washer_energy_gpd(eri_version, nbeds, clothes_washer)
       cw_name = Constants.ObjectNameClothesWasher
       cw_schedule = HotWaterSchedule.new(model, cw_name, nbeds)
       cw_peak_flow = cw_schedule.calcPeakFlowFromDailygpm(cw_gpd)
@@ -84,8 +82,8 @@ class HotWaterAndAppliances
     end
 
     # Clothes dryer
-    if (not cw_mef.nil?) && (not cd_ef.nil?)
-      cd_annual_kwh, cd_annual_therm, cd_frac_sens, cd_frac_lat = calc_clothes_dryer_energy(nbeds, cd_fuel, cd_ef, cd_control, cw_ler, cw_cap, cw_mef)
+    if (not cw_space.nil?) && (not clothes_dryer.nil?)
+      cd_annual_kwh, cd_annual_therm, cd_frac_sens, cd_frac_lat = calc_clothes_dryer_energy(eri_version, nbeds, clothes_dryer, clothes_washer)
       cd_name = Constants.ObjectNameClothesDryer
       cd_weekday_sch = '0.010, 0.006, 0.004, 0.002, 0.004, 0.006, 0.016, 0.032, 0.048, 0.068, 0.078, 0.081, 0.074, 0.067, 0.057, 0.061, 0.055, 0.054, 0.051, 0.051, 0.052, 0.054, 0.044, 0.024'
       cd_monthly_sch = '1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0'
@@ -93,12 +91,12 @@ class HotWaterAndAppliances
       cd_design_level_e = cd_schedule.calcDesignLevelFromDailykWh(cd_annual_kwh / 365.0)
       cd_design_level_f = cd_schedule.calcDesignLevelFromDailyTherm(cd_annual_therm / 365.0)
       add_electric_equipment(model, cd_name, cd_space, cd_design_level_e, cd_frac_sens, cd_frac_lat, cd_schedule.schedule)
-      add_other_equipment(model, cd_name, cd_space, cd_design_level_f, cd_frac_sens, cd_frac_lat, cd_schedule.schedule, cd_fuel)
+      add_other_equipment(model, cd_name, cd_space, cd_design_level_f, cd_frac_sens, cd_frac_lat, cd_schedule.schedule, clothes_dryer.fuel_type)
     end
 
     # Dishwasher
-    if (not dist_type.nil?) && (not dw_ef.nil?)
-      dw_annual_kwh, dw_frac_sens, dw_frac_lat, dw_gpd = calc_dishwasher_energy_gpd(eri_version, nbeds, dw_ef, dw_cap)
+    if (not dist_type.nil?) && (not dishwasher.nil?)
+      dw_annual_kwh, dw_frac_sens, dw_frac_lat, dw_gpd = calc_dishwasher_energy_gpd(eri_version, nbeds, dishwasher)
       dw_name = Constants.ObjectNameDishwasher
       dw_schedule = HotWaterSchedule.new(model, dw_name, nbeds)
       dw_peak_flow = dw_schedule.calcPeakFlowFromDailygpm(dw_gpd)
@@ -111,18 +109,19 @@ class HotWaterAndAppliances
     end
 
     # Refrigerator
-    if not fridge_annual_kwh.nil?
+    if not refrigerator.nil?
+      rf_annual_kwh, rf_frac_sens, rf_frac_lat = calc_refrigerator_energy(refrigerator)
       fridge_name = Constants.ObjectNameRefrigerator
       fridge_weekday_sch = '0.040, 0.039, 0.038, 0.037, 0.036, 0.036, 0.038, 0.040, 0.041, 0.041, 0.040, 0.040, 0.042, 0.042, 0.042, 0.041, 0.044, 0.048, 0.050, 0.048, 0.047, 0.046, 0.044, 0.041'
       fridge_monthly_sch = '0.837, 0.835, 1.084, 1.084, 1.084, 1.096, 1.096, 1.096, 1.096, 0.931, 0.925, 0.837'
       fridge_schedule = MonthWeekdayWeekendSchedule.new(model, fridge_name, fridge_weekday_sch, fridge_weekday_sch, fridge_monthly_sch, 1.0, 1.0, true, true, Constants.ScheduleTypeLimitsFraction)
-      fridge_design_level = fridge_schedule.calcDesignLevelFromDailykWh(fridge_annual_kwh / 365.0)
-      add_electric_equipment(model, fridge_name, fridge_space, fridge_design_level, 1.0, 0.0, fridge_schedule.schedule)
+      fridge_design_level = fridge_schedule.calcDesignLevelFromDailykWh(rf_annual_kwh / 365.0)
+      add_electric_equipment(model, fridge_name, rf_space, fridge_design_level, rf_frac_sens, rf_frac_lat, fridge_schedule.schedule)
     end
 
     # Cooking Range
-    if not cook_fuel_type.nil?
-      cook_annual_kwh, cook_annual_therm, cook_frac_sens, cook_frac_lat = calc_range_oven_energy(nbeds, cook_fuel_type, cook_is_induction, oven_is_convection)
+    if (not cooking_range.nil?) && (not oven.nil?)
+      cook_annual_kwh, cook_annual_therm, cook_frac_sens, cook_frac_lat = calc_range_oven_energy(nbeds, cooking_range, oven)
       cook_name = Constants.ObjectNameCookingRange
       cook_weekday_sch = '0.007, 0.007, 0.004, 0.004, 0.007, 0.011, 0.025, 0.042, 0.046, 0.048, 0.042, 0.050, 0.057, 0.046, 0.057, 0.044, 0.092, 0.150, 0.117, 0.060, 0.035, 0.025, 0.016, 0.011'
       cook_monthly_sch = '1.097, 1.097, 0.991, 0.987, 0.991, 0.890, 0.896, 0.896, 0.890, 1.085, 1.085, 1.097'
@@ -130,7 +129,7 @@ class HotWaterAndAppliances
       cook_design_level_e = cook_schedule.calcDesignLevelFromDailykWh(cook_annual_kwh / 365.0)
       cook_design_level_f = cook_schedule.calcDesignLevelFromDailyTherm(cook_annual_therm / 365.0)
       add_electric_equipment(model, cook_name, living_space, cook_design_level_e, cook_frac_sens, cook_frac_lat, cook_schedule.schedule)
-      add_other_equipment(model, cook_name, living_space, cook_design_level_f, cook_frac_sens, cook_frac_lat, cook_schedule.schedule, cook_fuel_type)
+      add_other_equipment(model, cook_name, living_space, cook_design_level_f, cook_frac_sens, cook_frac_lat, cook_schedule.schedule, cooking_range.fuel_type)
     end
 
     if not dist_type.nil?
@@ -210,15 +209,17 @@ class HotWaterAndAppliances
     end
   end
 
-  def self.get_range_oven_reference_is_induction()
-    return false
+  def self.get_range_oven_default_values()
+    return { is_induction: false,
+             is_convection: false }
   end
 
-  def self.get_range_oven_reference_is_convection()
-    return false
-  end
+  def self.calc_range_oven_energy(nbeds, cooking_range, oven)
+    # Get values
+    fuel_type = cooking_range.fuel_type
+    is_induction = cooking_range.is_induction
+    is_convection = oven.is_convection
 
-  def self.calc_range_oven_energy(nbeds, fuel_type, is_induction, is_convection)
     if is_induction
       burner_ef = 0.91
     else
@@ -232,158 +233,250 @@ class HotWaterAndAppliances
     if fuel_type != HPXML::FuelTypeElectricity
       annual_kwh = 22.6 + 2.7 * nbeds
       annual_therm = oven_ef * (22.6 + 2.7 * nbeds)
-      tot_btu = UnitConversions.convert(annual_kwh, 'kWh', 'Btu') + UnitConversions.convert(annual_therm, 'therm', 'Btu')
-      gains_sens = (4086.0 + 488.0 * nbeds) * 365 # Btu
-      gains_lat = (1037.0 + 124.0 * nbeds) * 365 # Btu
-      frac_sens = gains_sens / tot_btu
-      frac_lat = gains_lat / tot_btu
     else
       annual_kwh = burner_ef * oven_ef * (331 + 39.0 * nbeds)
       annual_therm = 0.0
-      tot_btu = UnitConversions.convert(annual_kwh, 'kWh', 'Btu') + UnitConversions.convert(annual_therm, 'therm', 'Btu')
-      gains_sens = (2228.0 + 262.0 * nbeds) * 365 # Btu
-      gains_lat = (248.0 + 29.0 * nbeds) * 365 # Btu
-      frac_sens = gains_sens / tot_btu
-      frac_lat = gains_lat / tot_btu
     end
+
+    frac_lost = 0.20
+    if fuel_type == HPXML::FuelTypeElectricity
+      frac_sens = (1.0 - frac_lost) * 0.90
+    else
+      elec_btu = UnitConversions.convert(annual_kwh, 'kWh', 'Btu')
+      gas_btu = UnitConversions.convert(annual_therm, 'therm', 'Btu')
+      frac_sens = (1.0 - frac_lost) * ((0.90 * elec_btu + 0.7942 * gas_btu) / (elec_btu + gas_btu))
+    end
+    frac_lat = 1.0 - frac_sens - frac_lost
+
     return annual_kwh, annual_therm, frac_sens, frac_lat
   end
 
-  def self.get_dishwasher_reference_ef()
-    return 0.46
+  def self.get_dishwasher_default_values()
+    return { rated_annual_kwh: 467.0, # kWh/yr
+             label_electric_rate: 0.12, # $/kWh
+             label_gas_rate: 1.09, # $/therm
+             label_annual_gas_cost: 33.12, # $
+             place_setting_capacity: 12.0 }
   end
 
-  def self.get_dishwasher_reference_cap()
-    return 12.0 # number of place settings
-  end
-
-  def self.calc_dishwasher_energy_gpd(eri_version, nbeds, ef, cap)
-    dwcpy = (88.4 + 34.9 * nbeds) * (12.0 / cap) # Eq 4.2-8a (dWcpy)
-    annual_kwh = ((86.3 + 47.73 / ef) / 215.0) * dwcpy # Eq 4.2-8a
-    tot_btu = UnitConversions.convert(annual_kwh, 'kWh', 'Btu')
-
-    gains_sens = (219.0 + 87.0 * nbeds) * 365 # Btu
-    gains_lat = (219.0 + 87.0 * nbeds) * 365 # Btu
-    frac_sens = gains_sens / tot_btu
-    frac_lat = gains_lat / tot_btu
-
-    if Constants.ERIVersions.index(eri_version) >= Constants.ERIVersions.index('2014A')
-      # 2014 w/ Addendum A or newer
-      gpd = dwcpy * (4.6415 * (1.0 / ef) - 1.9295) / 365.0 # Eq. 4.2-11 (DWgpd)
-    else
-      gpd = ((88.4 + 34.9 * nbeds) * 8.16 - (88.4 + 34.9 * nbeds) * 12.0 / cap * (4.6415 * (1.0 / ef) - 1.9295)) / 365.0 # Eq 4.2-8b
+  def self.calc_dishwasher_energy_gpd(eri_version, nbeds, dishwasher)
+    # Get values
+    ef = dishwasher.energy_factor
+    ler = dishwasher.rated_annual_kwh
+    if ef.nil?
+      ef = HotWaterAndAppliances.calc_dishwasher_ef_from_annual_kwh(ler)
+    elsif ler.nil?
+      ler = HotWaterAndAppliances.calc_dishwasher_annual_kwh_from_ef(ef)
     end
+    cap = dishwasher.place_setting_capacity
+    elec_rate = dishwasher.label_electric_rate
+    gas_rate = dishwasher.label_gas_rate
+    agc = dishwasher.label_annual_gas_cost
+
+    if Constants.ERIVersions.index(eri_version) >= Constants.ERIVersions.index('2019A')
+      kwh_per_cyc = ((agc * 0.5497 / gas_rate - ler * elec_rate * 0.02504 / elec_rate) / (elec_rate * 0.5497 / gas_rate - 0.02504)) / 208.0
+      dwcpy = (88.4 + 34.9 * nbeds) * (12.0 / cap)
+      annual_kwh = kwh_per_cyc * dwcpy
+
+      gpd = (ler - kwh_per_cyc * 208.0) * 0.02504 * dwcpy / 365.0
+    else
+      dwcpy = (88.4 + 34.9 * nbeds) * (12.0 / cap)
+      annual_kwh = ((86.3 + 47.73 / ef) / 215.0) * dwcpy
+
+      if Constants.ERIVersions.index(eri_version) >= Constants.ERIVersions.index('2014A')
+        gpd = dwcpy * (4.6415 * (1.0 / ef) - 1.9295) / 365.0
+      else
+        gpd = ((88.4 + 34.9 * nbeds) * 8.16 - (88.4 + 34.9 * nbeds) * 12.0 / cap * (4.6415 * (1.0 / ef) - 1.9295)) / 365.0
+      end
+    end
+
+    frac_lost = 0.40
+    frac_sens = (1.0 - frac_lost) * 0.50
+    frac_lat = 1.0 - frac_sens - frac_lost
 
     return annual_kwh, frac_sens, frac_lat, gpd
   end
 
   def self.calc_dishwasher_ef_from_annual_kwh(annual_kwh)
-    return 215.0 / annual_kwh # 4.2.2.5.2.9. Dishwashers
+    return 215.0 / annual_kwh
   end
 
-  def self.get_refrigerator_reference_annual_kwh(nbeds)
-    annual_kwh = 637.0 + 18.0 * nbeds # kWh/yr
-    return annual_kwh
+  def self.calc_dishwasher_annual_kwh_from_ef(ef)
+    return ef * 215.0
   end
 
-  def self.get_clothes_dryer_reference_cef(fuel_type)
+  def self.get_refrigerator_default_values(nbeds)
+    return { rated_annual_kwh: 637.0 + 18.0 * nbeds } # kWh/yr
+  end
+
+  def self.get_clothes_dryer_default_values(eri_version, fuel_type)
+    if Constants.ERIVersions.index(eri_version) >= Constants.ERIVersions.index('2019A')
+      if fuel_type == HPXML::FuelTypeElectricity
+        return { combined_energy_factor: 3.01, # FIXME: Need to verify
+                 control_type: HPXML::ClothesDryerControlTypeTimer }
+      else
+        return { combined_energy_factor: 3.01, # FIXME: Need to verify
+                 control_type: HPXML::ClothesDryerControlTypeTimer }
+      end
+    else
+      if fuel_type == HPXML::FuelTypeElectricity
+        return { combined_energy_factor: 2.62,
+                 control_type: HPXML::ClothesDryerControlTypeTimer }
+      else
+        return { combined_energy_factor: 2.32,
+                 control_type: HPXML::ClothesDryerControlTypeTimer }
+      end
+    end
+  end
+
+  def self.calc_clothes_dryer_energy(eri_version, nbeds, clothes_dryer, clothes_washer)
+    # Get values
+    fuel_type = clothes_dryer.fuel_type
+    ef = clothes_dryer.energy_factor
+    cef = clothes_dryer.combined_energy_factor
+    if ef.nil?
+      ef = calc_clothes_dryer_ef_from_cef(cef)
+    elsif cef.nil?
+      cef = calc_clothes_dryer_cef_from_ef(ef)
+    end
+    control_type = clothes_dryer.control_type
+    cw_ler = clothes_washer.rated_annual_kwh
+    cw_cap = clothes_washer.capacity
+    cw_mef = clothes_washer.modified_energy_factor
+    cw_imef = clothes_washer.integrated_modified_energy_factor
+    if cw_mef.nil?
+      cw_mef = calc_clothes_washer_mef_from_imef(cw_imef)
+    elsif cw_imef.nil?
+      cw_imef = calc_clothes_washer_imef_from_mef(cw_mef)
+    end
+
+    if Constants.ERIVersions.index(eri_version) >= Constants.ERIVersions.index('2019A')
+      rmc = (0.97 * (cw_cap / cw_imef) - cw_ler / 312.0) / ((2.0104 * cw_cap + 1.4242) * 0.455) + 0.04
+      acy = (164.0 + 46.5 * nbeds) * ((3.0 * 2.08 + 1.59) / (cw_cap * 2.08 + 1.59))
+      annual_kwh = (((rmc - 0.04) * 100) / 55.5) * (8.45 / cef) * acy
+      if fuel_type == HPXML::FuelTypeElectricity
+        annual_therm = 0.0
+      else
+        annual_therm = annual_kwh * 3412.0 * (1.0 - 0.07) * (3.73 / 3.30) / 100000
+        annual_kwh = annual_kwh * 0.07 * (3.73 / 3.30)
+      end
+    else
+      if control_type == HPXML::ClothesDryerControlTypeTimer
+        field_util_factor = 1.18
+      elsif control_type == HPXML::ClothesDryerControlTypeMoisture
+        field_util_factor = 1.04
+      end
+      if fuel_type == HPXML::FuelTypeElectricity
+        annual_kwh = 12.5 * (164.0 + 46.5 * nbeds) * (field_util_factor / ef) * ((cw_cap / cw_mef) - cw_ler / 392.0) / (0.2184 * (cw_cap * 4.08 + 0.24))
+        annual_therm = 0.0
+      else
+        annual_kwh = 12.5 * (164.0 + 46.5 * nbeds) * (field_util_factor / 3.01) * ((cw_cap / cw_mef) - cw_ler / 392.0) / (0.2184 * (cw_cap * 4.08 + 0.24))
+        annual_therm = annual_kwh * 3412.0 * (1.0 - 0.07) * (3.01 / ef) / 100000
+        annual_kwh = annual_kwh * 0.07 * (3.01 / ef)
+      end
+    end
+
+    frac_lost = 0.85
     if fuel_type == HPXML::FuelTypeElectricity
-      return 2.62
+      frac_sens = (1.0 - frac_lost) * 0.90
     else
-      return 2.32
+      elec_btu = UnitConversions.convert(annual_kwh, 'kWh', 'Btu')
+      gas_btu = UnitConversions.convert(annual_therm, 'therm', 'Btu')
+      frac_sens = (1.0 - frac_lost) * ((0.90 * elec_btu + 0.8894 * gas_btu) / (elec_btu + gas_btu))
     end
-  end
-
-  def self.get_clothes_dryer_reference_control()
-    return HPXML::ClothesDryerControlTypeTimer
-  end
-
-  def self.calc_clothes_dryer_energy(nbeds, fuel_type, ef, control_type, cw_ler, cw_cap, cw_mef)
-    # Eq 4.2-6 (FU)
-    field_util_factor = nil
-    if control_type == HPXML::ClothesDryerControlTypeTimer
-      field_util_factor = 1.18
-    elsif control_type == HPXML::ClothesDryerControlTypeMoisture
-      field_util_factor = 1.04
-    end
-    if fuel_type == HPXML::FuelTypeElectricity
-      annual_kwh = 12.5 * (164.0 + 46.5 * nbeds) * (field_util_factor / ef) * ((cw_cap / cw_mef) - cw_ler / 392.0) / (0.2184 * (cw_cap * 4.08 + 0.24)) # Eq 4.2-6
-      annual_therm = 0.0
-    else
-      annual_kwh = 12.5 * (164.0 + 46.5 * nbeds) * (field_util_factor / 3.01) * ((cw_cap / cw_mef) - cw_ler / 392.0) / (0.2184 * (cw_cap * 4.08 + 0.24)) # Eq 4.2-6
-      annual_therm = annual_kwh * 3412.0 * (1.0 - 0.07) * (3.01 / ef) / 100000 # Eq 4.2-7a
-      annual_kwh = annual_kwh * 0.07 * (3.01 / ef)
-    end
-    tot_btu = UnitConversions.convert(annual_kwh, 'kWh', 'Btu') + UnitConversions.convert(annual_therm, 'therm', 'Btu')
-
-    if fuel_type != HPXML::FuelTypeElectricity
-      gains_sens = (738.0 + 209.0 * nbeds) * 365 # Btu
-      gains_lat = (91.0 + 26.0 * nbeds) * 365 # Btu
-    else
-      gains_sens = (661.0 + 188.0 * nbeds) * 365 # Btu
-      gains_lat = (73.0 + 21.0 * nbeds) * 365 # Btu
-    end
-    frac_sens = gains_sens / tot_btu
-    frac_lat = gains_lat / tot_btu
+    frac_lat = 1.0 - frac_sens - frac_lost
 
     return annual_kwh, annual_therm, frac_sens, frac_lat
+  end
+
+  def self.calc_clothes_dryer_cef_from_ef(ef)
+    return ef / 1.15 # Interpretation on ANSI/RESNET/ICC 301-2014 Clothes Dryer CEF
   end
 
   def self.calc_clothes_dryer_ef_from_cef(cef)
     return cef * 1.15 # Interpretation on ANSI/RESNET/ICC 301-2014 Clothes Dryer CEF
   end
 
-  def self.get_clothes_washer_reference_imef()
-    return 0.331
-  end
-
-  def self.get_clothes_washer_reference_ler()
-    return 704.0 # kWh/yr
-  end
-
-  def self.get_clothes_washer_reference_elec_rate()
-    return 0.0803 # $/kWh
-  end
-
-  def self.get_clothes_washer_reference_gas_rate()
-    return 0.58 # $/therm
-  end
-
-  def self.get_clothes_washer_reference_agc()
-    return 23.0 # $
-  end
-
-  def self.get_clothes_washer_reference_cap()
-    return 2.874 # ft^3
-  end
-
-  def self.calc_clothes_washer_energy_gpd(eri_version, nbeds, ler, elec_rate, gas_rate, agc, cap)
-    # Eq 4.2-9a
-    ncy = (3.0 / 2.847) * (164 + nbeds * 45.6)
-    if Constants.ERIVersions.index(eri_version) >= Constants.ERIVersions.index('2014A')
-      # 2014 w/ Addendum A or newer
-      ncy = (3.0 / 2.847) * (164 + nbeds * 46.5)
+  def self.get_clothes_washer_default_values(eri_version)
+    if Constants.ERIVersions.index(eri_version) >= Constants.ERIVersions.index('2019A')
+      return { integrated_modified_energy_factor: 1.0, # ft3/(kWh/cyc)
+               rated_annual_kwh: 400.0, # kWh/yr
+               label_electric_rate: 0.12, # $/kWh
+               label_gas_rate: 1.09, # $/therm
+               label_annual_gas_cost: 27.0, # $
+               capacity: 3.0, # ft^3
+               usage: 6.0 } # cyc/week
+    else
+      return { integrated_modified_energy_factor: 0.331, # ft3/(kWh/cyc)
+               rated_annual_kwh: 704.0, # kWh/yr
+               label_electric_rate: 0.08, # $/kWh, unused
+               label_gas_rate: 0.58, # $/therm, unused
+               label_annual_gas_cost: 23.0, # $, unused
+               capacity: 2.874, # ft^3
+               usage: 6.0 } # cyc/week, unused
     end
-    acy = ncy * ((3.0 * 2.08 + 1.59) / (cap * 2.08 + 1.59)) # Adjusted Cycles per Year
-    annual_kwh = ((ler / 392.0) - ((ler * elec_rate - agc) / (21.9825 * elec_rate - gas_rate) / 392.0) * 21.9825) * acy
-    tot_btu = UnitConversions.convert(annual_kwh, 'kWh', 'Btu')
+  end
 
-    gains_sens = (95.0 + 26.0 * nbeds) * 365 # Btu
-    gains_lat = (11.0 + 3.0 * nbeds) * 365 # Btu
-    frac_sens = gains_sens / tot_btu
-    frac_lat = gains_lat / tot_btu
+  def self.calc_clothes_washer_energy_gpd(eri_version, nbeds, clothes_washer)
+    # Get values
+    ler = clothes_washer.rated_annual_kwh
+    elec_rate = clothes_washer.label_electric_rate
+    gas_rate = clothes_washer.label_gas_rate
+    agc = clothes_washer.label_annual_gas_cost
+    cap = clothes_washer.capacity
+    usage = clothes_washer.usage
 
-    gpd = 60.0 * ((ler * elec_rate - agc) / (21.9825 * elec_rate - gas_rate) / 392.0) * acy / 365.0
-    if Constants.ERIVersions.index(eri_version) < Constants.ERIVersions.index('2014A')
-      # 2014 w/o Addendum A
-      gpd -= 3.97 # Section 4.2.2.5.2.10
+    if Constants.ERIVersions.index(eri_version) >= Constants.ERIVersions.index('2019A')
+      gas_h20 = 0.3914 # (gal/cyc) per (therm/y)
+      elec_h20 = 0.0178 # (gal/cyc) per (kWh/y)
+      lcy = usage * 52.0 # label cycles per year
+      scy = 164.0 + nbeds * 46.5
+      acy = scy * ((3.0 * 2.08 + 1.59) / (cap * 2.08 + 1.59)) # Annual Cycles per Year
+      cw_appl = (agc * gas_h20 / gas_rate - (ler * elec_rate) * elec_h20 / elec_rate) / (elec_rate * gas_h20 / gas_rate - elec_h20)
+      annual_kwh = cw_appl / lcy * acy
+
+      gpd = (ler - cw_appl) * elec_h20 * acy / 365.0
+    else
+      ncy = (3.0 / 2.847) * (164 + nbeds * 45.6)
+      if Constants.ERIVersions.index(eri_version) >= Constants.ERIVersions.index('2014A')
+        ncy = (3.0 / 2.847) * (164 + nbeds * 46.5)
+      end
+      acy = ncy * ((3.0 * 2.08 + 1.59) / (cap * 2.08 + 1.59)) # Adjusted Cycles per Year
+      annual_kwh = ((ler / 392.0) - ((ler * elec_rate - agc) / (21.9825 * elec_rate - gas_rate) / 392.0) * 21.9825) * acy
+
+      gpd = 60.0 * ((ler * elec_rate - agc) / (21.9825 * elec_rate - gas_rate) / 392.0) * acy / 365.0
+      if Constants.ERIVersions.index(eri_version) < Constants.ERIVersions.index('2014A')
+        gpd -= 3.97 # Section 4.2.2.5.2.10
+      end
     end
+
+    frac_lost = 0.70
+    frac_sens = (1.0 - frac_lost) * 0.90
+    frac_lat = 1.0 - frac_sens - frac_lost
 
     return annual_kwh, frac_sens, frac_lat, gpd
   end
 
+  def self.calc_clothes_washer_imef_from_mef(mef)
+    return (mef - 0.503) / 0.95 # Interpretation on ANSI/RESNET 301-2014 Clothes Washer IMEF
+  end
+
   def self.calc_clothes_washer_mef_from_imef(imef)
     return 0.503 + 0.95 * imef # Interpretation on ANSI/RESNET 301-2014 Clothes Washer IMEF
+  end
+
+  def self.calc_refrigerator_energy(refrigerator)
+    # Get values
+    ler = refrigerator.rated_annual_kwh
+    if ler.nil?
+      ler = refrigerator.adjusted_annual_kwh
+    end
+
+    annual_kwh = ler
+    frac_sens = 1.0
+    frac_lat = 0.0
+
+    return annual_kwh, frac_sens, frac_lat
   end
 
   def self.get_dist_energy_consumption_adjustment(has_uncond_bsmnt, cfa, ncfl,
@@ -577,7 +670,6 @@ class HotWaterAndAppliances
 
   def self.get_fixtures_gpd(eri_version, nbeds, has_low_flow_fixtures, daily_mw_fractions)
     if Constants.ERIVersions.index(eri_version) < Constants.ERIVersions.index('2014A')
-      # 2014 w/o Addendum A
       hw_gpd = 30.0 + 10.0 * nbeds # Table 4.2.2(1) Service water heating systems
       # Convert to mixed water gpd
       avg_mw_fraction = daily_mw_fractions.reduce(:+) / daily_mw_fractions.size.to_f
@@ -601,8 +693,7 @@ class HotWaterAndAppliances
   def self.get_dist_waste_gpd(eri_version, nbeds, has_uncond_bsmnt, cfa, ncfl,
                               dist_type, pipe_r, std_pipe_length,
                               recirc_branch_length, has_low_flow_fixtures)
-    if Constants.ERIVersions.index(eri_version) < Constants.ERIVersions.index('2014A')
-      # 2014 w/o Addendum A
+    if Constants.ERIVersions.index(eri_version) <= Constants.ERIVersions.index('2014')
       return 0.0
     end
 
