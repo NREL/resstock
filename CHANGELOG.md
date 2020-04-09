@@ -14,6 +14,8 @@ Features
 - Exterior lighting schedule changed from using interior lighting sunrise/sunset algorithm to T24 2016 Residential ACM Appendix C Table 8 Exterior Lighting Hourly Multiplier for weekdays and weekends ([#419](https://github.com/NREL/OpenStudio-BuildStock/pull/419))
 - Increase the diversity of the floor areas that are simulated. Geometry House Size has been replaced by Geometry Floor Area Bin and Geometry Floor Area. Now using AHS for specifying the floor area. Floor areas differ by non-Core Based Statistical Areas (CBSAs) Census Divisions and the top 15 largest CBSAs ([#425](https://github.com/NREL/OpenStudio-BuildStock/pull/425))
 - Increase the diversity of the infiltration simulated. Now using the Residential Diagnostics Database for the Infiltration housing characteristic ([#427](https://github.com/NREL/OpenStudio-BuildStock/pull/427))
+- Allow a key value to be specified when outputting timeseries variables ([#438](https://github.com/NREL/OpenStudio-BuildStock/pull/438))
+
 
 Fixes
 - Remove Location Weather Filename and Location Weather Year tsvs, and update options lookup to reflect updated weather file changes; weather filenames are now required to match what is in the options lookup ([#432](https://github.com/NREL/OpenStudio-BuildStock/pull/432))
