@@ -97,15 +97,14 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     output_meters = OutputMeters.new(model, runner, reporting_frequency, include_enduse_subcategories)
     results = output_meters.create_custom_building_unit_meters
 
-    output_vars.each do |output_var|
-      if output_var.include? '|'
-        key_val = output_var.split('|')[1]
-        var_name = output_var.split('|')[0]
+    output_vars.each do |output_var_item|
+      if output_var_item.include? '|'
+        output_var, key_val = output_var_item.split('|')
       else
         key_val = '*'
-        var_name = output_var
+        output_var = output_var_item
       end
-      results << OpenStudio::IdfObject.load("Output:Variable,#{key_val},#{var_name},#{reporting_frequency};").get
+      results << OpenStudio::IdfObject.load("Output:Variable,#{key_val},#{output_var},#{reporting_frequency};").get
     end
 
     results << OpenStudio::IdfObject.load("Output:Meter,Electricity:Facility,#{reporting_frequency};").get
