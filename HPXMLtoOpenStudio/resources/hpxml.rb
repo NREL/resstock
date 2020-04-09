@@ -283,6 +283,13 @@ class HPXML < Object
     return window_area_operable / window_area_total
   end
 
+  def has_walkout_basement()
+    has_conditioned_basement = has_space_type(LocationBasementConditioned)
+    ncfl = @building_construction.number_of_conditioned_floors
+    ncfl_ag = @building_construction.number_of_conditioned_floors_above_grade
+    return (has_conditioned_basement && (ncfl == ncfl_ag))
+  end
+
   def to_rexml()
     @doc = _create_rexml_document()
     @header.to_rexml(@doc)
@@ -3904,6 +3911,8 @@ class HPXML < Object
   end
 
   def self.is_thermal_boundary(surface)
+    # Returns true if the surface is between conditioned space and outside/ground/unconditioned space.
+    # Note: Insulated foundation walls of, e.g., unconditioned spaces return false.
     def self.is_adjacent_to_conditioned(adjacent_to)
       if [HPXML::LocationLivingSpace,
           HPXML::LocationBasementConditioned].include? adjacent_to

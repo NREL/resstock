@@ -388,12 +388,12 @@ class OSModel
       infilvolume = measurement.infiltration_volume unless infilvolume.nil?
     end
     if infilvolume.nil?
-      @infilvolume = @cvolume
+      @infil_volume = @cvolume
       measurements.each do |measurement|
-        measurement.infiltration_volume = @infilvolume
+        measurement.infiltration_volume = @infil_volume
       end
     else
-      @infilvolume = infilvolume
+      @infil_volume = infilvolume
     end
 
     # Default window interior shading
@@ -2987,7 +2987,7 @@ class OSModel
       if (measurement.house_pressure == 50) && (measurement.unit_of_measure == HPXML::UnitsACH)
         infil_ach50 = measurement.air_leakage
       elsif (measurement.house_pressure == 50) && (measurement.unit_of_measure == HPXML::UnitsCFM)
-        infil_ach50 = measurement.air_leakage * 60.0 / @infilvolume # Convert CFM50 to ACH50
+        infil_ach50 = measurement.air_leakage * 60.0 / @infil_volume # Convert CFM50 to ACH50
       else
         infil_const_ach = measurement.constant_ach_natural
       end
@@ -3152,17 +3152,14 @@ class OSModel
                                           range_exhaust_hour, bathroom_exhaust, bathroom_exhaust_hour,
                                           cfis_open_time, cfis_airflow_frac, cfis_airloop)
 
-    window_area = 0.0
-    @hpxml.windows.each do |window|
-      window_area += window.area
-    end
-
     nbaths = @hpxml.building_construction.number_of_bathrooms
     if nbaths.nil?
       nbaths = Waterheater.get_default_num_bathrooms(@nbeds)
     end
+    window_area = @hpxml.windows.map { |w| w.area }.inject(0, :+)
+    infil_height = Airflow.calc_inferred_infiltration_height(@cfa, @ncfl, @ncfl_ag, @infil_volume, @hpxml)
     Airflow.apply(model, runner, weather, infil, mech_vent, nat_vent, whf, duct_systems,
-                  @cfa, @infilvolume, @nbeds, nbaths, @ncfl, @ncfl_ag, window_area,
+                  @cfa, @infil_volume, infil_height, @nbeds, nbaths, @ncfl_ag, window_area,
                   @min_neighbor_distance)
   end
 
@@ -3241,7 +3238,7 @@ class OSModel
   end
 
   def self.add_hvac_sizing(runner, model, weather)
-    HVACSizing.apply(model, runner, weather, @cfa, @infilvolume, @nbeds, @min_neighbor_distance, @living_space, @debug)
+    HVACSizing.apply(model, runner, weather, @cfa, @infil_volume, @nbeds, @min_neighbor_distance, @living_space, @debug)
   end
 
   def self.add_fuel_heating_eae(runner, model)
