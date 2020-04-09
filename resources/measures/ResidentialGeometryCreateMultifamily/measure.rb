@@ -573,21 +573,21 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
         corridor_space.setThermalZone(corridor_zone)
 
         # Make walls of corridor adiabatic
-        if has_rear_units == true
-          corridor_space.surfaces.each do |surface|
-            os_facade = Geometry.get_facade_for_surface(surface)
+        # if has_rear_units == true
+        #   corridor_space.surfaces.each do |surface|
+        #     os_facade = Geometry.get_facade_for_surface(surface)
 
-            if adb_facade.include? os_facade
-              surface.setOutsideBoundaryCondition("Adiabatic")
-            elsif (adb_level.include? surface.surfaceType)
-              surface.setOutsideBoundaryCondition("Adiabatic")
-            end
+        #     if adb_facade.include? os_facade
+        #       surface.setOutsideBoundaryCondition("Adiabatic")
+        #     elsif (adb_level.include? surface.surfaceType)
+        #       surface.setOutsideBoundaryCondition("Adiabatic")
+        #     end
 
-            if surface.surfaceType.include? "Floor" # To avoid Kiva exposed perimeter error when all walls are adiabatic
-              surface.setOutsideBoundaryCondition("Adiabatic")
-            end
-          end
-        end
+        #     if surface.surfaceType.include? "Floor" # To avoid Kiva exposed perimeter error when all walls are adiabatic
+        #       surface.setOutsideBoundaryCondition("Adiabatic")
+        #     end
+        #   end
+        # end
       end
 
     elsif corridor_position == "Double Exterior" or corridor_position == "Single Exterior (Front)"
@@ -739,9 +739,11 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
         # os_facade = Geometry.get_facade_for_surface(surface)
         # if adb_facade.include? os_facade
         #   surface.setOutsideBoundaryCondition("Adiabatic")
-        if (adb_level.include? surface.surfaceType) # prevents eaves
-          surface.setOutsideBoundaryCondition("Adiabatic")
-        end
+
+        # ***** vvvvv ******
+        # if (adb_level.include? surface.surfaceType) # prevents eaves
+        #   surface.setOutsideBoundaryCondition("Adiabatic")
+        # end
       end
     end
 
