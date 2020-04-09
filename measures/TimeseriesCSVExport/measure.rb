@@ -100,7 +100,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     output_vars.each do |output_var|
       if output_var.include? '|'
         key_val = output_var.split('|')[1]
-        var_name = output_var.split('|')[0]       
+        var_name = output_var.split('|')[0]
       else
         key_val = '*'
         var_name = output_var
