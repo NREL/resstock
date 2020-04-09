@@ -833,9 +833,9 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('heating_system_heating_capacity', true)
     arg.setDisplayName('Heating System: Heating Capacity')
-    arg.setDescription("The output heating capacity of the heating system. If using '#{Constants.SizingAuto}', the autosizing algorithm will use ACCA Manual S to set the capacity.")
+    arg.setDescription("The output heating capacity of the heating system. If using '#{Constants.Auto}', the autosizing algorithm will use ACCA Manual S to set the capacity.")
     arg.setUnits('Btu/hr')
-    arg.setDefaultValue(Constants.SizingAuto)
+    arg.setDefaultValue(Constants.Auto)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heating_system_fraction_heat_load_served', true)
@@ -875,9 +875,9 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('cooling_system_cooling_capacity', true)
     arg.setDisplayName('Cooling System: Cooling Capacity')
-    arg.setDescription("The output cooling capacity of the cooling system. If using '#{Constants.SizingAuto}', the autosizing algorithm will use ACCA Manual S to set the capacity. Ignored for evaporative cooler.")
+    arg.setDescription("The output cooling capacity of the cooling system. If using '#{Constants.Auto}', the autosizing algorithm will use ACCA Manual S to set the capacity. Ignored for evaporative cooler.")
     arg.setUnits('tons')
-    arg.setDefaultValue(Constants.SizingAuto)
+    arg.setDefaultValue(Constants.Auto)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('cooling_system_fraction_cool_load_served', true)
@@ -924,23 +924,23 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('heat_pump_heating_capacity', true)
     arg.setDisplayName('Heat Pump: Heating Capacity')
-    arg.setDescription("The output heating capacity of the heat pump. If using '#{Constants.SizingAuto}', the autosizing algorithm will use ACCA Manual S to set the capacity.")
+    arg.setDescription("The output heating capacity of the heat pump. If using '#{Constants.Auto}', the autosizing algorithm will use ACCA Manual S to set the capacity.")
     arg.setUnits('Btu/hr')
-    arg.setDefaultValue(Constants.SizingAuto)
+    arg.setDefaultValue(Constants.Auto)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('heat_pump_heating_capacity_17F', true)
     arg.setDisplayName('Heat Pump: Heating Capacity 17F')
-    arg.setDescription("The output heating capacity of the heat pump at 17F. If using '#{Constants.SizingAuto}', the autosizing algorithm will use ACCA Manual S to set the capacity. Only applies to air-to-air and mini-split.")
+    arg.setDescription("The output heating capacity of the heat pump at 17F. If using '#{Constants.Auto}', the autosizing algorithm will use ACCA Manual S to set the capacity. Only applies to air-to-air and mini-split.")
     arg.setUnits('Btu/hr')
-    arg.setDefaultValue(Constants.SizingAuto)
+    arg.setDefaultValue(Constants.Auto)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('heat_pump_cooling_capacity', true)
     arg.setDisplayName('Heat Pump: Cooling Capacity')
-    arg.setDescription("The output cooling capacity of the heat pump. If using '#{Constants.SizingAuto}', the autosizing algorithm will use ACCA Manual S to set the capacity.")
+    arg.setDescription("The output cooling capacity of the heat pump. If using '#{Constants.Auto}', the autosizing algorithm will use ACCA Manual S to set the capacity.")
     arg.setUnits('Btu/hr')
-    arg.setDefaultValue(Constants.SizingAuto)
+    arg.setDefaultValue(Constants.Auto)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_fraction_heat_load_served', true)
@@ -971,15 +971,15 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('heat_pump_backup_heating_capacity', true)
     arg.setDisplayName('Heat Pump: Backup Heating Capacity')
-    arg.setDescription("The backup output heating capacity of the heat pump. If using '#{Constants.SizingAuto}', the autosizing algorithm will use ACCA Manual S to set the capacity.")
+    arg.setDescription("The backup output heating capacity of the heat pump. If using '#{Constants.Auto}', the autosizing algorithm will use ACCA Manual S to set the capacity.")
     arg.setUnits('Btu/hr')
-    arg.setDefaultValue(Constants.SizingAuto)
+    arg.setDefaultValue(Constants.Auto)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_backup_heating_switchover_temp', false)
     arg.setDisplayName('Heat Pump: Backup Heating Switchover Temperature')
     arg.setDescription('The temperature at which the heat pump stops operating and the backup heating system starts running. Only applies to air-to-air and mini-split.')
-    arg.setUnits('degrees F')
+    arg.setUnits('deg-F')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument('heat_pump_mini_split_is_ducted', true)
@@ -991,14 +991,14 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('setpoint_heating_temp', true)
     arg.setDisplayName('Setpoint: Heating Temperature')
     arg.setDescription('Specify the heating setpoint temperature.')
-    arg.setUnits('degrees F')
+    arg.setUnits('deg-F')
     arg.setDefaultValue(71)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('setpoint_heating_setback_temp', true)
     arg.setDisplayName('Setpoint: Heating Setback Temperature')
     arg.setDescription('Specify the heating setback temperature.')
-    arg.setUnits('degrees F')
+    arg.setUnits('deg-F')
     arg.setDefaultValue(71)
     args << arg
 
@@ -1017,14 +1017,14 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('setpoint_cooling_temp', true)
     arg.setDisplayName('Setpoint: Cooling Temperature')
     arg.setDescription('Specify the cooling setpoint temperature.')
-    arg.setUnits('degrees F')
+    arg.setUnits('deg-F')
     arg.setDefaultValue(76)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('setpoint_cooling_setup_temp', true)
     arg.setDisplayName('Setpoint: Cooling Setup Temperature')
     arg.setDescription('Specify the cooling setup temperature.')
-    arg.setUnits('degrees F')
+    arg.setUnits('deg-F')
     arg.setDefaultValue(76)
     args << arg
 
@@ -1246,7 +1246,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('water_heater_fuel_type', water_heater_fuel_choices, true)
     arg.setDisplayName('Water Heater: Fuel Type')
     arg.setDescription("The fuel type of water heater. Ignored for #{HPXML::WaterHeaterTypeHeatPump}.")
-    arg.setDefaultValue(HPXML::FuelTypeElectricity)
+    arg.setDefaultValue(HPXML::FuelTypeNaturalGas)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('water_heater_location', water_heater_location_choices, true)
@@ -1264,9 +1264,9 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('water_heater_heating_capacity', true)
     arg.setDisplayName('Water Heater: Input Capacity')
-    arg.setDescription("The maximum energy input rating of water heater. Set to #{Constants.SizingAuto} to have this field autosized. Only applies to #{HPXML::WaterHeaterTypeStorage}.")
+    arg.setDescription("The maximum energy input rating of water heater. Set to #{Constants.Auto} to have this field autosized. Only applies to #{HPXML::WaterHeaterTypeStorage}.")
     arg.setUnits('Btu/hr')
-    arg.setDefaultValue(Constants.SizingAuto)
+    arg.setDefaultValue(Constants.Auto)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('water_heater_efficiency_type', water_heater_efficiency_type_choices, true)
@@ -1275,23 +1275,23 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue('EnergyFactor')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument('water_heater_efficiency', true)
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('water_heater_efficiency', true)
     arg.setDisplayName('Water Heater: Efficiency')
     arg.setDescription("EnergyFactor=Ratio of useful energy output from water heater to the total amount of energy delivered from the water heater. UniformEnergyFactor=The uniform energy factor of water heater. Doesn't apply to space-heating boilers.")
-    arg.setDefaultValue(Constants.Auto)
+    arg.setDefaultValue(0.67)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('water_heater_recovery_efficiency', true)
     arg.setDisplayName('Water Heater: Recovery Efficiency')
     arg.setDescription('Ratio of energy delivered to water heater to the energy content of the fuel consumed by the water heater. Only used for non-electric storage water heaters.')
     arg.setUnits('Frac')
-    arg.setDefaultValue(0.76)
+    arg.setDefaultValue(0.78)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('water_heater_standby_loss', false)
     arg.setDisplayName('Water Heater: Standby Loss')
     arg.setDescription('The standby loss of water heater. Only applies to space-heating boilers.')
-    arg.setUnits('Frac')
+    arg.setUnits('deg-F/hr')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('water_heater_jacket_rvalue', false)
@@ -1303,7 +1303,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('water_heater_setpoint_temperature', true)
     arg.setDisplayName('Water Heater: Setpoint Temperature')
     arg.setDescription('The setpoint temperature of water heater.')
-    arg.setUnits('degrees F')
+    arg.setUnits('deg-F')
     arg.setDefaultValue(125.0)
     args << arg
 
@@ -1792,28 +1792,28 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDisplayName('Ceiling Fan: Quantity')
     arg.setUnits('#')
     arg.setDescription('Total number of ceiling fans.')
-    arg.setDefaultValue(2)
+    arg.setDefaultValue(0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('ceiling_fan_cooling_setpoint_temp_offset', true)
     arg.setDisplayName('Ceiling Fan: Cooling Setpoint Temperature Offset')
-    arg.setUnits('degrees F')
-    arg.setDescription('The setpoint temperature offset during cooling season for the ceiling fan(s).')
-    arg.setDefaultValue(0)
+    arg.setUnits('deg-F')
+    arg.setDescription('The setpoint temperature offset during cooling season for the ceiling fan(s). Only applies if ceiling fan quantity is greater than zero.')
+    arg.setDefaultValue(0.5)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('plug_loads_television_annual_kwh', true)
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('plug_loads_television_annual_kwh', true)
     arg.setDisplayName('Plug Loads: Television Annual kWh')
     arg.setDescription('The annual energy consumption of the television plug loads.')
     arg.setUnits('kWh/yr')
-    arg.setDefaultValue(620)
+    arg.setDefaultValue(Constants.Auto)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('plug_loads_other_annual_kwh', true)
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('plug_loads_other_annual_kwh', true)
     arg.setDisplayName('Plug Loads: Other Annual kWh')
     arg.setDescription('The annual energy consumption of the other residual plug loads.')
     arg.setUnits('kWh/yr')
-    arg.setDefaultValue(2457.0)
+    arg.setDefaultValue(Constants.Auto)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('plug_loads_other_frac_sensible', true)
@@ -2033,7 +2033,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
              water_heater_tank_volume: runner.getStringArgumentValue('water_heater_tank_volume', user_arguments),
              water_heater_heating_capacity: runner.getStringArgumentValue('water_heater_heating_capacity', user_arguments),
              water_heater_efficiency_type: runner.getStringArgumentValue('water_heater_efficiency_type', user_arguments),
-             water_heater_efficiency: runner.getStringArgumentValue('water_heater_efficiency', user_arguments),
+             water_heater_efficiency: runner.getDoubleArgumentValue('water_heater_efficiency', user_arguments),
              water_heater_recovery_efficiency: runner.getDoubleArgumentValue('water_heater_recovery_efficiency', user_arguments),
              water_heater_standby_loss: runner.getOptionalDoubleArgumentValue('water_heater_standby_loss', user_arguments),
              water_heater_jacket_rvalue: runner.getOptionalDoubleArgumentValue('water_heater_jacket_rvalue', user_arguments),
@@ -2101,8 +2101,8 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
              ceiling_fan_efficiency: runner.getDoubleArgumentValue('ceiling_fan_efficiency', user_arguments),
              ceiling_fan_quantity: runner.getIntegerArgumentValue('ceiling_fan_quantity', user_arguments),
              ceiling_fan_cooling_setpoint_temp_offset: runner.getDoubleArgumentValue('ceiling_fan_cooling_setpoint_temp_offset', user_arguments),
-             plug_loads_television_annual_kwh: runner.getDoubleArgumentValue('plug_loads_television_annual_kwh', user_arguments),
-             plug_loads_other_annual_kwh: runner.getDoubleArgumentValue('plug_loads_other_annual_kwh', user_arguments),
+             plug_loads_television_annual_kwh: runner.getStringArgumentValue('plug_loads_television_annual_kwh', user_arguments),
+             plug_loads_other_annual_kwh: runner.getStringArgumentValue('plug_loads_other_annual_kwh', user_arguments),
              plug_loads_other_frac_sensible: runner.getDoubleArgumentValue('plug_loads_other_frac_sensible', user_arguments),
              plug_loads_other_frac_latent: runner.getDoubleArgumentValue('plug_loads_other_frac_latent', user_arguments),
              plug_loads_schedule_values: runner.getBoolArgumentValue('plug_loads_schedule_values', user_arguments),
@@ -2765,7 +2765,7 @@ class HPXMLFile
     return if heating_system_type == 'none'
 
     heating_capacity = args[:heating_system_heating_capacity]
-    if heating_capacity == Constants.SizingAuto
+    if heating_capacity == Constants.Auto
       heating_capacity = -1
     end
     heating_capacity = Float(heating_capacity)
@@ -2805,7 +2805,7 @@ class HPXMLFile
 
     if cooling_system_type != HPXML::HVACTypeEvaporativeCooler
       cooling_capacity = args[:cooling_system_cooling_capacity]
-      if cooling_capacity == Constants.SizingAuto
+      if cooling_capacity == Constants.Auto
         cooling_capacity = -1
       end
       cooling_capacity = Float(cooling_capacity)
@@ -2846,14 +2846,14 @@ class HPXMLFile
     return if heat_pump_type == 'none'
 
     heating_capacity = args[:heat_pump_heating_capacity]
-    if heating_capacity == Constants.SizingAuto
+    if heating_capacity == Constants.Auto
       heating_capacity = -1
     end
     heating_capacity = Float(heating_capacity)
 
     if [HPXML::HVACTypeHeatPumpAirToAir, HPXML::HVACTypeHeatPumpMiniSplit].include? heat_pump_type
       heating_capacity_17F = args[:heat_pump_heating_capacity_17F]
-      if heating_capacity_17F == Constants.SizingAuto
+      if heating_capacity_17F == Constants.Auto
         heating_capacity_17F = nil
       else
         heating_capacity_17F = Float(heating_capacity_17F)
@@ -2864,7 +2864,7 @@ class HPXMLFile
       backup_heating_fuel = args[:heat_pump_backup_fuel]
 
       backup_heating_capacity = args[:heat_pump_backup_heating_capacity]
-      if backup_heating_capacity == Constants.SizingAuto
+      if backup_heating_capacity == Constants.Auto
         backup_heating_capacity = -1
       end
       backup_heating_capacity = Float(backup_heating_capacity)
@@ -2882,7 +2882,7 @@ class HPXMLFile
     end
 
     cooling_capacity = args[:heat_pump_cooling_capacity]
-    if cooling_capacity == Constants.SizingAuto
+    if cooling_capacity == Constants.Auto
       cooling_capacity = -1
     end
     cooling_capacity = Float(cooling_capacity)
@@ -3019,7 +3019,7 @@ class HPXMLFile
       cooling_setup_start_hour = args[:setpoint_cooling_setup_start_hour]
     end
 
-    if args[:ceiling_fan_cooling_setpoint_temp_offset] > 0
+    if (args[:ceiling_fan_cooling_setpoint_temp_offset] > 0) && (args[:ceiling_fan_quantity] > 0)
       ceiling_fan_cooling_setpoint_temp_offset = args[:ceiling_fan_cooling_setpoint_temp_offset]
     end
 
@@ -3125,7 +3125,7 @@ class HPXMLFile
 
     if water_heater_type == HPXML::WaterHeaterTypeStorage
       heating_capacity = args[:water_heater_heating_capacity]
-      if heating_capacity == Constants.SizingAuto
+      if heating_capacity == Constants.Auto
         heating_capacity = Waterheater.calc_water_heater_capacity(fuel_type, args[:geometry_num_bedrooms], 1, num_bathrooms)
       else
         heating_capacity = Float(heating_capacity)
@@ -3136,7 +3136,6 @@ class HPXMLFile
     if not [HPXML::WaterHeaterTypeCombiStorage, HPXML::WaterHeaterTypeCombiTankless].include? water_heater_type
       if args[:water_heater_efficiency_type] == 'EnergyFactor'
         energy_factor = args[:water_heater_efficiency]
-        energy_factor = Waterheater.calc_ef(energy_factor, tank_volume, fuel_type).round(2)
       elsif args[:water_heater_efficiency_type] == 'UniformEnergyFactor'
         uniform_energy_factor = args[:water_heater_efficiency]
       end
@@ -3425,14 +3424,22 @@ class HPXMLFile
   end
 
   def self.set_plug_loads(hpxml, runner, args)
+    if args[:plug_loads_other_annual_kwh] != Constants.Auto
+      plug_loads_other_annual_kwh = args[:plug_loads_other_annual_kwh]
+    end
+
+    if args[:plug_loads_television_annual_kwh] != Constants.Auto
+      plug_loads_television_annual_kwh = args[:plug_loads_television_annual_kwh]
+    end
+
     hpxml.plug_loads.add(id: 'PlugLoadsOther',
                          plug_load_type: HPXML::PlugLoadTypeOther,
-                         kWh_per_year: args[:plug_loads_other_annual_kwh],
+                         kWh_per_year: plug_loads_other_annual_kwh,
                          frac_sensible: args[:plug_loads_other_frac_sensible],
                          frac_latent: args[:plug_loads_other_frac_latent])
     hpxml.plug_loads.add(id: 'PlugLoadsTelevision',
                          plug_load_type: HPXML::PlugLoadTypeTelevision,
-                         kWh_per_year: args[:plug_loads_television_annual_kwh],
+                         kWh_per_year: plug_loads_television_annual_kwh,
                          frac_sensible: 1.0,
                          frac_latent: 0.0)
   end

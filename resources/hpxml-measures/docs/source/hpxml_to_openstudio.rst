@@ -143,6 +143,7 @@ Building Summary
 This section describes elements specified in HPXML's ``BuildingSummary``. 
 It is used for high-level building information including conditioned floor area, number of bedrooms, number of residents, number of conditioned floors, etc.
 Most occupancy assumptions are based on the number of bedrooms, while the number of residents is solely used to determine heat gains from the occupants themselves.
+Note that a walkout basement should be included in ``NumberofConditionedFloorsAboveGrade``.
 
 Shading due to neighboring buildings can be defined inside an ``Site/extension/Neighbors`` element.
 Each ``Neighbors/NeighborBuilding`` element is required to have an ``Azimuth`` and ``Distance`` from the house.

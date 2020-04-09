@@ -1,4 +1,5 @@
 class Waterheater
+  # TODO: Remove when this is in HPXMLtoOS measure
   def self.calc_nom_tankvol(vol, fuel, num_beds, num_baths)
     # Calculates the volume of a water heater
     if vol == Constants.Auto
@@ -54,21 +55,6 @@ class Waterheater
       end
     else # user entered volume
       return vol.to_f
-    end
-  end
-
-  def self.calc_ef(ef, vol, fuel)
-    # Calculate the energy factor as a function of the tank volume and fuel type
-    if ef == Constants.Auto
-      if (fuel == HPXML::FuelTypePropane) || (fuel == HPXML::FuelTypeNaturalGas)
-        return 0.67 - (0.0019 * vol)
-      elsif fuel == HPXML::FuelTypeElectricity
-        return 0.97 - (0.00132 * vol)
-      else
-        return 0.59 - (0.0019 * vol)
-      end
-    else # user input energy factor
-      return ef.to_f
     end
   end
 end
