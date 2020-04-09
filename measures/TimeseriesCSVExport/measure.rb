@@ -64,7 +64,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     # make an argument for optional output variables
     arg = OpenStudio::Measure::OSArgument::makeStringArgument("output_variables", false)
     arg.setDisplayName("Output Variables")
-    arg.setDescription("Specify a comma-separated list of output variables to report. (See EnergyPlus's rdd file for available output variables.)")
+    arg.setDescription("Specify a comma-separated list of output variables to report; use the notation: `Output Variable|Key Value` to specify a key value. (See EnergyPlus's rdd file for available output variables.)")
     args << arg
 
     return args
@@ -98,7 +98,14 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     results = output_meters.create_custom_building_unit_meters
 
     output_vars.each do |output_var|
-      results << OpenStudio::IdfObject.load("Output:Variable,*,#{output_var},#{reporting_frequency};").get
+      if output_var.include? '|'
+        key_val = output_var.split('|')[1]
+        var_name = output_var.split('|')[0]       
+      else
+        key_val = '*'
+        var_name = output_var
+      end
+      results << OpenStudio::IdfObject.load("Output:Variable,#{key_val},#{var_name},#{reporting_frequency};").get
     end
 
     results << OpenStudio::IdfObject.load("Output:Meter,Electricity:Facility,#{reporting_frequency};").get
@@ -124,6 +131,8 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
       output_vars = output_variables.get
       output_vars = output_vars.split(",")
       output_vars = output_vars.collect { |x| x.strip }
+      output_vars = output_vars.collect { |x| x.split('|')[0] }
+      output_vars = output_vars.uniq
     end
 
     # Get the last model and sql file
