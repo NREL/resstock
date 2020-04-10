@@ -1690,11 +1690,20 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(true)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('dishwasher_rated_annual_kwh', true)
-    arg.setDisplayName('Dishwasher: Rated Annual Consumption')
-    arg.setUnits('kWh')
-    arg.setDescription('The EnergyGuide rated annual energy consumption for a dishwasher.')
-    arg.setDefaultValue(467.0)
+    dishwasher_efficiency_type_choices = OpenStudio::StringVector.new
+    dishwasher_efficiency_type_choices << 'RatedAnnualkWh'
+    dishwasher_efficiency_type_choices << 'EnergyFactor'
+
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('dishwasher_efficiency_type', dishwasher_efficiency_type_choices, true)
+    arg.setDisplayName('Dishwasher: Efficiency Type')
+    arg.setDescription('The efficiency type of dishwasher.')
+    arg.setDefaultValue('RatedAnnualkWh')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('dishwasher_efficiency', true)
+    arg.setDisplayName('Dishwasher: Efficiency')
+    arg.setDescription('The efficiency of the dishwasher.')
+    arg.setDefaultValue(467)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('dishwasher_label_electric_rate', true)
@@ -2092,7 +2101,8 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
              clothes_dryer_efficiency: runner.getDoubleArgumentValue('clothes_dryer_efficiency', user_arguments),
              clothes_dryer_control_type: runner.getStringArgumentValue('clothes_dryer_control_type', user_arguments),
              dishwasher_present: runner.getBoolArgumentValue('dishwasher_present', user_arguments),
-             dishwasher_rated_annual_kwh: runner.getDoubleArgumentValue('dishwasher_rated_annual_kwh', user_arguments),
+             dishwasher_efficiency_type: runner.getStringArgumentValue('dishwasher_efficiency_type', user_arguments),
+             dishwasher_efficiency: runner.getDoubleArgumentValue('dishwasher_efficiency', user_arguments),
              dishwasher_label_electric_rate: runner.getDoubleArgumentValue('dishwasher_label_electric_rate', user_arguments),
              dishwasher_label_gas_rate: runner.getDoubleArgumentValue('dishwasher_label_gas_rate', user_arguments),
              dishwasher_label_annual_gas_cost: runner.getDoubleArgumentValue('dishwasher_label_annual_gas_cost', user_arguments),
@@ -3359,8 +3369,15 @@ class HPXMLFile
   def self.set_dishwasher(hpxml, runner, args)
     return unless args[:dishwasher_present]
 
+    if args[:dishwasher_efficiency_type] == 'RatedAnnualkWh'
+      rated_annual_kwh = args[:dishwasher_efficiency]
+    elsif args[:dishwasher_efficiency_type] == 'EnergyFactor'
+      energy_factor = args[:dishwasher_efficiency]
+    end
+
     hpxml.dishwashers.add(id: 'Dishwasher',
-                          rated_annual_kwh: args[:dishwasher_rated_annual_kwh],
+                          rated_annual_kwh: rated_annual_kwh,
+                          energy_factor: energy_factor,
                           label_electric_rate: args[:dishwasher_label_electric_rate],
                           label_gas_rate: args[:dishwasher_label_gas_rate],
                           label_annual_gas_cost: args[:dishwasher_label_annual_gas_cost],
