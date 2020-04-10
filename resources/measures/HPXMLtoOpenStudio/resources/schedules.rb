@@ -1089,7 +1089,7 @@ class ScheduleGenerator
     bath_flow_rate = gaussian_rand(prng, bath_flow_rate_mean, bath_flow_rate_std, 0.1)
     shower_flow_rate = gaussian_rand(prng, shower_flow_rate_mean, shower_flow_rate_std, 0.1)
     while m < mins_in_year
-      if @shower_schedule[m / 15] > 0
+      if @shower_schedule[m / minutes_per_steps] > 0
         # TODO Also take into account the fractional shower_schedule means multiple occupants taking shower
         r = prng.rand
         if r <= bath_ratio
@@ -1105,7 +1105,7 @@ class ScheduleGenerator
           end
           if m >= mins_in_year then break end
 
-          while @shower_schedule[m / 15] > 0 and m < mins_in_year
+          while @shower_schedule[m / minutes_per_steps] > 0 and m < mins_in_year
             # skip till the end of this slot
             m += 1
           end
@@ -1129,7 +1129,7 @@ class ScheduleGenerator
             end
             if m >= mins_in_year then break end
           end
-          while @shower_schedule[m / 15] > 0 and m < mins_in_year
+          while @shower_schedule[m / minutes_per_steps] > 0 and m < mins_in_year
             # skip till the end of this slot
             m += 1
           end
@@ -1153,7 +1153,7 @@ class ScheduleGenerator
     m = 0
     dw_flow_rate = gaussian_rand(prng, dw_flow_rate_mean, dw_flow_rate_std, 0)
     while m < mins_in_year
-      if @dish_washer_schedule[m / 15] > 0
+      if @dish_washer_schedule[m / minutes_per_steps] > 0
         num_events = sample_activity_cluster_size(prng, "dishwasher")
         num_events.times do
           duration = sample_event_duration(prng, "dishwasher")
@@ -1171,7 +1171,7 @@ class ScheduleGenerator
           end
           if m >= mins_in_year then break end
         end
-        while @dish_washer_schedule[m / 15] > 0 and m < mins_in_year
+        while @dish_washer_schedule[m / minutes_per_steps] > 0 and m < mins_in_year
           # skip till the end of this slot
           m += 1
         end
@@ -1188,7 +1188,7 @@ class ScheduleGenerator
     m = 0
     cw_flow_rate = gaussian_rand(prng, cw_flow_rate_mean, cw_flow_rate_std, 0)
     while m < mins_in_year
-      if @clothes_washer_schedule[m / 15] > 0
+      if @clothes_washer_schedule[m / minutes_per_steps] > 0
         num_loads = weighted_random(prng, cw_load_size_probability) + 1
         num_loads.times do
           num_events = sample_activity_cluster_size(prng, "clothes_washer")
@@ -1209,7 +1209,7 @@ class ScheduleGenerator
             if m >= mins_in_year then break end
           end
         end
-        while @clothes_washer_schedule[m / 15] > 0 and m < mins_in_year
+        while @clothes_washer_schedule[m / minutes_per_steps] > 0 and m < mins_in_year
           # skip till the end of this slot
           m += 1
         end
