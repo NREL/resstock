@@ -1575,6 +1575,13 @@ class Airflow
     infil_flow_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(infil_flow, 'Zone Infiltration', 'Air Exchange Flow Rate')
     infil_flow_actuator.setName("#{infil_flow.name} act")
 
+    imbal_ducts_flow = OpenStudio::Model::SpaceInfiltrationDesignFlowRate.new(model)
+    imbal_ducts_flow.setName(Constants.ObjectNameDucts + ' flow')
+    imbal_ducts_flow.setSchedule(model.alwaysOnDiscreteSchedule)
+    imbal_ducts_flow.setSpace(living_space)
+    imbal_ducts_flow_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(imbal_ducts_flow, 'Zone Infiltration', 'Air Exchange Flow Rate')
+    imbal_ducts_flow_actuator.setName("#{imbal_ducts_flow.name} act")
+
     imbal_mechvent_flow = OpenStudio::Model::SpaceInfiltrationDesignFlowRate.new(model)
     imbal_mechvent_flow.setName(Constants.ObjectNameMechanicalVentilation + ' flow')
     imbal_mechvent_flow.setSchedule(model.alwaysOnDiscreteSchedule)
@@ -1755,8 +1762,6 @@ class Airflow
       infil_program.addLine('Set Qdryer = 0.0')
     end
     infil_program.addLine("Set Qbath = #{bath_sch_sensor.name}*#{UnitConversions.convert(mech_vent.bathroom_hour_avg_exhaust, 'cfm', 'm^3/s').round(4)}")
-    infil_program.addLine('Set QhpwhOut = 0')
-    infil_program.addLine('Set QhpwhIn = 0')
     infil_program.addLine('Set QductsOut = 0')
     infil_program.addLine('Set QductsIn = 0')
     duct_lks.each do |air_loop_name, value|
@@ -1764,8 +1769,8 @@ class Airflow
       infil_program.addLine("Set QductsOut = QductsOut+#{duct_lk_exhaust_fan_equiv_var.name}")
       infil_program.addLine("Set QductsIn = QductsIn+#{duct_lk_supply_fan_equiv_var.name}")
     end
-    infil_program.addLine('Set Qout = Qrange+Qbath+Qdryer+QhpwhOut+QductsOut')
-    infil_program.addLine('Set Qin = QhpwhIn+QductsIn')
+    infil_program.addLine('Set Qout = Qrange+Qbath+Qdryer+QductsOut')
+    infil_program.addLine('Set Qin = QductsIn')
     if mech_vent.type == HPXML::MechVentTypeExhaust
       infil_program.addLine('Set Qout = Qout+QWHV')
     elsif (mech_vent.type == HPXML::MechVentTypeSupply) || (mech_vent.type == HPXML::MechVentTypeCFIS)
@@ -1782,16 +1787,15 @@ class Airflow
 
     infil_program.addLine("Set #{range_hood_fan_actuator.name} = Qrange * #{mech_vent.spot_fan_w_per_cfm / UnitConversions.convert(1.0, 'cfm', 'm^3/s')}")
     infil_program.addLine("Set #{bath_exhaust_sch_fan_actuator.name} = Qbath * #{mech_vent.spot_fan_w_per_cfm / UnitConversions.convert(1.0, 'cfm', 'm^3/s')}")
-    infil_program.addLine('Set Q_acctd_for_elsewhere = QhpwhOut+QhpwhIn+QductsOut+QductsIn')
-    infil_program.addLine('Set Q_tot_flow = (((Qu^2)+(Qn^2))^0.5)-Q_acctd_for_elsewhere')
+    infil_program.addLine('Set Q_tot_flow = (((Qu^2)+(Qn^2))^0.5)')
     infil_program.addLine('Set Q_tot_flow = (@Max Q_tot_flow 0)')
     if not [HPXML::MechVentTypeBalanced, HPXML::MechVentTypeERV, HPXML::MechVentTypeHRV].include? mech_vent.type
-      infil_program.addLine("Set #{infil_flow_actuator.name} = Q_tot_flow - QWHV")
       infil_program.addLine("Set #{imbal_mechvent_flow_actuator.name} = QWHV")
     else
-      infil_program.addLine("Set #{infil_flow_actuator.name} = Q_tot_flow")
       infil_program.addLine("Set #{imbal_mechvent_flow_actuator.name} = 0")
     end
+    infil_program.addLine("Set #{imbal_ducts_flow_actuator.name} = (@Abs (QductsOut - QductsIn))")
+    infil_program.addLine("Set #{infil_flow_actuator.name} = Q_tot_flow - #{imbal_mechvent_flow_actuator.name} - #{imbal_ducts_flow_actuator.name}") # The remainder
 
     return infil_program
   end

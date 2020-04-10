@@ -587,6 +587,8 @@ Water fixtures should be entered as ``Systems/WaterHeating/WaterFixture`` elemen
 Each fixture must have ``WaterFixtureType`` and ``LowFlow`` elements provided.
 Fixtures should be specified as low flow if they are <= 2.0 gpm.
 
+A ``WaterHeating/extension/WaterFixturesUsageMultiplier`` can also be optionally provided that scales hot water usage; if not provided, it is assumed to be 1.0.
+
 Solar Thermal
 *************
 
@@ -664,6 +666,8 @@ This equation is based on the `Interpretation on ANSI/RESNET 301-2014 Clothes Wa
 
 .. math:: IntegratedModifiedEnergyFactor = \frac{ModifiedEnergyFactor - 0.503}{0.95}
 
+An ``extension/UsageMultiplier`` can also be optionally provided that scales energy and hot water usage; if not provided, it is assumed to be 1.0.
+
 Clothes Dryer
 *************
 
@@ -685,6 +689,8 @@ If ``EnergyFactor`` is provided instead of ``CombinedEnergyFactor``, it will be 
 This equation is based on the `Interpretation on ANSI/RESNET/ICC 301-2014 Clothes Dryer CEF <https://www.resnet.us/wp-content/uploads/No.-301-2014-10-Section-4.2.2.5.2.8-Clothes-Dryer-CEF-Rating.pdf>`_.
 
 .. math:: CombinedEnergyFactor = \frac{EnergyFactor}{1.15}
+
+An ``extension/UsageMultiplier`` can also be optionally provided that scales energy usage; if not provided, it is assumed to be 1.0.
 
 Dishwasher
 **********
@@ -711,6 +717,8 @@ This equation is based on `ANSI/RESNET/ICC 301-2014 <https://codes.iccsafe.org/c
 
 .. math:: RatedAnnualkWh = \frac{215.0}{EnergyFactor}
 
+An ``extension/UsageMultiplier`` can also be optionally provided that scales energy and hot water usage; if not provided, it is assumed to be 1.0.
+
 Refrigerator
 ************
 
@@ -722,6 +730,8 @@ If neither are provided, ``RatedAnnualkWh`` will be defaulted to represent a sta
 This equation is based on `ANSI/RESNET/ICC 301-2019 <https://codes.iccsafe.org/content/RESNETICC3012019>`_.
 
 .. math:: RatedAnnualkWh = 637.0 + 18.0 \cdot Number of bedrooms
+
+An ``extension/UsageMultiplier`` can also be optionally provided that scales energy usage; if not provided, it is assumed to be 1.0.
 
 Cooking Range/Oven
 ******************
@@ -740,6 +750,8 @@ IsInduction    false
 IsConvection   false
 =============  ==============
 
+An ``extension/UsageMultiplier`` can also be optionally provided that scales energy usage; if not provided, it is assumed to be 1.0.
+
 Lighting
 ~~~~~~~~
 
@@ -754,6 +766,8 @@ If the fractions sum to less than 1, the remainder is assumed to be incandescent
 Garage lighting values are ignored if the building has no garage.
 
 To model a building without any lighting, all six ``Lighting/LightingGroup`` elements must be excluded.
+
+A ``Lighting/extension/UsageMultiplier`` can also be optionally provided that scales energy usage; if not provided, it is assumed to be 1.0.
 
 Ceiling Fans
 ~~~~~~~~~~~~
@@ -770,6 +784,8 @@ Plug Loads
 Plug loads can be provided by entering ``MiscLoads/PlugLoad`` elements; if not provided, plug loads will not be modeled.
 Currently only plug loads specified with ``PlugLoadType='other'`` and ``PlugLoadType='TV other'`` are recognized.
 The annual energy consumption (``Load[Units='kWh/year']/Value``) can be provided, otherwise default assumptions based on the plug load type are used.
+
+An ``extension/UsageMultiplier`` can also be optionally provided that scales energy usage; if not provided, it is assumed to be 1.0.
 
 Validating & Debugging Errors
 -----------------------------
