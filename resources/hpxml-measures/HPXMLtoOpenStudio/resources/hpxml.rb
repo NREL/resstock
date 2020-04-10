@@ -3246,7 +3246,7 @@ class HPXML < Object
   class ClothesWasher < BaseElement
     ATTRS = [:id, :location, :modified_energy_factor, :integrated_modified_energy_factor,
              :rated_annual_kwh, :label_electric_rate, :label_gas_rate, :label_annual_gas_cost,
-             :capacity, :usage]
+             :capacity, :label_usage]
     attr_accessor(*ATTRS)
 
     def delete
@@ -3268,11 +3268,11 @@ class HPXML < Object
       XMLHelper.add_element(clothes_washer, 'Location', @location) unless @location.nil?
       XMLHelper.add_element(clothes_washer, 'ModifiedEnergyFactor', Float(@modified_energy_factor)) unless @modified_energy_factor.nil?
       XMLHelper.add_element(clothes_washer, 'IntegratedModifiedEnergyFactor', Float(@integrated_modified_energy_factor)) unless @integrated_modified_energy_factor.nil?
-      XMLHelper.add_element(clothes_washer, 'Usage', Float(@usage)) unless @usage.nil?
       XMLHelper.add_element(clothes_washer, 'RatedAnnualkWh', Float(@rated_annual_kwh)) unless @rated_annual_kwh.nil?
       XMLHelper.add_element(clothes_washer, 'LabelElectricRate', Float(@label_electric_rate)) unless @label_electric_rate.nil?
       XMLHelper.add_element(clothes_washer, 'LabelGasRate', Float(@label_gas_rate)) unless @label_gas_rate.nil?
       XMLHelper.add_element(clothes_washer, 'LabelAnnualGasCost', Float(@label_annual_gas_cost)) unless @label_annual_gas_cost.nil?
+      XMLHelper.add_element(clothes_washer, 'LabelUsage', Float(@label_usage)) unless @label_usage.nil?
       XMLHelper.add_element(clothes_washer, 'Capacity', Float(@capacity)) unless @capacity.nil?
     end
 
@@ -3283,11 +3283,11 @@ class HPXML < Object
       @location = XMLHelper.get_value(clothes_washer, 'Location')
       @modified_energy_factor = HPXML::to_float_or_nil(XMLHelper.get_value(clothes_washer, 'ModifiedEnergyFactor'))
       @integrated_modified_energy_factor = HPXML::to_float_or_nil(XMLHelper.get_value(clothes_washer, 'IntegratedModifiedEnergyFactor'))
-      @usage = HPXML::to_float_or_nil(XMLHelper.get_value(clothes_washer, 'Usage'))
       @rated_annual_kwh = HPXML::to_float_or_nil(XMLHelper.get_value(clothes_washer, 'RatedAnnualkWh'))
       @label_electric_rate = HPXML::to_float_or_nil(XMLHelper.get_value(clothes_washer, 'LabelElectricRate'))
       @label_gas_rate = HPXML::to_float_or_nil(XMLHelper.get_value(clothes_washer, 'LabelGasRate'))
       @label_annual_gas_cost = HPXML::to_float_or_nil(XMLHelper.get_value(clothes_washer, 'LabelAnnualGasCost'))
+      @label_usage = HPXML::to_float_or_nil(XMLHelper.get_value(clothes_washer, 'LabelUsage'))
       @capacity = HPXML::to_float_or_nil(XMLHelper.get_value(clothes_washer, 'Capacity'))
     end
   end
@@ -3361,7 +3361,8 @@ class HPXML < Object
 
   class Dishwasher < BaseElement
     ATTRS = [:id, :energy_factor, :rated_annual_kwh, :place_setting_capacity,
-             :label_electric_rate, :label_gas_rate, :label_annual_gas_cost]
+             :label_electric_rate, :label_gas_rate, :label_annual_gas_cost,
+             :label_usage]
     attr_accessor(*ATTRS)
 
     def delete
@@ -3386,6 +3387,7 @@ class HPXML < Object
       XMLHelper.add_element(dishwasher, 'LabelElectricRate', Float(@label_electric_rate)) unless @label_electric_rate.nil?
       XMLHelper.add_element(dishwasher, 'LabelGasRate', Float(@label_gas_rate)) unless @label_gas_rate.nil?
       XMLHelper.add_element(dishwasher, 'LabelAnnualGasCost', Float(@label_annual_gas_cost)) unless @label_annual_gas_cost.nil?
+      XMLHelper.add_element(dishwasher, 'LabelUsage', Float(@label_usage)) unless @label_usage.nil?
     end
 
     def from_rexml(dishwasher)
@@ -3398,6 +3400,7 @@ class HPXML < Object
       @label_electric_rate = HPXML::to_float_or_nil(XMLHelper.get_value(dishwasher, 'LabelElectricRate'))
       @label_gas_rate = HPXML::to_float_or_nil(XMLHelper.get_value(dishwasher, 'LabelGasRate'))
       @label_annual_gas_cost = HPXML::to_float_or_nil(XMLHelper.get_value(dishwasher, 'LabelAnnualGasCost'))
+      @label_usage = HPXML::to_float_or_nil(XMLHelper.get_value(dishwasher, 'LabelUsage'))
     end
   end
 
