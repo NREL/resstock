@@ -256,6 +256,7 @@ class HotWaterAndAppliances
              label_electric_rate: 0.12, # $/kWh
              label_gas_rate: 1.09, # $/therm
              label_annual_gas_cost: 33.12, # $
+             label_usage: 4.0, # cyc/week
              place_setting_capacity: 12.0 }
   end
 
@@ -272,13 +273,15 @@ class HotWaterAndAppliances
     elec_rate = dishwasher.label_electric_rate
     gas_rate = dishwasher.label_gas_rate
     agc = dishwasher.label_annual_gas_cost
+    label_usage = dishwasher.label_usage
 
     if Constants.ERIVersions.index(eri_version) >= Constants.ERIVersions.index('2019A')
-      kwh_per_cyc = ((agc * 0.5497 / gas_rate - ler * elec_rate * 0.02504 / elec_rate) / (elec_rate * 0.5497 / gas_rate - 0.02504)) / 208.0
+      lcy = label_usage * 52.0
+      kwh_per_cyc = ((agc * 0.5497 / gas_rate - ler * elec_rate * 0.02504 / elec_rate) / (elec_rate * 0.5497 / gas_rate - 0.02504)) / lcy
       dwcpy = (88.4 + 34.9 * nbeds) * (12.0 / cap)
       annual_kwh = kwh_per_cyc * dwcpy
 
-      gpd = (ler - kwh_per_cyc * 208.0) * 0.02504 * dwcpy / 365.0
+      gpd = (ler - kwh_per_cyc * lcy) * 0.02504 * dwcpy / 365.0
     else
       dwcpy = (88.4 + 34.9 * nbeds) * (12.0 / cap)
       annual_kwh = ((86.3 + 47.73 / ef) / 215.0) * dwcpy
@@ -302,7 +305,7 @@ class HotWaterAndAppliances
   end
 
   def self.calc_dishwasher_annual_kwh_from_ef(ef)
-    return ef * 215.0
+    return 215.0 / ef
   end
 
   def self.get_refrigerator_default_values(nbeds)
@@ -405,7 +408,7 @@ class HotWaterAndAppliances
                label_gas_rate: 1.09, # $/therm
                label_annual_gas_cost: 27.0, # $
                capacity: 3.0, # ft^3
-               usage: 6.0 } # cyc/week
+               label_usage: 6.0 } # cyc/week
     else
       return { integrated_modified_energy_factor: 0.331, # ft3/(kWh/cyc)
                rated_annual_kwh: 704.0, # kWh/yr
@@ -413,7 +416,7 @@ class HotWaterAndAppliances
                label_gas_rate: 0.58, # $/therm, unused
                label_annual_gas_cost: 23.0, # $, unused
                capacity: 2.874, # ft^3
-               usage: 6.0 } # cyc/week, unused
+               label_usage: 6.0 } # cyc/week, unused
     end
   end
 
@@ -424,12 +427,12 @@ class HotWaterAndAppliances
     gas_rate = clothes_washer.label_gas_rate
     agc = clothes_washer.label_annual_gas_cost
     cap = clothes_washer.capacity
-    usage = clothes_washer.usage
+    label_usage = clothes_washer.label_usage
 
     if Constants.ERIVersions.index(eri_version) >= Constants.ERIVersions.index('2019A')
       gas_h20 = 0.3914 # (gal/cyc) per (therm/y)
       elec_h20 = 0.0178 # (gal/cyc) per (kWh/y)
-      lcy = usage * 52.0 # label cycles per year
+      lcy = label_usage * 52.0 # label cycles per year
       scy = 164.0 + nbeds * 46.5
       acy = scy * ((3.0 * 2.08 + 1.59) / (cap * 2.08 + 1.59)) # Annual Cycles per Year
       cw_appl = (agc * gas_h20 / gas_rate - (ler * elec_rate) * elec_h20 / elec_rate) / (elec_rate * gas_h20 / gas_rate - elec_h20)
@@ -467,9 +470,9 @@ class HotWaterAndAppliances
 
   def self.calc_refrigerator_energy(refrigerator)
     # Get values
-    ler = refrigerator.rated_annual_kwh
+    ler = refrigerator.adjusted_annual_kwh
     if ler.nil?
-      ler = refrigerator.adjusted_annual_kwh
+      ler = refrigerator.rated_annual_kwh
     end
 
     annual_kwh = ler

@@ -569,7 +569,7 @@ class OSModel
         clothes_washer.label_gas_rate = default_values[:label_gas_rate]
         clothes_washer.label_annual_gas_cost = default_values[:label_annual_gas_cost]
         clothes_washer.capacity = default_values[:capacity]
-        clothes_washer.usage = default_values[:usage]
+        clothes_washer.label_usage = default_values[:label_usage]
       end
     end
 
@@ -595,6 +595,7 @@ class OSModel
         dishwasher.label_electric_rate = default_values[:label_electric_rate]
         dishwasher.label_gas_rate = default_values[:label_gas_rate]
         dishwasher.label_annual_gas_cost = default_values[:label_annual_gas_cost]
+        dishwasher.label_usage = default_values[:label_usage]
         dishwasher.place_setting_capacity = default_values[:place_setting_capacity]
       end
     end
