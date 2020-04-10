@@ -223,6 +223,10 @@ class Constants
     return 'dishwasher'
   end
 
+  def self.ObjectNameDucts
+    return 'ducts'
+  end
+
   def self.ObjectNameElectricBaseboard
     return 'baseboard'
   end

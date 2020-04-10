@@ -3,11 +3,22 @@ require_relative 'unit_conversions'
 require_relative 'schedules'
 
 class MiscLoads
-  def self.apply_plug(model, misc_kwh, sens_frac, lat_frac,
-                      weekday_sch, weekend_sch, monthly_sch, tv_kwh, cfa,
+  def self.apply_plug(model, plug_load_misc, plug_load_tv, schedule, cfa,
                       living_space)
 
-    return if misc_kwh + tv_kwh == 0
+    misc_kwh = 0
+    if not plug_load_misc.nil?
+      misc_kwh = plug_load_misc.kWh_per_year * plug_load_misc.usage_multiplier
+    end
+    tv_kwh = 0
+    if not plug_load_tv.nil?
+      tv_kwh = plug_load_tv.kWh_per_year * plug_load_tv.usage_multiplier
+    end
+
+    return if misc_kwh + tv_kwh <= 0
+
+    sens_frac = plug_load_misc.frac_sensible
+    lat_frac = plug_load_misc.frac_latent
 
     # check for valid inputs
     if (sens_frac < 0) || (sens_frac > 1)
@@ -21,7 +32,7 @@ class MiscLoads
     end
 
     # Create schedule
-    sch = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameMiscPlugLoads + ' schedule', weekday_sch, weekend_sch, monthly_sch, 1.0, 1.0, true, true, Constants.ScheduleTypeLimitsFraction)
+    sch = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameMiscPlugLoads + ' schedule', schedule.weekday_fractions, schedule.weekend_fractions, schedule.monthly_multipliers, 1.0, 1.0, true, true, Constants.ScheduleTypeLimitsFraction)
 
     # Misc plug loads
     if misc_kwh > 0
