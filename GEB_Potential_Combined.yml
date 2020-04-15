@@ -1,13 +1,15 @@
 stock_type: residential
 buildstock_directory: ./  # Relative to this file or absolute
 project_directory: project_singlefamilydetached
-output_directory: /projects/enduse/geb-potential/Run_2/GEB_full_run_nosims_all
-# weather_files_path: /shared-projects/buildstock/weather/project_resstock_national_weather.zip
-weather_files_path: ./resources/measures/HPXMLtoOpenStudio/weather/project_resstock_national.zip
+# output_directory: /projects/enduse/geb-potential/Run_2/GEB_full_run_nosims_all
+output_directory: /projects/enduse/geb-potential/Run_2/GEB_full_run2
+# output_directory: ./local_sampling/GEB_combined_test_sample
+weather_files_path: /shared-projects/buildstock/weather/project_resstock_national_weather.zip
+# weather_files_path: ./resources/measures/HPXMLtoOpenStudio/weather/project_resstock_national.zip
 
 baseline:
-  n_datapoints: 180000 #10,000 per city   
-  # buildstock_csv: './bstock1.csv' #~90k first half
+  # n_datapoints: 180000 #10,000 per city   
+  buildstock_csv: './buildstock_error.csv' #~925k that didnt run initially
   n_buildings_represented: 81221016 
 residential_simulation_controls:
   timesteps_per_hr: 6
@@ -2240,11 +2242,13 @@ timeseries_csv_export:
   
 eagle:
   account: windowsaving
-  n_jobs: 500 #1000
-  minutes_per_sim: 5
+  n_jobs: 600 #1000
+  minutes_per_sim: 5 #5
+  sampling:
+    time: 30
   postprocessing:
-    time: 500
-    n_workers: 8
+    time: 1000
+    n_workers: 6
     
 aws:
   job_identifier: geb_full
