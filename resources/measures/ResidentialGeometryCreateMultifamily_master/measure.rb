@@ -284,6 +284,9 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     orientation = runner.getDoubleArgumentValue("orientation", user_arguments)
     minimal_collapsed = runner.getBoolArgumentValue("minimal_collapsed", user_arguments)
 
+    ## Set false for comparison purposes ##
+    minimal_collapsed = false
+
     num_units_actual = num_units
     num_floors_actual = num_floors
     num_units_per_floor = num_units / num_floors
