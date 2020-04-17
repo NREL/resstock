@@ -809,10 +809,18 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(HPXML::FuelTypeNaturalGas)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heating_system_heating_efficiency', true)
-    arg.setDisplayName('Heating System: Rated Efficiency')
-    arg.setDescription('The rated efficiency value of the heating system. AFUE for Furnace/WallFurnace/Boiler. Percent for ElectricResistance/Stove/PortableHeater.')
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heating_system_heating_efficiency_afue', true)
+    arg.setDisplayName('Heating System: Rated AFUE')
+    arg.setUnits('AFUE')
+    arg.setDescription('The rated efficiency value of the Furnace/WallFurnace/Boiler heating system.')
     arg.setDefaultValue(0.78)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heating_system_heating_efficiency_percent', true)
+    arg.setDisplayName('Heating System: Rated Percent')
+    arg.setUnits('Percent')
+    arg.setDescription('The rated efficiency value of the ElectricResistance/Stove/PortableHeater heating system.')
+    arg.setDefaultValue(1.0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('heating_system_heating_capacity', true)
@@ -840,9 +848,17 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(HPXML::HVACTypeCentralAirConditioner)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('cooling_system_cooling_efficiency', true)
-    arg.setDisplayName('Cooling System: Rated Efficiency')
-    arg.setDescription('The rated efficiency value of the cooling system. SEER for central air conditioner. EER for room air conditioner. Ignored for evaporative cooler.')
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('cooling_system_cooling_efficiency_seer', true)
+    arg.setDisplayName('Cooling System: Rated SEER')
+    arg.setUnits('SEER')
+    arg.setDescription('The rated efficiency value of the central air conditioner cooling system. Ignored for evaporative cooler.')
+    arg.setDefaultValue(13.0)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('cooling_system_cooling_efficiency_eer', true)
+    arg.setDisplayName('Cooling System: Rated EER')
+    arg.setUnits('EER')
+    arg.setDescription('The rated efficiency value of the room air conditioner cooling system. Ignored for evaporative cooler.')
     arg.setDefaultValue(13.0)
     args << arg
 
@@ -899,16 +915,32 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue('none')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_heating_efficiency', true)
-    arg.setDisplayName('Heat Pump: Rated Heating Efficiency')
-    arg.setDescription('The rated heating efficiency value of the heat pump. HSPF for air-to-air/mini-split. COP for ground-to-air.')
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_heating_efficiency_hspf', true)
+    arg.setDisplayName('Heat Pump: Rated Heating HSPF')
+    arg.setUnits('HSPF')
+    arg.setDescription('The rated heating efficiency value of the air-to-air/mini-split heat pump.')
     arg.setDefaultValue(7.7)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_cooling_efficiency', true)
-    arg.setDisplayName('Heat Pump: Rated Cooling Efficiency')
-    arg.setDescription('The rated cooling efficiency value of the heat pump. SEER for air-to-air/mini-split. EER for ground-to-air.')
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_heating_efficiency_cop', true)
+    arg.setDisplayName('Heat Pump: Rated Heating COP')
+    arg.setUnits('COP')
+    arg.setDescription('The rated heating efficiency value of the ground-to-air heat pump.')
+    arg.setDefaultValue(3.6)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_cooling_efficiency_seer', true)
+    arg.setDisplayName('Heat Pump: Rated Cooling SEER')
+    arg.setUnits('SEER')
+    arg.setDescription('The rated cooling efficiency value of the air-to-air/mini-split heat pump.')
     arg.setDefaultValue(13.0)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_cooling_efficiency_eer', true)
+    arg.setDisplayName('Heat Pump: Rated Cooling EER')
+    arg.setUnits('EER')
+    arg.setDescription('The rated cooling efficiency value of the ground-to-air heat pump.')
+    arg.setDefaultValue(16.6)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('heat_pump_cooling_compressor_type', compressor_type_choices, false)
@@ -1271,13 +1303,19 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('water_heater_efficiency_type', water_heater_efficiency_type_choices, true)
     arg.setDisplayName('Water Heater: Efficiency Type')
-    arg.setDescription("The efficiency type of water heater. Doesn't apply to space-heating boilers.")
+    arg.setDescription('The efficiency type of water heater. Does not apply to space-heating boilers.')
     arg.setDefaultValue('EnergyFactor')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('water_heater_efficiency', true)
-    arg.setDisplayName('Water Heater: Efficiency')
-    arg.setDescription("EnergyFactor=Ratio of useful energy output from water heater to the total amount of energy delivered from the water heater. UniformEnergyFactor=The uniform energy factor of water heater. Doesn't apply to space-heating boilers.")
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('water_heater_efficiency_ef', true)
+    arg.setDisplayName('Water Heater: Energy Factor')
+    arg.setDescription('Ratio of useful energy output from water heater to the total amount of energy delivered from the water heater.')
+    arg.setDefaultValue(0.67)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('water_heater_efficiency_uef', true)
+    arg.setDisplayName('Water Heater: Uniform Energy Factor')
+    arg.setDescription('The uniform energy factor of water heater. Does not apply to space-heating boilers.')
     arg.setDefaultValue(0.67)
     args << arg
 
@@ -1595,10 +1633,16 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue('IntegratedModifiedEnergyFactor')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('clothes_washer_efficiency', true)
-    arg.setDisplayName('Clothes Washer: Efficiency')
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('clothes_washer_efficiency_mef', true)
+    arg.setDisplayName('Clothes Washer: Modified Energy Factor')
     arg.setUnits('ft^3/kWh-cycle')
-    arg.setDescription('The Modified Energy Factor (MEF) is the capacity of the clothes container divided by the total clothes washer energy consumption per cycle, where the energy consumption is the sum of the machine electrical energy consumption, the hot water energy consumption, the energy required for removal of the remaining moisture in the wash load, standby energy, and off-mode energy consumption. If only a Modified Energy Factor (MEF) is available, convert using the equation: IMEF = (MEF - 0.503) / 0.95.')
+    arg.setDescription('The Modified Energy Factor (MEF) is the capacity of the clothes container divided by the total clothes washer energy consumption per cycle, where the energy consumption is the sum of the machine electrical energy consumption, the hot water energy consumption, the energy required for removal of the remaining moisture in the wash load, standby energy, and off-mode energy consumption.')
+    arg.setDefaultValue(1.453)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('clothes_washer_efficiency_imef', true)
+    arg.setDisplayName('Clothes Washer: Integrated Modified Energy Factor')
+    arg.setDescription('The energy performance metric for ENERGY STAR certified residential clothes washers as of March 7, 2015.')
     arg.setDefaultValue(1.0)
     args << arg
 
@@ -1689,10 +1733,17 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue('CombinedEnergyFactor')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('clothes_dryer_efficiency', true)
-    arg.setDisplayName('Clothes Dryer: Efficiency')
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('clothes_dryer_efficiency_ef', true)
+    arg.setDisplayName('Clothes Dryer: Energy Factor')
     arg.setUnits('lb/kWh')
-    arg.setDescription('The Combined Energy Factor (CEF) measures the pounds of clothing that can be dried per kWh (Fuel equivalent) of electricity, including energy consumed during Stand-by and Off modes. If only an Energy Factor (EF) is available, convert using the equation: CEF = EF / 1.15.')
+    arg.setDescription('The energy performance metric for ENERGY STAR certified residential clothes dryers prior to September 13, 2013. The new metric is Combined Energy Factor.')
+    arg.setDefaultValue(3.4615)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('clothes_dryer_efficiency_cef', true)
+    arg.setDisplayName('Clothes Dryer: Combined Energy Factor')
+    arg.setUnits('lb/kWh')
+    arg.setDescription('The Combined Energy Factor (CEF) measures the pounds of clothing that can be dried per kWh (Fuel equivalent) of electricity, including energy consumed during Stand-by and Off modes.')
     arg.setDefaultValue(3.01)
     args << arg
 
@@ -1724,10 +1775,16 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue('RatedAnnualkWh')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('dishwasher_efficiency', true)
-    arg.setDisplayName('Dishwasher: Efficiency')
-    arg.setDescription('The efficiency of the dishwasher.')
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('dishwasher_efficiency_kwh', true)
+    arg.setDisplayName('Dishwasher: Rated Annual kWh')
+    arg.setDescription('The rated annual kWh of the dishwasher.')
     arg.setDefaultValue(467)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('dishwasher_efficiency_ef', true)
+    arg.setDisplayName('Dishwasher: Energy Factor')
+    arg.setDescription('The energy factor of the dishwasher.')
+    arg.setDefaultValue(0.46)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('dishwasher_label_electric_rate', true)
@@ -2030,20 +2087,24 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
              air_leakage_shelter_coefficient: runner.getStringArgumentValue('air_leakage_shelter_coefficient', user_arguments),
              heating_system_type: runner.getStringArgumentValue('heating_system_type', user_arguments),
              heating_system_fuel: runner.getStringArgumentValue('heating_system_fuel', user_arguments),
-             heating_system_heating_efficiency: runner.getDoubleArgumentValue('heating_system_heating_efficiency', user_arguments),
+             heating_system_heating_efficiency_afue: runner.getDoubleArgumentValue('heating_system_heating_efficiency_afue', user_arguments),
+             heating_system_heating_efficiency_percent: runner.getDoubleArgumentValue('heating_system_heating_efficiency_percent', user_arguments),
              heating_system_heating_capacity: runner.getStringArgumentValue('heating_system_heating_capacity', user_arguments),
              heating_system_fraction_heat_load_served: runner.getDoubleArgumentValue('heating_system_fraction_heat_load_served', user_arguments),
              heating_system_electric_auxiliary_energy: runner.getOptionalDoubleArgumentValue('heating_system_electric_auxiliary_energy', user_arguments),
              cooling_system_type: runner.getStringArgumentValue('cooling_system_type', user_arguments),
-             cooling_system_cooling_efficiency: runner.getDoubleArgumentValue('cooling_system_cooling_efficiency', user_arguments),
+             cooling_system_cooling_efficiency_seer: runner.getDoubleArgumentValue('cooling_system_cooling_efficiency_seer', user_arguments),
+             cooling_system_cooling_efficiency_eer: runner.getDoubleArgumentValue('cooling_system_cooling_efficiency_eer', user_arguments),
              cooling_system_cooling_compressor_type: runner.getOptionalStringArgumentValue('cooling_system_cooling_compressor_type', user_arguments),
              cooling_system_cooling_sensible_heat_fraction: runner.getOptionalDoubleArgumentValue('cooling_system_cooling_sensible_heat_fraction', user_arguments),
              cooling_system_cooling_capacity: runner.getStringArgumentValue('cooling_system_cooling_capacity', user_arguments),
              cooling_system_fraction_cool_load_served: runner.getDoubleArgumentValue('cooling_system_fraction_cool_load_served', user_arguments),
              cooling_system_evap_cooler_is_ducted: runner.getBoolArgumentValue('cooling_system_evap_cooler_is_ducted', user_arguments),
              heat_pump_type: runner.getStringArgumentValue('heat_pump_type', user_arguments),
-             heat_pump_heating_efficiency: runner.getDoubleArgumentValue('heat_pump_heating_efficiency', user_arguments),
-             heat_pump_cooling_efficiency: runner.getDoubleArgumentValue('heat_pump_cooling_efficiency', user_arguments),
+             heat_pump_heating_efficiency_hspf: runner.getDoubleArgumentValue('heat_pump_heating_efficiency_hspf', user_arguments),
+             heat_pump_heating_efficiency_cop: runner.getDoubleArgumentValue('heat_pump_heating_efficiency_cop', user_arguments),
+             heat_pump_cooling_efficiency_seer: runner.getDoubleArgumentValue('heat_pump_cooling_efficiency_seer', user_arguments),
+             heat_pump_cooling_efficiency_eer: runner.getDoubleArgumentValue('heat_pump_cooling_efficiency_eer', user_arguments),
              heat_pump_cooling_compressor_type: runner.getOptionalStringArgumentValue('heat_pump_cooling_compressor_type', user_arguments),
              heat_pump_cooling_sensible_heat_fraction: runner.getOptionalDoubleArgumentValue('heat_pump_cooling_sensible_heat_fraction', user_arguments),
              heat_pump_heating_capacity: runner.getStringArgumentValue('heat_pump_heating_capacity', user_arguments),
@@ -2091,7 +2152,8 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
              water_heater_tank_volume: runner.getStringArgumentValue('water_heater_tank_volume', user_arguments),
              water_heater_heating_capacity: runner.getStringArgumentValue('water_heater_heating_capacity', user_arguments),
              water_heater_efficiency_type: runner.getStringArgumentValue('water_heater_efficiency_type', user_arguments),
-             water_heater_efficiency: runner.getDoubleArgumentValue('water_heater_efficiency', user_arguments),
+             water_heater_efficiency_ef: runner.getDoubleArgumentValue('water_heater_efficiency_ef', user_arguments),
+             water_heater_efficiency_uef: runner.getDoubleArgumentValue('water_heater_efficiency_uef', user_arguments),
              water_heater_recovery_efficiency: runner.getDoubleArgumentValue('water_heater_recovery_efficiency', user_arguments),
              water_heater_standby_loss: runner.getOptionalDoubleArgumentValue('water_heater_standby_loss', user_arguments),
              water_heater_jacket_rvalue: runner.getOptionalDoubleArgumentValue('water_heater_jacket_rvalue', user_arguments),
@@ -2131,7 +2193,8 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
              clothes_washer_present: runner.getBoolArgumentValue('clothes_washer_present', user_arguments),
              clothes_washer_location: runner.getStringArgumentValue('clothes_washer_location', user_arguments),
              clothes_washer_efficiency_type: runner.getStringArgumentValue('clothes_washer_efficiency_type', user_arguments),
-             clothes_washer_efficiency: runner.getDoubleArgumentValue('clothes_washer_efficiency', user_arguments),
+             clothes_washer_efficiency_mef: runner.getDoubleArgumentValue('clothes_washer_efficiency_mef', user_arguments),
+             clothes_washer_efficiency_imef: runner.getDoubleArgumentValue('clothes_washer_efficiency_imef', user_arguments),
              clothes_washer_rated_annual_kwh: runner.getDoubleArgumentValue('clothes_washer_rated_annual_kwh', user_arguments),
              clothes_washer_label_electric_rate: runner.getDoubleArgumentValue('clothes_washer_label_electric_rate', user_arguments),
              clothes_washer_label_gas_rate: runner.getDoubleArgumentValue('clothes_washer_label_gas_rate', user_arguments),
@@ -2143,12 +2206,14 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
              clothes_dryer_location: runner.getStringArgumentValue('clothes_dryer_location', user_arguments),
              clothes_dryer_fuel_type: runner.getStringArgumentValue('clothes_dryer_fuel_type', user_arguments),
              clothes_dryer_efficiency_type: runner.getStringArgumentValue('clothes_dryer_efficiency_type', user_arguments),
-             clothes_dryer_efficiency: runner.getDoubleArgumentValue('clothes_dryer_efficiency', user_arguments),
+             clothes_dryer_efficiency_ef: runner.getDoubleArgumentValue('clothes_dryer_efficiency_ef', user_arguments),
+             clothes_dryer_efficiency_cef: runner.getDoubleArgumentValue('clothes_dryer_efficiency_cef', user_arguments),
              clothes_dryer_control_type: runner.getStringArgumentValue('clothes_dryer_control_type', user_arguments),
              clothes_dryer_usage_multiplier: runner.getDoubleArgumentValue('clothes_dryer_usage_multiplier', user_arguments),
              dishwasher_present: runner.getBoolArgumentValue('dishwasher_present', user_arguments),
              dishwasher_efficiency_type: runner.getStringArgumentValue('dishwasher_efficiency_type', user_arguments),
-             dishwasher_efficiency: runner.getDoubleArgumentValue('dishwasher_efficiency', user_arguments),
+             dishwasher_efficiency_kwh: runner.getDoubleArgumentValue('dishwasher_efficiency_kwh', user_arguments),
+             dishwasher_efficiency_ef: runner.getDoubleArgumentValue('dishwasher_efficiency_ef', user_arguments),
              dishwasher_label_electric_rate: runner.getDoubleArgumentValue('dishwasher_label_electric_rate', user_arguments),
              dishwasher_label_gas_rate: runner.getDoubleArgumentValue('dishwasher_label_gas_rate', user_arguments),
              dishwasher_label_annual_gas_cost: runner.getDoubleArgumentValue('dishwasher_label_annual_gas_cost', user_arguments),
@@ -2849,9 +2914,9 @@ class HPXMLFile
     end
 
     if [HPXML::HVACTypeFurnace, HPXML::HVACTypeWallFurnace, HPXML::HVACTypeBoiler].include? heating_system_type
-      heating_efficiency_afue = args[:heating_system_heating_efficiency]
+      heating_efficiency_afue = args[:heating_system_heating_efficiency_afue]
     elsif [HPXML::HVACTypeElectricResistance, HPXML::HVACTypeStove, HPXML::HVACTypePortableHeater]
-      heating_efficiency_percent = args[:heating_system_heating_efficiency]
+      heating_efficiency_percent = args[:heating_system_heating_efficiency_percent]
     end
 
     hpxml.heating_systems.add(id: 'HeatingSystem',
@@ -2890,9 +2955,9 @@ class HPXMLFile
     end
 
     if [HPXML::HVACTypeCentralAirConditioner].include? cooling_system_type
-      cooling_efficiency_seer = args[:cooling_system_cooling_efficiency]
+      cooling_efficiency_seer = args[:cooling_system_cooling_efficiency_seer]
     elsif [HPXML::HVACTypeRoomAirConditioner].include? cooling_system_type
-      cooling_efficiency_eer = args[:cooling_system_cooling_efficiency]
+      cooling_efficiency_eer = args[:cooling_system_cooling_efficiency_eer]
     end
 
     hpxml.cooling_systems.add(id: 'CoolingSystem',
@@ -2964,11 +3029,11 @@ class HPXMLFile
     end
 
     if [HPXML::HVACTypeHeatPumpAirToAir, HPXML::HVACTypeHeatPumpMiniSplit].include? heat_pump_type
-      heating_efficiency_hspf = args[:heat_pump_heating_efficiency]
-      cooling_efficiency_seer = args[:heat_pump_cooling_efficiency]
+      heating_efficiency_hspf = args[:heat_pump_heating_efficiency_hspf]
+      cooling_efficiency_seer = args[:heat_pump_cooling_efficiency_seer]
     elsif [HPXML::HVACTypeHeatPumpGroundToAir].include? heat_pump_type
-      heating_efficiency_cop = args[:heat_pump_heating_efficiency]
-      cooling_efficiency_eer = args[:heat_pump_cooling_efficiency]
+      heating_efficiency_cop = args[:heat_pump_heating_efficiency_cop]
+      cooling_efficiency_eer = args[:heat_pump_cooling_efficiency_eer]
     end
 
     hpxml.heat_pumps.add(id: 'HeatPump',
@@ -3201,9 +3266,9 @@ class HPXMLFile
 
     if not [HPXML::WaterHeaterTypeCombiStorage, HPXML::WaterHeaterTypeCombiTankless].include? water_heater_type
       if args[:water_heater_efficiency_type] == 'EnergyFactor'
-        energy_factor = args[:water_heater_efficiency]
+        energy_factor = args[:water_heater_efficiency_ef]
       elsif args[:water_heater_efficiency_type] == 'UniformEnergyFactor'
-        uniform_energy_factor = args[:water_heater_efficiency]
+        uniform_energy_factor = args[:water_heater_efficiency_uef]
       end
     end
 
@@ -3381,9 +3446,9 @@ class HPXMLFile
     end
 
     if args[:clothes_washer_efficiency_type] == 'ModifiedEnergyFactor'
-      modified_energy_factor = args[:clothes_washer_efficiency]
+      modified_energy_factor = args[:clothes_washer_efficiency_mef]
     elsif args[:clothes_washer_efficiency_type] == 'IntegratedModifiedEnergyFactor'
-      integrated_modified_energy_factor = args[:clothes_washer_efficiency]
+      integrated_modified_energy_factor = args[:clothes_washer_efficiency_imef]
     end
 
     if args[:clothes_washer_usage_multiplier] != 1.0
@@ -3407,9 +3472,9 @@ class HPXMLFile
     return unless args[:clothes_dryer_present]
 
     if args[:clothes_dryer_efficiency_type] == 'EnergyFactor'
-      energy_factor = args[:clothes_dryer_efficiency]
+      energy_factor = args[:clothes_dryer_efficiency_ef]
     elsif args[:clothes_dryer_efficiency_type] == 'CombinedEnergyFactor'
-      combined_energy_factor = args[:clothes_dryer_efficiency]
+      combined_energy_factor = args[:clothes_dryer_efficiency_cef]
     end
 
     if args[:clothes_dryer_location] != Constants.Auto
@@ -3433,9 +3498,9 @@ class HPXMLFile
     return unless args[:dishwasher_present]
 
     if args[:dishwasher_efficiency_type] == 'RatedAnnualkWh'
-      rated_annual_kwh = args[:dishwasher_efficiency]
+      rated_annual_kwh = args[:dishwasher_efficiency_kwh]
     elsif args[:dishwasher_efficiency_type] == 'EnergyFactor'
-      energy_factor = args[:dishwasher_efficiency]
+      energy_factor = args[:dishwasher_efficiency_ef]
     end
 
     if args[:dishwasher_usage_multiplier] != 1.0

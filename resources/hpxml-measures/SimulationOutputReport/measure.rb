@@ -313,6 +313,8 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     elsif timeseries_frequency == 'daily'
       timeseries_size /= 3600
       timeseries_size /= 24
+    elsif timeseries_frequency == 'monthly'
+      timeseries_size = run_period.getEndMonth - run_period.getBeginMonth + 1
     elsif timeseries_frequency == 'timestep'
       timeseries_size /= 3600
       timeseries_size *= @model.getTimestep.numberOfTimestepsPerHour
@@ -797,6 +799,8 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       data = ['Hour', '#']
     elsif timeseries_frequency == 'daily'
       data = ['Day', '#']
+    elsif timeseries_frequency == 'monthly'
+      data = ['Month', '#']
     elsif timeseries_frequency == 'timestep'
       data = ['Timestep', '#']
     else
@@ -1177,8 +1181,10 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     values = values.get
     values += [0.0] * @timeseries_size if values.size == 0
     if (key_values_list.size == 1) && (key_values_list[0] == 'EMS')
-      # Shift all values by 1 timestep due to EMS reporting lag
-      return values[1..-1] + [values[-1]]
+      if (timeseries_frequency.downcase == 'timestep' || (timeseries_frequency.downcase == 'hourly' && @model.getTimestep.numberOfTimestepsPerHour == 1))
+        # Shift all values by 1 timestep due to EMS reporting lag
+        return values[1..-1] + [values[-1]]
+      end
     end
 
     return values
@@ -1761,6 +1767,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       'timestep' => 'Zone Timestep',
       'hourly' => 'Hourly',
       'daily' => 'Daily',
+      'monthly' => 'Monthly',
     }
   end
 
