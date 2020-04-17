@@ -291,6 +291,80 @@ class HPXML < Object
     return (has_conditioned_basement && (ncfl == ncfl_ag))
   end
 
+  def thermal_boundary_wall_areas()
+    above_grade_area = 0.0 # Thermal boundary walls not in contact with soil
+    below_grade_area = 0.0 # Thermal boundary walls in contact with soil
+
+    (@walls + @rim_joists).each do |wall|
+      if wall.is_thermal_boundary
+        above_grade_area += wall.area
+      end
+    end
+
+    @foundation_walls.each do |foundation_wall|
+      next unless foundation_wall.is_thermal_boundary
+
+      height = foundation_wall.height
+      bg_depth = foundation_wall.depth_below_grade
+      above_grade_area += (height - bg_depth) / height * foundation_wall.area
+      below_grade_area += bg_depth / height * foundation_wall.area
+    end
+
+    return above_grade_area, below_grade_area
+  end
+
+  def common_wall_area()
+    # Wall area for walls adjacent to Unrated Conditioned Space, not including
+    # foundation walls.
+    area = 0.0
+
+    (@walls + @rim_joists).each do |wall|
+      if wall.exterior_adjacent_to == HPXML::LocationOtherHousingUnit
+        area += wall.area
+      end
+    end
+
+    return area
+  end
+
+  def compartmentalization_boundary_areas()
+    total_area = 0.0 # Total surface area that bounds the Infiltration Volume
+    exterior_area = 0.0 # Same as above excluding surfaces attached to garage or other housing units
+
+    # Determine which spaces are within infiltration volume
+    spaces_within_infil_volume = [LocationLivingSpace]
+    @attics.each do |attic|
+      next unless [AtticTypeUnvented].include? attic.attic_type
+      next unless attic.within_infiltration_volume
+
+      spaces_within_infil_volume << attic.to_location
+    end
+    @foundations.each do |foundation|
+      next unless [FoundationTypeBasementUnconditioned, FoundationTypeCrawlspaceUnvented].include? foundation.foundation_type
+      next unless foundation.within_infiltration_volume
+
+      spaces_within_infil_volume << foundation.to_location
+    end
+
+    # Get surfaces bounding infiltration volume
+    spaces_within_infil_volume.each do |space_type|
+      (@roofs + @rim_joists + @walls + @foundation_walls + @frame_floors + @slabs).each do |surface|
+        next unless [surface.interior_adjacent_to, surface.exterior_adjacent_to].include? space_type
+
+        # Exclude surfaces between two spaces that are both within infiltration volume
+        next if spaces_within_infil_volume.include?(surface.interior_adjacent_to) && spaces_within_infil_volume.include?(surface.exterior_adjacent_to)
+
+        # Update Compartmentalization Boundary areas
+        total_area += surface.area
+        if not (surface.exterior_adjacent_to.include?(LocationOtherHousingUnit) || (surface.exterior_adjacent_to == LocationGarage))
+          exterior_area += surface.area
+        end
+      end
+    end
+
+    return total_area, exterior_area
+  end
+
   def to_rexml()
     @doc = _create_rexml_document()
     @header.to_rexml(@doc)
@@ -3905,7 +3979,7 @@ class HPXML < Object
 
   def delete_tiny_surfaces()
     (@rim_joists + @walls + @foundation_walls + @frame_floors + @roofs + @windows + @skylights + @doors + @slabs).reverse_each do |surface|
-      next if surface.area > 0.1
+      next if surface.area.nil? || (surface.area > 0.1)
 
       surface.delete
     end

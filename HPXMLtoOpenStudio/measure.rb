@@ -343,19 +343,33 @@ class OSModel
 
     # Default attics/foundations
     if @hpxml.has_space_type(HPXML::LocationAtticVented)
+      vented_attic = nil
       @hpxml.attics.each do |attic|
         next unless attic.attic_type == HPXML::AtticTypeVented
-        next unless (attic.vented_attic_sla.nil? && attic.vented_attic_constant_ach.nil?)
-
-        attic.vented_attic_sla = Airflow.get_default_vented_attic_sla()
+        vented_attic = attic
+      end
+      if vented_attic.nil?
+        @hpxml.attics.add(id: 'VentedAttic',
+                          attic_type: HPXML::AtticTypeVented)
+        vented_attic = @hpxml.attics[-1]
+      end
+      if vented_attic.vented_attic_sla.nil? && vented_attic.vented_attic_constant_ach.nil?
+        vented_attic.vented_attic_sla = Airflow.get_default_vented_attic_sla()
       end
     end
     if @hpxml.has_space_type(HPXML::LocationCrawlspaceVented)
+      vented_crawl = nil
       @hpxml.foundations.each do |foundation|
         next unless foundation.foundation_type == HPXML::FoundationTypeCrawlspaceVented
-        next unless foundation.vented_crawlspace_sla.nil?
-
-        foundation.vented_crawlspace_sla = Airflow.get_default_vented_crawl_sla()
+        vented_crawl = foundation
+      end
+      if vented_crawl.nil?
+        @hpxml.foundations.add(id: 'VentedCrawlspace',
+                               foundation_type: HPXML::FoundationTypeCrawlspaceVented)
+        vented_crawl = @hpxml.foundations[-1]
+      end
+      if vented_crawl.vented_crawlspace_sla.nil?
+        vented_crawl.vented_crawlspace_sla = Airflow.get_default_vented_crawl_sla()
       end
     end
 
