@@ -340,6 +340,12 @@ class OSModel
       @hpxml.building_construction.conditioned_building_volume = @cfa * @hpxml.building_construction.average_ceiling_height
     end
     @cvolume = @hpxml.building_construction.conditioned_building_volume
+    @nbaths = @hpxml.building_construction.number_of_bathrooms
+    if @hpxml.building_construction.number_of_bathrooms.nil?
+      @nbaths = Waterheater.get_default_num_bathrooms(@nbeds)
+    else
+      @nbaths = Float(@hpxml.building_construction.number_of_bathrooms)
+    end
 
     # Default attics/foundations
     if @hpxml.has_space_type(HPXML::LocationAtticVented)
@@ -494,6 +500,45 @@ class OSModel
     # Default water fixtures
     if @hpxml.water_heating.water_fixtures_usage_multiplier.nil?
       @hpxml.water_heating.water_fixtures_usage_multiplier = 1.0
+    end
+
+    # Default kitchen fan
+    @hpxml.ventilation_fans.each do |vent_fan|
+      next unless (vent_fan.used_for_local_ventilation && (vent_fan.fan_location == HPXML::VentilationFanLocationKitchen))
+
+      if vent_fan.rated_flow_rate.nil?
+        vent_fan.rated_flow_rate = 100.0 # cfm, per BA HSP
+      end
+      if vent_fan.hours_in_operation.nil?
+        vent_fan.hours_in_operation = 1.0 # hrs/day, per BA HSP
+      end
+      if vent_fan.fan_power.nil?
+        vent_fan.fan_power = 0.3 * vent_fan.rated_flow_rate # W, per BA HSP
+      end
+      if vent_fan.start_hour.nil?
+        vent_fan.start_hour = 18 # 6 pm, per BA HSP
+      end
+    end
+
+    # Default bath fans
+    @hpxml.ventilation_fans.each do |vent_fan|
+      next unless (vent_fan.used_for_local_ventilation && (vent_fan.fan_location == HPXML::VentilationFanLocationBath))
+
+      if vent_fan.quantity.nil?
+        vent_fan.quantity = @nbaths.to_i
+      end
+      if vent_fan.rated_flow_rate.nil?
+        vent_fan.rated_flow_rate = 50.0 # cfm, per BA HSP
+      end
+      if vent_fan.hours_in_operation.nil?
+        vent_fan.hours_in_operation = 1.0 # hrs/day, per BA HSP
+      end
+      if vent_fan.fan_power.nil?
+        vent_fan.fan_power = 0.3 * vent_fan.rated_flow_rate # W, per BA HSP
+      end
+      if vent_fan.start_hour.nil?
+        vent_fan.start_hour = 7 # 7 am, per BA HSP
+      end
     end
 
     # Default ceiling fans
@@ -3066,56 +3111,68 @@ class OSModel
     mech_vent_cfm = 0.0
     mech_vent_attached_dist_system = nil
     cfis_open_time = 0.0
-    @hpxml.ventilation_fans.each do |ventilation_fan|
-      next unless ventilation_fan.used_for_whole_building_ventilation
+    @hpxml.ventilation_fans.each do |vent_fan|
+      next unless vent_fan.used_for_whole_building_ventilation
 
-      mech_vent_id = ventilation_fan.id
-      mech_vent_type = ventilation_fan.fan_type
+      mech_vent_id = vent_fan.id
+      mech_vent_type = vent_fan.fan_type
       if (mech_vent_type == HPXML::MechVentTypeERV) || (mech_vent_type == HPXML::MechVentTypeHRV)
-        if ventilation_fan.sensible_recovery_efficiency_adjusted.nil?
-          mech_vent_sens_eff = ventilation_fan.sensible_recovery_efficiency
+        if vent_fan.sensible_recovery_efficiency_adjusted.nil?
+          mech_vent_sens_eff = vent_fan.sensible_recovery_efficiency
         else
-          mech_vent_sens_eff_adj = ventilation_fan.sensible_recovery_efficiency_adjusted
+          mech_vent_sens_eff_adj = vent_fan.sensible_recovery_efficiency_adjusted
         end
       end
       if mech_vent_type == HPXML::MechVentTypeERV
-        if ventilation_fan.total_recovery_efficiency_adjusted.nil?
-          mech_vent_total_eff = ventilation_fan.total_recovery_efficiency
+        if vent_fan.total_recovery_efficiency_adjusted.nil?
+          mech_vent_total_eff = vent_fan.total_recovery_efficiency
         else
-          mech_vent_total_eff_adj = ventilation_fan.total_recovery_efficiency_adjusted
+          mech_vent_total_eff_adj = vent_fan.total_recovery_efficiency_adjusted
         end
       end
-      mech_vent_cfm = ventilation_fan.tested_flow_rate
+      mech_vent_cfm = vent_fan.tested_flow_rate
       if mech_vent_cfm.nil?
-        mech_vent_cfm = ventilation_fan.rated_flow_rate
+        mech_vent_cfm = vent_fan.rated_flow_rate
       end
-      mech_vent_fan_w = ventilation_fan.fan_power
+      mech_vent_fan_w = vent_fan.fan_power
       if mech_vent_type == HPXML::MechVentTypeCFIS
         # CFIS: Specify minimum open time in minutes
-        cfis_open_time = [ventilation_fan.hours_in_operation / 24.0 * 60.0, 59.999].min
+        cfis_open_time = [vent_fan.hours_in_operation / 24.0 * 60.0, 59.999].min
       else
         # Other: Adjust constant CFM/power based on hours per day of operation
-        mech_vent_cfm *= (ventilation_fan.hours_in_operation / 24.0)
-        mech_vent_fan_w *= (ventilation_fan.hours_in_operation / 24.0)
+        mech_vent_cfm *= (vent_fan.hours_in_operation / 24.0)
+        mech_vent_fan_w *= (vent_fan.hours_in_operation / 24.0)
       end
-      mech_vent_attached_dist_system = ventilation_fan.distribution_system
+      mech_vent_attached_dist_system = vent_fan.distribution_system
     end
     cfis_airflow_frac = 1.0
     clothes_dryer_exhaust = 0.0
-    range_exhaust = 0.0
-    range_exhaust_hour = 16
-    bathroom_exhaust = 0.0
-    bathroom_exhaust_hour = 5
+
+    # Kitchen range fan
+    vent_fan_kitchen = nil
+    @hpxml.ventilation_fans.each do |vent_fan|
+      next unless (vent_fan.used_for_local_ventilation && (vent_fan.fan_location == HPXML::VentilationFanLocationKitchen))
+
+      vent_fan_kitchen = vent_fan
+    end
+
+    # Bath fans
+    vent_fan_bath = nil
+    @hpxml.ventilation_fans.each do |vent_fan|
+      next unless (vent_fan.used_for_local_ventilation && (vent_fan.fan_location == HPXML::VentilationFanLocationBath))
+
+      vent_fan_bath = vent_fan
+    end
 
     # Whole house fan
     whole_house_fan_w = 0.0
     whole_house_fan_cfm = 0.0
     whf_num_days_per_week = 0
-    @hpxml.ventilation_fans.each do |ventilation_fan|
-      next unless ventilation_fan.used_for_seasonal_cooling_load_reduction
+    @hpxml.ventilation_fans.each do |vent_fan|
+      next unless vent_fan.used_for_seasonal_cooling_load_reduction
 
-      whole_house_fan_w = ventilation_fan.fan_power
-      whole_house_fan_cfm = ventilation_fan.rated_flow_rate
+      whole_house_fan_w = vent_fan.fan_power
+      whole_house_fan_cfm = vent_fan.rated_flow_rate
       whf_num_days_per_week = 7
     end
     whf = WholeHouseFan.new(whole_house_fan_cfm, whole_house_fan_w, whf_num_days_per_week)
@@ -3141,20 +3198,14 @@ class OSModel
     end
 
     mech_vent = MechanicalVentilation.new(mech_vent_type, mech_vent_total_eff, mech_vent_total_eff_adj, mech_vent_cfm,
-                                          mech_vent_fan_w, mech_vent_sens_eff, mech_vent_sens_eff_adj,
-                                          clothes_dryer_exhaust, range_exhaust,
-                                          range_exhaust_hour, bathroom_exhaust, bathroom_exhaust_hour,
+                                          mech_vent_fan_w, mech_vent_sens_eff, mech_vent_sens_eff_adj, clothes_dryer_exhaust,
                                           cfis_open_time, cfis_airflow_frac, cfis_airloop)
 
-    nbaths = @hpxml.building_construction.number_of_bathrooms
-    if nbaths.nil?
-      nbaths = Waterheater.get_default_num_bathrooms(@nbeds)
-    end
     window_area = @hpxml.windows.map { |w| w.area }.inject(0, :+)
     infil_height = Airflow.calc_inferred_infiltration_height(@cfa, @ncfl, @ncfl_ag, @infil_volume, @hpxml)
     Airflow.apply(model, runner, weather, infil, mech_vent, nat_vent, whf, duct_systems,
-                  @cfa, @infil_volume, infil_height, @nbeds, nbaths, @ncfl_ag, window_area,
-                  @min_neighbor_distance)
+                  @cfa, @infil_volume, infil_height, @nbeds, @nbaths, @ncfl_ag, window_area,
+                  @min_neighbor_distance, vent_fan_kitchen, vent_fan_bath)
   end
 
   def self.create_ducts(hvac_distribution, model, spaces)

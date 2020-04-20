@@ -169,19 +169,24 @@ def create_osws
     'base-mechvent-hrv.osw' => 'base.osw',
     'base-mechvent-hrv-asre.osw' => 'base.osw',
     'base-mechvent-supply.osw' => 'base.osw',
+    'base-mechvent-bath-kitchen-fans.osw' => 'base.osw',
     'base-misc-ceiling-fans.osw' => 'base.osw',
     # 'base-misc-defaults.osw' => 'base.osw',
     # 'base-misc-lighting-none.osw' => 'base.osw', # Not going to support this
-    'base-misc-timestep-10-mins.osw' => 'base.osw',
+    'base-misc-neighbor-shading.osw' => 'base.osw',
     'base-misc-runperiod-1-month.osw' => 'base.osw',
+    'base-misc-timestep-10-mins.osw' => 'base.osw',
     'base-misc-usage-multiplier.osw' => 'base.osw',
     'base-misc-whole-house-fan.osw' => 'base.osw',
     'base-pv.osw' => 'base.osw',
-    'base-site-neighbors.osw' => 'base.osw',
+
     # Extra test files that don't correspond with sample files
     'extra-auto.osw' => 'base.osw',
     'extra-pv-roofpitch.osw' => 'base.osw',
     'extra-dhw-solar-latitude.osw' => 'base.osw',
+
+    'invalid_files/non-electric-heat-pump-water-heater.osw' => 'base.osw',
+    'invalid_files/multiple-heating-and-cooling-systems.osw' => 'base.osw'
   }
 
   puts "Generating #{osws_files.size} OSW files..."
@@ -413,6 +418,17 @@ def get_values(osw_file, step)
     step.setArgument('mech_vent_sensible_recovery_efficiency_type', 'Unadjusted')
     step.setArgument('mech_vent_sensible_recovery_efficiency', 0.72)
     step.setArgument('mech_vent_fan_power', 30)
+    step.setArgument('kitchen_fan_present', false)
+    step.setArgument('kitchen_fan_flow_rate', 100)
+    step.setArgument('kitchen_fan_hours_in_operation', 1.5)
+    step.setArgument('kitchen_fan_power', 30)
+    step.setArgument('kitchen_fan_start_hour', 18)
+    step.setArgument('bathroom_fans_present', false)
+    step.setArgument('bathroom_fans_flow_rate', 50)
+    step.setArgument('bathroom_fans_hours_in_operation', 1.5)
+    step.setArgument('bathroom_fans_power', 15)
+    step.setArgument('bathroom_fans_start_hour', 7)
+    step.setArgument('bathroom_fans_quantity', 2)
     step.setArgument('whole_house_fan_present', false)
     step.setArgument('whole_house_fan_flow_rate', 4500)
     step.setArgument('whole_house_fan_power', 300)
@@ -1332,13 +1348,20 @@ def get_values(osw_file, step)
     step.setArgument('mech_vent_fan_power', 60)
   elsif ['base-mechvent-supply.osw'].include? osw_file
     step.setArgument('mech_vent_fan_type', HPXML::MechVentTypeSupply)
+  elsif ['base-mechvent-bath-kitchen-fans.osw'].include? osw_file
+    step.setArgument('kitchen_fan_present', true)
+    step.setArgument('bathroom_fans_present', true)
   elsif ['base-misc-ceiling-fans.osw'].include? osw_file
     step.setArgument('ceiling_fan_cooling_setpoint_temp_offset', 0.5)
     step.setArgument('ceiling_fan_quantity', 2)
-  elsif ['base-misc-timestep-10-mins.osw'].include? osw_file
-    step.setArgument('simulation_control_timestep', 10)
+  elsif ['base-misc-neighbor-shading.osw'].include? osw_file
+    step.setArgument('neighbor_back_distance', 10)
+    step.setArgument('neighbor_front_distance', 15)
+    step.setArgument('neighbor_front_height', '12')
   elsif ['base-misc-runperiod-1-month.osw'].include? osw_file
     step.setArgument('simulation_control_end_month', 1)
+  elsif ['base-misc-timestep-10-mins.osw'].include? osw_file
+    step.setArgument('simulation_control_timestep', 10)
   elsif ['base-misc-usage-multiplier.osw'].include? osw_file
     step.setArgument('water_fixtures_usage_multiplier', 0.9)
     step.setArgument('lighting_usage_multiplier', 0.9)
@@ -1355,10 +1378,6 @@ def get_values(osw_file, step)
     step.setArgument('pv_system_module_type_2', HPXML::PVModuleTypePremium)
     step.setArgument('pv_system_array_azimuth_2', 90)
     step.setArgument('pv_system_max_power_output_2', 1500)
-  elsif ['base-site-neighbors.osw'].include? osw_file
-    step.setArgument('neighbor_back_distance', 10)
-    step.setArgument('neighbor_front_distance', 15)
-    step.setArgument('neighbor_front_height', '12')
   elsif ['extra-auto.osw'].include? osw_file
     step.setArgument('geometry_num_occupants', Constants.Auto)
     step.setArgument('water_heater_location', Constants.Auto)
@@ -1375,6 +1394,11 @@ def get_values(osw_file, step)
   elsif ['extra-dhw-solar-latitude.osw'].include? osw_file
     step.setArgument('solar_thermal_system_type', 'hot water')
     step.setArgument('solar_thermal_collector_tilt', 'latitude-15')
+  elsif ['invalid_files/non-electric-heat-pump-water-heater.osw'].include? osw_file
+    step.setArgument('water_heater_type', HPXML::WaterHeaterTypeHeatPump)
+    step.setArgument('water_heater_fuel_type', HPXML::FuelTypeNaturalGas)
+  elsif ['invalid_files/multiple-heating-and-cooling-systems.osw'].include? osw_file
+    step.setArgument('heat_pump_type', HPXML::HVACTypeHeatPumpAirToAir)
   end
   return step
 end
@@ -1387,8 +1411,6 @@ def create_hpxmls
   hpxmls_files = {
     'base.xml' => nil,
 
-    'invalid_files/bad-wmo.xml' => 'base.xml',
-    'invalid_files/bad-site-neighbor-azimuth.xml' => 'base-site-neighbors.xml',
     'invalid_files/cfis-with-hydronic-distribution.xml' => 'base-hvac-boiler-gas-only.xml',
     'invalid_files/clothes-washer-location.xml' => 'base.xml',
     'invalid_files/clothes-washer-location-other.xml' => 'base.xml',
@@ -1409,12 +1431,14 @@ def create_hpxmls
     'invalid_files/hvac-dse-multiple-attached-cooling.xml' => 'base-hvac-dse.xml',
     'invalid_files/hvac-dse-multiple-attached-heating.xml' => 'base-hvac-dse.xml',
     'invalid_files/hvac-frac-load-served.xml' => 'base-hvac-multiple.xml',
+    'invalid_files/invalid-neighbor-shading-azimuth.xml' => 'base-misc-neighbor-shading.xml',
     'invalid_files/invalid-relatedhvac-dhw-indirect.xml' => 'base-dhw-indirect.xml',
     'invalid_files/invalid-relatedhvac-desuperheater.xml' => 'base-hvac-central-ac-only-1-speed.xml',
     'invalid_files/invalid-timestep.xml' => 'base.xml',
     'invalid_files/invalid-runperiod.xml' => 'base.xml',
     'invalid_files/invalid-window-height.xml' => 'base-enclosure-overhangs.xml',
     'invalid_files/invalid-window-interior-shading.xml' => 'base.xml',
+    'invalid_files/invalid-wmo.xml' => 'base.xml',
     'invalid_files/lighting-fractions.xml' => 'base.xml',
     'invalid_files/mismatched-slab-and-foundation-wall.xml' => 'base.xml',
     'invalid_files/missing-elements.xml' => 'base.xml',
@@ -1426,6 +1450,7 @@ def create_hpxmls
     'invalid_files/refrigerator-location-other.xml' => 'base.xml',
     'invalid_files/repeated-relatedhvac-dhw-indirect.xml' => 'base-dhw-indirect.xml',
     'invalid_files/repeated-relatedhvac-desuperheater.xml' => 'base-hvac-central-ac-only-1-speed.xml',
+    'invalid_files/slab-zero-exposed-perimeter.xml' => 'base.xml',
     'invalid_files/solar-thermal-system-with-combi-tankless.xml' => 'base-dhw-combi-tankless.xml',
     'invalid_files/solar-thermal-system-with-desuperheater.xml' => 'base-dhw-desuperheater.xml',
     'invalid_files/solar-thermal-system-with-dhw-indirect.xml' => 'base-dhw-combi-tankless.xml',
@@ -1437,7 +1462,6 @@ def create_hpxmls
     'invalid_files/unattached-window.xml' => 'base.xml',
     'invalid_files/water-heater-location.xml' => 'base.xml',
     'invalid_files/water-heater-location-other.xml' => 'base.xml',
-    'invalid_files/slab-zero-exposed-perimeter.xml' => 'base.xml',
 
     'base-appliances-gas.xml' => 'base.xml',
     'base-appliances-wood.xml' => 'base.xml',
@@ -1600,6 +1624,7 @@ def create_hpxmls
     'base-mechvent-hrv.xml' => 'base.xml',
     'base-mechvent-hrv-asre.xml' => 'base.xml',
     'base-mechvent-supply.xml' => 'base.xml',
+    'base-mechvent-bath-kitchen-fans.xml' => 'base.xml',
     'base-misc-ceiling-fans.xml' => 'base.xml',
     'base-misc-defaults.xml' => 'base.xml',
     'base-misc-lighting-none.xml' => 'base.xml',
@@ -1608,7 +1633,7 @@ def create_hpxmls
     'base-misc-usage-multiplier.xml' => 'base.xml',
     'base-misc-whole-house-fan.xml' => 'base.xml',
     'base-pv.xml' => 'base.xml',
-    'base-site-neighbors.xml' => 'base.xml',
+    'base-misc-neighbor-shading.xml' => 'base.xml',
 
     'hvac_autosizing/base-autosize.xml' => 'base.xml',
     'hvac_autosizing/base-hvac-air-to-air-heat-pump-1-speed-autosize.xml' => 'base-hvac-air-to-air-heat-pump-1-speed.xml',
@@ -1856,13 +1881,13 @@ def set_hpxml_site(hpxml_file, hpxml)
 end
 
 def set_hpxml_neighbor_buildings(hpxml_file, hpxml)
-  if ['base-site-neighbors.xml'].include? hpxml_file
+  if ['base-misc-neighbor-shading.xml'].include? hpxml_file
     hpxml.neighbor_buildings.add(azimuth: 0,
                                  distance: 10)
     hpxml.neighbor_buildings.add(azimuth: 180,
                                  distance: 15,
                                  height: 12)
-  elsif ['invalid_files/bad-site-neighbor-azimuth.xml'].include? hpxml_file
+  elsif ['invalid_files/invalid-neighbor-shading-azimuth.xml'].include? hpxml_file
     hpxml.neighbor_buildings[0].azimuth = 145
   end
 end
@@ -1953,7 +1978,7 @@ def set_hpxml_climate_and_risk_zones(hpxml_file, hpxml)
     hpxml.climate_and_risk_zones.weather_station_wmo = nil
     hpxml.climate_and_risk_zones.weather_station_name = 'Boulder, CO'
     hpxml.climate_and_risk_zones.weather_station_epw_filename = 'US_CO_Boulder_AMY_2012.epw'
-  elsif ['invalid_files/bad-wmo.xml'].include? hpxml_file
+  elsif ['invalid_files/invalid-wmo.xml'].include? hpxml_file
     hpxml.climate_and_risk_zones.weather_station_wmo = '999999'
   end
 end
@@ -3900,6 +3925,29 @@ def set_hpxml_ventilation_fans(hpxml_file, hpxml)
                                rated_flow_rate: 4500,
                                fan_power: 300,
                                used_for_seasonal_cooling_load_reduction: true)
+  elsif ['base-mechvent-bath-kitchen-fans.xml'].include? hpxml_file
+    hpxml.ventilation_fans.add(id: 'KitchenRangeFan',
+                               fan_location: HPXML::VentilationFanLocationKitchen,
+                               rated_flow_rate: 100,
+                               fan_power: 30,
+                               hours_in_operation: 1.5,
+                               start_hour: 18,
+                               used_for_local_ventilation: true)
+    hpxml.ventilation_fans.add(id: 'BathFans',
+                               fan_location: HPXML::VentilationFanLocationBath,
+                               quantity: 2,
+                               rated_flow_rate: 50,
+                               fan_power: 15,
+                               hours_in_operation: 1.5,
+                               start_hour: 7,
+                               used_for_local_ventilation: true)
+  elsif ['base-misc-defaults.xml'].include? hpxml_file
+    hpxml.ventilation_fans.add(id: 'KitchenRangeFan',
+                               fan_location: HPXML::VentilationFanLocationKitchen,
+                               used_for_local_ventilation: true)
+    hpxml.ventilation_fans.add(id: 'BathFans',
+                               fan_location: HPXML::VentilationFanLocationBath,
+                               used_for_local_ventilation: true)
   end
 end
 

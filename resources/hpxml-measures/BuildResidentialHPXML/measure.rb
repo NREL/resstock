@@ -1218,6 +1218,75 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(30)
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('kitchen_fan_present', true)
+    arg.setDisplayName('Whole House Fan: Present')
+    arg.setDescription('Whether there is a kitchen fan.')
+    arg.setDefaultValue(false)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('kitchen_fan_flow_rate', false)
+    arg.setDisplayName('Kitchen Fan: Flow Rate')
+    arg.setDescription('The flow rate of the kitchen fan.')
+    arg.setUnits('CFM')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('kitchen_fan_hours_in_operation', false)
+    arg.setDisplayName('Kitchen Fan: Hours In Operation')
+    arg.setDescription('The hours in operation of the kitchen fan.')
+    arg.setUnits('hrs')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('kitchen_fan_power', false)
+    arg.setDisplayName('Kitchen Fan: Fan Power')
+    arg.setDescription('The fan power of the kitchen fan.')
+    arg.setUnits('W')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('kitchen_fan_start_hour', true)
+    arg.setDisplayName('Kitchen Fan: Start Hour')
+    arg.setDescription('The start hour of the kitchen fan.')
+    arg.setUnits('hr')
+    arg.setDefaultValue(18)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('bathroom_fans_present', true)
+    arg.setDisplayName('Bathroom Fans: Present')
+    arg.setDescription('Whether there are bathroom fans.')
+    arg.setDefaultValue(false)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('bathroom_fans_flow_rate', false)
+    arg.setDisplayName('Bathroom Fans: Flow Rate')
+    arg.setDescription('The flow rate of the bathroom fans.')
+    arg.setUnits('CFM')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('bathroom_fans_hours_in_operation', false)
+    arg.setDisplayName('Bathroom Fans: Hours In Operation')
+    arg.setDescription('The hours in operation of the bathroom fans.')
+    arg.setUnits('hrs')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('bathroom_fans_power', false)
+    arg.setDisplayName('Bathroom Fans: Fan Power')
+    arg.setDescription('The fan power of the bathroom fans.')
+    arg.setUnits('W')
+    arg.setDefaultValue(300)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('bathroom_fans_start_hour', true)
+    arg.setDisplayName('Bathroom Fans: Start Hour')
+    arg.setDescription('The start hour of the bathroom fans.')
+    arg.setUnits('hr')
+    arg.setDefaultValue(7)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('bathroom_fans_quantity', false)
+    arg.setDisplayName('Bathroom Fans: Quantity')
+    arg.setDescription('The quantity of the bathroom fans.')
+    arg.setUnits('#')
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument('whole_house_fan_present', true)
     arg.setDisplayName('Whole House Fan: Present')
     arg.setDescription('Whether there is a whole house fan.')
@@ -2143,6 +2212,18 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
              mech_vent_sensible_recovery_efficiency_type: runner.getStringArgumentValue('mech_vent_sensible_recovery_efficiency_type', user_arguments),
              mech_vent_sensible_recovery_efficiency: runner.getDoubleArgumentValue('mech_vent_sensible_recovery_efficiency', user_arguments),
              mech_vent_fan_power: runner.getDoubleArgumentValue('mech_vent_fan_power', user_arguments),
+             kitchen_fan_present: runner.getBoolArgumentValue('kitchen_fan_present', user_arguments),
+             kitchen_fan_flow_rate: runner.getOptionalDoubleArgumentValue('kitchen_fan_flow_rate', user_arguments),
+             kitchen_fan_hours_in_operation: runner.getOptionalDoubleArgumentValue('kitchen_fan_hours_in_operation', user_arguments),
+             kitchen_fan_power: runner.getOptionalDoubleArgumentValue('kitchen_fan_power', user_arguments),
+             kitchen_fan_start_hour: runner.getIntegerArgumentValue('kitchen_fan_start_hour', user_arguments),
+             bathroom_fans_present: runner.getBoolArgumentValue('bathroom_fans_present', user_arguments),
+             bathroom_fans_flow_rate: runner.getOptionalDoubleArgumentValue('bathroom_fans_flow_rate', user_arguments),
+             bathroom_fans_hours_in_operation: runner.getOptionalDoubleArgumentValue('bathroom_fans_hours_in_operation', user_arguments),
+             bathroom_fans_power: runner.getOptionalDoubleArgumentValue('bathroom_fans_power', user_arguments),
+             bathroom_fans_start_hour: runner.getIntegerArgumentValue('bathroom_fans_start_hour', user_arguments),
+             bathroom_fans_quantity: runner.getOptionalIntegerArgumentValue('bathroom_fans_quantity', user_arguments),
+             whole_house_fan_present: runner.getBoolArgumentValue('whole_house_fan_present', user_arguments),
              whole_house_fan_present: runner.getBoolArgumentValue('whole_house_fan_present', user_arguments),
              whole_house_fan_flow_rate: runner.getDoubleArgumentValue('whole_house_fan_flow_rate', user_arguments),
              whole_house_fan_power: runner.getDoubleArgumentValue('whole_house_fan_power', user_arguments),
@@ -2242,6 +2323,20 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
              plug_loads_monthly_multipliers: runner.getStringArgumentValue('plug_loads_monthly_multipliers', user_arguments),
              plug_loads_usage_multiplier: runner.getDoubleArgumentValue('plug_loads_usage_multiplier', user_arguments) }
 
+    # Argument error checks
+    warnings, errors = validate_arguments(args)
+    unless warnings.empty?
+      warnings.each do |warning|
+        runner.registerWarning(warning)
+      end
+    end
+    unless errors.empty?
+      errors.each do |error|
+        runner.registerError(error)
+      end
+      return false
+    end
+
     # Get weather object
     weather_dir = args[:weather_dir]
     unless (Pathname.new weather_dir).absolute?
@@ -2289,6 +2384,21 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     XMLHelper.write_file(hpxml_doc, hpxml_path)
     runner.registerInfo("Wrote file: #{hpxml_path}")
+  end
+
+  def validate_arguments(args)
+    warnings = []
+    errors = []
+
+    # heat pump water heater with natural gas fuel type
+    warning = ([HPXML::WaterHeaterTypeHeatPump].include?(args[:water_heater_type]) && (args[:water_heater_fuel_type] != HPXML::FuelTypeElectricity))
+    warnings << "water_heater_type=#{args[:water_heater_type]} and water_heater_fuel_type=#{args[:water_heater_fuel_type]}" if warning
+
+    # furnace, air conditioner, and heat pump
+    error = (args[:heating_system_type]!='none') && (args[:cooling_system_type]!='none') && (args[:heat_pump_type]!='none')
+    errors << "heating_system_type=#{args[:heating_system_type]} and cooling_system_type=#{args[:cooling_system_type]} and heat_pump_type=#{args[:heat_pump_type]}" if error
+
+    return warnings, errors
   end
 
   def validate_hpxml(runner, hpxml_path, hpxml_doc, schemas_dir)
@@ -3220,6 +3330,55 @@ class HPXMLFile
                                  sensible_recovery_efficiency_adjusted: sensible_recovery_efficiency_adjusted,
                                  fan_power: args[:mech_vent_fan_power],
                                  distribution_system_idref: distribution_system_idref)
+    end
+
+    if args[:kitchen_fan_present]
+      if args[:kitchen_fan_flow_rate].is_initialized
+        rated_flow_rate = args[:kitchen_fan_flow_rate].get
+      end
+
+      if args[:kitchen_fan_power].is_initialized
+        fan_power = args[:kitchen_fan_power].get
+      end
+
+      if args[:kitchen_fan_hours_in_operation].is_initialized
+        hours_in_operation = args[:kitchen_fan_hours_in_operation].get
+      end
+
+      hpxml.ventilation_fans.add(id: 'KitchenRangeFan',
+                                 rated_flow_rate: rated_flow_rate,
+                                 used_for_local_ventilation: true,
+                                 hours_in_operation: hours_in_operation,
+                                 fan_location: 'kitchen',
+                                 fan_power: fan_power,
+                                 start_hour: args[:kitchen_fan_start_hour])
+    end
+
+    if args[:bathroom_fans_present]
+      if args[:bathroom_fans_flow_rate].is_initialized
+        rated_flow_rate = args[:bathroom_fans_flow_rate].get
+      end
+
+      if args[:bathroom_fans_power].is_initialized
+        fan_power = args[:bathroom_fans_power].get
+      end
+
+      if args[:bathroom_fans_hours_in_operation].is_initialized
+        hours_in_operation = args[:bathroom_fans_hours_in_operation].get
+      end
+
+      if args[:bathroom_fans_quantity].is_initialized
+        quantity = args[:bathroom_fans_quantity].get
+      end
+
+      hpxml.ventilation_fans.add(id: 'BathFans',
+                                 rated_flow_rate: rated_flow_rate,
+                                 used_for_local_ventilation: true,
+                                 hours_in_operation: hours_in_operation,
+                                 fan_location: 'bath',
+                                 fan_power: fan_power,
+                                 start_hour: args[:bathroom_fans_start_hour],
+                                 quantity: quantity)
     end
 
     if args[:whole_house_fan_present]

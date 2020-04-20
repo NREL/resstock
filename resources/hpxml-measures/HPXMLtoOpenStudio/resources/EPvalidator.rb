@@ -71,6 +71,8 @@ class EnergyPlusValidator
         '/HPXML/Building/BuildingDetails/Systems/HVAC/HVACDistribution' => zero_or_more, # See [HVACDistribution]
 
         '/HPXML/Building/BuildingDetails/Systems/MechanicalVentilation/VentilationFans/VentilationFan[UsedForWholeBuildingVentilation="true"]' => zero_or_one, # See [MechanicalVentilation]
+        '/HPXML/Building/BuildingDetails/Systems/MechanicalVentilation/VentilationFans/VentilationFan[UsedForLocalVentilation="true" and FanLocation="kitchen"]' => zero_or_one, # See [KitchenRangeFan]
+        '/HPXML/Building/BuildingDetails/Systems/MechanicalVentilation/VentilationFans/VentilationFan[UsedForLocalVentilation="true" and FanLocation="bath"]' => zero_or_one, # See [BathFan]
         '/HPXML/Building/BuildingDetails/Systems/MechanicalVentilation/VentilationFans/VentilationFan[UsedForSeasonalCoolingLoadReduction="true"]' => zero_or_one, # See [WholeHouseFan]
         '/HPXML/Building/BuildingDetails/Systems/WaterHeating/WaterHeatingSystem' => zero_or_more, # See [WaterHeatingSystem]
         '/HPXML/Building/BuildingDetails/Systems/WaterHeating/HotWaterDistribution' => zero_or_one, # See [HotWaterDistribution]
@@ -103,6 +105,7 @@ class EnergyPlusValidator
         'NumberofConditionedFloors' => one,
         'NumberofConditionedFloorsAboveGrade' => one,
         'NumberofBedrooms' => one,
+        'NumberofBathrooms' => zero_or_one,
         'ConditionedFloorArea' => one,
         'ConditionedBuildingVolume | AverageCeilingHeight' => one_or_more,
       },
@@ -489,6 +492,25 @@ class EnergyPlusValidator
       ## [MechVentType=CFIS]
       '/HPXML/Building/BuildingDetails/Systems/MechanicalVentilation/VentilationFans/VentilationFan[UsedForWholeBuildingVentilation="true"][FanType="central fan integrated supply"]' => {
         'AttachedToHVACDistributionSystem' => one,
+      },
+
+      # [KitchenRangeFan]
+      '/HPXML/Building/BuildingDetails/Systems/MechanicalVentilation/VentilationFans/VentilationFan[UsedForLocalVentilation="true" and FanLocation="kitchen"]' => {
+        'SystemIdentifier' => one, # Required by HPXML schema
+        'RatedFlowRate' => zero_or_one,
+        'HoursInOperation' => zero_or_one,
+        'FanPower' => zero_or_one,
+        'extension/StartHour' => zero_or_one, # 0 = midnight. 12 = noon
+      },
+
+      # [BathFan]
+      '/HPXML/Building/BuildingDetails/Systems/MechanicalVentilation/VentilationFans/VentilationFan[UsedForLocalVentilation="true" and FanLocation="bath"]' => {
+        'SystemIdentifier' => one, # Required by HPXML schema
+        'Quantity' => zero_or_one,
+        'RatedFlowRate' => zero_or_one,
+        'HoursInOperation' => zero_or_one,
+        'FanPower' => zero_or_one,
+        'extension/StartHour' => zero_or_one, # 0 = midnight. 12 = noon
       },
 
       # [WholeHouseFan]
