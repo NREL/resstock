@@ -2224,7 +2224,6 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
              bathroom_fans_start_hour: runner.getIntegerArgumentValue('bathroom_fans_start_hour', user_arguments),
              bathroom_fans_quantity: runner.getOptionalIntegerArgumentValue('bathroom_fans_quantity', user_arguments),
              whole_house_fan_present: runner.getBoolArgumentValue('whole_house_fan_present', user_arguments),
-             whole_house_fan_present: runner.getBoolArgumentValue('whole_house_fan_present', user_arguments),
              whole_house_fan_flow_rate: runner.getDoubleArgumentValue('whole_house_fan_flow_rate', user_arguments),
              whole_house_fan_power: runner.getDoubleArgumentValue('whole_house_fan_power', user_arguments),
              water_heater_type: runner.getStringArgumentValue('water_heater_type', user_arguments),
