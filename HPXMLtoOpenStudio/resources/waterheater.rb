@@ -1230,9 +1230,8 @@ class Waterheater
   end
 
   def self.get_default_num_bathrooms(num_beds)
-    # From https://www.sansomeandgeorge.co.uk/news-updates/what-is-the-ideal-ratio-of-bathrooms-to-bedrooms.html
-    # "According to 70% of estate agents, a property should have two bathrooms for every three bedrooms..."
-    num_baths = 2.0 / 3.0 * num_beds
+    # From BA HSP
+    num_baths = num_beds / 2.0 + 0.5
   end
 
   def self.add_ec_adj(model, heater, ec_adj, space, fuel_type, wh_type, combi_boiler = nil, combi_hx = nil)

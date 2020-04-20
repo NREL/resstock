@@ -91,10 +91,22 @@ class BuildResidentialHPXMLTest < MiniTest::Test
 
   def test_invalid_workflows
     require 'json'
+
     this_dir = File.dirname(__FILE__)
     measures_dir = File.join(this_dir, '../..')
 
+    tests_dir = File.expand_path(File.join(File.dirname(__FILE__), '../../BuildResidentialHPXML/tests'))
+    built_dir = File.join(tests_dir, 'built_residential_hpxml')
+    unless Dir.exist?(built_dir)
+      Dir.mkdir(built_dir)
+    end
+
+    expected_warning_msgs = {
+      'non-electric-heat-pump-water-heater.osw' => 'water_heater_type=heat pump water heater and water_heater_fuel_type=natural gas'
+    }
+
     expected_error_msgs = {
+      'multiple-heating-and-cooling-systems.osw' => 'heating_system_type=Furnace and cooling_system_type=central air conditioner and heat_pump_type=air-to-air'
     }
 
     measures = {}
@@ -114,13 +126,18 @@ class BuildResidentialHPXMLTest < MiniTest::Test
         # Report warnings/errors
         runner.result.stepWarnings.each do |s|
           puts "Warning: #{s}"
+          assert_equal(s, expected_warning_msgs[File.basename(osw)])
         end
         runner.result.stepErrors.each do |s|
           puts "Error: #{s}"
           assert_equal(s, expected_error_msgs[File.basename(osw)])
         end
 
-        assert(!success)
+        if expected_error_msgs.include? File.basename(osw)
+          assert(!success)
+        else
+          assert(success)
+        end
       end
     end
   end
