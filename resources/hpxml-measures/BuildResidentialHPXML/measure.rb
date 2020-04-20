@@ -2395,7 +2395,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     warnings << "water_heater_type=#{args[:water_heater_type]} and water_heater_fuel_type=#{args[:water_heater_fuel_type]}" if warning
 
     # furnace, air conditioner, and heat pump
-    error = (args[:heating_system_type]!='none') && (args[:cooling_system_type]!='none') && (args[:heat_pump_type]!='none')
+    error = (args[:heating_system_type] != 'none') && (args[:cooling_system_type] != 'none') && (args[:heat_pump_type] != 'none')
     errors << "heating_system_type=#{args[:heating_system_type]} and cooling_system_type=#{args[:cooling_system_type]} and heat_pump_type=#{args[:heat_pump_type]}" if error
 
     return warnings, errors
