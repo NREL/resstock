@@ -1129,6 +1129,7 @@ class ScheduleGenerator
             end
             if m >= mins_in_year then break end
           end
+          if m >= mins_in_year then break end
           while @shower_schedule[m / minutes_per_steps] > 0 and m < mins_in_year
             # skip till the end of this slot
             m += 1
