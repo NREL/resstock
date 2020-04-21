@@ -105,12 +105,6 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(HPXML::ResidentialTypeSFD)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('geometry_unit_multiplier', false)
-    arg.setDisplayName('Geometry: Unit Multiplier')
-    arg.setUnits('#')
-    arg.setDescription('The number of actual units this single unit represents.')
-    args << arg
-
     arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('geometry_num_units', false)
     arg.setDisplayName('Geometry: Number of Units')
     arg.setUnits('#')
@@ -2069,7 +2063,6 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
              schedules_output_path: runner.getStringArgumentValue('schedules_output_path', user_arguments),
              weather_station_epw_filename: runner.getStringArgumentValue('weather_station_epw_filename', user_arguments),
              geometry_unit_type: runner.getStringArgumentValue('geometry_unit_type', user_arguments),
-             geometry_unit_multiplier: runner.getOptionalIntegerArgumentValue('geometry_unit_multiplier', user_arguments),
              geometry_num_units: runner.getOptionalIntegerArgumentValue('geometry_num_units', user_arguments),
              geometry_cfa: runner.getDoubleArgumentValue('geometry_cfa', user_arguments),
              geometry_num_floors_above_grade: runner.getIntegerArgumentValue('geometry_num_floors_above_grade', user_arguments),
@@ -2498,10 +2491,6 @@ class HPXMLFile
     end
 
     hpxml_doc = hpxml.to_rexml()
-    if args[:geometry_unit_multiplier].is_initialized
-      HPXML::add_extension(parent: hpxml_doc.elements['/HPXML/Building/BuildingDetails'],
-                           extensions: { 'UnitMultiplier' => args[:geometry_unit_multiplier].get })
-    end
 
     return hpxml_doc
   end
