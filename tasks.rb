@@ -9,6 +9,9 @@ def create_osws
     'base.osw' => nil, # single-family detached
     'base-single-family-attached.osw' => 'base.osw',
     'base-multifamily.osw' => 'base.osw',
+    'base-appliances-dehumidifier.osw' => 'base.osw',
+    'base-appliances-dehumidifier-50percent.osw' => 'base.osw',
+    'base-appliances-dehumidifier-ief.osw' => 'base.osw',
     'base-appliances-gas.osw' => 'base.osw',
     'base-appliances-modified.osw' => 'base.osw',
     'base-appliances-none.osw' => 'base.osw',
@@ -483,6 +486,13 @@ def get_values(osw_file, step)
     step.setArgument('pv_system_inverter_efficiency_2', 0.96)
     step.setArgument('pv_system_system_losses_fraction_2', 0.14)
     step.setArgument('lighting_usage_multiplier', 1.0)
+    step.setArgument('dehumidifier_present', false)
+    step.setArgument('dehumidifier_efficiency_type', 'EnergyFactor')
+    step.setArgument('dehumidifier_efficiency_ef', 1.8)
+    step.setArgument('dehumidifier_efficiency_ief', 1.5)
+    step.setArgument('dehumidifier_capacity', 40)
+    step.setArgument('dehumidifier_rh_setpoint', 0.5)
+    step.setArgument('dehumidifier_fraction_dehumidification_load_served', 1)
     step.setArgument('clothes_washer_present', true)
     step.setArgument('clothes_washer_location', HPXML::LocationLivingSpace)
     step.setArgument('clothes_washer_efficiency_type', 'IntegratedModifiedEnergyFactor')
@@ -560,6 +570,17 @@ def get_values(osw_file, step)
     step.setArgument('window_area_right', 0)
     step.setArgument('ducts_supply_leakage_value', 0)
     step.setArgument('ducts_return_leakage_value', 0)
+  elsif ['base-appliances-dehumidifier.osw'].include? osw_file
+    step.setArgument('weather_station_epw_filename', 'USA_TX_Dallas-Fort.Worth.Intl.AP.722590_TMY3.epw')
+    step.setArgument('dehumidifier_present', true)
+  elsif ['base-appliances-dehumidifier-50percent.osw'].include? osw_file
+    step.setArgument('weather_station_epw_filename', 'USA_TX_Dallas-Fort.Worth.Intl.AP.722590_TMY3.epw')
+    step.setArgument('dehumidifier_present', true)
+    step.setArgument('dehumidifier_fraction_dehumidification_load_served', 0.5)
+  elsif ['base-appliances-dehumidifier-ief.osw'].include? osw_file
+    step.setArgument('weather_station_epw_filename', 'USA_TX_Dallas-Fort.Worth.Intl.AP.722590_TMY3.epw')
+    step.setArgument('dehumidifier_present', true)
+    step.setArgument('dehumidifier_efficiency_type', 'IntegratedEnergyFactor')
   elsif ['base-appliances-gas.osw'].include? osw_file
     step.setArgument('clothes_dryer_fuel_type', HPXML::FuelTypeNaturalGas)
     step.setArgument('clothes_dryer_efficiency_cef', 3.3)
@@ -1462,6 +1483,9 @@ def create_hpxmls
     'invalid_files/water-heater-location.xml' => 'base.xml',
     'invalid_files/water-heater-location-other.xml' => 'base.xml',
 
+    'base-appliances-dehumidifier.xml' => 'base-location-dallas-tx.xml',
+    'base-appliances-dehumidifier-ief.xml' => 'base-appliances-dehumidifier.xml',
+    'base-appliances-dehumidifier-50percent.xml' => 'base-appliances-dehumidifier.xml',
     'base-appliances-gas.xml' => 'base.xml',
     'base-appliances-wood.xml' => 'base.xml',
     'base-appliances-modified.xml' => 'base.xml',
@@ -1787,6 +1811,7 @@ def create_hpxmls
         set_hpxml_clothes_dryer(hpxml_file, hpxml)
         set_hpxml_dishwasher(hpxml_file, hpxml)
         set_hpxml_refrigerator(hpxml_file, hpxml)
+        set_hpxml_dehumidifier(hpxml_file, hpxml)
         set_hpxml_cooking_range(hpxml_file, hpxml)
         set_hpxml_oven(hpxml_file, hpxml)
         set_hpxml_lighting(hpxml_file, hpxml)
@@ -4493,6 +4518,21 @@ def set_hpxml_refrigerator(hpxml_file, hpxml)
     hpxml.refrigerators[0].adjusted_annual_kwh = nil
   elsif ['base-misc-usage-multiplier.xml'].include? hpxml_file
     hpxml.refrigerators[0].usage_multiplier = 0.9
+  end
+end
+
+def set_hpxml_dehumidifier(hpxml_file, hpxml)
+  if ['base-appliances-dehumidifier.xml'].include? hpxml_file
+    hpxml.dehumidifiers.add(id: 'Dehumidifier',
+                            capacity: 40,
+                            energy_factor: 1.8,
+                            rh_setpoint: 0.5,
+                            fraction_served: 1.0)
+  elsif ['base-appliances-dehumidifier-ief.xml'].include? hpxml_file
+    hpxml.dehumidifiers[0].energy_factor = nil
+    hpxml.dehumidifiers[0].integrated_energy_factor = 1.5
+  elsif ['base-appliances-dehumidifier-50percent.xml'].include? hpxml_file
+    hpxml.dehumidifiers[0].fraction_served = 0.5
   end
 end
 

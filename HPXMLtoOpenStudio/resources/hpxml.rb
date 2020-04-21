@@ -49,8 +49,8 @@ class HPXML < Object
                  :skylights, :doors, :heating_systems, :cooling_systems, :heat_pumps, :hvac_controls,
                  :hvac_distributions, :ventilation_fans, :water_heating_systems, :hot_water_distributions,
                  :water_fixtures, :water_heating, :solar_thermal_systems, :pv_systems, :clothes_washers,
-                 :clothes_dryers, :dishwashers, :refrigerators, :cooking_ranges, :ovens, :lighting_groups,
-                 :lighting, :ceiling_fans, :plug_loads, :misc_loads_schedule]
+                 :clothes_dryers, :dishwashers, :refrigerators, :dehumidifiers, :cooking_ranges, :ovens,
+                 :lighting_groups, :lighting, :ceiling_fans, :plug_loads, :misc_loads_schedule]
   attr_reader(*HPXML_ATTRS, :doc)
 
   # Constants
@@ -403,6 +403,7 @@ class HPXML < Object
     @clothes_dryers.to_rexml(@doc)
     @dishwashers.to_rexml(@doc)
     @refrigerators.to_rexml(@doc)
+    @dehumidifiers.to_rexml(@doc)
     @cooking_ranges.to_rexml(@doc)
     @ovens.to_rexml(@doc)
     @lighting_groups.to_rexml(@doc)
@@ -448,6 +449,7 @@ class HPXML < Object
     @clothes_dryers = ClothesDryers.new(self, hpxml)
     @dishwashers = Dishwashers.new(self, hpxml)
     @refrigerators = Refrigerators.new(self, hpxml)
+    @dehumidifiers = Dehumidifiers.new(self, hpxml)
     @cooking_ranges = CookingRanges.new(self, hpxml)
     @ovens = Ovens.new(self, hpxml)
     @lighting_groups = LightingGroups.new(self, hpxml)
@@ -3585,6 +3587,59 @@ class HPXML < Object
       @usage_multiplier = HPXML::to_float_or_nil(XMLHelper.get_value(refrigerator, 'extension/UsageMultiplier'))
       @schedules_output_path = XMLHelper.get_value(refrigerator, 'extension/SchedulesOutputPath')
       @schedules_column_name = XMLHelper.get_value(refrigerator, 'extension/SchedulesColumnName')
+    end
+  end
+
+  class Dehumidifiers < BaseArrayElement
+    def add(**kwargs)
+      self << Dehumidifier.new(@hpxml_object, **kwargs)
+    end
+
+    def from_rexml(hpxml)
+      return if hpxml.nil?
+
+      hpxml.elements.each('Building/BuildingDetails/Appliances/Dehumidifier') do |dehumidifier|
+        self << Dehumidifier.new(@hpxml_object, dehumidifier)
+      end
+    end
+  end
+
+  class Dehumidifier < BaseElement
+    ATTRS = [:id, :capacity, :energy_factor, :integrated_energy_factor, :rh_setpoint, :fraction_served]
+    attr_accessor(*ATTRS)
+
+    def delete
+      @hpxml_object.dehumidifiers.delete(self)
+    end
+
+    def check_for_errors
+      errors = []
+      return errors
+    end
+
+    def to_rexml(doc)
+      return if nil?
+
+      appliances = XMLHelper.create_elements_as_needed(doc, ['HPXML', 'Building', 'BuildingDetails', 'Appliances'])
+      dehumidifier = XMLHelper.add_element(appliances, 'Dehumidifier')
+      sys_id = XMLHelper.add_element(dehumidifier, 'SystemIdentifier')
+      XMLHelper.add_attribute(sys_id, 'id', @id)
+      XMLHelper.add_element(dehumidifier, 'Capacity', Float(@capacity)) unless @capacity.nil?
+      XMLHelper.add_element(dehumidifier, 'EnergyFactor', Float(@energy_factor)) unless @energy_factor.nil?
+      XMLHelper.add_element(dehumidifier, 'IntegratedEnergyFactor', Float(@integrated_energy_factor)) unless @integrated_energy_factor.nil?
+      XMLHelper.add_element(dehumidifier, 'DehumidistatSetpoint', Float(@rh_setpoint)) unless @rh_setpoint.nil?
+      XMLHelper.add_element(dehumidifier, 'FractionDehumidificationLoadServed', Float(@fraction_served)) unless @fraction_served.nil?
+    end
+
+    def from_rexml(dehumidifier)
+      return if dehumidifier.nil?
+
+      @id = HPXML::get_id(dehumidifier)
+      @capacity = HPXML::to_float_or_nil(XMLHelper.get_value(dehumidifier, 'Capacity'))
+      @energy_factor = HPXML::to_float_or_nil(XMLHelper.get_value(dehumidifier, 'EnergyFactor'))
+      @integrated_energy_factor = HPXML::to_float_or_nil(XMLHelper.get_value(dehumidifier, 'IntegratedEnergyFactor'))
+      @rh_setpoint = HPXML::to_float_or_nil(XMLHelper.get_value(dehumidifier, 'DehumidistatSetpoint'))
+      @fraction_served = HPXML::to_float_or_nil(XMLHelper.get_value(dehumidifier, 'FractionDehumidificationLoadServed'))
     end
   end
 

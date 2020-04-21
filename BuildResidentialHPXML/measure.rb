@@ -1667,6 +1667,57 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(1.0)
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('dehumidifier_present', true)
+    arg.setDisplayName('Dehumidifier: Present')
+    arg.setDescription('Whether there is a dehumidifier.')
+    arg.setDefaultValue(false)
+    args << arg
+
+    dehumidifier_efficiency_type_choices = OpenStudio::StringVector.new
+    dehumidifier_efficiency_type_choices << 'EnergyFactor'
+    dehumidifier_efficiency_type_choices << 'IntegratedEnergyFactor'
+
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('dehumidifier_efficiency_type', dehumidifier_efficiency_type_choices, true)
+    arg.setDisplayName('Dehumidifier: Efficiency Type')
+    arg.setDescription('The efficiency type of dehumidifier.')
+    arg.setDefaultValue('EnergyFactor')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('dehumidifier_efficiency_ef', true)
+    arg.setDisplayName('Dehumidifier: Energy Factor')
+    arg.setUnits('liters/kWh')
+    arg.setDescription('The Energy Factor (EF) of the dehumidifier.')
+    arg.setDefaultValue(1.8)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('dehumidifier_efficiency_ief', true)
+    arg.setDisplayName('Dehumidifier: Integrated Energy Factor')
+    arg.setUnits('liters/kWh')
+    arg.setDescription('The Integrated Energy Factor (IEF) of the dehumidifier.')
+    arg.setDefaultValue(1.5)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('dehumidifier_capacity', true)
+    arg.setDisplayName('Dehumidifier: Capacity')
+    arg.setDescription('The capacity (water removal rate) of the dehumidifier.')
+    arg.setUnits('pint/day')
+    arg.setDefaultValue(40)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('dehumidifier_rh_setpoint', true)
+    arg.setDisplayName('Dehumidifier: Relative Humidity Setpoint')
+    arg.setDescription('The relative humidity setpoint of the dehumidifier.')
+    arg.setUnits('Frac')
+    arg.setDefaultValue(0.5)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('dehumidifier_fraction_dehumidification_load_served', true)
+    arg.setDisplayName('Dehumidifier: Fraction Dehumidification Load Served')
+    arg.setDescription('The dehumidification load served fraction of the dehumidifier.')
+    arg.setUnits('Frac')
+    arg.setDefaultValue(1)
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument('clothes_washer_present', true)
     arg.setDisplayName('Clothes Washer: Present')
     arg.setDescription('Whether there is a clothes washer.')
@@ -2263,6 +2314,13 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
              pv_system_inverter_efficiency: (1..Constants.MaxNumPhotovoltaics).to_a.map { |n| runner.getDoubleArgumentValue("pv_system_inverter_efficiency_#{n}", user_arguments) },
              pv_system_system_losses_fraction: (1..Constants.MaxNumPhotovoltaics).to_a.map { |n| runner.getDoubleArgumentValue("pv_system_system_losses_fraction_#{n}", user_arguments) },
              lighting_usage_multiplier: runner.getDoubleArgumentValue('lighting_usage_multiplier', user_arguments),
+             dehumidifier_present: runner.getBoolArgumentValue('dehumidifier_present', user_arguments),
+             dehumidifier_efficiency_type: runner.getStringArgumentValue('dehumidifier_efficiency_type', user_arguments),
+             dehumidifier_efficiency_ef: runner.getDoubleArgumentValue('dehumidifier_efficiency_ef', user_arguments),
+             dehumidifier_efficiency_ief: runner.getDoubleArgumentValue('dehumidifier_efficiency_ief', user_arguments),
+             dehumidifier_capacity: runner.getDoubleArgumentValue('dehumidifier_capacity', user_arguments),
+             dehumidifier_rh_setpoint: runner.getDoubleArgumentValue('dehumidifier_rh_setpoint', user_arguments),
+             dehumidifier_fraction_dehumidification_load_served: runner.getDoubleArgumentValue('dehumidifier_fraction_dehumidification_load_served', user_arguments),
              clothes_washer_present: runner.getBoolArgumentValue('clothes_washer_present', user_arguments),
              clothes_washer_location: runner.getStringArgumentValue('clothes_washer_location', user_arguments),
              clothes_washer_efficiency_type: runner.getStringArgumentValue('clothes_washer_efficiency_type', user_arguments),
@@ -2474,12 +2532,13 @@ class HPXMLFile
     set_water_fixtures(hpxml, runner, args)
     set_solar_thermal(hpxml, runner, args, weather)
     set_pv_systems(hpxml, runner, args, weather)
+    set_lighting(hpxml, runner, args)
+    set_dehumidifier(hpxml, runner, args)
     set_clothes_washer(hpxml, runner, args)
     set_clothes_dryer(hpxml, runner, args)
     set_dishwasher(hpxml, runner, args)
     set_refrigerator(hpxml, runner, args)
-    set_cooking_range_oven(hpxml, runner, args)
-    set_lighting(hpxml, runner, args)
+    set_cooking_range_oven(hpxml, runner, args)    
     set_ceiling_fans(hpxml, runner, args)
     set_plug_loads(hpxml, runner, args)
     set_misc_loads_schedule(hpxml, runner, args)
@@ -3585,6 +3644,53 @@ class HPXMLFile
     end
   end
 
+  def self.set_lighting(hpxml, runner, args)
+    hpxml.lighting_groups.add(id: 'Lighting_TierI_Interior',
+                              location: HPXML::LocationInterior,
+                              fration_of_units_in_location: 0.5, # FIXME
+                              third_party_certification: HPXML::LightingTypeTierI)
+    hpxml.lighting_groups.add(id: 'Lighting_TierI_Exterior',
+                              location: HPXML::LocationExterior,
+                              fration_of_units_in_location: 0.5, # FIXME
+                              third_party_certification: HPXML::LightingTypeTierI)
+    hpxml.lighting_groups.add(id: 'Lighting_TierI_Garage',
+                              location: HPXML::LocationGarage,
+                              fration_of_units_in_location: 0.5, # FIXME
+                              third_party_certification: HPXML::LightingTypeTierI)
+    hpxml.lighting_groups.add(id: 'Lighting_TierII_Interior',
+                              location: HPXML::LocationInterior,
+                              fration_of_units_in_location: 0.25, # FIXME
+                              third_party_certification: HPXML::LightingTypeTierII)
+    hpxml.lighting_groups.add(id: 'Lighting_TierII_Exterior',
+                              location: HPXML::LocationExterior,
+                              fration_of_units_in_location: 0.25, # FIXME
+                              third_party_certification: HPXML::LightingTypeTierII)
+    hpxml.lighting_groups.add(id: 'Lighting_TierII_Garage',
+                              location: HPXML::LocationGarage,
+                              fration_of_units_in_location: 0.25, # FIXME
+                              third_party_certification: HPXML::LightingTypeTierII)
+    if args[:lighting_usage_multiplier] != 1.0
+      hpxml.lighting.usage_multiplier = args[:lighting_usage_multiplier]
+    end
+  end
+
+  def self.set_dehumidifier(hpxml, runner, args)
+    return unless args[:dehumidifier_present]
+
+    if args[:dehumidifier_efficiency_type] == 'EnergyFactor'
+      energy_factor = args[:dehumidifier_efficiency_ef]
+    elsif args[:dehumidifier_efficiency_type] == 'IntegratedEnergyFactor'
+      integrated_energy_factor = args[:dehumidifier_efficiency_ief]
+    end
+
+    hpxml.dehumidifiers.add(id: 'Dehumidifier',
+                            capacity: args[:dehumidifier_capacity],
+                            energy_factor: energy_factor,
+                            integrated_energy_factor: integrated_energy_factor,
+                            rh_setpoint: args[:dehumidifier_rh_setpoint],
+                            fraction_served: args[:dehumidifier_fraction_dehumidification_load_served])
+  end
+
   def self.set_clothes_washer(hpxml, runner, args)
     return unless args[:clothes_washer_present]
 
@@ -3697,36 +3803,6 @@ class HPXMLFile
                              usage_multiplier: usage_multiplier)
     hpxml.ovens.add(id: 'Oven',
                     is_convection: args[:cooking_range_oven_is_convection])
-  end
-
-  def self.set_lighting(hpxml, runner, args)
-    hpxml.lighting_groups.add(id: 'Lighting_TierI_Interior',
-                              location: HPXML::LocationInterior,
-                              fration_of_units_in_location: 0.5, # FIXME
-                              third_party_certification: HPXML::LightingTypeTierI)
-    hpxml.lighting_groups.add(id: 'Lighting_TierI_Exterior',
-                              location: HPXML::LocationExterior,
-                              fration_of_units_in_location: 0.5, # FIXME
-                              third_party_certification: HPXML::LightingTypeTierI)
-    hpxml.lighting_groups.add(id: 'Lighting_TierI_Garage',
-                              location: HPXML::LocationGarage,
-                              fration_of_units_in_location: 0.5, # FIXME
-                              third_party_certification: HPXML::LightingTypeTierI)
-    hpxml.lighting_groups.add(id: 'Lighting_TierII_Interior',
-                              location: HPXML::LocationInterior,
-                              fration_of_units_in_location: 0.25, # FIXME
-                              third_party_certification: HPXML::LightingTypeTierII)
-    hpxml.lighting_groups.add(id: 'Lighting_TierII_Exterior',
-                              location: HPXML::LocationExterior,
-                              fration_of_units_in_location: 0.25, # FIXME
-                              third_party_certification: HPXML::LightingTypeTierII)
-    hpxml.lighting_groups.add(id: 'Lighting_TierII_Garage',
-                              location: HPXML::LocationGarage,
-                              fration_of_units_in_location: 0.25, # FIXME
-                              third_party_certification: HPXML::LightingTypeTierII)
-    if args[:lighting_usage_multiplier] != 1.0
-      hpxml.lighting.usage_multiplier = args[:lighting_usage_multiplier]
-    end
   end
 
   def self.set_ceiling_fans(hpxml, runner, args)

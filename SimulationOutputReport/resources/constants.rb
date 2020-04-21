@@ -23,6 +23,7 @@ class EUT
   MechVent = 'Mech Vent'
   WholeHouseFan = 'Whole House Fan'
   Refrigerator = 'Refrigerator'
+  Dehumidifier = 'Dehumidifier'
   Dishwasher = 'Dishwasher'
   ClothesWasher = 'Clothes Washer'
   ClothesDryer = 'Clothes Dryer'
