@@ -2538,7 +2538,7 @@ class HPXMLFile
     set_clothes_dryer(hpxml, runner, args)
     set_dishwasher(hpxml, runner, args)
     set_refrigerator(hpxml, runner, args)
-    set_cooking_range_oven(hpxml, runner, args)    
+    set_cooking_range_oven(hpxml, runner, args)
     set_ceiling_fans(hpxml, runner, args)
     set_plug_loads(hpxml, runner, args)
     set_misc_loads_schedule(hpxml, runner, args)
