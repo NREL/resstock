@@ -314,6 +314,10 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
       runner.registerWarning("Specified building as having rear units; setting corridor position to 'Single Exterior (Front)'.")
       corridor_position = "Single Exterior (Front)"
     end
+    if (num_units_per_floor % 2 != 0) and (corridor_position == "Double-Loaded Interior" or corridor_position == "Double Exterior")
+      runner.registerWarning("Specified incompatible corridor; setting corridor position to 'Single Exterior (Front)'.")
+      corridor_position = "Single Exterior (Front)"
+    end
     if unit_aspect_ratio < 0
       runner.registerError("Invalid aspect ratio entered.")
       return false
