@@ -57,6 +57,7 @@ class Airflow
       end
     end
     building.ag_ffa = Geometry.get_above_grade_finished_floor_area_from_spaces(model_spaces, runner)
+    puts("!! building.ag_ffa:  #{building.ag_ffa}")
     return false if building.ag_ffa.nil?
 
     building_height = nil
@@ -637,6 +638,7 @@ class Airflow
       else # Infiltration for MF
         a_o = building.SLA * building.ag_ffa * (unit_ag_ext_wall_area / building.ag_ext_wall_area) # Effective Leakage Area (ft^2) - Unit
         building_ag_ffa = building.ag_ffa
+        ext_wall_area_building = building.ag_ext_wall_area
       end
 
       # Calculate SLA for unit
@@ -773,13 +775,14 @@ class Airflow
     end
 
     # puts("-----------Process infiltration for finished spaces------------------------")
+    # puts("unit_ag_ffa: #{unit_ag_ffa}")
+    # puts("ext_wall_area_building:  #{ext_wall_area_building}")
+    # puts("unit_ag_ext_wall_area: #{unit_ag_ext_wall_area}")
+    # puts("n_units: #{n_units}")
+    # puts("building.SLA: #{building.SLA}")
+    # puts("building_ag_ffa: #{building_ag_ffa}")
     # puts("r_i: #{r_i}")
     # puts("n_i: #{n_i}")
-    # puts("r_x: #{r_x}")
-    # puts("y_i: #{y_i}")
-    # puts("y_x: #{y_x}")
-    # puts("x_s: #{x_s}")
-    # puts("x_x: #{x_x}")
     # puts("f_w: #{f_w}")
     # puts("j_i: #{j_i}")
     # puts("wind_coef: #{wind_coef}")

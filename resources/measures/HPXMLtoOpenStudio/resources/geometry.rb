@@ -613,7 +613,6 @@ class Geometry
         next if surface.outsideBoundaryCondition.downcase != "outdoors"
         next if surface.outsideBoundaryCondition.downcase == "foundation"
         next unless self.space_is_finished(surface.space.get)
-
         wall_area += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
       end
     end
