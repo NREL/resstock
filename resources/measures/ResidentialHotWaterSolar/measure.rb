@@ -278,8 +278,8 @@ class ResidentialHotWaterSolar < OpenStudio::Measure::ModelMeasure
         end
 
         if dhw_loop.nil? or water_heater.nil?
-          runner.registerError("Model must have a water heater.")
-          return false
+          runner.registerWarning("Model must have a water heater.")
+          next
         end
 
         dhw_setpoint_manager = nil
