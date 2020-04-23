@@ -57,7 +57,6 @@ class Airflow
       end
     end
     building.ag_ffa = Geometry.get_above_grade_finished_floor_area_from_spaces(model_spaces, runner)
-    puts("!! building.ag_ffa:  #{building.ag_ffa}")
     return false if building.ag_ffa.nil?
 
     building_height = nil
@@ -581,7 +580,6 @@ class Airflow
       if singleunit
         n_units = n_units.get.to_f
         has_rear_units = has_rear_units.get
-
         horz_location = horz_location.get
 
         wall_lengths = []
@@ -678,21 +676,21 @@ class Airflow
       # Leakage distributions per Iain Walker (LBL) recommendations
       if vented_crawl
         # 15% ceiling, 35% walls, 50% floor leakage distribution for vented crawl
-        leakkage_ceiling = 0.15
+        leakage_ceiling = 0.15
         leakage_walls = 0.35
         leakage_floor = 0.50
       else
         # 25% ceiling, 50% walls, 25% floor leakage distribution for slab/basement/unvented crawl
-        leakkage_ceiling = 0.25
+        leakage_ceiling = 0.25
         leakage_walls = 0.50
         leakage_floor = 0.25
       end
-      if leakkage_ceiling + leakage_walls + leakage_floor != 1
-        runner.registerError("Invalid air leakage distribution specified (#{leakkage_ceiling}, #{leakage_walls}, #{leakage_floor}); does not add up to 1.")
+      if leakage_ceiling + leakage_walls + leakage_floor != 1
+        runner.registerError("Invalid air leakage distribution specified (#{leakage_ceiling}, #{leakage_walls}, #{leakage_floor}); does not add up to 1.")
         return false
       end
-      r_i = (leakkage_ceiling + leakage_floor)
-      x_i = (leakkage_ceiling - leakage_floor)
+      r_i = (leakage_ceiling + leakage_floor)
+      x_i = (leakage_ceiling - leakage_floor)
       r_i = r_i * (1 - y_i)
       x_i = x_i * (1 - y_i)
 
