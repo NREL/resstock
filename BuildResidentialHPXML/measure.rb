@@ -3473,7 +3473,9 @@ class HPXMLFile
     end
 
     if (fuel_type != HPXML::FuelTypeElectricity) && (water_heater_type == HPXML::WaterHeaterTypeStorage)
-      recovery_efficiency = args[:water_heater_recovery_efficiency]
+      if args[:water_heater_recovery_efficiency] != Constants.Auto
+        recovery_efficiency = args[:water_heater_recovery_efficiency]
+      end
     end
 
     if [HPXML::WaterHeaterTypeTankless].include? water_heater_type
