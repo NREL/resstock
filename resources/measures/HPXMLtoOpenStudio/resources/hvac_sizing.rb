@@ -214,7 +214,7 @@ class HVACSizing
     else
       # Unfinished basement, Crawlspace
       heat_temp = calculate_space_design_temps(runner, space, weather, unit, @finished_heat_design_temp, design_db, weather.data.GroundMonthlyTemps.min)
-
+      # heat_temp = 45.768
     end
 
     return heat_temp
