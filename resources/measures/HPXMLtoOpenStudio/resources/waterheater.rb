@@ -1016,12 +1016,12 @@ class Waterheater
     end
 
     model.getPlantLoops.each do |plant_loop|
-      next if pl.name.to_s != plantloop_s
+      next if plant_loop.name.to_s != plantloop_s
 
       return plant_loop
     end
 
-    runner.registerError("Could not find plant loop.")
+    runner.registerWarning("Could not find plant loop.")
     return nil
   end
 

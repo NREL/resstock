@@ -613,6 +613,7 @@ class Geometry
         next if surface.outsideBoundaryCondition.downcase != "outdoors"
         next if surface.outsideBoundaryCondition.downcase == "foundation"
         next unless self.space_is_finished(surface.space.get)
+
         wall_area += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
       end
     end
@@ -1959,9 +1960,10 @@ class Geometry
     level = model.getBuilding.additionalProperties.getFeatureAsString("level")
     has_rear_units = model.getBuilding.additionalProperties.getFeatureAsBoolean("has_rear_units")
 
-    if (num_floors.is_initialized) and (level.is_initialized) # single unit, MF
+    if (num_floors.is_initialized) and (level.is_initialized) and (has_rear_units.is_initialized) # single unit, MF
       num_floors = num_floors.get.to_f
-      level = level.get
+      level = level = level.get
+      has_rear_units = has_rear_units.get
 
       floor_mults = { "Bottom" => num_floors, "Middle" => 2, "Top" => 1 }
       greatest_z = greatest_z * floor_mults[level] # uncomment if unit origin is at z=0
