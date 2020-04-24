@@ -1334,8 +1334,10 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
   def get_dhw_solar_fraction(sys_id)
     solar_fraction = 0.0
     if @hpxml.solar_thermal_systems.size > 0
-      if @hpxml.solar_thermal_systems[0].water_heating_system_idref == sys_id
-        solar_fraction = @hpxml.solar_thermal_systems[0].solar_fraction.to_f
+      solar_thermal_system = @hpxml.solar_thermal_systems[0]
+      water_heater_idref = solar_thermal_system.water_heating_system_idref
+      if water_heater_idref.nil? || (water_heater_idref == sys_id)
+        solar_fraction = solar_thermal_system.solar_fraction.to_f
       end
     end
     return solar_fraction

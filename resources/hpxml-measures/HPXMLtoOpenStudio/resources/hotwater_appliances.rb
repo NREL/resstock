@@ -523,6 +523,14 @@ class HotWaterAndAppliances
     return 2.0 * std_pipe_length - 20.0 # Eq. 4.2-17 (refLoopL)
   end
 
+  def self.get_default_recirc_branch_loop_length()
+    return 10.0  # ft
+  end
+
+  def self.get_default_recirc_pump_power()
+    return 50.0  # Watts
+  end
+
   private
 
   def self.add_electric_equipment(model, obj_name, space, design_level_w, frac_sens, frac_lat, schedule)

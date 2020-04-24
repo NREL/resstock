@@ -133,7 +133,7 @@ class EnergyPlusValidator
       '/HPXML/Building/BuildingDetails/ClimateandRiskZones/WeatherStation' => {
         'SystemIdentifier' => one, # Required by HPXML schema
         'Name' => one, # Required by HPXML schema
-        'WMO | extension/EPWFileName' => one, # Reference weather/data.csv for the list of acceptable WMO station numbers
+        'WMO | extension/EPWFilePath' => one, # Reference weather/data.csv for the list of acceptable WMO station numbers
       },
 
       # [AirInfiltration]
@@ -535,16 +535,12 @@ class EnergyPlusValidator
 
       ## [WHType=Tank]
       '/HPXML/Building/BuildingDetails/Systems/WaterHeating/WaterHeatingSystem[WaterHeaterType="storage water heater"]' => {
-        'FuelType[text()="natural gas" or text()="fuel oil" or text()="propane" or text()="electricity" or text()="wood"]' => one, # If not electricity, see [WHType=FuelTank]
-        'TankVolume' => one,
-        'HeatingCapacity' => one,
+        'FuelType[text()="natural gas" or text()="fuel oil" or text()="propane" or text()="electricity" or text()="wood"]' => one,
+        'TankVolume' => zero_or_one,
+        'HeatingCapacity' => zero_or_one,
         'EnergyFactor | UniformEnergyFactor' => one,
+        'RecoveryEfficiency' => zero_or_one,
         'WaterHeaterInsulation/Jacket/JacketRValue' => zero_or_one, # Capable to model tank wrap insulation
-      },
-
-      ## [WHType=FuelTank]
-      '/HPXML/Building/BuildingDetails/Systems/WaterHeating/WaterHeatingSystem[WaterHeaterType="storage water heater" and FuelType!="electricity"]' => {
-        'RecoveryEfficiency' => one,
       },
 
       ## [WHType=Tankless]
@@ -597,9 +593,9 @@ class EnergyPlusValidator
       ## [HWDistType=Recirculation]
       '/HPXML/Building/BuildingDetails/Systems/WaterHeating/HotWaterDistribution/SystemType/Recirculation' => {
         'ControlType[text()="manual demand control" or text()="presence sensor demand control" or text()="temperature" or text()="timer" or text()="no control"]' => one,
-        'RecirculationPipingLoopLength' => one,
-        'BranchPipingLoopLength' => one,
-        'PumpPower' => one,
+        'RecirculationPipingLoopLength' => zero_or_one,
+        'BranchPipingLoopLength' => zero_or_one,
+        'PumpPower' => zero_or_one,
       },
 
       ## [DrainWaterHeatRecovery]
@@ -621,8 +617,7 @@ class EnergyPlusValidator
       '/HPXML/Building/BuildingDetails/Systems/SolarThermal/SolarThermalSystem' => {
         'SystemIdentifier' => one, # Required by HPXML schema
         'SystemType[text()="hot water"]' => one,
-        'CollectorArea | SolarFraction' => one, # See [SolarThermal=Detailed] if CollectorArea provided
-        'ConnectedTo' => one, # WaterHeatingSystem (any type but space-heating boiler)
+        'CollectorArea | SolarFraction' => one, # See [SolarThermal=Detailed] or [SolarThermal=Simple]
       },
 
       ## [SolarThermal=Detailed]
@@ -633,7 +628,13 @@ class EnergyPlusValidator
         'CollectorTilt' => one,
         'CollectorRatedOpticalEfficiency' => one,
         'CollectorRatedThermalLosses' => one,
-        'StorageVolume' => one,
+        'StorageVolume' => zero_or_one,
+        'ConnectedTo' => one, # WaterHeatingSystem (any type but space-heating boiler)
+      },
+
+      ## [SolarThermal=Simple]
+      '/HPXML/Building/BuildingDetails/Systems/SolarThermal/SolarThermalSystem[SolarFraction]' => {
+        'ConnectedTo' => zero_or_one, # WaterHeatingSystem (any type)
       },
 
       # [PVSystem]

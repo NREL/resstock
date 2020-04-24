@@ -226,7 +226,7 @@
               <SummerShadingCoefficient>0.7</SummerShadingCoefficient>
               <WinterShadingCoefficient>0.85</WinterShadingCoefficient>
             </InteriorShading>
-            <FractionOperable>0.33</FractionOperable>
+            <FractionOperable>0.67</FractionOperable>
             <AttachedToWall idref='Wall'/>
           </Window>
           <Window>
@@ -240,7 +240,7 @@
               <SummerShadingCoefficient>0.7</SummerShadingCoefficient>
               <WinterShadingCoefficient>0.85</WinterShadingCoefficient>
             </InteriorShading>
-            <FractionOperable>0.33</FractionOperable>
+            <FractionOperable>0.67</FractionOperable>
             <AttachedToWall idref='Wall'/>
           </Window>
           <Window>
@@ -254,7 +254,7 @@
               <SummerShadingCoefficient>0.7</SummerShadingCoefficient>
               <WinterShadingCoefficient>0.85</WinterShadingCoefficient>
             </InteriorShading>
-            <FractionOperable>0.33</FractionOperable>
+            <FractionOperable>0.67</FractionOperable>
             <AttachedToWall idref='Wall'/>
           </Window>
           <Window>
@@ -268,7 +268,7 @@
               <SummerShadingCoefficient>0.7</SummerShadingCoefficient>
               <WinterShadingCoefficient>0.85</WinterShadingCoefficient>
             </InteriorShading>
-            <FractionOperable>0.33</FractionOperable>
+            <FractionOperable>0.67</FractionOperable>
             <AttachedToWall idref='Wall'/>
           </Window>
         </Windows>
@@ -368,22 +368,18 @@
             <SystemIdentifier id='WaterHeater'/>
             <FuelType>electricity</FuelType>
             <WaterHeaterType>storage water heater</WaterHeaterType>
-            <Location>living space</Location>
-            <TankVolume>40.0</TankVolume>
             <FractionDHWLoadServed>1.0</FractionDHWLoadServed>
-            <HeatingCapacity>18767.0</HeatingCapacity>
-            <EnergyFactor>0.95</EnergyFactor>
-            <HotWaterTemperature>125.0</HotWaterTemperature>
+            <UniformEnergyFactor>0.93</UniformEnergyFactor>
           </WaterHeatingSystem>
           <HotWaterDistribution>
             <SystemIdentifier id='HotWaterDstribution'/>
             <SystemType>
-              <Standard>
-                <PipingLength>50.0</PipingLength>
-              </Standard>
+              <Recirculation>
+                <ControlType>presence sensor demand control</ControlType>
+              </Recirculation>
             </SystemType>
             <PipeInsulation>
-              <PipeRValue>0.0</PipeRValue>
+              <PipeRValue>3.0</PipeRValue>
             </PipeInsulation>
           </HotWaterDistribution>
           <WaterFixture>
@@ -397,21 +393,6 @@
             <LowFlow>false</LowFlow>
           </WaterFixture>
         </WaterHeating>
-        <SolarThermal>
-          <SolarThermalSystem>
-            <SystemIdentifier id='SolarThermalSystem'/>
-            <SystemType>hot water</SystemType>
-            <CollectorArea>40.0</CollectorArea>
-            <CollectorLoopType>liquid indirect</CollectorLoopType>
-            <CollectorType>evacuated tube</CollectorType>
-            <CollectorAzimuth>180</CollectorAzimuth>
-            <CollectorTilt>20.0</CollectorTilt>
-            <CollectorRatedOpticalEfficiency>0.5</CollectorRatedOpticalEfficiency>
-            <CollectorRatedThermalLosses>0.2799</CollectorRatedThermalLosses>
-            <StorageVolume>60.0</StorageVolume>
-            <ConnectedTo idref='WaterHeater'/>
-          </SolarThermalSystem>
-        </SolarThermal>
       </Systems>
       <Appliances>
         <ClothesWasher>

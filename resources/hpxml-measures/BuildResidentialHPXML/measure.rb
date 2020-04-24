@@ -5,7 +5,6 @@ require 'openstudio'
 
 require_relative 'resources/geometry'
 require_relative 'resources/schedules'
-require_relative 'resources/waterheater'
 require_relative 'resources/constants'
 require_relative 'resources/location'
 
@@ -13,7 +12,6 @@ require_relative '../HPXMLtoOpenStudio/resources/EPvalidator'
 require_relative '../HPXMLtoOpenStudio/resources/constructions'
 require_relative '../HPXMLtoOpenStudio/resources/hpxml'
 require_relative '../HPXMLtoOpenStudio/resources/schedules'
-require_relative '../HPXMLtoOpenStudio/resources/waterheater'
 
 # start the measure
 class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
@@ -87,8 +85,8 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDescription('Absolute (or relative) path of the output schedules file.')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument.makeStringArgument('weather_station_epw_filename', true)
-    arg.setDisplayName('EnergyPlus Weather (EPW) Filename')
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('weather_station_epw_filepath', true)
+    arg.setDisplayName('EnergyPlus Weather (EPW) Filepath')
     arg.setDescription('Name of the EPW file.')
     arg.setDefaultValue('USA_CO_Denver.Intl.AP.725650_TMY3.epw')
     args << arg
@@ -610,10 +608,10 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(1.333)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('window_fraction_of_operable_area', true)
-    arg.setDisplayName('Windows: Fraction of Operable Area')
-    arg.setDescription('Fraction of operable window area.')
-    arg.setDefaultValue(0.33)
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('window_fraction_operable', true)
+    arg.setDisplayName('Windows: Fraction Operable')
+    arg.setDescription('Fraction of windows that are operable.')
+    arg.setDefaultValue(0.67)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('window_ufactor', true)
@@ -1382,11 +1380,11 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(0.67)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('water_heater_recovery_efficiency', true)
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('water_heater_recovery_efficiency', true)
     arg.setDisplayName('Water Heater: Recovery Efficiency')
     arg.setDescription('Ratio of energy delivered to water heater to the energy content of the fuel consumed by the water heater. Only used for non-electric storage water heaters.')
     arg.setUnits('Frac')
-    arg.setDefaultValue(0.78)
+    arg.setDefaultValue(Constants.Auto)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('water_heater_standby_loss', false)
@@ -1401,11 +1399,11 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setUnits('h-ft^2-R/Btu')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('water_heater_setpoint_temperature', true)
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('water_heater_setpoint_temperature', true)
     arg.setDisplayName('Water Heater: Setpoint Temperature')
     arg.setDescription('The setpoint temperature of water heater.')
     arg.setUnits('deg-F')
-    arg.setDefaultValue(125.0)
+    arg.setDefaultValue(Constants.Auto)
     args << arg
 
     dhw_distribution_system_type_choices = OpenStudio::StringVector.new
@@ -1438,25 +1436,25 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(HPXML::DHWRecirControlTypeNone)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('dhw_distribution_recirc_piping_length', true)
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('dhw_distribution_recirc_piping_length', true)
     arg.setDisplayName('Hot Water Distribution: Recirculation Piping Length')
     arg.setUnits('ft')
     arg.setDescription("If the distribution system is #{HPXML::DHWDistTypeRecirc}, the length of the recirculation piping.")
-    arg.setDefaultValue(50)
+    arg.setDefaultValue(Constants.Auto)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('dhw_distribution_recirc_branch_piping_length', true)
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('dhw_distribution_recirc_branch_piping_length', true)
     arg.setDisplayName('Hot Water Distribution: Recirculation Branch Piping Length')
     arg.setUnits('ft')
     arg.setDescription("If the distribution system is #{HPXML::DHWDistTypeRecirc}, the length of the recirculation branch piping.")
-    arg.setDefaultValue(50)
+    arg.setDefaultValue(Constants.Auto)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('dhw_distribution_recirc_pump_power', true)
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('dhw_distribution_recirc_pump_power', true)
     arg.setDisplayName('Hot Water Distribution: Recirculation Pump Power')
     arg.setUnits('W')
     arg.setDescription("If the distribution system is #{HPXML::DHWDistTypeRecirc}, the recirculation pump power.")
-    arg.setDefaultValue(50)
+    arg.setDefaultValue(Constants.Auto)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('dhw_distribution_pipe_r', true)
@@ -2112,7 +2110,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
              end_month: runner.getIntegerArgumentValue('simulation_control_end_month', user_arguments),
              end_day_of_month: runner.getIntegerArgumentValue('simulation_control_end_day_of_month', user_arguments),
              schedules_output_path: runner.getStringArgumentValue('schedules_output_path', user_arguments),
-             weather_station_epw_filename: runner.getStringArgumentValue('weather_station_epw_filename', user_arguments),
+             weather_station_epw_filepath: runner.getStringArgumentValue('weather_station_epw_filepath', user_arguments),
              geometry_unit_type: runner.getStringArgumentValue('geometry_unit_type', user_arguments),
              geometry_num_units: runner.getOptionalIntegerArgumentValue('geometry_num_units', user_arguments),
              geometry_cfa: runner.getDoubleArgumentValue('geometry_cfa', user_arguments),
@@ -2174,7 +2172,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
              window_area_left: runner.getDoubleArgumentValue('window_area_left', user_arguments),
              window_area_right: runner.getDoubleArgumentValue('window_area_right', user_arguments),
              window_aspect_ratio: runner.getDoubleArgumentValue('window_aspect_ratio', user_arguments),
-             window_fraction_of_operable_area: runner.getDoubleArgumentValue('window_fraction_of_operable_area', user_arguments),
+             window_fraction_operable: runner.getDoubleArgumentValue('window_fraction_operable', user_arguments),
              window_ufactor: runner.getDoubleArgumentValue('window_ufactor', user_arguments),
              window_shgc: runner.getDoubleArgumentValue('window_shgc', user_arguments),
              window_interior_shading_winter: runner.getDoubleArgumentValue('window_interior_shading_winter', user_arguments),
@@ -2278,16 +2276,16 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
              water_heater_efficiency_type: runner.getStringArgumentValue('water_heater_efficiency_type', user_arguments),
              water_heater_efficiency_ef: runner.getDoubleArgumentValue('water_heater_efficiency_ef', user_arguments),
              water_heater_efficiency_uef: runner.getDoubleArgumentValue('water_heater_efficiency_uef', user_arguments),
-             water_heater_recovery_efficiency: runner.getDoubleArgumentValue('water_heater_recovery_efficiency', user_arguments),
+             water_heater_recovery_efficiency: runner.getStringArgumentValue('water_heater_recovery_efficiency', user_arguments),
              water_heater_standby_loss: runner.getOptionalDoubleArgumentValue('water_heater_standby_loss', user_arguments),
              water_heater_jacket_rvalue: runner.getOptionalDoubleArgumentValue('water_heater_jacket_rvalue', user_arguments),
-             water_heater_setpoint_temperature: runner.getDoubleArgumentValue('water_heater_setpoint_temperature', user_arguments),
+             water_heater_setpoint_temperature: runner.getStringArgumentValue('water_heater_setpoint_temperature', user_arguments),
              dhw_distribution_system_type: runner.getStringArgumentValue('dhw_distribution_system_type', user_arguments),
              dhw_distribution_standard_piping_length: runner.getStringArgumentValue('dhw_distribution_standard_piping_length', user_arguments),
              dhw_distribution_recirc_control_type: runner.getStringArgumentValue('dhw_distribution_recirc_control_type', user_arguments),
-             dhw_distribution_recirc_piping_length: runner.getDoubleArgumentValue('dhw_distribution_recirc_piping_length', user_arguments),
-             dhw_distribution_recirc_branch_piping_length: runner.getDoubleArgumentValue('dhw_distribution_recirc_branch_piping_length', user_arguments),
-             dhw_distribution_recirc_pump_power: runner.getDoubleArgumentValue('dhw_distribution_recirc_pump_power', user_arguments),
+             dhw_distribution_recirc_piping_length: runner.getStringArgumentValue('dhw_distribution_recirc_piping_length', user_arguments),
+             dhw_distribution_recirc_branch_piping_length: runner.getStringArgumentValue('dhw_distribution_recirc_branch_piping_length', user_arguments),
+             dhw_distribution_recirc_pump_power: runner.getStringArgumentValue('dhw_distribution_recirc_pump_power', user_arguments),
              dhw_distribution_pipe_r: runner.getDoubleArgumentValue('dhw_distribution_pipe_r', user_arguments),
              dwhr_facilities_connected: runner.getStringArgumentValue('dwhr_facilities_connected', user_arguments),
              dwhr_equal_flow: runner.getBoolArgumentValue('dwhr_equal_flow', user_arguments),
@@ -2392,7 +2390,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     unless (Pathname.new weather_dir).absolute?
       weather_dir = File.expand_path(File.join(File.dirname(__FILE__), '..', weather_dir))
     end
-    epw_path = File.join(weather_dir, args[:weather_station_epw_filename])
+    epw_path = File.join(weather_dir, args[:weather_station_epw_filepath])
     if not File.exist?(epw_path)
       runner.registerError("Could not find EPW file at '#{epw_path}'.")
       return false
@@ -2679,8 +2677,8 @@ class HPXMLFile
       hpxml.climate_and_risk_zones.iecc_year = 2006
       hpxml.climate_and_risk_zones.iecc_zone = iecc_zone
     end
-    hpxml.climate_and_risk_zones.weather_station_name = args[:weather_station_epw_filename].gsub('.epw', '')
-    hpxml.climate_and_risk_zones.weather_station_epw_filename = args[:weather_station_epw_filename]
+    hpxml.climate_and_risk_zones.weather_station_name = args[:weather_station_epw_filepath].gsub('.epw', '')
+    hpxml.climate_and_risk_zones.weather_station_epw_filepath = args[:weather_station_epw_filepath]
   end
 
   def self.set_attics(hpxml, runner, model, args)
@@ -3008,7 +3006,7 @@ class HPXMLFile
                           overhangs_distance_to_bottom_of_window: overhangs_distance_to_bottom_of_window,
                           interior_shading_factor_winter: args[:window_interior_shading_winter],
                           interior_shading_factor_summer: args[:window_interior_shading_summer],
-                          fraction_operable: args[:window_fraction_of_operable_area],
+                          fraction_operable: args[:window_fraction_operable],
                           wall_idref: "#{surface.name}")
       end # sub_surfaces
     end # surfaces
@@ -3450,24 +3448,20 @@ class HPXMLFile
       location = args[:water_heater_location]
     end
 
-    num_bathrooms = args[:geometry_num_bathrooms]
-    if num_bathrooms == Constants.Auto
-      num_bathrooms = 2 # FIXME
-    end
-    num_bathrooms = Float(num_bathrooms)
-
-    if [HPXML::WaterHeaterTypeStorage, HPXML::WaterHeaterTypeHeatPump, HPXML::WaterHeaterTypeCombiStorage].include? water_heater_type
-      tank_volume = Waterheater.calc_nom_tankvol(args[:water_heater_tank_volume], fuel_type, args[:geometry_num_bedrooms], num_bathrooms).round
+    if args[:geometry_num_bathrooms] != Constants.Auto
+      num_bathrooms = args[:geometry_num_bathrooms]
     end
 
-    if water_heater_type == HPXML::WaterHeaterTypeStorage
+    if args[:water_heater_tank_volume] != Constants.Auto
+      tank_volume = args[:water_heater_tank_volume]
+    end
+
+    if args[:water_heater_heating_capacity] != Constants.Auto
       heating_capacity = args[:water_heater_heating_capacity]
-      if heating_capacity == Constants.Auto
-        heating_capacity = Waterheater.calc_water_heater_capacity(fuel_type, args[:geometry_num_bedrooms], 1, num_bathrooms)
-      else
-        heating_capacity = Float(heating_capacity)
-      end
-      heating_capacity = UnitConversions.convert(heating_capacity, 'kBtu/hr', 'Btu/hr').round
+    end
+
+    if args[:water_heater_setpoint_temperature] != Constants.Auto
+      temperature = args[:water_heater_setpoint_temperature]
     end
 
     if not [HPXML::WaterHeaterTypeCombiStorage, HPXML::WaterHeaterTypeCombiTankless].include? water_heater_type
@@ -3526,7 +3520,7 @@ class HPXMLFile
                                     related_hvac_idref: related_hvac_idref,
                                     standby_loss: standby_loss,
                                     jacket_r_value: jacket_r_value,
-                                    temperature: args[:water_heater_setpoint_temperature])
+                                    temperature: temperature)
   end
 
   def self.set_hot_water_distribution(hpxml, runner, args)
@@ -3544,9 +3538,18 @@ class HPXMLFile
       end
     else
       recirculation_control_type = args[:dhw_distribution_recirc_control_type]
-      recirculation_piping_length = args[:dhw_distribution_recirc_piping_length]
-      recirculation_branch_piping_length = args[:dhw_distribution_recirc_branch_piping_length]
-      recirculation_pump_power = args[:dhw_distribution_recirc_pump_power]
+
+      if args[:dhw_distribution_recirc_piping_length] != Constants.Auto
+        recirculation_piping_length = args[:dhw_distribution_recirc_piping_length]
+      end
+
+      if args[:dhw_distribution_recirc_branch_piping_length] != Constants.Auto
+        recirculation_branch_piping_length = args[:dhw_distribution_recirc_branch_piping_length]
+      end
+
+      if args[:dhw_distribution_recirc_pump_power] != Constants.Auto
+        recirculation_pump_power = args[:dhw_distribution_recirc_pump_power]
+      end
     end
 
     hpxml.hot_water_distributions.add(id: 'HotWaterDistribution',
@@ -3604,9 +3607,8 @@ class HPXMLFile
       collector_frta = args[:solar_thermal_collector_rated_optical_efficiency]
       collector_frul = args[:solar_thermal_collector_rated_thermal_losses]
 
-      storage_volume = args[:solar_thermal_storage_volume]
-      if storage_volume == Constants.Auto
-        storage_volume = 60 # FIXME
+      if args[:solar_thermal_storage_volume] != Constants.Auto
+        storage_volume = args[:solar_thermal_storage_volume]
       end
     end
 

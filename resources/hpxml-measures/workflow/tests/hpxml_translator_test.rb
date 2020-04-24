@@ -162,6 +162,7 @@ class HPXMLTest < MiniTest::Test
                             'hvac-frac-load-served.xml' => ['Expected FractionCoolLoadServed to sum to <= 1, but calculated sum is 1.2.',
                                                             'Expected FractionHeatLoadServed to sum to <= 1, but calculated sum is 1.1.'],
                             'hvac-distribution-return-duct-leakage-missing.xml' => ["Return ducts exist but leakage was not specified for distribution system 'HVACDistribution'."],
+                            'invalid-epw-filepath.xml' => ["foo.epw' could not be found."],
                             'invalid-neighbor-shading-azimuth.xml' => ['A neighbor building has an azimuth (145) not equal to the azimuth of any wall.'],
                             'invalid-relatedhvac-dhw-indirect.xml' => ["RelatedHVACSystem 'HeatingSystem_bad' not found for water heating system 'WaterHeater'"],
                             'invalid-relatedhvac-desuperheater.xml' => ["RelatedHVACSystem 'CoolingSystem_bad' not found for water heating system 'WaterHeater'."],
@@ -669,6 +670,12 @@ class HPXMLTest < MiniTest::Test
     sqlFile = OpenStudio::SqlFile.new(sql_path, false)
     hpxml_defaults_path = File.join(rundir, 'in.xml')
     hpxml = HPXML.new(hpxml_path: hpxml_defaults_path)
+
+    # Collapse windows further using same logic as measure.rb
+    hpxml.windows.each do |window|
+      window.fraction_operable = nil
+    end
+    hpxml.collapse_enclosure_surfaces()
 
     # Timestep
     timestep = hpxml.header.timestep
@@ -1535,7 +1542,7 @@ class HPXMLTest < MiniTest::Test
     results_base.keys.each do |k|
       next if [@@simulation_runtime_key, @@workflow_runtime_key].include? k
 
-      assert_equal(results_base[k].to_f, results_collapsed[k].to_f)
+      assert_in_epsilon(results_base[k].to_f, results_collapsed[k].to_f, 0.01)
     end
   end
 
