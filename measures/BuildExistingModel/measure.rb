@@ -118,6 +118,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     parameters_ordered.each do |parameter_name|
       # Register the option chosen for parameter_name with the runner
       option_name = bldg_data[parameter_name]
+      runner.registerInfo("...registering #{parameter_name} for #{option_name}")
       register_value(runner, parameter_name, option_name)
     end
 
