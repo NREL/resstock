@@ -186,7 +186,7 @@ if ARGV[0].to_sym == :update_measures
       'weather_station_epw_filepath' => '0465925_US_CO_Boulder_8013_0-20000-0-72469_40.13_-105.22_NSRDB_2.0.1_AMY_2012.epw'
     },
     'AMY2014' => {
-      'weather_station_epw_filenpath' => '0465925_US_CO_Boulder_8013_0-20000-0-72469_40.13_-105.22_NSRDB_2.0.1_AMY_2014.epw'
+      'weather_station_epw_filepath' => '0465925_US_CO_Boulder_8013_0-20000-0-72469_40.13_-105.22_NSRDB_2.0.1_AMY_2014.epw'
     }
   }
   example_osws.each do |weather_year, weather_station|
