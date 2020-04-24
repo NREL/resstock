@@ -154,8 +154,12 @@ class Airflow
     return 0.5 # Table 4.2.2(1)(g)
   end
 
-  def self.get_default_fraction_of_operable_window_area()
-    return 0.33 # 33% per Building America assumption
+  def self.get_default_fraction_of_windows_operable()
+    # Combining the value below with the assumption that 50% of
+    # the area of an operable window can be open produces the
+    # Building America assumption that "Thirty-three percent of
+    # the window area ... can be opened for natural ventilation"
+    return 0.67 # 67%
   end
 
   def self.get_default_vented_attic_sla()

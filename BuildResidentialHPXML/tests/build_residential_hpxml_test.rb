@@ -178,7 +178,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       hpxml.building_occupancy.schedules_column_name = nil
       hpxml.climate_and_risk_zones.weather_station_name = nil
       hpxml.climate_and_risk_zones.weather_station_wmo = nil
-      hpxml.climate_and_risk_zones.weather_station_epw_filename = nil
+      hpxml.climate_and_risk_zones.weather_station_epw_filepath = nil
       hpxml.building_construction.average_ceiling_height = nil # Comparing conditioned volume instead
       hpxml.attics.each do |attic|
         attic.vented_attic_sla = nil # Defaulting in measure

@@ -36,6 +36,7 @@ def create_osws
     # 'base-dhw-indirect-dse.osw' => 'base.osw', # Not going to support DSE
     'base-dhw-indirect-outside.osw' => 'base.osw',
     'base-dhw-indirect-standbyloss.osw' => 'base.osw',
+    'base-dhw-indirect-with-solar-fraction.osw' => 'base.osw',
     'base-dhw-jacket-electric.osw' => 'base.osw',
     'base-dhw-jacket-gas.osw' => 'base.osw',
     'base-dhw-jacket-hpwh.osw' => 'base.osw',
@@ -52,11 +53,8 @@ def create_osws
     'base-dhw-solar-direct-flat-plate.osw' => 'base.osw',
     'base-dhw-solar-direct-ics.osw' => 'base.osw',
     'base-dhw-solar-fraction.osw' => 'base.osw',
-    'base-dhw-solar-indirect-evacuated-tube.osw' => 'base.osw',
     'base-dhw-solar-indirect-flat-plate.osw' => 'base.osw',
-    'base-dhw-solar-thermosyphon-evacuated-tube.osw' => 'base.osw',
     'base-dhw-solar-thermosyphon-flat-plate.osw' => 'base.osw',
-    'base-dhw-solar-thermosyphon-ics.osw' => 'base.osw',
     'base-dhw-tank-gas.osw' => 'base.osw',
     'base-dhw-tank-gas-outside.osw' => 'base.osw',
     'base-dhw-tank-heat-pump.osw' => 'base.osw',
@@ -160,9 +158,11 @@ def create_osws
     'base-location-baltimore-md.osw' => 'base.osw',
     'base-location-dallas-tx.osw' => 'base.osw',
     'base-location-duluth-mn.osw' => 'base.osw',
-    'base-location-epw-filename.osw' => 'base.osw',
+    'base-location-epw-filepath.osw' => 'base.osw',
+    'base-location-epw-filepath-AMY-2012.osw' => 'base.osw',
     'base-location-miami-fl.osw' => 'base.osw',
     'base-mechvent-balanced.osw' => 'base.osw',
+    'base-mechvent-bath-kitchen-fans.osw' => 'base.osw',
     'base-mechvent-cfis.osw' => 'base.osw',
     'base-mechvent-cfis-evap-cooler-only-ducted.osw' => 'base.osw',
     'base-mechvent-erv.osw' => 'base.osw',
@@ -172,9 +172,9 @@ def create_osws
     'base-mechvent-hrv.osw' => 'base.osw',
     'base-mechvent-hrv-asre.osw' => 'base.osw',
     'base-mechvent-supply.osw' => 'base.osw',
-    'base-mechvent-bath-kitchen-fans.osw' => 'base.osw',
     'base-misc-ceiling-fans.osw' => 'base.osw',
     # 'base-misc-defaults.osw' => 'base.osw',
+    'base-misc-defaults2.osw' => 'base.osw',
     # 'base-misc-lighting-none.osw' => 'base.osw', # Not going to support this
     'base-misc-neighbor-shading.osw' => 'base.osw',
     'base-misc-runperiod-1-month.osw' => 'base.osw',
@@ -272,7 +272,7 @@ def get_values(osw_file, step)
     step.setArgument('simulation_control_end_month', 12)
     step.setArgument('simulation_control_end_day_of_month', 31)
     step.setArgument('schedules_output_path', 'BuildResidentialHPXML/tests/run/schedules.csv')
-    step.setArgument('weather_station_epw_filename', 'USA_CO_Denver.Intl.AP.725650_TMY3.epw')
+    step.setArgument('weather_station_epw_filepath', 'USA_CO_Denver.Intl.AP.725650_TMY3.epw')
     step.setArgument('geometry_unit_type', HPXML::ResidentialTypeSFD)
     step.setArgument('geometry_num_units', 1)
     step.setArgument('geometry_cfa', 2700.0)
@@ -339,7 +339,7 @@ def get_values(osw_file, step)
     step.setArgument('window_area_left', 72.0)
     step.setArgument('window_area_right', 72.0)
     step.setArgument('window_aspect_ratio', 1.333)
-    step.setArgument('window_fraction_of_operable_area', 0.33)
+    step.setArgument('window_fraction_operable', 0.67)
     step.setArgument('window_ufactor', 0.33)
     step.setArgument('window_shgc', 0.45)
     step.setArgument('window_interior_shading_winter', 0.85)
@@ -438,20 +438,20 @@ def get_values(osw_file, step)
     step.setArgument('water_heater_fuel_type', HPXML::FuelTypeElectricity)
     step.setArgument('water_heater_location', HPXML::LocationLivingSpace)
     step.setArgument('water_heater_tank_volume', '40')
-    step.setArgument('water_heater_heating_capacity', Constants.Auto)
+    step.setArgument('water_heater_heating_capacity', '18767')
     step.setArgument('water_heater_efficiency_type', 'EnergyFactor')
     step.setArgument('water_heater_efficiency_ef', 0.95)
     step.setArgument('water_heater_efficiency_uef', 0.93)
-    step.setArgument('water_heater_recovery_efficiency', 0.76)
+    step.setArgument('water_heater_recovery_efficiency', '0.76')
     step.setArgument('water_heater_standby_loss', 0)
     step.setArgument('water_heater_jacket_rvalue', 0)
-    step.setArgument('water_heater_setpoint_temperature', 125)
+    step.setArgument('water_heater_setpoint_temperature', '125')
     step.setArgument('dhw_distribution_system_type', HPXML::DHWDistTypeStandard)
     step.setArgument('dhw_distribution_standard_piping_length', '50')
     step.setArgument('dhw_distribution_recirc_control_type', HPXML::DHWRecirControlTypeNone)
-    step.setArgument('dhw_distribution_recirc_piping_length', 50)
-    step.setArgument('dhw_distribution_recirc_branch_piping_length', 50)
-    step.setArgument('dhw_distribution_recirc_pump_power', 50)
+    step.setArgument('dhw_distribution_recirc_piping_length', '50')
+    step.setArgument('dhw_distribution_recirc_branch_piping_length', '50')
+    step.setArgument('dhw_distribution_recirc_pump_power', '50')
     step.setArgument('dhw_distribution_pipe_r', 0.0)
     step.setArgument('dwhr_facilities_connected', 'none')
     step.setArgument('dwhr_equal_flow', true)
@@ -571,14 +571,14 @@ def get_values(osw_file, step)
     step.setArgument('ducts_supply_leakage_value', 0)
     step.setArgument('ducts_return_leakage_value', 0)
   elsif ['base-appliances-dehumidifier.osw'].include? osw_file
-    step.setArgument('weather_station_epw_filename', 'USA_TX_Dallas-Fort.Worth.Intl.AP.722590_TMY3.epw')
+    step.setArgument('weather_station_epw_filepath', 'USA_TX_Dallas-Fort.Worth.Intl.AP.722590_TMY3.epw')
     step.setArgument('dehumidifier_present', true)
   elsif ['base-appliances-dehumidifier-50percent.osw'].include? osw_file
-    step.setArgument('weather_station_epw_filename', 'USA_TX_Dallas-Fort.Worth.Intl.AP.722590_TMY3.epw')
+    step.setArgument('weather_station_epw_filepath', 'USA_TX_Dallas-Fort.Worth.Intl.AP.722590_TMY3.epw')
     step.setArgument('dehumidifier_present', true)
     step.setArgument('dehumidifier_fraction_dehumidification_load_served', 0.5)
   elsif ['base-appliances-dehumidifier-ief.osw'].include? osw_file
-    step.setArgument('weather_station_epw_filename', 'USA_TX_Dallas-Fort.Worth.Intl.AP.722590_TMY3.epw')
+    step.setArgument('weather_station_epw_filepath', 'USA_TX_Dallas-Fort.Worth.Intl.AP.722590_TMY3.epw')
     step.setArgument('dehumidifier_present', true)
     step.setArgument('dehumidifier_efficiency_type', 'IntegratedEnergyFactor')
   elsif ['base-appliances-gas.osw'].include? osw_file
@@ -643,7 +643,7 @@ def get_values(osw_file, step)
     step.setArgument('ducts_supply_location', HPXML::LocationBasementConditioned)
     step.setArgument('ducts_return_location', HPXML::LocationBasementConditioned)
   elsif ['base-atticroof-radiant-barrier.osw'].include? osw_file
-    step.setArgument('weather_station_epw_filename', 'USA_TX_Dallas-Fort.Worth.Intl.AP.722590_TMY3.epw')
+    step.setArgument('weather_station_epw_filepath', 'USA_TX_Dallas-Fort.Worth.Intl.AP.722590_TMY3.epw')
     step.setArgument('roof_radiant_barrier', true)
   elsif ['base-atticroof-unvented-insulated-roof.osw'].include? osw_file
     step.setArgument('ceiling_assembly_r', 2.1)
@@ -658,12 +658,14 @@ def get_values(osw_file, step)
     step.setArgument('heating_system_electric_auxiliary_energy', 200.0)
     step.setArgument('cooling_system_type', 'none')
     step.setArgument('water_heater_type', HPXML::WaterHeaterTypeCombiTankless)
+    step.setArgument('water_heater_tank_volume', Constants.Auto)
   elsif ['base-dhw-combi-tankless-outside.osw'].include? osw_file
     step.setArgument('heating_system_type', HPXML::HVACTypeBoiler)
     step.setArgument('heating_system_electric_auxiliary_energy', 200.0)
     step.setArgument('cooling_system_type', 'none')
     step.setArgument('water_heater_type', HPXML::WaterHeaterTypeCombiTankless)
     step.setArgument('water_heater_location', HPXML::LocationOtherExterior)
+    step.setArgument('water_heater_tank_volume', Constants.Auto)
   elsif ['base-dhw-dwhr.osw'].include? osw_file
     step.setArgument('dwhr_facilities_connected', HPXML::DWHRFacilitiesConnectedAll)
   elsif ['base-dhw-indirect.osw'].include? osw_file
@@ -686,16 +688,26 @@ def get_values(osw_file, step)
     step.setArgument('water_heater_type', HPXML::WaterHeaterTypeCombiStorage)
     step.setArgument('water_heater_tank_volume', '50')
     step.setArgument('water_heater_standby_loss', 1.0)
+  elsif ['base-dhw-indirect-with-solar-fraction.osw'].include? osw_file
+    step.setArgument('heating_system_type', HPXML::HVACTypeBoiler)
+    step.setArgument('heating_system_electric_auxiliary_energy', 200.0)
+    step.setArgument('cooling_system_type', 'none')
+    step.setArgument('water_heater_type', HPXML::WaterHeaterTypeCombiStorage)
+    step.setArgument('water_heater_tank_volume', '50')
+    step.setArgument('solar_thermal_system_type', 'hot water')
+    step.setArgument('solar_thermal_solar_fraction', 0.65)
   elsif ['base-dhw-jacket-electric.osw'].include? osw_file
     step.setArgument('water_heater_jacket_rvalue', 10.0)
   elsif ['base-dhw-jacket-gas.osw'].include? osw_file
     step.setArgument('water_heater_fuel_type', HPXML::FuelTypeNaturalGas)
     step.setArgument('water_heater_tank_volume', '50')
+    step.setArgument('water_heater_heating_capacity', '40000')
     step.setArgument('water_heater_efficiency_ef', 0.59)
     step.setArgument('water_heater_jacket_rvalue', 10.0)
   elsif ['base-dhw-jacket-hpwh.osw'].include? osw_file
     step.setArgument('water_heater_type', HPXML::WaterHeaterTypeHeatPump)
     step.setArgument('water_heater_tank_volume', '80')
+    step.setArgument('water_heater_heating_capacity', Constants.Auto)
     step.setArgument('water_heater_efficiency_ef', 2.3)
     step.setArgument('water_heater_jacket_rvalue', 10.0)
   elsif ['base-dhw-jacket-indirect.osw'].include? osw_file
@@ -727,125 +739,137 @@ def get_values(osw_file, step)
     step.setArgument('dhw_distribution_recirc_control_type', HPXML::DHWRecirControlTypeTimer)
   elsif ['base-dhw-solar-direct-evacuated-tube.osw'].include? osw_file
     step.setArgument('solar_thermal_system_type', 'hot water')
+    step.setArgument('solar_thermal_storage_volume', '60')
   elsif ['base-dhw-solar-direct-flat-plate.osw'].include? osw_file
     step.setArgument('solar_thermal_system_type', 'hot water')
     step.setArgument('solar_thermal_collector_type', HPXML::SolarThermalTypeSingleGlazing)
     step.setArgument('solar_thermal_collector_rated_optical_efficiency', 0.77)
     step.setArgument('solar_thermal_collector_rated_thermal_losses', 0.793)
+    step.setArgument('solar_thermal_storage_volume', '60')
   elsif ['base-dhw-solar-direct-ics.osw'].include? osw_file
     step.setArgument('solar_thermal_system_type', 'hot water')
     step.setArgument('solar_thermal_collector_type', HPXML::SolarThermalTypeICS)
     step.setArgument('solar_thermal_collector_rated_optical_efficiency', 0.77)
     step.setArgument('solar_thermal_collector_rated_thermal_losses', 0.793)
+    step.setArgument('solar_thermal_storage_volume', '60')
   elsif ['base-dhw-solar-fraction.osw'].include? osw_file
     step.setArgument('solar_thermal_system_type', 'hot water')
     step.setArgument('solar_thermal_solar_fraction', 0.65)
-  elsif ['base-dhw-solar-indirect-evacuated-tube.osw'].include? osw_file
-    step.setArgument('solar_thermal_system_type', 'hot water')
-    step.setArgument('solar_thermal_collector_loop_type', HPXML::SolarThermalLoopTypeIndirect)
   elsif ['base-dhw-solar-indirect-flat-plate.osw'].include? osw_file
     step.setArgument('solar_thermal_system_type', 'hot water')
     step.setArgument('solar_thermal_collector_loop_type', HPXML::SolarThermalLoopTypeIndirect)
     step.setArgument('solar_thermal_collector_type', HPXML::SolarThermalTypeSingleGlazing)
     step.setArgument('solar_thermal_collector_rated_optical_efficiency', 0.77)
     step.setArgument('solar_thermal_collector_rated_thermal_losses', 0.793)
-  elsif ['base-dhw-solar-thermosyphon-evacuated-tube.osw'].include? osw_file
-    step.setArgument('solar_thermal_system_type', 'hot water')
-    step.setArgument('solar_thermal_collector_loop_type', HPXML::SolarThermalLoopTypeThermosyphon)
+    step.setArgument('solar_thermal_storage_volume', '60')
   elsif ['base-dhw-solar-thermosyphon-flat-plate.osw'].include? osw_file
     step.setArgument('solar_thermal_system_type', 'hot water')
     step.setArgument('solar_thermal_collector_loop_type', HPXML::SolarThermalLoopTypeThermosyphon)
     step.setArgument('solar_thermal_collector_type', HPXML::SolarThermalTypeSingleGlazing)
     step.setArgument('solar_thermal_collector_rated_optical_efficiency', 0.77)
     step.setArgument('solar_thermal_collector_rated_thermal_losses', 0.793)
-  elsif ['base-dhw-solar-thermosyphon-ics.osw'].include? osw_file
-    step.setArgument('solar_thermal_system_type', 'hot water')
-    step.setArgument('solar_thermal_collector_loop_type', HPXML::SolarThermalLoopTypeThermosyphon)
-    step.setArgument('solar_thermal_collector_type', HPXML::SolarThermalTypeICS)
-    step.setArgument('solar_thermal_collector_rated_optical_efficiency', 0.77)
-    step.setArgument('solar_thermal_collector_rated_thermal_losses', 0.793)
+    step.setArgument('solar_thermal_storage_volume', '60')
   elsif ['base-dhw-tank-gas.osw'].include? osw_file
     step.setArgument('water_heater_fuel_type', HPXML::FuelTypeNaturalGas)
     step.setArgument('water_heater_tank_volume', '50')
+    step.setArgument('water_heater_heating_capacity', '40000')
     step.setArgument('water_heater_efficiency_ef', 0.59)
   elsif ['base-dhw-tank-gas-outside.osw'].include? osw_file
     step.setArgument('water_heater_fuel_type', HPXML::FuelTypeNaturalGas)
     step.setArgument('water_heater_location', HPXML::LocationOtherExterior)
     step.setArgument('water_heater_tank_volume', '50')
+    step.setArgument('water_heater_heating_capacity', '40000')
     step.setArgument('water_heater_efficiency_ef', 0.59)
   elsif ['base-dhw-tank-heat-pump.osw'].include? osw_file
     step.setArgument('water_heater_type', HPXML::WaterHeaterTypeHeatPump)
     step.setArgument('water_heater_tank_volume', '80')
+    step.setArgument('water_heater_heating_capacity', Constants.Auto)
     step.setArgument('water_heater_efficiency_ef', 2.3)
   elsif ['base-dhw-tank-heat-pump-outside.osw'].include? osw_file
     step.setArgument('water_heater_type', HPXML::WaterHeaterTypeHeatPump)
     step.setArgument('water_heater_location', HPXML::LocationOtherExterior)
     step.setArgument('water_heater_tank_volume', '80')
+    step.setArgument('water_heater_heating_capacity', Constants.Auto)
     step.setArgument('water_heater_efficiency_ef', 2.3)
   elsif ['base-dhw-tank-heat-pump-with-solar.osw'].include? osw_file
     step.setArgument('water_heater_type', HPXML::WaterHeaterTypeHeatPump)
     step.setArgument('water_heater_tank_volume', '80')
+    step.setArgument('water_heater_heating_capacity', Constants.Auto)
     step.setArgument('water_heater_efficiency_ef', 2.3)
     step.setArgument('solar_thermal_system_type', 'hot water')
     step.setArgument('solar_thermal_collector_loop_type', HPXML::SolarThermalLoopTypeIndirect)
     step.setArgument('solar_thermal_collector_type', HPXML::SolarThermalTypeSingleGlazing)
     step.setArgument('solar_thermal_collector_rated_optical_efficiency', 0.77)
     step.setArgument('solar_thermal_collector_rated_thermal_losses', 0.793)
+    step.setArgument('solar_thermal_storage_volume', '60')
   elsif ['base-dhw-tank-heat-pump-with-solar-fraction.osw'].include? osw_file
     step.setArgument('water_heater_type', HPXML::WaterHeaterTypeHeatPump)
     step.setArgument('water_heater_tank_volume', '80')
+    step.setArgument('water_heater_heating_capacity', Constants.Auto)
     step.setArgument('water_heater_efficiency_ef', 2.3)
     step.setArgument('solar_thermal_system_type', 'hot water')
     step.setArgument('solar_thermal_solar_fraction', 0.65)
   elsif ['base-dhw-tankless-electric.osw'].include? osw_file
     step.setArgument('water_heater_type', HPXML::WaterHeaterTypeTankless)
+    step.setArgument('water_heater_tank_volume', Constants.Auto)
     step.setArgument('water_heater_efficiency_ef', 0.99)
   elsif ['base-dhw-tankless-electric-outside.osw'].include? osw_file
     step.setArgument('water_heater_type', HPXML::WaterHeaterTypeTankless)
     step.setArgument('water_heater_location', HPXML::LocationOtherExterior)
+    step.setArgument('water_heater_tank_volume', Constants.Auto)
     step.setArgument('water_heater_efficiency_ef', 0.99)
   elsif ['base-dhw-tankless-gas.osw'].include? osw_file
     step.setArgument('water_heater_type', HPXML::WaterHeaterTypeTankless)
     step.setArgument('water_heater_fuel_type', HPXML::FuelTypeNaturalGas)
+    step.setArgument('water_heater_tank_volume', Constants.Auto)
     step.setArgument('water_heater_efficiency_ef', 0.82)
   elsif ['base-dhw-tankless-gas-with-solar.osw'].include? osw_file
     step.setArgument('water_heater_type', HPXML::WaterHeaterTypeTankless)
     step.setArgument('water_heater_fuel_type', HPXML::FuelTypeNaturalGas)
+    step.setArgument('water_heater_tank_volume', Constants.Auto)
     step.setArgument('water_heater_efficiency_ef', 0.82)
     step.setArgument('solar_thermal_system_type', 'hot water')
     step.setArgument('solar_thermal_collector_loop_type', HPXML::SolarThermalLoopTypeIndirect)
     step.setArgument('solar_thermal_collector_type', HPXML::SolarThermalTypeSingleGlazing)
     step.setArgument('solar_thermal_collector_rated_optical_efficiency', 0.77)
     step.setArgument('solar_thermal_collector_rated_thermal_losses', 0.793)
+    step.setArgument('solar_thermal_storage_volume', '60')
   elsif ['base-dhw-tankless-gas-with-solar-fraction.osw'].include? osw_file
     step.setArgument('water_heater_type', HPXML::WaterHeaterTypeTankless)
     step.setArgument('water_heater_fuel_type', HPXML::FuelTypeNaturalGas)
+    step.setArgument('water_heater_tank_volume', Constants.Auto)
     step.setArgument('water_heater_efficiency_ef', 0.82)
     step.setArgument('solar_thermal_system_type', 'hot water')
     step.setArgument('solar_thermal_solar_fraction', 0.65)
   elsif ['base-dhw-tankless-oil.osw'].include? osw_file
     step.setArgument('water_heater_type', HPXML::WaterHeaterTypeTankless)
     step.setArgument('water_heater_fuel_type', HPXML::FuelTypeOil)
+    step.setArgument('water_heater_tank_volume', Constants.Auto)
     step.setArgument('water_heater_efficiency_ef', 0.82)
   elsif ['base-dhw-tankless-propane.osw'].include? osw_file
     step.setArgument('water_heater_type', HPXML::WaterHeaterTypeTankless)
     step.setArgument('water_heater_fuel_type', HPXML::FuelTypePropane)
+    step.setArgument('water_heater_tank_volume', Constants.Auto)
     step.setArgument('water_heater_efficiency_ef', 0.82)
   elsif ['base-dhw-tankless-wood.osw'].include? osw_file
     step.setArgument('water_heater_type', HPXML::WaterHeaterTypeTankless)
     step.setArgument('water_heater_fuel_type', HPXML::FuelTypeWood)
+    step.setArgument('water_heater_tank_volume', Constants.Auto)
     step.setArgument('water_heater_efficiency_ef', 0.82)
   elsif ['base-dhw-tank-oil.osw'].include? osw_file
     step.setArgument('water_heater_fuel_type', HPXML::FuelTypeOil)
     step.setArgument('water_heater_tank_volume', '50')
+    step.setArgument('water_heater_heating_capacity', '40000')
     step.setArgument('water_heater_efficiency_ef', 0.59)
   elsif ['base-dhw-tank-propane.osw'].include? osw_file
     step.setArgument('water_heater_fuel_type', HPXML::FuelTypePropane)
     step.setArgument('water_heater_tank_volume', '50')
+    step.setArgument('water_heater_heating_capacity', '40000')
     step.setArgument('water_heater_efficiency_ef', 0.59)
   elsif ['base-dhw-tank-wood.osw'].include? osw_file
     step.setArgument('water_heater_fuel_type', HPXML::FuelTypeWood)
     step.setArgument('water_heater_tank_volume', '50')
+    step.setArgument('water_heater_heating_capacity', '40000')
     step.setArgument('water_heater_efficiency_ef', 0.59)
   elsif ['base-dhw-uef.osw'].include? osw_file
     step.setArgument('water_heater_efficiency_type', 'UniformEnergyFactor')
@@ -884,12 +908,12 @@ def get_values(osw_file, step)
   elsif ['base-enclosure-beds-1.osw'].include? osw_file
     step.setArgument('geometry_num_bedrooms', 1)
     step.setArgument('geometry_num_occupants', '1')
-    step.setArgument('water_heater_heating_capacity', '18.767')
+    step.setArgument('water_heater_heating_capacity', '18767')
     step.setArgument('plug_loads_television_annual_kwh', '482.0')
   elsif ['base-enclosure-beds-2.osw'].include? osw_file
     step.setArgument('geometry_num_bedrooms', 2)
     step.setArgument('geometry_num_occupants', '2')
-    step.setArgument('water_heater_heating_capacity', '18.767')
+    step.setArgument('water_heater_heating_capacity', '18767')
     step.setArgument('plug_loads_television_annual_kwh', '551.0')
   elsif ['base-enclosure-beds-4.osw'].include? osw_file
     step.setArgument('geometry_num_bedrooms', 4)
@@ -1321,16 +1345,22 @@ def get_values(osw_file, step)
     step.setArgument('heating_system_electric_auxiliary_energy', 200.0)
     step.setArgument('cooling_system_type', 'none')
   elsif ['base-location-baltimore-md.osw'].include? osw_file
-    step.setArgument('weather_station_epw_filename', 'USA_MD_Baltimore-Washington.Intl.AP.724060_TMY3.epw')
+    step.setArgument('weather_station_epw_filepath', 'USA_MD_Baltimore-Washington.Intl.AP.724060_TMY3.epw')
   elsif ['base-location-dallas-tx.osw'].include? osw_file
-    step.setArgument('weather_station_epw_filename', 'USA_TX_Dallas-Fort.Worth.Intl.AP.722590_TMY3.epw')
+    step.setArgument('weather_station_epw_filepath', 'USA_TX_Dallas-Fort.Worth.Intl.AP.722590_TMY3.epw')
   elsif ['base-location-duluth-mn.osw'].include? osw_file
-    step.setArgument('weather_station_epw_filename', 'USA_MN_Duluth.Intl.AP.727450_TMY3.epw')
+    step.setArgument('weather_station_epw_filepath', 'USA_MN_Duluth.Intl.AP.727450_TMY3.epw')
+  elsif ['base-location-epw-filepath.osw'].include? osw_file
+  elsif ['base-location-epw-filepath-AMY-2012.osw'].include? osw_file
+    step.setArgument('weather_station_epw_filepath', 'US_CO_Boulder_AMY_2012.epw')
   elsif ['base-location-miami-fl.osw'].include? osw_file
-    step.setArgument('weather_station_epw_filename', 'USA_FL_Miami.Intl.AP.722020_TMY3.epw')
+    step.setArgument('weather_station_epw_filepath', 'USA_FL_Miami.Intl.AP.722020_TMY3.epw')
   elsif ['base-mechvent-balanced.osw'].include? osw_file
     step.setArgument('mech_vent_fan_type', HPXML::MechVentTypeBalanced)
     step.setArgument('mech_vent_fan_power', 60)
+  elsif ['base-mechvent-bath-kitchen-fans.osw'].include? osw_file
+    step.setArgument('kitchen_fan_present', true)
+    step.setArgument('bathroom_fans_present', true)
   elsif ['base-mechvent-cfis.osw'].include? osw_file
     step.setArgument('mech_vent_fan_type', HPXML::MechVentTypeCFIS)
     step.setArgument('mech_vent_flow_rate', 330)
@@ -1368,12 +1398,23 @@ def get_values(osw_file, step)
     step.setArgument('mech_vent_fan_power', 60)
   elsif ['base-mechvent-supply.osw'].include? osw_file
     step.setArgument('mech_vent_fan_type', HPXML::MechVentTypeSupply)
-  elsif ['base-mechvent-bath-kitchen-fans.osw'].include? osw_file
-    step.setArgument('kitchen_fan_present', true)
-    step.setArgument('bathroom_fans_present', true)
   elsif ['base-misc-ceiling-fans.osw'].include? osw_file
     step.setArgument('ceiling_fan_cooling_setpoint_temp_offset', 0.5)
     step.setArgument('ceiling_fan_quantity', 2)
+  elsif ['base-misc-defaults.osw'].include? osw_file
+
+  elsif ['base-misc-defaults2.osw'].include? osw_file
+    step.setArgument('water_heater_location', Constants.Auto)
+    step.setArgument('water_heater_tank_volume', Constants.Auto)
+    step.setArgument('water_heater_efficiency_type', 'UniformEnergyFactor')
+    step.setArgument('water_heater_heating_capacity', Constants.Auto)
+    step.setArgument('water_heater_setpoint_temperature', Constants.Auto)
+    step.setArgument('dhw_distribution_system_type', HPXML::DHWDistTypeRecirc)
+    step.setArgument('dhw_distribution_recirc_control_type', HPXML::DHWRecirControlTypeSensor)
+    step.setArgument('dhw_distribution_recirc_piping_length', Constants.Auto)
+    step.setArgument('dhw_distribution_recirc_branch_piping_length', Constants.Auto)
+    step.setArgument('dhw_distribution_recirc_pump_power', Constants.Auto)
+    step.setArgument('dhw_distribution_pipe_r', 3)
   elsif ['base-misc-neighbor-shading.osw'].include? osw_file
     step.setArgument('neighbor_back_distance', 10)
     step.setArgument('neighbor_front_distance', 15)
@@ -1451,6 +1492,7 @@ def create_hpxmls
     'invalid_files/hvac-dse-multiple-attached-cooling.xml' => 'base-hvac-dse.xml',
     'invalid_files/hvac-dse-multiple-attached-heating.xml' => 'base-hvac-dse.xml',
     'invalid_files/hvac-frac-load-served.xml' => 'base-hvac-multiple.xml',
+    'invalid_files/invalid-epw-filepath.xml' => 'base-location-epw-filepath.xml',
     'invalid_files/invalid-neighbor-shading-azimuth.xml' => 'base-misc-neighbor-shading.xml',
     'invalid_files/invalid-relatedhvac-dhw-indirect.xml' => 'base-dhw-indirect.xml',
     'invalid_files/invalid-relatedhvac-desuperheater.xml' => 'base-hvac-central-ac-only-1-speed.xml',
@@ -1510,6 +1552,7 @@ def create_hpxmls
     'base-dhw-indirect-dse.xml' => 'base-dhw-indirect.xml',
     'base-dhw-indirect-outside.xml' => 'base-dhw-indirect.xml',
     'base-dhw-indirect-standbyloss.xml' => 'base-dhw-indirect.xml',
+    'base-dhw-indirect-with-solar-fraction.xml' => 'base-dhw-indirect.xml',
     'base-dhw-low-flow-fixtures.xml' => 'base.xml',
     'base-dhw-multiple.xml' => 'base-hvac-boiler-gas-only.xml',
     'base-dhw-none.xml' => 'base.xml',
@@ -1522,11 +1565,8 @@ def create_hpxmls
     'base-dhw-solar-direct-flat-plate.xml' => 'base.xml',
     'base-dhw-solar-direct-ics.xml' => 'base.xml',
     'base-dhw-solar-fraction.xml' => 'base.xml',
-    'base-dhw-solar-indirect-evacuated-tube.xml' => 'base.xml',
     'base-dhw-solar-indirect-flat-plate.xml' => 'base.xml',
-    'base-dhw-solar-thermosyphon-evacuated-tube.xml' => 'base.xml',
     'base-dhw-solar-thermosyphon-flat-plate.xml' => 'base.xml',
-    'base-dhw-solar-thermosyphon-ics.xml' => 'base.xml',
     'base-dhw-tank-gas.xml' => 'base.xml',
     'base-dhw-tank-gas-outside.xml' => 'base-dhw-tank-gas.xml',
     'base-dhw-tank-heat-pump.xml' => 'base.xml',
@@ -1635,8 +1675,8 @@ def create_hpxmls
     'base-location-dallas-tx.xml' => 'base.xml',
     'base-location-duluth-mn.xml' => 'base.xml',
     'base-location-miami-fl.xml' => 'base.xml',
-    'base-location-epw-filename.xml' => 'base.xml',
-    'base-location-epw-filename-AMY-2012.xml' => 'base.xml',
+    'base-location-epw-filepath.xml' => 'base.xml',
+    'base-location-epw-filepath-AMY-2012.xml' => 'base.xml',
     'base-mechvent-balanced.xml' => 'base.xml',
     'base-mechvent-cfis.xml' => 'base.xml',
     'base-mechvent-cfis-evap-cooler-only-ducted.xml' => 'base-hvac-evap-cooler-only-ducted.xml',
@@ -1650,6 +1690,7 @@ def create_hpxmls
     'base-mechvent-bath-kitchen-fans.xml' => 'base.xml',
     'base-misc-ceiling-fans.xml' => 'base.xml',
     'base-misc-defaults.xml' => 'base.xml',
+    'base-misc-defaults2.xml' => 'base-dhw-recirc-demand.xml',
     'base-misc-lighting-none.xml' => 'base.xml',
     'base-misc-timestep-10-mins.xml' => 'base.xml',
     'base-misc-runperiod-1-month.xml' => 'base.xml',
@@ -1995,15 +2036,19 @@ def set_hpxml_climate_and_risk_zones(hpxml_file, hpxml)
     hpxml.climate_and_risk_zones.iecc_zone = '1A'
     hpxml.climate_and_risk_zones.weather_station_name = 'Miami, FL'
     hpxml.climate_and_risk_zones.weather_station_wmo = '722020'
-  elsif ['base-location-epw-filename.xml'].include? hpxml_file
+  elsif ['base-location-epw-filepath.xml'].include? hpxml_file
     hpxml.climate_and_risk_zones.weather_station_wmo = nil
-    hpxml.climate_and_risk_zones.weather_station_epw_filename = 'USA_CO_Denver.Intl.AP.725650_TMY3.epw'
-  elsif ['base-location-epw-filename-AMY-2012.xml'].include? hpxml_file
+    hpxml.climate_and_risk_zones.weather_station_epw_filepath = 'USA_CO_Denver.Intl.AP.725650_TMY3.epw'
+  elsif ['base-location-epw-filepath-AMY-2012.xml'].include? hpxml_file
+    hpxml.climate_and_risk_zones.iecc_year = nil
+    hpxml.climate_and_risk_zones.iecc_zone = nil
     hpxml.climate_and_risk_zones.weather_station_wmo = nil
     hpxml.climate_and_risk_zones.weather_station_name = 'Boulder, CO'
-    hpxml.climate_and_risk_zones.weather_station_epw_filename = 'US_CO_Boulder_AMY_2012.epw'
+    hpxml.climate_and_risk_zones.weather_station_epw_filepath = 'US_CO_Boulder_AMY_2012.epw'
   elsif ['invalid_files/invalid-wmo.xml'].include? hpxml_file
     hpxml.climate_and_risk_zones.weather_station_wmo = '999999'
+  elsif ['invalid_files/invalid-epw-filepath.xml'].include? hpxml_file
+    hpxml.climate_and_risk_zones.weather_station_epw_filepath = 'foo.epw'
   end
 end
 
@@ -2157,8 +2202,8 @@ def set_hpxml_roofs(hpxml_file, hpxml)
     hpxml.roofs.clear()
   elsif ['base-enclosure-split-surfaces.xml'].include? hpxml_file
     for n in 1..hpxml.roofs.size
-      hpxml.roofs[n - 1].area /= 10.0
-      for i in 2..10
+      hpxml.roofs[n - 1].area /= 9.0
+      for i in 2..9
         hpxml.roofs << hpxml.roofs[n - 1].dup
         hpxml.roofs[-1].id += i.to_s
       end
@@ -2221,8 +2266,8 @@ def set_hpxml_rim_joists(hpxml_file, hpxml)
                          insulation_assembly_r_value: 23.0)
   elsif ['base-enclosure-split-surfaces.xml'].include? hpxml_file
     for n in 1..hpxml.rim_joists.size
-      hpxml.rim_joists[n - 1].area /= 10.0
-      for i in 2..10
+      hpxml.rim_joists[n - 1].area /= 9.0
+      for i in 2..9
         hpxml.rim_joists << hpxml.rim_joists[n - 1].dup
         hpxml.rim_joists[-1].id += i.to_s
       end
@@ -2383,8 +2428,8 @@ def set_hpxml_walls(hpxml_file, hpxml)
     hpxml.walls[-1].insulation_assembly_r_value = 4
   elsif ['base-enclosure-split-surfaces.xml'].include? hpxml_file
     for n in 1..hpxml.walls.size
-      hpxml.walls[n - 1].area /= 10.0
-      for i in 2..10
+      hpxml.walls[n - 1].area /= 9.0
+      for i in 2..9
         hpxml.walls << hpxml.walls[n - 1].dup
         hpxml.walls[-1].id += i.to_s
       end
@@ -2587,8 +2632,8 @@ def set_hpxml_foundation_walls(hpxml_file, hpxml)
                                insulation_exterior_r_value: 8.9)
   elsif ['base-enclosure-split-surfaces.xml'].include? hpxml_file
     for n in 1..hpxml.foundation_walls.size
-      hpxml.foundation_walls[n - 1].area /= 10.0
-      for i in 2..10
+      hpxml.foundation_walls[n - 1].area /= 9.0
+      for i in 2..9
         hpxml.foundation_walls << hpxml.foundation_walls[n - 1].dup
         hpxml.foundation_walls[-1].id += i.to_s
       end
@@ -2678,8 +2723,8 @@ def set_hpxml_frame_floors(hpxml_file, hpxml)
                            insulation_assembly_r_value: 2.1)
   elsif ['base-enclosure-split-surfaces.xml'].include? hpxml_file
     for n in 1..hpxml.frame_floors.size
-      hpxml.frame_floors[n - 1].area /= 10.0
-      for i in 2..10
+      hpxml.frame_floors[n - 1].area /= 9.0
+      for i in 2..9
         hpxml.frame_floors << hpxml.frame_floors[n - 1].dup
         hpxml.frame_floors[-1].id += i.to_s
       end
@@ -2807,9 +2852,9 @@ def set_hpxml_slabs(hpxml_file, hpxml)
                     carpet_r_value: 0)
   elsif ['base-enclosure-split-surfaces.xml'].include? hpxml_file
     for n in 1..hpxml.slabs.size
-      hpxml.slabs[n - 1].area /= 10.0
-      hpxml.slabs[n - 1].exposed_perimeter /= 10.0
-      for i in 2..10
+      hpxml.slabs[n - 1].area /= 9.0
+      hpxml.slabs[n - 1].exposed_perimeter /= 9.0
+      for i in 2..9
         hpxml.slabs << hpxml.slabs[n - 1].dup
         hpxml.slabs[-1].id += i.to_s
       end
@@ -2832,7 +2877,7 @@ def set_hpxml_windows(hpxml_file, hpxml)
                       azimuth: 0,
                       ufactor: 0.33,
                       shgc: 0.45,
-                      fraction_operable: 0.33,
+                      fraction_operable: 0.67,
                       interior_shading_factor_summer: 0.7,
                       interior_shading_factor_winter: 0.85,
                       wall_idref: 'Wall')
@@ -2841,7 +2886,7 @@ def set_hpxml_windows(hpxml_file, hpxml)
                       azimuth: 180,
                       ufactor: 0.33,
                       shgc: 0.45,
-                      fraction_operable: 0.33,
+                      fraction_operable: 0.67,
                       interior_shading_factor_summer: 0.7,
                       interior_shading_factor_winter: 0.85,
                       wall_idref: 'Wall')
@@ -2850,7 +2895,7 @@ def set_hpxml_windows(hpxml_file, hpxml)
                       azimuth: 90,
                       ufactor: 0.33,
                       shgc: 0.45,
-                      fraction_operable: 0.33,
+                      fraction_operable: 0.67,
                       interior_shading_factor_summer: 0.7,
                       interior_shading_factor_winter: 0.85,
                       wall_idref: 'Wall')
@@ -2859,7 +2904,7 @@ def set_hpxml_windows(hpxml_file, hpxml)
                       azimuth: 270,
                       ufactor: 0.33,
                       shgc: 0.45,
-                      fraction_operable: 0.33,
+                      fraction_operable: 0.67,
                       interior_shading_factor_summer: 0.7,
                       interior_shading_factor_winter: 0.85,
                       wall_idref: 'Wall')
@@ -2982,11 +3027,15 @@ def set_hpxml_windows(hpxml_file, hpxml)
   elsif ['base-enclosure-split-surfaces.xml'].include? hpxml_file
     area_adjustments = []
     for n in 1..hpxml.windows.size
-      hpxml.windows[n - 1].area /= 10.0
-      for i in 2..10
+      hpxml.windows[n - 1].area /= 9.0
+      hpxml.windows[n - 1].fraction_operable = 0.0
+      for i in 2..9
         hpxml.windows << hpxml.windows[n - 1].dup
         hpxml.windows[-1].id += i.to_s
         hpxml.windows[-1].wall_idref += i.to_s
+        if i >= 4
+          hpxml.windows[-1].fraction_operable = 1.0
+        end
       end
     end
     hpxml.windows << hpxml.windows[-1].dup
@@ -3009,28 +3058,28 @@ def set_hpxml_windows(hpxml_file, hpxml)
                       azimuth: 0,
                       ufactor: 0.33,
                       shgc: 0.45,
-                      fraction_operable: 0.33,
+                      fraction_operable: 0.67,
                       wall_idref: 'Wall1')
     hpxml.windows.add(id: 'WindowSouth',
                       area: 108 / 8,
                       azimuth: 180,
                       ufactor: 0.33,
                       shgc: 0.45,
-                      fraction_operable: 0.33,
+                      fraction_operable: 0.67,
                       wall_idref: 'Wall2')
     hpxml.windows.add(id: 'WindowEast',
                       area: 72 / 8,
                       azimuth: 90,
                       ufactor: 0.33,
                       shgc: 0.45,
-                      fraction_operable: 0.33,
+                      fraction_operable: 0.67,
                       wall_idref: 'Wall3')
     hpxml.windows.add(id: 'WindowWest',
                       area: 72 / 8,
                       azimuth: 270,
                       ufactor: 0.33,
                       shgc: 0.45,
-                      fraction_operable: 0.33,
+                      fraction_operable: 0.67,
                       wall_idref: 'Wall4')
   elsif ['base-misc-defaults.xml'].include? hpxml_file
     hpxml.windows.each do |window|
@@ -3061,8 +3110,8 @@ def set_hpxml_skylights(hpxml_file, hpxml)
     hpxml.skylights[0].roof_idref = 'foobar'
   elsif ['base-enclosure-split-surfaces.xml'].include? hpxml_file
     for n in 1..hpxml.skylights.size
-      hpxml.skylights[n - 1].area /= 10.0
-      for i in 2..10
+      hpxml.skylights[n - 1].area /= 9.0
+      for i in 2..9
         hpxml.skylights << hpxml.skylights[n - 1].dup
         hpxml.skylights[-1].id += i.to_s
         hpxml.skylights[-1].roof_idref += i.to_s if i % 2 == 0
@@ -3098,8 +3147,8 @@ def set_hpxml_doors(hpxml_file, hpxml)
   elsif ['base-enclosure-split-surfaces.xml'].include? hpxml_file
     area_adjustments = []
     for n in 1..hpxml.doors.size
-      hpxml.doors[n - 1].area /= 10.0
-      for i in 2..10
+      hpxml.doors[n - 1].area /= 9.0
+      for i in 2..9
         hpxml.doors << hpxml.doors[n - 1].dup
         hpxml.doors[-1].id += i.to_s
         hpxml.doors[-1].wall_idref += i.to_s
@@ -3985,7 +4034,7 @@ def set_hpxml_water_heating_systems(hpxml_file, hpxml)
                                     fraction_dhw_load_served: 1,
                                     heating_capacity: 18767,
                                     energy_factor: 0.95,
-                                    temperature: 125)
+                                    temperature: Waterheater.get_default_hot_water_temperature(Constants.ERIVersions[-1]))
   elsif ['base-dhw-multiple.xml'].include? hpxml_file
     hpxml.water_heating_systems[0].fraction_dhw_load_served = 0.2
     hpxml.water_heating_systems.add(id: 'WaterHeater2',
@@ -3997,7 +4046,7 @@ def set_hpxml_water_heating_systems(hpxml_file, hpxml)
                                     heating_capacity: 40000,
                                     energy_factor: 0.59,
                                     recovery_efficiency: 0.76,
-                                    temperature: 125)
+                                    temperature: Waterheater.get_default_hot_water_temperature(Constants.ERIVersions[-1]))
     hpxml.water_heating_systems.add(id: 'WaterHeater3',
                                     fuel_type: HPXML::FuelTypeElectricity,
                                     water_heater_type: HPXML::WaterHeaterTypeHeatPump,
@@ -4005,28 +4054,28 @@ def set_hpxml_water_heating_systems(hpxml_file, hpxml)
                                     tank_volume: 80,
                                     fraction_dhw_load_served: 0.2,
                                     energy_factor: 2.3,
-                                    temperature: 125)
+                                    temperature: Waterheater.get_default_hot_water_temperature(Constants.ERIVersions[-1]))
     hpxml.water_heating_systems.add(id: 'WaterHeater4',
                                     fuel_type: HPXML::FuelTypeElectricity,
                                     water_heater_type: HPXML::WaterHeaterTypeTankless,
                                     location: HPXML::LocationLivingSpace,
                                     fraction_dhw_load_served: 0.2,
                                     energy_factor: 0.99,
-                                    temperature: 125)
+                                    temperature: Waterheater.get_default_hot_water_temperature(Constants.ERIVersions[-1]))
     hpxml.water_heating_systems.add(id: 'WaterHeater5',
                                     fuel_type: HPXML::FuelTypeNaturalGas,
                                     water_heater_type: HPXML::WaterHeaterTypeTankless,
                                     location: HPXML::LocationLivingSpace,
                                     fraction_dhw_load_served: 0.1,
                                     energy_factor: 0.82,
-                                    temperature: 125)
+                                    temperature: Waterheater.get_default_hot_water_temperature(Constants.ERIVersions[-1]))
     hpxml.water_heating_systems.add(id: 'WaterHeater6',
                                     water_heater_type: HPXML::WaterHeaterTypeCombiStorage,
                                     location: HPXML::LocationLivingSpace,
                                     tank_volume: 50,
                                     fraction_dhw_load_served: 0.1,
                                     related_hvac_idref: 'HeatingSystem',
-                                    temperature: 125)
+                                    temperature: Waterheater.get_default_hot_water_temperature(Constants.ERIVersions[-1]))
   elsif ['invalid_files/dhw-frac-load-served.xml'].include? hpxml_file
     hpxml.water_heating_systems[0].fraction_dhw_load_served += 0.15
   elsif ['base-dhw-tank-gas.xml',
@@ -4181,13 +4230,16 @@ def set_hpxml_water_heating_systems(hpxml_file, hpxml)
     hpxml.water_heating_systems[0].location = HPXML::LocationGarage
   elsif ['base-dhw-none.xml'].include? hpxml_file
     hpxml.water_heating_systems.clear()
-  end
-  hpxml.water_heating_systems.each do |water_heating_system|
-    if ['base-misc-defaults.xml'].include? hpxml_file
-      water_heating_system.temperature = nil
-      water_heating_system.location = nil
-    else
-      water_heating_system.temperature = Waterheater.get_default_hot_water_temperature(Constants.ERIVersions[-1])
+  elsif ['base-misc-defaults.xml',
+         'base-misc-defaults2.xml'].include? hpxml_file
+    hpxml.water_heating_systems[0].temperature = nil
+    hpxml.water_heating_systems[0].location = nil
+    hpxml.water_heating_systems[0].heating_capacity = nil
+    hpxml.water_heating_systems[0].tank_volume = nil
+    hpxml.water_heating_systems[0].recovery_efficiency = nil
+    if hpxml_file == 'base-misc-defaults2.xml'
+      hpxml.water_heating_systems[0].energy_factor = nil
+      hpxml.water_heating_systems[0].uniform_energy_factor = 0.93
     end
   end
 end
@@ -4238,6 +4290,10 @@ def set_hpxml_hot_water_distribution(hpxml_file, hpxml)
     hpxml.hot_water_distributions.clear()
   elsif ['base-misc-defaults.xml'].include? hpxml_file
     hpxml.hot_water_distributions[0].standard_piping_length = nil
+  elsif ['base-misc-defaults2.xml'].include? hpxml_file
+    hpxml.hot_water_distributions[0].recirculation_piping_length = nil
+    hpxml.hot_water_distributions[0].recirculation_branch_piping_length = nil
+    hpxml.hot_water_distributions[0].recirculation_pump_power = nil
   end
 end
 
@@ -4260,21 +4316,27 @@ end
 
 def set_hpxml_solar_thermal_system(hpxml_file, hpxml)
   if ['base-dhw-solar-fraction.xml',
-      'base-dhw-multiple.xml',
+      'base-dhw-indirect-with-solar-fraction.xml',
       'base-dhw-tank-heat-pump-with-solar-fraction.xml',
-      'base-dhw-tankless-gas-with-solar-fraction.xml',
-      'invalid_files/solar-thermal-system-with-combi-tankless.xml',
-      'invalid_files/solar-thermal-system-with-desuperheater.xml',
-      'invalid_files/solar-thermal-system-with-dhw-indirect.xml'].include? hpxml_file
+      'base-dhw-tankless-gas-with-solar-fraction.xml'].include? hpxml_file
     hpxml.solar_thermal_systems.add(id: 'SolarThermalSystem',
                                     system_type: 'hot water',
                                     water_heating_system_idref: 'WaterHeater',
+                                    solar_fraction: 0.65)
+  elsif ['base-dhw-multiple.xml'].include? hpxml_file
+    hpxml.solar_thermal_systems.add(id: 'SolarThermalSystem',
+                                    system_type: 'hot water',
+                                    water_heating_system_idref: nil, # Apply to all water heaters
                                     solar_fraction: 0.65)
   elsif ['base-dhw-solar-direct-flat-plate.xml',
          'base-dhw-solar-indirect-flat-plate.xml',
          'base-dhw-solar-thermosyphon-flat-plate.xml',
          'base-dhw-tank-heat-pump-with-solar.xml',
-         'base-dhw-tankless-gas-with-solar.xml'].include? hpxml_file
+         'base-dhw-tankless-gas-with-solar.xml',
+         'base-misc-defaults.xml',
+         'invalid_files/solar-thermal-system-with-combi-tankless.xml',
+         'invalid_files/solar-thermal-system-with-desuperheater.xml',
+         'invalid_files/solar-thermal-system-with-dhw-indirect.xml'].include? hpxml_file
     hpxml.solar_thermal_systems.add(id: 'SolarThermalSystem',
                                     system_type: 'hot water',
                                     collector_area: 40,
@@ -4289,12 +4351,13 @@ def set_hpxml_solar_thermal_system(hpxml_file, hpxml)
       hpxml.solar_thermal_systems[0].collector_loop_type = HPXML::SolarThermalLoopTypeDirect
     elsif hpxml_file == 'base-dhw-solar-thermosyphon-flat-plate.xml'
       hpxml.solar_thermal_systems[0].collector_loop_type = HPXML::SolarThermalLoopTypeThermosyphon
+    elsif hpxml_file == 'base-misc-defaults.xml'
+      hpxml.solar_thermal_systems[0].collector_loop_type = HPXML::SolarThermalLoopTypeDirect
+      hpxml.solar_thermal_systems[0].storage_volume = nil
     else
       hpxml.solar_thermal_systems[0].collector_loop_type = HPXML::SolarThermalLoopTypeIndirect
     end
-  elsif ['base-dhw-solar-indirect-evacuated-tube.xml',
-         'base-dhw-solar-direct-evacuated-tube.xml',
-         'base-dhw-solar-thermosyphon-evacuated-tube.xml'].include? hpxml_file
+  elsif ['base-dhw-solar-direct-evacuated-tube.xml'].include? hpxml_file
     hpxml.solar_thermal_systems.add(id: 'SolarThermalSystem',
                                     system_type: 'hot water',
                                     collector_area: 40,
@@ -4307,16 +4370,14 @@ def set_hpxml_solar_thermal_system(hpxml_file, hpxml)
                                     water_heating_system_idref: 'WaterHeater')
     if hpxml_file == 'base-dhw-solar-direct-evacuated-tube.xml'
       hpxml.solar_thermal_systems[0].collector_loop_type = HPXML::SolarThermalLoopTypeDirect
-    elsif hpxml_file == 'base-dhw-solar-thermosyphon-evacuated-tube.xml'
-      hpxml.solar_thermal_systems[0].collector_loop_type = HPXML::SolarThermalLoopTypeThermosyphon
     else
       hpxml.solar_thermal_systems[0].collector_loop_type = HPXML::SolarThermalLoopTypeIndirect
     end
-  elsif ['base-dhw-solar-direct-ics.xml',
-         'base-dhw-solar-thermosyphon-ics.xml'].include? hpxml_file
+  elsif ['base-dhw-solar-direct-ics.xml'].include? hpxml_file
     hpxml.solar_thermal_systems.add(id: 'SolarThermalSystem',
                                     system_type: 'hot water',
                                     collector_area: 40,
+                                    collector_loop_type: HPXML::SolarThermalLoopTypeDirect,
                                     collector_type: HPXML::SolarThermalTypeICS,
                                     collector_azimuth: 180,
                                     collector_tilt: 20,
@@ -4324,11 +4385,6 @@ def set_hpxml_solar_thermal_system(hpxml_file, hpxml)
                                     collector_frul: 0.793,
                                     storage_volume: 60,
                                     water_heating_system_idref: 'WaterHeater')
-    if hpxml_file == 'base-dhw-solar-direct-ics.xml'
-      hpxml.solar_thermal_systems[0].collector_loop_type = HPXML::SolarThermalLoopTypeDirect
-    elsif hpxml_file == 'base-dhw-solar-thermosyphon-ics.xml'
-      hpxml.solar_thermal_systems[0].collector_loop_type = HPXML::SolarThermalLoopTypeThermosyphon
-    end
   elsif ['invalid_files/unattached-solar-thermal-system.xml'].include? hpxml_file
     hpxml.solar_thermal_systems[0].water_heating_system_idref = 'foobar'
   end
