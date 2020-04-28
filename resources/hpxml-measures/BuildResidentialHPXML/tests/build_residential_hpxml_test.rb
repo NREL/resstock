@@ -4,8 +4,6 @@ require 'openstudio/ruleset/ShowRunnerOutput'
 require 'minitest/autorun'
 require_relative '../measure.rb'
 require 'fileutils'
-require 'rexml/document'
-require 'rexml/xpath'
 require_relative '../../HPXMLtoOpenStudio/resources/meta_measure'
 require_relative '../../HPXMLtoOpenStudio/resources/hpxml'
 
@@ -247,11 +245,11 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       end
     end
 
-    rakefile_doc = hpxml_objs['Rakefile'].to_rexml
-    measure_doc = hpxml_objs['BuildResidentialHPXML'].to_rexml
+    rakefile_doc = hpxml_objs['Rakefile'].to_oga()
+    measure_doc = hpxml_objs['BuildResidentialHPXML'].to_oga()
 
     # Write files for inspection?
-    if rakefile_doc.to_s != measure_doc.to_s
+    if rakefile_doc.to_xml != measure_doc.to_xml
       rakefile_path = File.join(File.dirname(__FILE__), 'test_rakefile.xml')
       XMLHelper.write_file(rakefile_doc, rakefile_path)
       measure_path = File.join(File.dirname(__FILE__), 'test_measure.xml')

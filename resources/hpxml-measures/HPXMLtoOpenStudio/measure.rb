@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # see the URL below for information on how to write OpenStudio measures
 # http://nrel.github.io/OpenStudio-user-documentation/reference/measure_writing_guide/
 
@@ -81,7 +83,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     tear_down_model(model, runner)
 
     # Check for correct versions of OS
-    os_version = '2.9.1'
+    os_version = '3.0.0'
     if OpenStudio.openStudioVersion != os_version
       fail "OpenStudio version #{os_version} is required."
     end
@@ -148,7 +150,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     is_valid = true
 
     # Validate input HPXML against schema
-    XMLHelper.validate(hpxml.doc.to_s, File.join(schemas_dir, 'HPXML.xsd'), runner).each do |error|
+    XMLHelper.validate(hpxml.doc.to_xml, File.join(schemas_dir, 'HPXML.xsd'), runner).each do |error|
       runner.registerError("#{hpxml_path}: #{error}")
       is_valid = false
     end
@@ -735,7 +737,7 @@ class OSModel
     if @debug && (not @output_dir.nil?)
       # Write updated HPXML object to file
       hpxml_defaults_path = File.join(@output_dir, 'in.xml')
-      XMLHelper.write_file(@hpxml.to_rexml, hpxml_defaults_path)
+      XMLHelper.write_file(@hpxml.to_oga, hpxml_defaults_path)
       runner.registerInfo("Wrote file: #{hpxml_defaults_path}")
     end
   end
@@ -748,7 +750,7 @@ class OSModel
     tstep.setNumberOfTimestepsPerHour(60 / @hpxml.header.timestep)
 
     shad = model.getShadowCalculation
-    shad.setCalculationFrequency(20)
+    shad.setShadingCalculationUpdateFrequency(20)
     shad.setMaximumFiguresInShadowOverlapCalculations(200)
 
     outsurf = model.getOutsideSurfaceConvectionAlgorithm
@@ -1687,6 +1689,7 @@ class OSModel
       found_foundation_wall = false
       @hpxml.foundation_walls.each do |foundation_wall|
         next if foundation_wall.net_area < 0.1 # skip modeling net surface area for surfaces comprised entirely of subsurface area
+
         found_foundation_wall = true if slab.interior_adjacent_to == foundation_wall.interior_adjacent_to
       end
       next if found_foundation_wall
@@ -2397,7 +2400,7 @@ class OSModel
           capacity_kbtuh = water_heating_system.heating_capacity / 1000.0
 
           Waterheater.apply_tank(model, space, fuel, capacity_kbtuh, tank_vol,
-                                 ef, re, setpoint_temp, ec_adj, @nbeds, @dhw_map,
+                                 ef, re, setpoint_temp, ec_adj, @dhw_map,
                                  sys_id, desuperheater_clg_coil, jacket_r, solar_fraction)
 
         elsif wh_type == HPXML::WaterHeaterTypeTankless
@@ -2413,7 +2416,7 @@ class OSModel
           tank_vol = water_heating_system.tank_volume
 
           Waterheater.apply_heatpump(model, runner, space, weather, setpoint_temp, tank_vol, ef, ec_adj,
-                                     @nbeds, @dhw_map, sys_id, jacket_r, solar_fraction)
+                                     @dhw_map, sys_id, desuperheater_clg_coil, jacket_r, solar_fraction)
 
         elsif (wh_type == HPXML::WaterHeaterTypeCombiStorage) || (wh_type == HPXML::WaterHeaterTypeCombiTankless)
 
@@ -2424,7 +2427,7 @@ class OSModel
           boiler_fuel_type = water_heating_system.related_hvac_system.heating_system_fuel
           boiler, plant_loop = get_boiler_and_plant_loop(@hvac_map, water_heating_system.related_hvac_idref, sys_id)
 
-          Waterheater.apply_combi(model, runner, space, vol, setpoint_temp, ec_adj, @nbeds,
+          Waterheater.apply_combi(model, runner, space, vol, setpoint_temp, ec_adj,
                                   boiler, plant_loop, boiler_fuel_type, boiler_afue, @dhw_map,
                                   sys_id, wh_type, jacket_r, standby_loss, solar_fraction)
 
@@ -3448,6 +3451,10 @@ class OSModel
                          skylights: [],
                          internal_mass: [] }
 
+    # Output diagnostics needed for some output variables used below
+    output_diagnostics = model.getOutputDiagnostics
+    output_diagnostics.addKey('DisplayAdvancedReportVariables')
+
     model.getSurfaces.sort.each_with_index do |s, idx|
       next unless s.space.get.thermalZone.get.name.to_s == @living_zone.name.to_s
 
@@ -3465,17 +3472,20 @@ class OSModel
         fail "Unexpected subsurface for component loads: '#{ss.name}'." if key.nil?
 
         if (surface_type == 'Window') || (surface_type == 'Skylight')
-          vars = { 'Surface Window Net Heat Transfer Energy' => 'ss_net',
-                   'Surface Inside Face Internal Gains Radiation Heat Gain Energy' => 'ss_ig',
+          vars = { 'Surface Window Transmitted Solar Radiation Energy' => 'ss_trans_in',
+                   'Surface Window Shortwave from Zone Back Out Window Heat Transfer Rate' => 'ss_back_out',
                    'Surface Window Total Glazing Layers Absorbed Shortwave Radiation Rate' => 'ss_sw_abs',
                    'Surface Window Total Glazing Layers Absorbed Solar Radiation Energy' => 'ss_sol_abs',
-                   'Surface Inside Face Initial Transmitted Diffuse Transmitted Out Window Solar Radiation Rate' => 'ss_sol_out' }
-        else
-          vars = { 'Surface Inside Face Convection Heat Gain Energy' => 'ss_conv',
+                   'Surface Inside Face Initial Transmitted Diffuse Transmitted Out Window Solar Radiation Rate' => 'ss_trans_out',
+                   'Surface Inside Face Convection Heat Gain Energy' => 'ss_conv',
                    'Surface Inside Face Internal Gains Radiation Heat Gain Energy' => 'ss_ig',
-                   'Surface Inside Face Net Surface Thermal Radiation Heat Gain Energy' => 'ss_surf',
-                   'Surface Inside Face Solar Radiation Heat Gain Energy' => 'ss_sol',
-                   'Surface Inside Face Lights Radiation Heat Gain Energy' => 'ss_lgt' }
+                   'Surface Inside Face Net Surface Thermal Radiation Heat Gain Energy' => 'ss_surf' }
+        else
+          vars = { 'Surface Inside Face Solar Radiation Heat Gain Energy' => 'ss_sol',
+                   'Surface Inside Face Lights Radiation Heat Gain Energy' => 'ss_lgt',
+                   'Surface Inside Face Convection Heat Gain Energy' => 'ss_conv',
+                   'Surface Inside Face Internal Gains Radiation Heat Gain Energy' => 'ss_ig',
+                   'Surface Inside Face Net Surface Thermal Radiation Heat Gain Energy' => 'ss_surf' }
         end
 
         surfaces_sensors[key] << []
@@ -3791,9 +3801,10 @@ class OSModel
       surface_sensors.each do |sensors|
         s = "Set hr_#{k} = hr_#{k}"
         sensors.each do |sensor|
-          if sensor.name.to_s.start_with?('ss_net') || sensor.name.to_s.start_with?('ss_sol_abs')
+          # remove ss_net if switch
+          if sensor.name.to_s.start_with?('ss_net', 'ss_sol_abs', 'ss_trans_in')
             s += " - #{sensor.name}"
-          elsif sensor.name.to_s.start_with?('ss_sw_abs') || sensor.name.to_s.start_with?('ss_sol_out')
+          elsif sensor.name.to_s.start_with?('ss_sw_abs', 'ss_trans_out', 'ss_back_out')
             s += " + #{sensor.name} * ZoneTimestep * 3600"
           else
             s += " + #{sensor.name}"

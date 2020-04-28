@@ -1464,6 +1464,8 @@ def get_values(osw_file, step)
   return step
 end
 
+# frozen_string_literal: true
+
 def create_hpxmls
   this_dir = File.dirname(__FILE__)
   sample_files_dir = File.join(this_dir, 'workflow/sample_files')
@@ -1543,6 +1545,7 @@ def create_hpxmls
     'base-dhw-combi-tankless.xml' => 'base-dhw-indirect.xml',
     'base-dhw-combi-tankless-outside.xml' => 'base-dhw-combi-tankless.xml',
     'base-dhw-desuperheater.xml' => 'base-hvac-central-ac-only-1-speed.xml',
+    'base-dhw-desuperheater-hpwh.xml' => 'base-dhw-tank-heat-pump.xml',
     'base-dhw-desuperheater-tankless.xml' => 'base-hvac-central-ac-only-1-speed.xml',
     'base-dhw-desuperheater-2-speed.xml' => 'base-hvac-central-ac-only-2-speed.xml',
     'base-dhw-desuperheater-var-speed.xml' => 'base-hvac-central-ac-only-var-speed.xml',
@@ -1654,6 +1657,8 @@ def create_hpxmls
     'base-hvac-ground-to-air-heat-pump.xml' => 'base.xml',
     'base-hvac-ideal-air.xml' => 'base.xml',
     'base-hvac-mini-split-heat-pump-ducted.xml' => 'base.xml',
+    'base-hvac-mini-split-heat-pump-ducted-heating-only.xml' => 'base-hvac-mini-split-heat-pump-ducted.xml',
+    'base-hvac-mini-split-heat-pump-ducted-cooling-only.xml' => 'base-hvac-mini-split-heat-pump-ducted.xml',
     'base-hvac-mini-split-heat-pump-ductless.xml' => 'base-hvac-mini-split-heat-pump-ducted.xml',
     'base-hvac-mini-split-heat-pump-ductless-no-backup.xml' => 'base-hvac-mini-split-heat-pump-ductless.xml',
     'base-hvac-multiple.xml' => 'base.xml',
@@ -1662,6 +1667,7 @@ def create_hpxmls
     'base-hvac-portable-heater-electric-only.xml' => 'base.xml',
     'base-hvac-programmable-thermostat.xml' => 'base.xml',
     'base-hvac-room-ac-only.xml' => 'base.xml',
+    'base-hvac-room-ac-only-33percent.xml' => 'base-hvac-room-ac-only.xml',
     'base-hvac-setpoints.xml' => 'base.xml',
     'base-hvac-stove-oil-only.xml' => 'base.xml',
     'base-hvac-stove-wood-only.xml' => 'base.xml',
@@ -1725,77 +1731,6 @@ def create_hpxmls
     'hvac_autosizing/base-hvac-stove-oil-only-autosize.xml' => 'base-hvac-stove-oil-only.xml',
     'hvac_autosizing/base-hvac-wall-furnace-elec-only-autosize.xml' => 'base-hvac-wall-furnace-elec-only.xml',
     'hvac_autosizing/base-hvac-wall-furnace-propane-only-autosize.xml' => 'base-hvac-wall-furnace-propane-only.xml',
-
-    'hvac_base/base-base.xml' => 'base.xml',
-    'hvac_base/base-hvac-air-to-air-heat-pump-1-speed-base.xml' => 'base-hvac-air-to-air-heat-pump-1-speed.xml',
-    'hvac_base/base-hvac-air-to-air-heat-pump-2-speed-base.xml' => 'base-hvac-air-to-air-heat-pump-2-speed.xml',
-    'hvac_base/base-hvac-air-to-air-heat-pump-var-speed-base.xml' => 'base-hvac-air-to-air-heat-pump-var-speed.xml',
-    'hvac_base/base-hvac-boiler-gas-only-base.xml' => 'base-hvac-boiler-gas-only.xml',
-    'hvac_base/base-hvac-central-ac-only-1-speed-base.xml' => 'base-hvac-central-ac-only-1-speed.xml',
-    'hvac_base/base-hvac-central-ac-only-2-speed-base.xml' => 'base-hvac-central-ac-only-2-speed.xml',
-    'hvac_base/base-hvac-central-ac-only-var-speed-base.xml' => 'base-hvac-central-ac-only-var-speed.xml',
-    'hvac_base/base-hvac-dual-fuel-air-to-air-heat-pump-1-speed-base.xml' => 'base-hvac-dual-fuel-air-to-air-heat-pump-1-speed.xml',
-    'hvac_base/base-hvac-elec-resistance-only-base.xml' => 'base-hvac-elec-resistance-only.xml',
-    'hvac_base/base-hvac-evap-cooler-only-base.xml' => 'base-hvac-evap-cooler-only.xml',
-    'hvac_base/base-hvac-furnace-gas-central-ac-2-speed-base.xml' => 'base-hvac-furnace-gas-central-ac-2-speed.xml',
-    'hvac_base/base-hvac-furnace-gas-central-ac-var-speed-base.xml' => 'base-hvac-furnace-gas-central-ac-var-speed.xml',
-    'hvac_base/base-hvac-furnace-gas-only-base.xml' => 'base-hvac-furnace-gas-only.xml',
-    'hvac_base/base-hvac-furnace-gas-room-ac-base.xml' => 'base-hvac-furnace-gas-room-ac.xml',
-    'hvac_base/base-hvac-ground-to-air-heat-pump-base.xml' => 'base-hvac-ground-to-air-heat-pump.xml',
-    'hvac_base/base-hvac-ideal-air-base.xml' => 'base-hvac-ideal-air.xml',
-    'hvac_base/base-hvac-mini-split-heat-pump-ducted-base.xml' => 'base-hvac-mini-split-heat-pump-ducted.xml',
-    'hvac_base/base-hvac-room-ac-only-base.xml' => 'base-hvac-room-ac-only.xml',
-    'hvac_base/base-hvac-stove-oil-only-base.xml' => 'base-hvac-stove-oil-only.xml',
-    'hvac_base/base-hvac-wall-furnace-propane-only-base.xml' => 'base-hvac-wall-furnace-propane-only.xml',
-
-    'hvac_load_fracs/base-hvac-air-to-air-heat-pump-1-speed-zero-cool.xml' => 'base-hvac-air-to-air-heat-pump-1-speed.xml',
-    'hvac_load_fracs/base-hvac-air-to-air-heat-pump-1-speed-zero-heat.xml' => 'base-hvac-air-to-air-heat-pump-1-speed.xml',
-    'hvac_load_fracs/base-hvac-air-to-air-heat-pump-2-speed-zero-cool.xml' => 'base-hvac-air-to-air-heat-pump-2-speed.xml',
-    'hvac_load_fracs/base-hvac-air-to-air-heat-pump-2-speed-zero-heat.xml' => 'base-hvac-air-to-air-heat-pump-2-speed.xml',
-    'hvac_load_fracs/base-hvac-air-to-air-heat-pump-var-speed-zero-cool.xml' => 'base-hvac-air-to-air-heat-pump-var-speed.xml',
-    'hvac_load_fracs/base-hvac-air-to-air-heat-pump-var-speed-zero-heat.xml' => 'base-hvac-air-to-air-heat-pump-var-speed.xml',
-    'hvac_load_fracs/base-hvac-ground-to-air-heat-pump-zero-cool.xml' => 'base-hvac-ground-to-air-heat-pump.xml',
-    'hvac_load_fracs/base-hvac-ground-to-air-heat-pump-zero-heat.xml' => 'base-hvac-ground-to-air-heat-pump.xml',
-    'hvac_load_fracs/base-hvac-mini-split-heat-pump-ducted-zero-cool.xml' => 'base-hvac-mini-split-heat-pump-ducted.xml',
-    'hvac_load_fracs/base-hvac-mini-split-heat-pump-ducted-zero-heat.xml' => 'base-hvac-mini-split-heat-pump-ducted.xml',
-
-    'hvac_multiple/base-hvac-air-to-air-heat-pump-1-speed-x3.xml' => 'base-hvac-air-to-air-heat-pump-1-speed.xml',
-    'hvac_multiple/base-hvac-air-to-air-heat-pump-2-speed-x3.xml' => 'base-hvac-air-to-air-heat-pump-2-speed.xml',
-    'hvac_multiple/base-hvac-air-to-air-heat-pump-var-speed-x3.xml' => 'base-hvac-air-to-air-heat-pump-var-speed.xml',
-    'hvac_multiple/base-hvac-boiler-gas-only-x3.xml' => 'base-hvac-boiler-gas-only.xml',
-    'hvac_multiple/base-hvac-central-ac-only-1-speed-x3.xml' => 'base-hvac-central-ac-only-1-speed.xml',
-    'hvac_multiple/base-hvac-central-ac-only-2-speed-x3.xml' => 'base-hvac-central-ac-only-2-speed.xml',
-    'hvac_multiple/base-hvac-central-ac-only-var-speed-x3.xml' => 'base-hvac-central-ac-only-var-speed.xml',
-    'hvac_multiple/base-hvac-dual-fuel-air-to-air-heat-pump-1-speed-x3.xml' => 'base-hvac-dual-fuel-air-to-air-heat-pump-1-speed.xml',
-    'hvac_multiple/base-hvac-elec-resistance-only-x3.xml' => 'base-hvac-elec-resistance-only.xml',
-    'hvac_multiple/base-hvac-evap-cooler-only-x3.xml' => 'base-hvac-evap-cooler-only.xml',
-    'hvac_multiple/base-hvac-furnace-gas-only-x3.xml' => 'base-hvac-furnace-gas-only.xml',
-    'hvac_multiple/base-hvac-ground-to-air-heat-pump-x3.xml' => 'base-hvac-ground-to-air-heat-pump.xml',
-    'hvac_multiple/base-hvac-mini-split-heat-pump-ducted-x3.xml' => 'base-hvac-mini-split-heat-pump-ducted.xml',
-    'hvac_multiple/base-hvac-room-ac-only-x3.xml' => 'base-hvac-room-ac-only.xml',
-    'hvac_multiple/base-hvac-stove-oil-only-x3.xml' => 'base-hvac-stove-oil-only.xml',
-    'hvac_multiple/base-hvac-wall-furnace-propane-only-x3.xml' => 'base-hvac-wall-furnace-propane-only.xml',
-
-    'hvac_partial/base-33percent.xml' => 'base.xml',
-    'hvac_partial/base-hvac-air-to-air-heat-pump-1-speed-33percent.xml' => 'base-hvac-air-to-air-heat-pump-1-speed.xml',
-    'hvac_partial/base-hvac-air-to-air-heat-pump-2-speed-33percent.xml' => 'base-hvac-air-to-air-heat-pump-2-speed.xml',
-    'hvac_partial/base-hvac-air-to-air-heat-pump-var-speed-33percent.xml' => 'base-hvac-air-to-air-heat-pump-var-speed.xml',
-    'hvac_partial/base-hvac-boiler-gas-only-33percent.xml' => 'base-hvac-boiler-gas-only.xml',
-    'hvac_partial/base-hvac-central-ac-only-1-speed-33percent.xml' => 'base-hvac-central-ac-only-1-speed.xml',
-    'hvac_partial/base-hvac-central-ac-only-2-speed-33percent.xml' => 'base-hvac-central-ac-only-2-speed.xml',
-    'hvac_partial/base-hvac-central-ac-only-var-speed-33percent.xml' => 'base-hvac-central-ac-only-var-speed.xml',
-    'hvac_partial/base-hvac-dual-fuel-air-to-air-heat-pump-1-speed-33percent.xml' => 'base-hvac-dual-fuel-air-to-air-heat-pump-1-speed.xml',
-    'hvac_partial/base-hvac-elec-resistance-only-33percent.xml' => 'base-hvac-elec-resistance-only.xml',
-    'hvac_partial/base-hvac-evap-cooler-only-33percent.xml' => 'base-hvac-evap-cooler-only.xml',
-    'hvac_partial/base-hvac-furnace-gas-central-ac-2-speed-33percent.xml' => 'base-hvac-furnace-gas-central-ac-2-speed.xml',
-    'hvac_partial/base-hvac-furnace-gas-central-ac-var-speed-33percent.xml' => 'base-hvac-furnace-gas-central-ac-var-speed.xml',
-    'hvac_partial/base-hvac-furnace-gas-only-33percent.xml' => 'base-hvac-furnace-gas-only.xml',
-    'hvac_partial/base-hvac-furnace-gas-room-ac-33percent.xml' => 'base-hvac-furnace-gas-room-ac.xml',
-    'hvac_partial/base-hvac-ground-to-air-heat-pump-33percent.xml' => 'base-hvac-ground-to-air-heat-pump.xml',
-    'hvac_partial/base-hvac-mini-split-heat-pump-ducted-33percent.xml' => 'base-hvac-mini-split-heat-pump-ducted.xml',
-    'hvac_partial/base-hvac-room-ac-only-33percent.xml' => 'base-hvac-room-ac-only.xml',
-    'hvac_partial/base-hvac-stove-oil-only-33percent.xml' => 'base-hvac-stove-oil-only.xml',
-    'hvac_partial/base-hvac-wall-furnace-propane-only-33percent.xml' => 'base-hvac-wall-furnace-propane-only.xml',
   }
 
   puts "Generating #{hpxmls_files.size} HPXML files..."
@@ -1861,11 +1796,11 @@ def create_hpxmls
         set_hpxml_misc_load_schedule(hpxml_file, hpxml)
       end
 
-      hpxml_doc = hpxml.to_rexml()
+      hpxml_doc = hpxml.to_oga()
 
       if ['invalid_files/missing-elements.xml'].include? derivative
-        hpxml_doc.elements['/HPXML/Building/BuildingDetails/BuildingSummary/BuildingConstruction'].elements.delete('NumberofConditionedFloors')
-        hpxml_doc.elements['/HPXML/Building/BuildingDetails/BuildingSummary/BuildingConstruction'].elements.delete('ConditionedFloorArea')
+        XMLHelper.delete_element(hpxml_doc, '/HPXML/Building/BuildingDetails/BuildingSummary/BuildingConstruction/NumberofConditionedFloors')
+        XMLHelper.delete_element(hpxml_doc, '/HPXML/Building/BuildingDetails/BuildingSummary/BuildingConstruction/ConditionedFloorArea')
       end
 
       hpxml_path = File.join(sample_files_dir, derivative)
@@ -3334,7 +3269,12 @@ def set_hpxml_heating_systems(hpxml_file, hpxml)
     hpxml.heating_systems[2].distribution_system_idref = 'HVACDistribution3'
     for i in 0..2
       hpxml.heating_systems[i].heating_capacity /= 3.0
-      hpxml.heating_systems[i].fraction_heat_load_served = 0.333
+      # Test a file where sum is slightly greater than 1
+      if i < 2
+        hpxml.heating_systems[i].fraction_heat_load_served = 0.33
+      else
+        hpxml.heating_systems[i].fraction_heat_load_served = 0.35
+      end
     end
   elsif ['invalid_files/unattached-hvac-distribution.xml'].include? hpxml_file
     hpxml.heating_systems[0].distribution_system_idref = 'foobar'
@@ -3350,29 +3290,6 @@ def set_hpxml_heating_systems(hpxml_file, hpxml)
     hpxml.heating_systems[0].heating_cfm = hpxml.heating_systems[0].heating_capacity * 360.0 / 12000.0
   elsif hpxml_file.include?('hvac_autosizing') && (not hpxml.heating_systems.nil?) && (hpxml.heating_systems.size > 0)
     hpxml.heating_systems[0].heating_capacity = -1
-  elsif hpxml_file.include?('-zero-heat.xml') && (not hpxml.heating_systems.nil?) && (hpxml.heating_systems.size > 0)
-    hpxml.heating_systems[0].fraction_heat_load_served = 0
-    hpxml.heating_systems[0].heating_capacity = 0
-  elsif hpxml_file.include?('hvac_multiple') && (not hpxml.heating_systems.nil?) && (hpxml.heating_systems.size > 0)
-    hpxml.heating_systems[0].heating_capacity /= 3.0
-    hpxml.heating_systems[0].fraction_heat_load_served = 0.333
-    hpxml.heating_systems[0].electric_auxiliary_energy /= 3.0 unless hpxml.heating_systems[0].electric_auxiliary_energy.nil?
-    hpxml.heating_systems << hpxml.heating_systems[0].dup
-    hpxml.heating_systems[1].id = 'HeatingSystem2'
-    hpxml.heating_systems[1].distribution_system_idref = 'HVACDistribution2' unless hpxml.heating_systems[1].distribution_system_idref.nil?
-    hpxml.heating_systems << hpxml.heating_systems[0].dup
-    hpxml.heating_systems[2].id = 'HeatingSystem3'
-    hpxml.heating_systems[2].distribution_system_idref = 'HVACDistribution3' unless hpxml.heating_systems[2].distribution_system_idref.nil?
-    if ['hvac_multiple/base-hvac-boiler-gas-only-x3.xml'].include? hpxml_file
-      # Test a file where sum is slightly greater than 1
-      hpxml.heating_systems[0].fraction_heat_load_served = 0.33
-      hpxml.heating_systems[1].fraction_heat_load_served = 0.33
-      hpxml.heating_systems[2].fraction_heat_load_served = 0.35
-    end
-  elsif hpxml_file.include?('hvac_partial') && (not hpxml.heating_systems.nil?) && (hpxml.heating_systems.size > 0)
-    hpxml.heating_systems[0].heating_capacity /= 3.0
-    hpxml.heating_systems[0].fraction_heat_load_served = 0.333
-    hpxml.heating_systems[0].electric_auxiliary_energy /= 3.0 unless hpxml.heating_systems[0].electric_auxiliary_energy.nil?
   end
 end
 
@@ -3432,6 +3349,8 @@ def set_hpxml_cooling_systems(hpxml_file, hpxml)
     hpxml.cooling_systems[0].cooling_efficiency_eer = 8.5
     hpxml.cooling_systems[0].cooling_shr = 0.65
     hpxml.cooling_systems[0].compressor_type = nil
+  elsif ['base-hvac-room-ac-only-33percent.xml'].include? hpxml_file
+    hpxml.cooling_systems[0].fraction_cool_load_served = 0.33
   elsif ['base-hvac-evap-cooler-only-ducted.xml',
          'base-hvac-evap-cooler-furnace-gas.xml',
          'base-hvac-evap-cooler-only.xml',
@@ -3473,21 +3392,6 @@ def set_hpxml_cooling_systems(hpxml_file, hpxml)
     hpxml.cooling_systems[0].compressor_type = nil
   elsif hpxml_file.include?('hvac_autosizing') && (not hpxml.cooling_systems.nil?) && (hpxml.cooling_systems.size > 0)
     hpxml.cooling_systems[0].cooling_capacity = -1
-  elsif hpxml_file.include?('-zero-cool.xml') && (not hpxml.cooling_systems.nil?) && (hpxml.cooling_systems.size > 0)
-    hpxml.cooling_systems[0].fraction_cool_load_served = 0
-    hpxml.cooling_systems[0].cooling_capacity = 0
-  elsif hpxml_file.include?('hvac_multiple') && (not hpxml.cooling_systems.nil?) && (hpxml.cooling_systems.size > 0)
-    hpxml.cooling_systems[0].cooling_capacity /= 3.0 unless hpxml.cooling_systems[0].cooling_capacity.nil?
-    hpxml.cooling_systems[0].fraction_cool_load_served = 0.333
-    hpxml.cooling_systems << hpxml.cooling_systems[0].dup
-    hpxml.cooling_systems[1].id = 'CoolingSystem2'
-    hpxml.cooling_systems[1].distribution_system_idref = 'HVACDistribution2' unless hpxml.cooling_systems[1].distribution_system_idref.nil?
-    hpxml.cooling_systems << hpxml.cooling_systems[0].dup
-    hpxml.cooling_systems[2].id = 'CoolingSystem3'
-    hpxml.cooling_systems[2].distribution_system_idref = 'HVACDistribution3' unless hpxml.cooling_systems[2].distribution_system_idref.nil?
-  elsif hpxml_file.include?('hvac_partial') && (not hpxml.cooling_systems.nil?) && (hpxml.cooling_systems.size > 0)
-    hpxml.cooling_systems[0].cooling_capacity /= 3.0 unless hpxml.cooling_systems[0].cooling_capacity.nil?
-    hpxml.cooling_systems[0].fraction_cool_load_served = 0.333
   end
 end
 
@@ -3579,6 +3483,14 @@ def set_hpxml_heat_pumps(hpxml_file, hpxml)
                          cooling_efficiency_seer: 19,
                          heating_capacity_17F: 52000 * f,
                          cooling_shr: 0.73)
+  elsif ['base-hvac-mini-split-heat-pump-ducted-heating-only.xml'].include? hpxml_file
+    hpxml.heat_pumps[0].cooling_capacity = 0
+    hpxml.heat_pumps[0].fraction_cool_load_served = 0
+  elsif ['base-hvac-mini-split-heat-pump-ducted-cooling-only.xml'].include? hpxml_file
+    hpxml.heat_pumps[0].heating_capacity = 0
+    hpxml.heat_pumps[0].heating_capacity_17F = 0
+    hpxml.heat_pumps[0].fraction_heat_load_served = 0
+    hpxml.heat_pumps[0].backup_heating_fuel = nil
   elsif ['base-hvac-mini-split-heat-pump-ductless.xml'].include? hpxml_file
     hpxml.heat_pumps[0].distribution_system_idref = nil
   elsif ['base-hvac-mini-split-heat-pump-ductless-no-backup.xml'].include? hpxml_file
@@ -3660,34 +3572,6 @@ def set_hpxml_heat_pumps(hpxml_file, hpxml)
     hpxml.heat_pumps[0].heating_capacity = -1
     hpxml.heat_pumps[0].heating_capacity_17F = nil
     hpxml.heat_pumps[0].backup_heating_capacity = -1
-  elsif hpxml_file.include?('-zero-heat.xml') && (not hpxml.heat_pumps.nil?) && (hpxml.heat_pumps.size > 0)
-    hpxml.heat_pumps[0].fraction_heat_load_served = 0
-    hpxml.heat_pumps[0].heating_capacity = 0
-    hpxml.heat_pumps[0].heating_capacity_17F = 0
-    hpxml.heat_pumps[0].backup_heating_capacity = 0
-  elsif hpxml_file.include?('-zero-cool.xml') && (not hpxml.heat_pumps.nil?) && (hpxml.heat_pumps.size > 0)
-    hpxml.heat_pumps[0].fraction_cool_load_served = 0
-    hpxml.heat_pumps[0].cooling_capacity = 0
-  elsif hpxml_file.include?('hvac_multiple') && (not hpxml.heat_pumps.nil?) && (hpxml.heat_pumps.size > 0)
-    hpxml.heat_pumps[0].cooling_capacity /= 3.0
-    hpxml.heat_pumps[0].heating_capacity /= 3.0
-    hpxml.heat_pumps[0].heating_capacity_17F /= 3.0 unless hpxml.heat_pumps[0].heating_capacity_17F.nil?
-    hpxml.heat_pumps[0].backup_heating_capacity /= 3.0
-    hpxml.heat_pumps[0].fraction_heat_load_served = 0.333
-    hpxml.heat_pumps[0].fraction_cool_load_served = 0.333
-    hpxml.heat_pumps << hpxml.heat_pumps[0].dup
-    hpxml.heat_pumps[1].id = 'HeatPump2'
-    hpxml.heat_pumps[1].distribution_system_idref = 'HVACDistribution2' unless hpxml.heat_pumps[1].distribution_system_idref.nil?
-    hpxml.heat_pumps << hpxml.heat_pumps[0].dup
-    hpxml.heat_pumps[2].id = 'HeatPump3'
-    hpxml.heat_pumps[2].distribution_system_idref = 'HVACDistribution3' unless hpxml.heat_pumps[2].distribution_system_idref.nil?
-  elsif hpxml_file.include?('hvac_partial') && (not hpxml.heat_pumps.nil?) && (hpxml.heat_pumps.size > 0)
-    hpxml.heat_pumps[0].cooling_capacity /= 3.0
-    hpxml.heat_pumps[0].heating_capacity /= 3.0
-    hpxml.heat_pumps[0].heating_capacity_17F /= 3.0 unless hpxml.heat_pumps[0].heating_capacity_17F.nil?
-    hpxml.heat_pumps[0].backup_heating_capacity /= 3.0
-    hpxml.heat_pumps[0].fraction_heat_load_served = 0.333
-    hpxml.heat_pumps[0].fraction_cool_load_served = 0.333
   end
 end
 
@@ -3889,22 +3773,6 @@ def set_hpxml_hvac_distributions(hpxml_file, hpxml)
       hpxml.hvac_distributions[0].duct_leakage_measurements[0].duct_leakage_value = 1.5
       hpxml.hvac_distributions[0].duct_leakage_measurements[1].duct_leakage_value = 1.5
     end
-  elsif (hpxml_file.include?('hvac_partial') || hpxml_file.include?('hvac_base')) && (not hpxml.hvac_distributions.empty?)
-    if not hpxml.hvac_distributions[0].duct_leakage_measurements.empty?
-      hpxml.hvac_distributions[0].duct_leakage_measurements[0].duct_leakage_value = 0.0
-      hpxml.hvac_distributions[0].duct_leakage_measurements[1].duct_leakage_value = 0.0
-    end
-    hpxml.hvac_distributions[0].ducts.clear()
-  elsif hpxml_file.include?('hvac_multiple') && (not hpxml.hvac_distributions.empty?)
-    hpxml.hvac_distributions[0].ducts.clear()
-    if not hpxml.hvac_distributions[0].duct_leakage_measurements.empty?
-      hpxml.hvac_distributions[0].duct_leakage_measurements[0].duct_leakage_value = 0.0
-      hpxml.hvac_distributions[0].duct_leakage_measurements[1].duct_leakage_value = 0.0
-    end
-    hpxml.hvac_distributions << hpxml.hvac_distributions[0].dup
-    hpxml.hvac_distributions[1].id = 'HVACDistribution2'
-    hpxml.hvac_distributions << hpxml.hvac_distributions[0].dup
-    hpxml.hvac_distributions[2].id = 'HVACDistribution3'
   elsif ['invalid_files/hvac-invalid-distribution-system-type.xml'].include? hpxml_file
     hpxml.hvac_distributions.add(id: 'HVACDistribution2',
                                  distribution_system_type: HPXML::HVACDistributionTypeHydronic)
@@ -4151,7 +4019,10 @@ def set_hpxml_water_heating_systems(hpxml_file, hpxml)
   elsif ['base-dhw-uef.xml'].include? hpxml_file
     hpxml.water_heating_systems[0].energy_factor = nil
     hpxml.water_heating_systems[0].uniform_energy_factor = 0.93
-  elsif ['base-dhw-desuperheater.xml'].include? hpxml_file
+  elsif ['base-dhw-desuperheater.xml',
+         'base-dhw-desuperheater-2-speed.xml',
+         'base-dhw-desuperheater-var-speed.xml',
+         'base-dhw-desuperheater-hpwh.xml'].include? hpxml_file
     hpxml.water_heating_systems[0].uses_desuperheater = true
     hpxml.water_heating_systems[0].related_hvac_idref = 'CoolingSystem'
   elsif ['base-dhw-desuperheater-tankless.xml'].include? hpxml_file
@@ -4159,12 +4030,6 @@ def set_hpxml_water_heating_systems(hpxml_file, hpxml)
     hpxml.water_heating_systems[0].tank_volume = nil
     hpxml.water_heating_systems[0].heating_capacity = nil
     hpxml.water_heating_systems[0].energy_factor = 0.99
-    hpxml.water_heating_systems[0].uses_desuperheater = true
-    hpxml.water_heating_systems[0].related_hvac_idref = 'CoolingSystem'
-  elsif ['base-dhw-desuperheater-2-speed.xml'].include? hpxml_file
-    hpxml.water_heating_systems[0].uses_desuperheater = true
-    hpxml.water_heating_systems[0].related_hvac_idref = 'CoolingSystem'
-  elsif ['base-dhw-desuperheater-var-speed.xml'].include? hpxml_file
     hpxml.water_heating_systems[0].uses_desuperheater = true
     hpxml.water_heating_systems[0].related_hvac_idref = 'CoolingSystem'
   elsif ['base-dhw-desuperheater-gshp.xml'].include? hpxml_file
@@ -4800,8 +4665,9 @@ if ARGV[0].to_sym == :update_measures
   # Apply rubocop
   cops = ['Layout',
           'Lint/DeprecatedClassMethods',
-          'Lint/StringConversionInInterpolation',
+          # 'Lint/RedundantStringCoercion', # Enable when rubocop is upgraded
           'Style/AndOr',
+          'Style/FrozenStringLiteralComment',
           'Style/HashSyntax',
           'Style/Next',
           'Style/NilComparison',
@@ -4855,8 +4721,8 @@ if ARGV[0].to_sym == :download_weather
 end
 
 if ARGV[0].to_sym == :update_version
-  version_change = { from: '0.7.0',
-                     to: '0.8.0' }
+  version_change = { from: '0.8.0',
+                     to: '0.9.0' }
 
   file_names = ['workflow/run_simulation.rb']
 

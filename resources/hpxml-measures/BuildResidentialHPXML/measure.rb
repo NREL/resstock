@@ -2096,7 +2096,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     require_relative '../HPXMLtoOpenStudio/measure'
 
     # Check for correct versions of OS
-    os_version = '2.9.1'
+    os_version = '3.0.0'
     if OpenStudio.openStudioVersion != os_version
       fail "OpenStudio version #{os_version} is required."
     end
@@ -2547,7 +2547,7 @@ class HPXMLFile
       fail "ERROR: Invalid HPXML object produced.\n#{errors}"
     end
 
-    hpxml_doc = hpxml.to_rexml()
+    hpxml_doc = hpxml.to_oga()
 
     return hpxml_doc
   end
