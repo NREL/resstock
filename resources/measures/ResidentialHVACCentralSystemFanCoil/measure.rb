@@ -46,6 +46,13 @@ class ProcessCentralSystemFanCoil < OpenStudio::Measure::ModelMeasure
     central_boiler_fuel_type.setDefaultValue(Constants.FuelTypeGas)
     args << central_boiler_fuel_type
 
+    # make a bool argument for open hvac flue
+    has_hvac_flue = OpenStudio::Measure::OSArgument::makeBoolArgument("has_hvac_flue", true)
+    has_hvac_flue.setDisplayName("Air Leakage: Has Open HVAC Flue")
+    has_hvac_flue.setDescription("Specifies whether the building has an open flue associated with the HVAC system.")
+    has_hvac_flue.setDefaultValue(true)
+    args << has_hvac_flue
+
     return args
   end
 
@@ -62,6 +69,9 @@ class ProcessCentralSystemFanCoil < OpenStudio::Measure::ModelMeasure
 
     fan_coil_heating = runner.getBoolArgumentValue("fan_coil_heating", user_arguments)
     central_boiler_fuel_type = HelperMethods.eplus_fuel_map(runner.getStringArgumentValue("central_boiler_fuel_type", user_arguments))
+    if fan_coil_heating
+      model.getBuilding.additionalProperties.setFeature("has_hvac_flue", runner.getBoolArgumentValue("has_hvac_flue", user_arguments))
+    end
 
     std = Standard.build("90.1-2013")
 
