@@ -79,6 +79,13 @@ class ProcessUnitHeater < OpenStudio::Measure::ModelMeasure
     capacity.setDefaultValue(Constants.SizingAuto)
     args << capacity
 
+    # make a bool argument for open hvac flue
+    has_hvac_flue = OpenStudio::Measure::OSArgument::makeBoolArgument("has_hvac_flue", true)
+    has_hvac_flue.setDisplayName("Air Leakage: Has Open HVAC Flue")
+    has_hvac_flue.setDescription("Specifies whether the building has an open flue associated with the HVAC system.")
+    has_hvac_flue.setDefaultValue(true)
+    args << has_hvac_flue
+
     return args
   end # end the arguments method
 
@@ -99,6 +106,7 @@ class ProcessUnitHeater < OpenStudio::Measure::ModelMeasure
     end
     fan_power = runner.getDoubleArgumentValue("fan_power", user_arguments)
     airflow_rate = runner.getDoubleArgumentValue("airflow_rate", user_arguments)
+    model.getBuilding.additionalProperties.setFeature("has_hvac_flue", runner.getBoolArgumentValue("has_hvac_flue", user_arguments))
     frac_heat_load_served = 1.0
 
     # Get building units

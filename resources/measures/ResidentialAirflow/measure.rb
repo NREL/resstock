@@ -92,13 +92,6 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
     shelter_coef.setDefaultValue("auto")
     args << shelter_coef
 
-    # make a double argument for open hvac flue
-    has_hvac_flue = OpenStudio::Measure::OSArgument::makeBoolArgument("has_hvac_flue", true)
-    has_hvac_flue.setDisplayName("Air Leakage: Has Open HVAC Flue")
-    has_hvac_flue.setDescription("Specifies whether the building has an open flue associated with the HVAC system.")
-    has_hvac_flue.setDefaultValue(false)
-    args << has_hvac_flue
-
     # make a double argument for open water heater flue
     has_water_heater_flue = OpenStudio::Measure::OSArgument::makeBoolArgument("has_water_heater_flue", true)
     has_water_heater_flue.setDisplayName("Air Leakage: Has Open Water Heater Flue")
@@ -444,7 +437,10 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
     unfinished_basement_ach = runner.getDoubleArgumentValue("unfinished_basement_ach", user_arguments)
     unfinished_attic_sla = runner.getDoubleArgumentValue("unfinished_attic_sla", user_arguments)
     shelter_coef = runner.getStringArgumentValue("shelter_coef", user_arguments)
-    has_hvac_flue = runner.getBoolArgumentValue("has_hvac_flue", user_arguments)
+    has_hvac_flue = false
+    if model.getBuilding.additionalProperties.getFeatureAsBoolean("has_hvac_flue").is_initialized
+      has_hvac_flue = model.getBuilding.additionalProperties.getFeatureAsBoolean("has_hvac_flue").get
+    end
     has_water_heater_flue = runner.getBoolArgumentValue("has_water_heater_flue", user_arguments)
     has_fireplace_chimney = runner.getBoolArgumentValue("has_fireplace_chimney", user_arguments)
     terrain = runner.getStringArgumentValue("terrain", user_arguments)
