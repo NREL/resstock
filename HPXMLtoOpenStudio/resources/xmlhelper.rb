@@ -1,18 +1,15 @@
-require 'rexml/document'
-require 'rexml/xpath'
+# frozen_string_literal: true
+
+require 'oga'
 
 class XMLHelper
   # Adds the child element with 'element_name' and sets its value. Returns the
   # child element.
   def self.add_element(parent, element_name, value = nil)
-    added = nil
-    element_name.split('/').each do |name|
-      added = REXML::Element.new(name)
-      parent << added
-      parent = added
-    end
+    added = Oga::XML::Element.new(name: element_name)
+    parent.children << added
     if not value.nil?
-      added.text = value
+      added.inner_text = value.to_s
     end
     return added
   end
@@ -23,10 +20,10 @@ class XMLHelper
   def self.create_elements_as_needed(parent, element_names)
     this_parent = parent
     element_names.each do |element_name|
-      if this_parent.elements[element_name].nil?
+      if XMLHelper.get_element(this_parent, element_name).nil?
         XMLHelper.add_element(this_parent, element_name)
       end
-      this_parent = this_parent.elements[element_name]
+      this_parent = XMLHelper.get_element(this_parent, element_name)
     end
     return this_parent
   end
@@ -36,14 +33,14 @@ class XMLHelper
     element = nil
     begin
       last_element = element
-      element = parent.elements.delete(element_name)
-    end while !element.nil?
+      element = parent.at_xpath(element_name).remove
+    end while !parent.at_xpath(element_name).nil?
     return last_element
   end
 
   # Returns the value of 'element_name' in the parent element or nil.
   def self.get_value(parent, element_name)
-    val = parent.elements[element_name]
+    val = parent.at_xpath(element_name)
     if val.nil?
       return val
     end
@@ -54,34 +51,53 @@ class XMLHelper
   # Returns the value(s) of 'element_name' in the parent element or [].
   def self.get_values(parent, element_name)
     vals = []
-    parent.elements.each(element_name) do |val|
+    parent.xpath(element_name).each do |val|
       vals << val.text
     end
 
     return vals
   end
 
+  # Returns the element in the parent element.
+  def self.get_element(parent, element_name)
+    return parent.at_xpath(element_name)
+  end
+
+  # Returns the element in the parent element.
+  def self.get_elements(parent, element_name)
+    return parent.xpath(element_name)
+  end
+
   # Returns the name of the first child element of the 'element_name'
   # element on the parent element.
   def self.get_child_name(parent, element_name)
-    begin
-      return parent.elements[element_name].elements[1].name
-    rescue
+    element = parent.at_xpath(element_name)
+    return if element.nil? || element.children.nil?
+
+    element.children.each do |child|
+      next unless child.is_a? Oga::XML::Element
+
+      return child.name
     end
-    return
   end
 
   # Returns true if the element exists.
   def self.has_element(parent, element_name)
-    element = REXML::XPath.first(parent, element_name)
+    element = parent.at_xpath(element_name)
     return !element.nil?
   end
 
   # Returns the attribute added
   def self.add_attribute(element, attr_name, attr_val)
     attr_val = valid_attr(attr_val).to_s
-    added = element.add_attribute(attr_name, attr_val)
+    added = element.set(attr_name, attr_val)
     return added
+  end
+
+  # Returns the value of the attribute
+  def self.get_attribute_value(element, attr_name)
+    return if element.nil?
+    return element.get(attr_name)
   end
 
   def self.valid_attr(attr)
@@ -95,7 +111,7 @@ class XMLHelper
   def self.copy_element(dest, src, element_name, backup_val = nil)
     return if src.nil?
 
-    element = src.elements[element_name]
+    element = src.at_xpath(element_name)
     if not element.nil?
       dest << element.dup
     elsif not backup_val.nil?
@@ -108,8 +124,8 @@ class XMLHelper
   def self.copy_elements(dest, src, element_name)
     return if src.nil?
 
-    if not src.elements[element_name].nil?
-      src.elements.each(element_name) do |el|
+    if not src.xpath(element_name).nil?
+      src.xpath(element_name).each do |el|
         dest << el.dup
       end
     end
@@ -130,25 +146,57 @@ class XMLHelper
   end
 
   def self.create_doc(version = nil, encoding = nil, standalone = nil)
-    doc = REXML::Document.new
-    decl = REXML::XMLDecl.new(version = version, encoding = encoding, standalone = standalone)
-    doc << decl
+    doc = Oga::XML::Document.new(xml_declaration: Oga::XML::XmlDeclaration.new(version: version, encoding: encoding, standalone: standalone)) # Oga.parse_xml
     return doc
   end
 
   def self.parse_file(hpxml_path)
     file_read = File.read(hpxml_path)
-    hpxml_doc = REXML::Document.new(file_read)
+    hpxml_doc = Oga.parse_xml(file_read)
     return hpxml_doc
   end
 
   def self.write_file(doc, out_path)
+    doc_s = doc.to_xml
+
+    # Manually apply pretty-printing (indentation and newlines)
+    # Can remove if https://gitlab.com/yorickpeterse/oga/-/issues/75 is implemented
+    curr_pos = 1
+    level = -1
+    indents = {}
+    while true
+      open_pos = doc_s.index('<', curr_pos)
+      close_pos = nil
+      if not open_pos.nil?
+        close_pos1 = doc_s.index('</', curr_pos)
+        close_pos2 = doc_s.index('/>', curr_pos)
+        close_pos1 = Float::MAX if close_pos1.nil?
+        close_pos2 = Float::MAX if close_pos2.nil?
+        close_pos = [close_pos1, close_pos2].min
+      end
+      break if open_pos.nil? && close_pos.nil?
+
+      if close_pos <= open_pos
+        indents[close_pos] = level if doc_s[close_pos - 1] == '>'
+        level -= 1
+        curr_pos = close_pos + 1
+      elsif open_pos < close_pos
+        level += 1
+        indents[open_pos] = level unless level == 0
+        curr_pos = open_pos + 1
+      end
+    end
+    indents.reverse_each do |pos, level|
+      doc_s.insert(pos, "\n#{'  ' * level}")
+    end
+    # Retain REXML-styling
+    doc_s.gsub!('"', "'")
+    doc_s.gsub!(' />', '/>')
+    doc_s.gsub!(' ?>', '?>')
+
     # Write XML file
-    formatter = REXML::Formatters::Pretty.new(2)
-    formatter.compact = true
-    formatter.width = 1000
     File.open(out_path, 'w', newline: :crlf) do |f|
-      formatter.write(doc, f)
+      f << doc_s
     end
   end
 end

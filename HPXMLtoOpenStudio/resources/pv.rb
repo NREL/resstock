@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class PV
   def self.apply(model, obj_name, size_w, module_type, system_losses,
                  inverter_eff, tilt_abs, azimuth_abs, array_type)

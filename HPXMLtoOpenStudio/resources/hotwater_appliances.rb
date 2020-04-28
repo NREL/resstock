@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative 'constants'
 require_relative 'weather'
 
@@ -132,58 +134,42 @@ class HotWaterAndAppliances
     end
 
     if not dist_type.nil?
-      # Fixtures (showers, sinks, baths) + distribution losses
+      # Fixtures (showers, sinks, baths) + distribution waste
       fx_gpd = get_fixtures_gpd(eri_version, nbeds, fixtures_all_low_flow, daily_mw_fractions)
-      w_gpd = get_dist_waste_gpd(eri_version, nbeds, has_uncond_bsmnt, cfa, ncfl, dist_type, pipe_r, std_pipe_length, recirc_branch_length, fixtures_all_low_flow)
-      fx_sens_btu, fx_lat_btu = get_fixtures_gains_sens_lat(nbeds)
-
       fx_gpd *= fixtures_usage_multiplier
-      w_gpd *= fixtures_usage_multiplier
-      fx_sens_btu *= fixtures_usage_multiplier
-      fx_lat_btu *= fixtures_usage_multiplier
-
-      disaggregate_sinks_showers_baths = false
-      if disaggregate_sinks_showers_baths
-        fx_names = [Constants.ObjectNameShower,
-                    Constants.ObjectNameSink,
-                    Constants.ObjectNameBath]
-      else
-        fx_names = [Constants.ObjectNameFixtures]
-      end
-
-      fx_schedules = {}
-      fx_names.each do |fx_name|
-        fx_schedules[fx_name] = HotWaterSchedule.new(model, fx_name, nbeds)
-      end
-
-      # Calculate sum_total_flow
-      sum_total_flow = 0.0
-      fx_schedules.each do |fx_name, fx_schedule|
-        sum_total_flow += fx_schedule.totalFlow
-      end
+      w_gpd = get_dist_waste_gpd(eri_version, nbeds, has_uncond_bsmnt, cfa, ncfl, dist_type, pipe_r, std_pipe_length, recirc_branch_length, fixtures_all_low_flow)
+      w_gpd *= fixtures_usage_multiplier # Fixture draws are the reason for most distribution waste, so scale this too
 
       mw_schedule = OpenStudio::Model::ScheduleConstant.new(model)
       mw_schedule.setValue(UnitConversions.convert(t_mix, 'F', 'C'))
       Schedule.set_schedule_type_limits(model, mw_schedule, Constants.ScheduleTypeLimitsTemperature)
 
-      fx_schedules.each do |fx_name, fx_schedule|
-        fx_name_sens = "#{fx_name} Sensible"
-        fx_name_lat = "#{fx_name} Latent"
+      water_name = Constants.ObjectNameWater
+      water_schedule = HotWaterSchedule.new(model, Constants.ObjectNameFixtures, nbeds)
 
-        fx_schedule = fx_schedules[fx_name]
-        fx_frac = fx_schedule.totalFlow / sum_total_flow
-
-        fx_peak_flow = fx_schedule.calcPeakFlowFromDailygpm((fx_gpd + w_gpd) * fx_frac)
-        fx_design_level_sens = fx_schedule.calcDesignLevelFromDailykWh(UnitConversions.convert(fx_sens_btu * fx_frac, 'Btu', 'kWh') / 365.0)
-        fx_design_level_lat = fx_schedule.calcDesignLevelFromDailykWh(UnitConversions.convert(fx_lat_btu * fx_frac, 'Btu', 'kWh') / 365.0)
-
-        dhw_loop_fracs.each do |sys_id, dhw_load_frac|
-          dhw_loop = dhw_loops[sys_id]
-          add_water_use_equipment(model, fx_name, fx_peak_flow * dhw_load_frac, fx_schedule.schedule, mw_schedule, water_use_connections[dhw_loop])
-        end
-        add_other_equipment(model, fx_name_sens, living_space, fx_design_level_sens, 1.0, 0.0, fx_schedule.schedule, nil)
-        add_other_equipment(model, fx_name_lat, living_space, fx_design_level_lat, 0.0, 1.0, fx_schedule.schedule, nil)
+      # Fixtures
+      fx_name = Constants.ObjectNameFixtures
+      fx_peak_flow = water_schedule.calcPeakFlowFromDailygpm(fx_gpd)
+      dhw_loop_fracs.each do |sys_id, dhw_load_frac|
+        dhw_loop = dhw_loops[sys_id]
+        add_water_use_equipment(model, fx_name, fx_peak_flow * dhw_load_frac, water_schedule.schedule, mw_schedule, water_use_connections[dhw_loop])
       end
+
+      # Distribution waste
+      dist_water_name = Constants.ObjectNameDistributionWaste
+      dist_water_peak_flow = water_schedule.calcPeakFlowFromDailygpm(w_gpd)
+      dhw_loop_fracs.each do |sys_id, dhw_load_frac|
+        dhw_loop = dhw_loops[sys_id]
+        add_water_use_equipment(model, dist_water_name, dist_water_peak_flow * dhw_load_frac, water_schedule.schedule, mw_schedule, water_use_connections[dhw_loop])
+      end
+
+      # Internal gains
+      # Floor mopping, shower evaporation, water films on showers, tubs & sinks surfaces, plant watering, etc.
+      water_sens_btu, water_lat_btu = get_water_gains_sens_lat(nbeds)
+      water_design_level_sens = water_schedule.calcDesignLevelFromDailykWh(UnitConversions.convert(water_sens_btu, 'Btu', 'kWh') / 365.0)
+      water_design_level_lat = water_schedule.calcDesignLevelFromDailykWh(UnitConversions.convert(water_lat_btu, 'Btu', 'kWh') / 365.0)
+      add_other_equipment(model, "#{water_name} Sensible", living_space, water_design_level_sens, 1.0, 0.0, water_schedule.schedule, nil)
+      add_other_equipment(model, "#{water_name} Latent", living_space, water_design_level_lat, 0.0, 1.0, water_schedule.schedule, nil)
 
       # Recirculation pump
       dist_pump_annual_kwh = get_hwdist_recirc_pump_energy(dist_type, recirc_control_type, recirc_pump_power)
@@ -700,7 +686,7 @@ class HotWaterAndAppliances
     return f_eff * ref_f_gpd
   end
 
-  def self.get_fixtures_gains_sens_lat(nbeds)
+  def self.get_water_gains_sens_lat(nbeds)
     # Table 4.2.2(3). Internal Gains for Reference Homes
     sens_gains = -1227.0 - 409.0 * nbeds # Btu/day
     lat_gains = 1245.0 + 415.0 * nbeds # Btu/day

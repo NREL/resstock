@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative 'constants'
 require_relative 'unit_conversions'
 
@@ -421,11 +423,11 @@ end
 class Liquid
   def initialize(rho, cp, k, mu, h_fg, t_frz, t_boil, t_crit)
     @rho = rho # Density (lb/ft3)
-    @cp     = cp        # Specific Heat (Btu/lbm-R)
-    @k      = k         # Thermal Conductivity (Btu/h-ft-R)
-    @mu     = mu        # Dynamic Viscosity (lbm/ft-h)
-    @h_fg   = h_fg      # Latent Heat of Vaporization (Btu/lbm)
-    @t_frz  = t_frz     # Freezing Temperature (degF)
+    @cp = cp # Specific Heat (Btu/lbm-R)
+    @k = k # Thermal Conductivity (Btu/h-ft-R)
+    @mu = mu # Dynamic Viscosity (lbm/ft-h)
+    @h_fg = h_fg # Latent Heat of Vaporization (Btu/lbm)
+    @t_frz = t_frz # Freezing Temperature (degF)
     @t_boil = t_boil    # Boiling Temperature (degF)
     @t_crit = t_crit    # Critical Temperature (degF)
   end
@@ -446,10 +448,10 @@ end
 class Gas
   def initialize(rho, cp, k, mu, m)
     @rho = rho # Density (lb/ft3)
-    @cp     = cp            # Specific Heat (Btu/lbm-R)
-    @k      = k             # Thermal Conductivity (Btu/h-ft-R)
-    @mu     = mu            # Dynamic Viscosity (lbm/ft-h)
-    @m      = m             # Molecular Weight (lbm/lbmol)
+    @cp = cp # Specific Heat (Btu/lbm-R)
+    @k = k # Thermal Conductivity (Btu/h-ft-R)
+    @mu = mu # Dynamic Viscosity (lbm/ft-h)
+    @m = m # Molecular Weight (lbm/lbmol)
     if @m
       gas_constant = 1.9858 # Gas Constant (Btu/lbmol-R)
       @r = gas_constant / m # Gas Constant (Btu/lbm-R)

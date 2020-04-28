@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative 'constants'
 require_relative 'unit_conversions'
 require_relative 'schedules'
@@ -1664,12 +1666,12 @@ class Airflow
       infil_program.addLine("Set ERVSupInTemp = #{tout_sensor.name}") # oa db temperature
       infil_program.addLine("Set ERVSupInW = #{wout_sensor.name}")   # oa humidity ratio
       infil_program.addLine('Set ERVSupRho = (@RhoAirFnPbTdbW ERVSupInPb ERVSupInTemp ERVSupInW)')
-      infil_program.addLine('Set ERVSupCp = (@CpAirFnWTdb ERVSupInW ERVSupInTemp)')
+      infil_program.addLine('Set ERVSupCp = (@CpAirFnW ERVSupInW)')
       infil_program.addLine('Set ERVSupInEnth = (@HFnTdbW ERVSupInTemp ERVSupInW)')
 
       infil_program.addLine("Set ERVSecInTemp = #{tin_sensor.name}") # zone air temperature
       infil_program.addLine("Set ERVSecInW = #{win_sensor.name}") # zone air humidity ratio
-      infil_program.addLine('Set ERVSecCp = (@CpAirFnWTdb ERVSecInW ERVSecInTemp)')
+      infil_program.addLine('Set ERVSecCp = (@CpAirFnW ERVSecInW)')
       infil_program.addLine('Set ERVSecInEnth = (@HFnTdbW ERVSecInTemp ERVSecInW)')
 
       # Calculate mass flow rate based on outdoor air density

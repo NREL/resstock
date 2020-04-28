@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Helper methods related to having a meta-measure
 
 def apply_measures(measures_dir, measures, runner, model, show_measure_calls = true, measure_type = 'OpenStudio::Measure::ModelMeasure')
@@ -202,7 +204,7 @@ end
 def hash_to_string(hash, delim = '=', separator = ',')
   hash_s = ''
   hash.each do |k, v|
-    hash_s << "#{k}#{delim}#{v}#{separator}"
+    hash_s += "#{k}#{delim}#{v}#{separator}"
   end
   if hash_s.size > 0
     hash_s = hash_s.chomp(separator.to_s)
