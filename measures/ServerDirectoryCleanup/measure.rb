@@ -15,8 +15,15 @@ class ServerDirectoryCleanup < OpenStudio::Measure::ReportingMeasure
   def run(runner, user_arguments)
     super(runner, user_arguments)
 
+    model = runner.lastOpenStudioModel
+    if model.empty?
+      runner.registerError('Cannot find OpenStudio model.')
+      return false
+    end
+    model = model.get
+
     # use the built-in error checking
-    unless runner.validateUserArguments(arguments, user_arguments)
+    unless runner.validateUserArguments(arguments(model), user_arguments)
       false
     end
 
