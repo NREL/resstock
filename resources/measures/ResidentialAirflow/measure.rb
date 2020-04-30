@@ -92,20 +92,6 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
     shelter_coef.setDefaultValue("auto")
     args << shelter_coef
 
-    # make a double argument for open water heater flue
-    has_water_heater_flue = OpenStudio::Measure::OSArgument::makeBoolArgument("has_water_heater_flue", true)
-    has_water_heater_flue.setDisplayName("Air Leakage: Has Open Water Heater Flue")
-    has_water_heater_flue.setDescription("Specifies whether the building has an open flue associated with the water heater.")
-    has_water_heater_flue.setDefaultValue(false)
-    args << has_water_heater_flue
-
-    # make a double argument for open fireplace chimney
-    has_fireplace_chimney = OpenStudio::Measure::OSArgument::makeBoolArgument("has_fireplace_chimney", true)
-    has_fireplace_chimney.setDisplayName("Air Leakage: Has Open HVAC Flue")
-    has_fireplace_chimney.setDescription("Specifies whether the building has an open chimney associated with a fireplace.")
-    has_fireplace_chimney.setDefaultValue(false)
-    args << has_fireplace_chimney
-
     # make a choice arguments for terrain type
     terrain_types_names = OpenStudio::StringVector.new
     terrain_types_names << Constants.TerrainOcean
@@ -441,8 +427,14 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
     if model.getBuilding.additionalProperties.getFeatureAsBoolean("has_hvac_flue").is_initialized
       has_hvac_flue = model.getBuilding.additionalProperties.getFeatureAsBoolean("has_hvac_flue").get
     end
-    has_water_heater_flue = runner.getBoolArgumentValue("has_water_heater_flue", user_arguments)
-    has_fireplace_chimney = runner.getBoolArgumentValue("has_fireplace_chimney", user_arguments)
+    has_water_heater_flue = false
+    if model.getBuilding.additionalProperties.getFeatureAsBoolean("has_water_heater_flue").is_initialized
+      has_water_heater_flue = model.getBuilding.additionalProperties.getFeatureAsBoolean("has_water_heater_flue").get
+    end
+    has_fireplace_chimney = false
+    if model.getBuilding.additionalProperties.getFeatureAsBoolean("has_fireplace_chimney").is_initialized
+      has_fireplace_chimney = model.getBuilding.additionalProperties.getFeatureAsBoolean("has_fireplace_chimney").get
+    end
     terrain = runner.getStringArgumentValue("terrain", user_arguments)
 
     # Mechanical Ventilation
