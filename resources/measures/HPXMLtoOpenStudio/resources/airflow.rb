@@ -480,6 +480,7 @@ class Airflow
     # S-G Shielding Coefficients are roughly 1/3 of AIM2 Shelter Coefficients
     wind_speed.shielding_coef = wind_speed.S_wo / 3.0
 
+    # puts("=================process wind speed corrections===============")
     # puts("wind_speed.S_wo: #{wind_speed.S_wo}")
     # puts("shelter_coef: #{shelter_coef}")
     # puts("terrain: #{terrain}")
@@ -809,6 +810,7 @@ class Airflow
         space.ELA = space.SLA * space.area # ft^2
       end
 
+      # puts("-----------Process infiltration for finished spaces------------------------")
       # puts("space.inf_method: #{space.inf_method}")
       # # puts("space.inf_method: #{space.inf_method}")
       # puts("space.height: #{space.height}")
@@ -1111,6 +1113,14 @@ class Airflow
     f_w_nv = wind_speed.shielding_coef * (1 - hor_vent_frac)**(1.0 / 3.0) * unit_living.f_t_SG
     c_s = f_s_nv**2.0 * Constants.g * unit_living.height / (Constants.AssumedInsideTemp + 460.0)
     c_w = f_w_nv**2.0
+
+    # puts("==================process NV=====================")
+    # puts("f_s_nv: #{f_s_nv}")
+    # puts("f_w_nv: #{f_w_nv}")
+    # puts("wind_speed.shielding_coef: #{wind_speed.shielding_coef}")
+    # puts("hor_vent_frac: #{hor_vent_frac}")
+    # puts("unit_living.f_t_SG: #{unit_living.f_t_SG}")
+    # puts("area: #{area}")
 
     season_type = []
     (0..11).to_a.each do |month|

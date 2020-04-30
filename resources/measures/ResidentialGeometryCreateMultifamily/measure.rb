@@ -502,18 +502,18 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     end
 
     # Remove neighbors
-    if adb_facade.include? "left"
-      left_neighbor_offset = 0
-    end
-    if adb_facade.include? "right"
-      right_neighbor_offset = 0
-    end
-    if adb_facade.include? "back"
-      back_neighbor_offset = 0
-    end
-    if adb_facade.include? "front"
-      front_neighbor_offset = 0
-    end
+    # if adb_facade.include? "left"
+    #   left_neighbor_offset = 0
+    # end
+    # if adb_facade.include? "right"
+    #   right_neighbor_offset = 0
+    # end
+    # if adb_facade.include? "back"
+    #   back_neighbor_offset = 0
+    # end
+    # if adb_facade.include? "front"
+    #   front_neighbor_offset = 0
+    # end
 
     adiabatic_surf = adb_facade + adb_level
     # Make surfaces adiabatic
