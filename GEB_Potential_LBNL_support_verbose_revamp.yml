@@ -1,0 +1,1622 @@
+stock_type: residential
+buildstock_directory: ./  # Relative to this file or absolute
+project_directory: project_multifamily_beta
+output_directory: /projects/enduse/geb-potential/Run_Results/LBNL_support_fullSDonly
+weather_files_path: /shared-projects/buildstock/weather/ResStock_2016.zip
+baseline:
+  n_datapoints: 550000
+  n_buildings_represented: 81221016 
+residential_simulation_controls:
+  timesteps_per_hr: 6
+  begin_month: 1
+  begin_day_of_month: 1
+  end_month: 12
+  end_day_of_month: 31
+  calendar_year: 2016 #2006 starts on Sunday, 2007 starts on Monday
+
+downselect:
+  resample: false
+  logic:
+    or:
+       - Location|CA_Arcata.AP.725945
+       - Location|CA_San.Francisco.Intl.AP.724940
+       - Location|CA_Sacramento.Exec.AP.724830
+       - Location|CA_Santa.Maria.Public.AP.723940
+       - Location|NV_Reno-Tahoe.Intl.AP.724880
+       - Location|CA_Fresno.Air.Terminal.723890
+       - Location|CA_Bakersfield-Meadows.Field.723840
+       - Location|CA_Los.Angeles.Intl.AP.722950
+       - Location|CA_Long.Beach-Daugherty.Field.722970
+       - Location|CA_San.Diego-Lindbergh.Field.722900
+       - Location|CA_Barstow.Daggett.AP.723815
+       - Location|TX_Midland.Intl.AP.722650
+       - Location|TX_Amarillo.Intl.AP.723630
+       - Location|TX_Lubbock.Intl.AP.722670
+       - Location|TX_San.Angelo-Mathis.AP.722630
+       - Location|TX_Abilene.Rgnl.AP.722660
+       - Location|TX_Wichita.Falls.Muni.AP.723510
+       - Location|TX_San.Antonio.Intl.AP.722530
+       - Location|TX_Austin-Mueller.Muni.AP.722540
+       - Location|TX_Corpus.Christi.Intl.AP.722510
+       - Location|TX_Brownsville-South.Padre.Island.AP.722500
+       - Location|TX_Waco.Rgnl.AP.722560
+       - Location|TX_Dallas-Fort.Worth.Intl.AP.722590
+       - Location|TX_Victoria.Rgnl.AP.722550
+       - Location|TX_Houston-Bush.Intercontinental.AP.722430
+       - Location|TX_Lufkin-Angelina.Co.AP.722446
+       - Location|LA_Shreveport.Rgnl.AP.722480
+       - Location|NY_Albany.County.AP.725180
+       - Location|VT_Burlington.Intl.AP.726170
+       - Location|CT_Bridgeport-Sikorsky.Mem.AP.725040
+       - Location|CT_Hartford-Bradley.Intl.AP.725080
+       - Location|MA_Worcester.Rgnl.AP.725095
+       - Location|NH_Concord.Muni.AP.726050
+       - Location|RI_Providence-T.F.Green.State.AP.725070
+       - Location|MA_Boston-Logan.Intl.AP.725090
+       - Location|ME_Portland.Intl.Jetport.726060
+       - Location|ME_Caribou.Muni.AP.727120
+
+
+upgrades:
+  - upgrade_name: Equipment Only
+    options:
+    #Best CAC-Heat Pump
+    - option: HVAC System Cooling|AC, SEER 18
+      apply_logic:
+        and:
+          - or:
+            - HVAC System Cooling|AC, SEER 8
+            - HVAC System Cooling|AC, SEER 10
+            - HVAC System Cooling|AC, SEER 13
+            - HVAC System Cooling|AC, SEER 14
+            - HVAC System Cooling|AC, SEER 15
+          - not:
+            - Heating Fuel|Electricity
+      costs:
+        - value: 3200
+          multiplier: Fixed (1)
+        - value: 42
+          multiplier: Size, Cooling System (kBtu/h)
+      lifetime: 16
+    - option: HVAC System Heat Pump|ASHP, SEER 22, 10 HSPF
+      apply_logic: 
+        or:
+          - HVAC System Heat Pump|ASHP, SEER 10, 6.2 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 10.3, 7.0 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 11.5, 7.5 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 13, 7.7 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 13, 8.0 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 14, 8.2 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 14.3, 8.5 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 15, 8.5 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 16, 9.0 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 17, 8.7 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 18, 9.3 HSPF
+          - HVAC System Heating Electricity|Electric Furnace
+      costs:
+        - value: 4200
+          multiplier: Fixed (1)
+        - value: 42
+          multiplier: Size, Heating System (kBtu/h)
+      lifetime: 15
+    - option: HVAC System Heat Pump|MSHP, SEER 29.3, 14 HSPF #ductless heat pump upgrade for electric baseboard
+      apply_logic:
+        - HVAC System Heating Electricity|Electric Baseboard 
+      costs:
+        - value: 4200 #made up
+          multiplier: Fixed (1)
+      lifetime: 15 #made up
+    #Equipment upgrades
+      #Best water heater
+    - option: Water Heater|Electric Heat Pump, 80 gal
+      apply_logic: 
+        or:
+          - Water Heater|Electric Standard
+          - Water Heater|Electric Premium
+          - Water Heater|Electric Benchmark
+          - Water Heater|Electric Heat Pump, 50 gal
+          - Water Heater|Electric Heat Pump, 50 gal, 140F
+      #Best pool pump
+    - option: Misc Pool Pump|0.75 HP Pump
+      apply_logic: Misc Pool Pump|1.0 HP Pump
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+      #Best dishwasher
+    - option: Dishwasher|199 Rated kWh, 80% Usage
+      apply_logic: 
+        or:
+          - Dishwasher|318 Rated kWh, 80% Usage
+          - Dishwasher|290 Rated kWh, 80% Usage
+      costs:
+        - value: 1000
+          multiplier: Fixed (1)
+      lifetime: 11
+    - option: Dishwasher|199 Rated kWh, 100% Usage
+      apply_logic: 
+        or:
+          - Dishwasher|318 Rated kWh, 100% Usage
+          - Dishwasher|290 Rated kWh, 100% Usage
+      costs:
+        - value: 1000
+          multiplier: Fixed (1)
+      lifetime: 11
+    - option: Dishwasher|199 Rated kWh, 120% Usage
+      apply_logic: 
+        or:
+          - Dishwasher|318 Rated kWh, 120% Usage
+          - Dishwasher|290 Rated kWh, 120% Usage
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 11
+      #Best clothes washer
+    - option: Clothes Washer|EnergyStar Most Efficient, 80% Usage
+      apply_logic:
+        or:
+          - Clothes Washer|EnergyStar, 80% Usage
+          - Clothes Washer|Standard, 80% Usage
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Clothes Washer|EnergyStar Most Efficient, 100% Usage
+      apply_logic:
+        or:
+          - Clothes Washer|EnergyStar, 100% Usage
+          - Clothes Washer|Standard, 100% Usage
+          - Clothes Washer|Standard, 100% Usage, Cold Only
+          - Clothes Washer|EnergyStar, Cold Only
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Clothes Washer|EnergyStar Most Efficient, 120% Usage
+      apply_logic:
+        or:
+          - Clothes Washer|EnergyStar, 120% Usage
+          - Clothes Washer|Standard, 120% Usage
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+      #Best clothes dryer
+    - option: Clothes Dryer|Electric, Heat Pump, Ventless, 80% Usage
+      apply_logic:
+        or:
+          - Clothes Dryer|Electric, 80% Usage
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Clothes Dryer|Electric, Heat Pump, Ventless, 100% Usage
+      apply_logic:
+        or:
+          - Clothes Dryer|Electric, 100% Usage
+          - Clothes Dryer|Electric, Premium
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Clothes Dryer|Electric, Heat Pump, Ventless, 120% Usage
+      apply_logic:
+        or:
+          - Clothes Dryer|Electric, 120% Usage
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+      #Best LEDs
+    - option: Lighting|100% LED, High Efficacy
+      apply_logic:
+        or:
+          - Lighting|100% Incandescent
+          - Lighting|60% CFL Hardwired, 34% CFL Plugin
+          - Lighting|60% CFL
+          - Lighting|100% CFL
+          - Lighting|100% LED
+          - Lighting|20% LED
+          - Lighting|100% LED
+          - Lighting|100% LED, Low Efficacy
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+      #Best Refrigeration
+    - option: Refrigerator|EF 22.2, EnergyStar Most Efficient
+      apply_logic: 
+        or:
+          - Refrigerator|EF 15.9
+          - Refrigerator|EF 10.5
+          - Refrigerator|EF 10.2
+          - Refrigerator|EF 6.7
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 17.4
+      #Best Electronics
+      #Best Plug Loads
+    - option: Plug Loads|25%
+      apply_logic:
+          - Plug Loads|50%
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Plug Loads|50%
+      apply_logic:
+          - Plug Loads|100%
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Plug Loads|100%
+      apply_logic:
+          - Plug Loads|200%
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+  - upgrade_name: Controls Only
+    options:
+    #best thermostat controls
+    - option: Cooling Setpoint Apply Offset|TRUE
+      apply_logic:
+        - Cooling Setpoint Has Offset|No
+    - option: Heating Setpoint Apply Offset|TRUE
+      apply_logic:
+        - Heating Setpoint Has Offset|No
+    - option: Cooling Setpoint Apply Offset|FALSE
+      apply_logic:
+        - Cooling Setpoint Has Offset|Yes
+    - option: Heating Setpoint Apply Offset|FALSE
+      apply_logic:
+        - Heating Setpoint Has Offset|Yes
+    - option: Nightsetback|National
+      apply_logic:
+        - Somebody at home in weekday|Yes
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+    - option: Fullsetback|National
+      apply_logic:
+        - Somebody at home in weekday|No
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+  - upgrade_name: Envelope Only
+    options:
+    #best envelope
+    - option: Insulation Wall|Wood Stud, R-13, R-20 external XPS
+      apply_logic:
+        or:
+          - Insulation Wall|Wood Stud, Uninsulated
+          - Insulation Wall|Wood Stud, R-7
+          - Insulation Wall|Wood Stud, R-11
+          - Insulation Wall|Wood Stud, R-13
+          - Insulation Wall|Wood Stud, R-19
+          - Insulation Wall|Wood Stud, R-19, Grade 2
+          - Insulation Wall|Wood Stud, R-19, Grade 3
+          - Insulation Wall|Wood Stud, R-23 Closed Cell Spray Foam, 2x4, 16 in o.c.
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+      #Best roofs
+    - option: Insulation Unfinished Attic|Ceiling R-49, Vented
+      apply_logic: 
+        or:
+          - Insulation Unfinished Attic|Uninsulated, Vented
+          - Insulation Unfinished Attic|Ceiling R-7, Vented
+          - Insulation Unfinished Attic|Ceiling R-13, Vented
+          - Insulation Unfinished Attic|Ceiling R-19, Vented
+          - Insulation Unfinished Attic|Ceiling R-30, Vented
+          - Insulation Unfinished Attic|Ceiling R-38, Vented
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+      #Best air sealing #baseline includes 3,4,5,6,7,10,15,20,25
+    - option: Infiltration|18.75 ACH50
+      apply_logic: 
+        - Infiltration|25 ACH50
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Infiltration|15 ACH50
+      apply_logic: 
+        - Infiltration|20 ACH50
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Infiltration|11.25 ACH50
+      apply_logic: 
+        - Infiltration|15 ACH50
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Infiltration|7.5 ACH50
+      apply_logic: 
+        - Infiltration|10 ACH50
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+      #Best windows
+    - option: Windows|SCOUT 5.88 R, 0.49 SHGC #AIA1
+      apply_logic:
+        or:
+          - Location|ME_Caribou.Muni.AP.727120
+          - Location|ME_Portland.Intl.Jetport.726060
+          - Location|NH_Concord.Muni.AP.726050
+          - Location|VT_Burlington.Intl.AP.726170
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Windows|SCOUT 5.88 R, 0.42 SHGC #AIA2
+      apply_logic:
+        or:
+          - Location|CT_Bridgeport-Sikorsky.Mem.AP.725040
+          - Location|CT_Hartford-Bradley.Intl.AP.725080
+          - Location|MA_Boston-Logan.Intl.AP.725090
+          - Location|MA_Worcester.Rgnl.AP.725095
+          - Location|NV_Reno-Tahoe.Intl.AP.724880
+          - Location|NY_Albany.County.AP.725180
+          - Location|RI_Providence-T.F.Green.State.AP.725070
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Windows|SCOUT 5.88 R, 0.27 SHGC #AIA3-5
+      apply_logic:
+        not:
+          - Location|ME_Caribou.Muni.AP.727120
+          - Location|ME_Portland.Intl.Jetport.726060
+          - Location|NH_Concord.Muni.AP.726050
+          - Location|VT_Burlington.Intl.AP.726170
+          - Location|CT_Bridgeport-Sikorsky.Mem.AP.725040
+          - Location|CT_Hartford-Bradley.Intl.AP.725080
+          - Location|MA_Boston-Logan.Intl.AP.725090
+          - Location|MA_Worcester.Rgnl.AP.725095
+          - Location|NV_Reno-Tahoe.Intl.AP.724880
+          - Location|NY_Albany.County.AP.725180
+          - Location|RI_Providence-T.F.Green.State.AP.725070
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+      #Best floors: #AIA CZ1-2 only
+    - option: Insulation Slab|R20 Option 1
+      apply_logic: 
+        and:
+          - Insulation Slab|Uninsulated
+          - or:
+            - Location|ME_Caribou.Muni.AP.727120
+            - Location|ME_Portland.Intl.Jetport.726060
+            - Location|NH_Concord.Muni.AP.726050
+            - Location|VT_Burlington.Intl.AP.726170
+            - Location|CT_Bridgeport-Sikorsky.Mem.AP.725040
+            - Location|CT_Hartford-Bradley.Intl.AP.725080
+            - Location|MA_Boston-Logan.Intl.AP.725090
+            - Location|MA_Worcester.Rgnl.AP.725095
+            - Location|NV_Reno-Tahoe.Intl.AP.724880
+            - Location|NY_Albany.County.AP.725180
+            - Location|RI_Providence-T.F.Green.State.AP.725070      
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Insulation Slab|R20 Option 2
+      apply_logic: 
+        and:
+          - Insulation Slab|2ft R5 Perimeter, R5 Gap
+          - or:
+            - Location|ME_Caribou.Muni.AP.727120
+            - Location|ME_Portland.Intl.Jetport.726060
+            - Location|NH_Concord.Muni.AP.726050
+            - Location|VT_Burlington.Intl.AP.726170
+            - Location|CT_Bridgeport-Sikorsky.Mem.AP.725040
+            - Location|CT_Hartford-Bradley.Intl.AP.725080
+            - Location|MA_Boston-Logan.Intl.AP.725090
+            - Location|MA_Worcester.Rgnl.AP.725095
+            - Location|NV_Reno-Tahoe.Intl.AP.724880
+            - Location|NY_Albany.County.AP.725180
+            - Location|RI_Providence-T.F.Green.State.AP.725070  
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Insulation Slab|R20 Option 3
+      apply_logic: 
+        and:
+          - Insulation Slab|2ft R10 Perimeter, R10 Gap
+          - or:
+            - Location|ME_Caribou.Muni.AP.727120
+            - Location|ME_Portland.Intl.Jetport.726060
+            - Location|NH_Concord.Muni.AP.726050
+            - Location|VT_Burlington.Intl.AP.726170
+            - Location|CT_Bridgeport-Sikorsky.Mem.AP.725040
+            - Location|CT_Hartford-Bradley.Intl.AP.725080
+            - Location|MA_Boston-Logan.Intl.AP.725090
+            - Location|MA_Worcester.Rgnl.AP.725095
+            - Location|NV_Reno-Tahoe.Intl.AP.724880
+            - Location|NY_Albany.County.AP.725180
+            - Location|RI_Providence-T.F.Green.State.AP.725070  
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Insulation Slab|R20 Option 4
+      apply_logic: 
+        and:
+          - Insulation Slab|4ft R5 Perimeter, R5 Gap
+          - or:
+            - Location|ME_Caribou.Muni.AP.727120
+            - Location|ME_Portland.Intl.Jetport.726060
+            - Location|NH_Concord.Muni.AP.726050
+            - Location|VT_Burlington.Intl.AP.726170
+            - Location|CT_Bridgeport-Sikorsky.Mem.AP.725040
+            - Location|CT_Hartford-Bradley.Intl.AP.725080
+            - Location|MA_Boston-Logan.Intl.AP.725090
+            - Location|MA_Worcester.Rgnl.AP.725095
+            - Location|NV_Reno-Tahoe.Intl.AP.724880
+            - Location|NY_Albany.County.AP.725180
+            - Location|RI_Providence-T.F.Green.State.AP.725070  
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999      
+    - option: Insulation Slab|R20 Option 5
+      apply_logic: 
+        and:
+          - Insulation Slab|2ft R5 Exterior
+          - or:
+            - Location|ME_Caribou.Muni.AP.727120
+            - Location|ME_Portland.Intl.Jetport.726060
+            - Location|NH_Concord.Muni.AP.726050
+            - Location|VT_Burlington.Intl.AP.726170
+            - Location|CT_Bridgeport-Sikorsky.Mem.AP.725040
+            - Location|CT_Hartford-Bradley.Intl.AP.725080
+            - Location|MA_Boston-Logan.Intl.AP.725090
+            - Location|MA_Worcester.Rgnl.AP.725095
+            - Location|NV_Reno-Tahoe.Intl.AP.724880
+            - Location|NY_Albany.County.AP.725180
+            - Location|RI_Providence-T.F.Green.State.AP.725070  
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Insulation Slab|R20 Option 6
+      apply_logic: 
+        and:
+          - Insulation Slab|2ft R10 Exterior
+          - or:
+            - Location|ME_Caribou.Muni.AP.727120
+            - Location|ME_Portland.Intl.Jetport.726060
+            - Location|NH_Concord.Muni.AP.726050
+            - Location|VT_Burlington.Intl.AP.726170
+            - Location|CT_Bridgeport-Sikorsky.Mem.AP.725040
+            - Location|CT_Hartford-Bradley.Intl.AP.725080
+            - Location|MA_Boston-Logan.Intl.AP.725090
+            - Location|MA_Worcester.Rgnl.AP.725095
+            - Location|NV_Reno-Tahoe.Intl.AP.724880
+            - Location|NY_Albany.County.AP.725180
+            - Location|RI_Providence-T.F.Green.State.AP.725070  
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Insulation Slab|R20 Option 7
+      apply_logic: 
+        and:
+          - Insulation Slab|R10 Whole Slab, R5 Gap
+          - or:
+            - Location|ME_Caribou.Muni.AP.727120
+            - Location|ME_Portland.Intl.Jetport.726060
+            - Location|NH_Concord.Muni.AP.726050
+            - Location|VT_Burlington.Intl.AP.726170
+            - Location|CT_Bridgeport-Sikorsky.Mem.AP.725040
+            - Location|CT_Hartford-Bradley.Intl.AP.725080
+            - Location|MA_Boston-Logan.Intl.AP.725090
+            - Location|MA_Worcester.Rgnl.AP.725095
+            - Location|NV_Reno-Tahoe.Intl.AP.724880
+            - Location|NY_Albany.County.AP.725180
+            - Location|RI_Providence-T.F.Green.State.AP.725070  
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Insulation Slab|R20 Option 8
+      apply_logic: 
+        and:
+          - Insulation Slab|R20 Whole Slab
+          - or:
+            - Location|ME_Caribou.Muni.AP.727120
+            - Location|ME_Portland.Intl.Jetport.726060
+            - Location|NH_Concord.Muni.AP.726050
+            - Location|VT_Burlington.Intl.AP.726170
+            - Location|CT_Bridgeport-Sikorsky.Mem.AP.725040
+            - Location|CT_Hartford-Bradley.Intl.AP.725080
+            - Location|MA_Boston-Logan.Intl.AP.725090
+            - Location|MA_Worcester.Rgnl.AP.725095
+            - Location|NV_Reno-Tahoe.Intl.AP.724880
+            - Location|NY_Albany.County.AP.725180
+            - Location|RI_Providence-T.F.Green.State.AP.725070  
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+      ##end floors
+  - upgrade_name: Controls and Envelope
+    options:
+    #best thermostat controls
+    - option: Cooling Setpoint Apply Offset|TRUE
+      apply_logic:
+        - Cooling Setpoint Has Offset|No
+    - option: Heating Setpoint Apply Offset|TRUE
+      apply_logic:
+        - Heating Setpoint Has Offset|No
+    - option: Cooling Setpoint Apply Offset|FALSE
+      apply_logic:
+        - Cooling Setpoint Has Offset|Yes
+    - option: Heating Setpoint Apply Offset|FALSE
+      apply_logic:
+        - Heating Setpoint Has Offset|Yes
+    - option: Nightsetback|National
+      apply_logic:
+        - Somebody at home in weekday|Yes
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+    - option: Fullsetback|National
+      apply_logic:
+        - Somebody at home in weekday|No
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+    #best envelope
+    - option: Insulation Wall|Wood Stud, R-13, R-20 external XPS
+      apply_logic:
+        or:
+          - Insulation Wall|Wood Stud, Uninsulated
+          - Insulation Wall|Wood Stud, R-7
+          - Insulation Wall|Wood Stud, R-11
+          - Insulation Wall|Wood Stud, R-13
+          - Insulation Wall|Wood Stud, R-19
+          - Insulation Wall|Wood Stud, R-19, Grade 2
+          - Insulation Wall|Wood Stud, R-19, Grade 3
+          - Insulation Wall|Wood Stud, R-23 Closed Cell Spray Foam, 2x4, 16 in o.c.
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+      #Best roofs
+    - option: Insulation Unfinished Attic|Ceiling R-49, Vented
+      apply_logic: 
+        or:
+          - Insulation Unfinished Attic|Uninsulated, Vented
+          - Insulation Unfinished Attic|Ceiling R-7, Vented
+          - Insulation Unfinished Attic|Ceiling R-13, Vented
+          - Insulation Unfinished Attic|Ceiling R-19, Vented
+          - Insulation Unfinished Attic|Ceiling R-30, Vented
+          - Insulation Unfinished Attic|Ceiling R-38, Vented
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+      #Best air sealing
+    - option: Infiltration|18.75 ACH50
+      apply_logic: 
+        - Infiltration|25 ACH50
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Infiltration|15 ACH50
+      apply_logic: 
+        - Infiltration|20 ACH50
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Infiltration|11.25 ACH50
+      apply_logic: 
+        - Infiltration|15 ACH50
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Infiltration|7.5 ACH50
+      apply_logic: 
+        - Infiltration|10 ACH50
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+      #Best windows
+    - option: Windows|SCOUT 5.88 R, 0.49 SHGC #AIA1
+      apply_logic:
+        or:
+          - Location|ME_Caribou.Muni.AP.727120
+          - Location|ME_Portland.Intl.Jetport.726060
+          - Location|NH_Concord.Muni.AP.726050
+          - Location|VT_Burlington.Intl.AP.726170
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Windows|SCOUT 5.88 R, 0.42 SHGC #AIA2
+      apply_logic:
+        or:
+          - Location|CT_Bridgeport-Sikorsky.Mem.AP.725040
+          - Location|CT_Hartford-Bradley.Intl.AP.725080
+          - Location|MA_Boston-Logan.Intl.AP.725090
+          - Location|MA_Worcester.Rgnl.AP.725095
+          - Location|NV_Reno-Tahoe.Intl.AP.724880
+          - Location|NY_Albany.County.AP.725180
+          - Location|RI_Providence-T.F.Green.State.AP.725070
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Windows|SCOUT 5.88 R, 0.27 SHGC #AIA3-5
+      apply_logic:
+        not:
+          - Location|ME_Caribou.Muni.AP.727120
+          - Location|ME_Portland.Intl.Jetport.726060
+          - Location|NH_Concord.Muni.AP.726050
+          - Location|VT_Burlington.Intl.AP.726170
+          - Location|CT_Bridgeport-Sikorsky.Mem.AP.725040
+          - Location|CT_Hartford-Bradley.Intl.AP.725080
+          - Location|MA_Boston-Logan.Intl.AP.725090
+          - Location|MA_Worcester.Rgnl.AP.725095
+          - Location|NV_Reno-Tahoe.Intl.AP.724880
+          - Location|NY_Albany.County.AP.725180
+          - Location|RI_Providence-T.F.Green.State.AP.725070
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+      #Best floors: #AIA CZ1-2 only
+    - option: Insulation Slab|R20 Option 1
+      apply_logic: 
+        and:
+          - Insulation Slab|Uninsulated
+          - or:
+            - Location|ME_Caribou.Muni.AP.727120
+            - Location|ME_Portland.Intl.Jetport.726060
+            - Location|NH_Concord.Muni.AP.726050
+            - Location|VT_Burlington.Intl.AP.726170
+            - Location|CT_Bridgeport-Sikorsky.Mem.AP.725040
+            - Location|CT_Hartford-Bradley.Intl.AP.725080
+            - Location|MA_Boston-Logan.Intl.AP.725090
+            - Location|MA_Worcester.Rgnl.AP.725095
+            - Location|NV_Reno-Tahoe.Intl.AP.724880
+            - Location|NY_Albany.County.AP.725180
+            - Location|RI_Providence-T.F.Green.State.AP.725070      
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Insulation Slab|R20 Option 2
+      apply_logic: 
+        and:
+          - Insulation Slab|2ft R5 Perimeter, R5 Gap
+          - or:
+            - Location|ME_Caribou.Muni.AP.727120
+            - Location|ME_Portland.Intl.Jetport.726060
+            - Location|NH_Concord.Muni.AP.726050
+            - Location|VT_Burlington.Intl.AP.726170
+            - Location|CT_Bridgeport-Sikorsky.Mem.AP.725040
+            - Location|CT_Hartford-Bradley.Intl.AP.725080
+            - Location|MA_Boston-Logan.Intl.AP.725090
+            - Location|MA_Worcester.Rgnl.AP.725095
+            - Location|NV_Reno-Tahoe.Intl.AP.724880
+            - Location|NY_Albany.County.AP.725180
+            - Location|RI_Providence-T.F.Green.State.AP.725070  
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Insulation Slab|R20 Option 3
+      apply_logic: 
+        and:
+          - Insulation Slab|2ft R10 Perimeter, R10 Gap
+          - or:
+            - Location|ME_Caribou.Muni.AP.727120
+            - Location|ME_Portland.Intl.Jetport.726060
+            - Location|NH_Concord.Muni.AP.726050
+            - Location|VT_Burlington.Intl.AP.726170
+            - Location|CT_Bridgeport-Sikorsky.Mem.AP.725040
+            - Location|CT_Hartford-Bradley.Intl.AP.725080
+            - Location|MA_Boston-Logan.Intl.AP.725090
+            - Location|MA_Worcester.Rgnl.AP.725095
+            - Location|NV_Reno-Tahoe.Intl.AP.724880
+            - Location|NY_Albany.County.AP.725180
+            - Location|RI_Providence-T.F.Green.State.AP.725070  
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Insulation Slab|R20 Option 4
+      apply_logic: 
+        and:
+          - Insulation Slab|4ft R5 Perimeter, R5 Gap
+          - or:
+            - Location|ME_Caribou.Muni.AP.727120
+            - Location|ME_Portland.Intl.Jetport.726060
+            - Location|NH_Concord.Muni.AP.726050
+            - Location|VT_Burlington.Intl.AP.726170
+            - Location|CT_Bridgeport-Sikorsky.Mem.AP.725040
+            - Location|CT_Hartford-Bradley.Intl.AP.725080
+            - Location|MA_Boston-Logan.Intl.AP.725090
+            - Location|MA_Worcester.Rgnl.AP.725095
+            - Location|NV_Reno-Tahoe.Intl.AP.724880
+            - Location|NY_Albany.County.AP.725180
+            - Location|RI_Providence-T.F.Green.State.AP.725070  
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999      
+    - option: Insulation Slab|R20 Option 5
+      apply_logic: 
+        and:
+          - Insulation Slab|2ft R5 Exterior
+          - or:
+            - Location|ME_Caribou.Muni.AP.727120
+            - Location|ME_Portland.Intl.Jetport.726060
+            - Location|NH_Concord.Muni.AP.726050
+            - Location|VT_Burlington.Intl.AP.726170
+            - Location|CT_Bridgeport-Sikorsky.Mem.AP.725040
+            - Location|CT_Hartford-Bradley.Intl.AP.725080
+            - Location|MA_Boston-Logan.Intl.AP.725090
+            - Location|MA_Worcester.Rgnl.AP.725095
+            - Location|NV_Reno-Tahoe.Intl.AP.724880
+            - Location|NY_Albany.County.AP.725180
+            - Location|RI_Providence-T.F.Green.State.AP.725070  
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Insulation Slab|R20 Option 6
+      apply_logic: 
+        and:
+          - Insulation Slab|2ft R10 Exterior
+          - or:
+            - Location|ME_Caribou.Muni.AP.727120
+            - Location|ME_Portland.Intl.Jetport.726060
+            - Location|NH_Concord.Muni.AP.726050
+            - Location|VT_Burlington.Intl.AP.726170
+            - Location|CT_Bridgeport-Sikorsky.Mem.AP.725040
+            - Location|CT_Hartford-Bradley.Intl.AP.725080
+            - Location|MA_Boston-Logan.Intl.AP.725090
+            - Location|MA_Worcester.Rgnl.AP.725095
+            - Location|NV_Reno-Tahoe.Intl.AP.724880
+            - Location|NY_Albany.County.AP.725180
+            - Location|RI_Providence-T.F.Green.State.AP.725070  
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Insulation Slab|R20 Option 7
+      apply_logic: 
+        and:
+          - Insulation Slab|R10 Whole Slab, R5 Gap
+          - or:
+            - Location|ME_Caribou.Muni.AP.727120
+            - Location|ME_Portland.Intl.Jetport.726060
+            - Location|NH_Concord.Muni.AP.726050
+            - Location|VT_Burlington.Intl.AP.726170
+            - Location|CT_Bridgeport-Sikorsky.Mem.AP.725040
+            - Location|CT_Hartford-Bradley.Intl.AP.725080
+            - Location|MA_Boston-Logan.Intl.AP.725090
+            - Location|MA_Worcester.Rgnl.AP.725095
+            - Location|NV_Reno-Tahoe.Intl.AP.724880
+            - Location|NY_Albany.County.AP.725180
+            - Location|RI_Providence-T.F.Green.State.AP.725070  
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Insulation Slab|R20 Option 8
+      apply_logic: 
+        and:
+          - Insulation Slab|R20 Whole Slab
+          - or:
+            - Location|ME_Caribou.Muni.AP.727120
+            - Location|ME_Portland.Intl.Jetport.726060
+            - Location|NH_Concord.Muni.AP.726050
+            - Location|VT_Burlington.Intl.AP.726170
+            - Location|CT_Bridgeport-Sikorsky.Mem.AP.725040
+            - Location|CT_Hartford-Bradley.Intl.AP.725080
+            - Location|MA_Boston-Logan.Intl.AP.725090
+            - Location|MA_Worcester.Rgnl.AP.725095
+            - Location|NV_Reno-Tahoe.Intl.AP.724880
+            - Location|NY_Albany.County.AP.725180
+            - Location|RI_Providence-T.F.Green.State.AP.725070  
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+      ##end floors
+  - upgrade_name: All LBNL Support upgrades
+    options: #best thermostat controls
+    - option: Cooling Setpoint Apply Offset|TRUE
+      apply_logic:
+        - Cooling Setpoint Has Offset|No
+    - option: Heating Setpoint Apply Offset|TRUE
+      apply_logic:
+        - Heating Setpoint Has Offset|No
+    - option: Cooling Setpoint Apply Offset|FALSE
+      apply_logic:
+        - Cooling Setpoint Has Offset|Yes
+    - option: Heating Setpoint Apply Offset|FALSE
+      apply_logic:
+        - Heating Setpoint Has Offset|Yes
+    - option: Nightsetback|National
+      apply_logic:
+        - Somebody at home in weekday|Yes
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+    - option: Fullsetback|National
+      apply_logic:
+        - Somebody at home in weekday|No
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+    #best envelope
+    - option: Insulation Wall|Wood Stud, R-13, R-20 external XPS
+      apply_logic:
+        or:
+          - Insulation Wall|Wood Stud, Uninsulated
+          - Insulation Wall|Wood Stud, R-7
+          - Insulation Wall|Wood Stud, R-11
+          - Insulation Wall|Wood Stud, R-13
+          - Insulation Wall|Wood Stud, R-19
+          - Insulation Wall|Wood Stud, R-19, Grade 2
+          - Insulation Wall|Wood Stud, R-19, Grade 3
+          - Insulation Wall|Wood Stud, R-23 Closed Cell Spray Foam, 2x4, 16 in o.c.
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+      #Best roofs
+    - option: Insulation Unfinished Attic|Ceiling R-49, Vented
+      apply_logic: 
+        or:
+          - Insulation Unfinished Attic|Uninsulated, Vented
+          - Insulation Unfinished Attic|Ceiling R-7, Vented
+          - Insulation Unfinished Attic|Ceiling R-13, Vented
+          - Insulation Unfinished Attic|Ceiling R-19, Vented
+          - Insulation Unfinished Attic|Ceiling R-30, Vented
+          - Insulation Unfinished Attic|Ceiling R-38, Vented
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+      #Best air sealing
+    - option: Infiltration|18.75 ACH50
+      apply_logic: 
+        - Infiltration|25 ACH50
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Infiltration|15 ACH50
+      apply_logic: 
+        - Infiltration|20 ACH50
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Infiltration|11.25 ACH50
+      apply_logic: 
+        - Infiltration|15 ACH50
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Infiltration|7.5 ACH50
+      apply_logic: 
+        - Infiltration|10 ACH50
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+      #Best windows
+    - option: Windows|SCOUT 5.88 R, 0.49 SHGC #AIA1
+      apply_logic:
+        or:
+          - Location|ME_Caribou.Muni.AP.727120
+          - Location|ME_Portland.Intl.Jetport.726060
+          - Location|NH_Concord.Muni.AP.726050
+          - Location|VT_Burlington.Intl.AP.726170
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Windows|SCOUT 5.88 R, 0.42 SHGC #AIA2
+      apply_logic:
+        or:
+          - Location|CT_Bridgeport-Sikorsky.Mem.AP.725040
+          - Location|CT_Hartford-Bradley.Intl.AP.725080
+          - Location|MA_Boston-Logan.Intl.AP.725090
+          - Location|MA_Worcester.Rgnl.AP.725095
+          - Location|NV_Reno-Tahoe.Intl.AP.724880
+          - Location|NY_Albany.County.AP.725180
+          - Location|RI_Providence-T.F.Green.State.AP.725070
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Windows|SCOUT 5.88 R, 0.27 SHGC #AIA3-5
+      apply_logic:
+        not:
+          - Location|ME_Caribou.Muni.AP.727120
+          - Location|ME_Portland.Intl.Jetport.726060
+          - Location|NH_Concord.Muni.AP.726050
+          - Location|VT_Burlington.Intl.AP.726170
+          - Location|CT_Bridgeport-Sikorsky.Mem.AP.725040
+          - Location|CT_Hartford-Bradley.Intl.AP.725080
+          - Location|MA_Boston-Logan.Intl.AP.725090
+          - Location|MA_Worcester.Rgnl.AP.725095
+          - Location|NV_Reno-Tahoe.Intl.AP.724880
+          - Location|NY_Albany.County.AP.725180
+          - Location|RI_Providence-T.F.Green.State.AP.725070
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+      #Best floors: #AIA CZ1-2 only
+    - option: Insulation Slab|R20 Option 1
+      apply_logic: 
+        and:
+          - Insulation Slab|Uninsulated
+          - or:
+            - Location|ME_Caribou.Muni.AP.727120
+            - Location|ME_Portland.Intl.Jetport.726060
+            - Location|NH_Concord.Muni.AP.726050
+            - Location|VT_Burlington.Intl.AP.726170
+            - Location|CT_Bridgeport-Sikorsky.Mem.AP.725040
+            - Location|CT_Hartford-Bradley.Intl.AP.725080
+            - Location|MA_Boston-Logan.Intl.AP.725090
+            - Location|MA_Worcester.Rgnl.AP.725095
+            - Location|NV_Reno-Tahoe.Intl.AP.724880
+            - Location|NY_Albany.County.AP.725180
+            - Location|RI_Providence-T.F.Green.State.AP.725070      
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Insulation Slab|R20 Option 2
+      apply_logic: 
+        and:
+          - Insulation Slab|2ft R5 Perimeter, R5 Gap
+          - or:
+            - Location|ME_Caribou.Muni.AP.727120
+            - Location|ME_Portland.Intl.Jetport.726060
+            - Location|NH_Concord.Muni.AP.726050
+            - Location|VT_Burlington.Intl.AP.726170
+            - Location|CT_Bridgeport-Sikorsky.Mem.AP.725040
+            - Location|CT_Hartford-Bradley.Intl.AP.725080
+            - Location|MA_Boston-Logan.Intl.AP.725090
+            - Location|MA_Worcester.Rgnl.AP.725095
+            - Location|NV_Reno-Tahoe.Intl.AP.724880
+            - Location|NY_Albany.County.AP.725180
+            - Location|RI_Providence-T.F.Green.State.AP.725070  
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Insulation Slab|R20 Option 3
+      apply_logic: 
+        and:
+          - Insulation Slab|2ft R10 Perimeter, R10 Gap
+          - or:
+            - Location|ME_Caribou.Muni.AP.727120
+            - Location|ME_Portland.Intl.Jetport.726060
+            - Location|NH_Concord.Muni.AP.726050
+            - Location|VT_Burlington.Intl.AP.726170
+            - Location|CT_Bridgeport-Sikorsky.Mem.AP.725040
+            - Location|CT_Hartford-Bradley.Intl.AP.725080
+            - Location|MA_Boston-Logan.Intl.AP.725090
+            - Location|MA_Worcester.Rgnl.AP.725095
+            - Location|NV_Reno-Tahoe.Intl.AP.724880
+            - Location|NY_Albany.County.AP.725180
+            - Location|RI_Providence-T.F.Green.State.AP.725070  
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Insulation Slab|R20 Option 4
+      apply_logic: 
+        and:
+          - Insulation Slab|4ft R5 Perimeter, R5 Gap
+          - or:
+            - Location|ME_Caribou.Muni.AP.727120
+            - Location|ME_Portland.Intl.Jetport.726060
+            - Location|NH_Concord.Muni.AP.726050
+            - Location|VT_Burlington.Intl.AP.726170
+            - Location|CT_Bridgeport-Sikorsky.Mem.AP.725040
+            - Location|CT_Hartford-Bradley.Intl.AP.725080
+            - Location|MA_Boston-Logan.Intl.AP.725090
+            - Location|MA_Worcester.Rgnl.AP.725095
+            - Location|NV_Reno-Tahoe.Intl.AP.724880
+            - Location|NY_Albany.County.AP.725180
+            - Location|RI_Providence-T.F.Green.State.AP.725070  
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999      
+    - option: Insulation Slab|R20 Option 5
+      apply_logic: 
+        and:
+          - Insulation Slab|2ft R5 Exterior
+          - or:
+            - Location|ME_Caribou.Muni.AP.727120
+            - Location|ME_Portland.Intl.Jetport.726060
+            - Location|NH_Concord.Muni.AP.726050
+            - Location|VT_Burlington.Intl.AP.726170
+            - Location|CT_Bridgeport-Sikorsky.Mem.AP.725040
+            - Location|CT_Hartford-Bradley.Intl.AP.725080
+            - Location|MA_Boston-Logan.Intl.AP.725090
+            - Location|MA_Worcester.Rgnl.AP.725095
+            - Location|NV_Reno-Tahoe.Intl.AP.724880
+            - Location|NY_Albany.County.AP.725180
+            - Location|RI_Providence-T.F.Green.State.AP.725070  
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Insulation Slab|R20 Option 6
+      apply_logic: 
+        and:
+          - Insulation Slab|2ft R10 Exterior
+          - or:
+            - Location|ME_Caribou.Muni.AP.727120
+            - Location|ME_Portland.Intl.Jetport.726060
+            - Location|NH_Concord.Muni.AP.726050
+            - Location|VT_Burlington.Intl.AP.726170
+            - Location|CT_Bridgeport-Sikorsky.Mem.AP.725040
+            - Location|CT_Hartford-Bradley.Intl.AP.725080
+            - Location|MA_Boston-Logan.Intl.AP.725090
+            - Location|MA_Worcester.Rgnl.AP.725095
+            - Location|NV_Reno-Tahoe.Intl.AP.724880
+            - Location|NY_Albany.County.AP.725180
+            - Location|RI_Providence-T.F.Green.State.AP.725070  
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Insulation Slab|R20 Option 7
+      apply_logic: 
+        and:
+          - Insulation Slab|R10 Whole Slab, R5 Gap
+          - or:
+            - Location|ME_Caribou.Muni.AP.727120
+            - Location|ME_Portland.Intl.Jetport.726060
+            - Location|NH_Concord.Muni.AP.726050
+            - Location|VT_Burlington.Intl.AP.726170
+            - Location|CT_Bridgeport-Sikorsky.Mem.AP.725040
+            - Location|CT_Hartford-Bradley.Intl.AP.725080
+            - Location|MA_Boston-Logan.Intl.AP.725090
+            - Location|MA_Worcester.Rgnl.AP.725095
+            - Location|NV_Reno-Tahoe.Intl.AP.724880
+            - Location|NY_Albany.County.AP.725180
+            - Location|RI_Providence-T.F.Green.State.AP.725070  
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Insulation Slab|R20 Option 8
+      apply_logic: 
+        and:
+          - Insulation Slab|R20 Whole Slab
+          - or:
+            - Location|ME_Caribou.Muni.AP.727120
+            - Location|ME_Portland.Intl.Jetport.726060
+            - Location|NH_Concord.Muni.AP.726050
+            - Location|VT_Burlington.Intl.AP.726170
+            - Location|CT_Bridgeport-Sikorsky.Mem.AP.725040
+            - Location|CT_Hartford-Bradley.Intl.AP.725080
+            - Location|MA_Boston-Logan.Intl.AP.725090
+            - Location|MA_Worcester.Rgnl.AP.725095
+            - Location|NV_Reno-Tahoe.Intl.AP.724880
+            - Location|NY_Albany.County.AP.725180
+            - Location|RI_Providence-T.F.Green.State.AP.725070  
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+      ##end floors
+    #Best CAC-Heat Pump
+    - option: HVAC System Cooling|AC, SEER 18
+      apply_logic:
+        and:
+          - or:
+            - HVAC System Cooling|AC, SEER 8
+            - HVAC System Cooling|AC, SEER 10
+            - HVAC System Cooling|AC, SEER 13
+            - HVAC System Cooling|AC, SEER 14
+            - HVAC System Cooling|AC, SEER 15
+          - not:
+            - Heating Fuel|Electricity
+      costs:
+        - value: 3200
+          multiplier: Fixed (1)
+        - value: 42
+          multiplier: Size, Cooling System (kBtu/h)
+      lifetime: 16
+    - option: HVAC System Heat Pump|ASHP, SEER 22, 10 HSPF
+      apply_logic: 
+        or:
+          - HVAC System Heat Pump|ASHP, SEER 10, 6.2 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 10.3, 7.0 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 11.5, 7.5 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 13, 7.7 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 13, 8.0 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 14, 8.2 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 14.3, 8.5 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 15, 8.5 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 16, 9.0 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 17, 8.7 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 18, 9.3 HSPF
+          - HVAC System Heating Electricity|Electric Furnace
+      costs:
+        - value: 4200
+          multiplier: Fixed (1)
+        - value: 42
+          multiplier: Size, Heating System (kBtu/h)
+      lifetime: 15
+    - option: HVAC System Heat Pump|MSHP, SEER 29.3, 14 HSPF #ductless heat pump upgrade for electric baseboard
+      apply_logic:
+        - HVAC System Heating Electricity|Electric Baseboard 
+      costs:
+        - value: 4200 #made up
+          multiplier: Fixed (1)
+      lifetime: 15 #made up
+    #Equipment upgrades
+      #Best water heater
+    - option: Water Heater|Electric Heat Pump, 80 gal
+      apply_logic: 
+        or:
+          - Water Heater|Electric Standard
+          - Water Heater|Electric Premium
+          - Water Heater|Electric Benchmark
+          - Water Heater|Electric Heat Pump, 50 gal
+          - Water Heater|Electric Heat Pump, 50 gal, 140F
+      #Best pool pump
+    - option: Misc Pool Pump|0.75 HP Pump
+      apply_logic: Misc Pool Pump|1.0 HP Pump
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+      #Best dishwasher
+    - option: Dishwasher|199 Rated kWh, 80% Usage
+      apply_logic: 
+        or:
+          - Dishwasher|318 Rated kWh, 80% Usage
+          - Dishwasher|290 Rated kWh, 80% Usage
+      costs:
+        - value: 1000
+          multiplier: Fixed (1)
+      lifetime: 11
+    - option: Dishwasher|199 Rated kWh, 100% Usage
+      apply_logic: 
+        or:
+          - Dishwasher|318 Rated kWh, 100% Usage
+          - Dishwasher|290 Rated kWh, 100% Usage
+      costs:
+        - value: 1000
+          multiplier: Fixed (1)
+      lifetime: 11
+    - option: Dishwasher|199 Rated kWh, 120% Usage
+      apply_logic: 
+        or:
+          - Dishwasher|318 Rated kWh, 120% Usage
+          - Dishwasher|290 Rated kWh, 120% Usage
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 11
+      #Best clothes washer
+    - option: Clothes Washer|EnergyStar Most Efficient, 80% Usage
+      apply_logic:
+        or:
+          - Clothes Washer|EnergyStar, 80% Usage
+          - Clothes Washer|Standard, 80% Usage
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Clothes Washer|EnergyStar Most Efficient, 100% Usage
+      apply_logic:
+        or:
+          - Clothes Washer|EnergyStar, 100% Usage
+          - Clothes Washer|Standard, 100% Usage
+          - Clothes Washer|Standard, 100% Usage, Cold Only
+          - Clothes Washer|EnergyStar, Cold Only
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Clothes Washer|EnergyStar Most Efficient, 120% Usage
+      apply_logic:
+        or:
+          - Clothes Washer|EnergyStar, 120% Usage
+          - Clothes Washer|Standard, 120% Usage
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+      #Best clothes dryer
+    - option: Clothes Dryer|Electric, Heat Pump, Ventless, 80% Usage
+      apply_logic:
+        or:
+          - Clothes Dryer|Electric, 80% Usage
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Clothes Dryer|Electric, Heat Pump, Ventless, 100% Usage
+      apply_logic:
+        or:
+          - Clothes Dryer|Electric, 100% Usage
+          - Clothes Dryer|Electric, Premium
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Clothes Dryer|Electric, Heat Pump, Ventless, 120% Usage
+      apply_logic:
+        or:
+          - Clothes Dryer|Electric, 120% Usage
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+      #Best LEDs
+    - option: Lighting|100% LED, High Efficacy
+      apply_logic:
+        or:
+          - Lighting|100% Incandescent
+          - Lighting|60% CFL Hardwired, 34% CFL Plugin
+          - Lighting|60% CFL
+          - Lighting|100% CFL
+          - Lighting|100% LED
+          - Lighting|20% LED
+          - Lighting|100% LED
+          - Lighting|100% LED, Low Efficacy
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+      #Best Refrigeration
+    - option: Refrigerator|EF 22.2, EnergyStar Most Efficient
+      apply_logic: 
+        or:
+          - Refrigerator|EF 15.9
+          - Refrigerator|EF 10.5
+          - Refrigerator|EF 10.2
+          - Refrigerator|EF 6.7
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 17.4
+      #Best Electronics
+      #Best Plug Loads
+    - option: Plug Loads|25%
+      apply_logic:
+          - Plug Loads|50%
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Plug Loads|50%
+      apply_logic:
+          - Plug Loads|100%
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Plug Loads|100%
+      apply_logic:
+          - Plug Loads|200%
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+  - upgrade_name: Envelope Only, no mech vent
+    options:
+    #best envelope
+    - option: Insulation Wall|Wood Stud, R-13, R-20 external XPS
+      apply_logic:
+        or:
+          - Insulation Wall|Wood Stud, Uninsulated
+          - Insulation Wall|Wood Stud, R-7
+          - Insulation Wall|Wood Stud, R-11
+          - Insulation Wall|Wood Stud, R-13
+          - Insulation Wall|Wood Stud, R-19
+          - Insulation Wall|Wood Stud, R-19, Grade 2
+          - Insulation Wall|Wood Stud, R-19, Grade 3
+          - Insulation Wall|Wood Stud, R-23 Closed Cell Spray Foam, 2x4, 16 in o.c.
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+      #Best roofs
+    - option: Insulation Unfinished Attic|Ceiling R-49, Vented
+      apply_logic: 
+        or:
+          - Insulation Unfinished Attic|Uninsulated, Vented
+          - Insulation Unfinished Attic|Ceiling R-7, Vented
+          - Insulation Unfinished Attic|Ceiling R-13, Vented
+          - Insulation Unfinished Attic|Ceiling R-19, Vented
+          - Insulation Unfinished Attic|Ceiling R-30, Vented
+          - Insulation Unfinished Attic|Ceiling R-38, Vented
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+      #Best air sealing
+    - option: Infiltration|18.75 ACH50
+      apply_logic: 
+        - Infiltration|25 ACH50
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Infiltration|15 ACH50
+      apply_logic: 
+        - Infiltration|20 ACH50
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Infiltration|11.25 ACH50
+      apply_logic: 
+        - Infiltration|15 ACH50
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Infiltration|7.5 ACH50
+      apply_logic: 
+        - Infiltration|10 ACH50
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+      #Best windows
+    - option: Windows|SCOUT 5.88 R, 0.49 SHGC #AIA1
+      apply_logic:
+        or:
+          - Location|ME_Caribou.Muni.AP.727120
+          - Location|ME_Portland.Intl.Jetport.726060
+          - Location|NH_Concord.Muni.AP.726050
+          - Location|VT_Burlington.Intl.AP.726170
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Windows|SCOUT 5.88 R, 0.42 SHGC #AIA2
+      apply_logic:
+        or:
+          - Location|CT_Bridgeport-Sikorsky.Mem.AP.725040
+          - Location|CT_Hartford-Bradley.Intl.AP.725080
+          - Location|MA_Boston-Logan.Intl.AP.725090
+          - Location|MA_Worcester.Rgnl.AP.725095
+          - Location|NV_Reno-Tahoe.Intl.AP.724880
+          - Location|NY_Albany.County.AP.725180
+          - Location|RI_Providence-T.F.Green.State.AP.725070
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Windows|SCOUT 5.88 R, 0.27 SHGC #AIA3-5
+      apply_logic:
+        not:
+          - Location|ME_Caribou.Muni.AP.727120
+          - Location|ME_Portland.Intl.Jetport.726060
+          - Location|NH_Concord.Muni.AP.726050
+          - Location|VT_Burlington.Intl.AP.726170
+          - Location|CT_Bridgeport-Sikorsky.Mem.AP.725040
+          - Location|CT_Hartford-Bradley.Intl.AP.725080
+          - Location|MA_Boston-Logan.Intl.AP.725090
+          - Location|MA_Worcester.Rgnl.AP.725095
+          - Location|NV_Reno-Tahoe.Intl.AP.724880
+          - Location|NY_Albany.County.AP.725180
+          - Location|RI_Providence-T.F.Green.State.AP.725070
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+      #Best floors: #AIA CZ1-2 only
+    - option: Insulation Slab|R20 Option 1
+      apply_logic: 
+        and:
+          - Insulation Slab|Uninsulated
+          - or:
+            - Location|ME_Caribou.Muni.AP.727120
+            - Location|ME_Portland.Intl.Jetport.726060
+            - Location|NH_Concord.Muni.AP.726050
+            - Location|VT_Burlington.Intl.AP.726170
+            - Location|CT_Bridgeport-Sikorsky.Mem.AP.725040
+            - Location|CT_Hartford-Bradley.Intl.AP.725080
+            - Location|MA_Boston-Logan.Intl.AP.725090
+            - Location|MA_Worcester.Rgnl.AP.725095
+            - Location|NV_Reno-Tahoe.Intl.AP.724880
+            - Location|NY_Albany.County.AP.725180
+            - Location|RI_Providence-T.F.Green.State.AP.725070      
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Insulation Slab|R20 Option 2
+      apply_logic: 
+        and:
+          - Insulation Slab|2ft R5 Perimeter, R5 Gap
+          - or:
+            - Location|ME_Caribou.Muni.AP.727120
+            - Location|ME_Portland.Intl.Jetport.726060
+            - Location|NH_Concord.Muni.AP.726050
+            - Location|VT_Burlington.Intl.AP.726170
+            - Location|CT_Bridgeport-Sikorsky.Mem.AP.725040
+            - Location|CT_Hartford-Bradley.Intl.AP.725080
+            - Location|MA_Boston-Logan.Intl.AP.725090
+            - Location|MA_Worcester.Rgnl.AP.725095
+            - Location|NV_Reno-Tahoe.Intl.AP.724880
+            - Location|NY_Albany.County.AP.725180
+            - Location|RI_Providence-T.F.Green.State.AP.725070  
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Insulation Slab|R20 Option 3
+      apply_logic: 
+        and:
+          - Insulation Slab|2ft R10 Perimeter, R10 Gap
+          - or:
+            - Location|ME_Caribou.Muni.AP.727120
+            - Location|ME_Portland.Intl.Jetport.726060
+            - Location|NH_Concord.Muni.AP.726050
+            - Location|VT_Burlington.Intl.AP.726170
+            - Location|CT_Bridgeport-Sikorsky.Mem.AP.725040
+            - Location|CT_Hartford-Bradley.Intl.AP.725080
+            - Location|MA_Boston-Logan.Intl.AP.725090
+            - Location|MA_Worcester.Rgnl.AP.725095
+            - Location|NV_Reno-Tahoe.Intl.AP.724880
+            - Location|NY_Albany.County.AP.725180
+            - Location|RI_Providence-T.F.Green.State.AP.725070  
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Insulation Slab|R20 Option 4
+      apply_logic: 
+        and:
+          - Insulation Slab|4ft R5 Perimeter, R5 Gap
+          - or:
+            - Location|ME_Caribou.Muni.AP.727120
+            - Location|ME_Portland.Intl.Jetport.726060
+            - Location|NH_Concord.Muni.AP.726050
+            - Location|VT_Burlington.Intl.AP.726170
+            - Location|CT_Bridgeport-Sikorsky.Mem.AP.725040
+            - Location|CT_Hartford-Bradley.Intl.AP.725080
+            - Location|MA_Boston-Logan.Intl.AP.725090
+            - Location|MA_Worcester.Rgnl.AP.725095
+            - Location|NV_Reno-Tahoe.Intl.AP.724880
+            - Location|NY_Albany.County.AP.725180
+            - Location|RI_Providence-T.F.Green.State.AP.725070  
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999      
+    - option: Insulation Slab|R20 Option 5
+      apply_logic: 
+        and:
+          - Insulation Slab|2ft R5 Exterior
+          - or:
+            - Location|ME_Caribou.Muni.AP.727120
+            - Location|ME_Portland.Intl.Jetport.726060
+            - Location|NH_Concord.Muni.AP.726050
+            - Location|VT_Burlington.Intl.AP.726170
+            - Location|CT_Bridgeport-Sikorsky.Mem.AP.725040
+            - Location|CT_Hartford-Bradley.Intl.AP.725080
+            - Location|MA_Boston-Logan.Intl.AP.725090
+            - Location|MA_Worcester.Rgnl.AP.725095
+            - Location|NV_Reno-Tahoe.Intl.AP.724880
+            - Location|NY_Albany.County.AP.725180
+            - Location|RI_Providence-T.F.Green.State.AP.725070  
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Insulation Slab|R20 Option 6
+      apply_logic: 
+        and:
+          - Insulation Slab|2ft R10 Exterior
+          - or:
+            - Location|ME_Caribou.Muni.AP.727120
+            - Location|ME_Portland.Intl.Jetport.726060
+            - Location|NH_Concord.Muni.AP.726050
+            - Location|VT_Burlington.Intl.AP.726170
+            - Location|CT_Bridgeport-Sikorsky.Mem.AP.725040
+            - Location|CT_Hartford-Bradley.Intl.AP.725080
+            - Location|MA_Boston-Logan.Intl.AP.725090
+            - Location|MA_Worcester.Rgnl.AP.725095
+            - Location|NV_Reno-Tahoe.Intl.AP.724880
+            - Location|NY_Albany.County.AP.725180
+            - Location|RI_Providence-T.F.Green.State.AP.725070  
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Insulation Slab|R20 Option 7
+      apply_logic: 
+        and:
+          - Insulation Slab|R10 Whole Slab, R5 Gap
+          - or:
+            - Location|ME_Caribou.Muni.AP.727120
+            - Location|ME_Portland.Intl.Jetport.726060
+            - Location|NH_Concord.Muni.AP.726050
+            - Location|VT_Burlington.Intl.AP.726170
+            - Location|CT_Bridgeport-Sikorsky.Mem.AP.725040
+            - Location|CT_Hartford-Bradley.Intl.AP.725080
+            - Location|MA_Boston-Logan.Intl.AP.725090
+            - Location|MA_Worcester.Rgnl.AP.725095
+            - Location|NV_Reno-Tahoe.Intl.AP.724880
+            - Location|NY_Albany.County.AP.725180
+            - Location|RI_Providence-T.F.Green.State.AP.725070  
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+    - option: Insulation Slab|R20 Option 8
+      apply_logic: 
+        and:
+          - Insulation Slab|R20 Whole Slab
+          - or:
+            - Location|ME_Caribou.Muni.AP.727120
+            - Location|ME_Portland.Intl.Jetport.726060
+            - Location|NH_Concord.Muni.AP.726050
+            - Location|VT_Burlington.Intl.AP.726170
+            - Location|CT_Bridgeport-Sikorsky.Mem.AP.725040
+            - Location|CT_Hartford-Bradley.Intl.AP.725080
+            - Location|MA_Boston-Logan.Intl.AP.725090
+            - Location|MA_Worcester.Rgnl.AP.725095
+            - Location|NV_Reno-Tahoe.Intl.AP.724880
+            - Location|NY_Albany.County.AP.725180
+            - Location|RI_Providence-T.F.Green.State.AP.725070  
+      costs:
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+      ##end floors
+
+timeseries_csv_export:
+  reporting_frequency: Hourly
+  include_enduse_subcategories: true
+eagle:
+  account: windowsaving
+  n_jobs: 20
+  minutes_per_sim: 5
+  postprocessing:
+    time: 90
+postprocessing:
+  aws:
+    region_name: 'us-west-2'
+    s3:
+      bucket: resbldg-datasets
+      prefix: resstock-athena/lbnl_support_fullSDonly
+    athena:
+      glue_service_role: service-role/AWSGlueServiceRole-default
+      database_name: LBNL_support
+      max_crawling_time: 600 #time to wait for the crawler to complete before aborting it
