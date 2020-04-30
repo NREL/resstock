@@ -2,7 +2,7 @@
 ###### April 28, 2020 - [Diff](https://github.com/NREL/OpenStudio-BuildStock/compare/v2.2.3...v2.2.4)
 
 Fixes
-- Fix bug in options lookup where buildings without heating systems were not being assigned a required airflow measure argument ([#442](https://github.com/NREL/OpenStudio-BuildStock/pull/442))
+- Fix bug in options lookup where buildings without heating systems were not being assigned the required "has_hvac_flue" airflow measure argument ([#442](https://github.com/NREL/OpenStudio-BuildStock/pull/442))
 
 ## ResStock v2.2.3
 ###### March 9, 2020 - [Diff](https://github.com/NREL/OpenStudio-BuildStock/compare/v2.2.2...v2.2.3)
