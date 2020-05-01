@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>residential_hot_water_heater_tank</name>
   <uid>0f2214ac-12ca-4350-9942-8d1fb1277608</uid>
-  <version_id>53059d79-5aa9-4639-8ca5-4a452b78b78b</version_id>
-  <version_modified>20190701T173018Z</version_modified>
+  <version_id>7190673d-f00d-4e27-bb97-6a2d612ac207</version_id>
+  <version_modified>20200430T230734Z</version_modified>
   <xml_checksum>9882CBDB</xml_checksum>
   <class_name>ResidentialHotWaterHeaterTank</class_name>
   <display_name>Set Residential Tank Water Heater</display_name>
@@ -121,6 +121,25 @@
       <model_dependent>false</model_dependent>
       <default_value>0</default_value>
     </argument>
+    <argument>
+      <name>has_water_heater_flue</name>
+      <display_name>Air Leakage: Has Open Water Heater Flue</display_name>
+      <description>Specifies whether the building has an open flue associated with the water heater.</description>
+      <type>Boolean</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
   </arguments>
   <outputs/>
   <provenances/>
@@ -141,6 +160,12 @@
   </attributes>
   <files>
     <file>
+      <filename>ResidentialWaterHeaterTank_Test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>6B63703F</checksum>
+    </file>
+    <file>
       <version>
         <software_program>OpenStudio</software_program>
         <identifier>1.4.1</identifier>
@@ -149,13 +174,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>D27FCD5C</checksum>
-    </file>
-    <file>
-      <filename>ResidentialWaterHeaterTank_Test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>6B63703F</checksum>
+      <checksum>134389E7</checksum>
     </file>
   </files>
 </measure>

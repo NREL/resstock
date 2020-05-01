@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>residential_misc_large_uncommon_loads</name>
   <uid>96f1e9ca-41b9-4fb8-a219-57850e351500</uid>
-  <version_id>1e322341-7630-4f05-8fba-43fbed42743e</version_id>
-  <version_modified>20190712T214218Z</version_modified>
+  <version_id>430ac39b-21c5-4891-9193-e93d0b51d0d0</version_id>
+  <version_modified>20200430T230735Z</version_modified>
   <xml_checksum>126F1C43</xml_checksum>
   <class_name>ResidentialMiscLargeUncommonLoads</class_name>
   <display_name>Set Residential Large Uncommon Loads</display_name>
@@ -731,6 +731,25 @@
       </choices>
     </argument>
     <argument>
+      <name>has_fireplace_chimney</name>
+      <display_name>Air Leakage: Has Open HVAC Flue</display_name>
+      <description>Specifies whether the building has an open chimney associated with a fireplace.</description>
+      <type>Boolean</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
       <name>gas_grill_annual_energy</name>
       <display_name>Gas Grill: Annual Energy Use</display_name>
       <description>The annual energy use for the gas grill (defaults to national average).</description>
@@ -925,6 +944,12 @@
   </attributes>
   <files>
     <file>
+      <filename>ResidentialLargeUncommonLoads_Test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>A3ACD494</checksum>
+    </file>
+    <file>
       <version>
         <software_program>OpenStudio</software_program>
         <identifier>1.9.0</identifier>
@@ -933,13 +958,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>AB580A53</checksum>
-    </file>
-    <file>
-      <filename>ResidentialLargeUncommonLoads_Test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>A3ACD494</checksum>
+      <checksum>8EE4435A</checksum>
     </file>
   </files>
 </measure>
