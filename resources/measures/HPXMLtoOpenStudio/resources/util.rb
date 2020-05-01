@@ -496,7 +496,7 @@ class OutputMeters
     @electricity.pumps_cooling = electricityPumpsCooling
     @electricity.central_pumps_cooling = centralElectricityPumpsCooling
     @electricity.water_systems = electricityWaterSystems
-    @electricity.photovoltaics = modeledCentralElectricityPhotovoltaics
+    @electricity.photovoltaics = -1.0 * modeledCentralElectricityPhotovoltaics
 
     if @include_enduse_subcategories
       @electricity.refrigerator = electricityRefrigerator
@@ -634,7 +634,6 @@ class OutputMeters
 
     # Get meters that are tied to units, and apportion building level meters to these
     fuelOilHeating = Vector.elements(Array.new(num_ts, 0.0))
-    fuelOilInteriorEquipment = Vector.elements(Array.new(num_ts, 0.0))
     fuelOilWaterSystems = Vector.elements(Array.new(num_ts, 0.0))
 
     # Get building units
@@ -649,19 +648,16 @@ class OutputMeters
 
       fuelOilHeating = add_unit(sql_file, fuelOilHeating, units_represented, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:FUELOILHEATING') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
       centralFuelOilHeating = apportion_central(centralFuelOilHeating, modeledCentralFuelOilHeating, units_represented, units.length)
-      fuelOilInteriorEquipment = add_unit(sql_file, fuelOilInteriorEquipment, units_represented, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:FUELOILINTERIOREQUIPMENT') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
       fuelOilWaterSystems = add_unit(sql_file, fuelOilWaterSystems, units_represented, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:FUELOILWATERSYSTEMS') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
     end
 
     @fuel_oil = FuelOil.new
     @fuel_oil.heating = fuelOilHeating
     @fuel_oil.central_heating = centralFuelOilHeating
-    @fuel_oil.interior_equipment = fuelOilInteriorEquipment
     @fuel_oil.water_systems = fuelOilWaterSystems
 
     @fuel_oil.total_end_uses = @fuel_oil.heating +
                                @fuel_oil.central_heating +
-                               @fuel_oil.interior_equipment +
                                @fuel_oil.water_systems
     return @fuel_oil
   end
