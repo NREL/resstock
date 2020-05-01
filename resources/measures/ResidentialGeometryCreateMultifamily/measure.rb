@@ -242,15 +242,27 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     orientation.setDefaultValue(180.0)
     args << orientation
 
-    # make a string argument for unit level
-    level = OpenStudio::Measure::OSArgument::makeStringArgument("level", true)
+    # make a choice argument for unit level
+    level_display_names = OpenStudio::StringVector.new
+    level_display_names << "Bottom"
+    level_display_names << "Middle"
+    level_display_names << "Top"
+    level_display_names << "None"
+
+    level = OpenStudio::Measure::OSArgument::makeChoiceArgument("level", level_display_names, true)
     level.setDisplayName("Unit Level")
     level.setDescription("The level of the unit (Top, Middle, Bottom)")
     level.setDefaultValue("Bottom")
     args << level
 
-    # make a string argument for unit horizontal location
-    horz_location = OpenStudio::Measure::OSArgument::makeStringArgument("horz_location", true)
+    # make a choice argument for unit horizontal location
+    horz_location_names = OpenStudio::StringVector.new
+    horz_location_names << "Right"
+    horz_location_names << "Middle"
+    horz_location_names << "Left"
+    horz_location_names << "None"
+
+    horz_location = OpenStudio::Measure::OSArgument::makeChoiceArgument("horz_location", horz_location_names, true)
     horz_location.setDisplayName("Horizontal Location of the Unit")
     horz_location.setDescription("The horizontal location of the unit when viewing the front of the building (Left, Middle, Right)")
     horz_location.setDefaultValue("Left")
