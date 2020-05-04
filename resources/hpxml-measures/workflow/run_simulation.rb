@@ -45,12 +45,14 @@ def run_workflow(basedir, rundir, hpxml, debug, hourly_outputs)
   measure_subdir = 'SimulationOutputReport'
   args = {}
   args['timeseries_frequency'] = 'hourly'
-  args['include_timeseries_zone_temperatures'] = hourly_outputs.include? 'temperatures'
   args['include_timeseries_fuel_consumptions'] = hourly_outputs.include? 'fuels'
   args['include_timeseries_end_use_consumptions'] = hourly_outputs.include? 'enduses'
   args['include_timeseries_hot_water_uses'] = hourly_outputs.include? 'hotwater'
   args['include_timeseries_total_loads'] = hourly_outputs.include? 'loads'
   args['include_timeseries_component_loads'] = hourly_outputs.include? 'componentloads'
+  args['include_timeseries_zone_temperatures'] = hourly_outputs.include? 'temperatures'
+  args['include_timeseries_airflows'] = hourly_outputs.include? 'airflows'
+  args['include_timeseries_weather'] = hourly_outputs.include? 'weather'
   update_args_hash(measures, measure_subdir, args)
 
   # Apply measures
@@ -131,7 +133,7 @@ def report_ft_errors_warnings(forward_translator, designdir)
   end
 end
 
-hourly_types = ['ALL', 'fuels', 'enduses', 'hotwater', 'loads', 'componentloads', 'temperatures']
+hourly_types = ['ALL', 'fuels', 'enduses', 'hotwater', 'loads', 'componentloads', 'temperatures', 'airflows', 'weather']
 
 options = {}
 OptionParser.new do |opts|
@@ -146,7 +148,7 @@ OptionParser.new do |opts|
   end
 
   options[:hourly_outputs] = []
-  opts.on('--hourly TYPE', hourly_types, "Request hourly output type (#{hourly_types[0..3].join(', ')},", "#{hourly_types[4..-1].join(', ')}); can be called multiple times") do |t|
+  opts.on('--hourly TYPE', hourly_types, "Request hourly output type (#{hourly_types[0..4].join(', ')},", "#{hourly_types[5..-1].join(', ')}); can be called multiple times") do |t|
     options[:hourly_outputs] << t
   end
 

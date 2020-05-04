@@ -123,6 +123,8 @@ class BuildResidentialHPXMLTest < MiniTest::Test
 
         # Report warnings/errors
         runner.result.stepWarnings.each do |s|
+          next if s.include? 'nokogiri'
+
           puts "Warning: #{s}"
           assert_equal(s, expected_warning_msgs[File.basename(osw)])
         end

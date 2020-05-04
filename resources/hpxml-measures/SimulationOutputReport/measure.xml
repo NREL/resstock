@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>simulation_output_report</name>
   <uid>df9d170c-c21a-4130-866d-0d46b06073fd</uid>
-  <version_id>b1bde40b-0b71-4f7f-98c7-b559c27199bd</version_id>
-  <version_modified>20200427T163313Z</version_modified>
+  <version_id>3d33967c-e36c-4c73-ae0e-af96b37b1cce</version_id>
+  <version_modified>20200501T160036Z</version_modified>
   <xml_checksum>9BF1E6AC</xml_checksum>
   <class_name>SimulationOutputReport</class_name>
   <display_name>HPXML Simulation Output Report</display_name>
@@ -14,12 +14,16 @@
     <argument>
       <name>timeseries_frequency</name>
       <display_name>Timeseries Reporting Frequency</display_name>
-      <description>The frequency at which to report timeseries output data.</description>
+      <description>The frequency at which to report timeseries output data. Using 'none' will disable timeseries outputs.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>hourly</default_value>
+      <default_value>none</default_value>
       <choices>
+        <choice>
+          <value>none</value>
+          <display_name>none</display_name>
+        </choice>
         <choice>
           <value>timestep</value>
           <display_name>timestep</display_name>
@@ -35,25 +39,6 @@
         <choice>
           <value>monthly</value>
           <display_name>monthly</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
-      <name>include_timeseries_zone_temperatures</name>
-      <display_name>Generate Timeseries Output: Zone Temperatures</display_name>
-      <description>Generates timeseries temperatures for each thermal zone.</description>
-      <type>Boolean</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>false</default_value>
-      <choices>
-        <choice>
-          <value>true</value>
-          <display_name>true</display_name>
-        </choice>
-        <choice>
-          <value>false</value>
-          <display_name>false</display_name>
         </choice>
       </choices>
     </argument>
@@ -137,6 +122,63 @@
       <name>include_timeseries_component_loads</name>
       <display_name>Generate Timeseries Output: Component Loads</display_name>
       <description>Generates timeseries heating/cooling loads disaggregated by component type.</description>
+      <type>Boolean</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>include_timeseries_zone_temperatures</name>
+      <display_name>Generate Timeseries Output: Zone Temperatures</display_name>
+      <description>Generates timeseries temperatures for each thermal zone.</description>
+      <type>Boolean</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>include_timeseries_airflows</name>
+      <display_name>Generate Timeseries Output: Airflows</display_name>
+      <description>Generates timeseries airflows.</description>
+      <type>Boolean</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>include_timeseries_weather</name>
+      <display_name>Generate Timeseries Output: Weather</display_name>
+      <description>Generates timeseries weather data.</description>
       <type>Boolean</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -496,7 +538,7 @@
       <filename>constants.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>301A7C10</checksum>
+      <checksum>7585F66F</checksum>
     </file>
     <file>
       <version>
@@ -507,13 +549,13 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>2213ED0C</checksum>
+      <checksum>360A9365</checksum>
     </file>
     <file>
       <filename>output_report_test.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
-      <checksum>4C895D3B</checksum>
+      <checksum>EDB86AD9</checksum>
     </file>
   </files>
 </measure>

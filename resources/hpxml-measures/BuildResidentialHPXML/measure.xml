@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>build_residential_hpxml</name>
   <uid>a13a8983-2b01-4930-8af2-42030b6e4233</uid>
-  <version_id>377dd856-e441-4cac-af40-7e6267239799</version_id>
-  <version_modified>20200428T183828Z</version_modified>
+  <version_id>ad204bb8-5f0e-4208-a80a-bab327b14d47</version_id>
+  <version_modified>20200504T215257Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>BuildResidentialHPXML</class_name>
   <display_name>HPXML Builder</display_name>
@@ -3043,6 +3043,60 @@
       <default_value>0.14</default_value>
     </argument>
     <argument>
+      <name>lighting_fraction_cfl_interior</name>
+      <display_name>Lighting: Fraction CFL Interior</display_name>
+      <description>Fraction of all lamps (interior) that are compact fluorescent. Lighting not specified as CFL or LED is assumed to be incandescent.</description>
+      <type>Double</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0.34</default_value>
+    </argument>
+    <argument>
+      <name>lighting_fraction_led_interior</name>
+      <display_name>Lighting: Fraction LED Interior</display_name>
+      <description>Fraction of all lamps (interior) that are LED. Lighting not specified as CFL or LED is assumed to be incandescent.</description>
+      <type>Double</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0</default_value>
+    </argument>
+    <argument>
+      <name>lighting_fraction_cfl_exterior</name>
+      <display_name>Lighting: Fraction CFL Exterior</display_name>
+      <description>Fraction of all lamps (exterior) that are compact fluorescent. Lighting not specified as CFL or LED is assumed to be incandescent.</description>
+      <type>Double</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0.34</default_value>
+    </argument>
+    <argument>
+      <name>lighting_fraction_led_exterior</name>
+      <display_name>Lighting: Fraction LED Exterior</display_name>
+      <description>Fraction of all lamps (exterior) that are LED. Lighting not specified as CFL or LED is assumed to be incandescent.</description>
+      <type>Double</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0</default_value>
+    </argument>
+    <argument>
+      <name>lighting_fraction_cfl_garage</name>
+      <display_name>Lighting: Fraction CFL Garage</display_name>
+      <description>Fraction of all lamps (garage) that are compact fluorescent. Lighting not specified as CFL or LED is assumed to be incandescent.</description>
+      <type>Double</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0.34</default_value>
+    </argument>
+    <argument>
+      <name>lighting_fraction_led_garage</name>
+      <display_name>Lighting: Fraction LED Garage</display_name>
+      <description>Fraction of all lamps (garage) that are LED. Lighting not specified as CFL or LED is assumed to be incandescent.</description>
+      <type>Double</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0</default_value>
+    </argument>
+    <argument>
       <name>lighting_usage_multiplier</name>
       <display_name>Lighting: Usage Multiplier</display_name>
       <description>Multiplier on the energy usage that can reflect, e.g., high/low usage occupants.</description>
@@ -3887,12 +3941,6 @@
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
       <checksum>69F5DFFC</checksum>
-    </file>
-    <file>
-      <filename>build_residential_hpxml_test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>AEF68FEC</checksum>
     </file>
     <file>
       <filename>base-misc-usage-multiplier.osw</filename>
@@ -4783,6 +4831,30 @@
       <checksum>238CB315</checksum>
     </file>
     <file>
+      <filename>base-hvac-room-ac-only-33percent.osw</filename>
+      <filetype>osw</filetype>
+      <usage_type>test</usage_type>
+      <checksum>E1A6BC7F</checksum>
+    </file>
+    <file>
+      <filename>build_residential_hpxml_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>117E1272</checksum>
+    </file>
+    <file>
+      <filename>base-hvac-mini-split-heat-pump-ducted-cooling-only.osw</filename>
+      <filetype>osw</filetype>
+      <usage_type>test</usage_type>
+      <checksum>27FE3F88</checksum>
+    </file>
+    <file>
+      <filename>base-hvac-mini-split-heat-pump-ducted-heating-only.osw</filename>
+      <filetype>osw</filetype>
+      <usage_type>test</usage_type>
+      <checksum>19E96F34</checksum>
+    </file>
+    <file>
       <version>
         <software_program>OpenStudio</software_program>
         <identifier>2.9.0</identifier>
@@ -4791,7 +4863,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>99C2A628</checksum>
+      <checksum>3346124F</checksum>
     </file>
   </files>
 </measure>

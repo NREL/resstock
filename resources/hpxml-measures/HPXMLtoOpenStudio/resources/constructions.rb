@@ -1180,14 +1180,6 @@ class Constructions
     return summer, winter
   end
 
-  def self.get_default_door_area()
-    return 40.0 # ft2
-  end
-
-  def self.get_default_door_azimuth()
-    return 0 # North
-  end
-
   private
 
   def self.get_gap_factor(install_grade, framing_factor, cavity_r)

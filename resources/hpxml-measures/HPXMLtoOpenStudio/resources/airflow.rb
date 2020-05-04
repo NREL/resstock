@@ -1646,8 +1646,6 @@ class Airflow
       # E+ ERV model also does not meet setpoint perfectly.
       # Therefore ERV is modeled within EMS infiltration program
 
-      balanced_flow_rate = UnitConversions.convert(mech_vent.cfm, 'cfm', 'm^3/s')
-
       # Sensors for ERV/HRV
       win_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Zone Air Humidity Ratio')
       win_sensor.setName("#{Constants.ObjectNameAirflow} win s")
@@ -1675,7 +1673,8 @@ class Airflow
       infil_program.addLine('Set ERVSecInEnth = (@HFnTdbW ERVSecInTemp ERVSecInW)')
 
       # Calculate mass flow rate based on outdoor air density
-      infil_program.addLine("Set ERV_MFR = #{balanced_flow_rate} * ERVSupRho")
+      infil_program.addLine("Set balanced_mechvent_flow_rate = #{UnitConversions.convert(mech_vent.cfm, 'cfm', 'm^3/s')}")
+      infil_program.addLine('Set ERV_MFR = balanced_mechvent_flow_rate * ERVSupRho')
 
       # Heat exchanger calculation
       infil_program.addLine('Set ERVCpMin = (@Min ERVSupCp ERVSecCp)')
@@ -1694,7 +1693,8 @@ class Airflow
       # Actuator
       infil_program.addLine("Set #{erv_sens_load_actuator.name} = ERVSensToLv")
       infil_program.addLine("Set #{erv_lat_load_actuator.name} = ERVLatToLv")
-
+    else
+      infil_program.addLine('Set balanced_mechvent_flow_rate = 0')
     end
 
     if mech_vent.type == HPXML::MechVentTypeCFIS
@@ -1794,11 +1794,13 @@ class Airflow
     end
     infil_program.addLine('Set QductsOut = 0')
     infil_program.addLine('Set QductsIn = 0')
-    duct_lks.each do |air_loop_name, value|
-      duct_lk_supply_fan_equiv_var, duct_lk_exhaust_fan_equiv_var = value
-      infil_program.addLine("Set QductsOut = QductsOut+#{duct_lk_exhaust_fan_equiv_var.name}")
-      infil_program.addLine("Set QductsIn = QductsIn+#{duct_lk_supply_fan_equiv_var.name}")
-    end
+    # Disabling duct imbalance affect on infiltration for consistency with other software tools
+    # Revisit this in the future.
+    # duct_lks.each do |air_loop_name, value|
+    #  duct_lk_supply_fan_equiv_var, duct_lk_exhaust_fan_equiv_var = value
+    #  infil_program.addLine("Set QductsOut = QductsOut+#{duct_lk_exhaust_fan_equiv_var.name}")
+    #  infil_program.addLine("Set QductsIn = QductsIn+#{duct_lk_supply_fan_equiv_var.name}")
+    # end
     infil_program.addLine('Set Qout = Qrange+Qbath+Qdryer+QductsOut')
     infil_program.addLine('Set Qin = QductsIn')
     if mech_vent.type == HPXML::MechVentTypeExhaust

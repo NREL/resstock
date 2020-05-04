@@ -80,3 +80,21 @@ class PFT
   Summer = 'Summer'
   Winter = 'Winter'
 end
+
+class AFT
+  # Airflow Types
+  Infiltration = 'Infiltration'
+  MechanicalVentilation = 'Mechanical Ventilation'
+  NaturalVentilation = 'Natural Ventilation'
+  WholeHouseFan = 'Whole House Fan'
+end
+
+class WT
+  # Weather Types
+  DrybulbTemp = 'Drybulb Temperature'
+  WetbulbTemp = 'Wetbulb Temperature'
+  RelativeHumidity = 'Relative Humidity'
+  WindSpeed = 'Wind Speed'
+  DiffuseSolar = 'Diffuse Solar Radiation'
+  DirectSolar = 'Direct Solar Radiation'
+end

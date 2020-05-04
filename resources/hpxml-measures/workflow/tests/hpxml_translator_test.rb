@@ -135,10 +135,8 @@ class HPXMLTest < MiniTest::Test
                             'duct-location.xml' => ["Duct location is 'garage' but building does not have this location specified."],
                             'duct-location-other.xml' => ['Expected [1] element(s) but found 0 element(s) for xpath: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACDistribution/DistributionSystemType/AirDistribution/Ducts[DuctType="supply" or DuctType="return"]: DuctLocation'],
                             'duplicate-id.xml' => ["Duplicate SystemIdentifier IDs detected for 'Wall'."],
-                            'heat-pump-mixed-fixed-and-autosize-capacities.xml' => ["HeatPump 'HeatPump' CoolingCapacity and HeatingCapacity must either both be auto-sized or fixed-sized."],
-                            'heat-pump-mixed-fixed-and-autosize-capacities2.xml' => ["HeatPump 'HeatPump' CoolingCapacity and HeatingCapacity must either both be auto-sized or fixed-sized."],
-                            'heat-pump-mixed-fixed-and-autosize-capacities3.xml' => ["HeatPump 'HeatPump' has HeatingCapacity17F provided but heating capacity is auto-sized."],
-                            'heat-pump-mixed-fixed-and-autosize-capacities4.xml' => ["HeatPump 'HeatPump' BackupHeatingCapacity and HeatingCapacity must either both be auto-sized or fixed-sized."],
+                            'heat-pump-mixed-fixed-and-autosize-capacities.xml' => ["HeatPump 'HeatPump' must have both HeatingCapacity and HeatingCapacity17F provided or not provided."],
+                            'heat-pump-mixed-fixed-and-autosize-capacities2.xml' => ["HeatPump 'HeatPump' must have both HeatingCapacity and BackupHeatingCapacity provided or not provided."],
                             'hvac-invalid-distribution-system-type.xml' => ["Incorrect HVAC distribution system type for HVAC type: 'Furnace'. Should be one of: ["],
                             'hvac-distribution-multiple-attached-cooling.xml' => ["Multiple cooling systems found attached to distribution system 'HVACDistribution2'."],
                             'hvac-distribution-multiple-attached-heating.xml' => ["Multiple heating systems found attached to distribution system 'HVACDistribution'."],
@@ -184,98 +182,6 @@ class HPXMLTest < MiniTest::Test
     # Test simulations
     Dir["#{sample_files_dir}/invalid_files/*.xml"].sort.each do |xml|
       _run_xml(File.absolute_path(xml), this_dir, true, expected_error_msgs[File.basename(xml)])
-    end
-  end
-
-  def test_generalized_hvac
-    # single-speed air conditioner
-    seer_to_expected_eer = { 13 => 11.2, 14 => 12.1, 15 => 13.0, 16 => 13.6 }
-    seer_to_expected_eer.each do |seer, expected_eer|
-      fan_power_rated = HVAC.get_fan_power_rated(seer)
-      actual_eer = HVAC.calc_EER_cooling_1spd(seer, fan_power_rated, HVAC.cOOL_EIR_FT_SPEC_AC)
-      assert_in_epsilon(expected_eer, actual_eer, 0.01)
-    end
-
-    # single-speed air source heat pump
-    hspf_to_seer = { 7.7 => 13, 8.2 => 14, 8.5 => 15 }
-    seer_to_expected_eer = { 13 => 11.31, 14 => 12.21, 15 => 13.12 }
-    seer_to_expected_eer.each do |seer, expected_eer|
-      fan_power_rated = HVAC.get_fan_power_rated(seer)
-      actual_eer = HVAC.calc_EER_cooling_1spd(seer, fan_power_rated, HVAC.cOOL_EIR_FT_SPEC_ASHP)
-      assert_in_epsilon(expected_eer, actual_eer, 0.01)
-    end
-    hspf_to_expected_cop = { 7.7 => 3.09, 8.2 => 3.35, 8.5 => 3.51 }
-    hspf_to_expected_cop.each do |hspf, expected_cop|
-      fan_power_rated = HVAC.get_fan_power_rated(hspf_to_seer[hspf])
-      actual_cop = HVAC.calc_COP_heating_1spd(hspf, HVAC.get_c_d_heating(1, hspf), fan_power_rated, HVAC.hEAT_EIR_FT_SPEC_ASHP, HVAC.hEAT_CAP_FT_SPEC_ASHP)
-      assert_in_epsilon(expected_cop, actual_cop, 0.01)
-    end
-
-    # two-speed air conditioner
-    seer_to_expected_eers = { 16 => [13.8, 12.7], 17 => [14.7, 13.6], 18 => [15.5, 14.5], 21 => [18.2, 17.2] }
-    seer_to_expected_eers.each do |seer, expected_eers|
-      fan_power_rated = HVAC.get_fan_power_rated(seer)
-      actual_eers = HVAC.calc_EERs_cooling_2spd(nil, seer, HVAC.get_c_d_cooling(2, seer), HVAC.two_speed_capacity_ratios, HVAC.two_speed_fan_speed_ratios_cooling, fan_power_rated, HVAC.cOOL_EIR_FT_SPEC_AC(2), HVAC.cOOL_CAP_FT_SPEC_AC(2))
-      expected_eers.zip(actual_eers).each do |expected_eer, actual_eer|
-        assert_in_epsilon(expected_eer, actual_eer, 0.01)
-      end
-    end
-
-    # two-speed air source heat pump
-    hspf_to_seer = { 8.6 => 16, 8.7 => 17, 9.3 => 18, 9.5 => 19 }
-    seer_to_expected_eers = { 16 => [13.2, 12.2], 17 => [14.1, 13.0], 18 => [14.9, 13.9], 19 => [15.7, 14.7] }
-    seer_to_expected_eers.each do |seer, expected_eers|
-      fan_power_rated = HVAC.get_fan_power_rated(seer)
-      actual_eers = HVAC.calc_EERs_cooling_2spd(nil, seer, HVAC.get_c_d_cooling(2, seer), HVAC.two_speed_capacity_ratios, HVAC.two_speed_fan_speed_ratios_cooling, fan_power_rated, HVAC.cOOL_EIR_FT_SPEC_ASHP(2), HVAC.cOOL_CAP_FT_SPEC_ASHP(2))
-      expected_eers.zip(actual_eers).each do |expected_eer, actual_eer|
-        assert_in_epsilon(expected_eer, actual_eer, 0.01)
-      end
-    end
-    hspf_to_expected_cops = { 8.6 => [3.85, 3.34], 8.7 => [3.90, 3.41], 9.3 => [4.24, 3.83], 9.5 => [4.35, 3.98] }
-    hspf_to_expected_cops.each do |hspf, expected_cops|
-      fan_power_rated = HVAC.get_fan_power_rated(hspf_to_seer[hspf])
-      actual_cops = HVAC.calc_COPs_heating_2spd(hspf, HVAC.get_c_d_heating(2, hspf), HVAC.two_speed_capacity_ratios, HVAC.two_speed_fan_speed_ratios_heating, fan_power_rated, HVAC.hEAT_EIR_FT_SPEC_ASHP(2), HVAC.hEAT_CAP_FT_SPEC_ASHP(2))
-      expected_cops.zip(actual_cops).each do |expected_cop, actual_cop|
-        assert_in_epsilon(expected_cop, actual_cop, 0.01)
-      end
-    end
-
-    # variable-speed air conditioner
-    capacity_ratios = HVAC.variable_speed_capacity_ratios_cooling
-    fan_speed_ratios = HVAC.variable_speed_fan_speed_ratios_cooling
-    cap_ratio_seer = [capacity_ratios[0], capacity_ratios[1], capacity_ratios[3]]
-    fan_speed_seer = [fan_speed_ratios[0], fan_speed_ratios[1], fan_speed_ratios[3]]
-    seer_to_expected_eers = { 24.5 => [19.5, 20.2, 19.7, 18.3] }
-    seer_to_expected_eers.each do |seer, expected_eers|
-      fan_power_rated = HVAC.get_fan_power_rated(seer)
-      actual_eers = HVAC.calc_EERs_cooling_4spd(nil, seer, HVAC.get_c_d_cooling(4, seer), cap_ratio_seer, fan_speed_seer, fan_power_rated, HVAC.cOOL_EIR_FT_SPEC_AC([0, 1, 4]), HVAC.cOOL_CAP_FT_SPEC_AC([0, 1, 4]))
-      expected_eers.zip(actual_eers).each do |expected_eer, actual_eer|
-        assert_in_epsilon(expected_eer, actual_eer, 0.01)
-      end
-    end
-
-    # variable-speed air source heat pump
-    capacity_ratios = HVAC.variable_speed_capacity_ratios_cooling
-    fan_speed_ratios = HVAC.variable_speed_fan_speed_ratios_cooling
-    cap_ratio_seer = [capacity_ratios[0], capacity_ratios[1], capacity_ratios[3]]
-    fan_speed_seer = [fan_speed_ratios[0], fan_speed_ratios[1], fan_speed_ratios[3]]
-    seer_to_expected_eers = { 22.0 => [17.49, 18.09, 17.64, 16.43], 24.5 => [19.5, 20.2, 19.7, 18.3] }
-    seer_to_expected_eers.each do |seer, expected_eers|
-      fan_power_rated = HVAC.get_fan_power_rated(seer)
-      actual_eers = HVAC.calc_EERs_cooling_4spd(nil, seer, HVAC.get_c_d_cooling(4, seer), cap_ratio_seer, fan_speed_seer, fan_power_rated, HVAC.cOOL_EIR_FT_SPEC_ASHP([0, 1, 4]), HVAC.cOOL_CAP_FT_SPEC_ASHP([0, 1, 4]))
-      expected_eers.zip(actual_eers).each do |expected_eer, actual_eer|
-        assert_in_epsilon(expected_eer, actual_eer, 0.01)
-      end
-    end
-    capacity_ratios = HVAC.variable_speed_capacity_ratios_heating
-    fan_speed_ratios = HVAC.variable_speed_fan_speed_ratios_heating
-    hspf_to_expected_cops = { 10.0 => [5.18, 4.48, 3.83, 3.67] }
-    hspf_to_expected_cops.each do |hspf, expected_cops|
-      fan_power_rated = 0.14
-      actual_cops = HVAC.calc_COPs_heating_4spd(nil, hspf, HVAC.get_c_d_heating(4, hspf), capacity_ratios, fan_speed_ratios, fan_power_rated, HVAC.hEAT_EIR_FT_SPEC_ASHP(4), HVAC.hEAT_CAP_FT_SPEC_ASHP(4))
-      expected_cops.zip(actual_cops).each do |expected_cop, actual_cop|
-        assert_in_epsilon(expected_cop, actual_cop, 0.01)
-      end
     end
   end
 
@@ -372,12 +278,14 @@ class HPXMLTest < MiniTest::Test
     measure_subdir = 'SimulationOutputReport'
     args = {}
     args['timeseries_frequency'] = 'hourly'
-    args['include_timeseries_zone_temperatures'] = true
     args['include_timeseries_fuel_consumptions'] = true
-    args['include_timeseries_end_use_consumptions'] = true
-    args['include_timeseries_hot_water_uses'] = true
-    args['include_timeseries_total_loads'] = true
-    args['include_timeseries_component_loads'] = true
+    args['include_timeseries_end_use_consumptions'] = false
+    args['include_timeseries_hot_water_uses'] = false
+    args['include_timeseries_total_loads'] = false
+    args['include_timeseries_component_loads'] = false
+    args['include_timeseries_zone_temperatures'] = false
+    args['include_timeseries_airflows'] = false
+    args['include_timeseries_weather'] = false
     update_args_hash(measures, measure_subdir, args)
 
     # Apply measure
@@ -842,7 +750,6 @@ class HPXMLTest < MiniTest::Test
         query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EquipmentSummary' AND ReportForString='Entire Facility' AND TableName='Pumps' AND RowName LIKE '%#{Constants.ObjectNameBoiler.upcase}%' AND ColumnName='Electric Power' AND Units='W'"
         sql_value = sqlFile.execAndReturnFirstDouble(query).get
       elsif htg_sys_type == HPXML::HVACTypeFurnace
-
         # Ratio fan power based on heating airflow rate divided by fan airflow rate since the
         # fan is sized based on cooling.
         query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EquipmentSummary' AND ReportForString='Entire Facility' AND TableName='Fans' AND RowName LIKE '%#{Constants.ObjectNameFurnace.upcase}%' AND ColumnName='Rated Electric Power' AND Units='W'"
@@ -865,23 +772,23 @@ class HPXMLTest < MiniTest::Test
     htg_cap = nil
     clg_cap = nil
     hpxml.heating_systems.each do |heating_system|
-      htg_sys_cap = heating_system.heating_capacity
+      htg_sys_cap = heating_system.heating_capacity.to_f
       if htg_sys_cap > 0
         htg_cap = 0 if htg_cap.nil?
         htg_cap += htg_sys_cap
       end
     end
     hpxml.cooling_systems.each do |cooling_system|
-      clg_sys_cap = cooling_system.cooling_capacity
-      if (not clg_sys_cap.nil?) && (Float(clg_sys_cap) > 0)
+      clg_sys_cap = cooling_system.cooling_capacity.to_f
+      if clg_sys_cap > 0
         clg_cap = 0 if clg_cap.nil?
         clg_cap += Float(clg_sys_cap)
       end
     end
     hpxml.heat_pumps.each do |heat_pump|
       hp_type = heat_pump.heat_pump_type
-      hp_cap_clg = heat_pump.cooling_capacity
-      hp_cap_htg = heat_pump.heating_capacity
+      hp_cap_clg = heat_pump.cooling_capacity.to_f
+      hp_cap_htg = heat_pump.heating_capacity.to_f
       clg_cap_mult = 1.0
       htg_cap_mult = 1.0
       if hp_type == HPXML::HVACTypeHeatPumpMiniSplit
