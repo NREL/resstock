@@ -232,6 +232,9 @@ class OSModel
     @eri_version = 'latest' if @eri_version.nil?
     @eri_version = Constants.ERIVersions[-1] if @eri_version == 'latest'
 
+    @apply_ashrae140_assumptions = @hpxml.header.apply_ashrae140_assumptions # Hidden feature
+    @apply_ashrae140_assumptions = false if @apply_ashrae140_assumptions.nil?
+
     # Init
     weather = Location.apply(model, runner, epw_path, cache_path, 'NA', 'NA')
     set_defaults_and_globals(runner)
@@ -256,7 +259,7 @@ class OSModel
     add_conditioned_floor_area(runner, model, spaces)
     add_thermal_mass(runner, model)
     modify_cond_basement_surface_properties(runner, model)
-    assign_view_factor(runner, model)
+    assign_view_factor(runner, model) unless @cond_bsmnt_surfaces.empty?
     check_for_errors(runner, model)
     set_zone_volumes(runner, model)
     explode_surfaces(runner, model)
@@ -321,14 +324,13 @@ class OSModel
     @default_azimuths = get_default_azimuths()
     @has_uncond_bsmnt = @hpxml.has_space_type(HPXML::LocationBasementUnconditioned)
 
-    @use_only_ideal_air = false
-    if not @hpxml.building_construction.use_only_ideal_air_system.nil?
-      @use_only_ideal_air = @hpxml.building_construction.use_only_ideal_air_system
+    if @hpxml.building_construction.use_only_ideal_air_system.nil?
+      @hpxml.building_construction.use_only_ideal_air_system = false
     end
 
     # Initialize
-    @total_frac_remaining_heat_load_served = 1.0
-    @total_frac_remaining_cool_load_served = 1.0
+    @remaining_heat_load_frac = 1.0
+    @remaining_cool_load_frac = 1.0
     @hvac_map = {} # mapping between HPXML HVAC systems and model objects
     @dhw_map = {}  # mapping between HPXML Water Heating systems and model objects
     @cond_bsmnt_surfaces = [] # list of surfaces in conditioned basement, used for modification of some surface properties, eg. solar absorptance, view factor, etc.
@@ -464,6 +466,37 @@ class OSModel
         heat_pump.cooling_shr = 0.73
       elsif heat_pump.heat_pump_type == HPXML::HVACTypeHeatPumpGroundToAir
         heat_pump.cooling_shr = 0.732
+      end
+    end
+
+    # HVAC capacities
+    @hpxml.heating_systems.each do |heating_system|
+      if (not heating_system.heating_capacity.nil?) && (heating_system.heating_capacity < 0)
+        heating_system.heating_capacity = nil
+      end
+    end
+    @hpxml.cooling_systems.each do |cooling_system|
+      if (not cooling_system.cooling_capacity.nil?) && (cooling_system.cooling_capacity < 0)
+        cooling_system.cooling_capacity = nil
+      end
+    end
+    @hpxml.heat_pumps.each do |heat_pump|
+      if (not heat_pump.cooling_capacity.nil?) && (heat_pump.cooling_capacity < 0)
+        heat_pump.cooling_capacity = nil
+      end
+      if (not heat_pump.heating_capacity.nil?) && (heat_pump.heating_capacity < 0)
+        heat_pump.heating_capacity = nil
+      end
+      if (not heat_pump.heating_capacity_17F.nil?) && (heat_pump.heating_capacity_17F < 0)
+        heat_pump.heating_capacity_17F = nil
+      end
+      if (not heat_pump.backup_heating_capacity.nil?) && (heat_pump.backup_heating_capacity < 0)
+        heat_pump.backup_heating_capacity = nil
+      end
+      if heat_pump.cooling_capacity.nil? && (not heat_pump.heating_capacity.nil?)
+        heat_pump.cooling_capacity = heat_pump.heating_capacity
+      elsif heat_pump.heating_capacity.nil? && (not heat_pump.cooling_capacity.nil?)
+        heat_pump.heating_capacity = heat_pump.cooling_capacity
       end
     end
 
@@ -732,6 +765,14 @@ class OSModel
       if pv_system.system_losses_fraction.nil?
         pv_system.system_losses_fraction = PV.get_default_system_losses(pv_system.year_modules_manufactured)
       end
+    end
+
+    if @apply_ashrae140_assumptions
+      @hpxml.building_construction.use_only_ideal_air_system = true
+      @hpxml.building_occupancy.number_of_residents = 0
+      @hpxml.misc_loads_schedule.weekday_fractions = '0.020, 0.020, 0.020, 0.020, 0.020, 0.034, 0.043, 0.085, 0.050, 0.030, 0.030, 0.041, 0.030, 0.025, 0.026, 0.026, 0.039, 0.042, 0.045, 0.070, 0.070, 0.073, 0.073, 0.066'
+      @hpxml.misc_loads_schedule.weekend_fractions = '0.020, 0.020, 0.020, 0.020, 0.020, 0.034, 0.043, 0.085, 0.050, 0.030, 0.030, 0.041, 0.030, 0.025, 0.026, 0.026, 0.039, 0.042, 0.045, 0.070, 0.070, 0.073, 0.073, 0.066'
+      @hpxml.misc_loads_schedule.monthly_multipliers = '1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0'
     end
 
     if @debug && (not @output_dir.nil?)
@@ -2050,17 +2091,26 @@ class OSModel
   end
 
   def self.add_thermal_mass(runner, model)
-    drywall_thick_in = 0.5
-    partition_frac_of_cfa = 1.0 # Ratio of partition wall area to conditioned floor area
-    basement_frac_of_cfa = (@cfa - @cfa_ag) / @cfa
-    Constructions.apply_partition_walls(model, 'PartitionWallConstruction', drywall_thick_in, partition_frac_of_cfa,
-                                        basement_frac_of_cfa, @cond_bsmnt_surfaces, @living_space)
+    if @apply_ashrae140_assumptions
+      # 1024 ft2 of interior partition wall mass, no furniture mass
+      drywall_thick_in = 0.5
+      partition_frac_of_cfa = 1024.0 / @cfa # Ratio of partition wall area to conditioned floor area
+      basement_frac_of_cfa = (@cfa - @cfa_ag) / @cfa
+      Constructions.apply_partition_walls(model, 'PartitionWallConstruction', drywall_thick_in, partition_frac_of_cfa,
+                                          basement_frac_of_cfa, @cond_bsmnt_surfaces, @living_space)
+    else
+      drywall_thick_in = 0.5
+      partition_frac_of_cfa = 1.0 # Ratio of partition wall area to conditioned floor area
+      basement_frac_of_cfa = (@cfa - @cfa_ag) / @cfa
+      Constructions.apply_partition_walls(model, 'PartitionWallConstruction', drywall_thick_in, partition_frac_of_cfa,
+                                          basement_frac_of_cfa, @cond_bsmnt_surfaces, @living_space)
 
-    mass_lb_per_sqft = 8.0
-    density_lb_per_cuft = 40.0
-    mat = BaseMaterial.Wood
-    Constructions.apply_furniture(model, mass_lb_per_sqft, density_lb_per_cuft, mat,
-                                  basement_frac_of_cfa, @cond_bsmnt_surfaces, @living_space)
+      mass_lb_per_sqft = 8.0
+      density_lb_per_cuft = 40.0
+      mat = BaseMaterial.Wood
+      Constructions.apply_furniture(model, mass_lb_per_sqft, density_lb_per_cuft, mat,
+                                    basement_frac_of_cfa, @cond_bsmnt_surfaces, @living_space)
+    end
   end
 
   def self.add_neighbors(runner, model, length)
@@ -2088,7 +2138,7 @@ class OSModel
   end
 
   def self.add_interior_shading_schedule(runner, model, weather)
-    heating_season, cooling_season = HVAC.calc_heating_and_cooling_seasons(model, weather)
+    heating_season, cooling_season = HVAC.get_default_heating_and_cooling_seasons(weather)
     @clg_season_sch = MonthWeekdayWeekendSchedule.new(model, 'cooling season schedule', Array.new(24, 1), Array.new(24, 1), cooling_season, 1.0, 1.0, true, true, Constants.ScheduleTypeLimitsFraction)
 
     @clg_ssn_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
@@ -2525,373 +2575,161 @@ class OSModel
   end
 
   def self.add_cooling_system(runner, model)
-    return if @use_only_ideal_air
+    return if @hpxml.building_construction.use_only_ideal_air_system
 
     @hpxml.cooling_systems.each do |cooling_system|
-      clg_type = cooling_system.cooling_system_type
-
-      cool_capacity_btuh = cooling_system.cooling_capacity
-      if not cool_capacity_btuh.nil?
-        if cool_capacity_btuh < 0
-          cool_capacity_btuh = Constants.SizingAuto
-        end
-      end
-
-      load_frac = cooling_system.fraction_cool_load_served
-      sequential_load_frac, @total_frac_remaining_cool_load_served = calc_sequential_load_fraction(load_frac, @total_frac_remaining_cool_load_served)
-
-      check_distribution_system(cooling_system.distribution_system, clg_type)
-
+      sequential_load_frac, @remaining_cool_load_frac = calc_sequential_load_fraction(cooling_system.fraction_cool_load_served, @remaining_cool_load_frac)
+      check_distribution_system(cooling_system.distribution_system, cooling_system.cooling_system_type)
       @hvac_map[cooling_system.id] = []
 
-      if clg_type == HPXML::HVACTypeCentralAirConditioner
+      if cooling_system.cooling_system_type == HPXML::HVACTypeCentralAirConditioner
 
-        seer = cooling_system.cooling_efficiency_seer
-        compressor_type = cooling_system.compressor_type
-        crankcase_kw = 0.05 # From RESNET Publication No. 002-2017
-        crankcase_temp = 50.0 # From RESNET Publication No. 002-2017
+        if cooling_system.compressor_type == HPXML::HVACCompressorTypeSingleStage
 
-        if compressor_type == HPXML::HVACCompressorTypeSingleStage
+          HVAC.apply_central_air_conditioner_1speed(model, runner, cooling_system,
+                                                    sequential_load_frac, @living_zone,
+                                                    @hvac_map)
 
-          shrs = [cooling_system.cooling_shr]
-          airflow_rate = cooling_system.cooling_cfm # Hidden feature; used only for HERS DSE test
-          HVAC.apply_central_ac_1speed(model, runner, seer, shrs,
-                                       crankcase_kw, crankcase_temp,
-                                       cool_capacity_btuh, airflow_rate, load_frac,
-                                       sequential_load_frac, @living_zone,
-                                       @hvac_map, cooling_system.id)
-        elsif compressor_type == HPXML::HVACCompressorTypeTwoStage
+        elsif cooling_system.compressor_type == HPXML::HVACCompressorTypeTwoStage
 
-          # TODO: is the following assumption correct (revisit Dylan's data?)? OR should value from HPXML be used for both stages
-          shrs = [cooling_system.cooling_shr - 0.02, cooling_system.cooling_shr]
-          HVAC.apply_central_ac_2speed(model, runner, seer, shrs,
-                                       crankcase_kw, crankcase_temp,
-                                       cool_capacity_btuh, load_frac,
-                                       sequential_load_frac, @living_zone,
-                                       @hvac_map, cooling_system.id)
-        elsif compressor_type == HPXML::HVACCompressorTypeVariableSpeed
+          HVAC.apply_central_air_conditioner_2speed(model, runner, cooling_system,
+                                                    sequential_load_frac, @living_zone,
+                                                    @hvac_map)
 
-          var_sp_shr_mult = [1.115, 1.026, 1.013, 1.0]
-          shrs = var_sp_shr_mult.map { |m| cooling_system.cooling_shr * m }
-          HVAC.apply_central_ac_4speed(model, runner, seer, shrs,
-                                       crankcase_kw, crankcase_temp,
-                                       cool_capacity_btuh, load_frac,
-                                       sequential_load_frac, @living_zone,
-                                       @hvac_map, cooling_system.id)
+        elsif cooling_system.compressor_type == HPXML::HVACCompressorTypeVariableSpeed
+
+          HVAC.apply_central_air_conditioner_4speed(model, runner, cooling_system,
+                                                    sequential_load_frac, @living_zone,
+                                                    @hvac_map)
         end
 
-      elsif clg_type == HPXML::HVACTypeRoomAirConditioner
+      elsif cooling_system.cooling_system_type == HPXML::HVACTypeRoomAirConditioner
 
-        eer = cooling_system.cooling_efficiency_eer
-        shr = cooling_system.cooling_shr
-        airflow_rate = 350.0
-        HVAC.apply_room_ac(model, runner, eer, shr,
-                           airflow_rate, cool_capacity_btuh, load_frac,
-                           sequential_load_frac, @living_zone,
-                           @hvac_map, cooling_system.id)
-      elsif clg_type == HPXML::HVACTypeEvaporativeCooler
+        HVAC.apply_room_air_conditioner(model, runner, cooling_system,
+                                        sequential_load_frac, @living_zone,
+                                        @hvac_map)
 
-        is_ducted = !cooling_system.distribution_system_idref.nil?
-        HVAC.apply_evaporative_cooler(model, runner, load_frac,
+      elsif cooling_system.cooling_system_type == HPXML::HVACTypeEvaporativeCooler
+
+        HVAC.apply_evaporative_cooler(model, runner, cooling_system,
                                       sequential_load_frac, @living_zone,
-                                      @hvac_map, cooling_system.id, is_ducted)
+                                      @hvac_map)
       end
     end
   end
 
   def self.add_heating_system(runner, model)
-    return if @use_only_ideal_air
-
-    # We need to process furnaces attached to ACs before any other heating system
-    # such that the sequential load heating fraction is properly applied.
+    return if @hpxml.building_construction.use_only_ideal_air_system
 
     [true, false].each do |only_furnaces_attached_to_cooling|
       @hpxml.heating_systems.each do |heating_system|
-        htg_type = heating_system.heating_system_type
-
-        check_distribution_system(heating_system.distribution_system, htg_type)
-
+        # We need to process furnaces attached to ACs before any other heating system
+        # such that the sequential load heating fraction is properly applied.
         attached_clg_system = get_attached_clg_system(heating_system)
-
         if only_furnaces_attached_to_cooling
-          next unless (htg_type == HPXML::HVACTypeFurnace) && (not attached_clg_system.nil?)
+          next unless (heating_system.heating_system_type == HPXML::HVACTypeFurnace) && (not attached_clg_system.nil?)
         else
-          next if (htg_type == HPXML::HVACTypeFurnace) && (not attached_clg_system.nil?)
+          next if (heating_system.heating_system_type == HPXML::HVACTypeFurnace) && (not attached_clg_system.nil?)
         end
 
-        fuel = heating_system.heating_system_fuel
-
-        heat_capacity_btuh = heating_system.heating_capacity
-        if heat_capacity_btuh < 0
-          heat_capacity_btuh = Constants.SizingAuto
-        end
-
-        load_frac = heating_system.fraction_heat_load_served
-        sequential_load_frac, @total_frac_remaining_heat_load_served = calc_sequential_load_fraction(load_frac, @total_frac_remaining_heat_load_served)
-
+        check_distribution_system(heating_system.distribution_system, heating_system.heating_system_type)
+        sequential_load_frac, @remaining_heat_load_frac = calc_sequential_load_fraction(heating_system.fraction_heat_load_served, @remaining_heat_load_frac)
         @hvac_map[heating_system.id] = []
 
-        if htg_type == HPXML::HVACTypeFurnace
+        if heating_system.heating_system_type == HPXML::HVACTypeFurnace
 
-          afue = heating_system.heating_efficiency_afue
-          fan_power = 0.5 # For fuel furnaces, will be overridden by EAE later
-          airflow_rate = heating_system.heating_cfm # Hidden feature; used only for HERS DSE test
-          HVAC.apply_furnace(model, runner, fuel, afue,
-                             heat_capacity_btuh, airflow_rate, fan_power,
-                             load_frac, sequential_load_frac,
-                             attached_clg_system, @living_zone,
-                             @hvac_map, heating_system.id)
-        elsif htg_type == HPXML::HVACTypeWallFurnace
+          HVAC.apply_furnace(model, runner, heating_system,
+                             sequential_load_frac, attached_clg_system,
+                             @living_zone, @hvac_map)
 
-          afue = heating_system.heating_efficiency_afue
-          fan_power = 0.0
-          airflow_rate = 0.0
-          HVAC.apply_unit_heater(model, runner, fuel,
-                                 afue, heat_capacity_btuh, fan_power,
-                                 airflow_rate, load_frac,
-                                 sequential_load_frac, @living_zone,
-                                 @hvac_map, heating_system.id)
-        elsif htg_type == HPXML::HVACTypeBoiler
+        elsif heating_system.heating_system_type == HPXML::HVACTypeBoiler
 
-          system_type = Constants.BoilerTypeForcedDraft
-          afue = heating_system.heating_efficiency_afue
-          oat_reset_enabled = false
-          oat_high = nil
-          oat_low = nil
-          oat_hwst_high = nil
-          oat_hwst_low = nil
-          design_temp = 180.0
-          HVAC.apply_boiler(model, runner, fuel, system_type, afue,
-                            oat_reset_enabled, oat_high, oat_low, oat_hwst_high, oat_hwst_low,
-                            heat_capacity_btuh, design_temp, load_frac,
-                            sequential_load_frac, @living_zone,
-                            @hvac_map, heating_system.id)
-        elsif htg_type == HPXML::HVACTypeElectricResistance
+          HVAC.apply_boiler(model, runner, heating_system,
+                            sequential_load_frac, @living_zone, @hvac_map)
 
-          efficiency = heating_system.heating_efficiency_percent
-          HVAC.apply_electric_baseboard(model, runner, efficiency,
-                                        heat_capacity_btuh, load_frac,
-                                        sequential_load_frac, @living_zone,
-                                        @hvac_map, heating_system.id)
-        elsif (htg_type == HPXML::HVACTypeStove) || (htg_type == HPXML::HVACTypePortableHeater)
+        elsif heating_system.heating_system_type == HPXML::HVACTypeElectricResistance
 
-          efficiency = heating_system.heating_efficiency_percent
-          airflow_rate = 125.0 # cfm/ton; doesn't affect energy consumption
-          fan_power = 0.5 # For fuel equipment, will be overridden by EAE later
-          HVAC.apply_unit_heater(model, runner, fuel,
-                                 efficiency, heat_capacity_btuh, fan_power,
-                                 airflow_rate, load_frac,
-                                 sequential_load_frac, @living_zone,
-                                 @hvac_map, heating_system.id)
+          HVAC.apply_electric_baseboard(model, runner, heating_system,
+                                        sequential_load_frac, @living_zone, @hvac_map)
+
+        elsif (heating_system.heating_system_type == HPXML::HVACTypeStove ||
+               heating_system.heating_system_type == HPXML::HVACTypePortableHeater ||
+               heating_system.heating_system_type == HPXML::HVACTypeWallFurnace)
+
+          HVAC.apply_unit_heater(model, runner, heating_system,
+                                 sequential_load_frac, @living_zone, @hvac_map)
         end
       end
     end
   end
 
   def self.add_heat_pump(runner, model, weather)
-    return if @use_only_ideal_air
+    return if @hpxml.building_construction.use_only_ideal_air_system
 
     @hpxml.heat_pumps.each do |heat_pump|
-      hp_type = heat_pump.heat_pump_type
-
-      check_distribution_system(heat_pump.distribution_system, hp_type)
-
-      cool_capacity_btuh = heat_pump.cooling_capacity
-      if cool_capacity_btuh < 0
-        cool_capacity_btuh = Constants.SizingAuto
+      if not heat_pump.heating_capacity_17F.nil?
+        if heat_pump.heating_capacity.nil?
+          fail "HeatPump '#{heat_pump.id}' must have both HeatingCapacity and HeatingCapacity17F provided or not provided."
+        elsif heat_pump.heating_capacity == 0.0
+          heat_pump.heating_capacity_17F = nil
+        end
       end
-
-      heat_capacity_btuh = heat_pump.heating_capacity
-      if heat_capacity_btuh < 0
-        heat_capacity_btuh = Constants.SizingAuto
-      end
-
-      # Heating and cooling capacity must either both be Autosized or Fixed
-      if (cool_capacity_btuh == Constants.SizingAuto) ^ (heat_capacity_btuh == Constants.SizingAuto)
-        fail "HeatPump '#{heat_pump.id}' CoolingCapacity and HeatingCapacity must either both be auto-sized or fixed-sized."
-      end
-
-      heat_capacity_btuh_17F = heat_pump.heating_capacity_17F
-      if not heat_capacity_btuh_17F.nil?
-        if heat_capacity_btuh == Constants.SizingAuto
-          fail "HeatPump '#{heat_pump.id}' has HeatingCapacity17F provided but heating capacity is auto-sized."
-        elsif heat_capacity_btuh == 0.0
-          heat_capacity_btuh_17F = nil
+      if not heat_pump.backup_heating_fuel.nil?
+        if heat_pump.backup_heating_capacity.nil? ^ heat_pump.heating_capacity.nil?
+          fail "HeatPump '#{heat_pump.id}' must have both HeatingCapacity and BackupHeatingCapacity provided or not provided."
         end
       end
 
-      load_frac_heat = heat_pump.fraction_heat_load_served
-      sequential_load_frac_heat, @total_frac_remaining_heat_load_served = calc_sequential_load_fraction(load_frac_heat, @total_frac_remaining_heat_load_served)
-
-      load_frac_cool = heat_pump.fraction_cool_load_served
-      sequential_load_frac_cool, @total_frac_remaining_cool_load_served = calc_sequential_load_fraction(load_frac_cool, @total_frac_remaining_cool_load_served)
-
-      backup_heat_fuel = heat_pump.backup_heating_fuel
-      if not backup_heat_fuel.nil?
-
-        backup_heat_capacity_btuh = heat_pump.backup_heating_capacity
-        if backup_heat_capacity_btuh < 0
-          backup_heat_capacity_btuh = Constants.SizingAuto
-        end
-
-        # Heating and backup heating capacity must either both be Autosized or Fixed
-        if (backup_heat_capacity_btuh == Constants.SizingAuto) ^ (heat_capacity_btuh == Constants.SizingAuto)
-          fail "HeatPump '#{heat_pump.id}' BackupHeatingCapacity and HeatingCapacity must either both be auto-sized or fixed-sized."
-        end
-
-        if not heat_pump.backup_heating_efficiency_percent.nil?
-          backup_heat_efficiency = heat_pump.backup_heating_efficiency_percent
-        else
-          backup_heat_efficiency = heat_pump.backup_heating_efficiency_afue
-        end
-
-        backup_switchover_temp = heat_pump.backup_heating_switchover_temp
-
-      else
-        backup_heat_fuel = HPXML::FuelTypeElectricity
-        backup_heat_capacity_btuh = 0.0
-        backup_heat_efficiency = 1.0
-        backup_switchover_temp = nil
-      end
-
+      check_distribution_system(heat_pump.distribution_system, heat_pump.heat_pump_type)
+      sequential_heat_load_frac, @remaining_heat_load_frac = calc_sequential_load_fraction(heat_pump.fraction_heat_load_served, @remaining_heat_load_frac)
+      sequential_cool_load_frac, @remaining_cool_load_frac = calc_sequential_load_fraction(heat_pump.fraction_cool_load_served, @remaining_cool_load_frac)
       @hvac_map[heat_pump.id] = []
 
-      if not backup_switchover_temp.nil?
-        hp_compressor_min_temp = backup_switchover_temp
-        supp_htg_max_outdoor_temp = backup_switchover_temp
-      else
-        supp_htg_max_outdoor_temp = 40.0
-        # Minimum temperature for Heat Pump operation:
-        if hp_type == HPXML::HVACTypeHeatPumpMiniSplit
-          hp_compressor_min_temp = -30.0 # deg-F
-        else
-          hp_compressor_min_temp = 0.0 # deg-F
-        end
-      end
+      if heat_pump.heat_pump_type == HPXML::HVACTypeHeatPumpAirToAir
 
-      if hp_type == HPXML::HVACTypeHeatPumpAirToAir
+        if heat_pump.compressor_type == HPXML::HVACCompressorTypeSingleStage
 
-        seer = heat_pump.cooling_efficiency_seer
-        hspf = heat_pump.heating_efficiency_hspf
-        compressor_type = heat_pump.compressor_type
-        crankcase_kw = 0.05 # From RESNET Publication No. 002-2017
-        crankcase_temp = 50.0 # From RESNET Publication No. 002-2017
+          HVAC.apply_central_air_to_air_heat_pump_1speed(model, runner, heat_pump,
+                                                         sequential_heat_load_frac,
+                                                         sequential_cool_load_frac,
+                                                         @living_zone, @hvac_map)
 
-        if compressor_type == HPXML::HVACCompressorTypeSingleStage
+        elsif heat_pump.compressor_type == HPXML::HVACCompressorTypeTwoStage
 
-          shrs = [heat_pump.cooling_shr]
-          HVAC.apply_central_ashp_1speed(model, runner, seer, hspf, shrs,
-                                         hp_compressor_min_temp, crankcase_kw, crankcase_temp,
-                                         cool_capacity_btuh, heat_capacity_btuh, heat_capacity_btuh_17F,
-                                         backup_heat_fuel, backup_heat_efficiency, backup_heat_capacity_btuh, supp_htg_max_outdoor_temp,
-                                         load_frac_heat, load_frac_cool,
-                                         sequential_load_frac_heat, sequential_load_frac_cool,
-                                         @living_zone, @hvac_map, heat_pump.id)
-        elsif compressor_type == HPXML::HVACCompressorTypeTwoStage
+          HVAC.apply_central_air_to_air_heat_pump_2speed(model, runner, heat_pump,
+                                                         sequential_heat_load_frac,
+                                                         sequential_cool_load_frac,
+                                                         @living_zone, @hvac_map)
 
-          # TODO: is the following assumption correct (revisit Dylan's data?)? OR should value from HPXML be used for both stages?
-          shrs = [heat_pump.cooling_shr - 0.014, heat_pump.cooling_shr]
-          HVAC.apply_central_ashp_2speed(model, runner, seer, hspf, shrs,
-                                         hp_compressor_min_temp, crankcase_kw, crankcase_temp,
-                                         cool_capacity_btuh, heat_capacity_btuh, heat_capacity_btuh_17F,
-                                         backup_heat_fuel, backup_heat_efficiency, backup_heat_capacity_btuh, supp_htg_max_outdoor_temp,
-                                         load_frac_heat, load_frac_cool,
-                                         sequential_load_frac_heat, sequential_load_frac_cool,
-                                         @living_zone, @hvac_map, heat_pump.id)
-        elsif compressor_type == HPXML::HVACCompressorTypeVariableSpeed
+        elsif heat_pump.compressor_type == HPXML::HVACCompressorTypeVariableSpeed
 
-          var_sp_shr_mult = [1.115, 1.026, 1.013, 1.0]
-          shrs = var_sp_shr_mult.map { |m| heat_pump.cooling_shr * m }
-          HVAC.apply_central_ashp_4speed(model, runner, seer, hspf, shrs,
-                                         hp_compressor_min_temp, crankcase_kw, crankcase_temp,
-                                         cool_capacity_btuh, heat_capacity_btuh, heat_capacity_btuh_17F,
-                                         backup_heat_fuel, backup_heat_efficiency, backup_heat_capacity_btuh, supp_htg_max_outdoor_temp,
-                                         load_frac_heat, load_frac_cool,
-                                         sequential_load_frac_heat, sequential_load_frac_cool,
-                                         @living_zone, @hvac_map, heat_pump.id)
+          HVAC.apply_central_air_to_air_heat_pump_4speed(model, runner, heat_pump,
+                                                         sequential_heat_load_frac,
+                                                         sequential_cool_load_frac,
+                                                         @living_zone, @hvac_map)
+
         end
 
-      elsif hp_type == HPXML::HVACTypeHeatPumpMiniSplit
+      elsif heat_pump.heat_pump_type == HPXML::HVACTypeHeatPumpMiniSplit
 
-        seer = heat_pump.cooling_efficiency_seer
-        hspf = heat_pump.heating_efficiency_hspf
-        shr = heat_pump.cooling_shr
-        min_cooling_capacity = 0.4
-        max_cooling_capacity = 1.2
-        min_cooling_airflow_rate = 200.0
-        max_cooling_airflow_rate = 425.0
-        min_heating_capacity = 0.3
-        max_heating_capacity = 1.2
-        min_heating_airflow_rate = 200.0
-        max_heating_airflow_rate = 400.0
-        if heat_capacity_btuh == Constants.SizingAuto
-          heating_capacity_offset = 2300.0
-        else
-          heating_capacity_offset = heat_capacity_btuh - cool_capacity_btuh
-        end
+        HVAC.apply_mini_split_heat_pump(model, runner, heat_pump,
+                                        sequential_heat_load_frac,
+                                        sequential_cool_load_frac,
+                                        @living_zone, @hvac_map)
 
-        if heat_capacity_btuh_17F.nil?
-          cap_retention_frac = 0.25
-          cap_retention_temp = -5.0
-        else
-          cap_retention_frac = heat_capacity_btuh_17F / heat_capacity_btuh
-          cap_retention_temp = 17.0
-        end
-        pan_heater_power = 0.0
-        fan_power = 0.07
-        is_ducted = !heat_pump.distribution_system_idref.nil?
-        HVAC.apply_mshp(model, runner, seer, hspf, shr,
-                        min_cooling_capacity, max_cooling_capacity,
-                        min_cooling_airflow_rate, max_cooling_airflow_rate,
-                        min_heating_capacity, max_heating_capacity,
-                        min_heating_airflow_rate, max_heating_airflow_rate,
-                        heating_capacity_offset, cap_retention_frac,
-                        cap_retention_temp, pan_heater_power, fan_power,
-                        is_ducted, cool_capacity_btuh, hp_compressor_min_temp,
-                        backup_heat_fuel, backup_heat_efficiency, backup_heat_capacity_btuh,
-                        supp_htg_max_outdoor_temp, load_frac_heat, load_frac_cool,
-                        sequential_load_frac_heat, sequential_load_frac_cool,
-                        @living_zone, @hvac_map, heat_pump.id)
+      elsif heat_pump.heat_pump_type == HPXML::HVACTypeHeatPumpGroundToAir
 
-      elsif hp_type == HPXML::HVACTypeHeatPumpGroundToAir
+        HVAC.apply_ground_to_air_heat_pump(model, runner, weather, heat_pump,
+                                           sequential_heat_load_frac,
+                                           sequential_cool_load_frac,
+                                           @living_zone, @hvac_map)
 
-        eer = heat_pump.cooling_efficiency_eer
-        cop = heat_pump.heating_efficiency_cop
-        shr = heat_pump.cooling_shr
-        ground_conductivity = 0.6
-        grout_conductivity = 0.4
-        bore_config = Constants.SizingAuto
-        bore_holes = Constants.SizingAuto
-        bore_depth = Constants.SizingAuto
-        bore_spacing = 20.0
-        bore_diameter = 5.0
-        pipe_size = 0.75
-        ground_diffusivity = 0.0208
-        fluid_type = Constants.FluidPropyleneGlycol
-        frac_glycol = 0.3
-        design_delta_t = 10.0
-        pump_head = 50.0
-        u_tube_leg_spacing = 0.9661
-        u_tube_spacing_type = 'b'
-        fan_power = 0.5
-        HVAC.apply_gshp(model, runner, weather, cop, eer, shr,
-                        ground_conductivity, grout_conductivity,
-                        bore_config, bore_holes, bore_depth,
-                        bore_spacing, bore_diameter, pipe_size,
-                        ground_diffusivity, fluid_type, frac_glycol,
-                        design_delta_t, pump_head,
-                        u_tube_leg_spacing, u_tube_spacing_type,
-                        fan_power, cool_capacity_btuh, heat_capacity_btuh,
-                        backup_heat_efficiency, backup_heat_capacity_btuh,
-                        load_frac_heat, load_frac_cool,
-                        sequential_load_frac_heat, sequential_load_frac_cool,
-                        @living_zone, @hvac_map, heat_pump.id)
       end
     end
   end
 
   def self.add_residual_hvac(runner, model)
-    if @use_only_ideal_air
+    if @hpxml.building_construction.use_only_ideal_air_system
       HVAC.apply_ideal_air_loads(model, runner, 1, 1, @living_zone)
       return
     end
@@ -2903,13 +2741,13 @@ class OSModel
     # Addressing #2 ensures we can correctly calculate heating/cooling loads without having to run
     # an additional EnergyPlus simulation solely for that purpose, as well as allows us to report
     # the unmet load (i.e., the energy delivered by the ideal air system).
-    if @total_frac_remaining_cool_load_served < 1
+    if @remaining_cool_load_frac < 1
       sequential_cool_load_frac = 1
     else
       sequential_cool_load_frac = 0 # no cooling system, don't add ideal air for cooling either
     end
 
-    if @total_frac_remaining_heat_load_served < 1
+    if @remaining_heat_load_frac < 1
       sequential_heat_load_frac = 1
     else
       sequential_heat_load_frac = 0 # no heating system, don't add ideal air for heating either
@@ -2961,7 +2799,7 @@ class OSModel
     # Apply cooling setpoint offset due to ceiling fan?
     clg_ceiling_fan_offset = hvac_control.ceiling_fan_cooling_setpoint_temp_offset
     if not clg_ceiling_fan_offset.nil?
-      HVAC.get_ceiling_fan_operation_months(weather).each_with_index do |operation, m|
+      HVAC.get_default_ceiling_fan_months(weather).each_with_index do |operation, m|
         next unless operation == 1
 
         @clg_weekday_setpoints[m] = [@clg_weekday_setpoints[m], Array.new(24, clg_ceiling_fan_offset)].transpose.map { |i| i.reduce(:+) }
@@ -2979,7 +2817,7 @@ class OSModel
 
     ceiling_fan = @hpxml.ceiling_fans[0]
 
-    monthly_sch = HVAC.get_ceiling_fan_operation_months(weather)
+    monthly_sch = HVAC.get_default_ceiling_fan_months(weather)
     medium_cfm = 3000.0
     weekday_sch = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0]
     weekend_sch = weekday_sch
@@ -3059,6 +2897,8 @@ class OSModel
     @hpxml.lighting_groups.each do |lg|
       fractions[[lg.location, lg.third_party_certification]] = lg.fration_of_units_in_location
     end
+
+    return if fractions[[HPXML::LocationInterior, HPXML::LightingTypeTierI]].nil? # Not the lighting group(s) we're interested in
 
     int_kwh, ext_kwh, grg_kwh = Lighting.calc_lighting_energy(@eri_version, @cfa, @gfa,
                                                               fractions[[HPXML::LocationInterior, HPXML::LightingTypeTierI]],

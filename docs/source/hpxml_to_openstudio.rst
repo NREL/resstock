@@ -305,22 +305,17 @@ For example, a room air conditioner might be specified with ``FractionCoolLoadSe
 
 If any water heating systems are entered, the sum of all their ``FractionDHWLoadServed`` values must be equal to 1.
 
-.. note:: 
-
-  HVAC systems (Heating Systems, Cooling Systems, and Heat Pumps) can be autosized via ACCA Manual J/S by using -1 as the capacity.
-  For a given system, all capacities must either be autosized or user-specified.
-  For example, an air-to-air heat pump must have its heating capacity, cooling capacity, and backup heating capacity all autosized or user-specified.
-
 Heating Systems
 ***************
 
 Each heating system (other than heat pumps) should be entered as a ``Systems/HVAC/HVACPlant/HeatingSystem``.
-Inputs including ``HeatingSystemType``, ``HeatingCapacity``, and ``FractionHeatLoadServed`` must be provided.
+Inputs including ``HeatingSystemType``, and ``FractionHeatLoadServed`` must be provided.
+``HeatingCapacity`` may be provided; if not, the system will be auto-sized via ACCA Manual J/S.
 
-Depending on the type of heating system specified, additional elements are required:
+Depending on the type of heating system specified, additional elements are used:
 
 ==================  ===========================  =================  =======================
-HeatingSystemType   DistributionSystem           HeatingSystemFuel  AnnualHeatingEfficiency
+HeatingSystemType   DistributionSystem           HeatingSystemFuel  AnnualHeatingEfficiency 
 ==================  ===========================  =================  =======================
 ElectricResistance                               electricity        Percent
 Furnace             AirDistribution or DSE       <any>              AFUE
@@ -337,9 +332,9 @@ Cooling Systems
 
 Each cooling system (other than heat pumps) should be entered as a ``Systems/HVAC/HVACPlant/CoolingSystem``.
 Inputs including ``CoolingSystemType`` and ``FractionCoolLoadServed`` must be provided.
-``CoolingCapacity`` must also be provided for all systems other than evaporative coolers.
+For all systems other than evaporative coolers, ``CoolingCapacity`` may be provided; if not, the system will be auto-sized via ACCA Manual J/S.
 
-Depending on the type of cooling system specified, additional elements are required/available:
+Depending on the type of cooling system specified, additional elements are used:
 
 =======================  =================================  =================  =======================  ====================
 CoolingSystemType        DistributionSystem                 CoolingSystemFuel  AnnualCoolingEfficiency  SensibleHeatFraction
@@ -359,10 +354,11 @@ Heat Pumps
 **********
 
 Each heat pump should be entered as a ``Systems/HVAC/HVACPlant/HeatPump``.
-Inputs including ``HeatPumpType``, ``CoolingCapacity``, ``HeatingCapacity``, ``FractionHeatLoadServed``, and ``FractionCoolLoadServed`` must be provided.
+Inputs including ``HeatPumpType``, ``FractionHeatLoadServed``, and ``FractionCoolLoadServed`` must be provided.
 Note that heat pumps are allowed to provide only heating (``FractionCoolLoadServed`` = 0) or cooling (``FractionHeatLoadServed`` = 0) if appropriate.
+``HeatingCapacity`` and ``CoolingCapacity`` may be provided; if not, the system will be auto-sized via ACCA Manual J/S.
 
-Depending on the type of heat pump specified, additional elements are required/available:
+Depending on the type of heat pump specified, additional elements are used:
 
 =============  =================================  ============  =======================  =======================  ===========================  ==================
 HeatPumpType   DistributionSystem                 HeatPumpFuel  AnnualCoolingEfficiency  AnnualHeatingEfficiency  CoolingSensibleHeatFraction  HeatingCapacity17F
@@ -378,7 +374,7 @@ Air-to-air heat pumps can also have the ``CompressorType`` specified; if not pro
 - "two stage": 15 < SEER <= 21
 - "variable speed": SEER > 21
 
-If the heat pump has backup heating, it can be specified with ``BackupSystemFuel``, ``BackupAnnualHeatingEfficiency``, and ``BackupHeatingCapacity``.
+If the heat pump has backup heating, it can be specified with ``BackupSystemFuel``, ``BackupAnnualHeatingEfficiency``, and (optionally) ``BackupHeatingCapacity``.
 If the heat pump has a switchover temperature (e.g., dual-fuel heat pump) where the heat pump stops operating and the backup heating system starts running, it can be specified with ``BackupHeatingSwitchoverTemperature``.
 If the ``BackupHeatingSwitchoverTemperature`` is not provided, the backup heating system will operate as needed when the heat pump has insufficient capacity.
 

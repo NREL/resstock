@@ -537,7 +537,8 @@ class HPXML < Object
     ATTRS = [:xml_type, :xml_generated_by, :created_date_and_time, :transaction,
              :software_program_used, :software_program_version, :eri_calculation_version,
              :eri_design, :timestep, :building_id, :event_type, :state_code,
-             :begin_month, :begin_day_of_month, :end_month, :end_day_of_month]
+             :begin_month, :begin_day_of_month, :end_month, :end_day_of_month,
+             :apply_ashrae140_assumptions]
     attr_accessor(*ATTRS)
 
     def check_for_errors
@@ -612,6 +613,7 @@ class HPXML < Object
       XMLHelper.add_element(software_info, 'SoftwareProgramUsed', @software_program_used) unless @software_program_used.nil?
       XMLHelper.add_element(software_info, 'SoftwareProgramVersion', software_program_version) unless software_program_version.nil?
       extension = XMLHelper.add_element(software_info, 'extension')
+      XMLHelper.add_element(extension, 'ApplyASHRAE140Assumptions', HPXML::to_bool_or_nil(@apply_ashrae140_assumptions)) unless @apply_ashrae140_assumptions.nil?
       if (not @eri_calculation_version.nil?) || (not @eri_design.nil?)
         eri_calculation = XMLHelper.add_element(extension, 'ERICalculation')
         XMLHelper.add_element(eri_calculation, 'Version', @eri_calculation_version) unless @eri_calculation_version.nil?
@@ -625,7 +627,7 @@ class HPXML < Object
         XMLHelper.add_element(simulation_control, 'EndMonth', HPXML::to_integer_or_nil(@end_month)) unless @end_month.nil?
         XMLHelper.add_element(simulation_control, 'EndDayOfMonth', HPXML::to_integer_or_nil(@end_day_of_month)) unless @end_day_of_month.nil?
       end
-      if XMLHelper.get_element(extension, 'ERICalculation').nil? && XMLHelper.get_element(extension, 'SimulationControl').nil?
+      if XMLHelper.get_element(extension, 'ERICalculation').nil? && XMLHelper.get_element(extension, 'SimulationControl').nil? && @apply_ashrae140_assumptions.nil?
         extension.remove
       end
 
@@ -652,6 +654,7 @@ class HPXML < Object
       @begin_day_of_month = HPXML::to_integer_or_nil(XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/SimulationControl/BeginDayOfMonth'))
       @end_month = HPXML::to_integer_or_nil(XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/SimulationControl/EndMonth'))
       @end_day_of_month = HPXML::to_integer_or_nil(XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/SimulationControl/EndDayOfMonth'))
+      @apply_ashrae140_assumptions = HPXML::to_bool_or_nil(XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/ApplyASHRAE140Assumptions'))
       @building_id = HPXML::get_id(hpxml, 'Building/BuildingID')
       @event_type = XMLHelper.get_value(hpxml, 'Building/ProjectStatus/EventType')
       @state_code = XMLHelper.get_value(hpxml, 'Building/Site/Address/StateCode')
@@ -1285,7 +1288,10 @@ class HPXML < Object
     def delete
       @hpxml_object.roofs.delete(self)
       skylights.reverse_each do |skylight|
-        @hpxml_object.skylights.delete(skylight)
+        skylight.delete
+      end
+      @hpxml_object.attics.each do |attic|
+        attic.attached_to_roof_idrefs.delete(@id)
       end
     end
 
@@ -1494,10 +1500,10 @@ class HPXML < Object
     def delete
       @hpxml_object.walls.delete(self)
       windows.reverse_each do |window|
-        @hpxml_object.windows.delete(window)
+        window.delete
       end
       doors.reverse_each do |door|
-        @hpxml_object.doors.delete(door)
+        door.delete
       end
     end
 
@@ -1625,10 +1631,13 @@ class HPXML < Object
     def delete
       @hpxml_object.foundation_walls.delete(self)
       windows.reverse_each do |window|
-        @hpxml_object.windows.delete(window)
+        window.delete
       end
       doors.reverse_each do |door|
-        @hpxml_object.doors.delete(door)
+        door.delete
+      end
+      @hpxml_object.foundations.each do |foundation|
+        foundation.attached_to_foundation_wall_idrefs.delete(@id)
       end
     end
 
@@ -1759,6 +1768,12 @@ class HPXML < Object
 
     def delete
       @hpxml_object.frame_floors.delete(self)
+      @hpxml_object.attics.each do |attic|
+        attic.attached_to_frame_floor_idrefs.delete(@id)
+      end
+      @hpxml_object.foundations.each do |foundation|
+        foundation.attached_to_frame_floor_idrefs.delete(@id)
+      end
     end
 
     def check_for_errors
@@ -1847,6 +1862,9 @@ class HPXML < Object
 
     def delete
       @hpxml_object.slabs.delete(self)
+      @hpxml_object.foundations.each do |foundation|
+        foundation.attached_to_slab_idrefs.delete(@id)
+      end
     end
 
     def check_for_errors
@@ -2263,6 +2281,10 @@ class HPXML < Object
 
     def delete
       @hpxml_object.heating_systems.delete(self)
+      @hpxml_object.water_heating_systems.each do |water_heating_system|
+        next unless water_heating_system.related_hvac_idref == @id
+        water_heating_system.related_hvac_idref = nil
+      end
     end
 
     def check_for_errors
@@ -2367,6 +2389,10 @@ class HPXML < Object
 
     def delete
       @hpxml_object.cooling_systems.delete(self)
+      @hpxml_object.water_heating_systems.each do |water_heating_system|
+        next unless water_heating_system.related_hvac_idref == @id
+        water_heating_system.related_hvac_idref = nil
+      end
     end
 
     def check_for_errors
@@ -2473,6 +2499,10 @@ class HPXML < Object
 
     def delete
       @hpxml_object.heat_pumps.delete(self)
+      @hpxml_object.water_heating_systems.each do |water_heating_system|
+        next unless water_heating_system.related_hvac_idref == @id
+        water_heating_system.related_hvac_idref = nil
+      end
     end
 
     def check_for_errors
@@ -2709,6 +2739,14 @@ class HPXML < Object
 
     def delete
       @hpxml_object.hvac_distributions.delete(self)
+      (@hpxml_object.heating_systems + @hpxml_object.cooling_systems + @hpxml_object.heat_pumps).each do |hvac|
+        next unless hvac.distribution_system_idref == @id
+        hvac.distribution_system_idref = nil
+      end
+      @hpxml_object.ventilation_fans.each do |ventilation_fan|
+        next unless ventilation_fan.distribution_system_idref == @id
+        ventilation_fan.distribution_system_idref = nil
+      end
     end
 
     def check_for_errors
@@ -2787,7 +2825,6 @@ class HPXML < Object
     def delete
       @hpxml_object.hvac_distributions.each do |hvac_distribution|
         next unless hvac_distribution.duct_leakage_measurements.include? self
-
         hvac_distribution.duct_leakage_measurements.delete(self)
       end
     end
@@ -2841,7 +2878,6 @@ class HPXML < Object
     def delete
       @hpxml_object.hvac_distributions.each do |hvac_distribution|
         next unless hvac_distribution.ducts.include? self
-
         hvac_distribution.ducts.delete(self)
       end
     end
@@ -3005,6 +3041,10 @@ class HPXML < Object
 
     def delete
       @hpxml_object.water_heating_systems.delete(self)
+      @hpxml_object.solar_thermal_systems.each do |solar_thermal_system|
+        next unless solar_thermal_system.water_heating_system_idref == @id
+        solar_thermal_system.water_heating_system_idref = nil
+      end
     end
 
     def check_for_errors
@@ -4033,26 +4073,17 @@ class HPXML < Object
           end
 
           # Update subsurface idrefs as appropriate
-          if [:walls, :foundation_walls].include? surf_type
-            [:windows, :doors].each do |subsurf_type|
-              surf_types[subsurf_type].each do |subsurf, idx|
-                next unless subsurf.wall_idref == surf2.id
-
-                subsurf.wall_idref = surf.id
-              end
-            end
-          elsif [:roofs].include? surf_type
-            [:skylights].each do |subsurf_type|
-              surf_types[subsurf_type].each do |subsurf|
-                next unless subsurf.roof_idref == surf2.id
-
-                subsurf.roof_idref = surf.id
-              end
-            end
+          (@windows + @doors).each do |subsurf|
+            next unless subsurf.wall_idref == surf2.id
+            subsurf.wall_idref = surf.id
+          end
+          @skylights.each do |subsurf|
+            next unless subsurf.roof_idref == surf2.id
+            subsurf.roof_idref = surf.id
           end
 
           # Remove old surface
-          surfaces.delete_at(j)
+          surfaces[j].delete
         end
       end
     end
@@ -4062,7 +4093,6 @@ class HPXML < Object
     (@rim_joists + @walls + @foundation_walls + @frame_floors).reverse_each do |surface|
       next if surface.interior_adjacent_to.nil? || surface.exterior_adjacent_to.nil?
       next unless surface.interior_adjacent_to == surface.exterior_adjacent_to
-
       surface.delete
     end
   end
@@ -4070,7 +4100,6 @@ class HPXML < Object
   def delete_tiny_surfaces()
     (@rim_joists + @walls + @foundation_walls + @frame_floors + @roofs + @windows + @skylights + @doors + @slabs).reverse_each do |surface|
       next if surface.area.nil? || (surface.area > 0.1)
-
       surface.delete
     end
   end
