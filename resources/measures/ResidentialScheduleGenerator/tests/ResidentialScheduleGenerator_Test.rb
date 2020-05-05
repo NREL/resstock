@@ -42,7 +42,7 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
     hot_water_gpd = { "schedules_length" => [], "building_id" => [], "num_occupants" => [] }
     args_hash = {}
 
-    expected_values = { "SchedulesLength" => 8760, "SchedulesWidth" => 15 } # these are the old schedules
+    expected_values = { "SchedulesLength" => 8760, "SchedulesWidth" => 17 } # these are the old schedules
     full_load_hours["building_id"] << 1
     full_load_hours["num_occupants"] << 2.64
     annual_energy_use["building_id"] << 1
@@ -51,7 +51,7 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
     hot_water_gpd["num_occupants"] << 2.64
     full_load_hours, annual_energy_use, hot_water_gpd = _test_measure("SFD_2000sqft_2story_FB_UA_Denver.osm", args_hash, expected_values, "8760", "USA_CO_Denver.Intl.AP.725650_TMY3.epw", full_load_hours, annual_energy_use, hot_water_gpd)
 
-    expected_values = { "SchedulesLength" => 8784, "SchedulesWidth" => 15 } # these are the old schedules
+    expected_values = { "SchedulesLength" => 8784, "SchedulesWidth" => 17 } # these are the old schedules
     full_load_hours["building_id"] << 1
     full_load_hours["num_occupants"] << 2.64
     annual_energy_use["building_id"] << 1
@@ -62,7 +62,7 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
 
     num_building_ids = 1
     num_occupants = [3]
-    expected_values = { "SchedulesLength" => 52560, "SchedulesWidth" => 16 }
+    expected_values = { "SchedulesLength" => 52560, "SchedulesWidth" => 18 }
     prng = Random.new(1) # initialize with certain seed
     (1..num_building_ids).to_a.each do |building_id|
       building_id = rand(1..450000)
