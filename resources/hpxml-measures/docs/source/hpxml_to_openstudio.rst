@@ -161,8 +161,12 @@ Thus, software tools can choose to use a single wall (or roof) surface to repres
 Air Leakage
 ***********
 
-Building air leakage characterized by air changes per hour or cfm at 50 pascals pressure difference (ACH50 or CFM50) is entered at ``Enclosure/AirInfiltration/AirInfiltrationMeasurement/BuildingAirLeakage/AirLeakage``.
-The ``Enclosure/AirInfiltration/AirInfiltrationMeasurement`` should be specified with ``HousePressure='50'`` and ``BuildingAirLeakage/UnitofMeasure='ACH'`` or ``BuildingAirLeakage/UnitofMeasure='CFM'``.
+Building air leakage is entered using ``Enclosure/AirInfiltration/AirInfiltrationMeasurement``.
+Air leakage can be provided in one of three ways:
+
+#. nACH (natural air changes per hour): Use ``BuildingAirLeakage/UnitofMeasure='ACHnatural'``
+#. ACH50 (air changes per hour at 50Pa): Use ``BuildingAirLeakage/UnitofMeasure='ACH'`` and ``HousePressure='50'``
+#. CFM50 (cubic feet per minute at 50Pa): Use ``BuildingAirLeakage/UnitofMeasure='CFM'`` and ``HousePressure='50'``
 
 In addition, the building's volume associated with the air leakage measurement can be provided in HPXML's ``AirInfiltrationMeasurement/InfiltrationVolume``.
 If not provided, the infiltration volume is assumed to be equal to the conditioned building volume.
@@ -170,10 +174,11 @@ If not provided, the infiltration volume is assumed to be equal to the condition
 Vented Attics/Crawlspaces
 *************************
 
-The ventilation rate for vented attics (or crawlspaces) can be specified using an ``Attic`` (or ``Foundation``) element.
+The ventilation rate for vented attics (or vented crawlspaces) can be specified using an ``Attic`` (or ``Foundation``) element.
 First, define the ``AtticType`` as ``Attic[Vented='true']`` (or ``FoundationType`` as ``Crawlspace[Vented='true']``).
-Then use the ``VentilationRate[UnitofMeasure='SLA']/Value`` element to specify a specific leakage area (SLA).
-If these elements are not provided, default values of 1/300 for vented attics and 1/150 for vented crawlspaces will be used based on `ANSI/RESNET/ICC 301-2019 <https://codes.iccsafe.org/content/RESNETICC3012019>`_.
+Then specify the specific leakage area (SLA) using the ``VentilationRate[UnitofMeasure='SLA']/Value`` element.
+For vented attics, the natural air changes per hour (nACH) can instead be specified using ``UnitofMeasure='ACHnatural'``.
+If the ventilation rate is not provided, default values of SLA=1/300 for vented attics and SLA=1/150 for vented crawlspaces will be used based on `ANSI/RESNET/ICC 301-2019 <https://codes.iccsafe.org/content/RESNETICC3012019>`_.
 
 Roofs
 *****
