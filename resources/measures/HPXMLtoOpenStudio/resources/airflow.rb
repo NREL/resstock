@@ -1229,6 +1229,8 @@ class Airflow
 
     location_zone, location_name = get_location(ducts.location, unit, unit_index)
 
+    puts("LOCATION: #{location_name}")
+
     if location_name == "none"
       location_zone = unit_living.zone
       location_name = unit_living.zone.name.to_s
@@ -1249,7 +1251,9 @@ class Airflow
     #   end
     # end
 
+    
     num_stories = building.stories
+    puts("num_stories: #{num_stories}")
     unless unit_finished_basement.nil?
       num_stories +=  1
     end
