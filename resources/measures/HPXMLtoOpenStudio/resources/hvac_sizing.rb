@@ -1171,6 +1171,9 @@ class HVACSizing
       floor_ufactor = 1.0 / floor_rvalue
       zone_loads.Heat_Floors += floor_ufactor * UnitConversions.convert(floor.netArea, "m^2", "ft^2") * (mj8.heat_setpoint - weather.data.GroundMonthlyTemps[0])
     end
+ 
+    # puts("Zone loads --- #{zone_loads.Heat_Floors}")
+    # zone_loads.Heat_Floors = 1723.6212262252632
 
     return zone_loads
   end
@@ -1474,6 +1477,8 @@ class HVACSizing
       unit_init.Heat_Airflow = 0
     end
 
+    # puts("unit_init.Heat_Load:: #{unit_init.Heat_Load}")
+    # puts("unit_init.Cool_Load_Tot:: #{unit_init.Cool_Load_Tot}")
     return unit_init
   end
 
