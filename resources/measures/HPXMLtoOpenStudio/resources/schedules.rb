@@ -854,8 +854,6 @@ class ScheduleGenerator
     all_simulated_values = []
     (1..@num_occupants).each do |i|
       num_states = 7
-
-
       occ_type_id = weighted_random(prng, occ_prob)
       occ_type = occ_types[occ_type_id]
       init_prob_file_weekday = @schedules_path + "/weekday/mkv_chain_initial_prob_cluster_#{occ_type_id}.csv"
@@ -1026,7 +1024,7 @@ class ScheduleGenerator
     #   d. if more cluster, go to 3.
     mins_in_year = 1440 * total_days_in_year
     mkc_steps_in_a_year = total_days_in_year * mkc_ts_per_day
-    sink_activtiy_probable_mins = [0] * mkc_steps_in_a_year  # 0 indicates sink activity cannot happen at that time
+    sink_activtiy_probable_mins = [0] * mkc_steps_in_a_year # 0 indicates sink activity cannot happen at that time
     sink_activity_sch = [0] * 1440 * total_days_in_year
     # mark minutes when at least one occupant is doing nothing at home as possible sink activity time
     mkc_steps_in_a_year.times do |step|
@@ -1054,13 +1052,12 @@ class ScheduleGenerator
         todays_probable_steps = sink_activtiy_probable_mins[(day) * mkc_ts_per_day...((day + 1) * mkc_ts_per_day)]
         todays_probablities = todays_probable_steps.map.with_index { |p, i| p * hourly_onset_prob[i / mkc_ts_per_hour] }
         prob_sum = todays_probablities.reduce(0, :+)
-        normalized_probabilities = todays_probablities.map { |p| p * 1 / prob_sum}
+        normalized_probabilities = todays_probablities.map { |p| p * 1 / prob_sum }
         cluster_start_index = weighted_random(prng, normalized_probabilities)
         sink_activtiy_probable_mins[cluster_start_index] = 0 # mark the 15-min interval as unavailable for another sink event
         num_events = weighted_random(prng, events_per_cluster_probs) + 1
         start_min = cluster_start_index * 15
-        end_min = (cluster_start_index+1) * 15
-        #s = (day * 1440) + start_min
+        end_min = (cluster_start_index + 1) * 15
         num_events.times do |event_count|
           duration = weighted_random(prng, sink_duration_probs) + 1
           if start_min + duration > end_min then duration = (end_min - start_min) end
@@ -1164,7 +1161,7 @@ class ScheduleGenerator
     # Fill in dw_water draw schedule
     step = 0
     while step < mkc_steps_in_a_year
-      dish_state = sum_across_occupants(all_simulated_values, 4, step, max_clip=1)
+      dish_state = sum_across_occupants(all_simulated_values, 4, step, max_clip = 1)
       step_jump = 1
       if dish_state > 0
         duration_15min = sample_activity_cluster_size(prng, cluster_size_prob_map, "dishwasher")
@@ -1200,7 +1197,7 @@ class ScheduleGenerator
     # States are: 'sleeping','shower','laundry','cooking', 'dishwashing', 'absent', 'nothingAtHome'
     step = 0
     while step < mkc_steps_in_a_year
-      clothes_state = sum_across_occupants(all_simulated_values, 2, step, max_clip=1)
+      clothes_state = sum_across_occupants(all_simulated_values, 2, step, max_clip = 1)
       step_jump = 1
       if clothes_state > 0
         num_loads = weighted_random(prng, cw_load_size_probability) + 1
@@ -1226,6 +1223,7 @@ class ScheduleGenerator
           end
         end
         if start_minute + m >= mins_in_year then break end
+
         step_jump = [step_jump, 1 + (m / 15)].max
       end
       step += step_jump
@@ -1237,11 +1235,11 @@ class ScheduleGenerator
     step = 0
     last_state = 0
     while step < mkc_steps_in_a_year
-      dish_state = sum_across_occupants(all_simulated_values, 4, step, max_clip=1)
+      dish_state = sum_across_occupants(all_simulated_values, 4, step, max_clip = 1)
       step_jump = 1
       if dish_state > 0 and last_state == 0
         duration_15min, avg_power = sample_appliance_duration_power(prng, appliance_power_dist_map, "dishwasher")
-        duration = [duration_15min * 15, mins_in_year - step*15].min
+        duration = [duration_15min * 15, mins_in_year - step * 15].min
         dw_power_sch.fill(avg_power, step * 15, duration)
         step_jump = duration_15min
       end
@@ -1256,12 +1254,12 @@ class ScheduleGenerator
     step = 0
     last_state = 0
     while step < mkc_steps_in_a_year
-      clothes_state = sum_across_occupants(all_simulated_values, 2, step, max_clip=1)
+      clothes_state = sum_across_occupants(all_simulated_values, 2, step, max_clip = 1)
       step_jump = 1
       if clothes_state > 0 and last_state == 0
         cw_duration_15min, cw_avg_power = sample_appliance_duration_power(prng, appliance_power_dist_map, "clothes_washer")
         cd_duration_15min, cd_avg_power = sample_appliance_duration_power(prng, appliance_power_dist_map, "clothes_dryer")
-        cw_duration = [cw_duration_15min * 15, mins_in_year - step*15].min
+        cw_duration = [cw_duration_15min * 15, mins_in_year - step * 15].min
         cw_power_sch.fill(cw_avg_power, step * 15, cw_duration)
         cd_start_time = (step * 15 + cw_duration).to_i
         cd_duration = [cd_duration_15min, mins_in_year - cd_start_time].min
@@ -1278,7 +1276,7 @@ class ScheduleGenerator
     step = 0
     last_state = 0
     while step < mkc_steps_in_a_year
-      cooking_state = sum_across_occupants(all_simulated_values, 3, step, max_clip=1)
+      cooking_state = sum_across_occupants(all_simulated_values, 3, step, max_clip = 1)
       step_jump = 1
       if cooking_state > 0 and last_state == 0
         duration_15min, avg_power = sample_appliance_duration_power(prng, appliance_power_dist_map, "cooking")
@@ -1319,23 +1317,23 @@ class ScheduleGenerator
     random_offset = (prng.rand * 15).to_i - 7
     cooking_power_sch = cooking_power_sch.rotate(random_offset)
     cooking_power_sch = aggregate_array(cooking_power_sch, minutes_per_steps)
-    @cooking_schedule = cooking_power_sch.map { |power| power / Constants.PeakPower}
+    @cooking_schedule = cooking_power_sch.map { |power| power / Constants.PeakPower }
 
     random_offset = (prng.rand * 15).to_i - 7
     cw_power_sch = cw_power_sch.rotate(random_offset)
     cw_power_sch = aggregate_array(cw_power_sch, minutes_per_steps)
-    @clothes_washer_power_schedule = cw_power_sch.map { |power| power / Constants.PeakPower}
+    @clothes_washer_power_schedule = cw_power_sch.map { |power| power / Constants.PeakPower }
 
     random_offset = (prng.rand * 15).to_i - 7
     cd_power_sch = cd_power_sch.rotate(random_offset)
     cd_power_sch = aggregate_array(cd_power_sch, minutes_per_steps)
-    @clothes_dryer_schedule= cd_power_sch.map { |power| power / Constants.PeakPower}
+    @clothes_dryer_schedule = cd_power_sch.map { |power| power / Constants.PeakPower }
     @clothes_dryer_exhaust_schedule = @clothes_dryer_schedule
 
     random_offset = (prng.rand * 15).to_i - 7
     dw_power_sch = dw_power_sch.rotate(random_offset)
     dw_power_sch = aggregate_array(dw_power_sch, minutes_per_steps)
-    @dishwasher_power_schedule = dw_power_sch.map { |power| power / Constants.PeakPower}
+    @dishwasher_power_schedule = dw_power_sch.map { |power| power / Constants.PeakPower }
 
     return true
   end
@@ -1367,7 +1365,7 @@ class ScheduleGenerator
   def sample_appliance_duration_power(prng, power_dist_map, appliance_name)
     # returns number number of 15-min interval the appliance runs, and the average 15-min power
     duration_vals, consumption_vals = power_dist_map[appliance_name]
-    row = (prng.rand*consumption_vals.size).to_i
+    row = (prng.rand * consumption_vals.size).to_i
     power = consumption_vals[row]
     duration = duration_vals[row].sample
     return [duration, power]
@@ -1428,7 +1426,7 @@ class ScheduleGenerator
 
   def sample_event_duration(prng, duration_probabilites_map, event_type)
     durations = duration_probabilites_map[event_type][0]
-    probabilities =  duration_probabilites_map[event_type][1]
+    probabilities = duration_probabilites_map[event_type][1]
     return durations[weighted_random(prng, probabilities)]
   end
 
@@ -1459,7 +1457,6 @@ class ScheduleGenerator
   end
 
   def export(output_path:)
-
     CSV.open(output_path, "w") do |csv|
       csv << [
         "occupants",
@@ -1483,24 +1480,24 @@ class ScheduleGenerator
       ]
       @shower_schedule.size.times do |i|
         csv << [
-            (1 - @away_schedule[i]),
-            @cooking_schedule[i],
-            @plugload_schedule[i],
-            @lighting_interior_schedule[i],
-            @lighting_exterior_schedule[i],
-            @lighting_garage_schedule[i],
-            @lighting_holiday_schedule[i],
-            @clothes_washer_water_schedule[i],
-            @clothes_dryer_schedule[i],
-            @dishwasher_water_schedule[i],
-            @bath_schedule[i],
-            @shower_schedule[i],
-            @sink_schedule[i],
-            @ceiling_fan_schedule[i],
-            @clothes_dryer_exhaust_schedule[i],
-            @clothes_washer_power_schedule[i],
-            @dishwasher_power_schedule[i],
-            @sleeping_schedule[i]
+          (1 - @away_schedule[i]),
+          @cooking_schedule[i],
+          @plugload_schedule[i],
+          @lighting_interior_schedule[i],
+          @lighting_exterior_schedule[i],
+          @lighting_garage_schedule[i],
+          @lighting_holiday_schedule[i],
+          @clothes_washer_water_schedule[i],
+          @clothes_dryer_schedule[i],
+          @dishwasher_water_schedule[i],
+          @bath_schedule[i],
+          @shower_schedule[i],
+          @sink_schedule[i],
+          @ceiling_fan_schedule[i],
+          @clothes_dryer_exhaust_schedule[i],
+          @clothes_washer_power_schedule[i],
+          @dishwasher_power_schedule[i],
+          @sleeping_schedule[i]
         ]
       end
     end
