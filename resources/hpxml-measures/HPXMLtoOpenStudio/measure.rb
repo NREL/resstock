@@ -2855,22 +2855,20 @@ class OSModel
   end
 
   def self.add_lighting(runner, model, weather, spaces)
-    return if @hpxml.lighting_groups.size == 0
-
     fractions = {}
     @hpxml.lighting_groups.each do |lg|
-      fractions[[lg.location, lg.third_party_certification]] = lg.fration_of_units_in_location
+      fractions[[lg.location, lg.lighting_type]] = lg.fraction_of_units_in_location
     end
 
-    return if fractions[[HPXML::LocationInterior, HPXML::LightingTypeTierI]].nil? # Not the lighting group(s) we're interested in
+    return if fractions[[HPXML::LocationInterior, HPXML::LightingTypeCFL]].nil? # Not the lighting group(s) we're interested in
 
     int_kwh, ext_kwh, grg_kwh = Lighting.calc_lighting_energy(@eri_version, @cfa, @gfa,
-                                                              fractions[[HPXML::LocationInterior, HPXML::LightingTypeTierI]],
-                                                              fractions[[HPXML::LocationExterior, HPXML::LightingTypeTierI]],
-                                                              fractions[[HPXML::LocationGarage, HPXML::LightingTypeTierI]],
-                                                              fractions[[HPXML::LocationInterior, HPXML::LightingTypeTierII]],
-                                                              fractions[[HPXML::LocationExterior, HPXML::LightingTypeTierII]],
-                                                              fractions[[HPXML::LocationGarage, HPXML::LightingTypeTierII]],
+                                                              fractions[[HPXML::LocationInterior, HPXML::LightingTypeCFL]] + fractions[[HPXML::LocationInterior, HPXML::LightingTypeLFL]],
+                                                              fractions[[HPXML::LocationExterior, HPXML::LightingTypeCFL]] + fractions[[HPXML::LocationExterior, HPXML::LightingTypeLFL]],
+                                                              fractions[[HPXML::LocationGarage, HPXML::LightingTypeCFL]] + fractions[[HPXML::LocationGarage, HPXML::LightingTypeLFL]],
+                                                              fractions[[HPXML::LocationInterior, HPXML::LightingTypeLED]],
+                                                              fractions[[HPXML::LocationExterior, HPXML::LightingTypeLED]],
+                                                              fractions[[HPXML::LocationGarage, HPXML::LightingTypeLED]],
                                                               @hpxml.lighting.usage_multiplier)
 
     garage_space = spaces[HPXML::LocationGarage]

@@ -1659,45 +1659,57 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
       args << arg
     end
 
-    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('lighting_present', true)
-    arg.setDisplayName('Lighting: Present')
-    arg.setDescription('Whether there is lighting.')
-    arg.setDefaultValue(true)
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('lighting_fraction_cfl_interior', true)
+    arg.setDisplayName('Lighting: Fraction CFL Interior')
+    arg.setDescription('Fraction of all lamps (interior) that are compact fluorescent. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.')
+    arg.setDefaultValue(0.4)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('lighting_fraction_fluorescent_interior', true)
-    arg.setDisplayName('Lighting: Fraction Fluorescent Interior')
-    arg.setDescription('Fraction of all lamps (interior) that are fluorescent. Lighting not specified as fluorescent or LED is assumed to be incandescent.')
-    arg.setDefaultValue(0.5)
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('lighting_fraction_lfl_interior', true)
+    arg.setDisplayName('Lighting: Fraction LFL Interior')
+    arg.setDescription('Fraction of all lamps (interior) that are linear fluorescent. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.')
+    arg.setDefaultValue(0.1)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('lighting_fraction_led_interior', true)
     arg.setDisplayName('Lighting: Fraction LED Interior')
-    arg.setDescription('Fraction of all lamps (interior) that are LED. Lighting not specified as fluorescent or LED is assumed to be incandescent.')
+    arg.setDescription('Fraction of all lamps (interior) that are light emitting diodes. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.')
     arg.setDefaultValue(0.25)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('lighting_fraction_fluorescent_exterior', true)
-    arg.setDisplayName('Lighting: Fraction Fluorescent Exterior')
-    arg.setDescription('Fraction of all lamps (exterior) that are fluorescent. Lighting not specified as fluorescent or LED is assumed to be incandescent.')
-    arg.setDefaultValue(0.5)
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('lighting_fraction_cfl_exterior', true)
+    arg.setDisplayName('Lighting: Fraction CFL Exterior')
+    arg.setDescription('Fraction of all lamps (exterior) that are compact fluorescent. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.')
+    arg.setDefaultValue(0.4)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('lighting_fraction_lfl_exterior', true)
+    arg.setDisplayName('Lighting: Fraction LFL Exterior')
+    arg.setDescription('Fraction of all lamps (exterior) that are linear fluorescent. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.')
+    arg.setDefaultValue(0.1)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('lighting_fraction_led_exterior', true)
     arg.setDisplayName('Lighting: Fraction LED Exterior')
-    arg.setDescription('Fraction of all lamps (exterior) that are LED. Lighting not specified as fluorescent or LED is assumed to be incandescent.')
+    arg.setDescription('Fraction of all lamps (exterior) that are light emitting diodes. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.')
     arg.setDefaultValue(0.25)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('lighting_fraction_fluorescent_garage', true)
-    arg.setDisplayName('Lighting: Fraction Fluorescent Garage')
-    arg.setDescription('Fraction of all lamps (garage) that are fluorescent. Lighting not specified as fluorescent or LED is assumed to be incandescent.')
-    arg.setDefaultValue(0.5)
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('lighting_fraction_cfl_garage', true)
+    arg.setDisplayName('Lighting: Fraction CFL Garage')
+    arg.setDescription('Fraction of all lamps (garage) that are compact fluorescent. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.')
+    arg.setDefaultValue(0.4)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('lighting_fraction_lfl_garage', true)
+    arg.setDisplayName('Lighting: Fraction LFL Garage')
+    arg.setDescription('Fraction of all lamps (garage) that are linear fluorescent. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.')
+    arg.setDefaultValue(0.1)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('lighting_fraction_led_garage', true)
     arg.setDisplayName('Lighting: Fraction LED Garage')
-    arg.setDescription('Fraction of all lamps (garage) that are LED. Lighting not specified as fluorescent or LED is assumed to be incandescent.')
+    arg.setDescription('Fraction of all lamps (garage) that are light emitting diodes. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.')
     arg.setDefaultValue(0.25)
     args << arg
 
@@ -2353,12 +2365,14 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
              pv_system_max_power_output: (1..Constants.MaxNumPhotovoltaics).to_a.map { |n| runner.getDoubleArgumentValue("pv_system_max_power_output_#{n}", user_arguments) },
              pv_system_inverter_efficiency: (1..Constants.MaxNumPhotovoltaics).to_a.map { |n| runner.getDoubleArgumentValue("pv_system_inverter_efficiency_#{n}", user_arguments) },
              pv_system_system_losses_fraction: (1..Constants.MaxNumPhotovoltaics).to_a.map { |n| runner.getDoubleArgumentValue("pv_system_system_losses_fraction_#{n}", user_arguments) },
-             lighting_present: runner.getBoolArgumentValue('lighting_present', user_arguments),
-             lighting_fraction_fluorescent_interior: runner.getDoubleArgumentValue('lighting_fraction_fluorescent_interior', user_arguments),
+             lighting_fraction_cfl_interior: runner.getDoubleArgumentValue('lighting_fraction_cfl_interior', user_arguments),
+             lighting_fraction_lfl_interior: runner.getDoubleArgumentValue('lighting_fraction_lfl_interior', user_arguments),
              lighting_fraction_led_interior: runner.getDoubleArgumentValue('lighting_fraction_led_interior', user_arguments),
-             lighting_fraction_fluorescent_exterior: runner.getDoubleArgumentValue('lighting_fraction_fluorescent_exterior', user_arguments),
+             lighting_fraction_cfl_exterior: runner.getDoubleArgumentValue('lighting_fraction_cfl_exterior', user_arguments),
+             lighting_fraction_lfl_exterior: runner.getDoubleArgumentValue('lighting_fraction_lfl_exterior', user_arguments),
              lighting_fraction_led_exterior: runner.getDoubleArgumentValue('lighting_fraction_led_exterior', user_arguments),
-             lighting_fraction_fluorescent_garage: runner.getDoubleArgumentValue('lighting_fraction_fluorescent_garage', user_arguments),
+             lighting_fraction_cfl_garage: runner.getDoubleArgumentValue('lighting_fraction_cfl_garage', user_arguments),
+             lighting_fraction_lfl_garage: runner.getDoubleArgumentValue('lighting_fraction_lfl_garage', user_arguments),
              lighting_fraction_led_garage: runner.getDoubleArgumentValue('lighting_fraction_led_garage', user_arguments),
              lighting_usage_multiplier: runner.getDoubleArgumentValue('lighting_usage_multiplier', user_arguments),
              dehumidifier_present: runner.getBoolArgumentValue('dehumidifier_present', user_arguments),
@@ -3698,32 +3712,42 @@ class HPXMLFile
   end
 
   def self.set_lighting(hpxml, runner, args)
-    return unless args[:lighting_present]
-
-    hpxml.lighting_groups.add(id: 'Lighting_TierI_Interior',
+    hpxml.lighting_groups.add(id: 'Lighting_CFL_Interior',
                               location: HPXML::LocationInterior,
-                              fration_of_units_in_location: args[:lighting_fraction_fluorescent_interior],
-                              third_party_certification: HPXML::LightingTypeTierI)
-    hpxml.lighting_groups.add(id: 'Lighting_TierI_Exterior',
+                              fraction_of_units_in_location: args[:lighting_fraction_cfl_interior],
+                              lighting_type: HPXML::LightingTypeCFL)
+    hpxml.lighting_groups.add(id: 'Lighting_CFL_Exterior',
                               location: HPXML::LocationExterior,
-                              fration_of_units_in_location: args[:lighting_fraction_fluorescent_exterior],
-                              third_party_certification: HPXML::LightingTypeTierI)
-    hpxml.lighting_groups.add(id: 'Lighting_TierI_Garage',
+                              fraction_of_units_in_location: args[:lighting_fraction_cfl_exterior],
+                              lighting_type: HPXML::LightingTypeCFL)
+    hpxml.lighting_groups.add(id: 'Lighting_CFL_Garage',
                               location: HPXML::LocationGarage,
-                              fration_of_units_in_location: args[:lighting_fraction_fluorescent_garage],
-                              third_party_certification: HPXML::LightingTypeTierI)
-    hpxml.lighting_groups.add(id: 'Lighting_TierII_Interior',
+                              fraction_of_units_in_location: args[:lighting_fraction_cfl_garage],
+                              lighting_type: HPXML::LightingTypeCFL)
+    hpxml.lighting_groups.add(id: 'Lighting_:FL_Interior',
                               location: HPXML::LocationInterior,
-                              fration_of_units_in_location: args[:lighting_fraction_led_interior],
-                              third_party_certification: HPXML::LightingTypeTierII)
-    hpxml.lighting_groups.add(id: 'Lighting_TierII_Exterior',
+                              fraction_of_units_in_location: args[:lighting_fraction_lfl_interior],
+                              lighting_type: HPXML::LightingTypeLFL)
+    hpxml.lighting_groups.add(id: 'Lighting_LFL_Exterior',
                               location: HPXML::LocationExterior,
-                              fration_of_units_in_location: args[:lighting_fraction_led_exterior],
-                              third_party_certification: HPXML::LightingTypeTierII)
-    hpxml.lighting_groups.add(id: 'Lighting_TierII_Garage',
+                              fraction_of_units_in_location: args[:lighting_fraction_lfl_exterior],
+                              lighting_type: HPXML::LightingTypeLFL)
+    hpxml.lighting_groups.add(id: 'Lighting_LFL_Garage',
                               location: HPXML::LocationGarage,
-                              fration_of_units_in_location: args[:lighting_fraction_led_garage],
-                              third_party_certification: HPXML::LightingTypeTierII)
+                              fraction_of_units_in_location: args[:lighting_fraction_lfl_garage],
+                              lighting_type: HPXML::LightingTypeLFL)
+    hpxml.lighting_groups.add(id: 'Lighting_LED_Interior',
+                              location: HPXML::LocationInterior,
+                              fraction_of_units_in_location: args[:lighting_fraction_led_interior],
+                              lighting_type: HPXML::LightingTypeLED)
+    hpxml.lighting_groups.add(id: 'Lighting_LED_Exterior',
+                              location: HPXML::LocationExterior,
+                              fraction_of_units_in_location: args[:lighting_fraction_led_exterior],
+                              lighting_type: HPXML::LightingTypeLED)
+    hpxml.lighting_groups.add(id: 'Lighting_LED_Garage',
+                              location: HPXML::LocationGarage,
+                              fraction_of_units_in_location: args[:lighting_fraction_led_garage],
+                              lighting_type: HPXML::LightingTypeLED)
 
     if args[:lighting_usage_multiplier] != 1.0
       hpxml.lighting.usage_multiplier = args[:lighting_usage_multiplier]

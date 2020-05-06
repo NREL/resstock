@@ -126,6 +126,7 @@ def create_osws
     'base-hvac-evap-cooler-only.osw' => 'base.osw',
     'base-hvac-evap-cooler-only-ducted.osw' => 'base.osw',
     # 'base-hvac-flowrate.osw' => 'base.osw', # Not going to support in the measure
+    'base-hvac-furnace-elec-central-ac-1-speed.osw' => 'base.osw',
     'base-hvac-furnace-elec-only.osw' => 'base.osw',
     'base-hvac-furnace-gas-central-ac-2-speed.osw' => 'base.osw',
     'base-hvac-furnace-gas-central-ac-var-speed.osw' => 'base.osw',
@@ -143,6 +144,7 @@ def create_osws
     'base-hvac-mini-split-heat-pump-ductless.osw' => 'base.osw',
     'base-hvac-mini-split-heat-pump-ductless-no-backup.osw' => 'base.osw',
     # 'base-hvac-multiple.osw' => 'base.osw', # Not supporting multiple heating/cooling systems for now
+    # 'base-hvac-multiple2.osw' => 'base.osw', # Not supporting multiple heating/cooling systems for now
     'base-hvac-none.osw' => 'base.osw',
     # 'base-hvac-none-no-fuel-access.osw' => 'base.osw', # Doesn't affect model
     'base-hvac-portable-heater-electric-only.osw' => 'base.osw',
@@ -178,7 +180,6 @@ def create_osws
     'base-misc-ceiling-fans.osw' => 'base.osw',
     # 'base-misc-defaults.osw' => 'base.osw',
     'base-misc-defaults2.osw' => 'base.osw',
-    'base-misc-lighting-none.osw' => 'base.osw',
     'base-misc-neighbor-shading.osw' => 'base.osw',
     'base-misc-runperiod-1-month.osw' => 'base.osw',
     'base-misc-timestep-10-mins.osw' => 'base.osw',
@@ -488,12 +489,14 @@ def get_values(osw_file, step)
     step.setArgument('pv_system_max_power_output_2', 4000)
     step.setArgument('pv_system_inverter_efficiency_2', 0.96)
     step.setArgument('pv_system_system_losses_fraction_2', 0.14)
-    step.setArgument('lighting_present', true)
-    step.setArgument('lighting_fraction_fluorescent_interior', 0.5)
+    step.setArgument('lighting_fraction_cfl_interior', 0.4)
+    step.setArgument('lighting_fraction_lfl_interior', 0.1)
     step.setArgument('lighting_fraction_led_interior', 0.25)
-    step.setArgument('lighting_fraction_fluorescent_exterior', 0.5)
+    step.setArgument('lighting_fraction_cfl_exterior', 0.4)
+    step.setArgument('lighting_fraction_lfl_exterior', 0.1)
     step.setArgument('lighting_fraction_led_exterior', 0.25)
-    step.setArgument('lighting_fraction_fluorescent_garage', 0.5)
+    step.setArgument('lighting_fraction_cfl_garage', 0.4)
+    step.setArgument('lighting_fraction_lfl_garage', 0.1)
     step.setArgument('lighting_fraction_led_garage', 0.25)
     step.setArgument('lighting_usage_multiplier', 1.0)
     step.setArgument('dehumidifier_present', false)
@@ -1219,6 +1222,9 @@ def get_values(osw_file, step)
     step.removeArgument('cooling_system_cooling_compressor_type')
     step.removeArgument('cooling_system_cooling_sensible_heat_fraction')
     step.setArgument('cooling_system_evap_cooler_is_ducted', true)
+  elsif ['base-hvac-furnace-elec-central-ac-1-speed.osw'].include? osw_file
+    step.setArgument('heating_system_fuel', HPXML::FuelTypeElectricity)
+    step.setArgument('heating_system_heating_efficiency_afue', 1.0)
   elsif ['base-hvac-furnace-elec-only.osw'].include? osw_file
     step.setArgument('heating_system_fuel', HPXML::FuelTypeElectricity)
     step.setArgument('heating_system_heating_efficiency_afue', 1.0)
@@ -1464,8 +1470,6 @@ def get_values(osw_file, step)
     step.setArgument('dhw_distribution_recirc_branch_piping_length', Constants.Auto)
     step.setArgument('dhw_distribution_recirc_pump_power', Constants.Auto)
     step.setArgument('dhw_distribution_pipe_r', 3)
-  elsif ['base-misc-lighting-none.osw'].include? osw_file
-    step.setArgument('lighting_present', false)
   elsif ['base-misc-neighbor-shading.osw'].include? osw_file
     step.setArgument('neighbor_back_distance', 10)
     step.setArgument('neighbor_front_distance', 15)
@@ -1722,6 +1726,7 @@ def create_hpxmls
     'base-hvac-evap-cooler-only.xml' => 'base.xml',
     'base-hvac-evap-cooler-only-ducted.xml' => 'base.xml',
     'base-hvac-flowrate.xml' => 'base.xml',
+    'base-hvac-furnace-elec-central-ac-1-speed.xml' => 'base.xml',
     'base-hvac-furnace-elec-only.xml' => 'base.xml',
     'base-hvac-furnace-gas-central-ac-2-speed.xml' => 'base.xml',
     'base-hvac-furnace-gas-central-ac-var-speed.xml' => 'base.xml',
@@ -1739,6 +1744,7 @@ def create_hpxmls
     'base-hvac-mini-split-heat-pump-ductless.xml' => 'base-hvac-mini-split-heat-pump-ducted.xml',
     'base-hvac-mini-split-heat-pump-ductless-no-backup.xml' => 'base-hvac-mini-split-heat-pump-ductless.xml',
     'base-hvac-multiple.xml' => 'base.xml',
+    'base-hvac-multiple2.xml' => 'base.xml',
     'base-hvac-none.xml' => 'base.xml',
     'base-hvac-none-no-fuel-access.xml' => 'base-hvac-none.xml',
     'base-hvac-portable-heater-electric-only.xml' => 'base.xml',
@@ -1773,7 +1779,6 @@ def create_hpxmls
     'base-misc-ceiling-fans.xml' => 'base.xml',
     'base-misc-defaults.xml' => 'base.xml',
     'base-misc-defaults2.xml' => 'base-dhw-recirc-demand.xml',
-    'base-misc-lighting-none.xml' => 'base.xml',
     'base-misc-timestep-10-mins.xml' => 'base.xml',
     'base-misc-runperiod-1-month.xml' => 'base.xml',
     'base-misc-usage-multiplier.xml' => 'base.xml',
@@ -3661,6 +3666,36 @@ def set_hpxml_heating_systems(hpxml_file, hpxml)
                               heating_efficiency_afue: 0.8,
                               fraction_heat_load_served: 0.1,
                               electric_auxiliary_energy: 200)
+  elsif ['base-hvac-multiple2.xml'].include? hpxml_file
+    hpxml.heating_systems.clear
+    hpxml.heating_systems.add(id: 'HeatingSystem',
+                              distribution_system_idref: 'HVACDistribution',
+                              heating_system_type: HPXML::HVACTypeFurnace,
+                              heating_system_fuel: HPXML::FuelTypeElectricity,
+                              heating_capacity: 6400,
+                              heating_efficiency_afue: 1,
+                              fraction_heat_load_served: 0.2)
+    hpxml.heating_systems.add(id: 'HeatingSystem2',
+                              distribution_system_idref: 'HVACDistribution2',
+                              heating_system_type: HPXML::HVACTypeFurnace,
+                              heating_system_fuel: HPXML::FuelTypeElectricity,
+                              heating_capacity: 6400,
+                              heating_efficiency_afue: 0.92,
+                              fraction_heat_load_served: 0.2,
+                              electric_auxiliary_energy: 700)
+    hpxml.heating_systems.add(id: 'HeatingSystem3',
+                              distribution_system_idref: 'HVACDistribution3',
+                              heating_system_type: HPXML::HVACTypeBoiler,
+                              heating_system_fuel: HPXML::FuelTypeElectricity,
+                              heating_capacity: 6400,
+                              heating_efficiency_afue: 1,
+                              fraction_heat_load_served: 0.2)
+    hpxml.heating_systems.add(id: 'HeatingSystem4',
+                              heating_system_type: HPXML::HVACTypeElectricResistance,
+                              heating_system_fuel: HPXML::FuelTypeElectricity,
+                              heating_capacity: 3200,
+                              heating_efficiency_percent: 1,
+                              fraction_heat_load_served: 0.1)
   elsif ['invalid_files/hvac-frac-load-served.xml'].include? hpxml_file
     hpxml.heating_systems[0].fraction_heat_load_served += 0.1
   elsif ['base-hvac-portable-heater-electric-only.xml'].include? hpxml_file
@@ -3719,6 +3754,9 @@ def set_hpxml_heating_systems(hpxml_file, hpxml)
         hpxml.heating_systems[i].fraction_heat_load_served = 0.35
       end
     end
+  elsif ['base-hvac-furnace-elec-central-ac-1-speed.xml'].include? hpxml_file
+    hpxml.heating_systems[0].heating_system_fuel = HPXML::FuelTypeElectricity
+    hpxml.heating_systems[0].heating_efficiency_afue = 1
   elsif ['invalid_files/unattached-hvac-distribution.xml'].include? hpxml_file
     hpxml.heating_systems[0].distribution_system_idref = 'foobar'
   elsif ['invalid_files/hvac-invalid-distribution-system-type.xml'].include? hpxml_file
@@ -3819,6 +3857,18 @@ def set_hpxml_cooling_systems(hpxml_file, hpxml)
                               cooling_capacity: 9600,
                               fraction_cool_load_served: 0.2,
                               cooling_efficiency_eer: 8.5,
+                              cooling_shr: 0.65)
+  elsif ['base-hvac-multiple2.xml'].include? hpxml_file
+    hpxml.cooling_systems[0].distribution_system_idref = 'HVACDistribution'
+    hpxml.cooling_systems[0].fraction_cool_load_served = 0.25
+    hpxml.cooling_systems[0].cooling_capacity *= 0.25
+    hpxml.cooling_systems.add(id: 'CoolingSystem2',
+                              distribution_system_idref: 'HVACDistribution2',
+                              cooling_system_type: HPXML::HVACTypeCentralAirConditioner,
+                              cooling_system_fuel: HPXML::FuelTypeElectricity,
+                              cooling_capacity: 9600,
+                              fraction_cool_load_served: 0.25,
+                              cooling_efficiency_seer: 13,
                               cooling_shr: 0.65)
   elsif ['invalid_files/hvac-frac-load-served.xml'].include? hpxml_file
     hpxml.cooling_systems[0].fraction_cool_load_served += 0.2
@@ -3990,6 +4040,37 @@ def set_hpxml_heat_pumps(hpxml_file, hpxml)
                          cooling_efficiency_seer: 19,
                          heating_capacity_17F: 4800 * f,
                          cooling_shr: 0.73)
+  elsif ['base-hvac-multiple2.xml'].include? hpxml_file
+    hpxml.heat_pumps.add(id: 'HeatPump',
+                         distribution_system_idref: 'HVACDistribution4',
+                         heat_pump_type: HPXML::HVACTypeHeatPumpAirToAir,
+                         heat_pump_fuel: HPXML::FuelTypeElectricity,
+                         heating_capacity: 4800,
+                         cooling_capacity: 4800,
+                         backup_heating_fuel: HPXML::FuelTypeElectricity,
+                         backup_heating_capacity: 3412,
+                         backup_heating_efficiency_percent: 1.0,
+                         fraction_heat_load_served: 0.1,
+                         fraction_cool_load_served: 0.2,
+                         heating_efficiency_hspf: 7.7,
+                         cooling_efficiency_seer: 13,
+                         heating_capacity_17F: 4800 * 0.630, # Based on OAT slope of default curves
+                         cooling_shr: 0.73,
+                         compressor_type: HPXML::HVACCompressorTypeSingleStage)
+    hpxml.heat_pumps.add(id: 'HeatPump2',
+                         distribution_system_idref: 'HVACDistribution5',
+                         heat_pump_type: HPXML::HVACTypeHeatPumpGroundToAir,
+                         heat_pump_fuel: HPXML::FuelTypeElectricity,
+                         heating_capacity: 4800,
+                         cooling_capacity: 4800,
+                         backup_heating_fuel: HPXML::FuelTypeElectricity,
+                         backup_heating_capacity: 3412,
+                         backup_heating_efficiency_percent: 1.0,
+                         fraction_heat_load_served: 0.1,
+                         fraction_cool_load_served: 0.2,
+                         heating_efficiency_cop: 3.6,
+                         cooling_efficiency_eer: 16.6,
+                         cooling_shr: 0.73)
   elsif ['invalid_files/hvac-distribution-multiple-attached-heating.xml'].include? hpxml_file
     hpxml.heat_pumps[0].distribution_system_idref = 'HVACDistribution'
   elsif ['invalid_files/hvac-distribution-multiple-attached-cooling.xml'].include? hpxml_file
@@ -4143,6 +4224,42 @@ def set_hpxml_hvac_distributions(hpxml_file, hpxml)
     hpxml.hvac_distributions[-1].id = 'HVACDistribution5'
     hpxml.hvac_distributions << hpxml.hvac_distributions[0].dup
     hpxml.hvac_distributions[-1].id = 'HVACDistribution6'
+  elsif ['base-hvac-multiple2.xml'].include? hpxml_file
+    hpxml.hvac_distributions.clear
+    hpxml.hvac_distributions.add(id: 'HVACDistribution',
+                                 distribution_system_type: HPXML::HVACDistributionTypeAir)
+    hpxml.hvac_distributions[-1].duct_leakage_measurements.add(duct_type: HPXML::DuctTypeSupply,
+                                                               duct_leakage_units: HPXML::UnitsCFM25,
+                                                               duct_leakage_value: 75,
+                                                               duct_leakage_total_or_to_outside: HPXML::DuctLeakageToOutside)
+    hpxml.hvac_distributions[-1].duct_leakage_measurements.add(duct_type: HPXML::DuctTypeReturn,
+                                                               duct_leakage_units: HPXML::UnitsCFM25,
+                                                               duct_leakage_value: 25,
+                                                               duct_leakage_total_or_to_outside: HPXML::DuctLeakageToOutside)
+    hpxml.hvac_distributions[0].ducts.add(duct_type: HPXML::DuctTypeSupply,
+                                          duct_insulation_r_value: 8,
+                                          duct_location: HPXML::LocationAtticUnvented,
+                                          duct_surface_area: 75)
+    hpxml.hvac_distributions[0].ducts.add(duct_type: HPXML::DuctTypeSupply,
+                                          duct_insulation_r_value: 8,
+                                          duct_location: HPXML::LocationOutside,
+                                          duct_surface_area: 75)
+    hpxml.hvac_distributions[0].ducts.add(duct_type: HPXML::DuctTypeReturn,
+                                          duct_insulation_r_value: 4,
+                                          duct_location: HPXML::LocationAtticUnvented,
+                                          duct_surface_area: 25)
+    hpxml.hvac_distributions[0].ducts.add(duct_type: HPXML::DuctTypeReturn,
+                                          duct_insulation_r_value: 4,
+                                          duct_location: HPXML::LocationOutside,
+                                          duct_surface_area: 25)
+    hpxml.hvac_distributions << hpxml.hvac_distributions[0].dup
+    hpxml.hvac_distributions[-1].id = 'HVACDistribution2'
+    hpxml.hvac_distributions.add(id: 'HVACDistribution3',
+                                 distribution_system_type: HPXML::HVACDistributionTypeHydronic)
+    hpxml.hvac_distributions << hpxml.hvac_distributions[0].dup
+    hpxml.hvac_distributions[-1].id = 'HVACDistribution4'
+    hpxml.hvac_distributions << hpxml.hvac_distributions[0].dup
+    hpxml.hvac_distributions[-1].id = 'HVACDistribution5'
   elsif ['base-hvac-dse.xml',
          'base-dhw-indirect-dse.xml'].include? hpxml_file
     hpxml.hvac_distributions[0].distribution_system_type = HPXML::HVACDistributionTypeDSE
@@ -4925,34 +5042,44 @@ end
 
 def set_hpxml_lighting(hpxml_file, hpxml)
   if ['base.xml'].include? hpxml_file
-    hpxml.lighting_groups.add(id: 'Lighting_TierI_Interior',
+    hpxml.lighting_groups.add(id: 'Lighting_CFL_Interior',
                               location: HPXML::LocationInterior,
-                              fration_of_units_in_location: 0.5,
-                              third_party_certification: HPXML::LightingTypeTierI)
-    hpxml.lighting_groups.add(id: 'Lighting_TierI_Exterior',
+                              fraction_of_units_in_location: 0.4,
+                              lighting_type: HPXML::LightingTypeCFL)
+    hpxml.lighting_groups.add(id: 'Lighting_CFL_Exterior',
                               location: HPXML::LocationExterior,
-                              fration_of_units_in_location: 0.5,
-                              third_party_certification: HPXML::LightingTypeTierI)
-    hpxml.lighting_groups.add(id: 'Lighting_TierI_Garage',
+                              fraction_of_units_in_location: 0.4,
+                              lighting_type: HPXML::LightingTypeCFL)
+    hpxml.lighting_groups.add(id: 'Lighting_CFL_Garage',
                               location: HPXML::LocationGarage,
-                              fration_of_units_in_location: 0.5,
-                              third_party_certification: HPXML::LightingTypeTierI)
-    hpxml.lighting_groups.add(id: 'Lighting_TierII_Interior',
+                              fraction_of_units_in_location: 0.4,
+                              lighting_type: HPXML::LightingTypeCFL)
+    hpxml.lighting_groups.add(id: 'Lighting_LFL_Interior',
                               location: HPXML::LocationInterior,
-                              fration_of_units_in_location: 0.25,
-                              third_party_certification: HPXML::LightingTypeTierII)
-    hpxml.lighting_groups.add(id: 'Lighting_TierII_Exterior',
+                              fraction_of_units_in_location: 0.1,
+                              lighting_type: HPXML::LightingTypeLFL)
+    hpxml.lighting_groups.add(id: 'Lighting_LFL_Exterior',
                               location: HPXML::LocationExterior,
-                              fration_of_units_in_location: 0.25,
-                              third_party_certification: HPXML::LightingTypeTierII)
-    hpxml.lighting_groups.add(id: 'Lighting_TierII_Garage',
+                              fraction_of_units_in_location: 0.1,
+                              lighting_type: HPXML::LightingTypeLFL)
+    hpxml.lighting_groups.add(id: 'Lighting_LFL_Garage',
                               location: HPXML::LocationGarage,
-                              fration_of_units_in_location: 0.25,
-                              third_party_certification: HPXML::LightingTypeTierII)
-  elsif ['base-misc-lighting-none.xml'].include? hpxml_file
-    hpxml.lighting_groups.clear
+                              fraction_of_units_in_location: 0.1,
+                              lighting_type: HPXML::LightingTypeLFL)
+    hpxml.lighting_groups.add(id: 'Lighting_LED_Interior',
+                              location: HPXML::LocationInterior,
+                              fraction_of_units_in_location: 0.25,
+                              lighting_type: HPXML::LightingTypeLED)
+    hpxml.lighting_groups.add(id: 'Lighting_LED_Exterior',
+                              location: HPXML::LocationExterior,
+                              fraction_of_units_in_location: 0.25,
+                              lighting_type: HPXML::LightingTypeLED)
+    hpxml.lighting_groups.add(id: 'Lighting_LED_Garage',
+                              location: HPXML::LocationGarage,
+                              fraction_of_units_in_location: 0.25,
+                              lighting_type: HPXML::LightingTypeLED)
   elsif ['invalid_files/lighting-fractions.xml'].include? hpxml_file
-    hpxml.lighting_groups[0].fration_of_units_in_location = 0.8
+    hpxml.lighting_groups[0].fraction_of_units_in_location = 0.8
   elsif ['base-misc-usage-multiplier.xml'].include? hpxml_file
     hpxml.lighting.usage_multiplier = 0.9
   end
