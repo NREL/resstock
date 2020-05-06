@@ -118,7 +118,7 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
 
     year_description = model.getYearDescription
     num_days_in_year = Constants.NumDaysInYear(year_description.isLeapYear)
-
+    # @type [SchedulesFile]
     schedules_file = SchedulesFile.new(runner: runner, model: model)
     if not schedules_file.validated?
       return false
@@ -239,7 +239,7 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
           sch_sh = schedules_file.create_schedule_file(col_name: col_name)
         end
 
-        sh_peak_flow = schedules_file.calc_peak_flow_from_daily_gpm(daily_water: sh_gpd)
+        sh_peak_flow = schedules_file.calc_peak_flow_from_daily_gpm(col_name: col_name, daily_water: sh_gpd)
         sh_design_level = schedules_file.calc_design_level_from_daily_kwh(col_name: col_name, daily_kwh: sh_tot_load)
 
         # Add water use equipment objects
@@ -298,7 +298,7 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
           sch_s = schedules_file.create_schedule_file(col_name: col_name)
         end
 
-        s_peak_flow = schedules_file.calc_peak_flow_from_daily_gpm(daily_water: s_gpd)
+        s_peak_flow = schedules_file.calc_peak_flow_from_daily_gpm(col_name: col_name, daily_water: s_gpd)
         s_design_level = schedules_file.calc_design_level_from_daily_kwh(col_name: col_name, daily_kwh: s_tot_load)
 
         # Add water use equipment objects
@@ -337,7 +337,7 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
           sch_b = schedules_file.create_schedule_file(col_name: col_name)
         end
 
-        b_peak_flow = schedules_file.calc_peak_flow_from_daily_gpm(daily_water: b_gpd)
+        b_peak_flow = schedules_file.calc_peak_flow_from_daily_gpm(col_name: col_name, daily_water: b_gpd)
         b_design_level = schedules_file.calc_design_level_from_daily_kwh(col_name: col_name, daily_kwh: b_tot_load)
 
         # Add water use equipment objects

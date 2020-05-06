@@ -1813,6 +1813,7 @@ class SchedulesFile
     return schedule_file
   end
 
+  # the equivalent number of hours in the year, if the schedule was at full load (1.0)
   def annual_equivalent_full_load_hrs(col_name:)
     import(col_name: col_name)
 
@@ -1826,6 +1827,9 @@ class SchedulesFile
     return ann_equiv_full_load_hrs
   end
 
+  # the power in watts the equipment needs to consume so that, if it were to run annual_equivalent_full_load_hrs hours,
+  # it would consume the annual_kwh energy in the year. Essentially, returns the watts for the equipment when schedule
+  # is at 1.0, so that, for the given schedule values, the equipment will consume annual_kwh energy in a year.
   def calc_design_level_from_annual_kwh(col_name:,
                                         annual_kwh:)
 
@@ -1835,6 +1839,7 @@ class SchedulesFile
     return design_level
   end
 
+  # Similar to ann_equiv_full_load_hrs, but for thermal energy
   def calc_design_level_from_annual_therm(col_name:,
                                           annual_therm:)
 
@@ -1844,35 +1849,40 @@ class SchedulesFile
     return design_level
   end
 
+  # similar to the calc_design_level_from_annual_kwh, but use daily_kwh instead of annual_kwh to calculate the design
+  # level
   def calc_design_level_from_daily_kwh(col_name:,
                                        daily_kwh:)
-
     full_load_hrs = annual_equivalent_full_load_hrs(col_name: col_name)
     year_description = @model.getYearDescription
     num_days_in_year = Constants.NumDaysInYear(year_description.isLeapYear)
-    design_level = UnitConversions.convert(daily_kwh / (full_load_hrs / num_days_in_year), "kW", "W")
+    daily_full_load_hrs = full_load_hrs / num_days_in_year
+    design_level = UnitConversions.convert(daily_kwh / daily_full_load_hrs, "kW", "W")
 
     return design_level
   end
 
+  # thermal equivalent of calc_design_level_from_daily_kwh
   def calc_design_level_from_daily_therm(col_name:,
                                          daily_therm:)
-
     daily_kwh = UnitConversions.convert(daily_therm, "therm", "kWh")
     design_level = calc_design_level_from_daily_kwh(col_name: col_name, daily_kwh: daily_kwh)
-
     return design_level
   end
 
-  def calc_peak_flow_from_daily_gpm(daily_water:)
-    peak_flow = UnitConversions.convert(Constants.PeakFlowRate * daily_water, "gal/min", "m^3/s")
-
+  # similar to calc_design_level_from_daily_kwh but for water usage
+  def calc_peak_flow_from_daily_gpm(col_name:, daily_water:)
+    ann_equiv_full_load_hrs = annual_equivalent_full_load_hrs(col_name: col_name)
+    daily_full_load_hrs = ann_equiv_full_load_hrs / num_days_in_year
+    peak_flow = UnitConversions.convert(daily_water / daily_full_load_hrs, "gal/min", "m^3/s")
     return peak_flow
   end
 
-  def calc_daily_gpm_from_peak_flow(peak_flow:)
-    daily_water = UnitConversions.convert(peak_flow / Constants.PeakFlowRate, "m^3/s", "gal/min")
-
+  # get daily gallons from the peak flow rate
+  def calc_daily_gpm_from_peak_flow(col_name:, peak_flow:)
+    ann_equiv_full_load_hrs = annual_equivalent_full_load_hrs(col_name: col_name)
+    daily_full_load_hrs = ann_equiv_full_load_hrs / num_days_in_year
+    daily_water = UnitConversions.convert(peak_flow * daily_full_load_hrs, "m^3/s", "gal/min")
     return daily_water
   end
 

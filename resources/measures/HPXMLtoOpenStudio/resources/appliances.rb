@@ -89,10 +89,11 @@ class Refrigerator
 end
 
 class ClothesWasher
+  # @param schedules_file [SchedulesFile]
   def self.apply(model, unit, runner, imef, rated_annual_energy, annual_cost,
                  test_date, drum_volume, cold_cycle, thermostatic_control,
                  internal_heater, fill_sensor, mult_e, mult_hw, d_sh, cd_sch,
-                 space, plant_loop, mains_temps, sch, schedules_file)
+                 space, plant_loop, mains_temps, water_sch, schedules_file)
 
     # Check for valid inputs
     if imef <= 0
@@ -419,11 +420,15 @@ class ClothesWasher
 
     cd_updated = false
 
-    col_name = "clothes_washer"
+    water_col_name = "clothes_washer"
+    power_col_name = "clothes_washer_power"
     if ann_e > 0
 
-      if sch.nil?
-        sch = schedules_file.create_schedule_file(col_name: col_name)
+      if water_sch.nil?
+        water_sch = schedules_file.create_schedule_file(col_name: water_col_name)
+        power_sch = schedules_file.create_schedule_file(col_name: power_col_name)
+      else
+        power_sch = water_sch
       end
 
       # Reuse existing water use connection if possible
@@ -445,9 +450,8 @@ class ClothesWasher
       temperature_sch.setName("#{Constants.ObjectNameClothesWasher} temperature schedule")
       Schedule.set_schedule_type_limits(model, temperature_sch, Constants.ScheduleTypeLimitsTemperature)
 
-      design_level = schedules_file.calc_design_level_from_daily_kwh(col_name: col_name, daily_kwh: daily_energy)
-      peak_flow = schedules_file.calc_peak_flow_from_daily_gpm(daily_water: total_daily_water_use)
-
+      design_level = schedules_file.calc_design_level_from_daily_kwh(col_name: power_col_name, daily_kwh: daily_energy)
+      peak_flow = schedules_file.calc_peak_flow_from_daily_gpm(col_name: water_col_name, daily_water: total_daily_water_use)
       # Add equipment for the cw
       cw_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
       cw = OpenStudio::Model::ElectricEquipment.new(cw_def)
@@ -459,7 +463,7 @@ class ClothesWasher
       cw_def.setFractionRadiant(0.48)
       cw_def.setFractionLatent(0.0)
       cw_def.setFractionLost(0.2)
-      cw.setSchedule(sch)
+      cw.setSchedule(power_sch)
 
       # Add water use equipment for the dw
       cw_def2 = OpenStudio::Model::WaterUseEquipmentDefinition.new(model)
@@ -469,7 +473,7 @@ class ClothesWasher
       cw_def2.setName(unit_obj_name)
       cw_def2.setPeakFlowRate(peak_flow)
       cw_def2.setEndUseSubcategory(unit_obj_name)
-      cw2.setFlowRateFractionSchedule(sch)
+      cw2.setFlowRateFractionSchedule(water_sch)
       cw_def2.setTargetTemperatureSchedule(temperature_sch)
       water_use_connection.addWaterUseEquipment(cw2)
 
@@ -570,6 +574,7 @@ class ClothesWasher
 end
 
 class ClothesDryer
+  # @param schedules_file [SchedulesFile]
   def self.apply(model, unit, runner, cef, mult, space, fuel_type, fuel_split, sch, schedules_file)
     # Check for valid inputs
     if cef <= 0
@@ -802,6 +807,7 @@ class ClothesDryer
 end
 
 class CookingRange
+  # @param schedules_file [SchedulesFile]
   def self.apply(model, unit, runner, fuel_type, cooktop_ef, oven_ef,
                  has_elec_ignition, mult, sch, space, schedules_file)
 
@@ -962,11 +968,11 @@ class CookingRange
 end
 
 class Dishwasher
+  # @param schedules_file [SchedulesFile]
   def self.apply(model, unit, runner, num_settings, rated_annual_energy,
                  cold_inlet, has_internal_heater, cold_use, test_date,
                  annual_gas_cost, mult_e, mult_hw, space, plant_loop,
-                 mains_temps, sch, schedules_file)
-
+                 mains_temps, water_sch, schedules_file)
     # Check for valid inputs
     if num_settings < 1
       runner.registerError("Number of place settings must be greater than or equal to 1.")
@@ -1203,11 +1209,15 @@ class Dishwasher
       return false
     end
 
-    col_name = "dishwasher"
+    water_col_name = "dishwasher"
+    power_col_name = "dishwasher_power"
     if ann_e > 0
 
-      if sch.nil?
-        sch = schedules_file.create_schedule_file(col_name: col_name)
+      if water_sch.nil?
+        water_sch = schedules_file.create_schedule_file(col_name: water_col_name)
+        power_sch = schedules_file.create_schedule_file(col_name: power_col_name)
+      else
+        power_sch = water_sch
       end
 
       # Reuse existing water use connection if possible
@@ -1229,8 +1239,8 @@ class Dishwasher
       temperature_sch.setName("#{Constants.ObjectNameDishwasher} temperature schedule")
       Schedule.set_schedule_type_limits(model, temperature_sch, Constants.ScheduleTypeLimitsTemperature)
 
-      design_level = schedules_file.calc_design_level_from_daily_kwh(col_name: col_name, daily_kwh: daily_energy)
-      peak_flow = schedules_file.calc_peak_flow_from_daily_gpm(daily_water: daily_water)
+      design_level = schedules_file.calc_design_level_from_daily_kwh(col_name: power_col_name, daily_kwh: daily_energy)
+      peak_flow = schedules_file.calc_peak_flow_from_daily_gpm(col_name: water_col_name, daily_water: daily_water)
 
       # Add electric equipment for the dw
       dw_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
@@ -1243,7 +1253,7 @@ class Dishwasher
       dw_def.setFractionRadiant(0.36)
       dw_def.setFractionLatent(0.15)
       dw_def.setFractionLost(0.25)
-      dw.setSchedule(sch)
+      dw.setSchedule(power_sch)
 
       # Add water use equipment for the dw
       dw_def2 = OpenStudio::Model::WaterUseEquipmentDefinition.new(model)
@@ -1253,7 +1263,7 @@ class Dishwasher
       dw_def2.setName(unit_obj_name)
       dw_def2.setPeakFlowRate(peak_flow)
       dw_def2.setEndUseSubcategory(unit_obj_name)
-      dw2.setFlowRateFractionSchedule(sch)
+      dw2.setFlowRateFractionSchedule(water_sch)
       dw_def2.setTargetTemperatureSchedule(temperature_sch)
       water_use_connection.addWaterUseEquipment(dw2)
 
