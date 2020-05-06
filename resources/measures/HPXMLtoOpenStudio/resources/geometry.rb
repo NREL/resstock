@@ -1965,8 +1965,16 @@ class Geometry
       level = level = level.get
       has_rear_units = has_rear_units.get
 
-      floor_mults = { "Bottom" => num_floors, "Middle" => 2, "Top" => 1 }
-      greatest_z = greatest_z * floor_mults[level] # uncomment if unit origin is at z=0
+      model_spaces = model.getSpaces
+      spaces = []
+      model_spaces.each do |space|
+        next if Geometry.space_is_below_grade(space)
+        spaces << space
+      end
+      unit_height = UnitConversions.convert(Geometry.get_height_of_spaces(spaces), "ft", "m")
+      floor_mults = { "Bottom" => num_floors-1, "Middle" => (num_floors/2).floor, "Top" => 0}
+      greatest_z += unit_height * floor_mults[level] # uncomment if unit origin is at z=0
+
       unit_length = greatest_y - least_y
       unit_width = greatest_x - least_x
       if has_rear_units
