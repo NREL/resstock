@@ -1229,8 +1229,6 @@ class Airflow
 
     location_zone, location_name = get_location(ducts.location, unit, unit_index)
 
-    puts("LOCATION: #{location_name}")
-
     if location_name == "none"
       location_zone = unit_living.zone
       location_name = unit_living.zone.name.to_s
@@ -1473,14 +1471,14 @@ class Airflow
     nv_program.addLine("  Set #{natvent_flow_actuator.name} = 0")
     nv_program.addLine("EndIf")
 
-    # puts("====Nat Vent=====")
-    # puts("nv_output.temp_sch.schedule.name.to_s: #{nv_output.temp_sch.schedule.name.to_s}")
-    # puts("nv_output.area: #{nv_output.area}")
-    # puts("nv_output.c_s: #{nv_output.c_s}")
-    # puts("nv_output.c_w: #{nv_output.c_w}")
-    # puts("nv_output.max_flow_rate: #{nv_output.max_flow_rate}")
-    # puts("nat_vent.max_oa_hr: #{nat_vent.max_oa_hr}")
-    # puts("nat_vent.max_oa_rh: #{nat_vent.max_oa_rh}")
+    puts("====Nat Vent=====")
+    puts("nv_output.temp_sch.schedule.name.to_s: #{nv_output.temp_sch.schedule.name.to_s}")
+    puts("nv_output.area: #{nv_output.area}")
+    puts("nv_output.c_s: #{nv_output.c_s}")
+    puts("nv_output.c_w: #{nv_output.c_w}")
+    puts("nv_output.max_flow_rate: #{nv_output.max_flow_rate}")
+    puts("nat_vent.max_oa_hr: #{nat_vent.max_oa_hr}")
+    puts("nat_vent.max_oa_rh: #{nat_vent.max_oa_rh}")
 
     return nv_program
   end
