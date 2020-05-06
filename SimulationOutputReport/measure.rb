@@ -151,9 +151,6 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     @end_uses.each do |key, end_use|
       meters << end_use.meter
     end
-    @unmet_loads.each do |load_type, unmet_load|
-      meters << unmet_load.meter
-    end
     meters.each do |meter|
       next if meter.nil?
 
@@ -163,6 +160,11 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     # Add hot water use outputs
     @hot_water_uses.each do |hot_water_type, hot_water|
       result << OpenStudio::IdfObject.load('Output:Variable,*,Water Use Equipment Hot Water Volume,runperiod;').get
+    end
+
+    # Add unmet load outputs
+    @unmet_loads.each do |load_type, unmet_load|
+      result << OpenStudio::IdfObject.load("Output:Variable,*,#{unmet_load.variable},runperiod;").get
     end
 
     # Add peak electricity outputs
@@ -462,8 +464,12 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     end
 
     # Unmet loads (heating/cooling energy delivered by backup ideal air system)
+    sys_ids = []
+    @model.getZoneHVACIdealLoadsAirSystems.each do |ideal_sys|
+      sys_ids << ideal_sys.name.to_s.upcase
+    end
     @unmet_loads.each do |load_type, unmet_load|
-      unmet_load.annual_output = get_report_meter_data_annual(unmet_load.meter)
+      unmet_load.annual_output = get_report_variable_data_annual(sys_ids, [unmet_load.variable])
     end
 
     # Peak Building Space Heating/Cooling Loads (total heating/cooling energy delivered including backup ideal air system)
@@ -1702,11 +1708,11 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
   end
 
   class UnmetLoad < BaseOutput
-    def initialize(meter:)
+    def initialize(variable:)
       super()
-      @meter = meter
+      @variable = variable
     end
-    attr_accessor(:meter)
+    attr_accessor(:variable)
   end
 
   class PeakLoad < BaseOutput
@@ -1914,8 +1920,8 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
     # Unmet Loads
     @unmet_loads = {
-      LT::Heating => UnmetLoad.new(meter: 'Heating:DistrictHeating'),
-      LT::Cooling => UnmetLoad.new(meter: 'Cooling:DistrictCooling'),
+      LT::Heating => UnmetLoad.new(variable: 'Zone Ideal Loads Zone Sensible Heating Energy'),
+      LT::Cooling => UnmetLoad.new(variable: 'Zone Ideal Loads Zone Sensible Cooling Energy'),
     }
 
     @unmet_loads.each do |load_type, unmet_load|

@@ -765,17 +765,15 @@ The efficiency of the dehumidifier can either be entered as an ``IntegratedEnerg
 Lighting
 ~~~~~~~~
 
-The building's lighting is described by six ``Lighting/LightingGroup`` elements, each of which is the combination of:
+The building's lighting is described by nine ``Lighting/LightingGroup`` elements, each of which is the combination of:
 
-- ``LightingGroup/ThirdPartyCertification``: 'ERI Tier I' (fluorescent) and 'ERI Tier II' (LEDs, outdoor lamps controlled by photocells, or indoor lamps controlled by motion sensor)
-- ``LightingGroup/Location``: 'interior', 'garage', and 'exterior'
+- ``LightingType``: 'LightEmittingDiode', 'CompactFluorescent', and 'FluorescentTube'
+- ``Location``: 'interior', 'garage', and 'exterior'
 
 The fraction of lamps of the given type in the given location are provided as the ``LightingGroup/FractionofUnitsInLocation``.
 The fractions for a given location cannot sum to greater than 1.
 If the fractions sum to less than 1, the remainder is assumed to be incandescent lighting.
 Garage lighting values are ignored if the building has no garage.
-
-To model a building without any lighting, all six ``Lighting/LightingGroup`` elements must be excluded.
 
 A ``Lighting/extension/UsageMultiplier`` can also be optionally provided that scales energy usage; if not provided, it is assumed to be 1.0.
 
