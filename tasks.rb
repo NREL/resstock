@@ -193,7 +193,9 @@ def create_osws
     'extra-dhw-solar-latitude.osw' => 'base.osw',
 
     'invalid_files/non-electric-heat-pump-water-heater.osw' => 'base.osw',
-    'invalid_files/multiple-heating-and-cooling-systems.osw' => 'base.osw'
+    'invalid_files/multiple-heating-and-cooling-systems.osw' => 'base.osw',
+    'invalid_files/non-integer-geometry-num-bathrooms.osw' => 'base.osw',
+    'invalid_files/non-integer-ceiling-fan-quantity.osw' => 'base.osw'
   }
 
   puts "Generating #{osws_files.size} OSW files..."
@@ -545,7 +547,7 @@ def get_values(osw_file, step)
     step.setArgument('cooking_range_oven_is_induction', false)
     step.setArgument('cooking_range_oven_is_convection', false)
     step.setArgument('cooking_range_oven_usage_multiplier', 1.0)
-    step.setArgument('ceiling_fan_efficiency', 100)
+    step.setArgument('ceiling_fan_efficiency', 70.4)
     step.setArgument('ceiling_fan_quantity', '0')
     step.setArgument('ceiling_fan_cooling_setpoint_temp_offset', 0)
     step.setArgument('plug_loads_television_annual_kwh', '620.0')
@@ -1454,8 +1456,9 @@ def get_values(osw_file, step)
   elsif ['base-mechvent-supply.osw'].include? osw_file
     step.setArgument('mech_vent_fan_type', HPXML::MechVentTypeSupply)
   elsif ['base-misc-ceiling-fans.osw'].include? osw_file
-    step.setArgument('ceiling_fan_cooling_setpoint_temp_offset', 0.5)
+    step.setArgument('ceiling_fan_efficiency', 100.0)
     step.setArgument('ceiling_fan_quantity', '2')
+    step.setArgument('ceiling_fan_cooling_setpoint_temp_offset', 0.5)
   elsif ['base-misc-defaults.osw'].include? osw_file
 
   elsif ['base-misc-defaults2.osw'].include? osw_file
@@ -1515,6 +1518,10 @@ def get_values(osw_file, step)
     step.setArgument('water_heater_fuel_type', HPXML::FuelTypeNaturalGas)
   elsif ['invalid_files/multiple-heating-and-cooling-systems.osw'].include? osw_file
     step.setArgument('heat_pump_type', HPXML::HVACTypeHeatPumpAirToAir)
+  elsif ['invalid_files/non-integer-geometry-num-bathrooms.osw'].include? osw_file
+    step.setArgument('geometry_num_bathrooms', '1.5')
+  elsif ['invalid_files/non-integer-ceiling-fan-quantity.osw'].include? osw_file
+    step.setArgument('ceiling_fan_quantity', '0.5')
   end
   return step
 end

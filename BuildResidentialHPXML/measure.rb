@@ -334,7 +334,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(2.0)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('geometry_num_bedrooms', true)
+    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('geometry_num_bedrooms', true)
     arg.setDisplayName('Geometry: Number of Bedrooms')
     arg.setDescription('Specify the number of bedrooms. Used to determine the energy usage of appliances and plug loads, hot water usage, etc.')
     arg.setDefaultValue(3)
@@ -2060,7 +2060,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDisplayName('Ceiling Fan: Efficiency')
     arg.setUnits('CFM/watt')
     arg.setDescription('The efficiency rating of the ceiling fan(s) at medium speed.')
-    arg.setDefaultValue(100)
+    arg.setDefaultValue(70.4)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('ceiling_fan_quantity', true)
@@ -2192,7 +2192,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
              geometry_roof_structure: runner.getStringArgumentValue('geometry_roof_structure', user_arguments),
              geometry_attic_type: runner.getStringArgumentValue('geometry_attic_type', user_arguments),
              geometry_eaves_depth: runner.getDoubleArgumentValue('geometry_eaves_depth', user_arguments),
-             geometry_num_bedrooms: runner.getDoubleArgumentValue('geometry_num_bedrooms', user_arguments),
+             geometry_num_bedrooms: runner.getIntegerArgumentValue('geometry_num_bedrooms', user_arguments),
              geometry_num_bathrooms: runner.getStringArgumentValue('geometry_num_bathrooms', user_arguments),
              geometry_num_occupants: runner.getStringArgumentValue('geometry_num_occupants', user_arguments),
              floor_assembly_r: runner.getDoubleArgumentValue('floor_assembly_r', user_arguments),
@@ -2508,6 +2508,18 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     # furnace, air conditioner, and heat pump
     error = (args[:heating_system_type] != 'none') && (args[:cooling_system_type] != 'none') && (args[:heat_pump_type] != 'none')
     errors << "heating_system_type=#{args[:heating_system_type]} and cooling_system_type=#{args[:cooling_system_type]} and heat_pump_type=#{args[:heat_pump_type]}" if error
+
+    # integer number of bathrooms
+    if args[:geometry_num_bathrooms] != Constants.Auto
+      error = (Float(args[:geometry_num_bathrooms]) % 1 != 0)
+      errors << "geometry_num_bathrooms=#{args[:geometry_num_bathrooms]}" if error
+    end
+
+    # integer ceiling fan quantity
+    if args[:ceiling_fan_quantity] != Constants.Auto
+      error = (Float(args[:ceiling_fan_quantity]) % 1 != 0)
+      errors << "ceiling_fan_quantity=#{args[:ceiling_fan_quantity]}" if error
+    end
 
     return warnings, errors
   end
