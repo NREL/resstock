@@ -1887,9 +1887,9 @@ class SchedulesFile
     ann_equiv_full_load_hrs = annual_equivalent_full_load_hrs(col_name: col_name)
     year_description = @model.getYearDescription
     num_days_in_year = Constants.NumDaysInYear(year_description.isLeapYear)
-    daily_full_load_hrs = ann_equiv_full_load_hrs / num_days_in_year
-    daily_water = UnitConversions.convert(peak_flow * daily_full_load_hrs, "m^3/s", "gal/min")
-    return daily_water
+    peak_flow = UnitConversions.convert(peak_flow, "m^3/s", "gal/min")
+    daily_gallons = (ann_equiv_full_load_hrs * 60 * peak_flow) / num_days_in_year
+    return daily_gallons
   end
 
   def validate_schedule(col_name:,

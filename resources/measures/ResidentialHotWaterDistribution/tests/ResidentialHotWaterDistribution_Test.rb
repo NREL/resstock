@@ -554,18 +554,19 @@ class ResidentialHotWaterDistributionTest < MiniTest::Test
         schedule_file = final_object.flowRateFractionSchedule.get.to_ScheduleFile.get
         sch_path = schedule_file.externalFile.filePath.to_s
         schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_output_path: sch_path)
+        peak_flow_rate = UnitConversions.convert(final_object.waterUseEquipmentDefinition.peakFlowRate * final_object.multiplier, "m^3/s", "gal/min")
         if final_object.name.to_s.start_with?(Constants.ObjectNameShower)
           full_load_hrs = schedules_file.annual_equivalent_full_load_hrs(col_name: "showers")
-          actual_hw_gpd = UnitConversions.convert(full_load_hrs * final_object.waterUseEquipmentDefinition.peakFlowRate * final_object.multiplier, "m^3/s", "gal/min") / num_days_in_year
-          actual_values["ShowerDailyWater_gpd"] += actual_hw_gpd
+          daily_gallons = (full_load_hrs * 60 * peak_flow_rate) / num_days_in_year # multiply by 60 because peak_flow_rate is in gal/min
+          actual_values["ShowerDailyWater_gpd"] += daily_gallons
         elsif final_object.name.to_s.start_with?(Constants.ObjectNameSink)
           full_load_hrs = schedules_file.annual_equivalent_full_load_hrs(col_name: "sinks")
-          actual_hw_gpd = UnitConversions.convert(full_load_hrs * final_object.waterUseEquipmentDefinition.peakFlowRate * final_object.multiplier, "m^3/s", "gal/min") / num_days_in_year
-          actual_values["SinkDailyWater_gpd"] += actual_hw_gpd
+          daily_gallons = (full_load_hrs * 60 * peak_flow_rate) / num_days_in_year # multiply by 60 because peak_flow_rate is in gal/min
+          actual_values["SinkDailyWater_gpd"] += daily_gallons
         elsif final_object.name.to_s.start_with?(Constants.ObjectNameBath)
           full_load_hrs = schedules_file.annual_equivalent_full_load_hrs(col_name: "baths")
-          actual_hw_gpd = UnitConversions.convert(full_load_hrs * final_object.waterUseEquipmentDefinition.peakFlowRate * final_object.multiplier, "m^3/s", "gal/min") / num_days_in_year
-          actual_values["BathDailyWater_gpd"] += actual_hw_gpd
+          daily_gallons = (full_load_hrs * 60 * peak_flow_rate) / num_days_in_year # multiply by 60 because peak_flow_rate is in gal/min
+          actual_values["BathDailyWater_gpd"] += daily_gallons
         end
       end
     end
