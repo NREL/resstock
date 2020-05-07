@@ -556,15 +556,15 @@ class ResidentialHotWaterDistributionTest < MiniTest::Test
         schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_output_path: sch_path)
         if final_object.name.to_s.start_with?(Constants.ObjectNameShower)
           full_load_hrs = schedules_file.annual_equivalent_full_load_hrs(col_name: "showers")
-          actual_hw_gpd = UnitConversions.convert(full_load_hrs * final_object.waterUseEquipmentDefinition.peakFlowRate * final_object.multiplier, "m^3/s", "gal/min") * 60.0 / num_days_in_year
+          actual_hw_gpd = UnitConversions.convert(full_load_hrs * final_object.waterUseEquipmentDefinition.peakFlowRate * final_object.multiplier, "m^3/s", "gal/min") / num_days_in_year
           actual_values["ShowerDailyWater_gpd"] += actual_hw_gpd
         elsif final_object.name.to_s.start_with?(Constants.ObjectNameSink)
           full_load_hrs = schedules_file.annual_equivalent_full_load_hrs(col_name: "sinks")
-          actual_hw_gpd = UnitConversions.convert(full_load_hrs * final_object.waterUseEquipmentDefinition.peakFlowRate * final_object.multiplier, "m^3/s", "gal/min") * 60.0 / num_days_in_year
+          actual_hw_gpd = UnitConversions.convert(full_load_hrs * final_object.waterUseEquipmentDefinition.peakFlowRate * final_object.multiplier, "m^3/s", "gal/min") / num_days_in_year
           actual_values["SinkDailyWater_gpd"] += actual_hw_gpd
         elsif final_object.name.to_s.start_with?(Constants.ObjectNameBath)
           full_load_hrs = schedules_file.annual_equivalent_full_load_hrs(col_name: "baths")
-          actual_hw_gpd = UnitConversions.convert(full_load_hrs * final_object.waterUseEquipmentDefinition.peakFlowRate * final_object.multiplier, "m^3/s", "gal/min") * 60.0 / num_days_in_year
+          actual_hw_gpd = UnitConversions.convert(full_load_hrs * final_object.waterUseEquipmentDefinition.peakFlowRate * final_object.multiplier, "m^3/s", "gal/min") / num_days_in_year
           actual_values["BathDailyWater_gpd"] += actual_hw_gpd
         end
       end
