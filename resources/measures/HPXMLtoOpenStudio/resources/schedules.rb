@@ -1873,6 +1873,8 @@ class SchedulesFile
   # similar to calc_design_level_from_daily_kwh but for water usage
   def calc_peak_flow_from_daily_gpm(col_name:, daily_water:)
     ann_equiv_full_load_hrs = annual_equivalent_full_load_hrs(col_name: col_name)
+    year_description = @model.getYearDescription
+    num_days_in_year = Constants.NumDaysInYear(year_description.isLeapYear)
     daily_full_load_hrs = ann_equiv_full_load_hrs / num_days_in_year
     peak_flow = UnitConversions.convert(daily_water / daily_full_load_hrs, "gal/min", "m^3/s")
     return peak_flow
@@ -1881,6 +1883,8 @@ class SchedulesFile
   # get daily gallons from the peak flow rate
   def calc_daily_gpm_from_peak_flow(col_name:, peak_flow:)
     ann_equiv_full_load_hrs = annual_equivalent_full_load_hrs(col_name: col_name)
+    year_description = @model.getYearDescription
+    num_days_in_year = Constants.NumDaysInYear(year_description.isLeapYear)
     daily_full_load_hrs = ann_equiv_full_load_hrs / num_days_in_year
     daily_water = UnitConversions.convert(peak_flow * daily_full_load_hrs, "m^3/s", "gal/min")
     return daily_water
