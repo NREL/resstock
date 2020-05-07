@@ -236,7 +236,9 @@ class OSModel
     @apply_ashrae140_assumptions = false if @apply_ashrae140_assumptions.nil?
 
     # Init
+
     weather = Location.apply(model, runner, epw_path, cache_path, 'NA', 'NA')
+    check_for_errors()
     set_defaults_and_globals(runner)
     add_simulation_params(model)
 
@@ -260,7 +262,6 @@ class OSModel
     add_thermal_mass(runner, model)
     modify_cond_basement_surface_properties(runner, model)
     assign_view_factor(runner, model) unless @cond_bsmnt_surfaces.empty?
-    check_for_errors(runner, model)
     set_zone_volumes(runner, model)
     explode_surfaces(runner, model)
     add_num_occupants(model, hpxml, runner)
@@ -301,6 +302,72 @@ class OSModel
   end
 
   private
+
+  def self.check_for_errors()
+    # Conditioned space
+    location = HPXML::LocationLivingSpace
+    if (@hpxml.roofs.select { |s| s.interior_adjacent_to == location }.size +
+        @hpxml.frame_floors.select { |s| s.is_ceiling && (s.interior_adjacent_to == location) }.size) == 0
+      fail 'There must be at least one ceiling/roof adjacent to conditioned space.'
+    end
+    if @hpxml.walls.select { |s| (s.interior_adjacent_to == location) && s.is_exterior }.size == 0
+      fail 'There must be at least one exterior wall adjacent to conditioned space.'
+    end
+    if (@hpxml.slabs.select { |s| [location, HPXML::LocationBasementConditioned].include? s.interior_adjacent_to }.size +
+        @hpxml.frame_floors.select { |s| s.is_floor && (s.interior_adjacent_to == location) }.size) == 0
+      fail 'There must be at least one floor/slab adjacent to conditioned space.'
+    end
+
+    # Basement/Crawlspace
+    [HPXML::LocationBasementConditioned,
+     HPXML::LocationBasementUnconditioned,
+     HPXML::LocationCrawlspaceVented,
+     HPXML::LocationCrawlspaceUnvented].each do |location|
+      next unless @hpxml.has_space_type(location)
+
+      if location != HPXML::LocationBasementConditioned # HPXML file doesn't need to have FrameFloor between living and conditioned basement
+        if @hpxml.frame_floors.select { |s| s.is_floor && (s.interior_adjacent_to == HPXML::LocationLivingSpace) && (s.exterior_adjacent_to == location) }.size == 0
+          fail "There must be at least one ceiling adjacent to #{location}."
+        end
+      end
+      if @hpxml.foundation_walls.select { |s| (s.interior_adjacent_to == location) && s.is_exterior }.size == 0
+        fail "There must be at least one exterior foundation wall adjacent to #{location}."
+      end
+      if @hpxml.slabs.select { |s| s.interior_adjacent_to == location }.size == 0
+        fail "There must be at least one slab adjacent to #{location}."
+      end
+    end
+
+    # Garage
+    location = HPXML::LocationGarage
+    if @hpxml.has_space_type(location)
+      if (@hpxml.roofs.select { |s| s.interior_adjacent_to == location }.size +
+          @hpxml.frame_floors.select { |s| [s.interior_adjacent_to, s.exterior_adjacent_to].include? location }.size) == 0
+        fail "There must be at least one roof/ceiling adjacent to #{location}."
+      end
+      if (@hpxml.walls.select { |s| (s.interior_adjacent_to == location) && s.is_exterior }.size +
+         @hpxml.foundation_walls.select { |s| [s.interior_adjacent_to, s.exterior_adjacent_to].include?(location) && s.is_exterior }.size) == 0
+        fail "There must be at least one exterior wall/foundation wall adjacent to #{location}."
+      end
+      if @hpxml.slabs.select { |s| s.interior_adjacent_to == location }.size == 0
+        fail "There must be at least one slab adjacent to #{location}."
+      end
+    end
+
+    # Attic
+    [HPXML::LocationAtticVented,
+     HPXML::LocationAtticUnvented].each do |location|
+      next unless @hpxml.has_space_type(location)
+
+      if @hpxml.roofs.select { |s| s.interior_adjacent_to == location }.size == 0
+        fail "There must be at least one roof adjacent to #{location}."
+      end
+
+      if @hpxml.frame_floors.select { |s| s.is_ceiling && [s.interior_adjacent_to, s.exterior_adjacent_to].include?(location) }.size == 0
+        fail "There must be at least one floor adjacent to #{location}."
+      end
+    end
+  end
 
   def self.set_defaults_and_globals(runner)
     # Set globals
@@ -1015,49 +1082,6 @@ class OSModel
     end
   end
 
-  def self.check_for_errors(runner, model)
-    # Check every thermal zone has:
-    # 1. At least one floor surface
-    # 2. At least one roofceiling surface
-    # 3. At least one wall surface (except for attics)
-    # 4. At least one surface adjacent to outside/ground/adiabatic
-    model.getThermalZones.each do |zone|
-      n_floors = 0
-      n_roofceilings = 0
-      n_walls = 0
-      n_exteriors = 0
-      zone.spaces.each do |space|
-        space.surfaces.each do |surface|
-          if ['outdoors', 'foundation', 'adiabatic'].include? surface.outsideBoundaryCondition.downcase
-            n_exteriors += 1
-          end
-          if surface.surfaceType.downcase == 'floor'
-            n_floors += 1
-          end
-          if surface.surfaceType.downcase == 'wall'
-            n_walls += 1
-          end
-          if surface.surfaceType.downcase == 'roofceiling'
-            n_roofceilings += 1
-          end
-        end
-      end
-
-      if n_floors == 0
-        fail "'#{zone.name}' must have at least one floor surface."
-      end
-      if n_roofceilings == 0
-        fail "'#{zone.name}' must have at least one roof/ceiling surface."
-      end
-      if (n_walls == 0) && (not [HPXML::LocationAtticUnvented, HPXML::LocationAtticVented].include? zone.name.to_s)
-        fail "'#{zone.name}' must have at least one wall surface."
-      end
-      if n_exteriors == 0
-        fail "'#{zone.name}' must have at least one surface adjacent to outside/ground."
-      end
-    end
-  end
-
   def self.modify_cond_basement_surface_properties(runner, model)
     # modify conditioned basement surface properties
     # - zero out interior solar absorptance in conditioned basement
@@ -1705,41 +1729,7 @@ class OSModel
   end
 
   def self.add_foundation_walls_slabs(runner, model, spaces)
-    # Check for foundation walls without corresponding slabs
-    @hpxml.foundation_walls.each do |foundation_wall|
-      next if foundation_wall.net_area < 0.1 # skip modeling net surface area for surfaces comprised entirely of subsurface area
-
-      found_slab = false
-      @hpxml.slabs.each do |slab|
-        found_slab = true if foundation_wall.interior_adjacent_to == slab.interior_adjacent_to
-      end
-      next if found_slab
-
-      fail "Foundation wall '#{foundation_wall.id}' is adjacent to '#{foundation_wall.interior_adjacent_to}' but no corresponding slab was found adjacent to '#{foundation_wall.interior_adjacent_to}'."
-    end
-
-    # Check for slabs without corresponding foundation walls
-    @hpxml.slabs.each do |slab|
-      next if [HPXML::LocationLivingSpace, HPXML::LocationGarage].include? slab.interior_adjacent_to
-
-      found_foundation_wall = false
-      @hpxml.foundation_walls.each do |foundation_wall|
-        next if foundation_wall.net_area < 0.1 # skip modeling net surface area for surfaces comprised entirely of subsurface area
-
-        found_foundation_wall = true if slab.interior_adjacent_to == foundation_wall.interior_adjacent_to
-      end
-      next if found_foundation_wall
-
-      fail "Slab '#{slab.id}' is adjacent to '#{slab.interior_adjacent_to}' but no corresponding foundation walls were found adjacent to '#{slab.interior_adjacent_to}'.\n"
-    end
-
-    # Get foundation types
-    foundation_types = []
-    @hpxml.slabs.each do |slab|
-      next if foundation_types.include? slab.interior_adjacent_to
-
-      foundation_types << slab.interior_adjacent_to
-    end
+    foundation_types = @hpxml.slabs.map { |s| s.interior_adjacent_to }.uniq
 
     foundation_types.each do |foundation_type|
       # Get attached foundation walls/slabs
@@ -2863,9 +2853,12 @@ class OSModel
     return if fractions[[HPXML::LocationInterior, HPXML::LightingTypeCFL]].nil? # Not the lighting group(s) we're interested in
 
     int_kwh, ext_kwh, grg_kwh = Lighting.calc_lighting_energy(@eri_version, @cfa, @gfa,
-                                                              fractions[[HPXML::LocationInterior, HPXML::LightingTypeCFL]] + fractions[[HPXML::LocationInterior, HPXML::LightingTypeLFL]],
-                                                              fractions[[HPXML::LocationExterior, HPXML::LightingTypeCFL]] + fractions[[HPXML::LocationExterior, HPXML::LightingTypeLFL]],
-                                                              fractions[[HPXML::LocationGarage, HPXML::LightingTypeCFL]] + fractions[[HPXML::LocationGarage, HPXML::LightingTypeLFL]],
+                                                              fractions[[HPXML::LocationInterior, HPXML::LightingTypeCFL]],
+                                                              fractions[[HPXML::LocationExterior, HPXML::LightingTypeCFL]],
+                                                              fractions[[HPXML::LocationGarage, HPXML::LightingTypeCFL]],
+                                                              fractions[[HPXML::LocationInterior, HPXML::LightingTypeLFL]],
+                                                              fractions[[HPXML::LocationExterior, HPXML::LightingTypeLFL]],
+                                                              fractions[[HPXML::LocationGarage, HPXML::LightingTypeLFL]],
                                                               fractions[[HPXML::LocationInterior, HPXML::LightingTypeLED]],
                                                               fractions[[HPXML::LocationExterior, HPXML::LightingTypeLED]],
                                                               fractions[[HPXML::LocationGarage, HPXML::LightingTypeLED]],

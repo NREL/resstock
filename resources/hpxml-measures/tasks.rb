@@ -546,7 +546,7 @@ def get_values(osw_file, step)
     step.setArgument('cooking_range_oven_is_convection', false)
     step.setArgument('cooking_range_oven_usage_multiplier', 1.0)
     step.setArgument('ceiling_fan_efficiency', 100)
-    step.setArgument('ceiling_fan_quantity', 0)
+    step.setArgument('ceiling_fan_quantity', '0')
     step.setArgument('ceiling_fan_cooling_setpoint_temp_offset', 0)
     step.setArgument('plug_loads_television_annual_kwh', '620.0')
     step.setArgument('plug_loads_other_annual_kwh', '2457.0')
@@ -1455,7 +1455,7 @@ def get_values(osw_file, step)
     step.setArgument('mech_vent_fan_type', HPXML::MechVentTypeSupply)
   elsif ['base-misc-ceiling-fans.osw'].include? osw_file
     step.setArgument('ceiling_fan_cooling_setpoint_temp_offset', 0.5)
-    step.setArgument('ceiling_fan_quantity', 2)
+    step.setArgument('ceiling_fan_quantity', '2')
   elsif ['base-misc-defaults.osw'].include? osw_file
 
   elsif ['base-misc-defaults2.osw'].include? osw_file
@@ -1565,6 +1565,15 @@ def create_hpxmls
     'invalid_files/duct-location.xml' => 'base.xml',
     'invalid_files/duct-location-other.xml' => 'base.xml',
     'invalid_files/duplicate-id.xml' => 'base.xml',
+    'invalid_files/enclosure-attic-missing-roof.xml' => 'base.xml',
+    'invalid_files/enclosure-basement-missing-exterior-foundation-wall.xml' => 'base-foundation-unconditioned-basement.xml',
+    'invalid_files/enclosure-basement-missing-slab.xml' => 'base-foundation-unconditioned-basement.xml',
+    'invalid_files/enclosure-garage-missing-exterior-wall.xml' => 'base-enclosure-garage.xml',
+    'invalid_files/enclosure-garage-missing-roof-ceiling.xml' => 'base-enclosure-garage.xml',
+    'invalid_files/enclosure-garage-missing-slab.xml' => 'base-enclosure-garage.xml',
+    'invalid_files/enclosure-living-missing-ceiling-roof.xml' => 'base.xml',
+    'invalid_files/enclosure-living-missing-exterior-wall.xml' => 'base.xml',
+    'invalid_files/enclosure-living-missing-floor-slab.xml' => 'base.xml',
     'invalid_files/heat-pump-mixed-fixed-and-autosize-capacities.xml' => 'base-hvac-air-to-air-heat-pump-1-speed.xml',
     'invalid_files/heat-pump-mixed-fixed-and-autosize-capacities2.xml' => 'base-hvac-air-to-air-heat-pump-1-speed.xml',
     'invalid_files/hvac-invalid-distribution-system-type.xml' => 'base.xml',
@@ -1584,9 +1593,7 @@ def create_hpxmls
     'invalid_files/invalid-window-interior-shading.xml' => 'base.xml',
     'invalid_files/invalid-wmo.xml' => 'base.xml',
     'invalid_files/lighting-fractions.xml' => 'base.xml',
-    'invalid_files/mismatched-slab-and-foundation-wall.xml' => 'base.xml',
     'invalid_files/missing-elements.xml' => 'base.xml',
-    'invalid_files/missing-surfaces.xml' => 'base.xml',
     'invalid_files/net-area-negative-roof.xml' => 'base-enclosure-skylights.xml',
     'invalid_files/net-area-negative-wall.xml' => 'base.xml',
     'invalid_files/orphaned-hvac-distribution.xml' => 'base-hvac-furnace-gas-room-ac.xml',
@@ -1938,7 +1945,7 @@ def set_hpxml_header(hpxml_file, hpxml)
       'ASHRAE_Standard_140/L100AC.xml',
       'ASHRAE_Standard_140/L100AL.xml'].include? hpxml_file
     hpxml.header.xml_type = 'HPXML'
-    hpxml.header.xml_generated_by = 'Rakefile'
+    hpxml.header.xml_generated_by = 'tasks.rb'
     hpxml.header.transaction = 'create'
     hpxml.header.building_id = 'MyBuilding'
     hpxml.header.event_type = 'proposed workscope'
@@ -2299,6 +2306,10 @@ def set_hpxml_roofs(hpxml_file, hpxml)
     hpxml.roofs[-1].area = 0.05
   elsif ['base-atticroof-radiant-barrier.xml'].include? hpxml_file
     hpxml.roofs[0].radiant_barrier = true
+  elsif ['invalid_files/enclosure-attic-missing-roof.xml'].include? hpxml_file
+    hpxml.roofs[0].delete
+  elsif ['invalid_files/enclosure-garage-missing-roof-ceiling.xml'].include? hpxml_file
+    hpxml.roofs[1].delete
   end
 end
 
@@ -2547,15 +2558,6 @@ def set_hpxml_walls(hpxml_file, hpxml)
                       insulation_assembly_r_value: assembly_r)
     end
     hpxml.walls << last_wall
-  elsif ['invalid_files/missing-surfaces.xml'].include? hpxml_file
-    hpxml.walls.add(id: 'WallGarage',
-                    exterior_adjacent_to: HPXML::LocationGarage,
-                    interior_adjacent_to: HPXML::LocationLivingSpace,
-                    wall_type: HPXML::WallTypeWoodStud,
-                    area: 100,
-                    solar_absorptance: 0.7,
-                    emittance: 0.92,
-                    insulation_assembly_r_value: 4)
   elsif ['base-enclosure-2stories.xml'].include? hpxml_file
     hpxml.walls[0].area *= 2.0
   elsif ['base-enclosure-2stories-garage.xml'].include? hpxml_file
@@ -2633,6 +2635,10 @@ def set_hpxml_walls(hpxml_file, hpxml)
     hpxml.walls[-1].area = 0.05
   elsif ['invalid_files/duplicate-id.xml'].include? hpxml_file
     hpxml.walls[-1].id = hpxml.walls[0].id
+  elsif ['invalid_files/enclosure-living-missing-exterior-wall.xml'].include? hpxml_file
+    hpxml.walls[0].delete
+  elsif ['invalid_files/enclosure-garage-missing-exterior-wall.xml'].include? hpxml_file
+    hpxml.walls[-1].delete
   end
 end
 
@@ -2898,10 +2904,8 @@ def set_hpxml_foundation_walls(hpxml_file, hpxml)
     hpxml.foundation_walls << hpxml.foundation_walls[-1].dup
     hpxml.foundation_walls[-1].id = 'TinyFoundationWall'
     hpxml.foundation_walls[-1].area = 0.05
-  elsif ['invalid_files/mismatched-slab-and-foundation-wall.xml'].include? hpxml_file
-    hpxml.foundation_walls << hpxml.foundation_walls[0].dup
-    hpxml.foundation_walls[1].id = 'FoundationWall2'
-    hpxml.foundation_walls[1].interior_adjacent_to = HPXML::LocationGarage
+  elsif ['invalid_files/enclosure-basement-missing-exterior-foundation-wall.xml'].include? hpxml_file
+    hpxml.foundation_walls[0].delete
   end
 end
 
@@ -3012,6 +3016,11 @@ def set_hpxml_frame_floors(hpxml_file, hpxml)
     hpxml.frame_floors << hpxml.frame_floors[-1].dup
     hpxml.frame_floors[-1].id = 'TinyFloor'
     hpxml.frame_floors[-1].area = 0.05
+  elsif ['invalid_files/enclosure-living-missing-ceiling-roof.xml'].include? hpxml_file
+    hpxml.frame_floors[0].delete
+  elsif ['invalid_files/enclosure-basement-missing-ceiling.xml',
+         'invalid_files/enclosure-garage-missing-roof-ceiling.xml'].include? hpxml_file
+    hpxml.frame_floors[1].delete
   end
 end
 
@@ -3177,6 +3186,11 @@ def set_hpxml_slabs(hpxml_file, hpxml)
     hpxml.slabs[0].depth_below_grade = 7.0
   elsif ['invalid_files/slab-zero-exposed-perimeter.xml'].include? hpxml_file
     hpxml.slabs[0].exposed_perimeter = 0
+  elsif ['invalid_files/enclosure-living-missing-floor-slab.xml',
+         'invalid_files/enclosure-basement-missing-slab.xml'].include? hpxml_file
+    hpxml.slabs[0].delete
+  elsif ['invalid_files/enclosure-garage-missing-slab.xml'].include? hpxml_file
+    hpxml.slabs[1].delete
   end
 end
 
