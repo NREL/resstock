@@ -348,7 +348,11 @@ class HVAC
     end
     fan_power_rated = get_fan_power_rated(heat_pump.cooling_efficiency_seer)
     fan_power_installed = get_fan_power_installed(heat_pump.cooling_efficiency_seer)
-    crankcase_kw, crankcase_temp = get_crankcase_assumptions()
+    if heat_pump.fraction_heat_load_served <= 0
+      crankcase_kw, crankcase_temp = 0, nil
+    else
+      crankcase_kw, crankcase_temp = get_crankcase_assumptions()
+    end
     hp_min_temp, supp_max_temp = get_heatpump_temp_assumptions(heat_pump)
 
     # Cooling Coil
@@ -408,7 +412,7 @@ class HVAC
     cool_shrs_rated_gross = calc_shrs_rated_gross(num_speeds, cool_shrs, fan_power_rated, cool_cfms_ton_rated)
     cool_eirs = calc_cool_eirs(num_speeds, cool_eers, fan_power_rated)
     cool_closs_fplr_spec = [calc_plr_coefficients(cool_c_d)] * num_speeds
-    clg_coil = create_dx_cooling_coil(model, obj_name, (0...num_speeds).to_a, cool_eirs, cool_cap_ft_spec, cool_eir_ft_spec, cool_closs_fplr_spec, cool_cap_fflow_spec, cool_eir_fflow_spec, cool_shrs_rated_gross, heat_pump.cooling_capacity, crankcase_kw, crankcase_temp, fan_power_rated)
+    clg_coil = create_dx_cooling_coil(model, obj_name, (0...num_speeds).to_a, cool_eirs, cool_cap_ft_spec, cool_eir_ft_spec, cool_closs_fplr_spec, cool_cap_fflow_spec, cool_eir_fflow_spec, cool_shrs_rated_gross, heat_pump.cooling_capacity, 0, nil, fan_power_rated)
     hvac_map[heat_pump.id] << clg_coil
 
     # Heating Coil

@@ -2063,11 +2063,11 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(100)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('ceiling_fan_quantity', true)
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('ceiling_fan_quantity', true)
     arg.setDisplayName('Ceiling Fan: Quantity')
     arg.setUnits('#')
     arg.setDescription('Total number of ceiling fans.')
-    arg.setDefaultValue(0)
+    arg.setDefaultValue(Constants.Auto)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('ceiling_fan_cooling_setpoint_temp_offset', true)
@@ -2422,7 +2422,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
              cooking_range_oven_is_convection: runner.getStringArgumentValue('cooking_range_oven_is_convection', user_arguments),
              cooking_range_oven_usage_multiplier: runner.getDoubleArgumentValue('cooking_range_oven_usage_multiplier', user_arguments),
              ceiling_fan_efficiency: runner.getDoubleArgumentValue('ceiling_fan_efficiency', user_arguments),
-             ceiling_fan_quantity: runner.getIntegerArgumentValue('ceiling_fan_quantity', user_arguments),
+             ceiling_fan_quantity: runner.getStringArgumentValue('ceiling_fan_quantity', user_arguments),
              ceiling_fan_cooling_setpoint_temp_offset: runner.getDoubleArgumentValue('ceiling_fan_cooling_setpoint_temp_offset', user_arguments),
              plug_loads_television_annual_kwh: runner.getStringArgumentValue('plug_loads_television_annual_kwh', user_arguments),
              plug_loads_other_annual_kwh: runner.getStringArgumentValue('plug_loads_other_annual_kwh', user_arguments),
@@ -3368,7 +3368,12 @@ class HPXMLFile
       cooling_setup_start_hour = args[:setpoint_cooling_setup_start_hour]
     end
 
-    if (args[:ceiling_fan_cooling_setpoint_temp_offset] > 0) && (args[:ceiling_fan_quantity] > 0)
+    ceiling_fan_quantity = nil
+    if args[:ceiling_fan_quantity] != Constants.Auto
+      ceiling_fan_quantity = Float(args[:ceiling_fan_quantity])
+    end
+
+    if (args[:ceiling_fan_cooling_setpoint_temp_offset] > 0) && (ceiling_fan_quantity.nil? || ceiling_fan_quantity > 0)
       ceiling_fan_cooling_setpoint_temp_offset = args[:ceiling_fan_cooling_setpoint_temp_offset]
     end
 
@@ -3724,7 +3729,7 @@ class HPXMLFile
                               location: HPXML::LocationGarage,
                               fraction_of_units_in_location: args[:lighting_fraction_cfl_garage],
                               lighting_type: HPXML::LightingTypeCFL)
-    hpxml.lighting_groups.add(id: 'Lighting_:FL_Interior',
+    hpxml.lighting_groups.add(id: 'Lighting_LFL_Interior',
                               location: HPXML::LocationInterior,
                               fraction_of_units_in_location: args[:lighting_fraction_lfl_interior],
                               lighting_type: HPXML::LightingTypeLFL)
@@ -3886,11 +3891,15 @@ class HPXMLFile
   end
 
   def self.set_ceiling_fans(hpxml, runner, args)
-    return if args[:ceiling_fan_quantity] == 0
+    if args[:ceiling_fan_quantity] != Constants.Auto
+      quantity = Float(args[:ceiling_fan_quantity])
+
+      return if quantity == 0
+    end
 
     hpxml.ceiling_fans.add(id: 'CeilingFan',
                            efficiency: args[:ceiling_fan_efficiency],
-                           quantity: args[:ceiling_fan_quantity])
+                           quantity: quantity)
   end
 
   def self.set_plug_loads(hpxml, runner, args)
