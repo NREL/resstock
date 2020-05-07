@@ -1876,7 +1876,9 @@ class SchedulesFile
     year_description = @model.getYearDescription
     num_days_in_year = Constants.NumDaysInYear(year_description.isLeapYear)
     daily_full_load_hrs = ann_equiv_full_load_hrs / num_days_in_year
-    peak_flow = UnitConversions.convert(daily_water / daily_full_load_hrs, "gal/min", "m^3/s")
+    peak_flow = daily_water / daily_full_load_hrs # gallons_per_hour
+    peak_flow = peak_flow / 60 # convert to gallons per minute
+    peak_flow = UnitConversions.convert(peak_flow, "gal/min", "m^3/s") # convert to m^3/s
     return peak_flow
   end
 

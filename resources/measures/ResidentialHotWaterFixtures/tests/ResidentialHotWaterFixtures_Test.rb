@@ -250,7 +250,9 @@ class ResidentialHotWaterFixturesTest < MiniTest::Test
           schedule_file = new_object.flowRateFractionSchedule.get.to_ScheduleFile.get
           schedules_file = SchedulesFile.new(runner: runner, model: model)
           full_load_hrs = schedules_file.annual_equivalent_full_load_hrs(col_name: schedule_file.name.to_s)
-          actual_values["HotWater_gpd"] += UnitConversions.convert(full_load_hrs * new_object.waterUseEquipmentDefinition.peakFlowRate * new_object.multiplier, "m^3/s", "gal/min") / num_days_in_year
+          peak_flow_rate = UnitConversions.convert(new_object.waterUseEquipmentDefinition.peakFlowRate * new_object.multiplier, "m^3/s", "gal/min")
+          daily_gallons = (full_load_hrs * 60 * peak_flow_rate) / num_days_in_year # multiply by 60 because peak_flow_rate is in gal/min
+          actual_values["HotWater_gpd"] += daily_gallons
         end
       end
     end
