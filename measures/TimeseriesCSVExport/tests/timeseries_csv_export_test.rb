@@ -128,7 +128,7 @@ class TimeseriesCSVExportTest < MiniTest::Test
     args_hash["include_enduse_subcategories"] = "false"
     args_hash["output_variables"] = "Surface Outside Face Incident Solar Radiation Rate per Area|Surface 2, Zone People Occupant Count|living zone"
     expected_values = { "EnduseTimeseriesLength" => 8760, "EnduseTimeseriesWidth" => @@include_enduse_subcategories[args_hash["include_enduse_subcategories"]] + 2 }
-    _test_measure("SFD_Successful_EnergyPlus_Run_TMY_Appl_PV.osm", args_hash, expected_values, __method__, "USA_CO_Denver.Intl.AP.725650_TMY3.epw", num_output_requests)
+    _test_measure("SFD_Successful_EnergyPlus_Run_TMY_Appl_PV.osm", args_hash, expected_values, __method__, "USA_CO_Denver.Intl.AP.725650_TMY3.epw", "8760.csv", num_output_requests)
   end
 
   private
