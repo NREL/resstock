@@ -236,7 +236,7 @@ class TimeseriesCSVExportTest < MiniTest::Test
       FileUtils.mkdir_p(test_dir(test_name))
     end
     assert(File.exist?(test_dir(test_name)))
-    puts model_in_path_default(osm_file_or_model)
+
     assert(File.exist?(model_in_path_default(osm_file_or_model)))
 
     # set up runner, this will happen automatically when measure is run in PAT or OpenStudio
