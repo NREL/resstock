@@ -135,19 +135,24 @@ For software tools that do not collect sufficient inputs for every required surf
 
 The space types used in the HPXML building description are:
 
-============================  ===================================
-Space Type                    Notes
-============================  ===================================
-living space                  Above-grade conditioned floor area.
+==============================  ====================================================================  ==============================================================
+Space Type                      Description                                                           Temperature Assumption
+==============================  ====================================================================  ==============================================================
+living space                    Above-grade conditioned floor area.
 attic - vented            
 attic - unvented          
-basement - conditioned        Below-grade conditioned floor area.
+basement - conditioned          Below-grade conditioned floor area.
 basement - unconditioned  
 crawlspace - vented       
 crawlspace - unvented     
 garage                    
-other housing unit            Used to specify adiabatic surfaces.
-============================  ===================================
+other housing unit              Conditioned space of an adjacent attached housing unit.               Same as conditioned space.
+other housing unit above        Conditioned space of an attached housing unit above.                  Same as conditioned space.
+other housing unit below        Conditioned space of an attached housing unit below.                  Same as conditioned space.
+other heated space              Heated multifamily space (e.g., shared laundry or equipment.)         Average of conditioned space and outside; minimum of 68F.
+other multifamily buffer space  Unconditioned multifamily space (e.g., enclosed unheated stairwell).  Average of conditioned space and outside; minimum of 50F.
+other non-freezing space        Non-freezing multifamily space (e.g., parking garage ceiling).        Floats with outside; minimum of 40F.
+==============================  ====================================================================  ==============================================================
 
 .. warning::
 
@@ -409,7 +414,7 @@ HVAC Distribution
 Each separate HVAC distribution system should be specified as a ``Systems/HVAC/HVACDistribution``.
 There should be at most one heating system and one cooling system attached to a distribution system.
 See the sections on Heating Systems, Cooling Systems, and Heat Pumps for information on which ``DistributionSystemType`` is allowed for which HVAC system.
-Also, note that some HVAC systems (e.g., room air conditioners) are not allowed to be attached to a distribution system.
+Also note that some HVAC systems (e.g., room air conditioners) are not allowed to be attached to a distribution system.
 
 ``AirDistribution`` systems are defined by:
 
@@ -419,6 +424,25 @@ Also, note that some HVAC systems (e.g., room air conditioners) are not allowed 
 - Optional return ducts (``Ducts[DuctType='return']``)
 
 For each duct, ``DuctInsulationRValue``, ``DuctLocation``, and ``DuctSurfaceArea`` must be provided.
+The ``DuctLocation`` can be one of the following:
+
+==============================  ====================================================================  =========================================================
+Location                        Description                                                           Temperature Assumption
+==============================  ====================================================================  =========================================================
+living space                    Above-grade conditioned floor area.
+basement - conditioned          Below-grade conditioned floor area.
+basement - unconditioned  
+crawlspace - unvented
+crawlspace - vented
+attic - unvented
+attic - vented
+garage                    
+outside                         
+other housing unit              Conditioned space of an adjacent attached housing unit.               Same as conditioned space.
+other heated space              Heated multifamily space (e.g., shared laundry or equipment.)         Average of conditioned space and outside; minimum of 68F.
+other multifamily buffer space  Unconditioned multifamily space (e.g., enclosed unheated stairwell).  Average of conditioned space and outside; minimum of 50F.
+other non-freezing space        Non-freezing multifamily space (e.g., parking garage ceiling).        Floats with outside; minimum of 40F.
+==============================  ====================================================================  =========================================================
 
 ``HydronicDistribution`` systems do not require any additional inputs.
 
@@ -499,17 +523,6 @@ Water Heaters
 
 Each water heater should be entered as a ``Systems/WaterHeating/WaterHeatingSystem``.
 Inputs including ``WaterHeaterType`` and ``FractionDHWLoadServed`` must be provided.
-The water heater ``Location`` can be optionally entered; if not provided, a default water heater location will be assumed based on IECC climate zone. 
-
-+--------------------+--------------------------------------------------------------------------------------------+
-| IECC Climate Zone  | Default Water Heater Location                                                              |
-+====================+============================================================================================+
-| 1-3, excluding 3A  | Garage if present, else Living Space                                                       |
-+--------------------+--------------------------------------------------------------------------------------------+
-| 3A, 4-8, unknown   | Conditioned Basement if present, else Unconditioned Basement if present, else Living Space |
-+--------------------+--------------------------------------------------------------------------------------------+
-
-The setpoint temperature may be provided as ``HotWaterTemperature``; if not provided, 125°F is assumed.
 
 Depending on the type of water heater specified, additional elements are required/available:
 
@@ -523,16 +536,16 @@ space-heating boiler with storage tank                                          
 space-heating boiler with tankless coil                                                                                                                                                                    required
 ========================================  ===================================  ===========  ==========  ===============  ==================  =================  =========================================  ==============================
 
-For storage water heaters, the tank volume in gallons, heating capacity in Btuh, and recovery efficiency can be optionally provided. If not provided, default values for the tank volume and heating capacity will be assumed based on Table 8 in the `2014 Building America House Simulation Protocols <https://www.energy.gov/sites/prod/files/2014/03/f13/house_simulation_protocols_2014.pdf#page=22&zoom=100,93,333>`_ 
-and a default recovery efficiency will be assumed depending on the fuel type, as shown in the table below. The equations for non-electric storage water heaters are based on the regression analysis of `AHRI certified water heaters <https://www.ahridirectory.org/NewSearch?programId=24&searchTypeId=3>`_.
+For storage water heaters, the tank volume in gallons, heating capacity in Btuh, and recovery efficiency can be optionally provided.
+If not provided, default values for the tank volume and heating capacity will be assumed based on Table 8 in the `2014 Building America House Simulation Protocols <https://www.energy.gov/sites/prod/files/2014/03/f13/house_simulation_protocols_2014.pdf#page=22&zoom=100,93,333>`_ 
+and a default recovery efficiency shown in the table below will be assumed based on regression analysis of `AHRI certified water heaters <https://www.ahridirectory.org/NewSearch?programId=24&searchTypeId=3>`_.
 
-========================  ======================================
-FuelType                  RecoveryEfficiency
-========================  ======================================
-Electric                  0.98
-Non-electric, EF >= 0.75  .. math:: 0.778114 \cdot EF + 0.276679
-Non-electric, EF < 0.75   .. math:: 0.252117 \cdot EF + 0.607997
-========================  ======================================
+============  ======================================
+EnergyFactor  RecoveryEfficiency (default)
+============  ======================================
+>= 0.75       0.778114 * EF + 0.276679
+< 0.75        0.252117 * EF + 0.607997
+============  ======================================
 
 For tankless water heaters, an annual energy derate due to cycling inefficiencies can be provided.
 If not provided, a value of 0.08 (8%) will be assumed.
@@ -541,6 +554,37 @@ For combi boiler systems, the ``RelatedHVACSystem`` must point to a ``HeatingSys
 For combi boiler systems with a storage tank, the storage tank losses (deg-F/hr) can be entered as ``StandbyLoss``; if not provided, a default value based on the `AHRI Directory of Certified Product Performance <https://www.ahridirectory.org>`_ will be calculated.
 
 For water heaters that are connected to a desuperheater, the ``RelatedHVACSystem`` must either point to a ``HeatPump`` or a ``CoolingSystem``.
+
+The water heater ``Location`` can be optionally entered as one of the following:
+
+==============================  ====================================================================  =========================================================
+Location                        Description                                                           Temperature Assumption
+==============================  ====================================================================  =========================================================
+living space                    Above-grade conditioned floor area.
+basement - conditioned          Below-grade conditioned floor area.
+basement - unconditioned  
+attic - unvented
+attic - vented
+garage                    
+crawlspace - unvented
+crawlspace - vented
+other exterior                  Outside.
+other housing unit              Conditioned space of an adjacent attached housing unit.               Same as conditioned space.
+other heated space              Heated multifamily space (e.g., shared laundry or equipment.)         Average of conditioned space and outside; minimum of 68F.
+other multifamily buffer space  Unconditioned multifamily space (e.g., enclosed unheated stairwell).  Average of conditioned space and outside; minimum of 50F.
+other non-freezing space        Non-freezing multifamily space (e.g., parking garage ceiling).        Floats with outside; minimum of 40F.
+==============================  ====================================================================  =========================================================
+
+If the location is not provided, a default water heater location will be assumed based on IECC climate zone:
+
+=================  ============================================================================================
+IECC Climate Zone  Location (default)
+=================  ============================================================================================
+1-3, excluding 3A  garage if present, otherwise living space                                                   
+3A, 4-8, unknown   conditioned basement if present, otherwise unconditioned basement if present, otherwise living space
+=================  ============================================================================================
+
+The setpoint temperature may be provided as ``HotWaterTemperature``; if not provided, 125F is assumed.
 
 Hot Water Distribution
 **********************
@@ -614,9 +658,7 @@ If using detailed inputs, the following elements are used:
 - ``CollectorTilt``
 - ``CollectorRatedOpticalEfficiency``: FRTA (y-intercept); see Directory of SRCC OG-100 Certified Solar Collector Ratings
 - ``CollectorRatedThermalLosses``: FRUL (slope, in units of Btu/hr-ft²-R); see Directory of SRCC OG-100 Certified Solar Collector Ratings
-- ``StorageVolume``: Optional. If not provided, the default value in gallons will be calculated using the following equation
-  
-  .. math:: StorageVolume = 1.5 \cdot CollectorArea
+- ``StorageVolume``: Optional. If not provided, the default value in gallons will be calculated as 1.5 * CollectorArea
 
 - ``ConnectedTo``: Must point to a ``WaterHeatingSystem``. The connected water heater cannot be of type space-heating boiler or attached to a desuperheater.
 
@@ -647,11 +689,24 @@ Appliances
 
 This section describes elements specified in HPXML's ``Appliances``.
 
+The ``Location`` for each appliance can be optionally provided as one of the following:
+
+==============================  ====================================================================
+Location                        Description                                                         
+==============================  ====================================================================
+living space                    Above-grade conditioned floor area.
+basement - conditioned          Below-grade conditioned floor area.
+basement - unconditioned  
+garage                    
+other                           Any space in a multifamily building outside the unit, in which internal gains are neglected.
+==============================  ====================================================================
+
+If the location is not specified, the appliance is assumed to be in the living space.
+
 Clothes Washer
 **************
 
 An ``Appliances/ClothesWasher`` element can be specified; if not provided, a clothes washer will not be modeled.
-The ``Location`` can be optionally provided; if not provided, it is assumed to be in the living space.
 
 Several EnergyGuide label inputs describing the efficiency of the appliance can be provided.
 If the complete set of efficiency inputs is not provided, the following default values representing a standard clothes washer from 2006 will be used.
@@ -679,7 +734,6 @@ Clothes Dryer
 
 An ``Appliances/ClothesDryer`` element can be specified; if not provided, a clothes dryer will not be modeled.
 The dryer's ``FuelType`` must be provided.
-The ``Location`` can be optionally provided; if not provided, it is assumed to be in the living space.
 
 Several EnergyGuide label inputs describing the efficiency of the appliance can be provided.
 If the complete set of efficiency inputs is not provided, the following default values representing a standard clothes dryer from 2006 will be used.
@@ -701,7 +755,6 @@ Dishwasher
 **********
 
 An ``Appliances/Dishwasher`` element can be specified; if not provided, a dishwasher will not be modeled.
-The dishwasher is assumed to be in the living space.
 
 Several EnergyGuide label inputs describing the efficiency of the appliance can be provided.
 If the complete set of efficiency inputs is not provided, the following default values representing a standard dishwasher from 2006 will be used.
@@ -727,7 +780,6 @@ Refrigerator
 ************
 
 An ``Appliances/Refrigerator`` element can be specified; if not provided, a refrigerator will not be modeled.
-The ``Location`` can be optionally provided; if not provided, it is assumed to be in the living space.
 
 The efficiency of the refrigerator can be optionally entered as ``RatedAnnualkWh`` or ``extension/AdjustedAnnualkWh``.
 If neither are provided, ``RatedAnnualkWh`` will be defaulted to represent a standard refrigerator from 2006 using the following equation based on `ANSI/RESNET/ICC 301-2019 <https://codes.iccsafe.org/content/RESNETICC3012019>`_.
@@ -741,7 +793,6 @@ Cooking Range/Oven
 
 ``Appliances/CookingRange`` and ``Appliances/Oven`` elements can be specified; if not provided, a range/oven will not be modeled.
 The ``FuelType`` of the range must be provided.
-The cooking range and oven is assumed to be in the living space.
 
 Inputs including ``IsInduction`` (for the cooking range) and ``IsConvection`` (for the oven) can be optionally provided.
 The following default values will be assumed unless a complete set of the optional variables is provided.

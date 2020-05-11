@@ -213,6 +213,13 @@ class SimulationOutputReportTest < MiniTest::Test
     'Temperature: Living Space',
   ]
 
+  TimeseriesColsTempsOtherSide = [
+    'Temperature: Other Multifamily Buffer Space',
+    'Temperature: Other Non-freezing Space',
+    'Temperature: Other Housing Unit',
+    'Temperature: Other Heated Space'
+  ]
+
   TimeseriesColsAirflows = [
     'Airflow: Infiltration',
     'Airflow: Mechanical Ventilation',
@@ -461,6 +468,27 @@ class SimulationOutputReportTest < MiniTest::Test
     assert_equal(expected_timeseries_cols.sort, actual_timeseries_cols.sort)
     assert_equal(8760, File.readlines(timeseries_csv).size - 2)
     _check_for_nonzero_timeseries_value(timeseries_csv, TimeseriesColsZoneTemps)
+  end
+
+  def test_timeseries_hourly_zone_temperatures_mf_space
+    args_hash = { 'hpxml_path' => '../workflow/sample_files/base-enclosure-attached-multifamily.xml',
+                  'timeseries_frequency' => 'hourly',
+                  'include_timeseries_fuel_consumptions' => false,
+                  'include_timeseries_end_use_consumptions' => false,
+                  'include_timeseries_hot_water_uses' => false,
+                  'include_timeseries_total_loads' => false,
+                  'include_timeseries_component_loads' => false,
+                  'include_timeseries_zone_temperatures' => true,
+                  'include_timeseries_airflows' => false,
+                  'include_timeseries_weather' => false }
+    annual_csv, timeseries_csv, eri_csv = _test_measure(args_hash)
+    assert(File.exist?(annual_csv))
+    assert(File.exist?(timeseries_csv))
+    expected_timeseries_cols = ['Time'] + TimeseriesColsZoneTemps + TimeseriesColsTempsOtherSide
+    actual_timeseries_cols = File.readlines(timeseries_csv)[0].strip.split(',')
+    assert_equal(expected_timeseries_cols.sort, actual_timeseries_cols.sort)
+    assert_equal(8760, File.readlines(timeseries_csv).size - 2)
+    _check_for_nonzero_timeseries_value(timeseries_csv, TimeseriesColsTempsOtherSide)
   end
 
   def test_timeseries_hourly_airflows

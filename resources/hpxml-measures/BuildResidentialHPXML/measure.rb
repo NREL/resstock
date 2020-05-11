@@ -741,6 +741,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     air_leakage_units_choices = OpenStudio::StringVector.new
     air_leakage_units_choices << HPXML::UnitsACH50
     air_leakage_units_choices << HPXML::UnitsCFM50
+    air_leakage_units_choices << HPXML::UnitsACHNatural
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('air_leakage_units', air_leakage_units_choices, true)
     arg.setDisplayName('Air Leakage: Units')
@@ -1782,6 +1783,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     appliance_location_choices << HPXML::LocationBasementConditioned
     appliance_location_choices << HPXML::LocationBasementUnconditioned
     appliance_location_choices << HPXML::LocationGarage
+    appliance_location_choices << HPXML::LocationOther
 
     clothes_washer_efficiency_type_choices = OpenStudio::StringVector.new
     clothes_washer_efficiency_type_choices << 'ModifiedEnergyFactor'
@@ -1931,6 +1933,12 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(true)
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('dishwasher_location', appliance_location_choices, true)
+    arg.setDisplayName('Dishwasher: Location')
+    arg.setDescription('The space type for the dishwasher location.')
+    arg.setDefaultValue(Constants.Auto)
+    args << arg
+
     dishwasher_efficiency_type_choices = OpenStudio::StringVector.new
     dishwasher_efficiency_type_choices << 'RatedAnnualkWh'
     dishwasher_efficiency_type_choices << 'EnergyFactor'
@@ -2030,6 +2038,12 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDisplayName('Cooking Range/Oven: Present')
     arg.setDescription('Whether there is a cooking range/oven.')
     arg.setDefaultValue(true)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('cooking_range_oven_location', appliance_location_choices, true)
+    arg.setDisplayName('Cooking Range/Oven: Location')
+    arg.setDescription('The space type for the cooking range/oven location.')
+    arg.setDefaultValue(Constants.Auto)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('cooking_range_oven_fuel_type', cooking_range_oven_fuel_choices, true)
@@ -2403,6 +2417,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
              clothes_dryer_control_type: runner.getStringArgumentValue('clothes_dryer_control_type', user_arguments),
              clothes_dryer_usage_multiplier: runner.getDoubleArgumentValue('clothes_dryer_usage_multiplier', user_arguments),
              dishwasher_present: runner.getBoolArgumentValue('dishwasher_present', user_arguments),
+             dishwasher_location: runner.getStringArgumentValue('dishwasher_location', user_arguments),
              dishwasher_efficiency_type: runner.getStringArgumentValue('dishwasher_efficiency_type', user_arguments),
              dishwasher_efficiency_kwh: runner.getDoubleArgumentValue('dishwasher_efficiency_kwh', user_arguments),
              dishwasher_efficiency_ef: runner.getDoubleArgumentValue('dishwasher_efficiency_ef', user_arguments),
@@ -2417,6 +2432,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
              refrigerator_rated_annual_kwh: runner.getDoubleArgumentValue('refrigerator_rated_annual_kwh', user_arguments),
              refrigerator_usage_multiplier: runner.getDoubleArgumentValue('refrigerator_usage_multiplier', user_arguments),
              cooking_range_oven_present: runner.getBoolArgumentValue('cooking_range_oven_present', user_arguments),
+             cooking_range_oven_location: runner.getStringArgumentValue('cooking_range_oven_location', user_arguments),
              cooking_range_oven_fuel_type: runner.getStringArgumentValue('cooking_range_oven_fuel_type', user_arguments),
              cooking_range_oven_is_induction: runner.getStringArgumentValue('cooking_range_oven_is_induction', user_arguments),
              cooking_range_oven_is_convection: runner.getStringArgumentValue('cooking_range_oven_is_convection', user_arguments),
@@ -2778,14 +2794,19 @@ class HPXMLFile
 
   def self.set_air_infiltration_measurements(hpxml, runner, args)
     if args[:air_leakage_units] == HPXML::UnitsACH50
+      house_pressure = 50
       unit_of_measure = HPXML::UnitsACH
     elsif args[:air_leakage_units] == HPXML::UnitsCFM50
+      house_pressure = 50
       unit_of_measure = HPXML::UnitsCFM
+    elsif args[:air_leakage_units] == HPXML::UnitsACHNatural
+      house_pressure = nil
+      unit_of_measure = HPXML::UnitsACHNatural
     end
     infiltration_volume = args[:geometry_cfa] * args[:geometry_wall_height]
 
     hpxml.air_infiltration_measurements.add(id: 'InfiltrationMeasurement',
-                                            house_pressure: 50,
+                                            house_pressure: house_pressure,
                                             unit_of_measure: unit_of_measure,
                                             air_leakage: args[:air_leakage_value],
                                             infiltration_volume: infiltration_volume)
@@ -3847,6 +3868,10 @@ class HPXMLFile
   def self.set_dishwasher(hpxml, runner, args)
     return unless args[:dishwasher_present]
 
+    if args[:dishwasher_location] != Constants.Auto
+      location = args[:dishwasher_location]
+    end
+
     if args[:dishwasher_efficiency_type] == 'RatedAnnualkWh'
       rated_annual_kwh = args[:dishwasher_efficiency_kwh]
     elsif args[:dishwasher_efficiency_type] == 'EnergyFactor'
@@ -3858,6 +3883,7 @@ class HPXMLFile
     end
 
     hpxml.dishwashers.add(id: 'Dishwasher',
+                          location: location,
                           rated_annual_kwh: rated_annual_kwh,
                           energy_factor: energy_factor,
                           label_electric_rate: args[:dishwasher_label_electric_rate],
@@ -3890,11 +3916,16 @@ class HPXMLFile
   def self.set_cooking_range_oven(hpxml, runner, args)
     return unless args[:cooking_range_oven_present]
 
+    if args[:cooking_range_oven_location] != Constants.Auto
+      location = args[:cooking_range_oven_location]
+    end
+
     if args[:cooking_range_oven_usage_multiplier] != 1.0
       usage_multiplier = args[:cooking_range_oven_usage_multiplier]
     end
 
     hpxml.cooking_ranges.add(id: 'CookingRange',
+                             location: location,
                              fuel_type: args[:cooking_range_oven_fuel_type],
                              is_induction: args[:cooking_range_oven_is_induction],
                              usage_multiplier: usage_multiplier)

@@ -311,128 +311,117 @@ class Geometry
     return false
   end
 
-  def self.get_spaces_above_grade_exterior_walls(spaces)
+  def self.get_spaces_above_grade_exterior_walls(space)
     above_grade_exterior_walls = []
-    spaces.each do |space|
-      next if not Geometry.space_is_conditioned(space)
+    space.surfaces.each do |surface|
+      next if surface.surfaceType.downcase != 'wall'
+      next if surface.outsideBoundaryCondition.downcase != 'outdoors'
 
-      space.surfaces.each do |surface|
-        next if above_grade_exterior_walls.include?(surface)
-        next if surface.surfaceType.downcase != 'wall'
-        next if surface.outsideBoundaryCondition.downcase != 'outdoors'
-
-        above_grade_exterior_walls << surface
-      end
+      above_grade_exterior_walls << surface
     end
     return above_grade_exterior_walls
   end
 
-  def self.get_spaces_above_grade_exterior_floors(spaces)
+  def self.get_spaces_above_grade_exterior_floors(space)
     above_grade_exterior_floors = []
-    spaces.each do |space|
-      next if not Geometry.space_is_conditioned(space)
+    space.surfaces.each do |surface|
+      next if surface.surfaceType.downcase != 'floor'
+      next if surface.outsideBoundaryCondition.downcase != 'outdoors'
 
-      space.surfaces.each do |surface|
-        next if above_grade_exterior_floors.include?(surface)
-        next if surface.surfaceType.downcase != 'floor'
-        next if surface.outsideBoundaryCondition.downcase != 'outdoors'
-
-        above_grade_exterior_floors << surface
-      end
+      above_grade_exterior_floors << surface
     end
     return above_grade_exterior_floors
   end
 
-  def self.get_spaces_above_grade_ground_floors(spaces)
+  def self.get_spaces_above_grade_ground_floors(space)
+    return [] if Geometry.space_has_foundation_walls(space)
+
     above_grade_ground_floors = []
-    spaces.each do |space|
-      next if not Geometry.space_is_conditioned(space)
-      next if Geometry.space_has_foundation_walls(space)
+    space.surfaces.each do |surface|
+      next if surface.surfaceType.downcase != 'floor'
+      next if surface.outsideBoundaryCondition.downcase != 'foundation'
 
-      space.surfaces.each do |surface|
-        next if above_grade_ground_floors.include?(surface)
-        next if surface.surfaceType.downcase != 'floor'
-        next if surface.outsideBoundaryCondition.downcase != 'foundation'
-
-        above_grade_ground_floors << surface
-      end
+      above_grade_ground_floors << surface
     end
     return above_grade_ground_floors
   end
 
-  def self.get_spaces_above_grade_exterior_roofs(spaces)
+  def self.get_spaces_above_grade_exterior_roofs(space)
     above_grade_exterior_roofs = []
-    spaces.each do |space|
-      next if not Geometry.space_is_conditioned(space)
+    space.surfaces.each do |surface|
+      next if surface.surfaceType.downcase != 'roofceiling'
+      next if surface.outsideBoundaryCondition.downcase != 'outdoors'
 
-      space.surfaces.each do |surface|
-        next if above_grade_exterior_roofs.include?(surface)
-        next if surface.surfaceType.downcase != 'roofceiling'
-        next if surface.outsideBoundaryCondition.downcase != 'outdoors'
-
-        above_grade_exterior_roofs << surface
-      end
+      above_grade_exterior_roofs << surface
     end
     return above_grade_exterior_roofs
   end
 
-  def self.get_spaces_interzonal_walls(spaces)
+  def self.get_spaces_interzonal_walls(space)
     interzonal_walls = []
-    spaces.each do |space|
-      space.surfaces.each do |surface|
-        next if interzonal_walls.include?(surface)
-        next if surface.surfaceType.downcase != 'wall'
-        next if not is_interzonal_surface(surface)
+    space.surfaces.each do |surface|
+      next if surface.surfaceType.downcase != 'wall'
+      next if not is_interzonal_surface(surface)
 
-        interzonal_walls << surface
-      end
+      interzonal_walls << surface
     end
     return interzonal_walls
   end
 
-  def self.get_spaces_interzonal_floors_and_ceilings(spaces)
-    interzonal_floors = []
-    spaces.each do |space|
-      space.surfaces.each do |surface|
-        next if interzonal_floors.include?(surface)
-        next if (surface.surfaceType.downcase != 'floor') && (surface.surfaceType.downcase != 'roofceiling')
-        next if not is_interzonal_surface(surface)
+  def self.get_sfa_mf_space_floors_and_ceilings(space)
+    mf_floors = []
+    space.surfaces.each do |surface|
+      next if (surface.surfaceType.downcase != 'floor') && (surface.surfaceType.downcase != 'roofceiling')
+      next if surface.outsideBoundaryCondition.downcase != 'othersidecoefficients'
 
-        interzonal_floors << surface
-      end
+      mf_floors << surface
+    end
+    return mf_floors
+  end
+
+  def self.get_sfa_mf_space_walls(space)
+    mf_walls = []
+    space.surfaces.each do |surface|
+      next if surface.surfaceType.downcase != 'wall'
+      next if surface.outsideBoundaryCondition.downcase != 'othersidecoefficients'
+
+      mf_walls << surface
+    end
+    return mf_walls
+  end
+
+  def self.get_spaces_interzonal_floors_and_ceilings(space)
+    interzonal_floors = []
+    space.surfaces.each do |surface|
+      next if (surface.surfaceType.downcase != 'floor') && (surface.surfaceType.downcase != 'roofceiling')
+      next if not is_interzonal_surface(surface)
+
+      interzonal_floors << surface
     end
     return interzonal_floors
   end
 
-  def self.get_spaces_below_grade_exterior_walls(spaces)
+  def self.get_spaces_below_grade_exterior_walls(space)
     below_grade_exterior_walls = []
-    spaces.each do |space|
-      next if not Geometry.space_is_conditioned(space)
 
-      space.surfaces.each do |surface|
-        next if below_grade_exterior_walls.include?(surface)
-        next if surface.surfaceType.downcase != 'wall'
-        next if surface.outsideBoundaryCondition.downcase != 'foundation'
+    space.surfaces.each do |surface|
+      next if surface.surfaceType.downcase != 'wall'
+      next if surface.outsideBoundaryCondition.downcase != 'foundation'
 
-        below_grade_exterior_walls << surface
-      end
+      below_grade_exterior_walls << surface
     end
     return below_grade_exterior_walls
   end
 
-  def self.get_spaces_below_grade_exterior_floors(spaces)
+  def self.get_spaces_below_grade_exterior_floors(space)
+    return [] if not Geometry.space_has_foundation_walls(space)
+
     below_grade_exterior_floors = []
-    spaces.each do |space|
-      next if not Geometry.space_is_conditioned(space)
-      next if not Geometry.space_has_foundation_walls(space)
+    space.surfaces.each do |surface|
+      next if surface.surfaceType.downcase != 'floor'
+      next if surface.outsideBoundaryCondition.downcase != 'foundation'
 
-      space.surfaces.each do |surface|
-        next if below_grade_exterior_floors.include?(surface)
-        next if surface.surfaceType.downcase != 'floor'
-        next if surface.outsideBoundaryCondition.downcase != 'foundation'
-
-        below_grade_exterior_floors << surface
-      end
+      below_grade_exterior_floors << surface
     end
     return below_grade_exterior_floors
   end

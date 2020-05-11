@@ -212,6 +212,11 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
     if include_timeseries_zone_temperatures
       result << OpenStudio::IdfObject.load("Output:Variable,*,Zone Mean Air Temperature,#{timeseries_frequency};").get
+      # For reporting multifamily timreseries temperatures.
+      keys = [HPXML::LocationOtherHeatedSpace, HPXML::LocationOtherMultifamilyBufferSpace, HPXML::LocationOtherNonFreezingSpace, HPXML::LocationOtherHousingUnit]
+      keys.each do |key|
+        result << OpenStudio::IdfObject.load("Output:Variable,#{key},Schedule Value,#{timeseries_frequency};").get
+      end
     end
 
     if include_timeseries_airflows
@@ -710,16 +715,31 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     # Get zone temperatures
     if include_timeseries_zone_temperatures
       zone_names = []
+      mf_space_names = []
       @model.getThermalZones.each do |zone|
         if zone.floorArea > 1
           zone_names << zone.name.to_s.upcase
         end
+      end
+      @model.getScheduleConstants.each do |schedule|
+        next unless schedule.name.to_s.include?(HPXML::LocationOtherHeatedSpace) ||
+                    schedule.name.to_s.include?(HPXML::LocationOtherMultifamilyBufferSpace) ||
+                    schedule.name.to_s.include?(HPXML::LocationOtherNonFreezingSpace) ||
+                    schedule.name.to_s.include?(HPXML::LocationOtherHousingUnit)
+
+        mf_space_names << schedule.name.to_s.upcase
       end
       zone_names.sort.each do |zone_name|
         @zone_temps[zone_name] = ZoneTemp.new
         @zone_temps[zone_name].name = "Temperature: #{zone_name.split.map(&:capitalize).join(' ')}"
         @zone_temps[zone_name].timeseries_units = 'F'
         @zone_temps[zone_name].timeseries_output = get_report_variable_data_timeseries([zone_name], ['Zone Mean Air Temperature'], 9.0 / 5.0, 32.0, timeseries_frequency)
+      end
+      mf_space_names.sort.each do |mf_space_name|
+        @zone_temps[mf_space_name] = ZoneTemp.new
+        @zone_temps[mf_space_name].name = "Temperature: #{mf_space_name.split.map(&:capitalize).join(' ')}"
+        @zone_temps[mf_space_name].timeseries_units = 'F'
+        @zone_temps[mf_space_name].timeseries_output = get_report_variable_data_timeseries([mf_space_name], ['Schedule Value'], 9.0 / 5.0, 32.0, timeseries_frequency)
       end
     end
 
