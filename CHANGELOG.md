@@ -14,6 +14,7 @@ Features
 - Exterior lighting schedule changed from using interior lighting sunrise/sunset algorithm to T24 2016 Residential ACM Appendix C Table 8 Exterior Lighting Hourly Multiplier for weekdays and weekends ([#419](https://github.com/NREL/OpenStudio-BuildStock/pull/419))
 - Increase the diversity of the floor areas that are simulated. Geometry House Size has been replaced by Geometry Floor Area Bin and Geometry Floor Area. Now using AHS for specifying the floor area. Floor areas differ by non-Core Based Statistical Areas (CBSAs) Census Divisions and the top 15 largest CBSAs ([#425](https://github.com/NREL/OpenStudio-BuildStock/pull/425))
 - Increase the diversity of the infiltration simulated. Now using the Residential Diagnostics Database for the Infiltration housing characteristic ([#427](https://github.com/NREL/OpenStudio-BuildStock/pull/427))
+- Allow a key value to be specified when outputting timeseries variables ([#438](https://github.com/NREL/OpenStudio-BuildStock/pull/438))
 
 Fixes
 - Remove Location Weather Filename and Location Weather Year tsvs, and update options lookup to reflect updated weather file changes; weather filenames are now required to match what is in the options lookup ([#432](https://github.com/NREL/OpenStudio-BuildStock/pull/432))
@@ -25,6 +26,12 @@ Fixes
 - Revert plug load schedule to RBSA for the National Average option ([#355](https://github.com/NREL/OpenStudio-BuildStock/pull/355))
 - Removed the "Geometry Unit Stories SF" and "Geometry Unit Stories MF" housing characteristics. Unit stories are instead represented by the "Geometry Stories" housing characteristic ([#416](https://github.com/NREL/OpenStudio-BuildStock/pull/416))
 - Diversify window to wall ratio variation using the Residential Building Stock Assessment (RBSA) II data ([#412](https://github.com/NREL/OpenStudio-BuildStock/pull/412))
+
+## ResStock v2.2.4
+###### April 28, 2020 - [Diff](https://github.com/NREL/OpenStudio-BuildStock/compare/v2.2.3...v2.2.4)
+
+Fixes
+- Fix bug in options lookup where buildings without heating systems were not being assigned the required "has_hvac_flue" airflow measure argument ([#442](https://github.com/NREL/OpenStudio-BuildStock/pull/442))
 
 ## ResStock v2.2.3
 ###### March 9, 2020 - [Diff](https://github.com/NREL/OpenStudio-BuildStock/compare/v2.2.2...v2.2.3)
