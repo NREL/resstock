@@ -170,7 +170,7 @@ class EnergyPlusValidator
       # [Wall]
       '/HPXML/Building/BuildingDetails/Enclosure/Walls/Wall' => {
         'SystemIdentifier' => one, # Required by HPXML schema
-        'ExteriorAdjacentTo[text()="outside" or text()="attic - vented" or text()="attic - unvented" or text()="basement - conditioned" or text()="basement - unconditioned" or text()="crawlspace - vented" or text()="crawlspace - unvented" or text()="garage" or text()="other housing unit"]' => one,
+        'ExteriorAdjacentTo[text()="outside" or text()="attic - vented" or text()="attic - unvented" or text()="basement - conditioned" or text()="basement - unconditioned" or text()="crawlspace - vented" or text()="crawlspace - unvented" or text()="garage" or text()="other housing unit" or text()="other heated space" or text()="other multifamily buffer space" or text()="other non-freezing space"]' => one,
         'InteriorAdjacentTo[text()="living space" or text()="attic - vented" or text()="attic - unvented" or text()="basement - conditioned" or text()="basement - unconditioned" or text()="crawlspace - vented" or text()="crawlspace - unvented" or text()="garage"]' => one,
         'WallType[WoodStud | DoubleWoodStud | ConcreteMasonryUnit | StructurallyInsulatedPanel | InsulatedConcreteForms | SteelFrame | SolidConcrete | StructuralBrick | StrawBale | Stone | LogWall]' => one,
         'Area' => one,
@@ -184,7 +184,7 @@ class EnergyPlusValidator
       # [RimJoist]
       '/HPXML/Building/BuildingDetails/Enclosure/RimJoists/RimJoist' => {
         'SystemIdentifier' => one, # Required by HPXML schema
-        'ExteriorAdjacentTo[text()="outside" or text()="attic - vented" or text()="attic - unvented" or text()="basement - conditioned" or text()="basement - unconditioned" or text()="crawlspace - vented" or text()="crawlspace - unvented" or text()="garage" or text()="other housing unit"]' => one,
+        'ExteriorAdjacentTo[text()="outside" or text()="attic - vented" or text()="attic - unvented" or text()="basement - conditioned" or text()="basement - unconditioned" or text()="crawlspace - vented" or text()="crawlspace - unvented" or text()="garage" or text()="other housing unit" or text()="other heated space" or text()="other multifamily buffer space" or text()="other non-freezing space"]' => one,
         'InteriorAdjacentTo[text()="living space" or text()="attic - vented" or text()="attic - unvented" or text()="basement - conditioned" or text()="basement - unconditioned" or text()="crawlspace - vented" or text()="crawlspace - unvented" or text()="garage"]' => one,
         'Area' => one,
         'Azimuth' => zero_or_one,
@@ -197,7 +197,7 @@ class EnergyPlusValidator
       # [FoundationWall]
       '/HPXML/Building/BuildingDetails/Enclosure/FoundationWalls/FoundationWall' => {
         'SystemIdentifier' => one, # Required by HPXML schema
-        'ExteriorAdjacentTo[text()="ground" or text()="basement - conditioned" or text()="basement - unconditioned" or text()="crawlspace - vented" or text()="crawlspace - unvented" or text()="garage" or text()="other housing unit"]' => one,
+        'ExteriorAdjacentTo[text()="ground" or text()="basement - conditioned" or text()="basement - unconditioned" or text()="crawlspace - vented" or text()="crawlspace - unvented" or text()="garage" or text()="other housing unit" or text()="other heated space" or text()="other multifamily buffer space" or text()="other non-freezing space"]' => one,
         'InteriorAdjacentTo[text()="basement - conditioned" or text()="basement - unconditioned" or text()="crawlspace - vented" or text()="crawlspace - unvented" or text()="garage"]' => one, # See [VentedCrawlspace]
         'Height' => one,
         'Area' => one,
@@ -225,7 +225,7 @@ class EnergyPlusValidator
       # [FrameFloor]
       '/HPXML/Building/BuildingDetails/Enclosure/FrameFloors/FrameFloor' => {
         'SystemIdentifier' => one, # Required by HPXML schema
-        'ExteriorAdjacentTo[text()="outside" or text()="attic - vented" or text()="attic - unvented" or text()="basement - conditioned" or text()="basement - unconditioned" or text()="crawlspace - vented" or text()="crawlspace - unvented" or text()="garage" or text()="other housing unit above" or text()="other housing unit below"]' => one,
+        'ExteriorAdjacentTo[text()="outside" or text()="attic - vented" or text()="attic - unvented" or text()="basement - conditioned" or text()="basement - unconditioned" or text()="crawlspace - vented" or text()="crawlspace - unvented" or text()="garage" or text()="other housing unit above" or text()="other housing unit below" or text()="other heated space" or text()="other multifamily buffer space" or text()="other non-freezing space"]' => one,
         'InteriorAdjacentTo[text()="living space" or text()="attic - vented" or text()="attic - unvented" or text()="basement - conditioned" or text()="basement - unconditioned" or text()="crawlspace - vented" or text()="crawlspace - unvented" or text()="garage"]' => one,
         'Area' => one,
         'Insulation/SystemIdentifier' => one, # Required by HPXML schema
@@ -472,7 +472,7 @@ class EnergyPlusValidator
       ## [HVACDuct]
       '/HPXML/Building/BuildingDetails/Systems/HVAC/HVACDistribution/DistributionSystemType/AirDistribution/Ducts[DuctType="supply" or DuctType="return"]' => {
         'DuctInsulationRValue' => one,
-        'DuctLocation[text()="living space" or text()="basement - conditioned" or text()="basement - unconditioned" or text()="crawlspace - vented" or text()="crawlspace - unvented" or text()="attic - vented" or text()="attic - unvented" or text()="garage" or text()="outside"]' => one,
+        'DuctLocation[text()="living space" or text()="basement - conditioned" or text()="basement - unconditioned" or text()="crawlspace - vented" or text()="crawlspace - unvented" or text()="attic - vented" or text()="attic - unvented" or text()="garage" or text()="outside" or text()="other housing unit" or text()="other heated space" or text()="other multifamily buffer space" or text()="other non-freezing space"]' => one,
         'DuctSurfaceArea' => one,
       },
 
@@ -533,7 +533,7 @@ class EnergyPlusValidator
         '../WaterFixture' => one_or_more, # See [WaterFixture]
         'SystemIdentifier' => one, # Required by HPXML schema
         'WaterHeaterType[text()="storage water heater" or text()="instantaneous water heater" or text()="heat pump water heater" or text()="space-heating boiler with storage tank" or text()="space-heating boiler with tankless coil"]' => one, # See [WHType=Tank] or [WHType=Tankless] or [WHType=HeatPump] or [WHType=Indirect] or [WHType=CombiTankless]
-        '[not(Location)] | Location[text()="living space" or text()="basement - unconditioned" or text()="basement - conditioned" or text()="attic - unvented" or text()="attic - vented" or text()="garage" or text()="crawlspace - unvented" or text()="crawlspace - vented" or text()="other exterior"]' => one,
+        '[not(Location)] | Location[text()="living space" or text()="basement - unconditioned" or text()="basement - conditioned" or text()="attic - unvented" or text()="attic - vented" or text()="garage" or text()="crawlspace - unvented" or text()="crawlspace - vented" or text()="other exterior" or text()="other housing unit" or text()="other heated space" or text()="other multifamily buffer space" or text()="other non-freezing space"]' => one,
         'FractionDHWLoadServed' => one,
         'HotWaterTemperature' => zero_or_one,
         'UsesDesuperheater' => zero_or_one, # See [Desuperheater]
@@ -659,7 +659,7 @@ class EnergyPlusValidator
       # [ClothesWasher]
       '/HPXML/Building/BuildingDetails/Appliances/ClothesWasher' => {
         'SystemIdentifier' => one, # Required by HPXML schema
-        '[not(Location)] | Location[text()="living space" or text()="basement - conditioned" or text()="basement - unconditioned" or text()="garage"]' => one,
+        '[not(Location)] | Location[text()="living space" or text()="basement - conditioned" or text()="basement - unconditioned" or text()="garage" or text()="other"]' => one, # Use "other" for space type of multifamily buffer space, non-freezing space, other housing unit, and other heated space
         'ModifiedEnergyFactor | IntegratedModifiedEnergyFactor' => zero_or_one,
         'ModifiedEnergyFactor | IntegratedModifiedEnergyFactor | RatedAnnualkWh | LabelElectricRate | LabelGasRate | LabelAnnualGasCost | LabelUsage | Capacity' => zero_or_seven,
         'extension/UsageMultiplier' => zero_or_one,
@@ -668,7 +668,7 @@ class EnergyPlusValidator
       # [ClothesDryer]
       '/HPXML/Building/BuildingDetails/Appliances/ClothesDryer' => {
         'SystemIdentifier' => one, # Required by HPXML schema
-        '[not(Location)] | Location[text()="living space" or text()="basement - conditioned" or text()="basement - unconditioned" or text()="garage"]' => one,
+        '[not(Location)] | Location[text()="living space" or text()="basement - conditioned" or text()="basement - unconditioned" or text()="garage" or text()="other"]' => one, # Use "other" for space type of multifamily buffer space, non-freezing space, other housing unit, and other heated space
         'FuelType[text()="natural gas" or text()="fuel oil" or text()="propane" or text()="electricity" or text()="wood"]' => one,
         'EnergyFactor | CombinedEnergyFactor' => zero_or_one,
         'EnergyFactor | CombinedEnergyFactor | ControlType' => zero_or_two,
@@ -678,6 +678,7 @@ class EnergyPlusValidator
       # [Dishwasher]
       '/HPXML/Building/BuildingDetails/Appliances/Dishwasher' => {
         'SystemIdentifier' => one, # Required by HPXML schema
+        '[not(Location)] | Location[text()="living space" or text()="basement - conditioned" or text()="basement - unconditioned" or text()="garage" or text()="other"]' => one, # Use "other" for space type of multifamily buffer space, non-freezing space, other housing unit, and other heated space
         'RatedAnnualkWh | EnergyFactor' => zero_or_one,
         'RatedAnnualkWh | EnergyFactor | LabelElectricRate | LabelGasRate | LabelAnnualGasCost | LabelUsage | PlaceSettingCapacity' => zero_or_six,
         'extension/UsageMultiplier' => zero_or_one,
@@ -686,7 +687,7 @@ class EnergyPlusValidator
       # [Refrigerator]
       '/HPXML/Building/BuildingDetails/Appliances/Refrigerator' => {
         'SystemIdentifier' => one, # Required by HPXML schema
-        '[not(Location)] | Location[text()="living space" or text()="basement - conditioned" or text()="basement - unconditioned" or text()="garage"]' => one,
+        '[not(Location)] | Location[text()="living space" or text()="basement - conditioned" or text()="basement - unconditioned" or text()="garage" or text()="other"]' => one, # Use "other" for space type of multifamily buffer space, non-freezing space, other housing unit, and other heated space
         'RatedAnnualkWh | extension/AdjustedAnnualkWh' => zero_or_more,
         'extension/UsageMultiplier' => zero_or_one,
       },
@@ -703,6 +704,7 @@ class EnergyPlusValidator
       # [CookingRange]
       '/HPXML/Building/BuildingDetails/Appliances/CookingRange' => {
         'SystemIdentifier' => one, # Required by HPXML schema
+        '[not(Location)] | Location[text()="living space" or text()="basement - conditioned" or text()="basement - unconditioned" or text()="garage" or text()="other"]' => one, # Use "other" for space type of multifamily buffer space, non-freezing space, other housing unit, and other heated space
         'FuelType[text()="natural gas" or text()="fuel oil" or text()="propane" or text()="electricity" or text()="wood"]' => one,
         'IsInduction' => zero_or_one,
         'extension/UsageMultiplier' => zero_or_one,

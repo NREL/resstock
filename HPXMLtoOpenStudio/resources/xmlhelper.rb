@@ -200,17 +200,3 @@ class XMLHelper
     end
   end
 end
-
-def Boolean(val)
-  if val.is_a? TrueClass
-    return true
-  elsif val.is_a? FalseClass
-    return false
-  elsif (val.downcase.to_s == 'true') || (val == '1')
-    return true
-  elsif (val.downcase.to_s == 'false') || (val == '0')
-    return false
-  end
-
-  raise TypeError.new("can't convert '#{val}' to Boolean")
-end
