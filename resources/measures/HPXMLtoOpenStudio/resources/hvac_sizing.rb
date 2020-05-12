@@ -3434,6 +3434,8 @@ class HVACSizing
     has_rear_units = @model.getBuilding.additionalProperties.getFeatureAsBoolean("has_rear_units")
     num_floors = @model.getBuilding.additionalProperties.getFeatureAsInteger("num_floors")
     horz_location = @model.getBuilding.additionalProperties.getFeatureAsString("horz_location")
+    corridor_width = @model.getBuilding.additionalProperties.getFeatureAsDouble("corridor_width")
+    corridor_position = @model.getBuilding.additionalProperties.getFeatureAsString("corridor_position")
 
     if horz_location.is_initialized
       singleunit = true
@@ -3445,6 +3447,8 @@ class HVACSizing
       n_units = n_units.get.to_f
       has_rear_units = has_rear_units.get
       horz_location = horz_location.get
+      corridor_position = corridor_position.get
+      corridor_width = corridor_width.get
       if Geometry.get_building_type(@model) == Constants.BuildingTypeMultifamily
         num_floors = num_floors.get.to_f
         num_units_per_floor = n_units / num_floors
@@ -3467,10 +3471,15 @@ class HVACSizing
         wall_widths << w
       end
       wall_width = wall_widths.max # long side
-      wall_length = wall_lengths.max # short sid
+      wall_length = wall_lengths.max # short side
 
       if has_rear_units
-        bldg_exposed_perimeter = n_ground_units*wall_width + 4*wall_length + 20
+        if corridor_position == "Double-Loaded Interior"
+          int_corridor_width = corridor_width
+        else
+          int_corridor_width = 0
+        end
+        bldg_exposed_perimeter = n_ground_units*wall_width + 4*wall_length + int_corridor_width
       else
         bldg_exposed_perimeter = n_ground_units*wall_width*2 + 2*wall_length
       end
