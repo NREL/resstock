@@ -773,6 +773,9 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     model.getBuilding.additionalProperties.setFeature("horz_location", horz_location)
     model.getBuilding.additionalProperties.setFeature("level", level)
     model.getBuilding.additionalProperties.setFeature("found_type", foundation_type)
+    model.getBuilding.additionalProperties.setFeature("corridor_width", corridor_width)
+    model.getBuilding.additionalProperties.setFeature("corridor_position", corridor_position)
+
 
     # Store number of units
     model.getBuilding.setStandardsNumberOfLivingUnits(num_units)
