@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>process_central_system_fan_coil</name>
   <uid>76aec197-3459-4562-8f74-4741271d9d2f</uid>
-  <version_id>d3ba10bd-dea0-4bde-9a20-812f2d5fd559</version_id>
-  <version_modified>20190701T173020Z</version_modified>
+  <version_id>0c4a8cee-4d5c-4244-baad-4e6df8dbf357</version_id>
+  <version_modified>20200430T230734Z</version_modified>
   <xml_checksum>ED6112BA</xml_checksum>
   <class_name>ProcessCentralSystemFanCoil</class_name>
   <display_name>ResidentialHVACCentralSystemFanCoil</display_name>
@@ -56,6 +56,25 @@
         </choice>
       </choices>
     </argument>
+    <argument>
+      <name>has_hvac_flue</name>
+      <display_name>Air Leakage: Has Open HVAC Flue</display_name>
+      <description>Specifies whether the building has an open flue associated with the HVAC system.</description>
+      <type>Boolean</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
   </arguments>
   <outputs/>
   <provenances/>
@@ -71,6 +90,12 @@
   </attributes>
   <files>
     <file>
+      <filename>process_central_system_fan_coil_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>219ECB11</checksum>
+    </file>
+    <file>
       <version>
         <software_program>OpenStudio</software_program>
         <identifier>2.4.0</identifier>
@@ -79,13 +104,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>3D8C6D9F</checksum>
-    </file>
-    <file>
-      <filename>process_central_system_fan_coil_test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>219ECB11</checksum>
+      <checksum>BB61609B</checksum>
     </file>
   </files>
 </measure>
