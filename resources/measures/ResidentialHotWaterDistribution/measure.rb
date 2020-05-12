@@ -465,7 +465,7 @@ class ResidentialHotWaterDistribution < OpenStudio::Measure::ModelMeasure
       # increase will be incorporated in the hot water fixture water use objects.
       sh_dist_wu_def = OpenStudio::Model::WaterUseEquipmentDefinition.new(model)
       sh_dist_wu = OpenStudio::Model::WaterUseEquipment.new(sh_dist_wu_def)
-      sh_dist_wu.setName("#{obj_name_sh_dist}}")
+      sh_dist_wu.setName("#{obj_name_sh_dist}")
       sh_dist_wu.additionalProperties.setFeature("dist_hw", shower_dist_hw)
       sh_dist_wu.setSpace(dist_space)
       sh_dist_wu_def.setName("#{obj_name_sh_dist}")
