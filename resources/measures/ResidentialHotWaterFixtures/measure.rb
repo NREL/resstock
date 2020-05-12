@@ -404,7 +404,7 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
       found = false
       obj_names.each do |obj_name|
         next if not space_equipment.name.to_s.start_with? obj_name
-        next if space_equipment.name.to_s.include? "dist" # TODO: Skip dummy distribution objects; can remove once we are using AdditionalProperties
+        next if space_equipment.additionalProperties.getFeatureAsDouble('dist_hw').is_initialized # TODO: Skip dummy distribution objects; can remove once we are using AdditionalProperties instead of the objects
 
         found = true
       end
