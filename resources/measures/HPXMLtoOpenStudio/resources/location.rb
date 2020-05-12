@@ -128,9 +128,7 @@ class Location
           dst_end_date_month = dst_end_date.monthOfYear
           dst_end_date_day = dst_end_date.dayOfMonth
 
-          unless epw_file.startDateActualYear.is_initialized # TMY
-            runner.registerInfo("Using daylight saving start and end dates found in the weather file header.")
-          end
+          runner.registerInfo("Using daylight saving start and end dates found in the weather file header.")
         elsif epw_file.daylightSavingStartDate.is_initialized or epw_file.daylightSavingEndDate.is_initialized
           runner.registerWarning("Either daylight saving start or end date was not found in the weather file header; not using either of them.")
         end
