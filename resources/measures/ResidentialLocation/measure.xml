@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>set_residential_epw_file</name>
   <uid>16ac2c0c-6177-4bf2-91a5-1b6e8de4e85b</uid>
-  <version_id>f89321a2-46dc-44ba-a139-698350046035</version_id>
-  <version_modified>20190701T173021Z</version_modified>
+  <version_id>42d3bc2a-6fd5-42d3-8232-5d1aec9c03e6</version_id>
+  <version_modified>20200512T223046Z</version_modified>
   <xml_checksum>D8922A73</xml_checksum>
   <class_name>SetResidentialEPWFile</class_name>
   <display_name>Set Residential Location</display_name>
@@ -31,7 +31,7 @@
     <argument>
       <name>dst_start_date</name>
       <display_name>Daylight Saving Start Date</display_name>
-      <description>Set to 'NA' if no daylight saving.</description>
+      <description>Set to 'NA' if no daylight saving. If you are running simulations with daylight saving start/end dates stored in the weather file headers, the value entered for daylight saving start date year will not be used (e.g., AMY weather files); it will be overridden by the daylight saving start date found in the weather file.</description>
       <type>String</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -40,7 +40,7 @@
     <argument>
       <name>dst_end_date</name>
       <display_name>Daylight Saving End Date</display_name>
-      <description>Set to 'NA' if no daylight saving.</description>
+      <description>Set to 'NA' if no daylight saving. If you are running simulations with daylight saving start/end dates stored in the weather file headers, the value entered for daylight saving end date year will not be used (e.g., AMY weather files); it will be overridden by the daylight saving end date found in the weather file.</description>
       <type>String</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -76,6 +76,12 @@
   </attributes>
   <files>
     <file>
+      <filename>set_location_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>CCEEDBBC</checksum>
+    </file>
+    <file>
       <version>
         <software_program>OpenStudio</software_program>
         <identifier>1.11.5</identifier>
@@ -84,13 +90,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>20AF9331</checksum>
-    </file>
-    <file>
-      <filename>set_location_test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>CCEEDBBC</checksum>
+      <checksum>9F3AE5BD</checksum>
     </file>
   </files>
 </measure>
