@@ -538,6 +538,10 @@ class Airflow
 
     process_infiltration_for_spaces(model, spaces, wind_speed)
 
+    # puts("============process infiltration ==================")
+    # puts("building.crawlspace.inf_flow:  #{building.crawlspace.inf_flow}")
+    # building.crawlspace.inf_flow = 756.876
+
     return true
   end
 
@@ -789,6 +793,7 @@ class Airflow
     # puts("s_wflue: #{s_wflue}")
     # puts("a_o: #{a_o}")
     # puts("c_i: #{c_i}")
+    # puts("unit_living.ACH: #{unit_living.ACH}")
 
     process_infiltration_for_spaces(model, spaces, wind_speed)
 
@@ -1251,7 +1256,7 @@ class Airflow
 
     
     num_stories = building.stories
-    puts("num_stories: #{num_stories}")
+    # puts("num_stories: #{num_stories}")
     unless unit_finished_basement.nil?
       num_stories +=  1
     end
@@ -1471,14 +1476,14 @@ class Airflow
     nv_program.addLine("  Set #{natvent_flow_actuator.name} = 0")
     nv_program.addLine("EndIf")
 
-    puts("====Nat Vent=====")
-    puts("nv_output.temp_sch.schedule.name.to_s: #{nv_output.temp_sch.schedule.name.to_s}")
-    puts("nv_output.area: #{nv_output.area}")
-    puts("nv_output.c_s: #{nv_output.c_s}")
-    puts("nv_output.c_w: #{nv_output.c_w}")
-    puts("nv_output.max_flow_rate: #{nv_output.max_flow_rate}")
-    puts("nat_vent.max_oa_hr: #{nat_vent.max_oa_hr}")
-    puts("nat_vent.max_oa_rh: #{nat_vent.max_oa_rh}")
+    # puts("====Nat Vent=====")
+    # puts("nv_output.temp_sch.schedule.name.to_s: #{nv_output.temp_sch.schedule.name.to_s}")
+    # puts("nv_output.area: #{nv_output.area}")
+    # puts("nv_output.c_s: #{nv_output.c_s}")
+    # puts("nv_output.c_w: #{nv_output.c_w}")
+    # puts("nv_output.max_flow_rate: #{nv_output.max_flow_rate}")
+    # puts("nat_vent.max_oa_hr: #{nat_vent.max_oa_hr}")
+    # puts("nat_vent.max_oa_rh: #{nat_vent.max_oa_rh}")
 
     return nv_program
   end
