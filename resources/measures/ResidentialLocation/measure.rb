@@ -43,13 +43,13 @@ class SetResidentialEPWFile < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument.makeStringArgument("dst_start_date", true)
     arg.setDisplayName("Daylight Saving Start Date")
-    arg.setDescription("Set to 'NA' if no daylight saving.")
+    arg.setDescription("Set to 'NA' if no daylight saving. If you are running simulations with daylight saving start/end dates stored in the weather file headers, the value entered for daylight saving start date year will not be used (e.g., AMY weather files); it will be overridden by the daylight saving start date found in the weather file.")
     arg.setDefaultValue("April 7")
     args << arg
 
     arg = OpenStudio::Measure::OSArgument.makeStringArgument("dst_end_date", true)
     arg.setDisplayName("Daylight Saving End Date")
-    arg.setDescription("Set to 'NA' if no daylight saving.")
+    arg.setDescription("Set to 'NA' if no daylight saving. If you are running simulations with daylight saving start/end dates stored in the weather file headers, the value entered for daylight saving end date year will not be used (e.g., AMY weather files); it will be overridden by the daylight saving end date found in the weather file.")
     arg.setDefaultValue("October 26")
     args << arg
 

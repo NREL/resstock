@@ -19,7 +19,7 @@ class Location
     success = apply_mains_temp(model, runner, weather)
     return false if not success
 
-    success = apply_dst(model, runner, dst_start_date, dst_end_date)
+    success = apply_dst(model, runner, epw_file, dst_start_date, dst_end_date)
     return false if not success
 
     success = apply_ground_temp(model, runner, weather)
@@ -110,7 +110,7 @@ class Location
     return true
   end
 
-  def self.apply_dst(model, runner, dst_start_date, dst_end_date)
+  def self.apply_dst(model, runner, epw_file, dst_start_date, dst_end_date)
     if not (dst_start_date.downcase == 'na' and dst_end_date.downcase == 'na')
       begin
         dst_start_date_month = OpenStudio::monthOfYear(dst_start_date.split[0])
@@ -119,6 +119,22 @@ class Location
         dst_end_date_day = dst_end_date.split[1].to_i
 
         dst = model.getRunPeriodControlDaylightSavingTime
+
+        if epw_file.daylightSavingStartDate.is_initialized and epw_file.daylightSavingEndDate.is_initialized # HOLIDAYS/DAYLIGHT SAVINGS row in epw file
+          dst_start_date = epw_file.daylightSavingStartDate.get
+          dst_end_date = epw_file.daylightSavingEndDate.get
+          dst_start_date_month = dst_start_date.monthOfYear
+          dst_start_date_day = dst_start_date.dayOfMonth
+          dst_end_date_month = dst_end_date.monthOfYear
+          dst_end_date_day = dst_end_date.dayOfMonth
+
+          unless epw_file.startDateActualYear.is_initialized # TMY
+            runner.registerInfo("Using daylight saving start and end dates found in the weather file header.")
+          end
+        elsif epw_file.daylightSavingStartDate.is_initialized or epw_file.daylightSavingEndDate.is_initialized
+          runner.registerWarning("Either daylight saving start or end date was not found in the weather file header; not using either of them.")
+        end
+
         dst.setStartDate(dst_start_date_month, dst_start_date_day)
         dst.setEndDate(dst_end_date_month, dst_end_date_day)
 
