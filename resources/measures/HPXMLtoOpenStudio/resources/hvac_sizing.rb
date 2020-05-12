@@ -7,6 +7,7 @@ require_relative "constructions"
 
 class HVACSizing
   def self.apply(model, unit, runner, weather, show_debug_info)
+    @model = model
     # Get year description of model
     @year_description = model.getYearDescription
 
@@ -1172,9 +1173,6 @@ class HVACSizing
       zone_loads.Heat_Floors += floor_ufactor * UnitConversions.convert(floor.netArea, "m^2", "ft^2") * (mj8.heat_setpoint - weather.data.GroundMonthlyTemps[0])
     end
  
-    # puts("Zone loads --- #{zone_loads.Heat_Floors}")
-    # zone_loads.Heat_Floors = 1723.6212262252632
-
     return zone_loads
   end
 
@@ -1477,8 +1475,6 @@ class HVACSizing
       unit_init.Heat_Airflow = 0
     end
 
-    # puts("unit_init.Heat_Load:: #{unit_init.Heat_Load}")
-    # puts("unit_init.Cool_Load_Tot:: #{unit_init.Cool_Load_Tot}")
     return unit_init
   end
 
@@ -3434,7 +3430,57 @@ class HVACSizing
 
     space_UAs = { "foundation" => 0, "outdoors" => 0, "surface" => 0 }
 
+    n_units = @model.getBuilding.additionalProperties.getFeatureAsInteger("num_units")
+    has_rear_units = @model.getBuilding.additionalProperties.getFeatureAsBoolean("has_rear_units")
+    num_floors = @model.getBuilding.additionalProperties.getFeatureAsInteger("num_floors")
+    horz_location = @model.getBuilding.additionalProperties.getFeatureAsString("horz_location")
+
+    if horz_location.is_initialized
+      singleunit = true
+    else
+      singleunit = false
+    end
+
+    if singleunit
+      n_units = n_units.get.to_f
+      has_rear_units = has_rear_units.get
+      horz_location = horz_location.get
+      if Geometry.get_building_type(@model) == Constants.BuildingTypeMultifamily
+        num_floors = num_floors.get.to_f
+        num_units_per_floor = n_units / num_floors
+      elsif Geometry.get_building_type(@model) == Constants.BuildingTypeSingleFamilyAttached
+        num_floors = 1
+        num_units_per_floor = n_units
+      end
+    end
+
+    n_ground_units = num_units_per_floor
+    found_height = 0
+    wall_widths = []
+    wall_lengths = []
+    # Calculate average foundation wall area
+    if Geometry.space_is_below_grade(space) and singleunit
+      space.surfaces.each do |surface|
+        next unless surface.surfaceType.downcase == "wall"
+        l, w, found_height = Geometry.get_surface_dimensions(surface)
+        wall_lengths << l
+        wall_widths << w
+      end
+      wall_width = wall_widths.max # long side
+      wall_length = wall_lengths.max # short sid
+
+      if has_rear_units
+        bldg_exposed_perimeter = n_ground_units*wall_width + 4*wall_length + 20
+      else
+        bldg_exposed_perimeter = n_ground_units*wall_width*2 + 2*wall_length
+      end
+
+      found_wall_area = bldg_exposed_perimeter * found_height
+      avg_found_wall_area = UnitConversions.convert(found_wall_area/n_ground_units, "m^2", "ft^2") 
+    end
+
     # Surface UAs
+    ufactor_found = 0
     space.surfaces.each do |surface|
       obc = surface.outsideBoundaryCondition.downcase
 
@@ -3446,7 +3492,8 @@ class HVACSizing
             return nil
           end
 
-          ufactor = 1.0 / (wall_ins_rvalue + wall_constr_rvalue)
+          ufactor_found = 1.0 / (wall_ins_rvalue + wall_constr_rvalue)
+          ufactor = 0
         elsif surface.surfaceType.downcase == "floor"
           next
         end
@@ -3459,6 +3506,10 @@ class HVACSizing
       next if not ["foundation", "outdoors"].include?(obc) and not Geometry.is_interzonal_surface(surface)
 
       space_UAs[obc] += ufactor * UnitConversions.convert(surface.netArea, "m^2", "ft^2")
+    end
+
+    if Geometry.space_is_below_grade(space) and singleunit
+      space_UAs["foundation"] = avg_found_wall_area*ufactor_found
     end
 
     # Infiltration UA
