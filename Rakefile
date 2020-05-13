@@ -18,7 +18,7 @@ namespace :test do
   desc 'Run all integrity check unit tests'
   Rake::TestTask.new('unit_tests') do |t|
     t.libs << 'test'
-    t.test_files = Dir['test/test_integrity_checks.rb']
+    t.test_files = Dir['test/test_integrity_checks.rb'] + Dir['measures/*/tests/*.rb']
     t.warning = false
     t.verbose = true
   end
