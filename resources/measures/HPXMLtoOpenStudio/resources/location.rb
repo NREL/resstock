@@ -122,9 +122,9 @@ class Location
           dst_end_date = 'NA'
         else
           dst_start_date = epw_file.daylightSavingStartDate.get
-          dst_start_date = "#{Constants.MonthNames[dst_start_date.monthOfYear.value-1]} #{dst_start_date.dayOfMonth}"
+          dst_start_date = "#{Constants.MonthNames[dst_start_date.monthOfYear.value - 1]} #{dst_start_date.dayOfMonth}"
           dst_end_date = epw_file.daylightSavingEndDate.get
-          dst_end_date = "#{Constants.MonthNames[dst_end_date.monthOfYear.value-1]} #{dst_end_date.dayOfMonth}"
+          dst_end_date = "#{Constants.MonthNames[dst_end_date.monthOfYear.value - 1]} #{dst_end_date.dayOfMonth}"
         end
       end
     end
