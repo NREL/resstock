@@ -1,5 +1,5 @@
 # TODO: Need to handle vacations
-require_relative "unit_conversions"
+require_relative 'unit_conversions'
 
 # Annual schedule defined by 12 24-hour values for weekdays and weekends.
 class HourlyByMonthSchedule
@@ -52,17 +52,17 @@ class HourlyByMonthSchedule
   private
 
   def validateValues(vals, num_outter_values, num_inner_values)
-    err_msg = "A #{num_outter_values.to_s}-element array with #{num_inner_values.to_s}-element arrays of numbers must be entered for the schedule."
+    err_msg = "A #{num_outter_values}-element array with #{num_inner_values}-element arrays of numbers must be entered for the schedule."
     if not vals.is_a?(Array)
       @runner.registerError(err_msg)
       @validated = false
-      return nil
+      return
     end
     begin
       if vals.length != num_outter_values
         @runner.registerError(err_msg)
         @validated = false
-        return nil
+        return
       end
       vals.each do |val|
         if not val.is_a?(Array)
@@ -70,16 +70,15 @@ class HourlyByMonthSchedule
           @validated = false
           return nil
         end
-        if val.length != num_inner_values
-          @runner.registerError(err_msg)
-          @validated = false
-          return nil
-        end
+        next unless val.length != num_inner_values
+        @runner.registerError(err_msg)
+        @validated = false
+        return nil
       end
     rescue
       @runner.registerError(err_msg)
       @validated = false
-      return nil
+      return
     end
     return vals
   end
@@ -127,7 +126,7 @@ class HourlyByMonthSchedule
         wkdy[m].setName(@sch_name + " #{Schedule.allday_name}#{m}")
         previous_value = wkdy_vals[1]
         for h in 1..24
-          next if h != 24 and wkdy_vals[h + 1] == previous_value
+          next if (h != 24) && (wkdy_vals[h + 1] == previous_value)
 
           wkdy[m].addValue(time[h], previous_value)
           previous_value = wkdy_vals[h + 1]
@@ -144,7 +143,7 @@ class HourlyByMonthSchedule
         wkdy[m].setName(@sch_name + " #{Schedule.weekday_name}#{m}")
         previous_value = wkdy_vals[1]
         for h in 1..24
-          next if h != 24 and wkdy_vals[h + 1] == previous_value
+          next if (h != 24) && (wkdy_vals[h + 1] == previous_value)
 
           wkdy[m].addValue(time[h], previous_value)
           previous_value = wkdy_vals[h + 1]
@@ -160,7 +159,7 @@ class HourlyByMonthSchedule
         wknd[m].setName(@sch_name + " #{Schedule.weekend_name}#{m}")
         previous_value = wknd_vals[1]
         for h in 1..24
-          next if h != 24 and wknd_vals[h + 1] == previous_value
+          next if (h != 24) && (wknd_vals[h + 1] == previous_value)
 
           wknd[m].addValue(time[h], previous_value)
           previous_value = wknd_vals[h + 1]
@@ -203,9 +202,9 @@ class MonthWeekdayWeekendSchedule
     @schedule = nil
     @mult_weekday = mult_weekday
     @mult_weekend = mult_weekend
-    @weekday_hourly_values = validateValues(weekday_hourly_values, 24, "weekday")
-    @weekend_hourly_values = validateValues(weekend_hourly_values, 24, "weekend")
-    @monthly_values = validateValues(monthly_values, 12, "monthly")
+    @weekday_hourly_values = validateValues(weekday_hourly_values, 24, 'weekday')
+    @weekend_hourly_values = validateValues(weekend_hourly_values, 24, 'weekend')
+    @monthly_values = validateValues(monthly_values, 12, 'monthly')
     @schedule_type_limits_name = schedule_type_limits_name
     if not @validated
       return
@@ -237,7 +236,7 @@ class MonthWeekdayWeekendSchedule
   end
 
   def calcDesignLevelFromDailyTherm(daily_therm)
-    return calcDesignLevelFromDailykWh(UnitConversions.convert(daily_therm, "therm", "kWh"))
+    return calcDesignLevelFromDailykWh(UnitConversions.convert(daily_therm, 'therm', 'kWh'))
   end
 
   def schedule
@@ -247,46 +246,44 @@ class MonthWeekdayWeekendSchedule
   private
 
   def validateValues(values, num_values, sch_name)
-    err_msg = "A comma-separated string of #{num_values.to_s} numbers must be entered for the #{sch_name} schedule."
+    err_msg = "A comma-separated string of #{num_values} numbers must be entered for the #{sch_name} schedule."
     if values.is_a?(Array)
       if values.length != num_values
         @runner.registerError(err_msg)
         @validated = false
-        return nil
+        return
       end
       values.each do |val|
-        if not valid_float?(val)
-          @runner.registerError(err_msg)
-          @validated = false
-          return nil
-        end
+        next unless not valid_float?(val)
+        @runner.registerError(err_msg)
+        @validated = false
+        return nil
       end
       floats = values.map { |i| i.to_f }
     elsif values.is_a?(String)
       begin
-        vals = values.split(",")
+        vals = values.split(',')
         vals.each do |val|
-          if not valid_float?(val)
-            @runner.registerError(err_msg)
-            @validated = false
-            return nil
-          end
+          next unless not valid_float?(val)
+          @runner.registerError(err_msg)
+          @validated = false
+          return nil
         end
         floats = vals.map { |i| i.to_f }
         if floats.length != num_values
           @runner.registerError(err_msg)
           @validated = false
-          return nil
+          return
         end
       rescue
         @runner.registerError(err_msg)
         @validated = false
-        return nil
+        return
       end
     else
       @runner.registerError(err_msg)
       @validated = false
-      return nil
+      return
     end
     return floats
   end
@@ -330,10 +327,10 @@ class MonthWeekdayWeekendSchedule
     sum_wkdy = 0
     sum_wknd = 0
     @weekday_hourly_values.each do |v|
-      sum_wkdy = sum_wkdy + v
+      sum_wkdy += v
     end
     @weekend_hourly_values.each do |v|
-      sum_wknd = sum_wknd + v
+      sum_wknd += v
     end
     if sum_wkdy < sum_wknd
       return 1 / sum_wknd
@@ -378,7 +375,7 @@ class MonthWeekdayWeekendSchedule
         wkdy[m].setName(@sch_name + " #{Schedule.allday_name}#{m}")
         previous_value = wkdy_vals[1]
         for h in 1..24
-          next if h != 24 and wkdy_vals[h + 1] == previous_value
+          next if (h != 24) && (wkdy_vals[h + 1] == previous_value)
 
           wkdy[m].addValue(time[h], previous_value)
           previous_value = wkdy_vals[h + 1]
@@ -395,7 +392,7 @@ class MonthWeekdayWeekendSchedule
         wkdy[m].setName(@sch_name + " #{Schedule.weekday_name}#{m}")
         previous_value = wkdy_vals[1]
         for h in 1..24
-          next if h != 24 and wkdy_vals[h + 1] == previous_value
+          next if (h != 24) && (wkdy_vals[h + 1] == previous_value)
 
           wkdy[m].addValue(time[h], previous_value)
           previous_value = wkdy_vals[h + 1]
@@ -411,7 +408,7 @@ class MonthWeekdayWeekendSchedule
         wknd[m].setName(@sch_name + " #{Schedule.weekend_name}#{m}")
         previous_value = wknd_vals[1]
         for h in 1..24
-          next if h != 24 and wknd_vals[h + 1] == previous_value
+          next if (h != 24) && (wknd_vals[h + 1] == previous_value)
 
           wknd[m].addValue(time[h], previous_value)
           previous_value = wknd_vals[h + 1]
@@ -479,7 +476,7 @@ class HourlySchedule
     hourly_schedule = "#{file}"
     if not File.file?(hourly_schedule)
       @runner.registerError("Unable to find file: #{hourly_schedule}")
-      return nil
+      return
     end
 
     # Read data into hourly array
@@ -489,7 +486,7 @@ class HourlySchedule
       linedata = line.strip.split(',')
       if validation_values.empty?
         if convert_temp == true
-          value = UnitConversions.convert((linedata[0].to_f + offset), "F", "C")
+          value = UnitConversions.convert((linedata[0].to_f + offset), 'F', 'C')
         else
           value = linedata[0].to_f + offset
         end
@@ -509,7 +506,7 @@ class HourlySchedule
     start_date = year_description.makeDate(1, 1)
     interval = OpenStudio::Time.new(0, 1, 0, 0)
 
-    time_series = OpenStudio::TimeSeries.new(start_date, interval, OpenStudio::createVector(data), "")
+    time_series = OpenStudio::TimeSeries.new(start_date, interval, OpenStudio::createVector(data), '')
 
     schedule = OpenStudio::Model::ScheduleFixedInterval.fromTimeSeries(time_series, @model).get
     schedule.setName(@sch_name)
@@ -534,10 +531,10 @@ class HotWaterSchedule
     elsif @nbeds < 1
       @nbeds = 1
     end
-    @target_water_temperature = UnitConversions.convert(target_water_temperature, "F", "C")
+    @target_water_temperature = UnitConversions.convert(target_water_temperature, 'F', 'C')
     @schedule_type_limits_name = schedule_type_limits_name
-    if file_prefix == "ClothesDryer"
-      @file_prefix = "ClothesWasher"
+    if file_prefix == 'ClothesDryer'
+      @file_prefix = 'ClothesWasher'
     else
       @file_prefix = file_prefix
     end
@@ -547,7 +544,7 @@ class HotWaterSchedule
 
     data = loadMinuteDrawProfileFromFile(timestep_minutes, days_shift, weeks)
     @totflow, @maxflow, @ontime = loadDrawProfileStatsFromFile()
-    if data.nil? or @totflow.nil? or @maxflow.nil? or @ontime.nil?
+    if data.nil? || @totflow.nil? || @maxflow.nil? || @ontime.nil?
       @validated = false
       return
     end
@@ -561,19 +558,19 @@ class HotWaterSchedule
   end
 
   def calcDesignLevelFromDailykWh(daily_kWh)
-    return UnitConversions.convert(daily_kWh * Constants.NumDaysInYear(@model.getYearDescription.isLeapYear) * 60 / (Constants.NumDaysInYear(@model.getYearDescription.isLeapYear) * @totflow / @maxflow), "kW", "W")
+    return UnitConversions.convert(daily_kWh * Constants.NumDaysInYear(@model.getYearDescription.isLeapYear) * 60 / (Constants.NumDaysInYear(@model.getYearDescription.isLeapYear) * @totflow / @maxflow), 'kW', 'W')
   end
 
   def calcPeakFlowFromDailygpm(daily_water)
-    return UnitConversions.convert(@maxflow * daily_water / @totflow, "gal/min", "m^3/s")
+    return UnitConversions.convert(@maxflow * daily_water / @totflow, 'gal/min', 'm^3/s')
   end
 
   def calcDailyGpmFromPeakFlow(peak_flow)
-    return UnitConversions.convert(@totflow * peak_flow / @maxflow, "m^3/s", "gal/min")
+    return UnitConversions.convert(@totflow * peak_flow / @maxflow, 'm^3/s', 'gal/min')
   end
 
   def calcDesignLevelFromDailyTherm(daily_therm)
-    return calcDesignLevelFromDailykWh(UnitConversions.convert(daily_therm, "therm", "kWh"))
+    return calcDesignLevelFromDailykWh(UnitConversions.convert(daily_therm, 'therm', 'kWh'))
   end
 
   def schedule
@@ -604,7 +601,7 @@ class HotWaterSchedule
     minute_draw_profile = File.join(File.dirname(__FILE__), "HotWater#{@file_prefix}Schedule_#{@nbeds}bed.csv")
     if not File.file?(minute_draw_profile)
       @runner.registerError("Unable to find file: #{minute_draw_profile}")
-      return nil
+      return
     end
 
     minutes_in_year = 8760 * 60
@@ -656,9 +653,9 @@ class HotWaterSchedule
 
     totflow_column_header = "#{column_header} Sum"
     maxflow_column_header = "#{column_header} Max"
-    ontime_column_header = "On-time Fraction"
+    ontime_column_header = 'On-time Fraction'
 
-    draw_file = File.join(File.dirname(__FILE__), "HotWaterMinuteDrawProfilesMaxFlows.csv")
+    draw_file = File.join(File.dirname(__FILE__), 'HotWaterMinuteDrawProfilesMaxFlows.csv')
 
     datafound = false
     skippedheader = false
@@ -675,19 +672,18 @@ class HotWaterSchedule
         ontime_col_num = linedata.index(ontime_column_header)
         next
       end
-      if linedata[0].to_i == @nbeds
-        datafound = true
-        if not totflow_col_num.nil?
-          totflow = linedata[totflow_col_num].to_f
-        end
-        if not maxflow_col_num.nil?
-          maxflow = linedata[maxflow_col_num].to_f
-        end
-        if not ontime_col_num.nil?
-          ontime = linedata[ontime_col_num].to_f
-        end
-        break
+      next unless linedata[0].to_i == @nbeds
+      datafound = true
+      if not totflow_col_num.nil?
+        totflow = linedata[totflow_col_num].to_f
       end
+      if not maxflow_col_num.nil?
+        maxflow = linedata[maxflow_col_num].to_f
+      end
+      if not ontime_col_num.nil?
+        ontime = linedata[ontime_col_num].to_f
+      end
+      break
     end
 
     if not datafound
@@ -699,7 +695,7 @@ class HotWaterSchedule
 
   def createSchedule(data, timestep_minutes, weeks)
     if data.size == 0
-      return nil
+      return
     end
 
     year_description = @model.getYearDescription
@@ -762,7 +758,7 @@ class Schedule
   # find the maximum profile value for a schedule
   def self.getMinMaxAnnualProfileValue(model, schedule)
     if not schedule.to_ScheduleRuleset.is_initialized
-      return nil
+      return
     end
 
     schedule = schedule.to_ScheduleRuleset.get
@@ -805,7 +801,7 @@ class Schedule
     end
 
     if not schedule.to_ScheduleRuleset.is_initialized
-      return nil
+      return
     end
 
     schedule = schedule.to_ScheduleRuleset.get
@@ -822,7 +818,7 @@ class Schedule
     # Get a 365/366-value array of which schedule is used on each day of the year,
     day_schs_used_each_day = schedule.getActiveRuleIndices(year_start_date, year_end_date)
     if ![365, 366].include? day_schs_used_each_day.length
-      OpenStudio::logFree(OpenStudio::Error, "openstudio.standards.ScheduleRuleset", "#{schedule.name} does not have 365/366 daily schedules accounted for, cannot accurately calculate annual EFLH.")
+      OpenStudio::logFree(OpenStudio::Error, 'openstudio.standards.ScheduleRuleset', "#{schedule.name} does not have 365/366 daily schedules accounted for, cannot accurately calculate annual EFLH.")
       return 0
     end
 
@@ -880,7 +876,7 @@ class Schedule
     # which would indicate that this isn't a
     # fractional schedule.
     if max_daily_flh > 24
-      OpenStudio::logFree(OpenStudio::Warn, "openstudio.standards.ScheduleRuleset", "#{schedule.name} has more than 24 EFLH in one day schedule, indicating that it is not a fractional schedule.")
+      OpenStudio::logFree(OpenStudio::Warn, 'openstudio.standards.ScheduleRuleset', "#{schedule.name} has more than 24 EFLH in one day schedule, indicating that it is not a fractional schedule.")
     end
 
     return annual_flh
@@ -903,12 +899,12 @@ class Schedule
     end
 
     schedule = OpenStudio::Model::ScheduleRuleset.new(model)
-    schedule.setName(sch_name + " ruleset")
+    schedule.setName(sch_name + ' ruleset')
     previous_value = hrly_sched[0]
     day_rule_prev = OpenStudio::Model::ScheduleRule.new(schedule)
-    day_rule_prev.setName("DUMMY")
+    day_rule_prev.setName('DUMMY')
     day_sched_prev = day_rule_prev.daySchedule
-    day_sched_prev.setName("DUMMY")
+    day_sched_prev.setName('DUMMY')
 
     for day in start_day..start_day + days - 1
       day_rule = OpenStudio::Model::ScheduleRule.new(schedule)
@@ -920,7 +916,7 @@ class Schedule
 
       for h in 1..24
         hr = (day_ct - 1) * 24 + h - 1
-        next if h != 24 and hrly_sched[hr + 1] == previous_value
+        next if (h != 24) && (hrly_sched[hr + 1] == previous_value)
 
         day_sched.addValue(time[h], previous_value)
         if hr != hrs - 1
@@ -928,7 +924,7 @@ class Schedule
         end
       end
 
-      if (day_sched_prev.values != day_sched.values) or (day_sched_prev.times != day_sched.times)
+      if (day_sched_prev.values != day_sched.values) || (day_sched_prev.times != day_sched.times)
         sdate = OpenStudio::Date.fromDayOfYear(day, assumed_year)
         edate = OpenStudio::Date.fromDayOfYear(day, assumed_year)
         day_rule.setStartDate(sdate)
@@ -988,13 +984,13 @@ class Schedule
       if schedule_type_limits_name == Constants.ScheduleTypeLimitsFraction
         schedule_type_limits.setLowerLimitValue(0)
         schedule_type_limits.setUpperLimitValue(1)
-        schedule_type_limits.setNumericType("Continuous")
+        schedule_type_limits.setNumericType('Continuous')
       elsif schedule_type_limits_name == Constants.ScheduleTypeLimitsOnOff
         schedule_type_limits.setLowerLimitValue(0)
         schedule_type_limits.setUpperLimitValue(1)
-        schedule_type_limits.setNumericType("Discrete")
+        schedule_type_limits.setNumericType('Discrete')
       elsif schedule_type_limits_name == Constants.ScheduleTypeLimitsTemperature
-        schedule_type_limits.setNumericType("Continuous")
+        schedule_type_limits.setNumericType('Continuous')
       end
     end
 

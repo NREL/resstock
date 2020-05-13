@@ -10,16 +10,16 @@ class ProcessConstructionsDoorsTest < MiniTest::Test
     num_units = 1
     args_hash = {}
     expected_num_del_objects = {}
-    expected_num_new_objects = { "Material" => 1, "Construction" => 1 }
+    expected_num_new_objects = { 'Material' => 1, 'Construction' => 1 }
     door_r = 0.04445 / 0.0612266553480475
-    expected_values = { "DoorR" => door_r }
-    model = _test_measure("SFD_2000sqft_2story_SL_GRG_UA_Windows_Doors.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units + 2)
+    expected_values = { 'DoorR' => door_r }
+    model = _test_measure('SFD_2000sqft_2story_SL_GRG_UA_Windows_Doors.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units + 2)
     args_hash = {}
-    args_hash["ufactor"] = 0.48
-    expected_num_del_objects = { "Material" => 1, "Construction" => 1 }
-    expected_num_new_objects = { "Material" => 1, "Construction" => 1 }
+    args_hash['ufactor'] = 0.48
+    expected_num_del_objects = { 'Material' => 1, 'Construction' => 1 }
+    expected_num_new_objects = { 'Material' => 1, 'Construction' => 1 }
     door_r = 0.04445 / 0.2092601547388782
-    expected_values = { "DoorR" => door_r }
+    expected_values = { 'DoorR' => door_r }
     _test_measure(model, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units + 2 + 2)
   end
 
@@ -27,29 +27,29 @@ class ProcessConstructionsDoorsTest < MiniTest::Test
     num_units = 4
     args_hash = {}
     expected_num_del_objects = {}
-    expected_num_new_objects = { "Material" => 1, "Construction" => 1 }
+    expected_num_new_objects = { 'Material' => 1, 'Construction' => 1 }
     door_r = 0.04445 / 0.0612266553480475
-    expected_values = { "DoorR" => door_r }
-    _test_measure("SFA_4units_1story_SL_UA_Denver_Windows_Doors.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units + 2)
+    expected_values = { 'DoorR' => door_r }
+    _test_measure('SFA_4units_1story_SL_UA_Denver_Windows_Doors.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units + 2)
   end
 
   def test_multifamily_new_construction
     num_units = 8
     args_hash = {}
     expected_num_del_objects = {}
-    expected_num_new_objects = { "Material" => 1, "Construction" => 1 }
+    expected_num_new_objects = { 'Material' => 1, 'Construction' => 1 }
     door_r = 0.04445 / 0.0612266553480475
-    expected_values = { "DoorR" => door_r }
-    _test_measure("MF_8units_1story_SL_Denver_Windows_Doors.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units + 2)
+    expected_values = { 'DoorR' => door_r }
+    _test_measure('MF_8units_1story_SL_Denver_Windows_Doors.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units + 2)
   end
 
   def test_argument_error_invalid_ufactor
     args_hash = {}
-    args_hash["ufactor"] = 0
-    result = _test_error("SFD_2000sqft_2story_SL_GRG_UA_Windows_Doors.osm", args_hash)
+    args_hash['ufactor'] = 0
+    result = _test_error('SFD_2000sqft_2story_SL_GRG_UA_Windows_Doors.osm', args_hash)
     assert(result.errors.size == 1)
-    assert_equal("Fail", result.value.valueName)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "Door U-Factor must be greater than 0.")
+    assert_equal('Fail', result.value.valueName)
+    assert_equal(result.errors.map { |x| x.logMessage }[0], 'Door U-Factor must be greater than 0.')
   end
 
   private
@@ -124,34 +124,34 @@ class ProcessConstructionsDoorsTest < MiniTest::Test
     show_output(result) unless result.value.valueName == 'Success'
 
     # assert that it ran correctly
-    assert_equal("Success", result.value.valueName)
+    assert_equal('Success', result.value.valueName)
     assert_equal(num_infos, result.info.size)
 
     # get the final objects in the model
     final_objects = get_objects(model)
 
     # get new and deleted objects
-    obj_type_exclusions = ["ScheduleRule", "ScheduleDay", "ScheduleTypeLimits"]
+    obj_type_exclusions = ['ScheduleRule', 'ScheduleDay', 'ScheduleTypeLimits']
     all_new_objects = get_object_additions(initial_objects, final_objects, obj_type_exclusions)
     all_del_objects = get_object_additions(final_objects, initial_objects, obj_type_exclusions)
 
     # check we have the expected number of new/deleted objects
-    check_num_objects(all_new_objects, expected_num_new_objects, "added")
-    check_num_objects(all_del_objects, expected_num_del_objects, "deleted")
+    check_num_objects(all_new_objects, expected_num_new_objects, 'added')
+    check_num_objects(all_del_objects, expected_num_del_objects, 'deleted')
 
-    actual_values = { "DoorR" => 0 }
+    actual_values = { 'DoorR' => 0 }
     all_new_objects.each do |obj_type, new_objects|
       new_objects.each do |new_object|
         next if not new_object.respond_to?("to_#{obj_type}")
 
         new_object = new_object.public_send("to_#{obj_type}").get
-        if obj_type == "Material"
+        if obj_type == 'Material'
           new_object = new_object.to_StandardOpaqueMaterial.get
-          actual_values["DoorR"] += new_object.thickness / new_object.conductivity
+          actual_values['DoorR'] += new_object.thickness / new_object.conductivity
         end
       end
     end
-    assert_in_epsilon(expected_values["DoorR"], actual_values["DoorR"], 0.01)
+    assert_in_epsilon(expected_values['DoorR'], actual_values['DoorR'], 0.01)
 
     return model
   end

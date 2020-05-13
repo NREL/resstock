@@ -1,8 +1,8 @@
-require_relative "constants"
-require_relative "unit_conversions"
-require_relative "weather"
-require_relative "schedules"
-require_relative "waterheater"
+require_relative 'constants'
+require_relative 'unit_conversions'
+require_relative 'weather'
+require_relative 'schedules'
+require_relative 'waterheater'
 
 class Refrigerator
   def self.apply(model, unit, runner, rated_annual_energy, mult,
@@ -10,11 +10,11 @@ class Refrigerator
 
     # check for valid inputs
     if rated_annual_energy < 0
-      runner.registerError("Rated annual consumption must be greater than or equal to 0.")
+      runner.registerError('Rated annual consumption must be greater than or equal to 0.')
       return false
     end
     if mult < 0
-      runner.registerError("Occupancy energy multiplier must be greater than or equal to 0.")
+      runner.registerError('Occupancy energy multiplier must be greater than or equal to 0.')
       return false
     end
 
@@ -37,7 +37,7 @@ class Refrigerator
 
       if sch.nil?
         # Create schedule
-        sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameRefrigerator + " schedule", weekday_sch, weekend_sch, monthly_sch, mult_weekday = 1.0, mult_weekend = 1.0, normalize_values = true, create_sch_object = true, winter_design_day_sch = winter_design_day_sch, summer_design_day_sch = summer_design_day_sch, schedule_type_limits_name = Constants.ScheduleTypeLimitsFraction)
+        sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameRefrigerator + ' schedule', weekday_sch, weekend_sch, monthly_sch, mult_weekday = 1.0, mult_weekend = 1.0, normalize_values = true, create_sch_object = true, winter_design_day_sch = winter_design_day_sch, summer_design_day_sch = summer_design_day_sch, schedule_type_limits_name = Constants.ScheduleTypeLimitsFraction)
         if not sch.validated?
           return false
         end
@@ -76,7 +76,7 @@ class Refrigerator
       end
     end
     if objects_to_remove.size > 0
-      runner.registerInfo("Removed existing refrigerator from space '#{space.name.to_s}'.")
+      runner.registerInfo("Removed existing refrigerator from space '#{space.name}'.")
     end
     objects_to_remove.uniq.each do |object|
       begin
@@ -96,41 +96,41 @@ class ClothesWasher
 
     # Check for valid inputs
     if imef <= 0
-      runner.registerError("Integrated modified energy factor must be greater than 0.0.")
+      runner.registerError('Integrated modified energy factor must be greater than 0.0.')
       return false
     end
     if rated_annual_energy <= 0
-      runner.registerError("Rated annual consumption must be greater than 0.0.")
+      runner.registerError('Rated annual consumption must be greater than 0.0.')
       return false
     end
     if annual_cost <= 0
-      runner.registerError("Annual cost with gas DHW must be greater than 0.0.")
+      runner.registerError('Annual cost with gas DHW must be greater than 0.0.')
       return false
     end
     if test_date < 1900
-      runner.registerError("Test date must be greater than or equal to 1900.")
+      runner.registerError('Test date must be greater than or equal to 1900.')
       return false
     end
     if drum_volume <= 0
-      runner.registerError("Drum volume must be greater than 0.0.")
+      runner.registerError('Drum volume must be greater than 0.0.')
       return false
     end
     if mult_e < 0
-      runner.registerError("Occupancy energy multiplier must be greater than or equal to 0.0.")
+      runner.registerError('Occupancy energy multiplier must be greater than or equal to 0.0.')
       return false
     end
     if mult_hw < 0
-      runner.registerError("Occupancy hot water multiplier must be greater than or equal to 0.0.")
+      runner.registerError('Occupancy hot water multiplier must be greater than or equal to 0.0.')
       return false
     end
-    if d_sh < 0 or d_sh > 364
-      runner.registerError("Hot water draw profile can only be shifted by 0-364 days.")
+    if (d_sh < 0) || (d_sh > 364)
+      runner.registerError('Hot water draw profile can only be shifted by 0-364 days.')
       return false
     end
 
     # Get unit beds/baths/occupants
     nbeds, nbaths = Geometry.get_unit_beds_baths(model, unit, runner)
-    if nbeds.nil? or nbaths.nil?
+    if nbeds.nil? || nbaths.nil?
       return false
     end
 
@@ -151,12 +151,12 @@ class ClothesWasher
       # Get mains monthly temperatures
       site = model.getSite
       if !site.siteWaterMainsTemperature.is_initialized
-        runner.registerError("Mains water temperature has not been set.")
+        runner.registerError('Mains water temperature has not been set.')
         return false
       end
       waterMainsTemperature = site.siteWaterMainsTemperature.get
-      avgOAT = UnitConversions.convert(waterMainsTemperature.annualAverageOutdoorAirTemperature.get, "C", "F")
-      maxDiffMonthlyAvgOAT = UnitConversions.convert(waterMainsTemperature.maximumDifferenceInMonthlyAverageOutdoorAirTemperatures.get, "K", "R")
+      avgOAT = UnitConversions.convert(waterMainsTemperature.annualAverageOutdoorAirTemperature.get, 'C', 'F')
+      maxDiffMonthlyAvgOAT = UnitConversions.convert(waterMainsTemperature.maximumDifferenceInMonthlyAverageOutdoorAirTemperatures.get, 'K', 'R')
       mains_temps = WeatherProcess.calc_mains_temperatures(avgOAT, maxDiffMonthlyAvgOAT, site.latitude, num_days_in_year)[1]
     end
 
@@ -221,7 +221,7 @@ class ClothesWasher
     # Use the EnergyGuide Label information (eq. 4 Eastment and Hendron, NREL/CP-550-39769, 2006).
     gas_consumption_for_dhw_per_cycle_test = ((rated_annual_energy * energy_guide_elec_cost -
                                                 annual_cost) /
-                                                (UnitConversions.convert(gas_dhw_heater_efficiency_test, "therm", "kWh") *
+                                                (UnitConversions.convert(gas_dhw_heater_efficiency_test, 'therm', 'kWh') *
                                                 energy_guide_elec_cost - energy_guide_gas_cost) /
                                                 cycles_per_year_test) # therms/cycle
 
@@ -231,7 +231,7 @@ class ClothesWasher
     # in this value.
     elec_use_per_cycle_test = (rated_annual_energy / cycles_per_year_test -
                                  gas_consumption_for_dhw_per_cycle_test *
-                                 UnitConversions.convert(gas_dhw_heater_efficiency_test, "therm", "kWh")) # kWh/cycle
+                                 UnitConversions.convert(gas_dhw_heater_efficiency_test, 'therm', 'kWh')) # kWh/cycle
 
     if test_date < 2004
       # (see 10CFR Part 430, Subpt. B, App. J, Section 4.1.2, DOE 1999)
@@ -246,14 +246,14 @@ class ClothesWasher
     # Eastment and Hendron, NREL/CP-550-39769, 2006).
     water_dens = Liquid.H2O_l.rho # lbm/ft^3
     water_sh = Liquid.H2O_l.cp # Btu/lbm-R
-    dhw_use_per_cycle_test = ((UnitConversions.convert(gas_consumption_for_dhw_per_cycle_test, "therm", "kWh") *
+    dhw_use_per_cycle_test = ((UnitConversions.convert(gas_consumption_for_dhw_per_cycle_test, 'therm', 'kWh') *
                                 gas_dhw_heater_efficiency_test) / (dhw_deltaT_test *
-                                water_dens * water_sh * UnitConversions.convert(1.0, "Btu", "kWh") / UnitConversions.convert(1.0, "ft^3", "gal")))
+                                water_dens * water_sh * UnitConversions.convert(1.0, 'Btu', 'kWh') / UnitConversions.convert(1.0, 'ft^3', 'gal')))
 
-    if fill_sensor and test_date < 2004
+    if fill_sensor && (test_date < 2004)
       # For vertical axis washers that are sensor-filled, use a multiplying factor of 0.94
       # (see 10CFR Part 430, Subpt. B, App. J, Section 4.1.2, DOE 1999)
-      dhw_use_per_cycle_test = dhw_use_per_cycle_test / 0.94
+      dhw_use_per_cycle_test /= 0.94
     end
 
     # Calculate total per-cycle usage of water (combined from hot and cold supply).
@@ -304,7 +304,7 @@ class ClothesWasher
         # If the washer has thermostatic control then its use of DHW will vary as the
         # cold and hot water supply temperatures vary.
 
-        if cold_cycle and monthly_main >= water_temp
+        if cold_cycle && (monthly_main >= water_temp)
           # In this special case, the washer uses only a cold cycle and the TMains
           # temperature exceeds the desired cold cycle temperature. In this case, no
           # DHW will be used (the adjustment is -100%). A special calculation is
@@ -356,8 +356,8 @@ class ClothesWasher
                                                         (cold_water_inlet_temp_test -
                                                         monthly_main)) *
                                                         (water_dens * water_sh *
-                                                        UnitConversions.convert(1.0, "Btu", "kWh") /
-                                                        UnitConversions.convert(1.0, "ft^3", "gal"))) # kWh/cycle
+                                                        UnitConversions.convert(1.0, 'Btu', 'kWh') /
+                                                        UnitConversions.convert(1.0, 'ft^3', 'gal'))) # kWh/cycle
 
         # Compensation for the change in sensible heat due to a difference in hot water
         # amounts due to thermostatic control.
@@ -365,8 +365,8 @@ class ClothesWasher
                                                             (cold_water_inlet_temp_test -
                                                             hot_water_inlet_temperature_test) *
                                                             (water_dens * water_sh *
-                                                            UnitConversions.convert(1.0, "Btu", "kWh") /
-                                                            UnitConversions.convert(1.0, "ft^3", "gal"))) # kWh/cycle
+                                                            UnitConversions.convert(1.0, 'Btu', 'kWh') /
+                                                            UnitConversions.convert(1.0, 'ft^3', 'gal'))) # kWh/cycle
 
         # Compensation for the change in sensible heat due to a difference in operating
         # temperature vs. test temperature (applies only to cold cycle only).
@@ -378,8 +378,8 @@ class ClothesWasher
         elec_use_per_cycle_adjustment_operating_temp = (actual_total_per_cycle_water_use *
                                                           (water_temp - mixed_cycle_temperature_test) *
                                                           (water_dens * water_sh *
-                                                          UnitConversions.convert(1.0, "Btu", "kWh") /
-                                                          UnitConversions.convert(1.0, "ft^3", "gal"))) # kWh/cycle
+                                                          UnitConversions.convert(1.0, 'Btu', 'kWh') /
+                                                          UnitConversions.convert(1.0, 'ft^3', 'gal'))) # kWh/cycle
 
         # Sum the three adjustments above
         elec_use_per_cycle_adjustment = elec_use_per_cycle_adjustment_supply_temps +
@@ -412,8 +412,8 @@ class ClothesWasher
 
     daily_energy = monthly_energy.inject(:+) / num_days_in_year
 
-    daily_energy = daily_energy * mult_e
-    total_daily_water_use = total_daily_water_use * mult_hw
+    daily_energy *= mult_e
+    total_daily_water_use *= mult_hw
 
     ann_e = daily_energy * num_days_in_year
 
@@ -422,9 +422,9 @@ class ClothesWasher
     if ann_e > 0
 
       # Create schedule
-      sch = HotWaterSchedule.new(model, runner, Constants.ObjectNameClothesWasher + " schedule",
-                                 Constants.ObjectNameClothesWasher + " temperature schedule",
-                                 nbeds, d_sh, "ClothesWasher", water_temp,
+      sch = HotWaterSchedule.new(model, runner, Constants.ObjectNameClothesWasher + ' schedule',
+                                 Constants.ObjectNameClothesWasher + ' temperature schedule',
+                                 nbeds, d_sh, 'ClothesWasher', water_temp,
                                  create_sch_object = true, schedule_type_limits_name = Constants.ScheduleTypeLimitsFraction)
       if not sch.validated?
         return false
@@ -500,8 +500,8 @@ class ClothesWasher
         cd_mult = cd.additionalProperties.getFeatureAsDouble(Constants.ClothesDryerMult)
         cd_fuel_type = cd.additionalProperties.getFeatureAsString(Constants.ClothesDryerFuelType)
         cd_fuel_split = cd.additionalProperties.getFeatureAsDouble(Constants.ClothesDryerFuelSplit)
-        if !cd_cef.is_initialized or !cd_mult.is_initialized or !cd_fuel_type.is_initialized or !cd_fuel_split.is_initialized
-          runner.registerError("Could not find clothes dryer properties.")
+        if !cd_cef.is_initialized || !cd_mult.is_initialized || !cd_fuel_type.is_initialized || !cd_fuel_split.is_initialized
+          runner.registerError('Could not find clothes dryer properties.')
           return false
         end
         cd_cef = cd_cef.get
@@ -519,7 +519,7 @@ class ClothesWasher
           return false
         end
 
-        if cd_ann_e > 0 or cd_ann_f > 0
+        if (cd_ann_e > 0) || (cd_ann_f > 0)
           cd_updated = true
         end
 
@@ -555,7 +555,7 @@ class ClothesWasher
       end
     end
     if objects_to_remove.size > 0
-      runner.registerInfo("Removed existing clothes washer from space '#{space.name.to_s}'.")
+      runner.registerInfo("Removed existing clothes washer from space '#{space.name}'.")
     end
     objects_to_remove.uniq.each do |object|
       begin
@@ -571,21 +571,21 @@ class ClothesDryer
   def self.apply(model, unit, runner, sch, cef, mult, space, fuel_type, fuel_split)
     # Check for valid inputs
     if cef <= 0
-      runner.registerError("Combined energy factor must be greater than 0.0.")
+      runner.registerError('Combined energy factor must be greater than 0.0.')
       return false
     end
-    if fuel_split < 0 or fuel_split > 1
-      runner.registerError("Assumed fuel electric split must be greater than or equal to 0.0 and less than or equal to 1.0.")
+    if (fuel_split < 0) || (fuel_split > 1)
+      runner.registerError('Assumed fuel electric split must be greater than or equal to 0.0 and less than or equal to 1.0.')
       return false
     end
     if mult < 0
-      runner.registerError("Occupancy energy multiplier must be greater than or equal to 0.0.")
+      runner.registerError('Occupancy energy multiplier must be greater than or equal to 0.0.')
       return false
     end
 
     # Get unit beds/baths/occupants
     nbeds, nbaths = Geometry.get_unit_beds_baths(model, unit, runner)
-    if nbeds.nil? or nbaths.nil?
+    if nbeds.nil? || nbaths.nil?
       return false
     end
 
@@ -603,15 +603,15 @@ class ClothesDryer
       cw = ee
     end
     if cw.nil?
-      runner.registerWarning("Could not find clothes washer equipment.")
-      return nil
+      runner.registerWarning('Could not find clothes washer equipment.')
+      return
     end
     drum_volume = cw.additionalProperties.getFeatureAsDouble(Constants.ClothesWasherDrumVolume)
     imef = cw.additionalProperties.getFeatureAsDouble(Constants.ClothesWasherIMEF)
     rated_annual_energy = cw.additionalProperties.getFeatureAsDouble(Constants.ClothesWasherRatedAnnualEnergy)
     day_shift = cw.additionalProperties.getFeatureAsDouble(Constants.ClothesWasherDayShift)
-    if !drum_volume.is_initialized or !imef.is_initialized or !rated_annual_energy.is_initialized or !day_shift.is_initialized
-      runner.registerError("Could not find clothes washer properties.")
+    if !drum_volume.is_initialized || !imef.is_initialized || !rated_annual_energy.is_initialized || !day_shift.is_initialized
+      runner.registerError('Could not find clothes washer properties.')
       return false
     end
     drum_volume = drum_volume.get
@@ -686,24 +686,24 @@ class ClothesDryer
     actual_cd_cycles_per_year = dryer_usage_factor * actual_cycles_per_year # cycles/year
 
     daily_energy_elec = actual_cd_cycles_per_year * actual_cd_elec_use_per_cycle / num_days_in_year # kWh/day
-    daily_energy_elec = daily_energy_elec * mult
+    daily_energy_elec *= mult
     ann_e = daily_energy_elec * num_days_in_year # kWh/yr
 
     ann_f = 0
     if fuel_type != Constants.FuelTypeElectric
       daily_energy_fuel = actual_cd_cycles_per_year * actual_cd_fuel_use_per_cycle / num_days_in_year # kWh/day
-      daily_energy_fuel = UnitConversions.convert(daily_energy_fuel * mult, "kWh", "therm") # therm/day
+      daily_energy_fuel = UnitConversions.convert(daily_energy_fuel * mult, 'kWh', 'therm') # therm/day
       ann_f = daily_energy_fuel * num_days_in_year # therms/yr
     end
 
-    if ann_e > 0 or ann_f > 0
+    if (ann_e > 0) || (ann_f > 0)
 
       if sch.nil?
         # Create schedule
         hr_shift = day_shift - 1.0 / 24.0
-        sch = HotWaterSchedule.new(model, runner, unit_obj_name_f + " schedule",
-                                   unit_obj_name_f + " temperature schedule", nbeds,
-                                   hr_shift, "ClothesDryer", 0,
+        sch = HotWaterSchedule.new(model, runner, unit_obj_name_f + ' schedule',
+                                   unit_obj_name_f + ' temperature schedule', nbeds,
+                                   hr_shift, 'ClothesDryer', 0,
                                    create_sch_object = true, schedule_type_limits_name = Constants.ScheduleTypeLimitsFraction)
         if not sch.validated?
           return false
@@ -793,8 +793,8 @@ class ClothesDryer
         objects_to_remove << space_equipment.schedule.get
       end
     end
-    if objects_to_remove.size > 0 and display_remove_msg
-      runner.registerInfo("Removed existing clothes dryer from space '#{space.name.to_s}'.")
+    if (objects_to_remove.size > 0) && display_remove_msg
+      runner.registerInfo("Removed existing clothes dryer from space '#{space.name}'.")
     end
     objects_to_remove.uniq.each do |object|
       begin
@@ -812,22 +812,22 @@ class CookingRange
                  sch, space)
 
     # check for valid inputs
-    if oven_ef <= 0 or oven_ef > 1
-      runner.registerError("Oven energy factor must be greater than 0 and less than or equal to 1.")
+    if (oven_ef <= 0) || (oven_ef > 1)
+      runner.registerError('Oven energy factor must be greater than 0 and less than or equal to 1.')
       return false
     end
-    if cooktop_ef <= 0 or cooktop_ef > 1
-      runner.registerError("Cooktop energy factor must be greater than 0 and less than or equal to 1.")
+    if (cooktop_ef <= 0) || (cooktop_ef > 1)
+      runner.registerError('Cooktop energy factor must be greater than 0 and less than or equal to 1.')
       return false
     end
     if mult < 0
-      runner.registerError("Occupancy energy multiplier must be greater than or equal to 0.")
+      runner.registerError('Occupancy energy multiplier must be greater than or equal to 0.')
       return false
     end
 
     # Get unit beds/baths/occupants
     nbeds, nbaths = Geometry.get_unit_beds_baths(model, unit, runner)
-    if nbeds.nil? or nbaths.nil?
+    if nbeds.nil? || nbaths.nil?
       return false
     end
 
@@ -872,11 +872,11 @@ class CookingRange
       end
     end
 
-    if ann_f > 0 or ann_e > 0
+    if (ann_f > 0) || (ann_e > 0)
 
       if sch.nil?
         # Create schedule
-        sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameCookingRange(fuel_type, false) + " schedule", weekday_sch, weekend_sch, monthly_sch, mult_weekday = 1.0, mult_weekend = 1.0, normalize_values = true, create_sch_object = true, winter_design_day_sch = winter_design_day_sch, summer_design_day_sch = summer_design_day_sch, schedule_type_limits_name = Constants.ScheduleTypeLimitsFraction)
+        sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameCookingRange(fuel_type, false) + ' schedule', weekday_sch, weekend_sch, monthly_sch, mult_weekday = 1.0, mult_weekend = 1.0, normalize_values = true, create_sch_object = true, winter_design_day_sch = winter_design_day_sch, summer_design_day_sch = summer_design_day_sch, schedule_type_limits_name = Constants.ScheduleTypeLimitsFraction)
         if not sch.validated?
           return false
         end
@@ -962,7 +962,7 @@ class CookingRange
       end
     end
     if objects_to_remove.size > 0
-      runner.registerInfo("Removed existing cooking range from space '#{space.name.to_s}'.")
+      runner.registerInfo("Removed existing cooking range from space '#{space.name}'.")
     end
     objects_to_remove.uniq.each do |object|
       begin
@@ -982,41 +982,41 @@ class Dishwasher
 
     # Check for valid inputs
     if num_settings < 1
-      runner.registerError("Number of place settings must be greater than or equal to 1.")
+      runner.registerError('Number of place settings must be greater than or equal to 1.')
       return false
     end
     if rated_annual_energy < 0
-      runner.registerError("Rated annual energy consumption must be greater than or equal to 0.")
+      runner.registerError('Rated annual energy consumption must be greater than or equal to 0.')
       return false
     end
     if cold_use < 0
-      runner.registerError("Cold water connection use must be greater than or equal to 0.")
+      runner.registerError('Cold water connection use must be greater than or equal to 0.')
       return false
     end
     if test_date < 1900
-      runner.registerError("Energy Guide date must be greater than or equal to 1900.")
+      runner.registerError('Energy Guide date must be greater than or equal to 1900.')
       return false
     end
     if annual_gas_cost <= 0
-      runner.registerError("Energy Guide annual gas cost must be greater than 0.")
+      runner.registerError('Energy Guide annual gas cost must be greater than 0.')
       return false
     end
     if mult_e < 0
-      runner.registerError("Occupancy energy multiplier must be greater than or equal to 0.")
+      runner.registerError('Occupancy energy multiplier must be greater than or equal to 0.')
       return false
     end
     if mult_hw < 0
-      runner.registerError("Occupancy hot water multiplier must be greater than or equal to 0.")
+      runner.registerError('Occupancy hot water multiplier must be greater than or equal to 0.')
       return false
     end
-    if d_sh < 0 or d_sh > 364
-      runner.registerError("Hot water draw profile can only be shifted by 0-364 days.")
+    if (d_sh < 0) || (d_sh > 364)
+      runner.registerError('Hot water draw profile can only be shifted by 0-364 days.')
       return false
     end
 
     # Get unit beds/baths/occupants
     nbeds, nbaths = Geometry.get_unit_beds_baths(model, unit, runner)
-    if nbeds.nil? or nbaths.nil?
+    if nbeds.nil? || nbaths.nil?
       return false
     end
 
@@ -1033,16 +1033,16 @@ class Dishwasher
     num_days_in_months = Constants.NumDaysInMonths(year_description.isLeapYear)
     num_days_in_year = Constants.NumDaysInYear(year_description.isLeapYear)
 
-    if cold_inlet and mains_temps.nil?
+    if cold_inlet && mains_temps.nil?
       # Get mains monthly temperatures if needed
       site = model.getSite
       if !site.siteWaterMainsTemperature.is_initialized
-        runner.registerError("Mains water temperature has not been set.")
+        runner.registerError('Mains water temperature has not been set.')
         return false
       end
       waterMainsTemperature = site.siteWaterMainsTemperature.get
-      avgOAT = UnitConversions.convert(waterMainsTemperature.annualAverageOutdoorAirTemperature.get, "C", "F")
-      maxDiffMonthlyAvgOAT = UnitConversions.convert(waterMainsTemperature.maximumDifferenceInMonthlyAverageOutdoorAirTemperatures.get, "K", "R")
+      avgOAT = UnitConversions.convert(waterMainsTemperature.annualAverageOutdoorAirTemperature.get, 'C', 'F')
+      maxDiffMonthlyAvgOAT = UnitConversions.convert(waterMainsTemperature.maximumDifferenceInMonthlyAverageOutdoorAirTemperatures.get, 'K', 'R')
       mains_temps = WeatherProcess.calc_mains_temperatures(avgOAT, maxDiffMonthlyAvgOAT, site.latitude, num_days_in_year)[1]
     end
 
@@ -1096,7 +1096,7 @@ class Dishwasher
       test_gas_use_per_cycle = ((rated_annual_energy *
                                    rated_annual_eg_elec_cost -
                                    annual_gas_cost) /
-                                  (UnitConversions.convert(test_gas_dhw_heater_efficiency, "therm", "kWh") *
+                                  (UnitConversions.convert(test_gas_dhw_heater_efficiency, 'therm', 'kWh') *
                                    rated_annual_eg_elec_cost -
                                    rated_annual_eg_gas_cost) /
                                   test_cycles_per_year) # Therns/cycle
@@ -1109,7 +1109,7 @@ class Dishwasher
     # included in this value.
     test_rated_annual_elec_use_per_cycle = rated_annual_energy / \
                                            test_cycles_per_year - \
-                                           UnitConversions.convert(test_gas_dhw_heater_efficiency, "therm", "kWh") * \
+                                           UnitConversions.convert(test_gas_dhw_heater_efficiency, 'therm', 'kWh') * \
                                            test_gas_use_per_cycle # kWh/cycle
 
     if cold_inlet
@@ -1134,11 +1134,11 @@ class Dishwasher
       # the amount of gas used in the test to heat the water and the
       # temperature rise in the water heater in the test (eq. 3
       # Eastment and Hendron, NREL/CP-550-39769, 2006).
-      test_dhw_use_per_cycle = (UnitConversions.convert(test_gas_use_per_cycle, "therm", "kWh") * \
+      test_dhw_use_per_cycle = (UnitConversions.convert(test_gas_use_per_cycle, 'therm', 'kWh') * \
                                    test_gas_dhw_heater_efficiency) / \
                                (test_water_heater_temp_diff * \
                                 water_dens * water_sh * \
-                                UnitConversions.convert(1, "Btu", "kWh") / UnitConversions.convert(1, "ft^3", "gal")) # gal/cycle (hot water)
+                                UnitConversions.convert(1, 'Btu', 'kWh') / UnitConversions.convert(1, 'ft^3', 'gal')) # gal/cycle (hot water)
     end
 
     # (eq. 16 Eastment and Hendron, NREL/CP-550-39769, 2006)
@@ -1178,8 +1178,8 @@ class Dishwasher
         actual_rated_annual_elec_use_per_cycle = test_rated_annual_elec_use_per_cycle + \
                                                  (test_mains_temp - monthly_main) * \
                                                  cold_use * \
-                                                 (water_dens * water_sh * UnitConversions.convert(1, "Btu", "kWh") /
-                                                 UnitConversions.convert(1, "ft^3", "gal")) # kWh/cycle
+                                                 (water_dens * water_sh * UnitConversions.convert(1, 'Btu', 'kWh') /
+                                                 UnitConversions.convert(1, 'ft^3', 'gal')) # kWh/cycle
         monthly_energy[i] = (actual_rated_annual_elec_use_per_cycle * \
                                         num_days_in_months[i] * \
                                         actual_cycles_per_year / \
@@ -1196,8 +1196,8 @@ class Dishwasher
                                                (test_dhw_temp - wh_setpoint) * \
                                                test_dhw_use_per_cycle * \
                                                (water_dens * water_sh * \
-                                                UnitConversions.convert(1, "Btu", "kWh") /
-                                                UnitConversions.convert(1, "ft^3", "gal")) # kWh/cycle
+                                                UnitConversions.convert(1, 'Btu', 'kWh') /
+                                                UnitConversions.convert(1, 'ft^3', 'gal')) # kWh/cycle
       daily_energy = actual_rated_annual_elec_use_per_cycle * \
                      actual_cycles_per_year / num_days_in_year # kWh/day
 
@@ -1210,22 +1210,22 @@ class Dishwasher
 
     end
 
-    daily_energy = daily_energy * mult_e
-    daily_water = daily_water * mult_hw
+    daily_energy *= mult_e
+    daily_water *= mult_hw
 
     ann_e = daily_energy * num_days_in_year
 
     if daily_energy < 0
-      runner.registerError("The inputs for the dishwasher resulted in a negative amount of energy consumption.")
+      runner.registerError('The inputs for the dishwasher resulted in a negative amount of energy consumption.')
       return false
     end
 
     if ann_e > 0
 
       # Create schedule
-      sch = HotWaterSchedule.new(model, runner, Constants.ObjectNameDishwasher + " schedule",
-                                 Constants.ObjectNameDishwasher + " temperature schedule",
-                                 nbeds, d_sh, "Dishwasher", wh_setpoint,
+      sch = HotWaterSchedule.new(model, runner, Constants.ObjectNameDishwasher + ' schedule',
+                                 Constants.ObjectNameDishwasher + ' temperature schedule',
+                                 nbeds, d_sh, 'Dishwasher', wh_setpoint,
                                  create_sch_object = true, schedule_type_limits_name = Constants.ScheduleTypeLimitsFraction)
       if not sch.validated?
         return false
@@ -1303,7 +1303,7 @@ class Dishwasher
       end
     end
     if objects_to_remove.size > 0
-      runner.registerInfo("Removed existing dishwasher from space '#{space.name.to_s}'.")
+      runner.registerInfo("Removed existing dishwasher from space '#{space.name}'.")
     end
     objects_to_remove.uniq.each do |object|
       begin

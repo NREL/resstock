@@ -15,126 +15,126 @@ class OutageTest < MiniTest::Test
 
   def test_outage_starts_before_run_period
     args_hash = {}
-    args_hash["otg_date"] = "January 22"
-    result = _test_error("SFD_Successful_EnergyPlus_Run_AMY_PV_TwoDays.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "Outage period starts before the run period starts.")
+    args_hash['otg_date'] = 'January 22'
+    result = _test_error('SFD_Successful_EnergyPlus_Run_AMY_PV_TwoDays.osm', args_hash)
+    assert_equal(result.errors.map { |x| x.logMessage }[0], 'Outage period starts before the run period starts.')
   end
 
   def test_outage_ends_after_run_period
     args_hash = {}
-    args_hash["otg_date"] = "December 22"
-    args_hash["otg_len"] = 24 * 4
-    result = _test_error("SFD_Successful_EnergyPlus_Run_AMY_PV_TwoDays.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "Outage period ends after the run period ends.")
+    args_hash['otg_date'] = 'December 22'
+    args_hash['otg_len'] = 24 * 4
+    result = _test_error('SFD_Successful_EnergyPlus_Run_AMY_PV_TwoDays.osm', args_hash)
+    assert_equal(result.errors.map { |x| x.logMessage }[0], 'Outage period ends after the run period ends.')
   end
 
   def test_outage_len_zero
     args_hash = {}
-    args_hash["otg_len"] = 0
-    result = _test_error("SFD_Successful_EnergyPlus_Run_AMY_PV_TwoDays.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "Outage must last for at least one hour.")
+    args_hash['otg_len'] = 0
+    result = _test_error('SFD_Successful_EnergyPlus_Run_AMY_PV_TwoDays.osm', args_hash)
+    assert_equal(result.errors.map { |x| x.logMessage }[0], 'Outage must last for at least one hour.')
   end
 
   def test_outage_negative_start_hour
     args_hash = {}
-    args_hash["otg_hr"] = -1
-    result = _test_error("SFD_Successful_EnergyPlus_Run_AMY_PV_TwoDays.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "Start hour must be between 0 and 23.")
+    args_hash['otg_hr'] = -1
+    result = _test_error('SFD_Successful_EnergyPlus_Run_AMY_PV_TwoDays.osm', args_hash)
+    assert_equal(result.errors.map { |x| x.logMessage }[0], 'Start hour must be between 0 and 23.')
   end
 
   def test_outage_start_hour_over_24
     args_hash = {}
-    args_hash["otg_hr"] = 25
-    result = _test_error("SFD_Successful_EnergyPlus_Run_AMY_PV_TwoDays.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "Start hour must be between 0 and 23.")
+    args_hash['otg_hr'] = 25
+    result = _test_error('SFD_Successful_EnergyPlus_Run_AMY_PV_TwoDays.osm', args_hash)
+    assert_equal(result.errors.map { |x| x.logMessage }[0], 'Start hour must be between 0 and 23.')
   end
 
   def test_outage_less_than_one_day_dst
     args_hash = {}
-    args_hash["otg_date"] = "June 2"
-    args_hash["otg_hr"] = 8
-    args_hash["otg_len"] = 8
+    args_hash['otg_date'] = 'June 2'
+    args_hash['otg_hr'] = 8
+    args_hash['otg_len'] = 8
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ScheduleRule" => 19, "ScheduleDay" => 19, "ScheduleFixedInterval" => 1 }
+    expected_num_new_objects = { 'ScheduleRule' => 19, 'ScheduleDay' => 19, 'ScheduleFixedInterval' => 1 }
     expected_values = {}
-    _test_measure("SFD_Successful_EnergyPlus_Run_TMY.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 24)
+    _test_measure('SFD_Successful_EnergyPlus_Run_TMY.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 24)
   end
 
   def test_outage_one_day_dst
     args_hash = {}
-    args_hash["otg_date"] = "June 2"
-    args_hash["otg_hr"] = 8
-    args_hash["otg_len"] = 24
+    args_hash['otg_date'] = 'June 2'
+    args_hash['otg_hr'] = 8
+    args_hash['otg_len'] = 24
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ScheduleRule" => 38, "ScheduleDay" => 38, "ScheduleFixedInterval" => 1 }
+    expected_num_new_objects = { 'ScheduleRule' => 38, 'ScheduleDay' => 38, 'ScheduleFixedInterval' => 1 }
     expected_values = {}
-    _test_measure("SFD_Successful_EnergyPlus_Run_TMY.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 24)
+    _test_measure('SFD_Successful_EnergyPlus_Run_TMY.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 24)
   end
 
   def test_outage_more_than_one_day_dst
     args_hash = {}
-    args_hash["otg_date"] = "June 2"
-    args_hash["otg_hr"] = 8
-    args_hash["otg_len"] = 48
+    args_hash['otg_date'] = 'June 2'
+    args_hash['otg_hr'] = 8
+    args_hash['otg_len'] = 48
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ScheduleRule" => 57, "ScheduleDay" => 57, "ScheduleFixedInterval" => 1 }
+    expected_num_new_objects = { 'ScheduleRule' => 57, 'ScheduleDay' => 57, 'ScheduleFixedInterval' => 1 }
     expected_values = {}
-    _test_measure("SFD_Successful_EnergyPlus_Run_TMY.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 24)
+    _test_measure('SFD_Successful_EnergyPlus_Run_TMY.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 24)
   end
 
   def test_outage_less_than_one_day
     args_hash = {}
-    args_hash["otg_date"] = "January 2"
-    args_hash["otg_hr"] = 8
-    args_hash["otg_len"] = 8
+    args_hash['otg_date'] = 'January 2'
+    args_hash['otg_hr'] = 8
+    args_hash['otg_len'] = 8
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ScheduleRule" => 19, "ScheduleDay" => 19, "ScheduleFixedInterval" => 1 }
+    expected_num_new_objects = { 'ScheduleRule' => 19, 'ScheduleDay' => 19, 'ScheduleFixedInterval' => 1 }
     expected_values = {}
-    _test_measure("SFD_Successful_EnergyPlus_Run_TMY.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 24)
+    _test_measure('SFD_Successful_EnergyPlus_Run_TMY.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 24)
   end
 
   def test_outage_one_day
     args_hash = {}
-    args_hash["otg_date"] = "January 2"
-    args_hash["otg_hr"] = 8
-    args_hash["otg_len"] = 24
+    args_hash['otg_date'] = 'January 2'
+    args_hash['otg_hr'] = 8
+    args_hash['otg_len'] = 24
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ScheduleRule" => 38, "ScheduleDay" => 38, "ScheduleFixedInterval" => 1 }
+    expected_num_new_objects = { 'ScheduleRule' => 38, 'ScheduleDay' => 38, 'ScheduleFixedInterval' => 1 }
     expected_values = {}
-    _test_measure("SFD_Successful_EnergyPlus_Run_TMY.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 24)
+    _test_measure('SFD_Successful_EnergyPlus_Run_TMY.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 24)
   end
 
   def test_outage_more_than_one_day
     args_hash = {}
-    args_hash["otg_date"] = "January 2"
-    args_hash["otg_hr"] = 8
-    args_hash["otg_len"] = 48
+    args_hash['otg_date'] = 'January 2'
+    args_hash['otg_hr'] = 8
+    args_hash['otg_len'] = 48
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ScheduleRule" => 57, "ScheduleDay" => 57, "ScheduleFixedInterval" => 1 }
+    expected_num_new_objects = { 'ScheduleRule' => 57, 'ScheduleDay' => 57, 'ScheduleFixedInterval' => 1 }
     expected_values = {}
-    _test_measure("SFD_Successful_EnergyPlus_Run_TMY.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 24)
+    _test_measure('SFD_Successful_EnergyPlus_Run_TMY.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 24)
   end
 
   def test_outage_less_than_one_day_dst_mf
     args_hash = {}
-    args_hash["otg_date"] = "June 2"
-    args_hash["otg_hr"] = 8
-    args_hash["otg_len"] = 8
+    args_hash['otg_date'] = 'June 2'
+    args_hash['otg_hr'] = 8
+    args_hash['otg_len'] = 8
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ScheduleRule" => 12, "ScheduleDay" => 12, "ScheduleFixedInterval" => 1 }
+    expected_num_new_objects = { 'ScheduleRule' => 12, 'ScheduleDay' => 12, 'ScheduleFixedInterval' => 1 }
     expected_values = {}
-    _test_measure("MF_Successful_EnergyPlus_Run_TMY_Appl_PV.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 14)
+    _test_measure('MF_Successful_EnergyPlus_Run_TMY_Appl_PV.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 14)
   end
 
   def test_outage_short_run_period
     args_hash = {}
-    args_hash["otg_date"] = "January 23"
-    args_hash["otg_hr"] = 20
-    args_hash["otg_len"] = 8
+    args_hash['otg_date'] = 'January 23'
+    args_hash['otg_hr'] = 20
+    args_hash['otg_len'] = 8
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ScheduleRule" => 12, "ScheduleDay" => 12, "ScheduleFixedInterval" => 1 }
+    expected_num_new_objects = { 'ScheduleRule' => 12, 'ScheduleDay' => 12, 'ScheduleFixedInterval' => 1 }
     expected_values = {}
-    _test_measure("SFD_Successful_EnergyPlus_Run_AMY_PV_TwoDays.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 11)
+    _test_measure('SFD_Successful_EnergyPlus_Run_AMY_PV_TwoDays.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 11)
   end
 
   private
@@ -169,7 +169,7 @@ class OutageTest < MiniTest::Test
     show_output(result) unless result.value.valueName == 'Fail'
 
     # assert that it didn't run
-    assert_equal("Fail", result.value.valueName)
+    assert_equal('Fail', result.value.valueName)
     assert(result.errors.size == 1)
 
     return result
@@ -213,7 +213,7 @@ class OutageTest < MiniTest::Test
     show_output(result) unless result.value.valueName == 'Success'
 
     # assert that it ran correctly
-    assert_equal("Success", result.value.valueName)
+    assert_equal('Success', result.value.valueName)
     assert_equal(num_infos, result.info.size)
     assert_equal(num_warnings, result.warnings.size)
     assert(result.finalCondition.is_initialized)
@@ -227,8 +227,8 @@ class OutageTest < MiniTest::Test
     all_del_objects = get_object_additions(final_objects, initial_objects, obj_type_exclusions)
 
     # check we have the expected number of new/deleted objects
-    check_num_objects(all_new_objects, expected_num_new_objects, "added")
-    check_num_objects(all_del_objects, expected_num_del_objects, "deleted")
+    check_num_objects(all_new_objects, expected_num_new_objects, 'added')
+    check_num_objects(all_del_objects, expected_num_del_objects, 'deleted')
 
     return model
   end

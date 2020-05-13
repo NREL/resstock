@@ -8,29 +8,29 @@ require 'fileutils'
 class ProcessConstructionsFacadesSharedTest < MiniTest::Test
   def test_single_family_detached
     args_hash = {}
-    args_hash["shared_building_facades"] = Constants.FacadeNone
+    args_hash['shared_building_facades'] = Constants.FacadeNone
     expected_num_del_objects = {}
     expected_num_new_objects = {}
-    expected_values = { "SharedWalls" => 0 }
-    _test_measure("SFD_2000sqft_2story_FB_UA_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
+    expected_values = { 'SharedWalls' => 0 }
+    _test_measure('SFD_2000sqft_2story_FB_UA_Denver.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
   def test_single_family_attached
     args_hash = {}
-    args_hash["shared_building_facades"] = "#{Constants.FacadeLeft}, #{Constants.FacadeRight}, #{Constants.FacadeBack}"
+    args_hash['shared_building_facades'] = "#{Constants.FacadeLeft}, #{Constants.FacadeRight}, #{Constants.FacadeBack}"
     expected_num_del_objects = {}
-    expected_num_new_objects = { "Material" => 1, "Construction" => 1 }
-    expected_values = { "SharedWalls" => 38 }
-    _test_measure("SFA_10units_2story_FB_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
+    expected_num_new_objects = { 'Material' => 1, 'Construction' => 1 }
+    expected_values = { 'SharedWalls' => 38 }
+    _test_measure('SFA_10units_2story_FB_UA_3Beds_2Baths_Denver.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
   def test_multifamily
     args_hash = {}
-    args_hash["shared_building_facades"] = "#{Constants.FacadeLeft}, #{Constants.FacadeRight}, #{Constants.FacadeBack}"
+    args_hash['shared_building_facades'] = "#{Constants.FacadeLeft}, #{Constants.FacadeRight}, #{Constants.FacadeBack}"
     expected_num_del_objects = {}
-    expected_num_new_objects = { "Material" => 1, "Construction" => 1 }
-    expected_values = { "SharedWalls" => 55 }
-    _test_measure("MF_40units_4story_CS_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
+    expected_num_new_objects = { 'Material' => 1, 'Construction' => 1 }
+    expected_values = { 'SharedWalls' => 55 }
+    _test_measure('MF_40units_4story_CS_3Beds_2Baths_Denver.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
   private
@@ -73,7 +73,7 @@ class ProcessConstructionsFacadesSharedTest < MiniTest::Test
     show_output(result) unless result.value.valueName == 'Success'
 
     # assert that it ran correctly
-    assert_equal("Success", result.value.valueName)
+    assert_equal('Success', result.value.valueName)
 
     # get the final objects in the model
     final_objects = get_objects(model)
@@ -84,10 +84,10 @@ class ProcessConstructionsFacadesSharedTest < MiniTest::Test
     all_del_objects = get_object_additions(final_objects, initial_objects, obj_type_exclusions)
 
     # check we have the expected number of new/deleted objects
-    check_num_objects(all_new_objects, expected_num_new_objects, "added")
-    check_num_objects(all_del_objects, expected_num_del_objects, "deleted")
+    check_num_objects(all_new_objects, expected_num_new_objects, 'added')
+    check_num_objects(all_del_objects, expected_num_del_objects, 'deleted')
 
-    assert_equal(expected_values["SharedWalls"], result.info.size)
+    assert_equal(expected_values['SharedWalls'], result.info.size)
 
     return model
   end

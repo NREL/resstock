@@ -1,24 +1,24 @@
 # see the URL below for information on how to write OpenStudio measures
 # http://nrel.github.io/OpenStudio-user-documentation/reference/measure_writing_guide/
 
-require_relative "../HPXMLtoOpenStudio/resources/constants"
-require_relative "../HPXMLtoOpenStudio/resources/constructions"
+require_relative '../HPXMLtoOpenStudio/resources/constants'
+require_relative '../HPXMLtoOpenStudio/resources/constructions'
 
 # start the measure
 class ProcessConstructionsFacadesShared < OpenStudio::Measure::ModelMeasure
   # human readable name
   def name
-    return "ResidentialConstructionsFacadesShared"
+    return 'ResidentialConstructionsFacadesShared'
   end
 
   # human readable description
   def description
-    return "Used to indicate whether specified multifamily building facade(s) are shared with other multifamily building(s)."
+    return 'Used to indicate whether specified multifamily building facade(s) are shared with other multifamily building(s).'
   end
 
   # human readable description of modeling approach
   def modeler_description
-    return "Shared walls are assigned adiabatic constructions."
+    return 'Shared walls are assigned adiabatic constructions.'
   end
 
   # define the arguments that the user will input
@@ -37,9 +37,9 @@ class ProcessConstructionsFacadesShared < OpenStudio::Measure::ModelMeasure
     building_facades << "#{Constants.FacadeLeft}, #{Constants.FacadeRight}, #{Constants.FacadeBack}"
 
     # make an argument for shared building facade
-    shared_building_facades = OpenStudio::Measure::OSArgument::makeChoiceArgument("shared_building_facades", building_facades, true)
-    shared_building_facades.setDisplayName("Shared Building Facade(s)")
-    shared_building_facades.setDescription("The facade(s) of the building that are shared. Surfaces on these facades become adiabatic.")
+    shared_building_facades = OpenStudio::Measure::OSArgument::makeChoiceArgument('shared_building_facades', building_facades, true)
+    shared_building_facades.setDisplayName('Shared Building Facade(s)')
+    shared_building_facades.setDescription('The facade(s) of the building that are shared. Surfaces on these facades become adiabatic.')
     shared_building_facades.setDefaultValue("#{Constants.FacadeNone}")
     args << shared_building_facades
 
@@ -55,7 +55,7 @@ class ProcessConstructionsFacadesShared < OpenStudio::Measure::ModelMeasure
       return false
     end
 
-    shared_building_facades = runner.getStringArgumentValue("shared_building_facades", user_arguments)
+    shared_building_facades = runner.getStringArgumentValue('shared_building_facades', user_arguments)
 
     return true if shared_building_facades == Constants.FacadeNone
 

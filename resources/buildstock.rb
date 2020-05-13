@@ -13,15 +13,15 @@ class TsvFile
   attr_accessor :dependency_cols, :dependency_options, :rows, :option_cols, :header, :filename, :rows_keys_s
 
   def get_file_data()
-    option_key = "Option="
-    dep_key = "Dependency="
+    option_key = 'Option='
+    dep_key = 'Dependency='
 
     full_header = nil
     rows = []
-    CSV.foreach(@full_path, { :col_sep => "\t" }) do |row|
+    CSV.foreach(@full_path, { col_sep: "\t" }) do |row|
       next if row[0].start_with? "\#"
 
-      row.delete_if { |x| x.nil? or x.size == 0 } # purge trailing empty fields
+      row.delete_if { |x| x.nil? || (x.size == 0) } # purge trailing empty fields
 
       # Store one header line
       if full_header.nil?
@@ -33,11 +33,11 @@ class TsvFile
     end
 
     if full_header.nil?
-      register_error("Could not find header row in #{@filename.to_s}.", @runner)
+      register_error("Could not find header row in #{@filename}.", @runner)
     end
 
     # Strip out everything but options and dependencies from header
-    header = full_header.select { |el| el.start_with?(option_key) or el.start_with?(dep_key) }
+    header = full_header.select { |el| el.start_with?(option_key) || el.start_with?(dep_key) }
 
     # Get all option names/dependencies and corresponding column numbers on header row
     option_cols = {}
@@ -46,15 +46,15 @@ class TsvFile
       next if d.nil?
 
       if d.strip.start_with?(option_key)
-        val = d.strip.sub(option_key, "").strip
+        val = d.strip.sub(option_key, '').strip
         option_cols[val] = col
       elsif d.strip.start_with?(dep_key)
-        val = d.strip.sub(dep_key, "").strip
+        val = d.strip.sub(dep_key, '').strip
         dependency_cols[val] = col
       end
     end
     if option_cols.size == 0
-      register_error("No options found in #{@filename.to_s}.", @runner)
+      register_error("No options found in #{@filename}.", @runner)
     end
 
     # Get all dependencies and their listed options
@@ -103,15 +103,15 @@ class TsvFile
     num_matches = @rows_keys_s.count(key_s_downcase)
     if num_matches > 1
       if key_s.size > 0
-        register_error("Multiple rows found in #{@filename.to_s} with dependencies: #{key_s.to_s}.", @runner)
+        register_error("Multiple rows found in #{@filename} with dependencies: #{key_s}.", @runner)
       else
-        register_error("Multiple rows found in #{@filename.to_s}.", @runner)
+        register_error("Multiple rows found in #{@filename}.", @runner)
       end
     elsif num_matches == 0
       if key_s.size > 0
-        register_error("Could not determine appropriate option in #{@filename.to_s} for sample value #{sample_value.to_s} with dependencies: #{key_s.to_s}.", @runner)
+        register_error("Could not determine appropriate option in #{@filename} for sample value #{sample_value} with dependencies: #{key_s}.", @runner)
       else
-        register_error("Could not determine appropriate option in #{@filename.to_s} for sample value #{sample_value.to_s}.", @runner)
+        register_error("Could not determine appropriate option in #{@filename} for sample value #{sample_value}.", @runner)
       end
     end
 
@@ -126,20 +126,20 @@ class TsvFile
     rowvals = {}
     @option_cols.each do |option_name, option_col|
       if not row[option_col].is_number?
-        register_error("Field '#{row[option_col].to_s}' in #{@filename.to_s} must be numeric.", @runner)
+        register_error("Field '#{row[option_col]}' in #{@filename} must be numeric.", @runner)
       end
       rowvals[option_name] = row[option_col].to_f
     end
 
     # Check positivity of the probability values
     if rowvals.values.min < 0
-      register_error("Probability value in #{@filename.to_s} is less than zero.", @runner)
+      register_error("Probability value in #{@filename} is less than zero.", @runner)
     end
 
     # Sum of values within 2% of 100%?
     sum_rowvals = rowvals.values.reduce(:+)
-    if sum_rowvals < 0.98 or sum_rowvals > 1.02
-      register_error("Values in #{@filename.to_s} incorrectly sum to #{sum_rowvals.to_s}.", @runner)
+    if (sum_rowvals < 0.98) || (sum_rowvals > 1.02)
+      register_error("Values in #{@filename} incorrectly sum to #{sum_rowvals}.", @runner)
     end
 
     # If values don't exactly sum to 1, normalize them
@@ -153,11 +153,10 @@ class TsvFile
     rowsum = 0
     @option_cols.each_with_index do |(option_name, option_col), index|
       rowsum += rowvals[option_name]
-      if rowsum >= sample_value or (index == @option_cols.size - 1 and rowsum + 0.00001 >= sample_value)
-        matched_option_name = option_name
-        matched_row_num = rownum
-        break
-      end
+      next unless (rowsum >= sample_value) || ((index == @option_cols.size - 1) && (rowsum + 0.00001 >= sample_value))
+      matched_option_name = option_name
+      matched_row_num = rownum
+      break
     end
 
     return matched_option_name, matched_row_num
@@ -167,14 +166,14 @@ end
 def get_parameters_ordered_from_options_lookup_tsv(lookup_file, characteristics_dir = nil)
   # Obtain full list of parameters and their order
   params = []
-  CSV.foreach(lookup_file, { :col_sep => "\t" }) do |row|
+  CSV.foreach(lookup_file, { col_sep: "\t" }) do |row|
     next if row.size < 2
-    next if row[0].nil? or row[0].downcase == "parameter name" or row[1].nil?
+    next if row[0].nil? || (row[0].downcase == 'parameter name') || row[1].nil?
     next if params.include?(row[0])
 
     if not characteristics_dir.nil?
       # skip this option if there is no tsv file provided
-      tsvpath = File.join(characteristics_dir, row[0] + ".tsv")
+      tsvpath = File.join(characteristics_dir, row[0] + '.tsv')
       next if not File.exist?(tsvpath)
     end
     params << row[0]
@@ -185,9 +184,9 @@ end
 
 def get_options_for_parameter_from_options_lookup_tsv(lookup_file, parameter_name)
   options = []
-  CSV.foreach(lookup_file, { :col_sep => "\t" }) do |row|
+  CSV.foreach(lookup_file, { col_sep: "\t" }) do |row|
     next if row.size < 2
-    next if row[0].nil? or row[0].downcase == "parameter name" or row[1].nil?
+    next if row[0].nil? || (row[0].downcase == 'parameter name') || row[1].nil?
     next if row[0].downcase != parameter_name.downcase
 
     options << row[1]
@@ -232,13 +231,13 @@ end
 
 def get_value_from_workflow_step_value(step_value)
   variant_type = step_value.variantType
-  if variant_type == "Boolean".to_VariantType
+  if variant_type == 'Boolean'.to_VariantType
     return step_value.valueAsBoolean
-  elsif variant_type == "Double".to_VariantType
+  elsif variant_type == 'Double'.to_VariantType
     return step_value.valueAsDouble
-  elsif variant_type == "Integer".to_VariantType
+  elsif variant_type == 'Integer'.to_VariantType
     return step_value.valueAsInteger
-  elsif variant_type == "String".to_VariantType
+  elsif variant_type == 'String'.to_VariantType
     return step_value.valueAsString
   end
 end
@@ -246,7 +245,7 @@ end
 def get_value_from_runner_past_results(runner, key_lookup, measure_name, error_if_missing = true)
   require 'openstudio'
   key_lookup = OpenStudio::toUnderscoreCase(key_lookup)
-  success_value = OpenStudio::StepResult.new("Success")
+  success_value = OpenStudio::StepResult.new('Success')
   runner.workflow.workflowSteps.each do |step|
     next if not step.result.is_initialized
 
@@ -264,7 +263,7 @@ def get_value_from_runner_past_results(runner, key_lookup, measure_name, error_i
   if error_if_missing
     register_error("Could not find past value for '#{key_lookup}'.", runner)
   end
-  return nil
+  return
 end
 
 def get_value_from_runner(runner, key_lookup, error_if_missing = true)
@@ -288,14 +287,14 @@ def get_measure_args_from_option_names(lookup_file, option_names, parameter_name
   end
   current_option = nil
 
-  CSV.foreach(lookup_file, { :col_sep => "\t" }) do |row|
+  CSV.foreach(lookup_file, { col_sep: "\t" }) do |row|
     next if row.size < 2
 
     # Found option row?
-    if not row[0].nil? and not row[1].nil?
+    if (not row[0].nil?) && (not row[1].nil?)
       current_option = nil # reset
       option_names.each do |option_name|
-        if row[0].downcase == parameter_name.downcase and row[1].downcase == option_name.downcase
+        if (row[0].downcase == parameter_name.downcase) && (row[1].downcase == option_name.downcase)
           current_option = option_name
           break
         end
@@ -303,13 +302,13 @@ def get_measure_args_from_option_names(lookup_file, option_names, parameter_name
     end
     if not current_option.nil?
       found_options[current_option] = true
-      if row.size >= 3 and not row[2].nil?
+      if (row.size >= 3) && (not row[2].nil?)
         measure_dir = row[2]
         args = {}
         for col in 3..(row.size - 1)
-          next if row[col].nil? or not row[col].include?("=")
+          next if row[col].nil? || (not row[col].include?('='))
 
-          data = row[col].split("=")
+          data = row[col].split('=')
           arg_name = data[0]
           arg_val = data[1]
           args[arg_name] = arg_val
@@ -322,14 +321,14 @@ def get_measure_args_from_option_names(lookup_file, option_names, parameter_name
   end
   option_names.each do |option_name|
     if not found_options[option_name]
-      register_error("Could not find parameter '#{parameter_name.to_s}' and option '#{option_name.to_s}' in #{lookup_file.to_s}.", runner)
+      register_error("Could not find parameter '#{parameter_name}' and option '#{option_name}' in #{lookup_file}.", runner)
     end
   end
   return options_measure_args
 end
 
 def print_option_assignment(parameter_name, option_name, runner)
-  runner.registerInfo("Assigning option '#{option_name.to_s}' for parameter '#{parameter_name.to_s}'.")
+  runner.registerInfo("Assigning option '#{option_name}' for parameter '#{parameter_name}'.")
 end
 
 def register_value(runner, parameter_name, option_name)
@@ -345,24 +344,24 @@ end
 # building has been filtered out.
 def evaluate_logic(option_apply_logic, runner, past_results = true)
   # Convert to appropriate ruby statement for evaluation
-  if option_apply_logic.count("(") != option_apply_logic.count(")")
-    runner.registerError("Inconsistent number of open and close parentheses in logic.")
-    return nil
+  if option_apply_logic.count('(') != option_apply_logic.count(')')
+    runner.registerError('Inconsistent number of open and close parentheses in logic.')
+    return
   end
 
-  ruby_eval_str = ""
-  option_apply_logic.split("||").each do |or_segment|
-    or_segment.split("&&").each do |segment|
+  ruby_eval_str = ''
+  option_apply_logic.split('||').each do |or_segment|
+    or_segment.split('&&').each do |segment|
       segment.strip!
 
       # Handle presence of open parentheses
-      rindex = segment.rindex("(")
+      rindex = segment.rindex('(')
       if rindex.nil?
         rindex = 0
       else
         rindex += 1
       end
-      segment_open = segment[0, rindex].gsub(" ", "")
+      segment_open = segment[0, rindex].gsub(' ', '')
 
       # Handle presence of exclamation point
       segment_equality = "'=='"
@@ -372,34 +371,34 @@ def evaluate_logic(option_apply_logic, runner, past_results = true)
       end
 
       # Handle presence of close parentheses
-      lindex = segment.index(")")
+      lindex = segment.index(')')
       if lindex.nil?
         lindex = segment.size
       end
-      segment_close = segment[lindex, segment.size - lindex].gsub(" ", "")
+      segment_close = segment[lindex, segment.size - lindex].gsub(' ', '')
 
-      segment_parameter, segment_option = segment[rindex, lindex - rindex].strip.split("|")
+      segment_parameter, segment_option = segment[rindex, lindex - rindex].strip.split('|')
 
       # Get existing building option name for the same parameter
       if past_results
-        segment_existing_option = get_value_from_runner_past_results(runner, segment_parameter, "build_existing_model")
+        segment_existing_option = get_value_from_runner_past_results(runner, segment_parameter, 'build_existing_model')
       else
         segment_existing_option = get_value_from_runner(runner, segment_parameter)
       end
 
-      ruby_eval_str += segment_open + "'" + segment_existing_option + segment_equality + segment_option + "'" + segment_close + " and "
+      ruby_eval_str += segment_open + "'" + segment_existing_option + segment_equality + segment_option + "'" + segment_close + ' and '
     end
-    ruby_eval_str.chomp!(" and ")
-    ruby_eval_str += " or "
+    ruby_eval_str.chomp!(' and ')
+    ruby_eval_str += ' or '
   end
-  ruby_eval_str.chomp!(" or ")
+  ruby_eval_str.chomp!(' or ')
   result = eval(ruby_eval_str)
   runner.registerInfo("Evaluating logic: #{option_apply_logic}.")
   runner.registerInfo("Converted to Ruby: #{ruby_eval_str}.")
-  runner.registerInfo("Ruby Evaluation: #{result.to_s}.")
+  runner.registerInfo("Ruby Evaluation: #{result}.")
   if not [true, false].include?(result)
     runner.registerError("Logic was not successfully evaluated: #{ruby_eval_str}")
-    return nil
+    return
   end
   return result
 end

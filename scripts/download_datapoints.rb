@@ -20,7 +20,7 @@ def retrieve_results_csv(local_results_dir, server_dns = nil, analysis_id = nil)
 
   return unless dest.nil?
 
-  dest = File.join local_results_dir, "results.csv"
+  dest = File.join local_results_dir, 'results.csv'
 
   url = URI.parse("#{server_dns}/analyses/#{analysis_id}/download_data.csv?")
   http = Net::HTTP.new(url.host, url.port)
@@ -31,7 +31,7 @@ def retrieve_results_csv(local_results_dir, server_dns = nil, analysis_id = nil)
   request = Net::HTTP::Get.new(url.request_uri)
 
   http.request request do |response|
-    total = response.header["Content-Length"].to_i
+    total = response.header['Content-Length'].to_i
     if total == 0
       fail "Did not successfully download #{dest}."
     end
@@ -44,7 +44,7 @@ def retrieve_results_csv(local_results_dir, server_dns = nil, analysis_id = nil)
         size += chunk.size
         new_progress = (size * 100) / total
         unless new_progress == progress
-          puts "Downloading %s (%3d%%) " % [dest, new_progress]
+          puts 'Downloading %s (%3d%%) ' % [dest, new_progress]
         end
         progress = new_progress
       end
@@ -58,7 +58,7 @@ end
 
 def unzip_archive(archive)
   filename = OpenStudio::toPath(archive)
-  output_path = OpenStudio::toPath(archive.gsub(".zip", ""))
+  output_path = OpenStudio::toPath(archive.gsub('.zip', ''))
   unzip_file = OpenStudio::UnzipFile.new(filename)
   unzip_file.extractAllFiles(output_path)
 end
@@ -66,12 +66,12 @@ end
 def retrieve_dps(local_results_dir)
   dps = []
   Dir["#{local_results_dir}/*.csv"].each do |item|
-    rows = CSV.read(item, { :encoding => 'ISO-8859-1' })
+    rows = CSV.read(item, { encoding: 'ISO-8859-1' })
     rows.each_with_index do |row, i|
       next if i == 0
       next unless row[4] == 'completed'
 
-      dps << { :_id => row[1] }
+      dps << { _id: row[1] }
     end
   end
   return dps
@@ -87,7 +87,7 @@ def retrieve_dp_data(local_results_dir, server_dns = nil, unzip = false)
   # Ensure there are datapoints to download
   dps = retrieve_dps(local_results_dir)
   if dps.empty?
-    fail "ERROR: No datapoints were found."
+    fail 'ERROR: No datapoints were found.'
   end
 
   # Only download datapoints which do not already exist
@@ -131,11 +131,10 @@ def retrieve_dp_data(local_results_dir, server_dns = nil, unzip = false)
     end
 
     # Report out progress
-    if i.to_f * 100 / dps.length >= report_at
-      puts "INFO: Completed #{report_at}%; #{(Time.now - timestep).round}s"
-      report_at += interval
-      timestep = Time.now
-    end
+    next unless i.to_f * 100 / dps.length >= report_at
+    puts "INFO: Completed #{report_at}%; #{(Time.now - timestep).round}s"
+    report_at += interval
+    timestep = Time.now
   end
 end
 
@@ -180,13 +179,13 @@ end
 optparse.parse!
 
 # Check inputs for basic compliance criteria
-unless Dir.exists?(options[:project_dir])
+unless Dir.exist?(options[:project_dir])
   fail "ERROR: Could not find #{options[:project_dir]}"
 end
 
 # Create the localResults directory should it not exist
 local_results_dir = File.join(options[:project_dir], 'localResults')
-unless Dir.exists? local_results_dir
+unless Dir.exist? local_results_dir
   Dir.mkdir local_results_dir
 end
 

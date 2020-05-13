@@ -7,20 +7,20 @@
 # see the URL below for access to C++ documentation on model objects (click on "model" in the main window to view model objects)
 # http://openstudio.nrel.gov/sites/openstudio.nrel.gov/files/nv_data/cpp_documentation_it/model/html/namespaces.html
 
-resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources"))
-unless File.exists? resources_path
-  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, "HPXMLtoOpenStudio/resources") # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
+resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../HPXMLtoOpenStudio/resources'))
+unless File.exist? resources_path
+  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources') # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
 end
-require File.join(resources_path, "constants")
-require File.join(resources_path, "geometry")
-require File.join(resources_path, "hvac")
+require File.join(resources_path, 'constants')
+require File.join(resources_path, 'geometry')
+require File.join(resources_path, 'hvac')
 
 # start the measure
 class ProcessUnitHeater < OpenStudio::Measure::ModelMeasure
   # define the name that a user will see, this method may be deprecated as
   # the display name in PAT comes from the name field in measure.xml
   def name
-    return "Set Residential Unit Heater"
+    return 'Set Residential Unit Heater'
   end
 
   def description
@@ -28,7 +28,7 @@ class ProcessUnitHeater < OpenStudio::Measure::ModelMeasure
   end
 
   def modeler_description
-    return "Any heating components or baseboard convective electrics/waters are removed from any existing air/plant loops or zones. Any existing air/plant loops are also removed. A unitary system with a fuel heating coil and an optional on/off fan are added to each zone."
+    return 'Any heating components or baseboard convective electrics/waters are removed from any existing air/plant loops or zones. Any existing air/plant loops are also removed. A unitary system with a fuel heating coil and an optional on/off fan are added to each zone.'
   end
 
   # define the arguments that the user will input
@@ -41,48 +41,48 @@ class ProcessUnitHeater < OpenStudio::Measure::ModelMeasure
     fuel_display_names << Constants.FuelTypeOil
     fuel_display_names << Constants.FuelTypePropane
     fuel_display_names << Constants.FuelTypeWood
-    fuel_type = OpenStudio::Measure::OSArgument::makeChoiceArgument("fuel_type", fuel_display_names, true)
-    fuel_type.setDisplayName("Fuel Type")
-    fuel_type.setDescription("Type of fuel used for heating.")
+    fuel_type = OpenStudio::Measure::OSArgument::makeChoiceArgument('fuel_type', fuel_display_names, true)
+    fuel_type.setDisplayName('Fuel Type')
+    fuel_type.setDescription('Type of fuel used for heating.')
     fuel_type.setDefaultValue(Constants.FuelTypeGas)
     args << fuel_type
 
     # make an argument for entering efficiency
-    efficiency = OpenStudio::Measure::OSArgument::makeDoubleArgument("efficiency", true)
-    efficiency.setDisplayName("Efficiency")
-    efficiency.setUnits("Btu/Btu")
-    efficiency.setDescription("The efficiency of the heater.")
+    efficiency = OpenStudio::Measure::OSArgument::makeDoubleArgument('efficiency', true)
+    efficiency.setDisplayName('Efficiency')
+    efficiency.setUnits('Btu/Btu')
+    efficiency.setDescription('The efficiency of the heater.')
     efficiency.setDefaultValue(0.78)
     args << efficiency
 
     # make an argument for entering fan power
-    fan_power = OpenStudio::Measure::OSArgument::makeDoubleArgument("fan_power", true)
-    fan_power.setDisplayName("Fan Power")
-    fan_power.setUnits("W/cfm")
-    fan_power.setDescription("Fan power (in W) per delivered airflow rate (in cfm) of the fan. A value of 0 implies there is no fan.")
+    fan_power = OpenStudio::Measure::OSArgument::makeDoubleArgument('fan_power', true)
+    fan_power.setDisplayName('Fan Power')
+    fan_power.setUnits('W/cfm')
+    fan_power.setDescription('Fan power (in W) per delivered airflow rate (in cfm) of the fan. A value of 0 implies there is no fan.')
     fan_power.setDefaultValue(0.0)
     args << fan_power
 
     # make an argument for entering airflow rate
-    airflow_rate = OpenStudio::Measure::OSArgument::makeDoubleArgument("airflow_rate", true)
-    airflow_rate.setDisplayName("Airflow Rate")
-    airflow_rate.setUnits("cfm/ton")
-    airflow_rate.setDescription("Fan airflow rate as a function of heating capacity. A value of 0 implies there is no fan.")
+    airflow_rate = OpenStudio::Measure::OSArgument::makeDoubleArgument('airflow_rate', true)
+    airflow_rate.setDisplayName('Airflow Rate')
+    airflow_rate.setUnits('cfm/ton')
+    airflow_rate.setDescription('Fan airflow rate as a function of heating capacity. A value of 0 implies there is no fan.')
     airflow_rate.setDefaultValue(0.0)
     args << airflow_rate
 
     # make a string argument for heating output capacity
-    capacity = OpenStudio::Measure::OSArgument::makeStringArgument("capacity", true)
-    capacity.setDisplayName("Heating Capacity")
+    capacity = OpenStudio::Measure::OSArgument::makeStringArgument('capacity', true)
+    capacity.setDisplayName('Heating Capacity')
     capacity.setDescription("The output heating capacity of the heater. If using '#{Constants.SizingAuto}', the autosizing algorithm will use ACCA Manual S to set the capacity.")
-    capacity.setUnits("kBtu/hr")
+    capacity.setUnits('kBtu/hr')
     capacity.setDefaultValue(Constants.SizingAuto)
     args << capacity
 
     # make a bool argument for open hvac flue
-    has_hvac_flue = OpenStudio::Measure::OSArgument::makeBoolArgument("has_hvac_flue", true)
-    has_hvac_flue.setDisplayName("Air Leakage: Has Open HVAC Flue")
-    has_hvac_flue.setDescription("Specifies whether the building has an open flue associated with the HVAC system.")
+    has_hvac_flue = OpenStudio::Measure::OSArgument::makeBoolArgument('has_hvac_flue', true)
+    has_hvac_flue.setDisplayName('Air Leakage: Has Open HVAC Flue')
+    has_hvac_flue.setDescription('Specifies whether the building has an open flue associated with the HVAC system.')
     has_hvac_flue.setDefaultValue(true)
     args << has_hvac_flue
 
@@ -98,15 +98,15 @@ class ProcessUnitHeater < OpenStudio::Measure::ModelMeasure
       return false
     end
 
-    fuel_type = runner.getStringArgumentValue("fuel_type", user_arguments)
-    efficiency = runner.getDoubleArgumentValue("efficiency", user_arguments)
-    capacity = runner.getStringArgumentValue("capacity", user_arguments)
+    fuel_type = runner.getStringArgumentValue('fuel_type', user_arguments)
+    efficiency = runner.getDoubleArgumentValue('efficiency', user_arguments)
+    capacity = runner.getStringArgumentValue('capacity', user_arguments)
     if not capacity == Constants.SizingAuto
-      capacity = UnitConversions.convert(capacity.to_f, "kBtu/hr", "Btu/hr")
+      capacity = UnitConversions.convert(capacity.to_f, 'kBtu/hr', 'Btu/hr')
     end
-    fan_power = runner.getDoubleArgumentValue("fan_power", user_arguments)
-    airflow_rate = runner.getDoubleArgumentValue("airflow_rate", user_arguments)
-    model.getBuilding.additionalProperties.setFeature("has_hvac_flue", runner.getBoolArgumentValue("has_hvac_flue", user_arguments))
+    fan_power = runner.getDoubleArgumentValue('fan_power', user_arguments)
+    airflow_rate = runner.getDoubleArgumentValue('airflow_rate', user_arguments)
+    model.getBuilding.additionalProperties.setFeature('has_hvac_flue', runner.getBoolArgumentValue('has_hvac_flue', user_arguments))
     frac_heat_load_served = 1.0
 
     # Get building units

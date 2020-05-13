@@ -1,19 +1,19 @@
 # see the URL below for information on how to write OpenStudio measures
 # http://nrel.github.io/OpenStudio-user-documentation/measures/measure_writing_guide/
 
-resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources"))
-unless File.exists? resources_path
-  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, "HPXMLtoOpenStudio/resources") # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
+resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../HPXMLtoOpenStudio/resources'))
+unless File.exist? resources_path
+  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources') # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
 end
-require File.join(resources_path, "constants")
-require File.join(resources_path, "geometry")
-require File.join(resources_path, "unit_conversions")
+require File.join(resources_path, 'constants')
+require File.join(resources_path, 'geometry')
+require File.join(resources_path, 'unit_conversions')
 
 # start the measure
 class CreateResidentialDoorArea < OpenStudio::Measure::ModelMeasure
   # human readable name
   def name
-    return "Set Residential Door Area"
+    return 'Set Residential Door Area'
   end
 
   # human readable description
@@ -23,7 +23,7 @@ class CreateResidentialDoorArea < OpenStudio::Measure::ModelMeasure
 
   # human readable description of modeling approach
   def modeler_description
-    return "Sets the opaque door area for the lowest above-grade front surface attached to living space. Any existing doors are removed. For multifamily buildings, doors are placed on corridor walls if available."
+    return 'Sets the opaque door area for the lowest above-grade front surface attached to living space. Any existing doors are removed. For multifamily buildings, doors are placed on corridor walls if available.'
   end
 
   # define the arguments that the user will input
@@ -31,10 +31,10 @@ class CreateResidentialDoorArea < OpenStudio::Measure::ModelMeasure
     args = OpenStudio::Measure::OSArgumentVector.new
 
     # make a double argument for door area
-    door_area = OpenStudio::Measure::OSArgument::makeDoubleArgument("door_area", true)
-    door_area.setDisplayName("Door Area")
-    door_area.setUnits("ft^2")
-    door_area.setDescription("The area of the opaque door(s). For multifamily buildings, applies to each unit.")
+    door_area = OpenStudio::Measure::OSArgument::makeDoubleArgument('door_area', true)
+    door_area.setDisplayName('Door Area')
+    door_area.setUnits('ft^2')
+    door_area.setDescription('The area of the opaque door(s). For multifamily buildings, applies to each unit.')
     door_area.setDefaultValue(20.0)
     args << door_area
 
@@ -50,16 +50,16 @@ class CreateResidentialDoorArea < OpenStudio::Measure::ModelMeasure
       return false
     end
 
-    door_area = runner.getDoubleArgumentValue("door_area", user_arguments)
+    door_area = runner.getDoubleArgumentValue('door_area', user_arguments)
 
     construction = nil
     warn_msg = nil
     model.getSubSurfaces.each do |sub_surface|
-      next if sub_surface.subSurfaceType.downcase != "door"
+      next if sub_surface.subSurfaceType.downcase != 'door'
 
       if sub_surface.construction.is_initialized
         if not construction.nil?
-          warn_msg = "Multiple constructions found. An arbitrary construction may be assigned to new door(s)."
+          warn_msg = 'Multiple constructions found. An arbitrary construction may be assigned to new door(s).'
         end
         construction = sub_surface.construction.get
       end
@@ -72,10 +72,10 @@ class CreateResidentialDoorArea < OpenStudio::Measure::ModelMeasure
 
     # error checking
     if door_area < 0
-      runner.registerError("Invalid door area.")
+      runner.registerError('Invalid door area.')
       return false
     elsif door_area == 0
-      runner.registerFinalCondition("No doors added because door area was set to 0.")
+      runner.registerFinalCondition('No doors added because door area was set to 0.')
       return true
     end
 
@@ -100,7 +100,7 @@ class CreateResidentialDoorArea < OpenStudio::Measure::ModelMeasure
 
           space.surfaces.each do |surface|
             next if Geometry.get_facade_for_surface(surface) != facade
-            next if surface.outsideBoundaryCondition.downcase != "outdoors"
+            next if surface.outsideBoundaryCondition.downcase != 'outdoors'
             next if (90 - surface.tilt * 180 / Math::PI).abs > 0.01 # Not a vertical wall
 
             avail_walls << surface
@@ -128,8 +128,8 @@ class CreateResidentialDoorArea < OpenStudio::Measure::ModelMeasure
       corridor_walls = []
       Geometry.get_finished_spaces(unit.spaces).each do |space|
         space.surfaces.each do |surface|
-          next unless surface.surfaceType.downcase == "wall"
-          next unless surface.outsideBoundaryCondition.downcase == "adiabatic"
+          next unless surface.surfaceType.downcase == 'wall'
+          next unless surface.outsideBoundaryCondition.downcase == 'adiabatic'
 
           model.getSpaces.each do |potential_corridor_space|
             next unless Geometry.is_corridor(potential_corridor_space)
@@ -165,13 +165,13 @@ class CreateResidentialDoorArea < OpenStudio::Measure::ModelMeasure
 
       unit_has_door = true
       if min_story_avail_walls.size == 0
-        runner.registerWarning("For #{unit.name.to_s}, could not find appropriate surface for the door. No door was added.")
+        runner.registerWarning("For #{unit.name}, could not find appropriate surface for the door. No door was added.")
         unit_has_door = false
       end
 
       door_sub_surface = nil
       min_story_avail_walls.each do |min_story_avail_wall|
-        wall_gross_area = UnitConversions.convert(min_story_avail_wall.grossArea, "m^2", "ft^2")
+        wall_gross_area = UnitConversions.convert(min_story_avail_wall.grossArea, 'm^2', 'ft^2')
 
         # Try to place door on any surface with enough area
         next if door_area >= wall_gross_area
@@ -185,7 +185,7 @@ class CreateResidentialDoorArea < OpenStudio::Measure::ModelMeasure
 
         num_existing_doors_on_this_surface = 0
         min_story_avail_wall.subSurfaces.each do |sub_surface|
-          if sub_surface.subSurfaceType.downcase == "door"
+          if sub_surface.subSurfaceType.downcase == 'door'
             num_existing_doors_on_this_surface += 1
           end
         end
@@ -212,7 +212,7 @@ class CreateResidentialDoorArea < OpenStudio::Measure::ModelMeasure
           multx = 0
           multy = 1
         end
-        if facade == Constants.FacadeBack or facade == Constants.FacadeLeft
+        if (facade == Constants.FacadeBack) || (facade == Constants.FacadeLeft)
           leftx = Geometry.getSurfaceXValues([min_story_avail_wall]).max
           lefty = Geometry.getSurfaceYValues([min_story_avail_wall]).max
         else
@@ -222,16 +222,16 @@ class CreateResidentialDoorArea < OpenStudio::Measure::ModelMeasure
         bottomz = Geometry.getSurfaceZValues([min_story_avail_wall]).min
 
         [upperleft, lowerleft, lowerright, upperright].each do |coord|
-          newx = UnitConversions.convert(leftx + multx * coord[0], "ft", "m")
-          newy = UnitConversions.convert(lefty + multy * coord[0], "ft", "m")
-          newz = UnitConversions.convert(bottomz + coord[1], "ft", "m")
+          newx = UnitConversions.convert(leftx + multx * coord[0], 'ft', 'm')
+          newy = UnitConversions.convert(lefty + multy * coord[0], 'ft', 'm')
+          newz = UnitConversions.convert(bottomz + coord[1], 'ft', 'm')
           door_vertex = OpenStudio::Point3d.new(newx, newy, newz)
           door_polygon << door_vertex
         end
 
         door_sub_surface = OpenStudio::Model::SubSurface.new(door_polygon, model)
-        door_sub_surface.setName("#{unit.name.to_s} - #{min_story_avail_wall.name} - Door")
-        door_sub_surface.setSubSurfaceType("Door")
+        door_sub_surface.setName("#{unit.name} - #{min_story_avail_wall.name} - Door")
+        door_sub_surface.setSubSurfaceType('Door')
         door_sub_surface.setSurface(min_story_avail_wall)
         if not construction.nil?
           door_sub_surface.setConstruction(construction)
@@ -241,10 +241,10 @@ class CreateResidentialDoorArea < OpenStudio::Measure::ModelMeasure
         break
       end
 
-      if door_sub_surface.nil? and unit_has_door
-        runner.registerWarning("For #{unit.name.to_s} could not find appropriate surface for the door. No door was added.")
+      if door_sub_surface.nil? && unit_has_door
+        runner.registerWarning("For #{unit.name} could not find appropriate surface for the door. No door was added.")
       elsif not door_sub_surface.nil?
-        runner.registerInfo("For #{unit.name.to_s} added #{door_area.round(1)} ft^2 door.")
+        runner.registerInfo("For #{unit.name} added #{door_area.round(1)} ft^2 door.")
       end
     end
 
