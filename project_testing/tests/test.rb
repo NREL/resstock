@@ -1,8 +1,6 @@
 require_relative '../../test/minitest_helper'
+require_relative '../../test/integrity_checks'
 require 'minitest/autorun'
-$LOAD_PATH.unshift File.join(File.dirname(__FILE__), "..", "..")
-load 'Rakefile'
-require 'json'
 
 class TestProjectTesting < MiniTest::Test
   def test_housing_characteristics

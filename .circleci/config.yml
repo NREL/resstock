@@ -9,22 +9,22 @@ jobs:
           name: Install gems
           command: |
             rm -f Gemfile.lock && bundle install
-      - run:
-          name: Apply rubocop
-          command: |
-            rubocop --format simple --only Layout --debug
-      - run:
-          name: Update all measures
-          command: |
-            rake update_measures
       - run: 
           name: Regenerate test osms
           command: |
             rake test:regenerate_osms
+      - run:
+          name: Run all integrity checks
+          command: |
+            rake test:integrity_checks
       - run: 
           name: Run all unit tests
           command: |
             rake test:unit_tests
+      - run: 
+          name: Run measures osw test
+          command: |
+            rake test:measures_osw
       - run:
           name: Run all regression tests
           command: |

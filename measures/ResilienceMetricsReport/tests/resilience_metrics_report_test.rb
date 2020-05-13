@@ -8,19 +8,19 @@ require 'fileutils'
 class ResilienceMetricsReportTest < MiniTest::Test
   def test_argument_error
     args_hash = {}
-    args_hash["output_vars"] = "Zone Mean Air Temperature, Zone Air Relative Humidity"
-    args_hash["min_vals"] = "60, 5, 0"
-    args_hash["max_vals"] = "80, 60, 0"
+    args_hash['output_vars'] = 'Zone Mean Air Temperature, Zone Air Relative Humidity'
+    args_hash['min_vals'] = '60, 5, 0'
+    args_hash['max_vals'] = '80, 60, 0'
     result = _test_error(args_hash)
-    assert_includes(result.errors.map { |x| x.logMessage }, "Number of output variable elements specified inconsistent with either number of minimum or maximum values.")
+    assert_includes(result.errors.map { |x| x.logMessage }, 'Number of output variable elements specified inconsistent with either number of minimum or maximum values.')
   end
 
   def test_resilience_metrics
     resilience_metrics = {
       # output_var=>[timeseries, min_val, max_val, hours_spent_below, hours_spent_above, ix_outage_start, ix_outage_end]
-      "Zone Mean Air Temperature" => [[4.4] * 8760, 60, 80, 16, 0, 10, 25],
-      "Zone Air Relative Humidity" => [[60] * 8760, "NA", 60, nil, 0, 0, 24],
-      "Wetbulb Globe Temperature" => [[32] * 8760, "NA", 88, nil, 49, 24, 72]
+      'Zone Mean Air Temperature' => [[4.4] * 8760, 60, 80, 16, 0, 10, 25],
+      'Zone Air Relative Humidity' => [[60] * 8760, 'NA', 60, nil, 0, 0, 24],
+      'Wetbulb Globe Temperature' => [[32] * 8760, 'NA', 88, nil, 49, 24, 72]
     }
     _test_resilience_metrics(resilience_metrics)
   end
@@ -28,9 +28,9 @@ class ResilienceMetricsReportTest < MiniTest::Test
   def test_coast_times
     coast_times = {
       # output_var=>[timeseries, min_val, max_val, hours_until_below, hours_until_above, ix_outage_start, ix_outage_end]
-      "Zone Mean Air Temperature" => [[-6.6] * 10 + [0] * 8750, 60, 80, 1, nil, 0, 24],
-      "Zone Air Relative Humidity" => [[50] * 100 + [65] * 8660, "NA", 60, nil, 21, 80, 120],
-      "Wetbulb Globe Temperature" => [[29.4] * 5 + [32] * 8755, "NA", 88, nil, 3, 3, 24]
+      'Zone Mean Air Temperature' => [[-6.6] * 10 + [0] * 8750, 60, 80, 1, nil, 0, 24],
+      'Zone Air Relative Humidity' => [[50] * 100 + [65] * 8660, 'NA', 60, nil, 21, 80, 120],
+      'Wetbulb Globe Temperature' => [[29.4] * 5 + [32] * 8755, 'NA', 88, nil, 3, 3, 24]
     }
     _test_coast_times(coast_times)
   end
@@ -38,7 +38,7 @@ class ResilienceMetricsReportTest < MiniTest::Test
   def test_end_of_outage_vals
     end_of_outage_vals = {
       # output_var=>[timeseries, end_of_outage_val, ix_outage_end]
-      "End Of Outage Indoor Drybulb Temperature" => [[29.4] * 50 + [32] * 8710, 90, 60]
+      'End Of Outage Indoor Drybulb Temperature' => [[29.4] * 50 + [32] * 8710, 90, 60]
     }
     _test_end_of_outage_vals(end_of_outage_vals)
   end
@@ -46,7 +46,7 @@ class ResilienceMetricsReportTest < MiniTest::Test
   def test_calc_maximum_during_outage_vals
     maximum_wetbulb_globe_temperature_during_outage_vals = {
       # output_var=>[timeseries, maximum_wetbulb_globe_temperature_during_outage_val, ix_outage_start, ix_outage_end]
-      "Maximum Wetbulb Globe Temperature During Outage" => [[29.4] * 50 + [32] * 8710, 90, 40, 60]
+      'Maximum Wetbulb Globe Temperature During Outage' => [[29.4] * 50 + [32] * 8710, 90, 40, 60]
     }
     _test_maximum_wetbulb_globe_temperature_during_outage_vals(maximum_wetbulb_globe_temperature_during_outage_vals)
   end
@@ -54,7 +54,7 @@ class ResilienceMetricsReportTest < MiniTest::Test
   def test_calc_minimum_during_outage_vals
     minimum_indoor_drybulb_temperature_during_outage_vals = {
       # output_var=>[timeseries, minimum_indoor_drybulb_temperature_during_outage_val, ix_outage_start, ix_outage_end]
-      "Minimum Indoor Drybulb Temperature During Outage" => [[29.4] * 50 + [32] * 8710, 85, 40, 60]
+      'Minimum Indoor Drybulb Temperature During Outage' => [[29.4] * 50 + [32] * 8710, 85, 40, 60]
     }
     _test_minimum_indoor_drybulb_temperature_during_outage_vals(minimum_indoor_drybulb_temperature_during_outage_vals)
   end
@@ -65,7 +65,7 @@ class ResilienceMetricsReportTest < MiniTest::Test
     expected_num_del_objects = {}
     expected_num_new_objects = {}
     expected_values = {}
-    _test_measure("SFD_Successful_EnergyPlus_Run_TMY_Outages.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__, "USA_CO_Denver.Intl.AP.725650_TMY3.epw", 11, 0, 5)
+    _test_measure('SFD_Successful_EnergyPlus_Run_TMY_Outages.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__, 'USA_CO_Denver.Intl.AP.725650_TMY3.epw', 11, 0, 5)
   end
 
   private
@@ -176,14 +176,14 @@ class ResilienceMetricsReportTest < MiniTest::Test
     show_output(result) unless result.value.valueName == 'Fail'
 
     # assert that it didn't run
-    assert_equal("Fail", result.value.valueName)
+    assert_equal('Fail', result.value.valueName)
     assert(result.errors.size == 1)
 
     return result
   end
 
   def model_in_path_default(osm_file_or_model)
-    return File.absolute_path(File.join(File.dirname(__FILE__), "..", "..", "..", "test", "osm_files", osm_file_or_model))
+    return File.absolute_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'test', 'osm_files', osm_file_or_model))
   end
 
   def epw_path_default(epw_name)
@@ -214,7 +214,7 @@ class ResilienceMetricsReportTest < MiniTest::Test
   # create test files if they do not exist when the test first runs
   def setup_test(osm_file_or_model, test_name, idf_output_requests, epw_path, model_in_path)
     # convert output requests to OSM for testing, OS App and PAT will add these to the E+ Idf
-    workspace = OpenStudio::Workspace.new("Draft".to_StrictnessLevel, "EnergyPlus".to_IddFileType)
+    workspace = OpenStudio::Workspace.new('Draft'.to_StrictnessLevel, 'EnergyPlus'.to_IddFileType)
     workspace.addObjects(idf_output_requests)
     rt = OpenStudio::EnergyPlus::ReverseTranslator.new
     request_model = rt.translateWorkspace(workspace)
@@ -226,7 +226,7 @@ class ResilienceMetricsReportTest < MiniTest::Test
     model.addObjects(request_model.objects)
     model.save(model_out_path(osm_file_or_model, test_name), true)
 
-    osw_path = File.join(run_dir(test_name), "in.osw")
+    osw_path = File.join(run_dir(test_name), 'in.osw')
     osw_path = File.absolute_path(osw_path)
 
     workflow = OpenStudio::WorkflowJSON.new
@@ -317,7 +317,7 @@ class ResilienceMetricsReportTest < MiniTest::Test
     end
 
     # assert that it ran correctly
-    assert_equal("Success", result.value.valueName)
+    assert_equal('Success', result.value.valueName)
     assert_equal(num_infos, result.info.size)
     assert_equal(num_warnings, result.warnings.size)
 

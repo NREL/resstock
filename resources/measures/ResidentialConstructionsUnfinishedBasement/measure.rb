@@ -1,21 +1,21 @@
 # see the URL below for information on how to write OpenStudio measures
 # http://nrel.github.io/OpenStudio-user-documentation/reference/measure_writing_guide/
 
-resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources"))
-unless File.exists? resources_path
-  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, "HPXMLtoOpenStudio/resources") # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
+resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../HPXMLtoOpenStudio/resources'))
+unless File.exist? resources_path
+  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources') # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
 end
-require File.join(resources_path, "util")
-require File.join(resources_path, "constants")
-require File.join(resources_path, "geometry")
-require File.join(resources_path, "constructions")
+require File.join(resources_path, 'util')
+require File.join(resources_path, 'constants')
+require File.join(resources_path, 'geometry')
+require File.join(resources_path, 'constructions')
 
 # start the measure
 class ProcessConstructionsUnfinishedBasement < OpenStudio::Measure::ModelMeasure
   # define the name that a user will see, this method may be deprecated as
   # the display name in PAT comes from the name field in measure.xml
   def name
-    return "Set Residential Unfinished Basement Constructions"
+    return 'Set Residential Unfinished Basement Constructions'
   end
 
   def description
@@ -23,7 +23,7 @@ class ProcessConstructionsUnfinishedBasement < OpenStudio::Measure::ModelMeasure
   end
 
   def modeler_description
-    return "Calculates and assigns material layer properties of constructions for unfinished basement: 1) ceilings, 2) walls, and 3) floors. Any existing constructions for these surfaces will be removed."
+    return 'Calculates and assigns material layer properties of constructions for unfinished basement: 1) ceilings, 2) walls, and 3) floors. Any existing constructions for these surfaces will be removed.'
   end
 
   # define the arguments that the user will input
@@ -31,107 +31,107 @@ class ProcessConstructionsUnfinishedBasement < OpenStudio::Measure::ModelMeasure
     args = OpenStudio::Measure::OSArgumentVector.new
 
     # make a double argument for wall insulation height
-    wall_ins_height = OpenStudio::Measure::OSArgument::makeDoubleArgument("wall_ins_height", true)
-    wall_ins_height.setDisplayName("Wall Insulation Height")
-    wall_ins_height.setUnits("ft")
-    wall_ins_height.setDescription("Height of the insulation on the basement wall.")
+    wall_ins_height = OpenStudio::Measure::OSArgument::makeDoubleArgument('wall_ins_height', true)
+    wall_ins_height.setDisplayName('Wall Insulation Height')
+    wall_ins_height.setUnits('ft')
+    wall_ins_height.setDescription('Height of the insulation on the basement wall.')
     wall_ins_height.setDefaultValue(8)
     args << wall_ins_height
 
     # make a double argument for wall cavity R-value
-    wall_cavity_r = OpenStudio::Measure::OSArgument::makeDoubleArgument("wall_cavity_r", true)
-    wall_cavity_r.setDisplayName("Wall Cavity Insulation Installed R-value")
-    wall_cavity_r.setUnits("h-ft^2-R/Btu")
-    wall_cavity_r.setDescription("Refers to the R-value of the cavity insulation as installed and not the overall R-value of the assembly. If batt insulation must be compressed to fit within the cavity (e.g. R19 in a 5.5\" 2x6 cavity), use an R-value that accounts for this effect (see HUD Mobile Home Construction and Safety Standards 3280.509 for reference).")
+    wall_cavity_r = OpenStudio::Measure::OSArgument::makeDoubleArgument('wall_cavity_r', true)
+    wall_cavity_r.setDisplayName('Wall Cavity Insulation Installed R-value')
+    wall_cavity_r.setUnits('h-ft^2-R/Btu')
+    wall_cavity_r.setDescription('Refers to the R-value of the cavity insulation as installed and not the overall R-value of the assembly. If batt insulation must be compressed to fit within the cavity (e.g. R19 in a 5.5" 2x6 cavity), use an R-value that accounts for this effect (see HUD Mobile Home Construction and Safety Standards 3280.509 for reference).')
     wall_cavity_r.setDefaultValue(0)
     args << wall_cavity_r
 
     # make a choice argument for wall cavity insulation installation grade
     installgrade_display_names = OpenStudio::StringVector.new
-    installgrade_display_names << "1"
-    installgrade_display_names << "2"
-    installgrade_display_names << "3"
-    wall_install_grade = OpenStudio::Measure::OSArgument::makeChoiceArgument("wall_install_grade", installgrade_display_names, true)
-    wall_install_grade.setDisplayName("Wall Cavity Install Grade")
-    wall_install_grade.setDescription("Installation grade as defined by RESNET standard. 5% of the cavity is considered missing insulation for Grade 3, 2% for Grade 2, and 0% for Grade 1.")
-    wall_install_grade.setDefaultValue("1")
+    installgrade_display_names << '1'
+    installgrade_display_names << '2'
+    installgrade_display_names << '3'
+    wall_install_grade = OpenStudio::Measure::OSArgument::makeChoiceArgument('wall_install_grade', installgrade_display_names, true)
+    wall_install_grade.setDisplayName('Wall Cavity Install Grade')
+    wall_install_grade.setDescription('Installation grade as defined by RESNET standard. 5% of the cavity is considered missing insulation for Grade 3, 2% for Grade 2, and 0% for Grade 1.')
+    wall_install_grade.setDefaultValue('1')
     args << wall_install_grade
 
     # make a double argument for wall cavity depth
-    wall_cavity_depth_in = OpenStudio::Measure::OSArgument::makeDoubleArgument("wall_cavity_depth_in", true)
-    wall_cavity_depth_in.setDisplayName("Wall Cavity Depth")
-    wall_cavity_depth_in.setUnits("in")
-    wall_cavity_depth_in.setDescription("Depth of the stud cavity. 3.5\" for 2x4s, 5.5\" for 2x6s, etc.")
+    wall_cavity_depth_in = OpenStudio::Measure::OSArgument::makeDoubleArgument('wall_cavity_depth_in', true)
+    wall_cavity_depth_in.setDisplayName('Wall Cavity Depth')
+    wall_cavity_depth_in.setUnits('in')
+    wall_cavity_depth_in.setDescription('Depth of the stud cavity. 3.5" for 2x4s, 5.5" for 2x6s, etc.')
     wall_cavity_depth_in.setDefaultValue(0)
     args << wall_cavity_depth_in
 
     # make a bool argument for whether the cavity insulation fills the wall cavity
-    wall_filled_cavity = OpenStudio::Measure::OSArgument::makeBoolArgument("wall_filled_cavity", true)
-    wall_filled_cavity.setDisplayName("Wall Insulation Fills Cavity")
-    wall_filled_cavity.setDescription("When the insulation does not completely fill the depth of the cavity, air film resistances are added to the insulation R-value.")
+    wall_filled_cavity = OpenStudio::Measure::OSArgument::makeBoolArgument('wall_filled_cavity', true)
+    wall_filled_cavity.setDisplayName('Wall Insulation Fills Cavity')
+    wall_filled_cavity.setDescription('When the insulation does not completely fill the depth of the cavity, air film resistances are added to the insulation R-value.')
     wall_filled_cavity.setDefaultValue(false)
     args << wall_filled_cavity
 
     # make a double argument for wall framing factor
-    wall_framing_factor = OpenStudio::Measure::OSArgument::makeDoubleArgument("wall_framing_factor", true)
-    wall_framing_factor.setDisplayName("Wall Framing Factor")
-    wall_framing_factor.setUnits("frac")
-    wall_framing_factor.setDescription("The fraction of a basement wall assembly that is comprised of structural framing.")
+    wall_framing_factor = OpenStudio::Measure::OSArgument::makeDoubleArgument('wall_framing_factor', true)
+    wall_framing_factor.setDisplayName('Wall Framing Factor')
+    wall_framing_factor.setUnits('frac')
+    wall_framing_factor.setDescription('The fraction of a basement wall assembly that is comprised of structural framing.')
     wall_framing_factor.setDefaultValue(0)
     args << wall_framing_factor
 
     # make a double argument for wall continuous insulation R-value
-    wall_rigid_r = OpenStudio::Measure::OSArgument::makeDoubleArgument("wall_rigid_r", true)
-    wall_rigid_r.setDisplayName("Wall Continuous Insulation Nominal R-value")
-    wall_rigid_r.setUnits("hr-ft^2-R/Btu")
-    wall_rigid_r.setDescription("The R-value of the continuous insulation.")
+    wall_rigid_r = OpenStudio::Measure::OSArgument::makeDoubleArgument('wall_rigid_r', true)
+    wall_rigid_r.setDisplayName('Wall Continuous Insulation Nominal R-value')
+    wall_rigid_r.setUnits('hr-ft^2-R/Btu')
+    wall_rigid_r.setDescription('The R-value of the continuous insulation.')
     wall_rigid_r.setDefaultValue(10.0)
     args << wall_rigid_r
 
     # make a double argument for wall drywall thickness
-    wall_drywall_thick_in = OpenStudio::Measure::OSArgument::makeDoubleArgument("wall_drywall_thick_in", true)
-    wall_drywall_thick_in.setDisplayName("Wall Drywall Thickness")
-    wall_drywall_thick_in.setUnits("in")
-    wall_drywall_thick_in.setDescription("Thickness of the wall drywall material.")
+    wall_drywall_thick_in = OpenStudio::Measure::OSArgument::makeDoubleArgument('wall_drywall_thick_in', true)
+    wall_drywall_thick_in.setDisplayName('Wall Drywall Thickness')
+    wall_drywall_thick_in.setUnits('in')
+    wall_drywall_thick_in.setDescription('Thickness of the wall drywall material.')
     wall_drywall_thick_in.setDefaultValue(0)
     args << wall_drywall_thick_in
 
     # make a double argument for ceiling cavity R-value
-    ceiling_cavity_r = OpenStudio::Measure::OSArgument::makeDoubleArgument("ceiling_cavity_r", true)
-    ceiling_cavity_r.setDisplayName("Ceiling Cavity Insulation Nominal R-value")
-    ceiling_cavity_r.setUnits("h-ft^2-R/Btu")
-    ceiling_cavity_r.setDescription("Refers to the R-value of the cavity insulation and not the overall R-value of the assembly.")
+    ceiling_cavity_r = OpenStudio::Measure::OSArgument::makeDoubleArgument('ceiling_cavity_r', true)
+    ceiling_cavity_r.setDisplayName('Ceiling Cavity Insulation Nominal R-value')
+    ceiling_cavity_r.setUnits('h-ft^2-R/Btu')
+    ceiling_cavity_r.setDescription('Refers to the R-value of the cavity insulation and not the overall R-value of the assembly.')
     ceiling_cavity_r.setDefaultValue(0)
     args << ceiling_cavity_r
 
     # make a choice argument for ceiling cavity insulation installation grade
-    ceiling_install_grade = OpenStudio::Measure::OSArgument::makeChoiceArgument("ceiling_install_grade", installgrade_display_names, true)
-    ceiling_install_grade.setDisplayName("Ceiling Cavity Install Grade")
-    ceiling_install_grade.setDescription("Installation grade as defined by RESNET standard. 5% of the cavity is considered missing insulation for Grade 3, 2% for Grade 2, and 0% for Grade 1.")
-    ceiling_install_grade.setDefaultValue("1")
+    ceiling_install_grade = OpenStudio::Measure::OSArgument::makeChoiceArgument('ceiling_install_grade', installgrade_display_names, true)
+    ceiling_install_grade.setDisplayName('Ceiling Cavity Install Grade')
+    ceiling_install_grade.setDescription('Installation grade as defined by RESNET standard. 5% of the cavity is considered missing insulation for Grade 3, 2% for Grade 2, and 0% for Grade 1.')
+    ceiling_install_grade.setDefaultValue('1')
     args << ceiling_install_grade
 
     # make a choice argument for ceiling framing factor
-    ceiling_framing_factor = OpenStudio::Measure::OSArgument::makeDoubleArgument("ceiling_framing_factor", true)
-    ceiling_framing_factor.setDisplayName("Ceiling Framing Factor")
-    ceiling_framing_factor.setUnits("frac")
-    ceiling_framing_factor.setDescription("Fraction of ceiling that is framing.")
+    ceiling_framing_factor = OpenStudio::Measure::OSArgument::makeDoubleArgument('ceiling_framing_factor', true)
+    ceiling_framing_factor.setDisplayName('Ceiling Framing Factor')
+    ceiling_framing_factor.setUnits('frac')
+    ceiling_framing_factor.setDescription('Fraction of ceiling that is framing.')
     ceiling_framing_factor.setDefaultValue(0.13)
     args << ceiling_framing_factor
 
     # make a choice argument for ceiling joist height
-    ceiling_joist_height_in = OpenStudio::Measure::OSArgument::makeDoubleArgument("ceiling_joist_height_in", true)
-    ceiling_joist_height_in.setDisplayName("Ceiling Joist Height")
-    ceiling_joist_height_in.setUnits("in")
-    ceiling_joist_height_in.setDescription("Height of the joist member.")
+    ceiling_joist_height_in = OpenStudio::Measure::OSArgument::makeDoubleArgument('ceiling_joist_height_in', true)
+    ceiling_joist_height_in.setDisplayName('Ceiling Joist Height')
+    ceiling_joist_height_in.setUnits('in')
+    ceiling_joist_height_in.setDescription('Height of the joist member.')
     ceiling_joist_height_in.setDefaultValue(9.25)
     args << ceiling_joist_height_in
 
     # make a double argument for slab insulation R-value
-    slab_whole_r = OpenStudio::Measure::OSArgument::makeDoubleArgument("slab_whole_r", true)
-    slab_whole_r.setDisplayName("Whole Slab Insulation Nominal R-value")
-    slab_whole_r.setUnits("h-ft^2-R/Btu")
-    slab_whole_r.setDescription("The R-value of the continuous insulation.")
+    slab_whole_r = OpenStudio::Measure::OSArgument::makeDoubleArgument('slab_whole_r', true)
+    slab_whole_r.setDisplayName('Whole Slab Insulation Nominal R-value')
+    slab_whole_r.setUnits('h-ft^2-R/Btu')
+    slab_whole_r.setDescription('The R-value of the continuous insulation.')
     slab_whole_r.setDefaultValue(0)
     args << slab_whole_r
 
@@ -151,19 +151,19 @@ class ProcessConstructionsUnfinishedBasement < OpenStudio::Measure::ModelMeasure
     floors_by_type = SurfaceTypes.get_floors(model, runner)
 
     # Get Inputs
-    wall_ins_height = runner.getDoubleArgumentValue("wall_ins_height", user_arguments)
-    wall_cavity_r = runner.getDoubleArgumentValue("wall_cavity_r", user_arguments)
-    wall_install_grade = runner.getStringArgumentValue("wall_install_grade", user_arguments).to_i
-    wall_cavity_depth_in = runner.getDoubleArgumentValue("wall_cavity_depth_in", user_arguments)
-    wall_filled_cavity = runner.getBoolArgumentValue("wall_filled_cavity", user_arguments)
-    wall_framing_factor = runner.getDoubleArgumentValue("wall_framing_factor", user_arguments)
-    wall_rigid_r = runner.getDoubleArgumentValue("wall_rigid_r", user_arguments)
-    wall_drywall_thick_in = runner.getDoubleArgumentValue("wall_drywall_thick_in", user_arguments)
-    ceiling_cavity_r = runner.getDoubleArgumentValue("ceiling_cavity_r", user_arguments)
-    ceiling_install_grade = runner.getStringArgumentValue("ceiling_install_grade", user_arguments).to_i
-    ceiling_framing_factor = runner.getDoubleArgumentValue("ceiling_framing_factor", user_arguments)
-    ceiling_joist_height_in = runner.getDoubleArgumentValue("ceiling_joist_height_in", user_arguments)
-    slab_whole_r = runner.getDoubleArgumentValue("slab_whole_r", user_arguments)
+    wall_ins_height = runner.getDoubleArgumentValue('wall_ins_height', user_arguments)
+    wall_cavity_r = runner.getDoubleArgumentValue('wall_cavity_r', user_arguments)
+    wall_install_grade = runner.getStringArgumentValue('wall_install_grade', user_arguments).to_i
+    wall_cavity_depth_in = runner.getDoubleArgumentValue('wall_cavity_depth_in', user_arguments)
+    wall_filled_cavity = runner.getBoolArgumentValue('wall_filled_cavity', user_arguments)
+    wall_framing_factor = runner.getDoubleArgumentValue('wall_framing_factor', user_arguments)
+    wall_rigid_r = runner.getDoubleArgumentValue('wall_rigid_r', user_arguments)
+    wall_drywall_thick_in = runner.getDoubleArgumentValue('wall_drywall_thick_in', user_arguments)
+    ceiling_cavity_r = runner.getDoubleArgumentValue('ceiling_cavity_r', user_arguments)
+    ceiling_install_grade = runner.getStringArgumentValue('ceiling_install_grade', user_arguments).to_i
+    ceiling_framing_factor = runner.getDoubleArgumentValue('ceiling_framing_factor', user_arguments)
+    ceiling_joist_height_in = runner.getDoubleArgumentValue('ceiling_joist_height_in', user_arguments)
+    slab_whole_r = runner.getDoubleArgumentValue('slab_whole_r', user_arguments)
 
     spaces = Geometry.get_unfinished_basement_spaces(model.getSpaces)
     basement_height = Geometry.spaces_avg_height(spaces)

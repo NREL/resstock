@@ -1,18 +1,18 @@
 # see the URL below for information on how to write OpenStudio measures
 # http://nrel.github.io/OpenStudio-user-documentation/measures/measure_writing_guide/
 
-resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources"))
-unless File.exists? resources_path
-  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, "HPXMLtoOpenStudio/resources") # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
+resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../HPXMLtoOpenStudio/resources'))
+unless File.exist? resources_path
+  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources') # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
 end
-require File.join(resources_path, "constants")
-require File.join(resources_path, "location")
+require File.join(resources_path, 'constants')
+require File.join(resources_path, 'location')
 
 # start the measure
 class SetResidentialEPWFile < OpenStudio::Measure::ModelMeasure
   # human readable name
   def name
-    return "Set Residential Location"
+    return 'Set Residential Location'
   end
 
   # human readable description
@@ -22,33 +22,33 @@ class SetResidentialEPWFile < OpenStudio::Measure::ModelMeasure
 
   # human readable description of modeling approach
   def modeler_description
-    return "Sets the weather file, Building America climate zone, site information (e.g., latitude, longitude, elevation, timezone), design day information (from the DDY file), the mains water temperature using the correlation method, and the daylight saving time start/end dates."
+    return 'Sets the weather file, Building America climate zone, site information (e.g., latitude, longitude, elevation, timezone), design day information (from the DDY file), the mains water temperature using the correlation method, and the daylight saving time start/end dates.'
   end
 
   # define the arguments that the user will input
   def arguments(model)
     args = OpenStudio::Measure::OSArgumentVector.new
 
-    arg = OpenStudio::Measure::OSArgument.makeStringArgument("weather_directory", true)
-    arg.setDisplayName("Weather Directory")
-    arg.setDescription("Absolute (or relative) directory to weather files.")
-    arg.setDefaultValue("../HPXMLtoOpenStudio/weather")
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('weather_directory', true)
+    arg.setDisplayName('Weather Directory')
+    arg.setDescription('Absolute (or relative) directory to weather files.')
+    arg.setDefaultValue('../HPXMLtoOpenStudio/weather')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument.makeStringArgument("weather_file_name", true)
-    arg.setDisplayName("Weather File Name")
-    arg.setDescription("Name of the EPW weather file to assign. The corresponding DDY file must also be in the same directory.")
-    arg.setDefaultValue("USA_CO_Denver.Intl.AP.725650_TMY3.epw")
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('weather_file_name', true)
+    arg.setDisplayName('Weather File Name')
+    arg.setDescription('Name of the EPW weather file to assign. The corresponding DDY file must also be in the same directory.')
+    arg.setDefaultValue('USA_CO_Denver.Intl.AP.725650_TMY3.epw')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument.makeStringArgument("dst_start_date", true)
-    arg.setDisplayName("Daylight Saving Start Date")
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('dst_start_date', true)
+    arg.setDisplayName('Daylight Saving Start Date')
     arg.setDescription("Set to 'NA' if no daylight saving. For TMY weather, a value of '#{Constants.Auto}' will correspond to 'April 7'. For AMY weather, a value of '#{Constants.Auto}' will correspond to the daylight saving start date found in the header of the epw file, if it exists; if it doesn't, 'NA' will be used.")
     arg.setDefaultValue(Constants.Auto)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument.makeStringArgument("dst_end_date", true)
-    arg.setDisplayName("Daylight Saving End Date")
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('dst_end_date', true)
+    arg.setDisplayName('Daylight Saving End Date')
     arg.setDescription("Set to 'NA' if no daylight saving. For TMY weather, a value of '#{Constants.Auto}' will correspond to 'October 26'. For AMY weather, a value of '#{Constants.Auto}' will correspond to the daylight saving end date found in the header of the epw file, if it exists; if it doesn't, 'NA' will be used.")
     arg.setDefaultValue(Constants.Auto)
     args << arg
@@ -66,16 +66,16 @@ class SetResidentialEPWFile < OpenStudio::Measure::ModelMeasure
     end
 
     # grab the initial weather file
-    weather_directory = runner.getStringArgumentValue("weather_directory", user_arguments)
-    weather_file_name = runner.getStringArgumentValue("weather_file_name", user_arguments)
-    dst_start_date = runner.getStringArgumentValue("dst_start_date", user_arguments)
-    dst_end_date = runner.getStringArgumentValue("dst_end_date", user_arguments)
+    weather_directory = runner.getStringArgumentValue('weather_directory', user_arguments)
+    weather_file_name = runner.getStringArgumentValue('weather_file_name', user_arguments)
+    dst_start_date = runner.getStringArgumentValue('dst_start_date', user_arguments)
+    dst_end_date = runner.getStringArgumentValue('dst_end_date', user_arguments)
 
     # check arguments
-    if (dst_start_date == Constants.Auto and dst_end_date != Constants.Auto) or
-       (dst_start_date != Constants.Auto and dst_end_date == Constants.Auto) or
-       (dst_start_date.downcase == 'na' and dst_end_date.downcase != 'na') or
-       (dst_start_date.downcase != 'na' and dst_end_date.downcase == 'na')
+    if ((dst_start_date == Constants.Auto) && (dst_end_date != Constants.Auto)) ||
+       ((dst_start_date != Constants.Auto) && (dst_end_date == Constants.Auto)) ||
+       ((dst_start_date.downcase == 'na') && (dst_end_date.downcase != 'na')) ||
+       ((dst_start_date.downcase != 'na') && (dst_end_date.downcase == 'na'))
       runner.registerError("Invalid daylight saving argument values entered: dst_start_date='#{dst_start_date}' and dst_end_date='#{dst_end_date}'.")
       return false
     end
@@ -93,7 +93,7 @@ class SetResidentialEPWFile < OpenStudio::Measure::ModelMeasure
     if site.weatherFile.is_initialized
       runner.registerFinalCondition("The weather file path is '#{site.weatherFile.get.path.get}'.")
     else
-      runner.registerFinalCondition("The weather file has not been set.")
+      runner.registerFinalCondition('The weather file has not been set.')
     end
 
     return true
