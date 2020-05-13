@@ -43,14 +43,14 @@ class SetResidentialEPWFile < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument.makeStringArgument("dst_start_date", true)
     arg.setDisplayName("Daylight Saving Start Date")
-    arg.setDescription("Set to 'NA' if no daylight saving. If you are running simulations with daylight saving start/end dates stored in the weather file headers, the value entered for daylight saving start date year will not be used (e.g., AMY weather files); it will be overridden by the daylight saving start date found in the weather file.")
-    arg.setDefaultValue("April 7")
+    arg.setDescription("Set to 'NA' if no daylight saving. For TMY weather, a value of '#{Constants.Auto}' will correspond to 'April 7'. For AMY weather, a value of '#{Constants.Auto}' will correspond to the daylight saving start date found in the header of the epw file, if it exists; if it doesn't, 'NA' will be used.")
+    arg.setDefaultValue(Constants.Auto)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument.makeStringArgument("dst_end_date", true)
     arg.setDisplayName("Daylight Saving End Date")
-    arg.setDescription("Set to 'NA' if no daylight saving. If you are running simulations with daylight saving start/end dates stored in the weather file headers, the value entered for daylight saving end date year will not be used (e.g., AMY weather files); it will be overridden by the daylight saving end date found in the weather file.")
-    arg.setDefaultValue("October 26")
+    arg.setDescription("Set to 'NA' if no daylight saving. For TMY weather, a value of '#{Constants.Auto}' will correspond to 'October 26'. For AMY weather, a value of '#{Constants.Auto}' will correspond to the daylight saving end date found in the header of the epw file, if it exists; if it doesn't, 'NA' will be used.")
+    arg.setDefaultValue(Constants.Auto)
     args << arg
 
     return args
@@ -70,6 +70,15 @@ class SetResidentialEPWFile < OpenStudio::Measure::ModelMeasure
     weather_file_name = runner.getStringArgumentValue("weather_file_name", user_arguments)
     dst_start_date = runner.getStringArgumentValue("dst_start_date", user_arguments)
     dst_end_date = runner.getStringArgumentValue("dst_end_date", user_arguments)
+
+    # check arguments
+    if (dst_start_date == Constants.Auto and dst_end_date != Constants.Auto) or
+       (dst_start_date != Constants.Auto and dst_end_date == Constants.Auto) or
+       (dst_start_date.downcase == 'na' and dst_end_date.downcase != 'na') or
+       (dst_start_date.downcase != 'na' and dst_end_date.downcase == 'na')
+      runner.registerError("Invalid daylight saving argument values entered: dst_start_date='#{dst_start_date}' and dst_end_date='#{dst_end_date}'.")
+      return false
+    end
 
     unless (Pathname.new weather_directory).absolute?
       weather_directory = File.expand_path(File.join(File.dirname(__FILE__), weather_directory))

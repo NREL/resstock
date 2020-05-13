@@ -111,39 +111,37 @@ class Location
   end
 
   def self.apply_dst(model, runner, epw_file, dst_start_date, dst_end_date)
+    if dst_start_date == Constants.Auto and dst_end_date == Constants.Auto
+      if not epw_file.startDateActualYear.is_initialized # TMY
+        dst_start_date = 'April 7'
+        dst_end_date = 'October 26'
+      else # AMY
+        if not (epw_file.daylightSavingStartDate.is_initialized and epw_file.daylightSavingEndDate.is_initialized)
+          runner.registerWarning("Could not find daylight saving start/end dates in epw header.")
+          dst_start_date = 'NA'
+          dst_end_date = 'NA'
+        else
+          dst_start_date = epw_file.daylightSavingStartDate.get
+          dst_start_date = "#{Constants.MonthNames[dst_start_date.monthOfYear.value-1]} #{dst_start_date.dayOfMonth}"
+          dst_end_date = epw_file.daylightSavingEndDate.get
+          dst_end_date = "#{Constants.MonthNames[dst_end_date.monthOfYear.value-1]} #{dst_end_date.dayOfMonth}"
+        end
+      end
+    end
+
     if not (dst_start_date.downcase == 'na' and dst_end_date.downcase == 'na')
       begin
-        dst_start_date_month = OpenStudio::monthOfYear(dst_start_date.split[0])
-        dst_start_date_day = dst_start_date.split[1].to_i
-        dst_end_date_month = OpenStudio::monthOfYear(dst_end_date.split[0])
-        dst_end_date_day = dst_end_date.split[1].to_i
-
         dst = model.getRunPeriodControlDaylightSavingTime
-
-        if epw_file.daylightSavingStartDate.is_initialized and epw_file.daylightSavingEndDate.is_initialized # HOLIDAYS/DAYLIGHT SAVINGS row in epw file
-          dst_start_date = epw_file.daylightSavingStartDate.get
-          dst_end_date = epw_file.daylightSavingEndDate.get
-          dst_start_date_month = dst_start_date.monthOfYear
-          dst_start_date_day = dst_start_date.dayOfMonth
-          dst_end_date_month = dst_end_date.monthOfYear
-          dst_end_date_day = dst_end_date.dayOfMonth
-
-          runner.registerInfo("Using daylight saving start and end dates found in the weather file header.")
-        elsif epw_file.daylightSavingStartDate.is_initialized or epw_file.daylightSavingEndDate.is_initialized
-          runner.registerWarning("Either daylight saving start or end date was not found in the weather file header; not using either of them.")
-        end
-
-        dst.setStartDate(dst_start_date_month, dst_start_date_day)
-        dst.setEndDate(dst_end_date_month, dst_end_date_day)
-
+        dst.setStartDate(dst_start_date)
+        dst.setEndDate(dst_end_date)
         runner.registerInfo("Set daylight saving time from #{dst.startDate.to_s} to #{dst.endDate.to_s}.")
+        return true
       rescue
-        runner.registerError("Invalid daylight saving date specified.")
+        runner.registerError("Invalid daylight saving date(s) specified.")
         return false
       end
-    else
-      runner.registerInfo("No daylight saving time set.")
     end
+    runner.registerInfo("No daylight saving time set.")
 
     return true
   end
