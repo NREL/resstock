@@ -1,5 +1,6 @@
-require_relative 'minitest_helper'
+require_relative '../resources/hpxml-measures/HPXMLtoOpenStudio/resources/minitest_helper'
 require_relative 'integrity_checks'
+require 'minitest/autorun'
 
 class TestResStockErrors < MiniTest::Test
   def before_setup
@@ -178,7 +179,6 @@ class TestResStockErrors < MiniTest::Test
       puts e.message
       assert(e.message.include? 'ERROR: Cannot find file')
       assert(e.message.include? 'ResidentialMissingMeasure/measure.rb')
-      puts 'HERE1'
     else
       flunk "Should have caused an error but didn't."
     end

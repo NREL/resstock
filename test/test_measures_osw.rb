@@ -1,6 +1,8 @@
 require 'openstudio'
-require_relative 'minitest_helper'
+require_relative '../resources/hpxml-measures/HPXMLtoOpenStudio/resources/minitest_helper'
 require_relative '../resources/run_sampling'
+require 'minitest/autorun'
+require 'json'
 
 class TestResStockMeasuresOSW < MiniTest::Test
   def test_measures_osw

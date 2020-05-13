@@ -1,6 +1,8 @@
 require 'openstudio'
-require_relative '../../test/minitest_helper'
+require_relative '../../resources/hpxml-measures/HPXMLtoOpenStudio/resources/minitest_helper'
+require 'minitest/autorun'
 require 'csv'
+require 'json'
 
 class WorkflowTest < MiniTest::Test
   def test_osw
