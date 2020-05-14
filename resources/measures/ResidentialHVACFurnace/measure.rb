@@ -78,6 +78,13 @@ class ProcessFurnace < OpenStudio::Measure::ModelMeasure
     dse.setDefaultValue("NA")
     args << dse
 
+    # make a bool argument for open hvac flue
+    has_hvac_flue = OpenStudio::Measure::OSArgument::makeBoolArgument("has_hvac_flue", true)
+    has_hvac_flue.setDisplayName("Air Leakage: Has Open HVAC Flue")
+    has_hvac_flue.setDescription("Specifies whether the building has an open flue associated with the HVAC system.")
+    has_hvac_flue.setDefaultValue(true)
+    args << has_hvac_flue
+
     return args
   end # end the arguments method
 
@@ -103,6 +110,7 @@ class ProcessFurnace < OpenStudio::Measure::ModelMeasure
     else
       dse = 1.0
     end
+    model.getBuilding.additionalProperties.setFeature("has_hvac_flue", runner.getBoolArgumentValue("has_hvac_flue", user_arguments))
     frac_heat_load_served = 1.0
 
     # Get building units

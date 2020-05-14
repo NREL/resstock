@@ -348,6 +348,8 @@ class ResidentialLightingOther < OpenStudio::Measure::ModelMeasure
     if exterior_ann > 0
       success = Lighting.apply_exterior(model, runner, weather, exterior_ann, schedules_file)
       return false if not success
+
+      schedules_file.set_vacancy(col_name: "lighting_exterior")
     end
 
     msgs << "Lighting with #{exterior_ann.round} kWhs annual energy consumption has been assigned to the exterior."
@@ -391,6 +393,8 @@ class ResidentialLightingOther < OpenStudio::Measure::ModelMeasure
 
       msgs << "Holiday lighting with #{holiday_exterior_ann.round} kWhs annual energy consumption has been assigned to the exterior from #{holiday_start_date} until #{holiday_end_date}."
       tot_ltg_e += holiday_exterior_ann
+
+      schedules_file.set_vacancy(col_name: "lighting_exterior_holiday")
     end
 
     # reporting final condition of model

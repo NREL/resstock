@@ -28,17 +28,23 @@ class ResidentialScheduleGenerator < OpenStudio::Measure::ModelMeasure
   def arguments(model)
     args = OpenStudio::Measure::OSArgumentVector.new
 
-    # Make a string argument for occupants (auto or number)
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument("num_occupants", true)
+    # Make a integer argument for occupants (integer or string of integers)
+    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument("num_occupants", true)
     arg.setDisplayName("Number of Occupants")
     arg.setDescription("Specify the number of occupants.")
-    arg.setDefaultValue("2")
+    arg.setDefaultValue(2)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeBoolArgument("modify_plugs_and_lighting", false)
-    arg.setDisplayName("Modify plugload and lighting")
-    arg.setDescription("Whether to modify plugloads, lighting and the ceiling fan based on occupancy")
-    arg.setDefaultValue(true)
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument("vacancy_start_date", true)
+    arg.setDisplayName("Vacancy Start Date")
+    arg.setDescription("Set to 'NA' if never vacant.")
+    arg.setDefaultValue("NA")
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument("vacancy_end_date", true)
+    arg.setDisplayName("Vacancy End Date")
+    arg.setDescription("Set to 'NA' if never vacant.")
+    arg.setDefaultValue("NA")
     args << arg
 
     return args
@@ -54,7 +60,11 @@ class ResidentialScheduleGenerator < OpenStudio::Measure::ModelMeasure
     end
 
     # assign the user inputs to variables
-    args = { :num_occupants => runner.getStringArgumentValue("num_occupants", user_arguments) }
+    args = { :num_occupants => runner.getIntegerArgumentValue("num_occupants", user_arguments),
+             :vacancy_start_date => runner.getStringArgumentValue("vacancy_start_date", user_arguments),
+             :vacancy_end_date => runner.getStringArgumentValue("vacancy_end_date", user_arguments) }
+
+    model.getBuilding.additionalProperties.setFeature("num_occupants", args[:num_occupants])
 
     args[:schedules_path] = File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources/schedules")
 

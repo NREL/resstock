@@ -28,6 +28,7 @@ class MiscLoads
       return false
     end
 
+    col_name = "plug_loads"
     unit.spaces.each do |space|
       next if Geometry.space_is_unfinished(space)
 
@@ -58,7 +59,6 @@ class MiscLoads
 
       if annual_energy > 0
 
-        col_name = "plug_loads"
         if sch.nil?
           # Create schedule
           sch = schedules_file.create_schedule_file(col_name: col_name)

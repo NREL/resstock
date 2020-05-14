@@ -153,6 +153,8 @@ class ResidentialClothesDryer < OpenStudio::Measure::ModelMeasure
       tot_ann_f += ann_f
     end
 
+    schedules_file.set_vacancy(col_name: "clothes_dryer")
+
     # Reporting
     if msgs.size > 1
       msgs.each do |msg|

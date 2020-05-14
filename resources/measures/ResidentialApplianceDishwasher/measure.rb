@@ -196,6 +196,8 @@ class ResidentialDishwasher < OpenStudio::Measure::ModelMeasure
       tot_ann_e += ann_e
     end
 
+    schedules_file.set_vacancy(col_name: "dishwasher_power")
+
     # Reporting
     if msgs.size > 1
       msgs.each do |msg|

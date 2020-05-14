@@ -1586,6 +1586,8 @@ class Geometry
       end
     end
 
+    schedules_file.set_vacancy(col_name: "occupants")
+
     runner.registerInfo("The building has been assigned #{total_num_occ.round(2)} occupant(s) across #{units.size} unit(s).")
     return true
   end

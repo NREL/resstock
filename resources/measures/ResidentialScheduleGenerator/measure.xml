@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>residential_schedule_generator</name>
   <uid>079880ce-1837-4d67-ba8d-65c595160d3d</uid>
-  <version_id>5aa2548f-474b-41b5-a019-43002498f75f</version_id>
-  <version_modified>20200428T181743Z</version_modified>
+  <version_id>bfad700c-1d5d-4db8-afd5-f236277548c9</version_id>
+  <version_modified>20200514T225832Z</version_modified>
   <xml_checksum>3C1C8C0F</xml_checksum>
   <class_name>ResidentialScheduleGenerator</class_name>
   <display_name>Generate Appliance schedules</display_name>
@@ -14,29 +14,28 @@
       <name>num_occupants</name>
       <display_name>Number of Occupants</display_name>
       <description>Specify the number of occupants.</description>
-      <type>String</type>
+      <type>Integer</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>2</default_value>
     </argument>
     <argument>
-      <name>modify_plugs_and_lighting</name>
-      <display_name>Modify plugload and lighting</display_name>
-      <description>Whether to modify plugloads, lighting and the ceiling fan based on occupancy</description>
-      <type>Boolean</type>
-      <required>false</required>
+      <name>vacancy_start_date</name>
+      <display_name>Vacancy Start Date</display_name>
+      <description>Set to 'NA' if never vacant.</description>
+      <type>String</type>
+      <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>true</default_value>
-      <choices>
-        <choice>
-          <value>true</value>
-          <display_name>true</display_name>
-        </choice>
-        <choice>
-          <value>false</value>
-          <display_name>false</display_name>
-        </choice>
-      </choices>
+      <default_value>NA</default_value>
+    </argument>
+    <argument>
+      <name>vacancy_end_date</name>
+      <display_name>Vacancy End Date</display_name>
+      <description>Set to 'NA' if never vacant.</description>
+      <type>String</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>NA</default_value>
     </argument>
   </arguments>
   <outputs/>
@@ -61,13 +60,13 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>069B8A08</checksum>
+      <checksum>ED7DE0B8</checksum>
     </file>
     <file>
       <filename>ResidentialScheduleGenerator_Test.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
-      <checksum>01218BEB</checksum>
+      <checksum>7136C6C1</checksum>
     </file>
   </files>
 </measure>

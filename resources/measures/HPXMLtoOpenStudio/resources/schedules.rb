@@ -799,6 +799,8 @@ class ScheduleGenerator
                  weather:,
                  building_id: nil,
                  num_occupants:,
+                 vacancy_start_date:,
+                 vacancy_end_date:,
                  schedules_path:,
                  **remainder)
 
@@ -807,25 +809,27 @@ class ScheduleGenerator
     @weather = weather
     @building_id = building_id
     @num_occupants = num_occupants
+    @vacancy_start_date = vacancy_start_date
+    @vacancy_end_date = vacancy_end_date
     @schedules_path = schedules_path
   end
 
-  def create
-    @num_occupants = @num_occupants.to_i
-    minutes_per_steps = 10
+  def get_simulation_parameters
+    min_per_step = 1
     if @model.getSimulationControl.timestep.is_initialized
-      minutes_per_steps = 60 / @model.getSimulationControl.timestep.get.numberOfTimestepsPerHour
-      # minutes_per_steps = 1
-    else
-      minutes_per_steps = 1
+      min_per_step = 60 / @model.getSimulationControl.timestep.get.numberOfTimestepsPerHour
     end
-    steps_in_day = 24 * 60 / minutes_per_steps
+    steps_in_day = 24 * 60 / min_per_step
 
     mkc_ts_per_day = 96
     mkc_ts_per_hour = mkc_ts_per_day / 24
 
     @model.getYearDescription.isLeapYear ? total_days_in_year = 366 : total_days_in_year = 365
 
+    return min_per_step, steps_in_day, mkc_ts_per_day, mkc_ts_per_hour, total_days_in_year
+  end
+
+  def get_building_id
     if @building_id.nil?
       building_id = @model.getBuilding.additionalProperties.getFeatureAsInteger("Building ID") # this becomes the seed
       if building_id.is_initialized
@@ -837,6 +841,45 @@ class ScheduleGenerator
     else
       building_id = @building_id
     end
+
+    return building_id
+  end
+
+  def initialize_schedules(num_ts:)
+    schedules = {
+      "occupants" => Array.new(num_ts, 0.0),
+      "cooking_range" => Array.new(num_ts, 0.0),
+      "plug_loads" => Array.new(num_ts, 0.0),
+      "lighting_interior" => Array.new(num_ts, 0.0),
+      "lighting_exterior" => Array.new(num_ts, 0.0),
+      "lighting_garage" => Array.new(num_ts, 0.0),
+      "lighting_exterior_holiday" => Array.new(num_ts, 0.0),
+      "clothes_washer" => Array.new(num_ts, 0.0),
+      "clothes_dryer" => Array.new(num_ts, 0.0),
+      "dishwasher" => Array.new(num_ts, 0.0),
+      "baths" => Array.new(num_ts, 0.0),
+      "showers" => Array.new(num_ts, 0.0),
+      "sinks" => Array.new(num_ts, 0.0),
+      "ceiling_fan" => Array.new(num_ts, 0.0),
+      "clothes_dryer_exhaust" => Array.new(num_ts, 0.0),
+      "clothes_washer_power" => Array.new(num_ts, 0.0),
+      "dishwasher_power" => Array.new(num_ts, 0.0),
+      "sleep" => Array.new(num_ts, 0.0),
+      "vacancy" => Array.new(num_ts, 0.0)
+    }
+
+    return schedules
+  end
+
+  def schedules
+    return @schedules
+  end
+
+  def create
+    minutes_per_steps, steps_in_day, mkc_ts_per_day, mkc_ts_per_hour, total_days_in_year = get_simulation_parameters
+    building_id = get_building_id
+
+    @schedules = initialize_schedules(num_ts: total_days_in_year * steps_in_day)
 
     # initialize a random number generator using building_id
     prng = Random.new(building_id)
@@ -912,7 +955,7 @@ class ScheduleGenerator
       simulated_values = simulated_values.rotate(-4 * 4) # 4am shifting
       all_simulated_values << Matrix[*simulated_values]
 
-      # States are: 'sleeping','shower','laundry','cooking', 'dishwashing', 'absent', 'nothingAtHome'
+      # States are: 'sleeping', 'shower', 'laundry', 'cooking', 'dishwashing', 'absent', 'nothingAtHome'
     end
     # shape of all_simulated_values is [2, 35040, 7] i.e. (num_occupants, period_in_a_year, number_of_states)
     plugload_sch = CSV.read(@schedules_path + "/plugload_sch.csv")
@@ -933,26 +976,9 @@ class ScheduleGenerator
                                                      weekday_lighting_schedule, weekend_lighting_schedule,
                                                      monthly_lighting_schedule)
     holiday_lighting_schedule = get_holiday_lighting_sch(@model, @runner, holiday_lighting_schedule)
-    @plugload_schedule = []
-    @lighting_interior_schedule = []
-    @lighting_exterior_schedule = []
-    @lighting_garage_schedule = []
-    @lighting_holiday_schedule = []
-    @ceiling_fan_schedule = []
-    @sink_schedule = []
-    @bath_schedule = []
-    @clothes_dryer_exhaust_schedule = []
 
-    @shower_schedule = []
-    @clothes_washer_water_schedule = []
-    @clothes_washer_power_schedule = []
-    @clothes_dryer_schedule = []
-    @dishwasher_water_schedule = []
-    @dishwasher_power_schedule = []
-    @cooking_schedule = []
-    @away_schedule = []
+    away_schedule = []
     idle_schedule = []
-    @sleeping_schedule = []
 
     sim_year = @model.getYearDescription.calendarYear.get
     start_day = DateTime.new(sim_year, 1, 1)
@@ -971,7 +997,8 @@ class ScheduleGenerator
         step_per_hour = 60 / minutes_per_steps
 
         # the schedule is set as the sum of values of individual occupants
-        @sleeping_schedule << sum_across_occupants(all_simulated_values, 0, index_15).to_f / @num_occupants
+        sleep = sum_across_occupants(all_simulated_values, 0, index_15).to_f / @num_occupants
+        @schedules["sleep"][day * steps_in_day + step] = sleep
         # clothes washer
         clothes_washing_count = sum_across_occupants(all_simulated_values, 2, index_15)
         if clothes_washing_count > 0
@@ -983,32 +1010,31 @@ class ScheduleGenerator
         else
           clothes_washing = 0
         end
-        @clothes_washer_water_schedule << clothes_washing
-        hour_before_washer = @clothes_washer_water_schedule[-step_per_hour]
-        if hour_before_washer.nil?
-          @clothes_dryer_schedule << 0
-        else
-          @clothes_dryer_schedule << hour_before_washer
+        @schedules["clothes_washer"][day * steps_in_day + step] = clothes_washing
+        hour_before_washer = @schedules["clothes_washer"][(day * steps_in_day + step + 1) - step_per_hour]
+        unless hour_before_washer.nil?
+          @schedules["clothes_dryer"][day * steps_in_day + step] = hour_before_washer
         end
-        @cooking_schedule << sum_across_occupants(all_simulated_values, 3, index_15, max_clip = 1)
-        @away_schedule << sum_across_occupants(all_simulated_values, 5, index_15).to_f / @num_occupants
+        @schedules["cooking_range"][day * steps_in_day + step] = sum_across_occupants(all_simulated_values, 3, index_15, max_clip = 1)
+        away_schedule << sum_across_occupants(all_simulated_values, 5, index_15).to_f / @num_occupants
         idle_schedule << sum_across_occupants(all_simulated_values, 6, index_15).to_f / @num_occupants
 
-        active_occupancy_percentage = 1 - (@away_schedule[-1] + @sleeping_schedule[-1])
-        @plugload_schedule << get_value_from_daily_sch(plugload_sch, month, is_weekday, minute, active_occupancy_percentage)
-        @lighting_interior_schedule << scale_lighting_by_occupancy(interior_lighting_schedule, minute, active_occupancy_percentage)
-        @lighting_exterior_schedule << get_value_from_daily_sch(lighting_sch, month, is_weekday, minute, 1)
-        @lighting_garage_schedule << get_value_from_daily_sch(lighting_sch, month, is_weekday, minute, 1)
-        @lighting_holiday_schedule << scale_lighting_by_occupancy(holiday_lighting_schedule, minute, 1)
-        @ceiling_fan_schedule << get_value_from_daily_sch(ceiling_fan_sch, month, is_weekday, minute, active_occupancy_percentage)
+        active_occupancy_percentage = 1 - (away_schedule[-1] + sleep)
+        @schedules["plug_loads"][day * steps_in_day + step] = get_value_from_daily_sch(plugload_sch, month, is_weekday, minute, active_occupancy_percentage)
+        @schedules["lighting_interior"][day * steps_in_day + step] = scale_lighting_by_occupancy(interior_lighting_schedule, minute, active_occupancy_percentage)
+        @schedules["lighting_exterior"][day * steps_in_day + step] = get_value_from_daily_sch(lighting_sch, month, is_weekday, minute, 1)
+        @schedules["lighting_garage"][day * steps_in_day + step] = get_value_from_daily_sch(lighting_sch, month, is_weekday, minute, 1)
+        @schedules["lighting_exterior_holiday"][day * steps_in_day + step] = scale_lighting_by_occupancy(holiday_lighting_schedule, minute, 1)
+        @schedules["ceiling_fan"][day * steps_in_day + step] = get_value_from_daily_sch(ceiling_fan_sch, month, is_weekday, minute, active_occupancy_percentage)
       end
     end
-    @plugload_schedule = normalize(@plugload_schedule)
-    @lighting_interior_schedule = normalize(@lighting_interior_schedule)
-    @lighting_exterior_schedule = normalize(@lighting_exterior_schedule)
-    @lighting_garage_schedule = normalize(@lighting_garage_schedule)
-    @lighting_holiday_schedule = normalize(@lighting_holiday_schedule)
-    @ceiling_fan_schedule = normalize(@ceiling_fan_schedule)
+    @schedules["plug_loads"] = normalize(@schedules["plug_loads"])
+    @schedules["lighting_interior"] = normalize(@schedules["lighting_interior"])
+    @schedules["lighting_exterior"] = normalize(@schedules["lighting_exterior"])
+    @schedules["lighting_garage"] = normalize(@schedules["lighting_garage"])
+    @schedules["lighting_exterior_holiday"] = normalize(@schedules["lighting_exterior_holiday"])
+    @schedules["ceiling_fan"] = normalize(@schedules["ceiling_fan"])
+
     # Generate the Sink Schedule
     # 1. Find indexes (minutes) when no one is active and add to invalid_index.
     #    This are removed from possible start time for sink
@@ -1229,7 +1255,7 @@ class ScheduleGenerator
       step += step_jump
     end
 
-    # States are: 'sleeping','shower','laundry','cooking', 'dishwashing', 'absent', 'nothingAtHome'
+    # States are: 'sleeping', 'shower', 'laundry', 'cooking', 'dishwashing', 'absent', 'nothingAtHome'
     # Fill in dw power schedule
     dw_power_sch = [0] * mins_in_year
     step = 0
@@ -1248,7 +1274,7 @@ class ScheduleGenerator
     end
 
     # Fill in cw and clothes dryer power schedule
-    # States are: 'sleeping','shower','laundry','cooking', 'dishwashing', 'absent', 'nothingAtHome'
+    # States are: 'sleeping', 'shower', 'laundry', 'cooking', 'dishwashing', 'absent', 'nothingAtHome'
     cw_power_sch = [0] * mins_in_year
     cd_power_sch = [0] * mins_in_year
     step = 0
@@ -1291,50 +1317,72 @@ class ScheduleGenerator
     random_offset = (prng.rand * 15).to_i - 7
     sink_activity_sch = sink_activity_sch.rotate(-4 * 60 + random_offset) # 4 am shifting
     sink_activity_sch = aggregate_array(sink_activity_sch, minutes_per_steps)
-    @sink_schedule = sink_activity_sch.map { |flow| flow / Constants.PeakFlowRate }
+    @schedules["sinks"] = sink_activity_sch.map { |flow| flow / Constants.PeakFlowRate }
 
     random_offset = (prng.rand * 15).to_i - 7
     dw_activity_sch = dw_activity_sch.rotate(random_offset)
     dw_activity_sch = aggregate_array(dw_activity_sch, minutes_per_steps)
-    @dishwasher_water_schedule = dw_activity_sch.map { |flow| flow / Constants.PeakFlowRate }
+    @schedules["dishwasher"] = dw_activity_sch.map { |flow| flow / Constants.PeakFlowRate }
 
     random_offset = (prng.rand * 15).to_i - 7
     cw_activity_sch = cw_activity_sch.rotate(random_offset)
     cw_activity_sch = aggregate_array(cw_activity_sch, minutes_per_steps)
-    @clothes_washer_water_schedule = cw_activity_sch.map { |flow| flow / Constants.PeakFlowRate }
+    @schedules["clothes_washer"] = cw_activity_sch.map { |flow| flow / Constants.PeakFlowRate }
 
     random_offset = (prng.rand * 15).to_i - 7
     shower_activity_sch = shower_activity_sch.rotate(random_offset)
     shower_activity_sch = aggregate_array(shower_activity_sch, minutes_per_steps)
-    @shower_schedule = shower_activity_sch.map { |flow| flow / Constants.PeakFlowRate }
+    @schedules["showers"] = shower_activity_sch.map { |flow| flow / Constants.PeakFlowRate }
 
     random_offset = (prng.rand * 15).to_i - 7
     bath_activity_sch = bath_activity_sch.rotate(random_offset)
     bath_activity_sch = aggregate_array(bath_activity_sch, minutes_per_steps)
-    @bath_schedule = bath_activity_sch.map { |flow| flow / Constants.PeakFlowRate }
-    # bath_max_flow_rate = 7.0312 # gal/min # FIXME: calculate this from unnormalized schedule
+    @schedules["baths"] = bath_activity_sch.map { |flow| flow / Constants.PeakFlowRate }
 
     random_offset = (prng.rand * 15).to_i - 7
     cooking_power_sch = cooking_power_sch.rotate(random_offset)
     cooking_power_sch = aggregate_array(cooking_power_sch, minutes_per_steps)
-    @cooking_schedule = cooking_power_sch.map { |power| power / Constants.PeakPower }
+    @schedules["cooking_range"] = cooking_power_sch.map { |power| power / Constants.PeakPower }
 
     random_offset = (prng.rand * 15).to_i - 7
     cw_power_sch = cw_power_sch.rotate(random_offset)
     cw_power_sch = aggregate_array(cw_power_sch, minutes_per_steps)
-    @clothes_washer_power_schedule = cw_power_sch.map { |power| power / Constants.PeakPower }
+    @schedules["clothes_washer_power"] = cw_power_sch.map { |power| power / Constants.PeakPower }
 
     random_offset = (prng.rand * 15).to_i - 7
     cd_power_sch = cd_power_sch.rotate(random_offset)
     cd_power_sch = aggregate_array(cd_power_sch, minutes_per_steps)
-    @clothes_dryer_schedule = cd_power_sch.map { |power| power / Constants.PeakPower }
-    @clothes_dryer_exhaust_schedule = @clothes_dryer_schedule
+    @schedules["clothes_dryer"] = cd_power_sch.map { |power| power / Constants.PeakPower }
+    @schedules["clothes_dryer_exhaust"] = @schedules["clothes_dryer"]
 
     random_offset = (prng.rand * 15).to_i - 7
     dw_power_sch = dw_power_sch.rotate(random_offset)
     dw_power_sch = aggregate_array(dw_power_sch, minutes_per_steps)
-    @dishwasher_power_schedule = dw_power_sch.map { |power| power / Constants.PeakPower }
+    @schedules["dishwasher_power"] = dw_power_sch.map { |power| power / Constants.PeakPower }
 
+    @schedules["occupants"] = away_schedule.map { |i| 1.0 - i }
+
+    success = set_vacancy(min_per_step: minutes_per_steps, sim_year: sim_year)
+    return false if not success
+
+    return true
+  end
+
+  def set_vacancy(min_per_step:,
+                  sim_year:)
+    if not (@vacancy_start_date.downcase == 'na' and @vacancy_end_date.downcase == 'na')
+      vacancy_start_date = Time.new(sim_year, OpenStudio::monthOfYear(@vacancy_start_date.split[0]).value, @vacancy_start_date.split[1].to_i)
+      vacancy_end_date = Time.new(sim_year, OpenStudio::monthOfYear(@vacancy_end_date.split[0]).value, @vacancy_end_date.split[1].to_i, 24)
+
+      sec_per_step = min_per_step * 60.0
+      ts = Time.new(sim_year, "Jan", 1)
+      @schedules["vacancy"].each_with_index do |step, i|
+        if vacancy_start_date <= ts && ts <= vacancy_end_date # in the vacancy period
+          @schedules["vacancy"][i] = 1.0
+        end
+        ts += sec_per_step
+      end
+    end
     return true
   end
 
@@ -1458,47 +1506,10 @@ class ScheduleGenerator
 
   def export(output_path:)
     CSV.open(output_path, "w") do |csv|
-      csv << [
-        "occupants",
-        "cooking_range",
-        "plug_loads",
-        "lighting_interior",
-        "lighting_exterior",
-        "lighting_garage",
-        "lighting_exterior_holiday",
-        "clothes_washer",
-        "clothes_dryer",
-        "dishwasher",
-        "baths",
-        "showers",
-        "sinks",
-        "ceiling_fan",
-        "clothes_dryer_exhaust",
-        "clothes_washer_power",
-        "dishwasher_power",
-        "sleep"
-      ]
-      @shower_schedule.size.times do |i|
-        csv << [
-          (1 - @away_schedule[i]),
-          @cooking_schedule[i],
-          @plugload_schedule[i],
-          @lighting_interior_schedule[i],
-          @lighting_exterior_schedule[i],
-          @lighting_garage_schedule[i],
-          @lighting_holiday_schedule[i],
-          @clothes_washer_water_schedule[i],
-          @clothes_dryer_schedule[i],
-          @dishwasher_water_schedule[i],
-          @bath_schedule[i],
-          @shower_schedule[i],
-          @sink_schedule[i],
-          @ceiling_fan_schedule[i],
-          @clothes_dryer_exhaust_schedule[i],
-          @clothes_washer_power_schedule[i],
-          @dishwasher_power_schedule[i],
-          @sleeping_schedule[i]
-        ]
+      csv << @schedules.keys
+      rows = @schedules.values.transpose
+      rows.each do |row|
+        csv << row
       end
     end
     return true
@@ -1926,17 +1937,27 @@ class SchedulesFile
     return external_file
   end
 
+  def set_vacancy(col_name:)
+    return if @schedules["vacancy"].all? { |i| i == 0 }
+
+    @schedules[col_name].each_with_index do |ts, i|
+      @schedules[col_name][i] *= (1.0 - @schedules["vacancy"][i])
+    end
+    update(col_name: col_name)
+  end
+
   def import(col_name:)
     return if @schedules.keys.include? col_name
 
+    col_names = [col_name, "vacancy"]
     columns = CSV.read(@schedules_path).transpose
     columns.each do |col|
-      next if col_name != col[0]
+      next if not col_names.include? col[0]
 
       values = col[1..-1].reject { |v| v.nil? }
       values = values.map { |v| v.to_f }
-      validate_schedule(col_name: col_name, values: values)
-      @schedules[col_name] = values
+      validate_schedule(col_name: col[0], values: values)
+      @schedules[col[0]] = values
     end
   end
 
@@ -1952,6 +1973,32 @@ class SchedulesFile
     end
 
     return true
+  end
+
+  def update(col_name:)
+    return false if @schedules_path.nil?
+
+    # this is super hacky, i know.
+    # it appears that when you start running the osw, the generated_files folder is automatically created (alongside the run folder).
+    # the initially generated schedules.csv is placed (how?) into this generated_files folder
+    # but then subsequent files of the same name are not placed into this generated_files folder (why not?)
+
+    schedules_path = File.expand_path(File.join(File.dirname(@schedules_path), "../generated_files", File.basename(@schedules_path)))
+
+    col_num = get_col_index(col_name: col_name)
+    columns = CSV.read(schedules_path).transpose
+    columns.each_with_index do |col, i|
+      next unless i == col_num
+
+      col[1..-1] = @schedules[col_name]
+    end
+
+    rows = columns.transpose
+    CSV.open(schedules_path, "wb") do |csv|
+      rows.each do |row|
+        csv << row
+      end
+    end
   end
 
   def get_schedules_path

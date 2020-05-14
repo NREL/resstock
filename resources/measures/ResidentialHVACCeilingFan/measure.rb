@@ -144,6 +144,8 @@ class ProcessCeilingFan < OpenStudio::Measure::ModelMeasure
       return false if not success
     end # units
 
+    schedules_file.set_vacancy(col_name: "ceiling_fan")
+
     return true
   end
 end
