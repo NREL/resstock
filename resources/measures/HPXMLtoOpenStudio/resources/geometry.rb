@@ -256,7 +256,7 @@ class Geometry
     spaces.each do |space|
       floor_area += UnitConversions.convert(space.floorArea, 'm^2', 'ft^2')
     end
-    if (floor_area == 0) && (not runner.nil?)
+    if (floor_area.abs < 0.0001) && (not runner.nil?)
       runner.registerError('Could not find any floor area.')
       return
     end
@@ -291,7 +291,7 @@ class Geometry
       end
       floor_area += UnitConversions.convert(space.floorArea * mult, 'm^2', 'ft^2')
     end
-    if (floor_area == 0) && (not runner.nil?)
+    if (floor_area.abs < 0.0001) && (not runner.nil?)
       runner.registerError('Could not find any finished floor area.')
       return
     end
@@ -305,7 +305,7 @@ class Geometry
 
       floor_area += UnitConversions.convert(space.floorArea, 'm^2', 'ft^2')
     end
-    if (floor_area == 0) && (not runner.nil?)
+    if (floor_area.abs < 0.0001) && (not runner.nil?)
       runner.registerError('Could not find any above-grade finished floor area.')
       return
     end
@@ -319,7 +319,7 @@ class Geometry
 
       volume += get_zone_volume(zone, runner)
     end
-    if (volume == 0) && (not runner.nil?)
+    if (volume.abs < 0.0001) && (not runner.nil?)
       runner.registerError('Could not find any above-grade finished volume.')
       return
     end
@@ -469,7 +469,7 @@ class Geometry
     space.surfaces.each do |surface|
       next if surface.surfaceType.downcase != 'roofceiling'
       next if surface.outsideBoundaryCondition.downcase != 'outdoors'
-      next if surface.tilt == 0
+      next if surface.tilt.abs < 0.0001
 
       return true
     end
@@ -1303,7 +1303,7 @@ class Geometry
     end
 
     # No overhangs to add? Exit here.
-    if depth == 0
+    if depth.abs < 0.0001
       runner.registerInfo("No #{Constants.ObjectNameOverhangs} to be added.")
       return true
     end
@@ -1649,7 +1649,7 @@ class Geometry
     end
 
     # No eaves to add? Exit here.
-    if (eaves_depth == 0) &&
+    if (eaves_depth.abs < 0.0001) &&
        runner.registerInfo("No #{Constants.ObjectNameEaves} were added.")
       return true
     end
@@ -1667,7 +1667,7 @@ class Geometry
       next unless roof_surface.outsideBoundaryCondition.downcase == 'outdoors'
 
       if roof_structure == Constants.RoofStructureTrussCantilever
-
+puts roof_surface.name
         l, w, h = get_surface_dimensions(roof_surface)
         lift = (h / [l, w].min) * eaves_depth
 
@@ -1714,7 +1714,7 @@ class Geometry
           tilt = Math.atan(h / [l, w].min)
 
           z = eaves_depth / Math.cos(tilt)
-          if dir_vector_n.z == 0
+          if dir_vector_n.z.abs < 0.0001
             scale = 1
           else
             scale = z / eaves_depth
@@ -1907,7 +1907,7 @@ class Geometry
     end
 
     # No neighbor shading surfaces to add? Exit here.
-    if [left_neighbor_offset, right_neighbor_offset, back_neighbor_offset, front_neighbor_offset].all? { |offset| offset == 0 }
+    if [left_neighbor_offset, right_neighbor_offset, back_neighbor_offset, front_neighbor_offset].all? { |offset| offset.abs < 0.0001 }
       runner.registerInfo("No #{Constants.ObjectNameNeighbors} shading surfaces to be added.")
       return true
     end

@@ -194,7 +194,7 @@ class ProcessCentralSystemPTACTest < MiniTest::Test
     obj_type_exclusions = ['CurveQuadratic', 'CurveBiquadratic', 'CurveExponent', 'CurveCubic', 'PipeAdiabatic', 'ScheduleTypeLimits', 'ScheduleDay',\
                            'AvailabilityManagerAssignmentList', 'ConnectorMixer', 'ConnectorSplitter', 'Node', 'SizingPlant', 'ScheduleConstant',\
                            'PlantComponentTemperatureSource', 'SizingSystem', 'AirLoopHVACZoneSplitter', 'AirLoopHVACZoneMixer', 'ModelObjectList',\
-                           'ScheduleRuleset', 'CoilCoolingDXVariableSpeedSpeedData', 'AvailabilityManagerNightCycle']
+                           'ScheduleRuleset', 'CoilCoolingDXVariableSpeedSpeedData', 'AvailabilityManagerNightCycle', 'CurveBicubic']
     all_new_objects = get_object_additions(initial_objects, final_objects, obj_type_exclusions)
     all_del_objects = get_object_additions(final_objects, initial_objects, obj_type_exclusions)
 

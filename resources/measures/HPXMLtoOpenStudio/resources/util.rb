@@ -9,9 +9,9 @@ class HelperMethods
     elsif fuel == Constants.FuelTypeGas
       return 'NaturalGas'
     elsif fuel == Constants.FuelTypeOil
-      return 'FuelOil#1'
+      return 'FuelOilNo1'
     elsif fuel == Constants.FuelTypePropane
-      return 'PropaneGas'
+      return 'Propane'
     elsif fuel == Constants.FuelTypeWood
       return 'OtherFuel1'
     end
@@ -22,9 +22,9 @@ class HelperMethods
       return Constants.FuelTypeElectric
     elsif fuel == 'NaturalGas'
       return Constants.FuelTypeGas
-    elsif fuel == 'FuelOil#1'
+    elsif fuel == 'FuelOilNo1'
       return Constants.FuelTypeOil
-    elsif fuel == 'PropaneGas'
+    elsif fuel == 'Propane'
       return Constants.FuelTypePropane
     elsif fuel == 'OtherFuel1'
       return Constants.FuelTypeWood
@@ -36,7 +36,7 @@ class HelperMethods
       return Constants.FuelTypeElectric
     elsif fuel == 'Gas'
       return Constants.FuelTypeGas
-    elsif fuel == 'FuelOil#1'
+    elsif fuel == 'FuelOilNo1'
       return Constants.FuelTypeOil
     elsif fuel == 'Propane'
       return Constants.FuelTypePropane
@@ -1377,8 +1377,8 @@ class OutputMeters
   end
 
   def fuel_oil_heating(custom_meter_infos, unit, thermal_zones)
-    custom_meter_infos["#{unit.name}:FuelOilHeating"] = { 'fuel_type' => 'FuelOil#1', 'key_var_groups' => [] }
-    custom_meter_infos['Central:FuelOilHeating'] = { 'fuel_type' => 'FuelOil#1', 'key_var_groups' => [] }
+    custom_meter_infos["#{unit.name}:FuelOilHeating"] = { 'fuel_type' => 'FuelOilNo1', 'key_var_groups' => [] }
+    custom_meter_infos['Central:FuelOilHeating'] = { 'fuel_type' => 'FuelOilNo1', 'key_var_groups' => [] }
     thermal_zones.each do |thermal_zone|
       heating_equipment = HVAC.existing_heating_equipment(@model, @runner, thermal_zone)
       heating_equipment.each do |htg_equip|
@@ -1388,7 +1388,7 @@ class OutputMeters
           next if htg_coil.is_a?(OpenStudio::Model::CoilHeatingElectric) || htg_coil.is_a?(OpenStudio::Model::CoilHeatingDXSingleSpeed) || htg_coil.is_a?(OpenStudio::Model::CoilHeatingDXMultiSpeed)
 
           if htg_coil.is_a? OpenStudio::Model::CoilHeatingGas
-            next if htg_coil.fuelType != 'FuelOil#1'
+            next if htg_coil.fuelType != 'FuelOilNo1'
           end
 
           custom_meter_infos["#{unit.name}:FuelOilHeating"]['key_var_groups'] << ["#{htg_coil.name}", 'Heating Coil FuelOil#1 Energy']
@@ -1417,7 +1417,7 @@ class OutputMeters
 
             plant_loop.supplyComponents.each do |supply_component|
               next unless supply_component.to_BoilerHotWater.is_initialized
-              next if supply_component.to_BoilerHotWater.get.fuelType != 'FuelOil#1'
+              next if supply_component.to_BoilerHotWater.get.fuelType != 'FuelOilNo1'
 
               if units_served.length != 1 # this is a central system
                 custom_meter_infos['Central:FuelOilHeating']['key_var_groups'] << ["#{supply_component.name}", 'Boiler FuelOil#1 Energy']
@@ -1450,7 +1450,7 @@ class OutputMeters
 
             plant_loop.supplyComponents.each do |supply_component|
               next unless supply_component.to_BoilerHotWater.is_initialized
-              next if supply_component.to_BoilerHotWater.get.fuelType != 'FuelOil#1'
+              next if supply_component.to_BoilerHotWater.get.fuelType != 'FuelOilNo1'
 
               if units_served.length != 1 # this is a central system
                 custom_meter_infos['Central:FuelOilHeating']['key_var_groups'] << ["#{supply_component.name}", 'Boiler FuelOil#1 Energy']
@@ -1466,20 +1466,20 @@ class OutputMeters
   end
 
   def fuel_oil_water_systems(custom_meter_infos, unit, thermal_zones)
-    custom_meter_infos["#{unit.name}:FuelOilWaterSystems"] = { 'fuel_type' => 'FuelOil#1', 'key_var_groups' => [] }
+    custom_meter_infos["#{unit.name}:FuelOilWaterSystems"] = { 'fuel_type' => 'FuelOilNo1', 'key_var_groups' => [] }
     @model.getPlantLoops.each do |plant_loop|
       next unless plant_loop.name.to_s == Constants.PlantLoopDomesticWater(unit.name.to_s)
       water_heater = Waterheater.get_water_heater(@model, plant_loop, @runner)
       next unless water_heater.is_a? OpenStudio::Model::WaterHeaterMixed
-      next if water_heater.heaterFuelType != 'FuelOil#1'
+      next if water_heater.heaterFuelType != 'FuelOilNo1'
 
       custom_meter_infos["#{unit.name}:FuelOilWaterSystems"]['key_var_groups'] << ["#{water_heater.name}", 'Water Heater FuelOil#1 Energy']
     end
   end
 
   def propane_heating(custom_meter_infos, unit, thermal_zones)
-    custom_meter_infos["#{unit.name}:PropaneHeating"] = { 'fuel_type' => 'PropaneGas', 'key_var_groups' => [] }
-    custom_meter_infos['Central:PropaneHeating'] = { 'fuel_type' => 'PropaneGas', 'key_var_groups' => [] }
+    custom_meter_infos["#{unit.name}:PropaneHeating"] = { 'fuel_type' => 'Propane', 'key_var_groups' => [] }
+    custom_meter_infos['Central:PropaneHeating'] = { 'fuel_type' => 'Propane', 'key_var_groups' => [] }
     thermal_zones.each do |thermal_zone|
       heating_equipment = HVAC.existing_heating_equipment(@model, @runner, thermal_zone)
       heating_equipment.each do |htg_equip|
@@ -1489,7 +1489,7 @@ class OutputMeters
           next if htg_coil.is_a?(OpenStudio::Model::CoilHeatingElectric) || htg_coil.is_a?(OpenStudio::Model::CoilHeatingDXSingleSpeed) || htg_coil.is_a?(OpenStudio::Model::CoilHeatingDXMultiSpeed)
 
           if htg_coil.is_a? OpenStudio::Model::CoilHeatingGas
-            next if htg_coil.fuelType != 'PropaneGas'
+            next if htg_coil.fuelType != 'Propane'
           end
 
           custom_meter_infos["#{unit.name}:PropaneHeating"]['key_var_groups'] << ["#{htg_coil.name}", 'Heating Coil Propane Energy']
@@ -1518,7 +1518,7 @@ class OutputMeters
 
             plant_loop.supplyComponents.each do |supply_component|
               next unless supply_component.to_BoilerHotWater.is_initialized
-              next if supply_component.to_BoilerHotWater.get.fuelType != 'PropaneGas'
+              next if supply_component.to_BoilerHotWater.get.fuelType != 'Propane'
 
               if units_served.length != 1 # this is a central system
                 custom_meter_infos['Central:PropaneHeating']['key_var_groups'] << ["#{supply_component.name}", 'Boiler Propane Energy']
@@ -1551,7 +1551,7 @@ class OutputMeters
 
             plant_loop.supplyComponents.each do |supply_component|
               next unless supply_component.to_BoilerHotWater.is_initialized
-              next if supply_component.to_BoilerHotWater.get.fuelType != 'PropaneGas'
+              next if supply_component.to_BoilerHotWater.get.fuelType != 'Propane'
 
               if units_served.length != 1 # this is a central system
                 custom_meter_infos['Central:PropaneHeating']['key_var_groups'] << ["#{supply_component.name}", 'Boiler Propane Energy']
@@ -1566,20 +1566,20 @@ class OutputMeters
   end
 
   def propane_interior_equipment(custom_meter_infos, unit, thermal_zones)
-    custom_meter_infos["#{unit.name}:PropaneInteriorEquipment"] = { 'fuel_type' => 'PropaneGas', 'key_var_groups' => [] }
+    custom_meter_infos["#{unit.name}:PropaneInteriorEquipment"] = { 'fuel_type' => 'Propane', 'key_var_groups' => [] }
     unit.spaces.each do |space|
       space.otherEquipment.each do |equip|
-        next if equip.fuelType != 'PropaneGas'
+        next if equip.fuelType != 'Propane'
 
         custom_meter_infos["#{unit.name}:PropaneInteriorEquipment"]['key_var_groups'] << ["#{equip.name}", 'Other Equipment Propane Energy']
       end
     end
-    custom_meter_infos['Central:PropaneInteriorEquipment'] = { 'fuel_type' => 'PropaneGas', 'key_var_groups' => [] }
+    custom_meter_infos['Central:PropaneInteriorEquipment'] = { 'fuel_type' => 'Propane', 'key_var_groups' => [] }
     @model.getSpaces.each do |space|
       next if space.buildingUnit.is_initialized
 
       space.otherEquipment.each do |equip|
-        next if equip.fuelType != 'PropaneGas'
+        next if equip.fuelType != 'Propane'
 
         custom_meter_infos['Central:PropaneInteriorEquipment']['key_var_groups'] << ["#{equip.name}", 'Other Equipment Propane Energy']
       end
@@ -1587,12 +1587,12 @@ class OutputMeters
   end
 
   def propane_water_systems(custom_meter_infos, unit, thermal_zones)
-    custom_meter_infos["#{unit.name}:PropaneWaterSystems"] = { 'fuel_type' => 'PropaneGas', 'key_var_groups' => [] }
+    custom_meter_infos["#{unit.name}:PropaneWaterSystems"] = { 'fuel_type' => 'Propane', 'key_var_groups' => [] }
     @model.getPlantLoops.each do |plant_loop|
       next unless plant_loop.name.to_s == Constants.PlantLoopDomesticWater(unit.name.to_s)
       water_heater = Waterheater.get_water_heater(@model, plant_loop, @runner)
       next unless water_heater.is_a? OpenStudio::Model::WaterHeaterMixed
-      next if water_heater.heaterFuelType != 'PropaneGas'
+      next if water_heater.heaterFuelType != 'Propane'
 
       custom_meter_infos["#{unit.name}:PropaneWaterSystems"]['key_var_groups'] << ["#{water_heater.name}", 'Water Heater Propane Energy']
     end
@@ -1661,10 +1661,10 @@ class OutputMeters
   end
 
   def propane_clothes_dryer(custom_meter_infos, unit, thermal_zones)
-    custom_meter_infos["#{unit.name}:PropaneClothesDryer"] = { 'fuel_type' => 'PropaneGas', 'key_var_groups' => [] }
+    custom_meter_infos["#{unit.name}:PropaneClothesDryer"] = { 'fuel_type' => 'Propane', 'key_var_groups' => [] }
     unit.spaces.each do |space|
       space.otherEquipment.each do |equip|
-        next unless equip.fuelType == 'PropaneGas'
+        next unless equip.fuelType == 'Propane'
         next unless equip.endUseSubcategory.include? Constants.ObjectNameClothesDryer(nil)
 
         custom_meter_infos["#{unit.name}:PropaneClothesDryer"]['key_var_groups'] << ["#{equip.name}", 'Other Equipment Propane Energy']
@@ -1696,10 +1696,10 @@ class OutputMeters
   end
 
   def propane_cooking_range(custom_meter_infos, unit, thermal_zones)
-    custom_meter_infos["#{unit.name}:PropaneCookingRange"] = { 'fuel_type' => 'PropaneGas', 'key_var_groups' => [] }
+    custom_meter_infos["#{unit.name}:PropaneCookingRange"] = { 'fuel_type' => 'Propane', 'key_var_groups' => [] }
     unit.spaces.each do |space|
       space.otherEquipment.each do |equip|
-        next unless equip.fuelType == 'PropaneGas'
+        next unless equip.fuelType == 'Propane'
         next unless equip.endUseSubcategory.include? Constants.ObjectNameCookingRange(nil)
 
         custom_meter_infos["#{unit.name}:PropaneCookingRange"]['key_var_groups'] << ["#{equip.name}", 'Other Equipment Propane Energy']
