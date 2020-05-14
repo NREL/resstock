@@ -94,12 +94,7 @@ class ResilienceMetricsReport < OpenStudio::Measure::ReportingMeasure
   def energyPlusOutputRequests(runner, user_arguments)
     super(runner, user_arguments)
 
-    result = OpenStudio::IdfObjectVector.new
-
-    # use the built-in error checking
-    if !runner.validateUserArguments(arguments, user_arguments)
-      return result
-    end
+    return OpenStudio::IdfObjectVector.new if runner.halted
 
     output_vars = runner.getStringArgumentValue('output_vars', user_arguments).split(',')
 
