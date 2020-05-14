@@ -16,8 +16,8 @@ Features
 - Increase the diversity of the infiltration simulated. Now using the Residential Diagnostics Database for the Infiltration housing characteristic ([#427](https://github.com/NREL/OpenStudio-BuildStock/pull/427))
 - Allow a key value to be specified when outputting timeseries variables ([#438](https://github.com/NREL/OpenStudio-BuildStock/pull/438))
 
-
 Fixes
+- Update ceiling fan tsv to remove the "National Average" option, and instead sample 28% "None" and 72% "Standard Efficiency" ([#445](https://github.com/NREL/OpenStudio-BuildStock/pull/445))
 - Remove Location Weather Filename and Location Weather Year tsvs, and update options lookup to reflect updated weather file changes; weather filenames are now required to match what is in the options lookup ([#432](https://github.com/NREL/OpenStudio-BuildStock/pull/432))
 - Fix bug in QOI reporting measure where absence of any heating/cooling/overlap seasons would cause errors ([#433](https://github.com/NREL/OpenStudio-BuildStock/pull/433))
 - Restructure unfinished attic and finished roof -related tsv files (i.e., insulation, roof material, and radiant barrier) and options ([#426](https://github.com/NREL/OpenStudio-BuildStock/pull/426))
@@ -27,6 +27,12 @@ Fixes
 - Revert plug load schedule to RBSA for the National Average option ([#355](https://github.com/NREL/OpenStudio-BuildStock/pull/355))
 - Removed the "Geometry Unit Stories SF" and "Geometry Unit Stories MF" housing characteristics. Unit stories are instead represented by the "Geometry Stories" housing characteristic ([#416](https://github.com/NREL/OpenStudio-BuildStock/pull/416))
 - Diversify window to wall ratio variation using the Residential Building Stock Assessment (RBSA) II data ([#412](https://github.com/NREL/OpenStudio-BuildStock/pull/412))
+
+## ResStock v2.2.4
+###### April 28, 2020 - [Diff](https://github.com/NREL/OpenStudio-BuildStock/compare/v2.2.3...v2.2.4)
+
+Fixes
+- Fix bug in options lookup where buildings without heating systems were not being assigned the required "has_hvac_flue" airflow measure argument ([#442](https://github.com/NREL/OpenStudio-BuildStock/pull/442))
 
 ## ResStock v2.2.3
 ###### March 9, 2020 - [Diff](https://github.com/NREL/OpenStudio-BuildStock/compare/v2.2.2...v2.2.3)
