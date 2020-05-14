@@ -300,6 +300,8 @@ class ResidentialLightingInterior < OpenStudio::Measure::ModelMeasure
       tot_ltg_e += interior_ann
     end
 
+    schedules_file.set_vacancy(col_name: "lighting_interior")
+
     # reporting final condition of model
     if msgs.size > 1
       msgs.each do |msg|

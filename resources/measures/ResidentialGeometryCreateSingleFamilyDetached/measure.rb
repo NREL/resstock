@@ -203,13 +203,6 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Measure::Model
     num_ba.setDefaultValue("2")
     args << num_ba
 
-    # Make a string argument for occupants (auto or number)
-    num_occupants = OpenStudio::Measure::OSArgument::makeStringArgument("num_occupants", true)
-    num_occupants.setDisplayName("Number of Occupants")
-    num_occupants.setDescription("Specify the number of occupants. A value of '#{Constants.Auto}' will calculate the average number of occupants from the number of bedrooms. Used to specify the internal gains from people only.")
-    num_occupants.setDefaultValue(Constants.Auto)
-    args << num_occupants
-
     # make a double argument for left neighbor offset
     neighbor_left_offset = OpenStudio::Measure::OSArgument::makeDoubleArgument("neighbor_left_offset", true)
     neighbor_left_offset.setDisplayName("Neighbor Left Offset")
@@ -279,7 +272,10 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Measure::Model
     eaves_depth = UnitConversions.convert(runner.getDoubleArgumentValue("eaves_depth", user_arguments), "ft", "m")
     num_br = runner.getStringArgumentValue("num_bedrooms", user_arguments).split(",").map(&:strip)
     num_ba = runner.getStringArgumentValue("num_bathrooms", user_arguments).split(",").map(&:strip)
-    num_occupants = runner.getStringArgumentValue("num_occupants", user_arguments)
+    num_occupants = Constants.Auto
+    if model.getBuilding.additionalProperties.getFeatureAsInteger("num_occupants").is_initialized
+      num_occupants = "#{model.getBuilding.additionalProperties.getFeatureAsInteger("num_occupants").get}"
+    end
     neighbor_left_offset = UnitConversions.convert(runner.getDoubleArgumentValue("neighbor_left_offset", user_arguments), "ft", "m")
     neighbor_right_offset = UnitConversions.convert(runner.getDoubleArgumentValue("neighbor_right_offset", user_arguments), "ft", "m")
     neighbor_back_offset = UnitConversions.convert(runner.getDoubleArgumentValue("neighbor_back_offset", user_arguments), "ft", "m")

@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>residential_hot_water_heater_tankless</name>
   <uid>caf92375-4c0c-47d1-9fe1-7aa5d3b1a734</uid>
-  <version_id>69b4c10e-0806-4028-b163-da9a1f30dd8a</version_id>
-  <version_modified>20190701T173019Z</version_modified>
+  <version_id>917338da-138c-4dc6-b13a-e65ec7c9b002</version_id>
+  <version_modified>20200430T230734Z</version_modified>
   <xml_checksum>9882CBDB</xml_checksum>
   <class_name>ResidentialHotWaterHeaterTankless</class_name>
   <display_name>Set Residential Tankless Water Heater</display_name>
@@ -107,6 +107,25 @@
       <model_dependent>false</model_dependent>
       <default_value>65</default_value>
     </argument>
+    <argument>
+      <name>has_water_heater_flue</name>
+      <display_name>Air Leakage: Has Open Water Heater Flue</display_name>
+      <description>Specifies whether the building has an open flue associated with the water heater.</description>
+      <type>Boolean</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
   </arguments>
   <outputs/>
   <provenances/>
@@ -127,6 +146,12 @@
   </attributes>
   <files>
     <file>
+      <filename>ResidentialWaterHeaterTankless_Test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>46952790</checksum>
+    </file>
+    <file>
       <version>
         <software_program>OpenStudio</software_program>
         <identifier>1.4.1</identifier>
@@ -135,13 +160,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>139F3DCB</checksum>
-    </file>
-    <file>
-      <filename>ResidentialWaterHeaterTankless_Test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>46952790</checksum>
+      <checksum>770DA0D4</checksum>
     </file>
   </files>
 </measure>

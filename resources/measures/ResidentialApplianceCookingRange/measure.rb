@@ -161,6 +161,8 @@ class ResidentialCookingRange < OpenStudio::Measure::ModelMeasure
       tot_ann_i += ann_i
     end
 
+    schedules_file.set_vacancy(col_name: "cooking_range")
+
     # Reporting
     if msgs.size > 1
       msgs.each do |msg|

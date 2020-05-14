@@ -145,6 +145,8 @@ class ResidentialMiscElectricLoads < OpenStudio::Measure::ModelMeasure
       end
     end
 
+    schedules_file.set_vacancy(col_name: "plug_loads")
+
     # Reporting
     if msgs.size > 1
       msgs.each do |msg|

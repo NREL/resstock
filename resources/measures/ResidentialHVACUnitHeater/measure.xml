@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>process_unit_heater</name>
   <uid>6f0c92ae-8ca7-4ee8-a370-ff9281269d53</uid>
-  <version_id>fa0b174b-2208-46d6-83b0-e4021b6e9004</version_id>
-  <version_modified>20190701T173020Z</version_modified>
+  <version_id>f439d801-fb02-4473-9f83-5bd46690d7c9</version_id>
+  <version_modified>20200430T230735Z</version_modified>
   <xml_checksum>470FC630</xml_checksum>
   <class_name>ProcessUnitHeater</class_name>
   <display_name>Set Residential Unit Heater</display_name>
@@ -77,6 +77,25 @@
       <model_dependent>false</model_dependent>
       <default_value>autosize</default_value>
     </argument>
+    <argument>
+      <name>has_hvac_flue</name>
+      <display_name>Air Leakage: Has Open HVAC Flue</display_name>
+      <description>Specifies whether the building has an open flue associated with the HVAC system.</description>
+      <type>Boolean</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
   </arguments>
   <outputs/>
   <provenances/>
@@ -107,6 +126,12 @@
   </attributes>
   <files>
     <file>
+      <filename>process_unit_heater_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>39EFA55B</checksum>
+    </file>
+    <file>
       <version>
         <software_program>OpenStudio</software_program>
         <identifier>1.13.2</identifier>
@@ -115,13 +140,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>2CE9E242</checksum>
-    </file>
-    <file>
-      <filename>process_unit_heater_test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>39EFA55B</checksum>
+      <checksum>A6B7DDB6</checksum>
     </file>
   </files>
 </measure>

@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>process_boiler</name>
   <uid>42909b35-edc9-41b3-ba59-de138eac3c85</uid>
-  <version_id>fcbd2a8c-1085-421e-bbc5-2e2c42616a27</version_id>
-  <version_modified>20190701T173019Z</version_modified>
+  <version_id>604bba94-1d9d-40cb-b9b5-ae8dde654b37</version_id>
+  <version_modified>20200430T230734Z</version_modified>
   <xml_checksum>470FC630</xml_checksum>
   <class_name>ProcessBoiler</class_name>
   <display_name>Set Residential Boiler</display_name>
@@ -154,6 +154,25 @@
       <model_dependent>false</model_dependent>
       <default_value>NA</default_value>
     </argument>
+    <argument>
+      <name>has_hvac_flue</name>
+      <display_name>Air Leakage: Has Open HVAC Flue</display_name>
+      <description>Specifies whether the building has an open flue associated with the HVAC system.</description>
+      <type>Boolean</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
   </arguments>
   <outputs/>
   <provenances/>
@@ -184,6 +203,12 @@
   </attributes>
   <files>
     <file>
+      <filename>process_boiler_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>B60121D1</checksum>
+    </file>
+    <file>
       <version>
         <software_program>OpenStudio</software_program>
         <identifier>1.13.2</identifier>
@@ -192,13 +217,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>3ED063BD</checksum>
-    </file>
-    <file>
-      <filename>process_boiler_test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>B60121D1</checksum>
+      <checksum>2F41C245</checksum>
     </file>
   </files>
 </measure>
