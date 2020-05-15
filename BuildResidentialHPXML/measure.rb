@@ -12,6 +12,7 @@ require_relative '../HPXMLtoOpenStudio/resources/EPvalidator'
 require_relative '../HPXMLtoOpenStudio/resources/constructions'
 require_relative '../HPXMLtoOpenStudio/resources/hpxml'
 require_relative '../HPXMLtoOpenStudio/resources/schedules'
+require_relative '../HPXMLtoOpenStudio/resources/constants'
 
 # start the measure
 class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
@@ -91,11 +92,21 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue('USA_CO_Denver.Intl.AP.725650_TMY3.epw')
     args << arg
 
+    site_type_choices = OpenStudio::StringVector.new
+    site_type_choices << HPXML::SiteTypeSuburban
+    site_type_choices << HPXML::SiteTypeUrban
+    site_type_choices << HPXML::SiteTypeRural
+
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('site_type', site_type_choices, true)
+    arg.setDisplayName('Site: Type')
+    arg.setDescription('The type of site.')
+    arg.setDefaultValue(HPXML::SiteTypeSuburban)
+    args << arg
+
     unit_type_choices = OpenStudio::StringVector.new
     unit_type_choices << HPXML::ResidentialTypeSFD
     unit_type_choices << HPXML::ResidentialTypeSFA
-    unit_type_choices << HPXML::ResidentialTypeMF2to4
-    unit_type_choices << HPXML::ResidentialTypeMF5plus
+    unit_type_choices << HPXML::ResidentialTypeMF
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('geometry_unit_type', unit_type_choices, true)
     arg.setDisplayName('Geometry: Unit Type')
@@ -106,7 +117,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('geometry_num_units', false)
     arg.setDisplayName('Geometry: Number of Units')
     arg.setUnits('#')
-    arg.setDescription("The number of units in the building. This is only required for #{HPXML::ResidentialTypeSFA}, #{HPXML::ResidentialTypeMF2to4}, and #{HPXML::ResidentialTypeMF5plus} buildings.")
+    arg.setDescription("The number of units in the building. This is required for #{HPXML::ResidentialTypeSFA} and #{HPXML::ResidentialTypeMF} buildings.")
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('geometry_cfa', true)
@@ -151,7 +162,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('geometry_level', level_choices, true)
     arg.setDisplayName('Geometry: Level')
-    arg.setDescription('The level of the unit.')
+    arg.setDescription("The level of the #{HPXML::ResidentialTypeMF} unit.")
     arg.setDefaultValue('Bottom')
     args << arg
 
@@ -162,7 +173,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('geometry_horizontal_location', horizontal_location_choices, true)
     arg.setDisplayName('Geometry: Horizontal Location')
-    arg.setDescription('The horizontal location of the unit when viewing the front of the building.')
+    arg.setDescription("The horizontal location of the #{HPXML::ResidentialTypeSFA} or #{HPXML::ResidentialTypeMF} unit when viewing the front of the building.")
     arg.setDefaultValue('Left')
     args << arg
 
@@ -2179,6 +2190,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
              end_day_of_month: runner.getIntegerArgumentValue('simulation_control_end_day_of_month', user_arguments),
              schedules_output_path: runner.getStringArgumentValue('schedules_output_path', user_arguments),
              weather_station_epw_filepath: runner.getStringArgumentValue('weather_station_epw_filepath', user_arguments),
+             site_type: runner.getStringArgumentValue('site_type', user_arguments),
              geometry_unit_type: runner.getStringArgumentValue('geometry_unit_type', user_arguments),
              geometry_num_units: runner.getOptionalIntegerArgumentValue('geometry_num_units', user_arguments),
              geometry_cfa: runner.getDoubleArgumentValue('geometry_cfa', user_arguments),
@@ -2525,17 +2537,41 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     error = (args[:heating_system_type] != 'none') && (args[:cooling_system_type] != 'none') && (args[:heat_pump_type] != 'none')
     errors << "heating_system_type=#{args[:heating_system_type]} and cooling_system_type=#{args[:cooling_system_type]} and heat_pump_type=#{args[:heat_pump_type]}" if error
 
-    # integer number of bathrooms
+    # non integer number of bathrooms
     if args[:geometry_num_bathrooms] != Constants.Auto
       error = (Float(args[:geometry_num_bathrooms]) % 1 != 0)
       errors << "geometry_num_bathrooms=#{args[:geometry_num_bathrooms]}" if error
     end
 
-    # integer ceiling fan quantity
+    # non integer ceiling fan quantity
     if args[:ceiling_fan_quantity] != Constants.Auto
       error = (Float(args[:ceiling_fan_quantity]) % 1 != 0)
       errors << "ceiling_fan_quantity=#{args[:ceiling_fan_quantity]}" if error
     end
+
+    # single-family, slab, foundation height > 0
+    warning = [HPXML::ResidentialTypeSFD, HPXML::ResidentialTypeSFA].include?(args[:geometry_unit_type]) && (args[:geometry_foundation_type] == HPXML::FoundationTypeSlab) && (args[:geometry_foundation_height] > 0)
+    warnings << "geometry_unit_type=#{args[:geometry_unit_type]} and geometry_foundation_type=#{args[:geometry_foundation_type]} and geometry_foundation_height=#{args[:geometry_foundation_height]}" if warning
+
+    # single-family, non slab, foundation height = 0
+    error = [HPXML::ResidentialTypeSFD, HPXML::ResidentialTypeSFA].include?(args[:geometry_unit_type]) && (args[:geometry_foundation_type] != HPXML::FoundationTypeSlab) && (args[:geometry_foundation_height] == 0)
+    errors << "geometry_unit_type=#{args[:geometry_unit_type]} and geometry_foundation_type=#{args[:geometry_foundation_type]} and geometry_foundation_height=#{args[:geometry_foundation_height]}" if error
+
+    # single-family attached, multifamily and ambient foundation
+    error = [HPXML::ResidentialTypeSFA, HPXML::ResidentialTypeMF].include?(args[:geometry_unit_type]) && (args[:geometry_foundation_type] == HPXML::FoundationTypeAmbient)
+    errors << "geometry_unit_type=#{args[:geometry_unit_type]} and geometry_foundation_type=#{args[:geometry_foundation_type]}" if error
+
+    # multifamily, bottom, slab, foundation height > 0
+    warning = (args[:geometry_unit_type] == HPXML::ResidentialTypeMF) && (args[:geometry_level] == 'Bottom') && (args[:geometry_foundation_type] == HPXML::FoundationTypeSlab) && (args[:geometry_foundation_height] > 0)
+    warnings << "geometry_unit_type=#{args[:geometry_unit_type]} and geometry_level=#{args[:geometry_level]} and geometry_foundation_type=#{args[:geometry_foundation_type]} and geometry_foundation_height=#{args[:geometry_foundation_height]}" if warning
+
+    # multifamily, bottom, non slab, foundation height = 0
+    error = (args[:geometry_unit_type] == HPXML::ResidentialTypeMF) && (args[:geometry_level] == 'Bottom') && (args[:geometry_foundation_type] != HPXML::FoundationTypeSlab) && (args[:geometry_foundation_height] == 0)
+    errors << "geometry_unit_type=#{args[:geometry_unit_type]} and geometry_level=#{args[:geometry_level]} and geometry_foundation_type=#{args[:geometry_foundation_type]} and geometry_foundation_height=#{args[:geometry_foundation_height]}" if error
+
+    # multifamily and finished basement
+    error = (args[:geometry_unit_type] == HPXML::ResidentialTypeMF) && (args[:geometry_foundation_type] == HPXML::FoundationTypeBasementConditioned)
+    errors << "geometry_unit_type=#{args[:geometry_unit_type]} and geometry_foundation_type=#{args[:geometry_foundation_type]}" if error
 
     return warnings, errors
   end
@@ -2644,8 +2680,7 @@ class HPXMLFile
   end
 
   def self.create_geometry_envelope(runner, model, args)
-    if ([HPXML::ResidentialTypeMF2to4, HPXML::ResidentialTypeMF5plus].include? args[:geometry_unit_type]) && (args[:geometry_level] != 'Bottom')
-      args[:geometry_foundation_type] = HPXML::LocationOtherHousingUnitBelow
+    if args[:geometry_foundation_type] == HPXML::FoundationTypeSlab
       args[:geometry_foundation_height] = 0.0
     end
 
@@ -2653,7 +2688,7 @@ class HPXMLFile
       success = Geometry.create_single_family_detached(runner: runner, model: model, **args)
     elsif args[:geometry_unit_type] == HPXML::ResidentialTypeSFA
       success = Geometry.create_single_family_attached(runner: runner, model: model, **args)
-    elsif [HPXML::ResidentialTypeMF2to4, HPXML::ResidentialTypeMF5plus].include? args[:geometry_unit_type]
+    elsif args[:geometry_unit_type] == HPXML::ResidentialTypeMF
       success = Geometry.create_multifamily(runner: runner, model: model, **args)
     end
     return false if not success
@@ -2700,9 +2735,12 @@ class HPXMLFile
   end
 
   def self.set_site(hpxml, runner, args)
-    return if args[:air_leakage_shelter_coefficient] == Constants.Auto
+    if args[:air_leakage_shelter_coefficient] != Constants.Auto
+      shelter_coefficient = args[:air_leakage_shelter_coefficient]
+    end
 
-    hpxml.site.shelter_coefficient = args[:air_leakage_shelter_coefficient]
+    hpxml.site.site_type = args[:site_type]
+    hpxml.site.shelter_coefficient = shelter_coefficient
   end
 
   def self.set_neighbor_buildings(hpxml, runner, args)
@@ -2773,7 +2811,7 @@ class HPXMLFile
   end
 
   def self.set_attics(hpxml, runner, model, args)
-    return if [HPXML::ResidentialTypeMF2to4, HPXML::ResidentialTypeMF5plus].include? args[:geometry_unit_type]
+    return if args[:geometry_unit_type] == HPXML::ResidentialTypeMF
     return if args[:geometry_unit_type] == HPXML::ResidentialTypeSFA # TODO: remove when we can model single-family attached units
 
     if args[:geometry_roof_type] == 'flat'
@@ -2786,7 +2824,7 @@ class HPXMLFile
   end
 
   def self.set_foundations(hpxml, runner, model, args)
-    return if [HPXML::ResidentialTypeMF2to4, HPXML::ResidentialTypeMF5plus].include? args[:geometry_unit_type]
+    return if args[:geometry_unit_type] == HPXML::ResidentialTypeMF
 
     hpxml.foundations.add(id: args[:geometry_foundation_type],
                           foundation_type: args[:geometry_foundation_type])

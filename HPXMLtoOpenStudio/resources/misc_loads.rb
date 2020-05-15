@@ -1,9 +1,5 @@
 # frozen_string_literal: true
 
-require_relative 'constants'
-require_relative 'unit_conversions'
-require_relative 'schedules'
-
 class MiscLoads
   def self.apply_plug(model, plug_load_misc, plug_load_tv, schedule, cfa,
                       living_space)

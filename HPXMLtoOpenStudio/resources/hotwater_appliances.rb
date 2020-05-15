@@ -1,8 +1,5 @@
 # frozen_string_literal: true
 
-require_relative 'constants'
-require_relative 'weather'
-
 class HotWaterAndAppliances
   def self.apply(model, weather, living_space,
                  cfa, nbeds, ncfl, has_uncond_bsmnt, wh_setpoint,
@@ -70,7 +67,7 @@ class HotWaterAndAppliances
 
     # Clothes washer
     if (not dist_type.nil?) && (not clothes_washer.nil?)
-      cw_annual_kwh, cw_frac_sens, cw_frac_lat, cw_gpd = calc_clothes_washer_energy_gpd(cw_space, eri_version, nbeds, clothes_washer)
+      cw_annual_kwh, cw_frac_sens, cw_frac_lat, cw_gpd = calc_clothes_washer_energy_gpd(eri_version, nbeds, clothes_washer, cw_space.nil?)
       cw_name = Constants.ObjectNameClothesWasher
       cw_schedule = HotWaterSchedule.new(model, cw_name, nbeds)
       cw_peak_flow = cw_schedule.calcPeakFlowFromDailygpm(cw_gpd)
@@ -86,7 +83,7 @@ class HotWaterAndAppliances
 
     # Clothes dryer
     if (not cw_space.nil?) && (not clothes_dryer.nil?)
-      cd_annual_kwh, cd_annual_therm, cd_frac_sens, cd_frac_lat = calc_clothes_dryer_energy(cd_space, eri_version, nbeds, clothes_dryer, clothes_washer)
+      cd_annual_kwh, cd_annual_therm, cd_frac_sens, cd_frac_lat = calc_clothes_dryer_energy(eri_version, nbeds, clothes_dryer, clothes_washer, cd_space.nil?)
       cd_name = Constants.ObjectNameClothesDryer
       cd_weekday_sch = '0.010, 0.006, 0.004, 0.002, 0.004, 0.006, 0.016, 0.032, 0.048, 0.068, 0.078, 0.081, 0.074, 0.067, 0.057, 0.061, 0.055, 0.054, 0.051, 0.051, 0.052, 0.054, 0.044, 0.024'
       cd_monthly_sch = '1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0'
@@ -101,7 +98,7 @@ class HotWaterAndAppliances
 
     # Dishwasher
     if (not dist_type.nil?) && (not dishwasher.nil?)
-      dw_annual_kwh, dw_frac_sens, dw_frac_lat, dw_gpd = calc_dishwasher_energy_gpd(dw_space, eri_version, nbeds, dishwasher)
+      dw_annual_kwh, dw_frac_sens, dw_frac_lat, dw_gpd = calc_dishwasher_energy_gpd(eri_version, nbeds, dishwasher, dw_space.nil?)
       dw_name = Constants.ObjectNameDishwasher
       dw_schedule = HotWaterSchedule.new(model, dw_name, nbeds)
       dw_peak_flow = dw_schedule.calcPeakFlowFromDailygpm(dw_gpd)
@@ -117,7 +114,7 @@ class HotWaterAndAppliances
 
     # Refrigerator
     if not refrigerator.nil?
-      rf_annual_kwh, rf_frac_sens, rf_frac_lat = calc_refrigerator_energy(rf_space, refrigerator)
+      rf_annual_kwh, rf_frac_sens, rf_frac_lat = calc_refrigerator_energy(refrigerator, rf_space.nil?)
       fridge_name = Constants.ObjectNameRefrigerator
       fridge_weekday_sch = '0.040, 0.039, 0.038, 0.037, 0.036, 0.036, 0.038, 0.040, 0.041, 0.041, 0.040, 0.040, 0.042, 0.042, 0.042, 0.041, 0.044, 0.048, 0.050, 0.048, 0.047, 0.046, 0.044, 0.041'
       fridge_monthly_sch = '0.837, 0.835, 1.084, 1.084, 1.084, 1.096, 1.096, 1.096, 1.096, 0.931, 0.925, 0.837'
@@ -130,7 +127,7 @@ class HotWaterAndAppliances
 
     # Cooking Range
     if (not cooking_range.nil?) && (not oven.nil?)
-      cook_annual_kwh, cook_annual_therm, cook_frac_sens, cook_frac_lat = calc_range_oven_energy(cook_space, nbeds, cooking_range, oven)
+      cook_annual_kwh, cook_annual_therm, cook_frac_sens, cook_frac_lat = calc_range_oven_energy(nbeds, cooking_range, oven, cook_space.nil?)
       cook_name = Constants.ObjectNameCookingRange
       cook_weekday_sch = '0.007, 0.007, 0.004, 0.004, 0.007, 0.011, 0.025, 0.042, 0.046, 0.048, 0.042, 0.050, 0.057, 0.046, 0.057, 0.044, 0.092, 0.150, 0.117, 0.060, 0.035, 0.025, 0.016, 0.011'
       cook_monthly_sch = '1.097, 1.097, 0.991, 0.987, 0.991, 0.890, 0.896, 0.896, 0.890, 1.085, 1.085, 1.097'
@@ -203,7 +200,7 @@ class HotWaterAndAppliances
              is_convection: false }
   end
 
-  def self.calc_range_oven_energy(cook_space, nbeds, cooking_range, oven)
+  def self.calc_range_oven_energy(nbeds, cooking_range, oven, is_outside = false)
     # Get values
     fuel_type = cooking_range.fuel_type
     is_induction = cooking_range.is_induction
@@ -230,7 +227,7 @@ class HotWaterAndAppliances
     annual_kwh *= cooking_range.usage_multiplier
     annual_therm *= cooking_range.usage_multiplier
 
-    if not cook_space.nil?
+    if not is_outside
       frac_lost = 0.20
       if fuel_type == HPXML::FuelTypeElectricity
         frac_sens = (1.0 - frac_lost) * 0.90
@@ -240,7 +237,7 @@ class HotWaterAndAppliances
         frac_sens = (1.0 - frac_lost) * ((0.90 * elec_btu + 0.7942 * gas_btu) / (elec_btu + gas_btu))
       end
       frac_lat = 1.0 - frac_sens - frac_lost
-    else # HPXML other enumeration, used for mf spaces, loss fraction to be 1.0
+    else # Internal gains outside unit
       frac_sens = 0.0
       frac_lat = 0.0
     end
@@ -257,7 +254,7 @@ class HotWaterAndAppliances
              place_setting_capacity: 12.0 }
   end
 
-  def self.calc_dishwasher_energy_gpd(dw_space, eri_version, nbeds, dishwasher)
+  def self.calc_dishwasher_energy_gpd(eri_version, nbeds, dishwasher, is_outside = false)
     # Get values
     ef = dishwasher.energy_factor
     ler = dishwasher.rated_annual_kwh
@@ -293,11 +290,11 @@ class HotWaterAndAppliances
     annual_kwh *= dishwasher.usage_multiplier
     gpd *= dishwasher.usage_multiplier
 
-    if not dw_space.nil?
+    if not is_outside
       frac_lost = 0.40
       frac_sens = (1.0 - frac_lost) * 0.50
       frac_lat = 1.0 - frac_sens - frac_lost
-    else # HPXML other enumeration, used for mf spaces, loss fraction to be 1.0
+    else # Internal gains outside unit
       frac_sens = 0.0
       frac_lat = 0.0
     end
@@ -337,7 +334,7 @@ class HotWaterAndAppliances
     end
   end
 
-  def self.calc_clothes_dryer_energy(cd_space, eri_version, nbeds, clothes_dryer, clothes_washer)
+  def self.calc_clothes_dryer_energy(eri_version, nbeds, clothes_dryer, clothes_washer, is_outside = false)
     # Get values
     fuel_type = clothes_dryer.fuel_type
     ef = clothes_dryer.energy_factor
@@ -387,7 +384,7 @@ class HotWaterAndAppliances
     annual_kwh *= clothes_dryer.usage_multiplier
     annual_therm *= clothes_dryer.usage_multiplier
 
-    if not cd_space.nil?
+    if not is_outside
       frac_lost = 0.85
       if fuel_type == HPXML::FuelTypeElectricity
         frac_sens = (1.0 - frac_lost) * 0.90
@@ -397,7 +394,7 @@ class HotWaterAndAppliances
         frac_sens = (1.0 - frac_lost) * ((0.90 * elec_btu + 0.8894 * gas_btu) / (elec_btu + gas_btu))
       end
       frac_lat = 1.0 - frac_sens - frac_lost
-    else # HPXML other enumeration, used for mf spaces, loss fraction to be 1.0
+    else # Internal gains outside unit
       frac_sens = 0.0
       frac_lat = 0.0
     end
@@ -433,7 +430,7 @@ class HotWaterAndAppliances
     end
   end
 
-  def self.calc_clothes_washer_energy_gpd(cw_space, eri_version, nbeds, clothes_washer)
+  def self.calc_clothes_washer_energy_gpd(eri_version, nbeds, clothes_washer, is_outside = false)
     # Get values
     ler = clothes_washer.rated_annual_kwh
     elec_rate = clothes_washer.label_electric_rate
@@ -469,11 +466,11 @@ class HotWaterAndAppliances
     annual_kwh *= clothes_washer.usage_multiplier
     gpd *= clothes_washer.usage_multiplier
 
-    if not cw_space.nil?
+    if not is_outside
       frac_lost = 0.70
       frac_sens = (1.0 - frac_lost) * 0.90
       frac_lat = 1.0 - frac_sens - frac_lost
-    else # HPXML other enumeration, used for mf spaces, loss fraction to be 1.0
+    else # Internal gains outside unit
       frac_sens = 0.0
       frac_lat = 0.0
     end
@@ -489,7 +486,7 @@ class HotWaterAndAppliances
     return 0.503 + 0.95 * imef # Interpretation on ANSI/RESNET 301-2014 Clothes Washer IMEF
   end
 
-  def self.calc_refrigerator_energy(rf_space, refrigerator)
+  def self.calc_refrigerator_energy(refrigerator, is_outside = false)
     # Get values
     annual_kwh = refrigerator.adjusted_annual_kwh
     if annual_kwh.nil?
@@ -497,10 +494,10 @@ class HotWaterAndAppliances
     end
 
     annual_kwh *= refrigerator.usage_multiplier
-    if not rf_space.nil?
+    if not is_outside
       frac_sens = 1.0
       frac_lat = 0.0
-    else # HPXML other enumeration, used for mf spaces, loss fraction to be 1.0
+    else # Internal gains outside unit
       frac_sens = 0.0
       frac_lat = 0.0
     end

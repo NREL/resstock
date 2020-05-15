@@ -51,10 +51,6 @@ class Geometry
     roof_pitch = geometry_roof_pitch
     roof_structure = geometry_roof_structure
 
-    if foundation_type == HPXML::FoundationTypeSlab
-      foundation_height = 0.0
-    end
-
     # error checking
     if model.getSpaces.size > 0
       runner.registerError('Starting model is not empty.')
@@ -1452,6 +1448,7 @@ class Geometry
                                          geometry_num_floors_above_grade:,
                                          geometry_aspect_ratio:,
                                          geometry_horizontal_location:,
+                                         geometry_corridor_position:,
                                          geometry_foundation_type:,
                                          geometry_foundation_height:,
                                          geometry_attic_type:,
@@ -1465,14 +1462,18 @@ class Geometry
     num_floors = geometry_num_floors_above_grade
     aspect_ratio = geometry_aspect_ratio
     horizontal_location = geometry_horizontal_location
+    corridor_position = geometry_corridor_position
     foundation_type = geometry_foundation_type
     foundation_height = geometry_foundation_height
     attic_type = geometry_attic_type
     roof_type = geometry_roof_type
     roof_pitch = geometry_roof_pitch
 
-    has_rear_units = false # FIXME
-    offset = 0 # FIXME
+    has_rear_units = false
+    if corridor_position == 'Double Exterior'
+      has_rear_units = true
+    end
+    offset = 0
 
     num_units_actual = num_units
     num_floors_actual = num_floors
@@ -1480,12 +1481,6 @@ class Geometry
       unit_width = num_units / 2
     else
       unit_width = num_units
-    end
-
-    if [HPXML::FoundationTypeSlab, HPXML::LocationOtherHousingUnitBelow].include? foundation_type
-      foundation_height = 0.0
-    elsif [HPXML::FoundationTypeBasementUnconditioned, HPXML::FoundationTypeBasementConditioned].include? foundation_type
-      foundation_height = 8.0
     end
 
     # error checking
@@ -1980,16 +1975,11 @@ class Geometry
     foundation_type = geometry_foundation_type
     foundation_height = geometry_foundation_height
 
-    corridor_position = 'None' # FIXME
-    if foundation_type == HPXML::FoundationTypeBasementConditioned
-      foundation_type = HPXML::FoundationTypeBasementUnconditioned # FIXME
+    if level != 'Bottom'
+      foundation_type = HPXML::LocationOtherHousingUnit
+      foundation_height = 0.0
     end
 
-    if [HPXML::FoundationTypeSlab, HPXML::LocationOtherHousingUnitBelow].include? foundation_type
-      foundation_height = 0.0
-    elsif foundation_type == HPXML::FoundationTypeBasementUnconditioned
-      foundation_height = 8.0
-    end
     num_units_per_floor = num_units / num_floors
     num_units_per_floor_actual = num_units_per_floor
 

@@ -1,9 +1,5 @@
 # frozen_string_literal: true
 
-require_relative 'constants'
-require_relative 'unit_conversions'
-require_relative 'util'
-
 class Geometry
   def self.get_zone_volume(zone)
     if zone.isVolumeAutocalculated || (not zone.volume.is_initialized)

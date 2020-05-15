@@ -1,12 +1,5 @@
 # frozen_string_literal: true
 
-require_relative 'geometry'
-require_relative 'hvac'
-require_relative 'unit_conversions'
-require_relative 'util'
-require_relative 'schedules'
-require_relative 'constructions'
-
 class HVACSizing
   def self.apply(model, runner, weather, cfa, infilvolume, nbeds, min_neighbor_distance, living_space, debug)
     @runner = runner
@@ -134,7 +127,7 @@ class HVACSizing
     @heat_design_temps[nil] = weather.design.HeatingDrybulb
 
     # MF spaces
-    [HPXML::LocationOtherHousingUnit, HPXML::LocationOtherHousingUnitAbove, HPXML::LocationOtherHousingUnitBelow, HPXML::LocationOtherHeatedSpace, HPXML::LocationOtherMultifamilyBufferSpace, HPXML::LocationOtherNonFreezingSpace].each do |mf_space|
+    [HPXML::LocationOtherHousingUnit, HPXML::LocationOtherHeatedSpace, HPXML::LocationOtherMultifamilyBufferSpace, HPXML::LocationOtherNonFreezingSpace].each do |mf_space|
       @cool_design_temps[mf_space] = get_other_side_temp(mf_space, @cool_setpoint, weather.design.CoolingDrybulb)
       @heat_design_temps[mf_space] = get_other_side_temp(mf_space, @heat_setpoint, weather.design.HeatingDrybulb)
     end
@@ -1914,27 +1907,25 @@ class HVACSizing
   end
 
   def self.get_ventilation_rates(model)
-    mechVentType = get_feature(model.getBuilding, Constants.SizingInfoMechVentType, 'string')
-    mechVentWholeHouseRate = get_feature(model.getBuilding, Constants.SizingInfoMechVentWholeHouseRate, 'double')
+    mechVentType = get_feature(model.getBuilding, Constants.SizingInfoMechVentType, 'string', false)
+    return [0.0, 0.0, 0.0] if mechVentType.nil?
 
-    q_unb = 0.0
-    q_bal_Sens = 0.0
-    q_bal_Lat = 0.0
+    mechVentWholeHouseRate = get_feature(model.getBuilding, Constants.SizingInfoMechVentWholeHouseRate, 'double')
 
     if [HPXML::MechVentTypeExhaust, HPXML::MechVentTypeSupply, HPXML::MechVentTypeCFIS].include? mechVentType
       q_unb = mechVentWholeHouseRate
+      q_bal_sens = 0.0
+      q_bal_lat = 0.0
     elsif [HPXML::MechVentTypeBalanced, HPXML::MechVentTypeERV, HPXML::MechVentTypeHRV].include? mechVentType
       totalEfficiency = get_feature(model.getBuilding, Constants.SizingInfoMechVentTotalEfficiency, 'double')
       apparentSensibleEffectiveness = get_feature(model.getBuilding, Constants.SizingInfoMechVentApparentSensibleEffectiveness, 'double')
       latentEffectiveness = get_feature(model.getBuilding, Constants.SizingInfoMechVentLatentEffectiveness, 'double')
-
-      q_bal_Sens = mechVentWholeHouseRate * (1.0 - apparentSensibleEffectiveness)
-      q_bal_Lat = mechVentWholeHouseRate * (1.0 - latentEffectiveness)
-    elsif mechVentType.length > 0
-      fail "Unexpected mechanical ventilation type: #{mechVentType}."
+      q_unb = 0.0
+      q_bal_sens = mechVentWholeHouseRate * (1.0 - apparentSensibleEffectiveness)
+      q_bal_lat = mechVentWholeHouseRate * (1.0 - latentEffectiveness)
     end
 
-    return [q_unb, q_bal_Sens, q_bal_Lat]
+    return [q_unb, q_bal_sens, q_bal_lat]
   end
 
   def self.get_fenestration_shgc(surface)
@@ -2052,7 +2043,8 @@ class HVACSizing
     ducts = []
 
     # Has ducts?
-    has_ducts = get_feature(air_loop, Constants.SizingInfoDuctExist, 'boolean')
+    has_ducts = get_feature(air_loop, Constants.SizingInfoDuctExist, 'boolean', false)
+    return ducts if ducts.nil?
 
     # Leakage values
     leakage_fracs = get_feature(air_loop, Constants.SizingInfoDuctLeakageFracs, 'string', false)
@@ -2652,7 +2644,7 @@ class HVACSizing
       return [(setpoint + oa_db) / 2, 50].max
     elsif adjacent_space_name == HPXML::LocationOtherNonFreezingSpace
       return [oa_db, 40].max
-    elsif [HPXML::LocationOtherHousingUnit, HPXML::LocationOtherHousingUnitAbove, HPXML::LocationOtherHousingUnitBelow].include? adjacent_space_name
+    elsif [HPXML::LocationOtherHousingUnit].include? adjacent_space_name
       return setpoint
     end
   end

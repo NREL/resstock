@@ -1,10 +1,5 @@
 # frozen_string_literal: true
 
-require_relative 'constants'
-require_relative 'unit_conversions'
-require_relative 'materials'
-require_relative 'geometry'
-
 class Constructions
   # Container class for walls, floors/ceilings, roofs, etc.
 

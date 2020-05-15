@@ -1,8 +1,5 @@
 # frozen_string_literal: true
 
-require_relative 'constants'
-require_relative 'unit_conversions'
-
 class HelperMethods
   def self.eplus_fuel_map(fuel)
     if fuel == HPXML::FuelTypeElectricity

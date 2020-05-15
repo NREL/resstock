@@ -1,12 +1,5 @@
 # frozen_string_literal: true
 
-require_relative 'constants'
-require_relative 'geometry'
-require_relative 'util'
-require_relative 'unit_conversions'
-require_relative 'psychrometrics'
-require_relative 'schedules'
-
 class HVAC
   def self.apply_central_air_conditioner_furnace(model, runner, cooling_system, heating_system,
                                                  remaining_cool_load_frac, remaining_heat_load_frac,

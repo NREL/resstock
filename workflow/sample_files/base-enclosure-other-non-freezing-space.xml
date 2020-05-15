@@ -21,6 +21,7 @@
     <BuildingDetails>
       <BuildingSummary>
         <Site>
+          <SiteType>suburban</SiteType>
           <FuelTypesAvailable>
             <Fuel>electricity</Fuel>
             <Fuel>natural gas</Fuel>
@@ -86,7 +87,7 @@
             </Insulation>
           </Wall>
           <Wall>
-            <SystemIdentifier id='OtherNonFreezingSpaceWall'/>
+            <SystemIdentifier id='WallOtherNonFreezingSpace'/>
             <ExteriorAdjacentTo>other non-freezing space</ExteriorAdjacentTo>
             <InteriorAdjacentTo>living space</InteriorAdjacentTo>
             <WallType>
@@ -96,31 +97,37 @@
             <SolarAbsorptance>0.7</SolarAbsorptance>
             <Emittance>0.92</Emittance>
             <Insulation>
-              <SystemIdentifier id='OtherNonFreezingSpaceWallInsulation'/>
+              <SystemIdentifier id='WallOtherNonFreezingSpaceInsulation'/>
               <AssemblyEffectiveRValue>4.0</AssemblyEffectiveRValue>
             </Insulation>
           </Wall>
         </Walls>
         <FrameFloors>
           <FrameFloor>
-            <SystemIdentifier id='FloorBelowOtherHousingUnit'/>
-            <ExteriorAdjacentTo>other housing unit above</ExteriorAdjacentTo>
-            <InteriorAdjacentTo>living space</InteriorAdjacentTo>
-            <Area>1350.0</Area>
-            <Insulation>
-              <SystemIdentifier id='FloorBelowOtherHousingUnitInsulation'/>
-              <AssemblyEffectiveRValue>2.1</AssemblyEffectiveRValue>
-            </Insulation>
-          </FrameFloor>
-          <FrameFloor>
-            <SystemIdentifier id='FloorOtherNonFreezingSpace'/>
+            <SystemIdentifier id='FloorBelowOtherNonFreezingSpace'/>
             <ExteriorAdjacentTo>other non-freezing space</ExteriorAdjacentTo>
             <InteriorAdjacentTo>living space</InteriorAdjacentTo>
             <Area>1350.0</Area>
             <Insulation>
-              <SystemIdentifier id='FloorOtherNonFreezingSpaceInsulation'/>
+              <SystemIdentifier id='FloorBelowOtherNonFreezingSpaceInsulation'/>
               <AssemblyEffectiveRValue>2.1</AssemblyEffectiveRValue>
             </Insulation>
+            <extension>
+              <OtherSpaceAboveOrBelow>above</OtherSpaceAboveOrBelow>
+            </extension>
+          </FrameFloor>
+          <FrameFloor>
+            <SystemIdentifier id='FloorAboveOtherNonFreezingSpace'/>
+            <ExteriorAdjacentTo>other non-freezing space</ExteriorAdjacentTo>
+            <InteriorAdjacentTo>living space</InteriorAdjacentTo>
+            <Area>1350.0</Area>
+            <Insulation>
+              <SystemIdentifier id='FloorAboveOtherNonFreezingSpaceInsulation'/>
+              <AssemblyEffectiveRValue>2.1</AssemblyEffectiveRValue>
+            </Insulation>
+            <extension>
+              <OtherSpaceAboveOrBelow>below</OtherSpaceAboveOrBelow>
+            </extension>
           </FrameFloor>
         </FrameFloors>
         <Windows>
@@ -197,8 +204,8 @@
             <RValue>4.4</RValue>
           </Door>
           <Door>
-            <SystemIdentifier id='DoorOnOtherNonFreezingSpaceWall'/>
-            <AttachedToWall idref='OtherNonFreezingSpaceWall'/>
+            <SystemIdentifier id='DoorOnWallOtherNonFreezingSpace'/>
+            <AttachedToWall idref='WallOtherNonFreezingSpace'/>
             <Area>40.0</Area>
             <Azimuth>0</Azimuth>
             <RValue>4.4</RValue>

@@ -21,6 +21,7 @@
     <BuildingDetails>
       <BuildingSummary>
         <Site>
+          <SiteType>suburban</SiteType>
           <FuelTypesAvailable>
             <Fuel>electricity</Fuel>
             <Fuel>natural gas</Fuel>
@@ -86,7 +87,7 @@
             </Insulation>
           </Wall>
           <Wall>
-            <SystemIdentifier id='OtherHousingUnitWall'/>
+            <SystemIdentifier id='WallOtherHousingUnit'/>
             <ExteriorAdjacentTo>other housing unit</ExteriorAdjacentTo>
             <InteriorAdjacentTo>living space</InteriorAdjacentTo>
             <WallType>
@@ -96,7 +97,7 @@
             <SolarAbsorptance>0.7</SolarAbsorptance>
             <Emittance>0.92</Emittance>
             <Insulation>
-              <SystemIdentifier id='OtherHousingUnitWallInsulation'/>
+              <SystemIdentifier id='WallOtherHousingUnitInsulation'/>
               <AssemblyEffectiveRValue>4.0</AssemblyEffectiveRValue>
             </Insulation>
           </Wall>
@@ -104,23 +105,29 @@
         <FrameFloors>
           <FrameFloor>
             <SystemIdentifier id='FloorBelowOtherHousingUnit'/>
-            <ExteriorAdjacentTo>other housing unit above</ExteriorAdjacentTo>
+            <ExteriorAdjacentTo>other housing unit</ExteriorAdjacentTo>
             <InteriorAdjacentTo>living space</InteriorAdjacentTo>
             <Area>1350.0</Area>
             <Insulation>
               <SystemIdentifier id='FloorBelowOtherHousingUnitInsulation'/>
               <AssemblyEffectiveRValue>2.1</AssemblyEffectiveRValue>
             </Insulation>
+            <extension>
+              <OtherSpaceAboveOrBelow>above</OtherSpaceAboveOrBelow>
+            </extension>
           </FrameFloor>
           <FrameFloor>
             <SystemIdentifier id='FloorAboveOtherHousingUnit'/>
-            <ExteriorAdjacentTo>other housing unit below</ExteriorAdjacentTo>
+            <ExteriorAdjacentTo>other housing unit</ExteriorAdjacentTo>
             <InteriorAdjacentTo>living space</InteriorAdjacentTo>
             <Area>1350.0</Area>
             <Insulation>
               <SystemIdentifier id='FloorAboveOtherHousingUnitInsulation'/>
               <AssemblyEffectiveRValue>2.1</AssemblyEffectiveRValue>
             </Insulation>
+            <extension>
+              <OtherSpaceAboveOrBelow>below</OtherSpaceAboveOrBelow>
+            </extension>
           </FrameFloor>
         </FrameFloors>
         <Windows>
@@ -197,8 +204,8 @@
             <RValue>4.4</RValue>
           </Door>
           <Door>
-            <SystemIdentifier id='DoorOnOtherHousingUnitWall'/>
-            <AttachedToWall idref='OtherHousingUnitWall'/>
+            <SystemIdentifier id='DoorOnWallOtherHousingUnit'/>
+            <AttachedToWall idref='WallOtherHousingUnit'/>
             <Area>40.0</Area>
             <Azimuth>0</Azimuth>
             <RValue>4.4</RValue>

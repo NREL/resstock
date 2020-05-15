@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'oga'
-
 class EnergyPlusValidator
   def self.run_validator(hpxml_doc)
     # A hash of hashes that defines the XML elements used by the EnergyPlus HPXML Use Case.
@@ -49,10 +47,11 @@ class EnergyPlusValidator
         '/HPXML/Building/BuildingID' => one, # Required by HPXML schema
         '/HPXML/Building/ProjectStatus/EventType' => one, # Required by HPXML schema
 
-        '/HPXML/Building/BuildingDetails/BuildingSummary/Site/extension/ShelterCoefficient' => zero_or_one, # Uses ERI assumption if not provided
-        '/HPXML/Building/BuildingDetails/BuildingSummary/BuildingOccupancy/NumberofResidents' => zero_or_one, # Uses ERI assumption if not provided
-        '/HPXML/Building/BuildingDetails/BuildingSummary/BuildingConstruction' => one, # See [BuildingConstruction]
+        '/HPXML/Building/BuildingDetails/BuildingSummary/Site/SiteType[text()="urban" or text()="suburban" or text()="rural"]' => zero_or_one,
+        '/HPXML/Building/BuildingDetails/BuildingSummary/Site/extension/ShelterCoefficient' => zero_or_one,
         '/HPXML/Building/BuildingDetails/BuildingSummary/Site/extension/Neighbors' => zero_or_one, # See [Neighbors]
+        '/HPXML/Building/BuildingDetails/BuildingSummary/BuildingOccupancy/NumberofResidents' => zero_or_one,
+        '/HPXML/Building/BuildingDetails/BuildingSummary/BuildingConstruction' => one, # See [BuildingConstruction]
 
         '/HPXML/Building/BuildingDetails/ClimateandRiskZones/ClimateZoneIECC' => zero_or_one, # See [ClimateZone]
         '/HPXML/Building/BuildingDetails/ClimateandRiskZones/WeatherStation' => one, # See [WeatherStation]
@@ -225,11 +224,16 @@ class EnergyPlusValidator
       # [FrameFloor]
       '/HPXML/Building/BuildingDetails/Enclosure/FrameFloors/FrameFloor' => {
         'SystemIdentifier' => one, # Required by HPXML schema
-        'ExteriorAdjacentTo[text()="outside" or text()="attic - vented" or text()="attic - unvented" or text()="basement - conditioned" or text()="basement - unconditioned" or text()="crawlspace - vented" or text()="crawlspace - unvented" or text()="garage" or text()="other housing unit above" or text()="other housing unit below" or text()="other heated space" or text()="other multifamily buffer space" or text()="other non-freezing space"]' => one,
+        'ExteriorAdjacentTo[text()="outside" or text()="attic - vented" or text()="attic - unvented" or text()="basement - conditioned" or text()="basement - unconditioned" or text()="crawlspace - vented" or text()="crawlspace - unvented" or text()="garage" or text()="other housing unit" or text()="other heated space" or text()="other multifamily buffer space" or text()="other non-freezing space"]' => one, # See [FrameFloorAdjacentToOther]
         'InteriorAdjacentTo[text()="living space" or text()="attic - vented" or text()="attic - unvented" or text()="basement - conditioned" or text()="basement - unconditioned" or text()="crawlspace - vented" or text()="crawlspace - unvented" or text()="garage"]' => one,
         'Area' => one,
         'Insulation/SystemIdentifier' => one, # Required by HPXML schema
         'Insulation/AssemblyEffectiveRValue' => one,
+      },
+
+      # [FrameFloorAdjacentToOther]
+      '/HPXML/Building/BuildingDetails/Enclosure/FrameFloors/FrameFloor[ExteriorAdjacentTo[text()="other housing unit" or text()="other heated space" or text()="other multifamily buffer space" or text()="other non-freezing space"]]' => {
+        'extension/OtherSpaceAboveOrBelow[text()="above" or text()="below"]' => one,
       },
 
       # [Slab]

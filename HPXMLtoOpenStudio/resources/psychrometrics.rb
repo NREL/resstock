@@ -1,10 +1,5 @@
 # frozen_string_literal: true
 
-require_relative 'constants'
-require_relative 'unit_conversions'
-require_relative 'materials'
-require_relative 'util'
-
 class Psychrometrics
   def self.H_fg_fT(t)
     '''
