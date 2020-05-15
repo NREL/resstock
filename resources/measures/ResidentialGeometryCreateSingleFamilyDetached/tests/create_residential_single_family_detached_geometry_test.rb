@@ -493,56 +493,6 @@ class CreateResidentialSingleFamilyDetachedGeometryTest < MiniTest::Test
     assert_includes(result.errors.map { |x| x.logMessage }, "Number of bathrooms must be a positive multiple of 0.25.")
   end
 
-  def test_argument_error_num_occ_bad_string
-    args_hash = {}
-    args_hash["num_occupants"] = "hello"
-    result = _test_error(nil, args_hash)
-    assert_includes(result.errors.map { |x| x.logMessage }, "Number of Occupants must be either '#{Constants.Auto}' or a number greater than or equal to 0.")
-  end
-
-  def test_argument_error_num_occ_negative
-    args_hash = {}
-    args_hash["num_occupants"] = "-1"
-    result = _test_error(nil, args_hash)
-    assert_includes(result.errors.map { |x| x.logMessage }, "Number of Occupants must be either '#{Constants.Auto}' or a number greater than or equal to 0.")
-  end
-
-  def test_argument_error_num_occ_incorrect_num_elements
-    args_hash = {}
-    args_hash["num_occupants"] = "2, 3, 4"
-    result = _test_error(nil, args_hash)
-    assert_includes(result.errors.map { |x| x.logMessage }, "Number of occupant elements specified inconsistent with number of multifamily units defined in the model.")
-  end
-
-  def test_new_construction_none
-    args_hash = {}
-    args_hash["num_occupants"] = "0"
-    expected_num_del_objects = {}
-    expected_num_new_objects = { "Surface" => 17, "Space" => 3, "SpaceType" => 2, "ThermalZone" => 2, "BuildingUnit" => 1, "ShadingSurfaceGroup" => 2, "ShadingSurface" => 8, "ExternalFile" => 1 }
-    expected_values = { "FinishedFloorArea" => 2000, "UnfinishedAtticHeight" => 6.59, "UnfinishedAtticFloorArea" => 2000 / 2, "BuildingHeight" => 8 + 8 + 6.59, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 0, "EavesDepth" => 2 }
-    _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
-  end
-
-  def test_new_construction_auto
-    num_finished_spaces = 2
-    args_hash = {}
-    args_hash["num_occupants"] = Constants.Auto
-    expected_num_del_objects = {}
-    expected_num_new_objects = { "Surface" => 17, "Space" => 3, "SpaceType" => 2, "ThermalZone" => 2, "BuildingUnit" => 1, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 1, "ShadingSurfaceGroup" => 2, "ShadingSurface" => 8, "ExternalFile" => 1, "ScheduleFile" => 1 }
-    expected_values = { "FinishedFloorArea" => 2000, "UnfinishedAtticHeight" => 6.59, "UnfinishedAtticFloorArea" => 2000 / 2, "BuildingHeight" => 8 + 8 + 6.59, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 2.64, "EavesDepth" => 2 }
-    _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
-  end
-
-  def test_new_construction_fixed_3
-    num_finished_spaces = 2
-    args_hash = {}
-    args_hash["num_occupants"] = "3"
-    expected_num_del_objects = {}
-    expected_num_new_objects = { "Surface" => 17, "Space" => 3, "SpaceType" => 2, "ThermalZone" => 2, "BuildingUnit" => 1, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 1, "ShadingSurfaceGroup" => 2, "ShadingSurface" => 8, "ExternalFile" => 1, "ScheduleFile" => 1 }
-    expected_values = { "FinishedFloorArea" => 2000, "UnfinishedAtticHeight" => 6.59, "UnfinishedAtticFloorArea" => 2000 / 2, "BuildingHeight" => 8 + 8 + 6.59, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 3, "EavesDepth" => 2 }
-    _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
-  end
-
   def test_error_invalid_eaves_depth
     args_hash = {}
     args_hash["eaves_depth"] = -1

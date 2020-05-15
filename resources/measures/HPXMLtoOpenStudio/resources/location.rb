@@ -124,7 +124,7 @@ class Location
 
         runner.registerInfo("Set daylight saving time from #{dst.startDate.to_s} to #{dst.endDate.to_s}.")
       rescue
-        runner.registerError("Invalid daylight saving date specified.")
+        runner.registerError("Invalid daylight saving date(s) specified.")
         return false
       end
     else

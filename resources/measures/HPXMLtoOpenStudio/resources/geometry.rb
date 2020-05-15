@@ -1472,10 +1472,7 @@ class Geometry
       unit_occ = num_occ[unit_index]
 
       if unit_occ != Constants.Auto
-        if not MathTools.valid_float?(unit_occ)
-          runner.registerError("Number of Occupants must be either '#{Constants.Auto}' or a number greater than or equal to 0.")
-          return false
-        elsif unit_occ.to_f < 0
+        if not MathTools.valid_float?(unit_occ) or unit_occ.to_f < 0
           runner.registerError("Number of Occupants must be either '#{Constants.Auto}' or a number greater than or equal to 0.")
           return false
         end

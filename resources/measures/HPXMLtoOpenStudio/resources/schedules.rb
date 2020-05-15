@@ -969,12 +969,7 @@ class ScheduleGenerator
     holiday_lighting_schedule = lighting_sch[3].map { |x| x.to_f }
 
     sch_option_type = Constants.OptionTypeLightingScheduleCalculated
-    interior_lighting_schedule = get_interior_lighting_sch(@model, @runner, @weather, sch_option_type,
-                                                           monthly_lighting_schedule)
-    sch_option_type = Constants.OptionTypeLightingScheduleUserSpecified
-    other_lighting_schedule = get_other_lighting_sch(@model, @runner, @weather, sch_option_type,
-                                                     weekday_lighting_schedule, weekend_lighting_schedule,
-                                                     monthly_lighting_schedule)
+    interior_lighting_schedule = get_interior_lighting_sch(@model, @runner, @weather, sch_option_type, monthly_lighting_schedule)
     holiday_lighting_schedule = get_holiday_lighting_sch(@model, @runner, holiday_lighting_schedule)
 
     away_schedule = []
@@ -1371,17 +1366,25 @@ class ScheduleGenerator
   def set_vacancy(min_per_step:,
                   sim_year:)
     if not (@vacancy_start_date.downcase == 'na' and @vacancy_end_date.downcase == 'na')
-      vacancy_start_date = Time.new(sim_year, OpenStudio::monthOfYear(@vacancy_start_date.split[0]).value, @vacancy_start_date.split[1].to_i)
-      vacancy_end_date = Time.new(sim_year, OpenStudio::monthOfYear(@vacancy_end_date.split[0]).value, @vacancy_end_date.split[1].to_i, 24)
+      begin
+        vacancy_start_date = Time.new(sim_year, OpenStudio::monthOfYear(@vacancy_start_date.split[0]).value, @vacancy_start_date.split[1].to_i)
+        vacancy_end_date = Time.new(sim_year, OpenStudio::monthOfYear(@vacancy_end_date.split[0]).value, @vacancy_end_date.split[1].to_i, 24)
 
-      sec_per_step = min_per_step * 60.0
-      ts = Time.new(sim_year, "Jan", 1)
-      @schedules["vacancy"].each_with_index do |step, i|
-        if vacancy_start_date <= ts && ts <= vacancy_end_date # in the vacancy period
-          @schedules["vacancy"][i] = 1.0
+        sec_per_step = min_per_step * 60.0
+        ts = Time.new(sim_year, "Jan", 1)
+        @schedules["vacancy"].each_with_index do |step, i|
+          if vacancy_start_date <= ts && ts <= vacancy_end_date # in the vacancy period
+            @schedules["vacancy"][i] = 1.0
+          end
+          ts += sec_per_step
         end
-        ts += sec_per_step
+        
+        @runner.registerInfo("Set vacancy period from #{@vacancy_start_date} tp #{@vacancy_end_date}.")
+      rescue
+        @runner.registerError("Invalid vacancy date(s) specified.")
       end
+    else
+      @runner.registerInfo("No vacancy period set.")
     end
     return true
   end
@@ -1580,32 +1583,6 @@ class ScheduleGenerator
     sch[(holiday_start_day - 1) * 24..-1] = holiday_sch * final_days
     m = sch.max
     sch = sch.map { |s| s / m }
-    return sch
-  end
-
-  def get_other_lighting_sch(model, runner, weather, sch_option_type, weekday_sch, weekend_sch, monthly_sch)
-    # TODO fix this to return 24*num_of_days_in_year values
-    lighting_sch = nil
-    if sch_option_type == Constants.OptionTypeLightingScheduleCalculated
-      lighting_sch = get_interior_lighting_sch(model, runner, weather, sch_option_type, monthly_sch)
-    end
-
-    # Design day schedules used when autosizing
-    winter_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
-    winter_design_day_sch.addValue(OpenStudio::Time.new(0, 24, 0, 0), 0)
-    summer_design_day_sch = OpenStudio::Model::ScheduleDay.new(model)
-    summer_design_day_sch.addValue(OpenStudio::Time.new(0, 24, 0, 0), 1)
-    # Create schedule
-    if lighting_sch.nil?
-      sch = MonthWeekdayWeekendSchedule.new(model, runner, Constants.ObjectNameLightingGarage, weekday_sch,
-                                            weekend_sch, monthly_sch, mult_weekday = 1.0, mult_weekend = 1.0,
-                                            normalize_values = true, create_sch_object = true,
-                                            winter_design_day_sch, summer_design_day_sch)
-    else
-      sch = HourlyByMonthSchedule.new(model, runner, Constants.ObjectNameLightingGarage,
-                                      lighting_sch, lighting_sch, normalize_values = true, create_sch_object = true,
-                                      winter_design_day_sch, summer_design_day_sch)
-    end
     return sch
   end
 
@@ -1938,6 +1915,7 @@ class SchedulesFile
   end
 
   def set_vacancy(col_name:)
+    return unless @schedules.keys.include? "vacancy"
     return if @schedules["vacancy"].all? { |i| i == 0 }
 
     @schedules[col_name].each_with_index do |ts, i|
