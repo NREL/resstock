@@ -130,7 +130,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('geometry_num_floors_above_grade', true)
     arg.setDisplayName('Geometry: Number of Floors')
     arg.setUnits('#')
-    arg.setDescription('The number of floors above grade (in the unit if single-family, and in the building if multifamily).')
+    arg.setDescription("The number of floors above grade (in the unit if #{HPXML::ResidentialTypeSFA}, and in the building if #{HPXML::ResidentialTypeMF}).")
     arg.setDefaultValue(2)
     args << arg
 
