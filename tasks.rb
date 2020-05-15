@@ -220,7 +220,7 @@ if ARGV[0].to_sym == :update_measures
                           "example_single_family_attached_#{weather_year}.osw")
 
     # MF
-    include_args['BuildResidentialHPXML']['geometry_unit_type'] = HPXML::ResidentialTypeMF2to4
+    include_args['BuildResidentialHPXML']['geometry_unit_type'] = HPXML::ResidentialTypeMF
     include_args['BuildResidentialHPXML']['geometry_num_units'] = '2'
     include_args['BuildResidentialHPXML']['geometry_cfa'] = '900'
     include_args['BuildResidentialHPXML'].update(weather_station)
