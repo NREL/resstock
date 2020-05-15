@@ -1378,7 +1378,7 @@ class ScheduleGenerator
           end
           ts += sec_per_step
         end
-        
+
         @runner.registerInfo("Set vacancy period from #{@vacancy_start_date} tp #{@vacancy_end_date}.")
       rescue
         @runner.registerError("Invalid vacancy date(s) specified.")
