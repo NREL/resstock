@@ -3009,6 +3009,11 @@ class HPXMLFile
         exterior_adjacent_to = get_adjacent_to(model, surface.adjacentSurface.get)
       elsif surface.outsideBoundaryCondition == 'Adiabatic'
         exterior_adjacent_to = HPXML::LocationOtherHousingUnit
+        if surface.surfaceType == 'Floor'
+          other_space_above_or_below = HPXML::FrameFloorOtherSpaceBelow
+        elsif surface.surfaceType == 'RoofCeiling'
+          other_space_above_or_below = HPXML::FrameFloorOtherSpaceAbove
+        end
       end
       next if interior_adjacent_to == exterior_adjacent_to
       next if (surface.surfaceType == 'RoofCeiling') && (exterior_adjacent_to == HPXML::LocationOutside)
@@ -3017,7 +3022,8 @@ class HPXMLFile
       hpxml.frame_floors.add(id: "#{surface.name}",
                              exterior_adjacent_to: exterior_adjacent_to,
                              interior_adjacent_to: interior_adjacent_to,
-                             area: UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2').round)
+                             area: UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2').round,
+                             other_space_above_or_below: other_space_above_or_below)
 
       if hpxml.frame_floors[-1].is_thermal_boundary
         if [HPXML::LocationAtticUnvented, HPXML::LocationAtticVented, HPXML::LocationGarage].include? exterior_adjacent_to
