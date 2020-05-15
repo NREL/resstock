@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require_relative 'xmlhelper'
-
 '''
 Example Usage:
 
@@ -63,8 +61,7 @@ class HPXML < Object
   AtticTypeVented = 'VentedAttic'
   ResidentialTypeApartment = 'apartment unit'
   ResidentialTypeManufactured = 'manufactured home'
-  ResidentialTypeMF2to4 = '2-4 unit building'
-  ResidentialTypeMF5plus = '5+ unit building'
+  ResidentialTypeMF = 'multifamily'
   ResidentialTypeSFA = 'single-family attached'
   ResidentialTypeSFD = 'single-family detached'
   ClothesDryerControlTypeMoisture = 'moisture'
@@ -92,6 +89,8 @@ class HPXML < Object
   FoundationTypeCrawlspaceUnvented = 'UnventedCrawlspace'
   FoundationTypeCrawlspaceVented = 'VentedCrawlspace'
   FoundationTypeSlab = 'SlabOnGrade'
+  FrameFloorOtherSpaceAbove = 'above'
+  FrameFloorOtherSpaceBelow = 'below'
   FuelTypeElectricity = 'electricity'
   FuelTypeNaturalGas = 'natural gas'
   FuelTypeOil = 'fuel oil'
@@ -137,8 +136,6 @@ class HPXML < Object
   LocationLivingSpace = 'living space'
   LocationOtherExterior = 'other exterior'
   LocationOtherHousingUnit = 'other housing unit'
-  LocationOtherHousingUnitAbove = 'other housing unit above'
-  LocationOtherHousingUnitBelow = 'other housing unit below'
   LocationOtherHeatedSpace = 'other heated space'
   LocationOtherMultifamilyBufferSpace = 'other multifamily buffer space'
   LocationOtherNonFreezingSpace = 'other non-freezing space'
@@ -182,6 +179,9 @@ class HPXML < Object
   SidingTypeStucco = 'stucco'
   SidingTypeVinyl = 'vinyl siding'
   SidingTypeWood = 'wood siding'
+  SiteTypeUrban = 'urban'
+  SiteTypeSuburban = 'suburban'
+  SiteTypeRural = 'rural'
   SolarThermalLoopTypeDirect = 'liquid direct'
   SolarThermalLoopTypeIndirect = 'liquid indirect'
   SolarThermalLoopTypeThermosyphon = 'passive thermosyphon'
@@ -366,7 +366,7 @@ class HPXML < Object
 
         # Update Compartmentalization Boundary areas
         total_area += surface.area
-        if not (surface.exterior_adjacent_to.include?(LocationOtherHousingUnit) || (surface.exterior_adjacent_to == LocationGarage))
+        if not [LocationOtherHousingUnit, LocationGarage].include? surface.exterior_adjacent_to # FIXME: Need to add additional "other" spaces?
           exterior_area += surface.area
         end
       end
@@ -667,7 +667,7 @@ class HPXML < Object
   end
 
   class Site < BaseElement
-    ATTRS = [:surroundings, :orientation_of_front_of_home, :fuels, :shelter_coefficient]
+    ATTRS = [:site_type, :surroundings, :orientation_of_front_of_home, :fuels, :shelter_coefficient]
     attr_accessor(*ATTRS)
 
     def check_for_errors
@@ -679,6 +679,9 @@ class HPXML < Object
       return if nil?
 
       site = XMLHelper.create_elements_as_needed(doc, ['HPXML', 'Building', 'BuildingDetails', 'BuildingSummary', 'Site'])
+      XMLHelper.add_element(site, 'SiteType', @site_type) unless @site_type.nil?
+      XMLHelper.add_element(site, 'Surroundings', @surroundings) unless @surroundings.nil?
+      XMLHelper.add_element(site, 'OrientationOfFrontOfHome', @orientation_of_front_of_home) unless @orientation_of_front_of_home.nil?
       if (not @fuels.nil?) && (not @fuels.empty?)
         fuel_types_available = XMLHelper.add_element(site, 'FuelTypesAvailable')
         @fuels.each do |fuel|
@@ -695,6 +698,7 @@ class HPXML < Object
       site = XMLHelper.get_element(hpxml, 'Building/BuildingDetails/BuildingSummary/Site')
       return if site.nil?
 
+      @site_type = XMLHelper.get_value(site, 'SiteType')
       @surroundings = XMLHelper.get_value(site, 'Surroundings')
       @orientation_of_front_of_home = XMLHelper.get_value(site, 'OrientationOfFrontOfHome')
       @fuels = XMLHelper.get_values(site, 'FuelTypesAvailable/Fuel')
@@ -1731,13 +1735,16 @@ class HPXML < Object
 
   class FrameFloor < BaseElement
     ATTRS = [:id, :exterior_adjacent_to, :interior_adjacent_to, :area, :insulation_id,
-             :insulation_assembly_r_value, :insulation_cavity_r_value, :insulation_continuous_r_value]
+             :insulation_assembly_r_value, :insulation_cavity_r_value, :insulation_continuous_r_value,
+             :other_space_above_or_below]
     attr_accessor(*ATTRS)
 
     def is_ceiling
       if [LocationAtticVented, LocationAtticUnvented].include? @interior_adjacent_to
         return true
-      elsif [LocationAtticVented, LocationAtticUnvented, LocationOtherHousingUnitAbove].include? @exterior_adjacent_to
+      elsif [LocationAtticVented, LocationAtticUnvented].include? @exterior_adjacent_to
+        return true
+      elsif [LocationOtherHousingUnit, LocationOtherHeatedSpace, LocationOtherMultifamilyBufferSpace, LocationOtherNonFreezingSpace].include?(@exterior_adjacent_to) && (@other_space_above_or_below == FrameFloorOtherSpaceAbove)
         return true
       end
 
@@ -1801,6 +1808,8 @@ class HPXML < Object
         XMLHelper.add_attribute(sys_id, 'id', @id + 'Insulation')
       end
       XMLHelper.add_element(insulation, 'AssemblyEffectiveRValue', to_float(@insulation_assembly_r_value)) unless @insulation_assembly_r_value.nil?
+      HPXML::add_extension(parent: frame_floor,
+                           extensions: { 'OtherSpaceAboveOrBelow' => @other_space_above_or_below })
     end
 
     def from_oga(frame_floor)
@@ -1817,6 +1826,7 @@ class HPXML < Object
         @insulation_cavity_r_value = to_float_or_nil(XMLHelper.get_value(insulation, "Layer[InstallationType='cavity']/NominalRValue"))
         @insulation_continuous_r_value = to_float_or_nil(XMLHelper.get_value(insulation, "Layer[InstallationType='continuous']/NominalRValue"))
       end
+      @other_space_above_or_below = XMLHelper.get_value(frame_floor, 'extension/OtherSpaceAboveOrBelow')
     end
   end
 
@@ -4233,7 +4243,7 @@ class HPXML < Object
       return false
     end
 
-    if surface.exterior_adjacent_to.include? HPXML::LocationOtherHousingUnit
+    if surface.exterior_adjacent_to == HPXML::LocationOtherHousingUnit
       return false # adiabatic
     end
 

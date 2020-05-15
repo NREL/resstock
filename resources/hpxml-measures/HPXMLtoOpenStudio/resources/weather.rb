@@ -1,9 +1,5 @@
 # frozen_string_literal: true
 
-require_relative 'psychrometrics'
-require_relative 'constants'
-require_relative 'unit_conversions'
-
 class WeatherHeader
   def initialize
   end

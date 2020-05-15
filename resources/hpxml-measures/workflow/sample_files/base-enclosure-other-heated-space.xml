@@ -21,6 +21,7 @@
     <BuildingDetails>
       <BuildingSummary>
         <Site>
+          <SiteType>suburban</SiteType>
           <FuelTypesAvailable>
             <Fuel>electricity</Fuel>
             <Fuel>natural gas</Fuel>
@@ -86,7 +87,7 @@
             </Insulation>
           </Wall>
           <Wall>
-            <SystemIdentifier id='OtherHeatedSpaceWall'/>
+            <SystemIdentifier id='WallOtherHeatedSpace'/>
             <ExteriorAdjacentTo>other heated space</ExteriorAdjacentTo>
             <InteriorAdjacentTo>living space</InteriorAdjacentTo>
             <WallType>
@@ -96,31 +97,37 @@
             <SolarAbsorptance>0.7</SolarAbsorptance>
             <Emittance>0.92</Emittance>
             <Insulation>
-              <SystemIdentifier id='OtherHeatedSpaceWallInsulation'/>
+              <SystemIdentifier id='WallOtherHeatedSpaceInsulation'/>
               <AssemblyEffectiveRValue>4.0</AssemblyEffectiveRValue>
             </Insulation>
           </Wall>
         </Walls>
         <FrameFloors>
           <FrameFloor>
-            <SystemIdentifier id='FloorBelowOtherHousingUnit'/>
-            <ExteriorAdjacentTo>other housing unit above</ExteriorAdjacentTo>
-            <InteriorAdjacentTo>living space</InteriorAdjacentTo>
-            <Area>1350.0</Area>
-            <Insulation>
-              <SystemIdentifier id='FloorBelowOtherHousingUnitInsulation'/>
-              <AssemblyEffectiveRValue>2.1</AssemblyEffectiveRValue>
-            </Insulation>
-          </FrameFloor>
-          <FrameFloor>
-            <SystemIdentifier id='FloorOtherHeatedSpace'/>
+            <SystemIdentifier id='FloorBelowOtherHeatedSpace'/>
             <ExteriorAdjacentTo>other heated space</ExteriorAdjacentTo>
             <InteriorAdjacentTo>living space</InteriorAdjacentTo>
             <Area>1350.0</Area>
             <Insulation>
-              <SystemIdentifier id='FloorOtherHeatedSpaceInsulation'/>
+              <SystemIdentifier id='FloorBelowOtherHeatedSpaceInsulation'/>
               <AssemblyEffectiveRValue>2.1</AssemblyEffectiveRValue>
             </Insulation>
+            <extension>
+              <OtherSpaceAboveOrBelow>above</OtherSpaceAboveOrBelow>
+            </extension>
+          </FrameFloor>
+          <FrameFloor>
+            <SystemIdentifier id='FloorAboveOtherHeatedSpace'/>
+            <ExteriorAdjacentTo>other heated space</ExteriorAdjacentTo>
+            <InteriorAdjacentTo>living space</InteriorAdjacentTo>
+            <Area>1350.0</Area>
+            <Insulation>
+              <SystemIdentifier id='FloorAboveOtherHeatedSpaceInsulation'/>
+              <AssemblyEffectiveRValue>2.1</AssemblyEffectiveRValue>
+            </Insulation>
+            <extension>
+              <OtherSpaceAboveOrBelow>below</OtherSpaceAboveOrBelow>
+            </extension>
           </FrameFloor>
         </FrameFloors>
         <Windows>
@@ -197,8 +204,8 @@
             <RValue>4.4</RValue>
           </Door>
           <Door>
-            <SystemIdentifier id='DoorOnOtherHeatedSpaceWall'/>
-            <AttachedToWall idref='OtherHeatedSpaceWall'/>
+            <SystemIdentifier id='DoorOnWallOtherHeatedSpace'/>
+            <AttachedToWall idref='WallOtherHeatedSpace'/>
             <Area>40.0</Area>
             <Azimuth>0</Azimuth>
             <RValue>4.4</RValue>

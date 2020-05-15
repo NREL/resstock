@@ -6,7 +6,7 @@ class FT
   Gas = 'Natural Gas'
   Oil = 'Fuel Oil'
   Propane = 'Propane'
-  Wood = 'Wood'
+  WoodCord = 'Wood Cord'
   WoodPellets = 'Wood Pellets'
 end
 

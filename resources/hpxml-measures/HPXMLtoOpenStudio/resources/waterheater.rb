@@ -1,13 +1,5 @@
 # frozen_string_literal: true
 
-require_relative 'constants'
-require_relative 'util'
-require_relative 'geometry'
-require_relative 'schedules'
-require_relative 'unit_conversions'
-require_relative 'psychrometrics'
-require_relative 'hotwater_appliances'
-
 class Waterheater
   def self.apply_tank(model, loc_space, loc_schedule, fuel_type, cap, vol,
                       ef, re, t_set, ec_adj, dhw_map,
@@ -27,7 +19,7 @@ class Waterheater
     new_manager.addToNode(loop.supplyOutletNode)
 
     act_vol = calc_storage_tank_actual_vol(vol, fuel_type)
-    u, ua, eta_c = calc_tank_UA(act_vol, fuel_type, ef, re, cap, HPXML::WaterHeaterTypeStorage, 0, jacket_r, solar_fraction)
+    u, ua, eta_c = calc_tank_UA(act_vol, fuel_type, ef, re, cap, HPXML::WaterHeaterTypeStorage, 1.0, jacket_r, solar_fraction)
     new_heater = create_new_heater(name: Constants.ObjectNameWaterHeater, cap: cap, fuel: fuel_type, act_vol: act_vol, t_set: t_set, loc_space: loc_space, loc_schedule: loc_schedule, wh_type: HPXML::WaterHeaterTypeStorage, model: model, ua: ua, eta_c: eta_c, oncycle_p: 0.0, ef: ef)
     set_parasitic_power_for_storage_wh(water_heater: new_heater)
     dhw_map[sys_id] << new_heater
@@ -43,7 +35,7 @@ class Waterheater
     end
   end
 
-  def self.apply_tankless(model, loc_space, loc_schedule, fuel_type, ef, cd,
+  def self.apply_tankless(model, loc_space, loc_schedule, fuel_type, ef, performance_adjustment,
                           t_set, ec_adj, nbeds, dhw_map, sys_id,
                           desuperheater_clg_coil, solar_fraction)
 
@@ -59,7 +51,7 @@ class Waterheater
     new_manager.addToNode(loop.supplyOutletNode)
 
     act_vol = 1.0
-    u, ua, eta_c = calc_tank_UA(act_vol, fuel_type, ef, nil, cap, HPXML::WaterHeaterTypeTankless, cd, nil, solar_fraction)
+    u, ua, eta_c = calc_tank_UA(act_vol, fuel_type, ef, nil, cap, HPXML::WaterHeaterTypeTankless, performance_adjustment, nil, solar_fraction)
     new_heater = create_new_heater(name: Constants.ObjectNameWaterHeater, cap: cap, fuel: fuel_type, act_vol: act_vol, t_set: t_set, loc_space: loc_space, loc_schedule: loc_schedule, wh_type: HPXML::WaterHeaterTypeTankless, model: model, ua: ua, eta_c: eta_c, ef: ef)
     set_parasitic_power_for_tankless_wh(nbeds: nbeds, water_heater: new_heater)
     dhw_map[sys_id] << new_heater
@@ -1249,8 +1241,10 @@ class Waterheater
     end
   end
 
-  def self.get_tankless_cycling_derate()
-    return 0.08
+  def self.get_default_performance_adjustment(water_heating_system)
+    return unless water_heating_system.water_heater_type == HPXML::WaterHeaterTypeTankless
+
+    return 0.92 # Applies to EF
   end
 
   def self.get_default_location(hpxml, iecc_zone)
@@ -1303,12 +1297,12 @@ class Waterheater
     return act_vol
   end
 
-  def self.calc_tank_UA(act_vol, fuel, ef, re, pow, wh_type, cyc_derate, jacket_r, solar_fraction)
+  def self.calc_tank_UA(act_vol, fuel, ef, re, pow, wh_type, performance_adjustment, jacket_r, solar_fraction)
     # Calculates the U value, UA of the tank and conversion efficiency (eta_c)
     # based on the Energy Factor and recovery efficiency of the tank
     # Source: Burch and Erickson 2004 - http://www.nrel.gov/docs/gen/fy04/36035.pdf
     if wh_type == HPXML::WaterHeaterTypeTankless
-      eta_c = ef * (1.0 - cyc_derate)
+      eta_c = ef * performance_adjustment
       ua = 0.0
       surface_area = 1.0
     else

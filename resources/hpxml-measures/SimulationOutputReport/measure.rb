@@ -1254,8 +1254,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       value = dhw_system.energy_factor
       wh_type = dhw_system.water_heater_type
       if wh_type == HPXML::WaterHeaterTypeTankless
-        cycling_derate = dhw_system.performance_adjustment
-        value_adj = 1.0 - cycling_derate
+        value_adj = dhw_system.performance_adjustment
       else
         value_adj = 1.0
       end
@@ -1416,10 +1415,10 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       load_fraction = 1.0
       if is_dfhp(heat_pump)
         if dfhp_primary_sys_id(sys_id) == sys_id
-          load_fraction = dfhp_loads[[sys_id, true]] / (dfhp_loads[[sys_id, true]] + dfhp_loads[[sys_id, false]])
+          load_fraction = dfhp_loads[[sys_id, true]] / (dfhp_loads[[sys_id, true]] + dfhp_loads[[sys_id, false]]) unless dfhp_loads[[sys_id, true]].nil?
         else
           sys_id = dfhp_primary_sys_id(sys_id)
-          load_fraction = dfhp_loads[[sys_id, false]] / (dfhp_loads[[sys_id, true]] + dfhp_loads[[sys_id, false]])
+          load_fraction = dfhp_loads[[sys_id, false]] / (dfhp_loads[[sys_id, true]] + dfhp_loads[[sys_id, false]]) unless dfhp_loads[[sys_id, true]].nil?
         end
       end
       next unless get_system_or_seed_id(heat_pump) == sys_id
@@ -1785,7 +1784,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       FT::Gas => Fuel.new(meter: 'Gas:Facility'),
       FT::Oil => Fuel.new(meter: 'FuelOil#1:Facility'),
       FT::Propane => Fuel.new(meter: 'Propane:Facility'),
-      FT::Wood => Fuel.new(meter: 'OtherFuel1:Facility'),
+      FT::WoodCord => Fuel.new(meter: 'OtherFuel1:Facility'),
       FT::WoodPellets => Fuel.new(meter: 'OtherFuel2:Facility'),
     }
 
@@ -1834,10 +1833,10 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       [FT::Propane, EUT::HotWater] => EndUse.new(variable: OutputVars.WaterHeatingPropane),
       [FT::Propane, EUT::ClothesDryer] => EndUse.new(meter: "#{Constants.ObjectNameClothesDryer}:InteriorEquipment:Propane"),
       [FT::Propane, EUT::RangeOven] => EndUse.new(meter: "#{Constants.ObjectNameCookingRange}:InteriorEquipment:Propane"),
-      [FT::Wood, EUT::Heating] => EndUse.new(variable: OutputVars.SpaceHeatingWood),
-      [FT::Wood, EUT::HotWater] => EndUse.new(variable: OutputVars.WaterHeatingWood),
-      [FT::Wood, EUT::ClothesDryer] => EndUse.new(meter: "#{Constants.ObjectNameClothesDryer}:InteriorEquipment:OtherFuel1"),
-      [FT::Wood, EUT::RangeOven] => EndUse.new(meter: "#{Constants.ObjectNameCookingRange}:InteriorEquipment:OtherFuel1"),
+      [FT::WoodCord, EUT::Heating] => EndUse.new(variable: OutputVars.SpaceHeatingWood),
+      [FT::WoodCord, EUT::HotWater] => EndUse.new(variable: OutputVars.WaterHeatingWood),
+      [FT::WoodCord, EUT::ClothesDryer] => EndUse.new(meter: "#{Constants.ObjectNameClothesDryer}:InteriorEquipment:OtherFuel1"),
+      [FT::WoodCord, EUT::RangeOven] => EndUse.new(meter: "#{Constants.ObjectNameCookingRange}:InteriorEquipment:OtherFuel1"),
       [FT::WoodPellets, EUT::Heating] => EndUse.new(variable: OutputVars.SpaceHeatingWoodPellets),
     }
 

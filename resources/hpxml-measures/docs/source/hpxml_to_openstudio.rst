@@ -112,7 +112,7 @@ Shelter Coefficient  Description
 0.3                  Complete shielding with large buildings immediately adjacent
 ===================  =========================================================================
 
-The terrain surrounding the building is assumed to be suburban.
+The terrain surrounding the building can be entered as ``Site/SiteType``; if not provided, it is assumed to be suburban.
 
 Weather File
 ~~~~~~~~~~~~
@@ -147,8 +147,6 @@ crawlspace - vented
 crawlspace - unvented     
 garage                    
 other housing unit              Conditioned space of an adjacent attached housing unit.               Same as conditioned space.
-other housing unit above        Conditioned space of an attached housing unit above.                  Same as conditioned space.
-other housing unit below        Conditioned space of an attached housing unit below.                  Same as conditioned space.
 other heated space              Heated multifamily space (e.g., shared laundry or equipment.)         Average of conditioned space and outside; minimum of 68F.
 other multifamily buffer space  Unconditioned multifamily space (e.g., enclosed unheated stairwell).  Average of conditioned space and outside; minimum of 50F.
 other non-freezing space        Non-freezing multifamily space (e.g., parking garage ceiling).        Floats with outside; minimum of 40F.
@@ -241,6 +239,7 @@ Frame Floors
 ************
 
 Any horizontal floor/ceiling surface that is not in contact with the ground (Slab) nor adjacent to ambient conditions above (Roof) should be specified as an ``Enclosure/FrameFloors/FrameFloor``.
+Frame floors in an attached/multifamily building that are adjacent to "other housing unit", "other heated space", "other multifamily buffer space", or "other non-freezing space" must have the ``extension/OtherSpaceAboveOrBelow`` property set to signify whether the other space is "above" or "below".
 
 Frame floors are primarily defined by their ``Insulation/AssemblyEffectiveRValue``.
 
@@ -526,15 +525,15 @@ Inputs including ``WaterHeaterType`` and ``FractionDHWLoadServed`` must be provi
 
 Depending on the type of water heater specified, additional elements are required/available:
 
-========================================  ===================================  ===========  ==========  ===============  ==================  =================  =========================================  ==============================
-WaterHeaterType                           UniformEnergyFactor or EnergyFactor  FuelType     TankVolume  HeatingCapacity  RecoveryEfficiency  UsesDesuperheater  WaterHeaterInsulation/Jacket/JacketRValue  RelatedHVACSystem
-========================================  ===================================  ===========  ==========  ===============  ==================  =================  =========================================  ==============================
-storage water heater                      required                             <any>        <optional>  <optional>       <optional>          <optional>         <optional>                                 required if uses desuperheater
-instantaneous water heater                required                             <any>                                                         <optional>                                                    required if uses desuperheater
-heat pump water heater                    required                             electricity  required                                         <optional>         <optional>                                 required if uses desuperheater
-space-heating boiler with storage tank                                                      required                                                            <optional>                                 required
-space-heating boiler with tankless coil                                                                                                                                                                    required
-========================================  ===================================  ===========  ==========  ===============  ==================  =================  =========================================  ==============================
+========================================  ===================================  ===========  ==========  ===============  ==================  ===================== =================  =========================================  ==============================
+WaterHeaterType                           UniformEnergyFactor or EnergyFactor  FuelType     TankVolume  HeatingCapacity  RecoveryEfficiency  PerformanceAdjustment UsesDesuperheater  WaterHeaterInsulation/Jacket/JacketRValue  RelatedHVACSystem
+========================================  ===================================  ===========  ==========  ===============  ==================  ===================== =================  =========================================  ==============================
+storage water heater                      required                             <any>        <optional>  <optional>       <optional>                                <optional>         <optional>                                 required if uses desuperheater
+instantaneous water heater                required                             <any>                                                         <optional>            <optional>                                                    required if uses desuperheater
+heat pump water heater                    required                             electricity  required                                                               <optional>         <optional>                                 required if uses desuperheater
+space-heating boiler with storage tank                                                      required                                                                                  <optional>                                 required
+space-heating boiler with tankless coil                                                                                                                                                                                          required
+========================================  ===================================  ===========  ==========  ===============  ==================  ===================== =================  =========================================  ==============================
 
 For storage water heaters, the tank volume in gallons, heating capacity in Btuh, and recovery efficiency can be optionally provided.
 If not provided, default values for the tank volume and heating capacity will be assumed based on Table 8 in the `2014 Building America House Simulation Protocols <https://www.energy.gov/sites/prod/files/2014/03/f13/house_simulation_protocols_2014.pdf#page=22&zoom=100,93,333>`_ 
@@ -547,8 +546,8 @@ EnergyFactor  RecoveryEfficiency (default)
 < 0.75        0.252117 * EF + 0.607997
 ============  ======================================
 
-For tankless water heaters, an annual energy derate due to cycling inefficiencies can be provided.
-If not provided, a value of 0.08 (8%) will be assumed.
+For tankless water heaters, a performance adjustment due to cycling inefficiencies can be provided.
+If not provided, a default value of 0.92 (92%) will apply to the Energy Factor.
 
 For combi boiler systems, the ``RelatedHVACSystem`` must point to a ``HeatingSystem`` of type "Boiler".
 For combi boiler systems with a storage tank, the storage tank losses (deg-F/hr) can be entered as ``StandbyLoss``; if not provided, a default value based on the `AHRI Directory of Certified Product Performance <https://www.ahridirectory.org>`_ will be calculated.

@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'oga'
-
 class XMLHelper
   # Adds the child element with 'element_name' and sets its value. Returns the
   # child element.

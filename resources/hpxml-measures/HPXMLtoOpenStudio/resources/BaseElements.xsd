@@ -1466,7 +1466,11 @@
 									<xs:element name="ModelNumber" type="Model" minOccurs="0"/>
 									<xs:element minOccurs="0" name="AHRINumber" type="HPXMLString"/>
 									<xs:element minOccurs="0" name="SerialNumber" type="HPXMLString"/>
-									<xs:element minOccurs="0" name="PerformanceAdjustment" type="Fraction"/>
+									<xs:element minOccurs="0" name="PerformanceAdjustment" type="Fraction">
+										<xs:annotation>
+											<xs:documentation>A multiplier on the performance of the system. A value of 1 implies no performance adjustment.</xs:documentation>
+										</xs:annotation>
+									</xs:element>
 									<xs:element minOccurs="0" name="ThirdPartyCertification" type="DHWThirdPartyCertification" maxOccurs="unbounded"/>
 									<xs:element name="TankVolume" type="Volume" minOccurs="0">
 										<xs:annotation>
@@ -3107,7 +3111,11 @@
 			<xs:element name="ModelNumber" type="Model" minOccurs="0"/>
 			<xs:element minOccurs="0" name="SerialNumber" type="HPXMLString"/>
 			<xs:element minOccurs="0" name="AHRINumber" type="HPXMLString"/>
-			<xs:element minOccurs="0" name="PerformanceAdjustment" type="Fraction"/>
+			<xs:element minOccurs="0" name="PerformanceAdjustment" type="Fraction">
+				<xs:annotation>
+					<xs:documentation>A multiplier on the performance of the system. A value of 1 implies no performance adjustment.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
 			<xs:element maxOccurs="unbounded" minOccurs="0" name="ThirdPartyCertification" type="HVACThirdPartyCertification"/>
 			<xs:element minOccurs="0" name="HasSharedCombustionVentilation" type="HPXMLBoolean"/>
 			<xs:element minOccurs="0" name="CombustionVentingSystem" type="LocalReference"/>
@@ -4602,7 +4610,7 @@
 			</xs:element>
 			<xs:element minOccurs="0" name="FractionOperable" type="Fraction">
 				<xs:annotation>
-					<xs:documentation>If the Window/Skylight element represents a single window/skylight, the value should be 0 or 1, otherwise the fraction of area that is operable.</xs:documentation>
+					<xs:documentation>The fraction of windows/skylights that are operable. If the Window/Skylight element represents a single window/skylight, the value should be 0 or 1.</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element minOccurs="0" name="LeakinessDescription" type="BuildingLeakiness"/>

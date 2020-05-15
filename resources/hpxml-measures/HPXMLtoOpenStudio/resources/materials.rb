@@ -1,8 +1,5 @@
 # frozen_string_literal: true
 
-require_relative 'constants'
-require_relative 'unit_conversions'
-
 class Material
   # thick_in - Thickness [in]
   # mat_base - Material object that defines k, rho, and cp. Can be overridden with values for those arguments.

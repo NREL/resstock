@@ -1,29 +1,33 @@
 # frozen_string_literal: true
 
-# see the URL below for information on how to write OpenStudio measures
-# http://nrel.github.io/OpenStudio-user-documentation/reference/measure_writing_guide/
-
+# Require all gems up front; this is much faster than multiple resource
+# files lazy loading as needed, as it prevents multiple lookups for the
+# same gem.
 require 'openstudio'
 require 'pathname'
 require 'csv'
-require_relative 'resources/EPvalidator'
+require 'oga'
 require_relative 'resources/airflow'
 require_relative 'resources/constants'
 require_relative 'resources/constructions'
+require_relative 'resources/EPvalidator'
 require_relative 'resources/geometry'
 require_relative 'resources/hotwater_appliances'
+require_relative 'resources/hpxml'
 require_relative 'resources/hvac'
 require_relative 'resources/hvac_sizing'
 require_relative 'resources/lighting'
 require_relative 'resources/location'
+require_relative 'resources/materials'
 require_relative 'resources/misc_loads'
+require_relative 'resources/psychrometrics'
 require_relative 'resources/pv'
+require_relative 'resources/schedules'
 require_relative 'resources/unit_conversions'
 require_relative 'resources/util'
 require_relative 'resources/waterheater'
 require_relative 'resources/weather'
 require_relative 'resources/xmlhelper'
-require_relative 'resources/hpxml'
 
 # start the measure
 class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
@@ -411,6 +415,7 @@ class OSModel
     @hpxml.header.begin_day_of_month = 1 if @hpxml.header.begin_day_of_month.nil?
     @hpxml.header.end_month = 12 if @hpxml.header.end_month.nil?
     @hpxml.header.end_day_of_month = 31 if @hpxml.header.end_day_of_month.nil?
+    @hpxml.site.site_type = HPXML::SiteTypeSuburban if @hpxml.site.site_type.nil?
     @hpxml.site.shelter_coefficient = Airflow.get_default_shelter_coefficient() if @hpxml.site.shelter_coefficient.nil?
     @hpxml.building_occupancy.number_of_residents = Geometry.get_occupancy_default_num(@nbeds) if @hpxml.building_occupancy.number_of_residents.nil?
     if @hpxml.building_construction.conditioned_building_volume.nil?
@@ -461,9 +466,9 @@ class OSModel
     measurements = []
     infilvolume = nil
     @hpxml.air_infiltration_measurements.each do |measurement|
-      is_ach50 = ((measurement.house_pressure == 50) && (measurement.unit_of_measure == HPXML::UnitsACH))
-      is_cfm50 = ((measurement.house_pressure == 50) && (measurement.unit_of_measure == HPXML::UnitsCFM))
-      is_nach = (measurement.house_pressure.nil? && (measurement.unit_of_measure == HPXML::UnitsACHNatural))
+      is_ach50 = ((measurement.unit_of_measure == HPXML::UnitsACH) && (measurement.house_pressure == 50))
+      is_cfm50 = ((measurement.unit_of_measure == HPXML::UnitsCFM) && (measurement.house_pressure == 50))
+      is_nach = (measurement.unit_of_measure == HPXML::UnitsACHNatural)
       next unless (is_ach50 || is_cfm50 || is_nach)
 
       measurements << measurement
@@ -580,8 +585,8 @@ class OSModel
       if water_heating_system.temperature.nil?
         water_heating_system.temperature = Waterheater.get_default_hot_water_temperature(@eri_version)
       end
-      if (water_heating_system.water_heater_type == HPXML::WaterHeaterTypeTankless) && water_heating_system.performance_adjustment.nil?
-        water_heating_system.performance_adjustment = Waterheater.get_tankless_cycling_derate()
+      if water_heating_system.performance_adjustment.nil?
+        water_heating_system.performance_adjustment = Waterheater.get_default_performance_adjustment(water_heating_system)
       end
       if (water_heating_system.water_heater_type == HPXML::WaterHeaterTypeCombiStorage) && water_heating_system.standby_loss.nil?
         # Use equation fit from AHRI database
@@ -884,7 +889,7 @@ class OSModel
   end
 
   def self.set_zone_volumes(runner, model)
-    # TODO: Use HPXML values not Model values
+    # FUTURE: Use HPXML values not Model values
     thermal_zones = model.getThermalZones
 
     # Init
@@ -953,7 +958,7 @@ class OSModel
 
   def self.explode_surfaces(runner, model)
     # Re-position surfaces so as to not shade each other and to make it easier to visualize the building.
-    # FUTURE: Might be able to use the new self-shading options in E+ 8.9 ShadowCalculation object?
+    # FUTURE: Might be able to use the new self-shading options in E+ 8.9 ShadowCalculation object instead?
 
     gap_distance = UnitConversions.convert(10.0, 'ft', 'm') # distance between surfaces of the same azimuth
     rad90 = UnitConversions.convert(90, 'deg', 'rad')
@@ -2450,9 +2455,9 @@ class OSModel
 
         elsif wh_type == HPXML::WaterHeaterTypeTankless
 
-          cycling_derate = water_heating_system.performance_adjustment
+          performance_adjustment = water_heating_system.performance_adjustment
 
-          Waterheater.apply_tankless(model, loc_space, loc_schedule, fuel, ef, cycling_derate,
+          Waterheater.apply_tankless(model, loc_space, loc_schedule, fuel, ef, performance_adjustment,
                                      setpoint_temp, ec_adj, @nbeds, @dhw_map,
                                      sys_id, desuperheater_clg_coil, solar_fraction)
 
@@ -2730,7 +2735,7 @@ class OSModel
 
     # Base heating setpoint
     htg_setpoint = hvac_control.heating_setpoint_temp
-    @htg_weekday_setpoints = [[htg_setpoint] * 24] * 12
+    htg_weekday_setpoints = [[htg_setpoint] * 24] * 12
 
     # Apply heating setback?
     htg_setback = hvac_control.heating_setback_temp
@@ -2739,15 +2744,15 @@ class OSModel
       htg_setback_start_hr = hvac_control.heating_setback_start_hour
       for m in 1..12
         for hr in htg_setback_start_hr..htg_setback_start_hr + Integer(htg_setback_hrs_per_week / 7.0) - 1
-          @htg_weekday_setpoints[m - 1][hr % 24] = htg_setback
+          htg_weekday_setpoints[m - 1][hr % 24] = htg_setback
         end
       end
     end
-    @htg_weekend_setpoints = @htg_weekday_setpoints
+    htg_weekend_setpoints = htg_weekday_setpoints
 
     # Base cooling setpoint
     clg_setpoint = hvac_control.cooling_setpoint_temp
-    @clg_weekday_setpoints = [[clg_setpoint] * 24] * 12
+    clg_weekday_setpoints = [[clg_setpoint] * 24] * 12
 
     # Apply cooling setup?
     clg_setup = hvac_control.cooling_setup_temp
@@ -2756,7 +2761,7 @@ class OSModel
       clg_setup_start_hr = hvac_control.cooling_setup_start_hour
       for m in 1..12
         for hr in clg_setup_start_hr..clg_setup_start_hr + Integer(clg_setup_hrs_per_week / 7.0) - 1
-          @clg_weekday_setpoints[m - 1][hr % 24] = clg_setup
+          clg_weekday_setpoints[m - 1][hr % 24] = clg_setup
         end
       end
     end
@@ -2767,14 +2772,14 @@ class OSModel
       HVAC.get_default_ceiling_fan_months(weather).each_with_index do |operation, m|
         next unless operation == 1
 
-        @clg_weekday_setpoints[m] = [@clg_weekday_setpoints[m], Array.new(24, clg_ceiling_fan_offset)].transpose.map { |i| i.reduce(:+) }
+        clg_weekday_setpoints[m] = [clg_weekday_setpoints[m], Array.new(24, clg_ceiling_fan_offset)].transpose.map { |i| i.reduce(:+) }
       end
     end
-    @clg_weekend_setpoints = @clg_weekday_setpoints
+    clg_weekend_setpoints = clg_weekday_setpoints
 
     HVAC.apply_setpoints(model, runner, weather, @living_zone,
-                         @htg_weekday_setpoints, @htg_weekend_setpoints, 1, 12,
-                         @clg_weekday_setpoints, @clg_weekend_setpoints, 1, 12)
+                         htg_weekday_setpoints, htg_weekend_setpoints, 1, 12,
+                         clg_weekday_setpoints, clg_weekend_setpoints, 1, 12)
   end
 
   def self.add_ceiling_fans(runner, model, weather)
@@ -2856,100 +2861,24 @@ class OSModel
   end
 
   def self.add_lighting(runner, model, weather, spaces)
-    fractions = {}
-    @hpxml.lighting_groups.each do |lg|
-      fractions[[lg.location, lg.lighting_type]] = lg.fraction_of_units_in_location
-    end
-
-    return if fractions[[HPXML::LocationInterior, HPXML::LightingTypeCFL]].nil? # Not the lighting group(s) we're interested in
-
-    int_kwh, ext_kwh, grg_kwh = Lighting.calc_lighting_energy(@eri_version, @cfa, @gfa,
-                                                              fractions[[HPXML::LocationInterior, HPXML::LightingTypeCFL]],
-                                                              fractions[[HPXML::LocationExterior, HPXML::LightingTypeCFL]],
-                                                              fractions[[HPXML::LocationGarage, HPXML::LightingTypeCFL]],
-                                                              fractions[[HPXML::LocationInterior, HPXML::LightingTypeLFL]],
-                                                              fractions[[HPXML::LocationExterior, HPXML::LightingTypeLFL]],
-                                                              fractions[[HPXML::LocationGarage, HPXML::LightingTypeLFL]],
-                                                              fractions[[HPXML::LocationInterior, HPXML::LightingTypeLED]],
-                                                              fractions[[HPXML::LocationExterior, HPXML::LightingTypeLED]],
-                                                              fractions[[HPXML::LocationGarage, HPXML::LightingTypeLED]],
-                                                              @hpxml.lighting.usage_multiplier)
-
-    garage_space = spaces[HPXML::LocationGarage]
-    Lighting.apply(model, weather, int_kwh, grg_kwh, ext_kwh, @cfa, @gfa,
-                   @living_space, garage_space)
+    Lighting.apply(model, weather, spaces, @hpxml.lighting_groups,
+                   @hpxml.lighting.usage_multiplier, @eri_version)
   end
 
   def self.add_airflow(runner, model, weather, spaces)
-    # Infiltration
-    infil_height = Airflow.calc_inferred_infiltration_height(@cfa, @ncfl, @ncfl_ag, @infil_volume, @hpxml)
-    infil_ach50 = nil
-    infil_const_ach = nil
-    @hpxml.air_infiltration_measurements.each do |measurement|
-      if (measurement.house_pressure == 50) && (measurement.unit_of_measure == HPXML::UnitsACH)
-        infil_ach50 = measurement.air_leakage
-      elsif (measurement.house_pressure == 50) && (measurement.unit_of_measure == HPXML::UnitsCFM)
-        infil_ach50 = measurement.air_leakage * 60.0 / @infil_volume # Convert CFM50 to ACH50
-      elsif measurement.house_pressure.nil? && (measurement.unit_of_measure == HPXML::UnitsACHNatural)
-        if @apply_ashrae140_assumptions
-          infil_const_ach = measurement.air_leakage
-        else
-          sla = Airflow.get_infiltration_SLA_from_ACH(measurement.air_leakage, infil_height, weather)
-          infil_ach50 = Airflow.get_infiltration_ACH50_from_SLA(sla, 0.65, @cfa, @infil_volume)
-        end
-      end
+    # Vented Attic
+    vented_attic = nil
+    @hpxml.attics.each do |attic|
+      next unless attic.attic_type == HPXML::AtticTypeVented
+      vented_attic = attic
     end
 
-    vented_attic_sla = nil
-    vented_attic_const_ach = nil
-    if @hpxml.has_space_type(HPXML::LocationAtticVented)
-      @hpxml.attics.each do |attic|
-        next unless attic.attic_type == HPXML::AtticTypeVented
-
-        if not attic.vented_attic_sla.nil?
-          vented_attic_sla = attic.vented_attic_sla
-        elsif not attic.vented_attic_ach.nil?
-          if @apply_ashrae140_assumptions
-            vented_attic_const_ach = attic.vented_attic_ach
-          else
-            vented_attic_sla = Airflow.get_infiltration_SLA_from_ACH(attic.vented_attic_ach, 8.202, weather)
-          end
-        end
-      end
-    else
-      vented_attic_sla = 0.0
+    # Vented Crawlspace
+    vented_crawl = nil
+    @hpxml.foundations.each do |foundation|
+      next unless foundation.foundation_type == HPXML::FoundationTypeCrawlspaceVented
+      vented_crawl = foundation
     end
-
-    vented_crawl_sla = nil
-    if @hpxml.has_space_type(HPXML::LocationCrawlspaceVented)
-      @hpxml.foundations.each do |foundation|
-        next unless foundation.foundation_type == HPXML::FoundationTypeCrawlspaceVented
-
-        vented_crawl_sla = foundation.vented_crawlspace_sla
-      end
-    else
-      vented_crawl_sla = 0.0
-    end
-
-    shelter_coef = @hpxml.site.shelter_coefficient
-    living_ach50 = infil_ach50
-    living_constant_ach = infil_const_ach
-    garage_ach50 = infil_ach50
-    unconditioned_basement_ach = 0.1
-    unvented_crawl_sla = 0
-    unvented_attic_sla = 0
-    has_flue_chimney = false
-    terrain = Constants.TerrainSuburban
-    infil = Infiltration.new(living_ach50, living_constant_ach, shelter_coef, garage_ach50, vented_crawl_sla, unvented_crawl_sla,
-                             vented_attic_sla, unvented_attic_sla, vented_attic_const_ach, unconditioned_basement_ach, has_flue_chimney, terrain)
-
-    # Natural Ventilation
-    nv_frac_window_area_open = @frac_windows_operable * 0.5 * 0.2 # Assume A) 50% of the area of an operable window can be open, and B) 20% of openable window area is actually open
-    nv_num_days_per_week = 7
-    nv_max_oa_hr = 0.0115
-    nv_max_oa_rh = 0.7
-    nat_vent = NaturalVentilation.new(nv_frac_window_area_open, nv_max_oa_hr, nv_max_oa_rh, nv_num_days_per_week,
-                                      @htg_weekday_setpoints, @htg_weekend_setpoints, @clg_weekday_setpoints, @clg_weekend_setpoints, @clg_ssn_sensor)
 
     # Ducts
     duct_systems = {}
@@ -2975,111 +2904,37 @@ class OSModel
       end
     end
 
-    # Mechanical Ventilation
-    mech_vent_id = nil
-    mech_vent_type = nil
-    mech_vent_total_eff = 0.0
-    mech_vent_total_eff_adj = 0.0
-    mech_vent_sens_eff = 0.0
-    mech_vent_sens_eff_adj = 0.0
-    mech_vent_fan_w = 0.0
-    mech_vent_cfm = 0.0
-    mech_vent_attached_dist_system = nil
-    cfis_open_time = 0.0
+    # Ventilation fans
+    vent_mech = nil
+    vent_kitchen = nil
+    vent_bath = nil
+    vent_whf = nil
     @hpxml.ventilation_fans.each do |vent_fan|
-      next unless vent_fan.used_for_whole_building_ventilation
-
-      mech_vent_id = vent_fan.id
-      mech_vent_type = vent_fan.fan_type
-      if (mech_vent_type == HPXML::MechVentTypeERV) || (mech_vent_type == HPXML::MechVentTypeHRV)
-        if vent_fan.sensible_recovery_efficiency_adjusted.nil?
-          mech_vent_sens_eff = vent_fan.sensible_recovery_efficiency
-        else
-          mech_vent_sens_eff_adj = vent_fan.sensible_recovery_efficiency_adjusted
-        end
-      end
-      if mech_vent_type == HPXML::MechVentTypeERV
-        if vent_fan.total_recovery_efficiency_adjusted.nil?
-          mech_vent_total_eff = vent_fan.total_recovery_efficiency
-        else
-          mech_vent_total_eff_adj = vent_fan.total_recovery_efficiency_adjusted
-        end
-      end
-      mech_vent_cfm = vent_fan.tested_flow_rate
-      if mech_vent_cfm.nil?
-        mech_vent_cfm = vent_fan.rated_flow_rate
-      end
-      mech_vent_fan_w = vent_fan.fan_power
-      if mech_vent_type == HPXML::MechVentTypeCFIS
-        # CFIS: Specify minimum open time in minutes
-        cfis_open_time = [vent_fan.hours_in_operation / 24.0 * 60.0, 59.999].min
-      else
-        # Other: Adjust constant CFM/power based on hours per day of operation
-        mech_vent_cfm *= (vent_fan.hours_in_operation / 24.0)
-        mech_vent_fan_w *= (vent_fan.hours_in_operation / 24.0)
-      end
-      mech_vent_attached_dist_system = vent_fan.distribution_system
-    end
-    cfis_airflow_frac = 1.0
-    clothes_dryer_exhaust = 0.0
-
-    # Kitchen range fan
-    vent_fan_kitchen = nil
-    @hpxml.ventilation_fans.each do |vent_fan|
-      next unless (vent_fan.used_for_local_ventilation && (vent_fan.fan_location == HPXML::VentilationFanLocationKitchen))
-
-      vent_fan_kitchen = vent_fan
-    end
-
-    # Bath fans
-    vent_fan_bath = nil
-    @hpxml.ventilation_fans.each do |vent_fan|
-      next unless (vent_fan.used_for_local_ventilation && (vent_fan.fan_location == HPXML::VentilationFanLocationBath))
-
-      vent_fan_bath = vent_fan
-    end
-
-    # Whole house fan
-    whole_house_fan_w = 0.0
-    whole_house_fan_cfm = 0.0
-    whf_num_days_per_week = 0
-    @hpxml.ventilation_fans.each do |vent_fan|
-      next unless vent_fan.used_for_seasonal_cooling_load_reduction
-
-      whole_house_fan_w = vent_fan.fan_power
-      whole_house_fan_cfm = vent_fan.rated_flow_rate
-      whf_num_days_per_week = 7
-    end
-    whf = WholeHouseFan.new(whole_house_fan_cfm, whole_house_fan_w, whf_num_days_per_week)
-
-    # Get AirLoop associated with CFIS
-    cfis_airloop = nil
-    if mech_vent_type == HPXML::MechVentTypeCFIS
-      cfis_sys_ids = mech_vent_attached_dist_system.hvac_systems.map { |system| system.id }
-
-      # Get AirLoopHVACs associated with these HVAC systems
-      @hvac_map.each do |sys_id, hvacs|
-        next unless cfis_sys_ids.include? sys_id
-
-        hvacs.each do |loop|
-          next unless loop.is_a? OpenStudio::Model::AirLoopHVAC
-          next if cfis_airloop == loop # already assigned
-
-          fail 'Two airloops found for CFIS. Aborting...' unless cfis_airloop.nil?
-
-          cfis_airloop = loop
+      if vent_fan.used_for_whole_building_ventilation
+        vent_mech = vent_fan
+      elsif vent_fan.used_for_seasonal_cooling_load_reduction
+        vent_whf = vent_fan
+      elsif vent_fan.used_for_local_ventilation
+        if vent_fan.fan_location == HPXML::VentilationFanLocationKitchen
+          vent_kitchen = vent_fan
+        elsif vent_fan.fan_location == HPXML::VentilationFanLocationBath
+          vent_bath = vent_fan
         end
       end
     end
 
-    mech_vent = MechanicalVentilation.new(mech_vent_type, mech_vent_total_eff, mech_vent_total_eff_adj, mech_vent_cfm,
-                                          mech_vent_fan_w, mech_vent_sens_eff, mech_vent_sens_eff_adj, clothes_dryer_exhaust,
-                                          cfis_open_time, cfis_airflow_frac, cfis_airloop)
-
+    air_infils = @hpxml.air_infiltration_measurements
     window_area = @hpxml.windows.map { |w| w.area }.inject(0, :+)
-    Airflow.apply(model, runner, weather, infil, mech_vent, nat_vent, whf, duct_systems,
-                  @cfa, @infil_volume, infil_height, @nbeds, @nbaths, @ncfl_ag, window_area,
-                  @min_neighbor_distance, vent_fan_kitchen, vent_fan_bath)
+    open_window_area = window_area * @frac_windows_operable * 0.5 * 0.2 # Assume A) 50% of the area of an operable window can be open, and B) 20% of openable window area is actually open
+    site_type = @hpxml.site.site_type
+    shelter_coef = @hpxml.site.shelter_coefficient
+    has_flue_chimney = false # FUTURE: Expose as HPXML input
+    infil_height = Airflow.calc_inferred_infiltration_height(@cfa, @ncfl, @ncfl_ag, @infil_volume, @hpxml)
+    Airflow.apply(model, runner, weather, spaces, air_infils, vent_mech, vent_whf,
+                  duct_systems, @infil_volume, infil_height, open_window_area,
+                  @clg_ssn_sensor, @min_neighbor_distance, vent_kitchen, vent_bath,
+                  vented_attic, vented_crawl, site_type, shelter_coef,
+                  has_flue_chimney, @hvac_map, @apply_ashrae140_assumptions)
   end
 
   def self.create_ducts(hvac_distribution, model, spaces)
@@ -3184,32 +3039,8 @@ class OSModel
   end
 
   def self.add_photovoltaics(runner, model)
-    modules_map = { HPXML::PVModuleTypeStandard => 'Standard',
-                    HPXML::PVModuleTypePremium => 'Premium',
-                    HPXML::PVModuleTypeThinFilm => 'ThinFilm' }
-
     @hpxml.pv_systems.each do |pv_system|
-      pv_id = pv_system.id
-      module_type = modules_map[pv_system.module_type]
-      if (pv_system.tracking == HPXML::PVTrackingTypeFixed) && (pv_system.location == HPXML::LocationRoof)
-        array_type = 'FixedRoofMounted'
-      elsif (pv_system.tracking == HPXML::PVTrackingTypeFixed) && (pv_system.location == HPXML::LocationGround)
-        array_type = 'FixedOpenRack'
-      elsif pv_system.tracking == HPXML::PVTrackingType1Axis
-        array_type = 'OneAxis'
-      elsif pv_system.tracking == HPXML::PVTrackingType1AxisBacktracked
-        array_type = 'OneAxisBacktracking'
-      elsif pv_system.tracking == HPXML::PVTrackingType2Axis
-        array_type = 'TwoAxis'
-      end
-      az = pv_system.array_azimuth
-      tilt = pv_system.array_tilt
-      power_w = pv_system.max_power_output
-      inv_eff = pv_system.inverter_efficiency
-      system_losses = pv_system.system_losses_fraction
-
-      PV.apply(model, pv_id, power_w, module_type,
-               system_losses, inv_eff, tilt, az, array_type)
+      PV.apply(model, pv_system)
     end
   end
 
@@ -4125,10 +3956,8 @@ class OSModel
     elsif [HPXML::LocationBasementConditioned].include? exterior_adjacent_to
       surface.createAdjacentSurface(create_or_get_space(model, spaces, HPXML::LocationLivingSpace))
       @cond_bsmnt_surfaces << surface
-    elsif [HPXML::LocationOtherHousingUnit, HPXML::LocationOtherHousingUnitAbove, HPXML::LocationOtherHousingUnitBelow].include? exterior_adjacent_to
-      # collapse into one
-      set_surface_otherside_coefficients(surface, HPXML::LocationOtherHousingUnit, model, spaces)
-    elsif [HPXML::LocationOtherHeatedSpace, HPXML::LocationOtherMultifamilyBufferSpace, HPXML::LocationOtherNonFreezingSpace].include? exterior_adjacent_to
+      set_surface_otherside_coefficients(surface, exterior_adjacent_to, model, spaces)
+    elsif [HPXML::LocationOtherHousingUnit, HPXML::LocationOtherHeatedSpace, HPXML::LocationOtherMultifamilyBufferSpace, HPXML::LocationOtherNonFreezingSpace].include? exterior_adjacent_to
       set_surface_otherside_coefficients(surface, exterior_adjacent_to, model, spaces)
     else
       surface.createAdjacentSurface(create_or_get_space(model, spaces, exterior_adjacent_to))
