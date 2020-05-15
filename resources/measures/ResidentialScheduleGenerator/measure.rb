@@ -21,7 +21,7 @@ class ResidentialScheduleGenerator < OpenStudio::Measure::ModelMeasure
   end
 
   def modeler_description
-    return "a"
+    return "TODO"
   end
 
   # define the arguments that the user will input
@@ -63,6 +63,12 @@ class ResidentialScheduleGenerator < OpenStudio::Measure::ModelMeasure
     args = { :num_occupants => runner.getIntegerArgumentValue("num_occupants", user_arguments),
              :vacancy_start_date => runner.getStringArgumentValue("vacancy_start_date", user_arguments),
              :vacancy_end_date => runner.getStringArgumentValue("vacancy_end_date", user_arguments) }
+
+    # error checking
+    if not args[:num_occupants] > 0
+      runner.registerError("Number of Occupants '#{args[:num_occupants]} must be greater than 0.")
+      return false
+    end
 
     model.getBuilding.additionalProperties.setFeature("num_occupants", args[:num_occupants])
 

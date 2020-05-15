@@ -49,7 +49,7 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
     annual_energy_use["num_occupants"] << 2.64
     hot_water_gpd["building_id"] << 1
     hot_water_gpd["num_occupants"] << 2.64
-    full_load_hours, annual_energy_use, hot_water_gpd = _test_measure("SFD_2000sqft_2story_FB_UA_Denver.osm", args_hash, expected_values, "8760", "USA_CO_Denver.Intl.AP.725650_TMY3.epw", full_load_hours, annual_energy_use, hot_water_gpd)
+    full_load_hours, annual_energy_use, hot_water_gpd = _test_generator("SFD_2000sqft_2story_FB_UA_Denver.osm", args_hash, expected_values, "8760", "USA_CO_Denver.Intl.AP.725650_TMY3.epw", full_load_hours, annual_energy_use, hot_water_gpd)
 
     expected_values = { "SchedulesLength" => 8784, "SchedulesWidth" => 18 } # these are the old schedules
     full_load_hours["building_id"] << 1
@@ -58,7 +58,7 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
     annual_energy_use["num_occupants"] << 2.64
     hot_water_gpd["building_id"] << 1
     hot_water_gpd["num_occupants"] << 2.64
-    full_load_hours, annual_energy_use, hot_water_gpd = _test_measure("SFD_Successful_EnergyPlus_Run_AMY_PV.osm", args_hash, expected_values, "8784", "USA_CO_Denver.Intl.AP.725650_TMY3.epw", full_load_hours, annual_energy_use, hot_water_gpd)
+    full_load_hours, annual_energy_use, hot_water_gpd = _test_generator("SFD_Successful_EnergyPlus_Run_AMY_PV.osm", args_hash, expected_values, "8784", "USA_CO_Denver.Intl.AP.725650_TMY3.epw", full_load_hours, annual_energy_use, hot_water_gpd)
 
     num_building_ids = 1
     num_occupants = [2]
@@ -81,7 +81,7 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
         args_hash[:num_occupants] = num_occupant
         args_hash[:vacancy_start_date] = vacancy_start_date
         args_hash[:vacancy_end_date] = vacancy_end_date
-        full_load_hours, annual_energy_use, hot_water_gpd = _test_measure("SFD_2000sqft_2story_FB_UA_Denver.osm", args_hash, expected_values, __method__, "USA_CO_Denver.Intl.AP.725650_TMY3.epw", full_load_hours, annual_energy_use, hot_water_gpd)
+        full_load_hours, annual_energy_use, hot_water_gpd = _test_generator("SFD_2000sqft_2story_FB_UA_Denver.osm", args_hash, expected_values, __method__, "USA_CO_Denver.Intl.AP.725650_TMY3.epw", full_load_hours, annual_energy_use, hot_water_gpd)
       end
     end
 
@@ -113,6 +113,49 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
     end
   end
 
+  def test_argument_error_num_occ_nonpositive
+    args_hash = {}
+    args_hash["num_occupants"] = "0"
+    result = _test_error_or_NA("Denver.osm", args_hash)
+    assert(result.errors.size == 1)
+    assert_equal("Fail", result.value.valueName)
+    assert_includes(result.errors.map { |x| x.logMessage }, "Number of Occupants '#{args_hash["num_occupants"]} must be greater than 0.")
+  end
+
+  def test_error_invalid_vacancy
+    args_hash = {}
+    args_hash["vacancy_start_date"] = "April 31"
+    result = _test_error_or_NA("Denver.osm", args_hash)
+    assert(result.errors.size == 1)
+    assert_equal("Fail", result.value.valueName)
+    assert_includes(result.errors.map { |x| x.logMessage }, "Invalid vacancy date(s) specified.")
+  end
+
+  def test_NA_vacancy
+    args_hash = {}
+    args_hash["vacancy_start_date"] = "NA"
+    args_hash["vacancy_end_date"] = "NA"
+    expected_num_del_objects = {}
+    expected_num_new_objects = { "Building" => 1 }
+    expected_values = {}
+    _test_measure("Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 2, 1)
+  end
+
+  def test_change_vacancy
+    args_hash = {}
+    expected_num_del_objects = {}
+    expected_num_new_objects = { "Building" => 1 }
+    expected_values = {}
+    model = _test_measure("Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 2, 1)
+    args_hash = {}
+    args_hash["vacancy_start_date"] = "April 8"
+    args_hash["vacancy_end_date"] = "October 27"
+    expected_num_del_objects = {}
+    expected_num_new_objects = {}
+    expected_values = {}
+    _test_measure(model, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 2, 1)
+  end
+
   private
 
   def test_dir(test_name)
@@ -124,7 +167,7 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
     return "#{test_dir(test_name)}/schedules.csv"
   end
 
-  def _test_measure(osm_file_or_model, args_hash, expected_values, test_name, epw_name, full_load_hours, annual_energy_use, hot_water_gpd)
+  def _test_generator(osm_file_or_model, args_hash, expected_values, test_name, epw_name, full_load_hours, annual_energy_use, hot_water_gpd)
     # create an instance of the measure
     measure = ResidentialScheduleGenerator.new
 
@@ -172,6 +215,94 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
     end
 
     return full_load_hours, annual_energy_use, hot_water_gpd
+  end
+
+  def _test_error_or_NA(osm_file_or_model, args_hash)
+    # create an instance of the measure
+    measure = ResidentialScheduleGenerator.new
+
+    # create an instance of a runner
+    runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
+
+    model = get_model(File.dirname(__FILE__), osm_file_or_model)
+
+    # get arguments
+    arguments = measure.arguments(model)
+    argument_map = OpenStudio::Measure.convertOSArgumentVectorToMap(arguments)
+
+    # populate argument with specified hash value if specified
+    arguments.each do |arg|
+      temp_arg_var = arg.clone
+      if args_hash.has_key?(arg.name)
+        assert(temp_arg_var.setValue(args_hash[arg.name]))
+      end
+      argument_map[arg.name] = temp_arg_var
+    end
+
+    # run the measure
+    measure.run(model, runner, argument_map)
+    result = runner.result
+
+    show_output(result) unless result.value.valueName == 'Fail'
+
+    return result
+  end
+
+  def _test_measure(osm_file_or_model, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_infos = 0, num_warnings = 0, debug = false)
+    # create an instance of the measure
+    measure = ResidentialScheduleGenerator.new
+
+    # check for standard methods
+    assert(!measure.name.empty?)
+    assert(!measure.description.empty?)
+    assert(!measure.modeler_description.empty?)
+
+    # create an instance of a runner
+    runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
+
+    model = get_model(File.dirname(__FILE__), osm_file_or_model)
+
+    # get the initial objects in the model
+    initial_objects = get_objects(model)
+
+    # get arguments
+    arguments = measure.arguments(model)
+    argument_map = OpenStudio::Measure.convertOSArgumentVectorToMap(arguments)
+
+    # populate argument with specified hash value if specified
+    arguments.each do |arg|
+      temp_arg_var = arg.clone
+      if args_hash.has_key?(arg.name)
+        assert(temp_arg_var.setValue(args_hash[arg.name]))
+      end
+      argument_map[arg.name] = temp_arg_var
+    end
+
+    # run the measure
+    measure.run(model, runner, argument_map)
+    result = runner.result
+
+    # show the output
+    show_output(result) unless result.value.valueName == 'Success'
+
+    # assert that it ran correctly
+    assert_equal("Success", result.value.valueName)
+    assert_equal(num_infos, result.info.size)
+    assert_equal(num_warnings, result.warnings.size)
+
+    # get the final objects in the model
+    final_objects = get_objects(model)
+
+    # get new and deleted objects
+    obj_type_exclusions = []
+    all_new_objects = get_object_additions(initial_objects, final_objects, obj_type_exclusions)
+    all_del_objects = get_object_additions(final_objects, initial_objects, obj_type_exclusions)
+
+    # check we have the expected number of new/deleted objects
+    check_num_objects(all_new_objects, expected_num_new_objects, "added")
+    check_num_objects(all_del_objects, expected_num_del_objects, "deleted")
+
+    return model
   end
 
   def get_schedule_file(model, runner, schedules_path, full_load_hours, annual_energy_use, hot_water_gpd)

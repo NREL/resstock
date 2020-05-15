@@ -73,10 +73,6 @@ class Lighting
       ltg.setEndUseSubcategory(space_obj_name)
     end
 
-    if garage_spaces.length > 0
-      schedules_file.set_vacancy(col_name: "lighting_garage")
-    end
-
     return true
   end
 
