@@ -208,7 +208,8 @@ def create_osws
     'invalid_files/single-family-detached-finished-basement-zero-foundation-height.osw' => 'base.osw',
     'invalid_files/single-family-attached-ambient.osw' => 'base.osw',
     'invalid_files/multifamily-bottom-slab-non-zero-foundation-height.osw' => 'base.osw',
-    'invalid_files/multifamily-bottom-crawlspace-zero-foundation-height.osw' => 'base.osw'
+    'invalid_files/multifamily-bottom-crawlspace-zero-foundation-height.osw' => 'base.osw',
+    'invalid_files/slab-non-zero-foundation-height-above-grade.osw' => 'base.osw'
   }
 
   puts "Generating #{osws_files.size} OSW files..."
@@ -1550,6 +1551,7 @@ def get_values(osw_file, step)
     step.setArgument('ceiling_fan_quantity', '0.5')
   elsif ['invalid_files/single-family-detached-slab-non-zero-foundation-height.osw'].include? osw_file
     step.setArgument('geometry_foundation_type', HPXML::FoundationTypeSlab)
+    step.setArgument('geometry_foundation_height_above_grade', 0.0)
   elsif ['invalid_files/single-family-detached-finished-basement-zero-foundation-height.osw'].include? osw_file
     step.setArgument('geometry_foundation_height', 0.0)
   elsif ['invalid_files/single-family-attached-ambient.osw'].include? osw_file
@@ -1560,10 +1562,14 @@ def get_values(osw_file, step)
     step.setArgument('geometry_unit_type', HPXML::ResidentialTypeMF)
     step.setArgument('geometry_corridor_position', 'None')
     step.setArgument('geometry_foundation_type', HPXML::FoundationTypeSlab)
+    step.setArgument('geometry_foundation_height_above_grade', 0.0)
   elsif ['invalid_files/multifamily-bottom-crawlspace-zero-foundation-height.osw'].include? osw_file
     step.setArgument('geometry_unit_type', HPXML::ResidentialTypeMF)
     step.setArgument('geometry_corridor_position', 'None')
     step.setArgument('geometry_foundation_type', HPXML::FoundationTypeCrawlspaceUnvented)
+    step.setArgument('geometry_foundation_height', 0.0)
+  elsif ['invalid_files/slab-non-zero-foundation-height-above-grade.osw'].include? osw_file
+    step.setArgument('geometry_foundation_type', HPXML::FoundationTypeSlab)
     step.setArgument('geometry_foundation_height', 0.0)
   end
   return step
