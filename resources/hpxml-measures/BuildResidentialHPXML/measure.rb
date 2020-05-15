@@ -276,14 +276,14 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDisplayName('Geometry: Foundation Height')
     arg.setUnits('ft')
     arg.setDescription('The height of the foundation (e.g., 3ft for crawlspace, 8ft for basement). Only applies to basements/crawlspaces.')
-    arg.setDefaultValue(3.0)
+    arg.setDefaultValue(0.0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('geometry_foundation_height_above_grade', true)
     arg.setDisplayName('Geometry: Foundation Height Above Grade')
     arg.setUnits('ft')
     arg.setDescription('The depth above grade of the foundation wall. Only applies to basements/crawlspaces.')
-    arg.setDefaultValue(1.0)
+    arg.setDefaultValue(0.0)
     args << arg
 
     roof_type_choices = OpenStudio::StringVector.new
@@ -2573,6 +2573,10 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     error = (args[:geometry_unit_type] == HPXML::ResidentialTypeMF) && (args[:geometry_foundation_type] == HPXML::FoundationTypeBasementConditioned)
     errors << "geometry_unit_type=#{args[:geometry_unit_type]} and geometry_foundation_type=#{args[:geometry_foundation_type]}" if error
 
+    # slab and foundation height above grade > 0
+    warning = (args[:geometry_foundation_type] == HPXML::FoundationTypeSlab) && (args[:geometry_foundation_height_above_grade] > 0)
+    warnings << "geometry_foundation_type=#{args[:geometry_foundation_type]} and geometry_foundation_height_above_grade=#{args[:geometry_foundation_height_above_grade]}" if warning
+
     return warnings, errors
   end
 
@@ -3004,11 +3008,7 @@ class HPXMLFile
       if surface.adjacentSurface.is_initialized
         exterior_adjacent_to = get_adjacent_to(model, surface.adjacentSurface.get)
       elsif surface.outsideBoundaryCondition == 'Adiabatic'
-        if surface.surfaceType == 'Floor'
-          exterior_adjacent_to = HPXML::LocationOtherHousingUnitBelow
-        elsif surface.surfaceType == 'RoofCeiling'
-          exterior_adjacent_to = HPXML::LocationOtherHousingUnitAbove
-        end
+        exterior_adjacent_to = HPXML::LocationOtherHousingUnit
       end
       next if interior_adjacent_to == exterior_adjacent_to
       next if (surface.surfaceType == 'RoofCeiling') && (exterior_adjacent_to == HPXML::LocationOutside)
