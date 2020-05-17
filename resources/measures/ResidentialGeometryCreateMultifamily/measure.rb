@@ -474,6 +474,11 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
 
     # living space
     living_spaces_front = []
+    nw_point = OpenStudio::Point3d.new(0, 1.5, z)
+    ne_point = OpenStudio::Point3d.new(x, 1.5, z)
+    sw_point = OpenStudio::Point3d.new(0, -y, z)
+    se_point = OpenStudio::Point3d.new(x, -y, z)
+
     living_space = OpenStudio::Model::Space::fromFloorPrint(living_polygon, wall_height, model)
     living_space = living_space.get
     living_space.setName("living space")
@@ -634,32 +639,80 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     if foundation_height > 0
       foundation_spaces = []
 
-      # foundation corridor
-      if corridor_width > 0 and corridor_position == "Double-Loaded Interior"
-        corridor_space = OpenStudio::Model::Space::fromFloorPrint(foundation_corr_polygon, foundation_height, model)
-        corridor_space = corridor_space.get
-        m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4, 4, 0))
-        m[2, 3] = foundation_height
-        corridor_space.changeTransformation(OpenStudio::Transformation.new(m))
-        corridor_space.setXOrigin(0)
-        corridor_space.setYOrigin(0)
-        corridor_space.setZOrigin(0)
-        foundation_spaces << corridor_space
+      ################################################################
+      floor_surfaces = []
+      model.getSpaces.each do |space|
+          surfaces = space.surfaces
+          surfaces.each do |surface|
+            next unless surface.surfaceType.downcase == "floor"
+            floor_surfaces << surface
+        end
       end
 
-      # foundation front
-      foundation_space_front = []
-      foundation_space = OpenStudio::Model::Space::fromFloorPrint(foundation_front_polygon, foundation_height, model)
+      min_x, max_x, min_y, max_y = 0, 0, 0, 0
+      floor_surfaces.each do |surface|
+        surface.vertices.each do |vertex|
+          if vertex.x < min_x
+            min_x = vertex.x
+          elsif vertex.x > max_x
+            max_x = vertex.x
+          end
+
+          if vertex.y < min_y
+            min_y = vertex.y
+          elsif vertex.y > max_y
+            max_y = vertex.y
+          end
+
+          z = vertex.z
+        end
+      end
+
+      nw_point = OpenStudio::Point3d.new(min_x, max_y, 0)
+      ne_point = OpenStudio::Point3d.new(max_x, max_y, 0)
+      sw_point = OpenStudio::Point3d.new(min_x, min_y, 0)
+      se_point = OpenStudio::Point3d.new(max_x, min_y, 0)
+
+      foundation_floor_polygon = Geometry.make_polygon(sw_point, nw_point, ne_point, se_point)
+
+      foundation_space = OpenStudio::Model::Space::fromFloorPrint(foundation_floor_polygon, foundation_height, model)
       foundation_space = foundation_space.get
       m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4, 4, 0))
       m[2, 3] = foundation_height
       foundation_space.changeTransformation(OpenStudio::Transformation.new(m))
-      foundation_space.setXOrigin(0)
-      foundation_space.setYOrigin(0)
+      foundation_space.setXOrigin(min_x)
+      foundation_space.setYOrigin(max_y)
       foundation_space.setZOrigin(0)
 
-      foundation_space_front << foundation_space
       foundation_spaces << foundation_space
+      ################################################################
+
+      # # foundation corridor
+      # if corridor_width > 0 and corridor_position == "Double-Loaded Interior"
+      #   corridor_space = OpenStudio::Modzel::Space::fromFloorPrint(foundation_corr_polygon, foundation_height, model)
+      #   corridor_space = corridor_space.get
+      #   m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4, 4, 0))
+      #   m[2, 3] = foundation_height
+      #   corridor_space.changeTransformation(OpenStudio::Transformation.new(m))
+      #   corridor_space.setXOrigin(0)
+      #   corridor_space.setYOrigin(0)
+      #   corridor_space.setZOrigin(0)
+      #   foundation_spaces << corridor_space
+      # end
+
+      # # # foundation front
+      # foundation_space_front = []
+      # foundation_space = OpenStudio::Model::Space::fromFloorPrint(foundation_front_polygon, foundation_height, model)
+      # foundation_space = foundation_space.get
+      # m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4, 4, 0))
+      # m[2, 3] = foundation_height
+      # foundation_space.changeTransformation(OpenStudio::Transformation.new(m))
+      # foundation_space.setXOrigin(0)
+      # foundation_space.setYOrigin(0)
+      # foundation_space.setZOrigin(0)
+
+      # foundation_space_front << foundation_space
+      # foundation_spaces << foundation_space
 
       # put all of the spaces in the model into a vector
       spaces = OpenStudio::Model::SpaceVector.new
@@ -673,7 +726,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
 
       if (["crawlspace", "unfinished basement"].include? foundation_type)
         foundation_space = Geometry.make_one_space_from_multiple_spaces(model, foundation_spaces)
-        foundation_space = foundation_space
+        # foundation_space = foundation_space
         if foundation_type == "crawlspace"
           foundation_space.setName("crawl space")
           foundation_zone = OpenStudio::Model::ThermalZone.new(model)
@@ -738,7 +791,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     # intersect and match surfaces for each space in the vector
     OpenStudio::Model.intersectSurfaces(spaces)
     OpenStudio::Model.matchSurfaces(spaces)
-
+    
     # make all surfaces adjacent to corridor spaces into adiabatic surfaces
     model.getSpaces.each do |space|
       next unless Geometry.is_corridor(space)
@@ -748,14 +801,14 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
           surface.adjacentSurface.get.setOutsideBoundaryCondition("Adiabatic")
           surface.setOutsideBoundaryCondition("Adiabatic")
         end
-        # os_facade = Geometry.get_facade_for_surface(surface)
-        # if adb_facade.include? os_facade
-        #   surface.setOutsideBoundaryCondition("Adiabatic")
+        os_facade = Geometry.get_facade_for_surface(surface)
+        if adb_facade.include? os_facade
+          surface.setOutsideBoundaryCondition("Adiabatic")
+        end 
 
-        # ***** vvvvv ******
-        # if (adb_level.include? surface.surfaceType) # prevents eaves
-        #   surface.setOutsideBoundaryCondition("Adiabatic")
-        # end
+        if (adb_level.include? surface.surfaceType) # prevents eaves
+          surface.setOutsideBoundaryCondition("Adiabatic")
+        end
       end
     end
 
@@ -765,7 +818,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
 
       surface.setOutsideBoundaryCondition("Foundation")
     end
-
+ 
     # Store mf data on model
     model.getBuilding.additionalProperties.setFeature("num_units", num_units)
     model.getBuilding.additionalProperties.setFeature("has_rear_units", has_rear_units)
