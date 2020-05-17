@@ -692,12 +692,12 @@ class Geometry
         foundation_space.surfaces.each do |surface|
           next if not surface.surfaceType.downcase == "wall"
           next if surface.adjacentSurface.is_initialized
+          # next if surface.outsideBoundaryCondition.downcase == "adiabatic"
 
           wall_surfaces << surface
         end
         self.get_walls_connected_to_floor(wall_surfaces, ground_floor_surface).each do |surface|
           next if surfaces.include? surface
-
           surfaces << surface
         end
       end
@@ -709,7 +709,7 @@ class Geometry
       next if not surface.surfaceType.downcase == "wall"
       next if (surface.outsideBoundaryCondition.downcase != "outdoors")
 
-      # next if surface.outsideBoundaryCondition.downcase == "foundation"
+      # next if surface.outsideBoundaryCondition.downcase != "foundation"
       surfaces << surface
     end
     model_edges = self.get_edges_for_surfaces(surfaces, false)
