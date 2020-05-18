@@ -726,6 +726,9 @@ class Geometry
         perimeter += length
       end
     end
+    if perimeter == 0
+      perimeter = 0.001
+    end
     return UnitConversions.convert(perimeter, "m", "ft")
   end
 
