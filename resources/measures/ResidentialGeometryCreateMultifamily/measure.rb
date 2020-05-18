@@ -588,32 +588,11 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
 
         corridor_space.setSpaceType(corridor_space_type)
         corridor_space.setThermalZone(corridor_zone)
-
-        # Make walls of corridor adiabatic
-        # if has_rear_units == true
-        #   corridor_space.surfaces.each do |surface|
-        #     os_facade = Geometry.get_facade_for_surface(surface)
-
-        #     if adb_facade.include? os_facade
-        #       surface.setOutsideBoundaryCondition("Adiabatic")
-        #     elsif (adb_level.include? surface.surfaceType)
-        #       surface.setOutsideBoundaryCondition("Adiabatic")
-        #     end
-
-        #     if surface.surfaceType.include? "Floor" # To avoid Kiva exposed perimeter error when all walls are adiabatic
-        #       surface.setOutsideBoundaryCondition("Adiabatic")
-        #     end
-        #   end
-        # end
       end
 
     elsif corridor_position == "Double Exterior" or corridor_position == "Single Exterior (Front)"
       interior_corridor_width = 0
       # front access
-      # nw_point = OpenStudio::Point3d.new(0, -y, wall_height)
-      # sw_point = OpenStudio::Point3d.new(0, -y - corridor_width, wall_height)
-      # ne_point = OpenStudio::Point3d.new(x, -y, wall_height)
-      # se_point = OpenStudio::Point3d.new(x, -y - corridor_width, wall_height)
       nw_point = OpenStudio::Point3d.new(0, -y, wall_height + z)
       sw_point = OpenStudio::Point3d.new(0, -y - corridor_width, wall_height + z)
       ne_point = OpenStudio::Point3d.new(x, -y, wall_height + z)
@@ -623,16 +602,6 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
       shading_surface_group = OpenStudio::Model::ShadingSurfaceGroup.new(model)
       shading_surface.setShadingSurfaceGroup(shading_surface_group)
       shading_surface.setName("Corridor shading")
-
-      # nw_point = OpenStudio::Point3d.new(-x, -y, wall_height)
-      # sw_point = OpenStudio::Point3d.new(-x, -y - corridor_width, wall_height)
-      # ne_point = OpenStudio::Point3d.new(2*x, -y, wall_height)
-      # se_point = OpenStudio::Point3d.new(2*x, -y - corridor_width, wall_height)
-
-      # shading_surface_low = OpenStudio::Model::ShadingSurface.new(OpenStudio::Point3dVector.new([sw_point, se_point, ne_point, nw_point]), model)
-      # shading_surface_group = OpenStudio::Model::ShadingSurfaceGroup.new(model)
-      # shading_surface_low.setShadingSurfaceGroup(shading_surface_group)
-      # shading_surface_low.setName("Corridor shading")
     end
 
     # foundation
@@ -663,8 +632,6 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
           elsif vertex.y > max_y
             max_y = vertex.y
           end
-
-          z = vertex.z
         end
       end
 
@@ -680,8 +647,12 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
       m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4, 4, 0))
       m[2, 3] = foundation_height
       foundation_space.changeTransformation(OpenStudio::Transformation.new(m))
-      foundation_space.setXOrigin(min_x)
-      foundation_space.setYOrigin(max_y)
+      # foundation_space.setXOrigin(min_x)
+      # foundation_space.setYOrigin(max_y)
+      # foundation_space.setZOrigin(0)
+
+      foundation_space.setXOrigin(0)
+      foundation_space.setYOrigin(0)
       foundation_space.setZOrigin(0)
 
       foundation_spaces << foundation_space
@@ -689,7 +660,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
 
       # # foundation corridor
       # if corridor_width > 0 and corridor_position == "Double-Loaded Interior"
-      #   corridor_space = OpenStudio::Modzel::Space::fromFloorPrint(foundation_corr_polygon, foundation_height, model)
+      #   corridor_space = OpenStudio::Model::Space::fromFloorPrint(foundation_corr_polygon, foundation_height, model)
       #   corridor_space = corridor_space.get
       #   m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4, 4, 0))
       #   m[2, 3] = foundation_height
@@ -726,7 +697,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
 
       if (["crawlspace", "unfinished basement"].include? foundation_type)
         foundation_space = Geometry.make_one_space_from_multiple_spaces(model, foundation_spaces)
-        # foundation_space = foundation_space
+        foundation_space = foundation_space
         if foundation_type == "crawlspace"
           foundation_space.setName("crawl space")
           foundation_zone = OpenStudio::Model::ThermalZone.new(model)
@@ -828,7 +799,6 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     model.getBuilding.additionalProperties.setFeature("found_type", foundation_type)
     model.getBuilding.additionalProperties.setFeature("corridor_width", corridor_width)
     model.getBuilding.additionalProperties.setFeature("corridor_position", corridor_position)
-
 
     # Store number of units
     model.getBuilding.setStandardsNumberOfLivingUnits(num_units)
