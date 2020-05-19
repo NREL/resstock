@@ -729,6 +729,8 @@ class Geometry
     if perimeter == 0
       perimeter = 0.001
     end
+
+    puts("Exposed Perimeter:  #{perimeter}")
     return UnitConversions.convert(perimeter, "m", "ft")
   end
 
