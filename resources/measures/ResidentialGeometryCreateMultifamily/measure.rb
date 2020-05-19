@@ -726,9 +726,9 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
         if Geometry.get_space_floor_z(space) + UnitConversions.convert(space.zOrigin, "m", "ft") < 0 # Foundation
           surfaces = space.surfaces
           surfaces.each do |surface|
-            if (adb_level.include? surface.surfaceType)
-              surface.setOutsideBoundaryCondition("Adiabatic")
-            end
+            # if (adb_level.include? surface.surfaceType)
+            #   surface.setOutsideBoundaryCondition("Adiabatic")
+            # end
             next if surface.surfaceType.downcase != "wall"
 
             os_facade = Geometry.get_facade_for_surface(surface)

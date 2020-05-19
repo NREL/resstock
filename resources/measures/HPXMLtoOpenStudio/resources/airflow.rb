@@ -98,6 +98,7 @@ class Airflow
     adiabatic_const.insertLayer(0, adiabatic_mat)
 
     units.each_with_index do |unit, unit_index|
+      puts("::::::::::::::#{unit.name}:::::::::::::::")
       obj_name_airflow = Constants.ObjectNameAirflow(unit.name.to_s.gsub("unit ", "")).gsub("|", "_")
       obj_name_infil = Constants.ObjectNameInfiltration(unit.name.to_s.gsub("unit ", "")).gsub("|", "_")
       obj_name_natvent = Constants.ObjectNameNaturalVentilation(unit.name.to_s.gsub("unit ", "")).gsub("|", "_")
@@ -131,6 +132,7 @@ class Airflow
       has_forced_air_equipment = false
       if unit_living.zone.airLoopHVACs.length > 0
         has_forced_air_equipment = true
+        puts("    + has forced air equipment")
       end
       if unit_has_mshp and not HVAC.has_ducted_mshp(model, runner, unit_living.zone)
         has_forced_air_equipment = false
@@ -147,6 +149,12 @@ class Airflow
       tout_sensor.setKeyName(unit_living.zone.name.to_s)
 
       # Update model
+      # def self.print_instance_vars(instance)
+      #   puts("_______ #{instance}_________")
+      #   instance.instance_variables.each do |var|
+      #     puts("    #{var}:  #{instance.instance_variable_get var}")
+      #   end
+      # end
 
       success, infil_output = process_infiltration_for_unit(model, runner, obj_name_infil, infil, wind_speed, building, weather, unit_ag_ffa, unit_ag_ext_wall_area, unit_living, unit_finished_basement)
       return false if not success
@@ -175,6 +183,8 @@ class Airflow
         success, ducts_output = process_ducts_for_unit(model, runner, ducts, building, unit, unit_index, unit_ffa, unit_has_mshp, unit_living, unit_finished_basement, has_forced_air_equipment)
         return false if not success
 
+        # self.print_instance_vars(ducts_output)
+
         air_loops.each do |air_loop|
           next unless unit_living.zone.airLoopHVACs.include? air_loop # next if airloop doesn't serve this unit
           next if ducts_output.location_name == unit_living.zone.name.to_s or ducts_output.location_name == "none" or not has_forced_air_equipment
@@ -192,6 +202,17 @@ class Airflow
 
       create_ems_program_managers(model, infil_program, nv_program, cfis_programs, duct_programs, obj_name_airflow, obj_name_mech_vent)
 
+      # print(cfis_programs)
+      # print(duct_programs)
+      # duct_programs.each do |key, value|
+      #   puts(key)
+      #   puts(value)
+      # end
+      # self.print_instance_vars(infil_output)
+      # self.print_instance_vars(mv_output)
+      # # self.print_instance_vars(cfis_systems)
+      # self.print_instance_vars(nv_output)
+
       # Store info for HVAC Sizing measure
       if not unit_living.ELA.nil?
         unit_living.zone.additionalProperties.setFeature(Constants.SizingInfoZoneInfiltrationELA, unit_living.ELA.to_f)
@@ -203,7 +224,7 @@ class Airflow
       unless unit_finished_basement.nil?
         unit_finished_basement.zone.additionalProperties.setFeature(Constants.SizingInfoZoneInfiltrationCFM, unit_finished_basement.inf_flow)
       end
-    end # end unit loop
+    end # end unit loop    
 
     # Store info for HVAC Sizing measure
     unless building.crawlspace.nil?
