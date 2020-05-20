@@ -21,7 +21,7 @@ The following building features/technologies are available for modeling via the 
   
 - HVAC
 
-  - Heating Systems (Electric Resistance, Furnaces, Wall Furnaces, Stoves, Boilers, Portable Heaters)
+  - Heating Systems (Electric Resistance, Central/Wall/Floor Furnaces, Stoves, Boilers, Portable Heaters, Fireplaces)
   - Cooling Systems (Central Air Conditioners, Room Air Conditioners, Evaporative Coolers)
   - Heat Pumps (Air Source, Mini Split, Ground Source, Dual-Fuel)
   - Setpoints
@@ -135,22 +135,22 @@ For software tools that do not collect sufficient inputs for every required surf
 
 The space types used in the HPXML building description are:
 
-==============================  ====================================================================  ==============================================================
-Space Type                      Description                                                           Temperature Assumption
-==============================  ====================================================================  ==============================================================
-living space                    Above-grade conditioned floor area.
+==============================  =============================================  ========================================================
+Space Type                      Description                                    Temperature Assumption
+==============================  =============================================  ========================================================
+living space                    Above-grade conditioned floor area
 attic - vented            
 attic - unvented          
-basement - conditioned          Below-grade conditioned floor area.
+basement - conditioned          Below-grade conditioned floor area
 basement - unconditioned  
 crawlspace - vented       
 crawlspace - unvented     
 garage                    
-other housing unit              Conditioned space of an adjacent attached housing unit.               Same as conditioned space.
-other heated space              Heated multifamily space (e.g., shared laundry or equipment.)         Average of conditioned space and outside; minimum of 68F.
-other multifamily buffer space  Unconditioned multifamily space (e.g., enclosed unheated stairwell).  Average of conditioned space and outside; minimum of 50F.
-other non-freezing space        Non-freezing multifamily space (e.g., parking garage ceiling).        Floats with outside; minimum of 40F.
-==============================  ====================================================================  ==============================================================
+other housing unit              Conditioned space of an adjacent housing unit  Same as conditioned space
+other heated space              E.g., shared laundry/equipment space           Average of conditioned space and outside; minimum of 68F
+other multifamily buffer space  E.g., enclosed unconditioned stairwell         Average of conditioned space and outside; minimum of 50F
+other non-freezing space        E.g., parking garage ceiling                   Floats with outside; minimum of 40F
+==============================  =============================================  ========================================================
 
 .. warning::
 
@@ -329,9 +329,11 @@ HeatingSystemType   DistributionSystem           HeatingSystemFuel  AnnualHeatin
 ElectricResistance                               electricity        Percent
 Furnace             AirDistribution or DSE       <any>              AFUE
 WallFurnace                                      <any>              AFUE
+FloorFurnace                                     <any>              AFUE
 Boiler              HydronicDistribution or DSE  <any>              AFUE
 Stove                                            <any>              Percent
 PortableHeater                                   <any>              Percent
+Fireplace                                        <any>              Percent
 ==================  ===========================  =================  =======================
 
 If a non-electric heating system is specified, the ``ElectricAuxiliaryEnergy`` element may be provided if available. 
@@ -417,31 +419,50 @@ Also note that some HVAC systems (e.g., room air conditioners) are not allowed t
 
 ``AirDistribution`` systems are defined by:
 
+- ``ConditionedFloorAreaServed``
+- Optional ``NumberofReturnRegisters``. If not provided, one return register per conditioned floor will be assumed.
 - Supply leakage to the outside in CFM25 or percent of airflow (``DuctLeakageMeasurement[DuctType='supply']/DuctLeakage/Value``)
 - Optional return leakage to the outside in CFM25 or percent of airflow (``DuctLeakageMeasurement[DuctType='return']/DuctLeakage/Value``)
 - Optional supply ducts (``Ducts[DuctType='supply']``)
 - Optional return ducts (``Ducts[DuctType='return']``)
 
-For each duct, ``DuctInsulationRValue``, ``DuctLocation``, and ``DuctSurfaceArea`` must be provided.
-The ``DuctLocation`` can be one of the following:
+For each duct, ``DuctInsulationRValue`` must be provided.
+``DuctLocation`` and ``DuctSurfaceArea`` can be optionally provided.
+The provided ``DuctLocation`` can be one of the following:
 
-==============================  ====================================================================  =========================================================
-Location                        Description                                                           Temperature Assumption
-==============================  ====================================================================  =========================================================
-living space                    Above-grade conditioned floor area.
-basement - conditioned          Below-grade conditioned floor area.
-basement - unconditioned  
-crawlspace - unvented
-crawlspace - vented
-attic - unvented
-attic - vented
-garage                    
+==============================  =============================================  =========================================================  ================
+Location                        Description                                    Temperature Assumption                                     Default Priority
+==============================  =============================================  =========================================================  ================
+living space                    Above-grade conditioned floor area                                                                        8
+basement - conditioned          Below-grade conditioned floor area                                                                        1
+basement - unconditioned                                                                                                                  2
+crawlspace - unvented                                                                                                                     4
+crawlspace - vented                                                                                                                       3
+attic - unvented                                                                                                                          6
+attic - vented                                                                                                                            5
+garage                                                                                                                                    7
 outside                         
-other housing unit              Conditioned space of an adjacent attached housing unit.               Same as conditioned space.
-other heated space              Heated multifamily space (e.g., shared laundry or equipment.)         Average of conditioned space and outside; minimum of 68F.
-other multifamily buffer space  Unconditioned multifamily space (e.g., enclosed unheated stairwell).  Average of conditioned space and outside; minimum of 50F.
-other non-freezing space        Non-freezing multifamily space (e.g., parking garage ceiling).        Floats with outside; minimum of 40F.
-==============================  ====================================================================  =========================================================
+other housing unit              Conditioned space of an adjacent housing unit  Same as conditioned space
+other heated space              E.g., shared laundry/equipment space           Average of conditioned space and outside; minimum of 68F
+other multifamily buffer space  E.g., enclosed unconditioned stairwell         Average of conditioned space and outside; minimum of 50F
+other non-freezing space        E.g., parking garage ceiling                   Floats with outside; minimum of 40F
+==============================  =============================================  =========================================================  ================
+
+If ``DuctLocation`` is not provided, the primary duct location will be chosen based on the presence of spaces and the "Default Priority" indicated above.
+For a 2+ story home, secondary ducts will also be located in the living space.
+
+If ``DuctSurfaceArea`` is not provided, the total duct area will be calculated based on ANSI/ASHRAE Standard 152-2004:
+
+========================================  ====================================================================
+Element Name                              Default Value
+========================================  ====================================================================
+DuctSurfaceArea (primary supply ducts)    :math:`0.27 \cdot F_{out} \cdot CFA_{ServedByAirDistribution}`
+DuctSurfaceArea (secondary supply ducts)  :math:`0.27 \cdot (1 - F_{out}) \cdot CFA_{ServedByAirDistribution}`
+DuctSurfaceArea (primary return ducts)    :math:`b_r \cdot F_{out} \cdot CFA_{ServedByAirDistribution}`
+DuctSurfaceArea (secondary return ducts)  :math:`b_r \cdot (1 - F_{out}) \cdot CFA_{ServedByAirDistribution}`
+========================================  ====================================================================
+
+where F\ :sub:`out` is 1.0 for 1-story homes and 0.75 for 2+ story homes and b\ :sub:`r` is 0.05 * ``NumberofReturnRegisters`` with a maximum value of 0.25.
 
 ``HydronicDistribution`` systems do not require any additional inputs.
 
@@ -449,7 +470,7 @@ other non-freezing space        Non-freezing multifamily space (e.g., parking ga
 
 .. warning::
 
-  Specifying a DSE for the HVAC distribution system will NOT be reflected in the raw EnergyPlus simulation outputs, but IS reflected by the SimulationOutputReport reporting measure.
+  Specifying a DSE for the HVAC distribution system will NOT be reflected in the raw EnergyPlus simulation outputs, but IS reflected in the SimulationOutputReport reporting measure outputs.
 
 Mechanical Ventilation
 **********************
@@ -556,23 +577,23 @@ For water heaters that are connected to a desuperheater, the ``RelatedHVACSystem
 
 The water heater ``Location`` can be optionally entered as one of the following:
 
-==============================  ====================================================================  =========================================================
-Location                        Description                                                           Temperature Assumption
-==============================  ====================================================================  =========================================================
-living space                    Above-grade conditioned floor area.
-basement - conditioned          Below-grade conditioned floor area.
+==============================  =============================================  =========================================================
+Location                        Description                                    Temperature Assumption
+==============================  =============================================  =========================================================
+living space                    Above-grade conditioned floor area
+basement - conditioned          Below-grade conditioned floor area
 basement - unconditioned  
 attic - unvented
 attic - vented
 garage                    
 crawlspace - unvented
 crawlspace - vented
-other exterior                  Outside.
-other housing unit              Conditioned space of an adjacent attached housing unit.               Same as conditioned space.
-other heated space              Heated multifamily space (e.g., shared laundry or equipment.)         Average of conditioned space and outside; minimum of 68F.
-other multifamily buffer space  Unconditioned multifamily space (e.g., enclosed unheated stairwell).  Average of conditioned space and outside; minimum of 50F.
-other non-freezing space        Non-freezing multifamily space (e.g., parking garage ceiling).        Floats with outside; minimum of 40F.
-==============================  ====================================================================  =========================================================
+other exterior                  Outside
+other housing unit              Conditioned space of an adjacent housing unit  Same as conditioned space
+other heated space              E.g., shared laundry/equipment space           Average of conditioned space and outside; minimum of 68F
+other multifamily buffer space  E.g., enclosed unconditioned stairwell         Average of conditioned space and outside; minimum of 50F
+other non-freezing space        E.g., parking garage ceiling                   Floats with outside; minimum of 40F
+==============================  =============================================  =========================================================
 
 If the location is not provided, a default water heater location will be assumed based on IECC climate zone:
 
@@ -614,7 +635,7 @@ For a ``SystemType/Recirculation`` system, the following elements are used:
   ==================================  ====================================================================================================
   Element Name                        Default Value
   ==================================  ====================================================================================================
-  RecirculationPipingLoopLength [ft]  .. math:: 2.0 \cdot (2.0 \cdot (\frac{CFA}{NCfl})^{0.5} + 10.0 \cdot NCfl + 5.0 \cdot bsmnt) - 20.0
+  RecirculationPipingLoopLength [ft]  :math:`2.0 \cdot (2.0 \cdot (\frac{CFA}{NCfl})^{0.5} + 10.0 \cdot NCfl + 5.0 \cdot bsmnt) - 20.0`
   BranchPipingLoopLength [ft]         10 
   Pump Power [W]                      50 
   ==================================  ====================================================================================================
@@ -693,11 +714,11 @@ The ``Location`` for each appliance can be optionally provided as one of the fol
 ==============================  ====================================================================
 Location                        Description                                                         
 ==============================  ====================================================================
-living space                    Above-grade conditioned floor area.
-basement - conditioned          Below-grade conditioned floor area.
+living space                    Above-grade conditioned floor area
+basement - conditioned          Below-grade conditioned floor area
 basement - unconditioned  
 garage                    
-other                           Any space in a multifamily building outside the unit, in which internal gains are neglected.
+other                           Any attached/multifamily space outside the unit, in which internal gains are neglected
 ==============================  ====================================================================
 
 If the location is not specified, the appliance is assumed to be in the living space.

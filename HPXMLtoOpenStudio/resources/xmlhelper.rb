@@ -95,6 +95,7 @@ class XMLHelper
   # Returns the value of the attribute
   def self.get_attribute_value(element, attr_name)
     return if element.nil?
+
     return element.get(attr_name)
   end
 

@@ -777,10 +777,12 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     heating_system_type_choices << 'none'
     heating_system_type_choices << HPXML::HVACTypeFurnace
     heating_system_type_choices << HPXML::HVACTypeWallFurnace
+    heating_system_type_choices << HPXML::HVACTypeFloorFurnace
     heating_system_type_choices << HPXML::HVACTypeBoiler
     heating_system_type_choices << HPXML::HVACTypeElectricResistance
     heating_system_type_choices << HPXML::HVACTypeStove
     heating_system_type_choices << HPXML::HVACTypePortableHeater
+    heating_system_type_choices << HPXML::HVACTypeFireplace
 
     heating_system_fuel_choices = OpenStudio::StringVector.new
     heating_system_fuel_choices << HPXML::FuelTypeElectricity
@@ -816,14 +818,14 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heating_system_heating_efficiency_afue', true)
     arg.setDisplayName('Heating System: Rated AFUE')
     arg.setUnits('AFUE')
-    arg.setDescription('The rated efficiency value of the Furnace/WallFurnace/Boiler heating system.')
+    arg.setDescription('The rated efficiency value of the Furnace/WallFurnace/FloorFurnace/Boiler heating system.')
     arg.setDefaultValue(0.78)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heating_system_heating_efficiency_percent', true)
     arg.setDisplayName('Heating System: Rated Percent')
     arg.setUnits('Percent')
-    arg.setDescription('The rated efficiency value of the ElectricResistance/Stove/PortableHeater heating system.')
+    arg.setDescription('The rated efficiency value of the ElectricResistance/Stove/PortableHeater/Fireplace heating system.')
     arg.setDefaultValue(1.0)
     args << arg
 
@@ -1142,18 +1144,18 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(Constants.Auto)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('ducts_supply_surface_area', true)
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('ducts_supply_surface_area', true)
     arg.setDisplayName('Ducts: Supply Surface Area')
     arg.setDescription('The surface area of the supply ducts.')
     arg.setUnits('ft^2')
-    arg.setDefaultValue(150)
+    arg.setDefaultValue(Constants.Auto)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('ducts_return_surface_area', true)
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('ducts_return_surface_area', true)
     arg.setDisplayName('Ducts: Return Surface Area')
     arg.setDescription('The surface area of the return ducts.')
     arg.setUnits('ft^2')
-    arg.setDefaultValue(50)
+    arg.setDefaultValue(Constants.Auto)
     args << arg
 
     mech_vent_fan_type_choices = OpenStudio::StringVector.new
@@ -2324,8 +2326,8 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
              ducts_return_insulation_r_value: runner.getDoubleArgumentValue('ducts_return_insulation_r', user_arguments),
              ducts_supply_location: runner.getStringArgumentValue('ducts_supply_location', user_arguments),
              ducts_return_location: runner.getStringArgumentValue('ducts_return_location', user_arguments),
-             ducts_supply_surface_area: runner.getDoubleArgumentValue('ducts_supply_surface_area', user_arguments),
-             ducts_return_surface_area: runner.getDoubleArgumentValue('ducts_return_surface_area', user_arguments),
+             ducts_supply_surface_area: runner.getStringArgumentValue('ducts_supply_surface_area', user_arguments),
+             ducts_return_surface_area: runner.getStringArgumentValue('ducts_return_surface_area', user_arguments),
              mech_vent_fan_type: runner.getStringArgumentValue('mech_vent_fan_type', user_arguments),
              mech_vent_flow_rate: runner.getDoubleArgumentValue('mech_vent_flow_rate', user_arguments),
              mech_vent_hours_in_operation: runner.getDoubleArgumentValue('mech_vent_hours_in_operation', user_arguments),
@@ -2576,6 +2578,10 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     # slab and foundation height above grade > 0
     warning = (args[:geometry_foundation_type] == HPXML::FoundationTypeSlab) && (args[:geometry_foundation_height_above_grade] > 0)
     warnings << "geometry_foundation_type=#{args[:geometry_foundation_type]} and geometry_foundation_height_above_grade=#{args[:geometry_foundation_height_above_grade]}" if warning
+
+    # duct location and surface area not both auto or not both specified
+    error = ((args[:ducts_supply_location] == Constants.Auto) && (args[:ducts_supply_surface_area] != Constants.Auto)) || ((args[:ducts_supply_location] != Constants.Auto) && (args[:ducts_supply_surface_area] == Constants.Auto)) || ((args[:ducts_return_location] == Constants.Auto) && (args[:ducts_return_surface_area] != Constants.Auto)) || ((args[:ducts_return_location] != Constants.Auto) && (args[:ducts_return_surface_area] == Constants.Auto))
+    errors << "ducts_supply_location=#{args[:ducts_supply_location]} and ducts_supply_surface_area=#{args[:ducts_supply_surface_area]} and ducts_return_location=#{args[:ducts_return_location]} and ducts_return_surface_area=#{args[:ducts_return_surface_area]}" if error
 
     return warnings, errors
   end
@@ -3208,9 +3214,9 @@ class HPXMLFile
       heating_system_fuel = args[:heating_system_fuel]
     end
 
-    if [HPXML::HVACTypeFurnace, HPXML::HVACTypeWallFurnace, HPXML::HVACTypeBoiler].include? heating_system_type
+    if [HPXML::HVACTypeFurnace, HPXML::HVACTypeWallFurnace, HPXML::HVACTypeFloorFurnace, HPXML::HVACTypeBoiler].include? heating_system_type
       heating_efficiency_afue = args[:heating_system_heating_efficiency_afue]
-    elsif [HPXML::HVACTypeElectricResistance, HPXML::HVACTypeStove, HPXML::HVACTypePortableHeater]
+    elsif [HPXML::HVACTypeElectricResistance, HPXML::HVACTypeStove, HPXML::HVACTypePortableHeater, HPXML::HVACTypeFireplace].include? heating_system_type
       heating_efficiency_percent = args[:heating_system_heating_efficiency_percent]
     end
 
@@ -3358,7 +3364,8 @@ class HPXMLFile
       next unless [HPXML::HVACTypeBoiler].include? heating_system.heating_system_type
 
       hpxml.hvac_distributions.add(id: 'HydronicDistribution',
-                                   distribution_system_type: HPXML::HVACDistributionTypeHydronic)
+                                   distribution_system_type: HPXML::HVACDistributionTypeHydronic,
+                                   conditioned_floor_area_served: args[:geometry_cfa])
       heating_system.distribution_system_idref = hpxml.hvac_distributions[-1].id
       break
     end
@@ -3387,7 +3394,8 @@ class HPXMLFile
     return unless air_distribution_systems.size > 0
 
     hpxml.hvac_distributions.add(id: 'AirDistribution',
-                                 distribution_system_type: HPXML::HVACDistributionTypeAir)
+                                 distribution_system_type: HPXML::HVACDistributionTypeAir,
+                                 conditioned_floor_area_served: args[:geometry_cfa])
 
     air_distribution_systems.each do |hvac_system|
       hvac_system.distribution_system_idref = hpxml.hvac_distributions[-1].id
@@ -3407,26 +3415,32 @@ class HPXMLFile
     end
 
     # Ducts
-    ducts_supply_location = args[:ducts_supply_location]
-    if ducts_supply_location == Constants.Auto
-      ducts_supply_location = get_duct_location_auto(args, hpxml)
+    if args[:ducts_supply_location] != Constants.Auto
+      ducts_supply_location = args[:ducts_supply_location]
     end
 
-    ducts_return_location = args[:ducts_return_location]
-    if ducts_return_location == Constants.Auto
-      ducts_return_location = get_duct_location_auto(args, hpxml)
+    if args[:ducts_return_location] != Constants.Auto
+      ducts_return_location = args[:ducts_return_location]
+    end
+
+    if args[:ducts_supply_surface_area] != Constants.Auto
+      ducts_supply_surface_area = args[:ducts_supply_surface_area]
+    end
+
+    if args[:ducts_return_surface_area] != Constants.Auto
+      ducts_return_surface_area = args[:ducts_return_surface_area]
     end
 
     hpxml.hvac_distributions[-1].ducts.add(duct_type: HPXML::DuctTypeSupply,
                                            duct_insulation_r_value: args[:ducts_supply_insulation_r_value],
                                            duct_location: ducts_supply_location,
-                                           duct_surface_area: args[:ducts_supply_surface_area])
+                                           duct_surface_area: ducts_supply_surface_area)
 
     if not ((args[:cooling_system_type] == HPXML::HVACTypeEvaporativeCooler) && args[:cooling_system_evap_cooler_is_ducted])
       hpxml.hvac_distributions[-1].ducts.add(duct_type: HPXML::DuctTypeReturn,
                                              duct_insulation_r_value: args[:ducts_return_insulation_r_value],
                                              duct_location: ducts_return_location,
-                                             duct_surface_area: args[:ducts_return_surface_area])
+                                             duct_surface_area: ducts_return_surface_area)
     end
   end
 
