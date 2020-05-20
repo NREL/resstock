@@ -17,8 +17,10 @@ class HPXMLtoOpenStudioAirflowTest < MiniTest::Test
     values = {}
     ems_objects.each do |ems_object|
       next unless ems_object.name.to_s.include? name.gsub(' ', '_')
+
       ems_object.lines.each do |line|
         next unless line.downcase.start_with? 'set'
+
         lhs, rhs = line.split('=')
         lhs = lhs.gsub('Set', '').gsub('set', '').strip
         rhs = rhs.gsub(',', '').gsub(';', '').strip

@@ -1373,13 +1373,13 @@ class HVAC
         end
       end
 
-    else # Furnace/WallFurnace/Stove
+    else # Furnace/WallFurnace/FloorFurnace/Stove
 
       unitary_systems = []
       eae_hvacs.each do |eae_hvac|
         if eae_hvac.is_a? OpenStudio::Model::AirLoopHVAC # Furnace
           unitary_systems << get_unitary_system_from_air_loop_hvac(eae_hvac)
-        elsif eae_hvac.is_a? OpenStudio::Model::AirLoopHVACUnitarySystem # WallFurnace/Stove
+        elsif eae_hvac.is_a? OpenStudio::Model::AirLoopHVACUnitarySystem # WallFurnace/FloorFurnace/Stove
           unitary_systems << eae_hvac
         end
       end
@@ -3782,5 +3782,42 @@ class HVAC
       end
     end
     return hp_min_temp, supp_max_temp
+  end
+
+  def self.get_default_duct_surface_area(duct_type, ncfl_ag, cfa_served, n_returns)
+    # Fraction of primary ducts (ducts outside conditioned space)
+    f_out = (ncfl_ag == 1) ? 1.0 : 0.75
+
+    if duct_type == HPXML::DuctTypeSupply
+      primary_duct_area = 0.27 * cfa_served * f_out
+      secondary_duct_area = 0.27 * cfa_served * (1.0 - f_out)
+    elsif duct_type == HPXML::DuctTypeReturn
+      b_r = (n_returns < 6) ? (0.05 * n_returns) : 0.25
+      primary_duct_area = b_r * cfa_served * f_out
+      secondary_duct_area = b_r * cfa_served * (1.0 - f_out)
+    end
+
+    return primary_duct_area, secondary_duct_area
+  end
+
+  def self.get_default_duct_locations(hpxml)
+    primary_duct_location_hierarchy = [HPXML::LocationBasementConditioned,
+                                       HPXML::LocationBasementUnconditioned,
+                                       HPXML::LocationCrawlspaceVented,
+                                       HPXML::LocationCrawlspaceUnvented,
+                                       HPXML::LocationAtticVented,
+                                       HPXML::LocationAtticUnvented,
+                                       HPXML::LocationGarage]
+
+    primary_duct_location = nil
+    primary_duct_location_hierarchy.each do |space_type|
+      if hpxml.has_space_type(space_type)
+        primary_duct_location = space_type
+        break
+      end
+    end
+    secondary_duct_location = HPXML::LocationLivingSpace
+
+    return primary_duct_location, secondary_duct_location
   end
 end

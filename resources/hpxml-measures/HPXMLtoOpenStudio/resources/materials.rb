@@ -70,38 +70,42 @@ class Material
     return new(name = nil, thick_in = thick_in, mat_base = nil, k_in = 10000000.0, rho = Gas.Air.rho, cp = Gas.Air.cp)
   end
 
+  def self.AirFilm(rvalue)
+    return new(name = Constants.AirFilm, thick_in = 1.0, mat_base = nil, k_in = 1.0 / rvalue)
+  end
+
   def self.AirFilmOutside
     rvalue = 0.197 # hr-ft-F/Btu
-    return new(name = Constants.AirFilm, thick_in = 1.0, mat_base = nil, k_in = 1.0 / rvalue)
+    return self.AirFilm(rvalue)
   end
 
   def self.AirFilmVertical
     rvalue = 0.68 # hr-ft-F/Btu (ASHRAE 2005, F25.2, Table 1)
-    return new(name = Constants.AirFilm, thick_in = 1.0, mat_base = nil, k_in = 1.0 / rvalue)
+    return self.AirFilm(rvalue)
   end
 
   def self.AirFilmFlatEnhanced
     rvalue = 0.61 # hr-ft-F/Btu (ASHRAE 2005, F25.2, Table 1)
-    return new(name = Constants.AirFilm, thick_in = 1.0, mat_base = nil, k_in = 1.0 / rvalue)
+    return self.AirFilm(rvalue)
   end
 
   def self.AirFilmFlatReduced
     rvalue = 0.92 # hr-ft-F/Btu (ASHRAE 2005, F25.2, Table 1)
-    return new(name = Constants.AirFilm, thick_in = 1.0, mat_base = nil, k_in = 1.0 / rvalue)
+    return self.AirFilm(rvalue)
   end
 
   def self.AirFilmFloorAverage
     # For floors between conditioned spaces where heat does not flow across
     # the floor; heat transfer is only important with regards to the thermal
     rvalue = (self.AirFilmFlatReduced.rvalue + self.AirFilmFlatEnhanced.rvalue) / 2.0 # hr-ft-F/Btu
-    return new(name = Constants.AirFilm, thick_in = 1.0, mat_base = nil, k_in = 1.0 / rvalue)
+    return self.AirFilm(rvalue)
   end
 
   def self.AirFilmFloorReduced
     # For floors above unconditioned basement spaces, where heat will
     # always flow down through the floor.
     rvalue = self.AirFilmFlatReduced.rvalue # hr-ft-F/Btu
-    return new(name = Constants.AirFilm, thick_in = 1.0, mat_base = nil, k_in = 1.0 / rvalue)
+    return self.AirFilm(rvalue)
   end
 
   def self.AirFilmSlopeEnhanced(roof_pitch)
@@ -110,7 +114,7 @@ class Material
     # 0, 45, and 90 degrees. Values are for non-reflective materials of
     # emissivity = 0.90.
     rvalue = 0.002 * Math::exp(0.0398 * roof_pitch) + 0.608 # hr-ft-F/Btu (evaluates to film_flat_enhanced at 0 degrees, 0.62 at 45 degrees, and film_vertical at 90 degrees)
-    return new(name = Constants.AirFilm, thick_in = 1.0, mat_base = nil, k_in = 1.0 / rvalue)
+    return self.AirFilm(rvalue)
   end
 
   def self.AirFilmSlopeReduced(roof_pitch)
@@ -119,7 +123,7 @@ class Material
     # 0, 45, and 90 degrees. Values are for non-reflective materials of
     # emissivity = 0.90.
     rvalue = 0.32 * Math::exp(-0.0154 * roof_pitch) + 0.6 # hr-ft-F/Btu (evaluates to film_flat_reduced at 0 degrees, 0.76 at 45 degrees, and film_vertical at 90 degrees)
-    return new(name = Constants.AirFilm, thick_in = 1.0, mat_base = nil, k_in = 1.0 / rvalue)
+    return self.AirFilm(rvalue)
   end
 
   def self.AirFilmSlopeEnhancedReflective(roof_pitch)
@@ -128,7 +132,7 @@ class Material
     # 0, 45, and 90 degrees. Values are for reflective materials of
     # emissivity = 0.05.
     rvalue = 0.00893 * Math::exp(0.0419 * roof_pitch) + 1.311 # hr-ft-F/Btu (evaluates to 1.32 at 0 degrees, 1.37 at 45 degrees, and 1.70 at 90 degrees)
-    return new(name = Constants.AirFilm, thick_in = 1.0, mat_base = nil, k_in = 1.0 / rvalue)
+    return self.AirFilm(rvalue)
   end
 
   def self.AirFilmSlopeReducedReflective(roof_pitch)
@@ -137,7 +141,7 @@ class Material
     # 0, 45, and 90 degrees. Values are for reflective materials of
     # emissivity = 0.05.
     rvalue = 2.999 * Math::exp(-0.0333 * roof_pitch) + 1.551 # hr-ft-F/Btu (evaluates to 4.55 at 0 degrees, 2.22 at 45 degrees, and 1.70 at 90 degrees)
-    return new(name = Constants.AirFilm, thick_in = 1.0, mat_base = nil, k_in = 1.0 / rvalue)
+    return self.AirFilm(rvalue)
   end
 
   def self.AirFilmRoof(roof_pitch)
@@ -147,7 +151,7 @@ class Material
     # return self.AirFilmSlopeEnhanced(roof_pitch).rvalue * hdd_frac + self.AirFilmSlopeReduced(roof_pitch).rvalue * cdd_frac # hr-ft-F/Btu
     # Simplification to not depend on weather
     rvalue = (self.AirFilmSlopeEnhanced(roof_pitch).rvalue + self.AirFilmSlopeReduced(roof_pitch).rvalue) / 2.0 # hr-ft-F/Btu
-    return new(name = Constants.AirFilm, thick_in = 1.0, mat_base = nil, k_in = 1.0 / rvalue)
+    return self.AirFilm(rvalue)
   end
 
   def self.AirFilmRoofRadiantBarrier(roof_pitch)
@@ -157,7 +161,7 @@ class Material
     # return self.AirFilmSlopeEnhancedReflective(roof_pitch).rvalue * hdd_frac + self.AirFilmSlopeReducedReflective(roof_pitch).rvalue * cdd_frac # hr-ft-F/Btu
     # Simplification to not depend on weather
     rvalue = (self.AirFilmSlopeEnhancedReflective(roof_pitch).rvalue + self.AirFilmSlopeReducedReflective(roof_pitch).rvalue) / 2.0 # hr-ft-F/Btu
-    return new(name = Constants.AirFilm, thick_in = 1.0, mat_base = nil, k_in = 1.0 / rvalue)
+    return self.AirFilm(rvalue)
   end
 
   def self.CoveringBare(floorFraction = 0.8, rvalue = 2.08)
