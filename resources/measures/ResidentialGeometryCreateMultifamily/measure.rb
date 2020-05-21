@@ -777,7 +777,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
           surface.setOutsideBoundaryCondition("Adiabatic")
         end 
 
-        if (adb_level.include? surface.surfaceType) # prevents eaves
+        if (adb_level.include? surface.surfaceType) #or surface.surfaceType.downcase == "floor"
           surface.setOutsideBoundaryCondition("Adiabatic")
         end
       end

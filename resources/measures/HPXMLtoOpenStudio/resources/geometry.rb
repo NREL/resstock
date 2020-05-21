@@ -726,11 +726,11 @@ class Geometry
         perimeter += length
       end
     end
-    if perimeter == 0
+
+    if perimeter = 0 #Temperary fix for slabs at interior corridors
       perimeter = 0.001
     end
 
-    puts("Exposed Perimeter:  #{perimeter}")
     return UnitConversions.convert(perimeter, "m", "ft")
   end
 
