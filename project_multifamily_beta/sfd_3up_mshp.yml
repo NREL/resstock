@@ -1,0 +1,74 @@
+stock_type: residential
+buildstock_directory: ../../OpenStudio-BuildStock # Relative to this file or absolute
+project_directory: project_multifamily_beta # Relative to buildstock_directory
+output_directory: c:/OpenStudio/OpenStudio-BuildStock/project_multifamily_beta/outputs/SFD_v1
+weather_files_path: c:/Users/jrobert1/Downloads/ResStock_TMY3.zip  # Relative to this file or absolute path to zipped weather files
+
+baseline:
+  n_datapoints: 350000
+  n_buildings_represented: 110000000
+
+residential_simulation_controls:
+  timesteps_per_hr: 6
+  begin_month: 1
+  begin_day_of_month: 1
+  end_month: 12
+  end_day_of_month: 31
+  calendar_year: 2007
+
+simulation_output:
+  include_enduse_subcategories: true
+
+upgrades:
+  - upgrade_name: Replace Any Heating System and Room AC with MSHP 1
+    options:
+      - option: HVAC System Heat Pump|MSHP, SEER 14.5, 8.2 HSPF
+        apply_logic:
+          - or:
+            - HVAC System Cooling|FIXME Room AC, EER 8.5, 20% Conditioned
+            - HVAC System Cooling|FIXME Room AC, EER 10.7, 20% Conditioned
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+          - value: 0
+            multiplier: Size, Cooling System (kBtu/h)
+        lifetime: 16
+
+  - upgrade_name: Replace Any Heating System and Room AC with MSHP 2
+    options:
+      - option: HVAC System Heat Pump|MSHP, SEER 29.3, 14 HSPF
+        apply_logic:
+          - or:
+            - HVAC System Cooling|FIXME Room AC, EER 8.5, 20% Conditioned
+            - HVAC System Cooling|FIXME Room AC, EER 10.7, 20% Conditioned
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+          - value: 0
+            multiplier: Size, Cooling System (kBtu/h)
+        lifetime: 16
+
+  - upgrade_name: Replace Any Heating System and Room AC with MSHP 3
+    options:
+      - option: HVAC System Heat Pump|FIXME MSHP, SEER 18.0, 9.6 HSPF, 60% Conditioned
+        apply_logic:
+          - or:
+            - HVAC System Cooling|FIXME Room AC, EER 8.5, 20% Conditioned
+            - HVAC System Cooling|FIXME Room AC, EER 10.7, 20% Conditioned
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+          - value: 0
+            multiplier: Size, Cooling System (kBtu/h)
+        lifetime: 16
+
+downselect:
+  resample: true
+  logic:
+    and:
+      - or:
+          - Geometry Building Type RECS|Mobile Home
+          - Geometry Building Type RECS|Single-Family Detached
+      - or:
+          - HVAC System Cooling|FIXME Room AC, EER 8.5, 20% Conditioned
+          - HVAC System Cooling|FIXME Room AC, EER 10.7, 20% Conditioned
