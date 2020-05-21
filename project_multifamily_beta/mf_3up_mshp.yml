@@ -5,8 +5,8 @@ output_directory: c:/OpenStudio/OpenStudio-BuildStock/project_multifamily_beta/o
 weather_files_path: c:/Users/jrobert1/Downloads/ResStock_TMY3.zip  # Relative to this file or absolute path to zipped weather files
 
 baseline:
-  n_datapoints: 200000
-  n_buildings_represented: 110000000
+  n_datapoints: 550000
+  n_buildings_represented: 30000000
 
 residential_simulation_controls:
   timesteps_per_hr: 6
@@ -63,13 +63,10 @@ upgrades:
         lifetime: 16
 
 downselect:
-  resample: true
+  resample: false
   logic:
     and:
       - or:
           - Geometry Building Type RECS|Single-Family Attached
           - Geometry Building Type RECS|Multi-Family with 2 - 4 Units
           - Geometry Building Type RECS|Multi-Family with 5+ Units
-      - or:
-          - HVAC System Cooling|FIXME Room AC, EER 8.5, 20% Conditioned
-          - HVAC System Cooling|FIXME Room AC, EER 10.7, 20% Conditioned
