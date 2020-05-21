@@ -215,7 +215,7 @@ class HVACSizing
     else
       # Unfinished basement, Crawlspace
       heat_temp = calculate_space_design_temps(runner, space, weather, unit, @finished_heat_design_temp, design_db, weather.data.GroundMonthlyTemps.min)
-      # heat_temp = 45.768
+
     end
 
     return heat_temp
@@ -397,7 +397,6 @@ class HVACSizing
     else
       # Unfinished basement, Crawlspace
       cool_temp = calculate_space_design_temps(runner, space, weather, unit, @finished_cool_design_temp, weather.design.CoolingDrybulb, weather.data.GroundMonthlyTemps.max)
-
     end
 
     return cool_temp
@@ -1147,6 +1146,8 @@ class HVACSizing
       zone_loads.Heat_Floors += floor_ufactor * UnitConversions.convert(floor.netArea, "m^2", "ft^2") * (mj8.heat_setpoint - mj8.heat_design_temps[adjacent_space])
       zone_loads.Dehumid_Floors += floor_ufactor * UnitConversions.convert(floor.netArea, "m^2", "ft^2") * (mj8.cool_setpoint - mj8.dehum_design_temps[adjacent_space])
     end
+
+    
 
     # Foundation Floors
     Geometry.get_spaces_below_grade_exterior_floors(thermal_zone.spaces).each do |floor|
@@ -3479,9 +3480,9 @@ class HVACSizing
         else
           int_corridor_width = 0
         end
-        bldg_exposed_perimeter = n_ground_units*wall_width + 4*wall_length + int_corridor_width
+        bldg_exposed_perimeter = 4*wall_width + n_ground_units*wall_length
       else
-        bldg_exposed_perimeter = n_ground_units*wall_width*2 + 2*wall_length
+        bldg_exposed_perimeter = 2*wall_width + n_ground_units*2*wall_length
       end
 
       found_wall_area = bldg_exposed_perimeter * found_height
@@ -3502,7 +3503,8 @@ class HVACSizing
           end
 
           ufactor_found = 1.0 / (wall_ins_rvalue + wall_constr_rvalue)
-          ufactor = 0
+          ufactor = 1.0 / (wall_ins_rvalue + wall_constr_rvalue)
+          # ufactor = 0
         elsif surface.surfaceType.downcase == "floor"
           next
         end
@@ -3513,7 +3515,6 @@ class HVACSizing
 
       # Exclude surfaces adjacent to unfinished space
       next if not ["foundation", "outdoors"].include?(obc) and not Geometry.is_interzonal_surface(surface)
-
       space_UAs[obc] += ufactor * UnitConversions.convert(surface.netArea, "m^2", "ft^2")
     end
 

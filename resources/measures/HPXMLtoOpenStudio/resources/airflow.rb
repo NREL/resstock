@@ -98,7 +98,6 @@ class Airflow
     adiabatic_const.insertLayer(0, adiabatic_mat)
 
     units.each_with_index do |unit, unit_index|
-      puts("::::::::::::::#{unit.name}:::::::::::::::")
       obj_name_airflow = Constants.ObjectNameAirflow(unit.name.to_s.gsub("unit ", "")).gsub("|", "_")
       obj_name_infil = Constants.ObjectNameInfiltration(unit.name.to_s.gsub("unit ", "")).gsub("|", "_")
       obj_name_natvent = Constants.ObjectNameNaturalVentilation(unit.name.to_s.gsub("unit ", "")).gsub("|", "_")
@@ -132,7 +131,6 @@ class Airflow
       has_forced_air_equipment = false
       if unit_living.zone.airLoopHVACs.length > 0
         has_forced_air_equipment = true
-        puts("    + has forced air equipment")
       end
       if unit_has_mshp and not HVAC.has_ducted_mshp(model, runner, unit_living.zone)
         has_forced_air_equipment = false
@@ -500,15 +498,6 @@ class Airflow
 
     # S-G Shielding Coefficients are roughly 1/3 of AIM2 Shelter Coefficients
     wind_speed.shielding_coef = wind_speed.S_wo / 3.0
-
-    # puts("=================process wind speed corrections===============")
-    # puts("wind_speed.S_wo: #{wind_speed.S_wo}")
-    # puts("shelter_coef: #{shelter_coef}")
-    # puts("terrain: #{terrain}")
-    # puts("wind_speed.site_terrain_exponent: #{wind_speed.site_terrain_exponent}")
-    # puts("wind_speed.site_terrain_multiplier: #{wind_speed.site_terrain_multiplier}")
-    # puts("wind_speed.ashrae_site_terrain_thickness: #{wind_speed.ashrae_site_terrain_thickness}")
-    # puts("wind_speed.ashrae_site_terrain_exponent: #{wind_speed.ashrae_site_terrain_exponent}")
 
     return wind_speed
   end
@@ -1140,14 +1129,6 @@ class Airflow
     c_s = f_s_nv**2.0 * Constants.g * unit_living.height / (Constants.AssumedInsideTemp + 460.0)
     c_w = f_w_nv**2.0
 
-    # puts("==================process NV=====================")
-    # puts("f_s_nv: #{f_s_nv}")
-    # puts("f_w_nv: #{f_w_nv}")
-    # puts("wind_speed.shielding_coef: #{wind_speed.shielding_coef}")
-    # puts("hor_vent_frac: #{hor_vent_frac}")
-    # puts("unit_living.f_t_SG: #{unit_living.f_t_SG}")
-    # puts("area: #{area}")
-
     season_type = []
     (0..11).to_a.each do |month|
       if heating_season[month] == 1.0 and cooling_season[month] == 0.0
@@ -1277,7 +1258,6 @@ class Airflow
 
     
     num_stories = building.stories
-    # puts("num_stories: #{num_stories}")
     unless unit_finished_basement.nil?
       num_stories +=  1
     end
@@ -1334,18 +1314,6 @@ class Airflow
     end
 
     total_unbalance = (supply_loss - return_loss).abs
-
-    # puts("==================DUCTS==============================")
-    # puts("supply_surface_area: #{supply_surface_area}")
-    # puts("return_surface_area: #{return_surface_area}")
-    # puts("ducts.num_returns: #{ducts.num_returns}")
-    # puts("location_frac_conduction: #{location_frac_conduction}")
-    # puts("ducts.norm_leakage_25pa: #{ducts.norm_leakage_25pa}")
-    # puts("supply_loss: #{supply_loss}")
-    # puts("return_loss: #{return_loss}")
-    # puts("total_unbalance: #{total_unbalance}")
-    # puts("supply_r: #{supply_r}")
-    # puts("return_r: #{return_r}")
 
     if not location_name == unit_living.zone.name.to_s and not location_name == "none"
       # Calculate d.frac_oa = fraction of unbalanced make-up air that is outside air
@@ -1496,15 +1464,6 @@ class Airflow
     nv_program.addLine("Else")
     nv_program.addLine("  Set #{natvent_flow_actuator.name} = 0")
     nv_program.addLine("EndIf")
-
-    # puts("====Nat Vent=====")
-    # puts("nv_output.temp_sch.schedule.name.to_s: #{nv_output.temp_sch.schedule.name.to_s}")
-    # puts("nv_output.area: #{nv_output.area}")
-    # puts("nv_output.c_s: #{nv_output.c_s}")
-    # puts("nv_output.c_w: #{nv_output.c_w}")
-    # puts("nv_output.max_flow_rate: #{nv_output.max_flow_rate}")
-    # puts("nat_vent.max_oa_hr: #{nat_vent.max_oa_hr}")
-    # puts("nat_vent.max_oa_rh: #{nat_vent.max_oa_rh}")
 
     return nv_program
   end
