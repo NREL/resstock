@@ -469,6 +469,13 @@ class ResidentialMiscLargeUncommonLoads < OpenStudio::Measure::ModelMeasure
     gas_fireplace_location.setDefaultValue(Constants.Auto)
     args << gas_fireplace_location
 
+    # make a bool argument for open fireplace chimney
+    has_fireplace_chimney = OpenStudio::Measure::OSArgument::makeBoolArgument("has_fireplace_chimney", true)
+    has_fireplace_chimney.setDisplayName("Air Leakage: Has Open HVAC Flue")
+    has_fireplace_chimney.setDescription("Specifies whether the building has an open chimney associated with a fireplace.")
+    has_fireplace_chimney.setDefaultValue(false)
+    args << has_fireplace_chimney
+
     # Gas Grill
 
     # make a double argument for Annual Energy Use
@@ -688,6 +695,7 @@ class ResidentialMiscLargeUncommonLoads < OpenStudio::Measure::ModelMeasure
     gas_fireplace_weekend_sch = runner.getStringArgumentValue("gas_fireplace_weekend_sch", user_arguments)
     gas_fireplace_monthly_sch = runner.getStringArgumentValue("gas_fireplace_monthly_sch", user_arguments)
     gas_fireplace_location = runner.getStringArgumentValue("gas_fireplace_location", user_arguments)
+    model.getBuilding.additionalProperties.setFeature("has_fireplace_chimney", runner.getBoolArgumentValue("has_fireplace_chimney", user_arguments))
 
     gas_grill_annual_energy = runner.getDoubleArgumentValue("gas_grill_annual_energy", user_arguments)
     gas_grill_mult = runner.getDoubleArgumentValue("gas_grill_mult", user_arguments)
