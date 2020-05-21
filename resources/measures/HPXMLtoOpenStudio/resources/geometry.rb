@@ -727,7 +727,7 @@ class Geometry
       end
     end
 
-    if perimeter = 0 #Temperary fix for slabs at interior corridors
+    if perimeter == 0 #Temperary fix for slabs at interior corridors
       perimeter = 0.001
     end
 
