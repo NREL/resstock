@@ -20,12 +20,13 @@ simulation_output:
   include_enduse_subcategories: true
 
 upgrades:
-  - upgrade_name: Replace Any Heating System and Room AC with MSHP 1
+  - upgrade_name: MSHP 1 SEER 17 HSPF 9.5
     options:
-      - option: HVAC System Heat Pump|MSHP, SEER 14.5, 8.2 HSPF
+      - option: HVAC System Heat Pump|MSHP, SEER 17, 9.5 HSPF
         apply_logic:
           - or:
             - HVAC System Cooling|FIXME Room AC, EER 8.5, 20% Conditioned
+            - HVAC System Cooling|FIXME Room AC, EER 9.8, 20% Conditioned
             - HVAC System Cooling|FIXME Room AC, EER 10.7, 20% Conditioned
         costs:
           - value: 0
@@ -34,12 +35,13 @@ upgrades:
             multiplier: Size, Cooling System (kBtu/h)
         lifetime: 16
 
-  - upgrade_name: Replace Any Heating System and Room AC with MSHP 2
+  - upgrade_name: MSHP 2 SEER 25 HSPF 12.7
     options:
-      - option: HVAC System Heat Pump|MSHP, SEER 29.3, 14 HSPF
+      - option: HVAC System Heat Pump|MSHP, SEER 25, 12.7 HSPF
         apply_logic:
           - or:
             - HVAC System Cooling|FIXME Room AC, EER 8.5, 20% Conditioned
+            - HVAC System Cooling|FIXME Room AC, EER 9.8, 20% Conditioned
             - HVAC System Cooling|FIXME Room AC, EER 10.7, 20% Conditioned
         costs:
           - value: 0
@@ -48,12 +50,13 @@ upgrades:
             multiplier: Size, Cooling System (kBtu/h)
         lifetime: 16
 
-  - upgrade_name: Replace Any Heating System and Room AC with MSHP 3
+  - upgrade_name: MSHP 3 SEER 33 HSPF 13.3
     options:
-      - option: HVAC System Heat Pump|FIXME MSHP, SEER 18.0, 9.6 HSPF, 60% Conditioned
+      - option: HVAC System Heat Pump|MSHP, SEER 33, 13.3 HSPF
         apply_logic:
           - or:
             - HVAC System Cooling|FIXME Room AC, EER 8.5, 20% Conditioned
+            - HVAC System Cooling|FIXME Room AC, EER 9.8, 20% Conditioned
             - HVAC System Cooling|FIXME Room AC, EER 10.7, 20% Conditioned
         costs:
           - value: 0
