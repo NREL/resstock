@@ -1,3 +1,4 @@
+schema_version: 0.2
 stock_type: residential
 buildstock_directory: ../../OpenStudio-BuildStock # Relative to this file or absolute
 project_directory: project_multifamily_beta # Relative to buildstock_directory
@@ -7,6 +8,7 @@ weather_files_path: c:/Users/jrobert1/Downloads/ResStock_TMY3.zip  # Relative to
 baseline:
   n_datapoints: 550000
   n_buildings_represented: 80000000
+  sampling_algorithm: quota
 
 residential_simulation_controls:
   timesteps_per_hr: 6
@@ -17,6 +19,10 @@ residential_simulation_controls:
   calendar_year: 2007
 
 simulation_output:
+  include_enduse_subcategories: true
+
+timeseries_csv_export:
+  reporting_frequency: Hourly
   include_enduse_subcategories: true
 
 upgrades:
@@ -72,3 +78,10 @@ downselect:
       - or:
           - Geometry Building Type RECS|Mobile Home
           - Geometry Building Type RECS|Single-Family Detached
+
+eagle:
+  account: ecosnap
+  n_jobs: 1
+  minutes_per_sim: 10
+  postprocessing:
+    time: 60
