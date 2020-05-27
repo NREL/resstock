@@ -893,7 +893,7 @@ class ScheduleGenerator
     activity_duration_prob_map = read_activity_duration_prob()
     appliance_power_dist_map = read_appliance_power_dist()
 
-    all_simulated_values = []  # holds the markov-chain state for each of the seven simulated states for each occupant.
+    all_simulated_values = [] # holds the markov-chain state for each of the seven simulated states for each occupant.
     # States are: 'sleeping', 'shower', 'laundry', 'cooking', 'dishwashing', 'absent', 'nothingAtHome'
     # if num_occupants = 2, period_in_a_year = 35040,  num_of_states = 7, then
     # shape of all_simulated_values is [2, 35040, 7]
@@ -931,11 +931,11 @@ class ScheduleGenerator
           transition_matrix = transition_matrix_weekday
         end
         j = 0
-        state_prob = initial_prob  # [] shape = 1x7. probability of transitioning to each of the 7 states
+        state_prob = initial_prob # [] shape = 1x7. probability of transitioning to each of the 7 states
         while j < (mkc_ts_per_day) do
-          active_state = weighted_random(prng, state_prob)  # Randomly pick the next state
-          state_vector = [0] * 7  # there are 7 states
-          state_vector[active_state] = 1  # Transition to the new state
+          active_state = weighted_random(prng, state_prob) # Randomly pick the next state
+          state_vector = [0] * 7 # there are 7 states
+          state_vector[active_state] = 1 # Transition to the new state
           # sample the duration of the state, and skip markov-chain based state transition until the end of the duration
           activity_duration = sample_activity_duration(prng, activity_duration_prob_map, occ_type_id, active_state, day_type, j / 4)
           activity_duration.times do |repeat_activity_count|
@@ -946,10 +946,10 @@ class ScheduleGenerator
           end
           if j >= mkc_ts_per_day then break end # break as soon as we have filled activities for the day
 
-          transition_probs = transition_matrix[(j - 1) * 7...(j) * 7]  # obtain the transition matrix for current timestep
+          transition_probs = transition_matrix[(j - 1) * 7...(j) * 7] # obtain the transition matrix for current timestep
           transition_probs_matrix = Matrix[*transition_probs]
           current_state_vec = Matrix.row_vector(state_vector)
-          state_prob = current_state_vec * transition_probs_matrix  # Get a new state_probability array
+          state_prob = current_state_vec * transition_probs_matrix # Get a new state_probability array
           state_prob = state_prob.to_a[0]
         end
       end
@@ -1025,7 +1025,7 @@ class ScheduleGenerator
     # mark minutes when at least one occupant is doing nothing at home as possible sink activity time
     # States are: 0='sleeping', 1='shower', 2='laundry', 3='cooking', 4='dishwashing', 5='absent', 6='nothingAtHome'
     mkc_steps_in_a_year.times do |step|
-      all_simulated_values.size.times do |i|  # across occupants
+      all_simulated_values.size.times do |i| # across occupants
         # if at least one occupant is not sleeping and not absent from home, then sink event can occur at that time
         if not (all_simulated_values[i][step, 0] == 1 or all_simulated_values[i][step, 5] == 1)
           sink_activtiy_probable_mins[step] = 1
@@ -1081,8 +1081,6 @@ class ScheduleGenerator
     #   b. Fill in the mkc personal hygiene slot with the bath duration and flow rate.
     #      TODO If there is room in the mkc personal hygiene slot, shift uniform randomly
     # 6. Repeat process 2-6 for each occupant
-
-
     shower_between_event_gap = schedule_config["shower"]["between_event_gap"]
     shower_flow_rate_mean = schedule_config["shower"]["flow_rate_mean"]
     shower_flow_rate_std = schedule_config["shower"]["flow_rate_std"]
@@ -1183,6 +1181,7 @@ class ScheduleGenerator
             if start_minute + m >= mins_in_year then break end
           end
           if start_minute + m >= mins_in_year then break end
+
           dw_between_event_gap.times do
             m += 1
             if start_minute + m >= mins_in_year then break end
@@ -1223,6 +1222,7 @@ class ScheduleGenerator
               if start_minute + m >= mins_in_year then break end
             end
             if start_minute + m >= mins_in_year then break end
+
             cw_between_event_gap.times do
               # skip the gap between events
               m += 1
@@ -1232,6 +1232,7 @@ class ScheduleGenerator
           end
         end
         if start_minute + m >= mins_in_year then break end
+
         step_jump = [step_jump, 1 + (m / 15)].max
       end
       step += step_jump
@@ -1247,7 +1248,7 @@ class ScheduleGenerator
     while step < mkc_steps_in_a_year
       dish_state = sum_across_occupants(all_simulated_values, 4, step, max_clip = 1)
       step_jump = 1
-      if dish_state > 0 and last_state == 0  # last_state == 0 prevents consecutive dishwasher power without gap
+      if dish_state > 0 and last_state == 0 # last_state == 0 prevents consecutive dishwasher power without gap
         duration_15min, avg_power = sample_appliance_duration_power(prng, appliance_power_dist_map, "dishwasher")
         duration = [duration_15min * 15, mins_in_year - step * 15].min
         dw_power_sch.fill(avg_power, step * 15, duration)
@@ -1266,13 +1267,13 @@ class ScheduleGenerator
     while step < mkc_steps_in_a_year
       clothes_state = sum_across_occupants(all_simulated_values, 2, step, max_clip = 1)
       step_jump = 1
-      if clothes_state > 0 and last_state == 0  # last_state == 0 prevents consecutive washer power without gap
+      if clothes_state > 0 and last_state == 0 # last_state == 0 prevents consecutive washer power without gap
         cw_duration_15min, cw_avg_power = sample_appliance_duration_power(prng, appliance_power_dist_map, "clothes_washer")
         cd_duration_15min, cd_avg_power = sample_appliance_duration_power(prng, appliance_power_dist_map, "clothes_dryer")
         cw_duration = [cw_duration_15min * 15, mins_in_year - step * 15].min
         cw_power_sch.fill(cw_avg_power, step * 15, cw_duration)
-        cd_start_time = (step * 15 + cw_duration).to_i  # clothes dryer starts immediately after washer ends\
-        cd_duration = [cd_duration_15min * 15, mins_in_year - cd_start_time].min  # cd_duration would be negative if cd_start_time > mins_in_year, and no filling would occur
+        cd_start_time = (step * 15 + cw_duration).to_i # clothes dryer starts immediately after washer ends\
+        cd_duration = [cd_duration_15min * 15, mins_in_year - cd_start_time].min # cd_duration would be negative if cd_start_time > mins_in_year, and no filling would occur
         cd_power_sch = cd_power_sch.fill(cd_avg_power, cd_start_time, cd_duration)
         step_jump = cw_duration_15min + cd_duration_15min
       end
@@ -1288,7 +1289,7 @@ class ScheduleGenerator
     while step < mkc_steps_in_a_year
       cooking_state = sum_across_occupants(all_simulated_values, 3, step, max_clip = 1)
       step_jump = 1
-      if cooking_state > 0 and last_state == 0  # last_state == 0 prevents consecutive cooking power without gap
+      if cooking_state > 0 and last_state == 0 # last_state == 0 prevents consecutive cooking power without gap
         duration_15min, avg_power = sample_appliance_duration_power(prng, appliance_power_dist_map, "cooking")
         duration = [duration_15min * 15, mins_in_year - step * 15].min
         cooking_power_sch.fill(avg_power, step * 15, duration)
@@ -1489,7 +1490,7 @@ class ScheduleGenerator
     elsif activity == 4
       activity_name = "dishwashing"
     else
-      return 1  # all other activity will span only one mkc step
+      return 1 # all other activity will span only one mkc step
     end
     durations = activity_duration_prob_map["#{occ_type_id}_#{activity_name}_#{day_type}_#{time_of_day}"][0]
     probabilities = activity_duration_prob_map["#{occ_type_id}_#{activity_name}_#{day_type}_#{time_of_day}"][1]
