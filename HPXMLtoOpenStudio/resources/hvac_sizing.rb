@@ -127,9 +127,10 @@ class HVACSizing
     @heat_design_temps[nil] = weather.design.HeatingDrybulb
 
     # MF spaces
-    [HPXML::LocationOtherHousingUnit, HPXML::LocationOtherHeatedSpace, HPXML::LocationOtherMultifamilyBufferSpace, HPXML::LocationOtherNonFreezingSpace].each do |mf_space|
-      @cool_design_temps[mf_space] = get_other_side_temp(mf_space, @cool_setpoint, weather.design.CoolingDrybulb)
-      @heat_design_temps[mf_space] = get_other_side_temp(mf_space, @heat_setpoint, weather.design.HeatingDrybulb)
+    [HPXML::LocationOtherHousingUnit, HPXML::LocationOtherHeatedSpace, HPXML::LocationOtherMultifamilyBufferSpace,
+     HPXML::LocationOtherNonFreezingSpace, HPXML::LocationExteriorWall, HPXML::LocationUnderSlab].each do |temp_scheduled_space|
+      @cool_design_temps[temp_scheduled_space] = process_design_temp_for_scheduled_space(temp_scheduled_space, @cool_setpoint, weather.design.CoolingDrybulb, weather.data.GroundMonthlyTemps.max)
+      @heat_design_temps[temp_scheduled_space] = process_design_temp_for_scheduled_space(temp_scheduled_space, @heat_setpoint, weather.design.HeatingDrybulb, weather.data.GroundMonthlyTemps.min)
     end
 
     # Initialize Manual J buffer space temperatures using current design temperatures
@@ -1174,8 +1175,18 @@ class HVACSizing
 
     dse_Fregain = nil
 
-    if duct.LocationSpace.nil? || ([HPXML::LocationOtherHousingUnit, HPXML::LocationOtherHeatedSpace, HPXML::LocationOtherMultifamilyBufferSpace, HPXML::LocationOtherNonFreezingSpace].include? duct.LocationSpace) # Outside or MF spaces
+    if duct.LocationSpace.nil? # Outside space
       dse_Fregain = 0.0
+
+    elsif [HPXML::LocationOtherHousingUnit, HPXML::LocationOtherHeatedSpace,
+           HPXML::LocationOtherMultifamilyBufferSpace, HPXML::LocationOtherNonFreezingSpace].include? duct.LocationSpace
+      dse_Fregain = 0.0
+
+    elsif [HPXML::LocationExteriorWall].include? duct.LocationSpace
+      dse_Fregain = 0.5
+
+    elsif [HPXML::LocationUnderSlab].include? duct.LocationSpace
+      dse_Fregain = 0.83
 
     elsif Geometry.is_unconditioned_basement(duct.LocationSpace)
 
@@ -2076,7 +2087,8 @@ class HVACSizing
       if location == HPXML::LocationOutside
         location_spaces << nil
         next
-      elsif [HPXML::LocationOtherHousingUnit, HPXML::LocationOtherHeatedSpace, HPXML::LocationOtherMultifamilyBufferSpace, HPXML::LocationOtherNonFreezingSpace].include? location
+      elsif [HPXML::LocationOtherHousingUnit, HPXML::LocationOtherHeatedSpace, HPXML::LocationOtherMultifamilyBufferSpace,
+             HPXML::LocationOtherNonFreezingSpace, HPXML::LocationExteriorWall, HPXML::LocationUnderSlab].include? location
         # schedule name
         location_spaces << location
         next
@@ -2637,14 +2649,19 @@ class HVACSizing
     return design_temp
   end
 
-  def self.get_other_side_temp(adjacent_space_name, setpoint, oa_db)
-    if adjacent_space_name == HPXML::LocationOtherHeatedSpace
+  def self.process_design_temp_for_scheduled_space(temp_scheduled_space, setpoint, oa_db, gnd_db)
+    # TODO: Some redundant code in measure.rb's get_space_temperature_schedule method.
+    if temp_scheduled_space == HPXML::LocationOtherHeatedSpace
       return [(setpoint + oa_db) / 2, 68].max
-    elsif adjacent_space_name == HPXML::LocationOtherMultifamilyBufferSpace
+    elsif temp_scheduled_space == HPXML::LocationOtherMultifamilyBufferSpace
       return [(setpoint + oa_db) / 2, 50].max
-    elsif adjacent_space_name == HPXML::LocationOtherNonFreezingSpace
+    elsif temp_scheduled_space == HPXML::LocationOtherNonFreezingSpace
       return [oa_db, 40].max
-    elsif [HPXML::LocationOtherHousingUnit].include? adjacent_space_name
+    elsif temp_scheduled_space == HPXML::LocationExteriorWall
+      return (setpoint + oa_db) / 2
+    elsif temp_scheduled_space == HPXML::LocationUnderSlab
+      return gnd_db
+    elsif temp_scheduled_space == HPXML::LocationOtherHousingUnit
       return setpoint
     end
   end

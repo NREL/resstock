@@ -52,7 +52,7 @@ class HPXMLtoOpenStudioLightingTest < MiniTest::Test
 
     # Check interior lighting
     int_kwh_yr = get_kwh_per_year(model, Constants.ObjectNameInteriorLighting)
-    assert_in_delta(1867, int_kwh_yr, 1.0)
+    assert_in_delta(1544, int_kwh_yr, 1.0)
 
     # Check garage lighting
     grg_kwh_yr = get_kwh_per_year(model, Constants.ObjectNameGarageLighting)
@@ -60,7 +60,7 @@ class HPXMLtoOpenStudioLightingTest < MiniTest::Test
 
     # Check exterior lighting
     ext_kwh_yr = get_kwh_per_year(model, Constants.ObjectNameExteriorLighting)
-    assert_in_delta(126, ext_kwh_yr, 1.0)
+    assert_in_delta(109, ext_kwh_yr, 1.0)
   end
 
   def _test_measure(args_hash)

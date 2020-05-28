@@ -129,13 +129,17 @@ class HPXML < Object
   LocationAtticVented = 'attic - vented'
   LocationBasementConditioned = 'basement - conditioned'
   LocationBasementUnconditioned = 'basement - unconditioned'
+  LocationBath = 'bath'
   LocationCrawlspaceUnvented = 'crawlspace - unvented'
   LocationCrawlspaceVented = 'crawlspace - vented'
   LocationExterior = 'exterior'
+  LocationExteriorWall = 'exterior wall'
   LocationGarage = 'garage'
   LocationGround = 'ground'
   LocationInterior = 'interior'
+  LocationKitchen = 'kitchen'
   LocationLivingSpace = 'living space'
+  LocationOther = 'other'
   LocationOtherExterior = 'other exterior'
   LocationOtherHousingUnit = 'other housing unit'
   LocationOtherHeatedSpace = 'other heated space'
@@ -143,7 +147,8 @@ class HPXML < Object
   LocationOtherNonFreezingSpace = 'other non-freezing space'
   LocationOutside = 'outside'
   LocationRoof = 'roof'
-  LocationOther = 'other'
+  LocationRoofDeck = 'roof deck'
+  LocationUnderSlab = 'under slab'
   MechVentTypeBalanced = 'balanced'
   MechVentTypeCFIS = 'central fan integrated supply'
   MechVentTypeERV = 'energy recovery ventilator'
@@ -198,8 +203,6 @@ class HPXML < Object
   UnitsCFM25 = 'CFM25'
   UnitsCFM50 = 'CFM50'
   UnitsPercent = 'Percent'
-  VentilationFanLocationBath = 'bath'
-  VentilationFanLocationKitchen = 'kitchen'
   WallTypeBrick = 'StructuralBrick'
   WallTypeCMU = 'ConcreteMasonryUnit'
   WallTypeConcrete = 'SolidConcrete'
@@ -244,6 +247,7 @@ class HPXML < Object
     # Clean up
     delete_partition_surfaces()
     delete_tiny_surfaces()
+    delete_adiabatic_subsurfaces()
     if collapse_enclosure
       collapse_enclosure_surfaces()
     end
@@ -340,11 +344,12 @@ class HPXML < Object
   end
 
   def compartmentalization_boundary_areas()
+    # Returns the infiltration compartmentalization boundary areas
     total_area = 0.0 # Total surface area that bounds the Infiltration Volume
     exterior_area = 0.0 # Same as above excluding surfaces attached to garage or other housing units
 
     # Determine which spaces are within infiltration volume
-    spaces_within_infil_volume = [LocationLivingSpace]
+    spaces_within_infil_volume = [LocationLivingSpace, LocationBasementConditioned]
     @attics.each do |attic|
       next unless [AtticTypeUnvented].include? attic.attic_type
       next unless attic.within_infiltration_volume
@@ -368,13 +373,47 @@ class HPXML < Object
 
         # Update Compartmentalization Boundary areas
         total_area += surface.area
-        if not [LocationOtherHousingUnit, LocationGarage].include? surface.exterior_adjacent_to # FIXME: Need to add additional "other" spaces?
+        if not [LocationGarage, LocationOtherHousingUnit, LocationOtherHeatedSpace,
+                LocationOtherMultifamilyBufferSpace, LocationOtherNonFreezingSpace].include? surface.exterior_adjacent_to # FIXME: Need to add additional "other" spaces?
           exterior_area += surface.area
         end
       end
     end
 
     return total_area, exterior_area
+  end
+
+  def inferred_infiltration_height(infil_volume)
+    # Infiltration height: vertical distance between lowest and highest above-grade points within the pressure boundary.
+    # Height is inferred from available HPXML properties.
+    # The WithinInfiltrationVolume properties are intentionally ignored for now.
+    # FUTURE: Move into AirInfiltrationMeasurement class?
+    cfa = @building_construction.conditioned_floor_area
+    ncfl = @building_construction.number_of_conditioned_floors
+    ncfl_ag = @building_construction.number_of_conditioned_floors_above_grade
+    if has_walkout_basement()
+      infil_height = Float(ncfl_ag) * infil_volume / cfa
+    else
+      # Calculate maximum above-grade height of conditioned basement walls
+      max_cond_bsmt_wall_height_ag = 0.0
+      @foundation_walls.each do |foundation_wall|
+        next unless foundation_wall.is_exterior && (foundation_wall.interior_adjacent_to == LocationBasementConditioned)
+
+        height_ag = foundation_wall.height - foundation_wall.depth_below_grade
+        next unless height_ag > max_cond_bsmt_wall_height_ag
+
+        max_cond_bsmt_wall_height_ag = height_ag
+      end
+      # Add assumed rim joist height
+      cond_bsmt_rim_joist_height = 0
+      @rim_joists.each do |rim_joist|
+        next unless rim_joist.is_exterior && (rim_joist.interior_adjacent_to == LocationBasementConditioned)
+
+        cond_bsmt_rim_joist_height = UnitConversions.convert(9, 'in', 'ft')
+      end
+      infil_height = Float(ncfl_ag) * infil_volume / cfa + max_cond_bsmt_wall_height_ag + cond_bsmt_rim_joist_height
+    end
+    return infil_height
   end
 
   def to_oga()
@@ -4167,6 +4206,14 @@ class HPXML < Object
     end
   end
 
+  def delete_adiabatic_subsurfaces()
+    @doors.reverse_each do |door|
+      next if door.wall.exterior_adjacent_to != HPXML::LocationOtherHousingUnit
+
+      door.delete
+    end
+  end
+
   def check_for_errors()
     errors = []
 
@@ -4251,12 +4298,12 @@ class HPXML < Object
         cooling_dist << dist
       end
     end
-    heating_total_dist_cfa_served = heating_dist.map { |htg_dist| htg_dist.conditioned_floor_area_served }.inject(0, :+)
-    cooling_total_dist_cfa_served = cooling_dist.map { |clg_dist| clg_dist.conditioned_floor_area_served }.inject(0, :+)
-    if (heating_total_dist_cfa_served > @building_construction.conditioned_floor_area)
+    heating_total_dist_cfa_served = heating_dist.map { |htg_dist| htg_dist.conditioned_floor_area_served.to_f }.inject(0, :+)
+    cooling_total_dist_cfa_served = cooling_dist.map { |clg_dist| clg_dist.conditioned_floor_area_served.to_f }.inject(0, :+)
+    if (heating_total_dist_cfa_served > @building_construction.conditioned_floor_area.to_f)
       errors << 'The total conditioned floor area served by the HVAC distribution system(s) for heating is larger than the conditioned floor area of the building.'
     end
-    if (cooling_total_dist_cfa_served > @building_construction.conditioned_floor_area)
+    if (cooling_total_dist_cfa_served > @building_construction.conditioned_floor_area.to_f)
       errors << 'The total conditioned floor area served by the HVAC distribution system(s) for cooling is larger than the conditioned floor area of the building.'
     end
 

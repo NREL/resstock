@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>build_residential_hpxml</name>
   <uid>a13a8983-2b01-4930-8af2-42030b6e4233</uid>
-  <version_id>1f7d8f05-7cf8-4a46-a178-c691dc2ae838</version_id>
-  <version_modified>20200520T182848Z</version_modified>
+  <version_id>269a6bb8-cee8-43ba-b4b9-e38f479c62df</version_id>
+  <version_modified>20200528T224502Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>BuildResidentialHPXML</class_name>
   <display_name>HPXML Builder</display_name>
@@ -1916,6 +1916,10 @@
           <value>outside</value>
           <display_name>outside</display_name>
         </choice>
+        <choice>
+          <value>under slab</value>
+          <display_name>under slab</display_name>
+        </choice>
       </choices>
     </argument>
     <argument>
@@ -1966,6 +1970,10 @@
         <choice>
           <value>outside</value>
           <display_name>outside</display_name>
+        </choice>
+        <choice>
+          <value>under slab</value>
+          <display_name>under slab</display_name>
         </choice>
       </choices>
     </argument>
@@ -3788,6 +3796,79 @@
       <default_value>1</default_value>
     </argument>
     <argument>
+      <name>extra_refrigerator_present</name>
+      <display_name>Extra Refrigerator: Present</display_name>
+      <description>Whether there is an extra refrigerator.</description>
+      <type>Boolean</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>extra_refrigerator_location</name>
+      <display_name>Extra Refrigerator: Location</display_name>
+      <description>The space type for the extra refrigerator location.</description>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>auto</default_value>
+      <choices>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+        <choice>
+          <value>living space</value>
+          <display_name>living space</display_name>
+        </choice>
+        <choice>
+          <value>basement - conditioned</value>
+          <display_name>basement - conditioned</display_name>
+        </choice>
+        <choice>
+          <value>basement - unconditioned</value>
+          <display_name>basement - unconditioned</display_name>
+        </choice>
+        <choice>
+          <value>garage</value>
+          <display_name>garage</display_name>
+        </choice>
+        <choice>
+          <value>other</value>
+          <display_name>other</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>extra_refrigerator_rated_annual_kwh</name>
+      <display_name>Extra Refrigerator: Rated Annual Consumption</display_name>
+      <description>The EnergyGuide rated annual energy consumption for a refrigerator.</description>
+      <type>Double</type>
+      <units>kWh/yr</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>434</default_value>
+    </argument>
+    <argument>
+      <name>extra_refrigerator_usage_multiplier</name>
+      <display_name>Extra Refrigerator: Usage Multiplier</display_name>
+      <description>Multiplier on the energy usage that can reflect, e.g., high/low usage occupants.</description>
+      <type>Double</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>1</default_value>
+    </argument>
+    <argument>
       <name>cooking_range_oven_present</name>
       <display_name>Cooking Range/Oven: Present</display_name>
       <description>Whether there is a cooking range/oven.</description>
@@ -4075,24 +4156,6 @@
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
       <checksum>B7ECA492</checksum>
-    </file>
-    <file>
-      <filename>geometry.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>0FDE7ECB</checksum>
-    </file>
-    <file>
-      <filename>test_measure.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>AAAA20A8</checksum>
-    </file>
-    <file>
-      <filename>test_rakefile.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>987F12A8</checksum>
     </file>
     <file>
       <filename>base-misc-usage-multiplier.osw</filename>
@@ -4465,12 +4528,6 @@
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
       <checksum>EA7F693F</checksum>
-    </file>
-    <file>
-      <filename>base-enclosure-2stories.osw</filename>
-      <filetype>osw</filetype>
-      <usage_type>test</usage_type>
-      <checksum>C59EED69</checksum>
     </file>
     <file>
       <filename>base-enclosure-beds-4.osw</filename>
@@ -5001,22 +5058,10 @@
       <checksum>F9345956</checksum>
     </file>
     <file>
-      <filename>base-foundation-slab.osw</filename>
-      <filetype>osw</filetype>
-      <usage_type>test</usage_type>
-      <checksum>6CCF445A</checksum>
-    </file>
-    <file>
       <filename>base-multifamily.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
       <checksum>4EF32ABB</checksum>
-    </file>
-    <file>
-      <filename>build_residential_hpxml_test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>A5158F55</checksum>
     </file>
     <file>
       <filename>base-hvac-fireplace-wood-only.osw</filename>
@@ -5043,6 +5088,42 @@
       <checksum>35CA0A09</checksum>
     </file>
     <file>
+      <filename>geometry.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>EEB5FA17</checksum>
+    </file>
+    <file>
+      <filename>base-enclosure-garage.osw</filename>
+      <filetype>osw</filetype>
+      <usage_type>test</usage_type>
+      <checksum>5E009DAD</checksum>
+    </file>
+    <file>
+      <filename>base-enclosure-2stories-garage.osw</filename>
+      <filetype>osw</filetype>
+      <usage_type>test</usage_type>
+      <checksum>7C9796F2</checksum>
+    </file>
+    <file>
+      <filename>base-enclosure-2stories.osw</filename>
+      <filetype>osw</filetype>
+      <usage_type>test</usage_type>
+      <checksum>C59EED69</checksum>
+    </file>
+    <file>
+      <filename>base-foundation-slab.osw</filename>
+      <filetype>osw</filetype>
+      <usage_type>test</usage_type>
+      <checksum>52FE9690</checksum>
+    </file>
+    <file>
+      <filename>build_residential_hpxml_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>CC78A2B7</checksum>
+    </file>
+    <file>
       <version>
         <software_program>OpenStudio</software_program>
         <identifier>2.9.0</identifier>
@@ -5051,7 +5132,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>93EF2F8E</checksum>
+      <checksum>981F9A2F</checksum>
     </file>
   </files>
 </measure>

@@ -610,8 +610,6 @@ class Geometry
         end
 
         garage_attic_space.surfaces.each do |surface|
-          next unless (num_floors > 1) || (attic_type == HPXML::AtticTypeConditioned)
-
           m = initialize_transformation_matrix(OpenStudio::Matrix.new(4, 4, 0))
           m[2, 3] = -attic_space.zOrigin
           transformation = OpenStudio::Transformation.new(m)
@@ -620,9 +618,7 @@ class Geometry
           surface.setSpace(attic_space)
         end
 
-        if (num_floors > 1) || (attic_type == HPXML::AtticTypeConditioned)
-          garage_attic_space.remove
-        end
+        garage_attic_space.remove
 
         break
       end

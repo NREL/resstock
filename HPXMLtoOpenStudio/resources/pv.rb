@@ -44,11 +44,11 @@ class PV
     return 13.3 * year_modules_manufactured - 26494.0 # W/panel
   end
 
-  def self.calc_losses_fraction_from_year(year_modules_manufactured)
+  def self.calc_losses_fraction_from_year(year_modules_manufactured, default_loss_fraction)
     # Calculation from HEScore
     age = Time.new.year - year_modules_manufactured
     age_losses = 1.0 - 0.995**Float(age)
-    losses_fraction = 1.0 - (1.0 - 0.14) * (1.0 - age_losses)
+    losses_fraction = 1.0 - (1.0 - default_loss_fraction) * (1.0 - age_losses)
     return losses_fraction
   end
 
@@ -57,10 +57,11 @@ class PV
   end
 
   def self.get_default_system_losses(year_modules_manufactured = nil)
+    default_loss_fraction = 0.14 # PVWatts default system losses
     if not year_modules_manufactured.nil?
-      return calc_losses_fraction_from_year(year_modules_manufactured)
+      return calc_losses_fraction_from_year(year_modules_manufactured, default_loss_fraction)
     else
-      return 0.14 # PVWatts default system losses
+      return default_loss_fraction
     end
   end
 end

@@ -1093,6 +1093,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     duct_location_choices << HPXML::LocationAtticUnvented
     duct_location_choices << HPXML::LocationGarage
     duct_location_choices << HPXML::LocationOutside
+    duct_location_choices << HPXML::LocationUnderSlab
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('ducts_supply_leakage_units', duct_leakage_units_choices, true)
     arg.setDisplayName('Ducts: Supply Leakage Units')
@@ -2040,6 +2041,31 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(1.0)
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('extra_refrigerator_present', true)
+    arg.setDisplayName('Extra Refrigerator: Present')
+    arg.setDescription('Whether there is an extra refrigerator.')
+    arg.setDefaultValue(false)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('extra_refrigerator_location', appliance_location_choices, true)
+    arg.setDisplayName('Extra Refrigerator: Location')
+    arg.setDescription('The space type for the extra refrigerator location.')
+    arg.setDefaultValue(Constants.Auto)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('extra_refrigerator_rated_annual_kwh', true)
+    arg.setDisplayName('Extra Refrigerator: Rated Annual Consumption')
+    arg.setUnits('kWh/yr')
+    arg.setDescription('The EnergyGuide rated annual energy consumption for a refrigerator.')
+    arg.setDefaultValue(434)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('extra_refrigerator_usage_multiplier', true)
+    arg.setDisplayName('Extra Refrigerator: Usage Multiplier')
+    arg.setDescription('Multiplier on the energy usage that can reflect, e.g., high/low usage occupants.')
+    arg.setDefaultValue(1.0)
+    args << arg
+
     cooking_range_oven_fuel_choices = OpenStudio::StringVector.new
     cooking_range_oven_fuel_choices << HPXML::FuelTypeElectricity
     cooking_range_oven_fuel_choices << HPXML::FuelTypeNaturalGas
@@ -2445,6 +2471,10 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
              refrigerator_location: runner.getStringArgumentValue('refrigerator_location', user_arguments),
              refrigerator_rated_annual_kwh: runner.getDoubleArgumentValue('refrigerator_rated_annual_kwh', user_arguments),
              refrigerator_usage_multiplier: runner.getDoubleArgumentValue('refrigerator_usage_multiplier', user_arguments),
+             extra_refrigerator_present: runner.getBoolArgumentValue('extra_refrigerator_present', user_arguments),
+             extra_refrigerator_location: runner.getStringArgumentValue('extra_refrigerator_location', user_arguments),
+             extra_refrigerator_rated_annual_kwh: runner.getDoubleArgumentValue('extra_refrigerator_rated_annual_kwh', user_arguments),
+             extra_refrigerator_usage_multiplier: runner.getDoubleArgumentValue('extra_refrigerator_usage_multiplier', user_arguments),
              cooking_range_oven_present: runner.getBoolArgumentValue('cooking_range_oven_present', user_arguments),
              cooking_range_oven_location: runner.getStringArgumentValue('cooking_range_oven_location', user_arguments),
              cooking_range_oven_fuel_type: runner.getStringArgumentValue('cooking_range_oven_fuel_type', user_arguments),
@@ -2673,6 +2703,7 @@ class HPXMLFile
     set_clothes_dryer(hpxml, runner, args)
     set_dishwasher(hpxml, runner, args)
     set_refrigerator(hpxml, runner, args)
+    set_extra_refrigerator(hpxml, runner, args)
     set_cooking_range_oven(hpxml, runner, args)
     set_ceiling_fans(hpxml, runner, args)
     set_plug_loads(hpxml, runner, args)
@@ -2692,6 +2723,7 @@ class HPXMLFile
   def self.create_geometry_envelope(runner, model, args)
     if args[:geometry_foundation_type] == HPXML::FoundationTypeSlab
       args[:geometry_foundation_height] = 0.0
+      args[:geometry_foundation_height_above_grade] = 0.0
     end
 
     if args[:geometry_unit_type] == HPXML::ResidentialTypeSFD
@@ -2884,7 +2916,7 @@ class HPXMLFile
     elsif ['unconditioned basement'].include? space_type
       return HPXML::LocationBasementUnconditioned
     elsif ['corridor'].include? space_type
-      return HPXML::LocationLivingSpace # FIXME: update to handle new enum
+      return HPXML::LocationOtherHousingUnit
     elsif ['ambient'].include? space_type
       return HPXML::LocationOutside
     else
@@ -2924,7 +2956,6 @@ class HPXMLFile
   def self.set_walls(hpxml, runner, model, args)
     model.getSurfaces.each do |surface|
       next if surface.surfaceType != 'Wall'
-      next if ['ambient'].include? surface.space.get.spaceType.get.standardsSpaceType.get # FIXME
 
       interior_adjacent_to = get_adjacent_to(model, surface)
       next unless [HPXML::LocationLivingSpace, HPXML::LocationAtticUnvented, HPXML::LocationAtticVented, HPXML::LocationGarage].include? interior_adjacent_to
@@ -3005,7 +3036,6 @@ class HPXMLFile
     model.getSurfaces.each do |surface|
       next if surface.outsideBoundaryCondition == 'Foundation'
       next unless ['Floor', 'RoofCeiling'].include? surface.surfaceType
-      next if ['ambient'].include? surface.space.get.spaceType.get.standardsSpaceType.get # FIXME
 
       interior_adjacent_to = get_adjacent_to(model, surface)
       next unless [HPXML::LocationLivingSpace, HPXML::LocationGarage].include? interior_adjacent_to
@@ -3021,6 +3051,7 @@ class HPXMLFile
           other_space_above_or_below = HPXML::FrameFloorOtherSpaceAbove
         end
       end
+
       next if interior_adjacent_to == exterior_adjacent_to
       next if (surface.surfaceType == 'RoofCeiling') && (exterior_adjacent_to == HPXML::LocationOutside)
       next if [HPXML::LocationLivingSpace, HPXML::LocationBasementConditioned].include? exterior_adjacent_to
@@ -3047,9 +3078,9 @@ class HPXMLFile
     model.getSurfaces.each do |surface|
       next unless ['Foundation'].include? surface.outsideBoundaryCondition
       next if surface.surfaceType != 'Floor'
-      next if ['ambient'].include? surface.space.get.spaceType.get.standardsSpaceType.get # FIXME
 
       interior_adjacent_to = get_adjacent_to(model, surface)
+      next if [HPXML::LocationOutside].include? interior_adjacent_to
 
       has_foundation_walls = false
       if [HPXML::LocationCrawlspaceVented, HPXML::LocationCrawlspaceUnvented, HPXML::LocationBasementUnconditioned, HPXML::LocationBasementConditioned].include? interior_adjacent_to
@@ -3478,17 +3509,6 @@ class HPXMLFile
                             cooling_setup_hours_per_week: cooling_setup_hours_per_week,
                             cooling_setup_start_hour: cooling_setup_start_hour,
                             ceiling_fan_cooling_setpoint_temp_offset: ceiling_fan_cooling_setpoint_temp_offset)
-  end
-
-  def self.get_duct_location_auto(args, hpxml) # FIXME
-    if args[:geometry_roof_type] != 'flat' && hpxml.attics.size > 0 && [HPXML::AtticTypeVented, HPXML::AtticTypeUnvented].include?(args[:geometry_attic_type])
-      location = hpxml.attics[0].to_location
-    elsif hpxml.foundations.size > 0 && (args[:geometry_foundation_type].downcase.include?('basement') || args[:geometry_foundation_type].downcase.include?('crawlspace'))
-      location = hpxml.foundations[0].to_location
-    else
-      location = HPXML::LocationLivingSpace
-    end
-    return location
   end
 
   def self.set_ventilation_fans(hpxml, runner, args)
@@ -3966,6 +3986,25 @@ class HPXMLFile
     hpxml.refrigerators.add(id: 'Refrigerator',
                             location: location,
                             rated_annual_kwh: args[:refrigerator_rated_annual_kwh],
+                            usage_multiplier: usage_multiplier,
+                            schedules_output_path: args[:schedules_output_path],
+                            schedules_column_name: 'refrigerator')
+  end
+
+  def self.set_extra_refrigerator(hpxml, runner, args)
+    return unless args[:extra_refrigerator_present]
+
+    if args[:extra_refrigerator_location] != Constants.Auto
+      location = args[:extra_refrigerator_location]
+    end
+
+    if args[:extra_refrigerator_usage_multiplier] != 1.0
+      usage_multiplier = args[:extra_refrigerator_usage_multiplier]
+    end
+
+    hpxml.refrigerators.add(id: 'ExtraRefrigerator',
+                            location: location,
+                            rated_annual_kwh: args[:extra_refrigerator_rated_annual_kwh],
                             usage_multiplier: usage_multiplier,
                             schedules_output_path: args[:schedules_output_path],
                             schedules_column_name: 'refrigerator')

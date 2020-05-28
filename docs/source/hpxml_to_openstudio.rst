@@ -136,16 +136,16 @@ For software tools that do not collect sufficient inputs for every required surf
 The space types used in the HPXML building description are:
 
 ==============================  =============================================  ========================================================
-Space Type                      Description                                    Temperature Assumption
+Space Type                      Description                                    Temperature
 ==============================  =============================================  ========================================================
-living space                    Above-grade conditioned floor area
-attic - vented            
-attic - unvented          
-basement - conditioned          Below-grade conditioned floor area
-basement - unconditioned  
-crawlspace - vented       
-crawlspace - unvented     
-garage                    
+living space                    Above-grade conditioned floor area             EnergyPlus calculation
+attic - vented                                                                 EnergyPlus calculation
+attic - unvented                                                               EnergyPlus calculation
+basement - conditioned          Below-grade conditioned floor area             EnergyPlus calculation
+basement - unconditioned                                                       EnergyPlus calculation
+crawlspace - vented                                                            EnergyPlus calculation
+crawlspace - unvented                                                          EnergyPlus calculation
+garage                                                                         EnergyPlus calculation
 other housing unit              Conditioned space of an adjacent housing unit  Same as conditioned space
 other heated space              E.g., shared laundry/equipment space           Average of conditioned space and outside; minimum of 68F
 other multifamily buffer space  E.g., enclosed unconditioned stairwell         Average of conditioned space and outside; minimum of 50F
@@ -431,17 +431,20 @@ For each duct, ``DuctInsulationRValue`` must be provided.
 The provided ``DuctLocation`` can be one of the following:
 
 ==============================  =============================================  =========================================================  ================
-Location                        Description                                    Temperature Assumption                                     Default Priority
+Location                        Description                                    Temperature                                                Default Priority
 ==============================  =============================================  =========================================================  ================
-living space                    Above-grade conditioned floor area                                                                        8
-basement - conditioned          Below-grade conditioned floor area                                                                        1
-basement - unconditioned                                                                                                                  2
-crawlspace - unvented                                                                                                                     4
-crawlspace - vented                                                                                                                       3
-attic - unvented                                                                                                                          6
-attic - vented                                                                                                                            5
-garage                                                                                                                                    7
-outside                         
+living space                    Above-grade conditioned floor area             EnergyPlus calculation                                     8
+basement - conditioned          Below-grade conditioned floor area             EnergyPlus calculation                                     1
+basement - unconditioned                                                       EnergyPlus calculation                                     2
+crawlspace - unvented                                                          EnergyPlus calculation                                     4
+crawlspace - vented                                                            EnergyPlus calculation                                     3
+attic - unvented                                                               EnergyPlus calculation                                     6
+attic - vented                                                                 EnergyPlus calculation                                     5
+garage                                                                         EnergyPlus calculation                                     7
+outside                                                                        Outside
+exterior wall                                                                  Average of conditioned space and outside
+under slab                                                                     Ground
+roof deck                                                                      Outside
 other housing unit              Conditioned space of an adjacent housing unit  Same as conditioned space
 other heated space              E.g., shared laundry/equipment space           Average of conditioned space and outside; minimum of 68F
 other multifamily buffer space  E.g., enclosed unconditioned stairwell         Average of conditioned space and outside; minimum of 50F
@@ -578,17 +581,17 @@ For water heaters that are connected to a desuperheater, the ``RelatedHVACSystem
 The water heater ``Location`` can be optionally entered as one of the following:
 
 ==============================  =============================================  =========================================================
-Location                        Description                                    Temperature Assumption
+Location                        Description                                    Temperature
 ==============================  =============================================  =========================================================
-living space                    Above-grade conditioned floor area
-basement - conditioned          Below-grade conditioned floor area
-basement - unconditioned  
-attic - unvented
-attic - vented
-garage                    
-crawlspace - unvented
-crawlspace - vented
-other exterior                  Outside
+living space                    Above-grade conditioned floor area             EnergyPlus calculation
+basement - conditioned          Below-grade conditioned floor area             EnergyPlus calculation
+basement - unconditioned                                                       EnergyPlus calculation
+attic - unvented                                                               EnergyPlus calculation
+attic - vented                                                                 EnergyPlus calculation
+garage                                                                         EnergyPlus calculation
+crawlspace - unvented                                                          EnergyPlus calculation
+crawlspace - vented                                                            EnergyPlus calculation
+other exterior                  Outside                                        EnergyPlus calculation
 other housing unit              Conditioned space of an adjacent housing unit  Same as conditioned space
 other heated space              E.g., shared laundry/equipment space           Average of conditioned space and outside; minimum of 68F
 other multifamily buffer space  E.g., enclosed unconditioned stairwell         Average of conditioned space and outside; minimum of 50F

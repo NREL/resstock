@@ -56,6 +56,9 @@ class SimulationOutputReportTest < MiniTest::Test
     'Wood Cord: Clothes Dryer (MBtu)',
     'Wood Cord: Range/Oven (MBtu)',
     'Wood Pellets: Heating (MBtu)',
+    'Wood Pellets: Hot Water (MBtu)',
+    'Wood Pellets: Clothes Dryer (MBtu)',
+    'Wood Pellets: Range/Oven (MBtu)',
     'Load: Heating (MBtu)',
     'Load: Cooling (MBtu)',
     'Load: Hot Water: Delivered (MBtu)',
@@ -157,6 +160,9 @@ class SimulationOutputReportTest < MiniTest::Test
     'Wood Cord: Clothes Dryer',
     'Wood Cord: Range/Oven',
     'Wood Pellets: Heating',
+    'Wood Pellets: Hot Water',
+    'Wood Pellets: Clothes Dryer',
+    'Wood Pellets: Range/Oven',
   ]
 
   TimeseriesColsWaterUses = [
@@ -287,6 +293,9 @@ class SimulationOutputReportTest < MiniTest::Test
     'enduseWoodCordClothesDryer',
     'enduseWoodCordRangeOven',
     'enduseWoodPelletsHeating',
+    'enduseWoodPelletsHotWater',
+    'enduseWoodPelletsClothesDryer',
+    'enduseWoodPelletsRangeOven',
     'loadHeating',
     'loadCooling',
     'loadHotWaterDelivered',

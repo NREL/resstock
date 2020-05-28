@@ -39,7 +39,7 @@ class HPXMLtoOpenStudioAirflowTest < MiniTest::Test
     # Check infiltration/ventilation program
     program_values = get_ems_values(model.getEnergyManagementSystemPrograms, "#{Constants.ObjectNameInfiltration} program")
     assert_in_epsilon(0.0436, Float(program_values['c']), 0.01)
-    assert_in_epsilon(0.0544, Float(program_values['Cs']), 0.01)
+    assert_in_epsilon(0.0573, Float(program_values['Cs']), 0.01)
     assert_in_epsilon(0.1446, Float(program_values['Cw']), 0.01)
   end
 
@@ -51,7 +51,7 @@ class HPXMLtoOpenStudioAirflowTest < MiniTest::Test
     # Check infiltration/ventilation program
     program_values = get_ems_values(model.getEnergyManagementSystemPrograms, "#{Constants.ObjectNameInfiltration} program")
     assert_in_epsilon(0.0436, Float(program_values['c']), 0.01)
-    assert_in_epsilon(0.0544, Float(program_values['Cs']), 0.01)
+    assert_in_epsilon(0.0573, Float(program_values['Cs']), 0.01)
     assert_in_epsilon(0.1446, Float(program_values['Cw']), 0.01)
   end
 
@@ -62,8 +62,8 @@ class HPXMLtoOpenStudioAirflowTest < MiniTest::Test
 
     # Check infiltration/ventilation program
     program_values = get_ems_values(model.getEnergyManagementSystemPrograms, "#{Constants.ObjectNameInfiltration} program")
-    assert_in_epsilon(0.3127, Float(program_values['c']), 0.01)
-    assert_in_epsilon(0.0544, Float(program_values['Cs']), 0.01)
+    assert_in_epsilon(0.3028, Float(program_values['c']), 0.01)
+    assert_in_epsilon(0.0573, Float(program_values['Cs']), 0.01)
     assert_in_epsilon(0.1446, Float(program_values['Cw']), 0.01)
   end
 
@@ -75,8 +75,8 @@ class HPXMLtoOpenStudioAirflowTest < MiniTest::Test
     # Check natural ventilation/whole house fan program
     program_values = get_ems_values(model.getEnergyManagementSystemPrograms, "#{Constants.ObjectNameNaturalVentilation} program")
     assert_in_epsilon(14.5, UnitConversions.convert(Float(program_values['NVArea']), 'cm^2', 'ft^2'), 0.01)
-    assert_in_epsilon(0.000100, Float(program_values['Cs']), 0.01)
-    assert_in_epsilon(0.000065, Float(program_values['Cw']), 0.01)
+    assert_in_epsilon(0.000109, Float(program_values['Cs']), 0.01)
+    assert_in_epsilon(0.000068, Float(program_values['Cw']), 0.01)
     assert_in_epsilon(0.0, UnitConversions.convert(Float(program_values['WHF_Flow']), 'm^3/s', 'cfm'), 0.01)
   end
 
@@ -209,9 +209,9 @@ class HPXMLtoOpenStudioAirflowTest < MiniTest::Test
     model, hpxml = _test_measure(args_hash)
 
     # Get HPXML values
-    bath_fan = hpxml.ventilation_fans.select { |f| f.used_for_local_ventilation && f.fan_location == HPXML::VentilationFanLocationBath }[0]
+    bath_fan = hpxml.ventilation_fans.select { |f| f.used_for_local_ventilation && f.fan_location == HPXML::LocationBath }[0]
     bath_fan_cfm = bath_fan.rated_flow_rate * bath_fan.quantity
-    kitchen_fan = hpxml.ventilation_fans.select { |f| f.used_for_local_ventilation && f.fan_location == HPXML::VentilationFanLocationKitchen }[0]
+    kitchen_fan = hpxml.ventilation_fans.select { |f| f.used_for_local_ventilation && f.fan_location == HPXML::LocationKitchen }[0]
     kitchen_fan_cfm = kitchen_fan.rated_flow_rate
 
     # Check infiltration/ventilation program
@@ -259,6 +259,73 @@ class HPXMLtoOpenStudioAirflowTest < MiniTest::Test
     assert_in_epsilon(return_leakage_frac, Float(program_values['f_ret']), 0.01)
     assert_in_epsilon(33.4, UnitConversions.convert(Float(program_values['supply_ua']), 'W/K', 'Btu/(hr*F)'), 0.01)
     assert_in_epsilon(29.4, UnitConversions.convert(Float(program_values['return_ua']), 'W/K', 'Btu/(hr*F)'), 0.01)
+  end
+
+  def test_infiltration_compartmentalization_area
+    # Base
+    hpxml = HPXML.new(hpxml_path: File.absolute_path(File.join(sample_files_dir, 'base.xml')))
+    total_area, exterior_area = hpxml.compartmentalization_boundary_areas
+    assert_equal(5216, exterior_area)
+    assert_equal(5216, total_area)
+
+    # Test adjacent garage
+    hpxml = HPXML.new(hpxml_path: File.absolute_path(File.join(sample_files_dir, 'base-enclosure-garage.xml')))
+    total_area, exterior_area = hpxml.compartmentalization_boundary_areas
+    assert_equal(4976, exterior_area)
+    assert_equal(5216, total_area)
+
+    # Test unvented attic/crawlspace within infiltration volume
+    hpxml = HPXML.new(hpxml_path: File.absolute_path(File.join(sample_files_dir, 'base-foundation-unvented-crawlspace.xml')))
+    hpxml.attics.each do |attic|
+      attic.within_infiltration_volume = true
+    end
+    hpxml.foundations.each do |foundation|
+      foundation.within_infiltration_volume = true
+    end
+    total_area, exterior_area = hpxml.compartmentalization_boundary_areas
+    assert_equal(5066, exterior_area)
+    assert_equal(5066, total_area)
+
+    # Test complex SFA/MF building w/ unvented attic within infiltration volume
+    hpxml = HPXML.new(hpxml_path: File.absolute_path(File.join(sample_files_dir, 'base-enclosure-attached-multifamily.xml')))
+    hpxml.attics.each do |attic|
+      attic.within_infiltration_volume = true
+    end
+    total_area, exterior_area = hpxml.compartmentalization_boundary_areas
+    assert_equal(5550, exterior_area)
+    assert_equal(8076, total_area)
+  end
+
+  def test_infiltration_assumed_height
+    # Base
+    hpxml = HPXML.new(hpxml_path: File.absolute_path(File.join(sample_files_dir, 'base.xml')))
+    infil_volume = hpxml.air_infiltration_measurements.select { |m| !m.infiltration_volume.nil? }[0].infiltration_volume
+    infil_height = hpxml.inferred_infiltration_height(infil_volume)
+    assert_equal(9.75, infil_height)
+
+    # Test w/o conditioned basement
+    hpxml = HPXML.new(hpxml_path: File.absolute_path(File.join(sample_files_dir, 'base-foundation-unconditioned-basement.xml')))
+    infil_volume = hpxml.air_infiltration_measurements.select { |m| !m.infiltration_volume.nil? }[0].infiltration_volume
+    infil_height = hpxml.inferred_infiltration_height(infil_volume)
+    assert_equal(8, infil_height)
+
+    # Test w/ walkout basement
+    hpxml = HPXML.new(hpxml_path: File.absolute_path(File.join(sample_files_dir, 'base-foundation-walkout-basement.xml')))
+    infil_volume = hpxml.air_infiltration_measurements.select { |m| !m.infiltration_volume.nil? }[0].infiltration_volume
+    infil_height = hpxml.inferred_infiltration_height(infil_volume)
+    assert_equal(16, infil_height)
+
+    # Test 2 story building
+    hpxml = HPXML.new(hpxml_path: File.absolute_path(File.join(sample_files_dir, 'base-enclosure-2stories.xml')))
+    infil_volume = hpxml.air_infiltration_measurements.select { |m| !m.infiltration_volume.nil? }[0].infiltration_volume
+    infil_height = hpxml.inferred_infiltration_height(infil_volume)
+    assert_equal(17.75, infil_height)
+
+    # Test w/ cathedral ceiling
+    hpxml = HPXML.new(hpxml_path: File.absolute_path(File.join(sample_files_dir, 'base-atticroof-cathedral.xml')))
+    infil_volume = hpxml.air_infiltration_measurements.select { |m| !m.infiltration_volume.nil? }[0].infiltration_volume
+    infil_height = hpxml.inferred_infiltration_height(infil_volume)
+    assert_equal(13.75, infil_height)
   end
 
   def _test_measure(args_hash)
