@@ -167,6 +167,13 @@ class ProcessConstructionsFinishedRoof < OpenStudio::Measure::ModelMeasure
       end
     end
 
+    if not FloorConstructions.apply_uninsulated(runner, model,
+      roofs_by_type[Constants.SurfaceTypeRoofAdiabatic],
+      Constants.SurfaceTypeRoofAdiabatic,
+      0.75, 0.5, Material.FloorWood, Material.CoveringBare)
+      return false
+    end
+
     # Remove any constructions/materials that aren't used
     HelperMethods.remove_unused_constructions_and_materials(model, runner)
 

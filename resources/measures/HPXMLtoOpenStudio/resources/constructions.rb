@@ -2221,7 +2221,7 @@ class Construction
 
       # If single unit approach
       horz_location = model.getBuilding.additionalProperties.getFeatureAsString("horz_location")
-      if horz_location.is_initialized
+      # if horz_location.is_initialized
         if surface.is_a? OpenStudio::Model::Surface and surface.outsideBoundaryCondition == "Adiabatic" and (surface.surfaceType == "RoofCeiling" or surface.surfaceType == "Wall")
           if revconstr.nil?
             revconstr = constr.reverseConstruction
@@ -2234,7 +2234,7 @@ class Construction
           end
           print_construction_assignment(runner, surface)
         end
-      end
+      # end
 
       # Assign reverse construction to adjacent surface as needed
       next if surface.is_a? OpenStudio::Model::SubSurface or surface.is_a? OpenStudio::Model::InternalMassDefinition or not surface.adjacentSurface.is_initialized
