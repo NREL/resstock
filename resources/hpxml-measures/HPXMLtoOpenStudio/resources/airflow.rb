@@ -689,46 +689,63 @@ class Airflow
       # List of: [Var name, object name, space, frac load latent, frac load outside]
       equip_act_infos = []
 
+      if duct_location.is_a? OpenStudio::Model::ScheduleConstant
+        # Regain factors from LBNL's "Technical Background for default values used for Forced Air Systems in Proposed ASHRAE Standard 152P"
+        # TODO: Some redundant code in hvac_sizing.rb's get_duct_regain_factor().
+        if duct_location.name.get == HPXML::LocationExteriorWall
+          f_regain = 0.5
+        elsif duct_location.name.get == HPXML::LocationUnderSlab
+          f_regain = 0.83
+        elsif [HPXML::LocationOtherHousingUnit, HPXML::LocationOtherHeatedSpace,
+               HPXML::LocationOtherMultifamilyBufferSpace, HPXML::LocationOtherNonFreezingSpace].include? duct_location.name.get
+          f_regain = 0.0
+        else
+          fail "Unhandled duct location: #{duct_location.name.get}."
+        end
+      else
+        f_regain = 0.0
+      end
+
       # Other equipment objects to cancel out the supply air leakage directly into the return plenum
-      equip_act_infos << ['supply_sens_lk_to_liv', 'SupSensLkToLv', @living_space, 0.0, 0.0]
-      equip_act_infos << ['supply_lat_lk_to_liv', 'SupLatLkToLv', @living_space, 1.0, 0.0]
+      equip_act_infos << ['supply_sens_lk_to_liv', 'SupSensLkToLv', @living_space, 0.0, f_regain]
+      equip_act_infos << ['supply_lat_lk_to_liv', 'SupLatLkToLv', @living_space, 1.0 - f_regain, f_regain]
 
       # Supply duct conduction load added to the living space
-      equip_act_infos << ['supply_cond_to_liv', 'SupCondToLv', @living_space, 0.0, 0.0]
+      equip_act_infos << ['supply_cond_to_liv', 'SupCondToLv', @living_space, 0.0, f_regain]
 
       # Return duct conduction load added to the return plenum zone
-      equip_act_infos << ['return_cond_to_rp', 'RetCondToRP', ra_duct_space, 0.0, 0.0]
+      equip_act_infos << ['return_cond_to_rp', 'RetCondToRP', ra_duct_space, 0.0, f_regain]
 
       # Return duct sensible leakage impact on the return plenum
-      equip_act_infos << ['return_sens_lk_to_rp', 'RetSensLkToRP', ra_duct_space, 0.0, 0.0]
+      equip_act_infos << ['return_sens_lk_to_rp', 'RetSensLkToRP', ra_duct_space, 0.0, f_regain]
 
       # Return duct latent leakage impact on the return plenum
-      equip_act_infos << ['return_lat_lk_to_rp', 'RetLatLkToRP', ra_duct_space, 1.0, 0.0]
+      equip_act_infos << ['return_lat_lk_to_rp', 'RetLatLkToRP', ra_duct_space, 1.0 - f_regain, f_regain]
 
       # Supply duct conduction impact on the duct zone
       if not duct_location.is_a? OpenStudio::Model::ThermalZone # Outside or scheduled temperature
-        equip_act_infos << ['supply_cond_to_dz', 'SupCondToDZ', @living_space, 0.0, 1.0]
+        equip_act_infos << ['supply_cond_to_dz', 'SupCondToDZ', @living_space, 0.0, 1.0] # Arbitrary space, all heat lost
       else
         equip_act_infos << ['supply_cond_to_dz', 'SupCondToDZ', duct_location.spaces[0], 0.0, 0.0]
       end
 
       # Return duct conduction impact on the duct zone
       if not duct_location.is_a? OpenStudio::Model::ThermalZone # Outside or scheduled temperature
-        equip_act_infos << ['return_cond_to_dz', 'RetCondToDZ', @living_space, 0.0, 1.0]
+        equip_act_infos << ['return_cond_to_dz', 'RetCondToDZ', @living_space, 0.0, 1.0] # Arbitrary space, all heat lost
       else
         equip_act_infos << ['return_cond_to_dz', 'RetCondToDZ', duct_location.spaces[0], 0.0, 0.0]
       end
 
       # Supply duct sensible leakage impact on the duct zone
       if not duct_location.is_a? OpenStudio::Model::ThermalZone # Outside or scheduled temperature
-        equip_act_infos << ['supply_sens_lk_to_dz', 'SupSensLkToDZ', @living_space, 0.0, 1.0]
+        equip_act_infos << ['supply_sens_lk_to_dz', 'SupSensLkToDZ', @living_space, 0.0, 1.0] # Arbitrary space, all heat lost
       else
         equip_act_infos << ['supply_sens_lk_to_dz', 'SupSensLkToDZ', duct_location.spaces[0], 0.0, 0.0]
       end
 
       # Supply duct latent leakage impact on the duct zone
       if not duct_location.is_a? OpenStudio::Model::ThermalZone # Outside or scheduled temperature
-        equip_act_infos << ['supply_lat_lk_to_dz', 'SupLatLkToDZ', @living_space, 0.0, 1.0]
+        equip_act_infos << ['supply_lat_lk_to_dz', 'SupLatLkToDZ', @living_space, 0.0, 1.0] # Arbitrary space, all heat lost
       else
         equip_act_infos << ['supply_lat_lk_to_dz', 'SupLatLkToDZ', duct_location.spaces[0], 1.0, 0.0]
       end
@@ -1672,29 +1689,6 @@ class Airflow
     c_s_SG = f_s_SG**2.0 * Constants.g * space_height / (Constants.AssumedInsideTemp + 460.0)
     c_w_SG = f_w_SG**2.0
     return c_w_SG, c_s_SG
-  end
-
-  def self.calc_inferred_infiltration_height(cfa, ncfl, ncfl_ag, infil_volume, hpxml)
-    # Infiltration height: vertical distance between lowest and highest above-grade points within the pressure boundary.
-    # Height is inferred from available HPXML properties.
-    has_walkout_basement = hpxml.has_walkout_basement()
-
-    if has_walkout_basement
-      infil_height = Float(ncfl_ag) * infil_volume / cfa
-    else
-      # Calculate maximum above-grade height of conditioned basement walls
-      max_cond_bsmt_wall_height_ag = 0.0
-      hpxml.foundation_walls.each do |foundation_wall|
-        next unless foundation_wall.is_exterior_thermal_boundary
-
-        height_ag = foundation_wall.height - foundation_wall.depth_below_grade
-        next unless height_ag > max_cond_bsmt_wall_height_ag
-
-        max_cond_bsmt_wall_height_ag = height_ag
-      end
-      infil_height = Float(ncfl_ag) * infil_volume / cfa + max_cond_bsmt_wall_height_ag
-    end
-    return infil_height
   end
 
   def self.get_infiltration_NL_from_SLA(sla, infil_height)

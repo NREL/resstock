@@ -79,9 +79,17 @@ class Material
     return self.AirFilm(rvalue)
   end
 
+  def self.AirFilmOutsideASHRAE140
+    return self.AirFilm(0.174)
+  end
+
   def self.AirFilmVertical
     rvalue = 0.68 # hr-ft-F/Btu (ASHRAE 2005, F25.2, Table 1)
     return self.AirFilm(rvalue)
+  end
+
+  def self.AirFilmVerticalASHRAE140
+    return self.AirFilm(0.685)
   end
 
   def self.AirFilmFlatEnhanced
@@ -106,6 +114,14 @@ class Material
     # always flow down through the floor.
     rvalue = self.AirFilmFlatReduced.rvalue # hr-ft-F/Btu
     return self.AirFilm(rvalue)
+  end
+
+  def self.AirFilmFloorASHRAE140
+    return self.AirFilm(0.765)
+  end
+
+  def self.AirFilmFloorZeroWindASHRAE140
+    return self.AirFilm(0.455)
   end
 
   def self.AirFilmSlopeEnhanced(roof_pitch)
@@ -164,10 +180,14 @@ class Material
     return self.AirFilm(rvalue)
   end
 
+  def self.AirFilmRoofASHRAE140
+    return self.AirFilm(0.752)
+  end
+
   def self.CoveringBare(floorFraction = 0.8, rvalue = 2.08)
     # Combined layer of, e.g., carpet and bare floor
     thickness = 0.5 # in
-    return new(name = 'Floor Covering', thick_in = thickness, mat_base = nil, k_in = thickness / (rvalue * floorFraction), rho = 3.4, cp = 0.32, tAbs = 0.9, sAbs = 0.9)
+    return new(name = 'Floor Covering', thick_in = thickness, mat_base = nil, k_in = thickness / (rvalue * floorFraction), rho = 3.4, cp = 0.32, tAbs = 0.9, sAbs = 0.9, vAbs = 0.9)
   end
 
   def self.Concrete(thick_in)
