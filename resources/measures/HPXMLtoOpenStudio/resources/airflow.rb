@@ -39,7 +39,8 @@ class Airflow
       runner.registerError("Cannot determine the number of above grade stories.")
       return false
     end
-
+    building.crawlspace = []
+    building.unfinished_basement = []
     building.stories = model.getBuilding.standardsNumberOfAboveGroundStories.get
     building.above_grade_volume = Geometry.get_above_grade_finished_volume(model, runner)
     building.ag_ext_wall_area = Geometry.calculate_above_grade_exterior_wall_area(model_spaces)
@@ -47,9 +48,9 @@ class Airflow
       if Geometry.is_garage(thermal_zone)
         building.garage = ZoneInfo.new(thermal_zone, Geometry.get_height_of_spaces(thermal_zone.spaces), UnitConversions.convert(thermal_zone.floorArea, "m^2", "ft^2"), Geometry.get_zone_volume(thermal_zone, runner), Geometry.get_z_origin_for_zone(thermal_zone), nil, nil)
       elsif Geometry.is_unfinished_basement(thermal_zone)
-        building.unfinished_basement = ZoneInfo.new(thermal_zone, Geometry.get_height_of_spaces(thermal_zone.spaces), UnitConversions.convert(thermal_zone.floorArea, "m^2", "ft^2"), Geometry.get_zone_volume(thermal_zone, runner), Geometry.get_z_origin_for_zone(thermal_zone), infil.unfinished_basement_ach, nil)
+        building.unfinished_basement << ZoneInfo.new(thermal_zone, Geometry.get_height_of_spaces(thermal_zone.spaces), UnitConversions.convert(thermal_zone.floorArea, "m^2", "ft^2"), Geometry.get_zone_volume(thermal_zone, runner), Geometry.get_z_origin_for_zone(thermal_zone), infil.unfinished_basement_ach, nil)
       elsif Geometry.is_crawl(thermal_zone)
-        building.crawlspace = ZoneInfo.new(thermal_zone, Geometry.get_height_of_spaces(thermal_zone.spaces), UnitConversions.convert(thermal_zone.floorArea, "m^2", "ft^2"), Geometry.get_zone_volume(thermal_zone, runner), Geometry.get_z_origin_for_zone(thermal_zone), infil.crawl_ach, nil)
+        building.crawlspace << ZoneInfo.new(thermal_zone, Geometry.get_height_of_spaces(thermal_zone.spaces), UnitConversions.convert(thermal_zone.floorArea, "m^2", "ft^2"), Geometry.get_zone_volume(thermal_zone, runner), Geometry.get_z_origin_for_zone(thermal_zone), infil.crawl_ach, nil)
       elsif Geometry.is_pier_beam(thermal_zone)
         building.pierbeam = ZoneInfo.new(thermal_zone, Geometry.get_height_of_spaces(thermal_zone.spaces), UnitConversions.convert(thermal_zone.floorArea, "m^2", "ft^2"), Geometry.get_zone_volume(thermal_zone, runner), Geometry.get_z_origin_for_zone(thermal_zone), infil.pier_beam_ach, nil)
       elsif Geometry.is_unfinished_attic(thermal_zone)
@@ -225,14 +226,18 @@ class Airflow
     end # end unit loop    
 
     # Store info for HVAC Sizing measure
-    unless building.crawlspace.nil?
-      building.crawlspace.zone.additionalProperties.setFeature(Constants.SizingInfoZoneInfiltrationCFM, building.crawlspace.inf_flow.to_f)
+    unless building.crawlspace.empty?
+      building.crawlspace.each do |cs|
+        cs.zone.additionalProperties.setFeature(Constants.SizingInfoZoneInfiltrationCFM, cs.inf_flow.to_f)
+      end
     end
     unless building.pierbeam.nil?
       building.pierbeam.zone.additionalProperties.setFeature(Constants.SizingInfoZoneInfiltrationCFM, building.pierbeam.inf_flow.to_f)
     end
-    unless building.unfinished_basement.nil?
-      building.unfinished_basement.zone.additionalProperties.setFeature(Constants.SizingInfoZoneInfiltrationCFM, building.unfinished_basement.inf_flow.to_f)
+    unless building.unfinished_basement.empty?
+      building.unfinished_basement.each do |ub|
+        ub.zone.additionalProperties.setFeature(Constants.SizingInfoZoneInfiltrationCFM, ub.inf_flow.to_f)
+      end
     end
     unless building.unfinished_attic.nil?
       building.unfinished_attic.zone.additionalProperties.setFeature(Constants.SizingInfoZoneInfiltrationCFM, building.unfinished_attic.inf_flow)
@@ -505,8 +510,9 @@ class Airflow
   def self.process_infiltration(model, infil, wind_speed, building, weather)
     spaces = []
     spaces << building.garage if not building.garage.nil?
-    spaces << building.unfinished_basement if not building.unfinished_basement.nil?
-    spaces << building.crawlspace if not building.crawlspace.nil?
+    # Multiple foundation spaces
+    spaces += building.unfinished_basement if not building.unfinished_basement.empty?
+    spaces += building.crawlspace if not building.crawlspace.empty?
     spaces << building.pierbeam if not building.pierbeam.nil?
     spaces << building.unfinished_attic if not building.unfinished_attic.nil?
 
@@ -519,14 +525,22 @@ class Airflow
       building.garage.inf_flow = building.garage.ACH / UnitConversions.convert(1.0, "hr", "min") * building.garage.volume # cfm
     end
 
-    unless building.unfinished_basement.nil?
-      building.unfinished_basement.inf_method = @infMethodRes # Used for constant ACH
-      building.unfinished_basement.inf_flow = building.unfinished_basement.ACH / UnitConversions.convert(1.0, "hr", "min") * building.unfinished_basement.volume
+    unless building.unfinished_basement.empty?
+      building.unfinished_basement.each do |ub|
+        # building.unfinished_basement.inf_method = @infMethodRes # Used for constant ACH
+        # building.unfinished_basement.inf_flow = building.unfinished_basement.ACH / UnitConversions.convert(1.0, "hr", "min") * building.unfinished_basement.volume
+        ub.inf_method = @infMethodRes # Used for constant ACH
+        ub.inf_flow = building.unfinished_basement.ACH / UnitConversions.convert(1.0, "hr", "min") * ub.volume
+      end
     end
 
-    unless building.crawlspace.nil?
-      building.crawlspace.inf_method = @infMethodRes
-      building.crawlspace.inf_flow = building.crawlspace.ACH / UnitConversions.convert(1.0, "hr", "min") * building.crawlspace.volume
+    unless building.crawlspace.empty?
+      building.crawlspace.each do |cs|
+        # building.crawlspace.inf_method = @infMethodRes
+        # building.crawlspace.inf_flow = building.crawlspace.ACH / UnitConversions.convert(1.0, "hr", "min") * building.crawlspace.volume
+        cs.inf_method = @infMethodRes
+        cs.inf_flow = cs.ACH / UnitConversions.convert(1.0, "hr", "min") * cs.volume
+      end
     end
 
     unless building.pierbeam.nil?
@@ -550,7 +564,7 @@ class Airflow
 
     # puts("============process infiltration ==================")
     # puts("building.crawlspace.inf_flow:  #{building.crawlspace.inf_flow}")
-    # building.crawlspace.inf_flow = 756.876
+    # puts(building.crawlspace)
 
     return true
   end
@@ -675,9 +689,21 @@ class Airflow
       end
 
       vented_crawl = false
-      if (not building.crawlspace.nil? and building.crawlspace.ACH > 0) or (not building.pierbeam.nil? and building.pierbeam.ACH > 0)
+      if not building.crawlspace.empty?
+        building.crawlspace.each do |cs|
+          if cs.ACH > 0
+            vented_crawl = true
+          end
+        end
+      end
+
+      if (not building.pierbeam.nil? and building.pierbeam.ACH > 0)
         vented_crawl = true
       end
+
+      # if (not building.crawlspace.nil? and building.crawlspace.ACH > 0) or (not building.pierbeam.nil? and building.pierbeam.ACH > 0)
+      #   vented_crawl = true
+      # end
 
       # MF vented_crawl
       found_type = model.getBuilding.additionalProperties.getFeatureAsString("found_type")
@@ -786,24 +812,6 @@ class Airflow
       unit_finished_basement.inf_method = @infMethodRes # Used for constant ACH
       unit_finished_basement.inf_flow = unit_finished_basement.ACH / UnitConversions.convert(1.0, "hr", "min") * unit_finished_basement.volume
     end
-
-    # puts("-----------Process infiltration for finished spaces------------------------")
-    # puts("unit_ag_ffa: #{unit_ag_ffa}")
-    # puts("ext_wall_area_building:  #{ext_wall_area_building}")
-    # puts("unit_ag_ext_wall_area: #{unit_ag_ext_wall_area}")
-    # puts("n_units: #{n_units}")
-    # puts("building.SLA: #{building.SLA}")
-    # puts("building_ag_ffa: #{building_ag_ffa}")
-    # puts("r_i: #{r_i}")
-    # puts("n_i: #{n_i}")
-    # puts("f_w: #{f_w}")
-    # puts("j_i: #{j_i}")
-    # puts("wind_coef: #{wind_coef}")
-    # puts("stack_coef: #{stack_coef}")
-    # puts("s_wflue: #{s_wflue}")
-    # puts("a_o: #{a_o}")
-    # puts("c_i: #{c_i}")
-    # puts("unit_living.ACH: #{unit_living.ACH}")
 
     process_infiltration_for_spaces(model, spaces, wind_speed)
 
@@ -1322,10 +1330,22 @@ class Airflow
         frac_oa = 0
       elsif not unit_finished_basement.nil? and unit_finished_basement.zone == location_zone
         frac_oa = 0
-      elsif not building.unfinished_basement.nil? and building.unfinished_basement.zone == location_zone
-        frac_oa = 0
-      elsif not building.crawlspace.nil? and building.crawlspace.zone == location_zone and building.crawlspace.ACH == 0
-        frac_oa = 0
+      elsif not building.unfinished_basement.empty?
+        building.unfinished_basement.each do |ub|
+          if ub.zone == location_zone
+            frac_oa = 0
+          else
+            frac_oa = 1
+          end
+        end
+      elsif not building.crawlspace.empty? 
+        building.crawlspace.each do |cs|
+          if cs.zone == location_zone and cs.ACH == 0
+            frac_oa = 0
+          else
+            frac_oa = 1
+          end
+        end
       elsif not building.pierbeam.nil? and building.pierbeam.zone == location_zone and building.pierbeam.ACH == 0
         frac_oa = 0
       elsif not building.unfinished_attic.nil? and building.unfinished_attic.zone == location_zone and building.unfinished_attic.ACH == 0
