@@ -871,34 +871,61 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
         spaces << space
       end
 
+      # Individual foundation spaces for each unit
+      foundation_spaces.each do |foundation_space|
+        if ["crawlspace", "unfinished basement"].include? foundation_type
+          if foundation_type == "crawlspace"
+            foundation_space.setName("crawl space")
+            foundation_zone = OpenStudio::Model::ThermalZone.new(model)
+            foundation_zone.setName("crawl zone")
+            foundation_space.setThermalZone(foundation_zone)
+            foundation_space_type_name = Constants.SpaceTypeCrawl
+          elsif foundation_type == "unfinished basement"
+            foundation_space.setName("unfinished basement space")
+            foundation_zone = OpenStudio::Model::ThermalZone.new(model)
+            foundation_zone.setName("unfinished basement zone")
+            foundation_space.setThermalZone(foundation_zone)
+            foundation_space_type_name = Constants.SpaceTypeUnfinishedBasement
+          end
+          if space_types_hash.keys.include? foundation_space_type_name
+            foundation_space_type = space_types_hash[foundation_space_type_name]
+          else
+            foundation_space_type = OpenStudio::Model::SpaceType.new(model)
+            foundation_space_type.setStandardsSpaceType(foundation_space_type_name)
+            space_types_hash[foundation_space_type_name] = foundation_space_type
+          end
+          foundation_space.setSpaceType(foundation_space_type)
+        end
+      end
       # intersect and match surfaces for each space in the vector
       OpenStudio::Model.intersectSurfaces(spaces)
       OpenStudio::Model.matchSurfaces(spaces)
 
-      if ["crawlspace", "unfinished basement"].include? foundation_type
-        foundation_space = Geometry.make_one_space_from_multiple_spaces(model, foundation_spaces)
-        if foundation_type == "crawlspace"
-          foundation_space.setName("crawl space")
-          foundation_zone = OpenStudio::Model::ThermalZone.new(model)
-          foundation_zone.setName("crawl zone")
-          foundation_space.setThermalZone(foundation_zone)
-          foundation_space_type_name = Constants.SpaceTypeCrawl
-        elsif foundation_type == "unfinished basement"
-          foundation_space.setName("unfinished basement space")
-          foundation_zone = OpenStudio::Model::ThermalZone.new(model)
-          foundation_zone.setName("unfinished basement zone")
-          foundation_space.setThermalZone(foundation_zone)
-          foundation_space_type_name = Constants.SpaceTypeUnfinishedBasement
-        end
-        if space_types_hash.keys.include? foundation_space_type_name
-          foundation_space_type = space_types_hash[foundation_space_type_name]
-        else
-          foundation_space_type = OpenStudio::Model::SpaceType.new(model)
-          foundation_space_type.setStandardsSpaceType(foundation_space_type_name)
-          space_types_hash[foundation_space_type_name] = foundation_space_type
-        end
-        foundation_space.setSpaceType(foundation_space_type)
-      end
+      # Single foundation space for all units
+      # if ["crawlspace", "unfinished basement"].include? foundation_type
+      #   foundation_space = Geometry.make_one_space_from_multiple_spaces(model, foundation_spaces)
+      #   if foundation_type == "crawlspace"
+      #     foundation_space.setName("crawl space")
+      #     foundation_zone = OpenStudio::Model::ThermalZone.new(model)
+      #     foundation_zone.setName("crawl zone")
+      #     foundation_space.setThermalZone(foundation_zone)
+      #     foundation_space_type_name = Constants.SpaceTypeCrawl
+      #   elsif foundation_type == "unfinished basement"
+      #     foundation_space.setName("unfinished basement space")
+      #     foundation_zone = OpenStudio::Model::ThermalZone.new(model)
+      #     foundation_zone.setName("unfinished basement zone")
+      #     foundation_space.setThermalZone(foundation_zone)
+      #     foundation_space_type_name = Constants.SpaceTypeUnfinishedBasement
+      #   end
+      #   if space_types_hash.keys.include? foundation_space_type_name
+      #     foundation_space_type = space_types_hash[foundation_space_type_name]
+      #   else
+      #     foundation_space_type = OpenStudio::Model::SpaceType.new(model)
+      #     foundation_space_type.setStandardsSpaceType(foundation_space_type_name)
+      #     space_types_hash[foundation_space_type_name] = foundation_space_type
+      #   end
+      #   foundation_space.setSpaceType(foundation_space_type)
+      # end
 
       # set foundation walls to ground
       spaces = model.getSpaces
@@ -951,17 +978,21 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
 
     # make all surfaces adjacent to corridor spaces into adiabatic surfaces
     model.getSpaces.each do |space|
-      next if Geometry.space_is_below_grade(space)
+      # next if Geometry.space_is_below_grade(space)
 
       space.surfaces.each do |surface|
         if surface.adjacentSurface.is_initialized # only set to adiabatic if the corridor surface is adjacent to another surface
           adjacent_surface = surface.adjacentSurface.get
           adjacent_space = adjacent_surface.space.get
           #Set all shared walls and corridor walls adiabatic
-          if Geometry.is_living_space_type(adjacent_space.spaceType.get.standardsSpaceType.get) or Geometry.is_corridor(space)
+          if Geometry.is_living_space_type(adjacent_space.spaceType.get.standardsSpaceType.get) and Geometry.is_living_space_type(space.spaceType.get.standardsSpaceType.get)
+            surface.adjacentSurface.get.setOutsideBoundaryCondition("Adiabatic")
+            surface.setOutsideBoundaryCondition("Adiabatic")
+          elsif Geometry.space_is_below_grade(adjacent_space) and Geometry.space_is_below_grade(space)
             surface.adjacentSurface.get.setOutsideBoundaryCondition("Adiabatic")
             surface.setOutsideBoundaryCondition("Adiabatic")
           end
+
         end
       end
     end
