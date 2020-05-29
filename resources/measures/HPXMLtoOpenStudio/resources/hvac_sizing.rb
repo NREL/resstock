@@ -3448,12 +3448,13 @@ class HVACSizing
       n_units = n_units.get.to_f
       has_rear_units = has_rear_units.get
       horz_location = horz_location.get
-      corridor_position = corridor_position.get
-      corridor_width = corridor_width.get
       if Geometry.get_building_type(@model) == Constants.BuildingTypeMultifamily
+        corridor_position = corridor_position.get
+        corridor_width = corridor_width.get
         num_floors = num_floors.get.to_f
         num_units_per_floor = n_units / num_floors
       elsif Geometry.get_building_type(@model) == Constants.BuildingTypeSingleFamilyAttached
+        corridor_position = nil
         num_floors = 1
         num_units_per_floor = n_units
       end
