@@ -951,12 +951,17 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
 
     # make all surfaces adjacent to corridor spaces into adiabatic surfaces
     model.getSpaces.each do |space|
-      next unless Geometry.is_corridor(space)
+      next if Geometry.space_is_below_grade(space)
 
       space.surfaces.each do |surface|
         if surface.adjacentSurface.is_initialized # only set to adiabatic if the corridor surface is adjacent to another surface
-          surface.adjacentSurface.get.setOutsideBoundaryCondition("Adiabatic")
-          surface.setOutsideBoundaryCondition("Adiabatic")
+          adjacent_surface = surface.adjacentSurface.get
+          adjacent_space = adjacent_surface.space.get
+          #Set all shared walls and corridor walls adiabatic
+          if Geometry.is_living_space_type(adjacent_space.spaceType.get.standardsSpaceType.get) or Geometry.is_corridor(space)
+            surface.adjacentSurface.get.setOutsideBoundaryCondition("Adiabatic")
+            surface.setOutsideBoundaryCondition("Adiabatic")
+          end
         end
       end
     end
