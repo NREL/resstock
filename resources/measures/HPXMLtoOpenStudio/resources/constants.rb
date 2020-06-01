@@ -72,7 +72,7 @@ class Constants
   end
 
   def self.PeakFlowRate
-    return 100 # gal/min
+    return 500 # gal/min
   end
 
   def self.PeakPower
