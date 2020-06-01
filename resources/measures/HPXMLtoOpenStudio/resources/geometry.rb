@@ -731,6 +731,7 @@ class Geometry
       perimeter = 0.001
     end
 
+    # puts("exposed perimeter: #{UnitConversions.convert(perimeter, "m", "ft")}")
     return UnitConversions.convert(perimeter, "m", "ft")
   end
 
