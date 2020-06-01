@@ -76,7 +76,7 @@ class Constants
   end
 
   def self.PeakPower
-    return 10 # gal/min
+    return 100 # kWh
   end
 
   # Strings --------------------
