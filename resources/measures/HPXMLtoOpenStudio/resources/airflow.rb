@@ -1318,6 +1318,7 @@ class Airflow
         building.unfinished_basement.each do |ub|
           if ub.zone == location_zone
             frac_oa = 0
+            break
           else
             frac_oa = 1
           end
@@ -1326,6 +1327,7 @@ class Airflow
         building.crawlspace.each do |cs|
           if cs.zone == location_zone and cs.ACH == 0
             frac_oa = 0
+            break
           else
             frac_oa = 1
           end
