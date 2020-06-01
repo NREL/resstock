@@ -897,6 +897,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
           foundation_space.setSpaceType(foundation_space_type)
         end
       end
+      
       # intersect and match surfaces for each space in the vector
       OpenStudio::Model.intersectSurfaces(spaces)
       OpenStudio::Model.matchSurfaces(spaces)
@@ -993,6 +994,10 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
             surface.setOutsideBoundaryCondition("Adiabatic")
           end
 
+          if Geometry.is_corridor(space) and surface.adjacentSurface.is_initialized
+            surface.adjacentSurface.get.setOutsideBoundaryCondition("Adiabatic")
+            surface.setOutsideBoundaryCondition("Adiabatic")
+          end
         end
       end
     end
