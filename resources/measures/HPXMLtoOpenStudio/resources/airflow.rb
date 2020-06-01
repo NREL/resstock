@@ -530,7 +530,7 @@ class Airflow
         # building.unfinished_basement.inf_method = @infMethodRes # Used for constant ACH
         # building.unfinished_basement.inf_flow = building.unfinished_basement.ACH / UnitConversions.convert(1.0, "hr", "min") * building.unfinished_basement.volume
         ub.inf_method = @infMethodRes # Used for constant ACH
-        ub.inf_flow = building.unfinished_basement.ACH / UnitConversions.convert(1.0, "hr", "min") * ub.volume
+        ub.inf_flow = ub.ACH / UnitConversions.convert(1.0, "hr", "min") * ub.volume
       end
     end
 
@@ -1248,22 +1248,6 @@ class Airflow
       location_zone = unit_living.zone
       location_name = unit_living.zone.name.to_s
     end
-
-    # num_floors = model.getBuilding.additionalProperties.getFeatureAsInteger("num_floors")
-    # found_type = model.getBuilding.additionalProperties.getFeatureAsString("found_type")
-
-    # if num_floors.is_initialized #single unit
-    #   num_stories = num_floors.get
-    #   if found_type.get == "finished basement"
-    #     num_stories +=  1
-    #   end
-    # else #MF
-    #   num_stories = building.stories
-    #   if not unit_finished_basement.nil?
-    #     num_stories +=  1
-    #   end
-    # end
-
     
     num_stories = building.stories
     unless unit_finished_basement.nil?
