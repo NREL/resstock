@@ -1406,9 +1406,10 @@ class ScheduleGenerator
   def sample_appliance_duration_power(prng, power_dist_map, appliance_name)
     # returns number number of 15-min interval the appliance runs, and the average 15-min power
     duration_vals, consumption_vals = power_dist_map[appliance_name]
-    row = (prng.rand * consumption_vals.size).to_i
-    power = consumption_vals[row]
-    duration = duration_vals[row].sample
+    consumption_row = (prng.rand * consumption_vals.size).to_i
+    power = consumption_vals[consumption_row]
+    duration_row = (prng.rand * duration_vals.size).to_i
+    duration = duration_vals[duration_row].sample
     return [duration, power]
   end
 
