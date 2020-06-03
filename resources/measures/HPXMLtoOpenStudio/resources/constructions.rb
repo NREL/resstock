@@ -1536,18 +1536,29 @@ class FoundationConstructions
       return false
     end
 
-    # Exposed perimeter
-    if exposed_perimeter.nil?
+    if exposed_perimeter.nil? and surface.outsideBoundaryCondition.downcase == "foundation"
       exposed_perimeter = Geometry.calculate_exposed_perimeter(model, [surface], has_fnd_walls)
-    end
-    if exposed_perimeter == 0
-      runner.registerError("Calculated an exposed perimeter <= 0 for slab '#{surface.name.to_s}'.")
-      return false
+      if exposed_perimeter == 0
+        runner.registerError("Calculated an exposed perimeter <= 0 for slab '#{surface.name.to_s}'.")
+        return false
+      end
+      # Assign surface to Kiva foundation
+      surface.setAdjacentFoundation(foundation)
+      surface.createSurfacePropertyExposedFoundationPerimeter("TotalExposedPerimeter", UnitConversions.convert(exposed_perimeter, "ft", "m"))
     end
 
+    # Exposed perimeter
+    # if exposed_perimeter.nil?
+    #   exposed_perimeter = Geometry.calculate_exposed_perimeter(model, [surface], has_fnd_walls)
+    # end
+    # if exposed_perimeter == 0
+    #   runner.registerError("Calculated an exposed perimeter <= 0 for slab '#{surface.name.to_s}'.")
+    #   return false
+    # end
+
     # Assign surface to Kiva foundation
-    surface.setAdjacentFoundation(foundation)
-    surface.createSurfacePropertyExposedFoundationPerimeter("TotalExposedPerimeter", UnitConversions.convert(exposed_perimeter, "ft", "m"))
+    # surface.setAdjacentFoundation(foundation)
+    # surface.createSurfacePropertyExposedFoundationPerimeter("TotalExposedPerimeter", UnitConversions.convert(exposed_perimeter, "ft", "m"))
 
     return true
   end
@@ -2764,36 +2775,36 @@ class SurfaceTypes
         elsif not singleunit_mf and is_finished and obc_is_adjacent and Geometry.space_is_finished(adjacent_space)
           surfaces[Constants.SurfaceTypeFloorFinUninsFin] << surface
 
-        # Floor between unfinished spaces [MF]
-        elsif not singleunit_mf and not is_finished and obc_is_adjacent and not Geometry.space_is_finished(adjacent_space)
-          surfaces[Constants.SurfaceTypeFloorUnfinUninsUnfin] << surface
-
         # Floor between finished spaces [SINGLE]
-        elsif singleunit_mf and is_finished and obc_is_adiabatic
+        elsif is_finished and obc_is_adiabatic
           surfaces[Constants.SurfaceTypeFloorFinUninsFin] << surface
 
-        # Floor between unfinished spaces [SINGLE]
+        # Floor between unfinished spaces [MF]
+        elsif not is_finished and obc_is_adjacent and not Geometry.space_is_finished(adjacent_space)
+          surfaces[Constants.SurfaceTypeFloorUnfinUninsUnfin] << surface
+
+        # # Floor between unfinished spaces [SINGLE]
         elsif singleunit_mf and not is_finished and obc_is_adiabatic
           surfaces[Constants.SurfaceTypeFloorUnfinUninsUnfin] << surface
 
         # Finished basement floor
-        elsif Geometry.is_finished_basement(space) and obc_is_foundation
+        elsif Geometry.is_finished_basement(space) and (obc_is_foundation or obc_is_adiabatic)
           surfaces[Constants.SurfaceTypeFloorFndGrndFinB] << surface
 
         # Unfinished basement floor
-        elsif Geometry.is_unfinished_basement(space) and obc_is_foundation
+        elsif Geometry.is_unfinished_basement(space) and (obc_is_foundation or obc_is_adiabatic)
           surfaces[Constants.SurfaceTypeFloorFndGrndUnfinB] << surface
 
         # Crawlspace floor
-        elsif Geometry.is_crawl(space) and obc_is_foundation
+        elsif Geometry.is_crawl(space) and (obc_is_foundation or obc_is_adiabatic)
           surfaces[Constants.SurfaceTypeFloorFndGrndCS] << surface
 
         # Finished slab
-        elsif above_grade and is_finished and obc_is_foundation
+        elsif above_grade and is_finished and (obc_is_foundation or obc_is_adiabatic)
           surfaces[Constants.SurfaceTypeFloorFndGrndFinSlab] << surface
 
         # Unfinished slab
-        elsif above_grade and not is_finished and obc_is_foundation
+        elsif above_grade and not is_finished and (obc_is_foundation or obc_is_adiabatic)
           surfaces[Constants.SurfaceTypeFloorFndGrndUnfinSlab] << surface
 
         # Interzonal floor
