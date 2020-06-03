@@ -793,6 +793,11 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     #Make all adjacent walls adiabatic (seperate foundation spaces have adiabatic shared walls to align with whole-building approach)
     model.getSpaces.each do |space|
       space.surfaces.each do |surface|
+        #Temporary adiabatic slab for testing
+        if surface.surfaceType.downcase == "floor" and foundation_type == "slab"
+          surface.setOutsideBoundaryCondition("Adiabatic")
+        end 
+
         next unless surface.surfaceType.downcase == "wall"
         if surface.adjacentSurface.is_initialized
           surface.adjacentSurface.get.setOutsideBoundaryCondition("Adiabatic")
