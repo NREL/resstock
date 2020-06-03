@@ -654,15 +654,15 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
       # Multiple surfaces for foundation + foundation corridor floors #
       # foundation corridor
       if corridor_width > 0 and corridor_position == "Double-Loaded Interior"
-        corridor_space = OpenStudio::Model::Space::fromFloorPrint(foundation_corr_polygon, foundation_height, model)
-        corridor_space = corridor_space.get
+        foundation_corridor_space = OpenStudio::Model::Space::fromFloorPrint(foundation_corr_polygon, foundation_height, model)
+        foundation_corridor_space = foundation_corridor_space.get
         m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4, 4, 0))
         m[2, 3] = foundation_height
-        corridor_space.changeTransformation(OpenStudio::Transformation.new(m))
-        corridor_space.setXOrigin(0)
-        corridor_space.setYOrigin(0)
-        corridor_space.setZOrigin(0)
-        foundation_spaces << corridor_space
+        foundation_corridor_space.changeTransformation(OpenStudio::Transformation.new(m))
+        foundation_corridor_space.setXOrigin(0)
+        foundation_corridor_space.setYOrigin(0)
+        foundation_corridor_space.setZOrigin(0)
+        foundation_spaces << foundation_corridor_space 
       end
 
       # # foundation front
@@ -678,12 +678,6 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
 
       foundation_space_front << foundation_space
       foundation_spaces << foundation_space
-
-      # put all of the spaces in the model into a vector
-      spaces = OpenStudio::Model::SpaceVector.new
-      model.getSpaces.each do |space|
-        spaces << space
-      end
 
       foundation_spaces.each do |foundation_space| # Individual foundation spaces (corridor and foundation)
         if (["crawlspace", "unfinished basement"].include? foundation_type)
@@ -713,26 +707,36 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
         end
       end
 
+      # put all of the spaces in the model into a vector
+      spaces = OpenStudio::Model::SpaceVector.new
+      model.getSpaces.each do |space|
+        spaces << space
+      end
+
       # intersect and match surfaces for each space in the vector
       OpenStudio::Model.intersectSurfaces(spaces)
       OpenStudio::Model.matchSurfaces(spaces)
 
       # Set foundation wall boundary conditions
       model.getSpaces.each do |space|
-        if Geometry.get_space_floor_z(space) + UnitConversions.convert(space.zOrigin, "m", "ft") < 0 # Foundation        
-          surfaces = space.surfaces
-          surfaces.each do |surface|
-            next unless surface.surfaceType.downcase == "wall"
-
-            os_facade = Geometry.get_facade_for_surface(surface)
-            if adb_facade.include? os_facade
-              surface.setOutsideBoundaryCondition("Adiabatic")
-            else
-              surface.setOutsideBoundaryCondition("Foundation")
-            end
+        next unless Geometry.get_space_floor_z(space) + UnitConversions.convert(space.zOrigin, "m", "ft") < 0 # Foundation        
+        surfaces = space.surfaces
+        surfaces.each do |surface|
+          next unless surface.surfaceType.downcase == "wall"
+          os_facade = Geometry.get_facade_for_surface(surface)
+          if adb_facade.include? os_facade
+            surface.setOutsideBoundaryCondition("Adiabatic")
+          else
+            surface.setOutsideBoundaryCondition("Foundation")
           end
         end
+      end   
+      
+      #Set foundation corridor spaces to adiabatic
+      foundation_corridor_space.surfaces.each do |surface|
+        surface.setOutsideBoundaryCondition("Adiabatic")
       end
+      
     end
 
     unit_spaces_hash.each do |unit_num, unit_info|
@@ -776,11 +780,21 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
       end
     end
 
-    #Make all adjacent walls adiabatic
+    model.getSpaces.each do |space|
+      next unless Geometry.is_corridor(space)
+      space.surfaces.each do |surface|
+        if surface.surfaceType.downcase == "floor" and foundation_type == "slab"
+          surface.setOutsideBoundaryCondition("Adiabatic")
+        end
+        surface.setOutsideBoundaryCondition("Adiabatic")
+      end
+    end
+
+    #Make all adjacent walls adiabatic (seperate foundation spaces have adiabatic shared walls to align with whole-building approach)
     model.getSpaces.each do |space|
       space.surfaces.each do |surface|
         next unless surface.surfaceType.downcase == "wall"
-        if surface.adjacentSurface.is_initialized # adiabatic if the corridor 
+        if surface.adjacentSurface.is_initialized
           surface.adjacentSurface.get.setOutsideBoundaryCondition("Adiabatic")
           surface.setOutsideBoundaryCondition("Adiabatic")
         end
@@ -790,7 +804,6 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     # set foundation outside boundary condition to Kiva "foundation"
     model.getSurfaces.each do |surface|
       next if surface.outsideBoundaryCondition.downcase != "ground"
-
       surface.setOutsideBoundaryCondition("Foundation")
     end
  
