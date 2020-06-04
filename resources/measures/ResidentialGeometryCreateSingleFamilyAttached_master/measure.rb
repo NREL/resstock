@@ -303,6 +303,8 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
     orientation = runner.getDoubleArgumentValue("orientation", user_arguments)
     minimal_collapsed = runner.getBoolArgumentValue("minimal_collapsed", user_arguments)
 
+    minimal_collapsed = false
+
     num_units_actual = num_units
     num_floors_actual = num_floors
 
@@ -789,26 +791,50 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
       OpenStudio::Model.intersectSurfaces(spaces)
       OpenStudio::Model.matchSurfaces(spaces)
 
-      if ["crawlspace", "unfinished basement"].include? foundation_type
-        foundation_space = Geometry.make_one_space_from_multiple_spaces(model, foundation_spaces)
-        if foundation_type == "crawlspace"
-          foundation_space.setName("crawl space")
-          foundation_zone = OpenStudio::Model::ThermalZone.new(model)
-          foundation_zone.setName("crawl zone")
-          foundation_space.setThermalZone(foundation_zone)
-          foundation_space_type = OpenStudio::Model::SpaceType.new(model)
-          foundation_space_type.setStandardsSpaceType(Constants.SpaceTypeCrawl)
-          foundation_space.setSpaceType(foundation_space_type)
-        elsif foundation_type == "unfinished basement"
-          foundation_space.setName("unfinished basement space")
-          foundation_zone = OpenStudio::Model::ThermalZone.new(model)
-          foundation_zone.setName("unfinished basement zone")
-          foundation_space.setThermalZone(foundation_zone)
-          foundation_space_type = OpenStudio::Model::SpaceType.new(model)
-          foundation_space_type.setStandardsSpaceType(Constants.SpaceTypeUnfinishedBasement)
-          foundation_space.setSpaceType(foundation_space_type)
+      # Individual foundation spaces for each unit
+      foundation_spaces.each do |foundation_space|
+        if ["crawlspace", "unfinished basement"].include? foundation_type
+          if foundation_type == "crawlspace"
+            foundation_space.setName("crawl space")
+            foundation_zone = OpenStudio::Model::ThermalZone.new(model)
+            foundation_zone.setName("crawl zone")
+            foundation_space.setThermalZone(foundation_zone)
+            foundation_space_type = OpenStudio::Model::SpaceType.new(model)
+            foundation_space_type.setStandardsSpaceType(Constants.SpaceTypeCrawl)
+            foundation_space.setSpaceType(foundation_space_type)
+          elsif foundation_type == "unfinished basement"
+            foundation_space.setName("unfinished basement space")
+            foundation_zone = OpenStudio::Model::ThermalZone.new(model)
+            foundation_zone.setName("unfinished basement zone")
+            foundation_space.setThermalZone(foundation_zone)
+            foundation_space_type = OpenStudio::Model::SpaceType.new(model)
+            foundation_space_type.setStandardsSpaceType(Constants.SpaceTypeUnfinishedBasement)
+            foundation_space.setSpaceType(foundation_space_type)
+          end
         end
       end
+
+      # # Single foundation space for all units
+      # if ["crawlspace", "unfinished basement"].include? foundation_type
+      #   foundation_space = Geometry.make_one_space_from_multiple_spaces(model, foundation_spaces)
+      #   if foundation_type == "crawlspace"
+      #     foundation_space.setName("crawl space")
+      #     foundation_zone = OpenStudio::Model::ThermalZone.new(model)
+      #     foundation_zone.setName("crawl zone")
+      #     foundation_space.setThermalZone(foundation_zone)
+      #     foundation_space_type = OpenStudio::Model::SpaceType.new(model)
+      #     foundation_space_type.setStandardsSpaceType(Constants.SpaceTypeCrawl)
+      #     foundation_space.setSpaceType(foundation_space_type)
+      #   elsif foundation_type == "unfinished basement"
+      #     foundation_space.setName("unfinished basement space")
+      #     foundation_zone = OpenStudio::Model::ThermalZone.new(model)
+      #     foundation_zone.setName("unfinished basement zone")
+      #     foundation_space.setThermalZone(foundation_zone)
+      #     foundation_space_type = OpenStudio::Model::SpaceType.new(model)
+      #     foundation_space_type.setStandardsSpaceType(Constants.SpaceTypeUnfinishedBasement)
+      #     foundation_space.setSpaceType(foundation_space_type)
+      #   end
+      # end
 
       # set foundation walls to ground
       spaces = model.getSpaces
@@ -836,25 +862,39 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
     OpenStudio::Model.matchSurfaces(spaces)
 
     if attic_type == "unfinished attic" and roof_type != Constants.RoofTypeFlat
-      if offset == 0
-        x *= num_units
-        if has_rear_units
-          x /= 2
-        end
-        attic_spaces.each do |attic_space|
-          attic_space.remove
-        end
-        attic_space = get_attic_space(model, x, y, wall_height, num_floors, roof_pitch, roof_type, has_rear_units)
-      else
-        attic_space = Geometry.make_one_space_from_multiple_spaces(model, attic_spaces)
+      # Single attic space for all units
+      # if offset == 0
+      #   x *= num_units
+      #   if has_rear_units
+      #     x /= 2
+      #   end
+      #   attic_spaces.each do |attic_space|
+      #     attic_space.remove
+      #   end
+      #   attic_space = get_attic_space(model, x, y, wall_height, num_floors, roof_pitch, roof_type, has_rear_units)
+      # else
+      #   # attic_space = Geometry.make_one_space_from_multiple_spaces(model, attic_spaces)
+      # end
+    
+      # attic_space.setName("unfinished attic space")
+      # attic_zone = OpenStudio::Model::ThermalZone.new(model)
+      # attic_zone.setName("unfinished attic zone")
+      # attic_space.setThermalZone(attic_zone)
+      # attic_space_type = OpenStudio::Model::SpaceType.new(model)
+      # attic_space_type.setStandardsSpaceType(Constants.SpaceTypeUnfinishedAttic)
+      # attic_space.setSpaceType(attic_space_type)
+
+      # Individual attic spaces for each unit
+      attic_spaces.each do |attic_space|
+        attic_space.setName("unfinished attic space")
+        attic_zone = OpenStudio::Model::ThermalZone.new(model)
+        attic_zone.setName("unfinished attic zone")
+        attic_space.setThermalZone(attic_zone)
+        attic_space_type = OpenStudio::Model::SpaceType.new(model)
+        attic_space_type.setStandardsSpaceType(Constants.SpaceTypeUnfinishedAttic)
+        attic_space.setSpaceType(attic_space_type)
       end
-      attic_space.setName("unfinished attic space")
-      attic_zone = OpenStudio::Model::ThermalZone.new(model)
-      attic_zone.setName("unfinished attic zone")
-      attic_space.setThermalZone(attic_zone)
-      attic_space_type = OpenStudio::Model::SpaceType.new(model)
-      attic_space_type.setStandardsSpaceType(Constants.SpaceTypeUnfinishedAttic)
-      attic_space.setSpaceType(attic_space_type)
+
     end
 
     total_units_represented = 0
@@ -894,6 +934,30 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
       next if surface.outsideBoundaryCondition.downcase != "ground"
 
       surface.setOutsideBoundaryCondition("Foundation")
+    end
+
+    model.getThermalZones.each do |zone|
+      # next if Geometry.space_is_below_grade(space)
+      zone.spaces.each do |space|
+        space.surfaces.each do |surface|
+          if surface.adjacentSurface.is_initialized 
+            adjacent_surface = surface.adjacentSurface.get
+            adjacent_space = adjacent_surface.space.get
+            adjacent_zone = adjacent_space.thermalZone.get
+            next if zone == adjacent_zone #spaces are in the same zone
+            if Geometry.is_living_space_type(adjacent_space.spaceType.get.standardsSpaceType.get) and Geometry.is_living_space_type(space.spaceType.get.standardsSpaceType.get)
+              surface.adjacentSurface.get.setOutsideBoundaryCondition("Adiabatic")
+              surface.setOutsideBoundaryCondition("Adiabatic")
+            elsif Geometry.space_is_below_grade(adjacent_space) and Geometry.space_is_below_grade(space)
+              surface.adjacentSurface.get.setOutsideBoundaryCondition("Adiabatic")
+              surface.setOutsideBoundaryCondition("Adiabatic")
+            elsif Geometry.is_unfinished_attic(adjacent_space) and Geometry.is_unfinished_attic(space)
+              adjacent_surface.setOutsideBoundaryCondition("Adiabatic")
+              surface.setOutsideBoundaryCondition("Adiabatic")
+            end
+          end
+        end
+      end
     end
 
     # Store number of units

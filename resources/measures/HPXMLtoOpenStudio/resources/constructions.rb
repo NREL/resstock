@@ -2237,7 +2237,6 @@ class Construction
           if revconstr.nil?
             revconstr = constr.reverseConstruction
           end
-          # adjacent_surface = surface.adjacentSurface.get
           surface.setConstruction(revconstr)
           if not printed_revconstr
             print_construction_creation(runner, surface)

@@ -354,6 +354,18 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
       runner.registerError("Invalid horizontal location entered.")
       return false
     end
+    if unit_width == 1 and horz_location != "None"
+      runner.registerWarning("No #{horz_location} location exists, setting horz_location to 'None'")
+      horz_location = "None"
+    end
+    if unit_width > 1 and horz_location == "None"
+      runner.registerError("Specified incompatible horizontal location for the corridor and unit configuration.")
+      return false
+    end
+    if unit_width < 3 and horz_location == "Middle"
+      runner.registerError("Invalid horizontal location entered, no middle location exists.")
+      return false
+    end
 
     # minimal collapsed
     # num_middle = 1
@@ -603,6 +615,7 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
       else
         attic_space = Geometry.make_one_space_from_multiple_spaces(model, attic_spaces)
       end
+            
       attic_space.setName("unfinished attic space")
       attic_zone = OpenStudio::Model::ThermalZone.new(model)
       attic_zone.setName("unfinished attic zone")
