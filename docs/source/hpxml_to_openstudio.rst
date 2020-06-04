@@ -809,6 +809,7 @@ If neither are provided, ``RatedAnnualkWh`` will be defaulted to represent a sta
 
 .. math:: RatedAnnualkWh = 637.0 + 18.0 \cdot NumberofBedrooms
 
+Optional ``extension/WeekdayScheduleFractions``, ``extension/WeekendScheduleFractions``, and ``extension/MonthlyScheduleMultipliers`` can be provided; if not provided, values from Figures 16 & 24 of the `Building America House Simulation Protocols <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_ are used.
 An ``extension/UsageMultiplier`` can also be optionally provided that scales energy usage; if not provided, it is assumed to be 1.0.
 
 Cooking Range/Oven
@@ -817,7 +818,7 @@ Cooking Range/Oven
 ``Appliances/CookingRange`` and ``Appliances/Oven`` elements can be specified; if not provided, a range/oven will not be modeled.
 The ``FuelType`` of the range must be provided.
 
-Inputs including ``IsInduction`` (for the cooking range) and ``IsConvection`` (for the oven) can be optionally provided.
+Inputs including ``CookingRange/IsInduction`` and ``Oven/IsConvection`` can be optionally provided.
 The following default values will be assumed unless a complete set of the optional variables is provided.
 
 =============  ==============
@@ -827,7 +828,8 @@ IsInduction    false
 IsConvection   false
 =============  ==============
 
-An ``extension/UsageMultiplier`` can also be optionally provided that scales energy usage; if not provided, it is assumed to be 1.0.
+Optional ``CookingRange/extension/WeekdayScheduleFractions``, ``CookingRange/extension/WeekendScheduleFractions``, and ``CookingRange/extension/MonthlyScheduleMultipliers`` can be provided; if not provided, values from Figures 22 & 24 of the `Building America House Simulation Protocols <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_ are used.
+An ``CookingRange/extension/UsageMultiplier`` can also be optionally provided that scales energy usage; if not provided, it is assumed to be 1.0.
 
 Dehumidifier
 ************

@@ -2524,7 +2524,7 @@ class OSModel
     @hpxml.hvac_distributions.each do |hvac_distribution|
       next unless hvac_distribution.distribution_system_type == HPXML::HVACDistributionTypeAir
 
-      air_ducts = create_ducts(hvac_distribution, model, spaces)
+      air_ducts = create_ducts(runner, model, hvac_distribution, spaces)
 
       # Connect AirLoopHVACs to ducts
       hvac_distribution.hvac_systems.each do |hvac_system|
@@ -2536,7 +2536,7 @@ class OSModel
           elsif duct_systems[air_ducts] != loop
             # Multiple air loops associated with this duct system, treat
             # as separate duct systems.
-            air_ducts2 = create_ducts(hvac_distribution, model, spaces)
+            air_ducts2 = create_ducts(runner, model, hvac_distribution, spaces)
             duct_systems[air_ducts2] = loop
           end
         end
@@ -2576,7 +2576,7 @@ class OSModel
                   has_flue_chimney, @hvac_map, @apply_ashrae140_assumptions)
   end
 
-  def self.create_ducts(hvac_distribution, model, spaces)
+  def self.create_ducts(runner, model, hvac_distribution, spaces)
     air_ducts = []
 
     # Duct leakage (supply/return => [value, units])
@@ -2626,9 +2626,14 @@ class OSModel
     end
 
     # If all ducts are in conditioned space, model leakage as going to outside
+    registered_warning = false
     [HPXML::DuctTypeSupply, HPXML::DuctTypeReturn].each do |duct_side|
       next unless (leakage_to_outside[duct_side][0] > 0) && (total_unconditioned_duct_area[duct_side] == 0)
 
+      if not registered_warning
+        runner.registerWarning("HVACDistribution '#{hvac_distribution.id}' has ducts entirely within conditioned space but there is non-zero leakage to the outside. Leakage to the outside is typically zero in these situations; consider revising leakage values. Leakage will be modeled as heat lost to the ambient environment.")
+        registered_warning = true
+      end
       duct_area = 0.0
       duct_rvalue = 0.0
       duct_loc_space = nil # outside
