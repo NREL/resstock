@@ -1536,9 +1536,11 @@ class FoundationConstructions
       return false
     end
 
-    if exposed_perimeter.nil? and surface.outsideBoundaryCondition.downcase == "foundation"
+    if exposed_perimeter.nil?
       exposed_perimeter = Geometry.calculate_exposed_perimeter(model, [surface], has_fnd_walls)
-      if exposed_perimeter == 0
+    end
+    if surface.outsideBoundaryCondition.downcase == "foundation"
+      if exposed_perimeter <= 0
         runner.registerError("Calculated an exposed perimeter <= 0 for slab '#{surface.name.to_s}'.")
         return false
       end

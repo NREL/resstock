@@ -997,16 +997,25 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
           elsif Geometry.space_is_below_grade(adjacent_space) and Geometry.space_is_below_grade(space)
             surface.adjacentSurface.get.setOutsideBoundaryCondition("Adiabatic")
             surface.setOutsideBoundaryCondition("Adiabatic")
-          end
-
-          if Geometry.is_corridor(space) and surface.adjacentSurface.is_initialized
+          elsif Geometry.is_corridor(space) 
             surface.adjacentSurface.get.setOutsideBoundaryCondition("Adiabatic")
             surface.setOutsideBoundaryCondition("Adiabatic")
           end
-
         end
+
       end
     end
+
+    # model.getSpaces.each do |space|
+    #   next unless Geometry.is_corridor(space)
+
+    #   space.surfaces.each do |surface|
+    #     if surface.adjacentSurface.is_initialized # only set to adiabatic if the corridor surface is adjacent to another surface
+    #       surface.adjacentSurface.get.setOutsideBoundaryCondition("Adiabatic")
+    #       surface.setOutsideBoundaryCondition("Adiabatic")
+    #     end
+    #   end
+    # end
 
     # set foundation outside boundary condition to Kiva "foundation"
     model.getSurfaces.each do |surface|
