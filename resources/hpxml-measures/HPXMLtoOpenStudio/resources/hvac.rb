@@ -2979,7 +2979,7 @@ class HVAC
     defrost_eir_curve = create_curve_biquadratic(model, [0.1528, 0, 0, 0, 0, 0], 'Defrosteir', -100, 100, -100, 100) # Heating defrost curve for reverse cycle
     htg_coil.setDefrostEnergyInputRatioFunctionofTemperatureCurve(defrost_eir_curve)
     htg_coil.setDefrostStrategy('ReverseCycle')
-    htg_coil.setDefrostControl('OnDemand')
+    htg_coil.setDefrostControl('Timed')
     htg_coil.setCrankcaseHeaterCapacity(0)
     htg_coil.setCrankcaseHeaterCapacity(UnitConversions.convert(crankcase_kw, 'kW', 'W'))
 
