@@ -709,6 +709,9 @@ class EnergyPlusValidator
         '[not(Location)] | Location[text()="living space" or text()="basement - conditioned" or text()="basement - unconditioned" or text()="garage" or text()="other"]' => one,
         'RatedAnnualkWh | extension/AdjustedAnnualkWh' => zero_or_more,
         'extension/UsageMultiplier' => zero_or_one,
+        'extension/WeekdayScheduleFractions' => zero_or_one, # Uses ERI Reference Home if not provided
+        'extension/WeekendScheduleFractions' => zero_or_one, # Uses ERI Reference Home if not provided
+        'extension/MonthlyScheduleMultipliers' => zero_or_one, # Uses ERI Reference Home if not provided
       },
 
       # [Dehumidifier]
@@ -727,6 +730,9 @@ class EnergyPlusValidator
         'FuelType[text()="natural gas" or text()="fuel oil" or text()="propane" or text()="electricity" or text()="wood" or text()="wood pellets"]' => one,
         'IsInduction' => zero_or_one,
         'extension/UsageMultiplier' => zero_or_one,
+        'extension/WeekdayScheduleFractions' => zero_or_one, # Uses ERI Reference Home if not provided
+        'extension/WeekendScheduleFractions' => zero_or_one, # Uses ERI Reference Home if not provided
+        'extension/MonthlyScheduleMultipliers' => zero_or_one, # Uses ERI Reference Home if not provided
         '../Oven/IsConvection' => zero_or_one,
       },
 

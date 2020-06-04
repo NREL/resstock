@@ -317,10 +317,8 @@ class HPXMLtoOpenStudioHVACTest < MiniTest::Test
     # Get HPXML values
     heat_pump = hpxml.heat_pumps[0]
     seer = heat_pump.cooling_efficiency_seer
-    backup_efficiency = heat_pump.backup_heating_efficiency_percent
     clg_capacity = UnitConversions.convert(heat_pump.cooling_capacity, 'Btu/hr', 'W')
     htg_capacity = UnitConversions.convert(heat_pump.heating_capacity, 'Btu/hr', 'W')
-    supp_htg_capacity = UnitConversions.convert(heat_pump.backup_heating_capacity, 'Btu/hr', 'W')
 
     # Check cooling coil
     assert_equal(1, model.getCoilCoolingDXMultiSpeeds.size)
@@ -343,8 +341,7 @@ class HPXMLtoOpenStudioHVACTest < MiniTest::Test
     # Check supp heating coil
     assert_equal(1, model.getCoilHeatingElectrics.size)
     supp_htg_coil = model.getCoilHeatingElectrics[0]
-    assert_in_epsilon(backup_efficiency, supp_htg_coil.efficiency, 0.01)
-    assert_in_epsilon(supp_htg_capacity, supp_htg_coil.nominalCapacity.get, 0.01)
+    assert_in_delta(0, supp_htg_coil.nominalCapacity.get, 0.01)
   end
 
   def test_ground_to_air_heat_pump
