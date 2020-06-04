@@ -653,6 +653,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
 
       # Multiple surfaces for foundation + foundation corridor floors #
       # foundation corridor
+      foundation_corridor_space = nil
       if corridor_width > 0 and corridor_position == "Double-Loaded Interior"
         foundation_corridor_space = OpenStudio::Model::Space::fromFloorPrint(foundation_corr_polygon, foundation_height, model)
         foundation_corridor_space = foundation_corridor_space.get
@@ -733,8 +734,10 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
       end   
       
       #Set foundation corridor spaces to adiabatic
-      foundation_corridor_space.surfaces.each do |surface|
-        surface.setOutsideBoundaryCondition("Adiabatic")
+      if not foundation_corridor_space.nil?
+        foundation_corridor_space.surfaces.each do |surface|
+          surface.setOutsideBoundaryCondition("Adiabatic")
+        end
       end
       
     end
