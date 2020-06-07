@@ -157,7 +157,7 @@ class ProcessConstructionsFinishedRoof < OpenStudio::Measure::ModelMeasure
       singleunit_mf = false
     end
     # Adiabatic roofs (shared surface with above floor)
-    if singleunit_mf
+    # if singleunit_mf
       # Because no above unit is defined, adiabatic roofs are constructed as reverse floors
       if not FloorConstructions.apply_uninsulated(runner, model,
                                                   roofs_by_type[Constants.SurfaceTypeRoofAdiabatic],
@@ -165,15 +165,15 @@ class ProcessConstructionsFinishedRoof < OpenStudio::Measure::ModelMeasure
                                                   0.75, 0.5, Material.FloorWood, Material.CoveringBare)
         return false
       end
-    end
-
+    # end
+    if singleunit_mf
     if not FloorConstructions.apply_uninsulated(runner, model,
       roofs_by_type[Constants.SurfaceTypeRoofAdiabatic],
       Constants.SurfaceTypeRoofAdiabatic,
       0.75, 0.5, Material.FloorWood, Material.CoveringBare)
       return false
     end
-
+  end
     # Remove any constructions/materials that aren't used
     HelperMethods.remove_unused_constructions_and_materials(model, runner)
 

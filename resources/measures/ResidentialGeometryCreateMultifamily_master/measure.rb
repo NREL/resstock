@@ -1006,6 +1006,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
       end
     end
 
+    # make all surfaces adjacent to corridor spaces into adiabatic surfaces
     # model.getSpaces.each do |space|
     #   next unless Geometry.is_corridor(space)
 
