@@ -313,7 +313,8 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
                                      electricity.hot_tub_pump[0] +
                                      electricity.well_pump[0] +
                                      electricity.recirc_pump[0] +
-                                     electricity.vehicle[0]
+                                     electricity.vehicle[0] +
+                                     electricity.pan_heater[0]
 
       err = electricityInteriorEquipment - electricity.interior_equipment[0]
       if err.abs > 0.1
@@ -372,6 +373,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       report_sim_output(runner, "electricity_well_pump_kwh", electricity.well_pump[0], "GJ", elec_site_units)
       report_sim_output(runner, "electricity_recirc_pump_kwh", electricity.recirc_pump[0], "GJ", elec_site_units)
       report_sim_output(runner, "electricity_vehicle_kwh", electricity.vehicle[0], "GJ", elec_site_units)
+      report_sim_output(runner, "electricity_pan_heater_kwh", electricity.pan_heater[0], "GJ", elec_site_units)
     end
 
     sqlFile.close

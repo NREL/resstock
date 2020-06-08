@@ -276,6 +276,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
       report_ts_output(runner, timeseries, "electricity_well_pump_kwh", electricity.well_pump, "GJ", elec_site_units)
       report_ts_output(runner, timeseries, "electricity_recirc_pump_kwh", electricity.recirc_pump, "GJ", elec_site_units)
       report_ts_output(runner, timeseries, "electricity_vehicle_kwh", electricity.vehicle, "GJ", elec_site_units)
+      report_ts_output(runner, timeseries, "electricity_pan_heater_kwh", electricity.pan_heater, "GJ", elec_site_units)
     else
       report_ts_output(runner, timeseries, "electricity_interior_equipment_kwh", electricity.interior_equipment, "GJ", elec_site_units)
     end

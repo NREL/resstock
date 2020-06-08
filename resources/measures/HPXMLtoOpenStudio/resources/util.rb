@@ -425,6 +425,7 @@ class OutputMeters
     electricityWellPump = Vector.elements(Array.new(num_ts, 0.0))
     electricityRecircPump = Vector.elements(Array.new(num_ts, 0.0))
     electricityVehicle = Vector.elements(Array.new(num_ts, 0.0))
+    electricityPanHeater = Vector.elements(Array.new(num_ts, 0.0))
 
     # Get building units
     units = Geometry.get_building_units(@model, @runner)
@@ -476,6 +477,7 @@ class OutputMeters
         electricityWellPump = add_unit(sql_file, electricityWellPump, units_represented, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYWELLPUMP') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
         electricityRecircPump = add_unit(sql_file, electricityRecircPump, units_represented, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYRECIRCPUMP') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
         electricityVehicle = add_unit(sql_file, electricityVehicle, units_represented, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYVEHICLE') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
+        electricityPanHeater = add_unit(sql_file, electricityVehicle, units_represented, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYPANHEATER') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
       end
     end
 
@@ -518,6 +520,7 @@ class OutputMeters
       @electricity.well_pump = electricityWellPump
       @electricity.recirc_pump = electricityRecircPump
       @electricity.vehicle = electricityVehicle
+      @electricity.pan_heater = electricityPanHeater
     end
 
     @electricity.total_end_uses = @electricity.heating +
@@ -905,6 +908,7 @@ class OutputMeters
         electricity_well_pump(custom_meter_infos, unit, thermal_zones)
         electricity_recirc_pump(custom_meter_infos, unit, thermal_zones)
         electricity_vehicle(custom_meter_infos, unit, thermal_zones)
+        electricity_pan_heater(custom_meter_infos, unit, thermal_zones)
       end
     end
 
@@ -1990,6 +1994,17 @@ class OutputMeters
       end
     end
   end
+
+  def electricity_pan_heater(custom_meter_infos, unit, thermal_zones)
+    custom_meter_infos["#{unit.name}:ElectricityPanHeater"] = { "fuel_type" => "Electricity", "key_var_groups" => [] }
+    unit.spaces.each do |space|
+      space.electricEquipment.each do |equip|
+        next unless equip.endUseSubcategory.include? "pan heater"
+
+        custom_meter_infos["#{unit.name}:ElectricityPanHeater"]["key_var_groups"] << ["#{equip.name}", "Electric Equipment Electric Energy"]
+      end
+    end
+  end
 end
 
 class Electricity
@@ -1999,7 +2014,7 @@ class Electricity
                 :garage_lighting, :interior_equipment, :fans_heating, :fans_cooling, :pumps_heating, :central_pumps_heating, :pumps_cooling,
                 :central_pumps_cooling, :water_systems, :photovoltaics, :refrigerator, :clothes_washer, :clothes_dryer, :cooking_range,
                 :dishwasher, :plug_loads, :house_fan, :range_fan, :bath_fan, :ceiling_fan, :extra_refrigerator, :freezer, :pool_heater,
-                :pool_pump, :hot_tub_heater, :hot_tub_pump, :well_pump, :recirc_pump, :vehicle, :total_end_uses
+                :pool_pump, :hot_tub_heater, :hot_tub_pump, :well_pump, :recirc_pump, :vehicle, :pan_heater, :total_end_uses
 end
 
 class NaturalGas
