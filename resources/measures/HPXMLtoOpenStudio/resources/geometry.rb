@@ -458,6 +458,13 @@ class Geometry
   def self.space_is_below_grade(space)
     space.surfaces.each do |surface|
       next if surface.surfaceType.downcase != "wall"
+      z_vertex = []
+      surface.vertices.each do |vertex|
+        z_vertex << vertex.z
+      end
+      if z_vertex.min < 0 
+        return true
+      end
       if surface.outsideBoundaryCondition.downcase == "foundation"
         return true
       end
@@ -1969,7 +1976,7 @@ class Geometry
       model_spaces = model.getSpaces
       spaces = []
       model_spaces.each do |space|
-        next if Geometry.space_is_below_grade(space)
+        next unless Geometry.space_is_above_grade(space)
         spaces << space
       end
       unit_height = UnitConversions.convert(Geometry.get_height_of_spaces(spaces), "ft", "m")
