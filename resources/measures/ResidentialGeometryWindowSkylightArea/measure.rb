@@ -374,6 +374,10 @@ class SetResidentialWindowSkylightArea < OpenStudio::Measure::ModelMeasure
         # set all of the window area to the surface with the greatest available wall area on any facade
         surface = surface_avail_area.max_by { |k, v| v }[0]
         surface_window_area[surface] += target_facade_areas[facade]
+        target_facade_areas[facade] = 0
+        new_facade = Geometry.get_facade_for_surface(surface)
+        target_facade_areas[new_facade] = surface_window_area[surface] 
+        runner.registerWarning("The #{facade} facade window area is less than the minimum window area allowed, and has been added to the #{new_facade} facade.")
         next
       end
 
