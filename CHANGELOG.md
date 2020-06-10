@@ -17,6 +17,7 @@ Features
 - Allow a key value to be specified when outputting timeseries variables ([#438](https://github.com/NREL/OpenStudio-BuildStock/pull/438))
 
 Fixes
+- Add mini-split heat pump pan heater to custom meter for heating electricity ([#454](https://github.com/NREL/OpenStudio-BuildStock/pull/454))
 - Assign daylight saving start/end dates based on county and not epw region ([#453](https://github.com/NREL/OpenStudio-BuildStock/pull/453))
 - Update ceiling fan tsv to remove the "National Average" option, and instead sample 28% "None" and 72% "Standard Efficiency" ([#445](https://github.com/NREL/OpenStudio-BuildStock/pull/445))
 - Remove Location Weather Filename and Location Weather Year tsvs, and update options lookup to reflect updated weather file changes; weather filenames are now required to match what is in the options lookup ([#432](https://github.com/NREL/OpenStudio-BuildStock/pull/432))
