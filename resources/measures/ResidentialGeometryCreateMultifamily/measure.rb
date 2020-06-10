@@ -591,17 +591,17 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
       end
 
     elsif corridor_position == "Double Exterior" or corridor_position == "Single Exterior (Front)"
-      interior_corridor_width = 0
-      # front access
-      nw_point = OpenStudio::Point3d.new(0, -y, wall_height + z)
-      sw_point = OpenStudio::Point3d.new(0, -y - corridor_width, wall_height + z)
-      ne_point = OpenStudio::Point3d.new(x, -y, wall_height + z)
-      se_point = OpenStudio::Point3d.new(x, -y - corridor_width, wall_height + z)
+      # interior_corridor_width = 0
+      # # front access
+      # nw_point = OpenStudio::Point3d.new(0, -y, wall_height + z)
+      # sw_point = OpenStudio::Point3d.new(0, -y - corridor_width, wall_height + z)
+      # ne_point = OpenStudio::Point3d.new(x, -y, wall_height + z)
+      # se_point = OpenStudio::Point3d.new(x, -y - corridor_width, wall_height + z)
 
-      shading_surface = OpenStudio::Model::ShadingSurface.new(OpenStudio::Point3dVector.new([sw_point, se_point, ne_point, nw_point]), model)
-      shading_surface_group = OpenStudio::Model::ShadingSurfaceGroup.new(model)
-      shading_surface.setShadingSurfaceGroup(shading_surface_group)
-      shading_surface.setName("Corridor shading")
+      # shading_surface = OpenStudio::Model::ShadingSurface.new(OpenStudio::Point3dVector.new([sw_point, se_point, ne_point, nw_point]), model)
+      # shading_surface_group = OpenStudio::Model::ShadingSurfaceGroup.new(model)
+      # shading_surface.setShadingSurfaceGroup(shading_surface_group)
+      # shading_surface.setName("Corridor shading")
     end
 
     # foundation
@@ -797,9 +797,9 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     model.getSpaces.each do |space|
       space.surfaces.each do |surface|
         #Temporary adiabatic slab for testing
-        if surface.surfaceType.downcase == "floor" and foundation_type == "slab"
-          surface.setOutsideBoundaryCondition("Adiabatic")
-        end 
+        # if surface.surfaceType.downcase == "floor" and foundation_type == "slab"
+        #   surface.setOutsideBoundaryCondition("Adiabatic")
+        # end 
 
         next unless surface.surfaceType.downcase == "wall"
         if surface.adjacentSurface.is_initialized
@@ -849,10 +849,10 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
       return false
     end
 
-    result = Geometry.process_eaves(model, runner, eaves_depth, Constants.RoofStructureTrussCantilever)
-    unless result
-      return false
-    end
+    # result = Geometry.process_eaves(model, runner, eaves_depth, Constants.RoofStructureTrussCantilever)
+    # unless result
+    #   return false
+    # end
 
     result = Geometry.process_neighbors(model, runner, left_neighbor_offset, right_neighbor_offset, back_neighbor_offset, front_neighbor_offset)
     unless result
