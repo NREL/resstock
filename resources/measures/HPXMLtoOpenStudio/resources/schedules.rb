@@ -1298,49 +1298,49 @@ class ScheduleGenerator
       last_state = cooking_state
       step += step_jump
     end
-
-    random_offset = (prng.rand * 15).to_i - 7
+    offset_range = 15
+    random_offset = (prng.rand * 2 * offset_range).to_i - offset_range
     sink_activity_sch = sink_activity_sch.rotate(-4 * 60 + random_offset) # 4 am shifting
     sink_activity_sch = aggregate_array(sink_activity_sch, minutes_per_steps)
     @schedules["sinks"] = sink_activity_sch.map { |flow| flow / Constants.PeakFlowRate }
 
-    random_offset = (prng.rand * 15).to_i - 7
+    random_offset = (prng.rand * 2 * offset_range).to_i - offset_range
     dw_activity_sch = dw_activity_sch.rotate(random_offset)
     dw_activity_sch = aggregate_array(dw_activity_sch, minutes_per_steps)
     @schedules["dishwasher"] = dw_activity_sch.map { |flow| flow / Constants.PeakFlowRate }
 
-    random_offset = (prng.rand * 15).to_i - 7
+    random_offset = (prng.rand * 2 * offset_range).to_i - offset_range
     cw_activity_sch = cw_activity_sch.rotate(random_offset)
     cw_activity_sch = aggregate_array(cw_activity_sch, minutes_per_steps)
     @schedules["clothes_washer"] = cw_activity_sch.map { |flow| flow / Constants.PeakFlowRate }
 
-    random_offset = (prng.rand * 15).to_i - 7
+    random_offset = (prng.rand * 2 * offset_range).to_i - offset_range
     shower_activity_sch = shower_activity_sch.rotate(random_offset)
     shower_activity_sch = aggregate_array(shower_activity_sch, minutes_per_steps)
     @schedules["showers"] = shower_activity_sch.map { |flow| flow / Constants.PeakFlowRate }
 
-    random_offset = (prng.rand * 15).to_i - 7
+    random_offset = (prng.rand * 2 * offset_range).to_i - offset_range
     bath_activity_sch = bath_activity_sch.rotate(random_offset)
     bath_activity_sch = aggregate_array(bath_activity_sch, minutes_per_steps)
     @schedules["baths"] = bath_activity_sch.map { |flow| flow / Constants.PeakFlowRate }
 
-    random_offset = (prng.rand * 15).to_i - 7
+    random_offset = (prng.rand * 2 * offset_range).to_i - offset_range
     cooking_power_sch = cooking_power_sch.rotate(random_offset)
     cooking_power_sch = aggregate_array(cooking_power_sch, minutes_per_steps)
     @schedules["cooking_range"] = cooking_power_sch.map { |power| power / Constants.PeakPower }
 
-    random_offset = (prng.rand * 15).to_i - 7
+    random_offset = (prng.rand * 2 * offset_range).to_i - offset_range
     cw_power_sch = cw_power_sch.rotate(random_offset)
     cw_power_sch = aggregate_array(cw_power_sch, minutes_per_steps)
     @schedules["clothes_washer_power"] = cw_power_sch.map { |power| power / Constants.PeakPower }
 
-    random_offset = (prng.rand * 15).to_i - 7
+    random_offset = (prng.rand * 2 * offset_range).to_i - offset_range
     cd_power_sch = cd_power_sch.rotate(random_offset)
     cd_power_sch = aggregate_array(cd_power_sch, minutes_per_steps)
     @schedules["clothes_dryer"] = cd_power_sch.map { |power| power / Constants.PeakPower }
     @schedules["clothes_dryer_exhaust"] = @schedules["clothes_dryer"]
 
-    random_offset = (prng.rand * 15).to_i - 7
+    random_offset = (prng.rand * 2 * offset_range).to_i - offset_range
     dw_power_sch = dw_power_sch.rotate(random_offset)
     dw_power_sch = aggregate_array(dw_power_sch, minutes_per_steps)
     @schedules["dishwasher_power"] = dw_power_sch.map { |power| power / Constants.PeakPower }
