@@ -520,10 +520,10 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
 
     # Remove neighbors
     if adb_facade.include? "left"
-      left_neighbor_offset = 0
+      left_neighbor_offset = 1
     end
     if adb_facade.include? "right"
-      right_neighbor_offset = 0
+      right_neighbor_offset = 1
     end
     if adb_facade.include? "back"
       back_neighbor_offset = 0
