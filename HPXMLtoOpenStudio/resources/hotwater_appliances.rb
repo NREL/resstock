@@ -1,23 +1,12 @@
 # frozen_string_literal: true
 
 class HotWaterAndAppliances
-  def self.apply(model, weather, living_space,
-                 cfa, nbeds, ncfl, has_uncond_bsmnt, wh_setpoint,
+  def self.apply(model, runner, weather, living_space,
+                 cfa, nbeds, ncfl, has_uncond_bsmnt,
                  clothes_washer, cw_space, clothes_dryer, cd_space,
                  dishwasher, dw_space, refrigerator, rf_space, cooking_range, cook_space, oven,
-                 fixtures_all_low_flow, fixtures_usage_multiplier,
-                 dist_type, pipe_r, std_pipe_length, recirc_loop_length,
-                 recirc_branch_length, recirc_control_type,
-                 recirc_pump_power, dwhr_present,
-                 dwhr_facilities_connected, dwhr_is_equal_flow,
-                 dwhr_efficiency, dhw_loop_fracs, eri_version, dhw_map)
-
-    # Schedules init
-    timestep_minutes = (60.0 / model.getTimestep.numberOfTimestepsPerHour).to_i
-    start_date = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(1), 1, model.getYearDescription.assumedYear)
-    timestep_day = OpenStudio::Time.new(1, 0)
-
-    t_mix = 105.0 # F, Temperature of mixed water at fixtures
+                 fixtures_usage_multiplier, water_fixtures, water_heating_systems, hot_water_distribution,
+                 solar_thermal_system, eri_version, dhw_map)
 
     # Map plant loops to sys_ids
     dhw_loops = {}
@@ -29,8 +18,17 @@ class HotWaterAndAppliances
       end
     end
 
-    if not dist_type.nil?
+    # Calculate load fractions for each water heater
+    dhw_loop_fracs = {}
+    water_heating_systems.each do |water_heating_system|
+      solar_fraction = Waterheater.get_water_heater_solar_fraction(water_heating_system, solar_thermal_system)
+      dhw_load_frac = water_heating_system.fraction_dhw_load_served * (1.0 - solar_fraction)
+      dhw_loop_fracs[water_heating_system.id] = dhw_load_frac
+    end
 
+    dist_type = hot_water_distribution.system_type unless hot_water_distribution.nil?
+
+    if not dist_type.nil?
       water_use_connections = {}
       setpoint_scheds = {}
 
@@ -51,102 +49,39 @@ class HotWaterAndAppliances
         fail 'Could not find setpoint schedule.' if setpoint_scheds[dhw_loop].nil?
       end
 
-      # Calculate mixed water fractions
-      dwhr_eff_adj, dwhr_iFrac, dwhr_plc, dwhr_locF, dwhr_fixF = get_dwhr_factors(nbeds, dist_type, std_pipe_length, recirc_branch_length, dwhr_is_equal_flow, dwhr_facilities_connected, fixtures_all_low_flow)
-      daily_wh_inlet_temperatures = calc_water_heater_daily_inlet_temperatures(weather, dwhr_present, dwhr_iFrac, dwhr_efficiency, dwhr_eff_adj, dwhr_plc, dwhr_locF, dwhr_fixF)
-      daily_wh_inlet_temperatures_c = daily_wh_inlet_temperatures.map { |t| UnitConversions.convert(t, 'F', 'C') }
-      daily_mw_fractions = calc_mixed_water_daily_fractions(daily_wh_inlet_temperatures, wh_setpoint, t_mix)
+      fixtures_all_low_flow = true # default
+      water_fixtures.each do |water_fixture|
+        next unless [HPXML::WaterFixtureTypeShowerhead, HPXML::WaterFixtureTypeFaucet].include? water_fixture.water_fixture_type
 
+        fixtures_all_low_flow = false if not water_fixture.low_flow
+      end
+
+      t_mix = 105.0 # F, Temperature of mixed water at fixtures
+
+      # Calculate mixed water fractions
+      # WH Setpoint: Weighted average by fraction DHW load served
+      avg_setpoint_temp = 0.0
+      water_heating_systems.each do |water_heating_system|
+        avg_setpoint_temp += water_heating_system.temperature * water_heating_system.fraction_dhw_load_served
+      end
+      daily_wh_inlet_temperatures = calc_water_heater_daily_inlet_temperatures(weather, nbeds, hot_water_distribution, fixtures_all_low_flow)
+      daily_wh_inlet_temperatures_c = daily_wh_inlet_temperatures.map { |t| UnitConversions.convert(t, 'F', 'C') }
+      daily_mw_fractions = calc_mixed_water_daily_fractions(daily_wh_inlet_temperatures, avg_setpoint_temp, t_mix)
+
+      # Schedules init
+      start_date = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(1), 1, model.getYearDescription.assumedYear)
+      timestep_day = OpenStudio::Time.new(1, 0)
       # Replace mains water temperature schedule with water heater inlet temperature schedule.
       # These are identical unless there is a DWHR.
       time_series_tmains = OpenStudio::TimeSeries.new(start_date, timestep_day, OpenStudio::createVector(daily_wh_inlet_temperatures_c), 'C')
       schedule_tmains = OpenStudio::Model::ScheduleInterval.fromTimeSeries(time_series_tmains, model).get
       schedule_tmains.setName('mains temperature schedule')
       model.getSiteWaterMainsTemperature.setTemperatureSchedule(schedule_tmains)
-    end
 
-    # Clothes washer
-    if (not dist_type.nil?) && (not clothes_washer.nil?)
-      cw_annual_kwh, cw_frac_sens, cw_frac_lat, cw_gpd = calc_clothes_washer_energy_gpd(eri_version, nbeds, clothes_washer, cw_space.nil?)
-      cw_name = Constants.ObjectNameClothesWasher
-      cw_schedule = HotWaterSchedule.new(model, cw_name, nbeds)
-      cw_peak_flow = cw_schedule.calcPeakFlowFromDailygpm(cw_gpd)
-      cw_design_level_w = cw_schedule.calcDesignLevelFromDailykWh(cw_annual_kwh / 365.0)
-
-      cw_space = living_space if cw_space.nil?
-      add_electric_equipment(model, cw_name, cw_space, cw_design_level_w, cw_frac_sens, cw_frac_lat, cw_schedule.schedule)
-      dhw_loop_fracs.each do |sys_id, dhw_load_frac|
-        dhw_loop = dhw_loops[sys_id]
-        add_water_use_equipment(model, cw_name, cw_peak_flow * dhw_load_frac, cw_schedule.schedule, setpoint_scheds[dhw_loop], water_use_connections[dhw_loop])
-      end
-    end
-
-    # Clothes dryer
-    if (not cw_space.nil?) && (not clothes_dryer.nil?)
-      cd_annual_kwh, cd_annual_therm, cd_frac_sens, cd_frac_lat = calc_clothes_dryer_energy(eri_version, nbeds, clothes_dryer, clothes_washer, cd_space.nil?)
-      cd_name = Constants.ObjectNameClothesDryer
-      cd_weekday_sch = '0.010, 0.006, 0.004, 0.002, 0.004, 0.006, 0.016, 0.032, 0.048, 0.068, 0.078, 0.081, 0.074, 0.067, 0.057, 0.061, 0.055, 0.054, 0.051, 0.051, 0.052, 0.054, 0.044, 0.024'
-      cd_monthly_sch = '1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0'
-      cd_schedule = MonthWeekdayWeekendSchedule.new(model, cd_name, cd_weekday_sch, cd_weekday_sch, cd_monthly_sch, 1.0, 1.0, true, true, Constants.ScheduleTypeLimitsFraction)
-      cd_design_level_e = cd_schedule.calcDesignLevelFromDailykWh(cd_annual_kwh / 365.0)
-      cd_design_level_f = cd_schedule.calcDesignLevelFromDailyTherm(cd_annual_therm / 365.0)
-
-      cd_space = living_space if cd_space.nil?
-      add_electric_equipment(model, cd_name, cd_space, cd_design_level_e, cd_frac_sens, cd_frac_lat, cd_schedule.schedule)
-      add_other_equipment(model, cd_name, cd_space, cd_design_level_f, cd_frac_sens, cd_frac_lat, cd_schedule.schedule, clothes_dryer.fuel_type)
-    end
-
-    # Dishwasher
-    if (not dist_type.nil?) && (not dishwasher.nil?)
-      dw_annual_kwh, dw_frac_sens, dw_frac_lat, dw_gpd = calc_dishwasher_energy_gpd(eri_version, nbeds, dishwasher, dw_space.nil?)
-      dw_name = Constants.ObjectNameDishwasher
-      dw_schedule = HotWaterSchedule.new(model, dw_name, nbeds)
-      dw_peak_flow = dw_schedule.calcPeakFlowFromDailygpm(dw_gpd)
-      dw_design_level_w = dw_schedule.calcDesignLevelFromDailykWh(dw_annual_kwh / 365.0)
-
-      dw_space = living_space if dw_space.nil?
-      add_electric_equipment(model, dw_name, dw_space, dw_design_level_w, dw_frac_sens, dw_frac_lat, dw_schedule.schedule)
-      dhw_loop_fracs.each do |sys_id, dhw_load_frac|
-        dhw_loop = dhw_loops[sys_id]
-        add_water_use_equipment(model, dw_name, dw_peak_flow * dhw_load_frac, dw_schedule.schedule, setpoint_scheds[dhw_loop], water_use_connections[dhw_loop])
-      end
-    end
-
-    # Refrigerator
-    if not refrigerator.nil?
-      rf_annual_kwh, rf_frac_sens, rf_frac_lat = calc_refrigerator_energy(refrigerator, rf_space.nil?)
-      fridge_name = Constants.ObjectNameRefrigerator
-      fridge_weekday_sch = refrigerator.weekday_fractions
-      fridge_weekend_sch = refrigerator.weekend_fractions
-      fridge_monthly_sch = refrigerator.monthly_multipliers
-      fridge_schedule = MonthWeekdayWeekendSchedule.new(model, fridge_name, fridge_weekday_sch, fridge_weekend_sch, fridge_monthly_sch, 1.0, 1.0, true, true, Constants.ScheduleTypeLimitsFraction)
-      fridge_design_level = fridge_schedule.calcDesignLevelFromDailykWh(rf_annual_kwh / 365.0)
-
-      rf_space = living_space if rf_space.nil?
-      add_electric_equipment(model, fridge_name, rf_space, fridge_design_level, rf_frac_sens, rf_frac_lat, fridge_schedule.schedule)
-    end
-
-    # Cooking Range
-    if (not cooking_range.nil?) && (not oven.nil?)
-      cook_annual_kwh, cook_annual_therm, cook_frac_sens, cook_frac_lat = calc_range_oven_energy(nbeds, cooking_range, oven, cook_space.nil?)
-      cook_name = Constants.ObjectNameCookingRange
-      cook_weekday_sch = cooking_range.weekday_fractions
-      cook_weekend_sch = cooking_range.weekend_fractions
-      cook_monthly_sch = cooking_range.monthly_multipliers
-      cook_schedule = MonthWeekdayWeekendSchedule.new(model, cook_name, cook_weekday_sch, cook_weekend_sch, cook_monthly_sch, 1.0, 1.0, true, true, Constants.ScheduleTypeLimitsFraction)
-      cook_design_level_e = cook_schedule.calcDesignLevelFromDailykWh(cook_annual_kwh / 365.0)
-      cook_design_level_f = cook_schedule.calcDesignLevelFromDailyTherm(cook_annual_therm / 365.0)
-
-      cook_space = living_space if cook_space.nil?
-      add_electric_equipment(model, cook_name, cook_space, cook_design_level_e, cook_frac_sens, cook_frac_lat, cook_schedule.schedule)
-      add_other_equipment(model, cook_name, cook_space, cook_design_level_f, cook_frac_sens, cook_frac_lat, cook_schedule.schedule, cooking_range.fuel_type)
-    end
-
-    if not dist_type.nil?
       # Fixtures (showers, sinks, baths) + distribution waste
       fx_gpd = get_fixtures_gpd(eri_version, nbeds, fixtures_all_low_flow, daily_mw_fractions)
       fx_gpd *= fixtures_usage_multiplier
-      w_gpd = get_dist_waste_gpd(eri_version, nbeds, has_uncond_bsmnt, cfa, ncfl, dist_type, pipe_r, std_pipe_length, recirc_branch_length, fixtures_all_low_flow)
+      w_gpd = get_dist_waste_gpd(eri_version, nbeds, has_uncond_bsmnt, cfa, ncfl, hot_water_distribution, fixtures_all_low_flow)
       w_gpd *= fixtures_usage_multiplier # Fixture draws are the reason for most distribution waste, so scale this too
 
       mw_schedule = OpenStudio::Model::ScheduleConstant.new(model)
@@ -181,7 +116,7 @@ class HotWaterAndAppliances
       add_other_equipment(model, "#{water_name} Latent", living_space, water_design_level_lat, 0.0, 1.0, water_schedule.schedule, nil)
 
       # Recirculation pump
-      dist_pump_annual_kwh = get_hwdist_recirc_pump_energy(dist_type, recirc_control_type, recirc_pump_power)
+      dist_pump_annual_kwh = get_hwdist_recirc_pump_energy(hot_water_distribution)
       if dist_pump_annual_kwh > 0
         dist_pump_name = Constants.ObjectNameHotWaterRecircPump
         dist_pump_weekday_sch = '0.010, 0.006, 0.004, 0.002, 0.004, 0.006, 0.016, 0.032, 0.048, 0.068, 0.078, 0.081, 0.074, 0.067, 0.057, 0.061, 0.055, 0.054, 0.051, 0.051, 0.052, 0.054, 0.044, 0.024'
@@ -189,11 +124,87 @@ class HotWaterAndAppliances
         dist_pump_schedule = MonthWeekdayWeekendSchedule.new(model, dist_pump_name, dist_pump_weekday_sch, dist_pump_weekday_sch, dist_pump_monthly_sch, 1.0, 1.0)
         dist_pump_design_level = dist_pump_schedule.calcDesignLevelFromDailykWh(dist_pump_annual_kwh / 365.0)
         dhw_loop_fracs.each do |sys_id, dhw_load_frac|
-          dhw_loop = dhw_loops[sys_id]
           dist_pump = add_electric_equipment(model, dist_pump_name, living_space, dist_pump_design_level * dhw_load_frac, 0.0, 0.0, dist_pump_schedule.schedule)
           dhw_map[sys_id] << dist_pump unless dist_pump.nil?
         end
       end
+
+      # Clothes washer
+      if not clothes_washer.nil?
+        cw_annual_kwh, cw_frac_sens, cw_frac_lat, cw_gpd = calc_clothes_washer_energy_gpd(eri_version, nbeds, clothes_washer, cw_space.nil?)
+        cw_name = Constants.ObjectNameClothesWasher
+        cw_schedule = HotWaterSchedule.new(model, cw_name, nbeds)
+        cw_peak_flow = cw_schedule.calcPeakFlowFromDailygpm(cw_gpd)
+        cw_design_level_w = cw_schedule.calcDesignLevelFromDailykWh(cw_annual_kwh / 365.0)
+
+        cw_space = living_space if cw_space.nil?
+        add_electric_equipment(model, cw_name, cw_space, cw_design_level_w, cw_frac_sens, cw_frac_lat, cw_schedule.schedule)
+        dhw_loop_fracs.each do |sys_id, dhw_load_frac|
+          dhw_loop = dhw_loops[sys_id]
+          add_water_use_equipment(model, cw_name, cw_peak_flow * dhw_load_frac, cw_schedule.schedule, setpoint_scheds[dhw_loop], water_use_connections[dhw_loop])
+        end
+      end
+
+      # Dishwasher
+      if not dishwasher.nil?
+        dw_annual_kwh, dw_frac_sens, dw_frac_lat, dw_gpd = calc_dishwasher_energy_gpd(eri_version, nbeds, dishwasher, dw_space.nil?)
+        dw_name = Constants.ObjectNameDishwasher
+        dw_schedule = HotWaterSchedule.new(model, dw_name, nbeds)
+        dw_peak_flow = dw_schedule.calcPeakFlowFromDailygpm(dw_gpd)
+        dw_design_level_w = dw_schedule.calcDesignLevelFromDailykWh(dw_annual_kwh / 365.0)
+
+        dw_space = living_space if dw_space.nil?
+        add_electric_equipment(model, dw_name, dw_space, dw_design_level_w, dw_frac_sens, dw_frac_lat, dw_schedule.schedule)
+        dhw_loop_fracs.each do |sys_id, dhw_load_frac|
+          dhw_loop = dhw_loops[sys_id]
+          add_water_use_equipment(model, dw_name, dw_peak_flow * dhw_load_frac, dw_schedule.schedule, setpoint_scheds[dhw_loop], water_use_connections[dhw_loop])
+        end
+      end
+    end
+
+    # Clothes dryer
+    if not clothes_dryer.nil?
+      cd_annual_kwh, cd_annual_therm, cd_frac_sens, cd_frac_lat = calc_clothes_dryer_energy(eri_version, nbeds, clothes_dryer, clothes_washer, cd_space.nil?)
+      cd_name = Constants.ObjectNameClothesDryer
+      cd_weekday_sch = '0.010, 0.006, 0.004, 0.002, 0.004, 0.006, 0.016, 0.032, 0.048, 0.068, 0.078, 0.081, 0.074, 0.067, 0.057, 0.061, 0.055, 0.054, 0.051, 0.051, 0.052, 0.054, 0.044, 0.024'
+      cd_monthly_sch = '1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0'
+      cd_schedule = MonthWeekdayWeekendSchedule.new(model, cd_name, cd_weekday_sch, cd_weekday_sch, cd_monthly_sch, 1.0, 1.0, true, true, Constants.ScheduleTypeLimitsFraction)
+      cd_design_level_e = cd_schedule.calcDesignLevelFromDailykWh(cd_annual_kwh / 365.0)
+      cd_design_level_f = cd_schedule.calcDesignLevelFromDailyTherm(cd_annual_therm / 365.0)
+
+      cd_space = living_space if cd_space.nil?
+      add_electric_equipment(model, cd_name, cd_space, cd_design_level_e, cd_frac_sens, cd_frac_lat, cd_schedule.schedule)
+      add_other_equipment(model, cd_name, cd_space, cd_design_level_f, cd_frac_sens, cd_frac_lat, cd_schedule.schedule, clothes_dryer.fuel_type)
+    end
+
+    # Refrigerator
+    if not refrigerator.nil?
+      rf_annual_kwh, rf_frac_sens, rf_frac_lat = calc_refrigerator_energy(refrigerator, rf_space.nil?)
+      fridge_name = Constants.ObjectNameRefrigerator
+      fridge_weekday_sch = refrigerator.weekday_fractions
+      fridge_weekend_sch = refrigerator.weekend_fractions
+      fridge_monthly_sch = refrigerator.monthly_multipliers
+      fridge_schedule = MonthWeekdayWeekendSchedule.new(model, fridge_name, fridge_weekday_sch, fridge_weekend_sch, fridge_monthly_sch, 1.0, 1.0, true, true, Constants.ScheduleTypeLimitsFraction)
+      fridge_design_level = fridge_schedule.calcDesignLevelFromDailykWh(rf_annual_kwh / 365.0)
+
+      rf_space = living_space if rf_space.nil?
+      add_electric_equipment(model, fridge_name, rf_space, fridge_design_level, rf_frac_sens, rf_frac_lat, fridge_schedule.schedule)
+    end
+
+    # Cooking Range
+    if (not cooking_range.nil?) && (not oven.nil?)
+      cook_annual_kwh, cook_annual_therm, cook_frac_sens, cook_frac_lat = calc_range_oven_energy(nbeds, cooking_range, oven, cook_space.nil?)
+      cook_name = Constants.ObjectNameCookingRange
+      cook_weekday_sch = cooking_range.weekday_fractions
+      cook_weekend_sch = cooking_range.weekend_fractions
+      cook_monthly_sch = cooking_range.monthly_multipliers
+      cook_schedule = MonthWeekdayWeekendSchedule.new(model, cook_name, cook_weekday_sch, cook_weekend_sch, cook_monthly_sch, 1.0, 1.0, true, true, Constants.ScheduleTypeLimitsFraction)
+      cook_design_level_e = cook_schedule.calcDesignLevelFromDailykWh(cook_annual_kwh / 365.0)
+      cook_design_level_f = cook_schedule.calcDesignLevelFromDailyTherm(cook_annual_therm / 365.0)
+
+      cook_space = living_space if cook_space.nil?
+      add_electric_equipment(model, cook_name, cook_space, cook_design_level_e, cook_frac_sens, cook_frac_lat, cook_schedule.schedule)
+      add_other_equipment(model, cook_name, cook_space, cook_design_level_f, cook_frac_sens, cook_frac_lat, cook_schedule.schedule, cooking_range.fuel_type)
     end
   end
 
@@ -203,22 +214,17 @@ class HotWaterAndAppliances
   end
 
   def self.calc_range_oven_energy(nbeds, cooking_range, oven, is_outside = false)
-    # Get values
-    fuel_type = cooking_range.fuel_type
-    is_induction = cooking_range.is_induction
-    is_convection = oven.is_convection
-
-    if is_induction
+    if cooking_range.is_induction
       burner_ef = 0.91
     else
       burner_ef = 1.0
     end
-    if is_convection
+    if oven.is_convection
       oven_ef = 0.95
     else
       oven_ef = 1.0
     end
-    if fuel_type != HPXML::FuelTypeElectricity
+    if cooking_range.fuel_type != HPXML::FuelTypeElectricity
       annual_kwh = 22.6 + 2.7 * nbeds
       annual_therm = oven_ef * (22.6 + 2.7 * nbeds)
     else
@@ -231,7 +237,7 @@ class HotWaterAndAppliances
 
     if not is_outside
       frac_lost = 0.20
-      if fuel_type == HPXML::FuelTypeElectricity
+      if cooking_range.fuel_type == HPXML::FuelTypeElectricity
         frac_sens = (1.0 - frac_lost) * 0.90
       else
         elec_btu = UnitConversions.convert(annual_kwh, 'kWh', 'Btu')
@@ -242,6 +248,10 @@ class HotWaterAndAppliances
     else # Internal gains outside unit
       frac_sens = 0.0
       frac_lat = 0.0
+    end
+
+    if not @runner.nil?
+      @runner.registerWarning('Negative energy use calculated for cooking range/oven; this may indicate incorrect ENERGY GUIDE label inputs.') if (annual_kwh < 0) || (annual_therm < 0)
     end
 
     return annual_kwh, annual_therm, frac_sens, frac_lat
@@ -257,35 +267,27 @@ class HotWaterAndAppliances
   end
 
   def self.calc_dishwasher_energy_gpd(eri_version, nbeds, dishwasher, is_outside = false)
-    # Get values
-    ef = dishwasher.energy_factor
-    ler = dishwasher.rated_annual_kwh
-    if ef.nil?
-      ef = HotWaterAndAppliances.calc_dishwasher_ef_from_annual_kwh(ler)
-    elsif ler.nil?
-      ler = HotWaterAndAppliances.calc_dishwasher_annual_kwh_from_ef(ef)
-    end
-    cap = dishwasher.place_setting_capacity
-    elec_rate = dishwasher.label_electric_rate
-    gas_rate = dishwasher.label_gas_rate
-    agc = dishwasher.label_annual_gas_cost
-    label_usage = dishwasher.label_usage
-
     if Constants.ERIVersions.index(eri_version) >= Constants.ERIVersions.index('2019A')
-      lcy = label_usage * 52.0
-      kwh_per_cyc = ((agc * 0.5497 / gas_rate - ler * elec_rate * 0.02504 / elec_rate) / (elec_rate * 0.5497 / gas_rate - 0.02504)) / lcy
-      dwcpy = (88.4 + 34.9 * nbeds) * (12.0 / cap)
+      if dishwasher.rated_annual_kwh.nil?
+        dishwasher.rated_annual_kwh = calc_dishwasher_annual_kwh_from_ef(dishwasher.energy_factor)
+      end
+      lcy = dishwasher.label_usage * 52.0
+      kwh_per_cyc = ((dishwasher.label_annual_gas_cost * 0.5497 / dishwasher.label_gas_rate - dishwasher.rated_annual_kwh * dishwasher.label_electric_rate * 0.02504 / dishwasher.label_electric_rate) / (dishwasher.label_electric_rate * 0.5497 / dishwasher.label_gas_rate - 0.02504)) / lcy
+      dwcpy = (88.4 + 34.9 * nbeds) * (12.0 / dishwasher.place_setting_capacity)
       annual_kwh = kwh_per_cyc * dwcpy
 
-      gpd = (ler - kwh_per_cyc * lcy) * 0.02504 * dwcpy / 365.0
+      gpd = (dishwasher.rated_annual_kwh - kwh_per_cyc * lcy) * 0.02504 * dwcpy / 365.0
     else
-      dwcpy = (88.4 + 34.9 * nbeds) * (12.0 / cap)
-      annual_kwh = ((86.3 + 47.73 / ef) / 215.0) * dwcpy
+      if dishwasher.energy_factor.nil?
+        dishwasher.energy_factor = calc_dishwasher_ef_from_annual_kwh(dishwasher.rated_annual_kwh)
+      end
+      dwcpy = (88.4 + 34.9 * nbeds) * (12.0 / dishwasher.place_setting_capacity)
+      annual_kwh = ((86.3 + 47.73 / dishwasher.energy_factor) / 215.0) * dwcpy
 
       if Constants.ERIVersions.index(eri_version) >= Constants.ERIVersions.index('2014A')
-        gpd = dwcpy * (4.6415 * (1.0 / ef) - 1.9295) / 365.0
+        gpd = dwcpy * (4.6415 * (1.0 / dishwasher.energy_factor) - 1.9295) / 365.0
       else
-        gpd = ((88.4 + 34.9 * nbeds) * 8.16 - (88.4 + 34.9 * nbeds) * 12.0 / cap * (4.6415 * (1.0 / ef) - 1.9295)) / 365.0
+        gpd = ((88.4 + 34.9 * nbeds) * 8.16 - (88.4 + 34.9 * nbeds) * 12.0 / dishwasher.place_setting_capacity * (4.6415 * (1.0 / dishwasher.energy_factor) - 1.9295)) / 365.0
       end
     end
 
@@ -299,6 +301,11 @@ class HotWaterAndAppliances
     else # Internal gains outside unit
       frac_sens = 0.0
       frac_lat = 0.0
+    end
+
+    if not @runner.nil?
+      @runner.registerWarning('Negative energy use calculated for dishwasher; this may indicate incorrect ENERGY GUIDE label inputs.') if annual_kwh < 0
+      @runner.registerWarning('Negative hot water use calculated for dishwasher; this may indicate incorrect ENERGY GUIDE label inputs.') if gpd < 0
     end
 
     return annual_kwh, frac_sens, frac_lat, gpd
@@ -318,13 +325,8 @@ class HotWaterAndAppliances
 
   def self.get_clothes_dryer_default_values(eri_version, fuel_type)
     if Constants.ERIVersions.index(eri_version) >= Constants.ERIVersions.index('2019A')
-      if fuel_type == HPXML::FuelTypeElectricity
-        return { combined_energy_factor: 3.01, # FIXME: Need to verify
-                 control_type: HPXML::ClothesDryerControlTypeTimer }
-      else
-        return { combined_energy_factor: 3.01, # FIXME: Need to verify
-                 control_type: HPXML::ClothesDryerControlTypeTimer }
-      end
+      return { combined_energy_factor: 3.01,
+               control_type: HPXML::ClothesDryerControlTypeTimer }
     else
       if fuel_type == HPXML::FuelTypeElectricity
         return { combined_energy_factor: 2.62,
@@ -337,49 +339,41 @@ class HotWaterAndAppliances
   end
 
   def self.calc_clothes_dryer_energy(eri_version, nbeds, clothes_dryer, clothes_washer, is_outside = false)
-    # Get values
-    fuel_type = clothes_dryer.fuel_type
-    ef = clothes_dryer.energy_factor
-    cef = clothes_dryer.combined_energy_factor
-    if ef.nil?
-      ef = calc_clothes_dryer_ef_from_cef(cef)
-    elsif cef.nil?
-      cef = calc_clothes_dryer_cef_from_ef(ef)
-    end
-    control_type = clothes_dryer.control_type
-    cw_ler = clothes_washer.rated_annual_kwh
-    cw_cap = clothes_washer.capacity
-    cw_mef = clothes_washer.modified_energy_factor
-    cw_imef = clothes_washer.integrated_modified_energy_factor
-    if cw_mef.nil?
-      cw_mef = calc_clothes_washer_mef_from_imef(cw_imef)
-    elsif cw_imef.nil?
-      cw_imef = calc_clothes_washer_imef_from_mef(cw_mef)
-    end
-
     if Constants.ERIVersions.index(eri_version) >= Constants.ERIVersions.index('2019A')
-      rmc = (0.97 * (cw_cap / cw_imef) - cw_ler / 312.0) / ((2.0104 * cw_cap + 1.4242) * 0.455) + 0.04
-      acy = (164.0 + 46.5 * nbeds) * ((3.0 * 2.08 + 1.59) / (cw_cap * 2.08 + 1.59))
-      annual_kwh = (((rmc - 0.04) * 100) / 55.5) * (8.45 / cef) * acy
-      if fuel_type == HPXML::FuelTypeElectricity
+      if clothes_dryer.combined_energy_factor.nil?
+        clothes_dryer.combined_energy_factor = calc_clothes_dryer_cef_from_ef(clothes_dryer.energy_factor)
+      end
+      if clothes_washer.integrated_modified_energy_factor.nil?
+        clothes_washer.integrated_modified_energy_factor = calc_clothes_washer_imef_from_mef(clothes_washer.modified_energy_factor)
+      end
+      rmc = (0.97 * (clothes_washer.capacity / clothes_washer.integrated_modified_energy_factor) - clothes_washer.rated_annual_kwh / 312.0) / ((2.0104 * clothes_washer.capacity + 1.4242) * 0.455) + 0.04
+      acy = (164.0 + 46.5 * nbeds) * ((3.0 * 2.08 + 1.59) / (clothes_washer.capacity * 2.08 + 1.59))
+      annual_kwh = (((rmc - 0.04) * 100) / 55.5) * (8.45 / clothes_dryer.combined_energy_factor) * acy
+      if clothes_dryer.fuel_type == HPXML::FuelTypeElectricity
         annual_therm = 0.0
       else
         annual_therm = annual_kwh * 3412.0 * (1.0 - 0.07) * (3.73 / 3.30) / 100000
         annual_kwh = annual_kwh * 0.07 * (3.73 / 3.30)
       end
     else
-      if control_type == HPXML::ClothesDryerControlTypeTimer
+      if clothes_dryer.energy_factor.nil?
+        clothes_dryer.energy_factor = calc_clothes_dryer_ef_from_cef(clothes_dryer.combined_energy_factor)
+      end
+      if clothes_washer.modified_energy_factor.nil?
+        clothes_washer.modified_energy_factor = calc_clothes_washer_mef_from_imef(clothes_washer.integrated_modified_energy_factor)
+      end
+      if clothes_dryer.control_type == HPXML::ClothesDryerControlTypeTimer
         field_util_factor = 1.18
-      elsif control_type == HPXML::ClothesDryerControlTypeMoisture
+      elsif clothes_dryer.control_type == HPXML::ClothesDryerControlTypeMoisture
         field_util_factor = 1.04
       end
-      if fuel_type == HPXML::FuelTypeElectricity
-        annual_kwh = 12.5 * (164.0 + 46.5 * nbeds) * (field_util_factor / ef) * ((cw_cap / cw_mef) - cw_ler / 392.0) / (0.2184 * (cw_cap * 4.08 + 0.24))
+      if clothes_dryer.fuel_type == HPXML::FuelTypeElectricity
+        annual_kwh = 12.5 * (164.0 + 46.5 * nbeds) * (field_util_factor / clothes_dryer.energy_factor) * ((clothes_washer.capacity / clothes_washer.modified_energy_factor) - clothes_washer.rated_annual_kwh / 392.0) / (0.2184 * (clothes_washer.capacity * 4.08 + 0.24))
         annual_therm = 0.0
       else
-        annual_kwh = 12.5 * (164.0 + 46.5 * nbeds) * (field_util_factor / 3.01) * ((cw_cap / cw_mef) - cw_ler / 392.0) / (0.2184 * (cw_cap * 4.08 + 0.24))
-        annual_therm = annual_kwh * 3412.0 * (1.0 - 0.07) * (3.01 / ef) / 100000
-        annual_kwh = annual_kwh * 0.07 * (3.01 / ef)
+        annual_kwh = 12.5 * (164.0 + 46.5 * nbeds) * (field_util_factor / 3.01) * ((clothes_washer.capacity / clothes_washer.modified_energy_factor) - clothes_washer.rated_annual_kwh / 392.0) / (0.2184 * (clothes_washer.capacity * 4.08 + 0.24))
+        annual_therm = annual_kwh * 3412.0 * (1.0 - 0.07) * (3.01 / clothes_dryer.energy_factor) / 100000
+        annual_kwh = annual_kwh * 0.07 * (3.01 / clothes_dryer.energy_factor)
       end
     end
 
@@ -388,7 +382,7 @@ class HotWaterAndAppliances
 
     if not is_outside
       frac_lost = 0.85
-      if fuel_type == HPXML::FuelTypeElectricity
+      if clothes_dryer.fuel_type == HPXML::FuelTypeElectricity
         frac_sens = (1.0 - frac_lost) * 0.90
       else
         elec_btu = UnitConversions.convert(annual_kwh, 'kWh', 'Btu')
@@ -399,6 +393,10 @@ class HotWaterAndAppliances
     else # Internal gains outside unit
       frac_sens = 0.0
       frac_lat = 0.0
+    end
+
+    if not @runner.nil?
+      @runner.registerWarning('Negative energy use calculated for clothes dryer; this may indicate incorrect ENERGY GUIDE label inputs.') if (annual_kwh < 0) || (annual_therm < 0)
     end
 
     return annual_kwh, annual_therm, frac_sens, frac_lat
@@ -433,33 +431,22 @@ class HotWaterAndAppliances
   end
 
   def self.calc_clothes_washer_energy_gpd(eri_version, nbeds, clothes_washer, is_outside = false)
-    # Get values
-    ler = clothes_washer.rated_annual_kwh
-    elec_rate = clothes_washer.label_electric_rate
-    gas_rate = clothes_washer.label_gas_rate
-    agc = clothes_washer.label_annual_gas_cost
-    cap = clothes_washer.capacity
-    label_usage = clothes_washer.label_usage
-
     if Constants.ERIVersions.index(eri_version) >= Constants.ERIVersions.index('2019A')
       gas_h20 = 0.3914 # (gal/cyc) per (therm/y)
       elec_h20 = 0.0178 # (gal/cyc) per (kWh/y)
-      lcy = label_usage * 52.0 # label cycles per year
+      lcy = clothes_washer.label_usage * 52.0 # label cycles per year
       scy = 164.0 + nbeds * 46.5
-      acy = scy * ((3.0 * 2.08 + 1.59) / (cap * 2.08 + 1.59)) # Annual Cycles per Year
-      cw_appl = (agc * gas_h20 / gas_rate - (ler * elec_rate) * elec_h20 / elec_rate) / (elec_rate * gas_h20 / gas_rate - elec_h20)
+      acy = scy * ((3.0 * 2.08 + 1.59) / (clothes_washer.capacity * 2.08 + 1.59)) # Annual Cycles per Year
+      cw_appl = (clothes_washer.label_annual_gas_cost * gas_h20 / clothes_washer.label_gas_rate - (clothes_washer.rated_annual_kwh * clothes_washer.label_electric_rate) * elec_h20 / clothes_washer.label_electric_rate) / (clothes_washer.label_electric_rate * gas_h20 / clothes_washer.label_gas_rate - elec_h20)
       annual_kwh = cw_appl / lcy * acy
 
-      gpd = (ler - cw_appl) * elec_h20 * acy / 365.0
+      gpd = (clothes_washer.rated_annual_kwh - cw_appl) * elec_h20 * acy / 365.0
     else
-      ncy = (3.0 / 2.847) * (164 + nbeds * 45.6)
-      if Constants.ERIVersions.index(eri_version) >= Constants.ERIVersions.index('2014A')
-        ncy = (3.0 / 2.847) * (164 + nbeds * 46.5)
-      end
-      acy = ncy * ((3.0 * 2.08 + 1.59) / (cap * 2.08 + 1.59)) # Adjusted Cycles per Year
-      annual_kwh = ((ler / 392.0) - ((ler * elec_rate - agc) / (21.9825 * elec_rate - gas_rate) / 392.0) * 21.9825) * acy
+      ncy = (3.0 / 2.874) * (164 + nbeds * 46.5)
+      acy = ncy * ((3.0 * 2.08 + 1.59) / (clothes_washer.capacity * 2.08 + 1.59)) # Adjusted Cycles per Year
+      annual_kwh = ((clothes_washer.rated_annual_kwh / 392.0) - ((clothes_washer.rated_annual_kwh * clothes_washer.label_electric_rate - clothes_washer.label_annual_gas_cost) / (21.9825 * clothes_washer.label_electric_rate - clothes_washer.label_gas_rate) / 392.0) * 21.9825) * acy
 
-      gpd = 60.0 * ((ler * elec_rate - agc) / (21.9825 * elec_rate - gas_rate) / 392.0) * acy / 365.0
+      gpd = 60.0 * ((clothes_washer.rated_annual_kwh * clothes_washer.label_electric_rate - clothes_washer.label_annual_gas_cost) / (21.9825 * clothes_washer.label_electric_rate - clothes_washer.label_gas_rate) / 392.0) * acy / 365.0
       if Constants.ERIVersions.index(eri_version) < Constants.ERIVersions.index('2014A')
         gpd -= 3.97 # Section 4.2.2.5.2.10
       end
@@ -475,6 +462,11 @@ class HotWaterAndAppliances
     else # Internal gains outside unit
       frac_sens = 0.0
       frac_lat = 0.0
+    end
+
+    if not @runner.nil?
+      @runner.registerWarning('Negative energy use calculated for clothes washer; this may indicate incorrect ENERGY GUIDE label inputs.') if annual_kwh < 0
+      @runner.registerWarning('Negative hot water use calculated for clothes washer; this may indicate incorrect ENERGY GUIDE label inputs.') if gpd < 0
     end
 
     return annual_kwh, frac_sens, frac_lat, gpd
@@ -504,26 +496,29 @@ class HotWaterAndAppliances
       frac_lat = 0.0
     end
 
+    if not @runner.nil?
+      @runner.registerWarning('Negative energy use calculated for refrigerator; this may indicate incorrect ENERGY GUIDE label inputs.') if annual_kwh < 0
+    end
+
     return annual_kwh, frac_sens, frac_lat
   end
 
   def self.get_dist_energy_consumption_adjustment(has_uncond_bsmnt, cfa, ncfl,
-                                                  dist_type, recirc_control_type,
-                                                  pipe_r, std_pipe_length, recirc_loop_length)
+                                                  hot_water_distribution)
     # ANSI/RESNET 301-2014 Addendum A-2015
     # Amendment on Domestic Hot Water (DHW) Systems
     # Eq. 4.2-16
-    ew_fact = get_dist_energy_waste_factor(dist_type, recirc_control_type, pipe_r)
+    ew_fact = get_dist_energy_waste_factor(hot_water_distribution)
     o_frac = 0.25 # fraction of hot water waste from standard operating conditions
     oew_fact = ew_fact * o_frac # standard operating condition portion of hot water energy waste
     ocd_eff = 0.0
     sew_fact = ew_fact - oew_fact
     ref_pipe_l = get_default_std_pipe_length(has_uncond_bsmnt, cfa, ncfl)
-    if dist_type == HPXML::DHWDistTypeStandard
-      pe_ratio = std_pipe_length / ref_pipe_l
-    elsif dist_type == HPXML::DHWDistTypeRecirc
+    if hot_water_distribution.system_type == HPXML::DHWDistTypeStandard
+      pe_ratio = hot_water_distribution.standard_piping_length / ref_pipe_l
+    elsif hot_water_distribution.system_type == HPXML::DHWDistTypeRecirc
       ref_loop_l = get_default_recirc_loop_length(ref_pipe_l)
-      pe_ratio = recirc_loop_length / ref_loop_l
+      pe_ratio = hot_water_distribution.recirculation_piping_length / ref_loop_l
     end
     e_waste = oew_fact * (1.0 - ocd_eff) + sew_fact * pe_ratio
     return (e_waste + 128.0) / 160.0
@@ -609,7 +604,7 @@ class HotWaterAndAppliances
     return wu
   end
 
-  def self.get_dwhr_factors(nbeds, dist_type, std_pipe_length, recirc_branch_length, is_equal_flow, facilities_connected, fixtures_all_low_flow)
+  def self.get_dwhr_factors(nbeds, hot_water_distribution, fixtures_all_low_flow)
     # ANSI/RESNET 301-2014 Addendum A-2015
     # Amendment on Domestic Hot Water (DHW) Systems
     # Eq. 4.2-14
@@ -621,44 +616,43 @@ class HotWaterAndAppliances
 
     iFrac = 0.56 + 0.015 * nbeds - 0.0004 * nbeds**2 # fraction of hot water use impacted by DWHR
 
-    if dist_type == HPXML::DHWDistTypeRecirc
-      pLength = recirc_branch_length
-    elsif dist_type == HPXML::DHWDistTypeStandard
-      pLength = std_pipe_length
+    if hot_water_distribution.system_type == HPXML::DHWDistTypeRecirc
+      pLength = hot_water_distribution.recirculation_branch_piping_length
+    elsif hot_water_distribution.system_type == HPXML::DHWDistTypeStandard
+      pLength = hot_water_distribution.standard_piping_length
     end
     plc = 1 - 0.0002 * pLength # piping loss coefficient
 
     # Location factors for DWHR placement
-    if is_equal_flow
+    if hot_water_distribution.dwhr_equal_flow
       locF = 1.000
     else
       locF = 0.777
     end
 
     # Fixture Factor
-    if facilities_connected == HPXML::DWHRFacilitiesConnectedAll
+    if hot_water_distribution.dwhr_facilities_connected == HPXML::DWHRFacilitiesConnectedAll
       fixF = 1.0
-    elsif facilities_connected == HPXML::DWHRFacilitiesConnectedOne
+    elsif hot_water_distribution.dwhr_facilities_connected == HPXML::DWHRFacilitiesConnectedOne
       fixF = 0.5
     end
 
     return eff_adj, iFrac, plc, locF, fixF
   end
 
-  def self.calc_water_heater_daily_inlet_temperatures(weather, dwhr_present = false, dwhr_iFrac = nil, dwhr_eff = nil,
-                                                      dwhr_eff_adj = nil, dwhr_plc = nil, dwhr_locF = nil, dwhr_fixF = nil)
-
+  def self.calc_water_heater_daily_inlet_temperatures(weather, nbeds, hot_water_distribution, fixtures_all_low_flow)
     # Get daily mains temperatures
     avgOAT = weather.data.AnnualAvgDrybulb
     maxDiffMonthlyAvgOAT = weather.data.MonthlyAvgDrybulbs.max - weather.data.MonthlyAvgDrybulbs.min
     tmains_daily = WeatherProcess.calc_mains_temperatures(avgOAT, maxDiffMonthlyAvgOAT, weather.header.Latitude)[2]
 
     wh_temps_daily = tmains_daily
-    if dwhr_present
+    if (not hot_water_distribution.dwhr_efficiency.nil?)
+      dwhr_eff_adj, dwhr_iFrac, dwhr_plc, dwhr_locF, dwhr_fixF = get_dwhr_factors(nbeds, hot_water_distribution, fixtures_all_low_flow)
       # Adjust inlet temperatures
       dwhr_inT = 97.0 # F
       for day in 0..364
-        dwhr_WHinTadj = dwhr_iFrac * (dwhr_inT - tmains_daily[day]) * dwhr_eff * dwhr_eff_adj * dwhr_plc * dwhr_locF * dwhr_fixF
+        dwhr_WHinTadj = dwhr_iFrac * (dwhr_inT - tmains_daily[day]) * hot_water_distribution.dwhr_efficiency * dwhr_eff_adj * dwhr_plc * dwhr_locF * dwhr_fixF
         wh_temps_daily[day] = (wh_temps_daily[day] + dwhr_WHinTadj).round(3)
       end
     else
@@ -679,21 +673,22 @@ class HotWaterAndAppliances
     return adjFmix
   end
 
-  def self.get_hwdist_recirc_pump_energy(dist_type, recirc_control_type, recirc_pump_power)
+  def self.get_hwdist_recirc_pump_energy(hot_water_distribution)
     # ANSI/RESNET 301-2014 Addendum A-2015
     # Amendment on Domestic Hot Water (DHW) Systems
     # Table 4.2.2.5.2.11(5) Annual electricity consumption factor for hot water recirculation system pumps
-    if dist_type == HPXML::DHWDistTypeRecirc
-      if (recirc_control_type == HPXML::DHWRecirControlTypeNone) || (recirc_control_type == HPXML::DHWRecirControlTypeTimer)
-        return 8.76 * recirc_pump_power
-      elsif recirc_control_type == HPXML::DHWRecirControlTypeTemperature
-        return 1.46 * recirc_pump_power
-      elsif recirc_control_type == HPXML::DHWRecirControlTypeSensor
-        return 0.15 * recirc_pump_power
-      elsif recirc_control_type == HPXML::DHWRecirControlTypeManual
-        return 0.10 * recirc_pump_power
+    if hot_water_distribution.system_type == HPXML::DHWDistTypeRecirc
+      if (hot_water_distribution.recirculation_control_type == HPXML::DHWRecirControlTypeNone) ||
+         (hot_water_distribution.recirculation_control_type == HPXML::DHWRecirControlTypeTimer)
+        return 8.76 * hot_water_distribution.recirculation_pump_power
+      elsif hot_water_distribution.recirculation_control_type == HPXML::DHWRecirControlTypeTemperature
+        return 1.46 * hot_water_distribution.recirculation_pump_power
+      elsif hot_water_distribution.recirculation_control_type == HPXML::DHWRecirControlTypeSensor
+        return 0.15 * hot_water_distribution.recirculation_pump_power
+      elsif hot_water_distribution.recirculation_control_type == HPXML::DHWRecirControlTypeManual
+        return 0.10 * hot_water_distribution.recirculation_pump_power
       end
-    elsif dist_type == HPXML::DHWDistTypeStandard
+    elsif hot_water_distribution.system_type == HPXML::DHWDistTypeStandard
       return 0.0
     end
     fail 'Unexpected hot water distribution system.'
@@ -727,8 +722,7 @@ class HotWaterAndAppliances
   end
 
   def self.get_dist_waste_gpd(eri_version, nbeds, has_uncond_bsmnt, cfa, ncfl,
-                              dist_type, pipe_r, std_pipe_length,
-                              recirc_branch_length, fixtures_all_low_flow)
+                              hot_water_distribution, fixtures_all_low_flow)
     if Constants.ERIVersions.index(eri_version) <= Constants.ERIVersions.index('2014')
       return 0.0
     end
@@ -739,13 +733,13 @@ class HotWaterAndAppliances
 
     # Table 4.2.2.5.2.11(2) Hot Water Distribution System Insulation Factors
     sys_factor = nil
-    if (dist_type == HPXML::DHWDistTypeRecirc) && (pipe_r < 3.0)
+    if (hot_water_distribution.system_type == HPXML::DHWDistTypeRecirc) && (hot_water_distribution.pipe_r_value < 3.0)
       sys_factor = 1.11
-    elsif (dist_type == HPXML::DHWDistTypeRecirc) && (pipe_r >= 3.0)
+    elsif (hot_water_distribution.system_type == HPXML::DHWDistTypeRecirc) && (hot_water_distribution.pipe_r_value >= 3.0)
       sys_factor = 1.0
-    elsif (dist_type == HPXML::DHWDistTypeStandard) && (pipe_r >= 3.0)
+    elsif (hot_water_distribution.system_type == HPXML::DHWDistTypeStandard) && (hot_water_distribution.pipe_r_value >= 3.0)
       sys_factor = 0.90
-    elsif (dist_type == HPXML::DHWDistTypeStandard) && (pipe_r < 3.0)
+    elsif (hot_water_distribution.system_type == HPXML::DHWDistTypeStandard) && (hot_water_distribution.pipe_r_value < 3.0)
       sys_factor = 1.0
     end
 
@@ -753,20 +747,20 @@ class HotWaterAndAppliances
     o_frac = 0.25
     o_cd_eff = 0.0
 
-    if dist_type == HPXML::DHWDistTypeRecirc
-      p_ratio = recirc_branch_length / 10.0
-    elsif dist_type == HPXML::DHWDistTypeStandard
+    if hot_water_distribution.system_type == HPXML::DHWDistTypeRecirc
+      p_ratio = hot_water_distribution.recirculation_branch_piping_length / 10.0
+    elsif hot_water_distribution.system_type == HPXML::DHWDistTypeStandard
       ref_pipe_l = get_default_std_pipe_length(has_uncond_bsmnt, cfa, ncfl)
-      p_ratio = std_pipe_length / ref_pipe_l
+      p_ratio = hot_water_distribution.standard_piping_length / ref_pipe_l
     end
 
     o_w_gpd = ref_w_gpd * o_frac * (1.0 - o_cd_eff) # Eq. 4.2-12
     s_w_gpd = (ref_w_gpd - ref_w_gpd * o_frac) * p_ratio * sys_factor # Eq. 4.2-13
 
     # Table 4.2.2.5.2.11(3) Distribution system water use effectiveness
-    if dist_type == HPXML::DHWDistTypeRecirc
+    if hot_water_distribution.system_type == HPXML::DHWDistTypeRecirc
       wd_eff = 0.1
-    elsif dist_type == HPXML::DHWDistTypeStandard
+    elsif hot_water_distribution.system_type == HPXML::DHWDistTypeStandard
       wd_eff = 1.0
     end
 
@@ -777,38 +771,39 @@ class HotWaterAndAppliances
     return mw_gpd
   end
 
-  def self.get_dist_energy_waste_factor(dist_type, recirc_control_type, pipe_r)
+  def self.get_dist_energy_waste_factor(hot_water_distribution)
     # ANSI/RESNET 301-2014 Addendum A-2015
     # Amendment on Domestic Hot Water (DHW) Systems
     # Table 4.2.2.5.2.11(6) Hot water distribution system relative annual energy waste factors
-    if dist_type == HPXML::DHWDistTypeRecirc
-      if (recirc_control_type == HPXML::DHWRecirControlTypeNone) || (recirc_control_type == HPXML::DHWRecirControlTypeTimer)
-        if pipe_r < 3.0
+    if hot_water_distribution.system_type == HPXML::DHWDistTypeRecirc
+      if (hot_water_distribution.recirculation_control_type == HPXML::DHWRecirControlTypeNone) ||
+         (hot_water_distribution.recirculation_control_type == HPXML::DHWRecirControlTypeTimer)
+        if hot_water_distribution.pipe_r_value < 3.0
           return 500.0
         else
           return 250.0
         end
-      elsif recirc_control_type == HPXML::DHWRecirControlTypeTemperature
-        if pipe_r < 3.0
+      elsif hot_water_distribution.recirculation_control_type == HPXML::DHWRecirControlTypeTemperature
+        if hot_water_distribution.pipe_r_value < 3.0
           return 375.0
         else
           return 187.5
         end
-      elsif recirc_control_type == HPXML::DHWRecirControlTypeSensor
-        if pipe_r < 3.0
+      elsif hot_water_distribution.recirculation_control_type == HPXML::DHWRecirControlTypeSensor
+        if hot_water_distribution.pipe_r_value < 3.0
           return 64.8
         else
           return 43.2
         end
-      elsif recirc_control_type == HPXML::DHWRecirControlTypeManual
-        if pipe_r < 3.0
+      elsif hot_water_distribution.recirculation_control_type == HPXML::DHWRecirControlTypeManual
+        if hot_water_distribution.pipe_r_value < 3.0
           return 43.2
         else
           return 28.8
         end
       end
-    elsif dist_type == HPXML::DHWDistTypeStandard
-      if pipe_r < 3.0
+    elsif hot_water_distribution.system_type == HPXML::DHWDistTypeStandard
+      if hot_water_distribution.pipe_r_value < 3.0
         return 32.0
       else
         return 28.8

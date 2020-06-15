@@ -61,20 +61,16 @@ class Location
   end
 
   def self.apply_dst(model, dst_start_date, dst_end_date)
-    if not ((dst_start_date.downcase == 'na') && (dst_end_date.downcase == 'na'))
-      begin
-        dst_start_date_month = OpenStudio::monthOfYear(dst_start_date.split[0])
-        dst_start_date_day = dst_start_date.split[1].to_i
-        dst_end_date_month = OpenStudio::monthOfYear(dst_end_date.split[0])
-        dst_end_date_day = dst_end_date.split[1].to_i
+    return if dst_start_date.nil? || dst_end_date.nil?
 
-        dst = model.getRunPeriodControlDaylightSavingTime
-        dst.setStartDate(dst_start_date_month, dst_start_date_day)
-        dst.setEndDate(dst_end_date_month, dst_end_date_day)
-      rescue
-        fail 'Invalid daylight saving date specified.'
-      end
-    end
+    dst_start_date_month = OpenStudio::monthOfYear(dst_start_date.split[0])
+    dst_start_date_day = dst_start_date.split[1].to_i
+    dst_end_date_month = OpenStudio::monthOfYear(dst_end_date.split[0])
+    dst_end_date_day = dst_end_date.split[1].to_i
+
+    dst = model.getRunPeriodControlDaylightSavingTime
+    dst.setStartDate(dst_start_date_month, dst_start_date_day)
+    dst.setEndDate(dst_end_date_month, dst_end_date_day)
   end
 
   def self.apply_ground_temps(model, weather)
