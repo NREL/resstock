@@ -8,7 +8,7 @@ require 'fileutils'
 require_relative '../measure.rb'
 require_relative '../resources/util.rb'
 
-class HPXMLtoOpenStudioDuctsTest < MiniTest::Test
+class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
   def before_setup
     @root_path = File.absolute_path(File.join(File.dirname(__FILE__), '..', '..'))
     @tmp_hpxml_path = File.join(@root_path, 'workflow', 'sample_files', 'tmp.xml')
@@ -40,7 +40,8 @@ class HPXMLtoOpenStudioDuctsTest < MiniTest::Test
     _test_default_header_values(hpxml_default, 30, 2, 2, 11, 11)
 
     # Test defaults
-    apply_hpxml_defaults('base.xml')
+    hpxml = apply_hpxml_defaults('base.xml')
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     _test_default_header_values(hpxml_default, 60, 1, 1, 12, 31)
   end
@@ -56,7 +57,8 @@ class HPXMLtoOpenStudioDuctsTest < MiniTest::Test
     _test_default_site_values(hpxml_default, HPXML::SiteTypeRural, 0.3)
 
     # Test defaults
-    apply_hpxml_defaults('base.xml')
+    hpxml = apply_hpxml_defaults('base.xml')
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     _test_default_site_values(hpxml_default, HPXML::SiteTypeSuburban, 0.5)
   end
@@ -71,7 +73,8 @@ class HPXMLtoOpenStudioDuctsTest < MiniTest::Test
     _test_default_occupancy_values(hpxml_default, 1)
 
     # Test defaults
-    apply_hpxml_defaults('base.xml')
+    hpxml = apply_hpxml_defaults('base.xml')
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     _test_default_occupancy_values(hpxml_default, 3)
   end
@@ -85,7 +88,8 @@ class HPXMLtoOpenStudioDuctsTest < MiniTest::Test
     _test_default_building_construction_values(hpxml_default, 21600)
 
     # Test defaults w/ average ceiling height
-    apply_hpxml_defaults('base.xml')
+    hpxml = apply_hpxml_defaults('base.xml')
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     _test_default_building_construction_values(hpxml_default, 27000)
   end
@@ -100,7 +104,8 @@ class HPXMLtoOpenStudioDuctsTest < MiniTest::Test
     _test_default_attic_values(hpxml_default, 0.001)
 
     # Test defaults
-    apply_hpxml_defaults('base-atticroof-vented.xml')
+    hpxml = apply_hpxml_defaults('base-atticroof-vented.xml')
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     _test_default_attic_values(hpxml_default, 1.0 / 300.0)
   end
@@ -115,7 +120,8 @@ class HPXMLtoOpenStudioDuctsTest < MiniTest::Test
     _test_default_foundation_values(hpxml_default, 0.001)
 
     # Test defaults
-    apply_hpxml_defaults('base-foundation-vented-crawlspace.xml')
+    hpxml = apply_hpxml_defaults('base-foundation-vented-crawlspace.xml')
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     _test_default_foundation_values(hpxml_default, 1.0 / 150.0)
   end
@@ -130,14 +136,64 @@ class HPXMLtoOpenStudioDuctsTest < MiniTest::Test
     _test_default_infiltration_values(hpxml_default, 25000)
 
     # Test defaults w/ conditioned basement
-    apply_hpxml_defaults('base.xml')
+    hpxml = apply_hpxml_defaults('base.xml')
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     _test_default_infiltration_values(hpxml_default, 2700 * 10)
 
     # Test defaults w/o conditioned basement
-    apply_hpxml_defaults('base-foundation-slab.xml')
+    hpxml = apply_hpxml_defaults('base-foundation-slab.xml')
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     _test_default_infiltration_values(hpxml_default, 1350 * 10)
+  end
+
+  def test_roofs
+    # Test inputs not overridden by defaults
+    hpxml_name = 'base.xml'
+    hpxml = HPXML.new(hpxml_path: File.join(@root_path, 'workflow', 'sample_files', hpxml_name))
+    hpxml.roofs[0].roof_type = HPXML::RoofTypeMetal
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    _test_default_roof_values(hpxml_default, HPXML::RoofTypeMetal, 0.7, HPXML::ColorMedium)
+
+    # Test defaults
+    hpxml = apply_hpxml_defaults('base.xml')
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    _test_default_roof_values(hpxml_default, HPXML::RoofTypeAsphaltShingles, 0.75, HPXML::ColorLight)
+  end
+
+  def test_walls
+    # Test inputs not overridden by defaults
+    hpxml_name = 'base.xml'
+    hpxml = HPXML.new(hpxml_path: File.join(@root_path, 'workflow', 'sample_files', hpxml_name))
+    hpxml.walls[0].siding = HPXML::SidingTypeFiberCement
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    _test_default_wall_values(hpxml_default, HPXML::SidingTypeFiberCement, 0.7, HPXML::ColorMedium)
+
+    # Test defaults
+    hpxml = apply_hpxml_defaults('base.xml')
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    _test_default_wall_values(hpxml_default, HPXML::SidingTypeWood, 0.5, HPXML::ColorLight)
+  end
+
+  def test_rim_joists
+    # Test inputs not overridden by defaults
+    hpxml_name = 'base.xml'
+    hpxml = HPXML.new(hpxml_path: File.join(@root_path, 'workflow', 'sample_files', hpxml_name))
+    hpxml.rim_joists[0].siding = HPXML::SidingTypeBrick
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    _test_default_rim_joist_values(hpxml_default, HPXML::SidingTypeBrick, 0.7, HPXML::ColorMedium)
+
+    # Test defaults
+    hpxml = apply_hpxml_defaults('base.xml')
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    _test_default_rim_joist_values(hpxml_default, HPXML::SidingTypeWood, 0.95, HPXML::ColorDark)
   end
 
   def test_windows
@@ -153,10 +209,32 @@ class HPXMLtoOpenStudioDuctsTest < MiniTest::Test
     _test_default_window_values(hpxml_default, [0.7, 0.01, 0.0, 1.0], [0.85, 0.99, 0.5, 1.0], [0.5] * n_windows)
 
     # Test defaults
-    apply_hpxml_defaults('base.xml')
+    hpxml = apply_hpxml_defaults('base.xml')
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     n_windows = hpxml_default.windows.size
     _test_default_window_values(hpxml_default, [0.7] * n_windows, [0.85] * n_windows, [0.67] * n_windows)
+  end
+
+  def test_skylights
+    # Test inputs not overridden by defaults
+    hpxml_name = 'base-enclosure-skylights.xml'
+    hpxml = HPXML.new(hpxml_path: File.join(@root_path, 'workflow', 'sample_files', hpxml_name))
+    hpxml.skylights.each do |skylight|
+      skylight.interior_shading_factor_summer = 0.90
+      skylight.interior_shading_factor_winter = 0.95
+    end
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    n_skylights = hpxml_default.skylights.size
+    _test_default_skylight_values(hpxml_default, [0.90] * n_skylights, [0.95] * n_skylights)
+
+    # Test defaults
+    hpxml = apply_hpxml_defaults('base-enclosure-skylights.xml')
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    n_skylights = hpxml_default.skylights.size
+    _test_default_skylight_values(hpxml_default, [1.0] * n_skylights, [1.0] * n_skylights)
   end
 
   def test_ducts
@@ -173,7 +251,8 @@ class HPXMLtoOpenStudioDuctsTest < MiniTest::Test
     _test_default_duct_values(hpxml_default, expected_supply_locations, expected_return_locations, expected_supply_areas, expected_return_areas, expected_n_return_registers)
 
     # Test defaults w/ conditioned basement
-    apply_hpxml_defaults('base.xml')
+    hpxml = apply_hpxml_defaults('base.xml')
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     expected_supply_locations = ['basement - conditioned']
     expected_return_locations = ['basement - conditioned']
@@ -183,7 +262,8 @@ class HPXMLtoOpenStudioDuctsTest < MiniTest::Test
     _test_default_duct_values(hpxml_default, expected_supply_locations, expected_return_locations, expected_supply_areas, expected_return_areas, expected_n_return_registers)
 
     # Test defaults w/ multiple foundations
-    apply_hpxml_defaults('base-foundation-multiple.xml')
+    hpxml = apply_hpxml_defaults('base-foundation-multiple.xml')
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     expected_supply_locations = ['basement - unconditioned']
     expected_return_locations = ['basement - unconditioned']
@@ -193,7 +273,8 @@ class HPXMLtoOpenStudioDuctsTest < MiniTest::Test
     _test_default_duct_values(hpxml_default, expected_supply_locations, expected_return_locations, expected_supply_areas, expected_return_areas, expected_n_return_registers)
 
     # Test defaults w/ foundation exposed to ambient
-    apply_hpxml_defaults('base-foundation-ambient.xml')
+    hpxml = apply_hpxml_defaults('base-foundation-ambient.xml')
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     expected_supply_locations = ['attic - unvented']
     expected_return_locations = ['attic - unvented']
@@ -203,7 +284,8 @@ class HPXMLtoOpenStudioDuctsTest < MiniTest::Test
     _test_default_duct_values(hpxml_default, expected_supply_locations, expected_return_locations, expected_supply_areas, expected_return_areas, expected_n_return_registers)
 
     # Test defaults w/ building/unit adjacent to other housing unit
-    apply_hpxml_defaults('base-enclosure-other-housing-unit.xml')
+    hpxml = apply_hpxml_defaults('base-enclosure-other-housing-unit.xml')
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     expected_supply_locations = ['living space']
     expected_return_locations = ['living space']
@@ -213,7 +295,8 @@ class HPXMLtoOpenStudioDuctsTest < MiniTest::Test
     _test_default_duct_values(hpxml_default, expected_supply_locations, expected_return_locations, expected_supply_areas, expected_return_areas, expected_n_return_registers)
 
     # Test defaults w/ 2-story building
-    apply_hpxml_defaults('base-enclosure-2stories.xml')
+    hpxml = apply_hpxml_defaults('base-enclosure-2stories.xml')
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     expected_supply_locations = ['basement - conditioned', 'living space']
     expected_return_locations = ['basement - conditioned', 'living space']
@@ -226,7 +309,8 @@ class HPXMLtoOpenStudioDuctsTest < MiniTest::Test
     hpxml_files = ['base-hvac-multiple.xml',
                    'base-hvac-multiple2.xml']
     hpxml_files.each do |hpxml_file|
-      apply_hpxml_defaults(hpxml_file)
+      hpxml = apply_hpxml_defaults(hpxml_file)
+      XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
       hpxml_default = _test_measure()
       expected_supply_locations = ['basement - conditioned', 'basement - conditioned'] * hpxml_default.hvac_distributions.size
       expected_return_locations = ['basement - conditioned', 'basement - conditioned'] * hpxml_default.hvac_distributions.size
@@ -265,18 +349,21 @@ class HPXMLtoOpenStudioDuctsTest < MiniTest::Test
 
     # Test defaults w/ 3-bedroom house & electric storage water heater
     hpxml = apply_hpxml_defaults('base.xml')
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     _test_default_water_heater_values(hpxml_default, [18766.7, 50.0, 0.98])
     _test_default_number_of_bathrooms(hpxml_default, 2.0)
 
     # Test defaults w/ 5-bedroom house & electric storage water heater
     hpxml = apply_hpxml_defaults('base-enclosure-beds-5.xml')
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     _test_default_water_heater_values(hpxml_default, [18766.7, 66.0, 0.98])
     _test_default_number_of_bathrooms(hpxml_default, 3.0)
 
     # Test defaults w/ 3-bedroom house & 2 storage water heaters (1 electric and 1 natural gas)
     hpxml = apply_hpxml_defaults('base-dhw-multiple.xml')
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     _test_default_water_heater_values(hpxml_default, [15354.6, 50.0, 0.98],
                                       [36000.0, 40.0, 0.756])
@@ -300,22 +387,26 @@ class HPXMLtoOpenStudioDuctsTest < MiniTest::Test
     _test_default_recirc_distribution_values(hpxml_default, 50.0, 50.0, 65.0)
 
     # Test defaults w/ conditioned basement
-    apply_hpxml_defaults('base.xml')
+    hpxml = apply_hpxml_defaults('base.xml')
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     _test_default_standard_distribution_values(hpxml_default, 93.48)
 
     # Test defaults w/ unconditioned basement
-    apply_hpxml_defaults('base-foundation-unconditioned-basement.xml')
+    hpxml = apply_hpxml_defaults('base-foundation-unconditioned-basement.xml')
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     _test_default_standard_distribution_values(hpxml_default, 88.48)
 
     # Test defaults w/ 2-story building
-    apply_hpxml_defaults('base-enclosure-2stories.xml')
+    hpxml = apply_hpxml_defaults('base-enclosure-2stories.xml')
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     _test_default_standard_distribution_values(hpxml_default, 103.48)
 
     # Test defaults w/ recirculation & conditioned basement
     hpxml = apply_hpxml_defaults('base-dhw-recirc-demand.xml')
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     _test_default_recirc_distribution_values(hpxml_default, 166.96, 10.0, 50.0)
 
@@ -352,7 +443,8 @@ class HPXMLtoOpenStudioDuctsTest < MiniTest::Test
     _test_default_water_fixture_values(hpxml_default, 2.0)
 
     # Test defaults
-    apply_hpxml_defaults('base.xml')
+    hpxml = apply_hpxml_defaults('base.xml')
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     _test_default_water_fixture_values(hpxml_default, 1.0)
   end
@@ -368,6 +460,7 @@ class HPXMLtoOpenStudioDuctsTest < MiniTest::Test
 
     # Test defaults w/ collector area of 40 sqft
     hpxml = apply_hpxml_defaults('base-dhw-solar-direct-flat-plate.xml')
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     _test_default_solar_thermal_values(hpxml_default, 60.0)
 
@@ -398,6 +491,7 @@ class HPXMLtoOpenStudioDuctsTest < MiniTest::Test
 
     # Test defaults
     hpxml = apply_hpxml_defaults('base-mechvent-bath-kitchen-fans.xml')
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     _test_default_kitchen_fan_values(hpxml_default, 100, 1, 30, 18)
     _test_default_bath_fan_values(hpxml_default, 2, 50, 1, 15, 7)
@@ -413,6 +507,7 @@ class HPXMLtoOpenStudioDuctsTest < MiniTest::Test
 
     # Test defaults
     hpxml = apply_hpxml_defaults('base-misc-ceiling-fans.xml')
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     _test_default_ceiling_fan_values(hpxml_default, 4, 70.4)
   end
@@ -434,6 +529,7 @@ class HPXMLtoOpenStudioDuctsTest < MiniTest::Test
 
     # Test defaults
     hpxml = apply_hpxml_defaults('base.xml')
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     _test_default_tv_plug_load_values(hpxml_default, 620)
     _test_default_other_plug_load_values(hpxml_default, 2457, 0.855, 0.045)
@@ -453,7 +549,8 @@ class HPXMLtoOpenStudioDuctsTest < MiniTest::Test
     _test_default_oven_values(hpxml_default, false)
 
     # Test defaults w/ appliances
-    apply_hpxml_defaults('base.xml')
+    hpxml = apply_hpxml_defaults('base.xml')
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     _test_default_clothes_washer_values(hpxml_default, HPXML::LocationLivingSpace, 1.0, 400.0, 0.12, 1.09, 27.0, 3.0, 6.0, 1.0)
     _test_default_clothes_dryer_values(hpxml_default, HPXML::LocationLivingSpace, HPXML::ClothesDryerControlTypeTimer, 3.01, 1.0)
@@ -506,7 +603,8 @@ class HPXMLtoOpenStudioDuctsTest < MiniTest::Test
     _test_default_lighting_values(hpxml_default, 2.0)
 
     # Test defaults
-    apply_hpxml_defaults('base.xml')
+    hpxml = apply_hpxml_defaults('base.xml')
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     _test_default_lighting_values(hpxml_default, 1.0)
   end
@@ -526,7 +624,8 @@ class HPXMLtoOpenStudioDuctsTest < MiniTest::Test
     _test_default_pv_system_values(hpxml_default, expected_interver_efficiency, expected_system_loss_frac)
 
     # Test defaults w/o year modules manufactured
-    apply_hpxml_defaults('base-pv.xml')
+    hpxml = apply_hpxml_defaults('base-pv.xml')
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     expected_interver_efficiency = [0.96, 0.96]
     expected_system_loss_frac = [0.14, 0.14]
@@ -640,12 +739,38 @@ class HPXMLtoOpenStudioDuctsTest < MiniTest::Test
     assert_equal(volume, hpxml.air_infiltration_measurements[0].infiltration_volume)
   end
 
+  def _test_default_roof_values(hpxml, roof_type, solar_absorptance, roof_color)
+    assert_equal(roof_type, hpxml.roofs[0].roof_type)
+    assert_equal(solar_absorptance, hpxml.roofs[0].solar_absorptance)
+    assert_equal(roof_color, hpxml.roofs[0].roof_color)
+  end
+
+  def _test_default_wall_values(hpxml, siding, solar_absorptance, color)
+    assert_equal(siding, hpxml.walls[0].siding)
+    assert_equal(solar_absorptance, hpxml.walls[0].solar_absorptance)
+    assert_equal(color, hpxml.walls[0].color)
+  end
+
+  def _test_default_rim_joist_values(hpxml, siding, solar_absorptance, color)
+    assert_equal(siding, hpxml.rim_joists[0].siding)
+    assert_equal(solar_absorptance, hpxml.rim_joists[0].solar_absorptance)
+    assert_equal(color, hpxml.rim_joists[0].color)
+  end
+
   def _test_default_window_values(hpxml, summer_shade_coeffs, winter_shade_coeffs, fraction_operable)
     assert_equal(summer_shade_coeffs.size, hpxml.windows.size)
     hpxml.windows.each_with_index do |window, idx|
       assert_equal(summer_shade_coeffs[idx], window.interior_shading_factor_summer)
       assert_equal(winter_shade_coeffs[idx], window.interior_shading_factor_winter)
       assert_equal(fraction_operable[idx], window.fraction_operable)
+    end
+  end
+
+  def _test_default_skylight_values(hpxml, summer_shade_coeffs, winter_shade_coeffs)
+    assert_equal(summer_shade_coeffs.size, hpxml.skylights.size)
+    hpxml.skylights.each_with_index do |skylight, idx|
+      assert_equal(summer_shade_coeffs[idx], skylight.interior_shading_factor_summer)
+      assert_equal(winter_shade_coeffs[idx], skylight.interior_shading_factor_winter)
     end
   end
 
@@ -794,8 +919,33 @@ class HPXMLtoOpenStudioDuctsTest < MiniTest::Test
       infil.infiltration_volume = nil
     end
 
+    hpxml.roofs.each do |roof|
+      roof.roof_type = nil
+      roof.solar_absorptance = nil
+      roof.roof_color = HPXML::ColorLight
+    end
+
+    hpxml.walls.each do |wall|
+      wall.siding = nil
+      wall.solar_absorptance = nil
+      wall.color = HPXML::ColorLight
+    end
+
+    hpxml.rim_joists.each do |rim_joist|
+      rim_joist.siding = nil
+      rim_joist.solar_absorptance = nil
+      rim_joist.color = HPXML::ColorDark
+    end
+
     hpxml.windows.each do |window|
       window.fraction_operable = nil
+      window.interior_shading_factor_summer = nil
+      window.interior_shading_factor_winter = nil
+    end
+
+    hpxml.skylights.each do |skylight|
+      skylight.interior_shading_factor_summer = nil
+      skylight.interior_shading_factor_winter = nil
     end
 
     hpxml.hvac_distributions.each do |hvac_distribution|
@@ -890,10 +1040,6 @@ class HPXMLtoOpenStudioDuctsTest < MiniTest::Test
       pv.inverter_efficiency = nil
       pv.system_losses_fraction = nil
     end
-
-    # save new file
-    hpxml_name = File.basename(@tmp_hpxml_path)
-    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
 
     return hpxml
   end

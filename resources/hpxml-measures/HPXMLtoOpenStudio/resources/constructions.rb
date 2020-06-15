@@ -3,7 +3,7 @@
 class Constructions
   # Container class for walls, floors/ceilings, roofs, etc.
 
-  def self.apply_wood_stud_wall(model, surfaces, constr_name,
+  def self.apply_wood_stud_wall(model, surfaces, wall, constr_name,
                                 cavity_r, install_grade, cavity_depth_in, cavity_filled,
                                 framing_factor, drywall_thick_in, osb_thick_in,
                                 rigid_r, mat_ext_finish, otherside_drywall_thick_in,
@@ -65,14 +65,13 @@ class Constructions
     constr.create_and_assign_constructions(surfaces, model)
 
     # Store info for HVAC Sizing measure
-    surfaces.each do |surface|
-      surface.additionalProperties.setFeature(Constants.SizingInfoWallType, HPXML::WallTypeWoodStud)
-      surface.additionalProperties.setFeature(Constants.SizingInfoStudWallCavityRvalue, Float(cavity_r))
-      surface.additionalProperties.setFeature(Constants.SizingInfoWallRigidInsRvalue, Float(rigid_r))
+    if not wall.nil?
+      wall.insulation_cavity_r_value = cavity_r
+      wall.insulation_continuous_r_value = rigid_r
     end
   end
 
-  def self.apply_double_stud_wall(model, surfaces, constr_name,
+  def self.apply_double_stud_wall(model, surfaces, wall, constr_name,
                                   cavity_r, install_grade, stud_depth_in, gap_depth_in,
                                   framing_factor, framing_spacing, is_staggered,
                                   drywall_thick_in, osb_thick_in, rigid_r,
@@ -140,13 +139,10 @@ class Constructions
     constr.create_and_assign_constructions(surfaces, model)
 
     # Store info for HVAC Sizing measure
-    surfaces.each do |surface|
-      surface.additionalProperties.setFeature(Constants.SizingInfoWallType, HPXML::WallTypeDoubleWoodStud)
-      surface.additionalProperties.setFeature(Constants.SizingInfoWallRigidInsRvalue, Float(rigid_r))
-    end
+    wall.insulation_continuous_r_value = rigid_r
   end
 
-  def self.apply_cmu_wall(model, surfaces, constr_name,
+  def self.apply_cmu_wall(model, surfaces, wall, constr_name,
                           thick_in, conductivity, density, framing_factor,
                           furring_r, furring_cavity_depth, furring_spacing,
                           drywall_thick_in, osb_thick_in, rigid_r,
@@ -213,14 +209,11 @@ class Constructions
     constr.create_and_assign_constructions(surfaces, model)
 
     # Store info for HVAC Sizing measure
-    surfaces.each do |surface|
-      surface.additionalProperties.setFeature(Constants.SizingInfoWallType, HPXML::WallTypeCMU)
-      surface.additionalProperties.setFeature(Constants.SizingInfoCMUWallFurringInsRvalue, Float(furring_r))
-      surface.additionalProperties.setFeature(Constants.SizingInfoWallRigidInsRvalue, Float(rigid_r))
-    end
+    wall.insulation_cavity_r_value = furring_r
+    wall.insulation_continuous_r_value = rigid_r
   end
 
-  def self.apply_icf_wall(model, surfaces, constr_name,
+  def self.apply_icf_wall(model, surfaces, wall, constr_name,
                           icf_r, ins_thick_in, concrete_thick_in, framing_factor,
                           drywall_thick_in, osb_thick_in, rigid_r,
                           mat_ext_finish, inside_film, outside_film)
@@ -269,15 +262,11 @@ class Constructions
     constr.create_and_assign_constructions(surfaces, model)
 
     # Store info for HVAC Sizing measure
-    surfaces.each do |surface|
-      surface.additionalProperties.setFeature(Constants.SizingInfoWallType, HPXML::WallTypeICF)
-      surface.additionalProperties.setFeature(Constants.SizingInfoWallRigidInsRvalue, Float(rigid_r))
-    end
+    wall.insulation_continuous_r_value = rigid_r
   end
 
-  def self.apply_sip_wall(model, surfaces, constr_name,
-                          sip_r, sip_thick_in, framing_factor,
-                          sheathing_type, sheathing_thick_in,
+  def self.apply_sip_wall(model, surfaces, wall, constr_name, sip_r,
+                          sip_thick_in, framing_factor, sheathing_thick_in,
                           drywall_thick_in, osb_thick_in, rigid_r,
                           mat_ext_finish, inside_film, outside_film)
 
@@ -286,13 +275,7 @@ class Constructions
     # Define materials
     spline_thick_in = 0.5
     ins_thick_in = sip_thick_in - (2.0 * spline_thick_in) # in
-    if sheathing_type == Constants.MaterialOSB
-      mat_int_sheath = Material.new(name = 'WallIntSheathing', thick_in = sheathing_thick_in, mat_base = BaseMaterial.Wood)
-    elsif sheathing_type == Constants.MaterialGypsum
-      mat_int_sheath = Material.new(name = 'WallIntSheathing', thick_in = sheathing_thick_in, mat_base = BaseMaterial.Gypsum)
-    elsif sheathing_type == Constants.MaterialGypcrete
-      mat_int_sheath = Material.new(name = 'WallIntSheathing', thick_in = sheathing_thick_in, mat_base = BaseMaterial.Gypcrete)
-    end
+    mat_int_sheath = Material.new(name = 'WallIntSheathing', thick_in = sheathing_thick_in, mat_base = BaseMaterial.Wood)
     mat_framing_inner_outer = Material.new(name = nil, thick_in = spline_thick_in, mat_base = BaseMaterial.Wood)
     mat_framing_middle = Material.new(name = nil, thick_in = ins_thick_in, mat_base = BaseMaterial.Wood)
     mat_spline = Material.new(name = nil, thick_in = spline_thick_in, mat_base = BaseMaterial.Wood)
@@ -336,17 +319,9 @@ class Constructions
 
     # Create and assign construction to surfaces
     constr.create_and_assign_constructions(surfaces, model)
-
-    # Store info for HVAC Sizing measure
-    surfaces.each do |surface|
-      surface.additionalProperties.setFeature(Constants.SizingInfoWallType, HPXML::WallTypeSIP)
-      surface.additionalProperties.setFeature(Constants.SizingInfoSIPWallInsThickness, Float(sip_thick_in))
-      surface.additionalProperties.setFeature(Constants.SizingInfoWallRigidInsRvalue, Float(rigid_r))
-      surface.additionalProperties.setFeature(Constants.SizingInfoWallRigidInsThickness, Float(sheathing_thick_in))
-    end
   end
 
-  def self.apply_steel_stud_wall(model, surfaces, constr_name,
+  def self.apply_steel_stud_wall(model, surfaces, wall, constr_name,
                                  cavity_r, install_grade, cavity_depth,
                                  cavity_filled, framing_factor, correction_factor,
                                  drywall_thick_in, osb_thick_in, rigid_r,
@@ -405,14 +380,11 @@ class Constructions
     constr.create_and_assign_constructions(surfaces, model)
 
     # Store info for HVAC Sizing measure
-    surfaces.each do |surface|
-      surface.additionalProperties.setFeature(Constants.SizingInfoWallType, HPXML::WallTypeSteelStud)
-      surface.additionalProperties.setFeature(Constants.SizingInfoStudWallCavityRvalue, Float(cavity_r))
-      surface.additionalProperties.setFeature(Constants.SizingInfoWallRigidInsRvalue, Float(rigid_r))
-    end
+    wall.insulation_cavity_r_value = cavity_r
+    wall.insulation_continuous_r_value = rigid_r
   end
 
-  def self.apply_generic_layered_wall(model, surfaces, constr_name,
+  def self.apply_generic_layered_wall(model, surfaces, wall, constr_name,
                                       thick_ins, conds, denss, specheats,
                                       drywall_thick_in, osb_thick_in, rigid_r,
                                       mat_ext_finish, inside_film, outside_film)
@@ -478,13 +450,10 @@ class Constructions
     constr.create_and_assign_constructions(surfaces, model)
 
     # Store info for HVAC Sizing measure
-    surfaces.each do |surface|
-      surface.additionalProperties.setFeature(Constants.SizingInfoWallType, 'Generic')
-      surface.additionalProperties.setFeature(Constants.SizingInfoWallRigidInsRvalue, Float(rigid_r))
-    end
+    wall.insulation_continuous_r_value = rigid_r
   end
 
-  def self.apply_rim_joist(model, surfaces, constr_name,
+  def self.apply_rim_joist(model, surfaces, rim_joist, constr_name,
                            cavity_r, install_grade, framing_factor,
                            drywall_thick_in, osb_thick_in,
                            rigid_r, mat_ext_finish, inside_film,
@@ -541,11 +510,8 @@ class Constructions
     constr.create_and_assign_constructions(surfaces, model)
 
     # Store info for HVAC Sizing measure
-    surfaces.each do |surface|
-      surface.additionalProperties.setFeature(Constants.SizingInfoWallType, HPXML::WallTypeWoodStud)
-      surface.additionalProperties.setFeature(Constants.SizingInfoStudWallCavityRvalue, Float(cavity_r))
-      surface.additionalProperties.setFeature(Constants.SizingInfoWallRigidInsRvalue, Float(rigid_r))
-    end
+    rim_joist.insulation_continuous_r_value = rigid_r
+    rim_joist.insulation_cavity_r_value = cavity_r
   end
 
   def self.apply_open_cavity_roof(model, surfaces, constr_name,
@@ -616,15 +582,6 @@ class Constructions
 
     # Create and assign construction to roof surfaces
     constr.create_and_assign_constructions(surfaces, model)
-
-    # Store info for HVAC Sizing measure
-    surfaces.each do |surface|
-      surface.additionalProperties.setFeature(Constants.SizingInfoRoofColor, get_roofing_material_manual_j_color(mat_roofing.name))
-      surface.additionalProperties.setFeature(Constants.SizingInfoRoofMaterial, get_roofing_material_manual_j_material(mat_roofing.name))
-      surface.additionalProperties.setFeature(Constants.SizingInfoRoofRigidInsRvalue, Float(rigid_r))
-      surface.additionalProperties.setFeature(Constants.SizingInfoRoofHasRadiantBarrier, has_radiant_barrier)
-      surface.additionalProperties.setFeature(Constants.SizingInfoRoofCavityRvalue, Float(cavity_r))
-    end
   end
 
   def self.apply_closed_cavity_roof(model, surfaces, constr_name,
@@ -691,15 +648,6 @@ class Constructions
 
     # Create and assign construction to surfaces
     constr.create_and_assign_constructions(surfaces, model)
-
-    # Store info for HVAC Sizing measure
-    surfaces.each do |surface|
-      surface.additionalProperties.setFeature(Constants.SizingInfoRoofColor, get_roofing_material_manual_j_color(mat_roofing.name))
-      surface.additionalProperties.setFeature(Constants.SizingInfoRoofMaterial, get_roofing_material_manual_j_material(mat_roofing.name))
-      surface.additionalProperties.setFeature(Constants.SizingInfoRoofRigidInsRvalue, Float(rigid_r))
-      surface.additionalProperties.setFeature(Constants.SizingInfoRoofHasRadiantBarrier, has_radiant_barrier)
-      surface.additionalProperties.setFeature(Constants.SizingInfoRoofCavityRvalue, Float(cavity_r))
-    end
   end
 
   def self.apply_ceiling(model, surfaces, constr_name,
@@ -954,7 +902,7 @@ class Constructions
       imdefs << imdef
     end
 
-    Constructions.apply_wood_stud_wall(model, imdefs, constr_name,
+    Constructions.apply_wood_stud_wall(model, imdefs, nil, constr_name,
                                        0, 1, 3.5, false, 0.16,
                                        drywall_thick_in, 0, 0, nil, drywall_thick_in,
                                        Material.AirFilmVertical,
@@ -1040,129 +988,71 @@ class Constructions
     return imdef
   end
 
-  def self.get_exterior_finish_materials
-    mats = []
-    mats << Material.ExtFinishStuccoMedDark
-    mats << Material.ExtFinishBrickLight
-    mats << Material.ExtFinishBrickMedDark
-    mats << Material.ExtFinishWoodLight
-    mats << Material.ExtFinishWoodMedDark
-    mats << Material.ExtFinishAluminumLight
-    mats << Material.ExtFinishAluminumMedDark
-    mats << Material.ExtFinishVinylLight
-    mats << Material.ExtFinishVinylMedDark
-    mats << Material.ExtFinishFiberCementLight
-    mats << Material.ExtFinishFiberCementMedDark
-    return mats
-  end
-
-  def self.get_exterior_finish_material(name)
-    get_exterior_finish_materials.each do |mat|
-      next if mat.name != name
-
-      return mat
-    end
-    return
-  end
-
-  def self.get_roofing_materials
-    mats = []
-    mats << Material.RoofingAsphaltShinglesDark
-    mats << Material.RoofingAsphaltShinglesMed
-    mats << Material.RoofingAsphaltShinglesLight
-    mats << Material.RoofingAsphaltShinglesWhiteCool
-    mats << Material.RoofingTileDark
-    mats << Material.RoofingTileMed
-    mats << Material.RoofingTileLight
-    mats << Material.RoofingTileWhite
-    mats << Material.RoofingMetalDark
-    mats << Material.RoofingMetalMed
-    mats << Material.RoofingMetalLight
-    mats << Material.RoofingMetalWhite
-    mats << Material.RoofingGalvanizedSteel
-    return mats
-  end
-
-  def self.get_roofing_material(name)
-    get_roofing_materials.each do |mat|
-      next if mat.name != name
-
-      return mat
-    end
-    return
-  end
-
-  def self.get_roofing_material_manual_j_color(name)
-    if name == Material.RoofingAsphaltShinglesDark.name
-      return Constants.ColorDark
-    elsif name == Material.RoofingAsphaltShinglesMed.name
-      return Constants.ColorMedium
-    elsif name == Material.RoofingAsphaltShinglesLight.name
-      return Constants.ColorLight
-    elsif name == Material.RoofingAsphaltShinglesWhiteCool.name
-      return Constants.ColorWhite
-    elsif name == Material.RoofingTileDark.name
-      return Constants.ColorDark
-    elsif name == Material.RoofingTileMed.name
-      return Constants.ColorMedium
-    elsif name == Material.RoofingTileLight.name
-      return Constants.ColorLight
-    elsif name == Material.RoofingTileWhite.name
-      return Constants.ColorWhite
-    elsif name == Material.RoofingMetalDark.name
-      return Constants.ColorDark
-    elsif name == Material.RoofingMetalMed.name
-      return Constants.ColorMedium
-    elsif name == Material.RoofingMetalLight.name
-      return Constants.ColorLight
-    elsif name == Material.RoofingMetalWhite.name
-      return Constants.ColorWhite
-    elsif name == Material.RoofingGalvanizedSteel.name
-      return Constants.ColorLight
-    end
-
-    return
-  end
-
-  def self.get_roofing_material_manual_j_material(name)
-    if name == Material.RoofingAsphaltShinglesDark.name
-      return Constants.RoofMaterialAsphaltShingles
-    elsif name == Material.RoofingAsphaltShinglesMed.name
-      return Constants.RoofMaterialAsphaltShingles
-    elsif name == Material.RoofingAsphaltShinglesLight.name
-      return Constants.RoofMaterialAsphaltShingles
-    elsif name == Material.RoofingAsphaltShinglesWhiteCool.name
-      return Constants.RoofMaterialAsphaltShingles
-    elsif name == Material.RoofingTileDark.name
-      return Constants.RoofMaterialTile
-    elsif name == Material.RoofingTileMed.name
-      return Constants.RoofMaterialTile
-    elsif name == Material.RoofingTileLight.name
-      return Constants.RoofMaterialTile
-    elsif name == Material.RoofingTileWhite.name
-      return Constants.RoofMaterialTile
-    elsif name == Material.RoofingMetalDark.name
-      return Constants.RoofMaterialMetal
-    elsif name == Material.RoofingMetalMed.name
-      return Constants.RoofMaterialMetal
-    elsif name == Material.RoofingMetalLight.name
-      return Constants.RoofMaterialMetal
-    elsif name == Material.RoofingMetalWhite.name
-      return Constants.RoofMaterialMetal
-    elsif name == Material.RoofingGalvanizedSteel.name
-      return Constants.RoofMaterialMetal
-    end
-
-    return
-  end
-
   def self.get_default_interior_shading_factors()
     summer = 0.70
     winter = 0.85
     return summer, winter
   end
 
+  def self.get_default_roof_color(roof_type, solar_absorptance)
+    map = get_roof_color_and_solar_absorptance_map
+    color_map = {}
+    map.each do |key, value|
+      next unless key[1] == roof_type
+      color_map[key[0]] = value
+    end
+    color = color_map.min_by { |k, v| (v - solar_absorptance).abs }[0]
+    return color
+  end
+
+  def self.get_default_roof_solar_absorptance(roof_type, color)
+    map = get_roof_color_and_solar_absorptance_map
+    return map[[color, roof_type]]
+  end
+
+  def self.get_default_wall_color(solar_absorptance)
+    map = get_wall_color_and_solar_absorptance_map
+    color = map.min_by { |k, v| (v - solar_absorptance).abs }[0]
+    return color
+  end
+
+  def self.get_default_wall_solar_absorptance(color)
+    map = get_wall_color_and_solar_absorptance_map
+    return map[color]
+  end
+
   private
+
+  def self.get_roof_color_and_solar_absorptance_map
+    return { [HPXML::ColorDark, HPXML::RoofTypeAsphaltShingles] => 0.92,
+             [HPXML::ColorMediumDark, HPXML::RoofTypeAsphaltShingles] => 0.89,
+             [HPXML::ColorMedium, HPXML::RoofTypeAsphaltShingles] => 0.85,
+             [HPXML::ColorLight, HPXML::RoofTypeAsphaltShingles] => 0.75,
+             [HPXML::ColorReflective, HPXML::RoofTypeAsphaltShingles] => 0.50,
+             [HPXML::ColorDark, HPXML::RoofTypeWoodShingles] => 0.92,
+             [HPXML::ColorMediumDark, HPXML::RoofTypeWoodShingles] => 0.89,
+             [HPXML::ColorMedium, HPXML::RoofTypeWoodShingles] => 0.85,
+             [HPXML::ColorLight, HPXML::RoofTypeWoodShingles] => 0.75,
+             [HPXML::ColorReflective, HPXML::RoofTypeWoodShingles] => 0.50,
+             [HPXML::ColorDark, HPXML::RoofTypeClayTile] => 0.90,
+             [HPXML::ColorMediumDark, HPXML::RoofTypeClayTile] => 0.83,
+             [HPXML::ColorMedium, HPXML::RoofTypeClayTile] => 0.75,
+             [HPXML::ColorLight, HPXML::RoofTypeClayTile] => 0.60,
+             [HPXML::ColorReflective, HPXML::RoofTypeClayTile] => 0.30,
+             [HPXML::ColorDark, HPXML::RoofTypeMetal] => 0.90,
+             [HPXML::ColorMediumDark, HPXML::RoofTypeMetal] => 0.83,
+             [HPXML::ColorMedium, HPXML::RoofTypeMetal] => 0.75,
+             [HPXML::ColorLight, HPXML::RoofTypeMetal] => 0.60,
+             [HPXML::ColorReflective, HPXML::RoofTypeMetal] => 0.30 }
+  end
+
+  def self.get_wall_color_and_solar_absorptance_map
+    return { HPXML::ColorDark => 0.95,
+             HPXML::ColorMediumDark => 0.85,
+             HPXML::ColorMedium => 0.70,
+             HPXML::ColorLight => 0.50,
+             HPXML::ColorReflective => 0.30 }
+  end
 
   def self.get_gap_factor(install_grade, framing_factor, cavity_r)
     if cavity_r <= 0

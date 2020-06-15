@@ -446,6 +446,19 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(30)
     args << arg
 
+    roof_material_type_choices = OpenStudio::StringVector.new
+    roof_material_type_choices << HPXML::RoofTypeAsphaltShingles
+    roof_material_type_choices << HPXML::RoofTypeConcrete
+    roof_material_type_choices << HPXML::RoofTypeClayTile
+    roof_material_type_choices << HPXML::RoofTypeMetal
+    roof_material_type_choices << HPXML::RoofTypePlasticRubber
+    roof_material_type_choices << HPXML::RoofTypeWoodShingles
+
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('roof_material_type', roof_material_type_choices, false)
+    arg.setDisplayName('Roof: Material Type')
+    arg.setDescription('The material type of the roof.')
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('roof_assembly_r', true)
     arg.setDisplayName('Roof: Assembly R-value')
     arg.setUnits('h-ft^2-R/Btu')
@@ -544,6 +557,19 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDisplayName('Walls: Type')
     arg.setDescription('The type of exterior walls.')
     arg.setDefaultValue(HPXML::WallTypeWoodStud)
+    args << arg
+
+    wall_siding_type_choices = OpenStudio::StringVector.new
+    wall_siding_type_choices << HPXML::SidingTypeAluminum
+    wall_siding_type_choices << HPXML::SidingTypeBrick
+    wall_siding_type_choices << HPXML::SidingTypeFiberCement
+    wall_siding_type_choices << HPXML::SidingTypeStucco
+    wall_siding_type_choices << HPXML::SidingTypeVinyl
+    wall_siding_type_choices << HPXML::SidingTypeWood
+
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('wall_siding_type', wall_siding_type_choices, false)
+    arg.setDisplayName('Wall: Siding Type')
+    arg.setDescription('The siding type of the exterior walls.')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('wall_assembly_r', true)
@@ -2291,6 +2317,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
              slab_carpet_fraction: runner.getDoubleArgumentValue('slab_carpet_fraction', user_arguments),
              slab_carpet_r_value: runner.getDoubleArgumentValue('slab_carpet_r', user_arguments),
              ceiling_assembly_r: runner.getDoubleArgumentValue('ceiling_assembly_r', user_arguments),
+             roof_material_type: runner.getOptionalStringArgumentValue('roof_material_type', user_arguments),
              roof_assembly_r: runner.getDoubleArgumentValue('roof_assembly_r', user_arguments),
              roof_solar_absorptance: runner.getDoubleArgumentValue('roof_solar_absorptance', user_arguments),
              roof_emittance: runner.getDoubleArgumentValue('roof_emittance', user_arguments),
@@ -2298,6 +2325,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
              neighbor_distance: [runner.getDoubleArgumentValue('neighbor_front_distance', user_arguments), runner.getDoubleArgumentValue('neighbor_back_distance', user_arguments), runner.getDoubleArgumentValue('neighbor_left_distance', user_arguments), runner.getDoubleArgumentValue('neighbor_right_distance', user_arguments)],
              neighbor_height: [runner.getStringArgumentValue('neighbor_front_height', user_arguments), runner.getStringArgumentValue('neighbor_back_height', user_arguments), runner.getStringArgumentValue('neighbor_left_height', user_arguments), runner.getStringArgumentValue('neighbor_right_height', user_arguments)],
              wall_type: runner.getStringArgumentValue('wall_type', user_arguments),
+             wall_siding_type: runner.getOptionalStringArgumentValue('wall_siding_type', user_arguments),
              wall_assembly_r: runner.getDoubleArgumentValue('wall_assembly_r', user_arguments),
              wall_solar_absorptance: runner.getDoubleArgumentValue('wall_solar_absorptance', user_arguments),
              wall_emittance: runner.getDoubleArgumentValue('wall_emittance', user_arguments),
@@ -2971,9 +2999,14 @@ class HPXMLFile
         pitch = 0.0
       end
 
+      if args[:roof_material_type].is_initialized
+        roof_type = args[:roof_material_type].get
+      end
+
       hpxml.roofs.add(id: "#{surface.name}",
                       interior_adjacent_to: get_adjacent_to(model, surface),
                       area: UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2').round,
+                      roof_type: roof_type,
                       solar_absorptance: args[:roof_solar_absorptance],
                       emittance: args[:roof_emittance],
                       pitch: pitch,
@@ -3009,10 +3042,15 @@ class HPXMLFile
         wall_type = HPXML::WallTypeWoodStud
       end
 
+      if exterior_adjacent_to == HPXML::LocationOutside && args[:wall_siding_type].is_initialized
+        siding = args[:wall_siding_type].get
+      end
+
       hpxml.walls.add(id: "#{surface.name}",
                       exterior_adjacent_to: exterior_adjacent_to,
                       interior_adjacent_to: interior_adjacent_to,
                       wall_type: wall_type,
+                      siding: siding,
                       area: UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2').round,
                       solar_absorptance: args[:wall_solar_absorptance],
                       emittance: args[:wall_emittance])

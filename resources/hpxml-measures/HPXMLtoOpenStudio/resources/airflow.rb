@@ -5,7 +5,7 @@ class Airflow
                  duct_systems, infil_volume, infil_height, open_window_area,
                  nv_clg_ssn_sensor, min_neighbor_distance, vent_kitchen, vent_bath,
                  vented_attic, vented_crawl, site_type, shelter_coef,
-                 has_flue_chimney, hvac_map, apply_ashrae140_assumptions)
+                 has_flue_chimney, hvac_map, eri_version, apply_ashrae140_assumptions)
 
     # Global variables
 
@@ -16,6 +16,7 @@ class Airflow
     @infil_height = infil_height
     @living_space = spaces[HPXML::LocationLivingSpace]
     @living_zone = @living_space.thermalZone.get
+    @eri_version = eri_version
     @apply_ashrae140_assumptions = apply_ashrae140_assumptions
     @cfa = UnitConversions.convert(@living_space.floorArea, 'm^2', 'ft^2')
 
@@ -26,6 +27,10 @@ class Airflow
 
     @wout_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Site Outdoor Air Humidity Ratio')
     @wout_sensor.setName('out wt s')
+
+    @win_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Zone Air Humidity Ratio')
+    @win_sensor.setName("#{Constants.ObjectNameAirflow} win s")
+    @win_sensor.setKeyName(@living_zone.name.to_s)
 
     @vwind_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Site Wind Speed')
     @vwind_sensor.setName('site vw s')
@@ -55,16 +60,15 @@ class Airflow
 
     # Apply ducts
 
-    duct_lks = []
     duct_systems.each do |ducts, air_loop|
-      apply_ducts(model, ducts, vent_mech, air_loop, duct_lks)
+      apply_ducts(model, ducts, vent_mech, air_loop)
     end
 
     # Apply infiltration/ventilation
 
     @wind_speed = set_wind_speed_correction(model, site_type, shelter_coef, min_neighbor_distance)
     apply_natural_ventilation_and_whole_house_fan(model, weather, vent_whf, open_window_area, nv_clg_ssn_sensor)
-    apply_infiltration_and_ventilation_fans(model, weather, vent_mech, vent_kitchen, vent_bath, duct_lks, has_flue_chimney, air_infils, vented_attic, vented_crawl)
+    apply_infiltration_and_ventilation_fans(model, weather, vent_mech, vent_kitchen, vent_bath, has_flue_chimney, air_infils, vented_attic, vented_crawl)
   end
 
   def self.get_default_shelter_coefficient()
@@ -138,7 +142,8 @@ class Airflow
     end
 
     # Local Shielding
-    if shelter_coef == Constants.Auto
+    if shelter_coef.nil?
+      # FIXME: Move into HPXML defaults
       if min_neighbor_distance.nil?
         # Typical shelter for isolated rural house
         wind_speed.S_wo = 0.90
@@ -496,7 +501,7 @@ class Airflow
     end
   end
 
-  def self.apply_ducts(model, ducts, vent_mech, air_loop, duct_lks)
+  def self.apply_ducts(model, ducts, vent_mech, air_loop)
     ducts.each do |duct|
       if duct.leakage_frac.nil? == duct.leakage_cfm25.nil?
         fail 'Ducts: Must provide either leakage fraction or cfm25, but not both.'
@@ -527,13 +532,13 @@ class Airflow
       duct.rvalue = get_duct_insulation_rvalue(duct.rvalue, duct.side) # Convert from nominal to actual R-value
       if not duct.loc_schedule.nil?
         # Pass MF space temperature schedule name
-        duct.location_handle = duct.loc_schedule.name.to_s
+        duct.location = duct.loc_schedule.name.to_s
       elsif not duct.loc_space.nil?
+        duct.location = duct.loc_space.name.to_s
         duct.zone = duct.loc_space.thermalZone.get
-        duct.location_handle = duct.zone.handle.to_s
-      else # Outside
+      else # Outside/RoofDeck
+        duct.location = HPXML::LocationOutside
         duct.zone = nil
-        duct.location_handle = HPXML::LocationOutside
       end
     end
 
@@ -541,7 +546,7 @@ class Airflow
       # Store info for HVAC Sizing measure
       air_loop.additionalProperties.setFeature(Constants.SizingInfoDuctExist, true)
       air_loop.additionalProperties.setFeature(Constants.SizingInfoDuctSides, ducts.map { |duct| duct.side }.join(','))
-      air_loop.additionalProperties.setFeature(Constants.SizingInfoDuctLocationHandles, ducts.map { |duct| duct.location_handle.to_s }.join(','))
+      air_loop.additionalProperties.setFeature(Constants.SizingInfoDuctLocations, ducts.map { |duct| duct.location.to_s }.join(','))
       air_loop.additionalProperties.setFeature(Constants.SizingInfoDuctLeakageFracs, ducts.map { |duct| duct.leakage_frac.to_f }.join(','))
       air_loop.additionalProperties.setFeature(Constants.SizingInfoDuctLeakageCFM25s, ducts.map { |duct| duct.leakage_cfm25.to_f }.join(','))
       air_loop.additionalProperties.setFeature(Constants.SizingInfoDuctAreas, ducts.map { |duct| duct.area.to_f }.join(','))
@@ -624,11 +629,6 @@ class Airflow
       ra_w_sensor.setKeyName(@living_zone.name.to_s)
     end
 
-    # Living zone humidity ratio
-    win_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Zone Mean Air Humidity Ratio')
-    win_sensor.setName("#{air_loop.name} win s")
-    win_sensor.setKeyName(@living_zone.name.to_s)
-
     # Create one duct program for each duct location zone
     duct_locations.each_with_index do |duct_location, i|
       next if (not duct_location.nil?) && (duct_location.name.to_s == @living_zone.name.to_s)
@@ -661,11 +661,11 @@ class Airflow
         dz_w_sensor.setName("#{dz_w_var.name} s")
         dz_w = "#{dz_w_sensor.name}"
       elsif duct_location.is_a? OpenStudio::Model::ScheduleConstant # Outside or scheduled temperature
-        if duct_location.name.get == HPXML::LocationOtherNonFreezingSpace
+        if duct_location.name.to_s == HPXML::LocationOtherNonFreezingSpace
           dz_w_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Site Outdoor Air Humidity Ratio')
           dz_w_sensor.setName("#{dz_w_var.name} s")
           dz_w = "#{dz_w_sensor.name}"
-        elsif duct_location.name.get == HPXML::LocationOtherHousingUnit
+        elsif duct_location.name.to_s == HPXML::LocationOtherHousingUnit
           dz_w_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Zone Mean Air Humidity Ratio')
           dz_w_sensor.setKeyName(@living_zone.name.to_s)
           dz_w_sensor.setName("#{dz_w_var.name} s")
@@ -690,18 +690,8 @@ class Airflow
       equip_act_infos = []
 
       if duct_location.is_a? OpenStudio::Model::ScheduleConstant
-        # Regain factors from LBNL's "Technical Background for default values used for Forced Air Systems in Proposed ASHRAE Standard 152P"
-        # TODO: Some redundant code in hvac_sizing.rb's get_duct_regain_factor().
-        if duct_location.name.get == HPXML::LocationExteriorWall
-          f_regain = 0.5
-        elsif duct_location.name.get == HPXML::LocationUnderSlab
-          f_regain = 0.83
-        elsif [HPXML::LocationOtherHousingUnit, HPXML::LocationOtherHeatedSpace,
-               HPXML::LocationOtherMultifamilyBufferSpace, HPXML::LocationOtherNonFreezingSpace].include? duct_location.name.get
-          f_regain = 0.0
-        else
-          fail "Unhandled duct location: #{duct_location.name.get}."
-        end
+        space_values = Geometry.get_temperature_scheduled_space_values(duct_location.name.to_s)
+        f_regain = space_values[:f_regain]
       else
         f_regain = 0.0
       end
@@ -819,10 +809,6 @@ class Airflow
 
       # -- Global Variables --
 
-      duct_lk_supply_fan_equiv_var = OpenStudio::Model::EnergyManagementSystemGlobalVariable.new(model, "#{air_loop_name_idx} LkSupFanEquiv".gsub(' ', '_'))
-      duct_lk_exhaust_fan_equiv_var = OpenStudio::Model::EnergyManagementSystemGlobalVariable.new(model, "#{air_loop_name_idx} LkExhFanEquiv".gsub(' ', '_'))
-      duct_lks << [duct_lk_supply_fan_equiv_var, duct_lk_exhaust_fan_equiv_var]
-
       # Obtain aggregate values for all ducts in the current duct location
       leakage_fracs = { HPXML::DuctTypeSupply => nil, HPXML::DuctTypeReturn => nil }
       leakage_cfm25s = { HPXML::DuctTypeSupply => nil, HPXML::DuctTypeReturn => nil }
@@ -933,15 +919,6 @@ class Airflow
       duct_subroutine.addLine('    Set ZoneMixLvToDZ = (ret_lk_vfr-sup_lk_vfr)+oa_vfr') # m3/s
       duct_subroutine.addLine('    Set ZoneMixDZToLv = 0') # m3/s
       duct_subroutine.addLine('  EndIf')
-
-      # Calculate supply/exhaust fan equivalent
-      duct_subroutine.addLine('  If oa_vfr > 0')
-      duct_subroutine.addLine('    Set LkSupFanEquiv = 0') # m3/s, QductsIn
-      duct_subroutine.addLine('    Set LkExhFanEquiv = oa_vfr') # m3/s, QductsOut
-      duct_subroutine.addLine('  Else')
-      duct_subroutine.addLine('    Set LkSupFanEquiv = 0-oa_vfr') # m3/s, QductsIn
-      duct_subroutine.addLine('    Set LkExhFanEquiv = 0') # m3/s, QductsOut
-      duct_subroutine.addLine('  EndIf')
       duct_subroutine.addLine('Else') # No air handler flow rate
       duct_subroutine.addLine('  Set SupLatLkToLv = 0')
       duct_subroutine.addLine('  Set SupSensLkToLv = 0')
@@ -955,8 +932,6 @@ class Airflow
       duct_subroutine.addLine('  Set SupSensLkToDZ = 0')
       duct_subroutine.addLine('  Set ZoneMixLvToDZ = 0') # m3/s
       duct_subroutine.addLine('  Set ZoneMixDZToLv = 0') # m3/s
-      duct_subroutine.addLine('  Set LkSupFanEquiv = 0') # m3/s
-      duct_subroutine.addLine('  Set LkExhFanEquiv = 0') # m3/s
       duct_subroutine.addLine('EndIf')
       duct_subroutine.addLine("Set #{duct_vars['supply_lat_lk_to_liv'].name} = SupLatLkToLv")
       duct_subroutine.addLine("Set #{duct_vars['supply_sens_lk_to_liv'].name} = SupSensLkToLv")
@@ -974,8 +949,6 @@ class Airflow
       if not duct_actuators['dz_to_liv_flow_rate'].nil?
         duct_subroutine.addLine("Set #{duct_vars['dz_to_liv_flow_rate'].name} = ZoneMixDZToLv")
       end
-      duct_subroutine.addLine("Set #{duct_lk_supply_fan_equiv_var.name} = LkSupFanEquiv")
-      duct_subroutine.addLine("Set #{duct_lk_exhaust_fan_equiv_var.name} = LkExhFanEquiv")
 
       # Duct Program
 
@@ -1019,7 +992,7 @@ class Airflow
         duct_program.addLine("  Set cfis_m3s = (#{@fan_mfr_max_var[air_loop].name} / 1.16097654)") # Density of 1.16097654 was back calculated using E+ results
         duct_program.addLine("  Set #{@fan_rtf_var[air_loop].name} = #{@cfis_f_damper_extra_open_var.name}") # Need to use global vars to sync duct_program and infiltration program of different calling points
         duct_program.addLine("  Set #{ah_vfr_var.name} = #{@fan_rtf_var[air_loop].name}*cfis_m3s")
-        duct_program.addLine("  Set rho_in = (@RhoAirFnPbTdbW #{@pbar_sensor.name} #{@tin_sensor.name} #{win_sensor.name})")
+        duct_program.addLine("  Set rho_in = (@RhoAirFnPbTdbW #{@pbar_sensor.name} #{@tin_sensor.name} #{@win_sensor.name})")
         duct_program.addLine("  Set #{ah_mfr_var.name} = #{ah_vfr_var.name} * rho_in")
         duct_program.addLine("  Set #{ah_tout_var.name} = #{ra_t_sensor.name}")
         duct_program.addLine("  Set #{ah_wout_var.name} = #{ra_w_sensor.name}")
@@ -1075,7 +1048,7 @@ class Airflow
 
     space = @spaces[HPXML::LocationGarage]
     area = UnitConversions.convert(space.floorArea, 'm^2', 'ft^2')
-    volume = Geometry.get_zone_volume(space.thermalZone.get)
+    volume = UnitConversions.convert(space.volume, 'm^3', 'ft^3')
     hor_lk_frac = 0.4
     neutral_level = 0.5
     sla = get_infiltration_SLA_from_ACH50(ach50, 0.65, area, volume)
@@ -1144,7 +1117,7 @@ class Airflow
     volume = UnitConversions.convert(space.volume, 'm^3', 'ft^3')
     if not vented_attic_sla.nil?
       vented_attic_area = UnitConversions.convert(space.floorArea, 'm^2', 'ft^2')
-      hor_lk_frac = 1.0
+      hor_lk_frac = 0.75
       neutral_level = 0.5
       sla = vented_attic_sla
       ach = get_infiltration_ACH_from_SLA(sla, 8.202, weather)
@@ -1168,7 +1141,7 @@ class Airflow
     space = @spaces[HPXML::LocationAtticUnvented]
     area = UnitConversions.convert(space.floorArea, 'm^2', 'ft^2')
     volume = UnitConversions.convert(space.volume, 'm^3', 'ft^3')
-    hor_lk_frac = 1.0
+    hor_lk_frac = 0.75
     neutral_level = 0.5
     sla = 0 # Assumption
     ach = get_infiltration_ACH_from_SLA(sla, 8.202, weather)
@@ -1300,7 +1273,7 @@ class Airflow
     return vent_mech_sens_eff, vent_mech_lat_eff, vent_mech_apparent_sens_eff
   end
 
-  def self.apply_infiltration_and_ventilation_fans(model, weather, vent_mech, vent_kitchen, vent_bath, duct_lks, has_flue_chimney, air_infils, vented_attic, vented_crawl)
+  def self.apply_infiltration_and_ventilation_fans(model, weather, vent_mech, vent_kitchen, vent_bath, has_flue_chimney, air_infils, vented_attic, vented_crawl)
     # Get living space infiltration
     living_ach50 = nil
     living_const_ach = nil
@@ -1383,19 +1356,12 @@ class Airflow
     infil_flow_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(infil_flow, 'Zone Infiltration', 'Air Exchange Flow Rate')
     infil_flow_actuator.setName("#{infil_flow.name} act")
 
-    imbal_ducts_flow = OpenStudio::Model::SpaceInfiltrationDesignFlowRate.new(model)
-    imbal_ducts_flow.setName(Constants.ObjectNameDucts + ' flow')
-    imbal_ducts_flow.setSchedule(model.alwaysOnDiscreteSchedule)
-    imbal_ducts_flow.setSpace(@living_space)
-    imbal_ducts_flow_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(imbal_ducts_flow, 'Zone Infiltration', 'Air Exchange Flow Rate')
-    imbal_ducts_flow_actuator.setName("#{imbal_ducts_flow.name} act")
-
-    imbal_mechvent_flow = OpenStudio::Model::SpaceInfiltrationDesignFlowRate.new(model)
-    imbal_mechvent_flow.setName(Constants.ObjectNameMechanicalVentilation + ' flow')
-    imbal_mechvent_flow.setSchedule(model.alwaysOnDiscreteSchedule)
-    imbal_mechvent_flow.setSpace(@living_space)
-    imbal_mechvent_flow_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(imbal_mechvent_flow, 'Zone Infiltration', 'Air Exchange Flow Rate')
-    imbal_mechvent_flow_actuator.setName("#{imbal_mechvent_flow.name} act")
+    mechvent_flow = OpenStudio::Model::SpaceInfiltrationDesignFlowRate.new(model)
+    mechvent_flow.setName(Constants.ObjectNameMechanicalVentilation + ' flow')
+    mechvent_flow.setSchedule(model.alwaysOnDiscreteSchedule)
+    mechvent_flow.setSpace(@living_space)
+    mechvent_flow_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(mechvent_flow, 'Zone Infiltration', 'Air Exchange Flow Rate')
+    mechvent_flow_actuator.setName("#{mechvent_flow.name} act")
 
     # Living Space Infiltration Calculation/Program
     infil_program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
@@ -1497,81 +1463,30 @@ class Airflow
       infil_program.addLine("Set n = #{n_i}")
       infil_program.addLine("Set sft = (f_t*#{(((@wind_speed.S_wo * (1.0 - y_i)) + (s_wflue * (1.5 * y_i))))})")
       infil_program.addLine("Set temp1 = ((c*Cw)*((sft*#{@vwind_sensor.name})^(2*n)))^2")
-      infil_program.addLine('Set Qn = (((c*Cs*(dT^n))^2)+temp1)^0.5')
+      infil_program.addLine('Set Qinf = (((c*Cs*(dT^n))^2)+temp1)^0.5')
+      infil_program.addLine('Set Qinf = (@Max Qinf 0)')
 
     elsif living_const_ach.to_f > 0
 
       living_ach = living_const_ach
       living_cfm = living_ach / UnitConversions.convert(1.0, 'hr', 'min') * @infil_volume
 
-      infil_program.addLine("Set Qn = #{living_ach * UnitConversions.convert(@infil_volume, 'ft^3', 'm^3') / UnitConversions.convert(1.0, 'hr', 's')}")
+      infil_program.addLine("Set Qinf = #{living_ach * UnitConversions.convert(@infil_volume, 'ft^3', 'm^3') / UnitConversions.convert(1.0, 'hr', 's')}")
     else
-      infil_program.addLine('Set Qn = 0')
+      infil_program.addLine('Set Qinf = 0')
     end
 
     # Store info for HVAC Sizing measure
     @living_zone.additionalProperties.setFeature(Constants.SizingInfoZoneInfiltrationCFM, living_cfm.to_f)
     @living_zone.additionalProperties.setFeature(Constants.SizingInfoZoneInfiltrationACH, living_ach.to_f)
 
-    if (not vent_mech.nil?) && [HPXML::MechVentTypeBalanced, HPXML::MechVentTypeERV, HPXML::MechVentTypeHRV].include?(vent_mech.fan_type) && (vent_mech_cfm > 0)
-      # ERV/HRV/Balanced EMS load model
-      # E+ ERV model is using standard density for MFR calculation, caused discrepancy with other system types.
-      # E+ ERV model also does not meet setpoint perfectly.
-      # Therefore ERV is modeled within EMS infiltration program
-
-      # Sensors for ERV/HRV
-      win_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Zone Air Humidity Ratio')
-      win_sensor.setName("#{Constants.ObjectNameAirflow} win s")
-      win_sensor.setKeyName(@living_zone.name.to_s)
-
-      # Actuators for ERV/HRV
-      sens_name = "#{Constants.ObjectNameERVHRV} sensible load"
-      erv_sens_load_var = OpenStudio::Model::EnergyManagementSystemGlobalVariable.new(model, sens_name.gsub(' ', '_'))
-      erv_sens_load_actuator = create_sens_lat_load_actuator_and_equipment(model, sens_name, @living_space, 0.0, 0.0)
-      lat_name = "#{Constants.ObjectNameERVHRV} latent load"
-      erv_lat_load_var = OpenStudio::Model::EnergyManagementSystemGlobalVariable.new(model, lat_name.gsub(' ', '_'))
-      erv_lat_load_actuator = create_sens_lat_load_actuator_and_equipment(model, lat_name, @living_space, 1.0, 0.0)
-
-      # Air property at inlet nodes in two sides of ERV
-      infil_program.addLine("Set ERVSupInPb = #{@pbar_sensor.name}") # oa barometric pressure
-      infil_program.addLine("Set ERVSupInTemp = #{@tout_sensor.name}") # oa db temperature
-      infil_program.addLine("Set ERVSupInW = #{@wout_sensor.name}")   # oa humidity ratio
-      infil_program.addLine('Set ERVSupRho = (@RhoAirFnPbTdbW ERVSupInPb ERVSupInTemp ERVSupInW)')
-      infil_program.addLine('Set ERVSupCp = (@CpAirFnW ERVSupInW)')
-      infil_program.addLine('Set ERVSupInEnth = (@HFnTdbW ERVSupInTemp ERVSupInW)')
-
-      infil_program.addLine("Set ERVSecInTemp = #{@tin_sensor.name}") # zone air temperature
-      infil_program.addLine("Set ERVSecInW = #{win_sensor.name}") # zone air humidity ratio
-      infil_program.addLine('Set ERVSecCp = (@CpAirFnW ERVSecInW)')
-      infil_program.addLine('Set ERVSecInEnth = (@HFnTdbW ERVSecInTemp ERVSecInW)')
-
-      # Calculate mass flow rate based on outdoor air density
-      infil_program.addLine("Set balanced_mechvent_flow_rate = #{UnitConversions.convert(vent_mech_cfm, 'cfm', 'm^3/s')}")
-      infil_program.addLine('Set ERV_MFR = balanced_mechvent_flow_rate * ERVSupRho')
-
-      # Heat exchanger calculation
-      infil_program.addLine('Set ERVCpMin = (@Min ERVSupCp ERVSecCp)')
-      infil_program.addLine("Set ERVSupOutTemp = ERVSupInTemp + ERVCpMin/ERVSupCp * #{vent_mech_sens_eff} * (ERVSecInTemp - ERVSupInTemp)")
-      infil_program.addLine("Set ERVSupOutW = ERVSupInW + ERVCpMin/ERVSupCp * #{vent_mech_lat_eff} * (ERVSecInW - ERVSupInW)")
-      infil_program.addLine('Set ERVSupOutEnth = (@HFnTdbW ERVSupOutTemp ERVSupOutW)')
-      infil_program.addLine('Set ERVSensHeatTrans = ERV_MFR * ERVSupCp * (ERVSupOutTemp - ERVSupInTemp)')
-      infil_program.addLine('Set ERVTotalHeatTrans = ERV_MFR * (ERVSupOutEnth - ERVSupInEnth)')
-      infil_program.addLine('Set ERVLatHeatTrans = ERVTotalHeatTrans - ERVSensHeatTrans')
-
-      # Load calculation
-      infil_program.addLine('Set ERVTotalToLv = ERV_MFR * (ERVSupOutEnth - ERVSecInEnth)')
-      infil_program.addLine('Set ERVSensToLv = ERV_MFR * ERVSecCp * (ERVSupOutTemp - ERVSecInTemp)')
-      infil_program.addLine('Set ERVLatToLv = ERVTotalToLv - ERVSensToLv')
-
-      # Actuator
-      infil_program.addLine("Set #{erv_sens_load_actuator.name} = ERVSensToLv")
-      infil_program.addLine("Set #{erv_lat_load_actuator.name} = ERVLatToLv")
-    else
-      infil_program.addLine('Set balanced_mechvent_flow_rate = 0')
+    if (not vent_mech.nil?) && (vent_mech.fan_type != HPXML::MechVentTypeCFIS)
+      infil_program.addLine("Set #{vent_mech_fan_actuator.name} = #{vent_mech_fan_w}")
+    elsif vent_mech.nil?
+      infil_program.addLine("Set #{vent_mech_fan_actuator.name} = 0")
     end
 
-    if (not vent_mech.nil?) && (vent_mech.fan_type == HPXML::MechVentTypeCFIS)
-
+    if (not vent_mech.nil?) && (vent_mech.fan_type == HPXML::MechVentTypeCFIS) # CFIS system
       infil_program.addLine("Set fan_rtf_hvac = #{@fan_rtf_sensor[@cfis_airloop].name}")
       infil_program.addLine("Set CFIS_fan_w = #{vent_mech_fan_w}") # W
 
@@ -1622,7 +1537,7 @@ class Airflow
       infil_program.addLine('  Set QWHV = 0')
       infil_program.addLine("  Set #{vent_mech_fan_actuator.name} = 0")
       infil_program.addLine('EndIf')
-    else
+    else # Non-CFIS system
       infil_program.addLine("Set QWHV = #{UnitConversions.convert(vent_mech_cfm.to_f, 'cfm', 'm^3/s').round(4)}")
     end
 
@@ -1636,41 +1551,98 @@ class Airflow
     else
       infil_program.addLine("Set Qbath = #{UnitConversions.convert(vent_bath.rated_flow_rate * vent_bath.quantity, 'cfm', 'm^3/s').round(4)} * #{bath_sch_sensor.name}")
     end
-    infil_program.addLine('Set QductsOut = 0')
-    infil_program.addLine('Set QductsIn = 0')
-    # Disabling duct imbalance affect on infiltration for consistency with other software tools
-    # Revisit this in the future.
-    # duct_lks.each do |value|
-    #  duct_lk_supply_fan_equiv_var, duct_lk_exhaust_fan_equiv_var = value
-    #  infil_program.addLine("Set QductsOut = QductsOut+#{duct_lk_exhaust_fan_equiv_var.name}")
-    #  infil_program.addLine("Set QductsIn = QductsIn+#{duct_lk_supply_fan_equiv_var.name}")
-    # end
-    infil_program.addLine('Set Qout = Qrange+Qbath+QductsOut')
-    infil_program.addLine('Set Qin = QductsIn')
-    if (not vent_mech.nil?) && (vent_mech.fan_type == HPXML::MechVentTypeExhaust)
-      infil_program.addLine('Set Qout = Qout+QWHV')
-    elsif (not vent_mech.nil?) && [HPXML::MechVentTypeSupply, HPXML::MechVentTypeCFIS].include?(vent_mech.fan_type)
-      infil_program.addLine('Set Qin = Qin+QWHV')
-    end
-    infil_program.addLine('Set Qu = (@Abs (Qout-Qin))')
-    if (not vent_mech.nil?) && (vent_mech.fan_type != HPXML::MechVentTypeCFIS)
-      infil_program.addLine("Set #{vent_mech_fan_actuator.name} = #{vent_mech_fan_w}")
-    elsif vent_mech.nil?
-      infil_program.addLine("Set #{vent_mech_fan_actuator.name} = 0")
+    infil_program.addLine('Set Qexhaust = Qrange+Qbath')
+    infil_program.addLine('Set Qsupply = 0')
+    if (not vent_mech.nil?)
+      if [HPXML::MechVentTypeExhaust].include? vent_mech.fan_type
+        infil_program.addLine('Set Qexhaust = Qexhaust+QWHV')
+      elsif [HPXML::MechVentTypeSupply, HPXML::MechVentTypeCFIS].include? vent_mech.fan_type
+        infil_program.addLine('Set Qsupply = Qsupply+QWHV')
+      elsif [HPXML::MechVentTypeBalanced, HPXML::MechVentTypeERV, HPXML::MechVentTypeHRV].include? vent_mech.fan_type
+        infil_program.addLine('Set Qexhaust = Qexhaust+QWHV')
+        infil_program.addLine('Set Qsupply = Qsupply+QWHV')
+      end
     end
 
-    infil_program.addLine('Set Q_tot_flow = (((Qu^2)+(Qn^2))^0.5)')
-    infil_program.addLine('Set Q_tot_flow = (@Max Q_tot_flow 0)')
+    # Calculate adjusted infiltration based on mechanical ventilation system
+    infil_program.addLine('Set Qfan = (@Max Qexhaust Qsupply)')
+    if Constants.ERIVersions.index(@eri_version) >= Constants.ERIVersions.index('2019')
+      # Follow ASHRAE 62.2-2016, Normative Appendix C equations for time-varying total airflow
+      infil_program.addLine('If Qfan > 0')
+      # Balanced system if the total supply airflow and total exhaust airflow are within 10% of their average.
+      infil_program.addLine('  Set Qavg = ((Qexhaust + Qsupply) / 2.0)')
+      infil_program.addLine('  If ((@Abs (Qexhaust - Qavg)) / Qavg) <= 0.1') # Only need to check Qexhaust, Qsupply will give same result
+      infil_program.addLine('    Set phi = 1')
+      infil_program.addLine('  Else')
+      infil_program.addLine('    Set phi = (Qinf / (Qinf + Qfan))')
+      infil_program.addLine('  EndIf')
+      infil_program.addLine('  Set Qinf_adj = phi * Qinf')
+      infil_program.addLine('Else')
+      infil_program.addLine('  Set Qinf_adj = Qinf')
+      infil_program.addLine('EndIf')
+    else
+      infil_program.addLine('Set Qu = (@Abs (Qexhaust - Qsupply))') # Unbalanced flow
+      infil_program.addLine('Set Qb = Qfan - Qu') # Balanced flow
+      infil_program.addLine('Set Qtot = (((Qu^2) + (Qinf^2)) ^ 0.5) + Qb')
+      infil_program.addLine('Set Qinf_adj = Qtot - Qu - Qb')
+    end
 
     # Assign total airflow to different component loads
-    infil_program.addLine("Set #{imbal_mechvent_flow_actuator.name} = (@Abs ((Qout - QductsOut) - (Qin - QductsIn)))")
-    infil_program.addLine("Set #{imbal_ducts_flow_actuator.name} = (@Abs (QductsOut - QductsIn))")
+    if (not vent_mech.nil?) && [HPXML::MechVentTypeERV, HPXML::MechVentTypeHRV].include?(vent_mech.fan_type)
+      infil_program.addLine("Set #{mechvent_flow_actuator.name} = Qfan - QWHV") # QWHV load captured by ERV/HRV program below
+    else
+      infil_program.addLine("Set #{mechvent_flow_actuator.name} = Qfan")
+    end
+    infil_program.addLine("Set #{infil_flow_actuator.name} = Qinf_adj")
 
-    # Assign the remainder to infiltration:
-    infil_program.addLine("Set #{infil_flow_actuator.name} = Q_tot_flow - #{imbal_mechvent_flow_actuator.name} - #{imbal_ducts_flow_actuator.name}")
-    infil_program.addLine("If #{infil_flow_actuator.name} < 0")
-    infil_program.addLine("  Set #{infil_flow_actuator.name} = 0")
-    infil_program.addLine('EndIf')
+    if (not vent_mech.nil?) && [HPXML::MechVentTypeERV, HPXML::MechVentTypeHRV].include?(vent_mech.fan_type) && (vent_mech_cfm > 0)
+      # ERV/HRV EMS load model
+      # E+ ERV model uses standard density for MFR calculation, causing discrepancy with other system types, so
+      # ERV is modeled within EMS infiltration program instead.
+
+      # Sensors for ERV/HRV
+
+      # Actuators for ERV/HRV
+      erv_sens_load_actuator = create_sens_lat_load_actuator_and_equipment(model, "#{Constants.ObjectNameERVHRV} sensible load", @living_space, 0.0, 0.0)
+      erv_lat_load_actuator = create_sens_lat_load_actuator_and_equipment(model, "#{Constants.ObjectNameERVHRV} latent load", @living_space, 1.0, 0.0)
+
+      # Air property at inlet nodes in two sides of ERV
+      infil_program.addLine("Set ERVSupInPb = #{@pbar_sensor.name}") # oa barometric pressure
+      infil_program.addLine("Set ERVSupInTemp = #{@tout_sensor.name}") # oa db temperature
+      infil_program.addLine("Set ERVSupInW = #{@wout_sensor.name}")   # oa humidity ratio
+      infil_program.addLine('Set ERVSupRho = (@RhoAirFnPbTdbW ERVSupInPb ERVSupInTemp ERVSupInW)')
+      infil_program.addLine('Set ERVSupCp = (@CpAirFnW ERVSupInW)')
+      infil_program.addLine('Set ERVSupInEnth = (@HFnTdbW ERVSupInTemp ERVSupInW)')
+
+      infil_program.addLine("Set ERVSecInTemp = #{@tin_sensor.name}") # zone air temperature
+      infil_program.addLine("Set ERVSecInW = #{@win_sensor.name}") # zone air humidity ratio
+      infil_program.addLine('Set ERVSecCp = (@CpAirFnW ERVSecInW)')
+      infil_program.addLine('Set ERVSecInEnth = (@HFnTdbW ERVSecInTemp ERVSecInW)')
+
+      # Calculate mass flow rate based on outdoor air density
+      infil_program.addLine('Set balanced_mechvent_flow_rate = QWHV')
+      infil_program.addLine('Set ERV_MFR = balanced_mechvent_flow_rate * ERVSupRho')
+
+      # Heat exchanger calculation
+      infil_program.addLine('Set ERVCpMin = (@Min ERVSupCp ERVSecCp)')
+      infil_program.addLine("Set ERVSupOutTemp = ERVSupInTemp + ERVCpMin/ERVSupCp * #{vent_mech_sens_eff} * (ERVSecInTemp - ERVSupInTemp)")
+      infil_program.addLine("Set ERVSupOutW = ERVSupInW + ERVCpMin/ERVSupCp * #{vent_mech_lat_eff} * (ERVSecInW - ERVSupInW)")
+      infil_program.addLine('Set ERVSupOutEnth = (@HFnTdbW ERVSupOutTemp ERVSupOutW)')
+      infil_program.addLine('Set ERVSensHeatTrans = ERV_MFR * ERVSupCp * (ERVSupOutTemp - ERVSupInTemp)')
+      infil_program.addLine('Set ERVTotalHeatTrans = ERV_MFR * (ERVSupOutEnth - ERVSupInEnth)')
+      infil_program.addLine('Set ERVLatHeatTrans = ERVTotalHeatTrans - ERVSensHeatTrans')
+
+      # Load calculation
+      infil_program.addLine('Set ERVTotalToLv = ERV_MFR * (ERVSupOutEnth - ERVSecInEnth)')
+      infil_program.addLine('Set ERVSensToLv = ERV_MFR * ERVSecCp * (ERVSupOutTemp - ERVSecInTemp)')
+      infil_program.addLine('Set ERVLatToLv = ERVTotalToLv - ERVSensToLv')
+
+      # Actuator
+      infil_program.addLine("Set #{erv_sens_load_actuator.name} = ERVSensToLv")
+      infil_program.addLine("Set #{erv_lat_load_actuator.name} = ERVLatToLv")
+    else
+      infil_program.addLine('Set balanced_mechvent_flow_rate = 0')
+    end
 
     program_calling_manager = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
     program_calling_manager.setName("#{infil_program.name} calling manager")
@@ -1765,7 +1737,7 @@ class Duct
     @area = area
     @rvalue = rvalue
   end
-  attr_accessor(:side, :loc_space, :loc_schedule, :leakage_frac, :leakage_cfm25, :area, :rvalue, :zone, :location_handle)
+  attr_accessor(:side, :loc_space, :loc_schedule, :leakage_frac, :leakage_cfm25, :area, :rvalue, :zone, :location)
 end
 
 class WindSpeed

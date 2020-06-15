@@ -1,6 +1,35 @@
 # frozen_string_literal: true
 
 class HPXMLDefaults
+  def self.apply(hpxml, cfa, nbeds, ncfl, ncfl_ag, has_uncond_bsmnt, eri_version)
+    apply_header(hpxml)
+    apply_site(hpxml)
+    apply_building_occupancy(hpxml, nbeds)
+    apply_building_construction(hpxml, cfa, nbeds)
+    apply_attics(hpxml)
+    apply_foundations(hpxml)
+    apply_infiltration(hpxml)
+    apply_roofs(hpxml)
+    apply_walls(hpxml)
+    apply_rim_joists(hpxml)
+    apply_windows(hpxml)
+    apply_skylights(hpxml)
+    apply_hvac(hpxml)
+    apply_hvac_distribution(hpxml, ncfl, ncfl_ag)
+    apply_water_heaters(hpxml, nbeds, eri_version)
+    apply_hot_water_distribution(hpxml, cfa, ncfl, has_uncond_bsmnt)
+    apply_water_fixtures(hpxml)
+    apply_solar_thermal_systems(hpxml)
+    apply_ventilation_fans(hpxml)
+    apply_ceiling_fans(hpxml, nbeds)
+    apply_plug_loads(hpxml, cfa, nbeds)
+    apply_appliances(hpxml, nbeds, eri_version)
+    apply_lighting(hpxml)
+    apply_pv_systems(hpxml)
+  end
+
+  private
+
   def self.apply_header(hpxml)
     hpxml.header.timestep = 60 if hpxml.header.timestep.nil?
     hpxml.header.begin_month = 1 if hpxml.header.begin_month.nil?
@@ -83,7 +112,49 @@ class HPXMLDefaults
         measurement.infiltration_volume = infil_volume
       end
     end
-    return infil_volume
+  end
+
+  def self.apply_roofs(hpxml)
+    hpxml.roofs.each do |roof|
+      if roof.roof_type.nil?
+        roof.roof_type = HPXML::RoofTypeAsphaltShingles
+      end
+      if roof.roof_color.nil?
+        roof.roof_color = Constructions.get_default_roof_color(roof.roof_type, roof.solar_absorptance)
+      elsif roof.solar_absorptance.nil?
+        roof.solar_absorptance = Constructions.get_default_roof_solar_absorptance(roof.roof_type, roof.roof_color)
+      end
+    end
+  end
+
+  def self.apply_walls(hpxml)
+    hpxml.walls.each do |wall|
+      next unless wall.is_exterior
+
+      if wall.siding.nil?
+        wall.siding = HPXML::SidingTypeWood
+      end
+      if wall.color.nil?
+        wall.color = Constructions.get_default_wall_color(wall.solar_absorptance)
+      elsif wall.solar_absorptance.nil?
+        wall.solar_absorptance = Constructions.get_default_wall_solar_absorptance(wall.color)
+      end
+    end
+  end
+
+  def self.apply_rim_joists(hpxml)
+    hpxml.rim_joists.each do |rim_joist|
+      next unless rim_joist.is_exterior
+
+      if rim_joist.siding.nil?
+        rim_joist.siding = HPXML::SidingTypeWood
+      end
+      if rim_joist.color.nil?
+        rim_joist.color = Constructions.get_default_wall_color(rim_joist.solar_absorptance)
+      elsif rim_joist.solar_absorptance.nil?
+        rim_joist.solar_absorptance = Constructions.get_default_wall_solar_absorptance(rim_joist.color)
+      end
+    end
   end
 
   def self.apply_windows(hpxml)
@@ -99,7 +170,17 @@ class HPXMLDefaults
         window.fraction_operable = Airflow.get_default_fraction_of_windows_operable()
       end
     end
-    return hpxml.fraction_of_windows_operable()
+  end
+
+  def self.apply_skylights(hpxml)
+    hpxml.skylights.each do |skylight|
+      if skylight.interior_shading_factor_summer.nil?
+        skylight.interior_shading_factor_summer = 1.0
+      end
+      if skylight.interior_shading_factor_winter.nil?
+        skylight.interior_shading_factor_winter = 1.0
+      end
+    end
   end
 
   def self.apply_hvac(hpxml)
@@ -260,11 +341,7 @@ class HPXMLDefaults
           water_heating_system.tank_volume = Waterheater.get_default_tank_volume(water_heating_system.fuel_type, nbeds, hpxml.building_construction.number_of_bathrooms)
         end
         if water_heating_system.recovery_efficiency.nil?
-          ef = water_heating_system.energy_factor
-          if ef.nil?
-            ef = Waterheater.calc_ef_from_uef(water_heating_system.uniform_energy_factor, water_heating_system.water_heater_type, water_heating_system.fuel_type)
-          end
-          water_heating_system.recovery_efficiency = Waterheater.get_default_recovery_efficiency(water_heating_system.fuel_type, ef)
+          water_heating_system.recovery_efficiency = Waterheater.get_default_recovery_efficiency(water_heating_system)
         end
       end
       if water_heating_system.location.nil?

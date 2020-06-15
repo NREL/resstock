@@ -200,7 +200,7 @@ class Lighting
     stdDevCons2 = 2.36567663279954
 
     monthly_kwh_per_day = []
-    days_m = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+    days_m = Constants.MonthNumDays
     wtd_avg_monthly_kwh_per_day = 0
     for monthNum in 1..12
       month = monthNum - 1

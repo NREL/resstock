@@ -16,8 +16,7 @@ class HPXMLTest < MiniTest::Test
   @@workflow_runtime_key = 'Workflow Runtime'
 
   def test_simulations
-    OpenStudio::Logger.instance.standardOutLogger.setLogLevel(OpenStudio::Error)
-    # OpenStudio::Logger.instance.standardOutLogger.setLogLevel(OpenStudio::Fatal)
+    OpenStudio::Logger.instance.standardOutLogger.setLogLevel(OpenStudio::Warn)
 
     this_dir = File.dirname(__FILE__)
     results_dir = File.join(this_dir, 'results')
@@ -134,7 +133,6 @@ class HPXMLTest < MiniTest::Test
                                                                               'Expected [1] element(s) but found 0 element(s) for xpath: /HPXML/Building/BuildingDetails/Appliances/Dishwasher: [not(Location)] |',
                                                                               'Expected [1] element(s) but found 0 element(s) for xpath: /HPXML/Building/BuildingDetails/Appliances/Refrigerator: [not(Location)] |',
                                                                               'Expected [1] element(s) but found 0 element(s) for xpath: /HPXML/Building/BuildingDetails/Appliances/CookingRange: [not(Location)] |'],
-                            'attached-multifamily-window-outside-condition.xml' => ["Window 'WindowNorth' cannot be adjacent to 'other multifamily buffer space'. Check parent wall:"],
                             'cfis-with-hydronic-distribution.xml' => ["Attached HVAC distribution system 'HVACDistribution' cannot be hydronic for ventilation fan 'MechanicalVentilation'."],
                             'clothes-dryer-location.xml' => ["ClothesDryer location is 'garage' but building does not have this location specified."],
                             'clothes-washer-location.xml' => ["ClothesWasher location is 'garage' but building does not have this location specified."],
@@ -224,11 +222,6 @@ class HPXMLTest < MiniTest::Test
 
     sql_path = File.join(rundir, 'eplusout.sql')
     sqlFile = OpenStudio::SqlFile.new(sql_path, false)
-
-    # Obtain hot water use
-    # TODO: Add to reporting measure?
-    query = "SELECT SUM(VariableValue) FROM ReportVariableData WHERE ReportVariableDataDictionaryIndex IN (SELECT ReportVariableDataDictionaryIndex FROM ReportVariableDataDictionary WHERE VariableName='Water Use Equipment Hot Water Volume' AND VariableUnits='m3' AND ReportingFrequency='Run Period')"
-    results['Volume: Hot Water (gal)'] = UnitConversions.convert(sqlFile.execAndReturnFirstDouble(query).get, 'm^3', 'gal').round(2)
 
     # Obtain HVAC capacities
     # TODO: Add to reporting measure?
@@ -394,11 +387,6 @@ class HPXMLTest < MiniTest::Test
       @cfis_flow_rate_output_var.setKeyValue('EMS')
     end
 
-    # Add output variables for hot water volume
-    output_var = OpenStudio::Model::OutputVariable.new('Water Use Equipment Hot Water Volume', model)
-    output_var.setReportingFrequency('runperiod')
-    output_var.setKeyValue('*')
-
     # Add output variables for combi system energy check
     output_var = OpenStudio::Model::OutputVariable.new('Water Heater Source Side Heat Transfer Energy', model)
     output_var.setReportingFrequency('runperiod')
@@ -493,12 +481,14 @@ class HPXMLTest < MiniTest::Test
   def _verify_simulation_outputs(runner, rundir, hpxml_path, results)
     # Check that eplusout.err has no lines that include "Blank Schedule Type Limits Name input"
     # Check that eplusout.err has no lines that include "FixViewFactors: View factors not complete"
+    # Check that eplusout.err has no lines that include "GetHTSurfaceData: Surfaces with interface to Ground found but no "Ground Temperatures" were input"
     File.readlines(File.join(rundir, 'eplusout.err')).each do |err_line|
       next if err_line.include? 'Schedule:Constant="ALWAYS ON CONTINUOUS", Blank Schedule Type Limits Name input'
       next if err_line.include? 'Schedule:Constant="ALWAYS OFF DISCRETE", Blank Schedule Type Limits Name input'
 
       assert_equal(err_line.include?('Blank Schedule Type Limits Name input'), false)
       assert_equal(err_line.include?('FixViewFactors: View factors not complete'), false)
+      assert_equal(err_line.include?('GetHTSurfaceData: Surfaces with interface to Ground found but no "Ground Temperatures" were input'), false)
     end
 
     sql_path = File.join(rundir, 'eplusout.sql')
@@ -767,6 +757,8 @@ class HPXMLTest < MiniTest::Test
 
     # Enclosure Windows/Skylights
     (hpxml.windows + hpxml.skylights).each do |subsurface|
+      next unless subsurface.is_exterior
+
       subsurface_id = subsurface.id.upcase
 
       # Area
@@ -813,10 +805,9 @@ class HPXMLTest < MiniTest::Test
 
     # Enclosure Doors
     hpxml.doors.each do |door|
-      door_id = door.id.upcase
-
-      # only outdoor doors will appear on the exterior door table
       next unless door.wall.is_exterior
+
+      door_id = door.id.upcase
 
       # Area
       if not door.area.nil?

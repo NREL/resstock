@@ -63,6 +63,76 @@ The `HPXML Toolbox website <https://hpxml.nrel.gov/>`_ also provides several res
 #. A data dictionary
 #. An implementation guide
 
+Scope (Dwelling Units)
+~~~~~~~~~~~~~~~~~~~~~~
+
+The OpenStudio-HPXML workflow is intended to be used to model individual residential dwelling units -- either a single-family detached (SFD) building, or a single unit of a single-family attached (SFA) or multifamily (MF) building.
+This approach was taken because:
+
+- It is required/desired for certain projects.
+- It improves runtime speed by being able to simulate individual units in parallel (as opposed to simulating the entire building).
+- It doesn't necessarily preclude the possibility of running a single integrated EnergyPlus simulation.
+
+To model units of SFA/MF buildings, current capabilities include:
+
+- Defining surfaces adjacent to generic SFA/MF space types (e.g., "other housing unit" or "other multifamily buffer space").
+- Locating various building components (e.g., ducts, water heaters, appliances) in these spaces.
+
+Note that only the energy use attributed to each dwelling unit is calculated.
+Other OpenStudio capabilities should be used to supplement this workflow if the energy use of non-residential dwelling spaces (e.g., gyms, elevators, corridors, etc.) are of interest.
+In the near future, the OpenStudio-HPXML workflow will also begin supporting shared systems (HVAC, water heating, mechanical ventilation, etc.) by approximating the energy use attributed to the unit.
+
+For situations where more complex, integrated modeling is required, it is possible to merge multiple OpenStudio models together into a single model, such that one could merge all residential OSMs together and potentially combine it with a commercial OSM.
+That capability is outside the scope of this project.
+
+Input Defaults
+~~~~~~~~~~~~~~
+
+An increasing number of elements in the HPXML file are being made optional with "smart" defaults.
+Default values, equations, and logic are described throughout this documentation.
+
+Most defaults can also be seen by using the ``debug`` argument/flag when running the workflow on an actual HPXML file.
+This will create a new HPXML file (``in.xml`` in the run directory) where additional fields are populated for inspection.
+
+For example, suppose a HPXML file has a window defined as follows:
+
+.. code-block:: XML
+
+  <Window>
+    <SystemIdentifier id='Window'/>
+    <Area>108.0</Area>
+    <Azimuth>0</Azimuth>
+    <UFactor>0.33</UFactor>
+    <SHGC>0.45</SHGC>
+    <AttachedToWall idref='Wall'/>
+  </Window>
+
+In the ``in.xml`` file, the window would have additional elements like so:
+
+.. code-block:: XML
+
+  <Window>
+    <SystemIdentifier id='Window'/>
+    <Area>108.0</Area>
+    <Azimuth>0</Azimuth>
+    <UFactor>0.33</UFactor>
+    <SHGC>0.45</SHGC>
+    <InteriorShading>
+      <SystemIdentifier id='WindowInteriorShading'/>
+      <SummerShadingCoefficient>0.7</SummerShadingCoefficient>
+      <WinterShadingCoefficient>0.85</WinterShadingCoefficient>
+    </InteriorShading>
+    <FractionOperable>0.67</FractionOperable>
+    <AttachedToWall idref='Wall'/>
+  </Window>
+
+.. warning::
+
+  The OpenStudio-HPXML workflow generally treats missing HPXML elements differently than elements provided but without additional detail.
+  For example, if an HPXML file has no ``Refrigerator`` element defined, it will be interpreted as a building that has no refrigerator and modeled this way.
+  On the other hand, if there is a ``Refrigerator`` element defined but no elements within, it is interpreted as a building that has a refrigerator, but no information about the refrigerator is known.
+  In this case, its details (e.g., location, energy use) will be defaulted in the model.
+
 Simulation Controls
 ~~~~~~~~~~~~~~~~~~~
 
@@ -146,7 +216,7 @@ basement - unconditioned                                                       E
 crawlspace - vented                                                            EnergyPlus calculation
 crawlspace - unvented                                                          EnergyPlus calculation
 garage                                                                         EnergyPlus calculation
-other housing unit              Conditioned space of an adjacent housing unit  Same as conditioned space
+other housing unit              E.g., adjacent unit or conditioned corridor    Same as conditioned space
 other heated space              E.g., shared laundry/equipment space           Average of conditioned space and outside; minimum of 68F
 other multifamily buffer space  E.g., enclosed unconditioned stairwell         Average of conditioned space and outside; minimum of 50F
 other non-freezing space        E.g., parking garage ceiling                   Floats with outside; minimum of 40F
@@ -189,7 +259,29 @@ Roofs
 Pitched or flat roof surfaces that are exposed to ambient conditions should be specified as an ``Enclosure/Roofs/Roof``. 
 For a multifamily building where the dwelling unit has another dwelling unit above it, the surface between the two dwelling units should be considered a ``FrameFloor`` and not a ``Roof``.
 
-Beyond the specification of typical heat transfer properties (insulation R-value, solar absorptance, emittance, etc.), note that roofs can be defined as having a radiant barrier.
+Roofs are defined by their ``Area``, ``Pitch``, ``Insulation/AssemblyEffectiveRValue``, ``SolarAbsorptance``, and ``Emittance``.
+
+Roofs must have either ``RoofColor`` and/or ``SolarAbsorptance`` defined.
+If ``RoofColor`` or ``SolarAbsorptance`` is not provided, it is defaulted based on the mapping below:
+
+=========== ======================================================= ================
+RoofColor   RoofMaterial                                            SolarAbsorptance
+=========== ======================================================= ================
+dark        asphalt or fiberglass shingles, wood shingles or shakes 0.92
+medium dark asphalt or fiberglass shingles, wood shingles or shakes 0.89
+medium      asphalt or fiberglass shingles, wood shingles or shakes 0.85
+light       asphalt or fiberglass shingles, wood shingles or shakes 0.75
+reflective  asphalt or fiberglass shingles, wood shingles or shakes 0.50
+dark        slate or tile shingles, metal surfacing                 0.90
+medium dark slate or tile shingles, metal surfacing                 0.83
+medium      slate or tile shingles, metal surfacing                 0.75
+light       slate or tile shingles, metal surfacing                 0.60
+reflective  slate or tile shingles, metal surfacing                 0.30
+=========== ======================================================= ================
+
+Roofs can also have optional elements provided for ``RadiantBarrier and ``RoofType``.
+If ``RadiantBarrier`` is not provided, it is defaulted to not present.
+If ``RoofType`` is not provided, it is defaulted to "asphalt or fiberglass shingles".
 
 Walls
 *****
@@ -197,15 +289,46 @@ Walls
 Any wall that has no contact with the ground and bounds a space type should be specified as an ``Enclosure/Walls/Wall``. 
 Interior walls (for example, walls solely within the conditioned space of the building) are not required.
 
-Walls are primarily defined by their ``Insulation/AssemblyEffectiveRValue``.
+Walls are defined by their ``Area`` and ``Insulation/AssemblyEffectiveRValue``.
 The choice of ``WallType`` has a secondary effect on heat transfer in that it informs the assumption of wall thermal mass.
+
+Walls must have either ``Color`` and/or ``SolarAbsorptance`` defined.
+If ``Color`` or ``SolarAbsorptance`` is not provided, it is defaulted based on the mapping below:
+
+=========== ================
+Color       SolarAbsorptance
+=========== ================
+dark        0.95
+medium dark 0.85
+medium      0.70
+light       0.50
+reflective  0.30
+=========== ================
+
+Walls can have an optional element provided for ``Siding``; if not provided, it defaults to "wood siding".
 
 Rim Joists
 **********
 
-Rim joists, the perimeter of floor joists typically found between stories of a building or on top of a foundation wall, are specified as an ``Enclosure//RimJoists/RimJoist``.
-
+Rim joists, the perimeter of floor joists typically found between stories of a building or on top of a foundation wall, are specified as an ``Enclosure/RimJoists/RimJoist``.
 The ``InteriorAdjacentTo`` element should typically be "living space" for rim joists between stories of a building and "basement - conditioned", "basement - unconditioned", "crawlspace - vented", or "crawlspace - unvented" for rim joists on top of a foundation wall.
+
+Rim joists are defined by their ``Area`` and ``Insulation/AssemblyEffectiveRValue``.
+
+Rim joists must have either ``Color`` and/or ``SolarAbsorptance`` defined.
+If ``Color`` or ``SolarAbsorptance`` is not provided, it is defaulted based on the mapping below:
+
+=========== ================
+Color       SolarAbsorptance
+=========== ================
+dark        0.95
+medium dark 0.85
+medium      0.70
+light       0.50
+reflective  0.30
+=========== ================
+
+Rim joists can have an optional element provided for ``Siding``; if not provided, it defaults to "wood siding".
 
 Foundation Walls
 ****************
@@ -294,6 +417,11 @@ Any skylight should be specified as an ``Enclosure/Skylights/Skylight``.
 Skylights are defined by *full-assembly* NFRC ``UFactor`` and ``SHGC``, as well as ``Area``.
 Skylights must reference a HPXML ``Enclosures/Roofs/Roof`` element via the ``AttachedToRoof``.
 Skylights must also have an ``Azimuth`` specified, even if the attached roof does not.
+
+In addition, the summer/winter interior shading coefficients can be optionally entered as ``InteriorShading/SummerShadingCoefficient`` and ``InteriorShading/WinterShadingCoefficient``.
+The summer interior shading coefficient must be less than or equal to the winter interior shading coefficient.
+Note that a value of 0.7 indicates a 30% reduction in solar gains (i.e., 30% shading).
+If not provided, default values of 1.0 for summer and 1.0 for winter will be used.
 
 Doors
 *****
@@ -445,7 +573,7 @@ outside                                                                        O
 exterior wall                                                                  Average of conditioned space and outside
 under slab                                                                     Ground
 roof deck                                                                      Outside
-other housing unit              Conditioned space of an adjacent housing unit  Same as conditioned space
+other housing unit              E.g., adjacent unit or conditioned corridor    Same as conditioned space
 other heated space              E.g., shared laundry/equipment space           Average of conditioned space and outside; minimum of 68F
 other multifamily buffer space  E.g., enclosed unconditioned stairwell         Average of conditioned space and outside; minimum of 50F
 other non-freezing space        E.g., parking garage ceiling                   Floats with outside; minimum of 40F
@@ -592,7 +720,7 @@ garage                                                                         E
 crawlspace - unvented                                                          EnergyPlus calculation
 crawlspace - vented                                                            EnergyPlus calculation
 other exterior                  Outside                                        EnergyPlus calculation
-other housing unit              Conditioned space of an adjacent housing unit  Same as conditioned space
+other housing unit              E.g., adjacent unit or conditioned corridor    Same as conditioned space
 other heated space              E.g., shared laundry/equipment space           Average of conditioned space and outside; minimum of 68F
 other multifamily buffer space  E.g., enclosed unconditioned stairwell         Average of conditioned space and outside; minimum of 50F
 other non-freezing space        E.g., parking garage ceiling                   Floats with outside; minimum of 40F

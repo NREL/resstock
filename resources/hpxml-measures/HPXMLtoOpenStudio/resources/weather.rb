@@ -209,7 +209,7 @@ class WeatherProcess
     calc_annual_drybulbs(rowdata)
     calc_monthly_drybulbs(rowdata)
     calc_heat_cool_degree_days(rowdata, dailydbs)
-    calc_avg_highs_lows(dailyhighdbs, dailylowdbs)
+    calc_avg_monthly_highs_lows(dailyhighdbs, dailylowdbs)
     calc_avg_windspeed(rowdata)
     calc_ground_temperatures
     @data.WSF = calc_ashrae_622_wsf(rowdata)
@@ -305,7 +305,7 @@ class WeatherProcess
     return 1.8 * deg_days
   end
 
-  def calc_avg_highs_lows(daily_high_dbs, daily_low_dbs)
+  def calc_avg_monthly_highs_lows(daily_high_dbs, daily_low_dbs)
     # Calculates and stores avg daily highs and lows for each month
     @data.MonthlyAvgDailyHighDrybulbs = []
     @data.MonthlyAvgDailyLowDrybulbs = []
