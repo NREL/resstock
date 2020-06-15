@@ -1667,7 +1667,7 @@ class Geometry
       next unless roof_surface.outsideBoundaryCondition.downcase == 'outdoors'
 
       if roof_structure == Constants.RoofStructureTrussCantilever
-puts roof_surface.name
+
         l, w, h = get_surface_dimensions(roof_surface)
         lift = (h / [l, w].min) * eaves_depth
 
