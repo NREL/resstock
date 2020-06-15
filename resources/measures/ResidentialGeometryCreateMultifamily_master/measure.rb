@@ -982,11 +982,15 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
       # next if Geometry.space_is_below_grade(space)
 
       space.surfaces.each do |surface|
-        #Temporary adiabatic slab for testing
-        # if foundation_type == "slab" and surface.surfaceType.downcase == "floor" and surface.outsideBoundaryCondition.downcase == "ground"
-        #   surface.setOutsideBoundaryCondition("Adiabatic")
-        # end 
 
+        #################################################
+        # surface.setOutsideBoundaryCondition("Adiabatic")
+
+
+        #Temporary adiabatic slab for testing
+        if foundation_type == "slab" and surface.surfaceType.downcase == "floor" and surface.outsideBoundaryCondition.downcase == "ground"
+          surface.setOutsideBoundaryCondition("Adiabatic")
+        end 
         if surface.adjacentSurface.is_initialized # only set to adiabatic if the corridor surface is adjacent to another surface
           adjacent_surface = surface.adjacentSurface.get
           adjacent_space = adjacent_surface.space.get
@@ -1007,16 +1011,17 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     end
 
     # make all surfaces adjacent to corridor spaces into adiabatic surfaces
-    # model.getSpaces.each do |space|
-    #   next unless Geometry.is_corridor(space)
+    model.getSpaces.each do |space|
+      next unless Geometry.is_corridor(space)
 
-    #   space.surfaces.each do |surface|
-    #     if surface.adjacentSurface.is_initialized # only set to adiabatic if the corridor surface is adjacent to another surface
-    #       surface.adjacentSurface.get.setOutsideBoundaryCondition("Adiabatic")
-    #       surface.setOutsideBoundaryCondition("Adiabatic")
-    #     end
-    #   end
-    # end
+      space.surfaces.each do |surface|
+        if surface.adjacentSurface.is_initialized # only set to adiabatic if the corridor surface is adjacent to another surface
+          surface.adjacentSurface.get.setOutsideBoundaryCondition("Adiabatic")
+          surface.setOutsideBoundaryCondition("Adiabatic")
+        end
+        surface.setOutsideBoundaryCondition("Adiabatic")
+      end
+    end
 
     # set foundation outside boundary condition to Kiva "foundation"
     model.getSurfaces.each do |surface|

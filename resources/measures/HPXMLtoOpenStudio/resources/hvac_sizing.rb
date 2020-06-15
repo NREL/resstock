@@ -1172,8 +1172,12 @@ class HVACSizing
 
       floor_ufactor = 1.0 / floor_rvalue
       zone_loads.Heat_Floors += floor_ufactor * UnitConversions.convert(floor.netArea, "m^2", "ft^2") * (mj8.heat_setpoint - weather.data.GroundMonthlyTemps[0])
+      puts("floor_ufactor:  #{floor_ufactor}")
     end
  
+
+    puts("zone_loads.Heat_Floors: #{zone_loads.Heat_Floors}")
+
     return zone_loads
   end
 
@@ -2609,8 +2613,7 @@ class HVACSizing
     neighbor_offset_ft = Geometry.get_closest_neighbor_distance(model)
 
     unit_height_ft = Geometry.get_height_of_spaces(Geometry.get_finished_spaces(unit.spaces))
-    exposed_wall_ratio = Geometry.calculate_above_grade_exterior_wall_area(unit.spaces) /
-                         Geometry.calculate_above_grade_wall_area(unit.spaces)
+    exposed_wall_ratio = Geometry.calculate_above_grade_exterior_wall_area(unit.spaces) / Geometry.calculate_above_grade_wall_area(unit.spaces)
 
     if exposed_wall_ratio > 0.5 # 3 or 4 exposures; Table 5D
       if neighbor_offset_ft == 0

@@ -519,18 +519,18 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     end
 
     # Remove neighbors
-    if adb_facade.include? "left"
-      left_neighbor_offset = 1
-    end
-    if adb_facade.include? "right"
-      right_neighbor_offset = 1
-    end
-    if adb_facade.include? "back"
-      back_neighbor_offset = 0
-    end
-    if adb_facade.include? "front"
-      front_neighbor_offset = 0
-    end
+    # if adb_facade.include? "left"
+    #   left_neighbor_offset = 0
+    # end
+    # if adb_facade.include? "right"
+    #   right_neighbor_offset = 0
+    # end
+    # if adb_facade.include? "back"
+    #   back_neighbor_offset = 0
+    # end
+    # if adb_facade.include? "front"
+    #   front_neighbor_offset = 0
+    # end
 
     adiabatic_surf = adb_facade + adb_level
     # Make surfaces adiabatic
@@ -796,10 +796,15 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     #Make all adjacent walls adiabatic (seperate foundation spaces have adiabatic shared walls to align with whole-building approach)
     model.getSpaces.each do |space|
       space.surfaces.each do |surface|
+
+        #################################################
+        # surface.setOutsideBoundaryCondition("Adiabatic")
+
+
         #Temporary adiabatic slab for testing
-        # if surface.surfaceType.downcase == "floor" and foundation_type == "slab"
-        #   surface.setOutsideBoundaryCondition("Adiabatic")
-        # end 
+        if surface.surfaceType.downcase == "floor" and foundation_type == "slab"
+          surface.setOutsideBoundaryCondition("Adiabatic")
+        end 
 
         next unless surface.surfaceType.downcase == "wall"
         if surface.adjacentSurface.is_initialized
