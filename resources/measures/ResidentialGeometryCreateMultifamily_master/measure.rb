@@ -775,6 +775,18 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
       foundation_spaces = []
 
       # foundation corridor
+      # foundation_corridor_space = nil
+      # if corridor_width > 0 and corridor_position == "Double-Loaded Interior"
+      #   foundation_corridor_space = OpenStudio::Model::Space::fromFloorPrint(foundation_corr_polygon, foundation_height, model)
+      #   foundation_corridor_space = foundation_corridor_space.get
+      #   m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4, 4, 0))
+      #   m[2, 3] = foundation_height
+      #   foundation_corridor_space.changeTransformation(OpenStudio::Transformation.new(m))
+      #   foundation_corridor_space.setXOrigin(0)
+      #   foundation_corridor_space.setYOrigin(0)
+      #   foundation_corridor_space.setZOrigin(0)
+      #   foundation_spaces << foundation_corridor_space 
+      # end
       if corridor_width > 0 and corridor_position == "Double-Loaded Interior"
         corridor_space = OpenStudio::Model::Space::fromFloorPrint(foundation_corr_polygon, foundation_height, model)
         corridor_space = corridor_space.get
@@ -941,6 +953,12 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
         end
       end
 
+      # if not foundation_corridor_space.nil?
+      #   foundation_corridor_space.surfaces.each do |surface|
+      #     surface.setOutsideBoundaryCondition("Adiabatic")
+      #   end
+      # end
+
     end
 
     total_units_represented = 0
@@ -1019,7 +1037,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
           surface.adjacentSurface.get.setOutsideBoundaryCondition("Adiabatic")
           surface.setOutsideBoundaryCondition("Adiabatic")
         end
-        surface.setOutsideBoundaryCondition("Adiabatic")
+        # surface.setOutsideBoundaryCondition("Adiabatic")
       end
     end
 

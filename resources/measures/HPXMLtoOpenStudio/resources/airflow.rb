@@ -182,8 +182,6 @@ class Airflow
         success, ducts_output = process_ducts_for_unit(model, runner, ducts, building, unit, unit_index, unit_ffa, unit_has_mshp, unit_living, unit_finished_basement, has_forced_air_equipment)
         return false if not success
 
-        # self.print_instance_vars(ducts_output)
-
         air_loops.each do |air_loop|
           next unless unit_living.zone.airLoopHVACs.include? air_loop # next if airloop doesn't serve this unit
           next if ducts_output.location_name == unit_living.zone.name.to_s or ducts_output.location_name == "none" or not has_forced_air_equipment
@@ -207,7 +205,7 @@ class Airflow
       #   puts(key)
       #   puts(value)
       # end
-      # self.print_instance_vars(infil_output)
+      # self.print_instance_vars(infil_program)
       # self.print_instance_vars(mv_output)
       # # self.print_instance_vars(cfis_systems)
       # self.print_instance_vars(nv_output)
