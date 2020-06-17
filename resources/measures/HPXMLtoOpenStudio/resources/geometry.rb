@@ -624,7 +624,7 @@ class Geometry
         wall_area += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
       end
     end
-    return wall_area
+    return wall_area.round(5)
   end
 
   def self.get_roof_pitch(surfaces)
@@ -714,9 +714,8 @@ class Geometry
     surfaces = []
     model.getSurfaces.each do |surface|
       next if not surface.surfaceType.downcase == "wall"
-      next if (surface.outsideBoundaryCondition.downcase != "outdoors")
+      next if surface.outsideBoundaryCondition.downcase != "outdoors"
 
-      # next if surface.outsideBoundaryCondition.downcase != "foundation"
       surfaces << surface
     end
     model_edges = self.get_edges_for_surfaces(surfaces, false)
