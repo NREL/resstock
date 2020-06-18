@@ -25,6 +25,7 @@ class EUT
   MechVent = 'Mech Vent'
   WholeHouseFan = 'Whole House Fan'
   Refrigerator = 'Refrigerator'
+  Freezer = 'Freezer'
   Dehumidifier = 'Dehumidifier'
   Dishwasher = 'Dishwasher'
   ClothesWasher = 'Clothes Washer'
@@ -33,6 +34,15 @@ class EUT
   CeilingFan = 'Ceiling Fan'
   Television = 'Television'
   PlugLoads = 'Plug Loads'
+  Vehicle = 'Electric Vehicle Charging'
+  WellPump = 'Well Pump'
+  PoolHeater = 'Pool Heater'
+  PoolPump = 'Pool Pump'
+  HotTubHeater = 'Hot Tub Heater'
+  HotTubPump = 'Hot Tub Pump'
+  Grill = 'Grill'
+  Lighting = 'Lighting'
+  Fireplace = 'Fireplace'
   PV = 'PV'
 end
 

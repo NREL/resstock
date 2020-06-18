@@ -1426,7 +1426,7 @@ class HVACSizing
       if @cool_setpoint - hvac.LeavingAirTemp > 0
         hvac_final_values.Cool_Airflow = calc_airflow_rate(hvac_final_values.Cool_Load_Sens, (@cool_setpoint - hvac.LeavingAirTemp))
       else
-        cfa = UnitConversions.convert(spaces[HPXML::LocationLivingSpace].floorArea, 'm^2', 'ft^2')
+        cfa = UnitConversions.convert(@spaces[HPXML::LocationLivingSpace].floorArea, 'm^2', 'ft^2')
         hvac_final_values.Cool_Airflow = cfa * 2.0 # Use industry rule of thumb sizing method adopted by HEScore
       end
     else

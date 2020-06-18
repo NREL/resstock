@@ -2,10 +2,10 @@
 
 class HotWaterAndAppliances
   def self.apply(model, runner, weather, living_space,
-                 cfa, nbeds, ncfl, has_uncond_bsmnt,
-                 clothes_washer, cw_space, clothes_dryer, cd_space,
-                 dishwasher, dw_space, refrigerator, rf_space, cooking_range, cook_space, oven,
-                 fixtures_usage_multiplier, water_fixtures, water_heating_systems, hot_water_distribution,
+                 cfa, nbeds, ncfl, has_uncond_bsmnt, clothes_washers,
+                 clothes_dryers, dishwashers, refrigerators,
+                 freezers, cooking_ranges, ovens, fixtures_usage_multiplier,
+                 water_fixtures, water_heating_systems, hot_water_distribution,
                  solar_thermal_system, eri_version, dhw_map)
 
     # Map plant loops to sys_ids
@@ -130,14 +130,17 @@ class HotWaterAndAppliances
       end
 
       # Clothes washer
-      if not clothes_washer.nil?
-        cw_annual_kwh, cw_frac_sens, cw_frac_lat, cw_gpd = calc_clothes_washer_energy_gpd(eri_version, nbeds, clothes_washer, cw_space.nil?)
+      if not clothes_washers.empty?
+        clothes_washer = clothes_washers[0]
+
+        cw_annual_kwh, cw_frac_sens, cw_frac_lat, cw_gpd = calc_clothes_washer_energy_gpd(eri_version, nbeds, clothes_washer)
         cw_name = Constants.ObjectNameClothesWasher
         cw_schedule = HotWaterSchedule.new(model, cw_name, nbeds)
         cw_peak_flow = cw_schedule.calcPeakFlowFromDailygpm(cw_gpd)
         cw_design_level_w = cw_schedule.calcDesignLevelFromDailykWh(cw_annual_kwh / 365.0)
 
-        cw_space = living_space if cw_space.nil?
+        cw_space = clothes_washer.additional_properties.space
+        cw_space = living_space if cw_space.nil? # appliance is outdoors, so we need to assign the equipment to an arbitrary space
         add_electric_equipment(model, cw_name, cw_space, cw_design_level_w, cw_frac_sens, cw_frac_lat, cw_schedule.schedule)
         dhw_loop_fracs.each do |sys_id, dhw_load_frac|
           dhw_loop = dhw_loops[sys_id]
@@ -146,14 +149,17 @@ class HotWaterAndAppliances
       end
 
       # Dishwasher
-      if not dishwasher.nil?
-        dw_annual_kwh, dw_frac_sens, dw_frac_lat, dw_gpd = calc_dishwasher_energy_gpd(eri_version, nbeds, dishwasher, dw_space.nil?)
+      if not dishwashers.empty?
+        dishwasher = dishwashers[0]
+
+        dw_annual_kwh, dw_frac_sens, dw_frac_lat, dw_gpd = calc_dishwasher_energy_gpd(eri_version, nbeds, dishwasher)
         dw_name = Constants.ObjectNameDishwasher
         dw_schedule = HotWaterSchedule.new(model, dw_name, nbeds)
         dw_peak_flow = dw_schedule.calcPeakFlowFromDailygpm(dw_gpd)
         dw_design_level_w = dw_schedule.calcDesignLevelFromDailykWh(dw_annual_kwh / 365.0)
 
-        dw_space = living_space if dw_space.nil?
+        dw_space = dishwasher.additional_properties.space
+        dw_space = living_space if dw_space.nil? # appliance is outdoors, so we need to assign the equipment to an arbitrary space
         add_electric_equipment(model, dw_name, dw_space, dw_design_level_w, dw_frac_sens, dw_frac_lat, dw_schedule.schedule)
         dhw_loop_fracs.each do |sys_id, dhw_load_frac|
           dhw_loop = dhw_loops[sys_id]
@@ -163,8 +169,11 @@ class HotWaterAndAppliances
     end
 
     # Clothes dryer
-    if not clothes_dryer.nil?
-      cd_annual_kwh, cd_annual_therm, cd_frac_sens, cd_frac_lat = calc_clothes_dryer_energy(eri_version, nbeds, clothes_dryer, clothes_washer, cd_space.nil?)
+    if not clothes_dryers.empty?
+      clothes_dryer = clothes_dryers[0]
+      clothes_washer = clothes_washers[0]
+
+      cd_annual_kwh, cd_annual_therm, cd_frac_sens, cd_frac_lat = calc_clothes_dryer_energy(eri_version, nbeds, clothes_dryer, clothes_washer)
       cd_name = Constants.ObjectNameClothesDryer
       cd_weekday_sch = '0.010, 0.006, 0.004, 0.002, 0.004, 0.006, 0.016, 0.032, 0.048, 0.068, 0.078, 0.081, 0.074, 0.067, 0.057, 0.061, 0.055, 0.054, 0.051, 0.051, 0.052, 0.054, 0.044, 0.024'
       cd_monthly_sch = '1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0'
@@ -172,28 +181,52 @@ class HotWaterAndAppliances
       cd_design_level_e = cd_schedule.calcDesignLevelFromDailykWh(cd_annual_kwh / 365.0)
       cd_design_level_f = cd_schedule.calcDesignLevelFromDailyTherm(cd_annual_therm / 365.0)
 
-      cd_space = living_space if cd_space.nil?
+      cd_space = clothes_dryer.additional_properties.space
+      cd_space = living_space if cd_space.nil? # appliance is outdoors, so we need to assign the equipment to an arbitrary space
       add_electric_equipment(model, cd_name, cd_space, cd_design_level_e, cd_frac_sens, cd_frac_lat, cd_schedule.schedule)
       add_other_equipment(model, cd_name, cd_space, cd_design_level_f, cd_frac_sens, cd_frac_lat, cd_schedule.schedule, clothes_dryer.fuel_type)
     end
 
     # Refrigerator
-    if not refrigerator.nil?
-      rf_annual_kwh, rf_frac_sens, rf_frac_lat = calc_refrigerator_energy(refrigerator, rf_space.nil?)
+    if not refrigerators.empty?
       fridge_name = Constants.ObjectNameRefrigerator
-      fridge_weekday_sch = refrigerator.weekday_fractions
-      fridge_weekend_sch = refrigerator.weekend_fractions
-      fridge_monthly_sch = refrigerator.monthly_multipliers
-      fridge_schedule = MonthWeekdayWeekendSchedule.new(model, fridge_name, fridge_weekday_sch, fridge_weekend_sch, fridge_monthly_sch, 1.0, 1.0, true, true, Constants.ScheduleTypeLimitsFraction)
-      fridge_design_level = fridge_schedule.calcDesignLevelFromDailykWh(rf_annual_kwh / 365.0)
+      refrigerators.each do |refrigerator|
+        rf_annual_kwh, rf_frac_sens, rf_frac_lat = calc_refrigerator_or_freezer_energy(refrigerator)
+        fridge_weekday_sch = refrigerator.weekday_fractions
+        fridge_weekend_sch = refrigerator.weekend_fractions
+        fridge_monthly_sch = refrigerator.monthly_multipliers
+        fridge_schedule = MonthWeekdayWeekendSchedule.new(model, fridge_name, fridge_weekday_sch, fridge_weekend_sch, fridge_monthly_sch, 1.0, 1.0, true, true, Constants.ScheduleTypeLimitsFraction)
+        fridge_design_level = fridge_schedule.calcDesignLevelFromDailykWh(rf_annual_kwh / 365.0)
 
-      rf_space = living_space if rf_space.nil?
-      add_electric_equipment(model, fridge_name, rf_space, fridge_design_level, rf_frac_sens, rf_frac_lat, fridge_schedule.schedule)
+        rf_space = refrigerator.additional_properties.space
+        rf_space = living_space if rf_space.nil? # appliance is outdoors, so we need to assign the equipment to an arbitrary space
+        add_electric_equipment(model, fridge_name, rf_space, fridge_design_level, rf_frac_sens, rf_frac_lat, fridge_schedule.schedule)
+      end
+    end
+
+    # Freezer
+    if not freezers.empty?
+      freezer_name = Constants.ObjectNameFreezer
+      freezers.each do |freezer|
+        fz_annual_kwh, fz_frac_sens, fz_frac_lat = calc_refrigerator_or_freezer_energy(freezer)
+        freezer_weekday_sch = freezer.weekday_fractions
+        freezer_weekend_sch = freezer.weekend_fractions
+        freezer_monthly_sch = freezer.monthly_multipliers
+        freezer_schedule = MonthWeekdayWeekendSchedule.new(model, freezer_name, freezer_weekday_sch, freezer_weekend_sch, freezer_monthly_sch, 1.0, 1.0, true, true, Constants.ScheduleTypeLimitsFraction)
+        freezer_design_level = freezer_schedule.calcDesignLevelFromDailykWh(fz_annual_kwh / 365.0)
+
+        fz_space = freezer.additional_properties.space
+        fz_space = living_space if fz_space.nil? # appliance is outdoors, so we need to assign the equipment to an arbitrary space
+        add_electric_equipment(model, freezer_name, fz_space, freezer_design_level, fz_frac_sens, fz_frac_lat, freezer_schedule.schedule)
+      end
     end
 
     # Cooking Range
-    if (not cooking_range.nil?) && (not oven.nil?)
-      cook_annual_kwh, cook_annual_therm, cook_frac_sens, cook_frac_lat = calc_range_oven_energy(nbeds, cooking_range, oven, cook_space.nil?)
+    if not cooking_ranges.empty?
+      cooking_range = cooking_ranges[0]
+      oven = ovens[0]
+
+      cook_annual_kwh, cook_annual_therm, cook_frac_sens, cook_frac_lat = calc_range_oven_energy(nbeds, cooking_range, oven)
       cook_name = Constants.ObjectNameCookingRange
       cook_weekday_sch = cooking_range.weekday_fractions
       cook_weekend_sch = cooking_range.weekend_fractions
@@ -202,7 +235,8 @@ class HotWaterAndAppliances
       cook_design_level_e = cook_schedule.calcDesignLevelFromDailykWh(cook_annual_kwh / 365.0)
       cook_design_level_f = cook_schedule.calcDesignLevelFromDailyTherm(cook_annual_therm / 365.0)
 
-      cook_space = living_space if cook_space.nil?
+      cook_space = cooking_range.additional_properties.space
+      cook_space = living_space if cook_space.nil? # appliance is outdoors, so we need to assign the equipment to an arbitrary space
       add_electric_equipment(model, cook_name, cook_space, cook_design_level_e, cook_frac_sens, cook_frac_lat, cook_schedule.schedule)
       add_other_equipment(model, cook_name, cook_space, cook_design_level_f, cook_frac_sens, cook_frac_lat, cook_schedule.schedule, cooking_range.fuel_type)
     end
@@ -213,7 +247,7 @@ class HotWaterAndAppliances
              is_convection: false }
   end
 
-  def self.calc_range_oven_energy(nbeds, cooking_range, oven, is_outside = false)
+  def self.calc_range_oven_energy(nbeds, cooking_range, oven)
     if cooking_range.is_induction
       burner_ef = 0.91
     else
@@ -235,7 +269,7 @@ class HotWaterAndAppliances
     annual_kwh *= cooking_range.usage_multiplier
     annual_therm *= cooking_range.usage_multiplier
 
-    if not is_outside
+    if not cooking_range.additional_properties.space.nil?
       frac_lost = 0.20
       if cooking_range.fuel_type == HPXML::FuelTypeElectricity
         frac_sens = (1.0 - frac_lost) * 0.90
@@ -266,7 +300,7 @@ class HotWaterAndAppliances
              place_setting_capacity: 12.0 }
   end
 
-  def self.calc_dishwasher_energy_gpd(eri_version, nbeds, dishwasher, is_outside = false)
+  def self.calc_dishwasher_energy_gpd(eri_version, nbeds, dishwasher)
     if Constants.ERIVersions.index(eri_version) >= Constants.ERIVersions.index('2019A')
       if dishwasher.rated_annual_kwh.nil?
         dishwasher.rated_annual_kwh = calc_dishwasher_annual_kwh_from_ef(dishwasher.energy_factor)
@@ -294,7 +328,7 @@ class HotWaterAndAppliances
     annual_kwh *= dishwasher.usage_multiplier
     gpd *= dishwasher.usage_multiplier
 
-    if not is_outside
+    if not dishwasher.additional_properties.space.nil?
       frac_lost = 0.40
       frac_sens = (1.0 - frac_lost) * 0.50
       frac_lat = 1.0 - frac_sens - frac_lost
@@ -323,6 +357,14 @@ class HotWaterAndAppliances
     return { rated_annual_kwh: 637.0 + 18.0 * nbeds } # kWh/yr
   end
 
+  def self.get_extra_refrigerator_default_values
+    return { rated_annual_kwh: 243.6 } # kWh/yr
+  end
+
+  def self.get_freezer_default_values
+    return { rated_annual_kwh: 319.8 } # kWh/yr
+  end
+
   def self.get_clothes_dryer_default_values(eri_version, fuel_type)
     if Constants.ERIVersions.index(eri_version) >= Constants.ERIVersions.index('2019A')
       return { combined_energy_factor: 3.01,
@@ -338,7 +380,7 @@ class HotWaterAndAppliances
     end
   end
 
-  def self.calc_clothes_dryer_energy(eri_version, nbeds, clothes_dryer, clothes_washer, is_outside = false)
+  def self.calc_clothes_dryer_energy(eri_version, nbeds, clothes_dryer, clothes_washer)
     if Constants.ERIVersions.index(eri_version) >= Constants.ERIVersions.index('2019A')
       if clothes_dryer.combined_energy_factor.nil?
         clothes_dryer.combined_energy_factor = calc_clothes_dryer_cef_from_ef(clothes_dryer.energy_factor)
@@ -380,7 +422,7 @@ class HotWaterAndAppliances
     annual_kwh *= clothes_dryer.usage_multiplier
     annual_therm *= clothes_dryer.usage_multiplier
 
-    if not is_outside
+    if not clothes_dryer.additional_properties.space.nil?
       frac_lost = 0.85
       if clothes_dryer.fuel_type == HPXML::FuelTypeElectricity
         frac_sens = (1.0 - frac_lost) * 0.90
@@ -430,7 +472,7 @@ class HotWaterAndAppliances
     end
   end
 
-  def self.calc_clothes_washer_energy_gpd(eri_version, nbeds, clothes_washer, is_outside = false)
+  def self.calc_clothes_washer_energy_gpd(eri_version, nbeds, clothes_washer)
     if Constants.ERIVersions.index(eri_version) >= Constants.ERIVersions.index('2019A')
       gas_h20 = 0.3914 # (gal/cyc) per (therm/y)
       elec_h20 = 0.0178 # (gal/cyc) per (kWh/y)
@@ -455,7 +497,7 @@ class HotWaterAndAppliances
     annual_kwh *= clothes_washer.usage_multiplier
     gpd *= clothes_washer.usage_multiplier
 
-    if not is_outside
+    if not clothes_washer.additional_properties.space.nil?
       frac_lost = 0.70
       frac_sens = (1.0 - frac_lost) * 0.90
       frac_lat = 1.0 - frac_sens - frac_lost
@@ -480,15 +522,15 @@ class HotWaterAndAppliances
     return 0.503 + 0.95 * imef # Interpretation on ANSI/RESNET 301-2014 Clothes Washer IMEF
   end
 
-  def self.calc_refrigerator_energy(refrigerator, is_outside = false)
+  def self.calc_refrigerator_or_freezer_energy(refrigerator_or_freezer)
     # Get values
-    annual_kwh = refrigerator.adjusted_annual_kwh
+    annual_kwh = refrigerator_or_freezer.adjusted_annual_kwh
     if annual_kwh.nil?
-      annual_kwh = refrigerator.rated_annual_kwh
+      annual_kwh = refrigerator_or_freezer.rated_annual_kwh
     end
 
-    annual_kwh *= refrigerator.usage_multiplier
-    if not is_outside
+    annual_kwh *= refrigerator_or_freezer.usage_multiplier
+    if not refrigerator_or_freezer.additional_properties.space.nil?
       frac_sens = 1.0
       frac_lat = 0.0
     else # Internal gains outside unit
@@ -810,5 +852,22 @@ class HotWaterAndAppliances
       end
     end
     fail 'Unexpected hot water distribution system.'
+  end
+
+  def self.get_default_extra_refrigerator_and_freezer_locations(hpxml)
+    extra_refrigerator_location_hierarchy = [HPXML::LocationGarage,
+                                             HPXML::LocationBasementUnconditioned,
+                                             HPXML::LocationBasementConditioned,
+                                             HPXML::LocationLivingSpace]
+
+    extra_refrigerator_location = nil
+    extra_refrigerator_location_hierarchy.each do |space_type|
+      if hpxml.has_space_type(space_type)
+        extra_refrigerator_location = space_type
+        break
+      end
+    end
+
+    return extra_refrigerator_location
   end
 end

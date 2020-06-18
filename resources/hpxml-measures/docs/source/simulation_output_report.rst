@@ -33,32 +33,76 @@ Annual Energy Consumption By Fuel Type and End Use
 
 Current end use/fuel type combinations are:
 
-   ================================================ ========== ================================= ==========
-   Type                                             Notes      Type (cont'd)                     Notes
-   ================================================ ========== ================================= ==========
-   Electricity: Heating (MBtu)                                 Natural Gas: Heating (MBtu)
-   Electricity: Heating Fans/Pumps (MBtu)                      Natural Gas: Hot Water (MBtu)
-   Electricity: Cooling (MBtu)                                 Natural Gas: Clothes Dryer (MBtu)
-   Electricity: Cooling Fans/Pumps (MBtu)                      Natural Gas: Range/Oven (MBtu)
-   Electricity: Hot Water (MBtu)                               Fuel Oil: Heating (MBtu)
-   Electricity: Hot Water Recirc Pump (MBtu)                   Fuel Oil: Hot Water (MBtu)
-   Electricity: Hot Water Solar Thermal Pump (MBtu)            Fuel Oil: Clothes Dryer (MBtu)
-   Electricity: Lighting Interior (MBtu)                       Fuel Oil: Range/Oven (MBtu)
-   Electricity: Lighting Garage (MBtu)                         Propane: Heating (MBtu)
-   Electricity: Lighting Exterior (MBtu)                       Propane: Hot Water (MBtu)
-   Electricity: Mech Vent (MBtu)                               Propane: Clothes Dryer (MBtu)
-   Electricity: Whole House Fan (MBtu)                         Propane: Range/Oven (MBtu)
-   Electricity: Refrigerator (MBtu)                            Wood: Heating (MBtu)
-   Electricity: Dehumidifier (MBtu)                            Wood: Hot Water (MBtu)
-   Electricity: Dishwasher (MBtu)                              Wood: Clothes Dryer (MBtu)
-   Electricity: Clothes Washer (MBtu)                          Wood: Range/Oven (MBtu)
-   Electricity: Clothes Dryer (MBtu)                           Wood Pellets: Heating (MBtu)
+   ================================================
+   Type                                            
+   ================================================
+   Electricity: Heating (MBtu)
+   Electricity: Heating Fans/Pumps (MBtu)
+   Electricity: Cooling (MBtu)
+   Electricity: Cooling Fans/Pumps (MBtu)
+   Electricity: Hot Water (MBtu)
+   Electricity: Hot Water Recirc Pump (MBtu)
+   Electricity: Hot Water Solar Thermal Pump (MBtu)
+   Electricity: Lighting Interior (MBtu)
+   Electricity: Lighting Garage (MBtu)
+   Electricity: Lighting Exterior (MBtu)
+   Electricity: Mech Vent (MBtu)
+   Electricity: Whole House Fan (MBtu)
+   Electricity: Refrigerator (MBtu)
+   Electricity: Freezer (MBtu)
+   Electricity: Dehumidifier (MBtu)
+   Electricity: Dishwasher (MBtu)
+   Electricity: Clothes Washer (MBtu)
+   Electricity: Clothes Dryer (MBtu)
    Electricity: Range/Oven (MBtu)
    Electricity: Ceiling Fan (MBtu)
    Electricity: Television (MBtu)
    Electricity: Plug Loads (MBtu)
+   Electricity: Electric Vehicle Charging (MBtu)
+   Electricity: Well Pump (MBtu)
+   Electricity: Pool Heater (MBtu)
+   Electricity: Pool Pump (MBtu)
+   Electricity: Hot Tub Heater (MBtu)
+   Electricity: Hot Tub Pump (MBtu)
    Electricity: PV (MBtu)
-   ================================================ ========== ================================= ==========
+   Natural Gas: Heating (MBtu)
+   Natural Gas: Hot Water (MBtu)
+   Natural Gas: Clothes Dryer (MBtu)
+   Natural Gas: Range/Oven (MBtu)
+   Natural Gas: Pool Heater (MBtu)
+   Natural Gas: Hot Tub Heater (MBtu)
+   Natural Gas: Grill (MBtu)
+   Natural Gas: Lighting (MBtu)
+   Natural Gas: Fireplace (MBtu)
+   Fuel Oil: Heating (MBtu)
+   Fuel Oil: Hot Water (MBtu)
+   Fuel Oil: Clothes Dryer (MBtu)
+   Fuel Oil: Range/Oven (MBtu)
+   Fuel Oil: Grill (MBtu)
+   Fuel Oil: Lighting (MBtu)
+   Fuel Oil: Fireplace (MBtu)
+   Propane: Heating (MBtu)
+   Propane: Hot Water (MBtu)
+   Propane: Clothes Dryer (MBtu)
+   Propane: Range/Oven (MBtu)
+   Propane: Grill (MBtu)
+   Propane: Lighting (MBtu)
+   Propane: Fireplace (MBtu)
+   Wood Cord: Heating (MBtu)
+   Wood Cord: Hot Water (MBtu)
+   Wood Cord: Clothes Dryer (MBtu)
+   Wood Cord: Range/Oven (MBtu)
+   Wood Cord: Grill (MBtu)
+   Wood Cord: Lighting (MBtu)
+   Wood Cord: Fireplace (MBtu)
+   Wood Pellets: Heating (MBtu)
+   Wood Pellets: Hot Water (MBtu)
+   Wood Pellets: Clothes Dryer (MBtu)
+   Wood Pellets: Range/Oven (MBtu)
+   Wood Pellets: Grill (MBtu)
+   Wood Pellets: Lighting (MBtu)
+   Wood Pellets: Fireplace (MBtu)
+   ================================================
 
 Annual Building Loads
 ~~~~~~~~~~~~~~~~~~~~~
@@ -149,14 +193,14 @@ Annual Hot Water Uses
 
 Current annual hot water uses are:
 
-   =================================== =====
+   =================================== ====================
    Type                                Notes
-   =================================== =====
+   =================================== ====================
    Hot Water: Clothes Washer (gal)
    Hot Water: Dishwasher (gal)
    Hot Water: Fixtures (gal)           Showers and faucets.
    Hot Water: Distribution Waste (gal) 
-   =================================== =====
+   =================================== ====================
 
 
 Timeseries Outputs
@@ -167,9 +211,9 @@ The timeseries output file is called results_timeseries.csv and co-located with 
 
 Depending on the outputs requested, CSV files may include:
 
-   =================================== =====
+   =================================== =======================================================================================================================
    Type                                Notes
-   =================================== =====
+   =================================== =======================================================================================================================
    Fuel Consumptions                   Energy use for each fuel type (in kBtu for fossil fuels and kWh for electricity).
    End Use Consumptions                Energy use for each end use type (in kBtu for fossil fuels and kWh for electricity).
    Hot Water Uses                      Water use for each end use type (in gallons).
@@ -178,4 +222,4 @@ Depending on the outputs requested, CSV files may include:
    Zone Temperatures                   Average temperatures (in deg-F) for each space modeled (e.g., living space, attic, garage, basement, crawlspace, etc.).
    Airflows                            Airflow rates (in cfm) for infiltration, mechanical ventilation, natural ventilation, and whole house fans.
    Weather                             Weather file data including outdoor temperatures, relative humidity, wind speed, and solar.
-   =================================== =====
+   =================================== =======================================================================================================================

@@ -1419,6 +1419,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
           sys_id = dfhp_primary_sys_id(sys_id)
           load_fraction = dfhp_loads[[sys_id, false]] / (dfhp_loads[[sys_id, true]] + dfhp_loads[[sys_id, false]]) unless dfhp_loads[[sys_id, true]].nil?
         end
+        load_fraction = 1.0 if load_fraction.nan?
       end
       next unless get_system_or_seed_id(heat_pump) == sys_id
 
@@ -1812,6 +1813,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       [FT::Elec, EUT::MechVent] => EndUse.new(meter: "#{Constants.ObjectNameMechanicalVentilation}:InteriorEquipment:Electricity"),
       [FT::Elec, EUT::WholeHouseFan] => EndUse.new(meter: "#{Constants.ObjectNameWholeHouseFan}:InteriorEquipment:Electricity"),
       [FT::Elec, EUT::Refrigerator] => EndUse.new(meter: "#{Constants.ObjectNameRefrigerator}:InteriorEquipment:Electricity"),
+      [FT::Elec, EUT::Freezer] => EndUse.new(meter: "#{Constants.ObjectNameFreezer}:InteriorEquipment:Electricity"),
       [FT::Elec, EUT::Dehumidifier] => EndUse.new(variable: OutputVars.DehumidifierElectricity),
       [FT::Elec, EUT::Dishwasher] => EndUse.new(meter: "#{Constants.ObjectNameDishwasher}:InteriorEquipment:Electricity"),
       [FT::Elec, EUT::ClothesWasher] => EndUse.new(meter: "#{Constants.ObjectNameClothesWasher}:InteriorEquipment:Electricity"),
@@ -1820,27 +1822,50 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       [FT::Elec, EUT::CeilingFan] => EndUse.new(meter: "#{Constants.ObjectNameCeilingFan}:InteriorEquipment:Electricity"),
       [FT::Elec, EUT::Television] => EndUse.new(meter: "#{Constants.ObjectNameMiscTelevision}:InteriorEquipment:Electricity"),
       [FT::Elec, EUT::PlugLoads] => EndUse.new(meter: "#{Constants.ObjectNameMiscPlugLoads}:InteriorEquipment:Electricity"),
+      [FT::Elec, EUT::Vehicle] => EndUse.new(meter: "#{Constants.ObjectNameMiscElectricVehicleCharging}:InteriorEquipment:Electricity"),
+      [FT::Elec, EUT::WellPump] => EndUse.new(meter: "#{Constants.ObjectNameMiscWellPump}:InteriorEquipment:Electricity"),
+      [FT::Elec, EUT::PoolHeater] => EndUse.new(meter: "#{Constants.ObjectNameMiscPoolHeater}:InteriorEquipment:Electricity"),
+      [FT::Elec, EUT::PoolPump] => EndUse.new(meter: "#{Constants.ObjectNameMiscPoolPump}:InteriorEquipment:Electricity"),
+      [FT::Elec, EUT::HotTubHeater] => EndUse.new(meter: "#{Constants.ObjectNameMiscHotTubHeater}:InteriorEquipment:Electricity"),
+      [FT::Elec, EUT::HotTubPump] => EndUse.new(meter: "#{Constants.ObjectNameMiscHotTubPump}:InteriorEquipment:Electricity"),
       [FT::Elec, EUT::PV] => EndUse.new(meter: 'ElectricityProduced:Facility'),
       [FT::Gas, EUT::Heating] => EndUse.new(variable: OutputVars.SpaceHeatingNaturalGas),
       [FT::Gas, EUT::HotWater] => EndUse.new(variable: OutputVars.WaterHeatingNaturalGas),
       [FT::Gas, EUT::ClothesDryer] => EndUse.new(meter: "#{Constants.ObjectNameClothesDryer}:InteriorEquipment:Gas"),
       [FT::Gas, EUT::RangeOven] => EndUse.new(meter: "#{Constants.ObjectNameCookingRange}:InteriorEquipment:Gas"),
+      [FT::Gas, EUT::PoolHeater] => EndUse.new(meter: "#{Constants.ObjectNameMiscPoolHeater}:InteriorEquipment:Gas"),
+      [FT::Gas, EUT::HotTubHeater] => EndUse.new(meter: "#{Constants.ObjectNameMiscHotTubHeater}:InteriorEquipment:Gas"),
+      [FT::Gas, EUT::Grill] => EndUse.new(meter: "#{Constants.ObjectNameMiscGrill}:InteriorEquipment:Gas"),
+      [FT::Gas, EUT::Lighting] => EndUse.new(meter: "#{Constants.ObjectNameMiscLighting}:InteriorEquipment:Gas"),
+      [FT::Gas, EUT::Fireplace] => EndUse.new(meter: "#{Constants.ObjectNameMiscFireplace}:InteriorEquipment:Gas"),
       [FT::Oil, EUT::Heating] => EndUse.new(variable: OutputVars.SpaceHeatingFuelOil),
       [FT::Oil, EUT::HotWater] => EndUse.new(variable: OutputVars.WaterHeatingFuelOil),
       [FT::Oil, EUT::ClothesDryer] => EndUse.new(meter: "#{Constants.ObjectNameClothesDryer}:InteriorEquipment:FuelOil#1"),
       [FT::Oil, EUT::RangeOven] => EndUse.new(meter: "#{Constants.ObjectNameCookingRange}:InteriorEquipment:FuelOil#1"),
+      [FT::Oil, EUT::Grill] => EndUse.new(meter: "#{Constants.ObjectNameMiscGrill}:InteriorEquipment:FuelOil#1"),
+      [FT::Oil, EUT::Lighting] => EndUse.new(meter: "#{Constants.ObjectNameMiscLighting}:InteriorEquipment:FuelOil#1"),
+      [FT::Oil, EUT::Fireplace] => EndUse.new(meter: "#{Constants.ObjectNameMiscFireplace}:InteriorEquipment:FuelOil#1"),
       [FT::Propane, EUT::Heating] => EndUse.new(variable: OutputVars.SpaceHeatingPropane),
       [FT::Propane, EUT::HotWater] => EndUse.new(variable: OutputVars.WaterHeatingPropane),
       [FT::Propane, EUT::ClothesDryer] => EndUse.new(meter: "#{Constants.ObjectNameClothesDryer}:InteriorEquipment:Propane"),
       [FT::Propane, EUT::RangeOven] => EndUse.new(meter: "#{Constants.ObjectNameCookingRange}:InteriorEquipment:Propane"),
+      [FT::Propane, EUT::Grill] => EndUse.new(meter: "#{Constants.ObjectNameMiscGrill}:InteriorEquipment:Propane"),
+      [FT::Propane, EUT::Lighting] => EndUse.new(meter: "#{Constants.ObjectNameMiscLighting}:InteriorEquipment:Propane"),
+      [FT::Propane, EUT::Fireplace] => EndUse.new(meter: "#{Constants.ObjectNameMiscFireplace}:InteriorEquipment:Propane"),
       [FT::WoodCord, EUT::Heating] => EndUse.new(variable: OutputVars.SpaceHeatingWoodCord),
       [FT::WoodCord, EUT::HotWater] => EndUse.new(variable: OutputVars.WaterHeatingWoodCord),
       [FT::WoodCord, EUT::ClothesDryer] => EndUse.new(meter: "#{Constants.ObjectNameClothesDryer}:InteriorEquipment:OtherFuel1"),
       [FT::WoodCord, EUT::RangeOven] => EndUse.new(meter: "#{Constants.ObjectNameCookingRange}:InteriorEquipment:OtherFuel1"),
+      [FT::WoodCord, EUT::Grill] => EndUse.new(meter: "#{Constants.ObjectNameMiscGrill}:InteriorEquipment:OtherFuel1"),
+      [FT::WoodCord, EUT::Lighting] => EndUse.new(meter: "#{Constants.ObjectNameMiscLighting}:InteriorEquipment:OtherFuel1"),
+      [FT::WoodCord, EUT::Fireplace] => EndUse.new(meter: "#{Constants.ObjectNameMiscFireplace}:InteriorEquipment:OtherFuel1"),
       [FT::WoodPellets, EUT::Heating] => EndUse.new(variable: OutputVars.SpaceHeatingWoodPellets),
       [FT::WoodPellets, EUT::HotWater] => EndUse.new(variable: OutputVars.WaterHeatingWoodPellets),
       [FT::WoodPellets, EUT::ClothesDryer] => EndUse.new(meter: "#{Constants.ObjectNameClothesDryer}:InteriorEquipment:OtherFuel2"),
       [FT::WoodPellets, EUT::RangeOven] => EndUse.new(meter: "#{Constants.ObjectNameCookingRange}:InteriorEquipment:OtherFuel2"),
+      [FT::WoodPellets, EUT::Grill] => EndUse.new(meter: "#{Constants.ObjectNameMiscGrill}:InteriorEquipment:OtherFuel2"),
+      [FT::WoodPellets, EUT::Lighting] => EndUse.new(meter: "#{Constants.ObjectNameMiscLighting}:InteriorEquipment:OtherFuel2"),
+      [FT::WoodPellets, EUT::Fireplace] => EndUse.new(meter: "#{Constants.ObjectNameMiscFireplace}:InteriorEquipment:OtherFuel2"),
     }
 
     @end_uses.each do |key, end_use|
