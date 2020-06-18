@@ -1841,17 +1841,17 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue('IntegratedModifiedEnergyFactor')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('clothes_washer_efficiency_mef', true)
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('clothes_washer_efficiency_mef', true)
     arg.setDisplayName('Clothes Washer: Modified Energy Factor')
     arg.setUnits('ft^3/kWh-cycle')
     arg.setDescription('The Modified Energy Factor (MEF) is the capacity of the clothes container divided by the total clothes washer energy consumption per cycle, where the energy consumption is the sum of the machine electrical energy consumption, the hot water energy consumption, the energy required for removal of the remaining moisture in the wash load, standby energy, and off-mode energy consumption.')
-    arg.setDefaultValue(1.453)
+    arg.setDefaultValue(Constants.Auto)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('clothes_washer_efficiency_imef', true)
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('clothes_washer_efficiency_imef', true)
     arg.setDisplayName('Clothes Washer: Integrated Modified Energy Factor')
     arg.setDescription('The energy performance metric for ENERGY STAR certified residential clothes washers as of March 7, 2015.')
-    arg.setDefaultValue(1.0)
+    arg.setDefaultValue(Constants.Auto)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('clothes_washer_rated_annual_kwh', true)
@@ -1861,39 +1861,39 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(Constants.Auto)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('clothes_washer_label_electric_rate', true)
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('clothes_washer_label_electric_rate', true)
     arg.setDisplayName('Clothes Washer: Label Electric Rate')
     arg.setUnits('$/kWh')
     arg.setDescription('The annual energy consumed by the clothes washer, as rated, obtained from the EnergyGuide label. This includes both the appliance electricity consumption and the energy required for water heating.')
-    arg.setDefaultValue(0.12)
+    arg.setDefaultValue(Constants.Auto)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('clothes_washer_label_gas_rate', true)
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('clothes_washer_label_gas_rate', true)
     arg.setDisplayName('Clothes Washer: Label Gas Rate')
     arg.setUnits('$/therm')
     arg.setDescription('The annual energy consumed by the clothes washer, as rated, obtained from the EnergyGuide label. This includes both the appliance electricity consumption and the energy required for water heating.')
-    arg.setDefaultValue(1.09)
+    arg.setDefaultValue(Constants.Auto)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('clothes_washer_label_annual_gas_cost', true)
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('clothes_washer_label_annual_gas_cost', true)
     arg.setDisplayName('Clothes Washer: Label Annual Cost with Gas DHW')
     arg.setUnits('$')
     arg.setDescription('The annual cost of using the system under test conditions. Input is obtained from the EnergyGuide label.')
-    arg.setDefaultValue(27.0)
+    arg.setDefaultValue(Constants.Auto)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('clothes_washer_label_usage', true)
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('clothes_washer_label_usage', true)
     arg.setDisplayName('Clothes Washer: Label Usage')
     arg.setUnits('cyc/wk')
     arg.setDescription('The clothes washer loads per week.')
-    arg.setDefaultValue(6.0)
+    arg.setDefaultValue(Constants.Auto)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('clothes_washer_capacity', true)
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('clothes_washer_capacity', true)
     arg.setDisplayName('Clothes Washer: Drum Volume')
     arg.setUnits('ft^3')
     arg.setDescription("Volume of the washer drum. Obtained from the EnergyStar website or the manufacturer's literature.")
-    arg.setDefaultValue(3.0)
+    arg.setDefaultValue(Constants.Auto)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('clothes_washer_usage_multiplier', true)
@@ -2960,14 +2960,14 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
              clothes_washer_present: runner.getBoolArgumentValue('clothes_washer_present', user_arguments),
              clothes_washer_location: runner.getStringArgumentValue('clothes_washer_location', user_arguments),
              clothes_washer_efficiency_type: runner.getStringArgumentValue('clothes_washer_efficiency_type', user_arguments),
-             clothes_washer_efficiency_mef: runner.getDoubleArgumentValue('clothes_washer_efficiency_mef', user_arguments),
-             clothes_washer_efficiency_imef: runner.getDoubleArgumentValue('clothes_washer_efficiency_imef', user_arguments),
+             clothes_washer_efficiency_mef: runner.getStringArgumentValue('clothes_washer_efficiency_mef', user_arguments),
+             clothes_washer_efficiency_imef: runner.getStringArgumentValue('clothes_washer_efficiency_imef', user_arguments),
              clothes_washer_rated_annual_kwh: runner.getStringArgumentValue('clothes_washer_rated_annual_kwh', user_arguments),
-             clothes_washer_label_electric_rate: runner.getDoubleArgumentValue('clothes_washer_label_electric_rate', user_arguments),
-             clothes_washer_label_gas_rate: runner.getDoubleArgumentValue('clothes_washer_label_gas_rate', user_arguments),
-             clothes_washer_label_annual_gas_cost: runner.getDoubleArgumentValue('clothes_washer_label_annual_gas_cost', user_arguments),
-             clothes_washer_label_usage: runner.getDoubleArgumentValue('clothes_washer_label_usage', user_arguments),
-             clothes_washer_capacity: runner.getDoubleArgumentValue('clothes_washer_capacity', user_arguments),
+             clothes_washer_label_electric_rate: runner.getStringArgumentValue('clothes_washer_label_electric_rate', user_arguments),
+             clothes_washer_label_gas_rate: runner.getStringArgumentValue('clothes_washer_label_gas_rate', user_arguments),
+             clothes_washer_label_annual_gas_cost: runner.getStringArgumentValue('clothes_washer_label_annual_gas_cost', user_arguments),
+             clothes_washer_label_usage: runner.getStringArgumentValue('clothes_washer_label_usage', user_arguments),
+             clothes_washer_capacity: runner.getStringArgumentValue('clothes_washer_capacity', user_arguments),
              clothes_washer_usage_multiplier: runner.getDoubleArgumentValue('clothes_washer_usage_multiplier', user_arguments),
              clothes_dryer_present: runner.getBoolArgumentValue('clothes_dryer_present', user_arguments),
              clothes_dryer_location: runner.getStringArgumentValue('clothes_dryer_location', user_arguments),
@@ -4505,7 +4505,7 @@ class HPXMLFile
     return unless args[:clothes_washer_present]
 
     if args[:clothes_washer_rated_annual_kwh] != Constants.Auto
-      clothes_washer_rated_annual_kwh = args[:clothes_washer_rated_annual_kwh]
+      rated_annual_kwh = args[:clothes_washer_rated_annual_kwh]
     end
 
     if args[:clothes_washer_location] != Constants.Auto
@@ -4513,9 +4513,33 @@ class HPXMLFile
     end
 
     if args[:clothes_washer_efficiency_type] == 'ModifiedEnergyFactor'
-      modified_energy_factor = args[:clothes_washer_efficiency_mef]
+      if args[:clothes_washer_efficiency_mef] != Constants.Auto
+        modified_energy_factor = args[:clothes_washer_efficiency_mef]
+      end
     elsif args[:clothes_washer_efficiency_type] == 'IntegratedModifiedEnergyFactor'
-      integrated_modified_energy_factor = args[:clothes_washer_efficiency_imef]
+      if args[:clothes_washer_efficiency_imef] != Constants.Auto
+        integrated_modified_energy_factor = args[:clothes_washer_efficiency_imef]
+      end
+    end
+
+    if args[:clothes_washer_label_electric_rate] != Constants.Auto
+      label_electric_rate = args[:clothes_washer_label_electric_rate]
+    end
+
+    if args[:clothes_washer_label_gas_rate] != Constants.Auto
+      label_gas_rate = args[:clothes_washer_label_gas_rate]
+    end
+
+    if args[:clothes_washer_label_annual_gas_cost] != Constants.Auto
+      label_annual_gas_cost = args[:clothes_washer_label_annual_gas_cost]
+    end
+
+    if args[:clothes_washer_label_usage] != Constants.Auto
+      label_usage = args[:clothes_washer_label_usage]
+    end
+
+    if args[:clothes_washer_capacity] != Constants.Auto
+      capacity = args[:clothes_washer_capacity]
     end
 
     if args[:clothes_washer_usage_multiplier] != 1.0
@@ -4526,12 +4550,12 @@ class HPXMLFile
                               location: location,
                               modified_energy_factor: modified_energy_factor,
                               integrated_modified_energy_factor: integrated_modified_energy_factor,
-                              rated_annual_kwh: clothes_washer_rated_annual_kwh,
-                              label_electric_rate: args[:clothes_washer_label_electric_rate],
-                              label_gas_rate: args[:clothes_washer_label_gas_rate],
-                              label_annual_gas_cost: args[:clothes_washer_label_annual_gas_cost],
-                              label_usage: args[:clothes_washer_label_usage],
-                              capacity: args[:clothes_washer_capacity],
+                              rated_annual_kwh: rated_annual_kwh,
+                              label_electric_rate: label_electric_rate,
+                              label_gas_rate: label_gas_rate,
+                              label_annual_gas_cost: label_annual_gas_cost,
+                              label_usage: label_usage,
+                              capacity: capacity,
                               usage_multiplier: usage_multiplier)
   end
 
