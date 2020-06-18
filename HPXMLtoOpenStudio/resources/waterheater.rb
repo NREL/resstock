@@ -970,11 +970,10 @@ class Waterheater
     hpwh_inlet_air_program.setName("#{obj_name_hpwh} InletAir")
     hpwh_inlet_air_program.addLine("Set #{tamb_act_actuator.name} = #{amb_temp_sensor.name}")
     # Average relative humidity for mf spaces: other multifamily buffer space & other heated space
-    rh = ''
+    hpwh_inlet_air_program.addLine("Set #{rhamb_act_actuator.name} = 0")
     amb_rh_sensors.each do |amb_rh_sensor|
-      rh += "(#{amb_rh_sensor.name} / 100) / #{amb_rh_sensors.size}"
+      hpwh_inlet_air_program.addLine("Set #{rhamb_act_actuator.name} = #{rhamb_act_actuator.name} + (#{amb_rh_sensor.name} / 100) / #{amb_rh_sensors.size}")
     end
-    hpwh_inlet_air_program.addLine("Set #{rhamb_act_actuator.name} = #{rh}")
     if not loc_space.nil?
       # Sensible/latent heat gain to the space
       hpwh_inlet_air_program.addLine("Set #{sens_act_actuator.name} = 0 - #{sens_cool_sensor.name} - (#{tl_sensor.name} + #{fan_power_sensor.name})")

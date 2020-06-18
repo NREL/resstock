@@ -1535,6 +1535,16 @@
 			</xs:extension>
 		</xs:simpleContent>
 	</xs:complexType>
+	<xs:simpleType name="FuelLoadControlType_simple">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="other"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="FuelLoadControlType">
+		<xs:simpleContent>
+			<xs:extension base="FuelLoadControlType_simple"/>
+		</xs:simpleContent>
+	</xs:complexType>
 	<xs:simpleType name="RadiantBarrierLocation_simple">
 		<xs:annotation>
 			<xs:documentation>Enumerations from http://www.fsec.ucf.edu/en/publications/pdf/FSEC-DN-7-84.pdf</xs:documentation>
@@ -2807,6 +2817,19 @@
 			</xs:extension>
 		</xs:simpleContent>
 	</xs:complexType>
+	<xs:simpleType name="FuelLoadType_simple">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="grill"/>
+			<xs:enumeration value="lighting"/>
+			<xs:enumeration value="fireplace"/>
+			<xs:enumeration value="other"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="FuelLoadType">
+		<xs:simpleContent>
+			<xs:extension base="FuelLoadType_simple"/>
+		</xs:simpleContent>
+	</xs:complexType>
 	<xs:simpleType name="PlugLoadLocation_simple">
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="interior"/>
@@ -2820,6 +2843,17 @@
 			</xs:extension>
 		</xs:simpleContent>
 	</xs:complexType>
+	<xs:simpleType name="FuelLoadLocation_simple">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="interior"/>
+			<xs:enumeration value="exterior"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="FuelLoadLocation">
+		<xs:simpleContent>
+			<xs:extension base="FuelLoadLocation_simple"/>
+		</xs:simpleContent>
+	</xs:complexType>
 	<xs:simpleType name="PlugLoadUnits_simple">
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="kWh/year"/>
@@ -2831,6 +2865,30 @@
 			<xs:extension base="PlugLoadUnits_simple">
 				<xs:attribute name="dataSource" type="DataSource"/>
 			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:simpleType name="FuelLoadUnits_simple">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="therm/year"/>
+			<xs:enumeration value="Btuh"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="FuelLoadUnits">
+		<xs:simpleContent>
+			<xs:extension base="FuelLoadUnits_simple"/>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:simpleType name="PoolHeaterUnits_simple">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="kWh/year"/>
+			<xs:enumeration value="therm/year"/>
+			<xs:enumeration value="W"/>
+			<xs:enumeration value="Btuh"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="PoolHeaterUnits">
+		<xs:simpleContent>
+			<xs:extension base="PoolHeaterUnits_simple"/>
 		</xs:simpleContent>
 	</xs:complexType>
 	<xs:simpleType name="WindowCondition_simple">

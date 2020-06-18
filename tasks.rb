@@ -184,6 +184,8 @@ def create_osws
     'base-misc-ceiling-fans.osw' => 'base.osw',
     # 'base-misc-defaults.osw' => 'base.osw',
     'base-misc-defaults2.osw' => 'base.osw',
+    'base-misc-large-uncommon-loads.osw' => 'base-enclosure-garage.osw',
+    'base-misc-large-uncommon-loads2.osw' => 'base-misc-large-uncommon-loads.osw',
     'base-misc-neighbor-shading.osw' => 'base.osw',
     'base-misc-runperiod-1-month.osw' => 'base.osw',
     'base-misc-timestep-10-mins.osw' => 'base.osw',
@@ -381,7 +383,7 @@ def get_values(osw_file, step)
     step.setArgument('skylight_shgc', 0.45)
     step.setArgument('door_area', 80.0)
     step.setArgument('door_rvalue', 4.4)
-    step.setArgument('air_leakage_units', HPXML::UnitsACH50)
+    step.setArgument('air_leakage_units', HPXML::UnitsACH)
     step.setArgument('air_leakage_value', 3)
     step.setArgument('air_leakage_shelter_coefficient', Constants.Auto)
     step.setArgument('heating_system_type', HPXML::HVACTypeFurnace)
@@ -528,7 +530,7 @@ def get_values(osw_file, step)
     step.setArgument('clothes_washer_efficiency_type', 'IntegratedModifiedEnergyFactor')
     step.setArgument('clothes_washer_efficiency_mef', 1.453)
     step.setArgument('clothes_washer_efficiency_imef', 1.21)
-    step.setArgument('clothes_washer_rated_annual_kwh', 380.0)
+    step.setArgument('clothes_washer_rated_annual_kwh', '380.0')
     step.setArgument('clothes_washer_label_electric_rate', 0.12)
     step.setArgument('clothes_washer_label_gas_rate', 1.09)
     step.setArgument('clothes_washer_label_annual_gas_cost', 27.0)
@@ -556,15 +558,25 @@ def get_values(osw_file, step)
     step.setArgument('dishwasher_usage_multiplier', 1.0)
     step.setArgument('refrigerator_present', true)
     step.setArgument('refrigerator_location', HPXML::LocationLivingSpace)
-    step.setArgument('refrigerator_rated_annual_kwh', 650.0)
+    step.setArgument('refrigerator_rated_annual_kwh', '650.0')
     step.setArgument('refrigerator_usage_multiplier', 1.0)
     step.setArgument('refrigerator_weekday_fractions', Constants.Auto)
     step.setArgument('refrigerator_weekend_fractions', Constants.Auto)
     step.setArgument('refrigerator_monthly_multipliers', Constants.Auto)
     step.setArgument('extra_refrigerator_present', false)
-    step.setArgument('extra_refrigerator_location', HPXML::LocationLivingSpace)
-    step.setArgument('extra_refrigerator_rated_annual_kwh', 650.0)
+    step.setArgument('extra_refrigerator_location', Constants.Auto)
+    step.setArgument('extra_refrigerator_rated_annual_kwh', Constants.Auto)
     step.setArgument('extra_refrigerator_usage_multiplier', 1.0)
+    step.setArgument('extra_refrigerator_weekday_fractions', Constants.Auto)
+    step.setArgument('extra_refrigerator_weekend_fractions', Constants.Auto)
+    step.setArgument('extra_refrigerator_monthly_multipliers', Constants.Auto)
+    step.setArgument('freezer_present', false)
+    step.setArgument('freezer_location', Constants.Auto)
+    step.setArgument('freezer_rated_annual_kwh', Constants.Auto)
+    step.setArgument('freezer_usage_multiplier', 1.0)
+    step.setArgument('freezer_weekday_fractions', Constants.Auto)
+    step.setArgument('freezer_weekend_fractions', Constants.Auto)
+    step.setArgument('freezer_monthly_multipliers', Constants.Auto)
     step.setArgument('cooking_range_oven_present', true)
     step.setArgument('cooking_range_oven_location', HPXML::LocationLivingSpace)
     step.setArgument('cooking_range_oven_fuel_type', HPXML::FuelTypeElectricity)
@@ -578,13 +590,76 @@ def get_values(osw_file, step)
     step.setArgument('ceiling_fan_quantity', '0')
     step.setArgument('ceiling_fan_cooling_setpoint_temp_offset', 0)
     step.setArgument('plug_loads_television_annual_kwh', '620.0')
+    step.setArgument('plug_loads_television_usage_multiplier', 1.0)
+    step.setArgument('plug_loads_television_weekday_fractions', Constants.Auto)
+    step.setArgument('plug_loads_television_weekend_fractions', Constants.Auto)
+    step.setArgument('plug_loads_television_monthly_multipliers', Constants.Auto)
     step.setArgument('plug_loads_other_annual_kwh', '2457.0')
-    step.setArgument('plug_loads_other_frac_sensible', 0.855)
-    step.setArgument('plug_loads_other_frac_latent', 0.045)
-    step.setArgument('plug_loads_usage_multiplier', 1.0)
-    step.setArgument('plug_loads_weekday_fractions', '0.04, 0.037, 0.037, 0.036, 0.033, 0.036, 0.043, 0.047, 0.034, 0.023, 0.024, 0.025, 0.024, 0.028, 0.031, 0.032, 0.039, 0.053, 0.063, 0.067, 0.071, 0.069, 0.059, 0.05')
-    step.setArgument('plug_loads_weekend_fractions', '0.04, 0.037, 0.037, 0.036, 0.033, 0.036, 0.043, 0.047, 0.034, 0.023, 0.024, 0.025, 0.024, 0.028, 0.031, 0.032, 0.039, 0.053, 0.063, 0.067, 0.071, 0.069, 0.059, 0.05')
-    step.setArgument('plug_loads_monthly_multipliers', '1.248, 1.257, 0.993, 0.989, 0.993, 0.827, 0.821, 0.821, 0.827, 0.99, 0.987, 1.248')
+    step.setArgument('plug_loads_other_frac_sensible', '0.855')
+    step.setArgument('plug_loads_other_frac_latent', '0.045')
+    step.setArgument('plug_loads_other_usage_multiplier', 1.0)
+    step.setArgument('plug_loads_other_weekday_fractions', Constants.Auto)
+    step.setArgument('plug_loads_other_weekend_fractions', Constants.Auto)
+    step.setArgument('plug_loads_other_monthly_multipliers', Constants.Auto)
+    step.setArgument('plug_loads_well_pump_present', false)
+    step.setArgument('plug_loads_well_pump_annual_kwh', Constants.Auto)
+    step.setArgument('plug_loads_well_pump_usage_multiplier', 1.0)
+    step.setArgument('plug_loads_well_pump_weekday_fractions', Constants.Auto)
+    step.setArgument('plug_loads_well_pump_weekend_fractions', Constants.Auto)
+    step.setArgument('plug_loads_well_pump_monthly_multipliers', Constants.Auto)
+    step.setArgument('plug_loads_vehicle_present', false)
+    step.setArgument('plug_loads_vehicle_annual_kwh', Constants.Auto)
+    step.setArgument('plug_loads_vehicle_usage_multiplier', 1.0)
+    step.setArgument('plug_loads_vehicle_weekday_fractions', Constants.Auto)
+    step.setArgument('plug_loads_vehicle_weekend_fractions', Constants.Auto)
+    step.setArgument('plug_loads_vehicle_monthly_multipliers', Constants.Auto)
+    step.setArgument('fuel_loads_grill_present', false)
+    step.setArgument('fuel_loads_grill_fuel_type', HPXML::FuelTypeNaturalGas)
+    step.setArgument('fuel_loads_grill_annual_therm', Constants.Auto)
+    step.setArgument('fuel_loads_grill_usage_multiplier', 1.0)
+    step.setArgument('fuel_loads_grill_weekday_fractions', Constants.Auto)
+    step.setArgument('fuel_loads_grill_weekend_fractions', Constants.Auto)
+    step.setArgument('fuel_loads_grill_monthly_multipliers', Constants.Auto)
+    step.setArgument('fuel_loads_lighting_present', false)
+    step.setArgument('fuel_loads_lighting_fuel_type', HPXML::FuelTypeNaturalGas)
+    step.setArgument('fuel_loads_lighting_annual_therm', Constants.Auto)
+    step.setArgument('fuel_loads_lighting_usage_multiplier', 1.0)
+    step.setArgument('fuel_loads_lighting_weekday_fractions', Constants.Auto)
+    step.setArgument('fuel_loads_lighting_weekend_fractions', Constants.Auto)
+    step.setArgument('fuel_loads_lighting_monthly_multipliers', Constants.Auto)
+    step.setArgument('fuel_loads_fireplace_present', false)
+    step.setArgument('fuel_loads_fireplace_fuel_type', HPXML::FuelTypeNaturalGas)
+    step.setArgument('fuel_loads_fireplace_annual_therm', Constants.Auto)
+    step.setArgument('fuel_loads_fireplace_usage_multiplier', 1.0)
+    step.setArgument('fuel_loads_fireplace_weekday_fractions', Constants.Auto)
+    step.setArgument('fuel_loads_fireplace_weekend_fractions', Constants.Auto)
+    step.setArgument('fuel_loads_fireplace_monthly_multipliers', Constants.Auto)
+    step.setArgument('pool_present', false)
+    step.setArgument('pool_pump_annual_kwh', Constants.Auto)
+    step.setArgument('pool_pump_usage_multiplier', 1.0)
+    step.setArgument('pool_pump_weekday_fractions', Constants.Auto)
+    step.setArgument('pool_pump_weekend_fractions', Constants.Auto)
+    step.setArgument('pool_pump_monthly_multipliers', Constants.Auto)
+    step.setArgument('pool_heater_type', HPXML::HeaterTypeElectricResistance)
+    step.setArgument('pool_heater_annual_kwh', Constants.Auto)
+    step.setArgument('pool_heater_annual_therm', Constants.Auto)
+    step.setArgument('pool_heater_usage_multiplier', 1.0)
+    step.setArgument('pool_heater_weekday_fractions', Constants.Auto)
+    step.setArgument('pool_heater_weekend_fractions', Constants.Auto)
+    step.setArgument('pool_heater_monthly_multipliers', Constants.Auto)
+    step.setArgument('hot_tub_present', false)
+    step.setArgument('hot_tub_pump_annual_kwh', Constants.Auto)
+    step.setArgument('hot_tub_pump_usage_multiplier', 1.0)
+    step.setArgument('hot_tub_pump_weekday_fractions', Constants.Auto)
+    step.setArgument('hot_tub_pump_weekend_fractions', Constants.Auto)
+    step.setArgument('hot_tub_pump_monthly_multipliers', Constants.Auto)
+    step.setArgument('hot_tub_heater_type', HPXML::HeaterTypeElectricResistance)
+    step.setArgument('hot_tub_heater_annual_kwh', Constants.Auto)
+    step.setArgument('hot_tub_heater_annual_therm', Constants.Auto)
+    step.setArgument('hot_tub_heater_usage_multiplier', 1.0)
+    step.setArgument('hot_tub_heater_weekday_fractions', Constants.Auto)
+    step.setArgument('hot_tub_heater_weekend_fractions', Constants.Auto)
+    step.setArgument('hot_tub_heater_monthly_multipliers', Constants.Auto)
   elsif ['base-single-family-attached.osw'].include? osw_file
     step.setArgument('geometry_unit_type', HPXML::ResidentialTypeSFA)
     step.setArgument('geometry_cfa', 900.0)
@@ -956,7 +1031,7 @@ def get_values(osw_file, step)
     step.setArgument('refrigerator_location', HPXML::LocationGarage)
     step.setArgument('cooking_range_oven_location', HPXML::LocationGarage)
   elsif ['base-enclosure-infil-cfm50.osw'].include? osw_file
-    step.setArgument('air_leakage_units', HPXML::UnitsCFM50)
+    step.setArgument('air_leakage_units', HPXML::UnitsCFM)
     step.setArgument('air_leakage_value', 1080)
   elsif ['base-enclosure-infil-natural-ach.osw'].include? osw_file
     step.setArgument('air_leakage_units', HPXML::UnitsACHNatural)
@@ -1485,6 +1560,81 @@ def get_values(osw_file, step)
     step.setArgument('dhw_distribution_recirc_branch_piping_length', Constants.Auto)
     step.setArgument('dhw_distribution_recirc_pump_power', Constants.Auto)
     step.setArgument('dhw_distribution_pipe_r', 3)
+  elsif ['base-misc-large-uncommon-loads.osw'].include? osw_file
+    step.setArgument('refrigerator_weekday_fractions', '0.040, 0.039, 0.038, 0.037, 0.036, 0.036, 0.038, 0.040, 0.041, 0.041, 0.040, 0.040, 0.042, 0.042, 0.042, 0.041, 0.044, 0.048, 0.050, 0.048, 0.047, 0.046, 0.044, 0.041')
+    step.setArgument('refrigerator_weekend_fractions', '0.040, 0.039, 0.038, 0.037, 0.036, 0.036, 0.038, 0.040, 0.041, 0.041, 0.040, 0.040, 0.042, 0.042, 0.042, 0.041, 0.044, 0.048, 0.050, 0.048, 0.047, 0.046, 0.044, 0.041')
+    step.setArgument('refrigerator_monthly_multipliers', '0.837, 0.835, 1.084, 1.084, 1.084, 1.096, 1.096, 1.096, 1.096, 0.931, 0.925, 0.837')
+    step.setArgument('extra_refrigerator_present', true)
+    step.setArgument('extra_refrigerator_rated_annual_kwh', '700.0')
+    step.setArgument('extra_refrigerator_weekday_fractions', '0.040, 0.039, 0.038, 0.037, 0.036, 0.036, 0.038, 0.040, 0.041, 0.041, 0.040, 0.040, 0.042, 0.042, 0.042, 0.041, 0.044, 0.048, 0.050, 0.048, 0.047, 0.046, 0.044, 0.041')
+    step.setArgument('extra_refrigerator_weekend_fractions', '0.040, 0.039, 0.038, 0.037, 0.036, 0.036, 0.038, 0.040, 0.041, 0.041, 0.040, 0.040, 0.042, 0.042, 0.042, 0.041, 0.044, 0.048, 0.050, 0.048, 0.047, 0.046, 0.044, 0.041')
+    step.setArgument('extra_refrigerator_monthly_multipliers', '0.837, 0.835, 1.084, 1.084, 1.084, 1.096, 1.096, 1.096, 1.096, 0.931, 0.925, 0.837')
+    step.setArgument('freezer_present', true)
+    step.setArgument('freezer_rated_annual_kwh', '300.0')
+    step.setArgument('freezer_weekday_fractions', '0.040, 0.039, 0.038, 0.037, 0.036, 0.036, 0.038, 0.040, 0.041, 0.041, 0.040, 0.040, 0.042, 0.042, 0.042, 0.041, 0.044, 0.048, 0.050, 0.048, 0.047, 0.046, 0.044, 0.041')
+    step.setArgument('freezer_weekend_fractions', '0.040, 0.039, 0.038, 0.037, 0.036, 0.036, 0.038, 0.040, 0.041, 0.041, 0.040, 0.040, 0.042, 0.042, 0.042, 0.041, 0.044, 0.048, 0.050, 0.048, 0.047, 0.046, 0.044, 0.041')
+    step.setArgument('freezer_monthly_multipliers', '0.837, 0.835, 1.084, 1.084, 1.084, 1.096, 1.096, 1.096, 1.096, 0.931, 0.925, 0.837')
+    step.setArgument('cooking_range_oven_weekday_fractions', '0.007, 0.007, 0.004, 0.004, 0.007, 0.011, 0.025, 0.042, 0.046, 0.048, 0.042, 0.050, 0.057, 0.046, 0.057, 0.044, 0.092, 0.150, 0.117, 0.060, 0.035, 0.025, 0.016, 0.011')
+    step.setArgument('cooking_range_oven_weekend_fractions', '0.007, 0.007, 0.004, 0.004, 0.007, 0.011, 0.025, 0.042, 0.046, 0.048, 0.042, 0.050, 0.057, 0.046, 0.057, 0.044, 0.092, 0.150, 0.117, 0.060, 0.035, 0.025, 0.016, 0.011')
+    step.setArgument('cooking_range_oven_monthly_multipliers', '1.097, 1.097, 0.991, 0.987, 0.991, 0.890, 0.896, 0.896, 0.890, 1.085, 1.085, 1.097')
+    step.setArgument('plug_loads_other_weekday_fractions', '0.035, 0.033, 0.032, 0.031, 0.032, 0.033, 0.037, 0.042, 0.043, 0.043, 0.043, 0.044, 0.045, 0.045, 0.044, 0.046, 0.048, 0.052, 0.053, 0.05, 0.047, 0.045, 0.04, 0.036')
+    step.setArgument('plug_loads_other_weekend_fractions', '0.035, 0.033, 0.032, 0.031, 0.032, 0.033, 0.037, 0.042, 0.043, 0.043, 0.043, 0.044, 0.045, 0.045, 0.044, 0.046, 0.048, 0.052, 0.053, 0.05, 0.047, 0.045, 0.04, 0.036')
+    step.setArgument('plug_loads_other_monthly_multipliers', '1.248, 1.257, 0.993, 0.989, 0.993, 0.827, 0.821, 0.821, 0.827, 0.99, 0.987, 1.248')
+    step.setArgument('plug_loads_television_weekday_fractions', '0.045, 0.019, 0.01, 0.001, 0.001, 0.001, 0.005, 0.009, 0.018, 0.026, 0.032, 0.038, 0.04, 0.041, 0.043, 0.045, 0.5, 0.055, 0.07, 0.085, 0.097, 0.108, 0.089, 0.07')
+    step.setArgument('plug_loads_television_weekend_fractions', '0.045, 0.019, 0.01, 0.001, 0.001, 0.001, 0.005, 0.009, 0.018, 0.026, 0.032, 0.038, 0.04, 0.041, 0.043, 0.045, 0.5, 0.055, 0.07, 0.085, 0.097, 0.108, 0.089, 0.07')
+    step.setArgument('plug_loads_television_monthly_multipliers', '1.137, 1.129, 0.961, 0.969, 0.961, 0.993, 0.996, 0.96, 0.993, 0.867, 0.86, 1.137')
+    step.setArgument('plug_loads_well_pump_present', true)
+    step.setArgument('plug_loads_well_pump_annual_kwh', '475.0')
+    step.setArgument('plug_loads_well_pump_weekday_fractions', '0.044, 0.023, 0.019, 0.015, 0.016, 0.018, 0.026, 0.033, 0.033, 0.032, 0.033, 0.033, 0.032, 0.032, 0.032, 0.033, 0.045, 0.057, 0.066, 0.076, 0.081, 0.086, 0.075, 0.065')
+    step.setArgument('plug_loads_well_pump_weekend_fractions', '0.044, 0.023, 0.019, 0.015, 0.016, 0.018, 0.026, 0.033, 0.033, 0.032, 0.033, 0.033, 0.032, 0.032, 0.032, 0.033, 0.045, 0.057, 0.066, 0.076, 0.081, 0.086, 0.075, 0.065')
+    step.setArgument('plug_loads_well_pump_monthly_multipliers', '1.154, 1.161, 1.013, 1.010, 1.013, 0.888, 0.883, 0.883, 0.888, 0.978, 0.974, 1.154')
+    step.setArgument('plug_loads_vehicle_present', true)
+    step.setArgument('plug_loads_vehicle_annual_kwh', '1500.0')
+    step.setArgument('plug_loads_vehicle_weekday_fractions', '0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042')
+    step.setArgument('plug_loads_vehicle_weekend_fractions', '0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042')
+    step.setArgument('plug_loads_vehicle_monthly_multipliers', '1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1')
+    step.setArgument('fuel_loads_grill_present', true)
+    step.setArgument('fuel_loads_grill_fuel_type', HPXML::FuelTypePropane)
+    step.setArgument('fuel_loads_grill_annual_therm', '25.0')
+    step.setArgument('fuel_loads_grill_weekday_fractions', '0.004, 0.001, 0.001, 0.002, 0.007, 0.012, 0.029, 0.046, 0.044, 0.041, 0.044, 0.046, 0.042, 0.038, 0.049, 0.059, 0.110, 0.161, 0.115, 0.070, 0.044, 0.019, 0.013, 0.007')
+    step.setArgument('fuel_loads_grill_weekend_fractions', '0.004, 0.001, 0.001, 0.002, 0.007, 0.012, 0.029, 0.046, 0.044, 0.041, 0.044, 0.046, 0.042, 0.038, 0.049, 0.059, 0.110, 0.161, 0.115, 0.070, 0.044, 0.019, 0.013, 0.007')
+    step.setArgument('fuel_loads_grill_monthly_multipliers', '1.097, 1.097, 0.991, 0.987, 0.991, 0.890, 0.896, 0.896, 0.890, 1.085, 1.085, 1.097')
+    step.setArgument('fuel_loads_lighting_present', true)
+    step.setArgument('fuel_loads_lighting_annual_therm', '28.0')
+    step.setArgument('fuel_loads_lighting_weekday_fractions', '0.044, 0.023, 0.019, 0.015, 0.016, 0.018, 0.026, 0.033, 0.033, 0.032, 0.033, 0.033, 0.032, 0.032, 0.032, 0.033, 0.045, 0.057, 0.066, 0.076, 0.081, 0.086, 0.075, 0.065')
+    step.setArgument('fuel_loads_lighting_weekend_fractions', '0.044, 0.023, 0.019, 0.015, 0.016, 0.018, 0.026, 0.033, 0.033, 0.032, 0.033, 0.033, 0.032, 0.032, 0.032, 0.033, 0.045, 0.057, 0.066, 0.076, 0.081, 0.086, 0.075, 0.065')
+    step.setArgument('fuel_loads_lighting_monthly_multipliers', '1.154, 1.161, 1.013, 1.010, 1.013, 0.888, 0.883, 0.883, 0.888, 0.978, 0.974, 1.154')
+    step.setArgument('fuel_loads_fireplace_present', true)
+    step.setArgument('fuel_loads_fireplace_fuel_type', HPXML::FuelTypeWood)
+    step.setArgument('fuel_loads_fireplace_annual_therm', '55.0')
+    step.setArgument('fuel_loads_fireplace_weekday_fractions', '0.044, 0.023, 0.019, 0.015, 0.016, 0.018, 0.026, 0.033, 0.033, 0.032, 0.033, 0.033, 0.032, 0.032, 0.032, 0.033, 0.045, 0.057, 0.066, 0.076, 0.081, 0.086, 0.075, 0.065')
+    step.setArgument('fuel_loads_fireplace_weekend_fractions', '0.044, 0.023, 0.019, 0.015, 0.016, 0.018, 0.026, 0.033, 0.033, 0.032, 0.033, 0.033, 0.032, 0.032, 0.032, 0.033, 0.045, 0.057, 0.066, 0.076, 0.081, 0.086, 0.075, 0.065')
+    step.setArgument('fuel_loads_fireplace_monthly_multipliers', '1.154, 1.161, 1.013, 1.010, 1.013, 0.888, 0.883, 0.883, 0.888, 0.978, 0.974, 1.154')
+    step.setArgument('pool_present', true)
+    step.setArgument('pool_heater_type', HPXML::HeaterTypeGas)
+    step.setArgument('pool_pump_annual_kwh', '2700.0')
+    step.setArgument('pool_heater_annual_therm', '500.0')
+    step.setArgument('pool_pump_weekday_fractions', '0.003, 0.003, 0.003, 0.004, 0.008, 0.015, 0.026, 0.044, 0.084, 0.121, 0.127, 0.121, 0.120, 0.090, 0.075, 0.061, 0.037, 0.023, 0.013, 0.008, 0.004, 0.003, 0.003, 0.003')
+    step.setArgument('pool_pump_weekend_fractions', '0.003, 0.003, 0.003, 0.004, 0.008, 0.015, 0.026, 0.044, 0.084, 0.121, 0.127, 0.121, 0.120, 0.090, 0.075, 0.061, 0.037, 0.023, 0.013, 0.008, 0.004, 0.003, 0.003, 0.003')
+    step.setArgument('pool_pump_monthly_multipliers', '1.154, 1.161, 1.013, 1.010, 1.013, 0.888, 0.883, 0.883, 0.888, 0.978, 0.974, 1.154')
+    step.setArgument('pool_heater_weekday_fractions', '0.003, 0.003, 0.003, 0.004, 0.008, 0.015, 0.026, 0.044, 0.084, 0.121, 0.127, 0.121, 0.120, 0.090, 0.075, 0.061, 0.037, 0.023, 0.013, 0.008, 0.004, 0.003, 0.003, 0.003')
+    step.setArgument('pool_heater_weekend_fractions', '0.003, 0.003, 0.003, 0.004, 0.008, 0.015, 0.026, 0.044, 0.084, 0.121, 0.127, 0.121, 0.120, 0.090, 0.075, 0.061, 0.037, 0.023, 0.013, 0.008, 0.004, 0.003, 0.003, 0.003')
+    step.setArgument('pool_heater_monthly_multipliers', '1.154, 1.161, 1.013, 1.010, 1.013, 0.888, 0.883, 0.883, 0.888, 0.978, 0.974, 1.154')
+    step.setArgument('hot_tub_present', true)
+    step.setArgument('hot_tub_pump_annual_kwh', '1000.0')
+    step.setArgument('hot_tub_heater_annual_kwh', '1300.0')
+    step.setArgument('hot_tub_pump_weekday_fractions', '0.024, 0.029, 0.024, 0.029, 0.047, 0.067, 0.057, 0.024, 0.024, 0.019, 0.015, 0.014, 0.014, 0.014, 0.024, 0.058, 0.126, 0.122, 0.068, 0.061, 0.051, 0.043, 0.024, 0.024')
+    step.setArgument('hot_tub_pump_weekend_fractions', '0.024, 0.029, 0.024, 0.029, 0.047, 0.067, 0.057, 0.024, 0.024, 0.019, 0.015, 0.014, 0.014, 0.014, 0.024, 0.058, 0.126, 0.122, 0.068, 0.061, 0.051, 0.043, 0.024, 0.024')
+    step.setArgument('hot_tub_pump_monthly_multipliers', '0.837, 0.835, 1.084, 1.084, 1.084, 1.096, 1.096, 1.096, 1.096, 0.931, 0.925, 0.837')
+    step.setArgument('hot_tub_heater_weekday_fractions', '0.024, 0.029, 0.024, 0.029, 0.047, 0.067, 0.057, 0.024, 0.024, 0.019, 0.015, 0.014, 0.014, 0.014, 0.024, 0.058, 0.126, 0.122, 0.068, 0.061, 0.051, 0.043, 0.024, 0.024')
+    step.setArgument('hot_tub_heater_weekend_fractions', '0.024, 0.029, 0.024, 0.029, 0.047, 0.067, 0.057, 0.024, 0.024, 0.019, 0.015, 0.014, 0.014, 0.014, 0.024, 0.058, 0.126, 0.122, 0.068, 0.061, 0.051, 0.043, 0.024, 0.024')
+    step.setArgument('hot_tub_heater_monthly_multipliers', '0.921, 0.928, 0.921, 0.915, 0.921, 1.160, 1.158, 1.158, 1.160, 0.921, 0.915, 0.921')
+  elsif ['base-misc-large-uncommon-loads2.osw'].include? osw_file
+    step.setArgument('pool_heater_type', 'none')
+    step.setArgument('hot_tub_heater_type', HPXML::HeaterTypeHeatPump)
+    step.setArgument('hot_tub_heater_annual_kwh', '260.0')
+    step.setArgument('fuel_loads_grill_fuel_type', HPXML::FuelTypeOil)
+    step.setArgument('fuel_loads_fireplace_fuel_type', HPXML::FuelTypeWoodPellets)
   elsif ['base-misc-neighbor-shading.osw'].include? osw_file
     step.setArgument('neighbor_back_distance', 10)
     step.setArgument('neighbor_front_distance', 15)
@@ -1501,7 +1651,8 @@ def get_values(osw_file, step)
     step.setArgument('dishwasher_usage_multiplier', 0.9)
     step.setArgument('refrigerator_usage_multiplier', 0.9)
     step.setArgument('cooking_range_oven_usage_multiplier', 0.9)
-    step.setArgument('plug_loads_usage_multiplier', 0.9)
+    step.setArgument('plug_loads_television_usage_multiplier', 0.9)
+    step.setArgument('plug_loads_other_usage_multiplier', 0.9)
   elsif ['base-misc-whole-house-fan.osw'].include? osw_file
     step.setArgument('whole_house_fan_present', true)
   elsif ['base-pv.osw'].include? osw_file
@@ -1672,6 +1823,8 @@ def create_hpxmls
     'invalid_files/water-heater-location-other.xml' => 'base.xml',
     'invalid_files/missing-duct-location.xml' => 'base-hvac-multiple.xml',
     'invalid_files/invalid-distribution-cfa-served.xml' => 'base.xml',
+    'invalid_files/refrigerators-multiple-primary.xml' => 'base.xml',
+    'invalid_files/refrigerators-no-primary.xml' => 'base.xml',
     'base-appliances-dehumidifier.xml' => 'base-location-dallas-tx.xml',
     'base-appliances-dehumidifier-ief.xml' => 'base-appliances-dehumidifier.xml',
     'base-appliances-dehumidifier-50percent.xml' => 'base-appliances-dehumidifier.xml',
@@ -1844,6 +1997,8 @@ def create_hpxmls
     'base-misc-ceiling-fans.xml' => 'base.xml',
     'base-misc-defaults.xml' => 'base.xml',
     'base-misc-defaults2.xml' => 'base-dhw-recirc-demand.xml',
+    'base-misc-large-uncommon-loads.xml' => 'base-enclosure-garage.xml',
+    'base-misc-large-uncommon-loads2.xml' => 'base-misc-large-uncommon-loads.xml',
     'base-misc-timestep-10-mins.xml' => 'base.xml',
     'base-misc-runperiod-1-month.xml' => 'base.xml',
     'base-misc-usage-multiplier.xml' => 'base.xml',
@@ -1933,13 +2088,16 @@ def create_hpxmls
         set_hpxml_clothes_dryer(hpxml_file, hpxml)
         set_hpxml_dishwasher(hpxml_file, hpxml)
         set_hpxml_refrigerator(hpxml_file, hpxml)
+        set_hpxml_freezer(hpxml_file, hpxml)
         set_hpxml_dehumidifier(hpxml_file, hpxml)
         set_hpxml_cooking_range(hpxml_file, hpxml)
         set_hpxml_oven(hpxml_file, hpxml)
         set_hpxml_lighting(hpxml_file, hpxml)
         set_hpxml_ceiling_fans(hpxml_file, hpxml)
+        set_hpxml_pools(hpxml_file, hpxml)
+        set_hpxml_hot_tubs(hpxml_file, hpxml)
         set_hpxml_plug_loads(hpxml_file, hpxml)
-        set_hpxml_misc_load_schedule(hpxml_file, hpxml)
+        set_hpxml_fuel_loads(hpxml_file, hpxml)
       end
 
       hpxml_doc = hpxml.to_oga()
@@ -2480,6 +2638,7 @@ def set_hpxml_rim_joists(hpxml_file, hpxml)
     hpxml.rim_joists.clear
   elsif ['base-enclosure-attached-multifamily.xml'].include? hpxml_file
     hpxml.rim_joists[0].exterior_adjacent_to = HPXML::LocationOtherNonFreezingSpace
+    hpxml.rim_joists[0].siding = nil
   elsif ['base-foundation-unconditioned-basement.xml'].include? hpxml_file
     for i in 0..hpxml.rim_joists.size - 1
       hpxml.rim_joists[i].interior_adjacent_to = HPXML::LocationBasementUnconditioned
@@ -2499,6 +2658,7 @@ def set_hpxml_rim_joists(hpxml_file, hpxml)
     end
   elsif ['base-foundation-multiple.xml'].include? hpxml_file
     hpxml.rim_joists[0].exterior_adjacent_to = HPXML::LocationCrawlspaceUnvented
+    hpxml.rim_joists[0].siding = nil
     hpxml.rim_joists.add(id: 'RimJoistCrawlspace',
                          exterior_adjacent_to: HPXML::LocationOutside,
                          interior_adjacent_to: HPXML::LocationCrawlspaceUnvented,
@@ -2533,6 +2693,11 @@ def set_hpxml_rim_joists(hpxml_file, hpxml)
       rim_joist.solar_absorptance = nil
       rim_joist.color = HPXML::ColorMedium
     end
+  end
+  hpxml.rim_joists.each do |rim_joist|
+    next unless rim_joist.is_interior
+
+    fail "Interior rim joist '#{rim_joist.id}' in #{hpxml_file} should not have siding." unless rim_joist.siding.nil?
   end
 end
 
@@ -2825,6 +2990,7 @@ def set_hpxml_walls(hpxml_file, hpxml)
     hpxml.walls << hpxml.walls[0].dup
     hpxml.walls[0].area *= 0.35
     hpxml.walls[-1].area *= 0.65
+    hpxml.walls[-1].siding = nil
     if ['base-enclosure-other-housing-unit.xml'].include? hpxml_file
       hpxml.walls[-1].id = 'WallOtherHousingUnit'
       hpxml.walls[-1].exterior_adjacent_to = HPXML::LocationOtherHousingUnit
@@ -2865,6 +3031,11 @@ def set_hpxml_walls(hpxml_file, hpxml)
       wall.solar_absorptance = nil
       wall.color = HPXML::ColorMedium
     end
+  end
+  hpxml.walls.each do |wall|
+    next unless wall.is_interior
+
+    fail "Interior wall '#{wall.id}' in #{hpxml_file} should not have siding." unless wall.siding.nil?
   end
 end
 
@@ -5442,7 +5613,8 @@ def set_hpxml_refrigerator(hpxml_file, hpxml)
   if ['base.xml'].include? hpxml_file
     hpxml.refrigerators.add(id: 'Refrigerator',
                             location: HPXML::LocationLivingSpace,
-                            rated_annual_kwh: 650)
+                            rated_annual_kwh: 650,
+                            primary_indicator: true)
   elsif ['base-appliances-modified.xml'].include? hpxml_file
     hpxml.refrigerators[0].adjusted_annual_kwh = 600
   elsif ['base-appliances-none.xml'].include? hpxml_file
@@ -5468,6 +5640,48 @@ def set_hpxml_refrigerator(hpxml_file, hpxml)
     hpxml.refrigerators[0].adjusted_annual_kwh = nil
   elsif ['base-misc-usage-multiplier.xml'].include? hpxml_file
     hpxml.refrigerators[0].usage_multiplier = 0.9
+  elsif ['base-misc-large-uncommon-loads.xml'].include? hpxml_file
+    hpxml.refrigerators[0].weekday_fractions = '0.040, 0.039, 0.038, 0.037, 0.036, 0.036, 0.038, 0.040, 0.041, 0.041, 0.040, 0.040, 0.042, 0.042, 0.042, 0.041, 0.044, 0.048, 0.050, 0.048, 0.047, 0.046, 0.044, 0.041'
+    hpxml.refrigerators[0].weekend_fractions = '0.040, 0.039, 0.038, 0.037, 0.036, 0.036, 0.038, 0.040, 0.041, 0.041, 0.040, 0.040, 0.042, 0.042, 0.042, 0.041, 0.044, 0.048, 0.050, 0.048, 0.047, 0.046, 0.044, 0.041'
+    hpxml.refrigerators[0].monthly_multipliers = '0.837, 0.835, 1.084, 1.084, 1.084, 1.096, 1.096, 1.096, 1.096, 0.931, 0.925, 0.837'
+    hpxml.refrigerators.add(id: 'ExtraRefrigerator',
+                            rated_annual_kwh: 700,
+                            primary_indicator: false,
+                            weekday_fractions: '0.040, 0.039, 0.038, 0.037, 0.036, 0.036, 0.038, 0.040, 0.041, 0.041, 0.040, 0.040, 0.042, 0.042, 0.042, 0.041, 0.044, 0.048, 0.050, 0.048, 0.047, 0.046, 0.044, 0.041',
+                            weekend_fractions: '0.040, 0.039, 0.038, 0.037, 0.036, 0.036, 0.038, 0.040, 0.041, 0.041, 0.040, 0.040, 0.042, 0.042, 0.042, 0.041, 0.044, 0.048, 0.050, 0.048, 0.047, 0.046, 0.044, 0.041',
+                            monthly_multipliers: '0.837, 0.835, 1.084, 1.084, 1.084, 1.096, 1.096, 1.096, 1.096, 0.931, 0.925, 0.837')
+    hpxml.refrigerators.add(id: 'ExtraRefrigerator2',
+                            rated_annual_kwh: 800,
+                            primary_indicator: false,
+                            weekday_fractions: '0.040, 0.039, 0.038, 0.037, 0.036, 0.036, 0.038, 0.040, 0.041, 0.041, 0.040, 0.040, 0.042, 0.042, 0.042, 0.041, 0.044, 0.048, 0.050, 0.048, 0.047, 0.046, 0.044, 0.041',
+                            weekend_fractions: '0.040, 0.039, 0.038, 0.037, 0.036, 0.036, 0.038, 0.040, 0.041, 0.041, 0.040, 0.040, 0.042, 0.042, 0.042, 0.041, 0.044, 0.048, 0.050, 0.048, 0.047, 0.046, 0.044, 0.041',
+                            monthly_multipliers: '0.837, 0.835, 1.084, 1.084, 1.084, 1.096, 1.096, 1.096, 1.096, 0.931, 0.925, 0.837')
+  elsif ['invalid_files/refrigerators-multiple-primary.xml'].include? hpxml_file
+    hpxml.refrigerators.add(id: 'Refrigerator2',
+                            location: HPXML::LocationLivingSpace,
+                            rated_annual_kwh: 650,
+                            primary_indicator: true)
+  elsif ['invalid_files/refrigerators-no-primary.xml'].include? hpxml_file
+    hpxml.refrigerators[0].primary_indicator = false
+    hpxml.refrigerators.add(id: 'Refrigerator2',
+                            location: HPXML::LocationLivingSpace,
+                            rated_annual_kwh: 650,
+                            primary_indicator: false)
+  end
+end
+
+def set_hpxml_freezer(hpxml_file, hpxml)
+  if ['base-misc-large-uncommon-loads.xml'].include? hpxml_file
+    hpxml.freezers.add(id: 'Freezer',
+                       rated_annual_kwh: 300,
+                       weekday_fractions: '0.040, 0.039, 0.038, 0.037, 0.036, 0.036, 0.038, 0.040, 0.041, 0.041, 0.040, 0.040, 0.042, 0.042, 0.042, 0.041, 0.044, 0.048, 0.050, 0.048, 0.047, 0.046, 0.044, 0.041',
+                       weekend_fractions: '0.040, 0.039, 0.038, 0.037, 0.036, 0.036, 0.038, 0.040, 0.041, 0.041, 0.040, 0.040, 0.042, 0.042, 0.042, 0.041, 0.044, 0.048, 0.050, 0.048, 0.047, 0.046, 0.044, 0.041',
+                       monthly_multipliers: '0.837, 0.835, 1.084, 1.084, 1.084, 1.096, 1.096, 1.096, 1.096, 0.931, 0.925, 0.837')
+    hpxml.freezers.add(id: 'Freezer2',
+                       rated_annual_kwh: 400,
+                       weekday_fractions: '0.040, 0.039, 0.038, 0.037, 0.036, 0.036, 0.038, 0.040, 0.041, 0.041, 0.040, 0.040, 0.042, 0.042, 0.042, 0.041, 0.044, 0.048, 0.050, 0.048, 0.047, 0.046, 0.044, 0.041',
+                       weekend_fractions: '0.040, 0.039, 0.038, 0.037, 0.036, 0.036, 0.038, 0.040, 0.041, 0.041, 0.040, 0.040, 0.042, 0.042, 0.042, 0.041, 0.044, 0.048, 0.050, 0.048, 0.047, 0.046, 0.044, 0.041',
+                       monthly_multipliers: '0.837, 0.835, 1.084, 1.084, 1.084, 1.096, 1.096, 1.096, 1.096, 0.931, 0.925, 0.837')
   end
 end
 
@@ -5524,6 +5738,10 @@ def set_hpxml_cooking_range(hpxml_file, hpxml)
     hpxml.cooking_ranges[0].is_induction = nil
   elsif ['base-misc-usage-multiplier.xml'].include? hpxml_file
     hpxml.cooking_ranges[0].usage_multiplier = 0.9
+  elsif ['base-misc-large-uncommon-loads.xml'].include? hpxml_file
+    hpxml.cooking_ranges[0].weekday_fractions = '0.007, 0.007, 0.004, 0.004, 0.007, 0.011, 0.025, 0.042, 0.046, 0.048, 0.042, 0.050, 0.057, 0.046, 0.057, 0.044, 0.092, 0.150, 0.117, 0.060, 0.035, 0.025, 0.016, 0.011'
+    hpxml.cooking_ranges[0].weekend_fractions = '0.007, 0.007, 0.004, 0.004, 0.007, 0.011, 0.025, 0.042, 0.046, 0.048, 0.042, 0.050, 0.057, 0.046, 0.057, 0.044, 0.092, 0.150, 0.117, 0.060, 0.035, 0.025, 0.016, 0.011'
+    hpxml.cooking_ranges[0].monthly_multipliers = '1.097, 1.097, 0.991, 0.987, 0.991, 0.890, 0.896, 0.896, 0.890, 1.085, 1.085, 1.097'
   end
 end
 
@@ -5595,6 +5813,47 @@ def set_hpxml_ceiling_fans(hpxml_file, hpxml)
   end
 end
 
+def set_hpxml_pools(hpxml_file, hpxml)
+  if ['base-misc-large-uncommon-loads.xml'].include? hpxml_file
+    hpxml.pools.add(id: 'Pool',
+                    heater_type: HPXML::HeaterTypeGas,
+                    heater_load_units: HPXML::UnitsThermPerYear,
+                    heater_load_value: 500,
+                    pump_kwh_per_year: 2700,
+                    heater_weekday_fractions: '0.003, 0.003, 0.003, 0.004, 0.008, 0.015, 0.026, 0.044, 0.084, 0.121, 0.127, 0.121, 0.120, 0.090, 0.075, 0.061, 0.037, 0.023, 0.013, 0.008, 0.004, 0.003, 0.003, 0.003',
+                    heater_weekend_fractions: '0.003, 0.003, 0.003, 0.004, 0.008, 0.015, 0.026, 0.044, 0.084, 0.121, 0.127, 0.121, 0.120, 0.090, 0.075, 0.061, 0.037, 0.023, 0.013, 0.008, 0.004, 0.003, 0.003, 0.003',
+                    heater_monthly_multipliers: '1.154, 1.161, 1.013, 1.010, 1.013, 0.888, 0.883, 0.883, 0.888, 0.978, 0.974, 1.154',
+                    pump_weekday_fractions: '0.003, 0.003, 0.003, 0.004, 0.008, 0.015, 0.026, 0.044, 0.084, 0.121, 0.127, 0.121, 0.120, 0.090, 0.075, 0.061, 0.037, 0.023, 0.013, 0.008, 0.004, 0.003, 0.003, 0.003',
+                    pump_weekend_fractions: '0.003, 0.003, 0.003, 0.004, 0.008, 0.015, 0.026, 0.044, 0.084, 0.121, 0.127, 0.121, 0.120, 0.090, 0.075, 0.061, 0.037, 0.023, 0.013, 0.008, 0.004, 0.003, 0.003, 0.003',
+                    pump_monthly_multipliers: '1.154, 1.161, 1.013, 1.010, 1.013, 0.888, 0.883, 0.883, 0.888, 0.978, 0.974, 1.154')
+  elsif ['base-misc-large-uncommon-loads2.xml'].include? hpxml_file
+    hpxml.pools[0].heater_type = nil
+    hpxml.pools[0].heater_load_value = nil
+    hpxml.pools[0].heater_weekday_fractions = nil
+    hpxml.pools[0].heater_weekend_fractions = nil
+    hpxml.pools[0].heater_monthly_multipliers = nil
+  end
+end
+
+def set_hpxml_hot_tubs(hpxml_file, hpxml)
+  if ['base-misc-large-uncommon-loads.xml'].include? hpxml_file
+    hpxml.hot_tubs.add(id: 'HotTub',
+                       heater_type: HPXML::HeaterTypeElectricResistance,
+                       heater_load_units: HPXML::UnitsKwhPerYear,
+                       heater_load_value: 1300,
+                       pump_kwh_per_year: 1000,
+                       heater_weekday_fractions: '0.024, 0.029, 0.024, 0.029, 0.047, 0.067, 0.057, 0.024, 0.024, 0.019, 0.015, 0.014, 0.014, 0.014, 0.024, 0.058, 0.126, 0.122, 0.068, 0.061, 0.051, 0.043, 0.024, 0.024',
+                       heater_weekend_fractions: '0.024, 0.029, 0.024, 0.029, 0.047, 0.067, 0.057, 0.024, 0.024, 0.019, 0.015, 0.014, 0.014, 0.014, 0.024, 0.058, 0.126, 0.122, 0.068, 0.061, 0.051, 0.043, 0.024, 0.024',
+                       heater_monthly_multipliers: '0.921, 0.928, 0.921, 0.915, 0.921, 1.160, 1.158, 1.158, 1.160, 0.921, 0.915, 0.921',
+                       pump_weekday_fractions: '0.024, 0.029, 0.024, 0.029, 0.047, 0.067, 0.057, 0.024, 0.024, 0.019, 0.015, 0.014, 0.014, 0.014, 0.024, 0.058, 0.126, 0.122, 0.068, 0.061, 0.051, 0.043, 0.024, 0.024',
+                       pump_weekend_fractions: '0.024, 0.029, 0.024, 0.029, 0.047, 0.067, 0.057, 0.024, 0.024, 0.019, 0.015, 0.014, 0.014, 0.014, 0.024, 0.058, 0.126, 0.122, 0.068, 0.061, 0.051, 0.043, 0.024, 0.024',
+                       pump_monthly_multipliers: '0.837, 0.835, 1.084, 1.084, 1.084, 1.096, 1.096, 1.096, 1.096, 0.931, 0.925, 0.837')
+  elsif ['base-misc-large-uncommon-loads2.xml'].include? hpxml_file
+    hpxml.hot_tubs[0].heater_type = HPXML::HeaterTypeHeatPump
+    hpxml.hot_tubs[0].heater_load_value /= 5.0
+  end
+end
+
 def set_hpxml_plug_loads(hpxml_file, hpxml)
   if ['ASHRAE_Standard_140/L100AC.xml',
       'ASHRAE_Standard_140/L100AL.xml'].include? hpxml_file
@@ -5623,6 +5882,25 @@ def set_hpxml_plug_loads(hpxml_file, hpxml)
         plug_load.frac_sensible = nil
         plug_load.frac_latent = nil
       end
+    elsif ['base-misc-large-uncommon-loads.xml'].include? hpxml_file
+      hpxml.plug_loads[0].weekday_fractions = '0.035, 0.033, 0.032, 0.031, 0.032, 0.033, 0.037, 0.042, 0.043, 0.043, 0.043, 0.044, 0.045, 0.045, 0.044, 0.046, 0.048, 0.052, 0.053, 0.05, 0.047, 0.045, 0.04, 0.036'
+      hpxml.plug_loads[0].weekend_fractions = '0.035, 0.033, 0.032, 0.031, 0.032, 0.033, 0.037, 0.042, 0.043, 0.043, 0.043, 0.044, 0.045, 0.045, 0.044, 0.046, 0.048, 0.052, 0.053, 0.05, 0.047, 0.045, 0.04, 0.036'
+      hpxml.plug_loads[0].monthly_multipliers = '1.248, 1.257, 0.993, 0.989, 0.993, 0.827, 0.821, 0.821, 0.827, 0.99, 0.987, 1.248'
+      hpxml.plug_loads[1].weekday_fractions = '0.045, 0.019, 0.01, 0.001, 0.001, 0.001, 0.005, 0.009, 0.018, 0.026, 0.032, 0.038, 0.04, 0.041, 0.043, 0.045, 0.5, 0.055, 0.07, 0.085, 0.097, 0.108, 0.089, 0.07'
+      hpxml.plug_loads[1].weekend_fractions = '0.045, 0.019, 0.01, 0.001, 0.001, 0.001, 0.005, 0.009, 0.018, 0.026, 0.032, 0.038, 0.04, 0.041, 0.043, 0.045, 0.5, 0.055, 0.07, 0.085, 0.097, 0.108, 0.089, 0.07'
+      hpxml.plug_loads[1].monthly_multipliers = '1.137, 1.129, 0.961, 0.969, 0.961, 0.993, 0.996, 0.96, 0.993, 0.867, 0.86, 1.137'
+      hpxml.plug_loads.add(id: 'PlugLoadMisc3',
+                           plug_load_type: HPXML::PlugLoadTypeElectricVehicleCharging,
+                           kWh_per_year: 1500,
+                           weekday_fractions: '0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042',
+                           weekend_fractions: '0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042',
+                           monthly_multipliers: '1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1')
+      hpxml.plug_loads.add(id: 'PlugLoadMisc4',
+                           plug_load_type: HPXML::PlugLoadTypeWellPump,
+                           kWh_per_year: 475,
+                           weekday_fractions: '0.044, 0.023, 0.019, 0.015, 0.016, 0.018, 0.026, 0.033, 0.033, 0.032, 0.033, 0.033, 0.032, 0.032, 0.032, 0.033, 0.045, 0.057, 0.066, 0.076, 0.081, 0.086, 0.075, 0.065',
+                           weekend_fractions: '0.044, 0.023, 0.019, 0.015, 0.016, 0.018, 0.026, 0.033, 0.033, 0.032, 0.033, 0.033, 0.032, 0.032, 0.032, 0.033, 0.045, 0.057, 0.066, 0.076, 0.081, 0.086, 0.075, 0.065',
+                           monthly_multipliers: '1.154, 1.161, 1.013, 1.010, 1.013, 0.888, 0.883, 0.883, 0.888, 0.978, 0.974, 1.154')
     else
       cfa = hpxml.building_construction.conditioned_floor_area
       nbeds = hpxml.building_construction.number_of_bedrooms
@@ -5634,25 +5912,45 @@ def set_hpxml_plug_loads(hpxml_file, hpxml)
 
       kWh_per_year, frac_sensible, frac_latent = MiscLoads.get_televisions_default_values(cfa, nbeds)
       hpxml.plug_loads[1].kWh_per_year = kWh_per_year
-      hpxml.plug_loads[1].frac_sensible = frac_sensible.round(3)
-      hpxml.plug_loads[1].frac_latent = frac_latent.round(3)
     end
+  end
+  if hpxml_file.include?('ASHRAE_Standard_140')
+    hpxml.plug_loads[0].weekday_fractions = '0.020, 0.020, 0.020, 0.020, 0.020, 0.034, 0.043, 0.085, 0.050, 0.030, 0.030, 0.041, 0.030, 0.025, 0.026, 0.026, 0.039, 0.042, 0.045, 0.070, 0.070, 0.073, 0.073, 0.066'
+    hpxml.plug_loads[0].weekend_fractions = '0.020, 0.020, 0.020, 0.020, 0.020, 0.034, 0.043, 0.085, 0.050, 0.030, 0.030, 0.041, 0.030, 0.025, 0.026, 0.026, 0.039, 0.042, 0.045, 0.070, 0.070, 0.073, 0.073, 0.066'
+    hpxml.plug_loads[0].monthly_multipliers = '1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0'
+  elsif ['base-misc-defaults.xml'].include? hpxml_file
+    hpxml.plug_loads[0].weekday_fractions = nil
+    hpxml.plug_loads[0].weekend_fractions = nil
+    hpxml.plug_loads[0].monthly_multipliers = nil
   end
 end
 
-def set_hpxml_misc_load_schedule(hpxml_file, hpxml)
-  if hpxml_file.include?('ASHRAE_Standard_140')
-    hpxml.misc_loads_schedule.weekday_fractions = '0.020, 0.020, 0.020, 0.020, 0.020, 0.034, 0.043, 0.085, 0.050, 0.030, 0.030, 0.041, 0.030, 0.025, 0.026, 0.026, 0.039, 0.042, 0.045, 0.070, 0.070, 0.073, 0.073, 0.066'
-    hpxml.misc_loads_schedule.weekend_fractions = '0.020, 0.020, 0.020, 0.020, 0.020, 0.034, 0.043, 0.085, 0.050, 0.030, 0.030, 0.041, 0.030, 0.025, 0.026, 0.026, 0.039, 0.042, 0.045, 0.070, 0.070, 0.073, 0.073, 0.066'
-    hpxml.misc_loads_schedule.monthly_multipliers = '1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0'
-  elsif ['base.xml'].include? hpxml_file
-    hpxml.misc_loads_schedule.weekday_fractions = '0.04, 0.037, 0.037, 0.036, 0.033, 0.036, 0.043, 0.047, 0.034, 0.023, 0.024, 0.025, 0.024, 0.028, 0.031, 0.032, 0.039, 0.053, 0.063, 0.067, 0.071, 0.069, 0.059, 0.05'
-    hpxml.misc_loads_schedule.weekend_fractions = '0.04, 0.037, 0.037, 0.036, 0.033, 0.036, 0.043, 0.047, 0.034, 0.023, 0.024, 0.025, 0.024, 0.028, 0.031, 0.032, 0.039, 0.053, 0.063, 0.067, 0.071, 0.069, 0.059, 0.05'
-    hpxml.misc_loads_schedule.monthly_multipliers = '1.248, 1.257, 0.993, 0.989, 0.993, 0.827, 0.821, 0.821, 0.827, 0.99, 0.987, 1.248'
-  elsif ['base-misc-defaults.xml'].include? hpxml_file
-    hpxml.misc_loads_schedule.weekday_fractions = nil
-    hpxml.misc_loads_schedule.weekend_fractions = nil
-    hpxml.misc_loads_schedule.monthly_multipliers = nil
+def set_hpxml_fuel_loads(hpxml_file, hpxml)
+  if ['base-misc-large-uncommon-loads.xml'].include? hpxml_file
+    hpxml.fuel_loads.add(id: 'FuelLoadMisc',
+                         fuel_load_type: HPXML::FuelLoadTypeGrill,
+                         fuel_type: HPXML::FuelTypePropane,
+                         therm_per_year: 25,
+                         weekday_fractions: '0.004, 0.001, 0.001, 0.002, 0.007, 0.012, 0.029, 0.046, 0.044, 0.041, 0.044, 0.046, 0.042, 0.038, 0.049, 0.059, 0.110, 0.161, 0.115, 0.070, 0.044, 0.019, 0.013, 0.007',
+                         weekend_fractions: '0.004, 0.001, 0.001, 0.002, 0.007, 0.012, 0.029, 0.046, 0.044, 0.041, 0.044, 0.046, 0.042, 0.038, 0.049, 0.059, 0.110, 0.161, 0.115, 0.070, 0.044, 0.019, 0.013, 0.007',
+                         monthly_multipliers: '1.097, 1.097, 0.991, 0.987, 0.991, 0.890, 0.896, 0.896, 0.890, 1.085, 1.085, 1.097')
+    hpxml.fuel_loads.add(id: 'FuelLoadMisc2',
+                         fuel_load_type: HPXML::FuelLoadTypeLighting,
+                         fuel_type: HPXML::FuelTypeNaturalGas,
+                         therm_per_year: 28,
+                         weekday_fractions: '0.044, 0.023, 0.019, 0.015, 0.016, 0.018, 0.026, 0.033, 0.033, 0.032, 0.033, 0.033, 0.032, 0.032, 0.032, 0.033, 0.045, 0.057, 0.066, 0.076, 0.081, 0.086, 0.075, 0.065',
+                         weekend_fractions: '0.044, 0.023, 0.019, 0.015, 0.016, 0.018, 0.026, 0.033, 0.033, 0.032, 0.033, 0.033, 0.032, 0.032, 0.032, 0.033, 0.045, 0.057, 0.066, 0.076, 0.081, 0.086, 0.075, 0.065',
+                         monthly_multipliers: '1.154, 1.161, 1.013, 1.010, 1.013, 0.888, 0.883, 0.883, 0.888, 0.978, 0.974, 1.154')
+    hpxml.fuel_loads.add(id: 'FuelLoadMisc3',
+                         fuel_load_type: HPXML::FuelLoadTypeFireplace,
+                         fuel_type: HPXML::FuelTypeWood,
+                         therm_per_year: 55,
+                         weekday_fractions: '0.044, 0.023, 0.019, 0.015, 0.016, 0.018, 0.026, 0.033, 0.033, 0.032, 0.033, 0.033, 0.032, 0.032, 0.032, 0.033, 0.045, 0.057, 0.066, 0.076, 0.081, 0.086, 0.075, 0.065',
+                         weekend_fractions: '0.044, 0.023, 0.019, 0.015, 0.016, 0.018, 0.026, 0.033, 0.033, 0.032, 0.033, 0.033, 0.032, 0.032, 0.032, 0.033, 0.045, 0.057, 0.066, 0.076, 0.081, 0.086, 0.075, 0.065',
+                         monthly_multipliers: '1.154, 1.161, 1.013, 1.010, 1.013, 0.888, 0.883, 0.883, 0.888, 0.978, 0.974, 1.154')
+  elsif ['base-misc-large-uncommon-loads2.xml'].include? hpxml_file
+    hpxml.fuel_loads[0].fuel_type = HPXML::FuelTypeOil
+    hpxml.fuel_loads[2].fuel_type = HPXML::FuelTypeWoodPellets
   end
 end
 

@@ -195,7 +195,9 @@ class HPXMLTest < MiniTest::Test
                             'unattached-solar-thermal-system.xml' => ["Attached water heating system 'foobar' not found for solar thermal system 'SolarThermalSystem'."],
                             'unattached-window.xml' => ["Attached wall 'foobar' not found for window 'WindowNorth'."],
                             'water-heater-location.xml' => ["WaterHeatingSystem location is 'crawlspace - vented' but building does not have this location specified."],
-                            'water-heater-location-other.xml' => ['Expected [1] element(s) but found 0 element(s) for xpath: /HPXML/Building/BuildingDetails/Systems/WaterHeating/WaterHeatingSystem: [not(Location)] |'] }
+                            'water-heater-location-other.xml' => ['Expected [1] element(s) but found 0 element(s) for xpath: /HPXML/Building/BuildingDetails/Systems/WaterHeating/WaterHeatingSystem: [not(Location)] |'],
+                            'refrigerators-multiple-primary.xml' => ['More than one refrigerator designated as the primary.'],
+                            'refrigerators-no-primary.xml' => ['Could not find a primary refrigerator.'] }
 
     # Test simulations
     Dir["#{sample_files_dir}/invalid_files/*.xml"].sort.each do |xml|
@@ -603,7 +605,9 @@ class HPXMLTest < MiniTest::Test
                                     'base-enclosure-other-non-freezing-space.xml' => 0, # no foundation in contact w/ ground
                                     'base-enclosure-other-multifamily-buffer-space.xml' => 0, # no foundation in contact w/ ground
                                     'base-foundation-walkout-basement.xml' => 4, # 3 foundation walls plus a no-wall exposed perimeter
-                                    'base-foundation-complex.xml' => 10 }
+                                    'base-foundation-complex.xml' => 10,
+                                    'base-misc-large-uncommon-loads.xml' => 2,
+                                    'base-misc-large-uncommon-loads2.xml' => 2 }
 
     if hpxml_path.include? 'ASHRAE_Standard_140'
       # nop
