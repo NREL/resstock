@@ -138,7 +138,7 @@ class ResidentialHotWaterDistribution < OpenStudio::Measure::ModelMeasure
       # Get plant loop
       plant_loop = Waterheater.get_plant_loop_from_string(model, runner, Constants.Auto, unit)
       if plant_loop.nil?
-        return false
+        next
       end
 
       # Get water heater setpoint
@@ -166,13 +166,13 @@ class ResidentialHotWaterDistribution < OpenStudio::Measure::ModelMeasure
         space.waterUseEquipment.each do |wue|
           next if not wue.name.to_s.start_with?(obj_name_sh_dist) and not wue.name.to_s.start_with?(obj_name_s_dist) and not wue.name.to_s.start_with?(obj_name_b_dist)
 
-          vals = wue.name.to_s.split("=")
+          dist_hw = wue.additionalProperties.getFeatureAsDouble('dist_hw').get
           if wue.name.to_s.start_with?(obj_name_sh_dist)
-            sh_prev_dist = vals[1].to_f
+            sh_prev_dist = dist_hw
           elsif wue.name.to_s.start_with?(obj_name_s_dist)
-            s_prev_dist = vals[1].to_f
+            s_prev_dist = dist_hw
           elsif wue.name.to_s.start_with?(obj_name_b_dist)
-            b_prev_dist = vals[1].to_f
+            b_prev_dist = dist_hw
           end
           wue.remove
           dist_removed = true
@@ -465,27 +465,30 @@ class ResidentialHotWaterDistribution < OpenStudio::Measure::ModelMeasure
       # increase will be incorporated in the hot water fixture water use objects.
       sh_dist_wu_def = OpenStudio::Model::WaterUseEquipmentDefinition.new(model)
       sh_dist_wu = OpenStudio::Model::WaterUseEquipment.new(sh_dist_wu_def)
-      sh_dist_wu.setName("#{obj_name_sh_dist}=#{shower_dist_hw}")
+      sh_dist_wu.setName("#{obj_name_sh_dist}")
+      sh_dist_wu.additionalProperties.setFeature("dist_hw", shower_dist_hw)
       sh_dist_wu.setSpace(dist_space)
-      sh_dist_wu_def.setName("#{obj_name_sh_dist}=#{shower_dist_hw}")
+      sh_dist_wu_def.setName("#{obj_name_sh_dist}")
       sh_dist_wu_def.setPeakFlowRate(0)
       sh_dist_wu.setFlowRateFractionSchedule(sch_sh_schedule)
       sh_dist_wu_def.setTargetTemperatureSchedule(sch_sh_temperatureSchedule)
 
       s_dist_wu_def = OpenStudio::Model::WaterUseEquipmentDefinition.new(model)
       s_dist_wu = OpenStudio::Model::WaterUseEquipment.new(s_dist_wu_def)
-      s_dist_wu.setName("#{obj_name_s_dist}=#{sink_dist_hw}")
+      s_dist_wu.setName("#{obj_name_s_dist}")
+      s_dist_wu.additionalProperties.setFeature("dist_hw", sink_dist_hw)
       s_dist_wu.setSpace(dist_space)
-      s_dist_wu_def.setName("#{obj_name_s_dist}=#{sink_dist_hw}")
+      s_dist_wu_def.setName("#{obj_name_s_dist}")
       s_dist_wu_def.setPeakFlowRate(0)
       s_dist_wu.setFlowRateFractionSchedule(sch_s_schedule)
       s_dist_wu_def.setTargetTemperatureSchedule(sch_s_temperatureSchedule)
 
       b_dist_wu_def = OpenStudio::Model::WaterUseEquipmentDefinition.new(model)
       b_dist_wu = OpenStudio::Model::WaterUseEquipment.new(b_dist_wu_def)
-      b_dist_wu.setName("#{obj_name_b_dist}=#{bath_dist_hw}")
+      b_dist_wu.setName("#{obj_name_b_dist}")
+      b_dist_wu.additionalProperties.setFeature("dist_hw", bath_dist_hw)
       b_dist_wu.setSpace(dist_space)
-      b_dist_wu_def.setName("#{obj_name_b_dist}=#{bath_dist_hw}")
+      b_dist_wu_def.setName("#{obj_name_b_dist}")
       b_dist_wu_def.setPeakFlowRate(0)
       b_dist_wu.setFlowRateFractionSchedule(sch_b_schedule)
       b_dist_wu_def.setTargetTemperatureSchedule(sch_b_temperatureSchedule)

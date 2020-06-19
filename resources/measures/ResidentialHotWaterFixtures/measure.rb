@@ -133,11 +133,13 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
     tot_b_gpd = 0
     msgs = []
     units.each_with_index do |unit, unit_index|
-      # Get unit beds/baths
+      # Get unit beds/baths/occupants
       nbeds, nbaths = Geometry.get_unit_beds_baths(model, unit, runner)
       if nbeds.nil? or nbaths.nil?
         return false
       end
+
+      noccupants = Geometry.get_unit_occupants(model, unit, runner)
 
       # Get space
       space = Geometry.get_space_from_location(unit, Constants.Auto, location_hierarchy)
@@ -145,9 +147,8 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
 
       # Get plant loop
       plant_loop = Waterheater.get_plant_loop_from_string(model, runner, plant_loop_s, unit)
-
       if plant_loop.nil?
-        return false
+        next
       end
 
       obj_name_sh = Constants.ObjectNameShower(unit.name.to_s)
@@ -157,28 +158,53 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
 
       mixed_use_t = Constants.MixedUseT # F
 
-      # Calc daily gpm and annual gain of each end use
-      sh_gpd = (14.0 + 4.67 * nbeds) * sh_mult
-      s_gpd = (12.5 + 4.16 * nbeds) * s_mult
-      b_gpd = (3.5 + 1.17 * nbeds) * b_mult
+      if [Constants.BuildingTypeMultifamily, Constants.BuildingTypeSingleFamilyAttached].include? Geometry.get_building_type(model) # multifamily equation
+        # Calc daily gpm and annual gain of each end use
+        sh_gpd = (14.0 + 4.67 * (-0.68 + 1.09 * noccupants)) * sh_mult
+        s_gpd = (12.5 + 4.16 * (-0.68 + 1.09 * noccupants)) * s_mult
+        b_gpd = (3.5 + 1.17 * (-0.68 + 1.09 * noccupants)) * b_mult
 
-      # Shower internal gains
-      sh_sens_load = (741 + 247 * nbeds) * sh_mult # Btu/day
-      sh_lat_load = (703 + 235 * nbeds) * sh_mult # Btu/day
-      sh_tot_load = UnitConversions.convert(sh_sens_load + sh_lat_load, "Btu", "kWh") # kWh/day
-      sh_lat = sh_lat_load / (sh_lat_load + sh_sens_load)
+        # Shower internal gains
+        sh_sens_load = (741 + 247 * (-0.68 + 1.09 * noccupants)) * sh_mult # Btu/day
+        sh_lat_load = (703 + 235 * (-0.68 + 1.09 * noccupants)) * sh_mult # Btu/day
+        sh_tot_load = UnitConversions.convert(sh_sens_load + sh_lat_load, "Btu", "kWh") # kWh/day
+        sh_lat = sh_lat_load / (sh_lat_load + sh_sens_load)
 
-      # Sink internal gains
-      s_sens_load = (310 + 103 * nbeds) * s_mult # Btu/day
-      s_lat_load = (140 + 47 * nbeds) * s_mult # Btu/day
-      s_tot_load = UnitConversions.convert(s_sens_load + s_lat_load, "Btu", "kWh") # kWh/day
-      s_lat = s_lat_load / (s_lat_load + s_sens_load)
+        # Sink internal gains
+        s_sens_load = (310 + 103 * (-0.68 + 1.09 * noccupants)) * s_mult # Btu/day
+        s_lat_load = (140 + 47 * (-0.68 + 1.09 * noccupants)) * s_mult # Btu/day
+        s_tot_load = UnitConversions.convert(s_sens_load + s_lat_load, "Btu", "kWh") # kWh/day
+        s_lat = s_lat_load / (s_lat_load + s_sens_load)
 
-      # Bath internal gains
-      b_sens_load = (185 + 62 * nbeds) * b_mult # Btu/day
-      b_lat_load = 0 # Btu/day
-      b_tot_load = UnitConversions.convert(b_sens_load + b_lat_load, "Btu", "kWh") # kWh/day
-      b_lat = b_lat_load / (b_lat_load + b_sens_load)
+        # Bath internal gains
+        b_sens_load = (185 + 62 * (-0.68 + 1.09 * noccupants)) * b_mult # Btu/day
+        b_lat_load = 0 # Btu/day
+        b_tot_load = UnitConversions.convert(b_sens_load + b_lat_load, "Btu", "kWh") # kWh/day
+        b_lat = b_lat_load / (b_lat_load + b_sens_load)
+      elsif [Constants.BuildingTypeSingleFamilyDetached].include? Geometry.get_building_type(model) # single-family equation
+        # Calc daily gpm and annual gain of each end use
+        sh_gpd = (14.0 + 4.67 * (-1.47 + 1.69 * noccupants)) * sh_mult
+        s_gpd = (12.5 + 4.16 * (-1.47 + 1.69 * noccupants)) * s_mult
+        b_gpd = (3.5 + 1.17 * (-1.47 + 1.69 * noccupants)) * b_mult
+
+        # Shower internal gains
+        sh_sens_load = (741 + 247 * (-1.47 + 1.69 * noccupants)) * sh_mult # Btu/day
+        sh_lat_load = (703 + 235 * (-1.47 + 1.69 * noccupants)) * sh_mult # Btu/day
+        sh_tot_load = UnitConversions.convert(sh_sens_load + sh_lat_load, "Btu", "kWh") # kWh/day
+        sh_lat = sh_lat_load / (sh_lat_load + sh_sens_load)
+
+        # Sink internal gains
+        s_sens_load = (310 + 103 * (-1.47 + 1.69 * noccupants)) * s_mult # Btu/day
+        s_lat_load = (140 + 47 * (-1.47 + 1.69 * noccupants)) * s_mult # Btu/day
+        s_tot_load = UnitConversions.convert(s_sens_load + s_lat_load, "Btu", "kWh") # kWh/day
+        s_lat = s_lat_load / (s_lat_load + s_sens_load)
+
+        # Bath internal gains
+        b_sens_load = (185 + 62 * (-1.47 + 1.69 * noccupants)) * b_mult # Btu/day
+        b_lat_load = 0 # Btu/day
+        b_tot_load = UnitConversions.convert(b_sens_load + b_lat_load, "Btu", "kWh") # kWh/day
+        b_lat = b_lat_load / (b_lat_load + b_sens_load)
+      end
 
       if sh_gpd > 0 or s_gpd > 0 or b_gpd > 0
 
@@ -378,7 +404,7 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
       found = false
       obj_names.each do |obj_name|
         next if not space_equipment.name.to_s.start_with? obj_name
-        next if space_equipment.name.to_s.include? "=" # TODO: Skip dummy distribution objects; can remove once we are using AdditionalProperties
+        next if space_equipment.additionalProperties.getFeatureAsDouble('dist_hw').is_initialized # TODO: Skip dummy distribution objects; can remove once we are using AdditionalProperties instead of the objects
 
         found = true
       end

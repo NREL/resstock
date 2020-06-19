@@ -218,6 +218,16 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
   end
 
   def average_daily_use(timeseries, temperature_range, min_or_max, top = "all")
+    """
+    Calculates the average of daily base or peak use values during heating, cooling, or overlap seasons.
+    Parameters:
+      timeseries (hash): { 'Temperature' => [...], 'total_site_electricity_kw' => [...] }
+      temperature_range (array): [lower, upper]
+      min_or_max (str): 'min' or 'max'
+      top: integer or 'all'
+    Returns:
+      average_daily_use: float or nil
+    """
     daily_vals = []
     timeseries["total_site_electricity_kw"].each_slice(24).with_index do |kws, i|
       temps = timeseries["Temperature"][(24 * i)...(24 * i + 24)]
@@ -245,6 +255,16 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
   end
 
   def average_daily_timing(timeseries, temperature_range, min_or_max, top = "all")
+    """
+    Calculates the average hour of daily base or peak use values during heating, cooling, or overlap seasons.
+    Parameters:
+      timeseries (hash): { 'Temperature' => [...], 'total_site_electricity_kw' => [...] }
+      temperature_range (array): [lower, upper]
+      min_or_max (str): 'min' or 'max'
+      top: integer or 'all'
+    Returns:
+      average_daily_use: float or nil
+    """
     daily_vals = { "hour" => [], "use" => [] }
     timeseries["total_site_electricity_kw"].each_slice(24).with_index do |kws, i|
       temps = timeseries["Temperature"][(24 * i)...(24 * i + 24)]
@@ -266,10 +286,15 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
     end
 
     if top == "all"
-      top = daily_vals.length
+      top = daily_vals["hour"].length
     else
-      top = [top, daily_vals.length].min # don't try to access indexes that don't exist
+      top = [top, daily_vals["hour"].length].min # don't try to access indexes that don't exist
     end
+
+    if top.zero?
+      return nil
+    end
+
     daily_vals["use"], daily_vals["hour"] = daily_vals["use"].zip(daily_vals["hour"]).sort.reverse.transpose
     daily_vals = daily_vals["hour"][0..top]
     return daily_vals.inject { |sum, el| sum + el }.to_f / daily_vals.size
