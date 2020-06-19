@@ -1141,7 +1141,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('ducts_return_leakage_units', duct_leakage_units_choices, true)
     arg.setDisplayName('Ducts: Return Leakage Units')
     arg.setDescription('The leakage units of the return ducts.')
-    arg.setDefaultValue(Constants.Auto)
+    arg.setDefaultValue(HPXML::UnitsCFM25)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('ducts_supply_leakage_value', true)
