@@ -33,9 +33,9 @@ Annual Energy Consumption By Fuel Type and End Use
 
 Current end use/fuel type combinations are:
 
-   ================================================
-   Type                                            
-   ================================================
+   ================================================ =======
+   Type                                             Notes
+   ================================================ =======
    Electricity: Heating (MBtu)
    Electricity: Heating Fans/Pumps (MBtu)
    Electricity: Cooling (MBtu)
@@ -102,7 +102,7 @@ Current end use/fuel type combinations are:
    Wood Pellets: Grill (MBtu)
    Wood Pellets: Lighting (MBtu)
    Wood Pellets: Fireplace (MBtu)
-   ================================================
+   ================================================ =======
 
 Annual Building Loads
 ~~~~~~~~~~~~~~~~~~~~~
