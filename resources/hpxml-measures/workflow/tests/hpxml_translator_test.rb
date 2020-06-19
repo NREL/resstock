@@ -15,9 +15,10 @@ class HPXMLTest < MiniTest::Test
   @@simulation_runtime_key = 'Simulation Runtime'
   @@workflow_runtime_key = 'Workflow Runtime'
 
-  def test_simulations
-    OpenStudio::Logger.instance.standardOutLogger.setLogLevel(OpenStudio::Warn)
+  @@os_log = OpenStudio::StringStreamLogSink.new
+  @@os_log.setLogLevel(OpenStudio::Warn)
 
+  def test_simulations
     this_dir = File.dirname(__FILE__)
     results_dir = File.join(this_dir, 'results')
     _rm_path(results_dir)
@@ -311,16 +312,7 @@ class HPXMLTest < MiniTest::Test
 
     # Apply measure
     success = apply_measures(measures_dir, measures, runner, model)
-
-    # Report warnings/errors
-    File.open(File.join(rundir, 'run.log'), 'w') do |f|
-      runner.result.stepWarnings.each do |s|
-        f << "Warning: #{s}\n"
-      end
-      runner.result.stepErrors.each do |s|
-        f << "Error: #{s}\n"
-      end
-    end
+    report_measure_errors_warnings(runner, rundir, false)
 
     if expect_error
       assert_equal(false, success)
@@ -409,6 +401,7 @@ class HPXMLTest < MiniTest::Test
     forward_translator = OpenStudio::EnergyPlus::ForwardTranslator.new
     forward_translator.setExcludeLCCObjects(true)
     model_idf = forward_translator.translateModel(model)
+    report_ft_errors_warnings(forward_translator, rundir)
 
     # Apply reporting measure output requests
     apply_energyplus_output_requests(measures_dir, measures, runner, model, model_idf)
@@ -429,20 +422,13 @@ class HPXMLTest < MiniTest::Test
     # Apply reporting measures
     runner.setLastEnergyPlusSqlFilePath(File.join(rundir, 'eplusout.sql'))
     success = apply_measures(measures_dir, measures, runner, model, true, 'OpenStudio::Measure::ReportingMeasure')
+    report_measure_errors_warnings(runner, rundir, false)
     runner.resetLastEnergyPlusSqlFilePath
-
-    # Report warnings/errors
-    File.open(File.join(rundir, 'run.log'), 'a') do |f|
-      runner.result.stepWarnings.each do |s|
-        f << "Warning: #{s}\n"
-      end
-      runner.result.stepErrors.each do |s|
-        f << "Error: #{s}\n"
-      end
-    end
 
     show_output(runner.result) unless success
     assert_equal(true, success)
+
+    report_os_warnings(rundir)
 
     annual_csv_path = File.join(rundir, 'results_annual.csv')
     timeseries_csv_path = File.join(rundir, 'results_timeseries.csv')
@@ -458,6 +444,44 @@ class HPXMLTest < MiniTest::Test
     sizing_results = _get_sizing_results(runner)
 
     return results, sizing_results
+  end
+
+  def report_measure_errors_warnings(runner, rundir, debug)
+    # Report warnings/errors
+    File.open(File.join(rundir, 'run.log'), 'w') do |f|
+      if debug
+        runner.result.stepInfo.each do |s|
+          f << "Info: #{s}\n"
+        end
+      end
+      runner.result.stepWarnings.each do |s|
+        f << "Warning: #{s}\n"
+      end
+      runner.result.stepErrors.each do |s|
+        f << "Error: #{s}\n"
+      end
+    end
+  end
+
+  def report_ft_errors_warnings(forward_translator, rundir)
+    # Report warnings/errors
+    File.open(File.join(rundir, 'run.log'), 'a') do |f|
+      forward_translator.warnings.each do |s|
+        f << "FT Warning: #{s.logMessage}\n"
+      end
+      forward_translator.errors.each do |s|
+        f << "FT Error: #{s.logMessage}\n"
+      end
+    end
+  end
+
+  def report_os_warnings(rundir)
+    File.open(File.join(rundir, 'run.log'), 'a') do |f|
+      @@os_log.logMessages.each do |s|
+        f << "OS Message: #{s.logMessage}\n"
+      end
+    end
+    @@os_log.resetStringStream
   end
 
   def _get_sizing_results(runner)
@@ -491,6 +515,22 @@ class HPXMLTest < MiniTest::Test
       assert_equal(err_line.include?('Blank Schedule Type Limits Name input'), false)
       assert_equal(err_line.include?('FixViewFactors: View factors not complete'), false)
       assert_equal(err_line.include?('GetHTSurfaceData: Surfaces with interface to Ground found but no "Ground Temperatures" were input'), false)
+    end
+
+    # Check run.log warnings
+    File.readlines(File.join(rundir, 'run.log')).each do |log_line|
+      next if log_line.include? 'Warning: Could not load nokogiri, no HPXML validation performed.'
+      next if log_line.include? 'Cannot find current Workflow Step'
+      next if log_line.include? 'Data will be treated as typical (TMY)'
+      next if log_line.include? 'WorkflowStepResult value called with undefined stepResult'
+      next if log_line.include?("Object of type 'Schedule:Constant' and named 'Always") && log_line.include?('points to an object named') && log_line.include?('but that object cannot be located')
+      next if log_line.include? "-cache.csv' could not be found; regenerating it."
+      next if log_line.include? 'Appears there are no design condition fields in the EPW file'
+      next if log_line.include?('Warning: HVACDistribution') && log_line.include?('has ducts entirely within conditioned space but there is non-zero leakage to the outside.')
+      # TODO: Remove once https://github.com/NREL/OpenStudio/pull/3999 is available
+      next if log_line.include? "OS Message: 'Propane' is deprecated for Coil_Heating_GasFields:FuelType, use 'Propane' instead"
+
+      flunk "Unexpected warning found in run.log: #{log_line}"
     end
 
     sql_path = File.join(rundir, 'eplusout.sql')

@@ -1023,19 +1023,10 @@ class OSModel
       next if surfaces.empty?
 
       # Apply construction
-      if roof.is_thermal_boundary
-        drywall_thick_in = 0.5
-      else
-        drywall_thick_in = 0.0
-      end
       solar_abs = roof.solar_absorptance
       emitt = roof.emittance
       has_radiant_barrier = roof.radiant_barrier
-      if has_radiant_barrier
-        inside_film = Material.AirFilmRoofRadiantBarrier(Geometry.get_roof_pitch([surfaces[0]]))
-      else
-        inside_film = Material.AirFilmRoof(Geometry.get_roof_pitch([surfaces[0]]))
-      end
+      inside_film = Material.AirFilmRoof(Geometry.get_roof_pitch([surfaces[0]]))
       outside_film = Material.AirFilmOutside
       mat_roofing = Material.RoofMaterial(roof.roof_type, emitt, solar_abs)
       if @apply_ashrae140_assumptions
@@ -1043,27 +1034,48 @@ class OSModel
         outside_film = Material.AirFilmOutsideASHRAE140
       end
 
-      assembly_r = roof.insulation_assembly_r_value
-      constr_sets = [
-        WoodStudConstructionSet.new(Material.Stud2x(8.0), 0.07, 10.0, 0.75, drywall_thick_in, mat_roofing), # 2x8, 24" o.c. + R10
-        WoodStudConstructionSet.new(Material.Stud2x(8.0), 0.07, 5.0, 0.75, drywall_thick_in, mat_roofing),  # 2x8, 24" o.c. + R5
-        WoodStudConstructionSet.new(Material.Stud2x(8.0), 0.07, 0.0, 0.75, drywall_thick_in, mat_roofing),  # 2x8, 24" o.c.
-        WoodStudConstructionSet.new(Material.Stud2x6, 0.07, 0.0, 0.75, drywall_thick_in, mat_roofing),      # 2x6, 24" o.c.
-        WoodStudConstructionSet.new(Material.Stud2x4, 0.07, 0.0, 0.5, drywall_thick_in, mat_roofing),       # 2x4, 16" o.c.
-        WoodStudConstructionSet.new(Material.Stud2x4, 0.01, 0.0, 0.0, 0.0, mat_roofing),                    # Fallback
-      ]
-      match, constr_set, cavity_r = pick_wood_stud_construction_set(assembly_r, constr_sets, inside_film, outside_film, roof.id)
-
       install_grade = 1
+      assembly_r = roof.insulation_assembly_r_value
 
-      Constructions.apply_closed_cavity_roof(model, surfaces, "#{roof.id} construction",
-                                             cavity_r, install_grade,
-                                             constr_set.stud.thick_in,
-                                             true, constr_set.framing_factor,
-                                             constr_set.drywall_thick_in,
-                                             constr_set.osb_thick_in, constr_set.rigid_r,
-                                             constr_set.exterior_material, has_radiant_barrier,
+      if roof.is_thermal_boundary
+        constr_sets = [
+          WoodStudConstructionSet.new(Material.Stud2x(8.0), 0.07, 10.0, 0.75, 0.5, mat_roofing), # 2x8, 24" o.c. + R10
+          WoodStudConstructionSet.new(Material.Stud2x(8.0), 0.07, 5.0, 0.75, 0.5, mat_roofing),  # 2x8, 24" o.c. + R5
+          WoodStudConstructionSet.new(Material.Stud2x(8.0), 0.07, 0.0, 0.75, 0.5, mat_roofing),  # 2x8, 24" o.c.
+          WoodStudConstructionSet.new(Material.Stud2x6, 0.07, 0.0, 0.75, 0.5, mat_roofing),      # 2x6, 24" o.c.
+          WoodStudConstructionSet.new(Material.Stud2x4, 0.07, 0.0, 0.5, 0.5, mat_roofing),       # 2x4, 16" o.c.
+          WoodStudConstructionSet.new(Material.Stud2x4, 0.01, 0.0, 0.0, 0.0, mat_roofing),       # Fallback
+        ]
+        match, constr_set, cavity_r = pick_wood_stud_construction_set(assembly_r, constr_sets, inside_film, outside_film, roof.id)
+
+        Constructions.apply_closed_cavity_roof(model, surfaces, "#{roof.id} construction",
+                                               cavity_r, install_grade,
+                                               constr_set.stud.thick_in,
+                                               true, constr_set.framing_factor,
+                                               constr_set.drywall_thick_in,
+                                               constr_set.osb_thick_in, constr_set.rigid_r,
+                                               constr_set.exterior_material, has_radiant_barrier,
+                                               inside_film, outside_film)
+      else
+        constr_sets = [
+          GenericConstructionSet.new(10.0, 0.5, 0.0, mat_roofing), # w/R-10 rigid
+          GenericConstructionSet.new(0.0, 0.5, 0.0, mat_roofing),  # Standard
+          GenericConstructionSet.new(0.0, 0.0, 0.0, mat_roofing),  # Fallback
+        ]
+        match, constr_set, layer_r = pick_generic_construction_set(assembly_r, constr_sets, inside_film, outside_film, roof.id)
+
+        cavity_r = 0
+        cavity_ins_thick_in = 0
+        framing_factor = 0
+        framing_thick_in = 0
+
+        Constructions.apply_open_cavity_roof(model, surfaces, "#{roof.id} construction",
+                                             cavity_r, install_grade, cavity_ins_thick_in,
+                                             framing_factor, framing_thick_in,
+                                             constr_set.osb_thick_in, layer_r + constr_set.rigid_r,
+                                             mat_roofing, has_radiant_barrier,
                                              inside_film, outside_film)
+      end
       check_surface_assembly_rvalue(runner, surfaces, inside_film, outside_film, assembly_r, match)
     end
   end
@@ -1873,6 +1885,7 @@ class OSModel
     # Arbitrary construction for heat capacitance.
     # Only applies to surfaces where outside boundary conditioned is
     # adiabatic or surface net area is near zero.
+    return if surfaces.empty?
 
     if type == 'wall'
       Constructions.apply_wood_stud_wall(model, surfaces, nil, 'AdiabaticWallConstruction',
@@ -1891,7 +1904,9 @@ class OSModel
       Constructions.apply_open_cavity_roof(model, surfaces, 'AdiabaticRoofConstruction',
                                            0, 1, 7.25, 0.07, 7.25, 0.75, 99,
                                            Material.RoofMaterial(HPXML::RoofTypeAsphaltShingles, 0.90, 0.75),
-                                           false)
+                                           false,
+                                           Material.AirFilmOutside,
+                                           Material.AirFilmRoof(Geometry.get_roof_pitch(surfaces)))
     end
   end
 
@@ -3006,7 +3021,7 @@ class OSModel
         SteelStudConstructionSet.new(3.5, corr_factor, 0.23, 0.0, 0.5, drywall_thick_in, mat_ext_finish),  # 2x4, 16" o.c.
         SteelStudConstructionSet.new(3.5, 1.0, 0.01, 0.0, 0.0, 0.0, fallback_mat_ext_finish),              # Fallback
       ]
-      match, constr_set, cavity_r = pick_steel_stud_construction_set(assembly_r, constr_sets, inside_film, outside_film, "wall #{wall_id}")
+      match, constr_set, cavity_r = pick_steel_stud_construction_set(assembly_r, constr_sets, inside_film, outside_film, wall_id)
 
       Constructions.apply_steel_stud_wall(model, surfaces, wall, "#{wall_id} construction",
                                           cavity_r, install_grade, constr_set.cavity_thick_in,
@@ -3022,7 +3037,7 @@ class OSModel
         DoubleStudConstructionSet.new(Material.Stud2x4, 0.23, 24.0, 0.0, 0.5, drywall_thick_in, mat_ext_finish),  # 2x4, 24" o.c.
         DoubleStudConstructionSet.new(Material.Stud2x4, 0.01, 16.0, 0.0, 0.0, 0.0, fallback_mat_ext_finish),      # Fallback
       ]
-      match, constr_set, cavity_r = pick_double_stud_construction_set(assembly_r, constr_sets, inside_film, outside_film, "wall #{wall_id}")
+      match, constr_set, cavity_r = pick_double_stud_construction_set(assembly_r, constr_sets, inside_film, outside_film, wall_id)
 
       Constructions.apply_double_stud_wall(model, surfaces, wall, "#{wall_id} construction",
                                            cavity_r, install_grade, constr_set.stud.thick_in,
@@ -3041,7 +3056,7 @@ class OSModel
         CMUConstructionSet.new(8.0, 1.4, 0.08, 0.5, drywall_thick_in, mat_ext_finish),  # 8" perlite-filled CMU
         CMUConstructionSet.new(6.0, 5.29, 0.01, 0.0, 0.0, fallback_mat_ext_finish),     # Fallback (6" hollow CMU)
       ]
-      match, constr_set, rigid_r = pick_cmu_construction_set(assembly_r, constr_sets, inside_film, outside_film, "wall #{wall_id}")
+      match, constr_set, rigid_r = pick_cmu_construction_set(assembly_r, constr_sets, inside_film, outside_film, wall_id)
 
       Constructions.apply_cmu_wall(model, surfaces, wall, "#{wall_id} construction",
                                    constr_set.thick_in, constr_set.cond_in, density,
@@ -3058,7 +3073,7 @@ class OSModel
         SIPConstructionSet.new(5.0, 0.16, 0.0, sheathing_thick_in, 0.5, drywall_thick_in, mat_ext_finish),  # 5" SIP core
         SIPConstructionSet.new(1.0, 0.01, 0.0, sheathing_thick_in, 0.0, 0.0, fallback_mat_ext_finish),      # Fallback
       ]
-      match, constr_set, cavity_r = pick_sip_construction_set(assembly_r, constr_sets, inside_film, outside_film, "wall #{wall_id}")
+      match, constr_set, cavity_r = pick_sip_construction_set(assembly_r, constr_sets, inside_film, outside_film, wall_id)
 
       Constructions.apply_sip_wall(model, surfaces, wall, "#{wall_id} construction",
                                    cavity_r, constr_set.thick_in, constr_set.framing_factor,
@@ -3070,7 +3085,7 @@ class OSModel
         ICFConstructionSet.new(2.0, 4.0, 0.08, 0.0, 0.5, drywall_thick_in, mat_ext_finish), # ICF w/4" concrete and 2" rigid ins layers
         ICFConstructionSet.new(1.0, 1.0, 0.01, 0.0, 0.0, 0.0, fallback_mat_ext_finish),     # Fallback
       ]
-      match, constr_set, icf_r = pick_icf_construction_set(assembly_r, constr_sets, inside_film, outside_film, "wall #{wall_id}")
+      match, constr_set, icf_r = pick_icf_construction_set(assembly_r, constr_sets, inside_film, outside_film, wall_id)
 
       Constructions.apply_icf_wall(model, surfaces, wall, "#{wall_id} construction",
                                    icf_r, constr_set.ins_thick_in,
@@ -3084,7 +3099,7 @@ class OSModel
         GenericConstructionSet.new(0.0, 0.5, drywall_thick_in, mat_ext_finish),  # Standard
         GenericConstructionSet.new(0.0, 0.0, 0.0, fallback_mat_ext_finish),      # Fallback
       ]
-      match, constr_set, layer_r = pick_generic_construction_set(assembly_r, constr_sets, inside_film, outside_film, "wall #{wall_id}")
+      match, constr_set, layer_r = pick_generic_construction_set(assembly_r, constr_sets, inside_film, outside_film, wall_id)
 
       if wall_type == HPXML::WallTypeConcrete
         thick_in = 6.0

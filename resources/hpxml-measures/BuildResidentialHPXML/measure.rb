@@ -453,16 +453,18 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDescription('The material type of the roof.')
     args << arg
 
-    roof_color_choices = OpenStudio::StringVector.new
-    roof_color_choices << HPXML::ColorDark
-    roof_color_choices << HPXML::ColorLight
-    roof_color_choices << HPXML::ColorMedium
-    roof_color_choices << HPXML::ColorMediumDark
-    roof_color_choices << HPXML::ColorReflective
+    color_choices = OpenStudio::StringVector.new
+    color_choices << Constants.Auto
+    color_choices << HPXML::ColorDark
+    color_choices << HPXML::ColorLight
+    color_choices << HPXML::ColorMedium
+    color_choices << HPXML::ColorMediumDark
+    color_choices << HPXML::ColorReflective
 
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('roof_color', roof_color_choices, false)
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('roof_color', color_choices, true)
     arg.setDisplayName('Roof: Color')
     arg.setDescription('The color of the roof.')
+    arg.setDefaultValue(Constants.Auto)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('roof_assembly_r', true)
@@ -472,9 +474,10 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(2.3)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('roof_solar_absorptance', false)
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('roof_solar_absorptance', true)
     arg.setDisplayName('Roof: Solar Absorptance')
     arg.setDescription('The solar absorptance of the roof.')
+    arg.setDefaultValue(Constants.Auto)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('roof_emittance', true)
@@ -577,15 +580,10 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDescription('The siding type of the exterior walls.')
     args << arg
 
-    wall_color_choices = OpenStudio::StringVector.new
-    wall_color_choices << HPXML::ColorDark
-    wall_color_choices << HPXML::ColorLight
-    wall_color_choices << HPXML::ColorMedium
-    wall_color_choices << HPXML::ColorReflective
-
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('wall_color', wall_color_choices, false)
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('wall_color', color_choices, true)
     arg.setDisplayName('Wall: Color')
     arg.setDescription('The color of the exterior walls.')
+    arg.setDefaultValue(Constants.Auto)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('wall_assembly_r', true)
@@ -595,9 +593,10 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(13)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('wall_solar_absorptance', false)
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('wall_solar_absorptance', true)
     arg.setDisplayName('Wall: Solar Absorptance')
     arg.setDescription('The solar absorptance of the exterior walls.')
+    arg.setDefaultValue(Constants.Auto)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('wall_emittance', true)
@@ -1142,7 +1141,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('ducts_return_leakage_units', duct_leakage_units_choices, true)
     arg.setDisplayName('Ducts: Return Leakage Units')
     arg.setDescription('The leakage units of the return ducts.')
-    arg.setDefaultValue(HPXML::UnitsCFM25)
+    arg.setDefaultValue(Constants.Auto)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('ducts_supply_leakage_value', true)
@@ -1151,10 +1150,10 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(75)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('ducts_return_leakage_value', true)
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('ducts_return_leakage_value', true)
     arg.setDisplayName('Ducts: Return Leakage Value')
     arg.setDescription('The leakage value to outside of the return ducts.')
-    arg.setDefaultValue(25)
+    arg.setDefaultValue(Constants.Auto)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('ducts_supply_insulation_r', true)
@@ -1194,6 +1193,13 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDisplayName('Ducts: Return Surface Area')
     arg.setDescription('The surface area of the return ducts.')
     arg.setUnits('ft^2')
+    arg.setDefaultValue(Constants.Auto)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('ducts_number_of_return_registers', true)
+    arg.setDisplayName('Ducts: Number of Return Registers')
+    arg.setDescription('The number of return registers of the ducts.')
+    arg.setUnits('#')
     arg.setDefaultValue(Constants.Auto)
     args << arg
 
@@ -2799,18 +2805,18 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
              slab_carpet_r: runner.getDoubleArgumentValue('slab_carpet_r', user_arguments),
              ceiling_assembly_r: runner.getDoubleArgumentValue('ceiling_assembly_r', user_arguments),
              roof_material_type: runner.getOptionalStringArgumentValue('roof_material_type', user_arguments),
-             roof_color: runner.getOptionalStringArgumentValue('roof_color', user_arguments),
+             roof_color: runner.getStringArgumentValue('roof_color', user_arguments),
              roof_assembly_r: runner.getDoubleArgumentValue('roof_assembly_r', user_arguments),
-             roof_solar_absorptance: runner.getOptionalDoubleArgumentValue('roof_solar_absorptance', user_arguments),
+             roof_solar_absorptance: runner.getStringArgumentValue('roof_solar_absorptance', user_arguments),
              roof_emittance: runner.getDoubleArgumentValue('roof_emittance', user_arguments),
              roof_radiant_barrier: runner.getBoolArgumentValue('roof_radiant_barrier', user_arguments),
              neighbor_distance: [runner.getDoubleArgumentValue('neighbor_front_distance', user_arguments), runner.getDoubleArgumentValue('neighbor_back_distance', user_arguments), runner.getDoubleArgumentValue('neighbor_left_distance', user_arguments), runner.getDoubleArgumentValue('neighbor_right_distance', user_arguments)],
              neighbor_height: [runner.getStringArgumentValue('neighbor_front_height', user_arguments), runner.getStringArgumentValue('neighbor_back_height', user_arguments), runner.getStringArgumentValue('neighbor_left_height', user_arguments), runner.getStringArgumentValue('neighbor_right_height', user_arguments)],
              wall_type: runner.getStringArgumentValue('wall_type', user_arguments),
              wall_siding_type: runner.getOptionalStringArgumentValue('wall_siding_type', user_arguments),
-             wall_color: runner.getOptionalStringArgumentValue('wall_color', user_arguments),
+             wall_color: runner.getStringArgumentValue('wall_color', user_arguments),
              wall_assembly_r: runner.getDoubleArgumentValue('wall_assembly_r', user_arguments),
-             wall_solar_absorptance: runner.getOptionalDoubleArgumentValue('wall_solar_absorptance', user_arguments),
+             wall_solar_absorptance: runner.getStringArgumentValue('wall_solar_absorptance', user_arguments),
              wall_emittance: runner.getDoubleArgumentValue('wall_emittance', user_arguments),
              window_front_wwr: runner.getDoubleArgumentValue('window_front_wwr', user_arguments),
              window_back_wwr: runner.getDoubleArgumentValue('window_back_wwr', user_arguments),
@@ -2888,13 +2894,14 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
              ducts_supply_leakage_units: runner.getStringArgumentValue('ducts_supply_leakage_units', user_arguments),
              ducts_return_leakage_units: runner.getStringArgumentValue('ducts_return_leakage_units', user_arguments),
              ducts_supply_leakage_value: runner.getDoubleArgumentValue('ducts_supply_leakage_value', user_arguments),
-             ducts_return_leakage_value: runner.getDoubleArgumentValue('ducts_return_leakage_value', user_arguments),
+             ducts_return_leakage_value: runner.getStringArgumentValue('ducts_return_leakage_value', user_arguments),
              ducts_supply_insulation_r: runner.getDoubleArgumentValue('ducts_supply_insulation_r', user_arguments),
              ducts_return_insulation_r: runner.getDoubleArgumentValue('ducts_return_insulation_r', user_arguments),
              ducts_supply_location: runner.getStringArgumentValue('ducts_supply_location', user_arguments),
              ducts_return_location: runner.getStringArgumentValue('ducts_return_location', user_arguments),
              ducts_supply_surface_area: runner.getStringArgumentValue('ducts_supply_surface_area', user_arguments),
              ducts_return_surface_area: runner.getStringArgumentValue('ducts_return_surface_area', user_arguments),
+             ducts_number_of_return_registers: runner.getStringArgumentValue('ducts_number_of_return_registers', user_arguments),
              mech_vent_fan_type: runner.getStringArgumentValue('mech_vent_fan_type', user_arguments),
              mech_vent_flow_rate: runner.getDoubleArgumentValue('mech_vent_flow_rate', user_arguments),
              mech_vent_hours_in_operation: runner.getDoubleArgumentValue('mech_vent_hours_in_operation', user_arguments),
@@ -3577,12 +3584,16 @@ class HPXMLFile
         roof_type = args[:roof_material_type].get
       end
 
-      if args[:roof_color].is_initialized
-        roof_color = args[:roof_color].get
+      if args[:roof_color] == Constants.Auto && args[:roof_solar_absorptance] == Constants.Auto
+        solar_absorptance = 0.7
       end
 
-      if args[:roof_solar_absorptance].is_initialized
-        solar_absorptance = args[:roof_solar_absorptance].get
+      if args[:roof_color] != Constants.Auto
+        roof_color = args[:roof_color]
+      end
+
+      if args[:roof_solar_absorptance] != Constants.Auto
+        solar_absorptance = args[:roof_solar_absorptance]
       end
 
       hpxml.roofs.add(id: "#{surface.name}",
@@ -3629,12 +3640,16 @@ class HPXMLFile
         siding = args[:wall_siding_type].get
       end
 
-      if args[:wall_color].is_initialized
-        color = args[:wall_color].get
+      if args[:wall_color] == Constants.Auto && args[:wall_solar_absorptance] == Constants.Auto
+        solar_absorptance = 0.7
       end
 
-      if args[:wall_solar_absorptance].is_initialized
-        solar_absorptance = args[:wall_solar_absorptance].get
+      if args[:wall_color] != Constants.Auto
+        color = args[:wall_color]
+      end
+
+      if args[:wall_solar_absorptance] != Constants.Auto
+        solar_absorptance = args[:wall_solar_absorptance]
       end
 
       hpxml.walls.add(id: "#{surface.name}",
@@ -4101,9 +4116,14 @@ class HPXMLFile
     end
     return unless air_distribution_systems.size > 0
 
+    if args[:ducts_number_of_return_registers] != Constants.Auto
+      number_of_return_registers = args[:ducts_number_of_return_registers]
+    end
+
     hpxml.hvac_distributions.add(id: 'AirDistribution',
                                  distribution_system_type: HPXML::HVACDistributionTypeAir,
-                                 conditioned_floor_area_served: args[:geometry_cfa])
+                                 conditioned_floor_area_served: args[:geometry_cfa],
+                                 number_of_return_registers: number_of_return_registers)
 
     air_distribution_systems.each do |hvac_system|
       hvac_system.distribution_system_idref = hpxml.hvac_distributions[-1].id
@@ -4116,9 +4136,18 @@ class HPXMLFile
                                                                duct_leakage_total_or_to_outside: HPXML::DuctLeakageToOutside)
 
     if not ((args[:cooling_system_type] == HPXML::HVACTypeEvaporativeCooler) && args[:cooling_system_evap_cooler_is_ducted])
+
+      if args[:ducts_return_leakage_units] != Constants.Auto
+        duct_leakage_units = args[:ducts_return_leakage_units]
+      end
+
+      if args[:ducts_return_leakage_value] != Constants.Auto
+        duct_leakage_value = args[:ducts_return_leakage_value]
+      end
+
       hpxml.hvac_distributions[-1].duct_leakage_measurements.add(duct_type: HPXML::DuctTypeReturn,
-                                                                 duct_leakage_units: args[:ducts_return_leakage_units],
-                                                                 duct_leakage_value: args[:ducts_return_leakage_value],
+                                                                 duct_leakage_units: duct_leakage_units,
+                                                                 duct_leakage_value: duct_leakage_value,
                                                                  duct_leakage_total_or_to_outside: HPXML::DuctLeakageToOutside)
     end
 

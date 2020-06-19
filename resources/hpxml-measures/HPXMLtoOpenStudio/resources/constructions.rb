@@ -518,7 +518,8 @@ class Constructions
                                   cavity_r, install_grade, cavity_ins_thick_in,
                                   framing_factor, framing_thick_in,
                                   osb_thick_in, rigid_r,
-                                  mat_roofing, has_radiant_barrier)
+                                  mat_roofing, has_radiant_barrier,
+                                  inside_film, outside_film)
 
     return if surfaces.empty?
 
@@ -560,7 +561,7 @@ class Constructions
 
     # Define construction
     constr = Construction.new(constr_name, path_fracs)
-    constr.add_layer(Material.AirFilmOutside)
+    constr.add_layer(outside_film)
     if not mat_roofing.nil?
       constr.add_layer(mat_roofing)
     end
@@ -575,10 +576,8 @@ class Constructions
     end
     if not mat_rb.nil?
       constr.add_layer(mat_rb)
-      constr.add_layer(Material.AirFilmRoofRadiantBarrier(Geometry.get_roof_pitch(surfaces)))
-    else
-      constr.add_layer(Material.AirFilmRoof(Geometry.get_roof_pitch(surfaces)))
     end
+    constr.add_layer(inside_film)
 
     # Create and assign construction to roof surfaces
     constr.create_and_assign_constructions(surfaces, model)

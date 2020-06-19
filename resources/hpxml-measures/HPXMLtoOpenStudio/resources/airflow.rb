@@ -520,14 +520,6 @@ class Airflow
       end
     end
 
-    has_ducted_hvac = HVAC.has_ducted_equipment(model, air_loop)
-    if (ducts.size > 0) && (not has_ducted_hvac)
-      @runner.registerWarning('No ducted HVAC equipment was found but ducts were specified. Overriding duct specification.')
-      ducts.clear
-    elsif (ducts.size == 0) && has_ducted_hvac
-      @runner.registerWarning('Ducted HVAC equipment was found but no ducts were specified. Proceeding without ducts.')
-    end
-
     ducts.each do |duct|
       duct.rvalue = get_duct_insulation_rvalue(duct.rvalue, duct.side) # Convert from nominal to actual R-value
       if not duct.loc_schedule.nil?
