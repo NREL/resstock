@@ -46,6 +46,16 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue('weather')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('software_program_used', false)
+    arg.setDisplayName('Software Program Used')
+    arg.setDescription('The name of the software program used.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('software_program_version', false)
+    arg.setDisplayName('Software Program Version')
+    arg.setDescription('The version of the software program used.')
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('simulation_control_timestep', false)
     arg.setDisplayName('Simulation Control: Timestep')
     arg.setUnits('min')
@@ -2754,6 +2764,8 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     # assign the user inputs to variables
     args = { hpxml_path: runner.getStringArgumentValue('hpxml_path', user_arguments),
              weather_dir: runner.getStringArgumentValue('weather_dir', user_arguments),
+             software_program_used: runner.getOptionalStringArgumentValue('software_program_used', user_arguments),
+             software_program_version: runner.getOptionalStringArgumentValue('software_program_version', user_arguments),
              simulation_control_timestep: runner.getOptionalIntegerArgumentValue('simulation_control_timestep', user_arguments),
              simulation_control_begin_month: runner.getOptionalIntegerArgumentValue('simulation_control_begin_month', user_arguments),
              simulation_control_begin_day_of_month: runner.getOptionalIntegerArgumentValue('simulation_control_begin_day_of_month', user_arguments),
@@ -3396,6 +3408,14 @@ class HPXMLFile
     hpxml.header.xml_type = 'HPXML'
     hpxml.header.xml_generated_by = 'BuildResidentialHPXML'
     hpxml.header.transaction = 'create'
+
+    if args[:software_program_used].is_initialized
+      hpxml.header.software_program_used = args[:software_program_used].get
+    end
+
+    if args[:software_program_version].is_initialized
+      hpxml.header.software_program_version = args[:software_program_version].get
+    end
 
     if args[:simulation_control_timestep].is_initialized
       hpxml.header.timestep = args[:simulation_control_timestep].get
