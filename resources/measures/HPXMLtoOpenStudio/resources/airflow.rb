@@ -897,8 +897,8 @@ class Airflow
         return false
       end
 
-      heatingSetpointWeekday = heatingSetpointWeekday[0].map { |j| UnitConversions.convert(j, "C", "F") } # get january hourly setpoints
-      heatingSetpointWeekend = heatingSetpointWeekend[0].map { |j| UnitConversions.convert(j, "C", "F") } # get january hourly setpoints
+      heatingSetpointWeekday = heatingSetpointWeekday[0].map { |j| UnitConversions.convert(j + thermostatsetpointdualsetpoint.temperatureDifferenceBetweenCutoutAndSetpoint / 2.0, "C", "F")} # get january hourly setpoints
+      heatingSetpointWeekend = heatingSetpointWeekend[0].map { |j| UnitConversions.convert(j + thermostatsetpointdualsetpoint.temperatureDifferenceBetweenCutoutAndSetpoint / 2.0, "C", "F") } # get january hourly setpoints
 
       coolingSetpointWeekday = HVAC.get_setpoint_schedule(thermostatsetpointdualsetpoint.coolingSetpointTemperatureSchedule.get.to_Schedule.get.to_ScheduleRuleset.get, 'weekday', runner)
       coolingSetpointWeekend = HVAC.get_setpoint_schedule(thermostatsetpointdualsetpoint.coolingSetpointTemperatureSchedule.get.to_Schedule.get.to_ScheduleRuleset.get, 'weekend', runner)
@@ -906,8 +906,8 @@ class Airflow
         return false
       end
 
-      coolingSetpointWeekday = coolingSetpointWeekday[6].map { |j| UnitConversions.convert(j, "C", "F") } # get july hourly setpoints
-      coolingSetpointWeekend = coolingSetpointWeekend[6].map { |j| UnitConversions.convert(j, "C", "F") } # get july hourly setpoints
+      coolingSetpointWeekday = coolingSetpointWeekday[6].map { |j| UnitConversions.convert(j - thermostatsetpointdualsetpoint.temperatureDifferenceBetweenCutoutAndSetpoint / 2.0, "C", "F") } # get july hourly setpoints
+      coolingSetpointWeekend = coolingSetpointWeekend[6].map { |j| UnitConversions.convert(j - thermostatsetpointdualsetpoint.temperatureDifferenceBetweenCutoutAndSetpoint / 2.0, "C", "F") } # get july hourly setpoints
     end
 
     if heatingSetpointWeekday.empty?
