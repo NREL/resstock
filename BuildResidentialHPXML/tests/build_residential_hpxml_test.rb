@@ -189,16 +189,11 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       hpxml.climate_and_risk_zones.weather_station_name = nil
       hpxml.climate_and_risk_zones.weather_station_wmo = nil
       hpxml.climate_and_risk_zones.weather_station_epw_filepath = nil
+      hpxml.building_construction.conditioned_building_volume = nil
       hpxml.building_construction.average_ceiling_height = nil # Comparing conditioned volume instead
-      hpxml.attics.each do |attic|
-        attic.vented_attic_sla = nil # Defaulting in measure
-        attic.within_infiltration_volume = nil # Not used by mode
-      end
-      hpxml.foundations.each do |foundation|
-        foundation.vented_crawlspace_sla = nil # Defaulting in measure
-        foundation.within_infiltration_volume = nil # Not used by mode
-        foundation.unconditioned_basement_thermal_boundary = nil # Not used by mode
-      end
+      hpxml.air_infiltration_measurements[0].infiltration_volume = nil
+      hpxml.attics.clear()
+      hpxml.foundations.clear()
       hpxml.rim_joists.clear() # TODO
       hpxml.refrigerators.each do |refrigerator|
         refrigerator.adjusted_annual_kwh = nil
