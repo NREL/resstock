@@ -1150,10 +1150,10 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(75)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument('ducts_return_leakage_value', true)
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('ducts_return_leakage_value', true)
     arg.setDisplayName('Ducts: Return Leakage Value')
     arg.setDescription('The leakage value to outside of the return ducts.')
-    arg.setDefaultValue(Constants.Auto)
+    arg.setDefaultValue(25)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('ducts_supply_insulation_r', true)
@@ -2894,7 +2894,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
              ducts_supply_leakage_units: runner.getStringArgumentValue('ducts_supply_leakage_units', user_arguments),
              ducts_return_leakage_units: runner.getStringArgumentValue('ducts_return_leakage_units', user_arguments),
              ducts_supply_leakage_value: runner.getDoubleArgumentValue('ducts_supply_leakage_value', user_arguments),
-             ducts_return_leakage_value: runner.getStringArgumentValue('ducts_return_leakage_value', user_arguments),
+             ducts_return_leakage_value: runner.getDoubleArgumentValue('ducts_return_leakage_value', user_arguments),
              ducts_supply_insulation_r: runner.getDoubleArgumentValue('ducts_supply_insulation_r', user_arguments),
              ducts_return_insulation_r: runner.getDoubleArgumentValue('ducts_return_insulation_r', user_arguments),
              ducts_supply_location: runner.getStringArgumentValue('ducts_supply_location', user_arguments),
@@ -4137,17 +4137,9 @@ class HPXMLFile
 
     if not ((args[:cooling_system_type] == HPXML::HVACTypeEvaporativeCooler) && args[:cooling_system_evap_cooler_is_ducted])
 
-      if args[:ducts_return_leakage_units] != Constants.Auto
-        duct_leakage_units = args[:ducts_return_leakage_units]
-      end
-
-      if args[:ducts_return_leakage_value] != Constants.Auto
-        duct_leakage_value = args[:ducts_return_leakage_value]
-      end
-
       hpxml.hvac_distributions[-1].duct_leakage_measurements.add(duct_type: HPXML::DuctTypeReturn,
-                                                                 duct_leakage_units: duct_leakage_units,
-                                                                 duct_leakage_value: duct_leakage_value,
+                                                                 duct_leakage_units: args[:ducts_return_leakage_units],
+                                                                 duct_leakage_value: args[:ducts_return_leakage_value],
                                                                  duct_leakage_total_or_to_outside: HPXML::DuctLeakageToOutside)
     end
 
