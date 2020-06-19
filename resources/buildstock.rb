@@ -405,10 +405,10 @@ end
 
 def version
   data = {}
-  File.open("#{File.dirname(__FILE__)}/__version__.py", "r") do |file|
+  File.open("#{File.dirname(__FILE__)}/__version__.py", 'r') do |file|
     file.each_line do |line|
       key, value = line.split(' = ')
-      data[key] = value.chomp.gsub("'", "")
+      data[key] = value.chomp.gsub("'", '')
     end
   end
   return data
