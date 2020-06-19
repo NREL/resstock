@@ -306,6 +306,10 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
       measures['BuildResidentialHPXML'][0]['weather_dir'] = '../../weather'
       measures['HPXMLtoOpenStudio'] = [{ 'hpxml_path' => File.expand_path('../upgraded.xml'), 'weather_dir' => '../../weather' }]
 
+      # Get software program used and version
+      measures['BuildResidentialHPXML'][0]['software_program_used'] = software_program_used
+      measures['BuildResidentialHPXML'][0]['software_program_version'] = software_program_version
+
       # Get registered values from ResidentialSimulationControls and pass them to BuildResidentialHPXML
       simulation_control_timestep = 60 / get_value_from_runner_past_results(runner, 'timesteps_per_hr', 'residential_simulation_controls', false)
       simulation_control_begin_month = get_value_from_runner_past_results(runner, 'begin_month', 'residential_simulation_controls', false)

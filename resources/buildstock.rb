@@ -402,3 +402,22 @@ def evaluate_logic(option_apply_logic, runner, past_results = true)
   end
   return result
 end
+
+def version
+  data = {}
+  File.open("#{File.dirname(__FILE__)}/__version__.py", "r") do |file|
+    file.each_line do |line|
+      key, value = line.split(' = ')
+      data[key] = value.chomp.gsub("'", "")
+    end
+  end
+  return data
+end
+
+def software_program_used
+  return version['__title__']
+end
+
+def software_program_version
+  return version['__version__']
+end

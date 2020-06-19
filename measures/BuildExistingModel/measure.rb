@@ -167,6 +167,10 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     measures['BuildResidentialHPXML'][0]['hpxml_path'] = File.expand_path(measures['BuildResidentialHPXML'][0]['hpxml_path'])
     measures['HPXMLtoOpenStudio'][0]['hpxml_path'] = File.expand_path(measures['HPXMLtoOpenStudio'][0]['hpxml_path'])
 
+    # Get software program used and version
+    measures['BuildResidentialHPXML'][0]['software_program_used'] = software_program_used
+    measures['BuildResidentialHPXML'][0]['software_program_version'] = software_program_version
+
     # Get registered values from ResidentialSimulationControls and pass them to BuildResidentialHPXML
     simulation_control_timestep = 60 / get_value_from_runner_past_results(runner, 'timesteps_per_hr', 'residential_simulation_controls', false)
     simulation_control_begin_month = get_value_from_runner_past_results(runner, 'begin_month', 'residential_simulation_controls', false)
