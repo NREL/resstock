@@ -753,6 +753,9 @@ class HPXMLDefaults
     end
 
     # Default refrigerators
+    if hpxml.refrigerators.size == 1
+      hpxml.refrigerators[0].primary_indicator = true
+    end
     hpxml.refrigerators.each do |refrigerator|
       if not refrigerator.primary_indicator # extra refrigerator
         if refrigerator.location.nil?

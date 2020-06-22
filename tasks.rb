@@ -1202,6 +1202,7 @@ def get_values(osw_file, step)
   elsif ['base-hvac-boiler-gas-central-ac-1-speed.osw'].include? osw_file
     step.setArgument('heating_system_type', HPXML::HVACTypeBoiler)
     step.setArgument('heating_system_electric_auxiliary_energy', 200.0)
+    step.setArgument('ducts_cfa_served', 1350.0)
   elsif ['base-hvac-boiler-gas-only.osw'].include? osw_file
     step.setArgument('heating_system_type', HPXML::HVACTypeBoiler)
     step.setArgument('heating_system_electric_auxiliary_energy', 200.0)
@@ -2367,22 +2368,27 @@ def set_hpxml_climate_and_risk_zones(hpxml_file, hpxml)
     hpxml.climate_and_risk_zones.iecc_zone = '5B'
     hpxml.climate_and_risk_zones.weather_station_name = 'Denver, CO'
     hpxml.climate_and_risk_zones.weather_station_wmo = '725650'
+    hpxml.header.state_code = 'CO'
   elsif ['base-location-baltimore-md.xml'].include? hpxml_file
     hpxml.climate_and_risk_zones.iecc_zone = '4A'
     hpxml.climate_and_risk_zones.weather_station_name = 'Baltimore, MD'
     hpxml.climate_and_risk_zones.weather_station_wmo = '724060'
+    hpxml.header.state_code = 'MD'
   elsif ['base-location-dallas-tx.xml'].include? hpxml_file
     hpxml.climate_and_risk_zones.iecc_zone = '3A'
     hpxml.climate_and_risk_zones.weather_station_name = 'Dallas, TX'
     hpxml.climate_and_risk_zones.weather_station_wmo = '722590'
+    hpxml.header.state_code = 'TX'
   elsif ['base-location-duluth-mn.xml'].include? hpxml_file
     hpxml.climate_and_risk_zones.iecc_zone = '7'
     hpxml.climate_and_risk_zones.weather_station_name = 'Duluth, MN'
     hpxml.climate_and_risk_zones.weather_station_wmo = '727450'
+    hpxml.header.state_code = 'MN'
   elsif ['base-location-miami-fl.xml'].include? hpxml_file
     hpxml.climate_and_risk_zones.iecc_zone = '1A'
     hpxml.climate_and_risk_zones.weather_station_name = 'Miami, FL'
     hpxml.climate_and_risk_zones.weather_station_wmo = '722020'
+    hpxml.header.state_code = 'FL'
   elsif ['base-location-epw-filepath.xml'].include? hpxml_file
     hpxml.climate_and_risk_zones.weather_station_wmo = nil
     hpxml.climate_and_risk_zones.weather_station_epw_filepath = 'USA_CO_Denver.Intl.AP.725650_TMY3.epw'
@@ -4729,8 +4735,7 @@ end
 def set_hpxml_hvac_distributions(hpxml_file, hpxml)
   if ['base.xml'].include? hpxml_file
     hpxml.hvac_distributions.add(id: 'HVACDistribution',
-                                 distribution_system_type: HPXML::HVACDistributionTypeAir,
-                                 conditioned_floor_area_served: 2700)
+                                 distribution_system_type: HPXML::HVACDistributionTypeAir)
     hpxml.hvac_distributions[0].duct_leakage_measurements.add(duct_type: HPXML::DuctTypeSupply,
                                                               duct_leakage_units: HPXML::UnitsCFM25,
                                                               duct_leakage_value: 75,
@@ -4760,8 +4765,7 @@ def set_hpxml_hvac_distributions(hpxml_file, hpxml)
     hpxml.hvac_distributions[0].duct_leakage_measurements.clear
     hpxml.hvac_distributions[0].ducts.clear
     hpxml.hvac_distributions.add(id: 'HVACDistribution2',
-                                 distribution_system_type: HPXML::HVACDistributionTypeAir,
-                                 conditioned_floor_area_served: 2700)
+                                 distribution_system_type: HPXML::HVACDistributionTypeAir)
     hpxml.hvac_distributions[-1].duct_leakage_measurements.add(duct_type: HPXML::DuctTypeSupply,
                                                                duct_leakage_units: HPXML::UnitsCFM25,
                                                                duct_leakage_value: 75,
@@ -4793,8 +4797,7 @@ def set_hpxml_hvac_distributions(hpxml_file, hpxml)
   elsif ['base-hvac-multiple.xml'].include? hpxml_file
     hpxml.hvac_distributions.clear
     hpxml.hvac_distributions.add(id: 'HVACDistribution',
-                                 distribution_system_type: HPXML::HVACDistributionTypeAir,
-                                 conditioned_floor_area_served: (2700 / 4))
+                                 distribution_system_type: HPXML::HVACDistributionTypeAir)
     hpxml.hvac_distributions[-1].duct_leakage_measurements.add(duct_type: HPXML::DuctTypeSupply,
                                                                duct_leakage_units: HPXML::UnitsCFM25,
                                                                duct_leakage_value: 75,
@@ -4832,8 +4835,7 @@ def set_hpxml_hvac_distributions(hpxml_file, hpxml)
   elsif ['base-hvac-multiple2.xml'].include? hpxml_file
     hpxml.hvac_distributions.clear
     hpxml.hvac_distributions.add(id: 'HVACDistribution',
-                                 distribution_system_type: HPXML::HVACDistributionTypeAir,
-                                 conditioned_floor_area_served: (2700 / 4))
+                                 distribution_system_type: HPXML::HVACDistributionTypeAir)
     hpxml.hvac_distributions[-1].duct_leakage_measurements.add(duct_type: HPXML::DuctTypeSupply,
                                                                duct_leakage_units: HPXML::UnitsCFM25,
                                                                duct_leakage_value: 75,
@@ -4906,21 +4908,17 @@ def set_hpxml_hvac_distributions(hpxml_file, hpxml)
   elsif ['base-foundation-ambient.xml',
          'base-foundation-multiple.xml',
          'base-foundation-slab.xml'].include? hpxml_file
-    hpxml.hvac_distributions[0].conditioned_floor_area_served = 1350
     if hpxml_file == 'base-foundation-slab.xml'
       hpxml.hvac_distributions[0].ducts[0].duct_location = HPXML::LocationUnderSlab
       hpxml.hvac_distributions[0].ducts[1].duct_location = HPXML::LocationUnderSlab
     end
   elsif ['base-foundation-unconditioned-basement.xml'].include? hpxml_file
-    hpxml.hvac_distributions[0].conditioned_floor_area_served = 1350
     hpxml.hvac_distributions[0].ducts[0].duct_location = HPXML::LocationBasementUnconditioned
     hpxml.hvac_distributions[0].ducts[1].duct_location = HPXML::LocationBasementUnconditioned
   elsif ['base-foundation-unvented-crawlspace.xml'].include? hpxml_file
-    hpxml.hvac_distributions[0].conditioned_floor_area_served = 1350
     hpxml.hvac_distributions[0].ducts[0].duct_location = HPXML::LocationCrawlspaceUnvented
     hpxml.hvac_distributions[0].ducts[1].duct_location = HPXML::LocationCrawlspaceUnvented
   elsif ['base-foundation-vented-crawlspace.xml'].include? hpxml_file
-    hpxml.hvac_distributions[0].conditioned_floor_area_served = 1350
     hpxml.hvac_distributions[0].ducts[0].duct_location = HPXML::LocationCrawlspaceVented
     hpxml.hvac_distributions[0].ducts[1].duct_location = HPXML::LocationCrawlspaceVented
   elsif ['base-atticroof-flat.xml'].include? hpxml_file
@@ -4949,9 +4947,7 @@ def set_hpxml_hvac_distributions(hpxml_file, hpxml)
                                           duct_location: HPXML::LocationRoofDeck,
                                           duct_surface_area: 50)
   elsif ['base-enclosure-2stories.xml'].include? hpxml_file
-    hpxml.hvac_distributions[0].conditioned_floor_area_served = 4050
   elsif ['base-enclosure-2stories-garage.xml'].include? hpxml_file
-    hpxml.hvac_distributions[0].conditioned_floor_area_served -= 400 * 2
     hpxml.hvac_distributions[0].ducts << hpxml.hvac_distributions[0].ducts[0].dup
     hpxml.hvac_distributions[0].ducts << hpxml.hvac_distributions[0].ducts[1].dup
     hpxml.hvac_distributions[0].ducts[0].duct_surface_area *= 0.75
@@ -4969,7 +4965,6 @@ def set_hpxml_hvac_distributions(hpxml_file, hpxml)
     if hpxml_file == 'base-atticroof-conditioned.xml'
       # Test leakage to outside when all ducts in conditioned space
       # (e.g., ducts may be in floor cavities which have leaky rims)
-      hpxml.hvac_distributions[0].conditioned_floor_area_served = 3600
       hpxml.hvac_distributions[0].duct_leakage_measurements[0].duct_leakage_value = 1.5
       hpxml.hvac_distributions[0].duct_leakage_measurements[1].duct_leakage_value = 1.5
     end
@@ -5020,8 +5015,18 @@ def set_hpxml_hvac_distributions(hpxml_file, hpxml)
 
       hvac_distribution.ducts[1].duct_location = nil
     end
-  elsif ['invalid_files/invalid-distribution-cfa-served.xml'].include? hpxml_file
-    hpxml.hvac_distributions[0].conditioned_floor_area_served = 2700.1
+  end
+
+  # Set ConditionedFloorAreaServed
+  hpxml.hvac_distributions.each do |hvac_distribution|
+    if hvac_distribution.distribution_system_type == HPXML::HVACDistributionTypeAir
+      hvac_distribution.conditioned_floor_area_served = hpxml.building_construction.conditioned_floor_area / hpxml.hvac_distributions.size
+    else
+      hvac_distribution.conditioned_floor_area_served = nil
+    end
+  end
+  if ['invalid_files/invalid-distribution-cfa-served.xml'].include? hpxml_file
+    hpxml.hvac_distributions[0].conditioned_floor_area_served = hpxml.building_construction.conditioned_floor_area + 0.1
   end
 end
 
@@ -5704,6 +5709,7 @@ def set_hpxml_refrigerator(hpxml_file, hpxml)
   elsif ['invalid_files/appliances-location-unconditioned-space.xml'].include? hpxml_file
     hpxml.refrigerators[0].location = 'unconditioned space'
   elsif ['base-misc-defaults.xml'].include? hpxml_file
+    hpxml.refrigerators[0].primary_indicator = nil
     hpxml.refrigerators[0].location = nil
     hpxml.refrigerators[0].rated_annual_kwh = nil
     hpxml.refrigerators[0].adjusted_annual_kwh = nil

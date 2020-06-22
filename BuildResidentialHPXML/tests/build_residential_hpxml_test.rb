@@ -189,6 +189,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       hpxml.climate_and_risk_zones.weather_station_name = nil
       hpxml.climate_and_risk_zones.weather_station_wmo = nil
       hpxml.climate_and_risk_zones.weather_station_epw_filepath = nil
+      hpxml.header.state_code = nil
       hpxml.building_construction.conditioned_building_volume = nil
       hpxml.building_construction.average_ceiling_height = nil # Comparing conditioned volume instead
       hpxml.air_infiltration_measurements[0].infiltration_volume = nil
@@ -247,6 +248,9 @@ class BuildResidentialHPXMLTest < MiniTest::Test
         (2..hpxml.refrigerators.length).to_a.reverse.each do |i|
           hpxml.refrigerators.delete_at(i) # Only compare first two refrigerators
         end
+      end
+      hpxml.refrigerators.each do |refrigerator|
+        refrigerator.primary_indicator = nil
       end
       if hpxml.freezers.length > 0
         (1..hpxml.freezers.length).to_a.reverse.each do |i|

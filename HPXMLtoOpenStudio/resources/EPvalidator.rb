@@ -735,7 +735,7 @@ class EnergyPlusValidator
         'SystemIdentifier' => one, # Required by HPXML schema
         '[not(Location)] | Location[text()="living space" or text()="basement - conditioned" or text()="basement - unconditioned" or text()="garage" or text()="other"]' => one,
         'RatedAnnualkWh | extension/AdjustedAnnualkWh' => zero_or_more,
-        'PrimaryIndicator' => one,
+        'PrimaryIndicator' => zero_or_one,
         'extension/UsageMultiplier' => zero_or_one,
         'extension/WeekdayScheduleFractions' => zero_or_one,
         'extension/WeekendScheduleFractions' => zero_or_one,

@@ -1213,6 +1213,12 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(Constants.Auto)
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('ducts_cfa_served', false)
+    arg.setDisplayName('Ducts: Conditioned Floor Area Served')
+    arg.setUnits('ft^2')
+    arg.setDescription('The conditioned floor area served by the air distribution system.')
+    args << arg
+
     mech_vent_fan_type_choices = OpenStudio::StringVector.new
     mech_vent_fan_type_choices << 'none'
     mech_vent_fan_type_choices << HPXML::MechVentTypeExhaust
@@ -2914,6 +2920,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
              ducts_supply_surface_area: runner.getStringArgumentValue('ducts_supply_surface_area', user_arguments),
              ducts_return_surface_area: runner.getStringArgumentValue('ducts_return_surface_area', user_arguments),
              ducts_number_of_return_registers: runner.getStringArgumentValue('ducts_number_of_return_registers', user_arguments),
+             ducts_cfa_served: runner.getOptionalDoubleArgumentValue('ducts_cfa_served', user_arguments),
              mech_vent_fan_type: runner.getStringArgumentValue('mech_vent_fan_type', user_arguments),
              mech_vent_flow_rate: runner.getDoubleArgumentValue('mech_vent_flow_rate', user_arguments),
              mech_vent_hours_in_operation: runner.getDoubleArgumentValue('mech_vent_hours_in_operation', user_arguments),
@@ -4107,8 +4114,7 @@ class HPXMLFile
       next unless [HPXML::HVACTypeBoiler].include? heating_system.heating_system_type
 
       hpxml.hvac_distributions.add(id: 'HydronicDistribution',
-                                   distribution_system_type: HPXML::HVACDistributionTypeHydronic,
-                                   conditioned_floor_area_served: args[:geometry_cfa])
+                                   distribution_system_type: HPXML::HVACDistributionTypeHydronic)
       heating_system.distribution_system_idref = hpxml.hvac_distributions[-1].id
       break
     end
@@ -4140,9 +4146,15 @@ class HPXMLFile
       number_of_return_registers = args[:ducts_number_of_return_registers]
     end
 
+    if args[:ducts_cfa_served].is_initialized
+      conditioned_floor_area_served = args[:ducts_cfa_served].get
+    else
+      conditioned_floor_area_served = args[:geometry_cfa]
+    end
+
     hpxml.hvac_distributions.add(id: 'AirDistribution',
                                  distribution_system_type: HPXML::HVACDistributionTypeAir,
-                                 conditioned_floor_area_served: args[:geometry_cfa],
+                                 conditioned_floor_area_served: conditioned_floor_area_served,
                                  number_of_return_registers: number_of_return_registers)
 
     air_distribution_systems.each do |hvac_system|
@@ -4794,10 +4806,14 @@ class HPXMLFile
       refrigerator_monthly_multipliers = args[:refrigerator_monthly_multipliers]
     end
 
+    if args[:extra_refrigerator_present]
+      primary_indicator = true
+    end
+
     hpxml.refrigerators.add(id: 'Refrigerator',
                             location: location,
                             rated_annual_kwh: refrigerator_rated_annual_kwh,
-                            primary_indicator: true,
+                            primary_indicator: primary_indicator,
                             usage_multiplier: usage_multiplier,
                             weekday_fractions: refrigerator_weekday_fractions,
                             weekend_fractions: refrigerator_weekend_fractions,

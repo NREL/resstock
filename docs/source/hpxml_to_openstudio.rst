@@ -973,8 +973,7 @@ If neither are provided, ``RatedAnnualkWh`` will be defaulted to represent a sta
 Optional ``extension/WeekdayScheduleFractions``, ``extension/WeekendScheduleFractions``, and ``extension/MonthlyScheduleMultipliers`` can be provided; if not provided, values from Figures 16 & 24 of the `Building America House Simulation Protocols <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_ are used.
 An ``extension/UsageMultiplier`` can also be optionally provided that scales energy usage; if not provided, it is assumed to be 1.0.
 
-All refrigerators should be labeled by setting the ``PrimaryIndicator`` element.
-There must be exactly one primary refrigerator (``PrimaryIndicator='true'``), and all the rest should be labeled as non-primary (``PrimaryIndicator='false'``).
+If multiple refrigerators are specified, there must be exactly one refrigerator described with ``PrimaryIndicator='true'``.
 
 The ``Location`` of a primary refrigerator is described in the Appliances section.
 If ``Location`` is not provided for a non-primary refrigerator, its location will be chosen based on the presence of spaces and the "Default Priority" indicated below.
