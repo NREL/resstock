@@ -300,25 +300,21 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml_default = _test_measure()
     expected_supply_locations = ['basement - conditioned', 'living space']
     expected_return_locations = ['basement - conditioned', 'living space']
-    expected_supply_areas = [820.125, 273.375]
-    expected_return_areas = [455.625, 151.875]
+    expected_supply_areas = [820.13, 273.38]
+    expected_return_areas = [455.63, 151.88]
     expected_n_return_registers = hpxml_default.building_construction.number_of_conditioned_floors
     _test_default_duct_values(hpxml_default, expected_supply_locations, expected_return_locations, expected_supply_areas, expected_return_areas, expected_n_return_registers)
 
     # Test defaults w/ 1-story building & multiple HVAC systems
-    hpxml_files = ['base-hvac-multiple.xml',
-                   'base-hvac-multiple2.xml']
-    hpxml_files.each do |hpxml_file|
-      hpxml = apply_hpxml_defaults(hpxml_file)
-      XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
-      hpxml_default = _test_measure()
-      expected_supply_locations = ['basement - conditioned', 'basement - conditioned'] * hpxml_default.hvac_distributions.size
-      expected_return_locations = ['basement - conditioned', 'basement - conditioned'] * hpxml_default.hvac_distributions.size
-      expected_supply_areas = [91.125, 91.125] * hpxml_default.hvac_distributions.size
-      expected_return_areas = [33.75, 33.75] * hpxml_default.hvac_distributions.size
-      expected_n_return_registers = hpxml_default.building_construction.number_of_conditioned_floors
-      _test_default_duct_values(hpxml_default, expected_supply_locations, expected_return_locations, expected_supply_areas, expected_return_areas, expected_n_return_registers)
-    end
+    hpxml = apply_hpxml_defaults('base-hvac-multiple.xml')
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    expected_supply_locations = ['basement - conditioned', 'basement - conditioned'] * hpxml_default.hvac_distributions.size
+    expected_return_locations = ['basement - conditioned', 'basement - conditioned'] * hpxml_default.hvac_distributions.size
+    expected_supply_areas = [60.75, 60.75] * hpxml_default.hvac_distributions.size
+    expected_return_areas = [22.5, 22.5] * hpxml_default.hvac_distributions.size
+    expected_n_return_registers = hpxml_default.building_construction.number_of_conditioned_floors
+    _test_default_duct_values(hpxml_default, expected_supply_locations, expected_return_locations, expected_supply_areas, expected_return_areas, expected_n_return_registers)
 
     # Test defaults w/ 2-story building & multiple HVAC systems
     hpxml = apply_hpxml_defaults('base-hvac-multiple.xml')
@@ -327,8 +323,8 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml_default = _test_measure()
     expected_supply_locations = ['basement - conditioned', 'basement - conditioned', 'living space', 'living space'] * hpxml_default.hvac_distributions.size
     expected_return_locations = ['basement - conditioned', 'basement - conditioned', 'living space', 'living space'] * hpxml_default.hvac_distributions.size
-    expected_supply_areas = [68.344, 68.344, 22.781, 22.781] * hpxml_default.hvac_distributions.size
-    expected_return_areas = [25.312, 25.312, 8.438, 8.438] * hpxml_default.hvac_distributions.size
+    expected_supply_areas = [45.56, 45.56, 15.19, 15.19] * hpxml_default.hvac_distributions.size
+    expected_return_areas = [16.88, 16.88, 5.63, 5.63] * hpxml_default.hvac_distributions.size
     expected_n_return_registers = hpxml_default.building_construction.number_of_conditioned_floors
     _test_default_duct_values(hpxml_default, expected_supply_locations, expected_return_locations, expected_supply_areas, expected_return_areas, expected_n_return_registers)
   end

@@ -712,6 +712,13 @@ class HPXML < Object
       building = XMLHelper.add_element(hpxml, 'Building')
       building_building_id = XMLHelper.add_element(building, 'BuildingID')
       XMLHelper.add_attribute(building_building_id, 'id', @building_id)
+      if not @state_code.nil?
+        site = XMLHelper.add_element(building, 'Site')
+        site_id = XMLHelper.add_element(site, 'SiteID')
+        XMLHelper.add_attribute(site_id, 'id', 'SiteID')
+        address = XMLHelper.add_element(site, 'Address')
+        XMLHelper.add_element(address, 'StateCode', @state_code)
+      end
       project_status = XMLHelper.add_element(building, 'ProjectStatus')
       XMLHelper.add_element(project_status, 'EventType', @event_type)
     end
@@ -3768,14 +3775,16 @@ class HPXML < Object
     def check_for_errors
       errors = []
 
-      primary_indicator = false
-      @hpxml_object.refrigerators.each do |refrigerator|
-        next unless not refrigerator.primary_indicator.nil?
-        fail 'More than one refrigerator designated as the primary.' if refrigerator.primary_indicator && primary_indicator
+      if @hpxml_object.refrigerators.size > 1
+        primary_indicator = false
+        @hpxml_object.refrigerators.each do |refrigerator|
+          next unless not refrigerator.primary_indicator.nil?
+          fail 'More than one refrigerator designated as the primary.' if refrigerator.primary_indicator && primary_indicator
 
-        primary_indicator = true if refrigerator.primary_indicator
+          primary_indicator = true if refrigerator.primary_indicator
+        end
+        fail 'Could not find a primary refrigerator.' if not primary_indicator
       end
-      fail 'Could not find a primary refrigerator.' if not primary_indicator
 
       return errors
     end
