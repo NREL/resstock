@@ -2,7 +2,7 @@ schema_version: 0.2
 stock_type: residential
 buildstock_directory: ../../OpenStudio-BuildStock # Relative to this file or absolute
 project_directory: project_multifamily_beta # Relative to buildstock_directory
-output_directory: /projects/ecosnap/outputs/SFD_v1
+output_directory: /projects/ecosnap/outputs/SFD_v2
 weather_files_path: /shared-projects/buildstock/weather/ResStock_TMY3.zip  # Relative to this file or absolute path to zipped weather files
 
 baseline:
@@ -11,7 +11,7 @@ baseline:
   sampling_algorithm: quota
 
 residential_simulation_controls:
-  timesteps_per_hr: 6
+  timesteps_per_hr: 4
   begin_month: 1
   begin_day_of_month: 1
   end_month: 12
@@ -22,7 +22,7 @@ simulation_output:
   include_enduse_subcategories: true
 
 timeseries_csv_export:
-  reporting_frequency: Hourly
+  reporting_frequency: Timestep
   include_enduse_subcategories: true
 
 upgrades:
@@ -86,4 +86,15 @@ eagle:
   sampling:
     time: 240
   postprocessing:
-    time: 60
+    time: 600
+
+postprocessing:
+  aws:
+    region_name: 'us-west-2'
+    s3:
+      bucket: resbldg-datasets
+      prefix: ecosnap
+    athena:
+      glue_service_role: service-role/AWSGlueServiceRole-default
+      database_name: ecosnap
+      max_crawling_time: 600 #time to wait for the crawler to complete before aborting it
