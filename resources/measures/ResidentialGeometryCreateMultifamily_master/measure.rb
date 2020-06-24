@@ -1006,9 +1006,9 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
 
 
         #Temporary adiabatic slab for testing
-        if foundation_type == "slab" and surface.surfaceType.downcase == "floor" and surface.outsideBoundaryCondition.downcase == "ground"
-          surface.setOutsideBoundaryCondition("Adiabatic")
-        end 
+        # if foundation_type == "slab" and surface.surfaceType.downcase == "floor" and surface.outsideBoundaryCondition.downcase == "ground"
+        #   surface.setOutsideBoundaryCondition("Adiabatic")
+        # end 
         if surface.adjacentSurface.is_initialized # only set to adiabatic if the corridor surface is adjacent to another surface
           adjacent_surface = surface.adjacentSurface.get
           adjacent_space = adjacent_surface.space.get

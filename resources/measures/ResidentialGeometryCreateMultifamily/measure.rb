@@ -802,9 +802,9 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
 
 
         #Temporary adiabatic slab for testing
-        if surface.surfaceType.downcase == "floor" and foundation_type == "slab"
-          surface.setOutsideBoundaryCondition("Adiabatic")
-        end 
+        # if surface.surfaceType.downcase == "floor" and foundation_type == "slab"
+        #   surface.setOutsideBoundaryCondition("Adiabatic")
+        # end 
 
         next unless surface.surfaceType.downcase == "wall"
         if surface.adjacentSurface.is_initialized
