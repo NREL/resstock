@@ -1,7 +1,5 @@
 The `main` branch is under active development. Find the latest release [here](https://github.com/NREL/OpenStudio-BuildStock/releases).
 
-
-
 OpenStudio-BuildStock
 ===================
 
@@ -16,11 +14,11 @@ OpenStudio-BuildStock
 
 This repository contains:
 
-- [Housing characteristics of the U.S. residential building stock](https://github.com/NREL/OpenStudio-BuildStock/tree/master/project_national/housing_characteristics), in the form of conditional probability distributions stored as tab-separated value (.tsv) files. A visualization of the dependency structure can be found [here](https://htmlpreview.github.io/?https://github.com/NREL/OpenStudio-BuildStock/blob/master/project_national/util/dependency_wheel/dep_wheel.html)
+- [Housing characteristics of the U.S. residential building stock](https://github.com/NREL/OpenStudio-BuildStock/tree/master/project_national/housing_characteristics), in the form of conditional probability distributions stored as tab-separated value (.tsv) files. A visualization of the dependency structure can be found [here](https://htmlpreview.github.io/?https://github.com/NREL/OpenStudio-BuildStock/blob/master/project_national/util/dependency_wheel/dep_wheel.html).
 - [A library of housing characteristic "options"](https://github.com/NREL/OpenStudio-BuildStock/blob/master/resources/options_lookup.tsv) that translate high-level characteristic parameters into arguments for [OpenStudio Measures](https://github.com/NREL/OpenStudio-BuildStock/tree/master/resources/measures), and which are referenced by the housing characteristic .tsv files and building energy upgrades defined in project definition files
 - Project definition files:
-  - [v2.3.0 and later YML files](https://github.com/NREL/OpenStudio-BuildStock/blob/master/project_national/national.yml)
-  - [v2.2.4 and prior PAT files](https://github.com/NREL/OpenStudio-BuildStock/tree/v2.2.4/project_singlefamilydetached)
+  - v2.3.0 and later: [buildstockbatch YML files openable in any text editor](https://github.com/NREL/OpenStudio-BuildStock/blob/master/project_national/national.yml)
+  - v2.2.4 and prior: [Project folder openable in PAT](https://github.com/NREL/OpenStudio-BuildStock/tree/v2.2.4/project_singlefamilydetached)
 - [Building-level OpenStudio Measures](https://github.com/NREL/OpenStudio-BuildStock/tree/master/resources/measures) for automatically constructing OpenStudio Models of each representative building model
 - [Higher-level OpenStudio Measures](https://github.com/NREL/OpenStudio-BuildStock/tree/master/measures) for controlling simulation inputs and outputs
 
