@@ -1,4 +1,5 @@
-## ResStock v2.3.0 (pending)
+## ResStock v2.3.0
+###### June 24, 2020 - [Diff](https://github.com/NREL/OpenStudio-BuildStock/compare/v2.2.4...v2.3.0)
 
 Features
 - Remove the single-family detached project, and remove PAT from the testing and multifamily projects ([#402](https://github.com/NREL/OpenStudio-BuildStock/pull/402))
