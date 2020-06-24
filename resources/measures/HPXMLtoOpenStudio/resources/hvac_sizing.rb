@@ -3463,30 +3463,31 @@ class HVACSizing
     wall_widths = []
     wall_lengths = []
     # Calculate average foundation wall area
-    if Geometry.space_is_below_grade(space) and singleunit
-      space.surfaces.each do |surface|
-        next unless surface.surfaceType.downcase == "wall"
-        l, w, found_height = Geometry.get_surface_dimensions(surface)
-        wall_lengths << l
-        wall_widths << w
-      end
-      wall_width = wall_widths.max # long side
-      wall_length = wall_lengths.max # short side
+    # if Geometry.space_is_below_grade(space) and singleunit
+    #   space.surfaces.each do |surface|
+    #     next unless surface.surfaceType.downcase == "wall"
+    #     l, w, found_height = Geometry.get_surface_dimensions(surface)
+    #     wall_lengths << l
+    #     wall_widths << w
+    #   end
+    #   wall_width = wall_widths.max # long side
+    #   wall_length = wall_lengths.max # short side
 
-      if has_rear_units
-        if corridor_position == "Double-Loaded Interior"
-          int_corridor_width = corridor_width
-        else
-          int_corridor_width = 0
-        end
-        bldg_exposed_perimeter = 4*wall_width + n_ground_units*wall_length
-      else
-        bldg_exposed_perimeter = 2*wall_width + n_ground_units*2*wall_length
-      end
+    #   if has_rear_units
+    #     if corridor_position == "Double-Loaded Interior"
+    #       int_corridor_width = corridor_width
+    #     else
+    #       int_corridor_width = 0
+    #     end
+    #     bldg_exposed_perimeter = 4*wall_width + n_ground_units*wall_length
+    #   else
+    #     bldg_exposed_perimeter = 2*wall_width + n_ground_units*2*wall_length
+    #   end
 
-      found_wall_area = bldg_exposed_perimeter * found_height
-      avg_found_wall_area = UnitConversions.convert(found_wall_area/n_ground_units, "m^2", "ft^2") 
-    end
+    #   found_wall_area = bldg_exposed_perimeter * found_height
+    #   found_wall_area = UnitConversions.convert(found_wall_area, "m^2", "ft^2") 
+    #   avg_found_wall_area = found_wall_area/n_ground_units
+    # end
 
     # Surface UAs
     ufactor_found = 0
@@ -3517,9 +3518,9 @@ class HVACSizing
       space_UAs[obc] += ufactor * UnitConversions.convert(surface.netArea, "m^2", "ft^2")
     end
 
-    if Geometry.space_is_below_grade(space) and singleunit
-      space_UAs["foundation"] = avg_found_wall_area*ufactor_found
-    end
+    # if Geometry.space_is_below_grade(space) and singleunit
+    #   space_UAs["foundation"] = avg_found_wall_area*ufactor_found  
+    # end
 
     # Infiltration UA
     infiltration_cfm = get_feature(runner, space.thermalZone.get, Constants.SizingInfoZoneInfiltrationCFM, 'double', false)
