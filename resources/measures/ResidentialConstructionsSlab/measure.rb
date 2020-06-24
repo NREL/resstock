@@ -128,14 +128,14 @@ class ProcessConstructionsSlab < OpenStudio::Measure::ModelMeasure
     surfaces = floors_by_type[Constants.SurfaceTypeFloorFndGrndFinSlab]
     # slabArea = Geometry.calculate_total_area_from_surfaces(surfaces)
 
+    space_surfaces = []
     living_space = nil
-    model.getSpaces.each do |space|
-      next if not Geometry.is_living(space)
-      living_space = space
+    surfaces.each do |surface|
+      next if not Geometry.is_living(surface.space.get)
+      living_space = surface.space.get
       break
     end
 
-    space_surfaces = []
     surfaces.each do |surface|
       if surface.space.get == living_space
         space_surfaces << surface
