@@ -117,7 +117,7 @@ def get_and_proof_measure_order_json()
   return data_hash
 end
 
-command_list = [:update_measures, :integrity_check_multifamily_beta, :integrity_check_testing]
+command_list = [:update_measures, :integrity_check_national, :integrity_check_testing]
 
 def display_usage(command_list)
   puts "Usage: openstudio #{File.basename(__FILE__)} [COMMAND]\nCommands:\n  " + command_list.join("\n  ")
@@ -232,10 +232,10 @@ if ARGV[0].to_sym == :update_measures
   puts 'Done.'
 end
 
-if ARGV[0].to_sym == :integrity_check_multifamily_beta
+if ARGV[0].to_sym == :integrity_check_national
   require_relative 'test/integrity_checks'
 
-  project_dir_name = 'project_multifamily_beta'
+  project_dir_name = 'project_national'
   integrity_check(project_dir_name)
   integrity_check_options_lookup_tsv(project_dir_name)
 end
