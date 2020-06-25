@@ -3,7 +3,7 @@ Set Up the Analysis Project
 
 At the top level of the ResStock repository you just downloaded, you will see two analysis project folders:
 
- - project_multifamily_beta
+ - project_national
  - project_testing
  
 OpenStudio Measures
@@ -42,7 +42,7 @@ This measure creates the baseline scenario. It incrementally applies OpenStudio 
 
 .. note::
    
-   **Manual Sampling**: To run the sampling script yourself, from the command line execute, e.g. ``ruby resources/run_sampling.rb -p project_multifamily_beta -n 10000 -o buildstock.csv``, and a file ``buildstock.csv`` will be created in the ``resources`` directory. 
+   **Manual Sampling**: To run the sampling script yourself, from the command line execute, e.g. ``ruby resources/run_sampling.rb -p project_national -n 10000 -o buildstock.csv``, and a file ``buildstock.csv`` will be created in the ``resources`` directory. 
    
    If a custom ``buildstock.csv`` file is located in a project's ``housing_characteristics`` directory when you run the project, it will automatically be used to generate simulations. If it’s not found, the ``run_sampling.rb`` script will be run automatically on OpenStudio-Server to create one. You’ll also want to make sure that the number of buildings in the sampling csv file matches the max value for the Building ID argument in the Build Existing Model, as that tells OpenStudio how many datapoints to run. (For each datapoint, the measure will then look up its building description from the sampling csv.) 
    
