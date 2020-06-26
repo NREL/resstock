@@ -1,23 +1,5 @@
 # frozen_string_literal: true
 
-class HelperMethods
-  def self.eplus_fuel_map(fuel)
-    if fuel == HPXML::FuelTypeElectricity
-      return 'electricity'
-    elsif fuel == HPXML::FuelTypeNaturalGas
-      return 'NaturalGas'
-    elsif fuel == HPXML::FuelTypeOil
-      return 'FuelOilNo1'
-    elsif fuel == HPXML::FuelTypePropane
-      return 'Propane'
-    elsif fuel == HPXML::FuelTypeWood
-      return 'OtherFuel1'
-    elsif fuel == HPXML::FuelTypeWoodPellets
-      return 'OtherFuel2'
-    end
-  end
-end
-
 class MathTools
   def self.valid_float?(str)
     !!Float(str) rescue false

@@ -617,7 +617,7 @@ class HotWaterAndAppliances
     if fuel_type.nil?
       oe.setFuelType('None')
     else
-      oe.setFuelType(HelperMethods.eplus_fuel_map(fuel_type))
+      oe.setFuelType(EnergyPlus.input_fuel_map(fuel_type))
     end
     oe.setSpace(space)
     oe_def.setName(obj_name)

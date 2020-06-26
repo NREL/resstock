@@ -137,6 +137,7 @@ class HPXMLTest < MiniTest::Test
                             'cfis-with-hydronic-distribution.xml' => ["Attached HVAC distribution system 'HVACDistribution' cannot be hydronic for ventilation fan 'MechanicalVentilation'."],
                             'clothes-dryer-location.xml' => ["ClothesDryer location is 'garage' but building does not have this location specified."],
                             'clothes-washer-location.xml' => ["ClothesWasher location is 'garage' but building does not have this location specified."],
+                            'coal-for-non-boiler-heating.xml' => ['Expected [1] element(s) but found 0 element(s) for xpath: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACPlant/HeatingSystem[HeatingSystemType/Stove]: HeatingSystemFuel[text()='], # FIXME: Allow this when E+/OS is updated
                             'cooking-range-location.xml' => ["CookingRange location is 'garage' but building does not have this location specified."],
                             'dishwasher-location.xml' => ["Dishwasher location is 'garage' but building does not have this location specified."],
                             'dhw-frac-load-served.xml' => ['Expected FractionDHWLoadServed to sum to 1, but calculated sum is 1.15.'],
@@ -337,16 +338,6 @@ class HPXMLTest < MiniTest::Test
     else
       show_output(runner.result) unless success
       assert_equal(true, success)
-    end
-
-    # Add output variables for crankcase and defrost energy
-    vars = ['Cooling Coil Crankcase Heater Electric Energy',
-            'Heating Coil Crankcase Heater Electric Energy',
-            'Heating Coil Defrost Electric Energy']
-    vars.each do |var|
-      output_var = OpenStudio::Model::OutputVariable.new(var, model)
-      output_var.setReportingFrequency('runperiod')
-      output_var.setKeyValue('*')
     end
 
     # Add output variables for CFIS tests
@@ -556,14 +547,7 @@ class HPXMLTest < MiniTest::Test
     assert_equal(60 / timestep, sql_value)
 
     # Conditioned Floor Area
-    sum_hvac_load_frac = 0.0
-    (hpxml.heating_systems + hpxml.heat_pumps).each do |heating_system|
-      sum_hvac_load_frac += heating_system.fraction_heat_load_served.to_f
-    end
-    (hpxml.cooling_systems + hpxml.heat_pumps).each do |cooling_system|
-      sum_hvac_load_frac += cooling_system.fraction_cool_load_served.to_f
-    end
-    if sum_hvac_load_frac > 0 # EnergyPlus will only report conditioned floor area if there is an HVAC system
+    if (hpxml.total_fraction_cool_load_served > 0) || (hpxml.total_fraction_heat_load_served > 0) # EnergyPlus will only report conditioned floor area if there is an HVAC system
       hpxml_value = hpxml.building_construction.conditioned_floor_area
       query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='InputVerificationandResultsSummary' AND ReportForString='Entire Facility' AND TableName='Zone Summary' AND RowName='Conditioned Total' AND ColumnName='Area' AND Units='m2'"
       sql_value = UnitConversions.convert(sqlFile.execAndReturnFirstDouble(query).get, 'm^2', 'ft^2')
@@ -816,6 +800,9 @@ class HPXMLTest < MiniTest::Test
       hpxml_value = subsurface.ufactor
       query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='Exterior Fenestration' AND RowName='#{subsurface_id}' AND ColumnName='Glass U-Factor' AND Units='W/m2-K'"
       sql_value = UnitConversions.convert(sqlFile.execAndReturnFirstDouble(query).get, 'W/(m^2*K)', 'Btu/(hr*ft^2*F)')
+      if subsurface.is_a? HPXML::Skylight
+        sql_value *= 1.2 # Convert back from vertical position to NFRC 20-degree slope
+      end
       assert_in_epsilon(hpxml_value, sql_value, 0.02)
 
       # SHGC
@@ -984,26 +971,12 @@ class HPXMLTest < MiniTest::Test
     end
 
     # HVAC Load Fractions
-    htg_load_frac = 0.0
-    clg_load_frac = 0.0
-    (hpxml.heating_systems + hpxml.heat_pumps).each do |heating_system|
-      htg_load_frac += heating_system.fraction_heat_load_served.to_f
-    end
-    (hpxml.cooling_systems + hpxml.heat_pumps).each do |cooling_system|
-      clg_load_frac += cooling_system.fraction_cool_load_served.to_f
-    end
     if not hpxml_path.include? 'location-miami'
       htg_energy = results.select { |k, v| (k.include?(': Heating (MBtu)') || k.include?(': Heating Fans/Pumps (MBtu)')) && !k.include?('Load') }.map { |k, v| v }.inject(0, :+)
-      assert_equal(htg_load_frac > 0, htg_energy > 0)
+      assert_equal(hpxml.total_fraction_heat_load_served > 0, htg_energy > 0)
     end
     clg_energy = results.select { |k, v| (k.include?(': Cooling (MBtu)') || k.include?(': Cooling Fans/Pumps (MBtu)')) && !k.include?('Load') }.map { |k, v| v }.inject(0, :+)
-    assert_equal(clg_load_frac > 0, clg_energy > 0)
-
-    # Unmet Load
-    if (htg_load_frac == 0.0) && (clg_load_frac == 0.0)
-      assert_in_epsilon(results['Unmet Load: Heating (MBtu)'], results['Load: Heating (MBtu)'], 0.005)
-      assert_in_epsilon(results['Unmet Load: Cooling (MBtu)'], results['Load: Cooling (MBtu)'], 0.005)
-    end
+    assert_equal(hpxml.total_fraction_cool_load_served > 0, clg_energy > 0)
 
     # Water Heater
     if hpxml.water_heating_systems.size > 0
@@ -1165,9 +1138,11 @@ class HPXMLTest < MiniTest::Test
     # Fuel consumption checks
     [HPXML::FuelTypeNaturalGas,
      HPXML::FuelTypeOil,
+     HPXML::FuelTypeKerosene,
      HPXML::FuelTypePropane,
-     HPXML::FuelTypeWood,
-     HPXML::FuelTypeWoodPellets].each do |fuel|
+     HPXML::FuelTypeWoodCord,
+     HPXML::FuelTypeWoodPellets,
+     HPXML::FuelTypeCoal].each do |fuel|
       fuel_name = fuel.split.map(&:capitalize).join(' ')
       fuel_name += ' Cord' if fuel_name == 'Wood'
       energy_htg = results.fetch("#{fuel_name}: Heating (MBtu)", 0)

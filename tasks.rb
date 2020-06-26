@@ -11,6 +11,7 @@ def create_osws
     'base.osw' => nil, # single-family detached
     'base-single-family-attached.osw' => 'base.osw',
     'base-multifamily.osw' => 'base.osw',
+    'base-appliances-coal.osw' => 'base.osw',
     'base-appliances-dehumidifier.osw' => 'base.osw',
     'base-appliances-dehumidifier-50percent.osw' => 'base.osw',
     'base-appliances-dehumidifier-ief.osw' => 'base.osw',
@@ -58,6 +59,7 @@ def create_osws
     'base-dhw-solar-fraction.osw' => 'base.osw',
     'base-dhw-solar-indirect-flat-plate.osw' => 'base.osw',
     'base-dhw-solar-thermosyphon-flat-plate.osw' => 'base.osw',
+    'base-dhw-tank-coal.osw' => 'base.osw',
     'base-dhw-tank-gas.osw' => 'base.osw',
     'base-dhw-tank-gas-outside.osw' => 'base.osw',
     'base-dhw-tank-heat-pump.osw' => 'base.osw',
@@ -110,6 +112,7 @@ def create_osws
     'base-hvac-air-to-air-heat-pump-1-speed.osw' => 'base.osw',
     'base-hvac-air-to-air-heat-pump-2-speed.osw' => 'base.osw',
     'base-hvac-air-to-air-heat-pump-var-speed.osw' => 'base.osw',
+    'base-hvac-boiler-coal-only.osw' => 'base.osw',
     'base-hvac-boiler-elec-only.osw' => 'base.osw',
     'base-hvac-boiler-gas-central-ac-1-speed.osw' => 'base.osw',
     'base-hvac-boiler-gas-only.osw' => 'base.osw',
@@ -386,8 +389,7 @@ def get_values(osw_file, step)
     step.setArgument('air_leakage_shelter_coefficient', Constants.Auto)
     step.setArgument('heating_system_type', HPXML::HVACTypeFurnace)
     step.setArgument('heating_system_fuel', HPXML::FuelTypeNaturalGas)
-    step.setArgument('heating_system_heating_efficiency_afue', 0.92)
-    step.setArgument('heating_system_heating_efficiency_percent', 1.0)
+    step.setArgument('heating_system_heating_efficiency', 0.92)
     step.setArgument('heating_system_heating_capacity', '64000.0')
     step.setArgument('heating_system_fraction_heat_load_served', 1)
     step.setArgument('heating_system_electric_auxiliary_energy', 0)
@@ -689,6 +691,11 @@ def get_values(osw_file, step)
     step.setArgument('window_area_right', 0)
     step.setArgument('ducts_supply_leakage_value', 0.0)
     step.setArgument('ducts_return_leakage_value', 0.0)
+  elsif ['base-appliances-coal.osw'].include? osw_file
+    step.setArgument('clothes_dryer_fuel_type', HPXML::FuelTypeCoal)
+    step.setArgument('clothes_dryer_efficiency_cef', '3.3')
+    step.setArgument('clothes_dryer_control_type', HPXML::ClothesDryerControlTypeMoisture)
+    step.setArgument('cooking_range_oven_fuel_type', HPXML::FuelTypeCoal)
   elsif ['base-appliances-dehumidifier.osw'].include? osw_file
     step.setArgument('weather_station_epw_filepath', 'USA_TX_Dallas-Fort.Worth.Intl.AP.722590_TMY3.epw')
     step.setArgument('dehumidifier_present', true)
@@ -731,10 +738,10 @@ def get_values(osw_file, step)
     step.setArgument('clothes_dryer_control_type', HPXML::ClothesDryerControlTypeMoisture)
     step.setArgument('cooking_range_oven_fuel_type', HPXML::FuelTypePropane)
   elsif ['base-appliances-wood.osw'].include? osw_file
-    step.setArgument('clothes_dryer_fuel_type', HPXML::FuelTypeWood)
+    step.setArgument('clothes_dryer_fuel_type', HPXML::FuelTypeWoodCord)
     step.setArgument('clothes_dryer_efficiency_cef', '3.3')
     step.setArgument('clothes_dryer_control_type', HPXML::ClothesDryerControlTypeMoisture)
-    step.setArgument('cooking_range_oven_fuel_type', HPXML::FuelTypeWood)
+    step.setArgument('cooking_range_oven_fuel_type', HPXML::FuelTypeWoodCord)
   elsif ['base-atticroof-cathedral.osw'].include? osw_file
     step.setArgument('geometry_attic_type', HPXML::AtticTypeConditioned)
     step.setArgument('roof_assembly_r', 25.8)
@@ -889,6 +896,11 @@ def get_values(osw_file, step)
     step.setArgument('solar_thermal_collector_rated_optical_efficiency', 0.77)
     step.setArgument('solar_thermal_collector_rated_thermal_losses', 0.793)
     step.setArgument('solar_thermal_storage_volume', '60')
+  elsif ['base-dhw-tank-coal.osw'].include? osw_file
+    step.setArgument('water_heater_fuel_type', HPXML::FuelTypeCoal)
+    step.setArgument('water_heater_tank_volume', '50')
+    step.setArgument('water_heater_heating_capacity', '40000')
+    step.setArgument('water_heater_efficiency_ef', 0.59)
   elsif ['base-dhw-tank-gas.osw'].include? osw_file
     step.setArgument('water_heater_fuel_type', HPXML::FuelTypeNaturalGas)
     step.setArgument('water_heater_tank_volume', '50')
@@ -972,7 +984,7 @@ def get_values(osw_file, step)
     step.setArgument('water_heater_heating_capacity', '40000')
     step.setArgument('water_heater_efficiency_ef', 0.59)
   elsif ['base-dhw-tank-wood.osw'].include? osw_file
-    step.setArgument('water_heater_fuel_type', HPXML::FuelTypeWood)
+    step.setArgument('water_heater_fuel_type', HPXML::FuelTypeWoodCord)
     step.setArgument('water_heater_tank_volume', '50')
     step.setArgument('water_heater_heating_capacity', '40000')
     step.setArgument('water_heater_efficiency_ef', 0.59)
@@ -1194,10 +1206,14 @@ def get_values(osw_file, step)
     step.setArgument('heat_pump_heating_capacity_17F', '26880.0')
     step.setArgument('heat_pump_cooling_efficiency_seer', 22.0)
     step.setArgument('heat_pump_backup_fuel', HPXML::FuelTypeElectricity)
+  elsif ['base-hvac-boiler-coal-only.osw'].include? osw_file
+    step.setArgument('heating_system_type', HPXML::HVACTypeBoiler)
+    step.setArgument('heating_system_fuel', HPXML::FuelTypeCoal)
+    step.setArgument('cooling_system_type', 'none')
   elsif ['base-hvac-boiler-elec-only.osw'].include? osw_file
     step.setArgument('heating_system_type', HPXML::HVACTypeBoiler)
     step.setArgument('heating_system_fuel', HPXML::FuelTypeElectricity)
-    step.setArgument('heating_system_heating_efficiency_afue', 1.0)
+    step.setArgument('heating_system_heating_efficiency', 1.0)
     step.setArgument('cooling_system_type', 'none')
   elsif ['base-hvac-boiler-gas-central-ac-1-speed.osw'].include? osw_file
     step.setArgument('heating_system_type', HPXML::HVACTypeBoiler)
@@ -1217,7 +1233,7 @@ def get_values(osw_file, step)
     step.setArgument('cooling_system_type', 'none')
   elsif ['base-hvac-boiler-wood-only.osw'].include? osw_file
     step.setArgument('heating_system_type', HPXML::HVACTypeBoiler)
-    step.setArgument('heating_system_fuel', HPXML::FuelTypeWood)
+    step.setArgument('heating_system_fuel', HPXML::FuelTypeWoodCord)
     step.setArgument('cooling_system_type', 'none')
   elsif ['base-hvac-central-ac-only-1-speed.osw'].include? osw_file
     step.setArgument('heating_system_type', 'none')
@@ -1313,6 +1329,7 @@ def get_values(osw_file, step)
   elsif ['base-hvac-elec-resistance-only.osw'].include? osw_file
     step.setArgument('heating_system_type', HPXML::HVACTypeElectricResistance)
     step.setArgument('heating_system_fuel', HPXML::FuelTypeElectricity)
+    step.setArgument('heating_system_heating_efficiency', 1.0)
     step.setArgument('cooling_system_type', 'none')
   elsif ['base-hvac-evap-cooler-furnace-gas.osw'].include? osw_file
     step.setArgument('cooling_system_type', HPXML::HVACTypeEvaporativeCooler)
@@ -1331,21 +1348,21 @@ def get_values(osw_file, step)
     step.setArgument('cooling_system_evap_cooler_is_ducted', true)
   elsif ['base-hvac-fireplace-wood-only.osw'].include? osw_file
     step.setArgument('heating_system_type', HPXML::HVACTypeFireplace)
-    step.setArgument('heating_system_fuel', HPXML::FuelTypeWood)
-    step.setArgument('heating_system_heating_efficiency_percent', 0.8)
+    step.setArgument('heating_system_fuel', HPXML::FuelTypeWoodCord)
+    step.setArgument('heating_system_heating_efficiency', 0.8)
     step.setArgument('cooling_system_type', 'none')
   elsif ['base-hvac-floor-furnace-propane-only.osw'].include? osw_file
     step.setArgument('heating_system_type', HPXML::HVACTypeFloorFurnace)
     step.setArgument('heating_system_fuel', HPXML::FuelTypePropane)
-    step.setArgument('heating_system_heating_efficiency_afue', 0.8)
+    step.setArgument('heating_system_heating_efficiency', 0.8)
     step.setArgument('heating_system_electric_auxiliary_energy', 200.0)
     step.setArgument('cooling_system_type', 'none')
   elsif ['base-hvac-furnace-elec-central-ac-1-speed.osw'].include? osw_file
     step.setArgument('heating_system_fuel', HPXML::FuelTypeElectricity)
-    step.setArgument('heating_system_heating_efficiency_afue', 1.0)
+    step.setArgument('heating_system_heating_efficiency', 1.0)
   elsif ['base-hvac-furnace-elec-only.osw'].include? osw_file
     step.setArgument('heating_system_fuel', HPXML::FuelTypeElectricity)
-    step.setArgument('heating_system_heating_efficiency_afue', 1.0)
+    step.setArgument('heating_system_heating_efficiency', 1.0)
     step.setArgument('cooling_system_type', 'none')
   elsif ['base-hvac-furnace-gas-central-ac-2-speed.osw'].include? osw_file
     step.setArgument('cooling_system_cooling_efficiency_seer', 18.0)
@@ -1368,7 +1385,7 @@ def get_values(osw_file, step)
     step.setArgument('heating_system_fuel', HPXML::FuelTypePropane)
     step.setArgument('cooling_system_type', 'none')
   elsif ['base-hvac-furnace-wood-only.osw'].include? osw_file
-    step.setArgument('heating_system_fuel', HPXML::FuelTypeWood)
+    step.setArgument('heating_system_fuel', HPXML::FuelTypeWoodCord)
     step.setArgument('cooling_system_type', 'none')
   elsif ['base-hvac-ground-to-air-heat-pump.osw'].include? osw_file
     step.setArgument('heating_system_type', 'none')
@@ -1444,7 +1461,7 @@ def get_values(osw_file, step)
   elsif ['base-hvac-portable-heater-electric-only.osw'].include? osw_file
     step.setArgument('heating_system_type', HPXML::HVACTypePortableHeater)
     step.setArgument('heating_system_fuel', HPXML::FuelTypeElectricity)
-    step.setArgument('heating_system_heating_efficiency_percent', 1.0)
+    step.setArgument('heating_system_heating_efficiency', 1.0)
   elsif ['base-hvac-programmable-thermostat.osw'].include? osw_file
     step.setArgument('setpoint_heating_setback_temp', 66)
     step.setArgument('setpoint_heating_setback_hours_per_week', 49)
@@ -1469,13 +1486,13 @@ def get_values(osw_file, step)
   elsif ['base-hvac-stove-oil-only.osw'].include? osw_file
     step.setArgument('heating_system_type', HPXML::HVACTypeStove)
     step.setArgument('heating_system_fuel', HPXML::FuelTypeOil)
-    step.setArgument('heating_system_heating_efficiency_percent', 0.8)
+    step.setArgument('heating_system_heating_efficiency', 0.8)
     step.setArgument('heating_system_electric_auxiliary_energy', 200.0)
     step.setArgument('cooling_system_type', 'none')
   elsif ['base-hvac-stove-wood-pellets-only.osw'].include? osw_file
     step.setArgument('heating_system_type', HPXML::HVACTypeStove)
     step.setArgument('heating_system_fuel', HPXML::FuelTypeWoodPellets)
-    step.setArgument('heating_system_heating_efficiency_percent', 0.8)
+    step.setArgument('heating_system_heating_efficiency', 0.8)
     step.setArgument('heating_system_electric_auxiliary_energy', 200.0)
     step.setArgument('cooling_system_type', 'none')
   elsif ['base-hvac-undersized.osw'].include? osw_file
@@ -1486,7 +1503,7 @@ def get_values(osw_file, step)
   elsif ['base-hvac-wall-furnace-elec-only.osw'].include? osw_file
     step.setArgument('heating_system_type', HPXML::HVACTypeWallFurnace)
     step.setArgument('heating_system_fuel', HPXML::FuelTypeElectricity)
-    step.setArgument('heating_system_heating_efficiency_afue', 1.0)
+    step.setArgument('heating_system_heating_efficiency', 1.0)
     step.setArgument('heating_system_electric_auxiliary_energy', 200.0)
     step.setArgument('cooling_system_type', 'none')
   elsif ['base-location-baltimore-md.osw'].include? osw_file
@@ -1674,7 +1691,7 @@ def get_values(osw_file, step)
     step.setArgument('fuel_loads_lighting_weekend_fractions', '0.044, 0.023, 0.019, 0.015, 0.016, 0.018, 0.026, 0.033, 0.033, 0.032, 0.033, 0.033, 0.032, 0.032, 0.032, 0.033, 0.045, 0.057, 0.066, 0.076, 0.081, 0.086, 0.075, 0.065')
     step.setArgument('fuel_loads_lighting_monthly_multipliers', '1.154, 1.161, 1.013, 1.010, 1.013, 0.888, 0.883, 0.883, 0.888, 0.978, 0.974, 1.154')
     step.setArgument('fuel_loads_fireplace_present', true)
-    step.setArgument('fuel_loads_fireplace_fuel_type', HPXML::FuelTypeWood)
+    step.setArgument('fuel_loads_fireplace_fuel_type', HPXML::FuelTypeWoodCord)
     step.setArgument('fuel_loads_fireplace_annual_therm', '55.0')
     step.setArgument('fuel_loads_fireplace_weekday_fractions', '0.044, 0.023, 0.019, 0.015, 0.016, 0.018, 0.026, 0.033, 0.033, 0.032, 0.033, 0.033, 0.032, 0.032, 0.032, 0.033, 0.045, 0.057, 0.066, 0.076, 0.081, 0.086, 0.075, 0.065')
     step.setArgument('fuel_loads_fireplace_weekend_fractions', '0.044, 0.023, 0.019, 0.015, 0.016, 0.018, 0.026, 0.033, 0.033, 0.032, 0.033, 0.033, 0.032, 0.032, 0.032, 0.033, 0.045, 0.057, 0.066, 0.076, 0.081, 0.086, 0.075, 0.065')
@@ -1839,6 +1856,7 @@ def create_hpxmls
     'invalid_files/clothes-dryer-location.xml' => 'base.xml',
     'invalid_files/cooking-range-location.xml' => 'base.xml',
     'invalid_files/appliances-location-unconditioned-space.xml' => 'base.xml',
+    'invalid_files/coal-for-non-boiler-heating.xml' => 'base-hvac-stove-oil-only.xml',
     'invalid_files/dhw-frac-load-served.xml' => 'base-dhw-multiple.xml',
     'invalid_files/dishwasher-location.xml' => 'base.xml',
     'invalid_files/duct-location.xml' => 'base.xml',
@@ -1895,15 +1913,16 @@ def create_hpxmls
     'invalid_files/invalid-distribution-cfa-served.xml' => 'base.xml',
     'invalid_files/refrigerators-multiple-primary.xml' => 'base.xml',
     'invalid_files/refrigerators-no-primary.xml' => 'base.xml',
+    'base-appliances-coal.xml' => 'base.xml',
     'base-appliances-dehumidifier.xml' => 'base-location-dallas-tx.xml',
     'base-appliances-dehumidifier-ief.xml' => 'base-appliances-dehumidifier.xml',
     'base-appliances-dehumidifier-50percent.xml' => 'base-appliances-dehumidifier.xml',
     'base-appliances-gas.xml' => 'base.xml',
-    'base-appliances-wood.xml' => 'base.xml',
     'base-appliances-modified.xml' => 'base.xml',
     'base-appliances-none.xml' => 'base.xml',
     'base-appliances-oil.xml' => 'base.xml',
     'base-appliances-propane.xml' => 'base.xml',
+    'base-appliances-wood.xml' => 'base.xml',
     'base-atticroof-cathedral.xml' => 'base.xml',
     'base-atticroof-conditioned.xml' => 'base.xml',
     'base-atticroof-flat.xml' => 'base.xml',
@@ -1938,6 +1957,7 @@ def create_hpxmls
     'base-dhw-solar-fraction.xml' => 'base.xml',
     'base-dhw-solar-indirect-flat-plate.xml' => 'base.xml',
     'base-dhw-solar-thermosyphon-flat-plate.xml' => 'base.xml',
+    'base-dhw-tank-coal.xml' => 'base.xml',
     'base-dhw-tank-gas.xml' => 'base.xml',
     'base-dhw-tank-gas-outside.xml' => 'base-dhw-tank-gas.xml',
     'base-dhw-tank-heat-pump.xml' => 'base.xml',
@@ -1994,6 +2014,7 @@ def create_hpxmls
     'base-hvac-air-to-air-heat-pump-1-speed.xml' => 'base.xml',
     'base-hvac-air-to-air-heat-pump-2-speed.xml' => 'base.xml',
     'base-hvac-air-to-air-heat-pump-var-speed.xml' => 'base.xml',
+    'base-hvac-boiler-coal-only.xml' => 'base.xml',
     'base-hvac-boiler-elec-only.xml' => 'base.xml',
     'base-hvac-boiler-gas-central-ac-1-speed.xml' => 'base.xml',
     'base-hvac-boiler-gas-only.xml' => 'base.xml',
@@ -4206,9 +4227,12 @@ def set_hpxml_heating_systems(hpxml_file, hpxml)
   elsif ['base-hvac-boiler-propane-only.xml'].include? hpxml_file
     hpxml.heating_systems[0].heating_system_type = HPXML::HVACTypeBoiler
     hpxml.heating_systems[0].heating_system_fuel = HPXML::FuelTypePropane
+  elsif ['base-hvac-boiler-coal-only.xml'].include? hpxml_file
+    hpxml.heating_systems[0].heating_system_type = HPXML::HVACTypeBoiler
+    hpxml.heating_systems[0].heating_system_fuel = HPXML::FuelTypeCoal
   elsif ['base-hvac-boiler-wood-only.xml'].include? hpxml_file
     hpxml.heating_systems[0].heating_system_type = HPXML::HVACTypeBoiler
-    hpxml.heating_systems[0].heating_system_fuel = HPXML::FuelTypeWood
+    hpxml.heating_systems[0].heating_system_fuel = HPXML::FuelTypeWoodCord
   elsif ['base-hvac-elec-resistance-only.xml'].include? hpxml_file
     hpxml.heating_systems[0].distribution_system_idref = nil
     hpxml.heating_systems[0].heating_system_type = HPXML::HVACTypeElectricResistance
@@ -4225,7 +4249,7 @@ def set_hpxml_heating_systems(hpxml_file, hpxml)
   elsif ['base-hvac-furnace-propane-only.xml'].include? hpxml_file
     hpxml.heating_systems[0].heating_system_fuel = HPXML::FuelTypePropane
   elsif ['base-hvac-furnace-wood-only.xml'].include? hpxml_file
-    hpxml.heating_systems[0].heating_system_fuel = HPXML::FuelTypeWood
+    hpxml.heating_systems[0].heating_system_fuel = HPXML::FuelTypeWoodCord
   elsif ['base-hvac-multiple.xml'].include? hpxml_file
     hpxml.heating_systems.clear
     hpxml.heating_systems.add(id: 'HeatingSystem',
@@ -4313,7 +4337,7 @@ def set_hpxml_heating_systems(hpxml_file, hpxml)
   elsif ['base-hvac-fireplace-wood-only.xml'].include? hpxml_file
     hpxml.heating_systems[0].distribution_system_idref = nil
     hpxml.heating_systems[0].heating_system_type = HPXML::HVACTypeFireplace
-    hpxml.heating_systems[0].heating_system_fuel = HPXML::FuelTypeWood
+    hpxml.heating_systems[0].heating_system_fuel = HPXML::FuelTypeWoodCord
     hpxml.heating_systems[0].heating_efficiency_afue = nil
     hpxml.heating_systems[0].heating_efficiency_percent = 0.8
   elsif ['base-hvac-floor-furnace-propane-only.xml'].include? hpxml_file
@@ -4328,20 +4352,18 @@ def set_hpxml_heating_systems(hpxml_file, hpxml)
     hpxml.heating_systems[0].heating_system_fuel = HPXML::FuelTypeElectricity
     hpxml.heating_systems[0].heating_efficiency_afue = nil
     hpxml.heating_systems[0].heating_efficiency_percent = 1.0
-  elsif ['base-hvac-stove-oil-only.xml'].include? hpxml_file
+  elsif ['base-hvac-stove-oil-only.xml',
+         'base-hvac-stove-wood-pellets-only.xml'].include? hpxml_file
     hpxml.heating_systems[0].distribution_system_idref = nil
     hpxml.heating_systems[0].heating_system_type = HPXML::HVACTypeStove
-    hpxml.heating_systems[0].heating_system_fuel = HPXML::FuelTypeOil
     hpxml.heating_systems[0].heating_efficiency_afue = nil
     hpxml.heating_systems[0].heating_efficiency_percent = 0.8
     hpxml.heating_systems[0].electric_auxiliary_energy = 200
-  elsif ['base-hvac-stove-wood-pellets-only.xml'].include? hpxml_file
-    hpxml.heating_systems[0].distribution_system_idref = nil
-    hpxml.heating_systems[0].heating_system_type = HPXML::HVACTypeStove
-    hpxml.heating_systems[0].heating_system_fuel = HPXML::FuelTypeWoodPellets
-    hpxml.heating_systems[0].heating_efficiency_afue = nil
-    hpxml.heating_systems[0].heating_efficiency_percent = 0.8
-    hpxml.heating_systems[0].electric_auxiliary_energy = 200
+    if hpxml_file == 'base-hvac-stove-oil-only.xml'
+      hpxml.heating_systems[0].heating_system_fuel = HPXML::FuelTypeOil
+    elsif hpxml_file == 'base-hvac-stove-wood-pellets-only.xml'
+      hpxml.heating_systems[0].heating_system_fuel = HPXML::FuelTypeWoodPellets
+    end
   elsif ['base-hvac-wall-furnace-elec-only.xml'].include? hpxml_file
     hpxml.heating_systems[0].distribution_system_idref = nil
     hpxml.heating_systems[0].heating_system_type = HPXML::HVACTypeWallFurnace
@@ -4375,6 +4397,8 @@ def set_hpxml_heating_systems(hpxml_file, hpxml)
     hpxml.heating_systems[0].fraction_heat_load_served = 0.5
     hpxml.heating_systems << hpxml.heating_systems[0].dup
     hpxml.heating_systems[1].id += '2'
+  elsif ['invalid_files/coal-for-non-boiler-heating.xml'].include? hpxml_file
+    hpxml.heating_systems[0].heating_system_fuel = HPXML::FuelTypeCoal
   elsif ['base-hvac-undersized.xml'].include? hpxml_file
     hpxml.heating_systems[0].heating_capacity /= 10.0
   elsif ['base-hvac-flowrate.xml'].include? hpxml_file
@@ -4398,6 +4422,7 @@ def set_hpxml_cooling_systems(hpxml_file, hpxml)
   elsif ['base-hvac-air-to-air-heat-pump-1-speed.xml',
          'base-hvac-air-to-air-heat-pump-2-speed.xml',
          'base-hvac-air-to-air-heat-pump-var-speed.xml',
+         'base-hvac-boiler-coal-only.xml',
          'base-hvac-boiler-elec-only.xml',
          'base-hvac-boiler-gas-only.xml',
          'base-hvac-boiler-oil-only.xml',
@@ -4752,7 +4777,8 @@ def set_hpxml_hvac_distributions(hpxml_file, hpxml)
                                           duct_insulation_r_value: 0,
                                           duct_location: HPXML::LocationAtticUnvented,
                                           duct_surface_area: 50)
-  elsif ['base-hvac-boiler-elec-only.xml',
+  elsif ['base-hvac-boiler-coal-only.xml',
+         'base-hvac-boiler-elec-only.xml',
          'base-hvac-boiler-gas-only.xml',
          'base-hvac-boiler-oil-only.xml',
          'base-hvac-boiler-propane-only.xml',
@@ -5193,7 +5219,8 @@ def set_hpxml_water_heating_systems(hpxml_file, hpxml)
                                     temperature: Waterheater.get_default_hot_water_temperature(Constants.ERIVersions[-1]))
   elsif ['invalid_files/dhw-frac-load-served.xml'].include? hpxml_file
     hpxml.water_heating_systems[0].fraction_dhw_load_served += 0.15
-  elsif ['base-dhw-tank-gas.xml',
+  elsif ['base-dhw-tank-coal.xml',
+         'base-dhw-tank-gas.xml',
          'base-dhw-tank-gas-outside.xml',
          'base-dhw-tank-oil.xml',
          'base-dhw-tank-wood.xml'].include? hpxml_file
@@ -5204,10 +5231,12 @@ def set_hpxml_water_heating_systems(hpxml_file, hpxml)
     if hpxml_file == 'base-dhw-tank-gas-outside.xml'
       hpxml.water_heating_systems[0].location = HPXML::LocationOtherExterior
     end
-    if hpxml_file == 'base-dhw-tank-oil.xml'
+    if hpxml_file == 'base-dhw-tank-coal.xml'
+      hpxml.water_heating_systems[0].fuel_type = HPXML::FuelTypeCoal
+    elsif hpxml_file == 'base-dhw-tank-oil.xml'
       hpxml.water_heating_systems[0].fuel_type = HPXML::FuelTypeOil
     elsif hpxml_file == 'base-dhw-tank-wood.xml'
-      hpxml.water_heating_systems[0].fuel_type = HPXML::FuelTypeWood
+      hpxml.water_heating_systems[0].fuel_type = HPXML::FuelTypeWoodCord
     else
       hpxml.water_heating_systems[0].fuel_type = HPXML::FuelTypeNaturalGas
     end
@@ -5598,7 +5627,8 @@ def set_hpxml_clothes_dryer(hpxml_file, hpxml)
                              fuel_type: HPXML::FuelTypeElectricity,
                              energy_factor: HotWaterAndAppliances.calc_clothes_dryer_ef_from_cef(cef).round(2),
                              control_type: HPXML::ClothesDryerControlTypeMoisture)
-  elsif ['base-appliances-gas.xml',
+  elsif ['base-appliances-coal.xml',
+         'base-appliances-gas.xml',
          'base-appliances-propane.xml',
          'base-appliances-oil.xml'].include? hpxml_file
     hpxml.clothes_dryers.clear
@@ -5606,7 +5636,9 @@ def set_hpxml_clothes_dryer(hpxml_file, hpxml)
                              location: HPXML::LocationLivingSpace,
                              combined_energy_factor: 3.30,
                              control_type: HPXML::ClothesDryerControlTypeMoisture)
-    if hpxml_file == 'base-appliances-gas.xml'
+    if hpxml_file == 'base-appliances-coal.xml'
+      hpxml.clothes_dryers[0].fuel_type = HPXML::FuelTypeCoal
+    elsif hpxml_file == 'base-appliances-gas.xml'
       hpxml.clothes_dryers[0].fuel_type = HPXML::FuelTypeNaturalGas
     elsif hpxml_file == 'base-appliances-propane.xml'
       hpxml.clothes_dryers[0].fuel_type = HPXML::FuelTypePropane
@@ -5617,7 +5649,7 @@ def set_hpxml_clothes_dryer(hpxml_file, hpxml)
     hpxml.clothes_dryers.clear
     hpxml.clothes_dryers.add(id: 'ClothesDryer',
                              location: HPXML::LocationLivingSpace,
-                             fuel_type: HPXML::FuelTypeWood,
+                             fuel_type: HPXML::FuelTypeWoodCord,
                              combined_energy_factor: 3.30,
                              control_type: HPXML::ClothesDryerControlTypeMoisture)
   elsif ['base-foundation-unconditioned-basement.xml'].include? hpxml_file
@@ -5797,8 +5829,10 @@ def set_hpxml_cooking_range(hpxml_file, hpxml)
     hpxml.cooking_ranges[0].is_induction = false
   elsif ['base-appliances-oil.xml'].include? hpxml_file
     hpxml.cooking_ranges[0].fuel_type = HPXML::FuelTypeOil
+  elsif ['base-appliances-coal.xml'].include? hpxml_file
+    hpxml.cooking_ranges[0].fuel_type = HPXML::FuelTypeCoal
   elsif ['base-appliances-wood.xml'].include? hpxml_file
-    hpxml.cooking_ranges[0].fuel_type = HPXML::FuelTypeWood
+    hpxml.cooking_ranges[0].fuel_type = HPXML::FuelTypeWoodCord
     hpxml.cooking_ranges[0].is_induction = false
   elsif ['base-foundation-unconditioned-basement.xml'].include? hpxml_file
     hpxml.cooking_ranges[0].location = HPXML::LocationBasementUnconditioned
@@ -6018,7 +6052,7 @@ def set_hpxml_fuel_loads(hpxml_file, hpxml)
                          monthly_multipliers: '1.154, 1.161, 1.013, 1.010, 1.013, 0.888, 0.883, 0.883, 0.888, 0.978, 0.974, 1.154')
     hpxml.fuel_loads.add(id: 'FuelLoadMisc3',
                          fuel_load_type: HPXML::FuelLoadTypeFireplace,
-                         fuel_type: HPXML::FuelTypeWood,
+                         fuel_type: HPXML::FuelTypeWoodCord,
                          therm_per_year: 55,
                          weekday_fractions: '0.044, 0.023, 0.019, 0.015, 0.016, 0.018, 0.026, 0.033, 0.033, 0.032, 0.033, 0.033, 0.032, 0.032, 0.032, 0.033, 0.045, 0.057, 0.066, 0.076, 0.081, 0.086, 0.075, 0.065',
                          weekend_fractions: '0.044, 0.023, 0.019, 0.015, 0.016, 0.018, 0.026, 0.033, 0.033, 0.032, 0.033, 0.033, 0.032, 0.032, 0.032, 0.033, 0.045, 0.057, 0.066, 0.076, 0.081, 0.086, 0.075, 0.065',

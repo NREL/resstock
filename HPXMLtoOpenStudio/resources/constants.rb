@@ -237,6 +237,10 @@ class Constants
     return 'ideal'
   end
 
+  def self.ObjectNameIdealAirSystemResidual
+    return 'ideal residual'
+  end
+
   def self.ObjectNameInfiltration
     return 'infil'
   end

@@ -105,7 +105,7 @@ class HPXMLtoOpenStudioHVACTest < MiniTest::Test
     htg_coil = model.getCoilHeatingGass[0]
     assert_in_epsilon(afue, htg_coil.gasBurnerEfficiency, 0.01)
     assert_in_epsilon(capacity, htg_coil.nominalCapacity.get, 0.01)
-    assert_equal(HelperMethods.eplus_fuel_map(fuel), htg_coil.fuelType)
+    assert_equal(EnergyPlus.input_fuel_map(fuel), htg_coil.fuelType)
   end
 
   def test_furnace_electric
@@ -141,7 +141,26 @@ class HPXMLtoOpenStudioHVACTest < MiniTest::Test
     boiler = model.getBoilerHotWaters[0]
     assert_in_epsilon(afue, boiler.nominalThermalEfficiency, 0.01)
     assert_in_epsilon(capacity, boiler.nominalCapacity.get, 0.01)
-    assert_equal(HelperMethods.eplus_fuel_map(fuel), boiler.fuelType)
+    assert_equal(EnergyPlus.input_fuel_map(fuel), boiler.fuelType)
+  end
+
+  def test_boiler_coal
+    args_hash = {}
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-hvac-boiler-coal-only.xml'))
+    model, hpxml = _test_measure(args_hash)
+
+    # Get HPXML values
+    heating_system = hpxml.heating_systems[0]
+    afue = heating_system.heating_efficiency_afue
+    capacity = UnitConversions.convert(heating_system.heating_capacity, 'Btu/hr', 'W')
+    fuel = heating_system.heating_system_fuel
+
+    # Check boiler
+    assert_equal(1, model.getBoilerHotWaters.size)
+    boiler = model.getBoilerHotWaters[0]
+    assert_in_epsilon(afue, boiler.nominalThermalEfficiency, 0.01)
+    assert_in_epsilon(capacity, boiler.nominalCapacity.get, 0.01)
+    assert_equal(EnergyPlus.input_fuel_map(fuel), boiler.fuelType)
   end
 
   def test_boiler_electric
@@ -160,7 +179,7 @@ class HPXMLtoOpenStudioHVACTest < MiniTest::Test
     boiler = model.getBoilerHotWaters[0]
     assert_in_epsilon(afue, boiler.nominalThermalEfficiency, 0.01)
     assert_in_epsilon(capacity, boiler.nominalCapacity.get, 0.01)
-    assert_equal(HelperMethods.eplus_fuel_map(fuel), boiler.fuelType)
+    assert_equal(EnergyPlus.input_fuel_map(fuel), boiler.fuelType)
   end
 
   def test_electric_resistance
@@ -196,7 +215,7 @@ class HPXMLtoOpenStudioHVACTest < MiniTest::Test
     htg_coil = model.getCoilHeatingGass[0]
     assert_in_epsilon(efficiency, htg_coil.gasBurnerEfficiency, 0.01)
     assert_in_epsilon(capacity, htg_coil.nominalCapacity.get, 0.01)
-    assert_equal(HelperMethods.eplus_fuel_map(fuel), htg_coil.fuelType)
+    assert_equal(EnergyPlus.input_fuel_map(fuel), htg_coil.fuelType)
   end
 
   def test_central_air_to_air_heat_pump_1_speed

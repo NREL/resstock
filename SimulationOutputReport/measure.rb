@@ -317,15 +317,14 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     end
     @model.setSqlFile(@sqlFile)
 
-    setup_outputs
-
     hpxml_path = @model.getBuilding.additionalProperties.getFeatureAsString('hpxml_path').get
     @hpxml = HPXML.new(hpxml_path: hpxml_path)
-
     get_object_maps()
+    @eri_design = @hpxml.header.eri_design
+
+    setup_outputs
 
     # Set paths
-    @eri_design = @hpxml.header.eri_design
     if not @eri_design.nil?
       # ERI run, store files in a particular location
       output_dir = File.dirname(hpxml_path)
@@ -470,12 +469,15 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     end
 
     # Unmet loads (heating/cooling energy delivered by backup ideal air system)
-    sys_ids = []
-    @model.getZoneHVACIdealLoadsAirSystems.each do |ideal_sys|
-      sys_ids << ideal_sys.name.to_s.upcase
-    end
+    key = Constants.ObjectNameIdealAirSystemResidual.upcase
     @unmet_loads.each do |load_type, unmet_load|
-      unmet_load.annual_output = get_report_variable_data_annual(sys_ids, [unmet_load.variable])
+      unmet_load.annual_output = get_report_variable_data_annual([key], [unmet_load.variable])
+    end
+
+    # Ideal system loads (expected fraction of loads that are not met by HVAC)
+    key = Constants.ObjectNameIdealAirSystem.upcase
+    @ideal_system_loads.each do |load_type, unmet_load|
+      unmet_load.annual_output = get_report_variable_data_annual([key], [unmet_load.variable])
     end
 
     # Peak Building Space Heating/Cooling Loads (total heating/cooling energy delivered including backup ideal air system)
@@ -767,6 +769,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
   def check_for_errors(runner, outputs)
     all_total = @fuels.values.map { |x| x.annual_output }.inject(:+)
     all_total += @unmet_loads.values.map { |x| x.annual_output }.inject(:+)
+    all_total += @ideal_system_loads.values.map { |x| x.annual_output }.inject(:+)
     if all_total == 0
       runner.registerError('Simulation unsuccessful.')
       return false
@@ -1544,11 +1547,12 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
   def add_object_output_variables(timeseries_frequency)
     hvac_output_vars = [OutputVars.SpaceHeatingElectricity,
-                        OutputVars.SpaceHeatingNaturalGas,
-                        OutputVars.SpaceHeatingFuelOil,
-                        OutputVars.SpaceHeatingPropane,
-                        OutputVars.SpaceHeatingWoodCord,
-                        OutputVars.SpaceHeatingWoodPellets,
+                        OutputVars.SpaceHeatingFuel(EnergyPlus::FuelTypeNaturalGas),
+                        OutputVars.SpaceHeatingFuel(EnergyPlus::FuelTypeOil),
+                        OutputVars.SpaceHeatingFuel(EnergyPlus::FuelTypePropane),
+                        OutputVars.SpaceHeatingFuel(EnergyPlus::FuelTypeWoodCord),
+                        OutputVars.SpaceHeatingFuel(EnergyPlus::FuelTypeWoodPellets),
+                        OutputVars.SpaceHeatingFuel(EnergyPlus::FuelTypeCoal),
                         OutputVars.SpaceHeatingDFHPPrimaryLoad,
                         OutputVars.SpaceHeatingDFHPBackupLoad,
                         OutputVars.SpaceCoolingElectricity,
@@ -1557,11 +1561,12 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     dhw_output_vars = [OutputVars.WaterHeatingElectricity,
                        OutputVars.WaterHeatingElectricityRecircPump,
                        OutputVars.WaterHeatingElectricitySolarThermalPump,
-                       OutputVars.WaterHeatingNaturalGas,
-                       OutputVars.WaterHeatingFuelOil,
-                       OutputVars.WaterHeatingPropane,
-                       OutputVars.WaterHeatingWoodCord,
-                       OutputVars.WaterHeatingWoodPellets,
+                       OutputVars.WaterHeatingFuel(EnergyPlus::FuelTypeNaturalGas),
+                       OutputVars.WaterHeatingFuel(EnergyPlus::FuelTypeOil),
+                       OutputVars.WaterHeatingFuel(EnergyPlus::FuelTypePropane),
+                       OutputVars.WaterHeatingFuel(EnergyPlus::FuelTypeWoodCord),
+                       OutputVars.WaterHeatingFuel(EnergyPlus::FuelTypeWoodPellets),
+                       OutputVars.WaterHeatingFuel(EnergyPlus::FuelTypeCoal),
                        OutputVars.WaterHeatingLoad,
                        OutputVars.WaterHeatingLoadTankLosses,
                        OutputVars.WaterHeaterLoadDesuperheater,
@@ -1778,16 +1783,23 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       return 'kBtu'
     end
 
+    ep_fuel_names = { FT::Gas => EnergyPlus.output_fuel_map(EnergyPlus::FuelTypeNaturalGas),
+                      FT::Oil => EnergyPlus.output_fuel_map(EnergyPlus::FuelTypeOil),
+                      FT::Propane => EnergyPlus.output_fuel_map(EnergyPlus::FuelTypePropane),
+                      FT::WoodCord => EnergyPlus.output_fuel_map(EnergyPlus::FuelTypeWoodCord),
+                      FT::WoodPellets => EnergyPlus.output_fuel_map(EnergyPlus::FuelTypeWoodPellets),
+                      FT::Coal => EnergyPlus.output_fuel_map(EnergyPlus::FuelTypeCoal) }
+
     # Fuels
 
-    @fuels = {
-      FT::Elec => Fuel.new(meter: 'Electricity:Facility'),
-      FT::Gas => Fuel.new(meter: 'Gas:Facility'),
-      FT::Oil => Fuel.new(meter: 'FuelOil#1:Facility'),
-      FT::Propane => Fuel.new(meter: 'Propane:Facility'),
-      FT::WoodCord => Fuel.new(meter: 'OtherFuel1:Facility'),
-      FT::WoodPellets => Fuel.new(meter: 'OtherFuel2:Facility'),
-    }
+    @fuels = {}
+    @fuels[FT::Elec] = Fuel.new(meter: 'Electricity:Facility')
+    @fuels[FT::Gas] = Fuel.new(meter: "#{ep_fuel_names[FT::Gas]}:Facility")
+    @fuels[FT::Oil] = Fuel.new(meter: "#{ep_fuel_names[FT::Oil]}:Facility")
+    @fuels[FT::Propane] = Fuel.new(meter: "#{ep_fuel_names[FT::Propane]}:Facility")
+    @fuels[FT::WoodCord] = Fuel.new(meter: "#{ep_fuel_names[FT::WoodCord]}:Facility")
+    @fuels[FT::WoodPellets] = Fuel.new(meter: "#{ep_fuel_names[FT::WoodPellets]}:Facility")
+    @fuels[FT::Coal] = Fuel.new(meter: "#{ep_fuel_names[FT::Coal]}:Facility")
 
     @fuels.each do |fuel_type, fuel|
       fuel.name = "#{fuel_type}: Total"
@@ -1799,74 +1811,96 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
     # NOTE: Some end uses are obtained from meters, others are rolled up from
     # output variables so that we can have more control.
-    @end_uses = {
-      [FT::Elec, EUT::Heating] => EndUse.new(variable: OutputVars.SpaceHeatingElectricity),
-      [FT::Elec, EUT::HeatingFanPump] => EndUse.new(),
-      [FT::Elec, EUT::Cooling] => EndUse.new(variable: OutputVars.SpaceCoolingElectricity),
-      [FT::Elec, EUT::CoolingFanPump] => EndUse.new(),
-      [FT::Elec, EUT::HotWater] => EndUse.new(variable: OutputVars.WaterHeatingElectricity),
-      [FT::Elec, EUT::HotWaterRecircPump] => EndUse.new(variable: OutputVars.WaterHeatingElectricityRecircPump),
-      [FT::Elec, EUT::HotWaterSolarThermalPump] => EndUse.new(variable: OutputVars.WaterHeatingElectricitySolarThermalPump),
-      [FT::Elec, EUT::LightsInterior] => EndUse.new(meter: "#{Constants.ObjectNameInteriorLighting}:InteriorLights:Electricity"),
-      [FT::Elec, EUT::LightsGarage] => EndUse.new(meter: "#{Constants.ObjectNameGarageLighting}:InteriorLights:Electricity"),
-      [FT::Elec, EUT::LightsExterior] => EndUse.new(meter: 'ExteriorLights:Electricity'),
-      [FT::Elec, EUT::MechVent] => EndUse.new(meter: "#{Constants.ObjectNameMechanicalVentilation}:InteriorEquipment:Electricity"),
-      [FT::Elec, EUT::WholeHouseFan] => EndUse.new(meter: "#{Constants.ObjectNameWholeHouseFan}:InteriorEquipment:Electricity"),
-      [FT::Elec, EUT::Refrigerator] => EndUse.new(meter: "#{Constants.ObjectNameRefrigerator}:InteriorEquipment:Electricity"),
-      [FT::Elec, EUT::Freezer] => EndUse.new(meter: "#{Constants.ObjectNameFreezer}:InteriorEquipment:Electricity"),
-      [FT::Elec, EUT::Dehumidifier] => EndUse.new(variable: OutputVars.DehumidifierElectricity),
-      [FT::Elec, EUT::Dishwasher] => EndUse.new(meter: "#{Constants.ObjectNameDishwasher}:InteriorEquipment:Electricity"),
-      [FT::Elec, EUT::ClothesWasher] => EndUse.new(meter: "#{Constants.ObjectNameClothesWasher}:InteriorEquipment:Electricity"),
-      [FT::Elec, EUT::ClothesDryer] => EndUse.new(meter: "#{Constants.ObjectNameClothesDryer}:InteriorEquipment:Electricity"),
-      [FT::Elec, EUT::RangeOven] => EndUse.new(meter: "#{Constants.ObjectNameCookingRange}:InteriorEquipment:Electricity"),
-      [FT::Elec, EUT::CeilingFan] => EndUse.new(meter: "#{Constants.ObjectNameCeilingFan}:InteriorEquipment:Electricity"),
-      [FT::Elec, EUT::Television] => EndUse.new(meter: "#{Constants.ObjectNameMiscTelevision}:InteriorEquipment:Electricity"),
-      [FT::Elec, EUT::PlugLoads] => EndUse.new(meter: "#{Constants.ObjectNameMiscPlugLoads}:InteriorEquipment:Electricity"),
-      [FT::Elec, EUT::Vehicle] => EndUse.new(meter: "#{Constants.ObjectNameMiscElectricVehicleCharging}:InteriorEquipment:Electricity"),
-      [FT::Elec, EUT::WellPump] => EndUse.new(meter: "#{Constants.ObjectNameMiscWellPump}:InteriorEquipment:Electricity"),
-      [FT::Elec, EUT::PoolHeater] => EndUse.new(meter: "#{Constants.ObjectNameMiscPoolHeater}:InteriorEquipment:Electricity"),
-      [FT::Elec, EUT::PoolPump] => EndUse.new(meter: "#{Constants.ObjectNameMiscPoolPump}:InteriorEquipment:Electricity"),
-      [FT::Elec, EUT::HotTubHeater] => EndUse.new(meter: "#{Constants.ObjectNameMiscHotTubHeater}:InteriorEquipment:Electricity"),
-      [FT::Elec, EUT::HotTubPump] => EndUse.new(meter: "#{Constants.ObjectNameMiscHotTubPump}:InteriorEquipment:Electricity"),
-      [FT::Elec, EUT::PV] => EndUse.new(meter: 'ElectricityProduced:Facility'),
-      [FT::Gas, EUT::Heating] => EndUse.new(variable: OutputVars.SpaceHeatingNaturalGas),
-      [FT::Gas, EUT::HotWater] => EndUse.new(variable: OutputVars.WaterHeatingNaturalGas),
-      [FT::Gas, EUT::ClothesDryer] => EndUse.new(meter: "#{Constants.ObjectNameClothesDryer}:InteriorEquipment:Gas"),
-      [FT::Gas, EUT::RangeOven] => EndUse.new(meter: "#{Constants.ObjectNameCookingRange}:InteriorEquipment:Gas"),
-      [FT::Gas, EUT::PoolHeater] => EndUse.new(meter: "#{Constants.ObjectNameMiscPoolHeater}:InteriorEquipment:Gas"),
-      [FT::Gas, EUT::HotTubHeater] => EndUse.new(meter: "#{Constants.ObjectNameMiscHotTubHeater}:InteriorEquipment:Gas"),
-      [FT::Gas, EUT::Grill] => EndUse.new(meter: "#{Constants.ObjectNameMiscGrill}:InteriorEquipment:Gas"),
-      [FT::Gas, EUT::Lighting] => EndUse.new(meter: "#{Constants.ObjectNameMiscLighting}:InteriorEquipment:Gas"),
-      [FT::Gas, EUT::Fireplace] => EndUse.new(meter: "#{Constants.ObjectNameMiscFireplace}:InteriorEquipment:Gas"),
-      [FT::Oil, EUT::Heating] => EndUse.new(variable: OutputVars.SpaceHeatingFuelOil),
-      [FT::Oil, EUT::HotWater] => EndUse.new(variable: OutputVars.WaterHeatingFuelOil),
-      [FT::Oil, EUT::ClothesDryer] => EndUse.new(meter: "#{Constants.ObjectNameClothesDryer}:InteriorEquipment:FuelOil#1"),
-      [FT::Oil, EUT::RangeOven] => EndUse.new(meter: "#{Constants.ObjectNameCookingRange}:InteriorEquipment:FuelOil#1"),
-      [FT::Oil, EUT::Grill] => EndUse.new(meter: "#{Constants.ObjectNameMiscGrill}:InteriorEquipment:FuelOil#1"),
-      [FT::Oil, EUT::Lighting] => EndUse.new(meter: "#{Constants.ObjectNameMiscLighting}:InteriorEquipment:FuelOil#1"),
-      [FT::Oil, EUT::Fireplace] => EndUse.new(meter: "#{Constants.ObjectNameMiscFireplace}:InteriorEquipment:FuelOil#1"),
-      [FT::Propane, EUT::Heating] => EndUse.new(variable: OutputVars.SpaceHeatingPropane),
-      [FT::Propane, EUT::HotWater] => EndUse.new(variable: OutputVars.WaterHeatingPropane),
-      [FT::Propane, EUT::ClothesDryer] => EndUse.new(meter: "#{Constants.ObjectNameClothesDryer}:InteriorEquipment:Propane"),
-      [FT::Propane, EUT::RangeOven] => EndUse.new(meter: "#{Constants.ObjectNameCookingRange}:InteriorEquipment:Propane"),
-      [FT::Propane, EUT::Grill] => EndUse.new(meter: "#{Constants.ObjectNameMiscGrill}:InteriorEquipment:Propane"),
-      [FT::Propane, EUT::Lighting] => EndUse.new(meter: "#{Constants.ObjectNameMiscLighting}:InteriorEquipment:Propane"),
-      [FT::Propane, EUT::Fireplace] => EndUse.new(meter: "#{Constants.ObjectNameMiscFireplace}:InteriorEquipment:Propane"),
-      [FT::WoodCord, EUT::Heating] => EndUse.new(variable: OutputVars.SpaceHeatingWoodCord),
-      [FT::WoodCord, EUT::HotWater] => EndUse.new(variable: OutputVars.WaterHeatingWoodCord),
-      [FT::WoodCord, EUT::ClothesDryer] => EndUse.new(meter: "#{Constants.ObjectNameClothesDryer}:InteriorEquipment:OtherFuel1"),
-      [FT::WoodCord, EUT::RangeOven] => EndUse.new(meter: "#{Constants.ObjectNameCookingRange}:InteriorEquipment:OtherFuel1"),
-      [FT::WoodCord, EUT::Grill] => EndUse.new(meter: "#{Constants.ObjectNameMiscGrill}:InteriorEquipment:OtherFuel1"),
-      [FT::WoodCord, EUT::Lighting] => EndUse.new(meter: "#{Constants.ObjectNameMiscLighting}:InteriorEquipment:OtherFuel1"),
-      [FT::WoodCord, EUT::Fireplace] => EndUse.new(meter: "#{Constants.ObjectNameMiscFireplace}:InteriorEquipment:OtherFuel1"),
-      [FT::WoodPellets, EUT::Heating] => EndUse.new(variable: OutputVars.SpaceHeatingWoodPellets),
-      [FT::WoodPellets, EUT::HotWater] => EndUse.new(variable: OutputVars.WaterHeatingWoodPellets),
-      [FT::WoodPellets, EUT::ClothesDryer] => EndUse.new(meter: "#{Constants.ObjectNameClothesDryer}:InteriorEquipment:OtherFuel2"),
-      [FT::WoodPellets, EUT::RangeOven] => EndUse.new(meter: "#{Constants.ObjectNameCookingRange}:InteriorEquipment:OtherFuel2"),
-      [FT::WoodPellets, EUT::Grill] => EndUse.new(meter: "#{Constants.ObjectNameMiscGrill}:InteriorEquipment:OtherFuel2"),
-      [FT::WoodPellets, EUT::Lighting] => EndUse.new(meter: "#{Constants.ObjectNameMiscLighting}:InteriorEquipment:OtherFuel2"),
-      [FT::WoodPellets, EUT::Fireplace] => EndUse.new(meter: "#{Constants.ObjectNameMiscFireplace}:InteriorEquipment:OtherFuel2"),
-    }
+    @end_uses = {}
+    @end_uses[[FT::Elec, EUT::Heating]] = EndUse.new(variable: OutputVars.SpaceHeatingElectricity)
+    @end_uses[[FT::Elec, EUT::HeatingFanPump]] = EndUse.new()
+    @end_uses[[FT::Elec, EUT::Cooling]] = EndUse.new(variable: OutputVars.SpaceCoolingElectricity)
+    @end_uses[[FT::Elec, EUT::CoolingFanPump]] = EndUse.new()
+    @end_uses[[FT::Elec, EUT::HotWater]] = EndUse.new(variable: OutputVars.WaterHeatingElectricity)
+    @end_uses[[FT::Elec, EUT::HotWaterRecircPump]] = EndUse.new(variable: OutputVars.WaterHeatingElectricityRecircPump)
+    @end_uses[[FT::Elec, EUT::HotWaterSolarThermalPump]] = EndUse.new(variable: OutputVars.WaterHeatingElectricitySolarThermalPump)
+    @end_uses[[FT::Elec, EUT::LightsInterior]] = EndUse.new(meter: "#{Constants.ObjectNameInteriorLighting}:InteriorLights:Electricity")
+    @end_uses[[FT::Elec, EUT::LightsGarage]] = EndUse.new(meter: "#{Constants.ObjectNameGarageLighting}:InteriorLights:Electricity")
+    @end_uses[[FT::Elec, EUT::LightsExterior]] = EndUse.new(meter: 'ExteriorLights:Electricity')
+    @end_uses[[FT::Elec, EUT::MechVent]] = EndUse.new(meter: "#{Constants.ObjectNameMechanicalVentilation}:InteriorEquipment:Electricity")
+    @end_uses[[FT::Elec, EUT::WholeHouseFan]] = EndUse.new(meter: "#{Constants.ObjectNameWholeHouseFan}:InteriorEquipment:Electricity")
+    @end_uses[[FT::Elec, EUT::Refrigerator]] = EndUse.new(meter: "#{Constants.ObjectNameRefrigerator}:InteriorEquipment:Electricity")
+    if @eri_design.nil? # Skip end uses not used by ERI
+      @end_uses[[FT::Elec, EUT::Freezer]] = EndUse.new(meter: "#{Constants.ObjectNameFreezer}:InteriorEquipment:Electricity")
+    end
+    @end_uses[[FT::Elec, EUT::Dehumidifier]] = EndUse.new(variable: OutputVars.DehumidifierElectricity)
+    @end_uses[[FT::Elec, EUT::Dishwasher]] = EndUse.new(meter: "#{Constants.ObjectNameDishwasher}:InteriorEquipment:Electricity")
+    @end_uses[[FT::Elec, EUT::ClothesWasher]] = EndUse.new(meter: "#{Constants.ObjectNameClothesWasher}:InteriorEquipment:Electricity")
+    @end_uses[[FT::Elec, EUT::ClothesDryer]] = EndUse.new(meter: "#{Constants.ObjectNameClothesDryer}:InteriorEquipment:Electricity")
+    @end_uses[[FT::Elec, EUT::RangeOven]] = EndUse.new(meter: "#{Constants.ObjectNameCookingRange}:InteriorEquipment:Electricity")
+    @end_uses[[FT::Elec, EUT::CeilingFan]] = EndUse.new(meter: "#{Constants.ObjectNameCeilingFan}:InteriorEquipment:Electricity")
+    @end_uses[[FT::Elec, EUT::Television]] = EndUse.new(meter: "#{Constants.ObjectNameMiscTelevision}:InteriorEquipment:Electricity")
+    @end_uses[[FT::Elec, EUT::PlugLoads]] = EndUse.new(meter: "#{Constants.ObjectNameMiscPlugLoads}:InteriorEquipment:Electricity")
+    if @eri_design.nil? # Skip end uses not used by ERI
+      @end_uses[[FT::Elec, EUT::Vehicle]] = EndUse.new(meter: "#{Constants.ObjectNameMiscElectricVehicleCharging}:InteriorEquipment:Electricity")
+      @end_uses[[FT::Elec, EUT::WellPump]] = EndUse.new(meter: "#{Constants.ObjectNameMiscWellPump}:InteriorEquipment:Electricity")
+      @end_uses[[FT::Elec, EUT::PoolHeater]] = EndUse.new(meter: "#{Constants.ObjectNameMiscPoolHeater}:InteriorEquipment:Electricity")
+      @end_uses[[FT::Elec, EUT::PoolPump]] = EndUse.new(meter: "#{Constants.ObjectNameMiscPoolPump}:InteriorEquipment:Electricity")
+      @end_uses[[FT::Elec, EUT::HotTubHeater]] = EndUse.new(meter: "#{Constants.ObjectNameMiscHotTubHeater}:InteriorEquipment:Electricity")
+      @end_uses[[FT::Elec, EUT::HotTubPump]] = EndUse.new(meter: "#{Constants.ObjectNameMiscHotTubPump}:InteriorEquipment:Electricity")
+    end
+    @end_uses[[FT::Elec, EUT::PV]] = EndUse.new(meter: 'ElectricityProduced:Facility')
+    @end_uses[[FT::Gas, EUT::Heating]] = EndUse.new(variable: OutputVars.SpaceHeatingFuel(EnergyPlus::FuelTypeNaturalGas))
+    @end_uses[[FT::Gas, EUT::HotWater]] = EndUse.new(variable: OutputVars.WaterHeatingFuel(EnergyPlus::FuelTypeNaturalGas))
+    @end_uses[[FT::Gas, EUT::ClothesDryer]] = EndUse.new(meter: "#{Constants.ObjectNameClothesDryer}:InteriorEquipment:#{ep_fuel_names[FT::Gas]}")
+    @end_uses[[FT::Gas, EUT::RangeOven]] = EndUse.new(meter: "#{Constants.ObjectNameCookingRange}:InteriorEquipment:#{ep_fuel_names[FT::Gas]}")
+    if @eri_design.nil? # Skip end uses not used by ERI
+      @end_uses[[FT::Gas, EUT::PoolHeater]] = EndUse.new(meter: "#{Constants.ObjectNameMiscPoolHeater}:InteriorEquipment:#{ep_fuel_names[FT::Gas]}")
+      @end_uses[[FT::Gas, EUT::HotTubHeater]] = EndUse.new(meter: "#{Constants.ObjectNameMiscHotTubHeater}:InteriorEquipment:#{ep_fuel_names[FT::Gas]}")
+      @end_uses[[FT::Gas, EUT::Grill]] = EndUse.new(meter: "#{Constants.ObjectNameMiscGrill}:InteriorEquipment:#{ep_fuel_names[FT::Gas]}")
+      @end_uses[[FT::Gas, EUT::Lighting]] = EndUse.new(meter: "#{Constants.ObjectNameMiscLighting}:InteriorEquipment:#{ep_fuel_names[FT::Gas]}")
+      @end_uses[[FT::Gas, EUT::Fireplace]] = EndUse.new(meter: "#{Constants.ObjectNameMiscFireplace}:InteriorEquipment:#{ep_fuel_names[FT::Gas]}")
+    end
+    @end_uses[[FT::Oil, EUT::Heating]] = EndUse.new(variable: OutputVars.SpaceHeatingFuel(EnergyPlus::FuelTypeOil))
+    @end_uses[[FT::Oil, EUT::HotWater]] = EndUse.new(variable: OutputVars.WaterHeatingFuel(EnergyPlus::FuelTypeOil))
+    @end_uses[[FT::Oil, EUT::ClothesDryer]] = EndUse.new(meter: "#{Constants.ObjectNameClothesDryer}:InteriorEquipment:#{ep_fuel_names[FT::Oil]}")
+    @end_uses[[FT::Oil, EUT::RangeOven]] = EndUse.new(meter: "#{Constants.ObjectNameCookingRange}:InteriorEquipment:#{ep_fuel_names[FT::Oil]}")
+    if @eri_design.nil? # Skip end uses not used by ERI
+      @end_uses[[FT::Oil, EUT::Grill]] = EndUse.new(meter: "#{Constants.ObjectNameMiscGrill}:InteriorEquipment:#{ep_fuel_names[FT::Oil]}")
+      @end_uses[[FT::Oil, EUT::Lighting]] = EndUse.new(meter: "#{Constants.ObjectNameMiscLighting}:InteriorEquipment:#{ep_fuel_names[FT::Oil]}")
+      @end_uses[[FT::Oil, EUT::Fireplace]] = EndUse.new(meter: "#{Constants.ObjectNameMiscFireplace}:InteriorEquipment:#{ep_fuel_names[FT::Oil]}")
+    end
+    @end_uses[[FT::Propane, EUT::Heating]] = EndUse.new(variable: OutputVars.SpaceHeatingFuel(EnergyPlus::FuelTypePropane))
+    @end_uses[[FT::Propane, EUT::HotWater]] = EndUse.new(variable: OutputVars.WaterHeatingFuel(EnergyPlus::FuelTypePropane))
+    @end_uses[[FT::Propane, EUT::ClothesDryer]] = EndUse.new(meter: "#{Constants.ObjectNameClothesDryer}:InteriorEquipment:#{ep_fuel_names[FT::Propane]}")
+    @end_uses[[FT::Propane, EUT::RangeOven]] = EndUse.new(meter: "#{Constants.ObjectNameCookingRange}:InteriorEquipment:#{ep_fuel_names[FT::Propane]}")
+    if @eri_design.nil? # Skip end uses not used by ERI
+      @end_uses[[FT::Propane, EUT::Grill]] = EndUse.new(meter: "#{Constants.ObjectNameMiscGrill}:InteriorEquipment:#{ep_fuel_names[FT::Propane]}")
+      @end_uses[[FT::Propane, EUT::Lighting]] = EndUse.new(meter: "#{Constants.ObjectNameMiscLighting}:InteriorEquipment:#{ep_fuel_names[FT::Propane]}")
+      @end_uses[[FT::Propane, EUT::Fireplace]] = EndUse.new(meter: "#{Constants.ObjectNameMiscFireplace}:InteriorEquipment:#{ep_fuel_names[FT::Propane]}")
+    end
+    @end_uses[[FT::WoodCord, EUT::Heating]] = EndUse.new(variable: OutputVars.SpaceHeatingFuel(EnergyPlus::FuelTypeWoodCord))
+    @end_uses[[FT::WoodCord, EUT::HotWater]] = EndUse.new(variable: OutputVars.WaterHeatingFuel(EnergyPlus::FuelTypeWoodCord))
+    @end_uses[[FT::WoodCord, EUT::ClothesDryer]] = EndUse.new(meter: "#{Constants.ObjectNameClothesDryer}:InteriorEquipment:#{ep_fuel_names[FT::WoodCord]}")
+    @end_uses[[FT::WoodCord, EUT::RangeOven]] = EndUse.new(meter: "#{Constants.ObjectNameCookingRange}:InteriorEquipment:#{ep_fuel_names[FT::WoodCord]}")
+    if @eri_design.nil? # Skip end uses not used by ERI
+      @end_uses[[FT::WoodCord, EUT::Grill]] = EndUse.new(meter: "#{Constants.ObjectNameMiscGrill}:InteriorEquipment:#{ep_fuel_names[FT::WoodCord]}")
+      @end_uses[[FT::WoodCord, EUT::Lighting]] = EndUse.new(meter: "#{Constants.ObjectNameMiscLighting}:InteriorEquipment:#{ep_fuel_names[FT::WoodCord]}")
+      @end_uses[[FT::WoodCord, EUT::Fireplace]] = EndUse.new(meter: "#{Constants.ObjectNameMiscFireplace}:InteriorEquipment:#{ep_fuel_names[FT::WoodCord]}")
+    end
+    @end_uses[[FT::WoodPellets, EUT::Heating]] = EndUse.new(variable: OutputVars.SpaceHeatingFuel(EnergyPlus::FuelTypeWoodPellets))
+    @end_uses[[FT::WoodPellets, EUT::HotWater]] = EndUse.new(variable: OutputVars.WaterHeatingFuel(EnergyPlus::FuelTypeWoodPellets))
+    @end_uses[[FT::WoodPellets, EUT::ClothesDryer]] = EndUse.new(meter: "#{Constants.ObjectNameClothesDryer}:InteriorEquipment:#{ep_fuel_names[FT::WoodPellets]}")
+    @end_uses[[FT::WoodPellets, EUT::RangeOven]] = EndUse.new(meter: "#{Constants.ObjectNameCookingRange}:InteriorEquipment:#{ep_fuel_names[FT::WoodPellets]}")
+    if @eri_design.nil? # Skip end uses not used by ERI
+      @end_uses[[FT::WoodPellets, EUT::Grill]] = EndUse.new(meter: "#{Constants.ObjectNameMiscGrill}:InteriorEquipment:#{ep_fuel_names[FT::WoodPellets]}")
+      @end_uses[[FT::WoodPellets, EUT::Lighting]] = EndUse.new(meter: "#{Constants.ObjectNameMiscLighting}:InteriorEquipment:#{ep_fuel_names[FT::WoodPellets]}")
+      @end_uses[[FT::WoodPellets, EUT::Fireplace]] = EndUse.new(meter: "#{Constants.ObjectNameMiscFireplace}:InteriorEquipment:#{ep_fuel_names[FT::WoodPellets]}")
+    end
+    @end_uses[[FT::Coal, EUT::Heating]] = EndUse.new(variable: OutputVars.SpaceHeatingFuel(EnergyPlus::FuelTypeCoal))
+    @end_uses[[FT::Coal, EUT::HotWater]] = EndUse.new(variable: OutputVars.WaterHeatingFuel(EnergyPlus::FuelTypeCoal))
+    @end_uses[[FT::Coal, EUT::ClothesDryer]] = EndUse.new(meter: "#{Constants.ObjectNameClothesDryer}:InteriorEquipment:#{ep_fuel_names[FT::Coal]}")
+    @end_uses[[FT::Coal, EUT::RangeOven]] = EndUse.new(meter: "#{Constants.ObjectNameCookingRange}:InteriorEquipment:#{ep_fuel_names[FT::Coal]}")
+    if @eri_design.nil? # Skip end uses not used by ERI
+      @end_uses[[FT::Coal, EUT::Grill]] = EndUse.new(meter: "#{Constants.ObjectNameMiscGrill}:InteriorEquipment:#{ep_fuel_names[FT::Coal]}")
+      @end_uses[[FT::Coal, EUT::Lighting]] = EndUse.new(meter: "#{Constants.ObjectNameMiscLighting}:InteriorEquipment:#{ep_fuel_names[FT::Coal]}")
+      @end_uses[[FT::Coal, EUT::Fireplace]] = EndUse.new(meter: "#{Constants.ObjectNameMiscFireplace}:InteriorEquipment:#{ep_fuel_names[FT::Coal]}")
+    end
 
     @end_uses.each do |key, end_use|
       fuel_type, end_use_type = key
@@ -1876,12 +1910,11 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     end
 
     # Hot Water Uses
-    @hot_water_uses = {
-      HWT::ClothesWasher => HotWater.new(key: Constants.ObjectNameClothesWasher),
-      HWT::Dishwasher => HotWater.new(key: Constants.ObjectNameDishwasher),
-      HWT::Fixtures => HotWater.new(key: Constants.ObjectNameFixtures),
-      HWT::DistributionWaste => HotWater.new(key: Constants.ObjectNameDistributionWaste)
-    }
+    @hot_water_uses = {}
+    @hot_water_uses[HWT::ClothesWasher] = HotWater.new(key: Constants.ObjectNameClothesWasher)
+    @hot_water_uses[HWT::Dishwasher] = HotWater.new(key: Constants.ObjectNameDishwasher)
+    @hot_water_uses[HWT::Fixtures] = HotWater.new(key: Constants.ObjectNameFixtures)
+    @hot_water_uses[HWT::DistributionWaste] = HotWater.new(key: Constants.ObjectNameDistributionWaste)
 
     @hot_water_uses.each do |hot_water_type, hot_water|
       hot_water.variable = 'Water Use Equipment Hot Water Volume'
@@ -1891,10 +1924,9 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     end
 
     # Peak Fuels
-    @peak_fuels = {
-      [FT::Elec, PFT::Winter] => PeakFuel.new(meter: 'Heating:EnergyTransfer', report: 'Peak Electricity Winter Total'),
-      [FT::Elec, PFT::Summer] => PeakFuel.new(meter: 'Cooling:EnergyTransfer', report: 'Peak Electricity Summer Total'),
-    }
+    @peak_fuels = {}
+    @peak_fuels[[FT::Elec, PFT::Winter]] = PeakFuel.new(meter: 'Heating:EnergyTransfer', report: 'Peak Electricity Winter Total')
+    @peak_fuels[[FT::Elec, PFT::Summer]] = PeakFuel.new(meter: 'Cooling:EnergyTransfer', report: 'Peak Electricity Summer Total')
 
     @peak_fuels.each do |key, peak_fuel|
       fuel_type, peak_fuel_type = key
@@ -1904,14 +1936,13 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
     # Loads
 
-    @loads = {
-      LT::Heating => Load.new(ems_variable: 'loads_htg_tot'),
-      LT::Cooling => Load.new(ems_variable: 'loads_clg_tot'),
-      LT::HotWaterDelivered => Load.new(variable: OutputVars.WaterHeatingLoad),
-      LT::HotWaterTankLosses => Load.new(),
-      LT::HotWaterDesuperheater => Load.new(variable: OutputVars.WaterHeaterLoadDesuperheater),
-      LT::HotWaterSolarThermal => Load.new(),
-    }
+    @loads = {}
+    @loads[LT::Heating] = Load.new(ems_variable: 'loads_htg_tot')
+    @loads[LT::Cooling] = Load.new(ems_variable: 'loads_clg_tot')
+    @loads[LT::HotWaterDelivered] = Load.new(variable: OutputVars.WaterHeatingLoad)
+    @loads[LT::HotWaterTankLosses] = Load.new()
+    @loads[LT::HotWaterDesuperheater] = Load.new(variable: OutputVars.WaterHeaterLoadDesuperheater)
+    @loads[LT::HotWaterSolarThermal] = Load.new()
 
     @loads.each do |load_type, load|
       load.name = "Load: #{load_type}"
@@ -1921,42 +1952,41 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
     # Component Loads
 
-    @component_loads = {
-      [LT::Heating, CLT::Roofs] => ComponentLoad.new(ems_variable: 'loads_htg_roofs'),
-      [LT::Heating, CLT::Ceilings] => ComponentLoad.new(ems_variable: 'loads_htg_ceilings'),
-      [LT::Heating, CLT::Walls] => ComponentLoad.new(ems_variable: 'loads_htg_walls'),
-      [LT::Heating, CLT::RimJoists] => ComponentLoad.new(ems_variable: 'loads_htg_rim_joists'),
-      [LT::Heating, CLT::FoundationWalls] => ComponentLoad.new(ems_variable: 'loads_htg_foundation_walls'),
-      [LT::Heating, CLT::Doors] => ComponentLoad.new(ems_variable: 'loads_htg_doors'),
-      [LT::Heating, CLT::Windows] => ComponentLoad.new(ems_variable: 'loads_htg_windows'),
-      [LT::Heating, CLT::Skylights] => ComponentLoad.new(ems_variable: 'loads_htg_skylights'),
-      [LT::Heating, CLT::Floors] => ComponentLoad.new(ems_variable: 'loads_htg_floors'),
-      [LT::Heating, CLT::Slabs] => ComponentLoad.new(ems_variable: 'loads_htg_slabs'),
-      [LT::Heating, CLT::InternalMass] => ComponentLoad.new(ems_variable: 'loads_htg_internal_mass'),
-      [LT::Heating, CLT::Infiltration] => ComponentLoad.new(ems_variable: 'loads_htg_infil'),
-      [LT::Heating, CLT::NaturalVentilation] => ComponentLoad.new(ems_variable: 'loads_htg_natvent'),
-      [LT::Heating, CLT::MechanicalVentilation] => ComponentLoad.new(ems_variable: 'loads_htg_mechvent'),
-      [LT::Heating, CLT::WholeHouseFan] => ComponentLoad.new(ems_variable: 'loads_htg_whf'),
-      [LT::Heating, CLT::Ducts] => ComponentLoad.new(ems_variable: 'loads_htg_ducts'),
-      [LT::Heating, CLT::InternalGains] => ComponentLoad.new(ems_variable: 'loads_htg_intgains'),
-      [LT::Cooling, CLT::Roofs] => ComponentLoad.new(ems_variable: 'loads_clg_roofs'),
-      [LT::Cooling, CLT::Ceilings] => ComponentLoad.new(ems_variable: 'loads_clg_ceilings'),
-      [LT::Cooling, CLT::Walls] => ComponentLoad.new(ems_variable: 'loads_clg_walls'),
-      [LT::Cooling, CLT::RimJoists] => ComponentLoad.new(ems_variable: 'loads_clg_rim_joists'),
-      [LT::Cooling, CLT::FoundationWalls] => ComponentLoad.new(ems_variable: 'loads_clg_foundation_walls'),
-      [LT::Cooling, CLT::Doors] => ComponentLoad.new(ems_variable: 'loads_clg_doors'),
-      [LT::Cooling, CLT::Windows] => ComponentLoad.new(ems_variable: 'loads_clg_windows'),
-      [LT::Cooling, CLT::Skylights] => ComponentLoad.new(ems_variable: 'loads_clg_skylights'),
-      [LT::Cooling, CLT::Floors] => ComponentLoad.new(ems_variable: 'loads_clg_floors'),
-      [LT::Cooling, CLT::Slabs] => ComponentLoad.new(ems_variable: 'loads_clg_slabs'),
-      [LT::Cooling, CLT::InternalMass] => ComponentLoad.new(ems_variable: 'loads_clg_internal_mass'),
-      [LT::Cooling, CLT::Infiltration] => ComponentLoad.new(ems_variable: 'loads_clg_infil'),
-      [LT::Cooling, CLT::NaturalVentilation] => ComponentLoad.new(ems_variable: 'loads_clg_natvent'),
-      [LT::Cooling, CLT::MechanicalVentilation] => ComponentLoad.new(ems_variable: 'loads_clg_mechvent'),
-      [LT::Cooling, CLT::WholeHouseFan] => ComponentLoad.new(ems_variable: 'loads_clg_whf'),
-      [LT::Cooling, CLT::Ducts] => ComponentLoad.new(ems_variable: 'loads_clg_ducts'),
-      [LT::Cooling, CLT::InternalGains] => ComponentLoad.new(ems_variable: 'loads_clg_intgains'),
-    }
+    @component_loads = {}
+    @component_loads[[LT::Heating, CLT::Roofs]] = ComponentLoad.new(ems_variable: 'loads_htg_roofs')
+    @component_loads[[LT::Heating, CLT::Ceilings]] = ComponentLoad.new(ems_variable: 'loads_htg_ceilings')
+    @component_loads[[LT::Heating, CLT::Walls]] = ComponentLoad.new(ems_variable: 'loads_htg_walls')
+    @component_loads[[LT::Heating, CLT::RimJoists]] = ComponentLoad.new(ems_variable: 'loads_htg_rim_joists')
+    @component_loads[[LT::Heating, CLT::FoundationWalls]] = ComponentLoad.new(ems_variable: 'loads_htg_foundation_walls')
+    @component_loads[[LT::Heating, CLT::Doors]] = ComponentLoad.new(ems_variable: 'loads_htg_doors')
+    @component_loads[[LT::Heating, CLT::Windows]] = ComponentLoad.new(ems_variable: 'loads_htg_windows')
+    @component_loads[[LT::Heating, CLT::Skylights]] = ComponentLoad.new(ems_variable: 'loads_htg_skylights')
+    @component_loads[[LT::Heating, CLT::Floors]] = ComponentLoad.new(ems_variable: 'loads_htg_floors')
+    @component_loads[[LT::Heating, CLT::Slabs]] = ComponentLoad.new(ems_variable: 'loads_htg_slabs')
+    @component_loads[[LT::Heating, CLT::InternalMass]] = ComponentLoad.new(ems_variable: 'loads_htg_internal_mass')
+    @component_loads[[LT::Heating, CLT::Infiltration]] = ComponentLoad.new(ems_variable: 'loads_htg_infil')
+    @component_loads[[LT::Heating, CLT::NaturalVentilation]] = ComponentLoad.new(ems_variable: 'loads_htg_natvent')
+    @component_loads[[LT::Heating, CLT::MechanicalVentilation]] = ComponentLoad.new(ems_variable: 'loads_htg_mechvent')
+    @component_loads[[LT::Heating, CLT::WholeHouseFan]] = ComponentLoad.new(ems_variable: 'loads_htg_whf')
+    @component_loads[[LT::Heating, CLT::Ducts]] = ComponentLoad.new(ems_variable: 'loads_htg_ducts')
+    @component_loads[[LT::Heating, CLT::InternalGains]] = ComponentLoad.new(ems_variable: 'loads_htg_intgains')
+    @component_loads[[LT::Cooling, CLT::Roofs]] = ComponentLoad.new(ems_variable: 'loads_clg_roofs')
+    @component_loads[[LT::Cooling, CLT::Ceilings]] = ComponentLoad.new(ems_variable: 'loads_clg_ceilings')
+    @component_loads[[LT::Cooling, CLT::Walls]] = ComponentLoad.new(ems_variable: 'loads_clg_walls')
+    @component_loads[[LT::Cooling, CLT::RimJoists]] = ComponentLoad.new(ems_variable: 'loads_clg_rim_joists')
+    @component_loads[[LT::Cooling, CLT::FoundationWalls]] = ComponentLoad.new(ems_variable: 'loads_clg_foundation_walls')
+    @component_loads[[LT::Cooling, CLT::Doors]] = ComponentLoad.new(ems_variable: 'loads_clg_doors')
+    @component_loads[[LT::Cooling, CLT::Windows]] = ComponentLoad.new(ems_variable: 'loads_clg_windows')
+    @component_loads[[LT::Cooling, CLT::Skylights]] = ComponentLoad.new(ems_variable: 'loads_clg_skylights')
+    @component_loads[[LT::Cooling, CLT::Floors]] = ComponentLoad.new(ems_variable: 'loads_clg_floors')
+    @component_loads[[LT::Cooling, CLT::Slabs]] = ComponentLoad.new(ems_variable: 'loads_clg_slabs')
+    @component_loads[[LT::Cooling, CLT::InternalMass]] = ComponentLoad.new(ems_variable: 'loads_clg_internal_mass')
+    @component_loads[[LT::Cooling, CLT::Infiltration]] = ComponentLoad.new(ems_variable: 'loads_clg_infil')
+    @component_loads[[LT::Cooling, CLT::NaturalVentilation]] = ComponentLoad.new(ems_variable: 'loads_clg_natvent')
+    @component_loads[[LT::Cooling, CLT::MechanicalVentilation]] = ComponentLoad.new(ems_variable: 'loads_clg_mechvent')
+    @component_loads[[LT::Cooling, CLT::WholeHouseFan]] = ComponentLoad.new(ems_variable: 'loads_clg_whf')
+    @component_loads[[LT::Cooling, CLT::Ducts]] = ComponentLoad.new(ems_variable: 'loads_clg_ducts')
+    @component_loads[[LT::Cooling, CLT::InternalGains]] = ComponentLoad.new(ems_variable: 'loads_clg_intgains')
 
     @component_loads.each do |key, comp_load|
       load_type, comp_load_type = key
@@ -1966,21 +1996,29 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     end
 
     # Unmet Loads
-    @unmet_loads = {
-      LT::Heating => UnmetLoad.new(variable: 'Zone Ideal Loads Zone Sensible Heating Energy'),
-      LT::Cooling => UnmetLoad.new(variable: 'Zone Ideal Loads Zone Sensible Cooling Energy'),
-    }
+    @unmet_loads = {}
+    @unmet_loads[LT::Heating] = UnmetLoad.new(variable: 'Zone Ideal Loads Zone Sensible Heating Energy')
+    @unmet_loads[LT::Cooling] = UnmetLoad.new(variable: 'Zone Ideal Loads Zone Sensible Cooling Energy')
 
     @unmet_loads.each do |load_type, unmet_load|
       unmet_load.name = "Unmet Load: #{load_type}"
       unmet_load.annual_units = 'MBtu'
     end
 
+    # Ideal System Loads (expected fraction of loads that are not met by HVAC)
+    @ideal_system_loads = {}
+    @ideal_system_loads[LT::Heating] = UnmetLoad.new(variable: 'Zone Ideal Loads Zone Sensible Heating Energy')
+    @ideal_system_loads[LT::Cooling] = UnmetLoad.new(variable: 'Zone Ideal Loads Zone Sensible Cooling Energy')
+
+    @ideal_system_loads.each do |load_type, unmet_load|
+      unmet_load.name = "Ideal System Load: #{load_type}"
+      unmet_load.annual_units = 'MBtu'
+    end
+
     # Peak Loads
-    @peak_loads = {
-      LT::Heating => PeakLoad.new(meter: 'Heating:EnergyTransfer'),
-      LT::Cooling => PeakLoad.new(meter: 'Cooling:EnergyTransfer'),
-    }
+    @peak_loads = {}
+    @peak_loads[LT::Heating] = PeakLoad.new(meter: 'Heating:EnergyTransfer')
+    @peak_loads[LT::Cooling] = PeakLoad.new(meter: 'Cooling:EnergyTransfer')
 
     @peak_loads.each do |load_type, peak_load|
       peak_load.name = "Peak Load: #{load_type}"
@@ -1992,12 +2030,11 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     @zone_temps = {}
 
     # Airflows
-    @airflows = {
-      AFT::Infiltration => Airflow.new(ems_program: Constants.ObjectNameInfiltration + ' program', ems_variables: [(Constants.ObjectNameInfiltration + ' flow act').gsub(' ', '_')]),
-      AFT::MechanicalVentilation => Airflow.new(ems_program: Constants.ObjectNameInfiltration + ' program', ems_variables: [(Constants.ObjectNameMechanicalVentilation + ' flow act').gsub(' ', '_'), 'balanced_mechvent_flow_rate']),
-      AFT::NaturalVentilation => Airflow.new(ems_program: Constants.ObjectNameNaturalVentilation + ' program', ems_variables: [(Constants.ObjectNameNaturalVentilation + ' flow act').gsub(' ', '_')]),
-      AFT::WholeHouseFan => Airflow.new(ems_program: Constants.ObjectNameNaturalVentilation + ' program', ems_variables: [(Constants.ObjectNameWholeHouseFan + ' flow act').gsub(' ', '_')]),
-    }
+    @airflows = {}
+    @airflows[AFT::Infiltration] = Airflow.new(ems_program: Constants.ObjectNameInfiltration + ' program', ems_variables: [(Constants.ObjectNameInfiltration + ' flow act').gsub(' ', '_')])
+    @airflows[AFT::MechanicalVentilation] = Airflow.new(ems_program: Constants.ObjectNameInfiltration + ' program', ems_variables: [(Constants.ObjectNameMechanicalVentilation + ' flow act').gsub(' ', '_'), 'balanced_mechvent_flow_rate'])
+    @airflows[AFT::NaturalVentilation] = Airflow.new(ems_program: Constants.ObjectNameNaturalVentilation + ' program', ems_variables: [(Constants.ObjectNameNaturalVentilation + ' flow act').gsub(' ', '_')])
+    @airflows[AFT::WholeHouseFan] = Airflow.new(ems_program: Constants.ObjectNameNaturalVentilation + ' program', ems_variables: [(Constants.ObjectNameWholeHouseFan + ' flow act').gsub(' ', '_')])
 
     @airflows.each do |airflow_type, airflow|
       airflow.name = "Airflow: #{airflow_type}"
@@ -2005,14 +2042,13 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     end
 
     # Weather
-    @weather = {
-      WT::DrybulbTemp => Weather.new(variable: 'Site Outdoor Air Drybulb Temperature', variable_units: 'C', timeseries_units: 'F'),
-      WT::WetbulbTemp => Weather.new(variable: 'Site Outdoor Air Wetbulb Temperature', variable_units: 'C', timeseries_units: 'F'),
-      WT::RelativeHumidity => Weather.new(variable: 'Site Outdoor Air Relative Humidity', variable_units: '%', timeseries_units: '%'),
-      WT::WindSpeed => Weather.new(variable: 'Site Wind Speed', variable_units: 'm/s', timeseries_units: 'mph'),
-      WT::DiffuseSolar => Weather.new(variable: 'Site Diffuse Solar Radiation Rate per Area', variable_units: 'W/m^2', timeseries_units: 'Btu/(hr*ft^2)'),
-      WT::DirectSolar => Weather.new(variable: 'Site Direct Solar Radiation Rate per Area', variable_units: 'W/m^2', timeseries_units: 'Btu/(hr*ft^2)'),
-    }
+    @weather = {}
+    @weather[WT::DrybulbTemp] = Weather.new(variable: 'Site Outdoor Air Drybulb Temperature', variable_units: 'C', timeseries_units: 'F')
+    @weather[WT::WetbulbTemp] = Weather.new(variable: 'Site Outdoor Air Wetbulb Temperature', variable_units: 'C', timeseries_units: 'F')
+    @weather[WT::RelativeHumidity] = Weather.new(variable: 'Site Outdoor Air Relative Humidity', variable_units: '%', timeseries_units: '%')
+    @weather[WT::WindSpeed] = Weather.new(variable: 'Site Wind Speed', variable_units: 'm/s', timeseries_units: 'mph')
+    @weather[WT::DiffuseSolar] = Weather.new(variable: 'Site Diffuse Solar Radiation Rate per Area', variable_units: 'W/m^2', timeseries_units: 'Btu/(hr*ft^2)')
+    @weather[WT::DirectSolar] = Weather.new(variable: 'Site Direct Solar Radiation Rate per Area', variable_units: 'W/m^2', timeseries_units: 'Btu/(hr*ft^2)')
 
     @weather.each do |weather_type, weather_data|
       weather_data.name = "Weather: #{weather_type}"
@@ -2038,34 +2074,11 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
                'OpenStudio::Model::BoilerHotWater' => ['Boiler Electric Energy'] }
     end
 
-    def self.SpaceHeatingNaturalGas
-      return { 'OpenStudio::Model::CoilHeatingGas' => ['Heating Coil Gas Energy'],
-               'OpenStudio::Model::ZoneHVACBaseboardConvectiveElectric' => ['Baseboard Gas Energy'],
-               'OpenStudio::Model::BoilerHotWater' => ['Boiler Gas Energy'] }
-    end
-
-    def self.SpaceHeatingFuelOil
-      return { 'OpenStudio::Model::CoilHeatingGas' => ['Heating Coil FuelOil#1 Energy'],
-               'OpenStudio::Model::ZoneHVACBaseboardConvectiveElectric' => ['Baseboard FuelOil#1 Energy'],
-               'OpenStudio::Model::BoilerHotWater' => ['Boiler FuelOil#1 Energy'] }
-    end
-
-    def self.SpaceHeatingPropane
-      return { 'OpenStudio::Model::CoilHeatingGas' => ['Heating Coil Propane Energy'],
-               'OpenStudio::Model::ZoneHVACBaseboardConvectiveElectric' => ['Baseboard Propane Energy'],
-               'OpenStudio::Model::BoilerHotWater' => ['Boiler Propane Energy'] }
-    end
-
-    def self.SpaceHeatingWoodCord
-      return { 'OpenStudio::Model::CoilHeatingGas' => ['Heating Coil OtherFuel1 Energy'],
-               'OpenStudio::Model::ZoneHVACBaseboardConvectiveElectric' => ['Baseboard OtherFuel1 Energy'],
-               'OpenStudio::Model::BoilerHotWater' => ['Boiler OtherFuel1 Energy'] }
-    end
-
-    def self.SpaceHeatingWoodPellets
-      return { 'OpenStudio::Model::CoilHeatingGas' => ['Heating Coil OtherFuel2 Energy'],
-               'OpenStudio::Model::ZoneHVACBaseboardConvectiveElectric' => ['Baseboard OtherFuel2 Energy'],
-               'OpenStudio::Model::BoilerHotWater' => ['Boiler OtherFuel2 Energy'] }
+    def self.SpaceHeatingFuel(fuel)
+      fuel = EnergyPlus.output_fuel_map(fuel)
+      return { 'OpenStudio::Model::CoilHeatingGas' => ["Heating Coil #{fuel} Energy"],
+               'OpenStudio::Model::ZoneHVACBaseboardConvectiveElectric' => ["Baseboard #{fuel} Energy"],
+               'OpenStudio::Model::BoilerHotWater' => ["Boiler #{fuel} Energy"] }
     end
 
     def self.SpaceHeatingDFHPPrimaryLoad
@@ -2103,29 +2116,10 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       return { 'OpenStudio::Model::ElectricEquipment' => ['Electric Equipment Electric Energy'] }
     end
 
-    def self.WaterHeatingNaturalGas
-      return { 'OpenStudio::Model::WaterHeaterMixed' => ['Water Heater Gas Energy'],
-               'OpenStudio::Model::WaterHeaterStratified' => ['Water Heater Gas Energy'] }
-    end
-
-    def self.WaterHeatingFuelOil
-      return { 'OpenStudio::Model::WaterHeaterMixed' => ['Water Heater FuelOil#1 Energy'],
-               'OpenStudio::Model::WaterHeaterStratified' => ['Water Heater FuelOil#1 Energy'] }
-    end
-
-    def self.WaterHeatingPropane
-      return { 'OpenStudio::Model::WaterHeaterMixed' => ['Water Heater Propane Energy'],
-               'OpenStudio::Model::WaterHeaterStratified' => ['Water Heater Propane Energy'] }
-    end
-
-    def self.WaterHeatingWoodCord
-      return { 'OpenStudio::Model::WaterHeaterMixed' => ['Water Heater OtherFuel1 Energy'],
-               'OpenStudio::Model::WaterHeaterStratified' => ['Water Heater OtherFuel1 Energy'] }
-    end
-
-    def self.WaterHeatingWoodPellets
-      return { 'OpenStudio::Model::WaterHeaterMixed' => ['Water Heater OtherFuel2 Energy'],
-               'OpenStudio::Model::WaterHeaterStratified' => ['Water Heater OtherFuel2 Energy'] }
+    def self.WaterHeatingFuel(fuel)
+      fuel = EnergyPlus.output_fuel_map(fuel)
+      return { 'OpenStudio::Model::WaterHeaterMixed' => ["Water Heater #{fuel} Energy"],
+               'OpenStudio::Model::WaterHeaterStratified' => ["Water Heater #{fuel} Energy"] }
     end
 
     def self.WaterHeatingLoad
