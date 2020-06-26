@@ -1,4 +1,4 @@
-The `master` branch is under active development. Find the latest release [here](https://github.com/NREL/OpenStudio-BuildStock/releases).
+The `main` branch is under active development. Find the latest release [here](https://github.com/NREL/OpenStudio-BuildStock/releases).
 
 OpenStudio-BuildStock
 ===================
@@ -8,15 +8,24 @@ OpenStudio-BuildStock
 [![Documentation Status](https://readthedocs.org/projects/resstock/badge/?version=latest)](https://resstock.readthedocs.io/en/latest/?badge=latest)
 [![codecov](https://codecov.io/gh/NREL/OpenStudio-BuildStock/branch/master/graph/badge.svg)](https://codecov.io/gh/NREL/OpenStudio-BuildStock)
 
-BuildStock, built on the [OpenStudio platform](http://openstudio.net), is a project geared at modeling the existing building stock for, e.g., national, regional, or local analysis, using the [EnergyPlus simulation engine](http://energyplus.net). It consists of ResStock™ and ComStock™, sister tools for modeling the residential and commercial building stock, respectively. 
+<img src="https://user-images.githubusercontent.com/1276021/85608250-1ff46b80-b612-11ea-903e-4ced367e5940.jpg" width="400">
 
-This project is a <b>work-in-progress</b>. We recommend using the latest [release](https://github.com/NREL/OpenStudio-BuildStock/releases).
+[ResStock™](https://www.nrel.gov/buildings/resstock.html), built on the [OpenStudio platform](http://openstudio.net), is a project geared at modeling existing residential building stocks at national, regional, or local scales with a high-degree of granularity (e.g., one physics-based simulation model for every 200 dwelling units), using the [EnergyPlus simulation engine](http://energyplus.net). Information about ComStock™, a sister tool for modeling the commercial building stock, can be found [here](https://www.nrel.gov/buildings/comstock.html). 
 
-![BuildStock workflow](https://user-images.githubusercontent.com/5861765/32569254-da2895c8-c47d-11e7-93cb-05fb4c8806d7.png)
+This repository contains:
 
-## ResStock for Multifamily Low-Rise
+- [Housing characteristics of the U.S. residential building stock](https://github.com/NREL/OpenStudio-BuildStock/tree/master/project_national/housing_characteristics), in the form of conditional probability distributions stored as tab-separated value (.tsv) files. A visualization of the dependency structure can be found [here](https://htmlpreview.github.io/?https://github.com/NREL/OpenStudio-BuildStock/blob/master/project_national/util/dependency_wheel/dep_wheel.html).
+- [A library of housing characteristic "options"](https://github.com/NREL/OpenStudio-BuildStock/blob/master/resources/options_lookup.tsv) that translate high-level characteristic parameters into arguments for [OpenStudio Measures](https://github.com/NREL/OpenStudio-BuildStock/tree/master/resources/measures), and which are referenced by the housing characteristic .tsv files and building energy upgrades defined in project definition files
+- Project definition files:
+  - v2.3.0 and later: [buildstockbatch YML files openable in any text editor](https://github.com/NREL/OpenStudio-BuildStock/blob/master/project_national/national.yml)
+  - v2.2.4 and prior: [Project folder openable in PAT](https://github.com/NREL/OpenStudio-BuildStock/tree/v2.2.4/project_singlefamilydetached)
+- [Building-level OpenStudio Measures](https://github.com/NREL/OpenStudio-BuildStock/tree/master/resources/measures) for automatically constructing OpenStudio Models of each representative building model
+- [Higher-level OpenStudio Measures](https://github.com/NREL/OpenStudio-BuildStock/tree/master/measures) for controlling simulation inputs and outputs
 
-A [pre-release](https://github.com/NREL/OpenStudio-BuildStock/releases/tag/v2.0.0) of ResStock with Multifamily Low-Rise capabilities is now available!
+This repository does not contain software for running ResStock simulations, which can be found as follows:
 
-This dependency graph illustrates the relationship between the conditional probability distributions used to describe the U.S. residential building stock. Blue color indicates the parameters and dependencies added to represent for the low-rise multifamily sector.
-![image](https://user-images.githubusercontent.com/1276021/40512741-fa539b58-5f60-11e8-8423-36efd677b81d.png)
+ - [Versions 2.2.4](https://github.com/NREL/OpenStudio-BuildStock/releases/tag/v2.2.4) and prior support the use of the publicly available [OpenStudio-PAT](https://github.com/NREL/OpenStudio-PAT) software as an interface for deploying simulations on cloud computing. Read the [documentation for v2.2.4](https://resstock.readthedocs.io/en/v2.2.4/).
+ - [Versions 2.3.0](https://github.com/NREL/OpenStudio-BuildStock/releases/tag/untagged-af060c990f21d5ca539f) and later only support the use of [buildstockbatch](https://github.com/NREL/buildstockbatch), which is not yet publicly available, for deploying simulations on high-performance or cloud computing. Version 2.3.0 also removes separate projects for single-family detached and multifamily buildings, in lieu of a combined `project_national` representing the U.S. residential building stock. See the [changelog](https://github.com/NREL/OpenStudio-BuildStock/blob/master/CHANGELOG.md) for more details. 
+
+Note that calibration/validation of the multifamily sector, as well as timeseries output, is still ongoing, under the [End-Use Load Profile for the U.S. Building Stock project](https://www.nrel.gov/buildings/end-use-load-profiles.html).
+

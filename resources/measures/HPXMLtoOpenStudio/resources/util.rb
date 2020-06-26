@@ -933,6 +933,13 @@ class OutputMeters
   def electricity_heating(custom_meter_infos, unit, thermal_zones)
     custom_meter_infos["#{unit.name}:ElectricityHeating"] = { "fuel_type" => "Electricity", "key_var_groups" => [] }
     custom_meter_infos["Central:ElectricityHeating"] = { "fuel_type" => "Electricity", "key_var_groups" => [] }
+    unit.spaces.each do |space|
+      space.electricEquipment.each do |equip|
+        next unless equip.endUseSubcategory.include? "pan heater"
+
+        custom_meter_infos["#{unit.name}:ElectricityHeating"]["key_var_groups"] << ["#{equip.name}", "Electric Equipment Electric Energy"]
+      end
+    end
     thermal_zones.each do |thermal_zone|
       heating_equipment = HVAC.existing_heating_equipment(@model, @runner, thermal_zone)
       heating_equipment.each do |htg_equip|
@@ -1129,6 +1136,8 @@ class OutputMeters
     custom_meter_infos["#{unit.name}:ElectricityInteriorEquipment"] = { "fuel_type" => "Electricity", "key_var_groups" => [] }
     unit.spaces.each do |space|
       space.electricEquipment.each do |equip|
+        next if equip.endUseSubcategory.include? "pan heater"
+
         custom_meter_infos["#{unit.name}:ElectricityInteriorEquipment"]["key_var_groups"] << ["#{equip.name}", "Electric Equipment Electric Energy"]
       end
     end

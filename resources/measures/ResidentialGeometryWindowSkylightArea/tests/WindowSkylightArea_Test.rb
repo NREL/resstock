@@ -18,6 +18,19 @@ class WindowSkylightAreaTest < MiniTest::Test
     assert_equal(result.finalCondition.get.logMessage, "No windows or skylights added.")
   end
 
+  def test_below_minimum_window_area
+    args_hash = {}
+    args_hash["front_window_area"] = 5
+    args_hash["front_wwr"] = 0
+    args_hash["back_wwr"] = 0
+    args_hash["left_wwr"] = 0
+    args_hash["right_wwr"] = 0
+    expected_num_del_objects = {}
+    expected_num_new_objects = { "SubSurface" => 1, "ShadingSurface" => 1, "ShadingSurfaceGroup" => 1 }
+    expected_values = { "Constructions" => 0, "OverhangDepth" => 2 }
+    result = _test_measure("SFD_2000sqft_2story_FB_GRG_UA_Southwest.osm", args_hash, [0, 0, 0, 0, 0], [0, 5, 0, 0], [0] * 5, [0] * 5, expected_num_del_objects, expected_num_new_objects, expected_values)
+  end
+
   def test_sfd_new_construction_rotated
     args_hash = {}
     expected_num_del_objects = {}
