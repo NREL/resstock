@@ -354,13 +354,13 @@ class HPXMLtoOpenStudioHotWaterApplianceTest < MiniTest::Test
 
     cd_fuel_kwh = UnitConversions.convert(17.972, 'therm', 'kWh')
     assert_in_epsilon(cd_fuel_kwh, get_oe_kwh_fuel(model, Constants.ObjectNameClothesDryer)[0], 0.001)
-    assert_equal('FuelOilNo1', get_oe_kwh_fuel(model, Constants.ObjectNameClothesDryer)[1], 0.001)
+    assert_equal(EnergyPlus::FuelTypeOil, get_oe_kwh_fuel(model, Constants.ObjectNameClothesDryer)[1], 0.001)
     assert_in_epsilon(cd_sens_frac, get_oe_fractions(model, Constants.ObjectNameClothesDryer)[0], 0.001)
     assert_in_epsilon(cd_lat_frac, get_oe_fractions(model, Constants.ObjectNameClothesDryer)[1], 0.001)
 
     cook_fuel_kwh = UnitConversions.convert(30.70, 'therm', 'kWh')
     assert_in_epsilon(cook_fuel_kwh, get_oe_kwh_fuel(model, Constants.ObjectNameCookingRange)[0], 0.001)
-    assert_equal('FuelOilNo1', get_oe_kwh_fuel(model, Constants.ObjectNameCookingRange)[1], 0.001)
+    assert_equal(EnergyPlus::FuelTypeOil, get_oe_kwh_fuel(model, Constants.ObjectNameCookingRange)[1], 0.001)
     assert_in_epsilon(cook_sens_frac, get_oe_fractions(model, Constants.ObjectNameCookingRange)[0], 0.001)
     assert_in_epsilon(cook_lat_frac, get_oe_fractions(model, Constants.ObjectNameCookingRange)[1], 0.001)
   end
@@ -429,13 +429,13 @@ class HPXMLtoOpenStudioHotWaterApplianceTest < MiniTest::Test
 
     cd_fuel_kwh = UnitConversions.convert(17.972, 'therm', 'kWh')
     assert_in_epsilon(cd_fuel_kwh, get_oe_kwh_fuel(model, Constants.ObjectNameClothesDryer)[0], 0.001)
-    assert_equal('NaturalGas', get_oe_kwh_fuel(model, Constants.ObjectNameClothesDryer)[1], 0.001)
+    assert_equal(EnergyPlus::FuelTypeNaturalGas, get_oe_kwh_fuel(model, Constants.ObjectNameClothesDryer)[1], 0.001)
     assert_in_epsilon(cd_sens_frac, get_oe_fractions(model, Constants.ObjectNameClothesDryer)[0], 0.001)
     assert_in_epsilon(cd_lat_frac, get_oe_fractions(model, Constants.ObjectNameClothesDryer)[1], 0.001)
 
     cook_fuel_kwh = UnitConversions.convert(30.70, 'therm', 'kWh')
     assert_in_epsilon(cook_fuel_kwh, get_oe_kwh_fuel(model, Constants.ObjectNameCookingRange)[0], 0.001)
-    assert_equal('NaturalGas', get_oe_kwh_fuel(model, Constants.ObjectNameCookingRange)[1], 0.001)
+    assert_equal(EnergyPlus::FuelTypeNaturalGas, get_oe_kwh_fuel(model, Constants.ObjectNameCookingRange)[1], 0.001)
     assert_in_epsilon(cook_sens_frac, get_oe_fractions(model, Constants.ObjectNameCookingRange)[0], 0.001)
     assert_in_epsilon(cook_lat_frac, get_oe_fractions(model, Constants.ObjectNameCookingRange)[1], 0.001)
   end
@@ -504,13 +504,13 @@ class HPXMLtoOpenStudioHotWaterApplianceTest < MiniTest::Test
 
     cd_fuel_kwh = UnitConversions.convert(17.972, 'therm', 'kWh')
     assert_in_epsilon(cd_fuel_kwh, get_oe_kwh_fuel(model, Constants.ObjectNameClothesDryer)[0], 0.001)
-    assert_equal('Propane', get_oe_kwh_fuel(model, Constants.ObjectNameClothesDryer)[1], 0.001)
+    assert_equal(EnergyPlus::FuelTypePropane, get_oe_kwh_fuel(model, Constants.ObjectNameClothesDryer)[1], 0.001)
     assert_in_epsilon(cd_sens_frac, get_oe_fractions(model, Constants.ObjectNameClothesDryer)[0], 0.001)
     assert_in_epsilon(cd_lat_frac, get_oe_fractions(model, Constants.ObjectNameClothesDryer)[1], 0.001)
 
     cook_fuel_kwh = UnitConversions.convert(30.70, 'therm', 'kWh')
     assert_in_epsilon(cook_fuel_kwh, get_oe_kwh_fuel(model, Constants.ObjectNameCookingRange)[0], 0.001)
-    assert_equal('Propane', get_oe_kwh_fuel(model, Constants.ObjectNameCookingRange)[1], 0.001)
+    assert_equal(EnergyPlus::FuelTypePropane, get_oe_kwh_fuel(model, Constants.ObjectNameCookingRange)[1], 0.001)
     assert_in_epsilon(cook_sens_frac, get_oe_fractions(model, Constants.ObjectNameCookingRange)[0], 0.001)
     assert_in_epsilon(cook_lat_frac, get_oe_fractions(model, Constants.ObjectNameCookingRange)[1], 0.001)
   end
@@ -579,13 +579,88 @@ class HPXMLtoOpenStudioHotWaterApplianceTest < MiniTest::Test
 
     cd_fuel_kwh = UnitConversions.convert(17.972, 'therm', 'kWh')
     assert_in_epsilon(cd_fuel_kwh, get_oe_kwh_fuel(model, Constants.ObjectNameClothesDryer)[0], 0.001)
-    assert_equal('OtherFuel1', get_oe_kwh_fuel(model, Constants.ObjectNameClothesDryer)[1], 0.001)
+    assert_equal(EnergyPlus::FuelTypeWoodCord, get_oe_kwh_fuel(model, Constants.ObjectNameClothesDryer)[1], 0.001)
     assert_in_epsilon(cd_sens_frac, get_oe_fractions(model, Constants.ObjectNameClothesDryer)[0], 0.001)
     assert_in_epsilon(cd_lat_frac, get_oe_fractions(model, Constants.ObjectNameClothesDryer)[1], 0.001)
 
     cook_fuel_kwh = UnitConversions.convert(30.70, 'therm', 'kWh')
     assert_in_epsilon(cook_fuel_kwh, get_oe_kwh_fuel(model, Constants.ObjectNameCookingRange)[0], 0.001)
-    assert_equal('OtherFuel1', get_oe_kwh_fuel(model, Constants.ObjectNameCookingRange)[1], 0.001)
+    assert_equal(EnergyPlus::FuelTypeWoodCord, get_oe_kwh_fuel(model, Constants.ObjectNameCookingRange)[1], 0.001)
+    assert_in_epsilon(cook_sens_frac, get_oe_fractions(model, Constants.ObjectNameCookingRange)[0], 0.001)
+    assert_in_epsilon(cook_lat_frac, get_oe_fractions(model, Constants.ObjectNameCookingRange)[1], 0.001)
+  end
+
+  def test_appliances_coal
+    args_hash = {}
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-appliances-coal.xml'))
+    model, hpxml = _test_measure(args_hash)
+
+    # water use equipment peak flows
+    fixture_gpd = 44.60
+    dist_gpd = 10.2343
+    cw_gpd = 3.7116
+    dw_gpd = 2.7342
+    assert_in_epsilon(fixture_gpd, get_wu_gpd(model, Constants.ObjectNameFixtures), 0.001)
+    assert_in_epsilon(dist_gpd, get_wu_gpd(model, Constants.ObjectNameDistributionWaste), 0.001)
+    assert_in_epsilon(cw_gpd, get_wu_gpd(model, Constants.ObjectNameClothesWasher), 0.001)
+    assert_in_epsilon(dw_gpd, get_wu_gpd(model, Constants.ObjectNameDishwasher), 0.001)
+
+    # electric equipment
+    cw_ee_kwh_yr = 107.059
+    cw_sens_frac = 0.27
+    cw_lat_frac = 0.03
+    assert_in_epsilon(cw_ee_kwh_yr, get_ee_kwh_per_year(model, Constants.ObjectNameClothesWasher), 0.001)
+    assert_in_epsilon(cw_sens_frac, get_ee_fractions(model, Constants.ObjectNameClothesWasher)[0], 0.001)
+    assert_in_epsilon(cw_lat_frac, get_ee_fractions(model, Constants.ObjectNameClothesWasher)[1], 0.001)
+
+    dw_ee_kwh_yr = 93.392
+    dw_sens_frac = 0.3
+    dw_lat_frac = 0.300
+    assert_in_epsilon(dw_ee_kwh_yr, get_ee_kwh_per_year(model, Constants.ObjectNameDishwasher), 0.001)
+    assert_in_epsilon(dw_sens_frac, get_ee_fractions(model, Constants.ObjectNameDishwasher)[0], 0.001)
+    assert_in_epsilon(dw_lat_frac, get_ee_fractions(model, Constants.ObjectNameDishwasher)[1], 0.001)
+
+    cd_ee_kwh_yr = 39.646
+    cd_sens_frac = 0.1335
+    cd_lat_frac = 0.01648
+    assert_in_epsilon(cd_ee_kwh_yr, get_ee_kwh_per_year(model, Constants.ObjectNameClothesDryer), 0.001)
+    assert_in_epsilon(cd_sens_frac, get_ee_fractions(model, Constants.ObjectNameClothesDryer)[0], 0.001)
+    assert_in_epsilon(cd_lat_frac, get_ee_fractions(model, Constants.ObjectNameClothesDryer)[1], 0.001)
+
+    rf_ee_kwh_yr = 650.0
+    rf_sens_frac = 1.0
+    rf_lat_frac = 0.0
+    assert_in_epsilon(rf_ee_kwh_yr, get_ee_kwh_per_year(model, Constants.ObjectNameRefrigerator), 0.001)
+    assert_in_epsilon(rf_sens_frac, get_ee_fractions(model, Constants.ObjectNameRefrigerator)[0], 0.001)
+    assert_in_epsilon(rf_lat_frac, get_ee_fractions(model, Constants.ObjectNameRefrigerator)[1], 0.001)
+
+    cook_ee_kwh_yr = 30.70
+    cook_sens_frac = 0.6382
+    cook_lat_frac = 0.1618
+    assert_in_epsilon(cook_ee_kwh_yr, get_ee_kwh_per_year(model, Constants.ObjectNameCookingRange), 0.001)
+    assert_in_epsilon(cook_sens_frac, get_ee_fractions(model, Constants.ObjectNameCookingRange)[0], 0.001)
+    assert_in_epsilon(cook_lat_frac, get_ee_fractions(model, Constants.ObjectNameCookingRange)[1], 0.001)
+
+    # other equipment
+    water_sens = -262.507
+    water_lat = 266.358
+    assert_in_epsilon(water_sens, get_oe_kwh_fuel(model, Constants.ObjectNameWater + ' Sensible')[0], 0.001)
+    assert_in_epsilon(1.0, get_oe_fractions(model, Constants.ObjectNameWater + ' Sensible')[0], 0.001)
+    assert_in_epsilon(0.0, get_oe_fractions(model, Constants.ObjectNameWater + ' Sensible')[1], 0.001)
+
+    assert_in_epsilon(water_lat, get_oe_kwh_fuel(model, Constants.ObjectNameWater + ' Latent')[0], 0.001)
+    assert_in_epsilon(0.0, get_oe_fractions(model, Constants.ObjectNameWater + ' Latent')[0], 0.001)
+    assert_in_epsilon(1.0, get_oe_fractions(model, Constants.ObjectNameWater + ' Latent')[1], 0.001)
+
+    cd_fuel_kwh = UnitConversions.convert(17.972, 'therm', 'kWh')
+    assert_in_epsilon(cd_fuel_kwh, get_oe_kwh_fuel(model, Constants.ObjectNameClothesDryer)[0], 0.001)
+    assert_equal(EnergyPlus::FuelTypeCoal, get_oe_kwh_fuel(model, Constants.ObjectNameClothesDryer)[1], 0.001)
+    assert_in_epsilon(cd_sens_frac, get_oe_fractions(model, Constants.ObjectNameClothesDryer)[0], 0.001)
+    assert_in_epsilon(cd_lat_frac, get_oe_fractions(model, Constants.ObjectNameClothesDryer)[1], 0.001)
+
+    cook_fuel_kwh = UnitConversions.convert(30.70, 'therm', 'kWh')
+    assert_in_epsilon(cook_fuel_kwh, get_oe_kwh_fuel(model, Constants.ObjectNameCookingRange)[0], 0.001)
+    assert_equal(EnergyPlus::FuelTypeCoal, get_oe_kwh_fuel(model, Constants.ObjectNameCookingRange)[1], 0.001)
     assert_in_epsilon(cook_sens_frac, get_oe_fractions(model, Constants.ObjectNameCookingRange)[0], 0.001)
     assert_in_epsilon(cook_lat_frac, get_oe_fractions(model, Constants.ObjectNameCookingRange)[1], 0.001)
   end

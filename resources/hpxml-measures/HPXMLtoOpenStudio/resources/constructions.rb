@@ -1232,7 +1232,15 @@ class Constructions
     end
 
     # Define materials
-    glaz_mat = GlazingMaterial.new(name = "#{type}Material", ufactor = ufactor, shgc *= heat_shade_mult)
+    if type == 'Skylight'
+      # As of 2004, NFRC skylights are rated at a 20-degree slope (instead of vertical), but
+      # the E+ SimpleGlazingSystem model accepts a U-factor that "is assumed to be for
+      # vertically mounted products". According to NFRC, "Ratings ... shall be converted to
+      # the 20-deg slope from the vertical position by multiplying the tested value at vertical
+      # by 1.20." Thus we divide by 1.2 to get the vertical position value.
+      ufactor /= 1.2
+    end
+    glaz_mat = GlazingMaterial.new("#{type}Material", ufactor, shgc * heat_shade_mult)
 
     # Set paths
     path_fracs = [1]

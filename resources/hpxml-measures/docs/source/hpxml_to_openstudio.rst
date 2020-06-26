@@ -1064,7 +1064,8 @@ HPXML Pool
 
 A ``Pools/Pool`` element can be specified; if not provided, a pool will not be modeled.
 
-A ``PoolPumps/PoolPump`` element is required. The annual energy consumption of the pool pump (``Load[Units='kWh/year']/Value``) can be provided, otherwise they will be calculated using the following equation based on the `Building America House Simulation Protocols <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_.
+A ``PoolPumps/PoolPump`` element is required.
+The annual energy consumption of the pool pump (``Load[Units='kWh/year']/Value``) can be provided, otherwise they will be calculated using the following equation based on the `Building America House Simulation Protocols <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_.
 
 .. math:: PoolPumpkWhs = 158.5 / 0.070 \cdot (0.5 + 0.25 \cdot NumberofBedrooms / 3 + 0.35 \cdot ConditionedFloorArea / 1920)
 
@@ -1085,7 +1086,8 @@ HPXML Hot Tub
 
 A ``HotTubs/HotTub`` element can be specified; if not provided, a hot tub will not be modeled.
 
-A ``HotTubPumps/HotTubPump`` element is required. The annual energy consumption of the hot tub pump (``Load[Units='kWh/year']/Value``) can be provided, otherwise they will be calculated using the following equation based on the `Building America House Simulation Protocols <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_.
+A ``HotTubPumps/HotTubPump`` element is required.
+The annual energy consumption of the hot tub pump (``Load[Units='kWh/year']/Value``) can be provided, otherwise they will be calculated using the following equation based on the `Building America House Simulation Protocols <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_.
 
 .. math:: HotTubPumpkWhs = 59.5 / 0.059 \cdot (0.5 + 0.25 \cdot NumberofBedrooms / 3 + 0.35 \cdot ConditionedFloorArea / 1920)
 
@@ -1109,14 +1111,30 @@ This section describes elements specified in HPXML's ``MiscLoads``.
 HPXML Plug Loads
 ****************
 
-Plug loads can be provided by entering ``PlugLoad`` elements; if not provided, plug loads will not be modeled.
+Misc electric plug loads can be provided by entering ``PlugLoad`` elements; if not provided, plug loads will not be modeled.
 Currently only plug loads specified with ``PlugLoadType='other'``, ``PlugLoadType='TV other'``, ``PlugLoadType='electric vehicle charging'``, or ``PlugLoadType='well pump'`` are recognized.
-The annual energy consumption (``Load[Units='kWh/year']/Value``) can be provided, otherwise they will be calculated using the following equations from either `ANSI/RESNET/ICC 301-2019 <https://codes.iccsafe.org/content/RESNETICC3012019>`_ or the `Building America House Simulation Protocols <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_.
+It is generally recommended to at least include the 'other' (miscellaneous) and 'TV other' plug load types for the typical home.
 
-.. math:: TelevisionkWhs = 413.0 + 69.0 \cdot NumberofBedrooms
-.. math:: OtherkWhs = 0.91 \cdot ConditionedFloorArea
-.. math:: VehiclekWhs = AnnualMiles * kWhPerMile / (EVChargerEfficiency * EVBatteryEfficiency); with AnnualMiles=4500, kWhPerMile=0.3, EVChargerEfficiency=0.9, EVBatteryEfficiency=0.9
-.. math:: WellPumpkWhs = 50.8 / 0.127 \cdot (0.5 + 0.25 \cdot NumberofBedrooms / 3 + 0.35 \cdot ConditionedFloorArea / 1920)
+The annual energy consumption (``Load[Units='kWh/year']/Value``), ``Location``, ``extension/FracSensible``, and ``extension/FracLatent`` elements are optional.
+If not provided, they will be defaulted as follows.
+Annual energy consumption equations are based on `ANSI/RESNET/ICC 301-2019 <https://codes.iccsafe.org/content/RESNETICC3012019>`_ or the `Building America House Simulation Protocols <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_.
+
+==========================  =============================================  ========  ============  ==========
+Plug Load Type              kWh/year                                       Location  FracSensible  FracLatent
+==========================  =============================================  ========  ============  ==========
+other                       0.91*CFA                                       interior  0.855         0.045
+TV other                    413.0 + 69.0*NBr                               interior  1.0           0.0
+electric vehicle charging   1666.67                                        exterior  0.0           0.0
+well pump                   50.8/0.127*(0.5 + 0.25*NBr/3 + 0.35*CFA/1920)  exterior  0.0           0.0
+==========================  =============================================  ========  ============  ==========
+
+where CFA is the conditioned floor area and NBr is the number of bedrooms.
+
+The electric vehicle charging default kWh/year is calculated using:
+
+.. math:: VehiclekWhs = AnnualMiles * kWhPerMile / (EVChargerEfficiency * EVBatteryEfficiency)
+
+where AnnualMiles=4500, kWhPerMile=0.3, EVChargerEfficiency=0.9, and EVBatteryEfficiency=0.9.
 
 An ``extension/UsageMultiplier`` can also be optionally provided that scales energy usage; if not provided, it is assumed to be 1.0.
 Optional ``extension/WeekdayScheduleFractions``, ``extension/WeekendScheduleFractions``, and ``extension/MonthlyScheduleMultipliers`` can be provided; if not provided, values from Figures 23 & 24 of the `Building America House Simulation Protocols <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_ are used.
@@ -1124,14 +1142,22 @@ Optional ``extension/WeekdayScheduleFractions``, ``extension/WeekendScheduleFrac
 HPXML Fuel Loads
 ****************
 
-Fuel loads can be provided by entering ``FuelLoad`` elements; if not provided, fuel loads will not be modeled.
-Currently only exterior fuel loads specified with ``FuelLoadType='grill'`` or ``FuelLoadType='lighting'`` or ``FuelLoadType='fireplace'``, are recognized.
+Misc fuel loads can be provided by entering ``FuelLoad`` elements; if not provided, fuel loads will not be modeled.
+Currently only fuel loads specified with ``FuelLoadType='grill'``, ``FuelLoadType='lighting'``, or ``FuelLoadType='fireplace'`` are recognized.
 
-The annual energy consumption (``Load[Units='therm/year']/Value``) can be provided, otherwise they will be calculated using the following equations from the `Building America House Simulation Protocols <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_.
+The annual energy consumption (``Load[Units='therm/year']/Value``), ``Location``, ``extension/FracSensible``, and ``extension/FracLatent`` elements are also optional.
+If not provided, they will be defaulted as follows.
+Annual energy consumption equations are based on the `Building America House Simulation Protocols <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_.
 
-.. math:: Grilltherms = 0.87 / 0.029 \cdot (0.5 + 0.25 \cdot NumberofBedrooms / 3 + 0.35 \cdot ConditionedFloorArea / 1920)
-.. math:: Lightingtherms = 0.22 / 0.012 \cdot (0.5 + 0.25 \cdot NumberofBedrooms / 3 + 0.35 \cdot ConditionedFloorArea / 1920)
-.. math:: Fireplacetherms = 1.95 / 0.032 \cdot (0.5 + 0.25 \cdot NumberofBedrooms / 3 + 0.35 \cdot ConditionedFloorArea / 1920)
+==========================  =============================================  ========  ============ ==========
+Plug Load Type              therm/year                                     Location  FracSensible FracLatent
+==========================  =============================================  ========  ============ ==========
+grill                       0.87/0.029*(0.5 + 0.25*NBr/3 + 0.35*CFA/1920)  exterior  0.0          0.0
+lighting                    0.22/0.012*(0.5 + 0.25*NBr/3 + 0.35*CFA/1920)  exterior  0.0          0.0
+fireplace                   1.95/0.032*(0.5 + 0.25*NBr/3 + 0.35*CFA/1920)  interior  0.5          0.1
+==========================  =============================================  ========  ============ ==========
+
+where CFA is the conditioned floor area and NBr is the number of bedrooms.
 
 An ``extension/UsageMultiplier`` can also be optionally provided that scales energy usage; if not provided, it is assumed to be 1.0.
 Optional ``extension/WeekdayScheduleFractions``, ``extension/WeekendScheduleFractions``, and ``extension/MonthlyScheduleMultipliers`` can be provided; if not provided, values from Figures 23 & 24 of the `Building America House Simulation Protocols <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_ are used.

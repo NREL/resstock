@@ -31,10 +31,6 @@ class UnitConversions
     ['wh', 'kbtu'] => 0.003412141633127942,
     ['kbtu', 'btu'] => 1000.0,
     ['kbtu', 'mbtu'] => 0.001,
-    ['gal', 'btu', HPXML::FuelTypePropane] => 91600.0,
-    ['gal', 'btu', HPXML::FuelTypeOil] => 139000.0,
-    ['j', 'gal', HPXML::FuelTypePropane] => 3412.141633127942 / 1000.0 / 3600.0 / 91600.0,
-    ['j', 'gal', HPXML::FuelTypeOil] => 3412.141633127942 / 1000.0 / 3600.0 / 139000.0,
 
     # Power
     ['btu/hr', 'w'] => 0.2930710701722222,
@@ -143,29 +139,21 @@ class UnitConversions
     ['lbm/lbm', 'grains'] => 7000.0,
   }
 
-  def self.convert(x, from, to, fuel_type = nil)
+  def self.convert(x, from, to)
     from_d = from.downcase
     to_d = to.downcase
 
     return x if from_d == to_d
 
     # Try forward
-    if fuel_type.nil?
-      key = [from_d, to_d]
-    else
-      key = [from_d, to_d, fuel_type]
-    end
+    key = [from_d, to_d]
     scalar = @Scalars[key]
     if not scalar.nil?
       return x * scalar
     end
 
     # Try reverse
-    if fuel_type.nil?
-      key = [to_d, from_d]
-    else
-      key = [to_d, from_d, fuel_type]
-    end
+    key = [to_d, from_d]
     scalar = @Scalars[key]
     if not scalar.nil?
       return x / scalar
@@ -187,10 +175,6 @@ class UnitConversions
       return x - 459.67
     end
 
-    if fuel_type.nil?
-      fail "Unhandled unit conversion from #{from_d} to #{to_d}."
-    else
-      fail "Unhandled unit conversion from #{from_d} to #{to_d} for fuel type #{fuel_type}."
-    end
+    fail "Unhandled unit conversion from #{from_d} to #{to_d}."
   end
 end

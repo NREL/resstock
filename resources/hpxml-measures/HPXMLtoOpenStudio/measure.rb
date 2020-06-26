@@ -10,6 +10,7 @@ require 'oga'
 require_relative 'resources/airflow'
 require_relative 'resources/constants'
 require_relative 'resources/constructions'
+require_relative 'resources/energyplus'
 require_relative 'resources/EPvalidator'
 require_relative 'resources/geometry'
 require_relative 'resources/hotwater_appliances'
@@ -272,6 +273,7 @@ class OSModel
 
     # HVAC
 
+    add_ideal_system_for_partial_hvac(runner, model, spaces)
     add_cooling_system(runner, model, spaces)
     add_heating_system(runner, model, spaces)
     add_heat_pump(runner, model, weather, spaces)
@@ -2132,34 +2134,58 @@ class OSModel
     end
   end
 
-  def self.add_residual_hvac(runner, model, spaces)
+  def self.add_ideal_system_for_partial_hvac(runner, model, spaces)
+    # Adds an ideal air system to meet expected unmet load (i.e., because the sum of fractions load served is less than 1)
     living_zone = spaces[HPXML::LocationLivingSpace].thermalZone.get
+    obj_name = Constants.ObjectNameIdealAirSystem
 
     if @hpxml.building_construction.use_only_ideal_air_system
-      HVAC.apply_ideal_air_loads(model, runner, 1, 1, living_zone)
+      HVAC.apply_ideal_air_loads(model, runner, obj_name, 1, 1, living_zone)
       return
     end
 
-    # Adds an ideal air system to meet either:
-    # 1. Any expected unmet load (i.e., because the sum of fractions load served is less than 1), or
-    # 2. Any unexpected load (i.e., because the HVAC systems are undersized to meet the load)
+    # Only fraction of heating load is met
+    if (@hpxml.total_fraction_heat_load_served < 1.0) && (@hpxml.total_fraction_heat_load_served > 0.0)
+      sequential_heat_load_frac = @remaining_heat_load_frac - @hpxml.total_fraction_heat_load_served
+      @remaining_heat_load_frac -= sequential_heat_load_frac
+    else
+      sequential_heat_load_frac = 0.0
+    end
+    # Only fraction of cooling load is met
+    if (@hpxml.total_fraction_cool_load_served < 1.0) && (@hpxml.total_fraction_cool_load_served > 0.0)
+      sequential_cool_load_frac = @remaining_cool_load_frac - @hpxml.total_fraction_cool_load_served
+      @remaining_cool_load_frac -= sequential_cool_load_frac
+    else
+      sequential_cool_load_frac = 0.0
+    end
+    if (sequential_heat_load_frac > 0.0) || (sequential_cool_load_frac > 0.0)
+      HVAC.apply_ideal_air_loads(model, runner, obj_name, sequential_cool_load_frac, sequential_heat_load_frac,
+                                 living_zone)
+    end
+  end
+
+  def self.add_residual_hvac(runner, model, spaces)
+    living_zone = spaces[HPXML::LocationLivingSpace].thermalZone.get
+    obj_name = Constants.ObjectNameIdealAirSystemResidual
+
+    # Adds an ideal air system to meet unexpected load (i.e., because the HVAC systems are undersized to meet the load)
     #
-    # Addressing #2 ensures we can correctly calculate heating/cooling loads without having to run
+    # Addressing unmet load ensures we can correctly calculate heating/cooling loads without having to run
     # an additional EnergyPlus simulation solely for that purpose, as well as allows us to report
     # the unmet load (i.e., the energy delivered by the ideal air system).
-    if @remaining_cool_load_frac < 1
+    if @remaining_cool_load_frac < 1.0
       sequential_cool_load_frac = 1
     else
       sequential_cool_load_frac = 0 # no cooling system, don't add ideal air for cooling either
     end
 
-    if @remaining_heat_load_frac < 1
+    if @remaining_heat_load_frac < 1.0
       sequential_heat_load_frac = 1
     else
       sequential_heat_load_frac = 0 # no heating system, don't add ideal air for heating either
     end
     if (sequential_heat_load_frac > 0) || (sequential_cool_load_frac > 0)
-      HVAC.apply_ideal_air_loads(model, runner, sequential_cool_load_frac, sequential_heat_load_frac,
+      HVAC.apply_ideal_air_loads(model, runner, obj_name, sequential_cool_load_frac, sequential_heat_load_frac,
                                  living_zone)
     end
   end
@@ -2217,7 +2243,10 @@ class OSModel
       elsif plug_load.plug_load_type == HPXML::PlugLoadTypeWellPump
         obj_name = Constants.ObjectNameMiscWellPump
       end
-      next if obj_name.nil?
+      if obj_name.nil?
+        runner.registerWarning("Unexpected plug load '#{plug_load.id}'. The plug load will not be modeled.")
+        next
+      end
 
       MiscLoads.apply_plug(model, plug_load, obj_name, @cfa, spaces[HPXML::LocationLivingSpace])
     end
@@ -2233,7 +2262,10 @@ class OSModel
       elsif fuel_load.fuel_load_type == HPXML::FuelLoadTypeFireplace
         obj_name = Constants.ObjectNameMiscFireplace
       end
-      next if obj_name.nil?
+      if obj_name.nil?
+        runner.registerWarning("Unexpected fuel load '#{fuel_load.id}'. The fuel load will not be modeled.")
+        next
+      end
 
       MiscLoads.apply_fuel(model, fuel_load, obj_name, spaces[HPXML::LocationLivingSpace])
     end

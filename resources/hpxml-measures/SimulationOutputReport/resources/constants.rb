@@ -8,6 +8,7 @@ class FT
   Propane = 'Propane'
   WoodCord = 'Wood Cord'
   WoodPellets = 'Wood Pellets'
+  Coal = 'Coal'
 end
 
 class EUT
