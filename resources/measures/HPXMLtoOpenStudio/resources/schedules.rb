@@ -1298,7 +1298,7 @@ class ScheduleGenerator
       last_state = cooking_state
       step += step_jump
     end
-    offset_range = 15
+    offset_range = 30
     random_offset = (prng.rand * 2 * offset_range).to_i - offset_range
     sink_activity_sch = sink_activity_sch.rotate(-4 * 60 + random_offset) # 4 am shifting
     sink_activity_sch = aggregate_array(sink_activity_sch, minutes_per_steps)
