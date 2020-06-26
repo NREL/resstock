@@ -1136,6 +1136,12 @@ class Geometry
     house_points.each do |house_point|
       neighbor_points.each do |neighbor_point|
         neighbor_offsets << OpenStudio::getDistance(house_point, neighbor_point)
+
+        # Calculate based on edges for floating middle-level single units
+        x_offset = (neighbor_point.x - house_point.x).abs
+        y_offset = (neighbor_point.y - house_point.y).abs
+        neighbor_offsets << x_offset unless x_offset == 0 
+        neighbor_offsets << y_offset unless y_offset == 0 
       end
     end
     if neighbor_offsets.empty?
