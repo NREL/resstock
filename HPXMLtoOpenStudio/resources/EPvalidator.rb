@@ -112,6 +112,13 @@ class EnergyPlusValidator
         'Timestep' => zero_or_one, # minutes; must be a divisor of 60
         'BeginMonth | BeginDayOfMonth' => zero_or_two, # integer
         'EndMonth | EndDayOfMonth' => zero_or_two, # integer
+        'DaylightSaving' => zero_or_one, # See [DaylightSaving]
+      },
+
+      # [DaylightSaving]
+      '/HPXML/SoftwareInfo/extension/SimulationControl/DaylightSaving' => {
+        'Enabled' => one,
+        'BeginMonth | BeginDayOfMonth | EndMonth | EndDayOfMonth' => zero_or_four, # integer
       },
 
       # [Site]

@@ -62,28 +62,57 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDescription('Value must be a divisor of 60.')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('simulation_control_begin_month', false)
+    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('simulation_control_run_period_begin_month', false)
     arg.setDisplayName('Simulation Control: Run Period Begin Month')
     arg.setUnits('month')
     arg.setDescription('This numeric field should contain the starting month number (1 = January, 2 = February, etc.) for the annual run period desired.')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('simulation_control_begin_day_of_month', false)
+    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('simulation_control_run_period_begin_day_of_month', false)
     arg.setDisplayName('Simulation Control: Run Period Begin Day of Month')
     arg.setUnits('day')
     arg.setDescription('This numeric field should contain the starting day of the starting month (must be valid for month) for the annual run period desired.')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('simulation_control_end_month', false)
+    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('simulation_control_run_period_end_month', false)
     arg.setDisplayName('Simulation Control: Run Period End Month')
     arg.setUnits('month')
     arg.setDescription('This numeric field should contain the end month number (1 = January, 2 = February, etc.) for the annual run period desired.')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('simulation_control_end_day_of_month', false)
+    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('simulation_control_run_period_end_day_of_month', false)
     arg.setDisplayName('Simulation Control: Run Period End Day of Month')
     arg.setUnits('day')
     arg.setDescription('This numeric field should contain the ending day of the ending month (must be valid for month) for the annual run period desired.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('simulation_control_daylight_saving_enabled', false)
+    arg.setDisplayName('Simulation Control: Daylight Saving Enabled')
+    arg.setDescription('Whether to use daylight saving.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('simulation_control_daylight_saving_begin_month', false)
+    arg.setDisplayName('Simulation Control: Daylight Saving Begin Month')
+    arg.setUnits('month')
+    arg.setDescription('This numeric field should contain the starting month number (1 = January, 2 = February, etc.) for the annual daylight saving period desired.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('simulation_control_daylight_saving_begin_day_of_month', false)
+    arg.setDisplayName('Simulation Control: Daylight Saving Begin Day of Month')
+    arg.setUnits('day')
+    arg.setDescription('This numeric field should contain the starting day of the starting month (must be valid for month) for the daylight saving period desired.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('simulation_control_daylight_saving_end_month', false)
+    arg.setDisplayName('Simulation Control: Daylight Saving End Month')
+    arg.setUnits('month')
+    arg.setDescription('This numeric field should contain the end month number (1 = January, 2 = February, etc.) for the daylight saving period desired.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('simulation_control_daylight_saving_end_day_of_month', false)
+    arg.setDisplayName('Simulation Control: Daylight Saving End Day of Month')
+    arg.setUnits('day')
+    arg.setDescription('This numeric field should contain the ending day of the ending month (must be valid for month) for the daylight saving period desired.')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('schedules_output_path', true)
@@ -2771,10 +2800,15 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
              software_program_used: runner.getOptionalStringArgumentValue('software_program_used', user_arguments),
              software_program_version: runner.getOptionalStringArgumentValue('software_program_version', user_arguments),
              simulation_control_timestep: runner.getOptionalIntegerArgumentValue('simulation_control_timestep', user_arguments),
-             simulation_control_begin_month: runner.getOptionalIntegerArgumentValue('simulation_control_begin_month', user_arguments),
-             simulation_control_begin_day_of_month: runner.getOptionalIntegerArgumentValue('simulation_control_begin_day_of_month', user_arguments),
-             simulation_control_end_month: runner.getOptionalIntegerArgumentValue('simulation_control_end_month', user_arguments),
-             simulation_control_end_day_of_month: runner.getOptionalIntegerArgumentValue('simulation_control_end_day_of_month', user_arguments),
+             simulation_control_run_period_begin_month: runner.getOptionalIntegerArgumentValue('simulation_control_run_period_begin_month', user_arguments),
+             simulation_control_run_period_begin_day_of_month: runner.getOptionalIntegerArgumentValue('simulation_control_run_period_begin_day_of_month', user_arguments),
+             simulation_control_run_period_end_month: runner.getOptionalIntegerArgumentValue('simulation_control_run_period_end_month', user_arguments),
+             simulation_control_run_period_end_day_of_month: runner.getOptionalIntegerArgumentValue('simulation_control_run_period_end_day_of_month', user_arguments),
+             simulation_control_daylight_saving_enabled: runner.getOptionalStringArgumentValue('simulation_control_daylight_saving_enabled', user_arguments),
+             simulation_control_daylight_saving_begin_month: runner.getOptionalIntegerArgumentValue('simulation_control_daylight_saving_begin_month', user_arguments),
+             simulation_control_daylight_saving_begin_day_of_month: runner.getOptionalIntegerArgumentValue('simulation_control_daylight_saving_begin_day_of_month', user_arguments),
+             simulation_control_daylight_saving_end_month: runner.getOptionalIntegerArgumentValue('simulation_control_daylight_saving_end_month', user_arguments),
+             simulation_control_daylight_saving_end_day_of_month: runner.getOptionalIntegerArgumentValue('simulation_control_daylight_saving_end_day_of_month', user_arguments),
              schedules_output_path: runner.getStringArgumentValue('schedules_output_path', user_arguments),
              weather_station_epw_filepath: runner.getStringArgumentValue('weather_station_epw_filepath', user_arguments),
              site_type: runner.getOptionalStringArgumentValue('site_type', user_arguments),
@@ -3425,18 +3459,35 @@ class HPXMLFile
       hpxml.header.timestep = args[:simulation_control_timestep].get
     end
 
-    if args[:simulation_control_begin_month].is_initialized
-      hpxml.header.begin_month = args[:simulation_control_begin_month].get
+    if args[:simulation_control_run_period_begin_month].is_initialized
+      hpxml.header.sim_begin_month = args[:simulation_control_run_period_begin_month].get
     end
-    if args[:simulation_control_begin_day_of_month].is_initialized
-      hpxml.header.begin_day_of_month = args[:simulation_control_begin_day_of_month].get
+    if args[:simulation_control_run_period_begin_day_of_month].is_initialized
+      hpxml.header.sim_begin_day_of_month = args[:simulation_control_run_period_begin_day_of_month].get
     end
-    if args[:simulation_control_end_month].is_initialized
-      hpxml.header.end_month = args[:simulation_control_end_month].get
+    if args[:simulation_control_run_period_end_month].is_initialized
+      hpxml.header.sim_end_month = args[:simulation_control_run_period_end_month].get
     end
-    if args[:simulation_control_end_day_of_month].is_initialized
-      hpxml.header.end_day_of_month = args[:simulation_control_end_day_of_month].get
+    if args[:simulation_control_run_period_end_day_of_month].is_initialized
+      hpxml.header.sim_end_day_of_month = args[:simulation_control_run_period_end_day_of_month].get
     end
+
+    if args[:simulation_control_daylight_saving_enabled].is_initialized
+      hpxml.header.dst_enabled = args[:simulation_control_daylight_saving_enabled].get
+    end
+    if args[:simulation_control_daylight_saving_begin_month].is_initialized
+      hpxml.header.dst_begin_month = args[:simulation_control_daylight_saving_begin_month].get
+    end
+    if args[:simulation_control_daylight_saving_begin_day_of_month].is_initialized
+      hpxml.header.dst_begin_day_of_month = args[:simulation_control_daylight_saving_begin_day_of_month].get
+    end
+    if args[:simulation_control_daylight_saving_end_month].is_initialized
+      hpxml.header.dst_end_month = args[:simulation_control_daylight_saving_end_month].get
+    end
+    if args[:simulation_control_daylight_saving_end_day_of_month].is_initialized
+      hpxml.header.dst_end_day_of_month = args[:simulation_control_daylight_saving_end_day_of_month].get
+    end
+
     hpxml.header.building_id = 'MyBuilding'
     hpxml.header.event_type = 'proposed workscope'
   end

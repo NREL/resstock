@@ -25,6 +25,7 @@ require_relative 'resources/misc_loads'
 require_relative 'resources/psychrometrics'
 require_relative 'resources/pv'
 require_relative 'resources/schedules'
+require_relative 'resources/simcontrols'
 require_relative 'resources/unit_conversions'
 require_relative 'resources/util'
 require_relative 'resources/waterheater'
@@ -241,9 +242,10 @@ class OSModel
 
     # Init
 
-    weather = Location.apply(model, runner, epw_path, cache_path, nil, nil)
+    weather, epw_file = Location.apply_weather_file(model, runner, epw_path, cache_path)
     check_for_errors()
-    set_defaults_and_globals(runner, output_dir)
+    set_defaults_and_globals(runner, output_dir, epw_file)
+    weather = Location.apply(model, runner, weather, epw_file, @hpxml)
     add_simulation_params(model)
 
     # Conditioned space/zone
@@ -378,7 +380,7 @@ class OSModel
     end
   end
 
-  def self.set_defaults_and_globals(runner, output_dir)
+  def self.set_defaults_and_globals(runner, output_dir, epw_file)
     # Initialize
     @remaining_heat_load_frac = 1.0
     @remaining_cool_load_frac = 1.0
@@ -400,7 +402,7 @@ class OSModel
     end
 
     # Apply defaults to HPXML object
-    HPXMLDefaults.apply(@hpxml, @cfa, @nbeds, @ncfl, @ncfl_ag, @has_uncond_bsmnt, @eri_version)
+    HPXMLDefaults.apply(@hpxml, @cfa, @nbeds, @ncfl, @ncfl_ag, @has_uncond_bsmnt, @eri_version, epw_file)
 
     @frac_windows_operable = @hpxml.fraction_of_windows_operable()
 
@@ -413,33 +415,7 @@ class OSModel
   end
 
   def self.add_simulation_params(model)
-    sim = model.getSimulationControl
-    sim.setRunSimulationforSizingPeriods(false)
-
-    tstep = model.getTimestep
-    tstep.setNumberOfTimestepsPerHour(60 / @hpxml.header.timestep)
-
-    shad = model.getShadowCalculation
-    shad.setShadingCalculationUpdateFrequency(20)
-    shad.setMaximumFiguresInShadowOverlapCalculations(200)
-
-    outsurf = model.getOutsideSurfaceConvectionAlgorithm
-    outsurf.setAlgorithm('DOE-2')
-
-    insurf = model.getInsideSurfaceConvectionAlgorithm
-    insurf.setAlgorithm('TARP')
-
-    zonecap = model.getZoneCapacitanceMultiplierResearchSpecial
-    zonecap.setHumidityCapacityMultiplier(15)
-
-    convlim = model.getConvergenceLimits
-    convlim.setMinimumSystemTimestep(0)
-
-    run_period = model.getRunPeriod
-    run_period.setBeginMonth(@hpxml.header.begin_month)
-    run_period.setBeginDayOfMonth(@hpxml.header.begin_day_of_month)
-    run_period.setEndMonth(@hpxml.header.end_month)
-    run_period.setEndDayOfMonth(@hpxml.header.end_day_of_month)
+    SimControls.apply(model, @hpxml.header)
   end
 
   def self.set_zone_volumes(runner, model, spaces)

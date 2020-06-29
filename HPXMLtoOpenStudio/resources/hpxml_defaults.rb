@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 class HPXMLDefaults
-  def self.apply(hpxml, cfa, nbeds, ncfl, ncfl_ag, has_uncond_bsmnt, eri_version)
-    apply_header(hpxml)
+  def self.apply(hpxml, cfa, nbeds, ncfl, ncfl_ag, has_uncond_bsmnt, eri_version, epw_file)
+    apply_header(hpxml, epw_file)
     apply_site(hpxml)
     apply_building_occupancy(hpxml, nbeds)
     apply_building_construction(hpxml, cfa, nbeds)
@@ -32,12 +32,34 @@ class HPXMLDefaults
 
   private
 
-  def self.apply_header(hpxml)
+  def self.apply_header(hpxml, epw_file)
     hpxml.header.timestep = 60 if hpxml.header.timestep.nil?
-    hpxml.header.begin_month = 1 if hpxml.header.begin_month.nil?
-    hpxml.header.begin_day_of_month = 1 if hpxml.header.begin_day_of_month.nil?
-    hpxml.header.end_month = 12 if hpxml.header.end_month.nil?
-    hpxml.header.end_day_of_month = 31 if hpxml.header.end_day_of_month.nil?
+
+    hpxml.header.sim_begin_month = 1 if hpxml.header.sim_begin_month.nil?
+    hpxml.header.sim_begin_day_of_month = 1 if hpxml.header.sim_begin_day_of_month.nil?
+    hpxml.header.sim_end_month = 12 if hpxml.header.sim_end_month.nil?
+    hpxml.header.sim_end_day_of_month = 31 if hpxml.header.sim_end_day_of_month.nil?
+
+    hpxml.header.dst_enabled = true if hpxml.header.dst_enabled.nil? # Assume DST since it occurs in most US locations
+    if hpxml.header.dst_enabled
+      if hpxml.header.dst_begin_month.nil? || hpxml.header.dst_begin_day_of_month.nil? || hpxml.header.dst_end_month.nil? || hpxml.header.dst_end_day_of_month.nil?
+        if epw_file.daylightSavingStartDate.is_initialized && epw_file.daylightSavingEndDate.is_initialized
+          # Use weather file DST dates if available
+          dst_start_date = epw_file.daylightSavingStartDate.get
+          dst_end_date = epw_file.daylightSavingEndDate.get
+          hpxml.header.dst_begin_month = dst_start_date.monthOfYear.value
+          hpxml.header.dst_begin_day_of_month = dst_start_date.dayOfMonth
+          hpxml.header.dst_end_month = dst_end_date.monthOfYear.value
+          hpxml.header.dst_end_day_of_month = dst_end_date.dayOfMonth
+        else
+          # Roughly average US dates according to https://en.wikipedia.org/wiki/Daylight_saving_time_in_the_United_States
+          hpxml.header.dst_begin_month = 3
+          hpxml.header.dst_begin_day_of_month = 12
+          hpxml.header.dst_end_month = 11
+          hpxml.header.dst_end_day_of_month = 5
+        end
+      end
+    end
   end
 
   def self.apply_site(hpxml)
