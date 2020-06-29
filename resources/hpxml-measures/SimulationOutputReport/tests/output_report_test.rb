@@ -755,7 +755,7 @@ class SimulationOutputReportTest < MiniTest::Test
   end
 
   def test_timeseries_timestep_ALL_10min
-    args_hash = { 'hpxml_path' => '../workflow/sample_files/base-misc-timestep-10-mins.xml',
+    args_hash = { 'hpxml_path' => '../workflow/sample_files/base-simcontrol-timestep-10-mins.xml',
                   'timeseries_frequency' => 'timestep',
                   'include_timeseries_fuel_consumptions' => true,
                   'include_timeseries_end_use_consumptions' => true,
@@ -775,7 +775,7 @@ class SimulationOutputReportTest < MiniTest::Test
   end
 
   def test_timeseries_hourly_ALL_runperiod_Jan
-    args_hash = { 'hpxml_path' => '../workflow/sample_files/base-misc-runperiod-1-month.xml',
+    args_hash = { 'hpxml_path' => '../workflow/sample_files/base-simcontrol-runperiod-1-month.xml',
                   'timeseries_frequency' => 'hourly',
                   'include_timeseries_fuel_consumptions' => true,
                   'include_timeseries_end_use_consumptions' => true,
@@ -795,7 +795,7 @@ class SimulationOutputReportTest < MiniTest::Test
   end
 
   def test_timeseries_daily_ALL_runperiod_Jan
-    args_hash = { 'hpxml_path' => '../workflow/sample_files/base-misc-runperiod-1-month.xml',
+    args_hash = { 'hpxml_path' => '../workflow/sample_files/base-simcontrol-runperiod-1-month.xml',
                   'timeseries_frequency' => 'daily',
                   'include_timeseries_fuel_consumptions' => true,
                   'include_timeseries_end_use_consumptions' => true,
@@ -815,7 +815,7 @@ class SimulationOutputReportTest < MiniTest::Test
   end
 
   def test_timeseries_monthly_ALL_runperiod_Jan
-    args_hash = { 'hpxml_path' => '../workflow/sample_files/base-misc-runperiod-1-month.xml',
+    args_hash = { 'hpxml_path' => '../workflow/sample_files/base-simcontrol-runperiod-1-month.xml',
                   'timeseries_frequency' => 'monthly',
                   'include_timeseries_fuel_consumptions' => true,
                   'include_timeseries_end_use_consumptions' => true,
@@ -835,7 +835,7 @@ class SimulationOutputReportTest < MiniTest::Test
   end
 
   def test_timeseries_timestep_ALL_60min_runperiod_Jan
-    args_hash = { 'hpxml_path' => '../workflow/sample_files/base-misc-runperiod-1-month.xml',
+    args_hash = { 'hpxml_path' => '../workflow/sample_files/base-simcontrol-runperiod-1-month.xml',
                   'timeseries_frequency' => 'timestep',
                   'include_timeseries_fuel_consumptions' => true,
                   'include_timeseries_end_use_consumptions' => true,

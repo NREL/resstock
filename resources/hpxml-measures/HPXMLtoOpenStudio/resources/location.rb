@@ -1,17 +1,14 @@
 # frozen_string_literal: true
 
 class Location
-  def self.apply(model, runner, weather_file_path, weather_cache_path, dst_start_date, dst_end_date)
-    weather, epw_file = apply_weather_file(model, runner, weather_file_path, weather_cache_path)
+  def self.apply(model, runner, weather, epw_file, hpxml)
     apply_year(model, epw_file)
     apply_site(model, epw_file)
     apply_climate_zones(model, epw_file)
-    apply_dst(model, dst_start_date, dst_end_date)
+    apply_dst(model, hpxml)
     apply_ground_temps(model, weather)
     return weather
   end
-
-  private
 
   def self.apply_weather_file(model, runner, weather_file_path, weather_cache_path)
     if File.exist?(weather_file_path) && weather_file_path.downcase.end_with?('.epw')
@@ -33,6 +30,8 @@ class Location
 
     return weather, epw_file
   end
+
+  private
 
   def self.apply_site(model, epw_file)
     site = model.getSite
@@ -60,17 +59,16 @@ class Location
     end
   end
 
-  def self.apply_dst(model, dst_start_date, dst_end_date)
-    return if dst_start_date.nil? || dst_end_date.nil?
+  def self.apply_dst(model, hpxml)
+    return unless hpxml.header.dst_enabled
 
-    dst_start_date_month = OpenStudio::monthOfYear(dst_start_date.split[0])
-    dst_start_date_day = dst_start_date.split[1].to_i
-    dst_end_date_month = OpenStudio::monthOfYear(dst_end_date.split[0])
-    dst_end_date_day = dst_end_date.split[1].to_i
+    month_names = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    dst_start_date = "#{month_names[hpxml.header.dst_begin_month - 1]} #{hpxml.header.dst_begin_day_of_month}"
+    dst_end_date = "#{month_names[hpxml.header.dst_end_month - 1]} #{hpxml.header.dst_end_day_of_month}"
 
-    dst = model.getRunPeriodControlDaylightSavingTime
-    dst.setStartDate(dst_start_date_month, dst_start_date_day)
-    dst.setEndDate(dst_end_date_month, dst_end_date_day)
+    run_period_control_daylight_saving_time = model.getRunPeriodControlDaylightSavingTime
+    run_period_control_daylight_saving_time.setStartDate(dst_start_date)
+    run_period_control_daylight_saving_time.setEndDate(dst_end_date)
   end
 
   def self.apply_ground_temps(model, weather)

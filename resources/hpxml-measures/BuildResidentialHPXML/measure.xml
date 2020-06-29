@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>build_residential_hpxml</name>
   <uid>a13a8983-2b01-4930-8af2-42030b6e4233</uid>
-  <version_id>aa649b3f-166d-498d-b935-d429058b4f2b</version_id>
-  <version_modified>20200626T182004Z</version_modified>
+  <version_id>a9b32eb3-2012-4a3c-b2cc-bad6a0f81f10</version_id>
+  <version_modified>20200629T160407Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>BuildResidentialHPXML</class_name>
   <display_name>HPXML Builder</display_name>
@@ -54,7 +54,7 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>simulation_control_begin_month</name>
+      <name>simulation_control_run_period_begin_month</name>
       <display_name>Simulation Control: Run Period Begin Month</display_name>
       <description>This numeric field should contain the starting month number (1 = January, 2 = February, etc.) for the annual run period desired.</description>
       <type>Integer</type>
@@ -63,7 +63,7 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>simulation_control_begin_day_of_month</name>
+      <name>simulation_control_run_period_begin_day_of_month</name>
       <display_name>Simulation Control: Run Period Begin Day of Month</display_name>
       <description>This numeric field should contain the starting day of the starting month (must be valid for month) for the annual run period desired.</description>
       <type>Integer</type>
@@ -72,7 +72,7 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>simulation_control_end_month</name>
+      <name>simulation_control_run_period_end_month</name>
       <display_name>Simulation Control: Run Period End Month</display_name>
       <description>This numeric field should contain the end month number (1 = January, 2 = February, etc.) for the annual run period desired.</description>
       <type>Integer</type>
@@ -81,9 +81,63 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>simulation_control_end_day_of_month</name>
+      <name>simulation_control_run_period_end_day_of_month</name>
       <display_name>Simulation Control: Run Period End Day of Month</display_name>
       <description>This numeric field should contain the ending day of the ending month (must be valid for month) for the annual run period desired.</description>
+      <type>Integer</type>
+      <units>day</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>simulation_control_daylight_saving_enabled</name>
+      <display_name>Simulation Control: Daylight Saving Enabled</display_name>
+      <description>Whether to use daylight saving.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>simulation_control_daylight_saving_begin_month</name>
+      <display_name>Simulation Control: Daylight Saving Begin Month</display_name>
+      <description>This numeric field should contain the starting month number (1 = January, 2 = February, etc.) for the annual daylight saving period desired.</description>
+      <type>Integer</type>
+      <units>month</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>simulation_control_daylight_saving_begin_day_of_month</name>
+      <display_name>Simulation Control: Daylight Saving Begin Day of Month</display_name>
+      <description>This numeric field should contain the starting day of the starting month (must be valid for month) for the daylight saving period desired.</description>
+      <type>Integer</type>
+      <units>day</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>simulation_control_daylight_saving_end_month</name>
+      <display_name>Simulation Control: Daylight Saving End Month</display_name>
+      <description>This numeric field should contain the end month number (1 = January, 2 = February, etc.) for the daylight saving period desired.</description>
+      <type>Integer</type>
+      <units>month</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>simulation_control_daylight_saving_end_day_of_month</name>
+      <display_name>Simulation Control: Daylight Saving End Day of Month</display_name>
+      <description>This numeric field should contain the ending day of the ending month (must be valid for month) for the daylight saving period desired.</description>
       <type>Integer</type>
       <units>day</units>
       <required>false</required>
@@ -5279,12 +5333,6 @@
       <checksum>986E1A36</checksum>
     </file>
     <file>
-      <filename>build_residential_hpxml_test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>015559B7</checksum>
-    </file>
-    <file>
       <filename>base-misc-defaults.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
@@ -6227,6 +6275,36 @@
       <checksum>8C858BCA</checksum>
     </file>
     <file>
+      <filename>base-simcontrol-runperiod-1-month.osw</filename>
+      <filetype>osw</filetype>
+      <usage_type>test</usage_type>
+      <checksum>169B4B27</checksum>
+    </file>
+    <file>
+      <filename>base-simcontrol-timestep-10-mins.osw</filename>
+      <filetype>osw</filetype>
+      <usage_type>test</usage_type>
+      <checksum>81BEDB3F</checksum>
+    </file>
+    <file>
+      <filename>test_measure.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>27D82DBD</checksum>
+    </file>
+    <file>
+      <filename>test_rakefile.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>2D154BC5</checksum>
+    </file>
+    <file>
+      <filename>build_residential_hpxml_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>015559B7</checksum>
+    </file>
+    <file>
       <version>
         <software_program>OpenStudio</software_program>
         <identifier>2.9.0</identifier>
@@ -6235,19 +6313,19 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>9CD40961</checksum>
+      <checksum>BD3B7985</checksum>
     </file>
     <file>
-      <filename>test_measure.xml</filename>
-      <filetype>xml</filetype>
+      <filename>base-simcontrol-daylight-saving-custom.osw</filename>
+      <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>E6C2258D</checksum>
+      <checksum>4CA97829</checksum>
     </file>
     <file>
-      <filename>test_rakefile.xml</filename>
-      <filetype>xml</filetype>
+      <filename>base-simcontrol-daylight-saving-disabled.osw</filename>
+      <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>C23C5668</checksum>
+      <checksum>501A5AD8</checksum>
     </file>
   </files>
 </measure>

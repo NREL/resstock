@@ -190,11 +190,13 @@ def create_osws
     'base-misc-large-uncommon-loads.osw' => 'base-enclosure-garage.osw',
     'base-misc-large-uncommon-loads2.osw' => 'base-misc-large-uncommon-loads.osw',
     'base-misc-neighbor-shading.osw' => 'base.osw',
-    'base-misc-runperiod-1-month.osw' => 'base.osw',
-    'base-misc-timestep-10-mins.osw' => 'base.osw',
     'base-misc-usage-multiplier.osw' => 'base.osw',
     'base-misc-whole-house-fan.osw' => 'base.osw',
     'base-pv.osw' => 'base.osw',
+    'base-simcontrol-daylight-saving-custom.osw' => 'base.osw',
+    'base-simcontrol-daylight-saving-disabled.osw' => 'base.osw',
+    'base-simcontrol-runperiod-1-month.osw' => 'base.osw',
+    'base-simcontrol-timestep-10-mins.osw' => 'base.osw',
 
     # Extra test files that don't correspond with sample files
     'extra-auto.osw' => 'base.osw',
@@ -1725,11 +1727,6 @@ def get_values(osw_file, step)
     step.setArgument('neighbor_back_distance', 10)
     step.setArgument('neighbor_front_distance', 15)
     step.setArgument('neighbor_front_height', '12')
-  elsif ['base-misc-runperiod-1-month.osw'].include? osw_file
-    step.setArgument('simulation_control_end_month', 1)
-    step.setArgument('simulation_control_end_day_of_month', 31)
-  elsif ['base-misc-timestep-10-mins.osw'].include? osw_file
-    step.setArgument('simulation_control_timestep', '10')
   elsif ['base-misc-usage-multiplier.osw'].include? osw_file
     step.setArgument('water_fixtures_usage_multiplier', 0.9)
     step.setArgument('lighting_usage_multiplier', 0.9)
@@ -1747,6 +1744,19 @@ def get_values(osw_file, step)
     step.setArgument('pv_system_module_type_2', HPXML::PVModuleTypePremium)
     step.setArgument('pv_system_array_azimuth_2', 90)
     step.setArgument('pv_system_max_power_output_2', 1500)
+  elsif ['base-simcontrol-daylight-saving-custom.osw'].include? osw_file
+    step.setArgument('simulation_control_daylight_saving_enabled', true)
+    step.setArgument('simulation_control_daylight_saving_begin_month', 3)
+    step.setArgument('simulation_control_daylight_saving_begin_day_of_month', 10)
+    step.setArgument('simulation_control_daylight_saving_end_month', 11)
+    step.setArgument('simulation_control_daylight_saving_end_day_of_month', 6)
+  elsif ['base-simcontrol-daylight-saving-disabled.osw'].include? osw_file
+    step.setArgument('simulation_control_daylight_saving_enabled', false)
+  elsif ['base-simcontrol-runperiod-1-month.osw'].include? osw_file
+    step.setArgument('simulation_control_run_period_end_month', 1)
+    step.setArgument('simulation_control_run_period_end_day_of_month', 31)
+  elsif ['base-simcontrol-timestep-10-mins.osw'].include? osw_file
+    step.setArgument('simulation_control_timestep', '10')
   elsif ['extra-auto.osw'].include? osw_file
     step.setArgument('geometry_num_occupants', Constants.Auto)
     step.setArgument('ducts_supply_location', Constants.Auto)
@@ -1889,6 +1899,7 @@ def create_hpxmls
     'invalid_files/invalid-window-height.xml' => 'base-enclosure-overhangs.xml',
     'invalid_files/invalid-window-interior-shading.xml' => 'base.xml',
     'invalid_files/invalid-wmo.xml' => 'base.xml',
+    'invalid_files/invalid-daylight-saving.xml' => 'base.xml',
     'invalid_files/lighting-fractions.xml' => 'base.xml',
     'invalid_files/missing-elements.xml' => 'base.xml',
     'invalid_files/net-area-negative-roof.xml' => 'base-enclosure-skylights.xml',
@@ -2090,12 +2101,14 @@ def create_hpxmls
     'base-misc-defaults2.xml' => 'base-dhw-recirc-demand.xml',
     'base-misc-large-uncommon-loads.xml' => 'base-enclosure-garage.xml',
     'base-misc-large-uncommon-loads2.xml' => 'base-misc-large-uncommon-loads.xml',
-    'base-misc-timestep-10-mins.xml' => 'base.xml',
-    'base-misc-runperiod-1-month.xml' => 'base.xml',
+    'base-misc-neighbor-shading.xml' => 'base.xml',
     'base-misc-usage-multiplier.xml' => 'base.xml',
     'base-misc-whole-house-fan.xml' => 'base.xml',
     'base-pv.xml' => 'base.xml',
-    'base-misc-neighbor-shading.xml' => 'base.xml',
+    'base-simcontrol-daylight-saving-custom.xml' => 'base.xml',
+    'base-simcontrol-daylight-saving-disabled.xml' => 'base.xml',
+    'base-simcontrol-runperiod-1-month.xml' => 'base.xml',
+    'base-simcontrol-timestep-10-mins.xml' => 'base.xml',
 
     'hvac_autosizing/base-autosize.xml' => 'base.xml',
     'hvac_autosizing/base-hvac-air-to-air-heat-pump-1-speed-autosize.xml' => 'base-hvac-air-to-air-heat-pump-1-speed.xml',
@@ -2262,16 +2275,27 @@ def set_hpxml_header(hpxml_file, hpxml)
     else
       hpxml.header.apply_ashrae140_assumptions = true
     end
-  elsif ['base-misc-timestep-10-mins.xml'].include? hpxml_file
+  elsif ['base-simcontrol-daylight-saving-custom.xml'].include? hpxml_file
+    hpxml.header.dst_enabled = true
+    hpxml.header.dst_begin_month = 3
+    hpxml.header.dst_begin_day_of_month = 10
+    hpxml.header.dst_end_month = 11
+    hpxml.header.dst_end_day_of_month = 6
+  elsif ['base-simcontrol-daylight-saving-disabled.xml'].include? hpxml_file
+    hpxml.header.dst_enabled = false
+  elsif ['base-simcontrol-timestep-10-mins.xml'].include? hpxml_file
     hpxml.header.timestep = 10
-  elsif ['base-misc-runperiod-1-month.xml'].include? hpxml_file
-    hpxml.header.end_month = 1
-    hpxml.header.end_day_of_month = 31
+  elsif ['base-simcontrol-runperiod-1-month.xml'].include? hpxml_file
+    hpxml.header.sim_end_month = 1
+    hpxml.header.sim_end_day_of_month = 31
   elsif ['invalid_files/invalid-timestep.xml'].include? hpxml_file
     hpxml.header.timestep = 45
   elsif ['invalid_files/invalid-runperiod.xml'].include? hpxml_file
-    hpxml.header.end_month = 4
-    hpxml.header.end_day_of_month = 31
+    hpxml.header.sim_end_month = 4
+    hpxml.header.sim_end_day_of_month = 31
+  elsif ['invalid_files/invalid-daylight-saving.xml'].include? hpxml_file
+    hpxml.header.dst_end_month = 4
+    hpxml.header.dst_end_day_of_month = 31
   elsif ['base-misc-defaults.xml'].include? hpxml_file
     hpxml.header.timestep = nil
   end
