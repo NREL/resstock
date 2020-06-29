@@ -2,17 +2,22 @@
 # http://nrel.github.io/OpenStudio-user-documentation/reference/measure_writing_guide/
 
 require 'openstudio'
+require 'oga'
 
 require_relative 'resources/geometry'
 require_relative 'resources/schedules'
 require_relative 'resources/constants'
 require_relative 'resources/location'
 
-require_relative '../HPXMLtoOpenStudio/resources/EPvalidator'
+require_relative '../HPXMLtoOpenStudio/resources/constants'
 require_relative '../HPXMLtoOpenStudio/resources/constructions'
+require_relative '../HPXMLtoOpenStudio/resources/EPvalidator'
+require_relative '../HPXMLtoOpenStudio/resources/geometry'
 require_relative '../HPXMLtoOpenStudio/resources/hpxml'
 require_relative '../HPXMLtoOpenStudio/resources/schedules'
-require_relative '../HPXMLtoOpenStudio/resources/constants'
+require_relative '../HPXMLtoOpenStudio/resources/unit_conversions'
+require_relative '../HPXMLtoOpenStudio/resources/weather'
+require_relative '../HPXMLtoOpenStudio/resources/xmlhelper'
 
 # start the measure
 class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
@@ -2785,8 +2790,6 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     if !runner.validateUserArguments(arguments(model), user_arguments)
       return false
     end
-
-    require_relative '../HPXMLtoOpenStudio/measure'
 
     # Check for correct versions of OS
     os_version = '3.0.0'
