@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class EnergyPlus
+class EPlus
   # Constants
   FuelTypeElectricity = 'electricity'
   FuelTypeNaturalGas = 'NaturalGas'

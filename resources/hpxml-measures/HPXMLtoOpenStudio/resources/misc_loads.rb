@@ -82,7 +82,7 @@ class MiscLoads
     mfl = OpenStudio::Model::OtherEquipment.new(mfl_def)
     mfl.setName(obj_name)
     mfl.setEndUseSubcategory(obj_name)
-    mfl.setFuelType(EnergyPlus.input_fuel_map(fuel_load.fuel_type))
+    mfl.setFuelType(EPlus.input_fuel_map(fuel_load.fuel_type))
     mfl.setSpace(living_space)
     mfl_def.setName(obj_name)
     mfl_def.setDesignLevel(space_design_level)

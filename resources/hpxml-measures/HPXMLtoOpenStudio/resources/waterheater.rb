@@ -612,7 +612,7 @@ class Waterheater
     storage_tank.setHeater2SetpointTemperatureSchedule(setpoint_schedule_two)
     storage_tank.setHeater2Capacity(0)
     storage_tank.setHeater2Height(0)
-    storage_tank.setHeaterFuelType(EnergyPlus::FuelTypeElectricity)
+    storage_tank.setHeaterFuelType(EPlus::FuelTypeElectricity)
     storage_tank.setHeaterThermalEfficiency(1)
     storage_tank.ambientTemperatureSchedule.get.remove
     set_wh_ambient(loc_space, loc_schedule, model, storage_tank)
@@ -823,12 +823,12 @@ class Waterheater
     tank.setHeater2Capacity(UnitConversions.convert(e_cap, 'kW', 'W'))
     tank.setHeater2Height(h_LE)
     tank.setHeater2DeadbandTemperatureDifference(3.89)
-    tank.setHeaterFuelType(EnergyPlus::FuelTypeElectricity)
+    tank.setHeaterFuelType(EPlus::FuelTypeElectricity)
     tank.setHeaterThermalEfficiency(1)
     tank.setOffCycleParasiticFuelConsumptionRate(parasitics)
-    tank.setOffCycleParasiticFuelType(EnergyPlus::FuelTypeElectricity)
+    tank.setOffCycleParasiticFuelType(EPlus::FuelTypeElectricity)
     tank.setOnCycleParasiticFuelConsumptionRate(parasitics)
-    tank.setOnCycleParasiticFuelType(EnergyPlus::FuelTypeElectricity)
+    tank.setOnCycleParasiticFuelType(EPlus::FuelTypeElectricity)
     tank.setUniformSkinLossCoefficientperUnitAreatoAmbientTemperature(u_tank)
     tank.setAmbientTemperatureSchedule(hpwh_tamb)
     tank.setNumberofNodes(6)
@@ -1279,11 +1279,11 @@ class Waterheater
     # EMS for calculating the EC_adj
 
     # Sensors
-    eplus_fuel = EnergyPlus.input_fuel_map(fuel_type)
-    if eplus_fuel == EnergyPlus::FuelTypeElectricity
-      ep_consumption_name = "#{EnergyPlus.output_fuel_map(eplus_fuel)} Power"
+    eplus_fuel = EPlus.input_fuel_map(fuel_type)
+    if eplus_fuel == EPlus::FuelTypeElectricity
+      ep_consumption_name = "#{EPlus.output_fuel_map(eplus_fuel)} Power"
     else
-      ep_consumption_name = "#{EnergyPlus.output_fuel_map(eplus_fuel)} Rate"
+      ep_consumption_name = "#{EPlus.output_fuel_map(eplus_fuel)} Rate"
     end
     if [HPXML::WaterHeaterTypeCombiStorage, HPXML::WaterHeaterTypeCombiTankless].include? water_heating_system.water_heater_type
       ec_adj_sensor_hx = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Fluid Heat Exchanger Heat Transfer Energy')
@@ -1561,7 +1561,7 @@ class Waterheater
     new_heater = OpenStudio::Model::WaterHeaterMixed.new(model)
     new_heater.setName(name)
     new_heater.setHeaterThermalEfficiency(eta_c) unless eta_c.nil?
-    new_heater.setHeaterFuelType(EnergyPlus.input_fuel_map(fuel)) unless fuel.nil?
+    new_heater.setHeaterFuelType(EPlus.input_fuel_map(fuel)) unless fuel.nil?
     configure_setpoint_schedule(new_heater, t_set_c, model)
     new_heater.setMaximumTemperatureLimit(99.0)
     if [HPXML::WaterHeaterTypeTankless, HPXML::WaterHeaterTypeCombiTankless].include? tank_type
@@ -1586,11 +1586,11 @@ class Waterheater
   end
 
   def self.set_wh_parasitic_parameters(oncycle_p, water_heating_system, water_heater, is_storage)
-    water_heater.setOnCycleParasiticFuelType(EnergyPlus::FuelTypeElectricity)
+    water_heater.setOnCycleParasiticFuelType(EPlus::FuelTypeElectricity)
     water_heater.setOnCycleParasiticHeatFractiontoTank(0)
     water_heater.setOnCycleLossFractiontoThermalZone(1.0)
 
-    water_heater.setOffCycleParasiticFuelType(EnergyPlus::FuelTypeElectricity)
+    water_heater.setOffCycleParasiticFuelType(EPlus::FuelTypeElectricity)
     water_heater.setOffCycleParasiticHeatFractiontoTank(0)
 
     # Set fraction of heat loss from tank to ambient (vs out flue)
