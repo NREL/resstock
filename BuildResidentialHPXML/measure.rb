@@ -123,6 +123,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('schedules_output_path', true)
     arg.setDisplayName('Schedules Output File Path')
     arg.setDescription('Absolute (or relative) path of the output schedules file.')
+    arg.setDefaultValue('../schedules.csv')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('weather_station_epw_filepath', true)
