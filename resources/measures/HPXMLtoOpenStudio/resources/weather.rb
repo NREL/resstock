@@ -759,7 +759,7 @@ class WeatherProcess
   end
 
   def calc_ground_temperatures
-    # Return monthly ground temperatures.
+    # Return monthly ground temperatures. This correlation is the same that is used in DOE-2's src\WTH.f file, subroutine GTEMP.
 
     amon = [15.0, 46.0, 74.0, 95.0, 135.0, 166.0, 196.0, 227.0, 258.0, 288.0, 319.0, 349.0]
     po = 0.6
