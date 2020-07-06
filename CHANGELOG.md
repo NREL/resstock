@@ -1,3 +1,8 @@
+## ResStock v2.4.0 (pending)
+
+Features
+- Update California cooling system types and efficiencies based on RASS 2009 ([#446](https://github.com/NREL/OpenStudio-BuildStock/pull/446))
+
 ## ResStock v2.3.0
 ###### June 24, 2020 - [Diff](https://github.com/NREL/OpenStudio-BuildStock/compare/v2.2.4...v2.3.0)
 
@@ -16,7 +21,6 @@ Features
 - Increase the diversity of the floor areas that are simulated. Geometry House Size has been replaced by Geometry Floor Area Bin and Geometry Floor Area. Now using AHS for specifying the floor area. Floor areas differ by non-Core Based Statistical Areas (CBSAs) Census Divisions and the top 15 largest CBSAs ([#425](https://github.com/NREL/OpenStudio-BuildStock/pull/425))
 - Increase the diversity of the infiltration simulated. Now using the Residential Diagnostics Database for the Infiltration housing characteristic ([#427](https://github.com/NREL/OpenStudio-BuildStock/pull/427))
 - Allow a key value to be specified when outputting timeseries variables ([#438](https://github.com/NREL/OpenStudio-BuildStock/pull/438))
-- Update California cooling system types and efficiencies based on RASS 2009 ([#446](https://github.com/NREL/OpenStudio-BuildStock/pull/446))
 
 Fixes
 - Rename "project_multifamily_beta" to "project_national" ([#459](https://github.com/NREL/OpenStudio-BuildStock/pull/459))
