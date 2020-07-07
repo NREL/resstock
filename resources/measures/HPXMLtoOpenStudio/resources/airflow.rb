@@ -41,6 +41,7 @@ class Airflow
     end
     building.crawlspace = []
     building.unfinished_basement = []
+    building.unfinished_attic = []
     building.stories = model.getBuilding.standardsNumberOfAboveGroundStories.get
     building.above_grade_volume = Geometry.get_above_grade_finished_volume(model, runner)
     building.ag_ext_wall_area = Geometry.calculate_above_grade_exterior_wall_area(model_spaces)
@@ -54,7 +55,7 @@ class Airflow
       elsif Geometry.is_pier_beam(thermal_zone)
         building.pierbeam = ZoneInfo.new(thermal_zone, Geometry.get_height_of_spaces(thermal_zone.spaces), UnitConversions.convert(thermal_zone.floorArea, "m^2", "ft^2"), Geometry.get_zone_volume(thermal_zone, runner), Geometry.get_z_origin_for_zone(thermal_zone), infil.pier_beam_ach, nil)
       elsif Geometry.is_unfinished_attic(thermal_zone)
-        building.unfinished_attic = ZoneInfo.new(thermal_zone, Geometry.get_height_of_spaces(thermal_zone.spaces), UnitConversions.convert(thermal_zone.floorArea, "m^2", "ft^2"), Geometry.get_zone_volume(thermal_zone, runner), Geometry.get_z_origin_for_zone(thermal_zone), infil.unfinished_attic_const_ach, infil.unfinished_attic_sla)
+        building.unfinished_attic << ZoneInfo.new(thermal_zone, Geometry.get_height_of_spaces(thermal_zone.spaces), UnitConversions.convert(thermal_zone.floorArea, "m^2", "ft^2"), Geometry.get_zone_volume(thermal_zone, runner), Geometry.get_z_origin_for_zone(thermal_zone), infil.unfinished_attic_const_ach, infil.unfinished_attic_sla)
       end
     end
     building.ag_ffa = Geometry.get_above_grade_finished_floor_area_from_spaces(model_spaces, runner)
@@ -148,12 +149,12 @@ class Airflow
       tout_sensor.setKeyName(unit_living.zone.name.to_s)
 
       # Update model
-      # def self.print_instance_vars(instance)
-      #   puts("_______ #{instance}_________")
-      #   instance.instance_variables.each do |var|
-      #     puts("    #{var}:  #{instance.instance_variable_get var}")
-      #   end
-      # end
+      def self.print_instance_vars(instance)
+        puts("_______ #{instance}_________")
+        instance.instance_variables.each do |var|
+          puts("    #{var}:  #{instance.instance_variable_get var}")
+        end
+      end
 
       success, infil_output = process_infiltration_for_unit(model, runner, obj_name_infil, infil, wind_speed, building, weather, unit_ag_ffa, unit_ag_ext_wall_area, unit_living, unit_finished_basement)
       return false if not success
@@ -205,7 +206,7 @@ class Airflow
       #   puts(key)
       #   puts(value)
       # end
-      # self.print_instance_vars(infil_program)
+      # self.print_instance_vars(infil_output)
       # self.print_instance_vars(mv_output)
       # # self.print_instance_vars(cfis_systems)
       # self.print_instance_vars(nv_output)
@@ -237,8 +238,13 @@ class Airflow
         ub.zone.additionalProperties.setFeature(Constants.SizingInfoZoneInfiltrationCFM, ub.inf_flow.to_f)
       end
     end
-    unless building.unfinished_attic.nil?
-      building.unfinished_attic.zone.additionalProperties.setFeature(Constants.SizingInfoZoneInfiltrationCFM, building.unfinished_attic.inf_flow)
+    # unless building.unfinished_attic.nil?
+    #   building.unfinished_attic.zone.additionalProperties.setFeature(Constants.SizingInfoZoneInfiltrationCFM, building.unfinished_attic.inf_flow)
+    # end
+    unless building.unfinished_attic.empty?
+      building.unfinished_attic.each do |ua|
+        ua.zone.additionalProperties.setFeature(Constants.SizingInfoZoneInfiltrationCFM, ua.inf_flow)
+      end
     end
 
     terrain = { Constants.TerrainOcean => "Ocean", # Ocean, Bayou flat country
@@ -512,7 +518,8 @@ class Airflow
     spaces += building.unfinished_basement if not building.unfinished_basement.empty?
     spaces += building.crawlspace if not building.crawlspace.empty?
     spaces << building.pierbeam if not building.pierbeam.nil?
-    spaces << building.unfinished_attic if not building.unfinished_attic.nil?
+    # spaces << building.unfinished_attic if not building.unfinished_attic.nil?
+    spaces += building.unfinished_attic if not building.unfinished_attic.empty?
 
     unless building.garage.nil?
       building.garage.inf_method = @infMethodSG
@@ -546,24 +553,33 @@ class Airflow
       building.pierbeam.inf_flow = building.pierbeam.ACH / UnitConversions.convert(1.0, "hr", "min") * building.pierbeam.volume
     end
 
-    unless building.unfinished_attic.nil?
-      if not building.unfinished_attic.SLA.nil?
-        building.unfinished_attic.inf_method = @infMethodSG
-        building.unfinished_attic.hor_lk_frac = 0.75 # Same as Energy Gauge USA Attic Model
-        building.unfinished_attic.neutral_level = 0.5 # DOE-2 Default
-        building.unfinished_attic.ACH = Airflow.get_infiltration_ACH_from_SLA(building.unfinished_attic.SLA, 1.0, weather)
-      elsif not building.unfinished_attic.ACH.nil?
-        building.unfinished_attic.inf_method = @infMethodRes
+    # unless building.unfinished_attic.nil?
+    #   if not building.unfinished_attic.SLA.nil?
+    #     building.unfinished_attic.inf_method = @infMethodSG
+    #     building.unfinished_attic.hor_lk_frac = 0.75 # Same as Energy Gauge USA Attic Model
+    #     building.unfinished_attic.neutral_level = 0.5 # DOE-2 Default
+    #     building.unfinished_attic.ACH = Airflow.get_infiltration_ACH_from_SLA(building.unfinished_attic.SLA, 1.0, weather)
+    #   elsif not building.unfinished_attic.ACH.nil?
+    #     building.unfinished_attic.inf_method = @infMethodRes
+    #   end
+    #   building.unfinished_attic.inf_flow = building.unfinished_attic.ACH / UnitConversions.convert(1.0, "hr", "min") * building.unfinished_attic.volume
+    # end
+
+    unless building.unfinished_attic.empty?
+      building.unfinished_attic.each do |ua|
+        if not ua.SLA.nil?
+          ua.inf_method = @infMethodSG
+          ua.hor_lk_frac = 0.75 # Same as Energy Gauge USA Attic Model
+          ua.neutral_level = 0.5 # DOE-2 Default
+          ua.ACH = Airflow.get_infiltration_ACH_from_SLA(ua.SLA, 1.0, weather)
+        elsif not ua.ACH.nil?
+          ua.inf_method = @infMethodRes
+        end
+        ua.inf_flow = ua.ACH / UnitConversions.convert(1.0, "hr", "min") * ua.volume
       end
-      building.unfinished_attic.inf_flow = building.unfinished_attic.ACH / UnitConversions.convert(1.0, "hr", "min") * building.unfinished_attic.volume
     end
 
     process_infiltration_for_spaces(model, spaces, wind_speed)
-
-    # puts("============process infiltration ==================")
-    # puts("building.crawlspace.inf_flow:  #{building.crawlspace.inf_flow}")
-    # puts(building.crawlspace)
-
     return true
   end
 
@@ -636,9 +652,11 @@ class Airflow
           num_floors = num_floors.get.to_f
           num_units_per_floor = n_units / num_floors
         elsif Geometry.get_building_type(model) == Constants.BuildingTypeSingleFamilyAttached
+          h = h*(num_floors.get)
           num_floors = 1
           num_units_per_floor = n_units
         end
+
         if num_units_per_floor == 1 or num_units_per_floor == 2 or (num_units_per_floor == 4 and has_rear_units) # No middle unit(s)
           a_o_frac = 1 / num_floors / num_units_per_floor # all units have same exterior wall area
           a_o = mf_building_ELA * a_o_frac
@@ -1332,8 +1350,17 @@ class Airflow
         end
       elsif not building.pierbeam.nil? and building.pierbeam.zone == location_zone and building.pierbeam.ACH == 0
         frac_oa = 0
-      elsif not building.unfinished_attic.nil? and building.unfinished_attic.zone == location_zone and building.unfinished_attic.ACH == 0
-        frac_oa = 0
+      # elsif not building.unfinished_attic.nil? and building.unfinished_attic.zone == location_zone and building.unfinished_attic.ACH == 0
+      #   frac_oa = 0
+      elsif not building.unfinished_attic.empty?
+        building.unfinished_attic.each do |ua|
+          if ua.zone == location_zone and ua.ACH == 0
+            frac_oa = 0
+            break
+          else
+            frac_oa = 1
+          end
+        end
       else
         # Assume that all of the unbalanced make-up air is driven infiltration from outdoors.
         # This assumes that the holes for attic ventilation are much larger than any attic bypasses.
