@@ -5,7 +5,6 @@ require 'rake/testtask'
 require 'ci/reporter/rake/minitest'
 
 require 'pp'
-require 'colored'
 require 'json'
 
 desc 'Perform tasks related to unit tests'
