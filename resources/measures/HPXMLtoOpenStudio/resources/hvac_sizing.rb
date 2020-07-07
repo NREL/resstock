@@ -60,6 +60,18 @@ class HVACSizing
     # Calculate loads for each conditioned thermal zone in the unit
     zones_loads = process_zone_loads(runner, mj8, unit, weather, mj8.htd, nbeds, unit_ffa, unit_shelter_class)
     return false if zones_loads.nil?
+    # puts("........#{unit.name}..........")
+    # def self.print_instance_vars(instance)
+    #   puts("_______ #{instance}_________")
+    #   instance.instance_variables.each do |var|
+    #     puts("    #{var}:  #{instance.instance_variable_get var}")
+    #   end
+    # end
+
+    # print_instance_vars(zones_loads)
+    # zone_load.each do |zload|
+    #   puts(zload)
+    # end
 
     # Aggregate zone loads into initial unit loads
     unit_init = process_intermediate_total_loads(runner, mj8, zones_loads, weather, hvac)
@@ -263,6 +275,7 @@ class HVACSizing
 
     elsif Geometry.is_unfinished_attic(space)
 
+      # puts("============ design temp for #{space.name} attic ===============")
       is_vented = space_is_vented(space, 0.001)
 
       attic_floor_r = get_space_r_value(runner, space, "floor", true)
@@ -292,7 +305,6 @@ class HVACSizing
 
         space.surfaces.each do |surface|
           next if surface.surfaceType.downcase != "roofceiling"
-
           tot_roof_area += surface.netArea
 
           roof_color = get_feature(runner, surface, Constants.SizingInfoRoofColor, 'string')
@@ -303,12 +315,12 @@ class HVACSizing
           has_radiant_barrier = false if has_radiant_barrier.nil?
 
           if not is_vented
+
             if not has_radiant_barrier
               cool_temp += (150 + (weather.design.CoolingDrybulb - 95) + mj8.daily_range_temp_adjust[mj8.daily_range_num]) * surface.netArea
             else
               cool_temp += (130 + (weather.design.CoolingDrybulb - 95) + mj8.daily_range_temp_adjust[mj8.daily_range_num]) * surface.netArea
             end
-
           else # is_vented
 
             if not has_radiant_barrier
@@ -344,7 +356,6 @@ class HVACSizing
                 runner.registerWarning("Specified roofing material (#{roof_material}) is not supported by BEopt Manual J calculations. Assuming dark asphalt shingles")
                 cool_temp += 130 * surface.netArea
               end
-
             else # with a radiant barrier
               if [Constants.RoofMaterialAsphaltShingles, Constants.RoofMaterialTarGravel].include?(roof_material)
                 if roof_color == Constants.ColorDark
@@ -382,6 +393,7 @@ class HVACSizing
             end
           end # vented/unvented
         end # each roof surface
+
 
         cool_temp = cool_temp / tot_roof_area
 
@@ -1119,7 +1131,6 @@ class HVACSizing
     '''
     Heating, Cooling, and Dehumidification Loads: Floors
     '''
-
     return nil if mj8.nil? or zone_loads.nil?
 
     zone_loads.Heat_Floors = 0
@@ -1127,6 +1138,7 @@ class HVACSizing
     zone_loads.Dehumid_Floors = 0
 
     # Exterior Floors
+    floor_ufactor=nil
     Geometry.get_spaces_above_grade_exterior_floors(thermal_zone.spaces).each do |floor|
       floor_ufactor = get_surface_ufactor(runner, floor, floor.surfaceType, true)
       return nil if floor_ufactor.nil?
@@ -1143,8 +1155,18 @@ class HVACSizing
 
       adjacent_space = floor.adjacentSurface.get.space.get
       zone_loads.Cool_Floors += floor_ufactor * UnitConversions.convert(floor.netArea, "m^2", "ft^2") * (mj8.cool_design_temps[adjacent_space] - mj8.cool_setpoint)
+      cool_floor_surf = floor_ufactor * UnitConversions.convert(floor.netArea, "m^2", "ft^2") * (mj8.cool_design_temps[adjacent_space] - mj8.cool_setpoint)
       zone_loads.Heat_Floors += floor_ufactor * UnitConversions.convert(floor.netArea, "m^2", "ft^2") * (mj8.heat_setpoint - mj8.heat_design_temps[adjacent_space])
       zone_loads.Dehumid_Floors += floor_ufactor * UnitConversions.convert(floor.netArea, "m^2", "ft^2") * (mj8.cool_setpoint - mj8.dehum_design_temps[adjacent_space])
+
+      # puts("---------------------------------------------------- FLOOR: #{floor.name}")
+      # puts("zone_loads.Cool_Floors:  #{cool_floor_surf}")
+      # puts("mj8.cool_design_temps[adjacent_space]:  #{mj8.cool_design_temps[adjacent_space]}") #XXXXX
+      # puts("adjacent space:  #{adjacent_space.name}")
+      # puts("mj8.cool_setpoint:  #{mj8.cool_setpoint}")
+      # puts("floor_ufactor:  #{floor_ufactor}")
+      # puts("floor.netArea:  #{UnitConversions.convert(floor.netArea, "m^2", "ft^2")}")
+      # puts("----------------------------------------------------")
     end
 
     
@@ -3517,10 +3539,6 @@ class HVACSizing
       next if not ["foundation", "outdoors"].include?(obc) and not Geometry.is_interzonal_surface(surface)
       space_UAs[obc] += ufactor * UnitConversions.convert(surface.netArea, "m^2", "ft^2")
     end
-
-    # if Geometry.space_is_below_grade(space) and singleunit
-    #   space_UAs["foundation"] = avg_found_wall_area*ufactor_found  
-    # end
 
     # Infiltration UA
     infiltration_cfm = get_feature(runner, space.thermalZone.get, Constants.SizingInfoZoneInfiltrationCFM, 'double', false)

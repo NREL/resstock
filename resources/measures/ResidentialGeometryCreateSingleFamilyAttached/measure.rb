@@ -441,18 +441,18 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
       adb_facade += ["back"]
     end
 
-    if adb_facade.include? "left"
-      left_neighbor_offset = 0
-    end
-    if adb_facade.include? "right"
-      right_neighbor_offset = 0
-    end
-    if adb_facade.include? "back"
-      back_neighbor_offset = 0
-    end
-    if adb_facade.include? "front"
-      front_neighbor_offset = 0
-    end
+    # if adb_facade.include? "left"
+    #   left_neighbor_offset = 0
+    # end
+    # if adb_facade.include? "right"
+    #   right_neighbor_offset = 0
+    # end
+    # if adb_facade.include? "back"
+    #   back_neighbor_offset = 0
+    # end
+    # if adb_facade.include? "front"
+    #   front_neighbor_offset = 0
+    # end
 
     adiabatic_surf = adb_facade
     # Make surfaces adiabatic
@@ -676,6 +676,7 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
     model.getBuilding.setStandardsNumberOfLivingUnits(num_units)
 
     # Store number of stories
+    above_ground_floors = num_floors
     if attic_type == "finished attic"
       num_floors += 1
     end
@@ -692,6 +693,8 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
     model.getBuilding.additionalProperties.setFeature("num_units", num_units)
     model.getBuilding.additionalProperties.setFeature("has_rear_units", has_rear_units)
     model.getBuilding.additionalProperties.setFeature("horz_location", horz_location)
+    model.getBuilding.additionalProperties.setFeature("num_floors", above_ground_floors)
+
 
     result = Geometry.process_beds_and_baths(model, runner, num_br, num_ba)
     unless result
