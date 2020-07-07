@@ -752,18 +752,18 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
       end
 
       if corridor_width > 0
+        # temporary remove shading for exterior single corridor
+        (1..num_floors).to_a.each do |floor|
+          nw_point = OpenStudio::Point3d.new(0, -y, floor * wall_height)
+          ne_point = OpenStudio::Point3d.new(x * num_units_per_floor, -y, floor * wall_height)
+          sw_point = OpenStudio::Point3d.new(0, -y - corridor_width, floor * wall_height)
+          se_point = OpenStudio::Point3d.new(x * num_units_per_floor, -y - corridor_width, floor * wall_height)
 
-        # (1..num_floors).to_a.each do |floor|
-        #   nw_point = OpenStudio::Point3d.new(0, -y, floor * wall_height)
-        #   ne_point = OpenStudio::Point3d.new(x * num_units_per_floor, -y, floor * wall_height)
-        #   sw_point = OpenStudio::Point3d.new(0, -y - corridor_width, floor * wall_height)
-        #   se_point = OpenStudio::Point3d.new(x * num_units_per_floor, -y - corridor_width, floor * wall_height)
+          shading_surface = OpenStudio::Model::ShadingSurface.new(OpenStudio::Point3dVector.new([sw_point, se_point, ne_point, nw_point]), model)
 
-        #   shading_surface = OpenStudio::Model::ShadingSurface.new(OpenStudio::Point3dVector.new([sw_point, se_point, ne_point, nw_point]), model)
-
-        #   shading_surface_group = OpenStudio::Model::ShadingSurfaceGroup.new(model)
-        #   shading_surface.setShadingSurfaceGroup(shading_surface_group)
-        # end
+          shading_surface_group = OpenStudio::Model::ShadingSurfaceGroup.new(model)
+          shading_surface.setShadingSurfaceGroup(shading_surface_group)
+        end
 
       end
 
@@ -995,24 +995,13 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     OpenStudio::Model.intersectSurfaces(spaces)
     OpenStudio::Model.matchSurfaces(spaces)
 
-    # make all surfaces adjacent to corridor spaces into adiabatic surfaces
+    # temporary adiabatic shared walls for testing:
     model.getSpaces.each do |space|
-      # next if Geometry.space_is_below_grade(space)
-
       space.surfaces.each do |surface|
-
-        #################################################
-        # surface.setOutsideBoundaryCondition("Adiabatic")
-
-
-        #Temporary adiabatic slab for testing
-        # if foundation_type == "slab" and surface.surfaceType.downcase == "floor" and surface.outsideBoundaryCondition.downcase == "ground"
-        #   surface.setOutsideBoundaryCondition("Adiabatic")
-        # end 
-        if surface.adjacentSurface.is_initialized # only set to adiabatic if the corridor surface is adjacent to another surface
+        if surface.adjacentSurface.is_initialized
           adjacent_surface = surface.adjacentSurface.get
           adjacent_space = adjacent_surface.space.get
-          #Set all shared walls and corridor walls adiabatic
+
           if Geometry.is_living_space_type(adjacent_space.spaceType.get.standardsSpaceType.get) and Geometry.is_living_space_type(space.spaceType.get.standardsSpaceType.get)
             surface.adjacentSurface.get.setOutsideBoundaryCondition("Adiabatic")
             surface.setOutsideBoundaryCondition("Adiabatic")
@@ -1024,7 +1013,6 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
             surface.setOutsideBoundaryCondition("Adiabatic")
           end
         end
-
       end
     end
 
@@ -1037,7 +1025,6 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
           surface.adjacentSurface.get.setOutsideBoundaryCondition("Adiabatic")
           surface.setOutsideBoundaryCondition("Adiabatic")
         end
-        # surface.setOutsideBoundaryCondition("Adiabatic")
       end
     end
 
@@ -1071,10 +1058,11 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
       return false
     end
 
-    # result = Geometry.process_eaves(model, runner, eaves_depth, Constants.RoofStructureTrussCantilever)
-    # unless result
-    #   return false
-    # end
+    # temporary remove eaves for testing
+    result = Geometry.process_eaves(model, runner, eaves_depth, Constants.RoofStructureTrussCantilever)
+    unless result
+      return false
+    end
 
     result = Geometry.process_neighbors(model, runner, left_neighbor_offset, right_neighbor_offset, back_neighbor_offset, front_neighbor_offset)
     unless result
