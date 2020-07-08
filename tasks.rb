@@ -135,6 +135,7 @@ def create_osws
     'base-hvac-evap-cooler-only.osw' => 'base.osw',
     'base-hvac-evap-cooler-only-ducted.osw' => 'base.osw',
     'base-hvac-fireplace-wood-only.osw' => 'base.osw',
+    'base-hvac-fixed-heater-electric-only.osw' => 'base.osw',
     'base-hvac-floor-furnace-propane-only.osw' => 'base.osw',
     # 'base-hvac-flowrate.osw' => 'base.osw', # Not going to support in the measure
     'base-hvac-furnace-elec-central-ac-1-speed.osw' => 'base.osw',
@@ -1353,6 +1354,10 @@ def get_values(osw_file, step)
     step.setArgument('heating_system_fuel', HPXML::FuelTypeWoodCord)
     step.setArgument('heating_system_heating_efficiency', 0.8)
     step.setArgument('cooling_system_type', 'none')
+  elsif ['base-hvac-fixed-heater-electric-only.osw'].include? osw_file
+    step.setArgument('heating_system_type', HPXML::HVACTypeFixedHeater)
+    step.setArgument('heating_system_fuel', HPXML::FuelTypeElectricity)
+    step.setArgument('heating_system_heating_efficiency', 1.0)
   elsif ['base-hvac-floor-furnace-propane-only.osw'].include? osw_file
     step.setArgument('heating_system_type', HPXML::HVACTypeFloorFurnace)
     step.setArgument('heating_system_fuel', HPXML::FuelTypePropane)
@@ -2048,6 +2053,7 @@ def create_hpxmls
     'base-hvac-evap-cooler-only.xml' => 'base.xml',
     'base-hvac-evap-cooler-only-ducted.xml' => 'base.xml',
     'base-hvac-fireplace-wood-only.xml' => 'base.xml',
+    'base-hvac-fixed-heater-electric-only.xml' => 'base.xml',
     'base-hvac-floor-furnace-propane-only.xml' => 'base.xml',
     'base-hvac-flowrate.xml' => 'base.xml',
     'base-hvac-furnace-elec-central-ac-1-speed.xml' => 'base.xml',
@@ -3004,7 +3010,8 @@ def set_hpxml_walls(hpxml_file, hpxml)
                   HPXML::WallTypeSteelStud => 8.1,
                   HPXML::WallTypeStone => 5.4,
                   HPXML::WallTypeStrawBale => 58.8,
-                  HPXML::WallTypeBrick => 7.9 }
+                  HPXML::WallTypeBrick => 7.9,
+                  HPXML::WallTypeAdobe => 5.0 }
     siding_types = [[HPXML::SidingTypeAluminum, HPXML::ColorReflective],
                     [HPXML::SidingTypeBrick, HPXML::ColorMediumDark],
                     [HPXML::SidingTypeFiberCement, HPXML::ColorMedium],
@@ -4373,6 +4380,12 @@ def set_hpxml_heating_systems(hpxml_file, hpxml)
   elsif ['base-hvac-portable-heater-electric-only.xml'].include? hpxml_file
     hpxml.heating_systems[0].distribution_system_idref = nil
     hpxml.heating_systems[0].heating_system_type = HPXML::HVACTypePortableHeater
+    hpxml.heating_systems[0].heating_system_fuel = HPXML::FuelTypeElectricity
+    hpxml.heating_systems[0].heating_efficiency_afue = nil
+    hpxml.heating_systems[0].heating_efficiency_percent = 1.0
+  elsif ['base-hvac-fixed-heater-electric-only.xml'].include? hpxml_file
+    hpxml.heating_systems[0].distribution_system_idref = nil
+    hpxml.heating_systems[0].heating_system_type = HPXML::HVACTypeFixedHeater
     hpxml.heating_systems[0].heating_system_fuel = HPXML::FuelTypeElectricity
     hpxml.heating_systems[0].heating_efficiency_afue = nil
     hpxml.heating_systems[0].heating_efficiency_percent = 1.0

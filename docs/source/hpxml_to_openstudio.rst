@@ -24,7 +24,7 @@ The following building features/technologies are available for modeling via the 
   
 - HVAC
 
-  - Heating Systems (Electric Resistance, Central/Wall/Floor Furnaces, Stoves, Boilers, Portable Heaters, Fireplaces)
+  - Heating Systems (Electric Resistance, Central/Wall/Floor Furnaces, Stoves, Boilers, Portable/Fixed Heaters, Fireplaces)
   - Cooling Systems (Central Air Conditioners, Room Air Conditioners, Evaporative Coolers)
   - Heat Pumps (Air Source, Mini Split, Ground Source, Dual-Fuel)
   - Setpoints

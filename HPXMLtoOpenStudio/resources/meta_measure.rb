@@ -1,6 +1,131 @@
 # frozen_string_literal: true
 
-# Helper methods related to having a meta-measure
+require 'fileutils'
+
+def run_hpxml_workflow(rundir, hpxml, measures, measures_dir, debug: false, output_vars: [],
+                       output_meters: [], run_measures_only: false, print_prefix: '')
+  rm_path(rundir)
+  FileUtils.mkdir_p(rundir)
+
+  # Use print instead of puts in here in case running inside
+  # a Parallel process (see https://stackoverflow.com/a/5044669)
+  print "#{print_prefix}Creating input...\n"
+
+  OpenStudio::Logger.instance.standardOutLogger.setLogLevel(OpenStudio::Fatal)
+  os_log = OpenStudio::StringStreamLogSink.new
+  os_log.setLogLevel(OpenStudio::Warn)
+
+  model = OpenStudio::Model::Model.new
+  runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
+
+  # Apply measures
+  success = apply_measures(measures_dir, measures, runner, model, false, 'OpenStudio::Measure::ModelMeasure')
+  report_measure_errors_warnings(runner, rundir, debug)
+  report_os_warnings(os_log, rundir)
+
+  if run_measures_only
+    return { success: success, runner: runner }
+  end
+
+  if not success
+    print "#{print_prefix}Creating input unsuccessful.\n"
+    print "#{print_prefix}See #{File.join(rundir, 'run.log')} for details.\n"
+    return { success: false, runner: runner }
+  end
+
+  # Apply any additional output variables
+  output_vars.each do |output_var|
+    ov = OpenStudio::Model::OutputVariable.new(output_var[0], model)
+    ov.setReportingFrequency(output_var[1])
+    ov.setKeyValue(output_var[2])
+  end
+
+  # Apply any additional output meters
+  output_meters.each do |output_meter|
+    om = OpenStudio::Model::OutputMeter.new(model)
+    om.setName(output_meter[0])
+    om.setReportingFrequency(output_meter[1])
+  end
+
+  # Translate model to IDF
+  forward_translator = OpenStudio::EnergyPlus::ForwardTranslator.new
+  forward_translator.setExcludeLCCObjects(true)
+  model_idf = forward_translator.translateModel(model)
+  report_ft_errors_warnings(forward_translator, rundir)
+
+  # Apply reporting measure output requests
+  apply_energyplus_output_requests(measures_dir, measures, runner, model, model_idf)
+
+  # Write IDF to file
+  File.open(File.join(rundir, 'in.idf'), 'w') { |f| f << model_idf.to_s }
+
+  # Run simulation
+  print "#{print_prefix}Running simulation...\n"
+  ep_path = File.absolute_path(File.join(OpenStudio.getOpenStudioCLI.to_s, '..', '..', 'EnergyPlus', 'energyplus')) # getEnergyPlusDirectory can be unreliable, using getOpenStudioCLI instead
+  simulation_start = Time.now
+  command = "\"#{ep_path}\" -w in.epw in.idf"
+  if debug
+    File.open(File.join(rundir, 'run.log'), 'a') do |f|
+      f << "Executing command '#{command}' from working directory '#{rundir}'"
+    end
+  end
+  pwd = Dir.pwd
+  Dir.chdir(rundir) do
+    system(command, out: [File.join(rundir, 'stdout-energyplus.log'), 'w'], err: [File.join(rundir, 'stderr-energyplus.log'), 'w'])
+  end
+  Dir.chdir(pwd) # Prevent OS "restoring original_directory" warning
+  sim_time = (Time.now - simulation_start).round(1)
+
+  # Check if simulation successful
+  if File.exist? File.join(rundir, 'eplusout.err')
+    sim_success = false
+    File.readlines(File.join(rundir, 'eplusout.err')).map(&:strip).each do |stdout_line|
+      next unless stdout_line.include? 'EnergyPlus Completed Successfully'
+
+      sim_success = true
+      break
+    end
+    if sim_success
+      print "#{print_prefix}Completed simulation in #{sim_time}s.\n"
+    else
+      print "#{print_prefix}Simulation unsuccessful.\n"
+      print "#{print_prefix}See #{File.join(rundir, 'eplusout.err')} for details.\n"
+      return { success: false, runner: runner }
+    end
+  else
+    print "#{print_prefix}Simulation unsuccessful.\n"
+    return { success: false, runner: runner }
+  end
+
+  print "#{print_prefix}Processing output...\n"
+
+  # Apply reporting measures
+  runner.setLastEnergyPlusSqlFilePath(File.join(rundir, 'eplusout.sql'))
+  success = apply_measures(measures_dir, measures, runner, model, false, 'OpenStudio::Measure::ReportingMeasure')
+  report_measure_errors_warnings(runner, rundir, debug)
+  report_os_warnings(os_log, rundir)
+  runner.resetLastEnergyPlusSqlFilePath
+
+  annual_csv_path = File.join(rundir, 'results_annual.csv')
+  if File.exist? annual_csv_path
+    print "#{print_prefix}Wrote output file: #{annual_csv_path}.\n"
+  end
+
+  timeseries_csv_path = File.join(rundir, 'results_timeseries.csv')
+  if File.exist? timeseries_csv_path
+    print "#{print_prefix}Wrote output file: #{timeseries_csv_path}.\n"
+  end
+
+  if not success
+    print "#{print_prefix}Processing output unsuccessful.\n"
+    print "#{print_prefix}See #{File.join(rundir, 'run.log')} for details.\n"
+    return { success: false, runner: runner }
+  end
+
+  print "#{print_prefix}Done.\n"
+
+  return { success: true, runner: runner, sim_time: sim_time }
+end
 
 def apply_measures(measures_dir, measures, runner, model, show_measure_calls = true, measure_type = 'OpenStudio::Measure::ModelMeasure')
   require 'openstudio'
@@ -242,6 +367,64 @@ def update_args_hash(hash, key, args, add_new = true)
     args.each do |k, v|
       hash[key][0][k] = v
     end
+  end
+end
+
+def report_measure_errors_warnings(runner, rundir, debug)
+  # Report warnings/errors
+  File.open(File.join(rundir, 'run.log'), 'a') do |f|
+    if debug
+      runner.result.stepInfo.each do |s|
+        f << "Info: #{s}\n"
+      end
+    end
+    runner.result.stepWarnings.each do |s|
+      f << "Warning: #{s}\n"
+    end
+    runner.result.stepErrors.each do |s|
+      f << "Error: #{s}\n"
+    end
+  end
+  runner.reset
+end
+
+def report_ft_errors_warnings(forward_translator, rundir)
+  # Report warnings/errors
+  File.open(File.join(rundir, 'run.log'), 'a') do |f|
+    forward_translator.warnings.each do |s|
+      f << "FT Warning: #{s.logMessage}\n"
+    end
+    forward_translator.errors.each do |s|
+      f << "FT Error: #{s.logMessage}\n"
+    end
+  end
+end
+
+def report_os_warnings(os_log, rundir)
+  File.open(File.join(rundir, 'run.log'), 'a') do |f|
+    os_log.logMessages.each do |s|
+      next if s.logMessage.include? 'Cannot find current Workflow Step'
+      next if s.logMessage.include? 'Data will be treated as typical (TMY)'
+      next if s.logMessage.include? 'WorkflowStepResult value called with undefined stepResult'
+      next if s.logMessage.include?("Object of type 'Schedule:Constant' and named 'Always") && s.logMessage.include?('points to an object named') && s.logMessage.include?('but that object cannot be located')
+      # TODO: Remove once https://github.com/NREL/OpenStudio/pull/3999 is available
+      next if s.logMessage.include? "'Propane' is deprecated for Coil_Heating_GasFields:FuelType, use 'Propane' instead"
+      next if s.logMessage.include? 'Appears there are no design condition fields in the EPW file'
+
+      f << "OS Message: #{s.logMessage}\n"
+    end
+  end
+  os_log.resetStringStream
+end
+
+def rm_path(path)
+  if Dir.exist?(path)
+    FileUtils.rm_r(path)
+  end
+  while true
+    break if not Dir.exist?(path)
+
+    sleep(0.01)
   end
 end
 
