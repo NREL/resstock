@@ -63,7 +63,7 @@ class Airflow
 
     building_height = nil
     num_floors = model.getBuilding.additionalProperties.getFeatureAsInteger("num_floors")
-    if num_floors.is_initialized # singleunit
+    if num_floors.is_initialized and  Geometry.get_building_type(model) == Constants.BuildingTypeMultifamily # singleunit
       units.each do |unit|
         Geometry.get_thermal_zones_from_spaces(unit.spaces).each do |thermal_zone|
           next unless Geometry.is_living(thermal_zone)
@@ -206,7 +206,7 @@ class Airflow
       #   puts(key)
       #   puts(value)
       # end
-      # self.print_instance_vars(infil_output)
+      # self.print_instance_vars(infil_output) #XXX
       # self.print_instance_vars(mv_output)
       # # self.print_instance_vars(cfis_systems)
       # self.print_instance_vars(nv_output)
