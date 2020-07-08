@@ -865,6 +865,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     heating_system_type_choices << HPXML::HVACTypeStove
     heating_system_type_choices << HPXML::HVACTypePortableHeater
     heating_system_type_choices << HPXML::HVACTypeFireplace
+    heating_system_type_choices << HPXML::HVACTypeFixedHeater
 
     heating_system_fuel_choices = OpenStudio::StringVector.new
     heating_system_fuel_choices << HPXML::FuelTypeElectricity
@@ -4093,7 +4094,7 @@ class HPXMLFile
 
     if [HPXML::HVACTypeFurnace, HPXML::HVACTypeWallFurnace, HPXML::HVACTypeFloorFurnace, HPXML::HVACTypeBoiler].include? heating_system_type
       heating_efficiency_afue = args[:heating_system_heating_efficiency]
-    elsif [HPXML::HVACTypeElectricResistance, HPXML::HVACTypeStove, HPXML::HVACTypePortableHeater, HPXML::HVACTypeFireplace].include? heating_system_type
+    elsif [HPXML::HVACTypeElectricResistance, HPXML::HVACTypeStove, HPXML::HVACTypePortableHeater, HPXML::HVACTypeFireplace, HPXML::HVACTypeFixedHeater].include? heating_system_type
       heating_efficiency_percent = args[:heating_system_heating_efficiency]
     end
 

@@ -2527,7 +2527,7 @@ class HVACSizing
       # This is an estimate based on Table 4A - Construction Number 13
       wall_group += (wall.insulation_continuous_r_value / 3.0).floor # Group is increased by approximately 1 letter for each R3
 
-    elsif wall_type == HPXML::WallTypeBrick
+    elsif [HPXML::WallTypeBrick, HPXML::WallTypeAdobe].include? wall_type
       # Two Courses Brick
       if wall_ufactor >= (0.218 + 0.179) / 2
         wall_group = 7  # G

@@ -10,26 +10,7 @@ require_relative '../HPXMLtoOpenStudio/resources/meta_measure'
 
 basedir = File.expand_path(File.dirname(__FILE__))
 
-def rm_path(path)
-  if Dir.exist?(path)
-    FileUtils.rm_r(path)
-  end
-  while true
-    break if not Dir.exist?(path)
-
-    sleep(0.01)
-  end
-end
-
 def run_workflow(basedir, rundir, hpxml, debug, hourly_outputs)
-  puts 'Creating input...'
-
-  OpenStudio::Logger.instance.standardOutLogger.setLogLevel(OpenStudio::Fatal)
-  os_log = OpenStudio::StringStreamLogSink.new
-  os_log.setLogLevel(OpenStudio::Warn)
-
-  model = OpenStudio::Model::Model.new
-  runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
   measures_dir = File.join(basedir, '..')
 
   measures = {}
@@ -57,97 +38,9 @@ def run_workflow(basedir, rundir, hpxml, debug, hourly_outputs)
   args['include_timeseries_weather'] = hourly_outputs.include? 'weather'
   update_args_hash(measures, measure_subdir, args)
 
-  # Apply measures
-  success = apply_measures(measures_dir, measures, runner, model, true, 'OpenStudio::Measure::ModelMeasure')
-  report_measure_errors_warnings(runner, rundir, debug)
-  report_os_warnings(os_log, rundir)
+  results = run_hpxml_workflow(rundir, hpxml, measures, measures_dir, debug: debug)
 
-  if not success
-    fail 'Simulation unsuccessful.'
-  end
-
-  # Translate model to IDF
-  forward_translator = OpenStudio::EnergyPlus::ForwardTranslator.new
-  forward_translator.setExcludeLCCObjects(true)
-  model_idf = forward_translator.translateModel(model)
-  report_ft_errors_warnings(forward_translator, rundir)
-
-  # Apply reporting measure output requests
-  apply_energyplus_output_requests(measures_dir, measures, runner, model, model_idf)
-
-  # Write IDF to file
-  File.open(File.join(rundir, 'in.idf'), 'w') { |f| f << model_idf.to_s }
-
-  puts 'Running simulation...'
-
-  # getEnergyPlusDirectory can be unreliable, using getOpenStudioCLI instead
-  ep_path = File.absolute_path(File.join(OpenStudio.getOpenStudioCLI.to_s, '..', '..', 'EnergyPlus', 'energyplus'))
-  command = "cd \"#{rundir}\" && \"#{ep_path}\" -w in.epw in.idf > stdout-energyplus"
-  system(command, err: File::NULL)
-
-  puts 'Processing output...'
-
-  # Apply reporting measures
-  runner.setLastEnergyPlusSqlFilePath(File.join(rundir, 'eplusout.sql'))
-  success = apply_measures(measures_dir, measures, runner, model, true, 'OpenStudio::Measure::ReportingMeasure')
-  report_measure_errors_warnings(runner, rundir, debug)
-  report_os_warnings(os_log, rundir)
-
-  annual_csv_path = File.join(rundir, 'results_annual.csv')
-  if File.exist? annual_csv_path
-    puts "Wrote output file: #{annual_csv_path}."
-  end
-
-  timeseries_csv_path = File.join(rundir, 'results_timeseries.csv')
-  if File.exist? timeseries_csv_path
-    puts "Wrote output file: #{timeseries_csv_path}."
-  end
-
-  if not success
-    fail 'Processing output unsuccessful.'
-  end
-end
-
-def report_measure_errors_warnings(runner, rundir, debug)
-  # Report warnings/errors
-  File.open(File.join(rundir, 'run.log'), 'w') do |f|
-    if debug
-      runner.result.stepInfo.each do |s|
-        f << "Info: #{s}\n"
-      end
-    end
-    runner.result.stepWarnings.each do |s|
-      f << "Warning: #{s}\n"
-    end
-    runner.result.stepErrors.each do |s|
-      f << "Error: #{s}\n"
-    end
-  end
-end
-
-def report_ft_errors_warnings(forward_translator, rundir)
-  # Report warnings/errors
-  File.open(File.join(rundir, 'run.log'), 'a') do |f|
-    forward_translator.warnings.each do |s|
-      f << "FT Warning: #{s.logMessage}\n"
-    end
-    forward_translator.errors.each do |s|
-      f << "FT Error: #{s.logMessage}\n"
-    end
-  end
-end
-
-def report_os_warnings(os_log, rundir)
-  File.open(File.join(rundir, 'run.log'), 'a') do |f|
-    os_log.logMessages.each do |s|
-      next if s.logMessage.include?("Object of type 'Schedule:Constant' and named 'Always") && s.logMessage.include?('points to an object named') && s.logMessage.include?('but that object cannot be located')
-      next if s.logMessage.include? 'Cannot find current Workflow Step'
-      next if s.logMessage.include? 'WorkflowStepResult value called with undefined stepResult'
-
-      f << "OS Message: #{s.logMessage}\n"
-    end
-  end
-  os_log.resetStringStream
+  return results[:success]
 end
 
 hourly_types = ['ALL', 'fuels', 'enduses', 'hotwater', 'loads', 'componentloads', 'temperatures', 'airflows', 'weather']
@@ -217,11 +110,11 @@ end
 
 # Create run dir
 rundir = File.join(options[:output_dir], 'run')
-rm_path(rundir)
-Dir.mkdir(rundir)
 
 # Run design
 puts "HPXML: #{options[:hpxml]}"
-run_workflow(basedir, rundir, options[:hpxml], options[:debug], options[:hourly_outputs])
+success = run_workflow(basedir, rundir, options[:hpxml], options[:debug], options[:hourly_outputs])
 
-puts "Completed in #{(Time.now - start_time).round(1)} seconds."
+if success
+  puts "Completed in #{(Time.now - start_time).round(1)} seconds."
+end

@@ -1182,8 +1182,18 @@ class HVAC
     ideal_air.setMinimumCoolingSupplyAirTemperature(10)
     ideal_air.setMaximumHeatingSupplyAirHumidityRatio(0.015)
     ideal_air.setMinimumCoolingSupplyAirHumidityRatio(0.01)
-    ideal_air.setHeatingLimit('NoLimit')
-    ideal_air.setCoolingLimit('NoLimit')
+    if sequential_heat_load_frac > 0
+      ideal_air.setHeatingLimit('NoLimit')
+    else
+      ideal_air.setHeatingLimit('LimitCapacity')
+      ideal_air.setMaximumSensibleHeatingCapacity(0)
+    end
+    if sequential_cool_load_frac > 0
+      ideal_air.setCoolingLimit('NoLimit')
+    else
+      ideal_air.setCoolingLimit('LimitCapacity')
+      ideal_air.setMaximumTotalCoolingCapacity(0)
+    end
     ideal_air.setDehumidificationControlType('None')
     ideal_air.setHumidificationControlType('None')
     ideal_air.addToThermalZone(control_zone)
