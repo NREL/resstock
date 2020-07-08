@@ -92,7 +92,7 @@ class ClothesWasher
   # @param schedules_file [SchedulesFile]
   def self.apply(model, unit, runner, imef, rated_annual_energy, annual_cost,
                  test_date, drum_volume, cold_cycle, thermostatic_control,
-                 internal_heater, fill_sensor, mult_e, mult_hw, d_sh, cd_sch,
+                 internal_heater, fill_sensor, mult_e, mult_hw, cd_sch,
                  space, plant_loop, mains_temps, water_sch, schedules_file)
 
     # Check for valid inputs
@@ -122,10 +122,6 @@ class ClothesWasher
     end
     if mult_hw < 0
       runner.registerError("Occupancy hot water multiplier must be greater than or equal to 0.0.")
-      return false
-    end
-    if d_sh < 0 or d_sh > 364
-      runner.registerError("Hot water draw profile can only be shifted by 0-364 days.")
       return false
     end
 
@@ -481,7 +477,6 @@ class ClothesWasher
       cw.additionalProperties.setFeature(Constants.ClothesWasherIMEF, imef)
       cw.additionalProperties.setFeature(Constants.ClothesWasherRatedAnnualEnergy, rated_annual_energy)
       cw.additionalProperties.setFeature(Constants.ClothesWasherDrumVolume, drum_volume)
-      cw.additionalProperties.setFeature(Constants.ClothesWasherDayShift, d_sh.to_f)
 
       # Check if there's a clothes dryer that needs to be updated
       cd_unit_obj_name = Constants.ObjectNameClothesDryer(nil)
@@ -616,15 +611,13 @@ class ClothesDryer
     drum_volume = cw.additionalProperties.getFeatureAsDouble(Constants.ClothesWasherDrumVolume)
     imef = cw.additionalProperties.getFeatureAsDouble(Constants.ClothesWasherIMEF)
     rated_annual_energy = cw.additionalProperties.getFeatureAsDouble(Constants.ClothesWasherRatedAnnualEnergy)
-    day_shift = cw.additionalProperties.getFeatureAsDouble(Constants.ClothesWasherDayShift)
-    if !drum_volume.is_initialized or !imef.is_initialized or !rated_annual_energy.is_initialized or !day_shift.is_initialized
+    if !drum_volume.is_initialized or !imef.is_initialized or !rated_annual_energy.is_initialized
       runner.registerError("Could not find clothes washer properties.")
       return false
     end
     drum_volume = drum_volume.get
     imef = imef.get
     rated_annual_energy = rated_annual_energy.get
-    day_shift = day_shift.get
 
     unit_obj_name_e = Constants.ObjectNameClothesDryer(Constants.FuelTypeElectric, unit.name.to_s)
     unit_obj_name_f = Constants.ObjectNameClothesDryer(fuel_type, unit.name.to_s)
