@@ -9,6 +9,22 @@ class QOIReportTest < MiniTest::Test
   # create an instance of the measure
   @@measure = QOIReport.new
 
+  def test_peak_magnitude_use
+    temperature, total_site_electricity_kw = _setup_test
+    timeseries = { "Temperature" => temperature, "total_site_electricity_kw" => total_site_electricity_kw }
+
+    actual_val = @@measure.use(timeseries, [-1e9, 1e9], "max")
+    assert_in_epsilon(19, actual_val, 0.001)
+  end
+
+  def test_peak_magnitude_timing
+    temperature, total_site_electricity_kw = _setup_test
+    timeseries = { "Temperature" => temperature, "total_site_electricity_kw" => total_site_electricity_kw }
+
+    actual_val = @@measure.timing(timeseries, [-1e9, 1e9], "max")
+    assert_in_epsilon(140, actual_val, 0.001)
+  end
+
   def test_average_daily_use_base
     temperature, total_site_electricity_kw = _setup_test
     timeseries = { "Temperature" => temperature, "total_site_electricity_kw" => total_site_electricity_kw }
@@ -217,6 +233,7 @@ class QOIReportTest < MiniTest::Test
   def _daily_overlap_temperatures
     lower = @@measure.seasons[Constants.SeasonOverlap][0].to_i
     upper = @@measure.seasons[Constants.SeasonOverlap][1].to_i
-    return (lower..upper).to_a.sample(24) # random 24 hours of overlap temperatures
+    temperatures = (lower..upper).to_a * 2
+    return temperatures.sample(24) # random 24 hours of overlap temperatures
   end
 end
