@@ -1,0 +1,476 @@
+stock_type: residential
+buildstock_directory: ./  # Relative to this file or absolute
+project_directory: project_singlefamilydetached
+# output_directory: /projects/enduse/geb-potential/Run_2/GEB_full_run_nosims_all
+output_directory: /projects/enduse/geb-potential/Run_2/GEB_full_run2
+# output_directory: ./local_sampling/GEB_combined_test_sample
+weather_files_path: /shared-projects/buildstock/weather/project_resstock_national_weather.zip
+# weather_files_path: ./resources/measures/HPXMLtoOpenStudio/weather/project_resstock_national.zip
+
+baseline:
+  # n_datapoints: 180000 #10,000 per city   
+  buildstock_csv: './buildstock_error.csv' #~925k that didnt run initially
+  n_buildings_represented: 81221016 
+residential_simulation_controls:
+  timesteps_per_hr: 6
+  begin_month: 1
+  begin_day_of_month: 1
+  end_month: 12
+  end_day_of_month: 31
+  calendar_year: 2006 #2006 starts on Sunday, 2007 starts on Monday
+
+upgrades:
+#note: no reference scenarios. Everything happens today.  
+##up5 - package 1e - EE best appliances (1st) #####
+  - upgrade_name: Package 1e EE Best Appliances
+    options: 
+      #Best LEDs
+      - option: Lighting|100% LED, High Efficacy
+        apply_logic:
+          or:
+            - Lighting|100% Incandescent
+            - Lighting|60% CFL Hardwired, 34% CFL Plugin
+            - Lighting|60% CFL
+            - Lighting|100% CFL
+            - Lighting|100% LED
+            - Lighting|20% LED
+            - Lighting|100% LED
+            - Lighting|100% LED, Low Efficacy
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      # Best Refrigerator
+      - option: Refrigerator|EF 22.2, EnergyStar Most Efficient
+        apply_logic: 
+          or:
+            - Refrigerator|EF 15.9
+            - Refrigerator|EF 10.5
+            - Refrigerator|EF 10.2
+            - Refrigerator|EF 6.7
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 17.4
+      # Best HPWH
+      - option: Water Heater|Electric Heat Pump, 80 gal
+        apply_logic: 
+          or:
+            - Water Heater|Electric Standard
+            - Water Heater|Electric Premium
+            - Water Heater|Electric Benchmark
+            - Water Heater|Electric Heat Pump, 50 gal
+            - Water Heater|Electric Heat Pump, 50 gal, 140F
+            #removed tankless and in confined space
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 12
+      # Best clothes washer
+      - option: Clothes Washer|EnergyStar Most Efficient, 80% Usage
+        apply_logic:
+          or:
+            - Clothes Washer|EnergyStar, 80% Usage
+            - Clothes Washer|Standard, 80% Usage
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Clothes Washer|EnergyStar Most Efficient, 100% Usage
+        apply_logic:
+          or:
+            - Clothes Washer|EnergyStar, 100% Usage
+            - Clothes Washer|Standard, 100% Usage
+            - Clothes Washer|Standard, 100% Usage, Cold Only
+            - Clothes Washer|EnergyStar, Cold Only
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Clothes Washer|EnergyStar Most Efficient, 120% Usage
+        apply_logic:
+          or:
+            - Clothes Washer|EnergyStar, 120% Usage
+            - Clothes Washer|Standard, 120% Usage
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      # Best clothes dryer
+      - option: Clothes Dryer|Electric, Heat Pump, Ventless, 80% Usage
+        apply_logic:
+          or:
+            - Clothes Dryer|Electric, 80% Usage
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Clothes Dryer|Electric, Heat Pump, Ventless, 100% Usage
+        apply_logic:
+          or:
+            - Clothes Dryer|Electric, 100% Usage
+            - Clothes Dryer|Electric, Premium
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Clothes Dryer|Electric, Heat Pump, Ventless, 120% Usage
+        apply_logic:
+          or:
+            - Clothes Dryer|Electric, 120% Usage
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      
+      # Best dishwasher
+      - option: Dishwasher|199 Rated kWh, 80% Usage
+        apply_logic: 
+          or:
+            - Dishwasher|318 Rated kWh, 80% Usage
+            - Dishwasher|290 Rated kWh, 80% Usage
+        costs:
+          - value: 1000
+            multiplier: Fixed (1)
+        lifetime: 11
+      - option: Dishwasher|199 Rated kWh, 100% Usage
+        apply_logic: 
+          or:
+            - Dishwasher|318 Rated kWh, 100% Usage
+            - Dishwasher|290 Rated kWh, 100% Usage
+        costs:
+          - value: 1000
+            multiplier: Fixed (1)
+        lifetime: 11
+      - option: Dishwasher|199 Rated kWh, 120% Usage
+        apply_logic: 
+          or:
+            - Dishwasher|318 Rated kWh, 120% Usage
+            - Dishwasher|290 Rated kWh, 120% Usage
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 11
+      #Best pool pump
+      - option: Misc Pool Pump|0.75 HP Pump
+        apply_logic: Misc Pool Pump|1.0 HP Pump
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      #Best electronics
+      - option: Plug Loads|25%
+        apply_logic:
+            - Plug Loads|50%
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Plug Loads|50%
+        apply_logic:
+            - Plug Loads|100%
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Plug Loads|100%
+        apply_logic:
+            - Plug Loads|200%
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+
+##up16 - package 3d - Appliance EE + DR  ####
+  - upgrade_name: package 3d appliance EE+DR
+    options: 
+      #Best LEDs
+      - option: Lighting|100% LED, High Efficacy
+        apply_logic:
+          or:
+            - Lighting|100% Incandescent
+            - Lighting|60% CFL Hardwired, 34% CFL Plugin
+            - Lighting|60% CFL
+            - Lighting|100% CFL
+            - Lighting|100% LED
+            - Lighting|20% LED
+            - Lighting|100% LED
+            - Lighting|100% LED, Low Efficacy
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      # Best Refrigerator
+      - option: Refrigerator|EF 22.2, EnergyStar Most Efficient
+        apply_logic: 
+          or:
+            - Refrigerator|EF 17.6
+            - Refrigerator|EF 17.6, 105% Usage
+            - Refrigerator|EF 17.6, 95% Usage
+            - Refrigerator|EF 15.9
+            - Refrigerator|EF 10.5
+            - Refrigerator|EF 10.2
+            - Refrigerator|EF 6.7
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 17.4
+      # Best HPWH
+      - option: Water Heater|Electric Heat Pump, 80 gal, no schedule #schedule is applied in water heater DR options
+        apply_logic: 
+          or:
+            - Water Heater|Electric Standard
+            - Water Heater|Electric Premium
+            - Water Heater|Electric Benchmark
+            - Water Heater|Electric Heat Pump, 50 gal #not in baseline
+            - Water Heater|Electric Heat Pump, 50 gal, 140F #not in baseline
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 12
+      # Best clothes washer
+      - option: Clothes Washer|EnergyStar Most Efficient, 80% Usage
+        apply_logic:
+          or:
+            - Clothes Washer|EnergyStar, 80% Usage
+            - Clothes Washer|Standard, 80% Usage
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Clothes Washer|EnergyStar Most Efficient, 100% Usage
+        apply_logic:
+          or:
+            - Clothes Washer|EnergyStar, 100% Usage
+            - Clothes Washer|Standard, 100% Usage
+            - Clothes Washer|Standard, 100% Usage, Cold Only
+            - Clothes Washer|EnergyStar, Cold Only
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Clothes Washer|EnergyStar Most Efficient, 120% Usage
+        apply_logic:
+          or:
+            - Clothes Washer|EnergyStar, 120% Usage
+            - Clothes Washer|Standard, 120% Usage
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      
+      # Best clothes dryer
+      - option: Clothes Dryer|Electric, Heat Pump, Ventless, 80% Usage
+        apply_logic:
+          or:
+            - Clothes Dryer|Electric, 80% Usage
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Clothes Dryer|Electric, Heat Pump, Ventless, 100% Usage
+        apply_logic:
+          or:
+            - Clothes Dryer|Electric, 100% Usage
+            - Clothes Dryer|Electric, Premium
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Clothes Dryer|Electric, Heat Pump, Ventless, 120% Usage
+        apply_logic:
+          or:
+            - Clothes Dryer|Electric, 120% Usage
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      
+      # Best dishwasher
+      - option: Dishwasher|199 Rated kWh, 80% Usage
+        apply_logic: 
+          or:
+            - Dishwasher|318 Rated kWh, 80% Usage
+            - Dishwasher|290 Rated kWh, 80% Usage
+        costs:
+          - value: 1000
+            multiplier: Fixed (1)
+        lifetime: 11
+      - option: Dishwasher|199 Rated kWh, 100% Usage
+        apply_logic: 
+          or:
+            - Dishwasher|318 Rated kWh, 100% Usage
+            - Dishwasher|290 Rated kWh, 100% Usage
+        costs:
+          - value: 1000
+            multiplier: Fixed (1)
+        lifetime: 11
+      - option: Dishwasher|199 Rated kWh, 120% Usage
+        apply_logic: 
+          or:
+            - Dishwasher|318 Rated kWh, 120% Usage
+            - Dishwasher|290 Rated kWh, 120% Usage
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 11
+      
+      #Best pool pump
+      - option: Misc Pool Pump|0.75 HP Pump
+        apply_logic: Misc Pool Pump|1.0 HP Pump
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      #Best electronics
+      - option: Plug Loads|25%
+        apply_logic:
+            - Plug Loads|50%
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Plug Loads|50%
+        apply_logic:
+            - Plug Loads|100%
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Plug Loads|100%
+        apply_logic:
+            - Plug Loads|200%
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      #Appliance DR measures
+      - option: Appliance DR Apply|TRUE
+      #Water heater DR
+      - option: Water Heater DR|WHDR HPWH Tampa
+        apply_logic:
+          - City|Tampa
+          - Water Heater Type|Tank 
+          - Water Heater Fuel Type|Electric
+      - option: Water Heater DR|WHDR HPWH Tucson
+        apply_logic:
+          - City|Tucson
+          - Water Heater Type|Tank
+          - Water Heater Fuel Type|Electric
+      - option: Water Heater DR|WHDR HPWH Atlanta_1
+        apply_logic:
+          - City|Atlanta_1
+          - Water Heater Type|Tank
+          - Water Heater Fuel Type|Electric
+      - option: Water Heater DR|WHDR HPWH Atlanta_2
+        apply_logic:
+          - City|Atlanta_2
+          - Water Heater Type|Tank
+          - Water Heater Fuel Type|Electric
+      - option: Water Heater DR|WHDR HPWH Midland
+        apply_logic:
+          - City|Midland
+          - Water Heater Type|Tank
+          - Water Heater Fuel Type|Electric
+      - option: Water Heater DR|WHDR HPWH San Diego
+        apply_logic:
+          - City|San Diego
+          - Water Heater Type|Tank
+          - Water Heater Fuel Type|Electric
+      - option: Water Heater DR|WHDR HPWH New York_1
+        apply_logic:
+          - City|New York_1
+          - Water Heater Type|Tank
+          - Water Heater Fuel Type|Electric
+      - option: Water Heater DR|WHDR HPWH New York_2
+        apply_logic:
+          - City|New York_2
+          - Water Heater Type|Tank
+          - Water Heater Fuel Type|Electric
+      - option: Water Heater DR|WHDR HPWH Albuquerque
+        apply_logic:
+          - City|Albuquerque
+          - Water Heater Type|Tank
+          - Water Heater Fuel Type|Electric
+      - option: Water Heater DR|WHDR HPWH Seattle
+        apply_logic:
+          - City|Seattle
+          - Water Heater Type|Tank
+          - Water Heater Fuel Type|Electric     
+      - option: Water Heater DR|WHDR HPWH Denver
+        apply_logic:
+          - City|Denver
+          - Water Heater Type|Tank
+          - Water Heater Fuel Type|Electric
+      - option: Water Heater DR|WHDR HPWH Port Angeles
+        apply_logic:
+          - City|Port Angeles
+          - Water Heater Type|Tank
+          - Water Heater Fuel Type|Electric
+      - option: Water Heater DR|WHDR HPWH Buffalo_1
+        apply_logic:
+          - City|Buffalo_1
+          - Water Heater Type|Tank
+          - Water Heater Fuel Type|Electric
+      - option: Water Heater DR|WHDR HPWH Buffalo_2
+        apply_logic:
+          - City|Buffalo_2
+          - Water Heater Type|Tank
+          - Water Heater Fuel Type|Electric
+      - option: Water Heater DR|WHDR HPWH Rochester_1
+        apply_logic:
+          - City|Rochester_1
+          - Water Heater Type|Tank
+          - Water Heater Fuel Type|Electric
+      - option: Water Heater DR|WHDR HPWH Rochester_2
+        apply_logic:
+          - City|Rochester_2
+          - Water Heater Type|Tank
+          - Water Heater Fuel Type|Electric
+      - option: Water Heater DR|WHDR HPWH Great Falls
+        apply_logic:
+          - City|Great Falls
+          - Water Heater Type|Tank
+          - Water Heater Fuel Type|Electric
+      - option: Water Heater DR|WHDR HPWH International Falls
+        apply_logic:
+          - City|International Falls
+          - Water Heater Type|Tank
+          - Water Heater Fuel Type|Electric
+          
+timeseries_csv_export:
+  reporting_frequency: Hourly
+  include_enduse_subcategories: true
+  
+eagle:
+  account: windowsaving
+  n_jobs: 400 #1000
+  minutes_per_sim: 5 #5
+  sampling:
+    time: 30
+  postprocessing:
+    time: 700 #1000
+    n_workers: 2
+    
+aws:
+  job_identifier: geb_full
+  s3:
+    bucket: resbldg-datasets
+    prefix: resstock-athena/geb-potential-upgrades/aws_data/geb_full
+  region: us-west-2
+  use_spot: true
+  batch_array_size: 10000
+  notifications_email: andrew.speake@nrel.gov
+  emr:
+    slave_instance_count: 6
+  
+postprocessing:
+  aws:
+    region_name: 'us-west-2'
+    s3:
+      bucket: resbldg-datasets
+      prefix: resstock-athena/geb-potential-upgrades
+    athena:
+      glue_service_role: service-role/AWSGlueServiceRole-default
+      database_name: geb_potential
+      max_crawling_time: 3000 #seconds to wait for the crawler to complete before aborting it
