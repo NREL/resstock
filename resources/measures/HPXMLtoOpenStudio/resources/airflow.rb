@@ -776,18 +776,6 @@ class Airflow
       num_fans = 0
     end
 
-    # Get the clothes washer so we can use the day shift for the clothes dryer
-    if mech_vent.dryer_exhaust > 0
-      cw_day_shift = 0.0
-      model.getElectricEquipments.each do |ee|
-        next if ee.name.to_s != Constants.ObjectNameClothesWasher(unit.name.to_s)
-
-        cw_day_shift = ee.additionalProperties.getFeatureAsDouble(Constants.ClothesWasherDayShift).get
-        break
-      end
-      dryer_exhaust_day_shift = cw_day_shift + 1.0 / 24.0
-    end
-
     # Search for clothes dryer
     has_dryer = false
     (model.getElectricEquipments + model.getOtherEquipments).each do |equip|
@@ -882,7 +870,7 @@ class Airflow
     unit.additionalProperties.setFeature(Constants.SizingInfoMechVentApparentSensibleEffectiveness, apparent_sensible_effectiveness.to_f)
     unit.additionalProperties.setFeature(Constants.SizingInfoMechVentWholeHouseRate, whole_house_vent_rate.to_f)
 
-    mv_output = MechanicalVentilationOutput.new(frac_fan_heat, num_fans, whole_house_vent_rate, bathroom_hour_avg_exhaust, range_hood_hour_avg_exhaust, spot_fan_power, latent_effectiveness, sensible_effectiveness, dryer_exhaust_day_shift, has_dryer)
+    mv_output = MechanicalVentilationOutput.new(frac_fan_heat, num_fans, whole_house_vent_rate, bathroom_hour_avg_exhaust, range_hood_hour_avg_exhaust, spot_fan_power, latent_effectiveness, sensible_effectiveness, has_dryer)
     return true, mv_output
   end
 
@@ -2474,7 +2462,7 @@ class MechanicalVentilation
 end
 
 class MechanicalVentilationOutput
-  def initialize(frac_fan_heat, num_fans, whole_house_vent_rate, bathroom_hour_avg_exhaust, range_hood_hour_avg_exhaust, spot_fan_power, latent_effectiveness, sensible_effectiveness, dryer_exhaust_day_shift, has_dryer)
+  def initialize(frac_fan_heat, num_fans, whole_house_vent_rate, bathroom_hour_avg_exhaust, range_hood_hour_avg_exhaust, spot_fan_power, latent_effectiveness, sensible_effectiveness, has_dryer)
     @frac_fan_heat = frac_fan_heat
     @num_fans = num_fans
     @whole_house_vent_rate = whole_house_vent_rate
@@ -2483,10 +2471,9 @@ class MechanicalVentilationOutput
     @spot_fan_power = spot_fan_power
     @latent_effectiveness = latent_effectiveness
     @sensible_effectiveness = sensible_effectiveness
-    @dryer_exhaust_day_shift = dryer_exhaust_day_shift
     @has_dryer = has_dryer
   end
-  attr_accessor(:frac_fan_heat, :num_fans, :whole_house_vent_rate, :bathroom_hour_avg_exhaust, :range_hood_hour_avg_exhaust, :spot_fan_power, :latent_effectiveness, :sensible_effectiveness, :dryer_exhaust_day_shift, :has_dryer)
+  attr_accessor(:frac_fan_heat, :num_fans, :whole_house_vent_rate, :bathroom_hour_avg_exhaust, :range_hood_hour_avg_exhaust, :spot_fan_power, :latent_effectiveness, :sensible_effectiveness, :has_dryer)
 end
 
 class CFIS
