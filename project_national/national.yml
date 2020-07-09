@@ -1,11 +1,13 @@
 stock_type: residential
 buildstock_directory: ../../OpenStudio-BuildStock # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
-output_directory: /scratch/<username>/outputs/project_national
-weather_files_path: /shared-projects/buildstock/weather/project_resstock_national_weather.zip  # Relative to this file or absolute path to zipped weather files
+output_directory: /scratch/<username>/outputs/project_national # Or specify local path on computer
+weather_files_url: https://data.nrel.gov/system/files/128/ResStock_TMY3.zip # TMY3 files can be found at the NREL Data Catalog page using this path
+# weather_files_path: /shared-projects/buildstock/weather/ResStock_TMY3.zip  # Relative to this file or absolute path to zipped weather files for NREL Eagle users
 baseline:
   n_datapoints: 450000
   n_buildings_represented: 110000000
+schema_version: 0.2 # If using buildstockbatch version 0.18
 residential_simulation_controls:
   timesteps_per_hr: 6
   begin_month: 1
