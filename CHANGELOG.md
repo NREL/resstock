@@ -3,6 +3,7 @@
 Features
 - Update California cooling system types and efficiencies based on RASS 2009 ([#446](https://github.com/NREL/OpenStudio-BuildStock/pull/446))
 - Report the annual peak use and timing using the quantities of interest measure ([#458](https://github.com/NREL/OpenStudio-BuildStock/pull/458))
+- Generate schedule csv on the fly and use Schedule:File objects on its columns ([#348](https://github.com/NREL/OpenStudio-BuildStock/pull/348))
 
 ## ResStock v2.3.0
 ###### June 24, 2020 - [Diff](https://github.com/NREL/OpenStudio-BuildStock/compare/v2.2.4...v2.3.0)
