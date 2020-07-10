@@ -937,7 +937,6 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
     end
 
     model.getThermalZones.each do |zone|
-      # next if Geometry.space_is_below_grade(space)
       zone.spaces.each do |space|
         space.surfaces.each do |surface|
           if surface.adjacentSurface.is_initialized 
@@ -945,12 +944,25 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
             adjacent_space = adjacent_surface.space.get
             adjacent_zone = adjacent_space.thermalZone.get
             next if zone == adjacent_zone #spaces are in the same zone
+
+            #Check if spaces belong to the same unit
+            same_unit = false
+            unit_spaces_hash.each do |unit, spaces|
+              if spaces[0].include? space and spaces[0].include? adjacent_space
+                same_unit = true
+              end
+            end
+
+            #Adjacent living spaces
             if Geometry.is_living_space_type(adjacent_space.spaceType.get.standardsSpaceType.get) and Geometry.is_living_space_type(space.spaceType.get.standardsSpaceType.get)
+              next if same_unit
               surface.adjacentSurface.get.setOutsideBoundaryCondition("Adiabatic")
               surface.setOutsideBoundaryCondition("Adiabatic")
+            #Adjacent foundation spaces
             elsif Geometry.space_is_below_grade(adjacent_space) and Geometry.space_is_below_grade(space)
               surface.adjacentSurface.get.setOutsideBoundaryCondition("Adiabatic")
               surface.setOutsideBoundaryCondition("Adiabatic")
+            #Adjacent attic spaces
             elsif Geometry.is_unfinished_attic(adjacent_space) and Geometry.is_unfinished_attic(space)
               adjacent_surface.setOutsideBoundaryCondition("Adiabatic")
               surface.setOutsideBoundaryCondition("Adiabatic")
