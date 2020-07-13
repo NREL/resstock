@@ -7,6 +7,7 @@ require 'optparse'
 require 'pathname'
 require 'openstudio'
 require_relative '../HPXMLtoOpenStudio/resources/meta_measure'
+require_relative '../HPXMLtoOpenStudio/resources/version'
 
 basedir = File.expand_path(File.dirname(__FILE__))
 
@@ -79,8 +80,7 @@ OptionParser.new do |opts|
 end.parse!
 
 if options[:version]
-  workflow_version = '0.10.0'
-  puts "OpenStudio-HPXML v#{workflow_version}"
+  puts "OpenStudio-HPXML v#{Version::OS_HPXML_Version}"
   exit!
 end
 

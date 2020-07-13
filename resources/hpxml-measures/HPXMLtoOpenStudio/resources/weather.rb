@@ -201,7 +201,7 @@ class WeatherProcess
         db << x['db']
       end
 
-      dailydbs << db.inject { |sum, n| sum + n } / (24.0 * @header.RecordsPerHour)
+      dailydbs << db.sum(0.0) / (24.0 * @header.RecordsPerHour)
       dailyhighdbs << maxdb
       dailylowdbs << mindb
     end
@@ -238,7 +238,7 @@ class WeatherProcess
       db << x['db']
     end
 
-    @data.AnnualAvgDrybulb = UnitConversions.convert(db.inject { |sum, n| sum + n } / db.length, 'C', 'F')
+    @data.AnnualAvgDrybulb = UnitConversions.convert(db.sum(0.0) / db.length, 'C', 'F')
 
     # Peak temperatures:
     @data.AnnualMinDrybulb = UnitConversions.convert(mindict['db'], 'C', 'F')
@@ -255,7 +255,7 @@ class WeatherProcess
           y << x['db']
         end
       end
-      month_dbtotal = y.inject { |sum, n| sum + n }
+      month_dbtotal = y.sum(0.0)
       month_hours = y.length
       @data.MonthlyAvgDrybulbs << UnitConversions.convert(month_dbtotal / month_hours, 'C', 'F')
     end
@@ -267,7 +267,7 @@ class WeatherProcess
     hd.each do |x|
       ws << x['ws']
     end
-    avgws = ws.inject { |sum, n| sum + n } / ws.length
+    avgws = ws.sum(0.0) / ws.length
     @data.AnnualAvgWindspeed = avgws
   end
 
@@ -301,7 +301,7 @@ class WeatherProcess
       return 0.0
     end
 
-    deg_days = deg_days.inject { |sum, n| sum + n }
+    deg_days = deg_days.sum(0.0)
     return 1.8 * deg_days
   end
 
@@ -316,8 +316,8 @@ class WeatherProcess
       if month > 1
         first_day += Constants.MonthNumDays[month - 2] # Number of days in previous month
       end
-      avg_high = daily_high_dbs[first_day, ndays].inject { |sum, n| sum + n } / ndays.to_f
-      avg_low = daily_low_dbs[first_day, ndays].inject { |sum, n| sum + n } / ndays.to_f
+      avg_high = daily_high_dbs[first_day, ndays].sum(0.0) / ndays.to_f
+      avg_low = daily_low_dbs[first_day, ndays].sum(0.0) / ndays.to_f
       @data.MonthlyAvgDailyHighDrybulbs << UnitConversions.convert(avg_high, 'C', 'F')
       @data.MonthlyAvgDailyLowDrybulbs << UnitConversions.convert(avg_low, 'C', 'F')
     end
@@ -390,7 +390,7 @@ class WeatherProcess
       prev_tau = taus[-1]
     end
 
-    tau = taus.inject { |sum, n| sum + n } / taus.size.to_f # Mean annual turnover time (hours)
+    tau = taus.sum(0.0) / taus.size.to_f # Mean annual turnover time (hours)
     wsf = (cfa / ela) / (1000.0 * tau)
 
     return wsf.round(2)
@@ -445,7 +445,7 @@ class WeatherProcess
       wb = Psychrometrics.Twb_fT_R_P(UnitConversions.convert(annual_hd_sorted_by_db[i]['db'], 'C', 'F'), annual_hd_sorted_by_db[i]['rh'], std_press)
       cool_wetbulb << wb
     end
-    cool_design_wb = cool_wetbulb.inject { |sum, n| sum + n } / cool_wetbulb.size
+    cool_design_wb = cool_wetbulb.sum(0.0) / cool_wetbulb.size
 
     # Mean coincident values for heating
     heat_windspeed = []
@@ -462,15 +462,15 @@ class WeatherProcess
         dehum_drybulb << annual_hd_sorted_by_dp[i]['db']
       end
     end
-    dehum_design_db = dehum_drybulb.inject { |sum, n| sum + n } / dehum_drybulb.size
+    dehum_design_db = dehum_drybulb.sum(0.0) / dehum_drybulb.size
 
     @design.CoolingDrybulb = UnitConversions.convert(cool01per_db, 'C', 'F')
     @design.CoolingWetbulb = cool_design_wb
     @design.CoolingHumidityRatio = Psychrometrics.w_fT_Twb_P(design.CoolingDrybulb, design.CoolingWetbulb, std_press)
-    @design.CoolingWindspeed = cool_windspeed.inject { |sum, n| sum + n } / cool_windspeed.size
+    @design.CoolingWindspeed = cool_windspeed.sum(0.0) / cool_windspeed.size
 
     @design.HeatingDrybulb = UnitConversions.convert(heat99per_db, 'C', 'F')
-    @design.HeatingWindspeed = heat_windspeed.inject { |sum, n| sum + n } / heat_windspeed.size
+    @design.HeatingWindspeed = heat_windspeed.sum(0.0) / heat_windspeed.size
 
     @design.DehumidDrybulb = UnitConversions.convert(dehum_design_db, 'C', 'F')
     @design.DehumidHumidityRatio = Psychrometrics.w_fT_Twb_P(UnitConversions.convert(dehum02per_dp, 'C', 'F'), UnitConversions.convert(dehum02per_dp, 'C', 'F'), std_press)

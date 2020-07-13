@@ -257,6 +257,7 @@ class HPXMLDefaults
     end
 
     # HVAC capacities
+    # Transition capacity elements from -1 to nil
     hpxml.heating_systems.each do |heating_system|
       if (not heating_system.heating_capacity.nil?) && (heating_system.heating_capacity < 0)
         heating_system.heating_capacity = nil
@@ -419,6 +420,9 @@ class HPXMLDefaults
     hpxml.ventilation_fans.each do |vent_fan|
       next unless (vent_fan.used_for_local_ventilation && (vent_fan.fan_location == HPXML::LocationKitchen))
 
+      if vent_fan.quantity.nil?
+        vent_fan.quantity = 1
+      end
       if vent_fan.rated_flow_rate.nil?
         vent_fan.rated_flow_rate = 100.0 # cfm, per BA HSP
       end
@@ -508,10 +512,10 @@ class HPXMLDefaults
           plug_load.location = HPXML::LocationInterior
         end
         if plug_load.weekday_fractions.nil?
-          plug_load.weekday_fractions = '0.045, 0.019, 0.01, 0.001, 0.001, 0.001, 0.005, 0.009, 0.018, 0.026, 0.032, 0.038, 0.04, 0.041, 0.043, 0.045, 0.05, 0.055, 0.07, 0.085, 0.097, 0.108, 0.089, 0.07'
+          plug_load.weekday_fractions = '0.037, 0.018, 0.009, 0.007, 0.011, 0.018, 0.029, 0.040, 0.049, 0.058, 0.065, 0.072, 0.076, 0.086, 0.091, 0.102, 0.127, 0.156, 0.210, 0.294, 0.363, 0.344, 0.208, 0.090'
         end
         if plug_load.weekend_fractions.nil?
-          plug_load.weekend_fractions = '0.045, 0.019, 0.01, 0.001, 0.001, 0.001, 0.005, 0.009, 0.018, 0.026, 0.032, 0.038, 0.04, 0.041, 0.043, 0.045, 0.05, 0.055, 0.07, 0.085, 0.097, 0.108, 0.089, 0.07'
+          plug_load.weekend_fractions = '0.044, 0.022, 0.012, 0.008, 0.011, 0.014, 0.024, 0.043, 0.071, 0.094, 0.112, 0.123, 0.132, 0.156, 0.178, 0.196, 0.206, 0.213, 0.251, 0.330, 0.388, 0.358, 0.226, 0.103'
         end
         if plug_load.monthly_multipliers.nil?
           plug_load.monthly_multipliers = '1.137, 1.129, 0.961, 0.969, 0.961, 0.993, 0.996, 0.96, 0.993, 0.867, 0.86, 1.137'

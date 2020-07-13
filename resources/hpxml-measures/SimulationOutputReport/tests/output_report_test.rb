@@ -1016,7 +1016,7 @@ class SimulationOutputReportTest < MiniTest::Test
       end
     end
     timeseries_cols.each do |col|
-      avg_value = values[col].inject(:+) / values[col].size
+      avg_value = values[col].sum(0.0) / values[col].size
       assert_operator(avg_value, :!=, 0)
     end
   end

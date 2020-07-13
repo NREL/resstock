@@ -1265,11 +1265,11 @@ class HVAC
     medium_cfm = 3000.0
     weekday_sch = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0]
     weekend_sch = weekday_sch
-    hrs_per_day = weekday_sch.inject(0, :+)
+    hrs_per_day = weekday_sch.sum(0.0)
     cfm_per_w = ceiling_fan.efficiency
     quantity = ceiling_fan.quantity
     annual_kwh = UnitConversions.convert(quantity * medium_cfm / cfm_per_w * hrs_per_day * 365.0, 'Wh', 'kWh')
-    annual_kwh *= monthly_sch.inject(:+) / 12.0
+    annual_kwh *= monthly_sch.sum(0.0) / 12.0
 
     ceiling_fan_sch = MonthWeekdayWeekendSchedule.new(model, obj_name + ' schedule', weekday_sch, weekend_sch, monthly_sch, 1.0, 1.0, true, true, Constants.ScheduleTypeLimitsFraction)
 
@@ -1877,8 +1877,8 @@ class HVAC
     # Curved values under EF test conditions
     curve_value_ef = 1 # Curves are nomalized to 1.0 under EF test conditions, 80F, 60%
     # Curve values under IEF test conditions
-    ef_curve_value_ief = var_array_ief.zip(ef_coeff).map { |var, coeff| var * coeff }.inject(0, :+)
-    water_removal_curve_value_ief = var_array_ief.zip(w_coeff).map { |var, coeff| var * coeff }.inject(0, :+)
+    ef_curve_value_ief = var_array_ief.zip(ef_coeff).map { |var, coeff| var * coeff }.sum(0.0)
+    water_removal_curve_value_ief = var_array_ief.zip(w_coeff).map { |var, coeff| var * coeff }.sum(0.0)
 
     # E+ inputs under EF test conditions
     ef_input = ief / ef_curve_value_ief * curve_value_ef
