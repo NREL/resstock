@@ -18,8 +18,6 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       this_dir,
     ]
 
-    measures_dir = File.join(this_dir, '../..')
-
     osws = []
     test_dirs.each do |test_dir|
       Dir["#{test_dir}/base*.osw"].sort.each do |osw|
@@ -45,6 +43,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
 
       _setup(tests_dir)
       osw_hash = JSON.parse(File.read(osw))
+      measures_dir = File.join(File.dirname(__FILE__), osw_hash['measure_paths'][0])
       osw_hash['steps'].each do |step|
         measures[step['measure_dir_name']] = [step['arguments']]
         model = OpenStudio::Model::Model.new
@@ -91,7 +90,6 @@ class BuildResidentialHPXMLTest < MiniTest::Test
     require 'json'
 
     this_dir = File.dirname(__FILE__)
-    measures_dir = File.join(this_dir, '../..')
 
     tests_dir = File.expand_path(File.join(File.dirname(__FILE__), '../../BuildResidentialHPXML/tests'))
     built_dir = File.join(tests_dir, 'built_residential_hpxml')
@@ -122,6 +120,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
 
       _setup(this_dir)
       osw_hash = JSON.parse(File.read(osw))
+      measures_dir = File.join(File.dirname(__FILE__), osw_hash['measure_paths'][0])
       osw_hash['steps'].each do |step|
         measures[step['measure_dir_name']] = [step['arguments']]
         model = OpenStudio::Model::Model.new

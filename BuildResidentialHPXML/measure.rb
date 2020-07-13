@@ -16,6 +16,7 @@ require_relative '../HPXMLtoOpenStudio/resources/geometry'
 require_relative '../HPXMLtoOpenStudio/resources/hpxml'
 require_relative '../HPXMLtoOpenStudio/resources/schedules'
 require_relative '../HPXMLtoOpenStudio/resources/unit_conversions'
+require_relative '../HPXMLtoOpenStudio/resources/version'
 require_relative '../HPXMLtoOpenStudio/resources/weather'
 require_relative '../HPXMLtoOpenStudio/resources/xmlhelper'
 
@@ -2848,11 +2849,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
       return false
     end
 
-    # Check for correct versions of OS
-    os_version = '3.0.1'
-    if OpenStudio.openStudioVersion != os_version
-      fail "OpenStudio version #{os_version} is required."
-    end
+    Version.check_openstudio_version()
 
     # assign the user inputs to variables
     args = get_argument_values(runner, user_arguments)
@@ -3726,7 +3723,7 @@ class HPXMLFile
   end
 
   def self.set_roofs(hpxml, runner, model, args)
-    model.getSurfaces.each do |surface|
+    model.getSurfaces.sort.each do |surface|
       next unless ['Outdoors'].include? surface.outsideBoundaryCondition
       next if surface.surfaceType != 'RoofCeiling'
 
@@ -3767,13 +3764,13 @@ class HPXMLFile
   end
 
   def self.set_rim_joists(hpxml, runner, model, args)
-    model.getSurfaces.each do |surface|
+    model.getSurfaces.sort.each do |surface|
       # TODO
     end
   end
 
   def self.set_walls(hpxml, runner, model, args)
-    model.getSurfaces.each do |surface|
+    model.getSurfaces.sort.each do |surface|
       next if surface.surfaceType != 'Wall'
 
       interior_adjacent_to = get_adjacent_to(model, surface)
@@ -3837,7 +3834,7 @@ class HPXMLFile
   end
 
   def self.set_foundation_walls(hpxml, runner, model, args)
-    model.getSurfaces.each do |surface|
+    model.getSurfaces.sort.each do |surface|
       next unless ['Foundation'].include? surface.outsideBoundaryCondition
       next if surface.surfaceType != 'Wall'
 
@@ -3870,7 +3867,7 @@ class HPXMLFile
   end
 
   def self.set_frame_floors(hpxml, runner, model, args)
-    model.getSurfaces.each do |surface|
+    model.getSurfaces.sort.each do |surface|
       next if surface.outsideBoundaryCondition == 'Foundation'
       next unless ['Floor', 'RoofCeiling'].include? surface.surfaceType
 
@@ -3912,7 +3909,7 @@ class HPXMLFile
   end
 
   def self.set_slabs(hpxml, runner, model, args)
-    model.getSurfaces.each do |surface|
+    model.getSurfaces.sort.each do |surface|
       next unless ['Foundation'].include? surface.outsideBoundaryCondition
       next if surface.surfaceType != 'Floor'
 
@@ -3957,8 +3954,8 @@ class HPXMLFile
   end
 
   def self.set_windows(hpxml, runner, model, args)
-    model.getSurfaces.each do |surface|
-      surface.subSurfaces.each do |sub_surface|
+    model.getSurfaces.sort.each do |surface|
+      surface.subSurfaces.sort.each do |sub_surface|
         next if sub_surface.subSurfaceType != 'FixedWindow'
 
         sub_surface_height = Geometry.get_surface_height(sub_surface)
@@ -4039,8 +4036,8 @@ class HPXMLFile
   end
 
   def self.set_skylights(hpxml, runner, model, args)
-    model.getSurfaces.each do |surface|
-      surface.subSurfaces.each do |sub_surface|
+    model.getSurfaces.sort.each do |surface|
+      surface.subSurfaces.sort.each do |sub_surface|
         next if sub_surface.subSurfaceType != 'Skylight'
 
         sub_surface_facade = Geometry.get_facade_for_surface(sub_surface)
@@ -4056,8 +4053,8 @@ class HPXMLFile
   end
 
   def self.set_doors(hpxml, runner, model, args)
-    model.getSurfaces.each do |surface|
-      surface.subSurfaces.each do |sub_surface|
+    model.getSurfaces.sort.each do |surface|
+      surface.subSurfaces.sort.each do |sub_surface|
         next if sub_surface.subSurfaceType != 'Door'
 
         sub_surface_facade = Geometry.get_facade_for_surface(sub_surface)

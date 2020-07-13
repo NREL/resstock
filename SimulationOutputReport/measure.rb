@@ -702,7 +702,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     (@end_uses.values + @loads.values).each do |obj|
       if obj.annual_output.nil?
         if not obj.annual_output_by_system.empty?
-          obj.annual_output = obj.annual_output_by_system.values.inject(0, :+)
+          obj.annual_output = obj.annual_output_by_system.values.sum(0.0)
         else
           obj.annual_output = 0.0
         end
@@ -767,9 +767,9 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
   end
 
   def check_for_errors(runner, outputs)
-    all_total = @fuels.values.map { |x| x.annual_output }.inject(:+)
-    all_total += @unmet_loads.values.map { |x| x.annual_output }.inject(:+)
-    all_total += @ideal_system_loads.values.map { |x| x.annual_output }.inject(:+)
+    all_total = @fuels.values.map { |x| x.annual_output }.sum(0.0)
+    all_total += @unmet_loads.values.map { |x| x.annual_output }.sum(0.0)
+    all_total += @ideal_system_loads.values.map { |x| x.annual_output }.sum(0.0)
     if all_total == 0
       runner.registerError('Simulation unsuccessful.')
       return false
@@ -777,7 +777,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
     # Check sum of end use outputs match fuel outputs
     @fuels.keys.each do |fuel_type|
-      sum_categories = @end_uses.select { |k, eu| k[0] == fuel_type }.map { |k, eu| eu.annual_output }.inject(:+)
+      sum_categories = @end_uses.select { |k, eu| k[0] == fuel_type }.map { |k, eu| eu.annual_output }.sum(0.0)
       fuel_total = @fuels[fuel_type].annual_output
       fuel_total += @end_uses[[FT::Elec, EUT::PV]].annual_output if fuel_type == FT::Elec
       if (fuel_total - sum_categories).abs > 0.1
@@ -794,7 +794,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       outputs.each do |key, obj|
         next if obj.timeseries_output.empty?
 
-        sum_timeseries = UnitConversions.convert(obj.timeseries_output.inject(:+), obj.timeseries_units, obj.annual_units)
+        sum_timeseries = UnitConversions.convert(obj.timeseries_output.sum(0.0), obj.timeseries_units, obj.annual_units)
         annual_total = obj.annual_output
         if (annual_total - sum_timeseries).abs > 0.1
           runner.registerError("Timeseries outputs (#{sum_timeseries}) do not sum to annual output (#{annual_total}) for #{output_type}: #{key}.")
@@ -2032,7 +2032,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     # Airflows
     @airflows = {}
     @airflows[AFT::Infiltration] = Airflow.new(ems_program: Constants.ObjectNameInfiltration + ' program', ems_variables: [(Constants.ObjectNameInfiltration + ' flow act').gsub(' ', '_')])
-    @airflows[AFT::MechanicalVentilation] = Airflow.new(ems_program: Constants.ObjectNameInfiltration + ' program', ems_variables: [(Constants.ObjectNameMechanicalVentilation + ' flow act').gsub(' ', '_'), 'balanced_mechvent_flow_rate'])
+    @airflows[AFT::MechanicalVentilation] = Airflow.new(ems_program: Constants.ObjectNameInfiltration + ' program', ems_variables: [(Constants.ObjectNameMechanicalVentilation + ' flow act').gsub(' ', '_'), 'QWHV_ervhrv'])
     @airflows[AFT::NaturalVentilation] = Airflow.new(ems_program: Constants.ObjectNameNaturalVentilation + ' program', ems_variables: [(Constants.ObjectNameNaturalVentilation + ' flow act').gsub(' ', '_')])
     @airflows[AFT::WholeHouseFan] = Airflow.new(ems_program: Constants.ObjectNameNaturalVentilation + ' program', ems_variables: [(Constants.ObjectNameWholeHouseFan + ' flow act').gsub(' ', '_')])
 

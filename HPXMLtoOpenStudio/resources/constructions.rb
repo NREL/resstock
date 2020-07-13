@@ -1262,9 +1262,9 @@ class Construction
     @name = name
     @path_widths = path_widths
     @path_fracs = []
-    @sum_path_fracs = @path_widths.inject(:+)
+    @sum_path_fracs = @path_widths.sum(0.0)
     path_widths.each do |path_width|
-      @path_fracs << path_width / path_widths.inject { |sum, n| sum + n }
+      @path_fracs << path_width / path_widths.sum(0.0)
     end
     @layers_names = []
     @layers_materials = []

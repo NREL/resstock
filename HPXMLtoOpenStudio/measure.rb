@@ -28,6 +28,7 @@ require_relative 'resources/schedules'
 require_relative 'resources/simcontrols'
 require_relative 'resources/unit_conversions'
 require_relative 'resources/util'
+require_relative 'resources/version'
 require_relative 'resources/waterheater'
 require_relative 'resources/weather'
 require_relative 'resources/xmlhelper'
@@ -89,11 +90,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
 
     tear_down_model(model, runner)
 
-    # Check for correct versions of OS
-    os_version = '3.0.1'
-    if OpenStudio.openStudioVersion != os_version
-      fail "OpenStudio version #{os_version} is required."
-    end
+    Version.check_openstudio_version()
 
     # assign the user inputs to variables
     hpxml_path = runner.getStringArgumentValue('hpxml_path', user_arguments)
@@ -426,7 +423,7 @@ class OSModel
     spaces.keys.each do |space_type|
       next unless [HPXML::LocationBasementUnconditioned, HPXML::LocationCrawlspaceUnvented, HPXML::LocationCrawlspaceVented, HPXML::LocationGarage].include? space_type
 
-      floor_area = @hpxml.slabs.select { |s| s.interior_adjacent_to == space_type }.map { |s| s.area }.inject(:+)
+      floor_area = @hpxml.slabs.select { |s| s.interior_adjacent_to == space_type }.map { |s| s.area }.sum(0.0)
       if space_type == HPXML::LocationGarage
         height = 8.0
       else
@@ -440,9 +437,9 @@ class OSModel
     spaces.keys.each do |space_type|
       next unless [HPXML::LocationAtticUnvented, HPXML::LocationAtticVented].include? space_type
 
-      floor_area = @hpxml.frame_floors.select { |f| [f.interior_adjacent_to, f.exterior_adjacent_to].include? space_type }.map { |s| s.area }.inject(:+)
+      floor_area = @hpxml.frame_floors.select { |f| [f.interior_adjacent_to, f.exterior_adjacent_to].include? space_type }.map { |s| s.area }.sum(0.0)
       roofs = @hpxml.roofs.select { |r| r.interior_adjacent_to == space_type }
-      avg_pitch = roofs.map { |r| r.pitch }.inject(:+) / roofs.size
+      avg_pitch = roofs.map { |r| r.pitch }.sum(0.0) / roofs.size
 
       # Assume square hip roof for volume calculations; energy results are very insensitive to actual volume
       length = floor_area**0.5
@@ -905,7 +902,7 @@ class OSModel
     if num_occ > 0
       occ_gain, hrs_per_day, sens_frac, lat_frac = Geometry.get_occupancy_default_values()
       weekday_sch = '1.00000, 1.00000, 1.00000, 1.00000, 1.00000, 1.00000, 1.00000, 0.88310, 0.40861, 0.24189, 0.24189, 0.24189, 0.24189, 0.24189, 0.24189, 0.24189, 0.29498, 0.55310, 0.89693, 0.89693, 0.89693, 1.00000, 1.00000, 1.00000'
-      weekday_sch_sum = weekday_sch.split(',').map(&:to_f).inject(0, :+)
+      weekday_sch_sum = weekday_sch.split(',').map(&:to_f).sum(0.0)
       if (weekday_sch_sum - hrs_per_day).abs > 0.1
         fail 'Occupancy schedule inconsistent with hrs_per_day.'
       end
@@ -1318,9 +1315,9 @@ class OSModel
         slab_exp_perims[slab] = slab.exposed_perimeter
         slab_areas[slab] = slab.area
       end
-      total_slab_exp_perim = slab_exp_perims.values.inject(0, :+)
-      total_slab_area = slab_areas.values.inject(0, :+)
-      total_fnd_wall_length = fnd_wall_lengths.values.inject(0, :+)
+      total_slab_exp_perim = slab_exp_perims.values.sum(0.0)
+      total_slab_area = slab_areas.values.sum(0.0)
+      total_fnd_wall_length = fnd_wall_lengths.values.sum(0.0)
 
       no_wall_slab_exp_perim = {}
 
@@ -1630,7 +1627,7 @@ class OSModel
   end
 
   def self.add_thermal_mass(runner, model, spaces)
-    cfa_basement = @hpxml.slabs.select { |s| s.interior_adjacent_to == HPXML::LocationBasementConditioned }.map { |s| s.area }.inject(0, :+)
+    cfa_basement = @hpxml.slabs.select { |s| s.interior_adjacent_to == HPXML::LocationBasementConditioned }.map { |s| s.area }.sum(0.0)
     if @apply_ashrae140_assumptions
       # 1024 ft2 of interior partition wall mass, no furniture mass
       drywall_thick_in = 0.5
@@ -2319,38 +2316,19 @@ class OSModel
       end
     end
 
-    # Ventilation fans
-    vent_mech = nil
-    vent_kitchen = nil
-    vent_bath = nil
-    vent_whf = nil
-    @hpxml.ventilation_fans.each do |vent_fan|
-      if vent_fan.used_for_whole_building_ventilation
-        vent_mech = vent_fan
-      elsif vent_fan.used_for_seasonal_cooling_load_reduction
-        vent_whf = vent_fan
-      elsif vent_fan.used_for_local_ventilation
-        if vent_fan.fan_location == HPXML::LocationKitchen
-          vent_kitchen = vent_fan
-        elsif vent_fan.fan_location == HPXML::LocationBath
-          vent_bath = vent_fan
-        end
-      end
-    end
-
     air_infils = @hpxml.air_infiltration_measurements
-    window_area = @hpxml.windows.map { |w| w.area }.inject(0, :+)
+    window_area = @hpxml.windows.map { |w| w.area }.sum(0.0)
     open_window_area = window_area * @frac_windows_operable * 0.5 * 0.2 # Assume A) 50% of the area of an operable window can be open, and B) 20% of openable window area is actually open
     site_type = @hpxml.site.site_type
     shelter_coef = @hpxml.site.shelter_coefficient
     has_flue_chimney = false # FUTURE: Expose as HPXML input
     @infil_volume = air_infils.select { |i| !i.infiltration_volume.nil? }[0].infiltration_volume
     infil_height = @hpxml.inferred_infiltration_height(@infil_volume)
-    Airflow.apply(model, runner, weather, spaces, air_infils, vent_mech, vent_whf,
+    Airflow.apply(model, runner, weather, spaces, air_infils, @hpxml.ventilation_fans,
                   duct_systems, @infil_volume, infil_height, open_window_area,
-                  @clg_ssn_sensor, @min_neighbor_distance, vent_kitchen, vent_bath,
-                  vented_attic, vented_crawl, site_type, shelter_coef,
-                  has_flue_chimney, @hvac_map, @eri_version, @apply_ashrae140_assumptions)
+                  @clg_ssn_sensor, @min_neighbor_distance, vented_attic, vented_crawl,
+                  site_type, shelter_coef, has_flue_chimney, @hvac_map, @eri_version,
+                  @apply_ashrae140_assumptions)
   end
 
   def self.create_ducts(runner, model, hvac_distribution, spaces)
