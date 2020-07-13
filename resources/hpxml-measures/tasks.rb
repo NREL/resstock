@@ -203,6 +203,8 @@ def create_osws
     'extra-pv-roofpitch.osw' => 'base.osw',
     'extra-dhw-solar-latitude.osw' => 'base.osw',
     'extra-second-refrigerator.osw' => 'base.osw',
+    'extra-second-heating-system-portable-heater.osw' => 'base.osw',
+    'extra-second-heating-system-fireplace.osw' => 'base.osw',
 
     'invalid_files/non-electric-heat-pump-water-heater.osw' => 'base.osw',
     'invalid_files/multiple-heating-and-cooling-systems.osw' => 'base.osw',
@@ -214,7 +216,8 @@ def create_osws
     'invalid_files/multifamily-bottom-slab-non-zero-foundation-height.osw' => 'base.osw',
     'invalid_files/multifamily-bottom-crawlspace-zero-foundation-height.osw' => 'base.osw',
     'invalid_files/slab-non-zero-foundation-height-above-grade.osw' => 'base.osw',
-    'invalid_files/ducts-location-and-areas-not-same-type.osw' => 'base.osw'
+    'invalid_files/ducts-location-and-areas-not-same-type.osw' => 'base.osw',
+    'invalid_files/second-heating-system-serves-majority-heat.osw' => 'base.osw'
   }
 
   puts "Generating #{osws_files.size} OSW files..."
@@ -438,6 +441,12 @@ def get_values(osw_file, step)
     step.setArgument('ducts_supply_surface_area', '150.0')
     step.setArgument('ducts_return_surface_area', '50.0')
     step.setArgument('ducts_number_of_return_registers', Constants.Auto)
+    step.setArgument('heating_system_type_2', 'none')
+    step.setArgument('heating_system_fuel_2', HPXML::FuelTypeElectricity)
+    step.setArgument('heating_system_heating_efficiency_2', 1.0)
+    step.setArgument('heating_system_heating_capacity_2', Constants.Auto)
+    step.setArgument('heating_system_fraction_heat_load_served_2', 0.25)
+    step.setArgument('heating_system_electric_auxiliary_energy_2', 0)
     step.setArgument('mech_vent_fan_type', 'none')
     step.setArgument('mech_vent_flow_rate', 110)
     step.setArgument('mech_vent_hours_in_operation', 24)
@@ -1783,6 +1792,23 @@ def get_values(osw_file, step)
     step.setArgument('solar_thermal_collector_tilt', 'latitude-15')
   elsif ['extra-second-refrigerator.osw'].include? osw_file
     step.setArgument('extra_refrigerator_present', true)
+  elsif ['extra-second-heating-system-portable-heater.osw'].include? osw_file
+    step.setArgument('heating_system_fuel', HPXML::FuelTypeElectricity)
+    step.setArgument('heating_system_heating_capacity', '48000.0')
+    step.setArgument('heating_system_fraction_heat_load_served', 0.75)
+    step.setArgument('ducts_supply_leakage_value', 0.0)
+    step.setArgument('ducts_return_leakage_value', 0.0)
+    step.setArgument('ducts_supply_location', HPXML::LocationLivingSpace)
+    step.setArgument('ducts_return_location', HPXML::LocationLivingSpace)
+    step.setArgument('heating_system_type_2', HPXML::HVACTypePortableHeater)
+    step.setArgument('heating_system_heating_capacity_2', '16000.0')
+  elsif ['extra-second-heating-system-fireplace.osw'].include? osw_file
+    step.setArgument('heating_system_type', HPXML::HVACTypeElectricResistance)
+    step.setArgument('heating_system_fuel', HPXML::FuelTypeElectricity)
+    step.setArgument('heating_system_heating_capacity', '48000.0')
+    step.setArgument('heating_system_fraction_heat_load_served', 0.75)
+    step.setArgument('heating_system_type_2', HPXML::HVACTypeFireplace)
+    step.setArgument('heating_system_heating_capacity_2', '16000.0')
   elsif ['invalid_files/non-electric-heat-pump-water-heater.osw'].include? osw_file
     step.setArgument('water_heater_type', HPXML::WaterHeaterTypeHeatPump)
     step.setArgument('water_heater_fuel_type', HPXML::FuelTypeNaturalGas)
@@ -1816,6 +1842,10 @@ def get_values(osw_file, step)
     step.setArgument('geometry_foundation_height', 0.0)
   elsif ['invalid_files/ducts-location-and-areas-not-same-type.osw'].include? osw_file
     step.setArgument('ducts_supply_location', Constants.Auto)
+  elsif ['invalid_files/second-heating-system-serves-majority-heat.osw'].include? osw_file
+    step.setArgument('heating_system_fraction_heat_load_served', 0.4)
+    step.setArgument('heating_system_type_2', HPXML::HVACTypeFireplace)
+    step.setArgument('heating_system_fraction_heat_load_served_2', 0.6)
   end
   return step
 end
