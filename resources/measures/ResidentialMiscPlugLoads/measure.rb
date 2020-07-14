@@ -146,6 +146,7 @@ class ResidentialMiscElectricLoads < OpenStudio::Measure::ModelMeasure
     end
 
     schedules_file.set_vacancy(col_name: "plug_loads")
+    schedules_file.set_outage(col_name: "plug_loads")
 
     # Reporting
     if msgs.size > 1

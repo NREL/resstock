@@ -197,6 +197,7 @@ class ResidentialDishwasher < OpenStudio::Measure::ModelMeasure
     end
 
     schedules_file.set_vacancy(col_name: "dishwasher_power")
+    schedules_file.set_outage(col_name: "dishwasher_power")
 
     # Reporting
     if msgs.size > 1

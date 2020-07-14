@@ -128,7 +128,7 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
     result = _test_error_or_NA("Denver.osm", args_hash)
     assert(result.errors.size == 1)
     assert_equal("Fail", result.value.valueName)
-    assert_includes(result.errors.map { |x| x.logMessage }, "Invalid vacancy date(s) specified.")
+    assert_includes(result.errors.map { |x| x.logMessage }, "Invalid vacancy start day specified.")
   end
 
   def test_NA_vacancy
@@ -138,7 +138,7 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
     expected_num_del_objects = {}
     expected_num_new_objects = { "Building" => 1 }
     expected_values = {}
-    _test_measure("Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 2, 1)
+    _test_measure("Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 3, 1)
   end
 
   def test_change_vacancy
@@ -146,14 +146,46 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
     expected_num_del_objects = {}
     expected_num_new_objects = { "Building" => 1 }
     expected_values = {}
-    model = _test_measure("Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 2, 1)
+    model = _test_measure("Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 3, 1)
     args_hash = {}
     args_hash["vacancy_start_date"] = "April 8"
     args_hash["vacancy_end_date"] = "October 27"
     expected_num_del_objects = {}
     expected_num_new_objects = {}
     expected_values = {}
-    _test_measure(model, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 2, 1)
+    _test_measure(model, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 3, 1)
+  end
+
+  def test_error_invalid_outage
+    args_hash = {}
+    args_hash["outage_start_date"] = "April 31"
+    result = _test_error_or_NA("Denver.osm", args_hash)
+    assert(result.errors.size == 1)
+    assert_equal("Fail", result.value.valueName)
+    assert_includes(result.errors.map { |x| x.logMessage }, "Invalid outage start day specified.")
+  end
+
+  def test_NA_outage
+    args_hash = {}
+    args_hash["outage_start_date"] = "NA"
+    expected_num_del_objects = {}
+    expected_num_new_objects = { "Building" => 1 }
+    expected_values = {}
+    _test_measure("Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 3, 1)
+  end
+
+  def test_change_outage
+    args_hash = {}
+    expected_num_del_objects = {}
+    expected_num_new_objects = { "Building" => 1 }
+    expected_values = {}
+    model = _test_measure("Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 3, 1)
+    args_hash = {}
+    args_hash["outage_start_date"] = "April 8"
+    expected_num_del_objects = {}
+    expected_num_new_objects = {}
+    expected_values = {}
+    _test_measure(model, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 3, 1)
   end
 
   private

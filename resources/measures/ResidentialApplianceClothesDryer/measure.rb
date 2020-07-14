@@ -154,6 +154,7 @@ class ResidentialClothesDryer < OpenStudio::Measure::ModelMeasure
     end
 
     schedules_file.set_vacancy(col_name: "clothes_dryer")
+    schedules_file.set_outage(col_name: "clothes_dryer")
 
     # Reporting
     if msgs.size > 1

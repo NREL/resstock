@@ -375,6 +375,9 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
     schedules_file.set_vacancy(col_name: "showers")
     schedules_file.set_vacancy(col_name: "sinks")
     schedules_file.set_vacancy(col_name: "baths")
+    schedules_file.set_outage(col_name: "showers")
+    schedules_file.set_outage(col_name: "sinks")
+    schedules_file.set_outage(col_name: "baths")
 
     # Reporting
     if msgs.size > 1

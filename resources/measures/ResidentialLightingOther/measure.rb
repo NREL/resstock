@@ -331,6 +331,7 @@ class ResidentialLightingOther < OpenStudio::Measure::ModelMeasure
     return false if not success
 
     schedules_file.set_vacancy(col_name: "lighting_garage")
+    schedules_file.set_outage(col_name: "lighting_garage")
 
     if garage_spaces.length > 0
       msgs << "Lighting with #{garage_ann.round} kWhs annual energy consumption has been assigned to the garage(s)."
@@ -352,6 +353,7 @@ class ResidentialLightingOther < OpenStudio::Measure::ModelMeasure
       return false if not success
 
       schedules_file.set_vacancy(col_name: "lighting_exterior")
+      schedules_file.set_outage(col_name: "lighting_exterior")
     end
 
     msgs << "Lighting with #{exterior_ann.round} kWhs annual energy consumption has been assigned to the exterior."
@@ -397,6 +399,7 @@ class ResidentialLightingOther < OpenStudio::Measure::ModelMeasure
       tot_ltg_e += holiday_exterior_ann
 
       schedules_file.set_vacancy(col_name: "lighting_exterior_holiday")
+      schedules_file.set_outage(col_name: "lighting_exterior_holiday")
     end
 
     # reporting final condition of model

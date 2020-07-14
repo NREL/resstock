@@ -219,6 +219,7 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
     end
 
     schedules_file.set_vacancy(col_name: "clothes_washer_power")
+    schedules_file.set_outage(col_name: "clothes_washer_power")
 
     # Reporting
     if (msgs.size + cd_msgs.size) > 1

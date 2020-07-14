@@ -801,6 +801,9 @@ class ScheduleGenerator
                  num_occupants:,
                  vacancy_start_date:,
                  vacancy_end_date:,
+                 outage_start_date:,
+                 outage_start_hour:,
+                 outage_length:,
                  schedules_path:,
                  **remainder)
 
@@ -811,6 +814,9 @@ class ScheduleGenerator
     @num_occupants = num_occupants
     @vacancy_start_date = vacancy_start_date
     @vacancy_end_date = vacancy_end_date
+    @outage_start_date = outage_start_date
+    @outage_start_hour = outage_start_hour
+    @outage_length = outage_length
     @schedules_path = schedules_path
   end
 
@@ -865,7 +871,8 @@ class ScheduleGenerator
       "clothes_washer_power" => Array.new(num_ts, 0.0),
       "dishwasher_power" => Array.new(num_ts, 0.0),
       "sleep" => Array.new(num_ts, 0.0),
-      "vacancy" => Array.new(num_ts, 0.0)
+      "vacancy" => Array.new(num_ts, 0.0),
+      "outage" => Array.new(num_ts, 0.0)
     }
 
     return schedules
@@ -1350,31 +1357,105 @@ class ScheduleGenerator
     success = set_vacancy(min_per_step: minutes_per_steps, sim_year: sim_year)
     return false if not success
 
+    success = set_outage(min_per_step: minutes_per_steps, sim_year: sim_year)
+    return false if not success
+
+    return true
+  end
+
+  def validate_dates(start_month:,
+                     start_day:,
+                     end_month: nil,
+                     end_day: nil,
+                     period_type:)
+    begin
+      start_month = OpenStudio::monthOfYear(start_month).value
+    rescue
+      @runner.registerError("Invalid #{period_type} start month specified.")
+      return false
+    end
+
+    if not end_month.nil?
+      begin
+        end_month = OpenStudio::monthOfYear(end_month).value
+      rescue
+        @runner.registerError("Invalid #{period_type} end month specified.")
+        return false
+      end
+    end
+
+    months_days = { [1, 3, 5, 7, 8, 10, 12] => (1..31).to_a, [4, 6, 9, 11] => (1..30).to_a, [2] => (1..28).to_a }
+    months_days.each do |months, valid_days|
+      next unless months.include? start_month
+
+      if not valid_days.include? start_day
+        @runner.registerError("Invalid #{period_type} start day specified.")
+        return false
+      end
+      if not end_day.nil?
+        if not valid_days.include? end_day
+          @runner.registerError("Invalid #{period_type} end day specified.")
+          return false
+        end
+      end
+    end
     return true
   end
 
   def set_vacancy(min_per_step:,
                   sim_year:)
     if not (@vacancy_start_date.downcase == 'na' and @vacancy_end_date.downcase == 'na')
-      begin
-        vacancy_start_date = Time.new(sim_year, OpenStudio::monthOfYear(@vacancy_start_date.split[0]).value, @vacancy_start_date.split[1].to_i)
-        vacancy_end_date = Time.new(sim_year, OpenStudio::monthOfYear(@vacancy_end_date.split[0]).value, @vacancy_end_date.split[1].to_i, 24)
+      start_month = @vacancy_start_date.split[0]
+      start_day = @vacancy_start_date.split[1].to_i
+      end_month = @vacancy_end_date.split[0]
+      end_day = @vacancy_end_date.split[1].to_i
 
-        sec_per_step = min_per_step * 60.0
-        ts = Time.new(sim_year, "Jan", 1)
-        @schedules["vacancy"].each_with_index do |step, i|
-          if vacancy_start_date <= ts && ts <= vacancy_end_date # in the vacancy period
-            @schedules["vacancy"][i] = 1.0
-          end
-          ts += sec_per_step
+      success = validate_dates(start_month: start_month, start_day: start_day, end_month: end_month, end_day: end_day, period_type: 'vacancy')
+      return false if not success
+
+      vacancy_start_date = Time.new(sim_year, OpenStudio::monthOfYear(start_month).value, start_day)
+      vacancy_end_date = Time.new(sim_year, OpenStudio::monthOfYear(end_month).value, end_day, 24)
+
+      sec_per_step = min_per_step * 60.0
+      ts = Time.new(sim_year, "Jan", 1)
+      @schedules["vacancy"].each_with_index do |step, i|
+        if vacancy_start_date <= ts && ts <= vacancy_end_date # in the vacancy period
+          @schedules["vacancy"][i] = 1.0
         end
-
-        @runner.registerInfo("Set vacancy period from #{@vacancy_start_date} tp #{@vacancy_end_date}.")
-      rescue
-        @runner.registerError("Invalid vacancy date(s) specified.")
+        ts += sec_per_step
       end
+
+      @runner.registerInfo("Set vacancy period from #{@vacancy_start_date} to #{@vacancy_end_date}.")
     else
       @runner.registerInfo("No vacancy period set.")
+    end
+    return true
+  end
+
+  def set_outage(min_per_step:,
+                 sim_year:)
+    if not (@outage_start_date.downcase == 'na')
+      start_month = @outage_start_date.split[0]
+      start_day = @outage_start_date.split[1].to_i
+
+      success = validate_dates(start_month: start_month, start_day: start_day, period_type: 'outage')
+      return false if not success
+
+      outage_start_date = Time.new(sim_year, OpenStudio::monthOfYear(start_month).value, start_day, @outage_start_hour)
+      outage_end_date = outage_start_date + @outage_length * 3600.0
+
+      sec_per_step = min_per_step * 60.0
+      ts = Time.new(sim_year, "Jan", 1)
+      @schedules["outage"].each_with_index do |step, i|
+        if outage_start_date <= ts && ts <= outage_end_date # in the outage period
+          @schedules["outage"][i] = 1.0
+        end
+        ts += sec_per_step
+      end
+
+      @runner.registerInfo("Set outage period from #{@outage_start_date}, starting at hour #{@outage_start_hour}, and lasting #{@outage_length} hour(s).")
+    else
+      @runner.registerInfo("No outage period set.")
     end
     return true
   end
@@ -1922,10 +2003,20 @@ class SchedulesFile
     update(col_name: col_name)
   end
 
+  def set_outage(col_name:)
+    return unless @schedules.keys.include? "outage"
+    return if @schedules["outage"].all? { |i| i == 0 }
+
+    @schedules[col_name].each_with_index do |ts, i|
+      @schedules[col_name][i] *= (1.0 - @schedules["outage"][i])
+    end
+    update(col_name: col_name)
+  end
+
   def import(col_name:)
     return if @schedules.keys.include? col_name
 
-    col_names = [col_name, "vacancy"]
+    col_names = [col_name, "vacancy", "outage"]
     columns = CSV.read(@schedules_path).transpose
     columns.each do |col|
       next if not col_names.include? col[0]

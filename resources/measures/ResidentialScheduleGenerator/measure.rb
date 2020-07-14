@@ -47,6 +47,26 @@ class ResidentialScheduleGenerator < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue("NA")
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument("outage_start_date", true)
+    arg.setDisplayName("Outage Start Date")
+    arg.setDescription("Set to 'NA' if no power outage.")
+    arg.setDefaultValue("NA")
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument("outage_start_hour", true)
+    arg.setDisplayName("Outage Start Hour")
+    arg.setUnits("hours")
+    arg.setDescription("Hour of the day when the outage starts.")
+    arg.setDefaultValue(0)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument("outage_length", true)
+    arg.setDisplayName("Outage Duration")
+    arg.setUnits("hours")
+    arg.setDescription("Duration of the power outage in hours.")
+    arg.setDefaultValue(24)
+    args << arg
+
     return args
   end
 
@@ -62,7 +82,10 @@ class ResidentialScheduleGenerator < OpenStudio::Measure::ModelMeasure
     # assign the user inputs to variables
     args = { :num_occupants => runner.getIntegerArgumentValue("num_occupants", user_arguments),
              :vacancy_start_date => runner.getStringArgumentValue("vacancy_start_date", user_arguments),
-             :vacancy_end_date => runner.getStringArgumentValue("vacancy_end_date", user_arguments) }
+             :vacancy_end_date => runner.getStringArgumentValue("vacancy_end_date", user_arguments),
+             :outage_start_date => runner.getStringArgumentValue("outage_start_date", user_arguments),
+             :outage_start_hour => runner.getIntegerArgumentValue("outage_start_hour", user_arguments),
+             :outage_length => runner.getIntegerArgumentValue("outage_length", user_arguments) }
 
     # error checking
     if not args[:num_occupants] > 0
@@ -92,6 +115,10 @@ class ResidentialScheduleGenerator < OpenStudio::Measure::ModelMeasure
 
     runner.registerInfo("Generated schedule file: #{output_csv_file}")
     model.getBuilding.additionalProperties.setFeature("Schedules Path", output_csv_file)
+
+    model.getYearDescription.additionalProperties.setFeature("PowerOutageStartDate", outage_start_date)
+    model.getYearDescription.additionalProperties.setFeature("PowerOutageStartHour", outage_start_hour)
+    model.getYearDescription.additionalProperties.setFeature("PowerOutageDuration", outage_length)
 
     return true
   end

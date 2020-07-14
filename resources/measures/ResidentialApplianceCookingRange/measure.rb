@@ -162,6 +162,7 @@ class ResidentialCookingRange < OpenStudio::Measure::ModelMeasure
     end
 
     schedules_file.set_vacancy(col_name: "cooking_range")
+    schedules_file.set_outage(col_name: "cooking_range")
 
     # Reporting
     if msgs.size > 1

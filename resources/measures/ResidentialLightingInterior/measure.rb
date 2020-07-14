@@ -301,6 +301,7 @@ class ResidentialLightingInterior < OpenStudio::Measure::ModelMeasure
     end
 
     schedules_file.set_vacancy(col_name: "lighting_interior")
+    schedules_file.set_outage(col_name: "lighting_interior")
 
     # reporting final condition of model
     if msgs.size > 1

@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>residential_schedule_generator</name>
   <uid>079880ce-1837-4d67-ba8d-65c595160d3d</uid>
-  <version_id>052f56bf-5a5e-488c-a727-76265e374a13</version_id>
-  <version_modified>20200515T170008Z</version_modified>
+  <version_id>55989a65-ed4d-46fa-8c2a-c33e8de12af0</version_id>
+  <version_modified>20200714T183158Z</version_modified>
   <xml_checksum>3C1C8C0F</xml_checksum>
   <class_name>ResidentialScheduleGenerator</class_name>
   <display_name>Generate Appliance schedules</display_name>
@@ -37,6 +37,35 @@
       <model_dependent>false</model_dependent>
       <default_value>NA</default_value>
     </argument>
+    <argument>
+      <name>outage_start_date</name>
+      <display_name>Outage Start Date</display_name>
+      <description>Set to 'NA' if no power outage.</description>
+      <type>String</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>NA</default_value>
+    </argument>
+    <argument>
+      <name>outage_start_hour</name>
+      <display_name>Outage Start Hour</display_name>
+      <description>Hour of the day when the outage starts.</description>
+      <type>Integer</type>
+      <units>hours</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0</default_value>
+    </argument>
+    <argument>
+      <name>outage_length</name>
+      <display_name>Outage Duration</display_name>
+      <description>Duration of the power outage in hours.</description>
+      <type>Integer</type>
+      <units>hours</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>24</default_value>
+    </argument>
   </arguments>
   <outputs/>
   <provenances/>
@@ -60,13 +89,13 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>7D00B624</checksum>
+      <checksum>4BE114F8</checksum>
     </file>
     <file>
       <filename>ResidentialScheduleGenerator_Test.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
-      <checksum>DD664EB5</checksum>
+      <checksum>2E4DAAFD</checksum>
     </file>
   </files>
 </measure>
