@@ -42,7 +42,7 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
     hot_water_gpd = { "schedules_length" => [], "building_id" => [], "num_occupants" => [] }
     args_hash = {}
 
-    expected_values = { "SchedulesLength" => 8760, "SchedulesWidth" => 18 } # these are the old schedules
+    expected_values = { "SchedulesLength" => 8760, "SchedulesWidth" => 19 } # these are the old schedules
     full_load_hours["building_id"] << 1
     full_load_hours["num_occupants"] << 2.64
     annual_energy_use["building_id"] << 1
@@ -51,7 +51,7 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
     hot_water_gpd["num_occupants"] << 2.64
     full_load_hours, annual_energy_use, hot_water_gpd = _test_generator("SFD_2000sqft_2story_FB_UA_Denver.osm", args_hash, expected_values, "8760", "USA_CO_Denver.Intl.AP.725650_TMY3.epw", full_load_hours, annual_energy_use, hot_water_gpd)
 
-    expected_values = { "SchedulesLength" => 8784, "SchedulesWidth" => 18 } # these are the old schedules
+    expected_values = { "SchedulesLength" => 8784, "SchedulesWidth" => 19 } # these are the old schedules
     full_load_hours["building_id"] << 1
     full_load_hours["num_occupants"] << 2.64
     annual_energy_use["building_id"] << 1
@@ -64,7 +64,10 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
     num_occupants = [2]
     vacancy_start_date = "NA"
     vacancy_end_date = "NA"
-    expected_values = { "SchedulesLength" => 52560, "SchedulesWidth" => 19 }
+    outage_start_date = "NA"
+    outage_start_hour = 0
+    outage_length = 0
+    expected_values = { "SchedulesLength" => 52560, "SchedulesWidth" => 20 }
     prng = Random.new(1) # initialize with certain seed
     (1..num_building_ids).to_a.each do |building_id|
       building_id = rand(1..450000)
@@ -81,6 +84,9 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
         args_hash[:num_occupants] = num_occupant
         args_hash[:vacancy_start_date] = vacancy_start_date
         args_hash[:vacancy_end_date] = vacancy_end_date
+        args_hash[:outage_start_date] = outage_start_date
+        args_hash[:outage_start_hour] = outage_start_hour
+        args_hash[:outage_length] = outage_length
         full_load_hours, annual_energy_use, hot_water_gpd = _test_generator("SFD_2000sqft_2story_FB_UA_Denver.osm", args_hash, expected_values, __method__, "USA_CO_Denver.Intl.AP.725650_TMY3.epw", full_load_hours, annual_energy_use, hot_water_gpd)
       end
     end

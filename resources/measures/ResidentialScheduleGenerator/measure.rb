@@ -116,9 +116,9 @@ class ResidentialScheduleGenerator < OpenStudio::Measure::ModelMeasure
     runner.registerInfo("Generated schedule file: #{output_csv_file}")
     model.getBuilding.additionalProperties.setFeature("Schedules Path", output_csv_file)
 
-    model.getYearDescription.additionalProperties.setFeature("PowerOutageStartDate", outage_start_date)
-    model.getYearDescription.additionalProperties.setFeature("PowerOutageStartHour", outage_start_hour)
-    model.getYearDescription.additionalProperties.setFeature("PowerOutageDuration", outage_length)
+    model.getYearDescription.additionalProperties.setFeature("PowerOutageStartDate", args[:outage_start_date])
+    model.getYearDescription.additionalProperties.setFeature("PowerOutageStartHour", args[:outage_start_hour])
+    model.getYearDescription.additionalProperties.setFeature("PowerOutageDuration", args[:outage_length])
 
     return true
   end
