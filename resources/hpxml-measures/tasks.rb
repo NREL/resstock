@@ -150,6 +150,8 @@ def create_osws
     # 'base-hvac-furnace-x3-dse.osw' => 'base.osw', # Not going to support DSE
     'base-hvac-ground-to-air-heat-pump.osw' => 'base.osw',
     # 'base-hvac-ideal-air.osw' => 'base.osw',
+    'base-hvac-mini-split-air-conditioner-only-ducted.osw' => 'base.osw',
+    'base-hvac-mini-split-air-conditioner-only-ductless.osw' => 'base-hvac-mini-split-air-conditioner-only-ducted.osw',
     'base-hvac-mini-split-heat-pump-ducted.osw' => 'base.osw',
     'base-hvac-mini-split-heat-pump-ducted-cooling-only.osw' => 'base.osw',
     'base-hvac-mini-split-heat-pump-ducted-heating-only.osw' => 'base.osw',
@@ -405,7 +407,7 @@ def get_values(osw_file, step)
     step.setArgument('cooling_system_cooling_sensible_heat_fraction', 0.73)
     step.setArgument('cooling_system_cooling_capacity', '48000.0')
     step.setArgument('cooling_system_fraction_cool_load_served', 1)
-    step.setArgument('cooling_system_evap_cooler_is_ducted', false)
+    step.setArgument('cooling_system_is_ducted', false)
     step.setArgument('heat_pump_type', 'none')
     step.setArgument('heat_pump_heating_efficiency_hspf', 7.7)
     step.setArgument('heat_pump_heating_efficiency_cop', 3.6)
@@ -1356,7 +1358,7 @@ def get_values(osw_file, step)
     step.setArgument('cooling_system_type', HPXML::HVACTypeEvaporativeCooler)
     step.removeArgument('cooling_system_cooling_compressor_type')
     step.removeArgument('cooling_system_cooling_sensible_heat_fraction')
-    step.setArgument('cooling_system_evap_cooler_is_ducted', true)
+    step.setArgument('cooling_system_is_ducted', true)
   elsif ['base-hvac-fireplace-wood-only.osw'].include? osw_file
     step.setArgument('heating_system_type', HPXML::HVACTypeFireplace)
     step.setArgument('heating_system_fuel', HPXML::FuelTypeWoodCord)
@@ -1402,6 +1404,20 @@ def get_values(osw_file, step)
   elsif ['base-hvac-furnace-wood-only.osw'].include? osw_file
     step.setArgument('heating_system_fuel', HPXML::FuelTypeWoodCord)
     step.setArgument('cooling_system_type', 'none')
+  elsif ['base-hvac-mini-split-air-conditioner-only-ducted.osw'].include? osw_file
+    step.setArgument('heating_system_type', 'none')
+    step.setArgument('cooling_system_type', HPXML::HVACTypeMiniSplitAirConditioner)
+    step.setArgument('cooling_system_cooling_efficiency_seer', 19.0)
+    step.removeArgument('cooling_system_cooling_compressor_type')
+    step.setArgument('cooling_system_is_ducted', true)
+    step.setArgument('ducts_supply_leakage_value', 15.0)
+    step.setArgument('ducts_return_leakage_value', 5.0)
+    step.setArgument('ducts_supply_insulation_r', 0.0)
+    step.setArgument('ducts_supply_surface_area', '30.0')
+    step.setArgument('ducts_return_surface_area', '10.0')
+  elsif ['base-hvac-mini-split-air-conditioner-only-ductless.osw'].include? osw_file
+    step.setArgument('cooling_system_is_ducted', false)
+    step.removeArgument('cooling_system_cooling_compressor_type')
   elsif ['base-hvac-ground-to-air-heat-pump.osw'].include? osw_file
     step.setArgument('heating_system_type', 'none')
     step.setArgument('cooling_system_type', 'none')
@@ -1548,7 +1564,7 @@ def get_values(osw_file, step)
     step.setArgument('cooling_system_type', HPXML::HVACTypeEvaporativeCooler)
     step.removeArgument('cooling_system_cooling_compressor_type')
     step.removeArgument('cooling_system_cooling_sensible_heat_fraction')
-    step.setArgument('cooling_system_evap_cooler_is_ducted', true)
+    step.setArgument('cooling_system_is_ducted', true)
     step.setArgument('mech_vent_fan_type', HPXML::MechVentTypeCFIS)
     step.setArgument('mech_vent_flow_rate', 330)
     step.setArgument('mech_vent_hours_in_operation', 8)
@@ -2097,6 +2113,8 @@ def create_hpxmls
     'base-hvac-furnace-x3-dse.xml' => 'base.xml',
     'base-hvac-ground-to-air-heat-pump.xml' => 'base.xml',
     'base-hvac-ideal-air.xml' => 'base.xml',
+    'base-hvac-mini-split-air-conditioner-only-ducted.xml' => 'base.xml',
+    'base-hvac-mini-split-air-conditioner-only-ductless.xml' => 'base-hvac-mini-split-air-conditioner-only-ducted.xml',
     'base-hvac-mini-split-heat-pump-ducted.xml' => 'base.xml',
     'base-hvac-mini-split-heat-pump-ducted-heating-only.xml' => 'base-hvac-mini-split-heat-pump-ducted.xml',
     'base-hvac-mini-split-heat-pump-ducted-cooling-only.xml' => 'base-hvac-mini-split-heat-pump-ducted.xml',
@@ -2169,6 +2187,9 @@ def create_hpxmls
     'hvac_autosizing/base-hvac-furnace-gas-room-ac-autosize.xml' => 'base-hvac-furnace-gas-room-ac.xml',
     'hvac_autosizing/base-hvac-ground-to-air-heat-pump-autosize.xml' => 'base-hvac-ground-to-air-heat-pump.xml',
     'hvac_autosizing/base-hvac-mini-split-heat-pump-ducted-autosize.xml' => 'base-hvac-mini-split-heat-pump-ducted.xml',
+    'hvac_autosizing/base-hvac-mini-split-heat-pump-ducted-heating-only-autosize.xml' => 'base-hvac-mini-split-heat-pump-ducted-heating-only.xml',
+    'hvac_autosizing/base-hvac-mini-split-heat-pump-ducted-cooling-only-autosize.xml' => 'base-hvac-mini-split-heat-pump-ducted-cooling-only.xml',
+    'hvac_autosizing/base-hvac-mini-split-air-conditioner-only-ducted-autosize.xml' => 'base-hvac-mini-split-air-conditioner-only-ducted.xml',
     'hvac_autosizing/base-hvac-room-ac-only-autosize.xml' => 'base-hvac-room-ac-only.xml',
     'hvac_autosizing/base-hvac-stove-oil-only-autosize.xml' => 'base-hvac-stove-oil-only.xml',
     'hvac_autosizing/base-hvac-wall-furnace-elec-only-autosize.xml' => 'base-hvac-wall-furnace-elec-only.xml',
@@ -4269,6 +4290,7 @@ def set_hpxml_heating_systems(hpxml_file, hpxml)
          'base-hvac-evap-cooler-only-ducted.xml',
          'base-hvac-ground-to-air-heat-pump.xml',
          'base-hvac-mini-split-heat-pump-ducted.xml',
+         'base-hvac-mini-split-air-conditioner-only-ducted.xml',
          'base-hvac-ideal-air.xml',
          'base-hvac-none.xml',
          'base-hvac-room-ac-only.xml',
@@ -4529,6 +4551,13 @@ def set_hpxml_cooling_systems(hpxml_file, hpxml)
     hpxml.cooling_systems[0].cooling_efficiency_seer = 24
     hpxml.cooling_systems[0].cooling_shr = 0.78
     hpxml.cooling_systems[0].compressor_type = HPXML::HVACCompressorTypeVariableSpeed
+  elsif ['base-hvac-mini-split-air-conditioner-only-ducted.xml'].include? hpxml_file
+    hpxml.cooling_systems[0].cooling_system_type = HPXML::HVACTypeMiniSplitAirConditioner
+    hpxml.cooling_systems[0].cooling_efficiency_seer = 19
+    hpxml.cooling_systems[0].cooling_shr = 0.73
+    hpxml.cooling_systems[0].compressor_type = nil
+  elsif ['base-hvac-mini-split-air-conditioner-only-ductless.xml'].include? hpxml_file
+    hpxml.cooling_systems[0].distribution_system_idref = nil
   elsif ['base-hvac-furnace-gas-room-ac.xml',
          'base-hvac-room-ac-only.xml'].include? hpxml_file
     hpxml.cooling_systems[0].distribution_system_idref = nil
@@ -4894,6 +4923,7 @@ def set_hpxml_hvac_distributions(hpxml_file, hpxml)
          'base-hvac-floor-furnace-propane-only.xml',
          'base-hvac-ideal-air.xml',
          'base-hvac-mini-split-heat-pump-ductless.xml',
+         'base-hvac-mini-split-air-conditioner-only-ductless.xml',
          'base-hvac-room-ac-only.xml',
          'base-hvac-stove-oil-only.xml',
          'base-hvac-stove-wood-pellets-only.xml',
@@ -4992,7 +5022,8 @@ def set_hpxml_hvac_distributions(hpxml_file, hpxml)
     hpxml.hvac_distributions << hpxml.hvac_distributions[0].dup
     hpxml.hvac_distributions[2].id = 'HVACDistribution3'
     hpxml.hvac_distributions[2].annual_cooling_dse = nil
-  elsif ['base-hvac-mini-split-heat-pump-ducted.xml'].include? hpxml_file
+  elsif ['base-hvac-mini-split-heat-pump-ducted.xml',
+         'base-hvac-mini-split-air-conditioner-only-ducted.xml'].include? hpxml_file
     hpxml.hvac_distributions[0].duct_leakage_measurements[0].duct_leakage_value = 15
     hpxml.hvac_distributions[0].duct_leakage_measurements[1].duct_leakage_value = 5
     hpxml.hvac_distributions[0].ducts[0].duct_insulation_r_value = 0
@@ -6208,44 +6239,15 @@ def set_hpxml_fuel_loads(hpxml_file, hpxml)
 end
 
 def download_epws
-  weather_dir = File.join(File.dirname(__FILE__), 'weather')
+  require_relative 'HPXMLtoOpenStudio/resources/util'
 
-  require 'net/http'
   require 'tempfile'
-
   tmpfile = Tempfile.new('epw')
 
-  url = URI.parse('https://data.nrel.gov/files/128/tmy3s-cache-csv.zip')
-  http = Net::HTTP.new(url.host, url.port)
-  http.use_ssl = true
-  http.verify_mode = OpenSSL::SSL::VERIFY_NONE
-
-  params = { 'User-Agent' => 'curl/7.43.0', 'Accept-Encoding' => 'identity' }
-  request = Net::HTTP::Get.new(url.path, params)
-  request.content_type = 'application/zip, application/octet-stream'
-
-  http.request request do |response|
-    total = response.header['Content-Length'].to_i
-    if total == 0
-      fail 'Did not successfully download zip file.'
-    end
-
-    size = 0
-    progress = 0
-    open tmpfile, 'wb' do |io|
-      response.read_body do |chunk|
-        io.write chunk
-        size += chunk.size
-        new_progress = (size * 100) / total
-        unless new_progress == progress
-          puts 'Downloading %s (%3d%%) ' % [url.path, new_progress]
-        end
-        progress = new_progress
-      end
-    end
-  end
+  UrlResolver.fetch('https://data.nrel.gov/system/files/128/tmy3s-cache-csv.zip', tmpfile)
 
   puts 'Extracting weather files...'
+  weather_dir = File.join(File.dirname(__FILE__), 'weather')
   unzip_file = OpenStudio::UnzipFile.new(tmpfile.path.to_s)
   unzip_file.extractAllFiles(OpenStudio::toPath(weather_dir))
 

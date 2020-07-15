@@ -236,6 +236,8 @@ class HPXMLDefaults
         end
       elsif cooling_system.cooling_system_type == HPXML::HVACTypeRoomAirConditioner
         cooling_system.cooling_shr = 0.65
+      elsif cooling_system.cooling_system_type == HPXML::HVACTypeMiniSplitAirConditioner
+        cooling_system.cooling_shr = 0.73
       end
     end
     hpxml.heat_pumps.each do |heat_pump|

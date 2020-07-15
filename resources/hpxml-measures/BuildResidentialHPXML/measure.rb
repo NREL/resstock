@@ -882,6 +882,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     cooling_system_type_choices << HPXML::HVACTypeCentralAirConditioner
     cooling_system_type_choices << HPXML::HVACTypeRoomAirConditioner
     cooling_system_type_choices << HPXML::HVACTypeEvaporativeCooler
+    cooling_system_type_choices << HPXML::HVACTypeMiniSplitAirConditioner
 
     compressor_type_choices = OpenStudio::StringVector.new
     compressor_type_choices << HPXML::HVACCompressorTypeSingleStage
@@ -972,9 +973,9 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(1)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('cooling_system_evap_cooler_is_ducted', true)
-    arg.setDisplayName('Cooling System: Evaporative Cooler Is Ducted')
-    arg.setDescription('Whether the evaporative cooler is ducted or not. Only used for evaporative cooler.')
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('cooling_system_is_ducted', true)
+    arg.setDisplayName('Cooling System: Is Ducted')
+    arg.setDescription("Whether the cooling system is ducted or not. Only used for #{HPXML::HVACTypeEvaporativeCooler} and #{HPXML::HVACTypeMiniSplitAirConditioner}.")
     arg.setDefaultValue(false)
     args << arg
 
@@ -3092,7 +3093,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
              cooling_system_cooling_sensible_heat_fraction: runner.getOptionalDoubleArgumentValue('cooling_system_cooling_sensible_heat_fraction', user_arguments),
              cooling_system_cooling_capacity: runner.getStringArgumentValue('cooling_system_cooling_capacity', user_arguments),
              cooling_system_fraction_cool_load_served: runner.getDoubleArgumentValue('cooling_system_fraction_cool_load_served', user_arguments),
-             cooling_system_evap_cooler_is_ducted: runner.getBoolArgumentValue('cooling_system_evap_cooler_is_ducted', user_arguments),
+             cooling_system_is_ducted: runner.getBoolArgumentValue('cooling_system_is_ducted', user_arguments),
              heat_pump_type: runner.getStringArgumentValue('heat_pump_type', user_arguments),
              heat_pump_heating_efficiency_hspf: runner.getDoubleArgumentValue('heat_pump_heating_efficiency_hspf', user_arguments),
              heat_pump_heating_efficiency_cop: runner.getDoubleArgumentValue('heat_pump_heating_efficiency_cop', user_arguments),
@@ -4221,7 +4222,7 @@ class HPXMLFile
       end
     end
 
-    if [HPXML::HVACTypeCentralAirConditioner].include? cooling_system_type
+    if [HPXML::HVACTypeCentralAirConditioner, HPXML::HVACTypeMiniSplitAirConditioner].include? cooling_system_type
       cooling_efficiency_seer = args[:cooling_system_cooling_efficiency_seer]
     elsif [HPXML::HVACTypeRoomAirConditioner].include? cooling_system_type
       cooling_efficiency_eer = args[:cooling_system_cooling_efficiency_eer]
@@ -4336,7 +4337,7 @@ class HPXMLFile
     hpxml.cooling_systems.each do |cooling_system|
       if [HPXML::HVACTypeCentralAirConditioner].include? cooling_system.cooling_system_type
         air_distribution_systems << cooling_system
-      elsif [HPXML::HVACTypeEvaporativeCooler].include?(cooling_system.cooling_system_type) && args[:cooling_system_evap_cooler_is_ducted]
+      elsif [HPXML::HVACTypeEvaporativeCooler, HPXML::HVACTypeMiniSplitAirConditioner].include?(cooling_system.cooling_system_type) && args[:cooling_system_is_ducted]
         air_distribution_systems << cooling_system
       end
     end
@@ -4374,7 +4375,7 @@ class HPXMLFile
                                                                duct_leakage_value: args[:ducts_supply_leakage_value],
                                                                duct_leakage_total_or_to_outside: HPXML::DuctLeakageToOutside)
 
-    if not ((args[:cooling_system_type] == HPXML::HVACTypeEvaporativeCooler) && args[:cooling_system_evap_cooler_is_ducted])
+    if not ([HPXML::HVACTypeEvaporativeCooler].include?(args[:cooling_system_type]) && args[:cooling_system_is_ducted])
 
       hpxml.hvac_distributions[-1].duct_leakage_measurements.add(duct_type: HPXML::DuctTypeReturn,
                                                                  duct_leakage_units: args[:ducts_return_leakage_units],
@@ -4404,7 +4405,7 @@ class HPXMLFile
                                            duct_location: ducts_supply_location,
                                            duct_surface_area: ducts_supply_surface_area)
 
-    if not ((args[:cooling_system_type] == HPXML::HVACTypeEvaporativeCooler) && args[:cooling_system_evap_cooler_is_ducted])
+    if not ([HPXML::HVACTypeEvaporativeCooler].include?(args[:cooling_system_type]) && args[:cooling_system_is_ducted])
       hpxml.hvac_distributions[-1].ducts.add(duct_type: HPXML::DuctTypeReturn,
                                              duct_insulation_r_value: args[:ducts_return_insulation_r],
                                              duct_location: ducts_return_location,

@@ -25,7 +25,7 @@ The following building features/technologies are available for modeling via the 
 - HVAC
 
   - Heating Systems (Electric Resistance, Central/Wall/Floor Furnaces, Stoves, Boilers, Portable/Fixed Heaters, Fireplaces)
-  - Cooling Systems (Central Air Conditioners, Room Air Conditioners, Evaporative Coolers)
+  - Cooling Systems (Central Air Conditioners, Room Air Conditioners, Evaporative Coolers, Mini Split Air Conditioners)
   - Heat Pumps (Air Source, Mini Split, Ground Source, Dual-Fuel)
   - Setpoints
   - Ducts
@@ -200,7 +200,7 @@ The ``ClimateandRiskZones/WeatherStation`` element specifies the EnergyPlus weat
 The weather file can be entered in one of two ways:
 
 #. Using ``WeatherStation/WMO``, which must be one of the acceptable TMY3 WMO station numbers found in the ``weather/data.csv`` file.
-   The full set of U.S. TMY3 weather files can be `downloaded here <https://data.nrel.gov/files/128/tmy3s-cache-csv.zip>`_.
+   The full set of U.S. TMY3 weather files can be `downloaded here <https://data.nrel.gov/system/files/128/tmy3s-cache-csv.zip>`_.
 #. Using ``WeatherStation/extension/EPWFilePath``.
 
 HPXML Enclosure
@@ -490,6 +490,7 @@ CoolingSystemType        DistributionSystem                 CoolingSystemFuel  A
 central air conditioner  AirDistribution or DSE             electricity        SEER                     (optional)
 room air conditioner                                        electricity        EER                      (optional)
 evaporative cooler       AirDistribution or DSE (optional)  electricity
+mini-split               AirDistribution or DSE (optional)  electricity        SEER                     (optional)
 =======================  =================================  =================  =======================  ====================
 
 Central air conditioners can also have the ``CompressorType`` specified; if not provided, it is assumed as follows:
