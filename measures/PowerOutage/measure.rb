@@ -252,7 +252,7 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
       runner.registerInfo("Modified the key name for '#{ems_sensor.name}'.")
     end
 
-    # set the outage on schedules that are generated    
+    # set the outage on schedules that are generated
     schedules_file = SchedulesFile.new(runner: runner, model: model)
     schedules = [
       "cooking_range",
@@ -268,7 +268,7 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
       "dishwasher_power",
       "baths",
       "showers",
-      "sinks",      
+      "sinks",
       "ceiling_fan"
     ]
     schedules_path = model.getBuilding.additionalProperties.getFeatureAsString("Schedules Path")
