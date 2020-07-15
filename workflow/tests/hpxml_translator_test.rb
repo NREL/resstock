@@ -793,22 +793,26 @@ class HPXMLTest < MiniTest::Test
     end
     hpxml.cooling_systems.each do |cooling_system|
       clg_sys_cap = cooling_system.cooling_capacity.to_f
+      clg_cap_mult = 1.0
+      if cooling_system.cooling_system_type == HPXML::HVACTypeMiniSplitAirConditioner
+        # TODO: Generalize this
+        clg_cap_mult = 1.20
+      end
       if clg_sys_cap > 0
         clg_cap = 0 if clg_cap.nil?
-        clg_cap += Float(clg_sys_cap)
+        clg_cap += (clg_sys_cap * clg_cap_mult)
       end
     end
     hpxml.heat_pumps.each do |heat_pump|
-      hp_type = heat_pump.heat_pump_type
       hp_cap_clg = heat_pump.cooling_capacity.to_f
       hp_cap_htg = heat_pump.heating_capacity.to_f
       clg_cap_mult = 1.0
       htg_cap_mult = 1.0
-      if hp_type == HPXML::HVACTypeHeatPumpMiniSplit
+      if heat_pump.heat_pump_type == HPXML::HVACTypeHeatPumpMiniSplit
         # TODO: Generalize this
         clg_cap_mult = 1.20
         htg_cap_mult = 1.20
-      elsif (hp_type == HPXML::HVACTypeHeatPumpAirToAir) && (heat_pump.cooling_efficiency_seer > 21)
+      elsif (heat_pump.heat_pump_type == HPXML::HVACTypeHeatPumpAirToAir) && (heat_pump.cooling_efficiency_seer > 21)
         # TODO: Generalize this
         htg_cap_mult = 1.17
       end

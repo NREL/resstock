@@ -509,6 +509,31 @@ class HVAC
     air_loop_unitary.additionalProperties.setFeature(Constants.SizingInfoHVACHeatType, Constants.ObjectNameAirSourceHeatPump)
   end
 
+  def self.apply_mini_split_air_conditioner(model, runner, cooling_system,
+                                            remaining_cool_load_frac,
+                                            control_zone, hvac_map)
+
+    # Shoehorn cooling_system object into a corresponding heat_pump object
+    heat_pump = HPXML::HeatPump.new(nil)
+    heat_pump.id = cooling_system.id
+    heat_pump.heat_pump_type = HPXML::HVACTypeHeatPumpMiniSplit
+    heat_pump.heat_pump_fuel = cooling_system.cooling_system_fuel
+    heat_pump.cooling_capacity = cooling_system.cooling_capacity
+    if !heat_pump.cooling_capacity.nil?
+      heat_pump.heating_capacity = 0
+    end
+    heat_pump.cooling_shr = cooling_system.cooling_shr
+    heat_pump.fraction_heat_load_served = 0
+    heat_pump.fraction_cool_load_served = cooling_system.fraction_cool_load_served
+    heat_pump.cooling_efficiency_seer = cooling_system.cooling_efficiency_seer
+    heat_pump.heating_efficiency_hspf = 7.7 # Arbitrary; shouldn't affect energy use  TODO: Allow nil
+    heat_pump.distribution_system_idref = cooling_system.distribution_system_idref
+
+    apply_mini_split_heat_pump(model, runner, heat_pump, 0,
+                               remaining_cool_load_frac,
+                               control_zone, hvac_map)
+  end
+
   def self.apply_mini_split_heat_pump(model, runner, heat_pump,
                                       remaining_heat_load_frac,
                                       remaining_cool_load_frac,
