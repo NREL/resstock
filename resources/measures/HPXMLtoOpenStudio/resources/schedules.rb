@@ -1922,6 +1922,39 @@ class SchedulesFile
     update(col_name: col_name)
   end
 
+  def set_outage(col_name:,
+                 outage_start_date:,
+                 outage_start_hour:,
+                 outage_length:)
+
+    min_per_step = 1
+    if @model.getSimulationControl.timestep.is_initialized
+      min_per_step = 60 / @model.getSimulationControl.timestep.get.numberOfTimestepsPerHour
+    end
+
+    year_description = @model.getYearDescription
+    num_hrs_in_year = Constants.NumHoursInYear(year_description.isLeapYear)
+    schedule_length = @schedules[col_name].length
+    min_per_item = 60.0 / (schedule_length / num_hrs_in_year)
+    sec_per_step = min_per_step * 60.0
+    sim_year = year_description.calendarYear.get
+
+    start_month = outage_start_date.split[0]
+    start_day = outage_start_date.split[1].to_i
+    outage_start_date = Time.new(sim_year, OpenStudio::monthOfYear(start_month).value, start_day, outage_start_hour)
+    outage_end_date = outage_start_date + outage_length * 3600.0
+
+    ts = Time.new(sim_year, "Jan", 1)
+    @schedules[col_name].each_with_index do |step, i|
+      if outage_start_date <= ts && ts <= outage_end_date # in the outage period
+        @schedules[col_name][i] = 0.0
+      end
+      ts += sec_per_step
+    end
+
+    update(col_name: col_name)
+  end
+
   def import(col_name:)
     return if @schedules.keys.include? col_name
 
