@@ -785,7 +785,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
         foundation_corridor_space.setXOrigin(0)
         foundation_corridor_space.setYOrigin(0)
         foundation_corridor_space.setZOrigin(0)
-        foundation_spaces << foundation_corridor_space 
+        foundation_spaces << foundation_corridor_space
       end
       # if corridor_width > 0 and corridor_position == "Double-Loaded Interior"
       #   corridor_space = OpenStudio::Model::Space::fromFloorPrint(foundation_corr_polygon, foundation_height, model)
@@ -909,7 +909,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
           foundation_space.setSpaceType(foundation_space_type)
         end
       end
-      
+
       # intersect and match surfaces for each space in the vector
       OpenStudio::Model.intersectSurfaces(spaces)
       OpenStudio::Model.matchSurfaces(spaces)
@@ -1008,7 +1008,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
           elsif Geometry.space_is_below_grade(adjacent_space) and Geometry.space_is_below_grade(space)
             surface.adjacentSurface.get.setOutsideBoundaryCondition("Adiabatic")
             surface.setOutsideBoundaryCondition("Adiabatic")
-          elsif Geometry.is_corridor(space) 
+          elsif Geometry.is_corridor(space)
             surface.adjacentSurface.get.setOutsideBoundaryCondition("Adiabatic")
             surface.setOutsideBoundaryCondition("Adiabatic")
           end

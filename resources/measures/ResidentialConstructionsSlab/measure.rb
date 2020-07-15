@@ -132,6 +132,7 @@ class ProcessConstructionsSlab < OpenStudio::Measure::ModelMeasure
     living_space = nil
     surfaces.each do |surface|
       next if not Geometry.is_living(surface.space.get)
+
       living_space = surface.space.get
       break
     end

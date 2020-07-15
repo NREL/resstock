@@ -615,7 +615,7 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
       else
         attic_space = Geometry.make_one_space_from_multiple_spaces(model, attic_spaces)
       end
-            
+
       attic_space.setName("unfinished attic space")
       attic_zone = OpenStudio::Model::ThermalZone.new(model)
       attic_zone.setName("unfinished attic zone")
@@ -694,7 +694,6 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
     model.getBuilding.additionalProperties.setFeature("has_rear_units", has_rear_units)
     model.getBuilding.additionalProperties.setFeature("horz_location", horz_location)
     model.getBuilding.additionalProperties.setFeature("num_floors", above_ground_floors)
-
 
     result = Geometry.process_beds_and_baths(model, runner, num_br, num_ba)
     unless result

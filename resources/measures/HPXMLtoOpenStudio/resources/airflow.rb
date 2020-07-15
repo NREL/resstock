@@ -63,7 +63,7 @@ class Airflow
 
     building_height = nil
     num_floors = model.getBuilding.additionalProperties.getFeatureAsInteger("num_floors")
-    if num_floors.is_initialized and  Geometry.get_building_type(model) == Constants.BuildingTypeMultifamily # singleunit
+    if num_floors.is_initialized and Geometry.get_building_type(model) == Constants.BuildingTypeMultifamily # singleunit
       units.each do |unit|
         Geometry.get_thermal_zones_from_spaces(unit.spaces).each do |thermal_zone|
           next unless Geometry.is_living(thermal_zone)
@@ -222,7 +222,7 @@ class Airflow
       unless unit_finished_basement.nil?
         unit_finished_basement.zone.additionalProperties.setFeature(Constants.SizingInfoZoneInfiltrationCFM, unit_finished_basement.inf_flow)
       end
-    end # end unit loop    
+    end # end unit loop
 
     # Store info for HVAC Sizing measure
     unless building.crawlspace.empty?
@@ -652,7 +652,7 @@ class Airflow
           num_floors = num_floors.get.to_f
           num_units_per_floor = n_units / num_floors
         elsif Geometry.get_building_type(model) == Constants.BuildingTypeSingleFamilyAttached
-          h = h*(num_floors.get)
+          h = h * (num_floors.get)
           num_floors = 1
           num_units_per_floor = n_units
         end
@@ -1264,7 +1264,7 @@ class Airflow
       location_zone = unit_living.zone
       location_name = unit_living.zone.name.to_s
     end
-    
+
     num_stories = building.stories
     unless unit_finished_basement.nil?
       num_stories +=  1
@@ -1339,7 +1339,7 @@ class Airflow
             frac_oa = 1
           end
         end
-      elsif not building.crawlspace.empty? 
+      elsif not building.crawlspace.empty?
         building.crawlspace.each do |cs|
           if cs.zone == location_zone and cs.ACH == 0
             frac_oa = 0

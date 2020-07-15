@@ -458,11 +458,12 @@ class Geometry
   def self.space_is_below_grade(space)
     space.surfaces.each do |surface|
       next if surface.surfaceType.downcase != "wall"
+
       z_vertex = []
       surface.vertices.each do |vertex|
         z_vertex << vertex.z
       end
-      if z_vertex.min < 0 
+      if z_vertex.min < 0
         return true
       end
       if surface.outsideBoundaryCondition.downcase == "foundation"
@@ -699,12 +700,14 @@ class Geometry
         foundation_space.surfaces.each do |surface|
           next if not surface.surfaceType.downcase == "wall"
           next if surface.adjacentSurface.is_initialized
+
           # next if surface.outsideBoundaryCondition.downcase == "adiabatic"
 
           wall_surfaces << surface
         end
         self.get_walls_connected_to_floor(wall_surfaces, ground_floor_surface).each do |surface|
           next if surfaces.include? surface
+
           surfaces << surface
         end
       end
@@ -1140,8 +1143,8 @@ class Geometry
         # Calculate based on edges for floating middle-level single units
         x_offset = (neighbor_point.x - house_point.x).abs
         y_offset = (neighbor_point.y - house_point.y).abs
-        neighbor_offsets << x_offset unless x_offset == 0 
-        neighbor_offsets << y_offset unless y_offset == 0 
+        neighbor_offsets << x_offset unless x_offset == 0
+        neighbor_offsets << y_offset unless y_offset == 0
       end
     end
     if neighbor_offsets.empty?
@@ -1982,10 +1985,11 @@ class Geometry
       spaces = []
       model_spaces.each do |space|
         next unless Geometry.space_is_above_grade(space)
+
         spaces << space
       end
       unit_height = UnitConversions.convert(Geometry.get_height_of_spaces(spaces), "ft", "m")
-      floor_mults = { "Bottom" => num_floors-1, "Middle" => (num_floors/2).floor, "Top" => 0}
+      floor_mults = { "Bottom" => num_floors - 1, "Middle" => (num_floors / 2).floor, "Top" => 0 }
       greatest_z += unit_height * floor_mults[level] # uncomment if unit origin is at z=0
 
       unit_length = greatest_y - least_y

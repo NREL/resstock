@@ -875,7 +875,7 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
       # else
       #   # attic_space = Geometry.make_one_space_from_multiple_spaces(model, attic_spaces)
       # end
-    
+
       # attic_space.setName("unfinished attic space")
       # attic_zone = OpenStudio::Model::ThermalZone.new(model)
       # attic_zone.setName("unfinished attic zone")
@@ -936,41 +936,41 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
       surface.setOutsideBoundaryCondition("Foundation")
     end
 
-    model.getThermalZones.each do |zone|
-      zone.spaces.each do |space|
-        space.surfaces.each do |surface|
-          if surface.adjacentSurface.is_initialized 
-            adjacent_surface = surface.adjacentSurface.get
-            adjacent_space = adjacent_surface.space.get
-            adjacent_zone = adjacent_space.thermalZone.get
-            next if zone == adjacent_zone #spaces are in the same zone
+    # model.getThermalZones.each do |zone|
+    #   zone.spaces.each do |space|
+    #     space.surfaces.each do |surface|
+    #       if surface.adjacentSurface.is_initialized
+    #         adjacent_surface = surface.adjacentSurface.get
+    #         adjacent_space = adjacent_surface.space.get
+    #         adjacent_zone = adjacent_space.thermalZone.get
+    #         next if zone == adjacent_zone #spaces are in the same zone
 
-            #Check if spaces belong to the same unit
-            same_unit = false
-            unit_spaces_hash.each do |unit, spaces|
-              if spaces[0].include? space and spaces[0].include? adjacent_space
-                same_unit = true
-              end
-            end
+    #         #Check if spaces belong to the same unit
+    #         same_unit = false
+    #         unit_spaces_hash.each do |unit, spaces|
+    #           if spaces[0].include? space and spaces[0].include? adjacent_space
+    #             same_unit = true
+    #           end
+    #         end
 
-            #Adjacent living spaces
-            if Geometry.is_living_space_type(adjacent_space.spaceType.get.standardsSpaceType.get) and Geometry.is_living_space_type(space.spaceType.get.standardsSpaceType.get)
-              next if same_unit
-              surface.adjacentSurface.get.setOutsideBoundaryCondition("Adiabatic")
-              surface.setOutsideBoundaryCondition("Adiabatic")
-            #Adjacent foundation spaces
-            elsif Geometry.space_is_below_grade(adjacent_space) and Geometry.space_is_below_grade(space)
-              surface.adjacentSurface.get.setOutsideBoundaryCondition("Adiabatic")
-              surface.setOutsideBoundaryCondition("Adiabatic")
-            #Adjacent attic spaces
-            elsif Geometry.is_unfinished_attic(adjacent_space) and Geometry.is_unfinished_attic(space)
-              adjacent_surface.setOutsideBoundaryCondition("Adiabatic")
-              surface.setOutsideBoundaryCondition("Adiabatic")
-            end
-          end
-        end
-      end
-    end
+    #         #Adjacent living spaces
+    #         if Geometry.is_living_space_type(adjacent_space.spaceType.get.standardsSpaceType.get) and Geometry.is_living_space_type(space.spaceType.get.standardsSpaceType.get)
+    #           next if same_unit
+    #           surface.adjacentSurface.get.setOutsideBoundaryCondition("Adiabatic")
+    #           surface.setOutsideBoundaryCondition("Adiabatic")
+    #         #Adjacent foundation spaces
+    #         elsif Geometry.space_is_below_grade(adjacent_space) and Geometry.space_is_below_grade(space)
+    #           surface.adjacentSurface.get.setOutsideBoundaryCondition("Adiabatic")
+    #           surface.setOutsideBoundaryCondition("Adiabatic")
+    #         #Adjacent attic spaces
+    #         elsif Geometry.is_unfinished_attic(adjacent_space) and Geometry.is_unfinished_attic(space)
+    #           adjacent_surface.setOutsideBoundaryCondition("Adiabatic")
+    #           surface.setOutsideBoundaryCondition("Adiabatic")
+    #         end
+    #       end
+    #     end
+    #   end
+    # end
 
     # Store number of units
     model.getBuilding.setStandardsNumberOfLivingUnits(num_units)
