@@ -60,6 +60,7 @@ class HVACSizing
     # Calculate loads for each conditioned thermal zone in the unit
     zones_loads = process_zone_loads(runner, mj8, unit, weather, mj8.htd, nbeds, unit_ffa, unit_shelter_class)
     return false if zones_loads.nil?
+
     # puts("........#{unit.name}..........")
     # def self.print_instance_vars(instance)
     #   puts("_______ #{instance}_________")
@@ -305,6 +306,7 @@ class HVACSizing
 
         space.surfaces.each do |surface|
           next if surface.surfaceType.downcase != "roofceiling"
+
           tot_roof_area += surface.netArea
 
           roof_color = get_feature(runner, surface, Constants.SizingInfoRoofColor, 'string')
@@ -393,7 +395,6 @@ class HVACSizing
             end
           end # vented/unvented
         end # each roof surface
-
 
         cool_temp = cool_temp / tot_roof_area
 
@@ -1138,7 +1139,7 @@ class HVACSizing
     zone_loads.Dehumid_Floors = 0
 
     # Exterior Floors
-    floor_ufactor=nil
+    floor_ufactor = nil
     Geometry.get_spaces_above_grade_exterior_floors(thermal_zone.spaces).each do |floor|
       floor_ufactor = get_surface_ufactor(runner, floor, floor.surfaceType, true)
       return nil if floor_ufactor.nil?
@@ -1169,8 +1170,6 @@ class HVACSizing
       # puts("----------------------------------------------------")
     end
 
-    
-
     # Foundation Floors
     Geometry.get_spaces_below_grade_exterior_floors(thermal_zone.spaces).each do |floor|
       # Finished basement floor combinations based on MJ 8th Ed. A12-7 and ASHRAE HoF 2013 pg 18.31 Eq 40
@@ -1195,7 +1194,7 @@ class HVACSizing
       floor_ufactor = 1.0 / floor_rvalue
       zone_loads.Heat_Floors += floor_ufactor * UnitConversions.convert(floor.netArea, "m^2", "ft^2") * (mj8.heat_setpoint - weather.data.GroundMonthlyTemps[0])
     end
- 
+
     return zone_loads
   end
 
@@ -3507,7 +3506,7 @@ class HVACSizing
     #   end
 
     #   found_wall_area = bldg_exposed_perimeter * found_height
-    #   found_wall_area = UnitConversions.convert(found_wall_area, "m^2", "ft^2") 
+    #   found_wall_area = UnitConversions.convert(found_wall_area, "m^2", "ft^2")
     #   avg_found_wall_area = found_wall_area/n_ground_units
     # end
 
@@ -3537,6 +3536,7 @@ class HVACSizing
 
       # Exclude surfaces adjacent to unfinished space
       next if not ["foundation", "outdoors"].include?(obc) and not Geometry.is_interzonal_surface(surface)
+
       space_UAs[obc] += ufactor * UnitConversions.convert(surface.netArea, "m^2", "ft^2")
     end
 

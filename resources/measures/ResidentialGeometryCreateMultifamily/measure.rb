@@ -663,7 +663,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
         foundation_corridor_space.setXOrigin(0)
         foundation_corridor_space.setYOrigin(0)
         foundation_corridor_space.setZOrigin(0)
-        foundation_spaces << foundation_corridor_space 
+        foundation_spaces << foundation_corridor_space
       end
 
       # # foundation front
@@ -720,10 +720,12 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
 
       # Set foundation wall boundary conditions
       model.getSpaces.each do |space|
-        next unless Geometry.get_space_floor_z(space) + UnitConversions.convert(space.zOrigin, "m", "ft") < 0 # Foundation        
+        next unless Geometry.get_space_floor_z(space) + UnitConversions.convert(space.zOrigin, "m", "ft") < 0 # Foundation
+
         surfaces = space.surfaces
         surfaces.each do |surface|
           next unless surface.surfaceType.downcase == "wall"
+
           os_facade = Geometry.get_facade_for_surface(surface)
           if adb_facade.include? os_facade
             surface.setOutsideBoundaryCondition("Adiabatic")
@@ -731,15 +733,15 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
             surface.setOutsideBoundaryCondition("Foundation")
           end
         end
-      end   
-      
-      #Set foundation corridor spaces to adiabatic
+      end
+
+      # Set foundation corridor spaces to adiabatic
       if not foundation_corridor_space.nil?
         foundation_corridor_space.surfaces.each do |surface|
           surface.setOutsideBoundaryCondition("Adiabatic")
         end
       end
-      
+
     end
 
     unit_spaces_hash.each do |unit_num, unit_info|
@@ -762,7 +764,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     # intersect and match surfaces for each space in the vector
     OpenStudio::Model.intersectSurfaces(spaces)
     OpenStudio::Model.matchSurfaces(spaces)
-    
+
     # make all surfaces adjacent to corridor spaces into adiabatic surfaces
     model.getSpaces.each do |space|
       next unless Geometry.is_corridor(space)
@@ -775,7 +777,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
         os_facade = Geometry.get_facade_for_surface(surface)
         if adb_facade.include? os_facade
           surface.setOutsideBoundaryCondition("Adiabatic")
-        end 
+        end
 
         if (adb_level.include? surface.surfaceType)
           surface.setOutsideBoundaryCondition("Adiabatic")
@@ -785,6 +787,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
 
     model.getSpaces.each do |space|
       next unless Geometry.is_corridor(space)
+
       space.surfaces.each do |surface|
         if surface.surfaceType.downcase == "floor" and foundation_type == "slab"
           surface.setOutsideBoundaryCondition("Adiabatic")
@@ -793,20 +796,11 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
       end
     end
 
-    #Make all adjacent walls adiabatic (seperate foundation spaces have adiabatic shared walls to align with whole-building approach)
+    # Make all adjacent walls adiabatic (seperate foundation spaces have adiabatic shared walls to align with whole-building approach)
     model.getSpaces.each do |space|
       space.surfaces.each do |surface|
-
-        #################################################
-        # surface.setOutsideBoundaryCondition("Adiabatic")
-
-
-        #Temporary adiabatic slab for testing
-        # if surface.surfaceType.downcase == "floor" and foundation_type == "slab"
-        #   surface.setOutsideBoundaryCondition("Adiabatic")
-        # end 
-
         next unless surface.surfaceType.downcase == "wall"
+
         if surface.adjacentSurface.is_initialized
           surface.adjacentSurface.get.setOutsideBoundaryCondition("Adiabatic")
           surface.setOutsideBoundaryCondition("Adiabatic")
@@ -817,9 +811,10 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     # set foundation outside boundary condition to Kiva "foundation"
     model.getSurfaces.each do |surface|
       next if surface.outsideBoundaryCondition.downcase != "ground"
+
       surface.setOutsideBoundaryCondition("Foundation")
     end
- 
+
     # Store mf data on model
     model.getBuilding.additionalProperties.setFeature("num_units", num_units)
     model.getBuilding.additionalProperties.setFeature("has_rear_units", has_rear_units)

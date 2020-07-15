@@ -83,7 +83,7 @@ class ProcessConstructionsSlabTest < MiniTest::Test
     args_hash = {}
     expected_num_del_objects = {}
     expected_num_new_objects = { "Material" => 4, "Construction" => 4, "FoundationKiva" => 2, "FoundationKivaSettings" => 1, "SurfacePropertyExposedFoundationPerimeter" => 2 }
-    expected_values = { "ExposedPerimeter" => 42.43 + 21.21}
+    expected_values = { "ExposedPerimeter" => 42.43 + 21.21 }
     _test_measure("MF_8units_1story_SL_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
