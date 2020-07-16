@@ -726,33 +726,15 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
 
   def get_attic_space(model, x, y, wall_height, num_floors, num_units, roof_pitch, roof_type, has_rear_units = false)
     y_rear = 0
-    if has_rear_units
-      y_tot = y * 2
-      y_peak = 0
-      x_tot = (x * num_units) / 2
-    else
-      y_peak = -y / 2
-      y_tot = y
-      x_tot = x * num_units
-    end
-    # if y > 0
+    y_peak = -y / 2
+    y_tot = y
+    x_tot = x * num_units
+
     nw_point = OpenStudio::Point3d.new(0, 0, wall_height * num_floors)
     ne_point = OpenStudio::Point3d.new(x, 0, wall_height * num_floors)
     sw_point = OpenStudio::Point3d.new(0, -y, wall_height * num_floors)
     se_point = OpenStudio::Point3d.new(x, -y, wall_height * num_floors)
-    # else
-    #   nw_point = OpenStudio::Point3d.new(0, -y, wall_height * num_floors)
-    #   ne_point = OpenStudio::Point3d.new(x, -y, wall_height * num_floors)
-    #   sw_point = OpenStudio::Point3d.new(0, 0, wall_height * num_floors)
-    #   se_point = OpenStudio::Point3d.new(x, 0, wall_height * num_floors)
-    # end
     attic_polygon = Geometry.make_polygon(sw_point, nw_point, ne_point, se_point)
-
-    # if y_tot >= x_tot
-    #   attic_height = (x_tot / 2.0) * roof_pitch
-    # else
-    #   attic_height = (y_tot / 2.0) * roof_pitch
-    # end
 
     attic_height = (y_tot / 2.0) * roof_pitch # Roof always has same orientation
 
@@ -794,7 +776,7 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
       #   end
       # end
       side_type = "Wall"
-    elsif roof_type == Constants.RoofTypeHip # TO-DO: not yet implemented for single unit approach
+    elsif roof_type == Constants.RoofTypeHip
       if y > 0
         if x <= (y + y_rear)
           roof_n_point = OpenStudio::Point3d.new(x / 2.0, y_rear - x / 2.0, wall_height * num_floors + attic_height)
@@ -836,11 +818,7 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
     surface_floor.setOutsideBoundaryCondition("Surface")
     surface_w_roof = OpenStudio::Model::Surface.new(polygon_w_roof, model)
     surface_w_roof.setSurfaceType("RoofCeiling")
-    if has_rear_units
-      surface_w_roof.setOutsideBoundaryCondition("Adiabatic") ###
-    else
-      surface_w_roof.setOutsideBoundaryCondition("Outdoors") ###
-    end
+    surface_w_roof.setOutsideBoundaryCondition("Outdoors")
     surface_e_roof = OpenStudio::Model::Surface.new(polygon_e_roof, model)
     surface_e_roof.setSurfaceType("RoofCeiling")
     surface_e_roof.setOutsideBoundaryCondition("Outdoors")
