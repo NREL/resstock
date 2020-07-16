@@ -153,7 +153,7 @@ class CreateResidentialSingleFamilyAttachedGeometryTest < MiniTest::Test
   end
 
   def test_two_story_fourplex_rear_units_hip
-    skip # hip roof not implemented
+    # skip # hip roof not implemented
     num_finished_spaces = 12
     args_hash = {}
     args_hash["num_floors"] = 2
