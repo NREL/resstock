@@ -252,6 +252,34 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
       runner.registerInfo("Modified the key name for '#{ems_sensor.name}'.")
     end
 
+    # set the outage on schedules that are generated
+    schedules_file = SchedulesFile.new(runner: runner, model: model)
+    schedules = [
+      "cooking_range",
+      "plug_loads",
+      "lighting_interior",
+      "lighting_exterior",
+      "lighting_garage",
+      "lighting_exterior_holiday",
+      "clothes_washer",
+      "clothes_washer_power",
+      "clothes_dryer",
+      "dishwasher",
+      "dishwasher_power",
+      "baths",
+      "showers",
+      "sinks",
+      "ceiling_fan"
+    ]
+    schedules_path = model.getBuilding.additionalProperties.getFeatureAsString("Schedules Path")
+    schedules.each do |col_name|
+      if schedules_path.is_initialized # this is not a test
+        schedules_file.import(col_name: col_name)
+        schedules_file.set_outage(col_name: col_name, outage_start_date: otg_date, outage_start_hour: otg_hr, outage_length: otg_len)
+      end
+      runner.registerInfo("Modified the schedule '#{col_name}'.")
+    end
+
     # add additional properties object with the date of the outage for use by reporting measures
     additional_properties = year_description.additionalProperties
     additional_properties.setFeature("PowerOutageStartDate", otg_date)
