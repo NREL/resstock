@@ -998,6 +998,7 @@ class Constructions
     color_map = {}
     map.each do |key, value|
       next unless key[1] == roof_type
+
       color_map[key[0]] = value
     end
     color = color_map.min_by { |k, v| (v - solar_absorptance).abs }[0]
