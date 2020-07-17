@@ -1321,6 +1321,8 @@ class HVACSizing
         sched = sched_base.to_ScheduleFixedInterval.get
       elsif sched_base.to_ScheduleConstant.is_initialized
         sched = sched_base.to_ScheduleConstant.get
+      elsif sched_base.to_ScheduleFile.get
+        sched = sched_base.to_ScheduleFile.get
       else
         runner.registerWarning("Expected type for object '#{gain.name.to_s}'. Skipping...")
         next
@@ -1328,7 +1330,7 @@ class HVACSizing
       next if sched.nil?
 
       # Get schedule hourly values
-      if sched.is_a? OpenStudio::Model::ScheduleRuleset or sched.is_a? OpenStudio::Model::ScheduleFixedInterval
+      if sched.is_a? OpenStudio::Model::ScheduleRuleset or sched.is_a? OpenStudio::Model::ScheduleFixedInterval or sched.is_a? OpenStudio::Model::ScheduleFile
         # Override any hot water schedules with smoothed schedules; TODO: Is there a better approach?
         max_mult = nil
         if gain.name.to_s.start_with?(Constants.ObjectNameShower)
@@ -1349,17 +1351,31 @@ class HVACSizing
         elsif gain.name.to_s.start_with?(Constants.ObjectNameClothesDryer(nil))
           sched_values = [0.010, 0.006, 0.004, 0.002, 0.004, 0.006, 0.016, 0.032, 0.048, 0.068, 0.078, 0.081, 0.074, 0.067, 0.057, 0.061, 0.055, 0.054, 0.051, 0.051, 0.052, 0.054, 0.044, 0.024]
           max_mult = 1.15 * 1.04
+        elsif gain.name.to_s.start_with?(Constants.ObjectNameMiscPlugLoads)
+          sched_values = [0.43132045451134, 0.406673571396407, 0.39435012983894, 0.382026688281473, 0.39435012983894, 0.406673571396407, 0.455967337626274, 0.517584545413608, 0.529907986971075, 0.529907986971075, 0.529907986971075, 0.542231428528542, 0.554554870086009, 0.554554870086009, 0.542231428528542, 0.566878311643476, 0.591525194758409, 0.640818960988277, 0.653142402545744, 0.616172077873343, 0.579201753200943, 0.554554870086009, 0.492937662298675, 0.443643896068807]
+        elsif gain.name.to_s.start_with?(Constants.ObjectNameCookingRange(nil))
+          sched_values = [0.0381160741415983, 0.0381160741415983, 0.021780613795199, 0.021780613795199, 0.0381160741415983, 0.0598966879367973, 0.136128836219994, 0.22869644484959, 0.250477058644789, 0.261367365542388, 0.22869644484959, 0.272257672439988, 0.310373746581586, 0.250477058644789, 0.310373746581586, 0.239586751747189, 0.500954117289578, 0.816773017319964, 0.637082953509572, 0.326709206927985, 0.190580370707992, 0.136128836219994, 0.0871224551807961, 0.0598966879367973]
+        elsif gain.name.to_s.start_with?(Constants.ObjectNameCeilingFan)
+          sched_values = [0.367967550729997, 0.340369984425247, 0.340369984425247, 0.331170795656997, 0.303573229352247, 0.331170795656997, 0.395565117034746, 0.432361872107746, 0.312772418120497, 0.211581341669748, 0.220780530437998, 0.229979719206248, 0.220780530437998, 0.257577285510998, 0.285174851815747, 0.294374040583997, 0.358768361961747, 0.487557004717245, 0.579548892399745, 0.616345647472744, 0.653142402545744, 0.634744025009244, 0.542752137326745, 0.459959438412496]
         else
-          day_sched = sched.getDaySchedules(july_1, july_1)[0]
-          # Convert to 24 hour values
-          sched_values = []
-          previous_time_decimal = 0
-          day_sched.times.each_with_index do |time, i|
-            time_decimal = (time.days * 24.0) + time.hours + (time.minutes / 60.0) + (time.seconds / 3600.0)
-            # Back-fill in hourly values
-            for hr in sched_values.size + 1..time_decimal.floor
-              sched_values[hr - 1] = day_sched.values[i]
+          if sched.is_a? OpenStudio::Model::ScheduleRuleset or sched.is_a? OpenStudio::Model::ScheduleFixedInterval
+            day_sched = sched.getDaySchedules(july_1, july_1)[0]
+            # Convert to 24 hour values
+            sched_values = []
+            previous_time_decimal = 0
+            day_sched.times.each_with_index do |time, i|
+              time_decimal = (time.days * 24.0) + time.hours + (time.minutes / 60.0) + (time.seconds / 3600.0)
+              # Back-fill in hourly values
+              for hr in sched_values.size + 1..time_decimal.floor
+                sched_values[hr - 1] = day_sched.values[i]
+              end
             end
+          elsif sched.is_a? OpenStudio::Model::ScheduleFile
+            runner.registerError("ScheduleFile schedule type for '#{sched.name}' is not supported.")
+            return nil
+          else
+            runner.registerError("Schedule type for '#{sched.name}' is not supported.")
+            return nil
           end
         end
         if not max_mult.nil?
