@@ -22,7 +22,7 @@ class ResidentialCookingRangeTest < MiniTest::Test
     args_hash["oven_ef"] = 0.058
     args_hash["fuel_type"] = Constants.FuelTypeGas
     expected_num_del_objects = {}
-    expected_num_new_objects = { "OtherEquipmentDefinition" => 1, "OtherEquipment" => 1, "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "OtherEquipmentDefinition" => 1, "OtherEquipment" => 1, "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 80, "Annual_therm" => 28.5, "Annual_gal" => 0, "FuelType" => Constants.FuelTypeGas, "Location" => args_hash["location"] }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
@@ -33,7 +33,7 @@ class ResidentialCookingRangeTest < MiniTest::Test
     args_hash["oven_ef"] = 0.058
     args_hash["fuel_type"] = Constants.FuelTypePropane
     expected_num_del_objects = {}
-    expected_num_new_objects = { "OtherEquipmentDefinition" => 1, "OtherEquipment" => 1, "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "OtherEquipmentDefinition" => 1, "OtherEquipment" => 1, "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 80, "Annual_therm" => 0, "Annual_gal" => 31.1, "FuelType" => Constants.FuelTypePropane, "Location" => args_hash["location"] }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
@@ -44,7 +44,7 @@ class ResidentialCookingRangeTest < MiniTest::Test
     args_hash["oven_ef"] = 0.11
     args_hash["fuel_type"] = Constants.FuelTypeElectric
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 500, "Annual_therm" => 0, "Annual_gal" => 0, "Location" => args_hash["location"] }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
@@ -55,7 +55,7 @@ class ResidentialCookingRangeTest < MiniTest::Test
     args_hash["oven_ef"] = 0.11
     args_hash["fuel_type"] = Constants.FuelTypeElectric
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 473, "Annual_therm" => 0, "Annual_gal" => 0, "Location" => args_hash["location"] }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
@@ -67,7 +67,7 @@ class ResidentialCookingRangeTest < MiniTest::Test
     args_hash["has_elec_ignition"] = "false"
     args_hash["fuel_type"] = Constants.FuelTypeGas
     expected_num_del_objects = {}
-    expected_num_new_objects = { "OtherEquipmentDefinition" => 1, "OtherEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "OtherEquipmentDefinition" => 1, "OtherEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 0, "Annual_therm" => 28.5, "Annual_gal" => 0, "FuelType" => Constants.FuelTypeGas, "Location" => args_hash["location"] }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
@@ -79,7 +79,7 @@ class ResidentialCookingRangeTest < MiniTest::Test
     args_hash["mult"] = 0.80
     args_hash["fuel_type"] = Constants.FuelTypeGas
     expected_num_del_objects = {}
-    expected_num_new_objects = { "OtherEquipmentDefinition" => 1, "OtherEquipment" => 1, "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "OtherEquipmentDefinition" => 1, "OtherEquipment" => 1, "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 64, "Annual_therm" => 22.8, "Annual_gal" => 0, "FuelType" => Constants.FuelTypeGas, "Location" => args_hash["location"] }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
@@ -93,7 +93,7 @@ class ResidentialCookingRangeTest < MiniTest::Test
     args_hash["monthly_sch"] = "1,2,3,4,5,6,7,8,9,10,11,12"
     args_hash["fuel_type"] = Constants.FuelTypeGas
     expected_num_del_objects = {}
-    expected_num_new_objects = { "OtherEquipmentDefinition" => 1, "OtherEquipment" => 1, "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "OtherEquipmentDefinition" => 1, "OtherEquipment" => 1, "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 80, "Annual_therm" => 28.5, "Annual_gal" => 0, "FuelType" => Constants.FuelTypeGas, "Location" => args_hash["location"] }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
@@ -105,7 +105,7 @@ class ResidentialCookingRangeTest < MiniTest::Test
     args_hash["location"] = Constants.SpaceTypeFinishedBasement
     args_hash["fuel_type"] = Constants.FuelTypeGas
     expected_num_del_objects = {}
-    expected_num_new_objects = { "OtherEquipmentDefinition" => 1, "OtherEquipment" => 1, "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "OtherEquipmentDefinition" => 1, "OtherEquipment" => 1, "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 80, "Annual_therm" => 28.5, "Annual_gal" => 0, "FuelType" => Constants.FuelTypeGas, "Location" => args_hash["location"] }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
@@ -117,7 +117,7 @@ class ResidentialCookingRangeTest < MiniTest::Test
     args_hash["location"] = Constants.SpaceTypeGarage
     args_hash["fuel_type"] = Constants.FuelTypeGas
     expected_num_del_objects = {}
-    expected_num_new_objects = { "OtherEquipmentDefinition" => 1, "OtherEquipment" => 1, "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "OtherEquipmentDefinition" => 1, "OtherEquipment" => 1, "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 80, "Annual_therm" => 28.5, "Annual_gal" => 0, "FuelType" => Constants.FuelTypeGas, "Location" => args_hash["location"] }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
@@ -128,15 +128,15 @@ class ResidentialCookingRangeTest < MiniTest::Test
     args_hash["oven_ef"] = 0.058
     args_hash["fuel_type"] = Constants.FuelTypeGas
     expected_num_del_objects = {}
-    expected_num_new_objects = { "OtherEquipmentDefinition" => 1, "OtherEquipment" => 1, "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "OtherEquipmentDefinition" => 1, "OtherEquipment" => 1, "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 80, "Annual_therm" => 28.5, "Annual_gal" => 0, "FuelType" => Constants.FuelTypeGas, "Location" => args_hash["location"] }
     model = _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
     args_hash = {}
     args_hash["cooktop_ef"] = 0.2
     args_hash["oven_ef"] = 0.02
     args_hash["fuel_type"] = Constants.FuelTypePropane
-    expected_num_del_objects = { "OtherEquipmentDefinition" => 1, "OtherEquipment" => 1, "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
-    expected_num_new_objects = { "OtherEquipmentDefinition" => 1, "OtherEquipment" => 1, "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_del_objects = { "OtherEquipmentDefinition" => 1, "OtherEquipment" => 1, "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleFile" => 1 }
+    expected_num_new_objects = { "OtherEquipmentDefinition" => 1, "OtherEquipment" => 1, "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 80, "Annual_therm" => 0, "Annual_gal" => 77.4, "FuelType" => Constants.FuelTypePropane, "Location" => args_hash["location"] }
     _test_measure(model, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
@@ -147,15 +147,15 @@ class ResidentialCookingRangeTest < MiniTest::Test
     args_hash["oven_ef"] = 0.058
     args_hash["fuel_type"] = Constants.FuelTypePropane
     expected_num_del_objects = {}
-    expected_num_new_objects = { "OtherEquipmentDefinition" => 1, "OtherEquipment" => 1, "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "OtherEquipmentDefinition" => 1, "OtherEquipment" => 1, "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 80, "Annual_therm" => 0, "Annual_gal" => 31.1, "FuelType" => Constants.FuelTypePropane, "Location" => args_hash["location"] }
     model = _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
     args_hash = {}
     args_hash["cooktop_ef"] = 0.2
     args_hash["oven_ef"] = 0.02
     args_hash["fuel_type"] = Constants.FuelTypeGas
-    expected_num_del_objects = { "OtherEquipmentDefinition" => 1, "OtherEquipment" => 1, "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
-    expected_num_new_objects = { "OtherEquipmentDefinition" => 1, "OtherEquipment" => 1, "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_del_objects = { "OtherEquipmentDefinition" => 1, "OtherEquipment" => 1, "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleFile" => 1 }
+    expected_num_new_objects = { "OtherEquipmentDefinition" => 1, "OtherEquipment" => 1, "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 80, "Annual_therm" => 70.9, "Annual_gal" => 0, "FuelType" => Constants.FuelTypeGas, "Location" => args_hash["location"] }
     _test_measure(model, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
@@ -167,7 +167,7 @@ class ResidentialCookingRangeTest < MiniTest::Test
     args_hash["has_elec_ignition"] = "false"
     args_hash["fuel_type"] = Constants.FuelTypeGas
     expected_num_del_objects = {}
-    expected_num_new_objects = { "OtherEquipmentDefinition" => 1, "OtherEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "OtherEquipmentDefinition" => 1, "OtherEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 0, "Annual_therm" => 28.5, "Annual_gal" => 0, "FuelType" => Constants.FuelTypeGas, "Location" => args_hash["location"] }
     model = _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
     args_hash = {}
@@ -175,8 +175,8 @@ class ResidentialCookingRangeTest < MiniTest::Test
     args_hash["oven_ef"] = 0.02
     args_hash["has_elec_ignition"] = "true"
     args_hash["fuel_type"] = Constants.FuelTypeGas
-    expected_num_del_objects = { "OtherEquipmentDefinition" => 1, "OtherEquipment" => 1, "ScheduleRuleset" => 1 }
-    expected_num_new_objects = { "OtherEquipmentDefinition" => 1, "OtherEquipment" => 1, "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_del_objects = { "OtherEquipmentDefinition" => 1, "OtherEquipment" => 1, "ScheduleFile" => 1 }
+    expected_num_new_objects = { "OtherEquipmentDefinition" => 1, "OtherEquipment" => 1, "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 80, "Annual_therm" => 70.9, "Annual_gal" => 0, "FuelType" => Constants.FuelTypeGas, "Location" => args_hash["location"] }
     _test_measure(model, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
@@ -188,7 +188,7 @@ class ResidentialCookingRangeTest < MiniTest::Test
     args_hash["has_elec_ignition"] = "true"
     args_hash["fuel_type"] = Constants.FuelTypeGas
     expected_num_del_objects = {}
-    expected_num_new_objects = { "OtherEquipmentDefinition" => 1, "OtherEquipment" => 1, "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "OtherEquipmentDefinition" => 1, "OtherEquipment" => 1, "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 80, "Annual_therm" => 28.5, "Annual_gal" => 0, "FuelType" => Constants.FuelTypeGas, "Location" => args_hash["location"] }
     model = _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
     args_hash = {}
@@ -196,8 +196,8 @@ class ResidentialCookingRangeTest < MiniTest::Test
     args_hash["oven_ef"] = 0.02
     args_hash["has_elec_ignition"] = "false"
     args_hash["fuel_type"] = Constants.FuelTypeGas
-    expected_num_del_objects = { "OtherEquipmentDefinition" => 1, "OtherEquipment" => 1, "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
-    expected_num_new_objects = { "OtherEquipmentDefinition" => 1, "OtherEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_del_objects = { "OtherEquipmentDefinition" => 1, "OtherEquipment" => 1, "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleFile" => 1 }
+    expected_num_new_objects = { "OtherEquipmentDefinition" => 1, "OtherEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 0, "Annual_therm" => 70.9, "Annual_gal" => 0, "FuelType" => Constants.FuelTypeGas, "Location" => args_hash["location"] }
     _test_measure(model, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
@@ -208,15 +208,15 @@ class ResidentialCookingRangeTest < MiniTest::Test
     args_hash["oven_ef"] = 0.11
     args_hash["fuel_type"] = Constants.FuelTypeElectric
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 500, "Annual_therm" => 0, "Annual_gal" => 0, "Location" => args_hash["location"] }
     model = _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
     args_hash = {}
     args_hash["cooktop_ef"] = 0.4
     args_hash["oven_ef"] = 0.058
     args_hash["fuel_type"] = Constants.FuelTypeGas
-    expected_num_del_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
-    expected_num_new_objects = { "OtherEquipmentDefinition" => 1, "OtherEquipment" => 1, "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_del_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleFile" => 1 }
+    expected_num_new_objects = { "OtherEquipmentDefinition" => 1, "OtherEquipment" => 1, "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 80, "Annual_therm" => 28.5, "Annual_gal" => 0, "FuelType" => Constants.FuelTypeGas, "Location" => args_hash["location"] }
     _test_measure(model, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
@@ -227,15 +227,15 @@ class ResidentialCookingRangeTest < MiniTest::Test
     args_hash["oven_ef"] = 0.058
     args_hash["fuel_type"] = Constants.FuelTypeGas
     expected_num_del_objects = {}
-    expected_num_new_objects = { "OtherEquipmentDefinition" => 1, "OtherEquipment" => 1, "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "OtherEquipmentDefinition" => 1, "OtherEquipment" => 1, "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 80, "Annual_therm" => 28.5, "Annual_gal" => 0, "FuelType" => Constants.FuelTypeGas, "Location" => args_hash["location"] }
     model = _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
     args_hash = {}
     args_hash["cooktop_ef"] = 0.74
     args_hash["oven_ef"] = 0.11
     args_hash["fuel_type"] = Constants.FuelTypeElectric
-    expected_num_del_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "OtherEquipmentDefinition" => 1, "OtherEquipment" => 1, "ScheduleRuleset" => 1 }
-    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_del_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "OtherEquipmentDefinition" => 1, "OtherEquipment" => 1, "ScheduleFile" => 1 }
+    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 500, "Annual_therm" => 0, "Annual_gal" => 0, "Location" => args_hash["location"] }
     _test_measure(model, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
@@ -246,12 +246,12 @@ class ResidentialCookingRangeTest < MiniTest::Test
     args_hash["oven_ef"] = 0.058
     args_hash["fuel_type"] = Constants.FuelTypeGas
     expected_num_del_objects = {}
-    expected_num_new_objects = { "OtherEquipmentDefinition" => 1, "OtherEquipment" => 1, "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "OtherEquipmentDefinition" => 1, "OtherEquipment" => 1, "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 80, "Annual_therm" => 28.5, "Annual_gal" => 0, "FuelType" => Constants.FuelTypeGas, "Location" => args_hash["location"] }
     model = _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
     args_hash = {}
     args_hash["mult"] = 0.0
-    expected_num_del_objects = { "OtherEquipmentDefinition" => 1, "OtherEquipment" => 1, "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_del_objects = { "OtherEquipmentDefinition" => 1, "OtherEquipment" => 1, "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleFile" => 1 }
     expected_num_new_objects = {}
     expected_values = { "Annual_kwh" => 0, "Annual_therm" => 0, "Annual_gal" => 0, "FuelType" => nil, "Location" => args_hash["location"] }
     _test_measure(model, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
@@ -306,48 +306,6 @@ class ResidentialCookingRangeTest < MiniTest::Test
     assert_equal(result.errors.map { |x| x.logMessage }[0], "Occupancy energy multiplier must be greater than or equal to 0.")
   end
 
-  def test_argument_error_weekday_sch_wrong_number_of_values
-    args_hash = {}
-    args_hash["weekday_sch"] = "1,1"
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "A comma-separated string of 24 numbers must be entered for the weekday schedule.")
-  end
-
-  def test_argument_error_weekday_sch_not_number
-    args_hash = {}
-    args_hash["weekday_sch"] = "str,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1"
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "A comma-separated string of 24 numbers must be entered for the weekday schedule.")
-  end
-
-  def test_argument_error_weekend_sch_wrong_number_of_values
-    args_hash = {}
-    args_hash["weekend_sch"] = "1,1"
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "A comma-separated string of 24 numbers must be entered for the weekend schedule.")
-  end
-
-  def test_argument_error_weekend_sch_not_number
-    args_hash = {}
-    args_hash["weekend_sch"] = "str,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1"
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "A comma-separated string of 24 numbers must be entered for the weekend schedule.")
-  end
-
-  def test_argument_error_monthly_sch_wrong_number_of_values
-    args_hash = {}
-    args_hash["monthly_sch"] = "1,1"
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "A comma-separated string of 12 numbers must be entered for the monthly schedule.")
-  end
-
-  def test_argument_error_monthly_sch_not_number
-    args_hash = {}
-    args_hash["monthly_sch"] = "str,1,1,1,1,1,1,1,1,1,1,1"
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "A comma-separated string of 12 numbers must be entered for the monthly schedule.")
-  end
-
   def test_error_missing_geometry
     args_hash = {}
     result = _test_error(nil, args_hash)
@@ -359,7 +317,7 @@ class ResidentialCookingRangeTest < MiniTest::Test
     args_hash = {}
     args_hash["fuel_type"] = Constants.FuelTypeGas
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ScheduleRuleset" => 1, "ElectricEquipment" => num_units, "ElectricEquipmentDefinition" => num_units, "OtherEquipment" => num_units, "OtherEquipmentDefinition" => num_units }
+    expected_num_new_objects = { "ElectricEquipment" => num_units, "ElectricEquipmentDefinition" => num_units, "OtherEquipment" => num_units, "OtherEquipmentDefinition" => num_units, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => num_units * 79.87, "Annual_therm" => num_units * 28.53, "Annual_gal" => 0, "FuelType" => Constants.FuelTypeGas, "Location" => args_hash["location"] }
     _test_measure("SFA_4units_1story_FB_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
   end
@@ -369,7 +327,7 @@ class ResidentialCookingRangeTest < MiniTest::Test
     args_hash = {}
     args_hash["fuel_type"] = Constants.FuelTypePropane
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ScheduleRuleset" => 1, "ElectricEquipment" => num_units, "ElectricEquipmentDefinition" => num_units, "OtherEquipment" => num_units, "OtherEquipmentDefinition" => num_units }
+    expected_num_new_objects = { "ElectricEquipment" => num_units, "ElectricEquipmentDefinition" => num_units, "OtherEquipment" => num_units, "OtherEquipmentDefinition" => num_units, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => num_units * 79.87, "Annual_therm" => 0, "Annual_gal" => num_units * 31.1, "FuelType" => Constants.FuelTypePropane, "Location" => args_hash["location"] }
     _test_measure("SFA_4units_1story_FB_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
   end
@@ -380,7 +338,7 @@ class ResidentialCookingRangeTest < MiniTest::Test
     args_hash["fuel_type"] = Constants.FuelTypeGas
     args_hash["location"] = Constants.SpaceTypeFinishedBasement
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ScheduleRuleset" => 1, "ElectricEquipment" => num_units, "ElectricEquipmentDefinition" => num_units, "OtherEquipment" => num_units, "OtherEquipmentDefinition" => num_units }
+    expected_num_new_objects = { "ElectricEquipment" => num_units, "ElectricEquipmentDefinition" => num_units, "OtherEquipment" => num_units, "OtherEquipmentDefinition" => num_units, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => num_units * 79.87, "Annual_therm" => num_units * 28.53, "Annual_gal" => 0, "FuelType" => Constants.FuelTypeGas, "Location" => args_hash["location"] }
     _test_measure("SFA_4units_1story_FB_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
   end
@@ -391,7 +349,7 @@ class ResidentialCookingRangeTest < MiniTest::Test
     args_hash["fuel_type"] = Constants.FuelTypeGas
     args_hash["location"] = Constants.SpaceTypeUnfinishedBasement
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ScheduleRuleset" => 1, "ElectricEquipment" => num_units, "ElectricEquipmentDefinition" => num_units, "OtherEquipment" => num_units, "OtherEquipmentDefinition" => num_units }
+    expected_num_new_objects = { "ElectricEquipment" => num_units, "ElectricEquipmentDefinition" => num_units, "OtherEquipment" => num_units, "OtherEquipmentDefinition" => num_units, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => num_units * 79.87, "Annual_therm" => num_units * 28.53, "Annual_gal" => 0, "FuelType" => Constants.FuelTypeGas, "Location" => args_hash["location"] }
     _test_measure("SFA_4units_1story_UB_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
   end
@@ -401,7 +359,7 @@ class ResidentialCookingRangeTest < MiniTest::Test
     args_hash = {}
     args_hash["fuel_type"] = Constants.FuelTypeGas
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ScheduleRuleset" => 1, "ElectricEquipment" => num_units, "ElectricEquipmentDefinition" => num_units, "OtherEquipment" => num_units, "OtherEquipmentDefinition" => num_units }
+    expected_num_new_objects = { "ElectricEquipment" => num_units, "ElectricEquipmentDefinition" => num_units, "OtherEquipment" => num_units, "OtherEquipmentDefinition" => num_units, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 638.95, "Annual_therm" => 228.27, "Annual_gal" => 0, "FuelType" => Constants.FuelTypeGas, "Location" => args_hash["location"] }
     _test_measure("MF_8units_1story_SL_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
   end
@@ -506,11 +464,15 @@ class ResidentialCookingRangeTest < MiniTest::Test
 
         new_object = new_object.public_send("to_#{obj_type}").get
         if obj_type == "ElectricEquipment"
-          full_load_hrs = Schedule.annual_equivalent_full_load_hrs(model.getYearDescription, new_object.schedule.get)
+          schedule_file = new_object.schedule.get.to_ScheduleFile.get
+          schedules_file = SchedulesFile.new(runner: runner, model: model)
+          full_load_hrs = schedules_file.annual_equivalent_full_load_hrs(col_name: schedule_file.name.to_s)
           actual_values["Annual_kwh"] += UnitConversions.convert(full_load_hrs * new_object.designLevel.get * new_object.multiplier, "Wh", "kWh")
           actual_values["Location"] << new_object.space.get.spaceType.get.standardsSpaceType.get
         elsif obj_type == "OtherEquipment"
-          full_load_hrs = Schedule.annual_equivalent_full_load_hrs(model.getYearDescription, new_object.schedule.get)
+          schedule_file = new_object.schedule.get.to_ScheduleFile.get
+          schedules_file = SchedulesFile.new(runner: runner, model: model)
+          full_load_hrs = schedules_file.annual_equivalent_full_load_hrs(col_name: schedule_file.name.to_s)
           if args_hash["fuel_type"] == Constants.FuelTypeGas
             actual_values["Annual_therm"] += UnitConversions.convert(full_load_hrs * new_object.otherEquipmentDefinition.designLevel.get * new_object.multiplier, "Wh", "therm")
           else
