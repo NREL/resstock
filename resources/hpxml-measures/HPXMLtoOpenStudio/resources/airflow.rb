@@ -438,6 +438,7 @@ class Airflow
     @cfis_t_sum_open_var = {}
     @cfis_f_damper_extra_open_var = {}
     return if vent_fans_mech.empty?
+
     index = 0
 
     vent_fans_mech.each do |vent_mech|

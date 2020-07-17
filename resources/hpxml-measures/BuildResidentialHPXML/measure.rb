@@ -1890,6 +1890,30 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(0.25)
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('lighting_usage_multiplier_interior', true)
+    arg.setDisplayName('Lighting: Usage Multiplier Interior')
+    arg.setDescription('Multiplier on the lighting energy usage (interior) that can reflect, e.g., high/low usage occupants.')
+    arg.setDefaultValue(1.0)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('lighting_weekday_fractions_interior', true)
+    arg.setDisplayName('Lighting: Weekday Schedule Interior')
+    arg.setDescription('Specify the 24-hour weekday schedule.')
+    arg.setDefaultValue(Constants.Auto)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('lighting_weekend_fractions_interior', true)
+    arg.setDisplayName('Lighting: Weekend Schedule Interior')
+    arg.setDescription('Specify the 24-hour weekend schedule.')
+    arg.setDefaultValue(Constants.Auto)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('lighting_monthly_multipliers_interior', true)
+    arg.setDisplayName('Lighting: Month Schedule Interior')
+    arg.setDescription('Specify the 12-month schedule.')
+    arg.setDefaultValue(Constants.Auto)
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('lighting_fraction_cfl_exterior', true)
     arg.setDisplayName('Lighting: Fraction CFL Exterior')
     arg.setDescription('Fraction of all lamps (exterior) that are compact fluorescent. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.')
@@ -1906,6 +1930,30 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDisplayName('Lighting: Fraction LED Exterior')
     arg.setDescription('Fraction of all lamps (exterior) that are light emitting diodes. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.')
     arg.setDefaultValue(0.25)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('lighting_usage_multiplier_exterior', true)
+    arg.setDisplayName('Lighting: Usage Multiplier Exterior')
+    arg.setDescription('Multiplier on the lighting energy usage (exterior) that can reflect, e.g., high/low usage occupants.')
+    arg.setDefaultValue(1.0)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('lighting_weekday_fractions_exterior', true)
+    arg.setDisplayName('Lighting: Weekday Schedule Exterior')
+    arg.setDescription('Specify the 24-hour weekday schedule.')
+    arg.setDefaultValue(Constants.Auto)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('lighting_weekend_fractions_exterior', true)
+    arg.setDisplayName('Lighting: Weekend Schedule Exterior')
+    arg.setDescription('Specify the 24-hour weekend schedule.')
+    arg.setDefaultValue(Constants.Auto)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('lighting_monthly_multipliers_exterior', true)
+    arg.setDisplayName('Lighting: Month Schedule Exterior')
+    arg.setDescription('Specify the 12-month schedule.')
+    arg.setDefaultValue(Constants.Auto)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('lighting_fraction_cfl_garage', true)
@@ -1926,10 +1974,81 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(0.25)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('lighting_usage_multiplier', true)
-    arg.setDisplayName('Lighting: Usage Multiplier')
-    arg.setDescription('Multiplier on the lighting energy usage that can reflect, e.g., high/low usage occupants.')
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('lighting_usage_multiplier_garage', true)
+    arg.setDisplayName('Lighting: Usage Multiplier Garage')
+    arg.setDescription('Multiplier on the lighting energy usage (garage) that can reflect, e.g., high/low usage occupants.')
     arg.setDefaultValue(1.0)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('lighting_weekday_fractions_garage', true)
+    arg.setDisplayName('Lighting: Weekday Schedule Garage')
+    arg.setDescription('Specify the 24-hour weekday schedule.')
+    arg.setDefaultValue(Constants.Auto)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('lighting_weekend_fractions_garage', true)
+    arg.setDisplayName('Lighting: Weekend Schedule Garage')
+    arg.setDescription('Specify the 24-hour weekend schedule.')
+    arg.setDefaultValue(Constants.Auto)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('lighting_monthly_multipliers_garage', true)
+    arg.setDisplayName('Lighting: Month Schedule Garage')
+    arg.setDescription('Specify the 12-month schedule.')
+    arg.setDefaultValue(Constants.Auto)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('holiday_lighting_present', true)
+    arg.setDisplayName('Holiday Lighting: Present')
+    arg.setDescription('Whether there is holiday lighting.')
+    arg.setDefaultValue(false)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('holiday_lighting_daily_kwh', true)
+    arg.setDisplayName('Holiday Lighting: Daily Consumption')
+    arg.setUnits('kWh/day')
+    arg.setDescription('The daily energy consumption for holiday lighting (exterior).')
+    arg.setDefaultValue(Constants.Auto)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('holiday_lighting_period_begin_month', true)
+    arg.setDisplayName('Holiday Lighting: Period Begin Month')
+    arg.setUnits('month')
+    arg.setDescription('This numeric field should contain the starting month number (1 = January, 2 = February, etc.) for the holiday lighting period desired.')
+    arg.setDefaultValue(Constants.Auto)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('holiday_lighting_period_begin_day_of_month', true)
+    arg.setDisplayName('Holiday Lighting: Period Begin Day of Month')
+    arg.setUnits('day')
+    arg.setDescription('This numeric field should contain the starting day of the starting month (must be valid for month) for the holiday lighting period desired.')
+    arg.setDefaultValue(Constants.Auto)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('holiday_lighting_period_end_month', true)
+    arg.setDisplayName('Holiday Lighting: Period End Month')
+    arg.setUnits('month')
+    arg.setDescription('This numeric field should contain the end month number (1 = January, 2 = February, etc.) for the holiday lighting period desired.')
+    arg.setDefaultValue(Constants.Auto)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('holiday_lighting_period_end_day_of_month', true)
+    arg.setDisplayName('Holiday Lighting: Period End Day of Month')
+    arg.setUnits('day')
+    arg.setDescription('This numeric field should contain the ending day of the ending month (must be valid for month) for the holiday lighting period desired.')
+    arg.setDefaultValue(Constants.Auto)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('holiday_lighting_weekday_fractions_exterior', true)
+    arg.setDisplayName('Holiday Lighting: Weekday Schedule Exterior')
+    arg.setDescription('Specify the 24-hour weekday schedule.')
+    arg.setDefaultValue(Constants.Auto)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('holiday_lighting_weekend_fractions_exterior', true)
+    arg.setDisplayName('Holiday Lighting: Weekend Schedule Exterior')
+    arg.setDescription('Specify the 24-hour weekend schedule.')
+    arg.setDefaultValue(Constants.Auto)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument('dehumidifier_present', true)
@@ -3215,13 +3334,32 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
              lighting_fraction_cfl_interior: runner.getDoubleArgumentValue('lighting_fraction_cfl_interior', user_arguments),
              lighting_fraction_lfl_interior: runner.getDoubleArgumentValue('lighting_fraction_lfl_interior', user_arguments),
              lighting_fraction_led_interior: runner.getDoubleArgumentValue('lighting_fraction_led_interior', user_arguments),
+             lighting_usage_multiplier_interior: runner.getDoubleArgumentValue('lighting_usage_multiplier_interior', user_arguments),
+             lighting_weekday_fractions_interior: runner.getStringArgumentValue('lighting_weekday_fractions_interior', user_arguments),
+             lighting_weekend_fractions_interior: runner.getStringArgumentValue('lighting_weekend_fractions_interior', user_arguments),
+             lighting_monthly_multipliers_interior: runner.getStringArgumentValue('lighting_monthly_multipliers_interior', user_arguments),
              lighting_fraction_cfl_exterior: runner.getDoubleArgumentValue('lighting_fraction_cfl_exterior', user_arguments),
              lighting_fraction_lfl_exterior: runner.getDoubleArgumentValue('lighting_fraction_lfl_exterior', user_arguments),
              lighting_fraction_led_exterior: runner.getDoubleArgumentValue('lighting_fraction_led_exterior', user_arguments),
+             lighting_usage_multiplier_exterior: runner.getDoubleArgumentValue('lighting_usage_multiplier_exterior', user_arguments),
+             lighting_weekday_fractions_exterior: runner.getStringArgumentValue('lighting_weekday_fractions_exterior', user_arguments),
+             lighting_weekend_fractions_exterior: runner.getStringArgumentValue('lighting_weekend_fractions_exterior', user_arguments),
+             lighting_monthly_multipliers_exterior: runner.getStringArgumentValue('lighting_monthly_multipliers_exterior', user_arguments),
              lighting_fraction_cfl_garage: runner.getDoubleArgumentValue('lighting_fraction_cfl_garage', user_arguments),
              lighting_fraction_lfl_garage: runner.getDoubleArgumentValue('lighting_fraction_lfl_garage', user_arguments),
              lighting_fraction_led_garage: runner.getDoubleArgumentValue('lighting_fraction_led_garage', user_arguments),
-             lighting_usage_multiplier: runner.getDoubleArgumentValue('lighting_usage_multiplier', user_arguments),
+             lighting_usage_multiplier_garage: runner.getDoubleArgumentValue('lighting_usage_multiplier_garage', user_arguments),
+             lighting_weekday_fractions_garage: runner.getStringArgumentValue('lighting_weekday_fractions_garage', user_arguments),
+             lighting_weekend_fractions_garage: runner.getStringArgumentValue('lighting_weekend_fractions_garage', user_arguments),
+             lighting_monthly_multipliers_garage: runner.getStringArgumentValue('lighting_monthly_multipliers_garage', user_arguments),
+             holiday_lighting_present: runner.getBoolArgumentValue('holiday_lighting_present', user_arguments),
+             holiday_lighting_daily_kwh: runner.getStringArgumentValue('holiday_lighting_daily_kwh', user_arguments),
+             holiday_lighting_period_begin_month: runner.getStringArgumentValue('holiday_lighting_period_begin_month', user_arguments),
+             holiday_lighting_period_begin_day_of_month: runner.getStringArgumentValue('holiday_lighting_period_begin_day_of_month', user_arguments),
+             holiday_lighting_period_end_month: runner.getStringArgumentValue('holiday_lighting_period_end_month', user_arguments),
+             holiday_lighting_period_end_day_of_month: runner.getStringArgumentValue('holiday_lighting_period_end_day_of_month', user_arguments),
+             holiday_lighting_weekday_fractions_exterior: runner.getStringArgumentValue('holiday_lighting_weekday_fractions_exterior', user_arguments),
+             holiday_lighting_weekend_fractions_exterior: runner.getStringArgumentValue('holiday_lighting_weekend_fractions_exterior', user_arguments),
              dehumidifier_present: runner.getBoolArgumentValue('dehumidifier_present', user_arguments),
              dehumidifier_efficiency_type: runner.getStringArgumentValue('dehumidifier_efficiency_type', user_arguments),
              dehumidifier_efficiency_ef: runner.getDoubleArgumentValue('dehumidifier_efficiency_ef', user_arguments),
@@ -4824,8 +4962,84 @@ class HPXMLFile
                               fraction_of_units_in_location: args[:lighting_fraction_led_garage],
                               lighting_type: HPXML::LightingTypeLED)
 
-    if args[:lighting_usage_multiplier] != 1.0
-      hpxml.lighting.usage_multiplier = args[:lighting_usage_multiplier]
+    if args[:lighting_usage_multiplier_interior] != 1.0
+      hpxml.lighting.interior_usage_multiplier = args[:lighting_usage_multiplier_interior]
+    end
+
+    if args[:lighting_weekday_fractions_interior] != Constants.Auto
+      hpxml.lighting.interior_weekday_fractions = args[:lighting_weekday_fractions_interior]
+    end
+
+    if args[:lighting_weekend_fractions_interior] != Constants.Auto
+      hpxml.lighting.interior_weekend_fractions = args[:lighting_weekend_fractions_interior]
+    end
+
+    if args[:lighting_monthly_multipliers_interior] != Constants.Auto
+      hpxml.lighting.interior_monthly_multipliers = args[:lighting_monthly_multipliers_interior]
+    end
+
+    if args[:lighting_usage_multiplier_exterior] != 1.0
+      hpxml.lighting.exterior_usage_multiplier = args[:lighting_usage_multiplier_exterior]
+    end
+
+    if args[:lighting_weekday_fractions_exterior] != Constants.Auto
+      hpxml.lighting.exterior_weekday_fractions = args[:lighting_weekday_fractions_exterior]
+    end
+
+    if args[:lighting_weekend_fractions_exterior] != Constants.Auto
+      hpxml.lighting.exterior_weekend_fractions = args[:lighting_weekend_fractions_exterior]
+    end
+
+    if args[:lighting_monthly_multipliers_exterior] != Constants.Auto
+      hpxml.lighting.exterior_monthly_multipliers = args[:lighting_monthly_multipliers_exterior]
+    end
+
+    if args[:lighting_usage_multiplier_garage] != 1.0
+      hpxml.lighting.garage_usage_multiplier = args[:lighting_usage_multiplier_garage]
+    end
+
+    if args[:lighting_weekday_fractions_garage] != Constants.Auto
+      hpxml.lighting.garage_weekday_fractions = args[:lighting_weekday_fractions_garage]
+    end
+
+    if args[:lighting_weekend_fractions_garage] != Constants.Auto
+      hpxml.lighting.garage_weekend_fractions = args[:lighting_weekend_fractions_garage]
+    end
+
+    if args[:lighting_monthly_multipliers_garage] != Constants.Auto
+      hpxml.lighting.garage_monthly_multipliers = args[:lighting_monthly_multipliers_garage]
+    end
+
+    return unless args[:holiday_lighting_present]
+
+    hpxml.lighting.holiday_exists = true
+
+    if args[:holiday_lighting_daily_kwh] != Constants.Auto
+      hpxml.lighting.holiday_kwh_per_day = args[:holiday_lighting_daily_kwh]
+    end
+
+    if args[:holiday_lighting_period_begin_month] != Constants.Auto
+      hpxml.lighting.holiday_period_begin_month = args[:holiday_lighting_period_begin_month]
+    end
+
+    if args[:holiday_lighting_period_begin_day_of_month] != Constants.Auto
+      hpxml.lighting.holiday_period_begin_day_of_month = args[:holiday_lighting_period_begin_day_of_month]
+    end
+
+    if args[:holiday_lighting_period_end_month] != Constants.Auto
+      hpxml.lighting.holiday_period_end_month = args[:holiday_lighting_period_end_month]
+    end
+
+    if args[:holiday_lighting_period_end_day_of_month] != Constants.Auto
+      hpxml.lighting.holiday_period_end_day_of_month = args[:holiday_lighting_period_end_day_of_month]
+    end
+
+    if args[:holiday_lighting_weekday_fractions_exterior] != Constants.Auto
+      hpxml.lighting.holiday_weekday_fractions = args[:holiday_lighting_weekday_fractions_exterior]
+    end
+
+    if args[:holiday_lighting_weekend_fractions_exterior] != Constants.Auto
+      hpxml.lighting.holiday_weekend_fractions = args[:holiday_lighting_weekend_fractions_exterior]
     end
   end
 

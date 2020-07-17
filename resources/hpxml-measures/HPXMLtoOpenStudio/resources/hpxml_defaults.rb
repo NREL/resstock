@@ -874,8 +874,52 @@ class HPXMLDefaults
   end
 
   def self.apply_lighting(hpxml)
-    if hpxml.lighting.usage_multiplier.nil?
-      hpxml.lighting.usage_multiplier = 1.0
+    if hpxml.lighting.interior_usage_multiplier.nil?
+      hpxml.lighting.interior_usage_multiplier = 1.0
+    end
+    if hpxml.lighting.garage_usage_multiplier.nil?
+      hpxml.lighting.garage_usage_multiplier = 1.0
+    end
+    if hpxml.lighting.exterior_usage_multiplier.nil?
+      hpxml.lighting.exterior_usage_multiplier = 1.0
+    end
+    # Schedules from T24 2016 Residential ACM Appendix C Table 8 Exterior Lighting Hourly Multiplier (Weekdays and weekends)
+    default_exterior_lighting_weekday_fractions = '0.046, 0.046, 0.046, 0.046, 0.046, 0.037, 0.035, 0.034, 0.033, 0.028, 0.022, 0.015, 0.012, 0.011, 0.011, 0.012, 0.019, 0.037, 0.049, 0.065, 0.091, 0.105, 0.091, 0.063'
+    default_exterior_lighting_weekend_fractions = '0.046, 0.046, 0.045, 0.045, 0.046, 0.045, 0.044, 0.041, 0.036, 0.03, 0.024, 0.016, 0.012, 0.011, 0.011, 0.012, 0.019, 0.038, 0.048, 0.06, 0.083, 0.098, 0.085, 0.059'
+    default_exterior_lighting_monthly_multipliers = '1.248, 1.257, 0.993, 0.989, 0.993, 0.827, 0.821, 0.821, 0.827, 0.99, 0.987, 1.248'
+    if hpxml.has_space_type(HPXML::LocationGarage)
+      if hpxml.lighting.garage_weekday_fractions.nil?
+        hpxml.lighting.garage_weekday_fractions = default_exterior_lighting_weekday_fractions
+      end
+      if hpxml.lighting.garage_weekend_fractions.nil?
+        hpxml.lighting.garage_weekend_fractions = default_exterior_lighting_weekend_fractions
+      end
+      if hpxml.lighting.garage_monthly_multipliers.nil?
+        hpxml.lighting.garage_monthly_multipliers = default_exterior_lighting_monthly_multipliers
+      end
+    end
+    if hpxml.lighting.exterior_weekday_fractions.nil?
+      hpxml.lighting.exterior_weekday_fractions = default_exterior_lighting_weekday_fractions
+    end
+    if hpxml.lighting.exterior_weekend_fractions.nil?
+      hpxml.lighting.exterior_weekend_fractions = default_exterior_lighting_weekend_fractions
+    end
+    if hpxml.lighting.exterior_monthly_multipliers.nil?
+      hpxml.lighting.exterior_monthly_multipliers = default_exterior_lighting_monthly_multipliers
+    end
+    if (hpxml.lighting.holiday_exists == true) && hpxml.lighting.holiday_kwh_per_day.nil?
+      # From LA100 repo (2017)
+      if hpxml.building_construction.residential_facility_type == HPXML::ResidentialTypeSFD
+        hpxml.lighting.holiday_kwh_per_day = 1.1
+      elsif [HPXML::ResidentialTypeApartment, HPXML::ResidentialTypeSFA].include? hpxml.building_construction.residential_facility_type
+        hpxml.lighting.holiday_kwh_per_day = 0.5
+      end
+      hpxml.lighting.holiday_period_begin_month = 11
+      hpxml.lighting.holiday_period_begin_day_of_month = 24
+      hpxml.lighting.holiday_period_end_month = 1
+      hpxml.lighting.holiday_period_end_day_of_month = 6
+      hpxml.lighting.holiday_weekday_fractions = '0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.008, 0.098, 0.168, 0.194, 0.284, 0.192, 0.037, 0.019'
+      hpxml.lighting.holiday_weekend_fractions = '0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.008, 0.098, 0.168, 0.194, 0.284, 0.192, 0.037, 0.019'
     end
   end
 

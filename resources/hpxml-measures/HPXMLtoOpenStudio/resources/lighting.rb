@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Lighting
-  def self.apply(model, weather, spaces, lighting_groups, usage_multiplier, eri_version)
+  def self.apply(model, weather, spaces, lighting_groups, lighting, eri_version)
     fractions = {}
     lighting_groups.each do |lg|
       fractions[[lg.location, lg.lighting_type]] = lg.fraction_of_units_in_location
@@ -29,13 +29,31 @@ class Lighting
                                             fractions[[HPXML::LocationInterior, HPXML::LightingTypeLED]],
                                             fractions[[HPXML::LocationExterior, HPXML::LightingTypeLED]],
                                             fractions[[HPXML::LocationGarage, HPXML::LightingTypeLED]],
-                                            usage_multiplier)
+                                            lighting.interior_usage_multiplier,
+                                            lighting.garage_usage_multiplier,
+                                            lighting.exterior_usage_multiplier)
 
-    sch = create_schedule(model, weather)
+    # Create schedule
+    if not lighting.interior_weekday_fractions.nil?
+      interior_sch = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameInteriorLighting + ' schedule', lighting.interior_weekday_fractions, lighting.interior_weekend_fractions, lighting.interior_monthly_multipliers, 1.0, 1.0, true, true, Constants.ScheduleTypeLimitsFraction)
+    else
+      interior_sch = create_schedule(model, weather)
+    end
+    exterior_sch = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameExteriorLighting + ' schedule', lighting.exterior_weekday_fractions, lighting.exterior_weekend_fractions, lighting.exterior_monthly_multipliers, 1.0, 1.0, true, true, Constants.ScheduleTypeLimitsFraction)
+    if not garage_space.nil?
+      garage_sch = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameGarageLighting + ' schedule', lighting.garage_weekday_fractions, lighting.garage_weekend_fractions, lighting.garage_monthly_multipliers, 1.0, 1.0, true, true, Constants.ScheduleTypeLimitsFraction)
+    end
+    if not lighting.holiday_kwh_per_day.nil?
+      exterior_holiday_sch = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameLightingExteriorHoliday + ' schedule', lighting.holiday_weekday_fractions, lighting.holiday_weekend_fractions, lighting.exterior_monthly_multipliers, 1.0, 1.0, true, true, Constants.ScheduleTypeLimitsFraction, lighting.holiday_period_begin_month, lighting.holiday_period_begin_day_of_month, lighting.holiday_period_end_month, lighting.holiday_period_end_day_of_month)
+    end
 
     # Add lighting to each conditioned space
     if int_kwh > 0
-      space_design_level = sch.calcDesignLevel(sch.maxval * int_kwh)
+      if lighting.interior_weekday_fractions.nil?
+        design_level = interior_sch.calcDesignLevel(interior_sch.maxval * int_kwh)
+      else
+        design_level = interior_sch.calcDesignLevelFromDailykWh(int_kwh / 365.0)
+      end
 
       # Add lighting
       ltg_def = OpenStudio::Model::LightsDefinition.new(model)
@@ -44,16 +62,16 @@ class Lighting
       ltg.setSpace(living_space)
       ltg.setEndUseSubcategory(Constants.ObjectNameInteriorLighting)
       ltg_def.setName(Constants.ObjectNameInteriorLighting)
-      ltg_def.setLightingLevel(space_design_level)
+      ltg_def.setLightingLevel(design_level)
       ltg_def.setFractionRadiant(0.6)
       ltg_def.setFractionVisible(0.2)
       ltg_def.setReturnAirFraction(0.0)
-      ltg.setSchedule(sch.schedule)
+      ltg.setSchedule(interior_sch.schedule)
     end
 
     # Add lighting to each garage space
     if grg_kwh > 0
-      space_design_level = sch.calcDesignLevel(sch.maxval * grg_kwh)
+      design_level = garage_sch.calcDesignLevelFromDailykWh(grg_kwh / 365.0)
 
       # Add lighting
       ltg_def = OpenStudio::Model::LightsDefinition.new(model)
@@ -62,23 +80,35 @@ class Lighting
       ltg.setSpace(garage_space)
       ltg.setEndUseSubcategory(Constants.ObjectNameGarageLighting)
       ltg_def.setName(Constants.ObjectNameGarageLighting)
-      ltg_def.setLightingLevel(space_design_level)
+      ltg_def.setLightingLevel(design_level)
       ltg_def.setFractionRadiant(0.6)
       ltg_def.setFractionVisible(0.2)
       ltg_def.setReturnAirFraction(0.0)
-      ltg.setSchedule(sch.schedule)
+      ltg.setSchedule(garage_sch.schedule)
     end
 
     if ext_kwh > 0
-      space_design_level = sch.calcDesignLevel(sch.maxval * ext_kwh)
+      design_level = exterior_sch.calcDesignLevelFromDailykWh(ext_kwh / 365.0)
 
       # Add exterior lighting
       ltg_def = OpenStudio::Model::ExteriorLightsDefinition.new(model)
       ltg = OpenStudio::Model::ExteriorLights.new(ltg_def)
       ltg.setName(Constants.ObjectNameExteriorLighting)
       ltg_def.setName(Constants.ObjectNameExteriorLighting)
-      ltg_def.setDesignLevel(space_design_level)
-      ltg.setSchedule(sch.schedule)
+      ltg_def.setDesignLevel(design_level)
+      ltg.setSchedule(exterior_sch.schedule)
+    end
+
+    if not lighting.holiday_kwh_per_day.nil?
+      design_level = exterior_holiday_sch.calcDesignLevelFromDailykWh(lighting.holiday_kwh_per_day)
+
+      # Add exterior holiday lighting
+      ltg_def = OpenStudio::Model::ExteriorLightsDefinition.new(model)
+      ltg = OpenStudio::Model::ExteriorLights.new(ltg_def)
+      ltg.setName(Constants.ObjectNameLightingExteriorHoliday)
+      ltg_def.setName(Constants.ObjectNameLightingExteriorHoliday)
+      ltg_def.setDesignLevel(design_level)
+      ltg.setSchedule(exterior_holiday_sch.schedule)
     end
   end
 
@@ -99,7 +129,8 @@ class Lighting
   private
 
   def self.calc_energy(eri_version, cfa, gfa, f_int_cfl, f_ext_cfl, f_grg_cfl, f_int_lfl, f_ext_lfl, f_grg_lfl,
-                       f_int_led, f_ext_led, f_grg_led, usage_multiplier = 1.0)
+                       f_int_led, f_ext_led, f_grg_led,
+                       interior_usage_multiplier = 1.0, garage_usage_multiplier = 1.0, exterior_usage_multiplier = 1.0)
 
     if Constants.ERIVersions.index(eri_version) >= Constants.ERIVersions.index('2014ADEG')
       # Calculate fluorescent (CFL + LFL) fractions
@@ -153,9 +184,9 @@ class Lighting
       end
     end
 
-    int_kwh *= usage_multiplier
-    ext_kwh *= usage_multiplier
-    grg_kwh *= usage_multiplier
+    int_kwh *= interior_usage_multiplier
+    ext_kwh *= exterior_usage_multiplier
+    grg_kwh *= garage_usage_multiplier
 
     return int_kwh, ext_kwh, grg_kwh
   end
@@ -243,7 +274,7 @@ class Lighting
         ltg_hour = (monthHalfHourKWHs[hour * 2] + monthHalfHourKWHs[hour * 2 + 1]).to_f
         normalized_hourly_lighting[month][hour] = ltg_hour / sum_kWh
         monthly_kwh_per_day[month] = sum_kWh / 2.0
-     end
+      end
       wtd_avg_monthly_kwh_per_day += monthly_kwh_per_day[month] * days_m[month] / 365.0
     end
 

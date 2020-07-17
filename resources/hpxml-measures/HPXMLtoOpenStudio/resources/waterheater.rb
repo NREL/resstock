@@ -296,6 +296,7 @@ class Waterheater
 
     dhw_map.keys.each do |sys_id|
       next unless combi_sys_ids.include? sys_id
+
       # EMS for modulate source side mass flow rate
       # Initialization
       equipment_peaks = {}
