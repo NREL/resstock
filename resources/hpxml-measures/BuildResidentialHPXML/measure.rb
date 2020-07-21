@@ -3693,12 +3693,8 @@ class HPXMLFile
     if args[:schedules_output_path].is_initialized
       args[:schedules_output_path] = args[:schedules_output_path].get
 
-      if File.exists?(File.expand_path(args[:schedules_output_path]))
-        runner.registerWarning("File '#{args[:schedules_output_path]}' already exists and so won't be regenerated.")
-      else
-        success = create_schedules(runner, model, weather, args)
-        return false if not success
-      end
+      success = create_schedules(runner, model, weather, args)
+      return false if not success
 
       set_schedules(hpxml, runner, args)
     end
