@@ -1871,8 +1871,8 @@ def get_values(osw_file, step)
   elsif ['extra-vacancy-6-months.osw'].include? osw_file
     step.setArgument('simulation_control_vacancy_begin_month', 1)
     step.setArgument('simulation_control_vacancy_begin_day_of_month', 1)
-    step.setArgument('simulation_control_vacancy_end_month', 1)
-    step.setArgument('simulation_control_vacancy_end_day_of_month', 31)
+    step.setArgument('simulation_control_vacancy_end_month', 6)
+    step.setArgument('simulation_control_vacancy_end_day_of_month', 30)
     step.setArgument('schedules_output_path', 'BuildResidentialHPXML/resources/schedules/schedules.csv')
   elsif ['invalid_files/non-electric-heat-pump-water-heater.osw'].include? osw_file
     step.setArgument('water_heater_type', HPXML::WaterHeaterTypeHeatPump)
