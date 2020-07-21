@@ -243,7 +243,9 @@ class Waterheater
     # Create hx setpoint schedule to specify source side temperature
     hx_stp_sch = OpenStudio::Model::ScheduleConstant.new(model)
     hx_stp_sch.setName("#{obj_name_combi} HX Spt")
-    hx_temp = 55 # tank source side inlet temperature, degree C
+    boiler_spt_mngr = model.getSetpointManagerScheduleds.select { |spt_mngr| spt_mngr.setpointNode.get == boiler_plant_loop.loopTemperatureSetpointNode }[0]
+    boiler_spt = boiler_spt_mngr.to_SetpointManagerScheduled.get.schedule.to_ScheduleConstant.get.value
+    hx_temp = (UnitConversions.convert(water_heating_system.temperature, 'F', 'C') + deadband(water_heating_system.water_heater_type) / 2.0 + boiler_spt) / 2.0 # tank source side inlet temperature, degree C
     hx_stp_sch.setValue(hx_temp)
 
     # change loop equipment operation scheme to heating load
@@ -253,8 +255,7 @@ class Waterheater
     dhw_map[water_heating_system.id] << loop
 
     # Create loop for source side
-    set_temp_c = get_set_temp_c(UnitConversions.convert(hx_temp, 'C', 'F'), water_heating_system.water_heater_type)
-    source_loop = create_new_loop(model, 'dhw source loop', set_temp_c)
+    source_loop = create_new_loop(model, 'dhw source loop', hx_temp)
     source_loop.autosizeMaximumLoopFlowRate()
 
     # Create heat exchanger
@@ -379,9 +380,11 @@ class Waterheater
       combi_ctrl_program.addLine("Set WH_Loss = - #{tank_loss_energy_sensor.name}")
       combi_ctrl_program.addLine("Set WH_Use = Tank_Use_Total_MFR * Cp * (#{tank_temp_sensor.name} - #{mains_temp_sensor.name}) * ZoneTimeStep * 3600")
       combi_ctrl_program.addLine("Set WH_HeatToLowSetpoint = Tank_Water_Mass * Cp * (#{tank_temp_sensor.name} - #{tank_spt_sensor.name} + #{deadband})")
+      combi_ctrl_program.addLine("Set WH_HeatToHighSetpoint = Tank_Water_Mass * Cp * (#{tank_temp_sensor.name} - #{tank_spt_sensor.name})")
       combi_ctrl_program.addLine('Set WH_Energy_Demand = WH_Use + WH_Loss - WH_HeatToLowSetpoint')
+      combi_ctrl_program.addLine('Set WH_Energy_Heat = WH_Use + WH_Loss - WH_HeatToHighSetpoint')
       combi_ctrl_program.addLine('If WH_Energy_Demand > 0')
-      combi_ctrl_program.addLine("Set #{pump_actuator.name} = WH_Energy_Demand / (Cp * DeltaT * 3600 * ZoneTimeStep)")
+      combi_ctrl_program.addLine("Set #{pump_actuator.name} = WH_Energy_Heat / (Cp * DeltaT * 3600 * ZoneTimeStep)")
       combi_ctrl_program.addLine("Set #{altsch_actuator.name} = 100") # Set the alternate setpoint temperature to highest level to ensure maximum source side flow rate
       combi_ctrl_program.addLine('Else')
       combi_ctrl_program.addLine("Set #{pump_actuator.name} = 0")
