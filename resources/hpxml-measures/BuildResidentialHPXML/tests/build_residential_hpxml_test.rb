@@ -184,8 +184,6 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       hpxml.header.xml_generated_by = nil
       hpxml.header.created_date_and_time = Time.new(2000, 1, 1).strftime('%Y-%m-%dT%H:%M:%S%:z')
       hpxml.site.fuels = [] # Not used by model
-      hpxml.building_occupancy.schedules_output_path = nil
-      hpxml.building_occupancy.schedules_column_name = nil
       hpxml.climate_and_risk_zones.weather_station_name = nil
       hpxml.climate_and_risk_zones.weather_station_wmo = nil
       hpxml.climate_and_risk_zones.weather_station_epw_filepath = nil
@@ -198,8 +196,6 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       hpxml.rim_joists.clear() # TODO
       hpxml.refrigerators.each do |refrigerator|
         refrigerator.adjusted_annual_kwh = nil
-        refrigerator.schedules_output_path = nil
-        refrigerator.schedules_column_name = nil
       end
       hpxml.foundation_walls.each do |foundation_wall|
         next if foundation_wall.insulation_assembly_r_value.nil?

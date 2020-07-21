@@ -198,6 +198,7 @@ def create_osws
     'base-pv.osw' => 'base.osw',
     'base-simcontrol-daylight-saving-custom.osw' => 'base.osw',
     'base-simcontrol-daylight-saving-disabled.osw' => 'base.osw',
+    'base-simcontrol-generated-schedule.osw' => 'base.osw',
     'base-simcontrol-runperiod-1-month.osw' => 'base.osw',
     'base-simcontrol-timestep-10-mins.osw' => 'base.osw',
 
@@ -298,7 +299,6 @@ def get_values(osw_file, step)
   if ['base.osw'].include? osw_file
     step.setArgument('weather_dir', 'weather')
     step.setArgument('simulation_control_timestep', '60')
-    step.setArgument('schedules_output_path', 'BuildResidentialHPXML/tests/run/schedules.csv')
     step.setArgument('weather_station_epw_filepath', 'USA_CO_Denver.Intl.AP.725650_TMY3.epw')
     step.setArgument('site_type', HPXML::SiteTypeSuburban)
     step.setArgument('geometry_unit_type', HPXML::ResidentialTypeSFD)
@@ -1821,6 +1821,8 @@ def get_values(osw_file, step)
     step.setArgument('simulation_control_daylight_saving_end_day_of_month', 6)
   elsif ['base-simcontrol-daylight-saving-disabled.osw'].include? osw_file
     step.setArgument('simulation_control_daylight_saving_enabled', false)
+  elsif ['base-simcontrol-generated-schedule.osw'].include? osw_file
+    step.setArgument('schedules_output_path', 'BuildResidentialHPXML/resources/schedules/schedules.csv')
   elsif ['base-simcontrol-runperiod-1-month.osw'].include? osw_file
     step.setArgument('simulation_control_run_period_end_month', 1)
     step.setArgument('simulation_control_run_period_end_day_of_month', 31)
@@ -2201,6 +2203,7 @@ def create_hpxmls
     'base-pv.xml' => 'base.xml',
     'base-simcontrol-daylight-saving-custom.xml' => 'base.xml',
     'base-simcontrol-daylight-saving-disabled.xml' => 'base.xml',
+    'base-simcontrol-generated-schedule.xml' => 'base.xml',
     'base-simcontrol-runperiod-1-month.xml' => 'base.xml',
     'base-simcontrol-timestep-10-mins.xml' => 'base.xml',
     'base-misc-lighting-detailed.xml' => 'base.xml',
@@ -2382,6 +2385,8 @@ def set_hpxml_header(hpxml_file, hpxml)
     hpxml.header.dst_end_day_of_month = 6
   elsif ['base-simcontrol-daylight-saving-disabled.xml'].include? hpxml_file
     hpxml.header.dst_enabled = false
+  elsif ['base-simcontrol-generated-schedule.xml'].include? hpxml_file
+    hpxml.header.schedules_output_path = 'BuildResidentialHPXML/resources/schedules/schedules.csv'
   elsif ['base-simcontrol-timestep-10-mins.xml'].include? hpxml_file
     hpxml.header.timestep = 10
   elsif ['base-simcontrol-runperiod-1-month.xml'].include? hpxml_file
@@ -2494,6 +2499,8 @@ def set_hpxml_building_occupancy(hpxml_file, hpxml)
     hpxml.building_occupancy.number_of_residents = 0
   elsif ['base-misc-defaults.xml'].include? hpxml_file
     hpxml.building_occupancy.number_of_residents = nil
+  elsif ['base-simcontrol-generated-schedule.xml'].include? hpxml_file
+    hpxml.building_occupancy.schedules_column_name = 'occupants'
   else
     hpxml.building_occupancy.number_of_residents = hpxml.building_construction.number_of_bedrooms
   end
@@ -5661,6 +5668,9 @@ def set_hpxml_water_fixtures(hpxml_file, hpxml)
     hpxml.water_fixtures.clear
   elsif ['base-misc-usage-multiplier.xml'].include? hpxml_file
     hpxml.water_heating.water_fixtures_usage_multiplier = 0.9
+  elsif ['base-simcontrol-generated-schedule.xml'].include? hpxml_file
+    hpxml.water_fixtures[0].schedules_column_name = 'showers'
+    hpxml.water_fixtures[1].schedules_column_name = 'sinks'
   end
 end
 
@@ -5818,6 +5828,9 @@ def set_hpxml_clothes_washer(hpxml_file, hpxml)
     hpxml.clothes_washers[0].label_usage = nil
   elsif ['base-misc-usage-multiplier.xml'].include? hpxml_file
     hpxml.clothes_washers[0].usage_multiplier = 0.9
+  elsif ['base-simcontrol-generated-schedule.xml'].include? hpxml_file
+    hpxml.clothes_washers[0].water_schedules_column_name = 'clothes_washer'
+    hpxml.clothes_washers[0].power_schedules_column_name = 'clothes_washer_power'
   end
 end
 
@@ -5929,6 +5942,9 @@ def set_hpxml_dishwasher(hpxml_file, hpxml)
     hpxml.dishwashers[0].label_usage = nil
   elsif ['base-misc-usage-multiplier.xml'].include? hpxml_file
     hpxml.dishwashers[0].usage_multiplier = 0.9
+  elsif ['base-simcontrol-generated-schedule.xml'].include? hpxml_file
+    hpxml.dishwashers[0].water_schedules_column_name = 'dishwasher'
+    hpxml.dishwashers[0].power_schedules_column_name = 'dishwasher_power'
   end
 end
 
@@ -6058,6 +6074,8 @@ def set_hpxml_cooking_range(hpxml_file, hpxml)
   elsif ['base-enclosure-garage.xml',
          'invalid_files/cooking-range-location.xml'].include? hpxml_file
     hpxml.cooking_ranges[0].location = HPXML::LocationGarage
+  elsif ['base-simcontrol-generated-schedule.xml'].include? hpxml_file
+    hpxml.cooking_ranges[0].schedules_column_name = 'cooking_range'
   elsif ['invalid_files/appliances-location-unconditioned-space.xml'].include? hpxml_file
     hpxml.cooking_ranges[0].location = 'unconditioned space'
   elsif ['base-misc-defaults.xml'].include? hpxml_file
@@ -6201,6 +6219,11 @@ def set_hpxml_lighting_schedule(hpxml_file, hpxml)
     hpxml.lighting.holiday_period_end_day_of_month = 6
     hpxml.lighting.holiday_weekday_fractions = '0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.008, 0.098, 0.168, 0.194, 0.284, 0.192, 0.037, 0.019'
     hpxml.lighting.holiday_weekend_fractions = '0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.008, 0.098, 0.168, 0.194, 0.284, 0.192, 0.037, 0.019'
+  elsif ['base-simcontrol-generated-schedule.xml'].include? hpxml_file
+    hpxml.lighting.interior_schedules_column_name = 'lighting_interior'
+    hpxml.lighting.exterior_schedules_column_name = 'lighting_exterior'
+    hpxml.lighting.garage_schedules_column_name = 'lighting_garage'
+    hpxml.lighting.holiday_schedules_column_name = 'lighting_exterior_holiday'
   end
 end
 
@@ -6272,6 +6295,8 @@ def set_hpxml_plug_loads(hpxml_file, hpxml)
     hpxml.plug_loads[0].weekday_fractions = nil
     hpxml.plug_loads[0].weekend_fractions = nil
     hpxml.plug_loads[0].monthly_multipliers = nil
+  elsif ['base-simcontrol-generated-schedule.xml'].include? hpxml_file
+    hpxml.plug_loads[0].schedules_column_name = 'plug_loads'
   end
 end
 

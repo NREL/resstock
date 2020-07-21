@@ -787,3 +787,280 @@ class Schedule
     rule.setApplySunday(true)
   end
 end
+
+class SchedulesFile
+  def initialize(runner:,
+                 model:,
+                 schedules_path:,
+                 **remainder)
+
+    @validated = true
+    @runner = runner
+    @model = model
+    @schedules_path = schedules_path
+    @external_file = get_external_file
+    @schedules = {}
+  end
+
+  def validated?
+    return @validated
+  end
+
+  def schedules
+    return @schedules
+  end
+
+  def get_col_index(col_name:)
+    headers = CSV.open(@schedules_path, 'r') { |csv| csv.first }
+    col_num = headers.index(col_name)
+    return col_num
+  end
+
+  def get_col_name(col_index:)
+    headers = CSV.open(@schedules_path, 'r') { |csv| csv.first }
+    col_name = headers[col_index]
+    return col_name
+  end
+
+  def create_schedule_file(col_name:,
+                           rows_to_skip: 1)
+    @model.getScheduleFiles.each do |schedule_file|
+      next if schedule_file.name.to_s != col_name
+
+      return schedule_file
+    end
+
+    import(col_name: col_name)
+
+    if @schedules[col_name].nil?
+      @runner.registerError("Could not find the '#{col_name}' schedule.")
+      return false
+    end
+
+    col_index = get_col_index(col_name: col_name)
+    year_description = @model.getYearDescription
+    num_hrs_in_year = Constants.NumHoursInYear(year_description.isLeapYear)
+    schedule_length = @schedules[col_name].length
+    min_per_item = 60.0 / (schedule_length / num_hrs_in_year)
+
+    schedule_file = OpenStudio::Model::ScheduleFile.new(@external_file)
+    schedule_file.setName(col_name)
+    schedule_file.setColumnNumber(col_index + 1)
+    schedule_file.setRowstoSkipatTop(rows_to_skip)
+    schedule_file.setNumberofHoursofData(num_hrs_in_year.to_i)
+    schedule_file.setMinutesperItem("#{min_per_item.to_i}")
+
+    return schedule_file
+  end
+
+  # the equivalent number of hours in the year, if the schedule was at full load (1.0)
+  def annual_equivalent_full_load_hrs(col_name:)
+    import(col_name: col_name)
+
+    year_description = @model.getYearDescription
+    num_hrs_in_year = Constants.NumHoursInYear(year_description.isLeapYear)
+    schedule_length = @schedules[col_name].length
+    min_per_item = 60.0 / (schedule_length / num_hrs_in_year)
+
+    ann_equiv_full_load_hrs = @schedules[col_name].reduce(:+) / (60.0 / min_per_item)
+
+    return ann_equiv_full_load_hrs
+  end
+
+  # the power in watts the equipment needs to consume so that, if it were to run annual_equivalent_full_load_hrs hours,
+  # it would consume the annual_kwh energy in the year. Essentially, returns the watts for the equipment when schedule
+  # is at 1.0, so that, for the given schedule values, the equipment will consume annual_kwh energy in a year.
+  def calc_design_level_from_annual_kwh(col_name:,
+                                        annual_kwh:)
+
+    ann_equiv_full_load_hrs = annual_equivalent_full_load_hrs(col_name: col_name)
+    design_level = annual_kwh * 1000.0 / ann_equiv_full_load_hrs # W
+
+    return design_level
+  end
+
+  # Similar to ann_equiv_full_load_hrs, but for thermal energy
+  def calc_design_level_from_annual_therm(col_name:,
+                                          annual_therm:)
+
+    annual_kwh = UnitConversions.convert(annual_therm, 'therm', 'kWh')
+    design_level = calc_design_level_from_annual_kwh(col_name: col_name, annual_kwh: annual_kwh)
+
+    return design_level
+  end
+
+  # similar to the calc_design_level_from_annual_kwh, but use daily_kwh instead of annual_kwh to calculate the design
+  # level
+  def calc_design_level_from_daily_kwh(col_name:,
+                                       daily_kwh:)
+    full_load_hrs = annual_equivalent_full_load_hrs(col_name: col_name)
+    year_description = @model.getYearDescription
+    num_days_in_year = Constants.NumDaysInYear(year_description.isLeapYear)
+    daily_full_load_hrs = full_load_hrs / num_days_in_year
+    design_level = UnitConversions.convert(daily_kwh / daily_full_load_hrs, 'kW', 'W')
+
+    return design_level
+  end
+
+  # thermal equivalent of calc_design_level_from_daily_kwh
+  def calc_design_level_from_daily_therm(col_name:,
+                                         daily_therm:)
+    daily_kwh = UnitConversions.convert(daily_therm, 'therm', 'kWh')
+    design_level = calc_design_level_from_daily_kwh(col_name: col_name, daily_kwh: daily_kwh)
+    return design_level
+  end
+
+  # similar to calc_design_level_from_daily_kwh but for water usage
+  def calc_peak_flow_from_daily_gpm(col_name:, daily_water:)
+    ann_equiv_full_load_hrs = annual_equivalent_full_load_hrs(col_name: col_name)
+    year_description = @model.getYearDescription
+    num_days_in_year = Constants.NumDaysInYear(year_description.isLeapYear)
+    daily_full_load_hrs = ann_equiv_full_load_hrs / num_days_in_year
+    peak_flow = daily_water / daily_full_load_hrs # gallons_per_hour
+    peak_flow /= 60 # convert to gallons per minute
+    peak_flow = UnitConversions.convert(peak_flow, 'gal/min', 'm^3/s') # convert to m^3/s
+    return peak_flow
+  end
+
+  # get daily gallons from the peak flow rate
+  def calc_daily_gpm_from_peak_flow(col_name:, peak_flow:)
+    ann_equiv_full_load_hrs = annual_equivalent_full_load_hrs(col_name: col_name)
+    year_description = @model.getYearDescription
+    num_days_in_year = Constants.NumDaysInYear(year_description.isLeapYear)
+    peak_flow = UnitConversions.convert(peak_flow, 'm^3/s', 'gal/min')
+    daily_gallons = (ann_equiv_full_load_hrs * 60 * peak_flow) / num_days_in_year
+    return daily_gallons
+  end
+
+  def validate_schedule(col_name:,
+                        values:)
+
+    year_description = @model.getYearDescription
+    num_hrs_in_year = Constants.NumHoursInYear(year_description.isLeapYear)
+    schedule_length = values.length
+
+    if values.max > 1
+      @runner.registerError("The max value of schedule '#{col_name}' is greater than 1.")
+      @validated = false
+    end
+
+    min_per_item = 60.0 / (schedule_length / num_hrs_in_year)
+    unless [1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30, 60].include? min_per_item
+      @runner.registerError("Calculated an invalid schedule min_per_item=#{min_per_item}.")
+      @validated = false
+    end
+  end
+
+  def external_file
+    return @external_file
+  end
+
+  def get_external_file
+    if File.exist? @schedules_path
+      external_file = OpenStudio::Model::ExternalFile::getExternalFile(@model, @schedules_path)
+      if external_file.is_initialized
+        external_file = external_file.get
+        external_file.setName(external_file.fileName)
+      end
+    end
+    return external_file
+  end
+
+  def set_vacancy(col_name:)
+    return unless @schedules.keys.include? 'vacancy'
+    return if @schedules['vacancy'].all? { |i| i == 0 }
+
+    @schedules[col_name].each_with_index do |ts, i|
+      @schedules[col_name][i] *= (1.0 - @schedules['vacancy'][i])
+    end
+    update(col_name: col_name)
+  end
+
+  def set_outage(col_name:,
+                 outage_start_date:,
+                 outage_start_hour:,
+                 outage_length:)
+
+    min_per_step = 1
+    if @model.getSimulationControl.timestep.is_initialized
+      min_per_step = 60 / @model.getSimulationControl.timestep.get.numberOfTimestepsPerHour
+    end
+
+    year_description = @model.getYearDescription
+    num_hrs_in_year = Constants.NumHoursInYear(year_description.isLeapYear)
+    schedule_length = @schedules[col_name].length
+    min_per_item = 60.0 / (schedule_length / num_hrs_in_year)
+    sec_per_step = min_per_step * 60.0
+    sim_year = year_description.calendarYear.get
+
+    start_month = outage_start_date.split[0]
+    start_day = outage_start_date.split[1].to_i
+    outage_start_date = Time.new(sim_year, OpenStudio::monthOfYear(start_month).value, start_day, outage_start_hour)
+    outage_end_date = outage_start_date + outage_length * 3600.0
+
+    ts = Time.new(sim_year, 'Jan', 1)
+    @schedules[col_name].each_with_index do |step, i|
+      if outage_start_date <= ts && ts <= outage_end_date # in the outage period
+        @schedules[col_name][i] = 0.0
+      end
+      ts += sec_per_step
+    end
+
+    update(col_name: col_name)
+  end
+
+  def import(col_name:)
+    return if @schedules.keys.include? col_name
+
+    col_names = [col_name, 'vacancy']
+    columns = CSV.read(@schedules_path).transpose
+    columns.each do |col|
+      next if not col_names.include? col[0]
+
+      values = col[1..-1].reject { |v| v.nil? }
+      values = values.map { |v| v.to_f }
+      validate_schedule(col_name: col[0], values: values)
+      @schedules[col[0]] = values
+    end
+  end
+
+  def export
+    return false if @schedules_path.nil?
+
+    CSV.open(@schedules_path, 'wb') do |csv|
+      csv << @schedules.keys
+      rows = @schedules.values.transpose
+      rows.each do |row|
+        csv << row
+      end
+    end
+
+    return true
+  end
+
+  def update(col_name:)
+    return false if @schedules_path.nil?
+
+    # this is super hacky, i know.
+    # it appears that when you start running the osw, the generated_files folder is automatically created (alongside the run folder).
+    # the initially generated schedules.csv is placed (how?) into this generated_files folder
+    # but then subsequent files of the same name are not placed into this generated_files folder (why not?)
+
+    schedules_path = File.expand_path(File.join(File.dirname(@schedules_path), '../generated_files', File.basename(@schedules_path)))
+
+    col_num = get_col_index(col_name: col_name)
+    columns = CSV.read(schedules_path).transpose
+    columns.each_with_index do |col, i|
+      next unless i == col_num
+
+      col[1..-1] = @schedules[col_name]
+    end
+
+    rows = columns.transpose
+    CSV.open(schedules_path, 'wb') do |csv|
+      rows.each do |row|
+        csv << row
+      end
+    end
+  end
+end
