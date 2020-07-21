@@ -6,7 +6,7 @@ class HotWaterAndAppliances
                  clothes_dryers, dishwashers, refrigerators,
                  freezers, cooking_ranges, ovens, fixtures_usage_multiplier,
                  water_fixtures, water_heating_systems, hot_water_distribution,
-                 solar_thermal_system, eri_version, dhw_map)
+                 solar_thermal_system, eri_version, dhw_map, schedules_file)
 
     # Map plant loops to sys_ids
     dhw_loops = {}
@@ -135,16 +135,26 @@ class HotWaterAndAppliances
 
         cw_annual_kwh, cw_frac_sens, cw_frac_lat, cw_gpd = calc_clothes_washer_energy_gpd(eri_version, nbeds, clothes_washer, clothes_washer.additional_properties.space.nil?)
         cw_name = Constants.ObjectNameClothesWasher
-        cw_schedule = HotWaterSchedule.new(model, cw_name, nbeds)
-        cw_peak_flow = cw_schedule.calcPeakFlowFromDailygpm(cw_gpd)
-        cw_design_level_w = cw_schedule.calcDesignLevelFromDailykWh(cw_annual_kwh / 365.0)
+
+        if (not clothes_washer.water_schedules_column_name.nil?) && (not clothes_washer.power_schedules_column_name.nil?)
+          cw_peak_flow = schedules_file.calc_peak_flow_from_daily_gpm(col_name: clothes_washer.water_schedules_column_name, daily_water: cw_gpd) # FIXME: cw_gpd?
+          cw_design_level_w = schedules_file.calc_design_level_from_daily_kwh(col_name: clothes_washer.power_schedules_column_name, daily_kwh: cw_annual_kwh / 365.0)
+          water_cw_schedule = schedules_file.create_schedule_file(col_name: clothes_washer.water_schedules_column_name)
+          power_cw_schedule = schedules_file.create_schedule_file(col_name: clothes_washer.power_schedules_column_name)
+        else
+          cw_schedule = HotWaterSchedule.new(model, cw_name, nbeds)
+          cw_peak_flow = cw_schedule.calcPeakFlowFromDailygpm(cw_gpd)
+          cw_design_level_w = cw_schedule.calcDesignLevelFromDailykWh(cw_annual_kwh / 365.0)
+          water_cw_schedule = cw_schedule.schedule
+          power_cw_schedule = cw_schedule.schedule
+        end
 
         cw_space = clothes_washer.additional_properties.space
         cw_space = living_space if cw_space.nil? # appliance is outdoors, so we need to assign the equipment to an arbitrary space
-        add_electric_equipment(model, cw_name, cw_space, cw_design_level_w, cw_frac_sens, cw_frac_lat, cw_schedule.schedule)
+        add_electric_equipment(model, cw_name, cw_space, cw_design_level_w, cw_frac_sens, cw_frac_lat, power_cw_schedule)
         dhw_loop_fracs.each do |sys_id, dhw_load_frac|
           dhw_loop = dhw_loops[sys_id]
-          add_water_use_equipment(model, cw_name, cw_peak_flow * dhw_load_frac, cw_schedule.schedule, setpoint_scheds[dhw_loop], water_use_connections[dhw_loop])
+          add_water_use_equipment(model, cw_name, cw_peak_flow * dhw_load_frac, water_cw_schedule, setpoint_scheds[dhw_loop], water_use_connections[dhw_loop])
         end
       end
 
@@ -154,16 +164,26 @@ class HotWaterAndAppliances
 
         dw_annual_kwh, dw_frac_sens, dw_frac_lat, dw_gpd = calc_dishwasher_energy_gpd(eri_version, nbeds, dishwasher, dishwasher.additional_properties.space.nil?)
         dw_name = Constants.ObjectNameDishwasher
-        dw_schedule = HotWaterSchedule.new(model, dw_name, nbeds)
-        dw_peak_flow = dw_schedule.calcPeakFlowFromDailygpm(dw_gpd)
-        dw_design_level_w = dw_schedule.calcDesignLevelFromDailykWh(dw_annual_kwh / 365.0)
+
+        if (not dishwasher.water_schedules_column_name.nil?) && (not dishwasher.power_schedules_column_name.nil?)
+          dw_peak_flow = schedules_file.calc_peak_flow_from_daily_gpm(col_name: dishwasher.water_schedules_column_name, daily_water: cw_gpd) # FIXME: cw_gpd?
+          dw_design_level_w = schedules_file.calc_design_level_from_daily_kwh(col_name: dishwasher.power_schedules_column_name, daily_kwh: cw_annual_kwh / 365.0)
+          water_dw_schedule = schedules_file.create_schedule_file(col_name: dishwasher.water_schedules_column_name)
+          power_dw_schedule = schedules_file.create_schedule_file(col_name: dishwasher.power_schedules_column_name)
+        else
+          dw_schedule = HotWaterSchedule.new(model, dw_name, nbeds)
+          dw_peak_flow = dw_schedule.calcPeakFlowFromDailygpm(dw_gpd)
+          dw_design_level_w = dw_schedule.calcDesignLevelFromDailykWh(dw_annual_kwh / 365.0)
+          water_dw_schedule = dw_schedule.schedule
+          power_dw_schedule = dw_schedule.schedule
+        end
 
         dw_space = dishwasher.additional_properties.space
         dw_space = living_space if dw_space.nil? # appliance is outdoors, so we need to assign the equipment to an arbitrary space
-        add_electric_equipment(model, dw_name, dw_space, dw_design_level_w, dw_frac_sens, dw_frac_lat, dw_schedule.schedule)
+        add_electric_equipment(model, dw_name, dw_space, dw_design_level_w, dw_frac_sens, dw_frac_lat, power_dw_schedule)
         dhw_loop_fracs.each do |sys_id, dhw_load_frac|
           dhw_loop = dhw_loops[sys_id]
-          add_water_use_equipment(model, dw_name, dw_peak_flow * dhw_load_frac, dw_schedule.schedule, setpoint_scheds[dhw_loop], water_use_connections[dhw_loop])
+          add_water_use_equipment(model, dw_name, dw_peak_flow * dhw_load_frac, water_dw_schedule, setpoint_scheds[dhw_loop], water_use_connections[dhw_loop])
         end
       end
     end
@@ -228,17 +248,25 @@ class HotWaterAndAppliances
 
       cook_annual_kwh, cook_annual_therm, cook_frac_sens, cook_frac_lat = calc_range_oven_energy(nbeds, cooking_range, oven, cooking_range.additional_properties.space.nil?)
       cook_name = Constants.ObjectNameCookingRange
-      cook_weekday_sch = cooking_range.weekday_fractions
-      cook_weekend_sch = cooking_range.weekend_fractions
-      cook_monthly_sch = cooking_range.monthly_multipliers
-      cook_schedule = MonthWeekdayWeekendSchedule.new(model, cook_name, cook_weekday_sch, cook_weekend_sch, cook_monthly_sch, 1.0, 1.0, true, true, Constants.ScheduleTypeLimitsFraction)
-      cook_design_level_e = cook_schedule.calcDesignLevelFromDailykWh(cook_annual_kwh / 365.0)
-      cook_design_level_f = cook_schedule.calcDesignLevelFromDailyTherm(cook_annual_therm / 365.0)
+
+      if not cooking_range.schedules_column_name.nil?
+        cook_design_level_e = schedules_file.calc_design_level_from_annual_kwh(col_name: cooking_range.schedules_column_name, annual_kwh: cook_annual_kwh)
+        cook_design_level_f = schedules_file.calc_design_level_from_annual_therm(col_name: cooking_range.schedules_column_name, annual_therm: cook_annual_therm)
+        cook_schedule = schedules_file.create_schedule_file(col_name: cooking_range.schedules_column_name)
+      else
+        cook_weekday_sch = cooking_range.weekday_fractions
+        cook_weekend_sch = cooking_range.weekend_fractions
+        cook_monthly_sch = cooking_range.monthly_multipliers
+        cook_schedule = MonthWeekdayWeekendSchedule.new(model, cook_name, cook_weekday_sch, cook_weekend_sch, cook_monthly_sch, 1.0, 1.0, true, true, Constants.ScheduleTypeLimitsFraction)
+        cook_design_level_e = cook_schedule.calcDesignLevelFromDailykWh(cook_annual_kwh / 365.0)
+        cook_design_level_f = cook_schedule.calcDesignLevelFromDailyTherm(cook_annual_therm / 365.0)
+        cook_schedule = cook_schedule.schedule
+      end
 
       cook_space = cooking_range.additional_properties.space
       cook_space = living_space if cook_space.nil? # appliance is outdoors, so we need to assign the equipment to an arbitrary space
-      add_electric_equipment(model, cook_name, cook_space, cook_design_level_e, cook_frac_sens, cook_frac_lat, cook_schedule.schedule)
-      add_other_equipment(model, cook_name, cook_space, cook_design_level_f, cook_frac_sens, cook_frac_lat, cook_schedule.schedule, cooking_range.fuel_type)
+      add_electric_equipment(model, cook_name, cook_space, cook_design_level_e, cook_frac_sens, cook_frac_lat, cook_schedule)
+      add_other_equipment(model, cook_name, cook_space, cook_design_level_f, cook_frac_sens, cook_frac_lat, cook_schedule, cooking_range.fuel_type)
     end
   end
 

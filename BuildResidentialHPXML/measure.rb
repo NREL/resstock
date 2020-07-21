@@ -121,10 +121,9 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDescription('This numeric field should contain the ending day of the ending month (must be valid for month) for the daylight saving period desired.')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument.makeStringArgument('schedules_output_path', true)
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('schedules_output_path', false)
     arg.setDisplayName('Schedules Output File Path')
     arg.setDescription('Absolute (or relative) path of the output schedules file.')
-    arg.setDefaultValue('../schedules.csv')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('weather_station_epw_filepath', true)
@@ -3025,7 +3024,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     args[:weather_dir] = runner.getStringArgumentValue('weather_dir', user_arguments)
     args[:software_program_used] = runner.getOptionalStringArgumentValue('software_program_used', user_arguments)
     args[:software_program_version] = runner.getOptionalStringArgumentValue('software_program_version', user_arguments)
-    args[:schedules_output_path] = runner.getStringArgumentValue('schedules_output_path', user_arguments)
+    args[:schedules_output_path] = runner.getOptionalStringArgumentValue('schedules_output_path', user_arguments)
     args[:geometry_roof_pitch] = { '1:12' => 1.0 / 12.0, '2:12' => 2.0 / 12.0, '3:12' => 3.0 / 12.0, '4:12' => 4.0 / 12.0, '5:12' => 5.0 / 12.0, '6:12' => 6.0 / 12.0, '7:12' => 7.0 / 12.0, '8:12' => 8.0 / 12.0, '9:12' => 9.0 / 12.0, '10:12' => 10.0 / 12.0, '11:12' => 11.0 / 12.0, '12:12' => 12.0 / 12.0 }[args[:geometry_roof_pitch]]
 
     # Argument error checks
@@ -3615,9 +3614,6 @@ class HPXMLFile
     success = create_geometry_envelope(runner, model_geometry, args)
     return false if not success
 
-    # success = create_schedules(runner, model, args)
-    # return false if not success
-
     hpxml = HPXML.new
 
     set_header(hpxml, runner, args)
@@ -3666,6 +3662,15 @@ class HPXMLFile
     set_pool(hpxml, runner, args)
     set_hot_tub(hpxml, runner, args)
 
+    if args[:schedules_output_path].is_initialized
+      args[:schedules_output_path] = args[:schedules_output_path].get
+
+      success = create_schedules(runner, model, weather, args)
+      return false if not success
+
+      set_schedules(hpxml, runner, args)
+    end
+
     # Check for errors in the HPXML object
     errors = hpxml.check_for_errors()
     if errors.size > 0
@@ -3701,19 +3706,67 @@ class HPXMLFile
     return true
   end
 
-  def self.create_schedules(runner, model, args)
-    schedule_file = SchedulesFile.new(runner: runner, model: model, **args)
+  def self.create_schedules(runner, model, weather, args)
+    if args[:geometry_num_occupants] == Constants.Auto
+      args[:num_occupants] = Geometry.get_occupancy_default_num(args[:geometry_num_bedrooms])
+    else
+      args[:num_occupants] = Integer(args[:geometry_num_occupants])
+    end
+    args[:vacancy_start_date] = 'NA' # TODO: add to args
+    args[:vacancy_end_date] = 'NA' # TODO: add to args
+    args[:schedules_path] = File.join(File.dirname(__FILE__), 'resources/schedules')
+    model.getYearDescription.setCalendarYear(2007) # FIXME: why isn't calendarYear already set?
 
-    success = schedule_file.create_occupant_schedule
+    schedule_generator = ScheduleGenerator.new(runner: runner, model: model, weather: weather, **args)
+
+    # create the schedule
+    success = schedule_generator.create
     return false if not success
 
-    success = schedule_file.create_refrigerator_schedule
-    return false if not success
-
-    success = schedule_file.export
+    # export the schedule
+    success = schedule_generator.export(output_path: File.expand_path(args[:schedules_output_path]))
     return false if not success
 
     return true
+  end
+
+  def self.set_schedules(hpxml, runner, args)
+    hpxml.header.schedules_output_path = args[:schedules_output_path]
+
+    hpxml.building_occupancy.schedules_column_name = 'occupants'
+
+    hpxml.water_fixtures.each do |water_fixture|
+      if water_fixture.water_fixture_type == HPXML::WaterFixtureTypeShowerhead
+        water_fixture.schedules_column_name = 'showers'
+      elsif water_fixture.water_fixture_type == HPXML::WaterFixtureTypeFaucet
+        water_fixture.schedules_column_name = 'sinks'
+      end
+    end
+
+    hpxml.clothes_washers.each do |clothes_washer|
+      clothes_washer.water_schedules_column_name = 'clothes_washer'
+      clothes_washer.power_schedules_column_name = 'clothes_washer_power'
+    end
+
+    hpxml.dishwashers.each do |dishwasher|
+      dishwasher.water_schedules_column_name = 'dishwasher'
+      dishwasher.power_schedules_column_name = 'dishwasher_power'
+    end
+
+    hpxml.cooking_ranges.each do |cooking_range|
+      cooking_range.schedules_column_name = 'cooking_range'
+    end
+
+    hpxml.lighting.interior_schedules_column_name = 'lighting_interior'
+    hpxml.lighting.exterior_schedules_column_name = 'lighting_exterior'
+    hpxml.lighting.garage_schedules_column_name = 'lighting_garage'
+    hpxml.lighting.holiday_schedules_column_name = 'lighting_exterior_holiday'
+
+    hpxml.plug_loads.each do |plug_load|
+      next if plug_load.plug_load_type != HPXML::PlugLoadTypeOther
+
+      plug_load.schedules_column_name = 'plug_loads'
+    end
   end
 
   def self.set_header(hpxml, runner, args)
@@ -3808,8 +3861,6 @@ class HPXMLFile
     if args[:geometry_num_occupants] != Constants.Auto
       hpxml.building_occupancy.number_of_residents = args[:geometry_num_occupants]
     end
-    hpxml.building_occupancy.schedules_output_path = args[:schedules_output_path]
-    hpxml.building_occupancy.schedules_column_name = 'occupants'
   end
 
   def self.set_building_construction(hpxml, runner, args)
@@ -5239,9 +5290,7 @@ class HPXMLFile
                             usage_multiplier: usage_multiplier,
                             weekday_fractions: refrigerator_weekday_fractions,
                             weekend_fractions: refrigerator_weekend_fractions,
-                            monthly_multipliers: refrigerator_monthly_multipliers,
-                            schedules_output_path: args[:schedules_output_path],
-                            schedules_column_name: 'refrigerator')
+                            monthly_multipliers: refrigerator_monthly_multipliers)
   end
 
   def self.set_extra_refrigerator(hpxml, runner, args)
