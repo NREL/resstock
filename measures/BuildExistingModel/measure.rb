@@ -78,7 +78,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     measures_to_ignore = runner.getOptionalStringArgumentValue('measures_to_ignore', user_arguments)
 
     # Save the building id
-    model.getBuilding.additionalProperties.setFeature('Building ID', building_id)
+    model.getBuilding.additionalProperties.setFeature('Building ID', building_unit_id)
 
     # Get file/dir paths
     resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), '../../lib/resources')) # Should have been uploaded per 'Additional Analysis Files' in PAT
