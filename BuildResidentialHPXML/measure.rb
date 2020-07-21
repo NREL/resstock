@@ -3070,16 +3070,16 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     unless (Pathname.new weather_dir).absolute?
       weather_dir = File.expand_path(File.join(File.dirname(__FILE__), '..', weather_dir))
     end
-    epw_path = File.join(weather_dir, args[:weather_station_epw_filepath])
-    if not File.exist?(epw_path)
-      runner.registerError("Could not find EPW file at '#{epw_path}'.")
+    args[:weather_station_epw_filepath] = File.join(weather_dir, args[:weather_station_epw_filepath])
+    if not File.exist?(args[:weather_station_epw_filepath])
+      runner.registerError("Could not find EPW file at '#{args[:weather_station_epw_filepath]}'.")
       return false
     end
-    cache_path = epw_path.gsub('.epw', '-cache.csv')
+    cache_path = args[:weather_station_epw_filepath].gsub('.epw', '-cache.csv')
     if not File.exist?(cache_path)
       # Process weather file to create cache .csv
       runner.registerWarning("'#{cache_path}' could not be found; regenerating it.")
-      epw_file = OpenStudio::EpwFile.new(epw_path)
+      epw_file = OpenStudio::EpwFile.new(args[:weather_station_epw_filepath])
       OpenStudio::Model::WeatherFile.setWeatherFile(model, epw_file)
       weather = WeatherProcess.new(model, runner)
       File.open(cache_path, 'wb') do |file|
@@ -3740,8 +3740,15 @@ class HPXMLFile
     else
       args[:geometry_num_occupants] = Integer(args[:geometry_num_occupants])
     end
+
     args[:schedules_path] = File.join(File.dirname(__FILE__), 'resources/schedules')
-    model.getYearDescription.setCalendarYear(2007) # FIXME: why isn't calendarYear already set?
+
+    year_description = model.getYearDescription
+    year_description.setCalendarYear(2007) # default to TMY
+    epw_file = OpenStudio::EpwFile.new(args[:weather_station_epw_filepath])
+    if epw_file.startDateActualYear.is_initialized # AMY
+      year_description.setCalendarYear(epw_file.startDateActualYear.get)
+    end
 
     schedule_generator = ScheduleGenerator.new(runner: runner, model: model, weather: weather, **args)
 
@@ -3920,8 +3927,8 @@ class HPXMLFile
       hpxml.climate_and_risk_zones.iecc_year = 2006
       hpxml.climate_and_risk_zones.iecc_zone = iecc_zone
     end
-    hpxml.climate_and_risk_zones.weather_station_name = args[:weather_station_epw_filepath].gsub('.epw', '')
-    hpxml.climate_and_risk_zones.weather_station_epw_filepath = args[:weather_station_epw_filepath]
+    hpxml.climate_and_risk_zones.weather_station_name = File.basename(args[:weather_station_epw_filepath]).gsub('.epw', '')
+    hpxml.climate_and_risk_zones.weather_station_epw_filepath = File.basename(args[:weather_station_epw_filepath])
   end
 
   def self.set_attics(hpxml, runner, model, args)
