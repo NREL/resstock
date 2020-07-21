@@ -591,6 +591,15 @@ class ScheduleGenerator
     else
       @runner.registerInfo('No vacancy period set.')
     end
+
+    @schedules.keys.each do |col_name|
+      next if col_name.include? 'vacancy'
+
+      @schedules[col_name].each_with_index do |ts, i|
+        @schedules[col_name][i] *= (1.0 - @schedules['vacancy'][i])
+      end
+    end
+
     return true
   end
 

@@ -966,16 +966,6 @@ class SchedulesFile
     return external_file
   end
 
-  def set_vacancy(col_name:)
-    return unless @schedules.keys.include? 'vacancy'
-    return if @schedules['vacancy'].all? { |i| i == 0 }
-
-    @schedules[col_name].each_with_index do |ts, i|
-      @schedules[col_name][i] *= (1.0 - @schedules['vacancy'][i])
-    end
-    update(col_name: col_name)
-  end
-
   def set_outage(col_name:,
                  outage_start_date:,
                  outage_start_hour:,
@@ -1012,7 +1002,7 @@ class SchedulesFile
   def import(col_name:)
     return if @schedules.keys.include? col_name
 
-    col_names = [col_name, 'vacancy']
+    col_names = [col_name]
     columns = CSV.read(@schedules_path).transpose
     columns.each do |col|
       next if not col_names.include? col[0]
@@ -1036,31 +1026,5 @@ class SchedulesFile
     end
 
     return true
-  end
-
-  def update(col_name:)
-    return false if @schedules_path.nil?
-
-    # this is super hacky, i know.
-    # it appears that when you start running the osw, the generated_files folder is automatically created (alongside the run folder).
-    # the initially generated schedules.csv is placed (how?) into this generated_files folder
-    # but then subsequent files of the same name are not placed into this generated_files folder (why not?)
-
-    schedules_path = File.expand_path(File.join(File.dirname(@schedules_path), '../generated_files', File.basename(@schedules_path)))
-
-    col_num = get_col_index(col_name: col_name)
-    columns = CSV.read(schedules_path).transpose
-    columns.each_with_index do |col, i|
-      next unless i == col_num
-
-      col[1..-1] = @schedules[col_name]
-    end
-
-    rows = columns.transpose
-    CSV.open(schedules_path, 'wb') do |csv|
-      rows.each do |row|
-        csv << row
-      end
-    end
   end
 end
