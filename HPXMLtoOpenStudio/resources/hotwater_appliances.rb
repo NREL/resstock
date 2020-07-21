@@ -141,6 +141,7 @@ class HotWaterAndAppliances
           cw_design_level_w = schedules_file.calc_design_level_from_daily_kwh(col_name: clothes_washer.power_schedules_column_name, daily_kwh: cw_annual_kwh / 365.0)
           water_cw_schedule = schedules_file.create_schedule_file(col_name: clothes_washer.water_schedules_column_name)
           power_cw_schedule = schedules_file.create_schedule_file(col_name: clothes_washer.power_schedules_column_name)
+          schedules_file.set_vacancy(col_name: clothes_washer.power_schedules_column_name)
         else
           cw_schedule = HotWaterSchedule.new(model, cw_name, nbeds)
           cw_peak_flow = cw_schedule.calcPeakFlowFromDailygpm(cw_gpd)
@@ -170,6 +171,7 @@ class HotWaterAndAppliances
           dw_design_level_w = schedules_file.calc_design_level_from_daily_kwh(col_name: dishwasher.power_schedules_column_name, daily_kwh: cw_annual_kwh / 365.0)
           water_dw_schedule = schedules_file.create_schedule_file(col_name: dishwasher.water_schedules_column_name)
           power_dw_schedule = schedules_file.create_schedule_file(col_name: dishwasher.power_schedules_column_name)
+          schedules_file.set_vacancy(col_name: dishwasher.power_schedules_column_name)
         else
           dw_schedule = HotWaterSchedule.new(model, dw_name, nbeds)
           dw_peak_flow = dw_schedule.calcPeakFlowFromDailygpm(dw_gpd)
@@ -253,6 +255,7 @@ class HotWaterAndAppliances
         cook_design_level_e = schedules_file.calc_design_level_from_annual_kwh(col_name: cooking_range.schedules_column_name, annual_kwh: cook_annual_kwh)
         cook_design_level_f = schedules_file.calc_design_level_from_annual_therm(col_name: cooking_range.schedules_column_name, annual_therm: cook_annual_therm)
         cook_schedule = schedules_file.create_schedule_file(col_name: cooking_range.schedules_column_name)
+        schedules_file.set_vacancy(col_name: cooking_range.schedules_column_name)
       else
         cook_weekday_sch = cooking_range.weekday_fractions
         cook_weekend_sch = cooking_range.weekend_fractions

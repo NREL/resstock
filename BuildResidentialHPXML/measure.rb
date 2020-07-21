@@ -121,6 +121,30 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDescription('This numeric field should contain the ending day of the ending month (must be valid for month) for the daylight saving period desired.')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument.makeIntegerArgument('simulation_control_vacancy_begin_month', false)
+    arg.setDisplayName('Simulation Control: Vacancy Start Begin Month')
+    arg.setUnits('month')
+    arg.setDescription('This numeric field should contain the starting month number (1 = January, 2 = February, etc.) for the vacancy period desired.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeIntegerArgument('simulation_control_vacancy_begin_day_of_month', false)
+    arg.setDisplayName('Simulation Control: Vacancy Begin Day of Month')
+    arg.setUnits('day')
+    arg.setDescription('This numeric field should contain the starting day of the starting month (must be valid for month) for the vacancy period desired.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeIntegerArgument('simulation_control_vacancy_end_month', false)
+    arg.setDisplayName('Simulation Control: Vacancy Start End Month')
+    arg.setUnits('month')
+    arg.setDescription('This numeric field should contain the end month number (1 = January, 2 = February, etc.) for the vacancy period desired.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeIntegerArgument('simulation_control_vacancy_end_day_of_month', false)
+    arg.setDisplayName('Simulation Control: Vacancy End Day of Month')
+    arg.setUnits('day')
+    arg.setDescription('This numeric field should contain the ending day of the ending month (must be valid for month) for the vacancy period desired.')
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('schedules_output_path', false)
     arg.setDisplayName('Schedules Output File Path')
     arg.setDescription('Absolute (or relative) path of the output schedules file.')
@@ -3101,6 +3125,10 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
              simulation_control_daylight_saving_begin_day_of_month: runner.getOptionalIntegerArgumentValue('simulation_control_daylight_saving_begin_day_of_month', user_arguments),
              simulation_control_daylight_saving_end_month: runner.getOptionalIntegerArgumentValue('simulation_control_daylight_saving_end_month', user_arguments),
              simulation_control_daylight_saving_end_day_of_month: runner.getOptionalIntegerArgumentValue('simulation_control_daylight_saving_end_day_of_month', user_arguments),
+             simulation_control_vacancy_begin_month: runner.getOptionalIntegerArgumentValue('simulation_control_vacancy_begin_month', user_arguments),
+             simulation_control_vacancy_begin_day_of_month: runner.getOptionalIntegerArgumentValue('simulation_control_vacancy_begin_day_of_month', user_arguments),
+             simulation_control_vacancy_end_month: runner.getOptionalIntegerArgumentValue('simulation_control_vacancy_end_month', user_arguments),
+             simulation_control_vacancy_end_day_of_month: runner.getOptionalIntegerArgumentValue('simulation_control_vacancy_end_day_of_month', user_arguments),
              weather_station_epw_filepath: runner.getStringArgumentValue('weather_station_epw_filepath', user_arguments),
              site_type: runner.getOptionalStringArgumentValue('site_type', user_arguments),
              geometry_unit_type: runner.getStringArgumentValue('geometry_unit_type', user_arguments),
@@ -3708,12 +3736,10 @@ class HPXMLFile
 
   def self.create_schedules(runner, model, weather, args)
     if args[:geometry_num_occupants] == Constants.Auto
-      args[:num_occupants] = Geometry.get_occupancy_default_num(args[:geometry_num_bedrooms])
+      args[:geometry_num_occupants] = Geometry.get_occupancy_default_num(args[:geometry_num_bedrooms])
     else
-      args[:num_occupants] = Integer(args[:geometry_num_occupants])
+      args[:geometry_num_occupants] = Integer(args[:geometry_num_occupants])
     end
-    args[:vacancy_start_date] = 'NA' # TODO: add to args
-    args[:vacancy_end_date] = 'NA' # TODO: add to args
     args[:schedules_path] = File.join(File.dirname(__FILE__), 'resources/schedules')
     model.getYearDescription.setCalendarYear(2007) # FIXME: why isn't calendarYear already set?
 

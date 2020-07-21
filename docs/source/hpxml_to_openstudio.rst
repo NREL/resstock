@@ -1046,17 +1046,15 @@ Garage lighting values are ignored if the building has no garage.
 Optional ``extension/InteriorUsageMultiplier``, ``extension/ExteriorUsageMultiplier``, and ``extension/GarageUsageMultiplier`` can be provided that scales energy usage; if not provided, they are assumed to be 1.0.
 
 An optional ``extension/ExteriorHolidayLighting`` can also be provided to define additional exterior holiday lighting; if not provided, none will be modeled. 
-If provided, child elements ``Load[Units='kWh/day']/Value``, ``PeriodBeginMonth``, ``PeriodBeginDayOfMonth``, ``PeriodEndMonth``, ``PeriodEndDayOfMonth``, ``WeekdayScheduleFractions``, and ``WeekendScheduleFractions`` can be optionally provided. 
-If the complete set of child elements is not provided, the following default values will be used.
+If provided, child elements ``Load[Units='kWh/day']/Value``, ``PeriodBeginMonth``/``PeriodBeginDayOfMonth``, ``PeriodEndMonth``/``PeriodEndDayOfMonth``, ``WeekdayScheduleFractions``, and ``WeekendScheduleFractions`` can be optionally provided. 
+For the child elements not provided, the following default values will be used.
 
 =============================================  ======================================================================================================
 Element Name                                   Default Value
 =============================================  ======================================================================================================
-Load[Units='kWh/day']/Value                    1.1 for SFD; 0.5 for SFA or MF  
-PeriodBeginMonth                               11  
-PeriodBeginDayOfMonth                          24  
-PeriodEndMonth                                 1  
-PeriodEndDayOfMonth                            6
+Load[Units='kWh/day']/Value                    1.1 for single-family detached and 0.55 for others
+PeriodBeginMonth/PeriodBeginDayOfMonth         11/24 (November 24) 
+PeriodEndMonth/PeriodEndDayOfMonth             1/6 (January 6) 
 WeekdayScheduleFractions                       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.008, 0.098, 0.168, 0.194, 0.284, 0.192, 0.037, 0.019
 WeekendScheduleFractions                       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.008, 0.098, 0.168, 0.194, 0.284, 0.192, 0.037, 0.019
 =============================================  ======================================================================================================

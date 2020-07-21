@@ -907,19 +907,29 @@ class HPXMLDefaults
     if hpxml.lighting.exterior_monthly_multipliers.nil?
       hpxml.lighting.exterior_monthly_multipliers = default_exterior_lighting_monthly_multipliers
     end
-    if (hpxml.lighting.holiday_exists == true) && hpxml.lighting.holiday_kwh_per_day.nil?
-      # From LA100 repo (2017)
-      if hpxml.building_construction.residential_facility_type == HPXML::ResidentialTypeSFD
-        hpxml.lighting.holiday_kwh_per_day = 1.1
-      elsif [HPXML::ResidentialTypeApartment, HPXML::ResidentialTypeSFA].include? hpxml.building_construction.residential_facility_type
-        hpxml.lighting.holiday_kwh_per_day = 0.5
+    if hpxml.lighting.holiday_exists
+      if hpxml.lighting.holiday_kwh_per_day.nil?
+        # From LA100 repo (2017)
+        if hpxml.building_construction.residential_facility_type == HPXML::ResidentialTypeSFD
+          hpxml.lighting.holiday_kwh_per_day = 1.1
+        else # Multifamily and others
+          hpxml.lighting.holiday_kwh_per_day = 0.55
+        end
       end
-      hpxml.lighting.holiday_period_begin_month = 11
-      hpxml.lighting.holiday_period_begin_day_of_month = 24
-      hpxml.lighting.holiday_period_end_month = 1
-      hpxml.lighting.holiday_period_end_day_of_month = 6
-      hpxml.lighting.holiday_weekday_fractions = '0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.008, 0.098, 0.168, 0.194, 0.284, 0.192, 0.037, 0.019'
-      hpxml.lighting.holiday_weekend_fractions = '0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.008, 0.098, 0.168, 0.194, 0.284, 0.192, 0.037, 0.019'
+      if hpxml.lighting.holiday_period_begin_month.nil?
+        hpxml.lighting.holiday_period_begin_month = 11
+        hpxml.lighting.holiday_period_begin_day_of_month = 24
+      end
+      if hpxml.lighting.holiday_period_end_day_of_month.nil?
+        hpxml.lighting.holiday_period_end_month = 1
+        hpxml.lighting.holiday_period_end_day_of_month = 6
+      end
+      if hpxml.lighting.holiday_weekday_fractions.nil?
+        hpxml.lighting.holiday_weekday_fractions = '0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.008, 0.098, 0.168, 0.194, 0.284, 0.192, 0.037, 0.019'
+      end
+      if hpxml.lighting.holiday_weekend_fractions.nil?
+        hpxml.lighting.holiday_weekend_fractions = '0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.008, 0.098, 0.168, 0.194, 0.284, 0.192, 0.037, 0.019'
+      end
     end
   end
 
