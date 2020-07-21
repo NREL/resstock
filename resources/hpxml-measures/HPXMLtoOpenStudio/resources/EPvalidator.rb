@@ -833,7 +833,11 @@ class EnergyPlusValidator
 
       ## [ExteriorHolidayLighting]
       '/HPXML/Building/BuildingDetails/Lighting/extension/ExteriorHolidayLighting' => {
-        'Load[Units="kWh/day"]/Value | PeriodBeginMonth | PeriodBeginDayOfMonth | PeriodEndMonth | PeriodEndDayOfMonth | WeekdayScheduleFractions | WeekendScheduleFractions' => zero_or_seven,
+        'Load[Units="kWh/day"]/Value' => zero_or_one,
+        'PeriodBeginMonth | PeriodBeginDayOfMonth' => zero_or_two, # integer
+        'PeriodEndMonth | PeriodEndDayOfMonth' => zero_or_two, # integer
+        'WeekdayScheduleFractions' => zero_or_one,
+        'WeekendScheduleFractions' => zero_or_one,
       },
 
       # [CeilingFan]

@@ -7,9 +7,11 @@ class ScheduleGenerator
                  model:,
                  weather:,
                  building_id: nil,
-                 num_occupants:,
-                 vacancy_start_date:,
-                 vacancy_end_date:,
+                 geometry_num_occupants:,
+                 simulation_control_vacancy_begin_month:,
+                 simulation_control_vacancy_begin_day_of_month:,
+                 simulation_control_vacancy_end_month:,
+                 simulation_control_vacancy_end_day_of_month:,
                  schedules_path:,
                  simulation_control_timestep:,
                  **remainder)
@@ -18,9 +20,11 @@ class ScheduleGenerator
     @model = model
     @weather = weather
     @building_id = building_id
-    @num_occupants = num_occupants
-    @vacancy_start_date = vacancy_start_date
-    @vacancy_end_date = vacancy_end_date
+    @geometry_num_occupants = geometry_num_occupants
+    @simulation_control_vacancy_begin_month = simulation_control_vacancy_begin_month
+    @simulation_control_vacancy_begin_day_of_month = simulation_control_vacancy_begin_day_of_month
+    @simulation_control_vacancy_end_month = simulation_control_vacancy_end_month
+    @simulation_control_vacancy_end_day_of_month = simulation_control_vacancy_end_day_of_month
     @schedules_path = schedules_path
     @simulation_control_timestep = simulation_control_timestep
   end
@@ -106,9 +110,9 @@ class ScheduleGenerator
 
     all_simulated_values = [] # holds the markov-chain state for each of the seven simulated states for each occupant.
     # States are: 'sleeping', 'shower', 'laundry', 'cooking', 'dishwashing', 'absent', 'nothingAtHome'
-    # if num_occupants = 2, period_in_a_year = 35040,  num_of_states = 7, then
+    # if geometry_num_occupants = 2, period_in_a_year = 35040,  num_of_states = 7, then
     # shape of all_simulated_values is [2, 35040, 7]
-    (1..@num_occupants).each do |i|
+    (1..@geometry_num_occupants).each do |i|
       occ_type_id = weighted_random(prng, schedule_config['occupancy_types_probability'])
       init_prob_file_weekday = @schedules_path + "/weekday/mkv_chain_initial_prob_cluster_#{occ_type_id}.csv"
       initial_prob_weekday = CSV.read(init_prob_file_weekday)
@@ -169,7 +173,7 @@ class ScheduleGenerator
       simulated_values = simulated_values.rotate(-4 * 4) # 4am shifting (4 hours  = 4 * 4 steps of 15 min intervals)
       all_simulated_values << Matrix[*simulated_values]
     end
-    # shape of all_simulated_values is [2, 35040, 7] i.e. (num_occupants, period_in_a_year, number_of_states)
+    # shape of all_simulated_values is [2, 35040, 7] i.e. (geometry_num_occupants, period_in_a_year, number_of_states)
     plugload_sch = schedule_config['plugload']
     lighting_sch = schedule_config['lighting']
     ceiling_fan_sch = schedule_config['ceiling_fan']
@@ -196,10 +200,10 @@ class ScheduleGenerator
       steps_in_day.times do |step|
         minute = day * 1440 + step * minutes_per_steps
         index_15 = (minute / 15).to_i
-        sleep = sum_across_occupants(all_simulated_values, 0, index_15).to_f / @num_occupants
+        sleep = sum_across_occupants(all_simulated_values, 0, index_15).to_f / @geometry_num_occupants
         @schedules['sleep'][day * steps_in_day + step] = sleep
-        away_schedule << sum_across_occupants(all_simulated_values, 5, index_15).to_f / @num_occupants
-        idle_schedule << sum_across_occupants(all_simulated_values, 6, index_15).to_f / @num_occupants
+        away_schedule << sum_across_occupants(all_simulated_values, 5, index_15).to_f / @geometry_num_occupants
+        idle_schedule << sum_across_occupants(all_simulated_values, 6, index_15).to_f / @geometry_num_occupants
         active_occupancy_percentage = 1 - (away_schedule[-1] + sleep)
         @schedules['plug_loads'][day * steps_in_day + step] = get_value_from_daily_sch(plugload_sch, month, is_weekday, minute, active_occupancy_percentage)
         @schedules['lighting_interior'][day * steps_in_day + step] = scale_lighting_by_occupancy(interior_lighting_schedule, minute, active_occupancy_percentage)
@@ -566,10 +570,10 @@ class ScheduleGenerator
 
   def set_vacancy(min_per_step:,
                   sim_year:)
-    if not ((@vacancy_start_date.downcase == 'na') && (@vacancy_end_date.downcase == 'na'))
+    if @simulation_control_vacancy_begin_month.is_initialized && @simulation_control_vacancy_begin_day_of_month.is_initialized && @simulation_control_vacancy_end_month.is_initialized && @simulation_control_vacancy_end_day_of_month.is_initialized
       begin
-        vacancy_start_date = Time.new(sim_year, OpenStudio::monthOfYear(@vacancy_start_date.split[0]).value, @vacancy_start_date.split[1].to_i)
-        vacancy_end_date = Time.new(sim_year, OpenStudio::monthOfYear(@vacancy_end_date.split[0]).value, @vacancy_end_date.split[1].to_i, 24)
+        vacancy_start_date = Time.new(sim_year, @simulation_control_vacancy_begin_month.get, @simulation_control_vacancy_begin_day_of_month.get)
+        vacancy_end_date = Time.new(sim_year, @simulation_control_vacancy_end_month.get, @simulation_control_vacancy_end_day_of_month.get, 24)
 
         sec_per_step = min_per_step * 60.0
         ts = Time.new(sim_year, 'Jan', 1)
@@ -580,7 +584,7 @@ class ScheduleGenerator
           ts += sec_per_step
         end
 
-        @runner.registerInfo("Set vacancy period from #{@vacancy_start_date} tp #{@vacancy_end_date}.")
+        @runner.registerInfo("Set vacancy period from #{vacancy_start_date} to #{vacancy_end_date}.")
       rescue
         @runner.registerError('Invalid vacancy date(s) specified.')
       end

@@ -59,6 +59,7 @@ class Lighting
       if not lighting.interior_schedules_column_name.nil?
         design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: lighting.interior_schedules_column_name, annual_kwh: int_kwh)
         interior_sch = schedules_file.create_schedule_file(col_name: lighting.interior_schedules_column_name)
+        schedules_file.set_vacancy(col_name: lighting.interior_schedules_column_name)
       end
 
       # Add lighting
@@ -83,6 +84,7 @@ class Lighting
       if not lighting.garage_schedules_column_name.nil?
         design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: lighting.garage_schedules_column_name, annual_kwh: grg_kwh)
         garage_sch = schedules_file.create_schedule_file(col_name: lighting.garage_schedules_column_name)
+        schedules_file.set_vacancy(col_name: lighting.garage_schedules_column_name)
       end
 
       # Add lighting
@@ -106,6 +108,7 @@ class Lighting
       if not lighting.exterior_schedules_column_name.nil?
         design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: lighting.exterior_schedules_column_name, annual_kwh: ext_kwh)
         exterior_sch = schedules_file.create_schedule_file(col_name: lighting.exterior_schedules_column_name)
+        schedules_file.set_vacancy(col_name: lighting.exterior_schedules_column_name)
       end
 
       # Add exterior lighting
@@ -124,6 +127,7 @@ class Lighting
       if not lighting.holiday_schedules_column_name.nil?
         design_level = schedules_file.calc_design_level_from_daily_kwh(col_name: lighting.holiday_schedules_column_name, daily_kwh: lighting.holiday_kwh_per_day)
         exterior_holiday_sch = schedules_file.create_schedule_file(col_name: lighting.holiday_schedules_column_name)
+        schedules_file.set_vacancy(col_name: lighting.holiday_schedules_column_name)
       end
 
       # Add exterior holiday lighting

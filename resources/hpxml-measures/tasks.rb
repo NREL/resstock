@@ -209,6 +209,7 @@ def create_osws
     'extra-second-refrigerator.osw' => 'base.osw',
     'extra-second-heating-system-portable-heater.osw' => 'base.osw',
     'extra-second-heating-system-fireplace.osw' => 'base.osw',
+    'extra-vacancy-6-months.osw' => 'base.osw',
 
     'invalid_files/non-electric-heat-pump-water-heater.osw' => 'base.osw',
     'invalid_files/multiple-heating-and-cooling-systems.osw' => 'base.osw',
@@ -1867,6 +1868,12 @@ def get_values(osw_file, step)
     step.setArgument('heating_system_fraction_heat_load_served', 0.75)
     step.setArgument('heating_system_type_2', HPXML::HVACTypeFireplace)
     step.setArgument('heating_system_heating_capacity_2', '16000.0')
+  elsif ['extra-vacancy-6-months.osw'].include? osw_file
+    step.setArgument('simulation_control_vacancy_begin_month', 1)
+    step.setArgument('simulation_control_vacancy_begin_day_of_month', 1)
+    step.setArgument('simulation_control_vacancy_end_month', 1)
+    step.setArgument('simulation_control_vacancy_end_day_of_month', 31)
+    step.setArgument('schedules_output_path', 'BuildResidentialHPXML/resources/schedules/schedules.csv')
   elsif ['invalid_files/non-electric-heat-pump-water-heater.osw'].include? osw_file
     step.setArgument('water_heater_type', HPXML::WaterHeaterTypeHeatPump)
     step.setArgument('water_heater_fuel_type', HPXML::FuelTypeNaturalGas)
