@@ -5905,6 +5905,8 @@ def set_hpxml_clothes_dryer(hpxml_file, hpxml)
     hpxml.clothes_dryers[0].control_type = nil
   elsif ['base-misc-usage-multiplier.xml'].include? hpxml_file
     hpxml.clothes_dryers[0].usage_multiplier = 0.9
+  elsif ['base-simcontrol-generated-schedule.xml'].include? hpxml_file
+    hpxml.clothes_dryers[0].power_schedules_column_name = 'clothes_dryer'
   end
 end
 

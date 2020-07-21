@@ -30,12 +30,12 @@ class MiscLoads
       lat_fract = 0.0
     end
 
-    space_design_level = sch.calcDesignLevelFromDailykWh(kwh / 365.0)
-    sch = sch.schedule
-
     if not plug_load.schedules_column_name.nil?
       space_design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: plug_load.schedules_column_name, annual_kwh: kwh)
       sch = schedules_file.create_schedule_file(col_name: plug_load.schedules_column_name)
+    else
+      space_design_level = sch.calcDesignLevelFromDailykWh(kwh / 365.0)
+      sch = sch.schedule
     end
 
     # Add electric equipment for the mel

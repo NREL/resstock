@@ -3734,7 +3734,7 @@ class HPXML < Object
 
   class ClothesDryer < BaseElement
     ATTRS = [:id, :location, :fuel_type, :energy_factor, :combined_energy_factor, :control_type,
-             :usage_multiplier]
+             :usage_multiplier, :power_schedules_column_name, :exhaust_schedules_column_name]
     attr_accessor(*ATTRS)
 
     def delete
@@ -3759,7 +3759,9 @@ class HPXML < Object
       XMLHelper.add_element(clothes_dryer, 'CombinedEnergyFactor', to_float(@combined_energy_factor)) unless @combined_energy_factor.nil?
       XMLHelper.add_element(clothes_dryer, 'ControlType', @control_type) unless @control_type.nil?
       HPXML::add_extension(parent: clothes_dryer,
-                           extensions: { 'UsageMultiplier' => to_float_or_nil(@usage_multiplier) })
+                           extensions: { 'UsageMultiplier' => to_float_or_nil(@usage_multiplier),
+                                         'PowerSchedulesColumnName' => @power_schedules_column_name,
+                                         'ExhaustSchedulesColumnName' => @exhaust_schedules_column_name })
     end
 
     def from_oga(clothes_dryer)
@@ -3772,6 +3774,8 @@ class HPXML < Object
       @combined_energy_factor = to_float_or_nil(XMLHelper.get_value(clothes_dryer, 'CombinedEnergyFactor'))
       @control_type = XMLHelper.get_value(clothes_dryer, 'ControlType')
       @usage_multiplier = to_float_or_nil(XMLHelper.get_value(clothes_dryer, 'extension/UsageMultiplier'))
+      @power_schedules_column_name = XMLHelper.get_value(clothes_dryer, 'extension/PowerSchedulesColumnName')
+      @exhaust_schedules_column_name = XMLHelper.get_value(clothes_dryer, 'extension/ExhaustSchedulesColumnName')
     end
   end
 
@@ -4287,7 +4291,7 @@ class HPXML < Object
   end
 
   class CeilingFan < BaseElement
-    ATTRS = [:id, :efficiency, :quantity]
+    ATTRS = [:id, :efficiency, :quantity, :schedules_column_name]
     attr_accessor(*ATTRS)
 
     def delete
@@ -4312,12 +4316,15 @@ class HPXML < Object
         XMLHelper.add_element(airflow, 'Efficiency', to_float(@efficiency))
       end
       XMLHelper.add_element(ceiling_fan, 'Quantity', to_integer(@quantity)) unless @quantity.nil?
+      HPXML::add_extension(parent: ceiling_fan,
+                           extensions: { 'SchedulesColumnName' => @schedules_column_name })
     end
 
     def from_oga(ceiling_fan)
       @id = HPXML::get_id(ceiling_fan)
       @efficiency = to_float_or_nil(XMLHelper.get_value(ceiling_fan, "Airflow[FanSpeed='medium']/Efficiency"))
       @quantity = to_integer_or_nil(XMLHelper.get_value(ceiling_fan, 'Quantity'))
+      @schedules_column_name = XMLHelper.get_value(ceiling_fan, 'extension/SchedulesColumnName')
     end
   end
 

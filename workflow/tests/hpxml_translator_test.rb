@@ -280,12 +280,10 @@ class HPXMLTest < MiniTest::Test
       end
 
       return
-    else
-      show_output(runner.result) unless success
-      assert_equal(true, success)
     end
 
     show_output(runner.result) unless success
+    assert_equal(true, success)
 
     # Check for output files
     annual_csv_path = File.join(rundir, 'results_annual.csv')
@@ -376,18 +374,6 @@ class HPXMLTest < MiniTest::Test
   end
 
   def _verify_outputs(runner, rundir, hpxml_path, results)
-    # Check that eplusout.err has no lines that include "Blank Schedule Type Limits Name input"
-    # Check that eplusout.err has no lines that include "FixViewFactors: View factors not complete"
-    # Check that eplusout.err has no lines that include "GetHTSurfaceData: Surfaces with interface to Ground found but no "Ground Temperatures" were input"
-    File.readlines(File.join(rundir, 'eplusout.err')).each do |err_line|
-      next if err_line.include? 'Schedule:Constant="ALWAYS ON CONTINUOUS", Blank Schedule Type Limits Name input'
-      next if err_line.include? 'Schedule:Constant="ALWAYS OFF DISCRETE", Blank Schedule Type Limits Name input'
-
-      assert_equal(err_line.include?('Blank Schedule Type Limits Name input'), false)
-      assert_equal(err_line.include?('FixViewFactors: View factors not complete'), false)
-      assert_equal(err_line.include?('GetHTSurfaceData: Surfaces with interface to Ground found but no "Ground Temperatures" were input'), false)
-    end
-
     # Check run.log warnings
     File.readlines(File.join(rundir, 'run.log')).each do |log_line|
       next if log_line.strip.empty?
@@ -413,6 +399,78 @@ class HPXMLTest < MiniTest::Test
       window.fraction_operable = nil
     end
     hpxml.collapse_enclosure_surfaces()
+
+    # Check for unexpected warnings
+    File.readlines(File.join(rundir, 'eplusout.err')).each do |err_line|
+      next unless err_line.include? '** Warning **'
+
+      # General
+      next if err_line.include? 'Schedule:Constant="ALWAYS ON CONTINUOUS", Blank Schedule Type Limits Name input'
+      next if err_line.include? 'Schedule:Constant="ALWAYS OFF DISCRETE", Blank Schedule Type Limits Name input'
+      next if err_line.include? 'Output:Meter: invalid Key Name'
+      next if err_line.include? 'Entered Zone Volumes differ from calculated zone volume'
+      next if err_line.include?('CalculateZoneVolume') && err_line.include?('not fully enclosed')
+      next if err_line.include?('GetInputViewFactors') && err_line.include?('not enough values')
+      next if err_line.include? 'Pump nominal power or motor efficiency is set to 0'
+      next if err_line.include? 'volume flow rate per watt of rated total cooling capacity is out of range'
+      next if err_line.include? 'volume flow rate per watt of rated total heating capacity is out of range'
+      next if err_line.include? 'The following Report Variables were requested but not generated'
+      next if err_line.include? 'Timestep: Requested number'
+      next if err_line.include? 'The Standard Ratings is calculated for'
+      next if err_line.include?('CheckUsedConstructions') && err_line.include?('nominally unused constructions')
+      next if err_line.include?('WetBulb not converged after') && err_line.include?('iterations(PsyTwbFnTdbWPb)')
+      next if err_line.include? 'Inside surface heat balance did not converge with Max Temp Difference'
+      # HPWHs
+      if hpxml.water_heating_systems.select { |wh| wh.water_heater_type == HPXML::WaterHeaterTypeHeatPump }.size > 0
+        next if err_line.include? 'Recovery Efficiency and Energy Factor could not be calculated during the test for standard ratings'
+        next if err_line.include? 'SimHVAC: Maximum iterations (20) exceeded for all HVAC loops'
+      end
+      # HP defrost curves
+      if hpxml.heat_pumps.select { |hp| [HPXML::HVACTypeHeatPumpAirToAir, HPXML::HVACTypeHeatPumpMiniSplit].include? hp.heat_pump_type }.size > 0
+        next if err_line.include?('GetDXCoils: Coil:Heating:DX') && err_line.include?('curve values')
+      end
+      # FUTURE: Remove when https://github.com/NREL/EnergyPlus/pull/8073 is available
+      if hpxml_path.include? 'ASHRAE_Standard_140'
+        next if err_line.include?('SurfaceProperty:ExposedFoundationPerimeter') && err_line.include?('Total Exposed Perimeter is greater than the perimeter')
+      end
+      # FUTURE: Remove when https://github.com/NREL/EnergyPlus/issues/8163 is addressed
+      if (hpxml.solar_thermal_systems.size > 0) || (hpxml.water_heating_systems.select { |wh| wh.water_heater_type == HPXML::WaterHeaterTypeHeatPump }.size > 0)
+        next if err_line.include? 'More Additional Loss Coefficients were entered than the number of nodes; extra coefficients will not be used'
+      end
+      if hpxml_path.include?('base-dhw-tank-heat-pump-outside.xml') || hpxml_path.include?('base-hvac-flowrate.xml')
+        next if err_line.include? 'Full load outlet air dry-bulb temperature < 2C. This indicates the possibility of coil frost/freeze.'
+        next if err_line.include? 'Full load outlet temperature indicates a possibility of frost/freeze error continues.'
+      end
+      next if err_line.include? 'Missing temperature setpoint for LeavingSetpointModulated mode' # These warnings are fine, simulation continues with assigning plant loop setpoint to boiler, which is the expected one
+      if hpxml.cooling_systems.select { |c| c.cooling_system_type == HPXML::HVACTypeEvaporativeCooler }.size > 0
+        # Evap cooler model is not really using Controller:MechanicalVentilation object, so these warnings of ignoring some features are fine.
+        # OS requires a Controller:MechanicalVentilation to be attached to the oa controller, however it's not required by E+.
+        # Manually removing Controller:MechanicalVentilation from idf eliminates these two warnings.
+        # FUTURE: Can we update OS to allow removing it?
+        next if err_line.include?('Zone') && err_line.include?('is not accounted for by Controller:MechanicalVentilation object')
+        next if err_line.include?('PEOPLE object for zone') && err_line.include?('is not accounted for by Controller:MechanicalVentilation object')
+        # "The only valid controller type for an AirLoopHVAC is Controller:WaterCoil.", evap cooler doesn't need one.
+        next if err_line.include?('GetAirPathData: AirLoopHVAC') && err_line.include?('has no Controllers')
+        # input "Autosize" for Fixed Minimum Air Flow Rate is added by OS translation, now set it to 0 to skip potential sizing process, though no way to prevent this warning.
+        next if err_line.include? 'Since Zone Minimum Air Flow Input Method = CONSTANT, input for Fixed Minimum Air Flow Rate will be ignored'
+      end
+      next if err_line.include?('Glycol: Temperature') && err_line.include?('out of range (too low) for fluid')
+      next if err_line.include?('Glycol: Temperature') && err_line.include?('out of range (too high) for fluid')
+      next if err_line.include? 'Plant loop exceeding upper temperature limit'
+      if hpxml.cooling_systems.select { |c| c.cooling_system_type == HPXML::HVACTypeRoomAirConditioner }.size > 0
+        next if err_line.include? 'GetDXCoils: Coil:Cooling:DX:SingleSpeed="ROOM AC CLG COIL" curve values' # TODO: Double-check curves
+      end
+      next if err_line.include?('Foundation:Kiva') && err_line.include?('wall surfaces with more than four vertices') # TODO: Check alternative approach
+      if hpxml_path.include?('base-simcontrol-timestep-10-mins.xml') || hpxml_path.include?('ASHRAE_Standard_140')
+        next if err_line.include? 'Temperature out of range [-100. to 200.] (PsyPsatFnTemp)'
+      end
+      # FUTURE: ensure schedules.csv reflects dst
+      if hpxml_path.include?('base-simcontrol-generated-schedule.xml')
+        next if err_line.include?('GetCurrentScheduleValue: Schedule=') && err_line.include?('is a Schedule:File')
+      end
+
+      flunk "Unexpected warning found: #{err_line}"
+    end
 
     # Timestep
     timestep = hpxml.header.timestep
