@@ -292,6 +292,7 @@ class OSModel
     add_lighting(runner, model, weather, spaces)
 
     # Pools & Hot Tubs
+
     add_pools_and_hot_tubs(runner, model, spaces)
 
     # Other
@@ -302,6 +303,10 @@ class OSModel
     add_photovoltaics(runner, model)
     add_additional_properties(runner, model, hpxml_path)
     add_component_loads_output(runner, model, spaces)
+
+    # Vacancy
+
+    set_vacancy(runner, model)
 
     if debug && (not output_dir.nil?)
       osm_output_path = File.join(output_dir, 'in.osm')
@@ -3001,6 +3006,59 @@ class OSModel
     program_calling_manager.setName("#{program.name} calling manager")
     program_calling_manager.setCallingPoint('EndOfZoneTimestepAfterZoneReporting')
     program_calling_manager.addProgram(program)
+  end
+
+  def self.set_vacancy(runner, model)
+    schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_path: @hpxml.header.schedules_output_path)
+
+    col_names = [@hpxml.building_occupancy.schedules_column_name]
+
+    @hpxml.water_fixtures.each do |water_fixture|
+      if water_fixture.water_fixture_type == HPXML::WaterFixtureTypeShowerhead
+        col_names += [water_fixture.schedules_column_name]
+      elsif water_fixture.water_fixture_type == HPXML::WaterFixtureTypeFaucet
+        col_names += [water_fixture.schedules_column_name]
+      end
+    end
+
+    @hpxml.clothes_washers.each do |clothes_washer|
+      col_names += [clothes_washer.water_schedules_column_name]
+      col_names += [clothes_washer.power_schedules_column_name]
+    end
+
+    @hpxml.clothes_dryers.each do |clothes_dryer|
+      col_names += [clothes_dryer.power_schedules_column_name]
+    end
+
+    @hpxml.dishwashers.each do |dishwasher|
+      col_names += [dishwasher.water_schedules_column_name]
+      col_names += [dishwasher.power_schedules_column_name]
+    end
+
+    @hpxml.cooking_ranges.each do |cooking_range|
+      col_names += [cooking_range.schedules_column_name]
+    end
+
+    col_names += [@hpxml.lighting.interior_schedules_column_name]
+    col_names += [@hpxml.lighting.exterior_schedules_column_name]
+    col_names += [@hpxml.lighting.garage_schedules_column_name]
+    if @hpxml.lighting.holiday_exists
+      col_names += [@hpxml.lighting.holiday_schedules_column_name]
+    end
+
+    @hpxml.plug_loads.each do |plug_load|
+      next if plug_load.plug_load_type != HPXML::PlugLoadTypeOther
+
+      col_names += [plug_load.schedules_column_name]
+    end
+
+    @hpxml.ceiling_fans.each do |ceiling_fan|
+      col_names += [ceiling_fan.schedules_column_name]
+    end
+
+    schedules_file.import(col_names: col_names)
+    schedules_file.set_vacancy(col_names: col_names)
+    schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_path: @hpxml.header.schedules_output_path)
   end
 
   # FIXME: Move all of these construction methods to constructions.rb

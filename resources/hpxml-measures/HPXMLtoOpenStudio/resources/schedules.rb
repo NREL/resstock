@@ -830,7 +830,7 @@ class SchedulesFile
       return schedule_file
     end
 
-    import(col_name: col_name)
+    import(col_names: [col_name])
 
     if @schedules[col_name].nil?
       @runner.registerError("Could not find the '#{col_name}' schedule.")
@@ -855,7 +855,7 @@ class SchedulesFile
 
   # the equivalent number of hours in the year, if the schedule was at full load (1.0)
   def annual_equivalent_full_load_hrs(col_name:)
-    import(col_name: col_name)
+    import(col_names: [col_name])
 
     year_description = @model.getYearDescription
     num_hrs_in_year = Constants.NumHoursInYear(year_description.isLeapYear)
@@ -960,10 +960,22 @@ class SchedulesFile
       external_file = OpenStudio::Model::ExternalFile::getExternalFile(@model, @schedules_path)
       if external_file.is_initialized
         external_file = external_file.get
-        external_file.setName(external_file.fileName)
       end
     end
     return external_file
+  end
+
+  def set_vacancy(col_names:)
+    return unless @schedules.keys.include? 'vacancy'
+    return if @schedules['vacancy'].all? { |i| i == 0 }
+
+    @schedules[col_names[0]].each_with_index do |ts, i|
+      col_names.each do |col_name|
+        @schedules[col_name][i] *= (1.0 - @schedules['vacancy'][i])
+      end
+    end
+
+    update(col_names: col_names)
   end
 
   def set_outage(col_name:,
@@ -999,10 +1011,8 @@ class SchedulesFile
     update(col_name: col_name)
   end
 
-  def import(col_name:)
-    return if @schedules.keys.include? col_name
-
-    col_names = [col_name]
+  def import(col_names:)
+    col_names += ['vacancy']
     columns = CSV.read(@schedules_path).transpose
     columns.each do |col|
       next if not col_names.include? col[0]
@@ -1026,5 +1036,29 @@ class SchedulesFile
     end
 
     return true
+  end
+
+  def update(col_names:)
+    return false if @schedules_path.nil?
+
+    # need to update schedules csv in generated_files folder (alongside run folder) since this is what the simulation points to
+    schedules_path = File.expand_path(File.join(File.dirname(@schedules_path), '../generated_files', File.basename(@schedules_path)))
+
+    columns = CSV.read(schedules_path).transpose
+    col_names.each do |col_name|
+      col_num = get_col_index(col_name: col_name)
+      columns.each_with_index do |col, i|
+        next unless i == col_num
+
+        columns[i][1..-1] = @schedules[col_name]
+      end
+    end
+
+    rows = columns.transpose
+    CSV.open(schedules_path, 'wb') do |csv|
+      rows.each do |row|
+        csv << row
+      end
+    end
   end
 end

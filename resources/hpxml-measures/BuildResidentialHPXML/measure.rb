@@ -3693,8 +3693,10 @@ class HPXMLFile
     if args[:schedules_output_path].is_initialized
       args[:schedules_output_path] = args[:schedules_output_path].get
 
-      success = create_schedules(runner, model, weather, args)
-      return false if not success
+      if not File.exist?(File.expand_path(args[:schedules_output_path]))
+        success = create_schedules(runner, model, weather, args)
+        return false if not success
+      end
 
       set_schedules(hpxml, runner, args)
     end
@@ -3797,7 +3799,9 @@ class HPXMLFile
     hpxml.lighting.interior_schedules_column_name = 'lighting_interior'
     hpxml.lighting.exterior_schedules_column_name = 'lighting_exterior'
     hpxml.lighting.garage_schedules_column_name = 'lighting_garage'
-    hpxml.lighting.holiday_schedules_column_name = 'lighting_exterior_holiday'
+    if hpxml.lighting.holiday_exists
+      hpxml.lighting.holiday_schedules_column_name = 'lighting_exterior_holiday'
+    end
 
     hpxml.plug_loads.each do |plug_load|
       next if plug_load.plug_load_type != HPXML::PlugLoadTypeOther
