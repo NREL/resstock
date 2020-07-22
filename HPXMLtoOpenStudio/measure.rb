@@ -3009,6 +3009,8 @@ class OSModel
   end
 
   def self.set_vacancy(runner, model)
+    return if @hpxml.header.schedules_output_path.nil?
+
     schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_path: @hpxml.header.schedules_output_path)
 
     col_names = [@hpxml.building_occupancy.schedules_column_name]
