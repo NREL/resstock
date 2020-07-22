@@ -53,34 +53,6 @@ class ResidentialGeometryFromFloorspaceJS < OpenStudio::Measure::ModelMeasure
     num_ba.setDefaultValue("2")
     args << num_ba
 
-    # Make a string argument for occupants (auto or number)
-    num_occupants = OpenStudio::Measure::OSArgument::makeStringArgument("num_occupants", true)
-    num_occupants.setDisplayName("Number of Occupants")
-    num_occupants.setDescription("Specify the number of occupants. A value of '#{Constants.Auto}' will calculate the average number of occupants from the number of bedrooms. Used to specify the internal gains from people only.")
-    num_occupants.setDefaultValue(Constants.Auto)
-    args << num_occupants
-
-    # Make a string argument for 24 weekday schedule values
-    occupants_weekday_sch = OpenStudio::Measure::OSArgument::makeStringArgument("occupants_weekday_sch", true)
-    occupants_weekday_sch.setDisplayName("Occupants Weekday schedule")
-    occupants_weekday_sch.setDescription("Specify the 24-hour weekday schedule.")
-    occupants_weekday_sch.setDefaultValue("1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 0.88, 0.41, 0.24, 0.24, 0.24, 0.24, 0.24, 0.24, 0.24, 0.29, 0.55, 0.90, 0.90, 0.90, 1.00, 1.00, 1.00")
-    args << occupants_weekday_sch
-
-    # Make a string argument for 24 weekend schedule values
-    occupants_weekend_sch = OpenStudio::Measure::OSArgument::makeStringArgument("occupants_weekend_sch", true)
-    occupants_weekend_sch.setDisplayName("Occupants Weekend schedule")
-    occupants_weekend_sch.setDescription("Specify the 24-hour weekend schedule.")
-    occupants_weekend_sch.setDefaultValue("1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 0.88, 0.41, 0.24, 0.24, 0.24, 0.24, 0.24, 0.24, 0.24, 0.29, 0.55, 0.90, 0.90, 0.90, 1.00, 1.00, 1.00")
-    args << occupants_weekend_sch
-
-    # Make a string argument for 12 monthly schedule values
-    occupants_monthly_sch = OpenStudio::Measure::OSArgument::makeStringArgument("occupants_monthly_sch", true)
-    occupants_monthly_sch.setDisplayName("Occupants Month schedule")
-    occupants_monthly_sch.setDescription("Specify the 12-month schedule.")
-    occupants_monthly_sch.setDefaultValue("1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0")
-    args << occupants_monthly_sch
-
     return args
   end
 
@@ -97,10 +69,10 @@ class ResidentialGeometryFromFloorspaceJS < OpenStudio::Measure::ModelMeasure
     floorplan_path = runner.getStringArgumentValue("floorplan_path", user_arguments)
     num_br = runner.getStringArgumentValue("num_bedrooms", user_arguments).split(",").map(&:strip)
     num_ba = runner.getStringArgumentValue("num_bathrooms", user_arguments).split(",").map(&:strip)
-    num_occupants = runner.getStringArgumentValue("num_occupants", user_arguments)
-    occupants_weekday_sch = runner.getStringArgumentValue("occupants_weekday_sch", user_arguments)
-    occupants_weekend_sch = runner.getStringArgumentValue("occupants_weekend_sch", user_arguments)
-    occupants_monthly_sch = runner.getStringArgumentValue("occupants_monthly_sch", user_arguments)
+    num_occupants = Constants.Auto
+    if model.getBuilding.additionalProperties.getFeatureAsInteger("num_occupants").is_initialized
+      num_occupants = "#{model.getBuilding.additionalProperties.getFeatureAsInteger("num_occupants").get}"
+    end
 
     # check the floorplan_path for reasonableness
     if floorplan_path.empty?
@@ -245,7 +217,12 @@ class ResidentialGeometryFromFloorspaceJS < OpenStudio::Measure::ModelMeasure
       return false
     end
 
-    result = Geometry.process_occupants(model, runner, num_occupants, occ_gain = 384.0, sens_frac = 0.573, lat_frac = 0.427, occupants_weekday_sch, occupants_weekend_sch, occupants_monthly_sch)
+    schedules_file = SchedulesFile.new(runner: runner, model: model)
+    if not schedules_file.validated?
+      return false
+    end
+
+    result = Geometry.process_occupants(model, runner, num_occupants, occ_gain = 384.0, sens_frac = 0.573, lat_frac = 0.427, schedules_file)
     unless result
       return false
     end
