@@ -126,6 +126,11 @@ class ResidentialHotWaterDistribution < OpenStudio::Measure::ModelMeasure
     maxDiffMonthlyAvgOAT = UnitConversions.convert(waterMainsTemperature.maximumDifferenceInMonthlyAverageOutdoorAirTemperatures.get, "K", "R")
     mainsMonthlyTemps = WeatherProcess.calc_mains_temperatures(avgOAT, maxDiffMonthlyAvgOAT, site.latitude, num_days_in_year)[1]
 
+    schedules_file = SchedulesFile.new(runner: runner, model: model)
+    if not schedules_file.validated?
+      return false
+    end
+
     tot_pump_e_ann = 0
     msgs = []
     units.each do |unit|
@@ -224,18 +229,9 @@ class ResidentialHotWaterDistribution < OpenStudio::Measure::ModelMeasure
         return false
       end
 
-      # Create temporary HotWaterSchedule objects solely to calculate daily gpm
-      # Since this is only used to calculate the gpm, it doesn't need to have the correct day shift
-      sch_sh = HotWaterSchedule.new(model, runner, "", "", nbeds, 0, "Shower", Constants.MixedUseT, false)
-      sch_s = HotWaterSchedule.new(model, runner, "",  "", nbeds, 0, "Sink", Constants.MixedUseT, false)
-      sch_b = HotWaterSchedule.new(model, runner, "",  "", nbeds, 0, "Bath", Constants.MixedUseT, false)
-      if not sch_sh.validated? or not sch_s.validated? or not sch_b.validated?
-        return false
-      end
-
-      shower_daily = sch_sh.calcDailyGpmFromPeakFlow(shower_max)
-      sink_daily = sch_s.calcDailyGpmFromPeakFlow(sink_max)
-      bath_daily = sch_b.calcDailyGpmFromPeakFlow(bath_max)
+      shower_daily = schedules_file.calc_daily_gpm_from_peak_flow(col_name: "showers", peak_flow: shower_max)
+      sink_daily = schedules_file.calc_daily_gpm_from_peak_flow(col_name: "sinks", peak_flow: sink_max)
+      bath_daily = schedules_file.calc_daily_gpm_from_peak_flow(col_name: "baths", peak_flow: bath_max)
 
       # Calculate the pump energy consumption (in kWh/day)
       daily_recovery_load = Array.new(12, 0)
@@ -508,9 +504,9 @@ class ResidentialHotWaterDistribution < OpenStudio::Measure::ModelMeasure
       new_sink_daily = sink_daily + recovery_load_inc + daily_sink_inc - s_prev_dist
       new_bath_daily = bath_daily + recovery_load_inc + daily_bath_inc - b_prev_dist
 
-      sh_new_peak_flow = sch_sh.calcPeakFlowFromDailygpm(new_shower_daily)
-      s_new_peak_flow = sch_s.calcPeakFlowFromDailygpm(new_sink_daily)
-      b_new_peak_flow = sch_b.calcPeakFlowFromDailygpm(new_bath_daily)
+      sh_new_peak_flow = schedules_file.calc_peak_flow_from_daily_gpm(col_name: 'showers', daily_water: new_shower_daily)
+      s_new_peak_flow = schedules_file.calc_peak_flow_from_daily_gpm(col_name: 'sinks', daily_water: new_sink_daily)
+      b_new_peak_flow = schedules_file.calc_peak_flow_from_daily_gpm(col_name: 'baths', daily_water: new_bath_daily)
 
       shower_wu_def.setPeakFlowRate(sh_new_peak_flow)
       sink_wu_def.setPeakFlowRate(s_new_peak_flow)
@@ -540,7 +536,7 @@ class ResidentialHotWaterDistribution < OpenStudio::Measure::ModelMeasure
 
       # Add in an electricEquipment object for the recirculation pump
       if pump_e_ann > 0
-        recirc_pump_design_level = sch_sh.calcDesignLevelFromDailykWh(pump_e_ann / num_days_in_year)
+        recirc_pump_design_level = schedules_file.calc_design_level_from_daily_kwh(col_name: "showers", daily_kwh: pump_e_ann / num_days_in_year)
         recirc_pump_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
         recirc_pump = OpenStudio::Model::ElectricEquipment.new(recirc_pump_def)
         recirc_pump.setName(obj_name_recirc_pump)

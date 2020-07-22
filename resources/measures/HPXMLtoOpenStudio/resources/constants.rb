@@ -71,6 +71,14 @@ class Constants
     return 1e-9
   end
 
+  def self.PeakFlowRate
+    return 500 # gal/min
+  end
+
+  def self.PeakPower
+    return 100 # kWh
+  end
+
   # Strings --------------------
 
   def self.AirFilm

@@ -196,10 +196,10 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
     timeseries["total_site_electricity_kw"] = electricity.total_end_uses.map { |x| UnitConversions.convert(x, "GJ", "kW", nil, false, output_meters.steps_per_hour) }
 
     # Peak magnitude (1)
-    report_sim_output(runner, "peak_magnitude_use_kw", use(timeseries, [-1e9, 1e9], "max"))
+    report_sim_output(runner, "peak_magnitude_use_kw", use(timeseries, [-1e9, 1e9], "max"), "", "")
 
     # Timing of peak magnitude (1)
-    report_sim_output(runner, "peak_magnitude_timing_kw", timing(timeseries, [-1e9, 1e9], "max"))
+    report_sim_output(runner, "peak_magnitude_timing_kw", timing(timeseries, [-1e9, 1e9], "max"), "", "")
 
     # Average daily base magnitude (by season) (3)
     seasons.each do |season, temperature_range|

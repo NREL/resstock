@@ -63,27 +63,6 @@ class ResidentialCookingRange < OpenStudio::Measure::ModelMeasure
     mult.setDefaultValue(1)
     args << mult
 
-    # Make a string argument for 24 weekday schedule values
-    weekday_sch = OpenStudio::Measure::OSArgument::makeStringArgument("weekday_sch", true)
-    weekday_sch.setDisplayName("Weekday schedule")
-    weekday_sch.setDescription("Specify the 24-hour weekday schedule.")
-    weekday_sch.setDefaultValue("0.007, 0.007, 0.004, 0.004, 0.007, 0.011, 0.025, 0.042, 0.046, 0.048, 0.042, 0.050, 0.057, 0.046, 0.057, 0.044, 0.092, 0.150, 0.117, 0.060, 0.035, 0.025, 0.016, 0.011")
-    args << weekday_sch
-
-    # Make a string argument for 24 weekend schedule values
-    weekend_sch = OpenStudio::Measure::OSArgument::makeStringArgument("weekend_sch", true)
-    weekend_sch.setDisplayName("Weekend schedule")
-    weekend_sch.setDescription("Specify the 24-hour weekend schedule.")
-    weekend_sch.setDefaultValue("0.007, 0.007, 0.004, 0.004, 0.007, 0.011, 0.025, 0.042, 0.046, 0.048, 0.042, 0.050, 0.057, 0.046, 0.057, 0.044, 0.092, 0.150, 0.117, 0.060, 0.035, 0.025, 0.016, 0.011")
-    args << weekend_sch
-
-    # Make a string argument for 12 monthly schedule values
-    monthly_sch = OpenStudio::Measure::OSArgument::makeStringArgument("monthly_sch", true)
-    monthly_sch.setDisplayName("Month schedule")
-    monthly_sch.setDescription("Specify the 12-month schedule.")
-    monthly_sch.setDefaultValue("1.097, 1.097, 0.991, 0.987, 0.991, 0.890, 0.896, 0.896, 0.890, 1.085, 1.085, 1.097")
-    args << monthly_sch
-
     # make a choice argument for location
     location_args = OpenStudio::StringVector.new
     location_args << Constants.Auto
@@ -114,9 +93,6 @@ class ResidentialCookingRange < OpenStudio::Measure::ModelMeasure
     oven_ef = runner.getDoubleArgumentValue("oven_ef", user_arguments)
     has_elec_ignition = runner.getBoolArgumentValue("has_elec_ignition", user_arguments)
     mult = runner.getDoubleArgumentValue("mult", user_arguments)
-    weekday_sch = runner.getStringArgumentValue("weekday_sch", user_arguments)
-    weekend_sch = runner.getStringArgumentValue("weekend_sch", user_arguments)
-    monthly_sch = runner.getStringArgumentValue("monthly_sch", user_arguments)
     location = runner.getStringArgumentValue("location", user_arguments)
 
     if fuel_type == Constants.FuelTypeElectric
@@ -141,6 +117,11 @@ class ResidentialCookingRange < OpenStudio::Measure::ModelMeasure
                           Constants.SpaceTypeUnfinishedBasement,
                           Constants.SpaceTypeGarage]
 
+    schedules_file = SchedulesFile.new(runner: runner, model: model)
+    if not schedules_file.validated?
+      return false
+    end
+
     tot_ann_e = 0
     tot_ann_f = 0
     tot_ann_i = 0
@@ -152,8 +133,7 @@ class ResidentialCookingRange < OpenStudio::Measure::ModelMeasure
       next if space.nil?
 
       success, ann_e, ann_f, ann_i, sch = CookingRange.apply(model, unit, runner, fuel_type, cooktop_ef, oven_ef,
-                                                             has_elec_ignition, mult, weekday_sch, weekend_sch, monthly_sch,
-                                                             sch, space)
+                                                             has_elec_ignition, mult, sch, space, schedules_file)
 
       if not success
         return false
@@ -180,6 +160,8 @@ class ResidentialCookingRange < OpenStudio::Measure::ModelMeasure
       tot_ann_f += ann_f
       tot_ann_i += ann_i
     end
+
+    schedules_file.set_vacancy(col_name: "cooking_range")
 
     # Reporting
     if msgs.size > 1
