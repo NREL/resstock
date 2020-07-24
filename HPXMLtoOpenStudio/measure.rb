@@ -2223,7 +2223,7 @@ class OSModel
     return if @hpxml.ceiling_fans.size == 0
 
     if not @hpxml.header.schedules_path.nil?
-      schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_path: @hpxml.header.schedulespath)
+      schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_path: @hpxml.header.schedules_path)
     end
 
     ceiling_fan = @hpxml.ceiling_fans[0]
