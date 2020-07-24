@@ -3766,51 +3766,47 @@ class HPXMLFile
   end
 
   def self.set_schedules(hpxml, runner, args)
-    hpxml.header.schedules_output_path = args[:schedules_output_path]
+    hpxml.header.schedules_path = args[:schedules_output_path]
 
-    hpxml.building_occupancy.schedules_column_name = 'occupants'
+    hpxml.building_occupancy.schedule = 'occupants'
 
-    hpxml.water_fixtures.each do |water_fixture|
-      if water_fixture.water_fixture_type == HPXML::WaterFixtureTypeShowerhead
-        water_fixture.schedules_column_name = 'showers'
-      elsif water_fixture.water_fixture_type == HPXML::WaterFixtureTypeFaucet
-        water_fixture.schedules_column_name = 'sinks'
-      end
-    end
+    hpxml.water_heating.water_fixtures_schedule = 'fixtures'
 
     hpxml.clothes_washers.each do |clothes_washer|
-      clothes_washer.water_schedules_column_name = 'clothes_washer'
-      clothes_washer.power_schedules_column_name = 'clothes_washer_power'
+      clothes_washer.water_schedule = 'clothes_washer'
+      clothes_washer.power_schedule = 'clothes_washer_power'
     end
 
     hpxml.clothes_dryers.each do |clothes_dryer|
-      clothes_dryer.power_schedules_column_name = 'clothes_dryer'
+      clothes_dryer.power_schedule = 'clothes_dryer'
     end
 
     hpxml.dishwashers.each do |dishwasher|
-      dishwasher.water_schedules_column_name = 'dishwasher'
-      dishwasher.power_schedules_column_name = 'dishwasher_power'
+      dishwasher.water_schedule = 'dishwasher'
+      dishwasher.power_schedule = 'dishwasher_power'
     end
 
     hpxml.cooking_ranges.each do |cooking_range|
-      cooking_range.schedules_column_name = 'cooking_range'
+      cooking_range.schedule = 'cooking_range'
     end
 
-    hpxml.lighting.interior_schedules_column_name = 'lighting_interior'
-    hpxml.lighting.exterior_schedules_column_name = 'lighting_exterior'
-    hpxml.lighting.garage_schedules_column_name = 'lighting_garage'
+    hpxml.lighting.interior_schedule = 'lighting_interior'
+    hpxml.lighting.exterior_schedule = 'lighting_exterior'
+    if args[:geometry_unit_type] == HPXML::ResidentialTypeSFD && args[:geometry_garage_width] > 0
+      hpxml.lighting.garage_schedule = 'lighting_garage'
+    end
     if hpxml.lighting.holiday_exists
-      hpxml.lighting.holiday_schedules_column_name = 'lighting_exterior_holiday'
+      hpxml.lighting.holiday_schedule = 'lighting_exterior_holiday'
     end
 
     hpxml.plug_loads.each do |plug_load|
       next if plug_load.plug_load_type != HPXML::PlugLoadTypeOther
 
-      plug_load.schedules_column_name = 'plug_loads'
+      plug_load.schedule = 'plug_loads'
     end
 
     hpxml.ceiling_fans.each do |ceiling_fan|
-      ceiling_fan.schedules_column_name = 'ceiling_fan'
+      ceiling_fan.schedule = 'ceiling_fan'
     end
   end
 
