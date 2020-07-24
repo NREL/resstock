@@ -3012,48 +3012,45 @@ class OSModel
 
     schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_path: @hpxml.header.schedules_path)
 
-    col_names = [@hpxml.building_occupancy.schedule]
+    col_names = [@hpxml.building_occupancy.schedule] unless @hpxml.building_occupancy.schedule.nil?
 
-    col_names += [@hpxml.water_heating.water_fixtures_schedule]
+    col_names += [@hpxml.water_heating.water_fixtures_schedule] unless @hpxml.water_heating.water_fixtures_schedule.nil?
 
     @hpxml.clothes_washers.each do |clothes_washer|
-      col_names += [clothes_washer.water_schedule]
-      col_names += [clothes_washer.power_schedule]
+      col_names += [clothes_washer.water_schedule] unless clothes_washer.water_schedule.nil?
+      col_names += [clothes_washer.power_schedule] unless clothes_washer.power_schedule.nil?
     end
 
     @hpxml.clothes_dryers.each do |clothes_dryer|
-      col_names += [clothes_dryer.power_schedule]
+      col_names += [clothes_dryer.power_schedule] unless clothes_dryer.power_schedule.nil?
     end
 
     @hpxml.dishwashers.each do |dishwasher|
-      col_names += [dishwasher.water_schedule]
-      col_names += [dishwasher.power_schedule]
+      col_names += [dishwasher.water_schedule] unless dishwasher.water_schedule.nil?
+      col_names += [dishwasher.power_schedule] unless dishwasher.power_schedule.nil?
     end
 
     @hpxml.cooking_ranges.each do |cooking_range|
-      col_names += [cooking_range.schedule]
+      col_names += [cooking_range.schedule] unless cooking_range.schedule.nil?
     end
 
-    col_names += [@hpxml.lighting.interior_schedule]
-    col_names += [@hpxml.lighting.exterior_schedule]
-    col_names += [@hpxml.lighting.garage_schedule]
-    if @hpxml.lighting.holiday_exists
-      col_names += [@hpxml.lighting.holiday_schedule]
-    end
+    col_names += [@hpxml.lighting.interior_schedule] unless @hpxml.lighting.interior_schedule.nil?
+    col_names += [@hpxml.lighting.exterior_schedule] unless @hpxml.lighting.exterior_schedule.nil?
+    col_names += [@hpxml.lighting.garage_schedule] unless @hpxml.lighting.garage_schedule.nil?
+    col_names += [@hpxml.lighting.holiday_schedule] unless @hpxml.lighting.holiday_schedule.nil?
 
     @hpxml.plug_loads.each do |plug_load|
       next if plug_load.plug_load_type != HPXML::PlugLoadTypeOther
 
-      col_names += [plug_load.schedule]
+      col_names += [plug_load.schedule] unless plug_load.schedule.nil?
     end
 
     @hpxml.ceiling_fans.each do |ceiling_fan|
-      col_names += [ceiling_fan.schedule]
+      col_names += [ceiling_fan.schedule] unless ceiling_fan.schedule.nil?
     end
 
-    schedules_file.import(col_names: col_names)
-    schedules_file.set_vacancy(col_names: col_names)
-    schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_path: @hpxml.header.schedules_path)
+    schedules_file.import(col_names: col_names.uniq)
+    schedules_file.set_vacancy(col_names: col_names.uniq)
   end
 
   # FIXME: Move all of these construction methods to constructions.rb
