@@ -75,6 +75,7 @@ class ScheduleGenerator
       'baths' => Array.new(num_ts, 0.0),
       'showers' => Array.new(num_ts, 0.0),
       'sinks' => Array.new(num_ts, 0.0),
+      'fixtures' => Array.new(num_ts, 0.0),
       'ceiling_fan' => Array.new(num_ts, 0.0),
       'clothes_dryer_exhaust' => Array.new(num_ts, 0.0),
       'clothes_washer_power' => Array.new(num_ts, 0.0),
@@ -561,6 +562,8 @@ class ScheduleGenerator
     @schedules['dishwasher_power'] = dw_power_sch.map { |power| power / Constants.PeakPower }
 
     @schedules['occupants'] = away_schedule.map { |i| 1.0 - i }
+
+    @schedules['fixtures'] = [@schedules['showers'], @schedules['sinks'], @schedules['baths']].transpose.map { |flow| flow.reduce(:+) }
 
     success = set_vacancy(min_per_step: minutes_per_steps, sim_year: sim_year)
     return false if not success

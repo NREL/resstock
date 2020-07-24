@@ -913,9 +913,9 @@ class OSModel
         fail 'Occupancy schedule inconsistent with hrs_per_day.'
       end
 
-      if not @hpxml.building_occupancy.schedules_column_name.nil?
-        schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_path: @hpxml.header.schedules_output_path)
-        people_sch = schedules_file.create_schedule_file(col_name: @hpxml.building_occupancy.schedules_column_name)
+      if not @hpxml.building_occupancy.schedule.nil?
+        schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_path: @hpxml.header.schedules_path)
+        people_sch = schedules_file.create_schedule_file(col_name: @hpxml.building_occupancy.schedule)
       end
 
       weekend_sch = weekday_sch
@@ -1976,15 +1976,14 @@ class OSModel
       end
     end
 
-    if not @hpxml.header.schedules_output_path.nil?
-      schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_path: @hpxml.header.schedules_output_path)
+    if not @hpxml.header.schedules_path.nil?
+      schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_path: @hpxml.header.schedules_path)
     end
 
-    fixtures_usage_multiplier = @hpxml.water_heating.water_fixtures_usage_multiplier
     HotWaterAndAppliances.apply(model, runner, weather, spaces[HPXML::LocationLivingSpace],
                                 @cfa, @nbeds, @ncfl, @has_uncond_bsmnt, @hpxml.clothes_washers,
                                 @hpxml.clothes_dryers, @hpxml.dishwashers, @hpxml.refrigerators,
-                                @hpxml.freezers, @hpxml.cooking_ranges, @hpxml.ovens, fixtures_usage_multiplier,
+                                @hpxml.freezers, @hpxml.cooking_ranges, @hpxml.ovens, @hpxml.water_heating,
                                 @hpxml.water_fixtures, @hpxml.water_heating_systems, hot_water_distribution,
                                 solar_thermal_system, @eri_version, @dhw_map, schedules_file)
 
@@ -2223,8 +2222,8 @@ class OSModel
   def self.add_ceiling_fans(runner, model, weather, spaces)
     return if @hpxml.ceiling_fans.size == 0
 
-    if not @hpxml.header.schedules_output_path.nil?
-      schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_path: @hpxml.header.schedules_output_path)
+    if not @hpxml.header.schedules_path.nil?
+      schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_path: @hpxml.header.schedulespath)
     end
 
     ceiling_fan = @hpxml.ceiling_fans[0]
@@ -2258,8 +2257,8 @@ class OSModel
   end
 
   def self.add_mels(runner, model, spaces)
-    if not @hpxml.header.schedules_output_path.nil?
-      schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_path: @hpxml.header.schedules_output_path)
+    if not @hpxml.header.schedules_path.nil?
+      schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_path: @hpxml.header.schedules_path)
     end
 
     # Misc
@@ -2302,8 +2301,8 @@ class OSModel
   end
 
   def self.add_lighting(runner, model, weather, spaces)
-    if not @hpxml.header.schedules_output_path.nil?
-      schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_path: @hpxml.header.schedules_output_path)
+    if not @hpxml.header.schedules_path.nil?
+      schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_path: @hpxml.header.schedules_path)
     end
 
     Lighting.apply(model, weather, spaces, @hpxml.lighting_groups,
@@ -3009,58 +3008,52 @@ class OSModel
   end
 
   def self.set_vacancy(runner, model)
-    return if @hpxml.header.schedules_output_path.nil?
+    return if @hpxml.header.schedules_path.nil?
 
-    schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_path: @hpxml.header.schedules_output_path)
+    schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_path: @hpxml.header.schedules_path)
 
-    col_names = [@hpxml.building_occupancy.schedules_column_name]
+    col_names = [@hpxml.building_occupancy.schedule]
 
-    @hpxml.water_fixtures.each do |water_fixture|
-      if water_fixture.water_fixture_type == HPXML::WaterFixtureTypeShowerhead
-        col_names += [water_fixture.schedules_column_name]
-      elsif water_fixture.water_fixture_type == HPXML::WaterFixtureTypeFaucet
-        col_names += [water_fixture.schedules_column_name]
-      end
-    end
+    col_names += [@hpxml.water_heating.water_fixtures_schedule]
 
     @hpxml.clothes_washers.each do |clothes_washer|
-      col_names += [clothes_washer.water_schedules_column_name]
-      col_names += [clothes_washer.power_schedules_column_name]
+      col_names += [clothes_washer.water_schedule]
+      col_names += [clothes_washer.power_schedule]
     end
 
     @hpxml.clothes_dryers.each do |clothes_dryer|
-      col_names += [clothes_dryer.power_schedules_column_name]
+      col_names += [clothes_dryer.power_schedule]
     end
 
     @hpxml.dishwashers.each do |dishwasher|
-      col_names += [dishwasher.water_schedules_column_name]
-      col_names += [dishwasher.power_schedules_column_name]
+      col_names += [dishwasher.water_schedule]
+      col_names += [dishwasher.power_schedule]
     end
 
     @hpxml.cooking_ranges.each do |cooking_range|
-      col_names += [cooking_range.schedules_column_name]
+      col_names += [cooking_range.schedule]
     end
 
-    col_names += [@hpxml.lighting.interior_schedules_column_name]
-    col_names += [@hpxml.lighting.exterior_schedules_column_name]
-    col_names += [@hpxml.lighting.garage_schedules_column_name]
+    col_names += [@hpxml.lighting.interior_schedule]
+    col_names += [@hpxml.lighting.exterior_schedule]
+    col_names += [@hpxml.lighting.garage_schedule]
     if @hpxml.lighting.holiday_exists
-      col_names += [@hpxml.lighting.holiday_schedules_column_name]
+      col_names += [@hpxml.lighting.holiday_schedule]
     end
 
     @hpxml.plug_loads.each do |plug_load|
       next if plug_load.plug_load_type != HPXML::PlugLoadTypeOther
 
-      col_names += [plug_load.schedules_column_name]
+      col_names += [plug_load.schedule]
     end
 
     @hpxml.ceiling_fans.each do |ceiling_fan|
-      col_names += [ceiling_fan.schedules_column_name]
+      col_names += [ceiling_fan.schedule]
     end
 
     schedules_file.import(col_names: col_names)
     schedules_file.set_vacancy(col_names: col_names)
-    schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_path: @hpxml.header.schedules_output_path)
+    schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_path: @hpxml.header.schedules_path)
   end
 
   # FIXME: Move all of these construction methods to constructions.rb
