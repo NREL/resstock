@@ -62,6 +62,16 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
     }
   end
 
+  def peak_magnitude_use
+    output_names = ["peak_magnitude_use_kw"]
+    return output_names
+  end
+
+  def peak_magnitude_timing
+    output_names = ["peak_magnitude_timing_kw"]
+    return output_names
+  end
+
   def average_daily_base_magnitude_by_season
     output_names = []
     seasons.each do |season, temperature_range|
@@ -108,6 +118,8 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
 
   def outputs
     output_names = []
+    output_names += peak_magnitude_use
+    output_names += peak_magnitude_timing
     output_names += average_daily_base_magnitude_by_season
     output_names += average_daily_peak_magnitude_by_season
     output_names += average_daily_peak_timing_by_season
@@ -183,6 +195,12 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
 
     timeseries["total_site_electricity_kw"] = electricity.total_end_uses.map { |x| UnitConversions.convert(x, "GJ", "kW", nil, false, output_meters.steps_per_hour) }
 
+    # Peak magnitude (1)
+    report_sim_output(runner, "peak_magnitude_use_kw", use(timeseries, [-1e9, 1e9], "max"), "", "")
+
+    # Timing of peak magnitude (1)
+    report_sim_output(runner, "peak_magnitude_timing_kw", timing(timeseries, [-1e9, 1e9], "max"), "", "")
+
     # Average daily base magnitude (by season) (3)
     seasons.each do |season, temperature_range|
       report_sim_output(runner, "average_minimum_daily_use_#{season.downcase}_kw", average_daily_use(timeseries, temperature_range, "min"), "", "")
@@ -215,6 +233,54 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
     sqlFile.close
 
     return true
+  end
+
+  def use(timeseries, temperature_range, min_or_max)
+    """
+    Determines the annual base or peak use value.
+    Parameters:
+      timeseries (hash): { 'Temperature' => [...], 'total_site_electricity_kw' => [...] }
+      temperature_range (array): [lower, upper]
+      min_or_max (str): 'min' or 'max'
+    Returns:
+      base_or_peak: float
+    """
+    vals = []
+    timeseries["total_site_electricity_kw"].each_with_index do |kw, i|
+      temp = timeseries["Temperature"][i]
+      if temp > temperature_range[0] and temp < temperature_range[1]
+        vals << kw
+      end
+    end
+    if min_or_max == "min"
+      return vals.min
+    elsif min_or_max == "max"
+      return vals.max
+    end
+  end
+
+  def timing(timeseries, temperature_range, min_or_max)
+    """
+    Determines the hour of annual base or peak use value.
+    Parameters:
+      timeseries (hash): { 'Temperature' => [...], 'total_site_electricity_kw' => [...] }
+      temperature_range (array): [lower, upper]
+      min_or_max (str): 'min' or 'max'
+    Returns:
+      base_or_peak: float
+    """
+    vals = []
+    timeseries["total_site_electricity_kw"].each_with_index do |kw, i|
+      temp = timeseries["Temperature"][i]
+      if temp > temperature_range[0] and temp < temperature_range[1]
+        vals << kw
+      end
+    end
+    if min_or_max == "min"
+      return vals.index(vals.min)
+    elsif min_or_max == "max"
+      return vals.index(vals.max)
+    end
   end
 
   def average_daily_use(timeseries, temperature_range, min_or_max, top = "all")

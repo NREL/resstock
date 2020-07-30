@@ -42,6 +42,16 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     assert_includes(result.errors.map { |x| x.logMessage }, "Invalid corridor width entered.")
   end
 
+  def test_uneven_units_per_floor_with_interior_corr
+    num_finished_spaces = 3
+    args_hash = {}
+    args_hash["num_units"] = 3
+    expected_num_del_objects = {}
+    expected_num_new_objects = { "BuildingUnit" => 3, "Surface" => 26, "ThermalZone" => 1 + 3, "Space" => 1 + 3, "SpaceType" => 2, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 1, "ShadingSurfaceGroup" => 2, "ShadingSurface" => 11, "ExternalFile" => 1, "ScheduleFile" => 1 }
+    expected_values = { "FinishedFloorArea" => 900 * 3, "BuildingHeight" => 8, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 10.17, "EavesDepth" => 2, "NumAdiabaticSurfaces" => 6 }
+    _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
+  end
+
   def test_warning_balc_but_no_inset
     num_finished_spaces = 1
     args_hash = {}
@@ -50,6 +60,21 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     expected_num_del_objects = {}
     expected_num_new_objects = { "BuildingUnit" => 1, "Surface" => 6, "ThermalZone" => 1, "Space" => 1, "SpaceType" => 1, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 2, "ShadingSurfaceGroup" => 2, "ShadingSurface" => 6 }
     expected_values = { "FinishedFloorArea" => 900 * num_finished_spaces, "BuildingHeight" => 8, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 3.39, "EavesDepth" => 2, "NumAdiabaticSurfaces" => 1 }
+    _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
+  end
+
+  def test_two_story_double_exterior
+    num_finished_spaces = 8
+    args_hash = {}
+    args_hash["num_floors"] = 2
+    args_hash["num_units"] = 2 * 4
+    args_hash["corridor_position"] = "Double Exterior"
+    args_hash["inset_width"] = 8
+    args_hash["inset_depth"] = 6
+    args_hash["balcony_depth"] = 6
+    expected_num_del_objects = {}
+    expected_num_new_objects = { "BuildingUnit" => 2 * 4, "Surface" => 68, "ThermalZone" => 2 * 4, "Space" => 2 * 4, "SpaceType" => 1, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 1, "ShadingSurfaceGroup" => 14, "ShadingSurface" => 30, "ExternalFile" => 1, "ScheduleFile" => 1 }
+    expected_values = { "FinishedFloorArea" => 900 * 2 * 4, "BuildingHeight" => 2 * 8, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 27.12, "EavesDepth" => 2, "NumAdiabaticSurfaces" => 0 }
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
@@ -826,99 +851,6 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     args_hash["num_bathrooms"] = "2.0, 2.0, 2.8"
     result = _test_error(nil, args_hash)
     assert_includes(result.errors.map { |x| x.logMessage }, "Number of bathrooms must be a positive multiple of 0.25.")
-  end
-
-  def test_argument_error_num_occ_bad_string
-    args_hash = {}
-    args_hash["num_occupants"] = "hello"
-    result = _test_error(nil, args_hash)
-    assert_includes(result.errors.map { |x| x.logMessage }, "Number of Occupants must be either '#{Constants.Auto}' or a number greater than or equal to 0.")
-  end
-
-  def test_argument_error_num_occ_negative
-    args_hash = {}
-    args_hash["num_occupants"] = "-1"
-    result = _test_error(nil, args_hash)
-    assert_includes(result.errors.map { |x| x.logMessage }, "Number of Occupants must be either '#{Constants.Auto}' or a number greater than or equal to 0.")
-  end
-
-  def test_argument_error_num_occ_incorrect_num_elements
-    args_hash = {}
-    args_hash["num_occupants"] = "2, 3, 4"
-    result = _test_error(nil, args_hash)
-    assert_includes(result.errors.map { |x| x.logMessage }, "Number of occupant elements specified inconsistent with number of multifamily units defined in the model.")
-  end
-
-  def test_argument_error_weekday_sch_wrong_number_of_values
-    args_hash = {}
-    args_hash["occupants_weekday_sch"] = "1,1"
-    result = _test_error(nil, args_hash)
-    assert_includes(result.errors.map { |x| x.logMessage }, "A comma-separated string of 24 numbers must be entered for the weekday schedule.")
-  end
-
-  def test_argument_error_weekday_sch_not_number
-    args_hash = {}
-    args_hash["occupants_weekday_sch"] = "str,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1"
-    result = _test_error(nil, args_hash)
-    assert_includes(result.errors.map { |x| x.logMessage }, "A comma-separated string of 24 numbers must be entered for the weekday schedule.")
-  end
-
-  def test_argument_error_weekend_sch_wrong_number_of_values
-    args_hash = {}
-    args_hash["occupants_weekend_sch"] = "1,1"
-    result = _test_error(nil, args_hash)
-    assert_includes(result.errors.map { |x| x.logMessage }, "A comma-separated string of 24 numbers must be entered for the weekend schedule.")
-  end
-
-  def test_argument_error_weekend_sch_not_number
-    args_hash = {}
-    args_hash["occupants_weekend_sch"] = "str,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1"
-    result = _test_error(nil, args_hash)
-    assert_includes(result.errors.map { |x| x.logMessage }, "A comma-separated string of 24 numbers must be entered for the weekend schedule.")
-  end
-
-  def test_argument_error_monthly_sch_wrong_number_of_values
-    args_hash = {}
-    args_hash["occupants_monthly_sch"] = "1,1"
-    result = _test_error(nil, args_hash)
-    assert_includes(result.errors.map { |x| x.logMessage }, "A comma-separated string of 12 numbers must be entered for the monthly schedule.")
-  end
-
-  def test_argument_error_monthly_sch_not_number
-    args_hash = {}
-    args_hash["occupants_monthly_sch"] = "str,1,1,1,1,1,1,1,1,1,1,1"
-    result = _test_error(nil, args_hash)
-    assert_includes(result.errors.map { |x| x.logMessage }, "A comma-separated string of 12 numbers must be entered for the monthly schedule.")
-  end
-
-  def test_new_construction_none
-    num_finished_spaces = 1
-    args_hash = {}
-    args_hash["num_occupants"] = "0"
-    expected_num_del_objects = {}
-    expected_num_new_objects = { "Surface" => 12, "Space" => 2, "SpaceType" => 2, "ThermalZone" => 2, "BuildingUnit" => 1, "ShadingSurfaceGroup" => 2, "ShadingSurface" => 5 }
-    expected_values = { "FinishedFloorArea" => 900 * num_finished_spaces, "BuildingHeight" => 8, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 0, "EavesDepth" => 2, "NumAdiabaticSurfaces" => 7 }
-    _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
-  end
-
-  def test_new_construction_auto
-    num_finished_spaces = 1
-    args_hash = {}
-    args_hash["num_occupants"] = Constants.Auto
-    expected_num_del_objects = {}
-    expected_num_new_objects = { "Surface" => 12, "Space" => 2, "SpaceType" => 2, "ThermalZone" => 2, "BuildingUnit" => 1, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 2, "ShadingSurfaceGroup" => 2, "ShadingSurface" => 5 }
-    expected_values = { "FinishedFloorArea" => 900 * 1, "BuildingHeight" => 8, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 3.39, "EavesDepth" => 2, "NumAdiabaticSurfaces" => 7 }
-    _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
-  end
-
-  def test_new_construction_fixed_3
-    num_finished_spaces = 1
-    args_hash = {}
-    args_hash["num_occupants"] = "3"
-    expected_num_del_objects = {}
-    expected_num_new_objects = { "Surface" => 12, "Space" => 2, "SpaceType" => 2, "ThermalZone" => 2, "BuildingUnit" => 1, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 2, "ShadingSurfaceGroup" => 2, "ShadingSurface" => 5 }
-    expected_values = { "FinishedFloorArea" => 900 * 1, "BuildingHeight" => 8, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 3 * 1, "EavesDepth" => 2, "NumAdiabaticSurfaces" => 7 }
-    _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
   def test_error_invalid_eaves_depth

@@ -103,12 +103,12 @@ class ProcessCeilingFanTest < MiniTest::Test
   def test_retrofit_specify_instead_of_benchmark
     args_hash = {}
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ScheduleRuleset" => 2, "ScheduleRule" => 24, "EnergyManagementSystemProgram" => 1, "EnergyManagementSystemActuator" => 1, "EnergyManagementSystemSensor" => 2, "EnergyManagementSystemProgramCallingManager" => 1, "ElectricEquipmentDefinition" => 4, "ElectricEquipment" => 4 }
+    expected_num_new_objects = { "ScheduleRuleset" => 1, "ScheduleRule" => 12, "EnergyManagementSystemProgram" => 1, "EnergyManagementSystemActuator" => 1, "EnergyManagementSystemSensor" => 2, "EnergyManagementSystemProgramCallingManager" => 1, "ElectricEquipmentDefinition" => 4, "ElectricEquipment" => 4, "ScheduleFile" => 1 }
     expected_values = { "ceiling_fans_design_level" => 0, "misc_elec_load_design_level" => 12.86 }
     model = _test_measure("SFD_2000sqft_2story_FB_UA_3Beds_2Baths_Denver_Furnace_CentralAC.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
     args_hash["specified_num"] = "2"
     args_hash["use_benchmark_energy"] = "false"
-    expected_num_del_objects = { "ScheduleRuleset" => 2, "ScheduleRule" => 24, "EnergyManagementSystemProgram" => 1, "EnergyManagementSystemActuator" => 1, "EnergyManagementSystemSensor" => 2, "EnergyManagementSystemProgramCallingManager" => 1, "ElectricEquipmentDefinition" => 4, "ElectricEquipment" => 4 }
+    expected_num_del_objects = { "ScheduleRuleset" => 1, "ScheduleRule" => 12, "EnergyManagementSystemProgram" => 1, "EnergyManagementSystemActuator" => 1, "EnergyManagementSystemSensor" => 2, "EnergyManagementSystemProgramCallingManager" => 1, "ElectricEquipmentDefinition" => 4, "ElectricEquipment" => 4 }
     expected_num_new_objects = { "ScheduleRuleset" => 1, "ScheduleRule" => 12, "EnergyManagementSystemProgram" => 1, "EnergyManagementSystemActuator" => 1, "EnergyManagementSystemSensor" => 2, "EnergyManagementSystemProgramCallingManager" => 1, "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1 }
     expected_values = { "ceiling_fans_design_level" => 45 }
     _test_measure(model, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
