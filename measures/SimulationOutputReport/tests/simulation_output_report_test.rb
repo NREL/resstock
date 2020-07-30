@@ -261,8 +261,8 @@ class SimulationOutputReportTest < MiniTest::Test
     cost_multipliers = {
       "Fixed (1)" => 1,
       "Wall Area, Above-Grade, Conditioned (ft^2)" => 133.3 + 240,
-      "Wall Area, Above-Grade, Exterior (ft^2)" => 133.3 + 240 + 40,
-      "Wall Area, Below-Grade (ft^2)" => 133.3 + 240 + 40,
+      "Wall Area, Above-Grade, Exterior (ft^2)" => 133.3 + 240,
+      "Wall Area, Below-Grade (ft^2)" => 133.3 + 240,
       "Floor Area, Conditioned (ft^2)" => 500,
       "Floor Area, Attic (ft^2)" => 0,
       "Floor Area, Lighting (ft^2)" => 500,
@@ -301,8 +301,8 @@ class SimulationOutputReportTest < MiniTest::Test
     cost_multipliers = {
       "Fixed (1)" => 1,
       "Wall Area, Above-Grade, Conditioned (ft^2)" => 133.3 + 240,
-      "Wall Area, Above-Grade, Exterior (ft^2)" => 133.3 + 240 + 40,
-      "Wall Area, Below-Grade (ft^2)" => 133.3 + 240 + 40,
+      "Wall Area, Above-Grade, Exterior (ft^2)" => 133.3 + 240,
+      "Wall Area, Below-Grade (ft^2)" => 133.3 + 240,
       "Floor Area, Conditioned (ft^2)" => 500,
       "Floor Area, Attic (ft^2)" => 0,
       "Floor Area, Lighting (ft^2)" => 500,
@@ -341,8 +341,8 @@ class SimulationOutputReportTest < MiniTest::Test
     cost_multipliers = {
       "Fixed (1)" => 1,
       "Wall Area, Above-Grade, Conditioned (ft^2)" => 133.3 + 240,
-      "Wall Area, Above-Grade, Exterior (ft^2)" => 133.3 + 240 + 40,
-      "Wall Area, Below-Grade (ft^2)" => 133.3 + 240 + 40,
+      "Wall Area, Above-Grade, Exterior (ft^2)" => 133.3 + 240,
+      "Wall Area, Below-Grade (ft^2)" => 133.3 + 240,
       "Floor Area, Conditioned (ft^2)" => 500,
       "Floor Area, Attic (ft^2)" => 0,
       "Floor Area, Lighting (ft^2)" => 500,
