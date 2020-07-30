@@ -104,7 +104,7 @@ class ProcessConstructionsFinishedRoofTest < MiniTest::Test
     args_hash["filled_cavity"] = false # no insulation, shouldn't apply
     args_hash["framing_factor"] = 0.07
     expected_num_del_objects = {}
-    expected_num_new_objects = { "Material" => 5, "Construction" => 2 }
+    expected_num_new_objects = { "Material" => 7, "Construction" => 2 }
     roofing_r = 0.0094488 / 0.162714
     osb_r = 0.01905 / 0.1154577
     ins_r = 0.1397 / 0.6819557830565512

@@ -128,7 +128,7 @@ class ProcessConstructionsWallsCMUTest < MiniTest::Test
     args_hash["furring_cavity_depth_in"] = 1
     args_hash["furring_spacing"] = 24
     expected_num_del_objects = {}
-    expected_num_new_objects = { "Material" => 10, "Construction" => 6, "InternalMass" => 2, "InternalMassDefinition" => 2 }
+    expected_num_new_objects = { "Material" => 9, "Construction" => 5, "InternalMass" => 2, "InternalMassDefinition" => 2 }
     ext_finish_r = 0.009525 / 0.089435
     osb_r = 0.0127 / 0.1154577
     drywall_r = 0.0127 / 0.1602906
