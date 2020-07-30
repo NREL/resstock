@@ -61,19 +61,6 @@ class HVACSizing
     zones_loads = process_zone_loads(runner, mj8, unit, weather, mj8.htd, nbeds, unit_ffa, unit_shelter_class)
     return false if zones_loads.nil?
 
-    # puts("........#{unit.name}..........")
-    # def self.print_instance_vars(instance)
-    #   puts("_______ #{instance}_________")
-    #   instance.instance_variables.each do |var|
-    #     puts("    #{var}:  #{instance.instance_variable_get var}")
-    #   end
-    # end
-
-    # print_instance_vars(zones_loads)
-    # zone_load.each do |zload|
-    #   puts(zload)
-    # end
-
     # Aggregate zone loads into initial unit loads
     unit_init = process_intermediate_total_loads(runner, mj8, zones_loads, weather, hvac)
     return false if unit_init.nil?
@@ -276,7 +263,6 @@ class HVACSizing
 
     elsif Geometry.is_unfinished_attic(space)
 
-      # puts("============ design temp for #{space.name} attic ===============")
       is_vented = space_is_vented(space, 0.001)
 
       attic_floor_r = get_space_r_value(runner, space, "floor", true)
@@ -1160,14 +1146,6 @@ class HVACSizing
       zone_loads.Heat_Floors += floor_ufactor * UnitConversions.convert(floor.netArea, "m^2", "ft^2") * (mj8.heat_setpoint - mj8.heat_design_temps[adjacent_space])
       zone_loads.Dehumid_Floors += floor_ufactor * UnitConversions.convert(floor.netArea, "m^2", "ft^2") * (mj8.cool_setpoint - mj8.dehum_design_temps[adjacent_space])
 
-      # puts("---------------------------------------------------- FLOOR: #{floor.name}")
-      # puts("zone_loads.Cool_Floors:  #{cool_floor_surf}")
-      # puts("mj8.cool_design_temps[adjacent_space]:  #{mj8.cool_design_temps[adjacent_space]}") #XXXXX
-      # puts("adjacent space:  #{adjacent_space.name}")
-      # puts("mj8.cool_setpoint:  #{mj8.cool_setpoint}")
-      # puts("floor_ufactor:  #{floor_ufactor}")
-      # puts("floor.netArea:  #{UnitConversions.convert(floor.netArea, "m^2", "ft^2")}")
-      # puts("----------------------------------------------------")
     end
 
     # Foundation Floors

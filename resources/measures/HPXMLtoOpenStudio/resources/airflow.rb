@@ -200,17 +200,6 @@ class Airflow
 
       create_ems_program_managers(model, infil_program, nv_program, cfis_programs, duct_programs, obj_name_airflow, obj_name_mech_vent)
 
-      # print(cfis_programs)
-      # print(duct_programs)
-      # duct_programs.each do |key, value|
-      #   puts(key)
-      #   puts(value)
-      # end
-      # self.print_instance_vars(infil_output) #XXX
-      # self.print_instance_vars(mv_output)
-      # # self.print_instance_vars(cfis_systems)
-      # self.print_instance_vars(nv_output)
-
       # Store info for HVAC Sizing measure
       if not unit_living.ELA.nil?
         unit_living.zone.additionalProperties.setFeature(Constants.SizingInfoZoneInfiltrationELA, unit_living.ELA.to_f)
@@ -848,24 +837,6 @@ class Airflow
       elsif space.inf_method == @infMethodASHRAE
         space.ELA = space.SLA * space.area # ft^2
       end
-
-      # puts("-----------Process infiltration for finished spaces------------------------")
-      # puts("space.inf_method: #{space.inf_method}")
-      # # puts("space.inf_method: #{space.inf_method}")
-      # puts("space.height: #{space.height}")
-      # puts("space.coord_z: #{space.coord_z}")
-      # puts("space.f_s_SG: #{space.f_s_SG}")
-      # puts("space.hor_lk_frac: #{space.hor_lk_frac}")
-      # puts("space.neutral_level: #{space.neutral_level}")
-      # puts("space.f_w_SG: #{space.f_w_SG}")
-      # puts("space.f_t_SG: #{space.f_t_SG}")
-      # puts("space.C_s_SG: #{space.C_s_SG}")
-      # puts("space.SLA: #{space.SLA}")
-      # puts("space.ELA: #{space.ELA}")
-      # puts("wind_speed.terrain_multiplier: #{wind_speed.terrain_multiplier}")
-      # puts("wind_speed.height: #{wind_speed.height}")
-      # puts("wind_speed.site_terrain_exponent: #{wind_speed.site_terrain_exponent}")
-      # puts("space.ACH: #{space.ACH}")
 
       space.zone.spaces.each do |s|
         next if Geometry.is_living(s)
