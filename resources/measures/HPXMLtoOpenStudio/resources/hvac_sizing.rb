@@ -1145,7 +1145,6 @@ class HVACSizing
       cool_floor_surf = floor_ufactor * UnitConversions.convert(floor.netArea, "m^2", "ft^2") * (mj8.cool_design_temps[adjacent_space] - mj8.cool_setpoint)
       zone_loads.Heat_Floors += floor_ufactor * UnitConversions.convert(floor.netArea, "m^2", "ft^2") * (mj8.heat_setpoint - mj8.heat_design_temps[adjacent_space])
       zone_loads.Dehumid_Floors += floor_ufactor * UnitConversions.convert(floor.netArea, "m^2", "ft^2") * (mj8.cool_setpoint - mj8.dehum_design_temps[adjacent_space])
-
     end
 
     # Foundation Floors
