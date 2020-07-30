@@ -532,7 +532,10 @@ class ResidentialHotWaterDistributionTest < MiniTest::Test
           full_load_hrs = Schedule.annual_equivalent_full_load_hrs(year_description, new_object.schedule.get)
           actual_values["InternalLoadAnnual_MBtu"] += UnitConversions.convert(full_load_hrs * new_object.otherEquipmentDefinition.designLevel.get * new_object.multiplier, "Wh", "MBtu")
         elsif obj_type == "ElectricEquipment"
-          full_load_hrs = Schedule.annual_equivalent_full_load_hrs(year_description, new_object.schedule.get)
+          schedule_file = new_object.schedule.get.to_ScheduleFile.get
+          sch_path = schedule_file.externalFile.filePath.to_s
+          schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_output_path: sch_path)
+          full_load_hrs = schedules_file.annual_equivalent_full_load_hrs(col_name: "showers")
           actual_values["RecircPumpAnnual_kWh"] += UnitConversions.convert(full_load_hrs * new_object.designLevel.get * new_object.multiplier, "Wh", "kWh")
           actual_values["RecircPumpFractionLost"] += new_object.electricEquipmentDefinition.fractionLost
         end
@@ -548,14 +551,22 @@ class ResidentialHotWaterDistributionTest < MiniTest::Test
 
       final_object = final_object.public_send("to_#{obj_type}").get
       if obj_type == "WaterUseEquipment"
-        full_load_hrs = Schedule.annual_equivalent_full_load_hrs(year_description, final_object.flowRateFractionSchedule.get)
-        actual_hw_gpd = UnitConversions.convert(full_load_hrs * final_object.waterUseEquipmentDefinition.peakFlowRate * final_object.multiplier, "m^3/s", "gal/min") * 60.0 / num_days_in_year
+        schedule_file = final_object.flowRateFractionSchedule.get.to_ScheduleFile.get
+        sch_path = schedule_file.externalFile.filePath.to_s
+        schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_output_path: sch_path)
+        peak_flow_rate = UnitConversions.convert(final_object.waterUseEquipmentDefinition.peakFlowRate * final_object.multiplier, "m^3/s", "gal/min")
         if final_object.name.to_s.start_with?(Constants.ObjectNameShower)
-          actual_values["ShowerDailyWater_gpd"] += actual_hw_gpd
+          full_load_hrs = schedules_file.annual_equivalent_full_load_hrs(col_name: "showers")
+          daily_gallons = (full_load_hrs * 60 * peak_flow_rate) / num_days_in_year # multiply by 60 because peak_flow_rate is in gal/min
+          actual_values["ShowerDailyWater_gpd"] += daily_gallons
         elsif final_object.name.to_s.start_with?(Constants.ObjectNameSink)
-          actual_values["SinkDailyWater_gpd"] += actual_hw_gpd
+          full_load_hrs = schedules_file.annual_equivalent_full_load_hrs(col_name: "sinks")
+          daily_gallons = (full_load_hrs * 60 * peak_flow_rate) / num_days_in_year # multiply by 60 because peak_flow_rate is in gal/min
+          actual_values["SinkDailyWater_gpd"] += daily_gallons
         elsif final_object.name.to_s.start_with?(Constants.ObjectNameBath)
-          actual_values["BathDailyWater_gpd"] += actual_hw_gpd
+          full_load_hrs = schedules_file.annual_equivalent_full_load_hrs(col_name: "baths")
+          daily_gallons = (full_load_hrs * 60 * peak_flow_rate) / num_days_in_year # multiply by 60 because peak_flow_rate is in gal/min
+          actual_values["BathDailyWater_gpd"] += daily_gallons
         end
       end
     end
