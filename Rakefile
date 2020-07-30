@@ -158,6 +158,14 @@ Rake::TestTask.new('integrity_check_national') do |t|
   t.verbose = true
 end # rake task
 
+desc 'Perform integrity check on inputs for project_chicago'
+Rake::TestTask.new('integrity_check_chicago') do |t|
+  t.libs << 'test'
+  t.test_files = Dir['project_chicago/tests/*.rb']
+  t.warning = false
+  t.verbose = true
+end # rake task
+
 desc 'Perform integrity check on inputs for project_testing'
 Rake::TestTask.new('integrity_check_testing') do |t|
   t.libs << 'test'
