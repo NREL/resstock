@@ -244,7 +244,7 @@ class CreateResidentialSingleFamilyAttachedGeometryTest < MiniTest::Test
     args_hash["roof_type"] = Constants.RoofTypeHip
     expected_num_del_objects = {}
     expected_num_new_objects = { "BuildingUnit" => 1, "Surface" => 11, "ThermalZone" => 1 + 1, "Space" => 1 + 1, "SpaceType" => 2, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 2, "ShadingSurfaceGroup" => 2, "ShadingSurface" => 6 }
-    expected_values = { "FinishedFloorArea" => 900, "UnfinishedAtticHeight" => 12.61, "UnfinishedAtticFloorArea" => 900 , "BuildingHeight" => 8 + 12.61, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 3.39, "EavesDepth" => 2, "NumAdiabaticSurfaces" => 2 }
+    expected_values = { "FinishedFloorArea" => 900, "UnfinishedAtticHeight" => 12.61, "UnfinishedAtticFloorArea" => 900, "BuildingHeight" => 8 + 12.61, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 3.39, "EavesDepth" => 2, "NumAdiabaticSurfaces" => 2 }
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
