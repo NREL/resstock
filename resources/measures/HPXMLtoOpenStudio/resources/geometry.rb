@@ -463,7 +463,7 @@ class Geometry
       surface.vertices.each do |vertex|
         z_vertex << vertex.z
       end
-      if z_vertex.min < 0
+      if z_vertex.min < -1e-9
         return true
       end
       if surface.outsideBoundaryCondition.downcase == "foundation"
@@ -1732,21 +1732,13 @@ class Geometry
           dir_vector_n = OpenStudio::Vector3d.new(dir_vector.x / dir_vector.length, dir_vector.y / dir_vector.length, dir_vector.z / dir_vector.length) # normalize
 
           l, w, h = self.get_surface_dimensions(roof_surface)
-          if get_building_type(model) == Constants.BuildingTypeSingleFamilyAttached
-            tilt = Math.atan(h / w)
-          else
-            tilt = Math.atan(h / [l, w].min)
-          end
+          tilt = Math.atan(h / [l, w].min)
 
           z = eaves_depth / Math.cos(tilt)
           if dir_vector_n.z == 0
             scale = 1
           else
             scale = z / eaves_depth
-          end
-
-          if Math.cos(tilt) < 0.001 # Roof is vertical (occurs with SFA w/ rear units single unit approach)
-            z = 0
           end
 
           m = self.initialize_transformation_matrix(OpenStudio::Matrix.new(4, 4, 0))
@@ -1776,11 +1768,9 @@ class Geometry
           m[2, 3] = roof_surface.space.get.zOrigin
           new_vertices = OpenStudio::Transformation.new(m) * new_vertices
 
-          if z > 0 # no eaves on a vertical roof surface
-            shading_surface = OpenStudio::Model::ShadingSurface.new(new_vertices, model)
-            shading_surface.setName("#{roof_surface.name} - #{Constants.ObjectNameEaves}")
-            shading_surface.setShadingSurfaceGroup(shading_surface_group)
-          end
+          shading_surface = OpenStudio::Model::ShadingSurface.new(new_vertices, model)
+          shading_surface.setName("#{roof_surface.name} - #{Constants.ObjectNameEaves}")
+          shading_surface.setShadingSurfaceGroup(shading_surface_group)
         end
 
       elsif roof_surface.vertices.length == 3
