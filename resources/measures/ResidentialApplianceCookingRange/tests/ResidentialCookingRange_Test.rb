@@ -359,7 +359,7 @@ class ResidentialCookingRangeTest < MiniTest::Test
     args_hash = {}
     args_hash["fuel_type"] = Constants.FuelTypeGas
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ScheduleRuleset" => 1, "ElectricEquipment" => num_units, "ElectricEquipmentDefinition" => num_units, "OtherEquipment" => num_units, "OtherEquipmentDefinition" => num_units }
+    expected_num_new_objects = { "ScheduleFile" => 1, "ElectricEquipment" => num_units, "ElectricEquipmentDefinition" => num_units, "OtherEquipment" => num_units, "OtherEquipmentDefinition" => num_units }
     expected_values = { "Annual_kwh" => 638.95 / 8, "Annual_therm" => 228.27 / 8, "Annual_gal" => 0, "FuelType" => Constants.FuelTypeGas, "Location" => args_hash["location"] }
     _test_measure("MF_8units_1story_SL_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end

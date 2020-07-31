@@ -363,7 +363,7 @@ class ResidentialClothesWasherTest < MiniTest::Test
     num_units = 1
     args_hash = {}
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ElectricEquipment" => num_units, "ElectricEquipmentDefinition" => num_units, "ScheduleConstant" => num_units, "ScheduleRuleset" => num_units, "WaterUseEquipment" => num_units, "WaterUseEquipmentDefinition" => num_units }
+    expected_num_new_objects = { "ElectricEquipment" => num_units, "ElectricEquipmentDefinition" => num_units, "ScheduleConstant" => num_units, "ScheduleFile" => 2, "WaterUseEquipment" => num_units, "WaterUseEquipmentDefinition" => num_units }
     expected_values = { "Annual_kwh" => 343.54 / 8, "HotWater_gpd" => 79.99 / 8, "Location" => args_hash["location"] }
     _test_measure("MF_8units_1story_SL_3Beds_2Baths_Denver_WHTank.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
