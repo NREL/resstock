@@ -308,7 +308,7 @@ class ResidentialClothesDryerTest < MiniTest::Test
     args_hash = {}
     args_hash["fuel_type"] = Constants.FuelTypeGas
     expected_num_del_objects = {}
-    expected_num_new_objects = { "OtherEquipment" => num_units, "OtherEquipmentDefinition" => num_units, "ElectricEquipment" => num_units, "ElectricEquipmentDefinition" => num_units, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "OtherEquipment" => num_units, "OtherEquipmentDefinition" => num_units, "ElectricEquipment" => num_units, "ElectricEquipmentDefinition" => num_units, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => num_units * 80.98, "Annual_therm" => num_units * 36.71, "Annual_gal" => 0, "FuelType" => Constants.FuelTypeGas, "Location" => args_hash["location"] }
     _test_measure("MF_8units_1story_SL_3Beds_2Baths_Denver_WHTank_ClothesWasher.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 0)
   end
