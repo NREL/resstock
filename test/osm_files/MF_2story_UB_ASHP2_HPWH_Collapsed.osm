@@ -1,11 +1,61 @@
 !- NOTE: Auto-generated from /test/osw_files/MF_2story_UB_ASHP2_HPWH_Collapsed.osw
 
 OS:Version,
-  {1565a5dc-38b6-47d7-86de-a0135ad91c46}, !- Handle
+  {54729aba-b9d7-471b-b13a-bc218d6f168e}, !- Handle
   2.9.0;                                  !- Version Identifier
 
+OS:SimulationControl,
+  {434a40f6-9bed-4b4e-ac37-e1aa5efb01e2}, !- Handle
+  ,                                       !- Do Zone Sizing Calculation
+  ,                                       !- Do System Sizing Calculation
+  ,                                       !- Do Plant Sizing Calculation
+  No;                                     !- Run Simulation for Sizing Periods
+
+OS:Timestep,
+  {8edd7a75-7a04-407c-8009-9aeb7e563af0}, !- Handle
+  6;                                      !- Number of Timesteps per Hour
+
+OS:ShadowCalculation,
+  {d47b4c2c-f069-4325-ade8-86a9f8c45056}, !- Handle
+  20,                                     !- Calculation Frequency
+  200;                                    !- Maximum Figures in Shadow Overlap Calculations
+
+OS:SurfaceConvectionAlgorithm:Outside,
+  {cecf857b-20dd-4feb-a84d-bb3f95e4fffe}, !- Handle
+  DOE-2;                                  !- Algorithm
+
+OS:SurfaceConvectionAlgorithm:Inside,
+  {2666c075-ca3b-4e43-b089-2d84fe592307}, !- Handle
+  TARP;                                   !- Algorithm
+
+OS:ZoneCapacitanceMultiplier:ResearchSpecial,
+  {603a0b13-d150-404b-b493-9f8140b4d11b}, !- Handle
+  ,                                       !- Temperature Capacity Multiplier
+  15,                                     !- Humidity Capacity Multiplier
+  ;                                       !- Carbon Dioxide Capacity Multiplier
+
+OS:RunPeriod,
+  {8d0154c0-6f93-4eb6-8b85-7c14727fc8ce}, !- Handle
+  Run Period 1,                           !- Name
+  1,                                      !- Begin Month
+  1,                                      !- Begin Day of Month
+  12,                                     !- End Month
+  31,                                     !- End Day of Month
+  ,                                       !- Use Weather File Holidays and Special Days
+  ,                                       !- Use Weather File Daylight Saving Period
+  ,                                       !- Apply Weekend Holiday Rule
+  ,                                       !- Use Weather File Rain Indicators
+  ,                                       !- Use Weather File Snow Indicators
+  ;                                       !- Number of Times Runperiod to be Repeated
+
+OS:YearDescription,
+  {3bf4c29d-22e1-488d-8860-bae2798a526c}, !- Handle
+  2007,                                   !- Calendar Year
+  ,                                       !- Day of Week for Start Day
+  ;                                       !- Is Leap Year
+
 OS:WeatherFile,
-  {7e34c424-fa64-4c40-8a65-388c6c56f0a9}, !- Handle
+  {d14479ea-58ae-4dbb-a898-7f6b30f3de57}, !- Handle
   Denver Intl Ap,                         !- City
   CO,                                     !- State Province Region
   USA,                                    !- Country
@@ -19,8 +69,8 @@ OS:WeatherFile,
   E23378AA;                               !- Checksum
 
 OS:AdditionalProperties,
-  {0a22d947-a732-49a6-a522-4f86b3ad6efe}, !- Handle
-  {7e34c424-fa64-4c40-8a65-388c6c56f0a9}, !- Object Name
+  {94978514-a7e2-4341-9e83-fabb7e62c21d}, !- Handle
+  {d14479ea-58ae-4dbb-a898-7f6b30f3de57}, !- Object Name
   EPWHeaderCity,                          !- Feature Name 1
   String,                                 !- Feature Data Type 1
   Denver Intl Ap,                         !- Feature Value 1
@@ -127,11 +177,8 @@ OS:AdditionalProperties,
   Double,                                 !- Feature Data Type 35
   84;                                     !- Feature Value 35
 
-OS:YearDescription,
-  {4922a914-c4df-4738-9234-5646e80b52a9}; !- Handle
-
 OS:Site,
-  {99d70df6-75ce-4411-b248-0ab8f3985b83}, !- Handle
+  {6c890f19-e684-4e26-b20c-b90ddbf5ec26}, !- Handle
   Denver Intl Ap_CO_USA,                  !- Name
   39.83,                                  !- Latitude {deg}
   -104.65,                                !- Longitude {deg}
@@ -140,7 +187,7 @@ OS:Site,
   ;                                       !- Terrain
 
 OS:ClimateZones,
-  {d3ecf11f-517d-429a-8e94-39315936b0fb}, !- Handle
+  {12d2e3df-debc-4f78-a0ca-fc11f965758d}, !- Handle
   ,                                       !- Active Institution
   ,                                       !- Active Year
   ,                                       !- Climate Zone Institution Name 1
@@ -153,19 +200,19 @@ OS:ClimateZones,
   Cold;                                   !- Climate Zone Value 2
 
 OS:Site:WaterMainsTemperature,
-  {23dca88e-be1d-45d2-9f7e-c5ddb654fdb2}, !- Handle
+  {2e014e8f-0270-4bba-afa1-02a5abca3987}, !- Handle
   Correlation,                            !- Calculation Method
   ,                                       !- Temperature Schedule Name
   10.8753424657535,                       !- Annual Average Outdoor Air Temperature {C}
   23.1524007936508;                       !- Maximum Difference In Monthly Average Outdoor Air Temperatures {deltaC}
 
 OS:RunPeriodControl:DaylightSavingTime,
-  {8345f3a3-bf41-43c5-9416-97fedde762fc}, !- Handle
+  {bd02c3a8-b0e2-41a2-8155-3f10d0cf266d}, !- Handle
   4/7,                                    !- Start Date
   10/26;                                  !- End Date
 
 OS:Site:GroundTemperature:Deep,
-  {39115055-5626-46d6-8266-39d600b1827b}, !- Handle
+  {1a1b87dc-5b35-4a24-8ede-e7ca3cc9fa61}, !- Handle
   10.8753424657535,                       !- January Deep Ground Temperature {C}
   10.8753424657535,                       !- February Deep Ground Temperature {C}
   10.8753424657535,                       !- March Deep Ground Temperature {C}
@@ -178,4 +225,18 @@ OS:Site:GroundTemperature:Deep,
   10.8753424657535,                       !- October Deep Ground Temperature {C}
   10.8753424657535,                       !- November Deep Ground Temperature {C}
   10.8753424657535;                       !- December Deep Ground Temperature {C}
+
+OS:Building,
+  {2b3fb179-33b9-4cb5-9e59-40b25a619519}, !- Handle
+  Building 1,                             !- Name
+  ,                                       !- Building Sector Type
+  ,                                       !- North Axis {deg}
+  ,                                       !- Nominal Floor to Floor Height {m}
+  ,                                       !- Space Type Name
+  ,                                       !- Default Construction Set Name
+  ;                                       !- Default Schedule Set Name
+
+OS:AdditionalProperties,
+  {f79dd90f-67e2-4aa2-84dc-0e38f6985f50}, !- Handle
+  {2b3fb179-33b9-4cb5-9e59-40b25a619519}; !- Object Name
 
