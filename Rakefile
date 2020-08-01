@@ -274,7 +274,7 @@ def integrity_check(project_dir_name, housing_characteristics_dir = "housing_cha
         combo_hashes.each do |combo_hash|
           # Check dependency value combination
           _matched_option_name, _matched_row_num = tsvfile.get_option_name_from_sample_number(1.0, combo_hash)
-          
+
           # Print to screen so CircleCI does not timeout
           if i % 10000 == 0
             puts "  Checked #{i}/#{total_hashes} possible dependency value combinations..."
