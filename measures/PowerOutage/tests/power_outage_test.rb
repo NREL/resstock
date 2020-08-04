@@ -122,9 +122,9 @@ class OutageTest < MiniTest::Test
     args_hash["otg_hr"] = 8
     args_hash["otg_len"] = 8
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ScheduleRule" => num_units * 4 + 4, "ScheduleDay" => num_units * 4 + 4, "ScheduleFixedInterval" => 1 }
+    expected_num_new_objects = { "ScheduleRule" => 6, "ScheduleDay" => 6, "ScheduleFixedInterval" => 1 }
     expected_values = {}
-    _test_measure("MF_Successful_EnergyPlus_Run_TMY_Appl_PV.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 5 * num_units + 4)
+    _test_measure("MF_Successful_EnergyPlus_Run_TMY_Appl_PV.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 22)
   end
 
   def test_outage_short_run_period
@@ -167,7 +167,7 @@ class OutageTest < MiniTest::Test
     result = runner.result
 
     # show the output
-    show_output(result) #unless result.value.valueName == 'Fail'
+    show_output(result) unless result.value.valueName == 'Fail'
 
     # assert that it didn't run
     assert_equal("Fail", result.value.valueName)
@@ -211,7 +211,7 @@ class OutageTest < MiniTest::Test
     result = runner.result
 
     # show the output
-    show_output(result) #unless result.value.valueName == 'Success'
+    show_output(result) unless result.value.valueName == 'Success'
 
     # assert that it ran correctly
     assert_equal("Success", result.value.valueName)
