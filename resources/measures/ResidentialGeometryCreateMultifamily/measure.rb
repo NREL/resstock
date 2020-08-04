@@ -475,7 +475,6 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     unit_spaces_hash = {}
     unit_spaces_hash[1] = [living_spaces_front, 1]
 
-    ##############################################################################################
     # Map unit location to adiabatic surfaces
     horz_hash = { "Left" => ["right"], "Right" => ["left"], "Middle" => ["left", "right"], "None" => [] }
     level_hash = { "Bottom" => ["RoofCeiling"], "Top" => ["Floor"], "Middle" => ["RoofCeiling", "Floor"], "None" => [] }
