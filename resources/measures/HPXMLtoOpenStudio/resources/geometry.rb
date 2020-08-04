@@ -1940,7 +1940,7 @@ class Geometry
       end
     end
 
-    #### NEIGHBORS FOR SINGLE UNIT ####
+    # Neighbors for single unit
     num_floors = model.getBuilding.additionalProperties.getFeatureAsInteger("num_floors")
     level = model.getBuilding.additionalProperties.getFeatureAsString("level")
     has_rear_units = model.getBuilding.additionalProperties.getFeatureAsBoolean("has_rear_units")
@@ -1970,7 +1970,6 @@ class Geometry
       # FIXME: does not check where the unit is horizontally (for front and back neighbors)
       # greatest_x += unit_width
     end
-    ####################################
 
     directions = [[Constants.FacadeLeft, left_neighbor_offset], [Constants.FacadeRight, right_neighbor_offset], [Constants.FacadeBack, back_neighbor_offset], [Constants.FacadeFront, front_neighbor_offset]]
 

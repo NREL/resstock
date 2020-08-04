@@ -545,7 +545,6 @@ class ResidentialAirflowTest < MiniTest::Test
   end
 
   def test_single_family_attached_new_construction_furnace_central_air_conditioner
-    ###
     num_units = 1
     num_airloops = 2
     args_hash = {}
