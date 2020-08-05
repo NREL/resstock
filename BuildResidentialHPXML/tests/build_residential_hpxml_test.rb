@@ -100,7 +100,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
     expected_warning_msgs = {
       'non-electric-heat-pump-water-heater.osw' => 'water_heater_type=heat pump water heater and water_heater_fuel_type=natural gas',
       'single-family-detached-slab-non-zero-foundation-height.osw' => 'geometry_unit_type=single-family detached and geometry_foundation_type=SlabOnGrade and geometry_foundation_height=8.0',
-      'multifamily-bottom-slab-non-zero-foundation-height.osw' => 'geometry_unit_type=multi-family - uncategorized and geometry_level=Bottom and geometry_foundation_type=SlabOnGrade and geometry_foundation_height=8.0',
+      'multifamily-bottom-slab-non-zero-foundation-height.osw' => 'geometry_unit_type=apartment unit and geometry_level=Bottom and geometry_foundation_type=SlabOnGrade and geometry_foundation_height=8.0',
       'slab-non-zero-foundation-height-above-grade.osw' => 'geometry_foundation_type=SlabOnGrade and geometry_foundation_height_above_grade=1.0',
       'second-heating-system-serves-majority-heat.osw' => 'heating_system_type_2=Fireplace and heating_system_fraction_heat_load_served_2=0.6'
     }
@@ -111,7 +111,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       'non-integer-ceiling-fan-quantity.osw' => 'ceiling_fan_quantity=0.5',
       'single-family-detached-finished-basement-zero-foundation-height.osw' => 'geometry_unit_type=single-family detached and geometry_foundation_type=ConditionedBasement and geometry_foundation_height=0.0',
       'single-family-attached-ambient.osw' => 'geometry_unit_type=single-family attached and geometry_foundation_type=Ambient',
-      'multifamily-bottom-crawlspace-zero-foundation-height.osw' => 'geometry_unit_type=multi-family - uncategorized and geometry_level=Bottom and geometry_foundation_type=UnventedCrawlspace and geometry_foundation_height=0.0',
+      'multifamily-bottom-crawlspace-zero-foundation-height.osw' => 'geometry_unit_type=apartment unit and geometry_level=Bottom and geometry_foundation_type=UnventedCrawlspace and geometry_foundation_height=0.0',
       'ducts-location-and-areas-not-same-type.osw' => 'ducts_supply_location=auto and ducts_supply_surface_area=150.0 and ducts_return_location=attic - unvented and ducts_return_surface_area=50.0'
     }
 
@@ -183,6 +183,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       hpxml.header.xml_type = nil
       hpxml.header.xml_generated_by = nil
       hpxml.header.created_date_and_time = Time.new(2000, 1, 1).strftime('%Y-%m-%dT%H:%M:%S%:z')
+      hpxml.header.schedules_path = nil
       hpxml.site.fuels = [] # Not used by model
       hpxml.climate_and_risk_zones.weather_station_name = nil
       hpxml.climate_and_risk_zones.weather_station_wmo = nil
@@ -247,11 +248,65 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       end
       hpxml.refrigerators.each do |refrigerator|
         refrigerator.primary_indicator = nil
+        refrigerator.weekday_fractions = nil
+        refrigerator.weekend_fractions = nil
+        refrigerator.monthly_multipliers = nil
       end
       if hpxml.freezers.length > 0
         (1..hpxml.freezers.length).to_a.reverse.each do |i|
           hpxml.freezers.delete_at(i) # Only compare first freezer
         end
+      end
+      hpxml.freezers.each do |freezer|
+        freezer.weekday_fractions = nil
+        freezer.weekend_fractions = nil
+        freezer.monthly_multipliers = nil
+      end
+      hpxml.cooking_ranges.each do |cooking_range|
+        cooking_range.weekday_fractions = nil
+        cooking_range.weekend_fractions = nil
+        cooking_range.monthly_multipliers = nil
+      end
+      hpxml.pools.each do |pool|
+        pool.pump_weekday_fractions = nil
+        pool.pump_weekend_fractions = nil
+        pool.pump_monthly_multipliers = nil
+        pool.heater_weekday_fractions = nil
+        pool.heater_weekend_fractions = nil
+        pool.heater_monthly_multipliers = nil
+      end
+      hpxml.hot_tubs.each do |hot_tub|
+        hot_tub.pump_weekday_fractions = nil
+        hot_tub.pump_weekend_fractions = nil
+        hot_tub.pump_monthly_multipliers = nil
+        hot_tub.heater_weekday_fractions = nil
+        hot_tub.heater_weekend_fractions = nil
+        hot_tub.heater_monthly_multipliers = nil
+      end
+      hpxml.lighting.interior_weekday_fractions = nil
+      hpxml.lighting.interior_weekend_fractions = nil
+      hpxml.lighting.interior_monthly_multipliers = nil
+      hpxml.lighting.exterior_weekday_fractions = nil
+      hpxml.lighting.exterior_weekend_fractions = nil
+      hpxml.lighting.exterior_monthly_multipliers = nil
+      hpxml.lighting.garage_weekday_fractions = nil
+      hpxml.lighting.garage_weekend_fractions = nil
+      hpxml.lighting.garage_monthly_multipliers = nil
+      hpxml.lighting.holiday_period_begin_month = nil
+      hpxml.lighting.holiday_period_begin_day_of_month = nil
+      hpxml.lighting.holiday_period_end_month = nil
+      hpxml.lighting.holiday_period_end_day_of_month = nil
+      hpxml.lighting.holiday_weekday_fractions = nil
+      hpxml.lighting.holiday_weekend_fractions = nil
+      hpxml.plug_loads.each do |plug_load|
+        plug_load.weekday_fractions = nil
+        plug_load.weekend_fractions = nil
+        plug_load.monthly_multipliers = nil
+      end
+      hpxml.fuel_loads.each do |fuel_load|
+        fuel_load.weekday_fractions = nil
+        fuel_load.weekend_fractions = nil
+        fuel_load.monthly_multipliers = nil
       end
       hpxml.collapse_enclosure_surfaces()
 

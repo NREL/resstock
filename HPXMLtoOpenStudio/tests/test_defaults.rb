@@ -526,14 +526,14 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
 
   def test_ceiling_fans
     # Test inputs not overridden by defaults
-    hpxml_name = 'base-misc-ceiling-fans.xml'
+    hpxml_name = 'base-lighting-ceiling-fans.xml'
     hpxml = HPXML.new(hpxml_path: File.join(@root_path, 'workflow', 'sample_files', hpxml_name))
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     _test_default_ceiling_fan_values(hpxml_default, 2, 100)
 
     # Test defaults
-    hpxml = apply_hpxml_defaults('base-misc-ceiling-fans.xml')
+    hpxml = apply_hpxml_defaults('base-lighting-ceiling-fans.xml')
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     _test_default_ceiling_fan_values(hpxml_default, 4, 70.4)
@@ -541,7 +541,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
 
   def test_pools
     # Test inputs not overridden by defaults
-    hpxml_name = 'base-misc-large-uncommon-loads.xml'
+    hpxml_name = 'base-misc-loads-large-uncommon.xml'
     hpxml = HPXML.new(hpxml_path: File.join(@root_path, 'workflow', 'sample_files', hpxml_name))
     pool = hpxml.pools[0]
     pool.heater_load_units = HPXML::UnitsKwhPerYear
@@ -559,14 +559,14 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     _test_default_pool_pump_values(hpxml_default, 3000, '0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42', '0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42', '1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1')
 
     # Test defaults
-    hpxml = apply_hpxml_defaults('base-misc-large-uncommon-loads.xml')
+    hpxml = apply_hpxml_defaults('base-misc-loads-large-uncommon.xml')
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     _test_default_pool_heater_values(hpxml_default, HPXML::UnitsThermPerYear, 236, '0.003, 0.003, 0.003, 0.004, 0.008, 0.015, 0.026, 0.044, 0.084, 0.121, 0.127, 0.121, 0.120, 0.090, 0.075, 0.061, 0.037, 0.023, 0.013, 0.008, 0.004, 0.003, 0.003, 0.003', '0.003, 0.003, 0.003, 0.004, 0.008, 0.015, 0.026, 0.044, 0.084, 0.121, 0.127, 0.121, 0.120, 0.090, 0.075, 0.061, 0.037, 0.023, 0.013, 0.008, 0.004, 0.003, 0.003, 0.003', '1.154, 1.161, 1.013, 1.010, 1.013, 0.888, 0.883, 0.883, 0.888, 0.978, 0.974, 1.154')
     _test_default_pool_pump_values(hpxml_default, 2496, '0.003, 0.003, 0.003, 0.004, 0.008, 0.015, 0.026, 0.044, 0.084, 0.121, 0.127, 0.121, 0.120, 0.090, 0.075, 0.061, 0.037, 0.023, 0.013, 0.008, 0.004, 0.003, 0.003, 0.003', '0.003, 0.003, 0.003, 0.004, 0.008, 0.015, 0.026, 0.044, 0.084, 0.121, 0.127, 0.121, 0.120, 0.090, 0.075, 0.061, 0.037, 0.023, 0.013, 0.008, 0.004, 0.003, 0.003, 0.003', '1.154, 1.161, 1.013, 1.010, 1.013, 0.888, 0.883, 0.883, 0.888, 0.978, 0.974, 1.154')
 
     # Test defaults 2
-    hpxml = apply_hpxml_defaults('base-misc-large-uncommon-loads2.xml')
+    hpxml = apply_hpxml_defaults('base-misc-loads-large-uncommon2.xml')
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     _test_default_pool_heater_values(hpxml_default, nil, nil, nil, nil, nil)
@@ -575,7 +575,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
 
   def test_hot_tubs
     # Test inputs not overridden by defaults
-    hpxml_name = 'base-misc-large-uncommon-loads.xml'
+    hpxml_name = 'base-misc-loads-large-uncommon.xml'
     hpxml = HPXML.new(hpxml_path: File.join(@root_path, 'workflow', 'sample_files', hpxml_name))
     hot_tub = hpxml.hot_tubs[0]
     hot_tub.heater_load_units = HPXML::UnitsThermPerYear
@@ -593,14 +593,14 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     _test_default_hot_tub_pump_values(hpxml_default, 3000, '0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42', '0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42', '1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1')
 
     # Test defaults
-    hpxml = apply_hpxml_defaults('base-misc-large-uncommon-loads.xml')
+    hpxml = apply_hpxml_defaults('base-misc-loads-large-uncommon.xml')
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     _test_default_hot_tub_heater_values(hpxml_default, HPXML::UnitsKwhPerYear, 1125, '0.024, 0.029, 0.024, 0.029, 0.047, 0.067, 0.057, 0.024, 0.024, 0.019, 0.015, 0.014, 0.014, 0.014, 0.024, 0.058, 0.126, 0.122, 0.068, 0.061, 0.051, 0.043, 0.024, 0.024', '0.024, 0.029, 0.024, 0.029, 0.047, 0.067, 0.057, 0.024, 0.024, 0.019, 0.015, 0.014, 0.014, 0.014, 0.024, 0.058, 0.126, 0.122, 0.068, 0.061, 0.051, 0.043, 0.024, 0.024', '0.837, 0.835, 1.084, 1.084, 1.084, 1.096, 1.096, 1.096, 1.096, 0.931, 0.925, 0.837')
     _test_default_hot_tub_pump_values(hpxml_default, 1111, '0.024, 0.029, 0.024, 0.029, 0.047, 0.067, 0.057, 0.024, 0.024, 0.019, 0.015, 0.014, 0.014, 0.014, 0.024, 0.058, 0.126, 0.122, 0.068, 0.061, 0.051, 0.043, 0.024, 0.024', '0.024, 0.029, 0.024, 0.029, 0.047, 0.067, 0.057, 0.024, 0.024, 0.019, 0.015, 0.014, 0.014, 0.014, 0.024, 0.058, 0.126, 0.122, 0.068, 0.061, 0.051, 0.043, 0.024, 0.024', '0.921, 0.928, 0.921, 0.915, 0.921, 1.160, 1.158, 1.158, 1.160, 0.921, 0.915, 0.921')
 
     # Test defaults 2
-    hpxml = apply_hpxml_defaults('base-misc-large-uncommon-loads2.xml')
+    hpxml = apply_hpxml_defaults('base-misc-loads-large-uncommon2.xml')
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     _test_default_hot_tub_heater_values(hpxml_default, HPXML::UnitsKwhPerYear, 225, '0.024, 0.029, 0.024, 0.029, 0.047, 0.067, 0.057, 0.024, 0.024, 0.019, 0.015, 0.014, 0.014, 0.014, 0.024, 0.058, 0.126, 0.122, 0.068, 0.061, 0.051, 0.043, 0.024, 0.024', '0.024, 0.029, 0.024, 0.029, 0.047, 0.067, 0.057, 0.024, 0.024, 0.019, 0.015, 0.014, 0.014, 0.014, 0.024, 0.058, 0.126, 0.122, 0.068, 0.061, 0.051, 0.043, 0.024, 0.024', '0.837, 0.835, 1.084, 1.084, 1.084, 1.096, 1.096, 1.096, 1.096, 0.931, 0.925, 0.837')
@@ -609,7 +609,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
 
   def test_plug_loads
     # Test inputs not overridden by defaults
-    hpxml_name = 'base-misc-large-uncommon-loads.xml'
+    hpxml_name = 'base-misc-loads-large-uncommon.xml'
     hpxml = HPXML.new(hpxml_path: File.join(@root_path, 'workflow', 'sample_files', hpxml_name))
     tv_pl = hpxml.plug_loads.select { |pl| pl.plug_load_type == HPXML::PlugLoadTypeTelevision }[0]
     tv_pl.kWh_per_year = 1000
@@ -651,7 +651,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     _test_default_plug_load_values(hpxml_default, HPXML::PlugLoadTypeWellPump, 3000, 0.3, 0.6, HPXML::LocationInterior, '0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42', '0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42', '1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1')
 
     # Test defaults
-    hpxml = apply_hpxml_defaults('base-misc-large-uncommon-loads.xml')
+    hpxml = apply_hpxml_defaults('base-misc-loads-large-uncommon.xml')
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     _test_default_plug_load_values(hpxml_default, HPXML::PlugLoadTypeTelevision, 620, 1.0, 0.0, HPXML::LocationInterior, '0.037, 0.018, 0.009, 0.007, 0.011, 0.018, 0.029, 0.040, 0.049, 0.058, 0.065, 0.072, 0.076, 0.086, 0.091, 0.102, 0.127, 0.156, 0.210, 0.294, 0.363, 0.344, 0.208, 0.090', '0.044, 0.022, 0.012, 0.008, 0.011, 0.014, 0.024, 0.043, 0.071, 0.094, 0.112, 0.123, 0.132, 0.156, 0.178, 0.196, 0.206, 0.213, 0.251, 0.330, 0.388, 0.358, 0.226, 0.103', '1.137, 1.129, 0.961, 0.969, 0.961, 0.993, 0.996, 0.96, 0.993, 0.867, 0.86, 1.137')
@@ -662,7 +662,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
 
   def test_fuel_loads
     # Test inputs not overridden by defaults
-    hpxml_name = 'base-misc-large-uncommon-loads.xml'
+    hpxml_name = 'base-misc-loads-large-uncommon.xml'
     hpxml = HPXML.new(hpxml_path: File.join(@root_path, 'workflow', 'sample_files', hpxml_name))
     gg_fl = hpxml.fuel_loads.select { |fl| fl.fuel_load_type == HPXML::FuelLoadTypeGrill }[0]
     gg_fl.therm_per_year = 1000
@@ -695,7 +695,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     _test_default_fuel_load_values(hpxml_default, HPXML::FuelLoadTypeFireplace, 3000, 0.4, 0.5, HPXML::LocationExterior, '0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42', '0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42, 0.42', '1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1')
 
     # Test defaults
-    hpxml = apply_hpxml_defaults('base-misc-large-uncommon-loads.xml')
+    hpxml = apply_hpxml_defaults('base-misc-loads-large-uncommon.xml')
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     _test_default_fuel_load_values(hpxml_default, HPXML::FuelLoadTypeGrill, 33, 0.0, 0.0, HPXML::LocationExterior, '0.004, 0.001, 0.001, 0.002, 0.007, 0.012, 0.029, 0.046, 0.044, 0.041, 0.044, 0.046, 0.042, 0.038, 0.049, 0.059, 0.110, 0.161, 0.115, 0.070, 0.044, 0.019, 0.013, 0.007', '0.004, 0.001, 0.001, 0.002, 0.007, 0.012, 0.029, 0.046, 0.044, 0.041, 0.044, 0.046, 0.042, 0.038, 0.049, 0.059, 0.110, 0.161, 0.115, 0.070, 0.044, 0.019, 0.013, 0.007', '1.097, 1.097, 0.991, 0.987, 0.991, 0.890, 0.896, 0.896, 0.890, 1.085, 1.085, 1.097')
@@ -717,7 +717,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     _test_default_oven_values(hpxml_default, false)
 
     # Test defaults w/ appliances
-    hpxml = apply_hpxml_defaults('base-misc-large-uncommon-loads.xml')
+    hpxml = apply_hpxml_defaults('base-misc-loads-large-uncommon.xml')
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     _test_default_clothes_washer_values(hpxml_default, HPXML::LocationLivingSpace, 1.0, 400.0, 0.12, 1.09, 27.0, 3.0, 6.0, 1.0)

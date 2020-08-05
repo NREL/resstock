@@ -138,7 +138,7 @@ class Geometry
   end
 
   def self.process_occupants(model, num_occ, occ_gain, sens_frac, lat_frac, weekday_sch, weekend_sch, monthly_sch,
-                             cfa, nbeds, space, people_sch)
+                             cfa, nbeds, space, schedules_file)
 
     # Error checking
     if (sens_frac < 0) || (sens_frac > 1)
@@ -164,7 +164,9 @@ class Geometry
     space_num_occ = num_occ * UnitConversions.convert(space.floorArea, 'm^2', 'ft^2') / cfa
 
     # Create schedule
-    if people_sch.nil?
+    if (not schedules_file.nil?)
+      people_sch = schedules_file.create_schedule_file(col_name: 'occupants')
+    else
       people_sch = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameOccupants + ' schedule', weekday_sch, weekend_sch, monthly_sch, 1.0, 1.0, true, true, Constants.ScheduleTypeLimitsFraction)
       people_sch = people_sch.schedule
     end
