@@ -11,7 +11,6 @@
       <SimulationControl>
         <Timestep>60</Timestep>
       </SimulationControl>
-      <SchedulesPath>BuildResidentialHPXML/resources/schedules/schedules.csv</SchedulesPath>
     </extension>
   </SoftwareInfo>
   <Building>
@@ -36,9 +35,6 @@
         </Site>
         <BuildingOccupancy>
           <NumberofResidents>3.0</NumberofResidents>
-          <extension>
-            <Schedule>occupants</Schedule>
-          </extension>
         </BuildingOccupancy>
         <BuildingConstruction>
           <ResidentialFacilityType>single-family detached</ResidentialFacilityType>
@@ -191,13 +187,16 @@
         <FrameFloors>
           <FrameFloor>
             <SystemIdentifier id='FloorBelowAttic'/>
-            <ExteriorAdjacentTo>attic - unvented</ExteriorAdjacentTo>
+            <ExteriorAdjacentTo>other heated space</ExteriorAdjacentTo>
             <InteriorAdjacentTo>living space</InteriorAdjacentTo>
             <Area>1350.0</Area>
             <Insulation>
               <SystemIdentifier id='FloorBelowAtticInsulation'/>
               <AssemblyEffectiveRValue>39.3</AssemblyEffectiveRValue>
             </Insulation>
+            <extension>
+              <OtherSpaceAboveOrBelow>above</OtherSpaceAboveOrBelow>
+            </extension>
           </FrameFloor>
         </FrameFloors>
         <Slabs>
@@ -412,9 +411,6 @@
             <WaterFixtureType>faucet</WaterFixtureType>
             <LowFlow>false</LowFlow>
           </WaterFixture>
-          <extension>
-            <WaterFixturesSchedule>fixtures</WaterFixturesSchedule>
-          </extension>
         </WaterHeating>
       </Systems>
       <Appliances>
@@ -428,10 +424,6 @@
           <LabelAnnualGasCost>27.0</LabelAnnualGasCost>
           <LabelUsage>6.0</LabelUsage>
           <Capacity>3.2</Capacity>
-          <extension>
-            <WaterSchedule>clothes_washer</WaterSchedule>
-            <PowerSchedule>clothes_washer_power</PowerSchedule>
-          </extension>
         </ClothesWasher>
         <ClothesDryer>
           <SystemIdentifier id='ClothesDryer'/>
@@ -439,9 +431,6 @@
           <FuelType>electricity</FuelType>
           <CombinedEnergyFactor>3.73</CombinedEnergyFactor>
           <ControlType>timer</ControlType>
-          <extension>
-            <PowerSchedule>clothes_dryer</PowerSchedule>
-          </extension>
         </ClothesDryer>
         <Dishwasher>
           <SystemIdentifier id='Dishwasher'/>
@@ -452,10 +441,6 @@
           <LabelGasRate>1.09</LabelGasRate>
           <LabelAnnualGasCost>22.32</LabelAnnualGasCost>
           <LabelUsage>4.0</LabelUsage>
-          <extension>
-            <WaterSchedule>dishwasher</WaterSchedule>
-            <PowerSchedule>dishwasher_power</PowerSchedule>
-          </extension>
         </Dishwasher>
         <Refrigerator>
           <SystemIdentifier id='Refrigerator'/>
@@ -468,9 +453,6 @@
           <Location>living space</Location>
           <FuelType>electricity</FuelType>
           <IsInduction>false</IsInduction>
-          <extension>
-            <Schedule>cooking_range</Schedule>
-          </extension>
         </CookingRange>
         <Oven>
           <SystemIdentifier id='Oven'/>
@@ -550,10 +532,6 @@
             <LightEmittingDiode/>
           </LightingType>
         </LightingGroup>
-        <extension>
-          <InteriorSchedule>lighting_interior</InteriorSchedule>
-          <ExteriorSchedule>lighting_exterior</ExteriorSchedule>
-        </extension>
       </Lighting>
       <MiscLoads>
         <PlugLoad>
@@ -566,7 +544,6 @@
           <extension>
             <FracSensible>0.855</FracSensible>
             <FracLatent>0.045</FracLatent>
-            <Schedule>plug_loads</Schedule>
           </extension>
         </PlugLoad>
         <PlugLoad>

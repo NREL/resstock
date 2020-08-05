@@ -183,6 +183,10 @@ class HPXMLTest < MiniTest::Test
                                                        'Expected [1] element(s) but found 0 element(s) for xpath: /HPXML/Building/BuildingDetails/BuildingSummary/BuildingConstruction: ConditionedFloorArea'],
                             'missing-duct-location.xml' => ['Expected [0, 2] element(s) but found 1 element(s) for xpath: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACDistribution/DistributionSystemType/AirDistribution/Ducts[DuctType="supply" or DuctType="return"]: DuctSurfaceArea | DuctLocation[text()='],
                             'missing-duct-location-and-surface-area.xml' => ['Error: The location and surface area of all ducts must be provided or blank.'],
+                            'multifamily-reference-appliance.xml' => ["The building is of type 'single-family detached' but"],
+                            'multifamily-reference-duct.xml' => ["The building is of type 'single-family detached' but"],
+                            'multifamily-reference-surface.xml' => ["The building is of type 'single-family detached' but"],
+                            'multifamily-reference-water-heater.xml' => ["The building is of type 'single-family detached' but"],
                             'net-area-negative-wall.xml' => ["Calculated a negative net surface area for surface 'Wall'."],
                             'net-area-negative-roof.xml' => ["Calculated a negative net surface area for surface 'Roof'."],
                             'orphaned-hvac-distribution.xml' => ["Distribution system 'HVACDistribution' found but no HVAC system attached to it."],
@@ -231,15 +235,15 @@ class HPXMLTest < MiniTest::Test
     # Add reporting measure to workflow
     measure_subdir = 'SimulationOutputReport'
     args = {}
-    args['timeseries_frequency'] = 'hourly'
+    args['timeseries_frequency'] = 'monthly'
     args['include_timeseries_fuel_consumptions'] = true
-    args['include_timeseries_end_use_consumptions'] = false
-    args['include_timeseries_hot_water_uses'] = false
-    args['include_timeseries_total_loads'] = false
-    args['include_timeseries_component_loads'] = false
-    args['include_timeseries_zone_temperatures'] = false
-    args['include_timeseries_airflows'] = false
-    args['include_timeseries_weather'] = false
+    args['include_timeseries_end_use_consumptions'] = true
+    args['include_timeseries_hot_water_uses'] = true
+    args['include_timeseries_total_loads'] = true
+    args['include_timeseries_component_loads'] = true
+    args['include_timeseries_zone_temperatures'] = true
+    args['include_timeseries_airflows'] = true
+    args['include_timeseries_weather'] = true
     update_args_hash(measures, measure_subdir, args)
 
     # Add output variables for combi system energy check and CFIS
@@ -254,10 +258,12 @@ class HPXMLTest < MiniTest::Test
     results = run_hpxml_workflow(rundir, xml, measures, measures_dir,
                                  debug: true, output_vars: output_vars,
                                  run_measures_only: expect_error)
-    workflow_time = Time.now - workflow_start
+    workflow_time = (Time.now - workflow_start).round(1)
     success = results[:success]
     runner = results[:runner]
     sim_time = results[:sim_time]
+    puts "Completed in #{workflow_time} seconds."
+    puts
 
     # Check results
     if expect_error
@@ -374,19 +380,6 @@ class HPXMLTest < MiniTest::Test
   end
 
   def _verify_outputs(runner, rundir, hpxml_path, results)
-    # Check run.log warnings
-    File.readlines(File.join(rundir, 'run.log')).each do |log_line|
-      next if log_line.strip.empty?
-      next if log_line.include? 'Warning: Could not load nokogiri, no HPXML validation performed.'
-      next if log_line.start_with? 'Info: '
-      next if log_line.start_with? 'Executing command'
-      next if (log_line.start_with?('Heat ') || log_line.start_with?('Cool ')) && log_line.include?('=')
-      next if log_line.include? "-cache.csv' could not be found; regenerating it."
-      next if log_line.include?('Warning: HVACDistribution') && log_line.include?('has ducts entirely within conditioned space but there is non-zero leakage to the outside.')
-
-      flunk "Unexpected warning found in run.log: #{log_line}"
-    end
-
     sql_path = File.join(rundir, 'eplusout.sql')
     assert(File.exist? sql_path)
 
@@ -399,6 +392,53 @@ class HPXMLTest < MiniTest::Test
       window.fraction_operable = nil
     end
     hpxml.collapse_enclosure_surfaces()
+
+    # Check run.log warnings
+    File.readlines(File.join(rundir, 'run.log')).each do |log_line|
+      next if log_line.strip.empty?
+      next if log_line.include? 'Warning: Could not load nokogiri, no HPXML validation performed.'
+      next if log_line.start_with? 'Info: '
+      next if log_line.start_with? 'Executing command'
+      next if (log_line.start_with?('Heat ') || log_line.start_with?('Cool ')) && log_line.include?('=')
+      next if log_line.include? "-cache.csv' could not be found; regenerating it."
+      next if log_line.include?('Warning: HVACDistribution') && log_line.include?('has ducts entirely within conditioned space but there is non-zero leakage to the outside.')
+
+      if hpxml.clothes_washers.empty?
+        next if log_line.include? 'No clothes washer specified, the model will not include clothes washer energy use.'
+      end
+      if hpxml.clothes_dryers.empty?
+        next if log_line.include? 'No clothes dryer specified, the model will not include clothes dryer energy use.'
+      end
+      if hpxml.dishwashers.empty?
+        next if log_line.include? 'No dishwasher specified, the model will not include dishwasher energy use.'
+      end
+      if hpxml.refrigerators.empty?
+        next if log_line.include? 'No refrigerator specified, the model will not include refrigerator energy use.'
+      end
+      if hpxml.cooking_ranges.empty?
+        next if log_line.include? 'No cooking range specified, the model will not include cooking range/oven energy use.'
+      end
+      if hpxml.water_heating_systems.empty?
+        next if log_line.include? 'No water heater specified, the model will not include water heating energy use.'
+      end
+      if (hpxml.heating_systems + hpxml.heat_pumps).select { |h| h.fraction_heat_load_served.to_f > 0 }.empty?
+        next if log_line.include? 'No heating system specified, the model will not include space heating energy use.'
+      end
+      if (hpxml.cooling_systems + hpxml.heat_pumps).select { |c| c.fraction_cool_load_served.to_f > 0 }.empty?
+        next if log_line.include? 'No cooling system specified, the model will not include space cooling energy use.'
+      end
+      if hpxml.plug_loads.select { |p| p.plug_load_type == HPXML::PlugLoadTypeOther }.empty?
+        next if log_line.include? "No '#{HPXML::PlugLoadTypeOther}' plug loads specified, the model will not include misc plug load energy use."
+      end
+      if hpxml.plug_loads.select { |p| p.plug_load_type == HPXML::PlugLoadTypeTelevision }.empty?
+        next if log_line.include? "No '#{HPXML::PlugLoadTypeTelevision}' plug loads specified, the model will not include television plug load energy use."
+      end
+      if hpxml.lighting_groups.empty?
+        next if log_line.include? 'No lighting specified, the model will not include lighting energy use.'
+      end
+
+      flunk "Unexpected warning found in run.log: #{log_line}"
+    end
 
     # Check for unexpected warnings
     File.readlines(File.join(rundir, 'eplusout.err')).each do |err_line|
@@ -464,8 +504,7 @@ class HPXMLTest < MiniTest::Test
       if hpxml_path.include?('base-simcontrol-timestep-10-mins.xml') || hpxml_path.include?('ASHRAE_Standard_140')
         next if err_line.include? 'Temperature out of range [-100. to 200.] (PsyPsatFnTemp)'
       end
-      # FUTURE: ensure schedules.csv reflects dst
-      if hpxml_path.include?('base-simcontrol-generated-schedule.xml')
+      if hpxml_path.include?('base-schedules-average.xml') || hpxml_path.include?('base-schedules-stochastic.xml')
         next if err_line.include?('GetCurrentScheduleValue: Schedule=') && err_line.include?('is a Schedule:File')
       end
 
@@ -565,8 +604,8 @@ class HPXMLTest < MiniTest::Test
                                     'base-enclosure-other-multifamily-buffer-space.xml' => 0, # no foundation in contact w/ ground
                                     'base-foundation-walkout-basement.xml' => 4, # 3 foundation walls plus a no-wall exposed perimeter
                                     'base-foundation-complex.xml' => 10,
-                                    'base-misc-large-uncommon-loads.xml' => 2,
-                                    'base-misc-large-uncommon-loads2.xml' => 2 }
+                                    'base-misc-loads-large-uncommon.xml' => 2,
+                                    'base-misc-loads-large-uncommon2.xml' => 2 }
 
     if hpxml_path.include? 'ASHRAE_Standard_140'
       # nop
@@ -987,7 +1026,7 @@ class HPXMLTest < MiniTest::Test
     if (hpxml.clothes_washers.size > 0) && (hpxml.water_heating_systems.size > 0)
       # Location
       hpxml_value = hpxml.clothes_washers[0].location
-      if hpxml_value.nil? || (hpxml_value == HPXML::LocationBasementConditioned) || (hpxml_value == HPXML::LocationOther)
+      if hpxml_value.nil? || [HPXML::LocationBasementConditioned, HPXML::LocationOtherHousingUnit, HPXML::LocationOtherHeatedSpace, HPXML::LocationOtherMultifamilyBufferSpace, HPXML::LocationOtherNonFreezingSpace].include?(hpxml_value)
         hpxml_value = HPXML::LocationLivingSpace
       end
       query = "SELECT Value FROM TabularDataWithStrings WHERE TableName='ElectricEquipment Internal Gains Nominal' AND ColumnName='Zone Name' AND RowName=(SELECT RowName FROM TabularDataWithStrings WHERE TableName='ElectricEquipment Internal Gains Nominal' AND ColumnName='Name' AND Value='#{Constants.ObjectNameClothesWasher.upcase}')"
@@ -999,7 +1038,7 @@ class HPXMLTest < MiniTest::Test
     if (hpxml.clothes_dryers.size > 0) && (hpxml.water_heating_systems.size > 0)
       # Location
       hpxml_value = hpxml.clothes_dryers[0].location
-      if hpxml_value.nil? || (hpxml_value == HPXML::LocationBasementConditioned) || (hpxml_value == HPXML::LocationOther)
+      if hpxml_value.nil? || [HPXML::LocationBasementConditioned, HPXML::LocationOtherHousingUnit, HPXML::LocationOtherHeatedSpace, HPXML::LocationOtherMultifamilyBufferSpace, HPXML::LocationOtherNonFreezingSpace].include?(hpxml_value)
         hpxml_value = HPXML::LocationLivingSpace
       end
       query = "SELECT Value FROM TabularDataWithStrings WHERE TableName='ElectricEquipment Internal Gains Nominal' AND ColumnName='Zone Name' AND RowName=(SELECT RowName FROM TabularDataWithStrings WHERE TableName='ElectricEquipment Internal Gains Nominal' AND ColumnName='Name' AND Value='#{Constants.ObjectNameClothesDryer.upcase}')"
@@ -1011,7 +1050,7 @@ class HPXMLTest < MiniTest::Test
     if hpxml.refrigerators.size > 0
       # Location
       hpxml_value = hpxml.refrigerators[0].location
-      if hpxml_value.nil? || (hpxml_value == HPXML::LocationBasementConditioned) || (hpxml_value == HPXML::LocationOther)
+      if hpxml_value.nil? || [HPXML::LocationBasementConditioned, HPXML::LocationOtherHousingUnit, HPXML::LocationOtherHeatedSpace, HPXML::LocationOtherMultifamilyBufferSpace, HPXML::LocationOtherNonFreezingSpace].include?(hpxml_value)
         hpxml_value = HPXML::LocationLivingSpace
       end
       query = "SELECT Value FROM TabularDataWithStrings WHERE TableName='ElectricEquipment Internal Gains Nominal' AND ColumnName='Zone Name' AND RowName=(SELECT RowName FROM TabularDataWithStrings WHERE TableName='ElectricEquipment Internal Gains Nominal' AND ColumnName='Name' AND Value='#{Constants.ObjectNameRefrigerator.upcase}')"
@@ -1023,7 +1062,7 @@ class HPXMLTest < MiniTest::Test
     if (hpxml.dishwashers.size > 0) && (hpxml.water_heating_systems.size > 0)
       # Location
       hpxml_value = hpxml.dishwashers[0].location
-      if hpxml_value.nil? || (hpxml_value == HPXML::LocationBasementConditioned) || (hpxml_value == HPXML::LocationOther)
+      if hpxml_value.nil? || [HPXML::LocationBasementConditioned, HPXML::LocationOtherHousingUnit, HPXML::LocationOtherHeatedSpace, HPXML::LocationOtherMultifamilyBufferSpace, HPXML::LocationOtherNonFreezingSpace].include?(hpxml_value)
         hpxml_value = HPXML::LocationLivingSpace
       end
       query = "SELECT Value FROM TabularDataWithStrings WHERE TableName='ElectricEquipment Internal Gains Nominal' AND ColumnName='Zone Name' AND RowName=(SELECT RowName FROM TabularDataWithStrings WHERE TableName='ElectricEquipment Internal Gains Nominal' AND ColumnName='Name' AND Value='#{Constants.ObjectNameDishwasher.upcase}')"
@@ -1035,7 +1074,7 @@ class HPXMLTest < MiniTest::Test
     if hpxml.cooking_ranges.size > 0
       # Location
       hpxml_value = hpxml.cooking_ranges[0].location
-      if hpxml_value.nil? || (hpxml_value == HPXML::LocationBasementConditioned) || (hpxml_value == HPXML::LocationOther)
+      if hpxml_value.nil? || [HPXML::LocationBasementConditioned, HPXML::LocationOtherHousingUnit, HPXML::LocationOtherHeatedSpace, HPXML::LocationOtherMultifamilyBufferSpace, HPXML::LocationOtherNonFreezingSpace].include?(hpxml_value)
         hpxml_value = HPXML::LocationLivingSpace
       end
       query = "SELECT Value FROM TabularDataWithStrings WHERE TableName='ElectricEquipment Internal Gains Nominal' AND ColumnName='Zone Name' AND RowName=(SELECT RowName FROM TabularDataWithStrings WHERE TableName='ElectricEquipment Internal Gains Nominal' AND ColumnName='Name' AND Value='#{Constants.ObjectNameCookingRange.upcase}')"

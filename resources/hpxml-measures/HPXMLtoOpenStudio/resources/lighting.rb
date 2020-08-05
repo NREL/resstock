@@ -1,13 +1,16 @@
 # frozen_string_literal: true
 
 class Lighting
-  def self.apply(model, weather, spaces, lighting_groups, lighting, eri_version, schedules_file)
+  def self.apply(runner, model, weather, spaces, lighting_groups, lighting, eri_version, schedules_file)
     fractions = {}
     lighting_groups.each do |lg|
       fractions[[lg.location, lg.lighting_type]] = lg.fraction_of_units_in_location
     end
 
-    return if fractions[[HPXML::LocationInterior, HPXML::LightingTypeCFL]].nil? # Not the lighting group(s) we're interested in
+    if fractions[[HPXML::LocationInterior, HPXML::LightingTypeCFL]].nil? # Not the lighting group(s) we're interested in
+      runner.registerWarning('No lighting specified, the model will not include lighting energy use.')
+      return
+    end
 
     living_space = spaces[HPXML::LocationLivingSpace]
     garage_space = spaces[HPXML::LocationGarage]
@@ -37,7 +40,9 @@ class Lighting
     if not lighting.interior_weekday_fractions.nil?
       interior_sch = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameInteriorLighting + ' schedule', lighting.interior_weekday_fractions, lighting.interior_weekend_fractions, lighting.interior_monthly_multipliers, 1.0, 1.0, true, true, Constants.ScheduleTypeLimitsFraction)
     else
-      interior_sch = create_schedule(model, weather)
+      lighting_sch = get_schedule(model, weather)
+      # Create schedule
+      interior_sch = HourlyByMonthSchedule.new(model, 'lighting schedule', lighting_sch, lighting_sch, true, true, Constants.ScheduleTypeLimitsFraction)
     end
     exterior_sch = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameExteriorLighting + ' schedule', lighting.exterior_weekday_fractions, lighting.exterior_weekend_fractions, lighting.exterior_monthly_multipliers, 1.0, 1.0, true, true, Constants.ScheduleTypeLimitsFraction)
     if not garage_space.nil?
@@ -50,9 +55,9 @@ class Lighting
     # Add lighting to each conditioned space
     if int_kwh > 0
 
-      if not lighting.interior_schedule.nil?
-        design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: lighting.interior_schedule, annual_kwh: int_kwh)
-        interior_sch = schedules_file.create_schedule_file(col_name: lighting.interior_schedule)
+      if (not schedules_file.nil?)
+        design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: 'lighting_interior', annual_kwh: int_kwh)
+        interior_sch = schedules_file.create_schedule_file(col_name: 'lighting_interior')
       else
         if lighting.interior_weekday_fractions.nil?
           design_level = interior_sch.calcDesignLevel(interior_sch.maxval * int_kwh)
@@ -79,9 +84,9 @@ class Lighting
     # Add lighting to each garage space
     if grg_kwh > 0
 
-      if not lighting.garage_schedule.nil?
-        design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: lighting.garage_schedule, annual_kwh: grg_kwh)
-        garage_sch = schedules_file.create_schedule_file(col_name: lighting.garage_schedule)
+      if (not schedules_file.nil?)
+        design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: 'lighting_garage', annual_kwh: grg_kwh)
+        garage_sch = schedules_file.create_schedule_file(col_name: 'lighting_garage')
       else
         design_level = garage_sch.calcDesignLevelFromDailykWh(grg_kwh / 365.0)
         garage_sch = garage_sch.schedule
@@ -103,9 +108,9 @@ class Lighting
 
     if ext_kwh > 0
 
-      if not lighting.exterior_schedule.nil?
-        design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: lighting.exterior_schedule, annual_kwh: ext_kwh)
-        exterior_sch = schedules_file.create_schedule_file(col_name: lighting.exterior_schedule)
+      if (not schedules_file.nil?)
+        design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: 'lighting_exterior', annual_kwh: ext_kwh)
+        exterior_sch = schedules_file.create_schedule_file(col_name: 'lighting_exterior')
       else
         design_level = exterior_sch.calcDesignLevelFromDailykWh(ext_kwh / 365.0)
         exterior_sch = exterior_sch.schedule
@@ -122,9 +127,9 @@ class Lighting
 
     if not lighting.holiday_kwh_per_day.nil?
 
-      if not lighting.holiday_schedule.nil?
-        design_level = schedules_file.calc_design_level_from_daily_kwh(col_name: lighting.holiday_schedule, daily_kwh: lighting.holiday_kwh_per_day)
-        exterior_holiday_sch = schedules_file.create_schedule_file(col_name: lighting.holiday_schedule)
+      if (not schedules_file.nil?)
+        design_level = schedules_file.calc_design_level_from_daily_kwh(col_name: 'lighting_exterior_holiday', daily_kwh: lighting.holiday_kwh_per_day)
+        exterior_holiday_sch = schedules_file.create_schedule_file(col_name: 'lighting_exterior_holiday')
       else
         design_level = exterior_holiday_sch.calcDesignLevelFromDailykWh(lighting.holiday_kwh_per_day)
         exterior_holiday_sch = exterior_holiday_sch.schedule
@@ -219,7 +224,7 @@ class Lighting
     return int_kwh, ext_kwh, grg_kwh
   end
 
-  def self.create_schedule(model, weather)
+  def self.get_schedule(model, weather)
     # Sunrise and sunset hours
     sunrise_hour = []
     sunset_hour = []
@@ -327,9 +332,6 @@ class Lighting
       end
     end
 
-    # Create schedule
-    sch = HourlyByMonthSchedule.new(model, 'lighting schedule', lighting_sch, lighting_sch, true, true, Constants.ScheduleTypeLimitsFraction)
-
-    return sch
+    return lighting_sch
   end
 end
