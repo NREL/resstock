@@ -1126,23 +1126,24 @@ class Geometry
         house_points << OpenStudio::Point3d.new(vertex)
       end
     end
-    
+
     # Neighbor surfaces
     neighbor_points = {}
     model.getShadingSurfaces.each do |shading_surface|
       next unless shading_surface.name.to_s.downcase.include? "neighbor"
+
       xs, ys = [], []
       shading_surface.vertices.each do |vertex|
         xs << vertex.x
         ys << vertex.y
       end
-      xs, ys = xs.uniq, ys.uniq 
+      xs, ys = xs.uniq, ys.uniq
       neighbor_points[shading_surface.name.to_s] = {}
       if xs.length == 1 # Shading surface on x plane
         neighbor_points[shading_surface.name.to_s]['x'] = xs[0]
       elsif ys.length == 1 # Shading surface on y plane
         neighbor_points[shading_surface.name.to_s]['y'] = ys[0]
-      end 
+      end
     end
 
     # Calculate offset
@@ -1153,10 +1154,10 @@ class Geometry
           neighbor_offsets << (house_point.x - neighbor_point['x']).abs
         elsif neighbor_point['y'] # On y plane
           neighbor_offsets << (house_point.y - neighbor_point['y']).abs
-        end 
-      end 
+        end
+      end
     end
-        
+
     if neighbor_offsets.empty?
       return 0
     end
