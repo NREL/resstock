@@ -701,8 +701,6 @@ class Geometry
           next if not surface.surfaceType.downcase == "wall"
           next if surface.adjacentSurface.is_initialized
 
-          # next if surface.outsideBoundaryCondition.downcase == "adiabatic"
-
           wall_surfaces << surface
         end
         self.get_walls_connected_to_floor(wall_surfaces, ground_floor_surface).each do |surface|
@@ -1119,8 +1117,8 @@ class Geometry
   end
 
   def self.get_closest_neighbor_distance(model)
+    # House surfaces
     house_points = []
-    neighbor_points = []
     model.getSurfaces.each do |surface|
       next unless surface.surfaceType.downcase == "wall"
 
@@ -1128,25 +1126,37 @@ class Geometry
         house_points << OpenStudio::Point3d.new(vertex)
       end
     end
+    
+    # Neighbor surfaces
+    neighbor_points = {}
     model.getShadingSurfaces.each do |shading_surface|
       next unless shading_surface.name.to_s.downcase.include? "neighbor"
-
+      xs, ys = [], []
       shading_surface.vertices.each do |vertex|
-        neighbor_points << OpenStudio::Point3d.new(vertex)
+        xs << vertex.x
+        ys << vertex.y
       end
+      xs, ys = xs.uniq, ys.uniq 
+      neighbor_points[shading_surface.name.to_s] = {}
+      if xs.length == 1 # Shading surface on x plane
+        neighbor_points[shading_surface.name.to_s]['x'] = xs[0]
+      elsif ys.length == 1 # Shading surface on y plane
+        neighbor_points[shading_surface.name.to_s]['y'] = ys[0]
+      end 
     end
+
+    # Calculate offset
     neighbor_offsets = []
     house_points.each do |house_point|
-      neighbor_points.each do |neighbor_point|
-        neighbor_offsets << OpenStudio::getDistance(house_point, neighbor_point)
-
-        # Calculate based on edges for floating middle-level single units
-        x_offset = (neighbor_point.x - house_point.x).abs
-        y_offset = (neighbor_point.y - house_point.y).abs
-        neighbor_offsets << x_offset unless x_offset == 0
-        neighbor_offsets << y_offset unless y_offset == 0
-      end
+      neighbor_points.each_value do |neighbor_point|
+        if neighbor_point['x'] # On x plane
+          neighbor_offsets << (house_point.x - neighbor_point['x']).abs
+        elsif neighbor_point['y'] # On y plane
+          neighbor_offsets << (house_point.y - neighbor_point['y']).abs
+        end 
+      end 
     end
+        
     if neighbor_offsets.empty?
       return 0
     end
