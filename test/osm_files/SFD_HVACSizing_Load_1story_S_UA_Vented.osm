@@ -1,35 +1,61 @@
 !- NOTE: Auto-generated from /test/osw_files/SFD_HVACSizing_Load_1story_S_UA_Vented.osw
 
 OS:Version,
-  {15068ada-4230-4f1a-9e67-8ec75a5387b2}, !- Handle
-  3.0.1;                                  !- Version Identifier
+  {0c673b64-3b18-4ac8-ac9c-2d7e458cb33c}, !- Handle
+  2.9.0;                                  !- Version Identifier
 
 OS:SimulationControl,
-  {e9adbe6f-3484-4cee-821d-8f4faa3889c7}, !- Handle
+  {54e2a9da-dc9e-4d80-b5c5-dbf0d977fb2d}, !- Handle
   ,                                       !- Do Zone Sizing Calculation
   ,                                       !- Do System Sizing Calculation
   ,                                       !- Do Plant Sizing Calculation
   No;                                     !- Run Simulation for Sizing Periods
 
 OS:Timestep,
-  {865ea822-35ce-4190-91e1-8a6968933afe}, !- Handle
+  {f203f81e-d6b9-4b0f-b956-c8071362d814}, !- Handle
   6;                                      !- Number of Timesteps per Hour
 
 OS:ShadowCalculation,
-  {83b3f5e7-ef8e-4ac8-b137-f8df04d47e24}, !- Handle
-  PolygonClipping,                        !- Shading Calculation Method
-  ,                                       !- Shading Calculation Update Frequency Method
-  20,                                     !- Shading Calculation Update Frequency
-  15000,                                  !- Maximum Figures in Shadow Overlap Calculations
-  ,                                       !- Polygon Clipping Algorithm
-  512,                                    !- Pixel Counting Resolution
-  ,                                       !- Sky Diffuse Modeling Algorithm
-  No,                                     !- Output External Shading Calculation Results
-  No,                                     !- Disable Self-Shading Within Shading Zone Groups
-  No;                                     !- Disable Self-Shading From Shading Zone Groups to Other Zones
+  {2e47061f-23e0-44aa-a35a-ad07d326482a}, !- Handle
+  20,                                     !- Calculation Frequency
+  200;                                    !- Maximum Figures in Shadow Overlap Calculations
+
+OS:SurfaceConvectionAlgorithm:Outside,
+  {4b5de0ac-542a-4619-ab39-a063c0692278}, !- Handle
+  DOE-2;                                  !- Algorithm
+
+OS:SurfaceConvectionAlgorithm:Inside,
+  {669266e3-2cd4-4dd7-abdd-5f26c955afa0}, !- Handle
+  TARP;                                   !- Algorithm
+
+OS:ZoneCapacitanceMultiplier:ResearchSpecial,
+  {83fec380-1caa-419f-a001-4f237638a77c}, !- Handle
+  3.6,                                    !- Temperature Capacity Multiplier
+  15,                                     !- Humidity Capacity Multiplier
+  ;                                       !- Carbon Dioxide Capacity Multiplier
+
+OS:RunPeriod,
+  {35c025e8-bd52-4df7-9b97-8c243170ed79}, !- Handle
+  Run Period 1,                           !- Name
+  1,                                      !- Begin Month
+  1,                                      !- Begin Day of Month
+  12,                                     !- End Month
+  31,                                     !- End Day of Month
+  ,                                       !- Use Weather File Holidays and Special Days
+  ,                                       !- Use Weather File Daylight Saving Period
+  ,                                       !- Apply Weekend Holiday Rule
+  ,                                       !- Use Weather File Rain Indicators
+  ,                                       !- Use Weather File Snow Indicators
+  ;                                       !- Number of Times Runperiod to be Repeated
+
+OS:YearDescription,
+  {064afb4a-a31e-4e06-91eb-d123af24d0e7}, !- Handle
+  2007,                                   !- Calendar Year
+  ,                                       !- Day of Week for Start Day
+  ;                                       !- Is Leap Year
 
 OS:WeatherFile,
-  {51ea64ad-9e89-49b8-9461-47b4678fbfd0}, !- Handle
+  {a1918317-c72e-44ba-9771-f2af938f66f6}, !- Handle
   Denver Intl Ap,                         !- City
   CO,                                     !- State Province Region
   USA,                                    !- Country
@@ -39,12 +65,12 @@ OS:WeatherFile,
   -104.65,                                !- Longitude {deg}
   -7,                                     !- Time Zone {hr}
   1650,                                   !- Elevation {m}
-  C:/OpenStudio/OpenStudio-BuildStock/resources/measures/HPXMLtoOpenStudio/weather/USA_CO_Denver.Intl.AP.725650_TMY3.epw, !- Url
+  file:../weather/USA_CO_Denver.Intl.AP.725650_TMY3.epw, !- Url
   E23378AA;                               !- Checksum
 
 OS:AdditionalProperties,
-  {9b5482db-be57-4f25-8361-bcaa9ca0a1fa}, !- Handle
-  {51ea64ad-9e89-49b8-9461-47b4678fbfd0}, !- Object Name
+  {a391b7d2-3608-4871-a4ec-fcad12b0e1cc}, !- Handle
+  {a1918317-c72e-44ba-9771-f2af938f66f6}, !- Object Name
   EPWHeaderCity,                          !- Feature Name 1
   String,                                 !- Feature Data Type 1
   Denver Intl Ap,                         !- Feature Value 1
@@ -151,11 +177,8 @@ OS:AdditionalProperties,
   Double,                                 !- Feature Data Type 35
   84;                                     !- Feature Value 35
 
-OS:YearDescription,
-  {d048bb98-7d04-47b2-a24e-197a60c860b4}; !- Handle
-
 OS:Site,
-  {b109d88a-f099-4aa0-90e9-3bd7423db5c7}, !- Handle
+  {b473aacd-7f2e-4c99-ba7f-177732fd4702}, !- Handle
   Denver Intl Ap_CO_USA,                  !- Name
   39.83,                                  !- Latitude {deg}
   -104.65,                                !- Longitude {deg}
@@ -164,26 +187,32 @@ OS:Site,
   ;                                       !- Terrain
 
 OS:ClimateZones,
-  {d2760a52-ef0d-4969-b744-7017321fd2a9}, !- Handle
-  Building America,                       !- Climate Zone Institution Name 1
+  {f82f3126-6a88-4ad3-88ae-17485d2f01c1}, !- Handle
+  ,                                       !- Active Institution
+  ,                                       !- Active Year
+  ,                                       !- Climate Zone Institution Name 1
   ,                                       !- Climate Zone Document Name 1
-  0,                                      !- Climate Zone Document Year 1
-  Cold;                                   !- Climate Zone Value 1
+  ,                                       !- Climate Zone Document Year 1
+  ,                                       !- Climate Zone Value 1
+  Building America,                       !- Climate Zone Institution Name 2
+  ,                                       !- Climate Zone Document Name 2
+  0,                                      !- Climate Zone Document Year 2
+  Cold;                                   !- Climate Zone Value 2
 
 OS:Site:WaterMainsTemperature,
-  {04992b3a-2aa1-4b1a-8be4-ab5cad80a56c}, !- Handle
+  {d50e8ad8-8c84-4d7b-a30f-c5f120eda294}, !- Handle
   Correlation,                            !- Calculation Method
   ,                                       !- Temperature Schedule Name
   10.8753424657535,                       !- Annual Average Outdoor Air Temperature {C}
   23.1524007936508;                       !- Maximum Difference In Monthly Average Outdoor Air Temperatures {deltaC}
 
 OS:RunPeriodControl:DaylightSavingTime,
-  {0e339419-e740-4807-a455-c555bdcab95a}, !- Handle
+  {aef6dbb5-2ac3-4b68-827e-7d4cb14bd1f8}, !- Handle
   4/7,                                    !- Start Date
   10/26;                                  !- End Date
 
 OS:Site:GroundTemperature:Deep,
-  {8f32aec4-5f42-4074-9916-d6c4c0724e66}, !- Handle
+  {4157b6fa-da62-4da3-ae5f-2fe8f3eec826}, !- Handle
   10.8753424657535,                       !- January Deep Ground Temperature {C}
   10.8753424657535,                       !- February Deep Ground Temperature {C}
   10.8753424657535,                       !- March Deep Ground Temperature {C}
@@ -198,10 +227,10 @@ OS:Site:GroundTemperature:Deep,
   10.8753424657535;                       !- December Deep Ground Temperature {C}
 
 OS:Building,
-  {c485505d-3640-4159-befb-5654ce2be825}, !- Handle
+  {d6735395-10e8-41e6-9468-dfad4621cf95}, !- Handle
   Building 1,                             !- Name
   ,                                       !- Building Sector Type
-  22.5,                                   !- North Axis {deg}
+  ,                                       !- North Axis {deg}
   ,                                       !- Nominal Floor to Floor Height {m}
   ,                                       !- Space Type Name
   ,                                       !- Default Construction Set Name
@@ -213,20 +242,17 @@ OS:Building,
   1;                                      !- Standards Number of Living Units
 
 OS:AdditionalProperties,
-  {29c3c829-a672-4402-b4bd-b80331d14da8}, !- Handle
-  {c485505d-3640-4159-befb-5654ce2be825}, !- Object Name
+  {335f4111-1ea2-45e4-8b82-e7d04a33ca78}, !- Handle
+  {d6735395-10e8-41e6-9468-dfad4621cf95}, !- Object Name
   Total Units Represented,                !- Feature Name 1
   Integer,                                !- Feature Data Type 1
   1,                                      !- Feature Value 1
   Total Units Modeled,                    !- Feature Name 2
   Integer,                                !- Feature Data Type 2
-  1,                                      !- Feature Value 2
-  has_water_heater_flue,                  !- Feature Name 3
-  Boolean,                                !- Feature Data Type 3
-  true;                                   !- Feature Value 3
+  1;                                      !- Feature Value 2
 
 OS:ThermalZone,
-  {4cb78a6b-c674-4602-a2fc-c61b4f617f56}, !- Handle
+  {f0fd108d-af13-4c95-b9e9-d24ea16dcebf}, !- Handle
   living zone,                            !- Name
   ,                                       !- Multiplier
   ,                                       !- Ceiling Height {m}
@@ -235,10 +261,10 @@ OS:ThermalZone,
   ,                                       !- Zone Inside Convection Algorithm
   ,                                       !- Zone Outside Convection Algorithm
   ,                                       !- Zone Conditioning Equipment List Name
-  {221ea6d4-dffa-46f9-9e2b-e482b13a1f0c}, !- Zone Air Inlet Port List
-  {49d8444c-9c87-4f6f-a440-8345c26d19b3}, !- Zone Air Exhaust Port List
-  {59c0f47f-c61d-4798-86b2-3f3085cd82ab}, !- Zone Air Node Name
-  {842731e7-f9c4-4d5a-bc07-ceba5d1b8603}, !- Zone Return Air Port List
+  {a49a2b56-6328-432f-98f2-d92d40c0dea7}, !- Zone Air Inlet Port List
+  {263097c8-4124-4702-9014-3d433b0cb311}, !- Zone Air Exhaust Port List
+  {4a45a6e5-0629-4f2e-992a-1f51a3af0278}, !- Zone Air Node Name
+  {820f3352-a08b-46ac-8845-db7fa3e557c3}, !- Zone Return Air Port List
   ,                                       !- Primary Daylighting Control Name
   ,                                       !- Fraction of Zone Controlled by Primary Daylighting Control
   ,                                       !- Secondary Daylighting Control Name
@@ -249,37 +275,37 @@ OS:ThermalZone,
   No;                                     !- Use Ideal Air Loads
 
 OS:Node,
-  {e30cf833-1a65-4d57-9d6b-00fe6fac1632}, !- Handle
+  {561055cc-82eb-403a-9bc3-b728a8a21e20}, !- Handle
   Node 1,                                 !- Name
-  {59c0f47f-c61d-4798-86b2-3f3085cd82ab}, !- Inlet Port
+  {4a45a6e5-0629-4f2e-992a-1f51a3af0278}, !- Inlet Port
   ;                                       !- Outlet Port
 
 OS:Connection,
-  {59c0f47f-c61d-4798-86b2-3f3085cd82ab}, !- Handle
-  {98dc78fb-b98f-4a69-b83c-3f3e340203fa}, !- Name
-  {4cb78a6b-c674-4602-a2fc-c61b4f617f56}, !- Source Object
+  {4a45a6e5-0629-4f2e-992a-1f51a3af0278}, !- Handle
+  {ea2160b9-06f0-4b41-85a6-e537fa2ff9eb}, !- Name
+  {f0fd108d-af13-4c95-b9e9-d24ea16dcebf}, !- Source Object
   11,                                     !- Outlet Port
-  {e30cf833-1a65-4d57-9d6b-00fe6fac1632}, !- Target Object
+  {561055cc-82eb-403a-9bc3-b728a8a21e20}, !- Target Object
   2;                                      !- Inlet Port
 
 OS:PortList,
-  {221ea6d4-dffa-46f9-9e2b-e482b13a1f0c}, !- Handle
-  {a71c2655-2b02-4fac-98c7-d7e7ae30786b}, !- Name
-  {4cb78a6b-c674-4602-a2fc-c61b4f617f56}; !- HVAC Component
+  {a49a2b56-6328-432f-98f2-d92d40c0dea7}, !- Handle
+  {090a0331-7642-494b-ba2b-be7b48874112}, !- Name
+  {f0fd108d-af13-4c95-b9e9-d24ea16dcebf}; !- HVAC Component
 
 OS:PortList,
-  {49d8444c-9c87-4f6f-a440-8345c26d19b3}, !- Handle
-  {b6e81329-bcde-40bc-aab6-9f78ebf6a71c}, !- Name
-  {4cb78a6b-c674-4602-a2fc-c61b4f617f56}; !- HVAC Component
+  {263097c8-4124-4702-9014-3d433b0cb311}, !- Handle
+  {1c5b692e-e970-496e-9857-01c788540231}, !- Name
+  {f0fd108d-af13-4c95-b9e9-d24ea16dcebf}; !- HVAC Component
 
 OS:PortList,
-  {842731e7-f9c4-4d5a-bc07-ceba5d1b8603}, !- Handle
-  {d1eb60c7-cf2f-4e6d-b222-ebf8a4464f1d}, !- Name
-  {4cb78a6b-c674-4602-a2fc-c61b4f617f56}; !- HVAC Component
+  {820f3352-a08b-46ac-8845-db7fa3e557c3}, !- Handle
+  {fe43829c-5b30-4a83-a92a-4efc28fe2283}, !- Name
+  {f0fd108d-af13-4c95-b9e9-d24ea16dcebf}; !- HVAC Component
 
 OS:Sizing:Zone,
-  {6074cd79-be6c-4288-909b-370afaf2e3cd}, !- Handle
-  {4cb78a6b-c674-4602-a2fc-c61b4f617f56}, !- Zone or ZoneList Name
+  {be068d45-d87e-408b-8d6d-ca46cd251a9f}, !- Handle
+  {f0fd108d-af13-4c95-b9e9-d24ea16dcebf}, !- Zone or ZoneList Name
   SupplyAirTemperature,                   !- Zone Cooling Design Supply Air Temperature Input Method
   14,                                     !- Zone Cooling Design Supply Air Temperature {C}
   11.11,                                  !- Zone Cooling Design Supply Air Temperature Difference {deltaC}
@@ -300,20 +326,22 @@ OS:Sizing:Zone,
   ,                                       !- Heating Maximum Air Flow per Zone Floor Area {m3/s-m2}
   ,                                       !- Heating Maximum Air Flow {m3/s}
   ,                                       !- Heating Maximum Air Flow Fraction
+  ,                                       !- Design Zone Air Distribution Effectiveness in Cooling Mode
+  ,                                       !- Design Zone Air Distribution Effectiveness in Heating Mode
   No,                                     !- Account for Dedicated Outdoor Air System
   NeutralSupplyAir,                       !- Dedicated Outdoor Air System Control Strategy
   autosize,                               !- Dedicated Outdoor Air Low Setpoint Temperature for Design {C}
   autosize;                               !- Dedicated Outdoor Air High Setpoint Temperature for Design {C}
 
 OS:ZoneHVAC:EquipmentList,
-  {e7b1d31e-4ef3-4cb2-96f9-844057353329}, !- Handle
+  {d2a914f3-4915-49dc-b8a3-c91b4257860e}, !- Handle
   Zone HVAC Equipment List 1,             !- Name
-  {4cb78a6b-c674-4602-a2fc-c61b4f617f56}; !- Thermal Zone
+  {f0fd108d-af13-4c95-b9e9-d24ea16dcebf}; !- Thermal Zone
 
 OS:Space,
-  {85d863e0-9671-46a5-84d3-efbc4d5398b5}, !- Handle
+  {babcb325-e5f7-4872-ab52-4d07dfac5b70}, !- Handle
   living space,                           !- Name
-  {a0d4c731-d469-4fcd-a5fd-6de0b56d4d47}, !- Space Type Name
+  {c377651e-a031-4359-b54b-63bd5cb5a9eb}, !- Space Type Name
   ,                                       !- Default Construction Set Name
   ,                                       !- Default Schedule Set Name
   -0,                                     !- Direction of Relative North {deg}
@@ -321,19 +349,19 @@ OS:Space,
   0,                                      !- Y Origin {m}
   0,                                      !- Z Origin {m}
   ,                                       !- Building Story Name
-  {4cb78a6b-c674-4602-a2fc-c61b4f617f56}, !- Thermal Zone Name
+  {f0fd108d-af13-4c95-b9e9-d24ea16dcebf}, !- Thermal Zone Name
   ,                                       !- Part of Total Floor Area
   ,                                       !- Design Specification Outdoor Air Object Name
-  {69feb042-5826-443e-92d4-81a3364a60f6}; !- Building Unit Name
+  {b00ca8ab-9ec1-48c4-8b0c-7d6fcc993d5b}; !- Building Unit Name
 
 OS:Surface,
-  {bf81ee10-67a4-45b5-a121-1843a725a9bb}, !- Handle
+  {636fe7a7-37dc-40c0-90af-c406e438f799}, !- Handle
   Surface 1,                              !- Name
   Floor,                                  !- Surface Type
-  {031a104a-055a-400f-ae82-b2f1617d77f4}, !- Construction Name
-  {85d863e0-9671-46a5-84d3-efbc4d5398b5}, !- Space Name
+  ,                                       !- Construction Name
+  {babcb325-e5f7-4872-ab52-4d07dfac5b70}, !- Space Name
   Foundation,                             !- Outside Boundary Condition
-  {fdde1765-cdac-43ec-9128-1f0aeac081e8}, !- Outside Boundary Condition Object
+  ,                                       !- Outside Boundary Condition Object
   NoSun,                                  !- Sun Exposure
   NoWind,                                 !- Wind Exposure
   ,                                       !- View Factor to Ground
@@ -344,11 +372,11 @@ OS:Surface,
   17.2888817744574, 0, 0;                 !- X,Y,Z Vertex 4 {m}
 
 OS:Surface,
-  {70533634-2b6b-4002-a772-8318c2cfbec7}, !- Handle
+  {4243e787-d09e-4e03-affc-6b8441ff0626}, !- Handle
   Surface 2,                              !- Name
   Wall,                                   !- Surface Type
-  {efc07500-cd24-4813-8519-bcf55c782bfb}, !- Construction Name
-  {85d863e0-9671-46a5-84d3-efbc4d5398b5}, !- Space Name
+  ,                                       !- Construction Name
+  {babcb325-e5f7-4872-ab52-4d07dfac5b70}, !- Space Name
   Outdoors,                               !- Outside Boundary Condition
   ,                                       !- Outside Boundary Condition Object
   SunExposed,                             !- Sun Exposure
@@ -361,11 +389,11 @@ OS:Surface,
   0, 0, 2.4384;                           !- X,Y,Z Vertex 4 {m}
 
 OS:Surface,
-  {54963a7b-3fae-4137-bcf7-8174c0438dcd}, !- Handle
+  {004b9e19-7b99-4f35-941c-80ed3a2394a1}, !- Handle
   Surface 3,                              !- Name
   Wall,                                   !- Surface Type
-  {efc07500-cd24-4813-8519-bcf55c782bfb}, !- Construction Name
-  {85d863e0-9671-46a5-84d3-efbc4d5398b5}, !- Space Name
+  ,                                       !- Construction Name
+  {babcb325-e5f7-4872-ab52-4d07dfac5b70}, !- Space Name
   Outdoors,                               !- Outside Boundary Condition
   ,                                       !- Outside Boundary Condition Object
   SunExposed,                             !- Sun Exposure
@@ -378,11 +406,11 @@ OS:Surface,
   0, 10.7471427258245, 2.4384;            !- X,Y,Z Vertex 4 {m}
 
 OS:Surface,
-  {a12b32b8-8db7-4397-9055-a86d169dabff}, !- Handle
+  {a89c1dbf-1074-40bc-b520-98bb094684dd}, !- Handle
   Surface 4,                              !- Name
   Wall,                                   !- Surface Type
-  {efc07500-cd24-4813-8519-bcf55c782bfb}, !- Construction Name
-  {85d863e0-9671-46a5-84d3-efbc4d5398b5}, !- Space Name
+  ,                                       !- Construction Name
+  {babcb325-e5f7-4872-ab52-4d07dfac5b70}, !- Space Name
   Outdoors,                               !- Outside Boundary Condition
   ,                                       !- Outside Boundary Condition Object
   SunExposed,                             !- Sun Exposure
@@ -395,30 +423,30 @@ OS:Surface,
   17.2888817744574, 10.7471427258245, 2.4384; !- X,Y,Z Vertex 4 {m}
 
 OS:Surface,
-  {650cd02f-65cb-4a15-952a-588d7c354347}, !- Handle
+  {f68089a0-11d3-4467-b9f9-dd5942e04fd3}, !- Handle
   Surface 5,                              !- Name
   Wall,                                   !- Surface Type
-  {efc07500-cd24-4813-8519-bcf55c782bfb}, !- Construction Name
-  {85d863e0-9671-46a5-84d3-efbc4d5398b5}, !- Space Name
+  ,                                       !- Construction Name
+  {babcb325-e5f7-4872-ab52-4d07dfac5b70}, !- Space Name
   Outdoors,                               !- Outside Boundary Condition
   ,                                       !- Outside Boundary Condition Object
   SunExposed,                             !- Sun Exposure
   WindExposed,                            !- Wind Exposure
   ,                                       !- View Factor to Ground
   ,                                       !- Number of Vertices
-  17.2888817744574, 0, 0,                 !- X,Y,Z Vertex 1 {m}
-  17.2888817744574, 0, 2.4384,            !- X,Y,Z Vertex 2 {m}
-  1.04865714285714, 0, 2.43840088208656,  !- X,Y,Z Vertex 3 {m}
-  1.04865714285714, 0, 8.46803096088422e-07; !- X,Y,Z Vertex 4 {m}
+  0, 0, 2.4384,                           !- X,Y,Z Vertex 1 {m}
+  0, 0, 0,                                !- X,Y,Z Vertex 2 {m}
+  17.2888817744574, 0, 0,                 !- X,Y,Z Vertex 3 {m}
+  17.2888817744574, 0, 2.4384;            !- X,Y,Z Vertex 4 {m}
 
 OS:Surface,
-  {f5971a22-751d-4b6c-adfe-31865a58c11c}, !- Handle
+  {9866fcf0-3505-4ec4-a275-c6a8b8c0958f}, !- Handle
   Surface 6,                              !- Name
   RoofCeiling,                            !- Surface Type
-  {3b2aca6c-ad82-4749-88fc-fc8f1eaa190c}, !- Construction Name
-  {85d863e0-9671-46a5-84d3-efbc4d5398b5}, !- Space Name
+  ,                                       !- Construction Name
+  {babcb325-e5f7-4872-ab52-4d07dfac5b70}, !- Space Name
   Surface,                                !- Outside Boundary Condition
-  {0b1966aa-dbac-4925-8d7d-06590e15d482}, !- Outside Boundary Condition Object
+  {95c84be8-eb1e-4263-aace-4c8d6220ec34}, !- Outside Boundary Condition Object
   NoSun,                                  !- Sun Exposure
   NoWind,                                 !- Wind Exposure
   ,                                       !- View Factor to Ground
@@ -429,7 +457,7 @@ OS:Surface,
   0, 0, 2.4384;                           !- X,Y,Z Vertex 4 {m}
 
 OS:SpaceType,
-  {a0d4c731-d469-4fcd-a5fd-6de0b56d4d47}, !- Handle
+  {c377651e-a031-4359-b54b-63bd5cb5a9eb}, !- Handle
   Space Type 1,                           !- Name
   ,                                       !- Default Construction Set Name
   ,                                       !- Default Schedule Set Name
@@ -440,13 +468,13 @@ OS:SpaceType,
   living;                                 !- Standards Space Type
 
 OS:Surface,
-  {0b1966aa-dbac-4925-8d7d-06590e15d482}, !- Handle
+  {95c84be8-eb1e-4263-aace-4c8d6220ec34}, !- Handle
   Surface 7,                              !- Name
   Floor,                                  !- Surface Type
-  {86e62eb5-07e5-4183-aae4-3f09810a9014}, !- Construction Name
-  {91e9dddb-be1f-4ee1-a539-67c6cf16ad0b}, !- Space Name
+  ,                                       !- Construction Name
+  {90f94e1a-8a40-414e-8d67-460440f059ca}, !- Space Name
   Surface,                                !- Outside Boundary Condition
-  {f5971a22-751d-4b6c-adfe-31865a58c11c}, !- Outside Boundary Condition Object
+  {9866fcf0-3505-4ec4-a275-c6a8b8c0958f}, !- Outside Boundary Condition Object
   NoSun,                                  !- Sun Exposure
   NoWind,                                 !- Wind Exposure
   ,                                       !- View Factor to Ground
@@ -457,11 +485,11 @@ OS:Surface,
   0, 0, 0;                                !- X,Y,Z Vertex 4 {m}
 
 OS:Surface,
-  {38dc6b92-66c4-4c3a-8a90-554ee32ddd54}, !- Handle
+  {bba64302-b9cc-4649-ad69-aa84b85ab0e4}, !- Handle
   Surface 8,                              !- Name
   RoofCeiling,                            !- Surface Type
-  {fed1495c-9b95-41d0-8f77-56bf08c38c8a}, !- Construction Name
-  {91e9dddb-be1f-4ee1-a539-67c6cf16ad0b}, !- Space Name
+  ,                                       !- Construction Name
+  {90f94e1a-8a40-414e-8d67-460440f059ca}, !- Space Name
   Outdoors,                               !- Outside Boundary Condition
   ,                                       !- Outside Boundary Condition Object
   SunExposed,                             !- Sun Exposure
@@ -474,11 +502,11 @@ OS:Surface,
   17.2888817744574, 0, 0;                 !- X,Y,Z Vertex 4 {m}
 
 OS:Surface,
-  {b1876bc4-c1ce-4400-80fd-eb24a07c6037}, !- Handle
+  {a715a270-0c5d-4d11-bc85-8a491f226bce}, !- Handle
   Surface 9,                              !- Name
   RoofCeiling,                            !- Surface Type
-  {fed1495c-9b95-41d0-8f77-56bf08c38c8a}, !- Construction Name
-  {91e9dddb-be1f-4ee1-a539-67c6cf16ad0b}, !- Space Name
+  ,                                       !- Construction Name
+  {90f94e1a-8a40-414e-8d67-460440f059ca}, !- Space Name
   Outdoors,                               !- Outside Boundary Condition
   ,                                       !- Outside Boundary Condition Object
   SunExposed,                             !- Sun Exposure
@@ -491,11 +519,11 @@ OS:Surface,
   0, 10.7471427258245, 0;                 !- X,Y,Z Vertex 4 {m}
 
 OS:Surface,
-  {8a74ba0c-9b4d-4bc4-8ead-963c72b8f110}, !- Handle
+  {67558a87-cd98-499d-9acf-cbed9e53472b}, !- Handle
   Surface 10,                             !- Name
   Wall,                                   !- Surface Type
-  {0d809d0a-3e44-465f-98cf-8fed52386154}, !- Construction Name
-  {91e9dddb-be1f-4ee1-a539-67c6cf16ad0b}, !- Space Name
+  ,                                       !- Construction Name
+  {90f94e1a-8a40-414e-8d67-460440f059ca}, !- Space Name
   Outdoors,                               !- Outside Boundary Condition
   ,                                       !- Outside Boundary Condition Object
   SunExposed,                             !- Sun Exposure
@@ -507,11 +535,11 @@ OS:Surface,
   0, 0, 0;                                !- X,Y,Z Vertex 3 {m}
 
 OS:Surface,
-  {52fd273f-be35-4476-9ab2-96b6fcf7ea40}, !- Handle
+  {33f16640-5ec9-400a-8dd1-e1c1b0369256}, !- Handle
   Surface 11,                             !- Name
   Wall,                                   !- Surface Type
-  {0d809d0a-3e44-465f-98cf-8fed52386154}, !- Construction Name
-  {91e9dddb-be1f-4ee1-a539-67c6cf16ad0b}, !- Space Name
+  ,                                       !- Construction Name
+  {90f94e1a-8a40-414e-8d67-460440f059ca}, !- Space Name
   Outdoors,                               !- Outside Boundary Condition
   ,                                       !- Outside Boundary Condition Object
   SunExposed,                             !- Sun Exposure
@@ -523,9 +551,9 @@ OS:Surface,
   17.2888817744574, 10.7471427258245, 0;  !- X,Y,Z Vertex 3 {m}
 
 OS:Space,
-  {91e9dddb-be1f-4ee1-a539-67c6cf16ad0b}, !- Handle
+  {90f94e1a-8a40-414e-8d67-460440f059ca}, !- Handle
   unfinished attic space,                 !- Name
-  {b0fec184-ea45-4a79-9c65-2b1577c87aae}, !- Space Type Name
+  {edf65194-15f2-4d70-ad5f-ec4ed29b8107}, !- Space Type Name
   ,                                       !- Default Construction Set Name
   ,                                       !- Default Schedule Set Name
   -0,                                     !- Direction of Relative North {deg}
@@ -533,10 +561,10 @@ OS:Space,
   0,                                      !- Y Origin {m}
   2.4384,                                 !- Z Origin {m}
   ,                                       !- Building Story Name
-  {71fad2ad-82a3-4fcf-b13f-7814ae9f9b8c}; !- Thermal Zone Name
+  {190fd0bd-193d-44ad-bd5b-270cb59d0bba}; !- Thermal Zone Name
 
 OS:ThermalZone,
-  {71fad2ad-82a3-4fcf-b13f-7814ae9f9b8c}, !- Handle
+  {190fd0bd-193d-44ad-bd5b-270cb59d0bba}, !- Handle
   unfinished attic zone,                  !- Name
   ,                                       !- Multiplier
   ,                                       !- Ceiling Height {m}
@@ -545,10 +573,10 @@ OS:ThermalZone,
   ,                                       !- Zone Inside Convection Algorithm
   ,                                       !- Zone Outside Convection Algorithm
   ,                                       !- Zone Conditioning Equipment List Name
-  {64da5689-6b73-4583-8ed7-92ca5c09a573}, !- Zone Air Inlet Port List
-  {01c45242-9aa1-4c21-9fd8-f44fba268e33}, !- Zone Air Exhaust Port List
-  {b7b40c34-19c7-4dbd-a0de-d9921d97beb0}, !- Zone Air Node Name
-  {b07e2e69-ff1b-4acc-907f-ecea6392ccbb}, !- Zone Return Air Port List
+  {a70c532e-dc86-4c3e-87f8-d3b34daf6307}, !- Zone Air Inlet Port List
+  {84fec841-e9f2-4cf2-8dbd-871342d4dd7c}, !- Zone Air Exhaust Port List
+  {0a4937ff-7f02-4b7e-b4f7-f5659414acb4}, !- Zone Air Node Name
+  {583ef37f-31b6-4795-8c83-a725c225f3cd}, !- Zone Return Air Port List
   ,                                       !- Primary Daylighting Control Name
   ,                                       !- Fraction of Zone Controlled by Primary Daylighting Control
   ,                                       !- Secondary Daylighting Control Name
@@ -559,37 +587,37 @@ OS:ThermalZone,
   No;                                     !- Use Ideal Air Loads
 
 OS:Node,
-  {ac844d69-8a7e-43f8-b32b-4426fbbffe4a}, !- Handle
+  {fb4eb6c2-174b-4555-b372-2d7986f7827e}, !- Handle
   Node 2,                                 !- Name
-  {b7b40c34-19c7-4dbd-a0de-d9921d97beb0}, !- Inlet Port
+  {0a4937ff-7f02-4b7e-b4f7-f5659414acb4}, !- Inlet Port
   ;                                       !- Outlet Port
 
 OS:Connection,
-  {b7b40c34-19c7-4dbd-a0de-d9921d97beb0}, !- Handle
-  {07a0e172-a20c-4c5f-8127-1d2196d9c5ff}, !- Name
-  {71fad2ad-82a3-4fcf-b13f-7814ae9f9b8c}, !- Source Object
+  {0a4937ff-7f02-4b7e-b4f7-f5659414acb4}, !- Handle
+  {f5573c08-38fb-4c03-ba2b-f75d43d818c9}, !- Name
+  {190fd0bd-193d-44ad-bd5b-270cb59d0bba}, !- Source Object
   11,                                     !- Outlet Port
-  {ac844d69-8a7e-43f8-b32b-4426fbbffe4a}, !- Target Object
+  {fb4eb6c2-174b-4555-b372-2d7986f7827e}, !- Target Object
   2;                                      !- Inlet Port
 
 OS:PortList,
-  {64da5689-6b73-4583-8ed7-92ca5c09a573}, !- Handle
-  {353889c2-f2ba-410b-942d-d809e5d6ed93}, !- Name
-  {71fad2ad-82a3-4fcf-b13f-7814ae9f9b8c}; !- HVAC Component
+  {a70c532e-dc86-4c3e-87f8-d3b34daf6307}, !- Handle
+  {5b83ebb2-9374-458b-a1f3-6e65c5a516bf}, !- Name
+  {190fd0bd-193d-44ad-bd5b-270cb59d0bba}; !- HVAC Component
 
 OS:PortList,
-  {01c45242-9aa1-4c21-9fd8-f44fba268e33}, !- Handle
-  {c0de85ca-97b8-4ea5-bbf7-d91063a1ddc2}, !- Name
-  {71fad2ad-82a3-4fcf-b13f-7814ae9f9b8c}; !- HVAC Component
+  {84fec841-e9f2-4cf2-8dbd-871342d4dd7c}, !- Handle
+  {f3c8e3bf-83a8-4905-8f8b-394c9884377d}, !- Name
+  {190fd0bd-193d-44ad-bd5b-270cb59d0bba}; !- HVAC Component
 
 OS:PortList,
-  {b07e2e69-ff1b-4acc-907f-ecea6392ccbb}, !- Handle
-  {458ca151-a5d9-4b0e-9472-c7cbbc7d88fc}, !- Name
-  {71fad2ad-82a3-4fcf-b13f-7814ae9f9b8c}; !- HVAC Component
+  {583ef37f-31b6-4795-8c83-a725c225f3cd}, !- Handle
+  {8553cda2-495c-4a23-a59e-01ace4514789}, !- Name
+  {190fd0bd-193d-44ad-bd5b-270cb59d0bba}; !- HVAC Component
 
 OS:Sizing:Zone,
-  {d4805ec1-c327-4666-83f5-b2d79ce48558}, !- Handle
-  {71fad2ad-82a3-4fcf-b13f-7814ae9f9b8c}, !- Zone or ZoneList Name
+  {385b6bd1-6989-448c-939a-786dc9f7432a}, !- Handle
+  {190fd0bd-193d-44ad-bd5b-270cb59d0bba}, !- Zone or ZoneList Name
   SupplyAirTemperature,                   !- Zone Cooling Design Supply Air Temperature Input Method
   14,                                     !- Zone Cooling Design Supply Air Temperature {C}
   11.11,                                  !- Zone Cooling Design Supply Air Temperature Difference {deltaC}
@@ -610,18 +638,20 @@ OS:Sizing:Zone,
   ,                                       !- Heating Maximum Air Flow per Zone Floor Area {m3/s-m2}
   ,                                       !- Heating Maximum Air Flow {m3/s}
   ,                                       !- Heating Maximum Air Flow Fraction
+  ,                                       !- Design Zone Air Distribution Effectiveness in Cooling Mode
+  ,                                       !- Design Zone Air Distribution Effectiveness in Heating Mode
   No,                                     !- Account for Dedicated Outdoor Air System
   NeutralSupplyAir,                       !- Dedicated Outdoor Air System Control Strategy
   autosize,                               !- Dedicated Outdoor Air Low Setpoint Temperature for Design {C}
   autosize;                               !- Dedicated Outdoor Air High Setpoint Temperature for Design {C}
 
 OS:ZoneHVAC:EquipmentList,
-  {1b47214d-7143-481b-8333-b1dc35551f6e}, !- Handle
+  {a08d026c-945a-4ee4-aa49-216eaa71e848}, !- Handle
   Zone HVAC Equipment List 2,             !- Name
-  {71fad2ad-82a3-4fcf-b13f-7814ae9f9b8c}; !- Thermal Zone
+  {190fd0bd-193d-44ad-bd5b-270cb59d0bba}; !- Thermal Zone
 
 OS:SpaceType,
-  {b0fec184-ea45-4a79-9c65-2b1577c87aae}, !- Handle
+  {edf65194-15f2-4d70-ad5f-ec4ed29b8107}, !- Handle
   Space Type 2,                           !- Name
   ,                                       !- Default Construction Set Name
   ,                                       !- Default Schedule Set Name
@@ -632,14 +662,14 @@ OS:SpaceType,
   unfinished attic;                       !- Standards Space Type
 
 OS:BuildingUnit,
-  {69feb042-5826-443e-92d4-81a3364a60f6}, !- Handle
+  {b00ca8ab-9ec1-48c4-8b0c-7d6fcc993d5b}, !- Handle
   unit 1,                                 !- Name
   ,                                       !- Rendering Color
   Residential;                            !- Building Unit Type
 
 OS:AdditionalProperties,
-  {e31a1faf-cd29-4bba-9f96-d2743e5ca611}, !- Handle
-  {69feb042-5826-443e-92d4-81a3364a60f6}, !- Object Name
+  {f3f96522-0cd1-4122-bfa1-79aa00bc9170}, !- Handle
+  {b00ca8ab-9ec1-48c4-8b0c-7d6fcc993d5b}, !- Object Name
   NumberOfBedrooms,                       !- Feature Name 1
   Integer,                                !- Feature Data Type 1
   3,                                      !- Feature Value 1
@@ -650,13 +680,8 @@ OS:AdditionalProperties,
   Double,                                 !- Feature Data Type 3
   2.6400000000000001;                     !- Feature Value 3
 
-OS:External:File,
-  {324f24cf-e352-4301-89f3-fee8e1c6cf39}, !- Handle
-  8760.csv,                               !- Name
-  8760.csv;                               !- File Name
-
 OS:Schedule:Day,
-  {dbf3f693-6e65-4716-b968-816f94bfe79a}, !- Handle
+  {743a5d27-1a0f-4919-b9dc-c3837956c569}, !- Handle
   Schedule Day 1,                         !- Name
   ,                                       !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
@@ -665,2271 +690,11 @@ OS:Schedule:Day,
   0;                                      !- Value Until Time 1
 
 OS:Schedule:Day,
-  {01e905c7-f745-4c37-b579-f073cec5dd98}, !- Handle
+  {e79d4d54-0187-4d34-9c05-4a1a0654fe27}, !- Handle
   Schedule Day 2,                         !- Name
   ,                                       !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   24,                                     !- Hour 1
   0,                                      !- Minute 1
   1;                                      !- Value Until Time 1
-
-OS:Schedule:File,
-  {133cc1a9-2e62-4bd0-9061-690e0f0ba0cb}, !- Handle
-  occupants,                              !- Name
-  {2c83eb56-947c-4cb7-940f-e82689c6565e}, !- Schedule Type Limits Name
-  {324f24cf-e352-4301-89f3-fee8e1c6cf39}, !- External File Name
-  1,                                      !- Column Number
-  1,                                      !- Rows to Skip at Top
-  8760,                                   !- Number of Hours of Data
-  ,                                       !- Column Separator
-  ,                                       !- Interpolate to Timestep
-  60;                                     !- Minutes per Item
-
-OS:Schedule:Ruleset,
-  {b8fedbcc-67b3-481c-a4f5-586fdca1e99b}, !- Handle
-  Schedule Ruleset 1,                     !- Name
-  {c5d995f3-d1de-4d48-ae1b-e6268f57b7c6}, !- Schedule Type Limits Name
-  {9b663255-da08-439b-970c-a0d04c4f49a9}; !- Default Day Schedule Name
-
-OS:Schedule:Day,
-  {9b663255-da08-439b-970c-a0d04c4f49a9}, !- Handle
-  Schedule Day 3,                         !- Name
-  {c5d995f3-d1de-4d48-ae1b-e6268f57b7c6}, !- Schedule Type Limits Name
-  ,                                       !- Interpolate to Timestep
-  24,                                     !- Hour 1
-  0,                                      !- Minute 1
-  112.539290946133;                       !- Value Until Time 1
-
-OS:People:Definition,
-  {809d2b4e-5792-403d-8655-ef80f196d6ec}, !- Handle
-  res occupants|living space,             !- Name
-  People,                                 !- Number of People Calculation Method
-  2.64,                                   !- Number of People {people}
-  ,                                       !- People per Space Floor Area {person/m2}
-  ,                                       !- Space Floor Area per Person {m2/person}
-  0.319734,                               !- Fraction Radiant
-  0.573,                                  !- Sensible Heat Fraction
-  0,                                      !- Carbon Dioxide Generation Rate {m3/s-W}
-  No,                                     !- Enable ASHRAE 55 Comfort Warnings
-  ZoneAveraged;                           !- Mean Radiant Temperature Calculation Type
-
-OS:People,
-  {1512b060-4d11-47fe-948c-89ee1d2f3c8d}, !- Handle
-  res occupants|living space,             !- Name
-  {809d2b4e-5792-403d-8655-ef80f196d6ec}, !- People Definition Name
-  {85d863e0-9671-46a5-84d3-efbc4d5398b5}, !- Space or SpaceType Name
-  {133cc1a9-2e62-4bd0-9061-690e0f0ba0cb}, !- Number of People Schedule Name
-  {b8fedbcc-67b3-481c-a4f5-586fdca1e99b}, !- Activity Level Schedule Name
-  ,                                       !- Surface Name/Angle Factor List Name
-  ,                                       !- Work Efficiency Schedule Name
-  ,                                       !- Clothing Insulation Schedule Name
-  ,                                       !- Air Velocity Schedule Name
-  1;                                      !- Multiplier
-
-OS:ScheduleTypeLimits,
-  {c5d995f3-d1de-4d48-ae1b-e6268f57b7c6}, !- Handle
-  ActivityLevel,                          !- Name
-  0,                                      !- Lower Limit Value
-  ,                                       !- Upper Limit Value
-  Continuous,                             !- Numeric Type
-  ActivityLevel;                          !- Unit Type
-
-OS:ScheduleTypeLimits,
-  {2c83eb56-947c-4cb7-940f-e82689c6565e}, !- Handle
-  Fractional,                             !- Name
-  0,                                      !- Lower Limit Value
-  1,                                      !- Upper Limit Value
-  Continuous;                             !- Numeric Type
-
-OS:ShadingSurfaceGroup,
-  {291299d0-cd53-4584-ae69-233af8ca1e44}, !- Handle
-  res neighbors,                          !- Name
-  Building;                               !- Shading Surface Type
-
-OS:ShadingSurface,
-  {94233386-63bd-4f1d-98a4-0a68fac31e7c}, !- Handle
-  res neighbors left,                     !- Name
-  ,                                       !- Construction Name
-  {291299d0-cd53-4584-ae69-233af8ca1e44}, !- Shading Surface Group Name
-  ,                                       !- Transmittance Schedule Name
-  ,                                       !- Number of Vertices
-  -3.048, 0, 0,                           !- X,Y,Z Vertex 1 {m}
-  -3.048, 0, 5.12518568145614,            !- X,Y,Z Vertex 2 {m}
-  -3.048, 10.7471427258245, 5.12518568145614, !- X,Y,Z Vertex 3 {m}
-  -3.048, 10.7471427258245, 0;            !- X,Y,Z Vertex 4 {m}
-
-OS:ShadingSurface,
-  {18bfc12e-e568-4965-b83a-c1d4a41318e2}, !- Handle
-  res neighbors right,                    !- Name
-  ,                                       !- Construction Name
-  {291299d0-cd53-4584-ae69-233af8ca1e44}, !- Shading Surface Group Name
-  ,                                       !- Transmittance Schedule Name
-  ,                                       !- Number of Vertices
-  20.3368817744574, 10.7471427258245, 0,  !- X,Y,Z Vertex 1 {m}
-  20.3368817744574, 10.7471427258245, 5.12518568145614, !- X,Y,Z Vertex 2 {m}
-  20.3368817744574, 0, 5.12518568145614,  !- X,Y,Z Vertex 3 {m}
-  20.3368817744574, 0, 0;                 !- X,Y,Z Vertex 4 {m}
-
-OS:SubSurface,
-  {e8825a3a-8d44-4d6f-b59d-2b76def3e1f6}, !- Handle
-  unit 1 - Surface 5 - Door,              !- Name
-  Door,                                   !- Sub Surface Type
-  {080c33e6-1945-493c-9c61-5f95393673a5}, !- Construction Name
-  {5d219c13-f4f5-4b13-8fd3-c7adde7bd523}, !- Surface Name
-  ,                                       !- Outside Boundary Condition Object
-  ,                                       !- View Factor to Ground
-  ,                                       !- Shading Control Name
-  ,                                       !- Frame and Divider Name
-  ,                                       !- Multiplier
-  ,                                       !- Number of Vertices
-  0.1524, 0, 2.1336,                      !- X,Y,Z Vertex 1 {m}
-  0.1524, 0, 0,                           !- X,Y,Z Vertex 2 {m}
-  1.02325714285714, 0, 0,                 !- X,Y,Z Vertex 3 {m}
-  1.02325714285714, 0, 2.1336;            !- X,Y,Z Vertex 4 {m}
-
-OS:Surface,
-  {5d219c13-f4f5-4b13-8fd3-c7adde7bd523}, !- Handle
-  Surface 12,                             !- Name
-  Wall,                                   !- Surface Type
-  {efc07500-cd24-4813-8519-bcf55c782bfb}, !- Construction Name
-  {85d863e0-9671-46a5-84d3-efbc4d5398b5}, !- Space Name
-  Outdoors,                               !- Outside Boundary Condition
-  ,                                       !- Outside Boundary Condition Object
-  SunExposed,                             !- Sun Exposure
-  WindExposed,                            !- Wind Exposure
-  ,                                       !- View Factor to Ground
-  ,                                       !- Number of Vertices
-  1.04865714285714, 0, 2.43840088208656,  !- X,Y,Z Vertex 1 {m}
-  0.127000756639339, 0, 2.4384,           !- X,Y,Z Vertex 2 {m}
-  0.12700075663934, 0, 0,                 !- X,Y,Z Vertex 3 {m}
-  1.04865714285714, 0, 8.46803096088422e-07; !- X,Y,Z Vertex 4 {m}
-
-OS:Surface,
-  {554841d4-9106-457b-9e55-352a24fc4972}, !- Handle
-  Surface 13,                             !- Name
-  Wall,                                   !- Surface Type
-  {efc07500-cd24-4813-8519-bcf55c782bfb}, !- Construction Name
-  {85d863e0-9671-46a5-84d3-efbc4d5398b5}, !- Space Name
-  Outdoors,                               !- Outside Boundary Condition
-  ,                                       !- Outside Boundary Condition Object
-  SunExposed,                             !- Sun Exposure
-  WindExposed,                            !- Wind Exposure
-  ,                                       !- View Factor to Ground
-  ,                                       !- Number of Vertices
-  0.127000756639339, 0, 2.4384,           !- X,Y,Z Vertex 1 {m}
-  0, 0, 2.4384,                           !- X,Y,Z Vertex 2 {m}
-  0, 0, 0,                                !- X,Y,Z Vertex 3 {m}
-  0.12700075663934, 0, 0;                 !- X,Y,Z Vertex 4 {m}
-
-OS:SubSurface,
-  {8ee0e4e0-8e2d-4005-ace7-59875a2c027a}, !- Handle
-  Surface 3 - Window 1,                   !- Name
-  FixedWindow,                            !- Sub Surface Type
-  {a903bd5f-bea8-469d-a5b3-30eb566b0b12}, !- Construction Name
-  {54963a7b-3fae-4137-bcf7-8174c0438dcd}, !- Surface Name
-  ,                                       !- Outside Boundary Condition Object
-  ,                                       !- View Factor to Ground
-  {47f42953-405e-45fa-ac2d-ab8446d946cc}, !- Shading Control Name
-  ,                                       !- Frame and Divider Name
-  ,                                       !- Multiplier
-  ,                                       !- Number of Vertices
-  14.76338096336, 10.7471427258245, 2.1336, !- X,Y,Z Vertex 1 {m}
-  14.76338096336, 10.7471427258245, 0.931506540122505, !- X,Y,Z Vertex 2 {m}
-  13.8615854195659, 10.7471427258245, 0.931506540122505, !- X,Y,Z Vertex 3 {m}
-  13.8615854195659, 10.7471427258245, 2.1336; !- X,Y,Z Vertex 4 {m}
-
-OS:SubSurface,
-  {0747de81-f318-4597-9330-dd15bcc9d22d}, !- Handle
-  Surface 3 - Window 2,                   !- Name
-  FixedWindow,                            !- Sub Surface Type
-  {a903bd5f-bea8-469d-a5b3-30eb566b0b12}, !- Construction Name
-  {54963a7b-3fae-4137-bcf7-8174c0438dcd}, !- Surface Name
-  ,                                       !- Outside Boundary Condition Object
-  ,                                       !- View Factor to Ground
-  {47f42953-405e-45fa-ac2d-ab8446d946cc}, !- Shading Control Name
-  ,                                       !- Frame and Divider Name
-  ,                                       !- Multiplier
-  ,                                       !- Number of Vertices
-  13.8006254195659, 10.7471427258245, 2.1336, !- X,Y,Z Vertex 1 {m}
-  13.8006254195659, 10.7471427258245, 0.931506540122505, !- X,Y,Z Vertex 2 {m}
-  12.8988298757719, 10.7471427258245, 0.931506540122505, !- X,Y,Z Vertex 3 {m}
-  12.8988298757719, 10.7471427258245, 2.1336; !- X,Y,Z Vertex 4 {m}
-
-OS:SubSurface,
-  {cf89614b-c53f-433f-90b1-6ae2dbf83a93}, !- Handle
-  Surface 3 - Window 3,                   !- Name
-  FixedWindow,                            !- Sub Surface Type
-  {a903bd5f-bea8-469d-a5b3-30eb566b0b12}, !- Construction Name
-  {54963a7b-3fae-4137-bcf7-8174c0438dcd}, !- Surface Name
-  ,                                       !- Outside Boundary Condition Object
-  ,                                       !- View Factor to Ground
-  {47f42953-405e-45fa-ac2d-ab8446d946cc}, !- Shading Control Name
-  ,                                       !- Frame and Divider Name
-  ,                                       !- Multiplier
-  ,                                       !- Number of Vertices
-  11.3056046084685, 10.7471427258245, 2.1336, !- X,Y,Z Vertex 1 {m}
-  11.3056046084685, 10.7471427258245, 0.931506540122505, !- X,Y,Z Vertex 2 {m}
-  10.4038090646744, 10.7471427258245, 0.931506540122505, !- X,Y,Z Vertex 3 {m}
-  10.4038090646744, 10.7471427258245, 2.1336; !- X,Y,Z Vertex 4 {m}
-
-OS:SubSurface,
-  {b58e22f5-b3cf-4e3b-8be4-510f7ef49083}, !- Handle
-  Surface 3 - Window 4,                   !- Name
-  FixedWindow,                            !- Sub Surface Type
-  {a903bd5f-bea8-469d-a5b3-30eb566b0b12}, !- Construction Name
-  {54963a7b-3fae-4137-bcf7-8174c0438dcd}, !- Surface Name
-  ,                                       !- Outside Boundary Condition Object
-  ,                                       !- View Factor to Ground
-  {47f42953-405e-45fa-ac2d-ab8446d946cc}, !- Shading Control Name
-  ,                                       !- Frame and Divider Name
-  ,                                       !- Multiplier
-  ,                                       !- Number of Vertices
-  10.3428490646744, 10.7471427258245, 2.1336, !- X,Y,Z Vertex 1 {m}
-  10.3428490646744, 10.7471427258245, 0.931506540122505, !- X,Y,Z Vertex 2 {m}
-  9.44105352088037, 10.7471427258245, 0.931506540122505, !- X,Y,Z Vertex 3 {m}
-  9.44105352088037, 10.7471427258245, 2.1336; !- X,Y,Z Vertex 4 {m}
-
-OS:SubSurface,
-  {7452f78d-9e7c-4bac-81cc-87f8a39acbe5}, !- Handle
-  Surface 3 - Window 5,                   !- Name
-  FixedWindow,                            !- Sub Surface Type
-  {a903bd5f-bea8-469d-a5b3-30eb566b0b12}, !- Construction Name
-  {54963a7b-3fae-4137-bcf7-8174c0438dcd}, !- Surface Name
-  ,                                       !- Outside Boundary Condition Object
-  ,                                       !- View Factor to Ground
-  {47f42953-405e-45fa-ac2d-ab8446d946cc}, !- Shading Control Name
-  ,                                       !- Frame and Divider Name
-  ,                                       !- Multiplier
-  ,                                       !- Number of Vertices
-  7.84782825357703, 10.7471427258245, 2.1336, !- X,Y,Z Vertex 1 {m}
-  7.84782825357703, 10.7471427258245, 0.931506540122505, !- X,Y,Z Vertex 2 {m}
-  6.94603270978296, 10.7471427258245, 0.931506540122505, !- X,Y,Z Vertex 3 {m}
-  6.94603270978296, 10.7471427258245, 2.1336; !- X,Y,Z Vertex 4 {m}
-
-OS:SubSurface,
-  {e7336046-cff5-47d2-a3c4-59266ed593c5}, !- Handle
-  Surface 3 - Window 6,                   !- Name
-  FixedWindow,                            !- Sub Surface Type
-  {a903bd5f-bea8-469d-a5b3-30eb566b0b12}, !- Construction Name
-  {54963a7b-3fae-4137-bcf7-8174c0438dcd}, !- Surface Name
-  ,                                       !- Outside Boundary Condition Object
-  ,                                       !- View Factor to Ground
-  {47f42953-405e-45fa-ac2d-ab8446d946cc}, !- Shading Control Name
-  ,                                       !- Frame and Divider Name
-  ,                                       !- Multiplier
-  ,                                       !- Number of Vertices
-  6.88507270978296, 10.7471427258245, 2.1336, !- X,Y,Z Vertex 1 {m}
-  6.88507270978296, 10.7471427258245, 0.931506540122505, !- X,Y,Z Vertex 2 {m}
-  5.98327716598889, 10.7471427258245, 0.931506540122505, !- X,Y,Z Vertex 3 {m}
-  5.98327716598889, 10.7471427258245, 2.1336; !- X,Y,Z Vertex 4 {m}
-
-OS:SubSurface,
-  {69aae019-6166-45e8-8098-1c8309b5fbbe}, !- Handle
-  Surface 3 - Window 7,                   !- Name
-  FixedWindow,                            !- Sub Surface Type
-  {a903bd5f-bea8-469d-a5b3-30eb566b0b12}, !- Construction Name
-  {54963a7b-3fae-4137-bcf7-8174c0438dcd}, !- Surface Name
-  ,                                       !- Outside Boundary Condition Object
-  ,                                       !- View Factor to Ground
-  {47f42953-405e-45fa-ac2d-ab8446d946cc}, !- Shading Control Name
-  ,                                       !- Frame and Divider Name
-  ,                                       !- Multiplier
-  ,                                       !- Number of Vertices
-  3.90867412678852, 10.7471427258245, 2.1336, !- X,Y,Z Vertex 1 {m}
-  3.90867412678852, 10.7471427258245, 0.931506540122505, !- X,Y,Z Vertex 2 {m}
-  3.00687858299444, 10.7471427258245, 0.931506540122505, !- X,Y,Z Vertex 3 {m}
-  3.00687858299444, 10.7471427258245, 2.1336; !- X,Y,Z Vertex 4 {m}
-
-OS:SubSurface,
-  {6ec63d84-779e-4076-b70d-26f072be4a2d}, !- Handle
-  Surface 2 - Window 1,                   !- Name
-  FixedWindow,                            !- Sub Surface Type
-  {a903bd5f-bea8-469d-a5b3-30eb566b0b12}, !- Construction Name
-  {70533634-2b6b-4002-a772-8318c2cfbec7}, !- Surface Name
-  ,                                       !- Outside Boundary Condition Object
-  ,                                       !- View Factor to Ground
-  {47f42953-405e-45fa-ac2d-ab8446d946cc}, !- Shading Control Name
-  ,                                       !- Frame and Divider Name
-  ,                                       !- Multiplier
-  ,                                       !- Number of Vertices
-  0, 8.93210657300739, 2.1336,            !- X,Y,Z Vertex 1 {m}
-  0, 8.93210657300739, 1.01218771832419,  !- X,Y,Z Vertex 2 {m}
-  0, 8.09083704436837, 1.01218771832419,  !- X,Y,Z Vertex 3 {m}
-  0, 8.09083704436837, 2.1336;            !- X,Y,Z Vertex 4 {m}
-
-OS:SubSurface,
-  {cbcc5a8f-1f60-4f97-ac59-dd93175e4e34}, !- Handle
-  Surface 2 - Window 2,                   !- Name
-  FixedWindow,                            !- Sub Surface Type
-  {a903bd5f-bea8-469d-a5b3-30eb566b0b12}, !- Construction Name
-  {70533634-2b6b-4002-a772-8318c2cfbec7}, !- Surface Name
-  ,                                       !- Outside Boundary Condition Object
-  ,                                       !- View Factor to Ground
-  {47f42953-405e-45fa-ac2d-ab8446d946cc}, !- Shading Control Name
-  ,                                       !- Frame and Divider Name
-  ,                                       !- Multiplier
-  ,                                       !- Number of Vertices
-  0, 8.02987704436837, 2.1336,            !- X,Y,Z Vertex 1 {m}
-  0, 8.02987704436837, 1.01218771832419,  !- X,Y,Z Vertex 2 {m}
-  0, 7.18860751572936, 1.01218771832419,  !- X,Y,Z Vertex 3 {m}
-  0, 7.18860751572936, 2.1336;            !- X,Y,Z Vertex 4 {m}
-
-OS:SubSurface,
-  {4599bc54-dc43-4d2c-b234-9a687832ffdc}, !- Handle
-  Surface 2 - Window 3,                   !- Name
-  FixedWindow,                            !- Sub Surface Type
-  {a903bd5f-bea8-469d-a5b3-30eb566b0b12}, !- Construction Name
-  {70533634-2b6b-4002-a772-8318c2cfbec7}, !- Surface Name
-  ,                                       !- Outside Boundary Condition Object
-  ,                                       !- View Factor to Ground
-  {47f42953-405e-45fa-ac2d-ab8446d946cc}, !- Shading Control Name
-  ,                                       !- Frame and Divider Name
-  ,                                       !- Multiplier
-  ,                                       !- Number of Vertices
-  0, 6.24532089155127, 2.1336,            !- X,Y,Z Vertex 1 {m}
-  0, 6.24532089155127, 1.01218771832419,  !- X,Y,Z Vertex 2 {m}
-  0, 5.40405136291225, 1.01218771832419,  !- X,Y,Z Vertex 3 {m}
-  0, 5.40405136291225, 2.1336;            !- X,Y,Z Vertex 4 {m}
-
-OS:SubSurface,
-  {889b17ae-fa9d-4946-9436-859d6b0fa315}, !- Handle
-  Surface 2 - Window 4,                   !- Name
-  FixedWindow,                            !- Sub Surface Type
-  {a903bd5f-bea8-469d-a5b3-30eb566b0b12}, !- Construction Name
-  {70533634-2b6b-4002-a772-8318c2cfbec7}, !- Surface Name
-  ,                                       !- Outside Boundary Condition Object
-  ,                                       !- View Factor to Ground
-  {47f42953-405e-45fa-ac2d-ab8446d946cc}, !- Shading Control Name
-  ,                                       !- Frame and Divider Name
-  ,                                       !- Multiplier
-  ,                                       !- Number of Vertices
-  0, 5.34309136291225, 2.1336,            !- X,Y,Z Vertex 1 {m}
-  0, 5.34309136291225, 1.01218771832419,  !- X,Y,Z Vertex 2 {m}
-  0, 4.50182183427323, 1.01218771832419,  !- X,Y,Z Vertex 3 {m}
-  0, 4.50182183427323, 2.1336;            !- X,Y,Z Vertex 4 {m}
-
-OS:SubSurface,
-  {9769c630-d8bd-43c8-8d56-fff6665ba5b4}, !- Handle
-  Surface 2 - Window 5,                   !- Name
-  FixedWindow,                            !- Sub Surface Type
-  {a903bd5f-bea8-469d-a5b3-30eb566b0b12}, !- Construction Name
-  {70533634-2b6b-4002-a772-8318c2cfbec7}, !- Surface Name
-  ,                                       !- Outside Boundary Condition Object
-  ,                                       !- View Factor to Ground
-  {47f42953-405e-45fa-ac2d-ab8446d946cc}, !- Shading Control Name
-  ,                                       !- Frame and Divider Name
-  ,                                       !- Multiplier
-  ,                                       !- Number of Vertices
-  0, 3.10742044577563, 2.1336,            !- X,Y,Z Vertex 1 {m}
-  0, 3.10742044577563, 1.01218771832419,  !- X,Y,Z Vertex 2 {m}
-  0, 2.26615091713662, 1.01218771832419,  !- X,Y,Z Vertex 3 {m}
-  0, 2.26615091713662, 2.1336;            !- X,Y,Z Vertex 4 {m}
-
-OS:SubSurface,
-  {50756e0b-7fb3-4f7b-91bd-2925d35bc57b}, !- Handle
-  Surface 4 - Window 1,                   !- Name
-  FixedWindow,                            !- Sub Surface Type
-  {a903bd5f-bea8-469d-a5b3-30eb566b0b12}, !- Construction Name
-  {a12b32b8-8db7-4397-9055-a86d169dabff}, !- Surface Name
-  ,                                       !- Outside Boundary Condition Object
-  ,                                       !- View Factor to Ground
-  {47f42953-405e-45fa-ac2d-ab8446d946cc}, !- Shading Control Name
-  ,                                       !- Frame and Divider Name
-  ,                                       !- Multiplier
-  ,                                       !- Number of Vertices
-  17.2888817744574, 1.81503615281711, 2.1336, !- X,Y,Z Vertex 1 {m}
-  17.2888817744574, 1.81503615281711, 1.01218771832419, !- X,Y,Z Vertex 2 {m}
-  17.2888817744574, 2.65630568145613, 1.01218771832419, !- X,Y,Z Vertex 3 {m}
-  17.2888817744574, 2.65630568145613, 2.1336; !- X,Y,Z Vertex 4 {m}
-
-OS:SubSurface,
-  {14d594e3-29b3-4bb2-b0fc-ae9e3c01dbcd}, !- Handle
-  Surface 4 - Window 2,                   !- Name
-  FixedWindow,                            !- Sub Surface Type
-  {a903bd5f-bea8-469d-a5b3-30eb566b0b12}, !- Construction Name
-  {a12b32b8-8db7-4397-9055-a86d169dabff}, !- Surface Name
-  ,                                       !- Outside Boundary Condition Object
-  ,                                       !- View Factor to Ground
-  {47f42953-405e-45fa-ac2d-ab8446d946cc}, !- Shading Control Name
-  ,                                       !- Frame and Divider Name
-  ,                                       !- Multiplier
-  ,                                       !- Number of Vertices
-  17.2888817744574, 2.71726568145613, 2.1336, !- X,Y,Z Vertex 1 {m}
-  17.2888817744574, 2.71726568145613, 1.01218771832419, !- X,Y,Z Vertex 2 {m}
-  17.2888817744574, 3.55853521009514, 1.01218771832419, !- X,Y,Z Vertex 3 {m}
-  17.2888817744574, 3.55853521009514, 2.1336; !- X,Y,Z Vertex 4 {m}
-
-OS:SubSurface,
-  {5087ab30-7f56-4a22-bc5c-62b8e54b2ed2}, !- Handle
-  Surface 4 - Window 3,                   !- Name
-  FixedWindow,                            !- Sub Surface Type
-  {a903bd5f-bea8-469d-a5b3-30eb566b0b12}, !- Construction Name
-  {a12b32b8-8db7-4397-9055-a86d169dabff}, !- Surface Name
-  ,                                       !- Outside Boundary Condition Object
-  ,                                       !- View Factor to Ground
-  {47f42953-405e-45fa-ac2d-ab8446d946cc}, !- Shading Control Name
-  ,                                       !- Frame and Divider Name
-  ,                                       !- Multiplier
-  ,                                       !- Number of Vertices
-  17.2888817744574, 4.50182183427323, 2.1336, !- X,Y,Z Vertex 1 {m}
-  17.2888817744574, 4.50182183427323, 1.01218771832419, !- X,Y,Z Vertex 2 {m}
-  17.2888817744574, 5.34309136291225, 1.01218771832419, !- X,Y,Z Vertex 3 {m}
-  17.2888817744574, 5.34309136291225, 2.1336; !- X,Y,Z Vertex 4 {m}
-
-OS:SubSurface,
-  {7773cb40-95a2-4b6e-8fa7-71a82ef98df1}, !- Handle
-  Surface 4 - Window 4,                   !- Name
-  FixedWindow,                            !- Sub Surface Type
-  {a903bd5f-bea8-469d-a5b3-30eb566b0b12}, !- Construction Name
-  {a12b32b8-8db7-4397-9055-a86d169dabff}, !- Surface Name
-  ,                                       !- Outside Boundary Condition Object
-  ,                                       !- View Factor to Ground
-  {47f42953-405e-45fa-ac2d-ab8446d946cc}, !- Shading Control Name
-  ,                                       !- Frame and Divider Name
-  ,                                       !- Multiplier
-  ,                                       !- Number of Vertices
-  17.2888817744574, 5.40405136291225, 2.1336, !- X,Y,Z Vertex 1 {m}
-  17.2888817744574, 5.40405136291225, 1.01218771832419, !- X,Y,Z Vertex 2 {m}
-  17.2888817744574, 6.24532089155127, 1.01218771832419, !- X,Y,Z Vertex 3 {m}
-  17.2888817744574, 6.24532089155127, 2.1336; !- X,Y,Z Vertex 4 {m}
-
-OS:SubSurface,
-  {5b65729a-cfca-41a6-b92c-f9292bcd4dcc}, !- Handle
-  Surface 4 - Window 5,                   !- Name
-  FixedWindow,                            !- Sub Surface Type
-  {a903bd5f-bea8-469d-a5b3-30eb566b0b12}, !- Construction Name
-  {a12b32b8-8db7-4397-9055-a86d169dabff}, !- Surface Name
-  ,                                       !- Outside Boundary Condition Object
-  ,                                       !- View Factor to Ground
-  {47f42953-405e-45fa-ac2d-ab8446d946cc}, !- Shading Control Name
-  ,                                       !- Frame and Divider Name
-  ,                                       !- Multiplier
-  ,                                       !- Number of Vertices
-  17.2888817744574, 7.63972228004887, 2.1336, !- X,Y,Z Vertex 1 {m}
-  17.2888817744574, 7.63972228004887, 1.01218771832419, !- X,Y,Z Vertex 2 {m}
-  17.2888817744574, 8.48099180868788, 1.01218771832419, !- X,Y,Z Vertex 3 {m}
-  17.2888817744574, 8.48099180868788, 2.1336; !- X,Y,Z Vertex 4 {m}
-
-OS:ShadingSurfaceGroup,
-  {3b700894-9f56-459b-bf44-52d6f3cad6aa}, !- Handle
-  Surface 3 - Window 5 Shading Surfaces,  !- Name
-  Space,                                  !- Shading Surface Type
-  {85d863e0-9671-46a5-84d3-efbc4d5398b5}, !- Space Name
-  ,                                       !- Direction of Relative North {deg}
-  ,                                       !- X Origin {m}
-  ,                                       !- Y Origin {m}
-  ,                                       !- Z Origin {m}
-  {7452f78d-9e7c-4bac-81cc-87f8a39acbe5}; !- Shaded Object Name
-
-OS:ShadingSurface,
-  {afd5cc99-2422-4a3d-a9e9-9d399fe727fc}, !- Handle
-  Surface 3 - Window 5 - res overhangs,   !- Name
-  ,                                       !- Construction Name
-  {3b700894-9f56-459b-bf44-52d6f3cad6aa}, !- Shading Surface Group Name
-  ,                                       !- Transmittance Schedule Name
-  ,                                       !- Number of Vertices
-  6.79363270978296, 10.7471427258245, 2.286, !- X,Y,Z Vertex 1 {m}
-  8.00022825357703, 10.7471427258245, 2.286, !- X,Y,Z Vertex 2 {m}
-  8.00022825357703, 11.3567427258245, 2.286, !- X,Y,Z Vertex 3 {m}
-  6.79363270978296, 11.3567427258245, 2.286; !- X,Y,Z Vertex 4 {m}
-
-OS:AdditionalProperties,
-  {4d2d1915-96dd-4c41-b5bf-2e9e2a6d59af}, !- Handle
-  {7452f78d-9e7c-4bac-81cc-87f8a39acbe5}, !- Object Name
-  SizingInfoWindowOverhangDepth,          !- Feature Name 1
-  Double,                                 !- Feature Data Type 1
-  0.60960000000000003,                    !- Feature Value 1
-  SizingInfoWindowOverhangOffset,         !- Feature Name 2
-  Double,                                 !- Feature Data Type 2
-  0.15240000000000001;                    !- Feature Value 2
-
-OS:ShadingSurfaceGroup,
-  {6a5ed61f-9d9c-41f7-b9b9-16e0bd14fc60}, !- Handle
-  Surface 2 - Window 5 Shading Surfaces,  !- Name
-  Space,                                  !- Shading Surface Type
-  {85d863e0-9671-46a5-84d3-efbc4d5398b5}, !- Space Name
-  ,                                       !- Direction of Relative North {deg}
-  ,                                       !- X Origin {m}
-  ,                                       !- Y Origin {m}
-  ,                                       !- Z Origin {m}
-  {9769c630-d8bd-43c8-8d56-fff6665ba5b4}; !- Shaded Object Name
-
-OS:ShadingSurface,
-  {877dafe5-094c-4bed-b171-40235945fdc6}, !- Handle
-  Surface 2 - Window 5 - res overhangs,   !- Name
-  ,                                       !- Construction Name
-  {6a5ed61f-9d9c-41f7-b9b9-16e0bd14fc60}, !- Shading Surface Group Name
-  ,                                       !- Transmittance Schedule Name
-  ,                                       !- Number of Vertices
-  0, 2.11375091713662, 2.286,             !- X,Y,Z Vertex 1 {m}
-  0, 3.25982044577563, 2.286,             !- X,Y,Z Vertex 2 {m}
-  -0.6096, 3.25982044577563, 2.286,       !- X,Y,Z Vertex 3 {m}
-  -0.6096, 2.11375091713662, 2.286;       !- X,Y,Z Vertex 4 {m}
-
-OS:AdditionalProperties,
-  {30157439-01e7-4774-8e89-a66be9dc7929}, !- Handle
-  {9769c630-d8bd-43c8-8d56-fff6665ba5b4}, !- Object Name
-  SizingInfoWindowOverhangDepth,          !- Feature Name 1
-  Double,                                 !- Feature Data Type 1
-  0.60960000000000003,                    !- Feature Value 1
-  SizingInfoWindowOverhangOffset,         !- Feature Name 2
-  Double,                                 !- Feature Data Type 2
-  0.15240000000000001;                    !- Feature Value 2
-
-OS:ShadingSurfaceGroup,
-  {18a53a6a-e88f-4a2c-8ff5-c77a37060479}, !- Handle
-  Surface 3 - Window 1 Shading Surfaces,  !- Name
-  Space,                                  !- Shading Surface Type
-  {85d863e0-9671-46a5-84d3-efbc4d5398b5}, !- Space Name
-  ,                                       !- Direction of Relative North {deg}
-  ,                                       !- X Origin {m}
-  ,                                       !- Y Origin {m}
-  ,                                       !- Z Origin {m}
-  {8ee0e4e0-8e2d-4005-ace7-59875a2c027a}; !- Shaded Object Name
-
-OS:ShadingSurface,
-  {0594f75b-e098-4e2a-ab1a-956067d478b5}, !- Handle
-  Surface 3 - Window 1 - res overhangs,   !- Name
-  ,                                       !- Construction Name
-  {18a53a6a-e88f-4a2c-8ff5-c77a37060479}, !- Shading Surface Group Name
-  ,                                       !- Transmittance Schedule Name
-  ,                                       !- Number of Vertices
-  13.7091854195659, 10.7471427258245, 2.286, !- X,Y,Z Vertex 1 {m}
-  14.91578096336, 10.7471427258245, 2.286, !- X,Y,Z Vertex 2 {m}
-  14.91578096336, 11.3567427258245, 2.286, !- X,Y,Z Vertex 3 {m}
-  13.7091854195659, 11.3567427258245, 2.286; !- X,Y,Z Vertex 4 {m}
-
-OS:AdditionalProperties,
-  {95502383-fa3d-4460-a71e-d09c5feb4ea6}, !- Handle
-  {8ee0e4e0-8e2d-4005-ace7-59875a2c027a}, !- Object Name
-  SizingInfoWindowOverhangDepth,          !- Feature Name 1
-  Double,                                 !- Feature Data Type 1
-  0.60960000000000003,                    !- Feature Value 1
-  SizingInfoWindowOverhangOffset,         !- Feature Name 2
-  Double,                                 !- Feature Data Type 2
-  0.15240000000000001;                    !- Feature Value 2
-
-OS:ShadingSurfaceGroup,
-  {190a35d8-7b00-4014-9221-bb86f3e82401}, !- Handle
-  Surface 3 - Window 2 Shading Surfaces,  !- Name
-  Space,                                  !- Shading Surface Type
-  {85d863e0-9671-46a5-84d3-efbc4d5398b5}, !- Space Name
-  ,                                       !- Direction of Relative North {deg}
-  ,                                       !- X Origin {m}
-  ,                                       !- Y Origin {m}
-  ,                                       !- Z Origin {m}
-  {0747de81-f318-4597-9330-dd15bcc9d22d}; !- Shaded Object Name
-
-OS:ShadingSurface,
-  {8b38d97f-4d5f-4fda-af17-87e09c4e705f}, !- Handle
-  Surface 3 - Window 2 - res overhangs,   !- Name
-  ,                                       !- Construction Name
-  {190a35d8-7b00-4014-9221-bb86f3e82401}, !- Shading Surface Group Name
-  ,                                       !- Transmittance Schedule Name
-  ,                                       !- Number of Vertices
-  12.7464298757719, 10.7471427258245, 2.286, !- X,Y,Z Vertex 1 {m}
-  13.9530254195659, 10.7471427258245, 2.286, !- X,Y,Z Vertex 2 {m}
-  13.9530254195659, 11.3567427258245, 2.286, !- X,Y,Z Vertex 3 {m}
-  12.7464298757719, 11.3567427258245, 2.286; !- X,Y,Z Vertex 4 {m}
-
-OS:AdditionalProperties,
-  {e992baeb-bac3-45ac-afdd-0bf81a0d7751}, !- Handle
-  {0747de81-f318-4597-9330-dd15bcc9d22d}, !- Object Name
-  SizingInfoWindowOverhangDepth,          !- Feature Name 1
-  Double,                                 !- Feature Data Type 1
-  0.60960000000000003,                    !- Feature Value 1
-  SizingInfoWindowOverhangOffset,         !- Feature Name 2
-  Double,                                 !- Feature Data Type 2
-  0.15240000000000001;                    !- Feature Value 2
-
-OS:ShadingSurfaceGroup,
-  {1ab7e89c-c712-4b16-b4f0-9fb6987cf67b}, !- Handle
-  Surface 2 - Window 1 Shading Surfaces,  !- Name
-  Space,                                  !- Shading Surface Type
-  {85d863e0-9671-46a5-84d3-efbc4d5398b5}, !- Space Name
-  ,                                       !- Direction of Relative North {deg}
-  ,                                       !- X Origin {m}
-  ,                                       !- Y Origin {m}
-  ,                                       !- Z Origin {m}
-  {6ec63d84-779e-4076-b70d-26f072be4a2d}; !- Shaded Object Name
-
-OS:ShadingSurface,
-  {6ebf8560-5099-416f-a155-72a103b1a336}, !- Handle
-  Surface 2 - Window 1 - res overhangs,   !- Name
-  ,                                       !- Construction Name
-  {1ab7e89c-c712-4b16-b4f0-9fb6987cf67b}, !- Shading Surface Group Name
-  ,                                       !- Transmittance Schedule Name
-  ,                                       !- Number of Vertices
-  0, 7.93843704436837, 2.286,             !- X,Y,Z Vertex 1 {m}
-  0, 9.08450657300739, 2.286,             !- X,Y,Z Vertex 2 {m}
-  -0.6096, 9.08450657300739, 2.286,       !- X,Y,Z Vertex 3 {m}
-  -0.6096, 7.93843704436837, 2.286;       !- X,Y,Z Vertex 4 {m}
-
-OS:AdditionalProperties,
-  {dcc68f5d-40cd-436a-a150-f9a27970d56c}, !- Handle
-  {6ec63d84-779e-4076-b70d-26f072be4a2d}, !- Object Name
-  SizingInfoWindowOverhangDepth,          !- Feature Name 1
-  Double,                                 !- Feature Data Type 1
-  0.60960000000000003,                    !- Feature Value 1
-  SizingInfoWindowOverhangOffset,         !- Feature Name 2
-  Double,                                 !- Feature Data Type 2
-  0.15240000000000001;                    !- Feature Value 2
-
-OS:ShadingSurfaceGroup,
-  {da29125e-968a-45b9-9c77-cb9b80e5ac28}, !- Handle
-  Surface 3 - Window 3 Shading Surfaces,  !- Name
-  Space,                                  !- Shading Surface Type
-  {85d863e0-9671-46a5-84d3-efbc4d5398b5}, !- Space Name
-  ,                                       !- Direction of Relative North {deg}
-  ,                                       !- X Origin {m}
-  ,                                       !- Y Origin {m}
-  ,                                       !- Z Origin {m}
-  {cf89614b-c53f-433f-90b1-6ae2dbf83a93}; !- Shaded Object Name
-
-OS:ShadingSurface,
-  {0e002d76-e1d4-4a59-9570-a120cad6925d}, !- Handle
-  Surface 3 - Window 3 - res overhangs,   !- Name
-  ,                                       !- Construction Name
-  {da29125e-968a-45b9-9c77-cb9b80e5ac28}, !- Shading Surface Group Name
-  ,                                       !- Transmittance Schedule Name
-  ,                                       !- Number of Vertices
-  10.2514090646744, 10.7471427258245, 2.286, !- X,Y,Z Vertex 1 {m}
-  11.4580046084685, 10.7471427258245, 2.286, !- X,Y,Z Vertex 2 {m}
-  11.4580046084685, 11.3567427258245, 2.286, !- X,Y,Z Vertex 3 {m}
-  10.2514090646744, 11.3567427258245, 2.286; !- X,Y,Z Vertex 4 {m}
-
-OS:AdditionalProperties,
-  {c60bc773-2338-4275-9078-a5c816577f55}, !- Handle
-  {cf89614b-c53f-433f-90b1-6ae2dbf83a93}, !- Object Name
-  SizingInfoWindowOverhangDepth,          !- Feature Name 1
-  Double,                                 !- Feature Data Type 1
-  0.60960000000000003,                    !- Feature Value 1
-  SizingInfoWindowOverhangOffset,         !- Feature Name 2
-  Double,                                 !- Feature Data Type 2
-  0.15240000000000001;                    !- Feature Value 2
-
-OS:ShadingSurfaceGroup,
-  {28c17aea-8ac2-439d-bf85-359c24440a69}, !- Handle
-  Surface 3 - Window 4 Shading Surfaces,  !- Name
-  Space,                                  !- Shading Surface Type
-  {85d863e0-9671-46a5-84d3-efbc4d5398b5}, !- Space Name
-  ,                                       !- Direction of Relative North {deg}
-  ,                                       !- X Origin {m}
-  ,                                       !- Y Origin {m}
-  ,                                       !- Z Origin {m}
-  {b58e22f5-b3cf-4e3b-8be4-510f7ef49083}; !- Shaded Object Name
-
-OS:ShadingSurface,
-  {7e1c2280-eced-4e8d-81c1-14e093f52699}, !- Handle
-  Surface 3 - Window 4 - res overhangs,   !- Name
-  ,                                       !- Construction Name
-  {28c17aea-8ac2-439d-bf85-359c24440a69}, !- Shading Surface Group Name
-  ,                                       !- Transmittance Schedule Name
-  ,                                       !- Number of Vertices
-  9.28865352088037, 10.7471427258245, 2.286, !- X,Y,Z Vertex 1 {m}
-  10.4952490646744, 10.7471427258245, 2.286, !- X,Y,Z Vertex 2 {m}
-  10.4952490646744, 11.3567427258245, 2.286, !- X,Y,Z Vertex 3 {m}
-  9.28865352088037, 11.3567427258245, 2.286; !- X,Y,Z Vertex 4 {m}
-
-OS:AdditionalProperties,
-  {ff8acb0e-3f29-4d16-8ed1-36c8e507a874}, !- Handle
-  {b58e22f5-b3cf-4e3b-8be4-510f7ef49083}, !- Object Name
-  SizingInfoWindowOverhangDepth,          !- Feature Name 1
-  Double,                                 !- Feature Data Type 1
-  0.60960000000000003,                    !- Feature Value 1
-  SizingInfoWindowOverhangOffset,         !- Feature Name 2
-  Double,                                 !- Feature Data Type 2
-  0.15240000000000001;                    !- Feature Value 2
-
-OS:ShadingSurfaceGroup,
-  {6d3566d0-438e-4ca6-a8c1-4c0ab1cc4754}, !- Handle
-  Surface 3 - Window 6 Shading Surfaces,  !- Name
-  Space,                                  !- Shading Surface Type
-  {85d863e0-9671-46a5-84d3-efbc4d5398b5}, !- Space Name
-  ,                                       !- Direction of Relative North {deg}
-  ,                                       !- X Origin {m}
-  ,                                       !- Y Origin {m}
-  ,                                       !- Z Origin {m}
-  {e7336046-cff5-47d2-a3c4-59266ed593c5}; !- Shaded Object Name
-
-OS:ShadingSurface,
-  {feb8bdde-77f3-40a9-988d-f2bd431a81ee}, !- Handle
-  Surface 3 - Window 6 - res overhangs,   !- Name
-  ,                                       !- Construction Name
-  {6d3566d0-438e-4ca6-a8c1-4c0ab1cc4754}, !- Shading Surface Group Name
-  ,                                       !- Transmittance Schedule Name
-  ,                                       !- Number of Vertices
-  5.83087716598889, 10.7471427258245, 2.286, !- X,Y,Z Vertex 1 {m}
-  7.03747270978296, 10.7471427258245, 2.286, !- X,Y,Z Vertex 2 {m}
-  7.03747270978296, 11.3567427258245, 2.286, !- X,Y,Z Vertex 3 {m}
-  5.83087716598889, 11.3567427258245, 2.286; !- X,Y,Z Vertex 4 {m}
-
-OS:AdditionalProperties,
-  {129e45f2-8edf-4887-80e8-367614777bec}, !- Handle
-  {e7336046-cff5-47d2-a3c4-59266ed593c5}, !- Object Name
-  SizingInfoWindowOverhangDepth,          !- Feature Name 1
-  Double,                                 !- Feature Data Type 1
-  0.60960000000000003,                    !- Feature Value 1
-  SizingInfoWindowOverhangOffset,         !- Feature Name 2
-  Double,                                 !- Feature Data Type 2
-  0.15240000000000001;                    !- Feature Value 2
-
-OS:ShadingSurfaceGroup,
-  {bb0344fa-bd29-49f5-9d7e-6533c827f157}, !- Handle
-  Surface 3 - Window 7 Shading Surfaces,  !- Name
-  Space,                                  !- Shading Surface Type
-  {85d863e0-9671-46a5-84d3-efbc4d5398b5}, !- Space Name
-  ,                                       !- Direction of Relative North {deg}
-  ,                                       !- X Origin {m}
-  ,                                       !- Y Origin {m}
-  ,                                       !- Z Origin {m}
-  {69aae019-6166-45e8-8098-1c8309b5fbbe}; !- Shaded Object Name
-
-OS:ShadingSurface,
-  {9d39415a-809f-47f4-a28e-e1ae47f848ed}, !- Handle
-  Surface 3 - Window 7 - res overhangs,   !- Name
-  ,                                       !- Construction Name
-  {bb0344fa-bd29-49f5-9d7e-6533c827f157}, !- Shading Surface Group Name
-  ,                                       !- Transmittance Schedule Name
-  ,                                       !- Number of Vertices
-  2.85447858299444, 10.7471427258245, 2.286, !- X,Y,Z Vertex 1 {m}
-  4.06107412678852, 10.7471427258245, 2.286, !- X,Y,Z Vertex 2 {m}
-  4.06107412678852, 11.3567427258245, 2.286, !- X,Y,Z Vertex 3 {m}
-  2.85447858299444, 11.3567427258245, 2.286; !- X,Y,Z Vertex 4 {m}
-
-OS:AdditionalProperties,
-  {5d90c44c-16af-4dfd-ae77-83f062358168}, !- Handle
-  {69aae019-6166-45e8-8098-1c8309b5fbbe}, !- Object Name
-  SizingInfoWindowOverhangDepth,          !- Feature Name 1
-  Double,                                 !- Feature Data Type 1
-  0.60960000000000003,                    !- Feature Value 1
-  SizingInfoWindowOverhangOffset,         !- Feature Name 2
-  Double,                                 !- Feature Data Type 2
-  0.15240000000000001;                    !- Feature Value 2
-
-OS:ShadingSurfaceGroup,
-  {94a9adbe-185b-4075-987f-72d984f7ff32}, !- Handle
-  Surface 2 - Window 2 Shading Surfaces,  !- Name
-  Space,                                  !- Shading Surface Type
-  {85d863e0-9671-46a5-84d3-efbc4d5398b5}, !- Space Name
-  ,                                       !- Direction of Relative North {deg}
-  ,                                       !- X Origin {m}
-  ,                                       !- Y Origin {m}
-  ,                                       !- Z Origin {m}
-  {cbcc5a8f-1f60-4f97-ac59-dd93175e4e34}; !- Shaded Object Name
-
-OS:ShadingSurface,
-  {6c9dc37e-bcb8-457b-bbc9-efdeb8de2272}, !- Handle
-  Surface 2 - Window 2 - res overhangs,   !- Name
-  ,                                       !- Construction Name
-  {94a9adbe-185b-4075-987f-72d984f7ff32}, !- Shading Surface Group Name
-  ,                                       !- Transmittance Schedule Name
-  ,                                       !- Number of Vertices
-  0, 7.03620751572936, 2.286,             !- X,Y,Z Vertex 1 {m}
-  0, 8.18227704436837, 2.286,             !- X,Y,Z Vertex 2 {m}
-  -0.6096, 8.18227704436837, 2.286,       !- X,Y,Z Vertex 3 {m}
-  -0.6096, 7.03620751572936, 2.286;       !- X,Y,Z Vertex 4 {m}
-
-OS:AdditionalProperties,
-  {e770d388-9862-40b9-b727-624094c2c933}, !- Handle
-  {cbcc5a8f-1f60-4f97-ac59-dd93175e4e34}, !- Object Name
-  SizingInfoWindowOverhangDepth,          !- Feature Name 1
-  Double,                                 !- Feature Data Type 1
-  0.60960000000000003,                    !- Feature Value 1
-  SizingInfoWindowOverhangOffset,         !- Feature Name 2
-  Double,                                 !- Feature Data Type 2
-  0.15240000000000001;                    !- Feature Value 2
-
-OS:ShadingSurfaceGroup,
-  {6a443ec3-9152-47a4-a50b-bda124a69f0d}, !- Handle
-  Surface 4 - Window 3 Shading Surfaces,  !- Name
-  Space,                                  !- Shading Surface Type
-  {85d863e0-9671-46a5-84d3-efbc4d5398b5}, !- Space Name
-  ,                                       !- Direction of Relative North {deg}
-  ,                                       !- X Origin {m}
-  ,                                       !- Y Origin {m}
-  ,                                       !- Z Origin {m}
-  {5087ab30-7f56-4a22-bc5c-62b8e54b2ed2}; !- Shaded Object Name
-
-OS:ShadingSurface,
-  {0b81ddaa-cc50-428a-9b65-0d5541ba7d3e}, !- Handle
-  Surface 4 - Window 3 - res overhangs,   !- Name
-  ,                                       !- Construction Name
-  {6a443ec3-9152-47a4-a50b-bda124a69f0d}, !- Shading Surface Group Name
-  ,                                       !- Transmittance Schedule Name
-  ,                                       !- Number of Vertices
-  17.2888817744574, 5.49549136291225, 2.286, !- X,Y,Z Vertex 1 {m}
-  17.2888817744574, 4.34942183427323, 2.286, !- X,Y,Z Vertex 2 {m}
-  17.8984817744574, 4.34942183427323, 2.286, !- X,Y,Z Vertex 3 {m}
-  17.8984817744574, 5.49549136291225, 2.286; !- X,Y,Z Vertex 4 {m}
-
-OS:AdditionalProperties,
-  {90add88e-6b4a-4372-b18c-4bd71c2b5a52}, !- Handle
-  {5087ab30-7f56-4a22-bc5c-62b8e54b2ed2}, !- Object Name
-  SizingInfoWindowOverhangDepth,          !- Feature Name 1
-  Double,                                 !- Feature Data Type 1
-  0.60960000000000003,                    !- Feature Value 1
-  SizingInfoWindowOverhangOffset,         !- Feature Name 2
-  Double,                                 !- Feature Data Type 2
-  0.15240000000000001;                    !- Feature Value 2
-
-OS:ShadingSurfaceGroup,
-  {97748791-2c00-4b05-ae8f-b846bb8866ce}, !- Handle
-  Surface 2 - Window 3 Shading Surfaces,  !- Name
-  Space,                                  !- Shading Surface Type
-  {85d863e0-9671-46a5-84d3-efbc4d5398b5}, !- Space Name
-  ,                                       !- Direction of Relative North {deg}
-  ,                                       !- X Origin {m}
-  ,                                       !- Y Origin {m}
-  ,                                       !- Z Origin {m}
-  {4599bc54-dc43-4d2c-b234-9a687832ffdc}; !- Shaded Object Name
-
-OS:ShadingSurface,
-  {92e496ca-7e42-4d85-8c03-957cfae51de0}, !- Handle
-  Surface 2 - Window 3 - res overhangs,   !- Name
-  ,                                       !- Construction Name
-  {97748791-2c00-4b05-ae8f-b846bb8866ce}, !- Shading Surface Group Name
-  ,                                       !- Transmittance Schedule Name
-  ,                                       !- Number of Vertices
-  0, 5.25165136291225, 2.286,             !- X,Y,Z Vertex 1 {m}
-  0, 6.39772089155127, 2.286,             !- X,Y,Z Vertex 2 {m}
-  -0.6096, 6.39772089155127, 2.286,       !- X,Y,Z Vertex 3 {m}
-  -0.6096, 5.25165136291225, 2.286;       !- X,Y,Z Vertex 4 {m}
-
-OS:AdditionalProperties,
-  {29a740dc-5dfa-4b47-8b84-e25061d1a2dc}, !- Handle
-  {4599bc54-dc43-4d2c-b234-9a687832ffdc}, !- Object Name
-  SizingInfoWindowOverhangDepth,          !- Feature Name 1
-  Double,                                 !- Feature Data Type 1
-  0.60960000000000003,                    !- Feature Value 1
-  SizingInfoWindowOverhangOffset,         !- Feature Name 2
-  Double,                                 !- Feature Data Type 2
-  0.15240000000000001;                    !- Feature Value 2
-
-OS:ShadingSurfaceGroup,
-  {0fa044cf-3271-451d-b2ff-9672b1eb8b3d}, !- Handle
-  Surface 2 - Window 4 Shading Surfaces,  !- Name
-  Space,                                  !- Shading Surface Type
-  {85d863e0-9671-46a5-84d3-efbc4d5398b5}, !- Space Name
-  ,                                       !- Direction of Relative North {deg}
-  ,                                       !- X Origin {m}
-  ,                                       !- Y Origin {m}
-  ,                                       !- Z Origin {m}
-  {889b17ae-fa9d-4946-9436-859d6b0fa315}; !- Shaded Object Name
-
-OS:ShadingSurface,
-  {7b0cccb9-3302-4b37-837b-73c29797bcf0}, !- Handle
-  Surface 2 - Window 4 - res overhangs,   !- Name
-  ,                                       !- Construction Name
-  {0fa044cf-3271-451d-b2ff-9672b1eb8b3d}, !- Shading Surface Group Name
-  ,                                       !- Transmittance Schedule Name
-  ,                                       !- Number of Vertices
-  0, 4.34942183427323, 2.286,             !- X,Y,Z Vertex 1 {m}
-  0, 5.49549136291225, 2.286,             !- X,Y,Z Vertex 2 {m}
-  -0.6096, 5.49549136291225, 2.286,       !- X,Y,Z Vertex 3 {m}
-  -0.6096, 4.34942183427323, 2.286;       !- X,Y,Z Vertex 4 {m}
-
-OS:AdditionalProperties,
-  {59626d4a-44ea-4215-8381-8146e4971d2b}, !- Handle
-  {889b17ae-fa9d-4946-9436-859d6b0fa315}, !- Object Name
-  SizingInfoWindowOverhangDepth,          !- Feature Name 1
-  Double,                                 !- Feature Data Type 1
-  0.60960000000000003,                    !- Feature Value 1
-  SizingInfoWindowOverhangOffset,         !- Feature Name 2
-  Double,                                 !- Feature Data Type 2
-  0.15240000000000001;                    !- Feature Value 2
-
-OS:ShadingSurfaceGroup,
-  {e168f579-0082-4db4-83de-f0155ed85599}, !- Handle
-  Surface 4 - Window 1 Shading Surfaces,  !- Name
-  Space,                                  !- Shading Surface Type
-  {85d863e0-9671-46a5-84d3-efbc4d5398b5}, !- Space Name
-  ,                                       !- Direction of Relative North {deg}
-  ,                                       !- X Origin {m}
-  ,                                       !- Y Origin {m}
-  ,                                       !- Z Origin {m}
-  {50756e0b-7fb3-4f7b-91bd-2925d35bc57b}; !- Shaded Object Name
-
-OS:ShadingSurface,
-  {b9299c64-dcda-49a9-b7c5-a0b3a6833b13}, !- Handle
-  Surface 4 - Window 1 - res overhangs,   !- Name
-  ,                                       !- Construction Name
-  {e168f579-0082-4db4-83de-f0155ed85599}, !- Shading Surface Group Name
-  ,                                       !- Transmittance Schedule Name
-  ,                                       !- Number of Vertices
-  17.2888817744574, 2.80870568145613, 2.286, !- X,Y,Z Vertex 1 {m}
-  17.2888817744574, 1.66263615281711, 2.286, !- X,Y,Z Vertex 2 {m}
-  17.8984817744574, 1.66263615281711, 2.286, !- X,Y,Z Vertex 3 {m}
-  17.8984817744574, 2.80870568145613, 2.286; !- X,Y,Z Vertex 4 {m}
-
-OS:AdditionalProperties,
-  {76819bd1-e744-479f-8512-eca66a4fac7b}, !- Handle
-  {50756e0b-7fb3-4f7b-91bd-2925d35bc57b}, !- Object Name
-  SizingInfoWindowOverhangDepth,          !- Feature Name 1
-  Double,                                 !- Feature Data Type 1
-  0.60960000000000003,                    !- Feature Value 1
-  SizingInfoWindowOverhangOffset,         !- Feature Name 2
-  Double,                                 !- Feature Data Type 2
-  0.15240000000000001;                    !- Feature Value 2
-
-OS:ShadingSurfaceGroup,
-  {47d27770-a574-47ae-9e79-679a58a457f7}, !- Handle
-  Surface 4 - Window 2 Shading Surfaces,  !- Name
-  Space,                                  !- Shading Surface Type
-  {85d863e0-9671-46a5-84d3-efbc4d5398b5}, !- Space Name
-  ,                                       !- Direction of Relative North {deg}
-  ,                                       !- X Origin {m}
-  ,                                       !- Y Origin {m}
-  ,                                       !- Z Origin {m}
-  {14d594e3-29b3-4bb2-b0fc-ae9e3c01dbcd}; !- Shaded Object Name
-
-OS:ShadingSurface,
-  {409c0626-5904-4641-97ac-5d9f828e91a1}, !- Handle
-  Surface 4 - Window 2 - res overhangs,   !- Name
-  ,                                       !- Construction Name
-  {47d27770-a574-47ae-9e79-679a58a457f7}, !- Shading Surface Group Name
-  ,                                       !- Transmittance Schedule Name
-  ,                                       !- Number of Vertices
-  17.2888817744574, 3.71093521009514, 2.286, !- X,Y,Z Vertex 1 {m}
-  17.2888817744574, 2.56486568145613, 2.286, !- X,Y,Z Vertex 2 {m}
-  17.8984817744574, 2.56486568145613, 2.286, !- X,Y,Z Vertex 3 {m}
-  17.8984817744574, 3.71093521009514, 2.286; !- X,Y,Z Vertex 4 {m}
-
-OS:AdditionalProperties,
-  {db5e0ddf-5011-451b-87ec-5d38b96b37f7}, !- Handle
-  {14d594e3-29b3-4bb2-b0fc-ae9e3c01dbcd}, !- Object Name
-  SizingInfoWindowOverhangDepth,          !- Feature Name 1
-  Double,                                 !- Feature Data Type 1
-  0.60960000000000003,                    !- Feature Value 1
-  SizingInfoWindowOverhangOffset,         !- Feature Name 2
-  Double,                                 !- Feature Data Type 2
-  0.15240000000000001;                    !- Feature Value 2
-
-OS:ShadingSurfaceGroup,
-  {2606c541-f426-4092-aa39-2d7f9d7d144b}, !- Handle
-  Surface 4 - Window 4 Shading Surfaces,  !- Name
-  Space,                                  !- Shading Surface Type
-  {85d863e0-9671-46a5-84d3-efbc4d5398b5}, !- Space Name
-  ,                                       !- Direction of Relative North {deg}
-  ,                                       !- X Origin {m}
-  ,                                       !- Y Origin {m}
-  ,                                       !- Z Origin {m}
-  {7773cb40-95a2-4b6e-8fa7-71a82ef98df1}; !- Shaded Object Name
-
-OS:ShadingSurface,
-  {71f3d628-b381-4f9d-a399-ce1352100b74}, !- Handle
-  Surface 4 - Window 4 - res overhangs,   !- Name
-  ,                                       !- Construction Name
-  {2606c541-f426-4092-aa39-2d7f9d7d144b}, !- Shading Surface Group Name
-  ,                                       !- Transmittance Schedule Name
-  ,                                       !- Number of Vertices
-  17.2888817744574, 6.39772089155127, 2.286, !- X,Y,Z Vertex 1 {m}
-  17.2888817744574, 5.25165136291225, 2.286, !- X,Y,Z Vertex 2 {m}
-  17.8984817744574, 5.25165136291225, 2.286, !- X,Y,Z Vertex 3 {m}
-  17.8984817744574, 6.39772089155127, 2.286; !- X,Y,Z Vertex 4 {m}
-
-OS:AdditionalProperties,
-  {dea4c1b0-82a1-4fd2-a4f2-408d00400aaa}, !- Handle
-  {7773cb40-95a2-4b6e-8fa7-71a82ef98df1}, !- Object Name
-  SizingInfoWindowOverhangDepth,          !- Feature Name 1
-  Double,                                 !- Feature Data Type 1
-  0.60960000000000003,                    !- Feature Value 1
-  SizingInfoWindowOverhangOffset,         !- Feature Name 2
-  Double,                                 !- Feature Data Type 2
-  0.15240000000000001;                    !- Feature Value 2
-
-OS:ShadingSurfaceGroup,
-  {0e70ad4b-989d-41f1-ae05-d7375d1e975a}, !- Handle
-  Surface 4 - Window 5 Shading Surfaces,  !- Name
-  Space,                                  !- Shading Surface Type
-  {85d863e0-9671-46a5-84d3-efbc4d5398b5}, !- Space Name
-  ,                                       !- Direction of Relative North {deg}
-  ,                                       !- X Origin {m}
-  ,                                       !- Y Origin {m}
-  ,                                       !- Z Origin {m}
-  {5b65729a-cfca-41a6-b92c-f9292bcd4dcc}; !- Shaded Object Name
-
-OS:ShadingSurface,
-  {681c4e38-8008-4af8-a964-05400fc6516e}, !- Handle
-  Surface 4 - Window 5 - res overhangs,   !- Name
-  ,                                       !- Construction Name
-  {0e70ad4b-989d-41f1-ae05-d7375d1e975a}, !- Shading Surface Group Name
-  ,                                       !- Transmittance Schedule Name
-  ,                                       !- Number of Vertices
-  17.2888817744574, 8.63339180868788, 2.286, !- X,Y,Z Vertex 1 {m}
-  17.2888817744574, 7.48732228004887, 2.286, !- X,Y,Z Vertex 2 {m}
-  17.8984817744574, 7.48732228004887, 2.286, !- X,Y,Z Vertex 3 {m}
-  17.8984817744574, 8.63339180868788, 2.286; !- X,Y,Z Vertex 4 {m}
-
-OS:AdditionalProperties,
-  {2541eabd-b85a-42c1-8b08-f51699a49b3a}, !- Handle
-  {5b65729a-cfca-41a6-b92c-f9292bcd4dcc}, !- Object Name
-  SizingInfoWindowOverhangDepth,          !- Feature Name 1
-  Double,                                 !- Feature Data Type 1
-  0.60960000000000003,                    !- Feature Value 1
-  SizingInfoWindowOverhangOffset,         !- Feature Name 2
-  Double,                                 !- Feature Data Type 2
-  0.15240000000000001;                    !- Feature Value 2
-
-OS:Material,
-  {c2fdc4b9-ef3e-4a6b-91e7-5c4c37b4d412}, !- Handle
-  FloorUAAdditionalCeilingIns,            !- Name
-  Rough,                                  !- Roughness
-  0.12827,                                !- Thickness {m}
-  0.04111125,                             !- Conductivity {W/m-K}
-  16.02,                                  !- Density {kg/m3}
-  1046.75;                                !- Specific Heat {J/kg-K}
-
-OS:Material,
-  {cb12115c-1a5a-4145-975f-f4bc906b849b}, !- Handle
-  FloorUATrussandIns,                     !- Name
-  Rough,                                  !- Roughness
-  0.0889,                                 !- Thickness {m}
-  0.0436673814251492,                     !- Conductivity {W/m-K}
-  50.7834,                                !- Density {kg/m3}
-  1165.09548895899;                       !- Specific Heat {J/kg-K}
-
-OS:Material,
-  {68465169-8c17-461a-90c5-9498fc49810f}, !- Handle
-  Drywall 0.5 in.,                        !- Name
-  Rough,                                  !- Roughness
-  0.0127,                                 !- Thickness {m}
-  0.1602906,                              !- Conductivity {W/m-K}
-  801,                                    !- Density {kg/m3}
-  837.4,                                  !- Specific Heat {J/kg-K}
-  0.9,                                    !- Thermal Absorptance
-  0.5,                                    !- Solar Absorptance
-  0.1;                                    !- Visible Absorptance
-
-OS:Construction,
-  {86e62eb5-07e5-4183-aae4-3f09810a9014}, !- Handle
-  FloorFinInsUnfinAttic,                  !- Name
-  ,                                       !- Surface Rendering Name
-  {c2fdc4b9-ef3e-4a6b-91e7-5c4c37b4d412}, !- Layer 1
-  {cb12115c-1a5a-4145-975f-f4bc906b849b}, !- Layer 2
-  {68465169-8c17-461a-90c5-9498fc49810f}; !- Layer 3
-
-OS:Construction,
-  {3b2aca6c-ad82-4749-88fc-fc8f1eaa190c}, !- Handle
-  FloorFinInsUnfinAttic Reversed,         !- Name
-  ,                                       !- Surface Rendering Name
-  {68465169-8c17-461a-90c5-9498fc49810f}, !- Layer 1
-  {cb12115c-1a5a-4145-975f-f4bc906b849b}, !- Layer 2
-  {c2fdc4b9-ef3e-4a6b-91e7-5c4c37b4d412}; !- Layer 3
-
-OS:Material,
-  {6b50067e-94cb-4387-944a-3c17bab9be38}, !- Handle
-  Asphalt Shingles&#44 Medium,            !- Name
-  Rough,                                  !- Roughness
-  0.009525,                               !- Thickness {m}
-  0.162714,                               !- Conductivity {W/m-K}
-  1121.4,                                 !- Density {kg/m3}
-  1465.45,                                !- Specific Heat {J/kg-K}
-  0.91,                                   !- Thermal Absorptance
-  0.85,                                   !- Solar Absorptance
-  0.85;                                   !- Visible Absorptance
-
-OS:Material,
-  {54a26a05-6988-4e3c-aa34-f88095102ccd}, !- Handle
-  RoofSheathing,                          !- Name
-  Rough,                                  !- Roughness
-  0.01905,                                !- Thickness {m}
-  0.1154577,                              !- Conductivity {W/m-K}
-  512.64,                                 !- Density {kg/m3}
-  1214.23;                                !- Specific Heat {J/kg-K}
-
-OS:Material,
-  {ff91bfcc-a744-4b62-925d-241b1cdf3c75}, !- Handle
-  RoofUARoofIns,                          !- Name
-  Rough,                                  !- Roughness
-  0.18415,                                !- Thickness {m}
-  8.02397499707217,                       !- Conductivity {W/m-K}
-  37.004876748,                           !- Density {kg/m3}
-  1207.88064650997;                       !- Specific Heat {J/kg-K}
-
-OS:Construction,
-  {fed1495c-9b95-41d0-8f77-56bf08c38c8a}, !- Handle
-  RoofUnfinInsExt,                        !- Name
-  ,                                       !- Surface Rendering Name
-  {6b50067e-94cb-4387-944a-3c17bab9be38}, !- Layer 1
-  {54a26a05-6988-4e3c-aa34-f88095102ccd}, !- Layer 2
-  {ff91bfcc-a744-4b62-925d-241b1cdf3c75}; !- Layer 3
-
-OS:AdditionalProperties,
-  {8678d698-b269-4b18-8d23-b806556dc056}, !- Handle
-  {38dc6b92-66c4-4c3a-8a90-554ee32ddd54}, !- Object Name
-  SizingInfoRoofColor,                    !- Feature Name 1
-  String,                                 !- Feature Data Type 1
-  medium,                                 !- Feature Value 1
-  SizingInfoRoofMaterial,                 !- Feature Name 2
-  String,                                 !- Feature Data Type 2
-  asphalt shingles,                       !- Feature Value 2
-  SizingInfoRoofRigidInsRvalue,           !- Feature Name 3
-  Double,                                 !- Feature Data Type 3
-  0,                                      !- Feature Value 3
-  SizingInfoRoofHasRadiantBarrier,        !- Feature Name 4
-  Boolean,                                !- Feature Data Type 4
-  false;                                  !- Feature Value 4
-
-OS:AdditionalProperties,
-  {fc22de75-c917-4a3c-ac66-be4efe324d53}, !- Handle
-  {b1876bc4-c1ce-4400-80fd-eb24a07c6037}, !- Object Name
-  SizingInfoRoofColor,                    !- Feature Name 1
-  String,                                 !- Feature Data Type 1
-  medium,                                 !- Feature Value 1
-  SizingInfoRoofMaterial,                 !- Feature Name 2
-  String,                                 !- Feature Data Type 2
-  asphalt shingles,                       !- Feature Value 2
-  SizingInfoRoofRigidInsRvalue,           !- Feature Name 3
-  Double,                                 !- Feature Data Type 3
-  0,                                      !- Feature Value 3
-  SizingInfoRoofHasRadiantBarrier,        !- Feature Name 4
-  Boolean,                                !- Feature Data Type 4
-  false;                                  !- Feature Value 4
-
-OS:Foundation:Kiva,
-  {fdde1765-cdac-43ec-9128-1f0aeac081e8}, !- Handle
-  Foundation Kiva 1,                      !- Name
-  ,                                       !- Initial Indoor Air Temperature {C}
-  ,                                       !- Interior Horizontal Insulation Material Name
-  ,                                       !- Interior Horizontal Insulation Depth {m}
-  ,                                       !- Interior Horizontal Insulation Width {m}
-  ,                                       !- Interior Vertical Insulation Material Name
-  ,                                       !- Interior Vertical Insulation Depth {m}
-  ,                                       !- Exterior Horizontal Insulation Material Name
-  ,                                       !- Exterior Horizontal Insulation Depth {m}
-  ,                                       !- Exterior Horizontal Insulation Width {m}
-  ,                                       !- Exterior Vertical Insulation Material Name
-  ,                                       !- Exterior Vertical Insulation Depth {m}
-  0.2032,                                 !- Wall Height Above Grade {m}
-  0.2032,                                 !- Wall Depth Below Slab {m}
-  {da4c9d41-ad7a-4516-865e-c2a3959bc8e6}, !- Footing Wall Construction Name
-  ,                                       !- Footing Material Name
-  ;                                       !- Footing Depth {m}
-
-OS:Material,
-  {af8e2cab-c566-4ad5-8b23-8ceefa90e046}, !- Handle
-  FootingMaterial,                        !- Name
-  Rough,                                  !- Roughness
-  0.2032,                                 !- Thickness {m}
-  1.803125,                               !- Conductivity {W/m-K}
-  2242.8,                                 !- Density {kg/m3}
-  837.4,                                  !- Specific Heat {J/kg-K}
-  0.9;                                    !- Thermal Absorptance
-
-OS:Construction,
-  {da4c9d41-ad7a-4516-865e-c2a3959bc8e6}, !- Handle
-  FootingConstruction,                    !- Name
-  ,                                       !- Surface Rendering Name
-  {af8e2cab-c566-4ad5-8b23-8ceefa90e046}; !- Layer 1
-
-OS:Foundation:Kiva:Settings,
-  {8dd28c3f-4f5b-47b1-b71b-5c5c7bc39d81}, !- Handle
-  1.731,                                  !- Soil Conductivity {W/m-K}
-  1842.3,                                 !- Soil Density {kg/m3}
-  418.7,                                  !- Soil Specific Heat {J/kg-K}
-  0.9,                                    !- Ground Solar Absorptivity {dimensionless}
-  0.9,                                    !- Ground Thermal Absorptivity {dimensionless}
-  0.03,                                   !- Ground Surface Roughness {m}
-  40,                                     !- Far-Field Width {m}
-  ZeroFlux,                               !- Deep-Ground Boundary Condition
-  40,                                     !- Deep-Ground Depth {m}
-  0.02,                                   !- Minimum Cell Dimension {m}
-  1.5,                                    !- Maximum Cell Growth Coefficient {dimensionless}
-  Hourly;                                 !- Simulation Timestep
-
-OS:Material,
-  {6ec11b1d-202e-4475-a830-b8f06574e99c}, !- Handle
-  Concrete 4.0 in.,                       !- Name
-  Rough,                                  !- Roughness
-  0.1016,                                 !- Thickness {m}
-  1.803125,                               !- Conductivity {W/m-K}
-  2242.8,                                 !- Density {kg/m3}
-  837.4,                                  !- Specific Heat {J/kg-K}
-  0.9;                                    !- Thermal Absorptance
-
-OS:Material,
-  {873988cb-f501-4e4e-88ee-37b121ee7364}, !- Handle
-  Floor Covering,                         !- Name
-  Rough,                                  !- Roughness
-  0.0127,                                 !- Thickness {m}
-  0.0433443509615385,                     !- Conductivity {W/m-K}
-  54.468,                                 !- Density {kg/m3}
-  1339.84,                                !- Specific Heat {J/kg-K}
-  0.9,                                    !- Thermal Absorptance
-  0.9;                                    !- Solar Absorptance
-
-OS:Construction,
-  {031a104a-055a-400f-ae82-b2f1617d77f4}, !- Handle
-  FloorFndGrndFinSlab,                    !- Name
-  ,                                       !- Surface Rendering Name
-  {6ec11b1d-202e-4475-a830-b8f06574e99c}, !- Layer 1
-  {873988cb-f501-4e4e-88ee-37b121ee7364}; !- Layer 2
-
-OS:SurfaceProperty:ExposedFoundationPerimeter,
-  {496da8e5-55a9-4ff1-b002-47a914cb936e}, !- Handle
-  {bf81ee10-67a4-45b5-a121-1843a725a9bb}, !- Surface Name
-  TotalExposedPerimeter,                  !- Exposed Perimeter Calculation Method
-  56.0720490005642;                       !- Total Exposed Perimeter {m}
-
-OS:AdditionalProperties,
-  {6dcbfe72-20cd-4315-a316-5c5c9b4f9a42}, !- Handle
-  {bf81ee10-67a4-45b5-a121-1843a725a9bb}, !- Object Name
-  SizingInfoSlabRvalue,                   !- Feature Name 1
-  Double,                                 !- Feature Data Type 1
-  13.002788583308323;                     !- Feature Value 1
-
-OS:Material,
-  {dfac7252-6528-4882-935f-96d568180b45}, !- Handle
-  Vinyl&#44 Light,                        !- Name
-  Rough,                                  !- Roughness
-  0.009525,                               !- Thickness {m}
-  0.089435,                               !- Conductivity {W/m-K}
-  177.822,                                !- Density {kg/m3}
-  1046.75,                                !- Specific Heat {J/kg-K}
-  0.9,                                    !- Thermal Absorptance
-  0.3,                                    !- Solar Absorptance
-  0.3;                                    !- Visible Absorptance
-
-OS:Material,
-  {8b95d27f-1257-46e3-8bbc-378c52fcb25b}, !- Handle
-  WallSheathing,                          !- Name
-  Rough,                                  !- Roughness
-  0.0127,                                 !- Thickness {m}
-  0.1154577,                              !- Conductivity {W/m-K}
-  512.64,                                 !- Density {kg/m3}
-  1214.23;                                !- Specific Heat {J/kg-K}
-
-OS:Material,
-  {f7c7b2d0-c381-4839-ab04-970b81c6dfaa}, !- Handle
-  WallStudAndCavity,                      !- Name
-  Rough,                                  !- Roughness
-  0.0889,                                 !- Thickness {m}
-  0.0542450177597404,                     !- Conductivity {W/m-K}
-  162.40275,                              !- Density {kg/m3}
-  1178.91670776819;                       !- Specific Heat {J/kg-K}
-
-OS:Construction,
-  {efc07500-cd24-4813-8519-bcf55c782bfb}, !- Handle
-  WallExtInsFin,                          !- Name
-  ,                                       !- Surface Rendering Name
-  {dfac7252-6528-4882-935f-96d568180b45}, !- Layer 1
-  {8b95d27f-1257-46e3-8bbc-378c52fcb25b}, !- Layer 2
-  {f7c7b2d0-c381-4839-ab04-970b81c6dfaa}, !- Layer 3
-  {68465169-8c17-461a-90c5-9498fc49810f}; !- Layer 4
-
-OS:AdditionalProperties,
-  {50eaac30-58a0-45d7-bb04-74a284bcd3cf}, !- Handle
-  {554841d4-9106-457b-9e55-352a24fc4972}, !- Object Name
-  SizingInfoWallType,                     !- Feature Name 1
-  String,                                 !- Feature Data Type 1
-  WoodStud,                               !- Feature Value 1
-  SizingInfoStudWallCavityRvalue,         !- Feature Name 2
-  Double,                                 !- Feature Data Type 2
-  13;                                     !- Feature Value 2
-
-OS:AdditionalProperties,
-  {fcffb534-47cd-4ee4-b1b8-4c4ee750ba05}, !- Handle
-  {5d219c13-f4f5-4b13-8fd3-c7adde7bd523}, !- Object Name
-  SizingInfoWallType,                     !- Feature Name 1
-  String,                                 !- Feature Data Type 1
-  WoodStud,                               !- Feature Value 1
-  SizingInfoStudWallCavityRvalue,         !- Feature Name 2
-  Double,                                 !- Feature Data Type 2
-  13;                                     !- Feature Value 2
-
-OS:AdditionalProperties,
-  {bacc4826-0a7f-4e6e-8a08-676d172a45b8}, !- Handle
-  {70533634-2b6b-4002-a772-8318c2cfbec7}, !- Object Name
-  SizingInfoWallType,                     !- Feature Name 1
-  String,                                 !- Feature Data Type 1
-  WoodStud,                               !- Feature Value 1
-  SizingInfoStudWallCavityRvalue,         !- Feature Name 2
-  Double,                                 !- Feature Data Type 2
-  13;                                     !- Feature Value 2
-
-OS:AdditionalProperties,
-  {1d50a6e7-6263-46be-bfed-87712f796649}, !- Handle
-  {54963a7b-3fae-4137-bcf7-8174c0438dcd}, !- Object Name
-  SizingInfoWallType,                     !- Feature Name 1
-  String,                                 !- Feature Data Type 1
-  WoodStud,                               !- Feature Value 1
-  SizingInfoStudWallCavityRvalue,         !- Feature Name 2
-  Double,                                 !- Feature Data Type 2
-  13;                                     !- Feature Value 2
-
-OS:AdditionalProperties,
-  {e10edc3a-9f4c-4a57-a8e1-9970f31e9eb3}, !- Handle
-  {650cd02f-65cb-4a15-952a-588d7c354347}, !- Object Name
-  SizingInfoWallType,                     !- Feature Name 1
-  String,                                 !- Feature Data Type 1
-  WoodStud,                               !- Feature Value 1
-  SizingInfoStudWallCavityRvalue,         !- Feature Name 2
-  Double,                                 !- Feature Data Type 2
-  13;                                     !- Feature Value 2
-
-OS:AdditionalProperties,
-  {9043e7e3-f71d-4e02-8416-b7c3043cfdb4}, !- Handle
-  {a12b32b8-8db7-4397-9055-a86d169dabff}, !- Object Name
-  SizingInfoWallType,                     !- Feature Name 1
-  String,                                 !- Feature Data Type 1
-  WoodStud,                               !- Feature Value 1
-  SizingInfoStudWallCavityRvalue,         !- Feature Name 2
-  Double,                                 !- Feature Data Type 2
-  13;                                     !- Feature Value 2
-
-OS:Material,
-  {6907f6b2-1871-475a-a626-a4c821bb2a6d}, !- Handle
-  WallStudAndCavity 1,                    !- Name
-  Rough,                                  !- Roughness
-  0.0889,                                 !- Thickness {m}
-  0.393743535157484,                      !- Conductivity {W/m-K}
-  83.034082224,                           !- Density {kg/m3}
-  1211.67419087611;                       !- Specific Heat {J/kg-K}
-
-OS:Construction,
-  {0d809d0a-3e44-465f-98cf-8fed52386154}, !- Handle
-  WallExtUninsUnfin,                      !- Name
-  ,                                       !- Surface Rendering Name
-  {dfac7252-6528-4882-935f-96d568180b45}, !- Layer 1
-  {8b95d27f-1257-46e3-8bbc-378c52fcb25b}, !- Layer 2
-  {6907f6b2-1871-475a-a626-a4c821bb2a6d}; !- Layer 3
-
-OS:AdditionalProperties,
-  {9f51a4bb-4d6e-40c3-9c54-bcfae9b56181}, !- Handle
-  {52fd273f-be35-4476-9ab2-96b6fcf7ea40}, !- Object Name
-  SizingInfoWallType,                     !- Feature Name 1
-  String,                                 !- Feature Data Type 1
-  WoodStud,                               !- Feature Value 1
-  SizingInfoStudWallCavityRvalue,         !- Feature Name 2
-  Integer,                                !- Feature Data Type 2
-  0;                                      !- Feature Value 2
-
-OS:AdditionalProperties,
-  {026c4292-b32f-4625-92fe-60300e2b415f}, !- Handle
-  {8a74ba0c-9b4d-4bc4-8ead-963c72b8f110}, !- Object Name
-  SizingInfoWallType,                     !- Feature Name 1
-  String,                                 !- Feature Data Type 1
-  WoodStud,                               !- Feature Value 1
-  SizingInfoStudWallCavityRvalue,         !- Feature Name 2
-  Integer,                                !- Feature Data Type 2
-  0;                                      !- Feature Value 2
-
-OS:InternalMass:Definition,
-  {05bd7642-ed8a-4399-bb45-e0d017445cae}, !- Handle
-  living space Partition,                 !- Name
-  {eab80b84-9710-4262-9870-216c80838584}, !- Construction Name
-  SurfaceArea,                            !- Design Level Calculation Method
-  185.80608,                              !- Surface Area {m2}
-  ,                                       !- Surface Area per Space Floor Area {dimensionless}
-  ;                                       !- Surface Area per Person {m2/person}
-
-OS:InternalMass,
-  {84d11046-f0a5-417e-bbe0-a7f5b9f7cec2}, !- Handle
-  living space Partition,                 !- Name
-  {05bd7642-ed8a-4399-bb45-e0d017445cae}, !- Internal Mass Definition Name
-  {85d863e0-9671-46a5-84d3-efbc4d5398b5}, !- Space or SpaceType Name
-  1;                                      !- Multiplier
-
-OS:Material,
-  {c9fd4326-f8ca-4e56-ad19-74f32cf908dc}, !- Handle
-  WallStudAndCavity 2,                    !- Name
-  Rough,                                  !- Roughness
-  0.0889,                                 !- Thickness {m}
-  0.397941757589692,                      !- Conductivity {W/m-K}
-  83.034082224,                           !- Density {kg/m3}
-  1211.67419087611;                       !- Specific Heat {J/kg-K}
-
-OS:Construction,
-  {eab80b84-9710-4262-9870-216c80838584}, !- Handle
-  WallIntFinUninsFin,                     !- Name
-  ,                                       !- Surface Rendering Name
-  {c9fd4326-f8ca-4e56-ad19-74f32cf908dc}, !- Layer 1
-  {68465169-8c17-461a-90c5-9498fc49810f}; !- Layer 2
-
-OS:AdditionalProperties,
-  {6024ba68-b173-4130-8a63-52b7503bd099}, !- Handle
-  {05bd7642-ed8a-4399-bb45-e0d017445cae}, !- Object Name
-  SizingInfoWallType,                     !- Feature Name 1
-  String,                                 !- Feature Data Type 1
-  WoodStud,                               !- Feature Value 1
-  SizingInfoStudWallCavityRvalue,         !- Feature Name 2
-  Integer,                                !- Feature Data Type 2
-  0;                                      !- Feature Value 2
-
-OS:InternalMass:Definition,
-  {1127bdb7-0fc5-4a26-a904-b9e17ce93355}, !- Handle
-  res furniture mass living space,        !- Name
-  {68025985-3341-493c-b118-fc0ac5fcd745}, !- Construction Name
-  SurfaceArea,                            !- Design Level Calculation Method
-  74.3224319999998,                       !- Surface Area {m2}
-  ,                                       !- Surface Area per Space Floor Area {dimensionless}
-  ;                                       !- Surface Area per Person {m2/person}
-
-OS:InternalMass,
-  {9d212d53-5d70-4e10-8581-29bde0b6d7dd}, !- Handle
-  res furniture mass living space,        !- Name
-  {1127bdb7-0fc5-4a26-a904-b9e17ce93355}, !- Internal Mass Definition Name
-  {85d863e0-9671-46a5-84d3-efbc4d5398b5}, !- Space or SpaceType Name
-  1;                                      !- Multiplier
-
-OS:Material,
-  {ad60fe22-e4c4-4b05-849c-fbd35070ecf5}, !- Handle
-  res furniture material living space,    !- Name
-  Rough,                                  !- Roughness
-  0.1524,                                 !- Thickness {m}
-  0.1154577,                              !- Conductivity {W/m-K}
-  640.8,                                  !- Density {kg/m3}
-  1214.23,                                !- Specific Heat {J/kg-K}
-  0.9,                                    !- Thermal Absorptance
-  0.6,                                    !- Solar Absorptance
-  0.1;                                    !- Visible Absorptance
-
-OS:Construction,
-  {68025985-3341-493c-b118-fc0ac5fcd745}, !- Handle
-  res furniture construction living space, !- Name
-  ,                                       !- Surface Rendering Name
-  {ad60fe22-e4c4-4b05-849c-fbd35070ecf5}; !- Layer 1
-
-OS:Schedule:Ruleset,
-  {329b95b6-0263-4df0-848b-356a2d399207}, !- Handle
-  Window shading schedule,                !- Name
-  {2c83eb56-947c-4cb7-940f-e82689c6565e}, !- Schedule Type Limits Name
-  {140a3655-6435-4fea-b913-bd8af0f45c3b}; !- Default Day Schedule Name
-
-OS:Schedule:Day,
-  {140a3655-6435-4fea-b913-bd8af0f45c3b}, !- Handle
-  Schedule Day 4,                         !- Name
-  {2c83eb56-947c-4cb7-940f-e82689c6565e}, !- Schedule Type Limits Name
-  ,                                       !- Interpolate to Timestep
-  24,                                     !- Hour 1
-  0,                                      !- Minute 1
-  0;                                      !- Value Until Time 1
-
-OS:Schedule:Rule,
-  {a42f3e81-c4f6-4a4c-95b0-65854d764181}, !- Handle
-  Window shading schedule allday rule1,   !- Name
-  {329b95b6-0263-4df0-848b-356a2d399207}, !- Schedule Ruleset Name
-  11,                                     !- Rule Order
-  {cc2e76de-a909-4366-9fe4-366c5d4ce4e9}, !- Day Schedule Name
-  Yes,                                    !- Apply Sunday
-  Yes,                                    !- Apply Monday
-  Yes,                                    !- Apply Tuesday
-  Yes,                                    !- Apply Wednesday
-  Yes,                                    !- Apply Thursday
-  Yes,                                    !- Apply Friday
-  Yes,                                    !- Apply Saturday
-  DateRange,                              !- Date Specification Type
-  1,                                      !- Start Month
-  1,                                      !- Start Day
-  1,                                      !- End Month
-  31;                                     !- End Day
-
-OS:Schedule:Day,
-  {cc2e76de-a909-4366-9fe4-366c5d4ce4e9}, !- Handle
-  Window shading schedule allday1,        !- Name
-  {2c83eb56-947c-4cb7-940f-e82689c6565e}, !- Schedule Type Limits Name
-  ,                                       !- Interpolate to Timestep
-  24,                                     !- Hour 1
-  0,                                      !- Minute 1
-  0;                                      !- Value Until Time 1
-
-OS:Schedule:Rule,
-  {ee6e4369-0db5-4246-b1ee-2e3d0def86be}, !- Handle
-  Window shading schedule allday rule2,   !- Name
-  {329b95b6-0263-4df0-848b-356a2d399207}, !- Schedule Ruleset Name
-  10,                                     !- Rule Order
-  {a5d6eaa1-0a34-4ee0-b991-340301d2be7f}, !- Day Schedule Name
-  Yes,                                    !- Apply Sunday
-  Yes,                                    !- Apply Monday
-  Yes,                                    !- Apply Tuesday
-  Yes,                                    !- Apply Wednesday
-  Yes,                                    !- Apply Thursday
-  Yes,                                    !- Apply Friday
-  Yes,                                    !- Apply Saturday
-  DateRange,                              !- Date Specification Type
-  2,                                      !- Start Month
-  1,                                      !- Start Day
-  2,                                      !- End Month
-  28;                                     !- End Day
-
-OS:Schedule:Day,
-  {a5d6eaa1-0a34-4ee0-b991-340301d2be7f}, !- Handle
-  Window shading schedule allday2,        !- Name
-  {2c83eb56-947c-4cb7-940f-e82689c6565e}, !- Schedule Type Limits Name
-  ,                                       !- Interpolate to Timestep
-  24,                                     !- Hour 1
-  0,                                      !- Minute 1
-  0;                                      !- Value Until Time 1
-
-OS:Schedule:Rule,
-  {affc1f22-ec43-4347-af79-31452f2fd942}, !- Handle
-  Window shading schedule allday rule3,   !- Name
-  {329b95b6-0263-4df0-848b-356a2d399207}, !- Schedule Ruleset Name
-  9,                                      !- Rule Order
-  {6cbb1d58-d62a-4fba-a588-682b58a9e61f}, !- Day Schedule Name
-  Yes,                                    !- Apply Sunday
-  Yes,                                    !- Apply Monday
-  Yes,                                    !- Apply Tuesday
-  Yes,                                    !- Apply Wednesday
-  Yes,                                    !- Apply Thursday
-  Yes,                                    !- Apply Friday
-  Yes,                                    !- Apply Saturday
-  DateRange,                              !- Date Specification Type
-  3,                                      !- Start Month
-  1,                                      !- Start Day
-  3,                                      !- End Month
-  31;                                     !- End Day
-
-OS:Schedule:Day,
-  {6cbb1d58-d62a-4fba-a588-682b58a9e61f}, !- Handle
-  Window shading schedule allday3,        !- Name
-  {2c83eb56-947c-4cb7-940f-e82689c6565e}, !- Schedule Type Limits Name
-  ,                                       !- Interpolate to Timestep
-  24,                                     !- Hour 1
-  0,                                      !- Minute 1
-  0;                                      !- Value Until Time 1
-
-OS:Schedule:Rule,
-  {ec29898e-1be2-4d13-8db6-708917aa8662}, !- Handle
-  Window shading schedule allday rule4,   !- Name
-  {329b95b6-0263-4df0-848b-356a2d399207}, !- Schedule Ruleset Name
-  8,                                      !- Rule Order
-  {c0e1a133-0638-4c4e-94a9-af578505a0d4}, !- Day Schedule Name
-  Yes,                                    !- Apply Sunday
-  Yes,                                    !- Apply Monday
-  Yes,                                    !- Apply Tuesday
-  Yes,                                    !- Apply Wednesday
-  Yes,                                    !- Apply Thursday
-  Yes,                                    !- Apply Friday
-  Yes,                                    !- Apply Saturday
-  DateRange,                              !- Date Specification Type
-  4,                                      !- Start Month
-  1,                                      !- Start Day
-  4,                                      !- End Month
-  30;                                     !- End Day
-
-OS:Schedule:Day,
-  {c0e1a133-0638-4c4e-94a9-af578505a0d4}, !- Handle
-  Window shading schedule allday4,        !- Name
-  {2c83eb56-947c-4cb7-940f-e82689c6565e}, !- Schedule Type Limits Name
-  ,                                       !- Interpolate to Timestep
-  24,                                     !- Hour 1
-  0,                                      !- Minute 1
-  0;                                      !- Value Until Time 1
-
-OS:Schedule:Rule,
-  {e4b5fbfe-d764-45a3-a7df-4748194a1e3c}, !- Handle
-  Window shading schedule allday rule5,   !- Name
-  {329b95b6-0263-4df0-848b-356a2d399207}, !- Schedule Ruleset Name
-  7,                                      !- Rule Order
-  {165baa3c-539c-4832-804a-b42a65b88ce1}, !- Day Schedule Name
-  Yes,                                    !- Apply Sunday
-  Yes,                                    !- Apply Monday
-  Yes,                                    !- Apply Tuesday
-  Yes,                                    !- Apply Wednesday
-  Yes,                                    !- Apply Thursday
-  Yes,                                    !- Apply Friday
-  Yes,                                    !- Apply Saturday
-  DateRange,                              !- Date Specification Type
-  5,                                      !- Start Month
-  1,                                      !- Start Day
-  5,                                      !- End Month
-  31;                                     !- End Day
-
-OS:Schedule:Day,
-  {165baa3c-539c-4832-804a-b42a65b88ce1}, !- Handle
-  Window shading schedule allday5,        !- Name
-  {2c83eb56-947c-4cb7-940f-e82689c6565e}, !- Schedule Type Limits Name
-  ,                                       !- Interpolate to Timestep
-  24,                                     !- Hour 1
-  0,                                      !- Minute 1
-  1;                                      !- Value Until Time 1
-
-OS:Schedule:Rule,
-  {f7d8d05e-fb10-430a-89f1-b0737599b704}, !- Handle
-  Window shading schedule allday rule6,   !- Name
-  {329b95b6-0263-4df0-848b-356a2d399207}, !- Schedule Ruleset Name
-  6,                                      !- Rule Order
-  {945754e4-b672-40e7-abc7-8402f1da066f}, !- Day Schedule Name
-  Yes,                                    !- Apply Sunday
-  Yes,                                    !- Apply Monday
-  Yes,                                    !- Apply Tuesday
-  Yes,                                    !- Apply Wednesday
-  Yes,                                    !- Apply Thursday
-  Yes,                                    !- Apply Friday
-  Yes,                                    !- Apply Saturday
-  DateRange,                              !- Date Specification Type
-  6,                                      !- Start Month
-  1,                                      !- Start Day
-  6,                                      !- End Month
-  30;                                     !- End Day
-
-OS:Schedule:Day,
-  {945754e4-b672-40e7-abc7-8402f1da066f}, !- Handle
-  Window shading schedule allday6,        !- Name
-  {2c83eb56-947c-4cb7-940f-e82689c6565e}, !- Schedule Type Limits Name
-  ,                                       !- Interpolate to Timestep
-  24,                                     !- Hour 1
-  0,                                      !- Minute 1
-  1;                                      !- Value Until Time 1
-
-OS:Schedule:Rule,
-  {1e0f86f8-0b85-43a3-ba01-17923f8d7378}, !- Handle
-  Window shading schedule allday rule7,   !- Name
-  {329b95b6-0263-4df0-848b-356a2d399207}, !- Schedule Ruleset Name
-  5,                                      !- Rule Order
-  {fd028ad7-10f5-48a4-bdd8-dd64431d0a19}, !- Day Schedule Name
-  Yes,                                    !- Apply Sunday
-  Yes,                                    !- Apply Monday
-  Yes,                                    !- Apply Tuesday
-  Yes,                                    !- Apply Wednesday
-  Yes,                                    !- Apply Thursday
-  Yes,                                    !- Apply Friday
-  Yes,                                    !- Apply Saturday
-  DateRange,                              !- Date Specification Type
-  7,                                      !- Start Month
-  1,                                      !- Start Day
-  7,                                      !- End Month
-  31;                                     !- End Day
-
-OS:Schedule:Day,
-  {fd028ad7-10f5-48a4-bdd8-dd64431d0a19}, !- Handle
-  Window shading schedule allday7,        !- Name
-  {2c83eb56-947c-4cb7-940f-e82689c6565e}, !- Schedule Type Limits Name
-  ,                                       !- Interpolate to Timestep
-  24,                                     !- Hour 1
-  0,                                      !- Minute 1
-  1;                                      !- Value Until Time 1
-
-OS:Schedule:Rule,
-  {6ae6d921-8ffe-48b6-968f-f8168abbaa65}, !- Handle
-  Window shading schedule allday rule8,   !- Name
-  {329b95b6-0263-4df0-848b-356a2d399207}, !- Schedule Ruleset Name
-  4,                                      !- Rule Order
-  {24e21b4b-76f7-4c49-a205-a11bda8c545b}, !- Day Schedule Name
-  Yes,                                    !- Apply Sunday
-  Yes,                                    !- Apply Monday
-  Yes,                                    !- Apply Tuesday
-  Yes,                                    !- Apply Wednesday
-  Yes,                                    !- Apply Thursday
-  Yes,                                    !- Apply Friday
-  Yes,                                    !- Apply Saturday
-  DateRange,                              !- Date Specification Type
-  8,                                      !- Start Month
-  1,                                      !- Start Day
-  8,                                      !- End Month
-  31;                                     !- End Day
-
-OS:Schedule:Day,
-  {24e21b4b-76f7-4c49-a205-a11bda8c545b}, !- Handle
-  Window shading schedule allday8,        !- Name
-  {2c83eb56-947c-4cb7-940f-e82689c6565e}, !- Schedule Type Limits Name
-  ,                                       !- Interpolate to Timestep
-  24,                                     !- Hour 1
-  0,                                      !- Minute 1
-  1;                                      !- Value Until Time 1
-
-OS:Schedule:Rule,
-  {8ae6042f-7d48-4171-83f1-c522760973ee}, !- Handle
-  Window shading schedule allday rule9,   !- Name
-  {329b95b6-0263-4df0-848b-356a2d399207}, !- Schedule Ruleset Name
-  3,                                      !- Rule Order
-  {2ffeeb69-f1fd-446e-8b3b-8e9f5ba20cd5}, !- Day Schedule Name
-  Yes,                                    !- Apply Sunday
-  Yes,                                    !- Apply Monday
-  Yes,                                    !- Apply Tuesday
-  Yes,                                    !- Apply Wednesday
-  Yes,                                    !- Apply Thursday
-  Yes,                                    !- Apply Friday
-  Yes,                                    !- Apply Saturday
-  DateRange,                              !- Date Specification Type
-  9,                                      !- Start Month
-  1,                                      !- Start Day
-  9,                                      !- End Month
-  30;                                     !- End Day
-
-OS:Schedule:Day,
-  {2ffeeb69-f1fd-446e-8b3b-8e9f5ba20cd5}, !- Handle
-  Window shading schedule allday9,        !- Name
-  {2c83eb56-947c-4cb7-940f-e82689c6565e}, !- Schedule Type Limits Name
-  ,                                       !- Interpolate to Timestep
-  24,                                     !- Hour 1
-  0,                                      !- Minute 1
-  1;                                      !- Value Until Time 1
-
-OS:Schedule:Rule,
-  {1ca379e5-8009-4b5b-a916-42ed057ba915}, !- Handle
-  Window shading schedule allday rule10,  !- Name
-  {329b95b6-0263-4df0-848b-356a2d399207}, !- Schedule Ruleset Name
-  2,                                      !- Rule Order
-  {6285d373-e079-4263-b14b-3338c5066343}, !- Day Schedule Name
-  Yes,                                    !- Apply Sunday
-  Yes,                                    !- Apply Monday
-  Yes,                                    !- Apply Tuesday
-  Yes,                                    !- Apply Wednesday
-  Yes,                                    !- Apply Thursday
-  Yes,                                    !- Apply Friday
-  Yes,                                    !- Apply Saturday
-  DateRange,                              !- Date Specification Type
-  10,                                     !- Start Month
-  1,                                      !- Start Day
-  10,                                     !- End Month
-  31;                                     !- End Day
-
-OS:Schedule:Day,
-  {6285d373-e079-4263-b14b-3338c5066343}, !- Handle
-  Window shading schedule allday10,       !- Name
-  {2c83eb56-947c-4cb7-940f-e82689c6565e}, !- Schedule Type Limits Name
-  ,                                       !- Interpolate to Timestep
-  24,                                     !- Hour 1
-  0,                                      !- Minute 1
-  1;                                      !- Value Until Time 1
-
-OS:Schedule:Rule,
-  {e229b621-5601-4b03-8d98-1f74bdc25d5d}, !- Handle
-  Window shading schedule allday rule11,  !- Name
-  {329b95b6-0263-4df0-848b-356a2d399207}, !- Schedule Ruleset Name
-  1,                                      !- Rule Order
-  {2bbe2bbe-b9a9-4580-a9a9-a80b9b9effd3}, !- Day Schedule Name
-  Yes,                                    !- Apply Sunday
-  Yes,                                    !- Apply Monday
-  Yes,                                    !- Apply Tuesday
-  Yes,                                    !- Apply Wednesday
-  Yes,                                    !- Apply Thursday
-  Yes,                                    !- Apply Friday
-  Yes,                                    !- Apply Saturday
-  DateRange,                              !- Date Specification Type
-  11,                                     !- Start Month
-  1,                                      !- Start Day
-  11,                                     !- End Month
-  30;                                     !- End Day
-
-OS:Schedule:Day,
-  {2bbe2bbe-b9a9-4580-a9a9-a80b9b9effd3}, !- Handle
-  Window shading schedule allday11,       !- Name
-  {2c83eb56-947c-4cb7-940f-e82689c6565e}, !- Schedule Type Limits Name
-  ,                                       !- Interpolate to Timestep
-  24,                                     !- Hour 1
-  0,                                      !- Minute 1
-  0;                                      !- Value Until Time 1
-
-OS:Schedule:Rule,
-  {e6f0144c-48d8-4625-bae0-e37f879b09ae}, !- Handle
-  Window shading schedule allday rule12,  !- Name
-  {329b95b6-0263-4df0-848b-356a2d399207}, !- Schedule Ruleset Name
-  0,                                      !- Rule Order
-  {5ff614d0-dec9-4072-9bb2-7b6c7f364851}, !- Day Schedule Name
-  Yes,                                    !- Apply Sunday
-  Yes,                                    !- Apply Monday
-  Yes,                                    !- Apply Tuesday
-  Yes,                                    !- Apply Wednesday
-  Yes,                                    !- Apply Thursday
-  Yes,                                    !- Apply Friday
-  Yes,                                    !- Apply Saturday
-  DateRange,                              !- Date Specification Type
-  12,                                     !- Start Month
-  1,                                      !- Start Day
-  12,                                     !- End Month
-  31;                                     !- End Day
-
-OS:Schedule:Day,
-  {5ff614d0-dec9-4072-9bb2-7b6c7f364851}, !- Handle
-  Window shading schedule allday12,       !- Name
-  {2c83eb56-947c-4cb7-940f-e82689c6565e}, !- Schedule Type Limits Name
-  ,                                       !- Interpolate to Timestep
-  24,                                     !- Hour 1
-  0,                                      !- Minute 1
-  0;                                      !- Value Until Time 1
-
-OS:WindowMaterial:Shade,
-  {1557d217-7ea0-4dc3-b70e-f6e8e29f3328}, !- Handle
-  CoolingShade,                           !- Name
-  0.999,                                  !- Solar Transmittance {dimensionless}
-  0.000990000000000001,                   !- Solar Reflectance {dimensionless}
-  0.999,                                  !- Visible Transmittance {dimensionless}
-  0.000990000000000001,                   !- Visible Reflectance {dimensionless}
-  1e-05,                                  !- Thermal Hemispherical Emissivity {dimensionless}
-  0.999,                                  !- Thermal Transmittance {dimensionless}
-  0.0001,                                 !- Thickness {m}
-  10000,                                  !- Conductivity {W/m-K}
-  0.001,                                  !- Shade to Glass Distance {m}
-  0,                                      !- Top Opening Multiplier
-  0,                                      !- Bottom Opening Multiplier
-  0,                                      !- Left-Side Opening Multiplier
-  0,                                      !- Right-Side Opening Multiplier
-  0;                                      !- Airflow Permeability {dimensionless}
-
-OS:ShadingControl,
-  {47f42953-405e-45fa-ac2d-ab8446d946cc}, !- Handle
-  WindowShadingControl,                   !- Name
-  InteriorShade,                          !- Shading Type
-  ,                                       !- Construction with Shading Name
-  {1557d217-7ea0-4dc3-b70e-f6e8e29f3328}, !- Shading Device Material Name
-  OnIfScheduleAllows,                     !- Shading Control Type
-  {329b95b6-0263-4df0-848b-356a2d399207}, !- Schedule Name
-  ,                                       !- Setpoint
-  Yes;                                    !- Shading Control Is Scheduled
-
-OS:WindowMaterial:SimpleGlazingSystem,
-  {3d766a92-7786-4de1-9c41-ca811a45f88a}, !- Handle
-  WindowMaterial,                         !- Name
-  2.10086,                                !- U-Factor {W/m2-K}
-  0.21;                                   !- Solar Heat Gain Coefficient
-
-OS:Construction,
-  {a903bd5f-bea8-469d-a5b3-30eb566b0b12}, !- Handle
-  WindowConstruction,                     !- Name
-  ,                                       !- Surface Rendering Name
-  {3d766a92-7786-4de1-9c41-ca811a45f88a}; !- Layer 1
-
-OS:Material,
-  {5b314407-1f52-4834-87ae-ed924756c5c0}, !- Handle
-  DoorMaterial,                           !- Name
-  Rough,                                  !- Roughness
-  0.04445,                                !- Thickness {m}
-  0.0612266553480475,                     !- Conductivity {W/m-K}
-  512.64,                                 !- Density {kg/m3}
-  1214.23;                                !- Specific Heat {J/kg-K}
-
-OS:Construction,
-  {080c33e6-1945-493c-9c61-5f95393673a5}, !- Handle
-  Door,                                   !- Name
-  ,                                       !- Surface Rendering Name
-  {5b314407-1f52-4834-87ae-ed924756c5c0}; !- Layer 1
-
-OS:PlantLoop,
-  {1260bd19-a875-439f-85d1-53bb6c8eb54c}, !- Handle
-  Domestic Hot Water Loop,                !- Name
-  ,                                       !- Fluid Type
-  0,                                      !- Glycol Concentration
-  ,                                       !- User Defined Fluid Type
-  ,                                       !- Plant Equipment Operation Heating Load
-  ,                                       !- Plant Equipment Operation Cooling Load
-  ,                                       !- Primary Plant Equipment Operation Scheme
-  {5fe90718-48f5-498a-86c2-b0e4697fafa5}, !- Loop Temperature Setpoint Node Name
-  ,                                       !- Maximum Loop Temperature {C}
-  ,                                       !- Minimum Loop Temperature {C}
-  0.01,                                   !- Maximum Loop Flow Rate {m3/s}
-  ,                                       !- Minimum Loop Flow Rate {m3/s}
-  0.003,                                  !- Plant Loop Volume {m3}
-  {8c2e1dde-6683-4a21-b3de-5a3f0cc31568}, !- Plant Side Inlet Node Name
-  {e95b74a2-bb41-44dd-a763-c8e1610fd6f4}, !- Plant Side Outlet Node Name
-  ,                                       !- Plant Side Branch List Name
-  {dca59dee-204b-49aa-9a63-56a89a64edc1}, !- Demand Side Inlet Node Name
-  {6313df3f-1032-4215-b30d-2de08ddaaed1}, !- Demand Side Outlet Node Name
-  ,                                       !- Demand Side Branch List Name
-  ,                                       !- Demand Side Connector List Name
-  Optimal,                                !- Load Distribution Scheme
-  {cb580f9e-c896-4609-94ff-25534a47b670}, !- Availability Manager List Name
-  ,                                       !- Plant Loop Demand Calculation Scheme
-  ,                                       !- Common Pipe Simulation
-  ,                                       !- Pressure Simulation Type
-  ,                                       !- Plant Equipment Operation Heating Load Schedule
-  ,                                       !- Plant Equipment Operation Cooling Load Schedule
-  ,                                       !- Primary Plant Equipment Operation Scheme Schedule
-  ,                                       !- Component Setpoint Operation Scheme Schedule
-  {a9f1548c-44e9-494d-9b83-021bdd80a018}, !- Demand Mixer Name
-  {cd9d44a2-1224-4877-a284-da3ca2cd4115}, !- Demand Splitter Name
-  {45bb5580-0de8-466d-b82c-8b1d6e5165e9}, !- Supply Mixer Name
-  {a77408da-053f-4951-b3b0-fc98dd29fd26}; !- Supply Splitter Name
-
-OS:Node,
-  {d7243cc3-9ec6-4d2e-a53a-7db57819ee34}, !- Handle
-  Node 3,                                 !- Name
-  {8c2e1dde-6683-4a21-b3de-5a3f0cc31568}, !- Inlet Port
-  {1b114929-3ae7-42e3-996e-f009318a1125}; !- Outlet Port
-
-OS:Node,
-  {5fe90718-48f5-498a-86c2-b0e4697fafa5}, !- Handle
-  Node 4,                                 !- Name
-  {c662742e-cfe7-4eeb-891d-60f9aa8a1a00}, !- Inlet Port
-  {e95b74a2-bb41-44dd-a763-c8e1610fd6f4}; !- Outlet Port
-
-OS:Node,
-  {87c54c06-855d-443a-98c2-5bb657fd27a6}, !- Handle
-  Node 5,                                 !- Name
-  {e65e2259-3c33-498d-a28b-981e35c71dcd}, !- Inlet Port
-  {3ea7bb6e-d36b-4ef1-8002-10bc4c7bd684}; !- Outlet Port
-
-OS:Connector:Mixer,
-  {45bb5580-0de8-466d-b82c-8b1d6e5165e9}, !- Handle
-  Connector Mixer 1,                      !- Name
-  {c6e3c4a9-3555-4bcc-a23c-2dc80f141e5f}, !- Outlet Branch Name
-  {f420fdc7-7909-4b14-b199-c8b11ffa3555}, !- Inlet Branch Name 1
-  {b80c007d-8d0a-4dcb-8b18-979a2cfe116c}; !- Inlet Branch Name 2
-
-OS:Connector:Splitter,
-  {a77408da-053f-4951-b3b0-fc98dd29fd26}, !- Handle
-  Connector Splitter 1,                   !- Name
-  {ee2e47c4-6c16-4b32-8cef-61c8be6e8587}, !- Inlet Branch Name
-  {e65e2259-3c33-498d-a28b-981e35c71dcd}, !- Outlet Branch Name 1
-  {b41838de-a963-4efd-92c9-b9a0ea5f3bc8}; !- Outlet Branch Name 2
-
-OS:Connection,
-  {8c2e1dde-6683-4a21-b3de-5a3f0cc31568}, !- Handle
-  {bacaf1ce-7fe6-4b63-80e4-9e8f3aee0074}, !- Name
-  {1260bd19-a875-439f-85d1-53bb6c8eb54c}, !- Source Object
-  14,                                     !- Outlet Port
-  {d7243cc3-9ec6-4d2e-a53a-7db57819ee34}, !- Target Object
-  2;                                      !- Inlet Port
-
-OS:Connection,
-  {e65e2259-3c33-498d-a28b-981e35c71dcd}, !- Handle
-  {d6b9d1ee-f8e0-4d2c-8c53-b425219c036d}, !- Name
-  {a77408da-053f-4951-b3b0-fc98dd29fd26}, !- Source Object
-  3,                                      !- Outlet Port
-  {87c54c06-855d-443a-98c2-5bb657fd27a6}, !- Target Object
-  2;                                      !- Inlet Port
-
-OS:Connection,
-  {e95b74a2-bb41-44dd-a763-c8e1610fd6f4}, !- Handle
-  {58b3d917-2998-468d-8132-3f221d664e51}, !- Name
-  {5fe90718-48f5-498a-86c2-b0e4697fafa5}, !- Source Object
-  3,                                      !- Outlet Port
-  {1260bd19-a875-439f-85d1-53bb6c8eb54c}, !- Target Object
-  15;                                     !- Inlet Port
-
-OS:Node,
-  {35e00496-7350-4186-8517-68ee4b13567a}, !- Handle
-  Node 6,                                 !- Name
-  {dca59dee-204b-49aa-9a63-56a89a64edc1}, !- Inlet Port
-  {199f5087-ba30-49c7-95bc-b104d8658b32}; !- Outlet Port
-
-OS:Node,
-  {a8f0c731-f515-4b79-9c74-d5cdc4888ee4}, !- Handle
-  Node 7,                                 !- Name
-  {5757c418-ff38-4b54-a9a7-f7630f61b6eb}, !- Inlet Port
-  {6313df3f-1032-4215-b30d-2de08ddaaed1}; !- Outlet Port
-
-OS:Node,
-  {b2c193cf-1092-4b85-9338-5a53c13edfa3}, !- Handle
-  Node 8,                                 !- Name
-  {e7d8d05f-84d6-4cdc-808a-9f2554ace7e9}, !- Inlet Port
-  {03114602-1213-4224-82e5-d2b570f897b8}; !- Outlet Port
-
-OS:Connector:Mixer,
-  {a9f1548c-44e9-494d-9b83-021bdd80a018}, !- Handle
-  Connector Mixer 2,                      !- Name
-  {5757c418-ff38-4b54-a9a7-f7630f61b6eb}, !- Outlet Branch Name
-  {03114602-1213-4224-82e5-d2b570f897b8}; !- Inlet Branch Name 1
-
-OS:Connector:Splitter,
-  {cd9d44a2-1224-4877-a284-da3ca2cd4115}, !- Handle
-  Connector Splitter 2,                   !- Name
-  {199f5087-ba30-49c7-95bc-b104d8658b32}, !- Inlet Branch Name
-  {e7d8d05f-84d6-4cdc-808a-9f2554ace7e9}; !- Outlet Branch Name 1
-
-OS:Connection,
-  {dca59dee-204b-49aa-9a63-56a89a64edc1}, !- Handle
-  {8e3fa0b8-7821-4770-a47f-7d8594e2a68b}, !- Name
-  {1260bd19-a875-439f-85d1-53bb6c8eb54c}, !- Source Object
-  17,                                     !- Outlet Port
-  {35e00496-7350-4186-8517-68ee4b13567a}, !- Target Object
-  2;                                      !- Inlet Port
-
-OS:Connection,
-  {199f5087-ba30-49c7-95bc-b104d8658b32}, !- Handle
-  {d887fbf1-8621-4853-864e-5fc4d16dd1bb}, !- Name
-  {35e00496-7350-4186-8517-68ee4b13567a}, !- Source Object
-  3,                                      !- Outlet Port
-  {cd9d44a2-1224-4877-a284-da3ca2cd4115}, !- Target Object
-  2;                                      !- Inlet Port
-
-OS:Connection,
-  {e7d8d05f-84d6-4cdc-808a-9f2554ace7e9}, !- Handle
-  {41d54845-0776-4078-b535-669f89c3558f}, !- Name
-  {cd9d44a2-1224-4877-a284-da3ca2cd4115}, !- Source Object
-  3,                                      !- Outlet Port
-  {b2c193cf-1092-4b85-9338-5a53c13edfa3}, !- Target Object
-  2;                                      !- Inlet Port
-
-OS:Connection,
-  {03114602-1213-4224-82e5-d2b570f897b8}, !- Handle
-  {dc10a9b8-db4a-45d0-a861-9f88cb6c16c7}, !- Name
-  {b2c193cf-1092-4b85-9338-5a53c13edfa3}, !- Source Object
-  3,                                      !- Outlet Port
-  {a9f1548c-44e9-494d-9b83-021bdd80a018}, !- Target Object
-  3;                                      !- Inlet Port
-
-OS:Connection,
-  {5757c418-ff38-4b54-a9a7-f7630f61b6eb}, !- Handle
-  {8c3c175f-fd54-4cd5-b834-fc19c0133f8b}, !- Name
-  {a9f1548c-44e9-494d-9b83-021bdd80a018}, !- Source Object
-  2,                                      !- Outlet Port
-  {a8f0c731-f515-4b79-9c74-d5cdc4888ee4}, !- Target Object
-  2;                                      !- Inlet Port
-
-OS:Connection,
-  {6313df3f-1032-4215-b30d-2de08ddaaed1}, !- Handle
-  {3f4de4f0-c1a8-45b8-8073-ce0c146cb9d9}, !- Name
-  {a8f0c731-f515-4b79-9c74-d5cdc4888ee4}, !- Source Object
-  3,                                      !- Outlet Port
-  {1260bd19-a875-439f-85d1-53bb6c8eb54c}, !- Target Object
-  18;                                     !- Inlet Port
-
-OS:Sizing:Plant,
-  {1d924e00-2e5a-486c-a64c-64bad1e977b0}, !- Handle
-  {1260bd19-a875-439f-85d1-53bb6c8eb54c}, !- Plant or Condenser Loop Name
-  Heating,                                !- Loop Type
-  52.6666666666667,                       !- Design Loop Exit Temperature {C}
-  5.55555555555556,                       !- Loop Design Temperature Difference {deltaC}
-  NonCoincident,                          !- Sizing Option
-  1,                                      !- Zone Timesteps in Averaging Window
-  None;                                   !- Coincident Sizing Factor Mode
-
-OS:AvailabilityManagerAssignmentList,
-  {cb580f9e-c896-4609-94ff-25534a47b670}, !- Handle
-  Plant Loop 1 AvailabilityManagerAssignmentList; !- Name
-
-OS:Pipe:Adiabatic,
-  {08102f7d-ae24-4597-867d-17dfd321f19d}, !- Handle
-  Pipe Adiabatic 1,                       !- Name
-  {3ea7bb6e-d36b-4ef1-8002-10bc4c7bd684}, !- Inlet Node Name
-  {5b338f49-18de-480a-8fef-926e4fae33ed}; !- Outlet Node Name
-
-OS:Pipe:Adiabatic,
-  {fe9aa540-5418-4ca8-885a-d8e5c130ed30}, !- Handle
-  Pipe Adiabatic 2,                       !- Name
-  {9dc6d3d5-8abb-4f69-a0a9-b06562db93d2}, !- Inlet Node Name
-  {c662742e-cfe7-4eeb-891d-60f9aa8a1a00}; !- Outlet Node Name
-
-OS:Node,
-  {8630fc5e-f8be-4adb-938c-77945c4703df}, !- Handle
-  Node 9,                                 !- Name
-  {5b338f49-18de-480a-8fef-926e4fae33ed}, !- Inlet Port
-  {f420fdc7-7909-4b14-b199-c8b11ffa3555}; !- Outlet Port
-
-OS:Connection,
-  {3ea7bb6e-d36b-4ef1-8002-10bc4c7bd684}, !- Handle
-  {0b6e0e7f-dfb3-4b48-b08e-72a7f88427ef}, !- Name
-  {87c54c06-855d-443a-98c2-5bb657fd27a6}, !- Source Object
-  3,                                      !- Outlet Port
-  {08102f7d-ae24-4597-867d-17dfd321f19d}, !- Target Object
-  2;                                      !- Inlet Port
-
-OS:Connection,
-  {5b338f49-18de-480a-8fef-926e4fae33ed}, !- Handle
-  {2e75426d-2529-49cd-98e9-210bf75f284f}, !- Name
-  {08102f7d-ae24-4597-867d-17dfd321f19d}, !- Source Object
-  3,                                      !- Outlet Port
-  {8630fc5e-f8be-4adb-938c-77945c4703df}, !- Target Object
-  2;                                      !- Inlet Port
-
-OS:Connection,
-  {f420fdc7-7909-4b14-b199-c8b11ffa3555}, !- Handle
-  {f2505532-df45-4e2d-9324-b5e62e1be292}, !- Name
-  {8630fc5e-f8be-4adb-938c-77945c4703df}, !- Source Object
-  3,                                      !- Outlet Port
-  {45bb5580-0de8-466d-b82c-8b1d6e5165e9}, !- Target Object
-  3;                                      !- Inlet Port
-
-OS:Node,
-  {2a66a7c6-64d7-494c-88b1-1f11ddbeafc3}, !- Handle
-  Node 10,                                !- Name
-  {c6e3c4a9-3555-4bcc-a23c-2dc80f141e5f}, !- Inlet Port
-  {9dc6d3d5-8abb-4f69-a0a9-b06562db93d2}; !- Outlet Port
-
-OS:Connection,
-  {c6e3c4a9-3555-4bcc-a23c-2dc80f141e5f}, !- Handle
-  {cb98de00-2ca6-4698-bbd7-40bb10e38a23}, !- Name
-  {45bb5580-0de8-466d-b82c-8b1d6e5165e9}, !- Source Object
-  2,                                      !- Outlet Port
-  {2a66a7c6-64d7-494c-88b1-1f11ddbeafc3}, !- Target Object
-  2;                                      !- Inlet Port
-
-OS:Connection,
-  {9dc6d3d5-8abb-4f69-a0a9-b06562db93d2}, !- Handle
-  {a83f0dc3-a988-4fa6-a771-325dfb9636e3}, !- Name
-  {2a66a7c6-64d7-494c-88b1-1f11ddbeafc3}, !- Source Object
-  3,                                      !- Outlet Port
-  {fe9aa540-5418-4ca8-885a-d8e5c130ed30}, !- Target Object
-  2;                                      !- Inlet Port
-
-OS:Connection,
-  {c662742e-cfe7-4eeb-891d-60f9aa8a1a00}, !- Handle
-  {fb6dbd2c-1ba0-4633-a9d9-48d63ef2f88c}, !- Name
-  {fe9aa540-5418-4ca8-885a-d8e5c130ed30}, !- Source Object
-  3,                                      !- Outlet Port
-  {5fe90718-48f5-498a-86c2-b0e4697fafa5}, !- Target Object
-  2;                                      !- Inlet Port
-
-OS:Pump:VariableSpeed,
-  {be87d284-adbd-49ce-a2c5-52dca5d6953a}, !- Handle
-  Pump Variable Speed 1,                  !- Name
-  {1b114929-3ae7-42e3-996e-f009318a1125}, !- Inlet Node Name
-  {47f202ed-6079-4c1c-b100-b267b99f2a38}, !- Outlet Node Name
-  0.01,                                   !- Rated Flow Rate {m3/s}
-  1,                                      !- Rated Pump Head {Pa}
-  0,                                      !- Rated Power Consumption {W}
-  1,                                      !- Motor Efficiency
-  0,                                      !- Fraction of Motor Inefficiencies to Fluid Stream
-  0,                                      !- Coefficient 1 of the Part Load Performance Curve
-  1,                                      !- Coefficient 2 of the Part Load Performance Curve
-  0,                                      !- Coefficient 3 of the Part Load Performance Curve
-  0,                                      !- Coefficient 4 of the Part Load Performance Curve
-  ,                                       !- Minimum Flow Rate {m3/s}
-  Intermittent,                           !- Pump Control Type
-  ,                                       !- Pump Flow Rate Schedule Name
-  ,                                       !- Pump Curve Name
-  ,                                       !- Impeller Diameter {m}
-  ,                                       !- VFD Control Type
-  ,                                       !- Pump RPM Schedule Name
-  ,                                       !- Minimum Pressure Schedule {Pa}
-  ,                                       !- Maximum Pressure Schedule {Pa}
-  ,                                       !- Minimum RPM Schedule {rev/min}
-  ,                                       !- Maximum RPM Schedule {rev/min}
-  ,                                       !- Zone Name
-  0.5,                                    !- Skin Loss Radiative Fraction
-  PowerPerFlowPerPressure,                !- Design Power Sizing Method
-  348701.1,                               !- Design Electric Power per Unit Flow Rate {W/(m3/s)}
-  1.282051282,                            !- Design Shaft Power per Unit Flow Rate per Unit Head {W-s/m3-Pa}
-  0,                                      !- Design Minimum Flow Rate Fraction
-  General;                                !- End-Use Subcategory
-
-OS:Node,
-  {74856dc6-6133-44dc-8d3d-b036688e8711}, !- Handle
-  Node 11,                                !- Name
-  {47f202ed-6079-4c1c-b100-b267b99f2a38}, !- Inlet Port
-  {ee2e47c4-6c16-4b32-8cef-61c8be6e8587}; !- Outlet Port
-
-OS:Connection,
-  {1b114929-3ae7-42e3-996e-f009318a1125}, !- Handle
-  {cde2d703-0824-4f3a-8df9-c1dea1d5d05e}, !- Name
-  {d7243cc3-9ec6-4d2e-a53a-7db57819ee34}, !- Source Object
-  3,                                      !- Outlet Port
-  {be87d284-adbd-49ce-a2c5-52dca5d6953a}, !- Target Object
-  2;                                      !- Inlet Port
-
-OS:Connection,
-  {47f202ed-6079-4c1c-b100-b267b99f2a38}, !- Handle
-  {bec92ac7-17dc-4722-87b6-cd613e7e21fb}, !- Name
-  {be87d284-adbd-49ce-a2c5-52dca5d6953a}, !- Source Object
-  3,                                      !- Outlet Port
-  {74856dc6-6133-44dc-8d3d-b036688e8711}, !- Target Object
-  2;                                      !- Inlet Port
-
-OS:Connection,
-  {ee2e47c4-6c16-4b32-8cef-61c8be6e8587}, !- Handle
-  {1b2031bd-8944-4803-9d91-52751a86c6d3}, !- Name
-  {74856dc6-6133-44dc-8d3d-b036688e8711}, !- Source Object
-  3,                                      !- Outlet Port
-  {a77408da-053f-4951-b3b0-fc98dd29fd26}, !- Target Object
-  2;                                      !- Inlet Port
-
-OS:Schedule:Constant,
-  {5c941b77-2267-430b-8bd4-19592341876c}, !- Handle
-  dhw temp,                               !- Name
-  {4b0f60d0-783f-499e-b375-7b5728ca2e6f}, !- Schedule Type Limits Name
-  52.6666666666667;                       !- Value
-
-OS:SetpointManager:Scheduled,
-  {e7d7825c-0774-4936-98dd-764eba361b26}, !- Handle
-  Setpoint Manager Scheduled 1,           !- Name
-  Temperature,                            !- Control Variable
-  {5c941b77-2267-430b-8bd4-19592341876c}, !- Schedule Name
-  {5fe90718-48f5-498a-86c2-b0e4697fafa5}; !- Setpoint Node or NodeList Name
-
-OS:ScheduleTypeLimits,
-  {4b0f60d0-783f-499e-b375-7b5728ca2e6f}, !- Handle
-  Temperature,                            !- Name
-  ,                                       !- Lower Limit Value
-  ,                                       !- Upper Limit Value
-  Continuous,                             !- Numeric Type
-  Temperature;                            !- Unit Type
-
-OS:WaterHeater:Mixed,
-  {acb67099-92ce-48cf-b9ee-9a4a7bacd21e}, !- Handle
-  res wh,                                 !- Name
-  0.143845647790854,                      !- Tank Volume {m3}
-  {b0db6d23-0a38-4850-a74a-22a583de2cc6}, !- Setpoint Temperature Schedule Name
-  2,                                      !- Deadband Temperature Difference {deltaC}
-  99,                                     !- Maximum Temperature Limit {C}
-  Cycle,                                  !- Heater Control Type
-  11722.8428068889,                       !- Heater Maximum Capacity {W}
-  0,                                      !- Heater Minimum Capacity {W}
-  ,                                       !- Heater Ignition Minimum Flow Rate {m3/s}
-  ,                                       !- Heater Ignition Delay {s}
-  NaturalGas,                             !- Heater Fuel Type
-  0.773298241318794,                      !- Heater Thermal Efficiency
-  ,                                       !- Part Load Factor Curve Name
-  0,                                      !- Off Cycle Parasitic Fuel Consumption Rate {W}
-  Electricity,                            !- Off Cycle Parasitic Fuel Type
-  0,                                      !- Off Cycle Parasitic Heat Fraction to Tank
-  0,                                      !- On Cycle Parasitic Fuel Consumption Rate {W}
-  Electricity,                            !- On Cycle Parasitic Fuel Type
-  0,                                      !- On Cycle Parasitic Heat Fraction to Tank
-  ThermalZone,                            !- Ambient Temperature Indicator
-  ,                                       !- Ambient Temperature Schedule Name
-  {4cb78a6b-c674-4602-a2fc-c61b4f617f56}, !- Ambient Temperature Thermal Zone Name
-  ,                                       !- Ambient Temperature Outdoor Air Node Name
-  4.15693173076374,                       !- Off Cycle Loss Coefficient to Ambient Temperature {W/K}
-  0.64,                                   !- Off Cycle Loss Fraction to Thermal Zone
-  4.15693173076374,                       !- On Cycle Loss Coefficient to Ambient Temperature {W/K}
-  1,                                      !- On Cycle Loss Fraction to Thermal Zone
-  ,                                       !- Peak Use Flow Rate {m3/s}
-  ,                                       !- Use Flow Rate Fraction Schedule Name
-  ,                                       !- Cold Water Supply Temperature Schedule Name
-  {1dfdad52-1bca-4cb4-bf87-43eda5cdf41b}, !- Use Side Inlet Node Name
-  {50d82947-892d-4b56-a1ed-3f574f15416a}, !- Use Side Outlet Node Name
-  1,                                      !- Use Side Effectiveness
-  ,                                       !- Source Side Inlet Node Name
-  ,                                       !- Source Side Outlet Node Name
-  1,                                      !- Source Side Effectiveness
-  autosize,                               !- Use Side Design Flow Rate {m3/s}
-  autosize,                               !- Source Side Design Flow Rate {m3/s}
-  1.5,                                    !- Indirect Water Heating Recovery Time {hr}
-  IndirectHeatPrimarySetpoint,            !- Source Side Flow Control Mode
-  ,                                       !- Indirect Alternate Setpoint Temperature Schedule Name
-  res wh;                                 !- End-Use Subcategory
-
-OS:Schedule:Constant,
-  {b0db6d23-0a38-4850-a74a-22a583de2cc6}, !- Handle
-  WH Setpoint Temp,                       !- Name
-  {4b0f60d0-783f-499e-b375-7b5728ca2e6f}, !- Schedule Type Limits Name
-  52.6666666666667;                       !- Value
-
-OS:Node,
-  {2968d903-abfc-4b1d-8090-991404451c0b}, !- Handle
-  Node 12,                                !- Name
-  {b41838de-a963-4efd-92c9-b9a0ea5f3bc8}, !- Inlet Port
-  {1dfdad52-1bca-4cb4-bf87-43eda5cdf41b}; !- Outlet Port
-
-OS:Connection,
-  {b41838de-a963-4efd-92c9-b9a0ea5f3bc8}, !- Handle
-  {4dc08d89-891a-426f-ae95-8d606a7ba04f}, !- Name
-  {a77408da-053f-4951-b3b0-fc98dd29fd26}, !- Source Object
-  4,                                      !- Outlet Port
-  {2968d903-abfc-4b1d-8090-991404451c0b}, !- Target Object
-  2;                                      !- Inlet Port
-
-OS:Node,
-  {24c4c734-b796-4c0b-b03f-66a461d3baa6}, !- Handle
-  Node 13,                                !- Name
-  {50d82947-892d-4b56-a1ed-3f574f15416a}, !- Inlet Port
-  {b80c007d-8d0a-4dcb-8b18-979a2cfe116c}; !- Outlet Port
-
-OS:Connection,
-  {1dfdad52-1bca-4cb4-bf87-43eda5cdf41b}, !- Handle
-  {76c52b2c-9058-4b77-8a51-ddf7e4528ee9}, !- Name
-  {2968d903-abfc-4b1d-8090-991404451c0b}, !- Source Object
-  3,                                      !- Outlet Port
-  {acb67099-92ce-48cf-b9ee-9a4a7bacd21e}, !- Target Object
-  31;                                     !- Inlet Port
-
-OS:Connection,
-  {50d82947-892d-4b56-a1ed-3f574f15416a}, !- Handle
-  {b56be3e8-3289-4ec2-96be-83b530310f87}, !- Name
-  {acb67099-92ce-48cf-b9ee-9a4a7bacd21e}, !- Source Object
-  32,                                     !- Outlet Port
-  {24c4c734-b796-4c0b-b03f-66a461d3baa6}, !- Target Object
-  2;                                      !- Inlet Port
-
-OS:Connection,
-  {b80c007d-8d0a-4dcb-8b18-979a2cfe116c}, !- Handle
-  {a182f401-1034-4044-bff4-d707653c802f}, !- Name
-  {24c4c734-b796-4c0b-b03f-66a461d3baa6}, !- Source Object
-  3,                                      !- Outlet Port
-  {45bb5580-0de8-466d-b82c-8b1d6e5165e9}, !- Target Object
-  4;                                      !- Inlet Port
 
