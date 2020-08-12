@@ -541,7 +541,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('roof_radiant_barrier_grade', roof_radiant_barrier_grade_choices, true)
     arg.setDisplayName('Roof: Radiant Barrier Grade')
     arg.setDescription('The grade of the radiant barrier, if it exists.')
-    arg.setUnits('1')
+    arg.setDefaultValue('1')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('neighbor_front_distance', true)
