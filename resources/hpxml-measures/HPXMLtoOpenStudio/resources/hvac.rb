@@ -301,7 +301,6 @@ class HVAC
     # Outdoor air intake system
     oa_intake_controller = OpenStudio::Model::ControllerOutdoorAir.new(model)
     oa_intake_controller.setName("#{air_loop.name} OA Controller")
-    oa_intake_controller.setMaximumOutdoorAirFlowRate(10) # Set an extreme large value here, will be reset by E+ using sized value
     oa_intake_controller.setMinimumLimitType('FixedMinimum')
     oa_intake_controller.resetEconomizerMinimumLimitDryBulbTemperature
     oa_intake_controller.setMinimumFractionofOutdoorAirSchedule(model.alwaysOnDiscreteSchedule)
@@ -464,7 +463,7 @@ class HVAC
     heat_cfms_ton_rated = calc_cfms_ton_rated(heat_rated_airflow_rate, heat_fan_speed_ratios, heat_capacity_ratios)
     heat_eirs = calc_heat_eirs(num_speeds, heat_cops, fan_power_rated)
     heat_closs_fplr_spec = [calc_plr_coefficients(heat_c_d)] * num_speeds
-    htg_coil = create_dx_heating_coil(model, obj_name, (0...num_speeds).to_a, heat_eirs, heat_cap_ft_spec, heat_eir_ft_spec, heat_closs_fplr_spec, heat_cap_fflow_spec, heat_eir_fflow_spec, heat_pump.heating_capacity, crankcase_kw, crankcase_temp, fan_power_rated, hp_min_temp)
+    htg_coil = create_dx_heating_coil(model, obj_name, (0...num_speeds).to_a, heat_eirs, heat_cap_ft_spec, heat_eir_ft_spec, heat_closs_fplr_spec, heat_cap_fflow_spec, heat_eir_fflow_spec, heat_pump.heating_capacity, crankcase_kw, crankcase_temp, fan_power_rated, hp_min_temp, heat_pump.fraction_heat_load_served)
     hvac_map[heat_pump.id] << htg_coil
 
     # Supplemental Heating Coil
@@ -618,7 +617,7 @@ class HVAC
     heat_closs_fplr_spec = [calc_plr_coefficients(heat_c_d)] * num_speeds
     heat_cfms_ton_rated, heat_capacity_ratios = calc_mshp_cfms_ton_heating(min_heating_capacity, max_heating_capacity, min_heating_airflow_rate, max_heating_airflow_rate, num_speeds)
     heat_eirs = calc_mshp_heat_eirs(runner, heat_pump.heating_efficiency_hspf, fan_power_installed, hp_min_temp, heat_c_d, cool_cfms_ton_rated, num_speeds, heat_capacity_ratios, heat_cfms_ton_rated, heat_eir_ft_spec, heat_cap_ft_spec)
-    htg_coil = create_dx_heating_coil(model, obj_name, mshp_indices, heat_eirs, heat_cap_ft_spec, heat_eir_ft_spec, heat_closs_fplr_spec, heat_cap_fflow_spec, heat_eir_fflow_spec, heat_pump.heating_capacity, 0.0, nil, nil, hp_min_temp)
+    htg_coil = create_dx_heating_coil(model, obj_name, mshp_indices, heat_eirs, heat_cap_ft_spec, heat_eir_ft_spec, heat_closs_fplr_spec, heat_cap_fflow_spec, heat_eir_fflow_spec, heat_pump.heating_capacity, 0.0, nil, nil, hp_min_temp, heat_pump.fraction_heat_load_served)
     hvac_map[heat_pump.id] << htg_coil
 
     # Supplemental Heating Coil
@@ -759,8 +758,6 @@ class HVAC
     frac_glycol = 0.3
     design_delta_t = 10.0
     pump_head = 50.0
-    u_tube_leg_spacing = 0.9661
-    u_tube_spacing_type = 'b'
     fan_power_installed = 0.5 # W/cfm
     chw_design = [85.0, weather.design.CoolingDrybulb - 15.0, weather.data.AnnualAvgDrybulb + 10.0].max # Temperature of water entering indoor coil,use 85F as lower bound
     if fluid_type == Constants.FluidWater
@@ -780,6 +777,19 @@ class HVAC
       pipe_od = 1.660
       pipe_id = 1.358
     end
+    u_tube_spacing_type = 'b'
+    # Calculate distance between pipes
+    if u_tube_spacing_type == 'as'
+      # Two tubes, spaced 1/8” apart at the center of the borehole
+      u_tube_spacing = 0.125
+    elsif u_tube_spacing_type == 'b'
+      # Two tubes equally spaced between the borehole edges
+      u_tube_spacing = 0.9661
+    elsif u_tube_spacing_type == 'c'
+      # Both tubes placed against outer edge of borehole
+      u_tube_spacing = bore_diameter - 2 * pipe_od
+    end
+    shank_spacing = u_tube_spacing + pipe_od # Distance from center of pipe to center of pipe
 
     if frac_glycol == 0
       fluid_type = Constants.FluidWater
@@ -870,7 +880,7 @@ class HVAC
     ground_heat_exch_vert.setGroutThermalConductivity(UnitConversions.convert(grout_conductivity, 'Btu/(hr*ft*R)', 'W/(m*K)'))
     ground_heat_exch_vert.setPipeThermalConductivity(UnitConversions.convert(pipe_cond, 'Btu/(hr*ft*R)', 'W/(m*K)'))
     ground_heat_exch_vert.setPipeOutDiameter(UnitConversions.convert(pipe_od, 'in', 'm'))
-    ground_heat_exch_vert.setUTubeDistance(UnitConversions.convert(u_tube_leg_spacing, 'in', 'm'))
+    ground_heat_exch_vert.setUTubeDistance(UnitConversions.convert(shank_spacing, 'in', 'm'))
     ground_heat_exch_vert.setPipeThickness(UnitConversions.convert((pipe_od - pipe_id) / 2.0, 'in', 'm'))
     ground_heat_exch_vert.setMaximumLengthofSimulation(1)
     ground_heat_exch_vert.setGFunctionReferenceRatio(0.0005)
@@ -1880,6 +1890,7 @@ class HVAC
     else
       air_terminal = OpenStudio::Model::AirTerminalSingleDuctVAVNoReheat.new(model, model.alwaysOnDiscreteSchedule)
       air_terminal.setConstantMinimumAirFlowFraction(0)
+      air_terminal.setFixedMinimumAirFlowRate(0)
     end
     air_terminal.setName(obj_name + ' terminal')
     air_loop.multiAddBranchForZone(control_zone, air_terminal)
@@ -3008,7 +3019,8 @@ class HVAC
     return clg_coil
   end
 
-  def self.create_dx_heating_coil(model, obj_name, speed_indices, eirs, cap_ft_spec, eir_ft_spec, closs_fplr_spec, cap_fflow_spec, eir_fflow_spec, capacity, crankcase_kw, crankcase_temp, fan_power_rated, hp_min_temp)
+  def self.create_dx_heating_coil(model, obj_name, speed_indices, eirs, cap_ft_spec, eir_ft_spec, closs_fplr_spec, cap_fflow_spec, eir_fflow_spec,
+                                  capacity, crankcase_kw, crankcase_temp, fan_power_rated, hp_min_temp, fraction_heat_load_served)
     num_speeds = speed_indices.size
 
     if num_speeds > 1
@@ -3060,11 +3072,14 @@ class HVAC
     htg_coil.setName(obj_name + ' htg coil')
     htg_coil.setMinimumOutdoorDryBulbTemperatureforCompressorOperation(UnitConversions.convert(hp_min_temp, 'F', 'C'))
     htg_coil.setMaximumOutdoorDryBulbTemperatureforDefrostOperation(UnitConversions.convert(40.0, 'F', 'C'))
-    defrost_eir_curve = create_curve_biquadratic(model, [0.1528, 0, 0, 0, 0, 0], 'Defrosteir', -100, 100, -100, 100) # Heating defrost curve for reverse cycle
-    htg_coil.setDefrostEnergyInputRatioFunctionofTemperatureCurve(defrost_eir_curve)
-    htg_coil.setDefrostStrategy('ReverseCycle')
-    htg_coil.setDefrostControl('Timed')
-    htg_coil.setCrankcaseHeaterCapacity(0)
+    if fraction_heat_load_served > 0
+      defrost_eir_curve = create_curve_biquadratic(model, [0.1528, 0, 0, 0, 0, 0], 'Defrosteir', -100, 100, -100, 100) # Heating defrost curve for reverse cycle
+      htg_coil.setDefrostEnergyInputRatioFunctionofTemperatureCurve(defrost_eir_curve)
+      htg_coil.setDefrostStrategy('ReverseCycle')
+      htg_coil.setDefrostControl('Timed')
+    else
+      htg_coil.setDefrostTimePeriodFraction(0)
+    end
     htg_coil.setCrankcaseHeaterCapacity(UnitConversions.convert(crankcase_kw, 'kW', 'W'))
 
     return htg_coil

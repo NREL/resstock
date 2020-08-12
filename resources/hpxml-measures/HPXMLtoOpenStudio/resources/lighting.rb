@@ -1,13 +1,16 @@
 # frozen_string_literal: true
 
 class Lighting
-  def self.apply(model, weather, spaces, lighting_groups, lighting, eri_version)
+  def self.apply(runner, model, weather, spaces, lighting_groups, lighting, eri_version)
     fractions = {}
     lighting_groups.each do |lg|
       fractions[[lg.location, lg.lighting_type]] = lg.fraction_of_units_in_location
     end
 
-    return if fractions[[HPXML::LocationInterior, HPXML::LightingTypeCFL]].nil? # Not the lighting group(s) we're interested in
+    if fractions[[HPXML::LocationInterior, HPXML::LightingTypeCFL]].nil? # Not the lighting group(s) we're interested in
+      runner.registerWarning('No lighting specified, the model will not include lighting energy use.')
+      return
+    end
 
     living_space = spaces[HPXML::LocationLivingSpace]
     garage_space = spaces[HPXML::LocationGarage]

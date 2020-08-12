@@ -307,6 +307,9 @@ class SimulationOutputReportTest < MiniTest::Test
   ]
 
   ERIRows = [
+    'hpxml_heat_sys_ids',
+    'hpxml_cool_sys_ids',
+    'hpxml_dhw_sys_ids',
     'hpxml_eec_heats',
     'hpxml_eec_cools',
     'hpxml_eec_dhws',
@@ -591,7 +594,7 @@ class SimulationOutputReportTest < MiniTest::Test
   end
 
   def test_timeseries_hourly_airflows_with_whf
-    args_hash = { 'hpxml_path' => '../workflow/sample_files/base-misc-whole-house-fan.xml',
+    args_hash = { 'hpxml_path' => '../workflow/sample_files/base-mechvent-whole-house-fan.xml',
                   'timeseries_frequency' => 'hourly',
                   'include_timeseries_fuel_consumptions' => false,
                   'include_timeseries_end_use_consumptions' => false,

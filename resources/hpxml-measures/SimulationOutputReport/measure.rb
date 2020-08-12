@@ -159,12 +159,18 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
     # Add hot water use outputs
     @hot_water_uses.each do |hot_water_type, hot_water|
-      result << OpenStudio::IdfObject.load('Output:Variable,*,Water Use Equipment Hot Water Volume,runperiod;').get
+      result << OpenStudio::IdfObject.load("Output:Variable,*,#{hot_water.variable},runperiod;").get
+      break
     end
 
     # Add unmet load outputs
     @unmet_loads.each do |load_type, unmet_load|
-      result << OpenStudio::IdfObject.load("Output:Variable,*,#{unmet_load.variable},runperiod;").get
+      result << OpenStudio::IdfObject.load("Output:Variable,#{unmet_load.key},#{unmet_load.variable},runperiod;").get
+    end
+
+    # Add ideal air system load outputs
+    @ideal_system_loads.each do |load_type, ideal_load|
+      result << OpenStudio::IdfObject.load("Output:Variable,#{ideal_load.key},#{ideal_load.variable},runperiod;").get
     end
 
     # Add peak electricity outputs
@@ -469,15 +475,13 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     end
 
     # Unmet loads (heating/cooling energy delivered by backup ideal air system)
-    key = Constants.ObjectNameIdealAirSystemResidual.upcase
     @unmet_loads.each do |load_type, unmet_load|
-      unmet_load.annual_output = get_report_variable_data_annual([key], [unmet_load.variable])
+      unmet_load.annual_output = get_report_variable_data_annual([unmet_load.key.upcase], [unmet_load.variable])
     end
 
     # Ideal system loads (expected fraction of loads that are not met by HVAC)
-    key = Constants.ObjectNameIdealAirSystem.upcase
-    @ideal_system_loads.each do |load_type, unmet_load|
-      unmet_load.annual_output = get_report_variable_data_annual([key], [unmet_load.variable])
+    @ideal_system_loads.each do |load_type, ideal_load|
+      ideal_load.annual_output = get_report_variable_data_annual([ideal_load.key.upcase], [ideal_load.variable])
     end
 
     # Peak Building Space Heating/Cooling Loads (total heating/cooling energy delivered including backup ideal air system)
@@ -505,9 +509,10 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
     # Hot Water Uses
     @hot_water_uses.each do |hot_water_type, hot_water|
-      hot_water.annual_output = get_report_variable_data_annual([hot_water.key.upcase], [hot_water.variable], UnitConversions.convert(1.0, 'm^3', hot_water.annual_units))
+      keys = @model.getWaterUseEquipments.select { |wue| wue.waterUseEquipmentDefinition.endUseSubcategory == hot_water.subcat }.map { |d| d.name.to_s.upcase }
+      hot_water.annual_output = get_report_variable_data_annual(keys, [hot_water.variable], UnitConversions.convert(1.0, 'm^3', hot_water.annual_units))
       if include_timeseries_hot_water_uses
-        hot_water.timeseries_output = get_report_variable_data_timeseries([hot_water.key.upcase], [hot_water.variable], UnitConversions.convert(1.0, 'm^3', hot_water.timeseries_units), 0, timeseries_frequency)
+        hot_water.timeseries_output = get_report_variable_data_timeseries(keys, [hot_water.variable], UnitConversions.convert(1.0, 'm^3', hot_water.timeseries_units), 0, timeseries_frequency)
       end
     end
 
@@ -881,17 +886,47 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       return s
     end
 
+    def ordered_values(hash, sys_ids)
+      vals = []
+      sys_ids.each do |sys_id|
+        vals << hash[sys_id]
+        fail 'Could not look up data.' if vals[-1].nil?
+      end
+      return vals
+    end
+
+    def get_sys_ids(type, heat_sys_ids, cool_sys_ids, dhw_sys_ids)
+      if type.downcase.include? 'hot water'
+        return dhw_sys_ids
+      elsif type.downcase.include? 'heating'
+        return heat_sys_ids
+      elsif type.downcase.include? 'cooling'
+        return cool_sys_ids
+      end
+      fail "Unhandled type: '#{type}'."
+    end
+
     results_out = []
 
+    heat_sys_ids = outputs[:hpxml_heat_sys_ids]
+    cool_sys_ids = outputs[:hpxml_cool_sys_ids]
+    dhw_sys_ids = outputs[:hpxml_dhw_sys_ids]
+
+    # Sys IDS
+    results_out << ['hpxml_heat_sys_ids', heat_sys_ids.to_s]
+    results_out << ['hpxml_cool_sys_ids', cool_sys_ids.to_s]
+    results_out << ['hpxml_dhw_sys_ids', dhw_sys_ids.to_s]
+    results_out << [line_break]
+
     # EECs
-    results_out << ['hpxml_eec_heats', outputs[:hpxml_eec_heats].values.to_s]
-    results_out << ['hpxml_eec_cools', outputs[:hpxml_eec_cools].values.to_s]
-    results_out << ['hpxml_eec_dhws', outputs[:hpxml_eec_dhws].values.to_s]
+    results_out << ['hpxml_eec_heats', ordered_values(outputs[:hpxml_eec_heats], heat_sys_ids).to_s]
+    results_out << ['hpxml_eec_cools', ordered_values(outputs[:hpxml_eec_cools], cool_sys_ids).to_s]
+    results_out << ['hpxml_eec_dhws', ordered_values(outputs[:hpxml_eec_dhws], dhw_sys_ids).to_s]
     results_out << [line_break]
 
     # Fuel types
-    results_out << ['hpxml_heat_fuels', outputs[:hpxml_heat_fuels].values.to_s]
-    results_out << ['hpxml_dwh_fuels', outputs[:hpxml_dwh_fuels].values.to_s]
+    results_out << ['hpxml_heat_fuels', ordered_values(outputs[:hpxml_heat_fuels], heat_sys_ids).to_s]
+    results_out << ['hpxml_dwh_fuels', ordered_values(outputs[:hpxml_dwh_fuels], dhw_sys_ids).to_s]
     results_out << [line_break]
 
     # Fuel uses
@@ -906,7 +941,8 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       fuel_type, end_use_type = key
       key_name = sanitize_string("enduse#{fuel_type}#{end_use_type}")
       if not end_use.annual_output_by_system.empty?
-        results_out << [key_name, end_use.annual_output_by_system.values.to_s]
+        sys_ids = get_sys_ids(end_use_type, heat_sys_ids, cool_sys_ids, dhw_sys_ids)
+        results_out << [key_name, ordered_values(end_use.annual_output_by_system, sys_ids).to_s]
       else
         results_out << [key_name, end_use.annual_output.to_s]
       end
@@ -917,7 +953,8 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     @loads.each do |load_type, load|
       key_name = sanitize_string("load#{load_type}")
       if not load.annual_output_by_system.empty?
-        results_out << [key_name, load.annual_output_by_system.values.to_s]
+        sys_ids = get_sys_ids(load_type, heat_sys_ids, cool_sys_ids, dhw_sys_ids)
+        results_out << [key_name, ordered_values(load.annual_output_by_system, sys_ids).to_s]
       end
     end
     results_out << [line_break]
@@ -1115,8 +1152,6 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     dhw_fuels = {}
 
     @hpxml.water_heating_systems.each do |dhw_system|
-      next unless dhw_system.fraction_dhw_load_served > 0
-
       sys_id = dhw_system.id
       if [HPXML::WaterHeaterTypeCombiTankless, HPXML::WaterHeaterTypeCombiStorage].include? dhw_system.water_heater_type
         @hpxml.heating_systems.each do |heating_system|
@@ -1173,8 +1208,6 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     sys_ids = []
 
     @hpxml.water_heating_systems.each do |dhw_system|
-      next unless dhw_system.fraction_dhw_load_served > 0
-
       sys_ids << dhw_system.id
     end
 
@@ -1250,8 +1283,6 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     eec_dhws = {}
 
     @hpxml.water_heating_systems.each do |dhw_system|
-      next unless dhw_system.fraction_dhw_load_served > 0
-
       sys_id = dhw_system.id
       value = dhw_system.energy_factor
       wh_type = dhw_system.water_heater_type
@@ -1286,11 +1317,8 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
   end
 
   def get_system_or_seed_id(sys)
-    if [Constants.CalcTypeERIReferenceHome,
-        Constants.CalcTypeERIIndexAdjustmentReferenceHome].include? @eri_design
-      if not sys.seed_id.nil?
-        return sys.seed_id
-      end
+    if not sys.seed_id.nil?
+      return sys.seed_id
     end
     return sys.id
   end
@@ -1371,7 +1399,6 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
   def get_combi_hvac_id(sys_id)
     @hpxml.water_heating_systems.each do |dhw_system|
-      next unless dhw_system.fraction_dhw_load_served > 0
       next unless sys_id == dhw_system.id
       next unless [HPXML::WaterHeaterTypeCombiTankless, HPXML::WaterHeaterTypeCombiStorage].include? dhw_system.water_heater_type
 
@@ -1697,11 +1724,11 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
   end
 
   class HotWater < BaseOutput
-    def initialize(key:)
+    def initialize(subcat:)
       super()
-      @key = key
+      @subcat = subcat
     end
-    attr_accessor(:key, :variable)
+    attr_accessor(:subcat, :keys, :variable)
   end
 
   class PeakFuel < BaseOutput
@@ -1733,11 +1760,12 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
   end
 
   class UnmetLoad < BaseOutput
-    def initialize(variable:)
+    def initialize(key:, variable:)
       super()
+      @key = key
       @variable = variable
     end
-    attr_accessor(:variable)
+    attr_accessor(:key, :variable)
   end
 
   class PeakLoad < BaseOutput
@@ -1911,10 +1939,10 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
     # Hot Water Uses
     @hot_water_uses = {}
-    @hot_water_uses[HWT::ClothesWasher] = HotWater.new(key: Constants.ObjectNameClothesWasher)
-    @hot_water_uses[HWT::Dishwasher] = HotWater.new(key: Constants.ObjectNameDishwasher)
-    @hot_water_uses[HWT::Fixtures] = HotWater.new(key: Constants.ObjectNameFixtures)
-    @hot_water_uses[HWT::DistributionWaste] = HotWater.new(key: Constants.ObjectNameDistributionWaste)
+    @hot_water_uses[HWT::ClothesWasher] = HotWater.new(subcat: Constants.ObjectNameClothesWasher)
+    @hot_water_uses[HWT::Dishwasher] = HotWater.new(subcat: Constants.ObjectNameDishwasher)
+    @hot_water_uses[HWT::Fixtures] = HotWater.new(subcat: Constants.ObjectNameFixtures)
+    @hot_water_uses[HWT::DistributionWaste] = HotWater.new(subcat: Constants.ObjectNameDistributionWaste)
 
     @hot_water_uses.each do |hot_water_type, hot_water|
       hot_water.variable = 'Water Use Equipment Hot Water Volume'
@@ -1995,24 +2023,24 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       comp_load.timeseries_units = 'kBtu'
     end
 
-    # Unmet Loads
+    # Unmet Loads (unexpected load that should have been met by HVAC)
     @unmet_loads = {}
-    @unmet_loads[LT::Heating] = UnmetLoad.new(variable: 'Zone Ideal Loads Zone Sensible Heating Energy')
-    @unmet_loads[LT::Cooling] = UnmetLoad.new(variable: 'Zone Ideal Loads Zone Sensible Cooling Energy')
+    @unmet_loads[LT::Heating] = UnmetLoad.new(key: Constants.ObjectNameIdealAirSystemResidual, variable: 'Zone Ideal Loads Zone Sensible Heating Energy')
+    @unmet_loads[LT::Cooling] = UnmetLoad.new(key: Constants.ObjectNameIdealAirSystemResidual, variable: 'Zone Ideal Loads Zone Sensible Cooling Energy')
 
     @unmet_loads.each do |load_type, unmet_load|
       unmet_load.name = "Unmet Load: #{load_type}"
       unmet_load.annual_units = 'MBtu'
     end
 
-    # Ideal System Loads (expected fraction of loads that are not met by HVAC)
+    # Ideal System Loads (expected load that is not met by HVAC)
     @ideal_system_loads = {}
-    @ideal_system_loads[LT::Heating] = UnmetLoad.new(variable: 'Zone Ideal Loads Zone Sensible Heating Energy')
-    @ideal_system_loads[LT::Cooling] = UnmetLoad.new(variable: 'Zone Ideal Loads Zone Sensible Cooling Energy')
+    @ideal_system_loads[LT::Heating] = UnmetLoad.new(key: Constants.ObjectNameIdealAirSystem, variable: 'Zone Ideal Loads Zone Sensible Heating Energy')
+    @ideal_system_loads[LT::Cooling] = UnmetLoad.new(key: Constants.ObjectNameIdealAirSystem, variable: 'Zone Ideal Loads Zone Sensible Cooling Energy')
 
-    @ideal_system_loads.each do |load_type, unmet_load|
-      unmet_load.name = "Ideal System Load: #{load_type}"
-      unmet_load.annual_units = 'MBtu'
+    @ideal_system_loads.each do |load_type, ideal_load|
+      ideal_load.name = "Ideal System Load: #{load_type}"
+      ideal_load.annual_units = 'MBtu'
     end
 
     # Peak Loads
