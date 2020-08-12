@@ -10,6 +10,7 @@ Features
 
 Fixes
 - Based on RECS 2015, separate the plug load equations for single-family detached, single-family attached, and multifamily buildings ([#471](https://github.com/NREL/OpenStudio-BuildStock/pull/471))
+- Fix for pseudo-random number generator that was generating non-deterministic occupancy schedules ([#477](https://github.com/NREL/OpenStudio-BuildStock/pull/477))
 
 ## ResStock v2.3.0
 ###### June 24, 2020 - [Diff](https://github.com/NREL/OpenStudio-BuildStock/compare/v2.2.4...v2.3.0)
