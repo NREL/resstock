@@ -714,17 +714,6 @@ class HVACSizing
 
       wall_group = get_wall_group(wall)
 
-      # Adjust base Cooling Load Temperature Difference (CLTD)
-      # Assume absorptivity for light walls < 0.5, medium walls <= 0.75, dark walls > 0.75 (based on MJ8 Table 4B Notes)
-
-      if wall.solar_absorptance <= 0.5
-        colorMultiplier = 0.65      # MJ8 Table 4B Notes, pg 348
-      elsif wall.solar_absorptance <= 0.75
-        colorMultiplier = 0.83      # MJ8 Appendix 12, pg 519
-      else
-        colorMultiplier = 1.0
-      end
-
       if wall.azimuth.nil?
         azimuths = [0.0, 90.0, 180.0, 270.0] # Assume 4 equal surfaces facing every direction
       else
@@ -738,32 +727,43 @@ class HVACSizing
       end
 
       azimuths.each do |azimuth|
-        true_azimuth = get_true_azimuth(azimuth)
-
-        # Base Cooling Load Temperature Differences (CLTD's) for dark colored sunlit and shaded walls
-        # with 95 degF outside temperature taken from MJ8 Figure A12-8 (intermediate wall groups were
-        # determined using linear interpolation). Shaded walls apply to north facing and partition walls only.
-        cltd_base_sun = [38.0, 34.95, 31.9, 29.45, 27.0, 24.5, 22.0, 21.25, 20.5, 19.65, 18.8]
-        cltd_base_shade = [25.0, 22.5, 20.0, 18.45, 16.9, 15.45, 14.0, 13.55, 13.1, 12.85, 12.6]
-
-        if (true_azimuth >= 157.5) && (true_azimuth <= 202.5)
-          cltd = cltd_base_shade[wall_group - 1] * colorMultiplier
-        else
-          cltd = cltd_base_sun[wall_group - 1] * colorMultiplier
-        end
-
-        if @ctd >= 10.0
-          # Adjust the CLTD for different cooling design temperatures
-          cltd += (weather.design.CoolingDrybulb - 95.0)
-          # Adjust the CLTD for daily temperature range
-          cltd += @daily_range_temp_adjust[@daily_range_num]
-        else
-          # Handling cases ctd < 10 is based on A12-18 in MJ8
-          cltd_corr = @ctd - 20.0 - @daily_range_temp_adjust[@daily_range_num]
-          cltd = [cltd + cltd_corr, 0.0].max # Assume zero cooling load for negative CLTD's
-        end
-
         if wall.is_exterior
+
+          # Adjust base Cooling Load Temperature Difference (CLTD)
+          # Assume absorptivity for light walls < 0.5, medium walls <= 0.75, dark walls > 0.75 (based on MJ8 Table 4B Notes)
+          if wall.solar_absorptance <= 0.5
+            colorMultiplier = 0.65      # MJ8 Table 4B Notes, pg 348
+          elsif wall.solar_absorptance <= 0.75
+            colorMultiplier = 0.83      # MJ8 Appendix 12, pg 519
+          else
+            colorMultiplier = 1.0
+          end
+
+          true_azimuth = get_true_azimuth(azimuth)
+
+          # Base Cooling Load Temperature Differences (CLTD's) for dark colored sunlit and shaded walls
+          # with 95 degF outside temperature taken from MJ8 Figure A12-8 (intermediate wall groups were
+          # determined using linear interpolation). Shaded walls apply to north facing and partition walls only.
+          cltd_base_sun = [38.0, 34.95, 31.9, 29.45, 27.0, 24.5, 22.0, 21.25, 20.5, 19.65, 18.8]
+          cltd_base_shade = [25.0, 22.5, 20.0, 18.45, 16.9, 15.45, 14.0, 13.55, 13.1, 12.85, 12.6]
+
+          if (true_azimuth >= 157.5) && (true_azimuth <= 202.5)
+            cltd = cltd_base_shade[wall_group - 1] * colorMultiplier
+          else
+            cltd = cltd_base_sun[wall_group - 1] * colorMultiplier
+          end
+
+          if @ctd >= 10.0
+            # Adjust the CLTD for different cooling design temperatures
+            cltd += (weather.design.CoolingDrybulb - 95.0)
+            # Adjust the CLTD for daily temperature range
+            cltd += @daily_range_temp_adjust[@daily_range_num]
+          else
+            # Handling cases ctd < 10 is based on A12-18 in MJ8
+            cltd_corr = @ctd - 20.0 - @daily_range_temp_adjust[@daily_range_num]
+            cltd = [cltd + cltd_corr, 0.0].max # Assume zero cooling load for negative CLTD's
+          end
+
           zone_loads.Cool_Walls += (1.0 / wall.insulation_assembly_r_value) * wall_area / azimuths.size * cltd
           zone_loads.Heat_Walls += (1.0 / wall.insulation_assembly_r_value) * wall_area / azimuths.size * @htd
         else
@@ -3129,6 +3129,9 @@ class HVACSizing
         air_loop.setDesignSupplyAirFlowRate(vfr)
         fan = air_loop.supplyFan.get.to_FanVariableVolume.get
         fan.setMaximumFlowRate(vfr)
+        oa_system = air_loop.components.select { |comp| comp.to_AirLoopHVACOutdoorAirSystem.is_initialized }[0].to_AirLoopHVACOutdoorAirSystem.get
+        oa_controller = oa_system.getControllerOutdoorAir
+        oa_controller.setMaximumOutdoorAirFlowRate(vfr)
 
         # Fan pressure rise calculation (based on design cfm)
         fan_power = [2.79 * hvac_final_values.Cool_Airflow**-0.29, 0.6].min # fit of efficacy to air flow from the CEC listed equipment  W/cfm

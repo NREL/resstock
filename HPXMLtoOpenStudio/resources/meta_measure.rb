@@ -66,7 +66,7 @@ def run_hpxml_workflow(rundir, hpxml, measures, measures_dir, debug: false, outp
   command = "\"#{ep_path}\" -w in.epw in.idf"
   if debug
     File.open(File.join(rundir, 'run.log'), 'a') do |f|
-      f << "Executing command '#{command}' from working directory '#{rundir}'"
+      f << "Executing command '#{command}' from working directory '#{rundir}'.\n"
     end
   end
   pwd = Dir.pwd
@@ -120,6 +120,8 @@ def run_hpxml_workflow(rundir, hpxml, measures, measures_dir, debug: false, outp
     print "#{print_prefix}Processing output unsuccessful.\n"
     print "#{print_prefix}See #{File.join(rundir, 'run.log')} for details.\n"
     return { success: false, runner: runner }
+  else
+    print "#{print_prefix}Wrote log file: #{File.join(rundir, 'run.log')}.\n"
   end
 
   print "#{print_prefix}Done.\n"
