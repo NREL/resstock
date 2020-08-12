@@ -1417,7 +1417,7 @@ class ScheduleGenerator
       @duration_row[appliance_name] = (prng.rand * duration_vals.size).to_i
     end
     power = consumption_vals[@consumption_row[appliance_name]]
-    sample = prng.rand(0..duration_vals.length-1)
+    sample = prng.rand(0..(duration_vals.length - 1))
     duration = duration_vals[@duration_row[appliance_name]][sample]
     return [duration, power]
   end
