@@ -1282,7 +1282,7 @@ class ScheduleGenerator
     end
 
     # Fill in cooking power schedule
-    # States are: 'sleeping','shower','laundry','cooking', 'dishwashing', 'absent', 'nothingAtHome'
+    # States are: 'sleeping', 'shower', 'laundry', 'cooking', 'dishwashing', 'absent', 'nothingAtHome'
     cooking_power_sch = [0] * mins_in_year
     step = 0
     last_state = 0
@@ -1417,7 +1417,8 @@ class ScheduleGenerator
       @duration_row[appliance_name] = (prng.rand * duration_vals.size).to_i
     end
     power = consumption_vals[@consumption_row[appliance_name]]
-    duration = duration_vals[@duration_row[appliance_name]].sample
+    sample = prng.rand(0..duration_vals.length-1)
+    duration = duration_vals[@duration_row[appliance_name]][sample]
     return [duration, power]
   end
 
