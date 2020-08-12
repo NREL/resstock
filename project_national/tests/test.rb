@@ -2,7 +2,7 @@ require_relative '../../resources/hpxml-measures/HPXMLtoOpenStudio/resources/min
 require_relative '../../test/integrity_checks'
 require 'minitest/autorun'
 
-class TestProjectMultifamilyBeta < MiniTest::Test
+class TestProjectNational < MiniTest::Test
   def test_housing_characteristics
     begin
       project_dir_name = File.basename(File.dirname(File.dirname(__FILE__)))
