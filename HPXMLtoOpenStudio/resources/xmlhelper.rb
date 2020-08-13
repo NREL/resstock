@@ -87,7 +87,6 @@ class XMLHelper
 
   # Returns the attribute added
   def self.add_attribute(element, attr_name, attr_val)
-    attr_val = valid_attr(attr_val).to_s
     added = element.set(attr_name, attr_val)
     return added
   end
@@ -97,13 +96,6 @@ class XMLHelper
     return if element.nil?
 
     return element.get(attr_name)
-  end
-
-  def self.valid_attr(attr)
-    attr = attr.to_s
-    attr = attr.gsub(' ', '_')
-    attr = attr.gsub('|', '_')
-    return attr
   end
 
   # Copies the element if it exists

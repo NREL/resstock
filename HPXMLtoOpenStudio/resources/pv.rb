@@ -1,10 +1,17 @@
 # frozen_string_literal: true
 
 class PV
-  def self.apply(model, pv_system)
+  def self.apply(model, nbeds, pv_system)
     obj_name = pv_system.id
 
-    generator = OpenStudio::Model::GeneratorPVWatts.new(model, pv_system.max_power_output)
+    if not pv_system.is_shared_system
+      max_power = pv_system.max_power_output
+    else
+      # Apportion to single dwelling unit by # bedrooms
+      max_power = pv_system.building_max_power_output * nbeds.to_f / pv_system.number_of_bedrooms_served.to_f
+    end
+
+    generator = OpenStudio::Model::GeneratorPVWatts.new(model, max_power)
     generator.setName("#{obj_name} generator")
     generator.setSystemLosses(pv_system.system_losses_fraction)
     generator.setTiltAngle(pv_system.array_tilt)
