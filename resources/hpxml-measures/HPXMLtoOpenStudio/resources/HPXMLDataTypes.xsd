@@ -4683,6 +4683,39 @@
 			</xs:extension>
 		</xs:simpleContent>
 	</xs:complexType>
+	<xs:simpleType name="PVSystemMaxPowerOutput_simple">
+		<xs:restriction base="Power_simple"/>
+	</xs:simpleType>
+	<xs:complexType name="PVSystemMaxPowerOutput">
+		<xs:simpleContent>
+			<xs:extension base="PVSystemMaxPowerOutput_simple">
+				<xs:attribute name="dataSource" type="DataSource"/>
+				<xs:attribute name="scope" type="DataScope"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:simpleType name="PVSystemCollectorArea_simple">
+		<xs:restriction base="SurfaceArea_simple"/>
+	</xs:simpleType>
+	<xs:complexType name="PVSystemCollectorArea">
+		<xs:simpleContent>
+			<xs:extension base="PVSystemCollectorArea_simple">
+				<xs:attribute name="dataSource" type="DataSource"/>
+				<xs:attribute name="scope" type="DataScope"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:simpleType name="PVSystemNumberOfPanels_simple">
+		<xs:restriction base="IntegerGreaterThanZero_simple"/>
+	</xs:simpleType>
+	<xs:complexType name="PVSystemNumberOfPanels">
+		<xs:simpleContent>
+			<xs:extension base="PVSystemNumberOfPanels_simple">
+				<xs:attribute name="dataSource" type="DataSource"/>
+				<xs:attribute name="scope" type="DataScope"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
 	<xs:simpleType name="DataScope">
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="single unit"/>

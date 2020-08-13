@@ -737,14 +737,25 @@ class EnergyPlusValidator
       # [PVSystem]
       '/HPXML/Building/BuildingDetails/Systems/Photovoltaics/PVSystem' => {
         'SystemIdentifier' => one, # Required by HPXML schema
+        'IsSharedSystem' => one, # See [PVSystem=Individual] or [PVSystem=Shared]
         'Location[text()="ground" or text()="roof"]' => one,
         'ModuleType[text()="standard" or text()="premium" or text()="thin film"]' => one,
         'Tracking[text()="fixed" or text()="1-axis" or text()="1-axis backtracked" or text()="2-axis"]' => one,
         'ArrayAzimuth' => one,
         'ArrayTilt' => one,
-        'MaxPowerOutput' => one,
         'InverterEfficiency' => zero_or_one,
         'SystemLossesFraction | YearModulesManufactured' => zero_or_more,
+      },
+
+      ## [PVSystem=Individual]
+      '/HPXML/Building/BuildingDetails/Systems/Photovoltaics/PVSystem[IsSharedSystem="false"]' => {
+        'MaxPowerOutput' => one,
+      },
+
+      ## [PVSystem=Shared]
+      '/HPXML/Building/BuildingDetails/Systems/Photovoltaics/PVSystem[IsSharedSystem="true"]' => {
+        'MaxPowerOutput[@scope="multiple units"]' => one,
+        'extension/NumberofBedroomsServed' => one,
       },
 
       # [ClothesWasher]

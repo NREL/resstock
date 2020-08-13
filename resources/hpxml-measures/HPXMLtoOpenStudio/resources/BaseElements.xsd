@@ -1885,6 +1885,12 @@
 								<xs:sequence>
 									<xs:group ref="SystemInfo"/>
 									<xs:element minOccurs="0" ref="ConnectedDevice"/>
+									<xs:element minOccurs="0" name="IsSharedSystem" type="HPXMLBoolean">
+										<xs:annotation>
+											<xs:documentation>Does the system serve multiple building/dwelling units?</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element minOccurs="0" name="NumberofUnitsServed" type="HPXMLInteger"/>
 									<xs:element minOccurs="0" name="Location" type="PVSystemLocation"/>
 									<xs:element minOccurs="0" name="Ownership" type="PVSystemOwnership"/>
 									<xs:element minOccurs="0" name="ModuleType" type="PVModuleType"> </xs:element>
@@ -1900,17 +1906,17 @@
 											<xs:documentation>[deg]</xs:documentation>
 										</xs:annotation>
 									</xs:element>
-									<xs:element minOccurs="0" name="MaxPowerOutput" type="Power">
+									<xs:element minOccurs="0" name="MaxPowerOutput" type="PVSystemMaxPowerOutput" maxOccurs="unbounded">
 										<xs:annotation>
 											<xs:documentation>[DC Watts] Peak power as supplied by the manufacturer</xs:documentation>
 										</xs:annotation>
 									</xs:element>
-									<xs:element minOccurs="0" name="CollectorArea" type="SurfaceArea">
+									<xs:element minOccurs="0" name="CollectorArea" type="PVSystemCollectorArea" maxOccurs="unbounded">
 										<xs:annotation>
 											<xs:documentation>[sq.ft.]</xs:documentation>
 										</xs:annotation>
 									</xs:element>
-									<xs:element minOccurs="0" name="NumberOfPanels" type="IntegerGreaterThanZero"/>
+									<xs:element minOccurs="0" name="NumberOfPanels" type="PVSystemNumberOfPanels" maxOccurs="unbounded"/>
 									<xs:element minOccurs="0" name="InverterEfficiency" type="Fraction"/>
 									<xs:element minOccurs="0" name="SystemLossesFraction" type="Fraction">
 										<xs:annotation>

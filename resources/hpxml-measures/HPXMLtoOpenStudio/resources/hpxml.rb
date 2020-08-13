@@ -3638,7 +3638,8 @@ class HPXML < Object
   class PVSystem < BaseElement
     ATTRS = [:id, :location, :module_type, :tracking, :array_orientation, :array_azimuth, :array_tilt,
              :max_power_output, :inverter_efficiency, :system_losses_fraction, :number_of_panels,
-             :year_modules_manufactured]
+             :year_modules_manufactured, :is_shared_system, :building_max_power_output,
+             :number_of_bedrooms_served]
     attr_accessor(*ATTRS)
 
     def delete
@@ -3657,32 +3658,53 @@ class HPXML < Object
       pv_system = XMLHelper.add_element(photovoltaics, 'PVSystem')
       sys_id = XMLHelper.add_element(pv_system, 'SystemIdentifier')
       XMLHelper.add_attribute(sys_id, 'id', @id)
+      XMLHelper.add_element(pv_system, 'IsSharedSystem', to_boolean(@is_shared_system)) unless @is_shared_system.nil?
       XMLHelper.add_element(pv_system, 'Location', @location) unless @location.nil?
       XMLHelper.add_element(pv_system, 'ModuleType', @module_type) unless @module_type.nil?
       XMLHelper.add_element(pv_system, 'Tracking', @tracking) unless @tracking.nil?
       XMLHelper.add_element(pv_system, 'ArrayAzimuth', to_integer(@array_azimuth)) unless @array_azimuth.nil?
       XMLHelper.add_element(pv_system, 'ArrayTilt', to_float(@array_tilt)) unless @array_tilt.nil?
-      XMLHelper.add_element(pv_system, 'MaxPowerOutput', to_float(@max_power_output)) unless @max_power_output.nil?
+      if not @is_shared_system
+        XMLHelper.add_element(pv_system, 'MaxPowerOutput', to_float(@max_power_output)) unless @max_power_output.nil?
+      else
+        if not @max_power_output.nil?
+          power = XMLHelper.add_element(pv_system, 'MaxPowerOutput', to_float(@max_power_output))
+          XMLHelper.add_attribute(power, 'scope', 'single unit')
+        end
+        if not @building_max_power_output.nil?
+          power = XMLHelper.add_element(pv_system, 'MaxPowerOutput', to_float(@building_max_power_output))
+          XMLHelper.add_attribute(power, 'scope', 'multiple units')
+        end
+      end
       XMLHelper.add_element(pv_system, 'InverterEfficiency', to_float(@inverter_efficiency)) unless @inverter_efficiency.nil?
       XMLHelper.add_element(pv_system, 'SystemLossesFraction', to_float(@system_losses_fraction)) unless @system_losses_fraction.nil?
       XMLHelper.add_element(pv_system, 'YearModulesManufactured', to_integer(@year_modules_manufactured)) unless @year_modules_manufactured.nil?
+      HPXML::add_extension(parent: pv_system,
+                           extensions: { 'NumberofBedroomsServed' => to_integer_or_nil(@number_of_bedrooms_served) })
     end
 
     def from_oga(pv_system)
       return if pv_system.nil?
 
       @id = HPXML::get_id(pv_system)
+      @is_shared_system = to_boolean_or_nil(XMLHelper.get_value(pv_system, 'IsSharedSystem'))
       @location = XMLHelper.get_value(pv_system, 'Location')
       @module_type = XMLHelper.get_value(pv_system, 'ModuleType')
       @tracking = XMLHelper.get_value(pv_system, 'Tracking')
       @array_orientation = XMLHelper.get_value(pv_system, 'ArrayOrientation')
       @array_azimuth = to_integer_or_nil(XMLHelper.get_value(pv_system, 'ArrayAzimuth'))
       @array_tilt = to_float_or_nil(XMLHelper.get_value(pv_system, 'ArrayTilt'))
-      @max_power_output = to_float_or_nil(XMLHelper.get_value(pv_system, 'MaxPowerOutput'))
+      if not @is_shared_system
+        @max_power_output = to_float_or_nil(XMLHelper.get_value(pv_system, 'MaxPowerOutput'))
+      else
+        @max_power_output = to_float_or_nil(XMLHelper.get_value(pv_system, 'MaxPowerOutput[@scope="single unit"]'))
+        @building_max_power_output = to_float_or_nil(XMLHelper.get_value(pv_system, 'MaxPowerOutput[@scope="multiple units"]'))
+      end
       @inverter_efficiency = to_float_or_nil(XMLHelper.get_value(pv_system, 'InverterEfficiency'))
       @system_losses_fraction = to_float_or_nil(XMLHelper.get_value(pv_system, 'SystemLossesFraction'))
       @number_of_panels = to_integer_or_nil(XMLHelper.get_value(pv_system, 'NumberOfPanels'))
       @year_modules_manufactured = to_integer_or_nil(XMLHelper.get_value(pv_system, 'YearModulesManufactured'))
+      @number_of_bedrooms_served = to_integer_or_nil(XMLHelper.get_value(pv_system, 'extension/NumberofBedroomsServed'))
     end
   end
 

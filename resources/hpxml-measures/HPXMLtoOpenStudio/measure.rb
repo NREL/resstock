@@ -2491,7 +2491,7 @@ class OSModel
 
   def self.add_photovoltaics(runner, model)
     @hpxml.pv_systems.each do |pv_system|
-      PV.apply(model, pv_system)
+      PV.apply(model, @nbeds, pv_system)
     end
   end
 
