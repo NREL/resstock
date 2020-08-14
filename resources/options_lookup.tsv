@@ -247,13 +247,20 @@ Vintage ACS	1960-79
 Vintage ACS	1980-99																																														
 Vintage ACS	2000-09																																														
 Vintage ACS	2010s																																														
-Heating Fuel	Electricity																																														
-Heating Fuel	Fuel Oil																																														
-Heating Fuel	Natural Gas																																														
+Heating Fuel	Electricity	ResidentialHVACFurnace	fuel_type=electric																																												
+		ResidentialHVACBoiler	fuel_type=electric																																												
+Heating Fuel	Fuel Oil	ResidentialHVACFurnace	fuel_type=oil																																												
+		ResidentialHVACBoiler	fuel_type=oil																																												
+		ResidentialHVACUnitHeater	fuel_type=oil																																												
+Heating Fuel	Natural Gas	ResidentialHVACFurnace	fuel_type=gas																																												
+		ResidentialHVACBoiler	fuel_type=gas																																												
+		ResidentialHVACUnitHeater	fuel_type=gas																																												
+Heating Fuel	Propane	ResidentialHVACFurnace	fuel_type=propane																																												
+		ResidentialHVACBoiler	fuel_type=propane																																												
+		ResidentialHVACUnitHeater	fuel_type=propane																																												
+Heating Fuel	Wood	ResidentialHVACUnitHeater	fuel_type=wood																																												
 Heating Fuel	None																																														
 Heating Fuel	Other Fuel																																														
-Heating Fuel	Wood																																														
-Heating Fuel	Propane																																														
 Usage Level	Low																																														
 Usage Level	Medium																																														
 Usage Level	High																																														
@@ -817,6 +824,7 @@ HVAC Heating Type	Non-Ducted Heat Pump
 HVAC Heating Type	Non-Ducted Heating																																														
 HVAC Heating Efficiency	None																																														
 HVAC Heating Efficiency	Other																																														
+HVAC Heating Efficiency	Void																																														
 HVAC Heating Efficiency	Shared Heating																																														
 HVAC Heating Efficiency	"ASHP, SEER 10, 6.2 HSPF"	ResidentialHVACAirSourceHeatPumpSingleSpeed	seer=10.0	hspf=6.2	eer=8.9	cop=2.4	shr=0.73	fan_power_rated=0.365	fan_power_installed=0.5	min_temp=0.0	crankcase_capacity=0.02	crankcase_temp=55.0	eer_capacity_derate_1ton=1.0	eer_capacity_derate_2ton=1.0	eer_capacity_derate_3ton=1.0	eer_capacity_derate_4ton=1.0	eer_capacity_derate_5ton=1.0	cop_capacity_derate_1ton=1.0	cop_capacity_derate_2ton=1.0	cop_capacity_derate_3ton=1.0	cop_capacity_derate_4ton=1.0	cop_capacity_derate_5ton=1.0	heat_pump_capacity=autosize	supplemental_efficiency=1.0	supplemental_capacity=autosize	dse=NA																					
 		ResidentialAirflow																																													
@@ -887,13 +895,13 @@ HVAC Heating Efficiency	"FIXME Dual-Fuel ASHP, SEER 14, 8.2 HSPF"	ResidentialHVA
 HVAC Heating Efficiency	"Electric Baseboard, 100% Efficiency"	ResidentialHVACElectricBaseboard	efficiency=1.0	capacity=autosize																																											
 		ResidentialAirflow																																													
 		ResidentialHVACSizing																																													
-HVAC Heating Efficiency	"Electric Furnace, 100% AFUE"	ResidentialHVACFurnace	fuel_type=electric	afue=1.0	capacity=autosize	fan_power_installed=0.5	dse=NA	has_hvac_flue=false																																							
+HVAC Heating Efficiency	"Electric Furnace, 100% AFUE"	ResidentialHVACFurnace	afue=1.0	capacity=autosize	fan_power_installed=0.5	dse=NA	has_hvac_flue=false																																								
 		ResidentialAirflow																																													
 		ResidentialHVACSizing																																													
-HVAC Heating Efficiency	"Electric Boiler, 100% AFUE"	ResidentialHVACBoiler	fuel_type=electric	"system_type=hot water, forced draft"	afue=1.0	oat_reset_enabled=false	oat_high=0.0	oat_low=0.0	oat_hwst_high=0.0	oat_hwst_low=0.0	design_temp=180.0	capacity=autosize	dse=NA	has_hvac_flue=false																																	
+HVAC Heating Efficiency	"Electric Boiler, 100% AFUE"	ResidentialHVACBoiler	"system_type=hot water, forced draft"	afue=1.0	oat_reset_enabled=false	oat_high=0.0	oat_low=0.0	oat_hwst_high=0.0	oat_hwst_low=0.0	design_temp=180.0	capacity=autosize	dse=NA	has_hvac_flue=false																																		
 		ResidentialAirflow																																													
 		ResidentialHVACSizing																																													
-HVAC Heating Efficiency	"Electric Wall Furnace, 100% AFUE"	ResidentialHVACUnitHeater	fuel_type=electric	efficiency=1	fan_power=0	airflow_rate=0	capacity=autosize	has_hvac_flue=false																																							
+HVAC Heating Efficiency	"Electric Wall Furnace, 100% AFUE"	ResidentialHVACUnitHeater	efficiency=1	fan_power=0	airflow_rate=0	capacity=autosize	has_hvac_flue=false																																								
 		ResidentialAirflow																																													
 		ResidentialHVACSizing																																													
 HVAC Heating Efficiency	"Fuel Boiler, 72% AFUE"	ResidentialHVACBoiler	"system_type=hot water, forced draft"	afue=0.72	oat_reset_enabled=false	oat_high=0.0	oat_low=0.0	oat_hwst_high=0.0	oat_hwst_low=0.0	design_temp=180.0	capacity=autosize	dse=NA	has_hvac_flue=true																																		
@@ -911,7 +919,7 @@ HVAC Heating Efficiency	"Fuel Boiler, 82% AFUE"	ResidentialHVACBoiler	"system_ty
 HVAC Heating Efficiency	"Fuel Boiler, 85% AFUE"	ResidentialHVACBoiler	"system_type=hot water, forced draft"	afue=0.85	oat_reset_enabled=false	oat_high=0.0	oat_low=0.0	oat_hwst_high=0.0	oat_hwst_low=0.0	design_temp=180.0	capacity=autosize	dse=NA	has_hvac_flue=true																																		
 		ResidentialAirflow																																													
 		ResidentialHVACSizing																																													
-HVAC System Heating Fuel Oil	"Fuel Boiler, 90% AFUE"	ResidentialHVACBoiler	"system_type=hot water, condensing"	afue=0.9	oat_reset_enabled=false	oat_high=0.0	oat_low=0.0	oat_hwst_high=0.0	oat_hwst_low=0.0	design_temp=180.0	capacity=autosize	dse=NA	has_hvac_flue=false																																		
+HVAC Heating Efficiency	"Fuel Boiler, 90% AFUE"	ResidentialHVACBoiler	"system_type=hot water, condensing"	afue=0.9	oat_reset_enabled=false	oat_high=0.0	oat_low=0.0	oat_hwst_high=0.0	oat_hwst_low=0.0	design_temp=180.0	capacity=autosize	dse=NA	has_hvac_flue=false																																		
 		ResidentialAirflow																																													
 		ResidentialHVACSizing																																													
 HVAC Heating Efficiency	"Fuel Boiler, 95% AFUE, OAT Reset"	ResidentialHVACBoiler	"system_type=hot water, condensing"	afue=0.95	oat_reset_enabled=true	oat_high=68	oat_low=0.0	oat_hwst_high=95	oat_hwst_low=180	design_temp=180.0	capacity=autosize	dse=NA	has_hvac_flue=false																																		
