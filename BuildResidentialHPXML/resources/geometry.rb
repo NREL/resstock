@@ -1457,7 +1457,7 @@ class Geometry
     num_units = geometry_num_units.get
     num_floors = geometry_num_floors_above_grade
     aspect_ratio = geometry_aspect_ratio
-    horizontal_location = geometry_horizontal_location
+    horizontal_location = geometry_horizontal_location.get
     corridor_position = geometry_corridor_position
     foundation_type = geometry_foundation_type
     foundation_height = geometry_foundation_height
@@ -1960,8 +1960,8 @@ class Geometry
     num_units = geometry_num_units.get
     num_floors = geometry_num_floors_above_grade
     aspect_ratio = geometry_aspect_ratio
-    level = geometry_level
-    horizontal_location = geometry_horizontal_location
+    level = geometry_level.get
+    horizontal_location = geometry_horizontal_location.get
     corridor_position = geometry_corridor_position
     corridor_width = geometry_corridor_width
     inset_width = geometry_inset_width

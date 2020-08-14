@@ -308,14 +308,11 @@ def get_values(osw_file, step)
     step.setArgument('weather_station_epw_filepath', 'USA_CO_Denver.Intl.AP.725650_TMY3.epw')
     step.setArgument('site_type', HPXML::SiteTypeSuburban)
     step.setArgument('geometry_unit_type', HPXML::ResidentialTypeSFD)
-    step.setArgument('geometry_num_units', 1)
     step.setArgument('geometry_cfa', 2700.0)
     step.setArgument('geometry_num_floors_above_grade', 1)
     step.setArgument('geometry_wall_height', 8.0)
     step.setArgument('geometry_orientation', 180.0)
     step.setArgument('geometry_aspect_ratio', 1.5)
-    step.setArgument('geometry_level', 'Bottom')
-    step.setArgument('geometry_horizontal_location', 'Left')
     step.setArgument('geometry_corridor_position', 'Double-Loaded Interior')
     step.setArgument('geometry_corridor_width', 10.0)
     step.setArgument('geometry_inset_width', 0.0)
@@ -710,6 +707,7 @@ def get_values(osw_file, step)
     step.setArgument('geometry_unit_type', HPXML::ResidentialTypeSFA)
     step.setArgument('geometry_cfa', 900.0)
     step.setArgument('geometry_num_units', 3)
+    step.setArgument('geometry_horizontal_location', 'Left')
     step.setArgument('geometry_corridor_position', 'None')
     step.setArgument('window_front_wwr', 0.18)
     step.setArgument('window_back_wwr', 0.18)
@@ -723,6 +721,8 @@ def get_values(osw_file, step)
     step.setArgument('geometry_unit_type', HPXML::ResidentialTypeApartment)
     step.setArgument('geometry_cfa', 900.0)
     step.setArgument('geometry_num_units', 3)
+    step.setArgument('geometry_level', 'Bottom')
+    step.setArgument('geometry_horizontal_location', 'Left')
     step.setArgument('geometry_corridor_position', 'None')
     step.setArgument('geometry_foundation_type', HPXML::FoundationTypeBasementUnconditioned)
     step.setArgument('window_front_wwr', 0.18)
@@ -2025,6 +2025,7 @@ def create_hpxmls
     'invalid_files/hvac-frac-load-served.xml' => 'base-hvac-multiple.xml',
     'invalid_files/invalid-daylight-saving.xml' => 'base.xml',
     'invalid_files/invalid-epw-filepath.xml' => 'base-location-epw-filepath.xml',
+    'invalid_files/invalid-facility-type.xml' => 'base-dhw-shared-laundry-room.xml',
     'invalid_files/invalid-neighbor-shading-azimuth.xml' => 'base-misc-neighbor-shading.xml',
     'invalid_files/invalid-relatedhvac-dhw-indirect.xml' => 'base-dhw-indirect.xml',
     'invalid_files/invalid-relatedhvac-desuperheater.xml' => 'base-hvac-central-ac-only-1-speed.xml',
@@ -2542,6 +2543,8 @@ def set_hpxml_building_construction(hpxml_file, hpxml)
     hpxml.building_construction.residential_facility_type = HPXML::ResidentialTypeApartment
   elsif ['base-foundation-walkout-basement.xml'].include? hpxml_file
     hpxml.building_construction.number_of_conditioned_floors_above_grade += 1
+  elsif ['invalid_files/invalid-facility-type.xml'].include? hpxml_file
+    hpxml.building_construction.residential_facility_type = HPXML::ResidentialTypeSFD
   end
 end
 
@@ -6027,6 +6030,8 @@ def set_hpxml_clothes_dryer(hpxml_file, hpxml)
     hpxml.clothes_dryers[0].location = HPXML::LocationOtherHeatedSpace
   elsif ['base-misc-usage-multiplier.xml'].include? hpxml_file
     hpxml.clothes_dryers[0].usage_multiplier = 0.9
+  elsif ['base-dhw-shared-laundry-room.xml'].include? hpxml_file
+    hpxml.clothes_dryers[0].is_shared_appliance = true
   end
 end
 
