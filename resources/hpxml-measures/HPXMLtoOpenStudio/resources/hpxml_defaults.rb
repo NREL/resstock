@@ -786,6 +786,9 @@ class HPXMLDefaults
     # Default clothes dryer
     if hpxml.clothes_dryers.size > 0
       clothes_dryer = hpxml.clothes_dryers[0]
+      if clothes_dryer.is_shared_appliance.nil?
+        clothes_dryer.is_shared_appliance = false
+      end
       if clothes_dryer.location.nil?
         clothes_dryer.location = HPXML::LocationLivingSpace
       end
