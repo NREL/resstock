@@ -4,7 +4,7 @@ $LOAD_PATH.unshift File.join(File.dirname(__FILE__), "..", "..")
 load 'Rakefile'
 require 'json'
 
-class TestProjectMultifamilyBeta < MiniTest::Test
+class TestProjectNational < MiniTest::Test
   def test_housing_characteristics
     begin
       project_dir_name = File.basename(File.dirname(File.dirname(__FILE__)))
