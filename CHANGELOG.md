@@ -7,6 +7,7 @@ Features
 - Increase the zone temperature capacitance multiplier from 1.0 to 3.6 according to this [journal article](https://doi.org/10.1016/j.enbuild.2018.11.005) ([#472](https://github.com/NREL/OpenStudio-BuildStock/pull/472)).
 - Update the dependencies for heating and cooling setpoint tsvs (Setpoint, Has Offset, Offset Magnitude, and Offset Period) to IECC climate zone ([#468](https://github.com/NREL/OpenStudio-BuildStock/pull/468))
 - Allow heating fuel to be defined by Public Use Microdata Area (PUMA) rather than State ([#474](https://github.com/NREL/OpenStudio-BuildStock/pull/474)).
+- Distinguish between vacant and occupied dwelling units using PUMS data ([#473](https://github.com/NREL/OpenStudio-BuildStock/pull/473)).
 
 Fixes
 - Based on RECS 2015, separate the plug load equations for single-family detached, single-family attached, and multifamily buildings ([#471](https://github.com/NREL/OpenStudio-BuildStock/pull/471))
