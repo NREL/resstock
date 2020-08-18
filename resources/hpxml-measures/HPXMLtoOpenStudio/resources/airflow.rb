@@ -1387,10 +1387,12 @@ class Airflow
     living_ach50 = nil
     living_const_ach = nil
     air_infils.each do |air_infil|
-      if (air_infil.unit_of_measure == HPXML::UnitsACH) && (air_infil.house_pressure == 50)
-        living_ach50 = air_infil.air_leakage
-      elsif (air_infil.unit_of_measure == HPXML::UnitsCFM) && (air_infil.house_pressure == 50)
-        living_ach50 = air_infil.air_leakage * 60.0 / @infil_volume # Convert CFM50 to ACH50
+      if (air_infil.unit_of_measure == HPXML::UnitsACH) && !air_infil.house_pressure.nil?
+        living_ach = air_infil.air_leakage
+        living_ach50 = calc_air_leakage_at_diff_pressure(0.65, living_ach, air_infil.house_pressure, 50.0)
+      elsif (air_infil.unit_of_measure == HPXML::UnitsCFM) && !air_infil.house_pressure.nil?
+        living_ach = air_infil.air_leakage * 60.0 / @infil_volume # Convert CFM to ACH
+        living_ach50 = calc_air_leakage_at_diff_pressure(0.65, living_ach, air_infil.house_pressure, 50.0)
       elsif air_infil.unit_of_measure == HPXML::UnitsACHNatural
         if @apply_ashrae140_assumptions
           living_const_ach = air_infil.air_leakage
@@ -1743,6 +1745,10 @@ class Airflow
 
   def self.calc_duct_leakage_at_diff_pressure(q_old, p_old, p_new)
     return q_old * (p_new / p_old)**0.6 # Derived from Equation C-1 (Annex C), p34, ASHRAE Standard 152-2004.
+  end
+
+  def self.calc_air_leakage_at_diff_pressure(n_i, q_old, p_old, p_new)
+    return q_old * (p_new / p_old)**n_i
   end
 
   def self.get_duct_insulation_rvalue(nominal_rvalue, side)
