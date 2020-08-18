@@ -888,9 +888,14 @@ class Geometry
   end
 
   def self.zone_is_of_type(zone, space_type)
+    # if any spaces in zone are space_type
+    result = false
     zone.spaces.each do |space|
-      return self.space_is_of_type(space, space_type)
+      next unless self.space_is_of_type(space, space_type)
+
+      result = true
     end
+    return result
   end
 
   def self.is_basement(space_or_zone)
