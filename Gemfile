@@ -1,6 +1,6 @@
 source 'http://rubygems.org'
 
-gem 'rake'
+gem 'rake', '~> 11.2.2'
 gem 'colored', '~> 1.2'
 gem 'git', require: false
 
@@ -9,10 +9,10 @@ group :test do
   gem 'rubocop', '~> 0.60.0'
   gem 'rubocop-checkstyle_formatter', '~> 0.4.0'
   gem 'ci_reporter_minitest', '~> 1.0.0'
-  gem 'simplecov'
-  gem 'codecov'
+  gem 'simplecov', '~> 0.17.1'
+  gem 'simplecov-html', '~> 0.10.0'
   gem 'minitest-reporters'
-  gem 'minitest-ci'
+  gem 'minitest-ci', :git => 'https://github.com/circleci/minitest-ci.git' # For CircleCI Automatic test metadata collection
 end
 
 gem 'json', '~> 1.8'

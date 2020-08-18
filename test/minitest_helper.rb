@@ -1,5 +1,4 @@
 require 'simplecov'
-require 'codecov'
 
 # save to CircleCI's artifacts directory if we're on CircleCI
 if ENV["CI"]
@@ -7,7 +6,6 @@ if ENV["CI"]
     dir = File.join(ENV['CIRCLE_ARTIFACTS'], "coverage")
     SimpleCov.coverage_dir(dir)
   end
-  SimpleCov.formatter = SimpleCov::Formatter::Codecov
 else # local
   SimpleCov.coverage_dir("coverage")
 end
