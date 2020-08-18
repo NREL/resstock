@@ -86,6 +86,8 @@ def create_osws
     'base-enclosure-beds-4.osw' => 'base.osw',
     'base-enclosure-beds-5.osw' => 'base.osw',
     'base-enclosure-garage.osw' => 'base.osw',
+    'base-enclosure-infil-ach-house-pressure.osw' => 'base.osw',
+    'base-enclosure-infil-cfm-house-pressure.osw' => 'base-enclosure-infil-cfm50.osw',
     'base-enclosure-infil-cfm50.osw' => 'base.osw',
     'base-enclosure-infil-flue.osw' => 'base.osw',
     'base-enclosure-infil-natural-ach.osw' => 'base.osw',
@@ -227,7 +229,9 @@ def create_osws
     'invalid_files/multifamily-bottom-crawlspace-zero-foundation-height.osw' => 'base-multifamily.osw',
     'invalid_files/slab-non-zero-foundation-height-above-grade.osw' => 'base.osw',
     'invalid_files/ducts-location-and-areas-not-same-type.osw' => 'base.osw',
-    'invalid_files/second-heating-system-serves-majority-heat.osw' => 'base.osw'
+    'invalid_files/second-heating-system-serves-majority-heat.osw' => 'base.osw',
+    'invalid_files/single-family-attached-no-building-orientation.osw' => 'base-single-family-attached.osw',
+    'invalid_files/multifamily-no-building-orientation.osw' => 'base-multifamily.osw'
   }
 
   puts "Generating #{osws_files.size} OSW files..."
@@ -397,6 +401,7 @@ def get_values(osw_file, step)
     step.setArgument('door_area', 80.0)
     step.setArgument('door_rvalue', 4.4)
     step.setArgument('air_leakage_units', HPXML::UnitsACH)
+    step.setArgument('air_leakage_house_pressure', 50)
     step.setArgument('air_leakage_value', 3)
     step.setArgument('air_leakage_shelter_coefficient', Constants.Auto)
     step.setArgument('heating_system_type', HPXML::HVACTypeFurnace)
@@ -1088,6 +1093,12 @@ def get_values(osw_file, step)
     step.setArgument('dishwasher_location', HPXML::LocationGarage)
     step.setArgument('refrigerator_location', HPXML::LocationGarage)
     step.setArgument('cooking_range_oven_location', HPXML::LocationGarage)
+  elsif ['base-enclosure-infil-ach-house-pressure.osw'].include? osw_file
+    step.setArgument('air_leakage_house_pressure', 45)
+    step.setArgument('air_leakage_value', 2.8014)
+  elsif ['base-enclosure-infil-cfm-house-pressure.osw'].include? osw_file
+    step.setArgument('air_leakage_house_pressure', 45)
+    step.setArgument('air_leakage_value', 1008.5039999999999)
   elsif ['base-enclosure-infil-cfm50.osw'].include? osw_file
     step.setArgument('air_leakage_units', HPXML::UnitsCFM)
     step.setArgument('air_leakage_value', 1080)
@@ -1945,6 +1956,13 @@ def get_values(osw_file, step)
     step.setArgument('heating_system_fraction_heat_load_served', 0.4)
     step.setArgument('heating_system_type_2', HPXML::HVACTypeFireplace)
     step.setArgument('heating_system_fraction_heat_load_served_2', 0.6)
+  elsif ['invalid_files/single-family-attached-no-building-orientation.osw'].include? osw_file
+    step.removeArgument('geometry_num_units')
+    step.removeArgument('geometry_horizontal_location')
+  elsif ['invalid_files/multifamily-no-building-orientation.osw'].include? osw_file
+    step.removeArgument('geometry_num_units')
+    step.removeArgument('geometry_level')
+    step.removeArgument('geometry_horizontal_location')
   end
   return step
 end
@@ -2142,6 +2160,8 @@ def create_hpxmls
     'base-enclosure-beds-4.xml' => 'base.xml',
     'base-enclosure-beds-5.xml' => 'base.xml',
     'base-enclosure-garage.xml' => 'base.xml',
+    'base-enclosure-infil-ach-house-pressure.xml' => 'base.xml',
+    'base-enclosure-infil-cfm-house-pressure.xml' => 'base-enclosure-infil-cfm50.xml',
     'base-enclosure-infil-cfm50.xml' => 'base.xml',
     'base-enclosure-infil-flue.xml' => 'base.xml',
     'base-enclosure-infil-natural-ach.xml' => 'base.xml',
@@ -2635,6 +2655,12 @@ def set_hpxml_air_infiltration_measurements(hpxml_file, hpxml)
                                             house_pressure: 50,
                                             unit_of_measure: HPXML::UnitsCFM,
                                             air_leakage: 3.0 / 60.0 * infil_volume)
+  elsif ['base-enclosure-infil-ach-house-pressure.xml'].include? hpxml_file
+    hpxml.air_infiltration_measurements[0].house_pressure = 45
+    hpxml.air_infiltration_measurements[0].air_leakage *= 0.9338
+  elsif ['base-enclosure-infil-cfm-house-pressure.xml'].include? hpxml_file
+    hpxml.air_infiltration_measurements[0].house_pressure = 45
+    hpxml.air_infiltration_measurements[0].air_leakage *= 0.9338
   elsif ['base-enclosure-infil-flue.xml'].include? hpxml_file
     hpxml.building_construction.has_flue_or_chimney = true
   end
