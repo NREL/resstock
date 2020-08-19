@@ -11,7 +11,7 @@ group :test do
   gem 'ci_reporter_minitest', '~> 1.0.0'
   gem 'simplecov', '~> 0.17.1'
   gem 'simplecov-html', '~> 0.10.0'
-  gem 'codecov', '0.2.1'
+  gem 'codecov', :git => 'https://github.com/codecov/codecov-ruby.git', :tag => 'v0.1.20'
   gem 'minitest-reporters'
   gem 'minitest-ci', :git => 'https://github.com/circleci/minitest-ci.git' # For CircleCI Automatic test metadata collection
 end
