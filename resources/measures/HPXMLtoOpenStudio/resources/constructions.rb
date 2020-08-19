@@ -1983,7 +1983,7 @@ class ThermalMassConstructions
                  partition_wall_frac_of_ffa = 1.0, furniture_frac_of_ffa = 0.4)
 
     if not apply_partition_walls(runner, model,
-                                 [],
+                                 walls_by_type[Constants.SurfaceTypeWallIntFinUninsFin],
                                  Constants.SurfaceTypeWallIntFinUninsFin,
                                  drywall_thick_in, partition_wall_frac_of_ffa)
       return false
@@ -2234,19 +2234,19 @@ class Construction
 
       # If single unit approach
       horz_location = model.getBuilding.additionalProperties.getFeatureAsString("horz_location")
-      # if horz_location.is_initialized
-      if surface.is_a? OpenStudio::Model::Surface and surface.outsideBoundaryCondition == "Adiabatic" and (surface.surfaceType == "RoofCeiling" or surface.surfaceType == "Wall")
-        if revconstr.nil?
-          revconstr = constr.reverseConstruction
+      if horz_location.is_initialized
+        if surface.is_a? OpenStudio::Model::Surface and surface.outsideBoundaryCondition == "Adiabatic" and (surface.surfaceType == "RoofCeiling" or surface.surfaceType == "Wall")
+          if revconstr.nil?
+            revconstr = constr.reverseConstruction
+          end
+          surface.setConstruction(revconstr)
+          if not printed_revconstr
+            print_construction_creation(runner, surface)
+            printed_revconstr = true
+          end
+          print_construction_assignment(runner, surface)
         end
-        surface.setConstruction(revconstr)
-        if not printed_revconstr
-          print_construction_creation(runner, surface)
-          printed_revconstr = true
-        end
-        print_construction_assignment(runner, surface)
       end
-      # end
 
       # Assign reverse construction to adjacent surface as needed
       next if surface.is_a? OpenStudio::Model::SubSurface or surface.is_a? OpenStudio::Model::InternalMassDefinition or not surface.adjacentSurface.is_initialized
