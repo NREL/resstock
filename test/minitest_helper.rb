@@ -6,7 +6,7 @@ rescue
 end
 
 if not called_from_cli # cli can't load codecov gem
-  Bundler.setup
+  require 'bundler/setup'
   require 'simplecov'
   require 'codecov'
 
