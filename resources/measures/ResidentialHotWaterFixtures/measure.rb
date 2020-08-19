@@ -287,6 +287,70 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
         end
 
         tot_sh_gpd += sh_gpd
+		# Unmet Shower Energy
+        obj_name_sh = obj_name_sh.gsub("unit ", "").gsub("|", "_")
+
+        vol_shower = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Water Use Equipment Hot Water Volume")
+        vol_shower.setName("#{obj_name_sh} vol")
+        vol_shower.setKeyName(sh_wu.name.to_s)
+
+        t_out_wh = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Water Heater Use Side Outlet Temperature")
+        t_out_wh.setName("#{obj_name_sh} tout")
+        model.getPlantLoops.each do |pl|
+          next if not pl.name.to_s.start_with? Constants.PlantLoopDomesticWater
+
+          wh = Waterheater.get_water_heater(model, pl, runner)
+          if wh.is_a? OpenStudio::Model::WaterHeaterHeatPumpWrappedCondenser
+            wh = wh.tank
+          end
+          t_out_wh.setKeyName(wh.name.to_s)
+        end
+
+        mix_sp_hw = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Schedule Value")
+        mix_sp_hw.setName("#{obj_name_sh} mixsp")
+        mix_sp_hw.setKeyName(sh_wu_def.targetTemperatureSchedule.get.name.to_s)
+
+        program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
+        program.setName("#{obj_name_sh} sag")
+        program.addLine("If #{vol_shower.name} > 0")
+        program.addLine("Set ShowerTime=SystemTimeStep")
+        program.addLine("Else")
+        program.addLine("Set ShowerTime=0")
+        program.addLine("EndIf")
+        program.addLine("If (#{vol_shower.name} > 0) && (#{mix_sp_hw.name} > #{t_out_wh.name})")
+        program.addLine("Set ShowerSag=SystemTimeStep")
+        program.addLine("Set ShowerE=#{vol_shower.name}*4141170*(#{mix_sp_hw.name}-#{t_out_wh.name})")
+        program.addLine("Else")
+        program.addLine("Set ShowerSag=0")
+        program.addLine("Set ShowerE=0")
+        program.addLine("EndIf")
+
+        program_calling_manager = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
+        program_calling_manager.setName("#{obj_name_sh} sag")
+        program_calling_manager.setCallingPoint("EndOfSystemTimestepAfterHVACReporting")
+        program_calling_manager.addProgram(program)
+
+        ems_output_var = OpenStudio::Model::EnergyManagementSystemOutputVariable.new(model, "ShowerE")
+        ems_output_var.setName("Unmet Shower Energy|#{unit.name}")
+        ems_output_var.setTypeOfDataInVariable("Summed")
+        ems_output_var.setUpdateFrequency("SystemTimestep")
+        ems_output_var.setEMSProgramOrSubroutineName(program)
+        ems_output_var.setUnits("J")
+
+        ems_output_var = OpenStudio::Model::EnergyManagementSystemOutputVariable.new(model, "ShowerSag")
+        ems_output_var.setName("Unmet Shower Time|#{unit.name}")
+        ems_output_var.setTypeOfDataInVariable("Summed")
+        ems_output_var.setUpdateFrequency("SystemTimestep")
+        ems_output_var.setEMSProgramOrSubroutineName(program)
+        ems_output_var.setUnits("hr")
+
+        ems_output_var = OpenStudio::Model::EnergyManagementSystemOutputVariable.new(model, "ShowerTime")
+        ems_output_var.setName("Shower Draw Time|#{unit.name}")
+        ems_output_var.setTypeOfDataInVariable("Summed")
+        ems_output_var.setUpdateFrequency("SystemTimestep")
+        ems_output_var.setEMSProgramOrSubroutineName(program)
+        ems_output_var.setUnits("hr")
+      end
       end
 
       # Sinks
