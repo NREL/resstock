@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Location
   def self.get_climate_zones
     zones_csv = File.join(File.dirname(__FILE__), '../../HPXMLtoOpenStudio/resources/climate_zones.csv')
