@@ -184,32 +184,6 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(2.0)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('geometry_num_units', false)
-    arg.setDisplayName('Geometry: Number of Units')
-    arg.setUnits('#')
-    arg.setDescription("The number of units in the building. This is required for #{HPXML::ResidentialTypeSFA} and #{HPXML::ResidentialTypeApartment} buildings.")
-    args << arg
-
-    level_choices = OpenStudio::StringVector.new
-    level_choices << 'Bottom'
-    level_choices << 'Middle'
-    level_choices << 'Top'
-
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('geometry_level', level_choices, false)
-    arg.setDisplayName('Geometry: Level')
-    arg.setDescription("The level of the #{HPXML::ResidentialTypeApartment} unit.")
-    args << arg
-
-    horizontal_location_choices = OpenStudio::StringVector.new
-    horizontal_location_choices << 'Left'
-    horizontal_location_choices << 'Middle'
-    horizontal_location_choices << 'Right'
-
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('geometry_horizontal_location', horizontal_location_choices, false)
-    arg.setDisplayName('Geometry: Horizontal Location')
-    arg.setDescription("The horizontal location of the #{HPXML::ResidentialTypeSFA} or #{HPXML::ResidentialTypeApartment} unit when viewing the front of the building.")
-    args << arg
-
     corridor_position_choices = OpenStudio::StringVector.new
     corridor_position_choices << 'Double-Loaded Interior'
     corridor_position_choices << 'Single Exterior (Front)'
@@ -380,20 +354,55 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('geometry_num_bedrooms', true)
     arg.setDisplayName('Geometry: Number of Bedrooms')
+    arg.setUnits('#')
     arg.setDescription('Specify the number of bedrooms. Used to determine the energy usage of appliances and plug loads, hot water usage, etc.')
     arg.setDefaultValue(3)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('geometry_num_bathrooms', true)
     arg.setDisplayName('Geometry: Number of Bathrooms')
+    arg.setUnits('#')
     arg.setDescription('Specify the number of bathrooms.')
     arg.setDefaultValue(Constants.Auto)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('geometry_num_occupants', true)
     arg.setDisplayName('Geometry: Number of Occupants')
+    arg.setUnits('#')
     arg.setDescription("Specify the number of occupants. A value of '#{Constants.Auto}' will calculate the average number of occupants from the number of bedrooms. Used to specify the internal gains from people only.")
     arg.setDefaultValue(Constants.Auto)
+    args << arg
+
+    level_choices = OpenStudio::StringVector.new
+    level_choices << 'Bottom'
+    level_choices << 'Middle'
+    level_choices << 'Top'
+
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('geometry_level', level_choices, false)
+    arg.setDisplayName('Geometry: Level')
+    arg.setDescription("The level of the #{HPXML::ResidentialTypeApartment} unit.")
+    args << arg
+
+    horizontal_location_choices = OpenStudio::StringVector.new
+    horizontal_location_choices << 'Left'
+    horizontal_location_choices << 'Middle'
+    horizontal_location_choices << 'Right'
+
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('geometry_horizontal_location', horizontal_location_choices, false)
+    arg.setDisplayName('Geometry: Horizontal Location')
+    arg.setDescription("The horizontal location of the #{HPXML::ResidentialTypeSFA} or #{HPXML::ResidentialTypeApartment} unit when viewing the front of the building.")
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('geometry_building_num_units', false)
+    arg.setDisplayName('Geometry: Building Number of Units')
+    arg.setUnits('#')
+    arg.setDescription("The number of units in the building. This is required for #{HPXML::ResidentialTypeSFA} and #{HPXML::ResidentialTypeApartment} buildings.")
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('geometry_building_num_bedrooms', false)
+    arg.setDisplayName('Geometry: Building Number of Bedrooms')
+    arg.setUnits('#')
+    arg.setDescription("The number of bedrooms in the building. This is required for #{HPXML::ResidentialTypeSFA} and #{HPXML::ResidentialTypeApartment} buildings with shared PV systems.")
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('floor_assembly_r', true)
@@ -1838,7 +1847,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('pv_system_max_power_output_1', true)
     arg.setDisplayName('Photovoltaics 1: Maximum Power Output')
     arg.setUnits('W')
-    arg.setDescription('Maximum power output of the PV system 1.')
+    arg.setDescription('Maximum power output of the PV system 1. For a shared system, this is the total building maximum power output.')
     arg.setDefaultValue(4000)
     args << arg
 
@@ -1854,10 +1863,9 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDescription('System losses fraction of the PV system 1.')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('pv_system_year_modules_manufactured_1', false)
-    arg.setDisplayName('Photovoltaics 1: Year Modules Manufactured')
-    arg.setUnits('Year')
-    arg.setDescription('Year modules manufactured of the PV system 1.')
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('pv_system_is_shared_1', true)
+    arg.setDisplayName('Photovoltaics 1: Is Shared System')
+    arg.setDescription('Whether PV system 1 is shared. If true, assumed to serve all the units in the building.')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('pv_system_module_type_2', pv_system_module_type_choices, true)
@@ -1895,7 +1903,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('pv_system_max_power_output_2', true)
     arg.setDisplayName('Photovoltaics 2: Maximum Power Output')
     arg.setUnits('W')
-    arg.setDescription('Maximum power output of the PV system 2.')
+    arg.setDescription('Maximum power output of the PV system 2. For a shared system, this is the total building maximum power output.')
     arg.setDefaultValue(4000)
     args << arg
 
@@ -1911,10 +1919,9 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDescription('System losses fraction of the PV system 2.')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('pv_system_year_modules_manufactured_2', false)
-    arg.setDisplayName('Photovoltaics 2: Year Modules Manufactured')
-    arg.setUnits('Year')
-    arg.setDescription('Year modules manufactured of the PV system 2.')
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('pv_system_is_shared_2', true)
+    arg.setDisplayName('Photovoltaics 2: Is Shared System')
+    arg.setDescription('Whether PV system 2 is shared. If true, assumed to serve all the units in the building.')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('lighting_fraction_cfl_interior', true)
@@ -3157,9 +3164,6 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
              geometry_wall_height: runner.getDoubleArgumentValue('geometry_wall_height', user_arguments),
              geometry_orientation: runner.getDoubleArgumentValue('geometry_orientation', user_arguments),
              geometry_aspect_ratio: runner.getDoubleArgumentValue('geometry_aspect_ratio', user_arguments),
-             geometry_num_units: runner.getOptionalIntegerArgumentValue('geometry_num_units', user_arguments),
-             geometry_level: runner.getOptionalStringArgumentValue('geometry_level', user_arguments),
-             geometry_horizontal_location: runner.getOptionalStringArgumentValue('geometry_horizontal_location', user_arguments),
              geometry_corridor_position: runner.getStringArgumentValue('geometry_corridor_position', user_arguments),
              geometry_corridor_width: runner.getDoubleArgumentValue('geometry_corridor_width', user_arguments),
              geometry_inset_width: runner.getDoubleArgumentValue('geometry_inset_width', user_arguments),
@@ -3181,6 +3185,10 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
              geometry_num_bedrooms: runner.getIntegerArgumentValue('geometry_num_bedrooms', user_arguments),
              geometry_num_bathrooms: runner.getStringArgumentValue('geometry_num_bathrooms', user_arguments),
              geometry_num_occupants: runner.getStringArgumentValue('geometry_num_occupants', user_arguments),
+             geometry_level: runner.getOptionalStringArgumentValue('geometry_level', user_arguments),
+             geometry_horizontal_location: runner.getOptionalStringArgumentValue('geometry_horizontal_location', user_arguments),
+             geometry_building_num_units: runner.getOptionalIntegerArgumentValue('geometry_building_num_units', user_arguments),
+             geometry_building_num_bedrooms: runner.getOptionalIntegerArgumentValue('geometry_building_num_bedrooms', user_arguments),
              floor_assembly_r: runner.getDoubleArgumentValue('floor_assembly_r', user_arguments),
              foundation_wall_insulation_r: runner.getDoubleArgumentValue('foundation_wall_insulation_r', user_arguments),
              foundation_wall_insulation_distance_to_top: runner.getDoubleArgumentValue('foundation_wall_insulation_distance_to_top', user_arguments),
@@ -3374,7 +3382,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
              pv_system_max_power_output_1: runner.getDoubleArgumentValue('pv_system_max_power_output_1', user_arguments),
              pv_system_inverter_efficiency_1: runner.getOptionalDoubleArgumentValue('pv_system_inverter_efficiency_1', user_arguments),
              pv_system_system_losses_fraction_1: runner.getOptionalDoubleArgumentValue('pv_system_system_losses_fraction_1', user_arguments),
-             pv_system_year_modules_manufactured_1: runner.getOptionalIntegerArgumentValue('pv_system_year_modules_manufactured_1', user_arguments),
+             pv_system_is_shared_1: runner.getBoolArgumentValue('pv_system_is_shared_1', user_arguments),
              pv_system_module_type_2: runner.getStringArgumentValue('pv_system_module_type_2', user_arguments),
              pv_system_location_2: runner.getStringArgumentValue('pv_system_location_2', user_arguments),
              pv_system_tracking_2: runner.getStringArgumentValue('pv_system_tracking_2', user_arguments),
@@ -3383,7 +3391,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
              pv_system_max_power_output_2: runner.getDoubleArgumentValue('pv_system_max_power_output_2', user_arguments),
              pv_system_inverter_efficiency_2: runner.getOptionalDoubleArgumentValue('pv_system_inverter_efficiency_2', user_arguments),
              pv_system_system_losses_fraction_2: runner.getOptionalDoubleArgumentValue('pv_system_system_losses_fraction_2', user_arguments),
-             pv_system_year_modules_manufactured_2: runner.getOptionalIntegerArgumentValue('pv_system_year_modules_manufactured_2', user_arguments),
+             pv_system_is_shared_2: runner.getBoolArgumentValue('pv_system_is_shared_2', user_arguments),
              lighting_fraction_cfl_interior: runner.getDoubleArgumentValue('lighting_fraction_cfl_interior', user_arguments),
              lighting_fraction_lfl_interior: runner.getDoubleArgumentValue('lighting_fraction_lfl_interior', user_arguments),
              lighting_fraction_led_interior: runner.getDoubleArgumentValue('lighting_fraction_led_interior', user_arguments),
@@ -3623,12 +3631,28 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     warnings << "heating_system_type_2=#{args[:heating_system_type_2]} and heating_system_fraction_heat_load_served_2=#{args[:heating_system_fraction_heat_load_served_2]}" if warning
 
     # single-family attached and num units, horizontal location not specified
-    error = (args[:geometry_unit_type] == HPXML::ResidentialTypeSFA) && (!args[:geometry_num_units].is_initialized || !args[:geometry_horizontal_location].is_initialized)
-    errors << "geometry_unit_type=#{args[:geometry_unit_type]} and geometry_num_units=#{args[:geometry_num_units].is_initialized} and geometry_horizontal_location=#{args[:geometry_horizontal_location].is_initialized}" if error
+    error = (args[:geometry_unit_type] == HPXML::ResidentialTypeSFA) && (!args[:geometry_building_num_units].is_initialized || !args[:geometry_horizontal_location].is_initialized)
+    errors << "geometry_unit_type=#{args[:geometry_unit_type]} and geometry_building_num_units=#{args[:geometry_building_num_units].is_initialized} and geometry_horizontal_location=#{args[:geometry_horizontal_location].is_initialized}" if error
 
     # apartment unit and num units, level, horizontal location not specified
-    error = (args[:geometry_unit_type] == HPXML::ResidentialTypeApartment) && (!args[:geometry_num_units].is_initialized || !args[:geometry_level].is_initialized || !args[:geometry_horizontal_location].is_initialized)
-    errors << "geometry_unit_type=#{args[:geometry_unit_type]} and geometry_num_units=#{args[:geometry_num_units].is_initialized} and geometry_level=#{args[:geometry_level].is_initialized} and geometry_horizontal_location=#{args[:geometry_horizontal_location].is_initialized}" if error
+    error = (args[:geometry_unit_type] == HPXML::ResidentialTypeApartment) && (!args[:geometry_building_num_units].is_initialized || !args[:geometry_level].is_initialized || !args[:geometry_horizontal_location].is_initialized)
+    errors << "geometry_unit_type=#{args[:geometry_unit_type]} and geometry_building_num_units=#{args[:geometry_building_num_units].is_initialized} and geometry_level=#{args[:geometry_level].is_initialized} and geometry_horizontal_location=#{args[:geometry_horizontal_location].is_initialized}" if error
+
+    # crawlspace or unconditioned basement with foundation wall and ceiling insulation
+    warning = [HPXML::FoundationTypeCrawlspaceVented, HPXML::FoundationTypeCrawlspaceUnvented, HPXML::FoundationTypeBasementUnconditioned].include?(args[:geometry_foundation_type]) && ((args[:foundation_wall_insulation_r] > 0) || (args[:foundation_wall_assembly_r].is_initialized && (args[:foundation_wall_assembly_r].get > 0))) && (args[:floor_assembly_r] > 2.1)
+    warnings << "geometry_foundation_type=#{args[:geometry_foundation_type]} and foundation_wall_insulation_r=#{args[:foundation_wall_insulation_r]} and foundation_wall_assembly_r=#{args[:foundation_wall_assembly_r].is_initialized} and floor_assembly_r=#{args[:floor_assembly_r]}" if warning
+
+    # vented/unvented attic with floor and roof insulation
+    warning = [HPXML::AtticTypeVented, HPXML::AtticTypeUnvented].include?(args[:geometry_attic_type]) && (args[:geometry_roof_type] != 'flat') && (args[:ceiling_assembly_r] > 2.1) && (args[:roof_assembly_r] > 2.3)
+    warnings << "geometry_attic_type=#{args[:geometry_attic_type]} and ceiling_assembly_r=#{args[:ceiling_assembly_r]} and roof_assembly_r=#{args[:roof_assembly_r]}" if warning
+
+    # conditioned basement with ceiling insulation
+    warning = (args[:geometry_foundation_type] == HPXML::FoundationTypeBasementConditioned) && (args[:floor_assembly_r] > 2.1)
+    warnings << "geometry_foundation_type=#{args[:geometry_foundation_type]} and floor_assembly_r=#{args[:floor_assembly_r]}" if warning
+
+    # conditioned attic with floor insulation
+    warning = (args[:geometry_attic_type] == HPXML::AtticTypeConditioned) && (args[:geometry_roof_type] != 'flat') && (args[:ceiling_assembly_r] > 2.1)
+    warnings << "geometry_attic_type=#{args[:geometry_attic_type]} and ceiling_assembly_r=#{args[:ceiling_assembly_r]}" if warning
 
     return warnings, errors
   end
@@ -4105,6 +4129,14 @@ class HPXMLFile
   end
 
   def self.set_frame_floors(hpxml, runner, model, args)
+    if [HPXML::FoundationTypeBasementConditioned].include?(args[:geometry_foundation_type]) && (args[:floor_assembly_r] > 2.1)
+      args[:floor_assembly_r] = 2.1 # Uninsulated
+    end
+
+    if [HPXML::AtticTypeConditioned].include?(args[:geometry_attic_type]) && (args[:geometry_roof_type] != 'flat') && (args[:ceiling_assembly_r] > 2.1)
+      args[:ceiling_assembly_r] = 2.1 # Uninsulated
+    end
+
     model.getSurfaces.sort.each do |surface|
       next if surface.outsideBoundaryCondition == 'Foundation'
       next unless ['Floor', 'RoofCeiling'].include? surface.surfaceType
@@ -4815,7 +4847,7 @@ class HPXMLFile
 
     if args[:water_heater_is_shared_system]
       is_shared_system = args[:water_heater_is_shared_system]
-      number_of_units_served = args[:geometry_num_units].get
+      number_of_units_served = args[:geometry_building_num_units].get
     end
 
     hpxml.water_heating_systems.add(id: 'WaterHeater',
@@ -4947,6 +4979,8 @@ class HPXMLFile
     [args[:pv_system_module_type_1], args[:pv_system_module_type_2]].each_with_index do |module_type, i|
       next if module_type == 'none'
 
+      max_power_output = [args[:pv_system_max_power_output_1], args[:pv_system_max_power_output_2]][i]
+
       if [args[:pv_system_inverter_efficiency_1], args[:pv_system_inverter_efficiency_2]][i].is_initialized
         inverter_efficiency = [args[:pv_system_inverter_efficiency_1], args[:pv_system_inverter_efficiency_2]][i].get
       end
@@ -4955,8 +4989,11 @@ class HPXMLFile
         system_losses_fraction = [args[:pv_system_system_losses_fraction_1], args[:pv_system_system_losses_fraction_2]][i].get
       end
 
-      if [args[:pv_system_year_modules_manufactured_1], args[:pv_system_year_modules_manufactured_2]][i].is_initialized
-        year_modules_manufactured = [args[:pv_system_year_modules_manufactured_1], args[:pv_system_year_modules_manufactured_2]][i].get
+      is_shared_system = false
+      if [args[:pv_system_is_shared_1], args[:pv_system_is_shared_2]][i]
+        is_shared_system = [args[:pv_system_is_shared_1], args[:pv_system_is_shared_2]][i]
+        building_max_power_output = max_power_output
+        number_of_bedrooms_served = args[:geometry_building_num_bedrooms].get
       end
 
       hpxml.pv_systems.add(id: "PVSystem#{i + 1}",
@@ -4965,11 +5002,12 @@ class HPXMLFile
                            tracking: [args[:pv_system_tracking_1], args[:pv_system_tracking_2]][i],
                            array_azimuth: [args[:pv_system_array_azimuth_1], args[:pv_system_array_azimuth_2]][i],
                            array_tilt: get_absolute_tilt([args[:pv_system_array_tilt_1], args[:pv_system_array_tilt_2]][i], hpxml.roofs[-1].pitch, weather),
-                           max_power_output: [args[:pv_system_max_power_output_1], args[:pv_system_max_power_output_2]][i],
+                           max_power_output: max_power_output,
                            inverter_efficiency: inverter_efficiency,
                            system_losses_fraction: system_losses_fraction,
-                           year_modules_manufactured: year_modules_manufactured,
-                           is_shared_system: false)
+                           is_shared_system: is_shared_system,
+                           building_max_power_output: building_max_power_output,
+                           number_of_bedrooms_served: number_of_bedrooms_served)
     end
   end
 

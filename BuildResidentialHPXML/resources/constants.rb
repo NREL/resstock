@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Constants
   def self.Auto
     return 'auto'
