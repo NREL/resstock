@@ -1866,6 +1866,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument('pv_system_is_shared_1', true)
     arg.setDisplayName('Photovoltaics 1: Is Shared System')
     arg.setDescription('Whether PV system 1 is shared. If true, assumed to serve all the units in the building.')
+    arg.setDefaultValue(false)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('pv_system_module_type_2', pv_system_module_type_choices, true)
@@ -1922,6 +1923,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument('pv_system_is_shared_2', true)
     arg.setDisplayName('Photovoltaics 2: Is Shared System')
     arg.setDescription('Whether PV system 2 is shared. If true, assumed to serve all the units in the building.')
+    arg.setDefaultValue(false)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('lighting_fraction_cfl_interior', true)
