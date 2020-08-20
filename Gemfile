@@ -1,6 +1,6 @@
 source 'http://rubygems.org'
 
-gem 'rake', '~> 11.2.2'
+gem 'rake'
 gem 'colored', '~> 1.2'
 gem 'git', require: false
 gem 'json', '~> 1.8'

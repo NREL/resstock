@@ -16,19 +16,19 @@ jobs:
       - run:
           name: Update all measures
           command: |
-            bundle exec rake update_measures
+            rake update_measures
       - run: 
           name: Regenerate test osms
           command: |
-            bundle exec rake test:regenerate_osms
+            rake test:regenerate_osms
       - run: 
           name: Run all unit tests
           command: |
-            bundle exec rake test:unit_tests
+            rake test:unit_tests
       - run:
           name: Run all regression tests
           command: |
-            bundle exec rake test:regression_tests
+            rake test:regression_tests
       - store_artifacts:
             path: workflows/results
             destination: results
