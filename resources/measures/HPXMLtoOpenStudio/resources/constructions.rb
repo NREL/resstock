@@ -2612,7 +2612,7 @@ class SurfaceTypes
           surfaces[Constants.SurfaceTypeWallFndGrndUnfinB] << surface
 
         # Exterior crawlspace
-        elsif Geometry.is_crawl(space) and (obc_is_foundation or obc_is_adiabatic)
+        elsif Geometry.is_crawl(space) and (obc_is_foundation) # or obc_is_adiabatic)
           surfaces[Constants.SurfaceTypeWallFndGrndCS] << surface
 
         # Adiabatic finished
