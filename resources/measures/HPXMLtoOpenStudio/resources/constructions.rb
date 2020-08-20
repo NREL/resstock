@@ -1549,19 +1549,6 @@ class FoundationConstructions
       surface.createSurfacePropertyExposedFoundationPerimeter("TotalExposedPerimeter", UnitConversions.convert(exposed_perimeter, "ft", "m"))
     end
 
-    # Exposed perimeter
-    # if exposed_perimeter.nil?
-    #   exposed_perimeter = Geometry.calculate_exposed_perimeter(model, [surface], has_fnd_walls)
-    # end
-    # if exposed_perimeter == 0
-    #   runner.registerError("Calculated an exposed perimeter <= 0 for slab '#{surface.name.to_s}'.")
-    #   return false
-    # end
-
-    # Assign surface to Kiva foundation
-    # surface.setAdjacentFoundation(foundation)
-    # surface.createSurfacePropertyExposedFoundationPerimeter("TotalExposedPerimeter", UnitConversions.convert(exposed_perimeter, "ft", "m"))
-
     return true
   end
 
@@ -2604,11 +2591,11 @@ class SurfaceTypes
           end
 
         # Exterior finished basement
-        elsif Geometry.is_finished_basement(space) and (obc_is_foundation) # or obc_is_adiabatic)
+        elsif Geometry.is_finished_basement(space) and obc_is_foundation
           surfaces[Constants.SurfaceTypeWallFndGrndFinB] << surface
 
         # Exterior unfinished basement
-        elsif Geometry.is_unfinished_basement(space) and (obc_is_foundation) # or obc_is_adiabatic)
+        elsif Geometry.is_unfinished_basement(space) and obc_is_foundation
           surfaces[Constants.SurfaceTypeWallFndGrndUnfinB] << surface
 
         # Exterior crawlspace
@@ -2673,12 +2660,6 @@ class SurfaceTypes
         # Exterior uninsulated unfinished
         elsif obc_is_exterior
           surfaces[Constants.SurfaceTypeRoofUnfinUninsExt] << surface
-
-        # elsif singleunit_mf
-        #   # Adiabatic
-        #   if obc_is_adiabatic
-        #     surfaces[Constants.SurfaceTypeRoofAdiabatic] << surface
-        #   end
 
         elsif obc_is_adiabatic
           surfaces[Constants.SurfaceTypeRoofAdiabatic] << surface

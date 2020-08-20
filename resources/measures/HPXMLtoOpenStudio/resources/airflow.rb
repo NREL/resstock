@@ -154,7 +154,7 @@ class Airflow
       tout_sensor.setName("#{obj_name_airflow} tt s")
       tout_sensor.setKeyName(unit_living.zone.name.to_s)
 
-      # Update model
+      # Update model  #####
       def self.print_instance_vars(instance)
         puts("_______ #{instance}_________")
         instance.instance_variables.each do |var|
@@ -233,9 +233,6 @@ class Airflow
         ub.zone.additionalProperties.setFeature(Constants.SizingInfoZoneInfiltrationCFM, ub.inf_flow.to_f)
       end
     end
-    # unless building.unfinished_attic.nil?
-    #   building.unfinished_attic.zone.additionalProperties.setFeature(Constants.SizingInfoZoneInfiltrationCFM, building.unfinished_attic.inf_flow)
-    # end
     unless building.unfinished_attic.empty?
       building.unfinished_attic.each do |ua|
         ua.zone.additionalProperties.setFeature(Constants.SizingInfoZoneInfiltrationCFM, ua.inf_flow)
@@ -513,7 +510,6 @@ class Airflow
     spaces += building.unfinished_basement if not building.unfinished_basement.empty?
     spaces += building.crawlspace if not building.crawlspace.empty?
     spaces << building.pierbeam if not building.pierbeam.nil?
-    # spaces << building.unfinished_attic if not building.unfinished_attic.nil?
     spaces += building.unfinished_attic if not building.unfinished_attic.empty?
 
     unless building.garage.nil?
@@ -536,8 +532,6 @@ class Airflow
 
     unless building.crawlspace.empty?
       building.crawlspace.each do |cs|
-        # building.crawlspace.inf_method = @infMethodRes
-        # building.crawlspace.inf_flow = building.crawlspace.ACH / UnitConversions.convert(1.0, "hr", "min") * building.crawlspace.volume
         cs.inf_method = @infMethodRes
         cs.inf_flow = cs.ACH / UnitConversions.convert(1.0, "hr", "min") * cs.volume
       end
@@ -547,18 +541,6 @@ class Airflow
       building.pierbeam.inf_method = @infMethodRes
       building.pierbeam.inf_flow = building.pierbeam.ACH / UnitConversions.convert(1.0, "hr", "min") * building.pierbeam.volume
     end
-
-    # unless building.unfinished_attic.nil?
-    #   if not building.unfinished_attic.SLA.nil?
-    #     building.unfinished_attic.inf_method = @infMethodSG
-    #     building.unfinished_attic.hor_lk_frac = 0.75 # Same as Energy Gauge USA Attic Model
-    #     building.unfinished_attic.neutral_level = 0.5 # DOE-2 Default
-    #     building.unfinished_attic.ACH = Airflow.get_infiltration_ACH_from_SLA(building.unfinished_attic.SLA, 1.0, weather)
-    #   elsif not building.unfinished_attic.ACH.nil?
-    #     building.unfinished_attic.inf_method = @infMethodRes
-    #   end
-    #   building.unfinished_attic.inf_flow = building.unfinished_attic.ACH / UnitConversions.convert(1.0, "hr", "min") * building.unfinished_attic.volume
-    # end
 
     unless building.unfinished_attic.empty?
       building.unfinished_attic.each do |ua|
@@ -711,10 +693,6 @@ class Airflow
       if (not building.pierbeam.nil? and building.pierbeam.ACH > 0)
         vented_crawl = true
       end
-
-      # if (not building.crawlspace.nil? and building.crawlspace.ACH > 0) or (not building.pierbeam.nil? and building.pierbeam.ACH > 0)
-      #   vented_crawl = true
-      # end
 
       # MF vented_crawl
       found_type = model.getBuilding.additionalProperties.getFeatureAsString("found_type")
