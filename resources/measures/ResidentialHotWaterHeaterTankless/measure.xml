@@ -34,14 +34,51 @@
       </choices>
     </argument>
     <argument>
+      <name>setpoint_type</name>
+      <display_name>Setpoint type</display_name>
+      <description>The water heater setpoint type. The 'constant' option will use a constant value for the whole year, while 'scheduled' will use 8760 values in a schedule file.</description>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>true</model_dependent>
+      <default_value>constant</default_value>
+      <choices>
+        <choice>
+          <value>constant</value>
+          <display_name>constant</display_name>
+        </choice>
+        <choice>
+          <value>scheduled</value>
+          <display_name>scheduled</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
       <name>setpoint_temp</name>
       <display_name>Setpoint</display_name>
-      <description>Water heater setpoint temperature.</description>
+      <description>Water heater setpoint temperature. This value will be ignored if the setpoint type is Scheduled.</description>
       <type>Double</type>
       <units>F</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>125</default_value>
+    </argument>
+    <argument>
+      <name>schedules_directory</name>
+      <display_name>Setpoint and Operating Mode Schedule Directory</display_name>
+      <description>Absolute (or relative) directory to schedule files. This argument will be ignored if a constant setpoint type is used instead.</description>
+      <type>String</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>./resources</default_value>
+    </argument>
+    <argument>
+      <name>setpoint_schedule</name>
+      <display_name>Setpoint Schedule File Name</display_name>
+      <description>Name of the hourly setpoint schedule. Setpoint should be defined (in F) for every hour. The operating mode schedule must also be located in the same location.</description>
+      <type>String</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>hourly_setpoint_schedule.csv</default_value>
     </argument>
     <argument>
       <name>location</name>

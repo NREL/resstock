@@ -351,7 +351,6 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
         ems_output_var.setEMSProgramOrSubroutineName(program)
         ems_output_var.setUnits("hr")
       end
-      end
 
       # Sinks
       if s_gpd > 0

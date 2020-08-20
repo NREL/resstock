@@ -265,18 +265,18 @@ class Waterheater
     u_tank = (5.678 * tank_ua) / UnitConversions.convert(a_tank, "m^2", "ft^2")
 
     if hpwh_param == 50
-      h_UE = (1 - (3.5 / 12)) * h_tank # in the 4th node of the tank (counting from top)
-      h_LE = (1 - (10.5 / 12)) * h_tank # in the 11th node of the tank (counting from top)
-      h_condtop = (1 - (5.5 / 12)) * h_tank # in the 6th node of the tank (counting from top)
-      h_condbot = (1 - (10.99 / 12)) * h_tank # in the 11th node of the tank
-      h_hpctrl = (1 - (2.5 / 12)) * h_tank # in the 3rd node of the tank
+      h_UE = 0.708333 * h_tank # in the 4th node of the tank (counting from top)
+      h_LE = 0.125 * h_tank # in the 11th node of the tank (counting from top)
+      h_condtop = 0.54167 * h_tank # in the 6th node of the tank (counting from top)
+      h_condbot = 0.084167 * h_tank # in the 11th node of the tank
+      h_hpctrl = 0.791667 * h_tank # in the 3rd node of the tank
     else
-      h_UE = (1 - (3.5 / 12)) * h_tank # in the 3rd node of the tank (counting from top)
-      h_LE = (1 - (9.5 / 12)) * h_tank # in the 10th node of the tank (counting from top)
-      h_condtop = (1 - (5.5 / 12)) * h_tank # in the 6th node of the tank (counting from top)
+      h_UE = 0.708333 * h_tank # in the 3rd node of the tank (counting from top)
+      h_LE = 0.208333 * h_tank # in the 10th node of the tank (counting from top)
+      h_condtop = 0.54167 * h_tank # in the 6th node of the tank (counting from top)
       h_condbot = 0.01 # bottom node
-      h_hpctrl_up = (1 - (2.5 / 12)) * h_tank # in the 3rd node of the tank
-      h_hpctrl_low = (1 - (8.5 / 12)) * h_tank # in the 9th node of the tank
+      h_hpctrl_up = 0.791667 * h_tank # in the 3rd node of the tank
+      h_hpctrl_low = 0.291667 * h_tank # in the 9th node of the tank
     end
 
     # Calculate an altitude adjusted rated evaporator wetbulb temperature
@@ -1272,8 +1272,8 @@ class Waterheater
 
       h_tank = 1.2192 # 4 feet in m, using the relationship currently assumed in BEopt
       # height of upper and lower element based on TRNSYS assumptions for an ERWH
-      h_UE = (1. - (4. / 13.)) * h_tank
-      h_LE = (1. - (13. / 15.)) * h_tank
+      h_UE = 0.733333333 * h_tank #node 4
+      h_LE = 0.133333333 * h_tank #node 13
 
       # Add a WaterHeater:Stratified to the model
       new_heater = OpenStudio::Model::WaterHeaterStratified.new(model)
