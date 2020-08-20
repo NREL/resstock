@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 def integrity_check(project_dir_name, housing_characteristics_dir = 'housing_characteristics', lookup_file = nil)
   # Load helper file and sampling file
   resources_dir = File.join(File.dirname(__FILE__), '../resources')

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # This file is only used to run all tests and collect results on the CI.
 # All rake tasks have been moved to tasks.rb.
 
