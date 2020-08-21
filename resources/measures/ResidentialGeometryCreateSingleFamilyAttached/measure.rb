@@ -545,10 +545,6 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
 
     if attic_type == "unfinished attic" and roof_type != Constants.RoofTypeFlat
       if offset == 0
-        # x *= num_units
-        # if has_rear_units
-        #   x /= 2
-        # end
         attic_spaces.each do |attic_space|
           attic_space.remove
         end

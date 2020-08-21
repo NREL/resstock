@@ -564,50 +564,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     if foundation_height > 0
       foundation_spaces = []
 
-      # One surface for foundation floor #
-      # floor_surfaces = []
-      # model.getSpaces.each do |space|
-      #     surfaces = space.surfaces
-      #     surfaces.each do |surface|
-      #       next unless surface.surfaceType.downcase == "floor"
-      #       floor_surfaces << surface
-      #   end
-      # end
-      # min_x, max_x, min_y, max_y = 0, 0, 0, 0
-      # floor_surfaces.each do |surface|
-      #   surface.vertices.each do |vertex|
-      #     if vertex.x < min_x
-      #       min_x = vertex.x
-      #     elsif vertex.x > max_x
-      #       max_x = vertex.x
-      #     end
-
-      #     if vertex.y < min_y
-      #       min_y = vertex.y
-      #     elsif vertex.y > max_y
-      #       max_y = vertex.y
-      #     end
-      #   end
-      # end
-
-      # nw_point = OpenStudio::Point3d.new(min_x, max_y, 0)
-      # ne_point = OpenStudio::Point3d.new(max_x, max_y, 0)
-      # sw_point = OpenStudio::Point3d.new(min_x, min_y, 0)
-      # se_point = OpenStudio::Point3d.new(max_x, min_y, 0)
-
-      # foundation_floor_polygon = Geometry.make_polygon(sw_point, nw_point, ne_point, se_point)
-      # foundation_space = OpenStudio::Model::Space::fromFloorPrint(foundation_floor_polygon, foundation_height, model)
-      # foundation_space = foundation_space.get
-      # m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4, 4, 0))
-      # m[2, 3] = foundation_height
-      # foundation_space.changeTransformation(OpenStudio::Transformation.new(m))
-      # foundation_space.setXOrigin(0)
-      # foundation_space.setYOrigin(0)
-      # foundation_space.setZOrigin(0)
-
-      # foundation_spaces << foundation_space
-
-      # Multiple surfaces for foundation + foundation corridor floors #
+      # Multiple surfaces for foundation + foundation corridor floors
       # foundation corridor
       foundation_corridor_space = nil
       if corridor_width > 0 and corridor_position == "Double-Loaded Interior"
@@ -638,7 +595,6 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
 
       foundation_spaces.each do |foundation_space| # Individual foundation spaces (corridor and foundation)
         if (["crawlspace", "unfinished basement"].include? foundation_type)
-          # foundation_space = Geometry.make_one_space_from_multiple_spaces(model, foundation_spaces)
           foundation_space = foundation_space
           if foundation_type == "crawlspace"
             foundation_space.setName("crawl space")
@@ -783,7 +739,6 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
 
     # Store number of units
     model.getBuilding.setStandardsNumberOfLivingUnits(num_units)
-    # model.getBuilding.setStandardsNumberOfLivingUnits(1)
 
     # Store number of stories
     model.getBuilding.setStandardsNumberOfAboveGroundStories(num_floors)
