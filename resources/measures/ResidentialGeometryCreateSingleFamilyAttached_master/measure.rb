@@ -189,34 +189,6 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
     num_ba.setDefaultValue("2")
     args << num_ba
 
-    # Make a string argument for occupants (auto or number)
-    num_occupants = OpenStudio::Measure::OSArgument::makeStringArgument("num_occupants", true)
-    num_occupants.setDisplayName("Number of Occupants")
-    num_occupants.setDescription("Specify the number of occupants. A value of '#{Constants.Auto}' will calculate the average number of occupants from the number of bedrooms. Used to specify the internal gains from people only.")
-    num_occupants.setDefaultValue(Constants.Auto)
-    args << num_occupants
-
-    # Make a string argument for 24 weekday schedule values
-    occupants_weekday_sch = OpenStudio::Measure::OSArgument::makeStringArgument("occupants_weekday_sch", true)
-    occupants_weekday_sch.setDisplayName("Occupants Weekday schedule")
-    occupants_weekday_sch.setDescription("Specify the 24-hour weekday schedule.")
-    occupants_weekday_sch.setDefaultValue("1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 0.88, 0.41, 0.24, 0.24, 0.24, 0.24, 0.24, 0.24, 0.24, 0.29, 0.55, 0.90, 0.90, 0.90, 1.00, 1.00, 1.00")
-    args << occupants_weekday_sch
-
-    # Make a string argument for 24 weekend schedule values
-    occupants_weekend_sch = OpenStudio::Measure::OSArgument::makeStringArgument("occupants_weekend_sch", true)
-    occupants_weekend_sch.setDisplayName("Occupants Weekend schedule")
-    occupants_weekend_sch.setDescription("Specify the 24-hour weekend schedule.")
-    occupants_weekend_sch.setDefaultValue("1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 0.88, 0.41, 0.24, 0.24, 0.24, 0.24, 0.24, 0.24, 0.24, 0.29, 0.55, 0.90, 0.90, 0.90, 1.00, 1.00, 1.00")
-    args << occupants_weekend_sch
-
-    # Make a string argument for 12 monthly schedule values
-    occupants_monthly_sch = OpenStudio::Measure::OSArgument::makeStringArgument("occupants_monthly_sch", true)
-    occupants_monthly_sch.setDisplayName("Occupants Month schedule")
-    occupants_monthly_sch.setDescription("Specify the 12-month schedule.")
-    occupants_monthly_sch.setDefaultValue("1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0")
-    args << occupants_monthly_sch
-
     # make a double argument for left neighbor offset
     left_neighbor_offset = OpenStudio::Measure::OSArgument::makeDoubleArgument("neighbor_left_offset", true)
     left_neighbor_offset.setDisplayName("Neighbor Left Offset")
@@ -292,19 +264,17 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
     eaves_depth = UnitConversions.convert(runner.getDoubleArgumentValue("eaves_depth", user_arguments), "ft", "m")
     num_br = runner.getStringArgumentValue("num_bedrooms", user_arguments).split(",").map(&:strip)
     num_ba = runner.getStringArgumentValue("num_bathrooms", user_arguments).split(",").map(&:strip)
-    num_occupants = runner.getStringArgumentValue("num_occupants", user_arguments)
-    occupants_weekday_sch = runner.getStringArgumentValue("occupants_weekday_sch", user_arguments)
-    occupants_weekend_sch = runner.getStringArgumentValue("occupants_weekend_sch", user_arguments)
-    occupants_monthly_sch = runner.getStringArgumentValue("occupants_monthly_sch", user_arguments)
+    num_occupants = Constants.Auto
+    if model.getBuilding.additionalProperties.getFeatureAsInteger("num_occupants").is_initialized
+      num_occupants = "#{model.getBuilding.additionalProperties.getFeatureAsInteger("num_occupants").get}"
+    end
     left_neighbor_offset = UnitConversions.convert(runner.getDoubleArgumentValue("neighbor_left_offset", user_arguments), "ft", "m")
     right_neighbor_offset = UnitConversions.convert(runner.getDoubleArgumentValue("neighbor_right_offset", user_arguments), "ft", "m")
     back_neighbor_offset = UnitConversions.convert(runner.getDoubleArgumentValue("neighbor_back_offset", user_arguments), "ft", "m")
     front_neighbor_offset = UnitConversions.convert(runner.getDoubleArgumentValue("neighbor_front_offset", user_arguments), "ft", "m")
     orientation = runner.getDoubleArgumentValue("orientation", user_arguments)
     minimal_collapsed = runner.getBoolArgumentValue("minimal_collapsed", user_arguments)
-
     minimal_collapsed = false
-
     num_units_actual = num_units
     num_floors_actual = num_floors
 
@@ -812,8 +782,8 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
             foundation_space.setSpaceType(foundation_space_type)
           end
         end
-      end
-
+      end      
+      
       # # Single foundation space for all units
       # if ["crawlspace", "unfinished basement"].include? foundation_type
       #   foundation_space = Geometry.make_one_space_from_multiple_spaces(model, foundation_spaces)
@@ -935,7 +905,6 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
 
       surface.setOutsideBoundaryCondition("Foundation")
     end
-
     # model.getThermalZones.each do |zone|
     #   zone.spaces.each do |space|
     #     space.surfaces.each do |surface|
@@ -971,7 +940,6 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
     #     end
     #   end
     # end
-
     # Store number of units
     model.getBuilding.setStandardsNumberOfLivingUnits(num_units)
 
@@ -993,7 +961,12 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
       return false
     end
 
-    result = Geometry.process_occupants(model, runner, num_occupants, occ_gain = 384.0, sens_frac = 0.573, lat_frac = 0.427, occupants_weekday_sch, occupants_weekend_sch, occupants_monthly_sch)
+    schedules_file = SchedulesFile.new(runner: runner, model: model)
+    if not schedules_file.validated?
+      return false
+    end
+
+    result = Geometry.process_occupants(model, runner, num_occupants, occ_gain = 384.0, sens_frac = 0.573, lat_frac = 0.427, schedules_file)
     unless result
       return false
     end
@@ -1037,7 +1010,7 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
       se_point = OpenStudio::Point3d.new(x, 0, wall_height * num_floors)
     end
     attic_polygon = Geometry.make_polygon(sw_point, nw_point, ne_point, se_point)
-
+    
     # if y.abs + y_rear >= x
     #   attic_height = (x / 2.0) * roof_pitch
     # else
