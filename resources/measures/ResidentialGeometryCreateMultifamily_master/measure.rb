@@ -170,34 +170,6 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     num_ba.setDefaultValue("2")
     args << num_ba
 
-    # Make a string argument for occupants (auto or number)
-    num_occupants = OpenStudio::Measure::OSArgument::makeStringArgument("num_occupants", true)
-    num_occupants.setDisplayName("Number of Occupants")
-    num_occupants.setDescription("Specify the number of occupants. A value of '#{Constants.Auto}' will calculate the average number of occupants from the number of bedrooms. Used to specify the internal gains from people only.")
-    num_occupants.setDefaultValue(Constants.Auto)
-    args << num_occupants
-
-    # Make a string argument for 24 weekday schedule values
-    occupants_weekday_sch = OpenStudio::Measure::OSArgument::makeStringArgument("occupants_weekday_sch", true)
-    occupants_weekday_sch.setDisplayName("Occupants Weekday schedule")
-    occupants_weekday_sch.setDescription("Specify the 24-hour weekday schedule.")
-    occupants_weekday_sch.setDefaultValue("1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 0.88, 0.41, 0.24, 0.24, 0.24, 0.24, 0.24, 0.24, 0.24, 0.29, 0.55, 0.90, 0.90, 0.90, 1.00, 1.00, 1.00")
-    args << occupants_weekday_sch
-
-    # Make a string argument for 24 weekend schedule values
-    occupants_weekend_sch = OpenStudio::Measure::OSArgument::makeStringArgument("occupants_weekend_sch", true)
-    occupants_weekend_sch.setDisplayName("Occupants Weekend schedule")
-    occupants_weekend_sch.setDescription("Specify the 24-hour weekend schedule.")
-    occupants_weekend_sch.setDefaultValue("1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 0.88, 0.41, 0.24, 0.24, 0.24, 0.24, 0.24, 0.24, 0.24, 0.29, 0.55, 0.90, 0.90, 0.90, 1.00, 1.00, 1.00")
-    args << occupants_weekend_sch
-
-    # Make a string argument for 12 monthly schedule values
-    occupants_monthly_sch = OpenStudio::Measure::OSArgument::makeStringArgument("occupants_monthly_sch", true)
-    occupants_monthly_sch.setDisplayName("Occupants Month schedule")
-    occupants_monthly_sch.setDescription("Specify the 12-month schedule.")
-    occupants_monthly_sch.setDefaultValue("1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0")
-    args << occupants_monthly_sch
-
     # make a double argument for left neighbor offset
     left_neighbor_offset = OpenStudio::Measure::OSArgument::makeDoubleArgument("neighbor_left_offset", true)
     left_neighbor_offset.setDisplayName("Neighbor Left Offset")
@@ -273,17 +245,17 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     eaves_depth = UnitConversions.convert(runner.getDoubleArgumentValue("eaves_depth", user_arguments), "ft", "m")
     num_br = runner.getStringArgumentValue("num_bedrooms", user_arguments).split(",").map(&:strip)
     num_ba = runner.getStringArgumentValue("num_bathrooms", user_arguments).split(",").map(&:strip)
-    num_occupants = runner.getStringArgumentValue("num_occupants", user_arguments)
-    occupants_weekday_sch = runner.getStringArgumentValue("occupants_weekday_sch", user_arguments)
-    occupants_weekend_sch = runner.getStringArgumentValue("occupants_weekend_sch", user_arguments)
-    occupants_monthly_sch = runner.getStringArgumentValue("occupants_monthly_sch", user_arguments)
+    num_occupants = Constants.Auto
+    if model.getBuilding.additionalProperties.getFeatureAsInteger("num_occupants").is_initialized
+      num_occupants = "#{model.getBuilding.additionalProperties.getFeatureAsInteger("num_occupants").get}"
+    end
     left_neighbor_offset = UnitConversions.convert(runner.getDoubleArgumentValue("neighbor_left_offset", user_arguments), "ft", "m")
     right_neighbor_offset = UnitConversions.convert(runner.getDoubleArgumentValue("neighbor_right_offset", user_arguments), "ft", "m")
     back_neighbor_offset = UnitConversions.convert(runner.getDoubleArgumentValue("neighbor_back_offset", user_arguments), "ft", "m")
     front_neighbor_offset = UnitConversions.convert(runner.getDoubleArgumentValue("neighbor_front_offset", user_arguments), "ft", "m")
     orientation = runner.getDoubleArgumentValue("orientation", user_arguments)
     minimal_collapsed = runner.getBoolArgumentValue("minimal_collapsed", user_arguments)
-
+    
     ## Set false for comparison purposes ##
     minimal_collapsed = false
 
@@ -752,7 +724,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
       end
 
       if corridor_width > 0
-        # temporary remove shading for exterior single corridor
+
         (1..num_floors).to_a.each do |floor|
           nw_point = OpenStudio::Point3d.new(0, -y, floor * wall_height)
           ne_point = OpenStudio::Point3d.new(x * num_units_per_floor, -y, floor * wall_height)
@@ -787,18 +759,18 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
         foundation_corridor_space.setZOrigin(0)
         foundation_spaces << foundation_corridor_space
       end
-      # if corridor_width > 0 and corridor_position == "Double-Loaded Interior"
-      #   corridor_space = OpenStudio::Model::Space::fromFloorPrint(foundation_corr_polygon, foundation_height, model)
-      #   corridor_space = corridor_space.get
-      #   m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4, 4, 0))
-      #   m[2, 3] = foundation_height
-      #   corridor_space.changeTransformation(OpenStudio::Transformation.new(m))
-      #   corridor_space.setXOrigin(0)
-      #   corridor_space.setYOrigin(0)
-      #   corridor_space.setZOrigin(0)
+      if corridor_width > 0 and corridor_position == "Double-Loaded Interior"
+        corridor_space = OpenStudio::Model::Space::fromFloorPrint(foundation_corr_polygon, foundation_height, model)
+        corridor_space = corridor_space.get
+        m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4, 4, 0))
+        m[2, 3] = foundation_height
+        corridor_space.changeTransformation(OpenStudio::Transformation.new(m))
+        corridor_space.setXOrigin(0)
+        corridor_space.setYOrigin(0)
+        corridor_space.setZOrigin(0)
 
-      #   foundation_spaces << corridor_space
-      # end
+        foundation_spaces << corridor_space
+      end
 
       # foundation front
       foundation_space_front = []
@@ -914,31 +886,30 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
       OpenStudio::Model.intersectSurfaces(spaces)
       OpenStudio::Model.matchSurfaces(spaces)
 
-      # Single foundation space for all units
-      # if ["crawlspace", "unfinished basement"].include? foundation_type
-      #   foundation_space = Geometry.make_one_space_from_multiple_spaces(model, foundation_spaces)
-      #   if foundation_type == "crawlspace"
-      #     foundation_space.setName("crawl space")
-      #     foundation_zone = OpenStudio::Model::ThermalZone.new(model)
-      #     foundation_zone.setName("crawl zone")
-      #     foundation_space.setThermalZone(foundation_zone)
-      #     foundation_space_type_name = Constants.SpaceTypeCrawl
-      #   elsif foundation_type == "unfinished basement"
-      #     foundation_space.setName("unfinished basement space")
-      #     foundation_zone = OpenStudio::Model::ThermalZone.new(model)
-      #     foundation_zone.setName("unfinished basement zone")
-      #     foundation_space.setThermalZone(foundation_zone)
-      #     foundation_space_type_name = Constants.SpaceTypeUnfinishedBasement
-      #   end
-      #   if space_types_hash.keys.include? foundation_space_type_name
-      #     foundation_space_type = space_types_hash[foundation_space_type_name]
-      #   else
-      #     foundation_space_type = OpenStudio::Model::SpaceType.new(model)
-      #     foundation_space_type.setStandardsSpaceType(foundation_space_type_name)
-      #     space_types_hash[foundation_space_type_name] = foundation_space_type
-      #   end
-      #   foundation_space.setSpaceType(foundation_space_type)
-      # end
+      if ["crawlspace", "unfinished basement"].include? foundation_type
+        foundation_space = Geometry.make_one_space_from_multiple_spaces(model, foundation_spaces)
+        if foundation_type == "crawlspace"
+          foundation_space.setName("crawl space")
+          foundation_zone = OpenStudio::Model::ThermalZone.new(model)
+          foundation_zone.setName("crawl zone")
+          foundation_space.setThermalZone(foundation_zone)
+          foundation_space_type_name = Constants.SpaceTypeCrawl
+        elsif foundation_type == "unfinished basement"
+          foundation_space.setName("unfinished basement space")
+          foundation_zone = OpenStudio::Model::ThermalZone.new(model)
+          foundation_zone.setName("unfinished basement zone")
+          foundation_space.setThermalZone(foundation_zone)
+          foundation_space_type_name = Constants.SpaceTypeUnfinishedBasement
+        end
+        if space_types_hash.keys.include? foundation_space_type_name
+          foundation_space_type = space_types_hash[foundation_space_type_name]
+        else
+          foundation_space_type = OpenStudio::Model::SpaceType.new(model)
+          foundation_space_type.setStandardsSpaceType(foundation_space_type_name)
+          space_types_hash[foundation_space_type_name] = foundation_space_type
+        end
+        foundation_space.setSpaceType(foundation_space_type)
+      end
 
       # set foundation walls to ground
       spaces = model.getSpaces
@@ -994,7 +965,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     # intersect and match surfaces for each space in the vector
     OpenStudio::Model.intersectSurfaces(spaces)
     OpenStudio::Model.matchSurfaces(spaces)
-
+    
     # temporary adiabatic shared walls for testing:
     model.getSpaces.each do |space|
       space.surfaces.each do |surface|
@@ -1015,7 +986,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
         end
       end
     end
-
+    
     # make all surfaces adjacent to corridor spaces into adiabatic surfaces
     model.getSpaces.each do |space|
       next unless Geometry.is_corridor(space)
@@ -1053,12 +1024,16 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
       return false
     end
 
-    result = Geometry.process_occupants(model, runner, num_occupants, occ_gain = 384.0, sens_frac = 0.573, lat_frac = 0.427, occupants_weekday_sch, occupants_weekend_sch, occupants_monthly_sch)
+    schedules_file = SchedulesFile.new(runner: runner, model: model)
+    if not schedules_file.validated?
+      return false
+    end
+
+    result = Geometry.process_occupants(model, runner, num_occupants, occ_gain = 384.0, sens_frac = 0.573, lat_frac = 0.427, schedules_file)
     unless result
       return false
     end
 
-    # temporary remove eaves for testing
     result = Geometry.process_eaves(model, runner, eaves_depth, Constants.RoofStructureTrussCantilever)
     unless result
       return false
