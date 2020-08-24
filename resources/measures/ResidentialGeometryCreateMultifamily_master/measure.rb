@@ -759,18 +759,18 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
         foundation_corridor_space.setZOrigin(0)
         foundation_spaces << foundation_corridor_space
       end
-      if corridor_width > 0 and corridor_position == "Double-Loaded Interior"
-        corridor_space = OpenStudio::Model::Space::fromFloorPrint(foundation_corr_polygon, foundation_height, model)
-        corridor_space = corridor_space.get
-        m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4, 4, 0))
-        m[2, 3] = foundation_height
-        corridor_space.changeTransformation(OpenStudio::Transformation.new(m))
-        corridor_space.setXOrigin(0)
-        corridor_space.setYOrigin(0)
-        corridor_space.setZOrigin(0)
+      # if corridor_width > 0 and corridor_position == "Double-Loaded Interior"
+      #   corridor_space = OpenStudio::Model::Space::fromFloorPrint(foundation_corr_polygon, foundation_height, model)
+      #   corridor_space = corridor_space.get
+      #   m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4, 4, 0))
+      #   m[2, 3] = foundation_height
+      #   corridor_space.changeTransformation(OpenStudio::Transformation.new(m))
+      #   corridor_space.setXOrigin(0)
+      #   corridor_space.setYOrigin(0)
+      #   corridor_space.setZOrigin(0)
 
-        foundation_spaces << corridor_space
-      end
+      #   foundation_spaces << corridor_space
+      # end
 
       # foundation front
       foundation_space_front = []
@@ -855,7 +855,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
         spaces << space
       end
 
-      # Individual foundation spaces for each unit
+      # Individual foundation spaces for each unit 
       foundation_spaces.each do |foundation_space|
         if ["crawlspace", "unfinished basement"].include? foundation_type
           if foundation_type == "crawlspace"
@@ -886,30 +886,31 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
       OpenStudio::Model.intersectSurfaces(spaces)
       OpenStudio::Model.matchSurfaces(spaces)
 
-      if ["crawlspace", "unfinished basement"].include? foundation_type
-        foundation_space = Geometry.make_one_space_from_multiple_spaces(model, foundation_spaces)
-        if foundation_type == "crawlspace"
-          foundation_space.setName("crawl space")
-          foundation_zone = OpenStudio::Model::ThermalZone.new(model)
-          foundation_zone.setName("crawl zone")
-          foundation_space.setThermalZone(foundation_zone)
-          foundation_space_type_name = Constants.SpaceTypeCrawl
-        elsif foundation_type == "unfinished basement"
-          foundation_space.setName("unfinished basement space")
-          foundation_zone = OpenStudio::Model::ThermalZone.new(model)
-          foundation_zone.setName("unfinished basement zone")
-          foundation_space.setThermalZone(foundation_zone)
-          foundation_space_type_name = Constants.SpaceTypeUnfinishedBasement
-        end
-        if space_types_hash.keys.include? foundation_space_type_name
-          foundation_space_type = space_types_hash[foundation_space_type_name]
-        else
-          foundation_space_type = OpenStudio::Model::SpaceType.new(model)
-          foundation_space_type.setStandardsSpaceType(foundation_space_type_name)
-          space_types_hash[foundation_space_type_name] = foundation_space_type
-        end
-        foundation_space.setSpaceType(foundation_space_type)
-      end
+      # One foundation space for building
+      # if ["crawlspace", "unfinished basement"].include? foundation_type
+      #   foundation_space = Geometry.make_one_space_from_multiple_spaces(model, foundation_spaces)
+      #   if foundation_type == "crawlspace"
+      #     foundation_space.setName("crawl space")
+      #     foundation_zone = OpenStudio::Model::ThermalZone.new(model)
+      #     foundation_zone.setName("crawl zone")
+      #     foundation_space.setThermalZone(foundation_zone)
+      #     foundation_space_type_name = Constants.SpaceTypeCrawl
+      #   elsif foundation_type == "unfinished basement"
+      #     foundation_space.setName("unfinished basement space")
+      #     foundation_zone = OpenStudio::Model::ThermalZone.new(model)
+      #     foundation_zone.setName("unfinished basement zone")
+      #     foundation_space.setThermalZone(foundation_zone)
+      #     foundation_space_type_name = Constants.SpaceTypeUnfinishedBasement
+      #   end
+      #   if space_types_hash.keys.include? foundation_space_type_name
+      #     foundation_space_type = space_types_hash[foundation_space_type_name]
+      #   else
+      #     foundation_space_type = OpenStudio::Model::SpaceType.new(model)
+      #     foundation_space_type.setStandardsSpaceType(foundation_space_type_name)
+      #     space_types_hash[foundation_space_type_name] = foundation_space_type
+      #   end
+      #   foundation_space.setSpaceType(foundation_space_type)
+      # end
 
       # set foundation walls to ground
       spaces = model.getSpaces

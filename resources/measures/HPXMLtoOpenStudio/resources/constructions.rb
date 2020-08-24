@@ -2591,15 +2591,15 @@ class SurfaceTypes
           end
 
         # Exterior finished basement
-        elsif Geometry.is_finished_basement(space) and obc_is_foundation
+        elsif Geometry.is_finished_basement(space) and (obc_is_foundation or obc_is_adiabatic)
           surfaces[Constants.SurfaceTypeWallFndGrndFinB] << surface
 
         # Exterior unfinished basement
-        elsif Geometry.is_unfinished_basement(space) and obc_is_foundation
+        elsif Geometry.is_unfinished_basement(space) and (obc_is_foundation or obc_is_adiabatic)
           surfaces[Constants.SurfaceTypeWallFndGrndUnfinB] << surface
 
         # Exterior crawlspace
-        elsif Geometry.is_crawl(space) and (obc_is_foundation) # or obc_is_adiabatic)
+        elsif Geometry.is_crawl(space) and (obc_is_foundation or obc_is_adiabatic)
           surfaces[Constants.SurfaceTypeWallFndGrndCS] << surface
 
         # Adiabatic finished
