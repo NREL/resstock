@@ -842,6 +842,8 @@ class ScheduleGenerator
       building_id = @building_id
     end
 
+    ### Temporary seed for testing
+    building_id = 1
     return building_id
   end
 
