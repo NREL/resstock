@@ -252,8 +252,19 @@ class Material
     return new(name = "Plywood #{thick_in} in.", thick_in = thick_in, mat_base = BaseMaterial.Wood)
   end
 
-  def self.RadiantBarrier
-    return new(name = 'Radiant Barrier', thick_in = 0.0084, mat_base = nil, k_in = 1629.6, rho = 168.6, cp = 0.22, tAbs = 0.05, sAbs = 0.05, vAbs = 0.05)
+  def self.RadiantBarrier(grade)
+    # Merge w/ Constructions.get_gap_factor
+    if grade == 1
+      gap_frac = 0.0
+    elsif grade == 2
+      gap_frac = 0.02
+    elsif grade == 3
+      gap_frac = 0.05
+    end
+    rb_emittance = 0.05
+    non_rb_emittance = 0.90
+    emittance = rb_emittance * (1.0 - gap_frac) + non_rb_emittance * gap_frac
+    return new(name = 'Radiant Barrier', thick_in = 0.0084, mat_base = nil, k_in = 1629.6, rho = 168.6, cp = 0.22, tAbs = emittance, sAbs = 0.05, vAbs = 0.05)
   end
 
   def self.RoofMaterial(name, emissivity, absorptivity)

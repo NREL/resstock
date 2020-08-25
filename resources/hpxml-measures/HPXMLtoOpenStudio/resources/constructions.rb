@@ -519,7 +519,7 @@ class Constructions
                                   framing_factor, framing_thick_in,
                                   osb_thick_in, rigid_r,
                                   mat_roofing, has_radiant_barrier,
-                                  inside_film, outside_film)
+                                  inside_film, outside_film, radiant_barrier_grade)
 
     return if surfaces.empty?
 
@@ -552,7 +552,7 @@ class Constructions
     end
     mat_rb = nil
     if has_radiant_barrier
-      mat_rb = Material.RadiantBarrier
+      mat_rb = Material.RadiantBarrier(radiant_barrier_grade)
     end
 
     # Set paths
@@ -587,7 +587,7 @@ class Constructions
                                     cavity_r, install_grade, cavity_depth,
                                     filled_cavity, framing_factor, drywall_thick_in,
                                     osb_thick_in, rigid_r, mat_roofing, has_radiant_barrier,
-                                    inside_film, outside_film)
+                                    inside_film, outside_film, radiant_barrier_grade)
 
     return if surfaces.empty?
 
@@ -617,7 +617,7 @@ class Constructions
     end
     mat_rb = nil
     if has_radiant_barrier
-      mat_rb = Material.RadiantBarrier
+      mat_rb = Material.RadiantBarrier(radiant_barrier_grade)
     end
 
     # Set paths

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 def create_osws
   require 'json'
   require_relative 'BuildResidentialHPXML/resources/constants'
@@ -53,6 +55,9 @@ def create_osws
     'base-dhw-recirc-nocontrol.osw' => 'base.osw',
     'base-dhw-recirc-temperature.osw' => 'base.osw',
     'base-dhw-recirc-timer.osw' => 'base.osw',
+    # 'base-dhw-shared-laundry-room.osw' => 'base.osw',
+    # 'base-dhw-shared-water-heater.osw' => 'base.osw',
+    # 'base-dhw-shared-water-heater-recirc.osw' => 'base.osw',
     'base-dhw-solar-direct-evacuated-tube.osw' => 'base.osw',
     'base-dhw-solar-direct-flat-plate.osw' => 'base.osw',
     'base-dhw-solar-direct-ics.osw' => 'base.osw',
@@ -83,7 +88,10 @@ def create_osws
     'base-enclosure-beds-4.osw' => 'base.osw',
     'base-enclosure-beds-5.osw' => 'base.osw',
     'base-enclosure-garage.osw' => 'base.osw',
+    'base-enclosure-infil-ach-house-pressure.osw' => 'base.osw',
+    'base-enclosure-infil-cfm-house-pressure.osw' => 'base-enclosure-infil-cfm50.osw',
     'base-enclosure-infil-cfm50.osw' => 'base.osw',
+    'base-enclosure-infil-flue.osw' => 'base.osw',
     'base-enclosure-infil-natural-ach.osw' => 'base.osw',
     # 'base-enclosure-other-heated-space.osw' => 'base.osw', # TODO: uncomment when we can model multifamily with ambient foundation?
     # 'base-enclosure-other-housing-unit.osw' => 'base-foundation-ambient.osw', # TODO: uncomment when we can model multifamily with ambient foundation?
@@ -194,25 +202,25 @@ def create_osws
     'base-misc-defaults2.osw' => 'base.osw',
     'base-misc-loads-large-uncommon.osw' => 'base-enclosure-garage.osw',
     'base-misc-loads-large-uncommon2.osw' => 'base-misc-loads-large-uncommon.osw',
-    'base-misc-loads-usage-multiplier.osw' => 'base.osw',
+    'base-misc-usage-multiplier.osw' => 'base.osw',
     # 'base-misc-loads-none.osw' => 'base.osw',
     'base-misc-neighbor-shading.osw' => 'base.osw',
     'base-pv.osw' => 'base.osw',
+    # 'base-pv-shared.osw' => 'base.osw',
     'base-simcontrol-daylight-saving-custom.osw' => 'base.osw',
     'base-simcontrol-daylight-saving-disabled.osw' => 'base.osw',
     'base-simcontrol-runperiod-1-month.osw' => 'base.osw',
     'base-simcontrol-timestep-10-mins.osw' => 'base.osw',
-    'base-schedules-average.osw' => 'base.osw',
-    'base-schedules-stochastic.osw' => 'base.osw',
 
     # Extra test files that don't correspond with sample files
     'extra-auto.osw' => 'base.osw',
     'extra-pv-roofpitch.osw' => 'base.osw',
     'extra-dhw-solar-latitude.osw' => 'base.osw',
+    'extra-dhw-shared-water-heater.osw' => 'base-single-family-attached.osw',
     'extra-second-refrigerator.osw' => 'base.osw',
     'extra-second-heating-system-portable-heater.osw' => 'base.osw',
     'extra-second-heating-system-fireplace.osw' => 'base.osw',
-    'extra-vacancy-6-months.osw' => 'base.osw',
+    'extra-pv-shared.osw' => 'base-single-family-attached.osw',
 
     'invalid_files/non-electric-heat-pump-water-heater.osw' => 'base.osw',
     'invalid_files/multiple-heating-and-cooling-systems.osw' => 'base.osw',
@@ -220,12 +228,21 @@ def create_osws
     'invalid_files/non-integer-ceiling-fan-quantity.osw' => 'base.osw',
     'invalid_files/single-family-detached-slab-non-zero-foundation-height.osw' => 'base.osw',
     'invalid_files/single-family-detached-finished-basement-zero-foundation-height.osw' => 'base.osw',
-    'invalid_files/single-family-attached-ambient.osw' => 'base.osw',
-    'invalid_files/multifamily-bottom-slab-non-zero-foundation-height.osw' => 'base.osw',
-    'invalid_files/multifamily-bottom-crawlspace-zero-foundation-height.osw' => 'base.osw',
+    'invalid_files/single-family-attached-ambient.osw' => 'base-single-family-attached.osw',
+    'invalid_files/multifamily-bottom-slab-non-zero-foundation-height.osw' => 'base-multifamily.osw',
+    'invalid_files/multifamily-bottom-crawlspace-zero-foundation-height.osw' => 'base-multifamily.osw',
     'invalid_files/slab-non-zero-foundation-height-above-grade.osw' => 'base.osw',
     'invalid_files/ducts-location-and-areas-not-same-type.osw' => 'base.osw',
-    'invalid_files/second-heating-system-serves-majority-heat.osw' => 'base.osw'
+    'invalid_files/second-heating-system-serves-majority-heat.osw' => 'base.osw',
+    'invalid_files/single-family-attached-no-building-orientation.osw' => 'base-single-family-attached.osw',
+    'invalid_files/multifamily-no-building-orientation.osw' => 'base-multifamily.osw',
+    'invalid_files/vented-crawlspace-with-wall-and-ceiling-insulation.osw' => 'base.osw',
+    'invalid_files/unvented-crawlspace-with-wall-and-ceiling-insulation.osw' => 'base.osw',
+    'invalid_files/unconditioned-basement-with-wall-and-ceiling-insulation.osw' => 'base.osw',
+    'invalid_files/vented-attic-with-floor-and-roof-insulation.osw' => 'base.osw',
+    'invalid_files/unvented-attic-with-floor-and-roof-insulation.osw' => 'base.osw',
+    'invalid_files/conditioned-basement-with-ceiling-insulation.osw' => 'base.osw',
+    'invalid_files/conditioned-attic-with-floor-insulation.osw' => 'base.osw'
   }
 
   puts "Generating #{osws_files.size} OSW files..."
@@ -303,19 +320,14 @@ def get_values(osw_file, step)
   if ['base.osw'].include? osw_file
     step.setArgument('weather_dir', 'weather')
     step.setArgument('simulation_control_timestep', '60')
-    step.setArgument('schedules_type', 'user-specified')
-    step.setArgument('schedules_path', '../schedules.csv')
     step.setArgument('weather_station_epw_filepath', 'USA_CO_Denver.Intl.AP.725650_TMY3.epw')
     step.setArgument('site_type', HPXML::SiteTypeSuburban)
     step.setArgument('geometry_unit_type', HPXML::ResidentialTypeSFD)
-    step.setArgument('geometry_num_units', 1)
     step.setArgument('geometry_cfa', 2700.0)
     step.setArgument('geometry_num_floors_above_grade', 1)
     step.setArgument('geometry_wall_height', 8.0)
     step.setArgument('geometry_orientation', 180.0)
     step.setArgument('geometry_aspect_ratio', 1.5)
-    step.setArgument('geometry_level', 'Bottom')
-    step.setArgument('geometry_horizontal_location', 'Left')
     step.setArgument('geometry_corridor_position', 'Double-Loaded Interior')
     step.setArgument('geometry_corridor_width', 10.0)
     step.setArgument('geometry_inset_width', 0.0)
@@ -354,6 +366,7 @@ def get_values(osw_file, step)
     step.setArgument('roof_solar_absorptance', Constants.Auto)
     step.setArgument('roof_emittance', 0.92)
     step.setArgument('roof_radiant_barrier', false)
+    step.setArgument('roof_radiant_barrier_grade', '1')
     step.setArgument('neighbor_front_distance', 0)
     step.setArgument('neighbor_back_distance', 0)
     step.setArgument('neighbor_left_distance', 0)
@@ -399,6 +412,7 @@ def get_values(osw_file, step)
     step.setArgument('door_area', 80.0)
     step.setArgument('door_rvalue', 4.4)
     step.setArgument('air_leakage_units', HPXML::UnitsACH)
+    step.setArgument('air_leakage_house_pressure', 50)
     step.setArgument('air_leakage_value', 3)
     step.setArgument('air_leakage_shelter_coefficient', Constants.Auto)
     step.setArgument('heating_system_type', HPXML::HVACTypeFurnace)
@@ -407,6 +421,7 @@ def get_values(osw_file, step)
     step.setArgument('heating_system_heating_capacity', '64000.0')
     step.setArgument('heating_system_fraction_heat_load_served', 1)
     step.setArgument('heating_system_electric_auxiliary_energy', 0)
+    step.setArgument('heating_system_has_flue_or_chimney', false)
     step.setArgument('cooling_system_type', HPXML::HVACTypeCentralAirConditioner)
     step.setArgument('cooling_system_cooling_efficiency_seer', 13.0)
     step.setArgument('cooling_system_cooling_efficiency_eer', 8.5)
@@ -456,6 +471,7 @@ def get_values(osw_file, step)
     step.setArgument('heating_system_heating_capacity_2', Constants.Auto)
     step.setArgument('heating_system_fraction_heat_load_served_2', 0.25)
     step.setArgument('heating_system_electric_auxiliary_energy_2', 0)
+    step.setArgument('heating_system_has_flue_or_chimney_2', false)
     step.setArgument('mech_vent_fan_type', 'none')
     step.setArgument('mech_vent_flow_rate', 110)
     step.setArgument('mech_vent_hours_in_operation', 24)
@@ -490,6 +506,8 @@ def get_values(osw_file, step)
     step.setArgument('water_heater_standby_loss', 0)
     step.setArgument('water_heater_jacket_rvalue', 0)
     step.setArgument('water_heater_setpoint_temperature', '125')
+    step.setArgument('water_heater_has_flue_or_chimney', false)
+    step.setArgument('water_heater_is_shared_system', false)
     step.setArgument('dhw_distribution_system_type', HPXML::DHWDistTypeStandard)
     step.setArgument('dhw_distribution_standard_piping_length', '50')
     step.setArgument('dhw_distribution_recirc_control_type', HPXML::DHWRecirControlTypeNone)
@@ -521,6 +539,7 @@ def get_values(osw_file, step)
     step.setArgument('pv_system_max_power_output_1', 4000)
     step.setArgument('pv_system_inverter_efficiency_1', 0.96)
     step.setArgument('pv_system_system_losses_fraction_1', 0.14)
+    step.setArgument('pv_system_is_shared_1', false)
     step.setArgument('pv_system_module_type_2', 'none')
     step.setArgument('pv_system_location_2', HPXML::LocationRoof)
     step.setArgument('pv_system_tracking_2', HPXML::PVTrackingTypeFixed)
@@ -529,20 +548,36 @@ def get_values(osw_file, step)
     step.setArgument('pv_system_max_power_output_2', 4000)
     step.setArgument('pv_system_inverter_efficiency_2', 0.96)
     step.setArgument('pv_system_system_losses_fraction_2', 0.14)
+    step.setArgument('pv_system_is_shared_2', false)
     step.setArgument('lighting_fraction_cfl_interior', 0.4)
     step.setArgument('lighting_fraction_lfl_interior', 0.1)
     step.setArgument('lighting_fraction_led_interior', 0.25)
     step.setArgument('lighting_usage_multiplier_interior', 1.0)
+    step.setArgument('lighting_weekday_fractions_interior', Constants.Auto)
+    step.setArgument('lighting_weekend_fractions_interior', Constants.Auto)
+    step.setArgument('lighting_monthly_multipliers_interior', Constants.Auto)
     step.setArgument('lighting_fraction_cfl_exterior', 0.4)
     step.setArgument('lighting_fraction_lfl_exterior', 0.1)
     step.setArgument('lighting_fraction_led_exterior', 0.25)
     step.setArgument('lighting_usage_multiplier_exterior', 1.0)
+    step.setArgument('lighting_weekday_fractions_exterior', Constants.Auto)
+    step.setArgument('lighting_weekend_fractions_exterior', Constants.Auto)
+    step.setArgument('lighting_monthly_multipliers_exterior', Constants.Auto)
     step.setArgument('lighting_fraction_cfl_garage', 0.4)
     step.setArgument('lighting_fraction_lfl_garage', 0.1)
     step.setArgument('lighting_fraction_led_garage', 0.25)
     step.setArgument('lighting_usage_multiplier_garage', 1.0)
+    step.setArgument('lighting_weekday_fractions_garage', Constants.Auto)
+    step.setArgument('lighting_weekend_fractions_garage', Constants.Auto)
+    step.setArgument('lighting_monthly_multipliers_garage', Constants.Auto)
     step.setArgument('holiday_lighting_present', false)
     step.setArgument('holiday_lighting_daily_kwh', Constants.Auto)
+    step.setArgument('holiday_lighting_period_begin_month', Constants.Auto)
+    step.setArgument('holiday_lighting_period_begin_day_of_month', Constants.Auto)
+    step.setArgument('holiday_lighting_period_end_month', Constants.Auto)
+    step.setArgument('holiday_lighting_period_end_day_of_month', Constants.Auto)
+    step.setArgument('holiday_lighting_weekday_fractions_exterior', Constants.Auto)
+    step.setArgument('holiday_lighting_weekend_fractions_exterior', Constants.Auto)
     step.setArgument('dehumidifier_present', false)
     step.setArgument('dehumidifier_efficiency_type', 'EnergyFactor')
     step.setArgument('dehumidifier_efficiency_ef', 1.8)
@@ -585,20 +620,32 @@ def get_values(osw_file, step)
     step.setArgument('refrigerator_location', HPXML::LocationLivingSpace)
     step.setArgument('refrigerator_rated_annual_kwh', '650.0')
     step.setArgument('refrigerator_usage_multiplier', 1.0)
+    step.setArgument('refrigerator_weekday_fractions', Constants.Auto)
+    step.setArgument('refrigerator_weekend_fractions', Constants.Auto)
+    step.setArgument('refrigerator_monthly_multipliers', Constants.Auto)
     step.setArgument('extra_refrigerator_present', false)
     step.setArgument('extra_refrigerator_location', Constants.Auto)
     step.setArgument('extra_refrigerator_rated_annual_kwh', Constants.Auto)
     step.setArgument('extra_refrigerator_usage_multiplier', 1.0)
+    step.setArgument('extra_refrigerator_weekday_fractions', Constants.Auto)
+    step.setArgument('extra_refrigerator_weekend_fractions', Constants.Auto)
+    step.setArgument('extra_refrigerator_monthly_multipliers', Constants.Auto)
     step.setArgument('freezer_present', false)
     step.setArgument('freezer_location', Constants.Auto)
     step.setArgument('freezer_rated_annual_kwh', Constants.Auto)
     step.setArgument('freezer_usage_multiplier', 1.0)
+    step.setArgument('freezer_weekday_fractions', Constants.Auto)
+    step.setArgument('freezer_weekend_fractions', Constants.Auto)
+    step.setArgument('freezer_monthly_multipliers', Constants.Auto)
     step.setArgument('cooking_range_oven_present', true)
     step.setArgument('cooking_range_oven_location', HPXML::LocationLivingSpace)
     step.setArgument('cooking_range_oven_fuel_type', HPXML::FuelTypeElectricity)
     step.setArgument('cooking_range_oven_is_induction', false)
     step.setArgument('cooking_range_oven_is_convection', false)
     step.setArgument('cooking_range_oven_usage_multiplier', 1.0)
+    step.setArgument('cooking_range_oven_weekday_fractions', Constants.Auto)
+    step.setArgument('cooking_range_oven_weekend_fractions', Constants.Auto)
+    step.setArgument('cooking_range_oven_monthly_multipliers', Constants.Auto)
     step.setArgument('ceiling_fan_present', false)
     step.setArgument('ceiling_fan_efficiency', Constants.Auto)
     step.setArgument('ceiling_fan_quantity', Constants.Auto)
@@ -607,45 +654,79 @@ def get_values(osw_file, step)
     step.setArgument('plug_loads_other_frac_sensible', '0.855')
     step.setArgument('plug_loads_other_frac_latent', '0.045')
     step.setArgument('plug_loads_other_usage_multiplier', 1.0)
+    step.setArgument('plug_loads_other_weekday_fractions', Constants.Auto)
+    step.setArgument('plug_loads_other_weekend_fractions', Constants.Auto)
+    step.setArgument('plug_loads_other_monthly_multipliers', Constants.Auto)
     step.setArgument('plug_loads_television_annual_kwh', '620.0')
     step.setArgument('plug_loads_television_usage_multiplier', 1.0)
+    step.setArgument('plug_loads_television_weekday_fractions', Constants.Auto)
+    step.setArgument('plug_loads_television_weekend_fractions', Constants.Auto)
+    step.setArgument('plug_loads_television_monthly_multipliers', Constants.Auto)
     step.setArgument('plug_loads_well_pump_present', false)
     step.setArgument('plug_loads_well_pump_annual_kwh', Constants.Auto)
     step.setArgument('plug_loads_well_pump_usage_multiplier', 1.0)
+    step.setArgument('plug_loads_well_pump_weekday_fractions', Constants.Auto)
+    step.setArgument('plug_loads_well_pump_weekend_fractions', Constants.Auto)
+    step.setArgument('plug_loads_well_pump_monthly_multipliers', Constants.Auto)
     step.setArgument('plug_loads_vehicle_present', false)
     step.setArgument('plug_loads_vehicle_annual_kwh', Constants.Auto)
     step.setArgument('plug_loads_vehicle_usage_multiplier', 1.0)
+    step.setArgument('plug_loads_vehicle_weekday_fractions', Constants.Auto)
+    step.setArgument('plug_loads_vehicle_weekend_fractions', Constants.Auto)
+    step.setArgument('plug_loads_vehicle_monthly_multipliers', Constants.Auto)
     step.setArgument('fuel_loads_grill_present', false)
     step.setArgument('fuel_loads_grill_fuel_type', HPXML::FuelTypeNaturalGas)
     step.setArgument('fuel_loads_grill_annual_therm', Constants.Auto)
     step.setArgument('fuel_loads_grill_usage_multiplier', 1.0)
+    step.setArgument('fuel_loads_grill_weekday_fractions', Constants.Auto)
+    step.setArgument('fuel_loads_grill_weekend_fractions', Constants.Auto)
+    step.setArgument('fuel_loads_grill_monthly_multipliers', Constants.Auto)
     step.setArgument('fuel_loads_lighting_present', false)
     step.setArgument('fuel_loads_lighting_fuel_type', HPXML::FuelTypeNaturalGas)
     step.setArgument('fuel_loads_lighting_annual_therm', Constants.Auto)
     step.setArgument('fuel_loads_lighting_usage_multiplier', 1.0)
+    step.setArgument('fuel_loads_lighting_weekday_fractions', Constants.Auto)
+    step.setArgument('fuel_loads_lighting_weekend_fractions', Constants.Auto)
+    step.setArgument('fuel_loads_lighting_monthly_multipliers', Constants.Auto)
     step.setArgument('fuel_loads_fireplace_present', false)
     step.setArgument('fuel_loads_fireplace_fuel_type', HPXML::FuelTypeNaturalGas)
     step.setArgument('fuel_loads_fireplace_annual_therm', Constants.Auto)
     step.setArgument('fuel_loads_fireplace_usage_multiplier', 1.0)
+    step.setArgument('fuel_loads_fireplace_weekday_fractions', Constants.Auto)
+    step.setArgument('fuel_loads_fireplace_weekend_fractions', Constants.Auto)
+    step.setArgument('fuel_loads_fireplace_monthly_multipliers', Constants.Auto)
     step.setArgument('pool_present', false)
     step.setArgument('pool_pump_annual_kwh', Constants.Auto)
     step.setArgument('pool_pump_usage_multiplier', 1.0)
+    step.setArgument('pool_pump_weekday_fractions', Constants.Auto)
+    step.setArgument('pool_pump_weekend_fractions', Constants.Auto)
+    step.setArgument('pool_pump_monthly_multipliers', Constants.Auto)
     step.setArgument('pool_heater_type', HPXML::HeaterTypeElectricResistance)
     step.setArgument('pool_heater_annual_kwh', Constants.Auto)
     step.setArgument('pool_heater_annual_therm', Constants.Auto)
     step.setArgument('pool_heater_usage_multiplier', 1.0)
+    step.setArgument('pool_heater_weekday_fractions', Constants.Auto)
+    step.setArgument('pool_heater_weekend_fractions', Constants.Auto)
+    step.setArgument('pool_heater_monthly_multipliers', Constants.Auto)
     step.setArgument('hot_tub_present', false)
     step.setArgument('hot_tub_pump_annual_kwh', Constants.Auto)
     step.setArgument('hot_tub_pump_usage_multiplier', 1.0)
+    step.setArgument('hot_tub_pump_weekday_fractions', Constants.Auto)
+    step.setArgument('hot_tub_pump_weekend_fractions', Constants.Auto)
+    step.setArgument('hot_tub_pump_monthly_multipliers', Constants.Auto)
     step.setArgument('hot_tub_heater_type', HPXML::HeaterTypeElectricResistance)
     step.setArgument('hot_tub_heater_annual_kwh', Constants.Auto)
     step.setArgument('hot_tub_heater_annual_therm', Constants.Auto)
     step.setArgument('hot_tub_heater_usage_multiplier', 1.0)
+    step.setArgument('hot_tub_heater_weekday_fractions', Constants.Auto)
+    step.setArgument('hot_tub_heater_weekend_fractions', Constants.Auto)
+    step.setArgument('hot_tub_heater_monthly_multipliers', Constants.Auto)
   elsif ['base-single-family-attached.osw'].include? osw_file
     step.setArgument('geometry_unit_type', HPXML::ResidentialTypeSFA)
     step.setArgument('geometry_cfa', 900.0)
-    step.setArgument('geometry_num_units', 3)
     step.setArgument('geometry_corridor_position', 'None')
+    step.setArgument('geometry_building_num_units', 3)
+    step.setArgument('geometry_horizontal_location', 'Left')
     step.setArgument('window_front_wwr', 0.18)
     step.setArgument('window_back_wwr', 0.18)
     step.setArgument('window_left_wwr', 0.18)
@@ -657,9 +738,11 @@ def get_values(osw_file, step)
   elsif ['base-multifamily.osw'].include? osw_file
     step.setArgument('geometry_unit_type', HPXML::ResidentialTypeApartment)
     step.setArgument('geometry_cfa', 900.0)
-    step.setArgument('geometry_num_units', 3)
     step.setArgument('geometry_corridor_position', 'None')
     step.setArgument('geometry_foundation_type', HPXML::FoundationTypeBasementUnconditioned)
+    step.setArgument('geometry_level', 'Bottom')
+    step.setArgument('geometry_horizontal_location', 'Left')
+    step.setArgument('geometry_building_num_units', 3)
     step.setArgument('window_front_wwr', 0.18)
     step.setArgument('window_back_wwr', 0.18)
     step.setArgument('window_left_wwr', 0.18)
@@ -751,6 +834,7 @@ def get_values(osw_file, step)
   elsif ['base-atticroof-radiant-barrier.osw'].include? osw_file
     step.setArgument('weather_station_epw_filepath', 'USA_TX_Dallas-Fort.Worth.Intl.AP.722590_TMY3.epw')
     step.setArgument('roof_radiant_barrier', true)
+    step.setArgument('roof_radiant_barrier_grade', '2')
   elsif ['base-atticroof-unvented-insulated-roof.osw'].include? osw_file
     step.setArgument('ceiling_assembly_r', 2.1)
     step.setArgument('roof_assembly_r', 25.8)
@@ -827,6 +911,7 @@ def get_values(osw_file, step)
     step.setArgument('water_fixtures_sink_low_flow', true)
   elsif ['base-dhw-none.osw'].include? osw_file
     step.setArgument('water_heater_type', 'none')
+    step.setArgument('dishwasher_present', false)
   elsif ['base-dhw-recirc-demand.osw'].include? osw_file
     step.setArgument('dhw_distribution_system_type', HPXML::DHWDistTypeRecirc)
     step.setArgument('dhw_distribution_recirc_control_type', HPXML::DHWRecirControlTypeSensor)
@@ -1021,9 +1106,17 @@ def get_values(osw_file, step)
     step.setArgument('dishwasher_location', HPXML::LocationGarage)
     step.setArgument('refrigerator_location', HPXML::LocationGarage)
     step.setArgument('cooking_range_oven_location', HPXML::LocationGarage)
+  elsif ['base-enclosure-infil-ach-house-pressure.osw'].include? osw_file
+    step.setArgument('air_leakage_house_pressure', 45)
+    step.setArgument('air_leakage_value', 2.8014)
+  elsif ['base-enclosure-infil-cfm-house-pressure.osw'].include? osw_file
+    step.setArgument('air_leakage_house_pressure', 45)
+    step.setArgument('air_leakage_value', 1008.5039999999999)
   elsif ['base-enclosure-infil-cfm50.osw'].include? osw_file
     step.setArgument('air_leakage_units', HPXML::UnitsCFM)
     step.setArgument('air_leakage_value', 1080)
+  elsif ['base-enclosure-infil-flue.osw'].include? osw_file
+    step.setArgument('heating_system_has_flue_or_chimney', true)
   elsif ['base-enclosure-infil-natural-ach.osw'].include? osw_file
     step.setArgument('air_leakage_units', HPXML::UnitsACHNatural)
     step.setArgument('air_leakage_value', 0.67)
@@ -1541,8 +1634,23 @@ def get_values(osw_file, step)
     step.setArgument('ceiling_fan_quantity', '2')
     step.setArgument('ceiling_fan_cooling_setpoint_temp_offset', 0.5)
   elsif ['base-lighting-detailed.osw'].include? osw_file
+    step.setArgument('lighting_weekday_fractions_interior', '0.124, 0.074, 0.050, 0.050, 0.053, 0.140, 0.330, 0.420, 0.430, 0.424, 0.411, 0.394, 0.382, 0.378, 0.378, 0.379, 0.386, 0.412, 0.484, 0.619, 0.783, 0.880, 0.597, 0.249')
+    step.setArgument('lighting_weekend_fractions_interior', '0.124, 0.074, 0.050, 0.050, 0.053, 0.140, 0.330, 0.420, 0.430, 0.424, 0.411, 0.394, 0.382, 0.378, 0.378, 0.379, 0.386, 0.412, 0.484, 0.619, 0.783, 0.880, 0.597, 0.249')
+    step.setArgument('lighting_monthly_multipliers_interior', '1.075, 1.064951905, 1.0375, 1.0, 0.9625, 0.935048095, 0.925, 0.935048095, 0.9625, 1.0, 1.0375, 1.064951905')
+    step.setArgument('lighting_weekday_fractions_exterior', '0.046, 0.046, 0.046, 0.046, 0.046, 0.037, 0.035, 0.034, 0.033, 0.028, 0.022, 0.015, 0.012, 0.011, 0.011, 0.012, 0.019, 0.037, 0.049, 0.065, 0.091, 0.105, 0.091, 0.063')
+    step.setArgument('lighting_weekend_fractions_exterior', '0.046, 0.046, 0.045, 0.045, 0.046, 0.045, 0.044, 0.041, 0.036, 0.03, 0.024, 0.016, 0.012, 0.011, 0.011, 0.012, 0.019, 0.038, 0.048, 0.06, 0.083, 0.098, 0.085, 0.059')
+    step.setArgument('lighting_monthly_multipliers_exterior', '1.248, 1.257, 0.993, 0.989, 0.993, 0.827, 0.821, 0.821, 0.827, 0.99, 0.987, 1.248')
+    step.setArgument('lighting_weekday_fractions_garage', '0.046, 0.046, 0.046, 0.046, 0.046, 0.037, 0.035, 0.034, 0.033, 0.028, 0.022, 0.015, 0.012, 0.011, 0.011, 0.012, 0.019, 0.037, 0.049, 0.065, 0.091, 0.105, 0.091, 0.063')
+    step.setArgument('lighting_weekend_fractions_garage', '0.046, 0.046, 0.045, 0.045, 0.046, 0.045, 0.044, 0.041, 0.036, 0.03, 0.024, 0.016, 0.012, 0.011, 0.011, 0.012, 0.019, 0.038, 0.048, 0.06, 0.083, 0.098, 0.085, 0.059')
+    step.setArgument('lighting_monthly_multipliers_garage', '1.248, 1.257, 0.993, 0.989, 0.993, 0.827, 0.821, 0.821, 0.827, 0.99, 0.987, 1.248')
     step.setArgument('holiday_lighting_present', true)
     step.setArgument('holiday_lighting_daily_kwh', '1.1')
+    step.setArgument('holiday_lighting_period_begin_month', '11')
+    step.setArgument('holiday_lighting_period_begin_day_of_month', '24')
+    step.setArgument('holiday_lighting_period_end_month', '1')
+    step.setArgument('holiday_lighting_period_end_day_of_month', '6')
+    step.setArgument('holiday_lighting_weekday_fractions_exterior', '0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.008, 0.098, 0.168, 0.194, 0.284, 0.192, 0.037, 0.019')
+    step.setArgument('holiday_lighting_weekend_fractions_exterior', '0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.008, 0.098, 0.168, 0.194, 0.284, 0.192, 0.037, 0.019')
   elsif ['base-location-baltimore-md.osw'].include? osw_file
     step.setArgument('weather_station_epw_filepath', 'USA_MD_Baltimore-Washington.Intl.AP.724060_TMY3.epw')
   elsif ['base-location-dallas-tx.osw'].include? osw_file
@@ -1640,7 +1748,6 @@ def get_values(osw_file, step)
     step.setArgument('pv_system_module_type_1', HPXML::PVModuleTypeStandard)
     step.removeArgument('pv_system_inverter_efficiency_1')
     step.removeArgument('pv_system_system_losses_fraction_1')
-    step.setArgument('pv_system_year_modules_manufactured_1', 2015)
     step.setArgument('clothes_washer_location', Constants.Auto)
     step.setArgument('clothes_washer_efficiency_mef', Constants.Auto)
     step.setArgument('clothes_washer_efficiency_imef', Constants.Auto)
@@ -1681,36 +1788,81 @@ def get_values(osw_file, step)
     step.setArgument('dhw_distribution_recirc_pump_power', Constants.Auto)
     step.setArgument('dhw_distribution_pipe_r', 3)
   elsif ['base-misc-loads-large-uncommon.osw'].include? osw_file
+    step.setArgument('refrigerator_weekday_fractions', '0.040, 0.039, 0.038, 0.037, 0.036, 0.036, 0.038, 0.040, 0.041, 0.041, 0.040, 0.040, 0.042, 0.042, 0.042, 0.041, 0.044, 0.048, 0.050, 0.048, 0.047, 0.046, 0.044, 0.041')
+    step.setArgument('refrigerator_weekend_fractions', '0.040, 0.039, 0.038, 0.037, 0.036, 0.036, 0.038, 0.040, 0.041, 0.041, 0.040, 0.040, 0.042, 0.042, 0.042, 0.041, 0.044, 0.048, 0.050, 0.048, 0.047, 0.046, 0.044, 0.041')
+    step.setArgument('refrigerator_monthly_multipliers', '0.837, 0.835, 1.084, 1.084, 1.084, 1.096, 1.096, 1.096, 1.096, 0.931, 0.925, 0.837')
     step.setArgument('extra_refrigerator_present', true)
     step.setArgument('extra_refrigerator_rated_annual_kwh', '700.0')
+    step.setArgument('extra_refrigerator_weekday_fractions', '0.040, 0.039, 0.038, 0.037, 0.036, 0.036, 0.038, 0.040, 0.041, 0.041, 0.040, 0.040, 0.042, 0.042, 0.042, 0.041, 0.044, 0.048, 0.050, 0.048, 0.047, 0.046, 0.044, 0.041')
+    step.setArgument('extra_refrigerator_weekend_fractions', '0.040, 0.039, 0.038, 0.037, 0.036, 0.036, 0.038, 0.040, 0.041, 0.041, 0.040, 0.040, 0.042, 0.042, 0.042, 0.041, 0.044, 0.048, 0.050, 0.048, 0.047, 0.046, 0.044, 0.041')
+    step.setArgument('extra_refrigerator_monthly_multipliers', '0.837, 0.835, 1.084, 1.084, 1.084, 1.096, 1.096, 1.096, 1.096, 0.931, 0.925, 0.837')
     step.setArgument('freezer_present', true)
     step.setArgument('freezer_rated_annual_kwh', '300.0')
+    step.setArgument('freezer_weekday_fractions', '0.040, 0.039, 0.038, 0.037, 0.036, 0.036, 0.038, 0.040, 0.041, 0.041, 0.040, 0.040, 0.042, 0.042, 0.042, 0.041, 0.044, 0.048, 0.050, 0.048, 0.047, 0.046, 0.044, 0.041')
+    step.setArgument('freezer_weekend_fractions', '0.040, 0.039, 0.038, 0.037, 0.036, 0.036, 0.038, 0.040, 0.041, 0.041, 0.040, 0.040, 0.042, 0.042, 0.042, 0.041, 0.044, 0.048, 0.050, 0.048, 0.047, 0.046, 0.044, 0.041')
+    step.setArgument('freezer_monthly_multipliers', '0.837, 0.835, 1.084, 1.084, 1.084, 1.096, 1.096, 1.096, 1.096, 0.931, 0.925, 0.837')
+    step.setArgument('cooking_range_oven_weekday_fractions', '0.007, 0.007, 0.004, 0.004, 0.007, 0.011, 0.025, 0.042, 0.046, 0.048, 0.042, 0.050, 0.057, 0.046, 0.057, 0.044, 0.092, 0.150, 0.117, 0.060, 0.035, 0.025, 0.016, 0.011')
+    step.setArgument('cooking_range_oven_weekend_fractions', '0.007, 0.007, 0.004, 0.004, 0.007, 0.011, 0.025, 0.042, 0.046, 0.048, 0.042, 0.050, 0.057, 0.046, 0.057, 0.044, 0.092, 0.150, 0.117, 0.060, 0.035, 0.025, 0.016, 0.011')
+    step.setArgument('cooking_range_oven_monthly_multipliers', '1.097, 1.097, 0.991, 0.987, 0.991, 0.890, 0.896, 0.896, 0.890, 1.085, 1.085, 1.097')
+    step.setArgument('plug_loads_other_weekday_fractions', '0.035, 0.033, 0.032, 0.031, 0.032, 0.033, 0.037, 0.042, 0.043, 0.043, 0.043, 0.044, 0.045, 0.045, 0.044, 0.046, 0.048, 0.052, 0.053, 0.05, 0.047, 0.045, 0.04, 0.036')
+    step.setArgument('plug_loads_other_weekend_fractions', '0.035, 0.033, 0.032, 0.031, 0.032, 0.033, 0.037, 0.042, 0.043, 0.043, 0.043, 0.044, 0.045, 0.045, 0.044, 0.046, 0.048, 0.052, 0.053, 0.05, 0.047, 0.045, 0.04, 0.036')
+    step.setArgument('plug_loads_other_monthly_multipliers', '1.248, 1.257, 0.993, 0.989, 0.993, 0.827, 0.821, 0.821, 0.827, 0.99, 0.987, 1.248')
+    step.setArgument('plug_loads_television_weekday_fractions', '0.045, 0.019, 0.01, 0.001, 0.001, 0.001, 0.005, 0.009, 0.018, 0.026, 0.032, 0.038, 0.04, 0.041, 0.043, 0.045, 0.05, 0.055, 0.07, 0.085, 0.097, 0.108, 0.089, 0.07')
+    step.setArgument('plug_loads_television_weekend_fractions', '0.045, 0.019, 0.01, 0.001, 0.001, 0.001, 0.005, 0.009, 0.018, 0.026, 0.032, 0.038, 0.04, 0.041, 0.043, 0.045, 0.05, 0.055, 0.07, 0.085, 0.097, 0.108, 0.089, 0.07')
+    step.setArgument('plug_loads_television_monthly_multipliers', '1.137, 1.129, 0.961, 0.969, 0.961, 0.993, 0.996, 0.96, 0.993, 0.867, 0.86, 1.137')
     step.setArgument('plug_loads_well_pump_present', true)
     step.setArgument('plug_loads_well_pump_annual_kwh', '475.0')
+    step.setArgument('plug_loads_well_pump_weekday_fractions', '0.044, 0.023, 0.019, 0.015, 0.016, 0.018, 0.026, 0.033, 0.033, 0.032, 0.033, 0.033, 0.032, 0.032, 0.032, 0.033, 0.045, 0.057, 0.066, 0.076, 0.081, 0.086, 0.075, 0.065')
+    step.setArgument('plug_loads_well_pump_weekend_fractions', '0.044, 0.023, 0.019, 0.015, 0.016, 0.018, 0.026, 0.033, 0.033, 0.032, 0.033, 0.033, 0.032, 0.032, 0.032, 0.033, 0.045, 0.057, 0.066, 0.076, 0.081, 0.086, 0.075, 0.065')
+    step.setArgument('plug_loads_well_pump_monthly_multipliers', '1.154, 1.161, 1.013, 1.010, 1.013, 0.888, 0.883, 0.883, 0.888, 0.978, 0.974, 1.154')
     step.setArgument('plug_loads_vehicle_present', true)
     step.setArgument('plug_loads_vehicle_annual_kwh', '1500.0')
+    step.setArgument('plug_loads_vehicle_weekday_fractions', '0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042')
+    step.setArgument('plug_loads_vehicle_weekend_fractions', '0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042')
+    step.setArgument('plug_loads_vehicle_monthly_multipliers', '1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1')
     step.setArgument('fuel_loads_grill_present', true)
     step.setArgument('fuel_loads_grill_fuel_type', HPXML::FuelTypePropane)
     step.setArgument('fuel_loads_grill_annual_therm', '25.0')
+    step.setArgument('fuel_loads_grill_weekday_fractions', '0.004, 0.001, 0.001, 0.002, 0.007, 0.012, 0.029, 0.046, 0.044, 0.041, 0.044, 0.046, 0.042, 0.038, 0.049, 0.059, 0.110, 0.161, 0.115, 0.070, 0.044, 0.019, 0.013, 0.007')
+    step.setArgument('fuel_loads_grill_weekend_fractions', '0.004, 0.001, 0.001, 0.002, 0.007, 0.012, 0.029, 0.046, 0.044, 0.041, 0.044, 0.046, 0.042, 0.038, 0.049, 0.059, 0.110, 0.161, 0.115, 0.070, 0.044, 0.019, 0.013, 0.007')
+    step.setArgument('fuel_loads_grill_monthly_multipliers', '1.097, 1.097, 0.991, 0.987, 0.991, 0.890, 0.896, 0.896, 0.890, 1.085, 1.085, 1.097')
     step.setArgument('fuel_loads_lighting_present', true)
     step.setArgument('fuel_loads_lighting_annual_therm', '28.0')
+    step.setArgument('fuel_loads_lighting_weekday_fractions', '0.044, 0.023, 0.019, 0.015, 0.016, 0.018, 0.026, 0.033, 0.033, 0.032, 0.033, 0.033, 0.032, 0.032, 0.032, 0.033, 0.045, 0.057, 0.066, 0.076, 0.081, 0.086, 0.075, 0.065')
+    step.setArgument('fuel_loads_lighting_weekend_fractions', '0.044, 0.023, 0.019, 0.015, 0.016, 0.018, 0.026, 0.033, 0.033, 0.032, 0.033, 0.033, 0.032, 0.032, 0.032, 0.033, 0.045, 0.057, 0.066, 0.076, 0.081, 0.086, 0.075, 0.065')
+    step.setArgument('fuel_loads_lighting_monthly_multipliers', '1.154, 1.161, 1.013, 1.010, 1.013, 0.888, 0.883, 0.883, 0.888, 0.978, 0.974, 1.154')
     step.setArgument('fuel_loads_fireplace_present', true)
     step.setArgument('fuel_loads_fireplace_fuel_type', HPXML::FuelTypeWoodCord)
     step.setArgument('fuel_loads_fireplace_annual_therm', '55.0')
+    step.setArgument('fuel_loads_fireplace_weekday_fractions', '0.044, 0.023, 0.019, 0.015, 0.016, 0.018, 0.026, 0.033, 0.033, 0.032, 0.033, 0.033, 0.032, 0.032, 0.032, 0.033, 0.045, 0.057, 0.066, 0.076, 0.081, 0.086, 0.075, 0.065')
+    step.setArgument('fuel_loads_fireplace_weekend_fractions', '0.044, 0.023, 0.019, 0.015, 0.016, 0.018, 0.026, 0.033, 0.033, 0.032, 0.033, 0.033, 0.032, 0.032, 0.032, 0.033, 0.045, 0.057, 0.066, 0.076, 0.081, 0.086, 0.075, 0.065')
+    step.setArgument('fuel_loads_fireplace_monthly_multipliers', '1.154, 1.161, 1.013, 1.010, 1.013, 0.888, 0.883, 0.883, 0.888, 0.978, 0.974, 1.154')
     step.setArgument('pool_present', true)
     step.setArgument('pool_heater_type', HPXML::HeaterTypeGas)
     step.setArgument('pool_pump_annual_kwh', '2700.0')
     step.setArgument('pool_heater_annual_therm', '500.0')
+    step.setArgument('pool_pump_weekday_fractions', '0.003, 0.003, 0.003, 0.004, 0.008, 0.015, 0.026, 0.044, 0.084, 0.121, 0.127, 0.121, 0.120, 0.090, 0.075, 0.061, 0.037, 0.023, 0.013, 0.008, 0.004, 0.003, 0.003, 0.003')
+    step.setArgument('pool_pump_weekend_fractions', '0.003, 0.003, 0.003, 0.004, 0.008, 0.015, 0.026, 0.044, 0.084, 0.121, 0.127, 0.121, 0.120, 0.090, 0.075, 0.061, 0.037, 0.023, 0.013, 0.008, 0.004, 0.003, 0.003, 0.003')
+    step.setArgument('pool_pump_monthly_multipliers', '1.154, 1.161, 1.013, 1.010, 1.013, 0.888, 0.883, 0.883, 0.888, 0.978, 0.974, 1.154')
+    step.setArgument('pool_heater_weekday_fractions', '0.003, 0.003, 0.003, 0.004, 0.008, 0.015, 0.026, 0.044, 0.084, 0.121, 0.127, 0.121, 0.120, 0.090, 0.075, 0.061, 0.037, 0.023, 0.013, 0.008, 0.004, 0.003, 0.003, 0.003')
+    step.setArgument('pool_heater_weekend_fractions', '0.003, 0.003, 0.003, 0.004, 0.008, 0.015, 0.026, 0.044, 0.084, 0.121, 0.127, 0.121, 0.120, 0.090, 0.075, 0.061, 0.037, 0.023, 0.013, 0.008, 0.004, 0.003, 0.003, 0.003')
+    step.setArgument('pool_heater_monthly_multipliers', '1.154, 1.161, 1.013, 1.010, 1.013, 0.888, 0.883, 0.883, 0.888, 0.978, 0.974, 1.154')
     step.setArgument('hot_tub_present', true)
     step.setArgument('hot_tub_pump_annual_kwh', '1000.0')
     step.setArgument('hot_tub_heater_annual_kwh', '1300.0')
+    step.setArgument('hot_tub_pump_weekday_fractions', '0.024, 0.029, 0.024, 0.029, 0.047, 0.067, 0.057, 0.024, 0.024, 0.019, 0.015, 0.014, 0.014, 0.014, 0.024, 0.058, 0.126, 0.122, 0.068, 0.061, 0.051, 0.043, 0.024, 0.024')
+    step.setArgument('hot_tub_pump_weekend_fractions', '0.024, 0.029, 0.024, 0.029, 0.047, 0.067, 0.057, 0.024, 0.024, 0.019, 0.015, 0.014, 0.014, 0.014, 0.024, 0.058, 0.126, 0.122, 0.068, 0.061, 0.051, 0.043, 0.024, 0.024')
+    step.setArgument('hot_tub_pump_monthly_multipliers', '0.837, 0.835, 1.084, 1.084, 1.084, 1.096, 1.096, 1.096, 1.096, 0.931, 0.925, 0.837')
+    step.setArgument('hot_tub_heater_weekday_fractions', '0.024, 0.029, 0.024, 0.029, 0.047, 0.067, 0.057, 0.024, 0.024, 0.019, 0.015, 0.014, 0.014, 0.014, 0.024, 0.058, 0.126, 0.122, 0.068, 0.061, 0.051, 0.043, 0.024, 0.024')
+    step.setArgument('hot_tub_heater_weekend_fractions', '0.024, 0.029, 0.024, 0.029, 0.047, 0.067, 0.057, 0.024, 0.024, 0.019, 0.015, 0.014, 0.014, 0.014, 0.024, 0.058, 0.126, 0.122, 0.068, 0.061, 0.051, 0.043, 0.024, 0.024')
+    step.setArgument('hot_tub_heater_monthly_multipliers', '0.921, 0.928, 0.921, 0.915, 0.921, 1.160, 1.158, 1.158, 1.160, 0.921, 0.915, 0.921')
   elsif ['base-misc-loads-large-uncommon2.osw'].include? osw_file
     step.setArgument('pool_heater_type', 'none')
     step.setArgument('hot_tub_heater_type', HPXML::HeaterTypeHeatPump)
     step.setArgument('hot_tub_heater_annual_kwh', '260.0')
     step.setArgument('fuel_loads_grill_fuel_type', HPXML::FuelTypeOil)
     step.setArgument('fuel_loads_fireplace_fuel_type', HPXML::FuelTypeWoodPellets)
-  elsif ['base-misc-loads-usage-multiplier.osw'].include? osw_file
+  elsif ['base-misc-usage-multiplier.osw'].include? osw_file
     step.setArgument('water_fixtures_usage_multiplier', 0.9)
     step.setArgument('lighting_usage_multiplier_interior', 0.9)
     step.setArgument('lighting_usage_multiplier_exterior', 0.9)
@@ -1739,12 +1891,6 @@ def get_values(osw_file, step)
     step.setArgument('simulation_control_daylight_saving_end_day_of_month', 6)
   elsif ['base-simcontrol-daylight-saving-disabled.osw'].include? osw_file
     step.setArgument('simulation_control_daylight_saving_enabled', false)
-  elsif ['base-schedules-average.osw'].include? osw_file
-    step.setArgument('schedules_type', 'average')
-    step.removeArgument('schedules_path')
-  elsif ['base-schedules-stochastic.osw'].include? osw_file
-    step.setArgument('schedules_type', 'stochastic')
-    step.removeArgument('schedules_path')
   elsif ['base-simcontrol-runperiod-1-month.osw'].include? osw_file
     step.setArgument('simulation_control_run_period_end_month', 1)
     step.setArgument('simulation_control_run_period_end_day_of_month', 31)
@@ -1770,6 +1916,8 @@ def get_values(osw_file, step)
   elsif ['extra-dhw-solar-latitude.osw'].include? osw_file
     step.setArgument('solar_thermal_system_type', 'hot water')
     step.setArgument('solar_thermal_collector_tilt', 'latitude-15')
+  elsif ['extra-dhw-shared-water-heater.osw'].include? osw_file
+    step.setArgument('water_heater_is_shared_system', true)
   elsif ['extra-second-refrigerator.osw'].include? osw_file
     step.setArgument('extra_refrigerator_present', true)
   elsif ['extra-second-heating-system-portable-heater.osw'].include? osw_file
@@ -1789,11 +1937,10 @@ def get_values(osw_file, step)
     step.setArgument('heating_system_fraction_heat_load_served', 0.75)
     step.setArgument('heating_system_type_2', HPXML::HVACTypeFireplace)
     step.setArgument('heating_system_heating_capacity_2', '16000.0')
-  elsif ['extra-vacancy-6-months.osw'].include? osw_file
-    step.setArgument('simulation_control_vacancy_begin_month', 1)
-    step.setArgument('simulation_control_vacancy_begin_day_of_month', 1)
-    step.setArgument('simulation_control_vacancy_end_month', 6)
-    step.setArgument('simulation_control_vacancy_end_day_of_month', 30)
+  elsif ['extra-pv-shared.osw'].include? osw_file
+    step.setArgument('geometry_building_num_bedrooms', 9)
+    step.setArgument('pv_system_module_type_1', HPXML::PVModuleTypeStandard)
+    step.setArgument('pv_system_is_shared_1', true)
   elsif ['invalid_files/non-electric-heat-pump-water-heater.osw'].include? osw_file
     step.setArgument('water_heater_type', HPXML::WaterHeaterTypeHeatPump)
     step.setArgument('water_heater_fuel_type', HPXML::FuelTypeNaturalGas)
@@ -1809,17 +1956,11 @@ def get_values(osw_file, step)
   elsif ['invalid_files/single-family-detached-finished-basement-zero-foundation-height.osw'].include? osw_file
     step.setArgument('geometry_foundation_height', 0.0)
   elsif ['invalid_files/single-family-attached-ambient.osw'].include? osw_file
-    step.setArgument('geometry_unit_type', HPXML::ResidentialTypeSFA)
-    step.setArgument('geometry_corridor_position', 'None')
     step.setArgument('geometry_foundation_type', HPXML::FoundationTypeAmbient)
   elsif ['invalid_files/multifamily-bottom-slab-non-zero-foundation-height.osw'].include? osw_file
-    step.setArgument('geometry_unit_type', HPXML::ResidentialTypeApartment)
-    step.setArgument('geometry_corridor_position', 'None')
     step.setArgument('geometry_foundation_type', HPXML::FoundationTypeSlab)
     step.setArgument('geometry_foundation_height_above_grade', 0.0)
   elsif ['invalid_files/multifamily-bottom-crawlspace-zero-foundation-height.osw'].include? osw_file
-    step.setArgument('geometry_unit_type', HPXML::ResidentialTypeApartment)
-    step.setArgument('geometry_corridor_position', 'None')
     step.setArgument('geometry_foundation_type', HPXML::FoundationTypeCrawlspaceUnvented)
     step.setArgument('geometry_foundation_height', 0.0)
   elsif ['invalid_files/slab-non-zero-foundation-height-above-grade.osw'].include? osw_file
@@ -1831,11 +1972,38 @@ def get_values(osw_file, step)
     step.setArgument('heating_system_fraction_heat_load_served', 0.4)
     step.setArgument('heating_system_type_2', HPXML::HVACTypeFireplace)
     step.setArgument('heating_system_fraction_heat_load_served_2', 0.6)
+  elsif ['invalid_files/single-family-attached-no-building-orientation.osw'].include? osw_file
+    step.removeArgument('geometry_building_num_units')
+    step.removeArgument('geometry_horizontal_location')
+  elsif ['invalid_files/multifamily-no-building-orientation.osw'].include? osw_file
+    step.removeArgument('geometry_building_num_units')
+    step.removeArgument('geometry_level')
+    step.removeArgument('geometry_horizontal_location')
+  elsif ['invalid_files/vented-crawlspace-with-wall-and-ceiling-insulation.osw'].include? osw_file
+    step.setArgument('geometry_foundation_type', HPXML::FoundationTypeCrawlspaceVented)
+    step.setArgument('geometry_foundation_height', 3.0)
+    step.setArgument('floor_assembly_r', 10)
+  elsif ['invalid_files/unvented-crawlspace-with-ceiling-insulation.osw'].include? osw_file
+    step.setArgument('geometry_foundation_type', HPXML::FoundationTypeCrawlspaceUnvented)
+    step.setArgument('geometry_foundation_height', 3.0)
+    step.setArgument('floor_assembly_r', 10)
+  elsif ['invalid_files/unconditioned-basement-with-wall-and-ceiling-insulation.osw'].include? osw_file
+    step.setArgument('geometry_foundation_type', HPXML::FoundationTypeBasementUnconditioned)
+    step.setArgument('floor_assembly_r', 10)
+  elsif ['invalid_files/vented-attic-with-floor-and-roof-insulation.osw'].include? osw_file
+    step.setArgument('geometry_attic_type', HPXML::AtticTypeVented)
+    step.setArgument('roof_assembly_r', 10)
+  elsif ['invalid_files/unvented-attic-with-floor-and-roof-insulation.osw'].include? osw_file
+    step.setArgument('geometry_attic_type', HPXML::AtticTypeUnvented)
+    step.setArgument('roof_assembly_r', 10)
+  elsif ['invalid_files/conditioned-basement-with-ceiling-insulation.osw'].include? osw_file
+    step.setArgument('geometry_foundation_type', HPXML::FoundationTypeBasementConditioned)
+    step.setArgument('floor_assembly_r', 10)
+  elsif ['invalid_files/conditioned-attic-with-floor-insulation.osw'].include? osw_file
+    step.setArgument('geometry_attic_type', HPXML::AtticTypeConditioned)
   end
   return step
 end
-
-# frozen_string_literal: true
 
 def create_hpxmls
   require 'oga'
@@ -1909,16 +2077,17 @@ def create_hpxmls
     'invalid_files/hvac-dse-multiple-attached-cooling.xml' => 'base-hvac-dse.xml',
     'invalid_files/hvac-dse-multiple-attached-heating.xml' => 'base-hvac-dse.xml',
     'invalid_files/hvac-frac-load-served.xml' => 'base-hvac-multiple.xml',
+    'invalid_files/invalid-daylight-saving.xml' => 'base.xml',
     'invalid_files/invalid-epw-filepath.xml' => 'base-location-epw-filepath.xml',
+    'invalid_files/invalid-facility-type.xml' => 'base-dhw-shared-laundry-room.xml',
     'invalid_files/invalid-neighbor-shading-azimuth.xml' => 'base-misc-neighbor-shading.xml',
     'invalid_files/invalid-relatedhvac-dhw-indirect.xml' => 'base-dhw-indirect.xml',
     'invalid_files/invalid-relatedhvac-desuperheater.xml' => 'base-hvac-central-ac-only-1-speed.xml',
-    'invalid_files/invalid-timestep.xml' => 'base.xml',
     'invalid_files/invalid-runperiod.xml' => 'base.xml',
+    'invalid_files/invalid-timestep.xml' => 'base.xml',
     'invalid_files/invalid-window-height.xml' => 'base-enclosure-overhangs.xml',
     'invalid_files/invalid-window-interior-shading.xml' => 'base.xml',
     'invalid_files/invalid-wmo.xml' => 'base.xml',
-    'invalid_files/invalid-daylight-saving.xml' => 'base.xml',
     'invalid_files/lighting-fractions.xml' => 'base.xml',
     'invalid_files/missing-elements.xml' => 'base.xml',
     'invalid_files/multifamily-reference-appliance.xml' => 'base.xml',
@@ -1940,6 +2109,8 @@ def create_hpxmls
     'invalid_files/unattached-hvac-distribution.xml' => 'base.xml',
     'invalid_files/unattached-skylight.xml' => 'base-enclosure-skylights.xml',
     'invalid_files/unattached-solar-thermal-system.xml' => 'base-dhw-solar-indirect-flat-plate.xml',
+    'invalid_files/unattached-shared-clothes-washer-water-heater.xml' => 'base-dhw-shared-laundry-room.xml',
+    'invalid_files/unattached-shared-dishwasher-water-heater.xml' => 'base-dhw-shared-laundry-room.xml',
     'invalid_files/unattached-window.xml' => 'base.xml',
     'invalid_files/water-heater-location.xml' => 'base.xml',
     'invalid_files/water-heater-location-other.xml' => 'base.xml',
@@ -1985,6 +2156,9 @@ def create_hpxmls
     'base-dhw-recirc-nocontrol.xml' => 'base.xml',
     'base-dhw-recirc-temperature.xml' => 'base.xml',
     'base-dhw-recirc-timer.xml' => 'base.xml',
+    'base-dhw-shared-water-heater.xml' => 'base-enclosure-attached-multifamily.xml',
+    'base-dhw-shared-water-heater-recirc.xml' => 'base-dhw-shared-water-heater.xml',
+    'base-dhw-shared-laundry-room.xml' => 'base-enclosure-attached-multifamily.xml',
     'base-dhw-solar-direct-evacuated-tube.xml' => 'base.xml',
     'base-dhw-solar-direct-flat-plate.xml' => 'base.xml',
     'base-dhw-solar-direct-ics.xml' => 'base.xml',
@@ -2022,7 +2196,10 @@ def create_hpxmls
     'base-enclosure-beds-4.xml' => 'base.xml',
     'base-enclosure-beds-5.xml' => 'base.xml',
     'base-enclosure-garage.xml' => 'base.xml',
+    'base-enclosure-infil-ach-house-pressure.xml' => 'base.xml',
+    'base-enclosure-infil-cfm-house-pressure.xml' => 'base-enclosure-infil-cfm50.xml',
     'base-enclosure-infil-cfm50.xml' => 'base.xml',
+    'base-enclosure-infil-flue.xml' => 'base.xml',
     'base-enclosure-infil-natural-ach.xml' => 'base.xml',
     'base-enclosure-overhangs.xml' => 'base.xml',
     'base-enclosure-rooftypes.xml' => 'base.xml',
@@ -2132,15 +2309,14 @@ def create_hpxmls
     'base-misc-loads-large-uncommon.xml' => 'base-enclosure-garage.xml',
     'base-misc-loads-large-uncommon2.xml' => 'base-misc-loads-large-uncommon.xml',
     'base-misc-loads-none.xml' => 'base.xml',
-    'base-misc-loads-usage-multiplier.xml' => 'base.xml',
     'base-misc-neighbor-shading.xml' => 'base.xml',
+    'base-misc-usage-multiplier.xml' => 'base.xml',
     'base-pv.xml' => 'base.xml',
+    'base-pv-shared.xml' => 'base-enclosure-attached-multifamily.xml',
     'base-simcontrol-daylight-saving-custom.xml' => 'base.xml',
     'base-simcontrol-daylight-saving-disabled.xml' => 'base.xml',
     'base-simcontrol-runperiod-1-month.xml' => 'base.xml',
     'base-simcontrol-timestep-10-mins.xml' => 'base.xml',
-    'base-schedules-average.xml' => 'base.xml',
-    'base-schedules-stochastic.xml' => 'base.xml',
 
     'hvac_autosizing/base-autosize.xml' => 'base.xml',
     'hvac_autosizing/base-hvac-air-to-air-heat-pump-1-speed-autosize.xml' => 'base-hvac-air-to-air-heat-pump-1-speed.xml',
@@ -2253,6 +2429,8 @@ def create_hpxmls
         hpxml_path = File.join(sample_files_dir, derivative)
       end
 
+      XMLHelper.write_file(hpxml_doc, hpxml_path)
+
       if not hpxml_path.include? 'invalid_files'
         # Validate file against HPXML schema
         schemas_dir = File.absolute_path(File.join(File.dirname(__FILE__), 'HPXMLtoOpenStudio/resources'))
@@ -2267,8 +2445,6 @@ def create_hpxmls
           fail "ERRORS: #{errors}"
         end
       end
-
-      XMLHelper.write_file(hpxml_doc, hpxml_path)
     rescue Exception => e
       puts "\n#{e}\n#{e.backtrace.join('\n')}"
       puts "\nError: Did not successfully generate #{derivative}."
@@ -2334,10 +2510,6 @@ def set_hpxml_header(hpxml_file, hpxml)
     hpxml.header.dst_end_day_of_month = 31
   elsif ['base-misc-defaults.xml'].include? hpxml_file
     hpxml.header.timestep = nil
-  elsif ['base-schedules-average.xml'].include? hpxml_file
-    hpxml.header.schedules_path = 'BuildResidentialHPXML/tests/schedules/average.csv'
-  elsif ['base-schedules-stochastic.xml'].include? hpxml_file
-    hpxml.header.schedules_path = 'BuildResidentialHPXML/tests/schedules/stochastic.csv'
   end
 end
 
@@ -2427,6 +2599,8 @@ def set_hpxml_building_construction(hpxml_file, hpxml)
     hpxml.building_construction.residential_facility_type = HPXML::ResidentialTypeApartment
   elsif ['base-foundation-walkout-basement.xml'].include? hpxml_file
     hpxml.building_construction.number_of_conditioned_floors_above_grade += 1
+  elsif ['invalid_files/invalid-facility-type.xml'].include? hpxml_file
+    hpxml.building_construction.residential_facility_type = HPXML::ResidentialTypeSFD
   end
 end
 
@@ -2517,6 +2691,14 @@ def set_hpxml_air_infiltration_measurements(hpxml_file, hpxml)
                                             house_pressure: 50,
                                             unit_of_measure: HPXML::UnitsCFM,
                                             air_leakage: 3.0 / 60.0 * infil_volume)
+  elsif ['base-enclosure-infil-ach-house-pressure.xml'].include? hpxml_file
+    hpxml.air_infiltration_measurements[0].house_pressure = 45
+    hpxml.air_infiltration_measurements[0].air_leakage *= 0.9338
+  elsif ['base-enclosure-infil-cfm-house-pressure.xml'].include? hpxml_file
+    hpxml.air_infiltration_measurements[0].house_pressure = 45
+    hpxml.air_infiltration_measurements[0].air_leakage *= 0.9338
+  elsif ['base-enclosure-infil-flue.xml'].include? hpxml_file
+    hpxml.building_construction.has_flue_or_chimney = true
   end
   if ['base-misc-defaults.xml'].include? hpxml_file
     hpxml.air_infiltration_measurements[0].infiltration_volume = nil
@@ -2712,6 +2894,7 @@ def set_hpxml_roofs(hpxml_file, hpxml)
     hpxml.roofs[-1].area = 0.05
   elsif ['base-atticroof-radiant-barrier.xml'].include? hpxml_file
     hpxml.roofs[0].radiant_barrier = true
+    hpxml.roofs[0].radiant_barrier_grade = 2
   elsif ['invalid_files/enclosure-attic-missing-roof.xml'].include? hpxml_file
     hpxml.roofs[0].delete
   elsif ['base-misc-defaults.xml'].include? hpxml_file
@@ -5307,7 +5490,7 @@ def set_hpxml_ventilation_fans(hpxml_file, hpxml)
       vent_fan.rated_flow_rate /= 2.0 unless vent_fan.rated_flow_rate.nil?
       vent_fan.tested_flow_rate /= 2.0 unless vent_fan.tested_flow_rate.nil?
       hpxml.ventilation_fans << vent_fan.dup
-      hpxml.ventilation_fans[-1].id = "#{vent_fan.id} 2"
+      hpxml.ventilation_fans[-1].id = "#{vent_fan.id}2"
       hpxml.ventilation_fans[-1].start_hour = vent_fan.start_hour - 1 unless vent_fan.start_hour.nil?
       hpxml.ventilation_fans[-1].hours_in_operation = vent_fan.hours_in_operation - 1 unless vent_fan.hours_in_operation.nil?
     end
@@ -5510,7 +5693,7 @@ def set_hpxml_water_heating_systems(hpxml_file, hpxml)
   elsif ['base-enclosure-garage.xml'].include? hpxml_file
     hpxml.water_heating_systems[0].location = HPXML::LocationGarage
   elsif ['base-enclosure-attached-multifamily.xml'].include? hpxml_file
-    hpxml.water_heating_systems[0].location = HPXML::LocationOtherMultifamilyBufferSpace
+    hpxml.water_heating_systems[0].location = HPXML::LocationLivingSpace
   elsif ['base-enclosure-other-housing-unit.xml',
          'base-enclosure-other-heated-space.xml',
          'base-enclosure-other-non-freezing-space.xml',
@@ -5537,6 +5720,28 @@ def set_hpxml_water_heating_systems(hpxml_file, hpxml)
       hpxml.water_heating_systems[0].energy_factor = nil
       hpxml.water_heating_systems[0].uniform_energy_factor = 0.93
     end
+  elsif ['base-dhw-shared-water-heater.xml'].include? hpxml_file
+    hpxml.water_heating_systems.clear
+    hpxml.water_heating_systems.add(id: 'SharedWaterHeater',
+                                    is_shared_system: true,
+                                    number_of_units_served: 6,
+                                    fuel_type: HPXML::FuelTypeNaturalGas,
+                                    water_heater_type: HPXML::WaterHeaterTypeStorage,
+                                    location: HPXML::LocationLivingSpace,
+                                    tank_volume: 50,
+                                    fraction_dhw_load_served: 1.0,
+                                    heating_capacity: 40000,
+                                    energy_factor: 0.59,
+                                    recovery_efficiency: 0.76,
+                                    temperature: Waterheater.get_default_hot_water_temperature(Constants.ERIVersions[-1]))
+  elsif ['base-dhw-shared-laundry-room.xml'].include? hpxml_file
+    hpxml.water_heating_systems[0].location = HPXML::LocationLivingSpace
+    hpxml.water_heating_systems << hpxml.water_heating_systems[0].dup
+    hpxml.water_heating_systems[1].id = 'SharedWaterHeater'
+    hpxml.water_heating_systems[1].is_shared_system = true
+    hpxml.water_heating_systems[1].number_of_units_served = 6
+    hpxml.water_heating_systems[1].fraction_dhw_load_served = 0
+    hpxml.water_heating_systems[1].location = HPXML::LocationOtherHeatedSpace
   elsif ['invalid_files/multifamily-reference-water-heater.xml'].include? hpxml_file
     hpxml.water_heating_systems[0].location = HPXML::LocationOtherNonFreezingSpace
   end
@@ -5544,7 +5749,7 @@ end
 
 def set_hpxml_hot_water_distribution(hpxml_file, hpxml)
   if ['base.xml'].include? hpxml_file
-    hpxml.hot_water_distributions.add(id: 'HotWaterDstribution',
+    hpxml.hot_water_distributions.add(id: 'HotWaterDistribution',
                                       system_type: HPXML::DHWDistTypeStandard,
                                       standard_piping_length: 50, # Chosen to test a negative EC_adj
                                       pipe_r_value: 0.0)
@@ -5584,6 +5789,13 @@ def set_hpxml_hot_water_distribution(hpxml_file, hpxml)
     hpxml.hot_water_distributions[0].recirculation_piping_length = 50
     hpxml.hot_water_distributions[0].recirculation_branch_piping_length = 50
     hpxml.hot_water_distributions[0].recirculation_pump_power = 50
+  elsif ['base-dhw-shared-water-heater.xml'].include? hpxml_file
+    hpxml.hot_water_distributions[0].id = 'SharedHotWaterDistribution'
+  elsif ['base-dhw-shared-water-heater-recirc.xml'].include? hpxml_file
+    hpxml.hot_water_distributions[0].has_shared_recirculation = true
+    hpxml.hot_water_distributions[0].shared_recirculation_number_of_units_served = 6
+    hpxml.hot_water_distributions[0].shared_recirculation_pump_power = 220
+    hpxml.hot_water_distributions[0].shared_recirculation_control_type = HPXML::DHWRecirControlTypeTimer
   elsif ['base-dhw-none.xml'].include? hpxml_file
     hpxml.hot_water_distributions.clear
   elsif ['base-misc-defaults.xml'].include? hpxml_file
@@ -5607,7 +5819,7 @@ def set_hpxml_water_fixtures(hpxml_file, hpxml)
     hpxml.water_fixtures[1].low_flow = true
   elsif ['base-dhw-none.xml'].include? hpxml_file
     hpxml.water_fixtures.clear
-  elsif ['base-misc-loads-usage-multiplier.xml'].include? hpxml_file
+  elsif ['base-misc-usage-multiplier.xml'].include? hpxml_file
     hpxml.water_heating.water_fixtures_usage_multiplier = 0.9
   end
 end
@@ -5691,6 +5903,7 @@ end
 def set_hpxml_pv_systems(hpxml_file, hpxml)
   if ['base-pv.xml'].include? hpxml_file
     hpxml.pv_systems.add(id: 'PVSystem',
+                         is_shared_system: false,
                          module_type: HPXML::PVModuleTypeStandard,
                          location: HPXML::LocationRoof,
                          tracking: HPXML::PVTrackingTypeFixed,
@@ -5700,6 +5913,7 @@ def set_hpxml_pv_systems(hpxml_file, hpxml)
                          inverter_efficiency: 0.96,
                          system_losses_fraction: 0.14)
     hpxml.pv_systems.add(id: 'PVSystem2',
+                         is_shared_system: false,
                          module_type: HPXML::PVModuleTypePremium,
                          location: HPXML::LocationRoof,
                          tracking: HPXML::PVTrackingTypeFixed,
@@ -5710,6 +5924,7 @@ def set_hpxml_pv_systems(hpxml_file, hpxml)
                          system_losses_fraction: 0.14)
   elsif ['base-misc-defaults.xml'].include? hpxml_file
     hpxml.pv_systems.add(id: 'PVSystem',
+                         is_shared_system: false,
                          module_type: HPXML::PVModuleTypeStandard,
                          location: HPXML::LocationRoof,
                          tracking: HPXML::PVTrackingTypeFixed,
@@ -5719,6 +5934,18 @@ def set_hpxml_pv_systems(hpxml_file, hpxml)
                          inverter_efficiency: nil,
                          system_losses_fraction: nil,
                          year_modules_manufactured: 2015)
+  elsif ['base-pv-shared.xml'].include? hpxml_file
+    hpxml.pv_systems.add(id: 'PVSystem',
+                         is_shared_system: true,
+                         module_type: HPXML::PVModuleTypeStandard,
+                         location: HPXML::LocationGround,
+                         tracking: HPXML::PVTrackingTypeFixed,
+                         array_azimuth: 225,
+                         array_tilt: 30,
+                         building_max_power_output: 30000,
+                         inverter_efficiency: 0.96,
+                         system_losses_fraction: 0.14,
+                         number_of_bedrooms_served: 20)
   end
 end
 
@@ -5733,10 +5960,11 @@ def set_hpxml_clothes_washer(hpxml_file, hpxml)
                               label_annual_gas_cost: 27,
                               capacity: 3.2,
                               label_usage: 6)
-  elsif ['base-appliances-none.xml'].include? hpxml_file
+  elsif ['base-appliances-none.xml',
+         'base-dhw-none.xml'].include? hpxml_file
     hpxml.clothes_washers.clear
   elsif ['base-enclosure-attached-multifamily.xml'].include? hpxml_file
-    hpxml.clothes_washers[0].location = HPXML::LocationOtherHousingUnit
+    hpxml.clothes_washers[0].location = HPXML::LocationLivingSpace
   elsif ['base-enclosure-other-housing-unit.xml',
          'base-enclosure-other-heated-space.xml',
          'base-enclosure-other-non-freezing-space.xml',
@@ -5773,8 +6001,15 @@ def set_hpxml_clothes_washer(hpxml_file, hpxml)
     hpxml.clothes_washers[0].label_annual_gas_cost = nil
     hpxml.clothes_washers[0].capacity = nil
     hpxml.clothes_washers[0].label_usage = nil
-  elsif ['base-misc-loads-usage-multiplier.xml'].include? hpxml_file
+  elsif ['base-misc-usage-multiplier.xml'].include? hpxml_file
     hpxml.clothes_washers[0].usage_multiplier = 0.9
+  elsif ['base-dhw-shared-laundry-room.xml'].include? hpxml_file
+    hpxml.clothes_washers[0].is_shared_appliance = true
+    hpxml.clothes_washers[0].id = 'SharedClothesWasher'
+    hpxml.clothes_washers[0].location = HPXML::LocationOtherHeatedSpace
+    hpxml.clothes_washers[0].water_heating_system_idref = 'SharedWaterHeater'
+  elsif ['invalid_files/unattached-shared-clothes-washer-water-heater.xml'].include? hpxml_file
+    hpxml.clothes_washers[0].water_heating_system_idref = 'foobar'
   elsif ['invalid_files/multifamily-reference-appliance.xml'].include? hpxml_file
     hpxml.clothes_washers[0].location = HPXML::LocationOtherHousingUnit
   end
@@ -5787,10 +6022,11 @@ def set_hpxml_clothes_dryer(hpxml_file, hpxml)
                              fuel_type: HPXML::FuelTypeElectricity,
                              combined_energy_factor: 3.73,
                              control_type: HPXML::ClothesDryerControlTypeTimer)
-  elsif ['base-appliances-none.xml'].include? hpxml_file
+  elsif ['base-appliances-none.xml',
+         'base-dhw-none.xml'].include? hpxml_file
     hpxml.clothes_dryers.clear
   elsif ['base-enclosure-attached-multifamily.xml'].include? hpxml_file
-    hpxml.clothes_dryers[0].location = HPXML::LocationOtherHeatedSpace
+    hpxml.clothes_dryers[0].location = HPXML::LocationLivingSpace
   elsif ['base-enclosure-other-housing-unit.xml',
          'base-enclosure-other-heated-space.xml',
          'base-enclosure-other-non-freezing-space.xml',
@@ -5851,8 +6087,13 @@ def set_hpxml_clothes_dryer(hpxml_file, hpxml)
     hpxml.clothes_dryers[0].energy_factor = nil
     hpxml.clothes_dryers[0].combined_energy_factor = nil
     hpxml.clothes_dryers[0].control_type = nil
-  elsif ['base-misc-loads-usage-multiplier.xml'].include? hpxml_file
+  elsif ['base-dhw-shared-laundry-room.xml'].include? hpxml_file
+    hpxml.clothes_dryers[0].id = 'SharedClothesDryer'
+    hpxml.clothes_dryers[0].location = HPXML::LocationOtherHeatedSpace
+  elsif ['base-misc-usage-multiplier.xml'].include? hpxml_file
     hpxml.clothes_dryers[0].usage_multiplier = 0.9
+  elsif ['base-dhw-shared-laundry-room.xml'].include? hpxml_file
+    hpxml.clothes_dryers[0].is_shared_appliance = true
   end
 end
 
@@ -5872,7 +6113,7 @@ def set_hpxml_dishwasher(hpxml_file, hpxml)
     hpxml.dishwashers[0].energy_factor = HotWaterAndAppliances.calc_dishwasher_ef_from_annual_kwh(rated_annual_kwh).round(2)
     hpxml.dishwashers[0].place_setting_capacity = 6 # Compact
   elsif ['base-enclosure-attached-multifamily.xml'].include? hpxml_file
-    hpxml.dishwashers[0].location = HPXML::LocationOtherMultifamilyBufferSpace
+    hpxml.dishwashers[0].location = HPXML::LocationLivingSpace
   elsif ['base-enclosure-other-housing-unit.xml',
          'base-enclosure-other-heated-space.xml',
          'base-enclosure-other-non-freezing-space.xml',
@@ -5886,7 +6127,8 @@ def set_hpxml_dishwasher(hpxml_file, hpxml)
     elsif ['base-enclosure-other-multifamily-buffer-space.xml'].include? hpxml_file
       hpxml.dishwashers[0].location = HPXML::LocationOtherMultifamilyBufferSpace
     end
-  elsif ['base-appliances-none.xml'].include? hpxml_file
+  elsif ['base-appliances-none.xml',
+         'base-dhw-none.xml'].include? hpxml_file
     hpxml.dishwashers.clear
   elsif ['base-foundation-unconditioned-basement.xml'].include? hpxml_file
     hpxml.dishwashers[0].location = HPXML::LocationBasementUnconditioned
@@ -5904,8 +6146,15 @@ def set_hpxml_dishwasher(hpxml_file, hpxml)
     hpxml.dishwashers[0].label_annual_gas_cost = nil
     hpxml.dishwashers[0].place_setting_capacity = nil
     hpxml.dishwashers[0].label_usage = nil
-  elsif ['base-misc-loads-usage-multiplier.xml'].include? hpxml_file
+  elsif ['base-misc-usage-multiplier.xml'].include? hpxml_file
     hpxml.dishwashers[0].usage_multiplier = 0.9
+  elsif ['base-dhw-shared-laundry-room.xml'].include? hpxml_file
+    hpxml.dishwashers[0].is_shared_appliance = true
+    hpxml.dishwashers[0].id = 'SharedDishwasher'
+    hpxml.dishwashers[0].location = HPXML::LocationOtherHeatedSpace
+    hpxml.dishwashers[0].water_heating_system_idref = 'SharedWaterHeater'
+  elsif ['invalid_files/unattached-shared-dishwasher-water-heater.xml'].include? hpxml_file
+    hpxml.dishwashers[0].water_heating_system_idref = 'foobar'
   end
 end
 
@@ -5920,7 +6169,7 @@ def set_hpxml_refrigerator(hpxml_file, hpxml)
   elsif ['base-appliances-none.xml'].include? hpxml_file
     hpxml.refrigerators.clear
   elsif ['base-enclosure-attached-multifamily.xml'].include? hpxml_file
-    hpxml.refrigerators[0].location = HPXML::LocationOtherNonFreezingSpace
+    hpxml.refrigerators[0].location = HPXML::LocationLivingSpace
   elsif ['base-enclosure-other-housing-unit.xml',
          'base-enclosure-other-heated-space.xml',
          'base-enclosure-other-non-freezing-space.xml',
@@ -5948,7 +6197,7 @@ def set_hpxml_refrigerator(hpxml_file, hpxml)
     hpxml.refrigerators[0].location = nil
     hpxml.refrigerators[0].rated_annual_kwh = nil
     hpxml.refrigerators[0].adjusted_annual_kwh = nil
-  elsif ['base-misc-loads-usage-multiplier.xml'].include? hpxml_file
+  elsif ['base-misc-usage-multiplier.xml'].include? hpxml_file
     hpxml.refrigerators[0].usage_multiplier = 0.9
   elsif ['base-misc-loads-large-uncommon.xml'].include? hpxml_file
     hpxml.refrigerators[0].weekday_fractions = '0.040, 0.039, 0.038, 0.037, 0.036, 0.036, 0.038, 0.040, 0.041, 0.041, 0.040, 0.040, 0.042, 0.042, 0.042, 0.041, 0.044, 0.048, 0.050, 0.048, 0.047, 0.046, 0.044, 0.041'
@@ -6019,7 +6268,7 @@ def set_hpxml_cooking_range(hpxml_file, hpxml)
   elsif ['base-appliances-none.xml'].include? hpxml_file
     hpxml.cooking_ranges.clear
   elsif ['base-enclosure-attached-multifamily.xml'].include? hpxml_file
-    hpxml.cooking_ranges[0].location = HPXML::LocationOtherHousingUnit
+    hpxml.cooking_ranges[0].location = HPXML::LocationLivingSpace
   elsif ['base-enclosure-other-housing-unit.xml',
          'base-enclosure-other-heated-space.xml',
          'base-enclosure-other-non-freezing-space.xml',
@@ -6057,7 +6306,7 @@ def set_hpxml_cooking_range(hpxml_file, hpxml)
     hpxml.cooking_ranges[0].location = 'unconditioned space'
   elsif ['base-misc-defaults.xml'].include? hpxml_file
     hpxml.cooking_ranges[0].is_induction = nil
-  elsif ['base-misc-loads-usage-multiplier.xml'].include? hpxml_file
+  elsif ['base-misc-usage-multiplier.xml'].include? hpxml_file
     hpxml.cooking_ranges[0].usage_multiplier = 0.9
   elsif ['base-misc-loads-large-uncommon.xml'].include? hpxml_file
     hpxml.cooking_ranges[0].weekday_fractions = '0.007, 0.007, 0.004, 0.004, 0.007, 0.011, 0.025, 0.042, 0.046, 0.048, 0.042, 0.050, 0.057, 0.046, 0.057, 0.044, 0.092, 0.150, 0.117, 0.060, 0.035, 0.025, 0.016, 0.011'
@@ -6117,7 +6366,7 @@ def set_hpxml_lighting(hpxml_file, hpxml)
                               lighting_type: HPXML::LightingTypeLED)
   elsif ['invalid_files/lighting-fractions.xml'].include? hpxml_file
     hpxml.lighting_groups[0].fraction_of_units_in_location = 0.8
-  elsif ['base-misc-loads-usage-multiplier.xml'].include? hpxml_file
+  elsif ['base-misc-usage-multiplier.xml'].include? hpxml_file
     hpxml.lighting.interior_usage_multiplier = 0.9
     hpxml.lighting.garage_usage_multiplier = 0.9
     hpxml.lighting.exterior_usage_multiplier = 0.9
@@ -6218,7 +6467,7 @@ def set_hpxml_plug_loads(hpxml_file, hpxml)
                            plug_load_type: HPXML::PlugLoadTypeOther)
       hpxml.plug_loads.add(id: 'PlugLoadMisc2',
                            plug_load_type: HPXML::PlugLoadTypeTelevision)
-    elsif ['base-misc-loads-usage-multiplier.xml'].include? hpxml_file
+    elsif ['base-misc-usage-multiplier.xml'].include? hpxml_file
       hpxml.plug_loads.each do |plug_load|
         plug_load.usage_multiplier = 0.9
       end
@@ -6347,6 +6596,9 @@ if ARGV[0].to_sym == :update_measures
   ENV['HOME'] = 'C:' if !ENV['HOME'].nil? && ENV['HOME'].start_with?('U:')
   ENV['HOMEDRIVE'] = 'C:\\' if !ENV['HOMEDRIVE'].nil? && ENV['HOMEDRIVE'].start_with?('U:')
 
+  create_osws
+  create_hpxmls
+
   # Apply rubocop
   cops = ['Layout',
           'Lint/DeprecatedClassMethods',
@@ -6373,9 +6625,6 @@ if ARGV[0].to_sym == :update_measures
   command = "#{OpenStudio.getOpenStudioCLI} measure -t '#{File.dirname(__FILE__)}'"
   puts 'Updating measure.xmls...'
   system(command, [:out, :err] => File::NULL)
-
-  create_osws
-  create_hpxmls
 
   puts 'Done.'
 end

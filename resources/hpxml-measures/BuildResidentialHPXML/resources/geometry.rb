@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Geometry
   def self.get_abs_azimuth(azimuth_type, relative_azimuth, building_orientation, offset = 180.0)
     azimuth = nil
@@ -1440,7 +1442,7 @@ class Geometry
                                          model:,
                                          geometry_cfa:,
                                          geometry_wall_height:,
-                                         geometry_num_units:,
+                                         geometry_building_num_units:,
                                          geometry_num_floors_above_grade:,
                                          geometry_aspect_ratio:,
                                          geometry_horizontal_location:,
@@ -1454,10 +1456,10 @@ class Geometry
 
     cfa = geometry_cfa
     wall_height = geometry_wall_height
-    num_units = geometry_num_units.get
+    num_units = geometry_building_num_units.get
     num_floors = geometry_num_floors_above_grade
     aspect_ratio = geometry_aspect_ratio
-    horizontal_location = geometry_horizontal_location
+    horizontal_location = geometry_horizontal_location.get
     corridor_position = geometry_corridor_position
     foundation_type = geometry_foundation_type
     foundation_height = geometry_foundation_height
@@ -1940,7 +1942,7 @@ class Geometry
                               model:,
                               geometry_cfa:,
                               geometry_wall_height:,
-                              geometry_num_units:,
+                              geometry_building_num_units:,
                               geometry_num_floors_above_grade:,
                               geometry_aspect_ratio:,
                               geometry_level:,
@@ -1957,11 +1959,11 @@ class Geometry
 
     cfa = geometry_cfa
     wall_height = geometry_wall_height
-    num_units = geometry_num_units.get
+    num_units = geometry_building_num_units.get
     num_floors = geometry_num_floors_above_grade
     aspect_ratio = geometry_aspect_ratio
-    level = geometry_level
-    horizontal_location = geometry_horizontal_location
+    level = geometry_level.get
+    horizontal_location = geometry_horizontal_location.get
     corridor_position = geometry_corridor_position
     corridor_width = geometry_corridor_width
     inset_width = geometry_inset_width

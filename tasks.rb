@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 def generate_example_osws(data_hash, include_args, osw_filename, simplify = true)
   # This function will generate OpenStudio OSWs
   # with all the measures in it, in the order specified in /resources/measure-info.json
@@ -149,8 +151,9 @@ if ARGV[0].to_sym == :update_measures
   # Apply rubocop
   cops = ['Layout',
           'Lint/DeprecatedClassMethods',
-          'Lint/StringConversionInInterpolation',
+          # 'Lint/RedundantStringCoercion', # Enable when rubocop is upgraded
           'Style/AndOr',
+          'Style/FrozenStringLiteralComment',
           'Style/HashSyntax',
           'Style/Next',
           'Style/NilComparison',
@@ -211,8 +214,9 @@ if ARGV[0].to_sym == :update_measures
 
     # SFA
     include_args['BuildResidentialHPXML']['geometry_unit_type'] = HPXML::ResidentialTypeSFA
-    include_args['BuildResidentialHPXML']['geometry_num_units'] = '2'
     include_args['BuildResidentialHPXML']['geometry_cfa'] = '900'
+    include_args['BuildResidentialHPXML']['geometry_horizontal_location'] = 'Left'
+    include_args['BuildResidentialHPXML']['geometry_building_num_units'] = '2'
     include_args['BuildResidentialHPXML'].update(weather_station)
     generate_example_osws(data_hash,
                           include_args,
@@ -220,8 +224,10 @@ if ARGV[0].to_sym == :update_measures
 
     # MF
     include_args['BuildResidentialHPXML']['geometry_unit_type'] = HPXML::ResidentialTypeApartment
-    include_args['BuildResidentialHPXML']['geometry_num_units'] = '2'
     include_args['BuildResidentialHPXML']['geometry_cfa'] = '900'
+    include_args['BuildResidentialHPXML']['geometry_level'] = 'Bottom'
+    include_args['BuildResidentialHPXML']['geometry_horizontal_location'] = 'Left'
+    include_args['BuildResidentialHPXML']['geometry_building_num_units'] = '2'
     include_args['BuildResidentialHPXML'].update(weather_station)
     generate_example_osws(data_hash,
                           include_args,

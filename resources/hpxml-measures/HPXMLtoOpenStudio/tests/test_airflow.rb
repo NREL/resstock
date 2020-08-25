@@ -62,9 +62,45 @@ class HPXMLtoOpenStudioAirflowTest < MiniTest::Test
     assert_in_epsilon(0.1446, program_values['Cw'].sum, 0.01)
   end
 
+  def test_infiltration_ach_house_pressure
+    args_hash = {}
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-enclosure-infil-ach-house-pressure.xml'))
+    model, hpxml = _test_measure(args_hash)
+
+    # Check infiltration/ventilation program
+    program_values = get_ems_values(model.getEnergyManagementSystemPrograms, "#{Constants.ObjectNameInfiltration} program")
+    assert_in_epsilon(0.0436, program_values['c'].sum, 0.01)
+    assert_in_epsilon(0.0573, program_values['Cs'].sum, 0.01)
+    assert_in_epsilon(0.1446, program_values['Cw'].sum, 0.01)
+  end
+
+  def test_infiltration_ach50_flue
+    args_hash = {}
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-enclosure-infil-flue.xml'))
+    model, hpxml = _test_measure(args_hash)
+
+    # Check infiltration/ventilation program
+    program_values = get_ems_values(model.getEnergyManagementSystemPrograms, "#{Constants.ObjectNameInfiltration} program")
+    assert_in_epsilon(0.0436, program_values['c'].sum, 0.01)
+    assert_in_epsilon(0.0818, program_values['Cs'].sum, 0.01)
+    assert_in_epsilon(0.1323, program_values['Cw'].sum, 0.01)
+  end
+
   def test_infiltration_cfm50
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-enclosure-infil-cfm50.xml'))
+    model, hpxml = _test_measure(args_hash)
+
+    # Check infiltration/ventilation program
+    program_values = get_ems_values(model.getEnergyManagementSystemPrograms, "#{Constants.ObjectNameInfiltration} program")
+    assert_in_epsilon(0.0436, program_values['c'].sum, 0.01)
+    assert_in_epsilon(0.0573, program_values['Cs'].sum, 0.01)
+    assert_in_epsilon(0.1446, program_values['Cw'].sum, 0.01)
+  end
+
+  def test_infiltration_cfm_house_pressure
+    args_hash = {}
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-enclosure-infil-cfm-house-pressure.xml'))
     model, hpxml = _test_measure(args_hash)
 
     # Check infiltration/ventilation program

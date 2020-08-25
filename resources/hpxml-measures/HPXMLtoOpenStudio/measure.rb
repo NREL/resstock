@@ -32,8 +32,6 @@ require_relative 'resources/version'
 require_relative 'resources/waterheater'
 require_relative 'resources/weather'
 require_relative 'resources/xmlhelper'
-require_relative '../BuildResidentialHPXML/resources/constants'
-require_relative '../BuildResidentialHPXML/resources/schedules'
 
 # start the measure
 class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
@@ -293,7 +291,6 @@ class OSModel
     add_lighting(runner, model, weather, spaces)
 
     # Pools & Hot Tubs
-
     add_pools_and_hot_tubs(runner, model, spaces)
 
     # Other
@@ -304,10 +301,6 @@ class OSModel
     add_photovoltaics(runner, model)
     add_additional_properties(runner, model, hpxml_path)
     add_component_loads_output(runner, model, spaces)
-
-    # Vacancy
-
-    set_vacancy(runner, model)
 
     if debug && (not output_dir.nil?)
       osm_output_path = File.join(output_dir, 'in.osm')
@@ -908,19 +901,15 @@ class OSModel
     num_occ = @hpxml.building_occupancy.number_of_residents
     if num_occ > 0
       occ_gain, hrs_per_day, sens_frac, lat_frac = Geometry.get_occupancy_default_values()
-      weekday_sch = Schedule.OccupantsWeekdayFractions
+      weekday_sch = '1.00000, 1.00000, 1.00000, 1.00000, 1.00000, 1.00000, 1.00000, 0.88310, 0.40861, 0.24189, 0.24189, 0.24189, 0.24189, 0.24189, 0.24189, 0.24189, 0.29498, 0.55310, 0.89693, 0.89693, 0.89693, 1.00000, 1.00000, 1.00000'
       weekday_sch_sum = weekday_sch.split(',').map(&:to_f).sum(0.0)
       if (weekday_sch_sum - hrs_per_day).abs > 0.1
         fail 'Occupancy schedule inconsistent with hrs_per_day.'
       end
-      weekend_sch = Schedule.OccupantsWeekendFractions
-      monthly_sch = Schedule.OccupantsMonthlyMultipliers
 
-      if not @hpxml.header.schedules_path.nil?
-        schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_path: @hpxml.header.schedules_path)
-      end
-
-      Geometry.process_occupants(model, num_occ, occ_gain, sens_frac, lat_frac, weekday_sch, weekend_sch, monthly_sch, @cfa, @nbeds, spaces[HPXML::LocationLivingSpace], schedules_file)
+      weekend_sch = weekday_sch
+      monthly_sch = '1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0'
+      Geometry.process_occupants(model, num_occ, occ_gain, sens_frac, lat_frac, weekday_sch, weekend_sch, monthly_sch, @cfa, @nbeds, spaces[HPXML::LocationLivingSpace])
     end
   end
 
@@ -1012,6 +1001,9 @@ class OSModel
       solar_abs = roof.solar_absorptance
       emitt = roof.emittance
       has_radiant_barrier = roof.radiant_barrier
+      if has_radiant_barrier
+        radiant_barrier_grade = roof.radiant_barrier_grade
+      end
       inside_film = Material.AirFilmRoof(Geometry.get_roof_pitch([surfaces[0]]))
       outside_film = Material.AirFilmOutside
       mat_roofing = Material.RoofMaterial(roof.roof_type, emitt, solar_abs)
@@ -1041,7 +1033,7 @@ class OSModel
                                                constr_set.drywall_thick_in,
                                                constr_set.osb_thick_in, constr_set.rigid_r,
                                                constr_set.exterior_material, has_radiant_barrier,
-                                               inside_film, outside_film)
+                                               inside_film, outside_film, radiant_barrier_grade)
       else
         constr_sets = [
           GenericConstructionSet.new(10.0, 0.5, 0.0, mat_roofing), # w/R-10 rigid
@@ -1060,7 +1052,7 @@ class OSModel
                                              framing_factor, framing_thick_in,
                                              constr_set.osb_thick_in, layer_r + constr_set.rigid_r,
                                              mat_roofing, has_radiant_barrier,
-                                             inside_film, outside_film)
+                                             inside_film, outside_film, radiant_barrier_grade)
       end
       check_surface_assembly_rvalue(runner, surfaces, inside_film, outside_film, assembly_r, match)
     end
@@ -1905,7 +1897,7 @@ class OSModel
                                            Material.RoofMaterial(HPXML::RoofTypeAsphaltShingles, 0.90, 0.75),
                                            false,
                                            Material.AirFilmOutside,
-                                           Material.AirFilmRoof(Geometry.get_roof_pitch(surfaces)))
+                                           Material.AirFilmRoof(Geometry.get_roof_pitch(surfaces)), nil)
     end
   end
 
@@ -1964,7 +1956,7 @@ class OSModel
     @hpxml.water_heating_systems.each do |water_heating_system|
       loc_space, loc_schedule = get_space_or_schedule_from_location(water_heating_system.location, 'WaterHeatingSystem', model, spaces)
 
-      ec_adj = HotWaterAndAppliances.get_dist_energy_consumption_adjustment(@has_uncond_bsmnt, @cfa, @ncfl, hot_water_distribution)
+      ec_adj = HotWaterAndAppliances.get_dist_energy_consumption_adjustment(@has_uncond_bsmnt, @cfa, @ncfl, water_heating_system, hot_water_distribution)
 
       if water_heating_system.water_heater_type == HPXML::WaterHeaterTypeStorage
 
@@ -1995,16 +1987,14 @@ class OSModel
       end
     end
 
-    if not @hpxml.header.schedules_path.nil?
-      schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_path: @hpxml.header.schedules_path)
-    end
-
+    # Hot water fixtures and appliances
+    fixtures_usage_multiplier = @hpxml.water_heating.water_fixtures_usage_multiplier
     HotWaterAndAppliances.apply(model, runner, weather, spaces[HPXML::LocationLivingSpace],
                                 @cfa, @nbeds, @ncfl, @has_uncond_bsmnt, @hpxml.clothes_washers,
                                 @hpxml.clothes_dryers, @hpxml.dishwashers, @hpxml.refrigerators,
-                                @hpxml.freezers, @hpxml.cooking_ranges, @hpxml.ovens, @hpxml.water_heating,
-                                @hpxml.water_fixtures, @hpxml.water_heating_systems, hot_water_distribution,
-                                solar_thermal_system, @eri_version, @dhw_map, schedules_file)
+                                @hpxml.freezers, @hpxml.cooking_ranges, @hpxml.ovens, fixtures_usage_multiplier,
+                                @hpxml.water_heating_systems, hot_water_distribution, @hpxml.water_fixtures,
+                                solar_thermal_system, @eri_version, @dhw_map)
 
     if (not solar_thermal_system.nil?) && (not solar_thermal_system.collector_area.nil?) # Detailed solar water heater
       loc_space, loc_schedule = get_space_or_schedule_from_location(solar_thermal_system.water_heating_system.location, 'WaterHeatingSystem', model, spaces)
@@ -2116,7 +2106,7 @@ class OSModel
     living_zone = spaces[HPXML::LocationLivingSpace].thermalZone.get
 
     @hpxml.heat_pumps.each do |heat_pump|
-      # TODO: Move these checks into hvac.rb
+      # FUTURE: Move these checks into hvac.rb
       if not heat_pump.heating_capacity_17F.nil?
         if heat_pump.heating_capacity.nil?
           fail "HeatPump '#{heat_pump.id}' must have both HeatingCapacity and HeatingCapacity17F provided or not provided."
@@ -2243,12 +2233,8 @@ class OSModel
   def self.add_ceiling_fans(runner, model, weather, spaces)
     return if @hpxml.ceiling_fans.size == 0
 
-    if not @hpxml.header.schedules_path.nil?
-      schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_path: @hpxml.header.schedules_path)
-    end
-
     ceiling_fan = @hpxml.ceiling_fans[0]
-    HVAC.apply_ceiling_fans(model, runner, weather, ceiling_fan, spaces[HPXML::LocationLivingSpace], schedules_file)
+    HVAC.apply_ceiling_fans(model, runner, weather, ceiling_fan, spaces[HPXML::LocationLivingSpace])
   end
 
   def self.add_dehumidifier(runner, model, spaces)
@@ -2278,10 +2264,6 @@ class OSModel
   end
 
   def self.add_mels(runner, model, spaces)
-    if not @hpxml.header.schedules_path.nil?
-      schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_path: @hpxml.header.schedules_path)
-    end
-
     # Misc
     modeled_mels = []
     @hpxml.plug_loads.each do |plug_load|
@@ -2300,7 +2282,7 @@ class OSModel
       end
       modeled_mels << plug_load.plug_load_type
 
-      MiscLoads.apply_plug(model, plug_load, obj_name, @cfa, spaces[HPXML::LocationLivingSpace], schedules_file)
+      MiscLoads.apply_plug(model, plug_load, obj_name, @cfa, spaces[HPXML::LocationLivingSpace])
     end
     if not modeled_mels.include? HPXML::PlugLoadTypeOther
       runner.registerWarning("No '#{HPXML::PlugLoadTypeOther}' plug loads specified, the model will not include misc plug load energy use.")
@@ -2311,10 +2293,6 @@ class OSModel
   end
 
   def self.add_mfls(runner, model, spaces)
-    if not @hpxml.header.schedules_path.nil?
-      schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_path: @hpxml.header.schedules_path)
-    end
-
     # Misc
     @hpxml.fuel_loads.each do |fuel_load|
       if fuel_load.fuel_load_type == HPXML::FuelLoadTypeGrill
@@ -2329,32 +2307,24 @@ class OSModel
         next
       end
 
-      MiscLoads.apply_fuel(model, fuel_load, obj_name, spaces[HPXML::LocationLivingSpace], schedules_file)
+      MiscLoads.apply_fuel(model, fuel_load, obj_name, spaces[HPXML::LocationLivingSpace])
     end
   end
 
   def self.add_lighting(runner, model, weather, spaces)
-    if not @hpxml.header.schedules_path.nil?
-      schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_path: @hpxml.header.schedules_path)
-    end
-
     Lighting.apply(runner, model, weather, spaces, @hpxml.lighting_groups,
-                   @hpxml.lighting, @eri_version, schedules_file)
+                   @hpxml.lighting, @eri_version)
   end
 
   def self.add_pools_and_hot_tubs(runner, model, spaces)
-    if not @hpxml.header.schedules_path.nil?
-      schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_path: @hpxml.header.schedules_path)
-    end
-
     @hpxml.pools.each do |pool|
-      MiscLoads.apply_pool_or_hot_tub_heater(model, pool, Constants.ObjectNameMiscPoolHeater, spaces[HPXML::LocationLivingSpace], schedules_file)
-      MiscLoads.apply_pool_or_hot_tub_pump(model, pool, Constants.ObjectNameMiscPoolPump, spaces[HPXML::LocationLivingSpace], schedules_file)
+      MiscLoads.apply_pool_or_hot_tub_heater(model, pool, Constants.ObjectNameMiscPoolHeater, spaces[HPXML::LocationLivingSpace])
+      MiscLoads.apply_pool_or_hot_tub_pump(model, pool, Constants.ObjectNameMiscPoolPump, spaces[HPXML::LocationLivingSpace])
     end
 
     @hpxml.hot_tubs.each do |hot_tub|
-      MiscLoads.apply_pool_or_hot_tub_heater(model, hot_tub, Constants.ObjectNameMiscHotTubHeater, spaces[HPXML::LocationLivingSpace], schedules_file)
-      MiscLoads.apply_pool_or_hot_tub_pump(model, hot_tub, Constants.ObjectNameMiscHotTubPump, spaces[HPXML::LocationLivingSpace], schedules_file)
+      MiscLoads.apply_pool_or_hot_tub_heater(model, hot_tub, Constants.ObjectNameMiscHotTubHeater, spaces[HPXML::LocationLivingSpace])
+      MiscLoads.apply_pool_or_hot_tub_pump(model, hot_tub, Constants.ObjectNameMiscHotTubPump, spaces[HPXML::LocationLivingSpace])
     end
   end
 
@@ -2404,13 +2374,12 @@ class OSModel
     open_window_area = window_area * @frac_windows_operable * 0.5 * 0.2 # Assume A) 50% of the area of an operable window can be open, and B) 20% of openable window area is actually open
     site_type = @hpxml.site.site_type
     shelter_coef = @hpxml.site.shelter_coefficient
-    has_flue_chimney = false # FUTURE: Expose as HPXML input
     @infil_volume = air_infils.select { |i| !i.infiltration_volume.nil? }[0].infiltration_volume
     infil_height = @hpxml.inferred_infiltration_height(@infil_volume)
     Airflow.apply(model, runner, weather, spaces, air_infils, @hpxml.ventilation_fans,
                   duct_systems, @infil_volume, infil_height, open_window_area,
                   @clg_ssn_sensor, @min_neighbor_distance, vented_attic, vented_crawl,
-                  site_type, shelter_coef, has_flue_chimney, @hvac_map, @eri_version,
+                  site_type, shelter_coef, @hpxml.building_construction.has_flue_or_chimney, @hvac_map, @eri_version,
                   @apply_ashrae140_assumptions)
   end
 
@@ -2522,7 +2491,7 @@ class OSModel
 
   def self.add_photovoltaics(runner, model)
     @hpxml.pv_systems.each do |pv_system|
-      PV.apply(model, pv_system)
+      PV.apply(model, @nbeds, pv_system)
     end
   end
 
@@ -3044,17 +3013,7 @@ class OSModel
     program_calling_manager.addProgram(program)
   end
 
-  def self.set_vacancy(runner, model)
-    return if @hpxml.header.schedules_path.nil?
-
-    schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_path: @hpxml.header.schedules_path)
-    col_names = ScheduleGenerator.col_names
-
-    schedules_file.import(col_names: col_names)
-    schedules_file.set_vacancy(col_names: col_names)
-  end
-
-  # FIXME: Move all of these construction methods to constructions.rb
+  # FUTURE: Move all of these construction methods to constructions.rb
   def self.calc_non_cavity_r(film_r, constr_set)
     # Calculate R-value for all non-cavity layers
     non_cavity_r = film_r
@@ -3666,7 +3625,7 @@ class OSModel
   end
 end
 
-# FIXME: Move all of these construction classes to constructions.rb
+# FUTURE: Move all of these construction classes to constructions.rb
 class WoodStudConstructionSet
   def initialize(stud, framing_factor, rigid_r, osb_thick_in, drywall_thick_in, exterior_material)
     @stud = stud

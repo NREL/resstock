@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'csv'
 require "#{File.dirname(__FILE__)}/meta_measure"
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Performs sampling technique and generates CSV file with parameter options for each building.
 
 # The file has to follow general Ruby conventions.

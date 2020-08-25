@@ -134,47 +134,6 @@ If either ``DaylightSaving`` or ``DaylightSaving/Enabled`` is not provided, ``Da
 If daylight saving is enabled, the daylight saving period can be optionally specified with ``DaylightSaving/BeginMonth``, ``DaylightSaving/BeginDayOfMonth``, ``DaylightSaving/EndMonth``, and ``DaylightSaving/EndDayOfMonth``.
 If not specified, dates will be defined according to the EPW weather file header; if not available there, default values of March 12 and November 5 will be used.
 
-An absolute or relative path can be entered in ``/HPXML/SoftwareInfo/extension/SchedulesPath``.
-The file that this path points to must be a valid csv file containing column-wise (hourly or sub-hourly) schedules with headers matching strings from the following list:
-
-- occupants
-- lighting_interior
-- lighting_exterior
-- lighting_garage
-- lighting_exterior_holiday
-- cooking_range
-- refrigerator
-- freezer
-- dishwasher
-- dishwasher_power
-- clothes_washer
-- clothes_washer_power
-- clothes_dryer
-- clothes_dryer_exhaust
-- fixtures
-- ceiling_fan
-- plug_loads_other
-- plug_loads_tv
-- plug_loads_vehicle
-- plug_loads_well_pump
-- fuel_loads_grill
-- fuel_loads_lighting
-- fuel_loads_fireplace
-- pool_pump
-- pool_heater
-- hot_tub_pump
-- hot_tub_heater
-- vacancy
-
-A valid csv file contains schedules:
-
-- that span the entire year (8760 or 8784 hours)
-- whose values are between only 0 and 1
-- with a minute per item evenly divisible into 60
-
-Note, then, that the shortest schedule may be hourly and the longest (sub-hourly) schedule may be minutely.
-If a schedule path is provided, no other weekday/weekend fraction or monthly multipliers may be contained in the HPXML file.
-
 HPXML Building Details
 ----------------------
 
@@ -184,17 +143,14 @@ HPXML Building Summary
 ----------------------
 
 This section describes elements specified in HPXML's ``BuildingSummary``. 
-It is used for high-level building information including conditioned floor area, number of bedrooms, number of residents, number of conditioned floors, etc.
-Most occupancy assumptions are based on the number of bedrooms, while the number of residents is solely used to determine heat gains from the occupants themselves.
-Note that a walkout basement should be included in ``NumberofConditionedFloorsAboveGrade``.
+These elements include ``Site``, ``BuildingOccupancy``, and ``BuildingConstruction``.
 
-If ``NumberofBathrooms`` is not provided, it is calculated using the following equation based on the `Building America House Simulation Protocols <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_.
+HPXML Site
+**********
 
-.. math:: NumberofBathrooms = \frac{NumberofBedrooms}{2} + 0.5
+The ``Site`` element is used to describe the terrain and local shelter conditions as well as the presence of neighbors.
 
-Shading due to neighboring buildings can be defined inside an ``Site/extension/Neighbors`` element.
-Each ``Neighbors/NeighborBuilding`` element is required to have an ``Azimuth`` and ``Distance`` from the house.
-A ``Height`` is also optionally allowed; if not provided, the neighbor is assumed to be the same height as the house.
+The terrain surrounding the building can be optionally entered as ``Site/SiteType``; if not provided, it is assumed to be "suburban".
 
 The local shelter coefficient can be entered as ``Site/extension/ShelterCoefficient``.
 The shelter coefficient is defined by the AIM-2 infiltration model to account for nearby buildings, trees and obstructions.
@@ -210,7 +166,39 @@ Shelter Coefficient  Description
 0.3                  Complete shielding with large buildings immediately adjacent
 ===================  =========================================================================
 
-The terrain surrounding the building can be entered as ``Site/SiteType``; if not provided, it is assumed to be suburban.
+Shading due to neighboring buildings can be defined inside an ``extension/Neighbors`` element.
+Each ``Neighbors/NeighborBuilding`` element is required to have an ``Azimuth`` and ``Distance`` from the house.
+A ``Height`` is also optionally allowed; if not provided, the neighboring building is assumed to have the same height as the house.
+
+HPXML Building Occupancy
+************************
+
+The ``BuildingOccupancy`` element is used to describe the occupants.
+
+The number of occupants can be optionally provided as ``NumberofResidents``; if not provided, it is assumed that the number of occupants equal the number of bedrooms.
+
+.. note::
+
+  Most occupancy assumptions (e.g., plug loads, appliance usage, hot water usage, etc.) are based on the number of bedrooms. The number of residents is solely used to determine heat gains from the occupants themselves.
+
+HPXML Building Construction
+***************************
+
+The ``BuildingConstruction`` element is used to describe high-level building information.
+Fields include:
+
+- ``ResidentialFacilityType``: "single-family detached", "single-family attached", "apartment unit", or "manufactured home"
+- ``NumberofConditionedFloors``
+- ``NumberofConditionedFloorsAboveGrade``: Note that this should include a walkout basement if present.
+- ``NumberofBedrooms``
+- ``NumberofBathrooms``: Optional. If not provided, it is calculated as :math:`\frac{NumberofBedrooms}{2} + 0.5` based on the `Building America House Simulation Protocols <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_.
+- ``ConditionedFloorArea``
+- ``ConditionedBuildingVolume`` or ``AverageCeilingHeight``
+- ``extension/HasFlueOrChimney``: Optional. Specifies whether there is a flue (associated with heating system or water heater) or chimney. if not provided, it is assumed to be true if any of the following conditions are met: 
+
+  - heating system is non-electric ``Furnace``, ``Boiler``, ``WallFurnace``, ``FloorFurnace``, ``Stove``, or ``FixedHeater`` and AFUE/Percent is less than 0.89
+  - heating system is non-electric ``Fireplace`` 
+  - water heater is non-electric with energy factor (or equivalent calculated from uniform energy factor) less than 0.63
 
 HPXML Weather Station
 ---------------------
@@ -233,22 +221,22 @@ For software tools that do not collect sufficient inputs for every required surf
 
 The space types used in the HPXML building description are:
 
-==============================  =============================================  ========================================================  =========================
-Space Type                      Description                                    Temperature                                               Building Type
-==============================  =============================================  ========================================================  =========================
-living space                    Above-grade conditioned floor area             EnergyPlus calculation                                    Any
-attic - vented                                                                 EnergyPlus calculation                                    Any
-attic - unvented                                                               EnergyPlus calculation                                    Any
-basement - conditioned          Below-grade conditioned floor area             EnergyPlus calculation                                    Any
-basement - unconditioned                                                       EnergyPlus calculation                                    Any
-crawlspace - vented                                                            EnergyPlus calculation                                    Any
-crawlspace - unvented                                                          EnergyPlus calculation                                    Any
-garage                                                                         EnergyPlus calculation                                    Any
-other housing unit              E.g., adjacent unit or conditioned corridor    Same as conditioned space                                 Attached/Multifamily only
-other heated space              E.g., shared laundry/equipment space           Average of conditioned space and outside; minimum of 68F  Attached/Multifamily only
-other multifamily buffer space  E.g., enclosed unconditioned stairwell         Average of conditioned space and outside; minimum of 50F  Attached/Multifamily only
-other non-freezing space        E.g., parking garage ceiling                   Floats with outside; minimum of 40F                       Attached/Multifamily only
-==============================  =============================================  ========================================================  =========================
+==============================  ================================================  ========================================================  =========================
+Space Type                      Description                                       Temperature                                               Building Type
+==============================  ================================================  ========================================================  =========================
+living space                    Above-grade conditioned floor area                EnergyPlus calculation                                    Any
+attic - vented                                                                    EnergyPlus calculation                                    Any
+attic - unvented                                                                  EnergyPlus calculation                                    Any
+basement - conditioned          Below-grade conditioned floor area                EnergyPlus calculation                                    Any
+basement - unconditioned                                                          EnergyPlus calculation                                    Any
+crawlspace - vented                                                               EnergyPlus calculation                                    Any
+crawlspace - unvented                                                             EnergyPlus calculation                                    Any
+garage                          Single-family garage (not shared parking garage)  EnergyPlus calculation                                    Any
+other housing unit              E.g., adjacent unit or conditioned corridor       Same as conditioned space                                 Attached/Multifamily only
+other heated space              E.g., shared laundry/equipment space              Average of conditioned space and outside; minimum of 68F  Attached/Multifamily only
+other multifamily buffer space  E.g., enclosed unconditioned stairwell            Average of conditioned space and outside; minimum of 50F  Attached/Multifamily only
+other non-freezing space        E.g., shared parking garage ceiling               Floats with outside; minimum of 40F                       Attached/Multifamily only
+==============================  ================================================  ========================================================  =========================
 
 .. warning::
 
@@ -265,9 +253,9 @@ HPXML Air Infiltration
 Building air leakage is entered using ``Enclosure/AirInfiltration/AirInfiltrationMeasurement``.
 Air leakage can be provided in one of three ways:
 
-#. nACH (natural air changes per hour): Use ``BuildingAirLeakage/UnitofMeasure='ACHnatural'``
-#. ACH50 (air changes per hour at 50Pa): Use ``BuildingAirLeakage/UnitofMeasure='ACH'`` and ``HousePressure='50'``
-#. CFM50 (cubic feet per minute at 50Pa): Use ``BuildingAirLeakage/UnitofMeasure='CFM'`` and ``HousePressure='50'``
+#. nACH (natural air changes per hour): Use ``BuildingAirLeakage/UnitofMeasure='ACHnatural'``.
+#. ACH (air changes per hour at user-specified pressure): Use ``BuildingAirLeakage/UnitofMeasure='ACH'`` and ``HousePressure``. Pressure is typically 50 Pa.
+#. CFM (cubic feet per minute at user-specified pressure): Use ``BuildingAirLeakage/UnitofMeasure='CFM'`` and ``HousePressure``. Pressure is typically 50 Pa.
 
 In addition, the building's volume associated with the air leakage measurement can be provided in HPXML's ``AirInfiltrationMeasurement/InfiltrationVolume``.
 If not provided, the infiltration volume is assumed to be equal to the conditioned building volume.
@@ -308,7 +296,7 @@ reflective  slate or tile shingles, metal surfacing                 0.30
 =========== ======================================================= ================
 
 Roofs can also have optional elements provided for ``RadiantBarrier and ``RoofType``.
-If ``RadiantBarrier`` is not provided, it is defaulted to not present.
+If ``RadiantBarrier`` is not provided, it is defaulted to not present; if it is provided, ``RadiantBarrierGrade`` must also be provided.
 If ``RoofType`` is not provided, it is defaulted to "asphalt or fiberglass shingles".
 
 HPXML Rim Joists
@@ -590,26 +578,26 @@ For each duct, ``DuctInsulationRValue`` must be provided.
 ``DuctLocation`` and ``DuctSurfaceArea`` can be optionally provided.
 The provided ``DuctLocation`` can be one of the following:
 
-==============================  =============================================  =========================================================  =========================  ================
-Location                        Description                                    Temperature                                                Building Type              Default Priority
-==============================  =============================================  =========================================================  =========================  ================
-living space                    Above-grade conditioned floor area             EnergyPlus calculation                                     Any                        8
-basement - conditioned          Below-grade conditioned floor area             EnergyPlus calculation                                     Any                        1
-basement - unconditioned                                                       EnergyPlus calculation                                     Any                        2
-crawlspace - unvented                                                          EnergyPlus calculation                                     Any                        4
-crawlspace - vented                                                            EnergyPlus calculation                                     Any                        3
-attic - unvented                                                               EnergyPlus calculation                                     Any                        6
-attic - vented                                                                 EnergyPlus calculation                                     Any                        5
-garage                                                                         EnergyPlus calculation                                     Any                        7
-outside                                                                        Outside                                                    Any
-exterior wall                                                                  Average of conditioned space and outside                   Any
-under slab                                                                     Ground                                                     Any
-roof deck                                                                      Outside                                                    Any
-other housing unit              E.g., adjacent unit or conditioned corridor    Same as conditioned space                                  Attached/Multifamily only
-other heated space              E.g., shared laundry/equipment space           Average of conditioned space and outside; minimum of 68F   Attached/Multifamily only
-other multifamily buffer space  E.g., enclosed unconditioned stairwell         Average of conditioned space and outside; minimum of 50F   Attached/Multifamily only
-other non-freezing space        E.g., parking garage ceiling                   Floats with outside; minimum of 40F                        Attached/Multifamily only
-==============================  =============================================  =========================================================  =========================  ================
+==============================  ================================================  =========================================================  =========================  ================
+Location                        Description                                       Temperature                                                Building Type              Default Priority
+==============================  ================================================  =========================================================  =========================  ================
+living space                    Above-grade conditioned floor area                EnergyPlus calculation                                     Any                        8
+basement - conditioned          Below-grade conditioned floor area                EnergyPlus calculation                                     Any                        1
+basement - unconditioned                                                          EnergyPlus calculation                                     Any                        2
+crawlspace - unvented                                                             EnergyPlus calculation                                     Any                        4
+crawlspace - vented                                                               EnergyPlus calculation                                     Any                        3
+attic - unvented                                                                  EnergyPlus calculation                                     Any                        6
+attic - vented                                                                    EnergyPlus calculation                                     Any                        5
+garage                          Single-family garage (not shared parking garage)  EnergyPlus calculation                                     Any                        7
+outside                                                                           Outside                                                    Any
+exterior wall                                                                     Average of conditioned space and outside                   Any
+under slab                                                                        Ground                                                     Any
+roof deck                                                                         Outside                                                    Any
+other housing unit              E.g., adjacent unit or conditioned corridor       Same as conditioned space                                  Attached/Multifamily only
+other heated space              E.g., shared laundry/equipment space              Average of conditioned space and outside; minimum of 68F   Attached/Multifamily only
+other multifamily buffer space  E.g., enclosed unconditioned stairwell            Average of conditioned space and outside; minimum of 50F   Attached/Multifamily only
+other non-freezing space        E.g., shared parking garage ceiling               Floats with outside; minimum of 40F                        Attached/Multifamily only
+==============================  ================================================  =========================================================  =========================  ================
 
 If ``DuctLocation`` is not provided, the primary duct location will be chosen based on the presence of spaces and the "Default Priority" indicated above.
 For a 2+ story home, secondary ducts will also be located in the living space.
@@ -714,6 +702,10 @@ HPXML Water Heating Systems
 Each water heater should be entered as a ``Systems/WaterHeating/WaterHeatingSystem``.
 Inputs including ``WaterHeaterType`` and ``FractionDHWLoadServed`` must be provided.
 
+.. warning::
+
+  ``FractionDHWLoadServed`` represents only the fraction of the hot water load associated with the hot water **fixtures**. Additional hot water load from the clothes washer/dishwasher will be automatically assigned to the appropriate water heater(s).
+
 Depending on the type of water heater specified, additional elements are required/available:
 
 ========================================  ===================================  ===========  ==========  ===============  ==================  ===================== =================  =========================================  ==============================
@@ -747,23 +739,23 @@ For water heaters that are connected to a desuperheater, the ``RelatedHVACSystem
 
 The water heater ``Location`` can be optionally entered as one of the following:
 
-==============================  =============================================  =========================================================  =========================
-Location                        Description                                    Temperature                                                Building Type
-==============================  =============================================  =========================================================  =========================
-living space                    Above-grade conditioned floor area             EnergyPlus calculation                                     Any
-basement - conditioned          Below-grade conditioned floor area             EnergyPlus calculation                                     Any
-basement - unconditioned                                                       EnergyPlus calculation                                     Any
-attic - unvented                                                               EnergyPlus calculation                                     Any
-attic - vented                                                                 EnergyPlus calculation                                     Any
-garage                                                                         EnergyPlus calculation                                     Any
-crawlspace - unvented                                                          EnergyPlus calculation                                     Any
-crawlspace - vented                                                            EnergyPlus calculation                                     Any
-other exterior                  Outside                                        EnergyPlus calculation                                     Any
-other housing unit              E.g., adjacent unit or conditioned corridor    Same as conditioned space                                  Attached/Multifamily only
-other heated space              E.g., shared laundry/equipment space           Average of conditioned space and outside; minimum of 68F   Attached/Multifamily only
-other multifamily buffer space  E.g., enclosed unconditioned stairwell         Average of conditioned space and outside; minimum of 50F   Attached/Multifamily only
-other non-freezing space        E.g., parking garage ceiling                   Floats with outside; minimum of 40F                        Attached/Multifamily only
-==============================  =============================================  =========================================================  =========================
+==============================  ================================================  =========================================================  =========================
+Location                        Description                                       Temperature                                                Building Type
+==============================  ================================================  =========================================================  =========================
+living space                    Above-grade conditioned floor area                EnergyPlus calculation                                     Any
+basement - conditioned          Below-grade conditioned floor area                EnergyPlus calculation                                     Any
+basement - unconditioned                                                          EnergyPlus calculation                                     Any
+attic - unvented                                                                  EnergyPlus calculation                                     Any
+attic - vented                                                                    EnergyPlus calculation                                     Any
+garage                          Single-family garage (not shared parking garage)  EnergyPlus calculation                                     Any
+crawlspace - unvented                                                             EnergyPlus calculation                                     Any
+crawlspace - vented                                                               EnergyPlus calculation                                     Any
+other exterior                  Outside                                           EnergyPlus calculation                                     Any
+other housing unit              E.g., adjacent unit or conditioned corridor       Same as conditioned space                                  Attached/Multifamily only
+other heated space              E.g., shared laundry/equipment space              Average of conditioned space and outside; minimum of 68F   Attached/Multifamily only
+other multifamily buffer space  E.g., enclosed unconditioned stairwell            Average of conditioned space and outside; minimum of 50F   Attached/Multifamily only
+other non-freezing space        E.g., shared parking garage ceiling               Floats with outside; minimum of 40F                        Attached/Multifamily only
+==============================  ================================================  =========================================================  =========================
 
 If the location is not provided, a default water heater location will be assumed based on IECC climate zone:
 
@@ -776,18 +768,23 @@ IECC Climate Zone  Location (default)
 
 The setpoint temperature may be provided as ``HotWaterTemperature``; if not provided, 125F is assumed.
 
+The water heater may be optionally described as a shared system (i.e., serving multiple dwelling units or a shared laundry room) using ``IsSharedSystem``.
+If not provided, it is assumed to be false.
+If provided and true, ``NumberofUnitsServed`` must also be specified, where the value is the number of dwelling units served either indirectly (e.g., via shared laundry room) or directly.
+
 HPXML Hot Water Distribution
 ****************************
 
-A ``Systems/WaterHeating/HotWaterDistribution`` must be provided if any water heating systems are specified.
+A single ``Systems/WaterHeating/HotWaterDistribution`` must be provided if any water heating systems are specified.
 Inputs including ``SystemType`` and ``PipeInsulation/PipeRValue`` must be provided.
+Note: Any hot water distribution associated with a shared laundry room in attached/multifamily buildings should not be defined.
 
 Standard
 ~~~~~~~~
 
-For a ``SystemType/Standard`` (non-recirculating) system, the following element are used:
+For a ``SystemType/Standard`` (non-recirculating) system within the dwelling unit, the following element are used:
 
-- ``PipingLength``: Optional. Measured length of hot water piping from the hot water heater to the farthest hot water fixture, measured longitudinally from plans, assuming the hot water piping does not run diagonally, plus 10 feet of piping for each floor level, plus 5 feet of piping for unconditioned basements (if any)
+- ``PipingLength``: Optional. Measured length of hot water piping from the hot water heater (or from a shared recirculation loop serving multiple dwelling units) to the farthest hot water fixture, measured longitudinally from plans, assuming the hot water piping does not run diagonally, plus 10 feet of piping for each floor level, plus 5 feet of piping for unconditioned basements (if any)
   If not provided, a default ``PipingLength`` will be calculated using the following equation from `ANSI/RESNET/ICC 301-2019 <https://codes.iccsafe.org/content/RESNETICC3012019>`_.
 
   .. math:: PipeL = 2.0 \cdot (\frac{CFA}{NCfl})^{0.5} + 10.0 \cdot NCfl + 5.0 \cdot bsmnt
@@ -801,12 +798,12 @@ For a ``SystemType/Standard`` (non-recirculating) system, the following element 
 Recirculation
 ~~~~~~~~~~~~~
 
-For a ``SystemType/Recirculation`` system, the following elements are used:
+For a ``SystemType/Recirculation`` system within the dwelling unit, the following elements are used:
 
-- ``ControlType``
+- ``ControlType``: One of "manual demand control", "presence sensor demand control", "temperature", "timer", or "no control".
 - ``RecirculationPipingLoopLength``: Optional. If not provided, the default value will be calculated by using the equation shown in the table below. Measured recirculation loop length including both supply and return sides, measured longitudinally from plans, assuming the hot water piping does not run diagonally, plus 20 feet of piping for each floor level greater than one plus 10 feet of piping for unconditioned basements.
 - ``BranchPipingLoopLength``: Optional. If not provided, the default value will be assumed as shown in the table below. Measured length of the branch hot water piping from the recirculation loop to the farthest hot water fixture from the recirculation loop, measured longitudinally from plans, assuming the branch hot water piping does not run diagonally.
-- ``PumpPower``: Optional. If not provided, the default value will be assumed as shown in the table below. 
+- ``PumpPower``: Optional. If not provided, the default value will be assumed as shown in the table below. Pump Power in Watts.
 
   ==================================  ====================================================================================================
   Element Name                        Default Value
@@ -815,6 +812,21 @@ For a ``SystemType/Recirculation`` system, the following elements are used:
   BranchPipingLoopLength [ft]         10 
   Pump Power [W]                      50 
   ==================================  ====================================================================================================
+
+Shared Recirculation
+~~~~~~~~~~~~~~~~~~~~
+
+In addition to the hot water distribution systems within the dwelling unit, the pump energy use of a shared recirculation system can also be described using the following elements:
+
+- `extension/SharedRecirculation/NumberofUnitsServed`: Number of dwelling units served by the shared pump.
+- `extension/SharedRecirculation/PumpPower`: Optional. If not provided, the default value will be assumed as shown in the table below. Shared pump power in Watts.
+- `extension/SharedRecirculation/ControlType`: One of "manual demand control", "presence sensor demand control", "timer", or "no control".
+
+  ==================================  ==========================================
+  Element Name                        Default Value
+  ==================================  ==========================================
+  Pump Power [W]                      220 (0.25 HP pump w/ 85% motor efficiency)
+  ==================================  ==========================================
 
 Drain Water Heat Recovery
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -873,6 +885,7 @@ HPXML Photovoltaics
 Each solar electric (photovoltaic) system should be entered as a ``Systems/Photovoltaics/PVSystem``.
 The following elements, some adopted from the `PVWatts model <https://pvwatts.nrel.gov>`_, are required for each PV system:
 
+- ``IsSharedSystem``: true or false
 - ``Location``: 'ground' or 'roof' mounted
 - ``ModuleType``: 'standard', 'premium', or 'thin film'
 - ``Tracking``: 'fixed' or '1-axis' or '1-axis backtracked' or '2-axis'
@@ -889,6 +902,10 @@ If ``SystemLossesFraction`` is not provided but ``YearModulesManufactured`` is p
 
 .. math:: System Losses Fraction = 1.0 - (1.0 - 0.14) \cdot (1.0 - (1.0 - 0.995^{(CurrentYear - YearModulesManufactured)}))
 
+If the PV system is a shared system (i.e., serving multiple dwelling units), it should be described using ``IsSharedSystem='true'``.
+In addition, the total output power of the system must be entered as ``MaxPowerOutput[@scope='multiple units']`` and the total number of bedrooms across all dwelling units must be entered as ``extension/NumberofBedroomsServed``.
+The PV generation will be apportioned to the dwelling unit using its number of bedrooms divided by the total number of bedrooms in the building.
+
 HPXML Appliances
 ----------------
 
@@ -896,18 +913,18 @@ This section describes elements specified in HPXML's ``Appliances``.
 
 The ``Location`` for each appliance can be optionally provided as one of the following:
 
-==============================  ===========================================  =========================
-Location                        Description                                  Building Type
-==============================  ===========================================  =========================
-living space                    Above-grade conditioned floor area           Any
-basement - conditioned          Below-grade conditioned floor area           Any
-basement - unconditioned                                                     Any
-garage                                                                       Any
-other housing unit              E.g., adjacent unit or conditioned corridor  Attached/Multifamily only
-other heated space              E.g., shared laundry/equipment space         Attached/Multifamily only
-other multifamily buffer space  E.g., enclosed unconditioned stairwell       Attached/Multifamily only
-other non-freezing space        E.g., parking garage ceiling                 Attached/Multifamily only
-==============================  ===========================================  =========================
+==============================  ================================================  =========================
+Location                        Description                                       Building Type
+==============================  ================================================  =========================
+living space                    Above-grade conditioned floor area                Any
+basement - conditioned          Below-grade conditioned floor area                Any
+basement - unconditioned                                                          Any
+garage                          Single-family garage (not shared parking garage)  Any
+other housing unit              E.g., adjacent unit or conditioned corridor       Attached/Multifamily only
+other heated space              E.g., shared laundry/equipment space              Attached/Multifamily only
+other multifamily buffer space  E.g., enclosed unconditioned stairwell            Attached/Multifamily only
+other non-freezing space        E.g., shared parking garage ceiling               Attached/Multifamily only
+==============================  ================================================  =========================
 
 If the location is not specified, the appliance is assumed to be in the living space.
 
@@ -937,6 +954,10 @@ If ``ModifiedEnergyFactor`` is provided instead of ``IntegratedModifiedEnergyFac
 
 An ``extension/UsageMultiplier`` can also be optionally provided that scales energy and hot water usage; if not provided, it is assumed to be 1.0.
 
+The clothes washer may be optionally described as a shared appliance (i.e., in a shared laundry room) using ``IsSharedAppliance``.
+If not provided, it is assumed to be false.
+If provided and true, ``AttachedToWaterHeatingSystem`` must also be specified and must reference a shared water heater.
+
 HPXML Clothes Dryer
 *******************
 
@@ -958,6 +979,9 @@ If ``EnergyFactor`` is provided instead of ``CombinedEnergyFactor``, it will be 
 .. math:: CombinedEnergyFactor = \frac{EnergyFactor}{1.15}
 
 An ``extension/UsageMultiplier`` can also be optionally provided that scales energy usage; if not provided, it is assumed to be 1.0.
+
+The clothes dryer may be optionally described as a shared appliance (i.e., in a shared laundry room) using ``IsSharedAppliance``.
+If not provided, it is assumed to be false.
 
 HPXML Dishwasher
 ****************
@@ -983,6 +1007,10 @@ If ``EnergyFactor`` is provided instead of ``RatedAnnualkWh``, it will be conver
 .. math:: RatedAnnualkWh = \frac{215.0}{EnergyFactor}
 
 An ``extension/UsageMultiplier`` can also be optionally provided that scales energy and hot water usage; if not provided, it is assumed to be 1.0.
+
+The dishwasher may be optionally described as a shared appliance (i.e., in a shared laundry room) using ``IsSharedAppliance``.
+If not provided, it is assumed to be false.
+If provided and true, ``AttachedToWaterHeatingSystem`` must also be specified and must reference a shared water heater.
 
 HPXML Refrigerators
 *******************
@@ -1038,7 +1066,7 @@ IsConvection   false
 =============  ==============
 
 Optional ``CookingRange/extension/WeekdayScheduleFractions``, ``CookingRange/extension/WeekendScheduleFractions``, and ``CookingRange/extension/MonthlyScheduleMultipliers`` can be provided; if not provided, values from Figures 22 & 24 of the `Building America House Simulation Protocols <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_ are used.
-A ``CookingRange/extension/UsageMultiplier`` can also be optionally provided that scales energy usage; if not provided, it is assumed to be 1.0.
+An ``CookingRange/extension/UsageMultiplier`` can also be optionally provided that scales energy usage; if not provided, it is assumed to be 1.0.
 
 HPXML Dehumidifier
 ******************

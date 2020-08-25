@@ -76,6 +76,33 @@ class HPXMLDefaults
       hpxml.building_construction.conditioned_building_volume = cfa * hpxml.building_construction.average_ceiling_height
     end
     hpxml.building_construction.number_of_bathrooms = Float(Waterheater.get_default_num_bathrooms(nbeds)).to_i if hpxml.building_construction.number_of_bathrooms.nil?
+    if hpxml.building_construction.has_flue_or_chimney.nil?
+      hpxml.building_construction.has_flue_or_chimney = false
+      hpxml.heating_systems.each do |heating_system|
+        if [HPXML::HVACTypeFurnace, HPXML::HVACTypeBoiler, HPXML::HVACTypeWallFurnace, HPXML::HVACTypeFloorFurnace, HPXML::HVACTypeStove, HPXML::HVACTypeFixedHeater].include? heating_system.heating_system_type
+          if not heating_system.heating_efficiency_afue.nil?
+            next if heating_system.heating_efficiency_afue >= 0.89
+          elsif not heating_system.heating_efficiency_percent.nil?
+            next if heating_system.heating_efficiency_percent >= 0.89
+          end
+
+          hpxml.building_construction.has_flue_or_chimney = true
+        elsif [HPXML::HVACTypeFireplace].include? heating_system.heating_system_type
+          next if heating_system.heating_system_fuel == HPXML::FuelTypeElectricity
+
+          hpxml.building_construction.has_flue_or_chimney = true
+        end
+      end
+      hpxml.water_heating_systems.each do |water_heating_system|
+        if not water_heating_system.energy_factor.nil?
+          next if water_heating_system.energy_factor >= 0.63
+        elsif not water_heating_system.uniform_energy_factor.nil?
+          next if Waterheater.calc_ef_from_uef(water_heating_system) >= 0.63
+        end
+
+        hpxml.building_construction.has_flue_or_chimney = true
+      end
+    end
   end
 
   def self.apply_attics(hpxml)
@@ -120,10 +147,10 @@ class HPXMLDefaults
     measurements = []
     infil_volume = nil
     hpxml.air_infiltration_measurements.each do |measurement|
-      is_ach50 = ((measurement.unit_of_measure == HPXML::UnitsACH) && (measurement.house_pressure == 50))
-      is_cfm50 = ((measurement.unit_of_measure == HPXML::UnitsCFM) && (measurement.house_pressure == 50))
+      is_ach = ((measurement.unit_of_measure == HPXML::UnitsACH) && !measurement.house_pressure.nil?)
+      is_cfm = ((measurement.unit_of_measure == HPXML::UnitsCFM) && !measurement.house_pressure.nil?)
       is_nach = (measurement.unit_of_measure == HPXML::UnitsACHNatural)
-      next unless (is_ach50 || is_cfm50 || is_nach)
+      next unless (is_ach || is_cfm || is_nach)
 
       measurements << measurement
       next if measurement.infiltration_volume.nil?
@@ -346,6 +373,9 @@ class HPXMLDefaults
 
   def self.apply_water_heaters(hpxml, nbeds, eri_version)
     hpxml.water_heating_systems.each do |water_heating_system|
+      if water_heating_system.is_shared_system.nil?
+        water_heating_system.is_shared_system = false
+      end
       if water_heating_system.temperature.nil?
         water_heating_system.temperature = Waterheater.get_default_hot_water_temperature(eri_version)
       end
@@ -394,6 +424,12 @@ class HPXMLDefaults
       end
       if hot_water_distribution.recirculation_pump_power.nil?
         hot_water_distribution.recirculation_pump_power = HotWaterAndAppliances.get_default_recirc_pump_power()
+      end
+    end
+
+    if hot_water_distribution.has_shared_recirculation
+      if hot_water_distribution.shared_recirculation_pump_power.nil?
+        hot_water_distribution.shared_recirculation_pump_power = HotWaterAndAppliances.get_default_shared_recirc_pump_power()
       end
     end
   end
@@ -491,13 +527,13 @@ class HPXMLDefaults
           plug_load.location = HPXML::LocationInterior
         end
         if plug_load.weekday_fractions.nil?
-          plug_load.weekday_fractions = Schedule.PlugLoadsOtherWeekdayFractions
+          plug_load.weekday_fractions = '0.035, 0.033, 0.032, 0.031, 0.032, 0.033, 0.037, 0.042, 0.043, 0.043, 0.043, 0.044, 0.045, 0.045, 0.044, 0.046, 0.048, 0.052, 0.053, 0.05, 0.047, 0.045, 0.04, 0.036'
         end
         if plug_load.weekend_fractions.nil?
-          plug_load.weekend_fractions = Schedule.PlugLoadsOtherWeekendFractions
+          plug_load.weekend_fractions = '0.035, 0.033, 0.032, 0.031, 0.032, 0.033, 0.037, 0.042, 0.043, 0.043, 0.043, 0.044, 0.045, 0.045, 0.044, 0.046, 0.048, 0.052, 0.053, 0.05, 0.047, 0.045, 0.04, 0.036'
         end
         if plug_load.monthly_multipliers.nil?
-          plug_load.monthly_multipliers = Schedule.PlugLoadsOtherMonthlyMultipliers
+          plug_load.monthly_multipliers = '1.248, 1.257, 0.993, 0.989, 0.993, 0.827, 0.821, 0.821, 0.827, 0.99, 0.987, 1.248'
         end
       elsif plug_load.plug_load_type == HPXML::PlugLoadTypeTelevision
         default_annual_kwh, default_sens_frac, default_lat_frac = MiscLoads.get_televisions_default_values(cfa, nbeds)
@@ -514,13 +550,13 @@ class HPXMLDefaults
           plug_load.location = HPXML::LocationInterior
         end
         if plug_load.weekday_fractions.nil?
-          plug_load.weekday_fractions = Schedule.PlugLoadsTVWeekdayFractions
+          plug_load.weekday_fractions = '0.037, 0.018, 0.009, 0.007, 0.011, 0.018, 0.029, 0.040, 0.049, 0.058, 0.065, 0.072, 0.076, 0.086, 0.091, 0.102, 0.127, 0.156, 0.210, 0.294, 0.363, 0.344, 0.208, 0.090'
         end
         if plug_load.weekend_fractions.nil?
-          plug_load.weekend_fractions = Schedule.PlugLoadsTVWeekendFractions
+          plug_load.weekend_fractions = '0.044, 0.022, 0.012, 0.008, 0.011, 0.014, 0.024, 0.043, 0.071, 0.094, 0.112, 0.123, 0.132, 0.156, 0.178, 0.196, 0.206, 0.213, 0.251, 0.330, 0.388, 0.358, 0.226, 0.103'
         end
         if plug_load.monthly_multipliers.nil?
-          plug_load.monthly_multipliers = Schedule.PlugLoadsTVMonthlyMultipliers
+          plug_load.monthly_multipliers = '1.137, 1.129, 0.961, 0.969, 0.961, 0.993, 0.996, 0.96, 0.993, 0.867, 0.86, 1.137'
         end
       elsif plug_load.plug_load_type == HPXML::PlugLoadTypeElectricVehicleCharging
         default_annual_kwh = MiscLoads.get_electric_vehicle_charging_default_values
@@ -537,13 +573,13 @@ class HPXMLDefaults
           plug_load.location = HPXML::LocationExterior
         end
         if plug_load.weekday_fractions.nil?
-          plug_load.weekday_fractions = Schedule.PlugLoadsVehicleWeekdayFractions
+          plug_load.weekday_fractions = '0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042'
         end
         if plug_load.weekend_fractions.nil?
-          plug_load.weekend_fractions = Schedule.PlugLoadsVehicleWeekendFractions
+          plug_load.weekend_fractions = '0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042'
         end
         if plug_load.monthly_multipliers.nil?
-          plug_load.monthly_multipliers = Schedule.PlugLoadsVehicleMonthlyMultipliers
+          plug_load.monthly_multipliers = '1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1'
         end
       elsif plug_load.plug_load_type == HPXML::PlugLoadTypeWellPump
         default_annual_kwh = MiscLoads.get_well_pump_default_values(cfa, nbeds)
@@ -560,13 +596,13 @@ class HPXMLDefaults
           plug_load.location = HPXML::LocationExterior
         end
         if plug_load.weekday_fractions.nil?
-          plug_load.weekday_fractions = Schedule.PlugLoadsWellPumpWeekdayFractions
+          plug_load.weekday_fractions = '0.044, 0.023, 0.019, 0.015, 0.016, 0.018, 0.026, 0.033, 0.033, 0.032, 0.033, 0.033, 0.032, 0.032, 0.032, 0.033, 0.045, 0.057, 0.066, 0.076, 0.081, 0.086, 0.075, 0.065'
         end
         if plug_load.weekend_fractions.nil?
-          plug_load.weekend_fractions = Schedule.PlugLoadsWellPumpWeekendFractions
+          plug_load.weekend_fractions = '0.044, 0.023, 0.019, 0.015, 0.016, 0.018, 0.026, 0.033, 0.033, 0.032, 0.033, 0.033, 0.032, 0.032, 0.032, 0.033, 0.045, 0.057, 0.066, 0.076, 0.081, 0.086, 0.075, 0.065'
         end
         if plug_load.monthly_multipliers.nil?
-          plug_load.monthly_multipliers = Schedule.PlugLoadsWellPumpMonthlyMultipliers
+          plug_load.monthly_multipliers = '1.154, 1.161, 1.013, 1.010, 1.013, 0.888, 0.883, 0.883, 0.888, 0.978, 0.974, 1.154'
         end
       end
       if plug_load.usage_multiplier.nil?
@@ -591,13 +627,13 @@ class HPXMLDefaults
           fuel_load.location = HPXML::LocationExterior
         end
         if fuel_load.weekday_fractions.nil?
-          fuel_load.weekday_fractions = Schedule.FuelLoadsGrillWeekdayFractions
+          fuel_load.weekday_fractions = '0.004, 0.001, 0.001, 0.002, 0.007, 0.012, 0.029, 0.046, 0.044, 0.041, 0.044, 0.046, 0.042, 0.038, 0.049, 0.059, 0.110, 0.161, 0.115, 0.070, 0.044, 0.019, 0.013, 0.007'
         end
         if fuel_load.weekend_fractions.nil?
-          fuel_load.weekend_fractions = Schedule.FuelLoadsGrillWeekendFractions
+          fuel_load.weekend_fractions = '0.004, 0.001, 0.001, 0.002, 0.007, 0.012, 0.029, 0.046, 0.044, 0.041, 0.044, 0.046, 0.042, 0.038, 0.049, 0.059, 0.110, 0.161, 0.115, 0.070, 0.044, 0.019, 0.013, 0.007'
         end
         if fuel_load.monthly_multipliers.nil?
-          fuel_load.monthly_multipliers = Schedule.FuelLoadsGrillMonthlyMultipliers
+          fuel_load.monthly_multipliers = '1.097, 1.097, 0.991, 0.987, 0.991, 0.890, 0.896, 0.896, 0.890, 1.085, 1.085, 1.097'
         end
       elsif fuel_load.fuel_load_type == HPXML::FuelLoadTypeLighting
         if fuel_load.therm_per_year.nil?
@@ -613,13 +649,13 @@ class HPXMLDefaults
           fuel_load.location = HPXML::LocationExterior
         end
         if fuel_load.weekday_fractions.nil?
-          fuel_load.weekday_fractions = Schedule.FuelLoadsLightingWeekdayFractions
+          fuel_load.weekday_fractions = '0.044, 0.023, 0.019, 0.015, 0.016, 0.018, 0.026, 0.033, 0.033, 0.032, 0.033, 0.033, 0.032, 0.032, 0.032, 0.033, 0.045, 0.057, 0.066, 0.076, 0.081, 0.086, 0.075, 0.065'
         end
         if fuel_load.weekend_fractions.nil?
-          fuel_load.weekend_fractions = Schedule.FuelLoadsLightingWeekendFractions
+          fuel_load.weekend_fractions = '0.044, 0.023, 0.019, 0.015, 0.016, 0.018, 0.026, 0.033, 0.033, 0.032, 0.033, 0.033, 0.032, 0.032, 0.032, 0.033, 0.045, 0.057, 0.066, 0.076, 0.081, 0.086, 0.075, 0.065'
         end
         if fuel_load.monthly_multipliers.nil?
-          fuel_load.monthly_multipliers = Schedule.FuelLoadsLightingMonthlyMultipliers
+          fuel_load.monthly_multipliers = '1.154, 1.161, 1.013, 1.010, 1.013, 0.888, 0.883, 0.883, 0.888, 0.978, 0.974, 1.154'
         end
       elsif fuel_load.fuel_load_type == HPXML::FuelLoadTypeFireplace
         if fuel_load.therm_per_year.nil?
@@ -635,13 +671,13 @@ class HPXMLDefaults
           fuel_load.location = HPXML::LocationInterior
         end
         if fuel_load.weekday_fractions.nil?
-          fuel_load.weekday_fractions = Schedule.FuelLoadsFireplaceWeekdayFractions
+          fuel_load.weekday_fractions = '0.044, 0.023, 0.019, 0.015, 0.016, 0.018, 0.026, 0.033, 0.033, 0.032, 0.033, 0.033, 0.032, 0.032, 0.032, 0.033, 0.045, 0.057, 0.066, 0.076, 0.081, 0.086, 0.075, 0.065'
         end
         if fuel_load.weekend_fractions.nil?
-          fuel_load.weekend_fractions = Schedule.FuelLoadsFireplaceWeekendFractions
+          fuel_load.weekend_fractions = '0.044, 0.023, 0.019, 0.015, 0.016, 0.018, 0.026, 0.033, 0.033, 0.032, 0.033, 0.033, 0.032, 0.032, 0.032, 0.033, 0.045, 0.057, 0.066, 0.076, 0.081, 0.086, 0.075, 0.065'
         end
         if fuel_load.monthly_multipliers.nil?
-          fuel_load.monthly_multipliers = Schedule.FuelLoadsFireplaceMonthlyMultipliers
+          fuel_load.monthly_multipliers = '1.154, 1.161, 1.013, 1.010, 1.013, 0.888, 0.883, 0.883, 0.888, 0.978, 0.974, 1.154'
         end
       end
       if fuel_load.usage_multiplier.nil?
@@ -726,6 +762,9 @@ class HPXMLDefaults
     # Default clothes washer
     if hpxml.clothes_washers.size > 0
       clothes_washer = hpxml.clothes_washers[0]
+      if clothes_washer.is_shared_appliance.nil?
+        clothes_washer.is_shared_appliance = false
+      end
       if clothes_washer.location.nil?
         clothes_washer.location = HPXML::LocationLivingSpace
       end
@@ -747,6 +786,9 @@ class HPXMLDefaults
     # Default clothes dryer
     if hpxml.clothes_dryers.size > 0
       clothes_dryer = hpxml.clothes_dryers[0]
+      if clothes_dryer.is_shared_appliance.nil?
+        clothes_dryer.is_shared_appliance = false
+      end
       if clothes_dryer.location.nil?
         clothes_dryer.location = HPXML::LocationLivingSpace
       end
@@ -763,6 +805,9 @@ class HPXMLDefaults
     # Default dishwasher
     if hpxml.dishwashers.size > 0
       dishwasher = hpxml.dishwashers[0]
+      if dishwasher.is_shared_appliance.nil?
+        dishwasher.is_shared_appliance = false
+      end
       if dishwasher.location.nil?
         dishwasher.location = HPXML::LocationLivingSpace
       end
@@ -806,13 +851,13 @@ class HPXMLDefaults
         refrigerator.usage_multiplier = 1.0
       end
       if refrigerator.weekday_fractions.nil?
-        refrigerator.weekday_fractions = Schedule.RefrigeratorWeekdayFractions
+        refrigerator.weekday_fractions = '0.040, 0.039, 0.038, 0.037, 0.036, 0.036, 0.038, 0.040, 0.041, 0.041, 0.040, 0.040, 0.042, 0.042, 0.042, 0.041, 0.044, 0.048, 0.050, 0.048, 0.047, 0.046, 0.044, 0.041'
       end
       if refrigerator.weekend_fractions.nil?
-        refrigerator.weekend_fractions = Schedule.RefrigeratorWeekendFractions
+        refrigerator.weekend_fractions = '0.040, 0.039, 0.038, 0.037, 0.036, 0.036, 0.038, 0.040, 0.041, 0.041, 0.040, 0.040, 0.042, 0.042, 0.042, 0.041, 0.044, 0.048, 0.050, 0.048, 0.047, 0.046, 0.044, 0.041'
       end
       if refrigerator.monthly_multipliers.nil?
-        refrigerator.monthly_multipliers = Schedule.RefrigeratorMonthlyMultipliers
+        refrigerator.monthly_multipliers = '0.837, 0.835, 1.084, 1.084, 1.084, 1.096, 1.096, 1.096, 1.096, 0.931, 0.925, 0.837'
       end
     end
 
@@ -829,13 +874,13 @@ class HPXMLDefaults
         freezer.usage_multiplier = 1.0
       end
       if freezer.weekday_fractions.nil?
-        freezer.weekday_fractions = Schedule.FreezerWeekdayFractions
+        freezer.weekday_fractions = '0.040, 0.039, 0.038, 0.037, 0.036, 0.036, 0.038, 0.040, 0.041, 0.041, 0.040, 0.040, 0.042, 0.042, 0.042, 0.041, 0.044, 0.048, 0.050, 0.048, 0.047, 0.046, 0.044, 0.041'
       end
       if freezer.weekend_fractions.nil?
-        freezer.weekend_fractions = Schedule.FreezerWeekendFractions
+        freezer.weekend_fractions = '0.040, 0.039, 0.038, 0.037, 0.036, 0.036, 0.038, 0.040, 0.041, 0.041, 0.040, 0.040, 0.042, 0.042, 0.042, 0.041, 0.044, 0.048, 0.050, 0.048, 0.047, 0.046, 0.044, 0.041'
       end
       if freezer.monthly_multipliers.nil?
-        freezer.monthly_multipliers = Schedule.FreezerMonthlyMultipliers
+        freezer.monthly_multipliers = '0.837, 0.835, 1.084, 1.084, 1.084, 1.096, 1.096, 1.096, 1.096, 0.931, 0.925, 0.837'
       end
     end
 
@@ -853,13 +898,13 @@ class HPXMLDefaults
         cooking_range.usage_multiplier = 1.0
       end
       if cooking_range.weekday_fractions.nil?
-        cooking_range.weekday_fractions = Schedule.CookingRangeWeekdayFractions
+        cooking_range.weekday_fractions = '0.007, 0.007, 0.004, 0.004, 0.007, 0.011, 0.025, 0.042, 0.046, 0.048, 0.042, 0.050, 0.057, 0.046, 0.057, 0.044, 0.092, 0.150, 0.117, 0.060, 0.035, 0.025, 0.016, 0.011'
       end
       if cooking_range.weekend_fractions.nil?
-        cooking_range.weekend_fractions = Schedule.CookingRangeWeekendFractions
+        cooking_range.weekend_fractions = '0.007, 0.007, 0.004, 0.004, 0.007, 0.011, 0.025, 0.042, 0.046, 0.048, 0.042, 0.050, 0.057, 0.046, 0.057, 0.044, 0.092, 0.150, 0.117, 0.060, 0.035, 0.025, 0.016, 0.011'
       end
       if cooking_range.monthly_multipliers.nil?
-        cooking_range.monthly_multipliers = Schedule.CookingRangeMonthlyMultipliers
+        cooking_range.monthly_multipliers = '1.097, 1.097, 0.991, 0.987, 0.991, 0.890, 0.896, 0.896, 0.890, 1.085, 1.085, 1.097'
       end
     end
 
@@ -884,9 +929,9 @@ class HPXMLDefaults
       hpxml.lighting.exterior_usage_multiplier = 1.0
     end
     # Schedules from T24 2016 Residential ACM Appendix C Table 8 Exterior Lighting Hourly Multiplier (Weekdays and weekends)
-    default_exterior_lighting_weekday_fractions = Schedule.LightingExteriorWeekdayFractions
-    default_exterior_lighting_weekend_fractions = Schedule.LightingExteriorWeekendFractions
-    default_exterior_lighting_monthly_multipliers = Schedule.LightingExteriorMonthlyMultipliers
+    default_exterior_lighting_weekday_fractions = '0.046, 0.046, 0.046, 0.046, 0.046, 0.037, 0.035, 0.034, 0.033, 0.028, 0.022, 0.015, 0.012, 0.011, 0.011, 0.012, 0.019, 0.037, 0.049, 0.065, 0.091, 0.105, 0.091, 0.063'
+    default_exterior_lighting_weekend_fractions = '0.046, 0.046, 0.045, 0.045, 0.046, 0.045, 0.044, 0.041, 0.036, 0.03, 0.024, 0.016, 0.012, 0.011, 0.011, 0.012, 0.019, 0.038, 0.048, 0.06, 0.083, 0.098, 0.085, 0.059'
+    default_exterior_lighting_monthly_multipliers = '1.248, 1.257, 0.993, 0.989, 0.993, 0.827, 0.821, 0.821, 0.827, 0.99, 0.987, 1.248'
     if hpxml.has_space_type(HPXML::LocationGarage)
       if hpxml.lighting.garage_weekday_fractions.nil?
         hpxml.lighting.garage_weekday_fractions = default_exterior_lighting_weekday_fractions
@@ -925,10 +970,10 @@ class HPXMLDefaults
         hpxml.lighting.holiday_period_end_day_of_month = 6
       end
       if hpxml.lighting.holiday_weekday_fractions.nil?
-        hpxml.lighting.holiday_weekday_fractions = Schedule.LightingExteriorHolidayWeekdayFractions
+        hpxml.lighting.holiday_weekday_fractions = '0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.008, 0.098, 0.168, 0.194, 0.284, 0.192, 0.037, 0.019'
       end
       if hpxml.lighting.holiday_weekend_fractions.nil?
-        hpxml.lighting.holiday_weekend_fractions = Schedule.LightingExteriorHolidayWeekendFractions
+        hpxml.lighting.holiday_weekend_fractions = '0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.008, 0.098, 0.168, 0.194, 0.284, 0.192, 0.037, 0.019'
       end
     end
   end

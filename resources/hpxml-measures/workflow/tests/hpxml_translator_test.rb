@@ -168,6 +168,12 @@ class HPXMLTest < MiniTest::Test
                             'invalid-distribution-cfa-served.xml' => ['The total conditioned floor area served by the HVAC distribution system(s) for heating is larger than the conditioned floor area of the building.',
                                                                       'The total conditioned floor area served by the HVAC distribution system(s) for cooling is larger than the conditioned floor area of the building.'],
                             'invalid-epw-filepath.xml' => ["foo.epw' could not be found."],
+                            'invalid-facility-type.xml' => ['Expected [1] element(s) but found 0 element(s) for xpath: /HPXML/Building/BuildingDetails/Systems/WaterHeating/WaterHeatingSystem[IsSharedSystem="true"]: ../../../BuildingSummary/BuildingConstruction[ResidentialFacilityType[text()="single-family attached" or text()="apartment unit"]]',
+                                                            'Expected [1] element(s) but found 0 element(s) for xpath: /HPXML/Building/BuildingDetails/Appliances/ClothesWasher[IsSharedAppliance="true"]: ../../BuildingSummary/BuildingConstruction[ResidentialFacilityType[text()="single-family attached" or text()="apartment unit"]]',
+                                                            'Expected [1] element(s) but found 0 element(s) for xpath: /HPXML/Building/BuildingDetails/Appliances/Dishwasher[IsSharedAppliance="true"]: ../../BuildingSummary/BuildingConstruction[ResidentialFacilityType[text()="single-family attached" or text()="apartment unit"]]',
+                                                            "The building is of type 'single-family detached' but the surface",
+                                                            "The building is of type 'single-family detached' but the object",
+                                                            "The building is of type 'single-family detached' but the HVAC distribution"],
                             'invalid-neighbor-shading-azimuth.xml' => ['A neighbor building has an azimuth (145) not equal to the azimuth of any wall.'],
                             'invalid-relatedhvac-dhw-indirect.xml' => ["RelatedHVACSystem 'HeatingSystem_bad' not found for water heating system 'WaterHeater'"],
                             'invalid-relatedhvac-desuperheater.xml' => ["RelatedHVACSystem 'CoolingSystem_bad' not found for water heating system 'WaterHeater'."],
@@ -202,6 +208,8 @@ class HPXMLTest < MiniTest::Test
                             'unattached-hvac-distribution.xml' => ["Attached HVAC distribution system 'foobar' not found for HVAC system 'HeatingSystem'."],
                             'unattached-skylight.xml' => ["Attached roof 'foobar' not found for skylight 'SkylightNorth'."],
                             'unattached-solar-thermal-system.xml' => ["Attached water heating system 'foobar' not found for solar thermal system 'SolarThermalSystem'."],
+                            'unattached-shared-clothes-washer-water-heater.xml' => ["Attached water heating system 'foobar' not found for clothes washer"],
+                            'unattached-shared-dishwasher-water-heater.xml' => ["Attached water heating system 'foobar' not found for dishwasher"],
                             'unattached-window.xml' => ["Attached wall 'foobar' not found for window 'WindowNorth'."],
                             'water-heater-location.xml' => ["WaterHeatingSystem location is 'crawlspace - vented' but building does not have this location specified."],
                             'water-heater-location-other.xml' => ['Expected [1] element(s) but found 0 element(s) for xpath: /HPXML/Building/BuildingDetails/Systems/WaterHeating/WaterHeatingSystem: [not(Location)] |'],
@@ -503,9 +511,6 @@ class HPXMLTest < MiniTest::Test
       next if err_line.include?('Foundation:Kiva') && err_line.include?('wall surfaces with more than four vertices') # TODO: Check alternative approach
       if hpxml_path.include?('base-simcontrol-timestep-10-mins.xml') || hpxml_path.include?('ASHRAE_Standard_140')
         next if err_line.include? 'Temperature out of range [-100. to 200.] (PsyPsatFnTemp)'
-      end
-      if hpxml_path.include?('base-schedules-average.xml') || hpxml_path.include?('base-schedules-stochastic.xml')
-        next if err_line.include?('GetCurrentScheduleValue: Schedule=') && err_line.include?('is a Schedule:File')
       end
 
       flunk "Unexpected warning found: #{err_line}"

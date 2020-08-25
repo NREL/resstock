@@ -377,12 +377,16 @@ class Constants
     return 'unit heater'
   end
 
-  def self.ObjectNameWater
-    return 'water'
-  end
-
   def self.ObjectNameWaterHeater
     return 'water heater'
+  end
+
+  def self.ObjectNameWaterLatent
+    return 'water latent'
+  end
+
+  def self.ObjectNameWaterSensible
+    return 'water sensible'
   end
 
   def self.ObjectNameWaterHeaterAdjustment(water_heater_name)

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative '../../HPXMLtoOpenStudio/resources/minitest_helper'
 require 'openstudio'
 require 'openstudio/ruleset/ShowRunnerOutput'
@@ -102,7 +104,14 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       'single-family-detached-slab-non-zero-foundation-height.osw' => 'geometry_unit_type=single-family detached and geometry_foundation_type=SlabOnGrade and geometry_foundation_height=8.0',
       'multifamily-bottom-slab-non-zero-foundation-height.osw' => 'geometry_unit_type=apartment unit and geometry_level=Bottom and geometry_foundation_type=SlabOnGrade and geometry_foundation_height=8.0',
       'slab-non-zero-foundation-height-above-grade.osw' => 'geometry_foundation_type=SlabOnGrade and geometry_foundation_height_above_grade=1.0',
-      'second-heating-system-serves-majority-heat.osw' => 'heating_system_type_2=Fireplace and heating_system_fraction_heat_load_served_2=0.6'
+      'second-heating-system-serves-majority-heat.osw' => 'heating_system_type_2=Fireplace and heating_system_fraction_heat_load_served_2=0.6',
+      'vented-crawlspace-with-wall-and-ceiling-insulation.osw' => 'geometry_foundation_type=VentedCrawlspace and foundation_wall_insulation_r=8.9 and foundation_wall_assembly_r=false and floor_assembly_r=10.0',
+      'unvented-crawlspace-with-wall-and-ceiling-insulation.osw' => 'geometry_foundation_type=VentedCrawlspace and foundation_wall_insulation_r=8.9 and foundation_wall_assembly_r=false and floor_assembly_r=10.0',
+      'unconditioned-basement-with-wall-and-ceiling-insulation.osw' => 'geometry_foundation_type=UnconditionedBasement and foundation_wall_insulation_r=8.9 and foundation_wall_assembly_r=false and floor_assembly_r=10.0',
+      'vented-attic-with-floor-and-roof-insulation.osw' => 'geometry_attic_type=VentedAttic and ceiling_assembly_r=39.3 and roof_assembly_r=10.0',
+      'unvented-attic-with-floor-and-roof-insulation.osw' => 'geometry_attic_type=UnventedAttic and ceiling_assembly_r=39.3 and roof_assembly_r=10.0',
+      'conditioned-basement-with-ceiling-insulation.osw' => 'geometry_foundation_type=ConditionedBasement and floor_assembly_r=10.0',
+      'conditioned-attic-with-floor-insulation.osw' => 'geometry_attic_type=ConditionedAttic and ceiling_assembly_r=39.3'
     }
 
     expected_error_msgs = {
@@ -112,7 +121,9 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       'single-family-detached-finished-basement-zero-foundation-height.osw' => 'geometry_unit_type=single-family detached and geometry_foundation_type=ConditionedBasement and geometry_foundation_height=0.0',
       'single-family-attached-ambient.osw' => 'geometry_unit_type=single-family attached and geometry_foundation_type=Ambient',
       'multifamily-bottom-crawlspace-zero-foundation-height.osw' => 'geometry_unit_type=apartment unit and geometry_level=Bottom and geometry_foundation_type=UnventedCrawlspace and geometry_foundation_height=0.0',
-      'ducts-location-and-areas-not-same-type.osw' => 'ducts_supply_location=auto and ducts_supply_surface_area=150.0 and ducts_return_location=attic - unvented and ducts_return_surface_area=50.0'
+      'ducts-location-and-areas-not-same-type.osw' => 'ducts_supply_location=auto and ducts_supply_surface_area=150.0 and ducts_return_location=attic - unvented and ducts_return_surface_area=50.0',
+      'single-family-attached-no-building-orientation.osw' => 'geometry_unit_type=single-family attached and geometry_building_num_units=false and geometry_horizontal_location=false',
+      'multifamily-no-building-orientation.osw' => 'geometry_unit_type=apartment unit and geometry_building_num_units=false and geometry_level=false and geometry_horizontal_location=false'
     }
 
     measures = {}
@@ -183,7 +194,6 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       hpxml.header.xml_type = nil
       hpxml.header.xml_generated_by = nil
       hpxml.header.created_date_and_time = Time.new(2000, 1, 1).strftime('%Y-%m-%dT%H:%M:%S%:z')
-      hpxml.header.schedules_path = nil
       hpxml.site.fuels = [] # Not used by model
       hpxml.climate_and_risk_zones.weather_station_name = nil
       hpxml.climate_and_risk_zones.weather_station_wmo = nil
@@ -248,65 +258,14 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       end
       hpxml.refrigerators.each do |refrigerator|
         refrigerator.primary_indicator = nil
-        refrigerator.weekday_fractions = nil
-        refrigerator.weekend_fractions = nil
-        refrigerator.monthly_multipliers = nil
       end
       if hpxml.freezers.length > 0
         (1..hpxml.freezers.length).to_a.reverse.each do |i|
           hpxml.freezers.delete_at(i) # Only compare first freezer
         end
       end
-      hpxml.freezers.each do |freezer|
-        freezer.weekday_fractions = nil
-        freezer.weekend_fractions = nil
-        freezer.monthly_multipliers = nil
-      end
-      hpxml.cooking_ranges.each do |cooking_range|
-        cooking_range.weekday_fractions = nil
-        cooking_range.weekend_fractions = nil
-        cooking_range.monthly_multipliers = nil
-      end
-      hpxml.pools.each do |pool|
-        pool.pump_weekday_fractions = nil
-        pool.pump_weekend_fractions = nil
-        pool.pump_monthly_multipliers = nil
-        pool.heater_weekday_fractions = nil
-        pool.heater_weekend_fractions = nil
-        pool.heater_monthly_multipliers = nil
-      end
-      hpxml.hot_tubs.each do |hot_tub|
-        hot_tub.pump_weekday_fractions = nil
-        hot_tub.pump_weekend_fractions = nil
-        hot_tub.pump_monthly_multipliers = nil
-        hot_tub.heater_weekday_fractions = nil
-        hot_tub.heater_weekend_fractions = nil
-        hot_tub.heater_monthly_multipliers = nil
-      end
-      hpxml.lighting.interior_weekday_fractions = nil
-      hpxml.lighting.interior_weekend_fractions = nil
-      hpxml.lighting.interior_monthly_multipliers = nil
-      hpxml.lighting.exterior_weekday_fractions = nil
-      hpxml.lighting.exterior_weekend_fractions = nil
-      hpxml.lighting.exterior_monthly_multipliers = nil
-      hpxml.lighting.garage_weekday_fractions = nil
-      hpxml.lighting.garage_weekend_fractions = nil
-      hpxml.lighting.garage_monthly_multipliers = nil
-      hpxml.lighting.holiday_period_begin_month = nil
-      hpxml.lighting.holiday_period_begin_day_of_month = nil
-      hpxml.lighting.holiday_period_end_month = nil
-      hpxml.lighting.holiday_period_end_day_of_month = nil
-      hpxml.lighting.holiday_weekday_fractions = nil
-      hpxml.lighting.holiday_weekend_fractions = nil
-      hpxml.plug_loads.each do |plug_load|
-        plug_load.weekday_fractions = nil
-        plug_load.weekend_fractions = nil
-        plug_load.monthly_multipliers = nil
-      end
-      hpxml.fuel_loads.each do |fuel_load|
-        fuel_load.weekday_fractions = nil
-        fuel_load.weekend_fractions = nil
-        fuel_load.monthly_multipliers = nil
+      hpxml.pv_systems.each do |pv_system|
+        pv_system.year_modules_manufactured = nil
       end
       hpxml.collapse_enclosure_surfaces()
 

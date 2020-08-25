@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'openstudio'
 require_relative '../../resources/hpxml-measures/HPXMLtoOpenStudio/resources/minitest_helper'
 require 'minitest/autorun'

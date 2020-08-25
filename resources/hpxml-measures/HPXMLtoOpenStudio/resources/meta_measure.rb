@@ -66,7 +66,7 @@ def run_hpxml_workflow(rundir, hpxml, measures, measures_dir, debug: false, outp
   command = "\"#{ep_path}\" -w in.epw in.idf"
   if debug
     File.open(File.join(rundir, 'run.log'), 'a') do |f|
-      f << "Executing command '#{command}' from working directory '#{rundir}'"
+      f << "Executing command '#{command}' from working directory '#{rundir}'.\n"
     end
   end
   pwd = Dir.pwd

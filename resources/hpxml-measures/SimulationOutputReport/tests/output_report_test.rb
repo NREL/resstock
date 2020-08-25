@@ -307,6 +307,9 @@ class SimulationOutputReportTest < MiniTest::Test
   ]
 
   ERIRows = [
+    'hpxml_heat_sys_ids',
+    'hpxml_cool_sys_ids',
+    'hpxml_dhw_sys_ids',
     'hpxml_eec_heats',
     'hpxml_eec_cools',
     'hpxml_eec_dhws',
