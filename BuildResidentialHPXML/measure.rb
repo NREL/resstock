@@ -3421,6 +3421,8 @@ class HPXMLFile
     if ['default', 'user-specified'].include? args[:schedules_type]
       if args[:schedules_type] == 'user-specified'
         args[:schedules_path] = args[:schedules_path].get
+      else
+        args[:schedules_path] = nil
       end
       return true
     end
