@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # see the URL below for information on how to write OpenStudio measures
 # http://nrel.github.io/OpenStudio-user-documentation/measures/measure_writing_guide/
 
@@ -312,11 +314,11 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
       measures['BuildResidentialHPXML'][0]['software_program_version'] = software_program_version
 
       # Get registered values from ResidentialSimulationControls and pass them to BuildResidentialHPXML
-      simulation_control_timestep = 60 / get_value_from_runner_past_results(runner, 'timesteps_per_hr', 'residential_simulation_controls', false)
-      simulation_control_run_period_begin_month = get_value_from_runner_past_results(runner, 'begin_month', 'residential_simulation_controls', false)
-      simulation_control_run_period_begin_day_of_month = get_value_from_runner_past_results(runner, 'begin_day_of_month', 'residential_simulation_controls', false)
-      simulation_control_run_period_end_month = get_value_from_runner_past_results(runner, 'end_month', 'residential_simulation_controls', false)
-      simulation_control_run_period_end_day_of_month = get_value_from_runner_past_results(runner, 'end_day_of_month', 'residential_simulation_controls', false)
+      simulation_control_timestep = get_value_from_runner_past_results(runner, 'simulation_control_timestep', 'build_existing_model', false)
+      simulation_control_run_period_begin_month = get_value_from_runner_past_results(runner, 'simulation_control_run_period_begin_month', 'build_existing_model', false)
+      simulation_control_run_period_begin_day_of_month = get_value_from_runner_past_results(runner, 'simulation_control_run_period_begin_day_of_month', 'build_existing_model', false)
+      simulation_control_run_period_end_month = get_value_from_runner_past_results(runner, 'simulation_control_run_period_end_month', 'build_existing_model', false)
+      simulation_control_run_period_end_day_of_month = get_value_from_runner_past_results(runner, 'simulation_control_run_period_end_day_of_month', 'build_existing_model', false)
       measures['BuildResidentialHPXML'][0]['simulation_control_timestep'] = simulation_control_timestep
       measures['BuildResidentialHPXML'][0]['simulation_control_run_period_begin_month'] = simulation_control_run_period_begin_month
       measures['BuildResidentialHPXML'][0]['simulation_control_run_period_begin_day_of_month'] = simulation_control_run_period_begin_day_of_month
