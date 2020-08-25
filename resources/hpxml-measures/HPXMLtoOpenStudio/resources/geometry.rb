@@ -164,7 +164,7 @@ class Geometry
     space_num_occ = num_occ * UnitConversions.convert(space.floorArea, 'm^2', 'ft^2') / cfa
 
     # Create schedule
-    if (not schedules_file.nil?)
+    if not schedules_file.nil?
       people_sch = schedules_file.create_schedule_file(col_name: 'occupants')
     else
       people_sch = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameOccupants + ' schedule', weekday_sch, weekend_sch, monthly_sch, 1.0, 1.0, true, true, Constants.ScheduleTypeLimitsFraction)

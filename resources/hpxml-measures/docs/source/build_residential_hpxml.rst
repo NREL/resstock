@@ -26,13 +26,13 @@ The following arguments are used to populate fields of the HPXML file:
   - End Month/Day
   - Daylight Saving Begin Month/Day
   - Daylight Saving End Month/Day
-  - Vacancy Begin Month/Day
-  - Vacancy End Month/Day
 
 Schedules
 
   - Type (Average, Stochastic, User-Specified)
   - Path
+  - Vacancy Begin Month/Day
+  - Vacancy End Month/Day
 
 - Weather
 

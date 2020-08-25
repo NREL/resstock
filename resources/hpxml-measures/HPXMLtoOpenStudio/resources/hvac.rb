@@ -1308,7 +1308,7 @@ class HVAC
 
     ceiling_fan_sch = MonthWeekdayWeekendSchedule.new(model, obj_name + ' schedule', weekday_sch, weekend_sch, monthly_sch, 1.0, 1.0, true, true, Constants.ScheduleTypeLimitsFraction)
 
-    if (not schedules_file.nil?)
+    if not schedules_file.nil?
       space_design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: 'ceiling_fan', annual_kwh: annual_kwh)
       ceiling_fan_sch = schedules_file.create_schedule_file(col_name: 'ceiling_fan')
     else

@@ -802,6 +802,7 @@ class Schedule
   end
 
   def self.LightingExteriorWeekdayFractions
+    # Schedules from T24 2016 Residential ACM Appendix C Table 8 Exterior Lighting Hourly Multiplier (Weekdays and weekends)
     return '0.046, 0.046, 0.046, 0.046, 0.046, 0.037, 0.035, 0.034, 0.033, 0.028, 0.022, 0.015, 0.012, 0.011, 0.011, 0.012, 0.019, 0.037, 0.049, 0.065, 0.091, 0.105, 0.091, 0.063'
   end
 
@@ -846,6 +847,18 @@ class Schedule
   end
 
   def self.RefrigeratorMonthlyMultipliers
+    return '0.837, 0.835, 1.084, 1.084, 1.084, 1.096, 1.096, 1.096, 1.096, 0.931, 0.925, 0.837'
+  end
+
+  def self.ExtraRefrigeratorWeekdayFractions
+    return '0.040, 0.039, 0.038, 0.037, 0.036, 0.036, 0.038, 0.040, 0.041, 0.041, 0.040, 0.040, 0.042, 0.042, 0.042, 0.041, 0.044, 0.048, 0.050, 0.048, 0.047, 0.046, 0.044, 0.041'
+  end
+
+  def self.ExtraRefrigeratorWeekendFractions
+    return '0.040, 0.039, 0.038, 0.037, 0.036, 0.036, 0.038, 0.040, 0.041, 0.041, 0.040, 0.040, 0.042, 0.042, 0.042, 0.041, 0.044, 0.048, 0.050, 0.048, 0.047, 0.046, 0.044, 0.041'
+  end
+
+  def self.ExtraRefrigeratorMonthlyMultipliers
     return '0.837, 0.835, 1.084, 1.084, 1.084, 1.096, 1.096, 1.096, 1.096, 0.931, 0.925, 0.837'
   end
 
@@ -1022,6 +1035,7 @@ class SchedulesFile
   def initialize(runner:,
                  model:,
                  schedules_path:,
+                 col_names:,
                  **remainder)
 
     @validated = true
@@ -1029,7 +1043,7 @@ class SchedulesFile
     @model = model
     @schedules_path = schedules_path
     @external_file = get_external_file
-    @schedules = {}
+    import(col_names: col_names)
   end
 
   def validated?
@@ -1060,8 +1074,6 @@ class SchedulesFile
       return schedule_file
     end
 
-    import(col_names: [col_name])
-
     if @schedules[col_name].nil?
       @runner.registerError("Could not find the '#{col_name}' schedule.")
       return false
@@ -1085,7 +1097,7 @@ class SchedulesFile
 
   # the equivalent number of hours in the year, if the schedule was at full load (1.0)
   def annual_equivalent_full_load_hrs(col_name:)
-    import(col_names: [col_name])
+    # import(col_names: [col_name])
 
     year_description = @model.getYearDescription
     num_hrs_in_year = Constants.NumHoursInYear(year_description.isLeapYear)
@@ -1208,40 +1220,8 @@ class SchedulesFile
     update(col_names: col_names)
   end
 
-  def set_outage(col_name:,
-                 outage_start_date:,
-                 outage_start_hour:,
-                 outage_length:)
-
-    min_per_step = 1
-    if @model.getSimulationControl.timestep.is_initialized
-      min_per_step = 60 / @model.getSimulationControl.timestep.get.numberOfTimestepsPerHour
-    end
-
-    year_description = @model.getYearDescription
-    num_hrs_in_year = Constants.NumHoursInYear(year_description.isLeapYear)
-    schedule_length = @schedules[col_name].length
-    min_per_item = 60.0 / (schedule_length / num_hrs_in_year)
-    sec_per_step = min_per_step * 60.0
-    sim_year = year_description.calendarYear.get
-
-    start_month = outage_start_date.split[0]
-    start_day = outage_start_date.split[1].to_i
-    outage_start_date = Time.new(sim_year, OpenStudio::monthOfYear(start_month).value, start_day, outage_start_hour)
-    outage_end_date = outage_start_date + outage_length * 3600.0
-
-    ts = Time.new(sim_year, 'Jan', 1)
-    @schedules[col_name].each_with_index do |step, i|
-      if outage_start_date <= ts && ts <= outage_end_date # in the outage period
-        @schedules[col_name][i] = 0.0
-      end
-      ts += sec_per_step
-    end
-
-    update(col_name: col_name)
-  end
-
   def import(col_names:)
+    @schedules = {}
     col_names += ['vacancy']
     columns = CSV.read(@schedules_path).transpose
     columns.each do |col|

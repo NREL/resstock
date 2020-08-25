@@ -5,7 +5,7 @@ class MiscLoads
     kwh = 0
     if not plug_load.nil?
       kwh = plug_load.kWh_per_year * plug_load.usage_multiplier
-      if (not schedules_file.nil?)
+      if not schedules_file.nil?
         if plug_load.plug_load_type == HPXML::PlugLoadTypeOther
           col_name = 'plug_loads_other'
         elsif plug_load.plug_load_type == HPXML::PlugLoadTypeTelevision
@@ -64,7 +64,7 @@ class MiscLoads
     therm = 0
     if not fuel_load.nil?
       therm = fuel_load.therm_per_year * fuel_load.usage_multiplier
-      if (not schedules_file.nil?)
+      if not schedules_file.nil?
         if fuel_load.fuel_load_type == HPXML::FuelLoadTypeGrill
           col_name = 'fuel_loads_grill'
         elsif fuel_load.fuel_load_type == HPXML::FuelLoadTypeLighting
@@ -121,7 +121,7 @@ class MiscLoads
   def self.apply_pool_or_hot_tub_heater(model, pool_or_hot_tub, obj_name, living_space, schedules_file)
     heater_kwh = 0
     heater_therm = 0
-    if (not schedules_file.nil?)
+    if not schedules_file.nil?
       if obj_name.include?('pool')
         col_name = 'pool_heater'
       else
@@ -159,7 +159,7 @@ class MiscLoads
     end
 
     if heater_therm > 0
-      if (not schedules_file.nil?)
+      if not schedules_file.nil?
         space_design_level = schedules_file.calc_design_level_from_annual_therm(col_name: col_name, annual_therm: heater_therm)
       else
         space_design_level = heater_sch.calcDesignLevelFromDailyTherm(heater_therm / 365.0)
@@ -182,7 +182,7 @@ class MiscLoads
 
   def self.apply_pool_or_hot_tub_pump(model, pool_or_hot_tub, obj_name, living_space, schedules_file)
     pump_kwh = 0
-    if (not schedules_file.nil?)
+    if not schedules_file.nil?
       if obj_name.include?('pool')
         col_name = 'pool_pump'
       else
@@ -197,7 +197,7 @@ class MiscLoads
     end
 
     if pump_kwh > 0
-      if (not schedules_file.nil?)
+      if not schedules_file.nil?
         space_design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: col_name, annual_kwh: pump_kwh)
       else
         space_design_level = pump_sch.calcDesignLevelFromDailykWh(pump_kwh / 365.0)
