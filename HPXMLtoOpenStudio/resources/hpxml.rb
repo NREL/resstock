@@ -640,7 +640,7 @@ class HPXML < Object
              :eri_design, :timestep, :building_id, :event_type, :state_code,
              :sim_begin_month, :sim_begin_day_of_month, :sim_end_month, :sim_end_day_of_month,
              :dst_enabled, :dst_begin_month, :dst_begin_day_of_month, :dst_end_month, :dst_end_day_of_month,
-             :apply_ashrae140_assumptions]
+             :apply_ashrae140_assumptions, :schedules_path]
     attr_accessor(*ATTRS)
 
     def check_for_errors
@@ -744,7 +744,10 @@ class HPXML < Object
           XMLHelper.add_element(daylight_saving, 'EndDayOfMonth', to_integer(@dst_end_day_of_month)) unless @dst_end_day_of_month.nil?
         end
       end
-      if XMLHelper.get_element(extension, 'ERICalculation').nil? && XMLHelper.get_element(extension, 'SimulationControl').nil? && @apply_ashrae140_assumptions.nil?
+      if not @schedules_path.nil?
+        XMLHelper.add_element(extension, 'OccupancySchedulesCSVPath', @schedules_path) unless @schedules_path.nil?
+      end
+      if XMLHelper.get_element(extension, 'ERICalculation').nil? && XMLHelper.get_element(extension, 'SimulationControl').nil? && @apply_ashrae140_assumptions.nil? && @schedules_path.nil?
         extension.remove
       end
 
@@ -784,6 +787,7 @@ class HPXML < Object
       @dst_end_month = to_integer_or_nil(XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/SimulationControl/DaylightSaving/EndMonth'))
       @dst_end_day_of_month = to_integer_or_nil(XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/SimulationControl/DaylightSaving/EndDayOfMonth'))
       @apply_ashrae140_assumptions = to_boolean_or_nil(XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/ApplyASHRAE140Assumptions'))
+      @schedules_path = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/OccupancySchedulesCSVPath')
       @building_id = HPXML::get_id(hpxml, 'Building/BuildingID')
       @event_type = XMLHelper.get_value(hpxml, 'Building/ProjectStatus/EventType')
       @state_code = XMLHelper.get_value(hpxml, 'Building/Site/Address/StateCode')
