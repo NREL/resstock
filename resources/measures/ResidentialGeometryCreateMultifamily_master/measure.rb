@@ -968,25 +968,25 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     OpenStudio::Model.matchSurfaces(spaces)
     
     # temporary adiabatic shared walls for testing:
-    model.getSpaces.each do |space|
-      space.surfaces.each do |surface|
-        if surface.adjacentSurface.is_initialized
-          adjacent_surface = surface.adjacentSurface.get
-          adjacent_space = adjacent_surface.space.get
+    # model.getSpaces.each do |space|
+    #   space.surfaces.each do |surface|
+    #     if surface.adjacentSurface.is_initialized
+    #       adjacent_surface = surface.adjacentSurface.get
+    #       adjacent_space = adjacent_surface.space.get
 
-          if Geometry.is_living_space_type(adjacent_space.spaceType.get.standardsSpaceType.get) and Geometry.is_living_space_type(space.spaceType.get.standardsSpaceType.get)
-            surface.adjacentSurface.get.setOutsideBoundaryCondition("Adiabatic")
-            surface.setOutsideBoundaryCondition("Adiabatic")
-          elsif Geometry.space_is_below_grade(adjacent_space) and Geometry.space_is_below_grade(space)
-            surface.adjacentSurface.get.setOutsideBoundaryCondition("Adiabatic")
-            surface.setOutsideBoundaryCondition("Adiabatic")
-          elsif Geometry.is_corridor(space)
-            surface.adjacentSurface.get.setOutsideBoundaryCondition("Adiabatic")
-            surface.setOutsideBoundaryCondition("Adiabatic")
-          end
-        end
-      end
-    end
+    #       if Geometry.is_living_space_type(adjacent_space.spaceType.get.standardsSpaceType.get) and Geometry.is_living_space_type(space.spaceType.get.standardsSpaceType.get)
+    #         surface.adjacentSurface.get.setOutsideBoundaryCondition("Adiabatic")
+    #         surface.setOutsideBoundaryCondition("Adiabatic")
+    #       elsif Geometry.space_is_below_grade(adjacent_space) and Geometry.space_is_below_grade(space)
+    #         surface.adjacentSurface.get.setOutsideBoundaryCondition("Adiabatic")
+    #         surface.setOutsideBoundaryCondition("Adiabatic")
+    #       elsif Geometry.is_corridor(space)
+    #         surface.adjacentSurface.get.setOutsideBoundaryCondition("Adiabatic")
+    #         surface.setOutsideBoundaryCondition("Adiabatic")
+    #       end
+    #     end
+    #   end
+    # end
     
     # make all surfaces adjacent to corridor spaces into adiabatic surfaces
     model.getSpaces.each do |space|
