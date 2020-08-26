@@ -2005,12 +2005,12 @@ class ThermalMassConstructions
       # Determine existing partition wall mass in space
       existing_surface_area = 0
       surfaces.each do |surface|
+        next if surface.space.get != space
         existing_surface_area += surface.grossArea
       end
 
       # Determine additional partition wall mass required
-      surface_area_per_unit = existing_surface_area / spaces.size.to_f
-      addtl_surface_area = frac_of_ffa * space.floorArea - 2 * surface_area_per_unit
+      addtl_surface_area = frac_of_ffa * space.floorArea - 2 * existing_surface_area
 
       # Remove any existing internal mass
       space.internalMass.each do |im|
