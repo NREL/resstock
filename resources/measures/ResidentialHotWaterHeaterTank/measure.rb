@@ -136,7 +136,6 @@ class ResidentialHotWaterHeaterTank < OpenStudio::Measure::ModelMeasure
     oncyc_power.setUnits("W")
     oncyc_power.setDefaultValue(0)
     args << oncyc_power
-    
 
     # make a bool argument for open water heater flue
     has_water_heater_flue = OpenStudio::Measure::OSArgument::makeBoolArgument("has_water_heater_flue", true)
@@ -144,6 +143,7 @@ class ResidentialHotWaterHeaterTank < OpenStudio::Measure::ModelMeasure
     has_water_heater_flue.setDescription("Specifies whether the building has an open flue associated with the water heater.")
     has_water_heater_flue.setDefaultValue(false)
     args << has_water_heater_flue
+
     # make a string argument for mixed or stratified tank
     tank_model_type_display_name = OpenStudio::StringVector.new
     tank_model_type_display_name << Constants.WaterHeaterTypeTankModelTypeMixed
@@ -175,8 +175,8 @@ class ResidentialHotWaterHeaterTank < OpenStudio::Measure::ModelMeasure
     oncycle_power = runner.getDoubleArgumentValue("oncyc_power", user_arguments)
     offcycle_power = runner.getDoubleArgumentValue("offcyc_power", user_arguments)
     model.getBuilding.additionalProperties.setFeature("has_water_heater_flue", runner.getBoolArgumentValue("has_water_heater_flue", user_arguments))
-	tank_model_type = runner.getStringArgumentValue("tank_model_type", user_arguments)
-	
+    tank_model_type = runner.getStringArgumentValue("tank_model_type", user_arguments)
+
     # Validate inputs
     if not runner.validateUserArguments(arguments(model), user_arguments)
       return false

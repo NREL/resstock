@@ -156,7 +156,7 @@ class Waterheater
   end
 
   def self.apply_heatpump(model, unit, runner, loop, space, weather,
-                          e_cap, vol, sp_type, t_set, op_mode,op_mode_type,
+                          e_cap, vol, sp_type, t_set, op_mode, op_mode_type,
                           sp_schedule_file, op_mode_schedule_file,
                           min_temp, max_temp, cap, cop, shr, airflow_rate, fan_power,
                           parasitics, tank_ua, int_factor, temp_depress,
@@ -1272,8 +1272,8 @@ class Waterheater
 
       h_tank = 1.2192 # 4 feet in m, using the relationship currently assumed in BEopt
       # height of upper and lower element based on TRNSYS assumptions for an ERWH
-      h_UE = 0.733333333 * h_tank #node 4
-      h_LE = 0.133333333 * h_tank #node 13
+      h_UE = 0.733333333 * h_tank # node 4
+      h_LE = 0.133333333 * h_tank # node 13
 
       # Add a WaterHeater:Stratified to the model
       new_heater = OpenStudio::Model::WaterHeaterStratified.new(model)
