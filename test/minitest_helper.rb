@@ -6,7 +6,7 @@ rescue
 end
 
 if not called_from_cli # cli can't load codecov gem
-  require 'bundler/setup'
+  # require 'bundler/setup'
   require 'simplecov'
   require 'codecov'
 
@@ -18,7 +18,7 @@ if not called_from_cli # cli can't load codecov gem
     end
     SimpleCov.formatter = SimpleCov::Formatter::Codecov
   else
-    SimpleCov.coverage_dir("coverage")
+    SimpleCov.coverage_dir('coverage')
   end
   SimpleCov.start
 
