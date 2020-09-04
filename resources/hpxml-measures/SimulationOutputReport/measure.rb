@@ -325,6 +325,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
     hpxml_path = @model.getBuilding.additionalProperties.getFeatureAsString('hpxml_path').get
     @hpxml = HPXML.new(hpxml_path: hpxml_path)
+    HVAC.apply_shared_systems(@hpxml)
     get_object_maps()
     @eri_design = @hpxml.header.eri_design
 
@@ -2094,7 +2095,8 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
   class OutputVars
     def self.SpaceHeatingElectricity
-      return { 'OpenStudio::Model::CoilHeatingDXSingleSpeed' => ['Heating Coil Electric Energy', 'Heating Coil Crankcase Heater Electric Energy', 'Heating Coil Defrost Electric Energy'],
+      return { 'OpenStudio::Model::AirLoopHVACUnitarySystem' => ['Unitary System Heating Ancillary Electric Energy'],
+               'OpenStudio::Model::CoilHeatingDXSingleSpeed' => ['Heating Coil Electric Energy', 'Heating Coil Crankcase Heater Electric Energy', 'Heating Coil Defrost Electric Energy'],
                'OpenStudio::Model::CoilHeatingDXMultiSpeed' => ['Heating Coil Electric Energy', 'Heating Coil Crankcase Heater Electric Energy', 'Heating Coil Defrost Electric Energy'],
                'OpenStudio::Model::CoilHeatingElectric' => ['Heating Coil Electric Energy', 'Heating Coil Crankcase Heater Electric Energy', 'Heating Coil Defrost Electric Energy'],
                'OpenStudio::Model::CoilHeatingWaterToAirHeatPumpEquationFit' => ['Heating Coil Electric Energy', 'Heating Coil Crankcase Heater Electric Energy', 'Heating Coil Defrost Electric Energy'],

@@ -144,7 +144,7 @@ class HPXMLTest < MiniTest::Test
                             'dishwasher-location.xml' => ["Dishwasher location is 'garage' but building does not have this location specified."],
                             'dhw-frac-load-served.xml' => ['Expected FractionDHWLoadServed to sum to 1, but calculated sum is 1.15.'],
                             'duct-location.xml' => ["Duct location is 'garage' but building does not have this location specified."],
-                            'duct-location-unconditioned-space.xml' => ['Expected [0, 2] element(s) but found 1 element(s) for xpath: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACDistribution/DistributionSystemType/AirDistribution/Ducts[DuctType="supply" or DuctType="return"]: DuctSurfaceArea | DuctLocation[text()='],
+                            'duct-location-unconditioned-space.xml' => ['Expected [0, 2] element(s) but found 1 element(s) for xpath: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACDistribution/DistributionSystemType/*/Ducts[DuctType="supply" or DuctType="return"]: DuctSurfaceArea | DuctLocation[text()='],
                             'duplicate-id.xml' => ["Duplicate SystemIdentifier IDs detected for 'Wall'."],
                             'enclosure-attic-missing-roof.xml' => ['There must be at least one roof adjacent to attic - unvented.'],
                             'enclosure-basement-missing-exterior-foundation-wall.xml' => ['There must be at least one exterior foundation wall adjacent to basement - unconditioned.'],
@@ -187,7 +187,7 @@ class HPXMLTest < MiniTest::Test
                             'mismatched-slab-and-foundation-wall.xml' => ["Foundation wall 'FoundationWall' is adjacent to 'basement - conditioned' but no corresponding slab was found adjacent to"],
                             'missing-elements.xml' => ['Expected [1] element(s) but found 0 element(s) for xpath: /HPXML/Building/BuildingDetails/BuildingSummary/BuildingConstruction: NumberofConditionedFloors',
                                                        'Expected [1] element(s) but found 0 element(s) for xpath: /HPXML/Building/BuildingDetails/BuildingSummary/BuildingConstruction: ConditionedFloorArea'],
-                            'missing-duct-location.xml' => ['Expected [0, 2] element(s) but found 1 element(s) for xpath: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACDistribution/DistributionSystemType/AirDistribution/Ducts[DuctType="supply" or DuctType="return"]: DuctSurfaceArea | DuctLocation[text()='],
+                            'missing-duct-location.xml' => ['Expected [0, 2] element(s) but found 1 element(s) for xpath: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACDistribution/DistributionSystemType/*/Ducts[DuctType="supply" or DuctType="return"]: DuctSurfaceArea | DuctLocation[text()='],
                             'missing-duct-location-and-surface-area.xml' => ['Error: The location and surface area of all ducts must be provided or blank.'],
                             'multifamily-reference-appliance.xml' => ["The building is of type 'single-family detached' but"],
                             'multifamily-reference-duct.xml' => ["The building is of type 'single-family detached' but"],
@@ -259,7 +259,13 @@ class HPXMLTest < MiniTest::Test
                    ['Baseboard Total Heating Energy', 'runperiod', '*'],
                    ['Boiler Heating Energy', 'runperiod', '*'],
                    ['Fluid Heat Exchanger Heat Transfer Energy', 'runperiod', '*'],
-                   ['Electric Equipment Electric Energy', 'runperiod', Constants.ObjectNameMechanicalVentilationHouseFanCFIS]]
+                   ['Fan Electric Power', 'runperiod', '*'],
+                   ['Fan Runtime Fraction', 'runperiod', '*'],
+                   ['Electric Equipment Electric Energy', 'runperiod', Constants.ObjectNameMechanicalVentilationHouseFanCFIS],
+                   ['Boiler Part Load Ratio', 'runperiod', Constants.ObjectNameBoiler],
+                   ['Pump Electric Power', 'runperiod', Constants.ObjectNameBoiler + ' hydronic pump'],
+                   ['Unitary System Part Load Ratio', 'runperiod', Constants.ObjectNameGroundSourceHeatPump + ' unitary system'],
+                   ['Pump Electric Power', 'runperiod', Constants.ObjectNameGroundSourceHeatPump + ' pump']]
 
     # Run workflow
     workflow_start = Time.now
@@ -394,6 +400,7 @@ class HPXMLTest < MiniTest::Test
     sqlFile = OpenStudio::SqlFile.new(sql_path, false)
     hpxml_defaults_path = File.join(rundir, 'in.xml')
     hpxml = HPXML.new(hpxml_path: hpxml_defaults_path)
+    HVAC.apply_shared_systems(hpxml)
 
     # Collapse windows further using same logic as measure.rb
     hpxml.windows.each do |window|
@@ -511,6 +518,9 @@ class HPXMLTest < MiniTest::Test
       next if err_line.include?('Foundation:Kiva') && err_line.include?('wall surfaces with more than four vertices') # TODO: Check alternative approach
       if hpxml_path.include?('base-simcontrol-timestep-10-mins.xml') || hpxml_path.include?('ASHRAE_Standard_140')
         next if err_line.include? 'Temperature out of range [-100. to 200.] (PsyPsatFnTemp)'
+      end
+      if hpxml_path.include? 'fan-coil' # Warning for unused coil
+        next if err_line.include? 'In calculating the design coil UA for Coil:Cooling:Water'
       end
 
       flunk "Unexpected warning found: #{err_line}"
@@ -842,9 +852,8 @@ class HPXMLTest < MiniTest::Test
     hpxml.heating_systems.each do |heating_system|
       htg_sys_type = heating_system.heating_system_type
       htg_sys_fuel = heating_system.heating_system_fuel
-      htg_load_frac = heating_system.fraction_heat_load_served
 
-      next unless htg_load_frac > 0
+      next unless heating_system.fraction_heat_load_served > 0
 
       # Electric Auxiliary Energy
       # For now, skip if multiple equipment
@@ -855,32 +864,48 @@ class HPXMLTest < MiniTest::Test
       else
         furnace_capacity_kbtuh = nil
         if htg_sys_type == HPXML::HVACTypeFurnace
-          query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EquipmentSummary' AND ReportForString='Entire Facility' AND TableName='Heating Coils' AND RowName LIKE '%#{Constants.ObjectNameFurnace.upcase}%' AND ColumnName='Nominal Total Capacity' AND Units='W'"
-          furnace_capacity_kbtuh = UnitConversions.convert(sqlFile.execAndReturnFirstDouble(query).get, 'W', 'kBtu/hr')
+          furnace_capacity_kbtuh = UnitConversions.convert(results['Capacity: Heating (W)'], 'W', 'kBtu/hr')
         end
-        hpxml_value = HVAC.get_default_eae(htg_sys_type, htg_sys_fuel, htg_load_frac, furnace_capacity_kbtuh) / 2.08
+        hpxml_value = HVAC.get_electric_auxiliary_energy(heating_system, furnace_capacity_kbtuh) / 2.08
       end
 
       if htg_sys_type == HPXML::HVACTypeBoiler
-        query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EquipmentSummary' AND ReportForString='Entire Facility' AND TableName='Pumps' AND RowName LIKE '%#{Constants.ObjectNameBoiler.upcase}%' AND ColumnName='Electric Power' AND Units='W'"
-        sql_value = sqlFile.execAndReturnFirstDouble(query).get
-      elsif htg_sys_type == HPXML::HVACTypeFurnace
-        # Ratio fan power based on heating airflow rate divided by fan airflow rate since the
-        # fan is sized based on cooling.
-        query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EquipmentSummary' AND ReportForString='Entire Facility' AND TableName='Fans' AND RowName LIKE '%#{Constants.ObjectNameFurnace.upcase}%' AND ColumnName='Rated Electric Power' AND Units='W'"
-        query_fan_airflow = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='ComponentSizingSummary' AND ReportForString='Entire Facility' AND TableName='Fan:OnOff' AND RowName LIKE '%#{Constants.ObjectNameFurnace.upcase}%' AND ColumnName='User-Specified Maximum Flow Rate' AND Units='m3/s'"
-        query_htg_airflow = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='ComponentSizingSummary' AND ReportForString='Entire Facility' AND TableName='AirLoopHVAC:UnitarySystem' AND RowName LIKE '%#{Constants.ObjectNameFurnace.upcase}%' AND ColumnName='User-Specified Heating Supply Air Flow Rate' AND Units='m3/s'"
-        sql_value = sqlFile.execAndReturnFirstDouble(query).get
-        sql_value_fan_airflow = sqlFile.execAndReturnFirstDouble(query_fan_airflow).get
-        sql_value_htg_airflow = sqlFile.execAndReturnFirstDouble(query_htg_airflow).get
-        sql_value *= sql_value_htg_airflow / sql_value_fan_airflow
-      elsif (htg_sys_type == HPXML::HVACTypeStove) || (htg_sys_type == HPXML::HVACTypeWallFurnace) || (htg_sys_type == HPXML::HVACTypeFloorFurnace)
-        query = "SELECT AVG(Value) FROM TabularDataWithStrings WHERE ReportName='EquipmentSummary' AND ReportForString='Entire Facility' AND TableName='Fans' AND RowName LIKE '%#{Constants.ObjectNameUnitHeater.upcase}%' AND ColumnName='Rated Electric Power' AND Units='W'"
-        sql_value = sqlFile.execAndReturnFirstDouble(query).get
+        next if hpxml.water_heating_systems.select { |wh| [HPXML::WaterHeaterTypeCombiStorage, HPXML::WaterHeaterTypeCombiTankless].include? wh.water_heater_type }.size > 0 # Skip combi systems
+
+        # Compare pump power from timeseries output
+        query = "SELECT VariableValue FROM ReportVariableData WHERE ReportVariableDataDictionaryIndex IN (SELECT ReportVariableDataDictionaryIndex FROM ReportVariableDataDictionary WHERE VariableType='Avg' AND VariableName='Boiler Part Load Ratio' AND ReportingFrequency='Run Period')"
+        avg_plr = sqlFile.execAndReturnFirstDouble(query).get
+        query = "SELECT VariableValue FROM ReportVariableData WHERE ReportVariableDataDictionaryIndex IN (SELECT ReportVariableDataDictionaryIndex FROM ReportVariableDataDictionary WHERE VariableType='Avg' AND VariableName='Pump Electric Power' AND ReportingFrequency='Run Period')"
+        avg_w = sqlFile.execAndReturnFirstDouble(query).get
+        sql_value = avg_w / avg_plr
+        assert_in_epsilon(sql_value, hpxml_value, 0.02)
       else
-        flunk "Unexpected heating system type '#{htg_sys_type}'."
+        next if hpxml.cooling_systems.size + hpxml.heat_pumps.size > 0 # Skip if other system types (which could result in A) multiple supply fans or B) different supply fan power consumption in the cooling season)
+
+        # Compare fan power from timeseries output
+        query = "SELECT VariableValue FROM ReportVariableData WHERE ReportVariableDataDictionaryIndex IN (SELECT ReportVariableDataDictionaryIndex FROM ReportVariableDataDictionary WHERE VariableType='Avg' AND VariableName='Fan Runtime Fraction' and KeyValue LIKE '% SUPPLY FAN' AND ReportingFrequency='Run Period')"
+        avg_rtf = sqlFile.execAndReturnFirstDouble(query).get
+        query = "SELECT VariableValue FROM ReportVariableData WHERE ReportVariableDataDictionaryIndex IN (SELECT ReportVariableDataDictionaryIndex FROM ReportVariableDataDictionary WHERE VariableType='Avg' AND VariableName='Fan Electric Power' and KeyValue LIKE '% SUPPLY FAN' AND ReportingFrequency='Run Period')"
+        avg_w = sqlFile.execAndReturnFirstDouble(query).get
+        sql_value = avg_w / avg_rtf
+        assert_in_epsilon(sql_value, hpxml_value, 0.02)
       end
-      assert_in_epsilon(hpxml_value, sql_value, 0.01)
+    end
+
+    # HVAC Heat Pumps
+    num_hps = hpxml.heat_pumps.size
+    hpxml.heat_pumps.each do |heat_pump|
+      next unless heat_pump.fraction_heat_load_served > 0
+      next unless (num_hps == 1) && heat_pump.heat_pump_type == HPXML::HVACTypeHeatPumpGroundToAir
+
+      # Compare pump power from timeseries output
+      hpxml_value = heat_pump.pump_watts_per_ton * UnitConversions.convert(results['Capacity: Cooling (W)'], 'W', 'ton')
+      query = "SELECT VariableValue FROM ReportVariableData WHERE ReportVariableDataDictionaryIndex IN (SELECT ReportVariableDataDictionaryIndex FROM ReportVariableDataDictionary WHERE VariableType='Avg' AND VariableName='Unitary System Part Load Ratio' AND ReportingFrequency='Run Period')"
+      avg_plr = sqlFile.execAndReturnFirstDouble(query).get
+      query = "SELECT VariableValue FROM ReportVariableData WHERE ReportVariableDataDictionaryIndex IN (SELECT ReportVariableDataDictionaryIndex FROM ReportVariableDataDictionary WHERE VariableType='Avg' AND VariableName='Pump Electric Power' AND ReportingFrequency='Run Period')"
+      avg_w = sqlFile.execAndReturnFirstDouble(query).get
+      sql_value = avg_w / avg_plr
+      assert_in_epsilon(sql_value, hpxml_value, 0.02)
     end
 
     # HVAC Capacities

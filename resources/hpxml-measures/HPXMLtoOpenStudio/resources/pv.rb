@@ -8,7 +8,7 @@ class PV
       max_power = pv_system.max_power_output
     else
       # Apportion to single dwelling unit by # bedrooms
-      max_power = pv_system.building_max_power_output * nbeds.to_f / pv_system.number_of_bedrooms_served.to_f
+      max_power = pv_system.max_power_output * nbeds.to_f / pv_system.number_of_bedrooms_served.to_f
     end
 
     generator = OpenStudio::Model::GeneratorPVWatts.new(model, max_power)

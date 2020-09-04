@@ -1128,10 +1128,21 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setUnits('deg-F')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('heat_pump_mini_split_is_ducted', true)
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('heat_pump_mini_split_is_ducted', false)
     arg.setDisplayName('Heat Pump: Mini-Split Is Ducted')
     arg.setDescription('Whether the mini-split heat pump is ducted or not.')
-    arg.setDefaultValue(false)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_ground_to_air_pump_power', false)
+    arg.setDisplayName('Heat Pump: Ground-to-Air Pump Power')
+    arg.setDescription('Ground loop circulator pump power during operation of the heat pump.')
+    arg.setUnits('watt/ton')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_ground_to_air_fan_power', false)
+    arg.setDisplayName('Heat Pump: Ground-to-Air Fan Power')
+    arg.setDescription('Blower fan power.')
+    arg.setUnits('watt/CFM')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('setpoint_heating_temp', true)
@@ -1278,12 +1289,6 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDescription('The number of return registers of the ducts.')
     arg.setUnits('#')
     arg.setDefaultValue(Constants.Auto)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('ducts_cfa_served', false)
-    arg.setDisplayName('Ducts: Conditioned Floor Area Served')
-    arg.setUnits('ft^2')
-    arg.setDescription('The conditioned floor area served by the air distribution system.')
     args << arg
 
     heating_system_type_2_choices = OpenStudio::StringVector.new
@@ -3291,7 +3296,9 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
              heat_pump_backup_heating_efficiency: runner.getDoubleArgumentValue('heat_pump_backup_heating_efficiency', user_arguments),
              heat_pump_backup_heating_capacity: runner.getStringArgumentValue('heat_pump_backup_heating_capacity', user_arguments),
              heat_pump_backup_heating_switchover_temp: runner.getOptionalDoubleArgumentValue('heat_pump_backup_heating_switchover_temp', user_arguments),
-             heat_pump_mini_split_is_ducted: runner.getBoolArgumentValue('heat_pump_mini_split_is_ducted', user_arguments),
+             heat_pump_mini_split_is_ducted: runner.getOptionalStringArgumentValue('heat_pump_mini_split_is_ducted', user_arguments),
+             heat_pump_ground_to_air_pump_power: runner.getOptionalDoubleArgumentValue('heat_pump_ground_to_air_pump_power', user_arguments),
+             heat_pump_ground_to_air_fan_power: runner.getOptionalDoubleArgumentValue('heat_pump_ground_to_air_fan_power', user_arguments),
              setpoint_heating_temp: runner.getDoubleArgumentValue('setpoint_heating_temp', user_arguments),
              setpoint_heating_setback_temp: runner.getDoubleArgumentValue('setpoint_heating_setback_temp', user_arguments),
              setpoint_heating_setback_hours_per_week: runner.getDoubleArgumentValue('setpoint_heating_setback_hours_per_week', user_arguments),
@@ -3311,7 +3318,6 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
              ducts_supply_surface_area: runner.getStringArgumentValue('ducts_supply_surface_area', user_arguments),
              ducts_return_surface_area: runner.getStringArgumentValue('ducts_return_surface_area', user_arguments),
              ducts_number_of_return_registers: runner.getStringArgumentValue('ducts_number_of_return_registers', user_arguments),
-             ducts_cfa_served: runner.getOptionalDoubleArgumentValue('ducts_cfa_served', user_arguments),
              heating_system_type_2: runner.getStringArgumentValue('heating_system_type_2', user_arguments),
              heating_system_fuel_2: runner.getStringArgumentValue('heating_system_fuel_2', user_arguments),
              heating_system_heating_efficiency_2: runner.getDoubleArgumentValue('heating_system_heating_efficiency_2', user_arguments),
@@ -4508,6 +4514,14 @@ class HPXMLFile
     elsif [HPXML::HVACTypeHeatPumpGroundToAir].include? heat_pump_type
       heating_efficiency_cop = args[:heat_pump_heating_efficiency_cop]
       cooling_efficiency_eer = args[:heat_pump_cooling_efficiency_eer]
+
+      if args[:heat_pump_ground_to_air_pump_power].is_initialized
+        pump_watts_per_ton = args[:heat_pump_ground_to_air_pump_power].get
+      end
+
+      if args[:heat_pump_ground_to_air_fan_power].is_initialized
+        fan_watts_per_cfm = args[:heat_pump_ground_to_air_fan_power].get
+      end
     end
 
     hpxml.heat_pumps.add(id: 'HeatPump',
@@ -4528,7 +4542,9 @@ class HPXMLFile
                          heating_efficiency_hspf: heating_efficiency_hspf,
                          cooling_efficiency_seer: cooling_efficiency_seer,
                          heating_efficiency_cop: heating_efficiency_cop,
-                         cooling_efficiency_eer: cooling_efficiency_eer)
+                         cooling_efficiency_eer: cooling_efficiency_eer,
+                         pump_watts_per_ton: pump_watts_per_ton,
+                         fan_watts_per_cfm: fan_watts_per_cfm)
   end
 
   def self.set_hvac_distribution(hpxml, runner, args)
@@ -4537,7 +4553,8 @@ class HPXMLFile
       next unless [HPXML::HVACTypeBoiler].include? heating_system.heating_system_type
 
       hpxml.hvac_distributions.add(id: 'HydronicDistribution',
-                                   distribution_system_type: HPXML::HVACDistributionTypeHydronic)
+                                   distribution_system_type: HPXML::HVACDistributionTypeHydronic,
+                                   hydronic_type: HPXML::HydronicTypeBaseboard)
       heating_system.distribution_system_idref = hpxml.hvac_distributions[-1].id
       break
     end
@@ -4559,8 +4576,10 @@ class HPXMLFile
     hpxml.heat_pumps.each do |heat_pump|
       if [HPXML::HVACTypeHeatPumpAirToAir, HPXML::HVACTypeHeatPumpGroundToAir].include? heat_pump.heat_pump_type
         air_distribution_systems << heat_pump
-      elsif [HPXML::HVACTypeHeatPumpMiniSplit].include?(heat_pump.heat_pump_type) && args[:heat_pump_mini_split_is_ducted]
-        air_distribution_systems << heat_pump
+      elsif [HPXML::HVACTypeHeatPumpMiniSplit].include?(heat_pump.heat_pump_type)
+        if args[:heat_pump_mini_split_is_ducted].is_initialized
+          air_distribution_systems << heat_pump if to_boolean(args[:heat_pump_mini_split_is_ducted].get)
+        end
       end
     end
     return unless air_distribution_systems.size > 0
@@ -4569,15 +4588,9 @@ class HPXMLFile
       number_of_return_registers = args[:ducts_number_of_return_registers]
     end
 
-    if args[:ducts_cfa_served].is_initialized
-      conditioned_floor_area_served = args[:ducts_cfa_served].get
-    else
-      conditioned_floor_area_served = args[:geometry_cfa]
-    end
-
     hpxml.hvac_distributions.add(id: 'AirDistribution',
                                  distribution_system_type: HPXML::HVACDistributionTypeAir,
-                                 conditioned_floor_area_served: conditioned_floor_area_served,
+                                 conditioned_floor_area_served: args[:geometry_cfa],
                                  number_of_return_registers: number_of_return_registers)
 
     air_distribution_systems.each do |hvac_system|
@@ -4996,7 +5009,6 @@ class HPXMLFile
       is_shared_system = false
       if [args[:pv_system_is_shared_1], args[:pv_system_is_shared_2]][i]
         is_shared_system = [args[:pv_system_is_shared_1], args[:pv_system_is_shared_2]][i]
-        building_max_power_output = max_power_output
         number_of_bedrooms_served = args[:geometry_building_num_bedrooms].get
       end
 
@@ -5010,7 +5022,6 @@ class HPXMLFile
                            inverter_efficiency: inverter_efficiency,
                            system_losses_fraction: system_losses_fraction,
                            is_shared_system: is_shared_system,
-                           building_max_power_output: building_max_power_output,
                            number_of_bedrooms_served: number_of_bedrooms_served)
     end
   end

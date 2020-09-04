@@ -1270,6 +1270,7 @@
 											<xs:choice>
 												<xs:element name="AirDistribution" type="AirDistributionInfo"/>
 												<xs:element name="HydronicDistribution" type="HydronicDistributionInfo"/>
+												<xs:element name="HydronicAndAirDistribution" type="HydronicAndAirDistributionInfo"/>
 												<xs:element name="Other" type="HPXMLString">
 													<xs:annotation>
 														<xs:documentation>describe</xs:documentation>
@@ -1346,17 +1347,17 @@
 													</xs:annotation>
 												</xs:element>
 												<xs:element minOccurs="0" name="FanType" type="VentilationFanType"/>
-												<xs:element minOccurs="0" name="RatedFlowRate" type="VentilationFlowRate" maxOccurs="2">
+												<xs:element minOccurs="0" name="RatedFlowRate" type="HPXMLDouble">
 													<xs:annotation>
 														<xs:documentation>[CFM] as rated by manufacturer</xs:documentation>
 													</xs:annotation>
 												</xs:element>
-												<xs:element minOccurs="0" name="CalculatedFlowRate" type="VentilationFlowRate" maxOccurs="2">
+												<xs:element minOccurs="0" name="CalculatedFlowRate" type="HPXMLDouble">
 													<xs:annotation>
 														<xs:documentation>[CFM] as calculated using duct size, prescriptive approach</xs:documentation>
 													</xs:annotation>
 												</xs:element>
-												<xs:element minOccurs="0" name="TestedFlowRate" type="VentilationFlowRate" maxOccurs="2">
+												<xs:element minOccurs="0" name="TestedFlowRate" type="HPXMLDouble">
 													<xs:annotation>
 														<xs:documentation>[CFM] as tested by assessor/auditor/inspector</xs:documentation>
 													</xs:annotation>
@@ -1436,7 +1437,7 @@
 															accounted for in the energy model. Values for some products can be found at the Home Ventilating Institute (hvi.org).</xs:documentation>
 													</xs:annotation>
 												</xs:element>
-												<xs:element minOccurs="0" name="FanPower" type="VentilationFanPower" maxOccurs="2">
+												<xs:element minOccurs="0" name="FanPower" type="HPXMLDouble">
 													<xs:annotation>
 														<xs:documentation>[W]</xs:documentation>
 													</xs:annotation>
@@ -1524,7 +1525,7 @@
 										</xs:annotation>
 									</xs:element>
 									<xs:element minOccurs="0" name="FractionDHWLoadServed" type="Fraction"/>
-									<xs:element name="HeatingCapacity" type="WaterHeaterCapacity" minOccurs="0">
+									<xs:element name="HeatingCapacity" type="Capacity" minOccurs="0">
 										<xs:annotation>
 											<xs:documentation>[Btuh]</xs:documentation>
 										</xs:annotation>
@@ -1906,17 +1907,17 @@
 											<xs:documentation>[deg]</xs:documentation>
 										</xs:annotation>
 									</xs:element>
-									<xs:element minOccurs="0" name="MaxPowerOutput" type="PVSystemMaxPowerOutput" maxOccurs="unbounded">
+									<xs:element minOccurs="0" name="MaxPowerOutput" type="Power">
 										<xs:annotation>
 											<xs:documentation>[DC Watts] Peak power as supplied by the manufacturer</xs:documentation>
 										</xs:annotation>
 									</xs:element>
-									<xs:element minOccurs="0" name="CollectorArea" type="PVSystemCollectorArea" maxOccurs="unbounded">
+									<xs:element minOccurs="0" name="CollectorArea" type="SurfaceArea">
 										<xs:annotation>
 											<xs:documentation>[sq.ft.]</xs:documentation>
 										</xs:annotation>
 									</xs:element>
-									<xs:element minOccurs="0" name="NumberOfPanels" type="PVSystemNumberOfPanels" maxOccurs="unbounded"/>
+									<xs:element minOccurs="0" name="NumberOfPanels" type="IntegerGreaterThanZero"/>
 									<xs:element minOccurs="0" name="InverterEfficiency" type="Fraction"/>
 									<xs:element minOccurs="0" name="SystemLossesFraction" type="Fraction">
 										<xs:annotation>
@@ -3485,7 +3486,7 @@
 				<xs:sequence minOccurs="1" maxOccurs="1">
 					<xs:element name="HeatingSystemType" type="HeatingSystemType" minOccurs="0"/>
 					<xs:element name="HeatingSystemFuel" type="FuelType" minOccurs="0"/>
-					<xs:element name="HeatingCapacity" type="Capacity" minOccurs="0" maxOccurs="2">
+					<xs:element name="HeatingCapacity" type="Capacity" minOccurs="0">
 						<xs:annotation>
 							<xs:documentation>[Btuh] Input Heating Capacity</xs:documentation>
 						</xs:annotation>
@@ -3639,17 +3640,17 @@
 				<xs:sequence minOccurs="0">
 					<xs:element name="HeatPumpType" type="HeatPumpType" minOccurs="0"/>
 					<xs:element minOccurs="0" name="HeatPumpFuel" type="FuelType"/>
-					<xs:element name="HeatingCapacity" type="Capacity" minOccurs="0" maxOccurs="2">
+					<xs:element name="HeatingCapacity" type="Capacity" minOccurs="0">
 						<xs:annotation>
 							<xs:documentation>[Btuh] Typically the nameplate capacity at 47F.</xs:documentation>
 						</xs:annotation>
 					</xs:element>
-					<xs:element minOccurs="0" name="HeatingCapacity17F" type="Capacity" maxOccurs="2">
+					<xs:element minOccurs="0" name="HeatingCapacity17F" type="Capacity">
 						<xs:annotation>
 							<xs:documentation>[Btuh] Capacity at 17F from AHRI database.</xs:documentation>
 						</xs:annotation>
 					</xs:element>
-					<xs:element minOccurs="0" name="CoolingCapacity" type="Capacity" maxOccurs="2">
+					<xs:element minOccurs="0" name="CoolingCapacity" type="Capacity">
 						<xs:annotation>
 							<xs:documentation>[Btuh]</xs:documentation>
 						</xs:annotation>
@@ -3670,7 +3671,7 @@
 					</xs:element>
 					<xs:element name="BackupSystemFuel" type="FuelType" minOccurs="0"/>
 					<xs:element name="BackupAnnualHeatingEfficiency" minOccurs="0" type="HeatingEfficiencyType" maxOccurs="unbounded"> </xs:element>
-					<xs:element minOccurs="0" name="BackupHeatingCapacity" type="Capacity" maxOccurs="2">
+					<xs:element minOccurs="0" name="BackupHeatingCapacity" type="Capacity">
 						<xs:annotation>
 							<xs:documentation>[Btuh]</xs:documentation>
 						</xs:annotation>
@@ -3678,16 +3679,6 @@
 					<xs:element minOccurs="0" name="BackupHeatingSwitchoverTemperature" type="Temperature">
 						<xs:annotation>
 							<xs:documentation>[deg F] Temperature at which the backup heating is activated.</xs:documentation>
-						</xs:annotation>
-					</xs:element>
-					<xs:element minOccurs="0" name="WaterLoopHeatingSystem" type="LocalReference" maxOccurs="unbounded">
-						<xs:annotation>
-							<xs:documentation>For a water loop heat pump, references a HeatingSystem (e.g., central boiler) that provides the heating for the hot water loop.</xs:documentation>
-						</xs:annotation>
-					</xs:element>
-					<xs:element minOccurs="0" name="WaterLoopCoolingSystem" type="LocalReference" maxOccurs="unbounded">
-						<xs:annotation>
-							<xs:documentation>For a water loop heat pump, references a CoolingSystem (e.g., central chiller, cooling tower) that serves the chilled water loop.</xs:documentation>
 						</xs:annotation>
 					</xs:element>
 					<xs:element name="FractionHeatLoadServed" type="Fraction" minOccurs="0"/>
@@ -3710,7 +3701,7 @@
 				<xs:sequence>
 					<xs:element name="CoolingSystemType" type="CoolingSystemType" minOccurs="0"/>
 					<xs:element minOccurs="0" name="CoolingSystemFuel" type="FuelType"/>
-					<xs:element minOccurs="0" name="CoolingCapacity" type="Capacity" maxOccurs="2">
+					<xs:element minOccurs="0" name="CoolingCapacity" type="Capacity">
 						<xs:annotation>
 							<xs:documentation>[Btuh]</xs:documentation>
 						</xs:annotation>
@@ -3833,6 +3824,93 @@
 					<xs:sequence>
 						<xs:element minOccurs="0" name="Supply" type="TotalExternalStaticPressureMeasurement"/>
 						<xs:element minOccurs="0" name="Return" type="TotalExternalStaticPressureMeasurement"/>
+					</xs:sequence>
+					<xs:attribute name="dataSource" type="DataSource"/>
+				</xs:complexType>
+			</xs:element>
+			<xs:element minOccurs="0" ref="extension"/>
+		</xs:sequence>
+		<xs:attribute name="dataSource" type="DataSource"/>
+	</xs:complexType>
+	<xs:complexType name="HydronicAndAirDistributionInfo">
+		<xs:sequence>
+			<xs:element name="HydronicAndAirDistributionType" type="HydronicAndAirDistributionType" minOccurs="0"/>
+			<xs:element name="AirHandlerMotorType" type="AirHandlerMotorType" minOccurs="0"/>
+			<xs:element minOccurs="0" name="DuctLeakageMeasurement" type="DuctLeakageMeasurementType" maxOccurs="unbounded"/>
+			<xs:element minOccurs="0" name="DuctSystemSizingAppropriate" type="HPXMLBoolean"/>
+			<xs:element maxOccurs="unbounded" minOccurs="0" name="Ducts">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="DuctType" type="DuctType" minOccurs="0"/>
+						<xs:element name="DuctMaterial" type="DuctMaterial" minOccurs="0"/>
+						<xs:element minOccurs="0" name="DuctInsulationMaterial" type="InsulationMaterial"/>
+						<xs:element name="DuctInsulationRValue" type="RValue" minOccurs="0"/>
+						<xs:element minOccurs="0" name="DuctInsulationThickness" type="LengthMeasurement">
+							<xs:annotation>
+								<xs:documentation>[in]</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element minOccurs="0" name="DuctInsulationCondition" type="InsulationCondition"/>
+						<xs:element name="DuctLocation" type="DuctLocation" minOccurs="0"/>
+						<xs:element minOccurs="0" name="FractionDuctArea" type="Fraction">
+							<xs:annotation>
+								<xs:documentation>If a DuctType of supply or return is specified above, this is the fraction of the supply or return duct area. If DuctType is omitted above, this is
+									the fraction of the total duct area. </xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element minOccurs="0" name="DuctSurfaceArea" type="SurfaceArea">
+							<xs:annotation>
+								<xs:documentation>[sq.ft.]</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element minOccurs="0" ref="extension"/>
+					</xs:sequence>
+					<xs:attribute name="dataSource" type="DataSource"/>
+				</xs:complexType>
+			</xs:element>
+			<xs:element minOccurs="0" name="NumberofReturnRegisters" type="IntegerGreaterThanOrEqualToZero"/>
+			<xs:element minOccurs="0" name="TotalExternalStaticPressureMeasurement">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element minOccurs="0" name="Supply" type="TotalExternalStaticPressureMeasurement"/>
+						<xs:element minOccurs="0" name="Return" type="TotalExternalStaticPressureMeasurement"/>
+					</xs:sequence>
+					<xs:attribute name="dataSource" type="DataSource"/>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="FractionHydronicPipeInsulated" type="Fraction" minOccurs="0"/>
+			<xs:element minOccurs="0" name="PipeRValue" type="RValue"/>
+			<xs:element minOccurs="0" name="PipeInsulationThickness" type="LengthMeasurement">
+				<xs:annotation>
+					<xs:documentation>[in]</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element minOccurs="0" name="PipeLength" type="LengthMeasurement">
+				<xs:annotation>
+					<xs:documentation>[ft]</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element minOccurs="0" name="PipeDiameter" type="PipeDiameterType"/>
+			<xs:element minOccurs="0" name="SupplyTemperature" type="Temperature">
+				<xs:annotation>
+					<xs:documentation>[degF]</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element minOccurs="0" name="ReturnTemperature" type="Temperature">
+				<xs:annotation>
+					<xs:documentation>[degF]</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element minOccurs="0" name="PumpandZoneValve">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element minOccurs="0" name="ValveCorrections" type="HPXMLBoolean">
+							<xs:annotation>
+								<xs:documentation>System Pump and Zone Valve Corrections made</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element minOccurs="0" name="ThermostaticRadiatorValves" type="HPXMLBoolean"/>
+						<xs:element minOccurs="0" name="VariableSpeedPump" type="HPXMLBoolean"/>
 					</xs:sequence>
 					<xs:attribute name="dataSource" type="DataSource"/>
 				</xs:complexType>
