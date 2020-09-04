@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# TODO: Add fan/pump checks
+
 require_relative '../resources/minitest_helper'
 require 'openstudio'
 require 'openstudio/ruleset/ShowRunnerOutput'
@@ -20,7 +22,6 @@ class HPXMLtoOpenStudioHVACTest < MiniTest::Test
 
     # Get HPXML values
     cooling_system = hpxml.cooling_systems[0]
-    seer = cooling_system.cooling_efficiency_seer
     capacity = UnitConversions.convert(cooling_system.cooling_capacity, 'Btu/hr', 'W')
 
     # Check cooling coil
@@ -38,7 +39,6 @@ class HPXMLtoOpenStudioHVACTest < MiniTest::Test
 
     # Get HPXML values
     cooling_system = hpxml.cooling_systems[0]
-    seer = cooling_system.cooling_efficiency_seer
     capacity = UnitConversions.convert(cooling_system.cooling_capacity, 'Btu/hr', 'W')
 
     # Check cooling coil
@@ -58,7 +58,6 @@ class HPXMLtoOpenStudioHVACTest < MiniTest::Test
 
     # Get HPXML values
     cooling_system = hpxml.cooling_systems[0]
-    seer = cooling_system.cooling_efficiency_seer
     capacity = UnitConversions.convert(cooling_system.cooling_capacity, 'Btu/hr', 'W')
 
     # Check cooling coil
@@ -225,7 +224,6 @@ class HPXMLtoOpenStudioHVACTest < MiniTest::Test
 
     # Get HPXML values
     heat_pump = hpxml.heat_pumps[0]
-    seer = heat_pump.cooling_efficiency_seer
     backup_efficiency = heat_pump.backup_heating_efficiency_percent
     clg_capacity = UnitConversions.convert(heat_pump.cooling_capacity, 'Btu/hr', 'W')
     htg_capacity = UnitConversions.convert(heat_pump.heating_capacity, 'Btu/hr', 'W')
@@ -259,7 +257,6 @@ class HPXMLtoOpenStudioHVACTest < MiniTest::Test
 
     # Get HPXML values
     heat_pump = hpxml.heat_pumps[0]
-    seer = heat_pump.cooling_efficiency_seer
     backup_efficiency = heat_pump.backup_heating_efficiency_percent
     clg_capacity = UnitConversions.convert(heat_pump.cooling_capacity, 'Btu/hr', 'W')
     htg_capacity = UnitConversions.convert(heat_pump.heating_capacity, 'Btu/hr', 'W')
@@ -297,7 +294,6 @@ class HPXMLtoOpenStudioHVACTest < MiniTest::Test
 
     # Get HPXML values
     heat_pump = hpxml.heat_pumps[0]
-    seer = heat_pump.cooling_efficiency_seer
     backup_efficiency = heat_pump.backup_heating_efficiency_percent
     clg_capacity = UnitConversions.convert(heat_pump.cooling_capacity, 'Btu/hr', 'W')
     htg_capacity = UnitConversions.convert(heat_pump.heating_capacity, 'Btu/hr', 'W')
@@ -335,7 +331,6 @@ class HPXMLtoOpenStudioHVACTest < MiniTest::Test
 
     # Get HPXML values
     heat_pump = hpxml.heat_pumps[0]
-    seer = heat_pump.cooling_efficiency_seer
     clg_capacity = UnitConversions.convert(heat_pump.cooling_capacity, 'Btu/hr', 'W')
     htg_capacity = UnitConversions.convert(heat_pump.heating_capacity, 'Btu/hr', 'W')
 
@@ -370,7 +365,180 @@ class HPXMLtoOpenStudioHVACTest < MiniTest::Test
 
     # Get HPXML values
     heat_pump = hpxml.heat_pumps[0]
-    seer = heat_pump.cooling_efficiency_seer
+    backup_efficiency = heat_pump.backup_heating_efficiency_percent
+    clg_capacity = UnitConversions.convert(heat_pump.cooling_capacity, 'Btu/hr', 'W')
+    htg_capacity = UnitConversions.convert(heat_pump.heating_capacity, 'Btu/hr', 'W')
+    supp_htg_capacity = UnitConversions.convert(heat_pump.backup_heating_capacity, 'Btu/hr', 'W')
+
+    # Check cooling coil
+    assert_equal(1, model.getCoilCoolingWaterToAirHeatPumpEquationFits.size)
+    clg_coil = model.getCoilCoolingWaterToAirHeatPumpEquationFits[0]
+    cop = 5.36 # Expected values
+    assert_in_epsilon(cop, clg_coil.ratedCoolingCoefficientofPerformance, 0.01)
+    assert_in_epsilon(clg_capacity, clg_coil.ratedTotalCoolingCapacity.get, 0.01)
+
+    # Check heating coil
+    assert_equal(1, model.getCoilHeatingWaterToAirHeatPumpEquationFits.size)
+    htg_coil = model.getCoilHeatingWaterToAirHeatPumpEquationFits[0]
+    cop = 3.65 # Expected values
+    assert_in_epsilon(cop, htg_coil.ratedHeatingCoefficientofPerformance, 0.01)
+    assert_in_epsilon(htg_capacity, htg_coil.ratedHeatingCapacity.get, 0.01)
+
+    # Check supp heating coil
+    assert_equal(1, model.getCoilHeatingElectrics.size)
+    supp_htg_coil = model.getCoilHeatingElectrics[0]
+    assert_in_epsilon(backup_efficiency, supp_htg_coil.efficiency, 0.01)
+    assert_in_epsilon(supp_htg_capacity, supp_htg_coil.nominalCapacity.get, 0.01)
+  end
+
+  def test_shared_chiller_baseboard
+    args_hash = {}
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-hvac-shared-chiller-only-baseboard.xml'))
+    model, hpxml = _test_measure(args_hash)
+
+    # Get HPXML values
+    cooling_system = hpxml.cooling_systems[0]
+    capacity = UnitConversions.convert(cooling_system.cooling_capacity, 'Btu/hr', 'W')
+
+    # Check cooling coil
+    assert_equal(1, model.getCoilCoolingDXSingleSpeeds.size)
+    clg_coil = model.getCoilCoolingDXSingleSpeeds[0]
+    cop = 4.13 # Expected value
+    assert_in_epsilon(cop, clg_coil.ratedCOP.get, 0.01)
+    refute_in_epsilon(capacity, clg_coil.ratedTotalCoolingCapacity.get, 0.01) # Uses autosized capacity
+  end
+
+  def test_shared_chiller_fan_coil
+    args_hash = {}
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-hvac-shared-chiller-only-fan-coil.xml'))
+    model, hpxml = _test_measure(args_hash)
+
+    # Get HPXML values
+    cooling_system = hpxml.cooling_systems[0]
+    capacity = UnitConversions.convert(cooling_system.cooling_capacity, 'Btu/hr', 'W')
+
+    # Check cooling coil
+    assert_equal(1, model.getCoilCoolingDXSingleSpeeds.size)
+    clg_coil = model.getCoilCoolingDXSingleSpeeds[0]
+    cop = 3.67 # Expected value
+    assert_in_epsilon(cop, clg_coil.ratedCOP.get, 0.01)
+    refute_in_epsilon(capacity, clg_coil.ratedTotalCoolingCapacity.get, 0.01) # Uses autosized capacity
+  end
+
+  def test_shared_chiller_water_loop_heat_pump
+    args_hash = {}
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-hvac-shared-chiller-only-water-loop-heat-pump.xml'))
+    model, hpxml = _test_measure(args_hash)
+
+    # Get HPXML values
+    cooling_system = hpxml.cooling_systems[0]
+    capacity = UnitConversions.convert(cooling_system.cooling_capacity, 'Btu/hr', 'W')
+
+    # Check cooling coil
+    assert_equal(1, model.getCoilCoolingDXSingleSpeeds.size)
+    clg_coil = model.getCoilCoolingDXSingleSpeeds[0]
+    cop = 1.34 # Expected value
+    assert_in_epsilon(cop, clg_coil.ratedCOP.get, 0.01)
+    refute_in_epsilon(capacity, clg_coil.ratedTotalCoolingCapacity.get, 0.01) # Uses autosized capacity
+  end
+
+  def test_shared_cooling_tower_water_loop_heat_pump
+    args_hash = {}
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-hvac-shared-cooling-tower-only-water-loop-heat-pump.xml'))
+    model, hpxml = _test_measure(args_hash)
+
+    # Get HPXML values
+    cooling_system = hpxml.cooling_systems[0]
+    capacity = UnitConversions.convert(cooling_system.cooling_capacity.to_f, 'Btu/hr', 'W')
+
+    # Check cooling coil
+    assert_equal(1, model.getCoilCoolingDXSingleSpeeds.size)
+    clg_coil = model.getCoilCoolingDXSingleSpeeds[0]
+    cop = 3.94 # Expected value
+    assert_in_epsilon(cop, clg_coil.ratedCOP.get, 0.01)
+    refute_in_epsilon(capacity, clg_coil.ratedTotalCoolingCapacity.get, 0.01) # Uses autosized capacity
+  end
+
+  def test_shared_boiler_baseboard
+    args_hash = {}
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-hvac-shared-boiler-only-baseboard.xml'))
+    model, hpxml = _test_measure(args_hash)
+
+    # Get HPXML values
+    heating_system = hpxml.heating_systems[0]
+    afue = heating_system.heating_efficiency_afue
+    capacity = UnitConversions.convert(heating_system.heating_capacity.to_f, 'Btu/hr', 'W')
+    fuel = heating_system.heating_system_fuel
+
+    # Check boiler
+    assert_equal(1, model.getBoilerHotWaters.size)
+    boiler = model.getBoilerHotWaters[0]
+    assert_in_epsilon(afue, boiler.nominalThermalEfficiency, 0.01)
+    refute_in_epsilon(capacity, boiler.nominalCapacity.get, 0.01) # Uses autosized capacity
+    assert_equal(EPlus.input_fuel_map(fuel), boiler.fuelType)
+  end
+
+  def test_shared_boiler_fan_coil
+    args_hash = {}
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-hvac-shared-boiler-only-fan-coil.xml'))
+    model, hpxml = _test_measure(args_hash)
+
+    # Get HPXML values
+    heating_system = hpxml.heating_systems[0]
+    afue = heating_system.heating_efficiency_afue
+    capacity = UnitConversions.convert(heating_system.heating_capacity.to_f, 'Btu/hr', 'W')
+    fuel = heating_system.heating_system_fuel
+
+    # Check boiler
+    assert_equal(1, model.getBoilerHotWaters.size)
+    boiler = model.getBoilerHotWaters[0]
+    assert_in_epsilon(afue, boiler.nominalThermalEfficiency, 0.01)
+    refute_in_epsilon(capacity, boiler.nominalCapacity.get, 0.01) # Uses autosized capacity
+    assert_equal(EPlus.input_fuel_map(fuel), boiler.fuelType)
+  end
+
+  def test_shared_boiler_water_loop_heat_pump
+    args_hash = {}
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-hvac-shared-boiler-only-water-loop-heat-pump.xml'))
+    model, hpxml = _test_measure(args_hash)
+
+    # Get HPXML values
+    heating_system = hpxml.heating_systems[0]
+    afue = heating_system.heating_efficiency_afue
+    capacity = UnitConversions.convert(heating_system.heating_capacity.to_f, 'Btu/hr', 'W')
+    fuel = heating_system.heating_system_fuel
+    wlhp_cop = heating_system.wlhp_heating_efficiency_cop
+
+    # Check boiler
+    assert_equal(1, model.getBoilerHotWaters.size)
+    boiler = model.getBoilerHotWaters[0]
+    assert_in_epsilon(afue, boiler.nominalThermalEfficiency, 0.01)
+    refute_in_epsilon(capacity, boiler.nominalCapacity.get, 0.01) # Uses autosized capacity
+    assert_equal(EPlus.input_fuel_map(fuel), boiler.fuelType)
+
+    # Check cooling coil
+    assert_equal(0, model.getCoilCoolingDXSingleSpeeds.size)
+
+    # Check heating coil
+    assert_equal(1, model.getCoilHeatingDXSingleSpeeds.size)
+    htg_coil = model.getCoilHeatingDXSingleSpeeds[0]
+    assert_in_epsilon(wlhp_cop, htg_coil.ratedCOP, 0.01)
+    refute_in_epsilon(capacity, htg_coil.ratedTotalHeatingCapacity.get, 0.01) # Uses autosized capacity
+
+    # Check supp heating coil
+    assert_equal(1, model.getCoilHeatingElectrics.size)
+    supp_htg_coil = model.getCoilHeatingElectrics[0]
+    assert_in_epsilon(1.0, supp_htg_coil.efficiency, 0.01)
+    assert_in_delta(0.0, supp_htg_coil.nominalCapacity.get, 0.01)
+  end
+
+  def test_shared_ground_loop_ground_to_air_heat_pump
+    args_hash = {}
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-hvac-shared-ground-loop-ground-to-air-heat-pump.xml'))
+    model, hpxml = _test_measure(args_hash)
+
+    # Get HPXML values
+    heat_pump = hpxml.heat_pumps[0]
     backup_efficiency = heat_pump.backup_heating_efficiency_percent
     clg_capacity = UnitConversions.convert(heat_pump.cooling_capacity, 'Btu/hr', 'W')
     htg_capacity = UnitConversions.convert(heat_pump.heating_capacity, 'Btu/hr', 'W')

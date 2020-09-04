@@ -340,16 +340,16 @@ class EnergyPlusValidator
         'SystemIdentifier' => one, # Required by HPXML schema
         '../../HVACControl' => one, # See [HVACControl]
         'HeatingSystemType[ElectricResistance | Furnace | WallFurnace | FloorFurnace | Boiler | Stove | PortableHeater | FixedHeater | Fireplace]' => one, # See [HeatingType=Resistance] or [HeatingType=Furnace] or [HeatingType=WallFurnace] or [HeatingType=FloorFurnace] or [HeatingType=Boiler] or [HeatingType=Stove] or [HeatingType=PortableHeater] or [HeatingType=FixedHeater] or [HeatingType=Fireplace]
-        'HeatingCapacity' => zero_or_one,
-        'FractionHeatLoadServed' => one, # Must sum to <= 1 across all HeatingSystems and HeatPumps
-        'ElectricAuxiliaryEnergy' => zero_or_one, # If not provided, uses 301 defaults for fuel furnace/boiler and zero otherwise
+        'FractionHeatLoadServed' => one,
       },
 
       ## [HeatingType=Resistance]
       '/HPXML/Building/BuildingDetails/Systems/HVAC/HVACPlant/HeatingSystem[HeatingSystemType/ElectricResistance]' => {
         'DistributionSystem' => zero,
         'HeatingSystemFuel[text()="electricity"]' => one,
+        'HeatingCapacity' => zero_or_one,
         'AnnualHeatingEfficiency[Units="Percent"]/Value' => one,
+        'ElectricAuxiliaryEnergy' => zero_or_one,
       },
 
       ## [HeatingType=Furnace]
@@ -357,66 +357,105 @@ class EnergyPlusValidator
         '../../HVACDistribution[DistributionSystemType/AirDistribution | DistributionSystemType[Other="DSE"]]' => one_or_more, # See [HVACDistribution]
         'DistributionSystem' => one,
         'HeatingSystemFuel[text()="natural gas" or text()="fuel oil" or text()="fuel oil 1" or text()="fuel oil 2" or text()="fuel oil 4" or text()="fuel oil 5/6" or text()="diesel" or text()="propane" or text()="kerosene" or text()="electricity" or text()="wood" or text()="wood pellets"]' => one,
+        'HeatingCapacity' => zero_or_one,
         'AnnualHeatingEfficiency[Units="AFUE"]/Value' => one,
+        'ElectricAuxiliaryEnergy' => zero_or_one,
       },
 
       ## [HeatingType=WallFurnace]
       '/HPXML/Building/BuildingDetails/Systems/HVAC/HVACPlant/HeatingSystem[HeatingSystemType/WallFurnace]' => {
         'DistributionSystem' => zero,
         'HeatingSystemFuel[text()="natural gas" or text()="fuel oil" or text()="fuel oil 1" or text()="fuel oil 2" or text()="fuel oil 4" or text()="fuel oil 5/6" or text()="diesel" or text()="propane" or text()="kerosene" or text()="electricity" or text()="wood" or text()="wood pellets"]' => one,
+        'HeatingCapacity' => zero_or_one,
         'AnnualHeatingEfficiency[Units="AFUE"]/Value' => one,
+        'ElectricAuxiliaryEnergy' => zero_or_one,
       },
 
       ## [HeatingType=FloorFurnace]
       '/HPXML/Building/BuildingDetails/Systems/HVAC/HVACPlant/HeatingSystem[HeatingSystemType/FloorFurnace]' => {
         'DistributionSystem' => zero,
         'HeatingSystemFuel[text()="natural gas" or text()="fuel oil" or text()="fuel oil 1" or text()="fuel oil 2" or text()="fuel oil 4" or text()="fuel oil 5/6" or text()="diesel" or text()="propane" or text()="kerosene" or text()="electricity" or text()="wood" or text()="wood pellets"]' => one,
+        'HeatingCapacity' => zero_or_one,
         'AnnualHeatingEfficiency[Units="AFUE"]/Value' => one,
+        'ElectricAuxiliaryEnergy' => zero_or_one,
       },
 
       ## [HeatingType=Boiler]
       '/HPXML/Building/BuildingDetails/Systems/HVAC/HVACPlant/HeatingSystem[HeatingSystemType/Boiler]' => {
-        '../../HVACDistribution[DistributionSystemType/HydronicDistribution | DistributionSystemType[Other="DSE"]]' => one_or_more, # See [HVACDistribution]
+        'IsSharedSystem' => zero_or_one, # See [BoilerType=InUnit] or [BoilerType=Shared]
         'DistributionSystem' => one,
         'HeatingSystemFuel[text()="natural gas" or text()="fuel oil" or text()="fuel oil 1" or text()="fuel oil 2" or text()="fuel oil 4" or text()="fuel oil 5/6" or text()="diesel" or text()="propane" or text()="kerosene" or text()="coal" or text()="coke" or text()="bituminous coal" or text()="anthracite coal" or text()="electricity" or text()="wood" or text()="wood pellets"]' => one,
         'AnnualHeatingEfficiency[Units="AFUE"]/Value' => one,
+      },
+
+      ## [BoilerType=InUnit]
+      '/HPXML/Building/BuildingDetails/Systems/HVAC/HVACPlant/HeatingSystem[HeatingSystemType/Boiler and (not(IsSharedSystem) or IsSharedSystem="false")]' => {
+        '../../HVACDistribution[DistributionSystemType/HydronicDistribution[HydronicDistributionType[text()="radiator" or text()="baseboard" or text()="radiant floor" or text()="radiant ceiling"]] | DistributionSystemType[Other="DSE"]]' => one_or_more, # See [HVACDistribution]
+        'HeatingCapacity' => zero_or_one,
+        'ElectricAuxiliaryEnergy' => zero_or_one,
+      },
+
+      ## [BoilerType=Shared]
+      '/HPXML/Building/BuildingDetails/Systems/HVAC/HVACPlant/HeatingSystem[HeatingSystemType/Boiler and IsSharedSystem="true"]' => {
+        '../../../../BuildingSummary/BuildingConstruction[ResidentialFacilityType[text()="single-family attached" or text()="apartment unit"]]' => one,
+        '../../HVACDistribution[DistributionSystemType/HydronicDistribution[HydronicDistributionType[text()="radiator" or text()="baseboard" or text()="radiant floor" or text()="radiant ceiling"]] | DistributionSystemType/HydronicAndAirDistribution[HydronicAndAirDistributionType[text()="fan coil" or text()="water loop heat pump"]]]' => one, # See [HVACDistribution] or [SharedBoilerType=FanCoil] or [SharedBoilerType=WLHP]
+        'NumberofUnitsServed' => one,
+        'ElectricAuxiliaryEnergy | extension/SharedLoopWatts' => zero_or_one,
+      },
+
+      ## [SharedBoilerType=FanCoil]
+      '/HPXML/Building/BuildingDetails/Systems/HVAC/HVACPlant/HeatingSystem[HeatingSystemType/Boiler and IsSharedSystem="true" and //HydronicAndAirDistributionType[text()="fan coil"]]' => {
+        'ElectricAuxiliaryEnergy | extension/FanCoilWatts' => zero_or_one,
+      },
+
+      ## [SharedBoilerType=WLHP]
+      '/HPXML/Building/BuildingDetails/Systems/HVAC/HVACPlant/HeatingSystem[HeatingSystemType/Boiler and IsSharedSystem="true" and //HydronicAndAirDistributionType[text()="water loop heat pump"]]' => {
+        'extension/WaterLoopHeatPump/AnnualHeatingEfficiency[Units="COP"]/Value' => one,
       },
 
       ## [HeatingType=Stove]
       '/HPXML/Building/BuildingDetails/Systems/HVAC/HVACPlant/HeatingSystem[HeatingSystemType/Stove]' => {
         'DistributionSystem' => zero,
         'HeatingSystemFuel[text()="natural gas" or text()="fuel oil" or text()="fuel oil 1" or text()="fuel oil 2" or text()="fuel oil 4" or text()="fuel oil 5/6" or text()="diesel" or text()="propane" or text()="kerosene" or text()="electricity" or text()="wood" or text()="wood pellets"]' => one,
+        'HeatingCapacity' => zero_or_one,
         'AnnualHeatingEfficiency[Units="Percent"]/Value' => one,
+        'ElectricAuxiliaryEnergy' => zero_or_one,
       },
 
       ## [HeatingType=PortableHeater]
       '/HPXML/Building/BuildingDetails/Systems/HVAC/HVACPlant/HeatingSystem[HeatingSystemType/PortableHeater]' => {
         'DistributionSystem' => zero,
         'HeatingSystemFuel[text()="natural gas" or text()="fuel oil" or text()="fuel oil 1" or text()="fuel oil 2" or text()="fuel oil 4" or text()="fuel oil 5/6" or text()="diesel" or text()="propane" or text()="kerosene" or text()="electricity" or text()="wood" or text()="wood pellets"]' => one,
+        'HeatingCapacity' => zero_or_one,
         'AnnualHeatingEfficiency[Units="Percent"]/Value' => one,
+        'ElectricAuxiliaryEnergy' => zero_or_one,
       },
 
       ## [HeatingType=FixedHeater]
       '/HPXML/Building/BuildingDetails/Systems/HVAC/HVACPlant/HeatingSystem[HeatingSystemType/FixedHeater]' => {
         'DistributionSystem' => zero,
         'HeatingSystemFuel[text()="natural gas" or text()="fuel oil" or text()="fuel oil 1" or text()="fuel oil 2" or text()="fuel oil 4" or text()="fuel oil 5/6" or text()="diesel" or text()="propane" or text()="kerosene" or text()="electricity" or text()="wood" or text()="wood pellets"]' => one,
+        'HeatingCapacity' => zero_or_one,
         'AnnualHeatingEfficiency[Units="Percent"]/Value' => one,
+        'ElectricAuxiliaryEnergy' => zero_or_one,
       },
 
       ## [HeatingType=Fireplace]
       '/HPXML/Building/BuildingDetails/Systems/HVAC/HVACPlant/HeatingSystem[HeatingSystemType/Fireplace]' => {
         'DistributionSystem' => zero,
         'HeatingSystemFuel[text()="natural gas" or text()="fuel oil" or text()="fuel oil 1" or text()="fuel oil 2" or text()="fuel oil 4" or text()="fuel oil 5/6" or text()="diesel" or text()="propane" or text()="kerosene" or text()="electricity" or text()="wood" or text()="wood pellets"]' => one,
+        'HeatingCapacity' => zero_or_one,
         'AnnualHeatingEfficiency[Units="Percent"]/Value' => one,
+        'ElectricAuxiliaryEnergy' => zero_or_one,
       },
 
       # [CoolingSystem]
       '/HPXML/Building/BuildingDetails/Systems/HVAC/HVACPlant/CoolingSystem' => {
         'SystemIdentifier' => one, # Required by HPXML schema
         '../../HVACControl' => one, # See [HVACControl]
-        'CoolingSystemType[text()="central air conditioner" or text()="room air conditioner" or text()="evaporative cooler" or text()="mini-split"]' => one, # See [CoolingType=CentralAC] or [CoolingType=RoomAC] or [CoolingType=EvapCooler] or [CoolingType=MiniSplitAC]
+        'CoolingSystemType[text()="central air conditioner" or text()="room air conditioner" or text()="evaporative cooler" or text()="mini-split" or text()="chiller" or text()="cooling tower"]' => one, # See [CoolingType=CentralAC] or [CoolingType=RoomAC] or [CoolingType=EvapCooler] or [CoolingType=MiniSplitAC] or [CoolingType=SharedChiller] or [CoolingType=SharedCoolingTowerWLHP]
         'CoolingSystemFuel[text()="electricity"]' => one,
-        'FractionCoolLoadServed' => one, # Must sum to <= 1 across all CoolingSystems and HeatPumps
+        'FractionCoolLoadServed' => one,
       },
 
       ## [CoolingType=CentralAC]
@@ -454,6 +493,41 @@ class EnergyPlusValidator
         'SensibleHeatFraction' => zero_or_one,
       },
 
+      ## [CoolingType=SharedChiller]
+      '/HPXML/Building/BuildingDetails/Systems/HVAC/HVACPlant/CoolingSystem[CoolingSystemType="chiller"]' => {
+        '../../../../BuildingSummary/BuildingConstruction[ResidentialFacilityType[text()="single-family attached" or text()="apartment unit"]]' => one,
+        '../../HVACDistribution[DistributionSystemType/HydronicDistribution[HydronicDistributionType[text()="radiator" or text()="baseboard" or text()="radiant floor" or text()="radiant ceiling"]] | DistributionSystemType/HydronicAndAirDistribution[HydronicAndAirDistributionType[text()="fan coil" or text()="water loop heat pump"]]]' => one, # See [HVACDistribution] or [SharedChillerType=FanCoil] or [SharedChillerType=WLHP]
+        'DistributionSystem' => one,
+        'IsSharedSystem[text()="true"]' => one,
+        'NumberofUnitsServed' => one,
+        'CoolingCapacity' => one,
+        'AnnualCoolingEfficiency[Units="kW/ton"]/Value' => one,
+        'extension/SharedLoopWatts' => one,
+      },
+
+      ## [SharedChillerType=FanCoil]
+      '/HPXML/Building/BuildingDetails/Systems/HVAC/HVACPlant/CoolingSystem[CoolingSystemType="chiller" and //HydronicAndAirDistributionType[text()="fan coil"]]' => {
+        'extension/FanCoilWatts' => one,
+      },
+
+      ## [SharedChillerType=WLHP]
+      '/HPXML/Building/BuildingDetails/Systems/HVAC/HVACPlant/CoolingSystem[CoolingSystemType="chiller" and //HydronicAndAirDistributionType[text()="water loop heat pump"]]' => {
+        'extension/WaterLoopHeatPump/CoolingCapacity' => one,
+        'extension/WaterLoopHeatPump/AnnualCoolingEfficiency[Units="EER"]/Value' => one,
+      },
+
+      ## [CoolingType=SharedCoolingTowerWLHP]
+      '/HPXML/Building/BuildingDetails/Systems/HVAC/HVACPlant/CoolingSystem[CoolingSystemType="cooling tower"]' => {
+        '../../../../BuildingSummary/BuildingConstruction[ResidentialFacilityType[text()="single-family attached" or text()="apartment unit"]]' => one,
+        '../../HVACDistribution[DistributionSystemType/HydronicAndAirDistribution[HydronicAndAirDistributionType[text()="water loop heat pump"]]]' => one, # See [HVACDistribution]
+        'DistributionSystem' => one,
+        'IsSharedSystem[text()="true"]' => one,
+        'NumberofUnitsServed' => one,
+        'extension/SharedLoopWatts' => one,
+        'extension/WaterLoopHeatPump/CoolingCapacity' => one,
+        'extension/WaterLoopHeatPump/AnnualCoolingEfficiency[Units="EER"]/Value' => one,
+      },
+
       # [HeatPump]
       '/HPXML/Building/BuildingDetails/Systems/HVAC/HVACPlant/HeatPump' => {
         'SystemIdentifier' => one, # Required by HPXML schema
@@ -464,8 +538,8 @@ class EnergyPlusValidator
         'CoolingCapacity' => zero_or_one,
         'CoolingSensibleHeatFraction' => zero_or_one,
         '[not(BackupSystemFuel)] | BackupSystemFuel[text()="electricity" or text()="natural gas" or text()="fuel oil" or text()="fuel oil 1" or text()="fuel oil 2" or text()="fuel oil 4" or text()="fuel oil 5/6" or text()="diesel" or text()="propane" or text()="kerosene" or text()="wood" or text()="wood pellets"]' => one, # See [HeatPumpBackup]
-        'FractionHeatLoadServed' => one, # Must sum to <= 1 across all HeatPumps and HeatingSystems
-        'FractionCoolLoadServed' => one, # Must sum to <= 1 across all HeatPumps and CoolingSystems
+        'FractionHeatLoadServed' => one,
+        'FractionCoolLoadServed' => one,
       },
 
       ## [HeatPumpType=ASHP]
@@ -475,7 +549,7 @@ class EnergyPlusValidator
         '[not(CompressorType)] | CompressorType[text()="single stage" or text()="two stage" or text()="variable speed"]' => one,
         'AnnualCoolingEfficiency[Units="SEER"]/Value' => one,
         'AnnualHeatingEfficiency[Units="HSPF"]/Value' => one,
-        'HeatingCapacity17F' => zero_or_one
+        'HeatingCapacity17F' => zero_or_one,
       },
 
       ## [HeatPumpType=MSHP]
@@ -484,16 +558,26 @@ class EnergyPlusValidator
         'DistributionSystem' => zero_or_one,
         'AnnualCoolingEfficiency[Units="SEER"]/Value' => one,
         'AnnualHeatingEfficiency[Units="HSPF"]/Value' => one,
-        'HeatingCapacity17F' => zero_or_one
+        'HeatingCapacity17F' => zero_or_one,
       },
 
       ## [HeatPumpType=GSHP]
       '/HPXML/Building/BuildingDetails/Systems/HVAC/HVACPlant/HeatPump[HeatPumpType="ground-to-air"]' => {
         '../../HVACDistribution[DistributionSystemType/AirDistribution | DistributionSystemType[Other="DSE"]]' => one_or_more, # See [HVACDistribution]
+        'IsSharedSystem' => zero_or_one, # See [GSHPType=SharedLoop]
         'DistributionSystem' => one,
         'BackupHeatingSwitchoverTemperature' => zero,
         'AnnualCoolingEfficiency[Units="EER"]/Value' => one,
         'AnnualHeatingEfficiency[Units="COP"]/Value' => one,
+        'extension/PumpPowerWattsPerTon' => zero_or_one,
+        'extension/FanPowerWattsPerCFM' => zero_or_one,
+      },
+
+      ## [GSHPType=SharedLoop]
+      '/HPXML/Building/BuildingDetails/Systems/HVAC/HVACPlant/HeatPump[HeatPumpType="ground-to-air" and IsSharedSystem="true"]' => {
+        '../../../../BuildingSummary/BuildingConstruction[ResidentialFacilityType[text()="single-family attached" or text()="apartment unit"]]' => one,
+        'NumberofUnitsServed' => one,
+        'extension/SharedLoopWatts' => one,
       },
 
       ## [HeatPumpBackup]
@@ -528,13 +612,29 @@ class EnergyPlusValidator
       # [HVACDistribution]
       '/HPXML/Building/BuildingDetails/Systems/HVAC/HVACDistribution' => {
         'SystemIdentifier' => one, # Required by HPXML schema
-        'DistributionSystemType/AirDistribution | DistributionSystemType/HydronicDistribution | DistributionSystemType[Other="DSE"]' => one, # See [HVACDistType=Air] or [HVACDistType=DSE]
+        'DistributionSystemType[AirDistribution | HydronicDistribution | HydronicAndAirDistribution | Other[text()="DSE"]]' => one, # See [HVACDistType=Air] or [HVACDistType=Hydronic] or [HVACDistType=HydronicAndAir] or [HVACDistType=DSE]
       },
 
       ## [HVACDistType=Air]
       '/HPXML/Building/BuildingDetails/Systems/HVAC/HVACDistribution/DistributionSystemType/AirDistribution' => {
         '../../ConditionedFloorAreaServed' => one,
-        'DuctLeakageMeasurement[DuctType="supply"]/DuctLeakage[(Units="CFM25" or Units="Percent") and TotalOrToOutside="to outside"]/Value' => one,
+        'DuctLeakageMeasurement[DuctType="supply"]/DuctLeakage[(Units="CFM25" or Units="Percent") and TotalOrToOutside="to outside"]/Value' => zero_or_one,
+        'DuctLeakageMeasurement[DuctType="return"]/DuctLeakage[(Units="CFM25" or Units="Percent") and TotalOrToOutside="to outside"]/Value' => zero_or_one,
+        'Ducts[DuctType="supply"]' => zero_or_more, # See [HVACDuct]
+        'Ducts[DuctType="return"]' => zero_or_more, # See [HVACDuct]
+        'NumberofReturnRegisters' => zero_or_one,
+      },
+
+      ## [HVACDistType=Hydronic]
+      '/HPXML/Building/BuildingDetails/Systems/HVAC/HVACDistribution/DistributionSystemType/HydronicDistribution' => {
+        'HydronicDistributionType[text()="radiator" or text()="baseboard" or text()="radiant floor" or text()="radiant ceiling"]' => one,
+      },
+
+      ## [HVACDistType=HydronicAndAir]
+      '/HPXML/Building/BuildingDetails/Systems/HVAC/HVACDistribution/DistributionSystemType/HydronicAndAirDistribution' => {
+        'HydronicAndAirDistributionType[text()="fan coil" or text()="water loop heat pump"]' => one,
+        '../../ConditionedFloorAreaServed' => one,
+        'DuctLeakageMeasurement[DuctType="supply"]/DuctLeakage[(Units="CFM25" or Units="Percent") and TotalOrToOutside="to outside"]/Value' => zero_or_one,
         'DuctLeakageMeasurement[DuctType="return"]/DuctLeakage[(Units="CFM25" or Units="Percent") and TotalOrToOutside="to outside"]/Value' => zero_or_one,
         'Ducts[DuctType="supply"]' => zero_or_more, # See [HVACDuct]
         'Ducts[DuctType="return"]' => zero_or_more, # See [HVACDuct]
@@ -542,13 +642,12 @@ class EnergyPlusValidator
       },
 
       ## [HVACDistType=DSE]
-      ## WARNING: These inputs are unused and EnergyPlus output will NOT reflect the specified DSE. To account for DSE, apply the value to the EnergyPlus output.
       '/HPXML/Building/BuildingDetails/Systems/HVAC/HVACDistribution[DistributionSystemType[Other="DSE"]]' => {
         'AnnualHeatingDistributionSystemEfficiency | AnnualCoolingDistributionSystemEfficiency' => one_or_more,
       },
 
       ## [HVACDuct]
-      '/HPXML/Building/BuildingDetails/Systems/HVAC/HVACDistribution/DistributionSystemType/AirDistribution/Ducts[DuctType="supply" or DuctType="return"]' => {
+      '/HPXML/Building/BuildingDetails/Systems/HVAC/HVACDistribution/DistributionSystemType/*/Ducts[DuctType="supply" or DuctType="return"]' => {
         'DuctInsulationRValue' => one,
         'DuctSurfaceArea | DuctLocation[text()="living space" or text()="basement - conditioned" or text()="basement - unconditioned" or text()="crawlspace - vented" or text()="crawlspace - unvented" or text()="attic - vented" or text()="attic - unvented" or text()="garage" or text()="exterior wall" or text()="under slab" or text()="roof deck" or text()="outside" or text()="other housing unit" or text()="other heated space" or text()="other multifamily buffer space" or text()="other non-freezing space"]' => zero_or_two,
       },
@@ -654,7 +753,7 @@ class EnergyPlusValidator
         'RelatedHVACSystem' => one, # HeatingSystem (boiler)
         'TankVolume' => one,
         'WaterHeaterInsulation/Jacket/JacketRValue' => zero_or_one,
-        'StandbyLoss' => zero_or_one, # Refer to https://www.ahridirectory.org/NewSearch?programId=28&searchTypeId=3
+        'StandbyLoss' => zero_or_one, # deg-F/h, refer to https://www.ahridirectory.org/NewSearch?programId=28&searchTypeId=3
       },
 
       ## [WHType=CombiTankless]
@@ -740,25 +839,20 @@ class EnergyPlusValidator
       # [PVSystem]
       '/HPXML/Building/BuildingDetails/Systems/Photovoltaics/PVSystem' => {
         'SystemIdentifier' => one, # Required by HPXML schema
-        'IsSharedSystem' => one, # See [PVSystem=Individual] or [PVSystem=Shared]
+        'IsSharedSystem' => one, # See [PVSystem=Shared]
         'Location[text()="ground" or text()="roof"]' => one,
         'ModuleType[text()="standard" or text()="premium" or text()="thin film"]' => one,
         'Tracking[text()="fixed" or text()="1-axis" or text()="1-axis backtracked" or text()="2-axis"]' => one,
         'ArrayAzimuth' => one,
         'ArrayTilt' => one,
+        'MaxPowerOutput' => one,
         'InverterEfficiency' => zero_or_one,
         'SystemLossesFraction | YearModulesManufactured' => zero_or_more,
-      },
-
-      ## [PVSystem=Individual]
-      '/HPXML/Building/BuildingDetails/Systems/Photovoltaics/PVSystem[IsSharedSystem="false"]' => {
-        'MaxPowerOutput' => one,
       },
 
       ## [PVSystem=Shared]
       '/HPXML/Building/BuildingDetails/Systems/Photovoltaics/PVSystem[IsSharedSystem="true"]' => {
         '../../../BuildingSummary/BuildingConstruction[ResidentialFacilityType[text()="single-family attached" or text()="apartment unit"]]' => one,
-        'MaxPowerOutput[@scope="multiple units"]' => one,
         'extension/NumberofBedroomsServed' => one,
       },
 
@@ -995,18 +1089,30 @@ class EnergyPlusValidator
           next if expected_sizes.nil?
 
           xpath = combine_into_xpath(parent, child)
-          actual_size = hpxml_doc.xpath("#{child}").length
+          begin
+            actual_size = hpxml_doc.xpath(child).length
+          rescue
+            fail "Invalid xpath: #{child}"
+          end
           check_number_of_elements(actual_size, expected_sizes, xpath, errors)
         end
       else # Conditional based on parent element existence
-        next if hpxml_doc.xpath(parent).empty? # Skip if parent element doesn't exist
+        begin
+          next if hpxml_doc.xpath(parent).empty? # Skip if parent element doesn't exist
+        rescue
+          fail "Invalid xpath: #{parent}"
+        end
 
         hpxml_doc.xpath(parent).each do |parent_element|
           requirement.each do |child, expected_sizes|
             next if expected_sizes.nil?
 
             xpath = combine_into_xpath(parent, child)
-            actual_size = parent_element.xpath("#{update_leading_predicates(child)}").length
+            begin
+              actual_size = parent_element.xpath(update_leading_predicates(child)).length
+            rescue
+              fail "Invalid xpath: #{update_leading_predicates(child)}"
+            end
             check_number_of_elements(actual_size, expected_sizes, xpath, errors)
           end
         end

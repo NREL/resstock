@@ -12,6 +12,13 @@ class XMLHelper
     return added
   end
 
+  # Adds the child element with 'element_name' to a single extension element and
+  # sets its value. Returns the extension element.
+  def self.add_extension(parent, element_name, value)
+    extension = XMLHelper.create_elements_as_needed(parent, ['extension'])
+    return XMLHelper.add_element(extension, element_name, value)
+  end
+
   # Creates a hierarchy of elements under the parent element based on the supplied
   # list of element names. If a given child element already exists, it is reused.
   # Returns the final element.

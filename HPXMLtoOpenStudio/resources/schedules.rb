@@ -316,15 +316,19 @@ class MonthWeekdayWeekendSchedule
     if year_description.isLeapYear
       leap_offset = 1
     end
+
     num_days_in_each_month = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
     num_days_in_each_month[@end_month] = @end_day_of_month
-    num_days_in_each_month.each_index { |i| i > 1 ? num_days_in_each_month[i] + leap_offset : num_days_in_each_month[i] }
+    num_days_in_each_month.each_index do |i|
+      num_days_in_each_month[i] += leap_offset if i == 2
+    end
     orig_day_startm = [0, 1, 32, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335]
+    orig_day_startm.each_index do |i|
+      orig_day_startm[i] += leap_offset if i > 2
+    end
     day_startm = orig_day_startm.map(&:clone)
     day_startm[@begin_month] = orig_day_startm[@begin_month] + @begin_day_of_month - 1
-    day_startm.each_index { |i| i > 1 ? day_startm[i] + leap_offset : day_startm[i] }
     day_endm = [orig_day_startm, num_days_in_each_month].transpose.map { |i| (i != [0, 0]) ? i.reduce(:+) - 1 : 0 }
-
     time = []
     for h in 1..24
       time[h] = OpenStudio::Time.new(0, h, 0, 0)

@@ -59,7 +59,7 @@ class HPXMLtoOpenStudioPVTest < MiniTest::Test
       generator, inverter = get_generator_inverter(model, pv_system.id)
 
       # Check PV
-      max_power = pv_system.building_max_power_output * hpxml.building_construction.number_of_bedrooms.to_f / pv_system.number_of_bedrooms_served.to_f
+      max_power = pv_system.max_power_output * hpxml.building_construction.number_of_bedrooms.to_f / pv_system.number_of_bedrooms_served.to_f
       assert_equal(pv_system.array_tilt, generator.tiltAngle)
       assert_equal(pv_system.array_azimuth, generator.azimuthAngle)
       assert_equal(max_power, generator.dcSystemCapacity)
