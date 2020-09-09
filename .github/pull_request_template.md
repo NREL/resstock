@@ -6,7 +6,7 @@
 
 Not all may apply:
 
-- [ ] EPvalidator.rb has been updated
+- [ ] EPvalidator.xml has been updated
 - [ ] Tests (and test files) have been updated
 - [ ] Documentation has been updated
 - [ ] `openstudio tasks.rb update_measures` has been run

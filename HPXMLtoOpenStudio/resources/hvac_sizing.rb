@@ -2263,6 +2263,7 @@ class HVACSizing
         if hvac.GSHP_HXDTDesign.nil? || hvac.GSHP_HXCHWDesign.nil? || hvac.GSHP_HXHWDesign.nil?
           fail 'Could not find GSHP plant loop.'
         end
+
         hvac.GSHP_PumpPower = get_feature(equip, Constants.SizingInfoHVACPumpPower, 'double')
 
       elsif not htg_coil.nil?

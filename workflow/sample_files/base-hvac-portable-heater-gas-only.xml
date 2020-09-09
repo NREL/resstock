@@ -41,6 +41,7 @@
           <NumberofConditionedFloors>2</NumberofConditionedFloors>
           <NumberofConditionedFloorsAboveGrade>1</NumberofConditionedFloorsAboveGrade>
           <NumberofBedrooms>3</NumberofBedrooms>
+          <NumberofBathrooms>2</NumberofBathrooms>
           <ConditionedFloorArea>2700.0</ConditionedFloorArea>
           <ConditionedBuildingVolume>21600.0</ConditionedBuildingVolume>
         </BuildingConstruction>
@@ -305,17 +306,17 @@
           <HVACPlant>
             <HeatingSystem>
               <SystemIdentifier id='HeatingSystem'/>
-              <DistributionSystem idref='HVACDistribution'/>
               <HeatingSystemType>
-                <Furnace/>
+                <PortableHeater/>
               </HeatingSystemType>
               <HeatingSystemFuel>natural gas</HeatingSystemFuel>
               <HeatingCapacity>64000.0</HeatingCapacity>
               <AnnualHeatingEfficiency>
-                <Units>AFUE</Units>
-                <Value>0.92</Value>
+                <Units>Percent</Units>
+                <Value>1.0</Value>
               </AnnualHeatingEfficiency>
               <FractionHeatLoadServed>1.0</FractionHeatLoadServed>
+              <ElectricAuxiliaryEnergy>100.0</ElectricAuxiliaryEnergy>
             </HeatingSystem>
             <CoolingSystem>
               <SystemIdentifier id='CoolingSystem'/>
@@ -380,18 +381,22 @@
             <SystemIdentifier id='WaterHeater'/>
             <FuelType>electricity</FuelType>
             <WaterHeaterType>storage water heater</WaterHeaterType>
+            <Location>living space</Location>
+            <TankVolume>40.0</TankVolume>
             <FractionDHWLoadServed>1.0</FractionDHWLoadServed>
-            <UniformEnergyFactor>0.93</UniformEnergyFactor>
+            <HeatingCapacity>18767.0</HeatingCapacity>
+            <EnergyFactor>0.95</EnergyFactor>
+            <HotWaterTemperature>125.0</HotWaterTemperature>
           </WaterHeatingSystem>
           <HotWaterDistribution>
             <SystemIdentifier id='HotWaterDistribution'/>
             <SystemType>
-              <Recirculation>
-                <ControlType>presence sensor demand control</ControlType>
-              </Recirculation>
+              <Standard>
+                <PipingLength>50.0</PipingLength>
+              </Standard>
             </SystemType>
             <PipeInsulation>
-              <PipeRValue>3.0</PipeRValue>
+              <PipeRValue>0.0</PipeRValue>
             </PipeInsulation>
           </HotWaterDistribution>
           <WaterFixture>
