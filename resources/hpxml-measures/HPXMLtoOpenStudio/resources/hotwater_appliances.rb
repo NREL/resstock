@@ -205,6 +205,7 @@ class HotWaterAndAppliances
 
       # Dishwasher
       next unless not dishwasher.nil?
+
       gpd_frac = nil
       if dishwasher.is_shared_appliance && dishwasher.water_heating_system.id == water_heating_system.id
         gpd_frac = 1.0 # Shared water heater sees full appliance load

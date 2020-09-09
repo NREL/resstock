@@ -3276,6 +3276,7 @@ class HPXML < Object
       if [MechVentTypeSupply, MechVentTypeCFIS, MechVentTypeBalanced, MechVentTypeERV, MechVentTypeHRV].include? @fan_type
         return true
       end
+
       return false
     end
 
@@ -3283,6 +3284,7 @@ class HPXML < Object
       if [MechVentTypeExhaust, MechVentTypeBalanced, MechVentTypeERV, MechVentTypeHRV].include? @fan_type
         return true
       end
+
       return false
     end
 
@@ -3290,6 +3292,7 @@ class HPXML < Object
       if includes_supply_air? && includes_exhaust_air?
         return true
       end
+
       return false
     end
 
@@ -5059,8 +5062,7 @@ class HPXML < Object
     def self.is_adjacent_to_conditioned(adjacent_to)
       if [HPXML::LocationLivingSpace,
           HPXML::LocationBasementConditioned,
-          HPXML::LocationOtherHousingUnit,
-          HPXML::LocationOtherHeatedSpace].include? adjacent_to
+          HPXML::LocationOtherHousingUnit].include? adjacent_to
         return true
       else
         return false
