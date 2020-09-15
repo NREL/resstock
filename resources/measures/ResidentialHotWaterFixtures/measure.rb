@@ -287,7 +287,7 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
         end
 
         tot_sh_gpd += sh_gpd
-		# Unmet Shower Energy
+        # Unmet Shower Energy
         obj_name_sh = obj_name_sh.gsub("unit ", "").gsub("|", "_")
 
         vol_shower = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Water Use Equipment Hot Water Volume")
