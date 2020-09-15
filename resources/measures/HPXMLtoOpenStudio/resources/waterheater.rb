@@ -1250,10 +1250,10 @@ class Waterheater
     if set_type == Constants.WaterHeaterSetpointTypeConstant
       new_schedule = OpenStudio::Model::ScheduleConstant.new(model)
       new_schedule.setName("dhw temp")
-      new_schedule.setValue(UnitConversions.convert(t_set, "F", "C") + deadband(wh_type) / 2.0)
+      new_schedule.setValue(UnitConversions.convert(t_set, "F", "C"))
       OpenStudio::Model::SetpointManagerScheduled.new(model, new_schedule)
     elsif set_type == Constants.WaterHeaterSetpointTypeScheduled
-      new_schedule = HourlySchedule.new(model, runner, "dhw temp", sch_file, deadband(wh_type) * (9 / 5) / 2.0, true, [])
+      new_schedule = HourlySchedule.new(model, runner, "dhw temp", sch_file, 0, true, [])
       if not new_schedule.validated?
         return false
       end
@@ -1390,12 +1390,12 @@ class Waterheater
 
   def self.configure_setpoint_schedule(new_heater, set_type, t_set, sch_file, wh_type, model, runner)
     if set_type == Constants.WaterHeaterSetpointTypeConstant
-      set_temp_c = UnitConversions.convert(t_set, "F", "C") + deadband(wh_type) / 2.0 # Half the deadband to account for E+ deadband
+      set_temp_c = UnitConversions.convert(t_set, "F", "C")
       new_schedule = OpenStudio::Model::ScheduleConstant.new(model)
       new_schedule.setName("WH Setpoint Temp")
       new_schedule.setValue(set_temp_c)
     elsif set_type == Constants.WaterHeaterSetpointTypeScheduled
-      new_schedule = HourlySchedule.new(model, runner, "WH Setpoint Temp", sch_file, deadband(wh_type) / 2.0, true, [])
+      new_schedule = HourlySchedule.new(model, runner, "WH Setpoint Temp", sch_file, 0, true, [])
       if not new_schedule.validated?
         return false
       end
@@ -1410,7 +1410,7 @@ class Waterheater
 
   def self.configure_stratified_tank_setpoint_schedules(model, runner, new_heater, set_type, t_set, sch_file, wh_type)
     if set_type == Constants.WaterHeaterSetpointTypeConstant
-      set_temp_c = UnitConversions.convert(t_set, "F", "C") + deadband(wh_type) / 2.0 # Half the deadband to account for E+ deadband
+      set_temp_c = UnitConversions.convert(t_set, "F", "C")
       new_schedule = OpenStudio::Model::ScheduleConstant.new(model)
       new_schedule.setName("WH Setpoint Temp")
       new_schedule.setValue(set_temp_c)
@@ -1419,7 +1419,7 @@ class Waterheater
       new_heater.setHeater1SetpointTemperatureSchedule(new_schedule)
       new_heater.setHeater2SetpointTemperatureSchedule(new_schedule)
     elsif set_type == Constants.WaterHeaterSetpointTypeScheduled
-      new_schedule = HourlySchedule.new(model, runner, "WH Setpoint Temp", sch_file, deadband(wh_type) * (9 / 5) / 2.0, true, [])
+      new_schedule = HourlySchedule.new(model, runner, "WH Setpoint Temp", sch_file, 0, true, [])
       unless new_schedule.validated?
         return false
       end
@@ -1436,7 +1436,7 @@ class Waterheater
     # Create a new plant loop for the water heater
     loop = OpenStudio::Model::PlantLoop.new(model)
     loop.setName(name)
-    loop.sizingPlant.setDesignLoopExitTemperature(UnitConversions.convert(t_set, "F", "C") + deadband(wh_type) / 2.0)
+    loop.sizingPlant.setDesignLoopExitTemperature(UnitConversions.convert(t_set, "F", "C"))
     loop.sizingPlant.setLoopDesignTemperatureDifference(UnitConversions.convert(10, "R", "K"))
     loop.setPlantLoopVolume(0.003) # ~1 gal
     loop.setMaximumLoopFlowRate(0.01) # This size represents the physical limitations to flow due to losses in the piping system. For BEopt we assume that the pipes are always adequately sized
@@ -1481,9 +1481,9 @@ class Waterheater
         return nil
       end
       if waterHeater.setpointTemperatureSchedule.get.to_ScheduleConstant.is_initialized
-        return UnitConversions.convert(waterHeater.setpointTemperatureSchedule.get.to_ScheduleConstant.get.value - waterHeater.deadbandTemperatureDifference / 2.0, "C", "F")
+        return UnitConversions.convert(waterHeater.setpointTemperatureSchedule.get.to_ScheduleConstant.get.value, "C", "F")
       elsif waterHeater.setpointTemperatureSchedule.get.to_ScheduleFixedInterval.is_initialized
-        return UnitConversions.convert(waterHeater.setpointTemperatureSchedule.get.to_ScheduleFixedInterval.get.timeSeries.averageValue - waterHeater.deadbandTemperatureDifference / 2.0, "C", "F")
+        return UnitConversions.convert(waterHeater.setpointTemperatureSchedule.get.to_ScheduleFixedInterval.get.timeSeries.averageValue, "C", "F")
       end
     elsif waterHeater.is_a? OpenStudio::Model::WaterHeaterHeatPumpWrappedCondenser
       if waterHeater.compressorSetpointTemperatureSchedule.nil?
@@ -1504,9 +1504,9 @@ class Waterheater
         return UnitConversions.convert(waterHeater.heater1SetpointTemperatureSchedule.to_ScheduleConstant.get.value, "C", "F")
       else
         if waterHeater.heater1SetpointTemperatureSchedule.to_ScheduleConstant.is_initialized
-          return UnitConversions.convert(waterHeater.heater1SetpointTemperatureSchedule.to_ScheduleConstant.get.value - waterHeater.heater1DeadbandTemperatureDifference / 2.0, "C", "F")
+          return UnitConversions.convert(waterHeater.heater1SetpointTemperatureSchedule.to_ScheduleConstant.get.value, "C", "F")
         elsif waterHeater.heater1SetpointTemperatureSchedule.to_ScheduleFixedInterval.is_initialized
-          return UnitConversions.convert(waterHeater.heater1SetpointTemperatureSchedule.to_ScheduleFixedInterval.get.timeSeries.averageValue - waterHeater.heater1DeadbandTemperatureDifference / 2.0, "C", "F")
+          return UnitConversions.convert(waterHeater.heater1SetpointTemperatureSchedule.to_ScheduleFixedInterval.get.timeSeries.averageValue, "C", "F")
         end
       end
     end
