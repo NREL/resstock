@@ -49,7 +49,7 @@ class ResidentialHotWaterHeaterTankless < OpenStudio::Measure::ModelMeasure
     setpoint_type_args = OpenStudio::StringVector.new
     setpoint_type_args << Constants.WaterHeaterSetpointTypeConstant
     setpoint_type_args << Constants.WaterHeaterSetpointTypeScheduled
-    setpoint_type = OpenStudio::Measure::OSArgument::makeChoiceArgument("setpoint_type", setpoint_type_args, true, true)
+    setpoint_type = OpenStudio::Measure::OSArgument::makeChoiceArgument("setpoint_type", setpoint_type_args, true)
     setpoint_type.setDisplayName("Setpoint type")
     setpoint_type.setDescription("The water heater setpoint type. The '#{Constants.WaterHeaterSetpointTypeConstant}' option will use a constant value for the whole year, while '#{Constants.WaterHeaterSetpointTypeScheduled}' will use 8760 values in a schedule file.")
     setpoint_type.setDefaultValue(Constants.WaterHeaterSetpointTypeConstant)
@@ -83,7 +83,7 @@ class ResidentialHotWaterHeaterTankless < OpenStudio::Measure::ModelMeasure
     Geometry.get_model_locations(model).each do |loc|
       location_args << loc
     end
-    location = OpenStudio::Measure::OSArgument::makeChoiceArgument("location", location_args, true, true)
+    location = OpenStudio::Measure::OSArgument::makeChoiceArgument("location", location_args, true)
     location.setDisplayName("Location")
     location.setDescription("The space type for the location. '#{Constants.Auto}' will automatically choose a space type based on the space types found in the model.")
     location.setDefaultValue(Constants.Auto)

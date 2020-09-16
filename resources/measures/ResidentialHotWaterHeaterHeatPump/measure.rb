@@ -46,7 +46,7 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
     setpoint_type_args = OpenStudio::StringVector.new
     setpoint_type_args << Constants.WaterHeaterSetpointTypeConstant
     setpoint_type_args << Constants.WaterHeaterSetpointTypeScheduled
-    setpoint_type = OpenStudio::Measure::OSArgument::makeChoiceArgument("setpoint_type", setpoint_type_args, true, true)
+    setpoint_type = OpenStudio::Measure::OSArgument::makeChoiceArgument("setpoint_type", setpoint_type_args, true)
     setpoint_type.setDisplayName("Setpoint type")
     setpoint_type.setDescription("The water heater setpoint type. The '#{Constants.WaterHeaterSetpointTypeConstant}' option will use a constant value for the whole year, while '#{Constants.WaterHeaterSetpointTypeScheduled}' will use 8760 values in a schedule file.")
     setpoint_type.setDefaultValue(Constants.WaterHeaterSetpointTypeConstant)
@@ -64,7 +64,7 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
     operating_mode_type_args = OpenStudio::StringVector.new
     operating_mode_type_args << Constants.WaterHeaterOperatingModeTypeConstant
     operating_mode_type_args << Constants.WaterHeaterOperatingModeTypeScheduled
-    operating_mode_type = OpenStudio::Measure::OSArgument::makeChoiceArgument("operating_mode_type", operating_mode_type_args, true, true)
+    operating_mode_type = OpenStudio::Measure::OSArgument::makeChoiceArgument("operating_mode_type", operating_mode_type_args, true)
     operating_mode_type.setDisplayName("Operating mode type")
     operating_mode_type.setDescription("The water heater operating mode type. The '#{Constants.WaterHeaterOperatingModeTypeConstant}' option will use a constant control strategy for the whole year, while '#{Constants.WaterHeaterOperatingModeTypeScheduled}' will use 8760 values in a schedule file.")
     operating_mode_type.setDefaultValue(Constants.WaterHeaterOperatingModeTypeConstant)
@@ -74,7 +74,7 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
     operating_mode_args = OpenStudio::StringVector.new
     operating_mode_args << Constants.WaterHeaterOperatingModeStandard
     operating_mode_args << Constants.WaterHeaterOperatingModeHeatPumpOnly
-    operating_mode = OpenStudio::Measure::OSArgument::makeChoiceArgument("operating_mode", operating_mode_args, true, true)
+    operating_mode = OpenStudio::Measure::OSArgument::makeChoiceArgument("operating_mode", operating_mode_args, true)
     operating_mode.setDisplayName("Operating Mode")
     operating_mode.setDescription("The water heater operating mode. The '#{Constants.WaterHeaterOperatingModeHeatPumpOnly}' option only uses the heat pump, while '#{Constants.WaterHeaterOperatingModeStandard}' allows the backup electric resistance to come on in high demand situations. This is ignored if a scheduled operating mode type is selected.")
     operating_mode.setDefaultValue(Constants.WaterHeaterOperatingModeStandard)
@@ -107,7 +107,7 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
     Geometry.get_model_locations(model).each do |loc|
       location_args << loc
     end
-    location = OpenStudio::Measure::OSArgument::makeChoiceArgument("location", location_args, true, true)
+    location = OpenStudio::Measure::OSArgument::makeChoiceArgument("location", location_args, true)
     location.setDisplayName("Location")
     location.setDescription("The space type for the location. '#{Constants.Auto}' will automatically choose a space type based on the space types found in the model.")
     location.setDefaultValue(Constants.Auto)
