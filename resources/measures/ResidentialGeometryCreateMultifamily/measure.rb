@@ -340,6 +340,8 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     if (!has_rear_units) and (corridor_position == "Double-Loaded Interior" or corridor_position == "Double Exterior")
       runner.registerWarning("Specified incompatible corridor; setting corridor position to 'Single Exterior (Front)'.")
       corridor_position = "Single Exterior (Front)"
+
+      corridor_position = "None"
     end
     if unit_aspect_ratio < 0
       runner.registerError("Invalid aspect ratio entered.")
@@ -765,10 +767,10 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
       return false
     end
 
-    result = Geometry.process_eaves(model, runner, eaves_depth, Constants.RoofStructureTrussCantilever)
-    unless result
-      return false
-    end
+    # result = Geometry.process_eaves(model, runner, eaves_depth, Constants.RoofStructureTrussCantilever)
+    # unless result
+    #   return false
+    # end
 
     result = Geometry.process_neighbors(model, runner, left_neighbor_offset, right_neighbor_offset, back_neighbor_offset, front_neighbor_offset)
     unless result

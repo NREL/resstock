@@ -68,13 +68,12 @@ class Airflow
         Geometry.get_thermal_zones_from_spaces(unit.spaces).each do |thermal_zone|
           next unless Geometry.is_living(thermal_zone)
 
-          building_height = num_floors.get.to_f * Geometry.get_height_of_spaces(thermal_zone.spaces)
+          building.building_height = num_floors.get.to_f * Geometry.get_height_of_spaces(thermal_zone.spaces)
         end
       end
-    else # multifamily
-      building_height = building.building_height
     end
 
+    building_height = building.building_height
     wind_speed = process_wind_speed_correction(infil.terrain, infil.shelter_coef, Geometry.get_closest_neighbor_distance(model), building_height)
     if not process_infiltration(model, infil, wind_speed, building, weather)
       return false
