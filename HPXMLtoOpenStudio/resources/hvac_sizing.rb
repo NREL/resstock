@@ -1014,13 +1014,11 @@ class HVACSizing
   def self.apply_hp_sizing_logic(hvac_init_loads, hvac)
     # If true, uses the larger of heating and cooling loads for heat pump capacity sizing (required for ERI).
     # Otherwise, uses standard Manual S oversize allowances.
-    hp_use_max_load = true
-
     if hvac.has_type([Constants.ObjectNameAirSourceHeatPump,
                       Constants.ObjectNameMiniSplitHeatPump,
                       Constants.ObjectNameGroundSourceHeatPump,
                       Constants.ObjectNameWaterLoopHeatPump])
-      if hp_use_max_load
+      if @hpxml.header.use_max_load_for_heat_pumps
         max_load = [hvac_init_loads.Heat, hvac_init_loads.Cool_Tot].max
         hvac_init_loads.Heat = max_load
         hvac_init_loads.Cool_Sens *= max_load / hvac_init_loads.Cool_Tot
@@ -1539,6 +1537,9 @@ class HVACSizing
     if not hvac.FixedCoolingCapacity.nil?
       prev_capacity = hvac_final_values.Cool_Capacity
       hvac_final_values.Cool_Capacity = UnitConversions.convert(hvac.FixedCoolingCapacity, 'ton', 'Btu/hr')
+      if @hpxml.header.allow_increased_fixed_capacities
+        hvac_final_values.Cool_Capacity = [hvac_final_values.Cool_Capacity, prev_capacity].max
+      end
       hvac_final_values.Cool_Capacity_Sens = hvac_final_values.Cool_Capacity * hvac.SHRRated[hvac.SizingSpeed]
       if prev_capacity > 0 # Preserve cfm/ton
         hvac_final_values.Cool_Airflow = hvac_final_values.Cool_Airflow * hvac_final_values.Cool_Capacity / prev_capacity
@@ -1549,6 +1550,9 @@ class HVACSizing
     if not hvac.FixedHeatingCapacity.nil?
       prev_capacity = hvac_final_values.Heat_Capacity
       hvac_final_values.Heat_Capacity = UnitConversions.convert(hvac.FixedHeatingCapacity, 'ton', 'Btu/hr')
+      if @hpxml.header.allow_increased_fixed_capacities
+        hvac_final_values.Heat_Capacity = [hvac_final_values.Heat_Capacity, prev_capacity].max
+      end
       if prev_capacity > 0 # Preserve cfm/ton
         hvac_final_values.Heat_Airflow = hvac_final_values.Heat_Airflow * hvac_final_values.Heat_Capacity / prev_capacity
       else
@@ -1556,7 +1560,11 @@ class HVACSizing
       end
     end
     if not hvac.FixedSuppHeatingCapacity.nil?
+      prev_capacity = hvac_final_values.Heat_Capacity_Supp
       hvac_final_values.Heat_Capacity_Supp = UnitConversions.convert(hvac.FixedSuppHeatingCapacity, 'ton', 'Btu/hr')
+      if @hpxml.header.allow_increased_fixed_capacities
+        hvac_final_values.Heat_Capacity_Supp = [hvac_final_values.Heat_Capacity_Supp, prev_capacity].max
+      end
     end
 
     return hvac_final_values

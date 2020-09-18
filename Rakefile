@@ -16,7 +16,7 @@ end
 
 desc 'Run all tests (excluding validation test)'
 Rake::TestTask.new('test_all') do |t|
-  t.test_files = Dir['workflow/tests/*.rb'] - Dir['HPXMLtoOpenStudio/tests/test_validation.rb']
+  t.test_files = Dir['*/tests/*.rb'] - Dir['HPXMLtoOpenStudio/tests/test_validation.rb']
   t.warning = false
   t.verbose = true
 end

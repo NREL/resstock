@@ -966,7 +966,11 @@ class HPXMLTest < MiniTest::Test
       if clg_cap == 0
         assert_operator(sql_value, :<, 1)
       elsif clg_cap > 0
-        assert_in_epsilon(clg_cap, sql_value, 0.01)
+        if hpxml.header.allow_increased_fixed_capacities
+          assert_operator(sql_value, :>=, clg_cap)
+        else
+          assert_in_epsilon(clg_cap, sql_value, 0.01)
+        end
       else # autosized
         assert_operator(sql_value, :>, 1)
       end
@@ -976,7 +980,11 @@ class HPXMLTest < MiniTest::Test
       if htg_cap == 0
         assert_operator(sql_value, :<, 1)
       elsif htg_cap > 0
-        assert_in_epsilon(htg_cap, sql_value, 0.01)
+        if hpxml.header.allow_increased_fixed_capacities
+          assert_operator(sql_value, :>=, htg_cap)
+        else
+          assert_in_epsilon(htg_cap, sql_value, 0.01)
+        end
       else # autosized
         assert_operator(sql_value, :>, 1)
       end

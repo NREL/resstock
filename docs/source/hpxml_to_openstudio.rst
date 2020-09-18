@@ -91,7 +91,13 @@ In the ``in.xml`` file, the window would have additional elements like so:
 HPXML Software Info
 -------------------
 
-EnergyPlus simulation controls can be entered in ``/HPXML/SoftwareInfo/extension/SimulationControl``.
+High-level simulation inputs are entered in HPXML's ``/HPXML/SoftwareInfo``.
+Current inputs include simulation controls and HVAC sizing controls.
+
+HPXML Simulation Control
+************************
+
+EnergyPlus simulation controls can be entered in ``extension/SimulationControl``.
 
 The simulation timestep can be optionally provided as ``Timestep``, where the value is in minutes and must be a divisor of 60.
 If not provided, the default value of 60 (i.e., 1 hour) is used.
@@ -104,6 +110,21 @@ Whether to apply daylight saving time can be optionally denoted with ``DaylightS
 If either ``DaylightSaving`` or ``DaylightSaving/Enabled`` is not provided, ``DaylightSaving/Enabled`` will default to true.
 If daylight saving is enabled, the daylight saving period can be optionally specified with ``DaylightSaving/BeginMonth``, ``DaylightSaving/BeginDayOfMonth``, ``DaylightSaving/EndMonth``, and ``DaylightSaving/EndDayOfMonth``.
 If not specified, dates will be defined according to the EPW weather file header; if not available there, default values of March 12 and November 5 will be used.
+
+HPXML HVAC Sizing Control
+*************************
+
+HVAC equipment sizing controls can be entered in ``extension/HVACSizingControl``.
+
+An optional ``AllowIncreasedFixedCapacities`` element can be provided to describe how HVAC equipment with fixed capacities are handled.
+If false, the user-specified fixed capacity will be used.
+If true, the maximum of the user-specified fixed capacity and the heating/cooling design load will be used to reduce potential for unmet loads.
+If not provided, the default value of false is used.
+
+An optional ``UseMaxLoadForHeatPumps`` element can be provided to describe how autosized heat pumps are handled.
+If true, heat pumps are sized based on the maximum of heating and cooling design loads.
+If false, heat pumps are sized per ACCA Manual J/S based on cooling design loads with some oversizing allowances for heating design loads.
+If not provided, the default value of true is used.
 
 HPXML Building Details
 ----------------------
@@ -203,7 +224,7 @@ basement - unconditioned                                                        
 crawlspace - vented                                                               EnergyPlus calculation                                    Any
 crawlspace - unvented                                                             EnergyPlus calculation                                    Any
 garage                          Single-family garage (not shared parking garage)  EnergyPlus calculation                                    Any
-other housing unit              E.g., adjacent unit or conditioned corridor       Same as conditioned space                                 Attached/Multifamily only
+other housing unit              E.g., conditioned adjacent unit or corridor       Same as conditioned space                                 Attached/Multifamily only
 other heated space              E.g., shared laundry/equipment space              Average of conditioned space and outside; minimum of 68F  Attached/Multifamily only
 other multifamily buffer space  E.g., enclosed unconditioned stairwell            Average of conditioned space and outside; minimum of 50F  Attached/Multifamily only
 other non-freezing space        E.g., shared parking garage ceiling               Floats with outside; minimum of 40F                       Attached/Multifamily only
@@ -627,7 +648,7 @@ outside                                                                         
 exterior wall                                                                     Average of conditioned space and outside                   Any
 under slab                                                                        Ground                                                     Any
 roof deck                                                                         Outside                                                    Any
-other housing unit              E.g., adjacent unit or conditioned corridor       Same as conditioned space                                  Attached/Multifamily only
+other housing unit              E.g., conditioned adjacent unit or corridor       Same as conditioned space                                  Attached/Multifamily only
 other heated space              E.g., shared laundry/equipment space              Average of conditioned space and outside; minimum of 68F   Attached/Multifamily only
 other multifamily buffer space  E.g., enclosed unconditioned stairwell            Average of conditioned space and outside; minimum of 50F   Attached/Multifamily only
 other non-freezing space        E.g., shared parking garage ceiling               Floats with outside; minimum of 40F                        Attached/Multifamily only
@@ -796,7 +817,7 @@ garage                          Single-family garage (not shared parking garage)
 crawlspace - unvented                                                             EnergyPlus calculation                                     Any
 crawlspace - vented                                                               EnergyPlus calculation                                     Any
 other exterior                  Outside                                           EnergyPlus calculation                                     Any
-other housing unit              E.g., adjacent unit or conditioned corridor       Same as conditioned space                                  Attached/Multifamily only
+other housing unit              E.g., conditioned adjacent unit or corridor       Same as conditioned space                                  Attached/Multifamily only
 other heated space              E.g., shared laundry/equipment space              Average of conditioned space and outside; minimum of 68F   Attached/Multifamily only
 other multifamily buffer space  E.g., enclosed unconditioned stairwell            Average of conditioned space and outside; minimum of 50F   Attached/Multifamily only
 other non-freezing space        E.g., shared parking garage ceiling               Floats with outside; minimum of 40F                        Attached/Multifamily only
@@ -930,7 +951,6 @@ HPXML Photovoltaics
 Each solar electric (photovoltaic) system should be entered as a ``Systems/Photovoltaics/PVSystem``.
 The following elements, some adopted from the `PVWatts model <https://pvwatts.nrel.gov>`_, are required for each PV system:
 
-- ``IsSharedSystem``: true or false
 - ``Location``: 'ground' or 'roof' mounted
 - ``ModuleType``: 'standard', 'premium', or 'thin film'
 - ``Tracking``: 'fixed' or '1-axis' or '1-axis backtracked' or '2-axis'
@@ -947,8 +967,9 @@ If ``SystemLossesFraction`` is not provided but ``YearModulesManufactured`` is p
 
 .. math:: System Losses Fraction = 1.0 - (1.0 - 0.14) \cdot (1.0 - (1.0 - 0.995^{(CurrentYear - YearModulesManufactured)}))
 
-If the PV system is a shared system (i.e., serving multiple dwelling units), it should be described using ``IsSharedSystem='true'``.
-In addition, the total number of bedrooms across all dwelling units served by the system must be entered as ``extension/NumberofBedroomsServed``.
+The PV system may be optionally described as a shared system (i.e., serving multiple dwelling units) using ``IsSharedSystem``.
+If not provided, it is assumed to be false.
+If provided and true, the total number of bedrooms across all dwelling units served by the system must be entered as ``extension/NumberofBedroomsServed``.
 PV generation will be apportioned to the dwelling unit using its number of bedrooms divided by the total number of bedrooms in the building.
 
 HPXML Appliances
@@ -965,7 +986,7 @@ living space                    Above-grade conditioned floor area              
 basement - conditioned          Below-grade conditioned floor area                Any
 basement - unconditioned                                                          Any
 garage                          Single-family garage (not shared parking garage)  Any
-other housing unit              E.g., adjacent unit or conditioned corridor       Attached/Multifamily only
+other housing unit              E.g., conditioned adjacent unit or corridor       Attached/Multifamily only
 other heated space              E.g., shared laundry/equipment space              Attached/Multifamily only
 other multifamily buffer space  E.g., enclosed unconditioned stairwell            Attached/Multifamily only
 other non-freezing space        E.g., shared parking garage ceiling               Attached/Multifamily only

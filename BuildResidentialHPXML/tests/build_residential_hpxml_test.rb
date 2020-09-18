@@ -113,7 +113,8 @@ class BuildResidentialHPXMLTest < MiniTest::Test
     }
 
     expected_error_msgs = {
-      'multiple-heating-and-cooling-systems.osw' => 'heating_system_type=Furnace and cooling_system_type=central air conditioner and heat_pump_type=air-to-air',
+      'heating-system-and-heat-pump.osw' => 'heating_system_type=Furnace and heat_pump_type=air-to-air',
+      'cooling-system-and-heat-pump.osw' => 'cooling_system_type=central air conditioner and heat_pump_type=air-to-air',
       'non-integer-geometry-num-bathrooms.osw' => 'geometry_num_bathrooms=1.5',
       'non-integer-ceiling-fan-quantity.osw' => 'ceiling_fan_quantity=0.5',
       'single-family-detached-finished-basement-zero-foundation-height.osw' => 'geometry_unit_type=single-family detached and geometry_foundation_type=ConditionedBasement and geometry_foundation_height=0.0',
