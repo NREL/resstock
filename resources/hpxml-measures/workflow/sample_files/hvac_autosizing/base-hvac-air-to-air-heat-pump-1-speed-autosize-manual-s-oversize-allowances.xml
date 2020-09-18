@@ -11,6 +11,9 @@
       <SimulationControl>
         <Timestep>60</Timestep>
       </SimulationControl>
+      <HVACSizingControl>
+        <UseMaxLoadForHeatPumps>false</UseMaxLoadForHeatPumps>
+      </HVACSizingControl>
     </extension>
   </SoftwareInfo>
   <Building>
@@ -304,34 +307,29 @@
       <Systems>
         <HVAC>
           <HVACPlant>
-            <HeatingSystem>
-              <SystemIdentifier id='HeatingSystem'/>
+            <HeatPump>
+              <SystemIdentifier id='HeatPump'/>
               <DistributionSystem idref='HVACDistribution'/>
-              <HeatingSystemType>
-                <Furnace/>
-              </HeatingSystemType>
-              <HeatingSystemFuel>natural gas</HeatingSystemFuel>
-              <HeatingCapacity>64000.0</HeatingCapacity>
-              <AnnualHeatingEfficiency>
-                <Units>AFUE</Units>
-                <Value>0.92</Value>
-              </AnnualHeatingEfficiency>
-              <FractionHeatLoadServed>1.0</FractionHeatLoadServed>
-            </HeatingSystem>
-            <CoolingSystem>
-              <SystemIdentifier id='CoolingSystem'/>
-              <DistributionSystem idref='HVACDistribution'/>
-              <CoolingSystemType>central air conditioner</CoolingSystemType>
-              <CoolingSystemFuel>electricity</CoolingSystemFuel>
-              <CoolingCapacity>48000.0</CoolingCapacity>
+              <HeatPumpType>air-to-air</HeatPumpType>
+              <HeatPumpFuel>electricity</HeatPumpFuel>
               <CompressorType>single stage</CompressorType>
+              <CoolingSensibleHeatFraction>0.73</CoolingSensibleHeatFraction>
+              <BackupSystemFuel>electricity</BackupSystemFuel>
+              <BackupAnnualHeatingEfficiency>
+                <Units>Percent</Units>
+                <Value>1.0</Value>
+              </BackupAnnualHeatingEfficiency>
+              <FractionHeatLoadServed>1.0</FractionHeatLoadServed>
               <FractionCoolLoadServed>1.0</FractionCoolLoadServed>
               <AnnualCoolingEfficiency>
                 <Units>SEER</Units>
                 <Value>13.0</Value>
               </AnnualCoolingEfficiency>
-              <SensibleHeatFraction>0.73</SensibleHeatFraction>
-            </CoolingSystem>
+              <AnnualHeatingEfficiency>
+                <Units>HSPF</Units>
+                <Value>7.7</Value>
+              </AnnualHeatingEfficiency>
+            </HeatPump>
           </HVACPlant>
           <HVACControl>
             <SystemIdentifier id='HVACControl'/>
@@ -410,30 +408,6 @@
             <LowFlow>false</LowFlow>
           </WaterFixture>
         </WaterHeating>
-        <Photovoltaics>
-          <PVSystem>
-            <SystemIdentifier id='PVSystem'/>
-            <Location>roof</Location>
-            <ModuleType>standard</ModuleType>
-            <Tracking>fixed</Tracking>
-            <ArrayAzimuth>180</ArrayAzimuth>
-            <ArrayTilt>20.0</ArrayTilt>
-            <MaxPowerOutput>4000.0</MaxPowerOutput>
-            <InverterEfficiency>0.96</InverterEfficiency>
-            <SystemLossesFraction>0.14</SystemLossesFraction>
-          </PVSystem>
-          <PVSystem>
-            <SystemIdentifier id='PVSystem2'/>
-            <Location>roof</Location>
-            <ModuleType>premium</ModuleType>
-            <Tracking>fixed</Tracking>
-            <ArrayAzimuth>90</ArrayAzimuth>
-            <ArrayTilt>20.0</ArrayTilt>
-            <MaxPowerOutput>1500.0</MaxPowerOutput>
-            <InverterEfficiency>0.96</InverterEfficiency>
-            <SystemLossesFraction>0.14</SystemLossesFraction>
-          </PVSystem>
-        </Photovoltaics>
       </Systems>
       <Appliances>
         <ClothesWasher>

@@ -669,6 +669,7 @@ class HPXML < Object
              :eri_design, :timestep, :building_id, :event_type, :state_code,
              :sim_begin_month, :sim_begin_day_of_month, :sim_end_month, :sim_end_day_of_month,
              :dst_enabled, :dst_begin_month, :dst_begin_day_of_month, :dst_end_month, :dst_end_day_of_month,
+             :use_max_load_for_heat_pumps, :allow_increased_fixed_capacities,
              :apply_ashrae140_assumptions]
     attr_accessor(*ATTRS)
 
@@ -777,6 +778,12 @@ class HPXML < Object
           XMLHelper.add_element(daylight_saving, 'EndDayOfMonth', to_integer(@dst_end_day_of_month)) unless @dst_end_day_of_month.nil?
         end
       end
+      if (not @use_max_load_for_heat_pumps.nil?) || (not @allow_increased_fixed_capacities.nil?)
+        extension = XMLHelper.create_elements_as_needed(software_info, ['extension'])
+        hvac_sizing_control = XMLHelper.add_element(extension, 'HVACSizingControl')
+        XMLHelper.add_element(hvac_sizing_control, 'UseMaxLoadForHeatPumps', to_boolean(@use_max_load_for_heat_pumps)) unless @use_max_load_for_heat_pumps.nil?
+        XMLHelper.add_element(hvac_sizing_control, 'AllowIncreasedFixedCapacities', to_boolean(@allow_increased_fixed_capacities)) unless @allow_increased_fixed_capacities.nil?
+      end
 
       building = XMLHelper.add_element(hpxml, 'Building')
       building_building_id = XMLHelper.add_element(building, 'BuildingID')
@@ -814,6 +821,8 @@ class HPXML < Object
       @dst_end_month = to_integer_or_nil(XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/SimulationControl/DaylightSaving/EndMonth'))
       @dst_end_day_of_month = to_integer_or_nil(XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/SimulationControl/DaylightSaving/EndDayOfMonth'))
       @apply_ashrae140_assumptions = to_boolean_or_nil(XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/ApplyASHRAE140Assumptions'))
+      @use_max_load_for_heat_pumps = to_boolean_or_nil(XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/HVACSizingControl/UseMaxLoadForHeatPumps'))
+      @allow_increased_fixed_capacities = to_boolean_or_nil(XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/HVACSizingControl/AllowIncreasedFixedCapacities'))
       @building_id = HPXML::get_id(hpxml, 'Building/BuildingID')
       @event_type = XMLHelper.get_value(hpxml, 'Building/ProjectStatus/EventType')
       @state_code = XMLHelper.get_value(hpxml, 'Building/Site/Address/StateCode')
@@ -2972,7 +2981,7 @@ class HPXML < Object
       super(hpxml_object, *args)
     end
     ATTRS = [:id, :distribution_system_type, :annual_heating_dse, :annual_cooling_dse,
-             :duct_system_sealed, :duct_leakage_testing_exemption, :conditioned_floor_area_served,
+             :duct_system_sealed, :duct_leakage_to_outside_testing_exemption, :conditioned_floor_area_served,
              :number_of_return_registers, :hydronic_type, :hydronic_and_air_type]
     attr_accessor(*ATTRS)
     attr_reader(:duct_leakage_measurements, :ducts)
@@ -3070,7 +3079,7 @@ class HPXML < Object
         @duct_leakage_measurements.to_oga(distribution)
         @ducts.to_oga(distribution)
         XMLHelper.add_element(distribution, 'NumberofReturnRegisters', Integer(@number_of_return_registers)) unless @number_of_return_registers.nil?
-        XMLHelper.add_extension(distribution, 'DuctLeakageTestingExemption', to_boolean(@duct_leakage_testing_exemption)) unless @duct_leakage_testing_exemption.nil?
+        XMLHelper.add_extension(distribution, 'DuctLeakageToOutsideTestingExemption', to_boolean(@duct_leakage_to_outside_testing_exemption)) unless @duct_leakage_to_outside_testing_exemption.nil?
       end
     end
 
@@ -3101,7 +3110,7 @@ class HPXML < Object
         distribution = air_distribution
         distribution = hydronic_and_air_distribution if distribution.nil?
         @number_of_return_registers = to_integer_or_nil(XMLHelper.get_value(distribution, 'NumberofReturnRegisters'))
-        @duct_leakage_testing_exemption = to_boolean_or_nil(XMLHelper.get_value(distribution, 'extension/DuctLeakageTestingExemption'))
+        @duct_leakage_to_outside_testing_exemption = to_boolean_or_nil(XMLHelper.get_value(distribution, 'extension/DuctLeakageToOutsideTestingExemption'))
         @duct_leakage_measurements.from_oga(distribution)
         @ducts.from_oga(distribution)
       end

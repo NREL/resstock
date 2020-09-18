@@ -7,6 +7,7 @@
     <sch:rule context='/h:HPXML'>
       <sch:assert test='count(h:XMLTransactionHeaderInformation) = 1'>Expected 1 element(s) for xpath: XMLTransactionHeaderInformation</sch:assert> <!-- See [XMLTransaction] -->
       <sch:assert test='count(h:SoftwareInfo/h:extension/h:SimulationControl) &lt;= 1'>Expected 0 or 1 element(s) for xpath: SoftwareInfo/extension/SimulationControl</sch:assert> <!-- See [SimulationControl] -->
+      <sch:assert test='count(h:SoftwareInfo/h:extension/h:HVACSizingControl) &lt;= 1'>Expected 0 or 1 element(s) for xpath: SoftwareInfo/extension/HVACSizingControl</sch:assert> <!-- See [HVACSizingControl] -->
       <sch:assert test='count(h:Building) = 1'>Expected 1 element(s) for xpath: Building</sch:assert>
       <sch:assert test='count(h:Building/h:BuildingID) = 1'>Expected 1 element(s) for xpath: Building/BuildingID</sch:assert>
       <sch:assert test='count(h:Building/h:ProjectStatus/h:EventType) = 1'>Expected 1 element(s) for xpath: Building/ProjectStatus/EventType</sch:assert>
@@ -29,6 +30,13 @@
       <sch:assert test='(count(h:BeginMonth) = 0 and count(h:BeginDayOfMonth) = 0) or (count(h:BeginMonth) = 1 and count(h:BeginDayOfMonth) = 1)'>Expected 0 or 2 element(s) for xpath: BeginMonth | BeginDayOfMonth</sch:assert> <!-- integer -->
       <sch:assert test='(count(h:EndMonth) = 0 and count(h:EndDayOfMonth) = 0) or (count(h:EndMonth) = 1 and count(h:EndDayOfMonth) = 1)'>Expected 0 or 2 element(s) for xpath: EndMonth | EndDayOfMonth</sch:assert> <!-- integer -->
       <sch:assert test='count(h:DaylightSaving) &lt;= 1'>Expected 0 or 1 element(s) for xpath: DaylightSaving</sch:assert> <!-- See [DaylightSaving] -->
+    </sch:rule>
+  </sch:pattern>
+
+  <sch:pattern name='[HVACSizingControl]'>
+    <sch:rule context='/h:HPXML/h:SoftwareInfo/h:extension/h:HVACSizingControl'>
+      <sch:assert test='count(h:AllowIncreasedFixedCapacities) &lt;= 1'>Expected 0 or 1 element(s) for xpath: AllowIncreasedFixedCapacities</sch:assert> <!-- boolean -->
+      <sch:assert test='count(h:UseMaxLoadForHeatPumps) &lt;= 1'>Expected 0 or 1 element(s) for xpath: UseMaxLoadForHeatPumps</sch:assert> <!-- boolean -->
     </sch:rule>
   </sch:pattern>
 
@@ -903,7 +911,7 @@
   <sch:pattern name='[PVSystem]'>
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Systems/h:Photovoltaics/h:PVSystem'>
       <sch:assert test='count(h:SystemIdentifier) = 1'>Expected 1 element(s) for xpath: SystemIdentifier</sch:assert>
-      <sch:assert test='count(h:IsSharedSystem) = 1'>Expected 1 element(s) for xpath: IsSharedSystem</sch:assert> <!-- See [PVSystem=Shared] -->
+      <sch:assert test='count(h:IsSharedSystem) &lt;= 1'>Expected 0 or 1 element(s) for xpath: IsSharedSystem</sch:assert> <!-- See [PVSystem=Shared] -->
       <sch:assert test='count(h:Location[text()="ground" or text()="roof"]) = 1'>Expected 1 element(s) for xpath: Location[text()="ground" or text()="roof"]</sch:assert>
       <sch:assert test='count(h:ModuleType[text()="standard" or text()="premium" or text()="thin film"]) = 1'>Expected 1 element(s) for xpath: ModuleType[text()="standard" or text()="premium" or text()="thin film"]</sch:assert>
       <sch:assert test='count(h:Tracking[text()="fixed" or text()="1-axis" or text()="1-axis backtracked" or text()="2-axis"]) = 1'>Expected 1 element(s) for xpath: Tracking[text()="fixed" or text()="1-axis" or text()="1-axis backtracked" or text()="2-axis"]</sch:assert>

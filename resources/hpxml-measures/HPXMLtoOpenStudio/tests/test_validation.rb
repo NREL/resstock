@@ -6,10 +6,16 @@ require 'openstudio/ruleset/ShowRunnerOutput'
 require 'minitest/autorun'
 require 'fileutils'
 require_relative '../measure.rb'
+@@has_schematron_nokogiri_gem = false
 begin
   require 'schematron-nokogiri'
+  @@has_schematron_nokogiri_gem = true
 rescue LoadError
-  fail 'Could not load schematron-nokogiri gem. Try running with "bundle exec ruby ...".'
+  if ENV['CI'] # Ensure we test via schematron-nokogiri on the CI
+    fail 'Could not load schematron-nokogiri gem. Try running with "bundle exec ruby ...".'
+  else
+    puts 'Could not load schematron-nokogiri gem. Proceeding using ruby validation tests only...'
+  end
 end
 
 class HPXMLtoOpenStudioValidationTest < MiniTest::Test
@@ -18,11 +24,15 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
 
     # load the Schematron xml
     @stron_path = File.join(@root_path, 'HPXMLtoOpenStudio', 'resources', 'EPvalidator.xml')
-    # make a Schematron object
-    @stron_doc = SchematronNokogiri::Schema.new Nokogiri::XML File.open(@stron_path)
+
+    if @@has_schematron_nokogiri_gem
+      # make a Schematron object
+      @stron_doc = SchematronNokogiri::Schema.new Nokogiri::XML File.open(@stron_path)
+    end
 
     # Load all HPXMLs
     hpxml_file_dirs = [File.absolute_path(File.join(@root_path, 'workflow', 'sample_files')),
+                       File.absolute_path(File.join(@root_path, 'workflow', 'sample_files', 'hvac_autosizing')),
                        File.absolute_path(File.join(@root_path, 'workflow', 'tests', 'ASHRAE_Standard_140'))]
     @hpxml_docs = {}
     hpxml_file_dirs.each do |hpxml_file_dir|
@@ -58,19 +68,21 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
   end
 
   def test_sample_files
+    puts
     puts "Testing #{@hpxml_docs.size} HPXML files..."
     @hpxml_docs.each do |xml, hpxml_doc|
       print '.'
 
       # Test validation
       _test_schema_validation(hpxml_doc, xml)
-      _test_schematron_validation(@stron_doc, hpxml_doc.to_xml)
+      _test_schematron_validation(@stron_doc, hpxml_doc.to_xml) if @@has_schematron_nokogiri_gem
       _test_ruby_validation(hpxml_doc)
     end
     puts
   end
 
   def test_schematron_asserts_by_deletion
+    puts
     puts "Testing #{@expected_assertions_by_deletion.size} Schematron asserts by deletion..."
 
     # Tests by element deletion
@@ -82,12 +94,13 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
 
       # Test validation
       _test_ruby_validation(hpxml_doc, expected_error_msg)
-      _test_schematron_validation(@stron_doc, hpxml_doc.to_xml, expected_error_msg)
+      _test_schematron_validation(@stron_doc, hpxml_doc.to_xml, expected_error_msg) if @@has_schematron_nokogiri_gem
     end
     puts
   end
 
   def test_schematron_asserts_by_addition
+    puts
     puts "Testing #{@expected_assertions_by_addition.size} Schematron asserts by addition..."
 
     # Tests by element addition (i.e. zero_or_one, zero_or_two, etc.)
@@ -112,7 +125,7 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
       (max_number_of_elements_allowed + 1).times { mod_parent_element.children << duplicated }
 
       # Test validation
-      _test_schematron_validation(@stron_doc, hpxml_doc.to_xml, expected_error_msg)
+      _test_schematron_validation(@stron_doc, hpxml_doc.to_xml, expected_error_msg) if @@has_schematron_nokogiri_gem
       _test_ruby_validation(hpxml_doc, expected_error_msg)
     end
     puts

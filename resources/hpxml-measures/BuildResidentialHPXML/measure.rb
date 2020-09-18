@@ -15,6 +15,8 @@ require_relative '../HPXMLtoOpenStudio/resources/constants'
 require_relative '../HPXMLtoOpenStudio/resources/constructions'
 require_relative '../HPXMLtoOpenStudio/resources/geometry'
 require_relative '../HPXMLtoOpenStudio/resources/hpxml'
+require_relative '../HPXMLtoOpenStudio/resources/materials'
+require_relative '../HPXMLtoOpenStudio/resources/psychrometrics'
 require_relative '../HPXMLtoOpenStudio/resources/schedules'
 require_relative '../HPXMLtoOpenStudio/resources/unit_conversions'
 require_relative '../HPXMLtoOpenStudio/resources/validator'
@@ -3623,9 +3625,13 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     warning = ([HPXML::WaterHeaterTypeHeatPump].include?(args[:water_heater_type]) && (args[:water_heater_fuel_type] != HPXML::FuelTypeElectricity))
     warnings << "water_heater_type=#{args[:water_heater_type]} and water_heater_fuel_type=#{args[:water_heater_fuel_type]}" if warning
 
-    # furnace, air conditioner, and heat pump
-    error = (args[:heating_system_type] != 'none') && (args[:cooling_system_type] != 'none') && (args[:heat_pump_type] != 'none')
-    errors << "heating_system_type=#{args[:heating_system_type]} and cooling_system_type=#{args[:cooling_system_type]} and heat_pump_type=#{args[:heat_pump_type]}" if error
+    # heating system and heat pump
+    error = (args[:heating_system_type] != 'none') && (args[:heat_pump_type] != 'none') && (args[:heating_system_fraction_heat_load_served] > 0) && (args[:heat_pump_fraction_heat_load_served] > 0)
+    errors << "heating_system_type=#{args[:heating_system_type]} and heat_pump_type=#{args[:heat_pump_type]}" if error
+
+    # cooling system and heat pump
+    error = (args[:cooling_system_type] != 'none') && (args[:heat_pump_type] != 'none') && (args[:cooling_system_fraction_cool_load_served] > 0) && (args[:heat_pump_fraction_cool_load_served] > 0)
+    errors << "cooling_system_type=#{args[:cooling_system_type]} and heat_pump_type=#{args[:heat_pump_type]}" if error
 
     # non integer number of bathrooms
     if args[:geometry_num_bathrooms] != Constants.Auto
@@ -5043,7 +5049,6 @@ class HPXMLFile
         system_losses_fraction = [args[:pv_system_system_losses_fraction_1], args[:pv_system_system_losses_fraction_2]][i].get
       end
 
-      is_shared_system = false
       if [args[:pv_system_is_shared_1], args[:pv_system_is_shared_2]][i]
         is_shared_system = [args[:pv_system_is_shared_1], args[:pv_system_is_shared_2]][i]
         number_of_bedrooms_served = args[:geometry_building_num_bedrooms].get

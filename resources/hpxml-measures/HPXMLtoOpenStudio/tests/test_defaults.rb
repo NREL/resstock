@@ -43,9 +43,11 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.header.dst_begin_day_of_month = 3
     hpxml.header.dst_end_month = 10
     hpxml.header.dst_end_day_of_month = 10
+    hpxml.header.use_max_load_for_heat_pumps = false
+    hpxml.header.allow_increased_fixed_capacities = true
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_header_values(hpxml_default, 30, 2, 2, 11, 11, false, 3, 3, 10, 10)
+    _test_default_header_values(hpxml_default, 30, 2, 2, 11, 11, false, 3, 3, 10, 10, false, true)
 
     # Test defaults - DST not in weather file
     hpxml.header.timestep = nil
@@ -58,9 +60,11 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.header.dst_begin_day_of_month = nil
     hpxml.header.dst_end_month = nil
     hpxml.header.dst_end_day_of_month = nil
+    hpxml.header.use_max_load_for_heat_pumps = nil
+    hpxml.header.allow_increased_fixed_capacities = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_header_values(hpxml_default, 60, 1, 1, 12, 31, true, 3, 12, 11, 5)
+    _test_default_header_values(hpxml_default, 60, 1, 1, 12, 31, true, 3, 12, 11, 5, true, false)
 
     # Test defaults - DST in weather file
     hpxml = _create_hpxml('base-location-epw-filepath-AMY-2012.xml')
@@ -74,9 +78,11 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.header.dst_begin_day_of_month = nil
     hpxml.header.dst_end_month = nil
     hpxml.header.dst_end_day_of_month = nil
+    hpxml.header.use_max_load_for_heat_pumps = nil
+    hpxml.header.allow_increased_fixed_capacities = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_header_values(hpxml_default, 60, 1, 1, 12, 31, true, 3, 11, 11, 4)
+    _test_default_header_values(hpxml_default, 60, 1, 1, 12, 31, true, 3, 11, 11, 4, true, false)
   end
 
   def test_site
@@ -1285,7 +1291,10 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
   def test_pv_systems
     # Test inputs not overridden by defaults
     hpxml = _create_hpxml('base-pv.xml')
+    hpxml.building_construction.residential_facility_type = HPXML::ResidentialTypeSFA
     hpxml.pv_systems.each do |pv|
+      pv.is_shared_system = true
+      pv.number_of_bedrooms_served = 20
       pv.inverter_efficiency = 0.90
       pv.system_losses_fraction = 0.20
     end
@@ -1293,10 +1302,11 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml_default = _test_measure()
     expected_interver_efficiency = [0.90, 0.90]
     expected_system_loss_frac = [0.20, 0.20]
-    _test_default_pv_system_values(hpxml_default, expected_interver_efficiency, expected_system_loss_frac)
+    _test_default_pv_system_values(hpxml_default, expected_interver_efficiency, expected_system_loss_frac, true)
 
     # Test defaults w/o year modules manufactured
     hpxml.pv_systems.each do |pv|
+      pv.is_shared_system = nil
       pv.inverter_efficiency = nil
       pv.system_losses_fraction = nil
     end
@@ -1304,7 +1314,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml_default = _test_measure()
     expected_interver_efficiency = [0.96, 0.96]
     expected_system_loss_frac = [0.14, 0.14]
-    _test_default_pv_system_values(hpxml_default, expected_interver_efficiency, expected_system_loss_frac)
+    _test_default_pv_system_values(hpxml_default, expected_interver_efficiency, expected_system_loss_frac, false)
 
     # Test defaults w/ year modules manufactured
     hpxml.pv_systems.each do |pv|
@@ -1314,7 +1324,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml_default = _test_measure()
     expected_interver_efficiency = [0.96, 0.96]
     expected_system_loss_frac = [0.182, 0.182]
-    _test_default_pv_system_values(hpxml_default, expected_interver_efficiency, expected_system_loss_frac)
+    _test_default_pv_system_values(hpxml_default, expected_interver_efficiency, expected_system_loss_frac, false)
   end
 
   def _test_measure()
@@ -1352,7 +1362,9 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     return hpxml_default
   end
 
-  def _test_default_header_values(hpxml, tstep, sim_begin_month, sim_begin_day, sim_end_month, sim_end_day, dst_enabled, dst_begin_month, dst_begin_day_of_month, dst_end_month, dst_end_day_of_month)
+  def _test_default_header_values(hpxml, tstep, sim_begin_month, sim_begin_day, sim_end_month, sim_end_day,
+                                  dst_enabled, dst_begin_month, dst_begin_day_of_month, dst_end_month, dst_end_day_of_month,
+                                  use_max_load_for_heat_pumps, allow_increased_fixed_capacities)
     assert_equal(tstep, hpxml.header.timestep)
     assert_equal(sim_begin_month, hpxml.header.sim_begin_month)
     assert_equal(sim_begin_day, hpxml.header.sim_begin_day_of_month)
@@ -1363,6 +1375,8 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     assert_equal(dst_begin_day_of_month, hpxml.header.dst_begin_day_of_month)
     assert_equal(dst_end_month, hpxml.header.dst_end_month)
     assert_equal(dst_end_day_of_month, hpxml.header.dst_end_day_of_month)
+    assert_equal(use_max_load_for_heat_pumps, hpxml.header.use_max_load_for_heat_pumps)
+    assert_equal(allow_increased_fixed_capacities, hpxml.header.allow_increased_fixed_capacities)
   end
 
   def _test_default_site_values(hpxml, site_type, shelter_coefficient)
@@ -1412,9 +1426,10 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     end
   end
 
-  def _test_default_pv_system_values(hpxml, interver_efficiency, system_loss_frac)
+  def _test_default_pv_system_values(hpxml, interver_efficiency, system_loss_frac, is_shared_system)
     assert_equal(interver_efficiency.size, hpxml.pv_systems.size)
     hpxml.pv_systems.each_with_index do |pv, idx|
+      assert_equal(is_shared_system, pv.is_shared_system)
       assert_equal(interver_efficiency[idx], pv.inverter_efficiency)
       assert_in_epsilon(system_loss_frac[idx], pv.system_losses_fraction, 0.01)
     end
