@@ -423,3 +423,71 @@ end
 def software_program_version
   return version['__version__']
 end
+
+class RunOSWs
+  require 'csv'
+  require 'json'
+
+  def self.add_simulation_output_report(osw)
+    json = JSON.parse(File.read(osw))
+    simulation_output_report = { 'measure_dir_name' => 'SimulationOutputReport' }
+    json['steps'] << simulation_output_report
+
+    File.open(osw, 'w') do |f|
+      f.write(JSON.pretty_generate(json))
+    end
+  end
+
+  def self.run_and_check(in_osw, parent_dir)
+    # Run workflow
+    cli_path = OpenStudio.getOpenStudioCLI
+    command = "cd #{parent_dir} && \"#{cli_path}\" run -w #{in_osw}"
+    simulation_start = Time.now
+    system(command)
+    sim_time = (Time.now - simulation_start).round(1)
+    out_osw = File.join(parent_dir, 'out.osw')
+
+    data_point_out = File.join(parent_dir, 'run/data_point_out.json')
+    result = { 'OSW' => File.basename(in_osw) }
+    result = get_simulation_output_report(result, data_point_out)
+    result['simulation_time'] = sim_time
+    return out_osw, result
+  end
+
+  def self.get_simulation_output_report(result, data_point_out)
+    rows = JSON.parse(File.read(File.expand_path(data_point_out)))
+    result = result.merge(rows['SimulationOutputReport'])
+    result.delete('applicable')
+    result.delete('upgrade_name')
+    result.delete('upgrade_cost_usd')
+    return result
+  end
+
+  def self.write_summary_results(results_dir, results)
+    Dir.mkdir(results_dir)
+    csv_out = File.join(results_dir, 'results.csv')
+
+    column_headers = results[0].keys.sort
+    CSV.open(csv_out, 'wb') do |csv|
+      csv << column_headers
+      results.each do |result|
+        csv_row = []
+        column_headers.each do |column_header|
+          csv_row << result[column_header]
+        end
+        csv << csv_row
+      end
+    end
+  end
+
+  def self._rm_path(path)
+    if Dir.exist?(path)
+      FileUtils.rm_r(path)
+    end
+    while true
+      break if not Dir.exist?(path)
+
+      sleep(0.01)
+    end
+  end
+end
