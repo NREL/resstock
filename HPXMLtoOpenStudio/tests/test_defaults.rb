@@ -663,7 +663,31 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     _test_default_solar_thermal_values(hpxml_default, 150.0)
   end
 
-  def test_ventilation_fans
+  def test_mech_ventilation_fans
+    # Test inputs not overridden by defaults
+    hpxml = _create_hpxml('base-mechvent-exhaust.xml')
+    hpxml.building_construction.residential_facility_type = HPXML::ResidentialTypeSFA
+    vent_fan = hpxml.ventilation_fans.select { |f| f.used_for_whole_building_ventilation }[0]
+    vent_fan.is_shared_system = true
+    vent_fan.fraction_recirculation = 0.0
+    vent_fan.in_unit_flow_rate = 10.0
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    _test_default_mech_vent_values(hpxml_default, true)
+
+    # Test defaults
+    vent_fan.rated_flow_rate = nil
+    vent_fan.start_hour = nil
+    vent_fan.quantity = nil
+    vent_fan.is_shared_system = nil
+    vent_fan.fraction_recirculation = nil
+    vent_fan.in_unit_flow_rate = nil
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    _test_default_mech_vent_values(hpxml_default, false)
+  end
+
+  def test_local_ventilation_fans
     # Test inputs not overridden by defaults
     hpxml = _create_hpxml('base-mechvent-bath-kitchen-fans.xml')
     kitchen_fan = hpxml.ventilation_fans.select { |f| f.used_for_local_ventilation && f.fan_location == HPXML::LocationKitchen }[0]
@@ -1724,6 +1748,11 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
 
   def _test_default_solar_thermal_values(hpxml, storage_volume)
     assert_in_epsilon(storage_volume, hpxml.solar_thermal_systems[0].storage_volume)
+  end
+
+  def _test_default_mech_vent_values(hpxml, is_shared_system)
+    vent_fan = hpxml.ventilation_fans.select { |f| f.used_for_whole_building_ventilation }[0]
+    assert_equal(is_shared_system, vent_fan.is_shared_system)
   end
 
   def _test_default_kitchen_fan_values(hpxml, quantity, rated_flow_rate, hours_in_operation, fan_power, start_hour)

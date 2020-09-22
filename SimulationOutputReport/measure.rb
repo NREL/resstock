@@ -434,15 +434,20 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       outputs[:hpxml_eec_heats] = get_hpxml_eec_heats()
       outputs[:hpxml_eec_cools] = get_hpxml_eec_cools()
       outputs[:hpxml_eec_dhws] = get_hpxml_eec_dhws()
+      outputs[:hpxml_eec_vent_preheats] = get_hpxml_eec_vent_preheats()
+      outputs[:hpxml_eec_vent_precools] = get_hpxml_eec_vent_precools()
     end
     outputs[:hpxml_heat_sys_ids] = get_hpxml_heat_sys_ids()
     outputs[:hpxml_cool_sys_ids] = get_hpxml_cool_sys_ids()
+    outputs[:hpxml_vent_preheat_sys_ids] = get_hpxml_vent_preheat_sys_ids()
+    outputs[:hpxml_vent_precool_sys_ids] = get_hpxml_vent_precool_sys_ids()
     outputs[:hpxml_dehumidifier_id] = @hpxml.dehumidifiers[0].id if @hpxml.dehumidifiers.size > 0
     outputs[:hpxml_dhw_sys_ids] = get_hpxml_dhw_sys_ids()
     outputs[:hpxml_dse_heats] = get_hpxml_dse_heats(outputs[:hpxml_heat_sys_ids])
     outputs[:hpxml_dse_cools] = get_hpxml_dse_cools(outputs[:hpxml_cool_sys_ids])
     outputs[:hpxml_heat_fuels] = get_hpxml_heat_fuels()
     outputs[:hpxml_dwh_fuels] = get_hpxml_dhw_fuels()
+    outputs[:hpxml_vent_preheat_fuels] = get_hpxml_vent_preheat_fuels()
 
     # Fuel Uses
     @fuels.each do |fuel_type, fuel|
@@ -569,6 +574,34 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       # Reference Load
       if [Constants.CalcTypeERIReferenceHome, Constants.CalcTypeERIIndexAdjustmentReferenceHome].include? @eri_design
         @loads[LT::Cooling].annual_output_by_system[sys_id] = split_clg_load_to_system_by_fraction(sys_id, @loads[LT::Cooling].annual_output)
+      end
+    end
+
+    # Mech Vent Preheating (by System)
+    outputs[:hpxml_vent_preheat_sys_ids].each do |sys_id|
+      ep_output_names = get_ep_output_names_for_vent_preconditioning(sys_id)
+      keys = ep_output_names.map(&:upcase)
+
+      @fuels.each do |fuel_type, fuel|
+        end_use = @end_uses[[fuel_type, EUT::MechVentPreheat]]
+        vars = get_all_var_keys(end_use.variable)
+        end_use.annual_output_by_system[sys_id] = get_report_variable_data_annual(keys, vars)
+        if include_timeseries_end_use_consumptions
+          end_use.timeseries_output_by_system[sys_id] = get_report_variable_data_timeseries(keys, vars, UnitConversions.convert(1.0, 'J', end_use.timeseries_units), 0, timeseries_frequency)
+        end
+      end
+    end
+
+    # Mech Vent Precooling (by System)
+    outputs[:hpxml_vent_precool_sys_ids].each do |sys_id|
+      ep_output_names = get_ep_output_names_for_vent_preconditioning(sys_id)
+      keys = ep_output_names.map(&:upcase)
+
+      end_use = @end_uses[[FT::Elec, EUT::MechVentPrecool]]
+      vars = get_all_var_keys(end_use.variable)
+      end_use.annual_output_by_system[sys_id] = get_report_variable_data_annual(keys, vars)
+      if include_timeseries_end_use_consumptions
+        end_use.timeseries_output_by_system[sys_id] = get_report_variable_data_timeseries(keys, vars, UnitConversions.convert(1.0, 'J', end_use.timeseries_units), 0, timeseries_frequency)
       end
     end
 
@@ -896,9 +929,13 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       return vals
     end
 
-    def get_sys_ids(type, heat_sys_ids, cool_sys_ids, dhw_sys_ids)
+    def get_sys_ids(type, heat_sys_ids, cool_sys_ids, dhw_sys_ids, vent_preheat_sys_ids, vent_precool_sys_ids)
       if type.downcase.include? 'hot water'
         return dhw_sys_ids
+      elsif type.downcase.include? 'mech vent preheating'
+        return vent_preheat_sys_ids
+      elsif type.downcase.include? 'mech vent precooling'
+        return vent_precool_sys_ids
       elsif type.downcase.include? 'heating'
         return heat_sys_ids
       elsif type.downcase.include? 'cooling'
@@ -913,22 +950,29 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     heat_sys_ids = outputs[:hpxml_heat_sys_ids]
     cool_sys_ids = outputs[:hpxml_cool_sys_ids]
     dhw_sys_ids = outputs[:hpxml_dhw_sys_ids]
+    vent_preheat_sys_ids = outputs[:hpxml_vent_preheat_sys_ids]
+    vent_precool_sys_ids = outputs[:hpxml_vent_precool_sys_ids]
 
     # Sys IDS
     results_out << ['hpxml_heat_sys_ids', heat_sys_ids.to_s]
     results_out << ['hpxml_cool_sys_ids', cool_sys_ids.to_s]
     results_out << ['hpxml_dhw_sys_ids', dhw_sys_ids.to_s]
+    results_out << ['hpxml_vent_preheat_sys_ids', vent_preheat_sys_ids.to_s]
+    results_out << ['hpxml_vent_precool_sys_ids', vent_precool_sys_ids.to_s]
     results_out << [line_break]
 
     # EECs
     results_out << ['hpxml_eec_heats', ordered_values(outputs[:hpxml_eec_heats], heat_sys_ids).to_s]
     results_out << ['hpxml_eec_cools', ordered_values(outputs[:hpxml_eec_cools], cool_sys_ids).to_s]
     results_out << ['hpxml_eec_dhws', ordered_values(outputs[:hpxml_eec_dhws], dhw_sys_ids).to_s]
+    results_out << ['hpxml_eec_vent_preheats', ordered_values(outputs[:hpxml_eec_vent_preheats], vent_preheat_sys_ids).to_s]
+    results_out << ['hpxml_eec_vent_precools', ordered_values(outputs[:hpxml_eec_vent_precools], vent_precool_sys_ids).to_s]
     results_out << [line_break]
 
     # Fuel types
     results_out << ['hpxml_heat_fuels', ordered_values(outputs[:hpxml_heat_fuels], heat_sys_ids).to_s]
     results_out << ['hpxml_dwh_fuels', ordered_values(outputs[:hpxml_dwh_fuels], dhw_sys_ids).to_s]
+    results_out << ['hpxml_vent_preheat_fuels', ordered_values(outputs[:hpxml_vent_preheat_fuels], vent_preheat_sys_ids).to_s]
     results_out << [line_break]
 
     # Fuel uses
@@ -943,7 +987,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       fuel_type, end_use_type = key
       key_name = sanitize_string("enduse#{fuel_type}#{end_use_type}")
       if not end_use.annual_output_by_system.empty?
-        sys_ids = get_sys_ids(end_use_type, heat_sys_ids, cool_sys_ids, dhw_sys_ids)
+        sys_ids = get_sys_ids(end_use_type, heat_sys_ids, cool_sys_ids, dhw_sys_ids, vent_preheat_sys_ids, vent_precool_sys_ids)
         results_out << [key_name, ordered_values(end_use.annual_output_by_system, sys_ids).to_s]
       else
         results_out << [key_name, end_use.annual_output.to_s]
@@ -955,7 +999,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     @loads.each do |load_type, load|
       key_name = sanitize_string("load#{load_type}")
       if not load.annual_output_by_system.empty?
-        sys_ids = get_sys_ids(load_type, heat_sys_ids, cool_sys_ids, dhw_sys_ids)
+        sys_ids = get_sys_ids(load_type, heat_sys_ids, cool_sys_ids, dhw_sys_ids, vent_preheat_sys_ids, vent_precool_sys_ids)
         results_out << [key_name, ordered_values(load.annual_output_by_system, sys_ids).to_s]
       end
     end
@@ -1169,6 +1213,20 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     return dhw_fuels
   end
 
+  def get_hpxml_vent_preheat_fuels()
+    vent_preheat_fuels = {}
+
+    @hpxml.ventilation_fans.each do |vent_fan|
+      next unless vent_fan.used_for_whole_building_ventilation
+      next if vent_fan.preheating_fuel.nil?
+
+      sys_id = "#{vent_fan.id}_preheat"
+      vent_preheat_fuels[sys_id] = vent_fan.preheating_fuel
+    end
+
+    return vent_preheat_fuels
+  end
+
   def get_hpxml_heat_sys_ids()
     sys_ids = []
 
@@ -1201,6 +1259,32 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       next unless heat_pump.fraction_cool_load_served > 0
 
       sys_ids << get_system_or_seed_id(heat_pump)
+    end
+
+    return sys_ids
+  end
+
+  def get_hpxml_vent_preheat_sys_ids()
+    sys_ids = []
+
+    @hpxml.ventilation_fans.each do |vent_fan|
+      next unless vent_fan.used_for_whole_building_ventilation
+      next if vent_fan.preheating_fuel.nil?
+
+      sys_ids << "#{vent_fan.id}_preheat"
+    end
+
+    return sys_ids
+  end
+
+  def get_hpxml_vent_precool_sys_ids()
+    sys_ids = []
+
+    @hpxml.ventilation_fans.each do |vent_fan|
+      next unless vent_fan.used_for_whole_building_ventilation
+      next if vent_fan.precooling_fuel.nil?
+
+      sys_ids << "#{vent_fan.id}_precool"
     end
 
     return sys_ids
@@ -1308,6 +1392,34 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     end
 
     return eec_dhws
+  end
+
+  def get_hpxml_eec_vent_preheats()
+    eec_vent_preheats = {}
+
+    @hpxml.ventilation_fans.each do |vent_fan|
+      next unless vent_fan.used_for_whole_building_ventilation
+      next if vent_fan.preheating_fuel.nil?
+
+      sys_id = "#{vent_fan.id}_preheat"
+      eec_vent_preheats[sys_id] = get_eri_eec_value_numerator('COP') / vent_fan.preheating_efficiency_cop
+    end
+
+    return eec_vent_preheats
+  end
+
+  def get_hpxml_eec_vent_precools()
+    eec_vent_precools = {}
+
+    @hpxml.ventilation_fans.each do |vent_fan|
+      next unless vent_fan.used_for_whole_building_ventilation
+      next if vent_fan.precooling_fuel.nil?
+
+      sys_id = "#{vent_fan.id}_precool"
+      eec_vent_precools[sys_id] = get_eri_eec_value_numerator('COP') / vent_fan.precooling_efficiency_cop
+    end
+
+    return eec_vent_precools
   end
 
   def get_eri_eec_value_numerator(unit)
@@ -1569,6 +1681,10 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     return @dhw_map[sys_id]
   end
 
+  def get_ep_output_names_for_vent_preconditioning(sys_id)
+    return @hvac_map[sys_id]
+  end
+
   def get_object_maps()
     # Retrieve HPXML->E+ object name maps
     @hvac_map = eval(@model.getBuilding.additionalProperties.getFeatureAsString('hvac_map').get)
@@ -1586,7 +1702,14 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
                         OutputVars.SpaceHeatingDFHPPrimaryLoad,
                         OutputVars.SpaceHeatingDFHPBackupLoad,
                         OutputVars.SpaceCoolingElectricity,
-                        OutputVars.DehumidifierElectricity]
+                        OutputVars.DehumidifierElectricity,
+                        OutputVars.MechVentPreconditioningElectricity,
+                        OutputVars.MechVentPreconditioningFuel(EPlus::FuelTypeNaturalGas),
+                        OutputVars.MechVentPreconditioningFuel(EPlus::FuelTypeOil),
+                        OutputVars.MechVentPreconditioningFuel(EPlus::FuelTypePropane),
+                        OutputVars.MechVentPreconditioningFuel(EPlus::FuelTypeWoodCord),
+                        OutputVars.MechVentPreconditioningFuel(EPlus::FuelTypeWoodPellets),
+                        OutputVars.MechVentPreconditioningFuel(EPlus::FuelTypeCoal)]
 
     dhw_output_vars = [OutputVars.WaterHeatingElectricity,
                        OutputVars.WaterHeatingElectricityRecircPump,
@@ -1854,6 +1977,8 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     @end_uses[[FT::Elec, EUT::LightsGarage]] = EndUse.new(meter: "#{Constants.ObjectNameGarageLighting}:InteriorLights:Electricity")
     @end_uses[[FT::Elec, EUT::LightsExterior]] = EndUse.new(meter: 'ExteriorLights:Electricity')
     @end_uses[[FT::Elec, EUT::MechVent]] = EndUse.new(meter: "#{Constants.ObjectNameMechanicalVentilation}:InteriorEquipment:Electricity")
+    @end_uses[[FT::Elec, EUT::MechVentPreheat]] = EndUse.new(variable: OutputVars.MechVentPreconditioningElectricity)
+    @end_uses[[FT::Elec, EUT::MechVentPrecool]] = EndUse.new(variable: OutputVars.MechVentPreconditioningElectricity)
     @end_uses[[FT::Elec, EUT::WholeHouseFan]] = EndUse.new(meter: "#{Constants.ObjectNameWholeHouseFan}:InteriorEquipment:Electricity")
     @end_uses[[FT::Elec, EUT::Refrigerator]] = EndUse.new(meter: "#{Constants.ObjectNameRefrigerator}:InteriorEquipment:Electricity")
     if @eri_design.nil? # Skip end uses not used by ERI
@@ -1880,6 +2005,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     @end_uses[[FT::Gas, EUT::HotWater]] = EndUse.new(variable: OutputVars.WaterHeatingFuel(EPlus::FuelTypeNaturalGas))
     @end_uses[[FT::Gas, EUT::ClothesDryer]] = EndUse.new(meter: "#{Constants.ObjectNameClothesDryer}:InteriorEquipment:#{ep_fuel_names[FT::Gas]}")
     @end_uses[[FT::Gas, EUT::RangeOven]] = EndUse.new(meter: "#{Constants.ObjectNameCookingRange}:InteriorEquipment:#{ep_fuel_names[FT::Gas]}")
+    @end_uses[[FT::Gas, EUT::MechVentPreheat]] = EndUse.new(variable: OutputVars.MechVentPreconditioningFuel(EPlus::FuelTypeNaturalGas))
     if @eri_design.nil? # Skip end uses not used by ERI
       @end_uses[[FT::Gas, EUT::PoolHeater]] = EndUse.new(meter: "#{Constants.ObjectNameMiscPoolHeater}:InteriorEquipment:#{ep_fuel_names[FT::Gas]}")
       @end_uses[[FT::Gas, EUT::HotTubHeater]] = EndUse.new(meter: "#{Constants.ObjectNameMiscHotTubHeater}:InteriorEquipment:#{ep_fuel_names[FT::Gas]}")
@@ -1891,6 +2017,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     @end_uses[[FT::Oil, EUT::HotWater]] = EndUse.new(variable: OutputVars.WaterHeatingFuel(EPlus::FuelTypeOil))
     @end_uses[[FT::Oil, EUT::ClothesDryer]] = EndUse.new(meter: "#{Constants.ObjectNameClothesDryer}:InteriorEquipment:#{ep_fuel_names[FT::Oil]}")
     @end_uses[[FT::Oil, EUT::RangeOven]] = EndUse.new(meter: "#{Constants.ObjectNameCookingRange}:InteriorEquipment:#{ep_fuel_names[FT::Oil]}")
+    @end_uses[[FT::Oil, EUT::MechVentPreheat]] = EndUse.new(variable: OutputVars.MechVentPreconditioningFuel(EPlus::FuelTypeOil))
     if @eri_design.nil? # Skip end uses not used by ERI
       @end_uses[[FT::Oil, EUT::Grill]] = EndUse.new(meter: "#{Constants.ObjectNameMiscGrill}:InteriorEquipment:#{ep_fuel_names[FT::Oil]}")
       @end_uses[[FT::Oil, EUT::Lighting]] = EndUse.new(meter: "#{Constants.ObjectNameMiscLighting}:InteriorEquipment:#{ep_fuel_names[FT::Oil]}")
@@ -1900,6 +2027,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     @end_uses[[FT::Propane, EUT::HotWater]] = EndUse.new(variable: OutputVars.WaterHeatingFuel(EPlus::FuelTypePropane))
     @end_uses[[FT::Propane, EUT::ClothesDryer]] = EndUse.new(meter: "#{Constants.ObjectNameClothesDryer}:InteriorEquipment:#{ep_fuel_names[FT::Propane]}")
     @end_uses[[FT::Propane, EUT::RangeOven]] = EndUse.new(meter: "#{Constants.ObjectNameCookingRange}:InteriorEquipment:#{ep_fuel_names[FT::Propane]}")
+    @end_uses[[FT::Propane, EUT::MechVentPreheat]] = EndUse.new(variable: OutputVars.MechVentPreconditioningFuel(EPlus::FuelTypePropane))
     if @eri_design.nil? # Skip end uses not used by ERI
       @end_uses[[FT::Propane, EUT::Grill]] = EndUse.new(meter: "#{Constants.ObjectNameMiscGrill}:InteriorEquipment:#{ep_fuel_names[FT::Propane]}")
       @end_uses[[FT::Propane, EUT::Lighting]] = EndUse.new(meter: "#{Constants.ObjectNameMiscLighting}:InteriorEquipment:#{ep_fuel_names[FT::Propane]}")
@@ -1909,6 +2037,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     @end_uses[[FT::WoodCord, EUT::HotWater]] = EndUse.new(variable: OutputVars.WaterHeatingFuel(EPlus::FuelTypeWoodCord))
     @end_uses[[FT::WoodCord, EUT::ClothesDryer]] = EndUse.new(meter: "#{Constants.ObjectNameClothesDryer}:InteriorEquipment:#{ep_fuel_names[FT::WoodCord]}")
     @end_uses[[FT::WoodCord, EUT::RangeOven]] = EndUse.new(meter: "#{Constants.ObjectNameCookingRange}:InteriorEquipment:#{ep_fuel_names[FT::WoodCord]}")
+    @end_uses[[FT::WoodCord, EUT::MechVentPreheat]] = EndUse.new(variable: OutputVars.MechVentPreconditioningFuel(EPlus::FuelTypeWoodCord))
     if @eri_design.nil? # Skip end uses not used by ERI
       @end_uses[[FT::WoodCord, EUT::Grill]] = EndUse.new(meter: "#{Constants.ObjectNameMiscGrill}:InteriorEquipment:#{ep_fuel_names[FT::WoodCord]}")
       @end_uses[[FT::WoodCord, EUT::Lighting]] = EndUse.new(meter: "#{Constants.ObjectNameMiscLighting}:InteriorEquipment:#{ep_fuel_names[FT::WoodCord]}")
@@ -1918,6 +2047,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     @end_uses[[FT::WoodPellets, EUT::HotWater]] = EndUse.new(variable: OutputVars.WaterHeatingFuel(EPlus::FuelTypeWoodPellets))
     @end_uses[[FT::WoodPellets, EUT::ClothesDryer]] = EndUse.new(meter: "#{Constants.ObjectNameClothesDryer}:InteriorEquipment:#{ep_fuel_names[FT::WoodPellets]}")
     @end_uses[[FT::WoodPellets, EUT::RangeOven]] = EndUse.new(meter: "#{Constants.ObjectNameCookingRange}:InteriorEquipment:#{ep_fuel_names[FT::WoodPellets]}")
+    @end_uses[[FT::WoodPellets, EUT::MechVentPreheat]] = EndUse.new(variable: OutputVars.MechVentPreconditioningFuel(EPlus::FuelTypeWoodPellets))
     if @eri_design.nil? # Skip end uses not used by ERI
       @end_uses[[FT::WoodPellets, EUT::Grill]] = EndUse.new(meter: "#{Constants.ObjectNameMiscGrill}:InteriorEquipment:#{ep_fuel_names[FT::WoodPellets]}")
       @end_uses[[FT::WoodPellets, EUT::Lighting]] = EndUse.new(meter: "#{Constants.ObjectNameMiscLighting}:InteriorEquipment:#{ep_fuel_names[FT::WoodPellets]}")
@@ -1927,6 +2057,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     @end_uses[[FT::Coal, EUT::HotWater]] = EndUse.new(variable: OutputVars.WaterHeatingFuel(EPlus::FuelTypeCoal))
     @end_uses[[FT::Coal, EUT::ClothesDryer]] = EndUse.new(meter: "#{Constants.ObjectNameClothesDryer}:InteriorEquipment:#{ep_fuel_names[FT::Coal]}")
     @end_uses[[FT::Coal, EUT::RangeOven]] = EndUse.new(meter: "#{Constants.ObjectNameCookingRange}:InteriorEquipment:#{ep_fuel_names[FT::Coal]}")
+    @end_uses[[FT::Coal, EUT::MechVentPreheat]] = EndUse.new(variable: OutputVars.MechVentPreconditioningFuel(EPlus::FuelTypeCoal))
     if @eri_design.nil? # Skip end uses not used by ERI
       @end_uses[[FT::Coal, EUT::Grill]] = EndUse.new(meter: "#{Constants.ObjectNameMiscGrill}:InteriorEquipment:#{ep_fuel_names[FT::Coal]}")
       @end_uses[[FT::Coal, EUT::Lighting]] = EndUse.new(meter: "#{Constants.ObjectNameMiscLighting}:InteriorEquipment:#{ep_fuel_names[FT::Coal]}")
@@ -2063,7 +2194,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     # Airflows
     @airflows = {}
     @airflows[AFT::Infiltration] = Airflow.new(ems_program: Constants.ObjectNameInfiltration + ' program', ems_variables: [(Constants.ObjectNameInfiltration + ' flow act').gsub(' ', '_')])
-    @airflows[AFT::MechanicalVentilation] = Airflow.new(ems_program: Constants.ObjectNameInfiltration + ' program', ems_variables: [(Constants.ObjectNameMechanicalVentilation + ' flow act').gsub(' ', '_'), 'QWHV_ervhrv'])
+    @airflows[AFT::MechanicalVentilation] = Airflow.new(ems_program: Constants.ObjectNameInfiltration + ' program', ems_variables: [Constants.ObjectNameMechanicalVentilationAirflow])
     @airflows[AFT::NaturalVentilation] = Airflow.new(ems_program: Constants.ObjectNameNaturalVentilation + ' program', ems_variables: [(Constants.ObjectNameNaturalVentilation + ' flow act').gsub(' ', '_')])
     @airflows[AFT::WholeHouseFan] = Airflow.new(ems_program: Constants.ObjectNameNaturalVentilation + ' program', ems_variables: [(Constants.ObjectNameWholeHouseFan + ' flow act').gsub(' ', '_')])
 
@@ -2169,6 +2300,15 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
     def self.WaterHeaterLoadSolarThermal
       return { 'OpenStudio::Model::WaterHeaterStratified' => ['Water Heater Use Side Heat Transfer Energy'] }
+    end
+
+    def self.MechVentPreconditioningElectricity
+      return { 'OpenStudio::Model::OtherEquipment' => ['Other Equipment Electric Energy'] }
+    end
+
+    def self.MechVentPreconditioningFuel(fuel)
+      fuel = EPlus.output_fuel_map(fuel)
+      return { 'OpenStudio::Model::OtherEquipment' => ["Other Equipment #{fuel} Energy"] }
     end
   end
 end

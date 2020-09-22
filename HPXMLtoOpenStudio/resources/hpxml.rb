@@ -84,8 +84,6 @@ class HPXML < Object
   DuctTypeSupply = 'supply'
   DWHRFacilitiesConnectedAll = 'all'
   DWHRFacilitiesConnectedOne = 'one'
-  FoundationThermalBoundaryFloor = 'frame floor'
-  FoundationThermalBoundaryWall = 'foundation wall'
   FoundationTypeAmbient = 'Ambient'
   FoundationTypeBasementConditioned = 'ConditionedBasement'
   FoundationTypeBasementUnconditioned = 'UnconditionedBasement'
@@ -1240,7 +1238,7 @@ class HPXML < Object
   end
 
   class Foundation < BaseElement
-    ATTRS = [:id, :foundation_type, :vented_crawlspace_sla, :unconditioned_basement_thermal_boundary, :within_infiltration_volume,
+    ATTRS = [:id, :foundation_type, :vented_crawlspace_sla, :within_infiltration_volume,
              :attached_to_slab_idrefs, :attached_to_frame_floor_idrefs, :attached_to_foundation_wall_idrefs]
     attr_accessor(*ATTRS)
 
@@ -1338,7 +1336,6 @@ class HPXML < Object
         elsif @foundation_type == FoundationTypeBasementUnconditioned
           basement = XMLHelper.add_element(foundation_type_e, 'Basement')
           XMLHelper.add_element(basement, 'Conditioned', false)
-          XMLHelper.add_element(foundation, 'ThermalBoundary', @unconditioned_basement_thermal_boundary) unless @unconditioned_basement_thermal_boundary.nil?
         elsif @foundation_type == FoundationTypeCrawlspaceVented
           crawlspace = XMLHelper.add_element(foundation_type_e, 'Crawlspace')
           XMLHelper.add_element(crawlspace, 'Vented', true)
@@ -1376,8 +1373,6 @@ class HPXML < Object
       end
       if @foundation_type == FoundationTypeCrawlspaceVented
         @vented_crawlspace_sla = to_float_or_nil(XMLHelper.get_value(foundation, "VentilationRate[UnitofMeasure='SLA']/Value"))
-      elsif @foundation_type == FoundationTypeBasementUnconditioned
-        @unconditioned_basement_thermal_boundary = XMLHelper.get_value(foundation, 'ThermalBoundary')
       end
       @within_infiltration_volume = to_boolean_or_nil(XMLHelper.get_value(foundation, 'WithinInfiltrationVolume'))
       @attached_to_slab_idrefs = []
@@ -3238,11 +3233,14 @@ class HPXML < Object
   end
 
   class VentilationFan < BaseElement
-    ATTRS = [:id, :fan_type, :rated_flow_rate, :tested_flow_rate, :hours_in_operation,
+    ATTRS = [:id, :fan_type, :rated_flow_rate, :tested_flow_rate, :hours_in_operation, :flow_rate_not_tested,
              :used_for_whole_building_ventilation, :used_for_seasonal_cooling_load_reduction,
              :used_for_local_ventilation, :total_recovery_efficiency, :total_recovery_efficiency_adjusted,
              :sensible_recovery_efficiency, :sensible_recovery_efficiency_adjusted,
-             :fan_power, :quantity, :fan_location, :distribution_system_idref, :start_hour]
+             :fan_power, :fan_power_defaulted, :quantity, :fan_location, :distribution_system_idref, :start_hour,
+             :is_shared_system, :in_unit_flow_rate, :fraction_recirculation,
+             :preheating_fuel, :preheating_efficiency_cop, :preheating_fraction_load_served, :precooling_fuel,
+             :precooling_efficiency_cop, :precooling_fraction_load_served,]
     attr_accessor(*ATTRS)
 
     def distribution_system
@@ -3261,24 +3259,74 @@ class HPXML < Object
       fail "Attached HVAC distribution system '#{@distribution_system_idref}' not found for ventilation fan '#{@id}'."
     end
 
-    def flow_rate
-      if not @tested_flow_rate.nil?
-        return @tested_flow_rate
+    def total_unit_flow_rate
+      if not @is_shared_system
+        if not @tested_flow_rate.nil?
+          return @tested_flow_rate
+        else
+          return @rated_flow_rate
+        end
       else
-        return @rated_flow_rate
+        return @in_unit_flow_rate
       end
     end
 
-    def average_flow_rate
-      if (not flow_rate.nil?) && (not @hours_in_operation.nil?)
-        return flow_rate * (@hours_in_operation / 24.0)
+    def oa_unit_flow_rate
+      return if total_unit_flow_rate.nil?
+      if not @is_shared_system
+        return total_unit_flow_rate
+      else
+        if @fan_type == HPXML::MechVentTypeExhaust && @fraction_recirculation > 0.0
+          fail "Exhaust fan '#{@id}' must have the fraction recirculation set to zero."
+        else
+          return total_unit_flow_rate * (1 - @fraction_recirculation)
+        end
       end
     end
 
-    def average_fan_power
-      if (not @fan_power.nil?) && (not @hours_in_operation.nil?)
-        return @fan_power * (@hours_in_operation / 24.0)
+    def average_oa_unit_flow_rate
+      # Daily-average outdoor air (cfm) associated with the unit
+      return if oa_unit_flow_rate.nil?
+      return if @hours_in_operation.nil?
+      return oa_unit_flow_rate * (@hours_in_operation / 24.0)
+    end
+
+    def average_total_unit_flow_rate
+      # Daily-average total air (cfm) associated with the unit
+      return if total_unit_flow_rate.nil?
+      return if @hours_in_operation.nil?
+      return total_unit_flow_rate * (@hours_in_operation / 24.0)
+    end
+
+    def unit_flow_rate_ratio
+      return 1.0 unless @is_shared_system
+      return if @in_unit_flow_rate.nil?
+      if not @tested_flow_rate.nil?
+        ratio = @in_unit_flow_rate / @tested_flow_rate
+      elsif not @rated_flow_rate.nil?
+        ratio = @in_unit_flow_rate / @rated_flow_rate
       end
+      return if ratio.nil?
+      if ratio >= 1.0
+        fail "The in-unit flow rate of shared fan '#{@id}' must be less than the system flow rate."
+      end
+      return ratio
+    end
+
+    def unit_fan_power
+      return if @fan_power.nil?
+      if @is_shared_system
+        return if unit_flow_rate_ratio.nil?
+        return @fan_power * unit_flow_rate_ratio
+      else
+        return @fan_power
+      end
+    end
+
+    def average_unit_fan_power
+      return if unit_fan_power.nil?
+      return if @hours_in_operation.nil?
+      return unit_fan_power * (@hours_in_operation / 24.0)
     end
 
     def includes_supply_air?
@@ -3312,6 +3360,8 @@ class HPXML < Object
     def check_for_errors
       errors = []
       begin; distribution_system; rescue StandardError => e; errors << e.message; end
+      begin; oa_unit_flow_rate; rescue StandardError => e; errors << e.message; end
+      begin; unit_flow_rate_ratio; rescue StandardError => e; errors << e.message; end
       return errors
     end
 
@@ -3331,6 +3381,10 @@ class HPXML < Object
       XMLHelper.add_element(ventilation_fan, 'UsedForLocalVentilation', to_boolean(@used_for_local_ventilation)) unless @used_for_local_ventilation.nil?
       XMLHelper.add_element(ventilation_fan, 'UsedForWholeBuildingVentilation', to_boolean(@used_for_whole_building_ventilation)) unless @used_for_whole_building_ventilation.nil?
       XMLHelper.add_element(ventilation_fan, 'UsedForSeasonalCoolingLoadReduction', to_boolean(@used_for_seasonal_cooling_load_reduction)) unless @used_for_seasonal_cooling_load_reduction.nil?
+      XMLHelper.add_element(ventilation_fan, 'IsSharedSystem', to_boolean(@is_shared_system)) unless @is_shared_system.nil?
+      if @is_shared_system
+        XMLHelper.add_element(ventilation_fan, 'FractionRecirculation', to_float(@fraction_recirculation)) unless @fraction_recirculation.nil?
+      end
       XMLHelper.add_element(ventilation_fan, 'TotalRecoveryEfficiency', to_float(@total_recovery_efficiency)) unless @total_recovery_efficiency.nil?
       XMLHelper.add_element(ventilation_fan, 'SensibleRecoveryEfficiency', to_float(@sensible_recovery_efficiency)) unless @sensible_recovery_efficiency.nil?
       XMLHelper.add_element(ventilation_fan, 'AdjustedTotalRecoveryEfficiency', to_float(@total_recovery_efficiency_adjusted)) unless @total_recovery_efficiency_adjusted.nil?
@@ -3341,6 +3395,27 @@ class HPXML < Object
         XMLHelper.add_attribute(attached_to_hvac_distribution_system, 'idref', @distribution_system_idref)
       end
       XMLHelper.add_extension(ventilation_fan, 'StartHour', to_integer(@start_hour)) unless @start_hour.nil?
+      if @is_shared_system
+        XMLHelper.add_extension(ventilation_fan, 'InUnitFlowRate', to_float(@in_unit_flow_rate)) unless @in_unit_flow_rate.nil?
+        if (not @preheating_fuel.nil?) && (not @preheating_efficiency_cop.nil?)
+          precond_htg = XMLHelper.create_elements_as_needed(ventilation_fan, ['extension', 'PreHeating'])
+          XMLHelper.add_element(precond_htg, 'Fuel', @preheating_fuel) unless @preheating_fuel.nil?
+          eff = XMLHelper.add_element(precond_htg, 'AnnualHeatingEfficiency') unless @preheating_efficiency_cop.nil?
+          XMLHelper.add_element(eff, 'Value', to_float(@preheating_efficiency_cop)) unless eff.nil?
+          XMLHelper.add_element(eff, 'Units', UnitsCOP) unless eff.nil?
+          XMLHelper.add_element(precond_htg, 'FractionVentilationHeatLoadServed', to_float(@preheating_fraction_load_served)) unless @preheating_fraction_load_served.nil?
+        end
+        if (not @precooling_fuel.nil?) && (not @precooling_efficiency_cop.nil?)
+          precond_clg = XMLHelper.create_elements_as_needed(ventilation_fan, ['extension', 'PreCooling'])
+          XMLHelper.add_element(precond_clg, 'Fuel', @precooling_fuel) unless @precooling_fuel.nil?
+          eff = XMLHelper.add_element(precond_clg, 'AnnualCoolingEfficiency') unless @precooling_efficiency_cop.nil?
+          XMLHelper.add_element(eff, 'Value', to_float(@precooling_efficiency_cop)) unless eff.nil?
+          XMLHelper.add_element(eff, 'Units', UnitsCOP) unless eff.nil?
+          XMLHelper.add_element(precond_clg, 'FractionVentilationCoolLoadServed', to_float(@precooling_fraction_load_served)) unless @precooling_fraction_load_served.nil?
+        end
+      end
+      XMLHelper.add_extension(ventilation_fan, 'FlowRateNotTested', @flow_rate_not_tested) unless @flow_rate_not_tested.nil?
+      XMLHelper.add_extension(ventilation_fan, 'FanPowerDefaulted', @fan_power_defaulted) unless @fan_power_defaulted.nil?
     end
 
     def from_oga(ventilation_fan)
@@ -3349,8 +3424,22 @@ class HPXML < Object
       @id = HPXML::get_id(ventilation_fan)
       @quantity = to_integer_or_nil(XMLHelper.get_value(ventilation_fan, 'Quantity'))
       @fan_type = XMLHelper.get_value(ventilation_fan, 'FanType')
+      @is_shared_system = to_boolean_or_nil(XMLHelper.get_value(ventilation_fan, 'IsSharedSystem'))
       @rated_flow_rate = to_float_or_nil(XMLHelper.get_value(ventilation_fan, 'RatedFlowRate'))
       @tested_flow_rate = to_float_or_nil(XMLHelper.get_value(ventilation_fan, 'TestedFlowRate'))
+      @flow_rate_not_tested = to_boolean_or_nil(XMLHelper.get_value(ventilation_fan, 'extension/FlowRateNotTested'))
+      @fan_power = to_float_or_nil(XMLHelper.get_value(ventilation_fan, 'FanPower'))
+      @fan_power_defaulted = to_boolean_or_nil(XMLHelper.get_value(ventilation_fan, 'extension/FanPowerDefaulted'))
+      if @is_shared_system
+        @fraction_recirculation = to_float_or_nil(XMLHelper.get_value(ventilation_fan, 'FractionRecirculation'))
+        @in_unit_flow_rate = to_float_or_nil(XMLHelper.get_value(ventilation_fan, 'extension/InUnitFlowRate'))
+        @preheating_fuel = XMLHelper.get_value(ventilation_fan, 'extension/PreHeating/Fuel')
+        @preheating_efficiency_cop = to_float_or_nil(XMLHelper.get_value(ventilation_fan, "extension/PreHeating/AnnualHeatingEfficiency[Units='#{UnitsCOP}']/Value"))
+        @preheating_fraction_load_served = to_float_or_nil(XMLHelper.get_value(ventilation_fan, 'extension/PreHeating/FractionVentilationHeatLoadServed'))
+        @precooling_fuel = XMLHelper.get_value(ventilation_fan, 'extension/PreCooling/Fuel')
+        @precooling_efficiency_cop = to_float_or_nil(XMLHelper.get_value(ventilation_fan, "extension/PreCooling/AnnualCoolingEfficiency[Units='#{UnitsCOP}']/Value"))
+        @precooling_fraction_load_served = to_float_or_nil(XMLHelper.get_value(ventilation_fan, 'extension/PreCooling/FractionVentilationCoolLoadServed'))
+      end
       @hours_in_operation = to_float_or_nil(XMLHelper.get_value(ventilation_fan, 'HoursInOperation'))
       @fan_location = XMLHelper.get_value(ventilation_fan, 'FanLocation')
       @used_for_local_ventilation = to_boolean_or_nil(XMLHelper.get_value(ventilation_fan, 'UsedForLocalVentilation'))
@@ -3360,7 +3449,6 @@ class HPXML < Object
       @total_recovery_efficiency_adjusted = to_float_or_nil(XMLHelper.get_value(ventilation_fan, 'AdjustedTotalRecoveryEfficiency'))
       @sensible_recovery_efficiency = to_float_or_nil(XMLHelper.get_value(ventilation_fan, 'SensibleRecoveryEfficiency'))
       @sensible_recovery_efficiency_adjusted = to_float_or_nil(XMLHelper.get_value(ventilation_fan, 'AdjustedSensibleRecoveryEfficiency'))
-      @fan_power = to_float_or_nil(XMLHelper.get_value(ventilation_fan, 'FanPower'))
       @distribution_system_idref = HPXML::get_idref(XMLHelper.get_element(ventilation_fan, 'AttachedToHVACDistributionSystem'))
       @start_hour = to_integer_or_nil(XMLHelper.get_value(ventilation_fan, 'extension/StartHour'))
     end
@@ -5067,7 +5155,8 @@ class HPXML < Object
 
   def self.is_thermal_boundary(surface)
     # Returns true if the surface is between conditioned space and outside/ground/unconditioned space.
-    # Note: Insulated foundation walls of, e.g., unconditioned spaces return false.
+    # Note: The location of insulation is not considered here, so an insulated foundation wall of an
+    # unconditioned basement, for example, returns false.
     def self.is_adjacent_to_conditioned(adjacent_to)
       if [HPXML::LocationLivingSpace,
           HPXML::LocationBasementConditioned,

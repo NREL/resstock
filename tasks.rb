@@ -222,6 +222,7 @@ def create_osws
     'extra-second-heating-system-portable-heater.osw' => 'base.osw',
     'extra-second-heating-system-fireplace.osw' => 'base.osw',
     'extra-pv-shared.osw' => 'base-single-family-attached.osw',
+    'extra-enclosure-garage-partially-protruded.osw' => 'base.osw',
 
     'invalid_files/non-electric-heat-pump-water-heater.osw' => 'base.osw',
     'invalid_files/heating-system-and-heat-pump.osw' => 'base.osw',
@@ -1991,6 +1992,9 @@ def get_values(osw_file, step)
     step.setArgument('geometry_building_num_bedrooms', 9)
     step.setArgument('pv_system_module_type_1', HPXML::PVModuleTypeStandard)
     step.setArgument('pv_system_is_shared_1', true)
+  elsif ['extra-enclosure-garage-partially-protruded.osw'].include? osw_file
+    step.setArgument('geometry_garage_width', 12)
+    step.setArgument('geometry_garage_protrusion', 0.5)
   elsif ['invalid_files/non-electric-heat-pump-water-heater.osw'].include? osw_file
     step.setArgument('water_heater_type', HPXML::WaterHeaterTypeHeatPump)
     step.setArgument('water_heater_fuel_type', HPXML::FuelTypeNaturalGas)
@@ -2373,6 +2377,9 @@ def create_hpxmls
     'base-mechvent-hrv.xml' => 'base.xml',
     'base-mechvent-hrv-asre.xml' => 'base.xml',
     'base-mechvent-multiple.xml' => 'base-mechvent-bath-kitchen-fans.xml',
+    'base-mechvent-shared.xml' => 'base-enclosure-attached-multifamily.xml',
+    'base-mechvent-shared-preconditioning.xml' => 'base-mechvent-shared.xml',
+    'base-mechvent-shared-multiple.xml' => 'base-enclosure-attached-multifamily.xml',
     'base-mechvent-supply.xml' => 'base.xml',
     'base-mechvent-whole-house-fan.xml' => 'base.xml',
     'base-misc-defaults.xml' => 'base.xml',
@@ -2851,10 +2858,7 @@ def set_hpxml_foundations(hpxml_file, hpxml)
     hpxml.foundations.clear
     hpxml.foundations.add(id: 'UnconditionedBasement',
                           foundation_type: HPXML::FoundationTypeBasementUnconditioned,
-                          unconditioned_basement_thermal_boundary: HPXML::FoundationThermalBoundaryFloor,
                           within_infiltration_volume: false)
-  elsif ['base-foundation-unconditioned-basement-wall-insulation.xml'].include? hpxml_file
-    hpxml.foundations[0].unconditioned_basement_thermal_boundary = HPXML::FoundationThermalBoundaryWall
   elsif ['base-foundation-multiple.xml'].include? hpxml_file
     hpxml.foundations.add(id: 'UnventedCrawlspace',
                           foundation_type: HPXML::FoundationTypeCrawlspaceUnvented,
@@ -4680,7 +4684,8 @@ def set_hpxml_heating_systems(hpxml_file, hpxml)
                               heating_capacity: 3200,
                               heating_efficiency_percent: 1,
                               fraction_heat_load_served: 0.1)
-  elsif ['base-mechvent-multiple.xml'].include? hpxml_file
+  elsif ['base-mechvent-multiple.xml',
+         'base-mechvent-shared-multiple.xml'].include? hpxml_file
     hpxml.heating_systems[0].heating_capacity /= 2.0
     hpxml.heating_systems[0].fraction_heat_load_served /= 2.0
     hpxml.heating_systems << hpxml.heating_systems[0].dup
@@ -4893,7 +4898,8 @@ def set_hpxml_cooling_systems(hpxml_file, hpxml)
                               fraction_cool_load_served: 0.25,
                               cooling_efficiency_seer: 13,
                               cooling_shr: 0.65)
-  elsif ['base-mechvent-multiple.xml'].include? hpxml_file
+  elsif ['base-mechvent-multiple.xml',
+         'base-mechvent-shared-multiple.xml'].include? hpxml_file
     hpxml.cooling_systems[0].fraction_cool_load_served /= 2.0
     hpxml.cooling_systems[0].cooling_capacity /= 2.0
     hpxml.cooling_systems << hpxml.cooling_systems[0].dup
@@ -5338,8 +5344,8 @@ def set_hpxml_hvac_distributions(hpxml_file, hpxml)
     hpxml.hvac_distributions[-1].id = 'HVACDistribution4'
     hpxml.hvac_distributions << hpxml.hvac_distributions[0].dup
     hpxml.hvac_distributions[-1].id = 'HVACDistribution5'
-  elsif ['base-mechvent-multiple.xml'].include? hpxml_file
-    hpxml.hvac_distributions[0].conditioned_floor_area_served /= 2.0
+  elsif ['base-mechvent-multiple.xml',
+         'base-mechvent-shared-multiple.xml'].include? hpxml_file
     hpxml.hvac_distributions << hpxml.hvac_distributions[0].dup
     hpxml.hvac_distributions[1].id = 'HVACDistribution2'
   elsif ['base-hvac-dse.xml',
@@ -5646,6 +5652,116 @@ def set_hpxml_ventilation_fans(hpxml_file, hpxml)
     hpxml.ventilation_fans.add(id: 'BathFans',
                                fan_location: HPXML::LocationBath,
                                used_for_local_ventilation: true)
+  elsif ['base-mechvent-shared.xml'].include? hpxml_file
+    # Shared supply + in-unit exhaust (roughly balanced)
+    hpxml.ventilation_fans.add(id: 'SharedSupplyFan',
+                               fan_type: HPXML::MechVentTypeSupply,
+                               is_shared_system: true,
+                               in_unit_flow_rate: 80,
+                               rated_flow_rate: 800,
+                               hours_in_operation: 24,
+                               fan_power: 240,
+                               used_for_whole_building_ventilation: true,
+                               fraction_recirculation: 0.5)
+    hpxml.ventilation_fans.add(id: 'ExhaustFan',
+                               fan_type: HPXML::MechVentTypeExhaust,
+                               tested_flow_rate: 72,
+                               hours_in_operation: 24,
+                               fan_power: 26,
+                               used_for_whole_building_ventilation: true)
+  elsif ['base-mechvent-shared-preconditioning.xml'].include? hpxml_file
+    hpxml.ventilation_fans[0].preheating_fuel = HPXML::FuelTypeNaturalGas
+    hpxml.ventilation_fans[0].preheating_efficiency_cop = 0.92
+    hpxml.ventilation_fans[0].preheating_fraction_load_served = 0.7
+    hpxml.ventilation_fans[0].precooling_fuel = HPXML::FuelTypeElectricity
+    hpxml.ventilation_fans[0].precooling_efficiency_cop = 4.0
+    hpxml.ventilation_fans[0].precooling_fraction_load_served = 0.8
+  elsif ['base-mechvent-shared-multiple.xml'].include? hpxml_file
+    hpxml.ventilation_fans.add(id: 'SharedSupplyPreconditioned',
+                               fan_type: HPXML::MechVentTypeSupply,
+                               is_shared_system: true,
+                               in_unit_flow_rate: 100,
+                               rated_flow_rate: 1000,
+                               hours_in_operation: 24,
+                               fan_power: 300,
+                               used_for_whole_building_ventilation: true,
+                               fraction_recirculation: 0.0,
+                               preheating_fuel: HPXML::FuelTypeNaturalGas,
+                               preheating_efficiency_cop: 0.92,
+                               preheating_fraction_load_served: 0.8,
+                               precooling_fuel: HPXML::FuelTypeElectricity,
+                               precooling_efficiency_cop: 4.0,
+                               precooling_fraction_load_served: 0.8)
+    hpxml.ventilation_fans.add(id: 'SharedERVPreconditioned',
+                               fan_type: HPXML::MechVentTypeERV,
+                               is_shared_system: true,
+                               in_unit_flow_rate: 50,
+                               rated_flow_rate: 500,
+                               hours_in_operation: 24,
+                               total_recovery_efficiency: 0.48,
+                               sensible_recovery_efficiency: 0.72,
+                               fan_power: 150,
+                               used_for_whole_building_ventilation: true,
+                               fraction_recirculation: 0.4,
+                               preheating_fuel: HPXML::FuelTypeNaturalGas,
+                               preheating_efficiency_cop: 0.87,
+                               preheating_fraction_load_served: 1.0,
+                               precooling_fuel: HPXML::FuelTypeElectricity,
+                               precooling_efficiency_cop: 3.5,
+                               precooling_fraction_load_served: 1.0)
+    hpxml.ventilation_fans.add(id: 'SharedHRVPreconditioned',
+                               fan_type: HPXML::MechVentTypeHRV,
+                               is_shared_system: true,
+                               in_unit_flow_rate: 50,
+                               rated_flow_rate: 500,
+                               hours_in_operation: 24,
+                               sensible_recovery_efficiency: 0.72,
+                               fan_power: 150,
+                               used_for_whole_building_ventilation: true,
+                               fraction_recirculation: 0.3,
+                               preheating_fuel: HPXML::FuelTypeElectricity,
+                               preheating_efficiency_cop: 4.0,
+                               precooling_fuel: HPXML::FuelTypeElectricity,
+                               precooling_efficiency_cop: 4.5,
+                               preheating_fraction_load_served: 1.0,
+                               precooling_fraction_load_served: 1.0)
+    hpxml.ventilation_fans.add(id: 'SharedBalancedPreconditioned',
+                               fan_type: HPXML::MechVentTypeBalanced,
+                               is_shared_system: true,
+                               in_unit_flow_rate: 30,
+                               rated_flow_rate: 300,
+                               hours_in_operation: 24,
+                               fan_power: 150,
+                               used_for_whole_building_ventilation: true,
+                               fraction_recirculation: 0.3,
+                               preheating_fuel: HPXML::FuelTypeElectricity,
+                               preheating_efficiency_cop: 3.5,
+                               precooling_fuel: HPXML::FuelTypeElectricity,
+                               precooling_efficiency_cop: 4.0,
+                               preheating_fraction_load_served: 0.9,
+                               precooling_fraction_load_served: 1.0)
+    hpxml.ventilation_fans.add(id: 'SharedExhaust',
+                               fan_type: HPXML::MechVentTypeExhaust,
+                               is_shared_system: true,
+                               in_unit_flow_rate: 70,
+                               rated_flow_rate: 700,
+                               hours_in_operation: 8,
+                               fan_power: 300,
+                               used_for_whole_building_ventilation: true,
+                               fraction_recirculation: 0.0)
+    hpxml.ventilation_fans.add(id: 'Exhaust',
+                               fan_type: HPXML::MechVentTypeExhaust,
+                               tested_flow_rate: 50,
+                               hours_in_operation: 14,
+                               fan_power: 10,
+                               used_for_whole_building_ventilation: true)
+    hpxml.ventilation_fans.add(id: 'CFIS',
+                               fan_type: HPXML::MechVentTypeCFIS,
+                               tested_flow_rate: 160,
+                               hours_in_operation: 8,
+                               fan_power: 150,
+                               used_for_whole_building_ventilation: true,
+                               distribution_system_idref: 'HVACDistribution')
   elsif ['base-mechvent-multiple.xml'].include? hpxml_file
     hpxml.ventilation_fans.add(id: 'WholeHouseFan',
                                rated_flow_rate: 2000,
@@ -5659,7 +5775,7 @@ def set_hpxml_ventilation_fans(hpxml_file, hpxml)
                                used_for_whole_building_ventilation: true)
     hpxml.ventilation_fans.add(id: 'Exhaust',
                                fan_type: HPXML::MechVentTypeExhaust,
-                               rated_flow_rate: 50,
+                               tested_flow_rate: 50,
                                hours_in_operation: 14,
                                fan_power: 10,
                                used_for_whole_building_ventilation: true)
@@ -5689,18 +5805,18 @@ def set_hpxml_ventilation_fans(hpxml_file, hpxml)
       vent_fan.rated_flow_rate /= 2.0 unless vent_fan.rated_flow_rate.nil?
       vent_fan.tested_flow_rate /= 2.0 unless vent_fan.tested_flow_rate.nil?
       hpxml.ventilation_fans << vent_fan.dup
-      hpxml.ventilation_fans[-1].id = "#{vent_fan.id}2"
+      hpxml.ventilation_fans[-1].id = "#{vent_fan.id}_2"
       hpxml.ventilation_fans[-1].start_hour = vent_fan.start_hour - 1 unless vent_fan.start_hour.nil?
       hpxml.ventilation_fans[-1].hours_in_operation = vent_fan.hours_in_operation - 1 unless vent_fan.hours_in_operation.nil?
     end
-    hpxml.ventilation_fans.add(id: 'CFIS1',
+    hpxml.ventilation_fans.add(id: 'CFIS',
                                fan_type: HPXML::MechVentTypeCFIS,
                                tested_flow_rate: 160,
                                hours_in_operation: 8,
                                fan_power: 150,
                                used_for_whole_building_ventilation: true,
                                distribution_system_idref: 'HVACDistribution')
-    hpxml.ventilation_fans.add(id: 'CFIS2',
+    hpxml.ventilation_fans.add(id: 'CFIS_2',
                                fan_type: HPXML::MechVentTypeCFIS,
                                tested_flow_rate: 170,
                                hours_in_operation: 8,
