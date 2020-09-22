@@ -95,6 +95,7 @@ The OpenStudio-HPXML workflow can accommodate the following building features/te
   - Energy Recovery Ventilator
   - Heat Recovery Ventilator
   - Central Fan Integrated Supply
+  - Shared Systems w/ Recirculation and/or Preconditioning
 
 - Kitchen/Bath Fans
 - Whole House Fan

@@ -27,12 +27,6 @@ class HVAC
     end
 
     if not cooling_system.nil?
-      fan_power_installed = get_fan_power_installed(cooling_system.cooling_efficiency_seer)
-    else
-      fan_power_installed = 0.5 # W/cfm; For fuel furnaces, will be overridden by EAE later
-    end
-
-    if not cooling_system.nil?
       if cooling_system.compressor_type == HPXML::HVACCompressorTypeSingleStage
         num_speeds = 1
       elsif cooling_system.compressor_type == HPXML::HVACCompressorTypeTwoStage
@@ -129,6 +123,11 @@ class HVAC
 
     # Fan
 
+    if not cooling_system.nil?
+      fan_power_installed = get_fan_power_installed(cooling_system.cooling_efficiency_seer)
+    else
+      fan_power_installed = 0.5 # W/cfm; For fuel furnaces, will be overridden by EAE later
+    end
     fan = create_supply_fan(model, obj_name, num_speeds, fan_power_installed)
     if not cooling_system.nil?
       hvac_map[cooling_system.id] += disaggregate_fan_or_pump(model, fan, nil, clg_coil, nil)
@@ -339,7 +338,6 @@ class HVAC
       num_speeds = 4
     end
     fan_power_rated = get_fan_power_rated(heat_pump.cooling_efficiency_seer)
-    fan_power_installed = get_fan_power_installed(heat_pump.cooling_efficiency_seer)
     if heat_pump.fraction_heat_load_served <= 0
       crankcase_kw, crankcase_temp = 0, nil
     else
@@ -472,7 +470,7 @@ class HVAC
     hvac_map[heat_pump.id] << htg_supp_coil
 
     # Fan
-
+    fan_power_installed = get_fan_power_installed(heat_pump.cooling_efficiency_seer)
     fan = create_supply_fan(model, obj_name, num_speeds, fan_power_installed)
     hvac_map[heat_pump.id] += disaggregate_fan_or_pump(model, fan, htg_coil, clg_coil, htg_supp_coil)
 
@@ -626,7 +624,6 @@ class HVAC
     hvac_map[heat_pump.id] << htg_supp_coil
 
     # Fan
-
     fan_power_curve = create_curve_exponent(model, [0, 1, 3], obj_name + ' fan power curve', -100, 100)
     fan_eff_curve = create_curve_cubic(model, [0, 1, 0, 0], obj_name + ' fan eff curve', 0, 1, 0.01, 1)
     fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule, fan_power_curve, fan_eff_curve)

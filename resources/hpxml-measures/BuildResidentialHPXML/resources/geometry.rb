@@ -482,7 +482,7 @@ class Geometry
         n_points = []
         s_points = []
         surface.vertices.each do |vertex|
-          if vertex.y == 0
+          if vertex.y.abs < 0.00001
             n_points << vertex
           elsif vertex.y < 0
             s_points << vertex

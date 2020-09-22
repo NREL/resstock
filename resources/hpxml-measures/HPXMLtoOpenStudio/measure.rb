@@ -2306,7 +2306,7 @@ class OSModel
       end
       modeled_mels << plug_load.plug_load_type
 
-      MiscLoads.apply_plug(model, plug_load, obj_name, @cfa, spaces[HPXML::LocationLivingSpace])
+      MiscLoads.apply_plug(model, plug_load, obj_name, spaces[HPXML::LocationLivingSpace])
     end
     if not modeled_mels.include? HPXML::PlugLoadTypeOther
       runner.registerWarning("No '#{HPXML::PlugLoadTypeOther}' plug loads specified, the model will not include misc plug load energy use.")
@@ -2704,7 +2704,7 @@ class OSModel
       end
     end
     model.getOtherEquipments.sort.each do |o|
-      next unless o.name.to_s.start_with? Constants.ObjectNameERVHRV
+      next unless o.name.to_s.start_with? Constants.ObjectNameMechanicalVentilationHouseFan
 
       { 'Other Equipment Convective Heating Energy' => 'mv_conv',
         'Other Equipment Radiant Heating Energy' => 'mv_rad' }.each do |var, name|
@@ -2728,19 +2728,16 @@ class OSModel
         infil_flow_actuators << actuator
       elsif actuator.name.to_s.start_with? Constants.ObjectNameNaturalVentilation.gsub(' ', '_')
         natvent_flow_actuators << actuator
-      elsif actuator.name.to_s.start_with? Constants.ObjectNameMechanicalVentilation.gsub(' ', '_')
-        mechvent_flow_actuators << actuator
       elsif actuator.name.to_s.start_with? Constants.ObjectNameWholeHouseFan.gsub(' ', '_')
         whf_flow_actuators << actuator
       end
     end
-    if (infil_flow_actuators.size != 1) || (natvent_flow_actuators.size != 1) || (mechvent_flow_actuators.size != 1) || (whf_flow_actuators.size != 1)
+    if (infil_flow_actuators.size != 1) || (natvent_flow_actuators.size != 1) || (whf_flow_actuators.size != 1)
       fail 'Could not find actuator for component loads.'
     end
 
     infil_flow_actuator = infil_flow_actuators[0]
     natvent_flow_actuator = natvent_flow_actuators[0]
-    mechvent_flow_actuator = mechvent_flow_actuators[0]
     whf_flow_actuator = whf_flow_actuators[0]
 
     # EMS Sensors: Ducts
@@ -2959,23 +2956,21 @@ class OSModel
     end
 
     # EMS program: Infiltration, Natural Ventilation, Mechanical Ventilation, Ducts
-    program.addLine("Set hr_airflow_rate = #{infil_flow_actuator.name} + #{mechvent_flow_actuator.name} + #{natvent_flow_actuator.name} + #{whf_flow_actuator.name}")
+    program.addLine("Set hr_airflow_rate = #{infil_flow_actuator.name} + #{natvent_flow_actuator.name} + #{whf_flow_actuator.name}")
     program.addLine('If hr_airflow_rate > 0')
     program.addLine("  Set hr_infil = (#{air_loss_sensor.name} - #{air_gain_sensor.name}) * #{infil_flow_actuator.name} / hr_airflow_rate") # Airflow heat attributed to infiltration
     program.addLine("  Set hr_natvent = (#{air_loss_sensor.name} - #{air_gain_sensor.name}) * #{natvent_flow_actuator.name} / hr_airflow_rate") # Airflow heat attributed to natural ventilation
     program.addLine("  Set hr_whf = (#{air_loss_sensor.name} - #{air_gain_sensor.name}) * #{whf_flow_actuator.name} / hr_airflow_rate") # Airflow heat attributed to whole house fan
-    program.addLine("  Set hr_mechvent = ((#{air_loss_sensor.name} - #{air_gain_sensor.name}) * #{mechvent_flow_actuator.name} / hr_airflow_rate)") # Airflow heat attributed to mechanical ventilation
     program.addLine('Else')
     program.addLine('  Set hr_infil = 0')
     program.addLine('  Set hr_natvent = 0')
     program.addLine('  Set hr_whf = 0')
     program.addLine('  Set hr_mechvent = 0')
     program.addLine('EndIf')
-    s = 'Set hr_mechvent = hr_mechvent'
+    program.addLine('Set hr_mechvent = 0')
     mechvent_sensors.each do |sensor|
-      s += " - #{sensor.name}" # Fan heat & ERV/HRV load
+      program.addLine("Set hr_mechvent = hr_mechvent - #{sensor.name}")
     end
-    program.addLine(s) if mechvent_sensors.size > 0
     program.addLine('Set hr_ducts = 0')
     ducts_sensors.each do |duct_sensors|
       s = 'Set hr_ducts = hr_ducts'

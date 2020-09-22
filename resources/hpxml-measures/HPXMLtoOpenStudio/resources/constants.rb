@@ -261,6 +261,10 @@ class Constants
     return 'mech vent'
   end
 
+  def self.ObjectNameMechanicalVentilationPreconditioning
+    return 'mech vent preconditioning'
+  end
+
   def self.ObjectNameMechanicalVentilationHouseFan
     return 'mech vent house fan'
   end
@@ -275,6 +279,10 @@ class Constants
 
   def self.ObjectNameMechanicalVentilationRangeFan
     return 'mech vent range fan'
+  end
+
+  def self.ObjectNameMechanicalVentilationAirflow
+    return 'Qfan'
   end
 
   def self.ObjectNameMiniSplitHeatPump
@@ -550,6 +558,18 @@ class Constants
   end
 
   def self.SizingInfoMechVentWholeHouseRateUnbalanced
+    return __method__.to_s
+  end
+
+  def self.SizingInfoMechVentWholeHouseRatePreHeated
+    return __method__.to_s
+  end
+
+  def self.SizingInfoMechVentWholeHouseRatePreCooled
+    return __method__.to_s
+  end
+
+  def self.SizingInfoMechVentWholeHouseRateRecirculated
     return __method__.to_s
   end
 

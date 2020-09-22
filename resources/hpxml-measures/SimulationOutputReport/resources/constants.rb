@@ -24,6 +24,8 @@ class EUT
   LightsGarage = 'Lighting Garage'
   LightsExterior = 'Lighting Exterior'
   MechVent = 'Mech Vent'
+  MechVentPreheat = 'Mech Vent Preheating'
+  MechVentPrecool = 'Mech Vent Precooling'
   WholeHouseFan = 'Whole House Fan'
   Refrigerator = 'Refrigerator'
   Freezer = 'Freezer'

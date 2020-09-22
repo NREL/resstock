@@ -6,10 +6,10 @@ require 'openstudio/ruleset/ShowRunnerOutput'
 require 'minitest/autorun'
 require 'fileutils'
 require_relative '../measure.rb'
-@@has_schematron_nokogiri_gem = false
+$has_schematron_nokogiri_gem = false
 begin
   require 'schematron-nokogiri'
-  @@has_schematron_nokogiri_gem = true
+  $has_schematron_nokogiri_gem = true
 rescue LoadError
   if ENV['CI'] # Ensure we test via schematron-nokogiri on the CI
     fail 'Could not load schematron-nokogiri gem. Try running with "bundle exec ruby ...".'
@@ -25,7 +25,7 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
     # load the Schematron xml
     @stron_path = File.join(@root_path, 'HPXMLtoOpenStudio', 'resources', 'EPvalidator.xml')
 
-    if @@has_schematron_nokogiri_gem
+    if $has_schematron_nokogiri_gem
       # make a Schematron object
       @stron_doc = SchematronNokogiri::Schema.new Nokogiri::XML File.open(@stron_path)
     end
@@ -75,7 +75,7 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
 
       # Test validation
       _test_schema_validation(hpxml_doc, xml)
-      _test_schematron_validation(@stron_doc, hpxml_doc.to_xml) if @@has_schematron_nokogiri_gem
+      _test_schematron_validation(@stron_doc, hpxml_doc.to_xml) if $has_schematron_nokogiri_gem
       _test_ruby_validation(hpxml_doc)
     end
     puts
@@ -94,7 +94,7 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
 
       # Test validation
       _test_ruby_validation(hpxml_doc, expected_error_msg)
-      _test_schematron_validation(@stron_doc, hpxml_doc.to_xml, expected_error_msg) if @@has_schematron_nokogiri_gem
+      _test_schematron_validation(@stron_doc, hpxml_doc.to_xml, expected_error_msg) if $has_schematron_nokogiri_gem
     end
     puts
   end
@@ -125,7 +125,7 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
       (max_number_of_elements_allowed + 1).times { mod_parent_element.children << duplicated }
 
       # Test validation
-      _test_schematron_validation(@stron_doc, hpxml_doc.to_xml, expected_error_msg) if @@has_schematron_nokogiri_gem
+      _test_schematron_validation(@stron_doc, hpxml_doc.to_xml, expected_error_msg) if $has_schematron_nokogiri_gem
       _test_ruby_validation(hpxml_doc, expected_error_msg)
     end
     puts
