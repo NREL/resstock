@@ -245,7 +245,8 @@ def create_osws
     'invalid_files/vented-attic-with-floor-and-roof-insulation.osw' => 'base.osw',
     'invalid_files/unvented-attic-with-floor-and-roof-insulation.osw' => 'base.osw',
     'invalid_files/conditioned-basement-with-ceiling-insulation.osw' => 'base.osw',
-    'invalid_files/conditioned-attic-with-floor-insulation.osw' => 'base.osw'
+    'invalid_files/conditioned-attic-with-floor-insulation.osw' => 'base.osw',
+    'invalid_files/dhw-indirect-without-boiler.osw' => 'base.osw'
   }
 
   puts "Generating #{osws_files.size} OSW files..."
@@ -2059,6 +2060,8 @@ def get_values(osw_file, step)
     step.setArgument('floor_assembly_r', 10)
   elsif ['invalid_files/conditioned-attic-with-floor-insulation.osw'].include? osw_file
     step.setArgument('geometry_attic_type', HPXML::AtticTypeConditioned)
+  elsif ['invalid_files/dhw-indirect-without-boiler.osw'].include? osw_file
+    step.setArgument('water_heater_type', HPXML::WaterHeaterTypeCombiStorage)
   end
   return step
 end
