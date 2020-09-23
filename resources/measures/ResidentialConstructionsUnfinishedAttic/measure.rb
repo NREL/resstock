@@ -220,13 +220,11 @@ class ProcessConstructionsUnfinishedAttic < OpenStudio::Measure::ModelMeasure
       singleunit = false
     end
     # Adiabatic roofs (shared surface with above floor)
-    if singleunit
-      if not FloorConstructions.apply_uninsulated(runner, model,
-                                                  roofs_by_type[Constants.SurfaceTypeRoofAdiabatic],
-                                                  Constants.SurfaceTypeRoofAdiabatic,
-                                                  0.75, 0.5, Material.FloorWood, Material.CoveringBare)
-        return false
-      end
+    if not FloorConstructions.apply_uninsulated(runner, model,
+                                                roofs_by_type[Constants.SurfaceTypeRoofAdiabatic],
+                                                Constants.SurfaceTypeRoofAdiabatic,
+                                                0.75, 0.5, Material.FloorWood, Material.CoveringBare)
+      return false
     end
 
     # Remove any constructions/materials that aren't used
