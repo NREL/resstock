@@ -18,14 +18,24 @@ class TestResStockMeasuresOSW < MiniTest::Test
     buildstock_csv = create_buildstock_csv(project_dir, num_samples)
     lib_dir = create_lib_folder(parent_dir, project_dir, buildstock_csv)
 
-    measures_osw_dir = File.join(parent_dir, 'measures_osw')
-    Dir.mkdir(measures_osw_dir) unless File.exist?(measures_osw_dir)
+    Dir["#{parent_dir}/workflow.osw"].each do |osw|
 
-    measures_upgrade_osw_dir = File.join(parent_dir, 'measures_upgrade_osw')
-    Dir.mkdir(measures_upgrade_osw_dir) unless File.exist?(measures_upgrade_osw_dir)
+      measures_osw_dir = nil
+      measures_upgrade_osw_dir = nil
 
-    (1..num_samples).to_a.each do |building_unit_id|
-      Dir["#{parent_dir}/workflow.osw"].each do |osw|
+      json = JSON.parse(File.read(osw), symbolize_names: true)
+      json[:steps].each do |measure|
+        if measure[:measure_dir_name] == 'BuildExistingModel'
+          measures_osw_dir = File.join(parent_dir, 'measures_osw')
+          Dir.mkdir(measures_osw_dir) unless File.exist?(measures_osw_dir)
+        end
+        if measure[:measure_dir_name] == 'ApplyUpgrade'
+          measures_upgrade_osw_dir = File.join(parent_dir, 'measures_upgrade_osw')
+          Dir.mkdir(measures_upgrade_osw_dir) unless File.exist?(measures_upgrade_osw_dir)
+        end
+      end
+
+      (1..num_samples).to_a.each do |building_unit_id|      
         puts "\nBuilding Unit ID: #{building_unit_id} ...\n"
 
         change_building_unit_id(osw, building_unit_id)
@@ -40,14 +50,18 @@ class TestResStockMeasuresOSW < MiniTest::Test
         assert_equal(data_hash['completed_status'], 'Success')
 
         # Save measures.osw
-        measures_osw = File.join(parent_dir, 'run', 'measures.osw')
-        new_measures_osw = File.join(measures_osw_dir, "#{building_unit_id}.osw")
-        FileUtils.mv(measures_osw, new_measures_osw)
+        unless measures_osw_dir.nil?
+          measures_osw = File.join(parent_dir, 'run', 'measures.osw')
+          new_measures_osw = File.join(measures_osw_dir, "#{building_unit_id}.osw")
+          FileUtils.mv(measures_osw, new_measures_osw)
+        end
 
         # Save measures-upgrade.osw
-        measures_upgrade_osw = File.join(parent_dir, 'run', 'measures-upgrade.osw')
-        new_measures_upgrade_osw = File.join(measures_upgrade_osw_dir, "#{building_unit_id}.osw")
-        FileUtils.mv(measures_upgrade_osw, new_measures_upgrade_osw)
+        unless measures_upgrade_osw_dir.nil?
+          measures_upgrade_osw = File.join(parent_dir, 'run', 'measures-upgrade.osw')
+          new_measures_upgrade_osw = File.join(measures_upgrade_osw_dir, "#{building_unit_id}.osw")
+          FileUtils.mv(measures_upgrade_osw, new_measures_upgrade_osw)
+        end
       end
     end
 
