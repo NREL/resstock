@@ -6,7 +6,6 @@ OpenStudio-BuildStock
 [![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/NREL/OpenStudio-BuildStock?include_prereleases)](https://github.com/NREL/OpenStudio-BuildStock/releases)
 [![CircleCI](https://circleci.com/gh/NREL/OpenStudio-BuildStock.svg?style=shield)](https://circleci.com/gh/NREL/OpenStudio-BuildStock)
 [![Documentation Status](https://readthedocs.org/projects/resstock/badge/?version=latest)](https://resstock.readthedocs.io/en/latest/?badge=latest)
-[![codecov](https://codecov.io/gh/NREL/OpenStudio-BuildStock/branch/master/graph/badge.svg)](https://codecov.io/gh/NREL/OpenStudio-BuildStock)
 
 <img src="https://user-images.githubusercontent.com/1276021/85608250-1ff46b80-b612-11ea-903e-4ced367e5940.jpg" width="400">
 
