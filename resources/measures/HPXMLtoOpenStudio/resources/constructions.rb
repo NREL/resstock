@@ -1084,10 +1084,19 @@ class RoofConstructions
     mats << Material.RoofingTileLight
     mats << Material.RoofingTileWhite
     mats << Material.RoofingMetalDark
+    mats << Material.RoofingMetalCool
     mats << Material.RoofingMetalMed
     mats << Material.RoofingMetalLight
     mats << Material.RoofingMetalWhite
     mats << Material.RoofingGalvanizedSteel
+    mats << Material.RoofingTileClayorCeramic
+    mats << Material.RoofingTileClayorCeramicWhiteCool
+    mats << Material.RoofingWoodShingles
+    mats << Material.RoofingCompositionShingles
+    mats << Material.RoofingCompositionShinglesWhiteCool
+    mats << Material.RoofingTileConcrete
+    mats << Material.RoofingTileConcreteWhiteCool
+    mats << Material.RoofingSlate
     return mats
   end
 
@@ -1121,6 +1130,8 @@ class RoofConstructions
       return Constants.ColorWhite
     elsif name == Material.RoofingMetalDark.name
       return Constants.ColorDark
+    elsif name == Material.RoofingMetalCool.name
+      return Constants.ColorWhite
     elsif name == Material.RoofingMetalMed.name
       return Constants.ColorMedium
     elsif name == Material.RoofingMetalLight.name
@@ -1129,6 +1140,22 @@ class RoofConstructions
       return Constants.ColorWhite
     elsif name == Material.RoofingGalvanizedSteel.name
       return Constants.ColorLight
+    elsif name == Material.RoofingTileClayorCeramic.name
+      return Constants.ColorMedium
+    elsif name == Material.RoofingTileClayorCeramicWhiteCool.name
+      return Constants.ColorWhite
+    elsif name == Material.RoofingWoodShingles.name
+      return Constants.ColorMedium
+    elsif name == Material.RoofingCompositionShingles.name
+      return Constants.ColorMedium
+    elsif name == Material.RoofingCompositionShinglesWhiteCool.name
+      return Constants.ColorWhite
+    elsif name == Material.RoofingTileConcrete.name
+      return Constants.ColorMedium
+    elsif name == Material.RoofingTileConcreteWhiteCool.name
+      return Constants.ColorWhite
+    elsif name == Material.RoofingSlate.name
+      return Constants.ColorMedium
     end
 
     return nil
@@ -1153,6 +1180,8 @@ class RoofConstructions
       return Constants.RoofMaterialTile
     elsif name == Material.RoofingMetalDark.name
       return Constants.RoofMaterialMetal
+    elsif name == Material.RoofingMetalCool.name
+      return Constants.RoofMaterialMetal
     elsif name == Material.RoofingMetalMed.name
       return Constants.RoofMaterialMetal
     elsif name == Material.RoofingMetalLight.name
@@ -1161,6 +1190,22 @@ class RoofConstructions
       return Constants.RoofMaterialMetal
     elsif name == Material.RoofingGalvanizedSteel.name
       return Constants.RoofMaterialMetal
+    elsif name == Material.RoofingTileClayorCeramic.name
+      return Constants.RoofMaterialTile
+    elsif name == Material.RoofingTileClayorCeramicWhiteCool.name
+      return Constants.RoofMaterialTile
+    elsif name == Material.RoofingWoodShingles.name
+      return Constants.RoofMaterialWoodShakes
+    elsif name == Material.RoofingCompositionShingles.name
+      return Constants.RoofMaterialAsphaltShingles
+    elsif name == Material.RoofingCompositionShinglesWhiteCool.name
+      return Constants.RoofMaterialAsphaltShingles
+    elsif name == Material.RoofingTileConcrete.name
+      return Constants.RoofMaterialTile
+    elsif name == Material.RoofingTileConcreteWhiteCool.name
+      return Constants.RoofMaterialTile
+    elsif name == Material.RoofingSlate.name
+      return Constants.RoofMaterialTile
     end
 
     return nil
