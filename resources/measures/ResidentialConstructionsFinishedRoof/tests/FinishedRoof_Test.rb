@@ -20,7 +20,7 @@ class ProcessConstructionsFinishedRoofTest < MiniTest::Test
     ins_r = 0.1397 / 0.6819557830565512
     drywall_r = 0.0127 / 0.1602906
     assembly_r = roofing_r + osb_r + ins_r + drywall_r
-    expected_values = { "AssemblyR" => assembly_r }
+    expected_values = { "AssemblyR" => assembly_r, "ThermalAbsorptance" => 0.91, "SolarAbsorptance" => 0.85, "VisibleAbsorptance" => 0.85 }
     _test_measure("SFD_2000sqft_2story_SL_FA.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
@@ -38,7 +38,7 @@ class ProcessConstructionsFinishedRoofTest < MiniTest::Test
     ins_r = 0.1397 / 0.6819557830565512
     drywall_r = 0.0127 / 0.1602906
     assembly_r = roofing_r + osb_r + ins_r + drywall_r
-    expected_values = { "AssemblyR" => assembly_r }
+    expected_values = { "AssemblyR" => assembly_r, "ThermalAbsorptance" => 0.91, "SolarAbsorptance" => 0.85, "VisibleAbsorptance" => 0.85 }
     _test_measure("SFD_2000sqft_2story_SL_FA.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
@@ -56,7 +56,7 @@ class ProcessConstructionsFinishedRoofTest < MiniTest::Test
     ins_r = 0.1397 / 0.0499725655190589
     drywall_r = 0.0127 / 0.1602906
     assembly_r = roofing_r + osb_r + ins_r + drywall_r
-    expected_values = { "AssemblyR" => assembly_r }
+    expected_values = { "AssemblyR" => assembly_r, "ThermalAbsorptance" => 0.91, "SolarAbsorptance" => 0.85, "VisibleAbsorptance" => 0.85 }
     _test_measure("SFD_2000sqft_2story_SL_FA.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
@@ -74,7 +74,7 @@ class ProcessConstructionsFinishedRoofTest < MiniTest::Test
     ins_r = 0.23495 / 0.0902761063120803
     drywall_r = 0.0127 / 0.1602906
     assembly_r = roofing_r + osb_r + ins_r + drywall_r
-    expected_values = { "AssemblyR" => assembly_r }
+    expected_values = { "AssemblyR" => assembly_r, "ThermalAbsorptance" => 0.91, "SolarAbsorptance" => 0.85, "VisibleAbsorptance" => 0.85 }
     _test_measure("SFD_2000sqft_2story_SL_FA.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
@@ -92,7 +92,7 @@ class ProcessConstructionsFinishedRoofTest < MiniTest::Test
     ins_r = 0.1397 / 0.6819557830565512
     drywall_r = 0.0127 / 0.1602906
     assembly_r = roofing_r + osb_r + ins_r + drywall_r
-    expected_values = { "AssemblyR" => assembly_r }
+    expected_values = { "AssemblyR" => assembly_r, "ThermalAbsorptance" => 0.91, "SolarAbsorptance" => 0.85, "VisibleAbsorptance" => 0.85 }
     _test_measure("SFA_4units_1story_SL_FA.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
@@ -110,7 +110,7 @@ class ProcessConstructionsFinishedRoofTest < MiniTest::Test
     ins_r = 0.1397 / 0.6819557830565512
     drywall_r = 0.0127 / 0.1602906
     assembly_r = roofing_r + osb_r + ins_r + drywall_r
-    expected_values = { "AssemblyR" => assembly_r }
+    expected_values = { "AssemblyR" => assembly_r, "ThermalAbsorptance" => 0.91, "SolarAbsorptance" => 0.85, "VisibleAbsorptance" => 0.85 }
     _test_measure("MF_8units_1story_SL_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
@@ -251,6 +251,12 @@ class ProcessConstructionsFinishedRoofTest < MiniTest::Test
           new_object.to_LayeredConstruction.get.layers.each do |layer|
             material = layer.to_StandardOpaqueMaterial.get
             actual_values["AssemblyR"] += material.thickness / material.conductivity
+          end
+          if not new_object.name.to_s.include? "Reversed"
+            material = new_object.to_LayeredConstruction.get.layers[0].to_StandardOpaqueMaterial.get
+            assert_equal(expected_values["ThermalAbsorptance"], material.thermalAbsorptance)
+            assert_equal(expected_values["SolarAbsorptance"], material.solarAbsorptance)
+            assert_equal(expected_values["VisibleAbsorptance"], material.visibleAbsorptance)
           end
         end
       end
