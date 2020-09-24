@@ -19,7 +19,6 @@ class TestResStockMeasuresOSW < MiniTest::Test
     lib_dir = create_lib_folder(parent_dir, project_dir, buildstock_csv)
 
     Dir["#{parent_dir}/workflow.osw"].each do |osw|
-
       measures_osw_dir = nil
       measures_upgrade_osw_dir = nil
 
@@ -35,7 +34,7 @@ class TestResStockMeasuresOSW < MiniTest::Test
         end
       end
 
-      (1..num_samples).to_a.each do |building_unit_id|      
+      (1..num_samples).to_a.each do |building_unit_id|
         puts "\nBuilding Unit ID: #{building_unit_id} ...\n"
 
         change_building_unit_id(osw, building_unit_id)
@@ -57,11 +56,10 @@ class TestResStockMeasuresOSW < MiniTest::Test
         end
 
         # Save measures-upgrade.osw
-        unless measures_upgrade_osw_dir.nil?
-          measures_upgrade_osw = File.join(parent_dir, 'run', 'measures-upgrade.osw')
-          new_measures_upgrade_osw = File.join(measures_upgrade_osw_dir, "#{building_unit_id}.osw")
-          FileUtils.mv(measures_upgrade_osw, new_measures_upgrade_osw)
-        end
+        next if measures_upgrade_osw_dir.nil?
+        measures_upgrade_osw = File.join(parent_dir, 'run', 'measures-upgrade.osw')
+        new_measures_upgrade_osw = File.join(measures_upgrade_osw_dir, "#{building_unit_id}.osw")
+        FileUtils.mv(measures_upgrade_osw, new_measures_upgrade_osw)
       end
     end
 

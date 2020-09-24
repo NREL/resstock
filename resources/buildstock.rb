@@ -436,7 +436,7 @@ class RunOSWs
     end
 
     unless measures.include? 'SimulationOutputReport'
-      simulation_output_report = { :measure_dir_name => 'SimulationOutputReport' }
+      simulation_output_report = { measure_dir_name: 'SimulationOutputReport' }
       json[:steps] << simulation_output_report
     end
 
