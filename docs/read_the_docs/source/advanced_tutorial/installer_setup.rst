@@ -18,7 +18,7 @@ Windows Setup
 .. literalinclude:: .gemrc
 
 3. Download the DevKit at http://rubyinstaller.org/downloads/ (e.g., DevKit-mingw64-64-4.7.2-20130224-1432-sfx.exe). Choose either the 32-bit or 64-bit version depending on which version of Ruby you installed. Run the installer and extract to a directory (e.g., C:\\RubyDevKit). Go to this directory, run ``ruby dk.rb init``, modify the config.yml file as needed, and finally run ``ruby dk.rb install``.
-4. Run ``bundle install`` from the OpenStudio-BuildStock directory. (If you get an error, the problem may be that ``git`` is not in your ``PATH``.)
+4. Run ``bundle install`` from the OpenStudio-BuildStock directory. (If you get an error, check that ``git`` is in your ``PATH`` and that you are using the correct version of Ruby (2.2.4).)
 
 .. _mac-setup:
 
@@ -83,7 +83,7 @@ Add the path to the install ruby libraries top the bottom of your ``~/.bash_prof
 .. code:: bash
 
   echo "export RUBYLIB=/Applications/OpenStudio-2.9.0/Ruby" >> ~/.bash_profile
-  echo "export ENERGYPLUS_EXE_PATH=\"/Applications/OpenStudio-2.9.0/EnergyPlus/energyplus-9.1.0\""
+  echo "export ENERGYPLUS_EXE_PATH=\"/Applications/OpenStudio-2.9.0/EnergyPlus/energyplus-9.2.0\""
 
 Install bundler and the libraries that bundler installs.
 

@@ -40,7 +40,6 @@ class WorkflowTest < MiniTest::Test
     resources_dir = File.join(parent_dir, "..", "resources")
     Dir.mkdir(lib_dir) unless File.exist?(lib_dir)
     FileUtils.cp_r(resources_dir, lib_dir)
-
     return lib_dir
   end
 

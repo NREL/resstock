@@ -3148,7 +3148,7 @@ class HVAC
 
   def self.apply_ceiling_fans(model, unit, runner, coverage, specified_num, power,
                               control, use_benchmark_energy, cooling_setpoint_offset,
-                              mult, weekday_sch, weekend_sch, monthly_sch, sch = nil)
+                              mult, sch, schedules_file)
 
     # check for valid inputs
     if mult < 0
@@ -3165,10 +3165,6 @@ class HVAC
 
     above_grade_finished_floor_area = Geometry.get_above_grade_finished_floor_area_from_spaces(unit.spaces, runner)
     finished_floor_area = Geometry.get_finished_floor_area_from_spaces(unit.spaces, runner)
-
-    # Get number of days in months/year
-    year_description = model.getYearDescription
-    num_days_in_year = Constants.NumDaysInYear(year_description.isLeapYear)
 
     # Determine geometry for spaces and zones that are unit specific
     living_zone = nil
@@ -3373,15 +3369,13 @@ class HVAC
 
       if mel_ann > 0 and use_benchmark_energy
 
+        col_name = "ceiling_fan"
         if sch.nil?
-          sch = MonthWeekdayWeekendSchedule.new(model, runner, space_obj_name + " schedule", weekday_sch, weekend_sch, monthly_sch)
-          if not sch.validated?
-            return false
-          end
+          sch = schedules_file.create_schedule_file(col_name: col_name)
         end
 
         space_mel_ann = mel_ann * UnitConversions.convert(space.floorArea, "m^2", "ft^2") / finished_floor_area
-        space_design_level = sch.calcDesignLevelFromDailykWh(space_mel_ann / num_days_in_year)
+        space_design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: col_name, annual_kwh: space_mel_ann)
 
         mel_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
         mel = OpenStudio::Model::ElectricEquipment.new(mel_def)
@@ -3393,7 +3387,7 @@ class HVAC
         mel_def.setFractionRadiant(0.558)
         mel_def.setFractionLatent(0.0)
         mel_def.setFractionLost(0.07)
-        mel.setSchedule(sch.schedule)
+        mel.setSchedule(sch)
 
       end # benchmark
     end # unit spaces
