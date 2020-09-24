@@ -263,6 +263,10 @@ class Material
     return self.RoofMaterial("Metal, Dark", 0.9, 0.9)
   end
 
+  def self.RoofingMetalCool
+    return self.RoofMaterial("Metal, Cool Colors", 0.85, 0.35)
+  end
+
   def self.RoofingMetalMed
     return self.RoofMaterial("Metal, Medium", 0.9, 0.75)
   end
@@ -277,6 +281,38 @@ class Material
 
   def self.RoofingGalvanizedSteel
     return self.RoofMaterial("Galvanized Steel", 0.88, 0.7)
+  end
+
+  def self.RoofingTileClayorCeramic
+    return self.RoofMaterial("Tile, Clay or Ceramic", 0.88, 0.8)
+  end
+
+  def self.RoofingTileClayorCeramicWhiteCool
+    return self.RoofMaterial("Tile, Clay or Ceramic, White or Cool Colors", 0.88, 0.3)
+  end
+
+  def self.RoofingWoodShingles
+    return self.RoofMaterial("Wood Shingles", 0.9, 0.78)
+  end
+
+  def self.RoofingCompositionShingles
+    return self.RoofMaterial("Composition Shingles", 0.91, 0.85)
+  end
+
+  def self.RoofingCompositionShinglesWhiteCool
+    return self.RoofMaterial("Composition Shingles, White or Cool Colors", 0.91, 0.75)
+  end
+
+  def self.RoofingTileConcrete
+    return self.RoofMaterial("Tile, Concrete", 0.88, 0.89)
+  end
+
+  def self.RoofingTileConcreteWhiteCool
+    return self.RoofMaterial("Tile, Concrete, White or Cool Colors", 0.88, 0.3)
+  end
+
+  def self.RoofingSlate
+    return self.RoofMaterial("Slate", 0.75, 0.87)
   end
 
   def self.Soil(thick_in)
