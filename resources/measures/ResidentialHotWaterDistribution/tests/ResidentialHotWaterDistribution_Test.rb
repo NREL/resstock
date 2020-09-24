@@ -383,10 +383,12 @@ class ResidentialHotWaterDistributionTest < MiniTest::Test
     assert_equal(result.errors.map { |x| x.logMessage }[0], "Mains water temperature has not been set.")
   end
 
-  def test_error_missing_water_heater
+  def test_warning_missing_water_heater
     args_hash = {}
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "Could not find plant loop.")
+    expected_num_del_objects = {}
+    expected_num_new_objects = {}
+    expected_values = { "ShowerDailyWater_gpd" => 0, "SinkDailyWater_gpd" => 0, "BathDailyWater_gpd" => 0, "InternalLoadAnnual_MBtu" => 0, "RecircPumpAnnual_kWh" => 0, "RecircPumpFractionLost" => 0 }
+    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 0, 1)
   end
 
   def test_error_missing_hot_water_fixtures
@@ -530,7 +532,10 @@ class ResidentialHotWaterDistributionTest < MiniTest::Test
           full_load_hrs = Schedule.annual_equivalent_full_load_hrs(year_description, new_object.schedule.get)
           actual_values["InternalLoadAnnual_MBtu"] += UnitConversions.convert(full_load_hrs * new_object.otherEquipmentDefinition.designLevel.get * new_object.multiplier, "Wh", "MBtu")
         elsif obj_type == "ElectricEquipment"
-          full_load_hrs = Schedule.annual_equivalent_full_load_hrs(year_description, new_object.schedule.get)
+          schedule_file = new_object.schedule.get.to_ScheduleFile.get
+          sch_path = schedule_file.externalFile.filePath.to_s
+          schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_output_path: sch_path)
+          full_load_hrs = schedules_file.annual_equivalent_full_load_hrs(col_name: "showers")
           actual_values["RecircPumpAnnual_kWh"] += UnitConversions.convert(full_load_hrs * new_object.designLevel.get * new_object.multiplier, "Wh", "kWh")
           actual_values["RecircPumpFractionLost"] += new_object.electricEquipmentDefinition.fractionLost
         end
@@ -546,14 +551,22 @@ class ResidentialHotWaterDistributionTest < MiniTest::Test
 
       final_object = final_object.public_send("to_#{obj_type}").get
       if obj_type == "WaterUseEquipment"
-        full_load_hrs = Schedule.annual_equivalent_full_load_hrs(year_description, final_object.flowRateFractionSchedule.get)
-        actual_hw_gpd = UnitConversions.convert(full_load_hrs * final_object.waterUseEquipmentDefinition.peakFlowRate * final_object.multiplier, "m^3/s", "gal/min") * 60.0 / num_days_in_year
+        schedule_file = final_object.flowRateFractionSchedule.get.to_ScheduleFile.get
+        sch_path = schedule_file.externalFile.filePath.to_s
+        schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_output_path: sch_path)
+        peak_flow_rate = UnitConversions.convert(final_object.waterUseEquipmentDefinition.peakFlowRate * final_object.multiplier, "m^3/s", "gal/min")
         if final_object.name.to_s.start_with?(Constants.ObjectNameShower)
-          actual_values["ShowerDailyWater_gpd"] += actual_hw_gpd
+          full_load_hrs = schedules_file.annual_equivalent_full_load_hrs(col_name: "showers")
+          daily_gallons = (full_load_hrs * 60 * peak_flow_rate) / num_days_in_year # multiply by 60 because peak_flow_rate is in gal/min
+          actual_values["ShowerDailyWater_gpd"] += daily_gallons
         elsif final_object.name.to_s.start_with?(Constants.ObjectNameSink)
-          actual_values["SinkDailyWater_gpd"] += actual_hw_gpd
+          full_load_hrs = schedules_file.annual_equivalent_full_load_hrs(col_name: "sinks")
+          daily_gallons = (full_load_hrs * 60 * peak_flow_rate) / num_days_in_year # multiply by 60 because peak_flow_rate is in gal/min
+          actual_values["SinkDailyWater_gpd"] += daily_gallons
         elsif final_object.name.to_s.start_with?(Constants.ObjectNameBath)
-          actual_values["BathDailyWater_gpd"] += actual_hw_gpd
+          full_load_hrs = schedules_file.annual_equivalent_full_load_hrs(col_name: "baths")
+          daily_gallons = (full_load_hrs * 60 * peak_flow_rate) / num_days_in_year # multiply by 60 because peak_flow_rate is in gal/min
+          actual_values["BathDailyWater_gpd"] += daily_gallons
         end
       end
     end

@@ -18,7 +18,7 @@ class ProcessConstructionsUnfinishedAtticTest < MiniTest::Test
     osb_r = 0.01905 / 0.1154577
     ins_r = 0.18415 / 0.0588738039479539
     roof_r = roofing_r + osb_r + ins_r
-    expected_values = { "RoofAssemblyR" => roof_r }
+    expected_values = { "RoofAssemblyR" => roof_r, "ThermalAbsorptance" => 0.91, "SolarAbsorptance" => 0.85, "VisibleAbsorptance" => 0.85 }
     model = _test_measure("SFD_2000sqft_2story_FB_UA_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
@@ -31,7 +31,7 @@ class ProcessConstructionsUnfinishedAtticTest < MiniTest::Test
     drywall_r = 0.0127 / 0.1602906
     truss_ins_r = 0.0889 / 0.0748255903541268
     ceiling_r = drywall_r + truss_ins_r
-    expected_values = { "CeilingAssemblyR" => ceiling_r }
+    expected_values = { "CeilingAssemblyR" => ceiling_r, "ThermalAbsorptance" => 0.91, "SolarAbsorptance" => 0.85, "VisibleAbsorptance" => 0.85 }
     _test_measure("SFD_2000sqft_2story_FB_UA_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
@@ -45,7 +45,7 @@ class ProcessConstructionsUnfinishedAtticTest < MiniTest::Test
     truss_ins_r = 0.0889 / 0.0548322901625522
     addtl_ins_r = 0.3642062700074348 / 0.0525187755102041
     ceiling_r = drywall_r + truss_ins_r + addtl_ins_r
-    expected_values = { "CeilingAssemblyR" => ceiling_r }
+    expected_values = { "CeilingAssemblyR" => ceiling_r, "ThermalAbsorptance" => 0.91, "SolarAbsorptance" => 0.85, "VisibleAbsorptance" => 0.85 }
     _test_measure("SFD_2000sqft_2story_FB_UA_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
@@ -61,7 +61,7 @@ class ProcessConstructionsUnfinishedAtticTest < MiniTest::Test
     osb_r = 0.01905 / 0.1154577
     ins_r = 0.2413 / 0.0521415145286614
     roof_r = roofing_r + osb_r + ins_r
-    expected_values = { "RoofAssemblyR" => roof_r }
+    expected_values = { "RoofAssemblyR" => roof_r, "ThermalAbsorptance" => 0.91, "SolarAbsorptance" => 0.85, "VisibleAbsorptance" => 0.85 }
     _test_measure("SFD_2000sqft_2story_FB_UA_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
@@ -84,7 +84,7 @@ class ProcessConstructionsUnfinishedAtticTest < MiniTest::Test
     ins_r = 0.2413 / 0.0501509894667005
     rb_r = 0.00021336 / 235.0698
     roof_r = roofing_r + osb_r + ins_r + rigid_r + rb_r
-    expected_values = { "RoofAssemblyR" => roof_r }
+    expected_values = { "RoofAssemblyR" => roof_r, "ThermalAbsorptance" => 0.88, "SolarAbsorptance" => 0.3, "VisibleAbsorptance" => 0.3 }
     _test_measure("SFD_2000sqft_2story_FB_UA_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
@@ -100,7 +100,7 @@ class ProcessConstructionsUnfinishedAtticTest < MiniTest::Test
     osb_r = 0.01905 / 0.1154577
     ins_r = 0.18415 / 0.0588738039479539
     roof_r = roofing_r + osb_r + ins_r
-    expected_values = { "RoofAssemblyR" => roof_r }
+    expected_values = { "RoofAssemblyR" => roof_r, "ThermalAbsorptance" => 0.91, "SolarAbsorptance" => 0.85, "VisibleAbsorptance" => 0.85 }
     model = _test_measure("SFA_4units_1story_FB_UA_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
@@ -275,6 +275,12 @@ class ProcessConstructionsUnfinishedAtticTest < MiniTest::Test
             new_object.to_LayeredConstruction.get.layers.each do |layer|
               material = layer.to_StandardOpaqueMaterial.get
               actual_values["RoofAssemblyR"] += material.thickness / material.conductivity
+            end
+            if not new_object.name.to_s.include? "Reversed"
+              material = new_object.to_LayeredConstruction.get.layers[0].to_StandardOpaqueMaterial.get
+              assert_equal(expected_values["ThermalAbsorptance"], material.thermalAbsorptance)
+              assert_equal(expected_values["SolarAbsorptance"], material.solarAbsorptance)
+              assert_equal(expected_values["VisibleAbsorptance"], material.visibleAbsorptance)
             end
           elsif new_object.name.to_s.start_with? Constants.SurfaceTypeFloorFinInsUnfin and not new_object.name.to_s.include? "Reversed"
             new_object.to_LayeredConstruction.get.layers.each do |layer|

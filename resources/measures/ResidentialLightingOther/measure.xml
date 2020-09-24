@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>residential_lighting_other</name>
   <uid>6bea4b1f-8694-4748-8dd6-2b097bea478d</uid>
-  <version_id>df737702-1a55-47e4-b256-7affb535a8ab</version_id>
-  <version_modified>20190701T173021Z</version_modified>
+  <version_id>81cd760a-358d-4355-9739-dccf32d6288e</version_id>
+  <version_modified>20200515T170007Z</version_modified>
   <xml_checksum>EEBAEE86</xml_checksum>
   <class_name>ResidentialLightingOther</class_name>
   <display_name>Set Residential Other Lighting</display_name>
@@ -153,52 +153,6 @@
       <default_value>300</default_value>
     </argument>
     <argument>
-      <name>sch_option_type</name>
-      <display_name>Schedule Option Type</display_name>
-      <description>Inputs are used/ignored below based on the option type specified.</description>
-      <type>Choice</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>Calculated Lighting Schedule</default_value>
-      <choices>
-        <choice>
-          <value>Calculated Lighting Schedule</value>
-          <display_name>Calculated Lighting Schedule</display_name>
-        </choice>
-        <choice>
-          <value>User-Specified Lighting Schedule</value>
-          <display_name>User-Specified Lighting Schedule</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
-      <name>weekday_sch</name>
-      <display_name>Weekday schedule</display_name>
-      <description>Specify the 24-hour weekday schedule.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>0.035, 0.033, 0.032, 0.031, 0.032, 0.033, 0.037, 0.042, 0.043, 0.043, 0.043, 0.044, 0.045, 0.045, 0.044, 0.046, 0.048, 0.052, 0.053, 0.05, 0.047, 0.045, 0.04, 0.036</default_value>
-    </argument>
-    <argument>
-      <name>weekend_sch</name>
-      <display_name>Weekend schedule</display_name>
-      <description>Specify the 24-hour weekend schedule.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>0.035, 0.033, 0.032, 0.031, 0.032, 0.033, 0.037, 0.042, 0.043, 0.043, 0.043, 0.044, 0.045, 0.045, 0.044, 0.046, 0.048, 0.052, 0.053, 0.05, 0.047, 0.045, 0.04, 0.036</default_value>
-    </argument>
-    <argument>
-      <name>monthly_sch</name>
-      <display_name>Month schedule</display_name>
-      <description>Specify the 12-month schedule.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>1.248, 1.257, 0.993, 0.989, 0.993, 0.827, 0.821, 0.821, 0.827, 0.99, 0.987, 1.248</default_value>
-    </argument>
-    <argument>
       <name>holiday_daily_energy_use_exterior</name>
       <display_name>Annual Energy Uses: Holiday Exterior</display_name>
       <description>Daily exterior lighting energy use during holiday period.</description>
@@ -226,15 +180,6 @@
       <model_dependent>false</model_dependent>
       <default_value>January 6</default_value>
     </argument>
-    <argument>
-      <name>holiday_sch</name>
-      <display_name>Holiday schedule</display_name>
-      <description>Specify the 24-hour holiday schedule.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.008168, 0.098016, 0.168028, 0.193699, 0.283547, 0.192532, 0.03734, 0.01867</default_value>
-    </argument>
   </arguments>
   <outputs/>
   <provenances/>
@@ -250,6 +195,12 @@
   </attributes>
   <files>
     <file>
+      <filename>ResidentialLightingOther_Test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>C4ADE90C</checksum>
+    </file>
+    <file>
       <version>
         <software_program>OpenStudio</software_program>
         <identifier>2.8.0</identifier>
@@ -258,13 +209,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>CD0FDFEC</checksum>
-    </file>
-    <file>
-      <filename>ResidentialLightingOther_Test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>D340BBE3</checksum>
+      <checksum>83098896</checksum>
     </file>
   </files>
 </measure>

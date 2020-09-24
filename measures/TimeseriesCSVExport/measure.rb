@@ -40,7 +40,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
   end
 
   # define the arguments that the user will input
-  def arguments()
+  def arguments
     args = OpenStudio::Measure::OSArgumentVector.new
 
     # make an argument for the frequency
@@ -56,15 +56,15 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
 
     # make an argument for including optional end use subcategories
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument("include_enduse_subcategories", true)
-    arg.setDisplayName("Include End Use Subcategories")
-    arg.setDescription("Whether to report end use subcategories: appliances, plug loads, fans, large uncommon loads.")
-    arg.setDefaultValue(false)
+    arg.setDisplayName("Report Disaggregated Interior Equipment")
+    arg.setDescription("Whether to report interior equipment broken out into components: appliances, plug loads, exhaust fans, large uncommon loads, etc.")
+    arg.setDefaultValue(true)
     args << arg
 
     # make an argument for optional output variables
     arg = OpenStudio::Measure::OSArgument::makeStringArgument("output_variables", false)
     arg.setDisplayName("Output Variables")
-    arg.setDescription("Specify a comma-separated list of output variables to report. (See EnergyPlus's rdd file for available output variables.)")
+    arg.setDescription("Specify a comma-separated list of output variables to report; use the notation: `Output Variable|Key Value` to specify a key value. (See EnergyPlus's rdd file for available output variables.)")
     args << arg
 
     return args
@@ -97,8 +97,14 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     output_meters = OutputMeters.new(model, runner, reporting_frequency, include_enduse_subcategories)
     results = output_meters.create_custom_building_unit_meters
 
-    output_vars.each do |output_var|
-      results << OpenStudio::IdfObject.load("Output:Variable,*,#{output_var},#{reporting_frequency};").get
+    output_vars.each do |output_var_item|
+      if output_var_item.include? '|'
+        output_var, key_val = output_var_item.split('|')
+      else
+        key_val = '*'
+        output_var = output_var_item
+      end
+      results << OpenStudio::IdfObject.load("Output:Variable,#{key_val},#{output_var},#{reporting_frequency};").get
     end
 
     results << OpenStudio::IdfObject.load("Output:Meter,Electricity:Facility,#{reporting_frequency};").get
@@ -124,6 +130,8 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
       output_vars = output_variables.get
       output_vars = output_vars.split(",")
       output_vars = output_vars.collect { |x| x.strip }
+      output_vars = output_vars.collect { |x| x.split('|')[0] }
+      output_vars = output_vars.uniq
     end
 
     # Get the last model and sql file
@@ -239,8 +247,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
 
     # ELECTRICITY
 
-    report_ts_output(runner, timeseries, "total_site_electricity_kwh", electricity.total_end_uses, "GJ", elec_site_units)
-    report_ts_output(runner, timeseries, "net_site_electricity_kwh", electricity.total_end_uses - electricity.photovoltaics, "GJ", elec_site_units)
+    report_ts_output(runner, timeseries, "total_site_electricity_kwh", electricity.total_end_uses + electricity.photovoltaics, "GJ", elec_site_units)
     report_ts_output(runner, timeseries, "electricity_heating_kwh", electricity.heating, "GJ", elec_site_units)
     report_ts_output(runner, timeseries, "electricity_central_system_heating_kwh", electricity.central_heating, "GJ", elec_site_units)
     report_ts_output(runner, timeseries, "electricity_cooling_kwh", electricity.cooling, "GJ", elec_site_units)
@@ -249,7 +256,29 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     report_ts_output(runner, timeseries, "electricity_exterior_lighting_kwh", electricity.exterior_lighting, "GJ", elec_site_units)
     report_ts_output(runner, timeseries, "electricity_exterior_holiday_lighting_kwh", electricity.exterior_holiday_lighting, "GJ", elec_site_units)
     report_ts_output(runner, timeseries, "electricity_garage_lighting_kwh", electricity.garage_lighting, "GJ", elec_site_units)
-    report_ts_output(runner, timeseries, "electricity_interior_equipment_kwh", electricity.interior_equipment, "GJ", elec_site_units)
+    if include_enduse_subcategories
+      report_ts_output(runner, timeseries, "electricity_refrigerator_kwh", electricity.refrigerator, "GJ", elec_site_units)
+      report_ts_output(runner, timeseries, "electricity_clothes_washer_kwh", electricity.clothes_washer, "GJ", elec_site_units)
+      report_ts_output(runner, timeseries, "electricity_clothes_dryer_kwh", electricity.clothes_dryer, "GJ", elec_site_units)
+      report_ts_output(runner, timeseries, "electricity_cooking_range_kwh", electricity.cooking_range, "GJ", elec_site_units)
+      report_ts_output(runner, timeseries, "electricity_dishwasher_kwh", electricity.dishwasher, "GJ", elec_site_units)
+      report_ts_output(runner, timeseries, "electricity_plug_loads_kwh", electricity.plug_loads, "GJ", elec_site_units)
+      report_ts_output(runner, timeseries, "electricity_house_fan_kwh", electricity.house_fan, "GJ", elec_site_units)
+      report_ts_output(runner, timeseries, "electricity_range_fan_kwh", electricity.range_fan, "GJ", elec_site_units)
+      report_ts_output(runner, timeseries, "electricity_bath_fan_kwh", electricity.bath_fan, "GJ", elec_site_units)
+      report_ts_output(runner, timeseries, "electricity_ceiling_fan_kwh", electricity.ceiling_fan, "GJ", elec_site_units)
+      report_ts_output(runner, timeseries, "electricity_extra_refrigerator_kwh", electricity.extra_refrigerator, "GJ", elec_site_units)
+      report_ts_output(runner, timeseries, "electricity_freezer_kwh", electricity.freezer, "GJ", elec_site_units)
+      report_ts_output(runner, timeseries, "electricity_pool_heater_kwh", electricity.pool_heater, "GJ", elec_site_units)
+      report_ts_output(runner, timeseries, "electricity_pool_pump_kwh", electricity.pool_pump, "GJ", elec_site_units)
+      report_ts_output(runner, timeseries, "electricity_hot_tub_heater_kwh", electricity.hot_tub_heater, "GJ", elec_site_units)
+      report_ts_output(runner, timeseries, "electricity_hot_tub_pump_kwh", electricity.hot_tub_pump, "GJ", elec_site_units)
+      report_ts_output(runner, timeseries, "electricity_well_pump_kwh", electricity.well_pump, "GJ", elec_site_units)
+      report_ts_output(runner, timeseries, "electricity_recirc_pump_kwh", electricity.recirc_pump, "GJ", elec_site_units)
+      report_ts_output(runner, timeseries, "electricity_vehicle_kwh", electricity.vehicle, "GJ", elec_site_units)
+    else
+      report_ts_output(runner, timeseries, "electricity_interior_equipment_kwh", electricity.interior_equipment, "GJ", elec_site_units)
+    end
     report_ts_output(runner, timeseries, "electricity_fans_heating_kwh", electricity.fans_heating, "GJ", elec_site_units)
     report_ts_output(runner, timeseries, "electricity_fans_cooling_kwh", electricity.fans_cooling, "GJ", elec_site_units)
     report_ts_output(runner, timeseries, "electricity_pumps_heating_kwh", electricity.pumps_heating, "GJ", elec_site_units)
@@ -264,7 +293,17 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     report_ts_output(runner, timeseries, "total_site_natural_gas_therm", natural_gas.total_end_uses, "GJ", gas_site_units)
     report_ts_output(runner, timeseries, "natural_gas_heating_therm", natural_gas.heating, "GJ", gas_site_units)
     report_ts_output(runner, timeseries, "natural_gas_central_system_heating_therm", natural_gas.central_heating, "GJ", gas_site_units)
-    report_ts_output(runner, timeseries, "natural_gas_interior_equipment_therm", natural_gas.interior_equipment, "GJ", gas_site_units)
+    if include_enduse_subcategories
+      report_ts_output(runner, timeseries, "natural_gas_clothes_dryer_therm", natural_gas.clothes_dryer, "GJ", gas_site_units)
+      report_ts_output(runner, timeseries, "natural_gas_cooking_range_therm", natural_gas.cooking_range, "GJ", gas_site_units)
+      report_ts_output(runner, timeseries, "natural_gas_pool_heater_therm", natural_gas.pool_heater, "GJ", gas_site_units)
+      report_ts_output(runner, timeseries, "natural_gas_hot_tub_heater_therm", natural_gas.hot_tub_heater, "GJ", gas_site_units)
+      report_ts_output(runner, timeseries, "natural_gas_grill_therm", natural_gas.grill, "GJ", gas_site_units)
+      report_ts_output(runner, timeseries, "natural_gas_lighting_therm", natural_gas.lighting, "GJ", gas_site_units)
+      report_ts_output(runner, timeseries, "natural_gas_fireplace_therm", natural_gas.fireplace, "GJ", gas_site_units)
+    else
+      report_ts_output(runner, timeseries, "natural_gas_interior_equipment_therm", natural_gas.interior_equipment, "GJ", gas_site_units)
+    end
     report_ts_output(runner, timeseries, "natural_gas_water_systems_therm", natural_gas.water_systems, "GJ", gas_site_units)
 
     # FUEL OIL
@@ -272,7 +311,6 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     report_ts_output(runner, timeseries, "total_site_fuel_oil_mbtu", fuel_oil.total_end_uses, "GJ", other_fuel_site_units)
     report_ts_output(runner, timeseries, "fuel_oil_heating_mbtu", fuel_oil.heating, "GJ", other_fuel_site_units)
     report_ts_output(runner, timeseries, "fuel_oil_central_system_heating_mbtu", fuel_oil.central_heating, "GJ", other_fuel_site_units)
-    report_ts_output(runner, timeseries, "fuel_oil_interior_equipment_mbtu", fuel_oil.interior_equipment, "GJ", other_fuel_site_units)
     report_ts_output(runner, timeseries, "fuel_oil_water_systems_mbtu", fuel_oil.water_systems, "GJ", other_fuel_site_units)
 
     # PROPANE
@@ -280,7 +318,12 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     report_ts_output(runner, timeseries, "total_site_propane_mbtu", propane.total_end_uses, "GJ", other_fuel_site_units)
     report_ts_output(runner, timeseries, "propane_heating_mbtu", propane.heating, "GJ", other_fuel_site_units)
     report_ts_output(runner, timeseries, "propane_central_system_heating_mbtu", propane.central_heating, "GJ", other_fuel_site_units)
-    report_ts_output(runner, timeseries, "propane_interior_equipment_mbtu", propane.interior_equipment, "GJ", other_fuel_site_units)
+    if include_enduse_subcategories
+      report_ts_output(runner, timeseries, "propane_clothes_dryer_mbtu", propane.clothes_dryer, "GJ", other_fuel_site_units)
+      report_ts_output(runner, timeseries, "propane_cooking_range_mbtu", propane.cooking_range, "GJ", other_fuel_site_units)
+    else
+      report_ts_output(runner, timeseries, "propane_interior_equipment_mbtu", propane.interior_equipment, "GJ", other_fuel_site_units)
+    end
     report_ts_output(runner, timeseries, "propane_water_systems_mbtu", propane.water_systems, "GJ", other_fuel_site_units)
 
     # WOOD
@@ -296,41 +339,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
                       propane.total_end_uses +
                       wood.total_end_uses
 
-    report_ts_output(runner, timeseries, "total_site_energy_mbtu", totalSiteEnergy, "GJ", total_site_units)
-    report_ts_output(runner, timeseries, "net_site_energy_mbtu", totalSiteEnergy - electricity.photovoltaics, "GJ", total_site_units)
-
-    # END USE SUBCATEGORIES
-
-    if include_enduse_subcategories
-      report_ts_output(runner, timeseries, "electricity_refrigerator_kwh", electricity.refrigerator, "GJ", elec_site_units)
-      report_ts_output(runner, timeseries, "electricity_clothes_washer_kwh", electricity.clothes_washer, "GJ", elec_site_units)
-      report_ts_output(runner, timeseries, "electricity_clothes_dryer_kwh", electricity.clothes_dryer, "GJ", elec_site_units)
-      report_ts_output(runner, timeseries, "natural_gas_clothes_dryer_therm", natural_gas.clothes_dryer, "GJ", gas_site_units)
-      report_ts_output(runner, timeseries, "propane_clothes_dryer_mbtu", propane.clothes_dryer, "GJ", other_fuel_site_units)
-      report_ts_output(runner, timeseries, "electricity_cooking_range_kwh", electricity.cooking_range, "GJ", elec_site_units)
-      report_ts_output(runner, timeseries, "natural_gas_cooking_range_therm", natural_gas.cooking_range, "GJ", gas_site_units)
-      report_ts_output(runner, timeseries, "propane_cooking_range_mbtu", propane.cooking_range, "GJ", other_fuel_site_units)
-      report_ts_output(runner, timeseries, "electricity_dishwasher_kwh", electricity.dishwasher, "GJ", elec_site_units)
-      report_ts_output(runner, timeseries, "electricity_plug_loads_kwh", electricity.plug_loads, "GJ", elec_site_units)
-      report_ts_output(runner, timeseries, "electricity_house_fan_kwh", electricity.house_fan, "GJ", elec_site_units)
-      report_ts_output(runner, timeseries, "electricity_range_fan_kwh", electricity.range_fan, "GJ", elec_site_units)
-      report_ts_output(runner, timeseries, "electricity_bath_fan_kwh", electricity.bath_fan, "GJ", elec_site_units)
-      report_ts_output(runner, timeseries, "electricity_ceiling_fan_kwh", electricity.ceiling_fan, "GJ", elec_site_units)
-      report_ts_output(runner, timeseries, "electricity_extra_refrigerator_kwh", electricity.extra_refrigerator, "GJ", elec_site_units)
-      report_ts_output(runner, timeseries, "electricity_freezer_kwh", electricity.freezer, "GJ", elec_site_units)
-      report_ts_output(runner, timeseries, "electricity_pool_heater_kwh", electricity.pool_heater, "GJ", elec_site_units)
-      report_ts_output(runner, timeseries, "natural_gas_pool_heater_therm", natural_gas.pool_heater, "GJ", gas_site_units)
-      report_ts_output(runner, timeseries, "electricity_pool_pump_kwh", electricity.pool_pump, "GJ", elec_site_units)
-      report_ts_output(runner, timeseries, "electricity_hot_tub_heater_kwh", electricity.hot_tub_heater, "GJ", elec_site_units)
-      report_ts_output(runner, timeseries, "natural_gas_hot_tub_heater_therm", natural_gas.hot_tub_heater, "GJ", gas_site_units)
-      report_ts_output(runner, timeseries, "electricity_hot_tub_pump_kwh", electricity.hot_tub_pump, "GJ", elec_site_units)
-      report_ts_output(runner, timeseries, "natural_gas_grill_therm", natural_gas.grill, "GJ", gas_site_units)
-      report_ts_output(runner, timeseries, "natural_gas_lighting_therm", natural_gas.lighting, "GJ", gas_site_units)
-      report_ts_output(runner, timeseries, "natural_gas_fireplace_therm", natural_gas.fireplace, "GJ", gas_site_units)
-      report_ts_output(runner, timeseries, "electricity_well_pump_kwh", electricity.well_pump, "GJ", elec_site_units)
-      report_ts_output(runner, timeseries, "electricity_recirc_pump_kwh", electricity.recirc_pump, "GJ", elec_site_units)
-      report_ts_output(runner, timeseries, "electricity_vehicle_kwh", electricity.vehicle, "GJ", elec_site_units)
-    end
+    report_ts_output(runner, timeseries, "total_site_energy_mbtu", totalSiteEnergy + electricity.photovoltaics, "GJ", total_site_units)
 
     output_vars.each do |output_var|
       sqlFile.availableKeyValues(ann_env_pd, reporting_frequency_map[reporting_frequency], output_var).each do |key_value|

@@ -150,18 +150,10 @@ Rake::TestTask.new('integrity_check_all') do |t|
   t.verbose = true
 end # rake task
 
-desc 'Perform integrity check on inputs for project_singlefamilydetached'
-Rake::TestTask.new('integrity_check_singlefamilydetached') do |t|
+desc 'Perform integrity check on inputs for project_national'
+Rake::TestTask.new('integrity_check_national') do |t|
   t.libs << 'test'
-  t.test_files = Dir['project_singlefamilydetached/tests/*.rb']
-  t.warning = false
-  t.verbose = true
-end # rake task
-
-desc 'Perform integrity check on inputs for project_multifamily_beta'
-Rake::TestTask.new('integrity_check_multifamily_beta') do |t|
-  t.libs << 'test'
-  t.test_files = Dir['project_multifamily_beta/tests/*.rb']
+  t.test_files = Dir['project_national/tests/*.rb']
   t.warning = false
   t.verbose = true
 end # rake task
@@ -276,19 +268,37 @@ def integrity_check(project_dir_name, housing_characteristics_dir = "housing_cha
       # Test all possible combinations of dependency value combinations
       combo_hashes = get_combination_hashes(tsvfiles, tsvfile.dependency_cols.keys)
       if combo_hashes.size > 0
+        i = 1
+        starting = Time.now
+        total_hashes = combo_hashes.length
         combo_hashes.each do |combo_hash|
+          # Check dependency value combination
           _matched_option_name, _matched_row_num = tsvfile.get_option_name_from_sample_number(1.0, combo_hash)
+
+          # Print to screen so CircleCI does not timeout
+          if i % 10000 == 0
+            puts "  Checked #{i}/#{total_hashes} possible dependency value combinations..."
+          end
+          i += 1
         end
+        ending = Time.now
+        puts "  Checking all possible combinations: \t\t#{ending - starting} seconds\n"
       else
         # global distribution
         _matched_option_name, _matched_row_num = tsvfile.get_option_name_from_sample_number(1.0, nil)
       end
 
       # Check file format to be consistent with specified guidelines
+      starting = Time.now
       check_parameter_file_format(tsvpath, tsvfile.dependency_cols.length(), parameter_name)
+      ending = Time.now
+      puts "  Checking file format: \t\t\t#{ending - starting} seconds\n"
 
       # Check for all options defined in options_lookup.tsv
+      starting = Time.now
       get_measure_args_from_option_names(lookup_file, tsvfile.option_cols.keys, parameter_name)
+      ending = Time.now
+      puts "  Checking all options in options_lookup.tsv: \t#{ending - starting} seconds\n\n"
     end
     if not err.empty?
       raise err
@@ -481,6 +491,9 @@ def check_parameter_file_format(tsvpath, n_deps, name)
   # For each line in file
   i = 1
   File.read(tsvpath, mode: "rb").each_line do |line|
+    # If not a comment line
+    next if line.start_with? "\#"
+
     # Check endline character
     if line.include? "\r\n"
       # Do not perform other checks if the line is the header
