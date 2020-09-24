@@ -131,13 +131,6 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
     plant_loop.setDefaultValue(Constants.Auto)
     args << plant_loop
 
-    # make an argument for the number of days to shift the draw profile by
-    schedule_day_shift = OpenStudio::Measure::OSArgument::makeIntegerArgument("schedule_day_shift", true)
-    schedule_day_shift.setDisplayName("Schedule Day Shift")
-    schedule_day_shift.setDescription("Draw profiles are shifted to prevent coincident hot water events when performing portfolio analyses. For multifamily buildings, draw profiles for each unit are automatically shifted by one week.")
-    schedule_day_shift.setDefaultValue(0)
-    args << schedule_day_shift
-
     return args
   end # end the arguments method
 
@@ -164,7 +157,6 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
     mult_hw = runner.getDoubleArgumentValue("mult_hw", user_arguments)
     location = runner.getStringArgumentValue("location", user_arguments)
     plant_loop_s = runner.getStringArgumentValue("plant_loop", user_arguments)
-    d_sh = runner.getIntegerArgumentValue("schedule_day_shift", user_arguments)
 
     # Get building units
     units = Geometry.get_building_units(model, runner)
@@ -184,8 +176,14 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
                           Constants.SpaceTypeUnfinishedBasement,
                           Constants.SpaceTypeGarage]
 
+    schedules_file = SchedulesFile.new(runner: runner, model: model)
+    if not schedules_file.validated?
+      return false
+    end
+
     tot_ann_e = 0
     msgs = []
+    sch = nil
     cd_msgs = []
     cd_sch = nil
     mains_temps = nil
@@ -202,8 +200,8 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
 
       success, ann_e, cd_updated, cd_sch, mains_temps = ClothesWasher.apply(model, unit, runner, imef, rated_annual_energy, annual_cost,
                                                                             test_date, drum_volume, cold_cycle, thermostatic_control,
-                                                                            internal_heater, fill_sensor, mult_e, mult_hw, d_sh, cd_sch,
-                                                                            space, plant_loop, mains_temps)
+                                                                            internal_heater, fill_sensor, mult_e, mult_hw, cd_sch,
+                                                                            space, plant_loop, mains_temps, sch, schedules_file)
 
       if not success
         return false
@@ -219,6 +217,8 @@ class ResidentialClothesWasher < OpenStudio::Measure::ModelMeasure
 
       tot_ann_e += ann_e
     end
+
+    schedules_file.set_vacancy(col_name: "clothes_washer_power")
 
     # Reporting
     if (msgs.size + cd_msgs.size) > 1
