@@ -906,6 +906,9 @@
 				<xs:complexType>
 					<xs:sequence>
 						<xs:element name="Wall" maxOccurs="unbounded">
+							<xs:annotation>
+								<xs:documentation>Interior partition surfaces should not be described using the Wall element.</xs:documentation>
+							</xs:annotation>
 							<xs:complexType>
 								<xs:sequence>
 									<xs:group ref="SystemInfo"/>
@@ -1027,7 +1030,7 @@
 						<xs:element name="FrameFloor" maxOccurs="unbounded" minOccurs="1">
 							<xs:annotation>
 								<xs:documentation>Use the FrameFloor element for all floors/ceilings. For example, living space ceilings/attic floors, floors above foundations, floors under bonus
-									rooms, cantilevered floors, etc.</xs:documentation>
+									rooms, cantilevered floors, etc. Interior partition surfaces should not be described using the FrameFloor element.</xs:documentation>
 							</xs:annotation>
 							<xs:complexType>
 								<xs:sequence>

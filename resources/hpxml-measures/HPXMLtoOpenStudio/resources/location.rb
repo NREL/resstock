@@ -85,9 +85,9 @@ class Location
 
   def self.get_climate_zone_ba(wmo)
     ba_zone = nil
-    zones_csv = File.join(File.dirname(__FILE__), 'climate_zones.csv')
+    zones_csv = File.join(File.dirname(__FILE__), 'data_climate_zones.csv')
     if not File.exist?(zones_csv)
-      fail 'Could not find climate_zones.csv'
+      fail 'Could not find data_climate_zones.csv'
     end
 
     require 'csv'
