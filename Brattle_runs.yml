@@ -1,0 +1,389 @@
+stock_type: residential
+buildstock_directory: ./  # Relative to this file or absolute
+project_directory: project_singlefamilydetached
+output_directory: /projects/enduse/geb-potential/Brattle/Brattle_measures_test
+weather_files_path: /shared-projects/buildstock/weather/project_resstock_national_weather.zip
+
+baseline:
+  n_datapoints: 180000 #10,000 per city   
+  n_buildings_represented: 81221016 
+residential_simulation_controls:
+  timesteps_per_hr: 6
+  begin_month: 1
+  begin_day_of_month: 1
+  end_month: 12
+  end_day_of_month: 31
+  calendar_year: 2006 #2006 starts on Sunday, 2007 starts on Monday
+
+upgrades:
+#note: no reference scenarios. Everything happens today.  
+## UPGRADE 1 Residential ICT, Precond
+  - upgrade_name: Package 1 Pre-heating/cooling, smart thermostat for ALL electric heating and/or cooling homes
+    package_apply_logic:
+      - or:
+          - HVAC System Cooling|AC, SEER 8
+          - HVAC System Cooling|AC, SEER 10
+          - HVAC System Cooling|AC, SEER 13
+          - HVAC System Cooling|AC, SEER 14
+          - HVAC System Cooling|AC, SEER 15
+          - HVAC System Cooling|FIXME Room AC, EER 8.5, 20% Conditioned  
+          - HVAC System Cooling|FIXME Room AC, EER 10.7, 20% Conditioned 
+          - HVAC System Heat Pump|ASHP, SEER 10, 6.2 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 10.3, 7.0 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 11.5, 7.5 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 13, 7.7 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 13, 8.0 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 14, 8.2 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 14.3, 8.5 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 15, 8.5 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 16, 9.0 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 17, 8.7 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 18, 9.3 HSPF
+          - HVAC System Heating Electricity|Electric Boiler
+          - HVAC System Heating Electricity|Electric Furnace
+          - HVAC System Heating Electricity|Electric Baseboard 
+    options:
+      #smart thermostat (default setbacks from sampling: apply offset=FALSE; DR+Night if weekday occupancy + no setback; DR+Full if not weekday occupancy + no setback; DR Only if has setback; schedules are specific to city in sampling
+      - option: Cooling Setpoint Apply Offset|TRUE #(-3..+4) Cooling - [DR+Night setback] & [DR+Full setback] (ignore daytime/unoccupied setback comfort)
+        apply_logic:
+          - not: Cooling Setpoint|80F
+          - not: Cooling Setpoint|78F
+          - not: Cooling Setpoint|62F
+          - not: Cooling Setpoint|60F
+          - Cooling Setpoint Has Offset|No
+      - option: Cooling Setpoint Apply Offset|TRUE #(-3..+3) Cooling - [DR setback only]
+        apply_logic:
+          - not: Cooling Setpoint|80F
+          - not: Cooling Setpoint|78F
+          - not: Cooling Setpoint|62F
+          - not: Cooling Setpoint|60F
+          - Cooling Setpoint Has Offset|Yes
+      - option: Heating Setpoint Apply Offset|TRUE #(-8..+3) Heating - [DR+Night setback] & [DR+Full setback]
+        apply_logic:
+          - not: Heating Setpoint|80F
+          - not: Heating Setpoint|78F
+          - not: Heating Setpoint|67F
+          - not: Heating Setpoint|65F 
+          - not: Heating Setpoint|62F
+          - not: Heating Setpoint|60F      
+          - Heating Setpoint Has Offset|No
+      - option: Heating Setpoint Apply Offset|TRUE #(-3..+3) Heating - [DR setback only]
+        apply_logic:
+          - not: Heating Setpoint|80F
+          - not: Heating Setpoint|78F
+          - not: Heating Setpoint|62F
+          - not: Heating Setpoint|60F   
+          - Heating Setpoint Has Offset|Yes
+      
+
+
+## UPGRADE 2 CAC + Residential ICT, Precond
+  - upgrade_name: Package 2 Pre-heating/cooling, smart thermostat, CAC for CAC homes
+    package_apply_logic:
+      - or:
+          - HVAC System Cooling|AC, SEER 8
+          - HVAC System Cooling|AC, SEER 10
+          - HVAC System Cooling|AC, SEER 13
+          - HVAC System Cooling|AC, SEER 14
+          - HVAC System Cooling|AC, SEER 15
+      - not:
+          - HVAC System Heating Electricity|Electric Furnace 
+    options:
+      #Best CAC
+      - option: HVAC System Cooling|AC, SEER 18
+        costs:
+          - value: 3200
+            multiplier: Fixed (1)
+          - value: 42
+            multiplier: Size, Cooling System (kBtu/h)
+        lifetime: 16
+      #smart thermostat (default setbacks from sampling: apply offset=FALSE; DR+Night if weekday occupancy + no setback; DR+Full if not weekday occupancy + no setback; DR Only if has setback; schedules are specific to city in sampling
+      - option: Cooling Setpoint Apply Offset|TRUE #(-3..+4) Cooling - [DR+Night setback] & [DR+Full setback] (ignore daytime/unoccupied setback comfort)
+        apply_logic:
+          - not: Cooling Setpoint|80F
+          - not: Cooling Setpoint|78F
+          - not: Cooling Setpoint|62F
+          - not: Cooling Setpoint|60F
+          - Cooling Setpoint Has Offset|No
+      - option: Cooling Setpoint Apply Offset|TRUE #(-3..+3) Cooling - [DR setback only]
+        apply_logic:
+          - not: Cooling Setpoint|80F
+          - not: Cooling Setpoint|78F
+          - not: Cooling Setpoint|62F
+          - not: Cooling Setpoint|60F
+          - Cooling Setpoint Has Offset|Yes
+      - option: Heating Setpoint Apply Offset|TRUE #(-8..+3) Heating - [DR+Night setback] & [DR+Full setback]
+        apply_logic:
+          - not: Heating Setpoint|80F
+          - not: Heating Setpoint|78F
+          - not: Heating Setpoint|67F
+          - not: Heating Setpoint|65F 
+          - not: Heating Setpoint|62F
+          - not: Heating Setpoint|60F      
+          - Heating Setpoint Has Offset|No
+      - option: Heating Setpoint Apply Offset|TRUE #(-3..+3) Heating - [DR setback only]
+        apply_logic:
+          - not: Heating Setpoint|80F
+          - not: Heating Setpoint|78F
+          - not: Heating Setpoint|62F
+          - not: Heating Setpoint|60F   
+          - Heating Setpoint Has Offset|Yes
+      
+ 
+
+## UPGRADE 3 ASHP + Residential ICT, Precond
+  - upgrade_name: Package 3 Pre-heating/cooling, smart thermostat, ASHP for ASHP homes
+    package_apply_logic:
+      or:
+          - HVAC System Heat Pump|ASHP, SEER 10, 6.2 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 10.3, 7.0 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 11.5, 7.5 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 13, 7.7 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 13, 8.0 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 14, 8.2 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 14.3, 8.5 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 15, 8.5 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 16, 9.0 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 17, 8.7 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 18, 9.3 HSPF
+          - HVAC System Heating Electricity|Electric Furnace
+    options:
+      - option: HVAC System Heat Pump|ASHP, SEER 22, 10 HSPF
+        costs:
+          - value: 4200
+            multiplier: Fixed (1)
+          - value: 42
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 15
+      #smart thermostat (default setbacks from sampling: apply offset=FALSE; DR+Night if weekday occupancy + no setback; DR+Full if not weekday occupancy + no setback; DR Only if has setback; schedules are specific to city in sampling
+      - option: Cooling Setpoint Apply Offset|TRUE #(-3..+4) Cooling - [DR+Night setback] & [DR+Full setback] (ignore daytime/unoccupied setback comfort)
+        apply_logic:
+          - not: Cooling Setpoint|80F
+          - not: Cooling Setpoint|78F
+          - not: Cooling Setpoint|62F
+          - not: Cooling Setpoint|60F
+          - Cooling Setpoint Has Offset|No
+      - option: Cooling Setpoint Apply Offset|TRUE #(-3..+3) Cooling - [DR setback only]
+        apply_logic:
+          - not: Cooling Setpoint|80F
+          - not: Cooling Setpoint|78F
+          - not: Cooling Setpoint|62F
+          - not: Cooling Setpoint|60F
+          - Cooling Setpoint Has Offset|Yes
+      - option: Heating Setpoint Apply Offset|TRUE #(-8..+3) Heating - [DR+Night setback] & [DR+Full setback]
+        apply_logic:
+          - not: Heating Setpoint|80F
+          - not: Heating Setpoint|78F
+          - not: Heating Setpoint|67F
+          - not: Heating Setpoint|65F 
+          - not: Heating Setpoint|62F
+          - not: Heating Setpoint|60F      
+          - Heating Setpoint Has Offset|No
+      - option: Heating Setpoint Apply Offset|TRUE #(-3..+3) Heating - [DR setback only]
+        apply_logic:
+          - not: Heating Setpoint|80F
+          - not: Heating Setpoint|78F
+          - not: Heating Setpoint|62F
+          - not: Heating Setpoint|60F   
+          - Heating Setpoint Has Offset|Yes 
+          
+ 
+
+## UPGRADE 4 CAC + smart thermostat
+  - upgrade_name: Package 4 Smart thermostat, CAC for CAC homes
+    package_apply_logic:
+      - or:
+        - HVAC System Cooling|AC, SEER 8
+        - HVAC System Cooling|AC, SEER 10
+        - HVAC System Cooling|AC, SEER 13
+        - HVAC System Cooling|AC, SEER 14
+        - HVAC System Cooling|AC, SEER 15
+      - not:
+        - HVAC System Heating Electricity|Electric Furnace
+    options: 
+      ## Best CAC
+      - option: HVAC System Cooling|AC, SEER 18
+        costs:
+          - value: 3200
+            multiplier: Fixed (1)
+          - value: 42
+            multiplier: Size, Cooling System (kBtu/h)
+        lifetime: 16
+        
+      ## Best smart thermostat
+      - option: Cooling Setpoint Apply Offset|TRUE
+        apply_logic:
+          - Cooling Setpoint Has Offset|No
+      - option: Heating Setpoint Apply Offset|TRUE
+        apply_logic:
+          - Heating Setpoint Has Offset|No
+      # - option: Cooling Setpoint Apply Offset|FALSE
+      #   apply_logic:
+      #     - Cooling Setpoint Has Offset|Yes
+      # - option: Heating Setpoint Apply Offset|FALSE
+      #   apply_logic:
+      #     - Heating Setpoint Has Offset|Yes
+      
+      ## Night setback, cooling
+      - option: Setback|Night - Cooling #+4
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - not: Cooling Setpoint|80F
+          - not: Cooling Setpoint|78F     
+      ## Full setback, cooling
+      - option: Setback|Full - Cooling #+4 (daytime/unoccupied setback not considered)
+        apply_logic:
+          - Somebody at home in weekday|No
+          - not: Cooling Setpoint|80F
+          - not: Cooling Setpoint|78F
+      ## No setback, cooling
+      - option: Setback|None - Cooling #Overwrite default if tsp above threshold
+        apply_logic:
+          - or:
+            - Cooling Setpoint|80F
+            - Cooling Setpoint|78F       
+      ## Night setback, heating
+      - option: Setback|Night - Heating #-8
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - not: Heating Setpoint|60F
+          - not: Heating Setpoint|62F
+          - not: Heating Setpoint|65F
+          - not: Heating Setpoint|67F
+      ## Full setback, heating
+      - option: Setback|Full - Heating #-8
+        apply_logic:
+          - Somebody at home in weekday|No
+          - not: Heating Setpoint|60F
+          - not: Heating Setpoint|62F
+          - not: Heating Setpoint|65F
+          - not: Heating Setpoint|67F
+      ## No setback, heating
+      - option: Setback|None - Heating #Overwrite default if tsp below threshold
+        apply_logic:
+          - or:
+            - Heating Setpoint|60F
+            - Heating Setpoint|62F
+            - Heating Setpoint|65F
+            - Heating Setpoint|67F
+
+     
+## UPGRADE 5 ASHP, smart thermostat
+  - upgrade_name: Package 5 Smart thermostat, ASHP for ASHP homes
+    package_apply_logic: 
+      or:
+            - HVAC System Heat Pump|ASHP, SEER 10, 6.2 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 10.3, 7.0 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 11.5, 7.5 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 13, 7.7 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 13, 8.0 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 14, 8.2 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 14.3, 8.5 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 15, 8.5 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 16, 9.0 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 17, 8.7 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 18, 9.3 HSPF
+            - HVAC System Heating Electricity|Electric Furnace        
+    options: 
+      ## Best ASHP
+      - option: HVAC System Heat Pump|ASHP, SEER 22, 10 HSPF
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      ## Best Smart Thermostat
+      - option: Cooling Setpoint Apply Offset|TRUE
+        apply_logic:
+          - Cooling Setpoint Has Offset|No
+      - option: Heating Setpoint Apply Offset|TRUE
+        apply_logic:
+          - Heating Setpoint Has Offset|No
+      # - option: Cooling Setpoint Apply Offset|FALSE
+      #   apply_logic:
+      #     - Cooling Setpoint Has Offset|Yes
+      # - option: Heating Setpoint Apply Offset|FALSE
+      #   apply_logic:
+      #     - Heating Setpoint Has Offset|Yes            
+            
+      ## Night setback, cooling
+      - option: Setback|Night - Cooling #+4
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - not: Cooling Setpoint|80F
+          - not: Cooling Setpoint|78F     
+      ## Full setback, cooling
+      - option: Setback|Full - Cooling #+4 (daytime/unoccupied setback not considered)
+        apply_logic:
+          - Somebody at home in weekday|No
+          - not: Cooling Setpoint|80F
+          - not: Cooling Setpoint|78F
+      ## No setback, cooling
+      - option: Setback|None - Cooling #Overwrite default if tsp above threshold
+        apply_logic:
+          - or:
+            - Cooling Setpoint|80F
+            - Cooling Setpoint|78F       
+      ## Night setback, heating
+      - option: Setback|Night - Heating #-8
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - not: Heating Setpoint|60F
+          - not: Heating Setpoint|62F
+          - not: Heating Setpoint|65F
+          - not: Heating Setpoint|67F
+      ## Full setback, heating
+      - option: Setback|Full - Heating #-8
+        apply_logic:
+          - Somebody at home in weekday|No
+          - not: Heating Setpoint|60F
+          - not: Heating Setpoint|62F
+          - not: Heating Setpoint|65F
+          - not: Heating Setpoint|67F
+      ## No setback, heating
+      - option: Setback|None - Heating #Overwrite default if tsp below threshold
+        apply_logic:
+          - or:
+            - Heating Setpoint|60F
+            - Heating Setpoint|62F
+            - Heating Setpoint|65F
+            - Heating Setpoint|67F
+
+
+
+    
+timeseries_csv_export:
+  reporting_frequency: Hourly
+  include_enduse_subcategories: true
+  
+eagle:
+  account: restockrbi
+  n_jobs: 600 #1000
+  minutes_per_sim: 5 #5
+  sampling:
+    time: 30
+  postprocessing:
+    time: 1000
+    n_workers: 6
+    
+aws:
+  job_identifier: geb_full
+  s3:
+    bucket: resbldg-datasets
+    prefix: resstock-athena/geb-potential-upgrades/aws_data/geb_full
+  region: us-west-2
+  use_spot: true
+  batch_array_size: 10000
+  notifications_email: andrew.speake@nrel.gov
+  emr:
+    slave_instance_count: 6
+  
+postprocessing:
+  aws:
+    region_name: 'us-west-2'
+    s3:
+      bucket: resbldg-datasets
+      prefix: resstock-athena/geb-potential-upgrades
+    athena:
+      glue_service_role: service-role/AWSGlueServiceRole-default
+      database_name: geb_potential
+      max_crawling_time: 3000 #seconds to wait for the crawler to complete before aborting it
