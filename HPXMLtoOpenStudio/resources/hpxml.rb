@@ -285,7 +285,6 @@ class HPXML < Object
     from_oga(hpxml)
 
     # Clean up
-    delete_partition_surfaces()
     delete_tiny_surfaces()
     delete_adiabatic_subsurfaces()
     if collapse_enclosure
@@ -1546,6 +1545,10 @@ class HPXML < Object
       return !is_exterior
     end
 
+    def is_adiabatic
+      return HPXML::is_adiabatic(self)
+    end
+
     def is_thermal_boundary
       return HPXML::is_thermal_boundary(self)
     end
@@ -1660,6 +1663,10 @@ class HPXML < Object
 
     def is_interior
       return !is_exterior
+    end
+
+    def is_adiabatic
+      return HPXML::is_adiabatic(self)
     end
 
     def is_thermal_boundary
@@ -1795,6 +1802,10 @@ class HPXML < Object
 
     def is_interior
       return !is_exterior
+    end
+
+    def is_adiabatic
+      return HPXML::is_adiabatic(self)
     end
 
     def is_thermal_boundary
@@ -1935,6 +1946,10 @@ class HPXML < Object
 
     def is_interior
       return !is_exterior
+    end
+
+    def is_adiabatic
+      return HPXML::is_adiabatic(self)
     end
 
     def is_thermal_boundary
@@ -4987,18 +5002,6 @@ class HPXML < Object
     end
   end
 
-  def delete_partition_surfaces()
-    (@rim_joists + @walls + @foundation_walls + @frame_floors).reverse_each do |surface|
-      next if surface.interior_adjacent_to.nil? || surface.exterior_adjacent_to.nil?
-
-      if surface.interior_adjacent_to == surface.exterior_adjacent_to
-        surface.delete
-      elsif [surface.interior_adjacent_to, surface.exterior_adjacent_to].sort == [HPXML::LocationLivingSpace, HPXML::LocationBasementConditioned].sort
-        surface.delete
-      end
-    end
-  end
-
   def delete_tiny_surfaces()
     (@rim_joists + @walls + @foundation_walls + @frame_floors + @roofs + @windows + @skylights + @doors + @slabs).reverse_each do |surface|
       next if surface.area.nil? || (surface.area > 0.1)
@@ -5153,22 +5156,31 @@ class HPXML < Object
     return errors
   end
 
+  def self.conditioned_locations
+    return [HPXML::LocationLivingSpace,
+            HPXML::LocationBasementConditioned,
+            HPXML::LocationOtherHousingUnit]
+  end
+
+  def self.is_adiabatic(surface)
+    if surface.exterior_adjacent_to == surface.interior_adjacent_to
+      # E.g., wall between unit crawlspace and neighboring unit crawlspace
+      return true
+    elsif conditioned_locations.include?(surface.interior_adjacent_to) &&
+          conditioned_locations.include?(surface.exterior_adjacent_to)
+      # E.g., frame floor between living space and conditioned basement, or
+      # wall between living space and "other housing unit"
+      return true
+    end
+    return false
+  end
+
   def self.is_thermal_boundary(surface)
     # Returns true if the surface is between conditioned space and outside/ground/unconditioned space.
     # Note: The location of insulation is not considered here, so an insulated foundation wall of an
     # unconditioned basement, for example, returns false.
-    def self.is_adjacent_to_conditioned(adjacent_to)
-      if [HPXML::LocationLivingSpace,
-          HPXML::LocationBasementConditioned,
-          HPXML::LocationOtherHousingUnit].include? adjacent_to
-        return true
-      else
-        return false
-      end
-    end
-
-    interior_conditioned = is_adjacent_to_conditioned(surface.interior_adjacent_to)
-    exterior_conditioned = is_adjacent_to_conditioned(surface.exterior_adjacent_to)
+    interior_conditioned = conditioned_locations.include? surface.interior_adjacent_to
+    exterior_conditioned = conditioned_locations.include? surface.exterior_adjacent_to
     return (interior_conditioned != exterior_conditioned)
   end
 

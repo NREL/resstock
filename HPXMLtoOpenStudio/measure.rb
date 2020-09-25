@@ -72,7 +72,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument.makeBoolArgument('debug', false)
     arg.setDisplayName('Debug Mode?')
-    arg.setDescription('If enabled: 1) Writes in.osm file, 2) Writes in.xml HPXML file with defaults filled, and 3) Generates additional log output. Any files written will be in the output path specified above.')
+    arg.setDescription('If enabled: 1) Writes in.osm file, 2) Writes in.xml HPXML file with defaults populated, and 3) Generates additional log output. Any files written will be in the output path specified above.')
     arg.setDefaultValue(false)
     args << arg
 
@@ -214,12 +214,6 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
       File.open(cache_path, 'wb') do |file|
         weather.dump_to_csv(file)
       end
-    end
-
-    if not output_dir.nil?
-      epw_output_path = File.join(output_dir, 'in.epw')
-      FileUtils.cp(epw_path, epw_output_path)
-      runner.registerInfo("Copied EPW to: #{epw_output_path}")
     end
 
     return epw_path, cache_path
@@ -3441,11 +3435,12 @@ class OSModel
   def self.set_surface_exterior(model, spaces, surface, hpxml_surface)
     exterior_adjacent_to = hpxml_surface.exterior_adjacent_to
     interior_adjacent_to = hpxml_surface.interior_adjacent_to
+    is_adiabatic = hpxml_surface.is_adiabatic
     if exterior_adjacent_to == HPXML::LocationOutside
       surface.setOutsideBoundaryCondition('Outdoors')
     elsif exterior_adjacent_to == HPXML::LocationGround
       surface.setOutsideBoundaryCondition('Foundation')
-    elsif exterior_adjacent_to == HPXML::LocationOtherHousingUnit && [HPXML::LocationLivingSpace, HPXML::LocationBasementConditioned].include?(interior_adjacent_to)
+    elsif is_adiabatic
       surface.setOutsideBoundaryCondition('Adiabatic')
     elsif [HPXML::LocationOtherHeatedSpace, HPXML::LocationOtherMultifamilyBufferSpace,
            HPXML::LocationOtherNonFreezingSpace, HPXML::LocationOtherHousingUnit].include? exterior_adjacent_to

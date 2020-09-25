@@ -449,10 +449,7 @@ class HotWaterSchedule
     file_prefixes = { Constants.ObjectNameClothesWasher => 'ClothesWasher',
                       Constants.ObjectNameClothesDryer => 'ClothesWasher',
                       Constants.ObjectNameDishwasher => 'Dishwasher',
-                      Constants.ObjectNameShower => 'Shower',
-                      Constants.ObjectNameSink => 'Sink',
-                      Constants.ObjectNameBath => 'Bath',
-                      Constants.ObjectNameFixtures => 'SSB' }
+                      Constants.ObjectNameFixtures => 'Fixtures' }
     @file_prefix = file_prefixes[obj_name]
 
     timestep_minutes = (60 / @model.getTimestep.numberOfTimestepsPerHour).to_i
@@ -498,7 +495,7 @@ class HotWaterSchedule
     end
 
     # Get appropriate file
-    minute_draw_profile = File.join(File.dirname(__FILE__), "HotWater#{@file_prefix}Schedule_#{@nbeds}bed.csv")
+    minute_draw_profile = File.join(File.dirname(__FILE__), "data_hot_water_#{@file_prefix.downcase}_schedule_#{@nbeds}bed.csv")
     if not File.file?(minute_draw_profile)
       fail "Unable to find file: #{minute_draw_profile}"
     end
@@ -554,7 +551,7 @@ class HotWaterSchedule
     maxflow_column_header = "#{column_header} Max"
     ontime_column_header = 'On-time Fraction'
 
-    draw_file = File.join(File.dirname(__FILE__), 'HotWaterMinuteDrawProfilesMaxFlows.csv')
+    draw_file = File.join(File.dirname(__FILE__), 'data_hot_water_max_flows.csv')
 
     datafound = false
     skippedheader = false
