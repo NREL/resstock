@@ -211,8 +211,12 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
       epw_file = OpenStudio::EpwFile.new(epw_path)
       OpenStudio::Model::WeatherFile.setWeatherFile(model, epw_file)
       weather = WeatherProcess.new(model, runner)
-      File.open(cache_path, 'wb') do |file|
-        weather.dump_to_csv(file)
+      begin
+        File.open(cache_path, 'wb') do |file|
+          weather.dump_to_csv(file)
+        end
+      rescue SystemCallError
+        runner.registerWarning("#{cache_path} could not be written, skipping.")
       end
     end
 
