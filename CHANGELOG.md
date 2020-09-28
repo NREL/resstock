@@ -1,7 +1,6 @@
 ## ResStock v2.4.0 (pending)
 
 Features
-- Update California cooling system types and efficiencies based on RASS 2009 ([#446](https://github.com/NREL/OpenStudio-BuildStock/pull/446))
 - Report the annual peak use and timing using the quantities of interest measure ([#458](https://github.com/NREL/OpenStudio-BuildStock/pull/458))
 - Major change to most occupant-related schedules. Occupant activities are now generated on-the-fly and saved to .csv files used by Schedule:File objects. Schedules are generated using time-inhomogenous Markov chains derived from American Time Use Survey data, supplemented with sampling duration and power level from NEEA RBSA data, as well as DHW draw duration and flow rate data from Aquacraft/AWWA data. ([#348](https://github.com/NREL/OpenStudio-BuildStock/pull/348))
 - Increase the zone temperature capacitance multiplier from 1.0 to 3.6 according to this [journal article](https://doi.org/10.1016/j.enbuild.2018.11.005) ([#472](https://github.com/NREL/OpenStudio-BuildStock/pull/472))
@@ -51,6 +50,12 @@ Fixes
 - Removed the "Geometry Unit Stories SF" and "Geometry Unit Stories MF" housing characteristics. Unit stories are instead represented by the "Geometry Stories" housing characteristic ([#416](https://github.com/NREL/OpenStudio-BuildStock/pull/416))
 - Diversify window to wall ratio variation using the Residential Building Stock Assessment (RBSA) II data ([#412](https://github.com/NREL/OpenStudio-BuildStock/pull/412))
 - Fix bug in assigning small window areas to surfaces ([#452](https://github.com/NREL/OpenStudio-BuildStock/pull/452))
+
+## ResStock v2.2.5
+###### September 24, 2020 - [Diff](https://github.com/NREL/OpenStudio-BuildStock/compare/v2.2.4...v2.2.5)
+
+Fixes
+- Update the weather zip file url in each PAT project to point to a different location at data.nrel.gov ([#489](https://github.com/NREL/OpenStudio-BuildStock/pull/489))
 
 ## ResStock v2.2.4
 ###### April 28, 2020 - [Diff](https://github.com/NREL/OpenStudio-BuildStock/compare/v2.2.3...v2.2.4)
