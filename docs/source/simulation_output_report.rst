@@ -210,6 +210,7 @@ Current component loads disaggregated by Heating/Cooling are:
    Component Load: \*: Natural Ventilation (MBtu)    Heat gain/loss from airflow through operable windows
    Component Load: \*: Mechanical Ventilation (MBtu) Heat gain/loss from airflow/fan energy from a whole house mechanical ventilation system
    Component Load: \*: Whole House Fan (MBtu)        Heat gain/loss from airflow due to a whole house fan
+   Component Load; \*: Clothes Dryer Exhaust (MBtu)  Heat gain/loss from airflow due to clothes dryer exhaust
    Component Load: \*: Ducts (MBtu)                  Heat gain/loss from conduction and leakage losses through supply/return ducts outside conditioned space
    Component Load: \*: Internal Gains (MBtu)         Heat gain/loss from appliances, lighting, plug loads, water heater tank losses, etc. in the conditioned space
    ================================================= =========================================================================================================
@@ -237,15 +238,15 @@ The timeseries output file is called results_timeseries.csv and co-located with 
 
 Depending on the outputs requested, CSV files may include:
 
-   =================================== =======================================================================================================================
+   =================================== ==================================================================================================================================
    Type                                Notes
-   =================================== =======================================================================================================================
+   =================================== ==================================================================================================================================
    Fuel Consumptions                   Energy use for each fuel type (in kBtu for fossil fuels and kWh for electricity).
    End Use Consumptions                Energy use for each end use type (in kBtu for fossil fuels and kWh for electricity).
    Hot Water Uses                      Water use for each end use type (in gallons).
    Total Loads                         Heating and cooling loads (in kBtu) for the building.
    Component Loads                     Heating and cooling loads (in kBtu) disaggregated by component (e.g., Walls, Windows, Infiltration, Ducts, etc.).
    Zone Temperatures                   Average temperatures (in deg-F) for each space modeled (e.g., living space, attic, garage, basement, crawlspace, etc.).
-   Airflows                            Airflow rates (in cfm) for infiltration, mechanical ventilation, natural ventilation, and whole house fans.
+   Airflows                            Airflow rates (in cfm) for infiltration, mechanical ventilation, natural ventilation, whole house fans, and clothes dryer exhaust.
    Weather                             Weather file data including outdoor temperatures, relative humidity, wind speed, and solar.
-   =================================== =======================================================================================================================
+   =================================== ==================================================================================================================================

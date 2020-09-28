@@ -2439,6 +2439,13 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(Constants.Auto)
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('clothes_dryer_vented_flow_rate', true)
+    arg.setDisplayName('Clothes Dryer: Vented Flow Rate')
+    arg.setDescription('The exhaust flow rate of the vented clothes dryer.')
+    arg.setUnits('CFM')
+    arg.setDefaultValue(Constants.Auto)
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('clothes_dryer_usage_multiplier', true)
     arg.setDisplayName('Clothes Dryer: Usage Multiplier')
     arg.setDescription('Multiplier on the clothes dryer energy usage that can reflect, e.g., high/low usage occupants.')
@@ -3620,6 +3627,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
              clothes_dryer_efficiency_ef: runner.getDoubleArgumentValue('clothes_dryer_efficiency_ef', user_arguments),
              clothes_dryer_efficiency_cef: runner.getStringArgumentValue('clothes_dryer_efficiency_cef', user_arguments),
              clothes_dryer_control_type: runner.getStringArgumentValue('clothes_dryer_control_type', user_arguments),
+             clothes_dryer_vented_flow_rate: runner.getStringArgumentValue('clothes_dryer_vented_flow_rate', user_arguments),
              clothes_dryer_usage_multiplier: runner.getDoubleArgumentValue('clothes_dryer_usage_multiplier', user_arguments),
              dishwasher_present: runner.getBoolArgumentValue('dishwasher_present', user_arguments),
              dishwasher_location: runner.getStringArgumentValue('dishwasher_location', user_arguments),
@@ -5485,6 +5493,14 @@ class HPXMLFile
       control_type = args[:clothes_dryer_control_type]
     end
 
+    if args[:clothes_dryer_vented_flow_rate] != Constants.Auto
+      is_vented = false
+      if Float(args[:clothes_dryer_vented_flow_rate]) > 0
+        is_vented = true
+        vented_flow_rate = args[:clothes_dryer_vented_flow_rate]
+      end
+    end
+
     if args[:clothes_dryer_usage_multiplier] != 1.0
       usage_multiplier = args[:clothes_dryer_usage_multiplier]
     end
@@ -5495,6 +5511,8 @@ class HPXMLFile
                              energy_factor: energy_factor,
                              combined_energy_factor: combined_energy_factor,
                              control_type: control_type,
+                             is_vented: is_vented,
+                             vented_flow_rate: vented_flow_rate,
                              usage_multiplier: usage_multiplier)
   end
 

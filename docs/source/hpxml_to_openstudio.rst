@@ -186,7 +186,7 @@ Fields include:
 - ``NumberofBathrooms``: Optional. If not provided, it is calculated as :math:`\frac{NumberofBedrooms}{2} + 0.5` based on the `Building America House Simulation Protocols <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_.
 - ``ConditionedFloorArea``
 - ``ConditionedBuildingVolume`` or ``AverageCeilingHeight``
-- ``extension/HasFlueOrChimney``: Optional. Specifies whether there is a flue (associated with heating system or water heater) or chimney. if not provided, it is assumed to be true if any of the following conditions are met: 
+- ``extension/HasFlueOrChimney``: Optional. Specifies whether there is a flue (associated with heating system or water heater) or chimney. If not provided, it is assumed to be true if any of the following conditions are met: 
 
   - heating system is non-electric ``Furnace``, ``Boiler``, ``WallFurnace``, ``FloorFurnace``, ``Stove``, or ``FixedHeater`` and AFUE/Percent is less than 0.89
   - heating system is non-electric ``Fireplace`` 
@@ -1075,6 +1075,9 @@ If ``EnergyFactor`` is provided instead of ``CombinedEnergyFactor``, it will be 
 .. math:: CombinedEnergyFactor = \frac{EnergyFactor}{1.15}
 
 An ``extension/UsageMultiplier`` can also be optionally provided that scales energy usage; if not provided, it is assumed to be 1.0.
+
+An optional ``extension/IsVented`` element can be used to indicate whether the clothes dryer is vented. If not provided, it is assumed that the clothes dryer is vented.
+If the clothes dryer is vented, an optional ``extension/VentedFlowRate`` element can be used to specify the exhaust cfm. If not provided, it is assumed that the clothes dryer vented flow rate is 100 cfm.
 
 The clothes dryer may be optionally described as a shared appliance (i.e., in a shared laundry room) using ``IsSharedAppliance``.
 If not provided, it is assumed to be false.
