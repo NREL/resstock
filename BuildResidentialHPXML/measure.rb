@@ -19,7 +19,6 @@ require_relative '../HPXMLtoOpenStudio/resources/schedules'
 require_relative '../HPXMLtoOpenStudio/resources/unit_conversions'
 require_relative '../HPXMLtoOpenStudio/resources/validator'
 require_relative '../HPXMLtoOpenStudio/resources/version'
-require_relative '../HPXMLtoOpenStudio/resources/weather'
 require_relative '../HPXMLtoOpenStudio/resources/xmlhelper'
 
 # start the measure
@@ -46,12 +45,6 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('hpxml_path', true)
     arg.setDisplayName('HPXML File Path')
     arg.setDescription('Absolute/relative path of the HPXML file.')
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument.makeStringArgument('weather_dir', true)
-    arg.setDisplayName('Weather Directory')
-    arg.setDescription('Absolute/relative path of the weather directory.')
-    arg.setDefaultValue('weather')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('software_program_used', false)
@@ -125,7 +118,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('weather_station_epw_filepath', true)
     arg.setDisplayName('EnergyPlus Weather (EPW) Filepath')
-    arg.setDescription('Name of the EPW file.')
+    arg.setDescription('Path of the EPW file.')
     arg.setDefaultValue('USA_CO_Denver.Intl.AP.725650_TMY3.epw')
     args << arg
 
@@ -3238,7 +3231,6 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     # assign the user inputs to variables
     args = get_argument_values(runner, user_arguments)
     args[:hpxml_path] = runner.getStringArgumentValue('hpxml_path', user_arguments)
-    args[:weather_dir] = runner.getStringArgumentValue('weather_dir', user_arguments)
     args[:software_program_used] = runner.getOptionalStringArgumentValue('software_program_used', user_arguments)
     args[:software_program_version] = runner.getOptionalStringArgumentValue('software_program_version', user_arguments)
     args[:geometry_roof_pitch] = { '1:12' => 1.0 / 12.0, '2:12' => 2.0 / 12.0, '3:12' => 3.0 / 12.0, '4:12' => 4.0 / 12.0, '5:12' => 5.0 / 12.0, '6:12' => 6.0 / 12.0, '7:12' => 7.0 / 12.0, '8:12' => 8.0 / 12.0, '9:12' => 9.0 / 12.0, '10:12' => 10.0 / 12.0, '11:12' => 11.0 / 12.0, '12:12' => 12.0 / 12.0 }[args[:geometry_roof_pitch]]
@@ -3257,32 +3249,19 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
       return false
     end
 
-    # Get weather object
-    weather_dir = args[:weather_dir]
-    unless (Pathname.new weather_dir).absolute?
-      weather_dir = File.expand_path(File.join(File.dirname(__FILE__), '..', weather_dir))
+    # Create EpwFile object
+    epw_path = args[:weather_station_epw_filepath]
+    if not File.exist? epw_path
+      epw_path = File.join(File.expand_path(File.join(File.dirname(__FILE__), '..', 'weather')), epw_path)
     end
-    epw_path = File.join(weather_dir, args[:weather_station_epw_filepath])
-    if not File.exist?(epw_path)
+    if not File.exist? epw_path
       runner.registerError("Could not find EPW file at '#{epw_path}'.")
       return false
     end
-    cache_path = epw_path.gsub('.epw', '-cache.csv')
-    if not File.exist?(cache_path)
-      # Process weather file to create cache .csv
-      runner.registerWarning("'#{cache_path}' could not be found; regenerating it.")
-      epw_file = OpenStudio::EpwFile.new(epw_path)
-      OpenStudio::Model::WeatherFile.setWeatherFile(model, epw_file)
-      weather = WeatherProcess.new(model, runner)
-      File.open(cache_path, 'wb') do |file|
-        weather.dump_to_csv(file)
-      end
-    else
-      weather = WeatherProcess.new(nil, nil, cache_path)
-    end
+    epw_file = OpenStudio::EpwFile.new(epw_path)
 
     # Create HPXML file
-    hpxml_doc = HPXMLFile.create(runner, model, args, weather)
+    hpxml_doc = HPXMLFile.create(runner, model, args, epw_file)
     if not hpxml_doc
       runner.registerError('Unsuccessful creation of HPXML file.')
       return false
@@ -3873,7 +3852,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 end
 
 class HPXMLFile
-  def self.create(runner, model, args, weather)
+  def self.create(runner, model, args, epw_file)
     model_geometry = OpenStudio::Model::Model.new
 
     success = create_geometry_envelope(runner, model_geometry, args)
@@ -3886,7 +3865,7 @@ class HPXMLFile
     set_neighbor_buildings(hpxml, runner, args)
     set_building_occupancy(hpxml, runner, args)
     set_building_construction(hpxml, runner, args)
-    set_climate_and_risk_zones(hpxml, runner, args, weather)
+    set_climate_and_risk_zones(hpxml, runner, args, epw_file)
     set_air_infiltration_measurements(hpxml, runner, args)
     set_attics(hpxml, runner, model_geometry, args)
     set_foundations(hpxml, runner, model_geometry, args)
@@ -3908,8 +3887,8 @@ class HPXMLFile
     set_water_heating_systems(hpxml, runner, args)
     set_hot_water_distribution(hpxml, runner, args)
     set_water_fixtures(hpxml, runner, args)
-    set_solar_thermal(hpxml, runner, args, weather)
-    set_pv_systems(hpxml, runner, args, weather)
+    set_solar_thermal(hpxml, runner, args, epw_file)
+    set_pv_systems(hpxml, runner, args, epw_file)
     set_lighting(hpxml, runner, args)
     set_dehumidifier(hpxml, runner, args)
     set_clothes_washer(hpxml, runner, args)
@@ -4089,9 +4068,9 @@ class HPXMLFile
     end
   end
 
-  def self.set_climate_and_risk_zones(hpxml, runner, args, weather)
+  def self.set_climate_and_risk_zones(hpxml, runner, args, epw_file)
     hpxml.climate_and_risk_zones.weather_station_id = 'WeatherStation'
-    iecc_zone = Location.get_climate_zone_iecc(weather.header.Station)
+    iecc_zone = Location.get_climate_zone_iecc(epw_file.wmoNumber)
 
     unless iecc_zone.nil?
       hpxml.climate_and_risk_zones.iecc_year = 2006
@@ -5193,19 +5172,19 @@ class HPXMLFile
     end
   end
 
-  def self.get_absolute_tilt(tilt_str, roof_pitch, weather)
+  def self.get_absolute_tilt(tilt_str, roof_pitch, epw_file)
     tilt_str = tilt_str.downcase
     if tilt_str.start_with? 'roofpitch'
       roof_angle = Math.atan(roof_pitch / 12.0) * 180.0 / Math::PI
       return Float(eval(tilt_str.gsub('roofpitch', roof_angle.to_s)))
     elsif tilt_str.start_with? 'latitude'
-      return Float(eval(tilt_str.gsub('latitude', weather.header.Latitude.to_s)))
+      return Float(eval(tilt_str.gsub('latitude', epw_file.latitude.to_s)))
     else
       return Float(tilt_str)
     end
   end
 
-  def self.set_solar_thermal(hpxml, runner, args, weather)
+  def self.set_solar_thermal(hpxml, runner, args, epw_file)
     return if args[:solar_thermal_system_type] == 'none'
 
     if args[:solar_thermal_solar_fraction] > 0
@@ -5215,7 +5194,7 @@ class HPXMLFile
       collector_loop_type = args[:solar_thermal_collector_loop_type]
       collector_type = args[:solar_thermal_collector_type]
       collector_azimuth = args[:solar_thermal_collector_azimuth]
-      collector_tilt = get_absolute_tilt(args[:solar_thermal_collector_tilt], hpxml.roofs[-1].pitch, weather)
+      collector_tilt = get_absolute_tilt(args[:solar_thermal_collector_tilt], hpxml.roofs[-1].pitch, epw_file)
       collector_frta = args[:solar_thermal_collector_rated_optical_efficiency]
       collector_frul = args[:solar_thermal_collector_rated_thermal_losses]
 
@@ -5242,7 +5221,7 @@ class HPXMLFile
                                     solar_fraction: solar_fraction)
   end
 
-  def self.set_pv_systems(hpxml, runner, args, weather)
+  def self.set_pv_systems(hpxml, runner, args, epw_file)
     [args[:pv_system_module_type_1], args[:pv_system_module_type_2]].each_with_index do |module_type, i|
       next if module_type == 'none'
 
@@ -5266,7 +5245,7 @@ class HPXMLFile
                            module_type: module_type,
                            tracking: [args[:pv_system_tracking_1], args[:pv_system_tracking_2]][i],
                            array_azimuth: [args[:pv_system_array_azimuth_1], args[:pv_system_array_azimuth_2]][i],
-                           array_tilt: get_absolute_tilt([args[:pv_system_array_tilt_1], args[:pv_system_array_tilt_2]][i], hpxml.roofs[-1].pitch, weather),
+                           array_tilt: get_absolute_tilt([args[:pv_system_array_tilt_1], args[:pv_system_array_tilt_2]][i], hpxml.roofs[-1].pitch, epw_file),
                            max_power_output: max_power_output,
                            inverter_efficiency: inverter_efficiency,
                            system_losses_fraction: system_losses_fraction,
