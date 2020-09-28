@@ -328,7 +328,6 @@ def get_values(osw_file, step)
   step.setArgument('hpxml_path', "../BuildResidentialHPXML/tests/built_residential_hpxml/#{File.basename(osw_file, '.*')}.xml")
 
   if ['base.osw'].include? osw_file
-    step.setArgument('weather_dir', 'weather')
     step.setArgument('simulation_control_timestep', '60')
     step.setArgument('weather_station_epw_filepath', 'USA_CO_Denver.Intl.AP.725650_TMY3.epw')
     step.setArgument('site_type', HPXML::SiteTypeSuburban)
