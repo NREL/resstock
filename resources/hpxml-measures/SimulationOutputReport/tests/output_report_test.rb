@@ -126,6 +126,7 @@ class SimulationOutputReportTest < MiniTest::Test
     'Component Load: Heating: Natural Ventilation (MBtu)',
     'Component Load: Heating: Mechanical Ventilation (MBtu)',
     'Component Load: Heating: Whole House Fan (MBtu)',
+    'Component Load: Heating: Clothes Dryer Exhaust (MBtu)',
     'Component Load: Heating: Ducts (MBtu)',
     'Component Load: Heating: Internal Gains (MBtu)',
     'Component Load: Cooling: Roofs (MBtu)',
@@ -143,6 +144,7 @@ class SimulationOutputReportTest < MiniTest::Test
     'Component Load: Cooling: Natural Ventilation (MBtu)',
     'Component Load: Cooling: Mechanical Ventilation (MBtu)',
     'Component Load: Cooling: Whole House Fan (MBtu)',
+    'Component Load: Cooling: Clothes Dryer Exhaust (MBtu)',
     'Component Load: Cooling: Ducts (MBtu)',
     'Component Load: Cooling: Internal Gains (MBtu)',
     'Hot Water: Clothes Washer (gal)',
@@ -265,6 +267,7 @@ class SimulationOutputReportTest < MiniTest::Test
     'Component Load: Heating: Natural Ventilation',
     'Component Load: Heating: Mechanical Ventilation',
     'Component Load: Heating: Whole House Fan',
+    'Component Load: Heating: Clothes Dryer Exhaust',
     'Component Load: Heating: Ducts',
     'Component Load: Heating: Internal Gains',
     'Component Load: Cooling: Roofs',
@@ -282,6 +285,7 @@ class SimulationOutputReportTest < MiniTest::Test
     'Component Load: Cooling: Natural Ventilation',
     'Component Load: Cooling: Mechanical Ventilation',
     'Component Load: Cooling: Whole House Fan',
+    'Component Load: Cooling: Clothes Dryer Exhaust',
     'Component Load: Cooling: Ducts',
     'Component Load: Cooling: Internal Gains',
   ]
@@ -303,6 +307,7 @@ class SimulationOutputReportTest < MiniTest::Test
     'Airflow: Mechanical Ventilation',
     'Airflow: Natural Ventilation',
     'Airflow: Whole House Fan',
+    'Airflow: Clothes Dryer Exhaust'
   ]
 
   TimeseriesColsWeather = [
@@ -633,6 +638,27 @@ class SimulationOutputReportTest < MiniTest::Test
     assert_equal(expected_timeseries_cols.sort, actual_timeseries_cols.sort)
     assert_equal(8760, File.readlines(timeseries_csv).size - 2)
     _check_for_nonzero_timeseries_value(timeseries_csv, ['Airflow: Whole House Fan'])
+  end
+
+  def test_timeseries_hourly_airflows_with_clothes_dryer_exhaust
+    args_hash = { 'hpxml_path' => '../workflow/sample_files/base-appliances-gas.xml',
+                  'timeseries_frequency' => 'hourly',
+                  'include_timeseries_fuel_consumptions' => false,
+                  'include_timeseries_end_use_consumptions' => false,
+                  'include_timeseries_hot_water_uses' => false,
+                  'include_timeseries_total_loads' => false,
+                  'include_timeseries_component_loads' => false,
+                  'include_timeseries_zone_temperatures' => false,
+                  'include_timeseries_airflows' => true,
+                  'include_timeseries_weather' => false }
+    annual_csv, timeseries_csv, eri_csv = _test_measure(args_hash)
+    assert(File.exist?(annual_csv))
+    assert(File.exist?(timeseries_csv))
+    expected_timeseries_cols = ['Time'] + TimeseriesColsAirflows
+    actual_timeseries_cols = File.readlines(timeseries_csv)[0].strip.split(',')
+    assert_equal(expected_timeseries_cols.sort, actual_timeseries_cols.sort)
+    assert_equal(8760, File.readlines(timeseries_csv).size - 2)
+    _check_for_nonzero_timeseries_value(timeseries_csv, ['Airflow: Clothes Dryer Exhaust'])
   end
 
   def test_timeseries_hourly_airflows_with_balanced_mechvent

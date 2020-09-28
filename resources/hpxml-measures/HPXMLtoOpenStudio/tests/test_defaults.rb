@@ -724,6 +724,31 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     _test_default_bath_fan_values(hpxml_default, 2, 50, 1, 15, 7)
   end
 
+  def test_clothes_dryer_exhaust
+    # Test inputs not overridden by defaults
+    hpxml_name = 'base.xml'
+    hpxml = HPXML.new(hpxml_path: File.join(@root_path, 'workflow', 'sample_files', hpxml_name))
+    clothes_dryer = hpxml.clothes_dryers[0]
+    clothes_dryer.is_vented = true
+    clothes_dryer.vented_flow_rate = 200
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    _test_default_clothes_dryer_exhaust_values(hpxml_default, true, 200)
+
+    clothes_dryer.is_vented = false
+    clothes_dryer.vented_flow_rate = nil
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    _test_default_clothes_dryer_exhaust_values(hpxml_default, false, nil)
+
+    # Test defaults
+    clothes_dryer.is_vented = nil
+    clothes_dryer.vented_flow_rate = nil
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    _test_default_clothes_dryer_exhaust_values(hpxml_default, true, 100)
+  end
+
   def test_ceiling_fans
     # Test inputs not overridden by defaults
     hpxml = _create_hpxml('base-lighting-ceiling-fans.xml')
@@ -1771,6 +1796,16 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     assert_equal(hours_in_operation, bath_fan.hours_in_operation)
     assert_equal(fan_power, bath_fan.fan_power)
     assert_equal(start_hour, bath_fan.start_hour)
+  end
+
+  def _test_default_clothes_dryer_exhaust_values(hpxml, is_vented, vented_flow_rate)
+    clothes_dryer = hpxml.clothes_dryers[0]
+    assert_equal(is_vented, clothes_dryer.is_vented)
+    if vented_flow_rate.nil?
+      assert_nil(clothes_dryer.vented_flow_rate)
+    else
+      assert_equal(vented_flow_rate, clothes_dryer.vented_flow_rate)
+    end
   end
 
   def _test_default_ceiling_fan_values(hpxml, quantity, efficiency)
