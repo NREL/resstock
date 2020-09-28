@@ -29,7 +29,7 @@ class ServerDirectoryCleanup < OpenStudio::Measure::ReportingMeasure
       false
     end
 
-    initial_string = 'The following files were in the local run directory prior to the execution of this measure: '
+    initial_string = 'The following files were in the local run directory prior to the execution of this measure: '.dup
     Dir.entries('./../').each do |f|
       initial_string << "#{f}, "
     end
@@ -77,7 +77,7 @@ class ServerDirectoryCleanup < OpenStudio::Measure::ReportingMeasure
       runner.registerInfo("Deleted #{f} from the run directory.") if !File.exist?(f)
     end
 
-    final_string = 'The following files were in the local run directory following the execution of this measure: '
+    final_string = 'The following files were in the local run directory following the execution of this measure: '.dup
     Dir.entries('./..').each do |f|
       final_string << "#{f}, "
     end
