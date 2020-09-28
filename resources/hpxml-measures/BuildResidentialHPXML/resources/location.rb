@@ -16,7 +16,7 @@ class Location
 
     require 'csv'
     CSV.foreach(zones_csv) do |row|
-      return row[6].to_s if row[0].to_s == wmo.to_s
+      return row[6].to_s if row[0].to_s == wmo
     end
 
     return
