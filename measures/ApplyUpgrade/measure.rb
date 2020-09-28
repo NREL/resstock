@@ -305,8 +305,8 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
 
       # Get the absolute paths relative to this meta measure in the run directory
       measures['BuildResidentialHPXML'][0]['hpxml_path'] = File.expand_path('../upgraded.xml')
-      measures['HPXMLtoOpenStudio'] = [{ 'hpxml_path' => File.expand_path(measures['BuildResidentialHPXML'][0]['hpxml_path']),
-                                         'weather_dir' => measures['BuildResidentialHPXML'][0]['weather_dir'] }]
+      measures['HPXMLtoOpenStudio'] = [{ 'hpxml_path' => File.expand_path('../upgraded.xml'),
+                                         'weather_dir' => 'weather' }]
 
       # Get software program used and version
       measures['BuildResidentialHPXML'][0]['software_program_used'] = software_program_used

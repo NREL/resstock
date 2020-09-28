@@ -119,6 +119,7 @@ def validate_measure_args(measure_args, provided_args, lookup_file, measure_name
   measure_args.each do |arg|
     next if provided_args.keys.include?(arg.name)
     next if not arg.required
+    next if arg.name.include?('hpxml_path')
 
     register_error("Required argument '#{arg.name}' not provided#{lookup_file_str} for measure '#{measure_name}'.", runner)
   end
@@ -132,6 +133,8 @@ def validate_measure_args(measure_args, provided_args, lookup_file, measure_name
     # Get measure provided arg
     if provided_args[arg.name].nil?
       if arg.required
+        next if arg.name.include?('hpxml_path')
+
         register_error("Required argument '#{arg.name}' for measure '#{measure_name}' must have a value provided.", runner)
       else
         next
