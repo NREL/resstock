@@ -3254,7 +3254,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     # Create EpwFile object
     epw_path = args[:weather_station_epw_filepath]
     if not File.exist? epw_path
-      epw_path = File.join(File.expand_path(File.join(File.dirname(__FILE__), '..', 'weather')), epw_path)
+      epw_path = File.join(File.expand_path(File.join(File.dirname(__FILE__), '..', 'weather')), epw_path) # a filename was entered for weather_station_epw_filepath
     end
     if not File.exist? epw_path
       runner.registerError("Could not find EPW file at '#{epw_path}'.")
@@ -4078,7 +4078,8 @@ class HPXMLFile
       hpxml.climate_and_risk_zones.iecc_year = 2006
       hpxml.climate_and_risk_zones.iecc_zone = iecc_zone
     end
-    hpxml.climate_and_risk_zones.weather_station_name = args[:weather_station_epw_filepath].gsub('.epw', '')
+    weather_station_name = File.basename(args[:weather_station_epw_filepath]).gsub('.epw', '')
+    hpxml.climate_and_risk_zones.weather_station_name = weather_station_name
     hpxml.climate_and_risk_zones.weather_station_epw_filepath = args[:weather_station_epw_filepath]
   end
 
