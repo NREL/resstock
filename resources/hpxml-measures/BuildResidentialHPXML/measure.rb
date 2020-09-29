@@ -3260,6 +3260,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
       runner.registerError("Could not find EPW file at '#{epw_path}'.")
       return false
     end
+puts epw_path
     epw_file = OpenStudio::EpwFile.new(epw_path)
 
     # Create HPXML file
