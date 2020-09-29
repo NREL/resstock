@@ -183,13 +183,13 @@ if ARGV[0].to_sym == :update_measures
 
   example_osws = {
     'TMY' => {
-      'weather_station_epw_filepath' => '../../../weather/USA_CO_Denver.Intl.AP.725650_TMY3.epw'
+      'weather_station_epw_filepath' => File.expand_path(File.join(File.dirname(__FILE__), 'weather/USA_CO_Denver.Intl.AP.725650_TMY3.epw'))
     },
     'AMY2012' => {
-      'weather_station_epw_filepath' => '../../../weather/0465925_US_CO_Boulder_8013_0-20000-0-72469_40.13_-105.22_NSRDB_2.0.1_AMY_2012.epw'
+      'weather_station_epw_filepath' => File.expand_path(File.join(File.dirname(__FILE__), 'weather/0465925_US_CO_Boulder_8013_0-20000-0-72469_40.13_-105.22_NSRDB_2.0.1_AMY_2012.epw'))
     },
     'AMY2014' => {
-      'weather_station_epw_filepath' => '../../../weather/0465925_US_CO_Boulder_8013_0-20000-0-72469_40.13_-105.22_NSRDB_2.0.1_AMY_2014.epw'
+      'weather_station_epw_filepath' => File.expand_path(File.join(File.dirname(__FILE__), 'weather/0465925_US_CO_Boulder_8013_0-20000-0-72469_40.13_-105.22_NSRDB_2.0.1_AMY_2014.epw'))
     }
   }
   example_osws.each do |weather_year, weather_station|
