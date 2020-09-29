@@ -187,7 +187,6 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
       if not File.exist?(epw_path)
         fail "'#{epw_path}' could not be found."
       end
-puts File.expand_path(epw_path)
     else
       weather_wmo = hpxml.climate_and_risk_zones.weather_station_wmo
       CSV.foreach(File.join(weather_dir, 'data.csv'), headers: true) do |row|
@@ -207,7 +206,6 @@ puts File.expand_path(epw_path)
 
     cache_path = epw_path.gsub('.epw', '-cache.csv')
     if not File.exist?(cache_path)
-puts "HERE0"
       # Process weather file to create cache .csv
       runner.registerWarning("'#{cache_path}' could not be found; regenerating it.")
       epw_file = OpenStudio::EpwFile.new(epw_path)
