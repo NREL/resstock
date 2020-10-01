@@ -6,7 +6,7 @@ This folder contains the ResStock inputs to test our OpenStudio measures workflo
 
 ResStock is built upon the conditional probabilites of the housing characteristics.  Each housing characteristic has a set of dependencies and dependants.  An interactive dependency and dependents visualization is provided in the links below:
 
-<a href="http://htmlpreview.github.io/?https://github.com/NREL/OpenStudio-BuildStock/blob/dep_graph_wheel/project_testing/util/dependency_wheel/dep_wheel.html">Testing Project: Dependency Wheel</a>
+<a href="http://htmlpreview.github.io/?https://github.com/NREL/OpenStudio-BuildStock/v2.2.5/project_testing/util/dependency_wheel/dep_wheel.html">Testing Project: Dependency Wheel</a>
 
 ## Visualization of the Housing Characteristics as a Graph
 
