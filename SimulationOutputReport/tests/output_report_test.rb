@@ -914,7 +914,7 @@ class SimulationOutputReportTest < MiniTest::Test
   end
 
   def test_timeseries_hourly_ALL_AMY_2012
-    args_hash = { 'hpxml_path' => '../workflow/sample_files/base-location-epw-filepath-AMY-2012.xml',
+    args_hash = { 'hpxml_path' => '../workflow/sample_files/base-location-AMY-2012.xml',
                   'timeseries_frequency' => 'hourly',
                   'include_timeseries_fuel_consumptions' => true,
                   'include_timeseries_end_use_consumptions' => true,
@@ -935,7 +935,7 @@ class SimulationOutputReportTest < MiniTest::Test
   end
 
   def test_timeseries_daily_ALL_AMY_2012
-    args_hash = { 'hpxml_path' => '../workflow/sample_files/base-location-epw-filepath-AMY-2012.xml',
+    args_hash = { 'hpxml_path' => '../workflow/sample_files/base-location-AMY-2012.xml',
                   'timeseries_frequency' => 'daily',
                   'include_timeseries_fuel_consumptions' => true,
                   'include_timeseries_end_use_consumptions' => true,
@@ -956,7 +956,7 @@ class SimulationOutputReportTest < MiniTest::Test
   end
 
   def test_timeseries_timestep_ALL_60min_AMY_2012
-    args_hash = { 'hpxml_path' => '../workflow/sample_files/base-location-epw-filepath-AMY-2012.xml',
+    args_hash = { 'hpxml_path' => '../workflow/sample_files/base-location-AMY-2012.xml',
                   'timeseries_frequency' => 'timestep',
                   'include_timeseries_fuel_consumptions' => true,
                   'include_timeseries_end_use_consumptions' => true,

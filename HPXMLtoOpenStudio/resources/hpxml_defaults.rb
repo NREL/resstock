@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 class HPXMLDefaults
-  def self.apply(hpxml, cfa, nbeds, ncfl, ncfl_ag, has_uncond_bsmnt, eri_version, epw_file)
-    apply_header(hpxml, epw_file)
+  def self.apply(hpxml, cfa, nbeds, ncfl, ncfl_ag, has_uncond_bsmnt, eri_version, epw_file, runner)
+    apply_header(hpxml, epw_file, runner)
     apply_site(hpxml)
     apply_building_occupancy(hpxml, nbeds)
     apply_building_construction(hpxml, cfa, nbeds)
@@ -32,13 +32,21 @@ class HPXMLDefaults
 
   private
 
-  def self.apply_header(hpxml, epw_file)
+  def self.apply_header(hpxml, epw_file, runner)
     hpxml.header.timestep = 60 if hpxml.header.timestep.nil?
 
     hpxml.header.sim_begin_month = 1 if hpxml.header.sim_begin_month.nil?
     hpxml.header.sim_begin_day_of_month = 1 if hpxml.header.sim_begin_day_of_month.nil?
     hpxml.header.sim_end_month = 12 if hpxml.header.sim_end_month.nil?
     hpxml.header.sim_end_day_of_month = 31 if hpxml.header.sim_end_day_of_month.nil?
+    if epw_file.startDateActualYear.is_initialized # AMY
+      if not hpxml.header.sim_calendar_year.nil?
+        runner.registerWarning("Overriding Calendar Year (#{hpxml.header.sim_calendar_year}) with AMY year (#{epw_file.startDateActualYear.get}).") if hpxml.header.sim_calendar_year != epw_file.startDateActualYear.get
+      end
+      hpxml.header.sim_calendar_year = epw_file.startDateActualYear.get
+    else
+      hpxml.header.sim_calendar_year = 2007 if hpxml.header.sim_calendar_year.nil? # For consistency with SAM utility bill calculations
+    end
 
     hpxml.header.dst_enabled = true if hpxml.header.dst_enabled.nil? # Assume DST since it occurs in most US locations
     if hpxml.header.dst_enabled

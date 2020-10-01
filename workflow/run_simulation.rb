@@ -20,7 +20,6 @@ def run_workflow(basedir, rundir, hpxml, debug, hourly_outputs)
   measure_subdir = 'HPXMLtoOpenStudio'
   args = {}
   args['hpxml_path'] = hpxml
-  args['weather_dir'] = 'weather'
   args['output_dir'] = rundir
   args['debug'] = debug
   update_args_hash(measures, measure_subdir, args)

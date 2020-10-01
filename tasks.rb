@@ -181,11 +181,10 @@ def create_osws
     'base-lighting-ceiling-fans.osw' => 'base.osw',
     'base-lighting-detailed.osw' => 'base.osw',
     # 'base-lighting-none.osw' => 'base.osw',
+    'base-location-AMY-2012.osw' => 'base.osw',
     'base-location-baltimore-md.osw' => 'base.osw',
     'base-location-dallas-tx.osw' => 'base-foundation-slab.osw',
     'base-location-duluth-mn.osw' => 'base.osw',
-    'base-location-epw-filepath.osw' => 'base.osw',
-    'base-location-epw-filepath-AMY-2012.osw' => 'base.osw',
     'base-location-miami-fl.osw' => 'base-foundation-slab.osw',
     'base-mechvent-balanced.osw' => 'base.osw',
     'base-mechvent-bath-kitchen-fans.osw' => 'base.osw',
@@ -212,6 +211,7 @@ def create_osws
     'base-misc-usage-multiplier.osw' => 'base.osw',
     'base-pv.osw' => 'base.osw',
     # 'base-pv-shared.osw' => 'base.osw',
+    'base-simcontrol-calendar-year-custom.osw' => 'base.osw',
     'base-simcontrol-daylight-saving-custom.osw' => 'base.osw',
     'base-simcontrol-daylight-saving-disabled.osw' => 'base.osw',
     'base-simcontrol-runperiod-1-month.osw' => 'base.osw',
@@ -1536,15 +1536,14 @@ def get_values(osw_file, step)
     step.setArgument('holiday_lighting_period_end_day_of_month', '6')
     step.setArgument('holiday_lighting_weekday_fractions_exterior', '0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.008, 0.098, 0.168, 0.194, 0.284, 0.192, 0.037, 0.019')
     step.setArgument('holiday_lighting_weekend_fractions_exterior', '0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.008, 0.098, 0.168, 0.194, 0.284, 0.192, 0.037, 0.019')
+  elsif ['base-location-AMY-2012.osw'].include? osw_file
+    step.setArgument('weather_station_epw_filepath', 'US_CO_Boulder_AMY_2012.epw')
   elsif ['base-location-baltimore-md.osw'].include? osw_file
     step.setArgument('weather_station_epw_filepath', 'USA_MD_Baltimore-Washington.Intl.AP.724060_TMY3.epw')
   elsif ['base-location-dallas-tx.osw'].include? osw_file
     step.setArgument('weather_station_epw_filepath', 'USA_TX_Dallas-Fort.Worth.Intl.AP.722590_TMY3.epw')
   elsif ['base-location-duluth-mn.osw'].include? osw_file
     step.setArgument('weather_station_epw_filepath', 'USA_MN_Duluth.Intl.AP.727450_TMY3.epw')
-  elsif ['base-location-epw-filepath.osw'].include? osw_file
-  elsif ['base-location-epw-filepath-AMY-2012.osw'].include? osw_file
-    step.setArgument('weather_station_epw_filepath', 'US_CO_Boulder_AMY_2012.epw')
   elsif ['base-location-miami-fl.osw'].include? osw_file
     step.setArgument('weather_station_epw_filepath', 'USA_FL_Miami.Intl.AP.722020_TMY3.epw')
   elsif ['base-mechvent-balanced.osw'].include? osw_file
@@ -1810,6 +1809,8 @@ def get_values(osw_file, step)
     step.setArgument('pv_system_module_type_2', HPXML::PVModuleTypePremium)
     step.setArgument('pv_system_array_azimuth_2', 90)
     step.setArgument('pv_system_max_power_output_2', 1500)
+  elsif ['base-simcontrol-calendar-year-custom.osw'].include? osw_file
+    step.setArgument('simulation_control_run_period_calendar_year', 2008)
   elsif ['base-simcontrol-daylight-saving-custom.osw'].include? osw_file
     step.setArgument('simulation_control_daylight_saving_enabled', true)
     step.setArgument('simulation_control_daylight_saving_begin_month', 3)
@@ -2036,8 +2037,9 @@ def create_hpxmls
     'invalid_files/hvac-dse-multiple-attached-cooling.xml' => 'base-hvac-dse.xml',
     'invalid_files/hvac-dse-multiple-attached-heating.xml' => 'base-hvac-dse.xml',
     'invalid_files/hvac-frac-load-served.xml' => 'base-hvac-multiple.xml',
+    'invalid_files/invalid-calendar-year.xml' => 'base.xml',
     'invalid_files/invalid-daylight-saving.xml' => 'base.xml',
-    'invalid_files/invalid-epw-filepath.xml' => 'base-location-epw-filepath.xml',
+    'invalid_files/invalid-epw-filepath.xml' => 'base.xml',
     'invalid_files/invalid-facility-type.xml' => 'base-dhw-shared-laundry-room.xml',
     'invalid_files/invalid-neighbor-shading-azimuth.xml' => 'base-misc-neighbor-shading.xml',
     'invalid_files/invalid-relatedhvac-dhw-indirect.xml' => 'base-dhw-indirect.xml',
@@ -2046,7 +2048,6 @@ def create_hpxmls
     'invalid_files/invalid-timestep.xml' => 'base.xml',
     'invalid_files/invalid-window-height.xml' => 'base-enclosure-overhangs.xml',
     'invalid_files/invalid-window-interior-shading.xml' => 'base.xml',
-    'invalid_files/invalid-wmo.xml' => 'base.xml',
     'invalid_files/lighting-fractions.xml' => 'base.xml',
     'invalid_files/missing-elements.xml' => 'base.xml',
     'invalid_files/multifamily-reference-appliance.xml' => 'base.xml',
@@ -2261,12 +2262,11 @@ def create_hpxmls
     'base-lighting-ceiling-fans.xml' => 'base.xml',
     'base-lighting-detailed.xml' => 'base.xml',
     'base-lighting-none.xml' => 'base.xml',
+    'base-location-AMY-2012.xml' => 'base.xml',
     'base-location-baltimore-md.xml' => 'base.xml',
     'base-location-dallas-tx.xml' => 'base-foundation-slab.xml',
     'base-location-duluth-mn.xml' => 'base.xml',
     'base-location-miami-fl.xml' => 'base-foundation-slab.xml',
-    'base-location-epw-filepath.xml' => 'base.xml',
-    'base-location-epw-filepath-AMY-2012.xml' => 'base.xml',
     'base-mechvent-balanced.xml' => 'base.xml',
     'base-mechvent-bath-kitchen-fans.xml' => 'base.xml',
     'base-mechvent-cfis.xml' => 'base.xml',
@@ -2293,6 +2293,7 @@ def create_hpxmls
     'base-misc-usage-multiplier.xml' => 'base.xml',
     'base-pv.xml' => 'base.xml',
     'base-pv-shared.xml' => 'base-enclosure-attached-multifamily.xml',
+    'base-simcontrol-calendar-year-custom.xml' => 'base.xml',
     'base-simcontrol-daylight-saving-custom.xml' => 'base.xml',
     'base-simcontrol-daylight-saving-disabled.xml' => 'base.xml',
     'base-simcontrol-runperiod-1-month.xml' => 'base.xml',
@@ -2472,6 +2473,8 @@ def set_hpxml_header(hpxml_file, hpxml)
     else
       hpxml.header.apply_ashrae140_assumptions = true
     end
+  elsif ['base-simcontrol-calendar-year-custom.xml'].include? hpxml_file
+    hpxml.header.sim_calendar_year = 2008
   elsif ['base-simcontrol-daylight-saving-custom.xml'].include? hpxml_file
     hpxml.header.dst_enabled = true
     hpxml.header.dst_begin_month = 3
@@ -2491,6 +2494,8 @@ def set_hpxml_header(hpxml_file, hpxml)
     hpxml.header.allow_increased_fixed_capacities = true
   elsif hpxml_file.include? 'manual-s-oversize-allowances.xml'
     hpxml.header.use_max_load_for_heat_pumps = false
+  elsif ['invalid_files/invalid-calendar-year.xml'].include? hpxml_file
+    hpxml.header.sim_calendar_year = 20018
   elsif ['invalid_files/invalid-timestep.xml'].include? hpxml_file
     hpxml.header.timestep = 45
   elsif ['invalid_files/invalid-runperiod.xml'].include? hpxml_file
@@ -2618,46 +2623,38 @@ def set_hpxml_climate_and_risk_zones(hpxml_file, hpxml)
   hpxml.climate_and_risk_zones.iecc_year = 2006
   if hpxml_file == 'ASHRAE_Standard_140/L100AC.xml'
     hpxml.climate_and_risk_zones.weather_station_name = 'Colorado Springs, CO'
-    hpxml.climate_and_risk_zones.weather_station_wmo = '724660'
+    hpxml.climate_and_risk_zones.weather_station_epw_filepath = 'USA_CO_Colorado.Springs-Peterson.Field.724660_TMY3.epw'
   elsif hpxml_file == 'ASHRAE_Standard_140/L100AL.xml'
     hpxml.climate_and_risk_zones.weather_station_name = 'Las Vegas, NV'
-    hpxml.climate_and_risk_zones.weather_station_wmo = '723860'
+    hpxml.climate_and_risk_zones.weather_station_epw_filepath = 'USA_NV_Las.Vegas-McCarran.Intl.AP.723860_TMY3.epw'
   elsif ['base.xml'].include? hpxml_file
     hpxml.climate_and_risk_zones.iecc_zone = '5B'
     hpxml.climate_and_risk_zones.weather_station_name = 'Denver, CO'
-    hpxml.climate_and_risk_zones.weather_station_wmo = '725650'
+    hpxml.climate_and_risk_zones.weather_station_epw_filepath = 'USA_CO_Denver.Intl.AP.725650_TMY3.epw'
     hpxml.header.state_code = 'CO'
   elsif ['base-location-baltimore-md.xml'].include? hpxml_file
     hpxml.climate_and_risk_zones.iecc_zone = '4A'
     hpxml.climate_and_risk_zones.weather_station_name = 'Baltimore, MD'
-    hpxml.climate_and_risk_zones.weather_station_wmo = '724060'
+    hpxml.climate_and_risk_zones.weather_station_epw_filepath = 'USA_MD_Baltimore-Washington.Intl.AP.724060_TMY3.epw'
     hpxml.header.state_code = 'MD'
   elsif ['base-location-dallas-tx.xml'].include? hpxml_file
     hpxml.climate_and_risk_zones.iecc_zone = '3A'
     hpxml.climate_and_risk_zones.weather_station_name = 'Dallas, TX'
-    hpxml.climate_and_risk_zones.weather_station_wmo = '722590'
+    hpxml.climate_and_risk_zones.weather_station_epw_filepath = 'USA_TX_Dallas-Fort.Worth.Intl.AP.722590_TMY3.epw'
     hpxml.header.state_code = 'TX'
   elsif ['base-location-duluth-mn.xml'].include? hpxml_file
     hpxml.climate_and_risk_zones.iecc_zone = '7'
     hpxml.climate_and_risk_zones.weather_station_name = 'Duluth, MN'
-    hpxml.climate_and_risk_zones.weather_station_wmo = '727450'
+    hpxml.climate_and_risk_zones.weather_station_epw_filepath = 'USA_MN_Duluth.Intl.AP.727450_TMY3.epw'
     hpxml.header.state_code = 'MN'
   elsif ['base-location-miami-fl.xml'].include? hpxml_file
     hpxml.climate_and_risk_zones.iecc_zone = '1A'
     hpxml.climate_and_risk_zones.weather_station_name = 'Miami, FL'
-    hpxml.climate_and_risk_zones.weather_station_wmo = '722020'
+    hpxml.climate_and_risk_zones.weather_station_epw_filepath = 'USA_FL_Miami.Intl.AP.722020_TMY3.epw'
     hpxml.header.state_code = 'FL'
-  elsif ['base-location-epw-filepath.xml'].include? hpxml_file
-    hpxml.climate_and_risk_zones.weather_station_wmo = nil
-    hpxml.climate_and_risk_zones.weather_station_epw_filepath = 'USA_CO_Denver.Intl.AP.725650_TMY3.epw'
-  elsif ['base-location-epw-filepath-AMY-2012.xml'].include? hpxml_file
-    hpxml.climate_and_risk_zones.iecc_year = nil
-    hpxml.climate_and_risk_zones.iecc_zone = nil
-    hpxml.climate_and_risk_zones.weather_station_wmo = nil
+  elsif ['base-location-AMY-2012.xml'].include? hpxml_file
     hpxml.climate_and_risk_zones.weather_station_name = 'Boulder, CO'
     hpxml.climate_and_risk_zones.weather_station_epw_filepath = 'US_CO_Boulder_AMY_2012.epw'
-  elsif ['invalid_files/invalid-wmo.xml'].include? hpxml_file
-    hpxml.climate_and_risk_zones.weather_station_wmo = '999999'
   elsif ['invalid_files/invalid-epw-filepath.xml'].include? hpxml_file
     hpxml.climate_and_risk_zones.weather_station_epw_filepath = 'foo.epw'
   end
@@ -7005,7 +7002,7 @@ if ARGV[0].to_sym == :create_release_zips
   end
 
   # Check if we need to download weather files for the full release zip
-  num_epws_expected = File.readlines(File.join('weather', 'data.csv')).size - 1
+  num_epws_expected = 1011
   num_epws_local = 0
   files.each do |f|
     Dir[f].each do |file|
