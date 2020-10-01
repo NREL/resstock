@@ -6,7 +6,7 @@ This folder contains the ResStock inputs to for the single family detached natio
 
 ResStock is built upon the conditional probabilites of the housing characteristics.  Each housing characteristic has a set of dependencies and dependants.  An interactive dependency and dependents visualization is provided in the links below:
 
-[National Project: Dependency Wheel](util/dependency_wheel/dep_wheel.html)
+<a href="http://htmlpreview.github.io/?https://raw.githubusercontent.com/NREL/OpenStudio-BuildStock/v2.0.0/project_resstock_national/util/dependency_wheel/dep_wheel.html">National Project: Dependency Wheel</a>
 
 ## Visualization of the Housing Characteristics as a Graph
 
