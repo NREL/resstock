@@ -198,8 +198,6 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       hpxml.header.created_date_and_time = Time.new(2000, 1, 1).strftime('%Y-%m-%dT%H:%M:%S%:z')
       hpxml.site.fuels = [] # Not used by model
       hpxml.climate_and_risk_zones.weather_station_name = nil
-      hpxml.climate_and_risk_zones.weather_station_wmo = nil
-      hpxml.climate_and_risk_zones.weather_station_epw_filepath = nil
       hpxml.header.state_code = nil
       hpxml.building_construction.conditioned_building_volume = nil
       hpxml.building_construction.average_ceiling_height = nil # Comparing conditioned volume instead

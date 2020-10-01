@@ -89,6 +89,12 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDescription('This numeric field should contain the ending day of the ending month (must be valid for month) for the annual run period desired.')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('simulation_control_run_period_calendar_year', false)
+    arg.setDisplayName('Simulation Control: Run Period Calendar Year')
+    arg.setUnits('year')
+    arg.setDescription('This numeric field should contain the calendar year that determines the start day of week. If you are running simulations using AMY weather files, the value entered for calendar year will not be used; it will be overridden by the actual year found in the AMY weather file.')
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument('simulation_control_daylight_saving_enabled', false)
     arg.setDisplayName('Simulation Control: Daylight Saving Enabled')
     arg.setDescription('Whether to use daylight saving.')
@@ -3292,6 +3298,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
              simulation_control_run_period_begin_day_of_month: runner.getOptionalIntegerArgumentValue('simulation_control_run_period_begin_day_of_month', user_arguments),
              simulation_control_run_period_end_month: runner.getOptionalIntegerArgumentValue('simulation_control_run_period_end_month', user_arguments),
              simulation_control_run_period_end_day_of_month: runner.getOptionalIntegerArgumentValue('simulation_control_run_period_end_day_of_month', user_arguments),
+             simulation_control_run_period_calendar_year: runner.getOptionalIntegerArgumentValue('simulation_control_run_period_calendar_year', user_arguments),
              simulation_control_daylight_saving_enabled: runner.getOptionalStringArgumentValue('simulation_control_daylight_saving_enabled', user_arguments),
              simulation_control_daylight_saving_begin_month: runner.getOptionalIntegerArgumentValue('simulation_control_daylight_saving_begin_month', user_arguments),
              simulation_control_daylight_saving_begin_day_of_month: runner.getOptionalIntegerArgumentValue('simulation_control_daylight_saving_begin_day_of_month', user_arguments),
@@ -3974,6 +3981,9 @@ class HPXMLFile
     end
     if args[:simulation_control_run_period_end_day_of_month].is_initialized
       hpxml.header.sim_end_day_of_month = args[:simulation_control_run_period_end_day_of_month].get
+    end
+    if args[:simulation_control_run_period_calendar_year].is_initialized
+      hpxml.header.sim_calendar_year = args[:simulation_control_run_period_calendar_year].get
     end
 
     if args[:simulation_control_daylight_saving_enabled].is_initialized

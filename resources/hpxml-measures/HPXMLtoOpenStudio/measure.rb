@@ -59,12 +59,6 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     arg.setDescription('Absolute/relative path of the HPXML file.')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument.makeStringArgument('weather_dir', true)
-    arg.setDisplayName('Weather Directory')
-    arg.setDescription('Absolute/relative path of the weather directory.')
-    arg.setDefaultValue('weather')
-    args << arg
-
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('output_dir', false)
     arg.setDisplayName('Directory for Output Files')
     arg.setDescription('Absolute/relative path for the output files directory.')
@@ -94,7 +88,6 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
 
     # assign the user inputs to variables
     hpxml_path = runner.getStringArgumentValue('hpxml_path', user_arguments)
-    weather_dir = runner.getStringArgumentValue('weather_dir', user_arguments)
     output_dir = runner.getOptionalStringArgumentValue('output_dir', user_arguments)
     debug = runner.getBoolArgumentValue('debug', user_arguments)
 
@@ -105,9 +98,6 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
       fail "'#{hpxml_path}' does not exist or is not an .xml file."
     end
 
-    unless (Pathname.new weather_dir).absolute?
-      weather_dir = File.expand_path(File.join(File.dirname(__FILE__), '..', weather_dir))
-    end
     if output_dir.is_initialized
       output_dir = output_dir.get
       unless (Pathname.new output_dir).absolute?
@@ -124,7 +114,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
         return false
       end
 
-      epw_path, cache_path = process_weather(hpxml, runner, model, weather_dir, output_dir)
+      epw_path, cache_path = process_weather(hpxml, runner, model, output_dir, hpxml_path)
 
       OSModel.create(hpxml, runner, model, hpxml_path, epw_path, cache_path, output_dir, debug)
     rescue Exception => e
@@ -177,31 +167,19 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     return is_valid
   end
 
-  def process_weather(hpxml, runner, model, weather_dir, output_dir)
+  def process_weather(hpxml, runner, model, output_dir, hpxml_path)
     epw_path = hpxml.climate_and_risk_zones.weather_station_epw_filepath
 
-    if not epw_path.nil?
-      if not File.exist? epw_path
-        epw_path = File.join(weather_dir, epw_path)
-      end
-      if not File.exist?(epw_path)
-        fail "'#{epw_path}' could not be found."
-      end
-    else
-      weather_wmo = hpxml.climate_and_risk_zones.weather_station_wmo
-      CSV.foreach(File.join(weather_dir, 'data.csv'), headers: true) do |row|
-        next if row['wmo'] != weather_wmo
-
-        epw_path = File.join(weather_dir, row['filename'])
-        if not File.exist?(epw_path)
-          fail "'#{epw_path}' could not be found."
-        end
-
-        break
-      end
-      if epw_path.nil?
-        fail "Weather station WMO '#{weather_wmo}' could not be found in #{File.join(weather_dir, 'data.csv')}."
-      end
+    if not File.exist? epw_path
+      test_epw_path = File.join(File.dirname(hpxml_path), epw_path)
+      epw_path = test_epw_path if File.exist? test_epw_path
+    end
+    if not File.exist? epw_path
+      test_epw_path = File.join(File.dirname(__FILE__), '..', 'weather', epw_path)
+      epw_path = test_epw_path if File.exist? test_epw_path
+    end
+    if not File.exist?(epw_path)
+      fail "'#{epw_path}' could not be found."
     end
 
     cache_path = epw_path.gsub('.epw', '-cache.csv')
@@ -404,7 +382,7 @@ class OSModel
     end
 
     # Apply defaults to HPXML object
-    HPXMLDefaults.apply(@hpxml, @cfa, @nbeds, @ncfl, @ncfl_ag, @has_uncond_bsmnt, @eri_version, epw_file)
+    HPXMLDefaults.apply(@hpxml, @cfa, @nbeds, @ncfl, @ncfl_ag, @has_uncond_bsmnt, @eri_version, epw_file, runner)
 
     @frac_windows_operable = @hpxml.fraction_of_windows_operable()
 

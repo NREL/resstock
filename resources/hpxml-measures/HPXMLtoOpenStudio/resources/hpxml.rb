@@ -664,7 +664,7 @@ class HPXML < Object
     ATTRS = [:xml_type, :xml_generated_by, :created_date_and_time, :transaction,
              :software_program_used, :software_program_version, :eri_calculation_version,
              :eri_design, :timestep, :building_id, :event_type, :state_code,
-             :sim_begin_month, :sim_begin_day_of_month, :sim_end_month, :sim_end_day_of_month,
+             :sim_begin_month, :sim_begin_day_of_month, :sim_end_month, :sim_end_day_of_month, :sim_calendar_year,
              :dst_enabled, :dst_begin_month, :dst_begin_day_of_month, :dst_end_month, :dst_end_day_of_month,
              :use_max_load_for_heat_pumps, :allow_increased_fixed_capacities,
              :apply_ashrae140_assumptions]
@@ -728,6 +728,12 @@ class HPXML < Object
         end
       end
 
+      if not @sim_calendar_year.nil?
+        if (@sim_calendar_year < 1600) || (@sim_calendar_year > 9999)
+          fail "Calendar Year (#{@sim_calendar_year}) must be between 1600 and 9999."
+        end
+      end
+
       return errors
     end
 
@@ -766,6 +772,7 @@ class HPXML < Object
         XMLHelper.add_element(simulation_control, 'BeginDayOfMonth', to_integer(@sim_begin_day_of_month)) unless @sim_begin_day_of_month.nil?
         XMLHelper.add_element(simulation_control, 'EndMonth', to_integer(@sim_end_month)) unless @sim_end_month.nil?
         XMLHelper.add_element(simulation_control, 'EndDayOfMonth', to_integer(@sim_end_day_of_month)) unless @sim_end_day_of_month.nil?
+        XMLHelper.add_element(simulation_control, 'CalendarYear', to_integer(@sim_calendar_year)) unless @sim_calendar_year.nil?
         if (not @dst_enabled.nil?) || (not @dst_begin_month.nil?) || (not @dst_begin_day_of_month.nil?) || (not @dst_end_month.nil?) || (not @dst_end_day_of_month.nil?)
           daylight_saving = XMLHelper.add_element(simulation_control, 'DaylightSaving')
           XMLHelper.add_element(daylight_saving, 'Enabled', to_boolean(@dst_enabled)) unless @dst_enabled.nil?
@@ -812,6 +819,7 @@ class HPXML < Object
       @sim_begin_day_of_month = to_integer_or_nil(XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/SimulationControl/BeginDayOfMonth'))
       @sim_end_month = to_integer_or_nil(XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/SimulationControl/EndMonth'))
       @sim_end_day_of_month = to_integer_or_nil(XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/SimulationControl/EndDayOfMonth'))
+      @sim_calendar_year = to_integer_or_nil(XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/SimulationControl/CalendarYear'))
       @dst_enabled = to_boolean_or_nil(XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/SimulationControl/DaylightSaving/Enabled'))
       @dst_begin_month = to_integer_or_nil(XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/SimulationControl/DaylightSaving/BeginMonth'))
       @dst_begin_day_of_month = to_integer_or_nil(XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/SimulationControl/DaylightSaving/BeginDayOfMonth'))
