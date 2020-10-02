@@ -454,3 +454,5 @@ Dependency=ASHRAE IECC Climate Zone 2004	Dependency=Geometry Building Type RECS	
 # Assumption: All mobile homes have Pier and Beam foundations.
 # Assumption: Foundation types are the same for each building type except mobile homes.
 # Assumption: If no foundation type specified, then sample has Pier and Beam foundation.
+# Assumption: RECS has a quirk where MF 5+ units always have foundation type fields set to N/A, whereas MF2-4 unit fields are allowed to have foundation types. Because we need to assume a foundation type for ground-floor MF units, we use the lumped SFD+SFA+MF2-4 distributions for MF5+.
+# Assumption: A non-trivial percentage of MF units have neither basement, nor slab, nor crawl, which we map to pier and beam (aka open crawlspace). This seems unrealistic, but could represent MF units that are above parking garages or retail space, so we assume it is reasonable to model them as pier and beam open crawlspaces.
