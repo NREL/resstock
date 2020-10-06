@@ -25,6 +25,10 @@ class Constants
     return 'right'
   end
 
+  def self.OptionTypeLightingScheduleCalculated
+    return 'Calculated Lighting Schedule'
+  end
+
   # Numbers --------------------
 
   def self.NumDaysInMonths(is_leap_year = false)
@@ -51,5 +55,13 @@ class Constants
 
   def self.NumApplyUpgradesCostsPerOption
     return 2
+  end
+
+  def self.PeakFlowRate
+    return 500 # gal/min
+  end
+
+  def self.PeakPower
+    return 100 # kWh
   end
 end

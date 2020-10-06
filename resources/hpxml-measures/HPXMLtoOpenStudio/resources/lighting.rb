@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Lighting
-  def self.apply(runner, model, weather, spaces, lighting_groups, lighting, eri_version)
+  def self.apply(runner, model, epw_file, spaces, lighting_groups, lighting, eri_version, schedules_file)
     fractions = {}
     lighting_groups.each do |lg|
       fractions[[lg.location, lg.lighting_type]] = lg.fraction_of_units_in_location
@@ -40,7 +40,9 @@ class Lighting
     if not lighting.interior_weekday_fractions.nil?
       interior_sch = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameInteriorLighting + ' schedule', lighting.interior_weekday_fractions, lighting.interior_weekend_fractions, lighting.interior_monthly_multipliers, Constants.ScheduleTypeLimitsFraction)
     else
-      interior_sch = create_schedule(model, weather)
+      lighting_sch = get_schedule(model, epw_file)
+      # Create schedule
+      interior_sch = HourlyByMonthSchedule.new(model, 'lighting schedule', lighting_sch, lighting_sch, Constants.ScheduleTypeLimitsFraction)
     end
     exterior_sch = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameExteriorLighting + ' schedule', lighting.exterior_weekday_fractions, lighting.exterior_weekend_fractions, lighting.exterior_monthly_multipliers, Constants.ScheduleTypeLimitsFraction)
     if not garage_space.nil?
@@ -52,10 +54,17 @@ class Lighting
 
     # Add lighting to each conditioned space
     if int_kwh > 0
-      if lighting.interior_weekday_fractions.nil?
-        design_level = interior_sch.calcDesignLevel(interior_sch.maxval * int_kwh)
+
+      if not schedules_file.nil?
+        design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: 'lighting_interior', annual_kwh: int_kwh)
+        interior_sch = schedules_file.create_schedule_file(col_name: 'lighting_interior')
       else
-        design_level = interior_sch.calcDesignLevelFromDailykWh(int_kwh / 365.0)
+        if lighting.interior_weekday_fractions.nil?
+          design_level = interior_sch.calcDesignLevel(interior_sch.maxval * int_kwh)
+        else
+          design_level = interior_sch.calcDesignLevelFromDailykWh(int_kwh / 365.0)
+        end
+        interior_sch = interior_sch.schedule
       end
 
       # Add lighting
@@ -69,12 +78,19 @@ class Lighting
       ltg_def.setFractionRadiant(0.6)
       ltg_def.setFractionVisible(0.2)
       ltg_def.setReturnAirFraction(0.0)
-      ltg.setSchedule(interior_sch.schedule)
+      ltg.setSchedule(interior_sch)
     end
 
     # Add lighting to each garage space
     if grg_kwh > 0
-      design_level = garage_sch.calcDesignLevelFromDailykWh(grg_kwh / 365.0)
+
+      if not schedules_file.nil?
+        design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: 'lighting_garage', annual_kwh: grg_kwh)
+        garage_sch = schedules_file.create_schedule_file(col_name: 'lighting_garage')
+      else
+        design_level = garage_sch.calcDesignLevelFromDailykWh(grg_kwh / 365.0)
+        garage_sch = garage_sch.schedule
+      end
 
       # Add lighting
       ltg_def = OpenStudio::Model::LightsDefinition.new(model)
@@ -87,11 +103,18 @@ class Lighting
       ltg_def.setFractionRadiant(0.6)
       ltg_def.setFractionVisible(0.2)
       ltg_def.setReturnAirFraction(0.0)
-      ltg.setSchedule(garage_sch.schedule)
+      ltg.setSchedule(garage_sch)
     end
 
     if ext_kwh > 0
-      design_level = exterior_sch.calcDesignLevelFromDailykWh(ext_kwh / 365.0)
+
+      if not schedules_file.nil?
+        design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: 'lighting_exterior', annual_kwh: ext_kwh)
+        exterior_sch = schedules_file.create_schedule_file(col_name: 'lighting_exterior')
+      else
+        design_level = exterior_sch.calcDesignLevelFromDailykWh(ext_kwh / 365.0)
+        exterior_sch = exterior_sch.schedule
+      end
 
       # Add exterior lighting
       ltg_def = OpenStudio::Model::ExteriorLightsDefinition.new(model)
@@ -99,11 +122,18 @@ class Lighting
       ltg.setName(Constants.ObjectNameExteriorLighting)
       ltg_def.setName(Constants.ObjectNameExteriorLighting)
       ltg_def.setDesignLevel(design_level)
-      ltg.setSchedule(exterior_sch.schedule)
+      ltg.setSchedule(exterior_sch)
     end
 
     if not lighting.holiday_kwh_per_day.nil?
-      design_level = exterior_holiday_sch.calcDesignLevelFromDailykWh(lighting.holiday_kwh_per_day)
+
+      if not schedules_file.nil?
+        design_level = schedules_file.calc_design_level_from_daily_kwh(col_name: 'lighting_exterior_holiday', daily_kwh: lighting.holiday_kwh_per_day)
+        exterior_holiday_sch = schedules_file.create_schedule_file(col_name: 'lighting_exterior_holiday')
+      else
+        design_level = exterior_holiday_sch.calcDesignLevelFromDailykWh(lighting.holiday_kwh_per_day)
+        exterior_holiday_sch = exterior_holiday_sch.schedule
+      end
 
       # Add exterior holiday lighting
       ltg_def = OpenStudio::Model::ExteriorLightsDefinition.new(model)
@@ -111,7 +141,7 @@ class Lighting
       ltg.setName(Constants.ObjectNameLightingExteriorHoliday)
       ltg_def.setName(Constants.ObjectNameLightingExteriorHoliday)
       ltg_def.setDesignLevel(design_level)
-      ltg.setSchedule(exterior_holiday_sch.schedule)
+      ltg.setSchedule(exterior_holiday_sch)
     end
   end
 
@@ -194,14 +224,14 @@ class Lighting
     return int_kwh, ext_kwh, grg_kwh
   end
 
-  def self.create_schedule(model, weather)
+  def self.get_schedule(model, epw_file)
     # Sunrise and sunset hours
     sunrise_hour = []
     sunset_hour = []
-    std_long = -weather.header.Timezone * 15
+    std_long = -epw_file.timeZone * 15
     normalized_hourly_lighting = [[1..24], [1..24], [1..24], [1..24], [1..24], [1..24], [1..24], [1..24], [1..24], [1..24], [1..24], [1..24]]
     for month in 0..11
-      if weather.header.Latitude < 51.49
+      if epw_file.latitude < 51.49
         m_num = month + 1
         jul_day = m_num * 30 - 15
         if not ((m_num < 4) || (m_num > 10))
@@ -214,9 +244,9 @@ class Lighting
         rad_deg = 1 / deg_rad
         b = (jul_day - 1) * 0.9863
         equation_of_time = (0.01667 * (0.01719 + 0.42815 * Math.cos(deg_rad * b) - 7.35205 * Math.sin(deg_rad * b) - 3.34976 * Math.cos(deg_rad * (2 * b)) - 9.37199 * Math.sin(deg_rad * (2 * b))))
-        sunset_hour_angle = rad_deg * Math.acos(-1 * Math.tan(deg_rad * weather.header.Latitude) * Math.tan(deg_rad * declination))
-        sunrise_hour[month] = offset + (12.0 - 1 * sunset_hour_angle / 15.0) - equation_of_time - (std_long + weather.header.Longitude) / 15
-        sunset_hour[month] = offset + (12.0 + 1 * sunset_hour_angle / 15.0) - equation_of_time - (std_long + weather.header.Longitude) / 15
+        sunset_hour_angle = rad_deg * Math.acos(-1 * Math.tan(deg_rad * epw_file.latitude) * Math.tan(deg_rad * declination))
+        sunrise_hour[month] = offset + (12.0 - 1 * sunset_hour_angle / 15.0) - equation_of_time - (std_long + epw_file.longitude) / 15
+        sunset_hour[month] = offset + (12.0 + 1 * sunset_hour_angle / 15.0) - equation_of_time - (std_long + epw_file.longitude) / 15
       else
         sunrise_hour = [8.125726064, 7.449258072, 6.388688653, 6.232405257, 5.27722936, 4.84705384, 5.127512162, 5.860163988, 6.684378904, 7.521267411, 7.390441945, 8.080667697]
         sunset_hour = [16.22214058, 17.08642353, 17.98324493, 19.83547864, 20.65149672, 21.20662992, 21.12124777, 20.37458274, 19.25834757, 18.08155615, 16.14359164, 15.75571306]
@@ -234,6 +264,7 @@ class Lighting
     stdDevCons2 = 2.36567663279954
 
     monthly_kwh_per_day = []
+    year_description = model.getYearDescription
     days_m = Constants.MonthNumDays
     wtd_avg_monthly_kwh_per_day = 0
     for monthNum in 1..12
@@ -302,9 +333,6 @@ class Lighting
       end
     end
 
-    # Create schedule
-    sch = HourlyByMonthSchedule.new(model, 'lighting schedule', lighting_sch, lighting_sch, Constants.ScheduleTypeLimitsFraction)
-
-    return sch
+    return lighting_sch
   end
 end

@@ -358,6 +358,13 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
                           include_timeseries_zone_temperatures,
                           include_timeseries_airflows,
                           include_timeseries_weather)
+
+    @sqlFile.close()
+
+    # Ensure sql file is immediately freed; otherwise we can get
+    # errors on Windows when trying to delete this file.
+    GC.start()
+
     if not check_for_errors(runner, outputs)
       return false
     end
@@ -375,8 +382,6 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
                                     include_timeseries_zone_temperatures,
                                     include_timeseries_airflows,
                                     include_timeseries_weather)
-
-    @sqlFile.close()
 
     return true
   end

@@ -667,7 +667,7 @@ class HPXML < Object
              :sim_begin_month, :sim_begin_day_of_month, :sim_end_month, :sim_end_day_of_month, :sim_calendar_year,
              :dst_enabled, :dst_begin_month, :dst_begin_day_of_month, :dst_end_month, :dst_end_day_of_month,
              :use_max_load_for_heat_pumps, :allow_increased_fixed_capacities,
-             :apply_ashrae140_assumptions]
+             :apply_ashrae140_assumptions, :schedules_path]
     attr_accessor(*ATTRS)
 
     def check_for_errors
@@ -789,6 +789,10 @@ class HPXML < Object
         XMLHelper.add_element(hvac_sizing_control, 'AllowIncreasedFixedCapacities', to_boolean(@allow_increased_fixed_capacities)) unless @allow_increased_fixed_capacities.nil?
       end
 
+      if not @schedules_path.nil?
+        XMLHelper.add_element(extension, 'OccupancySchedulesCSVPath', @schedules_path) unless @schedules_path.nil?
+      end
+
       building = XMLHelper.add_element(hpxml, 'Building')
       building_building_id = XMLHelper.add_element(building, 'BuildingID')
       XMLHelper.add_attribute(building_building_id, 'id', @building_id)
@@ -828,6 +832,7 @@ class HPXML < Object
       @apply_ashrae140_assumptions = to_boolean_or_nil(XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/ApplyASHRAE140Assumptions'))
       @use_max_load_for_heat_pumps = to_boolean_or_nil(XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/HVACSizingControl/UseMaxLoadForHeatPumps'))
       @allow_increased_fixed_capacities = to_boolean_or_nil(XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/HVACSizingControl/AllowIncreasedFixedCapacities'))
+      @schedules_path = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/OccupancySchedulesCSVPath')
       @building_id = HPXML::get_id(hpxml, 'Building/BuildingID')
       @event_type = XMLHelper.get_value(hpxml, 'Building/ProjectStatus/EventType')
       @state_code = XMLHelper.get_value(hpxml, 'Building/Site/Address/StateCode')
