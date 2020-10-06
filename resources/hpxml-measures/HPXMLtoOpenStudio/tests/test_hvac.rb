@@ -1,10 +1,8 @@
 # frozen_string_literal: true
 
-# TODO: Add fan/pump checks
-
 require_relative '../resources/minitest_helper'
 require 'openstudio'
-require 'openstudio/ruleset/ShowRunnerOutput'
+require 'openstudio/measure/ShowRunnerOutput'
 require 'minitest/autorun'
 require 'fileutils'
 require_relative '../measure.rb'
@@ -104,7 +102,7 @@ class HPXMLtoOpenStudioHVACTest < MiniTest::Test
     htg_coil = model.getCoilHeatingGass[0]
     assert_in_epsilon(afue, htg_coil.gasBurnerEfficiency, 0.01)
     assert_in_epsilon(capacity, htg_coil.nominalCapacity.get, 0.01)
-    assert_equal(EPlus.input_fuel_map(fuel), htg_coil.fuelType)
+    assert_equal(EPlus.fuel_type(fuel), htg_coil.fuelType)
   end
 
   def test_furnace_electric
@@ -140,7 +138,7 @@ class HPXMLtoOpenStudioHVACTest < MiniTest::Test
     boiler = model.getBoilerHotWaters[0]
     assert_in_epsilon(afue, boiler.nominalThermalEfficiency, 0.01)
     assert_in_epsilon(capacity, boiler.nominalCapacity.get, 0.01)
-    assert_equal(EPlus.input_fuel_map(fuel), boiler.fuelType)
+    assert_equal(EPlus.fuel_type(fuel), boiler.fuelType)
   end
 
   def test_boiler_coal
@@ -159,7 +157,7 @@ class HPXMLtoOpenStudioHVACTest < MiniTest::Test
     boiler = model.getBoilerHotWaters[0]
     assert_in_epsilon(afue, boiler.nominalThermalEfficiency, 0.01)
     assert_in_epsilon(capacity, boiler.nominalCapacity.get, 0.01)
-    assert_equal(EPlus.input_fuel_map(fuel), boiler.fuelType)
+    assert_equal(EPlus.fuel_type(fuel), boiler.fuelType)
   end
 
   def test_boiler_electric
@@ -178,7 +176,7 @@ class HPXMLtoOpenStudioHVACTest < MiniTest::Test
     boiler = model.getBoilerHotWaters[0]
     assert_in_epsilon(afue, boiler.nominalThermalEfficiency, 0.01)
     assert_in_epsilon(capacity, boiler.nominalCapacity.get, 0.01)
-    assert_equal(EPlus.input_fuel_map(fuel), boiler.fuelType)
+    assert_equal(EPlus.fuel_type(fuel), boiler.fuelType)
   end
 
   def test_electric_resistance
@@ -214,7 +212,7 @@ class HPXMLtoOpenStudioHVACTest < MiniTest::Test
     htg_coil = model.getCoilHeatingGass[0]
     assert_in_epsilon(efficiency, htg_coil.gasBurnerEfficiency, 0.01)
     assert_in_epsilon(capacity, htg_coil.nominalCapacity.get, 0.01)
-    assert_equal(EPlus.input_fuel_map(fuel), htg_coil.fuelType)
+    assert_equal(EPlus.fuel_type(fuel), htg_coil.fuelType)
   end
 
   def test_central_air_to_air_heat_pump_1_speed
@@ -475,7 +473,7 @@ class HPXMLtoOpenStudioHVACTest < MiniTest::Test
     boiler = model.getBoilerHotWaters[0]
     assert_in_epsilon(afue, boiler.nominalThermalEfficiency, 0.01)
     refute_in_epsilon(capacity, boiler.nominalCapacity.get, 0.01) # Uses autosized capacity
-    assert_equal(EPlus.input_fuel_map(fuel), boiler.fuelType)
+    assert_equal(EPlus.fuel_type(fuel), boiler.fuelType)
   end
 
   def test_shared_boiler_fan_coil
@@ -494,7 +492,7 @@ class HPXMLtoOpenStudioHVACTest < MiniTest::Test
     boiler = model.getBoilerHotWaters[0]
     assert_in_epsilon(afue, boiler.nominalThermalEfficiency, 0.01)
     refute_in_epsilon(capacity, boiler.nominalCapacity.get, 0.01) # Uses autosized capacity
-    assert_equal(EPlus.input_fuel_map(fuel), boiler.fuelType)
+    assert_equal(EPlus.fuel_type(fuel), boiler.fuelType)
   end
 
   def test_shared_boiler_water_loop_heat_pump
@@ -514,7 +512,7 @@ class HPXMLtoOpenStudioHVACTest < MiniTest::Test
     boiler = model.getBoilerHotWaters[0]
     assert_in_epsilon(afue, boiler.nominalThermalEfficiency, 0.01)
     refute_in_epsilon(capacity, boiler.nominalCapacity.get, 0.01) # Uses autosized capacity
-    assert_equal(EPlus.input_fuel_map(fuel), boiler.fuelType)
+    assert_equal(EPlus.fuel_type(fuel), boiler.fuelType)
 
     # Check cooling coil
     assert_equal(0, model.getCoilCoolingDXSingleSpeeds.size)

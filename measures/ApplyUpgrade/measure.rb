@@ -305,6 +305,11 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
 
       # Get the absolute paths relative to this meta measure in the run directory
       measures['BuildResidentialHPXML'][0]['hpxml_path'] = File.expand_path('../upgraded.xml')
+      schedules_type = measures['BuildResidentialHPXML'][0]['schedules_type']
+      if schedules_type == 'stochastic' # avoid re-running the stochastic schedule generator
+        measures['BuildResidentialHPXML'][0]['schedules_type'] = 'user-specified'
+        measures['BuildResidentialHPXML'][0]['schedules_path'] = File.expand_path('../schedules.csv')
+      end
       measures['HPXMLtoOpenStudio'] = [{ 'hpxml_path' => File.expand_path('../upgraded.xml') }]
 
       # Get software program used and version
@@ -322,6 +327,9 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
       measures['BuildResidentialHPXML'][0]['simulation_control_run_period_begin_day_of_month'] = simulation_control_run_period_begin_day_of_month
       measures['BuildResidentialHPXML'][0]['simulation_control_run_period_end_month'] = simulation_control_run_period_end_month
       measures['BuildResidentialHPXML'][0]['simulation_control_run_period_end_day_of_month'] = simulation_control_run_period_end_day_of_month
+
+      # Remove the existing generated_files folder alongside the run folder; if not, getExternalFile returns false for some reason
+      FileUtils.rm_rf(File.expand_path('../../generated_files')) if File.exist?(File.expand_path('../../generated_files'))
 
       if not apply_measures(measures_dir, measures, runner, model, workflow_json, 'measures-upgrade.osw', true)
         return false

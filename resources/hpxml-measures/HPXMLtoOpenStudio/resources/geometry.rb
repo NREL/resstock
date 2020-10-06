@@ -138,7 +138,7 @@ class Geometry
   end
 
   def self.process_occupants(model, num_occ, occ_gain, sens_frac, lat_frac, weekday_sch, weekend_sch, monthly_sch,
-                             cfa, nbeds, space)
+                             cfa, nbeds, space, schedules_file)
 
     # Error checking
     if (sens_frac < 0) || (sens_frac > 1)
@@ -164,10 +164,17 @@ class Geometry
     space_num_occ = num_occ * UnitConversions.convert(space.floorArea, 'm^2', 'ft^2') / cfa
 
     # Create schedule
-    people_sch = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameOccupants + ' schedule', weekday_sch, weekend_sch, monthly_sch, Constants.ScheduleTypeLimitsFraction)
+    if not schedules_file.nil?
+      people_sch = schedules_file.create_schedule_file(col_name: 'occupants')
+    else
+      people_sch = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameOccupants + ' schedule', weekday_sch, weekend_sch, monthly_sch, Constants.ScheduleTypeLimitsFraction)
+      people_sch = people_sch.schedule
+    end
 
     # Create schedule
-    activity_sch = OpenStudio::Model::ScheduleRuleset.new(model, activity_per_person)
+    activity_sch = OpenStudio::Model::ScheduleConstant.new(model)
+    activity_sch.setValue(activity_per_person)
+    activity_sch.setName(Constants.ObjectNameOccupants + ' activity schedule')
 
     # Add people definition for the occ
     occ_def = OpenStudio::Model::PeopleDefinition.new(model)
@@ -183,7 +190,7 @@ class Geometry
     occ_def.setCarbonDioxideGenerationRate(0)
     occ_def.setEnableASHRAE55ComfortWarnings(false)
     occ.setActivityLevelSchedule(activity_sch)
-    occ.setNumberofPeopleSchedule(people_sch.schedule)
+    occ.setNumberofPeopleSchedule(people_sch)
   end
 
   def self.get_occupancy_default_num(nbeds)

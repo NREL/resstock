@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: nrel/openstudio:3.0.1
+      - image: nrel/openstudio:3.1.0-rc1
     steps:
       - checkout
       - run: 
@@ -26,11 +26,11 @@ jobs:
           command: |
             rake test:regression_tests
       - store_artifacts:
-            path: workflows/results
-            destination: results
+            path: workflows/results/results.csv
+            destination: example_osws.csv
       - store_artifacts:
-            path: test/test_measures_osw/results
-            destination: results
+            path: test/test_measures_osw/results/results.csv
+            destination: measures_osws.csv
       - store_artifacts:
             path: test/test_measures_osw/buildstock.csv
-            destination: results
+            destination: buildstock.csv

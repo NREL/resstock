@@ -112,7 +112,7 @@ class HVAC
         htg_coil.setGasBurnerEfficiency(heating_system.heating_efficiency_afue)
         htg_coil.setParasiticElectricLoad(0)
         htg_coil.setParasiticGasLoad(0)
-        htg_coil.setFuelType(EPlus.input_fuel_map(heating_system.heating_system_fuel))
+        htg_coil.setFuelType(EPlus.fuel_type(heating_system.heating_system_fuel))
       end
       htg_coil.setName(obj_name + ' htg coil')
       if not heating_system.heating_capacity.nil?
@@ -658,7 +658,7 @@ class HVAC
 
     if pan_heater_power > 0
 
-      mshp_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Heating Coil Electric Energy')
+      mshp_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Heating Coil #{EPlus::FuelTypeElectricity} Energy")
       mshp_sensor.setName("#{obj_name} vrf energy sensor")
       mshp_sensor.setKeyName(obj_name + ' coil')
 
@@ -673,7 +673,7 @@ class HVAC
       equip.setSchedule(model.alwaysOnDiscreteSchedule)
       equip.setEndUseSubcategory(obj_name + ' pan heater')
 
-      pan_heater_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(equip, 'ElectricEquipment', 'Electric Power Level')
+      pan_heater_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(equip, *EPlus::EMSActuatorElectricEquipmentPower)
       pan_heater_actuator.setName("#{obj_name} pan heater actuator")
 
       tout_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Zone Outdoor Air Drybulb Temperature')
@@ -1113,7 +1113,7 @@ class HVAC
 
     boiler = OpenStudio::Model::BoilerHotWater.new(model)
     boiler.setName(obj_name)
-    boiler.setFuelType(EPlus.input_fuel_map(heating_system.heating_system_fuel))
+    boiler.setFuelType(EPlus.fuel_type(heating_system.heating_system_fuel))
     if not heating_system.heating_capacity.nil?
       boiler.setNominalCapacity(UnitConversions.convert([heating_system.heating_capacity, Constants.small].max, 'Btu/hr', 'W')) # Used by HVACSizing measure
     end
@@ -1293,7 +1293,7 @@ class HVAC
       htg_coil.setGasBurnerEfficiency(efficiency)
       htg_coil.setParasiticElectricLoad(0.0)
       htg_coil.setParasiticGasLoad(0)
-      htg_coil.setFuelType(EPlus.input_fuel_map(heating_system.heating_system_fuel))
+      htg_coil.setFuelType(EPlus.fuel_type(heating_system.heating_system_fuel))
     end
     htg_coil.setName(obj_name + ' htg coil')
     if not heating_system.heating_capacity.nil?
@@ -1410,12 +1410,12 @@ class HVAC
     end
   end
 
-  def self.apply_ceiling_fans(model, runner, weather, ceiling_fan, living_space)
+  def self.apply_ceiling_fans(model, runner, weather, ceiling_fan, living_space, schedules_file)
     obj_name = Constants.ObjectNameCeilingFan
-    monthly_sch = get_default_ceiling_fan_months(weather)
+    monthly_sch = Schedule.CeilingFanMonthlyMultipliers(weather: weather).split(',').map { |i| i.to_f }
     medium_cfm = 3000.0
-    weekday_sch = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0]
-    weekend_sch = weekday_sch
+    weekday_sch = Schedule.CeilingFanWeekdayFractions.split(',').map { |i| i.to_f }
+    weekend_sch = Schedule.CeilingFanWeekendFractions.split(',').map { |i| i.to_f }
     hrs_per_day = weekday_sch.sum(0.0)
     cfm_per_w = ceiling_fan.efficiency
     quantity = ceiling_fan.quantity
@@ -1424,7 +1424,13 @@ class HVAC
 
     ceiling_fan_sch = MonthWeekdayWeekendSchedule.new(model, obj_name + ' schedule', weekday_sch, weekend_sch, monthly_sch, Constants.ScheduleTypeLimitsFraction)
 
-    space_design_level = ceiling_fan_sch.calcDesignLevelFromDailykWh(annual_kwh / 365.0)
+    if not schedules_file.nil?
+      space_design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: 'ceiling_fan', annual_kwh: annual_kwh)
+      ceiling_fan_sch = schedules_file.create_schedule_file(col_name: 'ceiling_fan')
+    else
+      space_design_level = ceiling_fan_sch.calcDesignLevelFromDailykWh(annual_kwh / 365.0)
+      ceiling_fan_sch = ceiling_fan_sch.schedule
+    end
 
     equip_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
     equip_def.setName(obj_name)
@@ -1436,7 +1442,7 @@ class HVAC
     equip_def.setFractionLatent(0)
     equip_def.setFractionLost(0)
     equip.setEndUseSubcategory(obj_name)
-    equip.setSchedule(ceiling_fan_sch.schedule)
+    equip.setSchedule(ceiling_fan_sch)
   end
 
   def self.apply_setpoints(model, runner, weather, hvac_control, living_zone)
@@ -1734,12 +1740,12 @@ class HVAC
     pump_mfr_sensor.setKeyName(pump.name.to_s)
 
     # Internal variable
-    pump_rated_mfr_var = OpenStudio::Model::EnergyManagementSystemInternalVariable.new(model, 'Pump Maximum Mass Flow Rate')
+    pump_rated_mfr_var = OpenStudio::Model::EnergyManagementSystemInternalVariable.new(model, EPlus::EMSIntVarPumpMFR)
     pump_rated_mfr_var.setName("#{pump.name} rated mfr")
     pump_rated_mfr_var.setInternalDataIndexKeyName(pump.name.to_s)
 
     # Actuator
-    pump_pressure_rise_act = OpenStudio::Model::EnergyManagementSystemActuator.new(pump, 'Pump', 'Pump Pressure Rise')
+    pump_pressure_rise_act = OpenStudio::Model::EnergyManagementSystemActuator.new(pump, *EPlus::EMSActuatorPumpPressureRise)
     pump_pressure_rise_act.setName("#{pump.name} pressure rise act")
 
     # Program
@@ -1768,11 +1774,11 @@ class HVAC
     hvac_objects = []
 
     if fan_or_pump.is_a?(OpenStudio::Model::FanOnOff) || fan_or_pump.is_a?(OpenStudio::Model::FanVariableVolume)
-      fan_or_pump_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Fan Electric Energy')
+      fan_or_pump_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Fan #{EPlus::FuelTypeElectricity} Energy")
     elsif fan_or_pump.is_a? OpenStudio::Model::PumpVariableSpeed
-      fan_or_pump_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Pump Electric Energy')
+      fan_or_pump_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Pump #{EPlus::FuelTypeElectricity} Energy")
     elsif fan_or_pump.is_a? OpenStudio::Model::ElectricEquipment
-      fan_or_pump_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Electric Equipment Electric Energy')
+      fan_or_pump_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Electric Equipment #{EPlus::FuelTypeElectricity} Energy")
     else
       fail "Unexpected fan/pump object '#{fan_or_pump.name}'."
     end
@@ -1786,7 +1792,7 @@ class HVAC
       if clg_object.is_a? OpenStudio::Model::EvaporativeCoolerDirectResearchSpecial
         var = 'Evaporative Cooler Water Volume'
       else
-        var = 'Cooling Coil Electric Energy'
+        var = "Cooling Coil #{EPlus::FuelTypeElectricity} Energy"
       end
       clg_object_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, var)
       clg_object_sensor.setName("#{clg_object.name} s")
@@ -1797,9 +1803,9 @@ class HVAC
     if htg_object.nil?
       htg_object_sensor = nil
     else
-      var = "Heating Coil #{EPlus.output_fuel_map(EPlus::FuelTypeElectricity)} Energy"
+      var = "Heating Coil #{EPlus::FuelTypeElectricity} Energy"
       if htg_object.is_a? OpenStudio::Model::CoilHeatingGas
-        var = "Heating Coil #{EPlus.output_fuel_map(htg_object.fuelType)} Energy"
+        var = "Heating Coil #{htg_object.fuelType} Energy"
       elsif htg_object.is_a? OpenStudio::Model::ZoneHVACBaseboardConvectiveWater
         var = 'Baseboard Total Heating Energy'
       elsif htg_object.is_a? OpenStudio::Model::ZoneHVACFourPipeFanCoil
@@ -1815,9 +1821,9 @@ class HVAC
     if backup_htg_object.nil?
       backup_htg_object_sensor = nil
     else
-      var = "Heating Coil #{EPlus.output_fuel_map(EPlus::FuelTypeElectricity)} Energy"
+      var = "Heating Coil #{EPlus::FuelTypeElectricity} Energy"
       if backup_htg_object.is_a? OpenStudio::Model::CoilHeatingGas
-        var = "Heating Coil #{EPlus.output_fuel_map(backup_htg_object.fuelType)} Energy"
+        var = "Heating Coil #{backup_htg_object.fuelType} Energy"
       end
 
       backup_htg_object_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, var)
@@ -1894,7 +1900,7 @@ class HVAC
     dehumidifier_sens_htg = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Zone Dehumidifier Sensible Heating Rate')
     dehumidifier_sens_htg.setName("#{zone_hvac.name} sens htg")
     dehumidifier_sens_htg.setKeyName(zone_hvac.name.to_s)
-    dehumidifier_power = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Zone Dehumidifier Electric Power')
+    dehumidifier_power = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Zone Dehumidifier #{EPlus::FuelTypeElectricity} Rate")
     dehumidifier_power.setName("#{zone_hvac.name} power htg")
     dehumidifier_power.setKeyName(zone_hvac.name.to_s)
 
@@ -1910,7 +1916,7 @@ class HVAC
     dehumidifier_load_adj.setSpace(living_space)
     dehumidifier_load_adj.setSchedule(model.alwaysOnDiscreteSchedule)
 
-    dehumidifier_load_adj_act = OpenStudio::Model::EnergyManagementSystemActuator.new(dehumidifier_load_adj, 'OtherEquipment', 'Power Level')
+    dehumidifier_load_adj_act = OpenStudio::Model::EnergyManagementSystemActuator.new(dehumidifier_load_adj, *EPlus::EMSActuatorOtherEquipmentPower)
     dehumidifier_load_adj_act.setName("#{zone_hvac.name} sens htg adj act")
 
     # EMS program
@@ -1948,7 +1954,7 @@ class HVAC
       htg_supp_coil.setGasBurnerEfficiency(efficiency)
       htg_supp_coil.setParasiticElectricLoad(0)
       htg_supp_coil.setParasiticGasLoad(0)
-      htg_supp_coil.setFuelType(EPlus.input_fuel_map(fuel))
+      htg_supp_coil.setFuelType(EPlus.fuel_type(fuel))
     end
     htg_supp_coil.setName(obj_name + ' ' + Constants.ObjectNameBackupHeatingCoil)
     if not capacity.nil?

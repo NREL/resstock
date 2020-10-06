@@ -2,7 +2,16 @@
 
 class EPlus
   # Constants
-  FuelTypeElectricity = 'electricity'
+  EMSActuatorElectricEquipmentPower = 'ElectricEquipment', 'Electricity Rate'
+  EMSActuatorOtherEquipmentPower = 'OtherEquipment', 'Power Level'
+  EMSActuatorPumpMassFlowRate = 'Pump', 'Pump Mass Flow Rate'
+  EMSActuatorPumpPressureRise = 'Pump', 'Pump Pressure Rise'
+  EMSActuatorScheduleConstantValue = 'Schedule:Constant', 'Schedule Value'
+  EMSActuatorZoneInfiltrationFlowRate = 'Zone Infiltration', 'Air Exchange Flow Rate'
+  EMSActuatorZoneMixingFlowRate = 'ZoneMixing', 'Air Exchange Flow Rate'
+  EMSIntVarFanMFR = 'Fan Maximum Mass Flow Rate'
+  EMSIntVarPumpMFR = 'Pump Maximum Mass Flow Rate'
+  FuelTypeElectricity = 'Electricity'
   FuelTypeNaturalGas = 'NaturalGas'
   FuelTypeOil = 'FuelOilNo2'
   FuelTypePropane = 'Propane'
@@ -10,7 +19,7 @@ class EPlus
   FuelTypeWoodPellets = 'OtherFuel2'
   FuelTypeCoal = 'Coal'
 
-  def self.input_fuel_map(hpxml_fuel)
+  def self.fuel_type(hpxml_fuel)
     # Name of fuel used as inputs to E+ objects
     if [HPXML::FuelTypeElectricity].include? hpxml_fuel
       return FuelTypeElectricity
@@ -37,19 +46,6 @@ class EPlus
       return FuelTypeCoal
     else
       fail "Unexpected HPXML fuel '#{hpxml_fuel}'."
-    end
-  end
-
-  def self.output_fuel_map(ep_fuel)
-    # Name of fuel used in E+ outputs
-    if ep_fuel == FuelTypeElectricity
-      return 'Electric'
-    elsif ep_fuel == FuelTypeNaturalGas
-      return 'Gas'
-    elsif ep_fuel == FuelTypeOil
-      return 'FuelOil#2'
-    else
-      return ep_fuel
     end
   end
 end
