@@ -3839,17 +3839,17 @@ class HPXMLFile
   end
 
   def self.set_roofs(hpxml, runner, model, args)
+    args[:geometry_roof_pitch] *= 12.0
+    if args[:geometry_roof_type] == 'flat'
+      args[:geometry_roof_pitch] = 0.0
+    end
+
     model.getSurfaces.sort.each do |surface|
       next unless ['Outdoors'].include? surface.outsideBoundaryCondition
       next if surface.surfaceType != 'RoofCeiling'
 
       interior_adjacent_to = get_adjacent_to(surface)
       next if [HPXML::LocationOtherHousingUnit].include? interior_adjacent_to
-
-      pitch = args[:geometry_roof_pitch] * 12.0
-      if args[:geometry_roof_type] == 'flat'
-        pitch = 0.0
-      end
 
       if args[:roof_material_type].is_initialized
         roof_type = args[:roof_material_type].get
@@ -3878,7 +3878,7 @@ class HPXMLFile
                       roof_color: roof_color,
                       solar_absorptance: solar_absorptance,
                       emittance: args[:roof_emittance],
-                      pitch: pitch,
+                      pitch: args[:geometry_roof_pitch],
                       radiant_barrier: args[:roof_radiant_barrier],
                       radiant_barrier_grade: radiant_barrier_grade,
                       insulation_assembly_r_value: args[:roof_assembly_r])
@@ -4912,7 +4912,7 @@ class HPXMLFile
       collector_loop_type = args[:solar_thermal_collector_loop_type]
       collector_type = args[:solar_thermal_collector_type]
       collector_azimuth = args[:solar_thermal_collector_azimuth]
-      collector_tilt = get_absolute_tilt(args[:solar_thermal_collector_tilt], hpxml.roofs[-1].pitch, epw_file)
+      collector_tilt = get_absolute_tilt(args[:solar_thermal_collector_tilt], args[:geometry_roof_pitch], epw_file)
       collector_frta = args[:solar_thermal_collector_rated_optical_efficiency]
       collector_frul = args[:solar_thermal_collector_rated_thermal_losses]
 
@@ -4963,7 +4963,7 @@ class HPXMLFile
                            module_type: module_type,
                            tracking: [args[:pv_system_tracking_1], args[:pv_system_tracking_2]][i],
                            array_azimuth: [args[:pv_system_array_azimuth_1], args[:pv_system_array_azimuth_2]][i],
-                           array_tilt: get_absolute_tilt([args[:pv_system_array_tilt_1], args[:pv_system_array_tilt_2]][i], hpxml.roofs[-1].pitch, epw_file),
+                           array_tilt: get_absolute_tilt([args[:pv_system_array_tilt_1], args[:pv_system_array_tilt_2]][i], args[:geometry_roof_pitch], epw_file),
                            max_power_output: max_power_output,
                            inverter_efficiency: inverter_efficiency,
                            system_losses_fraction: system_losses_fraction,
