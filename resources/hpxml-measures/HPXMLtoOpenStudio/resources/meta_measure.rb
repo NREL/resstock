@@ -130,8 +130,6 @@ def run_hpxml_workflow(rundir, hpxml, measures, measures_dir, debug: false, outp
 end
 
 def apply_measures(measures_dir, measures, runner, model, show_measure_calls = true, measure_type = 'OpenStudio::Measure::ModelMeasure')
-  require 'openstudio'
-
   # Call each measure in the specified order
   measures.keys.each do |measure_subdir|
     # Gather measure arguments and call measure
@@ -261,7 +259,6 @@ def validate_measure_args(measure_args, provided_args, lookup_file, measure_name
 end
 
 def get_argument_map(model, measure, provided_args, lookup_file, measure_name, runner = nil)
-  require 'openstudio'
   measure_args = measure.arguments(model)
   provided_args = validate_measure_args(measure_args, provided_args, lookup_file, measure_name, runner)
 
@@ -278,7 +275,6 @@ def get_argument_map(model, measure, provided_args, lookup_file, measure_name, r
 end
 
 def run_measure(model, measure, argument_map, runner)
-  require 'openstudio'
   begin
     # run the measure
     runner_child = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
@@ -409,8 +405,6 @@ def report_os_warnings(os_log, rundir)
       next if s.logMessage.include? 'Data will be treated as typical (TMY)'
       next if s.logMessage.include? 'WorkflowStepResult value called with undefined stepResult'
       next if s.logMessage.include?("Object of type 'Schedule:Constant' and named 'Always") && s.logMessage.include?('points to an object named') && s.logMessage.include?('but that object cannot be located')
-      # TODO: Remove once https://github.com/NREL/OpenStudio/pull/3999 is available
-      next if s.logMessage.include? "'Propane' is deprecated for Coil_Heating_GasFields:FuelType, use 'Propane' instead"
       next if s.logMessage.include? 'Appears there are no design condition fields in the EPW file'
 
       f << "OS Message: #{s.logMessage}\n"

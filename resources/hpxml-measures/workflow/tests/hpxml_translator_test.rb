@@ -2,7 +2,7 @@
 
 require_relative '../../HPXMLtoOpenStudio/resources/minitest_helper'
 require 'openstudio'
-require 'openstudio/ruleset/ShowRunnerOutput'
+require 'openstudio/measure/ShowRunnerOutput'
 require 'minitest/autorun'
 require 'fileutils'
 require_relative '../../HPXMLtoOpenStudio/measure.rb'
@@ -139,7 +139,6 @@ class HPXMLTest < MiniTest::Test
                             'cfis-with-hydronic-distribution.xml' => ["Attached HVAC distribution system 'HVACDistribution' cannot be hydronic for ventilation fan 'MechanicalVentilation'."],
                             'clothes-dryer-location.xml' => ["ClothesDryer location is 'garage' but building does not have this location specified."],
                             'clothes-washer-location.xml' => ["ClothesWasher location is 'garage' but building does not have this location specified."],
-                            'coal-for-non-boiler-heating.xml' => ['Expected 1 element(s) for xpath: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACPlant/HeatingSystem[HeatingSystemType/Stove]: HeatingSystemFuel[text()='], # FIXME: Allow this when E+/OS is updated
                             'cooking-range-location.xml' => ["CookingRange location is 'garage' but building does not have this location specified."],
                             'dishwasher-location.xml' => ["Dishwasher location is 'garage' but building does not have this location specified."],
                             'dhw-frac-load-served.xml' => ['Expected FractionDHWLoadServed to sum to 1, but calculated sum is 1.15.'],
@@ -182,7 +181,6 @@ class HPXMLTest < MiniTest::Test
                             'invalid-timestep.xml' => ['Timestep (45) must be one of: 60, 30, 20, 15, 12, 10, 6, 5, 4, 3, 2, 1.'],
                             'invalid-runperiod.xml' => ['Run Period End Day of Month (31) must be one of: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30.'],
                             'invalid-window-height.xml' => ["For Window 'WindowEast', overhangs distance to bottom (2.0) must be greater than distance to top (2.0)."],
-                            'invalid-window-interior-shading.xml' => ["SummerShadingCoefficient (0.85) must be less than or equal to WinterShadingCoefficient (0.7) for window 'WindowNorth'."],
                             'invalid-daylight-saving.xml' => ['Daylight Saving End Day of Month (31) must be one of: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30.'],
                             'lighting-fractions.xml' => ['Sum of fractions of interior lighting (1.15) is greater than 1.'],
                             'mismatched-slab-and-foundation-wall.xml' => ["Foundation wall 'FoundationWall' is adjacent to 'basement - conditioned' but no corresponding slab was found adjacent to"],
@@ -258,13 +256,13 @@ class HPXMLTest < MiniTest::Test
                    ['Baseboard Total Heating Energy', 'runperiod', '*'],
                    ['Boiler Heating Energy', 'runperiod', '*'],
                    ['Fluid Heat Exchanger Heat Transfer Energy', 'runperiod', '*'],
-                   ['Fan Electric Power', 'runperiod', '*'],
+                   ['Fan Electricity Rate', 'runperiod', '*'],
                    ['Fan Runtime Fraction', 'runperiod', '*'],
-                   ['Electric Equipment Electric Energy', 'runperiod', Constants.ObjectNameMechanicalVentilationHouseFanCFIS],
+                   ['Electric Equipment Electricity Energy', 'runperiod', Constants.ObjectNameMechanicalVentilationHouseFanCFIS],
                    ['Boiler Part Load Ratio', 'runperiod', Constants.ObjectNameBoiler],
-                   ['Pump Electric Power', 'runperiod', Constants.ObjectNameBoiler + ' hydronic pump'],
+                   ['Pump Electricity Rate', 'runperiod', Constants.ObjectNameBoiler + ' hydronic pump'],
                    ['Unitary System Part Load Ratio', 'runperiod', Constants.ObjectNameGroundSourceHeatPump + ' unitary system'],
-                   ['Pump Electric Power', 'runperiod', Constants.ObjectNameGroundSourceHeatPump + ' pump']]
+                   ['Pump Electricity Rate', 'runperiod', Constants.ObjectNameGroundSourceHeatPump + ' pump']]
     # Run workflow
     workflow_start = Time.now
     results = run_hpxml_workflow(rundir, xml, measures, measures_dir,
@@ -473,6 +471,14 @@ class HPXMLTest < MiniTest::Test
       next if err_line.include?('CheckUsedConstructions') && err_line.include?('nominally unused constructions')
       next if err_line.include?('WetBulb not converged after') && err_line.include?('iterations(PsyTwbFnTdbWPb)')
       next if err_line.include? 'Inside surface heat balance did not converge with Max Temp Difference'
+      next if err_line.include? 'Missing temperature setpoint for LeavingSetpointModulated mode' # These warnings are fine, simulation continues with assigning plant loop setpoint to boiler, which is the expected one
+      next if err_line.include?('Glycol: Temperature') && err_line.include?('out of range (too low) for fluid')
+      next if err_line.include?('Glycol: Temperature') && err_line.include?('out of range (too high) for fluid')
+      next if err_line.include? 'Plant loop exceeding upper temperature limit'
+      next if err_line.include?('Foundation:Kiva') && err_line.include?('wall surfaces with more than four vertices') # TODO: Check alternative approach
+      next if err_line.include? 'Temperature out of range [-100. to 200.] (PsyPsatFnTemp)'
+      next if err_line.include? 'Full load outlet air dry-bulb temperature < 2C. This indicates the possibility of coil frost/freeze.'
+      next if err_line.include? 'Full load outlet temperature indicates a possibility of frost/freeze error continues.'
 
       # HPWHs
       if hpxml.water_heating_systems.select { |wh| wh.water_heater_type == HPXML::WaterHeaterTypeHeatPump }.size > 0
@@ -483,20 +489,6 @@ class HPXMLTest < MiniTest::Test
       if hpxml.heat_pumps.select { |hp| [HPXML::HVACTypeHeatPumpAirToAir, HPXML::HVACTypeHeatPumpMiniSplit].include? hp.heat_pump_type }.size > 0
         next if err_line.include?('GetDXCoils: Coil:Heating:DX') && err_line.include?('curve values')
       end
-      # FUTURE: Remove when https://github.com/NREL/EnergyPlus/pull/8073 is available
-      if hpxml_path.include? 'ASHRAE_Standard_140'
-        next if err_line.include?('SurfaceProperty:ExposedFoundationPerimeter') && err_line.include?('Total Exposed Perimeter is greater than the perimeter')
-      end
-      # FUTURE: Remove when https://github.com/NREL/EnergyPlus/issues/8163 is addressed
-      if (hpxml.solar_thermal_systems.size > 0) || (hpxml.water_heating_systems.select { |wh| wh.water_heater_type == HPXML::WaterHeaterTypeHeatPump }.size > 0)
-        next if err_line.include? 'More Additional Loss Coefficients were entered than the number of nodes; extra coefficients will not be used'
-      end
-      if hpxml_path.include?('base-dhw-tank-heat-pump-outside.xml') || hpxml_path.include?('base-hvac-flowrate.xml')
-        next if err_line.include? 'Full load outlet air dry-bulb temperature < 2C. This indicates the possibility of coil frost/freeze.'
-        next if err_line.include? 'Full load outlet temperature indicates a possibility of frost/freeze error continues.'
-      end
-      next if err_line.include? 'Missing temperature setpoint for LeavingSetpointModulated mode' # These warnings are fine, simulation continues with assigning plant loop setpoint to boiler, which is the expected one
-
       if hpxml.cooling_systems.select { |c| c.cooling_system_type == HPXML::HVACTypeEvaporativeCooler }.size > 0
         # Evap cooler model is not really using Controller:MechanicalVentilation object, so these warnings of ignoring some features are fine.
         # OS requires a Controller:MechanicalVentilation to be attached to the oa controller, however it's not required by E+.
@@ -509,17 +501,8 @@ class HPXMLTest < MiniTest::Test
         # input "Autosize" for Fixed Minimum Air Flow Rate is added by OS translation, now set it to 0 to skip potential sizing process, though no way to prevent this warning.
         next if err_line.include? 'Since Zone Minimum Air Flow Input Method = CONSTANT, input for Fixed Minimum Air Flow Rate will be ignored'
       end
-      next if err_line.include?('Glycol: Temperature') && err_line.include?('out of range (too low) for fluid')
-      next if err_line.include?('Glycol: Temperature') && err_line.include?('out of range (too high) for fluid')
-      next if err_line.include? 'Plant loop exceeding upper temperature limit'
-
       if hpxml.cooling_systems.select { |c| c.cooling_system_type == HPXML::HVACTypeRoomAirConditioner }.size > 0
         next if err_line.include? 'GetDXCoils: Coil:Cooling:DX:SingleSpeed="ROOM AC CLG COIL" curve values' # TODO: Double-check curves
-      end
-      next if err_line.include?('Foundation:Kiva') && err_line.include?('wall surfaces with more than four vertices') # TODO: Check alternative approach
-
-      if hpxml_path.include?('base-simcontrol-timestep-10-mins.xml') || hpxml_path.include?('ASHRAE_Standard_140')
-        next if err_line.include? 'Temperature out of range [-100. to 200.] (PsyPsatFnTemp)'
       end
       if hpxml_path.include? 'fan-coil' # Warning for unused coil
         next if err_line.include? 'In calculating the design coil UA for Coil:Cooling:Water'
@@ -545,9 +528,6 @@ class HPXMLTest < MiniTest::Test
       hpxml_value = hpxml.building_construction.conditioned_floor_area
       query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='InputVerificationandResultsSummary' AND ReportForString='Entire Facility' AND TableName='Zone Summary' AND RowName='Conditioned Total' AND ColumnName='Area' AND Units='m2'"
       sql_value = UnitConversions.convert(sqlFile.execAndReturnFirstDouble(query).get, 'm^2', 'ft^2')
-      # Subtract duct return plenum conditioned floor area
-      query = "SELECT SUM(Value) FROM TabularDataWithStrings WHERE ReportName='InputVerificationandResultsSummary' AND ReportForString='Entire Facility' AND TableName='Zone Summary' AND RowName LIKE '%RET AIR ZONE' AND ColumnName='Area' AND Units='m2'"
-      sql_value -= UnitConversions.convert(sqlFile.execAndReturnFirstDouble(query).get, 'm^2', 'ft^2')
       assert_in_epsilon(hpxml_value, sql_value, 0.01)
     end
 
@@ -669,8 +649,11 @@ class HPXMLTest < MiniTest::Test
         assert_equal(sql_value_base_surf_idx, sql_value_ext_bound_cond)
       end
 
-      # Exterior walls
-      next unless wall.is_exterior
+      if wall.is_exterior
+        table_name = 'Opaque Exterior'
+      else
+        table_name = 'Opaque Interior'
+      end
 
       # R-value
       if (not wall.insulation_assembly_r_value.nil?) && (not hpxml_path.include? 'base-foundation-unconditioned-basement-assembly-r.xml') # This file uses Foundation:Kiva for insulation, so skip it
@@ -678,11 +661,20 @@ class HPXMLTest < MiniTest::Test
         if hpxml_path.include? 'ASHRAE_Standard_140'
           # Compare R-value w/o film
           hpxml_value -= Material.AirFilmVerticalASHRAE140.rvalue
-          hpxml_value -= Material.AirFilmOutsideASHRAE140.rvalue
-          query = "SELECT AVG(Value) FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='Opaque Exterior' AND (RowName='#{wall_id}' OR RowName LIKE '#{wall_id}:%') AND ColumnName='U-Factor no Film' AND Units='W/m2-K'"
+          if wall.is_exterior
+            hpxml_value -= Material.AirFilmOutsideASHRAE140.rvalue
+          else
+            hpxml_value -= Material.AirFilmVerticalASHRAE140.rvalue
+          end
+          query = "SELECT AVG(Value) FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='#{table_name}' AND (RowName='#{wall_id}' OR RowName LIKE '#{wall_id}:%') AND ColumnName='U-Factor no Film' AND Units='W/m2-K'"
+        elsif wall.is_interior
+          # Compare R-value w/o film
+          hpxml_value -= Material.AirFilmVertical.rvalue
+          hpxml_value -= Material.AirFilmVertical.rvalue
+          query = "SELECT AVG(Value) FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='#{table_name}' AND (RowName='#{wall_id}' OR RowName LIKE '#{wall_id}:%') AND ColumnName='U-Factor no Film' AND Units='W/m2-K'"
         else
           # Compare R-value w/ film
-          query = "SELECT AVG(Value) FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='Opaque Exterior' AND (RowName='#{wall_id}' OR RowName LIKE '#{wall_id}:%') AND ColumnName='U-Factor with Film' AND Units='W/m2-K'"
+          query = "SELECT AVG(Value) FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='#{table_name}' AND (RowName='#{wall_id}' OR RowName LIKE '#{wall_id}:%') AND ColumnName='U-Factor with Film' AND Units='W/m2-K'"
         end
         sql_value = 1.0 / UnitConversions.convert(sqlFile.execAndReturnFirstDouble(query).get, 'W/(m^2*K)', 'Btu/(hr*ft^2*F)')
         assert_in_epsilon(hpxml_value, sql_value, 0.03)
@@ -718,7 +710,15 @@ class HPXMLTest < MiniTest::Test
           hpxml_value *= (slab_exposed_length / wall_total_length)
         end
       end
-      query = "SELECT SUM(Value) FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='Opaque Exterior' AND (RowName='#{wall_id}' OR RowName LIKE '#{wall_id}:%' OR RowName LIKE '#{wall_id} %') AND ColumnName='Net Area' AND Units='m2'"
+      if (hpxml.foundation_walls.include? wall) && (not wall.is_exterior)
+        # interzonal foundation walls: only above-grade portion modeled
+        hpxml_value *= (wall.height - wall.depth_below_grade) / wall.height
+      end
+      if wall.is_exterior
+        query = "SELECT SUM(Value) FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='#{table_name}' AND (RowName='#{wall_id}' OR RowName LIKE '#{wall_id}:%' OR RowName LIKE '#{wall_id} %') AND ColumnName='Net Area' AND Units='m2'"
+      else
+        query = "SELECT SUM(Value) FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='#{table_name}' AND (RowName='#{wall_id}' OR RowName LIKE '#{wall_id}:%') AND ColumnName='Net Area' AND Units='m2'"
+      end
       sql_value = UnitConversions.convert(sqlFile.execAndReturnFirstDouble(query).get, 'm^2', 'ft^2')
       assert_operator(sql_value, :>, 0.01)
       assert_in_epsilon(hpxml_value, sql_value, 0.01)
@@ -726,21 +726,21 @@ class HPXMLTest < MiniTest::Test
       # Solar absorptance
       if wall.respond_to? :solar_absorptance
         hpxml_value = wall.solar_absorptance
-        query = "SELECT AVG(Value) FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='Opaque Exterior' AND (RowName='#{wall_id}' OR RowName LIKE '#{wall_id}:%') AND ColumnName='Reflectance'"
+        query = "SELECT AVG(Value) FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='#{table_name}' AND (RowName='#{wall_id}' OR RowName LIKE '#{wall_id}:%') AND ColumnName='Reflectance'"
         sql_value = 1.0 - sqlFile.execAndReturnFirstDouble(query).get
         assert_in_epsilon(hpxml_value, sql_value, 0.01)
       end
 
       # Tilt
-      query = "SELECT AVG(Value) FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='Opaque Exterior' AND (RowName='#{wall_id}' OR RowName LIKE '#{wall_id}:%') AND ColumnName='Tilt' AND Units='deg'"
+      query = "SELECT AVG(Value) FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='#{table_name}' AND (RowName='#{wall_id}' OR RowName LIKE '#{wall_id}:%') AND ColumnName='Tilt' AND Units='deg'"
       sql_value = sqlFile.execAndReturnFirstDouble(query).get
       assert_in_epsilon(90.0, sql_value, 0.01)
 
       # Azimuth
-      next unless not wall.azimuth.nil?
+      next if wall.azimuth.nil?
 
       hpxml_value = wall.azimuth
-      query = "SELECT AVG(Value) FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='Opaque Exterior' AND (RowName='#{wall_id}' OR RowName LIKE '#{wall_id}:%') AND ColumnName='Azimuth' AND Units='deg'"
+      query = "SELECT AVG(Value) FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='#{table_name}' AND (RowName='#{wall_id}' OR RowName LIKE '#{wall_id}:%') AND ColumnName='Azimuth' AND Units='deg'"
       sql_value = sqlFile.execAndReturnFirstDouble(query).get
       assert_in_epsilon(hpxml_value, sql_value, 0.01)
     end
@@ -758,8 +758,11 @@ class HPXMLTest < MiniTest::Test
         assert_equal(sql_value_base_surf_idx, sql_value_ext_bound_cond)
       end
 
-      # Exterior frame floors
-      next unless frame_floor.is_exterior
+      if frame_floor.is_exterior
+        table_name = 'Opaque Exterior'
+      else
+        table_name = 'Opaque Interior'
+      end
 
       # R-value
       hpxml_value = frame_floor.insulation_assembly_r_value
@@ -772,17 +775,27 @@ class HPXMLTest < MiniTest::Test
           hpxml_value -= Material.AirFilmFloorASHRAE140.rvalue
           hpxml_value -= Material.AirFilmFloorASHRAE140.rvalue
         end
-        query = "SELECT AVG(Value) FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='Opaque Exterior' AND RowName='#{frame_floor_id}' AND ColumnName='U-Factor no Film' AND Units='W/m2-K'"
+        query = "SELECT AVG(Value) FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='#{table_name}' AND RowName='#{frame_floor_id}' AND ColumnName='U-Factor no Film' AND Units='W/m2-K'"
+      elsif frame_floor.is_interior
+        # Compare R-value w/o film
+        if frame_floor.is_ceiling
+          hpxml_value -= Material.AirFilmFloorAverage.rvalue
+          hpxml_value -= Material.AirFilmFloorAverage.rvalue
+        else
+          hpxml_value -= Material.AirFilmFloorReduced.rvalue
+          hpxml_value -= Material.AirFilmFloorReduced.rvalue
+        end
+        query = "SELECT AVG(Value) FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='#{table_name}' AND RowName='#{frame_floor_id}' AND ColumnName='U-Factor no Film' AND Units='W/m2-K'"
       else
         # Compare R-value w/ film
-        query = "SELECT AVG(Value) FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='Opaque Exterior' AND RowName='#{frame_floor_id}' AND ColumnName='U-Factor with Film' AND Units='W/m2-K'"
+        query = "SELECT AVG(Value) FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='#{table_name}' AND RowName='#{frame_floor_id}' AND ColumnName='U-Factor with Film' AND Units='W/m2-K'"
       end
       sql_value = 1.0 / UnitConversions.convert(sqlFile.execAndReturnFirstDouble(query).get, 'W/(m^2*K)', 'Btu/(hr*ft^2*F)')
       assert_in_epsilon(hpxml_value, sql_value, 0.03)
 
       # Area
       hpxml_value = frame_floor.area
-      query = "SELECT SUM(Value) FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='Opaque Exterior' AND RowName='#{frame_floor_id}' AND ColumnName='Net Area' AND Units='m2'"
+      query = "SELECT SUM(Value) FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='#{table_name}' AND RowName='#{frame_floor_id}' AND ColumnName='Net Area' AND Units='m2'"
       sql_value = UnitConversions.convert(sqlFile.execAndReturnFirstDouble(query).get, 'm^2', 'ft^2')
       assert_operator(sql_value, :>, 0.01)
       assert_in_epsilon(hpxml_value, sql_value, 0.01)
@@ -793,45 +806,68 @@ class HPXMLTest < MiniTest::Test
       else
         hpxml_value = 180
       end
-      query = "SELECT AVG(Value) FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='Opaque Exterior' AND RowName='#{frame_floor_id}' AND ColumnName='Tilt' AND Units='deg'"
+      query = "SELECT AVG(Value) FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='#{table_name}' AND RowName='#{frame_floor_id}' AND ColumnName='Tilt' AND Units='deg'"
       sql_value = sqlFile.execAndReturnFirstDouble(query).get
       assert_in_epsilon(hpxml_value, sql_value, 0.01)
     end
 
     # Enclosure Windows/Skylights
     (hpxml.windows + hpxml.skylights).each do |subsurface|
-      next unless subsurface.is_exterior
-
       subsurface_id = subsurface.id.upcase
 
+      if subsurface.is_exterior
+        table_name = 'Exterior Fenestration'
+      else
+        table_name = 'Interior Door'
+      end
+
       # Area
+      if subsurface.is_exterior
+        col_name = 'Area of Multiplied Openings'
+      else
+        col_name = 'Gross Area'
+      end
       hpxml_value = subsurface.area
-      query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='Exterior Fenestration' AND RowName='#{subsurface_id}' AND ColumnName='Area of Multiplied Openings' AND Units='m2'"
+      query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='#{table_name}' AND RowName='#{subsurface_id}' AND ColumnName='#{col_name}' AND Units='m2'"
       sql_value = UnitConversions.convert(sqlFile.execAndReturnFirstDouble(query).get, 'm^2', 'ft^2')
       assert_operator(sql_value, :>, 0.01)
       assert_in_epsilon(hpxml_value, sql_value, 0.02)
 
       # U-Factor
+      if subsurface.is_exterior
+        col_name = 'Glass U-Factor'
+      else
+        col_name = 'U-Factor no Film'
+      end
       hpxml_value = subsurface.ufactor
-      query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='Exterior Fenestration' AND RowName='#{subsurface_id}' AND ColumnName='Glass U-Factor' AND Units='W/m2-K'"
+      if subsurface.is_interior
+        hpxml_value = 1.0 / (1.0 / hpxml_value - Material.AirFilmVertical.rvalue)
+        hpxml_value = 1.0 / (1.0 / hpxml_value - Material.AirFilmVertical.rvalue)
+      end
+      query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='#{table_name}' AND RowName='#{subsurface_id}' AND ColumnName='#{col_name}' AND Units='W/m2-K'"
       sql_value = UnitConversions.convert(sqlFile.execAndReturnFirstDouble(query).get, 'W/(m^2*K)', 'Btu/(hr*ft^2*F)')
       if subsurface.is_a? HPXML::Skylight
         sql_value *= 1.2 # Convert back from vertical position to NFRC 20-degree slope
       end
       assert_in_epsilon(hpxml_value, sql_value, 0.02)
 
+      next unless subsurface.is_exterior
+
       # SHGC
-      # TODO: Affected by interior shading
+      hpxml_value = subsurface.shgc
+      query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='#{table_name}' AND RowName='#{subsurface_id}' AND ColumnName='Glass SHGC'"
+      sql_value = sqlFile.execAndReturnFirstDouble(query).get
+      assert_in_delta(hpxml_value, sql_value, 0.01)
 
       # Azimuth
       hpxml_value = subsurface.azimuth
-      query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='Exterior Fenestration' AND RowName='#{subsurface_id}' AND ColumnName='Azimuth' AND Units='deg'"
+      query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='#{table_name}' AND RowName='#{subsurface_id}' AND ColumnName='Azimuth' AND Units='deg'"
       sql_value = sqlFile.execAndReturnFirstDouble(query).get
       assert_in_epsilon(hpxml_value, sql_value, 0.01)
 
       # Tilt
       if subsurface.respond_to? :wall_idref
-        query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='Exterior Fenestration' AND RowName='#{subsurface_id}' AND ColumnName='Tilt' AND Units='deg'"
+        query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='#{table_name}' AND RowName='#{subsurface_id}' AND ColumnName='Tilt' AND Units='deg'"
         sql_value = sqlFile.execAndReturnFirstDouble(query).get
         assert_in_epsilon(90.0, sql_value, 0.01)
       elsif subsurface.respond_to? :roof_idref
@@ -841,7 +877,7 @@ class HPXMLTest < MiniTest::Test
 
           hpxml_value = UnitConversions.convert(Math.atan(roof.pitch / 12.0), 'rad', 'deg')
         end
-        query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='Exterior Fenestration' AND RowName='#{subsurface_id}' AND ColumnName='Tilt' AND Units='deg'"
+        query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='#{table_name}' AND RowName='#{subsurface_id}' AND ColumnName='Tilt' AND Units='deg'"
         sql_value = sqlFile.execAndReturnFirstDouble(query).get
         assert_in_epsilon(hpxml_value, sql_value, 0.01)
       else
@@ -851,24 +887,37 @@ class HPXMLTest < MiniTest::Test
 
     # Enclosure Doors
     hpxml.doors.each do |door|
-      next unless door.wall.is_exterior
-
       door_id = door.id.upcase
+
+      if door.wall.is_exterior
+        table_name = 'Exterior Door'
+      else
+        table_name = 'Interior Door'
+      end
 
       # Area
       if not door.area.nil?
         hpxml_value = door.area
-        query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='Exterior Door' AND RowName='#{door_id}' AND ColumnName='Gross Area' AND Units='m2'"
+        query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='#{table_name}' AND RowName='#{door_id}' AND ColumnName='Gross Area' AND Units='m2'"
         sql_value = UnitConversions.convert(sqlFile.execAndReturnFirstDouble(query).get, 'm^2', 'ft^2')
         assert_operator(sql_value, :>, 0.01)
         assert_in_epsilon(hpxml_value, sql_value, 0.01)
       end
 
       # R-Value
-      next unless not door.r_value.nil?
+      next if door.r_value.nil?
 
+      if door.is_exterior
+        col_name = 'U-Factor with Film'
+      else
+        col_name = 'U-Factor no Film'
+      end
       hpxml_value = door.r_value
-      query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='Exterior Door' AND RowName='#{door_id}' AND ColumnName='U-Factor with Film' AND Units='W/m2-K'"
+      if door.is_interior
+        hpxml_value -= Material.AirFilmVertical.rvalue
+        hpxml_value -= Material.AirFilmVertical.rvalue
+      end
+      query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='#{table_name}' AND RowName='#{door_id}' AND ColumnName='#{col_name}' AND Units='W/m2-K'"
       sql_value = 1.0 / UnitConversions.convert(sqlFile.execAndReturnFirstDouble(query).get, 'W/(m^2*K)', 'Btu/(hr*ft^2*F)')
       assert_in_epsilon(hpxml_value, sql_value, 0.02)
     end
@@ -901,20 +950,20 @@ class HPXMLTest < MiniTest::Test
         # Compare pump power from timeseries output
         query = "SELECT VariableValue FROM ReportVariableData WHERE ReportVariableDataDictionaryIndex IN (SELECT ReportVariableDataDictionaryIndex FROM ReportVariableDataDictionary WHERE VariableType='Avg' AND VariableName='Boiler Part Load Ratio' AND ReportingFrequency='Run Period')"
         avg_plr = sqlFile.execAndReturnFirstDouble(query).get
-        query = "SELECT VariableValue FROM ReportVariableData WHERE ReportVariableDataDictionaryIndex IN (SELECT ReportVariableDataDictionaryIndex FROM ReportVariableDataDictionary WHERE VariableType='Avg' AND VariableName='Pump Electric Power' AND ReportingFrequency='Run Period')"
+        query = "SELECT VariableValue FROM ReportVariableData WHERE ReportVariableDataDictionaryIndex IN (SELECT ReportVariableDataDictionaryIndex FROM ReportVariableDataDictionary WHERE VariableType='Avg' AND VariableName='Pump Electricity Rate' AND ReportingFrequency='Run Period')"
         avg_w = sqlFile.execAndReturnFirstDouble(query).get
         sql_value = avg_w / avg_plr
-        assert_in_epsilon(sql_value, hpxml_value, 0.02)
+        assert_in_epsilon(sql_value, hpxml_value, 0.05)
       else
         next if hpxml.cooling_systems.size + hpxml.heat_pumps.size > 0 # Skip if other system types (which could result in A) multiple supply fans or B) different supply fan power consumption in the cooling season)
 
         # Compare fan power from timeseries output
         query = "SELECT VariableValue FROM ReportVariableData WHERE ReportVariableDataDictionaryIndex IN (SELECT ReportVariableDataDictionaryIndex FROM ReportVariableDataDictionary WHERE VariableType='Avg' AND VariableName='Fan Runtime Fraction' and KeyValue LIKE '% SUPPLY FAN' AND ReportingFrequency='Run Period')"
         avg_rtf = sqlFile.execAndReturnFirstDouble(query).get
-        query = "SELECT VariableValue FROM ReportVariableData WHERE ReportVariableDataDictionaryIndex IN (SELECT ReportVariableDataDictionaryIndex FROM ReportVariableDataDictionary WHERE VariableType='Avg' AND VariableName='Fan Electric Power' and KeyValue LIKE '% SUPPLY FAN' AND ReportingFrequency='Run Period')"
+        query = "SELECT VariableValue FROM ReportVariableData WHERE ReportVariableDataDictionaryIndex IN (SELECT ReportVariableDataDictionaryIndex FROM ReportVariableDataDictionary WHERE VariableType='Avg' AND VariableName='Fan Electricity Rate' and KeyValue LIKE '% SUPPLY FAN' AND ReportingFrequency='Run Period')"
         avg_w = sqlFile.execAndReturnFirstDouble(query).get
         sql_value = avg_w / avg_rtf
-        assert_in_epsilon(sql_value, hpxml_value, 0.02)
+        assert_in_epsilon(sql_value, hpxml_value, 0.05)
       end
     end
 
@@ -928,10 +977,10 @@ class HPXMLTest < MiniTest::Test
       hpxml_value = heat_pump.pump_watts_per_ton * UnitConversions.convert(results['Capacity: Cooling (W)'], 'W', 'ton')
       query = "SELECT VariableValue FROM ReportVariableData WHERE ReportVariableDataDictionaryIndex IN (SELECT ReportVariableDataDictionaryIndex FROM ReportVariableDataDictionary WHERE VariableType='Avg' AND VariableName='Unitary System Part Load Ratio' AND ReportingFrequency='Run Period')"
       avg_plr = sqlFile.execAndReturnFirstDouble(query).get
-      query = "SELECT VariableValue FROM ReportVariableData WHERE ReportVariableDataDictionaryIndex IN (SELECT ReportVariableDataDictionaryIndex FROM ReportVariableDataDictionary WHERE VariableType='Avg' AND VariableName='Pump Electric Power' AND ReportingFrequency='Run Period')"
+      query = "SELECT VariableValue FROM ReportVariableData WHERE ReportVariableDataDictionaryIndex IN (SELECT ReportVariableDataDictionaryIndex FROM ReportVariableDataDictionary WHERE VariableType='Avg' AND VariableName='Pump Electricity Rate' AND ReportingFrequency='Run Period')"
       avg_w = sqlFile.execAndReturnFirstDouble(query).get
       sql_value = avg_w / avg_plr
-      assert_in_epsilon(sql_value, hpxml_value, 0.02)
+      assert_in_epsilon(sql_value, hpxml_value, 0.05)
     end
 
     # HVAC Capacities
@@ -1052,7 +1101,7 @@ class HPXMLTest < MiniTest::Test
       if not fan_cfis.empty?
         # CFIS, check for positive mech vent energy that is less than the energy if it had run 24/7
         # CFIS Fan energy
-        query = "SELECT SUM(ABS(VariableValue)/1000000000) FROM ReportVariableData WHERE ReportVariableDataDictionaryIndex IN (SELECT ReportVariableDataDictionaryIndex FROM ReportVariableDataDictionary WHERE VariableType='Sum' AND KeyValue LIKE '#{Constants.ObjectNameMechanicalVentilationHouseFanCFIS.upcase}%' AND VariableName='Electric Equipment Electric Energy' AND ReportingFrequency='Run Period' AND VariableUnits='J')"
+        query = "SELECT SUM(ABS(VariableValue)/1000000000) FROM ReportVariableData WHERE ReportVariableDataDictionaryIndex IN (SELECT ReportVariableDataDictionaryIndex FROM ReportVariableDataDictionary WHERE VariableType='Sum' AND KeyValue LIKE '#{Constants.ObjectNameMechanicalVentilationHouseFanCFIS.upcase}%' AND VariableName='Electric Equipment Electricity Energy' AND ReportingFrequency='Run Period' AND VariableUnits='J')"
         cfis_energy = sqlFile.execAndReturnFirstDouble(query).get
         fan_gj = fan_cfis.map { |vent_mech| UnitConversions.convert(vent_mech.unit_fan_power * vent_mech.hours_in_operation * 365.0, 'Wh', 'GJ') }.sum(0.0)
         if fan_gj > 0

@@ -432,7 +432,6 @@ Windows must reference a HPXML ``Enclosures/Walls/Wall`` element via the ``Attac
 Windows must also have an ``Azimuth`` specified, even if the attached wall does not.
 
 In addition, the summer/winter interior shading coefficients can be optionally entered as ``InteriorShading/SummerShadingCoefficient`` and ``InteriorShading/WinterShadingCoefficient``.
-The summer interior shading coefficient must be less than or equal to the winter interior shading coefficient.
 Note that a value of 0.7 indicates a 30% reduction in solar gains (i.e., 30% shading).
 If not provided, default values of 0.70 for summer and 0.85 for winter will be used based on `ANSI/RESNET/ICC 301-2019 <https://codes.iccsafe.org/content/RESNETICC3012019>`_.
 

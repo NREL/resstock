@@ -262,14 +262,14 @@ class Airflow
     nv_flow.setName(Constants.ObjectNameNaturalVentilation + ' flow')
     nv_flow.setSchedule(model.alwaysOnDiscreteSchedule)
     nv_flow.setSpace(@living_space)
-    nv_flow_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(nv_flow, 'Zone Infiltration', 'Air Exchange Flow Rate')
+    nv_flow_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(nv_flow, *EPlus::EMSActuatorZoneInfiltrationFlowRate)
     nv_flow_actuator.setName("#{nv_flow.name} act")
 
     whf_flow = OpenStudio::Model::SpaceInfiltrationDesignFlowRate.new(model)
     whf_flow.setName(Constants.ObjectNameWholeHouseFan + ' flow')
     whf_flow.setSchedule(model.alwaysOnDiscreteSchedule)
     whf_flow.setSpace(@living_space)
-    whf_flow_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(whf_flow, 'Zone Infiltration', 'Air Exchange Flow Rate')
+    whf_flow_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(whf_flow, *EPlus::EMSActuatorZoneInfiltrationFlowRate)
     whf_flow_actuator.setName("#{whf_flow.name} act")
 
     # Electric Equipment (for whole house fan electricity consumption)
@@ -283,7 +283,7 @@ class Airflow
     whf_equip_def.setFractionLost(1)
     whf_equip.setSchedule(model.alwaysOnDiscreteSchedule)
     whf_equip.setEndUseSubcategory(Constants.ObjectNameWholeHouseFan)
-    whf_elec_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(whf_equip, 'ElectricEquipment', 'Electric Power Level')
+    whf_elec_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(whf_equip, *EPlus::EMSActuatorElectricEquipmentPower)
     whf_elec_actuator.setName("#{whf_equip.name} act")
 
     # Assume located in attic floor if attic zone exists; otherwise assume it's through roof/wall.
@@ -298,7 +298,7 @@ class Airflow
       zone_mixing = OpenStudio::Model::ZoneMixing.new(whf_zone)
       zone_mixing.setName("#{Constants.ObjectNameWholeHouseFan} mix")
       zone_mixing.setSourceZone(@living_zone)
-      liv_to_zone_flow_rate_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(zone_mixing, 'ZoneMixing', 'Air Exchange Flow Rate')
+      liv_to_zone_flow_rate_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(zone_mixing, *EPlus::EMSActuatorZoneMixingFlowRate)
       liv_to_zone_flow_rate_actuator.setName("#{zone_mixing.name} act")
     end
 
@@ -431,7 +431,7 @@ class Airflow
     if hpxml_fuel_type.nil?
       other_equip.setFuelType('None')
     else
-      other_equip.setFuelType(EPlus.input_fuel_map(hpxml_fuel_type))
+      other_equip.setFuelType(EPlus.fuel_type(hpxml_fuel_type))
     end
     if not end_use.nil?
       other_equip.setEndUseSubcategory(end_use)
@@ -441,7 +441,7 @@ class Airflow
     other_equip_def.setFractionLost(frac_lost)
     other_equip_def.setFractionLatent(frac_lat)
     other_equip_def.setFractionRadiant(0.0)
-    actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(other_equip, 'OtherEquipment', 'Power Level')
+    actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(other_equip, *EPlus::EMSActuatorOtherEquipmentPower)
     actuator.setName("#{other_equip.name} act")
     if not is_duct_load_for_report.nil?
       other_equip.additionalProperties.setFeature(Constants.IsDuctLoadForReport, is_duct_load_for_report)
@@ -516,7 +516,7 @@ class Airflow
     @fan_rtf_var[air_loop] = OpenStudio::Model::EnergyManagementSystemGlobalVariable.new(model, "#{air_loop.name} Fan RTF".gsub(' ', '_'))
 
     # Supply fan maximum mass flow rate
-    @fan_mfr_max_var[air_loop] = OpenStudio::Model::EnergyManagementSystemInternalVariable.new(model, 'Fan Maximum Mass Flow Rate')
+    @fan_mfr_max_var[air_loop] = OpenStudio::Model::EnergyManagementSystemInternalVariable.new(model, EPlus::EMSIntVarFanMFR)
     @fan_mfr_max_var[air_loop].setName("#{air_loop.name} max sup fan mfr")
     @fan_mfr_max_var[air_loop].setInternalDataIndexKeyName(supply_fan.name.to_s)
 
@@ -546,7 +546,7 @@ class Airflow
     @fan_rtf_var[fan_coil] = OpenStudio::Model::EnergyManagementSystemGlobalVariable.new(model, "#{fan_coil.name} Fan RTF".gsub(' ', '_'))
 
     # Supply fan maximum mass flow rate
-    @fan_mfr_max_var[fan_coil] = OpenStudio::Model::EnergyManagementSystemInternalVariable.new(model, 'Fan Maximum Mass Flow Rate')
+    @fan_mfr_max_var[fan_coil] = OpenStudio::Model::EnergyManagementSystemInternalVariable.new(model, EPlus::EMSIntVarFanMFR)
     @fan_mfr_max_var[fan_coil].setName("#{fan_coil.name} max sup fan mfr")
     @fan_mfr_max_var[fan_coil].setInternalDataIndexKeyName(supply_fan.name.to_s)
 
@@ -866,7 +866,7 @@ class Airflow
           zone_mixing = OpenStudio::Model::ZoneMixing.new(dest_zone)
           zone_mixing.setName("#{object_name} mix")
           zone_mixing.setSourceZone(source_zone)
-          duct_actuators[var_name] = OpenStudio::Model::EnergyManagementSystemActuator.new(zone_mixing, 'ZoneMixing', 'Air Exchange Flow Rate')
+          duct_actuators[var_name] = OpenStudio::Model::EnergyManagementSystemActuator.new(zone_mixing, *EPlus::EMSActuatorZoneMixingFlowRate)
           duct_actuators[var_name].setName("#{zone_mixing.name} act")
         end
       end
@@ -1436,7 +1436,7 @@ class Airflow
     vent_mech_fan_actuator = nil
     if is_cfis # actuate its power level in EMS
       equip_def.setFractionLost(0.0) # Fan heat does enter space
-      vent_mech_fan_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(equip, 'ElectricEquipment', 'Electric Power Level')
+      vent_mech_fan_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(equip, *EPlus::EMSActuatorElectricEquipmentPower)
       vent_mech_fan_actuator.setName("#{equip.name} act")
     else
       equip_def.setDesignLevel(pow)
@@ -1679,14 +1679,14 @@ class Airflow
     infil_flow.setName(Constants.ObjectNameInfiltration + ' flow')
     infil_flow.setSchedule(model.alwaysOnDiscreteSchedule)
     infil_flow.setSpace(@living_space)
-    infil_flow_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(infil_flow, 'Zone Infiltration', 'Air Exchange Flow Rate')
+    infil_flow_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(infil_flow, *EPlus::EMSActuatorZoneInfiltrationFlowRate)
     infil_flow_actuator.setName("#{infil_flow.name} act")
 
     cd_flow = OpenStudio::Model::SpaceInfiltrationDesignFlowRate.new(model)
     cd_flow.setName(Constants.ObjectNameClothesDryerExhaust + ' flow')
     cd_flow.setSchedule(model.alwaysOnDiscreteSchedule)
     cd_flow.setSpace(@living_space)
-    cd_flow_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(cd_flow, 'Zone Infiltration', 'Air Exchange Flow Rate')
+    cd_flow_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(cd_flow, *EPlus::EMSActuatorZoneInfiltrationFlowRate)
     cd_flow_actuator.setName("#{cd_flow.name} act")
 
     # Living Space Infiltration Calculation/Program
