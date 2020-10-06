@@ -116,6 +116,30 @@ If either ``DaylightSaving`` or ``DaylightSaving/Enabled`` is not provided, ``Da
 If daylight saving is enabled, the daylight saving period can be optionally specified with ``DaylightSaving/BeginMonth``, ``DaylightSaving/BeginDayOfMonth``, ``DaylightSaving/EndMonth``, and ``DaylightSaving/EndDayOfMonth``.
 If not specified, dates will be defined according to the EPW weather file header; if not available there, default values of March 12 and November 5 will be used.
 
+An absolute or relative path can be entered in ``/HPXML/SoftwareInfo/extension/OccupancySchedulesCSVPath``.
+The file that this path points to must be a valid csv file containing column-wise (hourly or sub-hourly) schedules with headers matching column names from `this sample CSV file <https://github.com/NREL/OpenStudio-HPXML/tree/master/BuildResidentialHPXML/tests/schedules/user-specified.csv>`_.
+A valid csv file contains schedules:
+
+- that span the entire year (8760 or 8784 hours)
+- whose values are between only 0 and 1
+- with a minute per item evenly divisible into 60
+
+Note, then, that the shortest schedule may be hourly and the longest (sub-hourly) schedule may be minutely.
+The csv file may optionally contain a "vacancy" column which indicates timestamps for which the building unit is vacant. A value of 0 indicates no vacancy, whereas a value of 1 indicates vacancy. All schedules in the csv file will be set to zero during the vacancy period.
+The following end uses will be zero during the vacancy period:
+
+- occupants
+- lighting
+- appliances
+- fixtures
+- ceiling fan
+- plug loads
+- fuel loads
+- pools
+- hot tubs
+
+If a schedule path is provided, no other weekday/weekend fraction or monthly multipliers may be contained in the HPXML file.
+
 HPXML HVAC Sizing Control
 *************************
 
@@ -1166,7 +1190,7 @@ IsConvection   false
 =============  ==============
 
 Optional ``CookingRange/extension/WeekdayScheduleFractions``, ``CookingRange/extension/WeekendScheduleFractions``, and ``CookingRange/extension/MonthlyScheduleMultipliers`` can be provided; if not provided, values from Figures 22 & 24 of the `Building America House Simulation Protocols <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_ are used.
-An ``CookingRange/extension/UsageMultiplier`` can also be optionally provided that scales energy usage; if not provided, it is assumed to be 1.0.
+A ``CookingRange/extension/UsageMultiplier`` can also be optionally provided that scales energy usage; if not provided, it is assumed to be 1.0.
 
 HPXML Dehumidifier
 ******************

@@ -1410,12 +1410,12 @@ class HVAC
     end
   end
 
-  def self.apply_ceiling_fans(model, runner, weather, ceiling_fan, living_space)
+  def self.apply_ceiling_fans(model, runner, weather, ceiling_fan, living_space, schedules_file)
     obj_name = Constants.ObjectNameCeilingFan
-    monthly_sch = get_default_ceiling_fan_months(weather)
+    monthly_sch = Schedule.CeilingFanMonthlyMultipliers(weather: weather).split(',').map { |i| i.to_f }
     medium_cfm = 3000.0
-    weekday_sch = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0]
-    weekend_sch = weekday_sch
+    weekday_sch = Schedule.CeilingFanWeekdayFractions.split(',').map { |i| i.to_f }
+    weekend_sch = Schedule.CeilingFanWeekendFractions.split(',').map { |i| i.to_f }
     hrs_per_day = weekday_sch.sum(0.0)
     cfm_per_w = ceiling_fan.efficiency
     quantity = ceiling_fan.quantity
@@ -1424,7 +1424,13 @@ class HVAC
 
     ceiling_fan_sch = MonthWeekdayWeekendSchedule.new(model, obj_name + ' schedule', weekday_sch, weekend_sch, monthly_sch, Constants.ScheduleTypeLimitsFraction)
 
-    space_design_level = ceiling_fan_sch.calcDesignLevelFromDailykWh(annual_kwh / 365.0)
+    if not schedules_file.nil?
+      space_design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: 'ceiling_fan', annual_kwh: annual_kwh)
+      ceiling_fan_sch = schedules_file.create_schedule_file(col_name: 'ceiling_fan')
+    else
+      space_design_level = ceiling_fan_sch.calcDesignLevelFromDailykWh(annual_kwh / 365.0)
+      ceiling_fan_sch = ceiling_fan_sch.schedule
+    end
 
     equip_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
     equip_def.setName(obj_name)
@@ -1436,7 +1442,7 @@ class HVAC
     equip_def.setFractionLatent(0)
     equip_def.setFractionLost(0)
     equip.setEndUseSubcategory(obj_name)
-    equip.setSchedule(ceiling_fan_sch.schedule)
+    equip.setSchedule(ceiling_fan_sch)
   end
 
   def self.apply_setpoints(model, runner, weather, hvac_control, living_zone)

@@ -14,15 +14,25 @@ The following arguments are used to populate fields of the HPXML file:
   - HPXML File
   - Weather Directory
 
+- Software Program
+
+  - Name
+  - Version
+
 - Simulation Control
 
   - Timestep
   - Begin Month/Day
   - End Month/Day
+  - Daylight Saving Begin Month/Day
+  - Daylight Saving End Month/Day
 
-- Schedules
+Schedules
 
-  - Output Path (*under construction*)
+  - Type (Average, Stochastic, User-Specified)
+  - Path
+  - Vacancy Begin Month/Day
+  - Vacancy End Month/Day
 
 - Weather
 
@@ -30,7 +40,7 @@ The following arguments are used to populate fields of the HPXML file:
 
 - Geometry
 
-  - Unit Type (single-family detached, single-family attached, 2-4 unit building, 5+ unit building)
+  - Unit Type (manufactured home, single-family detached, single-family attached, apartment unit)
   - Building Orientation (Number of Units, Horizontal/Vertical Level)
 
 - Enclosure
@@ -44,9 +54,10 @@ The following arguments are used to populate fields of the HPXML file:
   
 - HVAC
 
-  - Heating Systems (Electric Resistance, Furnaces, Wall Furnaces, Stoves, Boilers, Portable Heaters)
+  - Heating Systems (Electric Resistance, Furnaces, Wall/Floor Furnaces, Stoves, Boilers, Portable Heaters, Fireplaces)
   - Cooling Systems (Central Air Conditioners, Room Air Conditioners, Evaporative Coolers)
   - Heat Pumps (Air Source, Mini Split, Ground Source, Dual-Fuel)
+  - Dehumidifier
   - Setpoints
   - Ducts
   
@@ -66,10 +77,13 @@ The following arguments are used to populate fields of the HPXML file:
   - Whole House Fan
 
 - Photovoltaics
-- Appliances (Clothes Washer/Dryer, Dishwasher, Refrigerator, Cooking Range/Oven)
-- Lighting
+- Appliances (Clothes Washer/Dryer, Dishwasher, Refrigerator, Extra Refrigerator, Freezer, Cooking Range/Oven)
+- Lighting (Interior, Exterior, Garage, Holiday)
 - Ceiling Fans
-- Plug Loads
+- Plug Loads (Other, TV, Well Pump, Vehicle)
+- Fuel Loads (Grill, Lighting, Fireplace)
+- Pool (Pump, Heater)
+- Hot Tub (Pump, Heater)
 
 Software Tools
 --------------

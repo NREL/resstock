@@ -1,11 +1,28 @@
 # frozen_string_literal: true
 
 class MiscLoads
-  def self.apply_plug(model, plug_load, obj_name, living_space)
+  def self.apply_plug(model, plug_load, obj_name, living_space, schedules_file)
     kwh = 0
+
     if not plug_load.nil?
       kwh = plug_load.kWh_per_year * plug_load.usage_multiplier
-      sch = MonthWeekdayWeekendSchedule.new(model, obj_name + ' schedule', plug_load.weekday_fractions, plug_load.weekend_fractions, plug_load.monthly_multipliers, Constants.ScheduleTypeLimitsFraction)
+      if not schedules_file.nil?
+        if plug_load.plug_load_type == HPXML::PlugLoadTypeOther
+          col_name = 'plug_loads_other'
+        elsif plug_load.plug_load_type == HPXML::PlugLoadTypeTelevision
+          col_name = 'plug_loads_tv'
+        elsif plug_load.plug_load_type == HPXML::PlugLoadTypeElectricVehicleCharging
+          col_name = 'plug_loads_vehicle'
+        elsif plug_load.plug_load_type == HPXML::PlugLoadTypeWellPump
+          col_name = 'plug_loads_well_pump'
+        end
+        space_design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: col_name, annual_kwh: kwh)
+        sch = schedules_file.create_schedule_file(col_name: col_name)
+      else
+        sch = MonthWeekdayWeekendSchedule.new(model, obj_name + ' schedule', plug_load.weekday_fractions, plug_load.weekend_fractions, plug_load.monthly_multipliers, Constants.ScheduleTypeLimitsFraction)
+        space_design_level = sch.calcDesignLevelFromDailykWh(kwh / 365.0)
+        sch = sch.schedule
+      end
     end
 
     return if kwh <= 0
@@ -30,8 +47,6 @@ class MiscLoads
       lat_fract = 0.0
     end
 
-    space_design_level = sch.calcDesignLevelFromDailykWh(kwh / 365.0)
-
     # Add electric equipment for the mel
     mel_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
     mel = OpenStudio::Model::ElectricEquipment.new(mel_def)
@@ -43,14 +58,29 @@ class MiscLoads
     mel_def.setFractionRadiant(0.6 * sens_frac)
     mel_def.setFractionLatent(lat_frac)
     mel_def.setFractionLost(1 - sens_frac - lat_frac)
-    mel.setSchedule(sch.schedule)
+    mel.setSchedule(sch)
   end
 
-  def self.apply_fuel(model, fuel_load, obj_name, living_space)
+  def self.apply_fuel(model, fuel_load, obj_name, living_space, schedules_file)
     therm = 0
+
     if not fuel_load.nil?
       therm = fuel_load.therm_per_year * fuel_load.usage_multiplier
-      sch = MonthWeekdayWeekendSchedule.new(model, obj_name + ' schedule', fuel_load.weekday_fractions, fuel_load.weekend_fractions, fuel_load.monthly_multipliers, Constants.ScheduleTypeLimitsFraction)
+      if not schedules_file.nil?
+        if fuel_load.fuel_load_type == HPXML::FuelLoadTypeGrill
+          col_name = 'fuel_loads_grill'
+        elsif fuel_load.fuel_load_type == HPXML::FuelLoadTypeLighting
+          col_name = 'fuel_loads_lighting'
+        elsif fuel_load.fuel_load_type == HPXML::FuelLoadTypeFireplace
+          col_name = 'fuel_loads_fireplace'
+        end
+        space_design_level = schedules_file.calc_design_level_from_annual_therm(col_name: col_name, annual_therm: therm)
+        sch = schedules_file.create_schedule_file(col_name: col_name)
+      else
+        sch = MonthWeekdayWeekendSchedule.new(model, obj_name + ' schedule', fuel_load.weekday_fractions, fuel_load.weekend_fractions, fuel_load.monthly_multipliers, Constants.ScheduleTypeLimitsFraction)
+        space_design_level = sch.calcDesignLevelFromDailyTherm(therm / 365.0)
+        sch = sch.schedule
+      end
     end
 
     return if therm <= 0
@@ -75,8 +105,6 @@ class MiscLoads
       lat_fract = 0.0
     end
 
-    space_design_level = sch.calcDesignLevelFromDailyTherm(therm / 365.0)
-
     # Add other equipment for the mfl
     mfl_def = OpenStudio::Model::OtherEquipmentDefinition.new(model)
     mfl = OpenStudio::Model::OtherEquipment.new(mfl_def)
@@ -89,13 +117,24 @@ class MiscLoads
     mfl_def.setFractionRadiant(0.6 * sens_frac)
     mfl_def.setFractionLatent(lat_frac)
     mfl_def.setFractionLost(1 - sens_frac - lat_frac)
-    mfl.setSchedule(sch.schedule)
+    mfl.setSchedule(sch)
   end
 
-  def self.apply_pool_or_hot_tub_heater(model, pool_or_hot_tub, obj_name, living_space)
+  def self.apply_pool_or_hot_tub_heater(model, pool_or_hot_tub, obj_name, living_space, schedules_file)
     heater_kwh = 0
     heater_therm = 0
-    heater_sch = MonthWeekdayWeekendSchedule.new(model, obj_name + ' schedule', pool_or_hot_tub.heater_weekday_fractions, pool_or_hot_tub.heater_weekend_fractions, pool_or_hot_tub.heater_monthly_multipliers, Constants.ScheduleTypeLimitsFraction)
+
+    if not schedules_file.nil?
+      if obj_name.include?('pool')
+        col_name = 'pool_heater'
+      else
+        col_name = 'hot_tub_heater'
+      end
+      heater_sch = schedules_file.create_schedule_file(col_name: col_name)
+    else
+      heater_sch = MonthWeekdayWeekendSchedule.new(model, obj_name + ' schedule', pool_or_hot_tub.heater_weekday_fractions, pool_or_hot_tub.heater_weekend_fractions, pool_or_hot_tub.heater_monthly_multipliers, Constants.ScheduleTypeLimitsFraction)
+    end
+
     if pool_or_hot_tub.heater_load_units == HPXML::UnitsKwhPerYear
       heater_kwh = pool_or_hot_tub.heater_load_value * pool_or_hot_tub.heater_usage_multiplier
     elsif pool_or_hot_tub.heater_load_units == HPXML::UnitsThermPerYear
@@ -103,7 +142,12 @@ class MiscLoads
     end
 
     if heater_kwh > 0
-      space_design_level = heater_sch.calcDesignLevelFromDailykWh(heater_kwh / 365.0)
+      if (not schedules_file.nil?)
+        space_design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: col_name, annual_kwh: heater_kwh)
+      else
+        space_design_level = heater_sch.calcDesignLevelFromDailykWh(heater_kwh / 365.0)
+        heater_sch = heater_sch.schedule
+      end
 
       mel_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
       mel = OpenStudio::Model::ElectricEquipment.new(mel_def)
@@ -115,11 +159,16 @@ class MiscLoads
       mel_def.setFractionRadiant(0)
       mel_def.setFractionLatent(0)
       mel_def.setFractionLost(1)
-      mel.setSchedule(heater_sch.schedule)
+      mel.setSchedule(heater_sch)
     end
 
     if heater_therm > 0
-      space_design_level = heater_sch.calcDesignLevelFromDailyTherm(heater_therm / 365.0)
+      if not schedules_file.nil?
+        space_design_level = schedules_file.calc_design_level_from_annual_therm(col_name: col_name, annual_therm: heater_therm)
+      else
+        space_design_level = heater_sch.calcDesignLevelFromDailyTherm(heater_therm / 365.0)
+        heater_sch = heater_sch.schedule
+      end
 
       mel_def = OpenStudio::Model::GasEquipmentDefinition.new(model)
       mel = OpenStudio::Model::GasEquipment.new(mel_def)
@@ -131,19 +180,35 @@ class MiscLoads
       mel_def.setFractionRadiant(0)
       mel_def.setFractionLatent(0)
       mel_def.setFractionLost(1)
-      mel.setSchedule(heater_sch.schedule)
+      mel.setSchedule(heater_sch)
     end
   end
 
-  def self.apply_pool_or_hot_tub_pump(model, pool_or_hot_tub, obj_name, living_space)
+  def self.apply_pool_or_hot_tub_pump(model, pool_or_hot_tub, obj_name, living_space, schedules_file)
     pump_kwh = 0
-    pump_sch = MonthWeekdayWeekendSchedule.new(model, obj_name + ' schedule', pool_or_hot_tub.pump_weekday_fractions, pool_or_hot_tub.pump_weekend_fractions, pool_or_hot_tub.pump_monthly_multipliers, Constants.ScheduleTypeLimitsFraction)
+
+    if not schedules_file.nil?
+      if obj_name.include?('pool')
+        col_name = 'pool_pump'
+      else
+        col_name = 'hot_tub_pump'
+      end
+      pump_sch = schedules_file.create_schedule_file(col_name: col_name)
+    else
+      pump_sch = MonthWeekdayWeekendSchedule.new(model, obj_name + ' schedule', pool_or_hot_tub.pump_weekday_fractions, pool_or_hot_tub.pump_weekend_fractions, pool_or_hot_tub.pump_monthly_multipliers, Constants.ScheduleTypeLimitsFraction)
+    end
+
     if not pool_or_hot_tub.pump_kwh_per_year.nil?
       pump_kwh = pool_or_hot_tub.pump_kwh_per_year * pool_or_hot_tub.pump_usage_multiplier
     end
 
     if pump_kwh > 0
-      space_design_level = pump_sch.calcDesignLevelFromDailykWh(pump_kwh / 365.0)
+      if not schedules_file.nil?
+        space_design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: col_name, annual_kwh: pump_kwh)
+      else
+        space_design_level = pump_sch.calcDesignLevelFromDailykWh(pump_kwh / 365.0)
+        pump_sch = pump_sch.schedule
+      end
 
       mel_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
       mel = OpenStudio::Model::ElectricEquipment.new(mel_def)
@@ -155,7 +220,7 @@ class MiscLoads
       mel_def.setFractionRadiant(0)
       mel_def.setFractionLatent(0)
       mel_def.setFractionLost(1)
-      mel.setSchedule(pump_sch.schedule)
+      mel.setSchedule(pump_sch)
     end
   end
 

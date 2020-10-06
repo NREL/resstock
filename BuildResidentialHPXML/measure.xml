@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>build_residential_hpxml</name>
   <uid>a13a8983-2b01-4930-8af2-42030b6e4233</uid>
-  <version_id>ac573c70-700a-489e-b309-7bff8531a4c5</version_id>
-  <version_modified>20200930T231140Z</version_modified>
+  <version_id>bc1b14bf-fa8c-49cb-8e88-28765be9a85c</version_id>
+  <version_modified>20201005T184019Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>BuildResidentialHPXML</class_name>
   <display_name>HPXML Builder</display_name>
@@ -49,7 +49,7 @@
       <display_name>Simulation Control: Run Period Begin Month</display_name>
       <description>This numeric field should contain the starting month number (1 = January, 2 = February, etc.) for the annual run period desired.</description>
       <type>Integer</type>
-      <units>month</units>
+      <units>#</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
@@ -58,7 +58,7 @@
       <display_name>Simulation Control: Run Period Begin Day of Month</display_name>
       <description>This numeric field should contain the starting day of the starting month (must be valid for month) for the annual run period desired.</description>
       <type>Integer</type>
-      <units>day</units>
+      <units>#</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
@@ -67,7 +67,7 @@
       <display_name>Simulation Control: Run Period End Month</display_name>
       <description>This numeric field should contain the end month number (1 = January, 2 = February, etc.) for the annual run period desired.</description>
       <type>Integer</type>
-      <units>month</units>
+      <units>#</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
@@ -76,7 +76,7 @@
       <display_name>Simulation Control: Run Period End Day of Month</display_name>
       <description>This numeric field should contain the ending day of the ending month (must be valid for month) for the annual run period desired.</description>
       <type>Integer</type>
-      <units>day</units>
+      <units>#</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
@@ -112,7 +112,7 @@
       <display_name>Simulation Control: Daylight Saving Begin Month</display_name>
       <description>This numeric field should contain the starting month number (1 = January, 2 = February, etc.) for the annual daylight saving period desired.</description>
       <type>Integer</type>
-      <units>month</units>
+      <units>#</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
@@ -121,7 +121,7 @@
       <display_name>Simulation Control: Daylight Saving Begin Day of Month</display_name>
       <description>This numeric field should contain the starting day of the starting month (must be valid for month) for the daylight saving period desired.</description>
       <type>Integer</type>
-      <units>day</units>
+      <units>#</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
@@ -130,7 +130,7 @@
       <display_name>Simulation Control: Daylight Saving End Month</display_name>
       <description>This numeric field should contain the end month number (1 = January, 2 = February, etc.) for the daylight saving period desired.</description>
       <type>Integer</type>
-      <units>month</units>
+      <units>#</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
@@ -139,7 +139,74 @@
       <display_name>Simulation Control: Daylight Saving End Day of Month</display_name>
       <description>This numeric field should contain the ending day of the ending month (must be valid for month) for the daylight saving period desired.</description>
       <type>Integer</type>
-      <units>day</units>
+      <units>#</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>schedules_type</name>
+      <display_name>Schedules: Type</display_name>
+      <description>The type of occupant-related schedules to use. Schedules corresponding to 'default' are average (e.g., Building America). Schedules corresponding to 'stochastic' are generated using time-inhomogenous Markov chains derived from American Time Use Survey data, and supplemented with sampling duration and power level from NEEA RBSA data as well as DHW draw duration and flow rate from Aquacraft/AWWA data.</description>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>default</default_value>
+      <choices>
+        <choice>
+          <value>default</value>
+          <display_name>default</display_name>
+        </choice>
+        <choice>
+          <value>stochastic</value>
+          <display_name>stochastic</display_name>
+        </choice>
+        <choice>
+          <value>user-specified</value>
+          <display_name>user-specified</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>schedules_path</name>
+      <display_name>Schedules: Path</display_name>
+      <description>Absolute (or relative) path of the csv file containing user-specified occupancy schedules.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>schedules_vacancy_begin_month</name>
+      <display_name>Schedules: Vacancy Start Begin Month</display_name>
+      <description>This numeric field should contain the starting month number (1 = January, 2 = February, etc.) for the vacancy period desired. Only applies if the schedules type is 'stochastic'.</description>
+      <type>Integer</type>
+      <units>#</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>schedules_vacancy_begin_day_of_month</name>
+      <display_name>Schedules: Vacancy Begin Day of Month</display_name>
+      <description>This numeric field should contain the starting day of the starting month (must be valid for month) for the vacancy period desired. Only applies if the schedules type is 'stochastic'.</description>
+      <type>Integer</type>
+      <units>#</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>schedules_vacancy_end_month</name>
+      <display_name>Schedules: Vacancy Start End Month</display_name>
+      <description>This numeric field should contain the end month number (1 = January, 2 = February, etc.) for the vacancy period desired. Only applies if the schedules type is 'stochastic'.</description>
+      <type>Integer</type>
+      <units>#</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>schedules_vacancy_end_day_of_month</name>
+      <display_name>Schedules: Vacancy End Day of Month</display_name>
+      <description>This numeric field should contain the ending day of the ending month (must be valid for month) for the vacancy period desired. Only applies if the schedules type is 'stochastic'.</description>
+      <type>Integer</type>
+      <units>#</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
@@ -3948,33 +4015,6 @@
       <default_value>1</default_value>
     </argument>
     <argument>
-      <name>lighting_weekday_fractions_interior</name>
-      <display_name>Lighting: Weekday Schedule Interior</display_name>
-      <description>Specify the 24-hour weekday schedule.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
-      <name>lighting_weekend_fractions_interior</name>
-      <display_name>Lighting: Weekend Schedule Interior</display_name>
-      <description>Specify the 24-hour weekend schedule.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
-      <name>lighting_monthly_multipliers_interior</name>
-      <display_name>Lighting: Month Schedule Interior</display_name>
-      <description>Specify the 12-month schedule.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
       <name>lighting_fraction_cfl_exterior</name>
       <display_name>Lighting: Fraction CFL Exterior</display_name>
       <description>Fraction of all lamps (exterior) that are compact fluorescent. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.</description>
@@ -4011,33 +4051,6 @@
       <default_value>1</default_value>
     </argument>
     <argument>
-      <name>lighting_weekday_fractions_exterior</name>
-      <display_name>Lighting: Weekday Schedule Exterior</display_name>
-      <description>Specify the 24-hour weekday schedule.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
-      <name>lighting_weekend_fractions_exterior</name>
-      <display_name>Lighting: Weekend Schedule Exterior</display_name>
-      <description>Specify the 24-hour weekend schedule.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
-      <name>lighting_monthly_multipliers_exterior</name>
-      <display_name>Lighting: Month Schedule Exterior</display_name>
-      <description>Specify the 12-month schedule.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
       <name>lighting_fraction_cfl_garage</name>
       <display_name>Lighting: Fraction CFL Garage</display_name>
       <description>Fraction of all lamps (garage) that are compact fluorescent. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.</description>
@@ -4072,33 +4085,6 @@
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>1</default_value>
-    </argument>
-    <argument>
-      <name>lighting_weekday_fractions_garage</name>
-      <display_name>Lighting: Weekday Schedule Garage</display_name>
-      <description>Specify the 24-hour weekday schedule.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
-      <name>lighting_weekend_fractions_garage</name>
-      <display_name>Lighting: Weekend Schedule Garage</display_name>
-      <description>Specify the 24-hour weekend schedule.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
-      <name>lighting_monthly_multipliers_garage</name>
-      <display_name>Lighting: Month Schedule Garage</display_name>
-      <description>Specify the 12-month schedule.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>holiday_lighting_present</name>
@@ -4165,24 +4151,6 @@
       <description>This numeric field should contain the ending day of the ending month (must be valid for month) for the holiday lighting period desired.</description>
       <type>String</type>
       <units>day</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
-      <name>holiday_lighting_weekday_fractions_exterior</name>
-      <display_name>Holiday Lighting: Weekday Schedule Exterior</display_name>
-      <description>Specify the 24-hour weekday schedule.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
-      <name>holiday_lighting_weekend_fractions_exterior</name>
-      <display_name>Holiday Lighting: Weekend Schedule Exterior</display_name>
-      <description>Specify the 24-hour weekend schedule.</description>
-      <type>String</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>auto</default_value>
@@ -4880,33 +4848,6 @@
       <default_value>1</default_value>
     </argument>
     <argument>
-      <name>refrigerator_weekday_fractions</name>
-      <display_name>Refrigerator: Weekday Schedule</display_name>
-      <description>Specify the 24-hour weekday schedule.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
-      <name>refrigerator_weekend_fractions</name>
-      <display_name>Refrigerator: Weekend Schedule</display_name>
-      <description>Specify the 24-hour weekend schedule.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
-      <name>refrigerator_monthly_multipliers</name>
-      <display_name>Refrigerator: Month Schedule</display_name>
-      <description>Specify the 12-month schedule.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
       <name>extra_refrigerator_present</name>
       <display_name>Extra Refrigerator: Present</display_name>
       <description>Whether there is an extra refrigerator.</description>
@@ -4992,33 +4933,6 @@
       <default_value>1</default_value>
     </argument>
     <argument>
-      <name>extra_refrigerator_weekday_fractions</name>
-      <display_name>Extra Refrigerator: Weekday Schedule</display_name>
-      <description>Specify the 24-hour weekday schedule.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
-      <name>extra_refrigerator_weekend_fractions</name>
-      <display_name>Extra Refrigerator: Weekend Schedule</display_name>
-      <description>Specify the 24-hour weekend schedule.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
-      <name>extra_refrigerator_monthly_multipliers</name>
-      <display_name>Extra Refrigerator: Month Schedule</display_name>
-      <description>Specify the 12-month schedule.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
       <name>freezer_present</name>
       <display_name>Freezer: Present</display_name>
       <description>Whether there is a freezer.</description>
@@ -5102,33 +5016,6 @@
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>1</default_value>
-    </argument>
-    <argument>
-      <name>freezer_weekday_fractions</name>
-      <display_name>Freezer: Weekday Schedule</display_name>
-      <description>Specify the 24-hour weekday schedule.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
-      <name>freezer_weekend_fractions</name>
-      <display_name>Freezer: Weekend Schedule</display_name>
-      <description>Specify the 24-hour weekend schedule.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
-      <name>freezer_monthly_multipliers</name>
-      <display_name>Freezer: Month Schedule</display_name>
-      <description>Specify the 12-month schedule.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>cooking_range_oven_present</name>
@@ -5277,33 +5164,6 @@
       <default_value>1</default_value>
     </argument>
     <argument>
-      <name>cooking_range_oven_weekday_fractions</name>
-      <display_name>Cooking Range/Oven: Weekday Schedule</display_name>
-      <description>Specify the 24-hour weekday schedule.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
-      <name>cooking_range_oven_weekend_fractions</name>
-      <display_name>Cooking Range/Oven: Weekend Schedule</display_name>
-      <description>Specify the 24-hour weekend schedule.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
-      <name>cooking_range_oven_monthly_multipliers</name>
-      <display_name>Cooking Range/Oven: Month Schedule</display_name>
-      <description>Specify the 12-month schedule.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
       <name>ceiling_fan_present</name>
       <display_name>Ceiling Fan: Present</display_name>
       <description>Whether there is are any ceiling fans.</description>
@@ -5372,33 +5232,6 @@
       <default_value>1</default_value>
     </argument>
     <argument>
-      <name>plug_loads_television_weekday_fractions</name>
-      <display_name>Plug Loads: Television Weekday Schedule</display_name>
-      <description>Specify the 24-hour weekday schedule.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
-      <name>plug_loads_television_weekend_fractions</name>
-      <display_name>Plug Loads: Television Weekend Schedule</display_name>
-      <description>Specify the 24-hour weekend schedule.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
-      <name>plug_loads_television_monthly_multipliers</name>
-      <display_name>Plug Loads: Television Month Schedule</display_name>
-      <description>Specify the 12-month schedule.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
       <name>plug_loads_other_annual_kwh</name>
       <display_name>Plug Loads: Other Annual kWh</display_name>
       <description>The annual energy consumption of the other residual plug loads.</description>
@@ -5436,33 +5269,6 @@
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>1</default_value>
-    </argument>
-    <argument>
-      <name>plug_loads_other_weekday_fractions</name>
-      <display_name>Plug Loads: Other Weekday Schedule</display_name>
-      <description>Specify the 24-hour weekday schedule.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
-      <name>plug_loads_other_weekend_fractions</name>
-      <display_name>Plug Loads: Other Weekend Schedule</display_name>
-      <description>Specify the 24-hour weekend schedule.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
-      <name>plug_loads_other_monthly_multipliers</name>
-      <display_name>Plug Loads: Other Month Schedule</display_name>
-      <description>Specify the 12-month schedule.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>plug_loads_well_pump_present</name>
@@ -5503,33 +5309,6 @@
       <default_value>1</default_value>
     </argument>
     <argument>
-      <name>plug_loads_well_pump_weekday_fractions</name>
-      <display_name>Plug Loads: Well Pump Weekday Schedule</display_name>
-      <description>Specify the 24-hour weekday schedule.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
-      <name>plug_loads_well_pump_weekend_fractions</name>
-      <display_name>Plug Loads: Well Pump Weekend Schedule</display_name>
-      <description>Specify the 24-hour weekend schedule.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
-      <name>plug_loads_well_pump_monthly_multipliers</name>
-      <display_name>Plug Loads: Well Pump Month Schedule</display_name>
-      <description>Specify the 12-month schedule.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
       <name>plug_loads_vehicle_present</name>
       <display_name>Plug Loads: Vehicle Present</display_name>
       <description>Whether there is a vehicle.</description>
@@ -5566,33 +5345,6 @@
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>1</default_value>
-    </argument>
-    <argument>
-      <name>plug_loads_vehicle_weekday_fractions</name>
-      <display_name>Plug Loads: Vehicle Weekday Schedule</display_name>
-      <description>Specify the 24-hour weekday schedule.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
-      <name>plug_loads_vehicle_weekend_fractions</name>
-      <display_name>Plug Loads: Vehicle Weekend Schedule</display_name>
-      <description>Specify the 24-hour weekend schedule.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
-      <name>plug_loads_vehicle_monthly_multipliers</name>
-      <display_name>Plug Loads: Vehicle Month Schedule</display_name>
-      <description>Specify the 12-month schedule.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>fuel_loads_grill_present</name>
@@ -5687,33 +5439,6 @@
       <default_value>1</default_value>
     </argument>
     <argument>
-      <name>fuel_loads_grill_weekday_fractions</name>
-      <display_name>Fuel Loads: Grill Weekday Schedule</display_name>
-      <description>Specify the 24-hour weekday schedule.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
-      <name>fuel_loads_grill_weekend_fractions</name>
-      <display_name>Fuel Loads: Grill Weekend Schedule</display_name>
-      <description>Specify the 24-hour weekend schedule.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
-      <name>fuel_loads_grill_monthly_multipliers</name>
-      <display_name>Fuel Loads: Grill Month Schedule</display_name>
-      <description>Specify the 12-month schedule.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
       <name>fuel_loads_lighting_present</name>
       <display_name>Fuel Loads: Lighting Present</display_name>
       <description>Whether there is fuel loads lighting.</description>
@@ -5804,33 +5529,6 @@
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>1</default_value>
-    </argument>
-    <argument>
-      <name>fuel_loads_lighting_weekday_fractions</name>
-      <display_name>Fuel Loads: Lighting Weekday Schedule</display_name>
-      <description>Specify the 24-hour weekday schedule.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
-      <name>fuel_loads_lighting_weekend_fractions</name>
-      <display_name>Fuel Loads: Lighting Weekend Schedule</display_name>
-      <description>Specify the 24-hour weekend schedule.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
-      <name>fuel_loads_lighting_monthly_multipliers</name>
-      <display_name>Fuel Loads: Lighting Month Schedule</display_name>
-      <description>Specify the 12-month schedule.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>fuel_loads_fireplace_present</name>
@@ -5925,33 +5623,6 @@
       <default_value>1</default_value>
     </argument>
     <argument>
-      <name>fuel_loads_fireplace_weekday_fractions</name>
-      <display_name>Fuel Loads: Fireplace Weekday Schedule</display_name>
-      <description>Specify the 24-hour weekday schedule.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
-      <name>fuel_loads_fireplace_weekend_fractions</name>
-      <display_name>Fuel Loads: Fireplace Weekend Schedule</display_name>
-      <description>Specify the 24-hour weekend schedule.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
-      <name>fuel_loads_fireplace_monthly_multipliers</name>
-      <display_name>Fuel Loads: Fireplace Month Schedule</display_name>
-      <description>Specify the 12-month schedule.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
       <name>pool_present</name>
       <display_name>Pool: Present</display_name>
       <description>Whether there is a pool.</description>
@@ -5988,33 +5659,6 @@
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>1</default_value>
-    </argument>
-    <argument>
-      <name>pool_pump_weekday_fractions</name>
-      <display_name>Pool: Pump Weekday Schedule</display_name>
-      <description>Specify the 24-hour weekday schedule.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
-      <name>pool_pump_weekend_fractions</name>
-      <display_name>Pool: Pump Weekend Schedule</display_name>
-      <description>Specify the 24-hour weekend schedule.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
-      <name>pool_pump_monthly_multipliers</name>
-      <display_name>Pool: Pump Month Schedule</display_name>
-      <description>Specify the 12-month schedule.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>pool_heater_type</name>
@@ -6073,33 +5717,6 @@
       <default_value>1</default_value>
     </argument>
     <argument>
-      <name>pool_heater_weekday_fractions</name>
-      <display_name>Pool: Heater Weekday Schedule</display_name>
-      <description>Specify the 24-hour weekday schedule.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
-      <name>pool_heater_weekend_fractions</name>
-      <display_name>Pool: Heater Weekend Schedule</display_name>
-      <description>Specify the 24-hour weekend schedule.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
-      <name>pool_heater_monthly_multipliers</name>
-      <display_name>Pool: Heater Month Schedule</display_name>
-      <description>Specify the 12-month schedule.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
       <name>hot_tub_present</name>
       <display_name>Hot Tub: Present</display_name>
       <description>Whether there is a hot tub.</description>
@@ -6136,33 +5753,6 @@
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>1</default_value>
-    </argument>
-    <argument>
-      <name>hot_tub_pump_weekday_fractions</name>
-      <display_name>Hot Tub: Pump Weekday Schedule</display_name>
-      <description>Specify the 24-hour weekday schedule.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
-      <name>hot_tub_pump_weekend_fractions</name>
-      <display_name>Hot Tub: Pump Weekend Schedule</display_name>
-      <description>Specify the 24-hour weekend schedule.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
-      <name>hot_tub_pump_monthly_multipliers</name>
-      <display_name>Hot Tub: Pump Month Schedule</display_name>
-      <description>Specify the 12-month schedule.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>hot_tub_heater_type</name>
@@ -6220,33 +5810,6 @@
       <model_dependent>false</model_dependent>
       <default_value>1</default_value>
     </argument>
-    <argument>
-      <name>hot_tub_heater_weekday_fractions</name>
-      <display_name>Hot Tub: Heater Weekday Schedule</display_name>
-      <description>Specify the 24-hour weekday schedule.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
-      <name>hot_tub_heater_weekend_fractions</name>
-      <display_name>Hot Tub: Heater Weekend Schedule</display_name>
-      <description>Specify the 24-hour weekend schedule.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
-      <name>hot_tub_heater_monthly_multipliers</name>
-      <display_name>Hot Tub: Heater Month Schedule</display_name>
-      <description>Specify the 12-month schedule.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
   </arguments>
   <outputs />
   <provenances />
@@ -6262,12 +5825,6 @@
   </attributes>
   <files>
     <file>
-      <filename>constants.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>6862D975</checksum>
-    </file>
-    <file>
       <filename>geometry.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
@@ -6280,1024 +5837,1798 @@
       <checksum>2951BCAF</checksum>
     </file>
     <file>
+      <filename>constants.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>EB32709E</checksum>
+    </file>
+    <file>
+      <filename>schedules_clothes_dryer_power_consumption_dist.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>C11EB889</checksum>
+    </file>
+    <file>
+      <filename>schedules_clothes_dryer_power_duration_dist.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>E26C2515</checksum>
+    </file>
+    <file>
+      <filename>schedules_clothes_washer_cluster_size_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>2401A66F</checksum>
+    </file>
+    <file>
+      <filename>schedules_clothes_washer_event_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>9D369386</checksum>
+    </file>
+    <file>
+      <filename>schedules_clothes_washer_power_consumption_dist.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>B82EBBFB</checksum>
+    </file>
+    <file>
+      <filename>schedules_clothes_washer_power_duration_dist.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>7F0BFEDA</checksum>
+    </file>
+    <file>
+      <filename>schedules_config.yml</filename>
+      <filetype>yml</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>7DAD9145</checksum>
+    </file>
+    <file>
+      <filename>schedules_cooking_power_consumption_dist.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>1C8AAA92</checksum>
+    </file>
+    <file>
+      <filename>schedules_cooking_power_duration_dist.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>66C47C80</checksum>
+    </file>
+    <file>
+      <filename>schedules_dishwasher_cluster_size_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>93DCD6FD</checksum>
+    </file>
+    <file>
+      <filename>schedules_dishwasher_event_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>419E598E</checksum>
+    </file>
+    <file>
+      <filename>schedules_dishwasher_power_consumption_dist.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>50A1CFBC</checksum>
+    </file>
+    <file>
+      <filename>schedules_dishwasher_power_duration_dist.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>A7E76021</checksum>
+    </file>
+    <file>
+      <filename>schedules_README.md</filename>
+      <filetype>md</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>FA773BE2</checksum>
+    </file>
+    <file>
+      <filename>schedules_shower_cluster_size_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>DBE185CA</checksum>
+    </file>
+    <file>
+      <filename>schedules_shower_event_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>F8A366F2</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekday_duration_probability_cluster_0_cooking_evening_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>4986DD68</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekday_duration_probability_cluster_0_cooking_midday_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>FBF76CFC</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekday_duration_probability_cluster_0_cooking_morning_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>C54497C3</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekday_duration_probability_cluster_0_dishwashing_evening_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>7C95D22E</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekday_duration_probability_cluster_0_dishwashing_midday_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>05C8905F</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekday_duration_probability_cluster_0_dishwashing_morning_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>DDD537E9</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekday_duration_probability_cluster_0_laundry_evening_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>C3A5357C</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekday_duration_probability_cluster_0_laundry_midday_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>CA0C9069</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekday_duration_probability_cluster_0_laundry_morning_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>8CDCA30E</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekday_duration_probability_cluster_0_shower_evening_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>54EB60DE</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekday_duration_probability_cluster_0_shower_midday_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>1AD7139F</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekday_duration_probability_cluster_0_shower_morning_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>8300EB00</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekday_duration_probability_cluster_1_cooking_evening_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>B817132C</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekday_duration_probability_cluster_1_cooking_midday_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>D45A9584</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekday_duration_probability_cluster_1_cooking_morning_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>407A312C</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekday_duration_probability_cluster_1_dishwashing_evening_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>652AD618</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekday_duration_probability_cluster_1_dishwashing_midday_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>018B32BA</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekday_duration_probability_cluster_1_dishwashing_morning_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>F3A0A48E</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekday_duration_probability_cluster_1_laundry_evening_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>56010915</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekday_duration_probability_cluster_1_laundry_midday_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>9843CD4C</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekday_duration_probability_cluster_1_laundry_morning_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>746D40E8</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekday_duration_probability_cluster_1_shower_evening_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>AE9ED85B</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekday_duration_probability_cluster_1_shower_midday_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>D4FBDE56</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekday_duration_probability_cluster_1_shower_morning_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>D897D4A1</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekday_duration_probability_cluster_2_cooking_evening_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>8E88C92D</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekday_duration_probability_cluster_2_cooking_midday_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>2244D290</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekday_duration_probability_cluster_2_cooking_morning_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>0E99EBF7</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekday_duration_probability_cluster_2_dishwashing_evening_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>379A086A</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekday_duration_probability_cluster_2_dishwashing_midday_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>F9891815</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekday_duration_probability_cluster_2_dishwashing_morning_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>23E18003</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekday_duration_probability_cluster_2_laundry_evening_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>B250D83A</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekday_duration_probability_cluster_2_laundry_midday_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>ACB5BCD2</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekday_duration_probability_cluster_2_laundry_morning_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>26CFB684</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekday_duration_probability_cluster_2_shower_evening_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>1CCBCB69</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekday_duration_probability_cluster_2_shower_midday_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>41C774DB</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekday_duration_probability_cluster_2_shower_morning_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>84737EBC</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekday_duration_probability_cluster_3_cooking_evening_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>6F2B7686</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekday_duration_probability_cluster_3_cooking_midday_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>34A7D406</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekday_duration_probability_cluster_3_cooking_morning_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>615CD1D7</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekday_duration_probability_cluster_3_dishwashing_evening_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>DACA45E5</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekday_duration_probability_cluster_3_dishwashing_midday_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>D119B4D0</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekday_duration_probability_cluster_3_dishwashing_morning_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>120B9428</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekday_duration_probability_cluster_3_laundry_evening_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>267E8883</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekday_duration_probability_cluster_3_laundry_midday_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>C3A5DA8B</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekday_duration_probability_cluster_3_laundry_morning_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>D614AB97</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekday_duration_probability_cluster_3_shower_evening_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>7FFBFD68</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekday_duration_probability_cluster_3_shower_midday_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>8C62CEDB</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekday_duration_probability_cluster_3_shower_morning_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>E3A10BE2</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekday_mkv_chain_initial_prob_cluster_0.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>0AC88E84</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekday_mkv_chain_initial_prob_cluster_1.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>AE298C53</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekday_mkv_chain_initial_prob_cluster_2.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>42FB1588</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekday_mkv_chain_initial_prob_cluster_3.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>5AAC2E9E</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekday_mkv_chain_transition_prob_cluster_0.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>1BCCAC5C</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekday_mkv_chain_transition_prob_cluster_1.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>BBB50EE1</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekday_mkv_chain_transition_prob_cluster_2.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>7DBA15B4</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekday_mkv_chain_transition_prob_cluster_3.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>CAC5CB5F</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekend_duration_probability_cluster_0_cooking_evening_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>F6CB80B1</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekend_duration_probability_cluster_0_cooking_midday_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>3CFFA67D</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekend_duration_probability_cluster_0_cooking_morning_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>44F4FB7B</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekend_duration_probability_cluster_0_dishwashing_evening_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>AB0BE66C</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekend_duration_probability_cluster_0_dishwashing_midday_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>9120E2FD</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekend_duration_probability_cluster_0_dishwashing_morning_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>A4EB422A</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekend_duration_probability_cluster_0_laundry_evening_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>8ABEC58D</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekend_duration_probability_cluster_0_laundry_midday_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>80C3640C</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekend_duration_probability_cluster_0_laundry_morning_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>6DA7C30F</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekend_duration_probability_cluster_0_shower_evening_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>ED525953</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekend_duration_probability_cluster_0_shower_midday_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>332088E2</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekend_duration_probability_cluster_0_shower_morning_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>86F7DFDE</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekend_duration_probability_cluster_1_cooking_evening_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>2209A5BF</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekend_duration_probability_cluster_1_cooking_midday_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>768859FF</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekend_duration_probability_cluster_1_cooking_morning_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>2927CF95</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekend_duration_probability_cluster_1_dishwashing_evening_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>B304EB88</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekend_duration_probability_cluster_1_dishwashing_midday_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>5E7982A4</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekend_duration_probability_cluster_1_dishwashing_morning_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>58BCE2B4</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekend_duration_probability_cluster_1_laundry_evening_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>9FEF76FF</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekend_duration_probability_cluster_1_laundry_midday_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>63F777DC</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekend_duration_probability_cluster_1_laundry_morning_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>E731D060</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekend_duration_probability_cluster_1_shower_evening_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>3E947E31</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekend_duration_probability_cluster_1_shower_midday_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>FE78DD0B</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekend_duration_probability_cluster_1_shower_morning_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>C6D1F192</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekend_duration_probability_cluster_2_cooking_evening_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>26C904EC</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekend_duration_probability_cluster_2_cooking_midday_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>51CF51D3</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekend_duration_probability_cluster_2_cooking_morning_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>34855051</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekend_duration_probability_cluster_2_dishwashing_evening_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>479CD610</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekend_duration_probability_cluster_2_dishwashing_midday_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>29AAEE1E</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekend_duration_probability_cluster_2_dishwashing_morning_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>F3A11DE1</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekend_duration_probability_cluster_2_laundry_evening_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>EA68360B</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekend_duration_probability_cluster_2_laundry_midday_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>78DC5051</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekend_duration_probability_cluster_2_laundry_morning_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>1D1FB07E</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekend_duration_probability_cluster_2_shower_evening_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>829DBC41</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekend_duration_probability_cluster_2_shower_midday_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>E97FEBA7</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekend_duration_probability_cluster_2_shower_morning_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>2DDD3D0B</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekend_duration_probability_cluster_3_cooking_evening_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>EC70F74E</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekend_duration_probability_cluster_3_cooking_midday_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>7C8976F3</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekend_duration_probability_cluster_3_cooking_morning_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>5825338A</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekend_duration_probability_cluster_3_dishwashing_evening_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>37B5AF9C</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekend_duration_probability_cluster_3_dishwashing_midday_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>EDD63C21</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekend_duration_probability_cluster_3_dishwashing_morning_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>99F23B28</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekend_duration_probability_cluster_3_laundry_evening_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>C3963FF9</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekend_duration_probability_cluster_3_laundry_midday_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>0B329C66</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekend_duration_probability_cluster_3_laundry_morning_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>1761FEF6</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekend_duration_probability_cluster_3_shower_evening_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>35AD8E7F</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekend_duration_probability_cluster_3_shower_midday_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>DAF2049F</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekend_duration_probability_cluster_3_shower_morning_duration_probability.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>C2CA1416</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekend_mkv_chain_initial_prob_cluster_0.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>3F16AE89</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekend_mkv_chain_initial_prob_cluster_1.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>49FEAE44</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekend_mkv_chain_initial_prob_cluster_2.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>B48A47D6</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekend_mkv_chain_initial_prob_cluster_3.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>B47E790B</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekend_mkv_chain_transition_prob_cluster_0.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>E4089705</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekend_mkv_chain_transition_prob_cluster_1.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>25700CD2</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekend_mkv_chain_transition_prob_cluster_2.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>032B846A</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekend_mkv_chain_transition_prob_cluster_3.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>F0F0F886</checksum>
+    </file>
+    <file>
       <filename>base-hvac-dual-fuel-mini-split-heat-pump-ducted.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>D4907EAE</checksum>
+      <checksum>E613C282</checksum>
     </file>
     <file>
       <filename>base-hvac-mini-split-heat-pump-ducted.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>C1FCA3CF</checksum>
+      <checksum>F97B1842</checksum>
     </file>
     <file>
       <filename>base-hvac-mini-split-heat-pump-ducted-heating-only.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>317EE70D</checksum>
+      <checksum>3367F91B</checksum>
     </file>
     <file>
       <filename>base-multifamily.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>7B12E1CE</checksum>
+      <checksum>1C51A365</checksum>
     </file>
     <file>
       <filename>base.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>C82A8E83</checksum>
+      <checksum>2033ECB2</checksum>
     </file>
     <file>
       <filename>base-appliances-none.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>6B55164A</checksum>
+      <checksum>8964C4E2</checksum>
     </file>
     <file>
       <filename>base-single-family-attached.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>62BBA314</checksum>
+      <checksum>257B15B9</checksum>
     </file>
     <file>
       <filename>base-hvac-dual-fuel-air-to-air-heat-pump-1-speed.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>278DD13E</checksum>
+      <checksum>D1141C4F</checksum>
     </file>
     <file>
       <filename>base-mechvent-cfis.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>3BB5BB99</checksum>
+      <checksum>53BDDABE</checksum>
     </file>
     <file>
       <filename>base-dhw-indirect-outside.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>EB2EF519</checksum>
+      <checksum>414735C0</checksum>
     </file>
     <file>
       <filename>base-dhw-jacket-electric.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>662A382B</checksum>
+      <checksum>F43213BB</checksum>
     </file>
     <file>
       <filename>base-dhw-low-flow-fixtures.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>29C566CA</checksum>
+      <checksum>729D5DDE</checksum>
     </file>
     <file>
       <filename>base-dhw-recirc-demand.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>BB15049F</checksum>
+      <checksum>915D207E</checksum>
     </file>
     <file>
       <filename>base-dhw-recirc-manual.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>E70EDD1C</checksum>
+      <checksum>9AF2593D</checksum>
     </file>
     <file>
       <filename>base-dhw-recirc-nocontrol.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>E84248C8</checksum>
+      <checksum>B1580D3B</checksum>
     </file>
     <file>
       <filename>base-dhw-recirc-temperature.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>2A17F7B5</checksum>
+      <checksum>21F51B75</checksum>
     </file>
     <file>
       <filename>base-dhw-recirc-timer.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>09FAC7B0</checksum>
+      <checksum>01824660</checksum>
     </file>
     <file>
       <filename>base-dhw-solar-fraction.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>32C4CB94</checksum>
+      <checksum>88BEE447</checksum>
     </file>
     <file>
       <filename>base-dhw-uef.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>891255B8</checksum>
+      <checksum>426E2969</checksum>
     </file>
     <file>
       <filename>base-enclosure-infil-cfm50.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>C6CCE2A5</checksum>
+      <checksum>ADF3D148</checksum>
     </file>
     <file>
       <filename>base-foundation-conditioned-basement-slab-insulation.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>3AD1768B</checksum>
+      <checksum>356C1F7B</checksum>
     </file>
     <file>
       <filename>base-hvac-boiler-gas-only.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>C0520473</checksum>
+      <checksum>80EED7FA</checksum>
     </file>
     <file>
       <filename>base-hvac-boiler-oil-only.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>0177CF3E</checksum>
+      <checksum>3C39C475</checksum>
     </file>
     <file>
       <filename>base-hvac-boiler-propane-only.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>2205C638</checksum>
+      <checksum>8F195E34</checksum>
     </file>
     <file>
       <filename>base-hvac-boiler-wood-only.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>D103081A</checksum>
+      <checksum>24A279F8</checksum>
     </file>
     <file>
       <filename>base-hvac-central-ac-only-1-speed.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>2140423B</checksum>
+      <checksum>41634850</checksum>
     </file>
     <file>
       <filename>base-hvac-ducts-leakage-percent.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>25D8BD1C</checksum>
+      <checksum>8E46611D</checksum>
     </file>
     <file>
       <filename>base-hvac-furnace-elec-only.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>C5578D87</checksum>
+      <checksum>2F565F74</checksum>
     </file>
     <file>
       <filename>base-hvac-furnace-gas-only.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>27679C09</checksum>
+      <checksum>D6B020AB</checksum>
     </file>
     <file>
       <filename>base-hvac-furnace-oil-only.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>091BE412</checksum>
+      <checksum>C132FE0E</checksum>
     </file>
     <file>
       <filename>base-hvac-furnace-propane-only.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>4D43BD45</checksum>
+      <checksum>8C44FBF9</checksum>
     </file>
     <file>
       <filename>base-hvac-furnace-wood-only.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>2025253B</checksum>
+      <checksum>3BE6ADC5</checksum>
     </file>
     <file>
       <filename>base-hvac-none.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>58EFABE9</checksum>
+      <checksum>56D4ADDD</checksum>
     </file>
     <file>
       <filename>base-hvac-programmable-thermostat.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>FD1EFB3D</checksum>
+      <checksum>E952823E</checksum>
     </file>
     <file>
       <filename>base-hvac-setpoints.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>B478E65A</checksum>
+      <checksum>9D201D67</checksum>
     </file>
     <file>
       <filename>base-location-baltimore-md.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>C8D1794A</checksum>
+      <checksum>BD8FCDAE</checksum>
     </file>
     <file>
       <filename>base-location-duluth-mn.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>41C0DD29</checksum>
+      <checksum>8CA1B86F</checksum>
     </file>
     <file>
       <filename>base-mechvent-balanced.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>08FB653B</checksum>
+      <checksum>62166E23</checksum>
     </file>
     <file>
       <filename>base-mechvent-erv.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>7A6EE0FC</checksum>
+      <checksum>1962B025</checksum>
     </file>
     <file>
       <filename>base-mechvent-exhaust.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>0271CD3A</checksum>
+      <checksum>01A0D3FF</checksum>
     </file>
     <file>
       <filename>base-mechvent-hrv.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>0EC6FE1A</checksum>
+      <checksum>6D763794</checksum>
     </file>
     <file>
       <filename>base-mechvent-supply.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>0782FD3D</checksum>
+      <checksum>BB58E790</checksum>
     </file>
     <file>
       <filename>base-hvac-air-to-air-heat-pump-1-speed.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>E5DB0A44</checksum>
+      <checksum>225837A3</checksum>
     </file>
     <file>
       <filename>base-mechvent-erv-atre-asre.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>6DE029EF</checksum>
+      <checksum>C3E79DE6</checksum>
     </file>
     <file>
       <filename>base-enclosure-windows-none.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>54BEEDD2</checksum>
+      <checksum>C6C67558</checksum>
     </file>
     <file>
       <filename>base-dhw-indirect-standbyloss.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>FAAD10CE</checksum>
+      <checksum>4F3E2FD4</checksum>
     </file>
     <file>
       <filename>base-dhw-indirect.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>49F079E9</checksum>
+      <checksum>716C47BE</checksum>
     </file>
     <file>
       <filename>base-dhw-jacket-indirect.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>919592DF</checksum>
+      <checksum>727DB977</checksum>
     </file>
     <file>
       <filename>base-hvac-undersized.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>AE0DA295</checksum>
+      <checksum>FCBBCAD4</checksum>
     </file>
     <file>
       <filename>base-atticroof-unvented-insulated-roof.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>C5210D3B</checksum>
+      <checksum>0BB08D37</checksum>
     </file>
     <file>
       <filename>base-pv.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>B46787C7</checksum>
+      <checksum>61E88C45</checksum>
     </file>
     <file>
       <filename>base-mechvent-hrv-asre.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>7B2C554C</checksum>
+      <checksum>5B77BB2C</checksum>
     </file>
     <file>
       <filename>base-enclosure-overhangs.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>9815F099</checksum>
+      <checksum>8826D4A5</checksum>
     </file>
     <file>
       <filename>base-atticroof-vented.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>266738F9</checksum>
+      <checksum>4BA58555</checksum>
     </file>
     <file>
       <filename>base-dhw-dwhr.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>7880E72C</checksum>
+      <checksum>E0E65CB9</checksum>
     </file>
     <file>
       <filename>base-enclosure-beds-4.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>FB9A3519</checksum>
+      <checksum>671E7696</checksum>
     </file>
     <file>
       <filename>base-foundation-ambient.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>86EB3252</checksum>
+      <checksum>6F48E517</checksum>
     </file>
     <file>
       <filename>base-foundation-vented-crawlspace.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>7ABFC23F</checksum>
+      <checksum>13197A30</checksum>
     </file>
     <file>
       <filename>base-foundation-unvented-crawlspace.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>06768418</checksum>
+      <checksum>52729CEF</checksum>
     </file>
     <file>
       <filename>base-hvac-central-ac-plus-air-to-air-heat-pump-heating.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>B6B01C03</checksum>
+      <checksum>1F6978B0</checksum>
     </file>
     <file>
       <filename>base-hvac-air-to-air-heat-pump-2-speed.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>D1D7407C</checksum>
+      <checksum>BBDAA897</checksum>
     </file>
     <file>
       <filename>base-hvac-central-ac-only-2-speed.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>C12F7B60</checksum>
+      <checksum>E1025820</checksum>
     </file>
     <file>
       <filename>base-hvac-air-to-air-heat-pump-var-speed.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>D0DA095B</checksum>
+      <checksum>0D12FF97</checksum>
     </file>
     <file>
       <filename>base-hvac-furnace-gas-central-ac-2-speed.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>08F8E604</checksum>
+      <checksum>C3A884AD</checksum>
     </file>
     <file>
       <filename>base-hvac-central-ac-only-var-speed.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>12DB9D9E</checksum>
+      <checksum>B0DDE2FA</checksum>
     </file>
     <file>
       <filename>base-hvac-evap-cooler-furnace-gas.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>3826F361</checksum>
+      <checksum>5D61DDF3</checksum>
     </file>
     <file>
       <filename>base-hvac-evap-cooler-only.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>780B1B1A</checksum>
+      <checksum>93417B88</checksum>
     </file>
     <file>
       <filename>base-hvac-evap-cooler-only-ducted.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>4552DB5A</checksum>
+      <checksum>4B1CB24A</checksum>
     </file>
     <file>
       <filename>base-hvac-furnace-gas-central-ac-var-speed.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>FEA057B6</checksum>
+      <checksum>C3BE3A16</checksum>
     </file>
     <file>
       <filename>base-hvac-furnace-gas-room-ac.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>1BC59957</checksum>
+      <checksum>9725F9DD</checksum>
     </file>
     <file>
       <filename>base-hvac-room-ac-only.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>3EAF7EBA</checksum>
+      <checksum>5D5C3B8E</checksum>
     </file>
     <file>
       <filename>base-mechvent-cfis-evap-cooler-only-ducted.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>B5A7E831</checksum>
+      <checksum>FA0B1D2D</checksum>
     </file>
     <file>
       <filename>base-atticroof-flat.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>C4D5C7EA</checksum>
+      <checksum>7F03911A</checksum>
     </file>
     <file>
       <filename>extra-dhw-solar-latitude.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>1FE2B561</checksum>
+      <checksum>2F3374E0</checksum>
     </file>
     <file>
       <filename>extra-pv-roofpitch.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>18A34055</checksum>
+      <checksum>8843AEEE</checksum>
     </file>
     <file>
       <filename>extra-auto.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>9B55F3F7</checksum>
+      <checksum>FCBD0BBC</checksum>
     </file>
     <file>
       <filename>base-hvac-boiler-elec-only.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>AD0F33E0</checksum>
+      <checksum>654EA48D</checksum>
     </file>
     <file>
       <filename>base-hvac-stove-oil-only.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>8881C530</checksum>
+      <checksum>8688418D</checksum>
     </file>
     <file>
       <filename>base-hvac-wall-furnace-elec-only.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>D3C95A9F</checksum>
+      <checksum>F7FA39BB</checksum>
     </file>
     <file>
       <filename>base-hvac-stove-wood-pellets-only.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>AC259F52</checksum>
+      <checksum>D001450C</checksum>
     </file>
     <file>
       <filename>base-mechvent-bath-kitchen-fans.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>099E88E1</checksum>
+      <checksum>AEC979B3</checksum>
     </file>
     <file>
       <filename>base-misc-neighbor-shading.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>F67A10F6</checksum>
+      <checksum>B94FDE68</checksum>
     </file>
     <file>
       <filename>base-dhw-indirect-with-solar-fraction.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>699BB252</checksum>
+      <checksum>725B3D12</checksum>
     </file>
     <file>
       <filename>base-dhw-combi-tankless-outside.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>EA3FA6DA</checksum>
+      <checksum>3DDE9929</checksum>
     </file>
     <file>
       <filename>base-dhw-combi-tankless.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>BF1FBDDB</checksum>
+      <checksum>0DBFB838</checksum>
     </file>
     <file>
       <filename>base-dhw-tank-heat-pump-outside.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>A93DFBCA</checksum>
+      <checksum>D5CE48D4</checksum>
     </file>
     <file>
       <filename>base-dhw-tank-heat-pump-with-solar-fraction.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>57B6283B</checksum>
+      <checksum>09D1A794</checksum>
     </file>
     <file>
       <filename>base-dhw-tank-heat-pump.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>7BA1F7F0</checksum>
+      <checksum>9876396A</checksum>
     </file>
     <file>
       <filename>base-dhw-jacket-hpwh.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>B441819A</checksum>
+      <checksum>CE237888</checksum>
     </file>
     <file>
       <filename>base-dhw-jacket-gas.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>65700A1D</checksum>
+      <checksum>80A63128</checksum>
     </file>
     <file>
       <filename>base-dhw-solar-direct-evacuated-tube.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>53C3DCFE</checksum>
+      <checksum>A93D7F32</checksum>
     </file>
     <file>
       <filename>base-dhw-solar-direct-flat-plate.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>E8C48E73</checksum>
+      <checksum>967E441B</checksum>
     </file>
     <file>
       <filename>base-dhw-solar-direct-ics.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>BBDC00E2</checksum>
+      <checksum>FC2C4111</checksum>
     </file>
     <file>
       <filename>base-dhw-solar-indirect-flat-plate.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>54C205AE</checksum>
+      <checksum>04A72517</checksum>
     </file>
     <file>
       <filename>base-dhw-solar-thermosyphon-flat-plate.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>4F42A5AB</checksum>
+      <checksum>EC1280FC</checksum>
     </file>
     <file>
       <filename>base-dhw-tank-heat-pump-with-solar.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>E6172A74</checksum>
+      <checksum>F6F1DB49</checksum>
     </file>
     <file>
       <filename>base-dhw-tank-gas-outside.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>281D0080</checksum>
+      <checksum>DAD66976</checksum>
     </file>
     <file>
       <filename>base-dhw-tank-gas.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>D1454EAC</checksum>
+      <checksum>4C0CD5A9</checksum>
     </file>
     <file>
       <filename>base-dhw-tank-oil.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>7FA5A63B</checksum>
+      <checksum>32EB5275</checksum>
     </file>
     <file>
       <filename>base-dhw-tank-wood.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>5790381C</checksum>
+      <checksum>8AA7E5E7</checksum>
     </file>
     <file>
       <filename>base-dhw-tankless-gas-with-solar.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>D4B5B857</checksum>
+      <checksum>DD885799</checksum>
     </file>
     <file>
       <filename>base-dhw-tankless-electric.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>0F8C1FD8</checksum>
+      <checksum>75CBC7FC</checksum>
     </file>
     <file>
       <filename>base-dhw-tankless-gas-with-solar-fraction.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>9909DA87</checksum>
+      <checksum>586419F7</checksum>
     </file>
     <file>
       <filename>base-dhw-tankless-propane.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>B8A93461</checksum>
+      <checksum>D9184DB9</checksum>
     </file>
     <file>
       <filename>base-dhw-tankless-gas.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>BB8D9F7E</checksum>
+      <checksum>412B1972</checksum>
     </file>
     <file>
       <filename>base-hvac-room-ac-only-33percent.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>C5D13B89</checksum>
+      <checksum>84C00DBE</checksum>
     </file>
     <file>
       <filename>base-hvac-furnace-elec-central-ac-1-speed.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>E5B76FEE</checksum>
+      <checksum>4F55D160</checksum>
     </file>
     <file>
       <filename>base-enclosure-infil-natural-ach.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>DA9A7606</checksum>
+      <checksum>4CD1F411</checksum>
     </file>
     <file>
       <filename>base-foundation-unconditioned-basement.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>9398ECD1</checksum>
+      <checksum>C38F2CB1</checksum>
     </file>
     <file>
       <filename>base-hvac-floor-furnace-propane-only.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>FCBA5AA6</checksum>
+      <checksum>278E2F0B</checksum>
     </file>
     <file>
       <filename>base-enclosure-2stories-garage.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>43A29AA5</checksum>
+      <checksum>6E8007CC</checksum>
     </file>
     <file>
       <filename>base-enclosure-2stories.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>23F38967</checksum>
+      <checksum>70705570</checksum>
     </file>
     <file>
       <filename>base-foundation-slab.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>41F6ADF4</checksum>
+      <checksum>C581F9AD</checksum>
     </file>
     <file>
       <filename>extra-second-refrigerator.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>ECA8B629</checksum>
+      <checksum>03AFA5FC</checksum>
     </file>
     <file>
       <filename>base-enclosure-garage.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>945FF487</checksum>
+      <checksum>77A40F53</checksum>
     </file>
     <file>
       <filename>base-dhw-tank-coal.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>37A0B465</checksum>
+      <checksum>35D27CA7</checksum>
     </file>
     <file>
       <filename>base-hvac-boiler-coal-only.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>894E64B5</checksum>
+      <checksum>A0F6604B</checksum>
     </file>
     <file>
       <filename>base-hvac-elec-resistance-only.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>6686622C</checksum>
+      <checksum>0CD23832</checksum>
     </file>
     <file>
       <filename>base-simcontrol-timestep-10-mins.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>66549442</checksum>
+      <checksum>EFBFCE72</checksum>
     </file>
     <file>
       <filename>base-simcontrol-daylight-saving-custom.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>9E15E826</checksum>
+      <checksum>7CB85254</checksum>
     </file>
     <file>
       <filename>base-simcontrol-daylight-saving-disabled.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>E7301820</checksum>
+      <checksum>C45A81C1</checksum>
     </file>
     <file>
       <filename>extra-second-heating-system-fireplace.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>0A9AF574</checksum>
+      <checksum>11FBC7AF</checksum>
     </file>
     <file>
       <filename>extra-second-heating-system-portable-heater.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>2D03C056</checksum>
+      <checksum>DF721AF7</checksum>
     </file>
     <file>
       <filename>base-hvac-mini-split-air-conditioner-only-ducted.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>8E66E299</checksum>
+      <checksum>807D99FA</checksum>
     </file>
     <file>
       <filename>base-hvac-mini-split-air-conditioner-only-ductless.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>F0C79417</checksum>
+      <checksum>4EF003DD</checksum>
     </file>
     <file>
       <filename>base-lighting-ceiling-fans.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>223EB216</checksum>
+      <checksum>967D9A4C</checksum>
     </file>
     <file>
       <filename>base-lighting-detailed.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>1C2A906C</checksum>
+      <checksum>F9BE33AD</checksum>
     </file>
     <file>
       <filename>base-mechvent-whole-house-fan.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>EE5344E5</checksum>
+      <checksum>4B74EB64</checksum>
     </file>
     <file>
       <filename>base-misc-loads-large-uncommon.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>E54C6C87</checksum>
+      <checksum>8464094F</checksum>
     </file>
     <file>
       <filename>base-misc-loads-large-uncommon2.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>99E35E9D</checksum>
+      <checksum>D586B20B</checksum>
     </file>
     <file>
       <filename>base-dhw-none.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>5A1B7D3C</checksum>
+      <checksum>EEE9EAF8</checksum>
     </file>
     <file>
       <filename>base-enclosure-infil-flue.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>DCEC452E</checksum>
+      <checksum>6AFFBD8C</checksum>
     </file>
     <file>
       <filename>extra-dhw-shared-water-heater.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>76348284</checksum>
+      <checksum>6C7C653F</checksum>
     </file>
     <file>
       <filename>base-enclosure-infil-ach-house-pressure.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>E3F7C52F</checksum>
+      <checksum>BA4305DE</checksum>
     </file>
     <file>
       <filename>base-enclosure-infil-cfm-house-pressure.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>55573B23</checksum>
+      <checksum>B8374C43</checksum>
     </file>
     <file>
       <filename>extra-pv-shared.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>6161AB1A</checksum>
+      <checksum>0EFC87B7</checksum>
     </file>
     <file>
       <filename>base-dhw-tankless-electric-outside.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>EED19042</checksum>
+      <checksum>C2B033CC</checksum>
     </file>
     <file>
       <filename>base-enclosure-beds-5.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>B2F298FC</checksum>
+      <checksum>7F635A73</checksum>
     </file>
     <file>
       <filename>base-enclosure-beds-1.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>C3DDE75E</checksum>
+      <checksum>42ED111A</checksum>
     </file>
     <file>
       <filename>base-enclosure-beds-2.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>DC5CC3EE</checksum>
+      <checksum>D51A7C78</checksum>
     </file>
     <file>
       <filename>base-hvac-boiler-gas-central-ac-1-speed.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>357F836A</checksum>
+      <checksum>C17DCF28</checksum>
     </file>
     <file>
       <filename>base-hvac-fireplace-wood-only.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>0764F2A6</checksum>
+      <checksum>FFEC8D38</checksum>
     </file>
     <file>
       <filename>base-hvac-ground-to-air-heat-pump.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>F7E7909C</checksum>
+      <checksum>F3DB9F60</checksum>
     </file>
     <file>
       <filename>base-hvac-fixed-heater-gas-only.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>0497DBAA</checksum>
+      <checksum>3F442714</checksum>
     </file>
     <file>
       <filename>base-hvac-portable-heater-gas-only.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>A98FBB55</checksum>
+      <checksum>CC5DC345</checksum>
     </file>
     <file>
       <filename>base-misc-usage-multiplier.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>45BFAE6B</checksum>
+      <checksum>E7D3D5DB</checksum>
     </file>
     <file>
       <filename>base-simcontrol-runperiod-1-month.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>52DA1A9C</checksum>
+      <checksum>3837CAD0</checksum>
     </file>
     <file>
       <filename>extra-enclosure-garage-partially-protruded.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>26D3CFB1</checksum>
+      <checksum>EBDD4837</checksum>
     </file>
     <file>
       <filename>base-atticroof-radiant-barrier.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>45D8BCFC</checksum>
+      <checksum>F162AD7E</checksum>
     </file>
     <file>
       <filename>base-location-miami-fl.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>A467621E</checksum>
+      <checksum>B732D13C</checksum>
     </file>
     <file>
       <filename>base-appliances-dehumidifier-ief.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>42E31647</checksum>
+      <checksum>1F7847A8</checksum>
     </file>
     <file>
       <filename>base-appliances-dehumidifier.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>1E282B77</checksum>
+      <checksum>DD7BBE5F</checksum>
     </file>
     <file>
       <filename>base-location-dallas-tx.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>F2E55AED</checksum>
+      <checksum>34F77BFA</checksum>
     </file>
     <file>
       <filename>base-appliances-dehumidifier-50percent.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>497AC2A7</checksum>
+      <checksum>D54DB23F</checksum>
     </file>
     <file>
       <filename>base-foundation-unconditioned-basement-assembly-r.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>0D880F72</checksum>
+      <checksum>C3E014C7</checksum>
     </file>
     <file>
       <filename>base-foundation-unconditioned-basement-wall-insulation.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>D361C0ED</checksum>
+      <checksum>AC106189</checksum>
     </file>
     <file>
       <filename>base-hvac-dual-fuel-air-to-air-heat-pump-1-speed-electric.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>5253B8D5</checksum>
+      <checksum>E35B8FC6</checksum>
     </file>
     <file>
       <filename>base-hvac-dual-fuel-air-to-air-heat-pump-2-speed.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>EC3C2D3B</checksum>
+      <checksum>B2951D91</checksum>
     </file>
     <file>
       <filename>base-hvac-dual-fuel-air-to-air-heat-pump-var-speed.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>9C00F74B</checksum>
+      <checksum>A745651D</checksum>
     </file>
     <file>
       <filename>base-hvac-mini-split-heat-pump-ducted-cooling-only.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>9C89844B</checksum>
+      <checksum>93714E30</checksum>
     </file>
     <file>
       <filename>base-hvac-mini-split-heat-pump-ductless.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>8AF86716</checksum>
+      <checksum>D2044A98</checksum>
     </file>
     <file>
       <filename>extra-mechvent-shared-preconditioning.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>2E458BE7</checksum>
+      <checksum>1CFB171E</checksum>
     </file>
     <file>
       <filename>extra-mechvent-shared.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>E391F54D</checksum>
+      <checksum>31621933</checksum>
     </file>
     <file>
       <filename>base-appliances-coal.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>F9AF0BFC</checksum>
+      <checksum>FC58A092</checksum>
     </file>
     <file>
       <filename>base-appliances-gas.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>B8AB0B6A</checksum>
+      <checksum>662C5475</checksum>
     </file>
     <file>
       <filename>base-appliances-modified.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>BAFE95D0</checksum>
+      <checksum>6CFE47F7</checksum>
     </file>
     <file>
       <filename>base-appliances-oil.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>88CEBC4F</checksum>
+      <checksum>62EE9F67</checksum>
     </file>
     <file>
       <filename>base-appliances-propane.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>A367B4A6</checksum>
+      <checksum>C442B351</checksum>
     </file>
     <file>
       <filename>base-appliances-wood.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>39838144</checksum>
+      <checksum>891B690B</checksum>
     </file>
     <file>
       <filename>base-misc-defaults.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>5F14793E</checksum>
+      <checksum>B3F7F31D</checksum>
     </file>
     <file>
       <version>
@@ -7308,37 +7639,49 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>E26CE68C</checksum>
+      <checksum>79362B4A</checksum>
     </file>
     <file>
       <filename>base-simcontrol-calendar-year-custom.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>5BAFE978</checksum>
+      <checksum>EC193099</checksum>
     </file>
     <file>
       <filename>build_residential_hpxml_test.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
-      <checksum>DDF8AAD3</checksum>
+      <checksum>E6DB7AE7</checksum>
     </file>
     <file>
       <filename>base-location-AMY-2012.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>958D2EC9</checksum>
+      <checksum>09AED060</checksum>
     </file>
     <file>
-      <filename>test_measure.xml</filename>
-      <filetype>xml</filetype>
+      <filename>base-schedules-stochastic.osw</filename>
+      <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>441318F5</checksum>
+      <checksum>8A77FB53</checksum>
     </file>
     <file>
-      <filename>test_rakefile.xml</filename>
-      <filetype>xml</filetype>
+      <filename>base-schedules-user-specified.osw</filename>
+      <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>F11F7E86</checksum>
+      <checksum>90037338</checksum>
+    </file>
+    <file>
+      <filename>extra-vacancy-6-months.osw</filename>
+      <filetype>osw</filetype>
+      <usage_type>test</usage_type>
+      <checksum>72703462</checksum>
+    </file>
+    <file>
+      <filename>schedules.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>2B97A62C</checksum>
     </file>
   </files>
 </measure>

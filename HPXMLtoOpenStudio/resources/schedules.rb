@@ -427,11 +427,10 @@ class MonthWeekdayWeekendSchedule
 end
 
 class HotWaterSchedule
-  def initialize(model, obj_name, nbeds, days_shift = 0, dryer_exhaust_min_runtime = 0)
+  def initialize(model, obj_name, nbeds, days_shift = 0, dryer_exhaust_min_runtime = 0, create_sch_object = true)
     @model = model
     @sch_name = "#{obj_name} schedule"
     @schedule = nil
-    @days_shift = days_shift
     if nbeds < 1
       @nbeds = 1
     elsif nbeds > 5
@@ -449,9 +448,15 @@ class HotWaterSchedule
     timestep_minutes = (60 / @model.getTimestep.numberOfTimestepsPerHour).to_i
     weeks = 1 # use a single week that repeats
 
-    data = loadMinuteDrawProfileFromFile(timestep_minutes, days_shift, weeks, dryer_exhaust_min_runtime)
+    @data = loadMinuteDrawProfileFromFile(timestep_minutes, days_shift, weeks, dryer_exhaust_min_runtime)
     @totflow, @maxflow, @ontime = loadDrawProfileStatsFromFile()
-    @schedule = createSchedule(data, timestep_minutes, weeks)
+    if create_sch_object
+      @schedule = createSchedule(@data, timestep_minutes, weeks)
+    end
+  end
+
+  def data
+    return @data
   end
 
   def calcDesignLevelFromDailykWh(daily_kWh)
@@ -789,5 +794,476 @@ class Schedule
   def self.set_weekend_rule(rule)
     rule.setApplySaturday(true)
     rule.setApplySunday(true)
+  end
+
+  def self.OccupantsWeekdayFractions
+    return '1.00000, 1.00000, 1.00000, 1.00000, 1.00000, 1.00000, 1.00000, 0.88310, 0.40861, 0.24189, 0.24189, 0.24189, 0.24189, 0.24189, 0.24189, 0.24189, 0.29498, 0.55310, 0.89693, 0.89693, 0.89693, 1.00000, 1.00000, 1.00000'
+  end
+
+  def self.OccupantsWeekendFractions
+    return '1.00000, 1.00000, 1.00000, 1.00000, 1.00000, 1.00000, 1.00000, 0.88310, 0.40861, 0.24189, 0.24189, 0.24189, 0.24189, 0.24189, 0.24189, 0.24189, 0.29498, 0.55310, 0.89693, 0.89693, 0.89693, 1.00000, 1.00000, 1.00000'
+  end
+
+  def self.OccupantsMonthlyMultipliers
+    return '1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0'
+  end
+
+  def self.LightingExteriorWeekdayFractions
+    # Schedules from T24 2016 Residential ACM Appendix C Table 8 Exterior Lighting Hourly Multiplier (Weekdays and weekends)
+    return '0.046, 0.046, 0.046, 0.046, 0.046, 0.037, 0.035, 0.034, 0.033, 0.028, 0.022, 0.015, 0.012, 0.011, 0.011, 0.012, 0.019, 0.037, 0.049, 0.065, 0.091, 0.105, 0.091, 0.063'
+  end
+
+  def self.LightingExteriorWeekendFractions
+    return '0.046, 0.046, 0.045, 0.045, 0.046, 0.045, 0.044, 0.041, 0.036, 0.03, 0.024, 0.016, 0.012, 0.011, 0.011, 0.012, 0.019, 0.038, 0.048, 0.06, 0.083, 0.098, 0.085, 0.059'
+  end
+
+  def self.LightingExteriorMonthlyMultipliers
+    return '1.248, 1.257, 0.993, 0.989, 0.993, 0.827, 0.821, 0.821, 0.827, 0.99, 0.987, 1.248'
+  end
+
+  def self.LightingExteriorHolidayWeekdayFractions
+    return '0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.008, 0.098, 0.168, 0.194, 0.284, 0.192, 0.037, 0.019'
+  end
+
+  def self.LightingExteriorHolidayWeekendFractions
+    return '0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.008, 0.098, 0.168, 0.194, 0.284, 0.192, 0.037, 0.019'
+  end
+
+  def self.LightingExteriorHolidayMonthlyMultipliers
+    return '1.248, 1.257, 0.993, 0.989, 0.993, 0.827, 0.821, 0.821, 0.827, 0.99, 0.987, 1.248'
+  end
+
+  def self.CookingRangeWeekdayFractions
+    return '0.007, 0.007, 0.004, 0.004, 0.007, 0.011, 0.025, 0.042, 0.046, 0.048, 0.042, 0.050, 0.057, 0.046, 0.057, 0.044, 0.092, 0.150, 0.117, 0.060, 0.035, 0.025, 0.016, 0.011'
+  end
+
+  def self.CookingRangeWeekendFractions
+    return '0.007, 0.007, 0.004, 0.004, 0.007, 0.011, 0.025, 0.042, 0.046, 0.048, 0.042, 0.050, 0.057, 0.046, 0.057, 0.044, 0.092, 0.150, 0.117, 0.060, 0.035, 0.025, 0.016, 0.011'
+  end
+
+  def self.CookingRangeMonthlyMultipliers
+    return '1.097, 1.097, 0.991, 0.987, 0.991, 0.890, 0.896, 0.896, 0.890, 1.085, 1.085, 1.097'
+  end
+
+  def self.RefrigeratorWeekdayFractions
+    return '0.040, 0.039, 0.038, 0.037, 0.036, 0.036, 0.038, 0.040, 0.041, 0.041, 0.040, 0.040, 0.042, 0.042, 0.042, 0.041, 0.044, 0.048, 0.050, 0.048, 0.047, 0.046, 0.044, 0.041'
+  end
+
+  def self.RefrigeratorWeekendFractions
+    return '0.040, 0.039, 0.038, 0.037, 0.036, 0.036, 0.038, 0.040, 0.041, 0.041, 0.040, 0.040, 0.042, 0.042, 0.042, 0.041, 0.044, 0.048, 0.050, 0.048, 0.047, 0.046, 0.044, 0.041'
+  end
+
+  def self.RefrigeratorMonthlyMultipliers
+    return '0.837, 0.835, 1.084, 1.084, 1.084, 1.096, 1.096, 1.096, 1.096, 0.931, 0.925, 0.837'
+  end
+
+  def self.ExtraRefrigeratorWeekdayFractions
+    return '0.040, 0.039, 0.038, 0.037, 0.036, 0.036, 0.038, 0.040, 0.041, 0.041, 0.040, 0.040, 0.042, 0.042, 0.042, 0.041, 0.044, 0.048, 0.050, 0.048, 0.047, 0.046, 0.044, 0.041'
+  end
+
+  def self.ExtraRefrigeratorWeekendFractions
+    return '0.040, 0.039, 0.038, 0.037, 0.036, 0.036, 0.038, 0.040, 0.041, 0.041, 0.040, 0.040, 0.042, 0.042, 0.042, 0.041, 0.044, 0.048, 0.050, 0.048, 0.047, 0.046, 0.044, 0.041'
+  end
+
+  def self.ExtraRefrigeratorMonthlyMultipliers
+    return '0.837, 0.835, 1.084, 1.084, 1.084, 1.096, 1.096, 1.096, 1.096, 0.931, 0.925, 0.837'
+  end
+
+  def self.FreezerWeekdayFractions
+    return '0.040, 0.039, 0.038, 0.037, 0.036, 0.036, 0.038, 0.040, 0.041, 0.041, 0.040, 0.040, 0.042, 0.042, 0.042, 0.041, 0.044, 0.048, 0.050, 0.048, 0.047, 0.046, 0.044, 0.041'
+  end
+
+  def self.FreezerWeekendFractions
+    return '0.040, 0.039, 0.038, 0.037, 0.036, 0.036, 0.038, 0.040, 0.041, 0.041, 0.040, 0.040, 0.042, 0.042, 0.042, 0.041, 0.044, 0.048, 0.050, 0.048, 0.047, 0.046, 0.044, 0.041'
+  end
+
+  def self.FreezerMonthlyMultipliers
+    return '0.837, 0.835, 1.084, 1.084, 1.084, 1.096, 1.096, 1.096, 1.096, 0.931, 0.925, 0.837'
+  end
+
+  def self.CeilingFanWeekdayFractions
+    return '0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0'
+  end
+
+  def self.CeilingFanWeekendFractions
+    return '0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0'
+  end
+
+  def self.CeilingFanMonthlyMultipliers(weather:)
+    return HVAC.get_default_ceiling_fan_months(weather).join(', ')
+  end
+
+  def self.PlugLoadsOtherWeekdayFractions
+    return '0.035, 0.033, 0.032, 0.031, 0.032, 0.033, 0.037, 0.042, 0.043, 0.043, 0.043, 0.044, 0.045, 0.045, 0.044, 0.046, 0.048, 0.052, 0.053, 0.05, 0.047, 0.045, 0.04, 0.036'
+  end
+
+  def self.PlugLoadsOtherWeekendFractions
+    return '0.035, 0.033, 0.032, 0.031, 0.032, 0.033, 0.037, 0.042, 0.043, 0.043, 0.043, 0.044, 0.045, 0.045, 0.044, 0.046, 0.048, 0.052, 0.053, 0.05, 0.047, 0.045, 0.04, 0.036'
+  end
+
+  def self.PlugLoadsOtherMonthlyMultipliers
+    return '1.248, 1.257, 0.993, 0.989, 0.993, 0.827, 0.821, 0.821, 0.827, 0.99, 0.987, 1.248'
+  end
+
+  def self.PlugLoadsTVWeekdayFractions
+    return '0.037, 0.018, 0.009, 0.007, 0.011, 0.018, 0.029, 0.040, 0.049, 0.058, 0.065, 0.072, 0.076, 0.086, 0.091, 0.102, 0.127, 0.156, 0.210, 0.294, 0.363, 0.344, 0.208, 0.090'
+  end
+
+  def self.PlugLoadsTVWeekendFractions
+    return '0.044, 0.022, 0.012, 0.008, 0.011, 0.014, 0.024, 0.043, 0.071, 0.094, 0.112, 0.123, 0.132, 0.156, 0.178, 0.196, 0.206, 0.213, 0.251, 0.330, 0.388, 0.358, 0.226, 0.103'
+  end
+
+  def self.PlugLoadsTVMonthlyMultipliers
+    return '1.137, 1.129, 0.961, 0.969, 0.961, 0.993, 0.996, 0.96, 0.993, 0.867, 0.86, 1.137'
+  end
+
+  def self.PlugLoadsVehicleWeekdayFractions
+    return '0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042'
+  end
+
+  def self.PlugLoadsVehicleWeekendFractions
+    return '0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042'
+  end
+
+  def self.PlugLoadsVehicleMonthlyMultipliers
+    return '1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1'
+  end
+
+  def self.PlugLoadsWellPumpWeekdayFractions
+    return '0.044, 0.023, 0.019, 0.015, 0.016, 0.018, 0.026, 0.033, 0.033, 0.032, 0.033, 0.033, 0.032, 0.032, 0.032, 0.033, 0.045, 0.057, 0.066, 0.076, 0.081, 0.086, 0.075, 0.065'
+  end
+
+  def self.PlugLoadsWellPumpWeekendFractions
+    return '0.044, 0.023, 0.019, 0.015, 0.016, 0.018, 0.026, 0.033, 0.033, 0.032, 0.033, 0.033, 0.032, 0.032, 0.032, 0.033, 0.045, 0.057, 0.066, 0.076, 0.081, 0.086, 0.075, 0.065'
+  end
+
+  def self.PlugLoadsWellPumpMonthlyMultipliers
+    return '1.154, 1.161, 1.013, 1.010, 1.013, 0.888, 0.883, 0.883, 0.888, 0.978, 0.974, 1.154'
+  end
+
+  def self.FuelLoadsGrillWeekdayFractions
+    return '0.004, 0.001, 0.001, 0.002, 0.007, 0.012, 0.029, 0.046, 0.044, 0.041, 0.044, 0.046, 0.042, 0.038, 0.049, 0.059, 0.110, 0.161, 0.115, 0.070, 0.044, 0.019, 0.013, 0.007'
+  end
+
+  def self.FuelLoadsGrillWeekendFractions
+    return '0.004, 0.001, 0.001, 0.002, 0.007, 0.012, 0.029, 0.046, 0.044, 0.041, 0.044, 0.046, 0.042, 0.038, 0.049, 0.059, 0.110, 0.161, 0.115, 0.070, 0.044, 0.019, 0.013, 0.007'
+  end
+
+  def self.FuelLoadsGrillMonthlyMultipliers
+    return '1.097, 1.097, 0.991, 0.987, 0.991, 0.890, 0.896, 0.896, 0.890, 1.085, 1.085, 1.097'
+  end
+
+  def self.FuelLoadsLightingWeekdayFractions
+    return '0.044, 0.023, 0.019, 0.015, 0.016, 0.018, 0.026, 0.033, 0.033, 0.032, 0.033, 0.033, 0.032, 0.032, 0.032, 0.033, 0.045, 0.057, 0.066, 0.076, 0.081, 0.086, 0.075, 0.065'
+  end
+
+  def self.FuelLoadsLightingWeekendFractions
+    return '0.044, 0.023, 0.019, 0.015, 0.016, 0.018, 0.026, 0.033, 0.033, 0.032, 0.033, 0.033, 0.032, 0.032, 0.032, 0.033, 0.045, 0.057, 0.066, 0.076, 0.081, 0.086, 0.075, 0.065'
+  end
+
+  def self.FuelLoadsLightingMonthlyMultipliers
+    return '1.154, 1.161, 1.013, 1.010, 1.013, 0.888, 0.883, 0.883, 0.888, 0.978, 0.974, 1.154'
+  end
+
+  def self.FuelLoadsFireplaceWeekdayFractions
+    return '0.044, 0.023, 0.019, 0.015, 0.016, 0.018, 0.026, 0.033, 0.033, 0.032, 0.033, 0.033, 0.032, 0.032, 0.032, 0.033, 0.045, 0.057, 0.066, 0.076, 0.081, 0.086, 0.075, 0.065'
+  end
+
+  def self.FuelLoadsFireplaceWeekendFractions
+    return '0.044, 0.023, 0.019, 0.015, 0.016, 0.018, 0.026, 0.033, 0.033, 0.032, 0.033, 0.033, 0.032, 0.032, 0.032, 0.033, 0.045, 0.057, 0.066, 0.076, 0.081, 0.086, 0.075, 0.065'
+  end
+
+  def self.FuelLoadsFireplaceMonthlyMultipliers
+    return '1.154, 1.161, 1.013, 1.010, 1.013, 0.888, 0.883, 0.883, 0.888, 0.978, 0.974, 1.154'
+  end
+
+  def self.PoolPumpWeekdayFractions
+    return '0.003, 0.003, 0.003, 0.004, 0.008, 0.015, 0.026, 0.044, 0.084, 0.121, 0.127, 0.121, 0.120, 0.090, 0.075, 0.061, 0.037, 0.023, 0.013, 0.008, 0.004, 0.003, 0.003, 0.003'
+  end
+
+  def self.PoolPumpWeekendFractions
+    return '0.003, 0.003, 0.003, 0.004, 0.008, 0.015, 0.026, 0.044, 0.084, 0.121, 0.127, 0.121, 0.120, 0.090, 0.075, 0.061, 0.037, 0.023, 0.013, 0.008, 0.004, 0.003, 0.003, 0.003'
+  end
+
+  def self.PoolPumpMonthlyMultipliers
+    return '1.154, 1.161, 1.013, 1.010, 1.013, 0.888, 0.883, 0.883, 0.888, 0.978, 0.974, 1.154'
+  end
+
+  def self.PoolHeaterWeekdayFractions
+    return '0.003, 0.003, 0.003, 0.004, 0.008, 0.015, 0.026, 0.044, 0.084, 0.121, 0.127, 0.121, 0.120, 0.090, 0.075, 0.061, 0.037, 0.023, 0.013, 0.008, 0.004, 0.003, 0.003, 0.003'
+  end
+
+  def self.PoolHeaterWeekendFractions
+    return '0.003, 0.003, 0.003, 0.004, 0.008, 0.015, 0.026, 0.044, 0.084, 0.121, 0.127, 0.121, 0.120, 0.090, 0.075, 0.061, 0.037, 0.023, 0.013, 0.008, 0.004, 0.003, 0.003, 0.003'
+  end
+
+  def self.PoolHeaterMonthlyMultipliers
+    return '1.154, 1.161, 1.013, 1.010, 1.013, 0.888, 0.883, 0.883, 0.888, 0.978, 0.974, 1.154'
+  end
+
+  def self.HotTubPumpWeekdayFractions
+    return '0.024, 0.029, 0.024, 0.029, 0.047, 0.067, 0.057, 0.024, 0.024, 0.019, 0.015, 0.014, 0.014, 0.014, 0.024, 0.058, 0.126, 0.122, 0.068, 0.061, 0.051, 0.043, 0.024, 0.024'
+  end
+
+  def self.HotTubPumpWeekendFractions
+    return '0.024, 0.029, 0.024, 0.029, 0.047, 0.067, 0.057, 0.024, 0.024, 0.019, 0.015, 0.014, 0.014, 0.014, 0.024, 0.058, 0.126, 0.122, 0.068, 0.061, 0.051, 0.043, 0.024, 0.024'
+  end
+
+  def self.HotTubPumpMonthlyMultipliers
+    return '0.921, 0.928, 0.921, 0.915, 0.921, 1.160, 1.158, 1.158, 1.160, 0.921, 0.915, 0.921'
+  end
+
+  def self.HotTubHeaterWeekdayFractions
+    return '0.024, 0.029, 0.024, 0.029, 0.047, 0.067, 0.057, 0.024, 0.024, 0.019, 0.015, 0.014, 0.014, 0.014, 0.024, 0.058, 0.126, 0.122, 0.068, 0.061, 0.051, 0.043, 0.024, 0.024'
+  end
+
+  def self.HotTubHeaterWeekendFractions
+    return '0.024, 0.029, 0.024, 0.029, 0.047, 0.067, 0.057, 0.024, 0.024, 0.019, 0.015, 0.014, 0.014, 0.014, 0.024, 0.058, 0.126, 0.122, 0.068, 0.061, 0.051, 0.043, 0.024, 0.024'
+  end
+
+  def self.HotTubHeaterMonthlyMultipliers
+    return '0.837, 0.835, 1.084, 1.084, 1.084, 1.096, 1.096, 1.096, 1.096, 0.931, 0.925, 0.837'
+  end
+end
+
+class SchedulesFile
+  def initialize(runner:,
+                 model:,
+                 schedules_path:,
+                 col_names:,
+                 **remainder)
+
+    @validated = true
+    @runner = runner
+    @model = model
+    @schedules_path = schedules_path
+    @external_file = get_external_file
+    import(col_names: col_names)
+  end
+
+  def validated?
+    return @validated
+  end
+
+  def schedules
+    return @schedules
+  end
+
+  def get_col_index(col_name:)
+    headers = CSV.open(@schedules_path, 'r') { |csv| csv.first }
+    col_num = headers.index(col_name)
+    return col_num
+  end
+
+  def get_col_name(col_index:)
+    headers = CSV.open(@schedules_path, 'r') { |csv| csv.first }
+    col_name = headers[col_index]
+    return col_name
+  end
+
+  def create_schedule_file(col_name:,
+                           rows_to_skip: 1)
+    @model.getScheduleFiles.each do |schedule_file|
+      next if schedule_file.name.to_s != col_name
+
+      return schedule_file
+    end
+
+    if @schedules[col_name].nil?
+      @runner.registerError("Could not find the '#{col_name}' schedule.")
+      return false
+    end
+
+    col_index = get_col_index(col_name: col_name)
+    year_description = @model.getYearDescription
+    num_hrs_in_year = Constants.NumHoursInYear(year_description.isLeapYear)
+    schedule_length = @schedules[col_name].length
+    min_per_item = 60.0 / (schedule_length / num_hrs_in_year)
+
+    schedule_file = OpenStudio::Model::ScheduleFile.new(@external_file)
+    schedule_file.setName(col_name)
+    schedule_file.setColumnNumber(col_index + 1)
+    schedule_file.setRowstoSkipatTop(rows_to_skip)
+    schedule_file.setNumberofHoursofData(num_hrs_in_year.to_i)
+    schedule_file.setMinutesperItem("#{min_per_item.to_i}")
+
+    return schedule_file
+  end
+
+  # the equivalent number of hours in the year, if the schedule was at full load (1.0)
+  def annual_equivalent_full_load_hrs(col_name:)
+    # import(col_names: [col_name])
+
+    year_description = @model.getYearDescription
+    num_hrs_in_year = Constants.NumHoursInYear(year_description.isLeapYear)
+    schedule_length = @schedules[col_name].length
+    min_per_item = 60.0 / (schedule_length / num_hrs_in_year)
+
+    ann_equiv_full_load_hrs = @schedules[col_name].reduce(:+) / (60.0 / min_per_item)
+
+    return ann_equiv_full_load_hrs
+  end
+
+  # the power in watts the equipment needs to consume so that, if it were to run annual_equivalent_full_load_hrs hours,
+  # it would consume the annual_kwh energy in the year. Essentially, returns the watts for the equipment when schedule
+  # is at 1.0, so that, for the given schedule values, the equipment will consume annual_kwh energy in a year.
+  def calc_design_level_from_annual_kwh(col_name:,
+                                        annual_kwh:)
+
+    ann_equiv_full_load_hrs = annual_equivalent_full_load_hrs(col_name: col_name)
+    design_level = annual_kwh * 1000.0 / ann_equiv_full_load_hrs # W
+
+    return design_level
+  end
+
+  # Similar to ann_equiv_full_load_hrs, but for thermal energy
+  def calc_design_level_from_annual_therm(col_name:,
+                                          annual_therm:)
+
+    annual_kwh = UnitConversions.convert(annual_therm, 'therm', 'kWh')
+    design_level = calc_design_level_from_annual_kwh(col_name: col_name, annual_kwh: annual_kwh)
+
+    return design_level
+  end
+
+  # similar to the calc_design_level_from_annual_kwh, but use daily_kwh instead of annual_kwh to calculate the design
+  # level
+  def calc_design_level_from_daily_kwh(col_name:,
+                                       daily_kwh:)
+    full_load_hrs = annual_equivalent_full_load_hrs(col_name: col_name)
+    year_description = @model.getYearDescription
+    num_days_in_year = Constants.NumDaysInYear(year_description.isLeapYear)
+    daily_full_load_hrs = full_load_hrs / num_days_in_year
+    design_level = UnitConversions.convert(daily_kwh / daily_full_load_hrs, 'kW', 'W')
+
+    return design_level
+  end
+
+  # thermal equivalent of calc_design_level_from_daily_kwh
+  def calc_design_level_from_daily_therm(col_name:,
+                                         daily_therm:)
+    daily_kwh = UnitConversions.convert(daily_therm, 'therm', 'kWh')
+    design_level = calc_design_level_from_daily_kwh(col_name: col_name, daily_kwh: daily_kwh)
+    return design_level
+  end
+
+  # similar to calc_design_level_from_daily_kwh but for water usage
+  def calc_peak_flow_from_daily_gpm(col_name:, daily_water:)
+    ann_equiv_full_load_hrs = annual_equivalent_full_load_hrs(col_name: col_name)
+    year_description = @model.getYearDescription
+    num_days_in_year = Constants.NumDaysInYear(year_description.isLeapYear)
+    daily_full_load_hrs = ann_equiv_full_load_hrs / num_days_in_year
+    peak_flow = daily_water / daily_full_load_hrs # gallons_per_hour
+    peak_flow /= 60 # convert to gallons per minute
+    peak_flow = UnitConversions.convert(peak_flow, 'gal/min', 'm^3/s') # convert to m^3/s
+    return peak_flow
+  end
+
+  # get daily gallons from the peak flow rate
+  def calc_daily_gpm_from_peak_flow(col_name:, peak_flow:)
+    ann_equiv_full_load_hrs = annual_equivalent_full_load_hrs(col_name: col_name)
+    year_description = @model.getYearDescription
+    num_days_in_year = Constants.NumDaysInYear(year_description.isLeapYear)
+    peak_flow = UnitConversions.convert(peak_flow, 'm^3/s', 'gal/min')
+    daily_gallons = (ann_equiv_full_load_hrs * 60 * peak_flow) / num_days_in_year
+    return daily_gallons
+  end
+
+  def validate_schedule(col_name:,
+                        values:)
+
+    year_description = @model.getYearDescription
+    num_hrs_in_year = Constants.NumHoursInYear(year_description.isLeapYear)
+    schedule_length = values.length
+
+    if values.max > 1
+      @runner.registerError("The max value of schedule '#{col_name}' is greater than 1.")
+      @validated = false
+    end
+
+    min_per_item = 60.0 / (schedule_length / num_hrs_in_year)
+    unless [1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30, 60].include? min_per_item
+      @runner.registerError("Calculated an invalid schedule min_per_item=#{min_per_item}.")
+      @validated = false
+    end
+  end
+
+  def external_file
+    return @external_file
+  end
+
+  def get_external_file
+    if File.exist? @schedules_path
+      external_file = OpenStudio::Model::ExternalFile::getExternalFile(@model, @schedules_path)
+      if external_file.is_initialized
+        external_file = external_file.get
+      end
+    end
+    return external_file
+  end
+
+  def set_vacancy(col_names:)
+    return unless @schedules.keys.include? 'vacancy'
+    return if @schedules['vacancy'].all? { |i| i == 0 }
+
+    @schedules[col_names[0]].each_with_index do |ts, i|
+      col_names.each do |col_name|
+        @schedules[col_name][i] *= (1.0 - @schedules['vacancy'][i])
+      end
+    end
+
+    update(col_names: col_names)
+  end
+
+  def import(col_names:)
+    @schedules = {}
+    col_names += ['vacancy']
+    columns = CSV.read(@schedules_path).transpose
+    columns.each do |col|
+      next if not col_names.include? col[0]
+
+      values = col[1..-1].reject { |v| v.nil? }
+      values = values.map { |v| v.to_f }
+      validate_schedule(col_name: col[0], values: values)
+      @schedules[col[0]] = values
+    end
+  end
+
+  def export
+    return false if @schedules_path.nil?
+
+    CSV.open(@schedules_path, 'wb') do |csv|
+      csv << @schedules.keys
+      rows = @schedules.values.transpose
+      rows.each do |row|
+        csv << row
+      end
+    end
+
+    return true
+  end
+
+  def update(col_names:)
+    return false if @schedules_path.nil?
+
+    # need to update schedules csv in generated_files folder (alongside run folder) since this is what the simulation points to
+    schedules_path = File.expand_path(File.join(File.dirname(@schedules_path), '../generated_files', File.basename(@schedules_path)))
+
+    columns = CSV.read(schedules_path).transpose
+    col_names.each do |col_name|
+      col_num = get_col_index(col_name: col_name)
+      columns.each_with_index do |col, i|
+        next unless i == col_num
+
+        columns[i][1..-1] = @schedules[col_name]
+      end
+    end
+
+    rows = columns.transpose
+    CSV.open(schedules_path, 'wb') do |csv|
+      rows.each do |row|
+        csv << row
+      end
+    end
   end
 end
