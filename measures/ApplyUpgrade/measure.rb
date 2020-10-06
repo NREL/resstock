@@ -305,8 +305,11 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
 
       # Get the absolute paths relative to this meta measure in the run directory
       measures['BuildResidentialHPXML'][0]['hpxml_path'] = File.expand_path('../upgraded.xml')
-      measures['BuildResidentialHPXML'][0]['schedules_type'] = 'user-specified'
-      measures['BuildResidentialHPXML'][0]['schedules_path'] = File.expand_path('../schedules.csv')
+      schedules_type = measures['BuildResidentialHPXML'][0]['schedules_type']
+      if schedules_type == 'stochastic' # avoid re-running the stochastic schedule generator
+        measures['BuildResidentialHPXML'][0]['schedules_type'] = 'user-specified'
+        measures['BuildResidentialHPXML'][0]['schedules_path'] = File.expand_path('../schedules.csv')
+      end
       measures['HPXMLtoOpenStudio'] = [{ 'hpxml_path' => File.expand_path('../upgraded.xml') }]
 
       # Get software program used and version
