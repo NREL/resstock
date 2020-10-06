@@ -205,6 +205,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
 
     # Get the absolute paths relative to this meta measure in the run directory
     measures['BuildResidentialHPXML'][0]['hpxml_path'] = File.expand_path('../existing.xml')
+    measures['BuildResidentialHPXML'][0]['schedules_type'] = 'stochastic'
     measures['HPXMLtoOpenStudio'] = [{ 'hpxml_path' => File.expand_path('../existing.xml') }]
 
     # Get software program used and version
