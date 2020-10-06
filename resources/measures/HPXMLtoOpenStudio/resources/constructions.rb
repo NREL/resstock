@@ -2045,12 +2045,6 @@ class ThermalMassConstructions
 
     imdefs = []
     spaces.each do |space|
-      # Determine existing partition wall mass in space
-      existing_surface_area = 0
-      surfaces.each do |surface|
-        existing_surface_area += surface.grossArea
-      end
-
       # Determine partition wall area (frac_of_ffa = 1 includes both sides of partition wall)
       part_surface_area = frac_of_ffa * space.floorArea
 
