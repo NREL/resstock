@@ -5,7 +5,6 @@ start_time = Time.now
 require 'fileutils'
 require 'optparse'
 require 'pathname'
-require 'openstudio'
 require_relative '../HPXMLtoOpenStudio/resources/meta_measure'
 require_relative '../HPXMLtoOpenStudio/resources/version'
 

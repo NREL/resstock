@@ -172,7 +172,9 @@ class Geometry
     end
 
     # Create schedule
-    activity_sch = OpenStudio::Model::ScheduleRuleset.new(model, activity_per_person)
+    activity_sch = OpenStudio::Model::ScheduleConstant.new(model)
+    activity_sch.setValue(activity_per_person)
+    activity_sch.setName(Constants.ObjectNameOccupants + ' activity schedule')
 
     # Add people definition for the occ
     occ_def = OpenStudio::Model::PeopleDefinition.new(model)

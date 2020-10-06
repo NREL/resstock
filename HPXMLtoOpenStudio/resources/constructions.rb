@@ -839,11 +839,11 @@ class Constructions
     surface.createSurfacePropertyExposedFoundationPerimeter('TotalExposedPerimeter', UnitConversions.convert(exposed_perimeter, 'ft', 'm'))
   end
 
-  def self.apply_door(runner, model, subsurfaces, constr_name, ufactor)
+  def self.apply_door(runner, model, subsurfaces, constr_name, ufactor, inside_film, outside_film)
     return if subsurfaces.empty?
 
     # Define materials
-    door_Rvalue = 1.0 / ufactor - Material.AirFilmOutside.rvalue - Material.AirFilmVertical.rvalue
+    door_Rvalue = 1.0 / ufactor - inside_film.rvalue - outside_film.rvalue
     door_thickness = 1.75 # in
     fin_door_mat = Material.new(name = 'DoorMaterial', thick_in = door_thickness, mat_base = BaseMaterial.Wood, k_in = 1.0 / door_Rvalue * door_thickness)
 
@@ -858,18 +858,18 @@ class Constructions
     constr.create_and_assign_constructions(runner, subsurfaces, model)
   end
 
-  def self.apply_window(runner, model, subsurfaces, constr_name, weather,
-                        is_sch, ufactor, shgc, heat_shade_mult, cool_shade_mult)
+  def self.apply_window(runner, model, subsurface, constr_name, weather,
+                        heat_sch, cool_sch, ufactor, shgc, heat_shade_mult, cool_shade_mult)
 
-    apply_window_skylight(runner, model, 'Window', subsurfaces, constr_name, weather,
-                          is_sch, ufactor, shgc, heat_shade_mult, cool_shade_mult)
+    apply_window_skylight(runner, model, 'Window', subsurface, constr_name, weather,
+                          heat_sch, cool_sch, ufactor, shgc, heat_shade_mult, cool_shade_mult)
   end
 
-  def self.apply_skylight(runner, model, subsurfaces, constr_name, weather,
-                          is_sch, ufactor, shgc, heat_shade_mult, cool_shade_mult)
+  def self.apply_skylight(runner, model, subsurface, constr_name, weather,
+                          heat_sch, cool_sch, ufactor, shgc, heat_shade_mult, cool_shade_mult)
 
-    apply_window_skylight(runner, model, 'Skylight', subsurfaces, constr_name, weather,
-                          is_sch, ufactor, shgc, heat_shade_mult, cool_shade_mult)
+    apply_window_skylight(runner, model, 'Skylight', subsurface, constr_name, weather,
+                          heat_sch, cool_sch, ufactor, shgc, heat_shade_mult, cool_shade_mult)
   end
 
   def self.apply_partition_walls(runner, model, constr_name, drywall_thick_in, frac_of_ffa,
@@ -972,7 +972,8 @@ class Constructions
   end
 
   def self.create_os_int_mass_and_def(model, object_name, space, area)
-    # create internal mass objects
+    # EnergyPlus documentation: If both sides of the surface exchange energy with the zone
+    # then the user should input twice the area when defining the Internal Mass object.
     imdef = OpenStudio::Model::InternalMassDefinition.new(model)
     imdef.setName(object_name)
     imdef.setSurfaceArea(area)
@@ -1178,55 +1179,61 @@ class Constructions
     return mat
   end
 
-  def self.apply_window_skylight(runner, model, type, subsurfaces, constr_name, weather,
-                                 is_sch, ufactor, shgc, heat_shade_mult, cool_shade_mult)
-
-    return if subsurfaces.empty?
+  def self.apply_window_skylight(runner, model, type, subsurface, constr_name, weather,
+                                 heat_sch, cool_sch, ufactor, shgc, heat_shade_mult, cool_shade_mult)
 
     # Define shade and schedule
-    sc = nil
-    if (cool_shade_mult < 1) || (heat_shade_mult < 1)
-      # EnergyPlus doesn't like shades that absorb no heat, transmit no heat or reflect no heat.
-      if cool_shade_mult == 1
-        cool_shade_mult = 0.999
-      end
-      if heat_shade_mult == 1
-        heat_shade_mult = 0.999
+    { 'Cooling' => [cool_sch, cool_shade_mult],
+      'Heating' => [heat_sch, heat_shade_mult] }.each do |mode, values|
+      sch, shade_mult = values
+      next if shade_mult >= 1.0
+
+      shade_name = "#{type}#{mode}Shade"
+      sc_name = "#{type}#{mode}ShadingControl"
+
+      # Reuse existing Shade?
+      # Note: We still create a unique ShadingControl per subsurface in order to
+      # prevent the shading control from being used by subsurfaces in different
+      # zones, which is probably not a good idea.
+      sm = nil
+      model.getShades.each do |shade|
+        next unless (shade.solarTransmittance - shade_mult).abs < 0.0001
+        next unless shade.name.to_s.start_with? shade_name
+
+        sm = shade
+        break
       end
 
-      total_shade_trans = cool_shade_mult / heat_shade_mult * 0.999
-      total_shade_abs = 0.00001
-      total_shade_ref = 1 - total_shade_trans - total_shade_abs
+      if sm.nil?
+        shade_abs = 0.00001
+        shade_ref = 1.0 - shade_mult - shade_abs
 
-      # CoolingShade
-      sm = OpenStudio::Model::Shade.new(model)
-      sm.setName("#{type}CoolingShade")
-      sm.setSolarTransmittance(total_shade_trans)
-      sm.setSolarReflectance(total_shade_ref)
-      sm.setVisibleTransmittance(total_shade_trans)
-      sm.setVisibleReflectance(total_shade_ref)
-      sm.setThermalHemisphericalEmissivity(total_shade_abs)
-      sm.setThermalTransmittance(total_shade_trans)
-      sm.setThickness(0.0001)
-      sm.setConductivity(10000)
-      sm.setShadetoGlassDistance(0.001)
-      sm.setTopOpeningMultiplier(0)
-      sm.setBottomOpeningMultiplier(0)
-      sm.setLeftSideOpeningMultiplier(0)
-      sm.setRightSideOpeningMultiplier(0)
-      sm.setAirflowPermeability(0)
+        # Shade
+        sm = OpenStudio::Model::Shade.new(model)
+        sm.setName(shade_name)
+        sm.setSolarTransmittance(shade_mult)
+        sm.setSolarReflectance(shade_ref)
+        sm.setVisibleTransmittance(shade_mult)
+        sm.setVisibleReflectance(shade_ref)
+        sm.setThermalHemisphericalEmissivity(shade_abs)
+        sm.setThermalTransmittance(shade_mult)
+        sm.setThickness(0.0001)
+        sm.setConductivity(10000)
+        sm.setShadetoGlassDistance(0.001)
+        sm.setTopOpeningMultiplier(0)
+        sm.setBottomOpeningMultiplier(0)
+        sm.setLeftSideOpeningMultiplier(0)
+        sm.setRightSideOpeningMultiplier(0)
+        sm.setAirflowPermeability(0)
+      end
 
       # ShadingControl
       sc = OpenStudio::Model::ShadingControl.new(sm)
-      sc.setName("#{type}ShadingControl")
+      sc.setName(sc_name)
       sc.setShadingType('InteriorShade')
       sc.setShadingControlType('OnIfScheduleAllows')
-      sc.setSchedule(is_sch.schedule)
-
-      # Add shading controls
-      subsurfaces.each do |subsurface|
-        subsurface.setShadingControl(sc)
-      end
+      sc.setSchedule(sch.schedule)
+      subsurface.addShadingControl(sc)
     end
 
     # Define materials
@@ -1238,7 +1245,7 @@ class Constructions
       # by 1.20." Thus we divide by 1.2 to get the vertical position value.
       ufactor /= 1.2
     end
-    glaz_mat = GlazingMaterial.new("#{type}Material", ufactor, shgc * heat_shade_mult)
+    glaz_mat = GlazingMaterial.new("#{type}Material", ufactor, shgc)
 
     # Set paths
     path_fracs = [1]
@@ -1248,7 +1255,7 @@ class Constructions
     constr.add_layer(glaz_mat)
 
     # Create and assign construction to subsurfaces
-    constr.create_and_assign_constructions(runner, subsurfaces, model)
+    constr.create_and_assign_constructions(runner, [subsurface], model)
   end
 end
 
