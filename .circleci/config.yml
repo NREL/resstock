@@ -30,8 +30,14 @@ jobs:
           command: |
             rake test:regression_tests
       - store_artifacts:
-            path: workflows/results
-            destination: results
+            path: workflows/results/results.csv
+            destination: example_osws.csv
+      - store_artifacts:
+            path: test/test_measures_osw/results/results.csv
+            destination: measures_osws.csv
+      - store_artifacts:
+            path: test/test_measures_osw/buildstock.csv
+            destination: buildstock.csv
       - store_artifacts:
             path: resources/measures/ResidentialScheduleGenerator/tests/output/test_sweep_building_ids_and_num_occupants
             destination: schedules
