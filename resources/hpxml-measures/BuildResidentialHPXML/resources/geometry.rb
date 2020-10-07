@@ -886,39 +886,51 @@ class Geometry
       end
     end
 
+    # Initialize
     surface_window_area = {}
     target_facade_areas = {}
     facades.each do |facade|
-      # Initialize
+      target_facade_areas[facade] = 0.0
       wall_surfaces[facade].each do |surface|
         surface_window_area[surface] = 0
       end
+    end
 
+    facades.each do |facade|
       # Calculate target window area for this facade
-      target_facade_areas[facade] = 0.0
       if wwrs[facade] > 0
         wall_area = 0
         wall_surfaces[facade].each do |surface|
-          wall_area += UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2')
+          wall_area += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
         end
-        target_facade_areas[facade] = wall_area * wwrs[facade]
+        target_facade_areas[facade] += wall_area * wwrs[facade]
       else
-        target_facade_areas[facade] = window_areas[facade]
+        target_facade_areas[facade] += window_areas[facade]
       end
 
       next if target_facade_areas[facade] == 0
 
       if target_facade_areas[facade] < min_single_window_area
         # If the total window area for the facade is less than the minimum window area,
-        # set all of the window area to the surface with the greatest available wall area
-        surface = my_hash.max_by { |k, v| v }[0]
-        surface_window_area[surface] = target_facade_areas[facade]
+        # set all of the window area to the surface with the greatest available wall area on any facade
+        surface = surface_avail_area.max_by { |k, v| v }[0]
+        next if Geometry.get_facade_for_surface(surface) == facade
+        next if surface_avail_area[surface] == facade_avail_area[facade]
+
+        surface_window_area[surface] += target_facade_areas[facade]
+
+        new_facade = Geometry.get_facade_for_surface(surface)
+        area_moved = target_facade_areas[facade]
+        target_facade_areas[facade] = 0
+        target_facade_areas[new_facade] = surface_window_area[surface]
+
+        runner.registerWarning("The #{facade} facade window area (#{area_moved.round(2)} ft2) is less than the minimum window area allowed (#{min_single_window_area.round(2)} ft2), and has been added to the #{new_facade} facade.")
         next
       end
 
       # Initial guess for wall of this facade
       wall_surfaces[facade].each do |surface|
-        surface_window_area[surface] = surface_avail_area[surface] / facade_avail_area[facade] * target_facade_areas[facade]
+        surface_window_area[surface] += surface_avail_area[surface] / facade_avail_area[facade] * target_facade_areas[facade]
       end
 
       # If window area for a surface is less than the minimum window area,
@@ -954,6 +966,7 @@ class Geometry
         sum_window_area += surface_window_area[surface]
       end
       next if sum_window_area == 0
+      next if target_facade_areas[facade] < sum_window_area # for cases where window area was added from different facade
 
       wall_surfaces[facade].each do |surface|
         surface_window_area[surface] += surface_window_area[surface] / sum_window_area * (target_facade_areas[facade] - sum_window_area)
