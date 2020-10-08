@@ -2,7 +2,7 @@
 require 'csv'
 
 # start the measure
-class AddIntervalScheduleFromFileLDRD < OpenStudio::Ruleset::ModelUserScript
+class AddIntervalScheduleFromFile < OpenStudio::Ruleset::ModelUserScript
 
   # display name
   def name
@@ -113,4 +113,4 @@ class AddIntervalScheduleFromFileLDRD < OpenStudio::Ruleset::ModelUserScript
   end
 end
 # this allows the measure to be use by the application
-AddIntervalScheduleFromFileLDRD.new.registerWithApplication
+AddIntervalScheduleFromFile.new.registerWithApplication
