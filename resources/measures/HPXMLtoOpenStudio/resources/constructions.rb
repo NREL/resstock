@@ -2045,14 +2045,8 @@ class ThermalMassConstructions
 
     imdefs = []
     spaces.each do |space|
-      # Determine existing partition wall mass in space
-      existing_surface_area = 0
-      surfaces.each do |surface|
-        existing_surface_area += surface.grossArea
-      end
-
-      # Determine additional partition wall mass required
-      addtl_surface_area = frac_of_ffa * space.floorArea - existing_surface_area * 2 / spaces.size.to_f
+      # Determine partition wall area (frac_of_ffa = 1 includes both sides of partition wall)
+      part_surface_area = frac_of_ffa * space.floorArea
 
       # Remove any existing internal mass
       space.internalMass.each do |im|
@@ -2063,19 +2057,17 @@ class ThermalMassConstructions
         imdef.remove
       end
 
-      if addtl_surface_area > 0
-        # Add remaining partition walls within spaces (those without geometric representation)
-        # as internal mass object.
-        imdef = OpenStudio::Model::InternalMassDefinition.new(model)
-        imdef.setName("#{space.name.to_s} Partition")
-        imdef.setSurfaceArea(addtl_surface_area)
-        imdefs << imdef
+      # Add partition walls within spaces (those without geometric representation)
+      # as internal mass object.
+      imdef = OpenStudio::Model::InternalMassDefinition.new(model)
+      imdef.setName("#{space.name.to_s} Partition")
+      imdef.setSurfaceArea(part_surface_area)
+      imdefs << imdef
 
-        im = OpenStudio::Model::InternalMass.new(imdef)
-        im.setName("#{space.name.to_s} Partition")
-        im.setSpace(space)
-        runner.registerInfo("Added internal mass object '#{im.name.to_s}' to space '#{space.name.to_s}'")
-      end
+      im = OpenStudio::Model::InternalMass.new(imdef)
+      im.setName("#{space.name.to_s} Partition")
+      im.setSpace(space)
+      runner.registerInfo("Added internal mass object '#{im.name.to_s}' to space '#{space.name.to_s}'")
     end
 
     if not WallConstructions.apply_wood_stud(runner, model,
