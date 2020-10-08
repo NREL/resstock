@@ -59,6 +59,7 @@ class TestResStockMeasuresOSW < MiniTest::Test
         next if measures_upgrade_osw_dir.nil?
         measures_upgrade_osw = File.join(parent_dir, 'run', 'measures-upgrade.osw')
         new_measures_upgrade_osw = File.join(measures_upgrade_osw_dir, "#{building_unit_id}.osw")
+
         FileUtils.mv(measures_upgrade_osw, new_measures_upgrade_osw)
       end
     end
