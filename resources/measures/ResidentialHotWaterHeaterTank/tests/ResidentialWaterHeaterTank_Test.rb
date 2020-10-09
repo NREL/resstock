@@ -81,7 +81,7 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     args_hash["capacity"] = "18.77"
     args_hash["tank_model_type"] = "stratified"
     expected_num_del_objects = {}
-    expected_num_new_objects = { "WaterHeaterStratified" => 1, "PlantLoop" => 1, "PumpVariableSpeed" => 1, "ScheduleConstant" => 2}
+    expected_num_new_objects = { "WaterHeaterStratified" => 1, "PlantLoop" => 1, "PumpVariableSpeed" => 1, "ScheduleConstant" => 2 }
     expected_values = { "TankVolume" => 50, "InputCapacity" => 5.5, "ThermalEfficiency" => 1.0, "TankUA" => 0.124, "Setpoint" => 125, "OnCycle" => 0, "OffCycle" => 0, "FuelType" => Constants.FuelTypeElectric, "SkinLossFrac" => 1.0 }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
@@ -96,7 +96,7 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     args_hash["schedule_directory"] = "./resources"
     args_hash["setpoint_schedule"] = "hourly_setpoint_schedule.csv"
     expected_num_del_objects = {}
-    expected_num_new_objects = { "WaterHeaterStratified" => 1, "PlantLoop" => 1, "PumpVariableSpeed" => 1, "ScheduleFixedInterval" => 2}
+    expected_num_new_objects = { "WaterHeaterStratified" => 1, "PlantLoop" => 1, "PumpVariableSpeed" => 1, "ScheduleFixedInterval" => 2 }
     expected_values = { "TankVolume" => 50, "InputCapacity" => 5.5, "ThermalEfficiency" => 1.0, "TankUA" => 0.124, "OnCycle" => 0, "OffCycle" => 0, "FuelType" => Constants.FuelTypeElectric, "SkinLossFrac" => 1.0 }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
@@ -225,20 +225,20 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     args_hash["schedule_directory"] = "./resources"
     args_hash["setpoint_schedule"] = "hourly_setpoint_schedule.csv"
     expected_num_del_objects = { "WaterHeaterStratified" => 1, "ScheduleConstant" => 1 }
-    expected_num_new_objects = { "WaterHeaterStratified" => 1, "ScheduleFixedInterval" => 1}
+    expected_num_new_objects = { "WaterHeaterStratified" => 1, "ScheduleFixedInterval" => 1 }
     expected_values = { "TankVolume" => 50, "InputCapacity" => 5.5, "ThermalEfficiency" => 1.0, "TankUA" => 0.124, "OnCycle" => 0, "OffCycle" => 0, "FuelType" => Constants.FuelTypeElectric, "SkinLossFrac" => 1.0 }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_Stratified_WHTank.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
-  end  
+  end
 
-  #def test_retrofit_replace_tank_gas_with_tank_electric
-  
-  #def test_retrofit_replace_tank_gas_with_tank_electric_scheduled_sp
+  # def test_retrofit_replace_tank_gas_with_tank_electric
 
-  #def test_retrofit_replace_hpwh_with_tank_electric
-  
-  #def test_retrofit_replace_hpwh_with_tank_electric_scheduled_sp
+  # def test_retrofit_replace_tank_gas_with_tank_electric_scheduled_sp
 
-  #def test_retrofit_replace_tankless_gas_with_tank_electric
+  # def test_retrofit_replace_hpwh_with_tank_electric
+
+  # def test_retrofit_replace_hpwh_with_tank_electric_scheduled_sp
+
+  # def test_retrofit_replace_tankless_gas_with_tank_electric
 
   def test_retrofit_replace_tank_electric_scheduled_sp_with_tank_electric_scheduled_sp
     args_hash = {}
@@ -265,14 +265,14 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     args_hash["schedule_directory"] = "./resources"
     args_hash["setpoint_schedule"] = "hourly_setpoint_schedule.csv"
     expected_num_del_objects = { "WaterHeaterMixed" => 1, "ScheduleConstant" => 1 }
-    expected_num_new_objects = { "WaterHeaterStratified" => 1, "ScheduleFixedInterval" => 1}
+    expected_num_new_objects = { "WaterHeaterStratified" => 1, "ScheduleFixedInterval" => 1 }
     expected_values = { "TankVolume" => 50, "InputCapacity" => 5.5, "ThermalEfficiency" => 1.0, "TankUA" => 0.124, "OnCycle" => 0, "OffCycle" => 0, "FuelType" => Constants.FuelTypeElectric, "SkinLossFrac" => 1.0 }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTankless.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
-  #def test_retrofit_replace_tank_electric_swh_with_tank_electric
+  # def test_retrofit_replace_tank_electric_swh_with_tank_electric
 
-  #def test_retrofit_replace_tank_electric_swh_with_tank_electric_scheduled_sp
+  # def test_retrofit_replace_tank_electric_swh_with_tank_electric_scheduled_sp
 
   def test_retrofit_replace
     args_hash = {}
@@ -332,23 +332,23 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     assert_equal(result.errors.map { |x| x.logMessage }[0], "'#{File.expand_path("..", __dir__)}/resources/non_existent_schedule.csv' does not exist.")
   end
 
-  #def test_argument_error_setpoint_schedule_wrong_length
+  # def test_argument_error_setpoint_schedule_wrong_length
   #  args_hash = {}
   #  args_hash["setpoint_type"] = "scheduled"
   #  args_hash["schedule_directory"] = "./resources"
   #  args_hash["setpoint_schedule"] = "bad_schedule_negative_setpoint.csv"
   #  result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash)
   #  assert_equal(result.errors.map { |x| x.logMessage }[0], "'#{File.expand_path("..", __dir__)}/resources/non_existent_schedule.csv' does not exist.")
-  #end
+  # end
 
-  #def test_argument_error_bad_setpoint_schedule_bad_values
+  # def test_argument_error_bad_setpoint_schedule_bad_values
   #  args_hash = {}
   #  args_hash["setpoint_type"] = "scheduled"
   #  args_hash["schedule_directory"] = "#{__dir__}/test_schedules"
   #  args_hash["setpoint_schedule"] = "bad_schedule_not_enough_values.csv"
   #  result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash)
   #  assert_equal(result.errors.map { |x| x.logMessage }[0], "'#{File.expand_path("..", __dir__)}/resources/non_existent_schedule.csv' does not exist.")
-  #end
+  # end
 
   def test_argument_error_tank_volume_invalid_str
     args_hash = {}
@@ -611,11 +611,11 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
             actual_values["Setpoint"] += Waterheater.get_water_heater_setpoint(model, new_object.plantLoop.get, nil)
             assert_equal(HelperMethods.eplus_fuel_map(expected_values["FuelType"]), new_object.heaterFuelType)
             actual_values["SkinLossFrac"] += new_object.offCycleLossFractiontoThermalZone
-          else #Stratified tank
+          else # Stratified tank
             actual_values["InputCapacity"] += UnitConversions.convert(new_object.heater1Capacity.get, "W", "kW")
             actual_values["ThermalEfficiency"] += new_object.heaterThermalEfficiency.to_f
-            actual_values["TankUA1"] += UnitConversions.convert(new_object.uniformSkinLossCoefficientperUnitAreatoAmbientTemperature.to_f, "W/K","Btu/(hr*F)")
-            actual_values["TankUA2"] += UnitConversions.convert(new_object.uniformSkinLossCoefficientperUnitAreatoAmbientTemperature.to_f, "W/K","Btu/(hr*F)")
+            actual_values["TankUA1"] += UnitConversions.convert(new_object.uniformSkinLossCoefficientperUnitAreatoAmbientTemperature.to_f, "W/K", "Btu/(hr*F)")
+            actual_values["TankUA2"] += UnitConversions.convert(new_object.uniformSkinLossCoefficientperUnitAreatoAmbientTemperature.to_f, "W/K", "Btu/(hr*F)")
             actual_values["SkinLossFrac"] += new_object.skinLossFractiontoZone.to_f
             if defined? (new_object.heater1SetpointTemperatureSchedule.to_ScheduleConstant.get.value)
               actual_values["Setpoint"] += UnitConversions.convert(new_object.heater1SetpointTemperatureSchedule.to_ScheduleConstant.get.value, "C", "F")

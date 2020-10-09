@@ -210,27 +210,26 @@ class ResidentialHotWaterHeaterTank < OpenStudio::Measure::ModelMeasure
       end
       setpoint_schedule_file = File.join(schedule_directory, setpoint_schedule)
 
-      #Error checking: make sure the schedule file is an appropriate length and values are valid
-      #setpoint_hourly = HourlySchedule.new(model, runner, sch_name, dr_schedule_file, 0, false, [])
-      #setpoint_hourly_array = setpoint_hourly.schedule_array.map { |x| x.to_i }
-      #setpoint_hourly.schedule.remove
+      # Error checking: make sure the schedule file is an appropriate length and values are valid
+      # setpoint_hourly = HourlySchedule.new(model, runner, sch_name, dr_schedule_file, 0, false, [])
+      # setpoint_hourly_array = setpoint_hourly.schedule_array.map { |x| x.to_i }
+      # setpoint_hourly.schedule.remove
 
+      # year_description = model.getYearDescription
+      # assumed_year = year_description.assumedYear
+      # yr_hrs = Constants.NumHoursInYear(year_description.isLeapYear)
+      # run_period = model.getRunPeriod
+      # run_period_start = Time.new(assumed_year, run_period.getBeginMonth, run_period.getBeginDayOfMonth)
+      # run_period_end = Time.new(assumed_year, run_period.getEndMonth, run_period.getEndDayOfMonth, 24)
+      # sim_hours = (run_period_end - run_period_start) / 3600
 
-      #year_description = model.getYearDescription
-      #assumed_year = year_description.assumedYear
-      #yr_hrs = Constants.NumHoursInYear(year_description.isLeapYear)
-      #run_period = model.getRunPeriod
-      #run_period_start = Time.new(assumed_year, run_period.getBeginMonth, run_period.getBeginDayOfMonth)
-      #run_period_end = Time.new(assumed_year, run_period.getEndMonth, run_period.getEndDayOfMonth, 24)
-      #sim_hours = (run_period_end - run_period_start) / 3600
-
-      #year_description = model.getYearDescription
-      #n_days = Constants.NumDaysInYear(year_description.isLeapYear)
-      #if (sp_hourly_array.length != sim_hours) and (sp_hourly_array.length != n_days * 24)
+      # year_description = model.getYearDescription
+      # n_days = Constants.NumDaysInYear(year_description.isLeapYear)
+      # if (sp_hourly_array.length != sim_hours) and (sp_hourly_array.length != n_days * 24)
       #  runner.registerError("Hourly water heater setpoint schedule length must equal to a full year")
       #  return false
-      #end
-      #return true
+      # end
+      # return true
 
       if not File.exists?(setpoint_schedule_file)
         runner.registerError("'#{setpoint_schedule_file}' does not exist.")
