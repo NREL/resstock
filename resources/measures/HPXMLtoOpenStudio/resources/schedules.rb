@@ -495,13 +495,18 @@ class HourlySchedule
         else
           value = linedata[0].to_f + offset
         end
+        if value < 0 or value > 100
+          runner.RegisterError("Invalid value included in the hourly water heater setpoint. Setpoint must be greater and 0 C and less than 100 C")
+        elsif value < 37.78 or value > 60
+          runner.RegisterWarning("Water heater setpoint below 100 F or above 140 F, double check inputs")
+        end
         data[hour] = value
       else
         if validation_values.include? linedata[0]
           value = validation_values.find_index(linedata[0]).to_f / (validation_values.length.to_f - 1.0)
           data[hour] = value
         else
-          runner.registerError("Invalid value included in the hourly schedule file. The invalid data occurs at hour #{hour}")
+          runner.registerError("Invalid value included in the hourly water heater setpoint schedule file. The invalid data occurs at hour #{hour}")
         end
       end
       hour += 1
