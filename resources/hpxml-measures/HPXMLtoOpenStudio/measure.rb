@@ -144,15 +144,10 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
 
     is_valid = true
 
-    # Validate input HPXML against schema
-    XMLHelper.validate(hpxml.doc.to_xml, File.join(schemas_dir, 'HPXML.xsd'), runner).each do |error|
-      runner.registerError("#{hpxml_path}: #{error}")
-      is_valid = false
-    end
-
-    # Validate input HPXML against EnergyPlus Use Case
-    stron_path = File.join(File.dirname(__FILE__), 'resources', 'EPvalidator.xml')
-    errors = Validator.run_validator(hpxml.doc, stron_path)
+    # Validate input HPXML against schematron docs
+    stron_paths = [File.join(File.dirname(__FILE__), 'resources', 'HPXMLvalidator.xml'),
+                   File.join(File.dirname(__FILE__), 'resources', 'EPvalidator.xml')]
+    errors = Validator.run_validators(hpxml.doc, stron_paths)
     errors.each do |error|
       runner.registerError("#{hpxml_path}: #{error}")
       is_valid = false
@@ -220,7 +215,7 @@ class OSModel
     weather, epw_file = Location.apply_weather_file(model, runner, epw_path, cache_path)
     check_for_errors()
     set_defaults_and_globals(runner, output_dir, epw_file)
-    weather = Location.apply(model, runner, weather, epw_file, @hpxml)
+    Location.apply(model, runner, weather, epw_file, @hpxml)
     add_simulation_params(model)
 
     @schedules_file = nil
@@ -366,6 +361,13 @@ class OSModel
       if @hpxml.frame_floors.select { |s| s.is_ceiling && [s.interior_adjacent_to, s.exterior_adjacent_to].include?(location) }.size == 0
         fail "There must be at least one floor adjacent to #{location}."
       end
+    end
+
+    # Error-checking from RESNET Pub 002: Number of bedrooms
+    nbeds = @hpxml.building_construction.number_of_bedrooms
+    nbeds_limit = (@hpxml.building_construction.conditioned_floor_area - 120.0) / 70.0
+    if nbeds > nbeds_limit
+      fail "Number of bedrooms (#{nbeds}) exceeds limit of (CFA-120)/70=#{nbeds_limit.round(1)}."
     end
   end
 
@@ -668,7 +670,7 @@ class OSModel
         else
           vf = vf_map_cb[from_surface][to_surface]
         end
-        next if vf < 0.01
+        next if vf < 0.05 # Skip small view factors to reduce runtime
 
         os_vf = OpenStudio::Model::ViewFactor.new(from_surface, to_surface, vf.round(10))
         zone_prop.addViewFactor(os_vf)
@@ -1593,7 +1595,8 @@ class OSModel
     sum_cfa = 0.0
     @hpxml.frame_floors.each do |frame_floor|
       next unless frame_floor.is_floor
-      next unless frame_floor.interior_adjacent_to == HPXML::LocationLivingSpace
+      next unless [HPXML::LocationLivingSpace, HPXML::LocationBasementConditioned].include?(frame_floor.interior_adjacent_to) ||
+                  [HPXML::LocationLivingSpace, HPXML::LocationBasementConditioned].include?(frame_floor.exterior_adjacent_to)
 
       sum_cfa += frame_floor.area
     end
@@ -1604,7 +1607,12 @@ class OSModel
     end
 
     addtl_cfa = @cfa - sum_cfa
-    return unless addtl_cfa > 0.1
+
+    if addtl_cfa < -0.1 # Allow some rounding
+      fail "Sum of floor/slab area adjacent to conditioned space (#{sum_cfa.round(1)}) is greater than conditioned floor area (#{@cfa.round(1)})."
+    end
+
+    return unless addtl_cfa > 0.1 # Allow some rounding
 
     floor_width = Math::sqrt(addtl_cfa)
     floor_length = addtl_cfa / floor_width
@@ -2714,9 +2722,7 @@ class OSModel
 
     infil_flow_actuators = []
     natvent_flow_actuators = []
-    mechvent_flow_actuators = []
     whf_flow_actuators = []
-    cd_flow_actuators = []
 
     model.getEnergyManagementSystemActuators.each do |actuator|
       next unless (actuator.actuatedComponentType == 'Zone Infiltration') && (actuator.actuatedComponentControlType == 'Air Exchange Flow Rate')
@@ -2727,18 +2733,15 @@ class OSModel
         natvent_flow_actuators << actuator
       elsif actuator.name.to_s.start_with? Constants.ObjectNameWholeHouseFan.gsub(' ', '_')
         whf_flow_actuators << actuator
-      elsif actuator.name.to_s.start_with? Constants.ObjectNameClothesDryerExhaust.gsub(' ', '_')
-        cd_flow_actuators << actuator
       end
     end
-    if (infil_flow_actuators.size != 1) || (natvent_flow_actuators.size != 1) || (whf_flow_actuators.size != 1) || (cd_flow_actuators.size != 1)
+    if (infil_flow_actuators.size != 1) || (natvent_flow_actuators.size != 1) || (whf_flow_actuators.size != 1)
       fail 'Could not find actuator for component loads.'
     end
 
     infil_flow_actuator = infil_flow_actuators[0]
     natvent_flow_actuator = natvent_flow_actuators[0]
     whf_flow_actuator = whf_flow_actuators[0]
-    cd_flow_actuator = cd_flow_actuators[0]
 
     # EMS Sensors: Ducts
 
@@ -2916,7 +2919,7 @@ class OSModel
       intgains_dhw_sensors[dhw_sensor] = [offcycle_loss, oncycle_loss, dhw_rtf_sensor]
     end
 
-    nonsurf_names = ['intgains', 'infil', 'mechvent', 'natvent', 'whf', 'ducts', 'cd']
+    nonsurf_names = ['intgains', 'infil', 'mechvent', 'natvent', 'whf', 'ducts']
 
     # EMS program
     program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
@@ -2956,18 +2959,16 @@ class OSModel
     end
 
     # EMS program: Infiltration, Natural Ventilation, Mechanical Ventilation, Ducts
-    program.addLine("Set hr_airflow_rate = #{infil_flow_actuator.name} + #{natvent_flow_actuator.name} + #{whf_flow_actuator.name} + #{cd_flow_actuator.name}")
+    program.addLine("Set hr_airflow_rate = #{infil_flow_actuator.name} + #{natvent_flow_actuator.name} + #{whf_flow_actuator.name}")
     program.addLine('If hr_airflow_rate > 0')
     program.addLine("  Set hr_infil = (#{air_loss_sensor.name} - #{air_gain_sensor.name}) * #{infil_flow_actuator.name} / hr_airflow_rate") # Airflow heat attributed to infiltration
     program.addLine("  Set hr_natvent = (#{air_loss_sensor.name} - #{air_gain_sensor.name}) * #{natvent_flow_actuator.name} / hr_airflow_rate") # Airflow heat attributed to natural ventilation
     program.addLine("  Set hr_whf = (#{air_loss_sensor.name} - #{air_gain_sensor.name}) * #{whf_flow_actuator.name} / hr_airflow_rate") # Airflow heat attributed to whole house fan
-    program.addLine("  Set hr_cd = ((#{air_loss_sensor.name} - #{air_gain_sensor.name}) * #{cd_flow_actuator.name} / hr_airflow_rate)") # Airflow heat attributed to clothes dryer exhaust
     program.addLine('Else')
     program.addLine('  Set hr_infil = 0')
     program.addLine('  Set hr_natvent = 0')
     program.addLine('  Set hr_whf = 0')
     program.addLine('  Set hr_mechvent = 0')
-    program.addLine('  Set hr_cd = 0')
     program.addLine('EndIf')
     program.addLine('Set hr_mechvent = 0')
     mechvent_sensors.each do |sensor|

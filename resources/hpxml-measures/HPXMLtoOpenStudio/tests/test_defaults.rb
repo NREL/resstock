@@ -755,6 +755,8 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
   def test_ceiling_fans
     # Test inputs not overridden by defaults
     hpxml = _create_hpxml('base-lighting-ceiling-fans.xml')
+    hpxml.ceiling_fans[0].quantity = 2
+    hpxml.ceiling_fans[0].efficiency = 100
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     _test_default_ceiling_fan_values(hpxml_default, 2, 100)

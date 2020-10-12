@@ -3505,9 +3505,10 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
       is_valid = false
     end
 
-    # Validate input HPXML against EnergyPlus Use Case
-    stron_path = File.join(schemas_dir, 'EPvalidator.xml')
-    errors = Validator.run_validator(hpxml_doc, stron_path)
+    # Validate input HPXML against schematron docs
+    stron_paths = [File.join(schemas_dir, 'HPXMLvalidator.xml'),
+                   File.join(schemas_dir, 'EPvalidator.xml')]
+    errors = Validator.run_validators(hpxml_doc, stron_paths)
     errors.each do |error|
       runner.registerError("#{hpxml_path}: #{error}")
       is_valid = false

@@ -1148,7 +1148,6 @@
 			<xs:documentation>NOTE: "other housing unit above" and "other housing unit below" will be deprecated in v4.0. Use "other housing unit" instead.</xs:documentation>
 		</xs:annotation>
 		<xs:restriction base="xs:string">
-			<xs:enumeration value="adiabatic"/>
 			<xs:enumeration value="attic"/>
 			<xs:enumeration value="attic - conditioned"/>
 			<xs:enumeration value="attic - unconditioned"/>
@@ -4667,7 +4666,6 @@
 		<xs:simpleContent>
 			<xs:extension base="PVSystemMaxPowerOutput_simple">
 				<xs:attribute name="dataSource" type="DataSource"/>
-				<xs:attribute name="scope" type="DataScope"/>
 			</xs:extension>
 		</xs:simpleContent>
 	</xs:complexType>
@@ -4678,7 +4676,6 @@
 		<xs:simpleContent>
 			<xs:extension base="PVSystemCollectorArea_simple">
 				<xs:attribute name="dataSource" type="DataSource"/>
-				<xs:attribute name="scope" type="DataScope"/>
 			</xs:extension>
 		</xs:simpleContent>
 	</xs:complexType>
@@ -4689,14 +4686,7 @@
 		<xs:simpleContent>
 			<xs:extension base="PVSystemNumberOfPanels_simple">
 				<xs:attribute name="dataSource" type="DataSource"/>
-				<xs:attribute name="scope" type="DataScope"/>
 			</xs:extension>
 		</xs:simpleContent>
 	</xs:complexType>
-	<xs:simpleType name="DataScope">
-		<xs:restriction base="xs:string">
-			<xs:enumeration value="single unit"/>
-			<xs:enumeration value="multiple units"/>
-		</xs:restriction>
-	</xs:simpleType>
 </xs:schema>
