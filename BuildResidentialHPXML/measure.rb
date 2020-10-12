@@ -4772,6 +4772,10 @@ class HPXMLFile
       end
     end
 
+    if [HPXML::WaterHeaterTypeTankless, HPXML::WaterHeaterTypeCombiTankless].include? water_heater_type
+      tank_volume = nil
+    end
+
     if [HPXML::WaterHeaterTypeTankless].include? water_heater_type
       heating_capacity = nil
       recovery_efficiency = nil
