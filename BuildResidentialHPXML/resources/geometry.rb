@@ -901,7 +901,7 @@ class Geometry
       if wwrs[facade] > 0
         wall_area = 0
         wall_surfaces[facade].each do |surface|
-          wall_area += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
+          wall_area += UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2')
         end
         target_facade_areas[facade] += wall_area * wwrs[facade]
       else

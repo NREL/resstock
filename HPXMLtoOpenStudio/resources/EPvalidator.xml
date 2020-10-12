@@ -102,7 +102,7 @@
   
   <sch:pattern name='[Site]'>
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:BuildingSummary/h:Site'>
-      <sch:assert role='ERROR' test='not(h:SiteType) or count(h:SiteType[text()="urban" or text()="suburban" or text()="rural"]) = 1'>Expected 1 element(s) for xpath: [not(SiteType)] | SiteType[text()="urban" or text()="suburban" or text()="rural"]</sch:assert>
+      <sch:assert role='ERROR' test='count(h:SiteType[text()="urban" or text()="suburban" or text()="rural"]) &lt;= 1'>Expected 0 or 1 element(s) for xpath: SiteType[text()="urban" or text()="suburban" or text()="rural"]</sch:assert>
       <sch:assert role='ERROR' test='count(h:extension/h:ShelterCoefficient) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/ShelterCoefficient</sch:assert>
       <sch:assert role='ERROR' test='count(h:extension/h:Neighbors) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/Neighbors</sch:assert> <!-- See [Neighbors] -->
     </sch:rule>
@@ -488,7 +488,7 @@
       <sch:assert role='ERROR' test='count(../../h:HVACDistribution/h:DistributionSystemType/h:AirDistribution) + count(../../h:HVACDistribution/h:DistributionSystemType/h:Other[text()="DSE"]) &gt;= 1'>Expected 1 or more element(s) for xpath: ../../HVACDistribution/DistributionSystemType/AirDistribution | ../../HVACDistribution/DistributionSystemType/Other[text()="DSE"]</sch:assert> <!-- See [HVACDistribution] -->
       <sch:assert role='ERROR' test='count(h:DistributionSystem) = 1'>Expected 1 element(s) for xpath: DistributionSystem</sch:assert>
       <sch:assert role='ERROR' test='count(h:CoolingCapacity) &lt;= 1'>Expected 0 or 1 element(s) for xpath: CoolingCapacity</sch:assert>
-      <sch:assert role='ERROR' test='not(h:CompressorType) or count(h:CompressorType[text()="single stage" or text()="two stage" or text()="variable speed"]) = 1'>Expected 1 element(s) for xpath: [not(CompressorType)] | CompressorType[text()="single stage" or text()="two stage" or text()="variable speed"]</sch:assert>
+      <sch:assert role='ERROR' test='count(h:CompressorType[text()="single stage" or text()="two stage" or text()="variable speed"]) &lt;= 1'>Expected 0 or 1 element(s) for xpath: CompressorType[text()="single stage" or text()="two stage" or text()="variable speed"]</sch:assert>
       <sch:assert role='ERROR' test='count(h:AnnualCoolingEfficiency[h:Units="SEER"]/h:Value) = 1'>Expected 1 element(s) for xpath: AnnualCoolingEfficiency[Units="SEER"]/Value</sch:assert>
       <sch:assert role='ERROR' test='count(h:SensibleHeatFraction) &lt;= 1'>Expected 0 or 1 element(s) for xpath: SensibleHeatFraction</sch:assert>
     </sch:rule>
@@ -579,7 +579,7 @@
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Systems/h:HVAC/h:HVACPlant/h:HeatPump[h:HeatPumpType="air-to-air"]'>
       <sch:assert role='ERROR' test='count(../../h:HVACDistribution/h:DistributionSystemType/h:AirDistribution) + count(../../h:HVACDistribution/h:DistributionSystemType/h:Other[text()="DSE"]) &gt;= 1'>Expected 1 or more element(s) for xpath: ../../HVACDistribution/DistributionSystemType/AirDistribution | ../../HVACDistribution/DistributionSystemType/Other[text()="DSE"]</sch:assert> <!-- See [HVACDistribution] -->
       <sch:assert role='ERROR' test='count(h:DistributionSystem) = 1'>Expected 1 element(s) for xpath: DistributionSystem</sch:assert>
-      <sch:assert role='ERROR' test='not(h:CompressorType) or count(h:CompressorType[text()="single stage" or text()="two stage" or text()="variable speed"]) = 1'>Expected 1 element(s) for xpath: [not(CompressorType)] | CompressorType[text()="single stage" or text()="two stage" or text()="variable speed"]</sch:assert>
+      <sch:assert role='ERROR' test='count(h:CompressorType[text()="single stage" or text()="two stage" or text()="variable speed"]) &lt;= 1'>Expected 0 or 1 element(s) for xpath: CompressorType[text()="single stage" or text()="two stage" or text()="variable speed"]</sch:assert>
       <sch:assert role='ERROR' test='count(h:AnnualCoolingEfficiency[h:Units="SEER"]/h:Value) = 1'>Expected 1 element(s) for xpath: AnnualCoolingEfficiency[Units="SEER"]/Value</sch:assert>
       <sch:assert role='ERROR' test='count(h:AnnualHeatingEfficiency[h:Units="HSPF"]/h:Value) = 1'>Expected 1 element(s) for xpath: AnnualHeatingEfficiency[Units="HSPF"]/Value</sch:assert>
       <sch:assert role='ERROR' test='count(h:HeatingCapacity17F) &lt;= 1'>Expected 0 or 1 element(s) for xpath: HeatingCapacity17F</sch:assert>
@@ -733,7 +733,7 @@
 
   <sch:pattern name='[MechanicalVentilationType=Shared]'>
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Systems/h:MechanicalVentilation/h:VentilationFans/h:VentilationFan[h:UsedForWholeBuildingVentilation="true" and h:IsSharedSystem="true"]'>
-      <sch:assert role='ERROR' test='count(h:FractionRecirculation[number(text()) &gt;= 0 and number(text()) &lt;= 1]) = 1'>Expected 1 element(s) for xpath: FractionRecirculation[number(text()) &gt;= 0 and number(text()) &lt;= 1]</sch:assert>
+      <sch:assert role='ERROR' test='count(h:FractionRecirculation) = 1'>Expected 1 element(s) for xpath: FractionRecirculation</sch:assert>
       <sch:assert role='ERROR' test='count(h:extension/h:InUnitFlowRate) = 1'>Expected 1 element(s) for xpath: extension/InUnitFlowRate</sch:assert>
       <sch:assert role='ERROR' test='count(h:extension/h:PreHeating) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/PreHeating</sch:assert> <!-- See [MechanicalVentilationType=SharedWithPreHeating] -->
       <sch:assert role='ERROR' test='count(h:extension/h:PreCooling) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/PreCooling</sch:assert> <!-- See [MechanicalVentilationType=SharedWithPreCooling] -->
@@ -876,6 +876,7 @@
   <sch:pattern name='[HotWaterDistributionType=SharedRecirculation]'>
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Systems/h:WaterHeating/h:HotWaterDistribution[h:extension/h:SharedRecirculation]'>
       <sch:assert role='ERROR' test='count(../../../h:BuildingSummary/h:BuildingConstruction[h:ResidentialFacilityType[text()="single-family attached" or text()="apartment unit"]]) = 1'>Expected 1 element(s) for xpath: ../../../BuildingSummary/BuildingConstruction[ResidentialFacilityType[text()="single-family attached" or text()="apartment unit"]]</sch:assert>
+      <sch:assert role='ERROR' test='count(h:SystemType/h:Standard) = 1'>Expected 1 element(s) for xpath: SystemType/Standard</sch:assert>
       <sch:assert role='ERROR' test='count(h:extension/h:SharedRecirculation/h:NumberofUnitsServed) = 1'>Expected 1 element(s) for xpath: extension/SharedRecirculation/NumberofUnitsServed</sch:assert>
       <sch:assert role='ERROR' test='count(h:extension/h:SharedRecirculation/h:PumpPower) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/SharedRecirculation/PumpPower</sch:assert>
       <sch:assert role='ERROR' test='count(h:extension/h:SharedRecirculation/h:ControlType[text()="manual demand control" or text()="presence sensor demand control" or text()="timer" or text()="no control"]) = 1'>Expected 1 element(s) for xpath: extension/SharedRecirculation/ControlType[text()="manual demand control" or text()="presence sensor demand control" or text()="timer" or text()="no control"]</sch:assert>

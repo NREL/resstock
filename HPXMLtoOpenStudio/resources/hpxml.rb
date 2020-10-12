@@ -3310,6 +3310,7 @@ class HPXML < Object
       # Daily-average outdoor air (cfm) associated with the unit
       return if oa_unit_flow_rate.nil?
       return if @hours_in_operation.nil?
+
       return oa_unit_flow_rate * (@hours_in_operation / 24.0)
     end
 
@@ -3317,12 +3318,14 @@ class HPXML < Object
       # Daily-average total air (cfm) associated with the unit
       return if total_unit_flow_rate.nil?
       return if @hours_in_operation.nil?
+
       return total_unit_flow_rate * (@hours_in_operation / 24.0)
     end
 
     def unit_flow_rate_ratio
       return 1.0 unless @is_shared_system
       return if @in_unit_flow_rate.nil?
+
       if not @tested_flow_rate.nil?
         ratio = @in_unit_flow_rate / @tested_flow_rate
       elsif not @rated_flow_rate.nil?
@@ -3332,13 +3335,16 @@ class HPXML < Object
       if ratio >= 1.0
         fail "The in-unit flow rate of shared fan '#{@id}' must be less than the system flow rate."
       end
+
       return ratio
     end
 
     def unit_fan_power
       return if @fan_power.nil?
+
       if @is_shared_system
         return if unit_flow_rate_ratio.nil?
+
         return @fan_power * unit_flow_rate_ratio
       else
         return @fan_power
@@ -3348,6 +3354,7 @@ class HPXML < Object
     def average_unit_fan_power
       return if unit_fan_power.nil?
       return if @hours_in_operation.nil?
+
       return unit_fan_power * (@hours_in_operation / 24.0)
     end
 
@@ -5184,6 +5191,7 @@ class HPXML < Object
       # wall between living space and "other housing unit"
       return true
     end
+
     return false
   end
 

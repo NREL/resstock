@@ -528,6 +528,7 @@ class HotWaterSchedule
       # with a minimum runtime in minutes.
       items.reverse.each_with_index do |val, i|
         next unless val > 0
+
         place = (items.length - 1) - i
         last = place + dryer_exhaust_min_runtime
         items.fill(1, place...last)

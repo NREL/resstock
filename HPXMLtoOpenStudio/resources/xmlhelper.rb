@@ -191,6 +191,7 @@ class XMLHelper
     doc_s.gsub!('"', "'")
     doc_s.gsub!(' />', '/>')
     doc_s.gsub!(' ?>', '?>')
+    doc_s.gsub!('&quot;', '"')
 
     # Write XML file
     if not Dir.exist? File.dirname(out_path)
