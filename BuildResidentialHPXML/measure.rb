@@ -4495,14 +4495,6 @@ class HPXMLFile
       ducts_return_surface_area = args[:ducts_return_surface_area]
     end
 
-    if [ducts_supply_location].include? HPXML::LocationLivingSpace
-      ducts_supply_surface_area = 0.0001
-    end
-
-    if [ducts_return_location].include? HPXML::LocationLivingSpace
-      ducts_return_surface_area = 0.0001
-    end
-
     hpxml.hvac_distributions[-1].ducts.add(duct_type: HPXML::DuctTypeSupply,
                                            duct_insulation_r_value: args[:ducts_supply_insulation_r],
                                            duct_location: ducts_supply_location,
