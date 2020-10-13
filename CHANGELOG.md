@@ -11,10 +11,11 @@ Features
 - Update foundation type from the [Building Foundation Design Handbook](https://www.osti.gov/biblio/6980439-building-foundation-design-handbook) published in 1988 to RECS 2009 ([#492](https://github.com/NREL/OpenStudio-BuildStock/pull/492))
 
 Fixes
-- Based on RECS 2015, separate the plug load equations for single-family detached, single-family attached, and multifamily buildings ([#471](https://github.com/NREL/OpenStudio-BuildStock/pull/471))
-- Fix for pseudo-random number generator that was generating non-deterministic occupancy schedules ([#477](https://github.com/NREL/OpenStudio-BuildStock/pull/477))
-- Iterate all spaces in a thermal zone when checking for zone type; fixes missing infiltration for protruding garages in 1-story homes ([#480](https://github.com/NREL/OpenStudio-BuildStock/pull/480))
-- Update spatial distribution of units based on total dwelling unit counts rather than occupied unit counts ([#486](https://github.com/NREL/OpenStudio-BuildStock/pull/486))
+- Based on RECS 2015, separate the plug load equations for single-family detached, single-family attached, and multifamily buildings ([#471](https://github.com/NREL/OpenStudio-BuildStock/pull/471)).
+- Fix for pseudo-random number generator that was generating non-deterministic occupancy schedules ([#477](https://github.com/NREL/OpenStudio-BuildStock/pull/477)).
+- Iterate all spaces in a thermal zone when checking for zone type; fixes missing infiltration for protruding garages in 1-story homes ([#480](https://github.com/NREL/OpenStudio-BuildStock/pull/480)).
+- Update spatial distribution of units based on total dwelling unit counts rather than occupied unit counts ([#486](https://github.com/NREL/OpenStudio-BuildStock/pull/486)).
+- Exclude existing shared walls when calculated the partition wall area of MF and SFA buildings ([#496](https://github.com/NREL/OpenStudio-BuildStock/pull/496))
 
 ## ResStock v2.3.0
 ###### June 24, 2020 - [Diff](https://github.com/NREL/OpenStudio-BuildStock/compare/v2.2.4...v2.3.0)
