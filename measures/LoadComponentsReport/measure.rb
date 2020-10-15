@@ -15,16 +15,16 @@ require "#{File.dirname(__FILE__)}/resources/os_lib_heat_transfer"
 require "#{File.dirname(__FILE__)}/resources/os_lib_reporting_envelope_and_internal_loads_breakdown"
 
 # start the measure
-class ScoutInputReport < OpenStudio::Measure::ReportingMeasure
+class LoadComponentsReport < OpenStudio::Measure::ReportingMeasure
   # define the name that a user will see, this method may be deprecated as
   # the display name in PAT comes from the name field in measure.xml
   def name
     # Measure name should be the title case of the class name.
-    return "Scout Input Report"
+    return "Load Components Report"
   end
 
   def description
-    return "Create Scout inputs from ResStock outputs."
+    return "Output load components from ResStock outputs."
   end
 
   # define the arguments that the user will input
@@ -36,7 +36,6 @@ class ScoutInputReport < OpenStudio::Measure::ReportingMeasure
 
   # return a vector of IdfObject's to request EnergyPlus objects needed by the run method
   def energyPlusOutputRequests(runner, user_arguments)
-    
     super(runner, user_arguments)
 
     return OpenStudio::IdfObjectVector.new if runner.halted
@@ -49,41 +48,8 @@ class ScoutInputReport < OpenStudio::Measure::ReportingMeasure
     end
     model = model.get
 
-    # Initialize custom meter hash containing meter names and key/var groups
-    custom_meter_infos = {}
-
-    # Get building units
-    units = Geometry.get_building_units(model, runner)
-
-    units.each do |unit|
-      # Get all zones in unit
-      thermal_zones = []
-      unit.spaces.each do |space|
-        thermal_zone = space.thermalZone.get
-        unless thermal_zones.include? thermal_zone
-          thermal_zones << thermal_zone
-        end
-      end
-      
-      OutputMeters.electricity_refrigerator(custom_meter_infos, model, runner, unit, thermal_zones)
-      OutputMeters.electricity_clothes_washer(custom_meter_infos, model, runner, unit, thermal_zones)
-      OutputMeters.electricity_clothes_dryer(custom_meter_infos, model, runner, unit, thermal_zones)
-      OutputMeters.natural_gas_clothes_dryer(custom_meter_infos, model, runner, unit, thermal_zones)
-      OutputMeters.propane_clothes_dryer(custom_meter_infos, model, runner, unit, thermal_zones)
-      OutputMeters.electricity_dishwasher(custom_meter_infos, model, runner, unit, thermal_zones)
-      OutputMeters.electricity_extra_refrigerator(custom_meter_infos, model, runner, unit, thermal_zones)
-    end
-
-    results = OpenStudio::IdfObjectVector.new
-    custom_meter_infos.each do |meter_name, custom_meter_info|
-      next if custom_meter_info["key_var_groups"].empty?
-
-      custom_meter = OutputMeters.create_custom_meter(meter_name: meter_name,
-                                                      fuel_type: custom_meter_info["fuel_type"],
-                                                      key_var_groups: custom_meter_info["key_var_groups"])
-      results << OpenStudio::IdfObject.load(custom_meter).get
-      results << OpenStudio::IdfObject.load("Output:Meter,#{meter_name},RunPeriod;").get
-    end
+    output_meters = OutputMeters.new(model, runner, "Timestep", include_enduse_subcategories = true)
+    results = output_meters.create_custom_building_unit_meters
 
     # heat transfer outputs
     OsLib_HeatTransfer.heat_transfer_outputs.each do |output|
@@ -201,7 +167,13 @@ class ScoutInputReport < OpenStudio::Measure::ReportingMeasure
     # Load buildstock_file
     resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), "..", "..", "lib", "resources")) # Should have been uploaded per 'Other Library Files' in analysis spreadsheet
     buildstock_file = File.join(resources_dir, "buildstock.rb")
-    require File.join(File.dirname(buildstock_file), File.basename(buildstock_file, File.extname(buildstock_file)))
+    if File.exists? buildstock_file
+      require File.join(File.dirname(buildstock_file), File.basename(buildstock_file, File.extname(buildstock_file)))
+    else
+      resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), "../../resources/"))
+      buildstock_file = File.join(resources_dir, "buildstock.rb")
+      require File.join(File.dirname(buildstock_file), File.basename(buildstock_file, File.extname(buildstock_file)))
+    end
 
     total_site_units = "MBtu"
     elec_site_units = "kWh"
@@ -215,14 +187,17 @@ class ScoutInputReport < OpenStudio::Measure::ReportingMeasure
     end
 
     # LOAD ENERGY
+    output_meters = OutputMeters.new(model, runner, "RunPeriod", include_enduse_subcategories = true)
+
+    electricity = output_meters.electricity(sqlFile, @ann_env_pd)
+    natural_gas = output_meters.natural_gas(sqlFile, @ann_env_pd)
+    fuel_oil = output_meters.fuel_oil(sqlFile, @ann_env_pd)
+    propane = output_meters.propane(sqlFile, @ann_env_pd)
+    wood = output_meters.wood(sqlFile, @ann_env_pd)
+    supply_energy = output_meters.supply_energy(sqlFile, @ann_env_pd)
 
     # Lighting
-    lighting_vars = ["electricity_interior_lighting_kwh",
-                     "electricity_exterior_lighting_kwh"]
-    lighting_energy = 0.0
-    lighting_vars.each do |var_name|
-      lighting_energy += get_value_from_runner_past_results(runner, var_name, "simulation_output_report", error_if_missing = true)
-    end
+    lighting_energy = electricity.interior_lighting[0] + electricity.exterior_lighting[0]
     report_sim_output(runner, "lighting_energy", lighting_energy, elec_site_units, total_site_units)
 
     # Water Systems
@@ -247,49 +222,13 @@ class ScoutInputReport < OpenStudio::Measure::ReportingMeasure
     electricityDishwasher = 0.0
     electricityExtraRefrigerator = 0.0
 
-    units.each do |unit|
-      unit_name = unit.name.to_s.upcase
-
-      units_represented = 1
-      if unit.additionalProperties.getFeatureAsInteger("Units Represented").is_initialized
-        units_represented = unit.additionalProperties.getFeatureAsInteger("Units Represented").get
-      end
-
-      electricity_refrgerator_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYREFRIGERATOR') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
-      unless sqlFile.execAndReturnVectorOfDouble(electricity_refrgerator_query).get.empty?
-        electricityRefrigerator += units_represented * sqlFile.execAndReturnFirstDouble(electricity_refrgerator_query).get
-      end
-
-      electricity_clothes_washer_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYCLOTHESWASHER') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
-      unless sqlFile.execAndReturnVectorOfDouble(electricity_clothes_washer_query).get.empty?
-        electricityClothesWasher += units_represented * sqlFile.execAndReturnFirstDouble(electricity_clothes_washer_query).get
-      end
-
-      electricity_clothes_dryer_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYCLOTHESDRYER') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
-      unless sqlFile.execAndReturnVectorOfDouble(electricity_clothes_dryer_query).get.empty?
-        electricityClothesDryer += units_represented * sqlFile.execAndReturnFirstDouble(electricity_clothes_dryer_query).get
-      end
-
-      natural_gas_clothes_dryer_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:NATURALGASCLOTHESDRYER') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
-      unless sqlFile.execAndReturnVectorOfDouble(natural_gas_clothes_dryer_query).get.empty?
-        naturalGasClothesDryer += units_represented * sqlFile.execAndReturnFirstDouble(natural_gas_clothes_dryer_query).get
-      end
-
-      propane_clothes_dryer_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:PROPANECLOTHESDRYER') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
-      unless sqlFile.execAndReturnVectorOfDouble(propane_clothes_dryer_query).get.empty?
-        propaneClothesDryer += units_represented * sqlFile.execAndReturnFirstDouble(propane_clothes_dryer_query).get
-      end
-
-      electricity_dishwasher_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYDISHWASHER') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
-      unless sqlFile.execAndReturnVectorOfDouble(electricity_dishwasher_query).get.empty?
-        electricityDishwasher += units_represented * sqlFile.execAndReturnFirstDouble(electricity_dishwasher_query).get
-      end
-
-      electricity_extra_refrigerator_query = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYEXTRAREFRIGERATOR') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
-      unless sqlFile.execAndReturnVectorOfDouble(electricity_extra_refrigerator_query).get.empty?
-        electricityExtraRefrigerator += units_represented * sqlFile.execAndReturnFirstDouble(electricity_extra_refrigerator_query).get
-      end
-    end
+    electricityRefrigerator = electricity.refrigerator[0]
+    electricityClothesWasher = electricity.clothes_washer[0]
+    electricityClothesDryer = electricity.clothes_dryer[0]
+    naturalGasClothesDryer = natural_gas.clothes_dryer[0]
+    propaneClothesDryer = propane.clothes_dryer[0]
+    electricityDishwasher = electricity.dishwasher[0]
+    electricityExtraRefrigerator = electricity.extra_refrigerator[0]
 
     report_sim_output(runner, "electricity_refrigerator_energy", electricityRefrigerator, "GJ", total_site_units)
     report_sim_output(runner, "electricity_clothes_washer_energy", electricityClothesWasher, "GJ", total_site_units)
@@ -298,6 +237,15 @@ class ScoutInputReport < OpenStudio::Measure::ReportingMeasure
     report_sim_output(runner, "propane_clothes_dryer_energy", propaneClothesDryer, "GJ", total_site_units)
     report_sim_output(runner, "electricity_dishwasher_energy", electricityDishwasher, "GJ", total_site_units)
     report_sim_output(runner, "electricity_extra_refrigerator_energy", electricityExtraRefrigerator, "GJ", total_site_units)
+
+    units.each do |unit|
+      unit_name = unit.name.to_s.upcase
+
+      units_represented = 1
+      if unit.additionalProperties.getFeatureAsInteger("Units Represented").is_initialized
+        units_represented = unit.additionalProperties.getFeatureAsInteger("Units Represented").get
+      end
+    end
 
     # DEMAND ENERGY
     # Set the frequency for analysis.
@@ -340,7 +288,7 @@ class ScoutInputReport < OpenStudio::Measure::ReportingMeasure
         # Get the heat transfer broken out by compoonent
         heat_transfer_vectors = OsLib_HeatTransfer.thermal_zone_heat_transfer_vectors(runner, zone, sqlFile, freq)
 
-        # Scout heating/cooling demand breakdown
+        # Heating/cooling demand breakdown
         hvac_transfer_vals = heat_transfer_vectors['All HVAC Heat Transfer Energy'].to_a
         hvac_transfer_vals.each_with_index do |hvac_energy_transfer, i|
           if hvac_energy_transfer > 0 # heating
@@ -406,7 +354,7 @@ class ScoutInputReport < OpenStudio::Measure::ReportingMeasure
     report_sim_output(runner, "ventilation_heating", heating_demand['ventilation'], "J", total_site_units)
     report_sim_output(runner, "conv_other_heating", heating_demand['other gain'], "J", total_site_units)
     report_sim_output(runner, "cond_windows_cooling", cooling_demand['windows conduction'], "J", total_site_units)
-    report_sim_output(runner, "solar_windows_cooling", cooling_demand['windows solar'], "J", total_site_units)    
+    report_sim_output(runner, "solar_windows_cooling", cooling_demand['windows solar'], "J", total_site_units)
     report_sim_output(runner, "cond_doors_cooling", cooling_demand['doors conduction'], "J", total_site_units)
     report_sim_output(runner, "conv_walls_cooling", cooling_demand['wall'], "J", total_site_units)
     report_sim_output(runner, "conv_ceiling_cooling", cooling_demand['ceiling'], "J", total_site_units)
@@ -467,36 +415,8 @@ class ScoutInputReport < OpenStudio::Measure::ReportingMeasure
     heatingSupply = 0.0
     coolingSupply = 0.0
 
-    units.each do |unit|
-      unit_name = unit.name.to_s.upcase
-
-      units_represented = 1
-      if unit.additionalProperties.getFeatureAsInteger("Units Represented").is_initialized
-        units_represented = unit.additionalProperties.getFeatureAsInteger("Units Represented").get
-      end
-
-      thermal_zones = []
-      unit.spaces.each do |space|
-        thermal_zone = space.thermalZone.get
-        unless thermal_zones.include? thermal_zone
-          thermal_zones << thermal_zone
-        end
-      end
-
-      thermal_zones.each do |thermal_zone|
-        key_value = thermal_zone.name.to_s.upcase
-
-        heating_supply_query = "SELECT VariableValue/1000000000 FROM ReportVariableData WHERE ReportVariableDataDictionaryIndex IN (SELECT ReportVariableDataDictionaryIndex FROM ReportVariableDataDictionary WHERE VariableType='Sum' AND KeyValue='#{key_value}' AND VariableName IN ('Zone Air System Sensible Heating Energy') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
-        unless sqlFile.execAndReturnVectorOfDouble(heating_supply_query).get.empty?
-          heatingSupply += units_represented * sqlFile.execAndReturnFirstDouble(heating_supply_query).get
-        end
-
-        cooling_supply_query = "SELECT VariableValue/1000000000 FROM ReportVariableData WHERE ReportVariableDataDictionaryIndex IN (SELECT ReportVariableDataDictionaryIndex FROM ReportVariableDataDictionary WHERE VariableType='Sum' AND KeyValue='#{key_value}' AND VariableName IN ('Zone Air System Sensible Cooling Energy') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
-        unless sqlFile.execAndReturnVectorOfDouble(cooling_supply_query).get.empty?
-          coolingSupply += units_represented * sqlFile.execAndReturnFirstDouble(cooling_supply_query).get
-        end
-      end
-    end
+    heatingSupply = supply_energy.heating[0]
+    coolingSupply = supply_energy.cooling[0]
 
     report_sim_output(runner, "heating_supply", heatingSupply, "GJ", total_site_units)
     report_sim_output(runner, "cooling_supply", coolingSupply, "GJ", total_site_units)
@@ -510,12 +430,12 @@ class ScoutInputReport < OpenStudio::Measure::ReportingMeasure
     report_sim_output(runner, "cooling_demand_error", cs - cd, "", "")
 
     if hs != 0
-      report_sim_output(runner, "heating_demand_error_percent", 100*(hs - hd) / hs, "", "")
+      report_sim_output(runner, "heating_demand_error_percent", 100 * (hs - hd) / hs, "", "")
     else
       report_sim_output(runner, "heating_demand_error_percent", 0, "", "")
     end
     if cs != 0
-      report_sim_output(runner, "cooling_demand_error_percent", 100*(cs - cd) / cs, "", "")
+      report_sim_output(runner, "cooling_demand_error_percent", 100 * (cs - cd) / cs, "", "")
     else
       report_sim_output(runner, "cooling_demand_error_percent", 0, "", "")
     end
@@ -539,4 +459,4 @@ class ScoutInputReport < OpenStudio::Measure::ReportingMeasure
 end
 
 # register the measure to be used by the application
-ScoutInputReport.new.registerWithApplication
+LoadComponentsReport.new.registerWithApplication

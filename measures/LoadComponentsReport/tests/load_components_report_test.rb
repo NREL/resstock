@@ -5,7 +5,7 @@ require 'minitest/autorun'
 require_relative '../measure.rb'
 require 'fileutils'
 
-class ScoutInputReportTest < MiniTest::Test
+class LoadComponentTest < MiniTest::Test
   def test_SFD_1story_FB_UA_GRG_MSHP_FuelTanklessWH
     skip
     scout_inputs = {
@@ -34,12 +34,12 @@ class ScoutInputReportTest < MiniTest::Test
       "cond_windows_secondary_heating" => 0,
       "cond_windows_cooling" => 0
     }
-    _test_scout_inputs("SFD_1story_FB_UA_GRG_MSHP_FuelTanklessWH.osm", scout_inputs)
+    _test_load_components("SFD_1story_FB_UA_GRG_MSHP_FuelTanklessWH.osm", scout_inputs)
   end
 
   private
 
-  def _test_scout_inputs(osm_file, scout_inputs)
+  def _test_load_components(osm_file, scout_inputs)
     # load the test model
     model = get_model(File.dirname(__FILE__), osm_file)
 
@@ -50,11 +50,11 @@ class ScoutInputReportTest < MiniTest::Test
     runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
 
     # Check for correct scout input values
-    scout_inputs.each do |scout_input_type, scout_input_value|
-      puts scout_input_type
-      value = measure.get_scout_input(scout_input_type, model, runner)
-      assert(!value.nil?)
-      assert_in_epsilon(scout_input_value, value, 0.01)
-    end
+    # scout_inputs.each do |scout_input_type, scout_input_value|
+    #   puts scout_input_type
+    #   value = measure.get_scout_input(scout_input_type, model, runner)
+    #   assert(!value.nil?)
+    #   assert_in_epsilon(scout_input_value, value, 0.01)
+    # end
   end
 end

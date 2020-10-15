@@ -395,7 +395,6 @@ module OsLib_HeatTransfer
     zone.spaces.sort.each do |space|
       space.surfaces.each do |surface|
         surface_name = surface.name.get
-        puts "Getting convection for #{surface_name} which is a #{surface.outsideBoundaryCondition}-facing #{surface.surfaceType}."
         ht_transfer_vals = OsLib_SqlFile.get_timeseries_array(runner, sql, ann_env_pd, freq, surface_inside_convection_output, surface_name, num_ts, joules)
 
         # Determine the surface type
@@ -458,7 +457,6 @@ module OsLib_HeatTransfer
       # Internal masses with SurfaceArea specified have surface convection
       space.internalMass.each do |int_mass|
         int_mass_name = int_mass.name.get
-        puts "Getting convection for #{int_mass_name}."
         ht_transfer_vals = OsLib_SqlFile.get_timeseries_array(runner, sql, ann_env_pd, freq, surface_inside_convection_output, int_mass_name, num_ts, joules)
 
         # Add to total for this internal mass
@@ -474,7 +472,6 @@ module OsLib_HeatTransfer
         next if surface_1 == surface_2
 
         int_mass_name = "MERGED #{surface_1.name.to_s.upcase} - #{surface_2.name.to_s.upcase}"
-        puts "Getting convection for #{int_mass_name}."
         ht_transfer_vals = OsLib_SqlFile.get_timeseries_array(runner, sql, ann_env_pd, freq, surface_inside_convection_output, int_mass_name, num_ts, joules)
 
         # Add to total for this internal mass
@@ -577,7 +574,6 @@ module OsLib_HeatTransfer
       (0...num_ts_24hr).each do |ts|
         prev_24hr_vals << wind_solar_rad_vals.to_a.fetch(i - ts)
       end
-      # puts "\ni: #{i}, prev_24hr_vals: #{prev_24hr_vals.join(', ')}"
 
       # Calculate the RTS solar value for the current timestep
       solar_rad_rts = 0.0
@@ -586,11 +582,9 @@ module OsLib_HeatTransfer
         avg_per_ts_in_hr = vals_in_hr.to_a.inject(:+).to_f / vals_in_hr.size
         hrly_solar_rad_rts = avg_per_ts_in_hr * rts[hr_i]
         solar_rad_rts += hrly_solar_rad_rts
-        # puts "-- hr #{hr_i} RTS = #{hrly_solar_rad_rts.round(2)} = #{rts[hr_i]} * (#{vals_in_hr.join(' + ')}) / #{vals_in_hr.size}"
         hr_i += 1
       end
       rts_solar_rad_ary << solar_rad_rts
-      # puts "24 hr RTS = #{solar_rad_rts}"
     end
     wind_rts_solar_rad_vals = Vector.elements(rts_solar_rad_ary)
 
