@@ -201,16 +201,16 @@ class LoadComponentsReport < OpenStudio::Measure::ReportingMeasure
     report_sim_output(runner, "lighting_energy", lighting_energy, elec_site_units, total_site_units)
 
     # Water Systems
-    electricity_water_systems = get_value_from_runner_past_results(runner, "electricity_water_systems_kwh", "simulation_output_report", error_if_missing = true)
+    electricity_water_systems = electricity.water_systems[0]
     report_sim_output(runner, "electricity_water_systems_energy", electricity_water_systems, elec_site_units, total_site_units)
 
-    natural_gas_water_systems = get_value_from_runner_past_results(runner, "natural_gas_water_systems_therm", "simulation_output_report", error_if_missing = true)
+    natural_gas_water_systems = natural_gas.water_systems[0]
     report_sim_output(runner, "natural_gas_water_systems_energy", natural_gas_water_systems, gas_site_units, total_site_units)
 
-    fuel_oil_water_systems = get_value_from_runner_past_results(runner, "fuel_oil_water_systems_mbtu", "simulation_output_report", error_if_missing = true)
+    fuel_oil_water_systems = fuel_oil.water_systems[0]
     report_sim_output(runner, "fuel_oil_water_systems_energy", fuel_oil_water_systems, other_fuel_site_units, total_site_units)
 
-    propane_water_systems = get_value_from_runner_past_results(runner, "propane_water_systems_mbtu", "simulation_output_report", error_if_missing = true)
+    propane_water_systems = propane.water_systems[0]
     report_sim_output(runner, "propane_water_systems_energy", propane_water_systems, other_fuel_site_units, total_site_units)
 
     # Appliances
