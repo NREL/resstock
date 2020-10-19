@@ -195,9 +195,6 @@ class Waterheater
         fail 'Indirect water heater standby loss is negative, double check TankVolume to be <829 gal or StandbyLoss to be >0.0 F/hr.'
       end
 
-      if water_heating_system.standby_loss > 10.0
-        runner.registerWarning('Indirect water heater standby loss is over 10.0 F/hr, double check water heater inputs.')
-      end
       act_vol = calc_storage_tank_actual_vol(water_heating_system.tank_volume, nil)
       a_side = calc_tank_areas(act_vol)[1]
       ua = calc_indirect_ua_with_standbyloss(act_vol, water_heating_system, a_side, solar_fraction)
