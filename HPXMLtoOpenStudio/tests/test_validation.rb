@@ -13,6 +13,7 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
 
     # load the Schematron xml
     @stron_path = File.join(@root_path, 'HPXMLtoOpenStudio', 'resources', 'EPvalidator.xml')
+    @stron_doc = XMLHelper.parse_file(@stron_path)
 
     # Load all HPXMLs
     hpxml_file_dirs = [File.absolute_path(File.join(@root_path, 'workflow', 'sample_files')),
@@ -26,28 +27,58 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
     end
 
     # Build up expected error messages hashes by parsing EPvalidator.xml
-    doc = XMLHelper.parse_file(@stron_path)
     @expected_assertions_by_addition = {}
     @expected_assertions_by_deletion = {}
-    XMLHelper.get_elements(doc, '/sch:schema/sch:pattern/sch:rule').each do |rule|
+    @expected_assertions_by_alteration = {}
+    XMLHelper.get_elements(@stron_doc, '/sch:schema/sch:pattern/sch:rule').each do |rule|
       rule_context = XMLHelper.get_attribute_value(rule, 'context')
       context_xpath = rule_context.gsub('h:', '')
 
-      XMLHelper.get_values(rule, 'sch:assert').each do |assertion|
+      XMLHelper.get_elements(rule, 'sch:assert').each do |assertion|
+        assertion_message = assertion.inner_text
         element_name = _get_element_name_for_assertion_test(assertion)
         key = [context_xpath, element_name]
 
-        if assertion.start_with?('Expected 0 element')
+        if assertion_message.start_with?('Expected 0 element')
           # Skipping for now
-        elsif assertion.start_with?('Expected 0 or ') || assertion.partition(': ').last.start_with?('[not') # FIXME: Is there another way to do this?
-          @expected_assertions_by_addition[key] = _get_expected_error_msg(context_xpath, assertion, 'addition')
-        elsif assertion.start_with?('Expected 1 ')
-          @expected_assertions_by_deletion[key] = _get_expected_error_msg(context_xpath, assertion, 'deletion')
-          @expected_assertions_by_addition[key] = _get_expected_error_msg(context_xpath, assertion, 'addition')
+        elsif assertion_message.start_with?('Expected 0 or ')
+          @expected_assertions_by_addition[key] = _get_expected_error_msg(context_xpath, assertion_message, 'addition')
+        elsif assertion_message.start_with?('Expected 1 ')
+          @expected_assertions_by_deletion[key] = _get_expected_error_msg(context_xpath, assertion_message, 'deletion')
+          @expected_assertions_by_addition[key] = _get_expected_error_msg(context_xpath, assertion_message, 'addition')
+        elsif assertion_message.include?("Expected #{element_name} to be")
+          @expected_assertions_by_alteration[key] = _get_expected_error_msg(context_xpath, assertion_message, 'alteration')
         else
-          fail "Unexpected assertion: '#{assertion}'."
+          fail "Unexpected assertion: '#{assertion_message}'."
         end
       end
+    end
+  end
+
+  def test_role_attributes
+    puts
+    puts 'Checking for correct role attributes...'
+
+    # check that every assert element has a role attribute
+    XMLHelper.get_elements(@stron_doc, '/sch:schema/sch:pattern/sch:rule/sch:assert').each do |assert_element|
+      assert_test = XMLHelper.get_attribute_value(assert_element, 'test').gsub('h:', '')
+      role_attribute = XMLHelper.get_attribute_value(assert_element, 'role')
+      if role_attribute.nil?
+        fail "No attribute \"role='ERROR'\" found for assertion test: #{assert_test}"
+      end
+
+      assert_equal('ERROR', role_attribute)
+    end
+
+    # check that every report element has a role attribute
+    XMLHelper.get_elements(@stron_doc, '/sch:schema/sch:pattern/sch:rule/sch:report').each do |report_element|
+      report_test = XMLHelper.get_attribute_value(report_element, 'test').gsub('h:', '')
+      role_attribute = XMLHelper.get_attribute_value(report_element, 'role')
+      if role_attribute.nil?
+        fail "No attribute \"role='WARN'\" found for report test: #{report_test}"
+      end
+
+      assert_equal('WARN', role_attribute)
     end
   end
 
@@ -112,17 +143,34 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
     puts
   end
 
+  def test_schematron_asserts_by_alteration
+    puts "Testing #{@expected_assertions_by_alteration.size} Schematron asserts by alteration..."
+
+    # Tests by element alteration
+    @expected_assertions_by_alteration.each do |key, expected_error_msg|
+      print '.'
+      hpxml_doc, parent_element = _get_hpxml_doc_and_parent_element(key)
+      child_element_name = key[1]
+      element_to_be_altered = XMLHelper.get_element(parent_element, child_element_name)
+      element_to_be_altered.inner_text = element_to_be_altered.inner_text + 'foo' # add arbitrary string to make the value invalid
+
+      # Test validation
+      _test_schematron_validation(hpxml_doc, expected_error_msg)
+    end
+    puts
+  end
+
   private
 
   def _test_schematron_validation(hpxml_doc, expected_error_msg = nil)
     # Validate via validator.rb
-    results = Validator.run_validators(hpxml_doc, [@stron_path])
-    idx_of_msg = results.index { |i| i == expected_error_msg }
+    errors, warnings = Validator.run_validators(hpxml_doc, [@stron_path])
+    idx_of_msg = errors.index { |i| i == expected_error_msg }
     if expected_error_msg.nil?
       assert_nil(idx_of_msg)
     else
       if idx_of_msg.nil?
-        puts "Did not find expected error message '#{expected_error_msg}' in #{results}."
+        puts "Did not find expected error message '#{expected_error_msg}' in #{errors}."
       end
       refute_nil(idx_of_msg)
     end
@@ -159,26 +207,30 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
     fail "Could not find an HPXML file with #{element_name} in #{context_xpath}. Add this to a HPXML file so that it's tested."
   end
 
-  def _get_expected_error_msg(parent_xpath, assertion, mode)
-    if assertion.start_with?('Expected 0 or more')
+  def _get_expected_error_msg(parent_xpath, assertion_message, mode)
+    if assertion_message.start_with?('Expected 0 or more')
       return
-    elsif assertion.start_with?('Expected 1 or more') && (mode == 'addition')
+    elsif assertion_message.start_with?('Expected 1 or more') && (mode == 'addition')
       return
     else
-      return [assertion, "[context: #{parent_xpath}]"].join(' ') # return "Expected x element(s) for xpath: foo... [context: bar/baz/...]"
+      return [assertion_message, "[context: #{parent_xpath}]"].join(' ') # return "Expected x element(s) for xpath: foo... [context: bar/baz/...]"
     end
   end
 
   def _get_element_name_for_assertion_test(assertion)
     # From the assertion, get the element name to be added or deleted for the assertion test.
-    if assertion.partition(': ').last.start_with?('[not')
-      element_name = assertion.partition(': ').last.partition(' | ').last
-    else
-      element_name = assertion.partition(': ').last.partition(' | ').first
-      _balance_brackets(element_name)
-    end
+    if assertion.inner_text.start_with?('Expected') && assertion.inner_text.include?('to be')
+      test_attr = assertion.get('test')
+      element_name = test_attr[/not\((.*?)\)/m, 1].gsub('h:', '') # pull text between "not(" and ")" (i.e. "foo" from "not(h:foo)")
 
-    return element_name
+      return element_name
+    else
+      test_attr = assertion.get('test')
+      element_name = test_attr[/(?<=\().*(?=\))/].gsub('h:', '').partition(') + count').first # pull text between the first opening and the last closing parenthesis. (i.e. "foo" from "count(foo) + count(bar)...")
+      _balance_brackets(element_name)
+
+      return element_name
+    end
   end
 
   def _balance_brackets(element_name)

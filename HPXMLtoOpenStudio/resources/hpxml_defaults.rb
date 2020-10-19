@@ -857,7 +857,7 @@ class HPXMLDefaults
         dishwasher.location = HPXML::LocationLivingSpace
       end
       if dishwasher.place_setting_capacity.nil?
-        default_values = HotWaterAndAppliances.get_dishwasher_default_values()
+        default_values = HotWaterAndAppliances.get_dishwasher_default_values(eri_version)
         dishwasher.rated_annual_kwh = default_values[:rated_annual_kwh]
         dishwasher.label_electric_rate = default_values[:label_electric_rate]
         dishwasher.label_gas_rate = default_values[:label_gas_rate]

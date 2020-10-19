@@ -3508,10 +3508,13 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     # Validate input HPXML against schematron docs
     stron_paths = [File.join(schemas_dir, 'HPXMLvalidator.xml'),
                    File.join(schemas_dir, 'EPvalidator.xml')]
-    errors = Validator.run_validators(hpxml_doc, stron_paths)
+    errors, warnings = Validator.run_validators(hpxml_doc, stron_paths)
     errors.each do |error|
       runner.registerError("#{hpxml_path}: #{error}")
       is_valid = false
+    end
+    warnings.each do |warning|
+      runner.registerWarning("#{warning}")
     end
 
     return is_valid

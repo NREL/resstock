@@ -281,10 +281,13 @@ class HPXML < Object
     if not hpxml_path.nil?
       @doc = XMLHelper.parse_file(hpxml_path)
       hpxml = XMLHelper.get_element(@doc, '/HPXML')
+      Version.check_hpxml_version(XMLHelper.get_attribute_value(hpxml, 'schemaVersion'))
     end
     from_oga(hpxml)
 
     # Clean up
+    # TODO: Should really perform validation before we make the following changes,
+    # so that any errors below don't prevent validation from occurring.
     delete_tiny_surfaces()
     delete_adiabatic_subsurfaces()
     if collapse_enclosure
@@ -5031,11 +5034,13 @@ class HPXML < Object
 
   def delete_adiabatic_subsurfaces()
     @doors.reverse_each do |door|
+      next if door.wall.nil?
       next if door.wall.exterior_adjacent_to != HPXML::LocationOtherHousingUnit
 
       door.delete
     end
     @windows.reverse_each do |window|
+      next if window.wall.nil?
       next if window.wall.exterior_adjacent_to != HPXML::LocationOtherHousingUnit
 
       window.delete
@@ -5111,26 +5116,28 @@ class HPXML < Object
     end
 
     # Check for the sum of CFA served by distribution systems <= CFA
-    air_distributions = @hvac_distributions.select { |dist| dist if [HPXML::HVACDistributionTypeAir, HPXML::HVACDistributionTypeHydronicAndAir].include? dist.distribution_system_type }
-    heating_dist = []
-    cooling_dist = []
-    air_distributions.each do |dist|
-      heating_systems = dist.hvac_systems.select { |sys| sys if (sys.respond_to? :fraction_heat_load_served) && (sys.fraction_heat_load_served.to_f > 0) }
-      cooling_systems = dist.hvac_systems.select { |sys| sys if (sys.respond_to? :fraction_cool_load_served) && (sys.fraction_cool_load_served.to_f > 0) }
-      if heating_systems.size > 0
-        heating_dist << dist
+    if not @building_construction.conditioned_floor_area.nil?
+      air_distributions = @hvac_distributions.select { |dist| dist if [HPXML::HVACDistributionTypeAir, HPXML::HVACDistributionTypeHydronicAndAir].include? dist.distribution_system_type }
+      heating_dist = []
+      cooling_dist = []
+      air_distributions.each do |dist|
+        heating_systems = dist.hvac_systems.select { |sys| sys if (sys.respond_to? :fraction_heat_load_served) && (sys.fraction_heat_load_served.to_f > 0) }
+        cooling_systems = dist.hvac_systems.select { |sys| sys if (sys.respond_to? :fraction_cool_load_served) && (sys.fraction_cool_load_served.to_f > 0) }
+        if heating_systems.size > 0
+          heating_dist << dist
+        end
+        if cooling_systems.size > 0
+          cooling_dist << dist
+        end
       end
-      if cooling_systems.size > 0
-        cooling_dist << dist
+      heating_total_dist_cfa_served = heating_dist.map { |htg_dist| htg_dist.conditioned_floor_area_served.to_f }.sum(0.0)
+      cooling_total_dist_cfa_served = cooling_dist.map { |clg_dist| clg_dist.conditioned_floor_area_served.to_f }.sum(0.0)
+      if (heating_total_dist_cfa_served > @building_construction.conditioned_floor_area)
+        errors << 'The total conditioned floor area served by the HVAC distribution system(s) for heating is larger than the conditioned floor area of the building.'
       end
-    end
-    heating_total_dist_cfa_served = heating_dist.map { |htg_dist| htg_dist.conditioned_floor_area_served.to_f }.sum(0.0)
-    cooling_total_dist_cfa_served = cooling_dist.map { |clg_dist| clg_dist.conditioned_floor_area_served.to_f }.sum(0.0)
-    if (heating_total_dist_cfa_served > @building_construction.conditioned_floor_area.to_f)
-      errors << 'The total conditioned floor area served by the HVAC distribution system(s) for heating is larger than the conditioned floor area of the building.'
-    end
-    if (cooling_total_dist_cfa_served > @building_construction.conditioned_floor_area.to_f)
-      errors << 'The total conditioned floor area served by the HVAC distribution system(s) for cooling is larger than the conditioned floor area of the building.'
+      if (cooling_total_dist_cfa_served > @building_construction.conditioned_floor_area)
+        errors << 'The total conditioned floor area served by the HVAC distribution system(s) for cooling is larger than the conditioned floor area of the building.'
+      end
     end
 
     # Check for objects referencing SFA/MF spaces where the building type is not SFA/MF
