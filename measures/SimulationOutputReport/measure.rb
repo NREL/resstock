@@ -130,7 +130,13 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     # Load buildstock_file
     resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), "..", "..", "lib", "resources")) # Should have been uploaded per 'Other Library Files' in analysis spreadsheet
     buildstock_file = File.join(resources_dir, "buildstock.rb")
-    require File.join(File.dirname(buildstock_file), File.basename(buildstock_file, File.extname(buildstock_file)))
+    if File.exists? buildstock_file
+      require File.join(File.dirname(buildstock_file), File.basename(buildstock_file, File.extname(buildstock_file)))
+    else #local
+      resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), "../../resources/"))
+      buildstock_file = File.join(resources_dir, "buildstock.rb")
+      require File.join(File.dirname(buildstock_file), File.basename(buildstock_file, File.extname(buildstock_file)))
+    end
 
     total_site_units = "MBtu"
     elec_site_units = "kWh"
