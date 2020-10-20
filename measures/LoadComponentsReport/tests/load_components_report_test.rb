@@ -23,7 +23,7 @@ class LoadComponentTest < MiniTest::Test
     measure = LoadComponentsReport.new
     args_hash = {}
     expected_values = {}
-    error_threshold = 0.25 # percent error threshold (< 0.25 %)
+    error_threshold = 0.10 # percent error threshold (< 0.25 %)
     weather_file = "USA_CO_Denver.Intl.AP.725650_TMY3.epw"
     _test_measure("SFD_Successful_EnergyPlus_Run_TMY_Appl_PV.osm", args_hash, expected_values, __method__, weather_file, "8760.csv", 55, error_threshold)
   end
