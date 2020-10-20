@@ -3,9 +3,9 @@ if File.exists? File.absolute_path(File.join(File.dirname(__FILE__), "../../../l
   resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../../../lib/resources/measures/HPXMLtoOpenStudio/resources"))
 elsif File.exists? File.absolute_path(File.join(File.dirname(__FILE__), "../../../resources/measures/HPXMLtoOpenStudio/resources")) # Hack to run ResStock unit tests locally
   resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../../../resources/measures/HPXMLtoOpenStudio/resources"))
-elsif File.exists? File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, "HPXMLtoOpenStudio/resources") # Hack to run measures in the OS App since applied measures are copied off into a temporary directory  
+elsif File.exists? File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, "HPXMLtoOpenStudio/resources") # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
   resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, "HPXMLtoOpenStudio/resources")
-else  
+else
   resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources"))
 end
 
@@ -19,7 +19,6 @@ require File.join(resources_path, 'hvac')
 require File.join(resources_path, 'waterheater')
 
 class LoadComponentTest < MiniTest::Test
-
   def test_sfd
     measure = LoadComponentsReport.new
     args_hash = {}
@@ -30,7 +29,7 @@ class LoadComponentTest < MiniTest::Test
   end
 
   private
-  
+
   def model_in_path_default(osm_file_or_model)
     return File.absolute_path(File.join(File.dirname(__FILE__), "../../../test/osm_files", osm_file_or_model))
   end
@@ -164,7 +163,7 @@ class LoadComponentTest < MiniTest::Test
     ensure
       Dir.chdir(start_dir)
     end
-  
+
     result.stepValues.each do |step_value|
       if step_value.name == 'heating_demand_error_percent' or step_value.name == 'cooling_demand_error_percent'
         if (step_value.valueAsDouble).abs > error_threshold
