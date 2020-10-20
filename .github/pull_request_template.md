@@ -1,4 +1,4 @@
-Addresses #[issue number here].
+Resolves #[issue number here].
 
 ## Pull Request Description
 
