@@ -285,13 +285,10 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     if num_units_per_floor == 1 and (corridor_position == "Double-Loaded Interior" or corridor_position == "Double Exterior")
       runner.registerWarning("Specified building as having rear units; setting corridor position to 'Single Exterior (Front)'.")
       corridor_position = "Single Exterior (Front)"
-
-      corridor_position = "None"
     end
     if (num_units_per_floor % 2 != 0) and (corridor_position == "Double-Loaded Interior" or corridor_position == "Double Exterior")
       runner.registerWarning("Specified incompatible corridor; setting corridor position to 'Single Exterior (Front)'.")
       corridor_position = "Single Exterior (Front)"
-      corridor_position = "None"
     end
     if unit_aspect_ratio < 0
       runner.registerError("Invalid aspect ratio entered.")
@@ -971,25 +968,25 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     OpenStudio::Model.matchSurfaces(spaces)
     
     # temporary adiabatic shared walls for testing:
-    model.getSpaces.each do |space|
-      space.surfaces.each do |surface|
-        if surface.adjacentSurface.is_initialized
-          adjacent_surface = surface.adjacentSurface.get
-          adjacent_space = adjacent_surface.space.get
+    # model.getSpaces.each do |space|
+    #   space.surfaces.each do |surface|
+    #     if surface.adjacentSurface.is_initialized
+    #       adjacent_surface = surface.adjacentSurface.get
+    #       adjacent_space = adjacent_surface.space.get
 
-          if Geometry.is_living_space_type(adjacent_space.spaceType.get.standardsSpaceType.get) and Geometry.is_living_space_type(space.spaceType.get.standardsSpaceType.get)
-            surface.adjacentSurface.get.setOutsideBoundaryCondition("Adiabatic")
-            surface.setOutsideBoundaryCondition("Adiabatic")
-          elsif Geometry.space_is_below_grade(adjacent_space) and Geometry.space_is_below_grade(space)
-            surface.adjacentSurface.get.setOutsideBoundaryCondition("Adiabatic")
-            surface.setOutsideBoundaryCondition("Adiabatic")
-          elsif Geometry.is_corridor(space)
-            surface.adjacentSurface.get.setOutsideBoundaryCondition("Adiabatic")
-            surface.setOutsideBoundaryCondition("Adiabatic")
-          end
-        end
-      end
-    end
+    #       if Geometry.is_living_space_type(adjacent_space.spaceType.get.standardsSpaceType.get) and Geometry.is_living_space_type(space.spaceType.get.standardsSpaceType.get)
+    #         surface.adjacentSurface.get.setOutsideBoundaryCondition("Adiabatic")
+    #         surface.setOutsideBoundaryCondition("Adiabatic")
+    #       elsif Geometry.space_is_below_grade(adjacent_space) and Geometry.space_is_below_grade(space)
+    #         surface.adjacentSurface.get.setOutsideBoundaryCondition("Adiabatic")
+    #         surface.setOutsideBoundaryCondition("Adiabatic")
+    #       elsif Geometry.is_corridor(space)
+    #         surface.adjacentSurface.get.setOutsideBoundaryCondition("Adiabatic")
+    #         surface.setOutsideBoundaryCondition("Adiabatic")
+    #       end
+    #     end
+    #   end
+    # end
     
     # make all surfaces adjacent to corridor spaces into adiabatic surfaces
     model.getSpaces.each do |space|
@@ -1038,10 +1035,10 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
       return false
     end
 
-    # result = Geometry.process_eaves(model, runner, eaves_depth, Constants.RoofStructureTrussCantilever)
-    # unless result
-    #   return false
-    # end
+    result = Geometry.process_eaves(model, runner, eaves_depth, Constants.RoofStructureTrussCantilever)
+    unless result
+      return false
+    end
 
     result = Geometry.process_neighbors(model, runner, left_neighbor_offset, right_neighbor_offset, back_neighbor_offset, front_neighbor_offset)
     unless result

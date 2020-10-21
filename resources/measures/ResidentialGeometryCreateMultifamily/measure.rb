@@ -340,8 +340,6 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     if (!has_rear_units) and (corridor_position == "Double-Loaded Interior" or corridor_position == "Double Exterior")
       runner.registerWarning("Specified incompatible corridor; setting corridor position to 'Single Exterior (Front)'.")
       corridor_position = "Single Exterior (Front)"
-
-      corridor_position = "None"
     end
     if unit_aspect_ratio < 0
       runner.registerError("Invalid aspect ratio entered.")
@@ -391,7 +389,6 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
 
     story_hash = { "Bottom" => 0, "Middle" => 1, "Top" => num_floors - 1 }
     z = wall_height * story_hash[level]
-    # z=0
 
     foundation_corr_polygon = nil
     foundation_front_polygon = nil
@@ -448,11 +445,6 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
 
     # living space
     living_spaces_front = []
-    nw_point = OpenStudio::Point3d.new(0, 1.5, z)
-    ne_point = OpenStudio::Point3d.new(x, 1.5, z)
-    sw_point = OpenStudio::Point3d.new(0, -y, z)
-    se_point = OpenStudio::Point3d.new(x, -y, z)
-
     living_space = OpenStudio::Model::Space::fromFloorPrint(living_polygon, wall_height, model)
     living_space = living_space.get
     living_space.setName("living space")
@@ -767,10 +759,10 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
       return false
     end
 
-    # result = Geometry.process_eaves(model, runner, eaves_depth, Constants.RoofStructureTrussCantilever)
-    # unless result
-    #   return false
-    # end
+    result = Geometry.process_eaves(model, runner, eaves_depth, Constants.RoofStructureTrussCantilever)
+    unless result
+      return false
+    end
 
     result = Geometry.process_neighbors(model, runner, left_neighbor_offset, right_neighbor_offset, back_neighbor_offset, front_neighbor_offset)
     unless result
