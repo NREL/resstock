@@ -255,7 +255,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     front_neighbor_offset = UnitConversions.convert(runner.getDoubleArgumentValue("neighbor_front_offset", user_arguments), "ft", "m")
     orientation = runner.getDoubleArgumentValue("orientation", user_arguments)
     minimal_collapsed = runner.getBoolArgumentValue("minimal_collapsed", user_arguments)
-    
+
     ## Set false for comparison purposes ##
     minimal_collapsed = false
 
@@ -855,7 +855,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
         spaces << space
       end
 
-      # Individual foundation spaces for each unit 
+      # Individual foundation spaces for each unit
       foundation_spaces.each do |foundation_space|
         if ["crawlspace", "unfinished basement"].include? foundation_type
           if foundation_type == "crawlspace"
@@ -966,7 +966,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     # intersect and match surfaces for each space in the vector
     OpenStudio::Model.intersectSurfaces(spaces)
     OpenStudio::Model.matchSurfaces(spaces)
-    
+
     # temporary adiabatic shared walls for testing:
     # model.getSpaces.each do |space|
     #   space.surfaces.each do |surface|
@@ -987,7 +987,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     #     end
     #   end
     # end
-    
+
     # make all surfaces adjacent to corridor spaces into adiabatic surfaces
     model.getSpaces.each do |space|
       next unless Geometry.is_corridor(space)

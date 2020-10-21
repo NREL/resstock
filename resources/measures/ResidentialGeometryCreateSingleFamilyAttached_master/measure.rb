@@ -782,8 +782,8 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
             foundation_space.setSpaceType(foundation_space_type)
           end
         end
-      end      
-      
+      end
+
       # # Single foundation space for all units
       # if ["crawlspace", "unfinished basement"].include? foundation_type
       #   foundation_space = Geometry.make_one_space_from_multiple_spaces(model, foundation_spaces)
@@ -1010,7 +1010,7 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
       se_point = OpenStudio::Point3d.new(x, 0, wall_height * num_floors)
     end
     attic_polygon = Geometry.make_polygon(sw_point, nw_point, ne_point, se_point)
-    
+
     # if y.abs + y_rear >= x
     #   attic_height = (x / 2.0) * roof_pitch
     # else
