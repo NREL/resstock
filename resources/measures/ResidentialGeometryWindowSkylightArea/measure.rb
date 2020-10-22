@@ -371,6 +371,7 @@ class SetResidentialWindowSkylightArea < OpenStudio::Measure::ModelMeasure
     facades.each do |facade|
       # Initial guess for wall of this facade
       next if facade_avail_area[facade] == 0
+
       wall_surfaces[facade].each do |surface|
         surface_window_area[surface] += surface_avail_area[surface] / facade_avail_area[facade] * target_facade_areas[facade]
       end
@@ -391,23 +392,24 @@ class SetResidentialWindowSkylightArea < OpenStudio::Measure::ModelMeasure
           wall_surfaces[facade].each_with_index do |future_surface, future_surface_num|
             next if future_surface_num <= surface_num
             next unless unit.spaces.include? future_surface.space.get
+
             future_surfaces_area += surface_avail_area[future_surface]
           end
           next if future_surfaces_area == 0
+
           removed_window_area = surface_window_area[surface]
           surface_window_area[surface] = 0
 
           wall_surfaces[facade].each_with_index do |future_surface, future_surface_num|
             next if future_surface_num <= surface_num
-            next unless unit.spaces.include? future_surface.space.get            
+            next unless unit.spaces.include? future_surface.space.get
 
             surface_window_area[future_surface] += removed_window_area * surface_avail_area[future_surface] / future_surfaces_area
           end
         end
       end
-
     end
-    
+
     # Calculate facade areas for each unit
     unit_facade_areas = {}
     unit_wall_surfaces = {}
@@ -419,13 +421,14 @@ class SetResidentialWindowSkylightArea < OpenStudio::Measure::ModelMeasure
         unit_wall_surfaces[unit][facade] = []
         wall_surfaces[facade].each do |surface|
           next unless unit.spaces.include? surface.space.get
+
           unit_facade_areas[unit][facade] += surface_window_area[surface]
           unit_wall_surfaces[unit][facade] << surface
         end
       end
     end
 
-    # if the sum of the window areas on the facade are < minimum, move to different facade 
+    # if the sum of the window areas on the facade are < minimum, move to different facade
     facades.each do |facade|
       model.getBuildingUnits.each do |unit|
         next if unit_facade_areas[unit][facade] == 0
@@ -438,19 +441,22 @@ class SetResidentialWindowSkylightArea < OpenStudio::Measure::ModelMeasure
         area_moved = unit_facade_areas[unit][facade]
         unit_facade_areas[unit][facade] = 0
         wall_surfaces[facade].each do |surface|
-          next unless unit.spaces.include? surface.space.get #surface is in this unit
+          next unless unit.spaces.include? surface.space.get # surface is in this unit
+
           surface_window_area[surface] = 0
         end
 
         unit_facade_areas[unit][new_facade] += area_moved
         sum_window_area = 0
         wall_surfaces[new_facade].each do |surface|
-          next unless unit.spaces.include? surface.space.get #surface is in this unit
+          next unless unit.spaces.include? surface.space.get # surface is in this unit
+
           sum_window_area += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
         end
 
         wall_surfaces[new_facade].each do |surface|
-          next unless unit.spaces.include? surface.space.get #surface is in this unit
+          next unless unit.spaces.include? surface.space.get # surface is in this unit
+
           split_window_area = area_moved * UnitConversions.convert(surface.grossArea, "m^2", "ft^2") / sum_window_area
           surface_window_area[surface] += split_window_area
         end
@@ -458,22 +464,24 @@ class SetResidentialWindowSkylightArea < OpenStudio::Measure::ModelMeasure
         runner.registerWarning("The #{facade} facade window area (#{area_moved.round(2)} ft2) is less than the minimum window area allowed (#{min_single_window_area.round(2)} ft2), and has been added to the #{new_facade} facade.")
       end
     end
-      
+
     facades.each do |facade|
       model.getBuildingUnits.each do |unit|
-      # Because the above process is calculated based on the order of surfaces, it's possible
-      # that we have less area for this facade than we should. If so, redistribute proportionally
-      # to all surfaces that have window area.
+        # Because the above process is calculated based on the order of surfaces, it's possible
+        # that we have less area for this facade than we should. If so, redistribute proportionally
+        # to all surfaces that have window area.
         sum_window_area = 0
         wall_surfaces[facade].each do |surface|
-          next unless unit.spaces.include? surface.space.get 
+          next unless unit.spaces.include? surface.space.get
+
           sum_window_area += surface_window_area[surface]
         end
         next if sum_window_area == 0
         next if unit_facade_areas[unit][facade] < sum_window_area # for cases where window area was added from different facade
 
         wall_surfaces[facade].each do |surface|
-          next unless unit.spaces.include? surface.space.get 
+          next unless unit.spaces.include? surface.space.get
+
           surface_window_area[surface] += surface_window_area[surface] / sum_window_area * (unit_facade_areas[unit][facade] - sum_window_area)
         end
       end
