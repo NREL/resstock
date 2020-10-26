@@ -1219,11 +1219,12 @@ class HVACSizing
     return nil if mj8.nil?
 
     zone_ffa = Geometry.get_finished_floor_area_from_spaces(thermal_zone.spaces)
+    zone_frac = zone_ffa / unit_ffa
 
     # Per ANSI/RESNET/ICC 301
     n_occupants = nbeds + 1
-    zone_loads.Cool_IntGains_Sens = 1600.0 + 230.0 * n_occupants * zone_ffa / unit_ffa
-    zone_loads.Cool_IntGains_Lat = 200.0 * n_occupants * zone_ffa / unit_ffa
+    zone_loads.Cool_IntGains_Sens = (1600.0 + 230.0 * n_occupants) * zone_frac
+    zone_loads.Cool_IntGains_Lat = (200.0 * n_occupants) * zone_frac
     zone_loads.Dehumid_IntGains_Sens = zone_loads.Cool_IntGains_Sens
     zone_loads.Dehumid_IntGains_Lat = zone_loads.Cool_IntGains_Lat
 
