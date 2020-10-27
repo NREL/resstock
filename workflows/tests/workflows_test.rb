@@ -17,8 +17,9 @@ class WorkflowTest < MiniTest::Test
 
     create_lib_folder(parent_dir)
     Dir["#{parent_dir}/*.osw"].each do |osw|
-      puts "\nOSW: #{osw} ...\n"
       next if File.basename(osw).include? 'out'
+
+      puts "\nOSW: #{osw} ...\n"
 
       RunOSWs.add_simulation_output_report(osw)
       out_osw, result = RunOSWs.run_and_check(osw, parent_dir)
