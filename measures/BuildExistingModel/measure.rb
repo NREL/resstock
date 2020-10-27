@@ -90,6 +90,12 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     arg.setDescription('This numeric field should contain the ending day of the ending month (must be valid for month) for the annual run period desired.')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('simulation_control_run_period_calendar_year', false)
+    arg.setDisplayName('Simulation Control: Run Period Calendar Year')
+    arg.setUnits('year')
+    arg.setDescription('This numeric field should contain the calendar year that determines the start day of week. If you are running simulations using AMY weather files, the value entered for calendar year will not be used; it will be overridden by the actual year found in the AMY weather file.')
+    args << arg
+
     return args
   end
 
@@ -113,6 +119,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     simulation_control_run_period_begin_day_of_month = runner.getOptionalIntegerArgumentValue('simulation_control_run_period_begin_day_of_month', user_arguments)
     simulation_control_run_period_end_month = runner.getOptionalIntegerArgumentValue('simulation_control_run_period_end_month', user_arguments)
     simulation_control_run_period_end_day_of_month = runner.getOptionalIntegerArgumentValue('simulation_control_run_period_end_day_of_month', user_arguments)
+    simulation_control_run_period_calendar_year = runner.getOptionalIntegerArgumentValue('simulation_control_run_period_calendar_year', user_arguments)
 
     # Save the building id
     model.getBuilding.additionalProperties.setFeature('Building ID', building_unit_id)
@@ -217,6 +224,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     measures['BuildResidentialHPXML'][0]['simulation_control_run_period_begin_day_of_month'] = simulation_control_run_period_begin_day_of_month.get if simulation_control_run_period_begin_day_of_month.is_initialized
     measures['BuildResidentialHPXML'][0]['simulation_control_run_period_end_month'] = simulation_control_run_period_end_month.get if simulation_control_run_period_end_month.is_initialized
     measures['BuildResidentialHPXML'][0]['simulation_control_run_period_end_day_of_month'] = simulation_control_run_period_end_day_of_month.get if simulation_control_run_period_end_day_of_month.is_initialized
+    measures['BuildResidentialHPXML'][0]['simulation_control_run_period_calendar_year'] = simulation_control_run_period_calendar_year.get if simulation_control_run_period_calendar_year.is_initialized
 
     if not apply_measures(measures_dir, measures, runner, model, workflow_json, 'measures.osw', true)
       return false
