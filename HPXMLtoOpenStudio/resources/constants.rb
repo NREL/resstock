@@ -74,7 +74,7 @@ class Constants
   end
 
   def self.ERIVersions
-    return ['2014', '2014A', '2014AD', '2014ADE', '2014ADEG', '2014ADEGL', '2019', '2019A', '2019AB']
+    return ['2014', '2014A', '2014AD', '2014ADE', '2014ADEG', '2014ADEGL', '2019', '2019A']
   end
 
   def self.FluidWater
@@ -445,6 +445,10 @@ class Constants
     return __method__.to_s
   end
 
+  def self.SizingInfoHVACFanWatts
+    return __method__.to_s
+  end
+
   def self.SizingInfoHVACFracHeatLoadServed
     return __method__.to_s
   end
@@ -505,15 +509,7 @@ class Constants
     return __method__.to_s
   end
 
-  def self.SizingInfoHVACCoolingCFMs
-    return __method__.to_s
-  end
-
   def self.SizingInfoHVACHeatingCapacityOffset
-    return __method__.to_s
-  end
-
-  def self.SizingInfoHVACHeatingCFMs
     return __method__.to_s
   end
 

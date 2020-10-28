@@ -248,24 +248,19 @@ class HPXMLDefaults
   def self.apply_hvac(hpxml)
     # Default AC/HP compressor type
     hpxml.cooling_systems.each do |cooling_system|
-      next unless cooling_system.cooling_system_type == HPXML::HVACTypeCentralAirConditioner
       next unless cooling_system.compressor_type.nil?
 
-      cooling_system.compressor_type = HVAC.get_default_compressor_type(cooling_system.cooling_efficiency_seer)
+      cooling_system.compressor_type = HVAC.get_default_compressor_type(cooling_system.cooling_system_type, cooling_system.cooling_efficiency_seer)
     end
     hpxml.heat_pumps.each do |heat_pump|
-      next unless heat_pump.heat_pump_type == HPXML::HVACTypeHeatPumpAirToAir
       next unless heat_pump.compressor_type.nil?
 
-      heat_pump.compressor_type = HVAC.get_default_compressor_type(heat_pump.cooling_efficiency_seer)
+      heat_pump.compressor_type = HVAC.get_default_compressor_type(heat_pump.heat_pump_type, heat_pump.cooling_efficiency_seer)
     end
 
     # Default boiler EAE
     hpxml.heating_systems.each do |heating_system|
-      next unless heating_system.heating_system_type == HPXML::HVACTypeBoiler
-      next unless heating_system.electric_auxiliary_energy.nil?
-
-      heating_system.electric_auxiliary_energy = HVAC.get_electric_auxiliary_energy(heating_system)
+      heating_system.electric_auxiliary_energy = HVAC.get_default_boiler_eae(heating_system)
     end
 
     # Default AC/HP sensible heat ratio
@@ -304,15 +299,84 @@ class HPXMLDefaults
       end
     end
 
-    # Default GSHP pump/fan power
+    # GSHP pump power
     hpxml.heat_pumps.each do |heat_pump|
       next unless heat_pump.heat_pump_type == HPXML::HVACTypeHeatPumpGroundToAir
+      next unless heat_pump.pump_watts_per_ton.nil?
 
-      if heat_pump.fan_watts_per_cfm.nil?
-        heat_pump.fan_watts_per_cfm = HVAC.get_default_gshp_fan_power()
+      heat_pump.pump_watts_per_ton = HVAC.get_default_gshp_pump_power()
+    end
+
+    # Fan power
+    psc_watts_per_cfm = 0.5 # W/cfm, PSC fan
+    ecm_watts_per_cfm = 0.375 # W/cfm, ECM fan
+    mini_split_ducted_watts_per_cfm = 0.18 # W/cfm, ducted mini split
+    mini_split_ductless_watts_per_cfm = 0.07 # W/cfm, ductless mini split
+    hpxml.heating_systems.each do |heating_system|
+      if [HPXML::HVACTypeFurnace].include? heating_system.heating_system_type
+        if heating_system.fan_watts_per_cfm.nil?
+          if heating_system.heating_efficiency_afue > 0.9 # HEScore assumption
+            heating_system.fan_watts_per_cfm = ecm_watts_per_cfm
+          else
+            heating_system.fan_watts_per_cfm = psc_watts_per_cfm
+          end
+        end
+      elsif [HPXML::HVACTypeStove].include? heating_system.heating_system_type
+        if heating_system.fan_watts.nil?
+          heating_system.fan_watts = 40.0 # W
+        end
+      elsif [HPXML::HVACTypeWallFurnace,
+             HPXML::HVACTypeFloorFurnace,
+             HPXML::HVACTypePortableHeater,
+             HPXML::HVACTypeFixedHeater,
+             HPXML::HVACTypeFireplace].include? heating_system.heating_system_type
+        if heating_system.fan_watts.nil?
+          heating_system.fan_watts = 0.0 # W/cfm, assume no fan power
+        end
       end
-      if heat_pump.pump_watts_per_ton.nil?
-        heat_pump.pump_watts_per_ton = HVAC.get_default_gshp_pump_power()
+    end
+    hpxml.cooling_systems.each do |cooling_system|
+      next unless cooling_system.fan_watts_per_cfm.nil?
+
+      if (not cooling_system.attached_heating_system.nil?) && (not cooling_system.attached_heating_system.fan_watts_per_cfm.nil?)
+        cooling_system.fan_watts_per_cfm = cooling_system.attached_heating_system.fan_watts_per_cfm
+      elsif [HPXML::HVACTypeCentralAirConditioner].include? cooling_system.cooling_system_type
+        if cooling_system.cooling_efficiency_seer > 13.5 # HEScore assumption
+          cooling_system.fan_watts_per_cfm = ecm_watts_per_cfm
+        else
+          cooling_system.fan_watts_per_cfm = psc_watts_per_cfm
+        end
+      elsif [HPXML::HVACTypeMiniSplitAirConditioner].include? cooling_system.cooling_system_type
+        if not cooling_system.distribution_system.nil?
+          cooling_system.fan_watts_per_cfm = mini_split_ducted_watts_per_cfm
+        else
+          cooling_system.fan_watts_per_cfm = mini_split_ductless_watts_per_cfm
+        end
+      elsif [HPXML::HVACTypeEvaporativeCooler].include? cooling_system.cooling_system_type
+        # Depends on airflow rate, so defaulted in hvac_sizing.rb
+      end
+    end
+    hpxml.heat_pumps.each do |heat_pump|
+      next unless heat_pump.fan_watts_per_cfm.nil?
+
+      if [HPXML::HVACTypeHeatPumpAirToAir].include? heat_pump.heat_pump_type
+        if heat_pump.heating_efficiency_hspf > 8.75 # HEScore assumption
+          heat_pump.fan_watts_per_cfm = ecm_watts_per_cfm
+        else
+          heat_pump.fan_watts_per_cfm = psc_watts_per_cfm
+        end
+      elsif [HPXML::HVACTypeHeatPumpGroundToAir].include? heat_pump.heat_pump_type
+        if heat_pump.heating_efficiency_cop > 8.75 / 3.2 # HEScore assumption
+          heat_pump.fan_watts_per_cfm = ecm_watts_per_cfm
+        else
+          heat_pump.fan_watts_per_cfm = psc_watts_per_cfm
+        end
+      elsif [HPXML::HVACTypeHeatPumpMiniSplit].include? heat_pump.heat_pump_type
+        if not heat_pump.distribution_system.nil?
+          heat_pump.fan_watts_per_cfm = mini_split_ducted_watts_per_cfm
+        else
+          heat_pump.fan_watts_per_cfm = mini_split_ductless_watts_per_cfm
+        end
       end
     end
 
@@ -348,8 +412,7 @@ class HPXMLDefaults
       end
     end
 
-    # TODO: Default HeatingCapacity17F
-    # TODO: Default Electric Auxiliary Energy (EAE; requires autosized HVAC capacity)
+    # TODO: Default HeatingCapacity17F?
   end
 
   def self.apply_hvac_distribution(hpxml, ncfl, ncfl_ag)

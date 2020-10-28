@@ -105,30 +105,6 @@ class XMLHelper
     return element.get(attr_name)
   end
 
-  # Copies the element if it exists
-  def self.copy_element(dest, src, element_name, backup_val = nil)
-    return if src.nil?
-
-    element = src.at_xpath(element_name)
-    if not element.nil?
-      dest << element.dup
-    elsif not backup_val.nil?
-      # Element didn't exist in src, assign backup value instead
-      add_element(dest, element_name.split('/')[-1], backup_val)
-    end
-  end
-
-  # Copies the multiple elements
-  def self.copy_elements(dest, src, element_name)
-    return if src.nil?
-
-    if not src.xpath(element_name).nil?
-      src.xpath(element_name).each do |el|
-        dest << el.dup
-      end
-    end
-  end
-
   def self.validate(doc, xsd_path, runner = nil)
     if Gem::Specification::find_all_by_name('nokogiri').any?
       require 'nokogiri'

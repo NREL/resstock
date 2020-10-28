@@ -42,6 +42,8 @@ XMLHelper.write_file(hpxml.to_oga, "out.xml")
 
 '''
 
+require_relative 'version'
+
 # FUTURE: Remove all idref attributes, make object attributes instead
 #         E.g., in class Window, :wall_idref => :wall
 
@@ -2484,8 +2486,9 @@ class HPXML < Object
     ATTRS = [:id, :distribution_system_idref, :year_installed, :heating_system_type,
              :heating_system_fuel, :heating_capacity, :heating_efficiency_afue,
              :heating_efficiency_percent, :fraction_heat_load_served, :electric_auxiliary_energy,
-             :heating_cfm, :energy_star, :seed_id, :is_shared_system, :number_of_units_served,
-             :shared_loop_watts, :fan_coil_watts, :wlhp_heating_efficiency_cop]
+             :energy_star, :seed_id, :is_shared_system, :number_of_units_served,
+             :shared_loop_watts, :fan_coil_watts, :wlhp_heating_efficiency_cop, :fan_watts_per_cfm,
+             :fan_watts]
     attr_accessor(*ATTRS)
 
     def distribution_system
@@ -2561,9 +2564,10 @@ class HPXML < Object
       end
       XMLHelper.add_element(heating_system, 'FractionHeatLoadServed', to_float(@fraction_heat_load_served)) unless @fraction_heat_load_served.nil?
       XMLHelper.add_element(heating_system, 'ElectricAuxiliaryEnergy', to_float(@electric_auxiliary_energy)) unless @electric_auxiliary_energy.nil?
-      XMLHelper.add_extension(heating_system, 'HeatingFlowRate', to_float(@heating_cfm)) unless @heating_cfm.nil?
       XMLHelper.add_extension(heating_system, 'SharedLoopWatts', to_float(@shared_loop_watts)) unless @shared_loop_watts.nil?
       XMLHelper.add_extension(heating_system, 'FanCoilWatts', to_float(@fan_coil_watts)) unless @fan_coil_watts.nil?
+      XMLHelper.add_extension(heating_system, 'FanPowerWattsPerCFM', to_float(@fan_watts_per_cfm)) unless @fan_watts_per_cfm.nil?
+      XMLHelper.add_extension(heating_system, 'FanPowerWatts', to_float(@fan_watts)) unless @fan_watts.nil?
       XMLHelper.add_extension(heating_system, 'SeedId', @seed_id) unless @seed_id.nil?
       if not @wlhp_heating_efficiency_cop.nil?
         wlhp = XMLHelper.create_elements_as_needed(heating_system, ['extension', 'WaterLoopHeatPump'])
@@ -2591,9 +2595,10 @@ class HPXML < Object
       end
       @fraction_heat_load_served = to_float_or_nil(XMLHelper.get_value(heating_system, 'FractionHeatLoadServed'))
       @electric_auxiliary_energy = to_float_or_nil(XMLHelper.get_value(heating_system, 'ElectricAuxiliaryEnergy'))
-      @heating_cfm = to_float_or_nil(XMLHelper.get_value(heating_system, 'extension/HeatingFlowRate'))
       @energy_star = XMLHelper.get_values(heating_system, 'ThirdPartyCertification').include?('Energy Star')
       @seed_id = XMLHelper.get_value(heating_system, 'extension/SeedId')
+      @fan_watts_per_cfm = to_float_or_nil(XMLHelper.get_value(heating_system, 'extension/FanPowerWattsPerCFM'))
+      @fan_watts = to_float_or_nil(XMLHelper.get_value(heating_system, 'extension/FanPowerWatts'))
       @shared_loop_watts = to_float_or_nil(XMLHelper.get_value(heating_system, 'extension/SharedLoopWatts'))
       @fan_coil_watts = to_float_or_nil(XMLHelper.get_value(heating_system, 'extension/FanCoilWatts'))
       @wlhp_heating_efficiency_cop = to_float_or_nil(XMLHelper.get_value(heating_system, "extension/WaterLoopHeatPump/AnnualHeatingEfficiency[Units='#{UnitsCOP}']/Value"))
@@ -2622,9 +2627,9 @@ class HPXML < Object
     ATTRS = [:id, :distribution_system_idref, :year_installed, :cooling_system_type,
              :cooling_system_fuel, :cooling_capacity, :compressor_type, :fraction_cool_load_served,
              :cooling_efficiency_seer, :cooling_efficiency_eer, :cooling_efficiency_kw_per_ton,
-             :cooling_shr, :cooling_cfm, :energy_star, :seed_id, :is_shared_system,
+             :cooling_shr, :energy_star, :seed_id, :is_shared_system,
              :number_of_units_served, :shared_loop_watts, :fan_coil_watts, :wlhp_cooling_capacity,
-             :wlhp_cooling_efficiency_eer]
+             :wlhp_cooling_efficiency_eer, :fan_watts_per_cfm]
     attr_accessor(*ATTRS)
 
     def distribution_system
@@ -2701,7 +2706,7 @@ class HPXML < Object
         XMLHelper.add_element(annual_efficiency, 'Value', to_float(efficiency_value))
       end
       XMLHelper.add_element(cooling_system, 'SensibleHeatFraction', to_float(@cooling_shr)) unless @cooling_shr.nil?
-      XMLHelper.add_extension(cooling_system, 'CoolingFlowRate', to_float(@cooling_cfm)) unless @cooling_cfm.nil?
+      XMLHelper.add_extension(cooling_system, 'FanPowerWattsPerCFM', to_float(@fan_watts_per_cfm)) unless @fan_watts_per_cfm.nil?
       XMLHelper.add_extension(cooling_system, 'SharedLoopWatts', to_float(@shared_loop_watts)) unless @shared_loop_watts.nil?
       XMLHelper.add_extension(cooling_system, 'FanCoilWatts', to_float(@fan_coil_watts)) unless @fan_coil_watts.nil?
       XMLHelper.add_extension(cooling_system, 'SeedId', @seed_id) unless @seed_id.nil?
@@ -2737,9 +2742,9 @@ class HPXML < Object
         @cooling_efficiency_kw_per_ton = to_float_or_nil(XMLHelper.get_value(cooling_system, "AnnualCoolingEfficiency[Units='#{UnitsKwPerTon}']/Value"))
       end
       @cooling_shr = to_float_or_nil(XMLHelper.get_value(cooling_system, 'SensibleHeatFraction'))
-      @cooling_cfm = to_float_or_nil(XMLHelper.get_value(cooling_system, 'extension/CoolingFlowRate'))
       @energy_star = XMLHelper.get_values(cooling_system, 'ThirdPartyCertification').include?('Energy Star')
       @seed_id = XMLHelper.get_value(cooling_system, 'extension/SeedId')
+      @fan_watts_per_cfm = to_float_or_nil(XMLHelper.get_value(cooling_system, 'extension/FanPowerWattsPerCFM'))
       @shared_loop_watts = to_float_or_nil(XMLHelper.get_value(cooling_system, 'extension/SharedLoopWatts'))
       @fan_coil_watts = to_float_or_nil(XMLHelper.get_value(cooling_system, 'extension/FanCoilWatts'))
       @wlhp_cooling_capacity = to_float_or_nil(XMLHelper.get_value(cooling_system, 'extension/WaterLoopHeatPump/CoolingCapacity'))
@@ -2868,8 +2873,8 @@ class HPXML < Object
         XMLHelper.add_element(annual_efficiency, 'Units', htg_efficiency_units)
         XMLHelper.add_element(annual_efficiency, 'Value', to_float(htg_efficiency_value))
       end
-      XMLHelper.add_extension(heat_pump, 'PumpPowerWattsPerTon', to_float(@pump_watts_per_ton)) unless @pump_watts_per_ton.nil?
       XMLHelper.add_extension(heat_pump, 'FanPowerWattsPerCFM', to_float(@fan_watts_per_cfm)) unless @fan_watts_per_cfm.nil?
+      XMLHelper.add_extension(heat_pump, 'PumpPowerWattsPerTon', to_float(@pump_watts_per_ton)) unless @pump_watts_per_ton.nil?
       XMLHelper.add_extension(heat_pump, 'SharedLoopWatts', to_float(@shared_loop_watts)) unless @shared_loop_watts.nil?
       XMLHelper.add_extension(heat_pump, 'SeedId', @seed_id) unless @seed_id.nil?
     end
@@ -3265,7 +3270,7 @@ class HPXML < Object
              :fan_power, :fan_power_defaulted, :quantity, :fan_location, :distribution_system_idref, :start_hour,
              :is_shared_system, :in_unit_flow_rate, :fraction_recirculation,
              :preheating_fuel, :preheating_efficiency_cop, :preheating_fraction_load_served, :precooling_fuel,
-             :precooling_efficiency_cop, :precooling_fraction_load_served,]
+             :precooling_efficiency_cop, :precooling_fraction_load_served]
     attr_accessor(*ATTRS)
 
     def distribution_system
@@ -3503,7 +3508,7 @@ class HPXML < Object
   class WaterHeatingSystem < BaseElement
     ATTRS = [:id, :year_installed, :fuel_type, :water_heater_type, :location, :performance_adjustment,
              :tank_volume, :fraction_dhw_load_served, :heating_capacity, :energy_factor,
-             :uniform_energy_factor, :recovery_efficiency, :uses_desuperheater, :jacket_r_value,
+             :uniform_energy_factor, :first_hour_rating, :recovery_efficiency, :uses_desuperheater, :jacket_r_value,
              :related_hvac_idref, :energy_star, :standby_loss, :temperature, :is_shared_system,
              :number_of_units_served]
     attr_accessor(*ATTRS)
@@ -3552,6 +3557,7 @@ class HPXML < Object
       XMLHelper.add_element(water_heating_system, 'HeatingCapacity', to_float(@heating_capacity)) unless @heating_capacity.nil?
       XMLHelper.add_element(water_heating_system, 'EnergyFactor', to_float(@energy_factor)) unless @energy_factor.nil?
       XMLHelper.add_element(water_heating_system, 'UniformEnergyFactor', to_float(@uniform_energy_factor)) unless @uniform_energy_factor.nil?
+      XMLHelper.add_element(water_heating_system, 'FirstHourRating', to_float(@first_hour_rating)) unless @first_hour_rating.nil?
       XMLHelper.add_element(water_heating_system, 'RecoveryEfficiency', to_float(@recovery_efficiency)) unless @recovery_efficiency.nil?
       if not @jacket_r_value.nil?
         water_heater_insulation = XMLHelper.add_element(water_heating_system, 'WaterHeaterInsulation')
@@ -3583,6 +3589,7 @@ class HPXML < Object
       @heating_capacity = to_float_or_nil(XMLHelper.get_value(water_heating_system, 'HeatingCapacity'))
       @energy_factor = to_float_or_nil(XMLHelper.get_value(water_heating_system, 'EnergyFactor'))
       @uniform_energy_factor = to_float_or_nil(XMLHelper.get_value(water_heating_system, 'UniformEnergyFactor'))
+      @first_hour_rating = to_float_or_nil(XMLHelper.get_value(water_heating_system, 'FirstHourRating'))
       @recovery_efficiency = to_float_or_nil(XMLHelper.get_value(water_heating_system, 'RecoveryEfficiency'))
       @uses_desuperheater = to_boolean_or_nil(XMLHelper.get_value(water_heating_system, 'UsesDesuperheater'))
       @jacket_r_value = to_float_or_nil(XMLHelper.get_value(water_heating_system, 'WaterHeaterInsulation/Jacket/JacketRValue'))
