@@ -1376,6 +1376,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     @hpxml.water_heating_systems.each do |dhw_system|
       sys_id = dhw_system.id
       value = dhw_system.energy_factor
+      value = dhw_system.uniform_energy_factor if value.nil?
       wh_type = dhw_system.water_heater_type
       if wh_type == HPXML::WaterHeaterTypeTankless
         value_adj = dhw_system.performance_adjustment
@@ -1384,6 +1385,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       end
 
       if value.nil?
+        # Get assumed EF for combi system
         @model.getWaterHeaterMixeds.each do |wh|
           next unless @dhw_map[sys_id].include? wh.name.to_s
 

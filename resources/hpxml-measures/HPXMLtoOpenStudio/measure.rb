@@ -177,6 +177,10 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
       test_epw_path = File.join(File.dirname(__FILE__), '..', 'weather', epw_path)
       epw_path = test_epw_path if File.exist? test_epw_path
     end
+    if not File.exist? epw_path
+      test_epw_path = File.join(File.dirname(__FILE__), '..', '..', 'weather', epw_path)
+      epw_path = test_epw_path if File.exist? test_epw_path
+    end
     if not File.exist?(epw_path)
       fail "'#{epw_path}' could not be found."
     end
@@ -278,7 +282,6 @@ class OSModel
 
     add_airflow(runner, model, weather, spaces)
     add_hvac_sizing(runner, model, weather, spaces)
-    add_furnace_eae(runner, model)
     add_photovoltaics(runner, model)
     add_additional_properties(runner, model, hpxml_path)
 
@@ -2493,19 +2496,6 @@ class OSModel
 
   def self.add_hvac_sizing(runner, model, weather, spaces)
     HVACSizing.apply(model, runner, weather, spaces, @hpxml, @infil_volume, @nbeds, @min_neighbor_distance, @debug)
-  end
-
-  def self.add_furnace_eae(runner, model)
-    # Needs to come after HVAC sizing (needs heating capacity and airflow rate)
-    # FUTURE: Could remove this method and simplify everything if we could autosize via the HPXML file
-
-    @hpxml.heating_systems.each do |heating_system|
-      next unless heating_system.fraction_heat_load_served > 0
-      next unless [HPXML::HVACTypeFurnace, HPXML::HVACTypeWallFurnace, HPXML::HVACTypeFloorFurnace, HPXML::HVACTypeStove].include? heating_system.heating_system_type
-      next unless heating_system.heating_system_fuel != HPXML::FuelTypeElectricity
-
-      HVAC.apply_eae_to_heating_fan(runner, @hvac_map[heating_system.id], heating_system)
-    end
   end
 
   def self.add_photovoltaics(runner, model)

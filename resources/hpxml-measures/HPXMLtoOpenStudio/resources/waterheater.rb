@@ -6,10 +6,6 @@ class Waterheater
 
     dhw_map[water_heating_system.id] = []
 
-    if water_heating_system.energy_factor.nil?
-      water_heating_system.energy_factor = calc_ef_from_uef(water_heating_system)
-    end
-
     solar_fraction = get_water_heater_solar_fraction(water_heating_system, solar_thermal_system)
     set_temp_c = get_set_temp_c(water_heating_system.temperature, water_heating_system.water_heater_type)
     loop = create_new_loop(model, Constants.ObjectNamePlantLoopDHW, set_temp_c)
@@ -51,11 +47,7 @@ class Waterheater
 
     dhw_map[water_heating_system.id] = []
 
-    if water_heating_system.energy_factor.nil?
-      water_heating_system.energy_factor = calc_ef_from_uef(water_heating_system)
-    end
     water_heating_system.heating_capacity = 100000000000.0
-
     solar_fraction = get_water_heater_solar_fraction(water_heating_system, solar_thermal_system)
     set_temp_c = get_set_temp_c(water_heating_system.temperature, water_heating_system.water_heater_type)
     loop = create_new_loop(model, Constants.ObjectNamePlantLoopDHW, set_temp_c)
@@ -96,10 +88,6 @@ class Waterheater
                           ec_adj, dhw_map, hvac_map, solar_thermal_system, living_zone)
 
     dhw_map[water_heating_system.id] = []
-
-    if water_heating_system.energy_factor.nil?
-      water_heating_system.energy_factor = calc_ef_from_uef(water_heating_system)
-    end
 
     obj_name_hpwh = Constants.ObjectNameWaterHeater
     solar_fraction = get_water_heater_solar_fraction(water_heating_system, solar_thermal_system)
@@ -192,9 +180,8 @@ class Waterheater
 
     if water_heating_system.water_heater_type == HPXML::WaterHeaterTypeCombiStorage
       if water_heating_system.standby_loss <= 0
-        fail 'Indirect water heater standby loss is negative, double check TankVolume to be <829 gal or StandbyLoss to be >0.0 F/hr.'
+        fail 'A negative indirect water heater standby loss was calculated, double check water heater inputs.'
       end
-
       act_vol = calc_storage_tank_actual_vol(water_heating_system.tank_volume, nil)
       a_side = calc_tank_areas(act_vol)[1]
       ua = calc_indirect_ua_with_standbyloss(act_vol, water_heating_system, a_side, solar_fraction)
@@ -767,8 +754,21 @@ class Waterheater
     twb_adj = Psychrometrics.Twb_fT_w_P(rated_edb_F, w_adj, p_atm)
 
     # Calculate the COP based on EF
-    uef = (0.60522 + water_heating_system.energy_factor) / 1.2101
-    cop = 1.174536058 * uef # Based on simulation of the UEF test procedure at varying COPs
+    if not water_heating_system.energy_factor.nil?
+      uef = (0.60522 + water_heating_system.energy_factor) / 1.2101
+      cop = 1.174536058 * uef # Based on simulation of the UEF test procedure at varying COPs
+    elsif not water_heating_system.uniform_energy_factor.nil?
+      uef = water_heating_system.uniform_energy_factor
+      if water_heating_system.first_hour_rating < 18.0
+        fail 'It is unlikely that a heat pump water heater falls into the very small bin of the First Hour Rating (FHR) test. Double check FHR input.'
+      elsif water_heating_system.first_hour_rating < 51.0 # Includes 18 gal up to (but not including) 51
+        cop = 1.0005 * uef - 0.0789
+      elsif water_heating_system.first_hour_rating < 75.0
+        cop = 1.0909 * uef - 0.0868
+      else
+        cop = 1.1022 * uef - 0.0877
+      end
+    end
 
     coil = hpwh.dXCoil.to_CoilWaterHeatingAirToWaterHeatPumpWrapped.get
     coil.setName("#{obj_name_hpwh} coil")
@@ -1049,7 +1049,7 @@ class Waterheater
                                      loc_schedule: loc_schedule,
                                      model: model,
                                      ua: assumed_ua,
-                                     is_storage: true)
+                                     is_dsh_storage: true)
     set_parasitic_power_for_storage_wh(water_heater: storage_tank)
 
     loop.addSupplyBranchForComponent(storage_tank)
@@ -1185,6 +1185,7 @@ class Waterheater
     if water_heating_system.fuel_type == HPXML::FuelTypeElectricity
       return 0.98
     else
+      # FUTURE: Develop a separate algorithm specific to UEF.
       ef = water_heating_system.energy_factor
       if ef.nil?
         ef = calc_ef_from_uef(water_heating_system)
@@ -1377,8 +1378,11 @@ class Waterheater
 
   def self.get_default_performance_adjustment(water_heating_system)
     return unless water_heating_system.water_heater_type == HPXML::WaterHeaterTypeTankless
-
-    return 0.92 # Applies to EF
+    if not water_heating_system.energy_factor.nil?
+      return 0.92 # Applies EF, updated per 301-2019
+    elsif not water_heating_system.uniform_energy_factor.nil?
+      return 0.94 # Applies UEF, updated per 301-2019
+    end
   end
 
   def self.get_default_location(hpxml, iecc_zone)
@@ -1430,29 +1434,62 @@ class Waterheater
   end
 
   def self.calc_tank_UA(act_vol, water_heating_system, solar_fraction)
-    # Calculates the U value, UA of the tank and conversion efficiency (eta_c)
-    # based on the Energy Factor and recovery efficiency of the tank
-    # Source: Burch and Erickson 2004 - http://www.nrel.gov/docs/gen/fy04/36035.pdf
+    # If using EF:
+    #   Calculates the U value, UA of the tank and conversion efficiency (eta_c)
+    #   based on the Energy Factor and recovery efficiency of the tank
+    #   Source: Burch and Erickson 2004 - http://www.nrel.gov/docs/gen/fy04/36035.pdf
+    # IF using UEF:
+    #   Calculates the U value, UA of the tank and conversion efficiency (eta_c)
+    #   based on the Uniform Energy Factor, First Hour Rating, and Recovery Efficiency of the tank
+    #   Source: Maguire and Roberts 2020 - https://www.ashrae.org/file%20library/conferences/specialty%20conferences/2020%20building%20performance/papers/d-bsc20-c039.pdf
     if water_heating_system.water_heater_type == HPXML::WaterHeaterTypeTankless
-      eta_c = water_heating_system.energy_factor * water_heating_system.performance_adjustment
+      if not water_heating_system.energy_factor.nil?
+        eta_c = water_heating_system.energy_factor * water_heating_system.performance_adjustment
+      elsif not water_heating_system.uniform_energy_factor.nil?
+        eta_c = water_heating_system.uniform_energy_factor * water_heating_system.performance_adjustment
+      end
       ua = 0.0
       surface_area = 1.0
     else
-      volume_drawn = 64.3 # gal/day
       density = 8.2938 # lb/gal
-      draw_mass = volume_drawn * density # lb
       cp = 1.0007 # Btu/lb-F
-      t = 135.0 # F
       t_in = 58.0 # F
       t_env = 67.5 # F
+
+      if not water_heating_system.energy_factor.nil?
+        t = 135.0 # F
+        volume_drawn = 64.3 # gal/day
+      elsif not water_heating_system.uniform_energy_factor.nil?
+        t = 125.0 # F
+        if water_heating_system.first_hour_rating < 18.0
+          volume_drawn = 10.0 # gal
+        elsif water_heating_system.first_hour_rating < 51.0 # Includes 18 gal up to (but not including) 51
+          volume_drawn = 38.0 # gal
+        elsif water_heating_system.first_hour_rating < 75.0
+          volume_drawn = 55.0 # gal
+        else
+          volume_drawn = 84.0 # gal
+        end
+      end
+
+      draw_mass = volume_drawn * density # lb
       q_load = draw_mass * cp * (t - t_in) # Btu/day
-      pow = water_heating_system.heating_capacity / 1000.0 # kbtu/h
+      pow = water_heating_system.heating_capacity # Btu/h
       surface_area, a_side = calc_tank_areas(act_vol)
       if water_heating_system.fuel_type != HPXML::FuelTypeElectricity
-        ua = (water_heating_system.recovery_efficiency / water_heating_system.energy_factor - 1.0) / ((t - t_env) * (24.0 / q_load - 1.0 / (1000.0 * pow * water_heating_system.energy_factor))) # Btu/hr-F
-        eta_c = (water_heating_system.recovery_efficiency + ua * (t - t_env) / (1000 * pow)) # conversion efficiency is supposed to be calculated with initial tank ua
+        if not water_heating_system.energy_factor.nil?
+          ua = (water_heating_system.recovery_efficiency / water_heating_system.energy_factor - 1.0) / ((t - t_env) * (24.0 / q_load - 1.0 / (pow * water_heating_system.energy_factor))) # Btu/hr-F
+          eta_c = (water_heating_system.recovery_efficiency + ua * (t - t_env) / pow) # conversion efficiency is supposed to be calculated with initial tank ua
+        elsif not water_heating_system.uniform_energy_factor.nil?
+          ua = ((water_heating_system.recovery_efficiency / water_heating_system.uniform_energy_factor) - 1.0) / ((t - t_env) * (24.0 / q_load) - ((t - t_env) / (pow * water_heating_system.uniform_energy_factor))) # Btu/hr-F
+          eta_c = water_heating_system.recovery_efficiency + ((ua * (t - t_env)) / pow) # conversion efficiency is slightly larger than recovery efficiency
+        end
       else # is Electric
-        ua = q_load * (1.0 / water_heating_system.energy_factor - 1.0) / ((t - t_env) * 24.0)
+        if not water_heating_system.energy_factor.nil?
+          ua = q_load * (1.0 / water_heating_system.energy_factor - 1.0) / ((t - t_env) * 24.0)
+        elsif not water_heating_system.uniform_energy_factor.nil?
+          ua = q_load * (1.0 / water_heating_system.uniform_energy_factor - 1.0) / ((24.0 * (t - t_env)) * (0.8 + 0.2 * ((t_in - t_env) / (t - t_env))))
+        end
         eta_c = 1.0
       end
       ua = apply_tank_jacket(water_heating_system, ua, a_side)
@@ -1542,12 +1579,12 @@ class Waterheater
     OpenStudio::Model::SetpointManagerScheduled.new(model, new_schedule)
   end
 
-  def self.create_new_heater(name:, water_heating_system: nil, act_vol:, t_set_c: nil, loc_space:, loc_schedule: nil, model:, ua:, eta_c: nil, oncycle_p: 0.0, is_storage: false, is_combi: false)
-    # storage tank doesn't requier water_heating_system class argument being passed
-    if is_storage || is_combi
+  def self.create_new_heater(name:, water_heating_system: nil, act_vol:, t_set_c: nil, loc_space:, loc_schedule: nil, model:, ua:, eta_c: nil, oncycle_p: 0.0, is_dsh_storage: false, is_combi: false)
+    # storage tank doesn't require water_heating_system class argument being passed
+    if is_dsh_storage || is_combi
       fuel = nil
       cap = 0.0
-      if is_storage
+      if is_dsh_storage
         tank_type = HPXML::WaterHeaterTypeStorage
       else
         tank_type = water_heating_system.water_heater_type
@@ -1574,7 +1611,7 @@ class Waterheater
     new_heater.setHeaterMaximumCapacity(UnitConversions.convert(cap, 'kBtu/hr', 'W'))
     new_heater.setHeaterMinimumCapacity(0.0)
     new_heater.setTankVolume(UnitConversions.convert(act_vol, 'gal', 'm^3'))
-    set_wh_parasitic_parameters(oncycle_p, water_heating_system, new_heater, is_storage)
+    set_wh_parasitic_parameters(oncycle_p, water_heating_system, new_heater, is_dsh_storage)
     set_wh_ambient(loc_space, loc_schedule, model, new_heater)
 
     ua_w_k = UnitConversions.convert(ua, 'Btu/(hr*F)', 'W/K')
@@ -1584,7 +1621,7 @@ class Waterheater
     return new_heater
   end
 
-  def self.set_wh_parasitic_parameters(oncycle_p, water_heating_system, water_heater, is_storage)
+  def self.set_wh_parasitic_parameters(oncycle_p, water_heating_system, water_heater, is_dsh_storage)
     water_heater.setOnCycleParasiticFuelType(EPlus::FuelTypeElectricity)
     water_heater.setOnCycleParasiticHeatFractiontoTank(0)
     water_heater.setOnCycleLossFractiontoThermalZone(1.0)
@@ -1595,15 +1632,15 @@ class Waterheater
     # Set fraction of heat loss from tank to ambient (vs out flue)
     # Based on lab testing done by LBNL
     skinlossfrac = 1.0
-    if not is_storage
-      if (water_heating_system.fuel_type != HPXML::FuelTypeElectricity) && (water_heating_system.water_heater_type == HPXML::WaterHeaterTypeStorage)
-        if oncycle_p == 0.0
-          skinlossfrac = 0.64
-        elsif water_heating_system.energy_factor < 0.8
-          skinlossfrac = 0.91
-        else
-          skinlossfrac = 0.96
-        end
+    if (not is_dsh_storage) && (water_heating_system.fuel_type != HPXML::FuelTypeElectricity) && (water_heating_system.water_heater_type == HPXML::WaterHeaterTypeStorage)
+      # Fuel storage water heater
+      # FUTURE: We currently always end up with oncycle_p (i.e., natural draft); revise this algorithm.
+      if oncycle_p == 0.0
+        skinlossfrac = 0.64 # Natural draft
+      elsif water_heating_system.energy_factor < 0.8
+        skinlossfrac = 0.91 # Power vent
+      else
+        skinlossfrac = 0.96 # Condensing
       end
     end
     water_heater.setOffCycleLossFractiontoThermalZone(skinlossfrac)
@@ -1627,12 +1664,14 @@ class Waterheater
     end
     avg_elec = oncycle_p * runtime_frac + offcycle_p * (1 - runtime_frac)
 
+    # FUTURE: These are always zero right now; develop smart defaults.
     water_heater.setOnCycleParasiticFuelConsumptionRate(avg_elec)
     water_heater.setOffCycleParasiticFuelConsumptionRate(avg_elec)
   end
 
   def self.set_parasitic_power_for_storage_wh(oncycle_p: 0.0, offcycle_p: 0.0, water_heater:)
     # Set parasitic power consumption
+    # FUTURE: These are always zero right now; develop smart defaults.
     water_heater.setOnCycleParasiticFuelConsumptionRate(oncycle_p)
     water_heater.setOffCycleParasiticFuelConsumptionRate(offcycle_p)
   end
