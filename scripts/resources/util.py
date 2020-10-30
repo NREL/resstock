@@ -310,30 +310,30 @@ class UtilityBillCalculations():
     elec_rates = pd.read_csv(os.path.join(os.path.dirname(__file__), 'electricity_rates_state_average.csv'))
     elec_rates = elec_rates[pd.notnull(elec_rates['Location'])]
     elec_rates = elec_rates[pd.notnull(elec_rates['Unadjusted'])]
-    elec_rates = elec_rates.rename(columns={'Location': 'building_characteristics_report.location_state', 'Unadjusted': 'average_elec_rate', 'Household': 'kwh_per_home_per_yr'})
-    elec_rates = elec_rates[['building_characteristics_report.location_state', 'average_elec_rate', 'kwh_per_home_per_yr']]
-    elec_rates = elec_rates.set_index('building_characteristics_report.location_state')
+    elec_rates = elec_rates.rename(columns={'Location': 'build_existing_model.state', 'Unadjusted': 'average_elec_rate', 'Household': 'kwh_per_home_per_yr'})
+    elec_rates = elec_rates[['build_existing_model.state', 'average_elec_rate', 'kwh_per_home_per_yr']]
+    elec_rates = elec_rates.set_index('build_existing_model.state')
 
     gas_rates = pd.read_csv(os.path.join(os.path.dirname(__file__), 'natural_gas_rates_state_average.csv'))
     gas_rates = gas_rates[pd.notnull(gas_rates['Location'])]
     gas_rates = gas_rates[pd.notnull(gas_rates['Unadjusted'])]
-    gas_rates = gas_rates.rename(columns={'Location': 'building_characteristics_report.location_state', 'Unadjusted': 'average_gas_rate', 'Household': 'therm_per_home_per_yr'})
-    gas_rates = gas_rates[['building_characteristics_report.location_state', 'average_gas_rate', 'therm_per_home_per_yr']]
-    gas_rates = gas_rates.set_index('building_characteristics_report.location_state')
+    gas_rates = gas_rates.rename(columns={'Location': 'build_existing_model.state', 'Unadjusted': 'average_gas_rate', 'Household': 'therm_per_home_per_yr'})
+    gas_rates = gas_rates[['build_existing_model.state', 'average_gas_rate', 'therm_per_home_per_yr']]
+    gas_rates = gas_rates.set_index('build_existing_model.state')
 
     oil_rates = pd.read_csv(os.path.join(os.path.dirname(__file__), 'oil_rates_state_average.csv'))
     oil_rates = oil_rates[pd.notnull(oil_rates['Location'])]
     oil_rates = oil_rates[pd.notnull(oil_rates['Price'])]
-    oil_rates = oil_rates.rename(columns={'Location': 'building_characteristics_report.location_state', 'Price': 'average_oil_rate'})
-    oil_rates = oil_rates[['building_characteristics_report.location_state', 'average_oil_rate']]
-    oil_rates = oil_rates.set_index('building_characteristics_report.location_state')
+    oil_rates = oil_rates.rename(columns={'Location': 'build_existing_model.state', 'Price': 'average_oil_rate'})
+    oil_rates = oil_rates[['build_existing_model.state', 'average_oil_rate']]
+    oil_rates = oil_rates.set_index('build_existing_model.state')
 
     prop_rates = pd.read_csv(os.path.join(os.path.dirname(__file__), 'propane_rates_state_average.csv'))
     prop_rates = prop_rates[pd.notnull(prop_rates['Location'])]
     prop_rates = prop_rates[pd.notnull(prop_rates['Price'])]
-    prop_rates = prop_rates.rename(columns={'Location': 'building_characteristics_report.location_state', 'Price': 'average_prop_rate'})
-    prop_rates = prop_rates[['building_characteristics_report.location_state', 'average_prop_rate']]
-    prop_rates = prop_rates.set_index('building_characteristics_report.location_state')
+    prop_rates = prop_rates.rename(columns={'Location': 'build_existing_model.state', 'Price': 'average_prop_rate'})
+    prop_rates = prop_rates[['build_existing_model.state', 'average_prop_rate']]
+    prop_rates = prop_rates.set_index('build_existing_model.state')
 
     rates = pd.concat([elec_rates, gas_rates, oil_rates, prop_rates], axis=1)
     rates = rates.reset_index()
@@ -342,7 +342,7 @@ class UtilityBillCalculations():
         continue
       rates[col] = rates[col].astype(float)
     df = df.reset_index()
-    df = pd.merge(df, rates, how='left', on='building_characteristics_report.location_state')
+    df = pd.merge(df, rates, how='left', on='build_existing_model.state')
     df = df.set_index('_id')
 
     fixed_elec_rate = 8.0 # $/month
