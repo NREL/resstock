@@ -1084,10 +1084,19 @@ class RoofConstructions
     mats << Material.RoofingTileLight
     mats << Material.RoofingTileWhite
     mats << Material.RoofingMetalDark
+    mats << Material.RoofingMetalCool
     mats << Material.RoofingMetalMed
     mats << Material.RoofingMetalLight
     mats << Material.RoofingMetalWhite
     mats << Material.RoofingGalvanizedSteel
+    mats << Material.RoofingTileClayorCeramic
+    mats << Material.RoofingTileClayorCeramicWhiteCool
+    mats << Material.RoofingWoodShingles
+    mats << Material.RoofingCompositionShingles
+    mats << Material.RoofingCompositionShinglesWhiteCool
+    mats << Material.RoofingTileConcrete
+    mats << Material.RoofingTileConcreteWhiteCool
+    mats << Material.RoofingSlate
     return mats
   end
 
@@ -1121,6 +1130,8 @@ class RoofConstructions
       return Constants.ColorWhite
     elsif name == Material.RoofingMetalDark.name
       return Constants.ColorDark
+    elsif name == Material.RoofingMetalCool.name
+      return Constants.ColorWhite
     elsif name == Material.RoofingMetalMed.name
       return Constants.ColorMedium
     elsif name == Material.RoofingMetalLight.name
@@ -1129,6 +1140,22 @@ class RoofConstructions
       return Constants.ColorWhite
     elsif name == Material.RoofingGalvanizedSteel.name
       return Constants.ColorLight
+    elsif name == Material.RoofingTileClayorCeramic.name
+      return Constants.ColorMedium
+    elsif name == Material.RoofingTileClayorCeramicWhiteCool.name
+      return Constants.ColorWhite
+    elsif name == Material.RoofingWoodShingles.name
+      return Constants.ColorMedium
+    elsif name == Material.RoofingCompositionShingles.name
+      return Constants.ColorMedium
+    elsif name == Material.RoofingCompositionShinglesWhiteCool.name
+      return Constants.ColorWhite
+    elsif name == Material.RoofingTileConcrete.name
+      return Constants.ColorMedium
+    elsif name == Material.RoofingTileConcreteWhiteCool.name
+      return Constants.ColorWhite
+    elsif name == Material.RoofingSlate.name
+      return Constants.ColorMedium
     end
 
     return nil
@@ -1153,6 +1180,8 @@ class RoofConstructions
       return Constants.RoofMaterialTile
     elsif name == Material.RoofingMetalDark.name
       return Constants.RoofMaterialMetal
+    elsif name == Material.RoofingMetalCool.name
+      return Constants.RoofMaterialMetal
     elsif name == Material.RoofingMetalMed.name
       return Constants.RoofMaterialMetal
     elsif name == Material.RoofingMetalLight.name
@@ -1161,6 +1190,22 @@ class RoofConstructions
       return Constants.RoofMaterialMetal
     elsif name == Material.RoofingGalvanizedSteel.name
       return Constants.RoofMaterialMetal
+    elsif name == Material.RoofingTileClayorCeramic.name
+      return Constants.RoofMaterialTile
+    elsif name == Material.RoofingTileClayorCeramicWhiteCool.name
+      return Constants.RoofMaterialTile
+    elsif name == Material.RoofingWoodShingles.name
+      return Constants.RoofMaterialWoodShakes
+    elsif name == Material.RoofingCompositionShingles.name
+      return Constants.RoofMaterialAsphaltShingles
+    elsif name == Material.RoofingCompositionShinglesWhiteCool.name
+      return Constants.RoofMaterialAsphaltShingles
+    elsif name == Material.RoofingTileConcrete.name
+      return Constants.RoofMaterialTile
+    elsif name == Material.RoofingTileConcreteWhiteCool.name
+      return Constants.RoofMaterialTile
+    elsif name == Material.RoofingSlate.name
+      return Constants.RoofMaterialTile
     end
 
     return nil
@@ -2000,14 +2045,8 @@ class ThermalMassConstructions
 
     imdefs = []
     spaces.each do |space|
-      # Determine existing partition wall mass in space
-      existing_surface_area = 0
-      surfaces.each do |surface|
-        existing_surface_area += surface.grossArea
-      end
-
-      # Determine additional partition wall mass required
-      addtl_surface_area = frac_of_ffa * space.floorArea - existing_surface_area * 2 / spaces.size.to_f
+      # Determine partition wall area (frac_of_ffa = 1 includes both sides of partition wall)
+      part_surface_area = frac_of_ffa * space.floorArea
 
       # Remove any existing internal mass
       space.internalMass.each do |im|
@@ -2018,19 +2057,17 @@ class ThermalMassConstructions
         imdef.remove
       end
 
-      if addtl_surface_area > 0
-        # Add remaining partition walls within spaces (those without geometric representation)
-        # as internal mass object.
-        imdef = OpenStudio::Model::InternalMassDefinition.new(model)
-        imdef.setName("#{space.name.to_s} Partition")
-        imdef.setSurfaceArea(addtl_surface_area)
-        imdefs << imdef
+      # Add partition walls within spaces (those without geometric representation)
+      # as internal mass object.
+      imdef = OpenStudio::Model::InternalMassDefinition.new(model)
+      imdef.setName("#{space.name.to_s} Partition")
+      imdef.setSurfaceArea(part_surface_area)
+      imdefs << imdef
 
-        im = OpenStudio::Model::InternalMass.new(imdef)
-        im.setName("#{space.name.to_s} Partition")
-        im.setSpace(space)
-        runner.registerInfo("Added internal mass object '#{im.name.to_s}' to space '#{space.name.to_s}'")
-      end
+      im = OpenStudio::Model::InternalMass.new(imdef)
+      im.setName("#{space.name.to_s} Partition")
+      im.setSpace(space)
+      runner.registerInfo("Added internal mass object '#{im.name.to_s}' to space '#{space.name.to_s}'")
     end
 
     if not WallConstructions.apply_wood_stud(runner, model,
