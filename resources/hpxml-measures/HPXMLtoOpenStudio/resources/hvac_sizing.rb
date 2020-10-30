@@ -866,8 +866,8 @@ class HVACSizing
       next unless slab.is_thermal_boundary
 
       if slab.interior_adjacent_to == HPXML::LocationLivingSpace # Slab-on-grade
-        floor_ufactor = 0.1 # FIXME: Hard-coded
-        zone_loads.Heat_Floors += floor_ufactor * slab.area * (@heat_setpoint - weather.data.GroundMonthlyTemps[0])
+        f_value = calc_slab_f_value(slab)
+        zone_loads.Heat_Floors += f_value * slab.exposed_perimeter * @htd
       elsif slab.interior_adjacent_to == HPXML::LocationBasementConditioned
         # Based on MJ 8th Ed. A12-7 and ASHRAE HoF 2013 pg 18.31 Eq 40
         # FIXME: Assumes slab is uninsulated?
@@ -2978,6 +2978,70 @@ class HVACSizing
     u_wall_without_soil = (u_wall_without_soil / wall_height)
 
     return u_wall_with_soil, u_wall_without_soil
+  end
+
+  def self.calc_slab_f_value(slab)
+    # Calculation for the F-values in Table 4A for slab foundations.
+    # Important pages are the Table values (pg. 344-345) and the software protocols
+    # in Appendix 12 (pg. 517-518).
+    ins_rvalue = slab.under_slab_insulation_r_value + slab.perimeter_insulation_r_value
+    ins_rvalue_edge = slab.perimeter_insulation_r_value
+    edge_ins_rvalue =
+      if slab.under_slab_insulation_spans_entire_slab
+        ins_length = 1000.0
+      else
+        ins_length = 0
+        if slab.under_slab_insulation_r_value > 0
+          ins_length += slab.under_slab_insulation_width
+        end
+        if slab.perimeter_insulation_r_value > 0
+          ins_length += slab.perimeter_insulation_depth
+        end
+      end
+
+    soil_r_per_foot = Material.Soil(12.0).rvalue
+    slab_r_gravel_per_inch = 0.65 # Based on calibration by Tony Fontanini
+
+    # Because of uncertainty pertaining to the effective path radius, F-values are calculated
+    # for six radii (8, 9, 10, 11, 12, and 13 feet) and averaged.
+    f_values = []
+    for path_radius in 8..13
+      u_effective = []
+      for radius in 0..path_radius
+        spl = [Math::PI * radius - 1, 0].max # soil path length (SPL)
+
+        # Concrete, gravel, and insulation
+        if radius == 0
+          r_concrete = 0.0
+          r_gravel = 0.0 # No gravel on edge
+          r_ins = ins_rvalue_edge
+        else
+          r_concrete = Material.Concrete(slab.thickness).rvalue
+          r_gravel = [slab_r_gravel_per_inch * (12.0 - slab.thickness), 0].max
+          if radius <= ins_length
+            r_ins = ins_rvalue
+          else
+            r_ins = 0.0
+          end
+        end
+
+        # Air Films = Indoor Finish + Indoor Air Film + Exposed Air Film (Figure A12-6 pg. 517)
+        r_air_film = 0.05 + 0.92 + 0.17
+
+        # Soil
+        r_soil = soil_r_per_foot * spl # (h-F-ft2/BTU)
+
+        # Effective R-Value
+        r_air_to_air = r_concrete + r_gravel + r_ins + r_air_film + r_soil
+
+        # Effective U-Factor
+        u_effective << 1.0 / r_air_to_air
+      end
+
+      f_values << u_effective.inject(0, :+) # sum array
+    end
+
+    return f_values.sum() / f_values.size
   end
 
   def self.get_feature(obj, feature, datatype, fail_on_error = true)
