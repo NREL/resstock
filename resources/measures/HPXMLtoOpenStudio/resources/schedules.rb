@@ -2026,7 +2026,6 @@ class SchedulesFile
     else
       sch_path = sch_path.get
     end
-    sch_path = File.join(File.dirname(__FILE__), "../../../../files/8760.csv")
     return sch_path
   end
 end
