@@ -6751,8 +6751,8 @@ def set_hpxml_plug_loads(hpxml_file, hpxml)
     hpxml.plug_loads.add(id: 'PlugLoadMisc',
                          plug_load_type: HPXML::PlugLoadTypeOther,
                          kWh_per_year: 7302,
-                         frac_sensible: 0.82,
-                         frac_latent: 0.18)
+                         frac_sensible: 0.822,
+                         frac_latent: 0.178)
     hpxml.plug_loads.add(id: 'PlugLoadMisc2',
                          plug_load_type: HPXML::PlugLoadTypeTelevision,
                          kWh_per_year: 0)
@@ -6819,8 +6819,8 @@ def set_hpxml_plug_loads(hpxml_file, hpxml)
     end
   end
   if hpxml_file.include?('ASHRAE_Standard_140')
-    hpxml.plug_loads[0].weekday_fractions = '0.020, 0.020, 0.020, 0.020, 0.020, 0.034, 0.043, 0.085, 0.050, 0.030, 0.030, 0.041, 0.030, 0.025, 0.026, 0.026, 0.039, 0.042, 0.045, 0.070, 0.070, 0.073, 0.073, 0.066'
-    hpxml.plug_loads[0].weekend_fractions = '0.020, 0.020, 0.020, 0.020, 0.020, 0.034, 0.043, 0.085, 0.050, 0.030, 0.030, 0.041, 0.030, 0.025, 0.026, 0.026, 0.039, 0.042, 0.045, 0.070, 0.070, 0.073, 0.073, 0.066'
+    hpxml.plug_loads[0].weekday_fractions = '0.0203, 0.0203, 0.0203, 0.0203, 0.0203, 0.0339, 0.0426, 0.0852, 0.0497, 0.0304, 0.0304, 0.0406, 0.0304, 0.0254, 0.0264, 0.0264, 0.0386, 0.0416, 0.0447, 0.0700, 0.0700, 0.0731, 0.0731, 0.0660'
+    hpxml.plug_loads[0].weekend_fractions = '0.0203, 0.0203, 0.0203, 0.0203, 0.0203, 0.0339, 0.0426, 0.0852, 0.0497, 0.0304, 0.0304, 0.0406, 0.0304, 0.0254, 0.0264, 0.0264, 0.0386, 0.0416, 0.0447, 0.0700, 0.0700, 0.0731, 0.0731, 0.0660'
     hpxml.plug_loads[0].monthly_multipliers = '1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0'
   elsif ['base-misc-defaults.xml'].include? hpxml_file
     hpxml.plug_loads[0].weekday_fractions = nil
@@ -7198,6 +7198,8 @@ if ARGV[0].to_sym == :create_release_zips
            'HPXMLtoOpenStudio/resources/*.*',
            'SimulationOutputReport/measure.*',
            'SimulationOutputReport/resources/*.*',
+           'BuildResidentialHPXML/measure.*',
+           'BuildResidentialHPXML/resources/*.*',
            'weather/*.*',
            'workflow/*.*',
            'workflow/sample_files/*.xml',
@@ -7209,7 +7211,7 @@ if ARGV[0].to_sym == :create_release_zips
   if not ENV['CI']
     # Run ASHRAE 140 files
     puts 'Running ASHRAE 140 tests (this will take a minute)...'
-    command = 'openstudio workflow/tests/hpxml_translator_test.rb --name=test_ashrae_140 > log.txt'
+    command = "#{OpenStudio.getOpenStudioCLI} workflow/tests/hpxml_translator_test.rb --name=test_ashrae_140 > log.txt"
     system(command)
     results_csv_path = 'workflow/tests/results/results_ashrae_140.csv'
     if not File.exist? results_csv_path

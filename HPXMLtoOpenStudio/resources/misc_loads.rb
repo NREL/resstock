@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class MiscLoads
-  def self.apply_plug(model, plug_load, obj_name, living_space, schedules_file)
+  def self.apply_plug(model, plug_load, obj_name, living_space, apply_ashrae140_assumptions, schedules_file)
     kwh = 0
 
     if not plug_load.nil?
@@ -44,7 +44,14 @@ class MiscLoads
     if plug_load.location == HPXML::LocationExterior
       # Set all heat gain as lost
       sens_frac = 0.0
-      lat_fract = 0.0
+      lat_frac = 0.0
+    end
+
+    if apply_ashrae140_assumptions
+      # ASHRAE 140, Table 7-9. Sensible loads are 70% radiative and 30% convective.
+      rad_frac = 0.7 * sens_frac
+    else
+      rad_frac = 0.6 * sens_frac
     end
 
     # Add electric equipment for the mel
@@ -55,7 +62,7 @@ class MiscLoads
     mel.setSpace(living_space)
     mel_def.setName(obj_name)
     mel_def.setDesignLevel(space_design_level)
-    mel_def.setFractionRadiant(0.6 * sens_frac)
+    mel_def.setFractionRadiant(rad_frac)
     mel_def.setFractionLatent(lat_frac)
     mel_def.setFractionLost(1 - sens_frac - lat_frac)
     mel.setSchedule(sch)
@@ -102,7 +109,7 @@ class MiscLoads
     if fuel_load.location == HPXML::LocationExterior
       # Set all heat gain as lost
       sens_frac = 0.0
-      lat_fract = 0.0
+      lat_frac = 0.0
     end
 
     # Add other equipment for the mfl

@@ -10,7 +10,7 @@ require_relative '../HPXMLtoOpenStudio/resources/version'
 
 basedir = File.expand_path(File.dirname(__FILE__))
 
-def run_workflow(basedir, rundir, hpxml, debug, hourly_outputs)
+def run_workflow(basedir, rundir, hpxml, debug, timeseries_output_freq, timeseries_outputs)
   measures_dir = File.join(basedir, '..')
 
   measures = {}
@@ -26,15 +26,15 @@ def run_workflow(basedir, rundir, hpxml, debug, hourly_outputs)
   # Add reporting measure to workflow
   measure_subdir = 'SimulationOutputReport'
   args = {}
-  args['timeseries_frequency'] = 'hourly'
-  args['include_timeseries_fuel_consumptions'] = hourly_outputs.include? 'fuels'
-  args['include_timeseries_end_use_consumptions'] = hourly_outputs.include? 'enduses'
-  args['include_timeseries_hot_water_uses'] = hourly_outputs.include? 'hotwater'
-  args['include_timeseries_total_loads'] = hourly_outputs.include? 'loads'
-  args['include_timeseries_component_loads'] = hourly_outputs.include? 'componentloads'
-  args['include_timeseries_zone_temperatures'] = hourly_outputs.include? 'temperatures'
-  args['include_timeseries_airflows'] = hourly_outputs.include? 'airflows'
-  args['include_timeseries_weather'] = hourly_outputs.include? 'weather'
+  args['timeseries_frequency'] = timeseries_output_freq
+  args['include_timeseries_fuel_consumptions'] = timeseries_outputs.include? 'fuels'
+  args['include_timeseries_end_use_consumptions'] = timeseries_outputs.include? 'enduses'
+  args['include_timeseries_hot_water_uses'] = timeseries_outputs.include? 'hotwater'
+  args['include_timeseries_total_loads'] = timeseries_outputs.include? 'loads'
+  args['include_timeseries_component_loads'] = timeseries_outputs.include? 'componentloads'
+  args['include_timeseries_zone_temperatures'] = timeseries_outputs.include? 'temperatures'
+  args['include_timeseries_airflows'] = timeseries_outputs.include? 'airflows'
+  args['include_timeseries_weather'] = timeseries_outputs.include? 'weather'
   update_args_hash(measures, measure_subdir, args)
 
   results = run_hpxml_workflow(rundir, hpxml, measures, measures_dir, debug: debug)
@@ -42,7 +42,7 @@ def run_workflow(basedir, rundir, hpxml, debug, hourly_outputs)
   return results[:success]
 end
 
-hourly_types = ['ALL', 'fuels', 'enduses', 'hotwater', 'loads', 'componentloads', 'temperatures', 'airflows', 'weather']
+timeseries_types = ['ALL', 'fuels', 'enduses', 'hotwater', 'loads', 'componentloads', 'temperatures', 'airflows', 'weather']
 
 options = {}
 OptionParser.new do |opts|
@@ -57,8 +57,23 @@ OptionParser.new do |opts|
   end
 
   options[:hourly_outputs] = []
-  opts.on('--hourly TYPE', hourly_types, "Request hourly output type (#{hourly_types[0..4].join(', ')},", "#{hourly_types[5..-1].join(', ')}); can be called multiple times") do |t|
+  opts.on('--hourly TYPE', timeseries_types, "Request hourly output type (#{timeseries_types[0..4].join(', ')},", "#{timeseries_types[5..-1].join(', ')}); can be called multiple times") do |t|
     options[:hourly_outputs] << t
+  end
+
+  options[:daily_outputs] = []
+  opts.on('--daily TYPE', timeseries_types, "Request daily output type (#{timeseries_types[0..4].join(', ')},", "#{timeseries_types[5..-1].join(', ')}); can be called multiple times") do |t|
+    options[:daily_outputs] << t
+  end
+
+  options[:monthly_outputs] = []
+  opts.on('--monthly TYPE', timeseries_types, "Request monthly output type (#{timeseries_types[0..4].join(', ')},", "#{timeseries_types[5..-1].join(', ')}); can be called multiple times") do |t|
+    options[:monthly_outputs] << t
+  end
+
+  options[:timestep_outputs] = []
+  opts.on('--timestep TYPE', timeseries_types, "Request timestep output type (#{timeseries_types[0..4].join(', ')},", "#{timeseries_types[5..-1].join(', ')}); can be called multiple times") do |t|
+    options[:timestep_outputs] << t
   end
 
   options[:version] = false
@@ -82,12 +97,40 @@ if options[:version]
   exit!
 end
 
-if options[:hourly_outputs].include? 'ALL'
-  options[:hourly_outputs] = hourly_types[1..-1]
-end
-
 if not options[:hpxml]
   fail "HPXML argument is required. Call #{File.basename(__FILE__)} -h for usage."
+end
+
+timeseries_output_freq = 'none'
+timeseries_outputs = []
+n_freq = 0
+if not options[:hourly_outputs].empty?
+  n_freq += 1
+  timeseries_output_freq = 'hourly'
+  timeseries_outputs = options[:hourly_outputs]
+end
+if not options[:daily_outputs].empty?
+  n_freq += 1
+  timeseries_output_freq = 'daily'
+  timeseries_outputs = options[:daily_outputs]
+end
+if not options[:monthly_outputs].empty?
+  n_freq += 1
+  timeseries_output_freq = 'monthly'
+  timeseries_outputs = options[:monthly_outputs]
+end
+if not options[:timestep_outputs].empty?
+  n_freq += 1
+  timeseries_output_freq = 'timestep'
+  timeseries_outputs = options[:timestep_outputs]
+end
+
+if n_freq > 1
+  fail 'Multiple timeseries frequencies (hourly, daily, monthly, timestep) are not supported.'
+end
+
+if timeseries_outputs.include? 'ALL'
+  timeseries_outputs = timeseries_types[1..-1]
 end
 
 unless (Pathname.new options[:hpxml]).absolute?
@@ -111,7 +154,7 @@ rundir = File.join(options[:output_dir], 'run')
 
 # Run design
 puts "HPXML: #{options[:hpxml]}"
-success = run_workflow(basedir, rundir, options[:hpxml], options[:debug], options[:hourly_outputs])
+success = run_workflow(basedir, rundir, options[:hpxml], options[:debug], timeseries_output_freq, timeseries_outputs)
 
 if success
   puts "Completed in #{(Time.now - start_time).round(1)} seconds."
