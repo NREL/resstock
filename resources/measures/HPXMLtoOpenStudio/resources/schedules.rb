@@ -1286,18 +1286,22 @@ class ScheduleGenerator
     cooking_power_sch = [0] * mins_in_year
     step = 0
     last_state = 0
+    start_time = Time.new(sim_year, 1, 1)
     while step < mkc_steps_in_a_year
       cooking_state = sum_across_occupants(all_simulated_values, 3, step, max_clip = 1)
       step_jump = 1
       if cooking_state > 0 and last_state == 0 # last_state == 0 prevents consecutive cooking power without gap
         duration_15min, avg_power = sample_appliance_duration_power(prng, appliance_power_dist_map, "cooking")
-        duration = [duration_15min * 15, mins_in_year - step * 15].min
+        month = (start_time + step * 15 * 60).month
+        duration_min = (duration_15min * 15 * schedule_config["cooking"]["monthly_multiplier"][month - 1]).to_i
+        duration = [duration_min, mins_in_year - step * 15].min
         cooking_power_sch.fill(avg_power, step * 15, duration)
         step_jump = duration_15min
       end
       last_state = cooking_state
       step += step_jump
     end
+
     offset_range = 30
     random_offset = (prng.rand * 2 * offset_range).to_i - offset_range
     sink_activity_sch = sink_activity_sch.rotate(-4 * 60 + random_offset) # 4 am shifting
@@ -2022,6 +2026,7 @@ class SchedulesFile
     else
       sch_path = sch_path.get
     end
+    sch_path = File.join(File.dirname(__FILE__), "../../../../files/8760.csv")
     return sch_path
   end
 end
