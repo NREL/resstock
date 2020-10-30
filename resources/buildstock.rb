@@ -436,9 +436,17 @@ class RunOSWs
 
     data_point_out = File.join(parent_dir, 'run/data_point_out.json')
     result = { 'OSW' => File.basename(in_osw) }
+    result = get_build_existing_model(result, data_point_out)
     result = get_simulation_output_report(result, data_point_out)
     result['simulation_time'] = sim_time
     return out_osw, result
+  end
+
+  def self.get_build_existing_model(result, data_point_out)
+    rows = JSON.parse(File.read(File.expand_path(data_point_out)))
+    result = result.merge(rows['BuildExistingModel'])
+    result.delete('applicable')
+    return result
   end
 
   def self.get_simulation_output_report(result, data_point_out)
