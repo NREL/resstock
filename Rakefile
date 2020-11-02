@@ -488,6 +488,8 @@ def check_for_illegal_chars(name, name_type)
 end
 
 def check_parameter_file_format(tsvpath, n_deps, name)
+  required_headers = ['resstock_probability']
+
   # For each line in file
   i = 1
   File.read(tsvpath, mode: "rb").each_line do |line|
@@ -496,8 +498,15 @@ def check_parameter_file_format(tsvpath, n_deps, name)
 
     # Check endline character
     if line.include? "\r\n"
+      # Ensure children.py was run
+      if i == 1
+        required_headers.each do |required_header|
+          unless line.include? required_header
+            raise "ERROR: Could not find '#{required_header}' column in '#{name}'."
+          end
+        end
       # Do not perform other checks if the line is the header
-      if i > 1
+      elsif i > 1
         # Check float format
         # Remove endline character and split the string into array
         line = line.split("\r\n")[0].split("\t")
