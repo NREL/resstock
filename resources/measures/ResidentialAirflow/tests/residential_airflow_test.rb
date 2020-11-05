@@ -582,7 +582,7 @@ class ResidentialAirflowTest < MiniTest::Test
                         "res_infil_2_program" => { "c" => 0.020801, "Cs" => 0.066417, "Cw" => 0.128435, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_2_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, \
                         "res_infil_3_program" => { "c" => 0.020801, "Cs" => 0.066417, "Cw" => 0.128435, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_3_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, \
                         "res_infil_4_program" => { "c" => 0.042099, "Cs" => 0.066417, "Cw" => 0.128435, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_4_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, \
-                        "TerrainType" => "Suburbs"  }
+                        "TerrainType" => "Suburbs" }
     _test_measure("SFA_4units_1story_SL_UA_3Beds_2Baths_Denver_Central_System_Fan_Coil.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__, num_units, 5)
   end
 
