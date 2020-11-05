@@ -560,28 +560,44 @@ class ResidentialAirflowTest < MiniTest::Test
 
   def test_single_family_attached_new_construction_central_system_boiler_baseboards
     num_units = 4
+    num_airloops = 0
     args_hash = {}
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ScheduleRuleset" => num_units * 4, "EnergyManagementSystemProgramCallingManager" => num_units, "EnergyManagementSystemProgram" => num_units * 2, "EnergyManagementSystemSensor" => num_units * 7 + 3, "EnergyManagementSystemActuator" => num_units * 5, "SpaceInfiltrationDesignFlowRate" => num_units * 2, "ElectricEquipmentDefinition" => num_units * 3, "ElectricEquipment" => num_units * 3, "Material" => 1, "Construction" => 1, "SpaceInfiltrationEffectiveLeakageArea" => 1 }
-    expected_values = {}
+    expected_num_new_objects = { "ScheduleRuleset" => num_units * 4, "EnergyManagementSystemProgramCallingManager" => num_units * (1 + num_airloops), "EnergyManagementSystemProgram" => num_units * (2 + num_airloops), "EnergyManagementSystemSensor" => num_units * 7 + 3, "EnergyManagementSystemActuator" => num_units * (5 + 12 * num_airloops), "SpaceInfiltrationDesignFlowRate" => num_units * 2, "SpaceInfiltrationEffectiveLeakageArea" => 1, "Construction" => 1, "Material" => 1, "ElectricEquipmentDefinition" => num_units * 3, "ElectricEquipment" => num_units * 3 }
+    expected_values = { "res_infil_1_program" => { "c" => 0.042099, "Cs" => 0.066417, "Cw" => 0.128435, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_1_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, \
+                        "res_infil_2_program" => { "c" => 0.020801, "Cs" => 0.066417, "Cw" => 0.128435, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_2_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, \
+                        "res_infil_3_program" => { "c" => 0.020801, "Cs" => 0.066417, "Cw" => 0.128435, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_3_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, \
+                        "res_infil_4_program" => { "c" => 0.042099, "Cs" => 0.066417, "Cw" => 0.128435, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_4_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, \
+                        "TerrainType" => "Suburbs" }
     _test_measure("SFA_4units_1story_SL_UA_3Beds_2Baths_Denver_Central_System_Boiler_Baseboards.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__, num_units, 5)
   end
 
   def test_single_family_attached_new_construction_central_system_fan_coil
     num_units = 4
+    num_airloops = 0
     args_hash = {}
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ScheduleRuleset" => num_units * 4, "EnergyManagementSystemProgramCallingManager" => num_units, "EnergyManagementSystemProgram" => num_units * 2, "EnergyManagementSystemSensor" => num_units * 7 + 3, "EnergyManagementSystemActuator" => num_units * 5, "SpaceInfiltrationDesignFlowRate" => num_units * 2, "ElectricEquipmentDefinition" => num_units * 3, "ElectricEquipment" => num_units * 3, "Material" => 1, "Construction" => 1, "SpaceInfiltrationEffectiveLeakageArea" => 1 }
-    expected_values = {}
+    expected_num_new_objects = { "ScheduleRuleset" => num_units * 4, "EnergyManagementSystemProgramCallingManager" => num_units * (1 + num_airloops), "EnergyManagementSystemProgram" => num_units * (2 + num_airloops), "EnergyManagementSystemSensor" => num_units * 7 + 3, "EnergyManagementSystemActuator" => num_units * (5 + 12 * num_airloops), "SpaceInfiltrationDesignFlowRate" => num_units * 2, "SpaceInfiltrationEffectiveLeakageArea" => 1, "Construction" => 1, "Material" => 1, "ElectricEquipmentDefinition" => num_units * 3, "ElectricEquipment" => num_units * 3 }
+    expected_values = { "res_infil_1_program" => { "c" => 0.042099, "Cs" => 0.066417, "Cw" => 0.128435, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_1_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, \
+                        "res_infil_2_program" => { "c" => 0.020801, "Cs" => 0.066417, "Cw" => 0.128435, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_2_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, \
+                        "res_infil_3_program" => { "c" => 0.020801, "Cs" => 0.066417, "Cw" => 0.128435, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_3_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, \
+                        "res_infil_4_program" => { "c" => 0.042099, "Cs" => 0.066417, "Cw" => 0.128435, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_4_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, \
+                        "TerrainType" => "Suburbs"  }
     _test_measure("SFA_4units_1story_SL_UA_3Beds_2Baths_Denver_Central_System_Fan_Coil.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__, num_units, 5)
   end
 
   def test_single_family_attached_new_construction_central_system_ptac
     num_units = 4
+    num_airloops = 0
     args_hash = {}
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ScheduleRuleset" => num_units * 4, "EnergyManagementSystemProgramCallingManager" => num_units, "EnergyManagementSystemProgram" => num_units * 2, "EnergyManagementSystemSensor" => num_units * 7 + 3, "EnergyManagementSystemActuator" => num_units * 5, "SpaceInfiltrationDesignFlowRate" => num_units * 2, "ElectricEquipmentDefinition" => num_units * 3, "ElectricEquipment" => num_units * 3, "Material" => 1, "Construction" => 1, "SpaceInfiltrationEffectiveLeakageArea" => 1 }
-    expected_values = {}
+    expected_num_new_objects = { "ScheduleRuleset" => num_units * 4, "EnergyManagementSystemProgramCallingManager" => num_units * (1 + num_airloops), "EnergyManagementSystemProgram" => num_units * (2 + num_airloops), "EnergyManagementSystemSensor" => num_units * 7 + 3, "EnergyManagementSystemActuator" => num_units * (5 + 12 * num_airloops), "SpaceInfiltrationDesignFlowRate" => num_units * 2, "SpaceInfiltrationEffectiveLeakageArea" => 1, "Construction" => 1, "Material" => 1, "ElectricEquipmentDefinition" => num_units * 3, "ElectricEquipment" => num_units * 3 }
+    # expected_num_new_objects = { "ScheduleRuleset" => num_units * 4, "EnergyManagementSystemProgramCallingManager" => num_units, "EnergyManagementSystemProgram" => num_units * 2, "EnergyManagementSystemSensor" => num_units * 7 + 3, "EnergyManagementSystemActuator" => num_units * 5, "SpaceInfiltrationDesignFlowRate" => num_units * 2, "ElectricEquipmentDefinition" => num_units * 3, "ElectricEquipment" => num_units * 3, "Material" => 1, "Construction" => 1, "SpaceInfiltrationEffectiveLeakageArea" => 1 }
+    expected_values = { "res_infil_1_program" => { "c" => 0.042099, "Cs" => 0.066417, "Cw" => 0.128435, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_1_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, \
+                        "res_infil_2_program" => { "c" => 0.020801, "Cs" => 0.066417, "Cw" => 0.128435, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_2_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, \
+                        "res_infil_3_program" => { "c" => 0.020801, "Cs" => 0.066417, "Cw" => 0.128435, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_3_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, \
+                        "res_infil_4_program" => { "c" => 0.042099, "Cs" => 0.066417, "Cw" => 0.128435, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_4_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, \
+                        "TerrainType" => "Suburbs" }
     _test_measure("SFA_4units_1story_SL_UA_3Beds_2Baths_Denver_Central_System_PTAC.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__, num_units, 5)
   end
 
