@@ -841,10 +841,6 @@ class ScheduleGenerator
     else
       building_id = @building_id
     end
-
-    ### Temporary seed for testing
-    building_id = 1
-    return building_id
   end
 
   def initialize_schedules(num_ts:)

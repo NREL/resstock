@@ -153,14 +153,6 @@ class Airflow
       tout_sensor.setName("#{obj_name_airflow} tt s")
       tout_sensor.setKeyName(unit_living.zone.name.to_s)
 
-      # Update model  #####
-      def self.print_instance_vars(instance)
-        puts("_______ #{instance}_________")
-        instance.instance_variables.each do |var|
-          puts("    #{var}:  #{instance.instance_variable_get var}")
-        end
-      end
-
       success, infil_output = process_infiltration_for_unit(model, runner, obj_name_infil, infil, wind_speed, building, weather, unit_ag_ffa, unit_ag_ext_wall_area, unit_living, unit_finished_basement)
       return false if not success
 
