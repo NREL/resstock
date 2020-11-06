@@ -1,0 +1,32 @@
+schema_version: 0.2
+stock_type: residential
+buildstock_directory: ../..  # Relative to this file or absolute
+project_directory: project_national  # Relative to buildstock_directory
+output_directory: /scratch/aspeake/singleunit/testing_31_10000/MF_single
+weather_files_path: /shared-projects/buildstock/weather/ResStock_TMY3.zip 
+
+baseline:
+  precomputed_sample: /home/aspeake/buildstock/inputs/singleunit/buildstock_MF_single_10000.csv
+  n_datapoints: 161672
+  n_buildings_represented: 161672 
+  sampling_algorithm: precomputed
+timeseries_csv_export:
+  reporting_frequency: Hourly
+  include_enduse_subcategories: false
+residential_simulation_controls:
+  timesteps_per_hr: 6
+  begin_month: 1
+  begin_day_of_month: 1
+  end_month: 12
+  end_day_of_month: 31
+  calendar_year: 2017
+  
+eagle:
+  n_jobs: 100
+  minutes_per_sim: 3
+  account: enduse
+  sampling:
+    time: 30
+  postprocessing:
+    time: 60
+    n_workers: 1
