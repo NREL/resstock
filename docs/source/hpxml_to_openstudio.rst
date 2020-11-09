@@ -651,7 +651,7 @@ HPXML HVAC Control
 ******************
 
 A ``Systems/HVAC/HVACControl`` must be provided if any HVAC systems are specified.
-The heating setpoint (``SetpointTempHeatingSeason``) and cooling setpoint (``SetpointTempCoolingSeason``) are required elements.
+The heating setpoint (``SetpointTempHeatingSeason``) and cooling setpoint (``SetpointTempCoolingSeason``) are optional elements.
 
 If there is a heating setback, it is defined with:
 
@@ -664,6 +664,15 @@ If there is a cooling setup, it is defined with:
 - ``SetupTempCoolingSeason``: Temperature during cooling setup
 - ``extension/SetupStartHourCooling``: The start hour of the cooling setup where 0=midnight and 12=noon
 - ``TotalSetupHoursperWeekCooling``: The number of hours of cooling setup per week
+
+Alternatively, 24-hour weekday and weekend heating/cooling setpoint schedules can be defined with:
+
+-- ``extension/WeekdaySetpointTempsHeatingSeason``
+-- ``extension/WeekendSetpointTempsHeatingSeason``
+-- ``extension/WeekdaySetpointTempsCoolingSeason``
+-- ``extension/WeekendSetpointTempsCoolingSeason``
+
+Either single setpoints (with optional setback/setup) or 24-hour setpoint schedules must be defined.
 
 Finally, if there are sufficient ceiling fans present that result in a reduced cooling setpoint, this offset can be specified with ``extension/CeilingFanSetpointTempCoolingSeasonOffset``.
 
