@@ -672,10 +672,16 @@
   <sch:pattern name='[HVACControl]'>
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Systems/h:HVAC/h:HVACControl'>
       <sch:assert role='ERROR' test='count(h:SystemIdentifier) = 1'>Expected 1 element(s) for xpath: SystemIdentifier</sch:assert>
-      <sch:assert role='ERROR' test='count(h:SetpointTempHeatingSeason) = 1'>Expected 1 element(s) for xpath: SetpointTempHeatingSeason</sch:assert>
-      <sch:assert role='ERROR' test='count(h:SetbackTempHeatingSeason) &lt;= 1'>Expected 0 or 1 element(s) for xpath: SetbackTempHeatingSeason</sch:assert> <!-- See [HVACControlType=HeatingSetback] -->
-      <sch:assert role='ERROR' test='count(h:SetupTempCoolingSeason) &lt;= 1'>Expected 0 or 1 element(s) for xpath: SetupTempCoolingSeason</sch:assert> <!-- See [HVACControlType=CoolingSetup] -->
-      <sch:assert role='ERROR' test='count(h:SetpointTempCoolingSeason) = 1'>Expected 1 element(s) for xpath: SetpointTempCoolingSeason</sch:assert>
+      <sch:assert role='ERROR' test='count(h:SetpointTempHeatingSeason) + count(h:extension/h:WeekdaySetpointTempsHeatingSeason) = 1'>Expected 1 element(s) for xpath: SetpointTempHeatingSeason | WeekdaySetpointTempsHeatingSeason</sch:assert>
+      <sch:assert role='ERROR' test='count(h:SetpointTempHeatingSeason) + count(h:extension/h:WeekendSetpointTempsHeatingSeason) = 1'>Expected 1 element(s) for xpath: SetpointTempHeatingSeason | WeekendSetpointTempsHeatingSeason</sch:assert>
+      <sch:assert role='ERROR' test='count(h:extension/h:WeekdaySetpointTempsHeatingSeason) + count(h:extension/h:WeekendSetpointTempsHeatingSeason) = 0 or count(h:extension/h:WeekdaySetpointTempsHeatingSeason) + count(h:extension/h:WeekendSetpointTempsHeatingSeason) = 2'>Expected 0 or 2 element(s) for xpath: WeekdaySetpointTempsHeatingSeason | WeekendSetpointTempsHeatingSeason</sch:assert>
+      <sch:assert role='ERROR' test='count(h:SetbackTempHeatingSeason) + count(h:extension/h:WeekdaySetpointTempsHeatingSeason) &lt;= 1'>Expected 0 or 1 element(s) for xpath: SetbackTempHeatingSeason | WeekdaySetpointTempsHeatingSeason</sch:assert> <!-- See [HVACControlType=HeatingSetback] -->
+      <sch:assert role='ERROR' test='count(h:SetbackTempHeatingSeason) + count(h:extension/h:WeekendSetpointTempsHeatingSeason) &lt;= 1'>Expected 0 or 1 element(s) for xpath: SetbackTempHeatingSeason | WeekdaySetpointTempsHeatingSeason</sch:assert> <!-- See [HVACControlType=HeatingSetback] -->
+      <sch:assert role='ERROR' test='count(h:SetpointTempCoolingSeason) + count(h:extension/h:WeekdaySetpointTempsCoolingSeason) = 1'>Expected 1 element(s) for xpath: SetpointTempCoolingSeason | WeekdaySetpointTempsCoolingSeason</sch:assert>
+      <sch:assert role='ERROR' test='count(h:SetpointTempCoolingSeason) + count(h:extension/h:WeekendSetpointTempsCoolingSeason) = 1'>Expected 1 element(s) for xpath: SetpointTempCoolingSeason | WeekendSetpointTempsCoolingSeason</sch:assert>
+      <sch:assert role='ERROR' test='count(h:extension/h:WeekdaySetpointTempsCoolingSeason) + count(h:extension/h:WeekendSetpointTempsCoolingSeason) = 0 or count(h:extension/h:WeekdaySetpointTempsCoolingSeason) + count(h:extension/h:WeekendSetpointTempsCoolingSeason) = 2'>Expected 0 or 2 element(s) for xpath: WeekdaySetpointTempsCoolingSeason | WeekendSetpointTempsCoolingSeason</sch:assert>
+      <sch:assert role='ERROR' test='count(h:SetupTempCoolingSeason) + count(h:extension/h:WeekdaySetpointTempsCoolingSeason) &lt;= 1'>Expected 0 or 1 element(s) for xpath: SetupTempCoolingSeason | WeekdaySetpointTempsCoolingSeason</sch:assert> <!-- See [HVACControlType=CoolingSetup] -->
+      <sch:assert role='ERROR' test='count(h:SetupTempCoolingSeason) + count(h:extension/h:WeekendSetpointTempsCoolingSeason) &lt;= 1'>Expected 0 or 1 element(s) for xpath: SetupTempCoolingSeason | WeekendSetpointTempsCoolingSeason</sch:assert> <!-- See [HVACControlType=CoolingSetup] -->
       <sch:assert role='ERROR' test='count(h:extension/h:CeilingFanSetpointTempCoolingSeasonOffset) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/CeilingFanSetpointTempCoolingSeasonOffset</sch:assert> <!-- deg F -->
     </sch:rule>
   </sch:pattern>
