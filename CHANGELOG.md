@@ -16,6 +16,7 @@ Fixes
 - Update spatial distribution of units based on total dwelling unit counts rather than occupied unit counts ([#486](https://github.com/NREL/OpenStudio-BuildStock/pull/486))
 - Exclude existing shared walls when calculating the partition wall area of MF and SFA buildings ([#496](https://github.com/NREL/OpenStudio-BuildStock/pull/496))
 - For the purpose of calculating cooling and dehumidification loads for HVAC sizing, use simple internal gains equation from ANSI/RESNET/ICC 301 (consistent with HPXML workflow); this fixes a bug introduced in [#348](https://github.com/NREL/OpenStudio-BuildStock/pull/348) that caused cooling capacities to be ~3x larger than they should be ([#501](https://github.com/NREL/OpenStudio-BuildStock/pull/501))
+- Reintroduce IECC climate zone dependency to HVAC Cooling Type and some heat pump fixes ([#497](https://github.com/NREL/OpenStudio-BuildStock/pull/497))
 
 ## ResStock v2.3.0
 ###### June 24, 2020 - [Diff](https://github.com/NREL/OpenStudio-BuildStock/compare/v2.2.4...v2.3.0)
