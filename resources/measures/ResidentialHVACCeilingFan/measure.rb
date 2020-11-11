@@ -86,27 +86,6 @@ class ProcessCeilingFan < OpenStudio::Measure::ModelMeasure
     cooling_setpoint_offset.setDefaultValue(0)
     args << cooling_setpoint_offset
 
-    # Make a string argument for 24 weekday schedule values
-    weekday_sch = OpenStudio::Measure::OSArgument::makeStringArgument("weekday_sch", true)
-    weekday_sch.setDisplayName("Weekday schedule")
-    weekday_sch.setDescription("Specify the 24-hour weekday schedule.")
-    weekday_sch.setDefaultValue("0.04, 0.037, 0.037, 0.036, 0.033, 0.036, 0.043, 0.047, 0.034, 0.023, 0.024, 0.025, 0.024, 0.028, 0.031, 0.032, 0.039, 0.053, 0.063, 0.067, 0.071, 0.069, 0.059, 0.05")
-    args << weekday_sch
-
-    # Make a string argument for 24 weekend schedule values
-    weekend_sch = OpenStudio::Measure::OSArgument::makeStringArgument("weekend_sch", true)
-    weekend_sch.setDisplayName("Weekend schedule")
-    weekend_sch.setDescription("Specify the 24-hour weekend schedule.")
-    weekend_sch.setDefaultValue("0.04, 0.037, 0.037, 0.036, 0.033, 0.036, 0.043, 0.047, 0.034, 0.023, 0.024, 0.025, 0.024, 0.028, 0.031, 0.032, 0.039, 0.053, 0.063, 0.067, 0.071, 0.069, 0.059, 0.05")
-    args << weekend_sch
-
-    # Make a string argument for 12 monthly schedule values
-    monthly_sch = OpenStudio::Measure::OSArgument::makeStringArgument("monthly_sch", true)
-    monthly_sch.setDisplayName("Month schedule")
-    monthly_sch.setDescription("Specify the 12-month schedule.")
-    monthly_sch.setDefaultValue("1.248, 1.257, 0.993, 0.989, 0.993, 0.827, 0.821, 0.821, 0.827, 0.99, 0.987, 1.248")
-    args << monthly_sch
-
     return args
   end
 
@@ -136,9 +115,6 @@ class ProcessCeilingFan < OpenStudio::Measure::ModelMeasure
     use_benchmark_energy = runner.getBoolArgumentValue("use_benchmark_energy", user_arguments)
     cooling_setpoint_offset = runner.getDoubleArgumentValue("cooling_setpoint_offset", user_arguments)
     mult = runner.getDoubleArgumentValue("mult", user_arguments)
-    weekday_sch = runner.getStringArgumentValue("weekday_sch", user_arguments)
-    weekend_sch = runner.getStringArgumentValue("weekend_sch", user_arguments)
-    monthly_sch = runner.getStringArgumentValue("monthly_sch", user_arguments)
 
     if use_benchmark_energy
       coverage = nil
@@ -153,15 +129,22 @@ class ProcessCeilingFan < OpenStudio::Measure::ModelMeasure
       return false
     end
 
+    schedules_file = SchedulesFile.new(runner: runner, model: model)
+    if not schedules_file.validated?
+      return false
+    end
+
     sch = nil
     units.each do |unit|
       HVAC.remove_ceiling_fans(runner, model, unit)
 
       success, sch = HVAC.apply_ceiling_fans(model, unit, runner, coverage, specified_num, power,
                                              control, use_benchmark_energy, cooling_setpoint_offset,
-                                             mult, weekday_sch, weekend_sch, monthly_sch, sch)
+                                             mult, sch, schedules_file)
       return false if not success
     end # units
+
+    schedules_file.set_vacancy(col_name: "ceiling_fan")
 
     return true
   end

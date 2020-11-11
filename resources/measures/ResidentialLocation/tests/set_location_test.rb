@@ -22,7 +22,7 @@ class SetResidentialEPWFileTest < MiniTest::Test
     result = _test_error_or_NA(nil, args_hash)
     assert(result.errors.size == 1)
     assert_equal("Fail", result.value.valueName)
-    assert_includes(result.errors.map { |x| x.logMessage }, "Invalid daylight saving date specified.")
+    assert_includes(result.errors.map { |x| x.logMessage }, "Invalid daylight saving date(s) specified.")
   end
 
   def test_NA_daylight_saving
@@ -117,6 +117,7 @@ class SetResidentialEPWFileTest < MiniTest::Test
     measure.run(model, runner, argument_map)
     result = runner.result
 
+    # show the output
     show_output(result) unless result.value.valueName == 'Success'
 
     # assert that it ran correctly

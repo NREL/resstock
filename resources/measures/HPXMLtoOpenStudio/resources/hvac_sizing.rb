@@ -467,44 +467,10 @@ class HVACSizing
       zone_loads = process_load_roofs(runner, mj8, unit, thermal_zone, zone_loads, weather, htd)
       zone_loads = process_load_floors(runner, mj8, unit, thermal_zone, zone_loads, weather, htd)
       zone_loads = process_infiltration_ventilation(runner, mj8, unit, thermal_zone, zone_loads, weather, htd, unit_shelter_class)
+      zone_loads = process_internal_gains(runner, mj8, thermal_zone, zone_loads, nbeds, unit_ffa)
       return nil if zone_loads.nil?
 
       zones_loads[thermal_zone] = zone_loads
-    end
-
-    # Varying loads (ensure coincidence of loads during the day)
-    # TODO: Currently handles internal gains but not window loads (same as BEopt).
-    zones_sens = {}
-    zones_lat = {}
-    thermal_zones.each do |thermal_zone|
-      next if not Geometry.zone_is_finished(thermal_zone)
-
-      zones_sens[thermal_zone], zones_lat[thermal_zone] = process_internal_gains(runner, mj8, thermal_zone, weather, nbeds, unit_ffa)
-      return nil if zones_sens[thermal_zone].nil? or zones_lat[thermal_zone].nil?
-    end
-    # Find hour of the maximum total & latent loads
-    tot_loads = [0] * 24
-    lat_loads = [0] * 24
-    for hr in 0..23
-      zones_sens.each do |tz, hourly_sens|
-        tot_loads[hr] += hourly_sens[hr]
-      end
-      zones_lat.each do |tz, hourly_lat|
-        tot_loads[hr] += hourly_lat[hr]
-        lat_loads[hr] += hourly_lat[hr]
-      end
-    end
-    idx_tot = tot_loads.each_with_index.max[1]
-    idx_lat = lat_loads.each_with_index.max[1]
-    # Assign zone loads for each zone at the coincident hour
-    zones_loads.each do |thermal_zone, zone_loads|
-      # Cooling based on max total hr
-      zone_loads.Cool_IntGains_Sens = zones_sens[thermal_zone][idx_tot]
-      zone_loads.Cool_IntGains_Lat = zones_lat[thermal_zone][idx_tot]
-
-      # Dehumidification based on max latent hr
-      zone_loads.Dehumid_IntGains_Sens = zones_sens[thermal_zone][idx_lat]
-      zone_loads.Dehumid_IntGains_Lat = zones_lat[thermal_zone][idx_lat]
     end
 
     return zones_loads
@@ -1245,161 +1211,24 @@ class HVACSizing
     return zone_loads
   end
 
-  def self.process_internal_gains(runner, mj8, thermal_zone, weather, nbeds, unit_ffa)
+  def self.process_internal_gains(runner, mj8, thermal_zone, zone_loads, nbeds, unit_ffa)
     '''
     Cooling and Dehumidification Loads: Internal Gains
     '''
 
     return nil if mj8.nil?
 
-    int_Tot_Max = 0
-    int_Lat_Max = 0
-
-    # Plug loads, appliances, showers/sinks/baths, occupants, ceiling fans
-    gains = []
-    thermal_zone.spaces.each do |space|
-      gains.push(*space.electricEquipment)
-      gains.push(*space.gasEquipment)
-      gains.push(*space.otherEquipment)
-    end
-
-    assumed_year = @year_description.assumedYear
-    july_1 = OpenStudio::Date.new(OpenStudio::MonthOfYear.new('July'), 1, assumed_year)
-
-    int_Sens_Hr = [0] * 24
-    int_Lat_Hr = [0] * 24
-
-    gains.each do |gain|
-      # TODO: The lines below are for equivalence with BEopt
-      next if gain.name.to_s.start_with?(Constants.ObjectNameHotWaterDistribution)
-      next if gain.name.to_s.start_with?(Constants.ObjectNameHotWaterRecircPump)
-
-      sched = nil
-      sensible_frac = nil
-      latent_frac = nil
-      design_level = nil
-
-      # Get design level
-      if gain.is_a? OpenStudio::Model::OtherEquipment
-        design_level_obj = gain.otherEquipmentDefinition
-      else
-        design_level_obj = gain
-      end
-      if not design_level_obj.designLevel.is_initialized
-        runner.registerWarning("DesignLevel not provided for object '#{gain.name.to_s}'. Skipping...")
-        next
-      end
-      design_level_w = design_level_obj.designLevel.get
-      design_level = UnitConversions.convert(design_level_w, "W", "Btu/hr") # Btu/hr
-      next if design_level == 0
-
-      # Get sensible/latent fractions
-      if gain.is_a? OpenStudio::Model::ElectricEquipment
-        sensible_frac = 1.0 - gain.electricEquipmentDefinition.fractionLost - gain.electricEquipmentDefinition.fractionLatent
-        latent_frac = gain.electricEquipmentDefinition.fractionLatent
-      elsif gain.is_a? OpenStudio::Model::GasEquipment
-        sensible_frac = 1.0 - gain.gasEquipmentDefinition.fractionLost - gain.gasEquipmentDefinition.fractionLatent
-        latent_frac = gain.gasEquipmentDefinition.fractionLatent
-      elsif gain.is_a? OpenStudio::Model::OtherEquipment
-        sensible_frac = 1.0 - gain.otherEquipmentDefinition.fractionLost - gain.otherEquipmentDefinition.fractionLatent
-        latent_frac = gain.otherEquipmentDefinition.fractionLatent
-      else
-        runner.registerError("Unexpected type for object '#{gain.name.to_s}' in process_internal_gains.")
-        return nil
-      end
-      next if sensible_frac.nil? or latent_frac.nil? or (sensible_frac == 0 and latent_frac == 0)
-
-      # Get schedule
-      if not gain.schedule.is_initialized
-        runner.registerError("Schedule not provided for object '#{gain.name.to_s}'. Skipping...")
-        next
-      end
-      sched_base = gain.schedule.get
-      if sched_base.to_ScheduleRuleset.is_initialized
-        sched = sched_base.to_ScheduleRuleset.get
-      elsif sched_base.to_ScheduleFixedInterval.is_initialized
-        sched = sched_base.to_ScheduleFixedInterval.get
-      elsif sched_base.to_ScheduleConstant.is_initialized
-        sched = sched_base.to_ScheduleConstant.get
-      else
-        runner.registerWarning("Expected type for object '#{gain.name.to_s}'. Skipping...")
-        next
-      end
-      next if sched.nil?
-
-      # Get schedule hourly values
-      if sched.is_a? OpenStudio::Model::ScheduleRuleset or sched.is_a? OpenStudio::Model::ScheduleFixedInterval
-        # Override any hot water schedules with smoothed schedules; TODO: Is there a better approach?
-        max_mult = nil
-        if gain.name.to_s.start_with?(Constants.ObjectNameShower)
-          sched_values = [0.011, 0.005, 0.003, 0.005, 0.014, 0.052, 0.118, 0.117, 0.095, 0.074, 0.060, 0.047, 0.034, 0.029, 0.026, 0.025, 0.030, 0.039, 0.042, 0.042, 0.042, 0.041, 0.029, 0.021]
-          max_mult = 1.05 * 1.04
-        elsif gain.name.to_s.start_with?(Constants.ObjectNameSink)
-          sched_values = [0.014, 0.007, 0.005, 0.005, 0.007, 0.018, 0.042, 0.062, 0.066, 0.062, 0.054, 0.050, 0.049, 0.045, 0.043, 0.041, 0.048, 0.065, 0.075, 0.069, 0.057, 0.048, 0.040, 0.027]
-          max_mult = 1.04 * 1.04
-        elsif gain.name.to_s.start_with?(Constants.ObjectNameBath)
-          sched_values = [0.008, 0.004, 0.004, 0.004, 0.008, 0.019, 0.046, 0.058, 0.066, 0.058, 0.046, 0.035, 0.031, 0.023, 0.023, 0.023, 0.039, 0.046, 0.077, 0.100, 0.100, 0.077, 0.066, 0.039]
-          max_mult = 1.26 * 1.04
-        elsif gain.name.to_s.start_with?(Constants.ObjectNameDishwasher)
-          sched_values = [0.015, 0.007, 0.005, 0.003, 0.003, 0.010, 0.020, 0.031, 0.058, 0.065, 0.056, 0.048, 0.041, 0.046, 0.036, 0.038, 0.038, 0.049, 0.087, 0.111, 0.090, 0.067, 0.044, 0.031]
-          max_mult = 1.05 * 1.04
-        elsif gain.name.to_s.start_with?(Constants.ObjectNameClothesWasher)
-          sched_values = [0.009, 0.007, 0.004, 0.004, 0.007, 0.011, 0.022, 0.049, 0.073, 0.086, 0.084, 0.075, 0.067, 0.060, 0.049, 0.052, 0.050, 0.049, 0.049, 0.049, 0.049, 0.047, 0.032, 0.017]
-          max_mult = 1.15 * 1.04
-        elsif gain.name.to_s.start_with?(Constants.ObjectNameClothesDryer(nil))
-          sched_values = [0.010, 0.006, 0.004, 0.002, 0.004, 0.006, 0.016, 0.032, 0.048, 0.068, 0.078, 0.081, 0.074, 0.067, 0.057, 0.061, 0.055, 0.054, 0.051, 0.051, 0.052, 0.054, 0.044, 0.024]
-          max_mult = 1.15 * 1.04
-        else
-          day_sched = sched.getDaySchedules(july_1, july_1)[0]
-          # Convert to 24 hour values
-          sched_values = []
-          previous_time_decimal = 0
-          day_sched.times.each_with_index do |time, i|
-            time_decimal = (time.days * 24.0) + time.hours + (time.minutes / 60.0) + (time.seconds / 3600.0)
-            # Back-fill in hourly values
-            for hr in sched_values.size + 1..time_decimal.floor
-              sched_values[hr - 1] = day_sched.values[i]
-            end
-          end
-        end
-        if not max_mult.nil?
-          # Calculate daily load
-          annual_energy = Schedule.annual_equivalent_full_load_hrs(@year_description, sched) * design_level_w * gain.multiplier # Wh
-          daily_load = UnitConversions.convert(annual_energy, "Wh", "Btu") / Constants.NumDaysInYear(@year_description.isLeapYear) # Btu/day
-          # Calculate design level in Btu/hr
-          design_level = sched_values.max * daily_load * max_mult # Btu/hr
-          # Normalize schedule values to be max=1 from sum=1
-          sched_values_max = sched_values.max
-          sched_values = sched_values.collect { |n| n / sched_values_max }
-        end
-      elsif sched.is_a? OpenStudio::Model::ScheduleConstant
-        sched_values = [sched.value] * 24
-      else
-        runner.registerError("Unexpected type for object '#{sched.name.to_s}' in process_internal_gains.")
-        return nil
-      end
-      if sched_values.size != 24
-        runner.registerError("Expected 24 schedule values for object '#{gain.name.to_s}' but found #{sched_values.size} values.")
-        return nil
-      end
-
-      for hr in 0..23
-        int_Sens_Hr[hr] += sched_values[hr] * design_level * sensible_frac
-        int_Lat_Hr[hr] += sched_values[hr] * design_level * latent_frac
-      end
-    end
-
-    # Process occupants
-    n_occupants = nbeds + 1 # Number of occupants based on Section 22-3
-    occ_sched = [1.00000, 1.00000, 1.00000, 1.00000, 1.00000, 1.00000, 1.00000, 0.88310, 0.40861, 0.24189, 0.24189, 0.24189,
-                 0.24189, 0.24189, 0.24189, 0.24189, 0.29498, 0.55310, 0.89693, 0.89693, 0.89693, 1.00000, 1.00000, 1.00000]
     zone_ffa = Geometry.get_finished_floor_area_from_spaces(thermal_zone.spaces)
-    for hr in 0..23
-      int_Sens_Hr[hr] += occ_sched[hr] * 230 * n_occupants * zone_ffa / unit_ffa
-      int_Lat_Hr[hr] += occ_sched[hr] * 200 * n_occupants * zone_ffa / unit_ffa
-    end
+    zone_frac = zone_ffa / unit_ffa
 
-    return int_Sens_Hr, int_Lat_Hr
+    # Per ANSI/RESNET/ICC 301
+    n_occupants = nbeds + 1
+    zone_loads.Cool_IntGains_Sens = (1600.0 + 230.0 * n_occupants) * zone_frac
+    zone_loads.Cool_IntGains_Lat = (200.0 * n_occupants) * zone_frac
+    zone_loads.Dehumid_IntGains_Sens = zone_loads.Cool_IntGains_Sens
+    zone_loads.Dehumid_IntGains_Lat = zone_loads.Cool_IntGains_Lat
+
+    return zone_loads
   end
 
   def self.process_intermediate_total_loads(runner, mj8, zones_loads, weather, hvac)
