@@ -117,13 +117,6 @@ class ResidentialDishwasher < OpenStudio::Measure::ModelMeasure
     plant_loop.setDefaultValue(Constants.Auto)
     args << plant_loop
 
-    # make an argument for the number of days to shift the draw profile by
-    schedule_day_shift = OpenStudio::Measure::OSArgument::makeIntegerArgument("schedule_day_shift", true)
-    schedule_day_shift.setDisplayName("Schedule Day Shift")
-    schedule_day_shift.setDescription("Draw profiles are shifted to prevent coincident hot water events when performing portfolio analyses. For multifamily buildings, draw profiles for each unit are automatically shifted by one week.")
-    schedule_day_shift.setDefaultValue(0)
-    args << schedule_day_shift
-
     return args
   end # end the arguments method
 
@@ -148,7 +141,6 @@ class ResidentialDishwasher < OpenStudio::Measure::ModelMeasure
     mult_hw = runner.getDoubleArgumentValue("mult_hw", user_arguments)
     location = runner.getStringArgumentValue("location", user_arguments)
     plant_loop_s = runner.getStringArgumentValue("plant_loop", user_arguments)
-    d_sh = runner.getIntegerArgumentValue("schedule_day_shift", user_arguments)
 
     # Get building units
     units = Geometry.get_building_units(model, runner)
@@ -168,8 +160,14 @@ class ResidentialDishwasher < OpenStudio::Measure::ModelMeasure
                           Constants.SpaceTypeUnfinishedBasement,
                           Constants.SpaceTypeGarage]
 
+    schedules_file = SchedulesFile.new(runner: runner, model: model)
+    if not schedules_file.validated?
+      return false
+    end
+
     tot_ann_e = 0
     msgs = []
+    sch = nil
     mains_temps = nil
     units.each_with_index do |unit, unit_index|
       # Get space
@@ -184,8 +182,8 @@ class ResidentialDishwasher < OpenStudio::Measure::ModelMeasure
 
       success, ann_e, mains_temps = Dishwasher.apply(model, unit, runner, num_settings, rated_annual_energy,
                                                      cold_inlet, has_internal_heater, cold_use, test_date,
-                                                     annual_gas_cost, mult_e, mult_hw, d_sh, space, plant_loop,
-                                                     mains_temps)
+                                                     annual_gas_cost, mult_e, mult_hw, space, plant_loop,
+                                                     mains_temps, sch, schedules_file)
 
       if not success
         return false
@@ -197,6 +195,8 @@ class ResidentialDishwasher < OpenStudio::Measure::ModelMeasure
 
       tot_ann_e += ann_e
     end
+
+    schedules_file.set_vacancy(col_name: "dishwasher_power")
 
     # Reporting
     if msgs.size > 1

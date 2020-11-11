@@ -21,7 +21,7 @@ class ResidentialHotWaterFixturesTest < MiniTest::Test
   def test_new_construction_standard
     args_hash = {}
     expected_num_del_objects = {}
-    expected_num_new_objects = { "OtherEquipmentDefinition" => 3, "OtherEquipment" => 3, "WaterUseEquipmentDefinition" => 3, "WaterUseEquipment" => 3, "ScheduleRuleset" => 3, "ScheduleConstant" => 3 }
+    expected_num_new_objects = { "OtherEquipmentDefinition" => 3, "OtherEquipment" => 3, "WaterUseEquipmentDefinition" => 3, "WaterUseEquipment" => 3, "ScheduleFile" => 3, "ScheduleConstant" => 1 }
     expected_values = { "Annual_kwh" => 445.1, "HotWater_gpd" => 60 }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
@@ -32,7 +32,7 @@ class ResidentialHotWaterFixturesTest < MiniTest::Test
     args_hash["sink_mult"] = 0.5
     args_hash["bath_mult"] = 1.5
     expected_num_del_objects = {}
-    expected_num_new_objects = { "OtherEquipmentDefinition" => 2, "OtherEquipment" => 2, "WaterUseEquipmentDefinition" => 2, "WaterUseEquipment" => 2, "ScheduleRuleset" => 2, "ScheduleConstant" => 2 }
+    expected_num_new_objects = { "OtherEquipmentDefinition" => 2, "OtherEquipment" => 2, "WaterUseEquipmentDefinition" => 2, "WaterUseEquipment" => 2, "ScheduleFile" => 2, "ScheduleConstant" => 1 }
     expected_values = { "Annual_kwh" => 107.7, "HotWater_gpd" => 23 }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
@@ -40,7 +40,7 @@ class ResidentialHotWaterFixturesTest < MiniTest::Test
   def test_new_construction_basement
     args_hash = {}
     expected_num_del_objects = {}
-    expected_num_new_objects = { "OtherEquipmentDefinition" => 3, "OtherEquipment" => 3, "WaterUseEquipmentDefinition" => 3, "WaterUseEquipment" => 3, "ScheduleRuleset" => 3, "ScheduleConstant" => 3 }
+    expected_num_new_objects = { "OtherEquipmentDefinition" => 3, "OtherEquipment" => 3, "WaterUseEquipmentDefinition" => 3, "WaterUseEquipment" => 3, "ScheduleFile" => 3, "ScheduleConstant" => 1 }
     expected_values = { "Annual_kwh" => 445.1, "HotWater_gpd" => 60 }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
@@ -48,23 +48,23 @@ class ResidentialHotWaterFixturesTest < MiniTest::Test
   def test_retrofit_replace
     args_hash = {}
     expected_num_del_objects = {}
-    expected_num_new_objects = { "OtherEquipmentDefinition" => 3, "OtherEquipment" => 3, "WaterUseEquipmentDefinition" => 3, "WaterUseEquipment" => 3, "ScheduleRuleset" => 3, "ScheduleConstant" => 3 }
+    expected_num_new_objects = { "OtherEquipmentDefinition" => 3, "OtherEquipment" => 3, "WaterUseEquipmentDefinition" => 3, "WaterUseEquipment" => 3, "ScheduleFile" => 3, "ScheduleConstant" => 1 }
     expected_values = { "Annual_kwh" => 445.1, "HotWater_gpd" => 60 }
     model = _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
     args_hash = {}
     args_hash["shower_mult"] = 0.0
     args_hash["sink_mult"] = 0.5
     args_hash["bath_mult"] = 1.5
-    expected_num_del_objects = { "OtherEquipmentDefinition" => 3, "OtherEquipment" => 3, "WaterUseEquipmentDefinition" => 3, "WaterUseEquipment" => 3, "ScheduleRuleset" => 3, "ScheduleConstant" => 3 }
-    expected_num_new_objects = { "OtherEquipmentDefinition" => 2, "OtherEquipment" => 2, "WaterUseEquipmentDefinition" => 2, "WaterUseEquipment" => 2, "ScheduleRuleset" => 2, "ScheduleConstant" => 2 }
+    expected_num_del_objects = { "OtherEquipmentDefinition" => 3, "OtherEquipment" => 3, "WaterUseEquipmentDefinition" => 3, "WaterUseEquipment" => 3, "ScheduleFile" => 3, "ScheduleConstant" => 1 }
+    expected_num_new_objects = { "OtherEquipmentDefinition" => 2, "OtherEquipment" => 2, "WaterUseEquipmentDefinition" => 2, "WaterUseEquipment" => 2, "ScheduleFile" => 2, "ScheduleConstant" => 1 }
     expected_values = { "Annual_kwh" => 107.7, "HotWater_gpd" => 23 }
     _test_measure(model, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
   def test_retrofit_replace2
     args_hash = {}
-    expected_num_del_objects = { "OtherEquipmentDefinition" => 3, "OtherEquipment" => 3, "WaterUseEquipmentDefinition" => 3, "WaterUseEquipment" => 3, "ScheduleRuleset" => 3, "ScheduleConstant" => 3 }
-    expected_num_new_objects = { "OtherEquipmentDefinition" => 3, "OtherEquipment" => 3, "WaterUseEquipmentDefinition" => 3, "WaterUseEquipment" => 3, "ScheduleRuleset" => 3, "ScheduleConstant" => 3 }
+    expected_num_del_objects = { "OtherEquipmentDefinition" => 3, "OtherEquipment" => 3, "WaterUseEquipmentDefinition" => 3, "WaterUseEquipment" => 3, "ScheduleFile" => 3, "ScheduleConstant" => 1 }
+    expected_num_new_objects = { "OtherEquipmentDefinition" => 3, "OtherEquipment" => 3, "WaterUseEquipmentDefinition" => 3, "WaterUseEquipment" => 3, "ScheduleFile" => 3, "ScheduleConstant" => 1 }
     expected_values = { "Annual_kwh" => 445.1, "HotWater_gpd" => 60 }
     model = _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank_HWFixtures_RecircDist.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
@@ -72,14 +72,14 @@ class ResidentialHotWaterFixturesTest < MiniTest::Test
   def test_retrofit_remove
     args_hash = {}
     expected_num_del_objects = {}
-    expected_num_new_objects = { "OtherEquipmentDefinition" => 3, "OtherEquipment" => 3, "WaterUseEquipmentDefinition" => 3, "WaterUseEquipment" => 3, "ScheduleRuleset" => 3, "ScheduleConstant" => 3 }
+    expected_num_new_objects = { "OtherEquipmentDefinition" => 3, "OtherEquipment" => 3, "WaterUseEquipmentDefinition" => 3, "WaterUseEquipment" => 3, "ScheduleFile" => 3, "ScheduleConstant" => 1 }
     expected_values = { "Annual_kwh" => 445.1, "HotWater_gpd" => 60 }
     model = _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
     args_hash = {}
     args_hash["shower_mult"] = 0.0
     args_hash["sink_mult"] = 0.0
     args_hash["bath_mult"] = 0.0
-    expected_num_del_objects = { "OtherEquipmentDefinition" => 3, "OtherEquipment" => 3, "WaterUseEquipmentDefinition" => 3, "WaterUseEquipment" => 3, "ScheduleRuleset" => 3, "ScheduleConstant" => 3 }
+    expected_num_del_objects = { "OtherEquipmentDefinition" => 3, "OtherEquipment" => 3, "WaterUseEquipmentDefinition" => 3, "WaterUseEquipment" => 3, "ScheduleFile" => 3, "ScheduleConstant" => 1 }
     expected_num_new_objects = {}
     expected_values = { "Annual_kwh" => 0, "HotWater_gpd" => 0 }
     _test_measure(model, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
@@ -115,7 +115,7 @@ class ResidentialHotWaterFixturesTest < MiniTest::Test
   def test_warning_missing_water_heater
     args_hash = {}
     expected_num_del_objects = {}
-    expected_num_new_objects = {}
+    expected_num_new_objects = { "ScheduleConstant" => 1 }
     expected_values = { "Annual_kwh" => 0, "HotWater_gpd" => 0 }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 0, 1)
   end
@@ -124,7 +124,7 @@ class ResidentialHotWaterFixturesTest < MiniTest::Test
     num_units = 4
     args_hash = {}
     expected_num_del_objects = {}
-    expected_num_new_objects = { "OtherEquipmentDefinition" => num_units * 3, "OtherEquipment" => num_units * 3, "WaterUseEquipmentDefinition" => num_units * 3, "WaterUseEquipment" => num_units * 3, "ScheduleRuleset" => num_units * 3, "ScheduleConstant" => num_units * 3 }
+    expected_num_new_objects = { "OtherEquipmentDefinition" => num_units * 3, "OtherEquipment" => num_units * 3, "WaterUseEquipmentDefinition" => num_units * 3, "WaterUseEquipment" => num_units * 3, "ScheduleFile" => 3, "ScheduleConstant" => 1 }
     expected_values = { "Annual_kwh" => num_units * 445.1, "HotWater_gpd" => num_units * 60 }
     _test_measure("SFA_4units_1story_FB_UA_3Beds_2Baths_Denver_WHTank.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
   end
@@ -133,7 +133,7 @@ class ResidentialHotWaterFixturesTest < MiniTest::Test
     num_units = 8
     args_hash = {}
     expected_num_del_objects = {}
-    expected_num_new_objects = { "OtherEquipmentDefinition" => num_units * 3, "OtherEquipment" => num_units * 3, "WaterUseEquipmentDefinition" => num_units * 3, "WaterUseEquipment" => num_units * 3, "ScheduleRuleset" => num_units * 3, "ScheduleConstant" => num_units * 3 }
+    expected_num_new_objects = { "OtherEquipmentDefinition" => num_units * 3, "OtherEquipment" => num_units * 3, "WaterUseEquipmentDefinition" => num_units * 3, "WaterUseEquipment" => num_units * 3, "ScheduleFile" => 3, "ScheduleConstant" => 1 }
     expected_values = { "Annual_kwh" => num_units * 445.1, "HotWater_gpd" => num_units * 60 }
     _test_measure("MF_8units_1story_SL_3Beds_2Baths_Denver_WHTank.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
   end
@@ -242,11 +242,17 @@ class ResidentialHotWaterFixturesTest < MiniTest::Test
 
         new_object = new_object.public_send("to_#{obj_type}").get
         if obj_type == "OtherEquipment"
-          full_load_hrs = Schedule.annual_equivalent_full_load_hrs(year_description, new_object.schedule.get)
+          schedule_file = new_object.schedule.get.to_ScheduleFile.get
+          schedules_file = SchedulesFile.new(runner: runner, model: model)
+          full_load_hrs = schedules_file.annual_equivalent_full_load_hrs(col_name: schedule_file.name.to_s)
           actual_values["Annual_kwh"] += UnitConversions.convert(full_load_hrs * new_object.otherEquipmentDefinition.designLevel.get * new_object.multiplier, "Wh", "kWh")
         elsif obj_type == "WaterUseEquipment"
-          full_load_hrs = Schedule.annual_equivalent_full_load_hrs(year_description, new_object.flowRateFractionSchedule.get)
-          actual_values["HotWater_gpd"] += UnitConversions.convert(full_load_hrs * new_object.waterUseEquipmentDefinition.peakFlowRate * new_object.multiplier, "m^3/s", "gal/min") * 60.0 / num_days_in_year
+          schedule_file = new_object.flowRateFractionSchedule.get.to_ScheduleFile.get
+          schedules_file = SchedulesFile.new(runner: runner, model: model)
+          full_load_hrs = schedules_file.annual_equivalent_full_load_hrs(col_name: schedule_file.name.to_s)
+          peak_flow_rate = UnitConversions.convert(new_object.waterUseEquipmentDefinition.peakFlowRate * new_object.multiplier, "m^3/s", "gal/min")
+          daily_gallons = (full_load_hrs * 60 * peak_flow_rate) / num_days_in_year # multiply by 60 because peak_flow_rate is in gal/min
+          actual_values["HotWater_gpd"] += daily_gallons
         end
       end
     end
