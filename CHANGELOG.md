@@ -2,12 +2,13 @@
 
 Features
 - Report the annual peak use and timing using the quantities of interest measure ([#458](https://github.com/NREL/OpenStudio-BuildStock/pull/458))
-- Major change to most occupant-related schedules. Occupant activities are now generated on-the-fly and saved to .csv files used by Schedule:File objects. Schedules are generated using time-inhomogenous Markov chains derived from American Time Use Survey data, supplemented with sampling duration and power level from NEEA RBSA data, as well as DHW draw duration and flow rate data from Aquacraft/AWWA data. ([#348](https://github.com/NREL/OpenStudio-BuildStock/pull/348))
+- Major change to most occupant-related schedules. Occupant activities are now generated on-the-fly and saved to .csv files used by Schedule:File objects. Schedules are generated using time-inhomogenous Markov chains derived from American Time Use Survey data, supplemented with sampling duration and power level from NEEA RBSA data, as well as DHW draw duration and flow rate data from Aquacraft/AWWA data ([#348](https://github.com/NREL/OpenStudio-BuildStock/pull/348))
 - Update the dependencies for heating and cooling setpoint tsvs (Setpoint, Has Offset, Offset Magnitude, and Offset Period) to IECC climate zone ([#468](https://github.com/NREL/OpenStudio-BuildStock/pull/468))
 - Allow heating fuel to be defined by Public Use Microdata Area (PUMA) rather than State ([#474](https://github.com/NREL/OpenStudio-BuildStock/pull/474))
 - Distinguish between vacant and occupied dwelling units using PUMS data ([#473](https://github.com/NREL/OpenStudio-BuildStock/pull/473))
 - Restructure HVAC housing characteristics to 1) simplify the structure, 2) allow for integrating more local data sources, 3) update reference years for HVAC and refrigerator ages and efficiencies from 2009 to 2018, 4) add assumption comments to all HVAC-related housing characteristics, 5) improve Room AC efficiency distributions using ENERGY STAR saturation data, and 6) fix some incorrect assignment of Option=None heating systems ([#478](https://github.com/NREL/OpenStudio-BuildStock/pull/478))
 - Increase roofing material options; update roofing material tsv files to include these new options ([#485](https://github.com/NREL/OpenStudio-BuildStock/pull/485))
+- Update foundation type from the [Building Foundation Design Handbook](https://www.osti.gov/biblio/6980439-building-foundation-design-handbook) published in 1988 to RECS 2009 ([#492](https://github.com/NREL/OpenStudio-BuildStock/pull/492))
 
 Fixes
 - Based on RECS 2015, separate the plug load equations for single-family detached, single-family attached, and multifamily buildings ([#471](https://github.com/NREL/OpenStudio-BuildStock/pull/471))
