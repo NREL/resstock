@@ -5,16 +5,17 @@ Features
 - Major change to most occupant-related schedules. Occupant activities are now generated on-the-fly and saved to .csv files used by Schedule:File objects. Schedules are generated using time-inhomogenous Markov chains derived from American Time Use Survey data, supplemented with sampling duration and power level from NEEA RBSA data, as well as DHW draw duration and flow rate data from Aquacraft/AWWA data. ([#348](https://github.com/NREL/OpenStudio-BuildStock/pull/348))
 - Update the dependencies for heating and cooling setpoint tsvs (Setpoint, Has Offset, Offset Magnitude, and Offset Period) to IECC climate zone ([#468](https://github.com/NREL/OpenStudio-BuildStock/pull/468))
 - Allow heating fuel to be defined by Public Use Microdata Area (PUMA) rather than State ([#474](https://github.com/NREL/OpenStudio-BuildStock/pull/474))
-- Distinguish between vacant and occupied dwelling units using PUMS data ([#473](https://github.com/NREL/OpenStudio-BuildStock/pull/473)).
+- Distinguish between vacant and occupied dwelling units using PUMS data ([#473](https://github.com/NREL/OpenStudio-BuildStock/pull/473))
 - Restructure HVAC housing characteristics to 1) simplify the structure, 2) allow for integrating more local data sources, 3) update reference years for HVAC and refrigerator ages and efficiencies from 2009 to 2018, 4) add assumption comments to all HVAC-related housing characteristics, 5) improve Room AC efficiency distributions using ENERGY STAR saturation data, and 6) fix some incorrect assignment of Option=None heating systems ([#478](https://github.com/NREL/OpenStudio-BuildStock/pull/478))
 - Increase roofing material options; update roofing material tsv files to include these new options ([#485](https://github.com/NREL/OpenStudio-BuildStock/pull/485))
 
 Fixes
-- Based on RECS 2015, separate the plug load equations for single-family detached, single-family attached, and multifamily buildings ([#471](https://github.com/NREL/OpenStudio-BuildStock/pull/471)).
-- Fix for pseudo-random number generator that was generating non-deterministic occupancy schedules ([#477](https://github.com/NREL/OpenStudio-BuildStock/pull/477)).
-- Iterate all spaces in a thermal zone when checking for zone type; fixes missing infiltration for protruding garages in 1-story homes ([#480](https://github.com/NREL/OpenStudio-BuildStock/pull/480)).
-- Update spatial distribution of units based on total dwelling unit counts rather than occupied unit counts ([#486](https://github.com/NREL/OpenStudio-BuildStock/pull/486)).
-- Exclude existing shared walls when calculated the partition wall area of MF and SFA buildings ([#496](https://github.com/NREL/OpenStudio-BuildStock/pull/496))
+- Based on RECS 2015, separate the plug load equations for single-family detached, single-family attached, and multifamily buildings ([#471](https://github.com/NREL/OpenStudio-BuildStock/pull/471))
+- Fix for pseudo-random number generator that was generating non-deterministic occupancy schedules ([#477](https://github.com/NREL/OpenStudio-BuildStock/pull/477))
+- Iterate all spaces in a thermal zone when checking for zone type; fixes missing infiltration for protruding garages in 1-story homes ([#480](https://github.com/NREL/OpenStudio-BuildStock/pull/480))
+- Update spatial distribution of units based on total dwelling unit counts rather than occupied unit counts ([#486](https://github.com/NREL/OpenStudio-BuildStock/pull/486))
+- Exclude existing shared walls when calculating the partition wall area of MF and SFA buildings ([#496](https://github.com/NREL/OpenStudio-BuildStock/pull/496))
+- For the purpose of calculating cooling and dehumidification loads for HVAC sizing, use simple internal gains equation from ANSI/RESNET/ICC 301 (consistent with HPXML workflow); this fixes a bug introduced in [#348](https://github.com/NREL/OpenStudio-BuildStock/pull/348) that caused cooling capacities to be ~3x larger than they should be ([#501](https://github.com/NREL/OpenStudio-BuildStock/pull/501))
 
 ## ResStock v2.3.0
 ###### June 24, 2020 - [Diff](https://github.com/NREL/OpenStudio-BuildStock/compare/v2.2.4...v2.3.0)
