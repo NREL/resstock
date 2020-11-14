@@ -22,112 +22,13 @@ upgrades:
 #note: no reference scenarios. Everything happens today.  
 ##up12 - package 2 - DR (wh, thermostat, appliance)
   - upgrade_name: package 2 DR only
-    options: 
-      - option: Appliance DR Apply|TRUE
+    options:       
+      - option: Appliance DR Apply - Sens Analysis|All Cities
       
-      - option: Appliance DR Apply|All Cities
-      
-      
-      #Water heater DR
-      - option: Water Heater DR|WHDR Tank Tampa
-        apply_logic:
-          - City|Tampa
-          - Water Heater Type|Tank
-          - Water Heater Fuel Type|Electric
-      - option: Water Heater DR|WHDR Tank Tucson
-        apply_logic:
-          - City|Tucson
-          - Water Heater Type|Tank
-          - Water Heater Fuel Type|Electric
-      - option: Water Heater DR|WHDR Tank Atlanta_1
-        apply_logic:
-          - City|Atlanta_1
-          - Water Heater Type|Tank
-          - Water Heater Fuel Type|Electric
-      - option: Water Heater DR|WHDR Tank Atlanta_2
-        apply_logic:
-          - City|Atlanta_2
-          - Water Heater Type|Tank
-          - Water Heater Fuel Type|Electric
-      - option: Water Heater DR|WHDR Tank Midland
-        apply_logic:
-          - City|Midland
-          - Water Heater Type|Tank
-          - Water Heater Fuel Type|Electric
-      - option: Water Heater DR|WHDR Tank San Diego
-        apply_logic:
-          - City|San Diego
-          - Water Heater Type|Tank
-          - Water Heater Fuel Type|Electric
-      - option: Water Heater DR|WHDR Tank New York_1
-        apply_logic:
-          - City|New York_1
-          - Water Heater Type|Tank
-          - Water Heater Fuel Type|Electric
-      - option: Water Heater DR|WHDR Tank New York_2
-        apply_logic:
-          - City|New York_2
-          - Water Heater Type|Tank
-          - Water Heater Fuel Type|Electric
-      - option: Water Heater DR|WHDR Tank Albuquerque
-        apply_logic:
-          - City|Albuquerque
-          - Water Heater Type|Tank
-          - Water Heater Fuel Type|Electric
-      - option: Water Heater DR|WHDR Tank Seattle
-        apply_logic:
-          - City|Seattle
-          - Water Heater Type|Tank
-          - Water Heater Fuel Type|Electric     
-      - option: Water Heater DR|WHDR Tank Denver
-        apply_logic:
-          - City|Denver
-          - Water Heater Type|Tank
-          - Water Heater Fuel Type|Electric
-      - option: Water Heater DR|WHDR Tank Port Angeles
-        apply_logic:
-          - City|Port Angeles
-          - Water Heater Type|Tank
-          - Water Heater Fuel Type|Electric
-      - option: Water Heater DR|WHDR Tank Buffalo_1
-        apply_logic:
-          - City|Buffalo_1
-          - Water Heater Type|Tank
-          - Water Heater Fuel Type|Electric
-      - option: Water Heater DR|WHDR Tank Buffalo_2
-        apply_logic:
-          - City|Buffalo_2
-          - Water Heater Type|Tank
-          - Water Heater Fuel Type|Electric
-      - option: Water Heater DR|WHDR Tank Rochester_1
-        apply_logic:
-          - City|Rochester_1
-          - Water Heater Type|Tank
-          - Water Heater Fuel Type|Electric
-      - option: Water Heater DR|WHDR Tank Rochester_2
-        apply_logic:
-          - City|Rochester_2
-          - Water Heater Type|Tank
-          - Water Heater Fuel Type|Electric
-      - option: Water Heater DR|WHDR Tank Great Falls
-        apply_logic:
-          - City|Great Falls
-          - Water Heater Type|Tank
-          - Water Heater Fuel Type|Electric
-      - option: Water Heater DR|WHDR Tank International Falls
-        apply_logic:
-          - City|International Falls
-          - Water Heater Type|Tank
-          - Water Heater Fuel Type|Electric
-          
-      - option: Water Heater DR|All Cities
+      #Water heater DR   
+      - option: WH DR - Sens Analysis|All Cities
         apply_logic:
           - not: City|Tucson
-          - Water Heater Type|Tank
-          - Water Heater Fuel Type|Electric
-      - option: Water Heater DR|Tucson
-        apply_logic:
-          - City|Tucson
           - Water Heater Type|Tank
           - Water Heater Fuel Type|Electric
           
@@ -146,11 +47,6 @@ upgrades:
           - not: Heating Setpoint|80F 
             
       - option: ThermoDR - Sens Analysis|All Cities
-        apply_logic: 
-          - not: City|Tucson
-
-      - option: ThermoDR - Sens Analysis|Tucson
-        apply_logic: City|Tucson
         
 timeseries_csv_export:
   reporting_frequency: Hourly
