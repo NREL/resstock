@@ -1,0 +1,178 @@
+stock_type: residential
+buildstock_directory: ./  # Relative to this file or absolute
+project_directory: project_singlefamilydetached
+# output_directory: /projects/enduse/geb-potential/Run_2/GEB_full_run_nosims_all
+output_directory: /projects/enduse/geb-potential/sensitivity_analysis/test_run_1.8k
+# output_directory: ./local_sampling/GEB_combined_test_sample
+weather_files_path: /shared-projects/buildstock/weather/project_resstock_national_weather.zip
+# weather_files_path: ./resources/measures/HPXMLtoOpenStudio/weather/project_resstock_national.zip
+
+baseline:
+  n_datapoints: 1800 #180000 #10,000 per city
+  n_buildings_represented: 81221016 
+residential_simulation_controls:
+  timesteps_per_hr: 6
+  begin_month: 1
+  begin_day_of_month: 1
+  end_month: 12
+  end_day_of_month: 31
+  calendar_year: 2006 #2006 starts on Sunday, 2007 starts on Monday
+
+upgrades:
+#note: no reference scenarios. Everything happens today.  
+##up12 - package 2 - DR (wh, thermostat, appliance)
+  - upgrade_name: package 2 DR only
+    options: 
+      - option: Appliance DR Apply|TRUE
+      
+      - option: Appliance DR Apply|All Cities
+      
+      
+      #Water heater DR
+      - option: Water Heater DR|WHDR Tank Tampa
+        apply_logic:
+          - City|Tampa
+          - Water Heater Type|Tank
+          - Water Heater Fuel Type|Electric
+      - option: Water Heater DR|WHDR Tank Tucson
+        apply_logic:
+          - City|Tucson
+          - Water Heater Type|Tank
+          - Water Heater Fuel Type|Electric
+      - option: Water Heater DR|WHDR Tank Atlanta_1
+        apply_logic:
+          - City|Atlanta_1
+          - Water Heater Type|Tank
+          - Water Heater Fuel Type|Electric
+      - option: Water Heater DR|WHDR Tank Atlanta_2
+        apply_logic:
+          - City|Atlanta_2
+          - Water Heater Type|Tank
+          - Water Heater Fuel Type|Electric
+      - option: Water Heater DR|WHDR Tank Midland
+        apply_logic:
+          - City|Midland
+          - Water Heater Type|Tank
+          - Water Heater Fuel Type|Electric
+      - option: Water Heater DR|WHDR Tank San Diego
+        apply_logic:
+          - City|San Diego
+          - Water Heater Type|Tank
+          - Water Heater Fuel Type|Electric
+      - option: Water Heater DR|WHDR Tank New York_1
+        apply_logic:
+          - City|New York_1
+          - Water Heater Type|Tank
+          - Water Heater Fuel Type|Electric
+      - option: Water Heater DR|WHDR Tank New York_2
+        apply_logic:
+          - City|New York_2
+          - Water Heater Type|Tank
+          - Water Heater Fuel Type|Electric
+      - option: Water Heater DR|WHDR Tank Albuquerque
+        apply_logic:
+          - City|Albuquerque
+          - Water Heater Type|Tank
+          - Water Heater Fuel Type|Electric
+      - option: Water Heater DR|WHDR Tank Seattle
+        apply_logic:
+          - City|Seattle
+          - Water Heater Type|Tank
+          - Water Heater Fuel Type|Electric     
+      - option: Water Heater DR|WHDR Tank Denver
+        apply_logic:
+          - City|Denver
+          - Water Heater Type|Tank
+          - Water Heater Fuel Type|Electric
+      - option: Water Heater DR|WHDR Tank Port Angeles
+        apply_logic:
+          - City|Port Angeles
+          - Water Heater Type|Tank
+          - Water Heater Fuel Type|Electric
+      - option: Water Heater DR|WHDR Tank Buffalo_1
+        apply_logic:
+          - City|Buffalo_1
+          - Water Heater Type|Tank
+          - Water Heater Fuel Type|Electric
+      - option: Water Heater DR|WHDR Tank Buffalo_2
+        apply_logic:
+          - City|Buffalo_2
+          - Water Heater Type|Tank
+          - Water Heater Fuel Type|Electric
+      - option: Water Heater DR|WHDR Tank Rochester_1
+        apply_logic:
+          - City|Rochester_1
+          - Water Heater Type|Tank
+          - Water Heater Fuel Type|Electric
+      - option: Water Heater DR|WHDR Tank Rochester_2
+        apply_logic:
+          - City|Rochester_2
+          - Water Heater Type|Tank
+          - Water Heater Fuel Type|Electric
+      - option: Water Heater DR|WHDR Tank Great Falls
+        apply_logic:
+          - City|Great Falls
+          - Water Heater Type|Tank
+          - Water Heater Fuel Type|Electric
+      - option: Water Heater DR|WHDR Tank International Falls
+        apply_logic:
+          - City|International Falls
+          - Water Heater Type|Tank
+          - Water Heater Fuel Type|Electric
+          
+      - option: Water Heater DR|All Cities
+        apply_logic:
+          - not: City|Tucson
+          - Water Heater Type|Tank
+          - Water Heater Fuel Type|Electric
+      - option: Water Heater DR|Tucson
+        apply_logic:
+          - City|Tucson
+          - Water Heater Type|Tank
+          - Water Heater Fuel Type|Electric
+          
+    #Thermostat DR (-3..+3)
+      - option: Cooling Setpoint Apply Offset|TRUE
+        apply_logic:
+          - not: Cooling Setpoint|60F
+          - not: Cooling Setpoint|62F
+          - not: Cooling Setpoint|78F
+          - not: Cooling Setpoint|80F      
+      - option: Heating Setpoint Apply Offset|TRUE
+        apply_logic:
+          - not: Heating Setpoint|60F
+          - not: Heating Setpoint|62F
+          - not: Heating Setpoint|78F
+          - not: Heating Setpoint|80F 
+            
+      - option: ThermoDR - Sens Analysis|All Cities
+        apply_logic: 
+          - not: City|Tucson
+
+      - option: ThermoDR - Sens Analysis|Tucson
+        apply_logic: City|Tucson
+        
+timeseries_csv_export:
+  reporting_frequency: Hourly
+  include_enduse_subcategories: true
+  
+eagle:
+  account: windowsaving
+  n_jobs: 600 #1000
+  minutes_per_sim: 5 #5
+  sampling:
+    time: 30
+  postprocessing:
+    time: 1000
+    n_workers: 6
+  
+postprocessing:
+  aws:
+    region_name: 'us-west-2'
+    s3:
+      bucket: resbldg-datasets
+      prefix: resstock-athena/geb-potential-upgrades
+    athena:
+      glue_service_role: service-role/AWSGlueServiceRole-default
+      database_name: geb_potential
+      max_crawling_time: 3000 #seconds to wait for the crawler to complete before aborting it
