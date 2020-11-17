@@ -15,28 +15,11 @@ class AddIntervalScheduleFromFileLDRD < OpenStudio::Ruleset::ModelUserScript
   def arguments(model)
     args = OpenStudio::Measure::OSArgumentVector.new
 
-    # make an argument for file path
-    time_interval = OpenStudio::Ruleset::OSArgument.makeStringArgument('time_interval', true)
-    time_interval.setDisplayName('Enter number of minutes per interval):')
-    time_interval.setDescription("Example: '10'")
-    args << time_interval
-
-    file_path_weekday = OpenStudio::Ruleset::OSArgument.makeStringArgument('file_path_weekday', true)
-    file_path_weekday.setDisplayName('Enter the path to the file that contains weekday occupancy probability distribution - 3 or more person residence:')
-    file_path_weekday.setDescription("Example: 'C:\\Projects\\values.csv'")
-    args << file_path_weekday
-
-    # make an argument for file path
-    file_path_weekend = OpenStudio::Ruleset::OSArgument.makeStringArgument('file_path_weekend', true)
-    file_path_weekend.setDisplayName('Enter the path to the file that contains weekend occupancy probability distribution - 1 person residence')
-    file_path_weekend.setDescription("Example: 'C:\\Projects\\values.csv'")
-    args << file_path_weekend
-
-    # make an argument for file path
-    file_path_pre_schedule = OpenStudio::Ruleset::OSArgument.makeStringArgument('file_path_pre_schedule', true)
-    file_path_pre_schedule.setDisplayName('Enter the path to the file that contains weekend occupancy probability distribution - 1 person residence')
-    file_path_pre_schedule.setDescription("Example: 'C:\\Projects\\values.csv'")
-    args << file_path_pre_schedule
+    # make an argument for cluster folder name
+    cluster = OpenStudio::Ruleset::OSArgument.makeStringArgument('cluster', true)
+    cluster.setDisplayName('Enter the name of the cluster')
+    cluster.setDescription("Example: 1")
+    args << cluster
 
     return args
   end
@@ -50,24 +33,42 @@ class AddIntervalScheduleFromFileLDRD < OpenStudio::Ruleset::ModelUserScript
       return false
     end
 
-    time_interval = runner.getStringArgumentValue('time_interval', user_arguments)
-    file_path_weekday = runner.getStringArgumentValue('file_path_weekday', user_arguments)
-    file_path_weekend = runner.getStringArgumentValue('file_path_weekend', user_arguments)
-    file_path_pre_schedule = runner.getStringArgumentValue('file_path_pre_schedule', user_arguments)
+    # load cluster folder
+    measure_dir = File.dirname(__FILE__)
+    puts "measure_dir == #{measure_dir}"
+    cluster = runner.getStringArgumentValue('cluster', user_arguments)
+    cluster_dir = File.join(measure_dir, 'clusters/' + cluster + '/')
 
 
+    # get files 
+    file_path_weekday = File.join(cluster_dir, 'weekday.csv')
+    puts "file_path_weekday = #{file_path_weekday}"
+    file_path_weekend = File.join(cluster_dir, 'weekday.csv')
+    puts "file_path_weekend = #{file_path_weekend}"
+    file_path_pre_schedule = File.expand_path(File.join(measure_dir, '../../../workflows/generated_files/schedules.csv'))
+    puts "file_path_pre_schedule = #{file_path_pre_schedule}"
 
+    puts " file_path_pre_schedule directory === #{File.dirname(file_path_pre_schedule)}"
 
+    # load CSVs
     profiles_weekend = CSV.read(file_path_weekend,converters: [CSV::Converters[:float]], headers: true)
     profiles_weekday= CSV.read(file_path_weekday,converters: [CSV::Converters[:float]], headers: true)
     pre_schedules = CSV.read(file_path_pre_schedule,converters: [CSV::Converters[:float]], :headers=>true)
 
+
+    # get time interval from model
+    timesteps_per_hour = model.getTimestep.numberOfTimestepsPerHour
+    time_interval = (60 / timesteps_per_hour).to_s
+    puts "time_interval ====  #{time_interval.class}"
+    puts "time_interval ====  #{time_interval}"
+
+    
     # random occupancy generator with weight
     def random_weighted(weighted)
-      puts weighted
+      #puts weighted
       max = sum_of_weights(weighted)
       #target = rand(1..max)
-      target = rand(0..1)
+      target = rand()
       weighted.each do |item, weight|
         return item if target <= weight
         target -= weight
@@ -116,10 +117,15 @@ class AddIntervalScheduleFromFileLDRD < OpenStudio::Ruleset::ModelUserScript
         day_type = "weekday"
         profile = profile_weekday
       end
-      puts profile
+      #puts profile
       profile.each do |p|
         timesteps.to_i.times do |t|
-          occ_yearly << random_weighted(occ: p, unocc: 1 -p)
+
+          occ_value = random_weighted(occ: p, unocc: 1 -p)
+          puts "AT timestep #{t} and probability #{p} ..... occupancy ==== #{occ_value}"
+
+          occ_yearly << occ_value
+
         end
       end
 
@@ -127,15 +133,15 @@ class AddIntervalScheduleFromFileLDRD < OpenStudio::Ruleset::ModelUserScript
 
     importedPlug = pre_schedules['plug_loads']
     importedlight = pre_schedules['lighting_interior']
-    CSV.open("C:/Users/relkont/Desktop/OpenStudio-BuildStock/workflows/generated_files/new_schedules.csv", "w") do |csv|
+    CSV.open(File.dirname(file_path_pre_schedule) + "/new_schedules.csv", "w") do |csv|
       csv << ['OccSch','lightSch','equipSch','thermostat_clg','thermostat_htg']
       ct = 0
       occ_yearly.each do |p|
-        puts p.class
+        #puts p.class
         if p.to_s.include? "unocc"
-          csv <<  [0,0,0,80,68]
+          csv <<  [0,0,0,27,18]
         else
-          csv <<  [1,importedlight[ct],importedPlug[ct],74,70]
+          csv <<  [1,importedlight[ct],importedPlug[ct],23,21]
         end
         ct +=1
       end
@@ -150,7 +156,7 @@ class AddIntervalScheduleFromFileLDRD < OpenStudio::Ruleset::ModelUserScript
     else
       selected_zones << selected_zone
     end
-    file_name = File.realpath('C:/Users/relkont/Desktop/OpenStudio-BuildStock/workflows/generated_files/new_schedules.csv')
+    file_name = File.realpath(File.dirname(file_path_pre_schedule) + '/new_schedules.csv')
     external_file = OpenStudio::Model::ExternalFile::getExternalFile(model, file_name)
     external_file = external_file.get
 
