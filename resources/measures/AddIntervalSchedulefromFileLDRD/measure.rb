@@ -54,7 +54,7 @@ class AddIntervalScheduleFromFileLDRD < OpenStudio::Ruleset::ModelUserScript
     # load CSVs
     profiles_weekend = CSV.read(file_path_weekend,converters: [CSV::Converters[:float]], headers: true)
     profiles_weekday= CSV.read(file_path_weekday,converters: [CSV::Converters[:float]], headers: true)
-    pre_schedules = CSV.read(file_path_pre_schedule + "schedules.csv",converters: [CSV::Converters[:float]], :headers=>true)
+    pre_schedules = CSV.read(file_path_pre_schedule + "/schedules.csv",converters: [CSV::Converters[:float]], :headers=>true)
 
 
     # get time interval from model
@@ -134,7 +134,7 @@ class AddIntervalScheduleFromFileLDRD < OpenStudio::Ruleset::ModelUserScript
 
     importedPlug = pre_schedules['plug_loads']
     importedlight = pre_schedules['lighting_interior']
-    CSV.open(File.dirname(file_path_pre_schedule) + "new_schedules.csv", "w") do |csv|
+    CSV.open(File.dirname(file_path_pre_schedule) + "/new_schedules.csv", "w") do |csv|
       csv << ['OccSch','lightSch','equipSch','thermostat_clg','thermostat_htg']
       ct = 0
       occ_yearly.each do |p|
