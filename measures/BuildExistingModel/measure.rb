@@ -121,9 +121,6 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     simulation_control_run_period_end_day_of_month = runner.getOptionalIntegerArgumentValue('simulation_control_run_period_end_day_of_month', user_arguments)
     simulation_control_run_period_calendar_year = runner.getOptionalIntegerArgumentValue('simulation_control_run_period_calendar_year', user_arguments)
 
-    # Save the building id
-    model.getBuilding.additionalProperties.setFeature('Building ID', building_unit_id)
-
     # Get file/dir paths
     resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), '../../lib/resources')) # Should have been uploaded per 'Additional Analysis Files' in PAT
     characteristics_dir = File.absolute_path(File.join(File.dirname(__FILE__), '../../lib/housing_characteristics')) # Should have been uploaded per 'Additional Analysis Files' in PAT
@@ -225,6 +222,9 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     measures['BuildResidentialHPXML'][0]['simulation_control_run_period_end_month'] = simulation_control_run_period_end_month.get if simulation_control_run_period_end_month.is_initialized
     measures['BuildResidentialHPXML'][0]['simulation_control_run_period_end_day_of_month'] = simulation_control_run_period_end_day_of_month.get if simulation_control_run_period_end_day_of_month.is_initialized
     measures['BuildResidentialHPXML'][0]['simulation_control_run_period_calendar_year'] = simulation_control_run_period_calendar_year.get if simulation_control_run_period_calendar_year.is_initialized
+
+    # Get the schedules random seed
+    measures['BuildResidentialHPXML'][0]['schedules_random_seed'] = building_unit_id
 
     if not apply_measures(measures_dir, measures, runner, model, workflow_json, 'measures.osw', true)
       return false
