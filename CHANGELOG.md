@@ -9,6 +9,9 @@ Features
 - Restructure HVAC housing characteristics to 1) simplify the structure, 2) allow for integrating more local data sources, 3) update reference years for HVAC and refrigerator ages and efficiencies from 2009 to 2018, 4) add assumption comments to all HVAC-related housing characteristics, 5) improve Room AC efficiency distributions using ENERGY STAR saturation data, and 6) fix some incorrect assignment of Option=None heating systems ([#478](https://github.com/NREL/OpenStudio-BuildStock/pull/478))
 - Increase roofing material options; update roofing material tsv files to include these new options ([#485](https://github.com/NREL/OpenStudio-BuildStock/pull/485))
 - Update foundation type from the [Building Foundation Design Handbook](https://www.osti.gov/biblio/6980439-building-foundation-design-handbook) published in 1988 to RECS 2009 ([#492](https://github.com/NREL/OpenStudio-BuildStock/pull/492))
+- Synchronize weather between ResStock and ComStock which increases the number of weather stations from 215 to 941 ([#507](https://github.com/NREL/OpenStudio-BuildStock/pull/507))
+- Update Occupants per unit from RECS 2015 to PUMS 5-yr 2017 ([#509](https://github.com/NREL/OpenStudio-BuildStock/pull/509]))
+- Separate electric supplemental heating from total electric heating in output reporting ([#512](https://github.com/NREL/OpenStudio-BuildStock/pull/512))
 
 Fixes
 - Based on RECS 2015, separate the plug load equations for single-family detached, single-family attached, and multifamily buildings ([#471](https://github.com/NREL/OpenStudio-BuildStock/pull/471))
