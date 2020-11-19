@@ -689,8 +689,22 @@ Air Distribution
 - Optional return ducts (``Ducts[DuctType='return']``)
 
 For each duct, ``DuctInsulationRValue`` must be provided.
-``DuctLocation`` and ``DuctSurfaceArea`` can be optionally provided.
-The provided ``DuctLocation`` can be one of the following:
+``DuctSurfaceArea`` and ``DuctLocation`` must both be provided or both not be provided.
+
+If ``DuctSurfaceArea`` is not provided, duct areas will be calculated based on ANSI/ASHRAE Standard 152-2004:
+
+======================  ====================================================================
+Duct Type               Default Value
+======================  ====================================================================
+Primary supply ducts    :math:`0.27 \cdot F_{out} \cdot CFA_{ServedByAirDistribution}`
+Secondary supply ducts  :math:`0.27 \cdot (1 - F_{out}) \cdot CFA_{ServedByAirDistribution}`
+Primary return ducts    :math:`b_r \cdot F_{out} \cdot CFA_{ServedByAirDistribution}`
+Secondary return ducts  :math:`b_r \cdot (1 - F_{out}) \cdot CFA_{ServedByAirDistribution}`
+======================  ====================================================================
+
+where F\ :sub:`out` is 1.0 when ``NumberofConditionedFloorsAboveGrade`` <= 1 and 0.75 when ``NumberofConditionedFloorsAboveGrade`` > 1, and b\ :sub:`r` is 0.05 * ``NumberofReturnRegisters`` with a maximum value of 0.25.
+
+If ``DuctLocation`` is provided, it can be one of the following:
 
 ==============================  ================================================  =========================================================  =========================  ================
 Location                        Description                                       Temperature                                                Building Type              Default Priority
@@ -713,21 +727,8 @@ other multifamily buffer space  E.g., enclosed unconditioned stairwell          
 other non-freezing space        E.g., shared parking garage ceiling               Floats with outside; minimum of 40F                        Attached/Multifamily only
 ==============================  ================================================  =========================================================  =========================  ================
 
-If ``DuctLocation`` is not provided, the primary duct location will be chosen based on the presence of spaces and the "Default Priority" indicated above.
-For a 2+ story home, secondary ducts will also be located in the living space.
-
-If ``DuctSurfaceArea`` is not provided, the total duct area will be calculated based on ANSI/ASHRAE Standard 152-2004:
-
-========================================  ====================================================================
-Element Name                              Default Value
-========================================  ====================================================================
-DuctSurfaceArea (primary supply ducts)    :math:`0.27 \cdot F_{out} \cdot CFA_{ServedByAirDistribution}`
-DuctSurfaceArea (secondary supply ducts)  :math:`0.27 \cdot (1 - F_{out}) \cdot CFA_{ServedByAirDistribution}`
-DuctSurfaceArea (primary return ducts)    :math:`b_r \cdot F_{out} \cdot CFA_{ServedByAirDistribution}`
-DuctSurfaceArea (secondary return ducts)  :math:`b_r \cdot (1 - F_{out}) \cdot CFA_{ServedByAirDistribution}`
-========================================  ====================================================================
-
-where F\ :sub:`out` is 1.0 for 1-story homes and 0.75 for 2+ story homes and b\ :sub:`r` is 0.05 * ``NumberofReturnRegisters`` with a maximum value of 0.25.
+If ``DuctLocation`` is not provided, the location for primary ducts will be chosen based on the presence of spaces and the "Default Priority" indicated above.
+Any secondary ducts (when ``NumberofConditionedFloorsAboveGrade`` > 1) will always be located in the living space.
 
 Hydronic Distribution
 ~~~~~~~~~~~~~~~~~~~~~

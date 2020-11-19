@@ -243,7 +243,7 @@ Depending on the outputs requested, CSV files may include:
    Fuel Consumptions                   Energy use for each fuel type (in kBtu for fossil fuels and kWh for electricity).
    End Use Consumptions                Energy use for each end use type (in kBtu for fossil fuels and kWh for electricity).
    Hot Water Uses                      Water use for each end use type (in gallons).
-   Total Loads                         Heating and cooling loads (in kBtu) for the building.
+   Total Loads                         Heating, cooling, and hot water loads (in kBtu) for the building.
    Component Loads                     Heating and cooling loads (in kBtu) disaggregated by component (e.g., Walls, Windows, Infiltration, Ducts, etc.).
    Zone Temperatures                   Average temperatures (in deg-F) for each space modeled (e.g., living space, attic, garage, basement, crawlspace, etc.).
    Airflows                            Airflow rates (in cfm) for infiltration, mechanical ventilation (including clothes dryer exhaust), natural ventilation, whole house fans.

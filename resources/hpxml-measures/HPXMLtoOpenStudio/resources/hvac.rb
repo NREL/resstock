@@ -3993,7 +3993,7 @@ class HVAC
 
   def self.get_default_duct_surface_area(duct_type, ncfl_ag, cfa_served, n_returns)
     # Fraction of primary ducts (ducts outside conditioned space)
-    f_out = (ncfl_ag == 1) ? 1.0 : 0.75
+    f_out = (ncfl_ag <= 1) ? 1.0 : 0.75
 
     if duct_type == HPXML::DuctTypeSupply
       primary_duct_area = 0.27 * cfa_served * f_out

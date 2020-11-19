@@ -231,6 +231,7 @@ def create_osws
     'extra-mechvent-shared.osw' => 'base-single-family-attached.osw',
     'extra-mechvent-shared-preconditioning.osw' => 'extra-mechvent-shared.osw',
     'extra-vacancy-6-months.osw' => 'base-schedules-stochastic.osw',
+    'extra-schedules-random-seed.osw' => 'base-schedules-stochastic.osw',
 
     'invalid_files/non-electric-heat-pump-water-heater.osw' => 'base.osw',
     'invalid_files/heating-system-and-heat-pump.osw' => 'base.osw',
@@ -1775,6 +1776,8 @@ def get_values(osw_file, step)
     step.setArgument('schedules_vacancy_begin_day_of_month', 1)
     step.setArgument('schedules_vacancy_end_month', 6)
     step.setArgument('schedules_vacancy_end_day_of_month', 30)
+  elsif ['extra-schedules-random-seed.osw'].include? osw_file
+    step.setArgument('schedules_random_seed', 123)
   end
 
   # Warnings/Errors

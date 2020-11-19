@@ -1434,6 +1434,7 @@ class HPXML < Object
 
     def net_area
       return if nil?
+      return if @area.nil?
 
       val = @area
       skylights.each do |skylight|
@@ -1661,6 +1662,7 @@ class HPXML < Object
 
     def net_area
       return if nil?
+      return if @area.nil?
 
       val = @area
       (windows + doors).each do |subsurface|
@@ -1798,6 +1800,7 @@ class HPXML < Object
 
     def net_area
       return if nil?
+      return if @area.nil?
 
       val = @area
       (@hpxml_object.windows + @hpxml_object.doors).each do |subsurface|
