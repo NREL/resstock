@@ -167,6 +167,12 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDescription("This numeric field should contain the ending day of the ending month (must be valid for month) for the vacancy period desired. Only applies if the schedules type is 'stochastic'.")
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument.makeIntegerArgument('schedules_random_seed', false)
+    arg.setDisplayName('Schedules: Random Seed')
+    arg.setUnits('#')
+    arg.setDescription("This numeric field is the seed for the random number generator. Only applies if the schedules type is 'stochastic'.")
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('weather_station_epw_filepath', true)
     arg.setDisplayName('EnergyPlus Weather (EPW) Filepath')
     arg.setDescription('Path of the EPW file.')
@@ -3041,6 +3047,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
              schedules_vacancy_begin_day_of_month: runner.getOptionalIntegerArgumentValue('schedules_vacancy_begin_day_of_month', user_arguments),
              schedules_vacancy_end_month: runner.getOptionalIntegerArgumentValue('schedules_vacancy_end_month', user_arguments),
              schedules_vacancy_end_day_of_month: runner.getOptionalIntegerArgumentValue('schedules_vacancy_end_day_of_month', user_arguments),
+             schedules_random_seed: runner.getOptionalIntegerArgumentValue('schedules_random_seed', user_arguments),
              weather_station_epw_filepath: runner.getStringArgumentValue('weather_station_epw_filepath', user_arguments),
              site_type: runner.getOptionalStringArgumentValue('site_type', user_arguments),
              geometry_unit_type: runner.getStringArgumentValue('geometry_unit_type', user_arguments),
@@ -3655,6 +3662,8 @@ class HPXMLFile
       return true
     end
 
+    info_msgs = []
+
     # set the calendar year
     year_description = model.getYearDescription
     year_description.setCalendarYear(2007) # default to TMY
@@ -3664,6 +3673,7 @@ class HPXMLFile
     if epw_file.startDateActualYear.is_initialized # AMY
       year_description.setCalendarYear(epw_file.startDateActualYear.get)
     end
+    info_msgs << "CalendarYear=#{year_description.calendarYear}"
 
     # set the timestep
     timestep = model.getTimestep
@@ -3671,8 +3681,13 @@ class HPXMLFile
     if args[:simulation_control_timestep].is_initialized
       timestep.setNumberOfTimestepsPerHour(60 / args[:simulation_control_timestep].get)
     end
+    info_msgs << "NumberOfTimestepsPerHour=#{timestep.numberOfTimestepsPerHour}"
 
-    schedule_generator = ScheduleGenerator.new(runner: runner, model: model, epw_file: epw_file)
+    # get the seed
+    random_seed = args[:schedules_random_seed].get if args[:schedules_random_seed].is_initialized
+
+    # instantiate the generator
+    schedule_generator = ScheduleGenerator.new(runner: runner, model: model, epw_file: epw_file, random_seed: random_seed)
 
     # create the schedule
     if args[:geometry_num_occupants] == Constants.Auto
@@ -3688,6 +3703,8 @@ class HPXMLFile
     args[:schedules_path] = '../schedules.csv'
     success = schedule_generator.export(schedules_path: File.expand_path(args[:schedules_path]))
     return false if not success
+
+    runner.registerInfo("Created schedule with #{info_msgs.join(', ')}")
 
     return true
   end

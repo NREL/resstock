@@ -145,6 +145,7 @@ class Waterheater
 
     # Fan:OnOff
     fan = setup_hpwh_fan(hpwh, obj_name_hpwh, airflow_rate)
+    dhw_map[water_heating_system.id] << fan
 
     # Amb temp & RH sensors, temp sensor shared across programs
     amb_temp_sensor, amb_rh_sensors = get_loc_temp_rh_sensors(model, obj_name_hpwh, loc_schedule, loc_space, living_zone)
