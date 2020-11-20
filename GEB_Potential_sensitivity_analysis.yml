@@ -2,13 +2,14 @@ stock_type: residential
 buildstock_directory: ./  # Relative to this file or absolute
 project_directory: project_singlefamilydetached
 # output_directory: /projects/enduse/geb-potential/Run_2/GEB_full_run_nosims_all
-output_directory: /projects/enduse/geb-potential/sensitivity_analysis/test_run_1.8k
+# output_directory: /projects/enduse/geb-potential/sensitivity_analysis/test_run_1.8k
+output_directory: /projects/scout/geb-potential/sensitivity_analysis/fixed_DR
 # output_directory: ./local_sampling/GEB_combined_test_sample
 weather_files_path: /shared-projects/buildstock/weather/project_resstock_national_weather.zip
 # weather_files_path: ./resources/measures/HPXMLtoOpenStudio/weather/project_resstock_national.zip
 
 baseline:
-  n_datapoints: 1800 #180000 #10,000 per city
+  n_datapoints: 180000 #10,000 per city
   n_buildings_represented: 81221016 
 residential_simulation_controls:
   timesteps_per_hr: 6
@@ -53,14 +54,14 @@ timeseries_csv_export:
   include_enduse_subcategories: true
   
 eagle:
-  account: windowsaving
-  n_jobs: 600 #1000
-  minutes_per_sim: 5 #5
+  account: scout
+  n_jobs: 300 #1000
+  minutes_per_sim: 4 #5
   sampling:
-    time: 30
+    time: 100
   postprocessing:
-    time: 1000
-    n_workers: 6
+    time: 120
+    n_workers: 2
   
 postprocessing:
   aws:
