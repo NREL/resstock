@@ -1,0 +1,1476 @@
+stock_type: residential
+buildstock_directory: ./  # Relative to this file or absolute
+project_directory: project_singlefamilydetached
+# output_directory: /projects/enduse/geb-potential/Run_2/GEB_full_run_nosims_all
+output_directory: /projects/scout/window_fix/test
+# output_directory: ./local_sampling/GEB_combined_test_sample
+weather_files_path: /shared-projects/buildstock/weather/project_resstock_national_weather.zip
+# weather_files_path: ./resources/measures/HPXMLtoOpenStudio/weather/project_resstock_national.zip
+
+baseline:
+  n_datapoints: 180000 #10,000 per city   
+  # buildstock_csv: './buildstock_error.csv' #~925k that didnt run initially
+  n_buildings_represented: 81221016 
+residential_simulation_controls:
+  timesteps_per_hr: 6
+  begin_month: 1
+  begin_day_of_month: 1
+  end_month: 12
+  end_day_of_month: 31
+  calendar_year: 2006 #2006 starts on Sunday, 2007 starts on Monday
+
+upgrades:
+#note: no reference scenarios. Everything happens today.  
+##up4 - package 1d - EE best envelope
+  - upgrade_name: Package 1d EE Best Envelope
+    options: 
+      ## Best walls
+      - option: Insulation Wall|Wood Stud, R-13, R-20 external XPS
+        apply_logic:
+          or:
+            - Insulation Wall|Wood Stud, Uninsulated
+            - Insulation Wall|Wood Stud, R-7
+            - Insulation Wall|Wood Stud, R-11
+            - Insulation Wall|Wood Stud, R-13
+      - option: Insulation Wall|Wood Stud, R-19, R-20 external XPS
+        apply_logic: Insulation Wall|Wood Stud, R-19
+      - option: Insulation Wall|CMU, 6-in Hollow, R-5.5, R-20 XPS
+        apply_logic: Insulation Wall|CMU, 6-in Hollow, Uninsulated
+      - option: Insulation Wall Upgrade|CMU, R-20 XPS Upgrade
+        apply_logic:
+          or:
+            - Insulation Wall|CMU, 6-in Hollow, R-7
+            - Insulation Wall|CMU, 6-in Hollow, R-11
+            - Insulation Wall|CMU, 6-in Hollow, R-15
+            - Insulation Wall|CMU, 6-in Hollow, R-19
+
+      #Best roofs
+      - option: Insulation Unfinished Attic|Ceiling R-49, Vented
+        apply_logic: 
+          or:
+            - Insulation Unfinished Attic|Uninsulated, Vented
+            - Insulation Unfinished Attic|Ceiling R-7, Vented
+            - Insulation Unfinished Attic|Ceiling R-13, Vented
+            - Insulation Unfinished Attic|Ceiling R-19, Vented
+            - Insulation Unfinished Attic|Ceiling R-30, Vented
+            - Insulation Unfinished Attic|Ceiling R-38, Vented
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      #Best air sealing
+      - option: Infiltration|1 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Mechanical Ventilation|Exhaust, 2010 ASHRAE 62.2
+        apply_logic: 
+            - Mechanical Ventilation|None
+        costs: 
+          - value: 360
+            multiplier: Fixed (1)
+        lifetime: 999
+      ## Best windows
+      - option: Windows|SCOUT 5.88 R, 0.49 SHGC
+        apply_logic:
+          or:
+            - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+            - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+            - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+      - option: Windows|SCOUT 5.88 R, 0.42 SHGC
+        apply_logic:
+          or:
+            - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+            - Location|WA_Quillayute.State.AP.727970 #AIA2
+            - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+            - Location|MN_Rochester.Intl.AP.726440 #AIA2
+      - option: Windows|SCOUT 5.88 R, 0.27 SHGC
+        apply_logic:
+          or:
+            - Location|NY_New.York-J.F.Kennedy.Intl.AP.744860 #AIA3
+            - Location|WA_Seattle-Tacoma.Intl.AP.727930 #AIA3
+      - option: Windows|SCOUT 5.88 R, 0.25 SHGC
+        apply_logic:
+          or:
+            - Location|CA_San.Diego-Lindbergh.Field.722900 #AIA4
+            - Location|AZ_Tucson.Intl.AP.722740 #AIA4
+            - Location|GA_Atlanta-Hartsfield-Jackson.Intl.AP.722190 #AIA5
+            - Location|TX_Midland.Intl.AP.722650 #AIA5
+            - Location|FL_Orlando.Intl.AP.722050 #AIA5
+      #Best foundation:
+      - option: Insulation Crawlspace|Ceiling R-30, Vented
+        apply_logic:
+        - or:
+            - Insulation Crawlspace|Uninsulated, Vented
+            - Insulation Crawlspace|Ceiling R-13, Vented
+            - Insulation Crawlspace|Ceiling R-19, Vented
+        - or:
+            - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+            - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+            - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+            - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+            - Location|WA_Quillayute.State.AP.727970 #AIA2
+            - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+            - Location|MN_Rochester.Intl.AP.726440 #AIA2
+      - option: Insulation Crawlspace|Wall R-13, Unvented
+        apply_logic:
+        - or:
+            - Insulation Crawlspace|Uninsulated, Unvented
+            - Insulation Crawlspace|Wall R-5, Unvented
+            - Insulation Crawlspace|Wall R-10, Unvented
+        - or:
+            - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+            - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+            - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+            - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+            - Location|WA_Quillayute.State.AP.727970 #AIA2
+            - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+            - Location|MN_Rochester.Intl.AP.726440 #AIA2      
+      - option: Insulation Unfinished Basement|Ceiling R-19
+        apply_logic:
+        - or:
+            - Insulation Unfinished Basement|Uninsulated
+            - Insulation Unfinished Basement|Ceiling R-13
+        - or:
+            - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+            - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+            - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+            - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+            - Location|WA_Quillayute.State.AP.727970 #AIA2
+            - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+            - Location|MN_Rochester.Intl.AP.726440 #AIA2        
+      - option: Insulation Finished Basement|Wall R-15
+        apply_logic:
+        - or:
+            - Insulation Finished Basement|Uninsulated
+            - Insulation Finished Basement|Wall R-5
+            - Insulation Finished Basement|Wall R-15
+        - or:
+            - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+            - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+            - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+            - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+            - Location|WA_Quillayute.State.AP.727970 #AIA2
+            - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+            - Location|MN_Rochester.Intl.AP.726440 #AIA2
+            
+##up6 - package 1f - Best CAC Homes, best CAC, smart thermostat and envelope (1st)
+  - upgrade_name: Package 1f EE CAC with smart thermostat and envelope
+    package_apply_logic:
+      - or:
+        - HVAC System Cooling|AC, SEER 8
+        - HVAC System Cooling|AC, SEER 10
+        - HVAC System Cooling|AC, SEER 13
+        - HVAC System Cooling|AC, SEER 14
+        - HVAC System Cooling|AC, SEER 15
+      - not:
+        - HVAC System Heating Electricity|Electric Furnace
+    options: 
+      ## Best CAC
+      - option: HVAC System Cooling|AC, SEER 18
+        costs:
+          - value: 3200
+            multiplier: Fixed (1)
+          - value: 42
+            multiplier: Size, Cooling System (kBtu/h)
+        lifetime: 16
+        
+      ## Best smart thermostat
+      - option: Cooling Setpoint Apply Offset|TRUE
+        apply_logic:
+          - Cooling Setpoint Has Offset|No
+      - option: Heating Setpoint Apply Offset|TRUE
+        apply_logic:
+          - Heating Setpoint Has Offset|No
+      # - option: Cooling Setpoint Apply Offset|FALSE
+      #   apply_logic:
+      #     - Cooling Setpoint Has Offset|Yes
+      # - option: Heating Setpoint Apply Offset|FALSE
+      #   apply_logic:
+      #     - Heating Setpoint Has Offset|Yes
+      
+      ## Night setback, cooling
+      - option: Setback|Night - Cooling #+4
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - not: Cooling Setpoint|80F
+          - not: Cooling Setpoint|78F     
+      ## Full setback, cooling
+      - option: Setback|Full - Cooling #+4 (daytime/unoccupied setback not considered)
+        apply_logic:
+          - Somebody at home in weekday|No
+          - not: Cooling Setpoint|80F
+          - not: Cooling Setpoint|78F
+      ## No setback, cooling
+      - option: Setback|None - Cooling #Overwrite default if tsp above threshold
+        apply_logic:
+          - or:
+            - Cooling Setpoint|80F
+            - Cooling Setpoint|78F       
+      ## Night setback, heating
+      - option: Setback|Night - Heating #-8
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - not: Heating Setpoint|60F
+          - not: Heating Setpoint|62F
+          - not: Heating Setpoint|65F
+          - not: Heating Setpoint|67F
+      ## Full setback, heating
+      - option: Setback|Full - Heating #-8
+        apply_logic:
+          - Somebody at home in weekday|No
+          - not: Heating Setpoint|60F
+          - not: Heating Setpoint|62F
+          - not: Heating Setpoint|65F
+          - not: Heating Setpoint|67F
+      ## No setback, heating
+      - option: Setback|None - Heating #Overwrite default if tsp below threshold
+        apply_logic:
+          - or:
+            - Heating Setpoint|60F
+            - Heating Setpoint|62F
+            - Heating Setpoint|65F
+            - Heating Setpoint|67F
+
+      ## Best walls
+      - option: Insulation Wall|Wood Stud, R-13, R-20 external XPS
+        apply_logic:
+          or:
+            - Insulation Wall|Wood Stud, Uninsulated
+            - Insulation Wall|Wood Stud, R-7
+            - Insulation Wall|Wood Stud, R-11
+            - Insulation Wall|Wood Stud, R-13
+      - option: Insulation Wall|Wood Stud, R-19, R-20 external XPS
+        apply_logic: Insulation Wall|Wood Stud, R-19
+      - option: Insulation Wall|CMU, 6-in Hollow, R-5.5, R-20 XPS
+        apply_logic: Insulation Wall|CMU, 6-in Hollow, Uninsulated
+      - option: Insulation Wall Upgrade|CMU, R-20 XPS Upgrade
+        apply_logic:
+          or:
+            - Insulation Wall|CMU, 6-in Hollow, R-7
+            - Insulation Wall|CMU, 6-in Hollow, R-11
+            - Insulation Wall|CMU, 6-in Hollow, R-15
+            - Insulation Wall|CMU, 6-in Hollow, R-19
+
+      ## Best roofs
+      - option: Insulation Unfinished Attic|Ceiling R-49, Vented
+        apply_logic: 
+          or:
+            - Insulation Unfinished Attic|Uninsulated, Vented
+            - Insulation Unfinished Attic|Ceiling R-7, Vented
+            - Insulation Unfinished Attic|Ceiling R-13, Vented
+            - Insulation Unfinished Attic|Ceiling R-19, Vented
+            - Insulation Unfinished Attic|Ceiling R-30, Vented
+            - Insulation Unfinished Attic|Ceiling R-38, Vented
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      ## Best air sealing
+      - option: Infiltration|1 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Mechanical Ventilation|Exhaust, 2010 ASHRAE 62.2
+        apply_logic: 
+            - Mechanical Ventilation|None
+        costs: 
+          - value: 360
+            multiplier: Fixed (1)
+        lifetime: 999
+      ## Best windows
+      - option: Windows|SCOUT 5.88 R, 0.49 SHGC
+        apply_logic:
+          or:
+            - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+            - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+            - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Windows|SCOUT 5.88 R, 0.42 SHGC
+        apply_logic:
+          or:
+            - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+            - Location|WA_Quillayute.State.AP.727970 #AIA2
+            - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+            - Location|MN_Rochester.Intl.AP.726440 #AIA2
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Windows|SCOUT 5.88 R, 0.27 SHGC
+        apply_logic:
+          or:
+            - Location|NY_New.York-J.F.Kennedy.Intl.AP.744860 #AIA3
+            - Location|WA_Seattle-Tacoma.Intl.AP.727930 #AIA3
+      - option: Windows|SCOUT 5.88 R, 0.25 SHGC
+        apply_logic:
+          or:
+            - Location|CA_San.Diego-Lindbergh.Field.722900 #AIA4
+            - Location|AZ_Tucson.Intl.AP.722740 #AIA4
+            - Location|GA_Atlanta-Hartsfield-Jackson.Intl.AP.722190 #AIA5
+            - Location|TX_Midland.Intl.AP.722650 #AIA5
+            - Location|FL_Orlando.Intl.AP.722050 #AIA5
+        
+      #Best foundation:
+      - option: Insulation Crawlspace|Ceiling R-30, Vented
+        apply_logic:
+        - or:
+            - Insulation Crawlspace|Uninsulated, Vented
+            - Insulation Crawlspace|Ceiling R-13, Vented
+            - Insulation Crawlspace|Ceiling R-19, Vented
+        - or:
+            - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+            - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+            - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+            - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+            - Location|WA_Quillayute.State.AP.727970 #AIA2
+            - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+            - Location|MN_Rochester.Intl.AP.726440 #AIA2
+      - option: Insulation Crawlspace|Wall R-13, Unvented
+        apply_logic:
+        - or:
+            - Insulation Crawlspace|Uninsulated, Unvented
+            - Insulation Crawlspace|Wall R-5, Unvented
+            - Insulation Crawlspace|Wall R-10, Unvented
+        - or:
+            - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+            - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+            - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+            - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+            - Location|WA_Quillayute.State.AP.727970 #AIA2
+            - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+            - Location|MN_Rochester.Intl.AP.726440 #AIA2      
+      - option: Insulation Unfinished Basement|Ceiling R-19
+        apply_logic:
+        - or:
+            - Insulation Unfinished Basement|Uninsulated
+            - Insulation Unfinished Basement|Ceiling R-13
+        - or:
+            - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+            - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+            - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+            - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+            - Location|WA_Quillayute.State.AP.727970 #AIA2
+            - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+            - Location|MN_Rochester.Intl.AP.726440 #AIA2        
+      - option: Insulation Finished Basement|Wall R-15
+        apply_logic:
+        - or:
+            - Insulation Finished Basement|Uninsulated
+            - Insulation Finished Basement|Wall R-5
+            - Insulation Finished Basement|Wall R-15
+        - or:
+            - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+            - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+            - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+            - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+            - Location|WA_Quillayute.State.AP.727970 #AIA2
+            - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+            - Location|MN_Rochester.Intl.AP.726440 #AIA2
+ 
+##up7 - package 1g - Best ASHP, smart thermostat (*only for homes with ASHP upgrade), and envelope (1st)
+  - upgrade_name: Package 1g EE ASHP with smart thermostat and best envelope
+    package_apply_logic: #same as 1b
+      or:
+            - HVAC System Heat Pump|ASHP, SEER 10, 6.2 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 10.3, 7.0 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 11.5, 7.5 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 13, 7.7 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 13, 8.0 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 14, 8.2 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 14.3, 8.5 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 15, 8.5 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 16, 9.0 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 17, 8.7 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 18, 9.3 HSPF
+            - HVAC System Heating Electricity|Electric Furnace              
+    options: 
+      ## Best ASHP
+      - option: HVAC System Heat Pump|ASHP, SEER 22, 10 HSPF
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      ## Best Smart Thermostat
+      - option: Cooling Setpoint Apply Offset|TRUE
+        apply_logic:
+          - Cooling Setpoint Has Offset|No
+      - option: Heating Setpoint Apply Offset|TRUE
+        apply_logic:
+          - Heating Setpoint Has Offset|No
+      # - option: Cooling Setpoint Apply Offset|FALSE
+      #   apply_logic:
+      #     - Cooling Setpoint Has Offset|Yes
+      # - option: Heating Setpoint Apply Offset|FALSE
+      #   apply_logic:
+      #     - Heating Setpoint Has Offset|Yes            
+            
+      ## Night setback, cooling
+      - option: Setback|Night - Cooling #+4
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - not: Cooling Setpoint|80F
+          - not: Cooling Setpoint|78F     
+      ## Full setback, cooling
+      - option: Setback|Full - Cooling #+4 (daytime/unoccupied setback not considered)
+        apply_logic:
+          - Somebody at home in weekday|No
+          - not: Cooling Setpoint|80F
+          - not: Cooling Setpoint|78F
+      ## No setback, cooling
+      - option: Setback|None - Cooling #Overwrite default if tsp above threshold
+        apply_logic:
+          - or:
+            - Cooling Setpoint|80F
+            - Cooling Setpoint|78F       
+      ## Night setback, heating
+      - option: Setback|Night - Heating #-8
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - not: Heating Setpoint|60F
+          - not: Heating Setpoint|62F
+          - not: Heating Setpoint|65F
+          - not: Heating Setpoint|67F
+      ## Full setback, heating
+      - option: Setback|Full - Heating #-8
+        apply_logic:
+          - Somebody at home in weekday|No
+          - not: Heating Setpoint|60F
+          - not: Heating Setpoint|62F
+          - not: Heating Setpoint|65F
+          - not: Heating Setpoint|67F
+      ## No setback, heating
+      - option: Setback|None - Heating #Overwrite default if tsp below threshold
+        apply_logic:
+          - or:
+            - Heating Setpoint|60F
+            - Heating Setpoint|62F
+            - Heating Setpoint|65F
+            - Heating Setpoint|67F
+
+      ## Best walls
+      - option: Insulation Wall|Wood Stud, R-13, R-20 external XPS
+        apply_logic:
+          or:
+            - Insulation Wall|Wood Stud, Uninsulated
+            - Insulation Wall|Wood Stud, R-7
+            - Insulation Wall|Wood Stud, R-11
+            - Insulation Wall|Wood Stud, R-13
+      - option: Insulation Wall|Wood Stud, R-19, R-20 external XPS
+        apply_logic: Insulation Wall|Wood Stud, R-19
+      - option: Insulation Wall|CMU, 6-in Hollow, R-5.5, R-20 XPS
+        apply_logic: Insulation Wall|CMU, 6-in Hollow, Uninsulated
+      - option: Insulation Wall Upgrade|CMU, R-20 XPS Upgrade
+        apply_logic:
+          or:
+            - Insulation Wall|CMU, 6-in Hollow, R-7
+            - Insulation Wall|CMU, 6-in Hollow, R-11
+            - Insulation Wall|CMU, 6-in Hollow, R-15
+            - Insulation Wall|CMU, 6-in Hollow, R-19
+
+      ## Best roofs
+      - option: Insulation Unfinished Attic|Ceiling R-49, Vented
+        apply_logic: 
+          or:
+            - Insulation Unfinished Attic|Uninsulated, Vented
+            - Insulation Unfinished Attic|Ceiling R-7, Vented
+            - Insulation Unfinished Attic|Ceiling R-13, Vented
+            - Insulation Unfinished Attic|Ceiling R-19, Vented
+            - Insulation Unfinished Attic|Ceiling R-30, Vented
+            - Insulation Unfinished Attic|Ceiling R-38, Vented
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      ## Best air sealing
+      - option: Infiltration|1 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Mechanical Ventilation|Exhaust, 2010 ASHRAE 62.2
+        apply_logic: 
+            - Mechanical Ventilation|None
+        costs: 
+          - value: 360
+            multiplier: Fixed (1)
+        lifetime: 999
+      ## Best windows
+      - option: Windows|SCOUT 5.88 R, 0.49 SHGC
+        apply_logic:
+          or:
+            - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+            - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+            - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Windows|SCOUT 5.88 R, 0.42 SHGC
+        apply_logic:
+          or:
+            - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+            - Location|WA_Quillayute.State.AP.727970 #AIA2
+            - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+            - Location|MN_Rochester.Intl.AP.726440 #AIA2
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Windows|SCOUT 5.88 R, 0.27 SHGC
+        apply_logic:
+          or:
+            - Location|NY_New.York-J.F.Kennedy.Intl.AP.744860 #AIA3
+            - Location|WA_Seattle-Tacoma.Intl.AP.727930 #AIA3
+      - option: Windows|SCOUT 5.88 R, 0.25 SHGC
+        apply_logic:
+          or:
+            - Location|CA_San.Diego-Lindbergh.Field.722900 #AIA4
+            - Location|AZ_Tucson.Intl.AP.722740 #AIA4
+            - Location|GA_Atlanta-Hartsfield-Jackson.Intl.AP.722190 #AIA5
+            - Location|TX_Midland.Intl.AP.722650 #AIA5
+            - Location|FL_Orlando.Intl.AP.722050 #AIA5
+
+      #Best foundation:
+      - option: Insulation Crawlspace|Ceiling R-30, Vented
+        apply_logic:
+        - or:
+            - Insulation Crawlspace|Uninsulated, Vented
+            - Insulation Crawlspace|Ceiling R-13, Vented
+            - Insulation Crawlspace|Ceiling R-19, Vented
+        - or:
+            - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+            - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+            - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+            - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+            - Location|WA_Quillayute.State.AP.727970 #AIA2
+            - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+            - Location|MN_Rochester.Intl.AP.726440 #AIA2
+      - option: Insulation Crawlspace|Wall R-13, Unvented
+        apply_logic:
+        - or:
+            - Insulation Crawlspace|Uninsulated, Unvented
+            - Insulation Crawlspace|Wall R-5, Unvented
+            - Insulation Crawlspace|Wall R-10, Unvented
+        - or:
+            - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+            - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+            - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+            - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+            - Location|WA_Quillayute.State.AP.727970 #AIA2
+            - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+            - Location|MN_Rochester.Intl.AP.726440 #AIA2      
+      - option: Insulation Unfinished Basement|Ceiling R-19
+        apply_logic:
+        - or:
+            - Insulation Unfinished Basement|Uninsulated
+            - Insulation Unfinished Basement|Ceiling R-13
+        - or:
+            - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+            - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+            - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+            - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+            - Location|WA_Quillayute.State.AP.727970 #AIA2
+            - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+            - Location|MN_Rochester.Intl.AP.726440 #AIA2        
+      - option: Insulation Finished Basement|Wall R-15
+        apply_logic:
+        - or:
+            - Insulation Finished Basement|Uninsulated
+            - Insulation Finished Basement|Wall R-5
+            - Insulation Finished Basement|Wall R-15
+        - or:
+            - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+            - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+            - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+            - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+            - Location|WA_Quillayute.State.AP.727970 #AIA2
+            - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+            - Location|MN_Rochester.Intl.AP.726440 #AIA2
+  
+##up8 - package 1h - Smart thermostat (*only homes w/o CAC or ASHP upgrade), envelope (1st)
+  - upgrade_name: Package 1h EE smart thermostat & envelope when not upgrading CAC or ASHP
+    package_apply_logic:
+      not:
+        - or:
+            - HVAC System Heat Pump|ASHP, SEER 10, 6.2 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 10.3, 7.0 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 11.5, 7.5 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 13, 7.7 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 13, 8.0 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 14, 8.2 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 14.3, 8.5 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 15, 8.5 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 16, 9.0 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 17, 8.7 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 18, 9.3 HSPF
+            - HVAC System Cooling|AC, SEER 8
+            - HVAC System Cooling|AC, SEER 10
+            - HVAC System Cooling|AC, SEER 13
+            - HVAC System Cooling|AC, SEER 14
+            - HVAC System Cooling|AC, SEER 15
+            - HVAC System Heating Electricity|Electric Furnace        
+    options: 
+      #Best smart thermostat
+      - option: Cooling Setpoint Apply Offset|TRUE
+        apply_logic:
+          - Cooling Setpoint Has Offset|No
+      - option: Heating Setpoint Apply Offset|TRUE
+        apply_logic:
+          - Heating Setpoint Has Offset|No
+      # - option: Cooling Setpoint Apply Offset|FALSE
+      #   apply_logic:
+      #     - Cooling Setpoint Has Offset|Yes
+      # - option: Heating Setpoint Apply Offset|FALSE
+      #   apply_logic:
+      #     - Heating Setpoint Has Offset|Yes
+          
+      ## Night setback, cooling
+      - option: Setback|Night - Cooling #+4
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - not: Cooling Setpoint|80F
+          - not: Cooling Setpoint|78F     
+      ## Full setback, cooling
+      - option: Setback|Full - Cooling #+4 (daytime/unoccupied setback not considered)
+        apply_logic:
+          - Somebody at home in weekday|No
+          - not: Cooling Setpoint|80F
+          - not: Cooling Setpoint|78F
+      ## No setback, cooling
+      - option: Setback|None - Cooling #Overwrite default if tsp above threshold
+        apply_logic:
+          - or:
+            - Cooling Setpoint|80F
+            - Cooling Setpoint|78F       
+      ## Night setback, heating
+      - option: Setback|Night - Heating #-8
+        apply_logic:
+          - Somebody at home in weekday|Yes
+          - not: Heating Setpoint|60F
+          - not: Heating Setpoint|62F
+          - not: Heating Setpoint|65F
+          - not: Heating Setpoint|67F
+      ## Full setback, heating
+      - option: Setback|Full - Heating #-8
+        apply_logic:
+          - Somebody at home in weekday|No
+          - not: Heating Setpoint|60F
+          - not: Heating Setpoint|62F
+          - not: Heating Setpoint|65F
+          - not: Heating Setpoint|67F
+      ## No setback, heating
+      - option: Setback|None - Heating #Overwrite default if tsp below threshold
+        apply_logic:
+          - or:
+            - Heating Setpoint|60F
+            - Heating Setpoint|62F
+            - Heating Setpoint|65F
+            - Heating Setpoint|67F
+
+      ## Best walls
+      - option: Insulation Wall|Wood Stud, R-13, R-20 external XPS
+        apply_logic:
+          or:
+            - Insulation Wall|Wood Stud, Uninsulated
+            - Insulation Wall|Wood Stud, R-7
+            - Insulation Wall|Wood Stud, R-11
+            - Insulation Wall|Wood Stud, R-13
+      - option: Insulation Wall|Wood Stud, R-19, R-20 external XPS
+        apply_logic: Insulation Wall|Wood Stud, R-19
+      - option: Insulation Wall|CMU, 6-in Hollow, R-5.5, R-20 XPS
+        apply_logic: Insulation Wall|CMU, 6-in Hollow, Uninsulated
+      - option: Insulation Wall Upgrade|CMU, R-20 XPS Upgrade
+        apply_logic:
+          or:
+            - Insulation Wall|CMU, 6-in Hollow, R-7
+            - Insulation Wall|CMU, 6-in Hollow, R-11
+            - Insulation Wall|CMU, 6-in Hollow, R-15
+            - Insulation Wall|CMU, 6-in Hollow, R-19
+
+      ## Best roofs
+      - option: Insulation Unfinished Attic|Ceiling R-49, Vented
+        apply_logic: 
+          or:
+            - Insulation Unfinished Attic|Uninsulated, Vented
+            - Insulation Unfinished Attic|Ceiling R-7, Vented
+            - Insulation Unfinished Attic|Ceiling R-13, Vented
+            - Insulation Unfinished Attic|Ceiling R-19, Vented
+            - Insulation Unfinished Attic|Ceiling R-30, Vented
+            - Insulation Unfinished Attic|Ceiling R-38, Vented
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      ## Best air sealing
+      - option: Infiltration|1 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Mechanical Ventilation|Exhaust, 2010 ASHRAE 62.2
+        apply_logic: 
+            - Mechanical Ventilation|None
+        costs: 
+          - value: 360
+            multiplier: Fixed (1)
+        lifetime: 999
+      ## Best windows
+      - option: Windows|SCOUT 5.88 R, 0.49 SHGC
+        apply_logic:
+          or:
+            - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+            - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+            - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Windows|SCOUT 5.88 R, 0.42 SHGC
+        apply_logic:
+          or:
+            - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+            - Location|WA_Quillayute.State.AP.727970 #AIA2
+            - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+            - Location|MN_Rochester.Intl.AP.726440 #AIA2
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Windows|SCOUT 5.88 R, 0.27 SHGC
+        apply_logic:
+          or:
+            - Location|NY_New.York-J.F.Kennedy.Intl.AP.744860 #AIA3
+            - Location|WA_Seattle-Tacoma.Intl.AP.727930 #AIA3
+      - option: Windows|SCOUT 5.88 R, 0.25 SHGC
+        apply_logic:
+          or:
+            - Location|CA_San.Diego-Lindbergh.Field.722900 #AIA4
+            - Location|AZ_Tucson.Intl.AP.722740 #AIA4
+            - Location|GA_Atlanta-Hartsfield-Jackson.Intl.AP.722190 #AIA5
+            - Location|TX_Midland.Intl.AP.722650 #AIA5
+            - Location|FL_Orlando.Intl.AP.722050 #AIA5
+            
+      #Best foundation:
+      - option: Insulation Crawlspace|Ceiling R-30, Vented
+        apply_logic:
+        - or:
+            - Insulation Crawlspace|Uninsulated, Vented
+            - Insulation Crawlspace|Ceiling R-13, Vented
+            - Insulation Crawlspace|Ceiling R-19, Vented
+        - or:
+            - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+            - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+            - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+            - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+            - Location|WA_Quillayute.State.AP.727970 #AIA2
+            - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+            - Location|MN_Rochester.Intl.AP.726440 #AIA2
+      - option: Insulation Crawlspace|Wall R-13, Unvented
+        apply_logic:
+        - or:
+            - Insulation Crawlspace|Uninsulated, Unvented
+            - Insulation Crawlspace|Wall R-5, Unvented
+            - Insulation Crawlspace|Wall R-10, Unvented
+        - or:
+            - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+            - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+            - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+            - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+            - Location|WA_Quillayute.State.AP.727970 #AIA2
+            - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+            - Location|MN_Rochester.Intl.AP.726440 #AIA2      
+      - option: Insulation Unfinished Basement|Ceiling R-19
+        apply_logic:
+        - or:
+            - Insulation Unfinished Basement|Uninsulated
+            - Insulation Unfinished Basement|Ceiling R-13
+        - or:
+            - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+            - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+            - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+            - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+            - Location|WA_Quillayute.State.AP.727970 #AIA2
+            - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+            - Location|MN_Rochester.Intl.AP.726440 #AIA2        
+      - option: Insulation Finished Basement|Wall R-15
+        apply_logic:
+        - or:
+            - Insulation Finished Basement|Uninsulated
+            - Insulation Finished Basement|Wall R-5
+            - Insulation Finished Basement|Wall R-15
+        - or:
+            - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+            - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+            - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+            - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+            - Location|WA_Quillayute.State.AP.727970 #AIA2
+            - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+            - Location|MN_Rochester.Intl.AP.726440 #AIA2
+   
+
+##up11 - package 1m - EE best windows [component]
+  - upgrade_name: package 1m EE best windows
+    options:
+      ## Best windows
+      - option: Windows|SCOUT 5.88 R, 0.49 SHGC
+        apply_logic:
+          or:
+            - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+            - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+            - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Windows|SCOUT 5.88 R, 0.42 SHGC
+        apply_logic:
+          or:
+            - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+            - Location|WA_Quillayute.State.AP.727970 #AIA2
+            - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+            - Location|MN_Rochester.Intl.AP.726440 #AIA2
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Windows|SCOUT 5.88 R, 0.27 SHGC
+        apply_logic:
+          or:
+            - Location|NY_New.York-J.F.Kennedy.Intl.AP.744860 #AIA3
+            - Location|WA_Seattle-Tacoma.Intl.AP.727930 #AIA3
+      - option: Windows|SCOUT 5.88 R, 0.25 SHGC
+        apply_logic:
+          or:
+            - Location|CA_San.Diego-Lindbergh.Field.722900 #AIA4
+            - Location|AZ_Tucson.Intl.AP.722740 #AIA4
+            - Location|GA_Atlanta-Hartsfield-Jackson.Intl.AP.722190 #AIA5
+            - Location|TX_Midland.Intl.AP.722650 #AIA5
+            - Location|FL_Orlando.Intl.AP.722050 #AIA5
+   
+
+##up13 - package 3a - CAC upgrade with pre heating/cooling, smart thermostat, envelope
+  - upgrade_name: Package 3a Pre-heating/cooling, smart thermostat, and envelope for CAC upgrades
+    package_apply_logic:
+      - or:
+          - HVAC System Cooling|AC, SEER 8
+          - HVAC System Cooling|AC, SEER 10
+          - HVAC System Cooling|AC, SEER 13
+          - HVAC System Cooling|AC, SEER 14
+          - HVAC System Cooling|AC, SEER 15
+      - not:
+          - HVAC System Heating Electricity|Electric Furnace
+    options:
+      #Best CAC
+      - option: HVAC System Cooling|AC, SEER 18
+        costs:
+          - value: 3200
+            multiplier: Fixed (1)
+          - value: 42
+            multiplier: Size, Cooling System (kBtu/h)
+        lifetime: 16
+      #smart thermostat (default setbacks from sampling: apply offset=FALSE; DR+Night if weekday occupancy + no setback; DR+Full if not weekday occupancy + no setback; DR Only if has setback; schedules are specific to city in sampling
+      - option: Cooling Setpoint Apply Offset|TRUE #(-3..+4) Cooling - [DR+Night setback] & [DR+Full setback] (ignore daytime/unoccupied setback comfort)
+        apply_logic:
+          - not: Cooling Setpoint|80F
+          - not: Cooling Setpoint|78F
+          - not: Cooling Setpoint|62F
+          - not: Cooling Setpoint|60F
+          - Cooling Setpoint Has Offset|No
+      - option: Cooling Setpoint Apply Offset|TRUE #(-3..+3) Cooling - [DR setback only]
+        apply_logic:
+          - not: Cooling Setpoint|80F
+          - not: Cooling Setpoint|78F
+          - not: Cooling Setpoint|62F
+          - not: Cooling Setpoint|60F
+          - Cooling Setpoint Has Offset|Yes
+      - option: Heating Setpoint Apply Offset|TRUE #(-8..+3) Heating - [DR+Night setback] & [DR+Full setback]
+        apply_logic:
+          - not: Heating Setpoint|80F
+          - not: Heating Setpoint|78F
+          - not: Heating Setpoint|67F
+          - not: Heating Setpoint|65F 
+          - not: Heating Setpoint|62F
+          - not: Heating Setpoint|60F      
+          - Heating Setpoint Has Offset|No
+      - option: Heating Setpoint Apply Offset|TRUE #(-3..+3) Heating - [DR setback only]
+        apply_logic:
+          - not: Heating Setpoint|80F
+          - not: Heating Setpoint|78F
+          - not: Heating Setpoint|62F
+          - not: Heating Setpoint|60F   
+          - Heating Setpoint Has Offset|Yes
+      
+      ##envelope
+      ## Best walls
+      - option: Insulation Wall|Wood Stud, R-13, R-20 external XPS
+        apply_logic:
+          or:
+            - Insulation Wall|Wood Stud, Uninsulated
+            - Insulation Wall|Wood Stud, R-7
+            - Insulation Wall|Wood Stud, R-11
+            - Insulation Wall|Wood Stud, R-13
+      - option: Insulation Wall|Wood Stud, R-19, R-20 external XPS
+        apply_logic: Insulation Wall|Wood Stud, R-19
+      - option: Insulation Wall|CMU, 6-in Hollow, R-5.5, R-20 XPS
+        apply_logic: Insulation Wall|CMU, 6-in Hollow, Uninsulated
+      - option: Insulation Wall Upgrade|CMU, R-20 XPS Upgrade
+        apply_logic:
+          or:
+            - Insulation Wall|CMU, 6-in Hollow, R-7
+            - Insulation Wall|CMU, 6-in Hollow, R-11
+            - Insulation Wall|CMU, 6-in Hollow, R-15
+            - Insulation Wall|CMU, 6-in Hollow, R-19
+      #Best roofs
+      - option: Insulation Unfinished Attic|Ceiling R-49, Vented
+        apply_logic: 
+          or:
+            - Insulation Unfinished Attic|Uninsulated, Vented
+            - Insulation Unfinished Attic|Ceiling R-7, Vented
+            - Insulation Unfinished Attic|Ceiling R-13, Vented
+            - Insulation Unfinished Attic|Ceiling R-19, Vented
+            - Insulation Unfinished Attic|Ceiling R-30, Vented
+            - Insulation Unfinished Attic|Ceiling R-38, Vented
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      #Best air sealing
+      - option: Infiltration|1 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Mechanical Ventilation|Exhaust, 2010 ASHRAE 62.2
+        apply_logic: 
+            - Mechanical Ventilation|None
+        costs: 
+          - value: 360
+            multiplier: Fixed (1)
+        lifetime: 999
+      #Best windows
+      - option: Windows|SCOUT 5.88 R, 0.49 SHGC
+        apply_logic:
+          or:
+            - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+            - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+            - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Windows|SCOUT 5.88 R, 0.42 SHGC
+        apply_logic:
+          or:
+            - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+            - Location|WA_Quillayute.State.AP.727970 #AIA2
+            - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+            - Location|MN_Rochester.Intl.AP.726440 #AIA2
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Windows|SCOUT 5.88 R, 0.27 SHGC
+        apply_logic:
+          or:
+            - Location|FL_Orlando.Intl.AP.722050 #AIA5
+            - Location|AZ_Tucson.Intl.AP.722740 #AIA4
+            - Location|GA_Atlanta-Hartsfield-Jackson.Intl.AP.722190 #AIA5
+            - Location|TX_Midland.Intl.AP.722650 #AIA5
+            - Location|CA_San.Diego-Lindbergh.Field.722900 #AIA4
+            - Location|NY_New.York-J.F.Kennedy.Intl.AP.744860 #AIA3
+            - Location|WA_Seattle-Tacoma.Intl.AP.727930 #AIA3
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      #Best foundation:
+      - option: Insulation Crawlspace|Ceiling R-30, Vented
+        apply_logic:
+        - or:
+            - Insulation Crawlspace|Uninsulated, Vented
+            - Insulation Crawlspace|Ceiling R-13, Vented
+            - Insulation Crawlspace|Ceiling R-19, Vented
+        - or:
+            - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+            - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+            - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+            - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+            - Location|WA_Quillayute.State.AP.727970 #AIA2
+            - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+            - Location|MN_Rochester.Intl.AP.726440 #AIA2
+      - option: Insulation Crawlspace|Wall R-13, Unvented
+        apply_logic:
+        - or:
+            - Insulation Crawlspace|Uninsulated, Unvented
+            - Insulation Crawlspace|Wall R-5, Unvented
+            - Insulation Crawlspace|Wall R-10, Unvented
+        - or:
+            - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+            - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+            - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+            - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+            - Location|WA_Quillayute.State.AP.727970 #AIA2
+            - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+            - Location|MN_Rochester.Intl.AP.726440 #AIA2      
+      - option: Insulation Unfinished Basement|Ceiling R-19
+        apply_logic:
+        - or:
+            - Insulation Unfinished Basement|Uninsulated
+            - Insulation Unfinished Basement|Ceiling R-13
+        - or:
+            - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+            - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+            - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+            - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+            - Location|WA_Quillayute.State.AP.727970 #AIA2
+            - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+            - Location|MN_Rochester.Intl.AP.726440 #AIA2        
+      - option: Insulation Finished Basement|Wall R-15
+        apply_logic:
+        - or:
+            - Insulation Finished Basement|Uninsulated
+            - Insulation Finished Basement|Wall R-5
+            - Insulation Finished Basement|Wall R-15
+        - or:
+            - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+            - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+            - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+            - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+            - Location|WA_Quillayute.State.AP.727970 #AIA2
+            - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+            - Location|MN_Rochester.Intl.AP.726440 #AIA2
+ 
+##up14 - package 3b - ASHP upgrade with pre heating/cooling, smart thermostat, envelope
+  - upgrade_name: Package 3b Pre-heating/cooling, smart thermostat, and envelope for ASHP upgrades
+    package_apply_logic: #same as 1b
+      or:
+          - HVAC System Heat Pump|ASHP, SEER 10, 6.2 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 10.3, 7.0 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 11.5, 7.5 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 13, 7.7 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 13, 8.0 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 14, 8.2 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 14.3, 8.5 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 15, 8.5 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 16, 9.0 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 17, 8.7 HSPF
+          - HVAC System Heat Pump|ASHP, SEER 18, 9.3 HSPF
+          - HVAC System Heating Electricity|Electric Furnace  
+    options:
+      - option: HVAC System Heat Pump|ASHP, SEER 22, 10 HSPF
+        costs:
+          - value: 4200
+            multiplier: Fixed (1)
+          - value: 42
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 15
+      #smart thermostat (default setbacks from sampling: apply offset=FALSE; DR+Night if weekday occupancy + no setback; DR+Full if not weekday occupancy + no setback; DR Only if has setback; schedules are specific to city in sampling
+      - option: Cooling Setpoint Apply Offset|TRUE #(-3..+4) Cooling - [DR+Night setback] & [DR+Full setback] (ignore daytime/unoccupied setback comfort)
+        apply_logic:
+          - not: Cooling Setpoint|80F
+          - not: Cooling Setpoint|78F
+          - not: Cooling Setpoint|62F
+          - not: Cooling Setpoint|60F
+          - Cooling Setpoint Has Offset|No
+      - option: Cooling Setpoint Apply Offset|TRUE #(-3..+3) Cooling - [DR setback only]
+        apply_logic:
+          - not: Cooling Setpoint|80F
+          - not: Cooling Setpoint|78F
+          - not: Cooling Setpoint|62F
+          - not: Cooling Setpoint|60F
+          - Cooling Setpoint Has Offset|Yes
+      - option: Heating Setpoint Apply Offset|TRUE #(-8..+3) Heating - [DR+Night setback] & [DR+Full setback]
+        apply_logic:
+          - not: Heating Setpoint|80F
+          - not: Heating Setpoint|78F
+          - not: Heating Setpoint|67F
+          - not: Heating Setpoint|65F 
+          - not: Heating Setpoint|62F
+          - not: Heating Setpoint|60F      
+          - Heating Setpoint Has Offset|No
+      - option: Heating Setpoint Apply Offset|TRUE #(-3..+3) Heating - [DR setback only]
+        apply_logic:
+          - not: Heating Setpoint|80F
+          - not: Heating Setpoint|78F
+          - not: Heating Setpoint|62F
+          - not: Heating Setpoint|60F   
+          - Heating Setpoint Has Offset|Yes 
+          
+      #envelope
+      ## Best walls
+      - option: Insulation Wall|Wood Stud, R-13, R-20 external XPS
+        apply_logic:
+          or:
+            - Insulation Wall|Wood Stud, Uninsulated
+            - Insulation Wall|Wood Stud, R-7
+            - Insulation Wall|Wood Stud, R-11
+            - Insulation Wall|Wood Stud, R-13
+      - option: Insulation Wall|Wood Stud, R-19, R-20 external XPS
+        apply_logic: Insulation Wall|Wood Stud, R-19
+      - option: Insulation Wall|CMU, 6-in Hollow, R-5.5, R-20 XPS
+        apply_logic: Insulation Wall|CMU, 6-in Hollow, Uninsulated
+      - option: Insulation Wall Upgrade|CMU, R-20 XPS Upgrade
+        apply_logic:
+          or:
+            - Insulation Wall|CMU, 6-in Hollow, R-7
+            - Insulation Wall|CMU, 6-in Hollow, R-11
+            - Insulation Wall|CMU, 6-in Hollow, R-15
+            - Insulation Wall|CMU, 6-in Hollow, R-19
+
+      #Best roofs
+      - option: Insulation Unfinished Attic|Ceiling R-49, Vented
+        apply_logic: 
+          or:
+            - Insulation Unfinished Attic|Uninsulated, Vented
+            - Insulation Unfinished Attic|Ceiling R-7, Vented
+            - Insulation Unfinished Attic|Ceiling R-13, Vented
+            - Insulation Unfinished Attic|Ceiling R-19, Vented
+            - Insulation Unfinished Attic|Ceiling R-30, Vented
+            - Insulation Unfinished Attic|Ceiling R-38, Vented
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      #Best air sealing
+      - option: Infiltration|1 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Mechanical Ventilation|Exhaust, 2010 ASHRAE 62.2
+        apply_logic: 
+            - Mechanical Ventilation|None
+        costs: 
+          - value: 360
+            multiplier: Fixed (1)
+        lifetime: 999
+      #Best windows
+      - option: Windows|SCOUT 5.88 R, 0.49 SHGC
+        apply_logic:
+          or:
+            - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+            - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+            - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Windows|SCOUT 5.88 R, 0.42 SHGC
+        apply_logic:
+          or:
+            - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+            - Location|WA_Quillayute.State.AP.727970 #AIA2
+            - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+            - Location|MN_Rochester.Intl.AP.726440 #AIA2
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Windows|SCOUT 5.88 R, 0.27 SHGC
+        apply_logic:
+          or:
+            - Location|FL_Orlando.Intl.AP.722050 #AIA5
+            - Location|AZ_Tucson.Intl.AP.722740 #AIA4
+            - Location|GA_Atlanta-Hartsfield-Jackson.Intl.AP.722190 #AIA5
+            - Location|TX_Midland.Intl.AP.722650 #AIA5
+            - Location|CA_San.Diego-Lindbergh.Field.722900 #AIA4
+            - Location|NY_New.York-J.F.Kennedy.Intl.AP.744860 #AIA3
+            - Location|WA_Seattle-Tacoma.Intl.AP.727930 #AIA3
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      #Best foundation:
+      - option: Insulation Crawlspace|Ceiling R-30, Vented
+        apply_logic:
+        - or:
+            - Insulation Crawlspace|Uninsulated, Vented
+            - Insulation Crawlspace|Ceiling R-13, Vented
+            - Insulation Crawlspace|Ceiling R-19, Vented
+        - or:
+            - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+            - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+            - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+            - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+            - Location|WA_Quillayute.State.AP.727970 #AIA2
+            - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+            - Location|MN_Rochester.Intl.AP.726440 #AIA2
+      - option: Insulation Crawlspace|Wall R-13, Unvented
+        apply_logic:
+        - or:
+            - Insulation Crawlspace|Uninsulated, Unvented
+            - Insulation Crawlspace|Wall R-5, Unvented
+            - Insulation Crawlspace|Wall R-10, Unvented
+        - or:
+            - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+            - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+            - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+            - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+            - Location|WA_Quillayute.State.AP.727970 #AIA2
+            - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+            - Location|MN_Rochester.Intl.AP.726440 #AIA2      
+      - option: Insulation Unfinished Basement|Ceiling R-19
+        apply_logic:
+        - or:
+            - Insulation Unfinished Basement|Uninsulated
+            - Insulation Unfinished Basement|Ceiling R-13
+        - or:
+            - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+            - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+            - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+            - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+            - Location|WA_Quillayute.State.AP.727970 #AIA2
+            - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+            - Location|MN_Rochester.Intl.AP.726440 #AIA2        
+      - option: Insulation Finished Basement|Wall R-15
+        apply_logic:
+        - or:
+            - Insulation Finished Basement|Uninsulated
+            - Insulation Finished Basement|Wall R-5
+            - Insulation Finished Basement|Wall R-15
+        - or:
+            - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+            - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+            - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+            - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+            - Location|WA_Quillayute.State.AP.727970 #AIA2
+            - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+            - Location|MN_Rochester.Intl.AP.726440 #AIA2
+ 
+##up15 - package 3c - No CAC/ASHP upgrade, with pre heating/cooling, smart thermostat, envelope
+  - upgrade_name: Package 3c Pre-heating/cooling, smart thermostat, and envelope for no HVAC upgrades
+    package_apply_logic:
+      not:
+        - or:
+            - HVAC System Heat Pump|ASHP, SEER 10, 6.2 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 10.3, 7.0 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 11.5, 7.5 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 13, 7.7 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 13, 8.0 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 14, 8.2 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 14.3, 8.5 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 15, 8.5 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 16, 9.0 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 17, 8.7 HSPF
+            - HVAC System Heat Pump|ASHP, SEER 18, 9.3 HSPF
+            - HVAC System Cooling|AC, SEER 8
+            - HVAC System Cooling|AC, SEER 10
+            - HVAC System Cooling|AC, SEER 13
+            - HVAC System Cooling|AC, SEER 14
+            - HVAC System Cooling|AC, SEER 15
+            - HVAC System Heating Electricity|Electric Furnace
+    options:      
+      #smart thermostat (default setbacks from sampling: apply offset=FALSE; DR+Night if weekday occupancy + no setback; DR+Full if not weekday occupancy + no setback; DR Only if has setback; schedules are specific to city in sampling
+      - option: Cooling Setpoint Apply Offset|TRUE #(-3..+4) Cooling - [DR+Night setback] & [DR+Full setback] (ignore daytime/unoccupied setback comfort)
+        apply_logic:
+          - not: Cooling Setpoint|80F
+          - not: Cooling Setpoint|78F
+          - not: Cooling Setpoint|62F
+          - not: Cooling Setpoint|60F
+          - Cooling Setpoint Has Offset|No
+      - option: Cooling Setpoint Apply Offset|TRUE #(-3..+3) Cooling - [DR setback only]
+        apply_logic:
+          - not: Cooling Setpoint|80F
+          - not: Cooling Setpoint|78F
+          - not: Cooling Setpoint|62F
+          - not: Cooling Setpoint|60F
+          - Cooling Setpoint Has Offset|Yes
+      - option: Heating Setpoint Apply Offset|TRUE #(-8..+3) Heating - [DR+Night setback] & [DR+Full setback]
+        apply_logic:
+          - not: Heating Setpoint|80F
+          - not: Heating Setpoint|78F
+          - not: Heating Setpoint|67F
+          - not: Heating Setpoint|65F 
+          - not: Heating Setpoint|62F
+          - not: Heating Setpoint|60F      
+          - Heating Setpoint Has Offset|No
+      - option: Heating Setpoint Apply Offset|TRUE #(-3..+3) Heating - [DR setback only]
+        apply_logic:
+          - not: Heating Setpoint|80F
+          - not: Heating Setpoint|78F
+          - not: Heating Setpoint|62F
+          - not: Heating Setpoint|60F   
+          - Heating Setpoint Has Offset|Yes    
+          
+      #envelope
+      ## Best walls
+      - option: Insulation Wall|Wood Stud, R-13, R-20 external XPS
+        apply_logic:
+          or:
+            - Insulation Wall|Wood Stud, Uninsulated
+            - Insulation Wall|Wood Stud, R-7
+            - Insulation Wall|Wood Stud, R-11
+            - Insulation Wall|Wood Stud, R-13
+      - option: Insulation Wall|Wood Stud, R-19, R-20 external XPS
+        apply_logic: Insulation Wall|Wood Stud, R-19
+      - option: Insulation Wall|CMU, 6-in Hollow, R-5.5, R-20 XPS
+        apply_logic: Insulation Wall|CMU, 6-in Hollow, Uninsulated
+      - option: Insulation Wall Upgrade|CMU, R-20 XPS Upgrade
+        apply_logic:
+          or:
+            - Insulation Wall|CMU, 6-in Hollow, R-7
+            - Insulation Wall|CMU, 6-in Hollow, R-11
+            - Insulation Wall|CMU, 6-in Hollow, R-15
+            - Insulation Wall|CMU, 6-in Hollow, R-19
+
+      ## Best roofs
+      - option: Insulation Unfinished Attic|Ceiling R-49, Vented
+        apply_logic: 
+          or:
+            - Insulation Unfinished Attic|Uninsulated, Vented
+            - Insulation Unfinished Attic|Ceiling R-7, Vented
+            - Insulation Unfinished Attic|Ceiling R-13, Vented
+            - Insulation Unfinished Attic|Ceiling R-19, Vented
+            - Insulation Unfinished Attic|Ceiling R-30, Vented
+            - Insulation Unfinished Attic|Ceiling R-38, Vented
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      ## Best air sealing
+      - option: Infiltration|1 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Mechanical Ventilation|Exhaust, 2010 ASHRAE 62.2
+        apply_logic: 
+            - Mechanical Ventilation|None
+        costs: 
+          - value: 360
+            multiplier: Fixed (1)
+        lifetime: 999
+      ## Best windows
+      - option: Windows|SCOUT 5.88 R, 0.49 SHGC
+        apply_logic:
+          or:
+            - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+            - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+            - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Windows|SCOUT 5.88 R, 0.42 SHGC
+        apply_logic:
+          or:
+            - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+            - Location|WA_Quillayute.State.AP.727970 #AIA2
+            - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+            - Location|MN_Rochester.Intl.AP.726440 #AIA2
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Windows|SCOUT 5.88 R, 0.27 SHGC
+        apply_logic:
+          or:
+            - Location|NY_New.York-J.F.Kennedy.Intl.AP.744860 #AIA3
+            - Location|WA_Seattle-Tacoma.Intl.AP.727930 #AIA3
+      - option: Windows|SCOUT 5.88 R, 0.25 SHGC
+        apply_logic:
+          or:
+            - Location|CA_San.Diego-Lindbergh.Field.722900 #AIA4
+            - Location|AZ_Tucson.Intl.AP.722740 #AIA4
+            - Location|GA_Atlanta-Hartsfield-Jackson.Intl.AP.722190 #AIA5
+            - Location|TX_Midland.Intl.AP.722650 #AIA5
+            - Location|FL_Orlando.Intl.AP.722050 #AIA5
+      #Best foundation:
+      - option: Insulation Crawlspace|Ceiling R-30, Vented
+        apply_logic:
+        - or:
+            - Insulation Crawlspace|Uninsulated, Vented
+            - Insulation Crawlspace|Ceiling R-13, Vented
+            - Insulation Crawlspace|Ceiling R-19, Vented
+        - or:
+            - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+            - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+            - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+            - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+            - Location|WA_Quillayute.State.AP.727970 #AIA2
+            - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+            - Location|MN_Rochester.Intl.AP.726440 #AIA2
+      - option: Insulation Crawlspace|Wall R-13, Unvented
+        apply_logic:
+        - or:
+            - Insulation Crawlspace|Uninsulated, Unvented
+            - Insulation Crawlspace|Wall R-5, Unvented
+            - Insulation Crawlspace|Wall R-10, Unvented
+        - or:
+            - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+            - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+            - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+            - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+            - Location|WA_Quillayute.State.AP.727970 #AIA2
+            - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+            - Location|MN_Rochester.Intl.AP.726440 #AIA2      
+      - option: Insulation Unfinished Basement|Ceiling R-19
+        apply_logic:
+        - or:
+            - Insulation Unfinished Basement|Uninsulated
+            - Insulation Unfinished Basement|Ceiling R-13
+        - or:
+            - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+            - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+            - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+            - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+            - Location|WA_Quillayute.State.AP.727970 #AIA2
+            - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+            - Location|MN_Rochester.Intl.AP.726440 #AIA2        
+      - option: Insulation Finished Basement|Wall R-15
+        apply_logic:
+        - or:
+            - Insulation Finished Basement|Uninsulated
+            - Insulation Finished Basement|Wall R-5
+            - Insulation Finished Basement|Wall R-15
+        - or:
+            - Location|CO_Boulder-Broomfield-Jefferson.County.AP.724699 #AIA1
+            - Location|MT_Great.Falls.Intl.AP.727750 #AIA1
+            - Location|MN_International.Falls.Intl.AP.727470 #AIA1
+            - Location|NM_Albuquerque.Intl.AP.723650 #AIA2
+            - Location|WA_Quillayute.State.AP.727970 #AIA2
+            - Location|NY_Buffalo-Greater.Buffalo.Intl.AP.725280 #AIA2
+            - Location|MN_Rochester.Intl.AP.726440 #AIA2
+          
+timeseries_csv_export:
+  reporting_frequency: Hourly
+  include_enduse_subcategories: true
+  
+eagle:
+  account: windowsaving
+  n_jobs: 600 #1000
+  minutes_per_sim: 5 #5
+  sampling:
+    time: 30
+  postprocessing:
+    time: 1000
+    n_workers: 6
+    
+aws:
+  job_identifier: geb_full
+  s3:
+    bucket: resbldg-datasets
+    prefix: resstock-athena/geb-potential-upgrades/aws_data/geb_full
+  region: us-west-2
+  use_spot: true
+  batch_array_size: 10000
+  notifications_email: andrew.speake@nrel.gov
+  emr:
+    slave_instance_count: 6
+  
+postprocessing:
+  aws:
+    region_name: 'us-west-2'
+    s3:
+      bucket: resbldg-datasets
+      prefix: resstock-athena/geb-potential-upgrades
+    athena:
+      glue_service_role: service-role/AWSGlueServiceRole-default
+      database_name: geb_potential
+      max_crawling_time: 3000 #seconds to wait for the crawler to complete before aborting it
