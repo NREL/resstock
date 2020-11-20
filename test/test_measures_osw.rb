@@ -8,7 +8,7 @@ require 'minitest/autorun'
 class TestResStockMeasuresOSW < MiniTest::Test
   def test_measures_osw
     project_dir = 'project_testing'
-    num_samples = 20
+    num_samples = 10
 
     all_results = []
     parent_dir = File.absolute_path(File.join(File.dirname(__FILE__), 'test_measures_osw'))
