@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>residential_misc_electric_loads</name>
   <uid>3ac41688-ef52-4679-b79c-8cbdf7cbd0e7</uid>
-  <version_id>1f14c740-dfde-4ab1-8b92-baeb7a158e06</version_id>
-  <version_modified>20200811T032744Z</version_modified>
+  <version_id>315742dc-2c8e-411d-bed4-d3c929f10237</version_id>
+  <version_modified>20201119T043836Z</version_modified>
   <xml_checksum>126F1C43</xml_checksum>
   <class_name>ResidentialMiscElectricLoads</class_name>
   <display_name>Set Residential Plug Loads</display_name>
@@ -30,9 +30,18 @@
       </choices>
     </argument>
     <argument>
-      <name>mult</name>
-      <display_name>Multiplier</display_name>
-      <description>A multiplier on the national average energy use, which is calculated as: (1108.1 + 180.2 * Nbeds + 0.2785 * FFA), where Nbeds is the number of bedrooms and FFA is the finished floor area in sqft.</description>
+      <name>energy_mult</name>
+      <display_name>Energy: Multiplier</display_name>
+      <description>A multiplier on the national average energy use, which is calculated as: (1146.95 + 296.94 * Noccupants + 0.3 * FFA) for single-family detached, (1395.84 + 136.53 * Noccupants + 0.16 * FFA) for single-family attached, and (875.22 + 184.11 * Noccupants + 0.38 * FFA) for multifamily, where Noccupants is the number of occupants and FFA is the finished floor area in sqft.</description>
+      <type>Double</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>1</default_value>
+    </argument>
+    <argument>
+      <name>diversity_mult</name>
+      <display_name>Diversity: Multiplier</display_name>
+      <description>A diversity multiplier on the energy mutliplier.</description>
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -89,7 +98,7 @@
       <filename>ResidentialMiscellaneousElectricLoads_Test.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
-      <checksum>FCEEA751</checksum>
+      <checksum>476AFB64</checksum>
     </file>
     <file>
       <version>
@@ -100,7 +109,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>52E342CF</checksum>
+      <checksum>27FB4FFC</checksum>
     </file>
   </files>
 </measure>
