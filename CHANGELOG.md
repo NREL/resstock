@@ -12,6 +12,7 @@ Features
 - Synchronize weather between ResStock and ComStock which increases the number of weather stations from 215 to 941 ([#507](https://github.com/NREL/OpenStudio-BuildStock/pull/507))
 - Update Occupants per unit from RECS 2015 to PUMS 5-yr 2017 ([#509](https://github.com/NREL/OpenStudio-BuildStock/pull/509]))
 - Allow for plug load energy consumption to vary by Census Division and include additional "diversity" multiplier in plug load equations ([#511](https://github.com/NREL/OpenStudio-BuildStock/pull/511))
+- Lighting saturations based on RECS 2015 with new building type and spatial dependencies ([#510](https://github.com/NREL/OpenStudio-BuildStock/pull/510]))
 
 Fixes
 - Based on RECS 2015, separate the plug load equations for single-family detached, single-family attached, and multifamily buildings ([#471](https://github.com/NREL/OpenStudio-BuildStock/pull/471))
