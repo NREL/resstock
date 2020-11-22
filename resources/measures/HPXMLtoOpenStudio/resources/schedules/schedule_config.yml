@@ -21,11 +21,22 @@ ceiling_fan:
   weekday_sch: [0.04, 0.037, 0.037, 0.036, 0.033, 0.036, 0.043, 0.047, 0.034, 0.023, 0.024, 0.025, 0.024, 0.028, 0.031, 0.032, 0.039, 0.053, 0.063, 0.067, 0.071, 0.069, 0.059, 0.05]
   weekend_sch: [0.04, 0.037, 0.037, 0.036, 0.033, 0.036, 0.043, 0.047, 0.034, 0.023, 0.024, 0.025, 0.024, 0.028, 0.031, 0.032, 0.039, 0.053, 0.063, 0.067, 0.071, 0.069, 0.059, 0.05]
   monthly_multiplier: [1.248, 1.257, 0.993, 0.989, 0.993, 0.827, 0.821, 0.821, 0.827, 0.99, 0.987, 1.248]
+
+# Monthly energy use multipliers for cooking stove/oven/range from average of multiple end-use submetering datasets (HEMS, RBSAM, ELCAP, Mass Res 1, Pecan St.)
+cooking:
+  monthly_multiplier: [1.038, 1.026, 0.976, 0.945, 0.965, 0.947, 0.939, 0.965, 0.967, 1.006, 1.098, 1.129]
+
+# Monthly energy use multipliers for clothes dryer from average of multiple end-use submetering datasets (HEMS, RBSAM, ELCAP, Mass Res 1, Pecan St., FSEC)
+clothes_dryer:
+  monthly_multiplier: [1.09, 1.054, 1.044, 0.996, 0.992, 0.967, 0.931, 0.906, 0.923, 0.955, 1.035, 1.108]
+
+
 ###
 
 # probabilities below for all water draw events are extracted from DHW event generators
 # the onset, duration, events_per_cluster_probs, flow rate mean and std could all refer to the DHW event generator excel sheet ('event characteristics' and 'Start Times' sheet) 
 # Water Draw Probability Distribution
+# Monthly energy use multipliers for clothes washer and dishwasher from average of multiple end-use submetering datasets (generally HEMS, RBSAM, ELCAP, Mass Res 1, Pecan St., and FSEC [dishwasher only])
 sink:
   duration_probability: [0.901242, 0.076572, 0.01722, 0.003798, 0.000944, 0.000154, 4.6e-05, 2.2e-05, 2.0e-06]
   events_per_cluster_probs: [0.62458, 0.18693, 0.08011, 0.04330, 0.02178, 0.01504, 0.00830, 0.00467, 0.00570, 0.00285, 0.00181, 0.00233, 0.00130, 0.00104, 0.00026]
@@ -51,11 +62,13 @@ dishwasher:
   flow_rate_mean: 1.39
   flow_rate_std: 0.2
   between_event_gap: 10  # in integer minutes (0.16 * 60)
+  monthly_multiplier: [1.083, 1.056, 1.023, 0.999, 0.975, 0.944, 0.918, 0.928, 0.938, 0.984, 1.059, 1.094]
 
 clothes_washer:
   flow_rate_mean: 2.2
   flow_rate_std: 0.62
   between_event_gap: 4  # integer minutes (0.08 * 60).to_i
   load_size_probability: [0.682926829, 0.227642276, 0.056910569, 0.032520325]
+  monthly_multiplier: [0.968, 1.013, 0.99, 1.034, 1.019, 1.015, 1.048, 1, 1.021, 0.949, 0.945, 0.999]
 
 # power draw distribution for dishwasher, clothes_washer and clothes_dryer and cooking is based on csv files
