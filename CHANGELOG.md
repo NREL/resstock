@@ -11,6 +11,7 @@ Features
 - Update foundation type from the [Building Foundation Design Handbook](https://www.osti.gov/biblio/6980439-building-foundation-design-handbook) published in 1988 to RECS 2009 ([#492](https://github.com/NREL/OpenStudio-BuildStock/pull/492))
 - Synchronize weather between ResStock and ComStock which increases the number of weather stations from 215 to 941 ([#507](https://github.com/NREL/OpenStudio-BuildStock/pull/507))
 - Update Occupants per unit from RECS 2015 to PUMS 5-yr 2017 ([#509](https://github.com/NREL/OpenStudio-BuildStock/pull/509]))
+- Allow for plug load energy consumption to vary by Census Division and include additional "diversity" multiplier in plug load equations ([#511](https://github.com/NREL/OpenStudio-BuildStock/pull/511))
 - Lighting saturations based on RECS 2015 with new building type and spatial dependencies ([#510](https://github.com/NREL/OpenStudio-BuildStock/pull/510]))
 
 Fixes
@@ -21,6 +22,7 @@ Fixes
 - Exclude existing shared walls when calculating the partition wall area of MF and SFA buildings ([#496](https://github.com/NREL/OpenStudio-BuildStock/pull/496))
 - For the purpose of calculating cooling and dehumidification loads for HVAC sizing, use simple internal gains equation from ANSI/RESNET/ICC 301 (consistent with HPXML workflow); this fixes a bug introduced in [#348](https://github.com/NREL/OpenStudio-BuildStock/pull/348) that caused cooling capacities to be ~3x larger than they should be ([#501](https://github.com/NREL/OpenStudio-BuildStock/pull/501))
 - Reintroduce IECC climate zone dependency to HVAC Cooling Type and some heat pump fixes ([#497](https://github.com/NREL/OpenStudio-BuildStock/pull/497))
+- Reintroduce monthly multipliers with stochastic load model for dishwasher, clothes washer and clothes dryer and cooking ([#504](https://github.com/NREL/OpenStudio-BuildStock/pull/504))
 
 ## ResStock v2.3.0
 ###### June 24, 2020 - [Diff](https://github.com/NREL/OpenStudio-BuildStock/compare/v2.2.4...v2.3.0)
