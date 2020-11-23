@@ -168,8 +168,7 @@ def create_osws
     # 'base-hvac-multiple2.osw' => 'base.osw', # Not supporting multiple heating/cooling systems for now
     'base-hvac-none.osw' => 'base.osw',
     'base-hvac-portable-heater-gas-only.osw' => 'base.osw',
-    # 'base-hvac-programmable-thermostat.osw' => 'base.osw',
-    # 'base-hvac-programmable-thermostat-detailed.osw' => 'base.osw',
+    'base-hvac-programmable-thermostat.osw' => 'base.osw',
     'base-hvac-room-ac-only.osw' => 'base.osw',
     'base-hvac-room-ac-only-33percent.osw' => 'base.osw',
     'base-hvac-setpoints.osw' => 'base.osw',
@@ -233,7 +232,6 @@ def create_osws
     'extra-mechvent-shared-preconditioning.osw' => 'extra-mechvent-shared.osw',
     'extra-vacancy-6-months.osw' => 'base-schedules-stochastic.osw',
     'extra-schedules-random-seed.osw' => 'base-schedules-stochastic.osw',
-    'extra-hvac-programmable-thermostat.osw' => 'base.osw',
 
     'invalid_files/non-electric-heat-pump-water-heater.osw' => 'base.osw',
     'invalid_files/heating-system-and-heat-pump.osw' => 'base.osw',
@@ -459,10 +457,14 @@ def get_values(osw_file, step)
     step.setArgument('heat_pump_backup_fuel', 'none')
     step.setArgument('heat_pump_backup_heating_efficiency', 1)
     step.setArgument('heat_pump_backup_heating_capacity', '34121.0')
-    step.setArgument('setpoint_heating_weekday_temp', 68)
-    step.setArgument('setpoint_heating_weekend_temp', 68)
-    step.setArgument('setpoint_cooling_weekday_temp', 78)
-    step.setArgument('setpoint_cooling_weekend_temp', 78)
+    step.setArgument('setpoint_heating_temp', 68)
+    step.setArgument('setpoint_heating_setback_temp', 68)
+    step.setArgument('setpoint_heating_setback_hours_per_week', 0)
+    step.setArgument('setpoint_heating_setback_start_hour', 0)
+    step.setArgument('setpoint_cooling_temp', 78)
+    step.setArgument('setpoint_cooling_setup_temp', 78)
+    step.setArgument('setpoint_cooling_setup_hours_per_week', 0)
+    step.setArgument('setpoint_cooling_setup_start_hour', 0)
     step.setArgument('ducts_supply_leakage_units', HPXML::UnitsCFM25)
     step.setArgument('ducts_return_leakage_units', HPXML::UnitsCFM25)
     step.setArgument('ducts_supply_leakage_value', 75.0)
@@ -1419,6 +1421,13 @@ def get_values(osw_file, step)
     step.setArgument('heating_system_type', HPXML::HVACTypePortableHeater)
     step.setArgument('heating_system_heating_efficiency', 1.0)
     step.setArgument('heating_system_fan_power_watts', 0.0)
+  elsif ['base-hvac-programmable-thermostat.osw'].include? osw_file
+    step.setArgument('setpoint_heating_setback_temp', 66)
+    step.setArgument('setpoint_heating_setback_hours_per_week', 49)
+    step.setArgument('setpoint_heating_setback_start_hour', 23)
+    step.setArgument('setpoint_cooling_setup_temp', 80)
+    step.setArgument('setpoint_cooling_setup_hours_per_week', 42)
+    step.setArgument('setpoint_cooling_setup_start_hour', 9)
   elsif ['base-hvac-room-ac-only.osw'].include? osw_file
     step.setArgument('heating_system_type', 'none')
     step.setArgument('cooling_system_type', HPXML::HVACTypeRoomAirConditioner)
@@ -1431,10 +1440,8 @@ def get_values(osw_file, step)
     step.setArgument('cooling_system_cooling_sensible_heat_fraction', 0.65)
     step.setArgument('cooling_system_fraction_cool_load_served', 0.33)
   elsif ['base-hvac-setpoints.osw'].include? osw_file
-    step.setArgument('setpoint_heating_weekday_temp', 60.0)
-    step.setArgument('setpoint_heating_weekend_temp', 60.0)
-    step.setArgument('setpoint_cooling_weekday_temp', 80.0)
-    step.setArgument('setpoint_cooling_weekend_temp', 80.0)
+    step.setArgument('setpoint_heating_temp', 60.0)
+    step.setArgument('setpoint_cooling_temp', 80.0)
   elsif ['base-hvac-stove-oil-only.osw'].include? osw_file
     step.setArgument('heating_system_type', HPXML::HVACTypeStove)
     step.setArgument('heating_system_fuel', HPXML::FuelTypeOil)
@@ -1771,15 +1778,6 @@ def get_values(osw_file, step)
     step.setArgument('schedules_vacancy_end_day_of_month', 30)
   elsif ['extra-schedules-random-seed.osw'].include? osw_file
     step.setArgument('schedules_random_seed', 123)
-  elsif ['extra-hvac-programmable-thermostat.osw'].include? osw_file
-    step.setArgument('setpoint_heating_weekday_offset_magnitude', 4)
-    step.setArgument('setpoint_heating_weekend_offset_magnitude', 4)
-    step.setArgument('setpoint_heating_weekday_schedule', '-1, -1, -1, -1, -1, -1, 0, 0, -1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1')
-    step.setArgument('setpoint_heating_weekend_schedule', '-1, -1, -1, -1, -1, -1, 0, 0, -1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1')
-    step.setArgument('setpoint_cooling_weekday_offset_magnitude', 4)
-    step.setArgument('setpoint_cooling_weekend_offset_magnitude', 4)
-    step.setArgument('setpoint_cooling_weekday_schedule', '0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0')
-    step.setArgument('setpoint_cooling_weekend_schedule', '0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0')
   end
 
   # Warnings/Errors
@@ -2140,7 +2138,6 @@ def create_hpxmls
     'base-hvac-none.xml' => 'base.xml',
     'base-hvac-portable-heater-gas-only.xml' => 'base.xml',
     'base-hvac-programmable-thermostat.xml' => 'base.xml',
-    'base-hvac-programmable-thermostat-detailed.xml' => 'base.xml',
     'base-hvac-room-ac-only.xml' => 'base.xml',
     'base-hvac-room-ac-only-33percent.xml' => 'base-hvac-room-ac-only.xml',
     'base-hvac-setpoints.xml' => 'base.xml',
@@ -5101,14 +5098,6 @@ def set_hpxml_hvac_control(hpxml_file, hpxml)
     hpxml.hvac_controls[0].cooling_setup_temp = 80
     hpxml.hvac_controls[0].cooling_setup_hours_per_week = 6 * 7
     hpxml.hvac_controls[0].cooling_setup_start_hour = 9 # 9am
-  elsif ['base-hvac-programmable-thermostat-detailed.xml'].include? hpxml_file
-    hpxml.hvac_controls[0].control_type = HPXML::HVACControlTypeProgrammable
-    hpxml.hvac_controls[0].heating_setpoint_temp = nil
-    hpxml.hvac_controls[0].cooling_setpoint_temp = nil
-    hpxml.hvac_controls[0].weekday_heating_setpoints = '64, 64, 64, 64, 64, 64, 64, 74, 74, 66, 66, 66, 66, 66, 66, 66, 66, 68, 68, 68, 68, 68, 64, 64'
-    hpxml.hvac_controls[0].weekend_heating_setpoints = '74, 74, 74, 74, 74, 74, 74, 74, 74, 74, 74, 74, 74, 74, 74, 74, 74, 74, 74, 74, 74, 74, 74, 74'
-    hpxml.hvac_controls[0].weekday_cooling_setpoints = '82, 82, 82, 82, 82, 82, 82, 72, 72, 80, 80, 80, 80, 80, 80, 80, 80, 78, 78, 78, 78, 78, 82, 82'
-    hpxml.hvac_controls[0].weekend_cooling_setpoints = '78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78'
   elsif ['base-hvac-setpoints.xml'].include? hpxml_file
     hpxml.hvac_controls[0].heating_setpoint_temp = 60
     hpxml.hvac_controls[0].cooling_setpoint_temp = 80

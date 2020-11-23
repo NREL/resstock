@@ -1213,80 +1213,56 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setUnits('W/CFM')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('setpoint_heating_weekday_temp', true)
-    arg.setDisplayName('Heating Setpoint: Weekday Temperature')
-    arg.setDescription('Specify the weekday heating setpoint temperature.')
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('setpoint_heating_temp', true)
+    arg.setDisplayName('Setpoint: Heating Temperature')
+    arg.setDescription('Specify the heating setpoint temperature.')
     arg.setUnits('deg-F')
     arg.setDefaultValue(71)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('setpoint_heating_weekend_temp', true)
-    arg.setDisplayName('Heating Setpoint: Weekend Temperature')
-    arg.setDescription('Specify the weekend heating setpoint temperature.')
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('setpoint_heating_setback_temp', true)
+    arg.setDisplayName('Setpoint: Heating Setback Temperature')
+    arg.setDescription('Specify the heating setback temperature.')
     arg.setUnits('deg-F')
     arg.setDefaultValue(71)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('setpoint_heating_weekday_offset_magnitude', false)
-    arg.setDisplayName('Heating Setpoint: Weekday Offset Magnitude')
-    arg.setDescription('Specify the weekday heating offset magnitude.')
-    arg.setUnits('deg-F')
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('setpoint_heating_setback_hours_per_week', true)
+    arg.setDisplayName('Setpoint: Heating Setback Hours per Week')
+    arg.setDescription('Specify the heating setback number of hours per week value.')
+    arg.setDefaultValue(0)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('setpoint_heating_weekend_offset_magnitude', false)
-    arg.setDisplayName('Heating Setpoint: Weekend Offset Magnitude')
-    arg.setDescription('Specify the weekend heating offset magnitude.')
-    arg.setUnits('deg-F')
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('setpoint_heating_setback_start_hour', true)
+    arg.setDisplayName('Setpoint: Heating Setback Start Hour')
+    arg.setDescription('Specify the heating setback start hour value. 0 = midnight, 12 = noon')
+    arg.setDefaultValue(23)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument('setpoint_heating_weekday_schedule', false)
-    arg.setDisplayName('Heating Setpoint: Weekday Schedule')
-    arg.setDescription('Specify the 24-hour comma-separated weekday heating schedule of 0s and 1s.')
-    arg.setUnits('deg-F')
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument('setpoint_heating_weekend_schedule', false)
-    arg.setDisplayName('Heating Setpoint: Weekend Schedule')
-    arg.setDescription('Specify the 24-hour comma-separated weekend heating schedule of 0s and 1s.')
-    arg.setUnits('deg-F')
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('setpoint_cooling_weekday_temp', true)
-    arg.setDisplayName('Cooling Setpoint: Weekday Temperature')
-    arg.setDescription('Specify the weekday cooling setpoint temperature.')
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('setpoint_cooling_temp', true)
+    arg.setDisplayName('Setpoint: Cooling Temperature')
+    arg.setDescription('Specify the cooling setpoint temperature.')
     arg.setUnits('deg-F')
     arg.setDefaultValue(76)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('setpoint_cooling_weekend_temp', true)
-    arg.setDisplayName('Cooling Setpoint: Weekend Temperature')
-    arg.setDescription('Specify the weekend cooling setpoint temperature.')
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('setpoint_cooling_setup_temp', true)
+    arg.setDisplayName('Setpoint: Cooling Setup Temperature')
+    arg.setDescription('Specify the cooling setup temperature.')
     arg.setUnits('deg-F')
     arg.setDefaultValue(76)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('setpoint_cooling_weekday_offset_magnitude', false)
-    arg.setDisplayName('Cooling Setpoint: Weekday Offset Magnitude')
-    arg.setDescription('Specify the weekday cooling offset magnitude.')
-    arg.setUnits('deg-F')
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('setpoint_cooling_setup_hours_per_week', true)
+    arg.setDisplayName('Setpoint: Cooling Setup Hours per Week')
+    arg.setDescription('Specify the cooling setup number of hours per week value.')
+    arg.setDefaultValue(0)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('setpoint_cooling_weekend_offset_magnitude', false)
-    arg.setDisplayName('Cooling Setpoint: Weekend Offset Magnitude')
-    arg.setDescription('Specify the weekend cooling offset magnitude.')
-    arg.setUnits('deg-F')
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument('setpoint_cooling_weekday_schedule', false)
-    arg.setDisplayName('Cooling Setpoint: Weekday Schedule')
-    arg.setDescription('Specify the 24-hour comma-separated weekday cooling schedule of 0s and 1s.')
-    arg.setUnits('deg-F')
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument('setpoint_cooling_weekend_schedule', false)
-    arg.setDisplayName('Cooling Setpoint: Weekend Schedule')
-    arg.setDescription('Specify the 24-hour comma-separated weekend cooling schedule of 0s and 1s.')
-    arg.setUnits('deg-F')
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('setpoint_cooling_setup_start_hour', true)
+    arg.setDisplayName('Setpoint: Cooling Setup Start Hour')
+    arg.setDescription('Specify the cooling setup start hour value. 0 = midnight, 12 = noon')
+    arg.setDefaultValue(9)
     args << arg
 
     duct_leakage_units_choices = OpenStudio::StringVector.new
@@ -3209,18 +3185,14 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
              heat_pump_mini_split_is_ducted: runner.getOptionalStringArgumentValue('heat_pump_mini_split_is_ducted', user_arguments),
              heat_pump_pump_power_watts_per_ton: runner.getOptionalDoubleArgumentValue('heat_pump_pump_power_watts_per_ton', user_arguments),
              heat_pump_fan_power_watts_per_cfm: runner.getOptionalDoubleArgumentValue('heat_pump_fan_power_watts_per_cfm', user_arguments),
-             setpoint_heating_weekday_temp: runner.getDoubleArgumentValue('setpoint_heating_weekday_temp', user_arguments),
-             setpoint_heating_weekend_temp: runner.getDoubleArgumentValue('setpoint_heating_weekend_temp', user_arguments),
-             setpoint_heating_weekday_offset_magnitude: runner.getOptionalDoubleArgumentValue('setpoint_heating_weekday_offset_magnitude', user_arguments),
-             setpoint_heating_weekend_offset_magnitude: runner.getOptionalDoubleArgumentValue('setpoint_heating_weekend_offset_magnitude', user_arguments),
-             setpoint_heating_weekday_schedule: runner.getOptionalStringArgumentValue('setpoint_heating_weekday_schedule', user_arguments),
-             setpoint_heating_weekend_schedule: runner.getOptionalStringArgumentValue('setpoint_heating_weekend_schedule', user_arguments),
-             setpoint_cooling_weekday_temp: runner.getDoubleArgumentValue('setpoint_cooling_weekday_temp', user_arguments),
-             setpoint_cooling_weekend_temp: runner.getDoubleArgumentValue('setpoint_cooling_weekend_temp', user_arguments),
-             setpoint_cooling_weekday_offset_magnitude: runner.getOptionalDoubleArgumentValue('setpoint_cooling_weekday_offset_magnitude', user_arguments),
-             setpoint_cooling_weekend_offset_magnitude: runner.getOptionalDoubleArgumentValue('setpoint_cooling_weekend_offset_magnitude', user_arguments),
-             setpoint_cooling_weekday_schedule: runner.getOptionalStringArgumentValue('setpoint_cooling_weekday_schedule', user_arguments),
-             setpoint_cooling_weekend_schedule: runner.getOptionalStringArgumentValue('setpoint_cooling_weekend_schedule', user_arguments),
+             setpoint_heating_temp: runner.getDoubleArgumentValue('setpoint_heating_temp', user_arguments),
+             setpoint_heating_setback_temp: runner.getDoubleArgumentValue('setpoint_heating_setback_temp', user_arguments),
+             setpoint_heating_setback_hours_per_week: runner.getDoubleArgumentValue('setpoint_heating_setback_hours_per_week', user_arguments),
+             setpoint_heating_setback_start_hour: runner.getDoubleArgumentValue('setpoint_heating_setback_start_hour', user_arguments),
+             setpoint_cooling_temp: runner.getDoubleArgumentValue('setpoint_cooling_temp', user_arguments),
+             setpoint_cooling_setup_temp: runner.getDoubleArgumentValue('setpoint_cooling_setup_temp', user_arguments),
+             setpoint_cooling_setup_hours_per_week: runner.getDoubleArgumentValue('setpoint_cooling_setup_hours_per_week', user_arguments),
+             setpoint_cooling_setup_start_hour: runner.getDoubleArgumentValue('setpoint_cooling_setup_start_hour', user_arguments),
              ducts_supply_leakage_units: runner.getStringArgumentValue('ducts_supply_leakage_units', user_arguments),
              ducts_return_leakage_units: runner.getStringArgumentValue('ducts_return_leakage_units', user_arguments),
              ducts_supply_leakage_value: runner.getDoubleArgumentValue('ducts_supply_leakage_value', user_arguments),
@@ -4611,50 +4583,20 @@ class HPXMLFile
     end
   end
 
-  def self.modify_setpoint_schedule(schedule, offset_magnitude, offset_schedule)
-    offset_schedule.each_with_index do |direction, i|
-      schedule[i] += offset_magnitude * direction
-    end
-    return schedule
-  end
-
   def self.set_hvac_control(hpxml, runner, args)
     return if (args[:heating_system_type] == 'none') && (args[:cooling_system_type] == 'none') && (args[:heat_pump_type] == 'none')
 
-    weekday_heating_setpoints = [args[:setpoint_heating_weekday_temp]] * 24
-    weekend_heating_setpoints = [args[:setpoint_heating_weekend_temp]] * 24
-
-    weekday_cooling_setpoints = [args[:setpoint_cooling_weekday_temp]] * 24
-    weekend_cooling_setpoints = [args[:setpoint_cooling_weekend_temp]] * 24
-
-    if args[:setpoint_heating_weekday_offset_magnitude].is_initialized && args[:setpoint_heating_weekday_schedule].is_initialized
-      setpoint_heating_weekday_offset_magnitude = args[:setpoint_heating_weekday_offset_magnitude].get
-      setpoint_heating_weekday_schedule = args[:setpoint_heating_weekday_schedule].get.split(', ').map { |i| Float(i) }
-      weekday_heating_setpoints = modify_setpoint_schedule(weekday_heating_setpoints, setpoint_heating_weekday_offset_magnitude, setpoint_heating_weekday_schedule)
+    if (args[:setpoint_heating_temp] != args[:setpoint_heating_setback_temp]) && (args[:setpoint_heating_setback_hours_per_week] > 0)
+      heating_setback_temp = args[:setpoint_heating_setback_temp]
+      heating_setback_hours_per_week = args[:setpoint_heating_setback_hours_per_week]
+      heating_setback_start_hour = args[:setpoint_heating_setback_start_hour]
     end
 
-    if args[:setpoint_heating_weekend_offset_magnitude].is_initialized && args[:setpoint_heating_weekend_schedule].is_initialized
-      setpoint_heating_weekend_offset_magnitude = args[:setpoint_heating_weekend_offset_magnitude].get
-      setpoint_heating_weekend_schedule = args[:setpoint_heating_weekend_schedule].get.split(', ').map { |i| Float(i) }
-      weekend_heating_setpoints = modify_setpoint_schedule(weekend_heating_setpoints, setpoint_heating_weekend_offset_magnitude, setpoint_heating_weekend_schedule)
+    if (args[:setpoint_cooling_temp] != args[:setpoint_cooling_setup_temp]) && (args[:setpoint_cooling_setup_hours_per_week] > 0)
+      cooling_setup_temp = args[:setpoint_cooling_setup_temp]
+      cooling_setup_hours_per_week = args[:setpoint_cooling_setup_hours_per_week]
+      cooling_setup_start_hour = args[:setpoint_cooling_setup_start_hour]
     end
-
-    if args[:setpoint_cooling_weekday_offset_magnitude].is_initialized && args[:setpoint_cooling_weekday_schedule].is_initialized
-      setpoint_cooling_weekday_offset_magnitude = args[:setpoint_cooling_weekday_offset_magnitude].get
-      setpoint_cooling_weekday_schedule = args[:setpoint_cooling_weekday_schedule].get.split(', ').map { |i| Float(i) }
-      weekday_cooling_setpoints = modify_setpoint_schedule(weekday_cooling_setpoints, setpoint_cooling_weekday_offset_magnitude, setpoint_cooling_weekday_schedule)
-    end
-
-    if args[:setpoint_cooling_weekend_offset_magnitude].is_initialized && args[:setpoint_cooling_weekend_schedule].is_initialized
-      setpoint_cooling_weekend_offset_magnitude = args[:setpoint_cooling_weekend_offset_magnitude].get
-      setpoint_cooling_weekend_schedule = args[:setpoint_cooling_weekend_schedule].get.split(', ').map { |i| Float(i) }
-      weekend_cooling_setpoints = modify_setpoint_schedule(weekend_cooling_setpoints, setpoint_cooling_weekend_offset_magnitude, setpoint_cooling_weekend_schedule)
-    end
-
-    weekday_heating_setpoints = weekday_heating_setpoints.join(', ')
-    weekend_heating_setpoints = weekend_heating_setpoints.join(', ')
-    weekday_cooling_setpoints = weekday_cooling_setpoints.join(', ')
-    weekend_cooling_setpoints = weekend_cooling_setpoints.join(', ')
 
     ceiling_fan_quantity = nil
     if args[:ceiling_fan_quantity] != Constants.Auto
@@ -4666,10 +4608,14 @@ class HPXMLFile
     end
 
     hpxml.hvac_controls.add(id: 'HVACControl',
-                            weekday_heating_setpoints: weekday_heating_setpoints,
-                            weekend_heating_setpoints: weekend_heating_setpoints,
-                            weekday_cooling_setpoints: weekday_cooling_setpoints,
-                            weekend_cooling_setpoints: weekend_cooling_setpoints,
+                            heating_setpoint_temp: args[:setpoint_heating_temp],
+                            cooling_setpoint_temp: args[:setpoint_cooling_temp],
+                            heating_setback_temp: heating_setback_temp,
+                            heating_setback_hours_per_week: heating_setback_hours_per_week,
+                            heating_setback_start_hour: heating_setback_start_hour,
+                            cooling_setup_temp: cooling_setup_temp,
+                            cooling_setup_hours_per_week: cooling_setup_hours_per_week,
+                            cooling_setup_start_hour: cooling_setup_start_hour,
                             ceiling_fan_cooling_setpoint_temp_offset: ceiling_fan_cooling_setpoint_temp_offset)
   end
 
