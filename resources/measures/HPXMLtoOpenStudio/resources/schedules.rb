@@ -495,11 +495,6 @@ class HourlySchedule
         else
           value = linedata[0].to_f + offset
         end
-        if value < 0 or value > 100
-          runner.RegisterError("Invalid value included in the hourly water heater setpoint. Setpoint must be greater and 0 C and less than 100 C")
-        elsif value < 37.78 or value > 60
-          runner.RegisterWarning("Water heater setpoint below 100 F or above 140 F, double check inputs")
-        end
         data[hour] = value
       else
         if validation_values.include? linedata[0]

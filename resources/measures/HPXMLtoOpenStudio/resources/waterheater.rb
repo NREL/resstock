@@ -919,12 +919,14 @@ class Waterheater
           if wh.to_WaterHeaterMixed.get.setpointTemperatureSchedule.is_initialized
             objects_to_remove << wh.to_WaterHeaterMixed.get.setpointTemperatureSchedule.get
           end
-        elsif wh.to_WaterHeaterStratified.is_initialized
-          if not wh.to_WaterHeaterStratified.get.secondaryPlantLoop.is_initialized
+        elsif wh.to_WaterHeaterStratified.is_initialized #Need to remove both HPWH and stratified electric/gas tanks
+          if not wh.to_WaterHeaterStratified.get.secondaryPlantLoop.is_initialized #don't remove SWH
             model.getWaterHeaterHeatPumpWrappedCondensers.each do |hpwh|
               objects_to_remove << hpwh.tank
               objects_to_remove << hpwh
             end
+            
+            objects_to_remove << wh
             objects_to_remove << wh.to_WaterHeaterStratified.get.heater1SetpointTemperatureSchedule
             objects_to_remove << wh.to_WaterHeaterStratified.get.heater2SetpointTemperatureSchedule
 
@@ -961,6 +963,8 @@ class Waterheater
 
               schedule.remove
             end
+
+            #model.getScheduleFixedInterval.each do |schedule|
 
             model.getEnergyManagementSystemPrograms.each do |program|
               next unless program.name.to_s.include? obj_name_underscore
