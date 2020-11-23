@@ -651,28 +651,33 @@ HPXML HVAC Control
 ******************
 
 A ``Systems/HVAC/HVACControl`` must be provided if any HVAC systems are specified.
-The heating setpoint (``SetpointTempHeatingSeason``) and cooling setpoint (``SetpointTempCoolingSeason``) are optional elements.
 
-If there is a heating setback, it is defined with:
+Setpoints can be provided using either simple inputs or detailed inputs:
 
-- ``SetbackTempHeatingSeason``: Temperature during heating setback
-- ``extension/SetbackStartHourHeating``: The start hour of the heating setback where 0=midnight and 12=noon
-- ``TotalSetbackHoursperWeekHeating``: The number of hours of heating setback per week
+1. **Simple inputs**
 
-If there is a cooling setup, it is defined with:
+  Provide the heating setpoint (``SetpointTempHeatingSeason``) and cooling setpoint (``SetpointTempCoolingSeason``) elements.
 
-- ``SetupTempCoolingSeason``: Temperature during cooling setup
-- ``extension/SetupStartHourCooling``: The start hour of the cooling setup where 0=midnight and 12=noon
-- ``TotalSetupHoursperWeekCooling``: The number of hours of cooling setup per week
+  If there is a heating setback, it is defined with:
 
-Alternatively, 24-hour weekday and weekend heating/cooling setpoint schedules can be defined with:
+  - ``SetbackTempHeatingSeason``: Temperature during heating setback
+  - ``extension/SetbackStartHourHeating``: The start hour of the heating setback where 0=midnight and 12=noon
+  - ``TotalSetbackHoursperWeekHeating``: The number of hours of heating setback per week
 
--- ``extension/WeekdaySetpointTempsHeatingSeason``
--- ``extension/WeekendSetpointTempsHeatingSeason``
--- ``extension/WeekdaySetpointTempsCoolingSeason``
--- ``extension/WeekendSetpointTempsCoolingSeason``
+  If there is a cooling setup, it is defined with:
 
-Either single setpoints (with optional setback/setup) or 24-hour setpoint schedules must be defined.
+  - ``SetupTempCoolingSeason``: Temperature during cooling setup
+  - ``extension/SetupStartHourCooling``: The start hour of the cooling setup where 0=midnight and 12=noon
+  - ``TotalSetupHoursperWeekCooling``: The number of hours of cooling setup per week
+
+2. **Detailed inputs**
+
+  Provide 24-hour comma-separated values for weekday and weekend heating/cooling setpoint schedules:
+
+  - ``extension/WeekdaySetpointTempsHeatingSeason``
+  - ``extension/WeekendSetpointTempsHeatingSeason``
+  - ``extension/WeekdaySetpointTempsCoolingSeason``
+  - ``extension/WeekendSetpointTempsCoolingSeason``
 
 Finally, if there are sufficient ceiling fans present that result in a reduced cooling setpoint, this offset can be specified with ``extension/CeilingFanSetpointTempCoolingSeasonOffset``.
 
@@ -698,8 +703,22 @@ Air Distribution
 - Optional return ducts (``Ducts[DuctType='return']``)
 
 For each duct, ``DuctInsulationRValue`` must be provided.
-``DuctLocation`` and ``DuctSurfaceArea`` can be optionally provided.
-The provided ``DuctLocation`` can be one of the following:
+``DuctSurfaceArea`` and ``DuctLocation`` must both be provided or both not be provided.
+
+If ``DuctSurfaceArea`` is not provided, duct areas will be calculated based on ANSI/ASHRAE Standard 152-2004:
+
+======================  ====================================================================
+Duct Type               Default Value
+======================  ====================================================================
+Primary supply ducts    :math:`0.27 \cdot F_{out} \cdot CFA_{ServedByAirDistribution}`
+Secondary supply ducts  :math:`0.27 \cdot (1 - F_{out}) \cdot CFA_{ServedByAirDistribution}`
+Primary return ducts    :math:`b_r \cdot F_{out} \cdot CFA_{ServedByAirDistribution}`
+Secondary return ducts  :math:`b_r \cdot (1 - F_{out}) \cdot CFA_{ServedByAirDistribution}`
+======================  ====================================================================
+
+where F\ :sub:`out` is 1.0 when ``NumberofConditionedFloorsAboveGrade`` <= 1 and 0.75 when ``NumberofConditionedFloorsAboveGrade`` > 1, and b\ :sub:`r` is 0.05 * ``NumberofReturnRegisters`` with a maximum value of 0.25.
+
+If ``DuctLocation`` is provided, it can be one of the following:
 
 ==============================  ================================================  =========================================================  =========================  ================
 Location                        Description                                       Temperature                                                Building Type              Default Priority
@@ -722,21 +741,8 @@ other multifamily buffer space  E.g., enclosed unconditioned stairwell          
 other non-freezing space        E.g., shared parking garage ceiling               Floats with outside; minimum of 40F                        Attached/Multifamily only
 ==============================  ================================================  =========================================================  =========================  ================
 
-If ``DuctLocation`` is not provided, the primary duct location will be chosen based on the presence of spaces and the "Default Priority" indicated above.
-For a 2+ story home, secondary ducts will also be located in the living space.
-
-If ``DuctSurfaceArea`` is not provided, the total duct area will be calculated based on ANSI/ASHRAE Standard 152-2004:
-
-========================================  ====================================================================
-Element Name                              Default Value
-========================================  ====================================================================
-DuctSurfaceArea (primary supply ducts)    :math:`0.27 \cdot F_{out} \cdot CFA_{ServedByAirDistribution}`
-DuctSurfaceArea (secondary supply ducts)  :math:`0.27 \cdot (1 - F_{out}) \cdot CFA_{ServedByAirDistribution}`
-DuctSurfaceArea (primary return ducts)    :math:`b_r \cdot F_{out} \cdot CFA_{ServedByAirDistribution}`
-DuctSurfaceArea (secondary return ducts)  :math:`b_r \cdot (1 - F_{out}) \cdot CFA_{ServedByAirDistribution}`
-========================================  ====================================================================
-
-where F\ :sub:`out` is 1.0 for 1-story homes and 0.75 for 2+ story homes and b\ :sub:`r` is 0.05 * ``NumberofReturnRegisters`` with a maximum value of 0.25.
+If ``DuctLocation`` is not provided, the location for primary ducts will be chosen based on the presence of spaces and the "Default Priority" indicated above.
+Any secondary ducts (when ``NumberofConditionedFloorsAboveGrade`` > 1) will always be located in the living space.
 
 Hydronic Distribution
 ~~~~~~~~~~~~~~~~~~~~~

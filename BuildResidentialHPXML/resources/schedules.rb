@@ -8,12 +8,13 @@ class ScheduleGenerator
   def initialize(runner:,
                  model:,
                  epw_file:,
-                 building_id: nil)
-
+                 building_id: nil,
+                 random_seed: nil)
     @runner = runner
     @model = model
     @epw_file = epw_file
     @building_id = building_id
+    @random_seed = random_seed
   end
 
   def get_simulation_parameters
@@ -21,6 +22,7 @@ class ScheduleGenerator
     if @model.getSimulationControl.timestep.is_initialized
       @minutes_per_step = 60 / @model.getSimulationControl.timestep.get.numberOfTimestepsPerHour
     end
+
     @steps_in_day = 24 * 60 / @minutes_per_step
 
     @mkc_ts_per_day = 96
@@ -29,20 +31,15 @@ class ScheduleGenerator
     @model.getYearDescription.isLeapYear ? @total_days_in_year = 366 : @total_days_in_year = 365
   end
 
-  def get_building_id
-    if @building_id.nil?
-      building_id = @model.getBuilding.additionalProperties.getFeatureAsInteger('Building ID') # this becomes the seed
-      if building_id.is_initialized
-        building_id = building_id.get
-      else
-        @runner.registerWarning('Unable to retrieve the Building ID (seed for schedule generator); setting it to 1.')
-        building_id = 1
-      end
+  def get_random_seed
+    if @random_seed.nil?
+      @runner.registerInfo('Unable to retrieve the schedules random seed; setting it to 1.')
+      seed = 1
     else
-      building_id = @building_id
+      @runner.registerInfo("Retrieved the schedules random seed; setting it to #{@random_seed}.")
+      seed = @random_seed
     end
-
-    return building_id
+    return seed
   end
 
   def self.col_names
@@ -352,11 +349,8 @@ class ScheduleGenerator
   end
 
   def create_stochastic_schedules(args:)
-    # get building_id if this is called by, e.g., BuildExistingModel
-    building_id = get_building_id
-
-    # initialize a random number generator using building_id
-    prng = Random.new(building_id)
+    # initialize a random number generator
+    prng = Random.new(get_random_seed)
 
     # load the schedule configuration file
     schedule_config = YAML.load_file(args[:resources_path] + '/schedules_config.yml')

@@ -247,13 +247,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       hpxml.hvac_controls.each do |hvac_control|
         hvac_control.control_type = nil # Not used by model
         hvac_control.heating_setpoint_temp = nil
-        hvac_control.heating_setback_temp = nil
-        hvac_control.heating_setback_hours_per_week = nil
-        hvac_control.heating_setback_start_hour = nil
         hvac_control.cooling_setpoint_temp = nil
-        hvac_control.cooling_setup_temp = nil
-        hvac_control.cooling_setup_hours_per_week = nil
-        hvac_control.cooling_setup_start_hour = nil
         hvac_control.weekday_heating_setpoints = nil
         hvac_control.weekend_heating_setpoints = nil
         hvac_control.weekday_cooling_setpoints = nil
