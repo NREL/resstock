@@ -1356,10 +1356,10 @@ class HVAC
       htg_weekend_setpoints = htg_weekday_setpoints.dup
     else
       # 24-hr weekday/weekend heating setpoint schedules
-      htg_weekday_setpoints = hvac_control.weekday_heating_setpoints.split(', ').map { |i| Float(i) }
+      htg_weekday_setpoints = hvac_control.weekday_heating_setpoints.split(',').map { |i| Float(i) }
       htg_weekday_setpoints = [htg_weekday_setpoints] * 12
 
-      htg_weekend_setpoints = hvac_control.weekend_heating_setpoints.split(', ').map { |i| Float(i) }
+      htg_weekend_setpoints = hvac_control.weekend_heating_setpoints.split(',').map { |i| Float(i) }
       htg_weekend_setpoints = [htg_weekend_setpoints] * 12
     end
 
@@ -1382,10 +1382,10 @@ class HVAC
       clg_weekend_setpoints = clg_weekday_setpoints.dup
     else
       # 24-hr weekday/weekend cooling setpoint schedules
-      clg_weekday_setpoints = hvac_control.weekday_cooling_setpoints.split(', ').map { |i| Float(i) }
+      clg_weekday_setpoints = hvac_control.weekday_cooling_setpoints.split(',').map { |i| Float(i) }
       clg_weekday_setpoints = [clg_weekday_setpoints] * 12
 
-      clg_weekend_setpoints = hvac_control.weekend_cooling_setpoints.split(', ').map { |i| Float(i) }
+      clg_weekend_setpoints = hvac_control.weekend_cooling_setpoints.split(',').map { |i| Float(i) }
       clg_weekend_setpoints = [clg_weekend_setpoints] * 12
     end
 
