@@ -156,6 +156,8 @@ rundir = File.join(options[:output_dir], 'run')
 puts "HPXML: #{options[:hpxml]}"
 success = run_workflow(basedir, rundir, options[:hpxml], options[:debug], timeseries_output_freq, timeseries_outputs)
 
-if success
-  puts "Completed in #{(Time.now - start_time).round(1)} seconds."
+if not success
+  exit! 1
 end
+
+puts "Completed in #{(Time.now - start_time).round(1)} seconds."

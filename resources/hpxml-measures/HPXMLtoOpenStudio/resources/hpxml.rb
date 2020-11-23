@@ -1434,6 +1434,7 @@ class HPXML < Object
 
     def net_area
       return if nil?
+      return if @area.nil?
 
       val = @area
       skylights.each do |skylight|
@@ -1661,6 +1662,7 @@ class HPXML < Object
 
     def net_area
       return if nil?
+      return if @area.nil?
 
       val = @area
       (windows + doors).each do |subsurface|
@@ -1798,6 +1800,7 @@ class HPXML < Object
 
     def net_area
       return if nil?
+      return if @area.nil?
 
       val = @area
       (@hpxml_object.windows + @hpxml_object.doors).each do |subsurface|
@@ -2948,35 +2951,6 @@ class HPXML < Object
 
     def check_for_errors
       errors = []
-
-      if not @weekday_heating_setpoints.nil?
-        vals = @weekday_heating_setpoints.split(', ').map { |i| i.to_f }
-        if vals.length != 24
-          errors << "Weekday Heating Setpoints (#{vals.length}) must be of length 24."
-        end
-      end
-
-      if not @weekend_heating_setpoints.nil?
-        vals = @weekend_heating_setpoints.split(', ').map { |i| i.to_f }
-        if vals.length != 24
-          errors << "Weekend Heating Setpoints (#{vals.length}) must be of length 24."
-        end
-      end
-
-      if not @weekday_cooling_setpoints.nil?
-        vals = @weekday_cooling_setpoints.split(', ').map { |i| i.to_f }
-        if vals.length != 24
-          errors << "Weekday Cooling Setpoints (#{vals.length}) must be of length 24."
-        end
-      end
-
-      if not @weekend_cooling_setpoints.nil?
-        vals = @weekend_cooling_setpoints.split(', ').map { |i| i.to_f }
-        if vals.length != 24
-          errors << "Weekend Cooling Setpoints (#{vals.length}) must be of length 24."
-        end
-      end
-
       return errors
     end
 
@@ -2994,19 +2968,13 @@ class HPXML < Object
       XMLHelper.add_element(hvac_control, 'SetupTempCoolingSeason', to_float(@cooling_setup_temp)) unless @cooling_setup_temp.nil?
       XMLHelper.add_element(hvac_control, 'SetpointTempCoolingSeason', to_float(@cooling_setpoint_temp)) unless @cooling_setpoint_temp.nil?
       XMLHelper.add_element(hvac_control, 'TotalSetupHoursperWeekCooling', to_integer(@cooling_setup_hours_per_week)) unless @cooling_setup_hours_per_week.nil?
-      if (not @heating_setback_start_hour.nil?) || (not @cooling_setup_start_hour.nil?) || (not @ceiling_fan_cooling_setpoint_temp_offset.nil?)
-        extension = XMLHelper.create_elements_as_needed(hvac_control, ['extension'])
-        XMLHelper.add_element(extension, 'SetbackStartHourHeating', to_integer(@heating_setback_start_hour)) unless @heating_setback_start_hour.nil?
-        XMLHelper.add_element(extension, 'SetupStartHourCooling', to_integer(@cooling_setup_start_hour)) unless @cooling_setup_start_hour.nil?
-        XMLHelper.add_element(extension, 'CeilingFanSetpointTempCoolingSeasonOffset', to_float(@ceiling_fan_cooling_setpoint_temp_offset)) unless @ceiling_fan_cooling_setpoint_temp_offset.nil?
-      end
-      if (not @weekday_heating_setpoints.nil?) || (not @weekend_heating_setpoints.nil?) || (not @weekday_cooling_setpoints.nil?) || (not @weekday_cooling_setpoints.nil?)
-        extension = XMLHelper.create_elements_as_needed(hvac_control, ['extension'])
-        XMLHelper.add_element(extension, 'WeekdaySetpointTempsHeatingSeason', @weekday_heating_setpoints) unless @weekday_heating_setpoints.nil?
-        XMLHelper.add_element(extension, 'WeekendSetpointTempsHeatingSeason', @weekend_heating_setpoints) unless @weekend_heating_setpoints.nil?
-        XMLHelper.add_element(extension, 'WeekdaySetpointTempsCoolingSeason', @weekday_cooling_setpoints) unless @weekday_cooling_setpoints.nil?
-        XMLHelper.add_element(extension, 'WeekendSetpointTempsCoolingSeason', @weekend_cooling_setpoints) unless @weekday_cooling_setpoints.nil?
-      end
+      XMLHelper.add_extension(hvac_control, 'SetbackStartHourHeating', to_integer(@heating_setback_start_hour)) unless @heating_setback_start_hour.nil?
+      XMLHelper.add_extension(hvac_control, 'SetupStartHourCooling', to_integer(@cooling_setup_start_hour)) unless @cooling_setup_start_hour.nil?
+      XMLHelper.add_extension(hvac_control, 'CeilingFanSetpointTempCoolingSeasonOffset', to_float(@ceiling_fan_cooling_setpoint_temp_offset)) unless @ceiling_fan_cooling_setpoint_temp_offset.nil?
+      XMLHelper.add_extension(hvac_control, 'WeekdaySetpointTempsHeatingSeason', @weekday_heating_setpoints) unless @weekday_heating_setpoints.nil?
+      XMLHelper.add_extension(hvac_control, 'WeekendSetpointTempsHeatingSeason', @weekend_heating_setpoints) unless @weekend_heating_setpoints.nil?
+      XMLHelper.add_extension(hvac_control, 'WeekdaySetpointTempsCoolingSeason', @weekday_cooling_setpoints) unless @weekday_cooling_setpoints.nil?
+      XMLHelper.add_extension(hvac_control, 'WeekendSetpointTempsCoolingSeason', @weekend_cooling_setpoints) unless @weekend_cooling_setpoints.nil?
     end
 
     def from_oga(hvac_control)

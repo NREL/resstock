@@ -167,6 +167,12 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDescription("This numeric field should contain the ending day of the ending month (must be valid for month) for the vacancy period desired. Only applies if the schedules type is 'stochastic'.")
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument.makeIntegerArgument('schedules_random_seed', false)
+    arg.setDisplayName('Schedules: Random Seed')
+    arg.setUnits('#')
+    arg.setDescription("This numeric field is the seed for the random number generator. Only applies if the schedules type is 'stochastic'.")
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('weather_station_epw_filepath', true)
     arg.setDisplayName('EnergyPlus Weather (EPW) Filepath')
     arg.setDescription('Path of the EPW file.')
@@ -3065,6 +3071,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
              schedules_vacancy_begin_day_of_month: runner.getOptionalIntegerArgumentValue('schedules_vacancy_begin_day_of_month', user_arguments),
              schedules_vacancy_end_month: runner.getOptionalIntegerArgumentValue('schedules_vacancy_end_month', user_arguments),
              schedules_vacancy_end_day_of_month: runner.getOptionalIntegerArgumentValue('schedules_vacancy_end_day_of_month', user_arguments),
+             schedules_random_seed: runner.getOptionalIntegerArgumentValue('schedules_random_seed', user_arguments),
              weather_station_epw_filepath: runner.getStringArgumentValue('weather_station_epw_filepath', user_arguments),
              site_type: runner.getOptionalStringArgumentValue('site_type', user_arguments),
              geometry_unit_type: runner.getStringArgumentValue('geometry_unit_type', user_arguments),
@@ -3683,6 +3690,8 @@ class HPXMLFile
       return true
     end
 
+    info_msgs = []
+
     # set the calendar year
     year_description = model.getYearDescription
     year_description.setCalendarYear(2007) # default to TMY
@@ -3692,6 +3701,7 @@ class HPXMLFile
     if epw_file.startDateActualYear.is_initialized # AMY
       year_description.setCalendarYear(epw_file.startDateActualYear.get)
     end
+    info_msgs << "CalendarYear=#{year_description.calendarYear}"
 
     # set the timestep
     timestep = model.getTimestep
@@ -3699,8 +3709,13 @@ class HPXMLFile
     if args[:simulation_control_timestep].is_initialized
       timestep.setNumberOfTimestepsPerHour(60 / args[:simulation_control_timestep].get)
     end
+    info_msgs << "NumberOfTimestepsPerHour=#{timestep.numberOfTimestepsPerHour}"
 
-    schedule_generator = ScheduleGenerator.new(runner: runner, model: model, epw_file: epw_file)
+    # get the seed
+    random_seed = args[:schedules_random_seed].get if args[:schedules_random_seed].is_initialized
+
+    # instantiate the generator
+    schedule_generator = ScheduleGenerator.new(runner: runner, model: model, epw_file: epw_file, random_seed: random_seed)
 
     # create the schedule
     if args[:geometry_num_occupants] == Constants.Auto
@@ -3716,6 +3731,8 @@ class HPXMLFile
     args[:schedules_path] = '../schedules.csv'
     success = schedule_generator.export(schedules_path: File.expand_path(args[:schedules_path]))
     return false if not success
+
+    runner.registerInfo("Created schedule with #{info_msgs.join(', ')}")
 
     return true
   end
@@ -4612,53 +4629,32 @@ class HPXMLFile
 
     if args[:setpoint_heating_weekday_offset_magnitude].is_initialized && args[:setpoint_heating_weekday_schedule].is_initialized
       setpoint_heating_weekday_offset_magnitude = args[:setpoint_heating_weekday_offset_magnitude].get
-      setpoint_heating_weekday_schedule = args[:setpoint_heating_weekday_schedule].get.split(', ').map { |i| i.to_f }
-      weekday_heating_setpoints = [args[:setpoint_heating_weekday_temp]] * setpoint_heating_weekday_schedule.length
+      setpoint_heating_weekday_schedule = args[:setpoint_heating_weekday_schedule].get.split(', ').map { |i| Float(i) }
       weekday_heating_setpoints = modify_setpoint_schedule(weekday_heating_setpoints, setpoint_heating_weekday_offset_magnitude, setpoint_heating_weekday_schedule)
     end
 
     if args[:setpoint_heating_weekend_offset_magnitude].is_initialized && args[:setpoint_heating_weekend_schedule].is_initialized
       setpoint_heating_weekend_offset_magnitude = args[:setpoint_heating_weekend_offset_magnitude].get
-      setpoint_heating_weekend_schedule = args[:setpoint_heating_weekend_schedule].get.split(', ').map { |i| i.to_f }
-      weekend_heating_setpoints = [args[:setpoint_heating_weekend_temp]] * setpoint_heating_weekend_schedule.length
+      setpoint_heating_weekend_schedule = args[:setpoint_heating_weekend_schedule].get.split(', ').map { |i| Float(i) }
       weekend_heating_setpoints = modify_setpoint_schedule(weekend_heating_setpoints, setpoint_heating_weekend_offset_magnitude, setpoint_heating_weekend_schedule)
     end
 
     if args[:setpoint_cooling_weekday_offset_magnitude].is_initialized && args[:setpoint_cooling_weekday_schedule].is_initialized
       setpoint_cooling_weekday_offset_magnitude = args[:setpoint_cooling_weekday_offset_magnitude].get
-      setpoint_cooling_weekday_schedule = args[:setpoint_cooling_weekday_schedule].get.split(', ').map { |i| i.to_f }
-      weekday_cooling_setpoints = [args[:setpoint_cooling_weekday_temp]] * setpoint_cooling_weekday_schedule.length
+      setpoint_cooling_weekday_schedule = args[:setpoint_cooling_weekday_schedule].get.split(', ').map { |i| Float(i) }
       weekday_cooling_setpoints = modify_setpoint_schedule(weekday_cooling_setpoints, setpoint_cooling_weekday_offset_magnitude, setpoint_cooling_weekday_schedule)
     end
 
     if args[:setpoint_cooling_weekend_offset_magnitude].is_initialized && args[:setpoint_cooling_weekend_schedule].is_initialized
       setpoint_cooling_weekend_offset_magnitude = args[:setpoint_cooling_weekend_offset_magnitude].get
-      setpoint_cooling_weekend_schedule = args[:setpoint_cooling_weekend_schedule].get.split(', ').map { |i| i.to_f }
-      weekend_cooling_setpoints = [args[:setpoint_cooling_weekend_temp]] * setpoint_cooling_weekend_schedule.length
+      setpoint_cooling_weekend_schedule = args[:setpoint_cooling_weekend_schedule].get.split(', ').map { |i| Float(i) }
       weekend_cooling_setpoints = modify_setpoint_schedule(weekend_cooling_setpoints, setpoint_cooling_weekend_offset_magnitude, setpoint_cooling_weekend_schedule)
     end
 
-    heating_setpoint_temp = nil
-    if weekday_heating_setpoints.uniq.length == 1 && weekend_heating_setpoints.uniq.length == 1 && weekday_heating_setpoints[0] == weekend_heating_setpoints[0]
-      heating_setpoint_temp = weekday_heating_setpoints[0]
-    end
-
-    cooling_setpoint_temp = nil
-    if weekday_cooling_setpoints.uniq.length == 1 && weekend_cooling_setpoints.uniq.length == 1 && weekday_cooling_setpoints[0] == weekend_cooling_setpoints[0]
-      cooling_setpoint_temp = weekday_cooling_setpoints[0]
-    end
-
-    if heating_setpoint_temp.nil? && cooling_setpoint_temp.nil?
-      weekday_heating_setpoints = weekday_heating_setpoints.join(', ')
-      weekend_heating_setpoints = weekend_heating_setpoints.join(', ')
-      weekday_cooling_setpoints = weekday_cooling_setpoints.join(', ')
-      weekend_cooling_setpoints = weekend_cooling_setpoints.join(', ')
-    else
-      weekday_heating_setpoints = nil
-      weekend_heating_setpoints = nil
-      weekday_cooling_setpoints = nil
-      weekend_cooling_setpoints = nil
-    end
+    weekday_heating_setpoints = weekday_heating_setpoints.join(', ')
+    weekend_heating_setpoints = weekend_heating_setpoints.join(', ')
+    weekday_cooling_setpoints = weekday_cooling_setpoints.join(', ')
+    weekend_cooling_setpoints = weekend_cooling_setpoints.join(', ')
 
     ceiling_fan_quantity = nil
     if args[:ceiling_fan_quantity] != Constants.Auto
@@ -4670,8 +4666,6 @@ class HPXMLFile
     end
 
     hpxml.hvac_controls.add(id: 'HVACControl',
-                            heating_setpoint_temp: heating_setpoint_temp,
-                            cooling_setpoint_temp: cooling_setpoint_temp,
                             weekday_heating_setpoints: weekday_heating_setpoints,
                             weekend_heating_setpoints: weekend_heating_setpoints,
                             weekday_cooling_setpoints: weekday_cooling_setpoints,
