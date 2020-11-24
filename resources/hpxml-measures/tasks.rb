@@ -234,6 +234,7 @@ def create_osws
     'extra-vacancy-6-months.osw' => 'base-schedules-stochastic.osw',
     'extra-schedules-random-seed.osw' => 'base-schedules-stochastic.osw',
     'extra-hvac-programmable-thermostat.osw' => 'base.osw',
+    'extra-plug-loads-additional-multipliers.osw' => 'base.osw',
 
     'invalid_files/non-electric-heat-pump-water-heater.osw' => 'base.osw',
     'invalid_files/heating-system-and-heat-pump.osw' => 'base.osw',
@@ -257,7 +258,8 @@ def create_osws
     'invalid_files/unvented-attic-with-floor-and-roof-insulation.osw' => 'base.osw',
     'invalid_files/conditioned-basement-with-ceiling-insulation.osw' => 'base.osw',
     'invalid_files/conditioned-attic-with-floor-insulation.osw' => 'base.osw',
-    'invalid_files/dhw-indirect-without-boiler.osw' => 'base.osw'
+    'invalid_files/dhw-indirect-without-boiler.osw' => 'base.osw',
+    'invalid_files/multipliers-without-plug-loads.osw' => 'base.osw'
   }
 
   puts "Generating #{osws_files.size} OSW files..."
@@ -636,18 +638,22 @@ def get_values(osw_file, step)
     step.setArgument('ceiling_fan_efficiency', Constants.Auto)
     step.setArgument('ceiling_fan_quantity', Constants.Auto)
     step.setArgument('ceiling_fan_cooling_setpoint_temp_offset', 0)
+    step.setArgument('plug_loads_television_usage_multiplier', 1.0)
+    step.setArgument('plug_loads_television_usage_multiplier_2', 1.0)
     step.setArgument('plug_loads_other_annual_kwh', '2457.0')
     step.setArgument('plug_loads_other_frac_sensible', '0.855')
     step.setArgument('plug_loads_other_frac_latent', '0.045')
     step.setArgument('plug_loads_other_usage_multiplier', 1.0)
+    step.setArgument('plug_loads_other_usage_multiplier_2', 1.0)
     step.setArgument('plug_loads_television_annual_kwh', '620.0')
-    step.setArgument('plug_loads_television_usage_multiplier', 1.0)
     step.setArgument('plug_loads_well_pump_present', false)
     step.setArgument('plug_loads_well_pump_annual_kwh', Constants.Auto)
     step.setArgument('plug_loads_well_pump_usage_multiplier', 1.0)
+    step.setArgument('plug_loads_well_pump_usage_multiplier_2', 1.0)
     step.setArgument('plug_loads_vehicle_present', false)
     step.setArgument('plug_loads_vehicle_annual_kwh', Constants.Auto)
     step.setArgument('plug_loads_vehicle_usage_multiplier', 1.0)
+    step.setArgument('plug_loads_vehicle_usage_multiplier_2', 1.0)
     step.setArgument('fuel_loads_grill_present', false)
     step.setArgument('fuel_loads_grill_fuel_type', HPXML::FuelTypeNaturalGas)
     step.setArgument('fuel_loads_grill_annual_therm', Constants.Auto)
@@ -1780,6 +1786,13 @@ def get_values(osw_file, step)
     step.setArgument('setpoint_cooling_weekend_offset_magnitude', 4)
     step.setArgument('setpoint_cooling_weekday_schedule', '0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0')
     step.setArgument('setpoint_cooling_weekend_schedule', '0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0')
+  elsif ['extra-plug-loads-additional-multipliers.osw'].include? osw_file
+    step.setArgument('plug_loads_television_usage_multiplier_2', 1.5)
+    step.setArgument('plug_loads_other_usage_multiplier_2', 1.5)
+    step.setArgument('plug_loads_well_pump_present', true)
+    step.setArgument('plug_loads_well_pump_usage_multiplier_2', 1.5)
+    step.setArgument('plug_loads_vehicle_present', true)
+    step.setArgument('plug_loads_vehicle_usage_multiplier_2', 1.5)
   end
 
   # Warnings/Errors
@@ -1849,6 +1862,17 @@ def get_values(osw_file, step)
     step.setArgument('geometry_attic_type', HPXML::AtticTypeConditioned)
   elsif ['invalid_files/dhw-indirect-without-boiler.osw'].include? osw_file
     step.setArgument('water_heater_type', HPXML::WaterHeaterTypeCombiStorage)
+  elsif ['invalid_files/multipliers-without-plug-loads.osw'].include? osw_file
+    step.setArgument('plug_loads_television_annual_kwh', 0.0)
+    step.setArgument('plug_loads_television_usage_multiplier', 1.5)
+    step.setArgument('plug_loads_television_usage_multiplier_2', 1.5)
+    step.setArgument('plug_loads_other_annual_kwh', 0.0)
+    step.setArgument('plug_loads_other_usage_multiplier', 1.5)
+    step.setArgument('plug_loads_other_usage_multiplier_2', 1.5)
+    step.setArgument('plug_loads_well_pump_usage_multiplier', 1.5)
+    step.setArgument('plug_loads_well_pump_usage_multiplier_2', 1.5)
+    step.setArgument('plug_loads_vehicle_usage_multiplier', 1.5)
+    step.setArgument('plug_loads_vehicle_usage_multiplier_2', 1.5)
   end
   return step
 end
