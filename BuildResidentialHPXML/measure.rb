@@ -5554,25 +5554,10 @@ class HPXMLFile
       usage_multiplier = nil
     end
 
-    if args[:plug_loads_well_pump_weekday_fractions] != Constants.Auto
-      weekday_fractions = args[:plug_loads_well_pump_weekday_fractions]
-    end
-
-    if args[:plug_loads_well_pump_weekend_fractions] != Constants.Auto
-      weekend_fractions = args[:plug_loads_well_pump_weekend_fractions]
-    end
-
-    if args[:plug_loads_well_pump_monthly_multipliers] != Constants.Auto
-      monthly_multipliers = args[:plug_loads_well_pump_monthly_multipliers]
-    end
-
     hpxml.plug_loads.add(id: 'PlugLoadsWellPump',
                          plug_load_type: HPXML::PlugLoadTypeWellPump,
                          kWh_per_year: kWh_per_year,
                          usage_multiplier: usage_multiplier,
-                         weekday_fractions: weekday_fractions,
-                         weekend_fractions: weekend_fractions,
-                         monthly_multipliers: monthly_multipliers,
                          location: HPXML::LocationExterior)
   end
 
@@ -5588,25 +5573,10 @@ class HPXMLFile
       usage_multiplier = nil
     end
 
-    if args[:plug_loads_vehicle_weekday_fractions] != Constants.Auto
-      weekday_fractions = args[:plug_loads_vehicle_weekday_fractions]
-    end
-
-    if args[:plug_loads_vehicle_weekend_fractions] != Constants.Auto
-      weekend_fractions = args[:plug_loads_vehicle_weekend_fractions]
-    end
-
-    if args[:plug_loads_vehicle_monthly_multipliers] != Constants.Auto
-      monthly_multipliers = args[:plug_loads_vehicle_monthly_multipliers]
-    end
-
     hpxml.plug_loads.add(id: 'PlugLoadsVehicle',
                          plug_load_type: HPXML::PlugLoadTypeElectricVehicleCharging,
                          kWh_per_year: kWh_per_year,
                          usage_multiplier: usage_multiplier,
-                         weekday_fractions: weekday_fractions,
-                         weekend_fractions: weekend_fractions,
-                         monthly_multipliers: monthly_multipliers,
                          location: HPXML::LocationExterior)
   end
 
