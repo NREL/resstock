@@ -2940,7 +2940,9 @@ class HPXML < Object
     ATTRS = [:id, :control_type, :heating_setpoint_temp, :heating_setback_temp,
              :heating_setback_hours_per_week, :heating_setback_start_hour, :cooling_setpoint_temp,
              :cooling_setup_temp, :cooling_setup_hours_per_week, :cooling_setup_start_hour,
-             :ceiling_fan_cooling_setpoint_temp_offset]
+             :ceiling_fan_cooling_setpoint_temp_offset,
+             :weekday_heating_setpoints, :weekend_heating_setpoints,
+             :weekday_cooling_setpoints, :weekend_cooling_setpoints]
     attr_accessor(*ATTRS)
 
     def delete
@@ -2969,6 +2971,10 @@ class HPXML < Object
       XMLHelper.add_extension(hvac_control, 'SetbackStartHourHeating', to_integer(@heating_setback_start_hour)) unless @heating_setback_start_hour.nil?
       XMLHelper.add_extension(hvac_control, 'SetupStartHourCooling', to_integer(@cooling_setup_start_hour)) unless @cooling_setup_start_hour.nil?
       XMLHelper.add_extension(hvac_control, 'CeilingFanSetpointTempCoolingSeasonOffset', to_float(@ceiling_fan_cooling_setpoint_temp_offset)) unless @ceiling_fan_cooling_setpoint_temp_offset.nil?
+      XMLHelper.add_extension(hvac_control, 'WeekdaySetpointTempsHeatingSeason', @weekday_heating_setpoints) unless @weekday_heating_setpoints.nil?
+      XMLHelper.add_extension(hvac_control, 'WeekendSetpointTempsHeatingSeason', @weekend_heating_setpoints) unless @weekend_heating_setpoints.nil?
+      XMLHelper.add_extension(hvac_control, 'WeekdaySetpointTempsCoolingSeason', @weekday_cooling_setpoints) unless @weekday_cooling_setpoints.nil?
+      XMLHelper.add_extension(hvac_control, 'WeekendSetpointTempsCoolingSeason', @weekend_cooling_setpoints) unless @weekend_cooling_setpoints.nil?
     end
 
     def from_oga(hvac_control)
@@ -2985,6 +2991,10 @@ class HPXML < Object
       @cooling_setup_hours_per_week = to_integer_or_nil(XMLHelper.get_value(hvac_control, 'TotalSetupHoursperWeekCooling'))
       @cooling_setup_start_hour = to_integer_or_nil(XMLHelper.get_value(hvac_control, 'extension/SetupStartHourCooling'))
       @ceiling_fan_cooling_setpoint_temp_offset = to_float_or_nil(XMLHelper.get_value(hvac_control, 'extension/CeilingFanSetpointTempCoolingSeasonOffset'))
+      @weekday_heating_setpoints = XMLHelper.get_value(hvac_control, 'extension/WeekdaySetpointTempsHeatingSeason')
+      @weekend_heating_setpoints = XMLHelper.get_value(hvac_control, 'extension/WeekendSetpointTempsHeatingSeason')
+      @weekday_cooling_setpoints = XMLHelper.get_value(hvac_control, 'extension/WeekdaySetpointTempsCoolingSeason')
+      @weekend_cooling_setpoints = XMLHelper.get_value(hvac_control, 'extension/WeekendSetpointTempsCoolingSeason')
     end
   end
 

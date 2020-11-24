@@ -651,19 +651,33 @@ HPXML HVAC Control
 ******************
 
 A ``Systems/HVAC/HVACControl`` must be provided if any HVAC systems are specified.
-The heating setpoint (``SetpointTempHeatingSeason``) and cooling setpoint (``SetpointTempCoolingSeason``) are required elements.
 
-If there is a heating setback, it is defined with:
+Setpoints can be provided using either simple inputs or detailed inputs:
 
-- ``SetbackTempHeatingSeason``: Temperature during heating setback
-- ``extension/SetbackStartHourHeating``: The start hour of the heating setback where 0=midnight and 12=noon
-- ``TotalSetbackHoursperWeekHeating``: The number of hours of heating setback per week
+1. **Simple inputs**
 
-If there is a cooling setup, it is defined with:
+  Provide the heating setpoint (``SetpointTempHeatingSeason``) and cooling setpoint (``SetpointTempCoolingSeason``) elements.
 
-- ``SetupTempCoolingSeason``: Temperature during cooling setup
-- ``extension/SetupStartHourCooling``: The start hour of the cooling setup where 0=midnight and 12=noon
-- ``TotalSetupHoursperWeekCooling``: The number of hours of cooling setup per week
+  If there is a heating setback, it is defined with:
+
+  - ``SetbackTempHeatingSeason``: Temperature during heating setback
+  - ``extension/SetbackStartHourHeating``: The start hour of the heating setback where 0=midnight and 12=noon
+  - ``TotalSetbackHoursperWeekHeating``: The number of hours of heating setback per week
+
+  If there is a cooling setup, it is defined with:
+
+  - ``SetupTempCoolingSeason``: Temperature during cooling setup
+  - ``extension/SetupStartHourCooling``: The start hour of the cooling setup where 0=midnight and 12=noon
+  - ``TotalSetupHoursperWeekCooling``: The number of hours of cooling setup per week
+
+2. **Detailed inputs**
+
+  Provide 24-hour comma-separated values for weekday and weekend heating/cooling setpoint schedules:
+
+  - ``extension/WeekdaySetpointTempsHeatingSeason``
+  - ``extension/WeekendSetpointTempsHeatingSeason``
+  - ``extension/WeekdaySetpointTempsCoolingSeason``
+  - ``extension/WeekendSetpointTempsCoolingSeason``
 
 Finally, if there are sufficient ceiling fans present that result in a reduced cooling setpoint, this offset can be specified with ``extension/CeilingFanSetpointTempCoolingSeasonOffset``.
 
