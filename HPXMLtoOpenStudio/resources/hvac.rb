@@ -1266,7 +1266,7 @@ class HVAC
     part_load_frac_curve = create_curve_quadratic(model, pl_coeff, 'DXDH-PLF-fPLR', 0, 1, 0.7, 1)
     if energy_factor.nil?
       # shift inputs tested under IEF test conditions to those under EF test conditions with performance curves
-      energy_factor, water_removal_rate = apply_dehumidifier_ief_to_ef_inputs(w_coeff, ef_coeff, dehumidifier.integrated_energy_factor, water_removal_rate)
+      energy_factor, water_removal_rate = apply_dehumidifier_ief_to_ef_inputs(dehumidifier.type, w_coeff, ef_coeff, dehumidifier.integrated_energy_factor, water_removal_rate)
     end
 
     # Calculate air flow rate by assuming 2.75 cfm/pint/day (based on experimental test data)
@@ -1954,10 +1954,14 @@ class HVAC
     return air_loop
   end
 
-  def self.apply_dehumidifier_ief_to_ef_inputs(w_coeff, ef_coeff, ief, water_removal_rate)
+  def self.apply_dehumidifier_ief_to_ef_inputs(dh_type, w_coeff, ef_coeff, ief, water_removal_rate)
     # Shift inputs under IEF test conditions to E+ supported EF test conditions
     # test conditions
-    ief_db = UnitConversions.convert(65.0, 'F', 'C') # degree C
+    if dh_type == HPXML::DehumidifierTypePortable
+      ief_db = UnitConversions.convert(65.0, 'F', 'C') # degree C
+    elsif dh_type == HPXML::DehumidifierTypeWholeHome
+      ief_db = UnitConversions.convert(73.0, 'F', 'C') # degree C
+    end
     rh = 60.0 # for both EF and IEF test conditions, %
 
     # Independent variables applied to curve equations

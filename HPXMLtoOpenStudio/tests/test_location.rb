@@ -18,10 +18,10 @@ class HPXMLtoOpenStudioLocationTest < MiniTest::Test
     start_date = run_period_control_daylight_saving_time.startDate
     end_date = run_period_control_daylight_saving_time.endDate
     begin_month = start_date.monthOfYear.value
-    begin_day_of_month = start_date.dayOfMonth
+    begin_day = start_date.dayOfMonth
     end_month = end_date.monthOfYear.value
-    end_day_of_month = end_date.dayOfMonth
-    return begin_month, begin_day_of_month, end_month, end_day_of_month
+    end_day = end_date.dayOfMonth
+    return begin_month, begin_day, end_month, end_day
   end
 
   def test_dst_default
@@ -30,11 +30,11 @@ class HPXMLtoOpenStudioLocationTest < MiniTest::Test
     model, hpxml = _test_measure(args_hash)
 
     assert_equal(1, model.getObjectsByType('OS:RunPeriodControl:DaylightSavingTime'.to_IddObjectType).size)
-    begin_month, begin_day_of_month, end_month, end_day_of_month = get_daylight_saving_month_and_days(model)
+    begin_month, begin_day, end_month, end_day = get_daylight_saving_month_and_days(model)
     assert_equal(3, begin_month)
-    assert_equal(12, begin_day_of_month)
+    assert_equal(12, begin_day)
     assert_equal(11, end_month)
-    assert_equal(5, end_day_of_month)
+    assert_equal(5, end_day)
   end
 
   def test_dst_custom
@@ -43,11 +43,11 @@ class HPXMLtoOpenStudioLocationTest < MiniTest::Test
     model, hpxml = _test_measure(args_hash)
 
     assert_equal(1, model.getObjectsByType('OS:RunPeriodControl:DaylightSavingTime'.to_IddObjectType).size)
-    begin_month, begin_day_of_month, end_month, end_day_of_month = get_daylight_saving_month_and_days(model)
+    begin_month, begin_day, end_month, end_day = get_daylight_saving_month_and_days(model)
     assert_equal(3, begin_month)
-    assert_equal(10, begin_day_of_month)
+    assert_equal(10, begin_day)
     assert_equal(11, end_month)
-    assert_equal(6, end_day_of_month)
+    assert_equal(6, end_day)
   end
 
   def test_dst_disabled

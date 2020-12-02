@@ -22,7 +22,6 @@
       <sch:assert role='ERROR' test='h:ResidentialFacilityType[text()="single-family detached" or text()="single-family attached" or text()="manufactured home" or text()="2-4 unit building" or text()="5+ unit building" or text()="multi-family - uncategorized" or text()="multi-family - town homes" or text()="multi-family - condos" or text()="apartment unit" or text()="studio unit" or text()="other" or text()="unknown"] or not(h:ResidentialFacilityType)'>Expected ResidentialFacilityType to be 'single-family detached' or 'single-family attached' or 'manufactured home' or '2-4 unit building' or '5+ unit building' or 'multi-family - uncategorized' or 'multi-family - town homes' or 'multi-family - condos' or 'apartment unit' or 'studio unit' or 'other' or 'unknown'</sch:assert>
       <sch:assert role='ERROR' test='number(h:NumberofConditionedFloors) &gt;= 0 or not(h:NumberofConditionedFloors)'>Expected NumberofConditionedFloors to be greater than or equal to 0</sch:assert>
       <sch:assert role='ERROR' test='number(h:NumberofConditionedFloorsAboveGrade) &gt;= 0 or not(h:NumberofConditionedFloorsAboveGrade)'>Expected NumberofConditionedFloorsAboveGrade to be greater than or equal to 0</sch:assert>
-      <sch:assert role='ERROR' test='number(h:AverageCeilingHeight) &gt;= 0 or not(h:AverageCeilingHeight)'>Expected AverageCeilingHeight to be greater than or equal to 0</sch:assert>
       <sch:assert role='ERROR' test='number(h:NumberofBedrooms) &gt;= 0 or not(h:NumberofBedrooms)'>Expected NumberofBedrooms to be greater than or equal to 0</sch:assert>
       <sch:assert role='ERROR' test='number(h:NumberofBathrooms) &gt; 0 or not(h:NumberofBathrooms)'>Expected NumberofBathrooms to be greater than 0</sch:assert>
       <sch:assert role='ERROR' test='number(h:ConditionedFloorArea) &gt; 0 or not(h:ConditionedFloorArea)'>Expected ConditionedFloorArea to be greater than 0</sch:assert>
@@ -133,11 +132,9 @@
       <sch:assert role='ERROR' test='number(h:DepthBelowGrade) &gt;= 0 or not(h:DepthBelowGrade)'>Expected DepthBelowGrade to be greater than or equal to 0</sch:assert>
     </sch:rule>
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Enclosure/h:Slabs/h:Slab/h:PerimeterInsulation/h:Layer'>
-      <sch:assert role='ERROR' test='h:InstallationType[text()="cavity" or text()="continuous" or text()="continuous - interior" or text()="continuous - exterior"] or not(h:InstallationType)'>Expected InstallationType to be 'cavity' or 'continuous' or 'continuous - interior' or 'continuous - exterior'</sch:assert>
       <sch:assert role='ERROR' test='number(h:NominalRValue) &gt;= 0 or not(h:NominalRValue)'>Expected NominalRValue to be greater than or equal to 0</sch:assert>
     </sch:rule>
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Enclosure/h:Slabs/h:Slab/h:UnderSlabInsulation/h:Layer'>
-      <sch:assert role='ERROR' test='h:InstallationType[text()="cavity" or text()="continuous" or text()="continuous - interior" or text()="continuous - exterior"] or not(h:InstallationType)'>Expected InstallationType to be 'cavity' or 'continuous' or 'continuous - interior' or 'continuous - exterior'</sch:assert>
       <sch:assert role='ERROR' test='number(h:NominalRValue) &gt;= 0 or not(h:NominalRValue)'>Expected NominalRValue to be greater than or equal to 0</sch:assert>
     </sch:rule>
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Enclosure/h:Windows/h:Window'>
@@ -381,6 +378,7 @@
       <sch:assert role='ERROR' test='number(h:RatedAnnualkWh) &gt; 0 or not(h:RatedAnnualkWh)'>Expected RatedAnnualkWh to be greater than 0</sch:assert>
     </sch:rule>
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Appliances/h:Dehumidifier'>
+      <sch:assert role='ERROR' test='h:Type[text()="portable" or text()="whole-home"] or not(h:Type)'>Expected Type to be 'portable' or 'whole-home'</sch:assert>
       <sch:assert role='ERROR' test='number(h:DehumidistatSetpoint) &gt;= 0 or not(h:DehumidistatSetpoint)'>Expected DehumidistatSetpoint to be greater than or equal to 0</sch:assert>
       <sch:assert role='ERROR' test='number(h:DehumidistatSetpoint) &lt;= 1 or not(h:DehumidistatSetpoint)'>Expected DehumidistatSetpoint to be less than or equal to 1</sch:assert>
       <sch:assert role='ERROR' test='number(h:FractionDehumidificationLoadServed) &gt;= 0 or not(h:FractionDehumidificationLoadServed)'>Expected FractionDehumidificationLoadServed to be greater than or equal to 0</sch:assert>
@@ -421,14 +419,12 @@
     </sch:rule>
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:MiscLoads/h:PlugLoad'>
       <sch:assert role='ERROR' test='h:PlugLoadType[text()="TV plasma" or text()="TV CRT" or text()="TV other" or text()="computer" or text()="space heater" or text()="water bed" or text()="aquarium" or text()="electric vehicle charging" or text()="well pump" or text()="sauna" or text()="other"] or not(h:PlugLoadType)'>Expected PlugLoadType to be 'TV plasma' or 'TV CRT' or 'TV other' or 'computer' or 'space heater' or 'water bed' or 'aquarium' or 'electric vehicle charging' or 'well pump' or 'sauna' or 'other'</sch:assert>
-      <sch:assert role='ERROR' test='h:Location[text()="interior" or text()="exterior"] or not(h:Location)'>Expected Location to be 'interior' or 'exterior'</sch:assert>
     </sch:rule>
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:MiscLoads/h:PlugLoad/h:Load'>
       <sch:assert role='ERROR' test='h:Units[text()="kWh/year" or text()="W"] or not(h:Units)'>Expected Units to be 'kWh/year' or 'W'</sch:assert>
     </sch:rule>
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:MiscLoads/h:FuelLoad'>
       <sch:assert role='ERROR' test='h:FuelLoadType[text()="grill" or text()="lighting" or text()="fireplace" or text()="other"] or not(h:FuelLoadType)'>Expected FuelLoadType to be 'grill' or 'lighting' or 'fireplace' or 'other'</sch:assert>
-      <sch:assert role='ERROR' test='h:Location[text()="interior" or text()="exterior"] or not(h:Location)'>Expected Location to be 'interior' or 'exterior'</sch:assert>
       <sch:assert role='ERROR' test='h:FuelType[text()="electricity" or text()="renewable electricity" or text()="natural gas" or text()="renewable natural gas" or text()="fuel oil" or text()="fuel oil 1" or text()="fuel oil 2" or text()="fuel oil 4" or text()="fuel oil 5/6" or text()="district steam" or text()="district hot water" or text()="district chilled water" or text()="solar hot water" or text()="propane" or text()="kerosene" or text()="diesel" or text()="coal" or text()="anthracite coal" or text()="bituminous coal" or text()="coke" or text()="wood" or text()="wood pellets" or text()="combination" or text()="other"] or not(h:FuelType)'>Expected FuelType to be 'electricity' or 'renewable electricity' or 'natural gas' or 'renewable natural gas' or 'fuel oil' or 'fuel oil 1' or 'fuel oil 2' or 'fuel oil 4' or 'fuel oil 5/6' or 'district steam' or 'district hot water' or 'district chilled water' or 'solar hot water' or 'propane' or 'kerosene' or 'diesel' or 'coal' or 'anthracite coal' or 'bituminous coal' or 'coke' or 'wood' or 'wood pellets' or 'combination' or 'other'</sch:assert>
     </sch:rule>
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:MiscLoads/h:FuelLoad/h:Load'>

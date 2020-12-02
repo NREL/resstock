@@ -12,9 +12,9 @@ OpenStudio-HPXML documentation
 
    intro
    getting_started
+   workflow_inputs
+   workflow_outputs
    build_residential_hpxml
-   hpxml_to_openstudio
-   simulation_output_report
 
 Indices and tables
 ==================

@@ -26,8 +26,8 @@ class SimControls
 
     run_period = model.getRunPeriod
     run_period.setBeginMonth(header.sim_begin_month)
-    run_period.setBeginDayOfMonth(header.sim_begin_day_of_month)
+    run_period.setBeginDayOfMonth(header.sim_begin_day)
     run_period.setEndMonth(header.sim_end_month)
-    run_period.setEndDayOfMonth(header.sim_end_day_of_month)
+    run_period.setEndDayOfMonth(header.sim_end_day)
   end
 end

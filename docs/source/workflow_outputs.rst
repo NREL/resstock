@@ -1,14 +1,14 @@
-.. _simreport:
+.. _workflow_outputs:
 
-SimulationOutputReport Measure
-==============================
+Workflow Outputs
+================
 
-The SimulationOutputReport reporting measure generates a variety of annual (and optionally, timeseries) outputs for a residential HPXML-based model.
+OpenStudio-HPXML generates a variety of annual (and optionally, timeseries) outputs for a residential HPXML-based model.
 
 Annual Outputs
 --------------
 
-The measure will always generate an annual CSV output file called results_annual.csv, co-located with the EnergyPlus output.
+OpenStudio-HPXML will always generate an annual CSV output file called results_annual.csv, co-located with the EnergyPlus output.
 The CSV file includes the following sections of output:
 
 Annual Energy Consumption by Fuel Type
@@ -232,7 +232,7 @@ Current annual hot water uses are:
 Timeseries Outputs
 ------------------
 
-The measure will generate a timeseries CSV output file if the Timeseries Reporting Frequency argument is specified and one or more Generate Timeseries Output arguments are true.
+OpenStudio-HPXML can optionally generate a timeseries CSV output file.
 The timeseries output file is called results_timeseries.csv and co-located with the EnergyPlus output.
 
 Depending on the outputs requested, CSV files may include:

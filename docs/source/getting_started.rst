@@ -54,4 +54,4 @@ In addition to the standard EnergyPlus outputs found in the run directory, a var
 Timeseries outputs can also be requested using either the Basic or Advanced approaches.
 When requested, timeseries outputs will be found in the ``run/results_timeseries.csv`` file.
 
-See the :ref:`simreport` section for a description of all available outputs available.
+See :ref:`workflow_outputs` for a description of all available outputs available.
