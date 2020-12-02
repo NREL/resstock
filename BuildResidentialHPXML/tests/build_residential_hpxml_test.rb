@@ -106,13 +106,14 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       'slab-non-zero-foundation-height-above-grade.osw' => 'geometry_foundation_type=SlabOnGrade and geometry_foundation_height_above_grade=1.0',
       'second-heating-system-serves-majority-heat.osw' => 'heating_system_type_2=Fireplace and heating_system_fraction_heat_load_served_2=0.6',
       'vented-crawlspace-with-wall-and-ceiling-insulation.osw' => 'geometry_foundation_type=VentedCrawlspace and foundation_wall_insulation_r=8.9 and foundation_wall_assembly_r=false and floor_assembly_r=10.0',
-      'unvented-crawlspace-with-wall-and-ceiling-insulation.osw' => 'geometry_foundation_type=VentedCrawlspace and foundation_wall_insulation_r=8.9 and foundation_wall_assembly_r=false and floor_assembly_r=10.0',
+      'unvented-crawlspace-with-wall-and-ceiling-insulation.osw' => 'geometry_foundation_type=UnventedCrawlspace and foundation_wall_insulation_r=8.9 and foundation_wall_assembly_r=false and floor_assembly_r=10.0',
       'unconditioned-basement-with-wall-and-ceiling-insulation.osw' => 'geometry_foundation_type=UnconditionedBasement and foundation_wall_insulation_r=8.9 and foundation_wall_assembly_r=false and floor_assembly_r=10.0',
       'vented-attic-with-floor-and-roof-insulation.osw' => 'geometry_attic_type=VentedAttic and ceiling_assembly_r=39.3 and roof_assembly_r=10.0',
       'unvented-attic-with-floor-and-roof-insulation.osw' => 'geometry_attic_type=UnventedAttic and ceiling_assembly_r=39.3 and roof_assembly_r=10.0',
       'conditioned-basement-with-ceiling-insulation.osw' => 'geometry_foundation_type=ConditionedBasement and floor_assembly_r=10.0',
       'conditioned-attic-with-floor-insulation.osw' => 'geometry_attic_type=ConditionedAttic and ceiling_assembly_r=39.3',
-      'multipliers-without-plug-loads.osw' => 'plug_loads_television_annual_kwh=0.0 and plug_loads_television_usage_multiplier=1.5 and plug_loads_television_usage_multiplier_2=1.5 and plug_loads_other_annual_kwh=0.0 and plug_loads_other_usage_multiplier=1.5 and plug_loads_other_usage_multiplier_2=1.5 and plug_loads_well_pump_present=false and plug_loads_well_pump_usage_multiplier=1.5 and plug_loads_well_pump_usage_multiplier_2=1.5 and plug_loads_vehicle_present=false and plug_loads_vehicle_usage_multiplier=1.5 and plug_loads_vehicle_usage_multiplier_2=1.5'
+      'multipliers-without-plug-loads.osw' => 'plug_loads_television_annual_kwh=0.0 and plug_loads_television_usage_multiplier=1.0 and plug_loads_television_usage_multiplier_2=1.0 and plug_loads_other_annual_kwh=0.0 and plug_loads_other_usage_multiplier=1.0 and plug_loads_other_usage_multiplier_2=1.0 and plug_loads_well_pump_present=false and plug_loads_well_pump_usage_multiplier=1.0 and plug_loads_well_pump_usage_multiplier_2=1.0 and plug_loads_vehicle_present=false and plug_loads_vehicle_usage_multiplier=1.0 and plug_loads_vehicle_usage_multiplier_2=1.0',
+      'multipliers-without-fuel-loads.osw' => 'fuel_loads_grill_present=false and fuel_loads_grill_usage_multiplier=1.0 and fuel_loads_lighting_present=false and fuel_loads_lighting_usage_multiplier=1.0 and fuel_loads_fireplace_present=false and fuel_loads_fireplace_usage_multiplier=1.0'
     }
 
     expected_error_msgs = {
@@ -145,6 +146,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
         success = apply_measures(measures_dir, measures, runner, model)
 
         # Report warnings/errors
+        assert(runner.result.stepWarnings.length > 1 || runner.result.stepErrors.length > 0)
         runner.result.stepWarnings.each do |s|
           next if s.include? 'nokogiri'
 

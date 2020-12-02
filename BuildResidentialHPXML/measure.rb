@@ -2797,13 +2797,13 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('plug_loads_well_pump_usage_multiplier', true)
     arg.setDisplayName('Plug Loads: Well Pump Usage Multiplier')
     arg.setDescription('Multiplier on the well pump energy usage that can reflect, e.g., high/low usage occupants.')
-    arg.setDefaultValue(1.0)
+    arg.setDefaultValue(0.0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('plug_loads_well_pump_usage_multiplier_2', true)
     arg.setDisplayName('Plug Loads: Well Pump Usage Multiplier 2')
     arg.setDescription('Additional multiplier on the well pump energy usage that can reflect, e.g., high/low usage occupants.')
-    arg.setDefaultValue(1.0)
+    arg.setDefaultValue(0.0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument('plug_loads_vehicle_present', true)
@@ -2822,13 +2822,13 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('plug_loads_vehicle_usage_multiplier', true)
     arg.setDisplayName('Plug Loads: Vehicle Usage Multiplier')
     arg.setDescription('Multiplier on the electric vehicle energy usage that can reflect, e.g., high/low usage occupants.')
-    arg.setDefaultValue(1.0)
+    arg.setDefaultValue(0.0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('plug_loads_vehicle_usage_multiplier_2', true)
     arg.setDisplayName('Plug Loads: Vehicle Usage Multiplier 2')
     arg.setDescription('Additional multiplier on the electric vehicle energy usage that can reflect, e.g., high/low usage occupants.')
-    arg.setDefaultValue(1.0)
+    arg.setDefaultValue(0.0)
     args << arg
 
     fuel_loads_fuel_choices = OpenStudio::StringVector.new
@@ -2865,7 +2865,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('fuel_loads_grill_usage_multiplier', true)
     arg.setDisplayName('Fuel Loads: Grill Usage Multiplier')
     arg.setDescription('Multiplier on the fuel loads grill energy usage that can reflect, e.g., high/low usage occupants.')
-    arg.setDefaultValue(1.0)
+    arg.setDefaultValue(0.0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument('fuel_loads_lighting_present', true)
@@ -2890,7 +2890,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('fuel_loads_lighting_usage_multiplier', true)
     arg.setDisplayName('Fuel Loads: Lighting Usage Multiplier')
     arg.setDescription('Multiplier on the fuel loads lighting energy usage that can reflect, e.g., high/low usage occupants.')
-    arg.setDefaultValue(1.0)
+    arg.setDefaultValue(0.0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument('fuel_loads_fireplace_present', true)
@@ -2929,7 +2929,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('fuel_loads_fireplace_usage_multiplier', true)
     arg.setDisplayName('Fuel Loads: Fireplace Usage Multiplier')
     arg.setDescription('Multiplier on the fuel loads fireplace energy usage that can reflect, e.g., high/low usage occupants.')
-    arg.setDefaultValue(1.0)
+    arg.setDefaultValue(0.0)
     args << arg
 
     heater_type_choices = OpenStudio::StringVector.new
@@ -3606,8 +3606,12 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     errors << "water_heater_type=#{args[:water_heater_type]} and heating_system_type=#{args[:heating_system_type]}" if error
 
     # no plug loads but specifying usage multipliers
-    warning = (args[:plug_loads_television_annual_kwh] == 0.0 && (args[:plug_loads_television_usage_multiplier] != 1.0 || args[:plug_loads_television_usage_multiplier_2] != 1.0)) || (args[:plug_loads_other_annual_kwh] == 0.0 && (args[:plug_loads_other_usage_multiplier] != 1.0 || args[:plug_loads_other_usage_multiplier_2] != 1.0)) || (!args[:plug_loads_well_pump_present] && (args[:plug_loads_well_pump_usage_multiplier] != 1.0 || args[:plug_loads_well_pump_usage_multiplier_2] != 1.0)) || (!args[:plug_loads_vehicle_present] && (args[:plug_loads_vehicle_usage_multiplier] != 1.0 || args[:plug_loads_vehicle_usage_multiplier_2] != 1.0))
+    warning = (args[:plug_loads_television_annual_kwh] == 0.0 && (args[:plug_loads_television_usage_multiplier] != 0.0 || args[:plug_loads_television_usage_multiplier_2] != 0.0)) || (args[:plug_loads_other_annual_kwh] == 0.0 && (args[:plug_loads_other_usage_multiplier] != 0.0 || args[:plug_loads_other_usage_multiplier_2] != 0.0)) || (!args[:plug_loads_well_pump_present] && (args[:plug_loads_well_pump_usage_multiplier] != 0.0 || args[:plug_loads_well_pump_usage_multiplier_2] != 0.0)) || (!args[:plug_loads_vehicle_present] && (args[:plug_loads_vehicle_usage_multiplier] != 0.0 || args[:plug_loads_vehicle_usage_multiplier_2] != 0.0))
     warnings << "plug_loads_television_annual_kwh=#{args[:plug_loads_television_annual_kwh]} and plug_loads_television_usage_multiplier=#{args[:plug_loads_television_usage_multiplier]} and plug_loads_television_usage_multiplier_2=#{args[:plug_loads_television_usage_multiplier_2]} and plug_loads_other_annual_kwh=#{args[:plug_loads_other_annual_kwh]} and plug_loads_other_usage_multiplier=#{args[:plug_loads_other_usage_multiplier]} and plug_loads_other_usage_multiplier_2=#{args[:plug_loads_other_usage_multiplier_2]} and plug_loads_well_pump_present=#{args[:plug_loads_well_pump_present]} and plug_loads_well_pump_usage_multiplier=#{args[:plug_loads_well_pump_usage_multiplier]} and plug_loads_well_pump_usage_multiplier_2=#{args[:plug_loads_well_pump_usage_multiplier_2]} and plug_loads_vehicle_present=#{args[:plug_loads_vehicle_present]} and plug_loads_vehicle_usage_multiplier=#{args[:plug_loads_vehicle_usage_multiplier]} and plug_loads_vehicle_usage_multiplier_2=#{args[:plug_loads_vehicle_usage_multiplier_2]}" if warning
+
+    # no fuel loads but specifying usage multipliers
+    warning = (!args[:fuel_loads_grill_present] && args[:fuel_loads_grill_usage_multiplier] != 0.0) || (!args[:fuel_loads_lighting_present] && args[:fuel_loads_lighting_usage_multiplier] != 0.0) || (!args[:fuel_loads_fireplace_present] && args[:fuel_loads_fireplace_usage_multiplier] != 0.0)
+    warnings << "fuel_loads_grill_present=#{args[:fuel_loads_grill_present]} and fuel_loads_grill_usage_multiplier=#{args[:fuel_loads_grill_usage_multiplier]} and fuel_loads_lighting_present=#{args[:fuel_loads_lighting_present]} and fuel_loads_lighting_usage_multiplier=#{args[:fuel_loads_lighting_usage_multiplier]} and fuel_loads_fireplace_present=#{args[:fuel_loads_fireplace_present]} and fuel_loads_fireplace_usage_multiplier=#{args[:fuel_loads_fireplace_usage_multiplier]}" if warning
 
     return warnings, errors
   end
