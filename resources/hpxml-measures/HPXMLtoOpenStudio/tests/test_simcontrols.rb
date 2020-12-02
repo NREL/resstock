@@ -16,10 +16,10 @@ class HPXMLtoOpenStudioSimControlsTest < MiniTest::Test
   def get_run_period_month_and_days(model)
     run_period = model.getRunPeriod
     begin_month = run_period.getBeginMonth
-    begin_day_of_month = run_period.getBeginDayOfMonth
+    begin_day = run_period.getBeginDayOfMonth
     end_month = run_period.getEndMonth
-    end_day_of_month = run_period.getEndDayOfMonth
-    return begin_month, begin_day_of_month, end_month, end_day_of_month
+    end_day = run_period.getEndDayOfMonth
+    return begin_month, begin_day, end_month, end_day
   end
 
   def test_run_period_year
@@ -27,11 +27,11 @@ class HPXMLtoOpenStudioSimControlsTest < MiniTest::Test
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base.xml'))
     model, hpxml = _test_measure(args_hash)
 
-    begin_month, begin_day_of_month, end_month, end_day_of_month = get_run_period_month_and_days(model)
+    begin_month, begin_day, end_month, end_day = get_run_period_month_and_days(model)
     assert_equal(1, begin_month)
-    assert_equal(1, begin_day_of_month)
+    assert_equal(1, begin_day)
     assert_equal(12, end_month)
-    assert_equal(31, end_day_of_month)
+    assert_equal(31, end_day)
   end
 
   def test_run_period_1month
@@ -39,11 +39,11 @@ class HPXMLtoOpenStudioSimControlsTest < MiniTest::Test
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-simcontrol-runperiod-1-month.xml'))
     model, hpxml = _test_measure(args_hash)
 
-    begin_month, begin_day_of_month, end_month, end_day_of_month = get_run_period_month_and_days(model)
+    begin_month, begin_day, end_month, end_day = get_run_period_month_and_days(model)
     assert_equal(1, begin_month)
-    assert_equal(1, begin_day_of_month)
+    assert_equal(1, begin_day)
     assert_equal(1, end_month)
-    assert_equal(31, end_day_of_month)
+    assert_equal(31, end_day)
   end
 
   def test_timestep_1hour

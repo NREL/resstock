@@ -1,5 +1,5 @@
-BuildResidentialHPXML Measure
-=============================
+BuildResidentialHPXML
+=====================
 
 The BuildResidentialHPXML measure builds a residential HPXML file.
 The HPXML file that it produces is intended to be the input for the HPXMLtoOpenStudio measure.
@@ -27,7 +27,7 @@ The following arguments are used to populate fields of the HPXML file:
   - Daylight Saving Begin Month/Day
   - Daylight Saving End Month/Day
 
-Schedules
+- Schedules
 
   - Type (Average, Stochastic, User-Specified)
   - Path

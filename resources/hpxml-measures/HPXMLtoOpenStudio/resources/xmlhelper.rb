@@ -3,20 +3,33 @@
 class XMLHelper
   # Adds the child element with 'element_name' and sets its value. Returns the
   # child element.
-  def self.add_element(parent, element_name, value = nil)
+  def self.add_element(parent, element_name, value = nil, datatype = nil, defaulted = false)
     added = Oga::XML::Element.new(name: element_name)
     parent.children << added
     if not value.nil?
+      if datatype == :integer
+        value = to_integer(value)
+      elsif datatype == :float
+        value = to_float(value)
+      elsif datatype == :boolean
+        value = to_boolean(value)
+      elsif datatype != :string
+        # If value provided, datatype required
+        fail 'Unexpected datatype.'
+      end
       added.inner_text = value.to_s
+    end
+    if defaulted
+      XMLHelper.add_attribute(added, 'dataSource', 'software')
     end
     return added
   end
 
   # Adds the child element with 'element_name' to a single extension element and
   # sets its value. Returns the extension element.
-  def self.add_extension(parent, element_name, value)
+  def self.add_extension(parent, element_name, value, datatype, defaulted = false)
     extension = XMLHelper.create_elements_as_needed(parent, ['extension'])
-    return XMLHelper.add_element(extension, element_name, value)
+    return XMLHelper.add_element(extension, element_name, value, datatype, defaulted)
   end
 
   # Creates a hierarchy of elements under the parent element based on the supplied
@@ -44,23 +57,53 @@ class XMLHelper
   end
 
   # Returns the value of 'element_name' in the parent element or nil.
-  def self.get_value(parent, element_name)
-    val = parent.at_xpath(element_name)
-    if val.nil?
-      return val
+  def self.get_value(parent, element_name, datatype)
+    value, isdefaulted = get_value_and_defaulted(parent, element_name, datatype)
+    return value
+  end
+
+  def self.get_value_and_defaulted(parent, element_name, datatype)
+    element = parent.at_xpath(element_name)
+    if element.nil?
+      return
+    end
+    value = element.text
+
+    if datatype == :integer
+      value = to_integer_or_nil(value)
+    elsif datatype == :float
+      value = to_float_or_nil(value)
+    elsif datatype == :boolean
+      value = to_boolean_or_nil(value)
+    elsif datatype != :string
+      fail 'Unexpected datatype.'
     end
 
-    return val.text
+    isdefaulted = get_attribute_value(element, 'dataSource') == 'software'
+
+    return value, isdefaulted
   end
 
   # Returns the value(s) of 'element_name' in the parent element or [].
-  def self.get_values(parent, element_name)
-    vals = []
-    parent.xpath(element_name).each do |val|
-      vals << val.text
+  def self.get_values(parent, element_name, datatype)
+    values = []
+    parent.xpath(element_name).each do |value|
+      value = value.text
+
+      if datatype == :integer
+        value = to_integer_or_nil(value)
+      elsif datatype == :float
+        value = to_float_or_nil(value)
+      elsif datatype == :boolean
+        value = to_boolean_or_nil(value)
+      elsif datatype != :string
+        fail 'Unexpected datatype.'
+      end
+
+      values << value
     end
 
-    return vals
+    return values
   end
 
   # Returns the element in the parent element.
@@ -177,4 +220,57 @@ class XMLHelper
       f << doc_s
     end
   end
+end
+
+def to_float(value)
+  begin
+    return Float(value)
+  rescue
+    fail "Cannot convert '#{value}' to float."
+  end
+end
+
+def to_integer(value)
+  begin
+    value = Float(value)
+  rescue
+    fail "Cannot convert '#{value}' to integer."
+  end
+  if value % 1 == 0
+    return Integer(value)
+  else
+    fail "Cannot convert '#{value}' to integer."
+  end
+end
+
+def to_boolean(value)
+  if value.is_a? TrueClass
+    return true
+  elsif value.is_a? FalseClass
+    return false
+  elsif (value.downcase.to_s == 'true') || (value == '1') || (value == 1)
+    return true
+  elsif (value.downcase.to_s == 'false') || (value == '0') || (value == 0)
+    return false
+  end
+
+  fail "Cannot convert '#{value}' to boolean."
+end
+
+def to_float_or_nil(value)
+  return if value.nil?
+
+  return to_float(value)
+end
+
+def to_integer_or_nil(value)
+  return if value.nil?
+
+  return to_integer(value)
+end
+
+def to_boolean_or_nil(value)
+  return if value.nil?
+
+  return to_boolean(value)
 end
