@@ -969,7 +969,7 @@ class OSModel
 
   def self.add_roofs(runner, model, spaces)
     @hpxml.roofs.each do |roof|
-      next if roof.net_area < 0.1 # skip modeling net surface area for surfaces comprised entirely of subsurface area
+      next if roof.net_area < 1.0 # skip modeling net surface area for surfaces comprised entirely of subsurface area
 
       if roof.azimuth.nil?
         if roof.pitch > 0
@@ -1072,7 +1072,7 @@ class OSModel
 
   def self.add_walls(runner, model, spaces)
     @hpxml.walls.each do |wall|
-      next if wall.net_area < 0.1 # skip modeling net surface area for surfaces comprised entirely of subsurface area
+      next if wall.net_area < 1.0 # skip modeling net surface area for surfaces comprised entirely of subsurface area
 
       if wall.azimuth.nil?
         if wall.is_exterior
@@ -1317,7 +1317,7 @@ class OSModel
       slabs = []
       @hpxml.foundation_walls.each do |foundation_wall|
         next unless foundation_wall.interior_adjacent_to == foundation_type
-        next if foundation_wall.net_area < 0.1 # skip modeling net surface area for surfaces comprised entirely of subsurface area
+        next if foundation_wall.net_area < 1.0 # skip modeling net surface area for surfaces comprised entirely of subsurface area
 
         fnd_walls << foundation_wall
       end
@@ -1392,7 +1392,7 @@ class OSModel
 
       # For each slab, create a no-wall Kiva slab instance if needed.
       slabs.each do |slab|
-        next unless no_wall_slab_exp_perim[slab] > 0.1
+        next unless no_wall_slab_exp_perim[slab] > 1.0
 
         z_origin = 0
         slab_area = total_slab_area * no_wall_slab_exp_perim[slab] / total_slab_exp_perim
@@ -1409,7 +1409,7 @@ class OSModel
 
         ag_height = foundation_wall.height - foundation_wall.depth_below_grade
         ag_net_area = foundation_wall.net_area * ag_height / foundation_wall.height
-        next if ag_net_area < 0.1
+        next if ag_net_area < 1.0
 
         length = ag_net_area / ag_height
         z_origin = -1 * ag_height
@@ -1619,11 +1619,11 @@ class OSModel
 
     addtl_cfa = @cfa - sum_cfa
 
-    if addtl_cfa < -0.1 # Allow some rounding
+    if addtl_cfa < -1.0 # Allow some rounding
       fail "Sum of floor/slab area adjacent to conditioned space (#{sum_cfa.round(1)}) is greater than conditioned floor area (#{@cfa.round(1)})."
     end
 
-    return unless addtl_cfa > 0.1 # Allow some rounding
+    return unless addtl_cfa > 1.0 # Allow some rounding
 
     floor_width = Math::sqrt(addtl_cfa)
     floor_length = addtl_cfa / floor_width
@@ -2574,6 +2574,8 @@ class OSModel
     output_diagnostics = model.getOutputDiagnostics
     output_diagnostics.addKey('DisplayAdvancedReportVariables')
 
+    area_tolerance = UnitConversions.convert(1.0, 'ft^2', 'm^2')
+
     model.getSurfaces.sort.each_with_index do |s, idx|
       next unless s.space.get.thermalZone.get.name.to_s == living_zone.name.to_s
 
@@ -2616,7 +2618,7 @@ class OSModel
         end
       end
 
-      next if s.netArea < 0.1 # Skip parent surfaces (of subsurfaces) that have near zero net area
+      next if s.netArea < area_tolerance # Skip parent surfaces (of subsurfaces) that have near zero net area
 
       key = { 'FoundationWall' => :foundation_walls,
               'RimJoist' => :rim_joists,

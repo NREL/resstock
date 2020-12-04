@@ -45,9 +45,9 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
     assert_equal(0.64, wh.offCycleLossFractiontoThermalZone)
   end
 
-  def test_tank_gas_med_fhr_uef
+  def test_tank_gas_uef
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-dhw-tank-gas-med-fhr-uef.xml'))
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-dhw-tank-gas-uef.xml'))
     model, hpxml = _test_measure(args_hash)
 
     # Get HPXML values
@@ -60,37 +60,6 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
     ua = UnitConversions.convert(6.476, 'Btu/(hr*F)', 'W/K')
     t_set = UnitConversions.convert(water_heating_system.temperature, 'F', 'C') + 1 # setpoint + 1/2 deadband
     ther_eff = 0.762
-    loc = water_heating_system.location
-
-    # Check water heater
-    assert_equal(1, model.getWaterHeaterMixeds.size)
-    wh = model.getWaterHeaterMixeds[0]
-    assert_equal(fuel, wh.heaterFuelType)
-    assert_equal(loc, wh.ambientTemperatureThermalZone.get.name.get)
-    assert_in_epsilon(tank_volume, wh.tankVolume.get, 0.001)
-    assert_in_epsilon(cap, wh.heaterMaximumCapacity.get, 0.001)
-    assert_in_epsilon(ua, wh.onCycleLossCoefficienttoAmbientTemperature.get, 0.001)
-    assert_in_epsilon(ua, wh.offCycleLossCoefficienttoAmbientTemperature.get, 0.001)
-    assert_in_epsilon(t_set, wh.setpointTemperatureSchedule.get.to_ScheduleConstant.get.value, 0.001)
-    assert_in_epsilon(ther_eff, wh.heaterThermalEfficiency.get, 0.001)
-    assert_equal(0.64, wh.offCycleLossFractiontoThermalZone)
-  end
-
-  def test_tank_gas_high_fhr_uef
-    args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-dhw-tank-gas-high-fhr-uef.xml'))
-    model, hpxml = _test_measure(args_hash)
-
-    # Get HPXML values
-    water_heating_system = hpxml.water_heating_systems[0]
-
-    # Expected value
-    tank_volume = UnitConversions.convert(water_heating_system.tank_volume * 0.95, 'gal', 'm^3') # convert to actual volume
-    cap = UnitConversions.convert(water_heating_system.heating_capacity / 1000.0, 'kBtu/hr', 'W')
-    fuel = EPlus.fuel_type(water_heating_system.fuel_type)
-    ua = UnitConversions.convert(5.09, 'Btu/(hr*F)', 'W/K')
-    t_set = UnitConversions.convert(water_heating_system.temperature, 'F', 'C') + 1 # setpoint + 1/2 deadband
-    ther_eff = 0.794
     loc = water_heating_system.location
 
     # Check water heater
@@ -231,9 +200,9 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
     assert_equal(1.0, wh.offCycleLossFractiontoThermalZone)
   end
 
-  def test_tank_electric_low_fhr_uef
+  def test_tank_electric_uef
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-dhw-tank-elec-low-fhr-uef.xml'))
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-dhw-tank-elec-uef.xml'))
     model, hpxml = _test_measure(args_hash)
 
     # Get HPXML values
@@ -1021,46 +990,9 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
     assert_in_epsilon(cop, coil.ratedCOP, 0.001)
   end
 
-  def test_tank_heat_pump_uef_low_fhr
+  def test_tank_heat_pump_uef
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-dhw-tank-heat-pump-uef-low-fhr.xml'))
-    model, hpxml = _test_measure(args_hash)
-
-    # Get HPXML values
-    water_heating_system = hpxml.water_heating_systems[0]
-
-    # Expected value
-    tank_volume = UnitConversions.convert(water_heating_system.tank_volume * 0.9, 'gal', 'm^3') # convert to actual volume
-    fuel = EPlus.fuel_type(water_heating_system.fuel_type)
-    u =  1.245
-    t_set = UnitConversions.convert(water_heating_system.temperature, 'F', 'C') - 9
-    ther_eff = 1.0
-    cop = 3.673
-    tank_height = 0.8455
-
-    # Check water heater
-    assert_equal(1, model.getWaterHeaterHeatPumpWrappedCondensers.size)
-    assert_equal(1, model.getWaterHeaterStratifieds.size)
-    hpwh = model.getWaterHeaterHeatPumpWrappedCondensers[0]
-    wh = hpwh.tank.to_WaterHeaterStratified.get
-    coil = hpwh.dXCoil.to_CoilWaterHeatingAirToWaterHeatPumpWrapped.get
-    assert_equal(fuel, wh.heaterFuelType)
-    assert_equal('Schedule', wh.ambientTemperatureIndicator)
-    assert_in_epsilon(tank_volume, wh.tankVolume.get, 0.001)
-    assert_in_epsilon(tank_height, wh.tankHeight.get, 0.001)
-    assert_in_epsilon(4500.0, wh.heater1Capacity.get, 0.001)
-    assert_in_epsilon(4500.0, wh.heater2Capacity, 0.001)
-    assert_in_epsilon(u, wh.uniformSkinLossCoefficientperUnitAreatoAmbientTemperature.get, 0.001)
-    assert_in_epsilon(t_set, wh.heater1SetpointTemperatureSchedule.to_ScheduleConstant.get.value, 0.001)
-    assert_in_epsilon(ther_eff, wh.heaterThermalEfficiency, 0.001)
-
-    # Check heat pump cooling coil cop
-    assert_in_epsilon(cop, coil.ratedCOP, 0.001)
-  end
-
-  def test_tank_heat_pump_uef_medium_fhr
-    args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-dhw-tank-heat-pump-uef-medium-fhr.xml'))
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-dhw-tank-heat-pump-uef.xml'))
     model, hpxml = _test_measure(args_hash)
 
     # Get HPXML values
@@ -1074,43 +1006,6 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
     ther_eff = 1.0
     cop = 4.004
     tank_height = 1.0335
-
-    # Check water heater
-    assert_equal(1, model.getWaterHeaterHeatPumpWrappedCondensers.size)
-    assert_equal(1, model.getWaterHeaterStratifieds.size)
-    hpwh = model.getWaterHeaterHeatPumpWrappedCondensers[0]
-    wh = hpwh.tank.to_WaterHeaterStratified.get
-    coil = hpwh.dXCoil.to_CoilWaterHeatingAirToWaterHeatPumpWrapped.get
-    assert_equal(fuel, wh.heaterFuelType)
-    assert_equal('Schedule', wh.ambientTemperatureIndicator)
-    assert_in_epsilon(tank_volume, wh.tankVolume.get, 0.001)
-    assert_in_epsilon(tank_height, wh.tankHeight.get, 0.001)
-    assert_in_epsilon(4500.0, wh.heater1Capacity.get, 0.001)
-    assert_in_epsilon(4500.0, wh.heater2Capacity, 0.001)
-    assert_in_epsilon(u, wh.uniformSkinLossCoefficientperUnitAreatoAmbientTemperature.get, 0.001)
-    assert_in_epsilon(t_set, wh.heater1SetpointTemperatureSchedule.to_ScheduleConstant.get.value, 0.001)
-    assert_in_epsilon(ther_eff, wh.heaterThermalEfficiency, 0.001)
-
-    # Check heat pump cooling coil cop
-    assert_in_epsilon(cop, coil.ratedCOP, 0.001)
-  end
-
-  def test_tank_heat_pump_uef_high_fhr
-    args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-dhw-tank-heat-pump-uef-high-fhr.xml'))
-    model, hpxml = _test_measure(args_hash)
-
-    # Get HPXML values
-    water_heating_system = hpxml.water_heating_systems[0]
-
-    # Expected value
-    tank_volume = UnitConversions.convert(water_heating_system.tank_volume * 0.9, 'gal', 'm^3') # convert to actual volume
-    fuel = EPlus.fuel_type(water_heating_system.fuel_type)
-    u =  0.925
-    t_set = UnitConversions.convert(water_heating_system.temperature, 'F', 'C') - 9
-    ther_eff = 1.0
-    cop = 4.045
-    tank_height = 1.5975
 
     # Check water heater
     assert_equal(1, model.getWaterHeaterHeatPumpWrappedCondensers.size)
@@ -1165,7 +1060,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
 
   def test_shared_water_heater
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-dhw-shared-water-heater.xml'))
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-bldgtype-multifamily-shared-water-heater.xml'))
     model, hpxml = _test_measure(args_hash)
 
     # Get HPXML values
@@ -1195,7 +1090,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
 
   def test_shared_laundry_room
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-dhw-shared-laundry-room.xml'))
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-bldgtype-multifamily-shared-laundry-room.xml'))
     model, hpxml = _test_measure(args_hash)
 
     # Get HPXML values

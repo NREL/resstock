@@ -36,7 +36,6 @@ class Geometry
                                          geometry_attic_type:,
                                          geometry_roof_type:,
                                          geometry_roof_pitch:,
-                                         geometry_roof_structure:,
                                          **remainder)
     cfa = geometry_cfa
     wall_height = geometry_wall_height
@@ -51,7 +50,6 @@ class Geometry
     attic_type = geometry_attic_type
     roof_type = geometry_roof_type
     roof_pitch = geometry_roof_pitch
-    roof_structure = geometry_roof_structure
 
     # error checking
     if model.getSpaces.size > 0
@@ -1992,7 +1990,6 @@ class Geometry
     end
 
     num_units_per_floor = num_units / num_floors
-    num_units_per_floor_actual = num_units_per_floor
 
     if (num_floors > 1) && (level != 'Bottom') && (foundation_height != 0.0)
       runner.registerWarning('Unit is not on the bottom floor, setting foundation height to 0.')
@@ -2569,17 +2566,6 @@ class Geometry
       end
     end
     return yValueArray
-  end
-
-  # Return an array of z values for surfaces passed in. The values will be relative to the parent origin. This was intended for spaces.
-  def self.getSurfaceZValues(surfaceArray)
-    zValueArray = []
-    surfaceArray.each do |surface|
-      surface.vertices.each do |vertex|
-        zValueArray << UnitConversions.convert(vertex.z, 'm', 'ft')
-      end
-    end
-    return zValueArray
   end
 
   def self.get_surface_length(surface)

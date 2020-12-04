@@ -430,7 +430,7 @@ class HPXMLtoOpenStudioAirflowTest < MiniTest::Test
 
   def test_shared_mechvent_multiple
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-mechvent-shared-multiple.xml'))
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-bldgtype-multifamily-shared-mechvent-multiple.xml'))
     model, hpxml = _test_measure(args_hash)
 
     # Get HPXML values
@@ -540,14 +540,23 @@ class HPXMLtoOpenStudioAirflowTest < MiniTest::Test
     assert_equal(5066, exterior_area)
     assert_equal(5066, total_area)
 
-    # Test complex SFA/MF building w/ unvented attic within infiltration volume
-    hpxml = HPXML.new(hpxml_path: File.absolute_path(File.join(sample_files_dir, 'base-enclosure-attached-multifamily.xml')))
+    # Test unvented attic/crawlspace not within infiltration volume
+    hpxml = HPXML.new(hpxml_path: File.absolute_path(File.join(sample_files_dir, 'base-foundation-unvented-crawlspace.xml')))
     hpxml.attics.each do |attic|
-      attic.within_infiltration_volume = true
+      attic.within_infiltration_volume = false
+    end
+    hpxml.foundations.each do |foundation|
+      foundation.within_infiltration_volume = false
     end
     total_area, exterior_area = hpxml.compartmentalization_boundary_areas
-    assert_equal(5550, exterior_area)
-    assert_equal(8076, total_area)
+    assert_equal(3900, exterior_area)
+    assert_equal(3900, total_area)
+
+    # Test multifamily
+    hpxml = HPXML.new(hpxml_path: File.absolute_path(File.join(sample_files_dir, 'base-bldgtype-multifamily.xml')))
+    total_area, exterior_area = hpxml.compartmentalization_boundary_areas
+    assert_equal(686, exterior_area)
+    assert_equal(2780, total_area)
   end
 
   def test_infiltration_assumed_height
