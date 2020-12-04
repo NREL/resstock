@@ -52,7 +52,7 @@ class HPXMLtoOpenStudioPVTest < MiniTest::Test
 
   def test_pv_shared
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-pv-shared.xml'))
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-bldgtype-multifamily-shared-pv.xml'))
     model, hpxml = _test_measure(args_hash)
 
     hpxml.pv_systems.each do |pv_system|

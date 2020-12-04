@@ -238,12 +238,12 @@ class HPXMLtoOpenStudioHotWaterApplianceTest < MiniTest::Test
 
   def test_dhw_shared_water_heater_recirc
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-dhw-shared-water-heater-recirc.xml'))
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-bldgtype-multifamily-shared-water-heater-recirc.xml'))
     model, hpxml = _test_measure(args_hash)
 
     # water use equipment peak flows
     fixture_gpd = 44.60
-    dist_gpd = 10.2343
+    dist_gpd = 12.354
     cw_gpd = 3.7116
     dw_gpd = 2.7342
     assert_in_epsilon(cw_gpd, get_wu_gpd(model, Constants.ObjectNameClothesWasher), 0.001)
@@ -306,12 +306,12 @@ class HPXMLtoOpenStudioHotWaterApplianceTest < MiniTest::Test
 
   def test_dhw_shared_laundry
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-dhw-shared-laundry-room.xml'))
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-bldgtype-multifamily-shared-laundry-room.xml'))
     model, hpxml = _test_measure(args_hash)
 
     # water use equipment peak flows
     fixture_gpd = 44.60
-    dist_gpd = 10.2343
+    dist_gpd = 12.354
     cw_gpd = 3.7116
     dw_gpd = 2.7342
     assert_in_epsilon(cw_gpd, get_wu_gpd(model, Constants.ObjectNameClothesWasher), 0.001)
@@ -447,17 +447,6 @@ class HPXMLtoOpenStudioHotWaterApplianceTest < MiniTest::Test
     # Get HPXML values
     hot_water_distribution = hpxml.hot_water_distributions[0]
     pump_kwh_yr = 1.46 * hot_water_distribution.recirculation_pump_power
-    assert_in_epsilon(pump_kwh_yr, get_ee_kwh_per_year(model, Constants.ObjectNameHotWaterRecircPump), 0.001)
-  end
-
-  def test_dhw_recirc_shared
-    args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-dhw-shared-water-heater-recirc.xml'))
-    model, hpxml = _test_measure(args_hash)
-
-    # Get HPXML values
-    hot_water_distribution = hpxml.hot_water_distributions[0]
-    pump_kwh_yr = 8760.0 / 1000.0 * hot_water_distribution.shared_recirculation_pump_power / hot_water_distribution.shared_recirculation_number_of_units_served
     assert_in_epsilon(pump_kwh_yr, get_ee_kwh_per_year(model, Constants.ObjectNameHotWaterRecircPump), 0.001)
   end
 

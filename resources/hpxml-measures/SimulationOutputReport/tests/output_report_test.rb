@@ -574,7 +574,7 @@ class SimulationOutputReportTest < MiniTest::Test
   end
 
   def test_timeseries_hourly_zone_temperatures_mf_space
-    args_hash = { 'hpxml_path' => '../workflow/sample_files/base-enclosure-attached-multifamily.xml',
+    args_hash = { 'hpxml_path' => '../workflow/sample_files/base-bldgtype-multifamily-adjacent-to-multiple.xml',
                   'timeseries_frequency' => 'hourly',
                   'include_timeseries_fuel_consumptions' => false,
                   'include_timeseries_end_use_consumptions' => false,
@@ -587,9 +587,10 @@ class SimulationOutputReportTest < MiniTest::Test
     annual_csv, timeseries_csv, eri_csv = _test_measure(args_hash)
     assert(File.exist?(annual_csv))
     assert(File.exist?(timeseries_csv))
-    expected_timeseries_cols = ['Time'] + TimeseriesColsZoneTemps + TimeseriesColsTempsOtherSide
     actual_timeseries_cols = File.readlines(timeseries_csv)[0].strip.split(',')
-    assert_equal(expected_timeseries_cols.sort, actual_timeseries_cols.sort)
+    TimeseriesColsTempsOtherSide.each do |expected_col|
+      assert(actual_timeseries_cols.include? expected_col)
+    end
     assert_equal(8760, File.readlines(timeseries_csv).size - 2)
     _check_for_nonzero_timeseries_value(timeseries_csv, TimeseriesColsTempsOtherSide)
   end

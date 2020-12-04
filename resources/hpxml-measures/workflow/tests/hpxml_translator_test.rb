@@ -198,22 +198,13 @@ class HPXMLTest < MiniTest::Test
                                                             'Expected 1 element(s) for xpath: ../../BuildingSummary/BuildingConstruction[ResidentialFacilityType[text()="single-family attached" or text()="apartment unit"]] [context: /HPXML/Building/BuildingDetails/Appliances/ClothesWasher[IsSharedAppliance="true"]]',
                                                             'Expected 1 element(s) for xpath: ../../BuildingSummary/BuildingConstruction[ResidentialFacilityType[text()="single-family attached" or text()="apartment unit"]] [context: /HPXML/Building/BuildingDetails/Appliances/ClothesDryer[IsSharedAppliance="true"]]',
                                                             'Expected 1 element(s) for xpath: ../../BuildingSummary/BuildingConstruction[ResidentialFacilityType[text()="single-family attached" or text()="apartment unit"]] [context: /HPXML/Building/BuildingDetails/Appliances/Dishwasher[IsSharedAppliance="true"]]',
-                                                            "The building is of type 'single-family detached' but the surface 'RimJoistFoundation' is adjacent to Attached/Multifamily space 'other non-freezing space'.",
-                                                            "The building is of type 'single-family detached' but the surface 'WallOtherHeatedSpace' is adjacent to Attached/Multifamily space 'other heated space'.",
-                                                            "The building is of type 'single-family detached' but the surface 'WallOtherMultifamilyBufferSpace' is adjacent to Attached/Multifamily space 'other multifamily buffer space'.",
-                                                            "The building is of type 'single-family detached' but the surface 'WallOtherNonFreezingSpace' is adjacent to Attached/Multifamily space 'other non-freezing space'.",
-                                                            "The building is of type 'single-family detached' but the surface 'WallOtherHousingUnit' is adjacent to Attached/Multifamily space 'other housing unit'.",
-                                                            "The building is of type 'single-family detached' but the surface 'FoundationWallOtherNonFreezingSpace' is adjacent to Attached/Multifamily space 'other non-freezing space'.",
-                                                            "The building is of type 'single-family detached' but the surface 'FoundationWallOtherMultifamilyBufferSpace' is adjacent to Attached/Multifamily space 'other multifamily buffer space'.",
-                                                            "The building is of type 'single-family detached' but the surface 'FoundationWallOtherHeatedSpace' is adjacent to Attached/Multifamily space 'other heated space'.",
-                                                            "The building is of type 'single-family detached' but the surface 'FloorAboveNonFreezingSpace' is adjacent to Attached/Multifamily space 'other non-freezing space'.",
-                                                            "The building is of type 'single-family detached' but the surface 'FloorAboveMultifamilyBuffer' is adjacent to Attached/Multifamily space 'other multifamily buffer space'.",
-                                                            "The building is of type 'single-family detached' but the surface 'FloorAboveOtherHeatedSpace' is adjacent to Attached/Multifamily space 'other heated space'.",
+                                                            "The building is of type 'single-family detached' but the surface 'WallOther' is adjacent to Attached/Multifamily space 'other housing unit'.",
+                                                            "The building is of type 'single-family detached' but the surface 'FloorAdiabatic' is adjacent to Attached/Multifamily space 'other housing unit'.",
+                                                            "The building is of type 'single-family detached' but the surface 'CeilingAdiabatic' is adjacent to Attached/Multifamily space 'other housing unit'.",
                                                             "The building is of type 'single-family detached' but the object 'SharedWaterHeater' is located in Attached/Multifamily space 'other heated space'.",
                                                             "The building is of type 'single-family detached' but the object 'SharedClothesWasher' is located in Attached/Multifamily space 'other heated space'.",
                                                             "The building is of type 'single-family detached' but the object 'SharedClothesDryer' is located in Attached/Multifamily space 'other heated space'.",
-                                                            "The building is of type 'single-family detached' but the object 'SharedDishwasher' is located in Attached/Multifamily space 'other heated space'.",
-                                                            "The building is of type 'single-family detached' but the HVAC distribution 'HVACDistribution' has a duct located in Attached/Multifamily space 'other housing unit'."],
+                                                            "The building is of type 'single-family detached' but the object 'SharedDishwasher' is located in Attached/Multifamily space 'other heated space'."],
                             'invalid-input-parameters.xml' => ["Expected Transaction to be 'create' or 'update' [context: /HPXML/XMLTransactionHeaderInformation]",
                                                                "Expected SiteType to be 'rural' or 'suburban' or 'urban' [context: /HPXML/Building/BuildingDetails/BuildingSummary/Site]",
                                                                "Expected Year to be '2012' or '2009' or '2006' or '2003' [context: /HPXML/Building/BuildingDetails/ClimateandRiskZones/ClimateZoneIECC]",
@@ -323,11 +314,7 @@ class HPXMLTest < MiniTest::Test
                    ['Fluid Heat Exchanger Heat Transfer Energy', 'runperiod', '*'],
                    ['Fan Electricity Rate', 'runperiod', '*'],
                    ['Fan Runtime Fraction', 'runperiod', '*'],
-                   ['Electric Equipment Electricity Energy', 'runperiod', Constants.ObjectNameMechanicalVentilationHouseFanCFIS],
-                   ['Boiler Part Load Ratio', 'runperiod', '*'],
-                   ['Pump Electricity Rate', 'runperiod', '*'],
-                   ['Unitary System Part Load Ratio', 'runperiod', '*'],
-                   ['Pump Runtime Fraction', 'runperiod', '*']]
+                   ['Electric Equipment Electricity Energy', 'runperiod', Constants.ObjectNameMechanicalVentilationHouseFanCFIS]]
 
     # Run workflow
     workflow_start = Time.now
@@ -668,26 +655,23 @@ class HPXMLTest < MiniTest::Test
       num_kiva_instances += 1
     end
 
-    num_expected_kiva_instances = { 'base-foundation-ambient.xml' => 0,                       # no foundation in contact w/ ground
-                                    'base-foundation-multiple.xml' => 2,                      # additional instance for 2nd foundation type
-                                    'base-enclosure-2stories-garage.xml' => 2,                # additional instance for garage
-                                    'base-enclosure-garage.xml' => 2,                         # additional instance for garage
-                                    'base-enclosure-other-housing-unit.xml' => 0,             # no foundation in contact w/ ground
-                                    'base-enclosure-other-heated-space.xml' => 0,             # no foundation in contact w/ ground
-                                    'base-enclosure-other-non-freezing-space.xml' => 0,       # no foundation in contact w/ ground
-                                    'base-enclosure-other-multifamily-buffer-space.xml' => 0, # no foundation in contact w/ ground
-                                    'base-enclosure-common-surfaces.xml' => 2,                # additional instance for vented crawlspace
-                                    'base-foundation-walkout-basement.xml' => 4,              # 3 foundation walls plus a no-wall exposed perimeter
-                                    'base-foundation-complex.xml' => 10,
-                                    'base-misc-loads-large-uncommon.xml' => 2,
-                                    'base-misc-loads-large-uncommon2.xml' => 2 }
-
     if hpxml_path.include? 'ASHRAE_Standard_140'
       # nop
-    elsif not num_expected_kiva_instances[File.basename(hpxml_path)].nil?
-      assert_equal(num_expected_kiva_instances[File.basename(hpxml_path)], num_kiva_instances)
+    elsif hpxml_path.include? 'base-bldgtype-multifamily'
+      assert_equal(0, num_kiva_instances)                                                # no foundation, above dwelling unit
     else
-      assert_equal(1, num_kiva_instances)
+      num_expected_kiva_instances = { 'base-foundation-ambient.xml' => 0,                # no foundation in contact w/ ground
+                                      'base-foundation-multiple.xml' => 2,               # additional instance for 2nd foundation type
+                                      'base-enclosure-2stories-garage.xml' => 2,         # additional instance for garage
+                                      'base-enclosure-garage.xml' => 2,                  # additional instance for garage
+                                      'base-foundation-walkout-basement.xml' => 4,       # 3 foundation walls plus a no-wall exposed perimeter
+                                      'base-foundation-complex.xml' => 10 }              # lots of foundations for testing
+
+      if not num_expected_kiva_instances[File.basename(hpxml_path)].nil?
+        assert_equal(num_expected_kiva_instances[File.basename(hpxml_path)], num_kiva_instances)
+      else
+        assert_equal(1, num_kiva_instances)
+      end
     end
 
     # Enclosure Foundation Slabs
@@ -1001,36 +985,23 @@ class HPXMLTest < MiniTest::Test
       next unless heating_system.fraction_heat_load_served > 0
       next unless hpxml.heating_systems.size == 1
 
-      if (not heating_system.fan_watts.nil?) || (not heating_system.fan_watts_per_cfm.nil?)
-        # Compare fan power from timeseries output
-        next if hpxml.cooling_systems.size + hpxml.heat_pumps.size > 0 # Skip if other system types (which could result in A) multiple supply fans or B) different supply fan power consumption in the cooling season)
+      next unless (not heating_system.fan_watts.nil?) || (not heating_system.fan_watts_per_cfm.nil?)
+      # Compare fan power from timeseries output
+      next if hpxml.cooling_systems.size + hpxml.heat_pumps.size > 0 # Skip if other system types (which could result in A) multiple supply fans or B) different supply fan power consumption in the cooling season)
 
-        if not heating_system.fan_watts.nil?
-          hpxml_value = heating_system.fan_watts
-        else
-          query = "SELECT SUM(Value) FROM ComponentSizes WHERE Description='User-Specified Heating Supply Air Flow Rate'"
-          heating_cfm = UnitConversions.convert(sqlFile.execAndReturnFirstDouble(query).get, 'm^3/s', 'cfm')
-          hpxml_value = heating_system.fan_watts_per_cfm * heating_cfm
-        end
-        query = "SELECT SUM(VariableValue) FROM ReportVariableData WHERE ReportVariableDataDictionaryIndex IN (SELECT ReportVariableDataDictionaryIndex FROM ReportVariableDataDictionary WHERE VariableType='Avg' AND VariableName='Fan Runtime Fraction' AND ReportingFrequency='Run Period')"
-        avg_rtf = sqlFile.execAndReturnFirstDouble(query).get
-        query = "SELECT SUM(VariableValue) FROM ReportVariableData WHERE ReportVariableDataDictionaryIndex IN (SELECT ReportVariableDataDictionaryIndex FROM ReportVariableDataDictionary WHERE VariableType='Avg' AND VariableName='Fan Electricity Rate' AND ReportingFrequency='Run Period')"
-        avg_w = sqlFile.execAndReturnFirstDouble(query).get
-        sql_value = avg_w / avg_rtf
-        assert_in_epsilon(sql_value, hpxml_value, 0.01)
+      if not heating_system.fan_watts.nil?
+        hpxml_value = heating_system.fan_watts
+      else
+        query = "SELECT SUM(Value) FROM ComponentSizes WHERE Description='User-Specified Heating Supply Air Flow Rate'"
+        heating_cfm = UnitConversions.convert(sqlFile.execAndReturnFirstDouble(query).get, 'm^3/s', 'cfm')
+        hpxml_value = heating_system.fan_watts_per_cfm * heating_cfm
       end
-
-      next unless not heating_system.electric_auxiliary_energy.nil?
-      next if hpxml.water_heating_systems.select { |wh| [HPXML::WaterHeaterTypeCombiStorage, HPXML::WaterHeaterTypeCombiTankless].include? wh.water_heater_type }.size > 0 # Skip combi systems
-
-      # Compare pump power from timeseries output
-      hpxml_value = heating_system.electric_auxiliary_energy / 2.08
-      query = "SELECT SUM(VariableValue) FROM ReportVariableData WHERE ReportVariableDataDictionaryIndex IN (SELECT ReportVariableDataDictionaryIndex FROM ReportVariableDataDictionary WHERE VariableType='Avg' AND VariableName='Boiler Part Load Ratio' AND ReportingFrequency='Run Period')"
-      avg_plr = sqlFile.execAndReturnFirstDouble(query).get
-      query = "SELECT SUM(VariableValue) FROM ReportVariableData WHERE ReportVariableDataDictionaryIndex IN (SELECT ReportVariableDataDictionaryIndex FROM ReportVariableDataDictionary WHERE VariableType='Avg' AND VariableName='Pump Electricity Rate' AND ReportingFrequency='Run Period')"
+      query = "SELECT SUM(VariableValue) FROM ReportVariableData WHERE ReportVariableDataDictionaryIndex IN (SELECT ReportVariableDataDictionaryIndex FROM ReportVariableDataDictionary WHERE VariableType='Avg' AND VariableName='Fan Runtime Fraction' AND ReportingFrequency='Run Period')"
+      avg_rtf = sqlFile.execAndReturnFirstDouble(query).get
+      query = "SELECT SUM(VariableValue) FROM ReportVariableData WHERE ReportVariableDataDictionaryIndex IN (SELECT ReportVariableDataDictionaryIndex FROM ReportVariableDataDictionary WHERE VariableType='Avg' AND VariableName='Fan Electricity Rate' AND ReportingFrequency='Run Period')"
       avg_w = sqlFile.execAndReturnFirstDouble(query).get
-      sql_value = avg_w / avg_plr
-      assert_in_epsilon(sql_value, hpxml_value, 0.05)
+      sql_value = avg_w / avg_rtf
+      assert_in_epsilon(sql_value, hpxml_value, 0.01)
     end
 
     # HVAC Cooling Systems
@@ -1051,23 +1022,6 @@ class HPXMLTest < MiniTest::Test
       avg_w = sqlFile.execAndReturnFirstDouble(query).get
       sql_value = avg_w / avg_rtf
       assert_in_epsilon(sql_value, hpxml_value, 0.01)
-    end
-
-    # HVAC Heat Pumps
-    hpxml.heat_pumps.each do |heat_pump|
-      next unless heat_pump.fraction_heat_load_served > 0
-      next unless hpxml.heat_pumps.size == 1
-      next unless heat_pump.heat_pump_type == HPXML::HVACTypeHeatPumpGroundToAir
-      next unless not heat_pump.pump_watts_per_ton.nil?
-
-      # Compare pump power from timeseries output
-      hpxml_value = heat_pump.pump_watts_per_ton * UnitConversions.convert(results['Capacity: Cooling (W)'], 'W', 'ton')
-      query = "SELECT SUM(VariableValue) FROM ReportVariableData WHERE ReportVariableDataDictionaryIndex IN (SELECT ReportVariableDataDictionaryIndex FROM ReportVariableDataDictionary WHERE VariableType='Avg' AND VariableName='Unitary System Part Load Ratio' AND ReportingFrequency='Run Period')"
-      avg_plr = sqlFile.execAndReturnFirstDouble(query).get
-      query = "SELECT SUM(VariableValue) FROM ReportVariableData WHERE ReportVariableDataDictionaryIndex IN (SELECT ReportVariableDataDictionaryIndex FROM ReportVariableDataDictionary WHERE VariableType='Avg' AND VariableName='Pump Electricity Rate' AND ReportingFrequency='Run Period')"
-      avg_w = sqlFile.execAndReturnFirstDouble(query).get
-      sql_value = avg_w / avg_plr
-      assert_in_epsilon(sql_value, hpxml_value, 0.05)
     end
 
     # HVAC Capacities

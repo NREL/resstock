@@ -5064,7 +5064,7 @@ class HPXML < Object
 
   def delete_tiny_surfaces()
     (@rim_joists + @walls + @foundation_walls + @frame_floors + @roofs + @windows + @skylights + @doors + @slabs).reverse_each do |surface|
-      next if surface.area.nil? || (surface.area > 0.1)
+      next if surface.area.nil? || (surface.area > 1.0)
 
       surface.delete
     end

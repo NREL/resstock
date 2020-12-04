@@ -493,7 +493,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     _test_default_boiler_values(hpxml_default, true, 170.0)
 
     # Test inputs not overridden by defaults (shared boiler)
-    hpxml = _create_hpxml('base-hvac-shared-boiler-only-baseboard.xml')
+    hpxml = _create_hpxml('base-bldgtype-multifamily-shared-boiler-only-baseboard.xml')
     hpxml.heating_systems[0].shared_loop_watts = nil
     hpxml.heating_systems[0].electric_auxiliary_energy = 99.9
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
@@ -702,7 +702,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     _test_default_duct_values(hpxml_default, true, expected_supply_locations, expected_return_locations, expected_supply_areas, expected_return_areas, expected_n_return_registers)
 
     # Test defaults w/ building/unit adjacent to other housing unit
-    hpxml = _create_hpxml('base-enclosure-other-housing-unit.xml')
+    hpxml = _create_hpxml('base-bldgtype-multifamily-adjacent-to-other-housing-unit.xml')
     hpxml.hvac_distributions.each do |hvac_distribution|
       hvac_distribution.ducts.each do |duct|
         duct.duct_location = nil
@@ -713,8 +713,8 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml_default = _test_measure()
     expected_supply_locations = ['living space']
     expected_return_locations = ['living space']
-    expected_supply_areas = [364.5]
-    expected_return_areas = [67.5]
+    expected_supply_areas = [243.0]
+    expected_return_areas = [45.0]
     expected_n_return_registers = hpxml_default.building_construction.number_of_conditioned_floors
     _test_default_duct_values(hpxml_default, true, expected_supply_locations, expected_return_locations, expected_supply_areas, expected_return_areas, expected_n_return_registers)
 
@@ -956,7 +956,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     _test_default_recirc_distribution_values(hpxml_default, false, 50.0, 50.0, 65.0, 2.5)
 
     # Test inputs not overridden by defaults -- shared recirculation
-    hpxml = _create_hpxml('base-dhw-shared-water-heater-recirc.xml')
+    hpxml = _create_hpxml('base-bldgtype-multifamily-shared-water-heater-recirc.xml')
     hpxml.hot_water_distributions[0].shared_recirculation_pump_power = 333.0
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
@@ -1017,7 +1017,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     _test_default_recirc_distribution_values(hpxml_default, true, 186.96, 10.0, 50.0, 0.0)
 
     # Test defaults w/ shared recirculation
-    hpxml = _create_hpxml('base-dhw-shared-water-heater-recirc.xml')
+    hpxml = _create_hpxml('base-bldgtype-multifamily-shared-water-heater-recirc.xml')
     hpxml.hot_water_distributions[0].shared_recirculation_pump_power = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
@@ -1297,7 +1297,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     # Test inputs not overridden by defaults
     hpxml = _create_hpxml('base-misc-loads-large-uncommon.xml')
     hpxml.refrigerators.each do |refrigerator|
-      refrigerator.location = HPXML::LocationBasementConditioned
+      refrigerator.location = HPXML::LocationLivingSpace
       refrigerator.rated_annual_kwh = 333.0
       refrigerator.usage_multiplier = 1.5
       refrigerator.weekday_fractions = ConstantDaySchedule
@@ -1306,7 +1306,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     end
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_extra_refrigerators_values(hpxml_default, false, HPXML::LocationBasementConditioned, 333.0, 1.5, ConstantDaySchedule, ConstantDaySchedule, ConstantMonthSchedule)
+    _test_default_extra_refrigerators_values(hpxml_default, false, HPXML::LocationLivingSpace, 333.0, 1.5, ConstantDaySchedule, ConstantDaySchedule, ConstantMonthSchedule)
 
     # Test defaults
     hpxml.refrigerators.each do |refrigerator|
@@ -1319,14 +1319,14 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     end
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_extra_refrigerators_values(hpxml_default, true, HPXML::LocationGarage, 244.0, 1.0, '0.040, 0.039, 0.038, 0.037, 0.036, 0.036, 0.038, 0.040, 0.041, 0.041, 0.040, 0.040, 0.042, 0.042, 0.042, 0.041, 0.044, 0.048, 0.050, 0.048, 0.047, 0.046, 0.044, 0.041', '0.040, 0.039, 0.038, 0.037, 0.036, 0.036, 0.038, 0.040, 0.041, 0.041, 0.040, 0.040, 0.042, 0.042, 0.042, 0.041, 0.044, 0.048, 0.050, 0.048, 0.047, 0.046, 0.044, 0.041', '0.837, 0.835, 1.084, 1.084, 1.084, 1.096, 1.096, 1.096, 1.096, 0.931, 0.925, 0.837')
+    _test_default_extra_refrigerators_values(hpxml_default, true, HPXML::LocationBasementConditioned, 244.0, 1.0, '0.040, 0.039, 0.038, 0.037, 0.036, 0.036, 0.038, 0.040, 0.041, 0.041, 0.040, 0.040, 0.042, 0.042, 0.042, 0.041, 0.044, 0.048, 0.050, 0.048, 0.047, 0.046, 0.044, 0.041', '0.040, 0.039, 0.038, 0.037, 0.036, 0.036, 0.038, 0.040, 0.041, 0.041, 0.040, 0.040, 0.042, 0.042, 0.042, 0.041, 0.044, 0.048, 0.050, 0.048, 0.047, 0.046, 0.044, 0.041', '0.837, 0.835, 1.084, 1.084, 1.084, 1.096, 1.096, 1.096, 1.096, 0.931, 0.925, 0.837')
   end
 
   def test_freezers
     # Test inputs not overridden by defaults
     hpxml = _create_hpxml('base-misc-loads-large-uncommon.xml')
     hpxml.freezers.each do |freezer|
-      freezer.location = HPXML::LocationBasementConditioned
+      freezer.location = HPXML::LocationLivingSpace
       freezer.rated_annual_kwh = 333.0
       freezer.usage_multiplier = 1.5
       freezer.weekday_fractions = ConstantDaySchedule
@@ -1335,7 +1335,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     end
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_freezers_values(hpxml_default, false, HPXML::LocationBasementConditioned, 333.0, 1.5, ConstantDaySchedule, ConstantDaySchedule, ConstantMonthSchedule)
+    _test_default_freezers_values(hpxml_default, false, HPXML::LocationLivingSpace, 333.0, 1.5, ConstantDaySchedule, ConstantDaySchedule, ConstantMonthSchedule)
 
     # Test defaults
     hpxml.freezers.each do |freezer|
@@ -1348,7 +1348,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     end
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_freezers_values(hpxml_default, true, HPXML::LocationGarage, 320.0, 1.0, '0.040, 0.039, 0.038, 0.037, 0.036, 0.036, 0.038, 0.040, 0.041, 0.041, 0.040, 0.040, 0.042, 0.042, 0.042, 0.041, 0.044, 0.048, 0.050, 0.048, 0.047, 0.046, 0.044, 0.041', '0.040, 0.039, 0.038, 0.037, 0.036, 0.036, 0.038, 0.040, 0.041, 0.041, 0.040, 0.040, 0.042, 0.042, 0.042, 0.041, 0.044, 0.048, 0.050, 0.048, 0.047, 0.046, 0.044, 0.041', '0.837, 0.835, 1.084, 1.084, 1.084, 1.096, 1.096, 1.096, 1.096, 0.931, 0.925, 0.837')
+    _test_default_freezers_values(hpxml_default, true, HPXML::LocationBasementConditioned, 320.0, 1.0, '0.040, 0.039, 0.038, 0.037, 0.036, 0.036, 0.038, 0.040, 0.041, 0.041, 0.040, 0.040, 0.042, 0.042, 0.042, 0.041, 0.044, 0.048, 0.050, 0.048, 0.047, 0.046, 0.044, 0.041', '0.040, 0.039, 0.038, 0.037, 0.036, 0.036, 0.038, 0.040, 0.041, 0.041, 0.040, 0.040, 0.042, 0.042, 0.042, 0.041, 0.044, 0.048, 0.050, 0.048, 0.047, 0.046, 0.044, 0.041', '0.837, 0.835, 1.084, 1.084, 1.084, 1.096, 1.096, 1.096, 1.096, 0.931, 0.925, 0.837')
   end
 
   def test_cooking_ranges
