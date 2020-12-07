@@ -4,7 +4,7 @@ Installation
 Download the ResStock repository
 ================================
 
-Go to the `releases page on GitHub <https://github.com/NREL/OpenStudio-BuildStock/releases>`_, select a release, and either ``git clone`` or download a zip of the repository. The ``master`` branch is under active development, so we recommend using the latest `release <https://github.com/NREL/OpenStudio-BuildStock/releases>`_ for production runs.
+Go to the `releases page on GitHub <https://github.com/NREL/resstock/releases>`_, select a release, and either ``git clone`` or download a zip of the repository. The ``master`` branch is under active development, so we recommend using the latest `release <https://github.com/NREL/resstock/releases>`_ for production runs.
 
 Developer instructions
 ======================
