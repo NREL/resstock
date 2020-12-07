@@ -3,8 +3,8 @@ The `main` branch is under active development. Find the latest release [here](ht
 ResStock
 ========
 
-[![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/NREL/OpenStudio-BuildStock?include_prereleases)](https://github.com/NREL/OpenStudio-BuildStock/releases)
-[![CircleCI](https://circleci.com/gh/NREL/OpenStudio-BuildStock.svg?style=shield)](https://circleci.com/gh/NREL/OpenStudio-BuildStock)
+[![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/NREL/ResStock?include_prereleases)](https://github.com/NREL/ResStock/releases)
+[![CircleCI](https://circleci.com/gh/NREL/ResStock.svg?style=shield)](https://circleci.com/gh/NREL/ResStock)
 [![Documentation Status](https://readthedocs.org/projects/resstock/badge/?version=latest)](https://resstock.readthedocs.io/en/latest/?badge=latest)
 
 <img src="https://user-images.githubusercontent.com/1276021/85608250-1ff46b80-b612-11ea-903e-4ced367e5940.jpg" width="400">
@@ -13,7 +13,7 @@ ResStock
 
 This repository contains:
 
-- [Housing characteristics of the U.S. residential building stock](https://github.com/NREL/ResStock/tree/master/project_national/housing_characteristics), in the form of conditional probability distributions stored as tab-separated value (.tsv) files. A visualization of the dependency structure can be found [here](https://htmlpreview.github.io/?https://github.com/NREL/OpenStudio-BuildStock/blob/master/project_national/util/dependency_wheel/dep_wheel.html).
+- [Housing characteristics of the U.S. residential building stock](https://github.com/NREL/ResStock/tree/master/project_national/housing_characteristics), in the form of conditional probability distributions stored as tab-separated value (.tsv) files. A visualization of the dependency structure can be found [here](https://htmlpreview.github.io/?https://github.com/NREL/ResStock/blob/master/project_national/util/dependency_wheel/dep_wheel.html).
 - [A library of housing characteristic "options"](https://github.com/NREL/ResStock/blob/master/resources/options_lookup.tsv) that translate high-level characteristic parameters into arguments for [OpenStudio Measures](https://github.com/NREL/ResStock/tree/master/resources/measures), and which are referenced by the housing characteristic .tsv files and building energy upgrades defined in project definition files
 - Project definition files:
   - v2.3.0 and later: [buildstockbatch YML files openable in any text editor](https://github.com/NREL/ResStock/blob/master/project_national/national.yml)
