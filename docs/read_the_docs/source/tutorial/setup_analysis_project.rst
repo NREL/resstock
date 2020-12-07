@@ -38,7 +38,7 @@ This measure creates the baseline scenario. It incrementally applies OpenStudio 
 **Measures to Ignore**
   **INTENDED FOR ADVANCED USERS/WORKFLOW DEVELOPERS ONLY.** Measures to exclude from the OpenStudio Workflow specified by listing one or more measure directories separated by '|'. Core ResStock measures cannot be ignored (the Build Existing Model measure will fail).
 
-.. _custom region map: https://github.com/NREL/OpenStudio-BuildStock/wiki/Custom-Region-(CR)-Map
+.. _custom region map: https://github.com/NREL/resstock/wiki/Custom-Region-(CR)-Map
 
 .. note::
    

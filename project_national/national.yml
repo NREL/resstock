@@ -1,6 +1,6 @@
 schema_version: 0.2
 stock_type: residential
-buildstock_directory: ../../OpenStudio-BuildStock # Relative to this file or absolute
+buildstock_directory: ../../resstock # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
 output_directory: /scratch/<username>/outputs/project_national
 weather_files_url: https://data.nrel.gov/system/files/128/ResStock_TMY3.zip
@@ -40,8 +40,8 @@ postprocessing:
     region_name: 'us-west-2'
     s3:
       bucket: resbldg-datasets
-      prefix: OpenStudio-BuildStock
+      prefix: resstock
     athena:
       glue_service_role: service-role/AWSGlueServiceRole-default
-      database_name: OpenStudio-BuildStock
+      database_name: resstock
       max_crawling_time: 300 #time to wait for the crawler to complete before aborting it
