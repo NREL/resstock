@@ -1,0 +1,1746 @@
+stock_type: residential
+buildstock_directory: ../OpenStudio-BuildStock  # Relative to this file or absolute
+project_directory: project_chicago  # Relative to buildstock_directory
+output_directory: /projects/chicagoeui/cookcnty_upgrades_01
+weather_files_path: ../weatherfiles/TMY_2007_Chicago.zip  # Relative to this file or absolute path to zipped weather files
+
+### SWITCH WEATHER TO TMY
+
+reporting_measures:
+  - QOIReport
+  - ApplyUpgrade
+
+baseline:
+  sampling_algorithm: quota
+  # precomputed_sample: ../resources/buildstock.csv 
+  n_datapoints: 40000
+  n_buildings_represented: 2173433 #total number of housing units in Cook County using ACS 2010 5-year estimates
+schema_version: 0.2
+
+residential_simulation_controls:
+  timesteps_per_hr: 4
+
+simulation_output:
+  include_enduse_subcategories: true
+  
+
+upgrades:
+
+#### Phase 1: Independent Upgrades
+
+###Group 1: Intensive, fuel-agnostic upgrades
+
+##Air Sealing #01, 25% reduction
+  - upgrade_name: Air Leakage 25% reduction, with mech. vent. under 7 ACH50
+    options:
+      - option: Infiltration|18.5 ACH50
+        apply_logic: Infiltration|25 ACH50
+        costs:
+          - value: 1.2
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|15 ACH50
+        apply_logic: Infiltration|20 ACH50
+        costs:
+          - value: 1.2
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|11.25 ACH50
+        apply_logic: Infiltration|15 ACH50
+        costs:
+          - value: 1.2
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|7.5 ACH50
+        apply_logic: Infiltration|10 ACH50
+        costs:
+          - value: 0.63
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|6 ACH50
+        apply_logic: Infiltration|8 ACH50
+        costs:
+          - value: 0.52
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|5.25 ACH50
+        apply_logic: Infiltration|7 ACH50
+        costs:
+          - value: 0.52
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|4.5 ACH50
+        apply_logic: Infiltration|6 ACH50
+        costs:
+          - value: 0.41
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|3.75 ACH50
+        apply_logic: Infiltration|5 ACH50
+        costs:
+          - value: 0.31
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|3 ACH50
+        apply_logic: Infiltration|4 ACH50
+        costs:
+          - value: 0.31
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|2.25 ACH50
+        apply_logic: Infiltration|3 ACH50
+        costs:
+          - value: 0.31
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|1.5 ACH50
+        apply_logic: Infiltration|2 ACH50
+        costs:
+          - value: 0.31
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Mechanical Ventilation|Exhaust, 2010 ASHRAE 62.2
+        apply_logic: 
+          and:
+            - Mechanical Ventilation|None
+            - or:
+              - Infiltration| 1.5 ACH50
+              - Infiltration| 2 ACH50
+              - Infiltration| 2.25 ACH50
+              - Infiltration| 3 ACH50
+              - Infiltration| 4 ACH50
+              - Infiltration| 3.75 ACH50
+              - Infiltration| 4 ACH50
+              - Infiltration| 4.5 ACH50
+              - Infiltration| 5 ACH50
+              - Infiltration| 6 ACH50
+              - Infiltration| 7 ACH50
+        costs: 
+          - value: 360
+            multiplier: Fixed (1)
+        lifetime: 999
+
+##Air Sealing #02: "Best" air sealing to 1ACH50
+  - upgrade_name: Air Leakage to 1ACH50, with mech. vent.
+    options:
+      - option: Infiltration|1 ACH50
+        costs:
+          - value: 0.31
+            multiplier: Floor Area, Conditioned (ft^2) #Copied from above, might not be reflective
+        lifetime: 999
+      - option: Mechanical Ventilation|Exhaust, 2010 ASHRAE 62.2
+        apply_logic: 
+            - Mechanical Ventilation|None
+        costs: 
+          - value: 360
+            multiplier: Fixed (1)
+        lifetime: 999
+
+##Attic Insulation #01: R-49, vented attics only
+  - upgrade_name: R-49 Attic Insulation
+    options:
+      - option: Insulation Unfinished Attic|Ceiling R-49, Vented
+        apply_logic: Insulation Unfinished Attic|Uninsulated, Vented
+        costs:
+          - value: 2.4
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 999
+        options:
+      - option: Insulation Unfinished Attic|Ceiling R-49, Vented
+        apply_logic: Insulation Unfinished Attic|Ceiling R-7, Vented
+        costs:
+          - value: 1.9
+            multiplier: Floor Area, Attic (ft^2)
+      - option: Insulation Unfinished Attic|Ceiling R-49, Vented
+        apply_logic: Insulation Unfinished Attic|Ceiling R-13, Vented
+        costs:
+          - value: 1.6
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 999
+      - option: Insulation Unfinished Attic|Ceiling R-49, Vented
+        apply_logic: Insulation Unfinished Attic|Ceiling R-19, Vented
+        costs:
+          - value: 1.4
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 999
+      - option: Insulation Unfinished Attic|Ceiling R-49, Vented
+        apply_logic: Insulation Unfinished Attic|Ceiling R-30, Vented
+        costs:
+          - value: 0.87
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 999
+      - option: Insulation Unfinished Attic|Ceiling R-49, Vented
+        apply_logic: Insulation Unfinished Attic|Ceiling R-38, Vented
+        costs:
+          - value: 0.5
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 999
+##Attic Insulation #02: R-60, vented attics only
+  - upgrade_name: R-60 Attic Insulation
+    options:
+      - option: Insulation Unfinished Attic|Ceiling R-60, Vented
+        apply_logic: Insulation Unfinished Attic|Uninsulated, Vented
+        costs:
+          - value: 2.9
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 999
+      - option: Insulation Unfinished Attic|Ceiling R-60, Vented
+        apply_logic: Insulation Unfinished Attic|Ceiling R-7, Vented
+        costs:
+          - value: 2.4
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 999
+      - option: Insulation Unfinished Attic|Ceiling R-60, Vented
+        apply_logic: Insulation Unfinished Attic|Ceiling R-13, Vented
+        costs:
+          - value: 2.1
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 999
+      - option: Insulation Unfinished Attic|Ceiling R-60, Vented
+        apply_logic: Insulation Unfinished Attic|Ceiling R-19, Vented
+        costs:
+          - value: 1.9
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 999
+      - option: Insulation Unfinished Attic|Ceiling R-60, Vented
+        apply_logic: Insulation Unfinished Attic|Ceiling R-30, Vented
+        costs:
+          - value: 1.4
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 999
+      - option: Insulation Unfinished Attic|Ceiling R-60, Vented
+        apply_logic: Insulation Unfinished Attic|Ceiling R-38, Vented
+        costs:
+          - value: 0.99
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 999
+      - option: Insulation Unfinished Attic|Ceiling R-60, Vented
+        apply_logic: Insulation Unfinished Attic|Ceiling R-49, Vented
+        costs:
+          - value: 0.49
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 999
+
+##Attic Insulation #03: R-49, finished roof only
+  - upgrade_name: R-49 Finished Roof
+    options:
+      - option: Insulation Finished Roof|R-49
+        apply_logic: Insulation Finished Roof|Uninsulated
+        costs:
+          - value: 2.9
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 999
+      - option: Insulation Finished Roof|R-49
+        apply_logic: Insulation Finished Roof|R-7
+        costs:
+          - value: 2.4
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 999
+      - option: Insulation Finished Roof|R-49
+        apply_logic: Insulation Finished Roof|R-13
+        costs:
+          - value: 2.1
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 999
+      - option: Insulation Finished Roof|R-49
+        apply_logic: Insulation Finished Roof|R-19
+        costs:
+          - value: 1.9
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 999
+      - option: Insulation Finished Roof|R-49
+        apply_logic: Insulation Finished Roof|R-30
+        costs:
+          - value: 1.4
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 999
+      - option: Insulation Finished Roof|R-49
+        apply_logic: Insulation Finished Roof|R-38
+        costs:
+          - value: 0.99
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 999
+
+##Ducts #01
+  - upgrade_name: Duct sealing and insulation to R-8, 10% leakage
+    options: 
+      - option: Ducts|10% Leakage, R-8
+        apply_logic:
+          or:
+            - Ducts|85% Leakage, Uninsulated
+            - Ducts|53% Leakage, Uninsulated
+            - Ducts|34% Leakage, Uninsulated
+            - Ducts|30% Leakage, Uninsulated
+            - Ducts|85% Leakage, R-4
+            - Ducts|85% Leakage, R-6
+            - Ducts|53% Leakage, R-4
+            - Ducts|53% Leakage, R-6
+            - Ducts|34% Leakage, R-4
+            - Ducts|34% Leakage, R-6
+            - Ducts|30% Leakage, R-4
+            - Ducts|30% Leakage, R-6
+        costs:
+          - value: 2.2
+            multiplier: Duct Surface Area (ft^2)
+        lifetime: 30
+      - option: Ducts|10% Leakage, R-8
+        apply_logic:
+          or:
+            - Ducts|85% Leakage, R-8
+            - Ducts|53% Leakage, R-8
+            - Ducts|34% Leakage, R-8
+            - Ducts|30% Leakage, R-8
+        costs:
+          - value: 0.81
+            multiplier: Duct Surface Area (ft^2)
+        lifetime: 30
+      - option: Ducts|10% Leakage, R-8
+        apply_logic:
+          or:
+            - Ducts|24% Leakage, Uninsulated
+            - Ducts|24% Leakage, R-4
+            - Ducts|24% Leakage, R-6
+            - Ducts|20% Leakage, Uninsulated
+            - Ducts|20% Leakage, R-4
+            - Ducts|20% Leakage, R-6
+        costs:
+          - value: 0.4
+            multiplier: Duct Surface Area (ft^2)
+        lifetime: 30
+      - option: Ducts|10% Leakage, R-8
+        apply_logic:
+          or:
+            - Ducts|24% Leakage, R-8
+            - Ducts|20% Leakage, R-8
+        costs:
+          - value: 0.4
+            multiplier: Duct Surface Area (ft^2)
+        lifetime: 30
+      - option: Ducts|10% Leakage, R-8
+        apply_logic:
+          or:
+            - Ducts|15% Leakage, Uninsulated
+            - Ducts|15% Leakage, R-4
+            - Ducts|15% Leakage, R-6
+            - Ducts|14% Leakage, Uninsulated
+            - Ducts|14% Leakage, R-4
+            - Ducts|14% Leakage, R-6
+            - Ducts|15% Leakage, R-6, 50% Surface Area, 1 return
+        costs:
+          - value: 1.6
+            multiplier: Duct Surface Area (ft^2)
+        lifetime: 30
+      - option: Ducts|10% Leakage, R-8
+        apply_logic:
+          or:
+            - Ducts|15% Leakage, R-8
+            - Ducts|14% Leakage, R-8
+        costs:
+          - value: 0.2
+            multiplier: Duct Surface Area (ft^2)
+        lifetime: 30
+      - option: Ducts|10% Leakage, R-8
+        apply_logic: 
+          or:
+            - Ducts|10% Leakage, Uninsulated
+            - Ducts|10% Leakage, R-4
+            - Ducts|10% Leakage, R-6
+        costs:
+          - value: 1.4
+            multiplier: Duct Surface Area (ft^2)
+        lifetime: 30
+      - option: Ducts|7.5% Leakage, R-8
+        apply_logic:
+          or:
+            - Ducts|7.5% Leakage, Uninsulated
+            - Ducts|7.5% Leakage, R-4
+            - Ducts|7.5% Leakage, R-6
+        costs:
+          - value: 1.4
+            multiplier: Duct Surface Area (ft^2)
+        lifetime: 30
+      - option: Ducts|6% Leakage, R-8
+        apply_logic:
+          or:
+            - Ducts|6% Leakage, Uninsulated
+            - Ducts|6% Leakage, R-4
+            - Ducts|6% Leakage, R-6
+        costs:
+          - value: 1.4
+            multiplier: Duct Surface Area (ft^2)
+        lifetime: 30
+    package_apply_logic: 
+      not: 
+        or:
+          - Ducts|none
+          - Ducts|In Finished Space
+
+## Windows #01: Low-E Storm Windows
+  - upgrade_name: Low-E Storm Window
+    options:
+      - option: Windows|Low-E Storm on Single, Metal
+        apply_logic: Windows|1 Pane
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - option: Windows|Low-E Storm on Double, Non-metal
+        apply_logic: Windows|2+ Pane
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+
+## Windows #02: Double Pane U 0.29 SHGC .56
+  - upgrade_name: Low-E Storm Window
+    options:
+      - option: Windows|Low-E, Double, High-Gain
+        apply_logic: Windows|1 Pane
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - option: Windows|Low-E, Double, High-Gain
+        apply_logic: Windows|2+ Pane
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+
+## Windows #03: Double Pane U 0.26 SHGC .31
+  - upgrade_name: Low-E Storm Window
+    options:
+      - option: Low-E, Double, Low-Gain
+        apply_logic: Windows|1 Pane
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - option: Low-E, Double, Low-Gain
+        apply_logic: Windows|2+ Pane
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+
+## Cool Roof
+  - upgrade_name: Cool Roof
+    options:
+      - option: Roof Material Unfinished Attic|Asphalt Shingles, White or Cool Colors
+        apply_logic:
+          - Roof Material Unfinished Attic|Asphalt Shingles, Medium 
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - option: Roof Material Finished Roof|Asphalt Shingles, White or Cool Colors
+        apply_logic:
+          - Roof Material Finished Roof|Asphalt Shingles, Medium
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+
+##Exterior Wall #01 Wood Stud Drill-and-fill 
+  - upgrade_name: Drill-and-fill insulation for wood walls
+    options: 
+      - option: Insulation Wall|Wood Stud, R-13
+        apply_logic: 
+          or:
+            - Insulation Wall|Wood Stud, Uninsulated
+        costs: 
+          - value: 2.4
+            multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
+        lifetime: 999
+      - option: Insulation Wall|Wood Stud, R-13
+        apply_logic: 
+          or:
+            - Insulation Wall|Wood Stud, R-7
+            - Insulation Wall|Wood Stud, R-11
+        costs: 
+          - value: 1.2
+            multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
+        lifetime: 999
+
+- upgrade_name: Drill-and-fill to R-13, R-20 external XPS
+    options: 
+      #Best walls
+      - option: Insulation Wall|Wood Stud, R-13, R-20 external XPS
+        apply_logic:
+          or:
+            - Insulation Wall|Wood Stud, Uninsulated
+            - Insulation Wall|Wood Stud, R-7
+            - Insulation Wall|Wood Stud, R-11
+            - Insulation Wall|Wood Stud, R-13
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Insulation Wall|Wood Stud, R-15, R-20 external XPS
+        apply_logic:
+            - Insulation Wall|Wood Stud, R-15
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Insulation Wall|Wood Stud, R-19, R-20 external XPS
+        apply_logic:
+            - Insulation Wall|Wood Stud, R-19
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+
+##Exterior Wall #03 Wood Stud Drill-and-fill + R-5 sheathing
+  - upgrade_name: Drill-and-fill insulation for wood walls and R-5 sheathing
+    options: 
+      - option: Insulation Wall|Wood Stud, R-13, R-5 Sheathing
+        apply_logic: 
+          or:
+            - Insulation Wall|Wood Stud, Uninsulated
+        costs: 
+          - value: 3.7
+            multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
+        lifetime: 999
+      - option: Insulation Wall|Wood Stud, R-13, R-5 Sheathing
+        apply_logic: 
+          or:
+            - Insulation Wall|Wood Stud, R-7
+            - Insulation Wall|Wood Stud, R-11
+        costs: 
+          - value: 2.5
+            multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
+        lifetime: 999
+      - option: Insulation Wall|Wood Stud, R-15, R-5 Sheathing
+        apply_logic: 
+            - Insulation Wall|Wood Stud, R-15
+        costs: 
+          - value: 1.3
+            multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
+        lifetime: 999
+      - option: Insulation Wall|Wood Stud, R-19, R-5 Sheathing
+        apply_logic: 
+            - Insulation Wall|Wood Stud, R-19
+        costs: 
+          - value: 1.3
+            multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
+        lifetime: 999
+
+##Exterior Wall #04 External R-20 XPS for all 
+- upgrade_name: R-20 external XPS
+    options: 
+      - option: Insulation Wall|Wood Stud, R-19, R-20 external XPS
+        apply_logic: 
+            - Insulation Wall|Wood Stud, R-19
+        costs: 
+          - value: 0
+            multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
+        lifetime: 999
+      - option: Insulation Wall|Wood Stud, R-15, R-20 external XPS
+        apply_logic: 
+            - Insulation Wall|Wood Stud, R-15
+        costs: 
+          - value: 0
+            multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
+        lifetime: 999
+      - option: Insulation Wall|Wood Stud, R-11, R-20 external XPS
+        apply_logic: 
+            - Insulation Wall|Wood Stud, R-11
+        costs: 
+          - value: 0
+            multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
+        lifetime: 999
+      - option: Insulation Wall|Wood Stud, R-7, R-20 external XPS
+        apply_logic: 
+            - Insulation Wall|Wood Stud, R-7
+        costs: 
+          - value: 0
+            multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
+        lifetime: 999
+      - option: Insulation Wall|Wood Stud, Uninsulated, R-20 external XPS
+        apply_logic: 
+            - Insulation Wall|Wood Stud, Uninsulated
+        costs: 
+          - value: 0
+            multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
+        lifetime: 999
+      - option: Insulation Wall|Brick, 8-in, 2-wythe, Uninsulated
+        apply_logic: 
+            - Insulation Wall|Brick, 8-in, 2-wythe, R-20 XPS
+        costs: 
+          - value: 0
+            multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
+        lifetime: 999
+      - option: Insulation Wall|CMU, 6-in Hollow, Uninsulated, R-20 XPS
+        apply_logic: 
+            - Insulation Wall|CMU, 6-in Hollow, Uninsulated
+        costs: 
+          - value: 0
+            multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
+        lifetime: 999
+      - option: Insulation Wall|CMU, 6-in Hollow, R-7, R-20 XPS
+        apply_logic: 
+            - Insulation Wall|CMU, 6-in Hollow, R-7
+        costs: 
+          - value: 0
+            multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
+        lifetime: 999
+      - option: Insulation Wall|CMU, 6-in Hollow, R-11, R-20 XPS
+        apply_logic: 
+            - Insulation Wall|CMU, 6-in Hollow, R-11
+        costs: 
+          - value: 0
+            multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
+        lifetime: 999
+      - option: Insulation Wall|CMU, 6-in Hollow, R-15, R-20 XPS
+        apply_logic: 
+            - Insulation Wall|CMU, 6-in Hollow, R-15
+        costs: 
+          - value: 0
+            multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
+        lifetime: 999
+      - option: Insulation Wall|CMU, 6-in Hollow, R-19, R-20 XPS
+        apply_logic: 
+            - Insulation Wall|CMU, 6-in Hollow, R-19
+        costs: 
+          - value: 0
+            multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
+        lifetime: 999
+
+##Foundation #01: Finished Basement R-10
+- upgrade_name: Finished Basement, R-10
+      - option: Insulation Finished Basement|Wall R-10
+        apply_logic: 
+          or:
+            - Insulation Finished Basement|Uninsulated
+            - Insulation Finished Basement|Wall R-5
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+
+##Foundation #02: Finished Basement R-15
+- upgrade_name: Finished Basement, R-15
+      - option: Insulation Finished Basement|Wall R-15
+        apply_logic: 
+          or:
+            - Insulation Finished Basement|Uninsulated
+            - Insulation Finished Basement|Wall R-5
+            - Insulation Finished Basement|Wall R-10
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+
+##Foundation #03: Crawlspace R-19, Vented
+- upgrade_name: Crawlspace, Vented R-30, Unvented R-13
+      - option: Insulation Crawlspace|Ceiling R-30, Vented
+        apply_logic: 
+          or:
+            - Insulation Crawlspace|Ceiling R-19, Vented
+            - Insulation Crawlspace|Ceiling R-13, Vented
+            - Insulation Crawlspace|Uninsulated, Vented
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Insulation Crawlspace|Wall R-13, Unvented
+        apply_logic: 
+          or:
+            - Insulation Crawlspace|Wall R-10, Unvented
+            - Insulation Crawlspace|Wall R-5, Unvented
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+
+##Foundation #04: Unfinished Basement, R-13
+- upgrade_name: Unfinished Basement, R-13
+      - option: Insulation Unfinished Basement|Wall R-13
+        apply_logic: 
+          or:
+            - Insulation Unfinished Basement|Uninsulated
+            - Insulation Unfinished Basement|Ceiling R-13
+            - Insulation Unfinished Basement|Ceiling R-19
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+
+##Foundation #05: Pier and Beam R-19
+- upgrade_name: Pier and Beam R-19
+      - option: Insulation Pier Beam|R-19
+        apply_logic: 
+          or:
+            - Insulation Pier Beam|Uninsulated
+            - Insulation Pier Beam|R-13
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+
+##Foundation #06: Pier and Beam R-38
+- upgrade_name: Pier and Beam R-38
+      - option: Insulation Pier Beam|R-38
+        apply_logic: 
+          or:
+            - Insulation Pier Beam|Uninsulated
+            - Insulation Pier Beam|R-13
+            - Insulation Pier Beam|R-19
+            - Insulation Pier Beam|R-30
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+
+##Foundation #08: Insulation Slab
+      - option: Insulation Slab|R20 Exterior
+        apply_logic: 
+          or:
+            - Insulation Slab|Uninsulated
+            - Insulation Slab|2ft R5 Perimeter, R5 Gap
+            - Insulation Slab|2ft R10 Perimeter, R10 Gap
+            - Insulation Slab|2ft R5 Exterior
+            - Insulation Slab|2ft R10 Exterior
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+
+
+###Group 2: Multifuel Upgrades
+
+##Cooling #01: Minimum CAC
+  - upgrade_name: SEER 18 CAC
+    options: 
+      - option: HVAC Cooling Efficiency|AC, SEER 18
+        apply_logic:
+          or:
+            - HVAC Cooling Efficiency|AC, SEER 8
+            - HVAC Cooling Efficiency|AC, SEER 10
+            - HVAC Cooling Efficiency|AC, SEER 13
+            - HVAC Cooling Efficiency|AC, SEER 14
+            - HVAC Cooling Efficiency|AC, SEER 15
+        costs:
+          - value: 3200
+            multiplier: Fixed (1)
+          - value: 42
+            multiplier: Size, Cooling System (kBtu/h)
+        lifetime: 16
+
+###Cooling #02: Efficient CAC
+  - upgrade_name: SEER 24.5 CAC
+    options: 
+      - option: HVAC Cooling Efficiency|AC, SEER 24.5
+        apply_logic:
+          or:
+            - HVAC Cooling Efficiency|AC, SEER 8
+            - HVAC Cooling Efficiency|AC, SEER 10
+            - HVAC Cooling Efficiency|AC, SEER 13
+            - HVAC Cooling Efficiency|AC, SEER 14
+            - HVAC Cooling Efficiency|AC, SEER 15
+        costs:
+          - value: 3200 ##WRONG costs
+            multiplier: Fixed (1)
+          - value: 42
+            multiplier: Size, Cooling System (kBtu/h)
+        lifetime: 16
+        reference_scenario: Reference CAC SEER 14
+
+###Cooling #03: ASHP
+  - upgrade_name: SEER 15 ASHP
+    options: 
+      - option: HVAC Cooling Efficiency|Heat Pump
+        apply_logic:
+          or:
+            - HVAC Cooling Efficiency|AC, SEER 8
+            - HVAC Cooling Efficiency|AC, SEER 10
+            - HVAC Cooling Efficiency|AC, SEER 13
+            - HVAC Cooling Efficiency|AC, SEER 14
+            - HVAC Cooling Efficiency|AC, SEER 15
+        costs:
+          - value: 0 
+            multiplier: Fixed (1)
+          - value: 0 
+            multiplier: Size, Cooling System (kBtu/h)
+        lifetime: 999
+
+      - option: HVAC Cooling Type|Heat Pump #Missing costs???
+        apply_logic:
+          or:
+            - HVAC Cooling Efficiency|AC, SEER 8
+            - HVAC Cooling Efficiency|AC, SEER 10
+            - HVAC Cooling Efficiency|AC, SEER 13
+            - HVAC Cooling Efficiency|AC, SEER 14
+            - HVAC Cooling Efficiency|AC, SEER 15
+        costs:
+          - value: 0 #Covered in heating system
+            multiplier: Fixed (1)
+        lifetime: 999
+
+        - option: HVAC Heating Type|Ducted Heating
+          apply_logic:
+            or:
+              - HVAC Cooling Efficiency|AC, SEER 8
+              - HVAC Cooling Efficiency|AC, SEER 10
+              - HVAC Cooling Efficiency|AC, SEER 13
+              - HVAC Cooling Efficiency|AC, SEER 14
+              - HVAC Cooling Efficiency|AC, SEER 15
+          costs:
+            - value: 0 #NOT right
+              multiplier: Fixed (1)
+          lifetime: 999
+
+        - option: HVAC Heating Type and Fuel|Electricity ASHP
+          apply_logic:
+            or:
+              - HVAC Cooling Efficiency|AC, SEER 8
+              - HVAC Cooling Efficiency|AC, SEER 10
+              - HVAC Cooling Efficiency|AC, SEER 13
+              - HVAC Cooling Efficiency|AC, SEER 14
+              - HVAC Cooling Efficiency|AC, SEER 15
+          costs:
+            - value: 0 
+              multiplier: Fixed (1)
+          lifetime: 999
+
+        - option: HVAC Heating Efficiency|ASHP, SEER 15, 8.5 HSPF
+          apply_logic:
+            or:
+              - HVAC Cooling Efficiency|AC, SEER 8
+              - HVAC Cooling Efficiency|AC, SEER 10
+              - HVAC Cooling Efficiency|AC, SEER 13
+              - HVAC Cooling Efficiency|AC, SEER 14
+              - HVAC Cooling Efficiency|AC, SEER 15
+
+          costs:
+            - value: 10 #NOT right
+              multiplier: Fixed (1)
+            - value: 10 #NOT right 
+              multiplier: Size, Heating System (kBtu/h)
+          lifetime: 15
+
+###Cooling #04: ASHP SEER 22
+  - upgrade_name: SEER 22 ASHP
+    options: 
+      - option: HVAC Cooling Efficiency|Heat Pump
+        apply_logic:
+          or:
+            - HVAC Cooling Efficiency|AC, SEER 8
+            - HVAC Cooling Efficiency|AC, SEER 10
+            - HVAC Cooling Efficiency|AC, SEER 13
+            - HVAC Cooling Efficiency|AC, SEER 14
+            - HVAC Cooling Efficiency|AC, SEER 15
+        costs:
+          - value: 0 
+            multiplier: Fixed (1)
+        lifetime: 999
+
+      - option: HVAC Cooling Type|Heat Pump 
+        apply_logic:
+          or:
+            - HVAC Cooling Efficiency|AC, SEER 8
+            - HVAC Cooling Efficiency|AC, SEER 10
+            - HVAC Cooling Efficiency|AC, SEER 13
+            - HVAC Cooling Efficiency|AC, SEER 14
+            - HVAC Cooling Efficiency|AC, SEER 15
+        costs:
+          - value: 0 #Covered in heating system
+            multiplier: Fixed (1)
+        lifetime: 999
+
+      - option: HVAC Heating Type and Fuel|Electricity ASHP
+          apply_logic:
+            or:
+              - HVAC Cooling Efficiency|AC, SEER 8
+              - HVAC Cooling Efficiency|AC, SEER 10
+              - HVAC Cooling Efficiency|AC, SEER 13
+              - HVAC Cooling Efficiency|AC, SEER 14
+              - HVAC Cooling Efficiency|AC, SEER 15
+          costs:
+            - value: 0 
+              multiplier: Fixed (1)
+          lifetime: 999
+
+        - option: HVAC Heating Type|Ducted Heat Pump
+          apply_logic:
+            or:
+              - HVAC Cooling Efficiency|AC, SEER 8
+              - HVAC Cooling Efficiency|AC, SEER 10
+              - HVAC Cooling Efficiency|AC, SEER 13
+              - HVAC Cooling Efficiency|AC, SEER 14
+              - HVAC Cooling Efficiency|AC, SEER 15
+          costs:
+            - value: 0 #NOT right
+              multiplier: Fixed (1)
+          lifetime: 999
+
+        - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF
+          apply_logic:
+            or:
+              - HVAC Cooling Efficiency|AC, SEER 8
+              - HVAC Cooling Efficiency|AC, SEER 10
+              - HVAC Cooling Efficiency|AC, SEER 13
+              - HVAC Cooling Efficiency|AC, SEER 14
+              - HVAC Cooling Efficiency|AC, SEER 15
+
+          costs:
+            - value: 4600
+              multiplier: Fixed (1)
+            - value: 42
+              multiplier: Size, Heating System (kBtu/h)
+          lifetime: 15
+
+###Cooling #05: Efficient Room ACs
+  - upgrade_name: EnergyStar Room ACs
+    options: 
+      - option: HVAC Cooling Efficiency|Room AC, EER 12.0
+        apply_logic:
+          or:
+            - HVAC Cooling Efficiency|Room AC, EER 10.7
+            - HVAC Cooling Efficiency|Room AC, EER 9.8
+            - HVAC Cooling Efficiency|Room AC, EER 8.5
+        costs:
+          - value: 36
+            multiplier: Fixed (1)
+          - value: 45
+            multiplier: Size, Cooling System (kBtu/h)
+        lifetime: 12
+
+###Cooling #06: Room AC to Heat Pump
+  - upgrade_name: Room ACs to Heat Pumps
+    options: 
+      - option: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF
+        apply_logic: 
+          and:
+            - HVAC Has Ducts|No
+            or:
+              - HVAC Cooling Efficiency|Room AC, EER 10.7
+              - HVAC Cooling Efficiency|Room AC, EER 9.8
+              - HVAC Cooling Efficiency|Room AC, EER 8.5
+        costs:
+          - value: 2510
+            multiplier: Fixed (1)
+          - value: 95
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 15
+
+      - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF
+        apply_logic: 
+          and:
+            - HVAC Has Ducts|Yes
+            or:
+              - HVAC Cooling Efficiency|Room AC, EER 10.7
+              - HVAC Cooling Efficiency|Room AC, EER 9.8
+              - HVAC Cooling Efficiency|Room AC, EER 8.5
+          costs:
+            - value: 4600
+              multiplier: Fixed (1)
+            - value: 42
+              multiplier: Size, Heating System (kBtu/h)
+          lifetime: 15
+
+      - option: HVAC Cooling Type|Heat Pump 
+        apply_logic:
+          or:
+            - HVAC Cooling Efficiency|Room AC, EER 10.7
+            - HVAC Cooling Efficiency|Room AC, EER 9.8
+            - HVAC Cooling Efficiency|Room AC, EER 8.5
+        costs:
+          - value: 0 #Covered in heating system
+            multiplier: Fixed (1)
+        lifetime: 999
+
+        - option: HVAC Heating Type|Ducted Heat Pump
+          apply_logic:
+            and:
+              - HVAC Has Ducts|Yes
+              or:
+                - HVAC Cooling Efficiency|Room AC, EER 10.7
+                - HVAC Cooling Efficiency|Room AC, EER 9.8
+                - HVAC Cooling Efficiency|Room AC, EER 8.5
+          costs:
+            - value: 0 #NOT right
+              multiplier: Fixed (1)
+          lifetime: 999
+
+        - option: HVAC Heating Type|Non-Ducted Heat Pump
+          apply_logic:
+            and:
+              - HVAC Has Ducts|No
+              or:
+                - HVAC Cooling Efficiency|Room AC, EER 10.7
+                - HVAC Cooling Efficiency|Room AC, EER 9.8
+                - HVAC Cooling Efficiency|Room AC, EER 8.5
+          costs:
+            - value: 0 #NOT right
+              multiplier: Fixed (1)
+          lifetime: 999
+
+        - option: HVAC Cooling Efficiency|Heat Pump
+          apply_logic:
+            or:
+                - HVAC Cooling Efficiency|Room AC, EER 10.7
+                - HVAC Cooling Efficiency|Room AC, EER 9.8
+                - HVAC Cooling Efficiency|Room AC, EER 8.5
+          costs:
+            - value: 0
+              multiplier: Fixed (1)
+          lifetime: 999
+
+
+        - option: HVAC Cooling Type|Heat Pump
+          apply_logic:
+            or:
+                - HVAC Cooling Efficiency|Room AC, EER 10.7
+                - HVAC Cooling Efficiency|Room AC, EER 9.8
+                - HVAC Cooling Efficiency|Room AC, EER 8.5
+          costs:
+            - value: 0
+              multiplier: Fixed (1)
+          lifetime: 999
+    - option: HVAC Heating Type and Fuel|Electric Heat Pump
+          apply_logic:
+            or:
+                - HVAC Cooling Efficiency|Room AC, EER 10.7
+                - HVAC Cooling Efficiency|Room AC, EER 9.8
+                - HVAC Cooling Efficiency|Room AC, EER 8.5
+          costs:
+            - value: 0
+              multiplier: Fixed (1)
+          lifetime: 999
+
+##Heating #01: Fossil fuel furnace to high effienciency
+  - upgrade_name: ENERGY STAR 96% AFUE natural gas furnace 
+    options:
+      - option: HVAC Heating Efficiency|Fuel Furnace, 96% AFUE
+        apply_logic:
+          or:
+            - HVAC Heating Efficiency|Fuel Furnace, 60% AFUE
+            - HVAC Heating Efficiency|Fuel Furnace, 76% AFUE
+            - HVAC Heating Efficiency|Fuel Furnace, 80% AFUE
+            - HVAC Heating Efficiency|Fuel Furnace, 92.5% AFUE
+        costs:
+          - value: 2600
+            multiplier: Fixed (1)
+          - value: 3.9
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 20
+      - option: HVAC Heating Type and Fuel|Natural Gas Fuel Furnace
+        apply_logic:
+          or:
+            - HVAC Heating Efficiency|Fuel Furnace, 60% AFUE
+            - HVAC Heating Efficiency|Fuel Furnace, 76% AFUE
+            - HVAC Heating Efficiency|Fuel Furnace, 80% AFUE
+            - HVAC Heating Efficiency|Fuel Furnace, 92.5% AFUE
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+
+##Heating #02: Fossil fuel boiler to high effiency
+  - upgrade_name: ENERGY STAR natural gas boiler
+    options:
+      - option: HVAC Heating Efficiency|Fuel Furnace, 96% AFUE
+        apply_logic:
+          or:
+            - HVAC Heating Efficiency|Fuel Furnace, 60% AFUE
+            - HVAC Heating Efficiency|Fuel Furnace, 76% AFUE
+            - HVAC Heating Efficiency|Fuel Furnace, 80% AFUE
+            - HVAC Heating Efficiency|Fuel Furnace, 92.5% AFUE
+        costs:
+          - value: 43
+            multiplier: Size, Heating System (kBtu/h)
+          - value: 3100
+            multiplier: Fixed (1)
+        lifetime: 24
+      - option: HVAC Heating Type and Fuel|Natural Gas Fuel Boiler
+        apply_logic:
+          or:
+            - HVAC Heating Efficiency|Fuel Boiler, 76% AFUE
+            - HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
+            - HVAC Heating Efficiency|Fuel Boiler, 90% AFUE
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+
+##Heating #03: Electric Furnaces to Heat Pumps
+  - upgrade_name: Electric Furnaces to high effiency heat pumps
+    options:
+      - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF
+        apply_logic: 
+          or:
+            - HVAC Heating Type and Fuel|Electric Furnace, 100% AFUE
+            and:
+              - HVAC Has Ducts|Yes
+              - Heating Fuel|Electricity
+        costs:
+          - value: 4600
+            multiplier: Fixed (1)
+          - value: 42
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 15
+      - option: HVAC Cooling Efficiency|Heat Pump
+        apply_logic: HVAC Heating Type and Fuel|Electric Furnace, 100% AFUE
+        costs:
+          - value: 0 
+            multiplier: Fixed (1)
+        lifetime: 999
+
+      - option: HVAC Cooling Type|Heat Pump 
+        apply_logic: HVAC Heating Type and Fuel|Electric Furnace, 100% AFUE
+        costs:
+          - value: 0 #Covered in heating system
+            multiplier: Fixed (1)
+        lifetime: 999
+
+      - option: HVAC Heating Type and Fuel|Electricity ASHP
+          apply_logic: HVAC Heating Type and Fuel|Electric Furnace, 100% AFUE
+          costs:
+            - value: 0 ### We could use this portion to do fuel switching costs
+              multiplier: Fixed (1)
+          lifetime: 999
+
+        - option: HVAC Heating Type|Ducted Heat Pump
+          apply_logic: HVAC Heating Type and Fuel|Electric Furnace, 100% AFUE
+          costs:
+            - value: 0
+              multiplier: Fixed (1)
+          lifetime: 999
+
+##Heating #04: Electric Furnaces to Heat Pumps
+  - upgrade_name: Electric Furnaces to minimum efficiency heat pumps
+    options:
+      - option: HVAC Heating Efficiency|ASHP, SEER 15, 8.5 HSPF
+        apply_logic: 
+          or:
+            - HVAC Heating Type and Fuel|Electric Furnace, 100% AFUE
+            and:
+              - HVAC Has Ducts|Yes
+              - Heating Fuel|Electricity
+        costs:
+          - value: 4600
+            multiplier: Fixed (1)
+          - value: 42
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 15
+      - option: HVAC Cooling Efficiency|Heat Pump
+        apply_logic: HVAC Heating Type and Fuel|Electric Furnace, 100% AFUE
+        costs:
+          - value: 0 
+            multiplier: Fixed (1)
+        lifetime: 999
+
+##Heating #05: Non-ducted electric to MSHP
+  - upgrade_name: Non-ducted Electric to MSHP
+    options:
+      - option: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF
+        apply_logic: 
+          and:
+            HVAC Has Ducts|No
+            or:
+              HVAC Heating Type and Fuel|Electricity Baseboard
+              HVAC Heating Type and Fuel|Electricity Electric Boiler
+              HVAC Heating Type and Fuel|Electricity Electric Boiler
+              HVAC Heating Type and Fuel|Electricity Electric Wall Furnace
+              HVAC Heating Type and Fuel|Electricity Other
+          costs:
+          - value: 2510
+            multiplier: Fixed (1)
+          - value: 95
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 15
+
+      - option: HVAC Cooling Efficiency|Heat Pump
+        apply_logic:
+          and:
+            HVAC Has Ducts|No
+            or:
+              HVAC Heating Type and Fuel|Electricity Baseboard
+              HVAC Heating Type and Fuel|Electricity Electric Boiler
+              HVAC Heating Type and Fuel|Electricity Electric Boiler
+              HVAC Heating Type and Fuel|Electricity Electric Wall Furnace
+              HVAC Heating Type and Fuel|Electricity Other
+        costs:
+          - value: 0 
+            multiplier: Fixed (1)
+        lifetime: 999
+
+##Heating #06: Non-ducted fossil fuel to MSHP
+  - upgrade_name: Non-ducted Electric to MSHP
+    options:
+      - option: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF
+        apply_logic: 
+          and:
+            HVAC Has Ducts|No
+            or:
+              HVAC Heating Efficiency|Fuel Boiler, 76% AFUE
+              HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
+              HVAC Heating Efficiency|Fuel Boiler, 90% AFUE
+              HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
+              HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
+              HVAC Heating Efficiency|Other
+        costs:
+          - value: 2510
+            multiplier: Fixed (1)
+          - value: 95
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 15
+
+      - option: HVAC Cooling Efficiency|Heat Pump
+        apply_logic: 
+            and:
+            HVAC Has Ducts|No
+            or:
+              HVAC Heating Efficiency|Fuel Boiler, 76% AFUE
+              HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
+              HVAC Heating Efficiency|Fuel Boiler, 90% AFUE
+              HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
+              HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
+              HVAC Heating Efficiency|Other
+        costs:
+          - value: 0 
+            multiplier: Fixed (1)
+        lifetime: 999
+##Heating #07: Electrify fossil furnaces
+  - upgrade_name: Fossil fuel furnaces to high efficiency heat pumps
+    options:
+      - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF
+        apply_logic: 
+          or:
+            - HVAC Heating Type and Fuel|Fuel Oil Fuel Furnace
+            - HVAC Heating Type and Fuel|Natural Gas Fuel Furnace
+            - HVAC Heating Type and Fuel|Propane Fuel Furnace
+        costs:
+          - value: 4600
+            multiplier: Fixed (1)
+          - value: 42
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 15
+      - option: HVAC Cooling Efficiency|Heat Pump
+          apply_logic: 
+              or:
+                - HVAC Heating Type and Fuel|Fuel Oil Fuel Furnace
+                - HVAC Heating Type and Fuel|Natural Gas Fuel Furnace
+                - HVAC Heating Type and Fuel|Propane Fuel Furnace
+          costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+
+##Heating #08: Electrify fossil furnaces
+  - upgrade_name: Fossil fuel furnaces to minimum efficiency heat pumps
+    options:
+      - option: HVAC Heating Efficiency|ASHP, SEER 15, 8.5 HSPF
+        apply_logic: 
+          or:
+            - HVAC Heating Type and Fuel|Fuel Oil Fuel Furnace
+            - HVAC Heating Type and Fuel|Natural Gas Fuel Furnace
+            - HVAC Heating Type and Fuel|Propane Fuel Furnace
+        costs:
+          - value: 4600
+            multiplier: Fixed (1)
+          - value: 42
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 15
+  - option: HVAC Cooling Efficiency|Heat Pump
+          apply_logic: 
+              or:
+                - HVAC Heating Type and Fuel|Fuel Oil Fuel Furnace
+                - HVAC Heating Type and Fuel|Natural Gas Fuel Furnace
+                - HVAC Heating Type and Fuel|Propane Fuel Furnace
+          costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+
+## Water Heating #01: Fossil DWH to Premium NG Tank
+  - upgrade_name: Condensing NG Tank Water Heater
+    options:
+      - option: Water Heater|Gas Premium, Condensing
+        apply_logic: 
+          or:
+            - Water Heater|Gas Standard
+            - Water Heater|Gas Premium
+            - Water Heater|Oil Standard
+            - Water Heater|Oil Premium
+            - Water Heater|Propane Standard
+            - Water Heater|Propane Premium
+        costs:
+          - value: 720
+            multiplier: Fixed (1)
+          - value: 11
+            multiplier: Size, Water Heater (gal)
+        lifetime: 13
+ ##Water Heating #02: Fossil DWH to Premium NG Tankless
+   - upgrade_name: NG Tankless Water Heater
+    options:
+      - option: Water Heater|Gas Tankless, Condensing
+        apply_logic: 
+          or:
+            - Water Heater|Gas Standard
+            - Water Heater|Gas Premium
+            - Water Heater|Oil Standard
+            - Water Heater|Oil Premium
+            - Water Heater|Propane Standard
+            - Water Heater|Propane Premium
+        costs:
+          - value: 2200
+            multiplier: Fixed (1)
+        lifetime: 20
+## Water HEating #03: Electric to 50 gal HPWH
+   - upgrade_name: 50 gallon HPWH
+    options:
+      - option: Water Heater|Electric Heat Pump, 50 gal
+        apply_logic: 
+          or:
+            - Water Heater|Electric Standard
+            - Water Heater|Electric Premium
+        costs:
+          - value: 1700
+            multiplier: Fixed (1)
+        lifetime: 12
+
+## Water Heating #04: Electric to 80 gal HPWH
+   - upgrade_name: 80 gallon HPWH
+    options:
+      - option: Water Heater|Electric Heat Pump, 80 gal
+        apply_logic: 
+          or:
+            - Water Heater|Electric Standard
+            - Water Heater|Electric Premium
+        costs:
+          - value: 2000
+            multiplier: Fixed (1)
+        lifetime: 12
+
+##Water Heating #05: Fuel switching 50 gal HPWH
+
+   - upgrade_name: 50 gallon HPWH, fuel switching
+    options:
+      - option: Water Heater|Electric Heat Pump, 50 gal
+        apply_logic: 
+          or:
+            - Water Heater|Gas Standard
+            - Water Heater|Gas Premium
+            - Water Heater|Oil Standard
+            - Water Heater|Oil Premium
+            - Water Heater|Propane Standard
+            - Water Heater|Propane Premium
+        costs:
+          - value: 1700 # No extra fuel switching cost
+            multiplier: Fixed (1)
+        lifetime: 12
+
+## Water Heating #06: Electric to 80 gal HPWH
+   - upgrade_name: 80 gallon HPWH
+    options:
+      - option: Water Heater|Electric Heat Pump, 80 gal
+        apply_logic: 
+          or:
+            - Water Heater|Gas Standard
+            - Water Heater|Gas Premium
+            - Water Heater|Oil Standard
+            - Water Heater|Oil Premium
+            - Water Heater|Propane Standard
+            - Water Heater|Propane Premium
+        costs:
+          - value: 2000 #No extra fuel switching cost
+            multiplier: Fixed (1)
+        lifetime: 12
+
+##Clothes Dryer #01: Electric to HP Dryer
+
+  - upgrade_name: Electric Dryers to HP
+     - option: Clothes Dryer|Electric, Heat Pump, Ventless, 80% Usage
+        apply_logic:
+          or:
+            - Clothes Dryer|Electric, 80% Usage
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Clothes Dryer|Electric, Heat Pump, Ventless, 100% Usage
+        apply_logic:
+          or:
+            - Clothes Dryer|Electric, 100% Usage
+            - Clothes Dryer|Electric, Premium
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Clothes Dryer|Electric, Heat Pump, Ventless, 120% Usage
+        apply_logic:
+          or:
+            - Clothes Dryer|Electric, 120% Usage
+            - Clothes Dryer|Electric, Premium
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+
+##Clothes Dryer #02: Fossil fuel dryer to electric premium
+
+  - upgrade_name: Fossil Fuel Dryers fuel switch
+     - option: Clothes Dryer|Electric, Premium, EnergyStar 80% Usage
+        apply_logic:
+          or:
+            - Clothes Dryer|Gas, 80% Usage
+            - Clothes Dryer|Propane, 80% Usage
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+    - option: Clothes Dryer|Electric, Premium, EnergyStar 100% Usage
+        apply_logic:
+          or:
+            - Clothes Dryer|Gas, 100% Usage
+            - Clothes Dryer|Propane, 100% Usage
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+     - option: Clothes Dryer|Electric, Premium, EnergyStar 120% Usage
+        apply_logic:
+          or:
+            - Clothes Dryer|Gas, 120% Usage
+            - Clothes Dryer|Propane, 120% Usage
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+
+##Clothes Dryer #03: Fossil fuel dryer to electric HP
+
+  - upgrade_name: Fossil Fuel Dryers fuel switch
+     - option: Clothes Dryer|Electric, Heat Pump, Ventless, 80% Usage
+        apply_logic:
+          or:
+            - Clothes Dryer|Gas, 80% Usage
+            - Clothes Dryer|Propane, 80% Usage
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+    - option: Clothes Dryer|Electric, Heat Pump, Ventless, 100% Usage
+        apply_logic:
+          or:
+            - Clothes Dryer|Gas, 100% Usage
+            - Clothes Dryer|Propane, 100% Usage
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+     - option: Clothes Dryer|Electric, Heat Pump, Ventless, 120% Usage
+        apply_logic:
+          or:
+            - Clothes Dryer|Gas, 120% Usage
+            - Clothes Dryer|Propane, 120% Usage
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+
+##Pools #01: Pumps
+  - upgrade_name: Efficient Pool Pump
+      - option: Misc Pool Pump|0.75 HP Pump
+        apply_logic: Misc Pool Pump|1.0 HP Pump
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+
+##Pools #02: Heater
+  - upgrade_name: Electrify Pool Heating
+      - option: Misc Pool Heater|Electric, Covered, 78F
+        apply_logic: 
+          or:
+            - Misc Pool Heater|Gas
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+
+##Cooking Range #01: Electrification 
+  - upgrade_name: Electrify cooking
+      - option: Cooking Range|Electric, 80% Usage
+        apply_logic: 
+          or:
+            - Cooking Range|Propane, 80% Usage
+            - Cooking Range|Gas, 80% Usage
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Cooking Range|Electric, 100% Usage
+        apply_logic: 
+          or:
+            - Cooking Range|Propane, 100% Usage
+            - Cooking Range|Gas, 100% Usage
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+              - option: Cooking Range|Electric, 120% Usage
+        apply_logic: 
+          or:
+            - Cooking Range|Propane, 120% Usage
+            - Cooking Range|Gas, 120% Usage
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+
+##Cooking Range #02: Electrification to Induction Cooking
+  - upgrade_name: Electrify cooking to induction
+      - option: Cooking Range|Electric, Induction
+        apply_logic: 
+          or:
+            - Cooking Range|Propane, 80% Usage
+            - Cooking Range|Gas, 80% Usage
+            - Cooking Range|Propane, 100% Usage
+            - Cooking Range|Gas, 100% Usage
+            - Cooking Range|Propane, 120% Usage
+            - Cooking Range|Gas, 120% Usage
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+
+##Cooking Range #03: Electric Cooking to Induction
+  - upgrade_name: Electric cooking to induction
+      - option: Cooking Range|Electric, Induction
+        apply_logic: 
+          or:
+            - Cooking Range|Electric, 80% Usage
+            - Cooking Range|Electric, 100% Usage
+            - Cooking Range|Electric, 120% Usage
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+
+####Group 3: Easy Swaps
+
+## Smart Thermostats #01
+
+### Need to develop, can't transfer from other repo
+
+##Lighting #01: All LEDs
+  - upgrade_name: LEDs
+    options:
+      - option: Lighting|100% LED
+        apply_logic:
+          or:
+            - Lighting|100% Incandescent
+            - Lighting|60% CFL Hardwired, 34% CFL Plugin
+            - Lighting|60% LED Hardwired, 34% CFL Plugin
+            - Lighting|60% CFL
+            - Lighting|100% CFL
+            - Lighting|100% LED, Low Efficacy
+        costs:
+        #  - value: 0.006
+        #    multiplier: [lumens]
+          - value: 0.40
+            multiplier: Floor Area, Lighting (ft^2)
+        lifetime: 78.28
+
+
+##Refrigerator #01: Energy Star
+  - upgrade_name: ENERGY STAR Refrigerator
+    options:
+      - option: Refrigerator|EF 19.9
+        apply_logic: Refrigerator|EF 17.6
+        costs:
+          - value: 670
+            multiplier: Fixed (1)
+        lifetime: 17.4
+
+##Refrigerator #02: EnergyStar Most Efficient
+      - option: Refrigerator|EF 22.2, EnergyStar Most Efficient
+        apply_logic: 
+          or:
+            - Refrigerator|EF 15.9
+            - Refrigerator|EF 10.5
+            - Refrigerator|EF 10.2
+            - Refrigerator|EF 6.7
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 17.4
+
+##Clothes Washer #01: EnergyStar 123 kWh
+  - upgrade_name: ENERGY STAR Clothes Washers
+    options:
+      - option: Clothes Washer|EnergyStar 80% Usage
+        apply_logic: Clothes Washer|Standard, 80% Usage
+        costs:
+          - value: 72
+            multiplier: Fixed (1)
+        lifetime: 14
+        reference_scenario: Standard Clothes Washer
+      - option: Clothes Washer|EnergyStar 100% Usage
+        apply_logic: Clothes Washer|Standard, 100% Usage
+        costs:
+          - value: 72
+            multiplier: Fixed (1)
+        lifetime: 14
+        reference_scenario: Standard Clothes Washer
+      - option: Clothes Washer|EnergyStar 120% Usage
+        apply_logic: Clothes Washer|Standard, 120% Usage
+        costs:
+          - value: 72
+            multiplier: Fixed (1)
+        lifetime: 14
+##Clothes Washer #01: EnergyStar Most Efficient 75 kWh
+      - option: Clothes Washer|EnergyStar Most Efficient, 80% Usage
+        apply_logic:
+          or:
+            - Clothes Washer|EnergyStar, 80% Usage
+            - Clothes Washer|Standard, 80% Usage
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Clothes Washer|EnergyStar Most Efficient, 100% Usage
+        apply_logic:
+          or:
+            - Clothes Washer|EnergyStar, 100% Usage
+            - Clothes Washer|Standard, 100% Usage
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Clothes Washer|EnergyStar Most Efficient, 120% Usage
+        apply_logic:
+          or:
+            - Clothes Washer|EnergyStar, 120% Usage
+            - Clothes Washer|Standard, 120% Usage
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+
+##Dishwasher #01: EnergyStar 290 kWh
+  - upgrade_name: ENERGY STAR Dishwashers
+    options:
+      - option: Dishwasher|290 Rated kWh, 80% Usage
+        apply_logic: Dishwasher|318 Rated kWh, 80% Usage
+        costs:
+          - value: 1000
+            multiplier: Fixed (1)
+        lifetime: 11
+      - option: Dishwasher|290 Rated kWh, 100% Usage
+        apply_logic: Dishwasher|318 Rated kWh, 100% Usage
+        costs:
+          - value: 1000
+            multiplier: Fixed (1)
+        lifetime: 11
+      - option: Dishwasher|290 Rated kWh, 120% Usage
+        apply_logic: Dishwasher|318 Rated kWh, 120% Usage
+        costs:
+          - value: 1000
+            multiplier: Fixed (1)
+        lifetime: 11
+
+##Dishwasher #01: EnergyStar Most Efficient 199 kWh
+  - upgrade_name: ENERGY STAR Dishwashers
+    options:
+      - option: Dishwasher|199 Rated kWh, 80% Usage
+        apply_logic: 
+          or:
+            - Dishwasher|318 Rated kWh, 80% Usage
+            - Dishwasher|290 Rated kWh, 80% Usage
+        costs:
+          - value: 1000
+            multiplier: Fixed (1)
+        lifetime: 11
+      - option: Dishwasher|199 Rated kWh, 100% Usage
+        apply_logic: 
+          or:
+            - Dishwasher|318 Rated kWh, 100% Usage
+            - Dishwasher|290 Rated kWh, 100% Usage
+        costs:
+          - value: 1000
+            multiplier: Fixed (1)
+        lifetime: 11
+      - option: Dishwasher|199 Rated kWh, 120% Usage
+        apply_logic: 
+          or:
+            - Dishwasher|318 Rated kWh, 120% Usage
+            - Dishwasher|290 Rated kWh, 120% Usage
+        costs:
+          - value: 1000
+            multiplier: Fixed (1)
+        lifetime: 11
+
+##Plug Loads #01: 25% Reduction
+  - upgrade_name: Plug Loads
+     - option: Plug Loads|25%
+        apply_logic:
+            - Plug Loads|50%
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Plug Loads|50%
+        apply_logic:
+            - Plug Loads|100%
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: Plug Loads|100%
+        apply_logic:
+            - Plug Loads|200%
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+
+## PV: 4 kW system
+  - upgrade_name: Rooftop Solar, 4 kW
+    options:
+      - option: PV|4.0 kW, South, Roof Pitch
+        apply_logic: 
+          and:
+          - PV|None
+          - Geometry Building Type RECS|Single Family Detached
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+
+timeseries_csv_export:
+  reporting_frequency: Timestep
+  include_enduse_subcategories: true
+  output_variables: Site Outdoor Air Drybulb Temperature, Site Outdoor Air Relative Humidity, Zone Mean Air Temperature
+
+# downselect:
+#   resample: false
+#   logic:
+#     - not: Heating Fuel|Natural Gas
+
+eagle:
+  n_jobs: 40
+  minutes_per_sim: 90
+  account: chicagoeui
+  sampling:
+    time: 240
+  postprocessing:
+    time: 240
+    n_workers: 20
+
+postprocessing:
+  aggregate_timeseries: false
+  aws:
+    region_name: 'us-west-2'
+    s3:
+      bucket: resbldg-datasets
+      prefix: chicagoeui/cookcnty_upgrades_01
+    athena:
+      glue_service_role: service-role/AWSGlueServiceRole-default
+      database_name: chicagoeui
+      max_crawling_time: 1000 #time to wait for the crawler to complete before aborting it
+
