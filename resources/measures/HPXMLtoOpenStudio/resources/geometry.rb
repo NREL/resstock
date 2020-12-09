@@ -326,7 +326,7 @@ class Geometry
     return volume
   end
 
-  def self.get_above_grade_finished_volume_from_spaces(model, spaces, runner = nil)
+  def self.get_above_grade_finished_volume_from_spaces(spaces, runner = nil)
     volume = 0
     get_thermal_zones_from_spaces(spaces).each do |zone|
       next if not (self.zone_is_finished(zone) and self.zone_is_above_grade(zone))
