@@ -51,7 +51,7 @@ class Airflow
         units_represented = unit.additionalProperties.getFeatureAsInteger("Units Represented").get
       end
 
-      building.above_grade_volume += units_represented * Geometry.get_above_grade_finished_volume_from_spaces(model, unit.spaces, runner)
+      building.above_grade_volume += units_represented * Geometry.get_above_grade_finished_volume_from_spaces(unit.spaces, runner)
       building.ag_ext_wall_area += units_represented * Geometry.calculate_above_grade_exterior_wall_area(unit.spaces)
       building.ag_ffa += units_represented * Geometry.get_above_grade_finished_floor_area_from_spaces(unit.spaces, runner)
     end
