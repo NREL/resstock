@@ -2,14 +2,11 @@
 require 'csv'
 
 # start the measure
-class AddIntervalScheduleFromFileLDRD < OpenStudio::Ruleset::ModelUserScript
-
-
+class AddIntervalScheduleFromFileLDRD < OpenStudio::Measure::ModelMeasure
   # display name
   def name
     return 'Add Interval Schedule From FileLDRD'
   end
-
 
   # define the arguments that the user will input
   def arguments(model)
@@ -19,6 +16,7 @@ class AddIntervalScheduleFromFileLDRD < OpenStudio::Ruleset::ModelUserScript
     cluster = OpenStudio::Ruleset::OSArgument.makeStringArgument('cluster', true)
     cluster.setDisplayName('Enter the name of the cluster')
     cluster.setDescription("Example: 1")
+    cluster.setDefaultValue("1")
     args << cluster
 
     return args
@@ -39,23 +37,21 @@ class AddIntervalScheduleFromFileLDRD < OpenStudio::Ruleset::ModelUserScript
     cluster = runner.getStringArgumentValue('cluster', user_arguments)
     cluster_dir = File.join(measure_dir, 'clusters/' + cluster + '/')
 
-
-    # get files 
+    # get files
     file_path_weekday = File.join(cluster_dir, 'weekday.csv')
     puts "file_path_weekday = #{file_path_weekday}"
     file_path_weekend = File.join(cluster_dir, 'weekday.csv')
     puts "file_path_weekend = #{file_path_weekend}"
-    #file_path_pre_schedule = File.expand_path(File.join(measure_dir, '../../../workflows/generated_files/schedules.csv'))
+    # file_path_pre_schedule = File.expand_path(File.join(measure_dir, '../../../workflows/generated_files/schedules.csv'))
     file_path_pre_schedule = File.expand_path("../")
     puts "file_path_pre_schedule = #{file_path_pre_schedule}"
 
     puts " file_path_pre_schedule directory === #{File.dirname(file_path_pre_schedule)}"
 
     # load CSVs
-    profiles_weekend = CSV.read(file_path_weekend,converters: [CSV::Converters[:float]], headers: true)
-    profiles_weekday= CSV.read(file_path_weekday,converters: [CSV::Converters[:float]], headers: true)
-    pre_schedules = CSV.read(file_path_pre_schedule + "/schedules.csv",converters: [CSV::Converters[:float]], :headers=>true)
-
+    profiles_weekend = CSV.read(file_path_weekend, converters: [CSV::Converters[:float]], headers: true)
+    profiles_weekday = CSV.read(file_path_weekday, converters: [CSV::Converters[:float]], headers: true)
+    pre_schedules = CSV.read(file_path_pre_schedule + "/schedules.csv", converters: [CSV::Converters[:float]], :headers => true)
 
     # get time interval from model
     timesteps_per_hour = model.getTimestep.numberOfTimestepsPerHour
@@ -63,32 +59,34 @@ class AddIntervalScheduleFromFileLDRD < OpenStudio::Ruleset::ModelUserScript
     puts "time_interval ====  #{time_interval.class}"
     puts "time_interval ====  #{time_interval}"
 
-    
     # random occupancy generator with weight
     def random_weighted(weighted)
-      #puts weighted
+      # puts weighted
       max = sum_of_weights(weighted)
-      #target = rand(1..max)
+      # target = rand(1..max)
       target = rand()
       weighted.each do |item, weight|
         return item if target <= weight
+
         target -= weight
       end
     end
+
     def sum_of_weights(weighted)
       weighted.inject(0) { |sum, (item, weight)| sum + weight }
     end
     ## putting number of peoles in to an array
-    peoplecaps=[]
+    peoplecaps = []
     people_instances = model.getPeoples
-    people_instances.each  do |people|
+    people_instances.each do |people|
       next unless !people.numberOfPeople.empty?
-        peoplecap = people.numberOfPeople.get.to_f
-        peoplecaps << peoplecap
+
+      peoplecap = people.numberOfPeople.get.to_f
+      peoplecaps << peoplecap
     end
 
     # calcualte the total number of people
-    people_cap = peoplecaps.inject(0){|sum,x| sum + x } # adding the total number of people in the house
+    people_cap = peoplecaps.inject(0) { |sum, x| sum + x } # adding the total number of people in the house
     runner.registerInfo("peoplecap = '#{people_cap}' ")
     if people_cap < 2.0
       profile_weekday = profiles_weekday['Occ_1']
@@ -101,11 +99,10 @@ class AddIntervalScheduleFromFileLDRD < OpenStudio::Ruleset::ModelUserScript
       profile_weekend = profiles_weekend['Occ_3']
     end
 
-
-    occ_yearly =[]
+    occ_yearly = []
     total_days_in_year = 365
     start_day = DateTime.new(2018, 1, 1)
-    timesteps = 60/time_interval.to_f
+    timesteps = 60 / time_interval.to_f
     total_days_in_year.times do |day|
       today = start_day + day
       day_of_week = today.wday
@@ -118,33 +115,30 @@ class AddIntervalScheduleFromFileLDRD < OpenStudio::Ruleset::ModelUserScript
         day_type = "weekday"
         profile = profile_weekday
       end
-      #puts profile
+      # puts profile
       profile.each do |p|
         timesteps.to_i.times do |t|
-
-          occ_value = random_weighted(occ: p, unocc: 1 -p)
+          occ_value = random_weighted(occ: p, unocc: 1 - p)
           puts "AT timestep #{t} and probability #{p} ..... occupancy ==== #{occ_value}"
 
           occ_yearly << occ_value
-
         end
       end
-
     end
 
     importedPlug = pre_schedules['plug_loads']
     importedlight = pre_schedules['lighting_interior']
     CSV.open(File.dirname(file_path_pre_schedule) + "/new_schedules.csv", "w") do |csv|
-      csv << ['OccSch','lightSch','equipSch','thermostat_clg','thermostat_htg']
+      csv << ['OccSch', 'lightSch', 'equipSch', 'thermostat_clg', 'thermostat_htg']
       ct = 0
       occ_yearly.each do |p|
-        #puts p.class
+        # puts p.class
         if p.to_s.include? "unocc"
-          csv <<  [0,0,0,27,18]
+          csv <<  [0, 0, 0, 27, 18]
         else
-          csv <<  [1,importedlight[ct],importedPlug[ct],23,21]
+          csv <<  [1, importedlight[ct], importedPlug[ct], 23, 21]
         end
-        ct +=1
+        ct += 1
       end
     end
 
@@ -179,8 +173,6 @@ class AddIntervalScheduleFromFileLDRD < OpenStudio::Ruleset::ModelUserScript
     schedule_file_htg = OpenStudio::Model::ScheduleFile.new(external_file, 5, 1)
     schedule_file_htg.setName('Htg_schedule')
 
-
-
     people_instances = model.getPeoples
     people_instances.each do |people|
       people.setNumberofPeopleSchedule (schedule_file_occ)
@@ -193,9 +185,8 @@ class AddIntervalScheduleFromFileLDRD < OpenStudio::Ruleset::ModelUserScript
 
     equip_instances = model.getElectricEquipments
     equip_instances.each do |equip|
-     equip.setSchedule(schedule_file_equip)
+      equip.setSchedule(schedule_file_equip)
     end
-
 
     number_zones_modified = 0
     # zones with thermostat changes
@@ -214,10 +205,9 @@ class AddIntervalScheduleFromFileLDRD < OpenStudio::Ruleset::ModelUserScript
       thermostatSetpointDualSetpoint.setCoolingSetpointTemperatureSchedule(schedule_file_clg)
       zone.setThermostatSetpointDualSetpoint(thermostatSetpointDualSetpoint)
 
-
       number_zones_modified += 1
     end
-#    end
+    #    end
 
     runner.registerFinalCondition("Replaced thermostats for #{number_zones_modified} thermal zones}")
 

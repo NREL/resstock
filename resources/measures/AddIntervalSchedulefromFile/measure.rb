@@ -3,7 +3,6 @@ require 'csv'
 
 # start the measure
 class AddIntervalScheduleFromFile < OpenStudio::Measure::ModelMeasure
-
   # display name
   def name
     return 'Add Interval Schedule From FileLDRD'
@@ -86,7 +85,7 @@ class AddIntervalScheduleFromFile < OpenStudio::Measure::ModelMeasure
 
     equip_instances = model.getElectricEquipments
     equip_instances.each do |equip|
-     equip.setSchedule(schedule_file_occ)
+      equip.setSchedule(schedule_file_occ)
     end
 
     number_zones_modified = 0
@@ -106,10 +105,9 @@ class AddIntervalScheduleFromFile < OpenStudio::Measure::ModelMeasure
       thermostatSetpointDualSetpoint.setCoolingSetpointTemperatureSchedule(schedule_file_clg)
       zone.setThermostatSetpointDualSetpoint(thermostatSetpointDualSetpoint)
 
-
       number_zones_modified += 1
     end
-#    end
+    #    end
 
     runner.registerFinalCondition("Replaced thermostats for #{number_zones_modified} thermal zones}")
 

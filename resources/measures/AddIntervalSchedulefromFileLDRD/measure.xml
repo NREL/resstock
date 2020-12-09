@@ -1,30 +1,23 @@
 <measure>
   <schema_version>3.0</schema_version>
-  <name>AddIntervalScheduleFromFileLDRD</name>
+  <name>add_interval_schedule_from_file_ldrd</name>
   <uid>b3ff0a0f-16a4-4abf-9574-c3605846637e</uid>
-  <version_id>fdf43ade-16b6-44f7-ac60-3de638277bbb</version_id>
-  <version_modified>20201008T222226Z</version_modified>
+  <version_id>2fd9ee13-71b8-4723-8315-51b65fe1665d</version_id>
+  <version_modified>20201208T235302Z</version_modified>
   <xml_checksum>3F1AD084</xml_checksum>
   <class_name>AddIntervalScheduleFromFileLDRD</class_name>
-  <display_name>AddIntervalScheduleFromFileLDRD</display_name>
+  <display_name>Add Interval Schedule From FileLDRD</display_name>
   <description>This measure adds a schedule object from a file of interval data</description>
   <modeler_description>This measure adds a ScheduleInterval object from a user-specified .csv file. The measure supports hourly and 15 min interval data for leap and non-leap years.  The .csv file must contain only schedule values in the first column with 8760, 8784, 35040, or 35136 rows specified. See the example .csv files in the tests directory of this measure.</modeler_description>
   <arguments>
     <argument>
-      <name>time_interval</name>
-      <display_name>Enter number of minutes per interval):</display_name>
-      <description>Example: '15'</description>
+      <name>cluster</name>
+      <display_name>Enter the name of the cluster</display_name>
+      <description>Example: 1</description>
       <type>String</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-    </argument>
-    <argument>
-      <name>file_path</name>
-      <display_name>Enter the path to the file that contains schedule values (follow template in test folder of this measure):</display_name>
-      <description>Example: 'C:\Projects\values.csv'</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
+      <default_value>1</default_value>
     </argument>
   </arguments>
   <outputs/>
@@ -56,36 +49,6 @@
   </attributes>
   <files>
     <file>
-      <filename>hourly_values.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>test</usage_type>
-      <checksum>2662425D</checksum>
-    </file>
-    <file>
-      <filename>15min_values.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>test</usage_type>
-      <checksum>DC70F839</checksum>
-    </file>
-    <file>
-      <filename>bad_hourly_values.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>test</usage_type>
-      <checksum>6E67D291</checksum>
-    </file>
-    <file>
-      <filename>leap_year_hourly_values.csv</filename>
-      <filetype>csv</filetype>
-      <usage_type>test</usage_type>
-      <checksum>EE155AAE</checksum>
-    </file>
-    <file>
-      <filename>AddIntervalScheduleFromFileLDRD.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>FEC8B74C</checksum>
-    </file>
-    <file>
       <version>
         <software_program>OpenStudio</software_program>
         <identifier>1.0.4</identifier>
@@ -94,7 +57,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>4CC94DF4</checksum>
+      <checksum>C2845F87</checksum>
     </file>
   </files>
 </measure>
