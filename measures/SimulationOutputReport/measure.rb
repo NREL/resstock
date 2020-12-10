@@ -133,6 +133,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     if File.exists? buildstock_file
       require File.join(File.dirname(buildstock_file), File.basename(buildstock_file, File.extname(buildstock_file)))
     else
+      # Use buildstock.rb in /resources if running locally
       resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), "../../resources/"))
       buildstock_file = File.join(resources_dir, "buildstock.rb")
       require File.join(File.dirname(buildstock_file), File.basename(buildstock_file, File.extname(buildstock_file)))
