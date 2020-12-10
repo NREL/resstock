@@ -40,8 +40,22 @@ class Airflow
       return false
     end
     building.stories = model.getBuilding.standardsNumberOfAboveGroundStories.get
-    building.above_grade_volume = Geometry.get_above_grade_finished_volume(model, runner)
-    building.ag_ext_wall_area = Geometry.calculate_above_grade_exterior_wall_area(model_spaces)
+
+    building.ag_ext_wall_area = 0
+    building.ag_ffa = 0
+    building.above_grade_volume = 0
+    units = Geometry.get_building_units(model, runner)
+    units.each do |unit|
+      units_represented = 1
+      if unit.additionalProperties.getFeatureAsInteger("Units Represented").is_initialized
+        units_represented = unit.additionalProperties.getFeatureAsInteger("Units Represented").get
+      end
+
+      building.above_grade_volume += units_represented * Geometry.get_above_grade_finished_volume_from_spaces(unit.spaces, runner)
+      building.ag_ext_wall_area += units_represented * Geometry.calculate_above_grade_exterior_wall_area(unit.spaces)
+      building.ag_ffa += units_represented * Geometry.get_above_grade_finished_floor_area_from_spaces(unit.spaces, runner)
+    end
+
     model.getThermalZones.each do |thermal_zone|
       if Geometry.is_garage(thermal_zone)
         building.garage = ZoneInfo.new(thermal_zone, Geometry.get_height_of_spaces(thermal_zone.spaces), UnitConversions.convert(thermal_zone.floorArea, "m^2", "ft^2"), Geometry.get_zone_volume(thermal_zone, runner), Geometry.get_z_origin_for_zone(thermal_zone), nil, nil)
@@ -55,7 +69,7 @@ class Airflow
         building.unfinished_attic = ZoneInfo.new(thermal_zone, Geometry.get_height_of_spaces(thermal_zone.spaces), UnitConversions.convert(thermal_zone.floorArea, "m^2", "ft^2"), Geometry.get_zone_volume(thermal_zone, runner), Geometry.get_z_origin_for_zone(thermal_zone), infil.unfinished_attic_const_ach, infil.unfinished_attic_sla)
       end
     end
-    building.ag_ffa = Geometry.get_above_grade_finished_floor_area_from_spaces(model_spaces, runner)
+
     return false if building.ag_ffa.nil?
 
     wind_speed = process_wind_speed_correction(infil.terrain, infil.shelter_coef, Geometry.get_closest_neighbor_distance(model), building.building_height)
