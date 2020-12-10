@@ -252,6 +252,7 @@ upgrades:
           - value: 0.5
             multiplier: Floor Area, Attic (ft^2)
         lifetime: 999
+
 ##Attic Insulation #02: R-60, vented attics only
   - upgrade_name: R-60 Attic Insulation
     options:
@@ -443,8 +444,10 @@ upgrades:
       - option: Windows|Low-E Storm on Double, Non-metal
         apply_logic: Windows|2+ Pane
         costs:
-          - value: 0
+          - value: 150 # Per window, assumes 5 windows
             multiplier: Fixed (1)
+          - value: 7.86
+            multiplier: Window Area (ft^2)
         lifetime: 30
 
 ## Windows #02: Double Pane U 0.29 SHGC .56
@@ -777,7 +780,7 @@ upgrades:
         lifetime: 999
 
 
-###Group 2: Multifuel Upgrades
+###Group 2: Multi-fuel Upgrades
 
 ##Cooling #01: Minimum CAC
   - upgrade_name: SEER 18 CAC
@@ -828,7 +831,7 @@ upgrades:
             - HVAC Cooling Efficiency|AC, SEER 14
             - HVAC Cooling Efficiency|AC, SEER 15
         costs:
-          - value: 0 # Covered in HVAC Heating Efficeincy
+          - value: 0 # Covered in HVAC Heating Efficiency
             multiplier: Fixed (1)
         lifetime: 999
 
@@ -937,7 +940,6 @@ upgrades:
           - value: 95
             multiplier: Size, Heating System (kBtu/h)
         lifetime: 15
-
       - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF
         apply_logic: 
           and:
@@ -952,7 +954,6 @@ upgrades:
             - value: 42
               multiplier: Size, Heating System (kBtu/h)
           lifetime: 15
-
       - option: HVAC Cooling Type|Heat Pump 
         apply_logic:
           or:
@@ -963,7 +964,6 @@ upgrades:
           - value: 0 #Covered in heating system
             multiplier: Fixed (1)
         lifetime: 999
-
         - option: HVAC Cooling Efficiency|Heat Pump
           apply_logic:
             or:
@@ -985,7 +985,7 @@ upgrades:
               multiplier: Fixed (1)
           lifetime: 999
 
-##Heating #01: Fossil fuel furnace to high effienciency
+##Heating #01: Fossil fuel furnace to high efficiency
   - upgrade_name: ENERGY STAR 96% AFUE natural gas furnace 
     options:
       - option: HVAC Heating Efficiency|Fuel Furnace, 96% AFUE
@@ -1013,7 +1013,7 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 999
 
-##Heating #02: Fossil fuel boiler to high effiency
+##Heating #02: Fossil fuel boiler to high efficiency
   - upgrade_name: ENERGY STAR natural gas boiler
     options:
       - option: HVAC Heating Efficiency|Fuel Furnace, 96% AFUE
@@ -1041,7 +1041,7 @@ upgrades:
         lifetime: 999
 
 ##Heating #03: Electric Furnaces to Heat Pumps
-  - upgrade_name: Electric Furnaces to high effiency heat pumps
+  - upgrade_name: Electric Furnaces to high efficiency heat pumps
     options:
       - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF
         apply_logic: 
@@ -1062,21 +1062,18 @@ upgrades:
           - value: 0 
             multiplier: Fixed (1)
         lifetime: 999
-
       - option: HVAC Cooling Type|Heat Pump 
         apply_logic: HVAC Heating Type and Fuel|Electric Furnace, 100% AFUE
         costs:
           - value: 0 #Covered in heating system
             multiplier: Fixed (1)
         lifetime: 999
-
       - option: HVAC Heating Type and Fuel|Electricity ASHP
           apply_logic: HVAC Heating Type and Fuel|Electric Furnace, 100% AFUE
           costs:
             - value: 0 ### We could use this portion to do fuel switching costs
               multiplier: Fixed (1)
           lifetime: 999
-
         - option: HVAC Heating Type|Ducted Heat Pump
           apply_logic: HVAC Heating Type and Fuel|Electric Furnace, 100% AFUE
           costs:
@@ -1126,7 +1123,6 @@ upgrades:
           - value: 95
             multiplier: Size, Heating System (kBtu/h)
         lifetime: 15
-
       - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           and:
@@ -1178,6 +1174,7 @@ upgrades:
           - value: 0 
             multiplier: Fixed (1)
         lifetime: 999
+
 ##Heating #07: Electrify fossil furnaces
   - upgrade_name: Fossil fuel furnaces to high efficiency heat pumps
     options:
@@ -1248,6 +1245,7 @@ upgrades:
           - value: 11
             multiplier: Size, Water Heater (gal)
         lifetime: 13
+
  ##Water Heating #02: Fossil DWH to Premium NG Tankless
    - upgrade_name: NG Tankless Water Heater
     options:
@@ -1264,6 +1262,7 @@ upgrades:
           - value: 2200
             multiplier: Fixed (1)
         lifetime: 20
+
 ## Water HEating #03: Electric to 50 gal HPWH
    - upgrade_name: 50 gallon HPWH
     options:
@@ -1326,7 +1325,6 @@ upgrades:
         lifetime: 12
 
 ##Clothes Dryer #01: Electric to HP Dryer
-
   - upgrade_name: Electric Dryers to HP
      - option: Clothes Dryer|Electric, Heat Pump, Ventless, 80% Usage
         apply_logic:
@@ -1356,7 +1354,6 @@ upgrades:
         lifetime: 13
 
 ##Clothes Dryer #02: Fossil fuel dryer to electric premium
-
   - upgrade_name: Fossil Fuel Dryers fuel switch
      - option: Clothes Dryer|Electric, Premium, EnergyStar 80% Usage
         apply_logic:
@@ -1387,7 +1384,6 @@ upgrades:
         lifetime: 13
 
 ##Clothes Dryer #03: Fossil fuel dryer to electric HP
-
   - upgrade_name: Fossil Fuel Dryers fuel switch
      - option: Clothes Dryer|Electric, Heat Pump, Ventless, 80% Usage
         apply_logic:
@@ -1521,7 +1517,6 @@ upgrades:
             multiplier: Floor Area, Lighting (ft^2)
         lifetime: 78.28
 
-
 ##Refrigerator #01: Energy Star
   - upgrade_name: ENERGY STAR Refrigerator
     options:
@@ -1568,6 +1563,7 @@ upgrades:
           - value: 72
             multiplier: Fixed (1)
         lifetime: 14
+
 ##Clothes Washer #01: EnergyStar Most Efficient 75 kWh
       - option: Clothes Washer|EnergyStar Most Efficient, 80% Usage
         apply_logic:
