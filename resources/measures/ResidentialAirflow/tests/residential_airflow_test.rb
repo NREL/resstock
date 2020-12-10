@@ -558,7 +558,7 @@ class ResidentialAirflowTest < MiniTest::Test
     model, result = _test_measure("SFA_4units_1story_SL_UA_3Beds_2Baths_Denver_Furnace_CentralAC.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__, num_units * num_airloops, num_units)
   end
 
-  def test_single_family_attached_new_construction_furnace_central_air_conditioner_Collapsed
+  def test_single_family_attached_new_construction_furnace_central_air_conditioner_collapsed
     num_units = 3
     num_airloops = 2
     args_hash = {}
