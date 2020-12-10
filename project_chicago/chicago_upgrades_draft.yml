@@ -103,17 +103,17 @@ upgrades:
           and:
             - Mechanical Ventilation|None
             - or:
-              - Infiltration| 1.5 ACH50
-              - Infiltration| 2 ACH50
-              - Infiltration| 2.25 ACH50
-              - Infiltration| 3 ACH50
-              - Infiltration| 4 ACH50
-              - Infiltration| 3.75 ACH50
-              - Infiltration| 4 ACH50
-              - Infiltration| 4.5 ACH50
-              - Infiltration| 5 ACH50
-              - Infiltration| 6 ACH50
-              - Infiltration| 7 ACH50
+              - Infiltration|1.5 ACH50
+              - Infiltration|2 ACH50
+              - Infiltration|2.25 ACH50
+              - Infiltration|3 ACH50
+              - Infiltration|4 ACH50
+              - Infiltration|3.75 ACH50
+              - Infiltration|4 ACH50
+              - Infiltration|4.5 ACH50
+              - Infiltration|5 ACH50
+              - Infiltration|6 ACH50
+              - Infiltration|7 ACH50
         costs: 
           - value: 360
             multiplier: Fixed (1)
@@ -427,7 +427,7 @@ upgrades:
     package_apply_logic: 
       not: 
         or:
-          - Ducts|none
+          - Ducts|None
           - Ducts|In Finished Space
 
 ## Windows #01: Low-E Storm Windows
@@ -469,13 +469,13 @@ upgrades:
 ## Windows #03: Double Pane U 0.26 SHGC .31
   - upgrade_name: Low-E, Double Pane, Low-Gain
     options:
-      - option: Low-E, Double, Low-Gain
+      - option: Windows|Low-E, Double, Low-Gain
         apply_logic: Windows|1 Pane
         costs:
           - value: 49
             multiplier: Window Area (ft^2)
         lifetime: 30
-      - option: Low-E, Double, Low-Gain
+      - option: Windows|Low-E, Double, Low-Gain
         apply_logic: Windows|2+ Pane
         costs:
           - value: 49
@@ -516,8 +516,7 @@ upgrades:
         lifetime: 999
 
 ##Exterior Wall #02: Drill and Fill + XPS
-
-- upgrade_name: Drill-and-fill to R-13, R-20 external XPS
+  - upgrade_name: Drill-and-fill to R-13, R-20 external XPS
     options: 
       - option: Insulation Wall|Wood Stud, R-13, R-20 external XPS
         apply_logic:
@@ -586,7 +585,7 @@ upgrades:
         lifetime: 999
 
 ##Exterior Wall #04 External R-20 XPS for all 
-- upgrade_name: R-20 external XPS
+  - upgrade_name: R-20 external XPS
     options: 
       - option: Insulation Wall|Wood Stud, R-19, R-20 external XPS
         apply_logic: 
@@ -667,7 +666,7 @@ upgrades:
         lifetime: 999
 
 ##Foundation #01: Finished Basement R-10
-- upgrade_name: Finished Basement, R-10
+  - upgrade_name: Finished Basement, R-10
     options:
       - option: Insulation Finished Basement|Wall R-10
         apply_logic: 
@@ -680,7 +679,8 @@ upgrades:
         lifetime: 999
 
 ##Foundation #02: Finished Basement R-15
-- upgrade_name: Finished Basement, R-15
+  - upgrade_name: Finished Basement, R-15
+    options:
       - option: Insulation Finished Basement|Wall R-15
         apply_logic: 
           or:
@@ -693,7 +693,8 @@ upgrades:
         lifetime: 999
 
 ##Foundation #03: Crawlspace R-30, Vented, R-13 unvented
-- upgrade_name: Crawlspace, Vented R-30, Unvented R-13
+  - upgrade_name: Crawlspace, Vented R-30, Unvented R-13
+    options:
       - option: Insulation Crawlspace|Ceiling R-30, Vented
         apply_logic: 
           or:
@@ -721,7 +722,7 @@ upgrades:
         lifetime: 999
 
 ##Foundation #04: Unfinished Basement, R-13
-- upgrade_name: Unfinished Basement, R-13
+  - upgrade_name: Unfinished Basement, R-13
     options:
       - option: Insulation Unfinished Basement|Wall R-13
         apply_logic: 
@@ -735,8 +736,8 @@ upgrades:
         lifetime: 999
 
 ##Foundation #05: Pier and Beam R-19
-- upgrade_name: Pier and Beam R-19
-  options:
+  - upgrade_name: Pier and Beam R-19
+    options:
       - option: Insulation Pier Beam|R-19
         apply_logic: 
           or:
@@ -750,8 +751,8 @@ upgrades:
         lifetime: 999
 
 ##Foundation #06: Pier and Beam R-38
-- upgrade_name: Pier and Beam R-38
-  options:
+  - upgrade_name: Pier and Beam R-38
+    options:
       - option: Insulation Pier Beam|R-38
         apply_logic: 
           or:
@@ -765,6 +766,8 @@ upgrades:
         lifetime: 999
 
 ##Foundation #08: Insulation Slab
+  - upgrade_name: Insulation Slab
+    options:
       - option: Insulation Slab|R20 Exterior
         apply_logic: 
           or:
@@ -817,7 +820,6 @@ upgrades:
           - value: 42
             multiplier: Size, Cooling System (kBtu/h)
         lifetime: 16
-        reference_scenario: Reference CAC SEER 14
 
 ###Cooling #03: ASHP
   - upgrade_name: SEER 15 ASHP
@@ -835,33 +837,33 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 999
 
-        - option: HVAC Heating Type and Fuel|Electricity ASHP
-          apply_logic:
-            or:
-              - HVAC Cooling Efficiency|AC, SEER 8
-              - HVAC Cooling Efficiency|AC, SEER 10
-              - HVAC Cooling Efficiency|AC, SEER 13
-              - HVAC Cooling Efficiency|AC, SEER 14
-              - HVAC Cooling Efficiency|AC, SEER 15
-          costs:
-            - value: 0 
-              multiplier: Fixed (1)
-          lifetime: 999
+      - option: HVAC Heating Type And Fuel|Electricity ASHP
+        apply_logic:
+          or:
+            - HVAC Cooling Efficiency|AC, SEER 8
+            - HVAC Cooling Efficiency|AC, SEER 10
+            - HVAC Cooling Efficiency|AC, SEER 13
+            - HVAC Cooling Efficiency|AC, SEER 14
+            - HVAC Cooling Efficiency|AC, SEER 15
+        costs:
+          - value: 0 
+            multiplier: Fixed (1)
+        lifetime: 999
 
-        - option: HVAC Heating Efficiency|ASHP, SEER 15, 8.5 HSPF
-          apply_logic:
-            or:
-              - HVAC Cooling Efficiency|AC, SEER 8
-              - HVAC Cooling Efficiency|AC, SEER 10
-              - HVAC Cooling Efficiency|AC, SEER 13
-              - HVAC Cooling Efficiency|AC, SEER 14
-              - HVAC Cooling Efficiency|AC, SEER 15
-          costs:
-            - value: 3300
-              multiplier: Fixed (1)
-            - value: 42
-              multiplier: Size, Heating System (kBtu/h)
-          lifetime: 15
+      - option: HVAC Heating Efficiency|ASHP, SEER 15, 8.5 HSPF
+        apply_logic:
+          or:
+            - HVAC Cooling Efficiency|AC, SEER 8
+            - HVAC Cooling Efficiency|AC, SEER 10
+            - HVAC Cooling Efficiency|AC, SEER 13
+            - HVAC Cooling Efficiency|AC, SEER 14
+            - HVAC Cooling Efficiency|AC, SEER 15
+        costs:
+          - value: 3300
+            multiplier: Fixed (1)
+          - value: 42
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 15
 
 ###Cooling #04: ASHP SEER 22
   - upgrade_name: SEER 22 ASHP
@@ -879,33 +881,33 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 999
 
-      - option: HVAC Heating Type and Fuel|Electricity ASHP
-          apply_logic:
-            or:
-              - HVAC Cooling Efficiency|AC, SEER 8
-              - HVAC Cooling Efficiency|AC, SEER 10
-              - HVAC Cooling Efficiency|AC, SEER 13
-              - HVAC Cooling Efficiency|AC, SEER 14
-              - HVAC Cooling Efficiency|AC, SEER 15
-          costs:
-            - value: 0 
-              multiplier: Fixed (1)
-          lifetime: 999
+      - option: HVAC Heating Type And Fuel|Electricity ASHP
+        apply_logic:
+          or:
+            - HVAC Cooling Efficiency|AC, SEER 8
+            - HVAC Cooling Efficiency|AC, SEER 10
+            - HVAC Cooling Efficiency|AC, SEER 13
+            - HVAC Cooling Efficiency|AC, SEER 14
+            - HVAC Cooling Efficiency|AC, SEER 15
+        costs:
+          - value: 0 
+            multiplier: Fixed (1)
+        lifetime: 999
 
-        - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF
-          apply_logic:
-            or:
-              - HVAC Cooling Efficiency|AC, SEER 8
-              - HVAC Cooling Efficiency|AC, SEER 10
-              - HVAC Cooling Efficiency|AC, SEER 13
-              - HVAC Cooling Efficiency|AC, SEER 14
-              - HVAC Cooling Efficiency|AC, SEER 15
-          costs:
-            - value: 4600
-              multiplier: Fixed (1)
-            - value: 42
-              multiplier: Size, Heating System (kBtu/h)
-          lifetime: 15
+      - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF
+        apply_logic:
+          or:
+            - HVAC Cooling Efficiency|AC, SEER 8
+            - HVAC Cooling Efficiency|AC, SEER 10
+            - HVAC Cooling Efficiency|AC, SEER 13
+            - HVAC Cooling Efficiency|AC, SEER 14
+            - HVAC Cooling Efficiency|AC, SEER 15
+        costs:
+          - value: 4600
+            multiplier: Fixed (1)
+          - value: 42
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 15
 
 ###Cooling #05: Efficient Room ACs
   - upgrade_name: EnergyStar Room ACs
@@ -928,9 +930,9 @@ upgrades:
     options: 
       - option: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF
         apply_logic: 
-          and:
+          and: 
             - HVAC Has Ducts|No
-            or:
+            - or:
               - HVAC Cooling Efficiency|Room AC, EER 10.7
               - HVAC Cooling Efficiency|Room AC, EER 9.8
               - HVAC Cooling Efficiency|Room AC, EER 8.5
@@ -944,16 +946,16 @@ upgrades:
         apply_logic: 
           and:
             - HVAC Has Ducts|Yes
-            or:
+            - or:
               - HVAC Cooling Efficiency|Room AC, EER 10.7
               - HVAC Cooling Efficiency|Room AC, EER 9.8
               - HVAC Cooling Efficiency|Room AC, EER 8.5
-          costs:
-            - value: 4600
-              multiplier: Fixed (1)
-            - value: 42
-              multiplier: Size, Heating System (kBtu/h)
-          lifetime: 15
+        costs:
+          - value: 4600
+            multiplier: Fixed (1)
+          - value: 42
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 15
       - option: HVAC Cooling Type|Heat Pump 
         apply_logic:
           or:
@@ -964,26 +966,26 @@ upgrades:
           - value: 0 #Covered in heating system
             multiplier: Fixed (1)
         lifetime: 999
-        - option: HVAC Cooling Efficiency|Heat Pump
-          apply_logic:
-            or:
-                - HVAC Cooling Efficiency|Room AC, EER 10.7
-                - HVAC Cooling Efficiency|Room AC, EER 9.8
-                - HVAC Cooling Efficiency|Room AC, EER 8.5
-          costs:
-            - value: 0
-              multiplier: Fixed (1)
-          lifetime: 999
-    - option: HVAC Heating Type and Fuel|Electric Heat Pump
-          apply_logic:
-            or:
-                - HVAC Cooling Efficiency|Room AC, EER 10.7
-                - HVAC Cooling Efficiency|Room AC, EER 9.8
-                - HVAC Cooling Efficiency|Room AC, EER 8.5
-          costs:
-            - value: 0
-              multiplier: Fixed (1)
-          lifetime: 999
+      - option: HVAC Cooling Efficiency|Heat Pump
+        apply_logic:
+          or:
+              - HVAC Cooling Efficiency|Room AC, EER 10.7
+              - HVAC Cooling Efficiency|Room AC, EER 9.8
+              - HVAC Cooling Efficiency|Room AC, EER 8.5
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: HVAC Heating Type And Fuel|Electricity MSHP
+        apply_logic:
+          or:
+              - HVAC Cooling Efficiency|Room AC, EER 10.7
+              - HVAC Cooling Efficiency|Room AC, EER 9.8
+              - HVAC Cooling Efficiency|Room AC, EER 8.5
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
 
 ##Heating #01: Fossil fuel furnace to high efficiency
   - upgrade_name: ENERGY STAR 96% AFUE natural gas furnace 
@@ -1001,7 +1003,7 @@ upgrades:
           - value: 3.9
             multiplier: Size, Heating System (kBtu/h)
         lifetime: 20
-      - option: HVAC Heating Type and Fuel|Natural Gas Fuel Furnace
+      - option: HVAC Heating Type And Fuel|Natural Gas Fuel Furnace
         apply_logic:
           or:
             - HVAC Heating Efficiency|Fuel Furnace, 60% AFUE
@@ -1029,7 +1031,7 @@ upgrades:
           - value: 3100
             multiplier: Fixed (1)
         lifetime: 24
-      - option: HVAC Heating Type and Fuel|Natural Gas Fuel Boiler
+      - option: HVAC Heating Type And Fuel|Natural Gas Fuel Boiler
         apply_logic:
           or:
             - HVAC Heating Efficiency|Fuel Boiler, 76% AFUE
@@ -1046,8 +1048,8 @@ upgrades:
       - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF
         apply_logic: 
           or:
-            - HVAC Heating Type and Fuel|Electric Furnace, 100% AFUE
-            and:
+            - HVAC Heating Type And Fuel|Electricity Electric Furnace
+            - and:
               - HVAC Has Ducts|Yes
               - Heating Fuel|Electricity
         costs:
@@ -1057,29 +1059,29 @@ upgrades:
             multiplier: Size, Heating System (kBtu/h)
         lifetime: 15
       - option: HVAC Cooling Efficiency|Heat Pump
-        apply_logic: HVAC Heating Type and Fuel|Electric Furnace, 100% AFUE
+        apply_logic: HVAC Heating Type And Fuel|Electricity Electric Furnace
         costs:
           - value: 0 
             multiplier: Fixed (1)
         lifetime: 999
       - option: HVAC Cooling Type|Heat Pump 
-        apply_logic: HVAC Heating Type and Fuel|Electric Furnace, 100% AFUE
+        apply_logic: HVAC Heating Type And Fuel|Electricity Electric Furnace
         costs:
           - value: 0 #Covered in heating system
             multiplier: Fixed (1)
         lifetime: 999
-      - option: HVAC Heating Type and Fuel|Electricity ASHP
-          apply_logic: HVAC Heating Type and Fuel|Electric Furnace, 100% AFUE
-          costs:
-            - value: 0 ### We could use this portion to do fuel switching costs
-              multiplier: Fixed (1)
-          lifetime: 999
-        - option: HVAC Heating Type|Ducted Heat Pump
-          apply_logic: HVAC Heating Type and Fuel|Electric Furnace, 100% AFUE
-          costs:
-            - value: 0
-              multiplier: Fixed (1)
-          lifetime: 999
+      - option: HVAC Heating Type And Fuel|Electricity ASHP
+        apply_logic: HVAC Heating Type And Fuel|Electricity Electric Furnace
+        costs:
+          - value: 0 ### We could use this portion to do fuel switching costs
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: HVAC Heating Type|Ducted Heat Pump
+        apply_logic: HVAC Heating Type And Fuel|Electricity Electric Furnace
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
 
 ##Heating #04: Electric Furnaces to Heat Pumps
   - upgrade_name: Electric Furnaces to minimum efficiency heat pumps
@@ -1087,8 +1089,8 @@ upgrades:
       - option: HVAC Heating Efficiency|ASHP, SEER 15, 8.5 HSPF
         apply_logic: 
           or:
-            - HVAC Heating Type and Fuel|Electric Furnace, 100% AFUE
-            and:
+            - HVAC Heating Type And Fuel|Electricity Electric Furnace
+            - and:
               - HVAC Has Ducts|Yes
               - Heating Fuel|Electricity
         costs:
@@ -1098,7 +1100,7 @@ upgrades:
             multiplier: Size, Heating System (kBtu/h)
         lifetime: 15
       - option: HVAC Cooling Efficiency|Heat Pump
-        apply_logic: HVAC Heating Type and Fuel|Electric Furnace, 100% AFUE
+        apply_logic: HVAC Heating Type And Fuel|Electricity Electric Furnace
         costs:
           - value: 0 
             multiplier: Fixed (1)
@@ -1108,16 +1110,16 @@ upgrades:
   - upgrade_name: Non-ducted Electric to MSHP
     options:
       - option: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF
-        apply_logic: 
+        apply_logic:
           and:
-            HVAC Has Ducts|No
-            or:
-              HVAC Heating Type and Fuel|Electricity Baseboard
-              HVAC Heating Type and Fuel|Electricity Electric Boiler
-              HVAC Heating Type and Fuel|Electricity Electric Boiler
-              HVAC Heating Type and Fuel|Electricity Electric Wall Furnace
-              HVAC Heating Type and Fuel|Electricity Other
-          costs:
+            - HVAC Has Ducts|No
+            - or:
+              - HVAC Heating Type And Fuel|Electricity Baseboard
+              - HVAC Heating Type And Fuel|Electricity Electric Boiler
+              - HVAC Heating Type And Fuel|Electricity Electric Boiler
+              - HVAC Heating Type And Fuel|Electricity Electric Wall Furnace
+              - HVAC Heating Type And Fuel|Electricity Other
+        costs:
           - value: 2510
             multiplier: Fixed (1)
           - value: 95
@@ -1126,13 +1128,13 @@ upgrades:
       - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           and:
-            HVAC Has Ducts|No
-            or:
-              HVAC Heating Type and Fuel|Electricity Baseboard
-              HVAC Heating Type and Fuel|Electricity Electric Boiler
-              HVAC Heating Type and Fuel|Electricity Electric Boiler
-              HVAC Heating Type and Fuel|Electricity Electric Wall Furnace
-              HVAC Heating Type and Fuel|Electricity Other
+            - HVAC Has Ducts|No
+            - or:
+              - HVAC Heating Type And Fuel|Electricity Baseboard
+              - HVAC Heating Type And Fuel|Electricity Electric Boiler
+              - HVAC Heating Type And Fuel|Electricity Electric Boiler
+              - HVAC Heating Type And Fuel|Electricity Electric Wall Furnace
+              - HVAC Heating Type And Fuel|Electricity Other
         costs:
           - value: 0 
             multiplier: Fixed (1)
@@ -1142,34 +1144,33 @@ upgrades:
   - upgrade_name: Non-ducted Electric to MSHP
     options:
       - option: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF
-        apply_logic: 
+        apply_logic:
           and:
-            HVAC Has Ducts|No
-            or:
-              HVAC Heating Efficiency|Fuel Boiler, 76% AFUE
-              HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
-              HVAC Heating Efficiency|Fuel Boiler, 90% AFUE
-              HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
-              HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
-              HVAC Heating Efficiency|Other
+            - HVAC Has Ducts|No
+            - or:
+              - HVAC Heating Efficiency|Fuel Boiler, 76% AFUE
+              - HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
+              - HVAC Heating Efficiency|Fuel Boiler, 90% AFUE
+              - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
+              - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
+              - HVAC Heating Efficiency|Other
         costs:
           - value: 2510
             multiplier: Fixed (1)
           - value: 95
             multiplier: Size, Heating System (kBtu/h)
         lifetime: 15
-
       - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic: 
-            and:
-            HVAC Has Ducts|No
-            or:
-              HVAC Heating Efficiency|Fuel Boiler, 76% AFUE
-              HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
-              HVAC Heating Efficiency|Fuel Boiler, 90% AFUE
-              HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
-              HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
-              HVAC Heating Efficiency|Other
+          and:
+            - HVAC Has Ducts|No
+            - or:
+              - HVAC Heating Efficiency|Fuel Boiler, 76% AFUE
+              - HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
+              - HVAC Heating Efficiency|Fuel Boiler, 90% AFUE
+              - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
+              - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
+              - HVAC Heating Efficiency|Other
         costs:
           - value: 0 
             multiplier: Fixed (1)
@@ -1181,9 +1182,9 @@ upgrades:
       - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF
         apply_logic: 
           or:
-            - HVAC Heating Type and Fuel|Fuel Oil Fuel Furnace
-            - HVAC Heating Type and Fuel|Natural Gas Fuel Furnace
-            - HVAC Heating Type and Fuel|Propane Fuel Furnace
+            - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace
+            - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace
+            - HVAC Heating Type And Fuel|Propane Fuel Furnace
         costs:
           - value: 4600
             multiplier: Fixed (1)
@@ -1191,12 +1192,12 @@ upgrades:
             multiplier: Size, Heating System (kBtu/h)
         lifetime: 15
       - option: HVAC Cooling Efficiency|Heat Pump
-          apply_logic: 
-              or:
-                - HVAC Heating Type and Fuel|Fuel Oil Fuel Furnace
-                - HVAC Heating Type and Fuel|Natural Gas Fuel Furnace
-                - HVAC Heating Type and Fuel|Propane Fuel Furnace
-          costs:
+        apply_logic: 
+          or:
+            - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace
+            - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace
+            - HVAC Heating Type And Fuel|Propane Fuel Furnace
+        costs:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 999
@@ -1207,22 +1208,22 @@ upgrades:
       - option: HVAC Heating Efficiency|ASHP, SEER 15, 8.5 HSPF
         apply_logic: 
           or:
-            - HVAC Heating Type and Fuel|Fuel Oil Fuel Furnace
-            - HVAC Heating Type and Fuel|Natural Gas Fuel Furnace
-            - HVAC Heating Type and Fuel|Propane Fuel Furnace
+            - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace
+            - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace
+            - HVAC Heating Type And Fuel|Propane Fuel Furnace
         costs:
           - value: 4600
             multiplier: Fixed (1)
           - value: 42
             multiplier: Size, Heating System (kBtu/h)
         lifetime: 15
-  - option: HVAC Cooling Efficiency|Heat Pump
-          apply_logic: 
-              or:
-                - HVAC Heating Type and Fuel|Fuel Oil Fuel Furnace
-                - HVAC Heating Type and Fuel|Natural Gas Fuel Furnace
-                - HVAC Heating Type and Fuel|Propane Fuel Furnace
-          costs:
+      - option: HVAC Cooling Efficiency|Heat Pump
+        apply_logic: 
+          or:
+            - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace
+            - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace
+            - HVAC Heating Type And Fuel|Propane Fuel Furnace
+        costs:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 999
@@ -1247,7 +1248,7 @@ upgrades:
         lifetime: 13
 
  ##Water Heating #02: Fossil DWH to Premium NG Tankless
-   - upgrade_name: NG Tankless Water Heater
+  - upgrade_name: NG Tankless Water Heater
     options:
       - option: Water Heater|Gas Tankless, Condensing
         apply_logic: 
@@ -1264,7 +1265,7 @@ upgrades:
         lifetime: 20
 
 ## Water HEating #03: Electric to 50 gal HPWH
-   - upgrade_name: 50 gallon HPWH
+  - upgrade_name: 50 gallon HPWH
     options:
       - option: Water Heater|Electric Heat Pump, 50 gal
         apply_logic: 
@@ -1277,7 +1278,7 @@ upgrades:
         lifetime: 12
 
 ## Water Heating #04: Electric to 80 gal HPWH
-   - upgrade_name: 80 gallon HPWH
+  - upgrade_name: 80 gallon HPWH
     options:
       - option: Water Heater|Electric Heat Pump, 80 gal
         apply_logic: 
@@ -1290,8 +1291,7 @@ upgrades:
         lifetime: 12
 
 ##Water Heating #05: Fuel switching 50 gal HPWH
-
-   - upgrade_name: 50 gallon HPWH, fuel switching
+  - upgrade_name: 50 gallon HPWH, fuel switching
     options:
       - option: Water Heater|Electric Heat Pump, 50 gal
         apply_logic: 
@@ -1308,7 +1308,7 @@ upgrades:
         lifetime: 12
 
 ## Water Heating #06: Electric to 80 gal HPWH
-   - upgrade_name: 80 gallon HPWH
+  - upgrade_name: 80 gallon HPWH
     options:
       - option: Water Heater|Electric Heat Pump, 80 gal
         apply_logic: 
@@ -1326,7 +1326,8 @@ upgrades:
 
 ##Clothes Dryer #01: Electric to HP Dryer
   - upgrade_name: Electric Dryers to HP
-     - option: Clothes Dryer|Electric, Heat Pump, Ventless, 80% Usage
+    options:
+      - option: Clothes Dryer|Electric, Heat Pump, Ventless, 80% Usage
         apply_logic:
           or:
             - Clothes Dryer|Electric, 80% Usage
@@ -1355,7 +1356,8 @@ upgrades:
 
 ##Clothes Dryer #02: Fossil fuel dryer to electric premium
   - upgrade_name: Fossil Fuel Dryers fuel switch
-     - option: Clothes Dryer|Electric, Premium, EnergyStar 80% Usage
+    options:
+      - option: Clothes Dryer|Electric, Premium, EnergyStar 80% Usage
         apply_logic:
           or:
             - Clothes Dryer|Gas, 80% Usage
@@ -1364,7 +1366,7 @@ upgrades:
           - value: 800
             multiplier: Fixed (1)
         lifetime: 13
-    - option: Clothes Dryer|Electric, Premium, EnergyStar 100% Usage
+      - option: Clothes Dryer|Electric, Premium, EnergyStar 100% Usage
         apply_logic:
           or:
             - Clothes Dryer|Gas, 100% Usage
@@ -1373,7 +1375,7 @@ upgrades:
           - value: 800
             multiplier: Fixed (1)
         lifetime: 13
-     - option: Clothes Dryer|Electric, Premium, EnergyStar 120% Usage
+      - option: Clothes Dryer|Electric, Premium, EnergyStar 120% Usage
         apply_logic:
           or:
             - Clothes Dryer|Gas, 120% Usage
@@ -1385,7 +1387,8 @@ upgrades:
 
 ##Clothes Dryer #03: Fossil fuel dryer to electric HP
   - upgrade_name: Fossil Fuel Dryers fuel switch
-     - option: Clothes Dryer|Electric, Heat Pump, Ventless, 80% Usage
+    options:
+      - option: Clothes Dryer|Electric, Heat Pump, Ventless, 80% Usage
         apply_logic:
           or:
             - Clothes Dryer|Gas, 80% Usage
@@ -1394,7 +1397,7 @@ upgrades:
           - value: 1450
             multiplier: Fixed (1)
         lifetime: 13
-    - option: Clothes Dryer|Electric, Heat Pump, Ventless, 100% Usage
+      - option: Clothes Dryer|Electric, Heat Pump, Ventless, 100% Usage
         apply_logic:
           or:
             - Clothes Dryer|Gas, 100% Usage
@@ -1403,7 +1406,7 @@ upgrades:
           - value: 1450
             multiplier: Fixed (1)
         lifetime: 13
-     - option: Clothes Dryer|Electric, Heat Pump, Ventless, 120% Usage
+      - option: Clothes Dryer|Electric, Heat Pump, Ventless, 120% Usage
         apply_logic:
           or:
             - Clothes Dryer|Gas, 120% Usage
@@ -1415,6 +1418,7 @@ upgrades:
 
 ##Pools #01: Pumps
   - upgrade_name: Efficient Pool Pump
+    options:
       - option: Misc Pool Pump|0.75 HP Pump
         apply_logic: Misc Pool Pump|1.0 HP Pump
         costs:
@@ -1424,6 +1428,7 @@ upgrades:
 
 ##Pools #02: Heater
   - upgrade_name: Electrify Pool Heating
+    options:
       - option: Misc Pool Heater|Electric, Covered, 78F
         apply_logic: 
           or:
@@ -1435,6 +1440,7 @@ upgrades:
 
 ##Cooking Range #01: Electrification 
   - upgrade_name: Electrify cooking
+    options:
       - option: Cooking Range|Electric, 80% Usage
         apply_logic: 
           or:
@@ -1453,7 +1459,7 @@ upgrades:
           - value: 920
             multiplier: Fixed (1)
         lifetime: 13
-              - option: Cooking Range|Electric, 120% Usage
+      - option: Cooking Range|Electric, 120% Usage
         apply_logic: 
           or:
             - Cooking Range|Propane, 120% Usage
@@ -1465,6 +1471,7 @@ upgrades:
 
 ##Cooking Range #02: Electrification to Induction Cooking
   - upgrade_name: Electrify cooking to induction
+    options:
       - option: Cooking Range|Electric, Induction
         apply_logic: 
           or:
@@ -1481,6 +1488,7 @@ upgrades:
 
 ##Cooking Range #03: Electric Cooking to Induction
   - upgrade_name: Electric cooking to induction
+    options:
       - option: Cooking Range|Electric, Induction
         apply_logic: 
           or:
@@ -1543,21 +1551,19 @@ upgrades:
 ##Clothes Washer #01: EnergyStar 123 kWh
   - upgrade_name: ENERGY STAR Clothes Washers
     options:
-      - option: Clothes Washer|EnergyStar 80% Usage
+      - option: Clothes Washer|EnergyStar, 80% Usage
         apply_logic: Clothes Washer|Standard, 80% Usage
         costs:
           - value: 72
             multiplier: Fixed (1)
         lifetime: 14
-        reference_scenario: Standard Clothes Washer
-      - option: Clothes Washer|EnergyStar 100% Usage
+      - option: Clothes Washer|EnergyStar, 100% Usage
         apply_logic: Clothes Washer|Standard, 100% Usage
         costs:
           - value: 72
             multiplier: Fixed (1)
         lifetime: 14
-        reference_scenario: Standard Clothes Washer
-      - option: Clothes Washer|EnergyStar 120% Usage
+      - option: Clothes Washer|EnergyStar, 120% Usage
         apply_logic: Clothes Washer|Standard, 120% Usage
         costs:
           - value: 72
@@ -1648,23 +1654,21 @@ upgrades:
 
 ##Plug Loads #01: 25% Reduction
   - upgrade_name: Plug Loads
-     - option: Plug Loads|25%
-        apply_logic:
-            - Plug Loads|50%
+    options:
+      - option: Plug Loads|25%
+        apply_logic: Plug Loads|50%
         costs:
           - value: 300
             multiplier: Fixed (1)
         lifetime: 20
       - option: Plug Loads|50%
-        apply_logic:
-            - Plug Loads|100%
+        apply_logic: Plug Loads|100%
         costs:
           - value: 300
             multiplier: Fixed (1)
         lifetime: 20
       - option: Plug Loads|100%
-        apply_logic:
-            - Plug Loads|200%
+        apply_logic: Plug Loads|200%
         costs:
           - value: 300
             multiplier: Fixed (1)
@@ -1676,8 +1680,8 @@ upgrades:
       - option: PV|4.0 kW, South, Roof Pitch
         apply_logic: 
           and:
-          - PV|None
-          - Geometry Building Type RECS|Single Family Detached
+            - PV|None
+            - Geometry Building Type RECS|Single-Family Detached
         costs:
           - value: 12000
             multiplier: Fixed (1)
