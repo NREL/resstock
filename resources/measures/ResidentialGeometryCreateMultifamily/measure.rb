@@ -590,9 +590,9 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
         if (["crawlspace", "unfinished basement"].include? foundation_type)
           if foundation_type == "crawlspace"
             foundation_zone = OpenStudio::Model::ThermalZone.new(model)
-            if foundation_space.name.get == foundation_corridor_space.name.get
-              foundation_space.setName("corridor crawl space")
-              foundation_zone.setName("corridor crawl zone")
+            if not foundation_corridor_space.nil? and foundation_space == foundation_corridor_space
+              foundation_space.setName("crawl corridor space")
+              foundation_zone.setName("crawl corridor zone")
             else
               foundation_space.setName("crawl space")
               foundation_zone.setName("crawl zone")  
@@ -603,7 +603,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
 
           elsif foundation_type == "unfinished basement"
             foundation_zone = OpenStudio::Model::ThermalZone.new(model)
-            if foundation_space.name.get == foundation_corridor_space.name.get
+            if not foundation_corridor_space.nil? and foundation_space == foundation_corridor_space
               foundation_space.setName("unfinished basement corridor space")
               foundation_zone.setName("unfinished basement corridor zone")
             else
