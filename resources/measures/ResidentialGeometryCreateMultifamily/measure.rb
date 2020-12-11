@@ -667,11 +667,6 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
       next unless Geometry.is_corridor(space)
 
       space.surfaces.each do |surface|
-        # wall is adiabatic if the surface is adjacent to another surface
-        if surface.adjacentSurface.is_initialized and surface.surfaceType.downcase == "wall"
-          surface.adjacentSurface.get.setOutsideBoundaryCondition("Adiabatic")
-          surface.setOutsideBoundaryCondition("Adiabatic")
-        end
         os_facade = Geometry.get_facade_for_surface(surface)
         if adb_facade.include? os_facade
           surface.setOutsideBoundaryCondition("Adiabatic")
@@ -685,7 +680,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
 
     unit_spaces_hash.each do |unit_num, unit_info|
       spaces, units_represented = unit_info
-      # Store building unit information
+      # store building unit information
       unit = OpenStudio::Model::BuildingUnit.new(model)
       unit.setBuildingUnitType(Constants.BuildingUnitTypeResidential)
       unit.setName(Constants.ObjectNameBuildingUnit(1))
@@ -704,7 +699,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     OpenStudio::Model.intersectSurfaces(spaces)
     OpenStudio::Model.matchSurfaces(spaces)
 
-    # Make corridor floors adiabatic if no exterior walls to avoid exposed perimeter error
+    # make corridor floors adiabatic if no exterior walls to avoid exposed perimeter error
     exterior_obcs = ["Foundation", "Ground", "Outdoors"]
     obcs_hash = {}
     model.getSpaces.each do |space|
@@ -732,6 +727,18 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
       next if surface.outsideBoundaryCondition.downcase != "ground"
 
       surface.setOutsideBoundaryCondition("Foundation")
+    end
+
+    # set adjacent corridor walls to adiabatic
+    model.getSpaces.each do |space|
+      next unless Geometry.is_corridor(space)
+
+      space.surfaces.each do |surface|
+        if surface.adjacentSurface.is_initialized and surface.surfaceType.downcase == "wall"
+          surface.adjacentSurface.get.setOutsideBoundaryCondition("Adiabatic")
+          surface.setOutsideBoundaryCondition("Adiabatic")
+        end
+      end
     end
 
     # Store mf data on model
