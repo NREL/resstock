@@ -229,13 +229,6 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
     orientation.setDefaultValue(180.0)
     args << orientation
 
-    # make a bool argument for minimal collapsed building
-    minimal_collapsed = OpenStudio::Measure::OSArgument::makeBoolArgument("minimal_collapsed", true)
-    minimal_collapsed.setDisplayName("Minimal Collapsed Building")
-    minimal_collapsed.setDescription("Collapse the building down into only corner, end, and/or middle units.")
-    minimal_collapsed.setDefaultValue(false)
-    args << minimal_collapsed
-
     # make a string argument for unit horizontal location
     horz_location = OpenStudio::Measure::OSArgument::makeStringArgument("horz_location", true)
     horz_location.setDisplayName("Horizontal Location of the Unit")
@@ -280,7 +273,6 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
     back_neighbor_offset = UnitConversions.convert(runner.getDoubleArgumentValue("neighbor_back_offset", user_arguments), "ft", "m")
     front_neighbor_offset = UnitConversions.convert(runner.getDoubleArgumentValue("neighbor_front_offset", user_arguments), "ft", "m")
     orientation = runner.getDoubleArgumentValue("orientation", user_arguments)
-    minimal_collapsed = runner.getBoolArgumentValue("minimal_collapsed", user_arguments)
     horz_location = runner.getStringArgumentValue("horz_location", user_arguments)
 
     num_units_actual = num_units

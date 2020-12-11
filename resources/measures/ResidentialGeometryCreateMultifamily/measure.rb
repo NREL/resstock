@@ -240,13 +240,6 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     horz_location.setDefaultValue("Left")
     args << horz_location
 
-    # make a bool argument for minimal collapsed building
-    minimal_collapsed = OpenStudio::Measure::OSArgument::makeBoolArgument("minimal_collapsed", true)
-    minimal_collapsed.setDisplayName("Minimal Collapsed Building")
-    minimal_collapsed.setDescription("Collapse the building down into only corner, end, and/or middle units.")
-    minimal_collapsed.setDefaultValue(false)
-    args << minimal_collapsed
-
     return args
   end
 
