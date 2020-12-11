@@ -484,7 +484,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     end
 
     adiabatic_surf = adb_facade + adb_level
-    # Make surfaces adiabatic
+    # Make living space surfaces adiabatic
     model.getSpaces.each do |space|
       space.surfaces.each do |surface|
         os_facade = Geometry.get_facade_for_surface(surface)
@@ -558,7 +558,6 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     if foundation_height > 0
       foundation_spaces = []
 
-      # Multiple surfaces for foundation + foundation corridor floors
       # foundation corridor
       foundation_corridor_space = nil
       if corridor_width > 0 and corridor_position == "Double-Loaded Interior"
@@ -573,7 +572,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
         foundation_spaces << foundation_corridor_space
       end
 
-      # # foundation front
+      # foundation front
       foundation_space_front = []
       foundation_space = OpenStudio::Model::Space::fromFloorPrint(foundation_front_polygon, foundation_height, model)
       foundation_space = foundation_space.get
@@ -587,21 +586,33 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
       foundation_space_front << foundation_space
       foundation_spaces << foundation_space
 
-      foundation_spaces.each do |foundation_space| # Individual foundation spaces (corridor and foundation)
+      foundation_spaces.each do |foundation_space| # (corridor and foundation)
         if (["crawlspace", "unfinished basement"].include? foundation_type)
-          foundation_space = foundation_space
           if foundation_type == "crawlspace"
-            foundation_space.setName("crawl space")
             foundation_zone = OpenStudio::Model::ThermalZone.new(model)
-            foundation_zone.setName("crawl zone")
+            if foundation_space.name.get == foundation_corridor_space.name.get
+              foundation_space.setName("corridor crawl space")
+              foundation_zone.setName("corridor crawl zone")
+            else
+              foundation_space.setName("crawl space")
+              foundation_zone.setName("crawl zone")  
+            end
+            
             foundation_space.setThermalZone(foundation_zone)
             foundation_space_type_name = Constants.SpaceTypeCrawl
+
           elsif foundation_type == "unfinished basement"
-            foundation_space.setName("unfinished basement space")
             foundation_zone = OpenStudio::Model::ThermalZone.new(model)
-            foundation_zone.setName("unfinished basement zone")
-            foundation_space.setThermalZone(foundation_zone)
+            if foundation_space.name.get == foundation_corridor_space.name.get
+              foundation_space.setName("unfinished basement corridor space")
+              foundation_zone.setName("unfinished basement corridor zone")
+            else
+              foundation_space.setName("unfinished basement space")
+              foundation_zone.setName("unfinished basement zone")  
+            end
+
             foundation_space_type_name = Constants.SpaceTypeUnfinishedBasement
+            foundation_space.setThermalZone(foundation_zone)
           end
           if space_types_hash.keys.include? foundation_space_type_name
             foundation_space_type = space_types_hash[foundation_space_type_name]
@@ -623,31 +634,58 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
       # intersect and match surfaces for each space in the vector
       OpenStudio::Model.intersectSurfaces(spaces)
       OpenStudio::Model.matchSurfaces(spaces)
-
-      # Set foundation wall boundary conditions
+      
+      # Foundation space boundary conditions
       model.getSpaces.each do |space|
         next unless Geometry.get_space_floor_z(space) + UnitConversions.convert(space.zOrigin, "m", "ft") < 0 # Foundation
+        next if space.name.get.include? "corridor"
 
         surfaces = space.surfaces
         surfaces.each do |surface|
           next unless surface.surfaceType.downcase == "wall"
 
           os_facade = Geometry.get_facade_for_surface(surface)
-          if adb_facade.include? os_facade
+          if adb_facade.include? os_facade and os_facade != "RoofCeiling" and os_facade != "Floor"
             surface.setOutsideBoundaryCondition("Adiabatic")
-          else
+          elsif os_facade != "RoofCeiling"
             surface.setOutsideBoundaryCondition("Foundation")
           end
         end
       end
 
-      # Set foundation corridor spaces to adiabatic
+      # Foundation corridor space boundary conditions
+      foundation_corr_obcs = []
       if not foundation_corridor_space.nil?
         foundation_corridor_space.surfaces.each do |surface|
+          next unless surface.surfaceType.downcase == "wall"
+          os_facade = Geometry.get_facade_for_surface(surface)
+          if adb_facade.include? os_facade 
+            surface.setOutsideBoundaryCondition("Adiabatic")
+          else
+            surface.setOutsideBoundaryCondition("Foundation")
+          end          
+        end
+      end
+    end
+    
+    # Corridor space boundary conditions
+    model.getSpaces.each do |space|
+      next unless Geometry.is_corridor(space)
+      space.surfaces.each do |surface|
+        # wall is adiabatic if the surface is adjacent to another surface
+        if surface.adjacentSurface.is_initialized and surface.surfaceType.downcase == "wall" 
+          surface.adjacentSurface.get.setOutsideBoundaryCondition("Adiabatic")
+          surface.setOutsideBoundaryCondition("Adiabatic")
+        end
+        os_facade = Geometry.get_facade_for_surface(surface)
+        if adb_facade.include? os_facade
+          surface.setOutsideBoundaryCondition("Adiabatic")
+        end
+
+        if (adb_level.include? surface.surfaceType)
           surface.setOutsideBoundaryCondition("Adiabatic")
         end
       end
-
     end
 
     unit_spaces_hash.each do |unit_num, unit_info|
@@ -671,53 +709,28 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     OpenStudio::Model.intersectSurfaces(spaces)
     OpenStudio::Model.matchSurfaces(spaces)
 
-    # make all surfaces adjacent to corridor spaces into adiabatic surfaces
+    # Make corridor floors adiabatic if no exterior walls to avoid exposed perimeter error
+    exterior_obcs = ["Foundation", "Ground", "Outdoors"]
+    obcs_hash = {}
     model.getSpaces.each do |space|
-      next unless Geometry.is_corridor(space)
-
-      space.surfaces.each do |surface|
-        if surface.adjacentSurface.is_initialized # adiabatic if the #or surface is adjacent to another surface (wall to living and floor to basement)
-          surface.adjacentSurface.get.setOutsideBoundaryCondition("Adiabatic")
-          surface.setOutsideBoundaryCondition("Adiabatic")
-        end
-        os_facade = Geometry.get_facade_for_surface(surface)
-        if adb_facade.include? os_facade
-          surface.setOutsideBoundaryCondition("Adiabatic")
-        end
-
-        if (adb_level.include? surface.surfaceType)
-          surface.setOutsideBoundaryCondition("Adiabatic")
-        end
-      end
-    end
-
-    model.getSpaces.each do |space|
-      next unless Geometry.is_corridor(space)
-
-      space.surfaces.each do |surface|
-        if surface.surfaceType.downcase == "floor" and foundation_type == "slab"
-          surface.setOutsideBoundaryCondition("Adiabatic")
-        end
-        surface.setOutsideBoundaryCondition("Adiabatic")
-      end
-    end
-
-    # Make all adjacent walls adiabatic (seperate foundation spaces have adiabatic shared walls to align with whole-building approach)
-    model.getSpaces.each do |space|
+      next unless space.name.get.include? "corridor" # corridor and foundation corridor spaces
+      space_name = space.name     
+      obcs_hash[space_name] = []
       space.surfaces.each do |surface|
         next unless surface.surfaceType.downcase == "wall"
+        obcs_hash[space_name] << surface.outsideBoundaryCondition
+      end
 
-        if surface.adjacentSurface.is_initialized
-          surface.adjacentSurface.get.setOutsideBoundaryCondition("Adiabatic")
-          surface.setOutsideBoundaryCondition("Adiabatic")
-        end
+      next if (obcs_hash[space_name] & exterior_obcs).any?
+      space.surfaces.each do |surface|
+        next unless surface.surfaceType.downcase == "floor"
+        surface.setOutsideBoundaryCondition("Adiabatic")
       end
     end
 
     # set foundation outside boundary condition to Kiva "foundation"
     model.getSurfaces.each do |surface|
       next if surface.outsideBoundaryCondition.downcase != "ground"
-
       surface.setOutsideBoundaryCondition("Foundation")
     end
 
