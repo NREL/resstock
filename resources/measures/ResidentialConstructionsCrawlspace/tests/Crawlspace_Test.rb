@@ -89,16 +89,16 @@ class ProcessConstructionsCrawlspaceTest < MiniTest::Test
   def test_multifamily_new_construction
     args_hash = {}
     expected_num_del_objects = {}
-    expected_num_new_objects = { "Material" => 8, "Construction" => 6, "FoundationKiva" => 2, "FoundationKivaSettings" => 1, "SurfacePropertyExposedFoundationPerimeter" => 1 }
-    expected_values = { "ExposedPerimeter" => 42.43 + 21.21 }
+    expected_num_new_objects = { "Material" => 8, "Construction" => 6, "FoundationKiva" => 2, "FoundationKivaSettings" => 1, "SurfacePropertyExposedFoundationPerimeter" => 2 }
+    expected_values = { "ExposedPerimeter" => 42.43 + 21.21 + 5}
     _test_measure("MF_40units_4story_CS_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
   def test_multifamily_new_construction2
     args_hash = {}
     expected_num_del_objects = {}
-    expected_num_new_objects = { "Material" => 8, "Construction" => 6, "FoundationKiva" => 2, "FoundationKivaSettings" => 1, "SurfacePropertyExposedFoundationPerimeter" => 1 }
-    expected_values = { "ExposedPerimeter" => 42.43 + 21.21 }
+    expected_num_new_objects = { "Material" => 8, "Construction" => 6, "FoundationKiva" => 2, "FoundationKivaSettings" => 1, "SurfacePropertyExposedFoundationPerimeter" => 2 }
+    expected_values = { "ExposedPerimeter" => 42.43 + 21.21 + 5}
     _test_measure("MF_8units_1story_CS_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
