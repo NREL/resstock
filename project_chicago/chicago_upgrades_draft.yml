@@ -8,7 +8,6 @@ weather_files_path: ../weatherfiles/TMY_2007_Chicago.zip  # Relative to this fil
 
 reporting_measures:
   - QOIReport
-  - ApplyUpgrade
 
 baseline:
   sampling_algorithm: quota
@@ -19,9 +18,11 @@ schema_version: 0.2
 
 residential_simulation_controls:
   timesteps_per_hr: 4
-
-simulation_output:
-  include_enduse_subcategories: true
+  begin_month: 1
+  begin_day_of_month: 1
+  end_month: 12
+  end_day_of_month: 31
+  calendar_year: 2007
 
 upgrades:
 
@@ -30,7 +31,7 @@ upgrades:
 ###Group 1: Intensive, fuel-agnostic upgrades
 
 ##Air Sealing #01, 25% reduction
-  - upgrade_name: Air Leakage 25% reduction, with mech. vent. under 7 ACH50
+  - upgrade_name: Air Leakage 25% Reduction, with Mech Vent under 7 ACH50
     options:
       - option: Infiltration|18.5 ACH50
         apply_logic: Infiltration|25 ACH50
@@ -120,7 +121,7 @@ upgrades:
         lifetime: 999
 
 ##Air Sealing #02: "Best" air sealing to 1ACH50
-  - upgrade_name: Air Leakage to 1ACH50, with mech. vent.
+  - upgrade_name: Air Leakage to 1ACH50, with Mech Vent
     options:
       - option: Infiltration|1 ACH50
         apply_logic: Infiltration|2 ACH50
@@ -215,7 +216,7 @@ upgrades:
         lifetime: 999
 
 ##Attic Insulation #01: R-49, vented attics only
-  - upgrade_name: R-49 Attic Insulation
+  - upgrade_name: Attic Insulation, R-49
     options:
       - option: Insulation Unfinished Attic|Ceiling R-49, Vented
         apply_logic: Insulation Unfinished Attic|Uninsulated, Vented
@@ -254,7 +255,7 @@ upgrades:
         lifetime: 999
 
 ##Attic Insulation #02: R-60, vented attics only
-  - upgrade_name: R-60 Attic Insulation
+  - upgrade_name: Attic Insulation, R-60
     options:
       - option: Insulation Unfinished Attic|Ceiling R-60, Vented
         apply_logic: Insulation Unfinished Attic|Uninsulated, Vented
@@ -300,7 +301,7 @@ upgrades:
         lifetime: 999
 
 ##Attic Insulation #03: R-49, finished roof only
-  - upgrade_name: R-49 Finished Roof
+  - upgrade_name: Finished Roof, R-49
     options:
       - option: Insulation Finished Roof|R-49
         apply_logic: 
@@ -317,7 +318,7 @@ upgrades:
         lifetime: 999
 
 ##Ducts #01
-  - upgrade_name: Duct sealing and insulation to R-8, 10% leakage
+  - upgrade_name: Duct Sealing and Insulation to R-8, 10% Leakage
     options: 
       - option: Ducts|10% Leakage, R-8
         apply_logic:
@@ -451,7 +452,7 @@ upgrades:
         lifetime: 30
 
 ## Windows #02: Double Pane U 0.29 SHGC .56
-  - upgrade_name: Low-E Double Pane High-Gain
+  - upgrade_name: Low-E Double Pane, High-Gain
     options:
       - option: Windows|Low-E, Double, High-Gain
         apply_logic: Windows|1 Pane
@@ -467,7 +468,7 @@ upgrades:
         lifetime: 30
 
 ## Windows #03: Double Pane U 0.26 SHGC .31
-  - upgrade_name: Low-E, Double Pane, Low-Gain
+  - upgrade_name: Low-E Double Pane, Low-Gain
     options:
       - option: Windows|Low-E, Double, Low-Gain
         apply_logic: Windows|1 Pane
@@ -496,7 +497,7 @@ upgrades:
         lifetime: 30
 
 ##Exterior Wall #01 Wood Stud Drill-and-fill 
-  - upgrade_name: Drill-and-fill insulation for wood walls
+  - upgrade_name: Drill-and-fill Insulation for Wood Wall
     options: 
       - option: Insulation Wall|Wood Stud, R-13
         apply_logic: 
@@ -516,7 +517,7 @@ upgrades:
         lifetime: 999
 
 ##Exterior Wall #02: Drill and Fill + XPS
-  - upgrade_name: Drill-and-fill to R-13, R-20 external XPS
+  - upgrade_name: Drill-and-fill to R-13, R-20 External XPS
     options: 
       - option: Insulation Wall|Wood Stud, R-13, R-20 external XPS
         apply_logic:
@@ -550,7 +551,7 @@ upgrades:
         lifetime: 999
 
 ##Exterior Wall #03 Wood Stud Drill-and-fill + R-5 sheathing
-  - upgrade_name: Drill-and-fill insulation for wood walls and R-5 sheathing
+  - upgrade_name: Drill-and-fill Insulation for Wood wall and R-5 Sheathing
     options: 
       - option: Insulation Wall|Wood Stud, R-13, R-5 Sheathing
         apply_logic: 
@@ -585,7 +586,7 @@ upgrades:
         lifetime: 999
 
 ##Exterior Wall #04 External R-20 XPS for all 
-  - upgrade_name: R-20 external XPS
+  - upgrade_name: R-20 External XPS
     options: 
       - option: Insulation Wall|Wood Stud, R-19, R-20 external XPS
         apply_logic: 
@@ -735,8 +736,8 @@ upgrades:
             multiplier: Wall Area, Below-Grade (ft^2)
         lifetime: 999
 
-##Foundation #05: Pier and Beam R-19
-  - upgrade_name: Pier and Beam R-19
+##Foundation #05: Pier and Beam, R-19
+  - upgrade_name: Pier and Beam, R-19
     options:
       - option: Insulation Pier Beam|R-19
         apply_logic: 
@@ -750,8 +751,8 @@ upgrades:
             #there isn't one for crawlspace ceiling
         lifetime: 999
 
-##Foundation #06: Pier and Beam R-38
-  - upgrade_name: Pier and Beam R-38
+##Foundation #06: Pier and Beam, R-38
+  - upgrade_name: Pier and Beam, R-38
     options:
       - option: Insulation Pier Beam|R-38
         apply_logic: 
@@ -765,8 +766,8 @@ upgrades:
             multiplier: Floor Area, Attic (ft^2)
         lifetime: 999
 
-##Foundation #08: Insulation Slab
-  - upgrade_name: Insulation Slab
+##Foundation #08: Insulation Slab, R20
+  - upgrade_name: Insulation Slab, R20
     options:
       - option: Insulation Slab|R20 Exterior
         apply_logic: 
@@ -836,7 +837,6 @@ upgrades:
           - value: 0 # Covered in HVAC Heating Efficiency
             multiplier: Fixed (1)
         lifetime: 999
-
       - option: HVAC Heating Type And Fuel|Electricity ASHP
         apply_logic:
           or:
@@ -849,7 +849,6 @@ upgrades:
           - value: 0 
             multiplier: Fixed (1)
         lifetime: 999
-
       - option: HVAC Heating Efficiency|ASHP, SEER 15, 8.5 HSPF
         apply_logic:
           or:
@@ -880,7 +879,6 @@ upgrades:
           - value: 0 
             multiplier: Fixed (1)
         lifetime: 999
-
       - option: HVAC Heating Type And Fuel|Electricity ASHP
         apply_logic:
           or:
@@ -893,7 +891,6 @@ upgrades:
           - value: 0 
             multiplier: Fixed (1)
         lifetime: 999
-
       - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF
         apply_logic:
           or:
@@ -909,8 +906,8 @@ upgrades:
             multiplier: Size, Heating System (kBtu/h)
         lifetime: 15
 
-###Cooling #05: Efficient Room ACs
-  - upgrade_name: EnergyStar Room ACs
+###Cooling #05: Efficient Room AC
+  - upgrade_name: EnergyStar Room AC
     options: 
       - option: HVAC Cooling Efficiency|Room AC, EER 12.0
         apply_logic:
@@ -926,7 +923,7 @@ upgrades:
         lifetime: 12
 
 ###Cooling #06: Room AC to Heat Pump
-  - upgrade_name: Room ACs to Heat Pumps
+  - upgrade_name: Room AC to Heat Pump
     options: 
       - option: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF
         apply_logic: 
@@ -987,8 +984,8 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 999
 
-##Heating #01: Fossil fuel furnace to high efficiency
-  - upgrade_name: ENERGY STAR 96% AFUE natural gas furnace 
+##Heating #01: Non-electric furnace to high efficiency
+  - upgrade_name: EnergyStar 96% AFUE Natural Gas Furnace 
     options:
       - option: HVAC Heating Efficiency|Fuel Furnace, 96% AFUE
         apply_logic:
@@ -1015,8 +1012,8 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 999
 
-##Heating #02: Fossil fuel boiler to high efficiency
-  - upgrade_name: ENERGY STAR natural gas boiler
+##Heating #02: Non-electric boiler to high efficiency
+  - upgrade_name: EnergyStar Natural Gas Boiler
     options:
       - option: HVAC Heating Efficiency|Fuel Furnace, 96% AFUE
         apply_logic:
@@ -1043,7 +1040,7 @@ upgrades:
         lifetime: 999
 
 ##Heating #03: Electric Furnaces to Heat Pumps
-  - upgrade_name: Electric Furnaces to high efficiency heat pumps
+  - upgrade_name: Electric Furnace to Heat Pump, High Eff
     options:
       - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF
         apply_logic: 
@@ -1084,7 +1081,7 @@ upgrades:
         lifetime: 999
 
 ##Heating #04: Electric Furnaces to Heat Pumps
-  - upgrade_name: Electric Furnaces to minimum efficiency heat pumps
+  - upgrade_name: Electric Furnace to Heat Pump, Min Eff
     options:
       - option: HVAC Heating Efficiency|ASHP, SEER 15, 8.5 HSPF
         apply_logic: 
@@ -1140,8 +1137,8 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 999
 
-##Heating #06: Non-ducted fossil fuel to MSHP
-  - upgrade_name: Non-ducted Electric to MSHP
+##Heating #06: Non-ducted Non-electric to MSHP
+  - upgrade_name: Non-ducted Non-electric to MSHP
     options:
       - option: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF
         apply_logic:
@@ -1176,8 +1173,8 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 999
 
-##Heating #07: Electrify fossil furnaces
-  - upgrade_name: Fossil fuel furnaces to high efficiency heat pumps
+##Heating #07: Electrify Non-electric furnaces
+  - upgrade_name: Non-electric Furnace to Heat Pump, High Eff
     options:
       - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF
         apply_logic: 
@@ -1202,8 +1199,8 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 999
 
-##Heating #08: Electrify fossil furnaces
-  - upgrade_name: Fossil fuel furnaces to minimum efficiency heat pumps
+##Heating #08: Electrify Non-electric Furnaces
+  - upgrade_name: Non-electric Furnace to Heat Pump, Min Eff
     options:
       - option: HVAC Heating Efficiency|ASHP, SEER 15, 8.5 HSPF
         apply_logic: 
@@ -1228,7 +1225,7 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 999
 
-## Water Heating #01: Fossil DWH to Premium NG Tank
+## Water Heating #01: Non-electric DWH to Premium NG Tank
   - upgrade_name: Condensing NG Tank Water Heater
     options:
       - option: Water Heater|Gas Premium, Condensing
@@ -1247,7 +1244,7 @@ upgrades:
             multiplier: Size, Water Heater (gal)
         lifetime: 13
 
- ##Water Heating #02: Fossil DWH to Premium NG Tankless
+ ##Water Heating #02: Non-electric DWH to Premium NG Tankless
   - upgrade_name: NG Tankless Water Heater
     options:
       - option: Water Heater|Gas Tankless, Condensing
@@ -1265,7 +1262,7 @@ upgrades:
         lifetime: 20
 
 ## Water HEating #03: Electric to 50 gal HPWH
-  - upgrade_name: 50 gallon HPWH
+  - upgrade_name: Electric Water Heater to 50 gal HPWH
     options:
       - option: Water Heater|Electric Heat Pump, 50 gal
         apply_logic: 
@@ -1278,7 +1275,7 @@ upgrades:
         lifetime: 12
 
 ## Water Heating #04: Electric to 80 gal HPWH
-  - upgrade_name: 80 gallon HPWH
+  - upgrade_name: Electric Water Heater to 80 gal HPWH
     options:
       - option: Water Heater|Electric Heat Pump, 80 gal
         apply_logic: 
@@ -1291,7 +1288,7 @@ upgrades:
         lifetime: 12
 
 ##Water Heating #05: Fuel switching 50 gal HPWH
-  - upgrade_name: 50 gallon HPWH, fuel switching
+  - upgrade_name: Non-electric Water Heater to 50 gal HPWH
     options:
       - option: Water Heater|Electric Heat Pump, 50 gal
         apply_logic: 
@@ -1307,8 +1304,8 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 12
 
-## Water Heating #06: Electric to 80 gal HPWH
-  - upgrade_name: 80 gallon HPWH
+## Water Heating #06: Fuel switching to 80 gal HPWH
+  - upgrade_name: Non-electric Water Heater to 80 gal HPWH
     options:
       - option: Water Heater|Electric Heat Pump, 80 gal
         apply_logic: 
@@ -1325,7 +1322,7 @@ upgrades:
         lifetime: 12
 
 ##Clothes Dryer #01: Electric to HP Dryer
-  - upgrade_name: Electric Dryers to HP
+  - upgrade_name: Electric Clothes Dryer to HPCD
     options:
       - option: Clothes Dryer|Electric, Heat Pump, Ventless, 80% Usage
         apply_logic:
@@ -1355,7 +1352,7 @@ upgrades:
         lifetime: 13
 
 ##Clothes Dryer #02: Fossil fuel dryer to electric premium
-  - upgrade_name: Fossil Fuel Dryers fuel switch
+  - upgrade_name: Electrify Non-electric Clothes Dryer
     options:
       - option: Clothes Dryer|Electric, Premium, EnergyStar 80% Usage
         apply_logic:
@@ -1385,8 +1382,8 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 13
 
-##Clothes Dryer #03: Fossil fuel dryer to electric HP
-  - upgrade_name: Fossil Fuel Dryers fuel switch
+##Clothes Dryer #03: None-electric dryer to electric HP
+  - upgrade_name: Non-electric Clothes Dryer to HPCD
     options:
       - option: Clothes Dryer|Electric, Heat Pump, Ventless, 80% Usage
         apply_logic:
@@ -1439,7 +1436,7 @@ upgrades:
         lifetime: 7
 
 ##Cooking Range #01: Electrification 
-  - upgrade_name: Electrify cooking
+  - upgrade_name: Electrify Non-electric Cooking
     options:
       - option: Cooking Range|Electric, 80% Usage
         apply_logic: 
@@ -1470,7 +1467,7 @@ upgrades:
         lifetime: 13
 
 ##Cooking Range #02: Electrification to Induction Cooking
-  - upgrade_name: Electrify cooking to induction
+  - upgrade_name: Non-electric Cooking to Induction
     options:
       - option: Cooking Range|Electric, Induction
         apply_logic: 
@@ -1487,7 +1484,7 @@ upgrades:
         lifetime: 13
 
 ##Cooking Range #03: Electric Cooking to Induction
-  - upgrade_name: Electric cooking to induction
+  - upgrade_name: Electric Cooking to Induction
     options:
       - option: Cooking Range|Electric, Induction
         apply_logic: 
@@ -1507,7 +1504,7 @@ upgrades:
 ### Need to develop, can't transfer from other repo
 
 ##Lighting #01: All LEDs
-  - upgrade_name: LEDs
+  - upgrade_name: LED
     options:
       - option: Lighting|100% LED
         apply_logic:
@@ -1525,8 +1522,8 @@ upgrades:
             multiplier: Floor Area, Lighting (ft^2)
         lifetime: 78.28
 
-##Refrigerator #01: Energy Star
-  - upgrade_name: ENERGY STAR Refrigerator
+##Refrigerator #01: EnergyStar
+  - upgrade_name: EnergyStar Refrigerator
     options:
       - option: Refrigerator|EF 19.9
         apply_logic: Refrigerator|EF 17.6
@@ -1536,6 +1533,8 @@ upgrades:
         lifetime: 17.4
 
 ##Refrigerator #02: EnergyStar Most Efficient
+  - upgrade_name: EnergyStar Refrigerator, Most Eff
+    options:
       - option: Refrigerator|EF 22.2, EnergyStar Most Efficient
         apply_logic: 
           or:
@@ -1549,7 +1548,7 @@ upgrades:
         lifetime: 17.4
 
 ##Clothes Washer #01: EnergyStar 123 kWh
-  - upgrade_name: ENERGY STAR Clothes Washers
+  - upgrade_name: EnergyStar Clothes Washer
     options:
       - option: Clothes Washer|EnergyStar, 80% Usage
         apply_logic: Clothes Washer|Standard, 80% Usage
@@ -1570,7 +1569,9 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 14
 
-##Clothes Washer #01: EnergyStar Most Efficient 75 kWh
+##Clothes Washer #02: EnergyStar Most Efficient 75 kWh
+  - upgrade_name: EnergyStar Clothes Washer, Most Eff
+    options:
       - option: Clothes Washer|EnergyStar Most Efficient, 80% Usage
         apply_logic:
           or:
@@ -1600,7 +1601,7 @@ upgrades:
         lifetime: 14
 
 ##Dishwasher #01: EnergyStar 290 kWh
-  - upgrade_name: ENERGY STAR Dishwashers
+  - upgrade_name: EnergyStar Dishwasher
     options:
       - option: Dishwasher|290 Rated kWh, 80% Usage
         apply_logic: Dishwasher|318 Rated kWh, 80% Usage
@@ -1621,8 +1622,8 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 11
 
-##Dishwasher #01: EnergyStar Most Efficient 199 kWh
-  - upgrade_name: ENERGY STAR Dishwashers
+##Dishwasher #02: EnergyStar Most Efficient 199 kWh
+  - upgrade_name: EnergyStar Dishwasher, Most Eff
     options:
       - option: Dishwasher|199 Rated kWh, 80% Usage
         apply_logic: 
@@ -1653,7 +1654,7 @@ upgrades:
         lifetime: 11
 
 ##Plug Loads #01: 25% Reduction
-  - upgrade_name: Plug Loads
+  - upgrade_name: Plug Loads 25% Reduction
     options:
       - option: Plug Loads|25%
         apply_logic: Plug Loads|50%
@@ -1686,6 +1687,9 @@ upgrades:
           - value: 12000
             multiplier: Fixed (1)
         lifetime: 30
+
+simulation_output:
+  include_enduse_subcategories: true
 
 timeseries_csv_export:
   reporting_frequency: Timestep
