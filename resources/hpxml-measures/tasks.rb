@@ -233,7 +233,6 @@ def create_osws
     'extra-enclosure-garage-partially-protruded.osw' => 'base.osw',
     'extra-vacancy-6-months.osw' => 'base-schedules-stochastic.osw',
     'extra-schedules-random-seed.osw' => 'base-schedules-stochastic.osw',
-    'extra-hvac-programmable-thermostat.osw' => 'base.osw',
 
     'invalid_files/non-electric-heat-pump-water-heater.osw' => 'base.osw',
     'invalid_files/heating-system-and-heat-pump.osw' => 'base.osw',
@@ -462,10 +461,10 @@ def get_values(osw_file, step)
     step.setArgument('heat_pump_backup_fuel', 'none')
     step.setArgument('heat_pump_backup_heating_efficiency', 1)
     step.setArgument('heat_pump_backup_heating_capacity', '34121.0')
-    step.setArgument('setpoint_heating_weekday_temp', 68)
-    step.setArgument('setpoint_heating_weekend_temp', 68)
-    step.setArgument('setpoint_cooling_weekday_temp', 78)
-    step.setArgument('setpoint_cooling_weekend_temp', 78)
+    step.setArgument('setpoint_heating_weekday', '68')
+    step.setArgument('setpoint_heating_weekend', '68')
+    step.setArgument('setpoint_cooling_weekday', '78')
+    step.setArgument('setpoint_cooling_weekend', '78')
     step.setArgument('ducts_supply_leakage_units', HPXML::UnitsCFM25)
     step.setArgument('ducts_return_leakage_units', HPXML::UnitsCFM25)
     step.setArgument('ducts_supply_leakage_value', 75.0)
@@ -1474,10 +1473,10 @@ def get_values(osw_file, step)
     step.setArgument('cooling_system_cooling_sensible_heat_fraction', 0.65)
     step.setArgument('cooling_system_fraction_cool_load_served', 0.33)
   elsif ['base-hvac-setpoints.osw'].include? osw_file
-    step.setArgument('setpoint_heating_weekday_temp', 60.0)
-    step.setArgument('setpoint_heating_weekend_temp', 60.0)
-    step.setArgument('setpoint_cooling_weekday_temp', 80.0)
-    step.setArgument('setpoint_cooling_weekend_temp', 80.0)
+    step.setArgument('setpoint_heating_weekday', '60')
+    step.setArgument('setpoint_heating_weekend', '60')
+    step.setArgument('setpoint_cooling_weekday', '80')
+    step.setArgument('setpoint_cooling_weekend', '80')
   elsif ['base-hvac-stove-oil-only.osw'].include? osw_file
     step.setArgument('heating_system_type', HPXML::HVACTypeStove)
     step.setArgument('heating_system_fuel', HPXML::FuelTypeOil)
@@ -1835,15 +1834,6 @@ def get_values(osw_file, step)
     step.setArgument('schedules_vacancy_end_day_of_month', 30)
   elsif ['extra-schedules-random-seed.osw'].include? osw_file
     step.setArgument('schedules_random_seed', 123)
-  elsif ['extra-hvac-programmable-thermostat.osw'].include? osw_file
-    step.setArgument('setpoint_heating_weekday_offset_magnitude', 4)
-    step.setArgument('setpoint_heating_weekend_offset_magnitude', 4)
-    step.setArgument('setpoint_heating_weekday_schedule', '-1, -1, -1, -1, -1, -1, 0, 0, -1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1')
-    step.setArgument('setpoint_heating_weekend_schedule', '-1, -1, -1, -1, -1, -1, 0, 0, -1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1')
-    step.setArgument('setpoint_cooling_weekday_offset_magnitude', 4)
-    step.setArgument('setpoint_cooling_weekend_offset_magnitude', 4)
-    step.setArgument('setpoint_cooling_weekday_schedule', '0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0')
-    step.setArgument('setpoint_cooling_weekend_schedule', '0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0')
   end
 
   # Warnings/Errors
