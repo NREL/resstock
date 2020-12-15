@@ -91,22 +91,26 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     arg.setDisplayName('Heating Setpoint: Weekday Offset Magnitude')
     arg.setDescription('Specify the weekday heating offset magnitude.')
     arg.setUnits('deg-F')
+    arg.setDefaultValue(0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('setpoint_heating_weekend_offset_magnitude', true)
     arg.setDisplayName('Heating Setpoint: Weekend Offset Magnitude')
     arg.setDescription('Specify the weekend heating offset magnitude.')
     arg.setUnits('deg-F')
+    arg.setDefaultValue(0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('setpoint_heating_weekday_schedule', true)
     arg.setDisplayName('Heating Setpoint: Weekday Schedule')
     arg.setDescription('Specify the 24-hour comma-separated weekday heating schedule of 0s and 1s.')
+    arg.setDefaultValue('0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('setpoint_heating_weekend_schedule', true)
     arg.setDisplayName('Heating Setpoint: Weekend Schedule')
     arg.setDescription('Specify the 24-hour comma-separated weekend heating schedule of 0s and 1s.')
+    arg.setDefaultValue('0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('setpoint_cooling_weekday_temp', true)
@@ -127,22 +131,26 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     arg.setDisplayName('Cooling Setpoint: Weekday Offset Magnitude')
     arg.setDescription('Specify the weekday cooling offset magnitude.')
     arg.setUnits('deg-F')
+    arg.setDefaultValue(0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('setpoint_cooling_weekend_offset_magnitude', true)
     arg.setDisplayName('Cooling Setpoint: Weekend Offset Magnitude')
     arg.setDescription('Specify the weekend cooling offset magnitude.')
     arg.setUnits('deg-F')
+    arg.setDefaultValue(0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('setpoint_cooling_weekday_schedule', true)
     arg.setDisplayName('Cooling Setpoint: Weekday Schedule')
     arg.setDescription('Specify the 24-hour comma-separated weekday cooling schedule of 0s and 1s.')
+    arg.setDefaultValue('0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('setpoint_cooling_weekend_schedule', true)
     arg.setDisplayName('Cooling Setpoint: Weekend Schedule')
     arg.setDescription('Specify the 24-hour comma-separated weekend cooling schedule of 0s and 1s.')
+    arg.setDefaultValue('0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0')
     args << arg
 
     return args
