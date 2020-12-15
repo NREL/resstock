@@ -440,3 +440,38 @@ class String
     return true
   end
 end
+
+def get_argument_values(runner, arguments, user_arguments)
+  args = {}
+  arguments.each do |argument|
+    if argument.required
+      case argument.type
+      when 'Choice'.to_OSArgumentType
+        args[argument.name] = runner.getStringArgumentValue(argument.name, user_arguments)
+      when 'Boolean'.to_OSArgumentType
+        args[argument.name] = runner.getBoolArgumentValue(argument.name, user_arguments)
+      when 'Double'.to_OSArgumentType
+        args[argument.name] = runner.getDoubleArgumentValue(argument.name, user_arguments)
+      when 'Integer'.to_OSArgumentType
+        args[argument.name] = runner.getIntegerArgumentValue(argument.name, user_arguments)
+      when 'String'.to_OSArgumentType
+        args[argument.name] = runner.getStringArgumentValue(argument.name, user_arguments)
+      end
+    else
+      case argument.type
+      when 'Choice'.to_OSArgumentType
+        args[argument.name] = runner.getOptionalStringArgumentValue(argument.name, user_arguments)
+      when 'Boolean'.to_OSArgumentType
+        args[argument.name] = runner.getOptionalStringArgumentValue(argument.name, user_arguments)
+      when 'Double'.to_OSArgumentType
+        args[argument.name] = runner.getOptionalDoubleArgumentValue(argument.name, user_arguments)
+      when 'Integer'.to_OSArgumentType
+        args[argument.name] = runner.getOptionalIntegerArgumentValue(argument.name, user_arguments)
+      when 'String'.to_OSArgumentType
+        args[argument.name] = runner.getOptionalStringArgumentValue(argument.name, user_arguments)
+      end
+    end
+  end
+  args = Hash[args.collect { |k, v| [k.to_sym, v] }]
+  return args
+end

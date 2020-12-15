@@ -53,10 +53,11 @@ class HPXML < Object
                  :roofs, :rim_joists, :walls, :foundation_walls, :frame_floors, :slabs, :windows,
                  :skylights, :doors, :heating_systems, :cooling_systems, :heat_pumps, :hvac_controls,
                  :hvac_distributions, :ventilation_fans, :water_heating_systems, :hot_water_distributions,
-                 :water_fixtures, :water_heating, :solar_thermal_systems, :pv_systems, :clothes_washers,
-                 :clothes_dryers, :dishwashers, :refrigerators, :freezers, :dehumidifiers, :cooking_ranges, :ovens,
-                 :lighting_groups, :lighting, :ceiling_fans, :pools, :hot_tubs, :plug_loads, :fuel_loads]
-  attr_reader(*HPXML_ATTRS, :doc)
+                 :water_fixtures, :water_heating, :solar_thermal_systems, :pv_systems, :generators,
+                 :clothes_washers, :clothes_dryers, :dishwashers, :refrigerators, :freezers, :dehumidifiers,
+                 :cooking_ranges, :ovens, :lighting_groups, :lighting, :ceiling_fans, :pools, :hot_tubs,
+                 :plug_loads, :fuel_loads]
+  attr_reader(*HPXML_ATTRS, :doc, :errors, :warnings)
 
   # Constants
   AtticTypeCathedral = 'CathedralCeiling'
@@ -276,22 +277,33 @@ class HPXML < Object
   WindowLayersSinglePane = 'single-pane'
   WindowLayersTriplePane = 'triple-pane'
 
-  def initialize(hpxml_path: nil, collapse_enclosure: true)
+  def initialize(hpxml_path: nil, schematron_validators: [], collapse_enclosure: true)
     @doc = nil
     @hpxml_path = hpxml_path
+    @errors = []
+    @warnings = []
 
-    # Create/populate child objects
     hpxml = nil
     if not hpxml_path.nil?
       @doc = XMLHelper.parse_file(hpxml_path)
+
+      # Check HPXML version
       hpxml = XMLHelper.get_element(@doc, '/HPXML')
       Version.check_hpxml_version(XMLHelper.get_attribute_value(hpxml, 'schemaVersion'))
+
+      # Validate against Schematron docs
+      @errors, @warnings = validate_against_schematron(schematron_validators: schematron_validators)
+      return unless @errors.empty?
     end
+
+    # Create/populate child objects
     from_oga(hpxml)
 
+    # Check for additional errors (those hard to check via Schematron)
+    @errors += check_for_errors()
+    return unless @errors.empty?
+
     # Clean up
-    # TODO: Should really perform validation before we make the following changes,
-    # so that any errors below don't prevent validation from occurring.
     delete_tiny_surfaces()
     delete_adiabatic_subsurfaces()
     if collapse_enclosure
@@ -455,10 +467,9 @@ class HPXML < Object
     # The WithinInfiltrationVolume properties are intentionally ignored for now.
     # FUTURE: Move into AirInfiltrationMeasurement class?
     cfa = @building_construction.conditioned_floor_area
-    ncfl = @building_construction.number_of_conditioned_floors
     ncfl_ag = @building_construction.number_of_conditioned_floors_above_grade
     if has_walkout_basement()
-      infil_height = Float(ncfl_ag) * infil_volume / cfa
+      infil_height = ncfl_ag * infil_volume / cfa
     else
       # Calculate maximum above-grade height of conditioned basement walls
       max_cond_bsmt_wall_height_ag = 0.0
@@ -477,7 +488,7 @@ class HPXML < Object
 
         cond_bsmt_rim_joist_height = UnitConversions.convert(9, 'in', 'ft')
       end
-      infil_height = Float(ncfl_ag) * infil_volume / cfa + max_cond_bsmt_wall_height_ag + cond_bsmt_rim_joist_height
+      infil_height = ncfl_ag * infil_volume / cfa + max_cond_bsmt_wall_height_ag + cond_bsmt_rim_joist_height
     end
     return infil_height
   end
@@ -514,6 +525,7 @@ class HPXML < Object
     @water_heating.to_oga(@doc)
     @solar_thermal_systems.to_oga(@doc)
     @pv_systems.to_oga(@doc)
+    @generators.to_oga(@doc)
     @clothes_washers.to_oga(@doc)
     @clothes_dryers.to_oga(@doc)
     @dishwashers.to_oga(@doc)
@@ -563,6 +575,7 @@ class HPXML < Object
     @water_heating = WaterHeating.new(self, hpxml)
     @solar_thermal_systems = SolarThermalSystems.new(self, hpxml)
     @pv_systems = PVSystems.new(self, hpxml)
+    @generators = Generators.new(self, hpxml)
     @clothes_washers = ClothesWashers.new(self, hpxml)
     @clothes_dryers = ClothesDryers.new(self, hpxml)
     @dishwashers = Dishwashers.new(self, hpxml)
@@ -707,7 +720,7 @@ class HPXML < Object
       if not @timestep.nil?
         valid_tsteps = [60, 30, 20, 15, 12, 10, 6, 5, 4, 3, 2, 1]
         if not valid_tsteps.include? @timestep
-          fail "Timestep (#{@timestep}) must be one of: #{valid_tsteps.join(', ')}."
+          errors << "Timestep (#{@timestep}) must be one of: #{valid_tsteps.join(', ')}."
         end
       end
 
@@ -716,7 +729,7 @@ class HPXML < Object
 
         valid_months = (1..12).to_a
         if not valid_months.include? begin_month
-          fail "#{sim_ctl} Begin Month (#{begin_month}) must be one of: #{valid_months.join(', ')}."
+          errors << "#{sim_ctl} Begin Month (#{begin_month}) must be one of: #{valid_months.join(', ')}."
         end
       end
 
@@ -725,7 +738,7 @@ class HPXML < Object
 
         valid_months = (1..12).to_a
         if not valid_months.include? end_month
-          fail "#{sim_ctl} End Month (#{end_month}) must be one of: #{valid_months.join(', ')}."
+          errors << "#{sim_ctl} End Month (#{end_month}) must be one of: #{valid_months.join(', ')}."
         end
       end
 
@@ -735,12 +748,12 @@ class HPXML < Object
           begin_month, begin_day, end_month, end_day = months_and_days
           if (not begin_day.nil?) && (months.include? begin_month)
             if not valid_days.include? begin_day
-              fail "#{sim_ctl} Begin Day of Month (#{begin_day}) must be one of: #{valid_days.join(', ')}."
+              errors << "#{sim_ctl} Begin Day of Month (#{begin_day}) must be one of: #{valid_days.join(', ')}."
             end
           end
           next unless (not end_day.nil?) && (months.include? end_month)
           if not valid_days.include? end_day
-            fail "#{sim_ctl} End Day of Month (#{end_day}) must be one of: #{valid_days.join(', ')}."
+            errors << "#{sim_ctl} End Day of Month (#{end_day}) must be one of: #{valid_days.join(', ')}."
           end
         end
       end
@@ -749,13 +762,13 @@ class HPXML < Object
         begin_month, begin_day, end_month, end_day = months_and_days
         next unless (not begin_month.nil?) && (not end_month.nil?)
         if begin_month > end_month
-          fail "#{sim_ctl} Begin Month (#{begin_month}) cannot come after #{sim_ctl} End Month (#{end_month})."
+          errors << "#{sim_ctl} Begin Month (#{begin_month}) cannot come after #{sim_ctl} End Month (#{end_month})."
         end
 
         next unless (not begin_day.nil?) && (not end_day.nil?)
         next unless begin_month == end_month
         if begin_day > end_day
-          fail "#{sim_ctl} Begin Day of Month (#{begin_day}) cannot come after #{sim_ctl} End Day of Month (#{end_day}) for the same month (#{begin_month})."
+          errors << "#{sim_ctl} Begin Day of Month (#{begin_day}) cannot come after #{sim_ctl} End Day of Month (#{end_day}) for the same month (#{begin_month})."
         end
       end
 
@@ -988,8 +1001,8 @@ class HPXML < Object
 
       building_construction = XMLHelper.create_elements_as_needed(doc, ['HPXML', 'Building', 'BuildingDetails', 'BuildingSummary', 'BuildingConstruction'])
       XMLHelper.add_element(building_construction, 'ResidentialFacilityType', @residential_facility_type, :string) unless @residential_facility_type.nil?
-      XMLHelper.add_element(building_construction, 'NumberofConditionedFloors', @number_of_conditioned_floors, :integer) unless @number_of_conditioned_floors.nil?
-      XMLHelper.add_element(building_construction, 'NumberofConditionedFloorsAboveGrade', @number_of_conditioned_floors_above_grade, :integer) unless @number_of_conditioned_floors_above_grade.nil?
+      XMLHelper.add_element(building_construction, 'NumberofConditionedFloors', @number_of_conditioned_floors, :float) unless @number_of_conditioned_floors.nil?
+      XMLHelper.add_element(building_construction, 'NumberofConditionedFloorsAboveGrade', @number_of_conditioned_floors_above_grade, :float) unless @number_of_conditioned_floors_above_grade.nil?
       XMLHelper.add_element(building_construction, 'AverageCeilingHeight', @average_ceiling_height, :float, @average_ceiling_height_isdefaulted) unless @average_ceiling_height.nil?
       XMLHelper.add_element(building_construction, 'NumberofBedrooms', @number_of_bedrooms, :integer) unless @number_of_bedrooms.nil?
       XMLHelper.add_element(building_construction, 'NumberofBathrooms', @number_of_bathrooms, :integer, @number_of_bathrooms_isdefaulted) unless @number_of_bathrooms.nil?
@@ -1006,8 +1019,8 @@ class HPXML < Object
       return if building_construction.nil?
 
       @year_built = XMLHelper.get_value(building_construction, 'YearBuilt', :integer)
-      @number_of_conditioned_floors = XMLHelper.get_value(building_construction, 'NumberofConditionedFloors', :integer)
-      @number_of_conditioned_floors_above_grade = XMLHelper.get_value(building_construction, 'NumberofConditionedFloorsAboveGrade', :integer)
+      @number_of_conditioned_floors = XMLHelper.get_value(building_construction, 'NumberofConditionedFloors', :float)
+      @number_of_conditioned_floors_above_grade = XMLHelper.get_value(building_construction, 'NumberofConditionedFloorsAboveGrade', :float)
       @average_ceiling_height, @average_ceiling_height_isdefaulted = XMLHelper.get_value_and_defaulted(building_construction, 'AverageCeilingHeight', :float)
       @number_of_bedrooms = XMLHelper.get_value(building_construction, 'NumberofBedrooms', :integer)
       @number_of_bathrooms, @number_of_bathrooms_isdefaulted = XMLHelper.get_value_and_defaulted(building_construction, 'NumberofBathrooms', :integer)
@@ -2106,13 +2119,6 @@ class HPXML < Object
 
     def check_for_errors
       errors = []
-
-      if not @exposed_perimeter.nil?
-        if @exposed_perimeter <= 0
-          fail "Exposed perimeter for Slab '#{@id}' must be greater than zero."
-        end
-      end
-
       return errors
     end
 
@@ -2236,12 +2242,6 @@ class HPXML < Object
     def check_for_errors
       errors = []
       begin; wall; rescue StandardError => e; errors << e.message; end
-      if (not @overhangs_distance_to_top_of_window.nil?) && (not @overhangs_distance_to_bottom_of_window.nil?)
-        if @overhangs_distance_to_bottom_of_window <= @overhangs_distance_to_top_of_window
-          fail "For Window '#{@id}', overhangs distance to bottom (#{@overhangs_distance_to_bottom_of_window}) must be greater than distance to top (#{@overhangs_distance_to_top_of_window})."
-        end
-      end
-
       return errors
     end
 
@@ -3371,9 +3371,6 @@ class HPXML < Object
         ratio = @in_unit_flow_rate / @rated_flow_rate
       end
       return if ratio.nil?
-      if ratio >= 1.0
-        fail "The in-unit flow rate of shared fan '#{@id}' must be less than the system flow rate."
-      end
 
       return ratio
     end
@@ -3953,6 +3950,59 @@ class HPXML < Object
     end
   end
 
+  class Generators < BaseArrayElement
+    def add(**kwargs)
+      self << Generator.new(@hpxml_object, **kwargs)
+    end
+
+    def from_oga(hpxml)
+      return if hpxml.nil?
+
+      XMLHelper.get_elements(hpxml, 'Building/BuildingDetails/Systems/extension/Generators/Generator').each do |generator|
+        self << Generator.new(@hpxml_object, generator)
+      end
+    end
+  end
+
+  class Generator < BaseElement
+    ATTRS = [:id, :fuel_type, :annual_consumption_kbtu, :annual_output_kwh, :is_shared_system, :number_of_bedrooms_served]
+    attr_accessor(*ATTRS)
+
+    def delete
+      @hpxml_object.generators.delete(self)
+    end
+
+    def check_for_errors
+      errors = []
+      return errors
+    end
+
+    def to_oga(doc)
+      return if nil?
+
+      generators = XMLHelper.create_elements_as_needed(doc, ['HPXML', 'Building', 'BuildingDetails', 'Systems', 'extension', 'Generators'])
+      generator = XMLHelper.add_element(generators, 'Generator')
+      sys_id = XMLHelper.add_element(generator, 'SystemIdentifier')
+      XMLHelper.add_attribute(sys_id, 'id', @id)
+      XMLHelper.add_element(generator, 'IsSharedSystem', @is_shared_system, :boolean, @is_shared_system_isdefaulted) unless @is_shared_system.nil?
+      XMLHelper.add_element(generator, 'FuelType', @fuel_type, :string) unless @fuel_type.nil?
+      XMLHelper.add_element(generator, 'AnnualConsumptionkBtu', @annual_consumption_kbtu, :float) unless @annual_consumption_kbtu.nil?
+      XMLHelper.add_element(generator, 'AnnualOutputkWh', @annual_output_kwh, :float) unless @annual_output_kwh.nil?
+      XMLHelper.add_element(generator, 'NumberofBedroomsServed', @number_of_bedrooms_served, :integer) unless @number_of_bedrooms_served.nil?
+    end
+
+    def from_oga(generator)
+      return if generator.nil?
+
+      @id = HPXML::get_id(generator)
+      @is_shared_system, @is_shared_system_isdefaulted = XMLHelper.get_value_and_defaulted(generator, 'IsSharedSystem', :boolean)
+      @fuel_type = XMLHelper.get_value(generator, 'FuelType', :string)
+      @annual_consumption_kbtu = XMLHelper.get_value(generator, 'AnnualConsumptionkBtu', :float)
+      @annual_output_kwh = XMLHelper.get_value(generator, 'AnnualOutputkWh', :float)
+      @number_of_bedrooms_served = XMLHelper.get_value(generator, 'NumberofBedroomsServed', :integer)
+    end
+  end
+
   class ClothesWashers < BaseArrayElement
     def add(**kwargs)
       self << ClothesWasher.new(@hpxml_object, **kwargs)
@@ -4216,18 +4266,6 @@ class HPXML < Object
 
     def check_for_errors
       errors = []
-
-      if @hpxml_object.refrigerators.size > 1
-        primary_indicator = false
-        @hpxml_object.refrigerators.each do |refrigerator|
-          next unless not refrigerator.primary_indicator.nil?
-          fail 'More than one refrigerator designated as the primary.' if refrigerator.primary_indicator && primary_indicator
-
-          primary_indicator = true if refrigerator.primary_indicator
-        end
-        fail 'Could not find a primary refrigerator.' if not primary_indicator
-      end
-
       return errors
     end
 
@@ -5085,8 +5123,40 @@ class HPXML < Object
     end
   end
 
+  def validate_against_schematron(schematron_validators: [])
+    # ----------------------------- #
+    # Perform Schematron validation #
+    # ----------------------------- #
+
+    if not schematron_validators.empty?
+      errors, warnings = Validator.run_validators(@doc, schematron_validators)
+    else
+      errors = []
+      warnings = []
+    end
+
+    errors.map! { |e| "#{@hpxml_path}: #{e}" }
+    warnings.map! { |w| "#{@hpxml_path}: #{w}" }
+
+    return errors, warnings
+  end
+
   def check_for_errors()
     errors = []
+
+    # ------------------------------- #
+    # Check for errors within objects #
+    # ------------------------------- #
+
+    # Ask objects to check for errors
+    self.class::HPXML_ATTRS.each do |attribute|
+      hpxml_obj = send(attribute)
+      if not hpxml_obj.respond_to? :check_for_errors
+        fail "Need to add 'check_for_errors' method to #{hpxml_obj.class} class."
+      end
+
+      errors += hpxml_obj.check_for_errors
+    end
 
     # ------------------------------- #
     # Check for errors across objects #
@@ -5136,7 +5206,7 @@ class HPXML < Object
     ltg_fracs.each do |location, sum|
       next if sum <= 1
 
-      fail "Sum of fractions of #{location} lighting (#{sum}) is greater than 1."
+      errors << "Sum of fractions of #{location} lighting (#{sum}) is greater than 1."
     end
 
     # Check for HVAC systems referenced by multiple water heating systems
@@ -5203,19 +5273,17 @@ class HPXML < Object
       end
     end
 
-    # ------------------------------- #
-    # Check for errors within objects #
-    # ------------------------------- #
-
-    # Ask objects to check for errors
-    self.class::HPXML_ATTRS.each do |attribute|
-      hpxml_obj = send(attribute)
-      if not hpxml_obj.respond_to? :check_for_errors
-        fail "Need to add 'check_for_errors' method to #{hpxml_obj.class} class."
+    # Check for correct PrimaryIndicator values across all refrigerators
+    if @refrigerators.size > 1
+      primary_indicators = @refrigerators.select { |r| r.primary_indicator }.size
+      if primary_indicators > 1
+        errors << 'More than one refrigerator designated as the primary.'
+      elsif primary_indicators == 0
+        errors << 'Could not find a primary refrigerator.'
       end
-
-      errors += hpxml_obj.check_for_errors
     end
+
+    errors.map! { |e| "#{@hpxml_path}: #{e}" }
 
     return errors
   end

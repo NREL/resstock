@@ -20,7 +20,7 @@ class HPXMLDefaults
     apply_hvac_control(hpxml)
     apply_hvac_distribution(hpxml, ncfl, ncfl_ag)
     apply_ventilation_fans(hpxml)
-    apply_water_heaters(hpxml, nbeds, eri_version)
+    apply_water_heaters(hpxml, nbeds, eri_version, runner)
     apply_hot_water_distribution(hpxml, cfa, ncfl, has_uncond_bsmnt)
     apply_water_fixtures(hpxml)
     apply_solar_thermal_systems(hpxml)
@@ -31,6 +31,7 @@ class HPXMLDefaults
     apply_plug_loads(hpxml, cfa, nbeds)
     apply_fuel_loads(hpxml, cfa, nbeds)
     apply_pv_systems(hpxml)
+    apply_generators(hpxml)
   end
 
   private
@@ -599,7 +600,7 @@ class HPXMLDefaults
 
       # Default return registers
       if hvac_distribution.number_of_return_registers.nil?
-        hvac_distribution.number_of_return_registers = ncfl # Add 1 return register per conditioned floor if not provided
+        hvac_distribution.number_of_return_registers = ncfl.ceil # Add 1 return register per conditioned floor if not provided
         hvac_distribution.number_of_return_registers_isdefaulted = true
       end
 
@@ -705,7 +706,7 @@ class HPXMLDefaults
     end
   end
 
-  def self.apply_water_heaters(hpxml, nbeds, eri_version)
+  def self.apply_water_heaters(hpxml, nbeds, eri_version, runner)
     hpxml.water_heating_systems.each do |water_heating_system|
       if water_heating_system.is_shared_system.nil?
         water_heating_system.is_shared_system = false
@@ -738,7 +739,7 @@ class HPXMLDefaults
           water_heating_system.tank_volume_isdefaulted = true
         end
         if water_heating_system.recovery_efficiency.nil?
-          water_heating_system.recovery_efficiency = Waterheater.get_default_recovery_efficiency(water_heating_system)
+          water_heating_system.recovery_efficiency = Waterheater.get_default_recovery_efficiency(runner, water_heating_system)
           water_heating_system.recovery_efficiency_isdefaulted = true
         end
       end
@@ -833,6 +834,15 @@ class HPXMLDefaults
       if pv_system.system_losses_fraction.nil?
         pv_system.system_losses_fraction = PV.get_default_system_losses(pv_system.year_modules_manufactured)
         pv_system.system_losses_fraction_isdefaulted = true
+      end
+    end
+  end
+
+  def self.apply_generators(hpxml)
+    hpxml.generators.each do |generator|
+      if generator.is_shared_system.nil?
+        generator.is_shared_system = false
+        generator.is_shared_system_isdefaulted = true
       end
     end
   end

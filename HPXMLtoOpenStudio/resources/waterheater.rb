@@ -1181,7 +1181,7 @@ class Waterheater
     end
   end
 
-  def self.get_default_recovery_efficiency(water_heating_system)
+  def self.get_default_recovery_efficiency(runner, water_heating_system)
     # Water Heater Recovery Efficiency by fuel and energy factor
     if water_heating_system.fuel_type == HPXML::FuelTypeElectricity
       return 0.98
@@ -1192,10 +1192,15 @@ class Waterheater
         ef = calc_ef_from_uef(water_heating_system)
       end
       if ef >= 0.75
-        return 0.778114 * ef + 0.276679
+        re = 0.778114 * ef + 0.276679
       else
-        return 0.252117 * ef + 0.607997
+        re = 0.252117 * ef + 0.607997
       end
+      if re > 0.99
+        runner.registerWarning("Defaulted recovery efficiency (RE = #{re.round(3)}) for water heater '#{water_heating_system.id}' exceeds 0.99, this may indicate incorrect inputs. Proceeding using RE = 0.99.")
+        re = 0.99
+      end
+      return re
     end
   end
 

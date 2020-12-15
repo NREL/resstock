@@ -98,6 +98,7 @@ The OpenStudio-HPXML workflow can accommodate the following building features/te
 - Kitchen/Bath Fans
 - Whole House Fan
 - Photovoltaics
+- Generators
 - Appliances
 
   - Clothes Washer
