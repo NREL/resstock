@@ -15,6 +15,8 @@ else
 end
 require File.join(resources_path, 'meta_measure')
 
+@@excludes = ['hpxml_path', 'software_program_used', 'software_program_version', 'setpoint_heating_weekday', 'setpoint_heating_weekend', 'setpoint_cooling_weekday', 'setpoint_cooling_weekend']
+
 # start the measure
 class ResStockArguments < OpenStudio::Measure::ModelMeasure
   # human readable name
@@ -42,9 +44,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
     args = OpenStudio::Measure::OSArgumentVector.new
     measure.arguments(model).each do |arg|
-      next if ['hpxml_path'].include? arg.name
-      next if ['software_program_used'].include? arg.name
-      next if ['software_program_version'].include? arg.name
+      next if @@excludes.include? arg.name
 
       args << arg
     end
@@ -73,6 +73,78 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(0.0)
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('setpoint_heating_weekday_temp', true)
+    arg.setDisplayName('Heating Setpoint: Weekday Temperature')
+    arg.setDescription('Specify the weekday heating setpoint temperature.')
+    arg.setUnits('deg-F')
+    arg.setDefaultValue(71)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('setpoint_heating_weekend_temp', true)
+    arg.setDisplayName('Heating Setpoint: Weekend Temperature')
+    arg.setDescription('Specify the weekend heating setpoint temperature.')
+    arg.setUnits('deg-F')
+    arg.setDefaultValue(71)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('setpoint_heating_weekday_offset_magnitude', true)
+    arg.setDisplayName('Heating Setpoint: Weekday Offset Magnitude')
+    arg.setDescription('Specify the weekday heating offset magnitude.')
+    arg.setUnits('deg-F')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('setpoint_heating_weekend_offset_magnitude', true)
+    arg.setDisplayName('Heating Setpoint: Weekend Offset Magnitude')
+    arg.setDescription('Specify the weekend heating offset magnitude.')
+    arg.setUnits('deg-F')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('setpoint_heating_weekday_schedule', true)
+    arg.setDisplayName('Heating Setpoint: Weekday Schedule')
+    arg.setDescription('Specify the 24-hour comma-separated weekday heating schedule of 0s and 1s.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('setpoint_heating_weekend_schedule', true)
+    arg.setDisplayName('Heating Setpoint: Weekend Schedule')
+    arg.setDescription('Specify the 24-hour comma-separated weekend heating schedule of 0s and 1s.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('setpoint_cooling_weekday_temp', true)
+    arg.setDisplayName('Cooling Setpoint: Weekday Temperature')
+    arg.setDescription('Specify the weekday cooling setpoint temperature.')
+    arg.setUnits('deg-F')
+    arg.setDefaultValue(76)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('setpoint_cooling_weekend_temp', true)
+    arg.setDisplayName('Cooling Setpoint: Weekend Temperature')
+    arg.setDescription('Specify the weekend cooling setpoint temperature.')
+    arg.setUnits('deg-F')
+    arg.setDefaultValue(76)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('setpoint_cooling_weekday_offset_magnitude', true)
+    arg.setDisplayName('Cooling Setpoint: Weekday Offset Magnitude')
+    arg.setDescription('Specify the weekday cooling offset magnitude.')
+    arg.setUnits('deg-F')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('setpoint_cooling_weekend_offset_magnitude', true)
+    arg.setDisplayName('Cooling Setpoint: Weekend Offset Magnitude')
+    arg.setDescription('Specify the weekend cooling offset magnitude.')
+    arg.setUnits('deg-F')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('setpoint_cooling_weekday_schedule', true)
+    arg.setDisplayName('Cooling Setpoint: Weekday Schedule')
+    arg.setDescription('Specify the 24-hour comma-separated weekday cooling schedule of 0s and 1s.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('setpoint_cooling_weekend_schedule', true)
+    arg.setDisplayName('Cooling Setpoint: Weekend Schedule')
+    arg.setDescription('Specify the 24-hour comma-separated weekend cooling schedule of 0s and 1s.')
+    args << arg
+
     return args
   end
 
@@ -87,10 +159,51 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
     args = get_argument_values(runner, arguments(model), user_arguments)
 
+    measures_dir = File.absolute_path(File.join(File.dirname(__FILE__), '../../resources/hpxml-measures'))
+    measure_subdir = 'BuildResidentialHPXML'
+    full_measure_path = File.join(measures_dir, measure_subdir, 'measure.rb')
+    measure = get_measure_instance(full_measure_path)
+
+    arg_names = []
+    measure.arguments(model).each do |arg|
+      next if @@excludes.include? arg.name
+
+      arg_names << arg.name
+    end
+
+    args_to_delete = args.keys - arg_names # these are the extra ones added in the arguments section
+
     args['plug_loads_television_usage_multiplier'] *= args['plug_loads_television_usage_multiplier_2']
     args['plug_loads_other_usage_multiplier'] *= args['plug_loads_other_usage_multiplier_2']
     args['plug_loads_well_pump_usage_multiplier'] *= args['plug_loads_well_pump_usage_multiplier_2']
     args['plug_loads_vehicle_usage_multiplier'] *= args['plug_loads_vehicle_usage_multiplier_2']
+
+    weekday_heating_setpoints = [args['setpoint_heating_weekday_temp']] * 24
+    weekend_heating_setpoints = [args['setpoint_heating_weekend_temp']] * 24
+
+    weekday_cooling_setpoints = [args['setpoint_cooling_weekday_temp']] * 24
+    weekend_cooling_setpoints = [args['setpoint_cooling_weekend_temp']] * 24
+
+    setpoint_heating_weekday_offset_magnitude = args['setpoint_heating_weekday_offset_magnitude']
+    setpoint_heating_weekday_schedule = args['setpoint_heating_weekday_schedule'].split(',').map { |i| Float(i) }
+    weekday_heating_setpoints = modify_setpoint_schedule(weekday_heating_setpoints, setpoint_heating_weekday_offset_magnitude, setpoint_heating_weekday_schedule)
+
+    setpoint_heating_weekend_offset_magnitude = args['setpoint_heating_weekend_offset_magnitude']
+    setpoint_heating_weekend_schedule = args['setpoint_heating_weekend_schedule'].split(',').map { |i| Float(i) }
+    weekend_heating_setpoints = modify_setpoint_schedule(weekend_heating_setpoints, setpoint_heating_weekend_offset_magnitude, setpoint_heating_weekend_schedule)
+
+    setpoint_cooling_weekday_offset_magnitude = args['setpoint_cooling_weekday_offset_magnitude']
+    setpoint_cooling_weekday_schedule = args['setpoint_cooling_weekday_schedule'].split(',').map { |i| Float(i) }
+    weekday_cooling_setpoints = modify_setpoint_schedule(weekday_cooling_setpoints, setpoint_cooling_weekday_offset_magnitude, setpoint_cooling_weekday_schedule)
+
+    setpoint_cooling_weekend_offset_magnitude = args['setpoint_cooling_weekend_offset_magnitude']
+    setpoint_cooling_weekend_schedule = args['setpoint_cooling_weekend_schedule'].split(',').map { |i| Float(i) }
+    weekend_cooling_setpoints = modify_setpoint_schedule(weekend_cooling_setpoints, setpoint_cooling_weekend_offset_magnitude, setpoint_cooling_weekend_schedule)
+
+    args['setpoint_heating_weekday'] = weekday_heating_setpoints.join(', ')
+    args['setpoint_heating_weekend'] = weekend_heating_setpoints.join(', ')
+    args['setpoint_cooling_weekday'] = weekday_cooling_setpoints.join(', ')
+    args['setpoint_cooling_weekend'] = weekend_cooling_setpoints.join(', ')
 
     args.each do |arg_name, arg_value|
       begin
@@ -102,10 +215,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       rescue
       end
 
-      if ['plug_loads_television_usage_multiplier_2',
-          'plug_loads_other_usage_multiplier_2',
-          'plug_loads_well_pump_usage_multiplier_2',
-          'plug_loads_vehicle_usage_multiplier_2'].include? arg_name
+      if args_to_delete.include? arg_name
         arg_value = '' # don't assign these to BuildResidentialHPXML
       end
 
@@ -113,6 +223,13 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     end
 
     return true
+  end
+
+  def modify_setpoint_schedule(schedule, offset_magnitude, offset_schedule)
+    offset_schedule.each_with_index do |direction, i|
+      schedule[i] += offset_magnitude * direction
+    end
+    return schedule
   end
 end
 
