@@ -305,19 +305,26 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
       end
 
       # Get the absolute paths relative to this meta measure in the run directory
-      measures['BuildResidentialHPXML'] = [{ 'hpxml_path' => File.expand_path('../upgraded.xml') }]
-      measures['ResStockArguments'][0].each do |arg_name, arg_value|
-        next if ['plug_loads_television_usage_multiplier_2'].include? arg_name
-        next if ['plug_loads_other_usage_multiplier_2'].include? arg_name
-        next if ['plug_loads_well_pump_usage_multiplier_2'].include? arg_name
-        next if ['plug_loads_vehicle_usage_multiplier_2'].include? arg_name
-        measures['BuildResidentialHPXML'][0][arg_name] = arg_value
+      new_runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
+      if not apply_child_measures(measures_dir, { 'ResStockArguments' => measures['ResStockArguments'] }, new_runner, model, workflow_json, 'measures-upgrade.osw', true)
+        return false
       end
+
+      measures['BuildResidentialHPXML'] = [{ 'hpxml_path' => File.expand_path('../upgraded.xml') }]
+
+      new_runner.result.stepValues.each do |step_value|
+        value = get_value_from_workflow_step_value(step_value)
+        next if value == ''
+
+        measures['BuildResidentialHPXML'][0][step_value.name] = value
+      end
+
       schedules_type = measures['BuildResidentialHPXML'][0]['schedules_type']
       if schedules_type == 'stochastic' # avoid re-running the stochastic schedule generator
         measures['BuildResidentialHPXML'][0]['schedules_type'] = 'user-specified'
         measures['BuildResidentialHPXML'][0]['schedules_path'] = File.expand_path('../schedules.csv')
       end
+
       measures['HPXMLtoOpenStudio'] = [{ 'hpxml_path' => File.expand_path('../upgraded.xml') }]
 
       # Get software program used and version
@@ -341,8 +348,7 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
       # Remove the existing generated_files folder alongside the run folder; if not, getExternalFile returns false for some reason
       FileUtils.rm_rf(File.expand_path('../../generated_files')) if File.exist?(File.expand_path('../../generated_files'))
 
-      measures_dirs = { 'ResStockArguments' => measures_dir, 'BuildResidentialHPXML' => hpxml_measures_dir, 'HPXMLtoOpenStudio' => hpxml_measures_dir }
-      if not apply_child_measures(measures_dirs, measures, runner, model, workflow_json, 'measures-upgrade.osw', true)
+      if not apply_child_measures(hpxml_measures_dir, { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'], 'HPXMLtoOpenStudio' => measures['HPXMLtoOpenStudio'] }, new_runner, model, workflow_json, nil, true)
         return false
       end
 

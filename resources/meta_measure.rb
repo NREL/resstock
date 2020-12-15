@@ -18,7 +18,7 @@ def get_measures(workflow_json, include_only = nil)
   return result
 end
 
-def apply_child_measures(measures_dirs, measures, runner, model, workflow_json = nil, osw_out = nil, show_measure_calls = true)
+def apply_child_measures(measures_dir, measures, runner, model, workflow_json = nil, osw_out = nil, show_measure_calls = true)
   require 'openstudio'
 
   workflow_order = []
@@ -63,7 +63,7 @@ def apply_child_measures(measures_dirs, measures, runner, model, workflow_json =
   # Call each measure in the specified order
   workflow_order.each do |measure_subdir|
     # Gather measure arguments and call measure
-    full_measure_path = File.join(measures_dirs[measure_subdir], measure_subdir, 'measure.rb')
+    full_measure_path = File.join(measures_dir, measure_subdir, 'measure.rb')
     check_file_exists(full_measure_path, runner)
     measure_instance = get_measure_instance(full_measure_path)
     measures[measure_subdir].each do |args|

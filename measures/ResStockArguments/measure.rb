@@ -43,6 +43,9 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     args = OpenStudio::Measure::OSArgumentVector.new
     measure.arguments(model).each do |arg|
       next if ['hpxml_path'].include? arg.name
+      next if ['software_program_used'].include? arg.name
+      next if ['software_program_version'].include? arg.name
+
       args << arg
     end
 
@@ -88,6 +91,26 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     args['plug_loads_other_usage_multiplier'] *= args['plug_loads_other_usage_multiplier_2']
     args['plug_loads_well_pump_usage_multiplier'] *= args['plug_loads_well_pump_usage_multiplier_2']
     args['plug_loads_vehicle_usage_multiplier'] *= args['plug_loads_vehicle_usage_multiplier_2']
+
+    args.each do |arg_name, arg_value|
+      begin
+        if arg_value.is_initialized
+          arg_value = arg_value.get
+        else
+          next
+        end
+      rescue
+      end
+
+      if ['plug_loads_television_usage_multiplier_2',
+          'plug_loads_other_usage_multiplier_2',
+          'plug_loads_well_pump_usage_multiplier_2',
+          'plug_loads_vehicle_usage_multiplier_2'].include? arg_name
+        arg_value = '' # don't assign these to BuildResidentialHPXML
+      end
+
+      runner.registerValue(arg_name, arg_value)
+    end
 
     return true
   end
