@@ -36,7 +36,11 @@ def generate_example_osws(data_hash, include_args, osw_filename, simplify = true
     group['group_steps'].each do |group_step|
       # Default to first measure in step
       measure = group_step['measures'][0]
-      measure_path = File.expand_path(File.join('../resources/hpxml-measures', measure), workflowJSON.oswDir.to_s)
+      if !['ResStockArguments'].include?(measure)
+        measure_path = File.expand_path(File.join('../resources/hpxml-measures', measure), workflowJSON.oswDir.to_s)
+      else
+        measure_path = File.expand_path(File.join('../measures', measure), workflowJSON.oswDir.to_s)
+      end
       measure_instance = get_measure_instance("#{measure_path}/measure.rb")
       measure_args = measure_instance.arguments(model).sort_by { |arg| arg.name }
 
@@ -187,7 +191,7 @@ if ARGV[0].to_sym == :update_measures
               '"Rake.application[:rubocop].invoke"']
   command = "#{OpenStudio.getOpenStudioCLI} -e #{commands.join(' -e ')}"
   puts 'Applying rubocop auto-correct to measures...'
-  system(command)
+  # system(command)
 
   # Update measures XMLs
   command = "#{OpenStudio.getOpenStudioCLI} measure -t '#{File.join(File.dirname(__FILE__), 'measures')}'"
@@ -213,6 +217,10 @@ if ARGV[0].to_sym == :update_measures
   }
   example_osws.each do |weather_year, weather_station|
     include_args = {
+      'ResStockArguments' => {
+        'hpxml_path' => File.expand_path(File.join(File.dirname(__FILE__), 'workflows/run/in.xml')),
+        'schedules_type' => 'stochastic'
+      },
       'BuildResidentialHPXML' => {
         'hpxml_path' => File.expand_path(File.join(File.dirname(__FILE__), 'workflows/run/in.xml')),
         'schedules_type' => 'stochastic'

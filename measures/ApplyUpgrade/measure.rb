@@ -204,7 +204,8 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
     resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), '../../lib/resources')) # Should have been uploaded per 'Additional Analysis Files' in PAT
     characteristics_dir = File.absolute_path(File.join(File.dirname(__FILE__), '../../lib/housing_characteristics')) # Should have been uploaded per 'Additional Analysis Files' in PAT
     buildstock_file = File.join(resources_dir, 'buildstock.rb')
-    measures_dir = File.join(resources_dir, '../../resources/hpxml-measures')
+    measures_dir = File.join(File.dirname(__FILE__), '../../measures')
+    hpxml_measures_dir = File.join(File.dirname(__FILE__), '../../resources/hpxml-measures')
     lookup_file = File.join(resources_dir, 'options_lookup.tsv')
 
     # Load buildstock_file
@@ -304,7 +305,10 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
       end
 
       # Get the absolute paths relative to this meta measure in the run directory
-      measures['BuildResidentialHPXML'][0]['hpxml_path'] = File.expand_path('../upgraded.xml')
+      measures['BuildResidentialHPXML'] = [{ 'hpxml_path' => File.expand_path('../upgraded.xml') }]
+      measures['ResStockArguments'][0].each do |arg_name, arg_value|
+        measures['BuildResidentialHPXML'][0][arg_name] = arg_value
+      end
       schedules_type = measures['BuildResidentialHPXML'][0]['schedules_type']
       if schedules_type == 'stochastic' # avoid re-running the stochastic schedule generator
         measures['BuildResidentialHPXML'][0]['schedules_type'] = 'user-specified'
@@ -333,7 +337,8 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
       # Remove the existing generated_files folder alongside the run folder; if not, getExternalFile returns false for some reason
       FileUtils.rm_rf(File.expand_path('../../generated_files')) if File.exist?(File.expand_path('../../generated_files'))
 
-      if not apply_measures(measures_dir, measures, runner, model, workflow_json, 'measures-upgrade.osw', true)
+      measures_dirs = { 'ResStockArguments' => measures_dir, 'BuildResidentialHPXML' => hpxml_measures_dir, 'HPXMLtoOpenStudio' => hpxml_measures_dir }
+      if not apply_measures(measures_dirs, measures, runner, model, workflow_json, 'measures-upgrade.osw', true)
         return false
       end
 
