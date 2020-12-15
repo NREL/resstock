@@ -107,7 +107,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       'unvented-attic-with-floor-and-roof-insulation.osw' => 'geometry_attic_type=UnventedAttic and ceiling_assembly_r=39.3 and roof_assembly_r=10.0',
       'conditioned-basement-with-ceiling-insulation.osw' => 'geometry_foundation_type=ConditionedBasement and floor_assembly_r=10.0',
       'conditioned-attic-with-floor-insulation.osw' => 'geometry_attic_type=ConditionedAttic and ceiling_assembly_r=39.3',
-      'multipliers-without-plug-loads.osw' => 'plug_loads_television_annual_kwh=0.0 and plug_loads_television_usage_multiplier=1.0 and plug_loads_television_usage_multiplier_2=1.0 and plug_loads_other_annual_kwh=0.0 and plug_loads_other_usage_multiplier=1.0 and plug_loads_other_usage_multiplier_2=1.0 and plug_loads_well_pump_present=false and plug_loads_well_pump_usage_multiplier=1.0 and plug_loads_well_pump_usage_multiplier_2=1.0 and plug_loads_vehicle_present=false and plug_loads_vehicle_usage_multiplier=1.0 and plug_loads_vehicle_usage_multiplier_2=1.0',
+      'multipliers-without-plug-loads.osw' => 'plug_loads_television_annual_kwh=0.0 and plug_loads_television_usage_multiplier=1.0 and plug_loads_other_annual_kwh=0.0 and plug_loads_other_usage_multiplier=1.0 and plug_loads_well_pump_present=false and plug_loads_well_pump_usage_multiplier=1.0 and plug_loads_vehicle_present=false and plug_loads_vehicle_usage_multiplier=1.0',
       'multipliers-without-fuel-loads.osw' => 'fuel_loads_grill_present=false and fuel_loads_grill_usage_multiplier=1.0 and fuel_loads_lighting_present=false and fuel_loads_lighting_usage_multiplier=1.0 and fuel_loads_fireplace_present=false and fuel_loads_fireplace_usage_multiplier=1.0'
     }
 

@@ -274,6 +274,19 @@ def get_argument_map(model, measure, provided_args, lookup_file, measure_name, r
   return argument_map
 end
 
+def get_value_from_workflow_step_value(step_value)
+  variant_type = step_value.variantType
+  if variant_type == 'Boolean'.to_VariantType
+    return step_value.valueAsBoolean
+  elsif variant_type == 'Double'.to_VariantType
+    return step_value.valueAsDouble
+  elsif variant_type == 'Integer'.to_VariantType
+    return step_value.valueAsInteger
+  elsif variant_type == 'String'.to_VariantType
+    return step_value.valueAsString
+  end
+end
+
 def run_measure(model, measure, argument_map, runner)
   begin
     # run the measure
@@ -296,6 +309,11 @@ def run_measure(model, measure, argument_map, runner)
     end
     if result_child.finalCondition.is_initialized
       runner.registerFinalCondition(result_child.finalCondition.get.logMessage)
+    end
+
+    # re-register runner child registered values on the parent runner
+    result_child.stepValues.each do |step_value|
+      runner.registerValue(step_value.name, get_value_from_workflow_step_value(step_value))
     end
 
     # log messages

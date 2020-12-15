@@ -1145,7 +1145,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(Constants.Auto)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument('heat_pump_heating_capacity_17F', true)
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('heat_pump_heating_capacity_17_f', true)
     arg.setDisplayName('Heat Pump: Heating Capacity 17F')
     arg.setDescription("The output heating capacity of the heat pump at 17F. Only applies to #{HPXML::HVACTypeHeatPumpAirToAir} and #{HPXML::HVACTypeHeatPumpMiniSplit}.")
     arg.setUnits('Btu/hr')
@@ -4120,8 +4120,8 @@ class HPXMLFile
     end
 
     if [HPXML::HVACTypeHeatPumpAirToAir, HPXML::HVACTypeHeatPumpMiniSplit].include? heat_pump_type
-      if args[:heat_pump_heating_capacity_17F] != Constants.Auto
-        heating_capacity_17F = args[:heat_pump_heating_capacity_17F]
+      if args[:heat_pump_heating_capacity_17_f] != Constants.Auto
+        heating_capacity_17F = args[:heat_pump_heating_capacity_17_f]
       end
     end
 
