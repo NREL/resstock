@@ -18,6 +18,7 @@ def generate_example_osws(data_hash, include_args, osw_filename, simplify = true
 
   workflowJSON = OpenStudio::WorkflowJSON.new
   workflowJSON.setOswPath(osw_path)
+  workflowJSON.addMeasurePath('../measures')
   workflowJSON.addMeasurePath('../resources/hpxml-measures')
 
   steps = OpenStudio::WorkflowStepVector.new
@@ -217,10 +218,6 @@ if ARGV[0].to_sym == :update_measures
   }
   example_osws.each do |weather_year, weather_station|
     include_args = {
-      'ResStockArguments' => {
-        'hpxml_path' => File.expand_path(File.join(File.dirname(__FILE__), 'workflows/run/in.xml')),
-        'schedules_type' => 'stochastic'
-      },
       'BuildResidentialHPXML' => {
         'hpxml_path' => File.expand_path(File.join(File.dirname(__FILE__), 'workflows/run/in.xml')),
         'schedules_type' => 'stochastic'
