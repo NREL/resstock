@@ -74,10 +74,10 @@ In the ``in.xml`` file, the window would have additional elements like so:
     <SHGC>0.45</SHGC>
     <InteriorShading>
       <SystemIdentifier id='WindowInteriorShading'/>
-      <SummerShadingCoefficient>0.7</SummerShadingCoefficient>
-      <WinterShadingCoefficient>0.85</WinterShadingCoefficient>
+      <SummerShadingCoefficient dataSource='software'>0.7</SummerShadingCoefficient>
+      <WinterShadingCoefficient dataSource='software'>0.85</WinterShadingCoefficient>
     </InteriorShading>
-    <FractionOperable>0.67</FractionOperable>
+    <FractionOperable dataSource='software'>0.67</FractionOperable>
     <AttachedToWall idref='Wall'/>
   </Window>
 
@@ -1257,7 +1257,7 @@ If an energy recovery ventilator system is specified, additional information is 
   ``SensibleRecoveryEfficiency`` or ``AdjustedSensibleRecoveryEfficiency``  double  frac   0-1 [#]_     Yes                Sensible recovery efficiency
   ========================================================================  ======  =====  ===========  ========  =======  ============================
   
-  .. [#] SensibleRecoveryEfficiency must also be >= TotalRecoveryEfficiency.
+  .. [#] SensibleRecoveryEfficiency (or AdjustedSensibleRecoveryEfficiency) must also be >= TotalRecoveryEfficiency (or AdjustedTotalRecoveryEfficiency).
 
 Central Fan Integrated Supply
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1417,8 +1417,8 @@ If a conventional storage water heater is specified, additional information is e
   .. [#] If RecoveryEfficiency not provided, defaults as follows based on a regression analysis of `AHRI certified water heaters <https://www.ahridirectory.org/NewSearch?programId=24&searchTypeId=3>`_:
   
          - **Electric**: 0.98
-         - **Non-electric, EnergyFactor <= 0.75**: 0.778114 * EnergyFactor + 0.276679
-         - **Non-electric, EnergyFactor > 0.75**: 0.252117 * EnergyFactor + 0.607997
+         - **Non-electric, EnergyFactor < 0.75**: 0.252 * EnergyFactor + 0.608
+         - **Non-electric, EnergyFactor >= 0.75**: 0.561 * EnergyFactor + 0.439
 
 Tankless
 ~~~~~~~~

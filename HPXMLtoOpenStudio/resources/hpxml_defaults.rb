@@ -20,7 +20,7 @@ class HPXMLDefaults
     apply_hvac_control(hpxml)
     apply_hvac_distribution(hpxml, ncfl, ncfl_ag)
     apply_ventilation_fans(hpxml)
-    apply_water_heaters(hpxml, nbeds, eri_version, runner)
+    apply_water_heaters(hpxml, nbeds, eri_version)
     apply_hot_water_distribution(hpxml, cfa, ncfl, has_uncond_bsmnt)
     apply_water_fixtures(hpxml)
     apply_solar_thermal_systems(hpxml)
@@ -706,7 +706,7 @@ class HPXMLDefaults
     end
   end
 
-  def self.apply_water_heaters(hpxml, nbeds, eri_version, runner)
+  def self.apply_water_heaters(hpxml, nbeds, eri_version)
     hpxml.water_heating_systems.each do |water_heating_system|
       if water_heating_system.is_shared_system.nil?
         water_heating_system.is_shared_system = false
@@ -739,7 +739,7 @@ class HPXMLDefaults
           water_heating_system.tank_volume_isdefaulted = true
         end
         if water_heating_system.recovery_efficiency.nil?
-          water_heating_system.recovery_efficiency = Waterheater.get_default_recovery_efficiency(runner, water_heating_system)
+          water_heating_system.recovery_efficiency = Waterheater.get_default_recovery_efficiency(water_heating_system)
           water_heating_system.recovery_efficiency_isdefaulted = true
         end
       end
