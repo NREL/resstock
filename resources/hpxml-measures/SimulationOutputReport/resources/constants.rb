@@ -47,6 +47,7 @@ class EUT
   Lighting = 'Lighting'
   Fireplace = 'Fireplace'
   PV = 'PV'
+  Generator = 'Generator'
 end
 
 class HWT

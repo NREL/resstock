@@ -8,42 +8,44 @@ class PV
       max_power = pv_system.max_power_output
     else
       # Apportion to single dwelling unit by # bedrooms
+      if pv_system.number_of_bedrooms_served.to_f <= nbeds.to_f
+        fail "Shared PV system number of bedrooms served (#{pv_system.number_of_bedrooms_served}) must be greater than the number of bedrooms in the dwelling unit (#{nbeds})."
+      end
       max_power = pv_system.max_power_output * nbeds.to_f / pv_system.number_of_bedrooms_served.to_f
     end
 
-    generator = OpenStudio::Model::GeneratorPVWatts.new(model, max_power)
-    generator.setName("#{obj_name} generator")
-    generator.setSystemLosses(pv_system.system_losses_fraction)
-    generator.setTiltAngle(pv_system.array_tilt)
-    generator.setAzimuthAngle(pv_system.array_azimuth)
+    gpvwatts = OpenStudio::Model::GeneratorPVWatts.new(model, max_power)
+    gpvwatts.setName("#{obj_name} generator")
+    gpvwatts.setSystemLosses(pv_system.system_losses_fraction)
+    gpvwatts.setTiltAngle(pv_system.array_tilt)
+    gpvwatts.setAzimuthAngle(pv_system.array_azimuth)
     if (pv_system.tracking == HPXML::PVTrackingTypeFixed) && (pv_system.location == HPXML::LocationRoof)
-      generator.setArrayType('FixedRoofMounted')
+      gpvwatts.setArrayType('FixedRoofMounted')
     elsif (pv_system.tracking == HPXML::PVTrackingTypeFixed) && (pv_system.location == HPXML::LocationGround)
-      generator.setArrayType('FixedOpenRack')
+      gpvwatts.setArrayType('FixedOpenRack')
     elsif pv_system.tracking == HPXML::PVTrackingType1Axis
-      generator.setArrayType('OneAxis')
+      gpvwatts.setArrayType('OneAxis')
     elsif pv_system.tracking == HPXML::PVTrackingType1AxisBacktracked
-      generator.setArrayType('OneAxisBacktracking')
+      gpvwatts.setArrayType('OneAxisBacktracking')
     elsif pv_system.tracking == HPXML::PVTrackingType2Axis
-      generator.setArrayType('TwoAxis')
+      gpvwatts.setArrayType('TwoAxis')
     end
     if pv_system.module_type == HPXML::PVModuleTypeStandard
-      generator.setModuleType('Standard')
+      gpvwatts.setModuleType('Standard')
     elsif pv_system.module_type == HPXML::PVModuleTypePremium
-      generator.setModuleType('Premium')
+      gpvwatts.setModuleType('Premium')
     elsif pv_system.module_type == HPXML::PVModuleTypeThinFilm
-      generator.setModuleType('ThinFilm')
+      gpvwatts.setModuleType('ThinFilm')
     end
 
-    electric_load_center_dist = generator.electricLoadCenterDistribution.get
-    electric_load_center_dist.setName("#{obj_name} elec load center dist")
+    ipvwatts = OpenStudio::Model::ElectricLoadCenterInverterPVWatts.new(model)
+    ipvwatts.setName("#{obj_name} inverter")
+    ipvwatts.setInverterEfficiency(pv_system.inverter_efficiency)
 
-    inverter = OpenStudio::Model::ElectricLoadCenterInverterPVWatts.new(model)
-    inverter.setName("#{obj_name} inverter")
-    inverter.setInverterEfficiency(pv_system.inverter_efficiency)
-
-    electric_load_center_dist.addGenerator(generator)
-    electric_load_center_dist.setInverter(inverter)
+    elcd = gpvwatts.electricLoadCenterDistribution.get
+    elcd.setName("#{obj_name} elec load center dist")
+    elcd.addGenerator(gpvwatts)
+    elcd.setInverter(ipvwatts)
   end
 
   def self.calc_module_power_from_year(year_modules_manufactured)
