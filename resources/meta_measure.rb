@@ -18,7 +18,7 @@ def get_measures(workflow_json, include_only = nil)
   return result
 end
 
-def apply_measures(measures_dirs, measures, runner, model, workflow_json = nil, osw_out = nil, show_measure_calls = true)
+def apply_child_measures(measures_dirs, measures, runner, model, workflow_json = nil, osw_out = nil, show_measure_calls = true)
   require 'openstudio'
 
   workflow_order = []

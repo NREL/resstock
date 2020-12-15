@@ -212,7 +212,12 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
 
     # Get the absolute paths relative to this meta measure in the run directory
     measures['BuildResidentialHPXML'] = [{ 'hpxml_path' => File.expand_path('../existing.xml') }]
+puts measures['ResStockArguments'][0]['plug_loads_television_usage_multiplier']
     measures['ResStockArguments'][0].each do |arg_name, arg_value|
+      next if ['plug_loads_television_usage_multiplier_2'].include? arg_name
+      next if ['plug_loads_other_usage_multiplier_2'].include? arg_name
+      next if ['plug_loads_well_pump_usage_multiplier_2'].include? arg_name
+      next if ['plug_loads_vehicle_usage_multiplier_2'].include? arg_name
       measures['BuildResidentialHPXML'][0][arg_name] = arg_value
     end
     measures['HPXMLtoOpenStudio'] = [{ 'hpxml_path' => File.expand_path('../existing.xml') }]
@@ -233,7 +238,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     measures['BuildResidentialHPXML'][0]['schedules_random_seed'] = building_unit_id
 
     measures_dirs = { 'ResStockArguments' => measures_dir, 'BuildResidentialHPXML' => hpxml_measures_dir, 'HPXMLtoOpenStudio' => hpxml_measures_dir }
-    if not apply_measures(measures_dirs, measures, runner, model, workflow_json, 'measures.osw', true)
+    if not apply_child_measures(measures_dirs, measures, runner, model, workflow_json, 'measures.osw', true)
       return false
     end
 

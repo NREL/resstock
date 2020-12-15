@@ -3,7 +3,17 @@
 # see the URL below for information on how to write OpenStudio measures
 # http://nrel.github.io/OpenStudio-user-documentation/measures/measure_writing_guide/
 
-require_relative '../../resources/hpxml-measures/HPXMLtoOpenStudio/resources/meta_measure'
+require 'openstudio'
+if File.exist? File.absolute_path(File.join(File.dirname(__FILE__), '../../lib/resources/hpxml-measures/HPXMLtoOpenStudio/resources')) # Hack to run ResStock on AWS
+  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../../lib/resources/hpxml-measures/HPXMLtoOpenStudio/resources'))
+elsif File.exist? File.absolute_path(File.join(File.dirname(__FILE__), '../../resources/hpxml-measures/HPXMLtoOpenStudio/resources')) # Hack to run ResStock unit tests locally
+  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../../resources/hpxml-measures/HPXMLtoOpenStudio/resources'))
+elsif File.exist? File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources') # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
+  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources')
+else
+  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../HPXMLtoOpenStudio/resources'))
+end
+require File.join(resources_path, 'meta_measure')
 
 # start the measure
 class ResStockArguments < OpenStudio::Measure::ModelMeasure
@@ -36,6 +46,30 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       args << arg
     end
 
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('plug_loads_television_usage_multiplier_2', true)
+    arg.setDisplayName('Plug Loads: Television Usage Multiplier 2')
+    arg.setDefaultValue(1.0)
+    arg.setDescription('Additional multiplier on the television energy usage that can reflect, e.g., high/low usage occupants.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('plug_loads_other_usage_multiplier_2', true)
+    arg.setDisplayName('Plug Loads: Other Usage Multiplier 2')
+    arg.setDescription('Additional multiplier on the other energy usage that can reflect, e.g., high/low usage occupants.')
+    arg.setDefaultValue(1.0)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('plug_loads_well_pump_usage_multiplier_2', true)
+    arg.setDisplayName('Plug Loads: Well Pump Usage Multiplier 2')
+    arg.setDescription('Additional multiplier on the well pump energy usage that can reflect, e.g., high/low usage occupants.')
+    arg.setDefaultValue(0.0)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('plug_loads_vehicle_usage_multiplier_2', true)
+    arg.setDisplayName('Plug Loads: Vehicle Usage Multiplier 2')
+    arg.setDescription('Additional multiplier on the electric vehicle energy usage that can reflect, e.g., high/low usage occupants.')
+    arg.setDefaultValue(0.0)
+    args << arg
+
     return args
   end
 
@@ -50,7 +84,10 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
     args = get_argument_values(runner, arguments(model), user_arguments)
 
-
+    args['plug_loads_television_usage_multiplier'] *= args['plug_loads_television_usage_multiplier_2']
+    args['plug_loads_other_usage_multiplier'] *= args['plug_loads_other_usage_multiplier_2']
+    args['plug_loads_well_pump_usage_multiplier'] *= args['plug_loads_well_pump_usage_multiplier_2']
+    args['plug_loads_vehicle_usage_multiplier'] *= args['plug_loads_vehicle_usage_multiplier_2']
 
     return true
   end
