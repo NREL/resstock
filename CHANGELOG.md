@@ -14,6 +14,7 @@ Features
 - Allow for plug load energy consumption to vary by Census Division and include additional "diversity" multiplier in plug load equations ([#511](https://github.com/NREL/resstock/pull/511))
 - Lighting saturations based on RECS 2015 with new building type and spatial dependencies ([#510](https://github.com/NREL/resstock/pull/510]))
 - Introduce premium water heaters and heat pump water heats into building stock, differentiate between central and in unit water heating, and split water heater fuel and efficiency into different housing characteristics ([#513](https://github.com/NREL/resstock/pull/513))
+- Model multifamily and single-family attached buildings as individual dwelling units ([#439](https://github.com/NREL/resstock/pull/439))
 
 Fixes
 - Based on RECS 2015, separate the plug load equations for single-family detached, single-family attached, and multifamily buildings ([#471](https://github.com/NREL/resstock/pull/471))
