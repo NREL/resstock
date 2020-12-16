@@ -909,6 +909,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
         space = surface.space.get
         next if surface.surfaceType.downcase != "floor"
         next if surface.outsideBoundaryCondition.downcase == "ground" or surface.outsideBoundaryCondition.downcase == "foundation"
+        next if space.zOrigin != 0
 
         floor_surface = surface
 
