@@ -134,7 +134,7 @@ class AddIntervalScheduleFromFileLDRD < OpenStudio::Measure::ModelMeasure
       occ_yearly.each do |p|
         # puts p.class
         if p.to_s.include? "unocc"
-          csv <<  [0, 0, 0, 27, 18]
+          csv <<  [0, 0, 0.75*importedPlug[ct], 27, 18]
         else
           csv <<  [1, importedlight[ct], importedPlug[ct], 23, 21]
         end
@@ -173,6 +173,7 @@ class AddIntervalScheduleFromFileLDRD < OpenStudio::Measure::ModelMeasure
     schedule_file_htg = OpenStudio::Model::ScheduleFile.new(external_file, 5, 1)
     schedule_file_htg.setName('Htg_schedule')
 
+    # updating the schedule inputs
     people_instances = model.getPeoples
     people_instances.each do |people|
       people.setNumberofPeopleSchedule (schedule_file_occ)
@@ -185,7 +186,10 @@ class AddIntervalScheduleFromFileLDRD < OpenStudio::Measure::ModelMeasure
 
     equip_instances = model.getElectricEquipments
     equip_instances.each do |equip|
-      equip.setSchedule(schedule_file_equip)
+      equip_name = equip.name.get
+      if equip_name.include? "plug"
+        equip.setSchedule(schedule_file_equip)
+      end
     end
 
     number_zones_modified = 0
