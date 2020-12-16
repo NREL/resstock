@@ -1006,8 +1006,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
         surface.subSurfaces.each do |sub_surface|
           next if not sub_surface.subSurfaceType.downcase.include? "door"
-
-          cost_mult += UnitConversions.convert(sub_surface.grossArea, "m^2", "ft^2")
+          cost_mult += UnitConversions.convert(sub_surface.grossArea, "m^2", "ft^2") * collapsed_factor
         end
       end
 
