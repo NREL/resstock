@@ -203,6 +203,11 @@ def run_measure(model, measure, argument_map, runner)
       runner.registerFinalCondition(result_child.finalCondition.get.logMessage)
     end
 
+    # re-register runner child registered values on the parent runner
+    result_child.stepValues.each do |step_value|
+      runner.registerValue(step_value.name, get_value_from_workflow_step_value(step_value))
+    end
+
     # log messages
     result_child.warnings.each do |warning|
       runner.registerWarning(warning.logMessage)

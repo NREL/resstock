@@ -15,7 +15,7 @@ else
 end
 require File.join(resources_path, 'meta_measure')
 
-@@excludes = ['hpxml_path', 'software_program_used', 'software_program_version', 'setpoint_heating_weekday', 'setpoint_heating_weekend', 'setpoint_cooling_weekday', 'setpoint_cooling_weekend']
+require_relative 'resources/constants'
 
 # start the measure
 class ResStockArguments < OpenStudio::Measure::ModelMeasure
@@ -27,12 +27,12 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
   # human readable description
   def description
-    return 'TODO'
+    return 'Measure that extends the arguments available for ResStock.'
   end
 
   # human readable description of modeling approach
   def modeler_description
-    return 'TODO'
+    return 'Defines the set of arguments needed for ResStock that are not available in BuildResidentialHPXML.'
   end
 
   # define the arguments that the user will input
@@ -44,7 +44,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
     args = OpenStudio::Measure::OSArgumentVector.new
     measure.arguments(model).each do |arg|
-      next if @@excludes.include? arg.name
+      next if Constants.excludes.include? arg.name
 
       args << arg
     end
@@ -165,6 +165,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       return false
     end
 
+    # assign the user inputs to variables
     args = get_argument_values(runner, arguments(model), user_arguments)
 
     measures_dir = File.absolute_path(File.join(File.dirname(__FILE__), '../../resources/hpxml-measures'))
@@ -174,7 +175,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
     arg_names = []
     measure.arguments(model).each do |arg|
-      next if @@excludes.include? arg.name
+      next if Constants.excludes.include? arg.name
 
       arg_names << arg.name
     end
