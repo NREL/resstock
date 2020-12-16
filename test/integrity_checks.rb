@@ -260,7 +260,7 @@ def integrity_check_options_lookup_tsv(project_dir_name, housing_characteristics
   measures.keys.each do |measure_subdir|
     puts "Checking for issues with #{measure_subdir} measure..."
 
-    measurerb_path = File.absolute_path(File.join(File.dirname(lookup_file), '..', 'resources', 'hpxml-measures', measure_subdir, 'measure.rb'))
+    measurerb_path = File.absolute_path(File.join(File.dirname(lookup_file), '..', 'measures', measure_subdir, 'measure.rb'))
     check_file_exists(measurerb_path, nil)
     measure_instance = get_measure_instance(measurerb_path)
 

@@ -31,6 +31,7 @@ class HPXMLDefaults
     apply_plug_loads(hpxml, cfa, nbeds)
     apply_fuel_loads(hpxml, cfa, nbeds)
     apply_pv_systems(hpxml)
+    apply_generators(hpxml)
   end
 
   private
@@ -599,7 +600,7 @@ class HPXMLDefaults
 
       # Default return registers
       if hvac_distribution.number_of_return_registers.nil?
-        hvac_distribution.number_of_return_registers = ncfl # Add 1 return register per conditioned floor if not provided
+        hvac_distribution.number_of_return_registers = ncfl.ceil # Add 1 return register per conditioned floor if not provided
         hvac_distribution.number_of_return_registers_isdefaulted = true
       end
 
@@ -833,6 +834,15 @@ class HPXMLDefaults
       if pv_system.system_losses_fraction.nil?
         pv_system.system_losses_fraction = PV.get_default_system_losses(pv_system.year_modules_manufactured)
         pv_system.system_losses_fraction_isdefaulted = true
+      end
+    end
+  end
+
+  def self.apply_generators(hpxml)
+    hpxml.generators.each do |generator|
+      if generator.is_shared_system.nil?
+        generator.is_shared_system = false
+        generator.is_shared_system_isdefaulted = true
       end
     end
   end

@@ -18,6 +18,7 @@ def generate_example_osws(data_hash, include_args, osw_filename, simplify = true
 
   workflowJSON = OpenStudio::WorkflowJSON.new
   workflowJSON.setOswPath(osw_path)
+  workflowJSON.addMeasurePath('../measures')
   workflowJSON.addMeasurePath('../resources/hpxml-measures')
 
   steps = OpenStudio::WorkflowStepVector.new
@@ -36,7 +37,11 @@ def generate_example_osws(data_hash, include_args, osw_filename, simplify = true
     group['group_steps'].each do |group_step|
       # Default to first measure in step
       measure = group_step['measures'][0]
-      measure_path = File.expand_path(File.join('../resources/hpxml-measures', measure), workflowJSON.oswDir.to_s)
+      if !['ResStockArguments'].include?(measure)
+        measure_path = File.expand_path(File.join('../resources/hpxml-measures', measure), workflowJSON.oswDir.to_s)
+      else
+        measure_path = File.expand_path(File.join('../measures', measure), workflowJSON.oswDir.to_s)
+      end
       measure_instance = get_measure_instance("#{measure_path}/measure.rb")
       measure_args = measure_instance.arguments(model).sort_by { |arg| arg.name }
 

@@ -49,6 +49,7 @@ class SimulationOutputReportTest < MiniTest::Test
     'Electricity: Hot Tub Heater (MBtu)',
     'Electricity: Hot Tub Pump (MBtu)',
     'Electricity: PV (MBtu)',
+    'Electricity: Generator (MBtu)',
     'Natural Gas: Heating (MBtu)',
     'Natural Gas: Hot Water (MBtu)',
     'Natural Gas: Clothes Dryer (MBtu)',
@@ -59,6 +60,7 @@ class SimulationOutputReportTest < MiniTest::Test
     'Natural Gas: Lighting (MBtu)',
     'Natural Gas: Fireplace (MBtu)',
     'Natural Gas: Mech Vent Preheating (MBtu)',
+    'Natural Gas: Generator (MBtu)',
     'Fuel Oil: Heating (MBtu)',
     'Fuel Oil: Hot Water (MBtu)',
     'Fuel Oil: Clothes Dryer (MBtu)',
@@ -75,6 +77,7 @@ class SimulationOutputReportTest < MiniTest::Test
     'Propane: Lighting (MBtu)',
     'Propane: Fireplace (MBtu)',
     'Propane: Mech Vent Preheating (MBtu)',
+    'Propane: Generator (MBtu)',
     'Wood Cord: Heating (MBtu)',
     'Wood Cord: Hot Water (MBtu)',
     'Wood Cord: Clothes Dryer (MBtu)',
@@ -191,6 +194,7 @@ class SimulationOutputReportTest < MiniTest::Test
     'Electricity: Hot Tub Heater',
     'Electricity: Hot Tub Pump',
     'Electricity: PV',
+    'Electricity: Generator',
     'Natural Gas: Heating',
     'Natural Gas: Hot Water',
     'Natural Gas: Clothes Dryer',
@@ -200,6 +204,7 @@ class SimulationOutputReportTest < MiniTest::Test
     'Natural Gas: Grill',
     'Natural Gas: Lighting',
     'Natural Gas: Fireplace',
+    'Natural Gas: Generator',
     'Fuel Oil: Heating',
     'Fuel Oil: Hot Water',
     'Fuel Oil: Clothes Dryer',
@@ -214,6 +219,7 @@ class SimulationOutputReportTest < MiniTest::Test
     'Propane: Grill',
     'Propane: Lighting',
     'Propane: Fireplace',
+    'Propane: Generator',
     'Wood Cord: Heating',
     'Wood Cord: Hot Water',
     'Wood Cord: Clothes Dryer',
@@ -360,11 +366,13 @@ class SimulationOutputReportTest < MiniTest::Test
     'enduseElectricityTelevision',
     'enduseElectricityPlugLoads',
     'enduseElectricityPV',
+    'enduseElectricityGenerator',
     'enduseNaturalGasHeating',
     'enduseNaturalGasHotWater',
     'enduseNaturalGasClothesDryer',
     'enduseNaturalGasRangeOven',
     'enduseNaturalGasMechVentPreheating',
+    'enduseNaturalGasGenerator',
     'enduseFuelOilHeating',
     'enduseFuelOilHotWater',
     'enduseFuelOilClothesDryer',
@@ -375,6 +383,7 @@ class SimulationOutputReportTest < MiniTest::Test
     'endusePropaneClothesDryer',
     'endusePropaneRangeOven',
     'endusePropaneMechVentPreheating',
+    'endusePropaneGenerator',
     'enduseWoodCordHeating',
     'enduseWoodCordHotWater',
     'enduseWoodCordClothesDryer',
@@ -595,7 +604,7 @@ class SimulationOutputReportTest < MiniTest::Test
     _check_for_nonzero_timeseries_value(timeseries_csv, TimeseriesColsTempsOtherSide)
   end
 
-  def test_timeseries_hourly_airflows
+  def test_timeseries_hourly_airflows_with_exhaust_mechvent
     args_hash = { 'hpxml_path' => '../workflow/sample_files/base-mechvent-exhaust.xml',
                   'timeseries_frequency' => 'hourly',
                   'include_timeseries_fuel_consumptions' => false,
@@ -784,7 +793,7 @@ class SimulationOutputReportTest < MiniTest::Test
     _check_for_zero_baseload_timeseries_value(timeseries_csv, ['Electricity: Refrigerator'])
   end
 
-  def test_timeseries_timestep_60min
+  def test_timeseries_timestep
     args_hash = { 'hpxml_path' => '../workflow/sample_files/base.xml',
                   'timeseries_frequency' => 'timestep',
                   'include_timeseries_fuel_consumptions' => true,
@@ -869,7 +878,7 @@ class SimulationOutputReportTest < MiniTest::Test
     assert_equal(1, File.readlines(timeseries_csv).size - 2)
   end
 
-  def test_timeseries_timestep_60min_runperiod_Jan
+  def test_timeseries_timestep_runperiod_Jan
     args_hash = { 'hpxml_path' => '../workflow/sample_files/base-simcontrol-runperiod-1-month.xml',
                   'timeseries_frequency' => 'timestep',
                   'include_timeseries_fuel_consumptions' => true,
@@ -889,40 +898,6 @@ class SimulationOutputReportTest < MiniTest::Test
   def test_timeseries_hourly_AMY_2012
     args_hash = { 'hpxml_path' => '../workflow/sample_files/base-location-AMY-2012.xml',
                   'timeseries_frequency' => 'hourly',
-                  'include_timeseries_fuel_consumptions' => true,
-                  'include_timeseries_end_use_consumptions' => false,
-                  'include_timeseries_hot_water_uses' => false,
-                  'include_timeseries_total_loads' => false,
-                  'include_timeseries_component_loads' => false,
-                  'include_timeseries_zone_temperatures' => false,
-                  'include_timeseries_airflows' => false,
-                  'include_timeseries_weather' => false }
-    annual_csv, timeseries_csv, eri_csv = _test_measure(args_hash)
-    assert(File.exist?(annual_csv))
-    assert(File.exist?(timeseries_csv))
-    assert_equal(8784, File.readlines(timeseries_csv).size - 2)
-  end
-
-  def test_timeseries_daily_AMY_2012
-    args_hash = { 'hpxml_path' => '../workflow/sample_files/base-location-AMY-2012.xml',
-                  'timeseries_frequency' => 'daily',
-                  'include_timeseries_fuel_consumptions' => true,
-                  'include_timeseries_end_use_consumptions' => false,
-                  'include_timeseries_hot_water_uses' => false,
-                  'include_timeseries_total_loads' => false,
-                  'include_timeseries_component_loads' => false,
-                  'include_timeseries_zone_temperatures' => false,
-                  'include_timeseries_airflows' => false,
-                  'include_timeseries_weather' => false }
-    annual_csv, timeseries_csv, eri_csv = _test_measure(args_hash)
-    assert(File.exist?(annual_csv))
-    assert(File.exist?(timeseries_csv))
-    assert_equal(366, File.readlines(timeseries_csv).size - 2)
-  end
-
-  def test_timeseries_timestep_60min_AMY_2012
-    args_hash = { 'hpxml_path' => '../workflow/sample_files/base-location-AMY-2012.xml',
-                  'timeseries_frequency' => 'timestep',
                   'include_timeseries_fuel_consumptions' => true,
                   'include_timeseries_end_use_consumptions' => false,
                   'include_timeseries_hot_water_uses' => false,

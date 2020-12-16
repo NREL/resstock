@@ -18,7 +18,7 @@ def get_measures(workflow_json, include_only = nil)
   return result
 end
 
-def apply_measures(measures_dir, measures, runner, model, workflow_json = nil, osw_out = nil, show_measure_calls = true)
+def apply_child_measures(measures_dir, measures, runner, model, workflow_json = nil, osw_out = nil, show_measure_calls = true)
   require 'openstudio'
 
   workflow_order = []
@@ -42,6 +42,7 @@ def apply_measures(measures_dir, measures, runner, model, workflow_json = nil, o
     # Create a workflow based on the measures we're going to call. Convenient for debugging.
     workflowJSON = OpenStudio::WorkflowJSON.new
     workflowJSON.setOswPath(File.expand_path("../#{osw_out}"))
+    workflowJSON.addMeasurePath('measures')
     workflowJSON.addMeasurePath('resources/hpxml-measures')
     steps = OpenStudio::WorkflowStepVector.new
     workflow_order.each do |measure_subdir|
@@ -200,6 +201,11 @@ def run_measure(model, measure, argument_map, runner)
     end
     if result_child.finalCondition.is_initialized
       runner.registerFinalCondition(result_child.finalCondition.get.logMessage)
+    end
+
+    # re-register runner child registered values on the parent runner
+    result_child.stepValues.each do |step_value|
+      runner.registerValue(step_value.name, get_value_from_workflow_step_value(step_value))
     end
 
     # log messages
