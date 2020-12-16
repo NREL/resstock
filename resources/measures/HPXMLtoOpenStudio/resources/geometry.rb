@@ -825,11 +825,6 @@ class Geometry
         next if wall_surface.space.get != floor_surface.space.get
       else
         next if wall_surface.space.get == floor_surface.space.get
-        next if not floor_surface.adjacentSurface.is_initialized
-        next if not floor_surface.adjacentSurface.get.space.is_initialized
-
-        adjacent_space = floor_surface.adjacentSurface.get.space.get
-        next if adjacent_space != wall_surface.space.get
       end
 
       wall_vertices = wall_surface.vertices
