@@ -209,7 +209,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
         runner.registerInfo("The weather station WMO has not been set appropriately in the EPW weather file header.")
       end
     end
-    
+
     # Determine weight
     if number_of_buildings_represented.is_initialized
       total_samples = nil
