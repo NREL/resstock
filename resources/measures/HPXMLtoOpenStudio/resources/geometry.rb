@@ -631,7 +631,7 @@ class Geometry
         wall_area += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
       end
     end
-    return wall_area
+    return wall_area.round(5)
   end
 
   def self.get_roof_pitch(surfaces)
