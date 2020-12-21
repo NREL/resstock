@@ -569,7 +569,6 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
       end
     end
 
-    total_units_represented = 0
     unit_spaces_hash.each do |unit_num, unit_info|
       spaces, units_represented = unit_info
       # Store building unit information

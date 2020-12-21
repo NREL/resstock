@@ -49,14 +49,9 @@ class Airflow
     building.above_grade_volume = 0
     units = Geometry.get_building_units(model, runner)
     units.each do |unit|
-      units_represented = 1
-      if unit.additionalProperties.getFeatureAsInteger("Units Represented").is_initialized
-        units_represented = unit.additionalProperties.getFeatureAsInteger("Units Represented").get
-      end
-
-      building.above_grade_volume += units_represented * Geometry.get_above_grade_finished_volume_from_spaces(unit.spaces, runner)
-      building.ag_ext_wall_area += units_represented * Geometry.calculate_above_grade_exterior_wall_area(unit.spaces)
-      building.ag_ffa += units_represented * Geometry.get_above_grade_finished_floor_area_from_spaces(unit.spaces, runner)
+      building.above_grade_volume += Geometry.get_above_grade_finished_volume_from_spaces(unit.spaces, runner)
+      building.ag_ext_wall_area += Geometry.calculate_above_grade_exterior_wall_area(unit.spaces)
+      building.ag_ffa += Geometry.get_above_grade_finished_floor_area_from_spaces(unit.spaces, runner)
     end
 
     model.getThermalZones.each do |thermal_zone|
