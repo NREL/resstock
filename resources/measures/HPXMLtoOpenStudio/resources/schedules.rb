@@ -841,6 +841,8 @@ class ScheduleGenerator
     else
       building_id = @building_id
     end
+    
+    return building_id
   end
 
   def initialize_schedules(num_ts:)
