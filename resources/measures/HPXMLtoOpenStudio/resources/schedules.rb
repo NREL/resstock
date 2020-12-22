@@ -841,7 +841,7 @@ class ScheduleGenerator
     else
       building_id = @building_id
     end
-    
+
     return building_id
   end
 

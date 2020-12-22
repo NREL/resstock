@@ -7,7 +7,6 @@ require_relative "constructions"
 
 class HVACSizing
   def self.apply(model, unit, runner, weather, show_debug_info)
-    @model = model
     # Get year description of model
     @year_description = model.getYearDescription
 
@@ -1108,7 +1107,6 @@ class HVACSizing
 
       adjacent_space = floor.adjacentSurface.get.space.get
       zone_loads.Cool_Floors += floor_ufactor * UnitConversions.convert(floor.netArea, "m^2", "ft^2") * (mj8.cool_design_temps[adjacent_space] - mj8.cool_setpoint)
-      cool_floor_surf = floor_ufactor * UnitConversions.convert(floor.netArea, "m^2", "ft^2") * (mj8.cool_design_temps[adjacent_space] - mj8.cool_setpoint)
       zone_loads.Heat_Floors += floor_ufactor * UnitConversions.convert(floor.netArea, "m^2", "ft^2") * (mj8.heat_setpoint - mj8.heat_design_temps[adjacent_space])
       zone_loads.Dehumid_Floors += floor_ufactor * UnitConversions.convert(floor.netArea, "m^2", "ft^2") * (mj8.cool_setpoint - mj8.dehum_design_temps[adjacent_space])
     end
@@ -3256,68 +3254,7 @@ class HVACSizing
 
     space_UAs = { "foundation" => 0, "outdoors" => 0, "surface" => 0 }
 
-    n_units = @model.getBuilding.additionalProperties.getFeatureAsInteger("num_units")
-    has_rear_units = @model.getBuilding.additionalProperties.getFeatureAsBoolean("has_rear_units")
-    num_floors = @model.getBuilding.additionalProperties.getFeatureAsInteger("num_floors")
-    horz_location = @model.getBuilding.additionalProperties.getFeatureAsString("horz_location")
-    corridor_width = @model.getBuilding.additionalProperties.getFeatureAsDouble("corridor_width")
-    corridor_position = @model.getBuilding.additionalProperties.getFeatureAsString("corridor_position")
-
-    if horz_location.is_initialized
-      singleunit = true
-    else
-      singleunit = false
-    end
-
-    if singleunit
-      n_units = n_units.get.to_f
-      has_rear_units = has_rear_units.get
-      horz_location = horz_location.get
-      if Geometry.get_building_type(@model) == Constants.BuildingTypeMultifamily
-        corridor_position = corridor_position.get
-        corridor_width = corridor_width.get
-        num_floors = num_floors.get.to_f
-        num_units_per_floor = n_units / num_floors
-      elsif Geometry.get_building_type(@model) == Constants.BuildingTypeSingleFamilyAttached
-        corridor_position = nil
-        num_floors = 1
-        num_units_per_floor = n_units
-      end
-    end
-
-    n_ground_units = num_units_per_floor
-    found_height = 0
-    wall_widths = []
-    wall_lengths = []
-    # Calculate average foundation wall area
-    # if Geometry.space_is_below_grade(space) and singleunit
-    #   space.surfaces.each do |surface|
-    #     next unless surface.surfaceType.downcase == "wall"
-    #     l, w, found_height = Geometry.get_surface_dimensions(surface)
-    #     wall_lengths << l
-    #     wall_widths << w
-    #   end
-    #   wall_width = wall_widths.max # long side
-    #   wall_length = wall_lengths.max # short side
-
-    #   if has_rear_units
-    #     if corridor_position == "Double-Loaded Interior"
-    #       int_corridor_width = corridor_width
-    #     else
-    #       int_corridor_width = 0
-    #     end
-    #     bldg_exposed_perimeter = 4*wall_width + n_ground_units*wall_length
-    #   else
-    #     bldg_exposed_perimeter = 2*wall_width + n_ground_units*2*wall_length
-    #   end
-
-    #   found_wall_area = bldg_exposed_perimeter * found_height
-    #   found_wall_area = UnitConversions.convert(found_wall_area, "m^2", "ft^2")
-    #   avg_found_wall_area = found_wall_area/n_ground_units
-    # end
-
     # Surface UAs
-    ufactor_found = 0
     space.surfaces.each do |surface|
       obc = surface.outsideBoundaryCondition.downcase
 
@@ -3329,9 +3266,7 @@ class HVACSizing
             return nil
           end
 
-          ufactor_found = 1.0 / (wall_ins_rvalue + wall_constr_rvalue)
           ufactor = 1.0 / (wall_ins_rvalue + wall_constr_rvalue)
-          # ufactor = 0
         elsif surface.surfaceType.downcase == "floor"
           next
         end
