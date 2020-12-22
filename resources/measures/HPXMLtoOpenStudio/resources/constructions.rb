@@ -2255,22 +2255,6 @@ class Construction
       end
       print_construction_assignment(runner, surface)
 
-      # If single unit approach
-      horz_location = model.getBuilding.additionalProperties.getFeatureAsString("horz_location")
-      # if horz_location.is_initialized
-      #   if surface.is_a? OpenStudio::Model::Surface and surface.outsideBoundaryCondition == "Adiabatic" and (surface.surfaceType == "RoofCeiling" or surface.surfaceType == "Wall")
-      #     if revconstr.nil?
-      #       revconstr = constr.reverseConstruction
-      #     end
-      #     surface.setConstruction(revconstr)
-      #     if not printed_revconstr
-      #       print_construction_creation(runner, surface)
-      #       printed_revconstr = true
-      #     end
-      #     print_construction_assignment(runner, surface)
-      #   end
-      # end
-
       # Assign reverse construction to adjacent surface as needed
       next if surface.is_a? OpenStudio::Model::SubSurface or surface.is_a? OpenStudio::Model::InternalMassDefinition or not surface.adjacentSurface.is_initialized
 
@@ -2557,13 +2541,6 @@ class SurfaceTypes
       Constants.SurfaceTypeWallFndGrndCS => [],
     }
 
-    horz_location = model.getBuilding.additionalProperties.getFeatureAsString("horz_location")
-    if horz_location.is_initialized
-      singleunit = true # mf or sfa
-    else
-      singleunit = false
-    end
-
     model.getSpaces.each do |space|
       is_finished = Geometry.space_is_finished(space)
 
@@ -2604,28 +2581,6 @@ class SurfaceTypes
         elsif is_finished and obc_is_adjacent and Geometry.space_is_unfinished(adjacent_space)
           surfaces[Constants.SurfaceTypeWallIntFinInsUnfin] << surface
 
-        elsif singleunit # for testing against multifamily modelling aproach
-          # Exterior finished basement
-          if Geometry.is_finished_basement(space) and (obc_is_foundation or obc_is_adiabatic)
-            surfaces[Constants.SurfaceTypeWallFndGrndFinB] << surface
-
-          # Exterior unfinished basement
-          elsif Geometry.is_unfinished_basement(space) and (obc_is_foundation or obc_is_adiabatic)
-            surfaces[Constants.SurfaceTypeWallFndGrndUnfinB] << surface
-
-          # Exterior crawlspace
-          elsif Geometry.is_crawl(space) and (obc_is_foundation or obc_is_adiabatic)
-            surfaces[Constants.SurfaceTypeWallFndGrndCS] << surface
-
-          # Adiabatic finished
-          elsif obc_is_adiabatic and is_finished
-            surfaces[Constants.SurfaceTypeWallIntFinUninsFin] << surface
-
-          # Adiabatic unfinished
-          elsif obc_is_adiabatic and not is_finished
-            surfaces[Constants.SurfaceTypeWallIntUnfinUninsUnfin] << surface
-          end
-
         # Exterior finished basement
         elsif Geometry.is_finished_basement(space) and (obc_is_foundation or obc_is_adiabatic)
           surfaces[Constants.SurfaceTypeWallFndGrndFinB] << surface
@@ -2660,14 +2615,6 @@ class SurfaceTypes
       Constants.SurfaceTypeRoofUnfinUninsExt => [],
       Constants.SurfaceTypeRoofAdiabatic => [],
     }
-
-    horz_location = model.getBuilding.additionalProperties.getFeatureAsString("horz_location")
-    level = model.getBuilding.additionalProperties.getFeatureAsString("level")
-    if horz_location.is_initialized and level.is_initialized
-      singleunit_mf = true
-    else
-      singleunit_mf = false
-    end
 
     model.getSpaces.each do |space|
       is_finished = Geometry.space_is_finished(space)
@@ -2722,14 +2669,6 @@ class SurfaceTypes
       Constants.SurfaceTypeFloorPBInsFin => [],
     }
 
-    horz_location = model.getBuilding.additionalProperties.getFeatureAsString("horz_location")
-    level = model.getBuilding.additionalProperties.getFeatureAsString("level")
-    if horz_location.is_initialized and level.is_initialized
-      singleunit_mf = true
-    else
-      singleunit_mf = false
-    end
-
     # Ceilings
     model.getSpaces.each do |space|
       space.surfaces.each do |surface|
@@ -2766,6 +2705,7 @@ class SurfaceTypes
       end
     end
 
+    building_type = Geometry.get_building_type(model) 
     # Floors
     model.getSpaces.each do |space|
       is_finished = Geometry.space_is_finished(space)
@@ -2789,20 +2729,16 @@ class SurfaceTypes
         if obc_is_adjacent and Geometry.is_unfinished_attic(space) and Geometry.space_is_finished(adjacent_space)
           surfaces[Constants.SurfaceTypeFloorFinInsUnfinAttic] << surface
 
-        # Floor between finished spaces [MF]
-        elsif not singleunit_mf and is_finished and obc_is_adjacent and Geometry.space_is_finished(adjacent_space)
+        # Floor between finished spaces [SFD/SFA]
+        elsif (building_type == Constants.BuildingTypeSingleFamilyDetached or building_type == Constants.BuildingTypeSingleFamilyAttached) and is_finished and obc_is_adjacent and Geometry.space_is_finished(adjacent_space)
           surfaces[Constants.SurfaceTypeFloorFinUninsFin] << surface
 
-        # Floor between finished spaces [SINGLE]
+        # Floor between finished spaces [MF]
         elsif is_finished and obc_is_adiabatic
           surfaces[Constants.SurfaceTypeFloorFinUninsFin] << surface
 
-        # Floor between unfinished spaces [MF]
-        elsif not is_finished and obc_is_adjacent and not Geometry.space_is_finished(adjacent_space)
-          surfaces[Constants.SurfaceTypeFloorUnfinUninsUnfin] << surface
-
-        # # Floor between unfinished spaces [SINGLE]
-        elsif not is_finished and obc_is_adiabatic and not Geometry.is_foundation(space)
+        # Floor between unfinished spaces (eg, corridor floor)
+        elsif not is_finished and (obc_is_adjacent and not Geometry.space_is_finished(adjacent_space)) or (obc_is_adiabatic and not Geometry.is_foundation(space))
           surfaces[Constants.SurfaceTypeFloorUnfinUninsUnfin] << surface
 
         # Finished basement floor

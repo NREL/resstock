@@ -213,12 +213,6 @@ class ProcessConstructionsUnfinishedAttic < OpenStudio::Measure::ModelMeasure
       return false
     end
 
-    horz_location = model.getBuilding.additionalProperties.getFeatureAsString("horz_location")
-    if horz_location.is_initialized
-      singleunit = true
-    else
-      singleunit = false
-    end
     # Adiabatic roofs (shared surface with above floor)
     if not FloorConstructions.apply_uninsulated(runner, model,
                                                 roofs_by_type[Constants.SurfaceTypeRoofAdiabatic],
