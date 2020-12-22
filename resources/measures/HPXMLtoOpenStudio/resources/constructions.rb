@@ -2705,7 +2705,7 @@ class SurfaceTypes
       end
     end
 
-    building_type = Geometry.get_building_type(model) 
+    building_type = Geometry.get_building_type(model)
     # Floors
     model.getSpaces.each do |space|
       is_finished = Geometry.space_is_finished(space)
