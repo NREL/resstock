@@ -149,16 +149,7 @@ class ProcessConstructionsFinishedRoof < OpenStudio::Measure::ModelMeasure
       return false
     end
 
-    horz_location = model.getBuilding.additionalProperties.getFeatureAsString("horz_location")
-    level = model.getBuilding.additionalProperties.getFeatureAsString("level")
-    if horz_location.is_initialized and level.is_initialized
-      singleunit_mf = true
-    else
-      singleunit_mf = false
-    end
     # Adiabatic roofs (shared surface with above floor)
-    # if singleunit_mf
-    # Because no above unit is defined, adiabatic roofs are constructed as reverse floors
     if not FloorConstructions.apply_uninsulated(runner, model,
                                                 roofs_by_type[Constants.SurfaceTypeRoofAdiabatic],
                                                 Constants.SurfaceTypeRoofAdiabatic,
