@@ -72,7 +72,7 @@ class Airflow
 
     building_height = nil
     num_floors = model.getBuilding.additionalProperties.getFeatureAsInteger("num_floors")
-    if num_floors.is_initialized and Geometry.get_building_type(model) == Constants.BuildingTypeMultifamily # singleunit
+    if Geometry.get_building_type(model) == Constants.BuildingTypeMultifamily
       units.each do |unit|
         Geometry.get_thermal_zones_from_spaces(unit.spaces).each do |thermal_zone|
           next unless Geometry.is_living(thermal_zone)
@@ -586,24 +586,21 @@ class Airflow
       n_units = model.getBuilding.additionalProperties.getFeatureAsInteger("num_units")
       has_rear_units = model.getBuilding.additionalProperties.getFeatureAsBoolean("has_rear_units")
       num_floors = model.getBuilding.additionalProperties.getFeatureAsInteger("num_floors")
-      horz_location = model.getBuilding.additionalProperties.getFeatureAsString("horz_location")
-
-      h = 0
-      ext_wall_area_building = 0
-
-      # Infiltration for single unit
-      if horz_location.is_initialized
-        singleunit = true
-      else
-        singleunit = false
+      if n_units.is_initialized
+        n_units = n_units.get
       end
-      if singleunit
-        n_units = n_units.get.to_f
+      if has_rear_units.is_initialized
         has_rear_units = has_rear_units.get
-        horz_location = horz_location.get
+      end
+      if num_floors.is_initialized
+        num_floors = num_floors.get
+      end
 
-        wall_lengths = []
-        wall_widths = []
+      building_type = Geometry.get_building_type(model)
+      # Infiltration for MF/SFA
+      if building_type == Constants.BuildingTypeMultifamily or building_type == Constants.BuildingTypeSingleFamilyAttached
+        facade_areas = {}
+
         model.getThermalZones.each do |thermal_zone|
           next unless thermal_zone.name.to_s.start_with? "living"
 
@@ -612,24 +609,20 @@ class Airflow
               next if surface.surfaceType.downcase != "wall"
               next if surface.outsideBoundaryCondition.downcase == "foundation"
 
-              # next unless self.space_is_finished(surface.space.get)
-              l, w, h = Geometry.get_surface_dimensions(surface)
-              wall_lengths << l
-              wall_widths << w
+              if not facade_areas[Geometry.get_facade_for_surface(surface)]
+                facade_areas[Geometry.get_facade_for_surface(surface)] = 0
+              end
+              facade_areas[Geometry.get_facade_for_surface(surface)] += surface.grossArea
             end
           end
         end
 
-        wall_width = wall_widths.max # long side
-        wall_length = wall_lengths.max # short side
         building_ag_ffa = unit_ag_ffa * n_units
         mf_building_ELA = building_ag_ffa * building.SLA
 
         if Geometry.get_building_type(model) == Constants.BuildingTypeMultifamily
-          num_floors = num_floors.get.to_f
           num_units_per_floor = n_units / num_floors
         elsif Geometry.get_building_type(model) == Constants.BuildingTypeSingleFamilyAttached
-          h = h * (num_floors.get)
           num_floors = 1
           num_units_per_floor = n_units
         end
@@ -641,21 +634,22 @@ class Airflow
           if has_rear_units
             n_end_units = 4 * num_floors
             n_mid_units = n_units - n_end_units
-            ext_wall_area_end = (wall_length + wall_width) * h
-            ext_wall_area_mid = wall_length * h
+            ext_wall_area_end = facade_areas["front"] + facade_areas["left"]
+            ext_wall_area_mid = facade_areas["front"]
             ext_wall_area_building = (n_end_units * ext_wall_area_end) + (n_mid_units * ext_wall_area_mid)
             ext_wall_area_building = UnitConversions.convert(ext_wall_area_building, "m^2", "ft^2")
           else
             n_end_units = 2 * num_floors
             n_mid_units = n_units - n_end_units
-            ext_wall_area_end = (2 * wall_length + wall_width) * h
-            ext_wall_area_mid = 2 * wall_length * h
+            ext_wall_area_end = facade_areas["front"] + facade_areas["left"] + facade_areas["back"]
+            ext_wall_area_mid = facade_areas["front"] + facade_areas["back"]
             ext_wall_area_building = (n_end_units * ext_wall_area_end) + (n_mid_units * ext_wall_area_mid)
             ext_wall_area_building = UnitConversions.convert(ext_wall_area_building, "m^2", "ft^2")
           end
           a_o = building.SLA * building_ag_ffa * (unit_ag_ext_wall_area / ext_wall_area_building) # Effective Leakage Area (ft^2) - Unit
         end
-      else # Infiltration for MF
+      else # SFD
+        num_floors = building.stories
         a_o = building.SLA * building.ag_ffa * (unit_ag_ext_wall_area / building.ag_ext_wall_area) # Effective Leakage Area (ft^2) - Unit
         building_ag_ffa = building.ag_ffa
         ext_wall_area_building = building.ag_ext_wall_area
@@ -669,7 +663,7 @@ class Airflow
 
       if infil.has_flue_chimney
         y_i = 0.2 # Fraction of leakage through the flue; 0.2 is a "typical" value according to THE ALBERTA AIR INFILTRATION MODEL, Walker and Wilson, 1990
-        if singleunit and Geometry.get_building_type(model) == Constants.BuildingTypeMultifamily
+        if building_type == Constants.BuildingTypeMultifamily
           flue_height = unit_living.height * num_floors + 2.0 # ft
         else
           flue_height = building.building_height + 2.0 # ft
@@ -780,10 +774,6 @@ class Airflow
       end
 
       wind_coef = f_w * UnitConversions.convert(outside_air_density / 2.0, "lbm/ft^3", "inH2O/mph^2")**n_i # inH2O^n/mph^2n
-
-      if not singleunit
-        num_floors = building.stories
-      end
       unit_living.ACH = Airflow.get_infiltration_ACH_from_SLA(unit_living.SLA, num_floors, weather)
 
       # Convert living space ACH to cfm:
