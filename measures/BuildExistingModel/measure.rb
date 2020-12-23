@@ -15,7 +15,7 @@ end
 require File.join(resources_path, "weather")
 
 # in addition to the above requires, this measure is expected to run in an
-# environment with OpenStudio-Buildstock/resources/buildstock.rb loaded
+# environment with resstock/resources/buildstock.rb loaded
 
 # start the measure
 class BuildExistingModel < OpenStudio::Measure::ModelMeasure
@@ -195,7 +195,6 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     weather = WeatherProcess.new(model, runner)
     if !weather.error?
       register_value(runner, "location_city", weather.header.City)
-      register_value(runner, "location_state", weather.header.State)
       register_value(runner, "location_latitude", "#{weather.header.Latitude}")
       register_value(runner, "location_longitude", "#{weather.header.Longitude}")
       climate_zone_ba = Location.get_climate_zone_ba(weather.header.Station)

@@ -6,7 +6,7 @@ This folder contains the ResStock inputs to model the national residential build
 
 ResStock is built upon the conditional probabilites of the housing characteristics.  Each housing characteristic has a set of dependencies and dependants.  An interactive dependency and dependents visualization is provided in the links below:
 
-<a href="https://htmlpreview.github.io/?https://github.com/NREL/OpenStudio-BuildStock/blob/master/project_national/util/dependency_wheel/dep_wheel.html">National Project: Dependency Wheel</a>
+<a href="https://htmlpreview.github.io/?https://github.com/NREL/resstock/blob/master/project_national/util/dependency_wheel/dep_wheel.html">National Project: Dependency Wheel</a>
 
 ## Visualization of the Housing Characteristics as a Graph
 
