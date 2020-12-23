@@ -440,8 +440,8 @@ class SimulationOutputReportTest < MiniTest::Test
   def test_SFA_2story_FB_FuelBoiler_RoomAC_FuelTankWH
     cost_multipliers = {
       "Fixed (1)" => 4,
-      "Wall Area, Above-Grade, Conditioned (ft^2)" =>  1785.93,
-      "Wall Area, Above-Grade, Exterior (ft^2)" =>  1860.94,
+      "Wall Area, Above-Grade, Conditioned (ft^2)" => 1785.93,
+      "Wall Area, Above-Grade, Exterior (ft^2)" => 1860.94,
       "Wall Area, Below-Grade (ft^2)" => 892.97,
       "Floor Area, Conditioned (ft^2)" => 2000,
       "Floor Area, Attic (ft^2)" => 666.67,
@@ -460,8 +460,8 @@ class SimulationOutputReportTest < MiniTest::Test
   def test_SFA_2story_FB_FuelBoiler_RoomAC_FuelTankWH_Collapsed
     cost_multipliers = {
       "Fixed (1)" => 4,
-      "Wall Area, Above-Grade, Conditioned (ft^2)" =>  1785.93,
-      "Wall Area, Above-Grade, Exterior (ft^2)" =>  1860.94,
+      "Wall Area, Above-Grade, Conditioned (ft^2)" => 1785.93,
+      "Wall Area, Above-Grade, Exterior (ft^2)" => 1860.94,
       "Wall Area, Below-Grade (ft^2)" => 892.97,
       "Floor Area, Conditioned (ft^2)" => 2000,
       "Floor Area, Attic (ft^2)" => 666.67,
