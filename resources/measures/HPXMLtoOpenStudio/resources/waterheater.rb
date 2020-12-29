@@ -79,8 +79,13 @@ class Waterheater
     if storage_tank.nil?
       loop.addSupplyBranchForComponent(new_heater)
     else
-      storage_tank.setHeater1SetpointTemperatureSchedule(new_heater.setpointTemperatureSchedule.get)
-      storage_tank.setHeater2SetpointTemperatureSchedule(new_heater.setpointTemperatureSchedule.get)
+      if tank_model_type == Constants.WaterHeaterTypeTankModelTypeStratified
+        storage_tank.setHeater1SetpointTemperatureSchedule(new_heater.heater1SetpointTemperatureSchedule)
+        storage_tank.setHeater2SetpointTemperatureSchedule(new_heater.heater2SetpointTemperatureSchedule)
+      elsif tank_model_type == Constants.WaterHeaterTypeTankModelTypeMixed
+        storage_tank.setHeater1SetpointTemperatureSchedule(new_heater.setpointTemperatureSchedule.get)
+        storage_tank.setHeater2SetpointTemperatureSchedule(new_heater.setpointTemperatureSchedule.get)
+      end
       new_heater.addToNode(storage_tank.supplyOutletModelObject.get.to_Node.get)
     end
 
@@ -248,7 +253,7 @@ class Waterheater
     end
 
     if loop.supplyOutletNode.setpointManagers.empty?
-      new_manager = create_new_schedule_manager(sp_type, t_set, sp_schedule_file, model, Constants.WaterHeaterTypeHeatPump)
+      new_manager = create_new_schedule_manager(sp_type, t_set, sp_schedule_file, model, runner, Constants.WaterHeaterTypeHeatPump)
       new_manager.addToNode(loop.supplyOutletNode)
     end
 
@@ -1417,7 +1422,7 @@ class Waterheater
       return false
     end
 
-    if schedule_array.max > UnitConversions.convert(140, "F", "C") or schedule_array.max < UnitConversions.convert(110, "F", "C")
+    if schedule_array.max > UnitConversions.convert(140, "F", "C") or schedule_array.min < UnitConversions.convert(110, "F", "C")
       runner.registerWarning("Water heater temperature setpoint is outside of recommended range (110F - 140F).")
     end
   end
