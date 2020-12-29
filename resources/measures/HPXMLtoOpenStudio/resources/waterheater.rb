@@ -20,9 +20,12 @@ class Waterheater
       runner.registerError("Rated energy factor must be greater than 0 and less than 1.")
       return false
     end
-    if t_set <= 0 or t_set >= 212
-      runner.registerError("Hot water temperature must be greater than 0 and less than 212.")
+    if (set_type == Constants.WaterHeaterSetpointTypeConstant) and (t_set < 0 or t_set > 212)
+      runner.registerError("Water heater temperature setpoint must not be less than 0F or greater than 212F.")
       return false
+    end
+    if (set_type == Constants.WaterHeaterSetpointTypeConstant) and (t_set < 110 or t_set > 140)
+      runner.registerWarning("Water heater temperature setpoint is outside of recommended range (110F - 140F).")
     end
     if cap <= 0
       runner.registerError("Nominal capacity must be greater than 0.")
@@ -1257,7 +1260,7 @@ class Waterheater
       new_schedule.setValue(UnitConversions.convert(t_set, "F", "C"))
       OpenStudio::Model::SetpointManagerScheduled.new(model, new_schedule)
     elsif set_type == Constants.WaterHeaterSetpointTypeScheduled
-      new_schedule = HourlySchedule.new(model, runner, "dhw temp", sch_file, 0, true, [])
+      new_schedule = HourlySchedule.new(model, runner, "dhw temp", sch_file, 0, true, [], fill_value = 125)
       if not new_schedule.validated?
         return false
       end
@@ -1392,6 +1395,33 @@ class Waterheater
     return new_heater
   end
 
+  def self.error_check_setpoint_schedule(schedule, model, runner)
+    schedule_array = schedule.schedule_array
+    year_description = model.getYearDescription
+    assumed_year = year_description.assumedYear
+    run_period = model.getRunPeriod
+    run_period_start = Time.new(assumed_year, run_period.getBeginMonth, run_period.getBeginDayOfMonth)
+    run_period_end = Time.new(assumed_year, run_period.getEndMonth, run_period.getEndDayOfMonth, 24)
+    sim_hours = (run_period_end - run_period_start) / 3600
+    n_days = Constants.NumDaysInYear(year_description.isLeapYear)
+
+    # Check length of schedule
+    if (schedule_array.length != sim_hours) and (schedule_array.length != n_days * 24)
+      runner.registerError("Hourly water heater schedule must be the length of the simulation period or a full year")
+      return false
+    end
+
+    # Check min/max values
+    if (schedule_array.max > UnitConversions.convert(212, "F", "C")) or (schedule_array.min < UnitConversions.convert(0, "F", "C"))
+      runner.registerError("Water heater temperature setpoint must not be less than 0F or greater than 212F.")
+      return false
+    end
+
+    if schedule_array.max > UnitConversions.convert(140, "F", "C") or schedule_array.max < UnitConversions.convert(110, "F", "C")
+      runner.registerWarning("Water heater temperature setpoint is outside of recommended range (110F - 140F).")
+    end
+  end
+
   def self.configure_setpoint_schedule(new_heater, set_type, t_set, sch_file, wh_type, model, runner)
     if set_type == Constants.WaterHeaterSetpointTypeConstant
       set_temp_c = UnitConversions.convert(t_set, "F", "C")
@@ -1399,16 +1429,19 @@ class Waterheater
       new_schedule.setName("WH Setpoint Temp")
       new_schedule.setValue(set_temp_c)
     elsif set_type == Constants.WaterHeaterSetpointTypeScheduled
-      new_schedule = HourlySchedule.new(model, runner, "WH Setpoint Temp", sch_file, 0, true, [])
+      new_schedule = HourlySchedule.new(model, runner, "WH Setpoint Temp", sch_file, 0, true, [], fill_value = 125)
       if not new_schedule.validated?
         return false
       end
 
+      error_check_setpoint_schedule(new_schedule, model, runner)
+      sch_array = new_schedule.schedule_array
       new_schedule = new_schedule.schedule
     end
     if new_heater.setpointTemperatureSchedule.is_initialized
       new_heater.setpointTemperatureSchedule.get.remove
     end
+
     new_heater.setSetpointTemperatureSchedule(new_schedule)
   end
 
@@ -1428,6 +1461,7 @@ class Waterheater
         return false
       end
 
+      error_check_setpoint_schedule(new_schedule, model, runner)
       wh_setpoint = new_schedule.schedule
       new_heater.heater1SetpointTemperatureSchedule.remove
       new_heater.heater2SetpointTemperatureSchedule.remove

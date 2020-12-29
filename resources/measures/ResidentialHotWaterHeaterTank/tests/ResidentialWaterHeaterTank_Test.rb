@@ -249,7 +249,7 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     args_hash["setpoint_type"] = "scheduled"
     args_hash["schedule_directory"] = "./resources"
     args_hash["setpoint_schedule"] = "hourly_setpoint_schedule.csv"
-    expected_num_del_objects = { "WaterHeaterStratified" => 1, "ScheduleFixedInterval" => 1 }
+    expected_num_del_objects = { "WaterHeaterMixed" => 1, "ScheduleConstant" => 1 }
     expected_num_new_objects = { "WaterHeaterStratified" => 1, "ScheduleFixedInterval" => 1 }
     expected_values = { "TankVolume" => 50, "InputCapacity" => 5.5, "ThermalEfficiency" => 1.0, "TankUA" => 0.124, "OnCycle" => 0, "OffCycle" => 0, "FuelType" => Constants.FuelTypeElectric, "SkinLossFrac" => 1.0 }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_Stratified_WHTank_scheduled_SP.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
@@ -323,32 +323,93 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank_SHW.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
-  def test_argument_error_missing_setpoint_schedule
+  def test_error_missing_setpoint_schedule
     args_hash = {}
-    args_hash["setpoint_type"] = "scheduled"
+    args_hash["setpoint_type"] = Constants.WaterHeaterSetpointTypeScheduled
     args_hash["schedule_directory"] = "./resources"
     args_hash["setpoint_schedule"] = "non_existent_schedule.csv"
     result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash)
     assert_equal(result.errors.map { |x| x.logMessage }[0], "'#{File.expand_path("..", __dir__)}/resources/non_existent_schedule.csv' does not exist.")
   end
 
-  # def test_argument_error_setpoint_schedule_wrong_length
-  #  args_hash = {}
-  #  args_hash["setpoint_type"] = "scheduled"
-  #  args_hash["schedule_directory"] = "./resources"
-  #  args_hash["setpoint_schedule"] = "bad_schedule_negative_setpoint.csv"
-  #  result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash)
-  #  assert_equal(result.errors.map { |x| x.logMessage }[0], "'#{File.expand_path("..", __dir__)}/resources/non_existent_schedule.csv' does not exist.")
-  # end
+  def test_error_setpoint_schedule_wrong_length
+    args_hash = {}
+    args_hash["setpoint_type"] = Constants.WaterHeaterSetpointTypeScheduled
+    args_hash["schedule_directory"] = "./resources"
+    args_hash["setpoint_schedule"] = "wrong_length_schedule.csv"
+    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash)
+    assert_equal(result.errors.map { |x| x.logMessage }[0], "Hourly water heater schedule must be the length of the simulation period or a full year")
+  end
 
-  # def test_argument_error_bad_setpoint_schedule_bad_values
-  #  args_hash = {}
-  #  args_hash["setpoint_type"] = "scheduled"
-  #  args_hash["schedule_directory"] = "#{__dir__}/test_schedules"
-  #  args_hash["setpoint_schedule"] = "bad_schedule_not_enough_values.csv"
-  #  result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash)
-  #  assert_equal(result.errors.map { |x| x.logMessage }[0], "'#{File.expand_path("..", __dir__)}/resources/non_existent_schedule.csv' does not exist.")
-  # end
+  def test_argument_error_setpoint_gt_212_scheduled
+    args_hash = {}
+    args_hash["setpoint_type"] = Constants.WaterHeaterSetpointTypeScheduled
+    args_hash["schedule_directory"] = "./resources"
+    args_hash["setpoint_schedule"] = "hourly_schedule_high_above_212.csv"
+    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash)
+    assert_equal(result.errors.map { |x| x.logMessage }[0], "Water heater temperature setpoint must not be less than 0F or greater than 212F.")
+  end
+
+  def test_argument_warning_setpoint_gt_140_scheduled
+    args_hash = {}
+    args_hash["fuel_type"] = Constants.FuelTypeElectric
+    args_hash["energy_factor"] = "0.95"
+    args_hash["capacity"] = "18.77"
+    args_hash["tank_model_type"] = "stratified"
+    args_hash["setpoint_type"] = Constants.WaterHeaterSetpointTypeScheduled
+    args_hash["schedule_directory"] = "./resources"
+    args_hash["setpoint_schedule"] = "hourly_schedule_high_above_140.csv"
+    expected_num_del_objects = {}
+    expected_num_new_objects = { "WaterHeaterStratified" => 1, "PlantLoop" => 1, "PumpVariableSpeed" => 1, "ScheduleFixedInterval" => 2 }
+    expected_values = { "TankVolume" => 50, "InputCapacity" => 5.5, "ThermalEfficiency" => 1.0, "TankUA" => 0.124, "OnCycle" => 0, "OffCycle" => 0, "FuelType" => Constants.FuelTypeElectric, "SkinLossFrac" => 1.0 }
+    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1, 1)
+  end
+
+  def test_argument_error_setpoint_lt_0_scheduled
+    args_hash = {}
+    args_hash["setpoint_type"] = Constants.WaterHeaterSetpointTypeScheduled
+    args_hash["schedule_directory"] = "./resources"
+    args_hash["setpoint_schedule"] = "hourly_schedule_low_below_0.csv"
+    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash)
+    assert_equal(result.errors.map { |x| x.logMessage }[0], "Water heater temperature setpoint must not be less than 0F or greater than 212F.")
+  end
+
+  def test_argument_warning_setpoint_lt_110_scheduled
+    args_hash = {}
+    args_hash["fuel_type"] = Constants.FuelTypeElectric
+    args_hash["energy_factor"] = "0.95"
+    args_hash["capacity"] = "18.77"
+    args_hash["tank_model_type"] = "stratified"
+    args_hash["setpoint_type"] = Constants.WaterHeaterSetpointTypeScheduled
+    args_hash["schedule_directory"] = "./resources"
+    args_hash["setpoint_schedule"] = "hourly_schedule_low_below_110.csv"
+    expected_num_del_objects = {}
+    expected_num_new_objects = { "WaterHeaterStratified" => 1, "PlantLoop" => 1, "PumpVariableSpeed" => 1, "ScheduleFixedInterval" => 2 }
+    expected_values = { "TankVolume" => 50, "InputCapacity" => 5.5, "ThermalEfficiency" => 1.0, "TankUA" => 0.124, "OnCycle" => 0, "OffCycle" => 0, "FuelType" => Constants.FuelTypeElectric, "SkinLossFrac" => 1.0 }
+    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1, 1)
+  end
+
+  def test_short_period_with_short_schedule
+    args_hash = {}
+    args_hash["setpoint_type"] = Constants.WaterHeaterSetpointTypeScheduled
+    args_hash["schedule_directory"] = "./resources"
+    args_hash["setpoint_schedule"] = "hourly_setpoint_schedule_feb.csv"
+    expected_num_del_objects = {   "ScheduleConstant" => 1, "WaterHeaterMixed" => 1 }
+    expected_num_new_objects = { "ScheduleFixedInterval" => 1, "WaterHeaterMixed" => 1 }
+    expected_values = { "TankVolume" => 40, "InputCapacity" => 11.72, "ThermalEfficiency" => 0.773, "TankUA" => 7.88, "Setpoint" => 125, "OnCycle" => 0, "OffCycle" => 0, "FuelType" => Constants.FuelTypeGas, "SkinLossFrac" => 0.64 }
+    _test_measure("SFD_Successful_EnergyPlus_Run_TMY_February.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
+  end
+
+  def test_short_period_with_full_year_schedule
+    args_hash = {}
+    args_hash["setpoint_type"] = Constants.WaterHeaterSetpointTypeScheduled
+    args_hash["schedule_directory"] = "./resources"
+    args_hash["setpoint_schedule"] = "hourly_setpoint_schedule.csv"
+    expected_num_del_objects = {   "ScheduleConstant" => 1, "WaterHeaterMixed" => 1 }
+    expected_num_new_objects = { "ScheduleFixedInterval" => 1, "WaterHeaterMixed" => 1 }
+    expected_values = { "TankVolume" => 40, "InputCapacity" => 11.72, "ThermalEfficiency" => 0.773, "TankUA" => 7.88, "Setpoint" => 125, "OnCycle" => 0, "OffCycle" => 0, "FuelType" => Constants.FuelTypeGas, "SkinLossFrac" => 0.64 }
+    _test_measure("SFD_Successful_EnergyPlus_Run_TMY_February.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
+  end
 
   def test_argument_error_tank_volume_invalid_str
     args_hash = {}
@@ -375,14 +436,42 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     args_hash = {}
     args_hash["setpoint_temp"] = -10
     result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "Hot water temperature must be greater than 0 and less than 212.")
+    assert_equal(result.errors.map { |x| x.logMessage }[0], "Water heater temperature setpoint must not be less than 0F or greater than 212F.")
   end
 
-  def test_argument_error_setpoint_lg_300
+  def test_argument_warning_setpoint_lt_110
+    args_hash = {}
+    args_hash["fuel_type"] = Constants.FuelTypeElectric
+    args_hash["energy_factor"] = "0.95"
+    args_hash["capacity"] = "18.77"
+    args_hash["tank_model_type"] = "stratified"
+    args_hash["setpoint_type"] = Constants.WaterHeaterSetpointTypeConstant
+    args_hash["setpoint_temp"] = 100
+    expected_num_del_objects = {}
+    expected_num_new_objects = { "WaterHeaterStratified" => 1, "PlantLoop" => 1, "PumpVariableSpeed" => 1, "ScheduleConstant" => 2 }
+    expected_values = { "TankVolume" => 50, "InputCapacity" => 5.5, "ThermalEfficiency" => 1.0, "TankUA" => 0.124, "OnCycle" => 0, "OffCycle" => 0, "FuelType" => Constants.FuelTypeElectric, "SkinLossFrac" => 1.0 }
+    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1, 1)
+  end
+
+  def test_argument_error_setpoint_gt_300
     args_hash = {}
     args_hash["setpoint_temp"] = 300
     result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "Hot water temperature must be greater than 0 and less than 212.")
+    assert_equal(result.errors.map { |x| x.logMessage }[0], "Water heater temperature setpoint must not be less than 0F or greater than 212F.")
+  end
+
+  def test_argument_warning_setpoint_gt_140
+    args_hash = {}
+    args_hash["fuel_type"] = Constants.FuelTypeElectric
+    args_hash["energy_factor"] = "0.95"
+    args_hash["capacity"] = "18.77"
+    args_hash["tank_model_type"] = "stratified"
+    args_hash["setpoint_type"] = Constants.WaterHeaterSetpointTypeConstant
+    args_hash["setpoint_temp"] = 150
+    expected_num_del_objects = {}
+    expected_num_new_objects = { "WaterHeaterStratified" => 1, "PlantLoop" => 1, "PumpVariableSpeed" => 1, "ScheduleConstant" => 2 }
+    expected_values = { "TankVolume" => 50, "InputCapacity" => 5.5, "ThermalEfficiency" => 1.0, "TankUA" => 0.124, "OnCycle" => 0, "OffCycle" => 0, "FuelType" => Constants.FuelTypeElectric, "SkinLossFrac" => 1.0 }
+    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1, 1)
   end
 
   def test_argument_error_capacity_invalid_str
