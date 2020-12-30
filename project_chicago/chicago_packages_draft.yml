@@ -28,9 +28,9 @@ upgrades:
 
 #### Phase 2: Packaged Upgrades
 
-### Package 1: Synergistic HVAC
+### Package 01: Synergistic HVAC
   - upgrade_name: Heat pumps, Air Sealing, and Attic Insulation
-      options:
+    options:
         # Air Sealing
       - option: Infiltration|18.5 ACH50
         apply_logic: Infiltration|25 ACH50
@@ -103,14 +103,13 @@ upgrades:
           and:
             - Mechanical Ventilation|None
             - or:
-              - Infiltration|1.5 ACH50
+              # - Infiltration|1.5 ACH50
               - Infiltration|2 ACH50
-              - Infiltration|2.25 ACH50
+              # - Infiltration|2.25 ACH50
               - Infiltration|3 ACH50
+              # - Infiltration|3.75 ACH50
               - Infiltration|4 ACH50
-              - Infiltration|3.75 ACH50
-              - Infiltration|4 ACH50
-              - Infiltration|4.5 ACH50
+              # - Infiltration|4.5 ACH50
               - Infiltration|5 ACH50
               - Infiltration|6 ACH50
               - Infiltration|7 ACH50
@@ -120,8 +119,7 @@ upgrades:
         lifetime: 999
 ## ASHP
       - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF
-        apply_logic: 
-          - HVAC Has Ducts|Yes
+        apply_logic: HVAC Has Ducts|Yes
         costs:
           - value: 4600
             multiplier: Fixed (1)
@@ -129,23 +127,20 @@ upgrades:
             multiplier: Size, Heating System (kBtu/h)
         lifetime: 15
       - option: HVAC Cooling Efficiency|Heat Pump
-        apply_logic: 
-          - HVAC Has Ducts|Yes
+        apply_logic: HVAC Has Ducts|Yes
         costs:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 999
       - option: HVAC Heating Type And Fuel|Electricity ASHP
-        apply_logic:
-          - HVAC Has Ducts|Yes
+        apply_logic: HVAC Has Ducts|Yes
         costs:
           - value: 0 
             multiplier: Fixed (1)
         lifetime: 999
-##MSHP
+## MSHP
       - option: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF
-        apply_logic:  
-         - HVAC Has Ducts|No
+        apply_logic: HVAC Has Ducts|No
         costs:
           - value: 2510
             multiplier: Fixed (1)
@@ -153,22 +148,19 @@ upgrades:
             multiplier: Size, Heating System (kBtu/h)
         lifetime: 15
       - option: HVAC Cooling Type|Heat Pump 
-        apply_logic:
-          - HVAC Has Ducts|No
+        apply_logic: HVAC Has Ducts|No
         costs:
           - value: 0 
             multiplier: Fixed (1)
         lifetime: 999
       - option: HVAC Cooling Efficiency|Heat Pump
-        apply_logic:
-          - HVAC Has Ducts|No
+        apply_logic: HVAC Has Ducts|No
         costs:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 999
       - option: HVAC Heating Type And Fuel|Electricity MSHP
-        apply_logic:
-          - HVAC Has Ducts|No
+        apply_logic: HVAC Has Ducts|No
         costs:
           - value: 0
             multiplier: Fixed (1)
@@ -210,10 +202,10 @@ upgrades:
             multiplier: Floor Area, Attic (ft^2)
         lifetime: 999
 
-### Package 2: Illinois-based upgrades
+### Package 02: Illinois-based upgrades
   - upgrade_name: IL Upgrades, thermal + LEDs 
     options:
-##Air Sealing
+        # Air Sealing
       - option: Infiltration|18.5 ACH50
         apply_logic: Infiltration|25 ACH50
         costs:
@@ -285,14 +277,13 @@ upgrades:
           and:
             - Mechanical Ventilation|None
             - or:
-              - Infiltration|1.5 ACH50
+              # - Infiltration|1.5 ACH50
               - Infiltration|2 ACH50
-              - Infiltration|2.25 ACH50
+              # - Infiltration|2.25 ACH50
               - Infiltration|3 ACH50
+              # - Infiltration|3.75 ACH50
               - Infiltration|4 ACH50
-              - Infiltration|3.75 ACH50
-              - Infiltration|4 ACH50
-              - Infiltration|4.5 ACH50
+              # - Infiltration|4.5 ACH50
               - Infiltration|5 ACH50
               - Infiltration|6 ACH50
               - Infiltration|7 ACH50
@@ -302,8 +293,7 @@ upgrades:
         lifetime: 999
 ## ASHP
       - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF
-        apply_logic: 
-          - HVAC Has Ducts|Yes
+        apply_logic: HVAC Has Ducts|Yes
         costs:
           - value: 4600
             multiplier: Fixed (1)
@@ -311,23 +301,20 @@ upgrades:
             multiplier: Size, Heating System (kBtu/h)
         lifetime: 15
       - option: HVAC Cooling Efficiency|Heat Pump
-        apply_logic: 
-          - HVAC Has Ducts|Yes
+        apply_logic: HVAC Has Ducts|Yes
         costs:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 999
       - option: HVAC Heating Type And Fuel|Electricity ASHP
-        apply_logic:
-          - HVAC Has Ducts|Yes
+        apply_logic: HVAC Has Ducts|Yes
         costs:
           - value: 0 
             multiplier: Fixed (1)
         lifetime: 999
-##MSHP
+## MSHP
       - option: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF
-        apply_logic:  
-         - HVAC Has Ducts|No
+        apply_logic: HVAC Has Ducts|No
         costs:
           - value: 2510
             multiplier: Fixed (1)
@@ -335,22 +322,19 @@ upgrades:
             multiplier: Size, Heating System (kBtu/h)
         lifetime: 15
       - option: HVAC Cooling Type|Heat Pump 
-        apply_logic:
-          - HVAC Has Ducts|No
+        apply_logic: HVAC Has Ducts|No
         costs:
           - value: 0 
             multiplier: Fixed (1)
         lifetime: 999
       - option: HVAC Cooling Efficiency|Heat Pump
-        apply_logic:
-          - HVAC Has Ducts|No
+        apply_logic: HVAC Has Ducts|No
         costs:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 999
       - option: HVAC Heating Type And Fuel|Electricity MSHP
-        apply_logic:
-          - HVAC Has Ducts|No
+        apply_logic: HVAC Has Ducts|No
         costs:
           - value: 0
             multiplier: Fixed (1)
@@ -395,16 +379,16 @@ upgrades:
       - option: Ducts|10% Leakage, R-8
         apply_logic:
           or:
-            - Ducts|85% Leakage, Uninsulated
-            - Ducts|53% Leakage, Uninsulated
-            - Ducts|34% Leakage, Uninsulated
+            # - Ducts|85% Leakage, Uninsulated
+            # - Ducts|85% Leakage, R-4
+            # - Ducts|85% Leakage, R-6
+            # - Ducts|53% Leakage, Uninsulated
+            # - Ducts|53% Leakage, R-4
+            # - Ducts|53% Leakage, R-6
+            # - Ducts|34% Leakage, Uninsulated
+            # - Ducts|34% Leakage, R-4
+            # - Ducts|34% Leakage, R-6
             - Ducts|30% Leakage, Uninsulated
-            - Ducts|85% Leakage, R-4
-            - Ducts|85% Leakage, R-6
-            - Ducts|53% Leakage, R-4
-            - Ducts|53% Leakage, R-6
-            - Ducts|34% Leakage, R-4
-            - Ducts|34% Leakage, R-6
             - Ducts|30% Leakage, R-4
             - Ducts|30% Leakage, R-6
         costs:
@@ -414,9 +398,9 @@ upgrades:
       - option: Ducts|10% Leakage, R-8
         apply_logic:
           or:
-            - Ducts|85% Leakage, R-8
-            - Ducts|53% Leakage, R-8
-            - Ducts|34% Leakage, R-8
+            # - Ducts|85% Leakage, R-8
+            # - Ducts|53% Leakage, R-8
+            # - Ducts|34% Leakage, R-8
             - Ducts|30% Leakage, R-8
         costs:
           - value: 0.81
@@ -425,48 +409,48 @@ upgrades:
       - option: Ducts|10% Leakage, R-8
         apply_logic:
           or:
-            - Ducts|24% Leakage, Uninsulated
-            - Ducts|24% Leakage, R-4
-            - Ducts|24% Leakage, R-6
+            # - Ducts|24% Leakage, Uninsulated
+            # - Ducts|24% Leakage, R-4
+            # - Ducts|24% Leakage, R-6
             - Ducts|20% Leakage, Uninsulated
             - Ducts|20% Leakage, R-4
             - Ducts|20% Leakage, R-6
         costs:
-          - value: 0.4
+          - value: 1.8
             multiplier: Duct Surface Area (ft^2)
         lifetime: 30
       - option: Ducts|10% Leakage, R-8
-        apply_logic:
-          or:
-            - Ducts|24% Leakage, R-8
-            - Ducts|20% Leakage, R-8
+        apply_logic: Ducts|20% Leakage, R-8
+          # or:
+            # - Ducts|24% Leakage, R-8
+            # - Ducts|20% Leakage, R-8
         costs:
           - value: 0.4
             multiplier: Duct Surface Area (ft^2)
         lifetime: 30
-      - option: Ducts|10% Leakage, R-8
-        apply_logic:
-          or:
-            - Ducts|15% Leakage, Uninsulated
-            - Ducts|15% Leakage, R-4
-            - Ducts|15% Leakage, R-6
-            - Ducts|14% Leakage, Uninsulated
-            - Ducts|14% Leakage, R-4
-            - Ducts|14% Leakage, R-6
-            - Ducts|15% Leakage, R-6, 50% Surface Area, 1 return
-        costs:
-          - value: 1.6
-            multiplier: Duct Surface Area (ft^2)
-        lifetime: 30
-      - option: Ducts|10% Leakage, R-8
-        apply_logic:
-          or:
-            - Ducts|15% Leakage, R-8
-            - Ducts|14% Leakage, R-8
-        costs:
-          - value: 0.2
-            multiplier: Duct Surface Area (ft^2)
-        lifetime: 30
+      # - option: Ducts|10% Leakage, R-8
+      #   apply_logic:
+      #     or:
+      #       - Ducts|15% Leakage, Uninsulated
+      #       - Ducts|15% Leakage, R-4
+      #       - Ducts|15% Leakage, R-6
+      #       - Ducts|14% Leakage, Uninsulated
+      #       - Ducts|14% Leakage, R-4
+      #       - Ducts|14% Leakage, R-6
+      #       - Ducts|15% Leakage, R-6, 50% Surface Area, 1 return
+      #   costs:
+      #     - value: 1.6
+      #       multiplier: Duct Surface Area (ft^2)
+      #   lifetime: 30
+      # - option: Ducts|10% Leakage, R-8
+      #   apply_logic:
+      #     or:
+      #       - Ducts|15% Leakage, R-8
+      #       - Ducts|14% Leakage, R-8
+      #   costs:
+      #     - value: 0.2
+      #       multiplier: Duct Surface Area (ft^2)
+      #   lifetime: 30
       - option: Ducts|10% Leakage, R-8
         apply_logic: 
           or:
@@ -477,30 +461,29 @@ upgrades:
           - value: 1.4
             multiplier: Duct Surface Area (ft^2)
         lifetime: 30
-      - option: Ducts|7.5% Leakage, R-8
-        apply_logic:
-          or:
-            - Ducts|7.5% Leakage, Uninsulated
-            - Ducts|7.5% Leakage, R-4
-            - Ducts|7.5% Leakage, R-6
-        costs:
-          - value: 1.4
-            multiplier: Duct Surface Area (ft^2)
-        lifetime: 30
-      - option: Ducts|6% Leakage, R-8
-        apply_logic:
-          or:
-            - Ducts|6% Leakage, Uninsulated
-            - Ducts|6% Leakage, R-4
-            - Ducts|6% Leakage, R-6
-        costs:
-          - value: 1.4
-            multiplier: Duct Surface Area (ft^2)
-        lifetime: 30
+      # - option: Ducts|7.5% Leakage, R-8
+      #   apply_logic:
+      #     or:
+      #       - Ducts|7.5% Leakage, Uninsulated
+      #       - Ducts|7.5% Leakage, R-4
+      #       - Ducts|7.5% Leakage, R-6
+      #   costs:
+      #     - value: 1.4
+      #       multiplier: Duct Surface Area (ft^2)
+      #   lifetime: 30
+      # - option: Ducts|6% Leakage, R-8
+      #   apply_logic:
+      #     or:
+      #       - Ducts|6% Leakage, Uninsulated
+      #       - Ducts|6% Leakage, R-4
+      #       - Ducts|6% Leakage, R-6
+      #   costs:
+      #     - value: 1.4
+      #       multiplier: Duct Surface Area (ft^2)
+      #   lifetime: 30
 ## Wall Insulation
       - option: Insulation Wall|Wood Stud, R-13
-        apply_logic: 
-            - Insulation Wall|Wood Stud, Uninsulated
+        apply_logic: Insulation Wall|Wood Stud, Uninsulated
         costs: 
           - value: 2.4
             multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
@@ -524,16 +507,16 @@ upgrades:
           - value: 3.1
             multiplier: Wall Area, Below-Grade (ft^2)
         lifetime: 999
-## LEDs
+## Lighting
       - option: Lighting|100% LED
         apply_logic:
           or:
             - Lighting|100% Incandescent
-            - Lighting|60% CFL Hardwired, 34% CFL Plugin
-            - Lighting|60% LED Hardwired, 34% CFL Plugin
-            - Lighting|60% CFL
+            # - Lighting|60% CFL Hardwired, 34% CFL Plugin
+            # - Lighting|60% LED Hardwired, 34% CFL Plugin
+            # - Lighting|60% CFL
             - Lighting|100% CFL
-            - Lighting|100% LED, Low Efficacy
+            # - Lighting|100% LED, Low Efficacy
         costs:
         #  - value: 0.006
         #    multiplier: [lumens]
@@ -616,14 +599,13 @@ upgrades:
           and:
             - Mechanical Ventilation|None
             - or:
-              - Infiltration|1.5 ACH50
+              # - Infiltration|1.5 ACH50
               - Infiltration|2 ACH50
-              - Infiltration|2.25 ACH50
+              # - Infiltration|2.25 ACH50
               - Infiltration|3 ACH50
+              # - Infiltration|3.75 ACH50
               - Infiltration|4 ACH50
-              - Infiltration|3.75 ACH50
-              - Infiltration|4 ACH50
-              - Infiltration|4.5 ACH50
+              # - Infiltration|4.5 ACH50
               - Infiltration|5 ACH50
               - Infiltration|6 ACH50
               - Infiltration|7 ACH50
@@ -675,7 +657,7 @@ upgrades:
             - or:
               - HVAC Heating Type And Fuel|Electricity Baseboard
               - HVAC Heating Type And Fuel|Electricity Electric Boiler
-              - HVAC Heating Type And Fuel|Electricity Electric Boiler
+              - HVAC Heating Type And Fuel|Electricity Electric Furnace
               - HVAC Heating Type And Fuel|Electricity Electric Wall Furnace
               - HVAC Heating Type And Fuel|Electricity Other
         costs:
@@ -691,7 +673,7 @@ upgrades:
             - or:
               - HVAC Heating Type And Fuel|Electricity Baseboard
               - HVAC Heating Type And Fuel|Electricity Electric Boiler
-              - HVAC Heating Type And Fuel|Electricity Electric Boiler
+              - HVAC Heating Type And Fuel|Electricity Electric Furnace
               - HVAC Heating Type And Fuel|Electricity Electric Wall Furnace
               - HVAC Heating Type And Fuel|Electricity Other
         costs:
@@ -789,20 +771,20 @@ upgrades:
           - value: 0.49
             multiplier: Floor Area, Attic (ft^2)
         lifetime: 999
-##Ducts
+## Ducts
       - option: Ducts|10% Leakage, R-8
         apply_logic:
           or:
-            - Ducts|85% Leakage, Uninsulated
-            - Ducts|53% Leakage, Uninsulated
-            - Ducts|34% Leakage, Uninsulated
+            # - Ducts|85% Leakage, Uninsulated
+            # - Ducts|85% Leakage, R-4
+            # - Ducts|85% Leakage, R-6
+            # - Ducts|53% Leakage, Uninsulated
+            # - Ducts|53% Leakage, R-4
+            # - Ducts|53% Leakage, R-6
+            # - Ducts|34% Leakage, Uninsulated
+            # - Ducts|34% Leakage, R-4
+            # - Ducts|34% Leakage, R-6
             - Ducts|30% Leakage, Uninsulated
-            - Ducts|85% Leakage, R-4
-            - Ducts|85% Leakage, R-6
-            - Ducts|53% Leakage, R-4
-            - Ducts|53% Leakage, R-6
-            - Ducts|34% Leakage, R-4
-            - Ducts|34% Leakage, R-6
             - Ducts|30% Leakage, R-4
             - Ducts|30% Leakage, R-6
         costs:
@@ -812,9 +794,9 @@ upgrades:
       - option: Ducts|10% Leakage, R-8
         apply_logic:
           or:
-            - Ducts|85% Leakage, R-8
-            - Ducts|53% Leakage, R-8
-            - Ducts|34% Leakage, R-8
+            # - Ducts|85% Leakage, R-8
+            # - Ducts|53% Leakage, R-8
+            # - Ducts|34% Leakage, R-8
             - Ducts|30% Leakage, R-8
         costs:
           - value: 0.81
@@ -823,48 +805,48 @@ upgrades:
       - option: Ducts|10% Leakage, R-8
         apply_logic:
           or:
-            - Ducts|24% Leakage, Uninsulated
-            - Ducts|24% Leakage, R-4
-            - Ducts|24% Leakage, R-6
+            # - Ducts|24% Leakage, Uninsulated
+            # - Ducts|24% Leakage, R-4
+            # - Ducts|24% Leakage, R-6
             - Ducts|20% Leakage, Uninsulated
             - Ducts|20% Leakage, R-4
             - Ducts|20% Leakage, R-6
         costs:
-          - value: 0.4
+          - value: 1.8
             multiplier: Duct Surface Area (ft^2)
         lifetime: 30
       - option: Ducts|10% Leakage, R-8
-        apply_logic:
-          or:
-            - Ducts|24% Leakage, R-8
-            - Ducts|20% Leakage, R-8
+        apply_logic: Ducts|20% Leakage, R-8
+          # or:
+            # - Ducts|24% Leakage, R-8
+            # - Ducts|20% Leakage, R-8
         costs:
           - value: 0.4
             multiplier: Duct Surface Area (ft^2)
         lifetime: 30
-      - option: Ducts|10% Leakage, R-8
-        apply_logic:
-          or:
-            - Ducts|15% Leakage, Uninsulated
-            - Ducts|15% Leakage, R-4
-            - Ducts|15% Leakage, R-6
-            - Ducts|14% Leakage, Uninsulated
-            - Ducts|14% Leakage, R-4
-            - Ducts|14% Leakage, R-6
-            - Ducts|15% Leakage, R-6, 50% Surface Area, 1 return
-        costs:
-          - value: 1.6
-            multiplier: Duct Surface Area (ft^2)
-        lifetime: 30
-      - option: Ducts|10% Leakage, R-8
-        apply_logic:
-          or:
-            - Ducts|15% Leakage, R-8
-            - Ducts|14% Leakage, R-8
-        costs:
-          - value: 0.2
-            multiplier: Duct Surface Area (ft^2)
-        lifetime: 30
+      # - option: Ducts|10% Leakage, R-8
+      #   apply_logic:
+      #     or:
+      #       - Ducts|15% Leakage, Uninsulated
+      #       - Ducts|15% Leakage, R-4
+      #       - Ducts|15% Leakage, R-6
+      #       - Ducts|14% Leakage, Uninsulated
+      #       - Ducts|14% Leakage, R-4
+      #       - Ducts|14% Leakage, R-6
+      #       - Ducts|15% Leakage, R-6, 50% Surface Area, 1 return
+      #   costs:
+      #     - value: 1.6
+      #       multiplier: Duct Surface Area (ft^2)
+      #   lifetime: 30
+      # - option: Ducts|10% Leakage, R-8
+      #   apply_logic:
+      #     or:
+      #       - Ducts|15% Leakage, R-8
+      #       - Ducts|14% Leakage, R-8
+      #   costs:
+      #     - value: 0.2
+      #       multiplier: Duct Surface Area (ft^2)
+      #   lifetime: 30
       - option: Ducts|10% Leakage, R-8
         apply_logic: 
           or:
@@ -875,28 +857,27 @@ upgrades:
           - value: 1.4
             multiplier: Duct Surface Area (ft^2)
         lifetime: 30
-      - option: Ducts|7.5% Leakage, R-8
-        apply_logic:
-          or:
-            - Ducts|7.5% Leakage, Uninsulated
-            - Ducts|7.5% Leakage, R-4
-            - Ducts|7.5% Leakage, R-6
-        costs:
-          - value: 1.4
-            multiplier: Duct Surface Area (ft^2)
-        lifetime: 30
-      - option: Ducts|6% Leakage, R-8
-        apply_logic:
-          or:
-            - Ducts|6% Leakage, Uninsulated
-            - Ducts|6% Leakage, R-4
-            - Ducts|6% Leakage, R-6
-        costs:
-          - value: 1.4
-            multiplier: Duct Surface Area (ft^2)
-        lifetime: 30
-
-##Windows
+      # - option: Ducts|7.5% Leakage, R-8
+      #   apply_logic:
+      #     or:
+      #       - Ducts|7.5% Leakage, Uninsulated
+      #       - Ducts|7.5% Leakage, R-4
+      #       - Ducts|7.5% Leakage, R-6
+      #   costs:
+      #     - value: 1.4
+      #       multiplier: Duct Surface Area (ft^2)
+      #   lifetime: 30
+      # - option: Ducts|6% Leakage, R-8
+      #   apply_logic:
+      #     or:
+      #       - Ducts|6% Leakage, Uninsulated
+      #       - Ducts|6% Leakage, R-4
+      #       - Ducts|6% Leakage, R-6
+      #   costs:
+      #     - value: 1.4
+      #       multiplier: Duct Surface Area (ft^2)
+      #   lifetime: 30
+## Windows
       - option: Windows|Low-E, Double, High-Gain
         apply_logic: Windows|1 Pane
         costs:
@@ -909,17 +890,15 @@ upgrades:
           - value: 44
             multiplier: Window Area (ft^2)
         lifetime: 30
-##Wall Insulation
+## Wall Insulation
       - option: Insulation Wall|Wood Stud, R-19, R-20 external XPS
-        apply_logic: 
-            - Insulation Wall|Wood Stud, R-19
+        apply_logic: Insulation Wall|Wood Stud, R-19
         costs: 
           - value: 2.6
             multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
         lifetime: 999
       - option: Insulation Wall|Wood Stud, R-15, R-20 external XPS
-        apply_logic: 
-            - Insulation Wall|Wood Stud, R-15
+        apply_logic: Insulation Wall|Wood Stud, R-15
         costs: 
           - value: 2.6
             multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
@@ -935,55 +914,48 @@ upgrades:
             multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
         lifetime: 999
       - option: Insulation Wall|Wood Stud, R-13, R-20 external XPS
-        apply_logic: 
-            - Insulation Wall|Wood Stud, Uninsulated
+        apply_logic: Insulation Wall|Wood Stud, Uninsulated
         costs: 
           - value: 5.0 #XPS 2.6 R-13 2.4
             multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
         lifetime: 999
-      - option: Insulation Wall|Brick, 8-in, 2-wythe, Uninsulated
-        apply_logic: 
-            - Insulation Wall|Brick, 8-in, 2-wythe, R-20 XPS
+      - option: Insulation Wall|Brick, 8-in, 2-wythe, R-20 XPS
+        apply_logic: Insulation Wall|Brick, 8-in, 2-wythe, Uninsulated
         costs: 
           - value: 2.6
             multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
         lifetime: 999
       - option: Insulation Wall|CMU, 6-in Hollow, Uninsulated, R-20 XPS
-        apply_logic: 
-            - Insulation Wall|CMU, 6-in Hollow, Uninsulated
+        apply_logic: Insulation Wall|CMU, 6-in Hollow, Uninsulated
         costs: 
           - value: 2.6
             multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
         lifetime: 999
       - option: Insulation Wall|CMU, 6-in Hollow, R-7, R-20 XPS
-        apply_logic: 
-            - Insulation Wall|CMU, 6-in Hollow, R-7
+        apply_logic: Insulation Wall|CMU, 6-in Hollow, R-7
         costs: 
           - value: 2.6
             multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
         lifetime: 999
       - option: Insulation Wall|CMU, 6-in Hollow, R-11, R-20 XPS
-        apply_logic: 
-            - Insulation Wall|CMU, 6-in Hollow, R-11
+        apply_logic: Insulation Wall|CMU, 6-in Hollow, R-11
         costs: 
           - value: 2.6
             multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
         lifetime: 999
       - option: Insulation Wall|CMU, 6-in Hollow, R-15, R-20 XPS
-        apply_logic: 
-            - Insulation Wall|CMU, 6-in Hollow, R-15
+        apply_logic: Insulation Wall|CMU, 6-in Hollow, R-15
         costs: 
           - value: 2.6
             multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
         lifetime: 999
       - option: Insulation Wall|CMU, 6-in Hollow, R-19, R-20 XPS
-        apply_logic: 
-            - Insulation Wall|CMU, 6-in Hollow, R-19
+        apply_logic: Insulation Wall|CMU, 6-in Hollow, R-19
         costs: 
           - value: 2.6
             multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
         lifetime: 999
-##Foundations
+## Foundations
       - option: Insulation Finished Basement|Wall R-15
         apply_logic: 
           or:
@@ -1053,7 +1025,7 @@ upgrades:
             multiplier: Floor Area, Attic (ft^2)
             #Not right, approximation
         lifetime: 999
-##Water Heater
+## Water Heater
       - option: Water Heater|Gas Premium, Condensing
         apply_logic: 
           or:
@@ -1080,27 +1052,25 @@ upgrades:
         lifetime: 12
 ## Dryer
       - option: Clothes Dryer|Electric, Heat Pump, Ventless, 80% Usage
-        apply_logic:
-          or:
-            - Clothes Dryer|Electric, 80% Usage
+        apply_logic: Clothes Dryer|Electric, 80% Usage
         costs:
           - value: 1450
             multiplier: Fixed (1)
         lifetime: 13
       - option: Clothes Dryer|Electric, Heat Pump, Ventless, 100% Usage
-        apply_logic:
-          or:
-            - Clothes Dryer|Electric, 100% Usage
-            - Clothes Dryer|Electric, Premium
+        apply_logic: Clothes Dryer|Electric, 100% Usage
+          # or:
+            # - Clothes Dryer|Electric, 100% Usage
+            # - Clothes Dryer|Electric, Premium
         costs:
           - value: 1450
             multiplier: Fixed (1)
         lifetime: 13
       - option: Clothes Dryer|Electric, Heat Pump, Ventless, 120% Usage
-        apply_logic:
-          or:
-            - Clothes Dryer|Electric, 120% Usage
-            - Clothes Dryer|Electric, Premium
+        apply_logic: Clothes Dryer|Electric, 120% Usage
+          # or:
+            # - Clothes Dryer|Electric, 120% Usage
+            # - Clothes Dryer|Electric, Premium
         costs:
           - value: 1450
             multiplier: Fixed (1)
@@ -1115,7 +1085,7 @@ upgrades:
           - value: 1000
             multiplier: Fixed (1)
         lifetime: 13
-##Range
+## Range
       - option: Cooking Range|Electric, Induction
         apply_logic: 
           or:
@@ -1126,16 +1096,16 @@ upgrades:
           - value: 1900
             multiplier: Fixed (1)
         lifetime: 13
-##Lighting
+## Lighting
       - option: Lighting|100% LED
         apply_logic:
           or:
             - Lighting|100% Incandescent
-            - Lighting|60% CFL Hardwired, 34% CFL Plugin
-            - Lighting|60% LED Hardwired, 34% CFL Plugin
-            - Lighting|60% CFL
+            # - Lighting|60% CFL Hardwired, 34% CFL Plugin
+            # - Lighting|60% LED Hardwired, 34% CFL Plugin
+            # - Lighting|60% CFL
             - Lighting|100% CFL
-            - Lighting|100% LED, Low Efficacy
+            # - Lighting|100% LED, Low Efficacy
         costs:
         #  - value: 0.006
         #    multiplier: [lumens]
@@ -1182,7 +1152,7 @@ upgrades:
           - value: 1400
             multiplier: Fixed (1)
         lifetime: 14
-##Dishwasher
+## Dishwasher
       - option: Dishwasher|199 Rated kWh, 80% Usage
         apply_logic: 
           or:
@@ -1286,14 +1256,13 @@ upgrades:
           and:
             - Mechanical Ventilation|None
             - or:
-              - Infiltration|1.5 ACH50
+              # - Infiltration|1.5 ACH50
               - Infiltration|2 ACH50
-              - Infiltration|2.25 ACH50
+              # - Infiltration|2.25 ACH50
               - Infiltration|3 ACH50
+              # - Infiltration|3.75 ACH50
               - Infiltration|4 ACH50
-              - Infiltration|3.75 ACH50
-              - Infiltration|4 ACH50
-              - Infiltration|4.5 ACH50
+              # - Infiltration|4.5 ACH50
               - Infiltration|5 ACH50
               - Infiltration|6 ACH50
               - Infiltration|7 ACH50
@@ -1303,8 +1272,7 @@ upgrades:
         lifetime: 999
 ## ASHP
       - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF
-        apply_logic: 
-          - HVAC Has Ducts|Yes
+        apply_logic: HVAC Has Ducts|Yes
         costs:
           - value: 4600
             multiplier: Fixed (1)
@@ -1312,23 +1280,20 @@ upgrades:
             multiplier: Size, Heating System (kBtu/h)
         lifetime: 15
       - option: HVAC Cooling Efficiency|Heat Pump
-        apply_logic: 
-          - HVAC Has Ducts|Yes
+        apply_logic: HVAC Has Ducts|Yes
         costs:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 999
       - option: HVAC Heating Type And Fuel|Electricity ASHP
-        apply_logic:
-          - HVAC Has Ducts|Yes
+        apply_logic: HVAC Has Ducts|Yes
         costs:
           - value: 0 
             multiplier: Fixed (1)
         lifetime: 999
 ##MSHP
       - option: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF
-        apply_logic:
-          - HVAC Has Ducts|No
+        apply_logic: HVAC Has Ducts|No
         costs:
           - value: 2510
             multiplier: Fixed (1)
@@ -1336,8 +1301,7 @@ upgrades:
             multiplier: Size, Heating System (kBtu/h)
         lifetime: 15
       - option: HVAC Cooling Efficiency|Heat Pump
-        apply_logic:
-            - HVAC Has Ducts|No
+        apply_logic: HVAC Has Ducts|No
         costs:
           - value: 0 
             multiplier: Fixed (1)
@@ -1385,20 +1349,20 @@ upgrades:
           - value: 0.49
             multiplier: Floor Area, Attic (ft^2)
         lifetime: 999
-##Ducts
+## Ducts
       - option: Ducts|10% Leakage, R-8
         apply_logic:
           or:
-            - Ducts|85% Leakage, Uninsulated
-            - Ducts|53% Leakage, Uninsulated
-            - Ducts|34% Leakage, Uninsulated
+            # - Ducts|85% Leakage, Uninsulated
+            # - Ducts|85% Leakage, R-4
+            # - Ducts|85% Leakage, R-6
+            # - Ducts|53% Leakage, Uninsulated
+            # - Ducts|53% Leakage, R-4
+            # - Ducts|53% Leakage, R-6
+            # - Ducts|34% Leakage, Uninsulated
+            # - Ducts|34% Leakage, R-4
+            # - Ducts|34% Leakage, R-6
             - Ducts|30% Leakage, Uninsulated
-            - Ducts|85% Leakage, R-4
-            - Ducts|85% Leakage, R-6
-            - Ducts|53% Leakage, R-4
-            - Ducts|53% Leakage, R-6
-            - Ducts|34% Leakage, R-4
-            - Ducts|34% Leakage, R-6
             - Ducts|30% Leakage, R-4
             - Ducts|30% Leakage, R-6
         costs:
@@ -1408,9 +1372,9 @@ upgrades:
       - option: Ducts|10% Leakage, R-8
         apply_logic:
           or:
-            - Ducts|85% Leakage, R-8
-            - Ducts|53% Leakage, R-8
-            - Ducts|34% Leakage, R-8
+            # - Ducts|85% Leakage, R-8
+            # - Ducts|53% Leakage, R-8
+            # - Ducts|34% Leakage, R-8
             - Ducts|30% Leakage, R-8
         costs:
           - value: 0.81
@@ -1419,48 +1383,48 @@ upgrades:
       - option: Ducts|10% Leakage, R-8
         apply_logic:
           or:
-            - Ducts|24% Leakage, Uninsulated
-            - Ducts|24% Leakage, R-4
-            - Ducts|24% Leakage, R-6
+            # - Ducts|24% Leakage, Uninsulated
+            # - Ducts|24% Leakage, R-4
+            # - Ducts|24% Leakage, R-6
             - Ducts|20% Leakage, Uninsulated
             - Ducts|20% Leakage, R-4
             - Ducts|20% Leakage, R-6
         costs:
-          - value: 0.4
+          - value: 1.8
             multiplier: Duct Surface Area (ft^2)
         lifetime: 30
       - option: Ducts|10% Leakage, R-8
-        apply_logic:
-          or:
-            - Ducts|24% Leakage, R-8
-            - Ducts|20% Leakage, R-8
+        apply_logic: Ducts|20% Leakage, R-8
+          # or:
+            # - Ducts|24% Leakage, R-8
+            # - Ducts|20% Leakage, R-8
         costs:
           - value: 0.4
             multiplier: Duct Surface Area (ft^2)
         lifetime: 30
-      - option: Ducts|10% Leakage, R-8
-        apply_logic:
-          or:
-            - Ducts|15% Leakage, Uninsulated
-            - Ducts|15% Leakage, R-4
-            - Ducts|15% Leakage, R-6
-            - Ducts|14% Leakage, Uninsulated
-            - Ducts|14% Leakage, R-4
-            - Ducts|14% Leakage, R-6
-            - Ducts|15% Leakage, R-6, 50% Surface Area, 1 return
-        costs:
-          - value: 1.6
-            multiplier: Duct Surface Area (ft^2)
-        lifetime: 30
-      - option: Ducts|10% Leakage, R-8
-        apply_logic:
-          or:
-            - Ducts|15% Leakage, R-8
-            - Ducts|14% Leakage, R-8
-        costs:
-          - value: 0.2
-            multiplier: Duct Surface Area (ft^2)
-        lifetime: 30
+      # - option: Ducts|10% Leakage, R-8
+      #   apply_logic:
+      #     or:
+      #       - Ducts|15% Leakage, Uninsulated
+      #       - Ducts|15% Leakage, R-4
+      #       - Ducts|15% Leakage, R-6
+      #       - Ducts|14% Leakage, Uninsulated
+      #       - Ducts|14% Leakage, R-4
+      #       - Ducts|14% Leakage, R-6
+      #       - Ducts|15% Leakage, R-6, 50% Surface Area, 1 return
+      #   costs:
+      #     - value: 1.6
+      #       multiplier: Duct Surface Area (ft^2)
+      #   lifetime: 30
+      # - option: Ducts|10% Leakage, R-8
+      #   apply_logic:
+      #     or:
+      #       - Ducts|15% Leakage, R-8
+      #       - Ducts|14% Leakage, R-8
+      #   costs:
+      #     - value: 0.2
+      #       multiplier: Duct Surface Area (ft^2)
+      #   lifetime: 30
       - option: Ducts|10% Leakage, R-8
         apply_logic: 
           or:
@@ -1471,27 +1435,27 @@ upgrades:
           - value: 1.4
             multiplier: Duct Surface Area (ft^2)
         lifetime: 30
-      - option: Ducts|7.5% Leakage, R-8
-        apply_logic:
-          or:
-            - Ducts|7.5% Leakage, Uninsulated
-            - Ducts|7.5% Leakage, R-4
-            - Ducts|7.5% Leakage, R-6
-        costs:
-          - value: 1.4
-            multiplier: Duct Surface Area (ft^2)
-        lifetime: 30
-      - option: Ducts|6% Leakage, R-8
-        apply_logic:
-          or:
-            - Ducts|6% Leakage, Uninsulated
-            - Ducts|6% Leakage, R-4
-            - Ducts|6% Leakage, R-6
-        costs:
-          - value: 1.4
-            multiplier: Duct Surface Area (ft^2)
-        lifetime: 30
-##Windows
+      # - option: Ducts|7.5% Leakage, R-8
+      #   apply_logic:
+      #     or:
+      #       - Ducts|7.5% Leakage, Uninsulated
+      #       - Ducts|7.5% Leakage, R-4
+      #       - Ducts|7.5% Leakage, R-6
+      #   costs:
+      #     - value: 1.4
+      #       multiplier: Duct Surface Area (ft^2)
+      #   lifetime: 30
+      # - option: Ducts|6% Leakage, R-8
+      #   apply_logic:
+      #     or:
+      #       - Ducts|6% Leakage, Uninsulated
+      #       - Ducts|6% Leakage, R-4
+      #       - Ducts|6% Leakage, R-6
+      #   costs:
+      #     - value: 1.4
+      #       multiplier: Duct Surface Area (ft^2)
+      #   lifetime: 30
+## Windows
       - option: Windows|Low-E, Double, High-Gain
         apply_logic: Windows|1 Pane
         costs:
@@ -1504,17 +1468,15 @@ upgrades:
           - value: 44
             multiplier: Window Area (ft^2)
         lifetime: 30
-##Wall Insulation
+## Wall Insulation
       - option: Insulation Wall|Wood Stud, R-19, R-20 external XPS
-        apply_logic: 
-            - Insulation Wall|Wood Stud, R-19
+        apply_logic: Insulation Wall|Wood Stud, R-19
         costs: 
           - value: 2.6
             multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
         lifetime: 999
       - option: Insulation Wall|Wood Stud, R-15, R-20 external XPS
-        apply_logic: 
-            - Insulation Wall|Wood Stud, R-15
+        apply_logic: Insulation Wall|Wood Stud, R-15
         costs: 
           - value: 2.6
             multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
@@ -1530,55 +1492,48 @@ upgrades:
             multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
         lifetime: 999
       - option: Insulation Wall|Wood Stud, R-13, R-20 external XPS
-        apply_logic: 
-            - Insulation Wall|Wood Stud, Uninsulated
+        apply_logic: Insulation Wall|Wood Stud, Uninsulated
         costs: 
           - value: 5.0 #XPS 2.6 R-13 2.4
             multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
         lifetime: 999
-      - option: Insulation Wall|Brick, 8-in, 2-wythe, Uninsulated
-        apply_logic: 
-            - Insulation Wall|Brick, 8-in, 2-wythe, R-20 XPS
+      - option: Insulation Wall|Brick, 8-in, 2-wythe, R-20 XPS
+        apply_logic: Insulation Wall|Brick, 8-in, 2-wythe, Uninsulated
         costs: 
           - value: 2.6
             multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
         lifetime: 999
       - option: Insulation Wall|CMU, 6-in Hollow, Uninsulated, R-20 XPS
-        apply_logic: 
-            - Insulation Wall|CMU, 6-in Hollow, Uninsulated
+        apply_logic: Insulation Wall|CMU, 6-in Hollow, Uninsulated
         costs: 
           - value: 2.6
             multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
         lifetime: 999
       - option: Insulation Wall|CMU, 6-in Hollow, R-7, R-20 XPS
-        apply_logic: 
-            - Insulation Wall|CMU, 6-in Hollow, R-7
+        apply_logic: Insulation Wall|CMU, 6-in Hollow, R-7
         costs: 
           - value: 2.6
             multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
         lifetime: 999
       - option: Insulation Wall|CMU, 6-in Hollow, R-11, R-20 XPS
-        apply_logic: 
-            - Insulation Wall|CMU, 6-in Hollow, R-11
+        apply_logic: Insulation Wall|CMU, 6-in Hollow, R-11
         costs: 
           - value: 2.6
             multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
         lifetime: 999
       - option: Insulation Wall|CMU, 6-in Hollow, R-15, R-20 XPS
-        apply_logic: 
-            - Insulation Wall|CMU, 6-in Hollow, R-15
+        apply_logic: Insulation Wall|CMU, 6-in Hollow, R-15
         costs: 
           - value: 2.6
             multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
         lifetime: 999
       - option: Insulation Wall|CMU, 6-in Hollow, R-19, R-20 XPS
-        apply_logic: 
-            - Insulation Wall|CMU, 6-in Hollow, R-19
+        apply_logic: Insulation Wall|CMU, 6-in Hollow, R-19
         costs: 
           - value: 2.6
             multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
         lifetime: 999
-##Foundations
+## Foundations
       - option: Insulation Finished Basement|Wall R-15
         apply_logic: 
           or:
@@ -1648,7 +1603,7 @@ upgrades:
             multiplier: Floor Area, Attic (ft^2)
             #Not right, approximation
         lifetime: 999
-##Water Heater
+## Water Heater
       - option: Water Heater|Electric Heat Pump, 50 gal
         apply_logic: 
           or:
@@ -1695,7 +1650,7 @@ upgrades:
           - value: 1450
             multiplier: Fixed (1)
         lifetime: 13
-##Range
+## Range
       - option: Cooking Range|Electric, Induction
         apply_logic: 
           or:
@@ -1712,16 +1667,16 @@ upgrades:
           - value: 1900
             multiplier: Fixed (1)
         lifetime: 13
-##Lighting
+## Lighting
       - option: Lighting|100% LED
         apply_logic:
           or:
             - Lighting|100% Incandescent
-            - Lighting|60% CFL Hardwired, 34% CFL Plugin
-            - Lighting|60% LED Hardwired, 34% CFL Plugin
-            - Lighting|60% CFL
+            # - Lighting|60% CFL Hardwired, 34% CFL Plugin
+            # - Lighting|60% LED Hardwired, 34% CFL Plugin
+            # - Lighting|60% CFL
             - Lighting|100% CFL
-            - Lighting|100% LED, Low Efficacy
+            # - Lighting|100% LED, Low Efficacy
         costs:
         #  - value: 0.006
         #    multiplier: [lumens]
@@ -1768,7 +1723,7 @@ upgrades:
           - value: 1400
             multiplier: Fixed (1)
         lifetime: 14
-##Dishwasher
+## Dishwasher
       - option: Dishwasher|199 Rated kWh, 80% Usage
         apply_logic: 
           or:
@@ -1797,9 +1752,9 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 11
 
-### Package 5: Synergistic HVAC + Solar
+### Package 05: Synergistic HVAC + Solar
   - upgrade_name: Heat pumps, Air Sealing, Attic Insulation, and PV
-      options:
+    options:
         # Air Sealing
       - option: Infiltration|18.5 ACH50
         apply_logic: Infiltration|25 ACH50
@@ -1872,14 +1827,13 @@ upgrades:
           and:
             - Mechanical Ventilation|None
             - or:
-              - Infiltration|1.5 ACH50
+              # - Infiltration|1.5 ACH50
               - Infiltration|2 ACH50
-              - Infiltration|2.25 ACH50
+              # - Infiltration|2.25 ACH50
               - Infiltration|3 ACH50
+              # - Infiltration|3.75 ACH50
               - Infiltration|4 ACH50
-              - Infiltration|3.75 ACH50
-              - Infiltration|4 ACH50
-              - Infiltration|4.5 ACH50
+              # - Infiltration|4.5 ACH50
               - Infiltration|5 ACH50
               - Infiltration|6 ACH50
               - Infiltration|7 ACH50
@@ -1889,8 +1843,7 @@ upgrades:
         lifetime: 999
 ## ASHP
       - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF
-        apply_logic: 
-          - HVAC Has Ducts|Yes
+        apply_logic: HVAC Has Ducts|Yes
         costs:
           - value: 4600
             multiplier: Fixed (1)
@@ -1898,23 +1851,20 @@ upgrades:
             multiplier: Size, Heating System (kBtu/h)
         lifetime: 15
       - option: HVAC Cooling Efficiency|Heat Pump
-        apply_logic: 
-          - HVAC Has Ducts|Yes
+        apply_logic: HVAC Has Ducts|Yes
         costs:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 999
       - option: HVAC Heating Type And Fuel|Electricity ASHP
-        apply_logic:
-          - HVAC Has Ducts|Yes
+        apply_logic: HVAC Has Ducts|Yes
         costs:
           - value: 0 
             multiplier: Fixed (1)
         lifetime: 999
-##MSHP
+## MSHP
       - option: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF
-        apply_logic:  
-         - HVAC Has Ducts|No
+        apply_logic: HVAC Has Ducts|No
         costs:
           - value: 2510
             multiplier: Fixed (1)
@@ -1922,22 +1872,19 @@ upgrades:
             multiplier: Size, Heating System (kBtu/h)
         lifetime: 15
       - option: HVAC Cooling Type|Heat Pump 
-        apply_logic:
-          - HVAC Has Ducts|No
+        apply_logic: HVAC Has Ducts|No
         costs:
           - value: 0 
             multiplier: Fixed (1)
         lifetime: 999
       - option: HVAC Cooling Efficiency|Heat Pump
-        apply_logic:
-          - HVAC Has Ducts|No
+        apply_logic: HVAC Has Ducts|No
         costs:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 999
       - option: HVAC Heating Type And Fuel|Electricity MSHP
-        apply_logic:
-          - HVAC Has Ducts|No
+        apply_logic: HVAC Has Ducts|No
         costs:
           - value: 0
             multiplier: Fixed (1)
@@ -1988,6 +1935,7 @@ upgrades:
           - value: 12000
             multiplier: Fixed (1)
         lifetime: 30
+        
 simulation_output:
   include_enduse_subcategories: true
 
@@ -2002,8 +1950,8 @@ timeseries_csv_export:
 #     - not: Heating Fuel|Natural Gas
 
 eagle:
-  n_jobs: 300
-  minutes_per_sim: 30
+  n_jobs: 245
+  minutes_per_sim: 75
   account: chicagoeui
   sampling:
     time: 120
