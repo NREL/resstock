@@ -30,88 +30,101 @@ upgrades:
 
 ###Group 1: Intensive, fuel-agnostic upgrades
 
-##Air Sealing #01, 25% reduction
+## 1. Air Sealing #01, 25% reduction
   - upgrade_name: Air Leakage 25% Reduction, with Mech Vent under 7 ACH50
     options:
-      - option: Infiltration|18.5 ACH50
+      - option: Infiltration|37.5 ACH50 #1
+        apply_logic: Infiltration|50 ACH50
+        costs:
+          - value: 2.17 #based on regression
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|30 ACH50 #2
+        apply_logic: Infiltration|40 ACH50
+        costs:
+          - value: 1.78 #based on regression
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|22.5 ACH50 #3
+        apply_logic: Infiltration|30 ACH50
+        costs:
+          - value: 1.39 #based on regression
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|18.75 ACH50 #4
         apply_logic: Infiltration|25 ACH50
         costs:
           - value: 1.2
             multiplier: Floor Area, Conditioned (ft^2)
         lifetime: 999
-      - option: Infiltration|15 ACH50
+      - option: Infiltration|15 ACH50 #5
         apply_logic: Infiltration|20 ACH50
         costs:
           - value: 1.2
             multiplier: Floor Area, Conditioned (ft^2)
         lifetime: 999
-      - option: Infiltration|11.25 ACH50
+      - option: Infiltration|11.25 ACH50 #6
         apply_logic: Infiltration|15 ACH50
         costs:
           - value: 1.2
             multiplier: Floor Area, Conditioned (ft^2)
         lifetime: 999
-      - option: Infiltration|7.5 ACH50
+      - option: Infiltration|7.5 ACH50 #7
         apply_logic: Infiltration|10 ACH50
         costs:
           - value: 0.63
             multiplier: Floor Area, Conditioned (ft^2)
         lifetime: 999
-      - option: Infiltration|6 ACH50
+      - option: Infiltration|6 ACH50 #8
         apply_logic: Infiltration|8 ACH50
         costs:
           - value: 0.52
             multiplier: Floor Area, Conditioned (ft^2)
         lifetime: 999
-      - option: Infiltration|5.25 ACH50
+      - option: Infiltration|5.25 ACH50 #9
         apply_logic: Infiltration|7 ACH50
         costs:
           - value: 0.52
             multiplier: Floor Area, Conditioned (ft^2)
         lifetime: 999
-      - option: Infiltration|4.5 ACH50
+      - option: Infiltration|4.5 ACH50 #10
         apply_logic: Infiltration|6 ACH50
         costs:
           - value: 0.41
             multiplier: Floor Area, Conditioned (ft^2)
         lifetime: 999
-      - option: Infiltration|3.75 ACH50
+      - option: Infiltration|3.75 ACH50 #11
         apply_logic: Infiltration|5 ACH50
         costs:
           - value: 0.31
             multiplier: Floor Area, Conditioned (ft^2)
         lifetime: 999
-      - option: Infiltration|3 ACH50
+      - option: Infiltration|3 ACH50 #12
         apply_logic: Infiltration|4 ACH50
         costs:
           - value: 0.31
             multiplier: Floor Area, Conditioned (ft^2)
         lifetime: 999
-      - option: Infiltration|2.25 ACH50
+      - option: Infiltration|2.25 ACH50 #13
         apply_logic: Infiltration|3 ACH50
         costs:
           - value: 0.31
             multiplier: Floor Area, Conditioned (ft^2)
         lifetime: 999
-      - option: Infiltration|1.5 ACH50
+      - option: Infiltration|1.5 ACH50 #14
         apply_logic: Infiltration|2 ACH50
         costs:
           - value: 0.31
             multiplier: Floor Area, Conditioned (ft^2)
         lifetime: 999
-      - option: Mechanical Ventilation|Exhaust, 2010 ASHRAE 62.2
+      - option: Mechanical Ventilation|Exhaust, 2010 ASHRAE 62.2 #15
         apply_logic: 
           and:
             - Mechanical Ventilation|None
             - or:
-              - Infiltration|1.5 ACH50
               - Infiltration|2 ACH50
-              - Infiltration|2.25 ACH50
               - Infiltration|3 ACH50
               - Infiltration|4 ACH50
-              - Infiltration|3.75 ACH50
-              - Infiltration|4 ACH50
-              - Infiltration|4.5 ACH50
               - Infiltration|5 ACH50
               - Infiltration|6 ACH50
               - Infiltration|7 ACH50
@@ -120,7 +133,7 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 999
 
-##Air Sealing #02: "Best" air sealing to 1ACH50
+## 2. Air Sealing #02: "Best" air sealing to 1ACH50
   - upgrade_name: Air Leakage to 1ACH50, with Mech Vent
     options:
       - option: Infiltration|1 ACH50
@@ -215,7 +228,7 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 999
 
-##Attic Insulation #01: R-49, vented attics only
+## 3. Attic Insulation #01: R-49, vented attics only (Does not apply to MF)
   - upgrade_name: Attic Insulation, R-49
     options:
       - option: Insulation Unfinished Attic|Ceiling R-49, Vented
@@ -254,7 +267,7 @@ upgrades:
             multiplier: Floor Area, Attic (ft^2)
         lifetime: 999
 
-##Attic Insulation #02: R-60, vented attics only
+## 4. Attic Insulation #02: R-60, vented attics only (does not apply to MF)
   - upgrade_name: Attic Insulation, R-60
     options:
       - option: Insulation Unfinished Attic|Ceiling R-60, Vented
@@ -300,7 +313,7 @@ upgrades:
             multiplier: Floor Area, Attic (ft^2)
         lifetime: 999
 
-##Attic Insulation #03: R-49, finished roof only
+## 5. Attic Insulation #03: R-49, finished roof only (does not apply to SFD)
   - upgrade_name: Finished Roof, R-49
     options:
       - option: Insulation Finished Roof|R-49
@@ -317,22 +330,12 @@ upgrades:
             multiplier: Floor Area, Attic (ft^2)
         lifetime: 999
 
-##Ducts #01
+## 6. Ducts #01
   - upgrade_name: Duct Sealing and Insulation to R-8, 10% Leakage
     options: 
       - option: Ducts|10% Leakage, R-8
         apply_logic:
           or:
-            - Ducts|85% Leakage, Uninsulated
-            - Ducts|53% Leakage, Uninsulated
-            - Ducts|34% Leakage, Uninsulated
-            - Ducts|30% Leakage, Uninsulated
-            - Ducts|85% Leakage, R-4
-            - Ducts|85% Leakage, R-6
-            - Ducts|53% Leakage, R-4
-            - Ducts|53% Leakage, R-6
-            - Ducts|34% Leakage, R-4
-            - Ducts|34% Leakage, R-6
             - Ducts|30% Leakage, R-4
             - Ducts|30% Leakage, R-6
         costs:
@@ -340,12 +343,7 @@ upgrades:
             multiplier: Duct Surface Area (ft^2)
         lifetime: 30
       - option: Ducts|10% Leakage, R-8
-        apply_logic:
-          or:
-            - Ducts|85% Leakage, R-8
-            - Ducts|53% Leakage, R-8
-            - Ducts|34% Leakage, R-8
-            - Ducts|30% Leakage, R-8
+        apply_logic: Ducts|30% Leakage, R-8
         costs:
           - value: 0.81
             multiplier: Duct Surface Area (ft^2)
@@ -353,46 +351,17 @@ upgrades:
       - option: Ducts|10% Leakage, R-8
         apply_logic:
           or:
-            - Ducts|24% Leakage, Uninsulated
-            - Ducts|24% Leakage, R-4
-            - Ducts|24% Leakage, R-6
             - Ducts|20% Leakage, Uninsulated
             - Ducts|20% Leakage, R-4
             - Ducts|20% Leakage, R-6
         costs:
-          - value: 0.4
+          - value: 1.8 # prev 0.4
             multiplier: Duct Surface Area (ft^2)
         lifetime: 30
       - option: Ducts|10% Leakage, R-8
-        apply_logic:
-          or:
-            - Ducts|24% Leakage, R-8
-            - Ducts|20% Leakage, R-8
+        apply_logic: Ducts|20% Leakage, R-8
         costs:
           - value: 0.4
-            multiplier: Duct Surface Area (ft^2)
-        lifetime: 30
-      - option: Ducts|10% Leakage, R-8
-        apply_logic:
-          or:
-            - Ducts|15% Leakage, Uninsulated
-            - Ducts|15% Leakage, R-4
-            - Ducts|15% Leakage, R-6
-            - Ducts|14% Leakage, Uninsulated
-            - Ducts|14% Leakage, R-4
-            - Ducts|14% Leakage, R-6
-            - Ducts|15% Leakage, R-6, 50% Surface Area, 1 return
-        costs:
-          - value: 1.6
-            multiplier: Duct Surface Area (ft^2)
-        lifetime: 30
-      - option: Ducts|10% Leakage, R-8
-        apply_logic:
-          or:
-            - Ducts|15% Leakage, R-8
-            - Ducts|14% Leakage, R-8
-        costs:
-          - value: 0.2
             multiplier: Duct Surface Area (ft^2)
         lifetime: 30
       - option: Ducts|10% Leakage, R-8
@@ -405,33 +374,13 @@ upgrades:
           - value: 1.4
             multiplier: Duct Surface Area (ft^2)
         lifetime: 30
-      - option: Ducts|7.5% Leakage, R-8
-        apply_logic:
-          or:
-            - Ducts|7.5% Leakage, Uninsulated
-            - Ducts|7.5% Leakage, R-4
-            - Ducts|7.5% Leakage, R-6
-        costs:
-          - value: 1.4
-            multiplier: Duct Surface Area (ft^2)
-        lifetime: 30
-      - option: Ducts|6% Leakage, R-8
-        apply_logic:
-          or:
-            - Ducts|6% Leakage, Uninsulated
-            - Ducts|6% Leakage, R-4
-            - Ducts|6% Leakage, R-6
-        costs:
-          - value: 1.4
-            multiplier: Duct Surface Area (ft^2)
-        lifetime: 30
     package_apply_logic: 
       not: 
         or:
           - Ducts|None
           - Ducts|In Finished Space
 
-## Windows #01: Low-E Storm Windows
+## 7. Windows #01: Low-E Storm Windows
   - upgrade_name: Low-E Storm Window
     options:
       - option: Windows|Low-E Storm on Single, Metal
@@ -451,7 +400,7 @@ upgrades:
             multiplier: Window Area (ft^2)
         lifetime: 30
 
-## Windows #02: Double Pane U 0.29 SHGC .56
+## 8. Windows #02: Double Pane U 0.29 SHGC .56
   - upgrade_name: Low-E Double Pane, High-Gain
     options:
       - option: Windows|Low-E, Double, High-Gain
@@ -467,7 +416,7 @@ upgrades:
             multiplier: Window Area (ft^2)
         lifetime: 30
 
-## Windows #03: Double Pane U 0.26 SHGC .31
+## 9. Windows #03: Double Pane U 0.26 SHGC .31
   - upgrade_name: Low-E Double Pane, Low-Gain
     options:
       - option: Windows|Low-E, Double, Low-Gain
@@ -483,7 +432,7 @@ upgrades:
             multiplier: Window Area (ft^2)
         lifetime: 30
 
-## Cool Roof
+## 10. Cool Roof
   - upgrade_name: Cool Roof
     options:
       - option: Roof Material Unfinished Attic|Asphalt Shingles, White or Cool Colors
@@ -496,7 +445,7 @@ upgrades:
             multiplier: Roof Area (ft^2)
         lifetime: 30
 
-##Exterior Wall #01 Wood Stud Drill-and-fill 
+## 11. Exterior Wall #01 Wood Stud Drill-and-fill 
   - upgrade_name: Drill-and-fill Insulation for Wood Wall
     options: 
       - option: Insulation Wall|Wood Stud, R-13
@@ -516,7 +465,7 @@ upgrades:
             multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
         lifetime: 999
 
-##Exterior Wall #02: Drill and Fill + XPS
+## 12. Exterior Wall #02: Drill and Fill + XPS
   - upgrade_name: Drill-and-fill to R-13, R-20 External XPS
     options: 
       - option: Insulation Wall|Wood Stud, R-13, R-20 external XPS
@@ -550,7 +499,7 @@ upgrades:
             multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
         lifetime: 999
 
-##Exterior Wall #03 Wood Stud Drill-and-fill + R-5 sheathing
+## 13. Exterior Wall #03 Wood Stud Drill-and-fill + R-5 sheathing
   - upgrade_name: Drill-and-fill Insulation for Wood wall and R-5 Sheathing
     options: 
       - option: Insulation Wall|Wood Stud, R-13, R-5 Sheathing
@@ -585,7 +534,7 @@ upgrades:
             multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
         lifetime: 999
 
-##Exterior Wall #04 External R-20 XPS for all 
+## 14. Exterior Wall #04 External R-20 XPS for all 
   - upgrade_name: R-20 External XPS
     options: 
       - option: Insulation Wall|Wood Stud, R-19, R-20 external XPS
@@ -666,7 +615,7 @@ upgrades:
             multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
         lifetime: 999
 
-##Foundation #01: Finished Basement R-10
+## 15. Foundation #01: Finished Basement R-10
   - upgrade_name: Finished Basement, R-10
     options:
       - option: Insulation Finished Basement|Wall R-10
@@ -679,7 +628,7 @@ upgrades:
             multiplier: Wall Area, Below-Grade (ft^2)
         lifetime: 999
 
-##Foundation #02: Finished Basement R-15
+## 16. Foundation #02: Finished Basement R-15
   - upgrade_name: Finished Basement, R-15
     options:
       - option: Insulation Finished Basement|Wall R-15
@@ -693,7 +642,7 @@ upgrades:
             multiplier: Wall Area, Below-Grade (ft^2)
         lifetime: 999
 
-##Foundation #03: Crawlspace R-30, Vented, R-13 unvented
+## 17. Foundation #03: Crawlspace R-30, Vented, R-13 unvented
   - upgrade_name: Crawlspace, Vented R-30, Unvented R-13
     options:
       - option: Insulation Crawlspace|Ceiling R-30, Vented
@@ -722,7 +671,7 @@ upgrades:
             #there isn't one for crawlspace ceiling
         lifetime: 999
 
-##Foundation #04: Unfinished Basement, R-13
+## 18. Foundation #04: Unfinished Basement, R-13
   - upgrade_name: Unfinished Basement, R-13
     options:
       - option: Insulation Unfinished Basement|Wall R-13
@@ -736,7 +685,7 @@ upgrades:
             multiplier: Wall Area, Below-Grade (ft^2)
         lifetime: 999
 
-##Foundation #05: Pier and Beam, R-19
+## 19. Foundation #05: Pier and Beam, R-19
   - upgrade_name: Pier and Beam, R-19
     options:
       - option: Insulation Pier Beam|R-19
@@ -751,7 +700,7 @@ upgrades:
             #there isn't one for crawlspace ceiling
         lifetime: 999
 
-##Foundation #06: Pier and Beam, R-38
+## 20. Foundation #06: Pier and Beam, R-38
   - upgrade_name: Pier and Beam, R-38
     options:
       - option: Insulation Pier Beam|R-38
@@ -766,7 +715,7 @@ upgrades:
             multiplier: Floor Area, Attic (ft^2)
         lifetime: 999
 
-##Foundation #08: Insulation Slab, R20
+## 21. Foundation #08: Insulation Slab, R20
   - upgrade_name: Insulation Slab, R20
     options:
       - option: Insulation Slab|R20 Exterior
@@ -786,7 +735,7 @@ upgrades:
 
 ###Group 2: Multi-fuel Upgrades
 
-##Cooling #01: Minimum CAC
+## 22. Cooling #01: Minimum CAC
   - upgrade_name: SEER 18 CAC
     options: 
       - option: HVAC Cooling Efficiency|AC, SEER 18
@@ -804,7 +753,7 @@ upgrades:
             multiplier: Size, Cooling System (kBtu/h)
         lifetime: 16
 
-###Cooling #02: Efficient CAC
+## 23. Cooling #02: Efficient CAC
   - upgrade_name: SEER 24.5 CAC
     options: 
       - option: HVAC Cooling Efficiency|AC, SEER 24.5
@@ -822,7 +771,7 @@ upgrades:
             multiplier: Size, Cooling System (kBtu/h)
         lifetime: 16
 
-###Cooling #03: ASHP
+## 24. Cooling #03: ASHP
   - upgrade_name: SEER 15 ASHP
     options: 
       - option: HVAC Cooling Efficiency|Heat Pump
@@ -864,7 +813,7 @@ upgrades:
             multiplier: Size, Heating System (kBtu/h)
         lifetime: 15
 
-###Cooling #04: ASHP SEER 22
+## 25. Cooling #04: ASHP SEER 22
   - upgrade_name: SEER 22 ASHP
     options: 
       - option: HVAC Cooling Efficiency|Heat Pump
@@ -906,7 +855,7 @@ upgrades:
             multiplier: Size, Heating System (kBtu/h)
         lifetime: 15
 
-###Cooling #05: Efficient Room AC
+## 26. Cooling #05: Efficient Room AC
   - upgrade_name: EnergyStar Room AC
     options: 
       - option: HVAC Cooling Efficiency|Room AC, EER 12.0
@@ -922,7 +871,7 @@ upgrades:
             multiplier: Size, Cooling System (kBtu/h)
         lifetime: 12
 
-###Cooling #06: Room AC to Heat Pump
+## 27. Cooling #06: Room AC to Heat Pump
   - upgrade_name: Room AC to Heat Pump
     options: 
       - option: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF
@@ -984,7 +933,7 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 999
 
-##Heating #01: Non-electric furnace to high efficiency
+## 28. Heating #01: Non-electric furnace to high efficiency
   - upgrade_name: EnergyStar 96% AFUE Natural Gas Furnace 
     options:
       - option: HVAC Heating Efficiency|Fuel Furnace, 96% AFUE
@@ -1012,7 +961,7 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 999
 
-##Heating #02: Non-electric boiler to high efficiency
+## 29. Heating #02: Non-electric boiler to high efficiency
   - upgrade_name: EnergyStar Natural Gas Boiler
     options:
       - option: HVAC Heating Efficiency|Fuel Boiler, 96% AFUE
@@ -1038,7 +987,7 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 999
 
-##Heating #03: Electric Furnaces to Heat Pumps
+## 30. Heating #03: Electric Furnaces to Heat Pumps
   - upgrade_name: Electric Furnace to Heat Pump, High Eff
     options:
       - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF
@@ -1079,7 +1028,7 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 999
 
-##Heating #04: Electric Furnaces to Heat Pumps
+## 31. Heating #04: Electric Furnaces to Heat Pumps
   - upgrade_name: Electric Furnace to Heat Pump, Min Eff
     options:
       - option: HVAC Heating Efficiency|ASHP, SEER 15, 8.5 HSPF
@@ -1102,7 +1051,7 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 999
 
-##Heating #05: Non-ducted electric to MSHP
+## 32. Heating #05: Non-ducted electric to MSHP
   - upgrade_name: Non-ducted Electric to MSHP
     options:
       - option: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF
@@ -1136,7 +1085,7 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 999
 
-##Heating #06: Non-ducted Non-electric to MSHP
+## 33. Heating #06: Non-ducted Non-electric to MSHP
   - upgrade_name: Non-ducted Non-electric to MSHP
     options:
       - option: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF
@@ -1172,7 +1121,7 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 999
 
-##Heating #07: Electrify Non-electric furnaces
+## 34. Heating #07: Electrify Non-electric furnaces
   - upgrade_name: Non-electric Furnace to Heat Pump, High Eff
     options:
       - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF
@@ -1198,7 +1147,7 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 999
 
-##Heating #08: Electrify Non-electric Furnaces
+## 35. Heating #08: Electrify Non-electric Furnaces
   - upgrade_name: Non-electric Furnace to Heat Pump, Min Eff
     options:
       - option: HVAC Heating Efficiency|ASHP, SEER 15, 8.5 HSPF
@@ -1224,7 +1173,7 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 999
 
-## Water Heating #01: Non-electric DWH to Premium NG Tank
+## 36. Water Heating #01: Non-electric DWH to Premium NG Tank
   - upgrade_name: Condensing NG Tank Water Heater
     options:
       - option: Water Heater|Gas Premium, Condensing
@@ -1243,7 +1192,7 @@ upgrades:
             multiplier: Size, Water Heater (gal)
         lifetime: 13
 
- ##Water Heating #02: Non-electric DWH to Premium NG Tankless
+## 37. Water Heating #02: Non-electric DWH to Premium NG Tankless
   - upgrade_name: NG Tankless Water Heater
     options:
       - option: Water Heater|Gas Tankless, Condensing
@@ -1260,7 +1209,7 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 20
 
-## Water HEating #03: Electric to 50 gal HPWH
+## 38. Water Heating #03: Electric to 50 gal HPWH
   - upgrade_name: Electric Water Heater to 50 gal HPWH
     options:
       - option: Water Heater|Electric Heat Pump, 50 gal
@@ -1273,7 +1222,7 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 12
 
-## Water Heating #04: Electric to 80 gal HPWH
+## 39. Water Heating #04: Electric to 80 gal HPWH
   - upgrade_name: Electric Water Heater to 80 gal HPWH
     options:
       - option: Water Heater|Electric Heat Pump, 80 gal
@@ -1286,7 +1235,7 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 12
 
-##Water Heating #05: Fuel switching 50 gal HPWH
+## 40. Water Heating #05: Fuel switching 50 gal HPWH
   - upgrade_name: Non-electric Water Heater to 50 gal HPWH
     options:
       - option: Water Heater|Electric Heat Pump, 50 gal
@@ -1303,7 +1252,7 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 12
 
-## Water Heating #06: Fuel switching to 80 gal HPWH
+## 41. Water Heating #06: Fuel switching to 80 gal HPWH
   - upgrade_name: Non-electric Water Heater to 80 gal HPWH
     options:
       - option: Water Heater|Electric Heat Pump, 80 gal
@@ -1320,7 +1269,7 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 12
 
-##Clothes Dryer #01: Electric to HP Dryer
+## 42. Clothes Dryer #01: Electric to HP Dryer
   - upgrade_name: Electric Clothes Dryer to HPCD
     options:
       - option: Clothes Dryer|Electric, Heat Pump, Ventless, 80% Usage
@@ -1350,7 +1299,7 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 13
 
-##Clothes Dryer #02: Fossil fuel dryer to electric premium
+## 43. Clothes Dryer #02: Fossil fuel dryer to electric premium
   - upgrade_name: Electrify Non-electric Clothes Dryer
     options:
       - option: Clothes Dryer|Electric, Premium, EnergyStar 80% Usage
@@ -1381,7 +1330,7 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 13
 
-##Clothes Dryer #03: None-electric dryer to electric HP
+## 44. Clothes Dryer #03: None-electric dryer to electric HP
   - upgrade_name: Non-electric Clothes Dryer to HPCD
     options:
       - option: Clothes Dryer|Electric, Heat Pump, Ventless, 80% Usage
@@ -1412,7 +1361,7 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 13
 
-##Pools #01: Pumps
+## 45. Pools #01: Pumps (does not apply to MF)
   - upgrade_name: Efficient Pool Pump
     options:
       - option: Misc Pool Pump|0.75 HP Pump
@@ -1422,7 +1371,7 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 12
 
-##Pools #02: Heater
+## 46. Pools #02: Heater (does not apply to MF)
   - upgrade_name: Electrify Pool Heating
     options:
       - option: Misc Pool Heater|Electric, Covered, 78F
@@ -1434,7 +1383,7 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 7
 
-##Cooking Range #01: Electrification 
+## 47. Cooking Range #01: Electrification 
   - upgrade_name: Electrify Non-electric Cooking
     options:
       - option: Cooking Range|Electric, 80% Usage
@@ -1465,7 +1414,7 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 13
 
-##Cooking Range #02: Electrification to Induction Cooking
+## 48. Cooking Range #02: Electrification to Induction Cooking
   - upgrade_name: Non-electric Cooking to Induction
     options:
       - option: Cooking Range|Electric, Induction
@@ -1482,7 +1431,7 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 13
 
-##Cooking Range #03: Electric Cooking to Induction
+## 49. Cooking Range #03: Electric Cooking to Induction
   - upgrade_name: Electric Cooking to Induction
     options:
       - option: Cooking Range|Electric, Induction
@@ -1502,18 +1451,14 @@ upgrades:
 
 ### Need to develop, can't transfer from other repo
 
-##Lighting #01: All LEDs
+## 50. Lighting #01: All LEDs
   - upgrade_name: LED
     options:
       - option: Lighting|100% LED
         apply_logic:
           or:
             - Lighting|100% Incandescent
-            - Lighting|60% CFL Hardwired, 34% CFL Plugin
-            - Lighting|60% LED Hardwired, 34% CFL Plugin
-            - Lighting|60% CFL
             - Lighting|100% CFL
-            - Lighting|100% LED, Low Efficacy
         costs:
         #  - value: 0.006
         #    multiplier: [lumens]
@@ -1521,7 +1466,7 @@ upgrades:
             multiplier: Floor Area, Lighting (ft^2)
         lifetime: 78.28
 
-##Refrigerator #01: EnergyStar
+## 51. Refrigerator #01: EnergyStar
   - upgrade_name: EnergyStar Refrigerator
     options:
       - option: Refrigerator|EF 19.9
@@ -1531,7 +1476,7 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 17.4
 
-##Refrigerator #02: EnergyStar Most Efficient
+## 52. Refrigerator #02: EnergyStar Most Efficient
   - upgrade_name: EnergyStar Refrigerator, Most Eff
     options:
       - option: Refrigerator|EF 22.2, EnergyStar Most Efficient
@@ -1546,7 +1491,7 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 17.4
 
-##Clothes Washer #01: EnergyStar 123 kWh
+## 53. Clothes Washer #01: EnergyStar 123 kWh
   - upgrade_name: EnergyStar Clothes Washer
     options:
       - option: Clothes Washer|EnergyStar, 80% Usage
@@ -1568,7 +1513,7 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 14
 
-##Clothes Washer #02: EnergyStar Most Efficient 75 kWh
+## 54. Clothes Washer #02: EnergyStar Most Efficient 75 kWh
   - upgrade_name: EnergyStar Clothes Washer, Most Eff
     options:
       - option: Clothes Washer|EnergyStar Most Efficient, 80% Usage
@@ -1599,7 +1544,7 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 14
 
-##Dishwasher #01: EnergyStar 290 kWh
+## 55. Dishwasher #01: EnergyStar 290 kWh
   - upgrade_name: EnergyStar Dishwasher
     options:
       - option: Dishwasher|290 Rated kWh, 80% Usage
@@ -1621,7 +1566,7 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 11
 
-##Dishwasher #02: EnergyStar Most Efficient 199 kWh
+## 56. Dishwasher #02: EnergyStar Most Efficient 199 kWh
   - upgrade_name: EnergyStar Dishwasher, Most Eff
     options:
       - option: Dishwasher|199 Rated kWh, 80% Usage
@@ -1652,7 +1597,7 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 11
 
-##Plug Loads #01: 25% Reduction
+## 57. Plug Loads #01: 25% Reduction
   - upgrade_name: Plug Loads 25% Reduction
     options:
       - option: Plug Loads|25%
@@ -1674,7 +1619,7 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 20
 
-## PV: 4 kW system
+## 58. PV: 4 kW system
   - upgrade_name: Rooftop Solar, 4 kW
     options:
       - option: PV|4.0 kW, South, Roof Pitch
@@ -1698,7 +1643,10 @@ timeseries_csv_export:
 # downselect:
 #   resample: false
 #   logic:
-#     - not: Heating Fuel|Natural Gas
+#     or:
+#       - Geometry Building Type RECS|Single-Family Detached
+#       - Geometry Building Type RECS|Multi-Family with 2 - 4 Units
+#       - Geometry Building Type RECS|Multi-Family with 5+ Units
 
 eagle:
   n_jobs: 300
