@@ -744,6 +744,10 @@ class Waterheater
       t_set_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Schedule Value")
       t_set_sensor.setName("#{obj_name_hpwh} T_set")
       t_set_sensor.setKeyName("#{obj_name_hpwh} HPSchedule")
+    else
+      t_set_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Schedule Value")
+      t_set_sensor.setName("#{obj_name_hpwh} T_set")
+      t_set_sensor.setKeyName("#{obj_name_hpwh} WaterHeaterHPSchedule")
     end
 
     # Check if operating mode is constant or scheduled
@@ -768,7 +772,7 @@ class Waterheater
       else
         hpwh_ctrl_program.addLine("If (#{amb_temp_sensor.name}<#{UnitConversions.convert(min_temp, "F", "C").round(2)}) || (#{amb_temp_sensor.name}>#{UnitConversions.convert(max_temp, "F", "C").round(2)})")
       end
-      hpwh_ctrl_program.addLine("Set #{leschedoverride_actuator.name} = #{obj_name_hpwh} T_set")
+      hpwh_ctrl_program.addLine("Set #{leschedoverride_actuator.name} = #{t_set_sensor.name}")
       hpwh_ctrl_program.addLine("Else")
       hpwh_ctrl_program.addLine("Set #{leschedoverride_actuator.name} = 0")
       hpwh_ctrl_program.addLine("EndIf")
