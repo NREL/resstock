@@ -25,6 +25,7 @@ Fixes
 - Reintroduce IECC climate zone dependency to HVAC Cooling Type and some heat pump fixes ([#497](https://github.com/NREL/resstock/pull/497))
 - Reintroduce monthly multipliers with stochastic load model for dishwasher, clothes washer and clothes dryer and cooking ([#504](https://github.com/NREL/resstock/pull/504))
 - Account for collapsed units when determining geometry variables (building floor/wall area and volume) in infiltration calculations; add airflow unit tests ([#518](https://github.com/NREL/resstock/pull/518))
+- Fix for calculating door and below-grade wall area of multifamily and single-family attached buildings with collapsed geometries ([#523](https://github.com/NREL/resstock/pull/523))
 - In the Corridor.tsv, assign single-family attached, single-family detached, and mobile homes with a "Not Applicable" option. ([#502](https://github.com/NREL/resstock/pull/522))
 
 ## ResStock v2.3.0
