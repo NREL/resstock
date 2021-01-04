@@ -100,9 +100,12 @@ class Waterheater
       runner.registerError("Rated energy factor must be greater than 0 and less than or equal to 1.")
       return false
     end
-    if t_set <= 0 or t_set >= 212
-      runner.registerError("Hot water temperature must be greater than 0 and less than 212.")
+    if t_set < 0 or t_set > 212
+      runner.registerError("Water heater temperature setpoint must not be less than 0F or greater than 212F.")
       return false
+    end
+    if t_set < 110 or t_set > 140
+      runner.registerWarning("Water heater temperature setpoint is outside of recommended range (110F - 140F).")
     end
     if cap <= 0
       runner.registerError("Nominal capacity must be greater than 0.")
@@ -175,9 +178,12 @@ class Waterheater
       runner.registerError("Storage tank volume must be greater than 0.")
       return false
     end
-    if t_set <= 0.0 or t_set >= 212.0
-      runner.registerError("Hot water temperature must be greater than 0 and less than 212.")
+    if (sp_type == Constants.WaterHeaterSetpointTypeConstant) and (t_set < 0 or t_set > 212)
+      runner.registerError("Water heater temperature setpoint must not be less than 0F or greater than 212F.")
       return false
+    end
+    if (sp_type == Constants.WaterHeaterSetpointTypeConstant) and (t_set < 110 or t_set > 140)
+      runner.registerWarning("Water heater temperature setpoint is outside of recommended range (110F - 140F).")
     end
     if e_cap < 0.0
       runner.registerError("Element capacity must be greater than 0.")
@@ -1182,7 +1188,7 @@ class Waterheater
       return plant_loop
     end
 
-    runner.registerError("Could not find plant loop.")
+    runner.registerWarning("Could not find plant loop.")
     return nil
   end
 
