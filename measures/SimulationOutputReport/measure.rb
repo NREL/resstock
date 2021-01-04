@@ -762,16 +762,6 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
             cost_mult += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
           end
-
-        elsif cost_mult_type == "Wall Area, Below-Grade (ft^2)"
-          # Walls adjacent to ground
-          space.surfaces.each do |surface|
-            next if surface.surfaceType.downcase != "wall"
-            next if surface.outsideBoundaryCondition.downcase != "ground" and surface.outsideBoundaryCondition.downcase != "foundation"
-
-            cost_mult += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
-          end
-
         elsif cost_mult_type == "Floor Area, Conditioned (ft^2)"
           # Floors of conditioned zone
           space.surfaces.each do |surface|
@@ -877,10 +867,10 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       end
 
     elsif cost_mult_type == "Wall Area, Below-Grade (ft^2)"
-      # Walls adjacent to ground
+      foundation_walls = []
+
+      # Exterior foundation walls
       model.getSurfaces.each do |surface|
-        space = surface.space.get
-        next if space.buildingUnit.is_initialized
         next if surface.surfaceType.downcase != "wall"
         next if surface.outsideBoundaryCondition.downcase != "ground" and surface.outsideBoundaryCondition.downcase != "foundation"
 

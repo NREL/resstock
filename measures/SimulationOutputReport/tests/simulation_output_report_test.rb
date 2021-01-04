@@ -337,6 +337,27 @@ class SimulationOutputReportTest < MiniTest::Test
     _test_cost_multipliers("SFA_2story_UB_ASHP2_HPWH.osm", cost_multipliers)
   end
 
+  # TO-DO
+  # def test_SFA_2story_FB_FuelBoiler_RoomAC_FuelTankWH
+  #   cost_multipliers = {
+  #     "Fixed (1)" => 1,
+  #     "Wall Area, Above-Grade, Conditioned (ft^2)" => 585.05,
+  #     "Wall Area, Above-Grade, Exterior (ft^2)" => 622.5,
+  #     "Wall Area, Below-Grade (ft^2)" => 892.97,
+  #     "Floor Area, Conditioned (ft^2)" => 500,
+  #     "Floor Area, Attic (ft^2)" => 666.67,
+  #     "Floor Area, Lighting (ft^2)" => 500,
+  #     "Roof Area (ft^2)" => 745.36,
+  #     "Window Area (ft^2)" => 304.05,
+  #     "Door Area (ft^2)" => 20 * 1,
+  #     "Size, Heating System (kBtu/h)" => 400,
+  #     "Size, Heating Supplemental System (kBtu/h)" => 0, # backup
+  #     "Size, Cooling System (kBtu/h)" => 144,
+  #     "Size, Water Heater (gal)" => 30 * 1,
+  #   }
+  #   _test_cost_multipliers("SFA_2story_FB_FuelBoiler_RoomAC_FuelTankWH.osm", cost_multipliers)
+  # end
+
   def test_MF_2story_UB_ASHP2_HPWH
     cost_multipliers = {
       "Fixed (1)" => 1,
@@ -355,6 +376,26 @@ class SimulationOutputReportTest < MiniTest::Test
       "Size, Water Heater (gal)" => 50,
     }
     _test_cost_multipliers("MF_2story_UB_ASHP2_HPWH.osm", cost_multipliers)
+  end
+
+  def test_MF_1story_UB_Furnace_AC1_FuelTankWH
+    cost_multipliers = {
+      "Fixed (1)" => 1,
+      "Wall Area, Above-Grade, Conditioned (ft^2)" => 373.3,
+      "Wall Area, Above-Grade, Exterior (ft^2)" => 373.3 + 40,
+      "Wall Area, Below-Grade (ft^2)" => 373.3 + 40,
+      "Floor Area, Conditioned (ft^2)" => 500,
+      "Floor Area, Attic (ft^2)" => 0,
+      "Floor Area, Lighting (ft^2)" => 500,
+      "Roof Area (ft^2)" => 583,
+      "Window Area (ft^2)" => 67.2,
+      "Door Area (ft^2)" => 20 * 1,
+      "Size, Heating System (kBtu/h)" => 100 * 1,
+      "Size, Heating Supplemental System (kBtu/h)" => 0, # backup
+      "Size, Cooling System (kBtu/h)" => 60 * 1,
+      "Size, Water Heater (gal)" => 30 * 1,
+    }
+    _test_cost_multipliers("MF_1story_UB_Furnace_AC1_FuelTankWH.osm", cost_multipliers)
   end
 
   private
