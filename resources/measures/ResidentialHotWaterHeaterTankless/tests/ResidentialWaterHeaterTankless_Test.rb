@@ -113,14 +113,14 @@ class ResidentialHotWaterHeaterTanklessTest < MiniTest::Test
     args_hash = {}
     args_hash["setpoint_temp"] = -10
     result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "Hot water temperature must be greater than 0 and less than 212.")
+    assert_equal(result.errors.map { |x| x.logMessage }[0], "Water heater temperature setpoint must not be less than 0F or greater than 212F.")
   end
 
   def test_argument_error_setpoint_lg_300
     args_hash = {}
     args_hash["setpoint_temp"] = 300
     result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "Hot water temperature must be greater than 0 and less than 212.")
+    assert_equal(result.errors.map { |x| x.logMessage }[0], "Water heater temperature setpoint must not be less than 0F or greater than 212F.")
   end
 
   def test_argument_error_capacity_lt_0
