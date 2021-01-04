@@ -130,8 +130,14 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     # Load buildstock_file
     resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), "..", "..", "lib", "resources")) # Should have been uploaded per 'Other Library Files' in analysis spreadsheet
     buildstock_file = File.join(resources_dir, "buildstock.rb")
-    require File.join(File.dirname(buildstock_file), File.basename(buildstock_file, File.extname(buildstock_file)))
-
+    if File.exists? buildstock_file
+      require File.join(File.dirname(buildstock_file), File.basename(buildstock_file, File.extname(buildstock_file)))
+    else
+      # Use buildstock.rb in /resources if running locally
+      resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), "../../resources/"))
+      buildstock_file = File.join(resources_dir, "buildstock.rb")
+      require File.join(File.dirname(buildstock_file), File.basename(buildstock_file, File.extname(buildstock_file)))
+    end
     total_site_units = "MBtu"
     elec_site_units = "kWh"
     gas_site_units = "therm"
@@ -771,16 +777,6 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
             cost_mult += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
           end
-
-        elsif cost_mult_type == "Wall Area, Below-Grade (ft^2)"
-          # Walls adjacent to ground
-          space.surfaces.each do |surface|
-            next if surface.surfaceType.downcase != "wall"
-            next if surface.outsideBoundaryCondition.downcase != "ground" and surface.outsideBoundaryCondition.downcase != "foundation"
-
-            cost_mult += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
-          end
-
         elsif cost_mult_type == "Floor Area, Conditioned (ft^2)"
           # Floors of conditioned zone
           space.surfaces.each do |surface|
@@ -898,14 +894,41 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       end
 
     elsif cost_mult_type == "Wall Area, Below-Grade (ft^2)"
-      # Walls adjacent to ground
+      foundation_walls = []
+
+      # Exterior foundation walls
       model.getSurfaces.each do |surface|
-        space = surface.space.get
-        next if space.buildingUnit.is_initialized
         next if surface.surfaceType.downcase != "wall"
         next if surface.outsideBoundaryCondition.downcase != "ground" and surface.outsideBoundaryCondition.downcase != "foundation"
 
-        cost_mult += UnitConversions.convert(surface.grossArea, "m^2", "ft^2") * collapsed_factor
+        foundation_walls << surface
+        # Collapsed foundation wall area (walls below units + corridor)
+        cost_mult += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
+      end
+
+      model.getSurfaces.each do |surface|
+        space = surface.space.get
+        next if surface.surfaceType.downcase != "floor"
+        next if surface.outsideBoundaryCondition.downcase == "ground" or surface.outsideBoundaryCondition.downcase == "foundation"
+        next if space.zOrigin != 0
+
+        floor_surface = surface
+
+        units_represented = 1
+        if space.buildingUnit.is_initialized
+          unit = space.buildingUnit.get
+          if unit.additionalProperties.getFeatureAsInteger("Units Represented").is_initialized
+            units_represented = unit.additionalProperties.getFeatureAsInteger("Units Represented").get
+          end
+        end
+
+        next if units_represented <= 1 # Walls under collapsed units are already added
+
+        connected_found_walls = Geometry.get_walls_connected_to_floor(foundation_walls, floor_surface, same_space = false)
+        connected_found_walls.each do |surface|
+          # Add the collapsed walls below units
+          cost_mult += UnitConversions.convert(surface.grossArea, "m^2", "ft^2") * (units_represented - 1)
+        end
       end
 
     elsif cost_mult_type == "Floor Area, Conditioned (ft^2)"
@@ -985,7 +1008,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
         surface.subSurfaces.each do |sub_surface|
           next if not sub_surface.subSurfaceType.downcase.include? "door"
 
-          cost_mult += UnitConversions.convert(sub_surface.grossArea, "m^2", "ft^2")
+          cost_mult += UnitConversions.convert(sub_surface.grossArea, "m^2", "ft^2") * collapsed_factor
         end
       end
 

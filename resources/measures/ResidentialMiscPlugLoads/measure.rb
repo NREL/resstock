@@ -47,11 +47,18 @@ class ResidentialMiscElectricLoads < OpenStudio::Measure::ModelMeasure
     args << option_type
 
     # make a double argument for BA Benchmark multiplier
-    mult = OpenStudio::Measure::OSArgument::makeDoubleArgument("mult", true)
-    mult.setDisplayName("#{Constants.OptionTypePlugLoadsMultiplier}")
-    mult.setDefaultValue(1)
-    mult.setDescription("A multiplier on the national average energy use, which is calculated as: (1108.1 + 180.2 * Nbeds + 0.2785 * FFA), where Nbeds is the number of bedrooms and FFA is the finished floor area in sqft.")
-    args << mult
+    energy_mult = OpenStudio::Measure::OSArgument::makeDoubleArgument("energy_mult", true)
+    energy_mult.setDisplayName("Energy: #{Constants.OptionTypePlugLoadsMultiplier}")
+    energy_mult.setDefaultValue(1)
+    energy_mult.setDescription("A multiplier on the national average energy use, which is calculated as: (1146.95 + 296.94 * Noccupants + 0.3 * FFA) for single-family detached, (1395.84 + 136.53 * Noccupants + 0.16 * FFA) for single-family attached, and (875.22 + 184.11 * Noccupants + 0.38 * FFA) for multifamily, where Noccupants is the number of occupants and FFA is the finished floor area in sqft.")
+    args << energy_mult
+
+    # make a double argument for diversity multiplier
+    diversity_mult = OpenStudio::Measure::OSArgument::makeDoubleArgument("diversity_mult", true)
+    diversity_mult.setDisplayName("Diversity: #{Constants.OptionTypePlugLoadsMultiplier}")
+    diversity_mult.setDefaultValue(1)
+    diversity_mult.setDescription("A diversity multiplier on the energy mutliplier.")
+    args << diversity_mult
 
     # make a double argument for annual energy use
     energy_use = OpenStudio::Measure::OSArgument::makeDoubleArgument("energy_use", true)
@@ -89,7 +96,8 @@ class ResidentialMiscElectricLoads < OpenStudio::Measure::ModelMeasure
 
     # assign the user inputs to variables
     option_type = runner.getStringArgumentValue("option_type", user_arguments)
-    mult = runner.getDoubleArgumentValue("mult", user_arguments)
+    energy_mult = runner.getDoubleArgumentValue("energy_mult", user_arguments)
+    diversity_mult = runner.getDoubleArgumentValue("diversity_mult", user_arguments)
     energy_use = runner.getDoubleArgumentValue("energy_use", user_arguments)
     sens_frac = runner.getDoubleArgumentValue("sens_frac", user_arguments)
     lat_frac = runner.getDoubleArgumentValue("lat_frac", user_arguments)
@@ -129,6 +137,8 @@ class ResidentialMiscElectricLoads < OpenStudio::Measure::ModelMeasure
         if ffa.nil?
           return false
         end
+
+        mult = energy_mult * diversity_mult
 
         if [Constants.BuildingTypeSingleFamilyDetached].include? Geometry.get_building_type(model) # single-family detached equation
           mel_ann = (1146.95 + 296.94 * noccupants + 0.3 * ffa) * mult # RECS 2015
