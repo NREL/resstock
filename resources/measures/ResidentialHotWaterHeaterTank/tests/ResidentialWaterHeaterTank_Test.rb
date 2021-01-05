@@ -813,7 +813,6 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     assert_in_epsilon(expected_values["OffCycle"], actual_values["OffCycle"], 0.01)
     assert_in_epsilon(expected_values["SkinLossFrac"], actual_values["SkinLossFrac"], 0.01)
     if not expected_values["StorageTankSetpoint1"].nil? and not expected_values["StorageTankSetpoint2"].nil?
-      puts("checking")
       assert_in_epsilon(expected_values["StorageTankSetpoint1"], actual_values["StorageTankSetpoint1"], 0.01)
       assert_in_epsilon(expected_values["StorageTankSetpoint2"], actual_values["StorageTankSetpoint2"], 0.01)
     end

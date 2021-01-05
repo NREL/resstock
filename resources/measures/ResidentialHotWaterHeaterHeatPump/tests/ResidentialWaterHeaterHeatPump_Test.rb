@@ -492,10 +492,8 @@ class ResidentialHotWaterHeaterHeatPumpTest < MiniTest::Test
 
     num_new_whs = 0
     all_new_objects.each do |obj_type, new_objects|
-      puts(obj_type)
       new_objects.each do |new_object|
         if obj_type == "ScheduleFixedInterval" or obj_type == "ScheduleConstant" or obj_type == "ScheduleRuleset" or obj_type == "EnergyManagementSystemSensor"
-          puts("  name:  #{new_object.name}")
         end
         next if not new_object.respond_to?("to_#{obj_type}")
 

@@ -464,7 +464,6 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
     end
 
     model.getEnergyManagementSystemSensors.each do |sensor|
-      # puts("sensor:  #{sensor.name.to_s}")
       if sensor.name.to_s.start_with? obj_name_sh.gsub(' ', '_')
         sensor.remove
       end
