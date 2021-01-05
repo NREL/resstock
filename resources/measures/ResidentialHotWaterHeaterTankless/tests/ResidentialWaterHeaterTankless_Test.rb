@@ -93,7 +93,7 @@ class ResidentialHotWaterHeaterTanklessTest < MiniTest::Test
   def test_retrofit_replace_hpwh_with_tankless_gas
     args_hash = {}
     args_hash["fuel_type"] = Constants.FuelTypeGas
-    expected_num_del_objects = { "WaterHeaterStratified" => 1, "ScheduleConstant" => 5, "CoilWaterHeatingAirToWaterHeatPumpWrapped" => 1, "FanOnOff" => 1, "WaterHeaterHeatPumpWrappedCondenser" => 1, "OtherEquipment" => 2, "OtherEquipmentDefinition" => 2, "EnergyManagementSystemProgramCallingManager" => 1, "EnergyManagementSystemProgram" => 2, "EnergyManagementSystemActuator" => 7, "EnergyManagementSystemSensor" => 9, "EnergyManagementSystemTrendVariable" => 3 }
+    expected_num_del_objects = { "WaterHeaterStratified" => 1, "ScheduleConstant" => 5, "CoilWaterHeatingAirToWaterHeatPumpWrapped" => 1, "FanOnOff" => 1, "WaterHeaterHeatPumpWrappedCondenser" => 1, "OtherEquipment" => 2, "OtherEquipmentDefinition" => 2, "EnergyManagementSystemProgramCallingManager" => 1, "EnergyManagementSystemProgram" => 2, "EnergyManagementSystemActuator" => 7, "EnergyManagementSystemSensor" => 10, "EnergyManagementSystemTrendVariable" => 3 }
     expected_num_new_objects = { "WaterHeaterMixed" => 1, "ScheduleConstant" => 1 }
     expected_values = { "InputCapacity" => 29307107, "ThermalEfficiency" => 0.754, "Setpoint" => 125, "OnCycle" => 7.38, "OffCycle" => 7.38, "FuelType" => Constants.FuelTypeGas }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_HPWH.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)

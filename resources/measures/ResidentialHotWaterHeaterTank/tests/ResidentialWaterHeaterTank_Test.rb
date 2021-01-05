@@ -260,7 +260,7 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     args_hash["energy_factor"] = "0.95"
     args_hash["capacity"] = "18.77"
     args_hash["tank_model_type"] = "stratified"
-    expected_num_del_objects = { "WaterHeaterStratified" => 1, "ScheduleConstant" => 5, "CoilWaterHeatingAirToWaterHeatPumpWrapped" => 1, "FanOnOff" => 1, "WaterHeaterHeatPumpWrappedCondenser" => 1, "OtherEquipment" => 2, "OtherEquipmentDefinition" => 2, "EnergyManagementSystemProgramCallingManager" => 1, "EnergyManagementSystemProgram" => 2, "EnergyManagementSystemActuator" => 7, "EnergyManagementSystemSensor" => 9, "EnergyManagementSystemTrendVariable" => 3 }
+    expected_num_del_objects = { "WaterHeaterStratified" => 1, "ScheduleConstant" => 5, "CoilWaterHeatingAirToWaterHeatPumpWrapped" => 1, "FanOnOff" => 1, "WaterHeaterHeatPumpWrappedCondenser" => 1, "OtherEquipment" => 2, "OtherEquipmentDefinition" => 2, "EnergyManagementSystemProgramCallingManager" => 1, "EnergyManagementSystemProgram" => 2, "EnergyManagementSystemActuator" => 7, "EnergyManagementSystemSensor" => 10, "EnergyManagementSystemTrendVariable" => 3 }
     expected_num_new_objects = { "WaterHeaterStratified" => 1, "ScheduleConstant" => 1 }
     expected_values = { "TankVolume" => 50, "InputCapacity" => 5.5, "ThermalEfficiency" => 1.0, "TankUA" => 0.124, "OnCycle" => 0, "OffCycle" => 0, "FuelType" => Constants.FuelTypeElectric, "SkinLossFrac" => 1.0 }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_HPWH.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
@@ -275,7 +275,7 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     args_hash["setpoint_type"] = "scheduled"
     args_hash["schedule_directory"] = "./resources"
     args_hash["setpoint_schedule"] = "hourly_setpoint_schedule.csv"
-    expected_num_del_objects = { "WaterHeaterStratified" => 1, "ScheduleConstant" => 5, "CoilWaterHeatingAirToWaterHeatPumpWrapped" => 1, "FanOnOff" => 1, "WaterHeaterHeatPumpWrappedCondenser" => 1, "OtherEquipment" => 2, "OtherEquipmentDefinition" => 2, "EnergyManagementSystemProgramCallingManager" => 1, "EnergyManagementSystemProgram" => 2, "EnergyManagementSystemActuator" => 7, "EnergyManagementSystemSensor" => 9, "EnergyManagementSystemTrendVariable" => 3 }
+    expected_num_del_objects = { "WaterHeaterStratified" => 1, "ScheduleConstant" => 5, "CoilWaterHeatingAirToWaterHeatPumpWrapped" => 1, "FanOnOff" => 1, "WaterHeaterHeatPumpWrappedCondenser" => 1, "OtherEquipment" => 2, "OtherEquipmentDefinition" => 2, "EnergyManagementSystemProgramCallingManager" => 1, "EnergyManagementSystemProgram" => 2, "EnergyManagementSystemActuator" => 7, "EnergyManagementSystemSensor" => 10, "EnergyManagementSystemTrendVariable" => 3 }
     expected_num_new_objects = { "WaterHeaterStratified" => 1, "ScheduleFixedInterval" => 1 }
     expected_values = { "TankVolume" => 50, "InputCapacity" => 5.5, "ThermalEfficiency" => 1.0, "TankUA" => 0.124, "OnCycle" => 0, "OffCycle" => 0, "FuelType" => Constants.FuelTypeElectric, "SkinLossFrac" => 1.0 }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_HPWH.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
@@ -383,7 +383,7 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
   def test_retrofit_replace_hpwh_with_tank_gas
     args_hash = {}
     args_hash["fuel_type"] = Constants.FuelTypeGas
-    expected_num_del_objects = { "WaterHeaterStratified" => 1, "ScheduleConstant" => 5, "CoilWaterHeatingAirToWaterHeatPumpWrapped" => 1, "FanOnOff" => 1, "WaterHeaterHeatPumpWrappedCondenser" => 1, "OtherEquipment" => 2, "OtherEquipmentDefinition" => 2, "EnergyManagementSystemProgramCallingManager" => 1, "EnergyManagementSystemProgram" => 2, "EnergyManagementSystemActuator" => 7, "EnergyManagementSystemSensor" => 9, "EnergyManagementSystemTrendVariable" => 3 }
+    expected_num_del_objects = { "WaterHeaterStratified" => 1, "ScheduleConstant" => 5, "CoilWaterHeatingAirToWaterHeatPumpWrapped" => 1, "FanOnOff" => 1, "WaterHeaterHeatPumpWrappedCondenser" => 1, "OtherEquipment" => 2, "OtherEquipmentDefinition" => 2, "EnergyManagementSystemProgramCallingManager" => 1, "EnergyManagementSystemProgram" => 2, "EnergyManagementSystemActuator" => 7, "EnergyManagementSystemSensor" => 10, "EnergyManagementSystemTrendVariable" => 3 }
     expected_num_new_objects = { "WaterHeaterMixed" => 1, "ScheduleConstant" => 1 }
     expected_values = { "TankVolume" => 40, "InputCapacity" => 11.72, "ThermalEfficiency" => 0.773, "TankUA" => 7.88, "Setpoint" => 125, "OnCycle" => 0, "OffCycle" => 0, "FuelType" => Constants.FuelTypeGas, "SkinLossFrac" => 0.64 }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_HPWH.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)

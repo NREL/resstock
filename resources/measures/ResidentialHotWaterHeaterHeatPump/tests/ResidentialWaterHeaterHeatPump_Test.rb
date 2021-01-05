@@ -152,6 +152,31 @@ class ResidentialHotWaterHeaterHeatPumpTest < MiniTest::Test
     _test_measure(model, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
+  def test_retrofit_replace_50_with_80_scheduled
+    args_hash = {}
+    expected_num_del_objects = {}
+    expected_num_new_objects = { "WaterHeaterStratified" => 1, "PlantLoop" => 1, "PumpVariableSpeed" => 1, "WaterHeaterHeatPumpWrappedCondenser" => 1, "CoilWaterHeatingAirToWaterHeatPumpWrapped" => 1, "FanOnOff" => 1, "OtherEquipment" => 2, "OtherEquipmentDefinition" => 2, "EnergyManagementSystemSensor" => 10, "EnergyManagementSystemActuator" => 7, "EnergyManagementSystemTrendVariable" => 3, "EnergyManagementSystemProgram" => 2, "EnergyManagementSystemProgramCallingManager" => 1, "ScheduleConstant" => 7, "ScheduleRuleset" => 7 }
+    expected_values = { "TankVolume" => 45, "Heater1Height" => 0.732, "Heater2Height" => 0.129, "TankU" => 1.13, "OnCycle" => 3, "OffCycle" => 3, "CondBottom" => 0.0870, "CondTop" => 0.560, "AirflowRate" => 0.0854, "Sensor1Height" => 0.818, "Sensor2Height" => 0.818, "Cap" => 1400, "COP" => 2.8, "SHR" => 0.88, "WBTemp" => 13.08, "FanEff" => 0.235 }
+    model = _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
+    args_hash = {}
+    args_hash["storage_tank_volume"] = "80"
+    args_hash["max_temp"] = "110"
+    args_hash["cap"] = "0.979"
+    args_hash["cop"] = "2.4"
+    args_hash["shr"] = "0.98"
+    args_hash["airflow_rate"] = "480"
+    args_hash["fan_power"] = "0.178"
+    args_hash["parasitics"] = "8.5"
+    args_hash["tank_ua"] = "4.0"
+    args_hash["setpoint_type"] = "scheduled"
+    args_hash["schedule_directory"] = "./resources"
+    args_hash["setpoint_schedule"] = "hourly_setpoint_schedule.csv"
+    expected_num_del_objects = { "WaterHeaterStratified" => 1, "ScheduleConstant" => 5, "WaterHeaterHeatPumpWrappedCondenser" => 1, "CoilWaterHeatingAirToWaterHeatPumpWrapped" => 1, "FanOnOff" => 1, "OtherEquipment" => 2, "OtherEquipmentDefinition" => 2, "EnergyManagementSystemSensor" => 10, "EnergyManagementSystemActuator" => 7, "EnergyManagementSystemTrendVariable" => 3, "EnergyManagementSystemProgram" => 2, "EnergyManagementSystemProgramCallingManager" => 1 }
+    expected_num_new_objects = { "WaterHeaterStratified" => 1, "PlantLoop" => 1, "PumpVariableSpeed" => 1, "WaterHeaterHeatPumpWrappedCondenser" => 1, "CoilWaterHeatingAirToWaterHeatPumpWrapped" => 1, "FanOnOff" => 1, "OtherEquipment" => 2, "OtherEquipmentDefinition" => 2, "EnergyManagementSystemSensor" => 7, "EnergyManagementSystemActuator" => 5, "EnergyManagementSystemTrendVariable" => 1, "EnergyManagementSystemProgram" => 2, "EnergyManagementSystemProgramCallingManager" => 1, "ScheduleFixedInterval" => 3, "ScheduleConstant" => 5, "ScheduleRuleset" => 7 }
+    expected_values = { "TankVolume" => 72, "Heater1Height" => 1.131, "Heater2Height" => 0.333, "TankU" => 0.787, "OnCycle" => 8.5, "OffCycle" => 8.5, "CondBottom" => 0.01, "CondTop" => 0.865, "AirflowRate" => 0.226, "Sensor1Height" => 1.265, "Sensor2Height" => 0.466, "Cap" => 2349.6, "COP" => 2.4, "SHR" => 0.98, "WBTemp" => 13.08, "FanEff" => 0.172 }
+    _test_measure(model, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
+  end
+
   def test_retrofit_replace_tank_electric
     args_hash = {}
     expected_num_del_objects = { "WaterHeaterMixed" => 1, "ScheduleConstant" => 1 }
@@ -467,7 +492,11 @@ class ResidentialHotWaterHeaterHeatPumpTest < MiniTest::Test
 
     num_new_whs = 0
     all_new_objects.each do |obj_type, new_objects|
+      puts(obj_type)
       new_objects.each do |new_object|
+        if obj_type == "ScheduleFixedInterval" or obj_type == "ScheduleConstant" or obj_type == "ScheduleRuleset" or obj_type == "EnergyManagementSystemSensor"
+          puts("  name:  #{new_object.name}")
+        end
         next if not new_object.respond_to?("to_#{obj_type}")
 
         new_object = new_object.public_send("to_#{obj_type}").get
