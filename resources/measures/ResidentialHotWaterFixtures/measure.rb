@@ -455,7 +455,6 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
   end
 
   def remove_existing(model, runner, space, obj_names)
-    
     # Remove existing EMS
     obj_name_sh = Constants.ObjectNameShower
     model.getEnergyManagementSystemProgramCallingManagers.each do |pcm|

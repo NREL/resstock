@@ -124,7 +124,7 @@ class ResidentialHotWaterFixturesTest < MiniTest::Test
     num_units = 4
     args_hash = {}
     expected_num_del_objects = {}
-    expected_num_new_objects = { "OtherEquipmentDefinition" => num_units * 3, "OtherEquipment" => num_units * 3, "WaterUseEquipmentDefinition" => num_units * 3, "WaterUseEquipment" => num_units * 3, "ScheduleFile" => 3, "ScheduleConstant" => 1, "EnergyManagementSystemSensor" => num_units * 3, "EnergyManagementSystemProgram" => num_units, "EnergyManagementSystemProgramCallingManager" => num_units, "EnergyManagementSystemOutputVariable" => num_units* 3 }
+    expected_num_new_objects = { "OtherEquipmentDefinition" => num_units * 3, "OtherEquipment" => num_units * 3, "WaterUseEquipmentDefinition" => num_units * 3, "WaterUseEquipment" => num_units * 3, "ScheduleFile" => 3, "ScheduleConstant" => 1, "EnergyManagementSystemSensor" => num_units * 3, "EnergyManagementSystemProgram" => num_units, "EnergyManagementSystemProgramCallingManager" => num_units, "EnergyManagementSystemOutputVariable" => num_units * 3 }
     expected_values = { "Annual_kwh" => num_units * 445.1, "HotWater_gpd" => num_units * 60 }
     _test_measure("SFA_4units_1story_FB_UA_3Beds_2Baths_Denver_WHTank.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
   end
@@ -133,7 +133,7 @@ class ResidentialHotWaterFixturesTest < MiniTest::Test
     num_units = 8
     args_hash = {}
     expected_num_del_objects = {}
-    expected_num_new_objects = { "OtherEquipmentDefinition" => num_units * 3, "OtherEquipment" => num_units * 3, "WaterUseEquipmentDefinition" => num_units * 3, "WaterUseEquipment" => num_units * 3, "ScheduleFile" => 3, "ScheduleConstant" => 1, "EnergyManagementSystemSensor" => num_units * 3, "EnergyManagementSystemProgram" => num_units, "EnergyManagementSystemProgramCallingManager" => num_units, "EnergyManagementSystemOutputVariable" => num_units* 3 }
+    expected_num_new_objects = { "OtherEquipmentDefinition" => num_units * 3, "OtherEquipment" => num_units * 3, "WaterUseEquipmentDefinition" => num_units * 3, "WaterUseEquipment" => num_units * 3, "ScheduleFile" => 3, "ScheduleConstant" => 1, "EnergyManagementSystemSensor" => num_units * 3, "EnergyManagementSystemProgram" => num_units, "EnergyManagementSystemProgramCallingManager" => num_units, "EnergyManagementSystemOutputVariable" => num_units * 3 }
     expected_values = { "Annual_kwh" => num_units * 445.1, "HotWater_gpd" => num_units * 60 }
     _test_measure("MF_8units_1story_SL_3Beds_2Baths_Denver_WHTank.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
   end
