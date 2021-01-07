@@ -14,7 +14,7 @@ Not all may apply:
 - [ ] Any new options are added to `project_testing`
 - [ ] `project_testing` runs without any failures
 - [ ] No unexpected regression test changes
-- [ ] All tests are passing (green) on circleci
+- [ ] All tests are passing
 - [ ] The [changelog](https://github.com/NREL/resstock/blob/master/CHANGELOG.md) has been updated appropriately
 - [ ] This branch is up-to-date with develop
 
