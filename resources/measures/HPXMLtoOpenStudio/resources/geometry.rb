@@ -326,6 +326,20 @@ class Geometry
     return volume
   end
 
+  def self.get_above_grade_finished_volume_from_spaces(spaces, runner = nil)
+    volume = 0
+    get_thermal_zones_from_spaces(spaces).each do |zone|
+      next if not (self.zone_is_finished(zone) and self.zone_is_above_grade(zone))
+
+      volume += self.get_zone_volume(zone, runner)
+    end
+    if volume == 0 and not runner.nil?
+      runner.registerError("Could not find any above-grade finished volume.")
+      return nil
+    end
+    return volume
+  end
+
   def self.get_window_area_from_spaces(spaces)
     window_area = 0
     spaces.each do |space|
@@ -602,7 +616,7 @@ class Geometry
         wall_area += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
       end
     end
-    return wall_area
+    return wall_area.round(5)
   end
 
   def self.calculate_above_grade_exterior_wall_area(spaces)
@@ -617,7 +631,7 @@ class Geometry
         wall_area += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
       end
     end
-    return wall_area
+    return wall_area.round(5)
   end
 
   def self.get_roof_pitch(surfaces)

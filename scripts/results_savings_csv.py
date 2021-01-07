@@ -50,14 +50,14 @@ class ExtraColumns:
   def reportable_domain(self, df):
     state_to_reportabledomain = ReportableDomain.statename_to_reportabledomain()
     state_to_reportabledomain.update(ReportableDomain.stateabbrev_to_reportabledomain())
-    if not 'building_characteristics_report.reportable_domain' in df.columns:
-      df['building_characteristics_report.reportable_domain'] = df['building_characteristics_report.location_state'].apply(lambda x: np.nan if pd.isnull(x) else str(state_to_reportabledomain[x]))
+    if not 'build_existing_model.reportable_domain' in df.columns:
+      df['build_existing_model.reportable_domain'] = df['build_existing_model.state'].apply(lambda x: np.nan if pd.isnull(x) else str(state_to_reportabledomain[x]))
     return df
 
   def egrid_subregions(self, df):
     if not 'egrid' in ['egrid' for col in df.columns if 'egrid' in col]:
       egrid = pd.read_csv(os.path.join(os.path.dirname(__file__), 'resources/egrid.csv'), index_col='grid_gid')
-      egrid.rename(columns={'egrid_subregion': 'building_characteristics_report.egrid_subregion'}, inplace=True)
+      egrid.rename(columns={'egrid_subregion': 'build_existing_model.egrid_subregion'}, inplace=True)
 
       latlonalt_proj = pyproj.Proj(proj='latlong', ellps='WGS84', datum='WGS84')
       ecef_proj = pyproj.Proj(proj='geocent', ellps='WGS84', datum='WGS84')
@@ -74,18 +74,18 @@ class ExtraColumns:
       xyz = pyproj.transform(
         latlonalt_proj,
         ecef_proj,
-        df['building_characteristics_report.location_longitude'].values,
-        df['building_characteristics_report.location_latitude'].values,
+        df['build_existing_model.location_longitude'].values,
+        df['build_existing_model.location_latitude'].values,
         np.zeros(df.shape[0])
       )
       distances, indexes = egrid_kdtree.query(np.array(xyz).T)
       found_gid = np.isfinite(distances)
-      df.loc[found_gid, 'building_characteristics_report.grid_gid'] = egrid.iloc[indexes[found_gid]].index.values
+      df.loc[found_gid, 'build_existing_model.grid_gid'] = egrid.iloc[indexes[found_gid]].index.values
       del egrid['x']
       del egrid['y']
       del egrid['z']
 
-      df = pd.merge(df, egrid, left_on='building_characteristics_report.grid_gid', right_index=True, how='left')
+      df = pd.merge(df, egrid, left_on='build_existing_model.grid_gid', right_index=True, how='left')
 
       del df['state_name']
       del df['county_name']
@@ -151,7 +151,7 @@ class ExtraColumns:
         sirs = []
         for i in ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10']:
           col = 'simulation_output_report.upgrade_option_{}'.format(i)
-          df['savings_simulation_output_report.upgrade_option_{}_sir'.format(i)] = df.apply(lambda x: CostEffectiveness.savings_investment_ratio(discount_rate, analysis_period, x['{}_lifetime_yrs'.format(col)], x['{}_cost_usd'.format(col)], x['building_characteristics_report.location_state'], fuel_price_indices, x['savings_utility_bill_calculations.electricity'], x['savings_utility_bill_calculations.natural_gas'], x['savings_utility_bill_calculations.fuel_oil'], x['savings_utility_bill_calculations.propane'], 0, '1'), axis=1)
+          df['savings_simulation_output_report.upgrade_option_{}_sir'.format(i)] = df.apply(lambda x: CostEffectiveness.savings_investment_ratio(discount_rate, analysis_period, x['{}_lifetime_yrs'.format(col)], x['{}_cost_usd'.format(col)], x['build_existing_model.state'], fuel_price_indices, x['savings_utility_bill_calculations.electricity'], x['savings_utility_bill_calculations.natural_gas'], x['savings_utility_bill_calculations.fuel_oil'], x['savings_utility_bill_calculations.propane'], 0, '1'), axis=1)
           sirs.append('savings_simulation_output_report.upgrade_option_{}_sir'.format(i))
         df['savings_simulation_output_report.savings_investment_ratio'] = df[sirs].sum(axis=1)
         for i in ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10']:
@@ -183,8 +183,8 @@ def preprocess(df):
   if 'status_message' in df.columns:
     df = df[df['status_message']=='completed normal']
   
-  # remove any building_characteristics_report columns that have all null values
-  for col in [col for col in df.columns if 'building_characteristics_report' in col]:
+  # remove any build_existing_model columns that have all null values
+  for col in [col for col in df.columns if 'build_existing_model' in col]:
     if pd.isnull(df[col]).all():
       del df[col]
 
@@ -196,8 +196,8 @@ def preprocess(df):
     base = df[(df['simulation_output_report.upgrade_name']=='BASE') & (df['status_message']=='completed normal')]
   else:
     base = df[df['simulation_output_report.upgrade_name']=='BASE']
-  base = base[[col for col in df.columns if 'building_characteristics_report' in col]]
-  upgrades = df[[col for col in df.columns if not 'building_characteristics_report' in col]]
+  base = base[[col for col in df.columns if 'build_existing_model' in col]]
+  upgrades = df[[col for col in df.columns if not 'build_existing_model' in col]]
   df = base.join(upgrades)
   df = df.reset_index()
   df = df.set_index('_id')
