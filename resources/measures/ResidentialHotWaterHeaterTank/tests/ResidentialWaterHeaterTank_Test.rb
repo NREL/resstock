@@ -92,7 +92,7 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     args_hash["energy_factor"] = "0.95"
     args_hash["capacity"] = "18.77"
     args_hash["tank_model_type"] = "stratified"
-    args_hash["setpoint_type"] = "scheduled"
+    args_hash["setpoint_type"] = Constants.WaterHeaterSetpointTypeScheduled
     args_hash["schedule_directory"] = "./resources"
     args_hash["setpoint_schedule"] = "hourly_setpoint_schedule.csv"
     expected_num_del_objects = {}
@@ -245,7 +245,7 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     args_hash["energy_factor"] = "0.95"
     args_hash["capacity"] = "18.77"
     args_hash["tank_model_type"] = "stratified"
-    args_hash["setpoint_type"] = "scheduled"
+    args_hash["setpoint_type"] = Constants.WaterHeaterSetpointTypeScheduled
     args_hash["schedule_directory"] = "./resources"
     args_hash["setpoint_schedule"] = "hourly_setpoint_schedule.csv"
     expected_num_del_objects = { "WaterHeaterStratified" => 1, "ScheduleConstant" => 2 }
@@ -272,7 +272,7 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     args_hash["energy_factor"] = "0.95"
     args_hash["capacity"] = "18.77"
     args_hash["tank_model_type"] = "stratified"
-    args_hash["setpoint_type"] = "scheduled"
+    args_hash["setpoint_type"] = Constants.WaterHeaterSetpointTypeScheduled
     args_hash["schedule_directory"] = "./resources"
     args_hash["setpoint_schedule"] = "hourly_setpoint_schedule.csv"
     expected_num_del_objects = { "WaterHeaterStratified" => 1, "ScheduleConstant" => 6, "CoilWaterHeatingAirToWaterHeatPumpWrapped" => 1, "FanOnOff" => 1, "WaterHeaterHeatPumpWrappedCondenser" => 1, "OtherEquipment" => 2, "OtherEquipmentDefinition" => 2, "EnergyManagementSystemProgramCallingManager" => 1, "EnergyManagementSystemProgram" => 2, "EnergyManagementSystemActuator" => 7, "EnergyManagementSystemSensor" => 10, "EnergyManagementSystemTrendVariable" => 3 }
@@ -281,13 +281,28 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_HPWH.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
+  def test_retrofit_replace_hpwh_scheduled_sp_with_tank_electric_scheduled_sp
+    args_hash = {}
+    args_hash["fuel_type"] = Constants.FuelTypeElectric
+    args_hash["energy_factor"] = "0.95"
+    args_hash["capacity"] = "18.77"
+    args_hash["tank_model_type"] = "stratified"
+    args_hash["setpoint_type"] = Constants.WaterHeaterSetpointTypeScheduled
+    args_hash["schedule_directory"] = "./resources"
+    args_hash["setpoint_schedule"] = "hourly_setpoint_schedule.csv"
+    expected_num_del_objects = { "WaterHeaterStratified" => 1, "ScheduleFixedInterval" => 3, "ScheduleConstant" => 4, "WaterHeaterHeatPumpWrappedCondenser" => 1, "CoilWaterHeatingAirToWaterHeatPumpWrapped" => 1, "FanOnOff" => 1, "OtherEquipment" => 2, "OtherEquipmentDefinition" => 2, "EnergyManagementSystemSensor" => 10, "EnergyManagementSystemActuator" => 7, "EnergyManagementSystemTrendVariable" => 3, "EnergyManagementSystemProgram" => 2, "EnergyManagementSystemProgramCallingManager" => 1 }
+    expected_num_new_objects = { "WaterHeaterStratified" => 1, "ScheduleFixedInterval" => 2 }
+    expected_values = { "TankVolume" => 50, "InputCapacity" => 5.5, "ThermalEfficiency" => 1.0, "TankUA" => 0.124, "OnCycle" => 0, "OffCycle" => 0, "FuelType" => Constants.FuelTypeElectric, "SkinLossFrac" => 1.0 }
+    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_HPWH_scheduled_SP.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
+  end
+
   def test_retrofit_replace_tank_electric_scheduled_sp_with_tank_electric_scheduled_sp
     args_hash = {}
     args_hash["fuel_type"] = Constants.FuelTypeElectric
     args_hash["energy_factor"] = "0.95"
     args_hash["capacity"] = "18.77"
     args_hash["tank_model_type"] = "stratified"
-    args_hash["setpoint_type"] = "scheduled"
+    args_hash["setpoint_type"] = Constants.WaterHeaterSetpointTypeScheduled
     args_hash["schedule_directory"] = "./resources"
     args_hash["setpoint_schedule"] = "hourly_setpoint_schedule.csv"
     expected_num_del_objects = { "WaterHeaterStratified" => 1, "ScheduleFixedInterval" => 2 }
@@ -308,7 +323,7 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
   def test_retrofit_replace_tankless_gas_with_tank_gas_scheduled_sp
     args_hash = {}
     args_hash["fuel_type"] = Constants.FuelTypeGas
-    args_hash["setpoint_type"] = "scheduled"
+    args_hash["setpoint_type"] = Constants.WaterHeaterSetpointTypeScheduled
     args_hash["schedule_directory"] = "./resources"
     args_hash["setpoint_schedule"] = "hourly_setpoint_schedule.csv"
     expected_num_del_objects = { "WaterHeaterMixed" => 1, "ScheduleConstant" => 2 }
@@ -317,13 +332,25 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTankless.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
+  def test_retrofit_replace_tankless_gas_scheduled_sp_with_tank_gas_scheduled_sp
+    args_hash = {}
+    args_hash["fuel_type"] = Constants.FuelTypeGas
+    args_hash["setpoint_type"] = Constants.WaterHeaterSetpointTypeScheduled
+    args_hash["schedule_directory"] = "./resources"
+    args_hash["setpoint_schedule"] = "hourly_setpoint_schedule.csv"
+    expected_num_del_objects = { "WaterHeaterMixed" => 1, "ScheduleFixedInterval" => 2 }
+    expected_num_new_objects = { "WaterHeaterMixed" => 1, "ScheduleFixedInterval" => 2 }
+    expected_values = { "TankVolume" => 40, "InputCapacity" => 11.72, "ThermalEfficiency" => 0.773, "TankUA" => 7.88, "Setpoint" => 125, "OnCycle" => 0, "OffCycle" => 0, "FuelType" => Constants.FuelTypeGas, "SkinLossFrac" => 0.64 }
+    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTankless_scheduled_SP.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
+  end
+
   def test_retrofit_replace_tankless_gas_with_tank_electric_scheduled_sp
     args_hash = {}
     args_hash["fuel_type"] = Constants.FuelTypeElectric
     args_hash["energy_factor"] = "0.95"
     args_hash["capacity"] = "18.77"
     args_hash["tank_model_type"] = "stratified"
-    args_hash["setpoint_type"] = "scheduled"
+    args_hash["setpoint_type"] = Constants.WaterHeaterSetpointTypeScheduled
     args_hash["schedule_directory"] = "./resources"
     args_hash["setpoint_schedule"] = "hourly_setpoint_schedule.csv"
     expected_num_del_objects = { "WaterHeaterMixed" => 1, "ScheduleConstant" => 2 }
@@ -350,7 +377,7 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     args_hash["energy_factor"] = "0.95"
     args_hash["capacity"] = "18.77"
     args_hash["tank_model_type"] = "stratified"
-    args_hash["setpoint_type"] = "scheduled"
+    args_hash["setpoint_type"] = Constants.WaterHeaterSetpointTypeScheduled
     args_hash["schedule_directory"] = "./resources"
     args_hash["setpoint_schedule"] = "hourly_setpoint_schedule.csv"
     expected_num_del_objects = { "WaterHeaterMixed" => 1, "ScheduleConstant" => 2 }
@@ -785,12 +812,12 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
             if inlet_object.to_WaterHeaterStratified.is_initialized
               storage_tank = inlet_object.to_WaterHeaterStratified.get
               set_type = runner.getStringArgumentValue("setpoint_type", argument_map)
-              if set_type == "constant"
+              if set_type == Constants.WaterHeaterSetpointTypeConstant
                 setpoint_schedule_one = storage_tank.heater1SetpointTemperatureSchedule.to_ScheduleConstant.get
                 setpoint_schedule_two = storage_tank.heater2SetpointTemperatureSchedule.to_ScheduleConstant.get
                 actual_values["StorageTankSetpoint1"] += UnitConversions.convert(setpoint_schedule_one.value, "C", "F")
                 actual_values["StorageTankSetpoint2"] += UnitConversions.convert(setpoint_schedule_two.value, "C", "F")
-              elsif set_type == "scheduled"
+              elsif set_type == Constants.WaterHeaterSetpointTypeScheduled
                 setpoint_schedule_one = storage_tank.heater1SetpointTemperatureSchedule
                 setpoint_schedule_two = storage_tank.heater2SetpointTemperatureSchedule
                 actual_values["StorageTankSetpoint1"] += UnitConversions.convert(setpoint_schedule_one.to_ScheduleFixedInterval.get.timeSeries.averageValue, "C", "F")
