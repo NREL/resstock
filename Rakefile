@@ -89,7 +89,7 @@ def regenerate_osms
     File.open(osm, 'w') { |f| f << model.to_s }
 
     # Add auto-generated message to top of file
-    # Update EPW file paths to be relative for the CircleCI machine
+    # Update EPW file paths to be relative for the ci machine
     file_text = File.readlines(osm)
     File.open(osm, "w") do |f|
       f.write("!- NOTE: Auto-generated from #{osw.gsub(File.dirname(__FILE__), "")}\n")
@@ -275,7 +275,7 @@ def integrity_check(project_dir_name, housing_characteristics_dir = "housing_cha
           # Check dependency value combination
           _matched_option_name, _matched_row_num = tsvfile.get_option_name_from_sample_number(1.0, combo_hash)
 
-          # Print to screen so CircleCI does not timeout
+          # Print to screen so ci does not timeout
           if i % 10000 == 0
             puts "  Checked #{i}/#{total_hashes} possible dependency value combinations..."
           end
