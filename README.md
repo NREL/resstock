@@ -5,7 +5,7 @@ The `develop` branch is under active development. Find the latest release [here]
 [![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/NREL/resstock?include_prereleases)](https://github.com/NREL/resstock/releases)
 [![ci](https://github.com/NREL/resstock/workflows/ci/badge.svg)](https://github.com/NREL/resstock/actions)
 [![Documentation Status](https://readthedocs.org/projects/resstock/badge/?version=latest)](https://resstock.readthedocs.io/en/latest/?badge=latest)
-[![codecov](https://codecov.io/gh/NREL/OpenStudio-BuildStock/branch/master/graph/badge.svg)](https://codecov.io/gh/NREL/OpenStudio-BuildStock)
+[![codecov](https://codecov.io/gh/NREL/resstock/branch/master/graph/badge.svg)](https://codecov.io/gh/NREL/resstock)
 
 [ResStock™](https://www.nrel.gov/buildings/resstock.html), built on the [OpenStudio platform](http://openstudio.net), is a project geared at modeling existing residential building stocks at national, regional, or local scales with a high-degree of granularity (e.g., one physics-based simulation model for every 200 dwelling units), using the [EnergyPlus simulation engine](http://energyplus.net). Information about ComStock™, a sister tool for modeling the commercial building stock, can be found [here](https://www.nrel.gov/buildings/comstock.html). 
 
