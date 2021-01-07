@@ -476,6 +476,14 @@ class HourlySchedule
     return @schedule_array
   end
 
+  def offset
+    return @offset
+  end
+
+  def validation_values
+    return @validation_values
+  end
+
   private
 
   def createHourlyScheduleFromFile(runner, file, offset, convert_temp, validation_values, fill_value = nil)
