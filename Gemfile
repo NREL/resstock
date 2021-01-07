@@ -11,5 +11,4 @@ group :test do
   gem 'simplecov'
   gem 'codecov'
   gem 'minitest-reporters'
-  gem 'minitest-ci' # For CircleCI Automatic test metadata collection
 end
