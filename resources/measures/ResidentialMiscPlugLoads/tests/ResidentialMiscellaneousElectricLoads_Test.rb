@@ -8,7 +8,7 @@ require 'fileutils'
 class ResidentialMiscElectricLoadsTest < MiniTest::Test
   def test_new_construction_none
     args_hash = {}
-    args_hash["mult"] = 0.0
+    args_hash["energy_mult"] = 0.0
     expected_num_del_objects = {}
     expected_num_new_objects = {}
     expected_values = { "Annual_kwh" => 0 }
@@ -28,7 +28,7 @@ class ResidentialMiscElectricLoadsTest < MiniTest::Test
   def test_new_construction_mult_1_0
     num_fin_spaces = 3
     args_hash = {}
-    args_hash["mult"] = 1.0
+    args_hash["energy_mult"] = 1.0
     expected_num_del_objects = {}
     expected_num_new_objects = { "ElectricEquipmentDefinition" => num_fin_spaces, "ElectricEquipment" => num_fin_spaces, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 2531 }
@@ -38,10 +38,21 @@ class ResidentialMiscElectricLoadsTest < MiniTest::Test
   def test_new_construction_mult_1_5
     num_fin_spaces = 3
     args_hash = {}
-    args_hash["mult"] = 1.5
+    args_hash["energy_mult"] = 1.5
     expected_num_del_objects = {}
     expected_num_new_objects = { "ElectricEquipmentDefinition" => num_fin_spaces, "ElectricEquipment" => num_fin_spaces, "ScheduleFile" => 1 }
-    expected_values = { "Annual_kwh" => 2531 * args_hash["mult"] }
+    expected_values = { "Annual_kwh" => 2531 * args_hash["energy_mult"] }
+    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
+  end
+
+  def test_new_construction_mult_1_5_diversity_mult_0_5
+    num_fin_spaces = 3
+    args_hash = {}
+    args_hash["energy_mult"] = 1.5
+    args_hash["diversity_mult"] = 0.5
+    expected_num_del_objects = {}
+    expected_num_new_objects = { "ElectricEquipmentDefinition" => num_fin_spaces, "ElectricEquipment" => num_fin_spaces, "ScheduleFile" => 1 }
+    expected_values = { "Annual_kwh" => 2531 * args_hash["energy_mult"] * args_hash["diversity_mult"] }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
@@ -65,10 +76,10 @@ class ResidentialMiscElectricLoadsTest < MiniTest::Test
     expected_values = { "Annual_kwh" => 2531 }
     model = _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
     args_hash = {}
-    args_hash["mult"] = 0.5
+    args_hash["energy_mult"] = 0.5
     expected_num_del_objects = { "ElectricEquipmentDefinition" => num_fin_spaces, "ElectricEquipment" => num_fin_spaces, "ScheduleFile" => 1 }
     expected_num_new_objects = { "ElectricEquipmentDefinition" => num_fin_spaces, "ElectricEquipment" => num_fin_spaces, "ScheduleFile" => 1 }
-    expected_values = { "Annual_kwh" => 2531 * args_hash["mult"] }
+    expected_values = { "Annual_kwh" => 2531 * args_hash["energy_mult"] }
     _test_measure(model, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_fin_spaces)
   end
 
@@ -80,7 +91,7 @@ class ResidentialMiscElectricLoadsTest < MiniTest::Test
     expected_values = { "Annual_kwh" => 2531 }
     model = _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
     args_hash = {}
-    args_hash["mult"] = 0.0
+    args_hash["energy_mult"] = 0.0
     expected_num_del_objects = { "ElectricEquipmentDefinition" => num_fin_spaces, "ElectricEquipment" => num_fin_spaces, "ScheduleFile" => 1 }
     expected_num_new_objects = {}
     expected_values = { "Annual_kwh" => 0 }
@@ -89,7 +100,7 @@ class ResidentialMiscElectricLoadsTest < MiniTest::Test
 
   def test_argument_error_mult_negative
     args_hash = {}
-    args_hash["mult"] = -1.0
+    args_hash["energy_mult"] = -1.0
     result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash)
     assert_equal(result.errors.map { |x| x.logMessage }[0], "Annual energy use must be greater than or equal to 0.")
   end
@@ -104,7 +115,7 @@ class ResidentialMiscElectricLoadsTest < MiniTest::Test
     num_units = 4
     num_fin_spaces = num_units * 2
     args_hash = {}
-    args_hash["mult"] = 1.0
+    args_hash["energy_mult"] = 1.0
     expected_num_del_objects = {}
     expected_num_new_objects = { "ElectricEquipment" => num_fin_spaces, "ElectricEquipmentDefinition" => num_fin_spaces, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 2003 * num_units }
@@ -115,7 +126,7 @@ class ResidentialMiscElectricLoadsTest < MiniTest::Test
     num_units = 8
     num_fin_spaces = num_units
     args_hash = {}
-    args_hash["mult"] = 1.0
+    args_hash["energy_mult"] = 1.0
     expected_num_del_objects = {}
     expected_num_new_objects = { "ElectricEquipment" => num_fin_spaces, "ElectricEquipmentDefinition" => num_fin_spaces, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 1841 * num_units }
