@@ -234,12 +234,12 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
     args['geometry_has_flue_or_chimney'] = Constants.Auto
     if (args['heating_system_has_flue_or_chimney'] == 'false') &&
-        (args['heating_system_has_flue_or_chimney_2'] == 'false') &&
-        (args['water_heater_has_flue_or_chimney'] == 'false')
+       (args['heating_system_has_flue_or_chimney_2'] == 'false') &&
+       (args['water_heater_has_flue_or_chimney'] == 'false')
       args['geometry_has_flue_or_chimney'] = 'false'
     elsif (args['heating_system_type'] != 'none' && args['heating_system_has_flue_or_chimney'] == 'true') ||
-        (args['heating_system_type_2'] != 'none' && args['heating_system_has_flue_or_chimney_2'] == 'true') ||
-        (args['water_heater_type'] != 'none' && args['water_heater_has_flue_or_chimney'] == 'true')
+          (args['heating_system_type_2'] != 'none' && args['heating_system_has_flue_or_chimney_2'] == 'true') ||
+          (args['water_heater_type'] != 'none' && args['water_heater_has_flue_or_chimney'] == 'true')
       args['geometry_has_flue_or_chimney'] = 'true'
     end
 
