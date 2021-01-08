@@ -416,10 +416,10 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(Constants.Auto)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('geometry_has_flue_or_chimney', true)
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('geometry_has_flue_or_chimney', true)
     arg.setDisplayName('Geometry: Has Flue or Chimney')
     arg.setDescription('Whether there is a flue or chimney.')
-    arg.setDefaultValue(false)
+    arg.setDefaultValue(Constants.Auto)
     args << arg
 
     level_choices = OpenStudio::StringVector.new
@@ -3356,7 +3356,10 @@ class HPXMLFile
     hpxml.building_construction.conditioned_building_volume = conditioned_building_volume
     hpxml.building_construction.average_ceiling_height = args[:geometry_wall_height]
     hpxml.building_construction.residential_facility_type = args[:geometry_unit_type]
-    hpxml.building_construction.has_flue_or_chimney = args[:geometry_has_flue_or_chimney] if args[:geometry_has_flue_or_chimney]
+    if args[:geometry_has_flue_or_chimney] != Constants.Auto
+      has_flue_or_chimney = args[:geometry_has_flue_or_chimney]
+      hpxml.building_construction.has_flue_or_chimney = has_flue_or_chimney
+    end
   end
 
   def self.set_climate_and_risk_zones(hpxml, runner, args, epw_file)
