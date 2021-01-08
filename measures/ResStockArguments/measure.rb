@@ -232,6 +232,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     args['setpoint_cooling_weekday'] = weekday_cooling_setpoints.join(', ')
     args['setpoint_cooling_weekend'] = weekend_cooling_setpoints.join(', ')
 
+    args['geometry_has_flue_or_chimney'] = false
     if (args['heating_system_type'] != 'none' && args['heating_system_has_flue_or_chimney']) ||
        (args['heating_system_type_2'] != 'none' && args['heating_system_has_flue_or_chimney_2']) ||
        (args['water_heater_type'] != 'none' && args['water_heater_has_flue_or_chimney'])
