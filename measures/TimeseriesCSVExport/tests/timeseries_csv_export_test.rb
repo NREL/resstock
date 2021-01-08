@@ -278,10 +278,11 @@ class TimeseriesCSVExportTest < MiniTest::Test
       # jumps are allowed in DST timestamps, but only twice at max, and each jump should be of 3600 seconds
       salient_jumps = verify_uniform_timestamps(enduse_timeseries_path(test_name), 1, jumps_allowed = true)
       # the jumps should cancel each other
-      assert_equal(0, salient_jumps.map{|x| x[1]}.reduce(0, :+))
+      assert_equal(0, salient_jumps.map { |x| x[1] }.reduce(0, :+))
       if salient_jumps.length > 2
         raise("DST timestamps should have a maximum of 2 jumps. It had #{salient_jumps.length} jumps at: #{salient_jumps}")
       end
+
       salient_jumps.each do |jump|
         if jump[1].abs != 3600
           raise("DST timestamps column has an invalid jump of #{jump[1]} seconds at #{jump[0]}")
@@ -324,11 +325,12 @@ class TimeseriesCSVExportTest < MiniTest::Test
     if rows.length <= 2
       return []
     end
+
     first_datetime = to_utctime(rows[1][col_num])
     second_datetime = to_utctime(rows[2][col_num])
     valid_diff = second_datetime - first_datetime # Assume the first diff is the valid one
 
-    if valid_diff >= 28*24*60*60 # diff is larger than 28 days; likely monthly timestamps
+    if valid_diff >= 28 * 24 * 60 * 60 # diff is larger than 28 days; likely monthly timestamps
       # The timestamps are likely in monthly interval. This function cannot test uniformity on such case so let it pass
       # TODO: Test uniformity even in case of monthly timestamps
       return []
