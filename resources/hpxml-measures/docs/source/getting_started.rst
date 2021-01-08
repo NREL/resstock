@@ -49,9 +49,9 @@ By default it will be found at the same location as the OSW file.
 Outputs
 ~~~~~~~
 
-In addition to the standard EnergyPlus outputs found in the run directory, a variety of high-level annual outputs are conveniently reported in the resulting ``run/results_annual.csv`` file.
+In addition to the standard EnergyPlus outputs found in the run directory, a variety of high-level annual outputs are conveniently reported in the resulting ``run/results_annual.csv`` (or ``run/results_annual.json``) file.
 
 Timeseries outputs can also be requested using either the Basic or Advanced approaches.
-When requested, timeseries outputs will be found in the ``run/results_timeseries.csv`` file.
+When requested, timeseries outputs will be found in the ``run/results_timeseries.csv`` (or ``run/results_timeseries.json``) file.
 
 See :ref:`workflow_outputs` for a description of all available outputs available.

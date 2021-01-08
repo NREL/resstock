@@ -1239,25 +1239,23 @@ Heat Recovery Ventilator
 
 If a heat recovery ventilator system is specified, additional information is entered in ``VentilationFan``.
 
-  ========================================================================  ======  =====  ===========  ========  =======  ============================
+  ========================================================================  ======  =====  ===========  ========  =======  =======================================
   Element                                                                   Type    Units  Constraints  Required  Default  Notes
-  ========================================================================  ======  =====  ===========  ========  =======  ============================
-  ``SensibleRecoveryEfficiency`` or ``AdjustedSensibleRecoveryEfficiency``  double  frac   0-1          Yes                Sensible recovery efficiency
-  ========================================================================  ======  =====  ===========  ========  =======  ============================
+  ========================================================================  ======  =====  ===========  ========  =======  =======================================
+  ``SensibleRecoveryEfficiency`` or ``AdjustedSensibleRecoveryEfficiency``  double  frac   0-1          Yes                (Adjusted) Sensible recovery efficiency
+  ========================================================================  ======  =====  ===========  ========  =======  =======================================
 
 Energy Recovery Ventilator
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If an energy recovery ventilator system is specified, additional information is entered in ``VentilationFan``.
 
-  ========================================================================  ======  =====  ===========  ========  =======  ============================
+  ========================================================================  ======  =====  ===========  ========  =======  =======================================
   Element                                                                   Type    Units  Constraints  Required  Default  Notes
-  ========================================================================  ======  =====  ===========  ========  =======  ============================
-  ``TotalRecoveryEfficiency`` or ``AdjustedTotalRecoveryEfficiency``        double  frac   0-1          Yes                Total recovery efficiency
-  ``SensibleRecoveryEfficiency`` or ``AdjustedSensibleRecoveryEfficiency``  double  frac   0-1 [#]_     Yes                Sensible recovery efficiency
-  ========================================================================  ======  =====  ===========  ========  =======  ============================
-  
-  .. [#] SensibleRecoveryEfficiency (or AdjustedSensibleRecoveryEfficiency) must also be >= TotalRecoveryEfficiency (or AdjustedTotalRecoveryEfficiency).
+  ========================================================================  ======  =====  ===========  ========  =======  =======================================
+  ``TotalRecoveryEfficiency`` or ``AdjustedTotalRecoveryEfficiency``        double  frac   0-1          Yes                (Adjusted) Total recovery efficiency
+  ``SensibleRecoveryEfficiency`` or ``AdjustedSensibleRecoveryEfficiency``  double  frac   0-1          Yes                (Adjusted) Sensible recovery efficiency
+  ========================================================================  ======  =====  ===========  ========  =======  =======================================
 
 Central Fan Integrated Supply
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1787,7 +1785,9 @@ If IntegratedModifiedEnergyFactor or ModifiedEnergyFactor is provided, a complet
   ``LabelUsage``                    double   cyc/wk   > 0          Yes                    EnergyGuide label number of cycles
   ``Capacity``                      double   ft3      > 0          Yes                    Clothes dryer volume
   ================================  =======  =======  ===========  ============  =======  ====================================
-  
+
+Clothes washer energy use and hot water use is calculated per the Energy Rating Rated Home in `ANSI/RESNET/ICC 301-2019 Addendum A <https://www.resnet.us/wp-content/uploads/ANSI_RESNET_ICC-301-2019-Addendum-A-2019_7.16.20-1.pdf>`_.
+
 HPXML Clothes Dryer
 *******************
 
@@ -1828,6 +1828,8 @@ If the CombinedEnergyFactor or EnergyFactor is provided, a complete set of Energ
   ===============  =======  =======  ===========  ========  =======  ================
 
   .. [#] ControlType choices are "timer" or "moisture".
+
+Clothes dryer energy use is calculated per the Energy Rating Rated Home in `ANSI/RESNET/ICC 301-2019 Addendum A <https://www.resnet.us/wp-content/uploads/ANSI_RESNET_ICC-301-2019-Addendum-A-2019_7.16.20-1.pdf>`_.
 
 HPXML Dishwasher
 ****************
@@ -1872,6 +1874,8 @@ If the RatedAnnualkWh or EnergyFactor is provided, a complete set of EnergyGuide
   ``LabelUsage``            double   cyc/wk   > 0          Yes                EnergyGuide label number of cycles
   ``PlaceSettingCapacity``  integer  #        > 0          Yes                Number of place settings
   ========================  =======  =======  ===========  ========  =======  ==================================
+
+Dishwasher energy use and hot water use is calculated per the Energy Rating Rated Home in `ANSI/RESNET/ICC 301-2019 Addendum A <https://www.resnet.us/wp-content/uploads/ANSI_RESNET_ICC-301-2019-Addendum-A-2019_7.16.20-1.pdf>`_.
 
 HPXML Refrigerators
 *******************
@@ -1938,6 +1942,7 @@ If not entered, the simulation will not include a dehumidifier.
   ==============================================  ==========  ==========  ===========  ========  =======  ========================================
   ``SystemIdentifier``                            id                                   Yes                Unique identifier
   ``Type``                                        string                  See [#]_     Yes                Type of dehumidifier
+  ``Location``                                    string                  See [#]_     Yes                Location of dehumidifier
   ``Capacity``                                    double      pints/day   > 0          Yes                Dehumidification capacity
   ``IntegratedEnergyFactor`` or ``EnergyFactor``  double      liters/kWh  > 0          Yes                Rated efficiency
   ``DehumidistatSetpoint``                        double      frac        0-1          Yes                Relative humidity setpoint
@@ -1945,6 +1950,12 @@ If not entered, the simulation will not include a dehumidifier.
   ==============================================  ==========  ==========  ===========  ========  =======  ========================================
   
   .. [#] Type choices are "portable" or "whole-home".
+  .. [#] Location only choice is "living space".
+
+.. note::
+
+  Dehumidifiers are currently modeled as located within conditioned space; the model is not suited for a dehumidifier in, e.g., a wet unconditioned basement or crawlspace.
+  Therefore the dehumidifier Location is currently restricted to "living space".
 
 HPXML Cooking Range/Oven
 ************************
@@ -1979,6 +1990,8 @@ If a cooking range is specified, a single oven is also entered as a ``/HPXML/Bui
   ``SystemIdentifier``  id                            Yes                Unique identifier
   ``IsConvection``      boolean                       No        false    Convection oven?
   ====================  =======  ======  ===========  ========  =======  ================
+
+Cooking range/oven energy use is calculated per the Energy Rating Rated Home in `ANSI/RESNET/ICC 301-2019 <https://codes.iccsafe.org/content/RESNETICC3012019>`_.
 
 HPXML Lighting & Ceiling Fans
 -----------------------------
@@ -2051,6 +2064,8 @@ If exterior holiday lighting is specified, additional information is entered in 
   .. [#] If Value not provided, defaults to 1.1 for single-family detached and 0.55 for others.
   .. [#] If WeekdayScheduleFractions not provided, defaults to "0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.008, 0.098, 0.168, 0.194, 0.284, 0.192, 0.037, 0.019".
 
+Interior, exterior, and garage lighting energy use is calculated per the Energy Rating Rated Home in `ANSI/RESNET/ICC 301-2019 <https://codes.iccsafe.org/content/RESNETICC3012019>`_.
+
 HPXML Ceiling Fans
 ******************
 
@@ -2067,6 +2082,8 @@ If not entered, the simulation will not include a ceiling fan.
 
   .. [#] If Efficiency not provided, defaults to 3000 / 42.6 based on `ANSI/RESNET/ICC 301-2019 <https://codes.iccsafe.org/content/RESNETICC3012019>`_.
   .. [#] If Quantity not provided, defaults to NumberofBedrooms + 1 based on `ANSI/RESNET/ICC 301-2019 <https://codes.iccsafe.org/content/RESNETICC3012019>`_.
+
+Ceiling fan energy use is calculated per the Energy Rating Rated Home in `ANSI/RESNET/ICC 301-2019 <https://codes.iccsafe.org/content/RESNETICC3012019>`_.
 
 .. note::
 
@@ -2086,17 +2103,23 @@ If not entered, the simulation will not include a pool.
   Element               Type     Units   Constraints  Required  Default       Notes
   ====================  =======  ======  ===========  ========  ============  =================
   ``SystemIdentifier``  id                            Yes                     Unique identifier
+  ``Type``              string           See [#]_     Yes                     Pool type
   ====================  =======  ======  ===========  ========  ============  =================
+
+  .. [#] Type choices are "in ground", "on ground", "above ground", "other", "unknown", or "none".
+         If "none" is entered, the simulation will not include a pool.
 
 Pool Pump
 ~~~~~~~~~
 
-If a pool is specified, a single pool pump must be entered as a ``Pool/PoolPumps/PoolPump``.
+If a pool is specified, a single pool pump can be entered as a ``Pool/PoolPumps/PoolPump``.
+If not entered, the simulation will not include a pool heater.
 
   ========================================  =======  ======  ===========  ========  ============  ======================================
   Element                                   Type     Units   Constraints  Required  Default       Notes
   ========================================  =======  ======  ===========  ========  ============  ======================================
   ``SystemIdentifier``                      id                            Yes                     Unique identifier
+  ``Type``                                  string           See [#]_     Yes                     Pool pump type
   ``Load[Units="kWh/year"]/Value``          double   kWh/yr  >= 0         No        See [#]_      Pool pump energy use
   ``extension/UsageMultiplier``             double           >= 0         No        1.0           Multiplier on pool pump energy use
   ``extension/WeekdayScheduleFractions``    array                         No        See [#]_      24 comma-separated weekday fractions
@@ -2104,6 +2127,8 @@ If a pool is specified, a single pool pump must be entered as a ``Pool/PoolPumps
   ``extension/MonthlyScheduleMultipliers``  array                         No        See [#]_      12 comma-separated monthly multipliers
   ========================================  =======  ======  ===========  ========  ============  ======================================
 
+  .. [#] Type choices are "single speed", "multi speed", "variable speed", "variable flow", "other", "unknown", or "none".
+         If "none" is entered, the simulation will not include a pool pump.
   .. [#] If Value not provided, defaults based on the `2010 BAHSP <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_: 158.5 / 0.070 * (0.5 + 0.25 * NumberofBedrooms / 3 + 0.35 * ConditionedFloorArea / 1920).
   .. [#] If WeekdayScheduleFractions or WeekendScheduleFractions not provided, default values from Figure 23 of the `2010 BAHSP <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_ are used: "0.003, 0.003, 0.003, 0.004, 0.008, 0.015, 0.026, 0.044, 0.084, 0.121, 0.127, 0.121, 0.120, 0.090, 0.075, 0.061, 0.037, 0.023, 0.013, 0.008, 0.004, 0.003, 0.003, 0.003".
   .. [#] If MonthlyScheduleMultipliers not provided, default values from Figure 24 of the `2010 BAHSP <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_ are used: "1.154, 1.161, 1.013, 1.010, 1.013, 0.888, 0.883, 0.883, 0.888, 0.978, 0.974, 1.154".
@@ -2112,6 +2137,7 @@ Pool Heater
 ~~~~~~~~~~~
 
 If a pool is specified, a pool heater can be entered as a ``Pool/Heater``.
+If not entered, the simulation will not include a pool heater.
 
   ======================================================  =======  ==================  ===========  ========  ========  ======================================
   Element                                                 Type     Units               Constraints  Required  Default   Notes
@@ -2125,7 +2151,8 @@ If a pool is specified, a pool heater can be entered as a ``Pool/Heater``.
   ``extension/MonthlyScheduleMultipliers``                array                                     No        See [#]_  12 comma-separated monthly multipliers
   ======================================================  =======  ==================  ===========  ========  ========  ======================================
 
-  .. [#] Type choices are "gas fired", "electric resistance", or "heat pump".
+  .. [#] Type choices are "none, "gas fired", "electric resistance", or "heat pump".
+         If "none" is entered, the simulation will not include a pool heater.
   .. [#] If Value not provided, defaults as follows:
          
          - **gas fired**: 3.0 / 0.014 * (0.5 + 0.25 * NumberofBedrooms / 3 + 0.35 * ConditionedFloorArea / 1920) (based on the `2010 BAHSP <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_)
@@ -2145,17 +2172,23 @@ If not entered, the simulation will not include a hot tub.
   Element               Type     Units   Constraints  Required  Default       Notes
   ====================  =======  ======  ===========  ========  ============  =================
   ``SystemIdentifier``  id                            Yes                     Unique identifier
+  ``Type``              string           See [#]_     Yes                     Hot tub type
   ====================  =======  ======  ===========  ========  ============  =================
+
+  .. [#] Type choices are "in ground", "on ground", "above ground", "other", "unknown", or "none".
+         If "none" is entered, the simulation will not include a hot tub.
 
 Hot Tub Pump
 ~~~~~~~~~~~~
 
-If a hot tub is specified, a single hot tub pump must be entered as a ``HotTub/HotTubPumps/HotTubPump``.
+If a hot tub is specified, a single hot tub pump can be entered as a ``HotTub/HotTubPumps/HotTubPump``.
+If not entered, the simulation will not include a hot tub pump.
 
   ========================================  =======  ======  ===========  ========  ============  ======================================
   Element                                   Type     Units   Constraints  Required  Default       Notes
   ========================================  =======  ======  ===========  ========  ============  ======================================
   ``SystemIdentifier``                      id                            Yes                     Unique identifier
+  ``Type``                                  string           See [#]_     Yes                     Hot tub pump type
   ``Load[Units="kWh/year"]/Value``          double   kWh/yr  >= 0         No        See [#]_      Hot tub pump energy use
   ``extension/UsageMultiplier``             double           >= 0         No        1.0           Multiplier on hot tub pump energy use
   ``extension/WeekdayScheduleFractions``    array                         No        See [#]_      24 comma-separated weekday fractions
@@ -2163,6 +2196,8 @@ If a hot tub is specified, a single hot tub pump must be entered as a ``HotTub/H
   ``extension/MonthlyScheduleMultipliers``  array                         No        See [#]_      12 comma-separated monthly multipliers
   ========================================  =======  ======  ===========  ========  ============  ======================================
 
+  .. [#] Type choices are "single speed", "multi speed", "variable speed", "variable flow", "other", "unknown", or "none".
+         If "none" is entered, the simulation will not include a hot tub pump.
   .. [#] If Value not provided, defaults based on the `2010 BAHSP <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_: 59.5 / 0.059 * (0.5 + 0.25 * NumberofBedrooms / 3 + 0.35 * ConditionedFloorArea / 1920).
   .. [#] If WeekdayScheduleFractions or WeekendScheduleFractions not provided, default values from Figure 23 of the `2010 BAHSP <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_ are used: "0.024, 0.029, 0.024, 0.029, 0.047, 0.067, 0.057, 0.024, 0.024, 0.019, 0.015, 0.014, 0.014, 0.014, 0.024, 0.058, 0.126, 0.122, 0.068, 0.061, 0.051, 0.043, 0.024, 0.024".
   .. [#] If MonthlyScheduleMultipliers not provided, default values from Figure 24 of the `2010 BAHSP <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_ are used: "0.921, 0.928, 0.921, 0.915, 0.921, 1.160, 1.158, 1.158, 1.160, 0.921, 0.915, 0.921".
@@ -2171,6 +2206,7 @@ Hot Tub Heater
 ~~~~~~~~~~~~~~
 
 If a hot tub is specified, a hot tub heater can be entered as a ``HotTub/Heater``.
+If not entered, the simulation will not include a hot tub heater.
 
   ======================================================  =======  ==================  ===========  ========  ========  =======================================
   Element                                                 Type     Units               Constraints  Required  Default   Notes
@@ -2184,7 +2220,8 @@ If a hot tub is specified, a hot tub heater can be entered as a ``HotTub/Heater`
   ``extension/MonthlyScheduleMultipliers``                array                                     No        See [#]_  12 comma-separated monthly multipliers
   ======================================================  =======  ==================  ===========  ========  ========  =======================================
 
-  .. [#] Type choices are "gas fired", "electric resistance", or "heat pump".
+  .. [#] Type choices are "none, "gas fired", "electric resistance", or "heat pump".
+         If "none" is entered, the simulation will not include a hot tub heater.
   .. [#] If Value not provided, defaults as follows:
          
          - **gas fired [therm/year]**: 0.87 / 0.011 * (0.5 + 0.25 * NumberofBedrooms / 3 + 0.35 * ConditionedFloorArea / 1920) (based on the `2010 BAHSP <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_)

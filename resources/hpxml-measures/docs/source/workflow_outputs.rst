@@ -4,130 +4,131 @@ Workflow Outputs
 ================
 
 OpenStudio-HPXML generates a variety of annual (and optionally, timeseries) outputs for a residential HPXML-based model.
+You can request the annual/timeseries output files be generated in either CSV or JSON formats.
 
 Annual Outputs
 --------------
 
-OpenStudio-HPXML will always generate an annual CSV output file called results_annual.csv, co-located with the EnergyPlus output.
-The CSV file includes the following sections of output:
+OpenStudio-HPXML will always generate an annual output file called results_annual.csv (or results_annual.json), co-located with the EnergyPlus output.
+The file includes the following sections of output:
 
-Annual Energy Consumption by Fuel Type
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Annual Energy Consumption by Fuel Use
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Current fuel types are: 
+Current fuel uses are: 
 
-   ========================== ===========================
-   Type                       Notes
-   ========================== ===========================
-   Electricity: Total (MBtu)
-   Electricity: Net (MBtu)    Excludes any power produced by PV or generators.
-   Natural Gas: Total (MBtu)
-   Fuel Oil: Total (MBtu)     Includes "fuel oil", "fuel oil 1", "fuel oil 2", "fuel oil 4", "fuel oil 5/6", "kerosene", and "diesel"
-   Propane: Total (MBtu)
-   Wood: Total (MBtu)
-   Wood Pellets: Total (MBtu)
-   Coal: Total (MBtu)         Includes "coal", "anthracite coal", "bituminous coal", and "coke".
-   ========================== ===========================
+   ==================================== ===========================
+   Type                                 Notes
+   ==================================== ===========================
+   Fuel Use: Electricity: Total (MBtu)
+   Fuel Use: Electricity: Net (MBtu)    Excludes any power produced by PV or generators.
+   Fuel Use: Natural Gas: Total (MBtu)
+   Fuel Use: Fuel Oil: Total (MBtu)     Includes "fuel oil", "fuel oil 1", "fuel oil 2", "fuel oil 4", "fuel oil 5/6", "kerosene", and "diesel"
+   Fuel Use: Propane: Total (MBtu)
+   Fuel Use: Wood: Total (MBtu)
+   Fuel Use: Wood Pellets: Total (MBtu)
+   Fuel Use: Coal: Total (MBtu)         Includes "coal", "anthracite coal", "bituminous coal", and "coke".
+   ==================================== ===========================
 
-Annual Energy Consumption By Fuel Type and End Use
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Annual Energy Consumption By End Use
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Current end use/fuel type combinations are:
+Current end uses are:
 
-   ========================================================== ====================================================
-   Type                                                       Notes
-   ========================================================== ====================================================
-   Electricity: Heating (MBtu)
-   Electricity: Heating Fans/Pumps (MBtu)
-   Electricity: Cooling (MBtu)
-   Electricity: Cooling Fans/Pumps (MBtu)
-   Electricity: Hot Water (MBtu)
-   Electricity: Hot Water Recirc Pump (MBtu)
-   Electricity: Hot Water Solar Thermal Pump (MBtu)
-   Electricity: Lighting Interior (MBtu)
-   Electricity: Lighting Garage (MBtu)
-   Electricity: Lighting Exterior (MBtu)
-   Electricity: Mech Vent (MBtu)
-   Electricity: Mech Vent Preheating (MBtu)
-   Electricity: Mech Vent Precooling (MBtu)
-   Electricity: Whole House Fan (MBtu)
-   Electricity: Refrigerator (MBtu)
-   Electricity: Freezer (MBtu)
-   Electricity: Dehumidifier (MBtu)
-   Electricity: Dishwasher (MBtu)
-   Electricity: Clothes Washer (MBtu)
-   Electricity: Clothes Dryer (MBtu)
-   Electricity: Range/Oven (MBtu)
-   Electricity: Ceiling Fan (MBtu)
-   Electricity: Television (MBtu)
-   Electricity: Plug Loads (MBtu)
-   Electricity: Electric Vehicle Charging (MBtu)
-   Electricity: Well Pump (MBtu)
-   Electricity: Pool Heater (MBtu)
-   Electricity: Pool Pump (MBtu)
-   Electricity: Hot Tub Heater (MBtu)
-   Electricity: Hot Tub Pump (MBtu)
-   Electricity: PV (MBtu)                                     Negative value for any power produced
-   Electricity: Generator (MBtu)                              Negative value for power produced
-   Natural Gas: Heating (MBtu)
-   Natural Gas: Hot Water (MBtu)
-   Natural Gas: Clothes Dryer (MBtu)
-   Natural Gas: Range/Oven (MBtu)
-   Natural Gas: Mech Vent Preheating (MBtu)
-   Natural Gas: Mech Vent Precooling (MBtu)
-   Natural Gas: Pool Heater (MBtu)
-   Natural Gas: Hot Tub Heater (MBtu)
-   Natural Gas: Grill (MBtu)
-   Natural Gas: Lighting (MBtu)
-   Natural Gas: Fireplace (MBtu)
-   Natural Gas: Generator (MBtu)                              Positive value for any fuel consumed
-   Fuel Oil: Heating (MBtu)
-   Fuel Oil: Hot Water (MBtu)
-   Fuel Oil: Clothes Dryer (MBtu)
-   Fuel Oil: Range/Oven (MBtu)
-   Fuel Oil: Mech Vent Preheating (MBtu)
-   Fuel Oil: Mech Vent Precooling (MBtu)
-   Fuel Oil: Grill (MBtu)
-   Fuel Oil: Lighting (MBtu)
-   Fuel Oil: Fireplace (MBtu)
-   Propane: Heating (MBtu)
-   Propane: Hot Water (MBtu)
-   Propane: Clothes Dryer (MBtu)
-   Propane: Range/Oven (MBtu)
-   Propane: Mech Vent Preheating (MBtu)
-   Propane: Mech Vent Precooling (MBtu)
-   Propane: Grill (MBtu)
-   Propane: Lighting (MBtu)
-   Propane: Fireplace (MBtu)
-   Propane: Generator (MBtu)                                  Positive value for any fuel consumed
-   Wood Cord: Heating (MBtu)
-   Wood Cord: Hot Water (MBtu)
-   Wood Cord: Clothes Dryer (MBtu)
-   Wood Cord: Range/Oven (MBtu)
-   Wood Cord: Mech Vent Preheating (MBtu)
-   Wood Cord: Mech Vent Precooling (MBtu)
-   Wood Cord: Grill (MBtu)
-   Wood Cord: Lighting (MBtu)
-   Wood Cord: Fireplace (MBtu)
-   Wood Pellets: Heating (MBtu)
-   Wood Pellets: Hot Water (MBtu)
-   Wood Pellets: Clothes Dryer (MBtu)
-   Wood Pellets: Range/Oven (MBtu)
-   Wood Pellets: Mech Vent Preheating (MBtu)
-   Wood Pellets: Mech Vent Precooling (MBtu)
-   Wood Pellets: Grill (MBtu)
-   Wood Pellets: Lighting (MBtu)
-   Wood Pellets: Fireplace (MBtu)
-   Coal: Heating (MBtu)
-   Coal: Hot Water (MBtu)
-   Coal: Clothes Dryer (MBtu)
-   Coal: Range/Oven (MBtu)
-   Coal: Mech Vent Preheating (MBtu)
-   Coal: Mech Vent Precooling (MBtu)
-   Coal: Grill (MBtu)
-   Coal: Lighting (MBtu)
-   Coal: Fireplace (MBtu)
-   ========================================================== ====================================================
+   =================================================================== ====================================================
+   Type                                                                Notes
+   =================================================================== ====================================================
+   End Use: Electricity: Heating (MBtu)
+   End Use: Electricity: Heating Fans/Pumps (MBtu)
+   End Use: Electricity: Cooling (MBtu)
+   End Use: Electricity: Cooling Fans/Pumps (MBtu)
+   End Use: Electricity: Hot Water (MBtu)
+   End Use: Electricity: Hot Water Recirc Pump (MBtu)
+   End Use: Electricity: Hot Water Solar Thermal Pump (MBtu)
+   End Use: Electricity: Lighting Interior (MBtu)
+   End Use: Electricity: Lighting Garage (MBtu)
+   End Use: Electricity: Lighting Exterior (MBtu)
+   End Use: Electricity: Mech Vent (MBtu)
+   End Use: Electricity: Mech Vent Preheating (MBtu)
+   End Use: Electricity: Mech Vent Precooling (MBtu)
+   End Use: Electricity: Whole House Fan (MBtu)
+   End Use: Electricity: Refrigerator (MBtu)
+   End Use: Electricity: Freezer (MBtu)
+   End Use: Electricity: Dehumidifier (MBtu)
+   End Use: Electricity: Dishwasher (MBtu)
+   End Use: Electricity: Clothes Washer (MBtu)
+   End Use: Electricity: Clothes Dryer (MBtu)
+   End Use: Electricity: Range/Oven (MBtu)
+   End Use: Electricity: Ceiling Fan (MBtu)
+   End Use: Electricity: Television (MBtu)
+   End Use: Electricity: Plug Loads (MBtu)
+   End Use: Electricity: Electric Vehicle Charging (MBtu)
+   End Use: Electricity: Well Pump (MBtu)
+   End Use: Electricity: Pool Heater (MBtu)
+   End Use: Electricity: Pool Pump (MBtu)
+   End Use: Electricity: Hot Tub Heater (MBtu)
+   End Use: Electricity: Hot Tub Pump (MBtu)
+   End Use: Electricity: PV (MBtu)                                     Negative value for any power produced
+   End Use: Electricity: Generator (MBtu)                              Negative value for power produced
+   End Use: Natural Gas: Heating (MBtu)
+   End Use: Natural Gas: Hot Water (MBtu)
+   End Use: Natural Gas: Clothes Dryer (MBtu)
+   End Use: Natural Gas: Range/Oven (MBtu)
+   End Use: Natural Gas: Mech Vent Preheating (MBtu)
+   End Use: Natural Gas: Mech Vent Precooling (MBtu)
+   End Use: Natural Gas: Pool Heater (MBtu)
+   End Use: Natural Gas: Hot Tub Heater (MBtu)
+   End Use: Natural Gas: Grill (MBtu)
+   End Use: Natural Gas: Lighting (MBtu)
+   End Use: Natural Gas: Fireplace (MBtu)
+   End Use: Natural Gas: Generator (MBtu)                              Positive value for any fuel consumed
+   End Use: Fuel Oil: Heating (MBtu)
+   End Use: Fuel Oil: Hot Water (MBtu)
+   End Use: Fuel Oil: Clothes Dryer (MBtu)
+   End Use: Fuel Oil: Range/Oven (MBtu)
+   End Use: Fuel Oil: Mech Vent Preheating (MBtu)
+   End Use: Fuel Oil: Mech Vent Precooling (MBtu)
+   End Use: Fuel Oil: Grill (MBtu)
+   End Use: Fuel Oil: Lighting (MBtu)
+   End Use: Fuel Oil: Fireplace (MBtu)
+   End Use: Propane: Heating (MBtu)
+   End Use: Propane: Hot Water (MBtu)
+   End Use: Propane: Clothes Dryer (MBtu)
+   End Use: Propane: Range/Oven (MBtu)
+   End Use: Propane: Mech Vent Preheating (MBtu)
+   End Use: Propane: Mech Vent Precooling (MBtu)
+   End Use: Propane: Grill (MBtu)
+   End Use: Propane: Lighting (MBtu)
+   End Use: Propane: Fireplace (MBtu)
+   End Use: Propane: Generator (MBtu)                                  Positive value for any fuel consumed
+   End Use: Wood Cord: Heating (MBtu)
+   End Use: Wood Cord: Hot Water (MBtu)
+   End Use: Wood Cord: Clothes Dryer (MBtu)
+   End Use: Wood Cord: Range/Oven (MBtu)
+   End Use: Wood Cord: Mech Vent Preheating (MBtu)
+   End Use: Wood Cord: Mech Vent Precooling (MBtu)
+   End Use: Wood Cord: Grill (MBtu)
+   End Use: Wood Cord: Lighting (MBtu)
+   End Use: Wood Cord: Fireplace (MBtu)
+   End Use: Wood Pellets: Heating (MBtu)
+   End Use: Wood Pellets: Hot Water (MBtu)
+   End Use: Wood Pellets: Clothes Dryer (MBtu)
+   End Use: Wood Pellets: Range/Oven (MBtu)
+   End Use: Wood Pellets: Mech Vent Preheating (MBtu)
+   End Use: Wood Pellets: Mech Vent Precooling (MBtu)
+   End Use: Wood Pellets: Grill (MBtu)
+   End Use: Wood Pellets: Lighting (MBtu)
+   End Use: Wood Pellets: Fireplace (MBtu)
+   End Use: Coal: Heating (MBtu)
+   End Use: Coal: Hot Water (MBtu)
+   End Use: Coal: Clothes Dryer (MBtu)
+   End Use: Coal: Range/Oven (MBtu)
+   End Use: Coal: Mech Vent Preheating (MBtu)
+   End Use: Coal: Mech Vent Precooling (MBtu)
+   End Use: Coal: Grill (MBtu)
+   End Use: Coal: Lighting (MBtu)
+   End Use: Coal: Fireplace (MBtu)
+   =================================================================== ====================================================
 
 Annual Building Loads
 ~~~~~~~~~~~~~~~~~~~~~
@@ -235,10 +236,10 @@ Current annual hot water uses are:
 Timeseries Outputs
 ------------------
 
-OpenStudio-HPXML can optionally generate a timeseries CSV output file.
-The timeseries output file is called results_timeseries.csv and co-located with the EnergyPlus output.
+OpenStudio-HPXML can optionally generate a timeseries output file.
+The timeseries output file is called results_timeseries.csv (or results_timeseries.json) and co-located with the EnergyPlus output.
 
-Depending on the outputs requested, CSV files may include:
+Depending on the outputs requested, the file may include:
 
    =================================== ==================================================================================================================================
    Type                                Notes

@@ -10,109 +10,6 @@ The three OpenStudio measures used by the workflow are:
 #. ``HPXMLtoOpenStudio``: A measure that translates an HPXML file to an OpenStudio model.
 #. ``SimulationOutputReport``: A reporting measure that generates a variety of annual/timeseries outputs for a residential HPXML-based model.
 
-Modeling Capabilities
----------------------
-The OpenStudio-HPXML workflow can accommodate the following building features/technologies:
-
-- Enclosure
-
-  - Attics
-  
-    - Vented
-    - Unvented
-    - Conditioned
-    - Radiant Barriers
-    
-  - Foundations
-  
-    - Slab
-    - Unconditioned Basement
-    - Conditioned Basement
-    - Vented Crawlspace
-    - Unvented Crawlspace
-    - Ambient
-    
-  - Garages
-  - Windows & Overhangs
-  - Skylights
-  - Doors
-  
-- HVAC
-
-  - Heating Systems
-  
-    - Electric Resistance
-    - Central/Wall/Floor Furnaces
-    - Stoves, Portable/Fixed Heaters
-    - Boilers
-    - Fireplaces
-    
-  - Cooling Systems
-  
-    - Central/Room Air Conditioners
-    - Evaporative Coolers
-    - Mini Split Air Conditioners
-    - Chillers
-    - Cooling Towers
-    
-  - Heat Pumps
-  
-    - Air Source Heat Pumps
-    - Mini Split Heat Pumps
-    - Ground Source Heat Pumps
-    - Dual-Fuel Heat Pumps
-    - Water Loop Heat Pumps
-    
-  - Thermostat Setpoints
-  - Ducts
-  
-- Water Heating
-
-  - Water Heaters
-  
-    - Storage Tank
-    - Instantaneous Tankless
-    - Heat Pump Water Heater
-    - Indirect Water Heater (Combination Boiler)
-    - Tankless Coil (Combination Boiler)
-
-  - Solar Hot Water
-  - Desuperheaters
-  - Hot Water Distribution
-  
-    - Recirculation
-    
-  - Drain Water Heat Recovery
-  - Hot Water Fixtures
-  
-- Mechanical Ventilation
-
-  - Exhaust Only
-  - Supply Only
-  - Balanced
-  - Energy Recovery Ventilator
-  - Heat Recovery Ventilator
-  - Central Fan Integrated Supply
-  - Shared Systems w/ Recirculation and/or Preconditioning
-
-- Kitchen/Bath Fans
-- Whole House Fan
-- Photovoltaics
-- Generators
-- Appliances
-
-  - Clothes Washer
-  - Clothes Dryer
-  - Dishwasher
-  - Refrigerator
-  - Cooking Range/Oven
-
-- Dehumidifiers
-- Lighting
-- Ceiling Fans
-- Pool/Hot Tub
-- Plug/Fuel Loads
-
 Scope (Dwelling Units)
 ----------------------
 
@@ -147,9 +44,10 @@ End-to-end simulations typically run in 3-10 seconds, depending on complexity, c
 
 There are additional ways that software developers using this workflow can reduce runtime:
 
-- Run on Linux/Mac platform, which is significantly faster by taking advantage of the POSIX fork call.
-- Do not use the ``--hourly`` flag unless hourly output is required. If required, limit requests to hourly variables of interest.
+- Run on Linux/Mac platform, which is significantly faster than Windows.
 - Run on computing environments with 1) fast CPUs, 2) sufficient memory, and 3) enough processors to allow all simulations to run in parallel.
+- Limit requests for timeseries output (e.g., ``--hourly``, ``--daily``, ``--timestep`` arguments) and limit the number of output variables requested.
+- Use the ``--skip-validation`` argument if the HPXML input file has already been validated against the Schema & Schematron documents.
 
 License
 -------

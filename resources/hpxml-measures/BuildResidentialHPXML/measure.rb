@@ -19,6 +19,7 @@ require_relative '../HPXMLtoOpenStudio/resources/hpxml'
 require_relative '../HPXMLtoOpenStudio/resources/hvac'
 require_relative '../HPXMLtoOpenStudio/resources/lighting'
 require_relative '../HPXMLtoOpenStudio/resources/materials'
+require_relative '../HPXMLtoOpenStudio/resources/meta_measure'
 require_relative '../HPXMLtoOpenStudio/resources/psychrometrics'
 require_relative '../HPXMLtoOpenStudio/resources/schedules'
 require_relative '../HPXMLtoOpenStudio/resources/unit_conversions'
@@ -413,6 +414,12 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setUnits('#')
     arg.setDescription("Specify the number of occupants. A value of '#{Constants.Auto}' will calculate the average number of occupants from the number of bedrooms. Used to specify the internal gains from people only.")
     arg.setDefaultValue(Constants.Auto)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('geometry_has_flue_or_chimney', true)
+    arg.setDisplayName('Geometry: Has Flue or Chimney')
+    arg.setDescription('Whether there is a flue or chimney.')
+    arg.setDefaultValue(false)
     args << arg
 
     level_choices = OpenStudio::StringVector.new
@@ -996,30 +1003,6 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(1)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heating_system_electric_auxiliary_energy', false)
-    arg.setDisplayName('Heating System: Electric Auxiliary Energy')
-    arg.setDescription("The electric auxiliary energy of the heating system. Applies to #{HPXML::HVACTypeBoiler}.")
-    arg.setUnits('kWh/yr')
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heating_system_fan_power_watts_per_cfm', false)
-    arg.setDisplayName('Heating System: Fan Power')
-    arg.setDescription("Blower fan power. Applies to #{HPXML::HVACTypeFurnace}.")
-    arg.setUnits('W/CFM')
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heating_system_fan_power_watts', false)
-    arg.setDisplayName('Heating System: Fan Power')
-    arg.setDescription("Blower fan power. Ignored for #{HPXML::HVACTypeElectricResistance}, #{HPXML::HVACTypeFurnace}, and #{HPXML::HVACTypeBoiler}.")
-    arg.setUnits('W')
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('heating_system_has_flue_or_chimney', true)
-    arg.setDisplayName('Heating System: Has Flue or Chimney')
-    arg.setDescription('Whether the heating system has a flue or chimney.')
-    arg.setDefaultValue(false)
-    args << arg
-
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('cooling_system_type', cooling_system_type_choices, true)
     arg.setDisplayName('Cooling System: Type')
     arg.setDescription("The type of cooling system. Use 'none' if there is no cooling system.")
@@ -1067,14 +1050,8 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument('cooling_system_is_ducted', true)
     arg.setDisplayName('Cooling System: Is Ducted')
-    arg.setDescription("Whether the cooling system is ducted or not. Only used for #{HPXML::HVACTypeEvaporativeCooler} and #{HPXML::HVACTypeMiniSplitAirConditioner}.")
+    arg.setDescription("Whether the cooling system is ducted or not. Only used for #{HPXML::HVACTypeMiniSplitAirConditioner} and #{HPXML::HVACTypeEvaporativeCooler}.")
     arg.setDefaultValue(false)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('cooling_system_fan_power_watts_per_cfm', false)
-    arg.setDisplayName('Cooling System: Fan Power')
-    arg.setDescription("Blower fan power. Applies to #{HPXML::HVACTypeCentralAirConditioner}, #{HPXML::HVACTypeEvaporativeCooler}, and #{HPXML::HVACTypeMiniSplitAirConditioner}.")
-    arg.setUnits('W/CFM')
     args << arg
 
     heat_pump_type_choices = OpenStudio::StringVector.new
@@ -1194,25 +1171,13 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_backup_heating_switchover_temp', false)
     arg.setDisplayName('Heat Pump: Backup Heating Switchover Temperature')
-    arg.setDescription('The temperature at which the heat pump stops operating and the backup heating system starts running. Only applies to air-to-air and mini-split.')
+    arg.setDescription('The temperature at which the heat pump stops operating and the backup heating system starts running. Only applies to air-to-air and mini-split. If not provided, backup heating will operate as needed when heat pump capacity is insufficient.')
     arg.setUnits('deg-F')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('heat_pump_mini_split_is_ducted', false)
-    arg.setDisplayName('Heat Pump: Mini-Split Is Ducted')
-    arg.setDescription('Whether the mini-split heat pump is ducted or not.')
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_pump_power_watts_per_ton', false)
-    arg.setDisplayName('Heat Pump: Ground-to-Air Pump Power')
-    arg.setDescription('Ground loop circulator pump power during operation of the heat pump.')
-    arg.setUnits('W/ton')
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_fan_power_watts_per_cfm', false)
-    arg.setDisplayName('Heat Pump: Fan Power')
-    arg.setDescription('Blower fan power.')
-    arg.setUnits('W/CFM')
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('heat_pump_is_ducted', false)
+    arg.setDisplayName('Heat Pump: Is Ducted')
+    arg.setDescription("Whether the heat pump is ducted or not. Only used for #{HPXML::HVACTypeHeatPumpMiniSplit}.")
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('setpoint_heating_weekday', true)
@@ -1341,6 +1306,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     heating_system_type_2_choices << 'none'
     heating_system_type_2_choices << HPXML::HVACTypeWallFurnace
     heating_system_type_2_choices << HPXML::HVACTypeFloorFurnace
+    heating_system_type_2_choices << HPXML::HVACTypeBoiler
     heating_system_type_2_choices << HPXML::HVACTypeElectricResistance
     heating_system_type_2_choices << HPXML::HVACTypeStove
     heating_system_type_2_choices << HPXML::HVACTypePortableHeater
@@ -1379,24 +1345,6 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(0.25)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heating_system_electric_auxiliary_energy_2', false)
-    arg.setDisplayName('Heating System 2: Electric Auxiliary Energy')
-    arg.setDescription('The electric auxiliary energy of the second heating system.')
-    arg.setUnits('kWh/yr')
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heating_system_fan_power_watts_2', false)
-    arg.setDisplayName('Heating System 2: Fan Power')
-    arg.setDescription("Blower fan power. Ignored for #{HPXML::HVACTypeElectricResistance}.")
-    arg.setUnits('W/CFM')
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('heating_system_has_flue_or_chimney_2', true)
-    arg.setDisplayName('Heating System 2: Has Flue or Chimney')
-    arg.setDescription('Whether the second heating system has a flue or chimney.')
-    arg.setDefaultValue(false)
-    args << arg
-
     mech_vent_fan_type_choices = OpenStudio::StringVector.new
     mech_vent_fan_type_choices << 'none'
     mech_vent_fan_type_choices << HPXML::MechVentTypeExhaust
@@ -1426,7 +1374,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('mech_vent_hours_in_operation', true)
     arg.setDisplayName('Mechanical Ventilation: Hours In Operation')
     arg.setDescription('The hours in operation of the mechanical ventilation.')
-    arg.setUnits('hrs')
+    arg.setUnits('hrs/day')
     arg.setDefaultValue(24)
     args << arg
 
@@ -1478,12 +1426,12 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('shared_mech_vent_preheating_fuel', heating_system_fuel_choices, false)
     arg.setDisplayName('Shared Mechanical Ventilation: Preheating Fuel')
-    arg.setDescription('Fuel type of the preconditioning heating equipment.')
+    arg.setDescription('Fuel type of the preconditioning heating equipment. Only used for a shared mechanical ventilation system.')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('shared_mech_vent_preheating_efficiency', false)
     arg.setDisplayName('Shared Mechanical Ventilation: Preheating Efficiency')
-    arg.setDescription('Efficiency of the preconditioning heating equipment.')
+    arg.setDescription('Efficiency of the preconditioning heating equipment. Only used for a shared mechanical ventilation system.')
     arg.setUnits('COP')
     args << arg
 
@@ -1498,12 +1446,12 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('shared_mech_vent_precooling_fuel', cooling_system_fuel_choices, false)
     arg.setDisplayName('Shared Mechanical Ventilation: Precooling Fuel')
-    arg.setDescription('Fuel type of the preconditioning cooling equipment.')
+    arg.setDescription('Fuel type of the preconditioning cooling equipment. Only used for a shared mechanical ventilation system.')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('shared_mech_vent_precooling_efficiency', false)
     arg.setDisplayName('Shared Mechanical Ventilation: Precooling Efficiency')
-    arg.setDescription('Efficiency of the preconditioning cooling equipment.')
+    arg.setDescription('Efficiency of the preconditioning cooling equipment. Only used for a shared mechanical ventilation system.')
     arg.setUnits('COP')
     args << arg
 
@@ -1529,7 +1477,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('mech_vent_hours_in_operation_2', true)
     arg.setDisplayName('Mechanical Ventilation 2: Hours In Operation')
     arg.setDescription('The hours in operation of the second mechanical ventilation.')
-    arg.setUnits('hrs')
+    arg.setUnits('hrs/day')
     arg.setDefaultValue(24)
     args << arg
 
@@ -1587,7 +1535,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('kitchen_fans_hours_in_operation', false)
     arg.setDisplayName('Kitchen Fans: Hours In Operation')
     arg.setDescription('The hours in operation of the kitchen fan.')
-    arg.setUnits('hrs')
+    arg.setUnits('hrs/day')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('kitchen_fans_power', false)
@@ -1623,7 +1571,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('bathroom_fans_hours_in_operation', false)
     arg.setDisplayName('Bathroom Fans: Hours In Operation')
     arg.setDescription('The hours in operation of the bathroom fans.')
-    arg.setUnits('hrs')
+    arg.setUnits('hrs/day')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('bathroom_fans_power', false)
@@ -1769,12 +1717,6 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDescription('The setpoint temperature of water heater.')
     arg.setUnits('deg-F')
     arg.setDefaultValue(Constants.Auto)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('water_heater_has_flue_or_chimney', true)
-    arg.setDisplayName('Water Heater: Has Flue or Chimney')
-    arg.setDescription('Whether the water heater has a flue or chimney.')
-    arg.setDefaultValue(false)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('water_heater_num_units_served', true)
@@ -2844,7 +2786,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     args << arg
 
     heater_type_choices = OpenStudio::StringVector.new
-    heater_type_choices << 'none'
+    heater_type_choices << HPXML::TypeNone
     heater_type_choices << HPXML::HeaterTypeElectricResistance
     heater_type_choices << HPXML::HeaterTypeGas
     heater_type_choices << HPXML::HeaterTypeHeatPump
@@ -2871,7 +2813,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('pool_heater_type', heater_type_choices, true)
     arg.setDisplayName('Pool: Heater Type')
     arg.setDescription("The type of pool heater. Use 'none' if there is no pool heater.")
-    arg.setDefaultValue('none')
+    arg.setDefaultValue(HPXML::TypeNone)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('pool_heater_annual_kwh', true)
@@ -2916,7 +2858,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('hot_tub_heater_type', heater_type_choices, true)
     arg.setDisplayName('Hot Tub: Heater Type')
     arg.setDescription("The type of hot tub heater. Use 'none' if there is no hot tub heater.")
-    arg.setDefaultValue('none')
+    arg.setDefaultValue(HPXML::TypeNone)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('hot_tub_heater_annual_kwh', true)
@@ -3414,12 +3356,7 @@ class HPXMLFile
     hpxml.building_construction.conditioned_building_volume = conditioned_building_volume
     hpxml.building_construction.average_ceiling_height = args[:geometry_wall_height]
     hpxml.building_construction.residential_facility_type = args[:geometry_unit_type]
-
-    if (args[:heating_system_type] != 'none' && args[:heating_system_has_flue_or_chimney]) ||
-       (args[:heating_system_type_2] != 'none' && args[:heating_system_has_flue_or_chimney_2]) ||
-       (args[:water_heater_type] != 'none' && args[:water_heater_has_flue_or_chimney])
-      hpxml.building_construction.has_flue_or_chimney = true
-    end
+    hpxml.building_construction.has_flue_or_chimney = args[:geometry_has_flue_or_chimney] if args[:geometry_has_flue_or_chimney]
   end
 
   def self.set_climate_and_risk_zones(hpxml, runner, args, epw_file)
@@ -3935,12 +3872,6 @@ class HPXMLFile
       heating_capacity = args[:heating_system_heating_capacity]
     end
 
-    if args[:heating_system_electric_auxiliary_energy].is_initialized
-      if args[:heating_system_electric_auxiliary_energy].get > 0
-        electric_auxiliary_energy = args[:heating_system_electric_auxiliary_energy].get
-      end
-    end
-
     if heating_system_type == HPXML::HVACTypeElectricResistance
       heating_system_fuel = HPXML::FuelTypeElectricity
     else
@@ -3953,26 +3884,13 @@ class HPXMLFile
       heating_efficiency_percent = args[:heating_system_heating_efficiency]
     end
 
-    if [HPXML::HVACTypeFurnace].include? heating_system_type
-      if args[:heating_system_fan_power_watts_per_cfm].is_initialized
-        fan_watts_per_cfm = args[:heating_system_fan_power_watts_per_cfm].get
-      end
-    elsif [HPXML::HVACTypeWallFurnace, HPXML::HVACTypeFloorFurnace, HPXML::HVACTypeStove, HPXML::HVACTypePortableHeater, HPXML::HVACTypeFireplace, HPXML::HVACTypeFixedHeater].include? heating_system_type
-      if args[:heating_system_fan_power_watts].is_initialized
-        fan_watts = args[:heating_system_fan_power_watts].get
-      end
-    end
-
     hpxml.heating_systems.add(id: 'HeatingSystem',
                               heating_system_type: heating_system_type,
                               heating_system_fuel: heating_system_fuel,
                               heating_capacity: heating_capacity,
                               fraction_heat_load_served: args[:heating_system_fraction_heat_load_served],
-                              electric_auxiliary_energy: electric_auxiliary_energy,
                               heating_efficiency_afue: heating_efficiency_afue,
-                              heating_efficiency_percent: heating_efficiency_percent,
-                              fan_watts_per_cfm: fan_watts_per_cfm,
-                              fan_watts: fan_watts)
+                              heating_efficiency_percent: heating_efficiency_percent)
 
     heating_system_type_2 = args[:heating_system_type_2]
 
@@ -3982,26 +3900,16 @@ class HPXMLFile
       heating_capacity_2 = args[:heating_system_heating_capacity_2]
     end
 
-    if args[:heating_system_electric_auxiliary_energy_2].is_initialized
-      if args[:heating_system_electric_auxiliary_energy_2].get > 0
-        electric_auxiliary_energy_2 = args[:heating_system_electric_auxiliary_energy_2].get
-      end
-    end
-
     if args[:heating_system_fuel_2] == HPXML::HVACTypeElectricResistance
       heating_system_fuel_2 = HPXML::FuelTypeElectricity
     else
       heating_system_fuel_2 = args[:heating_system_fuel_2]
     end
 
-    if [HPXML::HVACTypeFurnace, HPXML::HVACTypeWallFurnace].include? heating_system_type_2
+    if [HPXML::HVACTypeFurnace, HPXML::HVACTypeWallFurnace, HPXML::HVACTypeFloorFurnace, HPXML::HVACTypeBoiler].include? heating_system_type_2
       heating_efficiency_afue_2 = args[:heating_system_heating_efficiency_2]
     elsif [HPXML::HVACTypeElectricResistance, HPXML::HVACTypeStove, HPXML::HVACTypePortableHeater, HPXML::HVACTypeFireplace].include? heating_system_type_2
       heating_efficiency_percent_2 = args[:heating_system_heating_efficiency_2]
-    end
-
-    if args[:heating_system_fan_power_watts_2].is_initialized
-      fan_watts = args[:heating_system_fan_power_watts_2].get
     end
 
     hpxml.heating_systems.add(id: 'SecondHeatingSystem',
@@ -4009,10 +3917,8 @@ class HPXMLFile
                               heating_system_fuel: heating_system_fuel_2,
                               heating_capacity: heating_capacity_2,
                               fraction_heat_load_served: args[:heating_system_fraction_heat_load_served_2],
-                              electric_auxiliary_energy: electric_auxiliary_energy_2,
                               heating_efficiency_afue: heating_efficiency_afue_2,
-                              heating_efficiency_percent: heating_efficiency_percent_2,
-                              fan_watts: fan_watts)
+                              heating_efficiency_percent: heating_efficiency_percent_2)
   end
 
   def self.set_cooling_systems(hpxml, runner, args)
@@ -4044,12 +3950,6 @@ class HPXMLFile
       cooling_efficiency_eer = args[:cooling_system_cooling_efficiency_eer]
     end
 
-    if [HPXML::HVACTypeCentralAirConditioner, HPXML::HVACTypeEvaporativeCooler, HPXML::HVACTypeMiniSplitAirConditioner].include? cooling_system_type
-      if args[:cooling_system_fan_power_watts_per_cfm].is_initialized
-        fan_watts_per_cfm = args[:cooling_system_fan_power_watts_per_cfm].get
-      end
-    end
-
     hpxml.cooling_systems.add(id: 'CoolingSystem',
                               cooling_system_type: cooling_system_type,
                               cooling_system_fuel: HPXML::FuelTypeElectricity,
@@ -4058,8 +3958,7 @@ class HPXMLFile
                               compressor_type: compressor_type,
                               cooling_shr: cooling_shr,
                               cooling_efficiency_seer: cooling_efficiency_seer,
-                              cooling_efficiency_eer: cooling_efficiency_eer,
-                              fan_watts_per_cfm: fan_watts_per_cfm)
+                              cooling_efficiency_eer: cooling_efficiency_eer)
   end
 
   def self.set_heat_pumps(hpxml, runner, args)
@@ -4116,14 +4015,6 @@ class HPXMLFile
     elsif [HPXML::HVACTypeHeatPumpGroundToAir].include? heat_pump_type
       heating_efficiency_cop = args[:heat_pump_heating_efficiency_cop]
       cooling_efficiency_eer = args[:heat_pump_cooling_efficiency_eer]
-
-      if args[:heat_pump_pump_power_watts_per_ton].is_initialized
-        pump_watts_per_ton = args[:heat_pump_pump_power_watts_per_ton].get
-      end
-    end
-
-    if args[:heat_pump_fan_power_watts_per_cfm].is_initialized
-      fan_watts_per_cfm = args[:heat_pump_fan_power_watts_per_cfm].get
     end
 
     hpxml.heat_pumps.add(id: 'HeatPump',
@@ -4144,21 +4035,20 @@ class HPXMLFile
                          heating_efficiency_hspf: heating_efficiency_hspf,
                          cooling_efficiency_seer: cooling_efficiency_seer,
                          heating_efficiency_cop: heating_efficiency_cop,
-                         cooling_efficiency_eer: cooling_efficiency_eer,
-                         pump_watts_per_ton: pump_watts_per_ton,
-                         fan_watts_per_cfm: fan_watts_per_cfm)
+                         cooling_efficiency_eer: cooling_efficiency_eer)
   end
 
   def self.set_hvac_distribution(hpxml, runner, args)
     # HydronicDistribution?
+    hydr_idx = 0
     hpxml.heating_systems.each do |heating_system|
       next unless [HPXML::HVACTypeBoiler].include? heating_system.heating_system_type
 
-      hpxml.hvac_distributions.add(id: 'HydronicDistribution',
+      hydr_idx += 1
+      hpxml.hvac_distributions.add(id: "HydronicDistribution#{hydr_idx}",
                                    distribution_system_type: HPXML::HVACDistributionTypeHydronic,
                                    hydronic_type: HPXML::HydronicTypeBaseboard)
       heating_system.distribution_system_idref = hpxml.hvac_distributions[-1].id
-      break
     end
 
     # AirDistribution?
@@ -4179,8 +4069,8 @@ class HPXMLFile
       if [HPXML::HVACTypeHeatPumpAirToAir, HPXML::HVACTypeHeatPumpGroundToAir].include? heat_pump.heat_pump_type
         air_distribution_systems << heat_pump
       elsif [HPXML::HVACTypeHeatPumpMiniSplit].include?(heat_pump.heat_pump_type)
-        if args[:heat_pump_mini_split_is_ducted].is_initialized
-          air_distribution_systems << heat_pump if to_boolean(args[:heat_pump_mini_split_is_ducted].get)
+        if args[:heat_pump_is_ducted].is_initialized
+          air_distribution_systems << heat_pump if to_boolean(args[:heat_pump_is_ducted].get)
         end
       end
     end
@@ -4816,7 +4706,8 @@ class HPXMLFile
                             energy_factor: energy_factor,
                             integrated_energy_factor: integrated_energy_factor,
                             rh_setpoint: args[:dehumidifier_rh_setpoint],
-                            fraction_served: args[:dehumidifier_fraction_dehumidification_load_served])
+                            fraction_served: args[:dehumidifier_fraction_dehumidification_load_served],
+                            location: HPXML::LocationLivingSpace)
   end
 
   def self.set_clothes_washer(hpxml, runner, args)
@@ -5242,10 +5133,6 @@ class HPXMLFile
       pump_usage_multiplier = args[:pool_pump_usage_multiplier]
     end
 
-    if args[:pool_heater_type] != 'none'
-      heater_type = args[:pool_heater_type]
-    end
-
     if args[:pool_heater_annual_kwh] != Constants.Auto
       heater_load_units = 'kWh/year'
       heater_load_value = args[:pool_heater_annual_kwh]
@@ -5261,9 +5148,11 @@ class HPXMLFile
     end
 
     hpxml.pools.add(id: 'Pool',
+                    type: HPXML::TypeUnknown,
+                    pump_type: HPXML::TypeUnknown,
                     pump_kwh_per_year: pump_kwh_per_year,
                     pump_usage_multiplier: pump_usage_multiplier,
-                    heater_type: heater_type,
+                    heater_type: args[:pool_heater_type],
                     heater_load_units: heater_load_units,
                     heater_load_value: heater_load_value,
                     heater_usage_multiplier: heater_usage_multiplier)
@@ -5278,10 +5167,6 @@ class HPXMLFile
 
     if args[:hot_tub_pump_usage_multiplier] != 1.0
       pump_usage_multiplier = args[:hot_tub_pump_usage_multiplier]
-    end
-
-    if args[:hot_tub_heater_type] != 'none'
-      heater_type = args[:hot_tub_heater_type]
     end
 
     if args[:hot_tub_heater_annual_kwh] != Constants.Auto
@@ -5299,9 +5184,11 @@ class HPXMLFile
     end
 
     hpxml.hot_tubs.add(id: 'HotTub',
+                       type: HPXML::TypeUnknown,
+                       pump_type: HPXML::TypeUnknown,
                        pump_kwh_per_year: pump_kwh_per_year,
                        pump_usage_multiplier: pump_usage_multiplier,
-                       heater_type: heater_type,
+                       heater_type: args[:hot_tub_heater_type],
                        heater_load_units: heater_load_units,
                        heater_load_value: heater_load_value,
                        heater_usage_multiplier: heater_usage_multiplier)
