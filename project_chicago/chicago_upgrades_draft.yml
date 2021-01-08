@@ -228,7 +228,7 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 999
 
-## 3. Attic Insulation #01: R-49, vented attics only (Does not apply to MF)
+## 3. Attic Insulation #01: R-49, vented attics only
   - upgrade_name: Attic Insulation, R-49
     options:
       - option: Insulation Unfinished Attic|Ceiling R-49, Vented
@@ -242,6 +242,7 @@ upgrades:
         costs:
           - value: 1.9
             multiplier: Floor Area, Attic (ft^2)
+        lifetime: 999
       - option: Insulation Unfinished Attic|Ceiling R-49, Vented
         apply_logic: Insulation Unfinished Attic|Ceiling R-13, Vented
         costs:
@@ -267,7 +268,7 @@ upgrades:
             multiplier: Floor Area, Attic (ft^2)
         lifetime: 999
 
-## 4. Attic Insulation #02: R-60, vented attics only (does not apply to MF)
+## 4. Attic Insulation #02: R-60, vented attics only
   - upgrade_name: Attic Insulation, R-60
     options:
       - option: Insulation Unfinished Attic|Ceiling R-60, Vented
@@ -336,6 +337,16 @@ upgrades:
       - option: Ducts|10% Leakage, R-8
         apply_logic:
           or:
+            - Ducts|85% Leakage, Uninsulated
+            - Ducts|53% Leakage, Uninsulated
+            - Ducts|34% Leakage, Uninsulated
+            - Ducts|30% Leakage, Uninsulated
+            - Ducts|85% Leakage, R-4
+            - Ducts|85% Leakage, R-6
+            - Ducts|53% Leakage, R-4
+            - Ducts|53% Leakage, R-6
+            - Ducts|34% Leakage, R-4
+            - Ducts|34% Leakage, R-6
             - Ducts|30% Leakage, R-4
             - Ducts|30% Leakage, R-6
         costs:
@@ -343,7 +354,12 @@ upgrades:
             multiplier: Duct Surface Area (ft^2)
         lifetime: 30
       - option: Ducts|10% Leakage, R-8
-        apply_logic: Ducts|30% Leakage, R-8
+        apply_logic:
+          or:
+            - Ducts|85% Leakage, R-8
+            - Ducts|53% Leakage, R-8
+            - Ducts|34% Leakage, R-8
+            - Ducts|30% Leakage, R-8
         costs:
           - value: 0.81
             multiplier: Duct Surface Area (ft^2)
@@ -351,6 +367,9 @@ upgrades:
       - option: Ducts|10% Leakage, R-8
         apply_logic:
           or:
+            - Ducts|24% Leakage, Uninsulated
+            - Ducts|24% Leakage, R-4
+            - Ducts|24% Leakage, R-6
             - Ducts|20% Leakage, Uninsulated
             - Ducts|20% Leakage, R-4
             - Ducts|20% Leakage, R-6
@@ -359,9 +378,35 @@ upgrades:
             multiplier: Duct Surface Area (ft^2)
         lifetime: 30
       - option: Ducts|10% Leakage, R-8
-        apply_logic: Ducts|20% Leakage, R-8
+        apply_logic:
+          or:
+            - Ducts|24% Leakage, R-8
+            - Ducts|20% Leakage, R-8
         costs:
           - value: 0.4
+            multiplier: Duct Surface Area (ft^2)
+        lifetime: 30
+      - option: Ducts|10% Leakage, R-8
+        apply_logic:
+          or:
+            - Ducts|15% Leakage, Uninsulated
+            - Ducts|15% Leakage, R-4
+            - Ducts|15% Leakage, R-6
+            - Ducts|14% Leakage, Uninsulated
+            - Ducts|14% Leakage, R-4
+            - Ducts|14% Leakage, R-6
+            - Ducts|15% Leakage, R-6, 50% Surface Area, 1 return
+        costs:
+          - value: 1.6
+            multiplier: Duct Surface Area (ft^2)
+        lifetime: 30
+      - option: Ducts|10% Leakage, R-8
+        apply_logic:
+          or:
+            - Ducts|15% Leakage, R-8
+            - Ducts|14% Leakage, R-8
+        costs:
+          - value: 0.2
             multiplier: Duct Surface Area (ft^2)
         lifetime: 30
       - option: Ducts|10% Leakage, R-8
@@ -370,6 +415,26 @@ upgrades:
             - Ducts|10% Leakage, Uninsulated
             - Ducts|10% Leakage, R-4
             - Ducts|10% Leakage, R-6
+        costs:
+          - value: 1.4
+            multiplier: Duct Surface Area (ft^2)
+        lifetime: 30
+      - option: Ducts|7.5% Leakage, R-8
+        apply_logic:
+          or:
+            - Ducts|7.5% Leakage, Uninsulated
+            - Ducts|7.5% Leakage, R-4
+            - Ducts|7.5% Leakage, R-6
+        costs:
+          - value: 1.4
+            multiplier: Duct Surface Area (ft^2)
+        lifetime: 30
+      - option: Ducts|6% Leakage, R-8
+        apply_logic:
+          or:
+            - Ducts|6% Leakage, Uninsulated
+            - Ducts|6% Leakage, R-4
+            - Ducts|6% Leakage, R-6
         costs:
           - value: 1.4
             multiplier: Duct Surface Area (ft^2)
@@ -1361,7 +1426,7 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 13
 
-## 45. Pools #01: Pumps (does not apply to MF)
+## 45. Pools #01: Pumps
   - upgrade_name: Efficient Pool Pump
     options:
       - option: Misc Pool Pump|0.75 HP Pump
@@ -1371,7 +1436,7 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 12
 
-## 46. Pools #02: Heater (does not apply to MF)
+## 46. Pools #02: Heater
   - upgrade_name: Electrify Pool Heating
     options:
       - option: Misc Pool Heater|Electric, Covered, 78F
@@ -1458,7 +1523,11 @@ upgrades:
         apply_logic:
           or:
             - Lighting|100% Incandescent
+            - Lighting|60% CFL Hardwired, 34% CFL Plugin
+            - Lighting|60% LED Hardwired, 34% CFL Plugin
+            - Lighting|60% CFL
             - Lighting|100% CFL
+            - Lighting|100% LED, Low Efficacy
         costs:
         #  - value: 0.006
         #    multiplier: [lumens]
