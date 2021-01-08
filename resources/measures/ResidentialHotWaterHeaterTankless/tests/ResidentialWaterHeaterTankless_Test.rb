@@ -15,18 +15,6 @@ class ResidentialHotWaterHeaterTanklessTest < MiniTest::Test
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
-  def test_new_construction_standard_gas_scheduled_sp
-    args_hash = {}
-    args_hash["fuel_type"] = Constants.FuelTypeGas
-    args_hash["setpoint_type"] = "scheduled"
-    args_hash["schedule_directory"] = "./resources"
-    args_hash["setpoint_schedule"] = "hourly_setpoint_schedule.csv"
-    expected_num_del_objects = {}
-    expected_num_new_objects = { "WaterHeaterMixed" => 1, "PlantLoop" => 1, "PumpVariableSpeed" => 1, "ScheduleFixedInterval" => 2 }
-    expected_values = { "InputCapacity" => 29307107, "ThermalEfficiency" => 0.754, "Setpoint" => 125, "OnCycle" => 7.38, "OffCycle" => 7.38, "FuelType" => Constants.FuelTypeGas }
-    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
-  end
-
   def test_new_construction_standard_elec
     args_hash = {}
     expected_num_del_objects = {}
@@ -37,36 +25,11 @@ class ResidentialHotWaterHeaterTanklessTest < MiniTest::Test
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
-  def test_new_construction_standard_elec_scheduled_sp
-    args_hash = {}
-    expected_num_del_objects = {}
-    args_hash["fuel_type"] = Constants.FuelTypeElectric
-    args_hash["energy_factor"] = 0.99
-    args_hash["setpoint_type"] = "scheduled"
-    args_hash["schedule_directory"] = "./resources"
-    args_hash["setpoint_schedule"] = "hourly_setpoint_schedule.csv"
-    expected_num_new_objects = { "WaterHeaterMixed" => 1, "PlantLoop" => 1, "PumpVariableSpeed" => 1, "ScheduleFixedInterval" => 2 }
-    expected_values = { "InputCapacity" => 29307107, "ThermalEfficiency" => 0.911, "Setpoint" => 125, "OnCycle" => 0, "OffCycle" => 0, "FuelType" => Constants.FuelTypeElectric }
-    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
-  end
-
   def test_new_construction_standard_propane
     args_hash = {}
     args_hash["fuel_type"] = Constants.FuelTypePropane
     expected_num_del_objects = {}
     expected_num_new_objects = { "WaterHeaterMixed" => 1, "PlantLoop" => 1, "PumpVariableSpeed" => 1, "ScheduleConstant" => 2 }
-    expected_values = { "InputCapacity" => 29307107, "ThermalEfficiency" => 0.754, "Setpoint" => 125, "OnCycle" => 7.38, "OffCycle" => 7.38, "FuelType" => Constants.FuelTypePropane }
-    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
-  end
-
-  def test_new_construction_standard_propane_scheduled_sp
-    args_hash = {}
-    args_hash["fuel_type"] = Constants.FuelTypePropane
-    args_hash["setpoint_type"] = Constants.WaterHeaterSetpointTypeScheduled
-    args_hash["schedule_directory"] = "./resources"
-    args_hash["setpoint_schedule"] = "hourly_setpoint_schedule.csv"
-    expected_num_del_objects = {}
-    expected_num_new_objects = { "WaterHeaterMixed" => 1, "PlantLoop" => 1, "PumpVariableSpeed" => 1, "ScheduleFixedInterval" => 2 }
     expected_values = { "InputCapacity" => 29307107, "ThermalEfficiency" => 0.754, "Setpoint" => 125, "OnCycle" => 7.38, "OffCycle" => 7.38, "FuelType" => Constants.FuelTypePropane }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
@@ -118,47 +81,6 @@ class ResidentialHotWaterHeaterTanklessTest < MiniTest::Test
     _test_measure(model, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
-  def test_retrofit_replace_scheduled_sp
-    args_hash = {}
-    args_hash["fuel_type"] = Constants.FuelTypeGas
-    expected_num_del_objects = {}
-    expected_num_new_objects = { "WaterHeaterMixed" => 1, "PlantLoop" => 1, "PumpVariableSpeed" => 1, "ScheduleConstant" => 2 }
-    expected_values = { "InputCapacity" => 29307107, "ThermalEfficiency" => 0.754, "Setpoint" => 125, "OnCycle" => 7.38, "OffCycle" => 7.38, "FuelType" => Constants.FuelTypeGas }
-    model = _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
-    args_hash = {}
-    args_hash["energy_factor"] = 0.96
-    args_hash["fuel_type"] = Constants.FuelTypeGas
-    args_hash["setpoint_type"] = Constants.WaterHeaterSetpointTypeScheduled
-    args_hash["schedule_directory"] = "./resources"
-    args_hash["setpoint_schedule"] = "hourly_setpoint_schedule.csv"
-    expected_num_del_objects = { "WaterHeaterMixed" => 1, "ScheduleConstant" => 2 }
-    expected_num_new_objects = { "WaterHeaterMixed" => 1, "ScheduleFixedInterval" => 2 }
-    expected_values = { "InputCapacity" => 29307107, "ThermalEfficiency" => 0.883, "OnCycle" => 7.38, "OffCycle" => 7.38, "FuelType" => Constants.FuelTypeGas }
-    _test_measure(model, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
-  end
-
-  def test_retrofit_replace_scheduled_sp_with_scheduled_sp
-    args_hash = {}
-    args_hash["fuel_type"] = Constants.FuelTypeGas
-    args_hash["setpoint_type"] = Constants.WaterHeaterSetpointTypeScheduled
-    args_hash["schedule_directory"] = "./resources"
-    args_hash["setpoint_schedule"] = "hourly_setpoint_schedule.csv"
-    expected_num_del_objects = {}
-    expected_num_new_objects = { "WaterHeaterMixed" => 1, "PlantLoop" => 1, "PumpVariableSpeed" => 1, "ScheduleFixedInterval" => 2 }
-    expected_values = { "InputCapacity" => 29307107, "ThermalEfficiency" => 0.754, "Setpoint" => 125, "OnCycle" => 7.38, "OffCycle" => 7.38, "FuelType" => Constants.FuelTypeGas }
-    model = _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
-    args_hash = {}
-    args_hash["energy_factor"] = 0.96
-    args_hash["fuel_type"] = Constants.FuelTypeGas
-    args_hash["setpoint_type"] = Constants.WaterHeaterSetpointTypeScheduled
-    args_hash["schedule_directory"] = "./resources"
-    args_hash["setpoint_schedule"] = "hourly_setpoint_schedule.csv"
-    expected_num_del_objects = { "WaterHeaterMixed" => 1, "ScheduleFixedInterval" => 2 }
-    expected_num_new_objects = { "WaterHeaterMixed" => 1, "ScheduleFixedInterval" => 2 }
-    expected_values = { "InputCapacity" => 29307107, "ThermalEfficiency" => 0.883, "OnCycle" => 7.38, "OffCycle" => 7.38, "FuelType" => Constants.FuelTypeGas }
-    _test_measure(model, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
-  end
-
   def test_retrofit_replace_tank_with_tankless_gas
     args_hash = {}
     args_hash["fuel_type"] = Constants.FuelTypeGas
@@ -203,48 +125,6 @@ class ResidentialHotWaterHeaterTanklessTest < MiniTest::Test
     expected_num_new_objects = { "WaterHeaterMixed" => 1, "ScheduleConstant" => 2 }
     expected_values = { "InputCapacity" => 29307107, "ThermalEfficiency" => 0.754, "Setpoint" => args_hash["setpoint_temp"].to_f, "OnCycle" => 7.38, "OffCycle" => 7.38, "FuelType" => Constants.FuelTypeGas, "StorageTankSetpoint1" => args_hash["setpoint_temp"].to_f, "StorageTankSetpoint2" => args_hash["setpoint_temp"].to_f }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank_SHW.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
-  end
-
-  def test_short_period_with_short_schedule
-    args_hash = {}
-    args_hash["setpoint_type"] = Constants.WaterHeaterSetpointTypeScheduled
-    args_hash["schedule_directory"] = "./resources"
-    args_hash["setpoint_schedule"] = "hourly_setpoint_schedule_feb.csv"
-    expected_num_del_objects = {   "ScheduleConstant" => 2, "WaterHeaterMixed" => 1 }
-    expected_num_new_objects = { "ScheduleFixedInterval" => 2, "WaterHeaterMixed" => 1 }
-    expected_values = { "InputCapacity" => 29307107, "ThermalEfficiency" => 0.754, "Setpoint" => 125, "OnCycle" => 7.38, "OffCycle" => 7.38, "FuelType" => Constants.FuelTypeGas }
-    _test_measure("SFD_Successful_EnergyPlus_Run_TMY_February.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
-  end
-
-  def test_short_period_with_full_year_schedule
-    args_hash = {}
-    args_hash["fuel_type"] = Constants.FuelTypeGas
-    args_hash["setpoint_type"] = Constants.WaterHeaterSetpointTypeScheduled
-    args_hash["schedule_directory"] = "./resources"
-    args_hash["setpoint_schedule"] = "hourly_setpoint_schedule.csv"
-    expected_num_del_objects = {   "ScheduleConstant" => 2, "WaterHeaterMixed" => 1 }
-    expected_num_new_objects = { "ScheduleFixedInterval" => 2, "WaterHeaterMixed" => 1 }
-    expected_values = { "InputCapacity" => 29307107, "ThermalEfficiency" => 0.754, "Setpoint" => 125, "OnCycle" => 7.38, "OffCycle" => 7.38, "FuelType" => Constants.FuelTypeGas }
-    _test_measure("SFD_Successful_EnergyPlus_Run_TMY_February.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
-  end
-
-  def test_error_missing_setpoint_schedule
-    args_hash = {}
-    args_hash["fuel_type"] = Constants.FuelTypeGas
-    args_hash["setpoint_type"] = Constants.WaterHeaterSetpointTypeScheduled
-    args_hash["schedule_directory"] = "./resources"
-    args_hash["setpoint_schedule"] = "non_existent_schedule.csv"
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "'#{File.expand_path("..", __dir__)}/resources/non_existent_schedule.csv' does not exist.")
-  end
-
-  def test_error_setpoint_schedule_wrong_length
-    args_hash = {}
-    args_hash["setpoint_type"] = Constants.WaterHeaterSetpointTypeScheduled
-    args_hash["schedule_directory"] = "./resources"
-    args_hash["setpoint_schedule"] = "wrong_length_schedule.csv"
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "Hourly water heater schedule must be the length of the simulation period or a full year")
   end
 
   def test_argument_error_setpoint_lt_0
