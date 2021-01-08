@@ -3,14 +3,36 @@
   <schema_version>3.0</schema_version>
   <name>simulation_output_report</name>
   <uid>df9d170c-c21a-4130-866d-0d46b06073fd</uid>
-  <version_id>7680ed1f-ed1e-4fde-8308-6c565f4a83ef</version_id>
-  <version_modified>20201209T161002Z</version_modified>
+  <version_id>faa47bb2-7362-429d-be2b-701cf2245888</version_id>
+  <version_modified>20201223T175332Z</version_modified>
   <xml_checksum>9BF1E6AC</xml_checksum>
   <class_name>SimulationOutputReport</class_name>
   <display_name>HPXML Simulation Output Report</display_name>
   <description>Reports simulation outputs for residential HPXML-based models.</description>
-  <modeler_description>Processes EnergyPlus simulation outputs in order to generate an annual output CSV file and an optional timeseries output CSV file.</modeler_description>
+  <modeler_description>Processes EnergyPlus simulation outputs in order to generate an annual output file and an optional timeseries output file.</modeler_description>
   <arguments>
+    <argument>
+      <name>output_format</name>
+      <display_name>Output Format</display_name>
+      <description>The file format of the annual (and timeseries, if requested) outputs.</description>
+      <type>Choice</type>
+      <units></units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>csv</default_value>
+      <choices>
+        <choice>
+          <value>csv</value>
+          <display_name>csv</display_name>
+        </choice>
+        <choice>
+          <value>json</value>
+          <display_name>json</display_name>
+        </choice>
+      </choices>
+      <min_value></min_value>
+      <max_value></max_value>
+    </argument>
     <argument>
       <name>timeseries_frequency</name>
       <display_name>Timeseries Reporting Frequency</display_name>
@@ -1075,7 +1097,7 @@
       <filename>output_report_test.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
-      <checksum>D21E96E6</checksum>
+      <checksum>F24CC2AB</checksum>
     </file>
     <file>
       <version>
@@ -1086,7 +1108,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>14FA021B</checksum>
+      <checksum>379F4359</checksum>
     </file>
   </files>
 </measure>

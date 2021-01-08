@@ -51,7 +51,13 @@ def run_hpxml_workflow(rundir, hpxml, measures, measures_dir, debug: false, outp
   forward_translator = OpenStudio::EnergyPlus::ForwardTranslator.new
   forward_translator.setExcludeLCCObjects(true)
   model_idf = forward_translator.translateModel(model)
-  report_ft_errors_warnings(forward_translator, rundir)
+  success = report_ft_errors_warnings(forward_translator, rundir)
+
+  if not success
+    print "#{print_prefix}Creating input unsuccessful.\n"
+    print "#{print_prefix}See #{File.join(rundir, 'run.log')} for details.\n"
+    return { success: false, runner: runner }
+  end
 
   # Apply reporting measure output requests
   apply_energyplus_output_requests(measures_dir, measures, runner, model, model_idf)
@@ -406,14 +412,17 @@ end
 
 def report_ft_errors_warnings(forward_translator, rundir)
   # Report warnings/errors
+  success = true
   File.open(File.join(rundir, 'run.log'), 'a') do |f|
     forward_translator.warnings.each do |s|
       f << "FT Warning: #{s.logMessage}\n"
     end
     forward_translator.errors.each do |s|
       f << "FT Error: #{s.logMessage}\n"
+      success = false
     end
   end
+  return success
 end
 
 def report_os_warnings(os_log, rundir)

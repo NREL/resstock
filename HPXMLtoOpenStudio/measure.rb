@@ -68,7 +68,13 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument.makeBoolArgument('debug', false)
     arg.setDisplayName('Debug Mode?')
-    arg.setDescription('If enabled: 1) Writes in.osm file, 2) Writes in.xml HPXML file with defaults populated, 3) Generates additional log output, and 4) Creates all EnergyPlus output files. Any files written will be in the output path specified above.')
+    arg.setDescription('If true: 1) Writes in.osm file, 2) Writes in.xml HPXML file with defaults populated, 3) Generates additional log output, and 4) Creates all EnergyPlus output files. Any files written will be in the output path specified above.')
+    arg.setDefaultValue(false)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeBoolArgument('skip_validation', false)
+    arg.setDisplayName('Skip Validation?')
+    arg.setDescription('If true, bypasses HPXML input validation for faster performance. WARNING: This should only be used if the supplied HPXML file has already been validated against the Schema & Schematron documents.')
     arg.setDefaultValue(false)
     args << arg
 
@@ -92,6 +98,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     hpxml_path = runner.getStringArgumentValue('hpxml_path', user_arguments)
     output_dir = runner.getOptionalStringArgumentValue('output_dir', user_arguments)
     debug = runner.getBoolArgumentValue('debug', user_arguments)
+    skip_validation = runner.getBoolArgumentValue('skip_validation', user_arguments)
 
     unless (Pathname.new hpxml_path).absolute?
       hpxml_path = File.expand_path(File.join(File.dirname(__FILE__), hpxml_path))
@@ -110,8 +117,13 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     end
 
     begin
-      stron_paths = [File.join(File.dirname(__FILE__), 'resources', 'HPXMLvalidator.xml'),
-                     File.join(File.dirname(__FILE__), 'resources', 'EPvalidator.xml')]
+      if skip_validation
+        stron_paths = []
+        runner.registerWarning('Skipping HPXML input validation. This should only be used if the HPXML file has already been validated.')
+      else
+        stron_paths = [File.join(File.dirname(__FILE__), 'resources', 'HPXMLvalidator.xml'),
+                       File.join(File.dirname(__FILE__), 'resources', 'EPvalidator.xml')]
+      end
       hpxml = HPXML.new(hpxml_path: hpxml_path, schematron_validators: stron_paths)
       hpxml.errors.each do |error|
         runner.registerError(error)
@@ -576,6 +588,16 @@ class OSModel
 
   def self.update_conditioned_basement(runner, model, spaces)
     return if @cond_bsmnt_surfaces.empty?
+    # Update @cond_bsmnt_surfaces to include subsurfaces
+    new_cond_bsmnt_surfaces = @cond_bsmnt_surfaces.dup
+    @cond_bsmnt_surfaces.each do |cond_bsmnt_surface|
+      next if cond_bsmnt_surface.is_a? OpenStudio::Model::InternalMassDefinition
+      next if cond_bsmnt_surface.subSurfaces.empty?
+      cond_bsmnt_surface.subSurfaces.each do |ss|
+        new_cond_bsmnt_surfaces << ss
+      end
+    end
+    @cond_bsmnt_surfaces = new_cond_bsmnt_surfaces.dup
 
     update_solar_absorptances(runner, model)
     assign_view_factors(runner, model, spaces)
@@ -584,7 +606,18 @@ class OSModel
   def self.update_solar_absorptances(runner, model)
     # modify conditioned basement surface properties
     # zero out interior solar absorptance in conditioned basement
+
     @cond_bsmnt_surfaces.each do |cond_bsmnt_surface|
+      # skip windows because windows don't have such property to change.
+      next if cond_bsmnt_surface.is_a?(OpenStudio::Model::SubSurface) && (cond_bsmnt_surface.subSurfaceType.downcase == 'fixedwindow')
+      adj_surface = nil
+      if not cond_bsmnt_surface.is_a? OpenStudio::Model::InternalMassDefinition
+        if not cond_bsmnt_surface.is_a? OpenStudio::Model::SubSurface
+          adj_surface = cond_bsmnt_surface.adjacentSurface.get if cond_bsmnt_surface.adjacentSurface.is_initialized
+        else
+          adj_surface = cond_bsmnt_surface.adjacentSubSurface.get if cond_bsmnt_surface.adjacentSubSurface.is_initialized
+        end
+      end
       const = cond_bsmnt_surface.construction.get
       layered_const = const.to_LayeredConstruction.get
       innermost_material = layered_const.layers[layered_const.numLayers() - 1].to_StandardOpaqueMaterial.get
@@ -614,6 +647,12 @@ class OSModel
       innermost_material = layered_const.layers[layered_const.numLayers() - 1].to_StandardOpaqueMaterial.get
       innermost_material.setSolarAbsorptance(0.0)
       innermost_material.setVisibleAbsorptance(0.0)
+      next if adj_surface.nil?
+      # Create new construction in case of shared construciton.
+      layered_const_adj = OpenStudio::Model::Construction.new(model)
+      layered_const_adj.setName(cond_bsmnt_surface.construction.get.name.get + ' Reversed Bsmnt')
+      adj_surface.setConstruction(layered_const_adj)
+      layered_const_adj.setLayers(cond_bsmnt_surface.construction.get.to_LayeredConstruction.get.layers.reverse())
     end
   end
 
@@ -635,8 +674,7 @@ class OSModel
 
     all_surfaces.each do |surface|
       if @cond_bsmnt_surfaces.include?(surface) ||
-         ((@cond_bsmnt_surfaces.include? surface.internalMassDefinition) if surface.is_a? OpenStudio::Model::InternalMass) ||
-         ((@cond_bsmnt_surfaces.include? surface.surface.get) if surface.is_a? OpenStudio::Model::SubSurface)
+         ((@cond_bsmnt_surfaces.include? surface.internalMassDefinition) if surface.is_a? OpenStudio::Model::InternalMass)
         cond_base_surfaces << surface
       else
         lv_surfaces << surface
@@ -2329,11 +2367,15 @@ class OSModel
 
   def self.add_pools_and_hot_tubs(runner, model, spaces)
     @hpxml.pools.each do |pool|
+      next if pool.type == HPXML::TypeNone
+
       MiscLoads.apply_pool_or_hot_tub_heater(model, pool, Constants.ObjectNameMiscPoolHeater, spaces[HPXML::LocationLivingSpace], @schedules_file)
       MiscLoads.apply_pool_or_hot_tub_pump(model, pool, Constants.ObjectNameMiscPoolPump, spaces[HPXML::LocationLivingSpace], @schedules_file)
     end
 
     @hpxml.hot_tubs.each do |hot_tub|
+      next if hot_tub.type == HPXML::TypeNone
+
       MiscLoads.apply_pool_or_hot_tub_heater(model, hot_tub, Constants.ObjectNameMiscHotTubHeater, spaces[HPXML::LocationLivingSpace], @schedules_file)
       MiscLoads.apply_pool_or_hot_tub_pump(model, hot_tub, Constants.ObjectNameMiscHotTubPump, spaces[HPXML::LocationLivingSpace], @schedules_file)
     end
@@ -3464,7 +3506,7 @@ class OSModel
       set_surface_otherside_coefficients(surface, exterior_adjacent_to, model, spaces)
     elsif exterior_adjacent_to == HPXML::LocationBasementConditioned
       surface.createAdjacentSurface(create_or_get_space(model, spaces, HPXML::LocationLivingSpace))
-      @cond_bsmnt_surfaces << surface
+      @cond_bsmnt_surfaces << surface.adjacentSurface.get
     else
       surface.createAdjacentSurface(create_or_get_space(model, spaces, exterior_adjacent_to))
     end

@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>hpxm_lto_openstudio</name>
   <uid>b1543b30-9465-45ff-ba04-1d1f85e763bc</uid>
-  <version_id>ca62e937-ffd4-4a8b-a0f6-bae99569b597</version_id>
-  <version_modified>20201215T205012Z</version_modified>
+  <version_id>58811ffc-7519-4f85-be66-d7a88482f35b</version_id>
+  <version_modified>20210108T153659Z</version_modified>
   <xml_checksum>D8922A73</xml_checksum>
   <class_name>HPXMLtoOpenStudio</class_name>
   <display_name>HPXML to OpenStudio Translator</display_name>
@@ -30,7 +30,26 @@
     <argument>
       <name>debug</name>
       <display_name>Debug Mode?</display_name>
-      <description>If enabled: 1) Writes in.osm file, 2) Writes in.xml HPXML file with defaults populated, 3) Generates additional log output, and 4) Creates all EnergyPlus output files. Any files written will be in the output path specified above.</description>
+      <description>If true: 1) Writes in.osm file, 2) Writes in.xml HPXML file with defaults populated, 3) Generates additional log output, and 4) Creates all EnergyPlus output files. Any files written will be in the output path specified above.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>skip_validation</name>
+      <display_name>Skip Validation?</display_name>
+      <description>If true, bypasses HPXML input validation for faster performance. WARNING: This should only be used if the supplied HPXML file has already been validated against the Schema &amp; Schematron documents.</description>
       <type>Boolean</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -292,18 +311,6 @@
       <checksum>BA0409DC</checksum>
     </file>
     <file>
-      <filename>BaseElements.xsd</filename>
-      <filetype>xsd</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>B7D212FC</checksum>
-    </file>
-    <file>
-      <filename>HPXMLDataTypes.xsd</filename>
-      <filetype>xsd</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>C13E66F3</checksum>
-    </file>
-    <file>
       <filename>validator.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
@@ -320,12 +327,6 @@
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
       <checksum>A1532F79</checksum>
-    </file>
-    <file>
-      <filename>hvac_sizing.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>51B1E37F</checksum>
     </file>
     <file>
       <filename>test_hvac_sizing.rb</filename>
@@ -368,12 +369,6 @@
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
       <checksum>1932CF82</checksum>
-    </file>
-    <file>
-      <filename>HPXMLvalidator.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>7FDAF453</checksum>
     </file>
     <file>
       <filename>test_hotwater_appliance.rb</filename>
@@ -424,22 +419,46 @@
       <checksum>EC9E575F</checksum>
     </file>
     <file>
+      <filename>waterheater.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>7D19E7A5</checksum>
+    </file>
+    <file>
       <filename>test_defaults.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
-      <checksum>0033A8C0</checksum>
+      <checksum>863C8C0C</checksum>
+    </file>
+    <file>
+      <filename>hvac_sizing.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>8779C220</checksum>
+    </file>
+    <file>
+      <filename>HPXMLDataTypes.xsd</filename>
+      <filetype>xsd</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>CC90A68D</checksum>
+    </file>
+    <file>
+      <filename>BaseElements.xsd</filename>
+      <filetype>xsd</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>FDB6F8B2</checksum>
+    </file>
+    <file>
+      <filename>HPXMLvalidator.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>A998A404</checksum>
     </file>
     <file>
       <filename>EPvalidator.xml</filename>
       <filetype>xml</filetype>
       <usage_type>resource</usage_type>
-      <checksum>6DE5034F</checksum>
-    </file>
-    <file>
-      <filename>waterheater.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>7D19E7A5</checksum>
+      <checksum>FBCEE2A5</checksum>
     </file>
     <file>
       <filename>weather.rb</filename>
@@ -478,16 +497,22 @@
       <checksum>C714CC53</checksum>
     </file>
     <file>
+      <filename>meta_measure.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>789BB247</checksum>
+    </file>
+    <file>
       <filename>misc_loads.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>77F89B51</checksum>
+      <checksum>1A9BF15B</checksum>
     </file>
     <file>
-      <filename>hvac.rb</filename>
+      <filename>hpxml_defaults.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>7FAEF245</checksum>
+      <checksum>779043DE</checksum>
     </file>
     <file>
       <version>
@@ -498,25 +523,19 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>D6647EEC</checksum>
+      <checksum>FE4E2561</checksum>
+    </file>
+    <file>
+      <filename>hvac.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>60A53B69</checksum>
     </file>
     <file>
       <filename>hpxml.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>9E406DD7</checksum>
-    </file>
-    <file>
-      <filename>hpxml_defaults.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>4AD8B2E6</checksum>
-    </file>
-    <file>
-      <filename>meta_measure.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>74DDCB94</checksum>
+      <checksum>B4029CD8</checksum>
     </file>
   </files>
 </measure>

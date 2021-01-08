@@ -1166,10 +1166,34 @@ class HPXMLDefaults
 
   def self.apply_pools_and_hot_tubs(hpxml, cfa, nbeds)
     hpxml.pools.each do |pool|
-      if pool.pump_kwh_per_year.nil?
-        pool.pump_kwh_per_year = MiscLoads.get_pool_pump_default_values(cfa, nbeds)
-        pool.pump_kwh_per_year_isdefaulted = true
+      next if pool.type == HPXML::TypeNone
+
+      if pool.pump_type != HPXML::TypeNone
+        # Pump
+        if pool.pump_kwh_per_year.nil?
+          pool.pump_kwh_per_year = MiscLoads.get_pool_pump_default_values(cfa, nbeds)
+          pool.pump_kwh_per_year_isdefaulted = true
+        end
+        if pool.pump_usage_multiplier.nil?
+          pool.pump_usage_multiplier = 1.0
+          pool.pump_usage_multiplier_isdefaulted = true
+        end
+        if pool.pump_weekday_fractions.nil?
+          pool.pump_weekday_fractions = '0.003, 0.003, 0.003, 0.004, 0.008, 0.015, 0.026, 0.044, 0.084, 0.121, 0.127, 0.121, 0.120, 0.090, 0.075, 0.061, 0.037, 0.023, 0.013, 0.008, 0.004, 0.003, 0.003, 0.003'
+          pool.pump_weekday_fractions_isdefaulted = true
+        end
+        if pool.pump_weekend_fractions.nil?
+          pool.pump_weekend_fractions = '0.003, 0.003, 0.003, 0.004, 0.008, 0.015, 0.026, 0.044, 0.084, 0.121, 0.127, 0.121, 0.120, 0.090, 0.075, 0.061, 0.037, 0.023, 0.013, 0.008, 0.004, 0.003, 0.003, 0.003'
+          pool.pump_weekend_fractions_isdefaulted = true
+        end
+        if pool.pump_monthly_multipliers.nil?
+          pool.pump_monthly_multipliers = '1.154, 1.161, 1.013, 1.010, 1.013, 0.888, 0.883, 0.883, 0.888, 0.978, 0.974, 1.154'
+          pool.pump_monthly_multipliers_isdefaulted = true
+        end
       end
+
+      next unless pool.heater_type != HPXML::TypeNone
+      # Heater
       if pool.heater_load_value.nil?
         default_heater_load_units, default_heater_load_value = MiscLoads.get_pool_heater_default_values(cfa, nbeds, pool.heater_type)
         pool.heater_load_units = default_heater_load_units
@@ -1179,22 +1203,6 @@ class HPXMLDefaults
       if pool.heater_usage_multiplier.nil?
         pool.heater_usage_multiplier = 1.0
         pool.heater_usage_multiplier_isdefaulted = true
-      end
-      if pool.pump_usage_multiplier.nil?
-        pool.pump_usage_multiplier = 1.0
-        pool.pump_usage_multiplier_isdefaulted = true
-      end
-      if pool.pump_weekday_fractions.nil?
-        pool.pump_weekday_fractions = '0.003, 0.003, 0.003, 0.004, 0.008, 0.015, 0.026, 0.044, 0.084, 0.121, 0.127, 0.121, 0.120, 0.090, 0.075, 0.061, 0.037, 0.023, 0.013, 0.008, 0.004, 0.003, 0.003, 0.003'
-        pool.pump_weekday_fractions_isdefaulted = true
-      end
-      if pool.pump_weekend_fractions.nil?
-        pool.pump_weekend_fractions = '0.003, 0.003, 0.003, 0.004, 0.008, 0.015, 0.026, 0.044, 0.084, 0.121, 0.127, 0.121, 0.120, 0.090, 0.075, 0.061, 0.037, 0.023, 0.013, 0.008, 0.004, 0.003, 0.003, 0.003'
-        pool.pump_weekend_fractions_isdefaulted = true
-      end
-      if pool.pump_monthly_multipliers.nil?
-        pool.pump_monthly_multipliers = '1.154, 1.161, 1.013, 1.010, 1.013, 0.888, 0.883, 0.883, 0.888, 0.978, 0.974, 1.154'
-        pool.pump_monthly_multipliers_isdefaulted = true
       end
       if pool.heater_weekday_fractions.nil?
         pool.heater_weekday_fractions = '0.003, 0.003, 0.003, 0.004, 0.008, 0.015, 0.026, 0.044, 0.084, 0.121, 0.127, 0.121, 0.120, 0.090, 0.075, 0.061, 0.037, 0.023, 0.013, 0.008, 0.004, 0.003, 0.003, 0.003'
@@ -1211,10 +1219,34 @@ class HPXMLDefaults
     end
 
     hpxml.hot_tubs.each do |hot_tub|
-      if hot_tub.pump_kwh_per_year.nil?
-        hot_tub.pump_kwh_per_year = MiscLoads.get_hot_tub_pump_default_values(cfa, nbeds)
-        hot_tub.pump_kwh_per_year_isdefaulted = true
+      next if hot_tub.type == HPXML::TypeNone
+
+      if hot_tub.pump_type != HPXML::TypeNone
+        # Pump
+        if hot_tub.pump_kwh_per_year.nil?
+          hot_tub.pump_kwh_per_year = MiscLoads.get_hot_tub_pump_default_values(cfa, nbeds)
+          hot_tub.pump_kwh_per_year_isdefaulted = true
+        end
+        if hot_tub.pump_usage_multiplier.nil?
+          hot_tub.pump_usage_multiplier = 1.0
+          hot_tub.pump_usage_multiplier_isdefaulted = true
+        end
+        if hot_tub.pump_weekday_fractions.nil?
+          hot_tub.pump_weekday_fractions = '0.024, 0.029, 0.024, 0.029, 0.047, 0.067, 0.057, 0.024, 0.024, 0.019, 0.015, 0.014, 0.014, 0.014, 0.024, 0.058, 0.126, 0.122, 0.068, 0.061, 0.051, 0.043, 0.024, 0.024'
+          hot_tub.pump_weekday_fractions_isdefaulted = true
+        end
+        if hot_tub.pump_weekend_fractions.nil?
+          hot_tub.pump_weekend_fractions = '0.024, 0.029, 0.024, 0.029, 0.047, 0.067, 0.057, 0.024, 0.024, 0.019, 0.015, 0.014, 0.014, 0.014, 0.024, 0.058, 0.126, 0.122, 0.068, 0.061, 0.051, 0.043, 0.024, 0.024'
+          hot_tub.pump_weekend_fractions_isdefaulted = true
+        end
+        if hot_tub.pump_monthly_multipliers.nil?
+          hot_tub.pump_monthly_multipliers = '0.921, 0.928, 0.921, 0.915, 0.921, 1.160, 1.158, 1.158, 1.160, 0.921, 0.915, 0.921'
+          hot_tub.pump_monthly_multipliers_isdefaulted = true
+        end
       end
+
+      next unless hot_tub.heater_type != HPXML::TypeNone
+      # Heater
       if hot_tub.heater_load_value.nil?
         default_heater_load_units, default_heater_load_value = MiscLoads.get_hot_tub_heater_default_values(cfa, nbeds, hot_tub.heater_type)
         hot_tub.heater_load_units = default_heater_load_units
@@ -1224,22 +1256,6 @@ class HPXMLDefaults
       if hot_tub.heater_usage_multiplier.nil?
         hot_tub.heater_usage_multiplier = 1.0
         hot_tub.heater_usage_multiplier_isdefaulted = true
-      end
-      if hot_tub.pump_usage_multiplier.nil?
-        hot_tub.pump_usage_multiplier = 1.0
-        hot_tub.pump_usage_multiplier_isdefaulted = true
-      end
-      if hot_tub.pump_weekday_fractions.nil?
-        hot_tub.pump_weekday_fractions = '0.024, 0.029, 0.024, 0.029, 0.047, 0.067, 0.057, 0.024, 0.024, 0.019, 0.015, 0.014, 0.014, 0.014, 0.024, 0.058, 0.126, 0.122, 0.068, 0.061, 0.051, 0.043, 0.024, 0.024'
-        hot_tub.pump_weekday_fractions_isdefaulted = true
-      end
-      if hot_tub.pump_weekend_fractions.nil?
-        hot_tub.pump_weekend_fractions = '0.024, 0.029, 0.024, 0.029, 0.047, 0.067, 0.057, 0.024, 0.024, 0.019, 0.015, 0.014, 0.014, 0.014, 0.024, 0.058, 0.126, 0.122, 0.068, 0.061, 0.051, 0.043, 0.024, 0.024'
-        hot_tub.pump_weekend_fractions_isdefaulted = true
-      end
-      if hot_tub.pump_monthly_multipliers.nil?
-        hot_tub.pump_monthly_multipliers = '0.921, 0.928, 0.921, 0.915, 0.921, 1.160, 1.158, 1.158, 1.160, 0.921, 0.915, 0.921'
-        hot_tub.pump_monthly_multipliers_isdefaulted = true
       end
       if hot_tub.heater_weekday_fractions.nil?
         hot_tub.heater_weekday_fractions = '0.024, 0.029, 0.024, 0.029, 0.047, 0.067, 0.057, 0.024, 0.024, 0.019, 0.015, 0.014, 0.014, 0.014, 0.024, 0.058, 0.126, 0.122, 0.068, 0.061, 0.051, 0.043, 0.024, 0.024'

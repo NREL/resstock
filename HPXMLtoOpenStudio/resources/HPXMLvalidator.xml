@@ -265,6 +265,10 @@
     </sch:rule>
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Systems/h:HVAC/h:HVACDistribution'>
       <sch:assert role='ERROR' test='number(h:ConditionedFloorAreaServed) &gt; 0 or not(h:ConditionedFloorAreaServed)'>Expected ConditionedFloorAreaServed to be greater than 0</sch:assert>
+      <sch:assert role='ERROR' test='number(h:AnnualHeatingDistributionSystemEfficiency) &gt;= 0 or not(h:AnnualHeatingDistributionSystemEfficiency)'>Expected AnnualHeatingDistributionSystemEfficiency to be greater than or equal to 0</sch:assert>
+      <sch:assert role='ERROR' test='number(h:AnnualHeatingDistributionSystemEfficiency) &lt;= 1 or not(h:AnnualHeatingDistributionSystemEfficiency)'>Expected AnnualHeatingDistributionSystemEfficiency to be less than or equal to 1</sch:assert>
+      <sch:assert role='ERROR' test='number(h:AnnualCoolingDistributionSystemEfficiency) &gt;= 0 or not(h:AnnualCoolingDistributionSystemEfficiency)'>Expected AnnualCoolingDistributionSystemEfficiency to be greater than or equal to 0</sch:assert>
+      <sch:assert role='ERROR' test='number(h:AnnualCoolingDistributionSystemEfficiency) &lt;= 1 or not(h:AnnualCoolingDistributionSystemEfficiency)'>Expected AnnualCoolingDistributionSystemEfficiency to be less than or equal to 1</sch:assert>
     </sch:rule>
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Systems/h:MechanicalVentilation/h:VentilationFans/h:VentilationFan'>
       <sch:assert role='ERROR' test='number(h:Quantity) &gt; 0 or not(h:Quantity)'>Expected Quantity to be greater than 0</sch:assert>
@@ -379,6 +383,7 @@
     </sch:rule>
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Appliances/h:Dehumidifier'>
       <sch:assert role='ERROR' test='h:Type[text()="portable" or text()="whole-home"] or not(h:Type)'>Expected Type to be 'portable' or 'whole-home'</sch:assert>
+      <sch:assert role='ERROR' test='h:Location[text()="attic" or text()="attic - conditioned" or text()="attic - unconditioned" or text()="attic - unvented" or text()="attic - vented" or text()="basement" or text()="basement - conditioned" or text()="basement - unconditioned" or text()="crawlspace" or text()="crawlspace - conditioned" or text()="crawlspace - unconditioned" or text()="crawlspace - unvented" or text()="crawlspace - vented" or text()="garage" or text()="garage - conditioned" or text()="garage - unconditioned" or text()="ground" or text()="living space" or text()="other" or text()="other heated space" or text()="other housing unit" or text()="other housing unit above" or text()="other housing unit below" or text()="other multifamily buffer space" or text()="other non-freezing space" or text()="outside" or text()="unconditioned space"] or not(h:Location)'>Expected Location to be 'attic' or 'attic - conditioned' or 'attic - unconditioned' or 'attic - unvented' or 'attic - vented' or 'basement' or 'basement - conditioned' or 'basement - unconditioned' or 'crawlspace' or 'crawlspace - conditioned' or 'crawlspace - unconditioned' or 'crawlspace - unvented' or 'crawlspace - vented' or 'garage' or 'garage - conditioned' or 'garage - unconditioned' or 'ground' or 'living space' or 'other' or 'other heated space' or 'other housing unit' or 'other housing unit above' or 'other housing unit below' or 'other multifamily buffer space' or 'other non-freezing space' or 'outside' or 'unconditioned space'</sch:assert>
       <sch:assert role='ERROR' test='number(h:DehumidistatSetpoint) &gt;= 0 or not(h:DehumidistatSetpoint)'>Expected DehumidistatSetpoint to be greater than or equal to 0</sch:assert>
       <sch:assert role='ERROR' test='number(h:DehumidistatSetpoint) &lt;= 1 or not(h:DehumidistatSetpoint)'>Expected DehumidistatSetpoint to be less than or equal to 1</sch:assert>
       <sch:assert role='ERROR' test='number(h:FractionDehumidificationLoadServed) &gt;= 0 or not(h:FractionDehumidificationLoadServed)'>Expected FractionDehumidificationLoadServed to be greater than or equal to 0</sch:assert>
@@ -399,6 +404,12 @@
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Lighting/h:CeilingFan'>
       <sch:assert role='ERROR' test='number(h:Quantity) &gt; 0 or not(h:Quantity)'>Expected Quantity to be greater than 0</sch:assert>
     </sch:rule>
+    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Pools/h:Pool'>
+      <sch:assert role='ERROR' test='h:Type[text()="in ground" or text()="on ground" or text()="above ground" or text()="other" or text()="unknown" or text()="none"] or not(h:Type)'>Expected Type to be 'in ground' or 'on ground' or 'above ground' or 'other' or 'unknown' or 'none'</sch:assert>
+    </sch:rule>
+    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Pools/h:Pool/h:PoolPumps/h:PoolPump'>
+      <sch:assert role='ERROR' test='h:Type[text()="single speed" or text()="multi speed" or text()="variable speed" or text()="variable flow" or text()="other" or text()="unknown" or text()="none"] or not(h:Type)'>Expected Type to be 'single speed' or 'multi speed' or 'variable speed' or 'variable flow' or 'other' or 'unknown' or 'none'</sch:assert>
+    </sch:rule>
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Pools/h:Pool/h:PoolPumps/h:PoolPump/h:Load'>
       <sch:assert role='ERROR' test='h:Units[text()="kWh/year" or text()="W"] or not(h:Units)'>Expected Units to be 'kWh/year' or 'W'</sch:assert>
     </sch:rule>
@@ -407,6 +418,12 @@
     </sch:rule>
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Pools/h:Pool/h:Heater/h:Load'>
       <sch:assert role='ERROR' test='h:Units[text()="kWh/year" or text()="therm/year" or text()="W" or text()="Btuh"] or not(h:Units)'>Expected Units to be 'kWh/year' or 'therm/year' or 'W' or 'Btuh'</sch:assert>
+    </sch:rule>
+    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:HotTubs/h:HotTub'>
+      <sch:assert role='ERROR' test='h:Type[text()="in ground" or text()="on ground" or text()="above ground" or text()="other" or text()="unknown" or text()="none"] or not(h:Type)'>Expected Type to be 'in ground' or 'on ground' or 'above ground' or 'other' or 'unknown' or 'none'</sch:assert>
+    </sch:rule>
+    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:HotTubs/h:HotTub/h:HotTubPumps/h:HotTubPump'>
+      <sch:assert role='ERROR' test='h:Type[text()="single speed" or text()="multi speed" or text()="variable speed" or text()="variable flow" or text()="other" or text()="unknown" or text()="none"] or not(h:Type)'>Expected Type to be 'single speed' or 'multi speed' or 'variable speed' or 'variable flow' or 'other' or 'unknown' or 'none'</sch:assert>
     </sch:rule>
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:HotTubs/h:HotTub/h:HotTubPumps/h:HotTubPump/h:Load'>
       <sch:assert role='ERROR' test='h:Units[text()="kWh/year" or text()="W"] or not(h:Units)'>Expected Units to be 'kWh/year' or 'W'</sch:assert>

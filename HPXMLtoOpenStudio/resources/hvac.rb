@@ -1499,6 +1499,7 @@ class HVAC
       cool_shrs = [heat_pump.cooling_shr]
       cool_cap_ft_spec = [[3.68637657, -0.098352478, 0.000956357, 0.005838141, -0.0000127, -0.000131702]]
       cool_eir_ft_spec = [[-3.437356399, 0.136656369, -0.001049231, -0.0079378, 0.000185435, -0.0001441]]
+      # Single stage systems have PSC or constant torque ECM blowers, so the airflow rate is affected by the static pressure losses.
       cool_cap_fflow_spec = [[0.718664047, 0.41797409, -0.136638137]]
       cool_eir_fflow_spec = [[1.143487507, -0.13943972, -0.004047787]]
       cool_eers = [calc_eer_cooling_1speed(heat_pump.cooling_efficiency_seer, fan_power_rated, cool_eir_ft_spec)]
@@ -1511,6 +1512,7 @@ class HVAC
                           [3.466810106, -0.091476056, 0.000901205, 0.004163355, -0.00000919, -0.000110829]]
       cool_eir_ft_spec = [[-4.282911381, 0.181023691, -0.001357391, -0.026310378, 0.000333282, -0.000197405],
                           [-3.557757517, 0.112737397, -0.000731381, 0.013184877, 0.000132645, -0.000338716]]
+      # Most two stage systems have PSC or constant torque ECM blowers, so the airflow rate is affected by the static pressure losses.
       cool_cap_fflow_spec = [[0.655239515, 0.511655216, -0.166894731],
                              [0.618281092, 0.569060264, -0.187341356]]
       cool_eir_fflow_spec = [[1.639108268, -0.998953996, 0.359845728],
@@ -1536,6 +1538,8 @@ class HVAC
                                  [-1.0411735802469133, 0.055261604938271605, -0.0004404320987654321, 0.0002154938271604939, 0.00017484567901234564, -0.0002017901234567901]]
       cool_eir_ft_spec = cool_eir_coeff_perf_map.select { |i| [0, 1, 2, 4].include? cool_eir_coeff_perf_map.index(i) }
       cool_eir_ft_spec_3 = cool_eir_coeff_perf_map.select { |i| [0, 1, 4].include? cool_eir_coeff_perf_map.index(i) }
+      # Variable speed systems have constant flow ECM blowers, so the air handler can always achieve the design airflow rate by sacrificing blower power.
+      # So we assume that there is only one corresponding airflow rate for each compressor speed.
       cool_eir_fflow_spec = [[1, 0, 0]] * 4
       cool_cap_fflow_spec = [[1, 0, 0]] * 4
       cap_ratio_seer_3 = cool_capacity_ratios.select { |i| [0, 1, 3].include? cool_capacity_ratios.index(i) }
