@@ -120,15 +120,15 @@ class WeatherProcess
       is_leap_year = { true => 1, false => 0 }[@model.getYearDescription.isLeapYear]
 
       run_period = @model.getRunPeriod
-      start_time = Time.new(start_actual_year, run_period.getBeginMonth, run_period.getBeginDayOfMonth, 0, 1)
-      end_time = Time.new(end_actual_year, run_period.getEndMonth, run_period.getEndDayOfMonth, 24)
+      start_time = Time.utc(start_actual_year, run_period.getBeginMonth, run_period.getBeginDayOfMonth, 0, 1)
+      end_time = Time.utc(end_actual_year, run_period.getEndMonth, run_period.getEndDayOfMonth, 24)
 
       if reporting_frequency == "Timestep"
         tstep = @model.getTimestep.numberOfTimestepsPerHour
 
         unless run_period_control_daylight_saving_time.nil?
-          dst_start_ts = Time.new(dst_start_date.year, dst_start_date.monthOfYear.value, dst_start_date.dayOfMonth, dst_start_time.hours, dst_start_time.minutes)
-          dst_end_ts = Time.new(dst_end_date.year, dst_end_date.monthOfYear.value, dst_end_date.dayOfMonth, dst_end_time.hours, dst_end_time.minutes)
+          dst_start_ts = Time.utc(dst_start_date.year, dst_start_date.monthOfYear.value, dst_start_date.dayOfMonth, dst_start_time.hours, dst_start_time.minutes)
+          dst_end_ts = Time.utc(dst_end_date.year, dst_end_date.monthOfYear.value, dst_end_date.dayOfMonth, dst_end_time.hours, dst_end_time.minutes)
         end
 
         (start_actual_year..(end_actual_year + 1)).to_a.each do |year|
@@ -137,7 +137,7 @@ class WeatherProcess
             days.to_a.each do |day|
               (0..23).to_a.each do |hour|
                 (0..60 - (60 / tstep)).step(60 / tstep).to_a.each do |minute|
-                  ts = Time.new(year, month, day, hour, minute)
+                  ts = Time.utc(year, month, day, hour, minute)
                   next if ts < start_time or ts > end_time
 
                   timestamps << ts.strftime("%Y/%m/%d %H:%M:00")
@@ -157,8 +157,8 @@ class WeatherProcess
         end
       elsif reporting_frequency == "Hourly"
         unless run_period_control_daylight_saving_time.nil?
-          dst_start_ts = Time.new(dst_start_date.year, dst_start_date.monthOfYear.value, dst_start_date.dayOfMonth, dst_start_time.hours)
-          dst_end_ts = Time.new(dst_end_date.year, dst_end_date.monthOfYear.value, dst_end_date.dayOfMonth, dst_end_time.hours)
+          dst_start_ts = Time.utc(dst_start_date.year, dst_start_date.monthOfYear.value, dst_start_date.dayOfMonth, dst_start_time.hours)
+          dst_end_ts = Time.utc(dst_end_date.year, dst_end_date.monthOfYear.value, dst_end_date.dayOfMonth, dst_end_time.hours)
         end
 
         (start_actual_year..end_actual_year).to_a.each do |year|
@@ -166,7 +166,8 @@ class WeatherProcess
             days = get_days_for_month(month, is_leap_year)
             days.to_a.each do |day|
               (1..24).to_a.each do |hour|
-                ts = Time.new(year, month, day, hour)
+                ts = Time.utc(year, month, day, hour)
+
                 next if ts < start_time or ts > end_time
 
                 timestamps << ts.strftime("%Y/%m/%d %H:00:00")
@@ -186,15 +187,15 @@ class WeatherProcess
         end
       elsif reporting_frequency == "Daily"
         unless run_period_control_daylight_saving_time.nil?
-          dst_start_ts = Time.new(dst_start_date.year, dst_start_date.monthOfYear.value, dst_start_date.dayOfMonth)
-          dst_end_ts = Time.new(dst_end_date.year, dst_end_date.monthOfYear.value, dst_end_date.dayOfMonth)
+          dst_start_ts = Time.utc(dst_start_date.year, dst_start_date.monthOfYear.value, dst_start_date.dayOfMonth)
+          dst_end_ts = Time.utc(dst_end_date.year, dst_end_date.monthOfYear.value, dst_end_date.dayOfMonth)
         end
 
         (start_actual_year..end_actual_year + 1).to_a.each do |year|
           (1..12).to_a.each do |month|
             days = get_days_for_month(month, is_leap_year)
             days.to_a.each do |day|
-              ts = Time.new(year, month, day)
+              ts = Time.utc(year, month, day)
               next if ts < start_time or ts > end_time
 
               timestamps << ts.strftime("%Y/%m/%d 00:00:00")
@@ -212,13 +213,13 @@ class WeatherProcess
         end
       elsif reporting_frequency == "Monthly"
         unless run_period_control_daylight_saving_time.nil?
-          dst_start_ts = Time.new(dst_start_date.year, dst_start_date.monthOfYear.value)
-          dst_end_ts = Time.new(dst_end_date.year, dst_end_date.monthOfYear.value)
+          dst_start_ts = Time.utc(dst_start_date.year, dst_start_date.monthOfYear.value)
+          dst_end_ts = Time.utc(dst_end_date.year, dst_end_date.monthOfYear.value)
         end
 
         (start_actual_year..end_actual_year + 1).to_a.each do |year|
           (1..12).to_a.each do |month|
-            ts = Time.new(year, month)
+            ts = Time.utc(year, month)
             next if ts < start_time or ts > end_time
 
             timestamps << ts.strftime("%Y/%m/01 00:00:00")
@@ -235,11 +236,11 @@ class WeatherProcess
         end
       elsif reporting_frequency == "Runperiod"
         unless run_period_control_daylight_saving_time.nil?
-          dst_start_ts = Time.new(dst_start_date.year)
-          dst_end_ts = Time.new(dst_end_date.year)
+          dst_start_ts = Time.utc(dst_start_date.year)
+          dst_end_ts = Time.utc(dst_end_date.year)
         end
 
-        ts = Time.new(end_actual_year + 1)
+        ts = Time.utc(end_actual_year + 1)
         timestamps << ts.strftime("%Y/01/01 00:00:00")
         utc_timestamps << (ts - utc_offset_sec).strftime("%Y/%m/%d %H:%M:00")
         unless run_period_control_daylight_saving_time.nil?
