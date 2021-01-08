@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>res_stock_arguments</name>
   <uid>c984bb9e-4ac4-4930-a399-9d23f8f6936a</uid>
-  <version_id>0034dabe-6718-4cc1-b4a3-3d0bab8aa123</version_id>
-  <version_modified>20210104T215258Z</version_modified>
+  <version_id>3751207a-26b9-407d-ad9c-b9a538eb5346</version_id>
+  <version_modified>20210108T183633Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>ResStockArguments</class_name>
   <display_name>ResStock Arguments</display_name>
@@ -1642,52 +1642,6 @@
       <default_value>1</default_value>
     </argument>
     <argument>
-      <name>heating_system_electric_auxiliary_energy</name>
-      <display_name>Heating System: Electric Auxiliary Energy</display_name>
-      <description>The electric auxiliary energy of the heating system. Applies to Boiler.</description>
-      <type>Double</type>
-      <units>kWh/yr</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-    </argument>
-    <argument>
-      <name>heating_system_fan_power_watts_per_cfm</name>
-      <display_name>Heating System: Fan Power</display_name>
-      <description>Blower fan power. Applies to Furnace.</description>
-      <type>Double</type>
-      <units>W/CFM</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-    </argument>
-    <argument>
-      <name>heating_system_fan_power_watts</name>
-      <display_name>Heating System: Fan Power</display_name>
-      <description>Blower fan power. Ignored for ElectricResistance, Furnace, and Boiler.</description>
-      <type>Double</type>
-      <units>W</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-    </argument>
-    <argument>
-      <name>heating_system_has_flue_or_chimney</name>
-      <display_name>Heating System: Has Flue or Chimney</display_name>
-      <description>Whether the heating system has a flue or chimney.</description>
-      <type>Boolean</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>false</default_value>
-      <choices>
-        <choice>
-          <value>true</value>
-          <display_name>true</display_name>
-        </choice>
-        <choice>
-          <value>false</value>
-          <display_name>false</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
       <name>cooling_system_type</name>
       <display_name>Cooling System: Type</display_name>
       <description>The type of cooling system. Use 'none' if there is no cooling system.</description>
@@ -1792,7 +1746,7 @@
     <argument>
       <name>cooling_system_is_ducted</name>
       <display_name>Cooling System: Is Ducted</display_name>
-      <description>Whether the cooling system is ducted or not. Only used for evaporative cooler and mini-split.</description>
+      <description>Whether the cooling system is ducted or not. Only used for mini-split and evaporative cooler.</description>
       <type>Boolean</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -1807,15 +1761,6 @@
           <display_name>false</display_name>
         </choice>
       </choices>
-    </argument>
-    <argument>
-      <name>cooling_system_fan_power_watts_per_cfm</name>
-      <display_name>Cooling System: Fan Power</display_name>
-      <description>Blower fan power. Applies to central air conditioner, evaporative cooler, and mini-split.</description>
-      <type>Double</type>
-      <units>W/CFM</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
     </argument>
     <argument>
       <name>heat_pump_type</name>
@@ -2018,16 +1963,16 @@
     <argument>
       <name>heat_pump_backup_heating_switchover_temp</name>
       <display_name>Heat Pump: Backup Heating Switchover Temperature</display_name>
-      <description>The temperature at which the heat pump stops operating and the backup heating system starts running. Only applies to air-to-air and mini-split.</description>
+      <description>The temperature at which the heat pump stops operating and the backup heating system starts running. Only applies to air-to-air and mini-split. If not provided, backup heating will operate as needed when heat pump capacity is insufficient.</description>
       <type>Double</type>
       <units>deg-F</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>heat_pump_mini_split_is_ducted</name>
-      <display_name>Heat Pump: Mini-Split Is Ducted</display_name>
-      <description>Whether the mini-split heat pump is ducted or not.</description>
+      <name>heat_pump_is_ducted</name>
+      <display_name>Heat Pump: Is Ducted</display_name>
+      <description>Whether the heat pump is ducted or not. Only used for mini-split.</description>
       <type>Boolean</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -2041,24 +1986,6 @@
           <display_name>false</display_name>
         </choice>
       </choices>
-    </argument>
-    <argument>
-      <name>heat_pump_pump_power_watts_per_ton</name>
-      <display_name>Heat Pump: Ground-to-Air Pump Power</display_name>
-      <description>Ground loop circulator pump power during operation of the heat pump.</description>
-      <type>Double</type>
-      <units>W/ton</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-    </argument>
-    <argument>
-      <name>heat_pump_fan_power_watts_per_cfm</name>
-      <display_name>Heat Pump: Fan Power</display_name>
-      <description>Blower fan power.</description>
-      <type>Double</type>
-      <units>W/CFM</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
     </argument>
     <argument>
       <name>ducts_supply_leakage_units</name>
@@ -2346,6 +2273,10 @@
           <display_name>FloorFurnace</display_name>
         </choice>
         <choice>
+          <value>Boiler</value>
+          <display_name>Boiler</display_name>
+        </choice>
+        <choice>
           <value>ElectricResistance</value>
           <display_name>ElectricResistance</display_name>
         </choice>
@@ -2433,43 +2364,6 @@
       <default_value>0.25</default_value>
     </argument>
     <argument>
-      <name>heating_system_electric_auxiliary_energy_2</name>
-      <display_name>Heating System 2: Electric Auxiliary Energy</display_name>
-      <description>The electric auxiliary energy of the second heating system.</description>
-      <type>Double</type>
-      <units>kWh/yr</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-    </argument>
-    <argument>
-      <name>heating_system_fan_power_watts_2</name>
-      <display_name>Heating System 2: Fan Power</display_name>
-      <description>Blower fan power. Ignored for ElectricResistance.</description>
-      <type>Double</type>
-      <units>W/CFM</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-    </argument>
-    <argument>
-      <name>heating_system_has_flue_or_chimney_2</name>
-      <display_name>Heating System 2: Has Flue or Chimney</display_name>
-      <description>Whether the second heating system has a flue or chimney.</description>
-      <type>Boolean</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>false</default_value>
-      <choices>
-        <choice>
-          <value>true</value>
-          <display_name>true</display_name>
-        </choice>
-        <choice>
-          <value>false</value>
-          <display_name>false</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
       <name>mech_vent_fan_type</name>
       <display_name>Mechanical Ventilation: Fan Type</display_name>
       <description>The type of the mechanical ventilation. Use 'none' if there is no mechanical ventilation system.</description>
@@ -2523,7 +2417,7 @@
       <display_name>Mechanical Ventilation: Hours In Operation</display_name>
       <description>The hours in operation of the mechanical ventilation.</description>
       <type>Double</type>
-      <units>hrs</units>
+      <units>hrs/day</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>24</default_value>
@@ -2618,7 +2512,7 @@
     <argument>
       <name>shared_mech_vent_preheating_fuel</name>
       <display_name>Shared Mechanical Ventilation: Preheating Fuel</display_name>
-      <description>Fuel type of the preconditioning heating equipment.</description>
+      <description>Fuel type of the preconditioning heating equipment. Only used for a shared mechanical ventilation system.</description>
       <type>Choice</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -2656,7 +2550,7 @@
     <argument>
       <name>shared_mech_vent_preheating_efficiency</name>
       <display_name>Shared Mechanical Ventilation: Preheating Efficiency</display_name>
-      <description>Efficiency of the preconditioning heating equipment.</description>
+      <description>Efficiency of the preconditioning heating equipment. Only used for a shared mechanical ventilation system.</description>
       <type>Double</type>
       <units>COP</units>
       <required>false</required>
@@ -2674,7 +2568,7 @@
     <argument>
       <name>shared_mech_vent_precooling_fuel</name>
       <display_name>Shared Mechanical Ventilation: Precooling Fuel</display_name>
-      <description>Fuel type of the preconditioning cooling equipment.</description>
+      <description>Fuel type of the preconditioning cooling equipment. Only used for a shared mechanical ventilation system.</description>
       <type>Choice</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -2688,7 +2582,7 @@
     <argument>
       <name>shared_mech_vent_precooling_efficiency</name>
       <display_name>Shared Mechanical Ventilation: Precooling Efficiency</display_name>
-      <description>Efficiency of the preconditioning cooling equipment.</description>
+      <description>Efficiency of the preconditioning cooling equipment. Only used for a shared mechanical ventilation system.</description>
       <type>Double</type>
       <units>COP</units>
       <required>false</required>
@@ -2757,7 +2651,7 @@
       <display_name>Mechanical Ventilation 2: Hours In Operation</display_name>
       <description>The hours in operation of the second mechanical ventilation.</description>
       <type>Double</type>
-      <units>hrs</units>
+      <units>hrs/day</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>24</default_value>
@@ -2872,7 +2766,7 @@
       <display_name>Kitchen Fans: Hours In Operation</display_name>
       <description>The hours in operation of the kitchen fan.</description>
       <type>Double</type>
-      <units>hrs</units>
+      <units>hrs/day</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
@@ -2936,7 +2830,7 @@
       <display_name>Bathroom Fans: Hours In Operation</display_name>
       <description>The hours in operation of the bathroom fans.</description>
       <type>Double</type>
-      <units>hrs</units>
+      <units>hrs/day</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
@@ -3229,25 +3123,6 @@
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>auto</default_value>
-    </argument>
-    <argument>
-      <name>water_heater_has_flue_or_chimney</name>
-      <display_name>Water Heater: Has Flue or Chimney</display_name>
-      <description>Whether the water heater has a flue or chimney.</description>
-      <type>Boolean</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>false</default_value>
-      <choices>
-        <choice>
-          <value>true</value>
-          <display_name>true</display_name>
-        </choice>
-        <choice>
-          <value>false</value>
-          <display_name>false</display_name>
-        </choice>
-      </choices>
     </argument>
     <argument>
       <name>water_heater_num_units_served</name>
@@ -5837,6 +5712,63 @@
       <model_dependent>false</model_dependent>
       <default_value>0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0</default_value>
     </argument>
+    <argument>
+      <name>heating_system_has_flue_or_chimney</name>
+      <display_name>Heating System: Has Flue or Chimney</display_name>
+      <description>Whether the heating system has a flue or chimney.</description>
+      <type>Boolean</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>heating_system_has_flue_or_chimney_2</name>
+      <display_name>Heating System 2: Has Flue or Chimney</display_name>
+      <description>Whether the second heating system has a flue or chimney.</description>
+      <type>Boolean</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>water_heater_has_flue_or_chimney</name>
+      <display_name>Water Heater: Has Flue or Chimney</display_name>
+      <description>Whether the water heater has a flue or chimney.</description>
+      <type>Boolean</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
   </arguments>
   <outputs />
   <provenances />
@@ -5860,13 +5792,13 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>6F7FAA41</checksum>
+      <checksum>A3D344D9</checksum>
     </file>
     <file>
       <filename>constants.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>5739917E</checksum>
+      <checksum>F51C36B4</checksum>
     </file>
   </files>
 </measure>
