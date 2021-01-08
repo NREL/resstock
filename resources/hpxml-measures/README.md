@@ -1,7 +1,7 @@
 # OpenStudio-HPXML
 
 [![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/NREL/OpenStudio-HPXML?include_prereleases)](https://github.com/NREL/OpenStudio-HPXML/releases)
-[![CircleCI](https://circleci.com/gh/NREL/OpenStudio-HPXML.svg?style=shield)](https://circleci.com/gh/NREL/OpenStudio-HPXML)
+[![ci](https://github.com/NREL/OpenStudio-HPXML/workflows/ci/badge.svg)](https://github.com/NREL/OpenStudio-HPXML/actions)
 [![Documentation Status](https://readthedocs.org/projects/openstudio-hpxml/badge/?version=latest)](https://openstudio-hpxml.readthedocs.io/en/latest/?badge=latest)
 [![codecov](https://codecov.io/gh/NREL/OpenStudio-HPXML/branch/master/graph/badge.svg)](https://codecov.io/gh/NREL/OpenStudio-HPXML)
 
@@ -31,10 +31,10 @@ This repository contains three OpenStudio measures:
 
 The OpenStudio-HPXML workflow is used by a number of other residential projects, including:
 - [Energy Rating Index (ERI)](https://github.com/NREL/OpenStudio-ERI)
-- Home Energy Score (private repository)
-- Weatherization Assistant (private repository)
+- Home Energy Score (pending)
+- Weatherization Assistant (pending)
 - ResStock (pending)
-- UrbanOpt (pending)
+- [UrbanOpt](https://www.nrel.gov/buildings/urbanopt.html)
 
 ## License
 

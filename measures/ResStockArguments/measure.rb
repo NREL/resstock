@@ -153,6 +153,24 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue('0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('heating_system_has_flue_or_chimney', true)
+    arg.setDisplayName('Heating System: Has Flue or Chimney')
+    arg.setDescription('Whether the heating system has a flue or chimney.')
+    arg.setDefaultValue(Constants.Auto)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('heating_system_has_flue_or_chimney_2', true)
+    arg.setDisplayName('Heating System 2: Has Flue or Chimney')
+    arg.setDescription('Whether the second heating system has a flue or chimney.')
+    arg.setDefaultValue(Constants.Auto)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('water_heater_has_flue_or_chimney', true)
+    arg.setDisplayName('Water Heater: Has Flue or Chimney')
+    arg.setDescription('Whether the water heater has a flue or chimney.')
+    arg.setDefaultValue(Constants.Auto)
+    args << arg
+
     return args
   end
 
@@ -213,6 +231,17 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     args['setpoint_heating_weekend'] = weekend_heating_setpoints.join(', ')
     args['setpoint_cooling_weekday'] = weekday_cooling_setpoints.join(', ')
     args['setpoint_cooling_weekend'] = weekend_cooling_setpoints.join(', ')
+
+    args['geometry_has_flue_or_chimney'] = Constants.Auto
+    if (args['heating_system_has_flue_or_chimney'] == 'false') &&
+       (args['heating_system_has_flue_or_chimney_2'] == 'false') &&
+       (args['water_heater_has_flue_or_chimney'] == 'false')
+      args['geometry_has_flue_or_chimney'] = 'false'
+    elsif (args['heating_system_type'] != 'none' && args['heating_system_has_flue_or_chimney'] == 'true') ||
+          (args['heating_system_type_2'] != 'none' && args['heating_system_has_flue_or_chimney_2'] == 'true') ||
+          (args['water_heater_type'] != 'none' && args['water_heater_has_flue_or_chimney'] == 'true')
+      args['geometry_has_flue_or_chimney'] = 'true'
+    end
 
     args.each do |arg_name, arg_value|
       begin

@@ -23,12 +23,21 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
   # human readable description of modeling approach
   def modeler_description
-    return 'Processes EnergyPlus simulation outputs in order to generate an annual output CSV file and an optional timeseries output CSV file.'
+    return 'Processes EnergyPlus simulation outputs in order to generate an annual output file and an optional timeseries output file.'
   end
 
   # define the arguments that the user will input
   def arguments(model)
     args = OpenStudio::Measure::OSArgumentVector.new
+
+    format_chs = OpenStudio::StringVector.new
+    format_chs << 'csv'
+    format_chs << 'json'
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('output_format', format_chs, false)
+    arg.setDisplayName('Output Format')
+    arg.setDescription('The file format of the annual (and timeseries, if requested) outputs.')
+    arg.setDefaultValue('csv')
+    args << arg
 
     timeseries_frequency_chs = OpenStudio::StringVector.new
     timeseries_frequency_chs << 'none'
@@ -312,6 +321,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       return false
     end
 
+    output_format = runner.getStringArgumentValue('output_format', user_arguments)
     timeseries_frequency = runner.getStringArgumentValue('timeseries_frequency', user_arguments)
     if timeseries_frequency != 'none'
       include_timeseries_fuel_consumptions = runner.getBoolArgumentValue('include_timeseries_fuel_consumptions', user_arguments)
@@ -349,14 +359,14 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       # ERI run, store files in a particular location
       output_dir = File.dirname(hpxml_path)
       design_name = @eri_design.gsub(' ', '')
-      annual_output_csv_path = File.join(output_dir, "#{design_name}.csv")
-      eri_output_csv_path = File.join(output_dir, "#{design_name}_ERI.csv")
-      timeseries_output_csv_path = File.join(output_dir, "#{design_name}_#{timeseries_frequency.capitalize}.csv")
+      annual_output_path = File.join(output_dir, "#{design_name}.#{output_format}")
+      eri_output_path = File.join(output_dir, "#{design_name}_ERI.csv")
+      timeseries_output_path = File.join(output_dir, "#{design_name}_#{timeseries_frequency.capitalize}.#{output_format}")
     else
       output_dir = File.dirname(@sqlFile.path.to_s)
-      annual_output_csv_path = File.join(output_dir, 'results_annual.csv')
-      eri_output_csv_path = nil
-      timeseries_output_csv_path = File.join(output_dir, 'results_timeseries.csv')
+      annual_output_path = File.join(output_dir, "results_annual.#{output_format}")
+      eri_output_path = nil
+      timeseries_output_path = File.join(output_dir, "results_timeseries.#{output_format}")
     end
 
     @timestamps = get_timestamps(timeseries_frequency)
@@ -383,10 +393,12 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     end
 
     # Write/report results
-    write_annual_output_results(runner, outputs, annual_output_csv_path)
+    write_annual_output_results(runner, outputs, output_format, annual_output_path)
     report_sim_outputs(outputs, runner)
-    write_eri_output_results(outputs, eri_output_csv_path)
-    write_timeseries_output_results(runner, timeseries_output_csv_path, timeseries_frequency,
+    write_eri_output_results(outputs, eri_output_path)
+    write_timeseries_output_results(runner, output_format,
+                                    timeseries_output_path,
+                                    timeseries_frequency,
                                     include_timeseries_fuel_consumptions,
                                     include_timeseries_end_use_consumptions,
                                     include_timeseries_hot_water_uses,
@@ -881,7 +893,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     return true
   end
 
-  def write_annual_output_results(runner, outputs, csv_path)
+  def write_annual_output_results(runner, outputs, output_format, annual_output_path)
     line_break = nil
     elec_pv_produced = @end_uses[[FT::Elec, EUT::PV]]
     elec_generator_produced = @end_uses[[FT::Elec, EUT::Generator]]
@@ -890,7 +902,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     @fuels.each do |fuel_type, fuel|
       results_out << ["#{fuel.name} (#{fuel.annual_units})", fuel.annual_output.round(2)]
       if fuel_type == FT::Elec
-        results_out << ['Electricity: Net (MBtu)', (fuel.annual_output + elec_pv_produced.annual_output + elec_generator_produced.annual_output).round(2)]
+        results_out << ['Fuel Use: Electricity: Net (MBtu)', (fuel.annual_output + elec_pv_produced.annual_output + elec_generator_produced.annual_output).round(2)]
       end
     end
     results_out << [line_break]
@@ -922,8 +934,22 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       results_out << ["#{hot_water.name} (#{hot_water.annual_units})", hot_water.annual_output.round(0)]
     end
 
-    CSV.open(csv_path, 'wb') { |csv| results_out.to_a.each { |elem| csv << elem } }
-    runner.registerInfo("Wrote annual output results to #{csv_path}.")
+    if output_format == 'csv'
+      CSV.open(annual_output_path, 'wb') { |csv| results_out.to_a.each { |elem| csv << elem } }
+    elsif output_format == 'json'
+      h = {}
+      results_out.each do |out|
+        next if out == [line_break]
+
+        grp, name = out[0].split(':', 2)
+        h[grp] = {} if h[grp].nil?
+        h[grp][name.strip] = out[1]
+      end
+
+      require 'json'
+      File.open(annual_output_path, 'w') { |json| json.write(JSON.pretty_generate(h)) }
+    end
+    runner.registerInfo("Wrote annual output results to #{annual_output_path}.")
   end
 
   def report_sim_outputs(outputs, runner)
@@ -1050,7 +1076,9 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     CSV.open(csv_path, 'wb') { |csv| results_out.to_a.each { |elem| csv << elem } }
   end
 
-  def write_timeseries_output_results(runner, csv_path, timeseries_frequency,
+  def write_timeseries_output_results(runner, output_format,
+                                      timeseries_output_path,
+                                      timeseries_frequency,
                                       include_timeseries_fuel_consumptions,
                                       include_timeseries_end_use_consumptions,
                                       include_timeseries_hot_water_uses,
@@ -1116,21 +1144,38 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
     fail 'Unable to obtain timestamps.' if @timestamps.empty?
 
-    # Assemble data
-    data = data.zip(*fuel_data, *end_use_data, *hot_water_use_data, *total_loads_data, *comp_loads_data, *zone_temps_data, *airflows_data, *weather_data)
+    if output_format == 'csv'
+      # Assemble data
+      data = data.zip(*fuel_data, *end_use_data, *hot_water_use_data, *total_loads_data, *comp_loads_data, *zone_temps_data, *airflows_data, *weather_data)
 
-    # Error-check
-    n_elements = []
-    data.each do |data_array|
-      n_elements << data_array.size
-    end
-    if n_elements.uniq.size > 1
-      fail "Inconsistent number of array elements: #{n_elements.uniq}."
-    end
+      # Error-check
+      n_elements = []
+      data.each do |data_array|
+        n_elements << data_array.size
+      end
+      if n_elements.uniq.size > 1
+        fail "Inconsistent number of array elements: #{n_elements.uniq}."
+      end
 
-    # Write file
-    CSV.open(csv_path, 'wb') { |csv| data.to_a.each { |elem| csv << elem } }
-    runner.registerInfo("Wrote timeseries output results to #{csv_path}.")
+      # Write file
+      CSV.open(timeseries_output_path, 'wb') { |csv| data.to_a.each { |elem| csv << elem } }
+    elsif output_format == 'json'
+      # Assemble data
+      h = {}
+      h['Time'] = data[2..-1]
+      [fuel_data, end_use_data, hot_water_use_data, total_loads_data, comp_loads_data, zone_temps_data, airflows_data, weather_data].each do |d|
+        d.each do |o|
+          grp, name = o[0].split(':', 2)
+          h[grp] = {} if h[grp].nil?
+          h[grp]["#{name.strip} (#{o[1]})"] = o[2..-1]
+        end
+      end
+
+      # Write file
+      require 'json'
+      File.open(timeseries_output_path, 'w') { |json| json.write(JSON.pretty_generate(h)) }
+    end
+    runner.registerInfo("Wrote timeseries output results to #{timeseries_output_path}.")
   end
 
   def get_hpxml_dse_heats(heat_sys_ids)
@@ -1989,7 +2034,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     @fuels[FT::Coal] = Fuel.new(meters: ["#{EPlus::FuelTypeCoal}:Facility"])
 
     @fuels.each do |fuel_type, fuel|
-      fuel.name = "#{fuel_type}: Total"
+      fuel.name = "Fuel Use: #{fuel_type}: Total"
       fuel.annual_units = 'MBtu'
       fuel.timeseries_units = get_timeseries_units_from_fuel_type(fuel_type)
     end
@@ -2102,7 +2147,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
     @end_uses.each do |key, end_use|
       fuel_type, end_use_type = key
-      end_use.name = "#{fuel_type}: #{end_use_type}"
+      end_use.name = "End Use: #{fuel_type}: #{end_use_type}"
       end_use.annual_units = 'MBtu'
       end_use.timeseries_units = get_timeseries_units_from_fuel_type(fuel_type)
     end

@@ -449,7 +449,7 @@
 							<xs:documentation>Portable room dehumidifiers are typically used to dehumidify a single room or space and can be easily moved to where they are needed. Whole-home dehumidifiers are typically installed to use your home’s air ducts to dehumidify one or more rooms and are often permanent. Some dehumifiers can operate in both configurations by means of a ducting kit.</xs:documentation>
 						</xs:annotation>
 					</xs:element>
-					<xs:element minOccurs="0" name="Location" type="DehumidifierLocation"/>
+					<xs:element minOccurs="0" name="Location" type="AdjacentTo"/>
 					<xs:element minOccurs="0" name="Efficiency" type="HPXMLDouble">
 						<xs:annotation>
 							<xs:documentation>[L/kWh] DEPRECATED. This will be removed in v4.0. Use EnergyFactor or IntegratedEnergyFactor instead.</xs:documentation>
@@ -1288,18 +1288,14 @@
 											<xs:documentation>[sq.ft.] Conditioned floor area that this distribution system serves.</xs:documentation>
 										</xs:annotation>
 									</xs:element>
-									<xs:element minOccurs="0" name="AnnualHeatingDistributionSystemEfficiency" type="HPXMLDouble">
+									<xs:element minOccurs="0" name="AnnualHeatingDistributionSystemEfficiency" type="Fraction">
 										<xs:annotation>
-											<xs:documentation>For software that does not calculate an annual distribution system efficiency (DSE) for heating, the DSE may be approximated by equation
-												3.4.i in ANSI/BPI-2400-S-2012: Standard Practice for Standardized Qualification of Whole-House Energy Savings, Predictions by Calibration to Energy Use
-												History.</xs:documentation>
+											<xs:documentation>For software that does not calculate an annual distribution system efficiency (DSE) for heating, the DSE may be approximated by equation 3.4.i in ANSI/BPI-2400-S-2012: Standard Practice for Standardized Qualification of Whole-House Energy Savings, Predictions by Calibration to Energy Use History. Enter values as a fractional number between 0 and 1, i.e. 80% = 0.8</xs:documentation>
 										</xs:annotation>
 									</xs:element>
-									<xs:element minOccurs="0" name="AnnualCoolingDistributionSystemEfficiency" type="HPXMLDouble">
+									<xs:element minOccurs="0" name="AnnualCoolingDistributionSystemEfficiency" type="Fraction">
 										<xs:annotation>
-											<xs:documentation>For software that does not calculate an annual distribution system efficiency (DSE) for cooling, the DSE may be approximated by equation
-												3.4.i in ANSI/BPI-2400-S-2012: Standard Practice for Standardized Qualification of Whole-House Energy Savings, Predictions by Calibration to Energy Use
-												History.</xs:documentation>
+											<xs:documentation>For software that does not calculate an annual distribution system efficiency (DSE) for cooling, the DSE may be approximated by equation 3.4.i in ANSI/BPI-2400-S-2012: Standard Practice for Standardized Qualification of Whole-House Energy Savings, Predictions by Calibration to Energy Use History. Enter values as a fractional number between 0 and 1, i.e. 80% = 0.8</xs:documentation>
 										</xs:annotation>
 									</xs:element>
 									<xs:element minOccurs="0" name="HVACDistributionImprovement" type="HVACDistributionImprovementInfo"/>
