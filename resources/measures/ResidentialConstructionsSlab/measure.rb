@@ -126,8 +126,6 @@ class ProcessConstructionsSlab < OpenStudio::Measure::ModelMeasure
 
     # Get geometry values
     surfaces = floors_by_type[Constants.SurfaceTypeFloorFndGrndFinSlab]
-    # slabArea = Geometry.calculate_total_area_from_surfaces(surfaces)
-
     space_surfaces = []
     living_space = nil
     surfaces.each do |surface|

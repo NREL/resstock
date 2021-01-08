@@ -1581,6 +1581,7 @@ class FoundationConstructions
       return false
     end
 
+    # Exposed perimeter
     if exposed_perimeter.nil?
       exposed_perimeter = Geometry.calculate_exposed_perimeter(model, [surface], has_fnd_walls)
     end
