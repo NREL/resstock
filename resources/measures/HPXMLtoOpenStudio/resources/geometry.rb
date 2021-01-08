@@ -1970,15 +1970,11 @@ class Geometry
       end
     end
 
-    # Neighbors for single unit
-    num_floors = model.getBuilding.additionalProperties.getFeatureAsInteger("num_floors")
-    level = model.getBuilding.additionalProperties.getFeatureAsString("level")
-    has_rear_units = model.getBuilding.additionalProperties.getFeatureAsBoolean("has_rear_units")
-
-    if (num_floors.is_initialized) and (level.is_initialized) and (has_rear_units.is_initialized) # single unit, MF
-      num_floors = num_floors.get.to_f
-      level = level = level.get
-      has_rear_units = has_rear_units.get
+    # Neighbors for multifamily buildings
+    if get_building_type(model) == Constants.BuildingTypeMultifamily
+      num_floors = model.getBuilding.additionalProperties.getFeatureAsInteger("num_floors").get
+      level = model.getBuilding.additionalProperties.getFeatureAsString("level").get
+      has_rear_units = model.getBuilding.additionalProperties.getFeatureAsBoolean("has_rear_units").get
 
       model_spaces = model.getSpaces
       spaces = []
@@ -1989,7 +1985,7 @@ class Geometry
       end
       unit_height = UnitConversions.convert(Geometry.get_height_of_spaces(spaces), "ft", "m")
       floor_mults = { "Bottom" => num_floors - 1, "Middle" => (num_floors / 2).floor, "Top" => 0 }
-      greatest_z += unit_height * floor_mults[level] # uncomment if unit origin is at z=0
+      greatest_z += unit_height * floor_mults[level]
 
       unit_length = greatest_y - least_y
       unit_width = greatest_x - least_x

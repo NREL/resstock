@@ -439,8 +439,8 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
     end
 
     # create the unit
-    unit_spaces_hash = {}
-    unit_spaces_hash[1] = [living_spaces_front, 1]
+    unit_spaces = []
+    unit_spaces << living_spaces_front
 
     # foundation
     if foundation_height > 0
@@ -471,7 +471,7 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
       foundation_spaces << foundation_space
 
       if foundation_type == "finished basement"
-        unit_spaces_hash[1][0] << foundation_space
+        unit_spaces[0] << foundation_space
       end
 
       # put all of the spaces in the model into a vector
@@ -569,12 +569,11 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
       end
     end
 
-    unit_spaces_hash.each do |unit_num, unit_info|
-      spaces, units_represented = unit_info
+    unit_spaces.each do |spaces|
       # Store building unit information
       unit = OpenStudio::Model::BuildingUnit.new(model)
       unit.setBuildingUnitType(Constants.BuildingUnitTypeResidential)
-      unit.setName(Constants.ObjectNameBuildingUnit(unit_num))
+      unit.setName(Constants.ObjectNameBuildingUnit(1))
       spaces.each do |space|
         space.setBuildingUnit(unit)
       end

@@ -458,9 +458,8 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
       shading_surface.setShadingSurfaceGroup(shading_surface_group)
     end
     living_spaces_front << living_space
-
-    unit_spaces_hash = {}
-    unit_spaces_hash[1] = [living_spaces_front, 1]
+    unit_spaces = []
+    unit_spaces << living_spaces_front
 
     # Map unit location to adiabatic surfaces
     horz_hash = { "Left" => ["right"], "Right" => ["left"], "Middle" => ["left", "right"], "None" => [] }
@@ -678,8 +677,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
       end
     end
 
-    unit_spaces_hash.each do |unit_num, unit_info|
-      spaces, units_represented = unit_info
+    unit_spaces.each do |spaces|
       # store building unit information
       unit = OpenStudio::Model::BuildingUnit.new(model)
       unit.setBuildingUnitType(Constants.BuildingUnitTypeResidential)

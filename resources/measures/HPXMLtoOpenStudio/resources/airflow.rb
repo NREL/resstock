@@ -569,7 +569,7 @@ class Airflow
     inf_conv_factor = 776.25 # [ft/min]/[inH2O^(1/2)*ft^(3/2)/lbm^(1/2)]
     delta_pref = 0.016 # inH2O
 
-    # Living Space Infiltrationgit
+    # Living Space Infiltration
     if not infil.living_ach50.nil?
       unit_living.inf_method = @infMethodASHRAE
 
