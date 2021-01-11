@@ -274,6 +274,24 @@ class TimeseriesCSVExportTest < MiniTest::Test
       timeseries_length, timeseries_width = get_enduse_timeseries(enduse_timeseries_path(test_name))
       assert_equal(expected_values["EnduseTimeseriesLength"], timeseries_length)
       assert_equal(expected_values["EnduseTimeseriesWidth"], timeseries_width)
+
+      # jumps are allowed in DST timestamps, but only twice at max, and each jump should be of 3600 seconds
+      salient_jumps = verify_uniform_timestamps(enduse_timeseries_path(test_name), 1, jumps_allowed = true)
+      # the jumps should cancel each other
+      assert_equal(0, salient_jumps.map { |x| x[1] }.reduce(0, :+))
+      if salient_jumps.length > 2
+        raise("DST timestamps should have a maximum of 2 jumps. It had #{salient_jumps.length} jumps at: #{salient_jumps}")
+      end
+
+      salient_jumps.each do |jump|
+        if jump[1].abs != 3600
+          raise("DST timestamps column has an invalid jump of #{jump[1]} seconds at #{jump[0]}")
+        end
+      end
+
+      verify_uniform_timestamps(enduse_timeseries_path(test_name), 0, jumps_allowed = false)
+      verify_uniform_timestamps(enduse_timeseries_path(test_name), 2, jumps_allowed = false)
+
     end
 
     # assert that it ran correctly
@@ -289,5 +307,51 @@ class TimeseriesCSVExportTest < MiniTest::Test
     cols = rows.transpose
     timeseries_width = cols.length
     return timeseries_length, timeseries_width
+  end
+
+  def to_utctime(datetimestr)
+    date, time = datetimestr.split(" ")
+    date_parts = date.split("/")
+    time_parts = time.split(":")
+    return Time.utc(*(date_parts + time_parts))
+  end
+
+  def verify_uniform_timestamps(enduse_timeseries, col_num, jumps_allowed = false)
+    # Verifies if timestamps are uniform. If they are not, it will raise an error if jumps_allowed = false.
+    # if jumps_allowed = true, instead of raising error, it returns an array that contains pair of timestamp and
+    # abnormal jumps.
+    rows = CSV.read(File.expand_path(enduse_timeseries))
+    header_row = rows[0]
+    if rows.length <= 2
+      return []
+    end
+
+    first_datetime = to_utctime(rows[1][col_num])
+    second_datetime = to_utctime(rows[2][col_num])
+    valid_diff = second_datetime - first_datetime # Assume the first diff is the valid one
+
+    if valid_diff >= 28 * 24 * 60 * 60 # diff is larger than 28 days; likely monthly timestamps
+      # The timestamps are likely in monthly interval. This function cannot test uniformity on such case so let it pass
+      # TODO: Test uniformity even in case of monthly timestamps
+      return []
+    end
+
+    salient_jumps = []
+    last_datetime = second_datetime
+    rows[3..-1].each do |entry|
+      current_datetime = to_utctime(entry[col_num])
+      current_diff = current_datetime - last_datetime
+      if current_diff != valid_diff
+        if not jumps_allowed
+          raise("Timestamps in #{header_row[col_num]} column in #{enduse_timeseries} not uniform. It jumped by #{current_diff} seconds at"\
+              " #{entry[0]}, while it has been jumping by #{last_diff} seconds before.")
+        else
+          extra_jump = current_diff - valid_diff
+          salient_jumps.push([current_datetime, extra_jump])
+        end
+      end
+      last_datetime = current_datetime
+    end
+    return salient_jumps
   end
 end
