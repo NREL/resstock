@@ -29,6 +29,7 @@ Fixes
 - Fix for calculating door and below-grade wall area of multifamily and single-family attached buildings with collapsed geometries ([#523](https://github.com/NREL/resstock/pull/523))
 - In the Corridor.tsv, assign single-family attached, single-family detached, and mobile homes with a "Not Applicable" option ([#502](https://github.com/NREL/resstock/pull/522))
 - Remove ceiling fan energy for vacant units ([#527](https://github.com/NREL/resstock/pull/527))
+- Fix bug related to incorrect timestamps when using AMY weather file ([#528](https://github.com/NREL/resstock/pull/528)) 
 
 ## ResStock v2.3.0
 ###### June 24, 2020 - [Diff](https://github.com/NREL/resstock/compare/v2.2.4...v2.3.0)
