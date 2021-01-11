@@ -176,9 +176,9 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     unless run_period_control_daylight_saving_time.nil?
       dst_start_date = run_period_control_daylight_saving_time.startDate
       # DST starts at 2:00 AM standard time and it ends at 1:00 AM standard time.
-      dst_start_datetime = OpenStudio::DateTime.new(dst_start_date,  OpenStudio::Time.new(0, 2, 0, 0))
+      dst_start_datetime = OpenStudio::DateTime.new(dst_start_date, OpenStudio::Time.new(0, 2, 0, 0))
       dst_end_date = run_period_control_daylight_saving_time.endDate
-      dst_end_datetime = OpenStudio::DateTime.new(dst_end_date + OpenStudio::Time.new(1, 0, 0, 0),  OpenStudio::Time.new(0, 1, 0, 0))
+      dst_end_datetime = OpenStudio::DateTime.new(dst_end_date, OpenStudio::Time.new(0, 1, 0, 0))
     end
 
     utc_offset_hr_float = model.getSite.timeZone
