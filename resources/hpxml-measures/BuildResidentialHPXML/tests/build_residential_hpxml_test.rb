@@ -266,6 +266,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       end
       hpxml.water_heating_systems.each do |wh|
         wh.performance_adjustment = nil # Detailed input not exposed
+        wh.heating_capacity = nil # Detailed input not exposed
       end
       if hpxml.refrigerators.length > 0
         (2..hpxml.refrigerators.length).to_a.reverse.each do |i|
