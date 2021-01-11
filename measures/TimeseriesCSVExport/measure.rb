@@ -174,11 +174,11 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
       break
     end
     unless run_period_control_daylight_saving_time.nil?
-      hour_of_dst_switch = OpenStudio::Time.new(0, 1, 0, 0) # 1 AM
       dst_start_date = run_period_control_daylight_saving_time.startDate
-      dst_start_datetime = OpenStudio::DateTime.new(dst_start_date, hour_of_dst_switch)
+      # DST starts at 2:00 AM standard time and it ends at 1:00 AM standard time.
+      dst_start_datetime = OpenStudio::DateTime.new(dst_start_date,  OpenStudio::Time.new(0, 2, 0, 0))
       dst_end_date = run_period_control_daylight_saving_time.endDate
-      dst_end_datetime = OpenStudio::DateTime.new(dst_end_date + OpenStudio::Time.new(1, 0, 0, 0), hour_of_dst_switch)
+      dst_end_datetime = OpenStudio::DateTime.new(dst_end_date + OpenStudio::Time.new(1, 0, 0, 0),  OpenStudio::Time.new(0, 1, 0, 0))
     end
 
     utc_offset_hr_float = model.getSite.timeZone
