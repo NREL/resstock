@@ -157,6 +157,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     report_sim_output(runner, "total_site_electricity_kwh", electricity.total_end_uses[0] + electricity.photovoltaics[0], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_heating_kwh", electricity.heating[0], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_central_system_heating_kwh", electricity.central_heating[0], "GJ", elec_site_units)
+    report_sim_output(runner, "electricity_heating_supplemental_kwh", electricity.heating_supplemental[0], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_cooling_kwh", electricity.cooling[0], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_central_system_cooling_kwh", electricity.central_cooling[0], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_interior_lighting_kwh", electricity.interior_lighting[0], "GJ", elec_site_units)
