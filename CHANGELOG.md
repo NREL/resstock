@@ -14,6 +14,7 @@ Features
 - Allow for plug load energy consumption to vary by Census Division and include additional "diversity" multiplier in plug load equations ([#511](https://github.com/NREL/resstock/pull/511))
 - Lighting saturations based on RECS 2015 with new building type and spatial dependencies ([#510](https://github.com/NREL/resstock/pull/510]))
 - Introduce premium water heaters and heat pump water heats into building stock, differentiate between central and in unit water heating, and split water heater fuel and efficiency into different housing characteristics ([#513](https://github.com/NREL/resstock/pull/513))
+- Separate electric supplemental heating from total electric heating in output reporting ([#512](https://github.com/NREL/OpenStudio-BuildStock/pull/512))
 - Model multifamily and single-family attached buildings as individual dwelling units ([#439](https://github.com/NREL/resstock/pull/439))
 
 Fixes
@@ -27,6 +28,9 @@ Fixes
 - Reintroduce monthly multipliers with stochastic load model for dishwasher, clothes washer and clothes dryer and cooking ([#504](https://github.com/NREL/resstock/pull/504))
 - Account for collapsed units when determining geometry variables (building floor/wall area and volume) in infiltration calculations; add airflow unit tests ([#518](https://github.com/NREL/resstock/pull/518))
 - Fix for calculating door and below-grade wall area of multifamily and single-family attached buildings with collapsed geometries ([#523](https://github.com/NREL/resstock/pull/523))
+- In the Corridor.tsv, assign single-family attached, single-family detached, and mobile homes with a "Not Applicable" option ([#502](https://github.com/NREL/resstock/pull/522))
+- Remove ceiling fan energy for vacant units ([#527](https://github.com/NREL/resstock/pull/527))
+- Fix bug related to incorrect timestamps when using AMY weather file ([#528](https://github.com/NREL/resstock/pull/528)) 
 
 ## ResStock v2.3.0
 ###### June 24, 2020 - [Diff](https://github.com/NREL/resstock/compare/v2.2.4...v2.3.0)
