@@ -1130,8 +1130,8 @@ class Airflow
 
     # Only if using the Fractional Leakage Option Type:
     if ducts.norm_leakage_25pa.nil?
-      supply_loss = f_out * ( supply_leakage + ah_supply_leakage )
-      return_loss = f_out * ( return_leakage + ah_return_leakage )
+      supply_loss = f_out * (supply_leakage + ah_supply_leakage)
+      return_loss = f_out * (return_leakage + ah_return_leakage)
     end
 
     unless ducts.norm_leakage_25pa.nil?
