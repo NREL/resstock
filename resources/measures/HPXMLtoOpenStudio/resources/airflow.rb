@@ -1108,13 +1108,12 @@ class Airflow
       ah_return_leakage = ducts.ah_return_frac * ducts.total_leakage
     end
 
-    # Fraction of ducts in primary duct location (remaining ducts are in above-grade conditioned space).
-    location_frac_leakage = Airflow.get_location_frac_leakage(ducts.location_frac, num_stories)
-
-    location_frac_conduction = location_frac_leakage
+    # Calculate duct areas
+    # Based on ASHRAE Standard 152 (https://www.energy.gov/eere/buildings/downloads/ashrae-standard-152-spreadsheet)
+    f_out = Airflow.get_location_frac_leakage(ducts.location_frac, num_stories) # Fraction of ducts in primary duct location (remaining ducts are in above-grade conditioned space).
     ducts.num_returns = Airflow.get_num_returns(ducts.num_returns, num_stories)
-    supply_surface_area = Airflow.get_duct_supply_surface_area(unit_ffa) * ducts.supply_area_mult
-    return_surface_area = Airflow.get_duct_return_surface_area(unit_ffa, ducts.num_returns) * ducts.return_area_mult
+    supply_surface_area = Airflow.get_duct_supply_surface_area(unit_ffa) * ducts.supply_area_mult * f_out
+    return_surface_area = Airflow.get_duct_return_surface_area(unit_ffa, ducts.num_returns) * ducts.return_area_mult * f_out
 
     # Calculate Duct UA value
     if location_name != unit_living.zone.name.to_s
@@ -1131,8 +1130,8 @@ class Airflow
 
     # Only if using the Fractional Leakage Option Type:
     if ducts.norm_leakage_25pa.nil?
-      supply_loss = location_frac_leakage * ( supply_leakage + ah_supply_leakage )
-      return_loss = location_frac_leakage * ( return_leakage + ah_return_leakage )
+      supply_loss = f_out * ( supply_leakage + ah_supply_leakage )
+      return_loss = f_out * ( return_leakage + ah_return_leakage )
     end
 
     unless ducts.norm_leakage_25pa.nil?
@@ -1174,7 +1173,7 @@ class Airflow
     unit.additionalProperties.setFeature(Constants.SizingInfoDuctsSupplySurfaceArea, supply_surface_area.to_f)
     unit.additionalProperties.setFeature(Constants.SizingInfoDuctsReturnSurfaceArea, return_surface_area.to_f)
     unit.additionalProperties.setFeature(Constants.SizingInfoDuctsLocationZone, location_name)
-    unit.additionalProperties.setFeature(Constants.SizingInfoDuctsLocationFrac, location_frac_leakage.to_f)
+    unit.additionalProperties.setFeature(Constants.SizingInfoDuctsLocationFrac, f_out.to_f)
 
     ducts_output = DuctsOutput.new(location_name, location_zone, supply_loss, return_loss, frac_oa, total_unbalance, supply_ua, return_ua)
     return true, ducts_output
