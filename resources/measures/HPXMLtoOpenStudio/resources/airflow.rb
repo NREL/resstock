@@ -1110,7 +1110,7 @@ class Airflow
 
     # Calculate duct areas
     # Based on ASHRAE Standard 152 (https://www.energy.gov/eere/buildings/downloads/ashrae-standard-152-spreadsheet)
-    f_out = Airflow.get_location_frac_leakage(ducts.location_frac, num_stories) # Fraction of ducts in primary duct location (remaining ducts are in above-grade conditioned space).
+    f_out = Airflow.get_location_frac_leakage(ducts.location_frac, building.stories) # Fraction of ducts in primary duct location (remaining ducts are in above-grade conditioned space).
     ducts.num_returns = Airflow.get_num_returns(ducts.num_returns, num_stories)
     supply_surface_area = Airflow.get_duct_supply_surface_area(unit_ffa) * ducts.supply_area_mult * f_out
     return_surface_area = Airflow.get_duct_return_surface_area(unit_ffa, ducts.num_returns) * ducts.return_area_mult * f_out
@@ -2238,9 +2238,9 @@ class Airflow
     '''
   end
 
-  def self.get_location_frac_leakage(location_frac, stories)
+  def self.get_location_frac_leakage(location_frac, num_conditioned_floors_above_grade)
     if location_frac == Constants.Auto
-      if stories == 1
+      if num_conditioned_floors_above_grade == 1
         location_frac_leakage = 1
       else
         location_frac_leakage = 0.75
@@ -2317,12 +2317,11 @@ class Airflow
     return b_r * ffa # ft^2
   end
 
-  def self.get_num_returns(num_returns, num_stories)
+  def self.get_num_returns(num_returns, num_conditioned_floors)
     if num_returns.nil?
       return 0
     elsif num_returns == Constants.Auto
-      # Duct Number Returns per 2010 BA Benchmark Addendum
-      return 1 + num_stories
+      return num_conditioned_floors
     end
 
     return num_returns.to_i
