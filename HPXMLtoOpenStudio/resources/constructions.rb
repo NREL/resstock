@@ -858,18 +858,12 @@ class Constructions
     constr.create_and_assign_constructions(runner, subsurfaces, model)
   end
 
-  def self.apply_window(runner, model, subsurface, constr_name, weather,
-                        heat_sch, cool_sch, ufactor, shgc, heat_shade_mult, cool_shade_mult)
-
-    apply_window_skylight(runner, model, 'Window', subsurface, constr_name, weather,
-                          heat_sch, cool_sch, ufactor, shgc, heat_shade_mult, cool_shade_mult)
+  def self.apply_window(runner, model, subsurface, constr_name, ufactor, shgc)
+    apply_window_skylight(runner, model, 'Window', subsurface, constr_name, ufactor, shgc)
   end
 
-  def self.apply_skylight(runner, model, subsurface, constr_name, weather,
-                          heat_sch, cool_sch, ufactor, shgc, heat_shade_mult, cool_shade_mult)
-
-    apply_window_skylight(runner, model, 'Skylight', subsurface, constr_name, weather,
-                          heat_sch, cool_sch, ufactor, shgc, heat_shade_mult, cool_shade_mult)
+  def self.apply_skylight(runner, model, subsurface, constr_name, ufactor, shgc)
+    apply_window_skylight(runner, model, 'Skylight', subsurface, constr_name, ufactor, shgc)
   end
 
   def self.apply_partition_walls(runner, model, constr_name, drywall_thick_in, frac_of_ffa,
@@ -1179,63 +1173,7 @@ class Constructions
     return mat
   end
 
-  def self.apply_window_skylight(runner, model, type, subsurface, constr_name, weather,
-                                 heat_sch, cool_sch, ufactor, shgc, heat_shade_mult, cool_shade_mult)
-
-    # Define shade and schedule
-    { 'Cooling' => [cool_sch, cool_shade_mult],
-      'Heating' => [heat_sch, heat_shade_mult] }.each do |mode, values|
-      sch, shade_mult = values
-      next if shade_mult >= 1.0
-
-      shade_name = "#{type}#{mode}Shade"
-      sc_name = "#{type}#{mode}ShadingControl"
-
-      # Reuse existing Shade?
-      # Note: We still create a unique ShadingControl per subsurface in order to
-      # prevent the shading control from being used by subsurfaces in different
-      # zones, which is probably not a good idea.
-      sm = nil
-      model.getShades.each do |shade|
-        next unless (shade.solarTransmittance - shade_mult).abs < 0.0001
-        next unless shade.name.to_s.start_with? shade_name
-
-        sm = shade
-        break
-      end
-
-      if sm.nil?
-        shade_abs = 0.00001
-        shade_ref = 1.0 - shade_mult - shade_abs
-
-        # Shade
-        sm = OpenStudio::Model::Shade.new(model)
-        sm.setName(shade_name)
-        sm.setSolarTransmittance(shade_mult)
-        sm.setSolarReflectance(shade_ref)
-        sm.setVisibleTransmittance(shade_mult)
-        sm.setVisibleReflectance(shade_ref)
-        sm.setThermalHemisphericalEmissivity(shade_abs)
-        sm.setThermalTransmittance(shade_mult)
-        sm.setThickness(0.0001)
-        sm.setConductivity(10000)
-        sm.setShadetoGlassDistance(0.001)
-        sm.setTopOpeningMultiplier(0)
-        sm.setBottomOpeningMultiplier(0)
-        sm.setLeftSideOpeningMultiplier(0)
-        sm.setRightSideOpeningMultiplier(0)
-        sm.setAirflowPermeability(0)
-      end
-
-      # ShadingControl
-      sc = OpenStudio::Model::ShadingControl.new(sm)
-      sc.setName(sc_name)
-      sc.setShadingType('InteriorShade')
-      sc.setShadingControlType('OnIfScheduleAllows')
-      sc.setSchedule(sch.schedule)
-      subsurface.addShadingControl(sc)
-    end
-
+  def self.apply_window_skylight(runner, model, type, subsurface, constr_name, ufactor, shgc)
     # Define materials
     if type == 'Skylight'
       # As of 2004, NFRC skylights are rated at a 20-degree slope (instead of vertical), but

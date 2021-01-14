@@ -355,6 +355,14 @@ class HPXMLDefaults
         window.interior_shading_factor_winter = default_shade_winter
         window.interior_shading_factor_winter_isdefaulted = true
       end
+      if window.exterior_shading_factor_summer.nil?
+        window.exterior_shading_factor_summer = 1.0
+        window.exterior_shading_factor_summer_isdefaulted = true
+      end
+      if window.exterior_shading_factor_winter.nil?
+        window.exterior_shading_factor_winter = 1.0
+        window.exterior_shading_factor_winter_isdefaulted = true
+      end
       if window.fraction_operable.nil?
         window.fraction_operable = Airflow.get_default_fraction_of_windows_operable()
         window.fraction_operable_isdefaulted = true
@@ -371,6 +379,14 @@ class HPXMLDefaults
       if skylight.interior_shading_factor_winter.nil?
         skylight.interior_shading_factor_winter = 1.0
         skylight.interior_shading_factor_winter_isdefaulted = true
+      end
+      if skylight.exterior_shading_factor_summer.nil?
+        skylight.exterior_shading_factor_summer = 1.0
+        skylight.exterior_shading_factor_summer_isdefaulted = true
+      end
+      if skylight.exterior_shading_factor_winter.nil?
+        skylight.exterior_shading_factor_winter = 1.0
+        skylight.exterior_shading_factor_winter_isdefaulted = true
       end
     end
   end
@@ -449,11 +465,62 @@ class HPXMLDefaults
       heat_pump.pump_watts_per_ton_isdefaulted = true
     end
 
+    # Charge defect ratio
+    hpxml.cooling_systems.each do |cooling_system|
+      next unless [HPXML::HVACTypeCentralAirConditioner,
+                   HPXML::HVACTypeMiniSplitAirConditioner,
+                   HPXML::HVACTypeRoomAirConditioner].include? cooling_system.cooling_system_type
+      next unless cooling_system.charge_defect_ratio.nil?
+
+      cooling_system.charge_defect_ratio = 0.0
+      cooling_system.charge_defect_ratio_isdefaulted = true
+    end
+    hpxml.heat_pumps.each do |heat_pump|
+      next unless [HPXML::HVACTypeHeatPumpAirToAir,
+                   HPXML::HVACTypeHeatPumpMiniSplit].include? heat_pump.heat_pump_type
+      next unless heat_pump.charge_defect_ratio.nil?
+
+      heat_pump.charge_defect_ratio = 0.0
+      heat_pump.charge_defect_ratio_isdefaulted = true
+    end
+
+    # Airflow defect ratio
+    hpxml.heating_systems.each do |heating_system|
+      next unless [HPXML::HVACTypeFurnace].include? heating_system.heating_system_type
+      next unless heating_system.airflow_defect_ratio.nil?
+
+      heating_system.airflow_defect_ratio = 0.0
+      heating_system.airflow_defect_ratio_isdefaulted = true
+    end
+    hpxml.cooling_systems.each do |cooling_system|
+      next unless [HPXML::HVACTypeCentralAirConditioner,
+                   HPXML::HVACTypeMiniSplitAirConditioner,
+                   HPXML::HVACTypeRoomAirConditioner].include? cooling_system.cooling_system_type
+      if cooling_system.cooling_system_type == HPXML::HVACTypeMiniSplitAirConditioner && cooling_system.distribution_system_idref.nil?
+        next # Ducted mini-splits only
+      end
+      next unless cooling_system.airflow_defect_ratio.nil?
+
+      cooling_system.airflow_defect_ratio = 0.0
+      cooling_system.airflow_defect_ratio_isdefaulted = true
+    end
+    hpxml.heat_pumps.each do |heat_pump|
+      next unless [HPXML::HVACTypeHeatPumpAirToAir,
+                   HPXML::HVACTypeHeatPumpGroundToAir,
+                   HPXML::HVACTypeHeatPumpMiniSplit].include? heat_pump.heat_pump_type
+      if heat_pump.heat_pump_type == HPXML::HVACTypeHeatPumpMiniSplit && heat_pump.distribution_system_idref.nil?
+        next # Ducted mini-splits only
+      end
+      next unless heat_pump.airflow_defect_ratio.nil?
+
+      heat_pump.airflow_defect_ratio = 0.0
+      heat_pump.airflow_defect_ratio_isdefaulted = true
+    end
+
     # Fan power
     psc_watts_per_cfm = 0.5 # W/cfm, PSC fan
     ecm_watts_per_cfm = 0.375 # W/cfm, ECM fan
     mini_split_ducted_watts_per_cfm = 0.18 # W/cfm, ducted mini split
-    mini_split_ductless_watts_per_cfm = 0.07 # W/cfm, ductless mini split
     hpxml.heating_systems.each do |heating_system|
       if [HPXML::HVACTypeFurnace].include? heating_system.heating_system_type
         if heating_system.fan_watts_per_cfm.nil?
@@ -496,8 +563,6 @@ class HPXMLDefaults
       elsif [HPXML::HVACTypeMiniSplitAirConditioner].include? cooling_system.cooling_system_type
         if not cooling_system.distribution_system.nil?
           cooling_system.fan_watts_per_cfm = mini_split_ducted_watts_per_cfm
-        else
-          cooling_system.fan_watts_per_cfm = mini_split_ductless_watts_per_cfm
         end
         cooling_system.fan_watts_per_cfm_isdefaulted = true
       elsif [HPXML::HVACTypeEvaporativeCooler].include? cooling_system.cooling_system_type
@@ -524,8 +589,6 @@ class HPXMLDefaults
       elsif [HPXML::HVACTypeHeatPumpMiniSplit].include? heat_pump.heat_pump_type
         if not heat_pump.distribution_system.nil?
           heat_pump.fan_watts_per_cfm = mini_split_ducted_watts_per_cfm
-        else
-          heat_pump.fan_watts_per_cfm = mini_split_ductless_watts_per_cfm
         end
         heat_pump.fan_watts_per_cfm_isdefaulted = true
       end

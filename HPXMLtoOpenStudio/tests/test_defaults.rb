@@ -336,50 +336,58 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
 
   def test_windows
     # Test inputs not overridden by defaults
-    hpxml = _create_hpxml('base-enclosure-windows-interior-shading.xml')
+    hpxml = _create_hpxml('base-enclosure-windows-shading.xml')
     hpxml.windows.each do |window|
       window.fraction_operable = 0.5
+      window.exterior_shading_factor_summer = 0.44
+      window.exterior_shading_factor_winter = 0.55
       window.interior_shading_factor_summer = 0.66
       window.interior_shading_factor_winter = 0.77
     end
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     n_windows = hpxml_default.windows.size
-    _test_default_window_values(hpxml_default, false, [0.66] * n_windows, [0.77] * n_windows, [0.5] * n_windows)
+    _test_default_window_values(hpxml_default, false, [0.44] * n_windows, [0.55] * n_windows, [0.66] * n_windows, [0.77] * n_windows, [0.5] * n_windows)
 
     # Test defaults
     hpxml.windows.each do |window|
       window.fraction_operable = nil
+      window.exterior_shading_factor_summer = nil
+      window.exterior_shading_factor_winter = nil
       window.interior_shading_factor_summer = nil
       window.interior_shading_factor_winter = nil
     end
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     n_windows = hpxml_default.windows.size
-    _test_default_window_values(hpxml_default, true, [0.7] * n_windows, [0.85] * n_windows, [0.67] * n_windows)
+    _test_default_window_values(hpxml_default, true, [1.0] * n_windows, [1.0] * n_windows, [0.7] * n_windows, [0.85] * n_windows, [0.67] * n_windows)
   end
 
   def test_skylights
     # Test inputs not overridden by defaults
     hpxml = _create_hpxml('base-enclosure-skylights.xml')
     hpxml.skylights.each do |skylight|
+      skylight.exterior_shading_factor_summer = 0.44
+      skylight.exterior_shading_factor_winter = 0.55
       skylight.interior_shading_factor_summer = 0.66
       skylight.interior_shading_factor_winter = 0.77
     end
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     n_skylights = hpxml_default.skylights.size
-    _test_default_skylight_values(hpxml_default, false, [0.66] * n_skylights, [0.77] * n_skylights)
+    _test_default_skylight_values(hpxml_default, false, [0.44] * n_skylights, [0.55] * n_skylights, [0.66] * n_skylights, [0.77] * n_skylights)
 
     # Test defaults
     hpxml.skylights.each do |skylight|
+      skylight.exterior_shading_factor_summer = nil
+      skylight.exterior_shading_factor_winter = nil
       skylight.interior_shading_factor_summer = nil
       skylight.interior_shading_factor_winter = nil
     end
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     n_skylights = hpxml_default.skylights.size
-    _test_default_skylight_values(hpxml_default, true, [1.0] * n_skylights, [1.0] * n_skylights)
+    _test_default_skylight_values(hpxml_default, true, [1.0] * n_skylights, [1.0] * n_skylights, [1.0] * n_skylights, [1.0] * n_skylights)
   end
 
   def test_central_air_conditioners
@@ -388,32 +396,40 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.cooling_systems[0].cooling_shr = 0.88
     hpxml.cooling_systems[0].compressor_type = HPXML::HVACCompressorTypeVariableSpeed
     hpxml.cooling_systems[0].fan_watts_per_cfm = 0.66
+    hpxml.cooling_systems[0].charge_defect_ratio = -0.11
+    hpxml.cooling_systems[0].airflow_defect_ratio = -0.22
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_central_air_conditioner_values(hpxml_default, false, 0.88, HPXML::HVACCompressorTypeVariableSpeed, 0.66)
+    _test_default_central_air_conditioner_values(hpxml_default, false, 0.88, HPXML::HVACCompressorTypeVariableSpeed, 0.66, -0.11, -0.22)
 
     # Test defaults
     hpxml.cooling_systems[0].cooling_shr = nil
     hpxml.cooling_systems[0].compressor_type = nil
     hpxml.cooling_systems[0].fan_watts_per_cfm = nil
+    hpxml.cooling_systems[0].charge_defect_ratio = nil
+    hpxml.cooling_systems[0].airflow_defect_ratio = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_central_air_conditioner_values(hpxml_default, true, 0.73, HPXML::HVACCompressorTypeSingleStage, 0.5)
+    _test_default_central_air_conditioner_values(hpxml_default, true, 0.73, HPXML::HVACCompressorTypeSingleStage, 0.5, 0, 0)
   end
 
   def test_room_air_conditioners
     # Test inputs not overridden by defaults
     hpxml = _create_hpxml('base-hvac-room-ac-only.xml')
     hpxml.cooling_systems[0].cooling_shr = 0.88
+    hpxml.cooling_systems[0].charge_defect_ratio = -0.11
+    hpxml.cooling_systems[0].airflow_defect_ratio = -0.22
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_room_air_conditioner_values(hpxml_default, false, 0.88)
+    _test_default_room_air_conditioner_values(hpxml_default, false, 0.88, -0.11, -0.22)
 
     # Test defaults
     hpxml.cooling_systems[0].cooling_shr = nil
+    hpxml.cooling_systems[0].charge_defect_ratio = nil
+    hpxml.cooling_systems[0].airflow_defect_ratio = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_room_air_conditioner_values(hpxml_default, true, 0.65)
+    _test_default_room_air_conditioner_values(hpxml_default, true, 0.65, 0, 0)
   end
 
   def test_mini_split_air_conditioners
@@ -421,31 +437,37 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml = _create_hpxml('base-hvac-mini-split-air-conditioner-only-ducted.xml')
     hpxml.cooling_systems[0].cooling_shr = 0.78
     hpxml.cooling_systems[0].fan_watts_per_cfm = 0.66
+    hpxml.cooling_systems[0].charge_defect_ratio = -0.11
+    hpxml.cooling_systems[0].airflow_defect_ratio = -0.22
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_mini_split_air_conditioner_values(hpxml_default, false, 0.78, 0.66)
+    _test_default_mini_split_air_conditioner_values(hpxml_default, false, 0.78, 0.66, -0.11, -0.22)
 
     # Test defaults
     hpxml.cooling_systems[0].cooling_shr = nil
     hpxml.cooling_systems[0].fan_watts_per_cfm = nil
+    hpxml.cooling_systems[0].charge_defect_ratio = nil
+    hpxml.cooling_systems[0].airflow_defect_ratio = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_mini_split_air_conditioner_values(hpxml_default, true, 0.73, 0.18)
+    _test_default_mini_split_air_conditioner_values(hpxml_default, true, 0.73, 0.18, 0, 0)
   end
 
   def test_furnaces
     # Test inputs not overridden by defaults
     hpxml = _create_hpxml('base.xml')
     hpxml.heating_systems[0].fan_watts_per_cfm = 0.66
+    hpxml.heating_systems[0].airflow_defect_ratio = -0.22
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_furnace_values(hpxml_default, false, 0.66)
+    _test_default_furnace_values(hpxml_default, false, 0.66, -0.22)
 
     # Test defaults
     hpxml.heating_systems[0].fan_watts_per_cfm = nil
+    hpxml.heating_systems[0].airflow_defect_ratio = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_furnace_values(hpxml_default, true, 0.375)
+    _test_default_furnace_values(hpxml_default, true, 0.375, 0)
   end
 
   def test_wall_furnaces
@@ -573,17 +595,21 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.heat_pumps[0].cooling_shr = 0.88
     hpxml.heat_pumps[0].compressor_type = HPXML::HVACCompressorTypeVariableSpeed
     hpxml.heat_pumps[0].fan_watts_per_cfm = 0.66
+    hpxml.heat_pumps[0].charge_defect_ratio = -0.11
+    hpxml.heat_pumps[0].airflow_defect_ratio = -0.22
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_air_to_air_heat_pump_values(hpxml_default, false, 0.88, HPXML::HVACCompressorTypeVariableSpeed, 0.66)
+    _test_default_air_to_air_heat_pump_values(hpxml_default, false, 0.88, HPXML::HVACCompressorTypeVariableSpeed, 0.66, -0.11, -0.22)
 
     # Test defaults
     hpxml.heat_pumps[0].cooling_shr = nil
     hpxml.heat_pumps[0].compressor_type = nil
     hpxml.heat_pumps[0].fan_watts_per_cfm = nil
+    hpxml.heat_pumps[0].charge_defect_ratio = nil
+    hpxml.heat_pumps[0].airflow_defect_ratio = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_air_to_air_heat_pump_values(hpxml_default, true, 0.73, HPXML::HVACCompressorTypeSingleStage, 0.5)
+    _test_default_air_to_air_heat_pump_values(hpxml_default, true, 0.73, HPXML::HVACCompressorTypeSingleStage, 0.5, 0, 0)
   end
 
   def test_mini_split_heat_pumps
@@ -591,33 +617,39 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml = _create_hpxml('base-hvac-mini-split-heat-pump-ducted.xml')
     hpxml.heat_pumps[0].cooling_shr = 0.78
     hpxml.heat_pumps[0].fan_watts_per_cfm = 0.66
+    hpxml.heat_pumps[0].charge_defect_ratio = -0.11
+    hpxml.heat_pumps[0].airflow_defect_ratio = -0.22
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_mini_split_heat_pump_values(hpxml_default, false, 0.78, 0.66)
+    _test_default_mini_split_heat_pump_values(hpxml_default, false, 0.78, 0.66, -0.11, -0.22)
 
     # Test defaults
     hpxml.heat_pumps[0].cooling_shr = nil
     hpxml.heat_pumps[0].fan_watts_per_cfm = nil
+    hpxml.heat_pumps[0].charge_defect_ratio = nil
+    hpxml.heat_pumps[0].airflow_defect_ratio = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_mini_split_heat_pump_values(hpxml_default, true, 0.73, 0.18)
+    _test_default_mini_split_heat_pump_values(hpxml_default, true, 0.73, 0.18, 0, 0)
   end
 
-  def test_ground_to_air_heat_pumps
+  def test_ground_source_heat_pumps
     # Test inputs not overridden by defaults
     hpxml = _create_hpxml('base-hvac-ground-to-air-heat-pump.xml')
     hpxml.heat_pumps[0].pump_watts_per_ton = 9.9
-    hpxml.heat_pumps[0].fan_watts_per_cfm = 0.99
+    hpxml.heat_pumps[0].fan_watts_per_cfm = 0.66
+    hpxml.heat_pumps[0].airflow_defect_ratio = -0.22
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_ground_to_air_heat_pump_values(hpxml_default, false, 9.9, 0.99)
+    _test_default_ground_to_air_heat_pump_values(hpxml_default, false, 9.9, 0.66, -0.22)
 
     # Test defaults
     hpxml.heat_pumps[0].pump_watts_per_ton = nil
     hpxml.heat_pumps[0].fan_watts_per_cfm = nil
+    hpxml.heat_pumps[0].airflow_defect_ratio = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_ground_to_air_heat_pump_values(hpxml_default, true, 30.0, 0.375)
+    _test_default_ground_to_air_heat_pump_values(hpxml_default, true, 30.0, 0.375, 0)
   end
 
   def test_hvac_controls
@@ -1958,13 +1990,19 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     assert_equal(isdefaulted, slab.carpet_fraction_isdefaulted)
   end
 
-  def _test_default_window_values(hpxml, isdefaulted, summer_shade_coeffs, winter_shade_coeffs, fraction_operable)
-    assert_equal(summer_shade_coeffs.size, hpxml.windows.size)
+  def _test_default_window_values(hpxml, isdefaulted, ext_summer_sfs, ext_winter_sfs, int_summer_sfs, int_winter_sfs, fraction_operable)
+    assert_equal(ext_summer_sfs.size, hpxml.windows.size)
     hpxml.windows.each_with_index do |window, idx|
-      assert_equal(summer_shade_coeffs[idx], window.interior_shading_factor_summer)
+      assert_equal(ext_summer_sfs[idx], window.exterior_shading_factor_summer)
+      assert_equal(isdefaulted, window.exterior_shading_factor_summer_isdefaulted)
+
+      assert_equal(ext_winter_sfs[idx], window.exterior_shading_factor_winter)
+      assert_equal(isdefaulted, window.exterior_shading_factor_winter_isdefaulted)
+
+      assert_equal(int_summer_sfs[idx], window.interior_shading_factor_summer)
       assert_equal(isdefaulted, window.interior_shading_factor_summer_isdefaulted)
 
-      assert_equal(winter_shade_coeffs[idx], window.interior_shading_factor_winter)
+      assert_equal(int_winter_sfs[idx], window.interior_shading_factor_winter)
       assert_equal(isdefaulted, window.interior_shading_factor_winter_isdefaulted)
 
       assert_equal(fraction_operable[idx], window.fraction_operable)
@@ -1972,18 +2010,25 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     end
   end
 
-  def _test_default_skylight_values(hpxml, isdefaulted, summer_shade_coeffs, winter_shade_coeffs)
-    assert_equal(summer_shade_coeffs.size, hpxml.skylights.size)
+  def _test_default_skylight_values(hpxml, isdefaulted, ext_summer_sfs, ext_winter_sfs, int_summer_sfs, int_winter_sfs)
+    assert_equal(ext_summer_sfs.size, hpxml.skylights.size)
     hpxml.skylights.each_with_index do |skylight, idx|
-      assert_equal(summer_shade_coeffs[idx], skylight.interior_shading_factor_summer)
+      assert_equal(ext_summer_sfs[idx], skylight.exterior_shading_factor_summer)
+      assert_equal(isdefaulted, skylight.exterior_shading_factor_summer_isdefaulted)
+
+      assert_equal(ext_winter_sfs[idx], skylight.exterior_shading_factor_winter)
+      assert_equal(isdefaulted, skylight.exterior_shading_factor_winter_isdefaulted)
+
+      assert_equal(int_summer_sfs[idx], skylight.interior_shading_factor_summer)
       assert_equal(isdefaulted, skylight.interior_shading_factor_summer_isdefaulted)
 
-      assert_equal(winter_shade_coeffs[idx], skylight.interior_shading_factor_winter)
+      assert_equal(int_winter_sfs[idx], skylight.interior_shading_factor_winter)
       assert_equal(isdefaulted, skylight.interior_shading_factor_winter_isdefaulted)
     end
   end
 
-  def _test_default_central_air_conditioner_values(hpxml, isdefaulted, shr, compressor_type, fan_watts_per_cfm)
+  def _test_default_central_air_conditioner_values(hpxml, isdefaulted, shr, compressor_type, fan_watts_per_cfm, charge_defect_ratio,
+                                                   airflow_defect_ratio)
     cooling_system = hpxml.cooling_systems[0]
 
     assert_equal(shr, cooling_system.cooling_shr)
@@ -1994,16 +2039,25 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
 
     assert_equal(fan_watts_per_cfm, cooling_system.fan_watts_per_cfm)
     assert_equal(isdefaulted, cooling_system.fan_watts_per_cfm_isdefaulted)
+    assert_equal(charge_defect_ratio, cooling_system.charge_defect_ratio)
+    assert_equal(isdefaulted, cooling_system.charge_defect_ratio_isdefaulted)
+    assert_equal(airflow_defect_ratio, cooling_system.airflow_defect_ratio)
+    assert_equal(isdefaulted, cooling_system.airflow_defect_ratio_isdefaulted)
   end
 
-  def _test_default_room_air_conditioner_values(hpxml, isdefaulted, shr)
+  def _test_default_room_air_conditioner_values(hpxml, isdefaulted, shr, charge_defect_ratio, airflow_defect_ratio)
     cooling_system = hpxml.cooling_systems[0]
 
     assert_equal(shr, cooling_system.cooling_shr)
     assert_equal(isdefaulted, cooling_system.cooling_shr_isdefaulted)
+    assert_equal(charge_defect_ratio, cooling_system.charge_defect_ratio)
+    assert_equal(isdefaulted, cooling_system.charge_defect_ratio_isdefaulted)
+    assert_equal(airflow_defect_ratio, cooling_system.airflow_defect_ratio)
+    assert_equal(isdefaulted, cooling_system.airflow_defect_ratio_isdefaulted)
   end
 
-  def _test_default_mini_split_air_conditioner_values(hpxml, isdefaulted, shr, fan_watts_per_cfm)
+  def _test_default_mini_split_air_conditioner_values(hpxml, isdefaulted, shr, fan_watts_per_cfm, charge_defect_ratio,
+                                                      airflow_defect_ratio)
     cooling_system = hpxml.cooling_systems[0]
 
     assert_equal(shr, cooling_system.cooling_shr)
@@ -2011,13 +2065,19 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
 
     assert_equal(fan_watts_per_cfm, cooling_system.fan_watts_per_cfm)
     assert_equal(isdefaulted, cooling_system.fan_watts_per_cfm_isdefaulted)
+    assert_equal(charge_defect_ratio, cooling_system.charge_defect_ratio)
+    assert_equal(isdefaulted, cooling_system.charge_defect_ratio_isdefaulted)
+    assert_equal(airflow_defect_ratio, cooling_system.airflow_defect_ratio)
+    assert_equal(isdefaulted, cooling_system.airflow_defect_ratio_isdefaulted)
   end
 
-  def _test_default_furnace_values(hpxml, isdefaulted, fan_watts_per_cfm)
+  def _test_default_furnace_values(hpxml, isdefaulted, fan_watts_per_cfm, airflow_defect_ratio)
     heating_system = hpxml.heating_systems[0]
 
     assert_equal(fan_watts_per_cfm, heating_system.fan_watts_per_cfm)
     assert_equal(isdefaulted, heating_system.fan_watts_per_cfm_isdefaulted)
+    assert_equal(airflow_defect_ratio, heating_system.airflow_defect_ratio)
+    assert_equal(isdefaulted, heating_system.airflow_defect_ratio_isdefaulted)
   end
 
   def _test_default_wall_furnace_values(hpxml, isdefaulted, fan_watts)
@@ -2069,7 +2129,8 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     assert_equal(isdefaulted, heating_system.electric_auxiliary_energy_isdefaulted)
   end
 
-  def _test_default_air_to_air_heat_pump_values(hpxml, isdefaulted, shr, compressor_type, fan_watts_per_cfm)
+  def _test_default_air_to_air_heat_pump_values(hpxml, isdefaulted, shr, compressor_type, fan_watts_per_cfm, charge_defect_ratio,
+                                                airflow_defect_ratio)
     heat_pump = hpxml.heat_pumps[0]
 
     assert_equal(shr, heat_pump.cooling_shr)
@@ -2080,9 +2141,14 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
 
     assert_equal(fan_watts_per_cfm, heat_pump.fan_watts_per_cfm)
     assert_equal(isdefaulted, heat_pump.fan_watts_per_cfm_isdefaulted)
+    assert_equal(charge_defect_ratio, heat_pump.charge_defect_ratio)
+    assert_equal(isdefaulted, heat_pump.charge_defect_ratio_isdefaulted)
+    assert_equal(airflow_defect_ratio, heat_pump.airflow_defect_ratio)
+    assert_equal(isdefaulted, heat_pump.airflow_defect_ratio_isdefaulted)
   end
 
-  def _test_default_mini_split_heat_pump_values(hpxml, isdefaulted, shr, fan_watts_per_cfm)
+  def _test_default_mini_split_heat_pump_values(hpxml, isdefaulted, shr, fan_watts_per_cfm, charge_defect_ratio,
+                                                airflow_defect_ratio)
     heat_pump = hpxml.heat_pumps[0]
 
     assert_equal(shr, heat_pump.cooling_shr)
@@ -2090,9 +2156,13 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
 
     assert_equal(fan_watts_per_cfm, heat_pump.fan_watts_per_cfm)
     assert_equal(isdefaulted, heat_pump.fan_watts_per_cfm_isdefaulted)
+    assert_equal(charge_defect_ratio, heat_pump.charge_defect_ratio)
+    assert_equal(isdefaulted, heat_pump.charge_defect_ratio_isdefaulted)
+    assert_equal(airflow_defect_ratio, heat_pump.airflow_defect_ratio)
+    assert_equal(isdefaulted, heat_pump.airflow_defect_ratio_isdefaulted)
   end
 
-  def _test_default_ground_to_air_heat_pump_values(hpxml, isdefaulted, pump_watts_per_ton, fan_watts_per_cfm)
+  def _test_default_ground_to_air_heat_pump_values(hpxml, isdefaulted, pump_watts_per_ton, fan_watts_per_cfm, airflow_defect_ratio)
     heat_pump = hpxml.heat_pumps[0]
 
     assert_equal(pump_watts_per_ton, heat_pump.pump_watts_per_ton)
@@ -2100,6 +2170,8 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
 
     assert_equal(fan_watts_per_cfm, heat_pump.fan_watts_per_cfm)
     assert_equal(isdefaulted, heat_pump.fan_watts_per_cfm_isdefaulted)
+    assert_equal(airflow_defect_ratio, heat_pump.airflow_defect_ratio)
+    assert_equal(isdefaulted, heat_pump.airflow_defect_ratio_isdefaulted)
   end
 
   def _test_default_hvac_control_values(hpxml, isdefaulted, htg_setback_start_hr, clg_setup_start_hr)

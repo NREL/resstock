@@ -35,7 +35,24 @@ def create_osws
     # 'base-bldgtype-multifamily-adjacent-to-non-freezing-space.osw' => 'base.osw', # Not supporting units adjacent to other MF spaces for now
     # 'base-bldgtype-multifamily-adjacent-to-other-heated-space.osw' => 'base.osw', # Not supporting units adjacent to other MF spaces for now
     # 'base-bldgtype-multifamily-adjacent-to-other-housing-unit.osw' => 'base.osw', # Not supporting units adjacent to other MF spaces for now
-    # 'base-bldgtype-multifamily-shared-laundry-room.osw' => 'base.osw', # Not going to support shared laundry room
+    # 'base-bldgtype-multifamily-shared-boiler-chiller-baseboard.osw' => 'base-bldgtype-multifamily.osw',
+    # 'base-bldgtype-multifamily-shared-boiler-chiller-fan-coil.osw' => 'base-bldgtype-multifamily-shared-boiler-chiller-baseboard.osw',
+    # 'base-bldgtype-multifamily-shared-boiler-chiller-fan-coil-ducted.osw' => 'base-bldgtype-multifamily-shared-boiler-chiller-fan-coil.osw',
+    # 'base-bldgtype-multifamily-shared-boiler-chiller-water-loop-heat-pump.osw' => 'base-bldgtype-multifamily-shared-boiler-chiller-baseboard.osw',
+    # 'base-bldgtype-multifamily-shared-boiler-cooling-tower-water-loop-heat-pump.osw' => 'base-bldgtype-multifamily-shared-boiler-chiller-water-loop-heat-pump.osw',
+    # 'base-bldgtype-multifamily-shared-boiler-only-baseboard.osw' => 'base-bldgtype-multifamily.osw',
+    # 'base-bldgtype-multifamily-shared-boiler-only-fan-coil.osw' => 'base-bldgtype-multifamily-shared-boiler-only-baseboard.osw',
+    # 'base-bldgtype-multifamily-shared-boiler-only-fan-coil-ducted.osw' => 'base-bldgtype-multifamily-shared-boiler-only-fan-coil.osw',
+    # 'base-bldgtype-multifamily-shared-boiler-only-fan-coil-eae.osw' => 'base-bldgtype-multifamily-shared-boiler-only-fan-coil.osw',
+    # 'base-bldgtype-multifamily-shared-boiler-only-water-loop-heat-pump.osw' => 'base-bldgtype-multifamily-shared-boiler-only-baseboard.osw',
+    # 'base-bldgtype-multifamily-shared-chiller-only-baseboard.osw' => 'base-bldgtype-multifamily.osw',
+    # 'base-bldgtype-multifamily-shared-chiller-only-fan-coil.osw' => 'base-bldgtype-multifamily-shared-chiller-only-baseboard.osw',
+    # 'base-bldgtype-multifamily-shared-chiller-only-fan-coil-ducted.osw' => 'base-bldgtype-multifamily-shared-chiller-only-fan-coil.osw',
+    # 'base-bldgtype-multifamily-shared-chiller-only-water-loop-heat-pump.osw' => 'base-bldgtype-multifamily-shared-chiller-only-baseboard.osw',
+    # 'base-bldgtype-multifamily-shared-cooling-tower-only-water-loop-heat-pump.osw' => 'base-bldgtype-multifamily-shared-chiller-only-water-loop-heat-pump.osw',
+    # 'base-bldgtype-multifamily-shared-generator.osw' => 'base-bldgtype-multifamily.osw',
+    # 'base-bldgtype-multifamily-shared-ground-loop-ground-to-air-heat-pump.osw' => 'base-bldgtype-multifamily.osw',
+    # 'base-bldgtype-multifamily-shared-laundry-room.osw' => 'base-bldgtype-multifamily.osw', # Not going to support shared laundry room
     'base-bldgtype-multifamily-shared-mechvent.osw' => 'base-bldgtype-multifamily.osw',
     # 'base-bldgtype-multifamily-shared-mechvent-multiple.osw' => 'base.osw', # Not going to support > 2 MV systems
     'base-bldgtype-multifamily-shared-mechvent-preconditioning.osw' => 'base-bldgtype-multifamily-shared-mechvent.osw',
@@ -110,9 +127,10 @@ def create_osws
     'base-enclosure-overhangs.osw' => 'base.osw',
     # 'base-enclosure-rooftypes.osw' => 'base.osw',
     # 'base-enclosure-skylights.osw' => 'base.osw', # There are no front roof surfaces, but 15.0 ft^2 of skylights were specified.
+    # 'base-enclosure-skylights-shading.osw' => 'base-enclosure-skylights.osw", # Not going to support interior/exterior shading by facade
     # 'base-enclosure-split-surfaces.osw' => 'base.osw',
     # 'base-enclosure-walltypes.osw' => 'base.osw',
-    # 'base-enclosure-windows-interior-shading.osw' => 'base.osw', # Not going to support interior shading by facade
+    # 'base-enclosure-windows-shading.osw' => 'base.osw', # Not going to support interior/exterior shading by facade
     'base-enclosure-windows-none.osw' => 'base.osw',
     'base-foundation-ambient.osw' => 'base.osw',
     # 'base-foundation-complex.osw' => 'base.osw', # Not going to support multiple foundation types
@@ -167,6 +185,20 @@ def create_osws
     # 'base-hvac-furnace-x3-dse.osw' => 'base.osw', # Not going to support DSE
     'base-hvac-ground-to-air-heat-pump.osw' => 'base.osw',
     # 'base-hvac-ideal-air.osw' => 'base.osw',
+    'base-hvac-install-quality-none-furnace-gas-central-ac-1-speed.osw' => 'base.osw',
+    'base-hvac-install-quality-airflow-defect-furnace-gas-central-ac-1-speed.osw' => 'base.osw',
+    'base-hvac-install-quality-charge-defect-furnace-gas-central-ac-1-speed.osw' => 'base.osw',
+    # 'base-hvac-install-quality-blower-efficiency-furnace-gas-central-ac-1-speed.osw' => 'base.osw',
+    'base-hvac-install-quality-all-air-to-air-heat-pump-1-speed.osw' => 'base-hvac-air-to-air-heat-pump-1-speed.osw',
+    'base-hvac-install-quality-all-air-to-air-heat-pump-2-speed.osw' => 'base-hvac-air-to-air-heat-pump-2-speed.osw',
+    'base-hvac-install-quality-all-air-to-air-heat-pump-var-speed.osw' => 'base-hvac-air-to-air-heat-pump-var-speed.osw',
+    'base-hvac-install-quality-all-furnace-gas-central-ac-1-speed.osw' => 'base.osw',
+    'base-hvac-install-quality-all-furnace-gas-central-ac-2-speed.osw' => 'base-hvac-furnace-gas-central-ac-2-speed.osw',
+    'base-hvac-install-quality-all-furnace-gas-central-ac-var-speed.osw' => 'base-hvac-furnace-gas-central-ac-var-speed.osw',
+    'base-hvac-install-quality-all-furnace-gas-only.osw' => 'base-hvac-furnace-gas-only.osw',
+    'base-hvac-install-quality-all-ground-to-air-heat-pump.osw' => 'base-hvac-ground-to-air-heat-pump.osw',
+    'base-hvac-install-quality-all-mini-split-heat-pump-ducted.osw' => 'base-hvac-mini-split-heat-pump-ducted.osw',
+    'base-hvac-install-quality-all-mini-split-air-conditioner-only-ducted.osw' => 'base-hvac-mini-split-air-conditioner-only-ducted.osw',
     'base-hvac-mini-split-air-conditioner-only-ducted.osw' => 'base.osw',
     'base-hvac-mini-split-air-conditioner-only-ductless.osw' => 'base-hvac-mini-split-air-conditioner-only-ducted.osw',
     'base-hvac-mini-split-heat-pump-ducted.osw' => 'base.osw',
@@ -234,6 +266,7 @@ def create_osws
     'extra-enclosure-garage-partially-protruded.osw' => 'base.osw',
     'extra-vacancy-6-months.osw' => 'base-schedules-stochastic.osw',
     'extra-schedules-random-seed.osw' => 'base-schedules-stochastic.osw',
+    'extra-enclosure-windows-shading.osw' => 'base.osw',
 
     'invalid_files/non-electric-heat-pump-water-heater.osw' => 'base.osw',
     'invalid_files/heating-system-and-heat-pump.osw' => 'base.osw',
@@ -1095,14 +1128,12 @@ def get_values(osw_file, step)
     step.setArgument('refrigerator_location', HPXML::LocationOtherNonFreezingSpace)
     step.setArgument('cooking_range_oven_location', HPXML::LocationOtherNonFreezingSpace)
   elsif ['base-enclosure-overhangs.osw'].include? osw_file
+    step.setArgument('overhangs_front_distance_to_top_of_window', 1.0)
     step.setArgument('overhangs_back_depth', 2.5)
     step.setArgument('overhangs_left_depth', 1.5)
     step.setArgument('overhangs_left_distance_to_top_of_window', 2.0)
     step.setArgument('overhangs_right_depth', 1.5)
     step.setArgument('overhangs_right_distance_to_top_of_window', 2.0)
-  elsif ['base-enclosure-skylights.osw'].include? osw_file
-    step.setArgument('skylight_area_front', 15)
-    step.setArgument('skylight_area_back', 15)
   elsif ['base-enclosure-windows-none.osw'].include? osw_file
     step.setArgument('window_area_front', 0)
     step.setArgument('window_area_back', 0)
@@ -1383,6 +1414,47 @@ def get_values(osw_file, step)
     step.removeArgument('heat_pump_cooling_compressor_type')
     step.setArgument('heat_pump_heating_capacity', '42000.0')
     step.setArgument('heat_pump_backup_fuel', HPXML::FuelTypeElectricity)
+  elsif ['base-hvac-install-quality-none-furnace-gas-central-ac-1-speed.osw'].include? osw_file
+    step.setArgument('heating_system_airflow_defect_ratio', 0.0)
+    step.setArgument('cooling_system_airflow_defect_ratio', 0.0)
+    step.setArgument('cooling_system_charge_defect_ratio', 0.0)
+  elsif ['base-hvac-install-quality-airflow-defect-furnace-gas-central-ac-1-speed.osw'].include? osw_file
+    step.setArgument('heating_system_airflow_defect_ratio', -0.25)
+    step.setArgument('cooling_system_airflow_defect_ratio', -0.25)
+  elsif ['base-hvac-install-quality-charge-defect-furnace-gas-central-ac-1-speed.osw'].include? osw_file
+    step.setArgument('cooling_system_charge_defect_ratio', -0.25)
+  elsif ['base-hvac-install-quality-all-air-to-air-heat-pump-1-speed.osw'].include? osw_file
+    step.setArgument('heat_pump_airflow_defect_ratio', -0.25)
+    step.setArgument('heat_pump_charge_defect_ratio', -0.25)
+  elsif ['base-hvac-install-quality-all-air-to-air-heat-pump-2-speed.osw'].include? osw_file
+    step.setArgument('heat_pump_airflow_defect_ratio', -0.25)
+    step.setArgument('heat_pump_charge_defect_ratio', -0.25)
+  elsif ['base-hvac-install-quality-all-air-to-air-heat-pump-var-speed.osw'].include? osw_file
+    step.setArgument('heat_pump_airflow_defect_ratio', -0.25)
+    step.setArgument('heat_pump_charge_defect_ratio', -0.25)
+  elsif ['base-hvac-install-quality-all-furnace-gas-central-ac-1-speed.osw'].include? osw_file
+    step.setArgument('heating_system_airflow_defect_ratio', -0.25)
+    step.setArgument('cooling_system_airflow_defect_ratio', -0.25)
+    step.setArgument('cooling_system_charge_defect_ratio', -0.25)
+  elsif ['base-hvac-install-quality-all-furnace-gas-central-ac-2-speed.osw'].include? osw_file
+    step.setArgument('heating_system_airflow_defect_ratio', -0.25)
+    step.setArgument('cooling_system_airflow_defect_ratio', -0.25)
+    step.setArgument('cooling_system_charge_defect_ratio', -0.25)
+  elsif ['base-hvac-install-quality-all-furnace-gas-central-ac-var-speed.osw'].include? osw_file
+    step.setArgument('heating_system_airflow_defect_ratio', -0.25)
+    step.setArgument('cooling_system_airflow_defect_ratio', -0.25)
+    step.setArgument('cooling_system_charge_defect_ratio', -0.25)
+  elsif ['base-hvac-install-quality-all-furnace-gas-only.osw'].include? osw_file
+    step.setArgument('heating_system_airflow_defect_ratio', -0.25)
+  elsif ['base-hvac-install-quality-all-ground-to-air-heat-pump.osw'].include? osw_file
+    step.setArgument('heat_pump_airflow_defect_ratio', -0.25)
+    step.setArgument('heat_pump_charge_defect_ratio', 0.0)
+  elsif ['base-hvac-install-quality-all-mini-split-heat-pump-ducted.osw'].include? osw_file
+    step.setArgument('heat_pump_airflow_defect_ratio', -0.25)
+    step.setArgument('heat_pump_charge_defect_ratio', -0.25)
+  elsif ['base-hvac-install-quality-all-mini-split-air-conditioner-only-ducted.osw'].include? osw_file
+    step.setArgument('cooling_system_airflow_defect_ratio', -0.25)
+    step.setArgument('cooling_system_charge_defect_ratio', -0.25)
   elsif ['base-hvac-mini-split-heat-pump-ducted.osw'].include? osw_file
     step.setArgument('heating_system_type', 'none')
     step.setArgument('cooling_system_type', 'none')
@@ -1791,6 +1863,11 @@ def get_values(osw_file, step)
     step.setArgument('schedules_vacancy_end_day_of_month', 30)
   elsif ['extra-schedules-random-seed.osw'].include? osw_file
     step.setArgument('schedules_random_seed', 123)
+  elsif ['extra-enclosure-windows-shading.osw'].include? osw_file
+    step.setArgument('window_interior_shading_winter', 0.99)
+    step.setArgument('window_interior_shading_summer', 0.01)
+    step.setArgument('window_exterior_shading_winter', 0.9)
+    step.setArgument('window_exterior_shading_summer', 0.1)
   end
 
   # Warnings/Errors
@@ -2122,11 +2199,12 @@ def create_hpxmls
     'base-enclosure-overhangs.xml' => 'base.xml',
     'base-enclosure-rooftypes.xml' => 'base.xml',
     'base-enclosure-skylights.xml' => 'base.xml',
+    'base-enclosure-skylights-shading.xml' => 'base-enclosure-skylights.xml',
     'base-enclosure-split-level.xml' => 'base-foundation-slab.xml',
     'base-enclosure-split-surfaces.xml' => 'base-enclosure-skylights.xml', # Surfaces should collapse via HPXML.collapse_enclosure_surfaces()
     'base-enclosure-split-surfaces2.xml' => 'base-enclosure-skylights.xml', # Surfaces should NOT collapse via HPXML.collapse_enclosure_surfaces()
     'base-enclosure-walltypes.xml' => 'base.xml',
-    'base-enclosure-windows-interior-shading.xml' => 'base.xml',
+    'base-enclosure-windows-shading.xml' => 'base.xml',
     'base-enclosure-windows-none.xml' => 'base.xml',
     'base-foundation-multiple.xml' => 'base-foundation-unconditioned-basement.xml',
     'base-foundation-ambient.xml' => 'base.xml',
@@ -2217,6 +2295,20 @@ def create_hpxmls
     'base-hvac-furnace-x3-dse.xml' => 'base.xml',
     'base-hvac-ground-to-air-heat-pump.xml' => 'base.xml',
     'base-hvac-ideal-air.xml' => 'base.xml',
+    'base-hvac-install-quality-none-furnace-gas-central-ac-1-speed.xml' => 'base.xml',
+    'base-hvac-install-quality-airflow-defect-furnace-gas-central-ac-1-speed.xml' => 'base.xml',
+    'base-hvac-install-quality-charge-defect-furnace-gas-central-ac-1-speed.xml' => 'base.xml',
+    'base-hvac-install-quality-blower-efficiency-furnace-gas-central-ac-1-speed.xml' => 'base.xml',
+    'base-hvac-install-quality-all-air-to-air-heat-pump-1-speed.xml' => 'base-hvac-air-to-air-heat-pump-1-speed.xml',
+    'base-hvac-install-quality-all-air-to-air-heat-pump-2-speed.xml' => 'base-hvac-air-to-air-heat-pump-2-speed.xml',
+    'base-hvac-install-quality-all-air-to-air-heat-pump-var-speed.xml' => 'base-hvac-air-to-air-heat-pump-var-speed.xml',
+    'base-hvac-install-quality-all-furnace-gas-central-ac-1-speed.xml' => 'base.xml',
+    'base-hvac-install-quality-all-furnace-gas-central-ac-2-speed.xml' => 'base-hvac-furnace-gas-central-ac-2-speed.xml',
+    'base-hvac-install-quality-all-furnace-gas-central-ac-var-speed.xml' => 'base-hvac-furnace-gas-central-ac-var-speed.xml',
+    'base-hvac-install-quality-all-furnace-gas-only.xml' => 'base-hvac-furnace-gas-only.xml',
+    'base-hvac-install-quality-all-ground-to-air-heat-pump.xml' => 'base-hvac-ground-to-air-heat-pump.xml',
+    'base-hvac-install-quality-all-mini-split-heat-pump-ducted.xml' => 'base-hvac-mini-split-heat-pump-ducted.xml',
+    'base-hvac-install-quality-all-mini-split-air-conditioner-only-ducted.xml' => 'base-hvac-mini-split-air-conditioner-only-ducted.xml',
     'base-hvac-mini-split-air-conditioner-only-ducted.xml' => 'base.xml',
     'base-hvac-mini-split-air-conditioner-only-ductless.xml' => 'base-hvac-mini-split-air-conditioner-only-ducted.xml',
     'base-hvac-mini-split-heat-pump-ducted.xml' => 'base.xml',
@@ -4302,17 +4394,26 @@ def set_hpxml_windows(hpxml_file, hpxml)
     hpxml.windows[0].overhangs_depth = 2.5
     hpxml.windows[0].overhangs_distance_to_top_of_window = 0
     hpxml.windows[0].overhangs_distance_to_bottom_of_window = 4
+    hpxml.windows[1].overhangs_depth = 0
+    hpxml.windows[1].overhangs_distance_to_top_of_window = 1
+    hpxml.windows[1].overhangs_distance_to_bottom_of_window = 5
     hpxml.windows[2].overhangs_depth = 1.5
     hpxml.windows[2].overhangs_distance_to_top_of_window = 2
     hpxml.windows[2].overhangs_distance_to_bottom_of_window = 6
     hpxml.windows[3].overhangs_depth = 1.5
     hpxml.windows[3].overhangs_distance_to_top_of_window = 2
     hpxml.windows[3].overhangs_distance_to_bottom_of_window = 7
-  elsif ['base-enclosure-windows-interior-shading.xml'].include? hpxml_file
+  elsif ['base-enclosure-windows-shading.xml'].include? hpxml_file
+    hpxml.windows[1].exterior_shading_factor_summer = 0.1
+    hpxml.windows[1].exterior_shading_factor_winter = 0.9
     hpxml.windows[1].interior_shading_factor_summer = 0.01
     hpxml.windows[1].interior_shading_factor_winter = 0.99
+    hpxml.windows[2].exterior_shading_factor_summer = 0.5
+    hpxml.windows[2].exterior_shading_factor_winter = 0.5
     hpxml.windows[2].interior_shading_factor_summer = 0.5
     hpxml.windows[2].interior_shading_factor_winter = 0.5
+    hpxml.windows[3].exterior_shading_factor_summer = 0.0
+    hpxml.windows[3].exterior_shading_factor_winter = 1.0
     hpxml.windows[3].interior_shading_factor_summer = 0.0
     hpxml.windows[3].interior_shading_factor_winter = 1.0
   elsif ['base-enclosure-windows-none.xml'].include? hpxml_file
@@ -4506,6 +4607,15 @@ def set_hpxml_skylights(hpxml_file, hpxml)
                         interior_shading_factor_summer: 1.0,
                         interior_shading_factor_winter: 1.0,
                         roof_idref: 'Roof')
+  elsif ['base-enclosure-skylights-shading.xml'].include? hpxml_file
+    hpxml.skylights[0].exterior_shading_factor_summer = 0.1
+    hpxml.skylights[0].exterior_shading_factor_winter = 0.9
+    hpxml.skylights[0].interior_shading_factor_summer = 0.01
+    hpxml.skylights[0].interior_shading_factor_winter = 0.99
+    hpxml.skylights[1].exterior_shading_factor_summer = 0.5
+    hpxml.skylights[1].exterior_shading_factor_winter = 0.0
+    hpxml.skylights[1].interior_shading_factor_summer = 0.5
+    hpxml.skylights[1].interior_shading_factor_winter = 1.0
   elsif ['invalid_files/net-area-negative-roof.xml'].include? hpxml_file
     hpxml.skylights[0].area = 4000
   elsif ['invalid_files/unattached-skylight.xml'].include? hpxml_file
@@ -4662,8 +4772,6 @@ def set_hpxml_heating_systems(hpxml_file, hpxml)
          'base-bldgtype-multifamily-shared-ground-loop-ground-to-air-heat-pump.xml',
          'invalid_files/orphaned-hvac-distribution.xml'].include? hpxml_file
     hpxml.heating_systems.clear
-  elsif ['base-hvac-furnace-gas-only.xml'].include? hpxml_file
-    hpxml.heating_systems[0].fan_watts_per_cfm = 0.45
   elsif ['base-hvac-boiler-elec-only.xml'].include? hpxml_file
     hpxml.heating_systems[0].heating_system_type = HPXML::HVACTypeBoiler
     hpxml.heating_systems[0].heating_system_fuel = HPXML::FuelTypeElectricity
@@ -4883,6 +4991,18 @@ def set_hpxml_heating_systems(hpxml_file, hpxml)
     hpxml.heating_systems[0].fan_coil_watts = nil
     hpxml.heating_systems[0].shared_loop_watts = nil
     hpxml.heating_systems[0].electric_auxiliary_energy = 500.0
+  elsif ['base-hvac-install-quality-none-furnace-gas-central-ac-1-speed.xml'].include? hpxml_file
+    hpxml.heating_systems[0].airflow_defect_ratio = 0.0
+  elsif ['base-hvac-install-quality-airflow-defect-furnace-gas-central-ac-1-speed.xml'].include? hpxml_file
+    hpxml.heating_systems[0].airflow_defect_ratio = -0.25
+  elsif ['base-hvac-install-quality-blower-efficiency-furnace-gas-central-ac-1-speed.xml'].include? hpxml_file
+    hpxml.heating_systems[0].fan_watts_per_cfm = 0.365
+  elsif ['base-hvac-install-quality-all-furnace-gas-only.xml',
+         'base-hvac-install-quality-all-furnace-gas-central-ac-1-speed.xml',
+         'base-hvac-install-quality-all-furnace-gas-central-ac-2-speed.xml',
+         'base-hvac-install-quality-all-furnace-gas-central-ac-var-speed.xml'].include? hpxml_file
+    hpxml.heating_systems[0].fan_watts_per_cfm = 0.365
+    hpxml.heating_systems[0].airflow_defect_ratio = -0.25
   elsif hpxml_file.include?('base-hvac-autosize') && (not hpxml.heating_systems.nil?) && (hpxml.heating_systems.size > 0)
     hpxml.heating_systems[0].heating_capacity = nil
   end
@@ -4927,8 +5047,6 @@ def set_hpxml_cooling_systems(hpxml_file, hpxml)
          'base-bldgtype-multifamily-shared-boiler-only-baseboard.xml',
          'base-bldgtype-multifamily-shared-ground-loop-ground-to-air-heat-pump.xml'].include? hpxml_file
     hpxml.cooling_systems.clear
-  elsif ['base-hvac-central-ac-only-1-speed.xml'].include? hpxml_file
-    hpxml.cooling_systems[0].fan_watts_per_cfm = 0.45
   elsif ['base-hvac-boiler-gas-central-ac-1-speed.xml'].include? hpxml_file
     hpxml.cooling_systems[0].distribution_system_idref = 'HVACDistribution2'
   elsif ['base-hvac-furnace-gas-central-ac-2-speed.xml',
@@ -4946,7 +5064,6 @@ def set_hpxml_cooling_systems(hpxml_file, hpxml)
     hpxml.cooling_systems[0].cooling_efficiency_seer = 19
     hpxml.cooling_systems[0].cooling_shr = 0.73
     hpxml.cooling_systems[0].compressor_type = nil
-    hpxml.cooling_systems[0].fan_watts_per_cfm = 0.2
   elsif ['base-hvac-mini-split-air-conditioner-only-ductless.xml'].include? hpxml_file
     hpxml.cooling_systems[0].distribution_system_idref = nil
   elsif ['base-hvac-furnace-gas-room-ac.xml',
@@ -4971,9 +5088,6 @@ def set_hpxml_cooling_systems(hpxml_file, hpxml)
     if ['base-hvac-evap-cooler-furnace-gas.xml',
         'base-hvac-evap-cooler-only.xml'].include? hpxml_file
       hpxml.cooling_systems[0].distribution_system_idref = nil
-    end
-    if ['base-hvac-evap-cooler-only.xml'].include? hpxml_file
-      hpxml.cooling_systems[0].fan_watts_per_cfm = 0.3
     end
   elsif ['base-hvac-multiple.xml'].include? hpxml_file
     hpxml.cooling_systems[0].distribution_system_idref = 'HVACDistribution2'
@@ -5015,8 +5129,22 @@ def set_hpxml_cooling_systems(hpxml_file, hpxml)
     hpxml.cooling_systems[0].fan_watts_per_cfm = 0.55
   elsif ['base-hvac-undersized.xml'].include? hpxml_file
     hpxml.cooling_systems[0].cooling_capacity /= 10.0
-  elsif ['base-hvac-flowrate.xml'].include? hpxml_file
-    hpxml.cooling_systems[0].cooling_cfm = hpxml.cooling_systems[0].cooling_capacity * 360.0 / 12000.0
+  elsif ['base-hvac-install-quality-none-furnace-gas-central-ac-1-speed.xml'].include? hpxml_file
+    hpxml.cooling_systems[0].airflow_defect_ratio = 0.0
+    hpxml.cooling_systems[0].charge_defect_ratio = 0.0
+  elsif ['base-hvac-install-quality-airflow-defect-furnace-gas-central-ac-1-speed.xml'].include? hpxml_file
+    hpxml.cooling_systems[0].airflow_defect_ratio = -0.25
+  elsif ['base-hvac-install-quality-charge-defect-furnace-gas-central-ac-1-speed.xml'].include? hpxml_file
+    hpxml.cooling_systems[0].charge_defect_ratio = -0.25
+  elsif ['base-hvac-install-quality-blower-efficiency-furnace-gas-central-ac-1-speed.xml'].include? hpxml_file
+    hpxml.cooling_systems[0].fan_watts_per_cfm = 0.365
+  elsif ['base-hvac-install-quality-all-mini-split-air-conditioner-only-ducted.xml',
+         'base-hvac-install-quality-all-furnace-gas-central-ac-1-speed.xml',
+         'base-hvac-install-quality-all-furnace-gas-central-ac-2-speed.xml',
+         'base-hvac-install-quality-all-furnace-gas-central-ac-var-speed.xml'].include? hpxml_file
+    hpxml.cooling_systems[0].charge_defect_ratio = -0.25
+    hpxml.cooling_systems[0].fan_watts_per_cfm = 0.365
+    hpxml.cooling_systems[0].airflow_defect_ratio = -0.25
   elsif ['base-misc-defaults.xml'].include? hpxml_file
     hpxml.cooling_systems[0].cooling_shr = nil
     hpxml.cooling_systems[0].compressor_type = nil
@@ -5067,8 +5195,7 @@ def set_hpxml_heat_pumps(hpxml_file, hpxml)
                          cooling_efficiency_seer: 13,
                          heating_capacity_17F: 42000 * 0.630, # Based on OAT slope of default curves
                          cooling_shr: 0.73,
-                         compressor_type: HPXML::HVACCompressorTypeSingleStage,
-                         fan_watts_per_cfm: 0.45)
+                         compressor_type: HPXML::HVACCompressorTypeSingleStage)
     if hpxml_file == 'base-hvac-central-ac-plus-air-to-air-heat-pump-heating.xml'
       hpxml.heat_pumps[0].fraction_cool_load_served = 0
     end
@@ -5122,8 +5249,7 @@ def set_hpxml_heat_pumps(hpxml_file, hpxml)
                          heating_efficiency_cop: 3.6,
                          cooling_efficiency_eer: 16.6,
                          cooling_shr: 0.73,
-                         pump_watts_per_ton: 30.0,
-                         fan_watts_per_cfm: 0.45)
+                         pump_watts_per_ton: 30.0)
     if hpxml_file == 'base-bldgtype-multifamily-shared-ground-loop-ground-to-air-heat-pump.xml'
       hpxml.heat_pumps[-1].is_shared_system = true
       hpxml.heat_pumps[-1].number_of_units_served = 6
@@ -5145,8 +5271,7 @@ def set_hpxml_heat_pumps(hpxml_file, hpxml)
                          heating_efficiency_hspf: 10,
                          cooling_efficiency_seer: 19,
                          heating_capacity_17F: 52000 * f,
-                         cooling_shr: 0.73,
-                         fan_watts_per_cfm: 0.2)
+                         cooling_shr: 0.73)
   elsif ['base-hvac-mini-split-heat-pump-ducted-heating-only.xml'].include? hpxml_file
     hpxml.heat_pumps[0].cooling_capacity = 0
     hpxml.heat_pumps[0].fraction_cool_load_served = 0
@@ -5259,6 +5384,18 @@ def set_hpxml_heat_pumps(hpxml_file, hpxml)
   elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-1-speed-electric.xml'].include? hpxml_file
     hpxml.heat_pumps[0].backup_heating_fuel = HPXML::FuelTypeElectricity
     hpxml.heat_pumps[0].backup_heating_efficiency_afue = 1.0
+  elsif ['base-hvac-install-quality-all-air-to-air-heat-pump-1-speed.xml',
+         'base-hvac-install-quality-all-air-to-air-heat-pump-2-speed.xml',
+         'base-hvac-install-quality-all-air-to-air-heat-pump-var-speed.xml',
+         'base-hvac-install-quality-all-mini-split-heat-pump-ducted.xml',
+         'base-hvac-install-quality-all-ground-to-air-heat-pump.xml'].include? hpxml_file
+    hpxml.heat_pumps[0].airflow_defect_ratio = -0.25
+    hpxml.heat_pumps[0].fan_watts_per_cfm = 0.365
+    if hpxml_file != 'base-hvac-install-quality-all-ground-to-air-heat-pump.xml'
+      hpxml.heat_pumps[0].charge_defect_ratio = -0.25
+    else
+      hpxml.heat_pumps[0].charge_defect_ratio = 0.0
+    end
   elsif hpxml_file.include?('base-hvac-autosize') && (not hpxml.heat_pumps.nil?) && (hpxml.heat_pumps.size > 0)
     hpxml.heat_pumps[0].cooling_capacity = nil
     hpxml.heat_pumps[0].heating_capacity = nil
