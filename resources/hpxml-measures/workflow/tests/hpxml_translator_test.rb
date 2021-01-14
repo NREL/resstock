@@ -45,13 +45,11 @@ class HPXMLTest < MiniTest::Test
   end
 
   def test_ashrae_140
-    ashrae140_dir = File.absolute_path(File.join(@this_dir, 'ASHRAE_Standard_140'))
-
     ashrae140_out = File.join(@results_dir, 'results_ashrae_140.csv')
     File.delete(ashrae140_out) if File.exist? ashrae140_out
 
     xmls = []
-    Dir["#{ashrae140_dir}/*.xml"].sort.each do |xml|
+    Dir["#{File.absolute_path(File.join(@this_dir, 'ASHRAE_Standard_140'))}/*.xml"].sort.each do |xml|
       xmls << File.absolute_path(xml)
     end
 
@@ -64,7 +62,7 @@ class HPXMLTest < MiniTest::Test
       all_results[xml_name], all_sizing_results[xml_name] = _run_xml(xml, Parallel.worker_number)
     end
 
-    _write_ashrae_140_results(all_results.sort_by { |k, v| k.downcase }.to_h, ashrae140_dir, ashrae140_out)
+    _write_ashrae_140_results(all_results.sort_by { |k, v| k.downcase }.to_h, ashrae140_out)
   end
 
   def test_run_simulation_json_output
@@ -175,7 +173,7 @@ class HPXMLTest < MiniTest::Test
                             'hvac-frac-load-served.xml' => ['Expected FractionCoolLoadServed to sum to <= 1, but calculated sum is 1.2.',
                                                             'Expected FractionHeatLoadServed to sum to <= 1, but calculated sum is 1.1.'],
                             'hvac-distribution-return-duct-leakage-missing.xml' => ["Return ducts exist but leakage was not specified for distribution system 'HVACDistribution'."],
-                            'hvac-inconsistent-fan-powers.xml' => ["Fan powers for heating system 'HeatingSystem' and cooling system 'CoolingSystem' must be the same."],
+                            'hvac-inconsistent-fan-powers.xml' => ["Fan powers for heating system 'HeatingSystem' and cooling system 'CoolingSystem' are attached to a single distribution system and therefore must be the same."],
                             'invalid-assembly-effective-rvalue.xml' => ['Expected Insulation/AssemblyEffectiveRValue to be greater than 0 [context: /HPXML/Building/BuildingDetails/Enclosure/Walls/Wall]'],
                             'invalid-datatype-boolean.xml' => ["Cannot convert 'FOOBAR' to boolean."],
                             'invalid-datatype-boolean2.xml' => ["Cannot convert '' to boolean."],
@@ -529,6 +527,9 @@ class HPXMLTest < MiniTest::Test
       end
       if hpxml.hvac_distributions.select { |d| d.hydronic_and_air_type.to_s == HPXML::HydronicAndAirTypeFanCoil }.size > 0
         next if err_line.include? 'In calculating the design coil UA for Coil:Cooling:Water' # Warning for unused cooling coil for fan coil
+      end
+      if hpxml_path.include?('ASHRAE_Standard_140') || (hpxml.windows.size == 0)
+        next if err_line.include? 'GetShadowingInput: DetailedSkyDiffuseModeling is chosen but not needed'
       end
       if hpxml_path.include? 'base-enclosure-split-surfaces2.xml'
         next if err_line.include? 'GetSurfaceData: Very small surface area' # FUTURE: Prevent this warning
@@ -1251,7 +1252,7 @@ class HPXMLTest < MiniTest::Test
     puts "Wrote HVAC sizing results to #{csv_out}."
   end
 
-  def _write_ashrae_140_results(all_results, ashrae140_dir, csv_out)
+  def _write_ashrae_140_results(all_results, csv_out)
     require 'csv'
 
     htg_loads = {}
@@ -1259,7 +1260,6 @@ class HPXMLTest < MiniTest::Test
     CSV.open(csv_out, 'w') do |csv|
       csv << ['Test Case', 'Annual Heating Load [MMBtu]', 'Annual Cooling Load [MMBtu]']
       all_results.sort.each do |xml, xml_results|
-        next unless xml.include? ashrae140_dir
         next unless xml.include? 'C.xml'
 
         htg_load = xml_results['Load: Heating (MBtu)'].round(2)
@@ -1268,7 +1268,6 @@ class HPXMLTest < MiniTest::Test
         htg_loads[test_name] = htg_load
       end
       all_results.sort.each do |xml, xml_results|
-        next unless xml.include? ashrae140_dir
         next unless xml.include? 'L.xml'
 
         clg_load = xml_results['Load: Cooling (MBtu)'].round(2)

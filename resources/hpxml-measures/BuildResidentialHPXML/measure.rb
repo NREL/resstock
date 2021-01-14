@@ -807,6 +807,16 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDescription('Interior shading multiplier for the cooling season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc.')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('window_exterior_shading_winter', false)
+    arg.setDisplayName('Windows: Winter Exterior Shading')
+    arg.setDescription('Exterior shading multiplier for the heating season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('window_exterior_shading_summer', false)
+    arg.setDisplayName('Windows: Summer Exterior Shading')
+    arg.setDescription('Exterior shading multiplier for the cooling season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc.')
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('overhangs_front_depth', true)
     arg.setDisplayName('Overhangs: Front Facade Depth')
     arg.setDescription('Specifies the depth of overhangs for windows on the front facade.')
@@ -1003,6 +1013,12 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(1)
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heating_system_airflow_defect_ratio', false)
+    arg.setDisplayName('Heating System: Airflow Defect Ratio')
+    arg.setDescription("The airflow defect ratio, defined as (InstalledAirflow - DesignAirflow) / DesignAirflow, of the heating system. A value of zero means no airflow defect. Applies only to #{HPXML::HVACTypeFurnace}.")
+    arg.setUnits('Frac')
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('cooling_system_type', cooling_system_type_choices, true)
     arg.setDisplayName('Cooling System: Type')
     arg.setDescription("The type of cooling system. Use 'none' if there is no cooling system.")
@@ -1052,6 +1068,18 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDisplayName('Cooling System: Is Ducted')
     arg.setDescription("Whether the cooling system is ducted or not. Only used for #{HPXML::HVACTypeMiniSplitAirConditioner} and #{HPXML::HVACTypeEvaporativeCooler}.")
     arg.setDefaultValue(false)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('cooling_system_airflow_defect_ratio', false)
+    arg.setDisplayName('Cooling System: Airflow Defect Ratio')
+    arg.setDescription("The airflow defect ratio, defined as (InstalledAirflow - DesignAirflow) / DesignAirflow, of the cooling system. A value of zero means no airflow defect. Applies only to #{HPXML::HVACTypeCentralAirConditioner}.")
+    arg.setUnits('Frac')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('cooling_system_charge_defect_ratio', false)
+    arg.setDisplayName('Cooling System: Airflow Defect Ratio')
+    arg.setDescription("The refrigerant charge defect ratio, defined as (InstalledCharge - DesignCharge) / DesignCharge, of the cooling system. A value of zero means no refrigerant charge defect. Applies only to #{HPXML::HVACTypeCentralAirConditioner} and #{HPXML::HVACTypeMiniSplitAirConditioner}.")
+    arg.setUnits('Frac')
     args << arg
 
     heat_pump_type_choices = OpenStudio::StringVector.new
@@ -1178,6 +1206,18 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument('heat_pump_is_ducted', false)
     arg.setDisplayName('Heat Pump: Is Ducted')
     arg.setDescription("Whether the heat pump is ducted or not. Only used for #{HPXML::HVACTypeHeatPumpMiniSplit}.")
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_airflow_defect_ratio', false)
+    arg.setDisplayName('Cooling System: Airflow Defect Ratio')
+    arg.setDescription('The airflow defect ratio, defined as (InstalledAirflow - DesignAirflow) / DesignAirflow, of the heat pump. A value of zero means no airflow defect.')
+    arg.setUnits('Frac')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_charge_defect_ratio', false)
+    arg.setDisplayName('Cooling System: Airflow Defect Ratio')
+    arg.setDescription('The refrigerant charge defect ratio, defined as (InstalledCharge - DesignCharge) / DesignCharge, of the cooling system. A value of zero means no refrigerant charge defect.')
+    arg.setUnits('Frac')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('setpoint_heating_weekday', true)
@@ -3690,19 +3730,19 @@ class HPXMLFile
         sub_surface_height = Geometry.get_surface_height(sub_surface)
         sub_surface_facade = Geometry.get_facade_for_surface(sub_surface)
 
-        if (sub_surface_facade == Constants.FacadeFront) && (args[:overhangs_front_depth] > 0)
+        if (sub_surface_facade == Constants.FacadeFront) && ((args[:overhangs_front_depth] > 0) || args[:overhangs_front_distance_to_top_of_window] > 0)
           overhangs_depth = args[:overhangs_front_depth]
           overhangs_distance_to_top_of_window = args[:overhangs_front_distance_to_top_of_window]
           overhangs_distance_to_bottom_of_window = (overhangs_distance_to_top_of_window + sub_surface_height).round
-        elsif (sub_surface_facade == Constants.FacadeBack) && (args[:overhangs_back_depth] > 0)
+        elsif (sub_surface_facade == Constants.FacadeBack) && ((args[:overhangs_back_depth] > 0) || args[:overhangs_back_distance_to_top_of_window] > 0)
           overhangs_depth = args[:overhangs_back_depth]
           overhangs_distance_to_top_of_window = args[:overhangs_back_distance_to_top_of_window]
           overhangs_distance_to_bottom_of_window = (overhangs_distance_to_top_of_window + sub_surface_height).round
-        elsif (sub_surface_facade == Constants.FacadeLeft) && (args[:overhangs_left_depth] > 0)
+        elsif (sub_surface_facade == Constants.FacadeLeft) && ((args[:overhangs_left_depth] > 0) || args[:overhangs_left_distance_to_top_of_window] > 0)
           overhangs_depth = args[:overhangs_left_depth]
           overhangs_distance_to_top_of_window = args[:overhangs_left_distance_to_top_of_window]
           overhangs_distance_to_bottom_of_window = (overhangs_distance_to_top_of_window + sub_surface_height).round
-        elsif (sub_surface_facade == Constants.FacadeRight) && (args[:overhangs_right_depth] > 0)
+        elsif (sub_surface_facade == Constants.FacadeRight) && ((args[:overhangs_right_depth] > 0) || args[:overhangs_right_distance_to_top_of_window] > 0)
           overhangs_depth = args[:overhangs_right_depth]
           overhangs_distance_to_top_of_window = args[:overhangs_right_distance_to_top_of_window]
           overhangs_distance_to_bottom_of_window = (overhangs_distance_to_top_of_window + sub_surface_height).round
@@ -3736,6 +3776,14 @@ class HPXMLFile
           interior_shading_factor_summer = args[:window_interior_shading_summer].get
         end
 
+        if args[:window_exterior_shading_winter].is_initialized
+          exterior_shading_factor_winter = args[:window_exterior_shading_winter].get
+        end
+
+        if args[:window_exterior_shading_summer].is_initialized
+          exterior_shading_factor_summer = args[:window_exterior_shading_summer].get
+        end
+
         if args[:window_fraction_operable].is_initialized
           fraction_operable = args[:window_fraction_operable].get
         end
@@ -3750,6 +3798,8 @@ class HPXMLFile
                           overhangs_distance_to_bottom_of_window: overhangs_distance_to_bottom_of_window,
                           interior_shading_factor_winter: interior_shading_factor_winter,
                           interior_shading_factor_summer: interior_shading_factor_summer,
+                          exterior_shading_factor_winter: exterior_shading_factor_winter,
+                          exterior_shading_factor_summer: exterior_shading_factor_summer,
                           fraction_operable: fraction_operable,
                           wall_idref: valid_attr(surface.name))
       end # sub_surfaces
@@ -3818,13 +3868,18 @@ class HPXMLFile
       heating_efficiency_percent = args[:heating_system_heating_efficiency]
     end
 
+    if args[:heating_system_airflow_defect_ratio].is_initialized
+      airflow_defect_ratio = args[:heating_system_airflow_defect_ratio].get
+    end
+
     hpxml.heating_systems.add(id: 'HeatingSystem',
                               heating_system_type: heating_system_type,
                               heating_system_fuel: heating_system_fuel,
                               heating_capacity: heating_capacity,
                               fraction_heat_load_served: args[:heating_system_fraction_heat_load_served],
                               heating_efficiency_afue: heating_efficiency_afue,
-                              heating_efficiency_percent: heating_efficiency_percent)
+                              heating_efficiency_percent: heating_efficiency_percent,
+                              airflow_defect_ratio: airflow_defect_ratio)
 
     heating_system_type_2 = args[:heating_system_type_2]
 
@@ -3884,6 +3939,14 @@ class HPXMLFile
       cooling_efficiency_eer = args[:cooling_system_cooling_efficiency_eer]
     end
 
+    if args[:cooling_system_airflow_defect_ratio].is_initialized
+      airflow_defect_ratio = args[:cooling_system_airflow_defect_ratio].get
+    end
+
+    if args[:cooling_system_charge_defect_ratio].is_initialized
+      charge_defect_ratio = args[:cooling_system_charge_defect_ratio].get
+    end
+
     hpxml.cooling_systems.add(id: 'CoolingSystem',
                               cooling_system_type: cooling_system_type,
                               cooling_system_fuel: HPXML::FuelTypeElectricity,
@@ -3892,7 +3955,9 @@ class HPXMLFile
                               compressor_type: compressor_type,
                               cooling_shr: cooling_shr,
                               cooling_efficiency_seer: cooling_efficiency_seer,
-                              cooling_efficiency_eer: cooling_efficiency_eer)
+                              cooling_efficiency_eer: cooling_efficiency_eer,
+                              airflow_defect_ratio: airflow_defect_ratio,
+                              charge_defect_ratio: charge_defect_ratio)
   end
 
   def self.set_heat_pumps(hpxml, runner, args)
@@ -3951,6 +4016,14 @@ class HPXMLFile
       cooling_efficiency_eer = args[:heat_pump_cooling_efficiency_eer]
     end
 
+    if args[:heat_pump_airflow_defect_ratio].is_initialized
+      airflow_defect_ratio = args[:heat_pump_airflow_defect_ratio].get
+    end
+
+    if args[:heat_pump_charge_defect_ratio].is_initialized
+      charge_defect_ratio = args[:heat_pump_charge_defect_ratio].get
+    end
+
     hpxml.heat_pumps.add(id: 'HeatPump',
                          heat_pump_type: heat_pump_type,
                          heat_pump_fuel: HPXML::FuelTypeElectricity,
@@ -3969,7 +4042,9 @@ class HPXMLFile
                          heating_efficiency_hspf: heating_efficiency_hspf,
                          cooling_efficiency_seer: cooling_efficiency_seer,
                          heating_efficiency_cop: heating_efficiency_cop,
-                         cooling_efficiency_eer: cooling_efficiency_eer)
+                         cooling_efficiency_eer: cooling_efficiency_eer,
+                         airflow_defect_ratio: airflow_defect_ratio,
+                         charge_defect_ratio: charge_defect_ratio)
   end
 
   def self.set_hvac_distribution(hpxml, runner, args)

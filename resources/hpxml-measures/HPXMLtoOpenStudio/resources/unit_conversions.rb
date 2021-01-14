@@ -167,6 +167,8 @@ class UnitConversions
       return x + 273.15
     elsif key == ['f', 'c']
       return (x - 32.0) / 1.8
+    elsif key == ['f', 'k']
+      return (x - 32.0) / 1.8 + 273.15
     elsif key == ['f', 'r']
       return x + 459.67
     elsif key == ['k', 'c']
