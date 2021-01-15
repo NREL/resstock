@@ -171,6 +171,36 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(Constants.Auto)
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('cooling_system_rated_cfm_per_ton', false)
+    arg.setDisplayName('Cooling System: Rated CFM Per Ton')
+    arg.setUnits('cfm/ton')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('cooling_system_actual_cfm_per_ton', false)
+    arg.setDisplayName('Cooling System: Actual CFM Per Ton')
+    arg.setUnits('cfm/ton')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('cooling_system_frac_manufacturer_charge', false)
+    arg.setDisplayName('Cooling System: Fraction of Manufacturer Recommended Charge')
+    arg.setUnits('Frac')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_rated_cfm_per_ton', false)
+    arg.setDisplayName('Heat Pump: Rated CFM Per Ton')
+    arg.setUnits('cfm/ton')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_actual_cfm_per_ton', false)
+    arg.setDisplayName('Heat Pump: Actual CFM Per Ton')
+    arg.setUnits('cfm/ton')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_frac_manufacturer_charge', false)
+    arg.setDisplayName('Heat Pump: Fraction of Manufacturer Recommended Charge')
+    arg.setUnits('Frac')
+    args << arg
+
     return args
   end
 
@@ -241,6 +271,22 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
           (args['heating_system_type_2'] != 'none' && args['heating_system_has_flue_or_chimney_2'] == 'true') ||
           (args['water_heater_type'] != 'none' && args['water_heater_has_flue_or_chimney'] == 'true')
       args['geometry_has_flue_or_chimney'] = 'true'
+    end
+
+    if args['cooling_system_rated_cfm_per_ton'].is_initialized && args['cooling_system_actual_cfm_per_ton'].is_initialized
+      args['cooling_system_airflow_defect_ratio'] = (args['cooling_system_actual_cfm_per_ton'].get / args['cooling_system_rated_cfm_per_ton'].get) / args['cooling_system_rated_cfm_per_ton'].get
+    end
+
+    if args['cooling_system_frac_manufacturer_charge'].is_initialized
+      args['cooling_system_charge_defect_ratio'] = args['cooling_system_frac_manufacturer_charge'].get - 1.0
+    end
+
+    if args['heat_pump_rated_cfm_per_ton'].is_initialized && args['heat_pump_actual_cfm_per_ton'].is_initialized
+      args['heat_pump_airflow_defect_ratio'] = (args['heat_pump_actual_cfm_per_ton'].get / args['heat_pump_rated_cfm_per_ton'].get) / args['cooling_system_rated_cfm_per_ton'].get
+    end
+
+    if args['heat_pump_frac_manufacturer_charge'].is_initialized
+      args['heat_pump_charge_defect_ratio'] = args['heat_pump_frac_manufacturer_charge'].get - 1.0
     end
 
     args.each do |arg_name, arg_value|

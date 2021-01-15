@@ -10,6 +10,11 @@ class Constants
             'setpoint_heating_weekend',
             'setpoint_cooling_weekday',
             'setpoint_cooling_weekend',
-            'geometry_has_flue_or_chimney']
+            'geometry_has_flue_or_chimney',
+            'heating_system_airflow_defect_ratio',
+            'cooling_system_airflow_defect_ratio',
+            'cooling_system_charge_defect_ratio',
+            'heat_pump_airflow_defect_ratio',
+            'heat_pump_charge_defect_ratio']
   end
 end

@@ -2204,8 +2204,8 @@ class HPXML < Object
 
   class Window < BaseElement
     ATTRS = [:id, :area, :azimuth, :orientation, :frame_type, :aluminum_thermal_break, :glass_layers,
-             :glass_type, :gas_fill, :ufactor, :shgc, :interior_shading_factor_summer,
-             :interior_shading_factor_winter, :exterior_shading, :overhangs_depth,
+             :glass_type, :gas_fill, :ufactor, :shgc, :interior_shading_factor_summer, :interior_shading_factor_winter,
+             :exterior_shading_factor_summer, :exterior_shading_factor_winter, :exterior_shading, :overhangs_depth,
              :overhangs_distance_to_top_of_window, :overhangs_distance_to_bottom_of_window,
              :fraction_operable, :wall_idref]
     attr_accessor(*ATTRS)
@@ -2258,6 +2258,13 @@ class HPXML < Object
       XMLHelper.add_element(window, 'Azimuth', @azimuth, :integer) unless @azimuth.nil?
       XMLHelper.add_element(window, 'UFactor', @ufactor, :float) unless @ufactor.nil?
       XMLHelper.add_element(window, 'SHGC', @shgc, :float) unless @shgc.nil?
+      if (not @exterior_shading_factor_summer.nil?) || (not @exterior_shading_factor_winter.nil?)
+        exterior_shading = XMLHelper.add_element(window, 'ExteriorShading')
+        sys_id = XMLHelper.add_element(exterior_shading, 'SystemIdentifier')
+        XMLHelper.add_attribute(sys_id, 'id', "#{id}ExteriorShading")
+        XMLHelper.add_element(exterior_shading, 'SummerShadingCoefficient', @exterior_shading_factor_summer, :float, @exterior_shading_factor_summer_isdefaulted) unless @exterior_shading_factor_summer.nil?
+        XMLHelper.add_element(exterior_shading, 'WinterShadingCoefficient', @exterior_shading_factor_winter, :float, @exterior_shading_factor_winter_isdefaulted) unless @exterior_shading_factor_winter.nil?
+      end
       if (not @interior_shading_factor_summer.nil?) || (not @interior_shading_factor_winter.nil?)
         interior_shading = XMLHelper.add_element(window, 'InteriorShading')
         sys_id = XMLHelper.add_element(interior_shading, 'SystemIdentifier')
@@ -2294,6 +2301,8 @@ class HPXML < Object
       @shgc = XMLHelper.get_value(window, 'SHGC', :float)
       @interior_shading_factor_summer, @interior_shading_factor_summer_isdefaulted = XMLHelper.get_value_and_defaulted(window, 'InteriorShading/SummerShadingCoefficient', :float)
       @interior_shading_factor_winter, @interior_shading_factor_winter_isdefaulted = XMLHelper.get_value_and_defaulted(window, 'InteriorShading/WinterShadingCoefficient', :float)
+      @exterior_shading_factor_summer, @exterior_shading_factor_summer_isdefaulted = XMLHelper.get_value_and_defaulted(window, 'ExteriorShading/SummerShadingCoefficient', :float)
+      @exterior_shading_factor_winter, @exterior_shading_factor_winter_isdefaulted = XMLHelper.get_value_and_defaulted(window, 'ExteriorShading/WinterShadingCoefficient', :float)
       @exterior_shading = XMLHelper.get_value(window, 'ExteriorShading/Type', :string)
       @overhangs_depth = XMLHelper.get_value(window, 'Overhangs/Depth', :float)
       @overhangs_distance_to_top_of_window = XMLHelper.get_value(window, 'Overhangs/DistanceToTopOfWindow', :float)
@@ -2319,8 +2328,8 @@ class HPXML < Object
 
   class Skylight < BaseElement
     ATTRS = [:id, :area, :azimuth, :orientation, :frame_type, :aluminum_thermal_break, :glass_layers,
-             :glass_type, :gas_fill, :ufactor, :shgc, :interior_shading_factor_summer,
-             :interior_shading_factor_winter, :exterior_shading, :roof_idref]
+             :glass_type, :gas_fill, :ufactor, :shgc, :interior_shading_factor_summer, :interior_shading_factor_winter,
+             :exterior_shading_factor_summer, :exterior_shading_factor_winter, :exterior_shading, :roof_idref]
     attr_accessor(*ATTRS)
 
     def roof
@@ -2371,6 +2380,13 @@ class HPXML < Object
       XMLHelper.add_element(skylight, 'Azimuth', @azimuth, :integer) unless @azimuth.nil?
       XMLHelper.add_element(skylight, 'UFactor', @ufactor, :float) unless @ufactor.nil?
       XMLHelper.add_element(skylight, 'SHGC', @shgc, :float) unless @shgc.nil?
+      if (not @exterior_shading_factor_summer.nil?) || (not @exterior_shading_factor_winter.nil?)
+        exterior_shading = XMLHelper.add_element(skylight, 'ExteriorShading')
+        sys_id = XMLHelper.add_element(exterior_shading, 'SystemIdentifier')
+        XMLHelper.add_attribute(sys_id, 'id', "#{id}ExteriorShading")
+        XMLHelper.add_element(exterior_shading, 'SummerShadingCoefficient', @exterior_shading_factor_summer, :float, @exterior_shading_factor_summer_isdefaulted) unless @exterior_shading_factor_summer.nil?
+        XMLHelper.add_element(exterior_shading, 'WinterShadingCoefficient', @exterior_shading_factor_winter, :float, @exterior_shading_factor_winter_isdefaulted) unless @exterior_shading_factor_winter.nil?
+      end
       if (not @interior_shading_factor_summer.nil?) || (not @interior_shading_factor_winter.nil?)
         interior_shading = XMLHelper.add_element(skylight, 'InteriorShading')
         sys_id = XMLHelper.add_element(interior_shading, 'SystemIdentifier')
@@ -2400,6 +2416,8 @@ class HPXML < Object
       @shgc = XMLHelper.get_value(skylight, 'SHGC', :float)
       @interior_shading_factor_summer, @interior_shading_factor_summer_isdefaulted = XMLHelper.get_value_and_defaulted(skylight, 'InteriorShading/SummerShadingCoefficient', :float)
       @interior_shading_factor_winter, @interior_shading_factor_winter_isdefaulted = XMLHelper.get_value_and_defaulted(skylight, 'InteriorShading/WinterShadingCoefficient', :float)
+      @exterior_shading_factor_summer, @exterior_shading_factor_summer_isdefaulted = XMLHelper.get_value_and_defaulted(skylight, 'ExteriorShading/SummerShadingCoefficient', :float)
+      @exterior_shading_factor_winter, @exterior_shading_factor_winter_isdefaulted = XMLHelper.get_value_and_defaulted(skylight, 'ExteriorShading/WinterShadingCoefficient', :float)
       @exterior_shading = XMLHelper.get_value(skylight, 'ExteriorShading/Type', :string)
       @roof_idref = HPXML::get_idref(XMLHelper.get_element(skylight, 'AttachedToRoof'))
     end
@@ -2511,6 +2529,7 @@ class HPXML < Object
              :heating_efficiency_percent, :fraction_heat_load_served, :electric_auxiliary_energy,
              :energy_star, :seed_id, :is_shared_system, :number_of_units_served,
              :shared_loop_watts, :fan_coil_watts, :wlhp_heating_efficiency_cop, :fan_watts_per_cfm,
+             :fan_power_not_tested, :airflow_defect_ratio, :airflow_not_tested,
              :fan_watts]
     attr_accessor(*ATTRS)
 
@@ -2591,6 +2610,9 @@ class HPXML < Object
       XMLHelper.add_extension(heating_system, 'FanCoilWatts', @fan_coil_watts, :float) unless @fan_coil_watts.nil?
       XMLHelper.add_extension(heating_system, 'FanPowerWattsPerCFM', @fan_watts_per_cfm, :float, @fan_watts_per_cfm_isdefaulted) unless @fan_watts_per_cfm.nil?
       XMLHelper.add_extension(heating_system, 'FanPowerWatts', @fan_watts, :float, @fan_watts_isdefaulted) unless @fan_watts.nil?
+      XMLHelper.add_extension(heating_system, 'FanPowerNotTested', @fan_power_not_tested, :boolean) unless @fan_power_not_tested.nil?
+      XMLHelper.add_extension(heating_system, 'AirflowDefectRatio', @airflow_defect_ratio, :float, @airflow_defect_ratio_isdefaulted) unless @airflow_defect_ratio.nil?
+      XMLHelper.add_extension(heating_system, 'AirflowNotTested', @airflow_not_tested, :boolean) unless @airflow_not_tested.nil?
       XMLHelper.add_extension(heating_system, 'SeedId', @seed_id, :string) unless @seed_id.nil?
       if not @wlhp_heating_efficiency_cop.nil?
         wlhp = XMLHelper.create_elements_as_needed(heating_system, ['extension', 'WaterLoopHeatPump'])
@@ -2622,6 +2644,9 @@ class HPXML < Object
       @seed_id = XMLHelper.get_value(heating_system, 'extension/SeedId', :string)
       @fan_watts_per_cfm, @fan_watts_per_cfm_isdefaulted = XMLHelper.get_value_and_defaulted(heating_system, 'extension/FanPowerWattsPerCFM', :float)
       @fan_watts, @fan_watts_isdefaulted = XMLHelper.get_value_and_defaulted(heating_system, 'extension/FanPowerWatts', :float)
+      @fan_power_not_tested = XMLHelper.get_value(heating_system, 'extension/FanPowerNotTested', :boolean)
+      @airflow_defect_ratio, @airflow_defect_ratio_isdefaulted = XMLHelper.get_value_and_defaulted(heating_system, 'extension/AirflowDefectRatio', :float)
+      @airflow_not_tested = XMLHelper.get_value(heating_system, 'extension/AirflowNotTested', :boolean)
       @shared_loop_watts = XMLHelper.get_value(heating_system, 'extension/SharedLoopWatts', :float)
       @fan_coil_watts = XMLHelper.get_value(heating_system, 'extension/FanCoilWatts', :float)
       @wlhp_heating_efficiency_cop = XMLHelper.get_value(heating_system, "extension/WaterLoopHeatPump/AnnualHeatingEfficiency[Units='#{UnitsCOP}']/Value", :float)
@@ -2652,7 +2677,8 @@ class HPXML < Object
              :cooling_efficiency_seer, :cooling_efficiency_eer, :cooling_efficiency_kw_per_ton,
              :cooling_shr, :energy_star, :seed_id, :is_shared_system,
              :number_of_units_served, :shared_loop_watts, :fan_coil_watts, :wlhp_cooling_capacity,
-             :wlhp_cooling_efficiency_eer, :fan_watts_per_cfm]
+             :wlhp_cooling_efficiency_eer, :airflow_defect_ratio, :fan_watts_per_cfm, :fan_power_not_tested,
+             :airflow_not_tested, :charge_defect_ratio, :charge_not_tested]
     attr_accessor(*ATTRS)
 
     def distribution_system
@@ -2729,7 +2755,12 @@ class HPXML < Object
         XMLHelper.add_element(annual_efficiency, 'Value', efficiency_value, :float)
       end
       XMLHelper.add_element(cooling_system, 'SensibleHeatFraction', @cooling_shr, :float, @cooling_shr_isdefaulted) unless @cooling_shr.nil?
+      XMLHelper.add_extension(cooling_system, 'AirflowDefectRatio', @airflow_defect_ratio, :float, @airflow_defect_ratio_isdefaulted) unless @airflow_defect_ratio.nil?
+      XMLHelper.add_extension(cooling_system, 'ChargeDefectRatio', @charge_defect_ratio, :float, @charge_defect_ratio_isdefaulted) unless @charge_defect_ratio.nil?
+      XMLHelper.add_extension(cooling_system, 'ChargeNotTested', @charge_not_tested, :boolean) unless @charge_not_tested.nil?
       XMLHelper.add_extension(cooling_system, 'FanPowerWattsPerCFM', @fan_watts_per_cfm, :float, @fan_watts_per_cfm_isdefaulted) unless @fan_watts_per_cfm.nil?
+      XMLHelper.add_extension(cooling_system, 'FanPowerNotTested', @fan_power_not_tested, :boolean) unless @fan_power_not_tested.nil?
+      XMLHelper.add_extension(cooling_system, 'AirflowNotTested', @airflow_not_tested, :boolean) unless @airflow_not_tested.nil?
       XMLHelper.add_extension(cooling_system, 'SharedLoopWatts', @shared_loop_watts, :float) unless @shared_loop_watts.nil?
       XMLHelper.add_extension(cooling_system, 'FanCoilWatts', @fan_coil_watts, :float) unless @fan_coil_watts.nil?
       XMLHelper.add_extension(cooling_system, 'SeedId', @seed_id, :string) unless @seed_id.nil?
@@ -2767,7 +2798,12 @@ class HPXML < Object
       @cooling_shr, @cooling_shr_isdefaulted = XMLHelper.get_value_and_defaulted(cooling_system, 'SensibleHeatFraction', :float)
       @energy_star = XMLHelper.get_values(cooling_system, 'ThirdPartyCertification', :string).include?('Energy Star')
       @seed_id = XMLHelper.get_value(cooling_system, 'extension/SeedId', :string)
+      @airflow_defect_ratio, @airflow_defect_ratio_isdefaulted = XMLHelper.get_value_and_defaulted(cooling_system, 'extension/AirflowDefectRatio', :float)
+      @charge_defect_ratio, @charge_defect_ratio_isdefaulted = XMLHelper.get_value_and_defaulted(cooling_system, 'extension/ChargeDefectRatio', :float)
+      @charge_not_tested = XMLHelper.get_value(cooling_system, 'extension/ChargeNotTested', :boolean)
       @fan_watts_per_cfm, @fan_watts_per_cfm_isdefaulted = XMLHelper.get_value_and_defaulted(cooling_system, 'extension/FanPowerWattsPerCFM', :float)
+      @fan_power_not_tested = XMLHelper.get_value(cooling_system, 'extension/FanPowerNotTested', :boolean)
+      @airflow_not_tested = XMLHelper.get_value(cooling_system, 'extension/AirflowNotTested', :boolean)
       @shared_loop_watts = XMLHelper.get_value(cooling_system, 'extension/SharedLoopWatts', :float)
       @fan_coil_watts = XMLHelper.get_value(cooling_system, 'extension/FanCoilWatts', :float)
       @wlhp_cooling_capacity = XMLHelper.get_value(cooling_system, 'extension/WaterLoopHeatPump/CoolingCapacity', :float)
@@ -2805,7 +2841,9 @@ class HPXML < Object
              :backup_heating_switchover_temp, :fraction_heat_load_served, :fraction_cool_load_served,
              :cooling_efficiency_seer, :cooling_efficiency_eer, :heating_efficiency_hspf,
              :heating_efficiency_cop, :energy_star, :seed_id, :pump_watts_per_ton, :fan_watts_per_cfm,
-             :is_shared_system, :number_of_units_served, :shared_loop_watts]
+             :fan_power_not_tested, :is_shared_system, :number_of_units_served, :shared_loop_watts,
+             :airflow_defect_ratio, :airflow_not_tested, :charge_defect_ratio,
+             :charge_not_tested]
     attr_accessor(*ATTRS)
 
     def distribution_system
@@ -2896,7 +2934,12 @@ class HPXML < Object
         XMLHelper.add_element(annual_efficiency, 'Units', htg_efficiency_units, :string)
         XMLHelper.add_element(annual_efficiency, 'Value', htg_efficiency_value, :float)
       end
+      XMLHelper.add_extension(heat_pump, 'AirflowDefectRatio', @airflow_defect_ratio, :float, @airflow_defect_ratio_isdefaulted) unless @airflow_defect_ratio.nil?
+      XMLHelper.add_extension(heat_pump, 'ChargeDefectRatio', @charge_defect_ratio, :float, @charge_defect_ratio_isdefaulted) unless @charge_defect_ratio.nil?
+      XMLHelper.add_extension(heat_pump, 'ChargeNotTested', @charge_not_tested, :boolean) unless @charge_not_tested.nil?
       XMLHelper.add_extension(heat_pump, 'FanPowerWattsPerCFM', @fan_watts_per_cfm, :float, @fan_watts_per_cfm_isdefaulted) unless @fan_watts_per_cfm.nil?
+      XMLHelper.add_extension(heat_pump, 'FanPowerNotTested', @fan_power_not_tested, :boolean) unless @fan_power_not_tested.nil?
+      XMLHelper.add_extension(heat_pump, 'AirflowNotTested', @airflow_not_tested, :boolean) unless @airflow_not_tested.nil?
       XMLHelper.add_extension(heat_pump, 'PumpPowerWattsPerTon', @pump_watts_per_ton, :float, @pump_watts_per_ton_isdefaulted) unless @pump_watts_per_ton.nil?
       XMLHelper.add_extension(heat_pump, 'SharedLoopWatts', @shared_loop_watts, :float) unless @shared_loop_watts.nil?
       XMLHelper.add_extension(heat_pump, 'SeedId', @seed_id, :string) unless @seed_id.nil?
@@ -2937,7 +2980,12 @@ class HPXML < Object
       @energy_star = XMLHelper.get_values(heat_pump, 'ThirdPartyCertification', :string).include?('Energy Star')
       @pump_watts_per_ton, @pump_watts_per_ton_isdefaulted = XMLHelper.get_value_and_defaulted(heat_pump, 'extension/PumpPowerWattsPerTon', :float)
       @fan_watts_per_cfm, @fan_watts_per_cfm_isdefaulted = XMLHelper.get_value_and_defaulted(heat_pump, 'extension/FanPowerWattsPerCFM', :float)
+      @fan_power_not_tested = XMLHelper.get_value(heat_pump, 'extension/FanPowerNotTested', :boolean)
+      @airflow_not_tested = XMLHelper.get_value(heat_pump, 'extension/AirflowNotTested', :boolean)
       @seed_id = XMLHelper.get_value(heat_pump, 'extension/SeedId', :string)
+      @airflow_defect_ratio, @airflow_defect_ratio_isdefaulted = XMLHelper.get_value_and_defaulted(heat_pump, 'extension/AirflowDefectRatio', :float)
+      @charge_defect_ratio, @charge_defect_ratio_isdefaulted = XMLHelper.get_value_and_defaulted(heat_pump, 'extension/ChargeDefectRatio', :float)
+      @charge_not_tested = XMLHelper.get_value(heat_pump, 'extension/ChargeNotTested', :boolean)
       @shared_loop_watts = XMLHelper.get_value(heat_pump, 'extension/SharedLoopWatts', :float)
     end
   end

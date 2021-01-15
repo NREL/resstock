@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>build_residential_hpxml</name>
   <uid>a13a8983-2b01-4930-8af2-42030b6e4233</uid>
-  <version_id>ba534466-85a1-4486-9bdc-beecc79ecbe8</version_id>
-  <version_modified>20210111T200303Z</version_modified>
+  <version_id>0559c0c2-1290-4f2f-b73d-e6fe80252e9d</version_id>
+  <version_modified>20210115T163651Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>BuildResidentialHPXML</class_name>
   <display_name>HPXML Builder</display_name>
@@ -1356,6 +1356,22 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
+      <name>window_exterior_shading_winter</name>
+      <display_name>Windows: Winter Exterior Shading</display_name>
+      <description>Exterior shading multiplier for the heating season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc.</description>
+      <type>Double</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>window_exterior_shading_summer</name>
+      <display_name>Windows: Summer Exterior Shading</display_name>
+      <description>Exterior shading multiplier for the cooling season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc.</description>
+      <type>Double</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
       <name>overhangs_front_depth</name>
       <display_name>Overhangs: Front Facade Depth</display_name>
       <description>Specifies the depth of overhangs for windows on the front facade.</description>
@@ -1675,6 +1691,15 @@
       <default_value>1</default_value>
     </argument>
     <argument>
+      <name>heating_system_airflow_defect_ratio</name>
+      <display_name>Heating System: Airflow Defect Ratio</display_name>
+      <description>The airflow defect ratio, defined as (InstalledAirflow - DesignAirflow) / DesignAirflow, of the heating system per ANSI/RESNET/ACCA Standard 310. A value of zero means no airflow defect. Applies only to Furnace.</description>
+      <type>Double</type>
+      <units>Frac</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
       <name>cooling_system_type</name>
       <display_name>Cooling System: Type</display_name>
       <description>The type of cooling system. Use 'none' if there is no cooling system.</description>
@@ -1794,6 +1819,24 @@
           <display_name>false</display_name>
         </choice>
       </choices>
+    </argument>
+    <argument>
+      <name>cooling_system_airflow_defect_ratio</name>
+      <display_name>Cooling System: Airflow Defect Ratio</display_name>
+      <description>The airflow defect ratio, defined as (InstalledAirflow - DesignAirflow) / DesignAirflow, of the cooling system per ANSI/RESNET/ACCA Standard 310. A value of zero means no airflow defect. Applies only to central air conditioner and ducted mini-split.</description>
+      <type>Double</type>
+      <units>Frac</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>cooling_system_charge_defect_ratio</name>
+      <display_name>Cooling System: Charge Defect Ratio</display_name>
+      <description>The refrigerant charge defect ratio, defined as (InstalledCharge - DesignCharge) / DesignCharge, of the cooling system per ANSI/RESNET/ACCA Standard 310. A value of zero means no refrigerant charge defect. Applies only to central air conditioner and mini-split.</description>
+      <type>Double</type>
+      <units>Frac</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
     </argument>
     <argument>
       <name>heat_pump_type</name>
@@ -2019,6 +2062,24 @@
           <display_name>false</display_name>
         </choice>
       </choices>
+    </argument>
+    <argument>
+      <name>heat_pump_airflow_defect_ratio</name>
+      <display_name>Heat Pump: Airflow Defect Ratio</display_name>
+      <description>The airflow defect ratio, defined as (InstalledAirflow - DesignAirflow) / DesignAirflow, of the heat pump per ANSI/RESNET/ACCA Standard 310. A value of zero means no airflow defect. Applies only to air-to-air, ducted mini-split, and ground-to-air.</description>
+      <type>Double</type>
+      <units>Frac</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>heat_pump_charge_defect_ratio</name>
+      <display_name>Heat Pump: Charge Defect Ratio</display_name>
+      <description>The refrigerant charge defect ratio, defined as (InstalledCharge - DesignCharge) / DesignCharge, of the heat pump per ANSI/RESNET/ACCA Standard 310. A value of zero means no refrigerant charge defect. Applies to all heat pump types.</description>
+      <type>Double</type>
+      <units>Frac</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
     </argument>
     <argument>
       <name>setpoint_heating_weekday</name>
@@ -6262,18 +6323,6 @@
       <checksum>24396BA2</checksum>
     </file>
     <file>
-      <filename>test_measure.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>BD58CA20</checksum>
-    </file>
-    <file>
-      <filename>test_rakefile.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>2A900CB8</checksum>
-    </file>
-    <file>
       <filename>build_residential_hpxml_test.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
@@ -6488,12 +6537,6 @@
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
       <checksum>282553ED</checksum>
-    </file>
-    <file>
-      <filename>base-enclosure-overhangs.osw</filename>
-      <filetype>osw</filetype>
-      <usage_type>test</usage_type>
-      <checksum>C5806D1C</checksum>
     </file>
     <file>
       <filename>base-atticroof-vented.osw</filename>
@@ -7372,6 +7415,108 @@
       <checksum>3436E628</checksum>
     </file>
     <file>
+      <filename>extra-enclosure-windows-shading.osw</filename>
+      <filetype>osw</filetype>
+      <usage_type>test</usage_type>
+      <checksum>BBF051AD</checksum>
+    </file>
+    <file>
+      <filename>base-enclosure-overhangs.osw</filename>
+      <filetype>osw</filetype>
+      <usage_type>test</usage_type>
+      <checksum>24C2AA22</checksum>
+    </file>
+    <file>
+      <filename>base-hvac-install-quality-none-furnace-gas-central-ac-1-speed.osw</filename>
+      <filetype>osw</filetype>
+      <usage_type>test</usage_type>
+      <checksum>A2E7409F</checksum>
+    </file>
+    <file>
+      <filename>base-hvac-install-quality-airflow-defect-furnace-gas-central-ac-1-speed.osw</filename>
+      <filetype>osw</filetype>
+      <usage_type>test</usage_type>
+      <checksum>1DB8F06D</checksum>
+    </file>
+    <file>
+      <filename>base-hvac-install-quality-charge-defect-furnace-gas-central-ac-1-speed.osw</filename>
+      <filetype>osw</filetype>
+      <usage_type>test</usage_type>
+      <checksum>477579EE</checksum>
+    </file>
+    <file>
+      <filename>base-hvac-install-quality-all-air-to-air-heat-pump-1-speed.osw</filename>
+      <filetype>osw</filetype>
+      <usage_type>test</usage_type>
+      <checksum>0381536B</checksum>
+    </file>
+    <file>
+      <filename>base-hvac-install-quality-all-air-to-air-heat-pump-2-speed.osw</filename>
+      <filetype>osw</filetype>
+      <usage_type>test</usage_type>
+      <checksum>F550F7C4</checksum>
+    </file>
+    <file>
+      <filename>base-hvac-install-quality-all-air-to-air-heat-pump-var-speed.osw</filename>
+      <filetype>osw</filetype>
+      <usage_type>test</usage_type>
+      <checksum>F68983F2</checksum>
+    </file>
+    <file>
+      <filename>base-hvac-install-quality-all-furnace-gas-central-ac-1-speed.osw</filename>
+      <filetype>osw</filetype>
+      <usage_type>test</usage_type>
+      <checksum>51EABBA9</checksum>
+    </file>
+    <file>
+      <filename>base-hvac-install-quality-all-furnace-gas-central-ac-2-speed.osw</filename>
+      <filetype>osw</filetype>
+      <usage_type>test</usage_type>
+      <checksum>618FBB76</checksum>
+    </file>
+    <file>
+      <filename>base-hvac-install-quality-all-furnace-gas-central-ac-var-speed.osw</filename>
+      <filetype>osw</filetype>
+      <usage_type>test</usage_type>
+      <checksum>E949B948</checksum>
+    </file>
+    <file>
+      <filename>base-hvac-install-quality-all-furnace-gas-only.osw</filename>
+      <filetype>osw</filetype>
+      <usage_type>test</usage_type>
+      <checksum>A496FBD2</checksum>
+    </file>
+    <file>
+      <filename>base-hvac-install-quality-all-mini-split-heat-pump-ducted.osw</filename>
+      <filetype>osw</filetype>
+      <usage_type>test</usage_type>
+      <checksum>01C8DB44</checksum>
+    </file>
+    <file>
+      <filename>base-hvac-install-quality-all-ground-to-air-heat-pump.osw</filename>
+      <filetype>osw</filetype>
+      <usage_type>test</usage_type>
+      <checksum>5BD268C2</checksum>
+    </file>
+    <file>
+      <filename>base-hvac-install-quality-all-mini-split-air-conditioner-only-ducted.osw</filename>
+      <filetype>osw</filetype>
+      <usage_type>test</usage_type>
+      <checksum>3C5EC219</checksum>
+    </file>
+    <file>
+      <filename>test_measure.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>229B2CB0</checksum>
+    </file>
+    <file>
+      <filename>test_rakefile.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>1168C293</checksum>
+    </file>
+    <file>
       <version>
         <software_program>OpenStudio</software_program>
         <identifier>2.9.0</identifier>
@@ -7380,7 +7525,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>92A55602</checksum>
+      <checksum>E52DBCCD</checksum>
     </file>
   </files>
 </measure>
