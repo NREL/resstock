@@ -3,6 +3,8 @@
 rm(list=ls()) # clear workspace i.e. remove saved variables
 cat("\014") # clear console
 library(dplyr)
+# setwd("C:/Users/pb637/Documents/Yale Courses/Research/Final Paper/StockModelCode/")
+
 load("buildstock100.RData") # just demonstrating with the 100,000 bs.csv 
 # View(names(rs))
 # windows, update TX, FL, NY, NE, DE and MD windows to `Option=Low-E, Double, Low-Gain` for all vintages 2020 onwards
