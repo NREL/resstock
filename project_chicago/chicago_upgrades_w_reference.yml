@@ -1927,7 +1927,7 @@ upgrades:
         costs:
           - value: 300 #Google guess
             multiplier: Fixed (1)
-        lifetime: 13
+        lifetime: 15
       - option: Cooling Setpoint Offset Magnitude|4F
         apply_logic: 
           or:
@@ -1935,6 +1935,24 @@ upgrades:
             - Cooling Setpoint Offset Magnitude|2F
         costs:
           - value: 0 # Covered in Heating Setpoint Offset
+            multiplier: Fixed (1)
+        reference_scenario: Thermostat (Reference)
+
+## Reference Thermostat
+  - upgrade_name: Thermostat (Reference)
+    options:
+      - option: Heating Setpoint Has Offset|Yes
+        apply_logic: 
+          - Heating Setpoint Has Offset|Yes
+        costs:
+          - value: 170 
+            multiplier: Fixed (1)
+        lifetime: 15
+      - option: Heating Setpoint Has Offset|No
+        apply_logic: 
+          - Heating Setpoint Has Offset|No
+        costs:
+          - value: 0 # Covered in Heating
             multiplier: Fixed (1)
 
 ### Need to develop, can't transfer from other repo
