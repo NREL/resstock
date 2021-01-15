@@ -171,6 +171,16 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(Constants.Auto)
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heating_system_rated_cfm_per_ton', false)
+    arg.setDisplayName('Heating System: Rated CFM Per Ton')
+    arg.setUnits('cfm/ton')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heating_system_actual_cfm_per_ton', false)
+    arg.setDisplayName('Heating System: Actual CFM Per Ton')
+    arg.setUnits('cfm/ton')
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('cooling_system_rated_cfm_per_ton', false)
     arg.setDisplayName('Cooling System: Rated CFM Per Ton')
     arg.setUnits('cfm/ton')
@@ -230,11 +240,13 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
     args_to_delete = args.keys - arg_names # these are the extra ones added in the arguments section
 
+    # Plug Loads
     args['plug_loads_television_usage_multiplier'] *= args['plug_loads_television_usage_multiplier_2']
     args['plug_loads_other_usage_multiplier'] *= args['plug_loads_other_usage_multiplier_2']
     args['plug_loads_well_pump_usage_multiplier'] *= args['plug_loads_well_pump_usage_multiplier_2']
     args['plug_loads_vehicle_usage_multiplier'] *= args['plug_loads_vehicle_usage_multiplier_2']
 
+    # Setpoints
     weekday_heating_setpoints = [args['setpoint_heating_weekday_temp']] * 24
     weekend_heating_setpoints = [args['setpoint_heating_weekend_temp']] * 24
 
@@ -262,6 +274,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     args['setpoint_cooling_weekday'] = weekday_cooling_setpoints.join(', ')
     args['setpoint_cooling_weekend'] = weekend_cooling_setpoints.join(', ')
 
+    # Flue or Chimney
     args['geometry_has_flue_or_chimney'] = Constants.Auto
     if (args['heating_system_has_flue_or_chimney'] == 'false') &&
        (args['heating_system_has_flue_or_chimney_2'] == 'false') &&
@@ -273,8 +286,13 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       args['geometry_has_flue_or_chimney'] = 'true'
     end
 
+    # HVAC Faults
+    if args['heating_system_rated_cfm_per_ton'].is_initialized && args['heating_system_actual_cfm_per_ton'].is_initialized
+      args['heating_system_airflow_defect_ratio'] = (args['heating_system_actual_cfm_per_ton'].get - args['heating_system_rated_cfm_per_ton'].get) / args['heating_system_rated_cfm_per_ton'].get
+    end
+
     if args['cooling_system_rated_cfm_per_ton'].is_initialized && args['cooling_system_actual_cfm_per_ton'].is_initialized
-      args['cooling_system_airflow_defect_ratio'] = (args['cooling_system_actual_cfm_per_ton'].get / args['cooling_system_rated_cfm_per_ton'].get) / args['cooling_system_rated_cfm_per_ton'].get
+      args['cooling_system_airflow_defect_ratio'] = (args['cooling_system_actual_cfm_per_ton'].get - args['cooling_system_rated_cfm_per_ton'].get) / args['cooling_system_rated_cfm_per_ton'].get
     end
 
     if args['cooling_system_frac_manufacturer_charge'].is_initialized
@@ -282,7 +300,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     end
 
     if args['heat_pump_rated_cfm_per_ton'].is_initialized && args['heat_pump_actual_cfm_per_ton'].is_initialized
-      args['heat_pump_airflow_defect_ratio'] = (args['heat_pump_actual_cfm_per_ton'].get / args['heat_pump_rated_cfm_per_ton'].get) / args['cooling_system_rated_cfm_per_ton'].get
+      args['heat_pump_airflow_defect_ratio'] = (args['heat_pump_actual_cfm_per_ton'].get - args['heat_pump_rated_cfm_per_ton'].get) / args['cooling_system_rated_cfm_per_ton'].get
     end
 
     if args['heat_pump_frac_manufacturer_charge'].is_initialized
