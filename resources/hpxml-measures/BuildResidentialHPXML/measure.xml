@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>build_residential_hpxml</name>
   <uid>a13a8983-2b01-4930-8af2-42030b6e4233</uid>
-  <version_id>6dbd5423-2ac4-43ff-9e35-cf861c9e0376</version_id>
-  <version_modified>20210114T200132Z</version_modified>
+  <version_id>0559c0c2-1290-4f2f-b73d-e6fe80252e9d</version_id>
+  <version_modified>20210115T163651Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>BuildResidentialHPXML</class_name>
   <display_name>HPXML Builder</display_name>
@@ -1693,7 +1693,7 @@
     <argument>
       <name>heating_system_airflow_defect_ratio</name>
       <display_name>Heating System: Airflow Defect Ratio</display_name>
-      <description>The airflow defect ratio, defined as (InstalledAirflow - DesignAirflow) / DesignAirflow, of the heating system. A value of zero means no airflow defect. Applies only to Furnace.</description>
+      <description>The airflow defect ratio, defined as (InstalledAirflow - DesignAirflow) / DesignAirflow, of the heating system per ANSI/RESNET/ACCA Standard 310. A value of zero means no airflow defect. Applies only to Furnace.</description>
       <type>Double</type>
       <units>Frac</units>
       <required>false</required>
@@ -1823,7 +1823,7 @@
     <argument>
       <name>cooling_system_airflow_defect_ratio</name>
       <display_name>Cooling System: Airflow Defect Ratio</display_name>
-      <description>The airflow defect ratio, defined as (InstalledAirflow - DesignAirflow) / DesignAirflow, of the cooling system. A value of zero means no airflow defect. Applies only to central air conditioner.</description>
+      <description>The airflow defect ratio, defined as (InstalledAirflow - DesignAirflow) / DesignAirflow, of the cooling system per ANSI/RESNET/ACCA Standard 310. A value of zero means no airflow defect. Applies only to central air conditioner and ducted mini-split.</description>
       <type>Double</type>
       <units>Frac</units>
       <required>false</required>
@@ -1831,8 +1831,8 @@
     </argument>
     <argument>
       <name>cooling_system_charge_defect_ratio</name>
-      <display_name>Cooling System: Airflow Defect Ratio</display_name>
-      <description>The refrigerant charge defect ratio, defined as (InstalledCharge - DesignCharge) / DesignCharge, of the cooling system. A value of zero means no refrigerant charge defect. Applies only to central air conditioner and mini-split.</description>
+      <display_name>Cooling System: Charge Defect Ratio</display_name>
+      <description>The refrigerant charge defect ratio, defined as (InstalledCharge - DesignCharge) / DesignCharge, of the cooling system per ANSI/RESNET/ACCA Standard 310. A value of zero means no refrigerant charge defect. Applies only to central air conditioner and mini-split.</description>
       <type>Double</type>
       <units>Frac</units>
       <required>false</required>
@@ -2065,8 +2065,8 @@
     </argument>
     <argument>
       <name>heat_pump_airflow_defect_ratio</name>
-      <display_name>Cooling System: Airflow Defect Ratio</display_name>
-      <description>The airflow defect ratio, defined as (InstalledAirflow - DesignAirflow) / DesignAirflow, of the heat pump. A value of zero means no airflow defect.</description>
+      <display_name>Heat Pump: Airflow Defect Ratio</display_name>
+      <description>The airflow defect ratio, defined as (InstalledAirflow - DesignAirflow) / DesignAirflow, of the heat pump per ANSI/RESNET/ACCA Standard 310. A value of zero means no airflow defect. Applies only to air-to-air, ducted mini-split, and ground-to-air.</description>
       <type>Double</type>
       <units>Frac</units>
       <required>false</required>
@@ -2074,8 +2074,8 @@
     </argument>
     <argument>
       <name>heat_pump_charge_defect_ratio</name>
-      <display_name>Cooling System: Airflow Defect Ratio</display_name>
-      <description>The refrigerant charge defect ratio, defined as (InstalledCharge - DesignCharge) / DesignCharge, of the cooling system. A value of zero means no refrigerant charge defect.</description>
+      <display_name>Heat Pump: Charge Defect Ratio</display_name>
+      <description>The refrigerant charge defect ratio, defined as (InstalledCharge - DesignCharge) / DesignCharge, of the heat pump per ANSI/RESNET/ACCA Standard 310. A value of zero means no refrigerant charge defect. Applies to all heat pump types.</description>
       <type>Double</type>
       <units>Frac</units>
       <required>false</required>
@@ -7433,17 +7433,6 @@
       <checksum>A2E7409F</checksum>
     </file>
     <file>
-      <version>
-        <software_program>OpenStudio</software_program>
-        <identifier>2.9.0</identifier>
-        <min_compatible>2.9.0</min_compatible>
-      </version>
-      <filename>measure.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>script</usage_type>
-      <checksum>8F63B873</checksum>
-    </file>
-    <file>
       <filename>base-hvac-install-quality-airflow-defect-furnace-gas-central-ac-1-speed.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
@@ -7526,6 +7515,17 @@
       <filetype>xml</filetype>
       <usage_type>test</usage_type>
       <checksum>1168C293</checksum>
+    </file>
+    <file>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>2.9.0</identifier>
+        <min_compatible>2.9.0</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>script</usage_type>
+      <checksum>E52DBCCD</checksum>
     </file>
   </files>
 </measure>

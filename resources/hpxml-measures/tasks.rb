@@ -2593,7 +2593,6 @@ def set_hpxml_building_construction(hpxml_file, hpxml)
     hpxml.building_construction.conditioned_floor_area = 1539
     hpxml.building_construction.conditioned_building_volume = 12312
     hpxml.building_construction.residential_facility_type = HPXML::ResidentialTypeSFD
-    hpxml.building_construction.use_only_ideal_air_system = true
   elsif ['ASHRAE_Standard_140/L322XC.xml'].include? hpxml_file
     hpxml.building_construction.number_of_conditioned_floors = 2
     hpxml.building_construction.conditioned_floor_area = 3078

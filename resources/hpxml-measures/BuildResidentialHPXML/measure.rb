@@ -1015,7 +1015,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heating_system_airflow_defect_ratio', false)
     arg.setDisplayName('Heating System: Airflow Defect Ratio')
-    arg.setDescription("The airflow defect ratio, defined as (InstalledAirflow - DesignAirflow) / DesignAirflow, of the heating system. A value of zero means no airflow defect. Applies only to #{HPXML::HVACTypeFurnace}.")
+    arg.setDescription("The airflow defect ratio, defined as (InstalledAirflow - DesignAirflow) / DesignAirflow, of the heating system per ANSI/RESNET/ACCA Standard 310. A value of zero means no airflow defect. Applies only to #{HPXML::HVACTypeFurnace}.")
     arg.setUnits('Frac')
     args << arg
 
@@ -1072,13 +1072,13 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('cooling_system_airflow_defect_ratio', false)
     arg.setDisplayName('Cooling System: Airflow Defect Ratio')
-    arg.setDescription("The airflow defect ratio, defined as (InstalledAirflow - DesignAirflow) / DesignAirflow, of the cooling system. A value of zero means no airflow defect. Applies only to #{HPXML::HVACTypeCentralAirConditioner}.")
+    arg.setDescription("The airflow defect ratio, defined as (InstalledAirflow - DesignAirflow) / DesignAirflow, of the cooling system per ANSI/RESNET/ACCA Standard 310. A value of zero means no airflow defect. Applies only to #{HPXML::HVACTypeCentralAirConditioner} and ducted #{HPXML::HVACTypeMiniSplitAirConditioner}.")
     arg.setUnits('Frac')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('cooling_system_charge_defect_ratio', false)
-    arg.setDisplayName('Cooling System: Airflow Defect Ratio')
-    arg.setDescription("The refrigerant charge defect ratio, defined as (InstalledCharge - DesignCharge) / DesignCharge, of the cooling system. A value of zero means no refrigerant charge defect. Applies only to #{HPXML::HVACTypeCentralAirConditioner} and #{HPXML::HVACTypeMiniSplitAirConditioner}.")
+    arg.setDisplayName('Cooling System: Charge Defect Ratio')
+    arg.setDescription("The refrigerant charge defect ratio, defined as (InstalledCharge - DesignCharge) / DesignCharge, of the cooling system per ANSI/RESNET/ACCA Standard 310. A value of zero means no refrigerant charge defect. Applies only to #{HPXML::HVACTypeCentralAirConditioner} and #{HPXML::HVACTypeMiniSplitAirConditioner}.")
     arg.setUnits('Frac')
     args << arg
 
@@ -1209,14 +1209,14 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_airflow_defect_ratio', false)
-    arg.setDisplayName('Cooling System: Airflow Defect Ratio')
-    arg.setDescription('The airflow defect ratio, defined as (InstalledAirflow - DesignAirflow) / DesignAirflow, of the heat pump. A value of zero means no airflow defect.')
+    arg.setDisplayName('Heat Pump: Airflow Defect Ratio')
+    arg.setDescription("The airflow defect ratio, defined as (InstalledAirflow - DesignAirflow) / DesignAirflow, of the heat pump per ANSI/RESNET/ACCA Standard 310. A value of zero means no airflow defect. Applies only to #{HPXML::HVACTypeHeatPumpAirToAir}, ducted #{HPXML::HVACTypeHeatPumpMiniSplit}, and #{HPXML::HVACTypeHeatPumpGroundToAir}.")
     arg.setUnits('Frac')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_charge_defect_ratio', false)
-    arg.setDisplayName('Cooling System: Airflow Defect Ratio')
-    arg.setDescription('The refrigerant charge defect ratio, defined as (InstalledCharge - DesignCharge) / DesignCharge, of the cooling system. A value of zero means no refrigerant charge defect.')
+    arg.setDisplayName('Heat Pump: Charge Defect Ratio')
+    arg.setDescription('The refrigerant charge defect ratio, defined as (InstalledCharge - DesignCharge) / DesignCharge, of the heat pump per ANSI/RESNET/ACCA Standard 310. A value of zero means no refrigerant charge defect. Applies to all heat pump types.')
     arg.setUnits('Frac')
     args << arg
 
@@ -3869,7 +3869,9 @@ class HPXMLFile
     end
 
     if args[:heating_system_airflow_defect_ratio].is_initialized
-      airflow_defect_ratio = args[:heating_system_airflow_defect_ratio].get
+      if [HPXML::HVACTypeFurnace].include? heating_system_type
+        airflow_defect_ratio = args[:heating_system_airflow_defect_ratio].get
+      end
     end
 
     hpxml.heating_systems.add(id: 'HeatingSystem',
@@ -3940,11 +3942,15 @@ class HPXMLFile
     end
 
     if args[:cooling_system_airflow_defect_ratio].is_initialized
-      airflow_defect_ratio = args[:cooling_system_airflow_defect_ratio].get
+      if [HPXML::HVACTypeCentralAirConditioner].include?(cooling_system_type) || ([HPXML::HVACTypeMiniSplitAirConditioner].include?(cooling_system_type) && (args[:cooling_system_is_ducted]))
+        airflow_defect_ratio = args[:cooling_system_airflow_defect_ratio].get
+      end
     end
 
     if args[:cooling_system_charge_defect_ratio].is_initialized
-      charge_defect_ratio = args[:cooling_system_charge_defect_ratio].get
+      if [HPXML::HVACTypeCentralAirConditioner, HPXML::HVACTypeMiniSplitAirConditioner].include?(cooling_system_type)
+        charge_defect_ratio = args[:cooling_system_charge_defect_ratio].get
+      end
     end
 
     hpxml.cooling_systems.add(id: 'CoolingSystem',
@@ -4017,7 +4023,9 @@ class HPXMLFile
     end
 
     if args[:heat_pump_airflow_defect_ratio].is_initialized
-      airflow_defect_ratio = args[:heat_pump_airflow_defect_ratio].get
+      if [HPXML::HVACTypeHeatPumpAirToAir, HPXML::HVACTypeHeatPumpGroundToAir].include?(heat_pump_type) || ([HPXML::HVACTypeHeatPumpMiniSplit].include?(heat_pump_type) && (args[:heat_pump_is_ducted]))
+        airflow_defect_ratio = args[:heat_pump_airflow_defect_ratio].get
+      end
     end
 
     if args[:heat_pump_charge_defect_ratio].is_initialized
