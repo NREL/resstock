@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>res_stock_arguments</name>
   <uid>c984bb9e-4ac4-4930-a399-9d23f8f6936a</uid>
-  <version_id>f35d3efb-3f41-4719-8a08-00de2c8e54f8</version_id>
-  <version_modified>20210108T224535Z</version_modified>
+  <version_id>e7fed6bf-bd40-4212-988f-06a6d77c4466</version_id>
+  <version_modified>20210115T164547Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>ResStockArguments</class_name>
   <display_name>ResStock Arguments</display_name>
@@ -1318,6 +1318,22 @@
       <name>window_interior_shading_summer</name>
       <display_name>Windows: Summer Interior Shading</display_name>
       <description>Interior shading multiplier for the cooling season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc.</description>
+      <type>Double</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>window_exterior_shading_winter</name>
+      <display_name>Windows: Winter Exterior Shading</display_name>
+      <description>Exterior shading multiplier for the heating season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc.</description>
+      <type>Double</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>window_exterior_shading_summer</name>
+      <display_name>Windows: Summer Exterior Shading</display_name>
+      <description>Exterior shading multiplier for the cooling season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc.</description>
       <type>Double</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -2725,132 +2741,104 @@
       <default_value>30</default_value>
     </argument>
     <argument>
-      <name>kitchen_fans_present</name>
-      <display_name>Kitchen Fans: Present</display_name>
-      <description>Whether there are kitchen fans.</description>
-      <type>Boolean</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>false</default_value>
-      <choices>
-        <choice>
-          <value>true</value>
-          <display_name>true</display_name>
-        </choice>
-        <choice>
-          <value>false</value>
-          <display_name>false</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
       <name>kitchen_fans_quantity</name>
       <display_name>Kitchen Fans: Quantity</display_name>
       <description>The quantity of the kitchen fans.</description>
-      <type>Integer</type>
+      <type>String</type>
       <units>#</units>
-      <required>false</required>
+      <required>true</required>
       <model_dependent>false</model_dependent>
+      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>kitchen_fans_flow_rate</name>
       <display_name>Kitchen Fans: Flow Rate</display_name>
       <description>The flow rate of the kitchen fan.</description>
-      <type>Double</type>
+      <type>String</type>
       <units>CFM</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
+      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>kitchen_fans_hours_in_operation</name>
       <display_name>Kitchen Fans: Hours In Operation</display_name>
       <description>The hours in operation of the kitchen fan.</description>
-      <type>Double</type>
+      <type>String</type>
       <units>hrs/day</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
+      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>kitchen_fans_power</name>
       <display_name>Kitchen Fans: Fan Power</display_name>
       <description>The fan power of the kitchen fan.</description>
-      <type>Double</type>
+      <type>String</type>
       <units>W</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
+      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>kitchen_fans_start_hour</name>
       <display_name>Kitchen Fans: Start Hour</display_name>
       <description>The start hour of the kitchen fan.</description>
-      <type>Integer</type>
+      <type>String</type>
       <units>hr</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
-    </argument>
-    <argument>
-      <name>bathroom_fans_present</name>
-      <display_name>Bathroom Fans: Present</display_name>
-      <description>Whether there are bathroom fans.</description>
-      <type>Boolean</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>false</default_value>
-      <choices>
-        <choice>
-          <value>true</value>
-          <display_name>true</display_name>
-        </choice>
-        <choice>
-          <value>false</value>
-          <display_name>false</display_name>
-        </choice>
-      </choices>
+      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>bathroom_fans_quantity</name>
       <display_name>Bathroom Fans: Quantity</display_name>
       <description>The quantity of the bathroom fans.</description>
-      <type>Integer</type>
+      <type>String</type>
       <units>#</units>
-      <required>false</required>
+      <required>true</required>
       <model_dependent>false</model_dependent>
+      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>bathroom_fans_flow_rate</name>
       <display_name>Bathroom Fans: Flow Rate</display_name>
       <description>The flow rate of the bathroom fans.</description>
-      <type>Double</type>
+      <type>String</type>
       <units>CFM</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
+      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>bathroom_fans_hours_in_operation</name>
       <display_name>Bathroom Fans: Hours In Operation</display_name>
       <description>The hours in operation of the bathroom fans.</description>
-      <type>Double</type>
+      <type>String</type>
       <units>hrs/day</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
+      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>bathroom_fans_power</name>
       <display_name>Bathroom Fans: Fan Power</display_name>
       <description>The fan power of the bathroom fans.</description>
-      <type>Double</type>
+      <type>String</type>
       <units>W</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
+      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>bathroom_fans_start_hour</name>
       <display_name>Bathroom Fans: Start Hour</display_name>
       <description>The start hour of the bathroom fans.</description>
-      <type>Integer</type>
+      <type>String</type>
       <units>hr</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
+      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>whole_house_fan_present</name>
@@ -3034,16 +3022,6 @@
       <description>Nominal volume of water heater tank. Set to auto to have volume autosized. Only applies to storage water heater, heat pump water heater, and space-heating boiler with storage tank.</description>
       <type>String</type>
       <units>gal</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
-      <name>water_heater_heating_capacity</name>
-      <display_name>Water Heater: Input Capacity</display_name>
-      <description>The maximum energy input rating of water heater. Set to auto to have this field autosized. Only applies to storage water heater.</description>
-      <type>String</type>
-      <units>Btu/hr</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>auto</default_value>
@@ -3936,33 +3914,18 @@
       <default_value>auto</default_value>
     </argument>
     <argument>
-      <name>dehumidifier_present</name>
-      <display_name>Dehumidifier: Present</display_name>
-      <description>Whether there is a dehumidifier.</description>
-      <type>Boolean</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>false</default_value>
-      <choices>
-        <choice>
-          <value>true</value>
-          <display_name>true</display_name>
-        </choice>
-        <choice>
-          <value>false</value>
-          <display_name>false</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
       <name>dehumidifier_type</name>
       <display_name>Dehumidifier: Type</display_name>
       <description>The type of dehumidifier.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>portable</default_value>
+      <default_value>none</default_value>
       <choices>
+        <choice>
+          <value>none</value>
+          <display_name>none</display_name>
+        </choice>
         <choice>
           <value>portable</value>
           <display_name>portable</display_name>
@@ -3980,7 +3943,7 @@
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>EnergyFactor</default_value>
+      <default_value>IntegratedEnergyFactor</default_value>
       <choices>
         <choice>
           <value>EnergyFactor</value>
@@ -3993,19 +3956,9 @@
       </choices>
     </argument>
     <argument>
-      <name>dehumidifier_efficiency_ef</name>
-      <display_name>Dehumidifier: Energy Factor</display_name>
-      <description>The Energy Factor (EF) of the dehumidifier.</description>
-      <type>Double</type>
-      <units>liters/kWh</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>1.8</default_value>
-    </argument>
-    <argument>
-      <name>dehumidifier_efficiency_ief</name>
-      <display_name>Dehumidifier: Integrated Energy Factor</display_name>
-      <description>The Integrated Energy Factor (IEF) of the dehumidifier.</description>
+      <name>dehumidifier_efficiency</name>
+      <display_name>Dehumidifier: Efficiency</display_name>
+      <description>The efficiency of the dehumidifier.</description>
       <type>Double</type>
       <units>liters/kWh</units>
       <required>true</required>
@@ -4043,25 +3996,6 @@
       <default_value>1</default_value>
     </argument>
     <argument>
-      <name>clothes_washer_present</name>
-      <display_name>Clothes Washer: Present</display_name>
-      <description>Whether there is a clothes washer.</description>
-      <type>Boolean</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>true</default_value>
-      <choices>
-        <choice>
-          <value>true</value>
-          <display_name>true</display_name>
-        </choice>
-        <choice>
-          <value>false</value>
-          <display_name>false</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
       <name>clothes_washer_location</name>
       <display_name>Clothes Washer: Location</display_name>
       <description>The space type for the clothes washer location.</description>
@@ -4073,6 +4007,10 @@
         <choice>
           <value>auto</value>
           <display_name>auto</display_name>
+        </choice>
+        <choice>
+          <value>none</value>
+          <display_name>none</display_name>
         </choice>
         <choice>
           <value>living space</value>
@@ -4217,25 +4155,6 @@
       <default_value>1</default_value>
     </argument>
     <argument>
-      <name>clothes_dryer_present</name>
-      <display_name>Clothes Dryer: Present</display_name>
-      <description>Whether there is a clothes dryer.</description>
-      <type>Boolean</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>true</default_value>
-      <choices>
-        <choice>
-          <value>true</value>
-          <display_name>true</display_name>
-        </choice>
-        <choice>
-          <value>false</value>
-          <display_name>false</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
       <name>clothes_dryer_location</name>
       <display_name>Clothes Dryer: Location</display_name>
       <description>The space type for the clothes dryer location.</description>
@@ -4247,6 +4166,10 @@
         <choice>
           <value>auto</value>
           <display_name>auto</display_name>
+        </choice>
+        <choice>
+          <value>none</value>
+          <display_name>none</display_name>
         </choice>
         <choice>
           <value>living space</value>
@@ -4337,19 +4260,9 @@
       </choices>
     </argument>
     <argument>
-      <name>clothes_dryer_efficiency_ef</name>
-      <display_name>Clothes Dryer: Energy Factor</display_name>
-      <description>The energy performance metric for ENERGY STAR certified residential clothes dryers prior to September 13, 2013. The new metric is Combined Energy Factor.</description>
-      <type>Double</type>
-      <units>lb/kWh</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>3.4615</default_value>
-    </argument>
-    <argument>
-      <name>clothes_dryer_efficiency_cef</name>
-      <display_name>Clothes Dryer: Combined Energy Factor</display_name>
-      <description>The Combined Energy Factor (CEF) measures the pounds of clothing that can be dried per kWh (Fuel equivalent) of electricity, including energy consumed during Stand-by and Off modes.</description>
+      <name>clothes_dryer_efficiency</name>
+      <display_name>Clothes Dryer: Efficiency</display_name>
+      <description>The efficiency of the clothes dryer.</description>
       <type>String</type>
       <units>lb/kWh</units>
       <required>true</required>
@@ -4399,25 +4312,6 @@
       <default_value>1</default_value>
     </argument>
     <argument>
-      <name>dishwasher_present</name>
-      <display_name>Dishwasher: Present</display_name>
-      <description>Whether there is a dishwasher.</description>
-      <type>Boolean</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>true</default_value>
-      <choices>
-        <choice>
-          <value>true</value>
-          <display_name>true</display_name>
-        </choice>
-        <choice>
-          <value>false</value>
-          <display_name>false</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
       <name>dishwasher_location</name>
       <display_name>Dishwasher: Location</display_name>
       <description>The space type for the dishwasher location.</description>
@@ -4429,6 +4323,10 @@
         <choice>
           <value>auto</value>
           <display_name>auto</display_name>
+        </choice>
+        <choice>
+          <value>none</value>
+          <display_name>none</display_name>
         </choice>
         <choice>
           <value>living space</value>
@@ -4562,25 +4460,6 @@
       <default_value>1</default_value>
     </argument>
     <argument>
-      <name>refrigerator_present</name>
-      <display_name>Refrigerator: Present</display_name>
-      <description>Whether there is a refrigerator.</description>
-      <type>Boolean</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>true</default_value>
-      <choices>
-        <choice>
-          <value>true</value>
-          <display_name>true</display_name>
-        </choice>
-        <choice>
-          <value>false</value>
-          <display_name>false</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
       <name>refrigerator_location</name>
       <display_name>Refrigerator: Location</display_name>
       <description>The space type for the refrigerator location.</description>
@@ -4592,6 +4471,10 @@
         <choice>
           <value>auto</value>
           <display_name>auto</display_name>
+        </choice>
+        <choice>
+          <value>none</value>
+          <display_name>none</display_name>
         </choice>
         <choice>
           <value>living space</value>
@@ -4647,25 +4530,6 @@
       <default_value>1</default_value>
     </argument>
     <argument>
-      <name>extra_refrigerator_present</name>
-      <display_name>Extra Refrigerator: Present</display_name>
-      <description>Whether there is an extra refrigerator.</description>
-      <type>Boolean</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>false</default_value>
-      <choices>
-        <choice>
-          <value>true</value>
-          <display_name>true</display_name>
-        </choice>
-        <choice>
-          <value>false</value>
-          <display_name>false</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
       <name>extra_refrigerator_location</name>
       <display_name>Extra Refrigerator: Location</display_name>
       <description>The space type for the extra refrigerator location.</description>
@@ -4677,6 +4541,10 @@
         <choice>
           <value>auto</value>
           <display_name>auto</display_name>
+        </choice>
+        <choice>
+          <value>none</value>
+          <display_name>none</display_name>
         </choice>
         <choice>
           <value>living space</value>
@@ -4732,25 +4600,6 @@
       <default_value>1</default_value>
     </argument>
     <argument>
-      <name>freezer_present</name>
-      <display_name>Freezer: Present</display_name>
-      <description>Whether there is a freezer.</description>
-      <type>Boolean</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>false</default_value>
-      <choices>
-        <choice>
-          <value>true</value>
-          <display_name>true</display_name>
-        </choice>
-        <choice>
-          <value>false</value>
-          <display_name>false</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
       <name>freezer_location</name>
       <display_name>Freezer: Location</display_name>
       <description>The space type for the freezer location.</description>
@@ -4762,6 +4611,10 @@
         <choice>
           <value>auto</value>
           <display_name>auto</display_name>
+        </choice>
+        <choice>
+          <value>none</value>
+          <display_name>none</display_name>
         </choice>
         <choice>
           <value>living space</value>
@@ -4817,25 +4670,6 @@
       <default_value>1</default_value>
     </argument>
     <argument>
-      <name>cooking_range_oven_present</name>
-      <display_name>Cooking Range/Oven: Present</display_name>
-      <description>Whether there is a cooking range/oven.</description>
-      <type>Boolean</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>true</default_value>
-      <choices>
-        <choice>
-          <value>true</value>
-          <display_name>true</display_name>
-        </choice>
-        <choice>
-          <value>false</value>
-          <display_name>false</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
       <name>cooking_range_oven_location</name>
       <display_name>Cooking Range/Oven: Location</display_name>
       <description>The space type for the cooking range/oven location.</description>
@@ -4847,6 +4681,10 @@
         <choice>
           <value>auto</value>
           <display_name>auto</display_name>
+        </choice>
+        <choice>
+          <value>none</value>
+          <display_name>none</display_name>
         </choice>
         <choice>
           <value>living space</value>
@@ -5105,7 +4943,7 @@
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>0</default_value>
+      <default_value>1</default_value>
     </argument>
     <argument>
       <name>plug_loads_vehicle_present</name>
@@ -5143,7 +4981,7 @@
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>0</default_value>
+      <default_value>1</default_value>
     </argument>
     <argument>
       <name>fuel_loads_grill_present</name>
@@ -5739,6 +5577,54 @@
       <model_dependent>false</model_dependent>
       <default_value>auto</default_value>
     </argument>
+    <argument>
+      <name>cooling_system_rated_cfm_per_ton</name>
+      <display_name>Cooling System: Rated CFM Per Ton</display_name>
+      <type>Double</type>
+      <units>cfm/ton</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>cooling_system_actual_cfm_per_ton</name>
+      <display_name>Cooling System: Actual CFM Per Ton</display_name>
+      <type>Double</type>
+      <units>cfm/ton</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>cooling_system_frac_manufacturer_charge</name>
+      <display_name>Cooling System: Fraction of Manufacturer Recommended Charge</display_name>
+      <type>Double</type>
+      <units>Frac</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>heat_pump_rated_cfm_per_ton</name>
+      <display_name>Heat Pump: Rated CFM Per Ton</display_name>
+      <type>Double</type>
+      <units>cfm/ton</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>heat_pump_actual_cfm_per_ton</name>
+      <display_name>Heat Pump: Actual CFM Per Ton</display_name>
+      <type>Double</type>
+      <units>cfm/ton</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>heat_pump_frac_manufacturer_charge</name>
+      <display_name>Heat Pump: Fraction of Manufacturer Recommended Charge</display_name>
+      <type>Double</type>
+      <units>Frac</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
   </arguments>
   <outputs />
   <provenances />
@@ -5757,7 +5643,7 @@
       <filename>constants.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>F51C36B4</checksum>
+      <checksum>7D40C91D</checksum>
     </file>
     <file>
       <version>
@@ -5768,7 +5654,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>45BB7968</checksum>
+      <checksum>EDF825C8</checksum>
     </file>
   </files>
 </measure>
