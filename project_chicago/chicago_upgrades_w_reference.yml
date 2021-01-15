@@ -1917,6 +1917,25 @@ upgrades:
 ####Group 3: Easy Swaps
 
 ## Smart Thermostats #01
+  - upgrade_name: Smart Thermostat
+    options:
+      - option: Heating Setpoint Offset Magnitude|4F
+        apply_logic: 
+          or:
+            - Heating Setpoint Offset Magnitude|0F
+            - Heating Setpoint Offset Magnitude|3F
+        costs:
+          - value: 300 #Google guess
+            multiplier: Fixed (1)
+        lifetime: 13
+      - option: Cooling Setpoint Offset Magnitude|4F
+        apply_logic: 
+          or:
+            - Cooling Setpoint Offset Magnitude|0F
+            - Cooling Setpoint Offset Magnitude|2F
+        costs:
+          - value: 0 # Covered in Heating Setpoint Offset
+            multiplier: Fixed (1)
 
 ### Need to develop, can't transfer from other repo
 
