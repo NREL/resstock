@@ -1,4 +1,5 @@
-## ResStock v2.4.0 (pending)
+## ResStock v2.4.0
+###### January 21, 2021 - [Diff](https://github.com/NREL/OpenStudio-BuildStock/compare/v2.3.0...v2.4.0)
 
 Features
 - Report the annual peak use and timing using the quantities of interest measure ([#458](https://github.com/NREL/resstock/pull/458))
