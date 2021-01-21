@@ -249,7 +249,7 @@ class SimulationOutputReportTest < MiniTest::Test
       "Roof Area (ft^2)" => 279.5,
       "Window Area (ft^2)" => 124.62,
       "Door Area (ft^2)" => 20,
-      "Duct Surface Area (ft^2)" => 555,
+      "Duct Surface Area (ft^2)" => 138.75,
       "Size, Heating System (kBtu/h)" => 100,
       "Size, Heating Supplemental System (kBtu/h)" => 0, # backup
       "Size, Cooling System (kBtu/h)" => 36,
@@ -270,7 +270,7 @@ class SimulationOutputReportTest < MiniTest::Test
       "Roof Area (ft^2)" => 0,
       "Window Area (ft^2)" => 67.2,
       "Door Area (ft^2)" => 20,
-      "Duct Surface Area (ft^2)" => 1110,
+      "Duct Surface Area (ft^2)" => 138.75,
       "Size, Heating System (kBtu/h)" => 100,
       "Size, Heating Supplemental System (kBtu/h)" => 0, # backup
       "Size, Cooling System (kBtu/h)" => 60,
@@ -291,7 +291,7 @@ class SimulationOutputReportTest < MiniTest::Test
       "Roof Area (ft^2)" => 279.5,
       "Window Area (ft^2)" => 124.62,
       "Door Area (ft^2)" => 20,
-      "Duct Surface Area (ft^2)" => 555,
+      "Duct Surface Area (ft^2)" => 138.75,
       "Size, Heating System (kBtu/h)" => 100,
       "Size, Heating Supplemental System (kBtu/h)" => 0, # backup
       "Size, Cooling System (kBtu/h)" => 36,
@@ -312,7 +312,7 @@ class SimulationOutputReportTest < MiniTest::Test
       "Roof Area (ft^2)" => 0,
       "Window Area (ft^2)" => 67.2,
       "Door Area (ft^2)" => 20,
-      "Duct Surface Area (ft^2)" => 1110,
+      "Duct Surface Area (ft^2)" => 138.75,
       "Size, Heating System (kBtu/h)" => 100,
       "Size, Heating Supplemental System (kBtu/h)" => 0, # backup
       "Size, Cooling System (kBtu/h)" => 60,
@@ -333,7 +333,7 @@ class SimulationOutputReportTest < MiniTest::Test
       "Roof Area (ft^2)" => 279.5,
       "Window Area (ft^2)" => 124.62,
       "Door Area (ft^2)" => 20,
-      "Duct Surface Area (ft^2)" => 555,
+      "Duct Surface Area (ft^2)" => 138.75,
       "Size, Heating System (kBtu/h)" => 60,
       "Size, Heating Supplemental System (kBtu/h)" => 100, # backup
       "Size, Cooling System (kBtu/h)" => 60,
@@ -376,7 +376,7 @@ class SimulationOutputReportTest < MiniTest::Test
       "Roof Area (ft^2)" => 0,
       "Window Area (ft^2)" => 67.2,
       "Door Area (ft^2)" => 20,
-      "Duct Surface Area (ft^2)" => 1110,
+      "Duct Surface Area (ft^2)" => 138.75,
       "Size, Heating System (kBtu/h)" => 60,
       "Size, Heating Supplemental System (kBtu/h)" => 100, # backup
       "Size, Cooling System (kBtu/h)" => 60,
@@ -397,7 +397,7 @@ class SimulationOutputReportTest < MiniTest::Test
       "Roof Area (ft^2)" => 583,
       "Window Area (ft^2)" => 67.2,
       "Door Area (ft^2)" => 20 * 1,
-      "Duct Surface Area (ft^2)" => 1280,
+      "Duct Surface Area (ft^2)" => 160,
       "Size, Heating System (kBtu/h)" => 100 * 1,
       "Size, Heating Supplemental System (kBtu/h)" => 0, # backup
       "Size, Cooling System (kBtu/h)" => 60 * 1,
