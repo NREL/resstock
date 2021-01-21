@@ -14,7 +14,7 @@ else
   resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../HPXMLtoOpenStudio/resources'))
 end
 require File.join(resources_path, 'meta_measure')
-require File.join(resources_path, 'hpxml')
+require File.join(resources_path, 'unit_conversions')
 
 require_relative 'resources/constants'
 
@@ -64,6 +64,7 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
       'Door Area (ft^2)' => 'door_area_ft_2',
       'Duct Surface Area (ft^2)' => 'duct_surface_area_ft_2',
       'Size, Heating System (kBtu/h)' => 'size_heating_system_kbtu_h',
+      'Size, Heating Supplemental System (kBtu/h)' => 'size_heating_supp_system_kbtu_h',
       'Size, Cooling System (kBtu/h)' => 'size_cooling_system_kbtu_h',
       'Size, Water Heater (gal)' => 'size_water_heater_gal'
     }
@@ -86,7 +87,8 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
       return false
     end
 
-    hpxml_path = File.expand_path('../existing.xml')
+    # retrieve the hpxml
+    hpxml_path = File.expand_path('../in.xml') # this is the defaulted hpxml
     hpxml = HPXML.new(hpxml_path: hpxml_path)
 
     # Report cost multipliers
@@ -174,32 +176,103 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
 
   def get_cost_multiplier(cost_mult_type, hpxml, runner)
     cost_mult = 0.0
-    if cost_mult_type == 'Wall Area, Above-Grade, Conditioned (ft^2)'
+    if cost_mult_type == 'Fixed (1)'
+      cost_mult += 1.0
+    elsif cost_mult_type == 'Wall Area, Above-Grade, Conditioned (ft^2)'
+      hpxml.walls.each do |wall|
+        next unless wall.is_thermal_boundary
 
+        cost_mult += wall.area
+      end
     elsif cost_mult_type == 'Wall Area, Above-Grade, Exterior (ft^2)'
+      hpxml.walls.each do |wall|
+        next unless wall.is_exterior
 
+        cost_mult += wall.area
+      end
     elsif cost_mult_type == 'Wall Area, Below-Grade (ft^2)'
-
+      hpxml.foundation_walls.each do |foundation_wall|
+        cost_mult += foundation_wall.area
+      end
     elsif cost_mult_type == 'Floor Area, Conditioned (ft^2)'
       cost_mult += hpxml.building_construction.conditioned_floor_area
     elsif cost_mult_type == 'Floor Area, Attic (ft^2)'
+      hpxml.frame_floors.each do |frame_floor|
+        next unless frame_floor.is_thermal_boundary
+        next unless frame_floor.is_interior
 
+        if frame_floor.is_floor
+          next unless [HPXML::LocationAtticVented, HPXML::LocationAtticUnvented].include?(frame_floor.interior_adjacent_to)
+        elsif frame_floor.is_ceiling
+          next unless [HPXML::LocationAtticVented, HPXML::LocationAtticUnvented].include?(frame_floor.exterior_adjacent_to)
+        end
+
+        cost_mult += frame_floor.area
+      end
     elsif cost_mult_type == 'Floor Area, Lighting (ft^2)'
+      cost_mult += hpxml.building_construction.conditioned_floor_area
+      hpxml.slabs.each do |slab|
+        next unless [HPXML::LocationGarage].include?(slab.interior_adjacent_to)
 
+        cost_mult += slab.area
+      end
     elsif cost_mult_type == 'Roof Area (ft^2)'
-
+      hpxml.roofs.each do |roof|
+        cost_mult += roof.area
+      end
     elsif cost_mult_type == 'Window Area (ft^2)'
-
+      hpxml.windows.each do |window|
+        cost_mult += window.area
+      end
     elsif cost_mult_type == 'Door Area (ft^2)'
-
+      hpxml.doors.each do |door|
+        cost_mult += door.area
+      end
     elsif cost_mult_type == 'Duct Surface Area (ft^2)'
-
+      hpxml.hvac_distributions.each do |hvac_distribution|
+        hvac_distribution.ducts.each do |duct|
+          cost_mult += duct.duct_surface_area
+        end
+      end
     elsif cost_mult_type == 'Size, Heating System (kBtu/h)'
+      hpxml.heating_systems.each do |heating_system|
+        next if heating_system.heating_capacity.nil? # FIXME
 
+        cost_mult += UnitConversions.convert(heating_system.heating_capacity, 'btu/hr', 'kbtu/hr')
+      end
+      hpxml.heat_pumps.each do |heat_pump|
+        next if heat_pump.heating_capacity.nil? # FIXME
+
+        cost_mult += UnitConversions.convert(heat_pump.heating_capacity, 'btu/hr', 'kbtu/hr')
+      end
+    elsif cost_mult_type == 'Size, Heating Supplemental System (kBtu/h)'
+      heating_systems = {}
+      hpxml.heating_systems.each do |heating_system|
+        next if heating_system.fraction_heat_load_served == 1.0
+
+        heating_systems[heating_system] = heating_system.fraction_heat_load_served
+      end
+      if heating_systems.size == 2
+        heating_systems = heating_systems.sort_by{|k, v| v}
+        cost_mult += heating_systems.values[0] # lowest frac
+      end
     elsif cost_mult_type == 'Size, Cooling System (kBtu/h)'
+      hpxml.cooling_systems.each do |cooling_system|
+        next if cooling_system.cooling_capacity.nil? # FIXME
 
+        cost_mult += UnitConversions.convert(cooling_system.cooling_capacity, 'btu/hr', 'kbtu/hr')
+      end
+      hpxml.heat_pumps.each do |heat_pump|
+        next if heat_pump.cooling_capacity.nil? # FIXME
+
+        cost_mult += UnitConversions.convert(heat_pump.cooling_capacity, 'btu/hr', 'kbtu/hr')
+      end
     elsif cost_mult_type == 'Size, Water Heater (gal)'
+      hpxml.water_heating_systems.each do |water_heating_system|
+        next if water_heating_system.tank_volume.nil?
 
+        cost_mult += water_heating_system.tank_volume
+      end
     end
     return cost_mult
   end # end get_cost_multiplier

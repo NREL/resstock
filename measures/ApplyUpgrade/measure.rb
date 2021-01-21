@@ -84,6 +84,7 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
           'Door Area (ft^2)',
           'Duct Surface Area (ft^2)',
           'Size, Heating System (kBtu/h)',
+          'Size, Heating Supplemental System (kBtu/h)',
           'Size, Cooling System (kBtu/h)',
           'Size, Water Heater (gal)',
         ]
