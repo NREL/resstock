@@ -476,8 +476,6 @@ class RunOSWs
   def self.get_simulation_output_report(result, rows)
     result = result.merge(rows['SimulationOutputReport'])
     result.delete('applicable')
-    result.delete('upgrade_name')
-    result.delete('upgrade_cost_usd')
     return result
   end
 

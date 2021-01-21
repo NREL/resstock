@@ -38,7 +38,6 @@ class TestResStockMeasuresOSW < MiniTest::Test
         puts "\nBuilding Unit ID: #{building_unit_id} ...\n"
 
         change_building_unit_id(osw, building_unit_id)
-        RunOSWs.add_simulation_output_report(osw)
         out_osw, result = RunOSWs.run_and_check(osw, parent_dir)
         result['OSW'] = "#{building_unit_id}.osw"
         all_results << result
