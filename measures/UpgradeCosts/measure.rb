@@ -62,7 +62,7 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
       'Roof Area (ft^2)' => 'roof_area_ft_2',
       'Window Area (ft^2)' => 'window_area_ft_2',
       'Door Area (ft^2)' => 'door_area_ft_2',
-      'Duct Surface Area (ft^2)' => 'duct_surface_area_ft_2',
+      'Duct Unconditioned Surface Area (ft^2)' => 'duct_unconditioned_surface_area_ft_2',
       'Size, Heating System (kBtu/h)' => 'size_heating_system_kbtu_h',
       'Size, Heating Supplemental System (kBtu/h)' => 'size_heating_supp_system_kbtu_h',
       'Size, Cooling System (kBtu/h)' => 'size_cooling_system_kbtu_h',
@@ -200,12 +200,8 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
       hpxml.frame_floors.each do |frame_floor|
         next unless frame_floor.is_thermal_boundary
         next unless frame_floor.is_interior
-
-        if frame_floor.is_floor
-          next unless [HPXML::LocationAtticVented, HPXML::LocationAtticUnvented].include?(frame_floor.interior_adjacent_to)
-        elsif frame_floor.is_ceiling
-          next unless [HPXML::LocationAtticVented, HPXML::LocationAtticUnvented].include?(frame_floor.exterior_adjacent_to)
-        end
+        next unless frame_floor.is_ceiling
+        next unless [HPXML::LocationAtticVented, HPXML::LocationAtticUnvented].include?(frame_floor.exterior_adjacent_to)
 
         cost_mult += frame_floor.area
       end
@@ -228,14 +224,17 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
       hpxml.doors.each do |door|
         cost_mult += door.area
       end
-    elsif cost_mult_type == 'Duct Surface Area (ft^2)'
+    elsif cost_mult_type == 'Duct Unconditioned Surface Area (ft^2)'
       hpxml.hvac_distributions.each do |hvac_distribution|
         hvac_distribution.ducts.each do |duct|
+          next if [HPXML::LocationLivingSpace, HPXML::LocationBasementConditioned].include?(duct.duct_location)
+
           cost_mult += duct.duct_surface_area
         end
       end
     elsif cost_mult_type == 'Size, Heating System (kBtu/h)'
       hpxml.heating_systems.each do |heating_system|
+        next if heating_system.fraction_heat_load_served != 1.0
         next if heating_system.heating_capacity.nil? # FIXME
 
         cost_mult += UnitConversions.convert(heating_system.heating_capacity, 'btu/hr', 'kbtu/hr')
@@ -249,12 +248,13 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
       heating_systems = {}
       hpxml.heating_systems.each do |heating_system|
         next if heating_system.fraction_heat_load_served == 1.0
+        next if heating_system.heating_capacity.nil? # FIXME
 
         heating_systems[heating_system] = heating_system.fraction_heat_load_served
       end
       if heating_systems.size == 2
-        heating_systems = heating_systems.sort_by{|k, v| v}
-        cost_mult += heating_systems.values[0] # lowest frac
+        heating_systems = heating_systems.sort_by { |k, v| v }
+        cost_mult += UnitConversions.convert(heating_systems.keys[0].heating_capacity, 'btu/hr', 'kbtu/hr') # lowest frac
       end
     elsif cost_mult_type == 'Size, Cooling System (kBtu/h)'
       hpxml.cooling_systems.each do |cooling_system|
