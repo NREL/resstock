@@ -233,11 +233,14 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
         end
       end
     elsif cost_mult_type == 'Size, Heating System (kBtu/h)'
+      heating_systems = {}
       hpxml.heating_systems.each do |heating_system|
-        next if heating_system.fraction_heat_load_served != 1.0
         next if heating_system.heating_capacity.nil? # FIXME
 
-        cost_mult += UnitConversions.convert(heating_system.heating_capacity, 'btu/hr', 'kbtu/hr')
+        heating_systems[heating_system] = heating_system.fraction_heat_load_served
+      end
+      if heating_systems.size == 1
+        cost_mult += UnitConversions.convert(heating_systems.keys[0].heating_capacity, 'btu/hr', 'kbtu/hr')
       end
       hpxml.heat_pumps.each do |heat_pump|
         next if heat_pump.heating_capacity.nil? # FIXME
@@ -247,14 +250,13 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
     elsif cost_mult_type == 'Size, Heating Supplemental System (kBtu/h)'
       heating_systems = {}
       hpxml.heating_systems.each do |heating_system|
-        next if heating_system.fraction_heat_load_served == 1.0
         next if heating_system.heating_capacity.nil? # FIXME
 
         heating_systems[heating_system] = heating_system.fraction_heat_load_served
       end
       if heating_systems.size == 2
-        heating_systems = heating_systems.sort_by { |k, v| v }
-        cost_mult += UnitConversions.convert(heating_systems.keys[0].heating_capacity, 'btu/hr', 'kbtu/hr') # lowest frac
+        heating_systems = heating_systems.sort_by { |k, v| v } # sort smallest frac to largest frac
+        cost_mult += UnitConversions.convert(heating_systems.keys[0].heating_capacity, 'btu/hr', 'kbtu/hr')
       end
     elsif cost_mult_type == 'Size, Cooling System (kBtu/h)'
       hpxml.cooling_systems.each do |cooling_system|
