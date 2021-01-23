@@ -227,6 +227,7 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
     elsif cost_mult_type == 'Duct Unconditioned Surface Area (ft^2)'
       hpxml.hvac_distributions.each do |hvac_distribution|
         hvac_distribution.ducts.each do |duct|
+          next if duct.duct_surface_area.nil?
           next if [HPXML::LocationLivingSpace, HPXML::LocationBasementConditioned].include?(duct.duct_location)
 
           cost_mult += duct.duct_surface_area
@@ -242,6 +243,7 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
       if heating_systems.size == 1
         cost_mult += UnitConversions.convert(heating_systems.keys[0].heating_capacity, 'btu/hr', 'kbtu/hr')
       end
+
       hpxml.heat_pumps.each do |heat_pump|
         next if heat_pump.heating_capacity.nil? # FIXME
 
@@ -258,12 +260,19 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
         heating_systems = heating_systems.sort_by { |k, v| v } # sort smallest frac to largest frac
         cost_mult += UnitConversions.convert(heating_systems.keys[0].heating_capacity, 'btu/hr', 'kbtu/hr')
       end
+
+      hpxml.heat_pumps.each do |heat_pump|
+        next if heat_pump.backup_heating_capacity.nil?
+
+        cost_mult += UnitConversions.convert(heat_pump.backup_heating_capacity, 'btu/hr', 'kbtu/hr')
+      end
     elsif cost_mult_type == 'Size, Cooling System (kBtu/h)'
       hpxml.cooling_systems.each do |cooling_system|
         next if cooling_system.cooling_capacity.nil? # FIXME
 
         cost_mult += UnitConversions.convert(cooling_system.cooling_capacity, 'btu/hr', 'kbtu/hr')
       end
+
       hpxml.heat_pumps.each do |heat_pump|
         next if heat_pump.cooling_capacity.nil? # FIXME
 
