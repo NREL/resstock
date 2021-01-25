@@ -17,7 +17,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Conditioned (ft^2)' => 4500,
       'Floor Area, Attic (ft^2)' => 2250,
       'Floor Area, Lighting (ft^2)' => 4788,
-      # 'Roof Area (ft^2)' => 2837.57,
+      'Roof Area (ft^2)' => 2837.57,
       # 'Window Area (ft^2)' => 168.74,
       'Door Area (ft^2)' => 30,
       'Duct Unconditioned Surface Area (ft^2)' => 0, # excludes ducts in conditioned space
@@ -80,7 +80,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Conditioned (ft^2)' => 4500,
       'Floor Area, Attic (ft^2)' => 4500,
       'Floor Area, Lighting (ft^2)' => 4788,
-      # 'Roof Area (ft^2)' => 5353.15,
+      'Roof Area (ft^2)' => 5353.15,
       # 'Window Area (ft^2)' => 352.22,
       'Door Area (ft^2)' => 20,
       'Duct Unconditioned Surface Area (ft^2)' => 1440,
@@ -201,7 +201,7 @@ class UpgradeCostsTest < MiniTest::Test
     cost_multipliers = {
       'Fixed (1)' => 1,
       'Wall Area, Above-Grade, Conditioned (ft^2)' => 2111.89,
-      # 'Wall Area, Above-Grade, Exterior (ft^2)' => 2778.75,
+      'Wall Area, Above-Grade, Exterior (ft^2)' => 2111.89 + 69.0 * 2,
       'Wall Area, Below-Grade (ft^2)' => 0,
       'Floor Area, Conditioned (ft^2)' => 2000,
       'Floor Area, Attic (ft^2)' => 1000,
@@ -307,11 +307,11 @@ class UpgradeCostsTest < MiniTest::Test
       'Fixed (1)' => 1,
       'Wall Area, Above-Grade, Conditioned (ft^2)' => 585.05,
       'Wall Area, Above-Grade, Exterior (ft^2)' => 622.5,
-      "Wall Area, Below-Grade (ft^2)" => 77.0 * 2 + 139.0,
+      'Wall Area, Below-Grade (ft^2)' => 77.0 * 2 + 139.0,
       'Floor Area, Conditioned (ft^2)' => 500,
       'Floor Area, Attic (ft^2)' => 166.66,
       'Floor Area, Lighting (ft^2)' => 500,
-      # "Roof Area (ft^2)" => 745.36,
+      'Roof Area (ft^2)' => 93.0 * 2,
       # "Window Area (ft^2)" => 304.05,
       'Door Area (ft^2)' => 20,
       'Duct Unconditioned Surface Area (ft^2)' => 0, # boiler and roomac don't have ducts
@@ -327,7 +327,7 @@ class UpgradeCostsTest < MiniTest::Test
     cost_multipliers = {
       'Fixed (1)' => 1,
       'Wall Area, Above-Grade, Conditioned (ft^2)' => 133.3 + 240,
-      # 'Wall Area, Above-Grade, Exterior (ft^2)' => 133.3 + 240 + 40.03,
+      # 'Wall Area, Above-Grade, Exterior (ft^2)' => 133.3 + 240 + 40.03, # FIXME: what is the 40?
       # 'Wall Area, Below-Grade (ft^2)' => 133.3 + 240 + 40.03,
       'Floor Area, Conditioned (ft^2)' => 500,
       'Floor Area, Attic (ft^2)' => 0,
@@ -395,7 +395,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Conditioned (ft^2)' => 500,
       'Floor Area, Attic (ft^2)' => 0,
       'Floor Area, Lighting (ft^2)' => 500,
-      # 'Roof Area (ft^2)' => 583,
+      'Roof Area (ft^2)' => 500, # shouldn't include corridor roof
       # 'Window Area (ft^2)' => 67.2,
       'Door Area (ft^2)' => 0, # door is in the corridor
       # 'Duct Unconditioned Surface Area (ft^2)' => 138.75,
@@ -423,22 +423,23 @@ class UpgradeCostsTest < MiniTest::Test
     measures_dir = File.join(File.dirname(__FILE__), osw_hash['measure_paths'][0])
     osw_hash['steps'].each do |step|
       measures[step['measure_dir_name']] = [step['arguments']]
-      model = OpenStudio::Model::Model.new
-      runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
-
-      # Apply measure
-      success = apply_measures(measures_dir, measures, runner, model)
-
-      # Report warnings/errors
-      runner.result.stepWarnings.each do |s|
-        puts "Warning: #{s}"
-      end
-      runner.result.stepErrors.each do |s|
-        puts "Error: #{s}"
-      end
-
-      assert(success)
     end
+
+    model = OpenStudio::Model::Model.new
+    runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
+
+    # Apply measure
+    success = apply_measures(measures_dir, measures, runner, model)
+
+    # Report warnings/errors
+    runner.result.stepWarnings.each do |s|
+      puts "Warning: #{s}"
+    end
+    runner.result.stepErrors.each do |s|
+      puts "Error: #{s}"
+    end
+
+    assert(success)
 
     hpxml_path = File.join(this_dir, 'in.xml')
     hpxml = HPXML.new(hpxml_path: hpxml_path)
