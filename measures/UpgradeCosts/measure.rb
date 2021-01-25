@@ -192,6 +192,8 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
       end
     elsif cost_mult_type == 'Wall Area, Below-Grade (ft^2)'
       hpxml.foundation_walls.each do |foundation_wall|
+        next unless foundation_wall.is_exterior
+
         cost_mult += foundation_wall.area
       end
     elsif cost_mult_type == 'Floor Area, Conditioned (ft^2)'
@@ -227,7 +229,6 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
     elsif cost_mult_type == 'Duct Unconditioned Surface Area (ft^2)'
       hpxml.hvac_distributions.each do |hvac_distribution|
         hvac_distribution.ducts.each do |duct|
-          next if duct.duct_surface_area.nil?
           next if [HPXML::LocationLivingSpace, HPXML::LocationBasementConditioned].include?(duct.duct_location)
 
           cost_mult += duct.duct_surface_area
