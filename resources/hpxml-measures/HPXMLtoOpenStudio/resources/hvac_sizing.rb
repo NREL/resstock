@@ -3684,6 +3684,7 @@ class HVACSizing
 
   def self.set_installation_quality(model, hvac, hvac_final_values)
     # Installation quality EMS program
+    return if (hvac.ChargeDefectRatio.to_f.abs < 0.001) && (hvac.AirflowDefectRatioCooling.to_f.abs < 0.001) && (hvac.AirflowDefectRatioHeating.to_f.abs < 0.001)
     return if hvac.has_type(Constants.ObjectNameWaterLoopHeatPump)
 
     hvac.Objects.each do |object|
