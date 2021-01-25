@@ -5231,31 +5231,7 @@ class HPXMLFile
     st = space.spaceType.get
     space_type = st.standardsSpaceType.get
 
-    if ['vented crawlspace'].include? space_type
-      return HPXML::LocationCrawlspaceVented
-    elsif ['unvented crawlspace'].include? space_type
-      return HPXML::LocationCrawlspaceUnvented
-    elsif ['garage'].include? space_type
-      return HPXML::LocationGarage
-    elsif ['living space'].include? space_type
-      if Geometry.space_is_below_grade(space)
-        return HPXML::LocationBasementConditioned
-      else
-        return HPXML::LocationLivingSpace
-      end
-    elsif ['vented attic'].include? space_type
-      return HPXML::LocationAtticVented
-    elsif ['unvented attic'].include? space_type
-      return HPXML::LocationAtticUnvented
-    elsif ['unconditioned basement'].include? space_type
-      return HPXML::LocationBasementUnconditioned
-    elsif ['corridor'].include? space_type
-      return HPXML::LocationOtherHousingUnit
-    elsif ['ambient'].include? space_type
-      return HPXML::LocationOutside
-    else
-      fail "Unhandled SpaceType value (#{space_type}) for surface '#{surface.name}'."
-    end
+    return space_type
   end
 
   def self.get_surface_azimuth(surface, args)
