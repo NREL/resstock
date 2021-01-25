@@ -191,7 +191,6 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     args << arg
 
     unit_type_choices = OpenStudio::StringVector.new
-    unit_type_choices << HPXML::ResidentialTypeManufactured
     unit_type_choices << HPXML::ResidentialTypeSFD
     unit_type_choices << HPXML::ResidentialTypeSFA
     unit_type_choices << HPXML::ResidentialTypeApartment
@@ -212,7 +211,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('geometry_num_floors_above_grade', true)
     arg.setDisplayName('Geometry: Number of Floors')
     arg.setUnits('#')
-    arg.setDescription("The number of floors above grade (in the unit if #{HPXML::ResidentialTypeSFA}, and in the building if #{HPXML::ResidentialTypeApartment}).")
+    arg.setDescription("The number of floors above grade (in the unit if #{HPXML::ResidentialTypeSFD} or #{HPXML::ResidentialTypeSFA}, and in the building if #{HPXML::ResidentialTypeApartment}).")
     arg.setDefaultValue(2)
     args << arg
 
@@ -245,28 +244,28 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('geometry_corridor_position', corridor_position_choices, true)
     arg.setDisplayName('Geometry: Corridor Position')
-    arg.setDescription('The position of the corridor.')
+    arg.setDescription("The position of the corridor. Only applies to #{HPXML::ResidentialTypeSFA} and #{HPXML::ResidentialTypeApartment} units.")
     arg.setDefaultValue('Double-Loaded Interior')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('geometry_corridor_width', true)
     arg.setDisplayName('Geometry: Corridor Width')
     arg.setUnits('ft')
-    arg.setDescription('The width of the corridor.')
+    arg.setDescription("The width of the corridor. Only applies to #{HPXML::ResidentialTypeApartment} units.")
     arg.setDefaultValue(10.0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('geometry_inset_width', true)
     arg.setDisplayName('Geometry: Inset Width')
     arg.setUnits('ft')
-    arg.setDescription('The width of the inset.')
+    arg.setDescription("The width of the inset. Only applies to #{HPXML::ResidentialTypeApartment} units.")
     arg.setDefaultValue(0.0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('geometry_inset_depth', true)
     arg.setDisplayName('Geometry: Inset Depth')
     arg.setUnits('ft')
-    arg.setDescription('The depth of the inset.')
+    arg.setDescription("The depth of the inset. Only applies to #{HPXML::ResidentialTypeApartment} units.")
     arg.setDefaultValue(0.0)
     args << arg
 
@@ -276,35 +275,35 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('geometry_inset_position', inset_position_choices, true)
     arg.setDisplayName('Geometry: Inset Position')
-    arg.setDescription('The position of the inset.')
+    arg.setDescription("The position of the inset. Only applies to #{HPXML::ResidentialTypeApartment} units.")
     arg.setDefaultValue('Right')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('geometry_balcony_depth', true)
     arg.setDisplayName('Geometry: Balcony Depth')
     arg.setUnits('ft')
-    arg.setDescription('The depth of the balcony.')
+    arg.setDescription("The depth of the balcony. Only applies to #{HPXML::ResidentialTypeApartment} units.")
     arg.setDefaultValue(0.0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('geometry_garage_width', true)
     arg.setDisplayName('Geometry: Garage Width')
     arg.setUnits('ft')
-    arg.setDescription('The width of the garage. Enter zero for no garage.')
+    arg.setDescription("The width of the garage. Enter zero for no garage. Only applies to #{HPXML::ResidentialTypeSFD} units.")
     arg.setDefaultValue(0.0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('geometry_garage_depth', true)
     arg.setDisplayName('Geometry: Garage Depth')
     arg.setUnits('ft')
-    arg.setDescription('The depth of the garage.')
+    arg.setDescription("The depth of the garage. Only applies to #{HPXML::ResidentialTypeSFD} units.")
     arg.setDefaultValue(20.0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('geometry_garage_protrusion', true)
     arg.setDisplayName('Geometry: Garage Protrusion')
     arg.setUnits('frac')
-    arg.setDescription('The fraction of the garage that is protruding from the living space.')
+    arg.setDescription("The fraction of the garage that is protruding from the living space. Only applies to #{HPXML::ResidentialTypeSFD} units.")
     arg.setDefaultValue(0.0)
     args << arg
 
@@ -314,7 +313,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('geometry_garage_position', garage_position_choices, true)
     arg.setDisplayName('Geometry: Garage Position')
-    arg.setDescription('The position of the garage.')
+    arg.setDescription("The position of the garage. Only applies to #{HPXML::ResidentialTypeSFD} units.")
     arg.setDefaultValue('Right')
     args << arg
 
@@ -353,7 +352,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('geometry_roof_type', roof_type_choices, true)
     arg.setDisplayName('Geometry: Roof Type')
-    arg.setDescription('The roof type of the building.')
+    arg.setDescription("The roof type of the building. Assumed flat for #{HPXML::ResidentialTypeApartment} units.")
     arg.setDefaultValue('gable')
     args << arg
 
@@ -445,13 +444,13 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('geometry_building_num_units', false)
     arg.setDisplayName('Geometry: Building Number of Units')
     arg.setUnits('#')
-    arg.setDescription("The number of units in the building. This is required for #{HPXML::ResidentialTypeSFA} and #{HPXML::ResidentialTypeApartment} buildings.")
+    arg.setDescription("The number of units in the building. This is required for #{HPXML::ResidentialTypeSFA} and #{HPXML::ResidentialTypeApartment} units.")
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('geometry_building_num_bedrooms', false)
     arg.setDisplayName('Geometry: Building Number of Bedrooms')
     arg.setUnits('#')
-    arg.setDescription("The number of bedrooms in the building. This is required for #{HPXML::ResidentialTypeSFA} and #{HPXML::ResidentialTypeApartment} buildings with shared PV systems.")
+    arg.setDescription("The number of bedrooms in the building. This is required for #{HPXML::ResidentialTypeSFA} and #{HPXML::ResidentialTypeApartment} units with shared PV systems.")
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('floor_assembly_r', true)
@@ -3137,6 +3136,7 @@ class HPXMLFile
     elsif args[:geometry_unit_type] == HPXML::ResidentialTypeSFA
       success = Geometry.create_single_family_attached(runner: runner, model: model, **args)
     elsif args[:geometry_unit_type] == HPXML::ResidentialTypeApartment
+      args[:geometry_roof_type] = 'flat'
       success = Geometry.create_multifamily(runner: runner, model: model, **args)
     end
     return false if not success
@@ -3565,7 +3565,7 @@ class HPXMLFile
 
       exterior_adjacent_to = HPXML::LocationGround
       if surface.outsideBoundaryCondition == 'Adiabatic' # can be adjacent to foundation space
-        next if [HPXML::ResidentialTypeSFD, HPXML::ResidentialTypeManufactured].include? args[:geometry_unit_type] # these are surfaces for kiva
+        next if [HPXML::ResidentialTypeSFD].include? args[:geometry_unit_type] # these are surfaces for kiva
 
         adjacent_surface = get_adiabatic_adjacent_surface(model, surface)
         if adjacent_surface.nil? # adjacent to a space that is not explicitly in the model
@@ -4112,13 +4112,10 @@ class HPXMLFile
                                                                duct_leakage_value: args[:ducts_supply_leakage_value],
                                                                duct_leakage_total_or_to_outside: HPXML::DuctLeakageToOutside)
 
-    if not ([HPXML::HVACTypeEvaporativeCooler].include?(args[:cooling_system_type]) && args[:cooling_system_is_ducted])
-
-      hpxml.hvac_distributions[-1].duct_leakage_measurements.add(duct_type: HPXML::DuctTypeReturn,
-                                                                 duct_leakage_units: args[:ducts_return_leakage_units],
-                                                                 duct_leakage_value: args[:ducts_return_leakage_value],
-                                                                 duct_leakage_total_or_to_outside: HPXML::DuctLeakageToOutside)
-    end
+    hpxml.hvac_distributions[-1].duct_leakage_measurements.add(duct_type: HPXML::DuctTypeReturn,
+                                                               duct_leakage_units: args[:ducts_return_leakage_units],
+                                                               duct_leakage_value: args[:ducts_return_leakage_value],
+                                                               duct_leakage_total_or_to_outside: HPXML::DuctLeakageToOutside)
 
     # Ducts
     if args[:ducts_supply_location] != Constants.Auto

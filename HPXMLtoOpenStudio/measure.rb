@@ -302,70 +302,6 @@ class OSModel
   private
 
   def self.check_for_errors()
-    # Conditioned space
-    location = HPXML::LocationLivingSpace
-    if (@hpxml.roofs.select { |s| s.interior_adjacent_to == location }.size +
-        @hpxml.frame_floors.select { |s| s.is_ceiling && (s.interior_adjacent_to == location) }.size) == 0
-      fail 'There must be at least one ceiling/roof adjacent to conditioned space.'
-    end
-    if @hpxml.walls.select { |s| (s.interior_adjacent_to == location) && s.is_exterior }.size == 0
-      fail 'There must be at least one exterior wall adjacent to conditioned space.'
-    end
-    if (@hpxml.slabs.select { |s| [location, HPXML::LocationBasementConditioned].include? s.interior_adjacent_to }.size +
-        @hpxml.frame_floors.select { |s| s.is_floor && (s.interior_adjacent_to == location) }.size) == 0
-      fail 'There must be at least one floor/slab adjacent to conditioned space.'
-    end
-
-    # Basement/Crawlspace
-    [HPXML::LocationBasementConditioned,
-     HPXML::LocationBasementUnconditioned,
-     HPXML::LocationCrawlspaceVented,
-     HPXML::LocationCrawlspaceUnvented].each do |location|
-      next unless @hpxml.has_space_type(location)
-
-      if location != HPXML::LocationBasementConditioned # HPXML file doesn't need to have FrameFloor between living and conditioned basement
-        if @hpxml.frame_floors.select { |s| s.is_floor && (s.interior_adjacent_to == HPXML::LocationLivingSpace) && (s.exterior_adjacent_to == location) }.size == 0
-          fail "There must be at least one ceiling adjacent to #{location}."
-        end
-      end
-      if @hpxml.foundation_walls.select { |s| (s.interior_adjacent_to == location) && s.is_exterior }.size == 0
-        fail "There must be at least one exterior foundation wall adjacent to #{location}."
-      end
-      if @hpxml.slabs.select { |s| s.interior_adjacent_to == location }.size == 0
-        fail "There must be at least one slab adjacent to #{location}."
-      end
-    end
-
-    # Garage
-    location = HPXML::LocationGarage
-    if @hpxml.has_space_type(location)
-      if (@hpxml.roofs.select { |s| s.interior_adjacent_to == location }.size +
-          @hpxml.frame_floors.select { |s| [s.interior_adjacent_to, s.exterior_adjacent_to].include? location }.size) == 0
-        fail "There must be at least one roof/ceiling adjacent to #{location}."
-      end
-      if (@hpxml.walls.select { |s| (s.interior_adjacent_to == location) && s.is_exterior }.size +
-         @hpxml.foundation_walls.select { |s| [s.interior_adjacent_to, s.exterior_adjacent_to].include?(location) && s.is_exterior }.size) == 0
-        fail "There must be at least one exterior wall/foundation wall adjacent to #{location}."
-      end
-      if @hpxml.slabs.select { |s| s.interior_adjacent_to == location }.size == 0
-        fail "There must be at least one slab adjacent to #{location}."
-      end
-    end
-
-    # Attic
-    [HPXML::LocationAtticVented,
-     HPXML::LocationAtticUnvented].each do |location|
-      next unless @hpxml.has_space_type(location)
-
-      if @hpxml.roofs.select { |s| s.interior_adjacent_to == location }.size == 0
-        fail "There must be at least one roof adjacent to #{location}."
-      end
-
-      if @hpxml.frame_floors.select { |s| s.is_ceiling && [s.interior_adjacent_to, s.exterior_adjacent_to].include?(location) }.size == 0
-        fail "There must be at least one floor adjacent to #{location}."
-      end
-    end
-
     # Error-checking from RESNET Pub 002: Number of bedrooms
     nbeds = @hpxml.building_construction.number_of_bedrooms
     nbeds_limit = (@hpxml.building_construction.conditioned_floor_area - 120.0) / 70.0
@@ -2205,20 +2141,6 @@ class OSModel
     living_zone = spaces[HPXML::LocationLivingSpace].thermalZone.get
 
     @hpxml.heat_pumps.each do |heat_pump|
-      # FUTURE: Move these checks into hvac.rb
-      if not heat_pump.heating_capacity_17F.nil?
-        if heat_pump.heating_capacity.nil?
-          fail "HeatPump '#{heat_pump.id}' must have both HeatingCapacity and HeatingCapacity17F provided or not provided."
-        elsif heat_pump.heating_capacity == 0.0
-          heat_pump.heating_capacity_17F = nil
-        end
-      end
-      if not heat_pump.backup_heating_fuel.nil?
-        if heat_pump.backup_heating_capacity.nil? ^ heat_pump.heating_capacity.nil?
-          fail "HeatPump '#{heat_pump.id}' must have both HeatingCapacity and BackupHeatingCapacity provided or not provided."
-        end
-      end
-
       check_distribution_system(heat_pump.distribution_system, heat_pump.heat_pump_type)
 
       if heat_pump.heat_pump_type == HPXML::HVACTypeHeatPumpWaterLoopToAir
