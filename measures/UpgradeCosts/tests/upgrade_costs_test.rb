@@ -11,20 +11,20 @@ class UpgradeCostsTest < MiniTest::Test
   def test_SFD_1story_FB_UA_GRG_MSHP_FuelTanklessWH
     cost_multipliers = {
       'Fixed (1)' => 1,
-      'Wall Area, Above-Grade, Conditioned (ft^2)' => 1633.82,
-      'Wall Area, Above-Grade, Exterior (ft^2)' => 2176.31,
-      'Wall Area, Below-Grade (ft^2)' => 1633.82 - 192.0,
-      'Floor Area, Conditioned (ft^2)' => 4500,
-      'Floor Area, Attic (ft^2)' => 2250,
-      'Floor Area, Lighting (ft^2)' => 4788,
-      'Roof Area (ft^2)' => 2837.57,
-      'Window Area (ft^2)' => 0.12 * (1633.82 - 96.0 * 2),
-      'Door Area (ft^2)' => 30,
-      'Duct Unconditioned Surface Area (ft^2)' => 0, # excludes ducts in conditioned space
-      'Size, Heating System (kBtu/h)' => 60, # hp, not backup
-      'Size, Heating Supplemental System (kBtu/h)' => 100, # backup
-      'Size, Cooling System (kBtu/h)' => 60,
-      'Size, Water Heater (gal)' => 0,
+      'Wall Area, Above-Grade, Conditioned (ft^2)' => 196.0 + 96.0 * 2 + 429.0 + 292.0 + 525.0,
+      'Wall Area, Above-Grade, Exterior (ft^2)' => 196.0 + 429.0 + 166.0 * 2 + 96.0 * 2 + 18.0 + 192.0 + 292.0 + 525.0,
+      'Wall Area, Below-Grade (ft^2)' => 292.0 + 525.0 + 196.0 + 429.0,
+      'Floor Area, Conditioned (ft^2)' => 2250.0 * 2,
+      'Floor Area, Attic (ft^2)' => 2250.0,
+      'Floor Area, Lighting (ft^2)' => 2250.0 * 2 + 12.0 * 24.0,
+      'Roof Area (ft^2)' => 1338.0 + 101.0 * 2 + 1237.0 + 61.0,
+      'Window Area (ft^2)' => 0.12 * (196.0 + 96.0 * 2 + 429.0 + 292.0 + 525.0 - 96.0 * 2),
+      'Door Area (ft^2)' => 30.0,
+      'Duct Unconditioned Surface Area (ft^2)' => 0.0, # excludes ducts in conditioned space
+      'Size, Heating System (kBtu/h)' => 60.0, # hp, not backup
+      'Size, Heating Supplemental System (kBtu/h)' => 100.0, # backup
+      'Size, Cooling System (kBtu/h)' => 60.0,
+      'Size, Water Heater (gal)' => 0.0,
     }
     _test_cost_multipliers('SFD_1story_FB_UA_GRG_MSHP_FuelTanklessWH.osw', cost_multipliers)
   end
@@ -32,20 +32,20 @@ class UpgradeCostsTest < MiniTest::Test
   def test_SFD_1story_FB_UA_GRG_RoomAC_ElecBoiler_FuelTanklessWH
     cost_multipliers = {
       'Fixed (1)' => 1,
-      'Wall Area, Above-Grade, Conditioned (ft^2)' => 1129.42,
-      'Wall Area, Above-Grade, Exterior (ft^2)' => 1498.30,
-      'Wall Area, Below-Grade (ft^2)' => 1129.42 - 192.0,
-      'Floor Area, Conditioned (ft^2)' => 2000,
-      'Floor Area, Attic (ft^2)' => 1000,
-      'Floor Area, Lighting (ft^2)' => 2288,
-      'Roof Area (ft^2)' => 1440.03,
-      'Window Area (ft^2)' => 0.12 * (1129.42 - 96.0 * 2),
-      'Door Area (ft^2)' => 40,
-      'Duct Unconditioned Surface Area (ft^2)' => 0, # excludes ducts in conditioned space
-      'Size, Heating System (kBtu/h)' => 100,
-      'Size, Heating Supplemental System (kBtu/h)' => 0, # backup
-      'Size, Cooling System (kBtu/h)' => 36,
-      'Size, Water Heater (gal)' => 0,
+      'Wall Area, Above-Grade, Conditioned (ft^2)' => 106.0 + 96.0 * 2 + 267.0 + 202.0 + 363.0,
+      'Wall Area, Above-Grade, Exterior (ft^2)' => 106.0 + 267.0 + 79.0 * 2 + 96.0 * 2 + 18.0 + 192.0 + 202.0 + 363.0,
+      'Wall Area, Below-Grade (ft^2)' => 202.0 + 363.0 + 106.0 + 267.0,
+      'Floor Area, Conditioned (ft^2)' => 1000.0 * 2,
+      'Floor Area, Attic (ft^2)' => 1000.0,
+      'Floor Area, Lighting (ft^2)' => 1000.0 * 2 + 12.0 * 24.0,
+      'Roof Area (ft^2)' => 640.0 + 101.0 * 2 + 599.0,
+      'Window Area (ft^2)' => 0.12 * (106.0 + 96.0 * 2 + 267.0 + 202.0 + 363.0 - 96.0 * 2),
+      'Door Area (ft^2)' => 40.0,
+      'Duct Unconditioned Surface Area (ft^2)' => 0.0, # excludes ducts in conditioned space
+      'Size, Heating System (kBtu/h)' => 100.0,
+      'Size, Heating Supplemental System (kBtu/h)' => 0.0, # backup
+      'Size, Cooling System (kBtu/h)' => 36.0,
+      'Size, Water Heater (gal)' => 0.0,
     }
     _test_cost_multipliers('SFD_1story_FB_UA_GRG_RoomAC_ElecBoiler_FuelTanklessWH.osw', cost_multipliers)
   end
@@ -53,20 +53,20 @@ class UpgradeCostsTest < MiniTest::Test
   def test_SFD_1story_UB_UA_ASHP2_HPWH
     cost_multipliers = {
       'Fixed (1)' => 1,
-      'Wall Area, Above-Grade, Conditioned (ft^2)' => 1828.95,
-      'Wall Area, Above-Grade, Exterior (ft^2)' => 2245.61,
-      'Wall Area, Below-Grade (ft^2)' => 1828.95,
-      'Floor Area, Conditioned (ft^2)' => 3000,
-      'Floor Area, Attic (ft^2)' => 3000,
-      'Floor Area, Lighting (ft^2)' => 3000,
-      'Roof Area (ft^2)' => 3354.10,
-      'Window Area (ft^2)' => 0.12 * 1828.95,
-      'Door Area (ft^2)' => 40,
-      'Duct Unconditioned Surface Area (ft^2)' => 960,
-      'Size, Heating System (kBtu/h)' => 60, # hp, not backup
-      'Size, Heating Supplemental System (kBtu/h)' => 100, # backup
-      'Size, Cooling System (kBtu/h)' => 60,
-      'Size, Water Heater (gal)' => 50,
+      'Wall Area, Above-Grade, Conditioned (ft^2)' => 327.0 * 2 + 588.0 * 2,
+      'Wall Area, Above-Grade, Exterior (ft^2)' => 327.0 * 2 + 588.0 * 2 + 208.0 * 2,
+      'Wall Area, Below-Grade (ft^2)' => 327.0 * 2 + 588.0 * 2,
+      'Floor Area, Conditioned (ft^2)' => 3000.0,
+      'Floor Area, Attic (ft^2)' => 3000.0,
+      'Floor Area, Lighting (ft^2)' => 3000.0,
+      'Roof Area (ft^2)' => 1677.0 * 2,
+      'Window Area (ft^2)' => 0.12 * (327.0 * 2 + 588.0 * 2),
+      'Door Area (ft^2)' => 40.0,
+      'Duct Unconditioned Surface Area (ft^2)' => (0.27 * 3000.0) + (0.05 * 3000.0),
+      'Size, Heating System (kBtu/h)' => 60.0, # hp, not backup
+      'Size, Heating Supplemental System (kBtu/h)' => 100.0, # backup
+      'Size, Cooling System (kBtu/h)' => 60.0,
+      'Size, Water Heater (gal)' => 50.0,
     }
     _test_cost_multipliers('SFD_1story_UB_UA_ASHP2_HPWH.osw', cost_multipliers)
   end
@@ -74,20 +74,20 @@ class UpgradeCostsTest < MiniTest::Test
   def test_SFD_1story_UB_UA_GRG_ACV_FuelFurnace_HPWH
     cost_multipliers = {
       'Fixed (1)' => 1,
-      'Wall Area, Above-Grade, Conditioned (ft^2)' => 2275.56,
-      'Wall Area, Above-Grade, Exterior (ft^2)' => 3130.55,
-      'Wall Area, Below-Grade (ft^2)' => 2275.56 - 192.0,
-      'Floor Area, Conditioned (ft^2)' => 4500,
-      'Floor Area, Attic (ft^2)' => 4500,
-      'Floor Area, Lighting (ft^2)' => 4788,
-      'Roof Area (ft^2)' => 5353.15,
-      'Window Area (ft^2)' => 0.12 * (2275.56 - 96.0 * 2),
-      'Door Area (ft^2)' => 20,
-      'Duct Unconditioned Surface Area (ft^2)' => 1440,
-      'Size, Heating System (kBtu/h)' => 100,
-      'Size, Heating Supplemental System (kBtu/h)' => 0, # backup
-      'Size, Cooling System (kBtu/h)' => 60,
-      'Size, Water Heater (gal)' => 50,
+      'Wall Area, Above-Grade, Conditioned (ft^2)' => 310.0 + 96.0 * 2 + 635.0 + 406.0 + 731.0,
+      'Wall Area, Above-Grade, Exterior (ft^2)' => 310.0 + 635.0 + 323.0 * 2 + 96.0 * 2 + 18.0 + 192.0 + 406.0 + 731.0,
+      'Wall Area, Below-Grade (ft^2)' => 406.0 + 731.0 + 310.0 + 635.0,
+      'Floor Area, Conditioned (ft^2)' => 4500.0,
+      'Floor Area, Attic (ft^2)' => 4500.0,
+      'Floor Area, Lighting (ft^2)' => 4500.0 + 12.0 * 24.0,
+      'Roof Area (ft^2)' => 2596.0 + 101.0 * 2 + 2471.0 + 85.0,
+      'Window Area (ft^2)' => 0.12 * (310.0 + 96.0 * 2 + 635.0 + 406.0 + 731.0 - 96.0 * 2),
+      'Door Area (ft^2)' => 20.0,
+      'Duct Unconditioned Surface Area (ft^2)' => (0.27 * 4500.0) + (0.05 * 4500.0),
+      'Size, Heating System (kBtu/h)' => 100.0,
+      'Size, Heating Supplemental System (kBtu/h)' => 0.0, # backup
+      'Size, Cooling System (kBtu/h)' => 60.0,
+      'Size, Water Heater (gal)' => 50.0,
     }
     _test_cost_multipliers('SFD_1story_UB_UA_GRG_ACV_FuelFurnace_HPWH.osw', cost_multipliers)
   end
@@ -95,20 +95,20 @@ class UpgradeCostsTest < MiniTest::Test
   def test_SFD_2story_CS_UA_AC2_FuelBoiler_FuelTankWH
     cost_multipliers = {
       'Fixed (1)' => 1,
-      'Wall Area, Above-Grade, Conditioned (ft^2)' => 2111.88,
-      'Wall Area, Above-Grade, Exterior (ft^2)' => 2250.77,
-      'Wall Area, Below-Grade (ft^2)' => 527.97,
-      'Floor Area, Conditioned (ft^2)' => 2000,
-      'Floor Area, Attic (ft^2)' => 1000,
-      'Floor Area, Lighting (ft^2)' => 2000,
-      'Roof Area (ft^2)' => 1118.03,
-      'Window Area (ft^2)' => 0.12 * 2111.88,
-      'Door Area (ft^2)' => 20,
-      'Duct Unconditioned Surface Area (ft^2)' => 555,
-      'Size, Heating System (kBtu/h)' => 100,
-      'Size, Heating Supplemental System (kBtu/h)' => 0, # backup
-      'Size, Cooling System (kBtu/h)' => 60,
-      'Size, Water Heater (gal)' => 40,
+      'Wall Area, Above-Grade, Conditioned (ft^2)' => 189.0 * 4 + 339.0 * 4,
+      'Wall Area, Above-Grade, Exterior (ft^2)' => 189.0 * 4 + 339.0 * 4 + 69.0 * 2,
+      'Wall Area, Below-Grade (ft^2)' => 94.0 * 2 + 170.0 * 2,
+      'Floor Area, Conditioned (ft^2)' => 1000.0 * 2,
+      'Floor Area, Attic (ft^2)' => 1000.0,
+      'Floor Area, Lighting (ft^2)' => 1000.0 * 2,
+      'Roof Area (ft^2)' => 559.0 * 2,
+      'Window Area (ft^2)' => 0.12 * (189.0 * 4 + 339.0 * 4),
+      'Door Area (ft^2)' => 20.0,
+      'Duct Unconditioned Surface Area (ft^2)' => (0.75 * 0.27 * (1000.0 * 2)) + (0.75 * 0.05 * 2 * (1000.0 * 2)),
+      'Size, Heating System (kBtu/h)' => 100.0,
+      'Size, Heating Supplemental System (kBtu/h)' => 0.0, # backup
+      'Size, Cooling System (kBtu/h)' => 60.0,
+      'Size, Water Heater (gal)' => 40.0,
     }
     _test_cost_multipliers('SFD_2story_CS_UA_AC2_FuelBoiler_FuelTankWH.osw', cost_multipliers)
   end
@@ -116,20 +116,20 @@ class UpgradeCostsTest < MiniTest::Test
   def test_SFD_2story_CS_UA_GRG_ASHPV_FuelTanklessWH
     cost_multipliers = {
       'Fixed (1)' => 1,
-      'Wall Area, Above-Grade, Conditioned (ft^2)' => 2778.52,
-      'Wall Area, Above-Grade, Exterior (ft^2)' => 3196.86,
-      'Wall Area, Below-Grade (ft^2)' => 646.63 - 96.0,
-      'Floor Area, Conditioned (ft^2)' => 3000,
-      'Floor Area, Attic (ft^2)' => 1644,
-      'Floor Area, Lighting (ft^2)' => 3288,
-      'Roof Area (ft^2)' => 1838.05,
-      'Window Area (ft^2)' => 0.12 * (2778.52 - 96.0 * 2),
-      'Door Area (ft^2)' => 20,
-      'Duct Unconditioned Surface Area (ft^2)' => 832.5,
-      'Size, Heating System (kBtu/h)' => 60, # hp, not backup
-      'Size, Heating Supplemental System (kBtu/h)' => 100, # backup
-      'Size, Cooling System (kBtu/h)' => 60,
-      'Size, Water Heater (gal)' => 0,
+      'Wall Area, Above-Grade, Conditioned (ft^2)' => 135.0 + 96.0 * 4 + 320.0 * 2 + 231.0 * 2 + 416.0 * 2 + 327.0,
+      'Wall Area, Above-Grade, Exterior (ft^2)' => 135.0 + 320.0 * 2 + 231.0 * 2 + 416.0 * 2 + 327.0 + 96.0 * 4 + 104.0 * 2 + 192.0 + 18.0,
+      'Wall Area, Below-Grade (ft^2)' => 115.0 + 208.0 + 67.0 + 160.0,
+      'Floor Area, Conditioned (ft^2)' => 1500.0 * 2,
+      'Floor Area, Attic (ft^2)' => 1500.0 + 144.0,
+      'Floor Area, Lighting (ft^2)' => 1500.0 * 2 + 12.0 * 24.0,
+      'Roof Area (ft^2)' => 839.0 + 101.0 * 2 + 798.0,
+      'Window Area (ft^2)' => 0.12 * (135.0 + 96.0 * 4 + 320.0 * 2 + 231.0 * 2 + 416.0 * 2 + 327.0 - 96.0 * 2),
+      'Door Area (ft^2)' => 20.0,
+      'Duct Unconditioned Surface Area (ft^2)' => (0.75 * 0.27 * (1500.0 * 2)) + (0.75 * 0.05 * 2 * (1500.0 * 2)),
+      'Size, Heating System (kBtu/h)' => 60.0, # hp, not backup
+      'Size, Heating Supplemental System (kBtu/h)' => 100.0, # backup
+      'Size, Cooling System (kBtu/h)' => 60.0,
+      'Size, Water Heater (gal)' => 0.0,
     }
     _test_cost_multipliers('SFD_2story_CS_UA_GRG_ASHPV_FuelTanklessWH.osw', cost_multipliers)
   end
@@ -137,20 +137,20 @@ class UpgradeCostsTest < MiniTest::Test
   def test_SFD_2story_FB_UA_GRG_AC1_ElecBaseboard_FuelTankWH
     cost_multipliers = {
       'Fixed (1)' => 1,
-      'Wall Area, Above-Grade, Conditioned (ft^2)' => 2819.59,
-      'Wall Area, Above-Grade, Exterior (ft^2)' => 3244.58,
-      'Wall Area, Below-Grade (ft^2)' => 1313.79 - 192.0,
-      'Floor Area, Conditioned (ft^2)' => 4500,
-      'Floor Area, Attic (ft^2)' => 1692,
-      'Floor Area, Lighting (ft^2)' => 4788,
-      'Roof Area (ft^2)' => 1891.72,
+      'Wall Area, Above-Grade, Conditioned (ft^2)' => 139.0 + 96.0 * 4 + 326.0 * 2 + 235.0 * 2 + 422.0 * 2 + 331.0,
+      'Wall Area, Above-Grade, Exterior (ft^2)' => 139.0 + 326.0 * 2 + 235.0 * 2 + 422.0 * 2 + 331.0 + 96.0 * 4 + 107.0 * 2 + 192.0 + 18.0,
+      'Wall Area, Below-Grade (ft^2)' => 235.0 + 422.0 + 139.0 + 326.0,
+      'Floor Area, Conditioned (ft^2)' => 1500.0 * 3,
+      'Floor Area, Attic (ft^2)' => 1548.0 + 144.0,
+      'Floor Area, Lighting (ft^2)' => 1500.0 * 3 + 12.0 * 24.0,
+      'Roof Area (ft^2)' => 865.0 + 101.0 * 2 + 825.0,
       'Window Area (ft^2)' => 0.12 * (2819.59 - 96.0 * 2),
-      'Door Area (ft^2)' => 20,
-      'Duct Unconditioned Surface Area (ft^2)' => 0, # excludes ducts in conditioned space
-      'Size, Heating System (kBtu/h)' => 100,
-      'Size, Heating Supplemental System (kBtu/h)' => 0, # backup
-      'Size, Cooling System (kBtu/h)' => 60,
-      'Size, Water Heater (gal)' => 40,
+      'Door Area (ft^2)' => 20.0,
+      'Duct Unconditioned Surface Area (ft^2)' => 0.0, # excludes ducts in conditioned space
+      'Size, Heating System (kBtu/h)' => 100.0,
+      'Size, Heating Supplemental System (kBtu/h)' => 0.0, # backup
+      'Size, Cooling System (kBtu/h)' => 60.0,
+      'Size, Water Heater (gal)' => 40.0,
     }
     _test_cost_multipliers('SFD_2story_FB_UA_GRG_AC1_ElecBaseboard_FuelTankWH.osw', cost_multipliers)
   end
@@ -158,20 +158,20 @@ class UpgradeCostsTest < MiniTest::Test
   def test_SFD_2story_FB_UA_GRG_AC1_UnitHeater_FuelTankWH
     cost_multipliers = {
       'Fixed (1)' => 1,
-      'Wall Area, Above-Grade, Conditioned (ft^2)' => 2819.59,
-      'Wall Area, Above-Grade, Exterior (ft^2)' => 3244.58,
-      'Wall Area, Below-Grade (ft^2)' => 1313.79 - 192.0,
-      'Floor Area, Conditioned (ft^2)' => 4500,
-      'Floor Area, Attic (ft^2)' => 1692,
-      'Floor Area, Lighting (ft^2)' => 4788,
-      'Roof Area (ft^2)' => 1891.72,
+      'Wall Area, Above-Grade, Conditioned (ft^2)' => 139.0 + 96.0 * 4 + 326.0 * 2 + 235.0 * 2 + 422.0 * 2 + 331.0,
+      'Wall Area, Above-Grade, Exterior (ft^2)' => 139.0 + 326.0 * 2 + 235.0 * 2 + 422.0 * 2 + 331.0 + 96.0 * 4 + 107.0 * 2 + 192.0 + 18.0,
+      'Wall Area, Below-Grade (ft^2)' => 235.0 + 422.0 + 139.0 + 326.0,
+      'Floor Area, Conditioned (ft^2)' => 1500.0 * 3,
+      'Floor Area, Attic (ft^2)' => 1548.0 + 144.0,
+      'Floor Area, Lighting (ft^2)' => 1500.0 * 3 + 12.0 * 24.0,
+      'Roof Area (ft^2)' => 865.0 + 101.0 * 2 + 825.0,
       'Window Area (ft^2)' => 0.12 * (2819.59 - 96.0 * 2),
-      'Door Area (ft^2)' => 20,
-      'Duct Unconditioned Surface Area (ft^2)' => 0, # excludes ducts in conditioned space
-      'Size, Heating System (kBtu/h)' => 100,
-      'Size, Heating Supplemental System (kBtu/h)' => 0, # backup
-      'Size, Cooling System (kBtu/h)' => 60,
-      'Size, Water Heater (gal)' => 40,
+      'Door Area (ft^2)' => 20.0,
+      'Duct Unconditioned Surface Area (ft^2)' => 0.0, # excludes ducts in conditioned space
+      'Size, Heating System (kBtu/h)' => 100.0,
+      'Size, Heating Supplemental System (kBtu/h)' => 0.0, # backup
+      'Size, Cooling System (kBtu/h)' => 60.0,
+      'Size, Water Heater (gal)' => 40.0,
     }
     _test_cost_multipliers('SFD_2story_FB_UA_GRG_AC1_UnitHeater_FuelTankWH.osw', cost_multipliers)
   end
@@ -179,20 +179,20 @@ class UpgradeCostsTest < MiniTest::Test
   def test_SFD_2story_FB_UA_GRG_GSHP_ElecTanklessWH
     cost_multipliers = {
       'Fixed (1)' => 1,
-      'Wall Area, Above-Grade, Conditioned (ft^2)' => 2819.58,
-      'Wall Area, Above-Grade, Exterior (ft^2)' => 3244.58,
-      'Wall Area, Below-Grade (ft^2)' => 1313.79 - 192.0,
-      'Floor Area, Conditioned (ft^2)' => 4500,
-      'Floor Area, Attic (ft^2)' => 1692,
-      'Floor Area, Lighting (ft^2)' => 4788,
-      'Roof Area (ft^2)' => 1891.72,
-      'Window Area (ft^2)' => 0.12 * (2819.58 - 96.0 * 2),
-      'Door Area (ft^2)' => 30,
-      'Duct Unconditioned Surface Area (ft^2)' => 0, # excludes ducts in conditioned space
-      'Size, Heating System (kBtu/h)' => 60, # hp, not backup
-      'Size, Heating Supplemental System (kBtu/h)' => 100, # backup
-      'Size, Cooling System (kBtu/h)' => 60,
-      'Size, Water Heater (gal)' => 0,
+      'Wall Area, Above-Grade, Conditioned (ft^2)' => 139.0 + 96.0 * 4 + 326.0 * 2 + 235.0 * 2 + 422.0 * 2 + 331.0,
+      'Wall Area, Above-Grade, Exterior (ft^2)' => 139.0 + 326.0 * 2 + 235.0 * 2 + 422.0 * 2 + 331.0 + 96.0 * 4 + 107.0 * 2 + 192.0 + 18.0,
+      'Wall Area, Below-Grade (ft^2)' => 235.0 + 422.0 + 139.0 + 326.0,
+      'Floor Area, Conditioned (ft^2)' => 1500.0 * 3,
+      'Floor Area, Attic (ft^2)' => 1548.0 + 144.0,
+      'Floor Area, Lighting (ft^2)' => 1500.0 * 3 + 12.0 * 24.0,
+      'Roof Area (ft^2)' => 865.0 + 101.0 * 2 + 825.0,
+      'Window Area (ft^2)' => 0.12 * (2819.59 - 96.0 * 2),
+      'Door Area (ft^2)' => 30.0,
+      'Duct Unconditioned Surface Area (ft^2)' => 0.0, # excludes ducts in conditioned space
+      'Size, Heating System (kBtu/h)' => 60.0, # hp, not backup
+      'Size, Heating Supplemental System (kBtu/h)' => 100.0, # backup
+      'Size, Cooling System (kBtu/h)' => 60.0,
+      'Size, Water Heater (gal)' => 0.0,
     }
     _test_cost_multipliers('SFD_2story_FB_UA_GRG_GSHP_ElecTanklessWH.osw', cost_multipliers)
   end
@@ -200,20 +200,20 @@ class UpgradeCostsTest < MiniTest::Test
   def test_SFD_2story_PB_UA_ElecFurnace_ElecTankWH
     cost_multipliers = {
       'Fixed (1)' => 1,
-      'Wall Area, Above-Grade, Conditioned (ft^2)' => 2111.89,
-      'Wall Area, Above-Grade, Exterior (ft^2)' => 2111.89 + 69.0 * 2,
-      'Wall Area, Below-Grade (ft^2)' => 0,
-      'Floor Area, Conditioned (ft^2)' => 2000,
-      'Floor Area, Attic (ft^2)' => 1000,
-      'Floor Area, Lighting (ft^2)' => 2000,
-      'Roof Area (ft^2)' => 1118.03,
-      'Window Area (ft^2)' => 0.12 * 2111.89,
-      'Door Area (ft^2)' => 40,
-      'Duct Unconditioned Surface Area (ft^2)' => 555,
-      'Size, Heating System (kBtu/h)' => 100,
-      'Size, Heating Supplemental System (kBtu/h)' => 0, # backup
-      'Size, Cooling System (kBtu/h)' => 0,
-      'Size, Water Heater (gal)' => 66,
+      'Wall Area, Above-Grade, Conditioned (ft^2)' => 189.0 * 4 + 339.0 * 4,
+      'Wall Area, Above-Grade, Exterior (ft^2)' => 189.0 * 4 + 339.0 * 4 + 69.0 * 2,
+      'Wall Area, Below-Grade (ft^2)' => 0.0,
+      'Floor Area, Conditioned (ft^2)' => 1000.0 * 2,
+      'Floor Area, Attic (ft^2)' => 1000.0,
+      'Floor Area, Lighting (ft^2)' => 1000.0 * 2,
+      'Roof Area (ft^2)' => 559.0 * 2,
+      'Window Area (ft^2)' => 0.12 * (189.0 * 4 + 339.0 * 4),
+      'Door Area (ft^2)' => 40.0,
+      'Duct Unconditioned Surface Area (ft^2)' => 555.0,
+      'Size, Heating System (kBtu/h)' => 100.0,
+      'Size, Heating Supplemental System (kBtu/h)' => 0.0, # backup
+      'Size, Cooling System (kBtu/h)' => 0.0,
+      'Size, Water Heater (gal)' => 66.0,
     }
     _test_cost_multipliers('SFD_2story_PB_UA_ElecFurnace_ElecTankWH.osw', cost_multipliers)
   end
@@ -221,20 +221,20 @@ class UpgradeCostsTest < MiniTest::Test
   def test_SFD_2story_S_UA_GRG_ASHP1_FuelTanklessWH
     cost_multipliers = {
       'Fixed (1)' => 1,
-      'Wall Area, Above-Grade, Conditioned (ft^2)' => 2778.52,
-      'Wall Area, Above-Grade, Exterior (ft^2)' => 3196.86,
-      'Wall Area, Below-Grade (ft^2)' => 0,
-      'Floor Area, Conditioned (ft^2)' => 3000,
-      'Floor Area, Attic (ft^2)' => 1644,
-      'Floor Area, Lighting (ft^2)' => 3288,
-      'Roof Area (ft^2)' => 1838.05,
-      'Window Area (ft^2)' => 0.12 * (2778.52 - 96.0 * 2),
-      'Door Area (ft^2)' => 40,
-      'Duct Unconditioned Surface Area (ft^2)' => 832.5,
-      'Size, Heating System (kBtu/h)' => 60, # hp, not backup
-      'Size, Heating Supplemental System (kBtu/h)' => 100, # backup
-      'Size, Cooling System (kBtu/h)' => 60,
-      'Size, Water Heater (gal)' => 0,
+      'Wall Area, Above-Grade, Conditioned (ft^2)' => 135.0 + 96.0 * 4 + 320.0 * 2 + 231.0 * 2 + 416.0 * 2 + 327.0,
+      'Wall Area, Above-Grade, Exterior (ft^2)' => 135.0 + 320.0 * 2 + 231.0 * 2 + 416.0 * 2 + 327.0 + 96.0 * 4 + 104.0 * 2 + 18.0 + 192.0,
+      'Wall Area, Below-Grade (ft^2)' => 0.0,
+      'Floor Area, Conditioned (ft^2)' => 1500.0 * 2,
+      'Floor Area, Attic (ft^2)' => 1500.0 + 144.0,
+      'Floor Area, Lighting (ft^2)' => 1500.0 * 2 + 12.0 * 24.0,
+      'Roof Area (ft^2)' => 839.0 + 101.0 * 2 + 798.0,
+      'Window Area (ft^2)' => 0.12 * (135.0 + 96.0 * 4 + 320.0 * 2 + 231.0 * 2 + 416.0 * 2 + 327.0 - 96.0 * 2),
+      'Door Area (ft^2)' => 40.0,
+      'Duct Unconditioned Surface Area (ft^2)' => (0.75 * 0.27 * (1500.0 * 2)) + (0.75 * 0.05 * 2 * (1500.0 * 2)),
+      'Size, Heating System (kBtu/h)' => 60.0, # hp, not backup
+      'Size, Heating Supplemental System (kBtu/h)' => 100.0, # backup
+      'Size, Cooling System (kBtu/h)' => 60.0,
+      'Size, Water Heater (gal)' => 0.0,
     }
     _test_cost_multipliers('SFD_2story_S_UA_GRG_ASHP1_FuelTanklessWH.osw', cost_multipliers)
   end
@@ -242,20 +242,20 @@ class UpgradeCostsTest < MiniTest::Test
   def test_SFA_2story_UB_Furnace_RoomAC_FuelTankWH
     cost_multipliers = {
       'Fixed (1)' => 1,
-      'Wall Area, Above-Grade, Conditioned (ft^2)' => 94.28 * 4 + 169.7 * 2,
-      'Wall Area, Above-Grade, Exterior (ft^2)' => 94.28 * 4 + 169.7 * 2 + 56.25,
-      'Wall Area, Below-Grade (ft^2)' => 94.28 * 2 + 169.7,
-      'Floor Area, Conditioned (ft^2)' => 500,
-      'Floor Area, Attic (ft^2)' => 250,
-      'Floor Area, Lighting (ft^2)' => 500,
-      'Roof Area (ft^2)' => 279.5,
+      'Wall Area, Above-Grade, Conditioned (ft^2)' => 94.0 * 4 + 170.0 * 2,
+      'Wall Area, Above-Grade, Exterior (ft^2)' => 94.0 * 4 + 170.0 * 2 + 56.0,
+      'Wall Area, Below-Grade (ft^2)' => 170.0 + 94.0 * 2,
+      'Floor Area, Conditioned (ft^2)' => 250.0 * 2,
+      'Floor Area, Attic (ft^2)' => 250.0,
+      'Floor Area, Lighting (ft^2)' => 250.0 * 2,
+      'Roof Area (ft^2)' => 140.0 * 2,
       'Window Area (ft^2)' => 0.18 * (94.28 * 4 + 169.7 * 2),
-      'Door Area (ft^2)' => 20,
-      'Duct Unconditioned Surface Area (ft^2)' => 138.75,
-      'Size, Heating System (kBtu/h)' => 100,
-      'Size, Heating Supplemental System (kBtu/h)' => 0, # backup
-      'Size, Cooling System (kBtu/h)' => 36,
-      'Size, Water Heater (gal)' => 30,
+      'Door Area (ft^2)' => 20.0,
+      'Duct Unconditioned Surface Area (ft^2)' => (0.75 * 0.27 * (250.0 * 2)) + (0.75 * 0.05 * 2 * (250.0 * 2)),
+      'Size, Heating System (kBtu/h)' => 100.0,
+      'Size, Heating Supplemental System (kBtu/h)' => 0.0, # backup
+      'Size, Cooling System (kBtu/h)' => 36.0,
+      'Size, Water Heater (gal)' => 30.0,
     }
     _test_cost_multipliers('SFA_2story_UB_Furnace_RoomAC_FuelTankWH.osw', cost_multipliers)
   end
@@ -263,20 +263,20 @@ class UpgradeCostsTest < MiniTest::Test
   def test_SFA_2story_UB_FuelBoiler_RoomAC_FuelTankWH
     cost_multipliers = {
       'Fixed (1)' => 1,
-      'Wall Area, Above-Grade, Conditioned (ft^2)' => 94.28 * 4 + 169.7 * 2,
-      'Wall Area, Above-Grade, Exterior (ft^2)' => 94.28 * 4 + 169.7 * 2 + 56.25,
-      'Wall Area, Below-Grade (ft^2)' => 94.28 * 2 + 169.7,
-      'Floor Area, Conditioned (ft^2)' => 500,
-      'Floor Area, Attic (ft^2)' => 250,
-      'Floor Area, Lighting (ft^2)' => 500,
-      'Roof Area (ft^2)' => 279.5,
+      'Wall Area, Above-Grade, Conditioned (ft^2)' => 94.0 * 4 + 170.0 * 2,
+      'Wall Area, Above-Grade, Exterior (ft^2)' => 94.0 * 4 + 170.0 * 2 + 56.0,
+      'Wall Area, Below-Grade (ft^2)' => 170.0 + 94.0 * 2,
+      'Floor Area, Conditioned (ft^2)' => 250.0 * 2,
+      'Floor Area, Attic (ft^2)' => 250.0,
+      'Floor Area, Lighting (ft^2)' => 250.0 * 2,
+      'Roof Area (ft^2)' => 140.0 * 2,
       'Window Area (ft^2)' => 0.18 * (94.28 * 4 + 169.7 * 2),
-      'Door Area (ft^2)' => 20,
-      'Duct Unconditioned Surface Area (ft^2)' => 0, # boiler and roomac don't have ducts
-      'Size, Heating System (kBtu/h)' => 100,
-      'Size, Heating Supplemental System (kBtu/h)' => 0, # backup
-      'Size, Cooling System (kBtu/h)' => 36,
-      'Size, Water Heater (gal)' => 30,
+      'Door Area (ft^2)' => 20.0,
+      'Duct Unconditioned Surface Area (ft^2)' => 0.0, # boiler and roomac don't have ducts
+      'Size, Heating System (kBtu/h)' => 100.0,
+      'Size, Heating Supplemental System (kBtu/h)' => 0.0, # backup
+      'Size, Cooling System (kBtu/h)' => 36.0,
+      'Size, Water Heater (gal)' => 30.0,
     }
     _test_cost_multipliers('SFA_2story_UB_FuelBoiler_RoomAC_FuelTankWH.osw', cost_multipliers)
   end
@@ -284,20 +284,20 @@ class UpgradeCostsTest < MiniTest::Test
   def test_SFA_2story_UB_ASHP2_HPWH
     cost_multipliers = {
       'Fixed (1)' => 1,
-      'Wall Area, Above-Grade, Conditioned (ft^2)' => 94.28 * 4 + 169.7 * 2,
-      'Wall Area, Above-Grade, Exterior (ft^2)' => 94.28 * 4 + 169.7 * 2 + 56.25,
-      'Wall Area, Below-Grade (ft^2)' => 94.28 * 2 + 169.7,
-      'Floor Area, Conditioned (ft^2)' => 500,
-      'Floor Area, Attic (ft^2)' => 250,
-      'Floor Area, Lighting (ft^2)' => 500,
-      'Roof Area (ft^2)' => 279.5,
+      'Wall Area, Above-Grade, Conditioned (ft^2)' => 94.0 * 4 + 170.0 * 2,
+      'Wall Area, Above-Grade, Exterior (ft^2)' => 94.0 * 4 + 170.0 * 2 + 56.0,
+      'Wall Area, Below-Grade (ft^2)' => 170.0 + 94.0 * 2,
+      'Floor Area, Conditioned (ft^2)' => 250.0 * 2,
+      'Floor Area, Attic (ft^2)' => 250.0,
+      'Floor Area, Lighting (ft^2)' => 250.0 * 2,
+      'Roof Area (ft^2)' => 140.0 * 2,
       'Window Area (ft^2)' => 0.18 * (94.28 * 4 + 169.7 * 2),
-      'Door Area (ft^2)' => 20,
-      'Duct Unconditioned Surface Area (ft^2)' => 138.75,
-      'Size, Heating System (kBtu/h)' => 60,
-      'Size, Heating Supplemental System (kBtu/h)' => 100, # backup
-      'Size, Cooling System (kBtu/h)' => 60,
-      'Size, Water Heater (gal)' => 50,
+      'Door Area (ft^2)' => 20.0,
+      'Duct Unconditioned Surface Area (ft^2)' => (0.75 * 0.27 * (250.0 * 2)) + (0.75 * 0.05 * 2 * (250.0 * 2)),
+      'Size, Heating System (kBtu/h)' => 60.0,
+      'Size, Heating Supplemental System (kBtu/h)' => 100.0, # backup
+      'Size, Cooling System (kBtu/h)' => 60.0,
+      'Size, Water Heater (gal)' => 50.0,
     }
     _test_cost_multipliers('SFA_2story_UB_ASHP2_HPWH.osw', cost_multipliers)
   end
@@ -305,20 +305,20 @@ class UpgradeCostsTest < MiniTest::Test
   def test_SFA_2story_FB_FuelBoiler_RoomAC_FuelTankWH
     cost_multipliers = {
       'Fixed (1)' => 1,
-      'Wall Area, Above-Grade, Conditioned (ft^2)' => 585.05,
-      'Wall Area, Above-Grade, Exterior (ft^2)' => 622.5,
-      'Wall Area, Below-Grade (ft^2)' => 77.0 * 2 + 139.0,
-      'Floor Area, Conditioned (ft^2)' => 500,
-      'Floor Area, Attic (ft^2)' => 166.66,
-      'Floor Area, Lighting (ft^2)' => 500,
+      'Wall Area, Above-Grade, Conditioned (ft^2)' => 139.0 * 2 + 77.0 * 4,
+      'Wall Area, Above-Grade, Exterior (ft^2)' => 139.0 * 2 + 77.0 * 4 + 37.0,
+      'Wall Area, Below-Grade (ft^2)' => 139.0 + 77.0 * 2,
+      'Floor Area, Conditioned (ft^2)' => 167.0 + 167.0 * 2,
+      'Floor Area, Attic (ft^2)' => 167.0,
+      'Floor Area, Lighting (ft^2)' => 167.0 + 167.0 * 2,
       'Roof Area (ft^2)' => 93.0 * 2,
-      'Window Area (ft^2)' => 0.18 * 585.05,
-      'Door Area (ft^2)' => 20,
-      'Duct Unconditioned Surface Area (ft^2)' => 0, # boiler and roomac don't have ducts
-      'Size, Heating System (kBtu/h)' => 100,
-      'Size, Heating Supplemental System (kBtu/h)' => 0, # backup
-      'Size, Cooling System (kBtu/h)' => 36,
-      'Size, Water Heater (gal)' => 30,
+      'Window Area (ft^2)' => 0.18 * (139.0 * 2 + 77.0 * 4),
+      'Door Area (ft^2)' => 20.0,
+      'Duct Unconditioned Surface Area (ft^2)' => 0.0, # boiler and roomac don't have ducts
+      'Size, Heating System (kBtu/h)' => 100.0,
+      'Size, Heating Supplemental System (kBtu/h)' => 0.0, # backup
+      'Size, Cooling System (kBtu/h)' => 36.0,
+      'Size, Water Heater (gal)' => 30.0,
     }
     _test_cost_multipliers('SFA_2story_FB_FuelBoiler_RoomAC_FuelTankWH.osw', cost_multipliers)
   end
@@ -326,20 +326,20 @@ class UpgradeCostsTest < MiniTest::Test
   def test_MF_2story_UB_Furnace_AC1_FuelTankWH
     cost_multipliers = {
       'Fixed (1)' => 1,
-      'Wall Area, Above-Grade, Conditioned (ft^2)' => 133.3 + 240,
-      # 'Wall Area, Above-Grade, Exterior (ft^2)' => 133.3 + 240 + 40,
-      # 'Wall Area, Below-Grade (ft^2)' => 133.3 + 240 + 40,
-      'Floor Area, Conditioned (ft^2)' => 500,
-      'Floor Area, Attic (ft^2)' => 0,
-      'Floor Area, Lighting (ft^2)' => 500,
-      'Roof Area (ft^2)' => 0,
-      'Window Area (ft^2)' => 0.18 * (133.3 + 240),
-      'Door Area (ft^2)' => 0, # door is in the corridor
-      # 'Duct Unconditioned Surface Area (ft^2)' => 138.75,
-      'Size, Heating System (kBtu/h)' => 100,
-      'Size, Heating Supplemental System (kBtu/h)' => 0, # backup
-      'Size, Cooling System (kBtu/h)' => 60,
-      'Size, Water Heater (gal)' => 30,
+      'Wall Area, Above-Grade, Conditioned (ft^2)' => 240.0 + 133.0,
+      'Wall Area, Above-Grade, Exterior (ft^2)' => 240.0 + 133.0,
+      'Wall Area, Below-Grade (ft^2)' => 240.0 + 133.0 + 40.0,
+      'Floor Area, Conditioned (ft^2)' => 500.0,
+      'Floor Area, Attic (ft^2)' => 0.0,
+      'Floor Area, Lighting (ft^2)' => 500.0,
+      'Roof Area (ft^2)' => 0.0,
+      'Window Area (ft^2)' => 0.18 * (240.0 + 133.0),
+      'Door Area (ft^2)' => 0.0, # door is in the corridor
+      'Duct Unconditioned Surface Area (ft^2)' => (0.27 * 500.0) + (0.05 * 500.0),
+      'Size, Heating System (kBtu/h)' => 100.0,
+      'Size, Heating Supplemental System (kBtu/h)' => 0.0, # backup
+      'Size, Cooling System (kBtu/h)' => 60.0,
+      'Size, Water Heater (gal)' => 30.0,
     }
     _test_cost_multipliers('MF_2story_UB_Furnace_AC1_FuelTankWH.osw', cost_multipliers)
   end
@@ -347,20 +347,20 @@ class UpgradeCostsTest < MiniTest::Test
   def test_MF_2story_UB_FuelBoiler_AC1_FuelTankWH
     cost_multipliers = {
       'Fixed (1)' => 1,
-      'Wall Area, Above-Grade, Conditioned (ft^2)' => 133.3 + 240,
-      # 'Wall Area, Above-Grade, Exterior (ft^2)' => 133.3 + 240 + 40,
-      # 'Wall Area, Below-Grade (ft^2)' => 133.3 + 240 + 40,
-      'Floor Area, Conditioned (ft^2)' => 500,
-      'Floor Area, Attic (ft^2)' => 0,
-      'Floor Area, Lighting (ft^2)' => 500,
-      'Roof Area (ft^2)' => 0,
-      'Window Area (ft^2)' => 0.18 * (133.3 + 240),
-      'Door Area (ft^2)' => 0, # door is in the corridor
-      # 'Duct Unconditioned Surface Area (ft^2)' => 138.75,
-      'Size, Heating System (kBtu/h)' => 100,
-      'Size, Heating Supplemental System (kBtu/h)' => 0, # backup
-      'Size, Cooling System (kBtu/h)' => 60,
-      'Size, Water Heater (gal)' => 30,
+      'Wall Area, Above-Grade, Conditioned (ft^2)' => 240.0 + 133.0,
+      'Wall Area, Above-Grade, Exterior (ft^2)' => 240.0 + 133.0,
+      'Wall Area, Below-Grade (ft^2)' => 240.0 + 133.0 + 40.0,
+      'Floor Area, Conditioned (ft^2)' => 500.0,
+      'Floor Area, Attic (ft^2)' => 0.0,
+      'Floor Area, Lighting (ft^2)' => 500.0,
+      'Roof Area (ft^2)' => 0.0,
+      'Window Area (ft^2)' => 0.18 * (240.0 + 133.0),
+      'Door Area (ft^2)' => 0.0, # door is in the corridor
+      'Duct Unconditioned Surface Area (ft^2)' => (0.27 * 500.0) + (0.05 * 500.0),
+      'Size, Heating System (kBtu/h)' => 100.0,
+      'Size, Heating Supplemental System (kBtu/h)' => 0.0, # backup
+      'Size, Cooling System (kBtu/h)' => 60.0,
+      'Size, Water Heater (gal)' => 30.0,
     }
     _test_cost_multipliers('MF_2story_UB_FuelBoiler_AC1_FuelTankWH.osw', cost_multipliers)
   end
@@ -368,20 +368,20 @@ class UpgradeCostsTest < MiniTest::Test
   def test_MF_2story_UB_ASHP2_HPWH
     cost_multipliers = {
       'Fixed (1)' => 1,
-      'Wall Area, Above-Grade, Conditioned (ft^2)' => 133.3 + 240,
-      # 'Wall Area, Above-Grade, Exterior (ft^2)' => 133.3 + 240 + 40,
-      # 'Wall Area, Below-Grade (ft^2)' => 133.3 + 240 + 40,
-      'Floor Area, Conditioned (ft^2)' => 500,
-      'Floor Area, Attic (ft^2)' => 0,
-      'Floor Area, Lighting (ft^2)' => 500,
-      'Roof Area (ft^2)' => 0,
-      'Window Area (ft^2)' => 0.18 * (133.3 + 240),
-      'Door Area (ft^2)' => 0, # door is in the corridor
-      # 'Duct Unconditioned Surface Area (ft^2)' => 138.75,
-      'Size, Heating System (kBtu/h)' => 60,
-      'Size, Heating Supplemental System (kBtu/h)' => 100, # backup
-      'Size, Cooling System (kBtu/h)' => 60,
-      'Size, Water Heater (gal)' => 50,
+      'Wall Area, Above-Grade, Conditioned (ft^2)' => 240.0 + 133.0,
+      'Wall Area, Above-Grade, Exterior (ft^2)' => 240.0 + 133.0,
+      'Wall Area, Below-Grade (ft^2)' => 240.0 + 133.0 + 40.0,
+      'Floor Area, Conditioned (ft^2)' => 500.0,
+      'Floor Area, Attic (ft^2)' => 0.0,
+      'Floor Area, Lighting (ft^2)' => 500.0,
+      'Roof Area (ft^2)' => 0.0,
+      'Window Area (ft^2)' => 0.18 * (240.0 + 133.0),
+      'Door Area (ft^2)' => 0.0, # door is in the corridor
+      'Duct Unconditioned Surface Area (ft^2)' => (0.27 * 500.0) + (0.05 * 500.0),
+      'Size, Heating System (kBtu/h)' => 60.0,
+      'Size, Heating Supplemental System (kBtu/h)' => 100.0, # backup
+      'Size, Cooling System (kBtu/h)' => 60.0,
+      'Size, Water Heater (gal)' => 50.0,
     }
     _test_cost_multipliers('MF_2story_UB_ASHP2_HPWH.osw', cost_multipliers)
   end
@@ -389,20 +389,20 @@ class UpgradeCostsTest < MiniTest::Test
   def test_MF_1story_UB_Furnace_AC1_FuelTankWH
     cost_multipliers = {
       'Fixed (1)' => 1,
-      'Wall Area, Above-Grade, Conditioned (ft^2)' => 373.3,
-      # 'Wall Area, Above-Grade, Exterior (ft^2)' => 373.3 + 40,
-      # 'Wall Area, Below-Grade (ft^2)' => 373.3 + 40,
-      'Floor Area, Conditioned (ft^2)' => 500,
-      'Floor Area, Attic (ft^2)' => 0,
-      'Floor Area, Lighting (ft^2)' => 500,
-      # 'Roof Area (ft^2)' => 583,
-      'Window Area (ft^2)' => 0.18 * (133.3 + 240),
-      'Door Area (ft^2)' => 0, # door is in the corridor
-      # 'Duct Unconditioned Surface Area (ft^2)' => 138.75,
-      'Size, Heating System (kBtu/h)' => 100,
-      'Size, Heating Supplemental System (kBtu/h)' => 0, # backup
-      'Size, Cooling System (kBtu/h)' => 60,
-      'Size, Water Heater (gal)' => 30,
+      'Wall Area, Above-Grade, Conditioned (ft^2)' => 240.0 + 133.0,
+      'Wall Area, Above-Grade, Exterior (ft^2)' => 240.0 + 133.0,
+      'Wall Area, Below-Grade (ft^2)' => 240.0 + 133.0 + 40.0,
+      'Floor Area, Conditioned (ft^2)' => 500.0,
+      'Floor Area, Attic (ft^2)' => 0.0,
+      'Floor Area, Lighting (ft^2)' => 500.0,
+      'Roof Area (ft^2)' => 500.0,
+      'Window Area (ft^2)' => 0.18 * (240.0 + 133.0),
+      'Door Area (ft^2)' => 0.0, # door is in the corridor
+      'Duct Unconditioned Surface Area (ft^2)' => (0.27 * 500.0) + (0.05 * 500.0),
+      'Size, Heating System (kBtu/h)' => 100.0,
+      'Size, Heating Supplemental System (kBtu/h)' => 0.0, # backup
+      'Size, Cooling System (kBtu/h)' => 60.0,
+      'Size, Water Heater (gal)' => 30.0,
     }
     _test_cost_multipliers('MF_1story_UB_Furnace_AC1_FuelTankWH.osw', cost_multipliers)
   end
