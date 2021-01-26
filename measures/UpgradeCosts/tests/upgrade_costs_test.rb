@@ -18,7 +18,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Attic (ft^2)' => 2250,
       'Floor Area, Lighting (ft^2)' => 4788,
       'Roof Area (ft^2)' => 2837.57,
-      # 'Window Area (ft^2)' => 168.74,
+      'Window Area (ft^2)' => 0.12 * (1633.82 - 96.0 * 2),
       'Door Area (ft^2)' => 30,
       'Duct Unconditioned Surface Area (ft^2)' => 0, # excludes ducts in conditioned space
       'Size, Heating System (kBtu/h)' => 60, # hp, not backup
@@ -39,7 +39,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Attic (ft^2)' => 1000,
       'Floor Area, Lighting (ft^2)' => 2288,
       'Roof Area (ft^2)' => 1440.03,
-      # 'Window Area (ft^2)' => 106.84,
+      'Window Area (ft^2)' => 0.12 * (1129.42 - 96.0 * 2),
       'Door Area (ft^2)' => 40,
       'Duct Unconditioned Surface Area (ft^2)' => 0, # excludes ducts in conditioned space
       'Size, Heating System (kBtu/h)' => 100,
@@ -60,7 +60,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Attic (ft^2)' => 3000,
       'Floor Area, Lighting (ft^2)' => 3000,
       'Roof Area (ft^2)' => 3354.10,
-      # 'Window Area (ft^2)' => 213.83,
+      'Window Area (ft^2)' => 0.12 * 1828.95,
       'Door Area (ft^2)' => 40,
       'Duct Unconditioned Surface Area (ft^2)' => 960,
       'Size, Heating System (kBtu/h)' => 60, # hp, not backup
@@ -81,7 +81,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Attic (ft^2)' => 4500,
       'Floor Area, Lighting (ft^2)' => 4788,
       'Roof Area (ft^2)' => 5353.15,
-      # 'Window Area (ft^2)' => 352.22,
+      'Window Area (ft^2)' => 0.12 * (2275.56 - 96.0 * 2),
       'Door Area (ft^2)' => 20,
       'Duct Unconditioned Surface Area (ft^2)' => 1440,
       'Size, Heating System (kBtu/h)' => 100,
@@ -102,7 +102,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Attic (ft^2)' => 1000,
       'Floor Area, Lighting (ft^2)' => 2000,
       'Roof Area (ft^2)' => 1118.03,
-      # 'Window Area (ft^2)' => 250.52,
+      'Window Area (ft^2)' => 0.12 * 2111.88,
       'Door Area (ft^2)' => 20,
       'Duct Unconditioned Surface Area (ft^2)' => 555,
       'Size, Heating System (kBtu/h)' => 100,
@@ -123,7 +123,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Attic (ft^2)' => 1644,
       'Floor Area, Lighting (ft^2)' => 3288,
       'Roof Area (ft^2)' => 1838.05,
-      # 'Window Area (ft^2)' => 422.51,
+      'Window Area (ft^2)' => 0.12 * (2778.52 - 96.0 * 2),
       'Door Area (ft^2)' => 20,
       'Duct Unconditioned Surface Area (ft^2)' => 832.5,
       'Size, Heating System (kBtu/h)' => 60, # hp, not backup
@@ -144,7 +144,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Attic (ft^2)' => 1692,
       'Floor Area, Lighting (ft^2)' => 4788,
       'Roof Area (ft^2)' => 1891.72,
-      # 'Window Area (ft^2)' => 468.61,
+      'Window Area (ft^2)' => 0.12 * (2819.59 - 96.0 * 2),
       'Door Area (ft^2)' => 20,
       'Duct Unconditioned Surface Area (ft^2)' => 0, # excludes ducts in conditioned space
       'Size, Heating System (kBtu/h)' => 100,
@@ -165,7 +165,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Attic (ft^2)' => 1692,
       'Floor Area, Lighting (ft^2)' => 4788,
       'Roof Area (ft^2)' => 1891.72,
-      # 'Window Area (ft^2)' => 468.61,
+      'Window Area (ft^2)' => 0.12 * (2819.59 - 96.0 * 2),
       'Door Area (ft^2)' => 20,
       'Duct Unconditioned Surface Area (ft^2)' => 0, # excludes ducts in conditioned space
       'Size, Heating System (kBtu/h)' => 100,
@@ -186,7 +186,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Attic (ft^2)' => 1692,
       'Floor Area, Lighting (ft^2)' => 4788,
       'Roof Area (ft^2)' => 1891.72,
-      # 'Window Area (ft^2)' => 311.03,
+      'Window Area (ft^2)' => 0.12 * (2819.58 - 96.0 * 2),
       'Door Area (ft^2)' => 30,
       'Duct Unconditioned Surface Area (ft^2)' => 0, # excludes ducts in conditioned space
       'Size, Heating System (kBtu/h)' => 60, # hp, not backup
@@ -207,7 +207,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Attic (ft^2)' => 1000,
       'Floor Area, Lighting (ft^2)' => 2000,
       'Roof Area (ft^2)' => 1118.03,
-      # 'Window Area (ft^2)' => 342.25,
+      'Window Area (ft^2)' => 0.12 * 2111.89,
       'Door Area (ft^2)' => 40,
       'Duct Unconditioned Surface Area (ft^2)' => 555,
       'Size, Heating System (kBtu/h)' => 100,
@@ -228,7 +228,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Attic (ft^2)' => 1644,
       'Floor Area, Lighting (ft^2)' => 3288,
       'Roof Area (ft^2)' => 1838.05,
-      # 'Window Area (ft^2)' => 304.73,
+      'Window Area (ft^2)' => 0.12 * (2778.52 - 96.0 * 2),
       'Door Area (ft^2)' => 40,
       'Duct Unconditioned Surface Area (ft^2)' => 832.5,
       'Size, Heating System (kBtu/h)' => 60, # hp, not backup
@@ -249,7 +249,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Attic (ft^2)' => 250,
       'Floor Area, Lighting (ft^2)' => 500,
       'Roof Area (ft^2)' => 279.5,
-      # 'Window Area (ft^2)' => 124.62,
+      'Window Area (ft^2)' => 0.18 * (94.28 * 4 + 169.7 * 2),
       'Door Area (ft^2)' => 20,
       'Duct Unconditioned Surface Area (ft^2)' => 138.75,
       'Size, Heating System (kBtu/h)' => 100,
@@ -270,7 +270,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Attic (ft^2)' => 250,
       'Floor Area, Lighting (ft^2)' => 500,
       'Roof Area (ft^2)' => 279.5,
-      # 'Window Area (ft^2)' => 124.62,
+      'Window Area (ft^2)' => 0.18 * (94.28 * 4 + 169.7 * 2),
       'Door Area (ft^2)' => 20,
       'Duct Unconditioned Surface Area (ft^2)' => 0, # boiler and roomac don't have ducts
       'Size, Heating System (kBtu/h)' => 100,
@@ -291,7 +291,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Attic (ft^2)' => 250,
       'Floor Area, Lighting (ft^2)' => 500,
       'Roof Area (ft^2)' => 279.5,
-      # 'Window Area (ft^2)' => 124.62,
+      'Window Area (ft^2)' => 0.18 * (94.28 * 4 + 169.7 * 2),
       'Door Area (ft^2)' => 20,
       'Duct Unconditioned Surface Area (ft^2)' => 138.75,
       'Size, Heating System (kBtu/h)' => 60,
@@ -312,7 +312,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Attic (ft^2)' => 166.66,
       'Floor Area, Lighting (ft^2)' => 500,
       'Roof Area (ft^2)' => 93.0 * 2,
-      # "Window Area (ft^2)" => 304.05,
+      'Window Area (ft^2)' => 0.18 * 585.05,
       'Door Area (ft^2)' => 20,
       'Duct Unconditioned Surface Area (ft^2)' => 0, # boiler and roomac don't have ducts
       'Size, Heating System (kBtu/h)' => 100,
@@ -327,13 +327,13 @@ class UpgradeCostsTest < MiniTest::Test
     cost_multipliers = {
       'Fixed (1)' => 1,
       'Wall Area, Above-Grade, Conditioned (ft^2)' => 133.3 + 240,
-      # 'Wall Area, Above-Grade, Exterior (ft^2)' => 133.3 + 240 + 40.03, # FIXME: what is the 40?
-      # 'Wall Area, Below-Grade (ft^2)' => 133.3 + 240 + 40.03,
+      # 'Wall Area, Above-Grade, Exterior (ft^2)' => 133.3 + 240 + 40,
+      # 'Wall Area, Below-Grade (ft^2)' => 133.3 + 240 + 40,
       'Floor Area, Conditioned (ft^2)' => 500,
       'Floor Area, Attic (ft^2)' => 0,
       'Floor Area, Lighting (ft^2)' => 500,
       'Roof Area (ft^2)' => 0,
-      # 'Window Area (ft^2)' => 67.2,
+      'Window Area (ft^2)' => 0.18 * (133.3 + 240),
       'Door Area (ft^2)' => 0, # door is in the corridor
       # 'Duct Unconditioned Surface Area (ft^2)' => 138.75,
       'Size, Heating System (kBtu/h)' => 100,
@@ -348,13 +348,13 @@ class UpgradeCostsTest < MiniTest::Test
     cost_multipliers = {
       'Fixed (1)' => 1,
       'Wall Area, Above-Grade, Conditioned (ft^2)' => 133.3 + 240,
-      # 'Wall Area, Above-Grade, Exterior (ft^2)' => 133.3 + 240 + 40.03,
-      # 'Wall Area, Below-Grade (ft^2)' => 133.3 + 240 + 40.03,
+      # 'Wall Area, Above-Grade, Exterior (ft^2)' => 133.3 + 240 + 40,
+      # 'Wall Area, Below-Grade (ft^2)' => 133.3 + 240 + 40,
       'Floor Area, Conditioned (ft^2)' => 500,
       'Floor Area, Attic (ft^2)' => 0,
       'Floor Area, Lighting (ft^2)' => 500,
       'Roof Area (ft^2)' => 0,
-      # 'Window Area (ft^2)' => 67.2,
+      'Window Area (ft^2)' => 0.18 * (133.3 + 240),
       'Door Area (ft^2)' => 0, # door is in the corridor
       # 'Duct Unconditioned Surface Area (ft^2)' => 138.75,
       'Size, Heating System (kBtu/h)' => 100,
@@ -369,13 +369,13 @@ class UpgradeCostsTest < MiniTest::Test
     cost_multipliers = {
       'Fixed (1)' => 1,
       'Wall Area, Above-Grade, Conditioned (ft^2)' => 133.3 + 240,
-      # 'Wall Area, Above-Grade, Exterior (ft^2)' => 133.3 + 240 + 40.03,
-      # 'Wall Area, Below-Grade (ft^2)' => 133.3 + 240 + 40.03,
+      # 'Wall Area, Above-Grade, Exterior (ft^2)' => 133.3 + 240 + 40,
+      # 'Wall Area, Below-Grade (ft^2)' => 133.3 + 240 + 40,
       'Floor Area, Conditioned (ft^2)' => 500,
       'Floor Area, Attic (ft^2)' => 0,
       'Floor Area, Lighting (ft^2)' => 500,
       'Roof Area (ft^2)' => 0,
-      # 'Window Area (ft^2)' => 67.2,
+      'Window Area (ft^2)' => 0.18 * (133.3 + 240),
       'Door Area (ft^2)' => 0, # door is in the corridor
       # 'Duct Unconditioned Surface Area (ft^2)' => 138.75,
       'Size, Heating System (kBtu/h)' => 60,
@@ -395,8 +395,8 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Conditioned (ft^2)' => 500,
       'Floor Area, Attic (ft^2)' => 0,
       'Floor Area, Lighting (ft^2)' => 500,
-      'Roof Area (ft^2)' => 500, # shouldn't include corridor roof
-      # 'Window Area (ft^2)' => 67.2,
+      # 'Roof Area (ft^2)' => 583,
+      'Window Area (ft^2)' => 0.18 * (133.3 + 240),
       'Door Area (ft^2)' => 0, # door is in the corridor
       # 'Duct Unconditioned Surface Area (ft^2)' => 138.75,
       'Size, Heating System (kBtu/h)' => 100,
@@ -455,7 +455,7 @@ class UpgradeCostsTest < MiniTest::Test
       value = measure.get_cost_multiplier(mult_type, hpxml, runner)
       assert(!value.nil?)
       if mult_type.include?('ft^2') || mult_type.include?('gal')
-        assert_in_epsilon(mult_value, value, 0.01)
+        assert_in_epsilon(mult_value, value, 0.005)
       else
         assert_in_epsilon(mult_value, value, 0.05)
       end
