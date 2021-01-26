@@ -16,6 +16,7 @@ Features
 - Introduce premium water heaters and heat pump water heats into building stock, differentiate between central and in unit water heating, and split water heater fuel and efficiency into different housing characteristics ([#513](https://github.com/NREL/resstock/pull/513))
 - Separate electric supplemental heating from total electric heating in output reporting ([#512](https://github.com/NREL/OpenStudio-BuildStock/pull/512))
 - Update the duct leakage "total" to "to outside" conversion to be based on ASHRAE Standard 152 ([#532](https://github.com/NREL/resstock/pull/532))
+- Allow for flexible weather regions based on weather data available and introduce TMY3 weather files for the new weather format ([#525](https://github.com/NREL/resstock/pull/525))
 
 Fixes
 - Based on RECS 2015, separate the plug load equations for single-family detached, single-family attached, and multifamily buildings ([#471](https://github.com/NREL/resstock/pull/471))
@@ -30,7 +31,8 @@ Fixes
 - Fix for calculating door and below-grade wall area of multifamily and single-family attached buildings with collapsed geometries ([#523](https://github.com/NREL/resstock/pull/523))
 - In the Corridor.tsv, assign single-family attached, single-family detached, and mobile homes with a "Not Applicable" option ([#502](https://github.com/NREL/resstock/pull/522))
 - Remove ceiling fan energy for vacant units ([#527](https://github.com/NREL/resstock/pull/527))
-- Fix bug related to incorrect timestamps when using AMY weather file ([#528](https://github.com/NREL/resstock/pull/528)) 
+- Fix bug related to incorrect timestamps when using AMY weather file ([#528](https://github.com/NREL/resstock/pull/528))
+- Fix DST start hour error and end date error ([#530](https://github.com/NREL/resstock/pull/530)) 
 
 ## ResStock v2.3.0
 ###### June 24, 2020 - [Diff](https://github.com/NREL/resstock/compare/v2.2.4...v2.3.0)
