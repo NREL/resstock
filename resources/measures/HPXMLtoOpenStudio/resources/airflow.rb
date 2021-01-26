@@ -593,7 +593,7 @@ class Airflow
         has_rear_units = has_rear_units.get
       end
       if num_floors.is_initialized
-        num_floors = num_floors.get
+        num_floors = num_floors.get.to_f
       end
 
       building_type = Geometry.get_building_type(model)
@@ -623,7 +623,7 @@ class Airflow
         if Geometry.get_building_type(model) == Constants.BuildingTypeMultifamily
           num_units_per_floor = n_units / num_floors
         elsif Geometry.get_building_type(model) == Constants.BuildingTypeSingleFamilyAttached
-          num_floors = 1
+          num_floors = 1.0
           num_units_per_floor = n_units
         end
 
