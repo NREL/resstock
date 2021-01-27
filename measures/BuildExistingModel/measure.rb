@@ -225,7 +225,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       measures['BuildResidentialHPXML'][0][step_value.name] = value
     end
 
-    measures['HPXMLtoOpenStudio'] = [{ 'hpxml_path' => File.expand_path('../existing.xml') }]
+    measures['HPXMLtoOpenStudio'] = [{ 'hpxml_path' => File.expand_path('../existing.xml'), 'output_dir' => File.expand_path('..'), 'debug' => true }]
 
     # Get software program used and version
     measures['BuildResidentialHPXML'][0]['software_program_used'] = software_program_used
