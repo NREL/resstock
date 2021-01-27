@@ -1,4 +1,5 @@
-## ResStock v2.4.0 (pending)
+## ResStock v2.4.0
+###### January 27, 2021 - [Diff](https://github.com/NREL/OpenStudio-BuildStock/compare/v2.3.0...v2.4.0)
 
 Features
 - Report the annual peak use and timing using the quantities of interest measure ([#458](https://github.com/NREL/resstock/pull/458))
@@ -34,6 +35,7 @@ Fixes
 - Remove ceiling fan energy for vacant units ([#527](https://github.com/NREL/resstock/pull/527))
 - Fix bug related to incorrect timestamps when using AMY weather file ([#528](https://github.com/NREL/resstock/pull/528))
 - Fix DST start hour error and end date error ([#530](https://github.com/NREL/resstock/pull/530)) 
+- Calculate slab surface effective R values used in HVAC sizing with unit-level variables  ([#537](https://github.com/NREL/resstock/pull/537)) 
 
 ## ResStock v2.3.0
 ###### June 24, 2020 - [Diff](https://github.com/NREL/resstock/compare/v2.2.4...v2.3.0)
