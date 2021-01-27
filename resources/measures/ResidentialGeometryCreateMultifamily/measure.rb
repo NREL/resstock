@@ -714,7 +714,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
       next if (obcs_hash[space_name] & exterior_obcs).any? # if there is an exterior wall
 
       space.surfaces.each do |surface|
-        if surface.surfaceType.downcase == "roofceiling" and space == foundation_corridor_space
+        if surface.surfaceType.downcase == "roofceiling" and not foundation_corridor_space.nil? and space == foundation_corridor_space
           surface.setOutsideBoundaryCondition("Adiabatic")
         end
 
