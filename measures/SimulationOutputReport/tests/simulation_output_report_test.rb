@@ -18,7 +18,7 @@ class SimulationOutputReportTest < MiniTest::Test
       "Roof Area (ft^2)" => 2837.57,
       "Window Area (ft^2)" => 168.74,
       "Door Area (ft^2)" => 30,
-      "Duct Surface Area (ft^2)" => 1440,
+      "Duct Surface Area (ft^2)" => 1665,
       "Size, Heating System (kBtu/h)" => 60, # hp, not backup
       "Size, Heating Supplemental System (kBtu/h)" => 100, # backup
       "Size, Cooling System (kBtu/h)" => 60,
@@ -39,7 +39,7 @@ class SimulationOutputReportTest < MiniTest::Test
       "Roof Area (ft^2)" => 1440.03,
       "Window Area (ft^2)" => 106.84,
       "Door Area (ft^2)" => 40,
-      "Duct Surface Area (ft^2)" => 640,
+      "Duct Surface Area (ft^2)" => 740,
       "Size, Heating System (kBtu/h)" => 100,
       "Size, Heating Supplemental System (kBtu/h)" => 0, # backup
       "Size, Cooling System (kBtu/h)" => 36,
@@ -60,7 +60,7 @@ class SimulationOutputReportTest < MiniTest::Test
       "Roof Area (ft^2)" => 3354.10,
       "Window Area (ft^2)" => 213.83,
       "Door Area (ft^2)" => 40,
-      "Duct Surface Area (ft^2)" => 1110,
+      "Duct Surface Area (ft^2)" => 960,
       "Size, Heating System (kBtu/h)" => 60, # hp, not backup
       "Size, Heating Supplemental System (kBtu/h)" => 100, # backup
       "Size, Cooling System (kBtu/h)" => 60,
@@ -81,7 +81,7 @@ class SimulationOutputReportTest < MiniTest::Test
       "Roof Area (ft^2)" => 5353.15,
       "Window Area (ft^2)" => 352.22,
       "Door Area (ft^2)" => 20,
-      "Duct Surface Area (ft^2)" => 1665,
+      "Duct Surface Area (ft^2)" => 1440,
       "Size, Heating System (kBtu/h)" => 100,
       "Size, Heating Supplemental System (kBtu/h)" => 0, # backup
       "Size, Cooling System (kBtu/h)" => 60,
@@ -102,7 +102,7 @@ class SimulationOutputReportTest < MiniTest::Test
       "Roof Area (ft^2)" => 1118.03,
       "Window Area (ft^2)" => 250.52,
       "Door Area (ft^2)" => 20,
-      "Duct Surface Area (ft^2)" => 640,
+      "Duct Surface Area (ft^2)" => 555,
       "Size, Heating System (kBtu/h)" => 100,
       "Size, Heating Supplemental System (kBtu/h)" => 0, # backup
       "Size, Cooling System (kBtu/h)" => 60,
@@ -123,7 +123,7 @@ class SimulationOutputReportTest < MiniTest::Test
       "Roof Area (ft^2)" => 1838.05,
       "Window Area (ft^2)" => 422.51,
       "Door Area (ft^2)" => 20,
-      "Duct Surface Area (ft^2)" => 960,
+      "Duct Surface Area (ft^2)" => 832.5,
       "Size, Heating System (kBtu/h)" => 60, # hp, not backup
       "Size, Heating Supplemental System (kBtu/h)" => 100, # backup
       "Size, Cooling System (kBtu/h)" => 60,
@@ -144,7 +144,7 @@ class SimulationOutputReportTest < MiniTest::Test
       "Roof Area (ft^2)" => 1891.72,
       "Window Area (ft^2)" => 468.61,
       "Door Area (ft^2)" => 20,
-      "Duct Surface Area (ft^2)" => 1620,
+      "Duct Surface Area (ft^2)" => 1417.5,
       "Size, Heating System (kBtu/h)" => 100,
       "Size, Heating Supplemental System (kBtu/h)" => 0, # backup
       "Size, Cooling System (kBtu/h)" => 60,
@@ -165,7 +165,7 @@ class SimulationOutputReportTest < MiniTest::Test
       "Roof Area (ft^2)" => 1891.72,
       "Window Area (ft^2)" => 468.61,
       "Door Area (ft^2)" => 20,
-      "Duct Surface Area (ft^2)" => 1620,
+      "Duct Surface Area (ft^2)" => 1417.5,
       "Size, Heating System (kBtu/h)" => 100,
       "Size, Heating Supplemental System (kBtu/h)" => 0, # backup
       "Size, Cooling System (kBtu/h)" => 60,
@@ -186,7 +186,7 @@ class SimulationOutputReportTest < MiniTest::Test
       "Roof Area (ft^2)" => 1891.72,
       "Window Area (ft^2)" => 311.03,
       "Door Area (ft^2)" => 30,
-      "Duct Surface Area (ft^2)" => 1620,
+      "Duct Surface Area (ft^2)" => 1417.5,
       "Size, Heating System (kBtu/h)" => 60, # hp, not backup
       "Size, Heating Supplemental System (kBtu/h)" => 100, # backup
       "Size, Cooling System (kBtu/h)" => 60,
@@ -207,7 +207,7 @@ class SimulationOutputReportTest < MiniTest::Test
       "Roof Area (ft^2)" => 1118.03,
       "Window Area (ft^2)" => 342.25,
       "Door Area (ft^2)" => 40,
-      "Duct Surface Area (ft^2)" => 640,
+      "Duct Surface Area (ft^2)" => 555,
       "Size, Heating System (kBtu/h)" => 100,
       "Size, Heating Supplemental System (kBtu/h)" => 0, # backup
       "Size, Cooling System (kBtu/h)" => 0,
@@ -228,7 +228,7 @@ class SimulationOutputReportTest < MiniTest::Test
       "Roof Area (ft^2)" => 1838.05,
       "Window Area (ft^2)" => 304.73,
       "Door Area (ft^2)" => 40,
-      "Duct Surface Area (ft^2)" => 960,
+      "Duct Surface Area (ft^2)" => 832.5,
       "Size, Heating System (kBtu/h)" => 60, # hp, not backup
       "Size, Heating Supplemental System (kBtu/h)" => 100, # backup
       "Size, Cooling System (kBtu/h)" => 60,
@@ -249,6 +249,7 @@ class SimulationOutputReportTest < MiniTest::Test
       "Roof Area (ft^2)" => 1118.03,
       "Window Area (ft^2)" => 376.30,
       "Door Area (ft^2)" => 20 * 4,
+      "Duct Surface Area (ft^2)" => 555,
       "Size, Heating System (kBtu/h)" => 100 * 4,
       "Size, Heating Supplemental System (kBtu/h)" => 0, # backup
       "Size, Cooling System (kBtu/h)" => 36 * 4,
@@ -262,13 +263,14 @@ class SimulationOutputReportTest < MiniTest::Test
       "Fixed (1)" => 4,
       "Wall Area, Above-Grade, Conditioned (ft^2)" => 2187.32,
       "Wall Area, Above-Grade, Exterior (ft^2)" => 2299.82,
-      # "Wall Area, Below-Grade (ft^2)" => 1093.66,
+      "Wall Area, Below-Grade (ft^2)" => 1093.66,
       "Floor Area, Conditioned (ft^2)" => 2000,
       "Floor Area, Attic (ft^2)" => 1000,
       "Floor Area, Lighting (ft^2)" => 2000,
       "Roof Area (ft^2)" => 1118.03,
       "Window Area (ft^2)" => 376.30,
       "Door Area (ft^2)" => 20 * 4,
+      "Duct Surface Area (ft^2)" => 555,
       "Size, Heating System (kBtu/h)" => 100 * 4,
       "Size, Heating Supplemental System (kBtu/h)" => 0, # backup
       "Size, Cooling System (kBtu/h)" => 36 * 4,
@@ -289,6 +291,7 @@ class SimulationOutputReportTest < MiniTest::Test
       "Roof Area (ft^2)" => 2333.33,
       "Window Area (ft^2)" => 537.60,
       "Door Area (ft^2)" => 20 * 8,
+      "Duct Surface Area (ft^2)" => 1110,
       "Size, Heating System (kBtu/h)" => 100 * 8,
       "Size, Heating Supplemental System (kBtu/h)" => 0, # backup
       "Size, Cooling System (kBtu/h)" => 60 * 8,
@@ -309,6 +312,7 @@ class SimulationOutputReportTest < MiniTest::Test
       "Roof Area (ft^2)" => 2333.33,
       "Window Area (ft^2)" => 537.60,
       "Door Area (ft^2)" => 20 * 8,
+      "Duct Surface Area (ft^2)" => 1110,
       "Size, Heating System (kBtu/h)" => 100 * 8,
       "Size, Heating Supplemental System (kBtu/h)" => 0, # backup
       "Size, Cooling System (kBtu/h)" => 60 * 8,
@@ -329,6 +333,7 @@ class SimulationOutputReportTest < MiniTest::Test
       "Roof Area (ft^2)" => 1118.03,
       "Window Area (ft^2)" => 376.30,
       "Door Area (ft^2)" => 20 * 4,
+      "Duct Surface Area (ft^2)" => 555,
       "Size, Heating System (kBtu/h)" => 100 * 4,
       "Size, Heating Supplemental System (kBtu/h)" => 0, # backup
       "Size, Cooling System (kBtu/h)" => 36 * 4,
@@ -342,13 +347,14 @@ class SimulationOutputReportTest < MiniTest::Test
       "Fixed (1)" => 4,
       "Wall Area, Above-Grade, Conditioned (ft^2)" => 2187.32,
       "Wall Area, Above-Grade, Exterior (ft^2)" => 2299.82,
-      # "Wall Area, Below-Grade (ft^2)" => 1093.66,
+      "Wall Area, Below-Grade (ft^2)" => 1093.66,
       "Floor Area, Conditioned (ft^2)" => 2000,
       "Floor Area, Attic (ft^2)" => 1000,
       "Floor Area, Lighting (ft^2)" => 2000,
       "Roof Area (ft^2)" => 1118.03,
       "Window Area (ft^2)" => 376.30,
       "Door Area (ft^2)" => 20 * 4,
+      "Duct Surface Area (ft^2)" => 555,
       "Size, Heating System (kBtu/h)" => 100 * 4,
       "Size, Heating Supplemental System (kBtu/h)" => 0, # backup
       "Size, Cooling System (kBtu/h)" => 36 * 4,
@@ -369,6 +375,7 @@ class SimulationOutputReportTest < MiniTest::Test
       "Roof Area (ft^2)" => 2333.33,
       "Window Area (ft^2)" => 537.60,
       "Door Area (ft^2)" => 20 * 8,
+      "Duct Surface Area (ft^2)" => 1110,
       "Size, Heating System (kBtu/h)" => 100 * 8,
       "Size, Heating Supplemental System (kBtu/h)" => 0, # backup
       "Size, Cooling System (kBtu/h)" => 60 * 8,
@@ -389,6 +396,7 @@ class SimulationOutputReportTest < MiniTest::Test
       "Roof Area (ft^2)" => 2333.33,
       "Window Area (ft^2)" => 537.60,
       "Door Area (ft^2)" => 20 * 8,
+      "Duct Surface Area (ft^2)" => 1110,
       "Size, Heating System (kBtu/h)" => 100 * 8,
       "Size, Heating Supplemental System (kBtu/h)" => 0, # backup
       "Size, Cooling System (kBtu/h)" => 60 * 8,
@@ -409,6 +417,7 @@ class SimulationOutputReportTest < MiniTest::Test
       "Roof Area (ft^2)" => 1118.03,
       "Window Area (ft^2)" => 376.30,
       "Door Area (ft^2)" => 20 * 4,
+      "Duct Surface Area (ft^2)" => 555,
       "Size, Heating System (kBtu/h)" => 60 * 4,
       "Size, Heating Supplemental System (kBtu/h)" => 100 * 4, # backup
       "Size, Cooling System (kBtu/h)" => 60 * 4,
@@ -422,19 +431,62 @@ class SimulationOutputReportTest < MiniTest::Test
       "Fixed (1)" => 4,
       "Wall Area, Above-Grade, Conditioned (ft^2)" => 2187.32,
       "Wall Area, Above-Grade, Exterior (ft^2)" => 2299.82,
-      # "Wall Area, Below-Grade (ft^2)" => 1093.66,
+      "Wall Area, Below-Grade (ft^2)" => 1093.66,
       "Floor Area, Conditioned (ft^2)" => 2000,
       "Floor Area, Attic (ft^2)" => 1000,
       "Floor Area, Lighting (ft^2)" => 2000,
       "Roof Area (ft^2)" => 1118.03,
       "Window Area (ft^2)" => 376.30,
       "Door Area (ft^2)" => 20 * 4,
+      "Duct Surface Area (ft^2)" => 555,
       "Size, Heating System (kBtu/h)" => 60 * 4,
       "Size, Heating Supplemental System (kBtu/h)" => 100 * 4, # backup
       "Size, Cooling System (kBtu/h)" => 60 * 4,
       "Size, Water Heater (gal)" => 50 * 4,
     }
     _test_cost_multipliers("SFA_2story_UB_ASHP2_HPWH_Collapsed.osm", cost_multipliers)
+  end
+
+  def test_SFA_2story_FB_FuelBoiler_RoomAC_FuelTankWH
+    cost_multipliers = {
+      "Fixed (1)" => 4,
+      "Wall Area, Above-Grade, Conditioned (ft^2)" => 1785.93,
+      "Wall Area, Above-Grade, Exterior (ft^2)" => 1860.94,
+      "Wall Area, Below-Grade (ft^2)" => 892.97,
+      "Floor Area, Conditioned (ft^2)" => 2000,
+      "Floor Area, Attic (ft^2)" => 666.67,
+      "Floor Area, Lighting (ft^2)" => 2000,
+      "Roof Area (ft^2)" => 745.36,
+      "Window Area (ft^2)" => 304.05,
+      "Door Area (ft^2)" => 20 * 4,
+      "Duct Surface Area (ft^2)" => 630,
+      "Size, Heating System (kBtu/h)" => 400,
+      "Size, Heating Supplemental System (kBtu/h)" => 0, # backup
+      "Size, Cooling System (kBtu/h)" => 144,
+      "Size, Water Heater (gal)" => 30 * 4,
+    }
+    _test_cost_multipliers("SFA_2story_FB_FuelBoiler_RoomAC_FuelTankWH.osm", cost_multipliers)
+  end
+
+  def test_SFA_2story_FB_FuelBoiler_RoomAC_FuelTankWH_Collapsed
+    cost_multipliers = {
+      "Fixed (1)" => 4,
+      "Wall Area, Above-Grade, Conditioned (ft^2)" => 1785.93,
+      "Wall Area, Above-Grade, Exterior (ft^2)" => 1860.94,
+      "Wall Area, Below-Grade (ft^2)" => 892.97,
+      "Floor Area, Conditioned (ft^2)" => 2000,
+      "Floor Area, Attic (ft^2)" => 666.67,
+      "Floor Area, Lighting (ft^2)" => 2000,
+      "Roof Area (ft^2)" => 745.36,
+      "Window Area (ft^2)" => 304.05,
+      "Door Area (ft^2)" => 20 * 4,
+      "Duct Surface Area (ft^2)" => 630,
+      "Size, Heating System (kBtu/h)" => 400,
+      "Size, Heating Supplemental System (kBtu/h)" => 0, # backup
+      "Size, Cooling System (kBtu/h)" => 144,
+      "Size, Water Heater (gal)" => 30 * 4,
+    }
+    _test_cost_multipliers("SFA_2story_FB_FuelBoiler_RoomAC_FuelTankWH_Collapsed.osm", cost_multipliers)
   end
 
   def test_MF_2story_UB_ASHP2_HPWH
@@ -449,6 +501,7 @@ class SimulationOutputReportTest < MiniTest::Test
       "Roof Area (ft^2)" => 2333.33,
       "Window Area (ft^2)" => 537.60,
       "Door Area (ft^2)" => 20 * 8,
+      "Duct Surface Area (ft^2)" => 1110,
       "Size, Heating System (kBtu/h)" => 60 * 8,
       "Size, Heating Supplemental System (kBtu/h)" => 100 * 8, # backup
       "Size, Cooling System (kBtu/h)" => 60 * 8,
@@ -469,12 +522,55 @@ class SimulationOutputReportTest < MiniTest::Test
       "Roof Area (ft^2)" => 2333.33,
       "Window Area (ft^2)" => 537.60,
       "Door Area (ft^2)" => 20 * 8,
+      "Duct Surface Area (ft^2)" => 1110,
       "Size, Heating System (kBtu/h)" => 60 * 8,
       "Size, Heating Supplemental System (kBtu/h)" => 100 * 8, # backup
       "Size, Cooling System (kBtu/h)" => 60 * 8,
       "Size, Water Heater (gal)" => 50 * 8,
     }
     _test_cost_multipliers("MF_2story_UB_ASHP2_HPWH_Collapsed.osm", cost_multipliers)
+  end
+
+  def test_MF_1story_UB_Furnace_AC1_FuelTankWH
+    cost_multipliers = {
+      "Fixed (1)" => 8,
+      "Wall Area, Above-Grade, Conditioned (ft^2)" => 2026.66,
+      "Wall Area, Above-Grade, Exterior (ft^2)" => 2026.66 + 160,
+      "Wall Area, Below-Grade (ft^2)" => 2026.66 + 160,
+      "Floor Area, Conditioned (ft^2)" => 4000,
+      "Floor Area, Attic (ft^2)" => 0,
+      "Floor Area, Lighting (ft^2)" => 4000,
+      "Roof Area (ft^2)" => 4666.66,
+      "Window Area (ft^2)" => 364.8,
+      "Door Area (ft^2)" => 20 * 8,
+      "Duct Surface Area (ft^2)" => 1280,
+      "Size, Heating System (kBtu/h)" => 100 * 8,
+      "Size, Heating Supplemental System (kBtu/h)" => 0, # backup
+      "Size, Cooling System (kBtu/h)" => 60 * 8,
+      "Size, Water Heater (gal)" => 30 * 8,
+    }
+    _test_cost_multipliers("MF_1story_UB_Furnace_AC1_FuelTankWH.osm", cost_multipliers)
+  end
+
+  def test_MF_1story_UB_Furnace_AC1_FuelTankWH_Collapsed
+    cost_multipliers = {
+      "Fixed (1)" => 8,
+      "Wall Area, Above-Grade, Conditioned (ft^2)" => 2026.66,
+      "Wall Area, Above-Grade, Exterior (ft^2)" => 2026.66 + 160,
+      "Wall Area, Below-Grade (ft^2)" => 2026.66 + 160,
+      "Floor Area, Conditioned (ft^2)" => 4000,
+      "Floor Area, Attic (ft^2)" => 0,
+      "Floor Area, Lighting (ft^2)" => 4000,
+      "Roof Area (ft^2)" => 4666.66,
+      "Window Area (ft^2)" => 364.8,
+      "Door Area (ft^2)" => 20 * 8,
+      "Duct Surface Area (ft^2)" => 1280,
+      "Size, Heating System (kBtu/h)" => 100 * 8,
+      "Size, Heating Supplemental System (kBtu/h)" => 0, # backup
+      "Size, Cooling System (kBtu/h)" => 60 * 8,
+      "Size, Water Heater (gal)" => 30 * 8,
+    }
+    _test_cost_multipliers("MF_1story_UB_Furnace_AC1_FuelTankWH_Collapsed.osm", cost_multipliers)
   end
 
   private

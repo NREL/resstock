@@ -40,8 +40,22 @@ class Airflow
       return false
     end
     building.stories = model.getBuilding.standardsNumberOfAboveGroundStories.get
-    building.above_grade_volume = Geometry.get_above_grade_finished_volume(model, runner)
-    building.ag_ext_wall_area = Geometry.calculate_above_grade_exterior_wall_area(model_spaces)
+
+    building.ag_ext_wall_area = 0
+    building.ag_ffa = 0
+    building.above_grade_volume = 0
+    units = Geometry.get_building_units(model, runner)
+    units.each do |unit|
+      units_represented = 1
+      if unit.additionalProperties.getFeatureAsInteger("Units Represented").is_initialized
+        units_represented = unit.additionalProperties.getFeatureAsInteger("Units Represented").get
+      end
+
+      building.above_grade_volume += units_represented * Geometry.get_above_grade_finished_volume_from_spaces(unit.spaces, runner)
+      building.ag_ext_wall_area += units_represented * Geometry.calculate_above_grade_exterior_wall_area(unit.spaces)
+      building.ag_ffa += units_represented * Geometry.get_above_grade_finished_floor_area_from_spaces(unit.spaces, runner)
+    end
+
     model.getThermalZones.each do |thermal_zone|
       if Geometry.is_garage(thermal_zone)
         building.garage = ZoneInfo.new(thermal_zone, Geometry.get_height_of_spaces(thermal_zone.spaces), UnitConversions.convert(thermal_zone.floorArea, "m^2", "ft^2"), Geometry.get_zone_volume(thermal_zone, runner), Geometry.get_z_origin_for_zone(thermal_zone), nil, nil)
@@ -55,7 +69,7 @@ class Airflow
         building.unfinished_attic = ZoneInfo.new(thermal_zone, Geometry.get_height_of_spaces(thermal_zone.spaces), UnitConversions.convert(thermal_zone.floorArea, "m^2", "ft^2"), Geometry.get_zone_volume(thermal_zone, runner), Geometry.get_z_origin_for_zone(thermal_zone), infil.unfinished_attic_const_ach, infil.unfinished_attic_sla)
       end
     end
-    building.ag_ffa = Geometry.get_above_grade_finished_floor_area_from_spaces(model_spaces, runner)
+
     return false if building.ag_ffa.nil?
 
     wind_speed = process_wind_speed_correction(infil.terrain, infil.shelter_coef, Geometry.get_closest_neighbor_distance(model), building.building_height)
@@ -1094,33 +1108,30 @@ class Airflow
       ah_return_leakage = ducts.ah_return_frac * ducts.total_leakage
     end
 
-    # Fraction of ducts in primary duct location (remaining ducts are in above-grade conditioned space).
-    location_frac_leakage = Airflow.get_location_frac_leakage(ducts.location_frac, num_stories)
-
-    location_frac_conduction = location_frac_leakage
+    # Calculate duct areas
+    # Based on ASHRAE Standard 152 (https://www.energy.gov/eere/buildings/downloads/ashrae-standard-152-spreadsheet)
+    f_out = Airflow.get_location_frac_leakage(ducts.location_frac, building.stories) # Fraction of ducts in primary duct location (remaining ducts are in above-grade conditioned space).
     ducts.num_returns = Airflow.get_num_returns(ducts.num_returns, num_stories)
-    supply_surface_area = Airflow.get_duct_supply_surface_area(ducts.supply_area_mult, unit_ffa, num_stories)
-    return_surface_area = Airflow.get_return_surface_area(ducts.return_area_mult, unit_ffa, num_stories, ducts.num_returns)
+    supply_surface_area = Airflow.get_duct_supply_surface_area(unit_ffa) * ducts.supply_area_mult * f_out
+    return_surface_area = Airflow.get_duct_return_surface_area(unit_ffa, ducts.num_returns) * ducts.return_area_mult * f_out
 
     # Calculate Duct UA value
     if location_name != unit_living.zone.name.to_s
-      unconditioned_duct_area = supply_surface_area * location_frac_conduction
       supply_r = Airflow.get_duct_insulation_rvalue(ducts.r, true)
       return_r = Airflow.get_duct_insulation_rvalue(ducts.r, false)
-      unconditioned_ua = unconditioned_duct_area / supply_r
+      supply_ua = supply_surface_area / supply_r
       return_ua = return_surface_area / return_r
     else
-      location_frac_conduction = 0
-      unconditioned_ua = 0
-      return_ua = 0
       supply_r = 0
       return_r = 0
+      supply_ua = 0
+      return_ua = 0
     end
 
     # Only if using the Fractional Leakage Option Type:
     if ducts.norm_leakage_25pa.nil?
-      supply_loss = location_frac_leakage * supply_leakage + ah_supply_leakage
-      return_loss = return_leakage + ah_return_leakage
+      supply_loss = f_out * (supply_leakage + ah_supply_leakage)
+      return_loss = f_out * (return_leakage + ah_return_leakage)
     end
 
     unless ducts.norm_leakage_25pa.nil?
@@ -1162,9 +1173,9 @@ class Airflow
     unit.additionalProperties.setFeature(Constants.SizingInfoDuctsSupplySurfaceArea, supply_surface_area.to_f)
     unit.additionalProperties.setFeature(Constants.SizingInfoDuctsReturnSurfaceArea, return_surface_area.to_f)
     unit.additionalProperties.setFeature(Constants.SizingInfoDuctsLocationZone, location_name)
-    unit.additionalProperties.setFeature(Constants.SizingInfoDuctsLocationFrac, location_frac_leakage.to_f)
+    unit.additionalProperties.setFeature(Constants.SizingInfoDuctsLocationFrac, f_out.to_f)
 
-    ducts_output = DuctsOutput.new(location_name, location_zone, supply_loss, return_loss, frac_oa, total_unbalance, unconditioned_ua, return_ua)
+    ducts_output = DuctsOutput.new(location_name, location_zone, supply_loss, return_loss, frac_oa, total_unbalance, supply_ua, return_ua)
     return true, ducts_output
   end
 
@@ -1648,7 +1659,7 @@ class Airflow
         duct_subroutine.addLine("Set temp1=h_fg*(#{ra_w_var.name}-#{ah_wout_var.name})")
         duct_subroutine.addLine("Set #{supply_lat_lkage_to_liv_var.name} = f_sup*#{ah_mfr_var.name}*temp1")
         duct_subroutine.addLine("Set #{supply_sens_lkage_to_liv_var.name} = SALkQtot-#{supply_lat_lkage_to_liv_var.name}")
-        duct_subroutine.addLine("Set eTm=(#{fan_rtf_var.name}/(#{ah_mfr_var.name}*1006.0))*#{UnitConversions.convert(ducts_output.unconditioned_ua, "Btu/(hr*F)", "W/K").round(3)}")
+        duct_subroutine.addLine("Set eTm=(#{fan_rtf_var.name}/(#{ah_mfr_var.name}*1006.0))*#{UnitConversions.convert(ducts_output.supply_ua, "Btu/(hr*F)", "W/K").round(3)}")
         duct_subroutine.addLine("Set eTm=0-eTm")
         duct_subroutine.addLine("Set temp4=#{ah_t_var.name}")
         duct_subroutine.addLine("Set tsup=temp4+((#{ah_tout_var.name}-#{ah_t_var.name})*(@Exp eTm))")
@@ -2227,13 +2238,12 @@ class Airflow
     '''
   end
 
-  def self.get_location_frac_leakage(location_frac, stories)
+  def self.get_location_frac_leakage(location_frac, num_conditioned_floors_above_grade)
     if location_frac == Constants.Auto
-      # Duct location fraction per 2010 BA Benchmark
-      if stories == 1
+      if num_conditioned_floors_above_grade == 1
         location_frac_leakage = 1
       else
-        location_frac_leakage = 0.65
+        location_frac_leakage = 0.75
       end
     else
       location_frac_leakage = location_frac.to_f
@@ -2294,30 +2304,24 @@ class Airflow
     end
   end
 
-  def self.get_duct_supply_surface_area(mult, ffa, num_stories)
-    # Duct Surface Areas per 2010 BA Benchmark
-    if num_stories == 1
-      return 0.27 * ffa * mult # ft^2
-    else
-      return 0.2 * ffa * mult
-    end
+  def self.get_duct_supply_surface_area(ffa)
+    return 0.27 * ffa # ft^2
   end
 
-  def self.get_return_surface_area(mult, ffa, num_stories, num_returns)
-    # Duct Surface Areas per 2010 BA Benchmark
-    if num_stories == 1
-      return [0.05 * num_returns * ffa, 0.25 * ffa].min * mult
+  def self.get_duct_return_surface_area(ffa, num_returns)
+    if num_returns < 6
+      b_r = 0.05 * num_returns
     else
-      return [0.04 * num_returns * ffa, 0.19 * ffa].min * mult
+      b_r = 0.25
     end
+    return b_r * ffa # ft^2
   end
 
-  def self.get_num_returns(num_returns, num_stories)
+  def self.get_num_returns(num_returns, num_conditioned_floors)
     if num_returns.nil?
       return 0
     elsif num_returns == Constants.Auto
-      # Duct Number Returns per 2010 BA Benchmark Addendum
-      return 1 + num_stories
+      return num_conditioned_floors
     end
 
     return num_returns.to_i
@@ -2367,17 +2371,17 @@ class Ducts
 end
 
 class DuctsOutput
-  def initialize(location_name, location_zone, supply_loss, return_loss, frac_oa, total_unbalance, unconditioned_ua, return_ua)
+  def initialize(location_name, location_zone, supply_loss, return_loss, frac_oa, total_unbalance, supply_ua, return_ua)
     @location_name = location_name
     @location_zone = location_zone
     @supply_loss = supply_loss
     @return_loss = return_loss
     @frac_oa = frac_oa
     @total_unbalance = total_unbalance
-    @unconditioned_ua = unconditioned_ua
+    @supply_ua = supply_ua
     @return_ua = return_ua
   end
-  attr_accessor(:location_name, :location_zone, :supply_loss, :return_loss, :frac_oa, :total_unbalance, :unconditioned_ua, :return_ua)
+  attr_accessor(:location_name, :location_zone, :supply_loss, :return_loss, :frac_oa, :total_unbalance, :supply_ua, :return_ua)
 end
 
 class Infiltration
