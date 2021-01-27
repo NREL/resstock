@@ -118,6 +118,13 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
     run_measure.setDefaultValue(1)
     args << run_measure
 
+    # Make bool arg to retain HVAC sizes
+    retain_hvac_sizes = OpenStudio::Ruleset::OSArgument::makeBoolArgument('retain_hvac_sizes', true)
+    retain_hvac_sizes.setDisplayName('Retain HVAC Sizes')
+    retain_hvac_sizes.setDescription('Whether to retain HVAC sizes.')
+    retain_hvac_sizes.setDefaultValue(true)
+    args << retain_hvac_sizes
+
     return args
   end
 
@@ -315,13 +322,50 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
         measures['BuildResidentialHPXML'][0][step_value.name] = value
       end
 
+      measures['HPXMLtoOpenStudio'] = [{ 'hpxml_path' => File.expand_path('../upgraded.xml') }]
+
+      # Use generated schedules from the base building
       schedules_type = measures['BuildResidentialHPXML'][0]['schedules_type']
       if schedules_type == 'stochastic' # avoid re-running the stochastic schedule generator
         measures['BuildResidentialHPXML'][0]['schedules_type'] = 'user-specified'
         measures['BuildResidentialHPXML'][0]['schedules_path'] = File.expand_path('../schedules.csv')
       end
 
-      measures['HPXMLtoOpenStudio'] = [{ 'hpxml_path' => File.expand_path('../upgraded.xml') }]
+      # Retain HVAC sizes for non-HVAC upgrades
+      if runner.getBoolArgumentValue('retain_hvac_sizes', user_arguments)
+        hpxml_path = File.expand_path('../in.xml') # this is the defaulted hpxml
+        hpxml = HPXML.new(hpxml_path: hpxml_path)
+
+        heating_systems = {}
+        hpxml.heating_systems.each do |heating_system|
+          heating_systems[heating_system] = heating_system.fraction_heat_load_served
+        end
+
+        if heating_systems.size == 1
+          # measures['BuildResidentialHPXML'][0]['heating_system_heating_capacity'] = heating_systems[0].heating_capacity
+          measures['BuildResidentialHPXML'][0]['heating_system_heating_capacity'] = 6000.0
+        elsif heating_systems.size == 2
+          heating_systems = heating_systems.sort_by { |k, v| v } # sort smallest frac to largest frac
+          # measures['BuildResidentialHPXML'][0]['heating_system_heating_capacity_2'] = heating_systems[0].heating_capacity
+          # measures['BuildResidentialHPXML'][0]['heating_system_heating_capacity'] = heating_systems[1].heating_capacity
+          measures['BuildResidentialHPXML'][0]['heating_system_heating_capacity_2'] = 5000.0
+          measures['BuildResidentialHPXML'][0]['heating_system_heating_capacity'] = 1000.0
+        end
+
+        hpxml.cooling_systems.each do |cooling_system|
+          # measures['BuildResidentialHPXML'][0]['cooling_system_cooling_capacity'] = cooling_system.cooling_capacity
+          measures['BuildResidentialHPXML'][0]['cooling_system_cooling_capacity'] = 5000.0
+        end
+
+        hpxml.heat_pumps.each do |heat_pump|
+          # measures['BuildResidentialHPXML'][0]['heat_pump_heating_capacity'] = heat_pump.heating_capacity
+          # measures['BuildResidentialHPXML'][0]['heat_pump_cooling_capacity'] = heat_pump.cooling_capacity
+          # measures['BuildResidentialHPXML'][0]['heat_pump_backup_heating_capacity'] = heat_pump.backup_heating_capacity
+          measures['BuildResidentialHPXML'][0]['heat_pump_heating_capacity'] = 2500.0
+          measures['BuildResidentialHPXML'][0]['heat_pump_cooling_capacity'] = 2500.0
+          measures['BuildResidentialHPXML'][0]['heat_pump_backup_heating_capacity'] = 2000.0
+        end
+      end
 
       # Get software program used and version
       measures['BuildResidentialHPXML'][0]['software_program_used'] = software_program_used
