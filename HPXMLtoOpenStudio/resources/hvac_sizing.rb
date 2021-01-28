@@ -4,25 +4,34 @@ class HVACSizing
   def self.calculate_building_design_loads(runner, weather, hpxml, cfa, nbeds)
     # Calculates total building heating/cooling design loads (excluding
     # HVAC distribution losses).
-    # Calculations generally follow ACCS Manual J.
+    # Calculations generally follow ACCA Manual J.
 
     @runner = runner
     @hpxml = hpxml
     process_site_calcs_and_design_temps(weather)
 
     # Calculate loads for the conditioned thermal zone
-    zone_loads = process_zone_loads(weather, cfa, nbeds)
+    bldg_design_loads = DesignLoads.new
+    process_load_windows_skylights(bldg_design_loads, weather)
+    process_load_doors(bldg_design_loads, weather)
+    process_load_walls(bldg_design_loads, weather)
+    process_load_roofs(bldg_design_loads, weather)
+    process_load_ceilings(bldg_design_loads, weather)
+    process_load_floors(bldg_design_loads, weather)
+    process_load_slabs(bldg_design_loads, weather)
+    process_infiltration_ventilation(bldg_design_loads, weather, cfa)
+    process_internal_gains(bldg_design_loads, nbeds)
 
     # Aggregate zone loads into initial loads
-    bldg_loads = aggregate_zone_loads(zone_loads)
+    aggregate_bldg_design_loads(bldg_design_loads)
 
-    return bldg_loads
+    return bldg_design_loads
   end
 
-  def self.calculate_hvac_sizing_values(runner, weather, hpxml, cfa, bldg_loads, hvac_system)
+  def self.calculate_hvac_values(runner, weather, hpxml, cfa, bldg_design_loads, hvac_system)
     # Calculates heating/cooling design loads and selects equipment
     # values (e.g., capacity, airflow) specific to a HVAC system.
-    # Calculations generally follow ACCS Manual S.
+    # Calculations generally follow ACCA Manual S.
 
     @runner = runner
     @hpxml = hpxml
@@ -38,14 +47,14 @@ class HVACSizing
     hvac = get_hvac_information(hvac_system)
 
     # Init
-    hvac_design_loads = bldg_loads.dup
+    hvac_design_loads = bldg_design_loads.dup
     calculate_hvac_temperatures(hvac_design_loads, hvac)
     apply_hvac_load_fractions(hvac_design_loads, hvac)
     apply_hp_sizing_logic(hvac_design_loads, hvac)
 
     # Calculate final HVAC capacity/airflow
     hvac_sizing_values = HVACSizingValues.new
-    process_duct_loads_heating(hvac_sizing_values, weather, hvac, hvac_design_loads.Heat)
+    process_duct_loads_heating(hvac_sizing_values, weather, hvac, hvac_design_loads.Heat_Tot)
     process_duct_loads_cooling(hvac_sizing_values, weather, hvac, hvac_design_loads.Cool_Sens, hvac_design_loads.Cool_Lat)
     process_equipment_adjustments(hvac_sizing_values, weather, hvac, cfa)
     process_sizing_for_installation_quality(hvac_sizing_values, weather, hvac)
@@ -53,7 +62,7 @@ class HVACSizing
     process_ground_loop(hvac_sizing_values, weather, hvac)
     process_finalize(hvac_sizing_values, weather, hvac)
 
-    return hvac_sizing_values
+    return hvac_design_loads, hvac_sizing_values
   end
 
   private
@@ -330,22 +339,7 @@ class HVACSizing
     return cool_temp
   end
 
-  def self.process_zone_loads(weather, cfa, nbeds)
-    # Constant loads (no variation throughout day)
-    zone_loads = ZoneLoads.new
-    process_load_windows_skylights(zone_loads, weather)
-    process_load_doors(zone_loads, weather)
-    process_load_walls(zone_loads, weather)
-    process_load_roofs(zone_loads, weather)
-    process_load_ceilings(zone_loads, weather)
-    process_load_floors(zone_loads, weather)
-    process_load_slabs(zone_loads, weather)
-    process_infiltration_ventilation(zone_loads, weather, cfa)
-    process_internal_gains(zone_loads, nbeds)
-    return zone_loads
-  end
-
-  def self.process_load_windows_skylights(zone_loads, weather)
+  def self.process_load_windows_skylights(bldg_design_loads, weather)
     '''
     Heating and Cooling Loads: Windows & Skylights
     '''
@@ -477,7 +471,7 @@ class HVACSizing
     end
 
     # Windows
-    zone_loads.Heat_Windows = 0.0
+    bldg_design_loads.Heat_Windows = 0.0
     alp_load = 0.0 # Average Load Procedure (ALP) Load
     afl_hr = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0] # Initialize Hourly Aggregate Fenestration Load (AFL)
 
@@ -488,7 +482,7 @@ class HVACSizing
       window_true_azimuth = get_true_azimuth(window.azimuth)
       cnt225 = (window_true_azimuth / 22.5).round.to_i
 
-      zone_loads.Heat_Windows += window.ufactor * window.area * @htd
+      bldg_design_loads.Heat_Windows += window.ufactor * window.area * @htd
 
       for hr in -1..12
 
@@ -606,10 +600,10 @@ class HVACSizing
     eal = [0.0, pfl - ell].max
 
     # Window Cooling Load
-    zone_loads.Cool_Windows = alp_load + eal
+    bldg_design_loads.Cool_Windows = alp_load + eal
 
     # Skylights
-    zone_loads.Heat_Skylights = 0.0
+    bldg_design_loads.Heat_Skylights = 0.0
     alp_load = 0.0 # Average Load Procedure (ALP) Load
     afl_hr = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0] # Initialize Hourly Aggregate Fenestration Load (AFL)
 
@@ -619,7 +613,7 @@ class HVACSizing
       cnt225 = (skylight_true_azimuth / 22.5).round.to_i
       inclination_angle = UnitConversions.convert(Math.atan(skylight.roof.pitch / 12.0), 'rad', 'deg')
 
-      zone_loads.Heat_Skylights += skylight.ufactor * skylight.area * @htd
+      bldg_design_loads.Heat_Skylights += skylight.ufactor * skylight.area * @htd
 
       for hr in -1..12
 
@@ -682,10 +676,10 @@ class HVACSizing
     eal = [0.0, pfl - ell].max
 
     # Skylight Cooling Load
-    zone_loads.Cool_Skylights = alp_load + eal
+    bldg_design_loads.Cool_Skylights = alp_load + eal
   end
 
-  def self.process_load_doors(zone_loads, weather)
+  def self.process_load_doors(bldg_design_loads, weather)
     '''
     Heating and Cooling Loads: Doors
     '''
@@ -698,30 +692,30 @@ class HVACSizing
       cltd = @ctd + 6.0
     end
 
-    zone_loads.Heat_Doors = 0.0
-    zone_loads.Cool_Doors = 0.0
+    bldg_design_loads.Heat_Doors = 0.0
+    bldg_design_loads.Cool_Doors = 0.0
 
     @hpxml.doors.each do |door|
       next unless door.is_thermal_boundary
 
       if door.wall.is_exterior
-        zone_loads.Heat_Doors += (1.0 / door.r_value) * door.area * @htd
-        zone_loads.Cool_Doors += (1.0 / door.r_value) * door.area * cltd
+        bldg_design_loads.Heat_Doors += (1.0 / door.r_value) * door.area * @htd
+        bldg_design_loads.Cool_Doors += (1.0 / door.r_value) * door.area * cltd
       else # Partition door
         adjacent_space = door.wall.exterior_adjacent_to
-        zone_loads.Cool_Doors += (1.0 / door.r_value) * door.area * (@cool_design_temps[adjacent_space] - @cool_setpoint)
-        zone_loads.Heat_Doors += (1.0 / door.r_value) * door.area * (@heat_setpoint - @heat_design_temps[adjacent_space])
+        bldg_design_loads.Cool_Doors += (1.0 / door.r_value) * door.area * (@cool_design_temps[adjacent_space] - @cool_setpoint)
+        bldg_design_loads.Heat_Doors += (1.0 / door.r_value) * door.area * (@heat_setpoint - @heat_design_temps[adjacent_space])
       end
     end
   end
 
-  def self.process_load_walls(zone_loads, weather)
+  def self.process_load_walls(bldg_design_loads, weather)
     '''
     Heating and Cooling Loads: Walls
     '''
 
-    zone_loads.Heat_Walls = 0.0
-    zone_loads.Cool_Walls = 0.0
+    bldg_design_loads.Heat_Walls = 0.0
+    bldg_design_loads.Cool_Walls = 0.0
 
     # Above-Grade Walls
     (@hpxml.walls + @hpxml.rim_joists).each do |wall|
@@ -779,12 +773,12 @@ class HVACSizing
             cltd = [cltd + cltd_corr, 0.0].max # Assume zero cooling load for negative CLTD's
           end
 
-          zone_loads.Cool_Walls += (1.0 / wall.insulation_assembly_r_value) * wall_area / azimuths.size * cltd
-          zone_loads.Heat_Walls += (1.0 / wall.insulation_assembly_r_value) * wall_area / azimuths.size * @htd
+          bldg_design_loads.Cool_Walls += (1.0 / wall.insulation_assembly_r_value) * wall_area / azimuths.size * cltd
+          bldg_design_loads.Heat_Walls += (1.0 / wall.insulation_assembly_r_value) * wall_area / azimuths.size * @htd
         else # Partition wall
           adjacent_space = wall.exterior_adjacent_to
-          zone_loads.Cool_Walls += (1.0 / wall.insulation_assembly_r_value) * wall_area / azimuths.size * (@cool_design_temps[adjacent_space] - @cool_setpoint)
-          zone_loads.Heat_Walls += (1.0 / wall.insulation_assembly_r_value) * wall_area / azimuths.size * (@heat_setpoint - @heat_design_temps[adjacent_space])
+          bldg_design_loads.Cool_Walls += (1.0 / wall.insulation_assembly_r_value) * wall_area / azimuths.size * (@cool_design_temps[adjacent_space] - @cool_setpoint)
+          bldg_design_loads.Heat_Walls += (1.0 / wall.insulation_assembly_r_value) * wall_area / azimuths.size * (@heat_setpoint - @heat_design_temps[adjacent_space])
         end
       end
     end
@@ -794,17 +788,17 @@ class HVACSizing
       next unless foundation_wall.is_exterior_thermal_boundary
 
       u_wall_with_soil, u_wall_without_soil = get_foundation_wall_properties(foundation_wall)
-      zone_loads.Heat_Walls += u_wall_with_soil * foundation_wall.net_area * @htd
+      bldg_design_loads.Heat_Walls += u_wall_with_soil * foundation_wall.net_area * @htd
     end
   end
 
-  def self.process_load_roofs(zone_loads, weather)
+  def self.process_load_roofs(bldg_design_loads, weather)
     '''
     Heating and Cooling Loads: Roofs
     '''
 
-    zone_loads.Heat_Roofs = 0.0
-    zone_loads.Cool_Roofs = 0.0
+    bldg_design_loads.Heat_Roofs = 0.0
+    bldg_design_loads.Cool_Roofs = 0.0
 
     # Roofs
     @hpxml.roofs.each do |roof|
@@ -847,49 +841,49 @@ class HVACSizing
       # Adjust base CLTD for different CTD or DR
       cltd += (weather.design.CoolingDrybulb - 95.0) + @daily_range_temp_adjust[@daily_range_num]
 
-      zone_loads.Cool_Roofs += (1.0 / roof.insulation_assembly_r_value) * roof.net_area * cltd
-      zone_loads.Heat_Roofs += (1.0 / roof.insulation_assembly_r_value) * roof.net_area * @htd
+      bldg_design_loads.Cool_Roofs += (1.0 / roof.insulation_assembly_r_value) * roof.net_area * cltd
+      bldg_design_loads.Heat_Roofs += (1.0 / roof.insulation_assembly_r_value) * roof.net_area * @htd
     end
   end
 
-  def self.process_load_ceilings(zone_loads, weather)
+  def self.process_load_ceilings(bldg_design_loads, weather)
     '''
     Heating and Cooling Loads: Ceilings
     '''
 
-    zone_loads.Heat_Ceilings = 0.0
-    zone_loads.Cool_Ceilings = 0.0
+    bldg_design_loads.Heat_Ceilings = 0.0
+    bldg_design_loads.Cool_Ceilings = 0.0
 
     @hpxml.frame_floors.each do |frame_floor|
       next unless frame_floor.is_ceiling
       next unless frame_floor.is_thermal_boundary
 
       if frame_floor.is_exterior
-        zone_loads.Cool_Ceilings += (1.0 / frame_floor.insulation_assembly_r_value) * frame_floor.area * (@ctd - 5.0 + @daily_range_temp_adjust[@daily_range_num])
-        zone_loads.Heat_Ceilings += (1.0 / frame_floor.insulation_assembly_r_value) * frame_floor.area * @htd
+        bldg_design_loads.Cool_Ceilings += (1.0 / frame_floor.insulation_assembly_r_value) * frame_floor.area * (@ctd - 5.0 + @daily_range_temp_adjust[@daily_range_num])
+        bldg_design_loads.Heat_Ceilings += (1.0 / frame_floor.insulation_assembly_r_value) * frame_floor.area * @htd
       else
         adjacent_space = frame_floor.exterior_adjacent_to
-        zone_loads.Cool_Ceilings += (1.0 / frame_floor.insulation_assembly_r_value) * frame_floor.area * (@cool_design_temps[adjacent_space] - @cool_setpoint)
-        zone_loads.Heat_Ceilings += (1.0 / frame_floor.insulation_assembly_r_value) * frame_floor.area * (@heat_setpoint - @heat_design_temps[adjacent_space])
+        bldg_design_loads.Cool_Ceilings += (1.0 / frame_floor.insulation_assembly_r_value) * frame_floor.area * (@cool_design_temps[adjacent_space] - @cool_setpoint)
+        bldg_design_loads.Heat_Ceilings += (1.0 / frame_floor.insulation_assembly_r_value) * frame_floor.area * (@heat_setpoint - @heat_design_temps[adjacent_space])
       end
     end
   end
 
-  def self.process_load_floors(zone_loads, weather)
+  def self.process_load_floors(bldg_design_loads, weather)
     '''
     Heating and Cooling Loads: Floors
     '''
 
-    zone_loads.Heat_Floors = 0.0
-    zone_loads.Cool_Floors = 0.0
+    bldg_design_loads.Heat_Floors = 0.0
+    bldg_design_loads.Cool_Floors = 0.0
 
     @hpxml.frame_floors.each do |frame_floor|
       next unless frame_floor.is_floor
       next unless frame_floor.is_thermal_boundary
 
       if frame_floor.is_exterior
-        zone_loads.Cool_Floors += (1.0 / frame_floor.insulation_assembly_r_value) * frame_floor.area * (@ctd - 5.0 + @daily_range_temp_adjust[@daily_range_num])
-        zone_loads.Heat_Floors += (1.0 / frame_floor.insulation_assembly_r_value) * frame_floor.area * @htd
+        bldg_design_loads.Cool_Floors += (1.0 / frame_floor.insulation_assembly_r_value) * frame_floor.area * (@ctd - 5.0 + @daily_range_temp_adjust[@daily_range_num])
+        bldg_design_loads.Heat_Floors += (1.0 / frame_floor.insulation_assembly_r_value) * frame_floor.area * @htd
       else # Partition floor
         adjacent_space = frame_floor.exterior_adjacent_to
         if frame_floor.is_floor && [HPXML::LocationCrawlspaceVented, HPXML::LocationCrawlspaceUnvented, HPXML::LocationBasementUnconditioned].include?(adjacent_space)
@@ -926,29 +920,29 @@ class HVACSizing
             ptdh_floor = u_wall * @htd / (4.0 * u_floor + u_wall)
           end
 
-          zone_loads.Cool_Floors += (1.0 / frame_floor.insulation_assembly_r_value) * frame_floor.area * ptdc_floor
-          zone_loads.Heat_Floors += (1.0 / frame_floor.insulation_assembly_r_value) * frame_floor.area * ptdh_floor
+          bldg_design_loads.Cool_Floors += (1.0 / frame_floor.insulation_assembly_r_value) * frame_floor.area * ptdc_floor
+          bldg_design_loads.Heat_Floors += (1.0 / frame_floor.insulation_assembly_r_value) * frame_floor.area * ptdh_floor
         else # E.g., floor over garage
-          zone_loads.Cool_Floors += (1.0 / frame_floor.insulation_assembly_r_value) * frame_floor.area * (@cool_design_temps[adjacent_space] - @cool_setpoint)
-          zone_loads.Heat_Floors += (1.0 / frame_floor.insulation_assembly_r_value) * frame_floor.area * (@heat_setpoint - @heat_design_temps[adjacent_space])
+          bldg_design_loads.Cool_Floors += (1.0 / frame_floor.insulation_assembly_r_value) * frame_floor.area * (@cool_design_temps[adjacent_space] - @cool_setpoint)
+          bldg_design_loads.Heat_Floors += (1.0 / frame_floor.insulation_assembly_r_value) * frame_floor.area * (@heat_setpoint - @heat_design_temps[adjacent_space])
         end
       end
     end
   end
 
-  def self.process_load_slabs(zone_loads, weather)
+  def self.process_load_slabs(bldg_design_loads, weather)
     '''
     Heating and Cooling Loads: Floors
     '''
 
-    zone_loads.Heat_Slabs = 0.0
+    bldg_design_loads.Heat_Slabs = 0.0
 
     @hpxml.slabs.each do |slab|
       next unless slab.is_thermal_boundary
 
       if slab.interior_adjacent_to == HPXML::LocationLivingSpace # Slab-on-grade
         f_value = calc_slab_f_value(slab)
-        zone_loads.Heat_Slabs += f_value * slab.exposed_perimeter * @htd
+        bldg_design_loads.Heat_Slabs += f_value * slab.exposed_perimeter * @htd
       elsif slab.interior_adjacent_to == HPXML::LocationBasementConditioned
         # Based on MJ 8th Ed. A12-7 and ASHRAE HoF 2013 pg 18.31 Eq 40
         # FIXME: Assumes slab is uninsulated?
@@ -962,12 +956,12 @@ class HVACSizing
         w_b = [length, width].min
         u_avg_bf = (2.0 * k_soil / (Math::PI * w_b)) * (Math::log(w_b / 2.0 + z_f / 2.0 + (k_soil * r_other) / Math::PI) - Math::log(z_f / 2.0 + (k_soil * r_other) / Math::PI))
         u_value_mj8 = 0.85 * u_avg_bf
-        zone_loads.Heat_Slabs += u_value_mj8 * slab.area * @htd
+        bldg_design_loads.Heat_Slabs += u_value_mj8 * slab.area * @htd
       end
     end
   end
 
-  def self.process_infiltration_ventilation(zone_loads, weather, cfa)
+  def self.process_infiltration_ventilation(bldg_design_loads, weather, cfa)
     '''
     Heating and Cooling Loads: Infiltration & Ventilation
     '''
@@ -1006,49 +1000,46 @@ class HVACSizing
     cfm_Cool_Load_Sens = q_bal_Sens + (icfm_Cooling**2.0 + q_unb_cfm**2.0)**0.5 - q_precool - q_recirc
     cfm_Cool_Load_Lat = q_bal_Lat + (icfm_Cooling**2.0 + q_unb_cfm**2.0)**0.5 - q_recirc
 
-    zone_loads.Heat_Infil = 1.1 * @acf * cfm_Heating * @htd
+    bldg_design_loads.Heat_InfilVent = 1.1 * @acf * cfm_Heating * @htd
 
-    zone_loads.Cool_Infil_Sens = 1.1 * @acf * cfm_Cool_Load_Sens * @ctd
-    zone_loads.Cool_Infil_Lat = 0.68 * @acf * cfm_Cool_Load_Lat * (@cool_design_grains - @cool_indoor_grains)
+    bldg_design_loads.Cool_Infil_Sens = 1.1 * @acf * cfm_Cool_Load_Sens * @ctd
+    bldg_design_loads.Cool_Infil_Lat = 0.68 * @acf * cfm_Cool_Load_Lat * (@cool_design_grains - @cool_indoor_grains)
   end
 
-  def self.process_internal_gains(zone_loads, nbeds)
+  def self.process_internal_gains(bldg_design_loads, nbeds)
     '''
     Cooling Load: Internal Gains
     '''
 
     # Per ANSI/RESNET/ICC 301
     n_occupants = nbeds + 1
-    zone_loads.Cool_IntGains_Sens = 1600.0 + 230.0 * n_occupants
-    zone_loads.Cool_IntGains_Lat = 200.0 * n_occupants
+    bldg_design_loads.Cool_IntGains_Sens = 1600.0 + 230.0 * n_occupants
+    bldg_design_loads.Cool_IntGains_Lat = 200.0 * n_occupants
   end
 
-  def self.aggregate_zone_loads(zone_loads)
+  def self.aggregate_bldg_design_loads(bldg_design_loads)
     '''
     Intermediate Loads
     (total loads excluding ducts)
     '''
 
-    bldg_loads = BuildingLoads.new
     # Heating
-    bldg_loads.Heat = [zone_loads.Heat_Windows + zone_loads.Heat_Skylights +
-      zone_loads.Heat_Doors + zone_loads.Heat_Walls +
-      zone_loads.Heat_Floors + +zone_loads.Heat_Slabs +
-      zone_loads.Heat_Ceilings + zone_loads.Heat_Roofs, 0.0].max +
-                      zone_loads.Heat_Infil
+    bldg_design_loads.Heat_Tot = [bldg_design_loads.Heat_Windows + bldg_design_loads.Heat_Skylights +
+      bldg_design_loads.Heat_Doors + bldg_design_loads.Heat_Walls +
+      bldg_design_loads.Heat_Floors + bldg_design_loads.Heat_Slabs +
+      bldg_design_loads.Heat_Ceilings + bldg_design_loads.Heat_Roofs, 0.0].max +
+                                 bldg_design_loads.Heat_InfilVent
 
     # Cooling
-    bldg_loads.Cool_Sens = zone_loads.Cool_Windows + zone_loads.Cool_Skylights +
-                           zone_loads.Cool_Doors + zone_loads.Cool_Walls +
-                           zone_loads.Cool_Floors + zone_loads.Cool_Ceilings +
-                           zone_loads.Cool_Roofs + zone_loads.Cool_Infil_Sens +
-                           zone_loads.Cool_IntGains_Sens
-    bldg_loads.Cool_Lat = zone_loads.Cool_Infil_Lat + zone_loads.Cool_IntGains_Lat
+    bldg_design_loads.Cool_Sens = bldg_design_loads.Cool_Windows + bldg_design_loads.Cool_Skylights +
+                                  bldg_design_loads.Cool_Doors + bldg_design_loads.Cool_Walls +
+                                  bldg_design_loads.Cool_Floors + bldg_design_loads.Cool_Ceilings +
+                                  bldg_design_loads.Cool_Roofs + bldg_design_loads.Cool_Infil_Sens +
+                                  bldg_design_loads.Cool_IntGains_Sens
+    bldg_design_loads.Cool_Lat = bldg_design_loads.Cool_Infil_Lat + bldg_design_loads.Cool_IntGains_Lat
 
-    bldg_loads.Cool_Lat = [bldg_loads.Cool_Lat, 0.0].max
-    bldg_loads.Cool_Tot = bldg_loads.Cool_Sens + bldg_loads.Cool_Lat
-
-    return bldg_loads
+    bldg_design_loads.Cool_Lat = [bldg_design_loads.Cool_Lat, 0.0].max
+    bldg_design_loads.Cool_Tot = bldg_design_loads.Cool_Sens + bldg_design_loads.Cool_Lat
   end
 
   def self.calculate_hvac_temperatures(hvac_design_loads, hvac)
@@ -1088,13 +1079,35 @@ class HVACSizing
     '''
     Intermediate Loads (HVAC-specific)
     '''
-    hvac_design_loads.Heat *= hvac.HeatingLoadFraction
+    hvac_design_loads.Heat_Windows *= hvac.HeatingLoadFraction
+    hvac_design_loads.Heat_Skylights *= hvac.HeatingLoadFraction
+    hvac_design_loads.Heat_Doors *= hvac.HeatingLoadFraction
+    hvac_design_loads.Heat_Walls *= hvac.HeatingLoadFraction
+    hvac_design_loads.Heat_Roofs *= hvac.HeatingLoadFraction
+    hvac_design_loads.Heat_Floors *= hvac.HeatingLoadFraction
+    hvac_design_loads.Heat_Slabs *= hvac.HeatingLoadFraction
+    hvac_design_loads.Heat_Ceilings *= hvac.HeatingLoadFraction
+    hvac_design_loads.Heat_InfilVent *= hvac.HeatingLoadFraction
+    hvac_design_loads.Heat_Tot *= hvac.HeatingLoadFraction
+
+    hvac_design_loads.Cool_Windows *= hvac.CoolingLoadFraction
+    hvac_design_loads.Cool_Skylights *= hvac.CoolingLoadFraction
+    hvac_design_loads.Cool_Doors *= hvac.CoolingLoadFraction
+    hvac_design_loads.Cool_Walls *= hvac.CoolingLoadFraction
+    hvac_design_loads.Cool_Roofs *= hvac.CoolingLoadFraction
+    hvac_design_loads.Cool_Floors *= hvac.CoolingLoadFraction
+    hvac_design_loads.Cool_Ceilings *= hvac.CoolingLoadFraction
+    hvac_design_loads.Cool_Infil_Sens *= hvac.CoolingLoadFraction
+    hvac_design_loads.Cool_Infil_Lat *= hvac.CoolingLoadFraction
+    hvac_design_loads.Cool_IntGains_Sens *= hvac.CoolingLoadFraction
+    hvac_design_loads.Cool_IntGains_Lat *= hvac.CoolingLoadFraction
     hvac_design_loads.Cool_Sens *= hvac.CoolingLoadFraction
     hvac_design_loads.Cool_Lat *= hvac.CoolingLoadFraction
     hvac_design_loads.Cool_Tot *= hvac.CoolingLoadFraction
 
     # Prevent error for, e.g., an ASHP with CoolingLoadFraction == 0.
-    hvac_design_loads.Heat = [hvac_design_loads.Heat, 0.001].max
+    # FUTURE: Is there a better way to handle this?
+    hvac_design_loads.Heat_Tot = [hvac_design_loads.Heat_Tot, 0.001].max
     hvac_design_loads.Cool_Sens = [hvac_design_loads.Cool_Sens, 0.001].max
     hvac_design_loads.Cool_Lat = [hvac_design_loads.Cool_Lat, 0.001].max
     hvac_design_loads.Cool_Tot = [hvac_design_loads.Cool_Tot, 0.001].max
@@ -1107,9 +1120,9 @@ class HVACSizing
         HPXML::HVACTypeHeatPumpMiniSplit,
         HPXML::HVACTypeHeatPumpGroundToAir,
         HPXML::HVACTypeHeatPumpWaterLoopToAir].include? hvac.CoolType
-      if @hpxml.header.use_max_load_for_heat_pumps
-        max_load = [hvac_design_loads.Heat, hvac_design_loads.Cool_Tot].max
-        hvac_design_loads.Heat = max_load
+      if @hpxml.header.use_max_load_for_heat_pumps && (hvac.CoolingLoadFraction > 0) && (hvac.HeatingLoadFraction > 0)
+        max_load = [hvac_design_loads.Heat_Tot, hvac_design_loads.Cool_Tot].max
+        hvac_design_loads.Heat_Tot = max_load
         hvac_design_loads.Cool_Sens *= max_load / hvac_design_loads.Cool_Tot
         hvac_design_loads.Cool_Lat *= max_load / hvac_design_loads.Cool_Tot
         hvac_design_loads.Cool_Tot = max_load
@@ -1318,6 +1331,7 @@ class HVACSizing
     # Calculate the air flow rate required for design conditions
     hvac_sizing_values.Cool_Airflow = calc_airflow_rate(hvac_sizing_values.Cool_Load_Sens, (@cool_setpoint - hvac.LeavingAirTemp))
 
+    # FIXME: Something isn't right here. Run w/ base-location-miami-fl.xml
     hvac_sizing_values.Cool_Load_Ducts_Lat = hvac_sizing_values.Cool_Load_Ducts_Tot - hvac_sizing_values.Cool_Load_Ducts_Sens
   end
 
@@ -3357,25 +3371,18 @@ class HVACSizing
   end
 end
 
-class ZoneLoads
-  # Thermal zone loads
+# FUTURE: Combine DesignLoads and HVACSizingValues into a single object?
+class DesignLoads
   def initialize
   end
-  attr_accessor(:Cool_Windows, :Cool_Skylights, :Cool_Doors, :Cool_Walls, :Cool_Roofs, :Cool_Floors,
+  attr_accessor(:Cool_Sens, :Cool_Lat, :Cool_Tot, :Heat_Tot,
+                :Cool_Windows, :Cool_Skylights, :Cool_Doors, :Cool_Walls, :Cool_Roofs, :Cool_Floors,
                 :Cool_Ceilings, :Cool_Infil_Sens, :Cool_Infil_Lat, :Cool_IntGains_Sens, :Cool_IntGains_Lat,
                 :Heat_Windows, :Heat_Skylights, :Heat_Doors, :Heat_Walls, :Heat_Roofs, :Heat_Floors,
-                :Heat_Slabs, :Heat_Ceilings, :Heat_Infil)
-end
-
-class BuildingLoads
-  # Initial loads (aggregated across thermal zones and excluding ducts)
-  def initialize
-  end
-  attr_accessor(:Cool_Sens, :Cool_Lat, :Cool_Tot, :Heat)
+                :Heat_Slabs, :Heat_Ceilings, :Heat_InfilVent)
 end
 
 class HVACSizingValues
-  # Final loads (including ducts), airflow rates, equipment capacities, etc.
   def initialize
   end
   attr_accessor(:Cool_Load_Sens, :Cool_Load_Lat, :Cool_Load_Tot,

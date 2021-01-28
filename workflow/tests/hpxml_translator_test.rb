@@ -329,10 +329,12 @@ class HPXMLTest < MiniTest::Test
 
     # Get results
     results = _get_results(rundir, workflow_time, annual_csv_path, xml)
-    sizing_results = _get_sizing_results(rundir)
 
     # Check outputs
-    _verify_outputs(rundir, xml, results)
+    hpxml_defaults_path = File.join(rundir, 'in.xml')
+    hpxml = HPXML.new(hpxml_path: hpxml_defaults_path)
+    sizing_results = _get_sizing_results(hpxml)
+    _verify_outputs(rundir, xml, results, hpxml)
 
     return results, sizing_results
   end
@@ -361,35 +363,55 @@ class HPXMLTest < MiniTest::Test
     return results
   end
 
-  def _get_sizing_results(rundir)
-    # FIXME: No longer does anything
+  def _get_sizing_results(hpxml)
     results = {}
-    File.readlines(File.join(rundir, 'run.log')).each do |s|
-      next unless s.start_with?('Heat ') || s.start_with?('Cool ')
-      next unless s.include? '='
 
-      vals = s.split('=')
-      prop = vals[0].strip
-      vals = vals[1].split(' ')
-      value = Float(vals[0].strip)
-      prop += " [#{vals[1].strip}]" # add units
-      results[prop] = 0.0 if results[prop].nil?
-      results[prop] += value
+    hdl_prefix = 'hdl_'
+    cdl_prefix = 'cdl_'
+
+    (hpxml.heating_systems + hpxml.heat_pumps).each do |htg_sys|
+      # Heating capacities/airflows
+      results['heating_capacity [Btuh]'] = htg_sys.heating_capacity
+      if htg_sys.respond_to? :backup_heating_capacity
+        results['heating_backup_capacity [Btuh]'] = htg_sys.backup_heating_capacity
+      else
+        results['heating_backup_capacity [Btuh]'] = 0.0
+      end
+      results['heating_airflow [cfm]'] = htg_sys.heating_airflow_cfm
+
+      # Heating design loads
+      htg_sys.class::ATTRS.each do |attr|
+        next unless attr.to_s.start_with? hdl_prefix
+        next if attr.to_s.end_with? '_isdefaulted'
+
+        results["heating_load_#{attr.to_s.gsub(hdl_prefix, '')} [Btuh]"] = htg_sys.send(attr.to_s)
+      end
     end
-    # assert(!results.empty?)
+    (hpxml.cooling_systems + hpxml.heat_pumps).each do |clg_sys|
+      # Cooling capacity/airflows
+      results['cooling_capacity [Btuh]'] = clg_sys.cooling_capacity
+      results['cooling_airflow [cfm]'] = clg_sys.cooling_airflow_cfm
+
+      # Cooling design loads
+      clg_sys.class::ATTRS.each do |attr|
+        next unless attr.to_s.start_with? cdl_prefix
+        next if attr.to_s.end_with? '_isdefaulted'
+
+        results["cooling_load_#{attr.to_s.gsub(cdl_prefix, '')} [Btuh]"] = clg_sys.send(attr.to_s)
+      end
+    end
+    assert(!results.empty?)
+
     return results
   end
 
-  def _verify_outputs(rundir, hpxml_path, results)
+  def _verify_outputs(rundir, hpxml_path, results, hpxml)
     sql_path = File.join(rundir, 'eplusout.sql')
     assert(File.exist? sql_path)
 
     sqlFile = OpenStudio::SqlFile.new(sql_path, false)
-    hpxml_defaults_path = File.join(rundir, 'in.xml')
-    hpxml = HPXML.new(hpxml_path: hpxml_defaults_path)
 
     # Collapse windows further using same logic as measure.rb
-    # FIXME: is this still needed?
     hpxml.windows.each do |window|
       window.fraction_operable = nil
     end

@@ -37,6 +37,8 @@ class HPXMLDefaults
     apply_fuel_loads(hpxml, cfa, nbeds)
     apply_pv_systems(hpxml)
     apply_generators(hpxml)
+
+    # Do HVAC sizing after all other defaults have been applied
     apply_hvac_sizing(hpxml, runner, weather, cfa, nbeds)
   end
 
@@ -603,7 +605,7 @@ class HPXMLDefaults
     end
 
     # HVAC capacities
-    # Transition capacity elements from -1 to nil
+    # Transition capacity elements from -1 (old approach) to nil (new approach)
     hpxml.heating_systems.each do |heating_system|
       if (not heating_system.heating_capacity.nil?) && (heating_system.heating_capacity < 0)
         heating_system.heating_capacity = nil
@@ -791,7 +793,7 @@ class HPXMLDefaults
         min_heating_airflow_rate = 200.0
         max_heating_airflow_rate = 400.0
 
-        # cop/eir as a function of temperature
+        # COP/EIR as a function of temperature
         # Generic curves (=Daikin from lab data)
         hp_ap.heat_eir_ft_spec = [[0.9999941697687026, 0.004684593830254383, 5.901286675833333e-05, -0.0028624467783091973, 1.3041120194135802e-05, -0.00016172918478765433]] * num_speeds
         hp_ap.heat_cap_fflow_spec = [[1, 0, 0]] * num_speeds
@@ -805,7 +807,6 @@ class HPXMLDefaults
           cap_retention_frac = heat_pump.heating_capacity_17F / heat_pump.heating_capacity
           cap_retention_temp = 17.0 # deg-F
         end
-        # FUTURE: Write HeatingCapacity17F to in.xml
 
         # Biquadratic: capacity multiplier = a + b*IAT + c*IAT^2 + d*OAT + e*OAT^2 + f*IAT*OAT
         x_A = UnitConversions.convert(cap_retention_temp, 'F', 'C')
@@ -1817,47 +1818,126 @@ class HPXMLDefaults
 
   def self.apply_hvac_sizing(hpxml, runner, weather, cfa, nbeds)
     # Calculate building design load (excluding HVAC distribution losses)
-    bldg_loads = HVACSizing.calculate_building_design_loads(runner, weather, hpxml, cfa, nbeds)
+    bldg_design_loads = HVACSizing.calculate_building_design_loads(runner, weather, hpxml, cfa, nbeds)
 
     HVAC.get_hpxml_hvac_systems(hpxml).each do |hvac_system|
       htg_sys = hvac_system[:heating]
       clg_sys = hvac_system[:cooling]
 
       # Calculate design loads and capacities/airflows for this HVAC system
-      htg_id = htg_sys.id unless hvac_system[:heating].nil?
-      clg_id = clg_sys.id unless hvac_system[:cooling].nil?
-      sizing_values = HVACSizing.calculate_hvac_sizing_values(runner, weather, hpxml, cfa, bldg_loads, hvac_system)
+      # FUTURE: Calculate HeatingCapacity17F for ASHP/MSHP, assign back to HPXML objects
+      hvac_design_loads, hvac_sizing_values = HVACSizing.calculate_hvac_values(runner, weather, hpxml, cfa, bldg_design_loads, hvac_system)
 
-      # Assign back to HPXML objects -- HeatingSystem/HeatPump
+      # Heating -- Assign back to HPXML objects (HeatingSystem/HeatPump)
       if not htg_sys.nil?
-        if htg_sys.heating_capacity.nil? || ((htg_sys.heating_capacity - sizing_values.Heat_Capacity).abs >= Constants.small)
-          htg_sys.heating_capacity = sizing_values.Heat_Capacity
+
+        # Heating capacities
+        if htg_sys.heating_capacity.nil? || ((htg_sys.heating_capacity - hvac_sizing_values.Heat_Capacity).abs >= Constants.small)
+          htg_sys.heating_capacity = hvac_sizing_values.Heat_Capacity.round
           htg_sys.heating_capacity_isdefaulted = true
         end
         if htg_sys.respond_to? :backup_heating_capacity
-          # FIXME: Need to address zero => non-zero (e.g., base-hvac-mini-split-heat-pump-ductless.xml)
-          if htg_sys.backup_heating_capacity.nil? || ((htg_sys.backup_heating_capacity - sizing_values.Heat_Capacity_Supp).abs >= Constants.small)
-            htg_sys.backup_heating_capacity = sizing_values.Heat_Capacity_Supp
-            htg_sys.backup_heating_capacity_isdefaulted = true
+          if not htg_sys.backup_heating_fuel.nil? # If there is a backup heating source
+            if htg_sys.backup_heating_capacity.nil? || ((htg_sys.backup_heating_capacity - hvac_sizing_values.Heat_Capacity_Supp).abs >= Constants.small)
+              htg_sys.backup_heating_capacity = hvac_sizing_values.Heat_Capacity_Supp.round
+              htg_sys.backup_heating_capacity_isdefaulted = true
+            end
+          else
+            htg_sys.backup_heating_capacity = 0.0
           end
         end
-        htg_sys.additional_properties.heating_airflow_rate = sizing_values.Heat_Airflow
+
+        # Heating airflow
+        htg_sys.heating_airflow_cfm = hvac_sizing_values.Heat_Airflow.round
+        htg_sys.heating_airflow_cfm_isdefaulted = true
+
+        # Heating GSHP loop
         if htg_sys.is_a? HPXML::HeatPump
-          htg_sys.additional_properties.GSHP_Loop_flow = sizing_values.GSHP_Loop_flow
-          htg_sys.additional_properties.GSHP_Bore_Depth = sizing_values.GSHP_Bore_Depth
-          htg_sys.additional_properties.GSHP_Bore_Holes = sizing_values.GSHP_Bore_Holes
-          htg_sys.additional_properties.GSHP_G_Functions = sizing_values.GSHP_G_Functions
+          htg_sys.additional_properties.GSHP_Loop_flow = hvac_sizing_values.GSHP_Loop_flow
+          htg_sys.additional_properties.GSHP_Bore_Depth = hvac_sizing_values.GSHP_Bore_Depth
+          htg_sys.additional_properties.GSHP_Bore_Holes = hvac_sizing_values.GSHP_Bore_Holes
+          htg_sys.additional_properties.GSHP_G_Functions = hvac_sizing_values.GSHP_G_Functions
+        end
+
+        # Heating design loads
+        htg_sys.hdl_total = (hvac_design_loads.Heat_Tot + hvac_sizing_values.Heat_Load_Ducts).round
+        htg_sys.hdl_walls = hvac_design_loads.Heat_Walls.round
+        htg_sys.hdl_ceilings = hvac_design_loads.Heat_Ceilings.round
+        htg_sys.hdl_roofs = hvac_design_loads.Heat_Roofs.round
+        htg_sys.hdl_floors = hvac_design_loads.Heat_Floors.round
+        htg_sys.hdl_slabs = hvac_design_loads.Heat_Slabs.round
+        htg_sys.hdl_windows = hvac_design_loads.Heat_Windows.round
+        htg_sys.hdl_skylights = hvac_design_loads.Heat_Skylights.round
+        htg_sys.hdl_doors = hvac_design_loads.Heat_Doors.round
+        htg_sys.hdl_infilvent = hvac_design_loads.Heat_InfilVent.round
+        htg_sys.hdl_ducts = hvac_sizing_values.Heat_Load_Ducts.round
+
+        # Check that components sum to totals
+        hdl_sum = (htg_sys.hdl_walls + htg_sys.hdl_ceilings + htg_sys.hdl_roofs +
+                   htg_sys.hdl_floors + htg_sys.hdl_slabs + htg_sys.hdl_windows +
+                   htg_sys.hdl_skylights + htg_sys.hdl_doors + htg_sys.hdl_infilvent +
+                   htg_sys.hdl_ducts)
+        if (hdl_sum - htg_sys.hdl_total).abs > 100
+          runner.registerWarning('Heating design loads do not sum to total.')
         end
       end
 
-      # Assign back to HPXML objects -- CoolingSystem/HeatPump
+      # Cooling -- Assign back to HPXML objects (CoolingSystem/HeatPump)
       next unless not clg_sys.nil?
-      if clg_sys.cooling_capacity.nil? || ((clg_sys.cooling_capacity - sizing_values.Cool_Capacity).abs >= Constants.small)
-        clg_sys.cooling_capacity = sizing_values.Cool_Capacity
+
+      # Cooling capacities
+      if clg_sys.cooling_capacity.nil? || ((clg_sys.cooling_capacity - hvac_sizing_values.Cool_Capacity).abs >= Constants.small)
+        clg_sys.cooling_capacity = hvac_sizing_values.Cool_Capacity.round
         clg_sys.cooling_capacity_isdefaulted = true
       end
-      clg_sys.additional_properties.cooling_capacity_sensible = sizing_values.Cool_Capacity_Sens
-      clg_sys.additional_properties.cooling_airflow_rate = sizing_values.Cool_Airflow
+      clg_sys.additional_properties.cooling_capacity_sensible = hvac_sizing_values.Cool_Capacity_Sens.round
+
+      # Cooling airflow
+      clg_sys.cooling_airflow_cfm = hvac_sizing_values.Cool_Airflow.round
+      clg_sys.cooling_airflow_cfm_isdefaulted = true
+
+      # Cooling sensible design loads
+      clg_sys.cdl_sens_total = (hvac_design_loads.Cool_Sens + hvac_sizing_values.Cool_Load_Ducts_Sens).round
+      clg_sys.cdl_sens_walls = hvac_design_loads.Cool_Walls.round
+      clg_sys.cdl_sens_ceilings = hvac_design_loads.Cool_Ceilings.round
+      clg_sys.cdl_sens_roofs = hvac_design_loads.Cool_Roofs.round
+      clg_sys.cdl_sens_floors = hvac_design_loads.Cool_Floors.round
+      clg_sys.cdl_sens_slabs = 0.0
+      clg_sys.cdl_sens_windows = hvac_design_loads.Cool_Windows.round
+      clg_sys.cdl_sens_skylights = hvac_design_loads.Cool_Skylights.round
+      clg_sys.cdl_sens_doors = hvac_design_loads.Cool_Doors.round
+      clg_sys.cdl_sens_infilvent = hvac_design_loads.Cool_Infil_Sens.round
+      clg_sys.cdl_sens_ducts = hvac_sizing_values.Cool_Load_Ducts_Sens.round
+      clg_sys.cdl_sens_intgains = hvac_design_loads.Cool_IntGains_Sens.round
+
+      # Cooling latent design loads
+      if hvac_design_loads.Cool_Lat <= 0.001
+        clg_sys.cdl_lat_total = 0.0
+        clg_sys.cdl_lat_ducts = 0.0
+        clg_sys.cdl_lat_infilvent = 0.0
+        clg_sys.cdl_lat_intgains = 0.0
+      else
+        clg_sys.cdl_lat_total = (hvac_design_loads.Cool_Lat + hvac_sizing_values.Cool_Load_Ducts_Lat).round
+        clg_sys.cdl_lat_ducts = hvac_sizing_values.Cool_Load_Ducts_Lat.round
+        clg_sys.cdl_lat_infilvent = hvac_design_loads.Cool_Infil_Lat.round
+        clg_sys.cdl_lat_intgains = hvac_design_loads.Cool_IntGains_Lat.round
+      end
+
+      # Check that components sum to totals
+      cdl_sens_sum = (clg_sys.cdl_sens_walls + clg_sys.cdl_sens_ceilings +
+                      clg_sys.cdl_sens_roofs + clg_sys.cdl_sens_floors +
+                      clg_sys.cdl_sens_slabs + clg_sys.cdl_sens_windows +
+                      clg_sys.cdl_sens_skylights + clg_sys.cdl_sens_doors +
+                      clg_sys.cdl_sens_infilvent + clg_sys.cdl_sens_ducts +
+                      clg_sys.cdl_sens_intgains)
+      cdl_lat_sum = (clg_sys.cdl_lat_ducts + clg_sys.cdl_lat_infilvent +
+                     clg_sys.cdl_lat_intgains)
+      if (cdl_sens_sum - clg_sys.cdl_sens_total).abs > 100
+        runner.registerWarning('Cooling sensible design loads do not sum to total.')
+      end
+      if (cdl_lat_sum - clg_sys.cdl_lat_total).abs > 100
+        runner.registerWarning('Cooling latent design loads do not sum to total.')
+      end
     end
   end
 end

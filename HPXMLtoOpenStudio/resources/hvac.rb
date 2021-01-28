@@ -71,10 +71,10 @@ class HVAC
       num_speeds = 1
     end
     if not heating_system.nil?
-      htg_cfm = htg_ap.heating_airflow_rate
+      htg_cfm = heating_system.heating_airflow_cfm
     end
     if not cooling_system.nil?
-      clg_cfm = clg_ap.cooling_airflow_rate
+      clg_cfm = cooling_system.cooling_airflow_cfm
     end
     fan_cfm = [htg_cfm.to_f, clg_cfm.to_f].max
     if not cooling_system.nil?
@@ -155,8 +155,8 @@ class HVAC
     hvac_map[cooling_system.id] << clg_coil
 
     # Fan
-    fan_cfm = clg_ap.cooling_airflow_rate
-    fan = create_supply_fan(model, obj_name, 1, 0.0, fan_cfm) # Fan power included in EER (net COP) above
+    clg_cfm = cooling_system.cooling_airflow_cfm
+    fan = create_supply_fan(model, obj_name, 1, 0.0, clg_cfm) # Fan power included in EER (net COP) above
     hvac_map[cooling_system.id] += disaggregate_fan_or_pump(model, fan, nil, clg_coil, nil)
 
     # Heating Coil (none)
@@ -168,7 +168,7 @@ class HVAC
     ptac = OpenStudio::Model::ZoneHVACPackagedTerminalAirConditioner.new(model, model.alwaysOnDiscreteSchedule, fan, htg_coil, clg_coil)
     ptac.setName(obj_name)
     ptac.setSupplyAirFanOperatingModeSchedule(model.alwaysOffDiscreteSchedule)
-    ptac.setSupplyAirFlowRateDuringCoolingOperation(UnitConversions.convert(clg_ap.cooling_airflow_rate, 'cfm', 'm^3/s'))
+    ptac.setSupplyAirFlowRateDuringCoolingOperation(UnitConversions.convert(clg_cfm, 'cfm', 'm^3/s'))
     ptac.setSupplyAirFlowRateDuringHeatingOperation(0.00001)
     ptac.setSupplyAirFlowRateWhenNoCoolingorHeatingisNeeded(0.0)
     ptac.setOutdoorAirFlowRateDuringCoolingOperation(0.0)
@@ -190,6 +190,7 @@ class HVAC
     sequential_cool_load_frac = calc_sequential_load_fraction(cooling_system.fraction_cool_load_served, remaining_cool_load_frac)
 
     clg_ap = cooling_system.additional_properties
+    clg_cfm = cooling_system.cooling_airflow_cfm
 
     # Evap Cooler
     evap_cooler = OpenStudio::Model::EvaporativeCoolerDirectResearchSpecial.new(model, model.alwaysOnDiscreteSchedule)
@@ -198,11 +199,11 @@ class HVAC
     evap_cooler.setEvaporativeOperationMinimumDrybulbTemperature(0) # relax limitation to open evap cooler for any potential cooling
     evap_cooler.setEvaporativeOperationMaximumLimitWetbulbTemperature(50) # relax limitation to open evap cooler for any potential cooling
     evap_cooler.setEvaporativeOperationMaximumLimitDrybulbTemperature(50) # relax limitation to open evap cooler for any potential cooling
-    evap_cooler.setPrimaryAirDesignFlowRate(UnitConversions.convert(clg_ap.cooling_airflow_rate, 'cfm', 'm^3/s'))
+    evap_cooler.setPrimaryAirDesignFlowRate(UnitConversions.convert(clg_cfm, 'cfm', 'm^3/s'))
     hvac_map[cooling_system.id] << evap_cooler
 
     # Air Loop
-    air_loop = create_air_loop(model, obj_name, evap_cooler, control_zone, 0, sequential_cool_load_frac, clg_ap.cooling_airflow_rate)
+    air_loop = create_air_loop(model, obj_name, evap_cooler, control_zone, 0, sequential_cool_load_frac, clg_cfm)
     hvac_map[cooling_system.id] << air_loop
 
     # Fan
@@ -217,8 +218,8 @@ class HVAC
     fan.setFanPowerCoefficient3(0)
     fan.setFanPowerCoefficient4(0)
     fan.setFanPowerCoefficient5(0)
-    fan.setMaximumFlowRate(UnitConversions.convert(clg_ap.cooling_airflow_rate, 'cfm', 'm^3/s'))
-    fan_watts_per_cfm = [2.79 * clg_ap.cooling_airflow_rate**-0.29, 0.6].min # W/cfm; fit of efficacy to air flow from the CEC listed equipment
+    fan.setMaximumFlowRate(UnitConversions.convert(clg_cfm, 'cfm', 'm^3/s'))
+    fan_watts_per_cfm = [2.79 * clg_cfm**-0.29, 0.6].min # W/cfm; fit of efficacy to air flow from the CEC listed equipment
     set_fan_power(fan, fan_watts_per_cfm)
     fan.addToNode(air_loop.supplyInletNode)
     hvac_map[cooling_system.id] += disaggregate_fan_or_pump(model, fan, nil, evap_cooler, nil)
@@ -229,7 +230,7 @@ class HVAC
     oa_intake_controller.setMinimumLimitType('FixedMinimum')
     oa_intake_controller.resetEconomizerMinimumLimitDryBulbTemperature
     oa_intake_controller.setMinimumFractionofOutdoorAirSchedule(model.alwaysOnDiscreteSchedule)
-    oa_intake_controller.setMaximumOutdoorAirFlowRate(UnitConversions.convert(clg_ap.cooling_airflow_rate, 'cfm', 'm^3/s'))
+    oa_intake_controller.setMaximumOutdoorAirFlowRate(UnitConversions.convert(clg_cfm, 'cfm', 'm^3/s'))
 
     oa_intake = OpenStudio::Model::AirLoopHVACOutdoorAirSystem.new(model, oa_intake_controller)
     oa_intake.setName("#{air_loop.name} OA System")
@@ -270,8 +271,8 @@ class HVAC
 
     # Fan
     num_speeds = hp_ap.num_speeds
-    htg_cfm = hp_ap.heating_airflow_rate
-    clg_cfm = hp_ap.cooling_airflow_rate
+    htg_cfm = heat_pump.heating_airflow_cfm
+    clg_cfm = heat_pump.cooling_airflow_cfm
     fan_cfm = hp_ap.cool_fan_speed_ratios.max * [htg_cfm, clg_cfm].max
     fan = create_supply_fan(model, obj_name, num_speeds, heat_pump.fan_watts_per_cfm, fan_cfm)
     hvac_map[heat_pump.id] += disaggregate_fan_or_pump(model, fan, htg_coil, clg_coil, htg_supp_coil)
@@ -315,7 +316,7 @@ class HVAC
 
     # Fan
     num_speeds = clg_ap.num_speeds
-    clg_cfm = clg_ap.cooling_airflow_rate
+    clg_cfm = cooling_system.cooling_airflow_cfm
     fan = create_supply_fan(model, obj_name, num_speeds, cooling_system.fan_watts_per_cfm, clg_cfm)
     hvac_map[cooling_system.id] += disaggregate_fan_or_pump(model, fan, nil, clg_coil, nil)
 
@@ -366,8 +367,8 @@ class HVAC
 
     # Fan
     num_speeds = hp_ap.num_speeds
-    htg_cfm = hp_ap.heating_airflow_rate
-    clg_cfm = hp_ap.cooling_airflow_rate
+    htg_cfm = heat_pump.heating_airflow_cfm
+    clg_cfm = heat_pump.cooling_airflow_cfm
     fan_cfm = hp_ap.cool_fan_speed_ratios.max * [htg_cfm, clg_cfm].max
     fan = create_supply_fan(model, obj_name, num_speeds, heat_pump.fan_watts_per_cfm, fan_cfm)
     hvac_map[heat_pump.id] += disaggregate_fan_or_pump(model, fan, htg_coil, clg_coil, htg_supp_coil)
@@ -403,6 +404,8 @@ class HVAC
     sequential_cool_load_frac = calc_sequential_load_fraction(heat_pump.fraction_cool_load_served, remaining_cool_load_frac)
 
     hp_ap = heat_pump.additional_properties
+    htg_cfm = heat_pump.heating_airflow_cfm
+    clg_cfm = heat_pump.cooling_airflow_cfm
 
     if hp_ap.frac_glycol == 0
       hp_ap.fluid_type = Constants.FluidWater
@@ -431,7 +434,7 @@ class HVAC
     clg_coil.setCoolingPowerConsumptionCoefficient5(hp_ap.cool_power_ft_spec[0][4])
     clg_coil.setNominalTimeforCondensateRemovaltoBegin(1000)
     clg_coil.setRatioofInitialMoistureEvaporationRateandSteadyStateLatentCapacity(1.5)
-    clg_coil.setRatedAirFlowRate(UnitConversions.convert(hp_ap.cooling_airflow_rate, 'cfm', 'm^3/s'))
+    clg_coil.setRatedAirFlowRate(UnitConversions.convert(clg_cfm, 'cfm', 'm^3/s'))
     clg_coil.setRatedWaterFlowRate(UnitConversions.convert(hp_ap.GSHP_Loop_flow, 'gal/min', 'm^3/s'))
     clg_coil.setRatedTotalCoolingCapacity(UnitConversions.convert(heat_pump.cooling_capacity, 'Btu/hr', 'W'))
     clg_coil.setRatedSensibleCoolingCapacity(UnitConversions.convert(hp_ap.cooling_capacity_sensible, 'Btu/hr', 'W'))
@@ -451,7 +454,7 @@ class HVAC
     htg_coil.setHeatingPowerConsumptionCoefficient3(hp_ap.heat_power_ft_spec[0][2])
     htg_coil.setHeatingPowerConsumptionCoefficient4(hp_ap.heat_power_ft_spec[0][3])
     htg_coil.setHeatingPowerConsumptionCoefficient5(hp_ap.heat_power_ft_spec[0][4])
-    htg_coil.setRatedAirFlowRate(UnitConversions.convert(hp_ap.heating_airflow_rate, 'cfm', 'm^3/s'))
+    htg_coil.setRatedAirFlowRate(UnitConversions.convert(htg_cfm, 'cfm', 'm^3/s'))
     htg_coil.setRatedWaterFlowRate(UnitConversions.convert(hp_ap.GSHP_Loop_flow, 'gal/min', 'm^3/s'))
     htg_coil.setRatedHeatingCapacity(UnitConversions.convert(heat_pump.heating_capacity, 'Btu/hr', 'W'))
     hvac_map[heat_pump.id] << htg_coil
@@ -546,8 +549,6 @@ class HVAC
     demand_outlet_pipe.addToNode(plant_loop.demandOutletNode)
 
     # Fan
-    htg_cfm = hp_ap.heating_airflow_rate
-    clg_cfm = hp_ap.cooling_airflow_rate
     fan_cfm = [htg_cfm, clg_cfm].max
     fan = create_supply_fan(model, obj_name, 1, heat_pump.fan_watts_per_cfm, fan_cfm)
     hvac_map[heat_pump.id] += disaggregate_fan_or_pump(model, fan, htg_coil, clg_coil, htg_supp_coil)
@@ -602,6 +603,7 @@ class HVAC
     hp_min_temp, supp_max_temp = get_heat_pump_temp_assumptions(heat_pump)
 
     hp_ap = heat_pump.additional_properties
+    htg_cfm = heat_pump.heating_airflow_cfm
 
     # Cooling Coil (none)
     clg_coil = nil
@@ -615,7 +617,7 @@ class HVAC
     htg_coil.setDefrostTimePeriodFraction(0.00001) # Disable defrost; avoid E+ warning w/ value of zero
     htg_coil.setMinimumOutdoorDryBulbTemperatureforCompressorOperation(UnitConversions.convert(hp_min_temp, 'F', 'C'))
     htg_coil.setRatedTotalHeatingCapacity(UnitConversions.convert(heat_pump.heating_capacity, 'Btu/hr', 'W'))
-    htg_coil.setRatedAirFlowRate(hp_ap.heating_airflow_rate)
+    htg_coil.setRatedAirFlowRate(htg_cfm)
     hvac_map[heat_pump.id] << htg_coil
 
     # Supplemental Heating Coil
@@ -624,7 +626,6 @@ class HVAC
 
     # Fan
     fan_power_installed = 0.5 # FIXME
-    htg_cfm = hp_ap.heating_airflow_rate
     fan = create_supply_fan(model, obj_name, 1, fan_power_installed, htg_cfm)
     hvac_map[heat_pump.id] += disaggregate_fan_or_pump(model, fan, htg_coil, clg_coil, htg_supp_coil)
 
@@ -871,13 +872,12 @@ class HVAC
     hvac_map[heating_system.id] << htg_coil
 
     # Fan
-    fan_cfm = htg_ap.heating_airflow_rate
-    fan_watts_per_cfm = heating_system.fan_watts / htg_ap.heating_airflow_rate
-    fan = create_supply_fan(model, obj_name, 1, fan_watts_per_cfm, fan_cfm)
+    htg_cfm = heating_system.heating_airflow_cfm
+    fan_watts_per_cfm = heating_system.fan_watts / htg_cfm
+    fan = create_supply_fan(model, obj_name, 1, fan_watts_per_cfm, htg_cfm)
     hvac_map[heating_system.id] += disaggregate_fan_or_pump(model, fan, htg_coil, nil, nil)
 
     # Unitary System
-    htg_cfm = htg_ap.heating_airflow_rate
     unitary_system = create_air_loop_unitary_system(model, obj_name, fan, htg_coil, nil, nil, htg_cfm, nil)
     unitary_system.setControllingZoneorThermostatLocation(control_zone)
     unitary_system.addToThermalZone(control_zone)
@@ -1302,11 +1302,6 @@ class HVAC
       elsif seer > 21
         return HPXML::HVACCompressorTypeVariableSpeed
       end
-    elsif [HPXML::HVACTypeHeatPumpMiniSplit,
-           HPXML::HVACTypeMiniSplitAirConditioner].include? hvac_type
-      return HPXML::HVACCompressorTypeVariableSpeed
-    elsif [HPXML::HVACTypeHeatPumpGroundToAir].include? hvac_type
-      return HPXML::HVACCompressorTypeSingleStage
     end
     return
   end
@@ -1610,7 +1605,7 @@ class HVAC
 
   def self.create_supp_heating_coil(model, obj_name, heat_pump)
     fuel = heat_pump.backup_heating_fuel
-    return if fuel.nil? # No backup heating
+    return if fuel.nil? || (heat_pump.backup_heating_capacity == 0) # No backup heating
 
     efficiency = heat_pump.backup_heating_efficiency_percent
     efficiency = heat_pump.backup_heating_efficiency_afue if efficiency.nil?
@@ -3528,21 +3523,23 @@ class HVAC
     cool_airflow_rated_defect_ratio = []
     if not clg_coil.nil?
       clg_ap = cooling_system.additional_properties
+      clg_cfm = cooling_system.cooling_airflow_cfm
       if clg_coil.to_CoilCoolingDXSingleSpeed.is_initialized
-        cool_airflow_rated_defect_ratio = [UnitConversions.convert(clg_ap.cooling_airflow_rate, 'cfm', 'm^3/s') / clg_coil.ratedAirFlowRate.get - 1.0]
+        cool_airflow_rated_defect_ratio = [UnitConversions.convert(clg_cfm, 'cfm', 'm^3/s') / clg_coil.ratedAirFlowRate.get - 1.0]
       elsif clg_coil.to_CoilCoolingDXMultiSpeed.is_initialized
         # FIXME: Why fan speed ratio here, but coil (sometimes) uses capacity ratio?
-        cool_airflow_rated_defect_ratio = clg_coil.stages.zip(clg_ap.cool_fan_speed_ratios).map { |stage, speed_ratio| UnitConversions.convert(clg_ap.cooling_airflow_rate * speed_ratio, 'cfm', 'm^3/s') / stage.ratedAirFlowRate.get - 1.0 }
+        cool_airflow_rated_defect_ratio = clg_coil.stages.zip(clg_ap.cool_fan_speed_ratios).map { |stage, speed_ratio| UnitConversions.convert(clg_cfm * speed_ratio, 'cfm', 'm^3/s') / stage.ratedAirFlowRate.get - 1.0 }
       end
     end
 
     heat_airflow_rated_defect_ratio = []
     if not htg_coil.nil?
       htg_ap = heating_system.additional_properties
+      htg_cfm = heating_system.heating_airflow_cfm
       if htg_coil.to_CoilHeatingDXSingleSpeed.is_initialized
-        heat_airflow_rated_defect_ratio = [UnitConversions.convert(htg_ap.heating_airflow_rate, 'cfm', 'm^3/s') / htg_coil.ratedAirFlowRate.get - 1.0]
+        heat_airflow_rated_defect_ratio = [UnitConversions.convert(htg_cfm, 'cfm', 'm^3/s') / htg_coil.ratedAirFlowRate.get - 1.0]
       elsif htg_coil.to_CoilHeatingDXMultiSpeed.is_initialized
-        heat_airflow_rated_defect_ratio = htg_coil.stages.zip(htg_ap.heat_fan_speed_ratios).map { |stage, speed_ratio| UnitConversions.convert(htg_ap.heating_airflow_rate * speed_ratio, 'cfm', 'm^3/s') / stage.ratedAirFlowRate.get - 1.0 }
+        heat_airflow_rated_defect_ratio = htg_coil.stages.zip(htg_ap.heat_fan_speed_ratios).map { |stage, speed_ratio| UnitConversions.convert(htg_cfm * speed_ratio, 'cfm', 'm^3/s') / stage.ratedAirFlowRate.get - 1.0 }
       end
     end
 

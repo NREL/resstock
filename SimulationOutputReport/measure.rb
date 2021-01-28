@@ -362,7 +362,6 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
     hpxml_path = @model.getBuilding.additionalProperties.getFeatureAsString('hpxml_path').get
     @hpxml = HPXML.new(hpxml_path: hpxml_path)
-    HVAC.apply_shared_systems(@hpxml)
     get_object_maps()
     @eri_design = @hpxml.header.eri_design
 
