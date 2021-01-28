@@ -16,7 +16,7 @@ end
 require File.join(resources_path, 'meta_measure')
 require File.join(resources_path, 'unit_conversions')
 
-require_relative 'resources/constants'
+require_relative '../ApplyUpgrade/resources/constants'
 
 # start the measure
 class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
@@ -44,30 +44,15 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
   end
 
   def num_options
-    return Constants.NumApplyUpgradeOptions # Synced with SimulationOutputReport measure
+    return Constants.NumApplyUpgradeOptions # Synced with ApplyUpgrade measure
   end
 
   def num_costs_per_option
-    return Constants.NumApplyUpgradesCostsPerOption # Synced with SimulationOutputReport measure
+    return Constants.NumApplyUpgradesCostsPerOption # Synced with ApplyUpgrade measure
   end
 
-  def cost_mult_types
-    return {
-      'Wall Area, Above-Grade, Conditioned (ft^2)' => 'wall_area_above_grade_conditioned_ft_2',
-      'Wall Area, Above-Grade, Exterior (ft^2)' => 'wall_area_above_grade_exterior_ft_2',
-      'Wall Area, Below-Grade (ft^2)' => 'wall_area_below_grade_ft_2',
-      'Floor Area, Conditioned (ft^2)' => 'floor_area_conditioned_ft_2',
-      'Floor Area, Attic (ft^2)' => 'floor_area_attic_ft_2',
-      'Floor Area, Lighting (ft^2)' => 'floor_area_lighting_ft_2',
-      'Roof Area (ft^2)' => 'roof_area_ft_2',
-      'Window Area (ft^2)' => 'window_area_ft_2',
-      'Door Area (ft^2)' => 'door_area_ft_2',
-      'Duct Unconditioned Surface Area (ft^2)' => 'duct_unconditioned_surface_area_ft_2',
-      'Size, Heating System (kBtu/h)' => 'size_heating_system_kbtu_h',
-      'Size, Heating Supplemental System (kBtu/h)' => 'size_heating_supp_system_kbtu_h',
-      'Size, Cooling System (kBtu/h)' => 'size_cooling_system_kbtu_h',
-      'Size, Water Heater (gal)' => 'size_water_heater_gal'
-    }
+  def cost_multiplier_choices
+    return Constants.CostMultiplierChoices # Synced with ApplyUpgrade measure
   end
 
   # define what happens when the measure is run
@@ -92,7 +77,11 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
     hpxml = HPXML.new(hpxml_path: hpxml_path)
 
     # Report cost multipliers
-    cost_mult_types.each do |cost_mult_type, cost_mult_type_str|
+    cost_multiplier_choices.each do |cost_mult_type|
+      next if cost_mult_type.empty?
+      next if cost_mult_type.include?('Fixed')
+
+      cost_mult_type_str = OpenStudio::toUnderscoreCase(cost_mult_type)
       cost_mult = get_cost_multiplier(cost_mult_type, hpxml, runner)
       cost_mult = cost_mult.round(2)
       register_value(runner, cost_mult_type_str, cost_mult)
@@ -249,7 +238,11 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
       hpxml.heat_pumps.each do |heat_pump|
         cost_mult += UnitConversions.convert(heat_pump.heating_capacity, 'btu/hr', 'kbtu/hr')
       end
-    elsif cost_mult_type == 'Size, Heating Supplemental System (kBtu/h)'
+    elsif cost_mult_type == 'Size, Heating Backup System (kBtu/h)'
+      hpxml.heat_pumps.each do |heat_pump|
+        cost_mult += UnitConversions.convert(heat_pump.backup_heating_capacity, 'btu/hr', 'kbtu/hr')
+      end
+    elsif cost_mult_type == 'Size, Heating Secondary System (kBtu/h)'
       heating_systems = {}
       hpxml.heating_systems.each do |heating_system|
         heating_systems[heating_system] = heating_system.fraction_heat_load_served
@@ -257,10 +250,6 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
       if heating_systems.size == 2
         heating_systems = heating_systems.sort_by { |k, v| v } # sort smallest frac to largest frac
         cost_mult += UnitConversions.convert(heating_systems.keys[0].heating_capacity, 'btu/hr', 'kbtu/hr')
-      end
-
-      hpxml.heat_pumps.each do |heat_pump|
-        cost_mult += UnitConversions.convert(heat_pump.backup_heating_capacity, 'btu/hr', 'kbtu/hr')
       end
     elsif cost_mult_type == 'Size, Cooling System (kBtu/h)'
       hpxml.cooling_systems.each do |cooling_system|

@@ -28,11 +28,15 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
   end
 
   def num_options
-    return Constants.NumApplyUpgradeOptions # Synced with SimulationOutputReport measure
+    return Constants.NumApplyUpgradeOptions # Synced with UpgradeCosts measure
   end
 
   def num_costs_per_option
-    return Constants.NumApplyUpgradesCostsPerOption # Synced with SimulationOutputReport measure
+    return Constants.NumApplyUpgradesCostsPerOption # Synced with UpgradeCosts measure
+  end
+
+  def cost_multiplier_choices
+    return Constants.CostMultiplierChoices # Synced with UpgradeCosts measure
   end
 
   # define the arguments that the user will input
@@ -70,28 +74,10 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
         args << cost_value
 
         # Option Cost Multiplier argument
-        choices = [
-          '',
-          'Fixed (1)',
-          'Wall Area, Above-Grade, Conditioned (ft^2)',
-          'Wall Area, Above-Grade, Exterior (ft^2)',
-          'Wall Area, Below-Grade (ft^2)',
-          'Floor Area, Conditioned (ft^2)',
-          'Floor Area, Attic (ft^2)',
-          'Floor Area, Lighting (ft^2)',
-          'Roof Area (ft^2)',
-          'Window Area (ft^2)',
-          'Door Area (ft^2)',
-          'Duct Unconditioned Surface Area (ft^2)',
-          'Size, Heating System (kBtu/h)',
-          'Size, Heating Supplemental System (kBtu/h)',
-          'Size, Cooling System (kBtu/h)',
-          'Size, Water Heater (gal)',
-        ]
-        cost_multiplier = OpenStudio::Ruleset::OSArgument.makeChoiceArgument("option_#{option_num}_cost_#{cost_num}_multiplier", choices, false)
+        cost_multiplier = OpenStudio::Ruleset::OSArgument.makeChoiceArgument("option_#{option_num}_cost_#{cost_num}_multiplier", cost_multiplier_choices, false)
         cost_multiplier.setDisplayName("Option #{option_num} Cost #{cost_num} Multiplier")
         cost_multiplier.setDescription("Total option #{option_num} cost is the sum of all: (Cost N Value) x (Cost N Multiplier).")
-        cost_multiplier.setDefaultValue(choices[0])
+        cost_multiplier.setDefaultValue(cost_multiplier_choices[0])
         args << cost_multiplier
 
       end
@@ -402,15 +388,9 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
           next if heat_pump.fraction_cool_load_served != measures['BuildResidentialHPXML'][0]['heat_pump_fraction_cool_load_served']
 
           # if we made it this far, this is the correct heat_pump
-          unless heat_pump.heating_capacity.nil? # heat pump provides heating
-            measures['BuildResidentialHPXML'][0]['heat_pump_heating_capacity'] = heat_pump.heating_capacity
-          end
-          unless heat_pump.cooling_capacity.nil? # heat pump provides cooling
-            measures['BuildResidentialHPXML'][0]['heat_pump_cooling_capacity'] = heat_pump.cooling_capacity
-          end
-          unless heat_pump.backup_heating_capacity.nil? # heat pump provides backup heating
-            measures['BuildResidentialHPXML'][0]['heat_pump_backup_heating_capacity'] = heat_pump.backup_heating_capacity
-          end
+          measures['BuildResidentialHPXML'][0]['heat_pump_heating_capacity'] = heat_pump.heating_capacity
+          measures['BuildResidentialHPXML'][0]['heat_pump_cooling_capacity'] = heat_pump.cooling_capacity
+          measures['BuildResidentialHPXML'][0]['heat_pump_backup_heating_capacity'] = heat_pump.backup_heating_capacity
         end
       end
 
