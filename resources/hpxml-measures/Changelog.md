@@ -6,6 +6,7 @@ __New Features__
 - **Breaking change**: `Type` is now a required input for Pool, PoolPump, HotTub, and HotTubPump.
 - **Breaking change**: Both supply and return duct leakage to outside are now required inputs for AirDistribution systems.
 - Allows modeling airflow/charge defects for air conditioners, heat pumps, and furnaces (RESNET Standard 310).
+- Allows modeling *multiple* dehumidifiers (previously only one allowed).
 - Allows modeling generators (generic on-site power production).
 - Allows detailed heating/cooling setpoints to be specified: 24-hour weekday & weekend values.
 - Allows modeling window/skylight *exterior* shading via summer/winter shading coefficients.

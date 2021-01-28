@@ -2194,6 +2194,8 @@ def create_hpxmls
     'invalid_files/clothes-washer-location.xml' => 'base.xml',
     'invalid_files/clothes-dryer-location.xml' => 'base.xml',
     'invalid_files/cooking-range-location.xml' => 'base.xml',
+    'invalid_files/dehumidifier-fraction-served.xml' => 'base-appliances-dehumidifier-multiple.xml',
+    'invalid_files/dehumidifier-setpoints.xml' => 'base-appliances-dehumidifier-multiple.xml',
     'invalid_files/dhw-frac-load-served.xml' => 'base-dhw-multiple.xml',
     'invalid_files/dhw-invalid-ef-tank.xml' => 'base.xml',
     'invalid_files/dhw-invalid-uef-tank-heat-pump.xml' => 'base-dhw-tank-heat-pump-uef.xml',
@@ -2279,6 +2281,7 @@ def create_hpxmls
     'base-appliances-dehumidifier-50percent.xml' => 'base-appliances-dehumidifier.xml',
     'base-appliances-dehumidifier-ief-portable.xml' => 'base-appliances-dehumidifier.xml',
     'base-appliances-dehumidifier-ief-whole-home.xml' => 'base-appliances-dehumidifier-ief-portable.xml',
+    'base-appliances-dehumidifier-multiple.xml' => 'base-appliances-dehumidifier-50percent.xml',
     'base-appliances-gas.xml' => 'base.xml',
     'base-appliances-modified.xml' => 'base.xml',
     'base-appliances-none.xml' => 'base.xml',
@@ -7048,6 +7051,18 @@ def set_hpxml_dehumidifier(hpxml_file, hpxml)
     hpxml.dehumidifiers[0].integrated_energy_factor = 1.5
   elsif ['base-appliances-dehumidifier-ief-whole-home.xml'].include? hpxml_file
     hpxml.dehumidifiers[0].type = HPXML::DehumidifierTypeWholeHome
+  elsif ['base-appliances-dehumidifier-multiple.xml'].include? hpxml_file
+    hpxml.dehumidifiers.add(id: 'Dehumidifier2',
+                            type: HPXML::DehumidifierTypePortable,
+                            capacity: 30,
+                            energy_factor: 1.6,
+                            rh_setpoint: 0.5,
+                            fraction_served: 0.25,
+                            location: HPXML::LocationLivingSpace)
+  elsif ['invalid_files/dehumidifier-setpoints.xml'].include? hpxml_file
+    hpxml.dehumidifiers[1].rh_setpoint = 0.55
+  elsif ['invalid_files/dehumidifier-fraction-served.xml'].include? hpxml_file
+    hpxml.dehumidifiers[1].fraction_served = 0.6
   end
 end
 

@@ -41,34 +41,6 @@ class Constants
     return 'ERI Index Adjustment Reference Home'
   end
 
-  def self.BoreConfigSingle
-    return 'single'
-  end
-
-  def self.BoreConfigLine
-    return 'line'
-  end
-
-  def self.BoreConfigOpenRectangle
-    return 'open-rectangle'
-  end
-
-  def self.BoreConfigRectangle
-    return 'rectangle'
-  end
-
-  def self.BoreConfigLconfig
-    return 'l-config'
-  end
-
-  def self.BoreConfigL2config
-    return 'l2-config'
-  end
-
-  def self.BoreConfigUconfig
-    return 'u-config'
-  end
-
   def self.BuildingAmericaClimateZone
     return 'Building America'
   end
@@ -281,6 +253,10 @@ class Constants
     return 'mech vent range fan'
   end
 
+  def self.ObjectNameMiniSplitAirConditioner
+    return 'mini split air conditioner'
+  end
+
   def self.ObjectNameMiniSplitHeatPump
     return 'mini split heat pump'
   end
@@ -423,169 +399,5 @@ class Constants
 
   def self.ScheduleTypeLimitsTemperature
     return 'Temperature'
-  end
-
-  def self.SizingInfoDuctExist
-    return __method__.to_s
-  end
-
-  def self.SizingInfoDuctSides
-    return __method__.to_s
-  end
-
-  def self.SizingInfoDuctLocations
-    return __method__.to_s
-  end
-
-  def self.SizingInfoDuctLeakageFracs
-    return __method__.to_s
-  end
-
-  def self.SizingInfoDuctLeakageCFM25s
-    return __method__.to_s
-  end
-
-  def self.SizingInfoDuctAreas
-    return __method__.to_s
-  end
-
-  def self.SizingInfoDuctRvalues
-    return __method__.to_s
-  end
-
-  def self.SizingInfoHVACFanWatts
-    return __method__.to_s
-  end
-
-  def self.SizingInfoHVACFracHeatLoadServed
-    return __method__.to_s
-  end
-
-  def self.SizingInfoHVACFracCoolLoadServed
-    return __method__.to_s
-  end
-
-  def self.SizingInfoHVACCoolType
-    return __method__.to_s
-  end
-
-  def self.SizingInfoHVACHeatType
-    return __method__.to_s
-  end
-
-  def self.SizingInfoHVACPumpPower
-    return __method__.to_s
-  end
-
-  def self.SizingInfoHVACSystemIsDucted # Only needed for optionally ducted systems
-    return __method__.to_s
-  end
-
-  def self.SizingInfoGSHPBoreConfig
-    return __method__.to_s
-  end
-
-  def self.SizingInfoGSHPBoreDepth
-    return __method__.to_s
-  end
-
-  def self.SizingInfoGSHPBoreHoles
-    return __method__.to_s
-  end
-
-  def self.SizingInfoGSHPBoreSpacing
-    return __method__.to_s
-  end
-
-  def self.SizingInfoGSHPCoil_BF_FT_SPEC
-    return __method__.to_s
-  end
-
-  def self.SizingInfoGSHPCoilBF
-    return __method__.to_s
-  end
-
-  def self.SizingInfoGSHPUTubeSpacingType
-    return __method__.to_s
-  end
-
-  def self.SizingInfoHVACCapacityRatioCooling
-    return __method__.to_s
-  end
-
-  def self.SizingInfoHVACCapacityRatioHeating
-    return __method__.to_s
-  end
-
-  def self.SizingInfoHVACAirflowDefectRatioCooling
-    return __method__.to_s
-  end
-
-  def self.SizingInfoHVACAirflowDefectRatioHeating
-    return __method__.to_s
-  end
-
-  def self.SizingInfoHVACChargeDefectRatio
-    return __method__.to_s
-  end
-
-  def self.SizingInfoHVACHeatingCapacityOffset
-    return __method__.to_s
-  end
-
-  def self.SizingInfoHVACRatedCFMperTonHeating
-    return __method__.to_s
-  end
-
-  def self.SizingInfoHVACRatedCFMperTonCooling
-    return __method__.to_s
-  end
-
-  def self.SizingInfoHVACSHR
-    return __method__.to_s
-  end
-
-  def self.SizingInfoMechVentExist
-    return __method__.to_s
-  end
-
-  def self.SizingInfoMechVentApparentSensibleEffectiveness
-    return __method__.to_s
-  end
-
-  def self.SizingInfoMechVentLatentEffectiveness
-    return __method__.to_s
-  end
-
-  def self.SizingInfoMechVentWholeHouseRateBalanced
-    return __method__.to_s
-  end
-
-  def self.SizingInfoMechVentWholeHouseRateUnbalanced
-    return __method__.to_s
-  end
-
-  def self.SizingInfoMechVentWholeHouseRatePreHeated
-    return __method__.to_s
-  end
-
-  def self.SizingInfoMechVentWholeHouseRatePreCooled
-    return __method__.to_s
-  end
-
-  def self.SizingInfoMechVentWholeHouseRateRecirculated
-    return __method__.to_s
-  end
-
-  def self.SizingInfoSIPWallInsThickness
-    return __method__.to_s
-  end
-
-  def self.SizingInfoZoneInfiltrationACH
-    return __method__.to_s
-  end
-
-  def self.SizingInfoZoneInfiltrationCFM
-    return __method__.to_s
   end
 end

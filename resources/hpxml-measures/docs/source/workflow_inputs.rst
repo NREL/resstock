@@ -1983,7 +1983,7 @@ If not entered, the simulation will not include a standalone freezer.
 HPXML Dehumidifier
 ******************
 
-A single dehumidifier can be entered as a ``/HPXML/Building/BuildingDetails/Appliances/Dehumidifier``.
+Each dehumidifier can be entered as a ``/HPXML/Building/BuildingDetails/Appliances/Dehumidifier``.
 If not entered, the simulation will not include a dehumidifier.
 
   ==============================================  ==========  ==========  ===========  ========  =======  ========================================
@@ -1994,12 +1994,14 @@ If not entered, the simulation will not include a dehumidifier.
   ``Location``                                    string                  See [#]_     Yes                Location of dehumidifier
   ``Capacity``                                    double      pints/day   > 0          Yes                Dehumidification capacity
   ``IntegratedEnergyFactor`` or ``EnergyFactor``  double      liters/kWh  > 0          Yes                Rated efficiency
-  ``DehumidistatSetpoint``                        double      frac        0 - 1        Yes                Relative humidity setpoint
-  ``FractionDehumidificationLoadServed``          double      frac        0 - 1        Yes                Fraction of dehumidification load served
+  ``DehumidistatSetpoint``                        double      frac        0 - 1 [#]_   Yes                Relative humidity setpoint
+  ``FractionDehumidificationLoadServed``          double      frac        0 - 1 [#]_   Yes                Fraction of dehumidification load served
   ==============================================  ==========  ==========  ===========  ========  =======  ========================================
   
   .. [#] Type choices are "portable" or "whole-home".
   .. [#] Location only choice is "living space".
+  .. [#] If multiple dehumidifiers are entered, they must all have the same setpoint or an error will be generated.
+  .. [#] The sum of all ``FractionDehumidificationLoadServed`` (across all Dehumidifiers) must be less than or equal to 1.
 
 .. note::
 
