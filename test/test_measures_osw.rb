@@ -10,7 +10,7 @@ require_relative '../resources/buildstock'
 class TestResStockMeasuresOSW < MiniTest::Test
   def test_measures_osw
     project_dir = 'project_testing'
-    num_samples = 5
+    num_samples = 3
 
     all_results = []
     parent_dir = File.absolute_path(File.join(File.dirname(__FILE__), 'test_measures_osw'))
@@ -18,7 +18,10 @@ class TestResStockMeasuresOSW < MiniTest::Test
     buildstock_csv = create_buildstock_csv(project_dir, num_samples)
     lib_dir = create_lib_folder(parent_dir, project_dir, buildstock_csv)
 
-    Dir["#{parent_dir}/workflow.osw"].each do |osw|
+    Dir["#{parent_dir}/workflow*.osw"].each do |osw|
+      osw_basename = File.basename(osw)
+      puts "\nWorkflow: #{osw_basename} ...\n"
+
       measures_osw_dir = nil
       measures_upgrade_osw_dir = nil
 
@@ -35,7 +38,7 @@ class TestResStockMeasuresOSW < MiniTest::Test
       end
 
       (1..num_samples).to_a.each do |building_unit_id|
-        puts "\nBuilding Unit ID: #{building_unit_id} ...\n"
+        puts "\n\tBuilding Unit ID: #{building_unit_id} ...\n\n"
 
         change_building_unit_id(osw, building_unit_id)
         out_osw, result = RunOSWs.run_and_check(osw, parent_dir)
@@ -50,20 +53,20 @@ class TestResStockMeasuresOSW < MiniTest::Test
         # Save measures.osw
         unless measures_osw_dir.nil?
           measures_osw = File.join(parent_dir, 'run', 'measures.osw')
-          new_measures_osw = File.join(measures_osw_dir, "#{building_unit_id}.osw")
+          new_measures_osw = File.join(measures_osw_dir, "#{building_unit_id}-#{osw_basename}")
           FileUtils.mv(measures_osw, new_measures_osw)
         end
 
         # Save measures-upgrade.osw
         next if measures_upgrade_osw_dir.nil?
         measures_upgrade_osw = File.join(parent_dir, 'run', 'measures-upgrade.osw')
-        new_measures_upgrade_osw = File.join(measures_upgrade_osw_dir, "#{building_unit_id}.osw")
+        new_measures_upgrade_osw = File.join(measures_upgrade_osw_dir, "#{building_unit_id}-#{osw_basename}")
 
         FileUtils.mv(measures_upgrade_osw, new_measures_upgrade_osw)
       end
     end
 
-    Dir["#{parent_dir}/workflow.osw"].each do |osw|
+    Dir["#{parent_dir}/workflow*.osw"].each do |osw|
       change_building_unit_id(osw, 1)
     end
 

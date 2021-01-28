@@ -289,7 +289,7 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
           # Detect whether we are upgrading the supplemental heating system
           args_hash.each do |arg, value|
             if arg.include?('heating_system_type_2') || arg.include?('heating_system_fuel_2') || arg.include?('heating_system_heating_efficiency_2') || arg.include?('heating_system_fraction_heat_load_served_2')
-              upgrade_suppy_heating_system = true
+              upgrade_supp_heating_system = true
             end
           end
 

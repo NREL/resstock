@@ -1,0 +1,34 @@
+{
+  "measure_paths": [
+    "../../measures",
+    "../../resources/hpxml-measures"
+  ],
+  "steps": [
+    {
+      "measure_dir_name": "BuildExistingModel",
+      "arguments": {
+        "building_unit_id": "1",
+        "workflow_json": "measure-info.json"
+      }
+    },
+    {
+      "measure_dir_name": "ApplyUpgrade",
+      "arguments": {
+        "run_measure": 1,
+        "upgrade_name": "High Efficiency Central Air Conditioner",
+        "option_1": "HVAC Cooling Efficiency|AC, SEER 24.5",
+        "option_1_lifetime": 30,
+        "option_1_cost_1_value": 2500.0,
+        "option_1_cost_1_multiplier": "Fixed (1)",
+        "option_1_cost_2_value": 100.0,
+        "option_1_cost_2_multiplier": "Size, Cooling System (kBtu/h)"
+      }
+    },
+    {
+      "measure_dir_name": "SimulationOutputReport"
+    },
+    {
+      "measure_dir_name": "UpgradeCosts"
+    }
+  ]
+}
