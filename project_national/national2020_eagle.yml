@@ -1,0 +1,53 @@
+schema_version: 0.2
+stock_type: residential
+buildstock_directory: ../../resstock # Relative to this file or absolute. this is now called resstock instead of buildstock
+project_directory: project_national # Relative to buildstock_directory
+output_directory: /scratch/peterberrill/outputs/
+#weather_files_path: /shared-projects/buildstock/weather/project_resstock_national_weather.zip  # Relative to this file or absolute pa$weather_files_path: ../ResStock_TMY3.zip
+#weather_files_url: https://data.nrel.gov/files/128/project_resstock_national.zip # if this doesn't work I can try just putting the ResStock_TMY3 file in the resstock folder, that's probably a better bet
+baseline:
+  sampling_algorithm: precomputed
+  precomputed_sample: ../resources/bs2020.csv
+  #n_datapoints: 450000
+  n_datapoints: 2
+  n_buildings_represented: 122500000
+  #sampling_algorithm: quota
+
+simulation_output:
+  include_enduse_subcategories: true
+timeseries_csv_export:
+  reporting_frequency: Hourly
+  include_enduse_subcategories: true
+# eagle:
+# #        apply_logic:
+        # costs:
+          # - value: 0
+            # multiplier: Window Area (ft^2)
+        # lifetime: 30
+eagle:
+  n_jobs: 3
+  minutes_per_sim: 30
+  account: enduse
+  postprocessing:
+    time: 20
+    n_workers: 3
+  sampling:
+    time: 5
+# postprocessing:
+  # aws:
+    # region_name: 'us-west-2'
+    # s3:
+      # bucket: resbldg-datasets
+  # account: enduse
+  # postprocessing:
+    # time: 20
+    # n_workers: 1
+  # sampling:
+    # time: 5
+# postprocessing:
+  # aws:
+    # region_name: 'us-west-2'
+    # s3:
+      # bucket: resbldg-datasets
+      # prefix: multifamily_tests/eagle
+
