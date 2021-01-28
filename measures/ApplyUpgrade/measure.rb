@@ -118,27 +118,6 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
     run_measure.setDefaultValue(1)
     args << run_measure
 
-    # Make bool arg to retain the heating system capacity
-    # retain_heating_system_capacity = OpenStudio::Ruleset::OSArgument::makeBoolArgument('retain_heating_system_capacity', true)
-    # retain_heating_system_capacity.setDisplayName('Retain Heating System Capacity')
-    # retain_heating_system_capacity.setDescription('Whether to retain the heating system capacity.')
-    # retain_heating_system_capacity.setDefaultValue(true)
-    # args << retain_heating_system_capacity
-
-    # # Make bool arg to retain the supplemental heating system capacity
-    # retain_supplemental_heating_system_capacity = OpenStudio::Ruleset::OSArgument::makeBoolArgument('retain_supplemental_heating_system_capacity', true)
-    # retain_supplemental_heating_system_capacity.setDisplayName('Retain Supplemental Heating System Capacity')
-    # retain_supplemental_heating_system_capacity.setDescription('Whether to retain the supplemental heating system capacity.')
-    # retain_supplemental_heating_system_capacity.setDefaultValue(true)
-    # args << retain_supplemental_heating_system_capacity
-
-    # # Make bool arg to retain the cooling system capacity
-    # retain_cooling_system_capacity = OpenStudio::Ruleset::OSArgument::makeBoolArgument('retain_cooling_system_capacity', true)
-    # retain_cooling_system_capacity.setDisplayName('Retain Cooling System Capacity')
-    # retain_cooling_system_capacity.setDescription('Whether to retain the cooling system capacity.')
-    # retain_cooling_system_capacity.setDefaultValue(true)
-    # args << retain_cooling_system_capacity
-
     return args
   end
 
