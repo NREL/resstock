@@ -87,7 +87,7 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
       return false
     end
 
-    # retrieve the hpxml
+    # Retrieve the hpxml
     hpxml_path = File.expand_path('../in.xml') # this is the defaulted hpxml
     hpxml = HPXML.new(hpxml_path: hpxml_path)
 
@@ -237,24 +237,21 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
     elsif cost_mult_type == 'Size, Heating System (kBtu/h)'
       heating_systems = {}
       hpxml.heating_systems.each do |heating_system|
-        next if heating_system.heating_capacity.nil? # FIXME
-
         heating_systems[heating_system] = heating_system.fraction_heat_load_served
       end
       if heating_systems.size == 1
         cost_mult += UnitConversions.convert(heating_systems.keys[0].heating_capacity, 'btu/hr', 'kbtu/hr')
+      elsif heating_systems.size == 2
+        heating_systems = heating_systems.sort_by { |k, v| v } # sort smallest frac to largest frac
+        cost_mult += UnitConversions.convert(heating_systems.keys[1].heating_capacity, 'btu/hr', 'kbtu/hr')
       end
 
       hpxml.heat_pumps.each do |heat_pump|
-        next if heat_pump.heating_capacity.nil? # FIXME
-
         cost_mult += UnitConversions.convert(heat_pump.heating_capacity, 'btu/hr', 'kbtu/hr')
       end
     elsif cost_mult_type == 'Size, Heating Supplemental System (kBtu/h)'
       heating_systems = {}
       hpxml.heating_systems.each do |heating_system|
-        next if heating_system.heating_capacity.nil? # FIXME
-
         heating_systems[heating_system] = heating_system.fraction_heat_load_served
       end
       if heating_systems.size == 2
@@ -263,20 +260,14 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
       end
 
       hpxml.heat_pumps.each do |heat_pump|
-        next if heat_pump.backup_heating_capacity.nil?
-
         cost_mult += UnitConversions.convert(heat_pump.backup_heating_capacity, 'btu/hr', 'kbtu/hr')
       end
     elsif cost_mult_type == 'Size, Cooling System (kBtu/h)'
       hpxml.cooling_systems.each do |cooling_system|
-        next if cooling_system.cooling_capacity.nil? # FIXME
-
         cost_mult += UnitConversions.convert(cooling_system.cooling_capacity, 'btu/hr', 'kbtu/hr')
       end
 
       hpxml.heat_pumps.each do |heat_pump|
-        next if heat_pump.cooling_capacity.nil? # FIXME
-
         cost_mult += UnitConversions.convert(heat_pump.cooling_capacity, 'btu/hr', 'kbtu/hr')
       end
     elsif cost_mult_type == 'Size, Water Heater (gal)'
