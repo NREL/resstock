@@ -118,12 +118,26 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
     run_measure.setDefaultValue(1)
     args << run_measure
 
-    # Make bool arg to retain HVAC sizes
-    retain_hvac_sizes = OpenStudio::Ruleset::OSArgument::makeBoolArgument('retain_hvac_sizes', true)
-    retain_hvac_sizes.setDisplayName('Retain HVAC Sizes')
-    retain_hvac_sizes.setDescription('Whether to retain HVAC sizes.')
-    retain_hvac_sizes.setDefaultValue(true)
-    args << retain_hvac_sizes
+    # Make bool arg to retain the heating system capacity
+    # retain_heating_system_capacity = OpenStudio::Ruleset::OSArgument::makeBoolArgument('retain_heating_system_capacity', true)
+    # retain_heating_system_capacity.setDisplayName('Retain Heating System Capacity')
+    # retain_heating_system_capacity.setDescription('Whether to retain the heating system capacity.')
+    # retain_heating_system_capacity.setDefaultValue(true)
+    # args << retain_heating_system_capacity
+
+    # # Make bool arg to retain the supplemental heating system capacity
+    # retain_supplemental_heating_system_capacity = OpenStudio::Ruleset::OSArgument::makeBoolArgument('retain_supplemental_heating_system_capacity', true)
+    # retain_supplemental_heating_system_capacity.setDisplayName('Retain Supplemental Heating System Capacity')
+    # retain_supplemental_heating_system_capacity.setDescription('Whether to retain the supplemental heating system capacity.')
+    # retain_supplemental_heating_system_capacity.setDefaultValue(true)
+    # args << retain_supplemental_heating_system_capacity
+
+    # # Make bool arg to retain the cooling system capacity
+    # retain_cooling_system_capacity = OpenStudio::Ruleset::OSArgument::makeBoolArgument('retain_cooling_system_capacity', true)
+    # retain_cooling_system_capacity.setDisplayName('Retain Cooling System Capacity')
+    # retain_cooling_system_capacity.setDescription('Whether to retain the cooling system capacity.')
+    # retain_cooling_system_capacity.setDefaultValue(true)
+    # args << retain_cooling_system_capacity
 
     return args
   end
@@ -234,6 +248,11 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
       end
     end
 
+    upgrade_heating_system = false
+    upgrade_supp_heating_system = false
+    upgrade_cooling_system = false
+    upgrade_heat_pump = false
+
     measures = {}
     if apply_package_upgrade
 
@@ -281,6 +300,34 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
         # Get measure name and arguments associated with the option
         options_measure_args = get_measure_args_from_option_names(lookup_file, [option_name], parameter_name, runner)
         options_measure_args[option_name].each do |measure_subdir, args_hash|
+          # Detect whether we are upgrading the heating system
+          args_hash.each do |arg, value|
+            if arg.include?('heating_system_type') || arg.include?('heating_system_fuel') || arg.include?('heating_system_heating_efficiency') || arg.include?('heating_system_fraction_heat_load_served')
+              upgrade_heating_system = true
+            end
+          end
+
+          # Detect whether we are upgrading the supplemental heating system
+          args_hash.each do |arg, value|
+            if arg.include?('heating_system_type_2') || arg.include?('heating_system_fuel_2') || arg.include?('heating_system_heating_efficiency_2') || arg.include?('heating_system_fraction_heat_load_served_2')
+              upgrade_suppy_heating_system = true
+            end
+          end
+
+          # Detect whether we are upgrading the cooling system
+          args_hash.each do |arg, value|
+            if arg.include?('cooling_system_type') || arg.include?('cooling_system_cooling_efficiency') || arg.include?('cooling_system_fraction_cool_load_served')
+              upgrade_cooling_system = true
+            end
+          end
+
+          # Detect whether we are upgrading the heat pump
+          args_hash.each do |arg, value|
+            if arg.include?('heat_pump_type') || arg.include?('heat_pump_heating_efficiency_hspf') || arg.include?('heat_pump_heating_efficiency_cop') || arg.include?('heat_pump_cooling_efficiency_seer') || arg.include?('heat_pump_cooling_efficiency_eer') || arg.include?('heat_pump_fraction_heat_load_served') || arg.include?('heat_pump_fraction_cool_load_served')
+              upgrade_heat_pump = true
+            end
+          end
+
           update_args_hash(measures, measure_subdir, args_hash, add_new = false)
         end
       end
@@ -331,39 +378,54 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
         measures['BuildResidentialHPXML'][0]['schedules_path'] = File.expand_path('../schedules.csv')
       end
 
-      # Retain HVAC sizes for non-HVAC upgrades
-      if runner.getBoolArgumentValue('retain_hvac_sizes', user_arguments)
+      # Retain HVAC capacities
+      if (not upgrade_heating_system) || (not upgrade_supp_heating_system) || (not upgrade_cooling_system) || (not upgrade_heat_pump)
         hpxml_path = File.expand_path('../in.xml') # this is the defaulted hpxml
         hpxml = HPXML.new(hpxml_path: hpxml_path)
+      end
 
-        heating_systems = {}
+      unless upgrade_heating_system
         hpxml.heating_systems.each do |heating_system|
-          heating_systems[heating_system] = heating_system.fraction_heat_load_served
-        end
+          next if heating_system.heating_system_type != measures['BuildResidentialHPXML'][0]['heating_system_type']
+          next if heating_system.heating_system_fuel != measures['BuildResidentialHPXML'][0]['heating_system_fuel']
+          next if heating_system.fraction_heat_load_served != measures['BuildResidentialHPXML'][0]['heating_system_fraction_heat_load_served']
 
-        if heating_systems.size == 1
-          # measures['BuildResidentialHPXML'][0]['heating_system_heating_capacity'] = heating_systems[0].heating_capacity
-          measures['BuildResidentialHPXML'][0]['heating_system_heating_capacity'] = 6000.0
-        elsif heating_systems.size == 2
-          heating_systems = heating_systems.sort_by { |k, v| v } # sort smallest frac to largest frac
-          # measures['BuildResidentialHPXML'][0]['heating_system_heating_capacity_2'] = heating_systems[0].heating_capacity
-          # measures['BuildResidentialHPXML'][0]['heating_system_heating_capacity'] = heating_systems[1].heating_capacity
-          measures['BuildResidentialHPXML'][0]['heating_system_heating_capacity_2'] = 5000.0
-          measures['BuildResidentialHPXML'][0]['heating_system_heating_capacity'] = 1000.0
+          # if we made it this far, this is the correct heating_system
+          measures['BuildResidentialHPXML'][0]['heating_system_heating_capacity'] = heating_system.heating_capacity
         end
+      end
 
+      unless upgrade_supp_heating_system
+        hpxml.heating_systems.each do |heating_system|
+          next if heating_system.heating_system_type != measures['BuildResidentialHPXML'][0]['heating_system_type_2']
+          next if heating_system.heating_system_fuel != measures['BuildResidentialHPXML'][0]['heating_system_fuel_2']
+          next if heating_system.fraction_heat_load_served != measures['BuildResidentialHPXML'][0]['heating_system_fraction_heat_load_served_2']
+
+          # if we made it this far, this is the correct supplemental heating_system
+          measures['BuildResidentialHPXML'][0]['heating_system_heating_capacity_2'] = heating_system.heating_capacity
+        end
+      end
+
+      unless upgrade_cooling_system
         hpxml.cooling_systems.each do |cooling_system|
-          # measures['BuildResidentialHPXML'][0]['cooling_system_cooling_capacity'] = cooling_system.cooling_capacity
-          measures['BuildResidentialHPXML'][0]['cooling_system_cooling_capacity'] = 5000.0
-        end
+          next if cooling_system.cooling_system_type != measures['BuildResidentialHPXML'][0]['cooling_system_type']
+          next if cooling_system.fraction_cool_load_served != measures['BuildResidentialHPXML'][0]['cooling_system_fraction_cool_load_served']
 
+          # if we made it this far, this is the correct cooling_system
+          measures['BuildResidentialHPXML'][0]['cooling_system_cooling_capacity'] = cooling_system.cooling_capacity
+        end
+      end
+
+      unless upgrade_heat_pump
         hpxml.heat_pumps.each do |heat_pump|
-          # measures['BuildResidentialHPXML'][0]['heat_pump_heating_capacity'] = heat_pump.heating_capacity
-          # measures['BuildResidentialHPXML'][0]['heat_pump_cooling_capacity'] = heat_pump.cooling_capacity
-          # measures['BuildResidentialHPXML'][0]['heat_pump_backup_heating_capacity'] = heat_pump.backup_heating_capacity
-          measures['BuildResidentialHPXML'][0]['heat_pump_heating_capacity'] = 2500.0
-          measures['BuildResidentialHPXML'][0]['heat_pump_cooling_capacity'] = 2500.0
-          measures['BuildResidentialHPXML'][0]['heat_pump_backup_heating_capacity'] = 2000.0
+          next if heat_pump.heat_pump_type != measures['BuildResidentialHPXML'][0]['heat_pump_type']
+          next if heat_pump.fraction_heat_load_served != measures['BuildResidentialHPXML'][0]['heat_pump_fraction_heat_load_served']
+          next if heat_pump.fraction_cool_load_served != measures['BuildResidentialHPXML'][0]['heat_pump_fraction_cool_load_served']
+
+          # if we made it this far, this is the correct heat_pump
+          measures['BuildResidentialHPXML'][0]['heat_pump_heating_capacity'] = heat_pump.heating_capacity
+          measures['BuildResidentialHPXML'][0]['heat_pump_cooling_capacity'] = heat_pump.cooling_capacity
+          measures['BuildResidentialHPXML'][0]['heat_pump_backup_heating_capacity'] = heat_pump.backup_heating_capacity
         end
       end
 
