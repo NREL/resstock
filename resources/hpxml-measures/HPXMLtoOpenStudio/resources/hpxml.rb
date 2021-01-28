@@ -279,6 +279,35 @@ class HPXML < Object
   WindowLayersSinglePane = 'single-pane'
   WindowLayersTriplePane = 'triple-pane'
 
+  # Design Loads
+  HDL_ATTRS = { hdl_total: 'Total',
+                hdl_ducts: 'Ducts',
+                hdl_windows: 'Windows',
+                hdl_skylights: 'Skylights',
+                hdl_doors: 'Doors',
+                hdl_walls: 'Walls',
+                hdl_roofs: 'Roofs',
+                hdl_floors: 'Floors',
+                hdl_slabs: 'Slabs',
+                hdl_ceilings: 'Ceilings',
+                hdl_infilvent: 'InfilVent' }
+  CDL_SENS_ATTRS = { cdl_sens_total: 'Total',
+                     cdl_sens_ducts: 'Ducts',
+                     cdl_sens_windows: 'Windows',
+                     cdl_sens_skylights: 'Skylights',
+                     cdl_sens_doors: 'Doors',
+                     cdl_sens_walls: 'Walls',
+                     cdl_sens_roofs: 'Roofs',
+                     cdl_sens_floors: 'Floors',
+                     cdl_sens_slabs: 'Slabs',
+                     cdl_sens_ceilings: 'Ceilings',
+                     cdl_sens_infilvent: 'InfilVent',
+                     cdl_sens_intgains: 'InternalGains' }
+  CDL_LAT_ATTRS = { cdl_lat_total: 'Total',
+                    cdl_lat_ducts: 'Ducts',
+                    cdl_lat_infilvent: 'InfilVent',
+                    cdl_lat_intgains: 'InternalGains' }
+
   def initialize(hpxml_path: nil, schematron_validators: [], collapse_enclosure: true)
     @doc = nil
     @hpxml_path = hpxml_path
@@ -2530,7 +2559,8 @@ class HPXML < Object
              :energy_star, :seed_id, :is_shared_system, :number_of_units_served,
              :shared_loop_watts, :fan_coil_watts, :wlhp_heating_efficiency_cop, :fan_watts_per_cfm,
              :fan_power_not_tested, :airflow_defect_ratio, :airflow_not_tested,
-             :fan_watts]
+             :fan_watts, :heating_airflow_cfm] +
+            HDL_ATTRS.keys
     attr_accessor(*ATTRS)
 
     def distribution_system
@@ -2613,12 +2643,20 @@ class HPXML < Object
       XMLHelper.add_extension(heating_system, 'FanPowerNotTested', @fan_power_not_tested, :boolean) unless @fan_power_not_tested.nil?
       XMLHelper.add_extension(heating_system, 'AirflowDefectRatio', @airflow_defect_ratio, :float, @airflow_defect_ratio_isdefaulted) unless @airflow_defect_ratio.nil?
       XMLHelper.add_extension(heating_system, 'AirflowNotTested', @airflow_not_tested, :boolean) unless @airflow_not_tested.nil?
+      XMLHelper.add_extension(heating_system, 'HeatingAirflowCFM', @heating_airflow_cfm, :float, @heating_airflow_cfm_isdefaulted) unless @heating_airflow_cfm.nil?
       XMLHelper.add_extension(heating_system, 'SeedId', @seed_id, :string) unless @seed_id.nil?
       if not @wlhp_heating_efficiency_cop.nil?
         wlhp = XMLHelper.create_elements_as_needed(heating_system, ['extension', 'WaterLoopHeatPump'])
         annual_efficiency = XMLHelper.add_element(wlhp, 'AnnualHeatingEfficiency')
         XMLHelper.add_element(annual_efficiency, 'Units', UnitsCOP, :string)
         XMLHelper.add_element(annual_efficiency, 'Value', @wlhp_heating_efficiency_cop, :float)
+      end
+      if not @hdl_total.nil?
+        hdl_extension = XMLHelper.create_elements_as_needed(heating_system, ['extension', 'HeatingDesignLoads'])
+        XMLHelper.add_attribute(hdl_extension, 'dataSource', 'software')
+        HDL_ATTRS.each do |attr, element_name|
+          XMLHelper.add_element(hdl_extension, element_name, send(attr), :float)
+        end
       end
     end
 
@@ -2647,9 +2685,13 @@ class HPXML < Object
       @fan_power_not_tested = XMLHelper.get_value(heating_system, 'extension/FanPowerNotTested', :boolean)
       @airflow_defect_ratio = XMLHelper.get_value(heating_system, 'extension/AirflowDefectRatio', :float)
       @airflow_not_tested = XMLHelper.get_value(heating_system, 'extension/AirflowNotTested', :boolean)
+      @heating_airflow_cfm = XMLHelper.get_value(heating_system, 'extension/HeatingAirflowCFM', :float)
       @shared_loop_watts = XMLHelper.get_value(heating_system, 'extension/SharedLoopWatts', :float)
       @fan_coil_watts = XMLHelper.get_value(heating_system, 'extension/FanCoilWatts', :float)
       @wlhp_heating_efficiency_cop = XMLHelper.get_value(heating_system, "extension/WaterLoopHeatPump/AnnualHeatingEfficiency[Units='#{UnitsCOP}']/Value", :float)
+      HDL_ATTRS.each do |attr, element_name|
+        send("#{attr.to_s}=", XMLHelper.get_value(heating_system, "extension/HeatingDesignLoads/#{element_name}", :float))
+      end
     end
   end
 
@@ -2678,7 +2720,8 @@ class HPXML < Object
              :cooling_shr, :energy_star, :seed_id, :is_shared_system,
              :number_of_units_served, :shared_loop_watts, :fan_coil_watts, :wlhp_cooling_capacity,
              :wlhp_cooling_efficiency_eer, :airflow_defect_ratio, :fan_watts_per_cfm, :fan_power_not_tested,
-             :airflow_not_tested, :charge_defect_ratio, :charge_not_tested]
+             :airflow_not_tested, :charge_defect_ratio, :charge_not_tested, :cooling_airflow_cfm] +
+            CDL_SENS_ATTRS.keys + CDL_LAT_ATTRS.keys
     attr_accessor(*ATTRS)
 
     def distribution_system
@@ -2761,6 +2804,7 @@ class HPXML < Object
       XMLHelper.add_extension(cooling_system, 'FanPowerWattsPerCFM', @fan_watts_per_cfm, :float, @fan_watts_per_cfm_isdefaulted) unless @fan_watts_per_cfm.nil?
       XMLHelper.add_extension(cooling_system, 'FanPowerNotTested', @fan_power_not_tested, :boolean) unless @fan_power_not_tested.nil?
       XMLHelper.add_extension(cooling_system, 'AirflowNotTested', @airflow_not_tested, :boolean) unless @airflow_not_tested.nil?
+      XMLHelper.add_extension(cooling_system, 'CoolingAirflowCFM', @cooling_airflow_cfm, :float, @cooling_airflow_cfm_isdefaulted) unless @cooling_airflow_cfm.nil?
       XMLHelper.add_extension(cooling_system, 'SharedLoopWatts', @shared_loop_watts, :float) unless @shared_loop_watts.nil?
       XMLHelper.add_extension(cooling_system, 'FanCoilWatts', @fan_coil_watts, :float) unless @fan_coil_watts.nil?
       XMLHelper.add_extension(cooling_system, 'SeedId', @seed_id, :string) unless @seed_id.nil?
@@ -2771,6 +2815,20 @@ class HPXML < Object
           annual_efficiency = XMLHelper.add_element(wlhp, 'AnnualCoolingEfficiency')
           XMLHelper.add_element(annual_efficiency, 'Units', UnitsEER, :string)
           XMLHelper.add_element(annual_efficiency, 'Value', @wlhp_cooling_efficiency_eer, :float)
+        end
+      end
+      if not @cdl_sens_total.nil?
+        cdl_sens_extension = XMLHelper.create_elements_as_needed(cooling_system, ['extension', 'CoolingDesignLoadsSensible'])
+        XMLHelper.add_attribute(cdl_sens_extension, 'dataSource', 'software')
+        CDL_SENS_ATTRS.each do |attr, element_name|
+          XMLHelper.add_element(cdl_sens_extension, element_name, send(attr), :float)
+        end
+      end
+      if not @cdl_lat_total.nil?
+        cdl_lat_extension = XMLHelper.create_elements_as_needed(cooling_system, ['extension', 'CoolingDesignLoadsLatent'])
+        XMLHelper.add_attribute(cdl_lat_extension, 'dataSource', 'software')
+        CDL_LAT_ATTRS.each do |attr, element_name|
+          XMLHelper.add_element(cdl_lat_extension, element_name, send(attr), :float)
         end
       end
     end
@@ -2804,10 +2862,17 @@ class HPXML < Object
       @fan_watts_per_cfm = XMLHelper.get_value(cooling_system, 'extension/FanPowerWattsPerCFM', :float)
       @fan_power_not_tested = XMLHelper.get_value(cooling_system, 'extension/FanPowerNotTested', :boolean)
       @airflow_not_tested = XMLHelper.get_value(cooling_system, 'extension/AirflowNotTested', :boolean)
+      @cooling_airflow_cfm = XMLHelper.get_value(cooling_system, 'extension/CoolingAirflowCFM', :float)
       @shared_loop_watts = XMLHelper.get_value(cooling_system, 'extension/SharedLoopWatts', :float)
       @fan_coil_watts = XMLHelper.get_value(cooling_system, 'extension/FanCoilWatts', :float)
       @wlhp_cooling_capacity = XMLHelper.get_value(cooling_system, 'extension/WaterLoopHeatPump/CoolingCapacity', :float)
       @wlhp_cooling_efficiency_eer = XMLHelper.get_value(cooling_system, "extension/WaterLoopHeatPump/AnnualCoolingEfficiency[Units='#{UnitsEER}']/Value", :float)
+      CDL_SENS_ATTRS.each do |attr, element_name|
+        send("#{attr.to_s}=", XMLHelper.get_value(cooling_system, "extension/CoolingDesignLoadsSensible/#{element_name}", :float))
+      end
+      CDL_LAT_ATTRS.each do |attr, element_name|
+        send("#{attr.to_s}=", XMLHelper.get_value(cooling_system, "extension/CoolingDesignLoadsLatent/#{element_name}", :float))
+      end
     end
   end
 
@@ -2843,7 +2908,8 @@ class HPXML < Object
              :heating_efficiency_cop, :energy_star, :seed_id, :pump_watts_per_ton, :fan_watts_per_cfm,
              :fan_power_not_tested, :is_shared_system, :number_of_units_served, :shared_loop_watts,
              :airflow_defect_ratio, :airflow_not_tested, :charge_defect_ratio,
-             :charge_not_tested]
+             :charge_not_tested, :heating_airflow_cfm, :cooling_airflow_cfm] +
+            HDL_ATTRS.keys + CDL_SENS_ATTRS.keys + CDL_LAT_ATTRS.keys
     attr_accessor(*ATTRS)
 
     def distribution_system
@@ -2892,20 +2958,18 @@ class HPXML < Object
       XMLHelper.add_element(heat_pump, 'CoolingCapacity', @cooling_capacity, :float, @cooling_capacity_isdefaulted) unless @cooling_capacity.nil?
       XMLHelper.add_element(heat_pump, 'CompressorType', @compressor_type, :string, @compressor_type_isdefaulted) unless @compressor_type.nil?
       XMLHelper.add_element(heat_pump, 'CoolingSensibleHeatFraction', @cooling_shr, :float, @cooling_shr_isdefaulted) unless @cooling_shr.nil?
-      if not @backup_heating_fuel.nil?
-        XMLHelper.add_element(heat_pump, 'BackupSystemFuel', @backup_heating_fuel, :string)
-        efficiencies = { 'Percent' => @backup_heating_efficiency_percent,
-                         UnitsAFUE => @backup_heating_efficiency_afue }
-        efficiencies.each do |units, value|
-          next if value.nil?
+      XMLHelper.add_element(heat_pump, 'BackupSystemFuel', @backup_heating_fuel, :string) unless @backup_heating_fuel.nil?
+      efficiencies = { 'Percent' => @backup_heating_efficiency_percent,
+                       UnitsAFUE => @backup_heating_efficiency_afue }
+      efficiencies.each do |units, value|
+        next if value.nil?
 
-          backup_eff = XMLHelper.add_element(heat_pump, 'BackupAnnualHeatingEfficiency')
-          XMLHelper.add_element(backup_eff, 'Units', units, :string)
-          XMLHelper.add_element(backup_eff, 'Value', value, :float)
-        end
-        XMLHelper.add_element(heat_pump, 'BackupHeatingCapacity', @backup_heating_capacity, :float) unless @backup_heating_capacity.nil?
-        XMLHelper.add_element(heat_pump, 'BackupHeatingSwitchoverTemperature', @backup_heating_switchover_temp, :float) unless @backup_heating_switchover_temp.nil?
+        backup_eff = XMLHelper.add_element(heat_pump, 'BackupAnnualHeatingEfficiency')
+        XMLHelper.add_element(backup_eff, 'Units', units, :string)
+        XMLHelper.add_element(backup_eff, 'Value', value, :float)
       end
+      XMLHelper.add_element(heat_pump, 'BackupHeatingCapacity', @backup_heating_capacity, :float) unless @backup_heating_capacity.nil?
+      XMLHelper.add_element(heat_pump, 'BackupHeatingSwitchoverTemperature', @backup_heating_switchover_temp, :float) unless @backup_heating_switchover_temp.nil?
       XMLHelper.add_element(heat_pump, 'FractionHeatLoadServed', @fraction_heat_load_served, :float) unless @fraction_heat_load_served.nil?
       XMLHelper.add_element(heat_pump, 'FractionCoolLoadServed', @fraction_cool_load_served, :float) unless @fraction_cool_load_served.nil?
 
@@ -2940,9 +3004,32 @@ class HPXML < Object
       XMLHelper.add_extension(heat_pump, 'FanPowerWattsPerCFM', @fan_watts_per_cfm, :float, @fan_watts_per_cfm_isdefaulted) unless @fan_watts_per_cfm.nil?
       XMLHelper.add_extension(heat_pump, 'FanPowerNotTested', @fan_power_not_tested, :boolean) unless @fan_power_not_tested.nil?
       XMLHelper.add_extension(heat_pump, 'AirflowNotTested', @airflow_not_tested, :boolean) unless @airflow_not_tested.nil?
+      XMLHelper.add_extension(heat_pump, 'HeatingAirflowCFM', @heating_airflow_cfm, :float, @heating_airflow_cfm_isdefaulted) unless @heating_airflow_cfm.nil?
+      XMLHelper.add_extension(heat_pump, 'CoolingAirflowCFM', @cooling_airflow_cfm, :float, @cooling_airflow_cfm_isdefaulted) unless @cooling_airflow_cfm.nil?
       XMLHelper.add_extension(heat_pump, 'PumpPowerWattsPerTon', @pump_watts_per_ton, :float, @pump_watts_per_ton_isdefaulted) unless @pump_watts_per_ton.nil?
       XMLHelper.add_extension(heat_pump, 'SharedLoopWatts', @shared_loop_watts, :float) unless @shared_loop_watts.nil?
       XMLHelper.add_extension(heat_pump, 'SeedId', @seed_id, :string) unless @seed_id.nil?
+      if not @hdl_total.nil?
+        hdl_extension = XMLHelper.create_elements_as_needed(heat_pump, ['extension', 'HeatingDesignLoads'])
+        XMLHelper.add_attribute(hdl_extension, 'dataSource', 'software')
+        HDL_ATTRS.each do |attr, element_name|
+          XMLHelper.add_element(hdl_extension, element_name, send(attr), :float)
+        end
+      end
+      if not @cdl_sens_total.nil?
+        cdl_sens_extension = XMLHelper.create_elements_as_needed(heat_pump, ['extension', 'CoolingDesignLoadsSensible'])
+        XMLHelper.add_attribute(cdl_sens_extension, 'dataSource', 'software')
+        CDL_SENS_ATTRS.each do |attr, element_name|
+          XMLHelper.add_element(cdl_sens_extension, element_name, send(attr), :float)
+        end
+      end
+      if not @cdl_lat_total.nil?
+        cdl_lat_extension = XMLHelper.create_elements_as_needed(heat_pump, ['extension', 'CoolingDesignLoadsLatent'])
+        XMLHelper.add_attribute(cdl_lat_extension, 'dataSource', 'software')
+        CDL_LAT_ATTRS.each do |attr, element_name|
+          XMLHelper.add_element(cdl_lat_extension, element_name, send(attr), :float)
+        end
+      end
     end
 
     def from_oga(heat_pump)
@@ -2982,11 +3069,22 @@ class HPXML < Object
       @fan_watts_per_cfm = XMLHelper.get_value(heat_pump, 'extension/FanPowerWattsPerCFM', :float)
       @fan_power_not_tested = XMLHelper.get_value(heat_pump, 'extension/FanPowerNotTested', :boolean)
       @airflow_not_tested = XMLHelper.get_value(heat_pump, 'extension/AirflowNotTested', :boolean)
+      @heating_airflow_cfm = XMLHelper.get_value(heat_pump, 'extension/HeatingAirflowCFM', :float)
+      @cooling_airflow_cfm = XMLHelper.get_value(heat_pump, 'extension/CoolingAirflowCFM', :float)
       @seed_id = XMLHelper.get_value(heat_pump, 'extension/SeedId', :string)
       @airflow_defect_ratio = XMLHelper.get_value(heat_pump, 'extension/AirflowDefectRatio', :float)
       @charge_defect_ratio = XMLHelper.get_value(heat_pump, 'extension/ChargeDefectRatio', :float)
       @charge_not_tested = XMLHelper.get_value(heat_pump, 'extension/ChargeNotTested', :boolean)
       @shared_loop_watts = XMLHelper.get_value(heat_pump, 'extension/SharedLoopWatts', :float)
+      HDL_ATTRS.each do |attr, element_name|
+        send("#{attr.to_s}=", XMLHelper.get_value(heat_pump, "extension/HeatingDesignLoads/#{element_name}", :float))
+      end
+      CDL_SENS_ATTRS.each do |attr, element_name|
+        send("#{attr.to_s}=", XMLHelper.get_value(heat_pump, "extension/CoolingDesignLoadsSensible/#{element_name}", :float))
+      end
+      CDL_LAT_ATTRS.each do |attr, element_name|
+        send("#{attr.to_s}=", XMLHelper.get_value(heat_pump, "extension/CoolingDesignLoadsLatent/#{element_name}", :float))
+      end
     end
   end
 
