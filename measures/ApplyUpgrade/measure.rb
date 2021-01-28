@@ -402,9 +402,15 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
           next if heat_pump.fraction_cool_load_served != measures['BuildResidentialHPXML'][0]['heat_pump_fraction_cool_load_served']
 
           # if we made it this far, this is the correct heat_pump
-          measures['BuildResidentialHPXML'][0]['heat_pump_heating_capacity'] = heat_pump.heating_capacity
-          measures['BuildResidentialHPXML'][0]['heat_pump_cooling_capacity'] = heat_pump.cooling_capacity
-          measures['BuildResidentialHPXML'][0]['heat_pump_backup_heating_capacity'] = heat_pump.backup_heating_capacity
+          unless heat_pump.heating_capacity.nil? # heat pump provides heating
+            measures['BuildResidentialHPXML'][0]['heat_pump_heating_capacity'] = heat_pump.heating_capacity
+          end
+          unless heat_pump.cooling_capacity.nil? # heat pump provides cooling
+            measures['BuildResidentialHPXML'][0]['heat_pump_cooling_capacity'] = heat_pump.cooling_capacity
+          end
+          unless heat_pump.backup_heating_capacity.nil? # heat pump provides backup heating
+            measures['BuildResidentialHPXML'][0]['heat_pump_backup_heating_capacity'] = heat_pump.backup_heating_capacity
+          end
         end
       end
 
