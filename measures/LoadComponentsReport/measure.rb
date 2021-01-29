@@ -238,15 +238,6 @@ class LoadComponentsReport < OpenStudio::Measure::ReportingMeasure
     report_sim_output(runner, "electricity_dishwasher_energy", electricityDishwasher, "GJ", total_site_units)
     report_sim_output(runner, "electricity_extra_refrigerator_energy", electricityExtraRefrigerator, "GJ", total_site_units)
 
-    units.each do |unit|
-      unit_name = unit.name.to_s.upcase
-
-      units_represented = 1
-      if unit.additionalProperties.getFeatureAsInteger("Units Represented").is_initialized
-        units_represented = unit.additionalProperties.getFeatureAsInteger("Units Represented").get
-      end
-    end
-
     # DEMAND ENERGY
     # Set the frequency for analysis.
     # Must match frequency requested in energyPlusOutputRequests.
@@ -269,11 +260,6 @@ class LoadComponentsReport < OpenStudio::Measure::ReportingMeasure
     units.each do |unit|
       unit_name = unit.name.to_s.upcase
 
-      units_represented = 1
-      if unit.additionalProperties.getFeatureAsInteger("Units Represented").is_initialized
-        units_represented = unit.additionalProperties.getFeatureAsInteger("Units Represented").get
-      end
-
       thermal_zones = []
       unit.spaces.each do |space|
         thermal_zone = space.thermalZone.get
@@ -293,38 +279,38 @@ class LoadComponentsReport < OpenStudio::Measure::ReportingMeasure
         hvac_transfer_vals.each_with_index do |hvac_energy_transfer, i|
           if hvac_energy_transfer > 0 # heating
             # during heating, all heat gains are "reducing" the heating that the HVAC needs to provide, so reverse sign
-            heating_demand['windows conduction'] -= units_represented * heat_transfer_vectors['Zone Window Convection Heat Transfer Energy'].to_a[i]
-            heating_demand['doors conduction'] -= units_represented * heat_transfer_vectors['Zone Door Convection Heat Transfer Energy'].to_a[i]
-            heating_demand['windows solar'] -= units_represented * heat_transfer_vectors['Zone Window Radiation Heat Transfer Energy'].to_a[i]
-            heating_demand['wall'] -= units_represented * heat_transfer_vectors['Zone Wall Convection Heat Transfer Energy'].to_a[i]
-            heating_demand['foundation wall'] -= units_represented * heat_transfer_vectors['Zone Foundation Wall Convection Heat Transfer Energy'].to_a[i]
-            heating_demand['ceiling'] -= units_represented * heat_transfer_vectors['Zone Ceiling Convection Heat Transfer Energy'].to_a[i]
-            heating_demand['roof'] -= units_represented * heat_transfer_vectors['Zone Roof Convection Heat Transfer Energy'].to_a[i]
-            heating_demand['ground'] -= units_represented * heat_transfer_vectors['Zone Ground Convection Heat Transfer Energy'].to_a[i]
-            heating_demand['floor'] -= units_represented * heat_transfer_vectors['Zone Floor Convection Heat Transfer Energy'].to_a[i]
-            heating_demand['infiltration'] -= units_represented * heat_transfer_vectors['Zone Infiltration Gains'].to_a[i]
-            heating_demand['ventilation'] -= units_represented * heat_transfer_vectors['Zone Ventilation Gains'].to_a[i]
-            heating_demand['people gain'] -= units_represented * heat_transfer_vectors['Zone People Convective Heating Energy'].to_a[i]
-            heating_demand['equipment gain'] -= units_represented * heat_transfer_vectors['Zone Equipment Internal Gains'].to_a[i]
-            heating_demand['lighting gain'] -= units_represented * heat_transfer_vectors['Zone Lights Convective Heating Energy'].to_a[i]
-            heating_demand['other gain'] -= units_represented * heat_transfer_vectors['Zone Other Convection Heat Transfer Energy'].to_a[i]
+            heating_demand['windows conduction'] -= heat_transfer_vectors['Zone Window Convection Heat Transfer Energy'].to_a[i]
+            heating_demand['doors conduction'] -= heat_transfer_vectors['Zone Door Convection Heat Transfer Energy'].to_a[i]
+            heating_demand['windows solar'] -= heat_transfer_vectors['Zone Window Radiation Heat Transfer Energy'].to_a[i]
+            heating_demand['wall'] -= heat_transfer_vectors['Zone Wall Convection Heat Transfer Energy'].to_a[i]
+            heating_demand['foundation wall'] -= heat_transfer_vectors['Zone Foundation Wall Convection Heat Transfer Energy'].to_a[i]
+            heating_demand['ceiling'] -= heat_transfer_vectors['Zone Ceiling Convection Heat Transfer Energy'].to_a[i]
+            heating_demand['roof'] -= heat_transfer_vectors['Zone Roof Convection Heat Transfer Energy'].to_a[i]
+            heating_demand['ground'] -= heat_transfer_vectors['Zone Ground Convection Heat Transfer Energy'].to_a[i]
+            heating_demand['floor'] -= heat_transfer_vectors['Zone Floor Convection Heat Transfer Energy'].to_a[i]
+            heating_demand['infiltration'] -= heat_transfer_vectors['Zone Infiltration Gains'].to_a[i]
+            heating_demand['ventilation'] -= heat_transfer_vectors['Zone Ventilation Gains'].to_a[i]
+            heating_demand['people gain'] -= heat_transfer_vectors['Zone People Convective Heating Energy'].to_a[i]
+            heating_demand['equipment gain'] -= heat_transfer_vectors['Zone Equipment Internal Gains'].to_a[i]
+            heating_demand['lighting gain'] -= heat_transfer_vectors['Zone Lights Convective Heating Energy'].to_a[i]
+            heating_demand['other gain'] -= heat_transfer_vectors['Zone Other Convection Heat Transfer Energy'].to_a[i]
           elsif hvac_energy_transfer < 0 # cooling
             # during cooling, all heat gains are "increasing" the cooling that the HVAC needs to provide, so sign matches convention
-            cooling_demand['windows conduction'] += units_represented * heat_transfer_vectors['Zone Window Convection Heat Transfer Energy'].to_a[i]
-            cooling_demand['doors conduction'] += units_represented * heat_transfer_vectors['Zone Door Convection Heat Transfer Energy'].to_a[i]
-            cooling_demand['windows solar'] += units_represented * heat_transfer_vectors['Zone Window Radiation Heat Transfer Energy'].to_a[i]
-            cooling_demand['wall'] += units_represented * heat_transfer_vectors['Zone Wall Convection Heat Transfer Energy'].to_a[i]
-            cooling_demand['foundation wall'] += units_represented * heat_transfer_vectors['Zone Foundation Wall Convection Heat Transfer Energy'].to_a[i]
-            cooling_demand['ceiling'] += units_represented * heat_transfer_vectors['Zone Ceiling Convection Heat Transfer Energy'].to_a[i]
-            cooling_demand['roof'] += units_represented * heat_transfer_vectors['Zone Roof Convection Heat Transfer Energy'].to_a[i]
-            cooling_demand['ground'] += units_represented * heat_transfer_vectors['Zone Ground Convection Heat Transfer Energy'].to_a[i]
-            cooling_demand['floor'] += units_represented * heat_transfer_vectors['Zone Floor Convection Heat Transfer Energy'].to_a[i]
-            cooling_demand['infiltration'] += units_represented * heat_transfer_vectors['Zone Infiltration Gains'].to_a[i]
-            cooling_demand['ventilation'] += units_represented * heat_transfer_vectors['Zone Ventilation Gains'].to_a[i]
-            cooling_demand['people gain'] += units_represented * heat_transfer_vectors['Zone People Convective Heating Energy'].to_a[i]
-            cooling_demand['equipment gain'] += units_represented * heat_transfer_vectors['Zone Equipment Internal Gains'].to_a[i]
-            cooling_demand['lighting gain'] += units_represented * heat_transfer_vectors['Zone Lights Convective Heating Energy'].to_a[i]
-            cooling_demand['other gain'] += units_represented * heat_transfer_vectors['Zone Other Convection Heat Transfer Energy'].to_a[i]
+            cooling_demand['windows conduction'] += heat_transfer_vectors['Zone Window Convection Heat Transfer Energy'].to_a[i]
+            cooling_demand['doors conduction'] += heat_transfer_vectors['Zone Door Convection Heat Transfer Energy'].to_a[i]
+            cooling_demand['windows solar'] += heat_transfer_vectors['Zone Window Radiation Heat Transfer Energy'].to_a[i]
+            cooling_demand['wall'] += heat_transfer_vectors['Zone Wall Convection Heat Transfer Energy'].to_a[i]
+            cooling_demand['foundation wall'] += heat_transfer_vectors['Zone Foundation Wall Convection Heat Transfer Energy'].to_a[i]
+            cooling_demand['ceiling'] += heat_transfer_vectors['Zone Ceiling Convection Heat Transfer Energy'].to_a[i]
+            cooling_demand['roof'] += heat_transfer_vectors['Zone Roof Convection Heat Transfer Energy'].to_a[i]
+            cooling_demand['ground'] += heat_transfer_vectors['Zone Ground Convection Heat Transfer Energy'].to_a[i]
+            cooling_demand['floor'] += heat_transfer_vectors['Zone Floor Convection Heat Transfer Energy'].to_a[i]
+            cooling_demand['infiltration'] += heat_transfer_vectors['Zone Infiltration Gains'].to_a[i]
+            cooling_demand['ventilation'] += heat_transfer_vectors['Zone Ventilation Gains'].to_a[i]
+            cooling_demand['people gain'] += heat_transfer_vectors['Zone People Convective Heating Energy'].to_a[i]
+            cooling_demand['equipment gain'] += heat_transfer_vectors['Zone Equipment Internal Gains'].to_a[i]
+            cooling_demand['lighting gain'] += heat_transfer_vectors['Zone Lights Convective Heating Energy'].to_a[i]
+            cooling_demand['other gain'] += heat_transfer_vectors['Zone Other Convection Heat Transfer Energy'].to_a[i]
           end
         end
         internal_gains_gain_error += heat_transfer_vectors["#{zone_name}: Annual Gain Error in Internal Gains"].abs
@@ -410,6 +396,9 @@ class LoadComponentsReport < OpenStudio::Measure::ReportingMeasure
     report_sim_output(runner, "surface_convection_loss_error", surface_convection_loss_error, "", "")
     report_sim_output(runner, "total_energy_balance_gain_error", total_energy_balance_gain_error, "", "")
     report_sim_output(runner, "total_energy_balance_loss_error", total_energy_balance_loss_error, "", "")
+
+    # heat_transfer_vectors['Calc Surface Convection'] = total_surface_convection
+    # heat_transfer_vectors['True Surface Convection']
 
     # SUPPLY ENERGY
     heatingSupply = 0.0

@@ -398,15 +398,15 @@ module OsLib_HeatTransfer
         ht_transfer_vals = OsLib_SqlFile.get_timeseries_array(runner, sql, ann_env_pd, freq, surface_inside_convection_output, surface_name, num_ts, joules)
 
         # Determine the surface type
-        surface_type = if surface.outsideBoundaryCondition == 'Outdoors' && surface.surfaceType == 'Wall'
+        surface_type = if (surface.outsideBoundaryCondition == 'Outdoors' || surface.outsideBoundaryCondition == 'Adiabatic') && surface.surfaceType == 'Wall'
                          'Wall'
-                       elsif (surface.outsideBoundaryCondition == 'Ground' || surface.outsideBoundaryCondition == 'Foundation') && surface.surfaceType == 'Wall'
+                       elsif (surface.outsideBoundaryCondition == 'Ground' || surface.outsideBoundaryCondition == 'Foundation' || surface.outsideBoundaryCondition == 'Adiabatic') && surface.surfaceType == 'Wall'
                          'Foundation Wall'
-                       elsif surface.outsideBoundaryCondition == 'Outdoors' && surface.surfaceType == 'RoofCeiling'
+                       elsif (surface.outsideBoundaryCondition == 'Outdoors' || surface.outsideBoundaryCondition == 'Adiabatic') && surface.surfaceType == 'RoofCeiling'
                          'Roof'
-                       elsif surface.outsideBoundaryCondition == 'Outdoors' && surface.surfaceType == 'Floor'
+                       elsif (surface.outsideBoundaryCondition == 'Outdoors' || surface.outsideBoundaryCondition == 'Adiabatic') && surface.surfaceType == 'Floor'
                          'Floor'
-                       elsif (surface.outsideBoundaryCondition == 'Ground' || surface.outsideBoundaryCondition == 'Foundation') && surface.surfaceType == 'Floor'
+                       elsif (surface.outsideBoundaryCondition == 'Ground' || surface.outsideBoundaryCondition == 'Foundation' || surface.outsideBoundaryCondition == 'Adiabatic') && surface.surfaceType == 'Floor'
                          'Ground'
                        else # assume others are surfaces that are interior to the building and face other zones
                          'Interzone'
