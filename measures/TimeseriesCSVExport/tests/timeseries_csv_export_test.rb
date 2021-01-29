@@ -110,8 +110,8 @@ class TimeseriesCSVExportTest < MiniTest::Test
   end
 
   def test_tmy_daily_and_subcategories_mf
-    num_units = 2
-    num_output_requests = 51 + 3
+    num_units = 1
+    num_output_requests = 27 + 3
     measure = TimeseriesCSVExport.new
     args_hash = {}
     args_hash["reporting_frequency"] = "Daily"

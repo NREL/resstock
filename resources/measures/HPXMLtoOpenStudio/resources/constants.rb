@@ -1342,6 +1342,10 @@ class Constants
     return 'RoofUnfinUninsExt'
   end
 
+  def self.SurfaceTypeRoofAdiabatic # shared ceiling, single unit model
+    return 'SurfaceTypeRoofAdiabatic'
+  end
+
   def self.SurfaceTypeRoofUnfinInsExt # unfinished attic roof
     return 'RoofUnfinInsExt'
   end

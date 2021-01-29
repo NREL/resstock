@@ -199,7 +199,7 @@ class ResidentialHotWaterHeaterTanklessTest < MiniTest::Test
   end
 
   def test_single_family_attached_new_construction
-    num_units = 4
+    num_units = 1
     args_hash = {}
     expected_num_del_objects = {}
     expected_num_new_objects = { "WaterHeaterMixed" => num_units, "PlantLoop" => num_units, "PumpVariableSpeed" => num_units, "ScheduleConstant" => 2 * num_units }
@@ -208,7 +208,7 @@ class ResidentialHotWaterHeaterTanklessTest < MiniTest::Test
   end
 
   def test_single_family_attached_new_construction_living_zone
-    num_units = 4
+    num_units = 1
     args_hash = {}
     args_hash["location"] = Constants.SpaceTypeLiving
     expected_num_del_objects = {}
@@ -218,7 +218,7 @@ class ResidentialHotWaterHeaterTanklessTest < MiniTest::Test
   end
 
   def test_multifamily_new_construction
-    num_units = 8
+    num_units = 1
     args_hash = {}
     expected_num_del_objects = {}
     expected_num_new_objects = { "WaterHeaterMixed" => num_units, "PlantLoop" => num_units, "PumpVariableSpeed" => num_units, "ScheduleConstant" => 2 * num_units }

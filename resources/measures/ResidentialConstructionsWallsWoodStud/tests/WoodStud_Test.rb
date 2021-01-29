@@ -118,7 +118,7 @@ class ProcessConstructionsWallsWoodStudTest < MiniTest::Test
     args_hash["cavity_filled"] = false
     args_hash["framing_factor"] = 0.25
     expected_num_del_objects = {}
-    expected_num_new_objects = { "Material" => 8, "Construction" => 9, "InternalMass" => 8, "InternalMassDefinition" => 8 }
+    expected_num_new_objects = { "Material" => 9, "Construction" => 6, "InternalMass" => 2, "InternalMassDefinition" => 2 }
     ext_finish_r = 0.009525 / 0.089435
     osb_r = 0.0127 / 0.1154577
     drywall_r = 0.0127 / 0.1602906
@@ -136,7 +136,7 @@ class ProcessConstructionsWallsWoodStudTest < MiniTest::Test
     args_hash["cavity_filled"] = false
     args_hash["framing_factor"] = 0.25
     expected_num_del_objects = {}
-    expected_num_new_objects = { "Material" => 9, "Construction" => 14, "InternalMass" => 16, "InternalMassDefinition" => 16 }
+    expected_num_new_objects = { "Material" => 9, "Construction" => 6, "InternalMass" => 2, "InternalMassDefinition" => 2 }
     ext_finish_r = 0.009525 / 0.089435
     osb_r = 0.0127 / 0.1154577
     drywall_r = 0.0127 / 0.1602906

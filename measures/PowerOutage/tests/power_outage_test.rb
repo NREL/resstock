@@ -116,14 +116,15 @@ class OutageTest < MiniTest::Test
   end
 
   def test_outage_less_than_one_day_dst_mf
+    num_units = 1
     args_hash = {}
     args_hash["otg_date"] = "June 2"
     args_hash["otg_hr"] = 8
     args_hash["otg_len"] = 8
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ScheduleRule" => 10, "ScheduleDay" => 10, "ScheduleFixedInterval" => 1 }
+    expected_num_new_objects = { "ScheduleRule" => 6, "ScheduleDay" => 6, "ScheduleFixedInterval" => 1 }
     expected_values = {}
-    _test_measure("MF_Successful_EnergyPlus_Run_TMY_Appl_PV.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 27)
+    _test_measure("MF_Successful_EnergyPlus_Run_TMY_Appl_PV.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 22)
   end
 
   def test_outage_short_run_period

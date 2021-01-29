@@ -1,0 +1,36 @@
+stock_type: residential
+project_directory: project_multifamily_beta  # Relative to buildstock_directory
+output_directory: /scratch/aspeake/singleunit/SFA_single #update to flue height in airflow.rb
+buildstock_directory: ../..  # Relative to this file or absolute
+
+#EAGLE:
+weather_files_path: /shared-projects/buildstock/weather/ResStock_TMY3.zip  # Relative to this file or absolute path to zipped weather files
+
+#AWS:
+# weather_files_path: /c/Users/aspeake/Documents/OpenStudio-BuildStock/resources/measures/HPXMLtoOpenStudio/weather/project_resstock_national.zip
+
+baseline:
+  buildstock_csv: ../buildstocks/buildstock_SFA_single.csv
+  n_buildings_represented: 1
+timeseries_csv_export:
+  reporting_frequency: Hourly
+  include_enduse_subcategories: false
+# reporting_measures:
+  # - QOIReport
+residential_simulation_controls:
+  timesteps_per_hr: 6
+  begin_month: 1
+  begin_day_of_month: 1
+  end_month: 12
+  end_day_of_month: 31
+  calendar_year: 2017
+  
+eagle:
+  n_jobs: 10
+  minutes_per_sim: 4
+  account: enduse
+  sampling:
+    time: 10
+  postprocessing:
+    time: 30
+    n_workers: 1

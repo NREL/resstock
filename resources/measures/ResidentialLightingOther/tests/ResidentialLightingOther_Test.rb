@@ -346,44 +346,44 @@ class ResidentialLightingOtherTest < MiniTest::Test
   end
 
   def test_single_family_attached_new_construction
-    num_units = 4
+    num_units = 1
     num_ltg_spaces = num_units * 2
     args_hash = {}
     expected_num_del_objects = {}
     expected_num_new_objects = { "ExteriorLightsDefinition" => 1, "ExteriorLights" => 1, "ScheduleFile" => 1 }
-    expected_values = { "Annual_kwh" => 524 }
+    expected_values = { "Annual_kwh" => 131 * num_units }
     _test_measure("SFA_4units_1story_FB_UA_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
   def test_single_family_attached_new_construction_double_lamps_used
-    num_units = 4
+    num_units = 1
     num_ltg_spaces = num_units * 2
     args_hash = {}
     args_hash["mult"] = 2
     expected_num_del_objects = {}
     expected_num_new_objects = { "ExteriorLightsDefinition" => 1, "ExteriorLights" => 1, "ScheduleFile" => 1 }
-    expected_values = { "Annual_kwh" => 524 * 2 }
+    expected_values = { "Annual_kwh" => 131 * num_units * 2 }
     _test_measure("SFA_4units_1story_FB_UA_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
   def test_multifamily_new_construction
-    num_units = 8
+    num_units = 1
     num_ltg_spaces = num_units
     args_hash = {}
     expected_num_del_objects = {}
     expected_num_new_objects = { "ExteriorLightsDefinition" => 1, "ExteriorLights" => 1, "ScheduleFile" => 1 }
-    expected_values = { "Annual_kwh" => 1048 }
+    expected_values = { "Annual_kwh" => 131 * num_units }
     _test_measure("MF_8units_1story_SL_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
   def test_multifamily_new_construction_tenth_lamps_used
-    num_units = 8
+    num_units = 1
     num_ltg_spaces = num_units
     args_hash = {}
     args_hash["mult"] = 0.1
     expected_num_del_objects = {}
     expected_num_new_objects = { "ExteriorLightsDefinition" => 1, "ExteriorLights" => 1, "ScheduleFile" => 1 }
-    expected_values = { "Annual_kwh" => 1048 / 10 }
+    expected_values = { "Annual_kwh" => 131 * num_units / 10 }
     _test_measure("MF_8units_1story_SL_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 

@@ -16,6 +16,7 @@ class ProcessConstructionsFacadesSharedTest < MiniTest::Test
   end
 
   def test_single_family_attached
+    skip
     args_hash = {}
     args_hash["shared_building_facades"] = "#{Constants.FacadeLeft}, #{Constants.FacadeRight}, #{Constants.FacadeBack}"
     expected_num_del_objects = {}
@@ -25,6 +26,7 @@ class ProcessConstructionsFacadesSharedTest < MiniTest::Test
   end
 
   def test_multifamily
+    skip
     args_hash = {}
     args_hash["shared_building_facades"] = "#{Constants.FacadeLeft}, #{Constants.FacadeRight}, #{Constants.FacadeBack}"
     expected_num_del_objects = {}

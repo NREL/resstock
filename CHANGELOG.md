@@ -18,6 +18,7 @@ Features
 - Separate electric supplemental heating from total electric heating in output reporting ([#512](https://github.com/NREL/OpenStudio-BuildStock/pull/512))
 - Update the duct leakage "total" to "to outside" conversion to be based on ASHRAE Standard 152 ([#532](https://github.com/NREL/resstock/pull/532))
 - Allow for flexible weather regions based on weather data available and introduce TMY3 weather files for the new weather format ([#525](https://github.com/NREL/resstock/pull/525))
+- Model multifamily and single-family attached buildings as individual dwelling units ([#439](https://github.com/NREL/resstock/pull/439))
 
 Fixes
 - Based on RECS 2015, separate the plug load equations for single-family detached, single-family attached, and multifamily buildings ([#471](https://github.com/NREL/resstock/pull/471))
