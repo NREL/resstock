@@ -96,6 +96,28 @@ class UpgradeCostsTest < MiniTest::Test
     _test_cost_multipliers('SFD_1story_UB_UA_GRG_ACV_FuelFurnace_HPWH.osw', cost_multipliers)
   end
 
+  def test_SFD_1story_UB_UA_GRG_ACV_FuelFurnace_PortableHeater_HPWH
+    cost_multipliers = {
+      'Fixed (1)' => 1,
+      'Wall Area, Above-Grade, Conditioned (ft^2)' => 310.0 + 96.0 * 2 + 635.0 + 406.0 + 731.0,
+      'Wall Area, Above-Grade, Exterior (ft^2)' => 310.0 + 635.0 + 323.0 * 2 + 96.0 * 2 + 18.0 + 192.0 + 406.0 + 731.0,
+      'Wall Area, Below-Grade (ft^2)' => 406.0 + 731.0 + 310.0 + 635.0,
+      'Floor Area, Conditioned (ft^2)' => 4500.0,
+      'Floor Area, Attic (ft^2)' => 4500.0,
+      'Floor Area, Lighting (ft^2)' => 4500.0 + 12.0 * 24.0,
+      'Roof Area (ft^2)' => 2596.0 + 101.0 * 2 + 2471.0 + 85.0,
+      'Window Area (ft^2)' => 0.12 * (310.0 + 96.0 * 2 + 635.0 + 406.0 + 731.0 - 96.0 * 2),
+      'Door Area (ft^2)' => 20.0,
+      'Duct Unconditioned Surface Area (ft^2)' => (0.27 * 4500.0) + (0.05 * 4500.0),
+      'Size, Heating System (kBtu/h)' => 100.0,
+      'Size, Heating Backup System (kBtu/h)' => 0.0, # backup
+      'Size, Heating Secondary System (kBtu/h)' => 20.0,
+      'Size, Cooling System (kBtu/h)' => 60.0,
+      'Size, Water Heater (gal)' => 50.0,
+    }
+    _test_cost_multipliers('SFD_1story_UB_UA_GRG_ACV_FuelFurnace_PortableHeater_HPWH.osw', cost_multipliers)
+  end
+
   def test_SFD_2story_CS_UA_AC2_FuelBoiler_FuelTankWH
     cost_multipliers = {
       'Fixed (1)' => 1,

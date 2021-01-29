@@ -231,7 +231,7 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
       if heating_systems.size == 1
         cost_mult += UnitConversions.convert(heating_systems.keys[0].heating_capacity, 'btu/hr', 'kbtu/hr')
       elsif heating_systems.size == 2
-        heating_systems = heating_systems.sort_by { |k, v| v } # sort smallest frac to largest frac
+        heating_systems = heating_systems.sort_by { |k, v| v }.to_h # sort smallest frac to largest frac
         cost_mult += UnitConversions.convert(heating_systems.keys[1].heating_capacity, 'btu/hr', 'kbtu/hr')
       end
 
@@ -248,7 +248,7 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
         heating_systems[heating_system] = heating_system.fraction_heat_load_served
       end
       if heating_systems.size == 2
-        heating_systems = heating_systems.sort_by { |k, v| v } # sort smallest frac to largest frac
+        heating_systems = heating_systems.sort_by { |k, v| v }.to_h # sort smallest frac to largest frac
         cost_mult += UnitConversions.convert(heating_systems.keys[0].heating_capacity, 'btu/hr', 'kbtu/hr')
       end
     elsif cost_mult_type == 'Size, Cooling System (kBtu/h)'
