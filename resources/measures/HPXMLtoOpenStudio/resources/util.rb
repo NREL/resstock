@@ -807,7 +807,6 @@ class OutputMeters
 
     units.each do |unit|
       unit_name = unit.name.to_s.upcase
-      units_represented = get_units_represented(unit)
 
       thermal_zones = []
       unit.spaces.each do |space|
@@ -820,9 +819,9 @@ class OutputMeters
       thermal_zones.each do |thermal_zone|
         key_value = thermal_zone.name.to_s.upcase
 
-        heatingSupply = add_unit(sql_file, heatingSupply, units_represented, "SELECT VariableValue/1000000000 FROM ReportVariableData WHERE ReportVariableDataDictionaryIndex IN (SELECT ReportVariableDataDictionaryIndex FROM ReportVariableDataDictionary WHERE VariableType='Sum' AND KeyValue='#{key_value}' AND VariableName IN ('Zone Air System Sensible Heating Energy') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
+        heatingSupply = add_unit(sql_file, heatingSupply, "SELECT VariableValue/1000000000 FROM ReportVariableData WHERE ReportVariableDataDictionaryIndex IN (SELECT ReportVariableDataDictionaryIndex FROM ReportVariableDataDictionary WHERE VariableType='Sum' AND KeyValue='#{key_value}' AND VariableName IN ('Zone Air System Sensible Heating Energy') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
 
-        coolingSupply = add_unit(sql_file, coolingSupply, units_represented, "SELECT VariableValue/1000000000 FROM ReportVariableData WHERE ReportVariableDataDictionaryIndex IN (SELECT ReportVariableDataDictionaryIndex FROM ReportVariableDataDictionary WHERE VariableType='Sum' AND KeyValue='#{key_value}' AND VariableName IN ('Zone Air System Sensible Cooling Energy') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
+        coolingSupply = add_unit(sql_file, coolingSupply, "SELECT VariableValue/1000000000 FROM ReportVariableData WHERE ReportVariableDataDictionaryIndex IN (SELECT ReportVariableDataDictionaryIndex FROM ReportVariableDataDictionary WHERE VariableType='Sum' AND KeyValue='#{key_value}' AND VariableName IN ('Zone Air System Sensible Cooling Energy') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
       end
     end
 
