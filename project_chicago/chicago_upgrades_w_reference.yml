@@ -328,7 +328,7 @@ upgrades:
             - Insulation Finished Roof|R-38
         costs:
           - value: 6.9
-            multiplier: Floor Area, Attic (ft^2)
+            multiplier: Floor Area, Attic (ft^2) # = 0 for MF, <--- need to use a different multiplier for MF
         lifetime: 999
 
 ## 6. Ducts #01
@@ -663,7 +663,7 @@ upgrades:
             - Insulation Crawlspace|Uninsulated, Vented
         costs:
           - value: 1.1
-            multiplier: Floor Area, Attic (ft^2)
+            multiplier: Floor Area, Attic (ft^2) # = 0 for MF, <--- need to use a different multiplier for MF
             #This multiplier isn't exactly right, but 
             #there isn't one for crawlspace ceiling
         lifetime: 999
@@ -676,7 +676,7 @@ upgrades:
           - value: 0.89
             multiplier: Wall Area, Below-Grade (ft^2)
           - value: 0.07
-            multiplier: Floor Area, Attic (ft^2)
+            multiplier: Floor Area, Attic (ft^2) # = 0 for MF, <--- need to use a different multiplier for MF
             #This multiplier isn't exactly right, but 
             #there isn't one for crawlspace ceiling
         lifetime: 999
@@ -738,7 +738,7 @@ upgrades:
             - Insulation Slab|2ft R10 Exterior
         costs:
           - value: 3.2
-            multiplier: Floor Area, Attic (ft^2)
+            multiplier: Floor Area, Attic (ft^2) # = 0 for MF, <--- need to use a different multiplier for MF
             #Not right, approximation
         lifetime: 999
 
@@ -1341,7 +1341,7 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 999
     reference_scenario: Reference Non-ducted Electric
-
+    
 ## 44. Gas Water Heater (Reference)
   - upgrade_name: Reference Gas Water Heater
     options:
@@ -2040,8 +2040,8 @@ upgrades:
         lifetime: 11
     reference_scenario: Reference Dishwasher
 
-## 76. Plug Loads #01: 25% Reduction
-  - upgrade_name: Plug Loads 25% Reduction
+## 76. Plug Loads #01: 50% Reduction
+  - upgrade_name: Plug Loads 25% Reduction #Plug Loads 50% Reduction
     options:
       - option: Plug Loads|25%
         apply_logic: Plug Loads|50%
@@ -2074,7 +2074,7 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 30
 
-## 78. Thermostat (reference)
+## 78. Thermostat (reference) <---- this failed
   - upgrade_name: Reference Thermostat
     options:
       - option: Heating Setpoint Has Offset|Yes
@@ -2112,7 +2112,6 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 15
     reference_scenario: Reference Thermostat
-
 
 simulation_output:
   include_enduse_subcategories: true
