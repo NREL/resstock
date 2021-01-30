@@ -1,7 +1,7 @@
 Installer Setup
 ###############
 
-After you have downloaded the OpenStudio installer, you will want to install Ruby (2.2.4). This will allow you to execute rake tasks contained in the `Rakefile <https://github.com/NREL/OpenStudio-BuildStock/blob/master/Rakefile>`_. Follow the instructions below for :ref:`windows-setup` or :ref:`mac-setup`.
+After you have downloaded the OpenStudio installer, you will want to install Ruby (2.2.4). This will allow you to execute rake tasks contained in the `Rakefile <https://github.com/NREL/resstock/blob/master/Rakefile>`_. Follow the instructions below for :ref:`windows-setup` or :ref:`mac-setup`.
 
 .. _windows-setup:
 
@@ -18,7 +18,7 @@ Windows Setup
 .. literalinclude:: .gemrc
 
 3. Download the DevKit at http://rubyinstaller.org/downloads/ (e.g., DevKit-mingw64-64-4.7.2-20130224-1432-sfx.exe). Choose either the 32-bit or 64-bit version depending on which version of Ruby you installed. Run the installer and extract to a directory (e.g., C:\\RubyDevKit). Go to this directory, run ``ruby dk.rb init``, modify the config.yml file as needed, and finally run ``ruby dk.rb install``.
-4. Run ``bundle install`` from the OpenStudio-BuildStock directory. (If you get an error, check that ``git`` is in your ``PATH`` and that you are using the correct version of Ruby (2.2.4).)
+4. Run ``bundle install`` from the resstock directory. (If you get an error, check that ``git`` is in your ``PATH`` and that you are using the correct version of Ruby (2.2.4).)
 
 .. _mac-setup:
 

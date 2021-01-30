@@ -8,13 +8,7 @@ end
 if not called_from_cli
   require 'simplecov'
 
-  # save to CircleCI's artifacts directory if we're on CircleCI
-  if ENV['CI']
-    if ENV['CIRCLE_ARTIFACTS']
-      dir = File.join(ENV['CIRCLE_ARTIFACTS'], 'coverage')
-      SimpleCov.coverage_dir(dir)
-    end
-  else
+  if not ENV['CI']
     SimpleCov.coverage_dir('coverage')
   end
   SimpleCov.start

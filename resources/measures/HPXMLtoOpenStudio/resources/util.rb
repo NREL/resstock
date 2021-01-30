@@ -394,6 +394,7 @@ class OutputMeters
 
     # Get meters that are tied to units, and apportion building level meters to these
     electricityHeating = Vector.elements(Array.new(num_ts, 0.0))
+    electricityHeatingSupplemental = Vector.elements(Array.new(num_ts, 0.0))
     electricityCooling = Vector.elements(Array.new(num_ts, 0.0))
     electricityInteriorLighting = Vector.elements(Array.new(num_ts, 0.0))
     electricityExteriorLighting = Vector.elements(Array.new(num_ts, 0.0))
@@ -438,6 +439,7 @@ class OutputMeters
 
       electricityHeating = add_unit(sql_file, electricityHeating, units_represented, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYHEATING') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
       centralElectricityHeating = apportion_central(centralElectricityHeating, modeledCentralElectricityHeating, units_represented, units.length)
+      electricityHeatingSupplemental = add_unit(sql_file, electricityHeatingSupplemental, units_represented, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYHEATINGSUPPLEMENTAL') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
       electricityCooling = add_unit(sql_file, electricityCooling, units_represented, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYCOOLING') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
       centralElectricityCooling = apportion_central(centralElectricityCooling, modeledCentralElectricityCooling, units_represented, units.length)
       electricityInteriorLighting = add_unit(sql_file, electricityInteriorLighting, units_represented, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYINTERIORLIGHTING') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
@@ -482,6 +484,7 @@ class OutputMeters
     @electricity = Electricity.new
     @electricity.heating = electricityHeating
     @electricity.central_heating = centralElectricityHeating
+    @electricity.heating_supplemental = electricityHeatingSupplemental
     @electricity.cooling = electricityCooling
     @electricity.central_cooling = centralElectricityCooling
     @electricity.interior_lighting = electricityInteriorLighting
@@ -522,6 +525,7 @@ class OutputMeters
 
     @electricity.total_end_uses = @electricity.heating +
                                   @electricity.central_heating +
+                                  @electricity.heating_supplemental +
                                   @electricity.cooling +
                                   @electricity.central_cooling +
                                   @electricity.interior_lighting +
@@ -854,6 +858,7 @@ class OutputMeters
       end
 
       electricity_heating(custom_meter_infos, unit, thermal_zones)
+      electricity_heating_supplemental(custom_meter_infos, unit, thermal_zones)
       electricity_cooling(custom_meter_infos, unit, thermal_zones)
       electricity_interior_lighting(custom_meter_infos, unit, thermal_zones)
       electricity_exterior_lighting(custom_meter_infos, unit, thermal_zones)
@@ -952,9 +957,6 @@ class OutputMeters
             custom_meter_infos["#{unit.name}:ElectricityHeating"]["key_var_groups"] << ["#{htg_coil.name}", "Heating Coil Defrost Electric Energy"]
             custom_meter_infos["#{unit.name}:ElectricityHeating"]["key_var_groups"] << ["#{htg_coil.name}", "Heating Coil Crankcase Heater Electric Energy"]
           end
-          unless supp_htg_coil.nil?
-            custom_meter_infos["#{unit.name}:ElectricityHeating"]["key_var_groups"] << ["#{supp_htg_coil.name}", "Heating Coil Electric Energy"]
-          end
         elsif htg_equip.is_a? OpenStudio::Model::ZoneHVACBaseboardConvectiveWater
 
           @model.getPlantLoops.each do |plant_loop|
@@ -1036,6 +1038,22 @@ class OutputMeters
             end
           end
 
+        end
+      end
+    end
+  end
+
+  def electricity_heating_supplemental(custom_meter_infos, unit, thermal_zones)
+    custom_meter_infos["#{unit.name}:ElectricityHeatingSupplemental"] = { "fuel_type" => "Electricity", "key_var_groups" => [] }
+    thermal_zones.each do |thermal_zone|
+      heating_equipment = HVAC.existing_heating_equipment(@model, @runner, thermal_zone)
+      heating_equipment.each do |htg_equip|
+        clg_coil, htg_coil, supp_htg_coil = HVAC.get_coils_from_hvac_equip(htg_equip)
+
+        if htg_equip.is_a? OpenStudio::Model::AirLoopHVACUnitarySystem
+          unless supp_htg_coil.nil?
+            custom_meter_infos["#{unit.name}:ElectricityHeatingSupplemental"]["key_var_groups"] << ["#{supp_htg_coil.name}", "Heating Coil Electric Energy"]
+          end
         end
       end
     end
@@ -2004,7 +2022,7 @@ end
 class Electricity
   def initialize
   end
-  attr_accessor :heating, :central_heating, :cooling, :central_cooling, :interior_lighting, :exterior_lighting, :exterior_holiday_lighting,
+  attr_accessor :heating, :central_heating, :heating_supplemental, :cooling, :central_cooling, :interior_lighting, :exterior_lighting, :exterior_holiday_lighting,
                 :garage_lighting, :interior_equipment, :fans_heating, :fans_cooling, :pumps_heating, :central_pumps_heating, :pumps_cooling,
                 :central_pumps_cooling, :water_systems, :photovoltaics, :refrigerator, :clothes_washer, :clothes_dryer, :cooking_range,
                 :dishwasher, :plug_loads, :house_fan, :range_fan, :bath_fan, :ceiling_fan, :extra_refrigerator, :freezer, :pool_heater,
