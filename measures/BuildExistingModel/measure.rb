@@ -15,7 +15,7 @@ end
 require File.join(resources_path, "weather")
 
 # in addition to the above requires, this measure is expected to run in an
-# environment with resstock/resources/buildstock.rb loaded
+# environment with OpenStudio-Buildstock/resources/buildstock.rb loaded
 
 # start the measure
 class BuildExistingModel < OpenStudio::Measure::ModelMeasure

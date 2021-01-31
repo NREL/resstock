@@ -250,7 +250,6 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     report_ts_output(runner, timeseries, "total_site_electricity_kwh", electricity.total_end_uses + electricity.photovoltaics, "GJ", elec_site_units)
     report_ts_output(runner, timeseries, "electricity_heating_kwh", electricity.heating, "GJ", elec_site_units)
     report_ts_output(runner, timeseries, "electricity_central_system_heating_kwh", electricity.central_heating, "GJ", elec_site_units)
-    report_ts_output(runner, timeseries, "electricity_heating_supplemental_kwh", electricity.heating_supplemental, "GJ", elec_site_units)
     report_ts_output(runner, timeseries, "electricity_cooling_kwh", electricity.cooling, "GJ", elec_site_units)
     report_ts_output(runner, timeseries, "electricity_central_system_cooling_kwh", electricity.central_cooling, "GJ", elec_site_units)
     report_ts_output(runner, timeseries, "electricity_interior_lighting_kwh", electricity.interior_lighting, "GJ", elec_site_units)
