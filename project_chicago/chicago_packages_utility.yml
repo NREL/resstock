@@ -833,54 +833,956 @@ upgrades:
           - Heating Fuel|Natural Gas
           - HVAC Heating Type And Fuel|Natural Gas Fuel Boiler
 
-# ## ASHP (3)
-#       - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF #1, #1-1.1
-#         apply_logic: HVAC Has Ducts|Yes
-#         costs:
-#           - value: 4600
-#             multiplier: Fixed (1)
-#           - value: 42
-#             multiplier: Size, Heating System (kBtu/h)
-#         lifetime: 15
-#       - option: HVAC Cooling Efficiency|Heat Pump #2, #1-1.2
-#         apply_logic: HVAC Has Ducts|Yes
-#         costs:
-#           - value: 0
-#             multiplier: Fixed (1)
-#         lifetime: 999
-#       - option: HVAC Heating Type And Fuel|Electricity ASHP #3, #1-1.3
-#         apply_logic: HVAC Has Ducts|Yes
-#         costs:
-#           - value: 0 
-#             multiplier: Fixed (1)
-#         lifetime: 999
-# ## MSHP (4)
-#       - option: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF #1, #1-1.4
-#         apply_logic: HVAC Has Ducts|No
-#         costs:
-#           - value: 2510
-#             multiplier: Fixed (1)
-#           - value: 95
-#             multiplier: Size, Heating System (kBtu/h)
-#         lifetime: 15
-#       - option: HVAC Cooling Type|Heat Pump #2, #1-1.5
-#         apply_logic: HVAC Has Ducts|No
-#         costs:
-#           - value: 0 
-#             multiplier: Fixed (1)
-#         lifetime: 999
-#       - option: HVAC Cooling Efficiency|Heat Pump #3, #1-1.6
-#         apply_logic: HVAC Has Ducts|No
-#         costs:
-#           - value: 0
-#             multiplier: Fixed (1)
-#         lifetime: 999
-#       - option: HVAC Heating Type And Fuel|Electricity MSHP #4, #1-1.7
-#         apply_logic: HVAC Has Ducts|No
-#         costs:
-#           - value: 0
-#             multiplier: Fixed (1)
-#         lifetime: 999
+############Comprehensive Upgrades ####################
+
+### Package 11-1 ###
+  - upgrade_name: Comprehensive - Forced Air + WH + Shell # <--- up06
+    options:
+## Air Sealing
+      - option: Infiltration|37.5 ACH50 
+        apply_logic: Infiltration|50 ACH50
+        costs:
+          - value: 2.17 #based on regression
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|30 ACH50
+        apply_logic: Infiltration|40 ACH50
+        costs:
+          - value: 1.78 #based on regression
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|22.5 ACH50 
+        apply_logic: Infiltration|30 ACH50
+        costs:
+          - value: 1.39 #based on regression
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|18.75 ACH50 
+        apply_logic: Infiltration|25 ACH50
+        costs:
+          - value: 1.2
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|15 ACH50
+        apply_logic: Infiltration|20 ACH50
+        costs:
+          - value: 1.2
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|11.25 ACH50
+        apply_logic: Infiltration|15 ACH50
+        costs:
+          - value: 1.2
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|7.5 ACH50
+        apply_logic: Infiltration|10 ACH50
+        costs:
+          - value: 0.63
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|6 ACH50
+        apply_logic: Infiltration|8 ACH50
+        costs:
+          - value: 0.52
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+## Wall Insulation 
+      - option: Insulation Wall|Wood Stud, R-13 
+        apply_logic: Insulation Wall|Wood Stud, Uninsulated
+        costs: 
+          - value: 2.4
+            multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
+        lifetime: 999
+      - option: Insulation Wall|Wood Stud, R-13 
+        apply_logic: 
+          or:
+            - Insulation Wall|Wood Stud, R-7
+            - Insulation Wall|Wood Stud, R-11
+        costs: 
+          - value: 1.2
+            multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
+        lifetime: 999
+## Attic Insulation
+#   # in post-proc, update cost with Attic Insulation upgrade (up04) in 'Upgrades01' run
+      - option: Insulation Unfinished Attic|Ceiling R-60, Vented 
+        apply_logic: 
+          or: 
+            - Insulation Unfinished Attic|Uninsulated, Vented # $2.9
+            - Insulation Unfinished Attic|Ceiling R-7, Vented # $2.4
+            - Insulation Unfinished Attic|Ceiling R-13, Vented # $2.1
+            - Insulation Unfinished Attic|Ceiling R-19, Vented # $1.9
+            - Insulation Unfinished Attic|Ceiling R-30, Vented # $1.4
+            - Insulation Unfinished Attic|Ceiling R-38, Vented # $0.99
+            - Insulation Unfinished Attic|Ceiling R-49, Vented # $0.49
+        costs:
+         - value: 1.74
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 999
+## Windows (1)
+      - option: Windows|Low-E, Double, High-Gain 
+        apply_logic: 
+          or:
+            - Windows|1 Pane
+            - Windows|2+ Pane
+        costs:
+          - value: 44
+            multiplier: Window Area (ft^2)
+        lifetime: 30
+## Lighting
+      - option: Lighting|100% LED
+        apply_logic:
+          or:
+            - Lighting|100% Incandescent
+            - Lighting|100% CFL
+        costs:
+        #  - value: 0.006
+        #    multiplier: [lumens]
+          - value: 0.40
+            multiplier: Floor Area, Lighting (ft^2)
+        lifetime: 78.28
+## Fuel Furnace Upgrade
+      - option: HVAC Heating Efficiency|Fuel Furnace, 96% AFUE
+        apply_logic:
+          or:
+            - HVAC Heating Efficiency|Fuel Furnace, 60% AFUE
+            - HVAC Heating Efficiency|Fuel Furnace, 76% AFUE
+            - HVAC Heating Efficiency|Fuel Furnace, 80% AFUE
+            - HVAC Heating Efficiency|Fuel Furnace, 92.5% AFUE
+        costs:
+          - value: 43
+            multiplier: Size, Heating System (kBtu/h)
+          - value: 3100
+            multiplier: Fixed (1)
+        lifetime: 24
+      - option: HVAC Heating Type And Fuel|Natural Gas Fuel Furnace
+        apply_logic:
+          or:
+            - HVAC Heating Efficiency|Fuel Furnace, 60% AFUE
+            - HVAC Heating Efficiency|Fuel Furnace, 76% AFUE
+            - HVAC Heating Efficiency|Fuel Furnace, 80% AFUE
+            - HVAC Heating Efficiency|Fuel Furnace, 92.5% AFUE
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+## Water Heater
+      - option: Water Heater|Gas Tankless, Condensing
+        apply_logic: 
+          or:
+            - Water Heater|Gas Standard
+            - Water Heater|Gas Premium
+            - Water Heater|Oil Standard
+            - Water Heater|Oil Premium
+            - Water Heater|Propane Standard
+            - Water Heater|Propane Premium
+        costs:
+          - value: 2200
+            multiplier: Fixed (1)
+        lifetime: 20
+    package_apply_logic: 
+      and: 
+          - Heating Fuel|Natural Gas
+          - HVAC Has Ducts|Yes
+
+### Package 12-1 ###
+  - upgrade_name: Comprehensive - Forced Air + WH + Insulation + Appliances # <--- up07
+    options:
+## Air Sealing
+      - option: Infiltration|37.5 ACH50 
+        apply_logic: Infiltration|50 ACH50
+        costs:
+          - value: 2.17 #based on regression
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|30 ACH50
+        apply_logic: Infiltration|40 ACH50
+        costs:
+          - value: 1.78 #based on regression
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|22.5 ACH50 
+        apply_logic: Infiltration|30 ACH50
+        costs:
+          - value: 1.39 #based on regression
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|18.75 ACH50 
+        apply_logic: Infiltration|25 ACH50
+        costs:
+          - value: 1.2
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|15 ACH50
+        apply_logic: Infiltration|20 ACH50
+        costs:
+          - value: 1.2
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|11.25 ACH50
+        apply_logic: Infiltration|15 ACH50
+        costs:
+          - value: 1.2
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|7.5 ACH50
+        apply_logic: Infiltration|10 ACH50
+        costs:
+          - value: 0.63
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|6 ACH50
+        apply_logic: Infiltration|8 ACH50
+        costs:
+          - value: 0.52
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+## Wall Insulation 
+      - option: Insulation Wall|Wood Stud, R-13 
+        apply_logic: Insulation Wall|Wood Stud, Uninsulated
+        costs: 
+          - value: 2.4
+            multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
+        lifetime: 999
+      - option: Insulation Wall|Wood Stud, R-13 
+        apply_logic: 
+          or:
+            - Insulation Wall|Wood Stud, R-7
+            - Insulation Wall|Wood Stud, R-11
+        costs: 
+          - value: 1.2
+            multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
+        lifetime: 999
+## Attic Insulation
+#   # in post-proc, update cost with Attic Insulation upgrade (up04) in 'Upgrades01' run
+      - option: Insulation Unfinished Attic|Ceiling R-60, Vented 
+        apply_logic: 
+          or: 
+            - Insulation Unfinished Attic|Uninsulated, Vented # $2.9
+            - Insulation Unfinished Attic|Ceiling R-7, Vented # $2.4
+            - Insulation Unfinished Attic|Ceiling R-13, Vented # $2.1
+            - Insulation Unfinished Attic|Ceiling R-19, Vented # $1.9
+            - Insulation Unfinished Attic|Ceiling R-30, Vented # $1.4
+            - Insulation Unfinished Attic|Ceiling R-38, Vented # $0.99
+            - Insulation Unfinished Attic|Ceiling R-49, Vented # $0.49
+        costs:
+         - value: 1.74
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 999
+## Lighting
+      - option: Lighting|100% LED
+        apply_logic:
+          or:
+            - Lighting|100% Incandescent
+            - Lighting|100% CFL
+        costs:
+        #  - value: 0.006
+        #    multiplier: [lumens]
+          - value: 0.40
+            multiplier: Floor Area, Lighting (ft^2)
+        lifetime: 78.28
+## Fuel Furnace Upgrade
+      - option: HVAC Heating Efficiency|Fuel Furnace, 96% AFUE
+        apply_logic:
+          or:
+            - HVAC Heating Efficiency|Fuel Furnace, 60% AFUE
+            - HVAC Heating Efficiency|Fuel Furnace, 76% AFUE
+            - HVAC Heating Efficiency|Fuel Furnace, 80% AFUE
+            - HVAC Heating Efficiency|Fuel Furnace, 92.5% AFUE
+        costs:
+          - value: 43
+            multiplier: Size, Heating System (kBtu/h)
+          - value: 3100
+            multiplier: Fixed (1)
+        lifetime: 24
+      - option: HVAC Heating Type And Fuel|Natural Gas Fuel Furnace
+        apply_logic:
+          or:
+            - HVAC Heating Efficiency|Fuel Furnace, 60% AFUE
+            - HVAC Heating Efficiency|Fuel Furnace, 76% AFUE
+            - HVAC Heating Efficiency|Fuel Furnace, 80% AFUE
+            - HVAC Heating Efficiency|Fuel Furnace, 92.5% AFUE
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+## Water Heater
+      - option: Water Heater|Gas Tankless, Condensing
+        apply_logic: 
+          or:
+            - Water Heater|Gas Standard
+            - Water Heater|Gas Premium
+            - Water Heater|Oil Standard
+            - Water Heater|Oil Premium
+            - Water Heater|Propane Standard
+            - Water Heater|Propane Premium
+        costs:
+          - value: 2200
+            multiplier: Fixed (1)
+        lifetime: 20
+## Clothes Washer
+      - option: Clothes Washer|EnergyStar Most Efficient, 80% Usage
+        apply_logic:
+          or:
+            - Clothes Washer|EnergyStar, 80% Usage
+            - Clothes Washer|Standard, 80% Usage
+        costs:
+          - value: 1400
+            multiplier: Fixed (1)
+        lifetime: 14
+      - option: Clothes Washer|EnergyStar Most Efficient, 100% Usage
+        apply_logic:
+          or:
+            - Clothes Washer|EnergyStar, 100% Usage
+            - Clothes Washer|Standard, 100% Usage
+        costs:
+          - value: 1400
+            multiplier: Fixed (1)
+        lifetime: 14
+      - option: Clothes Washer|EnergyStar Most Efficient, 120% Usage 
+        apply_logic:
+          or:
+            - Clothes Washer|EnergyStar, 120% Usage
+            - Clothes Washer|Standard, 120% Usage
+        costs:
+          - value: 1400
+            multiplier: Fixed (1)
+        lifetime: 14
+## Dryer (4)
+      - option: Clothes Dryer|Electric, Heat Pump, Ventless, 80% Usage #1, #3-1.4
+        apply_logic: 
+          or:
+            - Clothes Dryer|Electric, 80% Usage
+            - Clothes Dryer|Gas, 80% Usage
+        costs:
+          - value: 1450
+            multiplier: Fixed (1)
+        lifetime: 13
+      - option: Clothes Dryer|Electric, Heat Pump, Ventless, 100% Usage #2, #3-1.5
+        apply_logic: 
+          or:
+            - Clothes Dryer|Electric, 100% Usage
+            - Clothes Dryer|Gas, 100% Usage
+        costs:
+          - value: 1450
+            multiplier: Fixed (1)
+        lifetime: 13
+      - option: Clothes Dryer|Electric, Heat Pump, Ventless, 120% Usage #3, #3-1.6
+        apply_logic: 
+          or:
+            - Clothes Dryer|Electric, 120% Usage
+            - Clothes Dryer|Gas, 120% Usage
+        costs:
+          - value: 1450
+            multiplier: Fixed (1)
+        lifetime: 13
+    package_apply_logic: 
+      and: 
+          - Heating Fuel|Natural Gas
+          - HVAC Has Ducts|Yes
+
+### Package 13-1 ###
+  - upgrade_name: Comprehensive - Hydronic + WH + Shell # <--- up08
+    options:
+## Air Sealing
+      - option: Infiltration|37.5 ACH50 
+        apply_logic: Infiltration|50 ACH50
+        costs:
+          - value: 2.17 #based on regression
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|30 ACH50
+        apply_logic: Infiltration|40 ACH50
+        costs:
+          - value: 1.78 #based on regression
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|22.5 ACH50 
+        apply_logic: Infiltration|30 ACH50
+        costs:
+          - value: 1.39 #based on regression
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|18.75 ACH50 
+        apply_logic: Infiltration|25 ACH50
+        costs:
+          - value: 1.2
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|15 ACH50
+        apply_logic: Infiltration|20 ACH50
+        costs:
+          - value: 1.2
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|11.25 ACH50
+        apply_logic: Infiltration|15 ACH50
+        costs:
+          - value: 1.2
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|7.5 ACH50
+        apply_logic: Infiltration|10 ACH50
+        costs:
+          - value: 0.63
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|6 ACH50
+        apply_logic: Infiltration|8 ACH50
+        costs:
+          - value: 0.52
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+## Wall Insulation 
+      - option: Insulation Wall|Wood Stud, R-13 
+        apply_logic: Insulation Wall|Wood Stud, Uninsulated
+        costs: 
+          - value: 2.4
+            multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
+        lifetime: 999
+      - option: Insulation Wall|Wood Stud, R-13 
+        apply_logic: 
+          or:
+            - Insulation Wall|Wood Stud, R-7
+            - Insulation Wall|Wood Stud, R-11
+        costs: 
+          - value: 1.2
+            multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
+        lifetime: 999
+## Attic Insulation
+#   # in post-proc, update cost with Attic Insulation upgrade (up04) in 'Upgrades01' run
+      - option: Insulation Unfinished Attic|Ceiling R-60, Vented 
+        apply_logic: 
+          or: 
+            - Insulation Unfinished Attic|Uninsulated, Vented # $2.9
+            - Insulation Unfinished Attic|Ceiling R-7, Vented # $2.4
+            - Insulation Unfinished Attic|Ceiling R-13, Vented # $2.1
+            - Insulation Unfinished Attic|Ceiling R-19, Vented # $1.9
+            - Insulation Unfinished Attic|Ceiling R-30, Vented # $1.4
+            - Insulation Unfinished Attic|Ceiling R-38, Vented # $0.99
+            - Insulation Unfinished Attic|Ceiling R-49, Vented # $0.49
+        costs:
+         - value: 1.74
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 999
+## Windows (1)
+      - option: Windows|Low-E, Double, High-Gain 
+        apply_logic: 
+          or:
+            - Windows|1 Pane
+            - Windows|2+ Pane
+        costs:
+          - value: 44
+            multiplier: Window Area (ft^2)
+        lifetime: 30
+## Lighting
+      - option: Lighting|100% LED
+        apply_logic:
+          or:
+            - Lighting|100% Incandescent
+            - Lighting|100% CFL
+        costs:
+        #  - value: 0.006
+        #    multiplier: [lumens]
+          - value: 0.40
+            multiplier: Floor Area, Lighting (ft^2)
+        lifetime: 78.28
+## Fuel Boiler Upgrade 
+      - option: HVAC Heating Efficiency|Fuel Boiler, 96% AFUE
+        apply_logic:
+          or:
+            - HVAC Heating Efficiency|Fuel Boiler, 76% AFUE
+            - HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
+            - HVAC Heating Efficiency|Fuel Boiler, 90% AFUE
+        costs:
+          - value: 43
+            multiplier: Size, Heating System (kBtu/h)
+          - value: 3100
+            multiplier: Fixed (1)
+        lifetime: 24
+## Water Heater
+      - option: Water Heater|Gas Tankless, Condensing
+        apply_logic: 
+          or:
+            - Water Heater|Gas Standard
+            - Water Heater|Gas Premium
+            - Water Heater|Oil Standard
+            - Water Heater|Oil Premium
+            - Water Heater|Propane Standard
+            - Water Heater|Propane Premium
+        costs:
+          - value: 2200
+            multiplier: Fixed (1)
+        lifetime: 20
+    package_apply_logic: 
+      and: 
+          - Heating Fuel|Natural Gas
+          - HVAC Heating Type And Fuel|Natural Gas Fuel Boiler
+
+### Package 14-1 ###
+  - upgrade_name: Comprehensive - Hydronic + WH + Shell + Appliances# <--- up09
+    options:
+## Air Sealing
+      - option: Infiltration|37.5 ACH50 
+        apply_logic: Infiltration|50 ACH50
+        costs:
+          - value: 2.17 #based on regression
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|30 ACH50
+        apply_logic: Infiltration|40 ACH50
+        costs:
+          - value: 1.78 #based on regression
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|22.5 ACH50 
+        apply_logic: Infiltration|30 ACH50
+        costs:
+          - value: 1.39 #based on regression
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|18.75 ACH50 
+        apply_logic: Infiltration|25 ACH50
+        costs:
+          - value: 1.2
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|15 ACH50
+        apply_logic: Infiltration|20 ACH50
+        costs:
+          - value: 1.2
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|11.25 ACH50
+        apply_logic: Infiltration|15 ACH50
+        costs:
+          - value: 1.2
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|7.5 ACH50
+        apply_logic: Infiltration|10 ACH50
+        costs:
+          - value: 0.63
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|6 ACH50
+        apply_logic: Infiltration|8 ACH50
+        costs:
+          - value: 0.52
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+## Wall Insulation 
+      - option: Insulation Wall|Wood Stud, R-13 
+        apply_logic: Insulation Wall|Wood Stud, Uninsulated
+        costs: 
+          - value: 2.4
+            multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
+        lifetime: 999
+      - option: Insulation Wall|Wood Stud, R-13 
+        apply_logic: 
+          or:
+            - Insulation Wall|Wood Stud, R-7
+            - Insulation Wall|Wood Stud, R-11
+        costs: 
+          - value: 1.2
+            multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
+        lifetime: 999
+## Attic Insulation
+#   # in post-proc, update cost with Attic Insulation upgrade (up04) in 'Upgrades01' run
+      - option: Insulation Unfinished Attic|Ceiling R-60, Vented 
+        apply_logic: 
+          or: 
+            - Insulation Unfinished Attic|Uninsulated, Vented # $2.9
+            - Insulation Unfinished Attic|Ceiling R-7, Vented # $2.4
+            - Insulation Unfinished Attic|Ceiling R-13, Vented # $2.1
+            - Insulation Unfinished Attic|Ceiling R-19, Vented # $1.9
+            - Insulation Unfinished Attic|Ceiling R-30, Vented # $1.4
+            - Insulation Unfinished Attic|Ceiling R-38, Vented # $0.99
+            - Insulation Unfinished Attic|Ceiling R-49, Vented # $0.49
+        costs:
+         - value: 1.74
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 999
+## Lighting
+      - option: Lighting|100% LED
+        apply_logic:
+          or:
+            - Lighting|100% Incandescent
+            - Lighting|100% CFL
+        costs:
+        #  - value: 0.006
+        #    multiplier: [lumens]
+          - value: 0.40
+            multiplier: Floor Area, Lighting (ft^2)
+        lifetime: 78.28
+## Fuel Boiler Upgrade 
+      - option: HVAC Heating Efficiency|Fuel Boiler, 96% AFUE
+        apply_logic:
+          or:
+            - HVAC Heating Efficiency|Fuel Boiler, 76% AFUE
+            - HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
+            - HVAC Heating Efficiency|Fuel Boiler, 90% AFUE
+        costs:
+          - value: 43
+            multiplier: Size, Heating System (kBtu/h)
+          - value: 3100
+            multiplier: Fixed (1)
+        lifetime: 24
+## Water Heater
+      - option: Water Heater|Gas Tankless, Condensing
+        apply_logic: 
+          or:
+            - Water Heater|Gas Standard
+            - Water Heater|Gas Premium
+            - Water Heater|Oil Standard
+            - Water Heater|Oil Premium
+            - Water Heater|Propane Standard
+            - Water Heater|Propane Premium
+        costs:
+          - value: 2200
+            multiplier: Fixed (1)
+        lifetime: 20
+## Clothes Washer
+      - option: Clothes Washer|EnergyStar Most Efficient, 80% Usage
+        apply_logic:
+          or:
+            - Clothes Washer|EnergyStar, 80% Usage
+            - Clothes Washer|Standard, 80% Usage
+        costs:
+          - value: 1400
+            multiplier: Fixed (1)
+        lifetime: 14
+      - option: Clothes Washer|EnergyStar Most Efficient, 100% Usage
+        apply_logic:
+          or:
+            - Clothes Washer|EnergyStar, 100% Usage
+            - Clothes Washer|Standard, 100% Usage
+        costs:
+          - value: 1400
+            multiplier: Fixed (1)
+        lifetime: 14
+      - option: Clothes Washer|EnergyStar Most Efficient, 120% Usage 
+        apply_logic:
+          or:
+            - Clothes Washer|EnergyStar, 120% Usage
+            - Clothes Washer|Standard, 120% Usage
+        costs:
+          - value: 1400
+            multiplier: Fixed (1)
+        lifetime: 14
+## Dryer
+      - option: Clothes Dryer|Electric, Heat Pump, Ventless, 80% Usage #1, #3-1.4
+        apply_logic: 
+          or:
+            - Clothes Dryer|Electric, 80% Usage
+            - Clothes Dryer|Gas, 80% Usage
+        costs:
+          - value: 1450
+            multiplier: Fixed (1)
+        lifetime: 13
+      - option: Clothes Dryer|Electric, Heat Pump, Ventless, 100% Usage #2, #3-1.5
+        apply_logic: 
+          or:
+            - Clothes Dryer|Electric, 100% Usage
+            - Clothes Dryer|Gas, 100% Usage
+        costs:
+          - value: 1450
+            multiplier: Fixed (1)
+        lifetime: 13
+      - option: Clothes Dryer|Electric, Heat Pump, Ventless, 120% Usage #3, #3-1.6
+        apply_logic: 
+          or:
+            - Clothes Dryer|Electric, 120% Usage
+            - Clothes Dryer|Gas, 120% Usage
+        costs:
+          - value: 1450
+            multiplier: Fixed (1)
+        lifetime: 13
+    package_apply_logic: 
+      and: 
+          - Heating Fuel|Natural Gas
+          - HVAC Heating Type And Fuel|Natural Gas Fuel Boiler
+
+### Package 15-1 ###
+  - upgrade_name: Comprehensive - ASHP # <--- up10
+    options:
+## Air Sealing
+      - option: Infiltration|37.5 ACH50 
+        apply_logic: Infiltration|50 ACH50
+        costs:
+          - value: 2.17 #based on regression
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|30 ACH50
+        apply_logic: Infiltration|40 ACH50
+        costs:
+          - value: 1.78 #based on regression
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|22.5 ACH50 
+        apply_logic: Infiltration|30 ACH50
+        costs:
+          - value: 1.39 #based on regression
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|18.75 ACH50 
+        apply_logic: Infiltration|25 ACH50
+        costs:
+          - value: 1.2
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|15 ACH50
+        apply_logic: Infiltration|20 ACH50
+        costs:
+          - value: 1.2
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|11.25 ACH50
+        apply_logic: Infiltration|15 ACH50
+        costs:
+          - value: 1.2
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|7.5 ACH50
+        apply_logic: Infiltration|10 ACH50
+        costs:
+          - value: 0.63
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|6 ACH50
+        apply_logic: Infiltration|8 ACH50
+        costs:
+          - value: 0.52
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+## Wall Insulation 
+      - option: Insulation Wall|Wood Stud, R-13 
+        apply_logic: Insulation Wall|Wood Stud, Uninsulated
+        costs: 
+          - value: 2.4
+            multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
+        lifetime: 999
+      - option: Insulation Wall|Wood Stud, R-13 
+        apply_logic: 
+          or:
+            - Insulation Wall|Wood Stud, R-7
+            - Insulation Wall|Wood Stud, R-11
+        costs: 
+          - value: 1.2
+            multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
+        lifetime: 999
+## Attic Insulation
+#   # in post-proc, update cost with Attic Insulation upgrade (up04) in 'Upgrades01' run
+      - option: Insulation Unfinished Attic|Ceiling R-60, Vented 
+        apply_logic: 
+          or: 
+            - Insulation Unfinished Attic|Uninsulated, Vented # $2.9
+            - Insulation Unfinished Attic|Ceiling R-7, Vented # $2.4
+            - Insulation Unfinished Attic|Ceiling R-13, Vented # $2.1
+            - Insulation Unfinished Attic|Ceiling R-19, Vented # $1.9
+            - Insulation Unfinished Attic|Ceiling R-30, Vented # $1.4
+            - Insulation Unfinished Attic|Ceiling R-38, Vented # $0.99
+            - Insulation Unfinished Attic|Ceiling R-49, Vented # $0.49
+        costs:
+         - value: 1.74
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 999
+## Lighting
+      - option: Lighting|100% LED
+        apply_logic:
+          or:
+            - Lighting|100% Incandescent
+            - Lighting|100% CFL
+        costs:
+        #  - value: 0.006
+        #    multiplier: [lumens]
+          - value: 0.40
+            multiplier: Floor Area, Lighting (ft^2)
+        lifetime: 78.28
+## ASHP
+      - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF
+        apply_logic: HVAC Has Ducts|Yes
+        costs:
+          - value: 4600
+            multiplier: Fixed (1)
+          - value: 42
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 15
+      - option: HVAC Cooling Efficiency|Heat Pump
+        apply_logic: HVAC Has Ducts|Yes
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: HVAC Heating Type And Fuel|Electricity ASHP
+        apply_logic: HVAC Has Ducts|Yes
+        costs:
+          - value: 0 
+            multiplier: Fixed (1)
+        lifetime: 999
+## Water Heater
+      - option: Water Heater|Gas Tankless, Condensing
+        apply_logic: 
+          or:
+            - Water Heater|Gas Standard
+            - Water Heater|Gas Premium
+            - Water Heater|Oil Standard
+            - Water Heater|Oil Premium
+            - Water Heater|Propane Standard
+            - Water Heater|Propane Premium
+        costs:
+          - value: 2200
+            multiplier: Fixed (1)
+        lifetime: 20
+    package_apply_logic: 
+      and: 
+          - Heating Fuel|Natural Gas
+          - HVAC Has Ducts|Yes
+
+### Package 15-1 ###
+  - upgrade_name: Comprehensive - MSHP # <--- up11
+    options:
+## Air Sealing
+      - option: Infiltration|37.5 ACH50 
+        apply_logic: Infiltration|50 ACH50
+        costs:
+          - value: 2.17 #based on regression
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|30 ACH50
+        apply_logic: Infiltration|40 ACH50
+        costs:
+          - value: 1.78 #based on regression
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|22.5 ACH50 
+        apply_logic: Infiltration|30 ACH50
+        costs:
+          - value: 1.39 #based on regression
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|18.75 ACH50 
+        apply_logic: Infiltration|25 ACH50
+        costs:
+          - value: 1.2
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|15 ACH50
+        apply_logic: Infiltration|20 ACH50
+        costs:
+          - value: 1.2
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|11.25 ACH50
+        apply_logic: Infiltration|15 ACH50
+        costs:
+          - value: 1.2
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|7.5 ACH50
+        apply_logic: Infiltration|10 ACH50
+        costs:
+          - value: 0.63
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|6 ACH50
+        apply_logic: Infiltration|8 ACH50
+        costs:
+          - value: 0.52
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+## Wall Insulation 
+      - option: Insulation Wall|Wood Stud, R-13 
+        apply_logic: Insulation Wall|Wood Stud, Uninsulated
+        costs: 
+          - value: 2.4
+            multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
+        lifetime: 999
+      - option: Insulation Wall|Wood Stud, R-13 
+        apply_logic: 
+          or:
+            - Insulation Wall|Wood Stud, R-7
+            - Insulation Wall|Wood Stud, R-11
+        costs: 
+          - value: 1.2
+            multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
+        lifetime: 999
+## Attic Insulation
+#   # in post-proc, update cost with Attic Insulation upgrade (up04) in 'Upgrades01' run
+      - option: Insulation Unfinished Attic|Ceiling R-60, Vented 
+        apply_logic: 
+          or: 
+            - Insulation Unfinished Attic|Uninsulated, Vented # $2.9
+            - Insulation Unfinished Attic|Ceiling R-7, Vented # $2.4
+            - Insulation Unfinished Attic|Ceiling R-13, Vented # $2.1
+            - Insulation Unfinished Attic|Ceiling R-19, Vented # $1.9
+            - Insulation Unfinished Attic|Ceiling R-30, Vented # $1.4
+            - Insulation Unfinished Attic|Ceiling R-38, Vented # $0.99
+            - Insulation Unfinished Attic|Ceiling R-49, Vented # $0.49
+        costs:
+         - value: 1.74
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 999
+## Lighting
+      - option: Lighting|100% LED
+        apply_logic:
+          or:
+            - Lighting|100% Incandescent
+            - Lighting|100% CFL
+        costs:
+        #  - value: 0.006
+        #    multiplier: [lumens]
+          - value: 0.40
+            multiplier: Floor Area, Lighting (ft^2)
+        lifetime: 78.28
+## MSHP (4)
+      - option: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF #1, #1-1.4
+        apply_logic: HVAC Has Ducts|No
+        costs:
+          - value: 2510
+            multiplier: Fixed (1)
+          - value: 95
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 15
+      - option: HVAC Cooling Type|Heat Pump #2, #1-1.5
+        apply_logic: HVAC Has Ducts|No
+        costs:
+          - value: 0 
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: HVAC Cooling Efficiency|Heat Pump #3, #1-1.6
+        apply_logic: HVAC Has Ducts|No
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: HVAC Heating Type And Fuel|Electricity MSHP #4, #1-1.7
+        apply_logic: HVAC Has Ducts|No
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+## Water Heater
+      - option: Water Heater|Gas Tankless, Condensing
+        apply_logic: 
+          or:
+            - Water Heater|Gas Standard
+            - Water Heater|Gas Premium
+            - Water Heater|Oil Standard
+            - Water Heater|Oil Premium
+            - Water Heater|Propane Standard
+            - Water Heater|Propane Premium
+        costs:
+          - value: 2200
+            multiplier: Fixed (1)
+        lifetime: 20
+    package_apply_logic: 
+      and: 
+          - Heating Fuel|Natural Gas
+          - HVAC Has Ducts|No
+
+
+
 # ## Attic Insulation (6)
 #       - option: Insulation Unfinished Attic|Ceiling R-49, Vented #1, #1-1.8
 #         apply_logic: Insulation Unfinished Attic|Uninsulated, Vented
