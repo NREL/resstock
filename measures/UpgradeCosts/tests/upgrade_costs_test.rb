@@ -272,6 +272,28 @@ class UpgradeCostsTest < MiniTest::Test
     _test_cost_multipliers('SFD_2story_S_UA_GRG_ASHP1_FuelTanklessWH.osw', cost_multipliers)
   end
 
+  def test_SFD_2story_S_UA_GRG_ASHP1_Fireplace_FuelTanklessWH
+    cost_multipliers = {
+      'Fixed (1)' => 1,
+      'Wall Area, Above-Grade, Conditioned (ft^2)' => 135.0 + 96.0 * 4 + 320.0 * 2 + 231.0 * 2 + 416.0 * 2 + 327.0,
+      'Wall Area, Above-Grade, Exterior (ft^2)' => 135.0 + 320.0 * 2 + 231.0 * 2 + 416.0 * 2 + 327.0 + 96.0 * 4 + 104.0 * 2 + 18.0 + 192.0,
+      'Wall Area, Below-Grade (ft^2)' => 0.0,
+      'Floor Area, Conditioned (ft^2)' => 1500.0 * 2,
+      'Floor Area, Attic (ft^2)' => 1500.0 + 144.0,
+      'Floor Area, Lighting (ft^2)' => 1500.0 * 2 + 12.0 * 24.0,
+      'Roof Area (ft^2)' => 839.0 + 101.0 * 2 + 798.0,
+      'Window Area (ft^2)' => 0.12 * (135.0 + 96.0 * 4 + 320.0 * 2 + 231.0 * 2 + 416.0 * 2 + 327.0 - 96.0 * 2),
+      'Door Area (ft^2)' => 40.0,
+      'Duct Unconditioned Surface Area (ft^2)' => (0.75 * 0.27 * (1500.0 * 2)) + (0.75 * 0.05 * 2 * (1500.0 * 2)),
+      'Size, Heating System (kBtu/h)' => 60.0, # hp, not backup
+      'Size, Heating Backup System (kBtu/h)' => 100.0, # backup
+      'Size, Heating Secondary System (kBtu/h)' => 15.0,
+      'Size, Cooling System (kBtu/h)' => 60.0,
+      'Size, Water Heater (gal)' => 0.0,
+    }
+    _test_cost_multipliers('SFD_2story_S_UA_GRG_ASHP1_Fireplace_FuelTanklessWH.osw', cost_multipliers)
+  end
+
   def test_SFA_2story_UB_Furnace_RoomAC_FuelTankWH
     cost_multipliers = {
       'Fixed (1)' => 1,
