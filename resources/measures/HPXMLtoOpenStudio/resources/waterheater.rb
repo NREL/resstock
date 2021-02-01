@@ -271,10 +271,11 @@ class Waterheater
 
     # Calculate some geometry parameters for UA, the location of sensors and heat sources in the tank
 
-    if vol > 50
-      hpwh_param = 80
+    #Parameter determines which manufacturer's details (AO Smith or GE) gets used
+    if vol > 50 and cop < 3.2
+      control_logic = 'AOSmith'
     else
-      hpwh_param = 50
+      control_logic = 'GE'
     end
 
     h_tank = 0.0188 * vol + 0.0935 # Linear relationship that gets GE height at 50 gal and AO Smith height at 80 gal
@@ -284,7 +285,7 @@ class Waterheater
     a_tank = 2 * pi * r_tank * (r_tank + h_tank)
     u_tank = (5.678 * tank_ua) / UnitConversions.convert(a_tank, "m^2", "ft^2")
 
-    if hpwh_param == 50
+    if control_logic == 'GE'
       h_UE = 0.708333 * h_tank # in the 4th node of the tank (counting from top)
       h_LE = 0.125 * h_tank # in the 11th node of the tank (counting from top)
       h_condtop = 0.54167 * h_tank # in the 6th node of the tank (counting from top)
@@ -347,7 +348,7 @@ class Waterheater
       hp_control_sched.setValue(51.67)
     end
 
-    if hpwh_param == 50
+    if control_logic == 'GE'
       hpwh_bottom_element_sp = OpenStudio::Model::ScheduleConstant.new(model)
       hpwh_bottom_element_sp.setName("#{obj_name_hpwh} BottomElementSetpoint")
       hpwh_bottom_element_sp.setValue(-60)
@@ -384,7 +385,7 @@ class Waterheater
     end
 
     if sp_type == Constants.WaterHeaterSetpointTypeConstant
-      if hpwh_param == 50
+      if control_logic == 'GE'
         hpwh_bottom_element_sp.setValue(tset_C)
         sp = (tset_C - 2.89).round(2)
         hpwh_top_element_sp.setValue(sp)
@@ -403,7 +404,7 @@ class Waterheater
     elsif sp_type == Constants.WaterHeaterSetpointTypeScheduled
       hpwh.setCompressorSetpointTemperatureSchedule(hp_control_sched)
     end
-    if hpwh_param == 50
+    if control_logic == 'GE'
       hpwh.setDeadBandTemperatureDifference(0.5)
     else
       hpwh.setDeadBandTemperatureDifference(3.89)
@@ -423,7 +424,7 @@ class Waterheater
     hpwh.setOffCycleParasiticElectricLoad(0)
     hpwh.setParasiticHeatRejectionLocation("Outdoors")
     hpwh.setTankElementControlLogic("MutuallyExclusive")
-    if hpwh_param == 50
+    if control_logic == 'GE'
       hpwh.setControlSensor1HeightInStratifiedTank(h_hpctrl)
       hpwh.setControlSensor1Weight(1)
       hpwh.setControlSensor2HeightInStratifiedTank(h_hpctrl)
@@ -487,7 +488,7 @@ class Waterheater
     tank.setHeater1SetpointTemperatureSchedule(hpwh_top_element_sp) # Overwritten later by EMS
     tank.setHeater1Capacity(UnitConversions.convert(e_cap, "kW", "W"))
     tank.setHeater1Height(h_UE)
-    if hpwh_param == 50
+    if control_logic == 'GE'
       tank.setHeater1DeadbandTemperatureDifference(25)
     else
       tank.setHeater1DeadbandTemperatureDifference(18.5)
@@ -495,7 +496,7 @@ class Waterheater
     tank.setHeater2SetpointTemperatureSchedule(hpwh_bottom_element_sp)
     tank.setHeater2Capacity(UnitConversions.convert(e_cap, "kW", "W"))
     tank.setHeater2Height(h_LE)
-    if hpwh_param == 50
+    if control_logic == 'GE'
       tank.setHeater2DeadbandTemperatureDifference(30)
     else
       tank.setHeater2DeadbandTemperatureDifference(3.89)
@@ -543,7 +544,7 @@ class Waterheater
     # Fan:OnOff
     fan = hpwh.fan.to_FanOnOff.get
     fan.setName("#{obj_name_hpwh} fan")
-    if hpwh_param == 50
+    if control_logic == 'GE'
       fan.setFanEfficiency(23 / fan_power * UnitConversions.convert(1, "ft^3/min", "m^3/s"))
       fan.setPressureRise(23)
     else
@@ -780,7 +781,7 @@ class Waterheater
       op_mode_schedule_sensor.setKeyName("#{obj_name_hpwh} OpModeSchedule")
     end
 
-    if hpwh_param == 80
+    if control_logic == 'AOSmith'
       hpwh_ctrl_program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
       hpwh_ctrl_program.setName("#{obj_name_hpwh} Control")
       if ducting == Constants.VentTypeSupply or ducting == Constants.VentTypeBalanced
@@ -793,7 +794,7 @@ class Waterheater
       hpwh_ctrl_program.addLine("Set #{leschedoverride_actuator.name} = 0")
       hpwh_ctrl_program.addLine("EndIf")
 
-    else # hpwh_param == 50
+    else # control_logic == 'GE'
       t_ctrl_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Water Heater Temperature Node 3")
       t_ctrl_sensor.setName("#{obj_name_hpwh} T ctrl")
       t_ctrl_sensor.setKeyName("#{obj_name_hpwh} tank")
