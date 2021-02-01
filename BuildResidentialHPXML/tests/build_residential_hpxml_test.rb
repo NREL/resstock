@@ -107,7 +107,10 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       'unvented-attic-with-floor-and-roof-insulation.osw' => 'geometry_attic_type=UnventedAttic and ceiling_assembly_r=39.3 and roof_assembly_r=10.0',
       'conditioned-basement-with-ceiling-insulation.osw' => 'geometry_foundation_type=ConditionedBasement and floor_assembly_r=10.0',
       'conditioned-attic-with-floor-insulation.osw' => 'geometry_attic_type=ConditionedAttic and ceiling_assembly_r=39.3',
-      'multipliers-without-plug-loads.osw' => 'plug_loads_television_annual_kwh=0.0 and plug_loads_television_usage_multiplier=1.0 and plug_loads_other_annual_kwh=0.0 and plug_loads_other_usage_multiplier=1.0 and plug_loads_well_pump_present=false and plug_loads_well_pump_usage_multiplier=1.0 and plug_loads_vehicle_present=false and plug_loads_vehicle_usage_multiplier=1.0',
+      'multipliers-without-tv-plug-loads.osw' => 'plug_loads_television_annual_kwh=0.0 and plug_loads_television_usage_multiplier=1.0',
+      'multipliers-without-other-plug-loads.osw' => 'plug_loads_other_annual_kwh=0.0 and plug_loads_other_usage_multiplier=1.0',
+      'multipliers-without-well-pump-plug-loads.osw' => 'plug_loads_well_pump_annual_kwh=0.0 and plug_loads_well_pump_usage_multiplier=1.0',
+      'multipliers-without-vehicle-plug-loads.osw' => 'plug_loads_vehicle_annual_kwh=0.0 and plug_loads_vehicle_usage_multiplier=1.0',
       'multipliers-without-fuel-loads.osw' => 'fuel_loads_grill_present=false and fuel_loads_grill_usage_multiplier=1.0 and fuel_loads_lighting_present=false and fuel_loads_lighting_usage_multiplier=1.0 and fuel_loads_fireplace_present=false and fuel_loads_fireplace_usage_multiplier=1.0'
     }
 
@@ -370,43 +373,6 @@ class BuildResidentialHPXMLTest < MiniTest::Test
     rundir = File.join(this_dir, 'run')
     _rm_path(rundir)
     Dir.mkdir(rundir)
-  end
-
-  def _test_measure(osm_file_or_model, args_hash)
-    # create an instance of the measure
-    measure = HPXMLExporter.new
-
-    # check for standard methods
-    assert(!measure.name.empty?)
-    assert(!measure.description.empty?)
-
-    # create an instance of a runner
-    runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
-
-    model = get_model(File.dirname(__FILE__), osm_file_or_model)
-
-    # get arguments
-    arguments = measure.arguments(model)
-    argument_map = OpenStudio::Measure.convertOSArgumentVectorToMap(arguments)
-
-    # populate argument with specified hash value if specified
-    arguments.each do |arg|
-      temp_arg_var = arg.clone
-      if args_hash.has_key?(arg.name)
-        assert(temp_arg_var.setValue(args_hash[arg.name]))
-      end
-      argument_map[arg.name] = temp_arg_var
-    end
-
-    # run the measure
-    measure.run(model, runner, argument_map)
-    result = runner.result
-
-    # show the output
-    show_output(result) unless result.value.valueName == 'Success'
-
-    # assert that it ran correctly
-    assert_equal('Success', result.value.valueName)
   end
 
   def _rm_path(path)

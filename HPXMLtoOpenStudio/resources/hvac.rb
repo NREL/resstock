@@ -267,7 +267,7 @@ class HVAC
 
     # Supplemental Heating Coil
     htg_supp_coil = create_supp_heating_coil(model, obj_name, heat_pump)
-    hvac_map[heat_pump.id] << htg_supp_coil unless htg_supp_coil.nil?
+    hvac_map[heat_pump.id] << htg_supp_coil
 
     # Fan
     num_speeds = hp_ap.num_speeds
@@ -363,7 +363,7 @@ class HVAC
 
     # Supplemental Heating Coil
     htg_supp_coil = create_supp_heating_coil(model, obj_name, heat_pump)
-    hvac_map[heat_pump.id] << htg_supp_coil unless htg_supp_coil.nil?
+    hvac_map[heat_pump.id] << htg_supp_coil
 
     # Fan
     num_speeds = hp_ap.num_speeds
@@ -461,7 +461,7 @@ class HVAC
 
     # Supplemental Heating Coil
     htg_supp_coil = create_supp_heating_coil(model, obj_name, heat_pump)
-    hvac_map[heat_pump.id] << htg_supp_coil unless htg_supp_coil.nil?
+    hvac_map[heat_pump.id] << htg_supp_coil
 
     # Ground Heat Exchanger
     ground_heat_exch_vert = OpenStudio::Model::GroundHeatExchangerVertical.new(model)
@@ -530,7 +530,11 @@ class HVAC
     pump.setMinimumFlowRate(0)
     pump.setPumpControlType('Intermittent')
     pump.addToNode(plant_loop.supplyInletNode)
-    pump_w = heat_pump.pump_watts_per_ton * UnitConversions.convert(heat_pump.cooling_capacity, 'Btu/hr', 'ton')
+    if heat_pump.cooling_capacity > 1.0
+      pump_w = heat_pump.pump_watts_per_ton * UnitConversions.convert(heat_pump.cooling_capacity, 'Btu/hr', 'ton')
+    else
+      pump_w = heat_pump.pump_watts_per_ton * UnitConversions.convert(heat_pump.heating_capacity, 'Btu/hr', 'ton')
+    end
     pump.setRatedPowerConsumption(pump_w)
     pump.setRatedFlowRate(calc_pump_rated_flow_rate(0.75, pump_w, pump.ratedPumpHead))
     hvac_map[heat_pump.id] << pump
@@ -622,7 +626,7 @@ class HVAC
 
     # Supplemental Heating Coil
     htg_supp_coil = create_supp_heating_coil(model, obj_name, heat_pump)
-    hvac_map[heat_pump.id] << htg_supp_coil unless htg_supp_coil.nil?
+    hvac_map[heat_pump.id] << htg_supp_coil
 
     # Fan
     fan_power_installed = 0.5 # FIXME
@@ -630,7 +634,7 @@ class HVAC
     hvac_map[heat_pump.id] += disaggregate_fan_or_pump(model, fan, htg_coil, clg_coil, htg_supp_coil)
 
     # Unitary System
-    air_loop_unitary = create_air_loop_unitary_system(model, obj_name, fan, htg_coil, clg_coil, htg_supp_coil, htg_cfm, nil)
+    air_loop_unitary = create_air_loop_unitary_system(model, obj_name, fan, htg_coil, clg_coil, htg_supp_coil, htg_cfm, nil, supp_max_temp)
     hvac_map[heat_pump.id] << air_loop_unitary
 
     # Air Loop
@@ -1605,10 +1609,15 @@ class HVAC
 
   def self.create_supp_heating_coil(model, obj_name, heat_pump)
     fuel = heat_pump.backup_heating_fuel
-    return if fuel.nil? || (heat_pump.backup_heating_capacity == 0) # No backup heating
-
+    capacity = heat_pump.backup_heating_capacity
     efficiency = heat_pump.backup_heating_efficiency_percent
     efficiency = heat_pump.backup_heating_efficiency_afue if efficiency.nil?
+
+    if fuel.nil?
+      fuel = HPXML::FuelTypeElectricity
+      capacity = 0.0
+      efficiency = 1.0
+    end
 
     if fuel == HPXML::FuelTypeElectricity
       htg_supp_coil = OpenStudio::Model::CoilHeatingElectric.new(model, model.alwaysOnDiscreteSchedule)
@@ -1620,7 +1629,7 @@ class HVAC
       htg_supp_coil.setParasiticGasLoad(0)
       htg_supp_coil.setFuelType(EPlus.fuel_type(fuel))
     end
-    htg_supp_coil.setNominalCapacity(UnitConversions.convert(heat_pump.backup_heating_capacity, 'Btu/hr', 'W'))
+    htg_supp_coil.setNominalCapacity(UnitConversions.convert(capacity, 'Btu/hr', 'W'))
     htg_supp_coil.setName(obj_name + ' ' + Constants.ObjectNameBackupHeatingCoil)
     return htg_supp_coil
   end
@@ -1823,7 +1832,11 @@ class HVAC
     # Derive coefficients from user input for heating capacity at 47F and 17F
     # Biquadratic: capacity multiplier = a + b*IAT + c*IAT^2 + d*OAT + e*OAT^2 + f*IAT*OAT
     x_A = 17.0
-    y_A = heat_pump.heating_capacity_17F / heat_pump.heating_capacity
+    if heat_pump.heating_capacity > 0
+      y_A = heat_pump.heating_capacity_17F / heat_pump.heating_capacity
+    else
+      y_A = 0.5 # Arbitrary
+    end
     x_B = 47.0 # 47F is the rating point
     y_B = 1.0
 
@@ -2926,13 +2939,12 @@ class HVAC
     htg_coil.setName(obj_name + ' htg coil')
     htg_coil.setMinimumOutdoorDryBulbTemperatureforCompressorOperation(UnitConversions.convert(htg_ap.hp_min_temp, 'F', 'C'))
     htg_coil.setMaximumOutdoorDryBulbTemperatureforDefrostOperation(UnitConversions.convert(40.0, 'F', 'C'))
-    if heating_system.fraction_heat_load_served > 0
-      defrost_eir_curve = create_curve_biquadratic(model, [0.1528, 0, 0, 0, 0, 0], 'Defrosteir', -100, 100, -100, 100) # Heating defrost curve for reverse cycle
-      htg_coil.setDefrostEnergyInputRatioFunctionofTemperatureCurve(defrost_eir_curve)
-      htg_coil.setDefrostStrategy('ReverseCycle')
-      htg_coil.setDefrostControl('Timed')
-    else
-      htg_coil.setDefrostTimePeriodFraction(0)
+    defrost_eir_curve = create_curve_biquadratic(model, [0.1528, 0, 0, 0, 0, 0], 'Defrosteir', -100, 100, -100, 100) # Heating defrost curve for reverse cycle
+    htg_coil.setDefrostEnergyInputRatioFunctionofTemperatureCurve(defrost_eir_curve)
+    htg_coil.setDefrostStrategy('ReverseCycle')
+    htg_coil.setDefrostControl('Timed')
+    if heating_system.fraction_heat_load_served == 0
+      htg_coil.setResistiveDefrostHeaterCapacity(0)
     end
     htg_coil.setCrankcaseHeaterCapacity(UnitConversions.convert(htg_ap.crankcase_kw, 'kW', 'W'))
 
@@ -3952,5 +3964,31 @@ class HVAC
     end
 
     return hvac_systems
+  end
+
+  def self.ensure_nonzero_sizing_values(hpxml)
+    min_capacity = 1.0 # Btuh
+    min_airflow = 3.0 # cfm; E+ min airflow is 0.001 m3/s
+    hpxml.heating_systems.each do |htg_sys|
+      htg_sys.heating_capacity = [htg_sys.heating_capacity, min_capacity].max
+      htg_sys.heating_airflow_cfm = [htg_sys.heating_airflow_cfm, min_airflow].max
+    end
+    hpxml.cooling_systems.each do |clg_sys|
+      clg_sys.cooling_capacity = [clg_sys.cooling_capacity, min_capacity].max
+      clg_sys.cooling_airflow_cfm = [clg_sys.cooling_airflow_cfm, min_airflow].max
+    end
+    hpxml.heat_pumps.each do |hp_sys|
+      hp_sys.cooling_capacity = [hp_sys.cooling_capacity, min_capacity].max
+      hp_sys.cooling_airflow_cfm = [hp_sys.cooling_airflow_cfm, min_airflow].max
+      hp_sys.additional_properties.cooling_capacity_sensible = [hp_sys.additional_properties.cooling_capacity_sensible, min_capacity].max
+      hp_sys.heating_capacity = [hp_sys.heating_capacity, min_capacity].max
+      hp_sys.heating_airflow_cfm = [hp_sys.heating_airflow_cfm, min_airflow].max
+      if not hp_sys.heating_capacity_17F.nil?
+        hp_sys.heating_capacity_17F = [hp_sys.heating_capacity_17F, min_capacity].max
+      end
+      if not hp_sys.backup_heating_capacity.nil?
+        hp_sys.backup_heating_capacity = [hp_sys.backup_heating_capacity, min_capacity].max
+      end
+    end
   end
 end
