@@ -90,7 +90,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
       return false
     end
 
-    tear_down_model(model, runner)
+    Geometry.tear_down_model(model, runner)
 
     Version.check_openstudio_version()
 
@@ -142,19 +142,6 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     end
 
     return true
-  end
-
-  def tear_down_model(model, runner)
-    # Tear down the existing model if it exists
-    has_existing_objects = (model.getThermalZones.size > 0)
-    handles = OpenStudio::UUIDVector.new
-    model.objects.each do |obj|
-      handles << obj.handle
-    end
-    model.removeObjects(handles)
-    if has_existing_objects
-      runner.registerWarning('The model contains existing objects and is being reset.')
-    end
   end
 
   def process_weather(hpxml, runner, model, hpxml_path)
