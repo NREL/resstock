@@ -271,7 +271,7 @@ class Waterheater
 
     # Calculate some geometry parameters for UA, the location of sensors and heat sources in the tank
 
-    #Parameter determines which manufacturer's details (AO Smith or GE) gets used
+    # Parameter determines which manufacturer's details (AO Smith or GE) gets used
     if vol > 50 and cop < 3.2
       control_logic = 'AOSmith'
     else
