@@ -334,7 +334,7 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
         measures['BuildResidentialHPXML'][0][step_value.name] = value
       end
 
-      measures['HPXMLtoOpenStudio'] = [{ 'hpxml_path' => File.expand_path('../upgraded.xml') }]
+      measures['HPXMLtoOpenStudio'] = [{ 'hpxml_path' => File.expand_path('../upgraded.xml'), 'output_dir' => File.expand_path('..') }]
 
       # Use generated schedules from the base building
       schedules_type = measures['BuildResidentialHPXML'][0]['schedules_type']
