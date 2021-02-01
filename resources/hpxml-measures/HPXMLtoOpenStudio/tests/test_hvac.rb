@@ -391,7 +391,9 @@ class HPXMLtoOpenStudioHVACTest < MiniTest::Test
     assert_in_epsilon(htg_capacity * 1.2, htg_coil.stages[-1].grossRatedHeatingCapacity.get, 0.01)
 
     # Check supp heating coil
-    assert_equal(0, model.getCoilHeatingElectrics.size)
+    assert_equal(1, model.getCoilHeatingElectrics.size)
+    supp_htg_coil = model.getCoilHeatingElectrics[0]
+    assert_in_delta(0, supp_htg_coil.nominalCapacity.get, 0.01)
 
     # Check EMS
     assert_equal(1, model.getAirLoopHVACUnitarySystems.size)
@@ -599,7 +601,10 @@ class HPXMLtoOpenStudioHVACTest < MiniTest::Test
     refute_in_epsilon(capacity, htg_coil.ratedTotalHeatingCapacity.get, 0.01) # Uses autosized capacity
 
     # Check supp heating coil
-    assert_equal(0, model.getCoilHeatingElectrics.size)
+    assert_equal(1, model.getCoilHeatingElectrics.size)
+    supp_htg_coil = model.getCoilHeatingElectrics[0]
+    assert_in_epsilon(1.0, supp_htg_coil.efficiency, 0.01)
+    assert_in_delta(0.0, supp_htg_coil.nominalCapacity.get, 0.01)
   end
 
   def test_shared_ground_loop_ground_to_air_heat_pump
@@ -805,6 +810,7 @@ class HPXMLtoOpenStudioHVACTest < MiniTest::Test
     model = OpenStudio::Model::Model.new
 
     # get arguments
+    args_hash['output_dir'] = 'tests'
     arguments = measure.arguments(model)
     argument_map = OpenStudio::Measure.convertOSArgumentVectorToMap(arguments)
 
@@ -828,6 +834,8 @@ class HPXMLtoOpenStudioHVACTest < MiniTest::Test
     assert_equal('Success', result.value.valueName)
 
     hpxml = HPXML.new(hpxml_path: args_hash['hpxml_path'])
+
+    File.delete(File.join(File.dirname(__FILE__), 'in.xml'))
 
     return model, hpxml
   end

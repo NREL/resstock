@@ -15,6 +15,7 @@ __New Features__
 - Allows requesting timeseries unmet heating/cooling loads.
 - Allows skipping schema/schematron validation (for speed); should only be used if the HPXML was already validated upstream.
 - Includes hot water loads (in addition to heating/cooling loads) when timeseries total loads are requested.
+- The `in.xml` HPXML file is now always produced for inspection of default values. **Breaking change**: The `output_dir` HPXMLtoOpenStudio measure argument is now required.
 - Overhauls documentation to be more comprehensive and standardized.
 - `run_simulation.rb` now returns exit code 1 if not successful (i.e., either invalid inputs or simulation fails).
 

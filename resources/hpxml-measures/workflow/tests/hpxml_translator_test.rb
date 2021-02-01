@@ -27,7 +27,8 @@ class HPXMLTest < MiniTest::Test
     File.delete(sizing_out) if File.exist? sizing_out
 
     xmls = []
-    Dir["#{File.absolute_path(File.join(@this_dir, '..', 'sample_files'))}/*.xml"].sort.each do |xml|
+    sample_files_dir = File.absolute_path(File.join(@this_dir, '..', 'sample_files'))
+    Dir["#{sample_files_dir}/*.xml"].sort.each do |xml|
       xmls << File.absolute_path(xml)
     end
 
@@ -49,7 +50,8 @@ class HPXMLTest < MiniTest::Test
     File.delete(ashrae140_out) if File.exist? ashrae140_out
 
     xmls = []
-    Dir["#{File.absolute_path(File.join(@this_dir, 'ASHRAE_Standard_140'))}/*.xml"].sort.each do |xml|
+    ashrae_140_dir = File.absolute_path(File.join(@this_dir, 'ASHRAE_Standard_140'))
+    Dir["#{ashrae_140_dir}/*.xml"].sort.each do |xml|
       xmls << File.absolute_path(xml)
     end
 
@@ -333,7 +335,7 @@ class HPXMLTest < MiniTest::Test
     # Check outputs
     hpxml_defaults_path = File.join(rundir, 'in.xml')
     hpxml = HPXML.new(hpxml_path: hpxml_defaults_path)
-    sizing_results = _get_sizing_results(hpxml)
+    sizing_results = _get_sizing_results(hpxml, xml)
     _verify_outputs(rundir, xml, results, hpxml)
 
     return results, sizing_results
@@ -363,44 +365,48 @@ class HPXMLTest < MiniTest::Test
     return results
   end
 
-  def _get_sizing_results(hpxml)
+  def _get_sizing_results(hpxml, xml)
     results = {}
+    return if xml.include? 'ASHRAE_Standard_140'
 
-    hdl_prefix = 'hdl_'
-    cdl_prefix = 'cdl_'
+    # Heating design loads
+    hpxml.hvac_plant.class::HDL_ATTRS.each do |attr, element_name|
+      results["heating_load_#{attr.to_s.gsub('hdl_', '')} [Btuh]"] = hpxml.hvac_plant.send(attr.to_s)
+    end
 
+    # Cooling sensible design loads
+    hpxml.hvac_plant.class::CDL_SENS_ATTRS.each do |attr, element_name|
+      results["cooling_load_#{attr.to_s.gsub('cdl_', '')} [Btuh]"] = hpxml.hvac_plant.send(attr.to_s)
+    end
+
+    # Cooling latent design loads
+    hpxml.hvac_plant.class::CDL_LAT_ATTRS.each do |attr, element_name|
+      results["cooling_load_#{attr.to_s.gsub('cdl_', '')} [Btuh]"] = hpxml.hvac_plant.send(attr.to_s)
+    end
+
+    # Heating capacities/airflows
+    results['heating_capacity [Btuh]'] = 0.0
+    results['heating_backup_capacity [Btuh]'] = 0.0
+    results['heating_airflow [cfm]'] = 0.0
     (hpxml.heating_systems + hpxml.heat_pumps).each do |htg_sys|
-      # Heating capacities/airflows
-      results['heating_capacity [Btuh]'] = htg_sys.heating_capacity
+      results['heating_capacity [Btuh]'] += htg_sys.heating_capacity
       if htg_sys.respond_to? :backup_heating_capacity
-        results['heating_backup_capacity [Btuh]'] = htg_sys.backup_heating_capacity
-      else
-        results['heating_backup_capacity [Btuh]'] = 0.0
+        results['heating_backup_capacity [Btuh]'] += htg_sys.backup_heating_capacity
       end
-      results['heating_airflow [cfm]'] = htg_sys.heating_airflow_cfm
-
-      # Heating design loads
-      htg_sys.class::ATTRS.each do |attr|
-        next unless attr.to_s.start_with? hdl_prefix
-        next if attr.to_s.end_with? '_isdefaulted'
-
-        results["heating_load_#{attr.to_s.gsub(hdl_prefix, '')} [Btuh]"] = htg_sys.send(attr.to_s)
-      end
+      results['heating_airflow [cfm]'] += htg_sys.heating_airflow_cfm
     end
+
+    # Cooling capacity/airflows
+    results['cooling_capacity [Btuh]'] = 0.0
+    results['cooling_airflow [cfm]'] = 0.0
     (hpxml.cooling_systems + hpxml.heat_pumps).each do |clg_sys|
-      # Cooling capacity/airflows
-      results['cooling_capacity [Btuh]'] = clg_sys.cooling_capacity
-      results['cooling_airflow [cfm]'] = clg_sys.cooling_airflow_cfm
-
-      # Cooling design loads
-      clg_sys.class::ATTRS.each do |attr|
-        next unless attr.to_s.start_with? cdl_prefix
-        next if attr.to_s.end_with? '_isdefaulted'
-
-        results["cooling_load_#{attr.to_s.gsub(cdl_prefix, '')} [Btuh]"] = clg_sys.send(attr.to_s)
-      end
+      results['cooling_capacity [Btuh]'] += clg_sys.cooling_capacity
+      results['cooling_airflow [cfm]'] += clg_sys.cooling_airflow_cfm
     end
+
     assert(!results.empty?)
+    # FIXME: Add tests to make sure capacities/airflows are zero as appropriate (FractionLoadServed == 0)
+    # FIXME: Add tests to make sure duct design loads are zero as appropriate (no ducts, FractionLoadServed == 0)
 
     return results
   end
@@ -423,7 +429,6 @@ class HPXMLTest < MiniTest::Test
       next if log_line.include? 'Warning: Could not load nokogiri, no HPXML validation performed.'
       next if log_line.start_with? 'Info: '
       next if log_line.start_with? 'Executing command'
-      next if (log_line.start_with?('Heat ') || log_line.start_with?('Cool ')) && log_line.include?('=')
       next if log_line.include? "-cache.csv' could not be found; regenerating it."
       next if log_line.include?('Warning: HVACDistribution') && log_line.include?('has ducts entirely within conditioned space but there is non-zero leakage to the outside.')
 
@@ -529,6 +534,9 @@ class HPXMLTest < MiniTest::Test
       end
       if hpxml_path.include? 'base-enclosure-split-surfaces2.xml'
         next if err_line.include? 'GetSurfaceData: Very small surface area' # FUTURE: Prevent this warning
+      end
+      if hpxml_path.include?('ground-to-air-heat-pump-cooling-only.xml') || hpxml_path.include?('ground-to-air-heat-pump-heating-only.xml')
+        next if err_line.include? 'COIL:HEATING:WATERTOAIRHEATPUMP:EQUATIONFIT' # heating capacity is > 20% different than cooling capacity; safe to ignore
       end
       if hpxml_path.include?('base-schedules-stochastic.xml') || hpxml_path.include?('base-schedules-user-specified.xml')
         next if err_line.include?('GetCurrentScheduleValue: Schedule=') && err_line.include?('is a Schedule:File')
