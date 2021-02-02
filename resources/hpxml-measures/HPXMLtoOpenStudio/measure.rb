@@ -320,10 +320,13 @@ class OSModel
     # Write updated HPXML object (w/ defaults) to file for inspection
     hpxml_defaults_path = File.join(output_dir, 'in.xml')
     XMLHelper.write_file(@hpxml.to_oga, hpxml_defaults_path)
+<<<<<<< HEAD
 
     # Now that we've written in.xml, ensure that no capacities/airflows
     # are zero in order to prevent potential E+ errors.
     HVAC.ensure_nonzero_sizing_values(@hpxml)
+=======
+>>>>>>> restructure-v3
   end
 
   def self.add_simulation_params(model)
@@ -2117,12 +2120,16 @@ class OSModel
   def self.add_heat_pump(runner, model, weather, spaces)
     living_zone = spaces[HPXML::LocationLivingSpace].thermalZone.get
 
+<<<<<<< HEAD
     HVAC.get_hpxml_hvac_systems(@hpxml).each do |hvac_system|
       next if hvac_system[:cooling].nil?
       next unless hvac_system[:cooling].is_a? HPXML::HeatPump
 
       heat_pump = hvac_system[:cooling]
 
+=======
+    @hpxml.heat_pumps.each do |heat_pump|
+>>>>>>> restructure-v3
       check_distribution_system(heat_pump.distribution_system, heat_pump.heat_pump_type)
 
       if [HPXML::HVACTypeHeatPumpWaterLoopToAir].include? heat_pump.heat_pump_type

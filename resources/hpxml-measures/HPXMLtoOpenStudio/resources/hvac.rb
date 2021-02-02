@@ -350,6 +350,43 @@ class HVAC
     obj_name = Constants.ObjectNameMiniSplitHeatPump
     sequential_heat_load_frac = calc_sequential_load_fraction(heat_pump.fraction_heat_load_served, remaining_heat_load_frac)
     sequential_cool_load_frac = calc_sequential_load_fraction(heat_pump.fraction_cool_load_served, remaining_cool_load_frac)
+<<<<<<< HEAD
+=======
+    num_speeds = 10
+    mshp_indices = [1, 3, 5, 9]
+    hp_min_temp, supp_max_temp = get_heat_pump_temp_assumptions(heat_pump)
+    pan_heater_power = 0.0 # W, disabled
+    if not heat_pump.distribution_system.nil?
+      # Ducted, installed fan power may differ from rated fan power
+      fan_power_rated = 0.18 # W/cfm, ducted
+    else
+      # Ductless, installed and rated value should be equal
+      fan_power_rated = 0.07 # W/cfm
+      heat_pump.fan_watts_per_cfm = fan_power_rated # W/cfm
+    end
+
+    # Calculate generic inputs
+    min_cooling_capacity = 0.4 # frac
+    max_cooling_capacity = 1.2 # frac
+    min_cooling_airflow_rate = 200.0
+    max_cooling_airflow_rate = 425.0
+    min_heating_capacity = 0.3 # frac
+    max_heating_capacity = 1.2 # frac
+    min_heating_airflow_rate = 200.0
+    max_heating_airflow_rate = 400.0
+    if heat_pump.heating_capacity.nil?
+      heating_capacity_offset = 2300.0 # Btu/hr
+    else
+      heating_capacity_offset = heat_pump.heating_capacity - heat_pump.cooling_capacity
+    end
+    if heat_pump.heating_capacity_17F.nil? || ((heat_pump.heating_capacity_17F == 0) && (heat_pump.heating_capacity == 0))
+      cap_retention_frac = 0.25 # frac
+      cap_retention_temp = -5.0 # deg-F
+    else
+      cap_retention_frac = heat_pump.heating_capacity_17F / heat_pump.heating_capacity
+      cap_retention_temp = 17.0 # deg-F
+    end
+>>>>>>> restructure-v3
 
     hp_ap = heat_pump.additional_properties
 
@@ -390,8 +427,96 @@ class HVAC
     air_loop = create_air_loop(model, obj_name, air_loop_unitary, control_zone, sequential_heat_load_frac, sequential_cool_load_frac, fan_cfm)
     hvac_map[heat_pump.id] << air_loop
 
+<<<<<<< HEAD
     # HVAC Installation Quality
     apply_installation_quality(model, heat_pump, heat_pump, air_loop_unitary, htg_coil, clg_coil, control_zone)
+=======
+    if pan_heater_power > 0
+
+      mshp_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Heating Coil #{EPlus::FuelTypeElectricity} Energy")
+      mshp_sensor.setName("#{obj_name} vrf energy sensor")
+      mshp_sensor.setKeyName(obj_name + ' coil')
+
+      equip_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
+      equip_def.setName(obj_name + ' pan heater equip')
+      equip = OpenStudio::Model::ElectricEquipment.new(equip_def)
+      equip.setName(equip_def.name.to_s)
+      equip.setSpace(control_zone.spaces[0])
+      equip_def.setFractionRadiant(0)
+      equip_def.setFractionLatent(0)
+      equip_def.setFractionLost(1)
+      equip.setSchedule(model.alwaysOnDiscreteSchedule)
+      equip.setEndUseSubcategory(obj_name + ' pan heater')
+
+      pan_heater_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(equip, *EPlus::EMSActuatorElectricEquipmentPower)
+      pan_heater_actuator.setName("#{obj_name} pan heater actuator")
+
+      tout_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Zone Outdoor Air Drybulb Temperature')
+      tout_sensor.setName("#{obj_name} tout sensor")
+      thermal_zones.each do |thermal_zone|
+        if Geometry.is_living(thermal_zone)
+          tout_sensor.setKeyName(thermal_zone.name.to_s)
+          break
+        end
+      end
+
+      program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
+      program.setName(obj_name + ' pan heater program')
+      if not heat_pump.cooling_capacity.nil?
+        num_outdoor_units = (UnitConversions.convert([heat_pump.cooling_capacity, Constants.small].max, 'Btu/hr', 'ton') / 1.5).ceil # Assume 1.5 tons max per outdoor unit
+      else
+        num_outdoor_units = 2
+      end
+      pan_heater_power *= num_outdoor_units # W
+      program.addLine("Set #{pan_heater_actuator.name} = 0")
+      program.addLine("If #{mshp_sensor.name} > 0")
+      program.addLine("  If #{tout_sensor.name} <= #{UnitConversions.convert(32.0, 'F', 'C').round(3)}")
+      program.addLine("    Set #{pan_heater_actuator.name} = #{pan_heater_power}")
+      program.addLine('  EndIf')
+      program.addLine('EndIf')
+
+      program_calling_manager = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
+      program_calling_manager.setName(obj_name + ' pan heater program calling manager')
+      program_calling_manager.setCallingPoint('BeginTimestepBeforePredictor')
+      program_calling_manager.addProgram(program)
+
+    end
+
+    # Store info for HVAC Sizing measure
+    heat_capacity_ratios_4 = []
+    cool_capacity_ratios_4 = []
+    heat_cfms_ton_rated_4 = []
+    cool_cfms_ton_rated_4 = []
+    cool_shrs_rated_gross_4 = []
+    mshp_indices.each do |mshp_index|
+      heat_capacity_ratios_4 << heat_capacity_ratios[mshp_index]
+      cool_capacity_ratios_4 << cool_capacity_ratios[mshp_index]
+      heat_cfms_ton_rated_4 << heat_cfms_ton_rated[mshp_index]
+      cool_cfms_ton_rated_4 << cool_cfms_ton_rated[mshp_index]
+      cool_shrs_rated_gross_4 << cool_shrs_rated_gross[mshp_index]
+    end
+    air_loop_unitary.additionalProperties.setFeature(Constants.SizingInfoHVACSystemIsDucted, !heat_pump.distribution_system_idref.nil?)
+    air_loop_unitary.additionalProperties.setFeature(Constants.SizingInfoHVACCapacityRatioHeating, heat_capacity_ratios_4.join(','))
+    air_loop_unitary.additionalProperties.setFeature(Constants.SizingInfoHVACCapacityRatioCooling, cool_capacity_ratios_4.join(','))
+    air_loop_unitary.additionalProperties.setFeature(Constants.SizingInfoHVACRatedCFMperTonHeating, heat_cfms_ton_rated_4.join(','))
+    air_loop_unitary.additionalProperties.setFeature(Constants.SizingInfoHVACRatedCFMperTonCooling, cool_cfms_ton_rated_4.join(','))
+    air_loop_unitary.additionalProperties.setFeature(Constants.SizingInfoHVACHeatingCapacityOffset, heating_capacity_offset)
+    air_loop_unitary.additionalProperties.setFeature(Constants.SizingInfoHVACFracHeatLoadServed, heat_pump.fraction_heat_load_served)
+    air_loop_unitary.additionalProperties.setFeature(Constants.SizingInfoHVACFracCoolLoadServed, heat_pump.fraction_cool_load_served)
+    air_loop_unitary.additionalProperties.setFeature(Constants.SizingInfoHVACSHR, cool_shrs_rated_gross_4.join(','))
+    air_loop_unitary.additionalProperties.setFeature(Constants.SizingInfoHVACCoolType, Constants.ObjectNameMiniSplitHeatPump)
+    air_loop_unitary.additionalProperties.setFeature(Constants.SizingInfoHVACHeatType, Constants.ObjectNameMiniSplitHeatPump)
+    air_loop_unitary.additionalProperties.setFeature(Constants.SizingInfoHVACChargeDefectRatio, heat_pump.charge_defect_ratio)
+    if not heat_pump.distribution_system.nil?
+      # Ducted system
+      air_loop_unitary.additionalProperties.setFeature(Constants.SizingInfoHVACAirflowDefectRatioCooling, heat_pump.airflow_defect_ratio)
+      air_loop_unitary.additionalProperties.setFeature(Constants.SizingInfoHVACAirflowDefectRatioHeating, heat_pump.airflow_defect_ratio)
+    else
+      # Ductless system
+      air_loop_unitary.additionalProperties.setFeature(Constants.SizingInfoHVACAirflowDefectRatioCooling, 0.0)
+      air_loop_unitary.additionalProperties.setFeature(Constants.SizingInfoHVACAirflowDefectRatioHeating, 0.0)
+    end
+>>>>>>> restructure-v3
   end
 
   def self.apply_ground_to_air_heat_pump(model, runner, weather, heat_pump,
@@ -924,6 +1049,7 @@ class HVAC
   def self.apply_dehumidifiers(model, runner, dehumidifiers, living_space, hvac_map)
     dehumidifier_id = dehumidifiers[0].id # Syncs with SimulationOutputReport, which only looks at first dehumidifier ID
     hvac_map[dehumidifier_id] = []
+<<<<<<< HEAD
 
     if dehumidifiers.map { |d| d.rh_setpoint }.uniq.size > 1
       fail 'All dehumidifiers must have the same setpoint but multiple setpoints were specified.'
@@ -938,6 +1064,22 @@ class HVAC
     dehumidifiers.each do |d|
       next unless d.energy_factor.nil?
 
+=======
+
+    if dehumidifiers.map { |d| d.rh_setpoint }.uniq.size > 1
+      fail 'All dehumidifiers must have the same setpoint but multiple setpoints were specified.'
+    end
+
+    # Dehumidifier coefficients
+    # Generic model coefficients from Winkler, Christensen, and Tomerlin (2011)
+    w_coeff = [-1.162525707, 0.02271469, -0.000113208, 0.021110538, -0.0000693034, 0.000378843]
+    ef_coeff = [-1.902154518, 0.063466565, -0.000622839, 0.039540407, -0.000125637, -0.000176722]
+    pl_coeff = [0.90, 0.10, 0.0]
+
+    dehumidifiers.each do |d|
+      next unless d.energy_factor.nil?
+
+>>>>>>> restructure-v3
       # shift inputs tested under IEF test conditions to those under EF test conditions with performance curves
       d.energy_factor, d.capacity = apply_dehumidifier_ief_to_ef_inputs(d.type, w_coeff, ef_coeff, d.integrated_energy_factor, d.capacity)
     end

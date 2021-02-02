@@ -2070,10 +2070,13 @@ class Geometry
     cfa = UnitConversions.convert(cfa, 'ft^2', 'm^2')
     wall_height = UnitConversions.convert(wall_height, 'ft', 'm')
     foundation_height = UnitConversions.convert(foundation_height, 'ft', 'm')
+<<<<<<< HEAD
     corridor_width = UnitConversions.convert(corridor_width, 'ft', 'm')
     inset_width = UnitConversions.convert(inset_width, 'ft', 'm')
     inset_depth = UnitConversions.convert(inset_depth, 'ft', 'm')
     balcony_depth = UnitConversions.convert(balcony_depth, 'ft', 'm')
+=======
+>>>>>>> restructure-v3
 
     # calculate the dimensions of the unit
     footprint = cfa + inset_width * inset_depth
