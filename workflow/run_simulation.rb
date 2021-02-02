@@ -172,4 +172,4 @@ if not success
   exit! 1
 end
 
-puts "Completed in #{(Time.now - start_time).round(1)} seconds."
+puts "Completed in #{(Time.now - start_time).round(1)}s."

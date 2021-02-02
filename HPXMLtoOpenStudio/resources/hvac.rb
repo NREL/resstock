@@ -468,7 +468,7 @@ class HVAC
     else
       heating_capacity_offset = heat_pump.heating_capacity - heat_pump.cooling_capacity
     end
-    if heat_pump.heating_capacity_17F.nil?
+    if heat_pump.heating_capacity_17F.nil? || ((heat_pump.heating_capacity_17F == 0) && (heat_pump.heating_capacity == 0))
       cap_retention_frac = 0.25 # frac
       cap_retention_temp = -5.0 # deg-F
     else
@@ -637,8 +637,8 @@ class HVAC
       air_loop_unitary.additionalProperties.setFeature(Constants.SizingInfoHVACAirflowDefectRatioHeating, heat_pump.airflow_defect_ratio)
     else
       # Ductless system
-      air_loop_unitary.additionalProperties.setFeature(Constants.SizingInfoHVACAirflowDefectRatioCooling, 1.0)
-      air_loop_unitary.additionalProperties.setFeature(Constants.SizingInfoHVACAirflowDefectRatioHeating, 1.0)
+      air_loop_unitary.additionalProperties.setFeature(Constants.SizingInfoHVACAirflowDefectRatioCooling, 0.0)
+      air_loop_unitary.additionalProperties.setFeature(Constants.SizingInfoHVACAirflowDefectRatioHeating, 0.0)
     end
   end
 
@@ -1266,35 +1266,45 @@ class HVAC
     ideal_air.additionalProperties.setFeature(Constants.SizingInfoHVACHeatType, Constants.ObjectNameIdealAirSystem)
   end
 
-  def self.apply_dehumidifier(model, runner, dehumidifier, living_space, hvac_map)
-    hvac_map[dehumidifier.id] = []
+  def self.apply_dehumidifiers(model, runner, dehumidifiers, living_space, hvac_map)
+    dehumidifier_id = dehumidifiers[0].id # Syncs with SimulationOutputReport, which only looks at first dehumidifier ID
+    hvac_map[dehumidifier_id] = []
 
-    water_removal_rate = dehumidifier.capacity
-    energy_factor = dehumidifier.energy_factor
-
-    control_zone = living_space.thermalZone.get
-    obj_name = Constants.ObjectNameDehumidifier
-
-    avg_rh_setpoint = dehumidifier.rh_setpoint * 100.0 # (EnergyPlus uses 60 for 60% RH)
-    relative_humidity_setpoint_sch = OpenStudio::Model::ScheduleConstant.new(model)
-    relative_humidity_setpoint_sch.setName(Constants.ObjectNameRelativeHumiditySetpoint)
-    relative_humidity_setpoint_sch.setValue(avg_rh_setpoint)
+    if dehumidifiers.map { |d| d.rh_setpoint }.uniq.size > 1
+      fail 'All dehumidifiers must have the same setpoint but multiple setpoints were specified.'
+    end
 
     # Dehumidifier coefficients
     # Generic model coefficients from Winkler, Christensen, and Tomerlin (2011)
     w_coeff = [-1.162525707, 0.02271469, -0.000113208, 0.021110538, -0.0000693034, 0.000378843]
     ef_coeff = [-1.902154518, 0.063466565, -0.000622839, 0.039540407, -0.000125637, -0.000176722]
     pl_coeff = [0.90, 0.10, 0.0]
+
+    dehumidifiers.each do |d|
+      next unless d.energy_factor.nil?
+
+      # shift inputs tested under IEF test conditions to those under EF test conditions with performance curves
+      d.energy_factor, d.capacity = apply_dehumidifier_ief_to_ef_inputs(d.type, w_coeff, ef_coeff, d.integrated_energy_factor, d.capacity)
+    end
+
+    total_capacity = dehumidifiers.map { |d| d.capacity }.sum
+    avg_energy_factor = dehumidifiers.map { |d| d.energy_factor * d.capacity }.sum / total_capacity
+    total_fraction_served = dehumidifiers.map { |d| d.fraction_served }.sum
+
+    control_zone = living_space.thermalZone.get
+    obj_name = Constants.ObjectNameDehumidifier
+
+    rh_setpoint = dehumidifiers[0].rh_setpoint * 100.0 # (EnergyPlus uses 60 for 60% RH)
+    relative_humidity_setpoint_sch = OpenStudio::Model::ScheduleConstant.new(model)
+    relative_humidity_setpoint_sch.setName(Constants.ObjectNameRelativeHumiditySetpoint)
+    relative_humidity_setpoint_sch.setValue(rh_setpoint)
+
     water_removal_curve = create_curve_biquadratic(model, w_coeff, 'DXDH-WaterRemove-Cap-fT', -100, 100, -100, 100)
     energy_factor_curve = create_curve_biquadratic(model, ef_coeff, 'DXDH-EnergyFactor-fT', -100, 100, -100, 100)
     part_load_frac_curve = create_curve_quadratic(model, pl_coeff, 'DXDH-PLF-fPLR', 0, 1, 0.7, 1)
-    if energy_factor.nil?
-      # shift inputs tested under IEF test conditions to those under EF test conditions with performance curves
-      energy_factor, water_removal_rate = apply_dehumidifier_ief_to_ef_inputs(dehumidifier.type, w_coeff, ef_coeff, dehumidifier.integrated_energy_factor, water_removal_rate)
-    end
 
     # Calculate air flow rate by assuming 2.75 cfm/pint/day (based on experimental test data)
-    air_flow_rate = 2.75 * water_removal_rate
+    air_flow_rate = 2.75 * total_capacity
 
     humidistat = OpenStudio::Model::ZoneControlHumidistat.new(model)
     humidistat.setName(obj_name + ' humidistat')
@@ -1305,17 +1315,17 @@ class HVAC
     zone_hvac = OpenStudio::Model::ZoneHVACDehumidifierDX.new(model, water_removal_curve, energy_factor_curve, part_load_frac_curve)
     zone_hvac.setName(obj_name)
     zone_hvac.setAvailabilitySchedule(model.alwaysOnDiscreteSchedule)
-    zone_hvac.setRatedWaterRemoval(UnitConversions.convert(water_removal_rate, 'pint', 'L'))
-    zone_hvac.setRatedEnergyFactor(energy_factor / dehumidifier.fraction_served)
+    zone_hvac.setRatedWaterRemoval(UnitConversions.convert(total_capacity, 'pint', 'L'))
+    zone_hvac.setRatedEnergyFactor(avg_energy_factor / total_fraction_served)
     zone_hvac.setRatedAirFlowRate(UnitConversions.convert(air_flow_rate, 'cfm', 'm^3/s'))
     zone_hvac.setMinimumDryBulbTemperatureforDehumidifierOperation(10)
     zone_hvac.setMaximumDryBulbTemperatureforDehumidifierOperation(40)
 
     zone_hvac.addToThermalZone(control_zone)
 
-    hvac_map[dehumidifier.id] << zone_hvac
-    if dehumidifier.fraction_served < 1.0
-      adjust_dehumidifier_load_EMS(dehumidifier.fraction_served, zone_hvac, model, living_space)
+    hvac_map[dehumidifier_id] << zone_hvac
+    if total_fraction_served < 1.0
+      adjust_dehumidifier_load_EMS(total_fraction_served, zone_hvac, model, living_space)
     end
   end
 
@@ -4254,7 +4264,7 @@ class HVAC
     end
     program_calling_manager = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
     program_calling_manager.setName("#{obj_name} program manager")
-    program_calling_manager.setCallingPoint('InsideHVACSystemIterationLoop')
+    program_calling_manager.setCallingPoint('BeginTimestepBeforePredictor')
     program_calling_manager.addProgram(fault_program)
   end
 

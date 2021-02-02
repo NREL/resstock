@@ -126,9 +126,6 @@ class Geometry
       return false
     end
 
-    # starting spaces
-    runner.registerInitialCondition("The building started with #{model.getSpaces.size} spaces.")
-
     # create living zone
     living_zone = OpenStudio::Model::ThermalZone.new(model)
     living_zone.setName('living zone')
@@ -173,7 +170,6 @@ class Geometry
         garage_space_type = OpenStudio::Model::SpaceType.new(model)
         garage_space_type.setStandardsSpaceType('garage')
         garage_space.setSpaceType(garage_space_type)
-        runner.registerInfo("Set #{garage_space_name}.")
 
         # set this to the garage zone
         garage_space.setThermalZone(garage_zone)
@@ -271,7 +267,6 @@ class Geometry
       living_space_type = OpenStudio::Model::SpaceType.new(model)
       living_space_type.setStandardsSpaceType(HPXML::LocationLivingSpace)
       living_space.setSpaceType(living_space_type)
-      runner.registerInfo("Set #{living_space_name}.")
 
       # set these to the living zone
       living_space.setThermalZone(living_zone)
@@ -386,7 +381,6 @@ class Geometry
       attic_space_type = OpenStudio::Model::SpaceType.new(model)
       attic_space_type.setStandardsSpaceType(attic_space_type_name)
       attic_space.setSpaceType(attic_space_type)
-      runner.registerInfo("Set #{attic_space_name}.")
 
       m = initialize_transformation_matrix(OpenStudio::Matrix.new(4, 4, 0))
       m[0, 3] = 0
@@ -432,7 +426,6 @@ class Geometry
       foundation_space_type = OpenStudio::Model::SpaceType.new(model)
       foundation_space_type.setStandardsSpaceType(foundation_space_type_name)
       foundation_space.setSpaceType(foundation_space_type)
-      runner.registerInfo("Set #{foundation_space_name}.")
 
       # set these to the foundation zone
       foundation_space.setThermalZone(foundation_zone)
@@ -584,7 +577,6 @@ class Geometry
         garage_attic_space_type = OpenStudio::Model::SpaceType.new(model)
         garage_attic_space_type.setStandardsSpaceType(garage_attic_space_type_name)
         garage_attic_space.setSpaceType(garage_attic_space_type)
-        runner.registerInfo("Set #{garage_attic_space_name}.")
 
         # put all of the spaces in the model into a vector
         spaces = OpenStudio::Model::SpaceVector.new
@@ -1052,8 +1044,6 @@ class Geometry
         sub_surface.setName("#{surface.name} - Skylight")
         sub_surface.setSurface(surface)
 
-        runner.registerInfo("Added a skylight, totaling #{skylight_area.round(1)} ft^2, to #{surface.name}.")
-
         if not constructions[facade].nil?
           sub_surface.setConstruction(constructions[facade])
         end
@@ -1140,7 +1130,7 @@ class Geometry
         add_window_to_wall(surface, window_width, window_height, group_cx, group_cy, win_num, facade, constructions, model, runner)
       end
     end
-    runner.registerInfo("Added #{num_windows} window(s), totaling #{window_area.round(1)} ft^2, to #{surface.name}.")
+
     return true
   end
 
@@ -1431,8 +1421,6 @@ class Geometry
 
     if door_sub_surface.nil? && unit_has_door
       runner.registerWarning('Could not find appropriate surface for the door. No door was added.')
-    elsif not door_sub_surface.nil?
-      runner.registerInfo("Added #{door_area.round(1)} ft^2 door.")
     end
 
     return true
@@ -1526,9 +1514,6 @@ class Geometry
     cfa = UnitConversions.convert(cfa, 'ft^2', 'm^2')
     wall_height = UnitConversions.convert(wall_height, 'ft', 'm')
     foundation_height = UnitConversions.convert(foundation_height, 'ft', 'm')
-
-    # starting spaces
-    runner.registerInitialCondition("The building started with #{model.getSpaces.size} spaces.")
 
     if (foundation_type == HPXML::FoundationTypeBasementConditioned) && (attic_type == HPXML::AtticTypeConditioned)
       footprint = cfa / (num_floors + 2)
@@ -2050,9 +2035,6 @@ class Geometry
     cfa = UnitConversions.convert(cfa, 'ft^2', 'm^2')
     wall_height = UnitConversions.convert(wall_height, 'ft', 'm')
     foundation_height = UnitConversions.convert(foundation_height, 'ft', 'm')
-
-    # starting spaces
-    runner.registerInitialCondition("The building started with #{model.getSpaces.size} spaces.")
 
     # calculate the dimensions of the unit
     footprint = cfa + inset_width * inset_depth
