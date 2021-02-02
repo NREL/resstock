@@ -356,6 +356,7 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
           next if heating_system.fraction_heat_load_served != measures['BuildResidentialHPXML'][0]['heating_system_fraction_heat_load_served']
 
           # if we made it this far, this is the correct heating_system
+          runner.registerInfo("Not upgrading heating system '#{heating_system.id}', so retaining calculated heating capacity.")
           measures['BuildResidentialHPXML'][0]['heating_system_heating_capacity'] = heating_system.heating_capacity
         end
       end
@@ -367,6 +368,7 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
           next if heating_system.fraction_heat_load_served != measures['BuildResidentialHPXML'][0]['heating_system_fraction_heat_load_served_2']
 
           # if we made it this far, this is the correct supplemental heating_system
+          runner.registerInfo("Not upgrading secondary heating system '#{heating_system.id}', so retaining calculated secondary heating capacity.")
           measures['BuildResidentialHPXML'][0]['heating_system_heating_capacity_2'] = heating_system.heating_capacity
         end
       end
@@ -377,6 +379,7 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
           next if cooling_system.fraction_cool_load_served != measures['BuildResidentialHPXML'][0]['cooling_system_fraction_cool_load_served']
 
           # if we made it this far, this is the correct cooling_system
+          runner.registerInfo("Not upgrading cooling system '#{cooling_system.id}', so retaining calculated cooling capacity.")
           measures['BuildResidentialHPXML'][0]['cooling_system_cooling_capacity'] = cooling_system.cooling_capacity
         end
       end
@@ -388,6 +391,7 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
           next if heat_pump.fraction_cool_load_served != measures['BuildResidentialHPXML'][0]['heat_pump_fraction_cool_load_served']
 
           # if we made it this far, this is the correct heat_pump
+          runner.registerInfo("Not upgrading heat pump '#{heat_pump.id}', so retaining calculated heat pump capacity.")
           measures['BuildResidentialHPXML'][0]['heat_pump_heating_capacity'] = heat_pump.heating_capacity
           measures['BuildResidentialHPXML'][0]['heat_pump_cooling_capacity'] = heat_pump.cooling_capacity
           measures['BuildResidentialHPXML'][0]['heat_pump_backup_heating_capacity'] = heat_pump.backup_heating_capacity
