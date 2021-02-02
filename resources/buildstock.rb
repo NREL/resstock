@@ -476,13 +476,26 @@ class RunOSWs
     Dir.mkdir(results_dir)
     csv_out = File.join(results_dir, 'results.csv')
 
-    column_headers = results[0].keys.sort
+    column_headers = []
+    results.each do |result|
+      result.keys.each do |column_header|
+        unless column_headers.include?(column_header)
+          column_headers << column_header
+        end
+      end
+    end
+    column_headers = column_headers.sort
+
     CSV.open(csv_out, 'wb') do |csv|
       csv << column_headers
       results.each do |result|
         csv_row = []
         column_headers.each do |column_header|
-          csv_row << result[column_header]
+          if result.keys.include?(column_header)
+            csv_row << result[column_header]
+          else
+            csv_row << ''
+          end
         end
         csv << csv_row
       end

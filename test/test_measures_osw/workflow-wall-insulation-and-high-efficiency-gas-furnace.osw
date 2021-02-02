@@ -1,0 +1,39 @@
+{
+  "measure_paths": [
+    "../../measures",
+    "../../resources/hpxml-measures"
+  ],
+  "steps": [
+    {
+      "measure_dir_name": "BuildExistingModel",
+      "arguments": {
+        "building_unit_id": "1",
+        "workflow_json": "measure-info.json"
+      }
+    },
+    {
+      "measure_dir_name": "ApplyUpgrade",
+      "arguments": {
+        "run_measure": 1,
+        "upgrade_name": "R-13 Wall Insulation and High Efficiency Furnace",
+        "option_1": "Insulation Wall|Wood Stud, R-13",
+        "option_1_lifetime": 999,
+        "option_1_cost_1_value": 2.21,
+        "option_1_cost_1_multiplier": "Wall Area, Above-Grade, Conditioned (ft^2)",
+        "option_2": "HVAC Heating Efficiency|Fuel Furnace, 96% AFUE",
+        "option_2_lifetime": 30,
+        "option_2_cost_1_value": 2500.0,
+        "option_2_cost_1_multiplier": "Fixed (1)",
+        "option_2_cost_2_value": 100.0,
+        "option_2_cost_2_multiplier": "Size, Heating System (kBtu/h)",
+        "option_3": "HVAC Heating Type And Fuel|Natural Gas Fuel Furnace"
+      }
+    },
+    {
+      "measure_dir_name": "SimulationOutputReport"
+    },
+    {
+      "measure_dir_name": "UpgradeCosts"
+    }
+  ]
+}
