@@ -223,7 +223,8 @@ if ARGV[0].to_sym == :update_measures
         'schedules_type' => 'stochastic'
       },
       'HPXMLtoOpenStudio' => {
-        'hpxml_path' => File.expand_path(File.join(File.dirname(__FILE__), 'workflows/run/in.xml'))
+        'hpxml_path' => File.expand_path(File.join(File.dirname(__FILE__), 'workflows/run/in.xml')),
+        'output_dir' => File.expand_path(File.join(File.dirname(__FILE__), 'workflows/run'))
       }
     }
 
