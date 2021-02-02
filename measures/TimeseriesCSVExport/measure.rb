@@ -174,11 +174,11 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
       break
     end
     unless run_period_control_daylight_saving_time.nil?
-      hour_of_dst_switch = OpenStudio::Time.new(0, 1, 0, 0) # 1 AM
       dst_start_date = run_period_control_daylight_saving_time.startDate
-      dst_start_datetime = OpenStudio::DateTime.new(dst_start_date, hour_of_dst_switch)
+      # DST starts at 2:00 AM standard time and it ends at 1:00 AM standard time.
+      dst_start_datetime = OpenStudio::DateTime.new(dst_start_date, OpenStudio::Time.new(0, 2, 0, 0))
       dst_end_date = run_period_control_daylight_saving_time.endDate
-      dst_end_datetime = OpenStudio::DateTime.new(dst_end_date + OpenStudio::Time.new(1, 0, 0, 0), hour_of_dst_switch)
+      dst_end_datetime = OpenStudio::DateTime.new(dst_end_date, OpenStudio::Time.new(0, 1, 0, 0))
     end
 
     utc_offset_hr_float = model.getSite.timeZone
@@ -250,6 +250,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     report_ts_output(runner, timeseries, "total_site_electricity_kwh", electricity.total_end_uses + electricity.photovoltaics, "GJ", elec_site_units)
     report_ts_output(runner, timeseries, "electricity_heating_kwh", electricity.heating, "GJ", elec_site_units)
     report_ts_output(runner, timeseries, "electricity_central_system_heating_kwh", electricity.central_heating, "GJ", elec_site_units)
+    report_ts_output(runner, timeseries, "electricity_heating_supplemental_kwh", electricity.heating_supplemental, "GJ", elec_site_units)
     report_ts_output(runner, timeseries, "electricity_cooling_kwh", electricity.cooling, "GJ", elec_site_units)
     report_ts_output(runner, timeseries, "electricity_central_system_cooling_kwh", electricity.central_cooling, "GJ", elec_site_units)
     report_ts_output(runner, timeseries, "electricity_interior_lighting_kwh", electricity.interior_lighting, "GJ", elec_site_units)
