@@ -320,7 +320,7 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
         measures['BuildResidentialHPXML'][0]['schedules_path'] = File.expand_path('../schedules.csv')
       end
 
-      measures['HPXMLtoOpenStudio'] = [{ 'hpxml_path' => File.expand_path('../upgraded.xml') }]
+      measures['HPXMLtoOpenStudio'] = [{ 'hpxml_path' => File.expand_path('../upgraded.xml'), 'output_dir' => File.expand_path('..') }]
 
       # Get software program used and version
       measures['BuildResidentialHPXML'][0]['software_program_used'] = software_program_used
