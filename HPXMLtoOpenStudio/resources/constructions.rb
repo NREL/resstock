@@ -63,12 +63,6 @@ class Constructions
 
     # Create and assign construction to surfaces
     constr.create_and_assign_constructions(runner, surfaces, model)
-
-    # Store info for HVAC Sizing measure
-    if not wall.nil?
-      wall.insulation_cavity_r_value = cavity_r
-      wall.insulation_continuous_r_value = rigid_r
-    end
   end
 
   def self.apply_double_stud_wall(runner, model, surfaces, wall, constr_name,
@@ -137,9 +131,6 @@ class Constructions
 
     # Create and assign construction to surfaces
     constr.create_and_assign_constructions(runner, surfaces, model)
-
-    # Store info for HVAC Sizing measure
-    wall.insulation_continuous_r_value = rigid_r
   end
 
   def self.apply_cmu_wall(runner, model, surfaces, wall, constr_name,
@@ -207,10 +198,6 @@ class Constructions
 
     # Create and assign construction to surfaces
     constr.create_and_assign_constructions(runner, surfaces, model)
-
-    # Store info for HVAC Sizing measure
-    wall.insulation_cavity_r_value = furring_r
-    wall.insulation_continuous_r_value = rigid_r
   end
 
   def self.apply_icf_wall(runner, model, surfaces, wall, constr_name,
@@ -260,9 +247,6 @@ class Constructions
 
     # Create and assign construction to surfaces
     constr.create_and_assign_constructions(runner, surfaces, model)
-
-    # Store info for HVAC Sizing measure
-    wall.insulation_continuous_r_value = rigid_r
   end
 
   def self.apply_sip_wall(runner, model, surfaces, wall, constr_name, sip_r,
@@ -378,10 +362,6 @@ class Constructions
 
     # Create and assign construction to surfaces
     constr.create_and_assign_constructions(runner, surfaces, model)
-
-    # Store info for HVAC Sizing measure
-    wall.insulation_cavity_r_value = cavity_r
-    wall.insulation_continuous_r_value = rigid_r
   end
 
   def self.apply_generic_layered_wall(runner, model, surfaces, wall, constr_name,
@@ -448,9 +428,6 @@ class Constructions
 
     # Create and assign construction to surfaces
     constr.create_and_assign_constructions(runner, surfaces, model)
-
-    # Store info for HVAC Sizing measure
-    wall.insulation_continuous_r_value = rigid_r
   end
 
   def self.apply_rim_joist(runner, model, surfaces, rim_joist, constr_name,
@@ -508,10 +485,6 @@ class Constructions
 
     # Create and assign construction to surfaces
     constr.create_and_assign_constructions(runner, surfaces, model)
-
-    # Store info for HVAC Sizing measure
-    rim_joist.insulation_continuous_r_value = rigid_r
-    rim_joist.insulation_cavity_r_value = cavity_r
   end
 
   def self.apply_open_cavity_roof(runner, model, surfaces, constr_name,

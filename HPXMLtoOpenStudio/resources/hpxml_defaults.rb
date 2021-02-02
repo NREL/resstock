@@ -1,7 +1,12 @@
 # frozen_string_literal: true
 
 class HPXMLDefaults
-  def self.apply(hpxml, cfa, nbeds, ncfl, ncfl_ag, has_uncond_bsmnt, eri_version, epw_file, runner)
+  # Note: Each HPXML object has an additional_properties child object where
+  # custom information can be attached to the object without being written
+  # to the HPXML file. This is useful to associate additional values with the
+  # HPXML objects that will ultimately get passed around.
+
+  def self.apply(hpxml, runner, epw_file, weather, cfa, nbeds, ncfl, ncfl_ag, has_uncond_bsmnt, eri_version)
     apply_header(hpxml, epw_file, runner)
     apply_site(hpxml)
     apply_building_occupancy(hpxml, nbeds)
@@ -16,7 +21,7 @@ class HPXMLDefaults
     apply_slabs(hpxml)
     apply_windows(hpxml)
     apply_skylights(hpxml)
-    apply_hvac(hpxml)
+    apply_hvac(hpxml, weather)
     apply_hvac_control(hpxml)
     apply_hvac_distribution(hpxml, ncfl, ncfl_ag)
     apply_ventilation_fans(hpxml)
@@ -32,6 +37,9 @@ class HPXMLDefaults
     apply_fuel_loads(hpxml, cfa, nbeds)
     apply_pv_systems(hpxml)
     apply_generators(hpxml)
+
+    # Do HVAC sizing after all other defaults have been applied
+    apply_hvac_sizing(hpxml, runner, weather, cfa, nbeds)
   end
 
   private
@@ -205,6 +213,8 @@ class HPXMLDefaults
         measurement.infiltration_volume_isdefaulted = true
       end
     end
+
+    return infil_volume
   end
 
   def self.apply_attics(hpxml)
@@ -391,7 +401,7 @@ class HPXMLDefaults
     end
   end
 
-  def self.apply_hvac(hpxml)
+  def self.apply_hvac(hpxml, weather)
     # Default AC/HP compressor type
     hpxml.cooling_systems.each do |cooling_system|
       next unless cooling_system.compressor_type.nil?
@@ -595,7 +605,7 @@ class HPXMLDefaults
     end
 
     # HVAC capacities
-    # Transition capacity elements from -1 to nil
+    # Transition capacity elements from -1 (old approach) to nil (new approach)
     hpxml.heating_systems.each do |heating_system|
       if (not heating_system.heating_capacity.nil?) && (heating_system.heating_capacity < 0)
         heating_system.heating_capacity = nil
@@ -626,7 +636,279 @@ class HPXMLDefaults
       end
     end
 
-    # TODO: Default HeatingCapacity17F?
+    # Performance curves, etc.
+    hpxml.cooling_systems.each do |cooling_system|
+      clg_ap = cooling_system.additional_properties
+      if [HPXML::HVACTypeCentralAirConditioner].include? cooling_system.cooling_system_type
+        # Note: We use HP cooling curve so that a central AC behaves the same, per
+        # discussion within RESNET Software Consistency Committee.
+        clg_ap.num_speeds = HVAC.get_num_speeds_from_compressor_type(cooling_system.compressor_type)
+        clg_ap.fan_power_rated = HVAC.get_fan_power_rated(cooling_system.cooling_efficiency_seer)
+        clg_ap.crankcase_kw, clg_ap.crankcase_temp = HVAC.get_crankcase_assumptions(cooling_system.fraction_cool_load_served)
+
+        clg_ap.cool_c_d = HVAC.get_cool_c_d(clg_ap.num_speeds, cooling_system.cooling_efficiency_seer)
+        clg_ap.cool_rated_airflow_rate, clg_ap.cool_fan_speed_ratios, clg_ap.cool_capacity_ratios, clg_ap.shrs, clg_ap.eers, clg_ap.cool_cap_ft_spec, clg_ap.cool_eir_ft_spec, clg_ap.cool_cap_fflow_spec, clg_ap.cool_eir_fflow_spec = HVAC.get_hp_clg_curves(cooling_system)
+        clg_ap.cool_rated_cfm_per_ton = HVAC.calc_cfms_ton_rated(clg_ap.cool_rated_airflow_rate, clg_ap.cool_fan_speed_ratios, clg_ap.cool_capacity_ratios)
+        clg_ap.cool_shrs_rated_gross = HVAC.calc_shrs_rated_gross(clg_ap.num_speeds, clg_ap.shrs, clg_ap.fan_power_rated, clg_ap.cool_rated_cfm_per_ton)
+        clg_ap.cool_rated_eirs = HVAC.calc_cool_rated_eirs(clg_ap.num_speeds, clg_ap.eers, clg_ap.fan_power_rated)
+        clg_ap.cool_closs_fplr_spec = [HVAC.calc_plr_coefficients(clg_ap.cool_c_d)] * clg_ap.num_speeds
+      elsif [HPXML::HVACTypeRoomAirConditioner].include? cooling_system.cooling_system_type
+        # FUTURE: Move values into hvac.rb
+        # From Frigidaire 10.7 EER unit in Winkler et. al. Lab Testing of Window ACs (2013)
+        clg_ap.cool_shrs_rated_gross = [cooling_system.cooling_shr]
+        clg_ap.cool_cap_ft_spec = [[0.43945980246913574, -0.0008922469135802481, 0.00013984567901234569, 0.0038489259259259253, -5.6327160493827156e-05, 2.041358024691358e-05]]
+        clg_ap.cool_eir_ft_spec = [[6.310506172839506, -0.17705185185185185, 0.0014645061728395061, 0.012571604938271608, 0.0001493827160493827, -0.00040308641975308644]]
+        clg_ap.cool_cap_fflow_spec = [[0.887, 0.1128, 0]]
+        clg_ap.cool_eir_fflow_spec = [[1.763, -0.6081, 0]]
+        clg_ap.cool_plf_fplr = [[0.78, 0.22, 0]]
+        clg_ap.cool_rated_cfm_per_ton = [312.0] # cfm/ton, medium speed
+      elsif [HPXML::HVACTypeMiniSplitAirConditioner].include? cooling_system.cooling_system_type
+        # FUTURE: Move some of this code into hvac.rb; combine w/ MSHP
+        num_speeds = 10
+        clg_ap.speed_indices = [1, 3, 5, 9]
+        clg_ap.num_speeds = clg_ap.speed_indices.size # Number of speeds we model
+        clg_ap.crankcase_kw, clg_ap.crankcase_temp = 0, nil
+        if not cooling_system.distribution_system.nil?
+          # Ducted, installed fan power may differ from rated fan power
+          clg_ap.fan_power_rated = 0.18 # W/cfm, ducted
+        else
+          # Ductless, installed and rated value should be equal
+          clg_ap.fan_power_rated = 0.07 # W/cfm
+          cooling_system.fan_watts_per_cfm = clg_ap.fan_power_rated # W/cfm
+        end
+
+        min_cooling_capacity = 0.4 # frac
+        max_cooling_capacity = 1.2 # frac
+        min_cooling_airflow_rate = 200.0
+        max_cooling_airflow_rate = 425.0
+
+        clg_ap.cool_cap_ft_spec = [[0.7531983499655835, 0.003618193903031667, 0.0, 0.006574385031351544, -6.87181191015432e-05, 0.0]] * num_speeds
+        clg_ap.cool_eir_ft_spec = [[-0.06376924779982301, -0.0013360593470367282, 1.413060577993827e-05, 0.019433076486584752, -4.91395947154321e-05, -4.909341249475308e-05]] * num_speeds
+        clg_ap.cool_cap_fflow_spec = [[1, 0, 0]] * num_speeds
+        clg_ap.cool_eir_fflow_spec = [[1, 0, 0]] * num_speeds
+        clg_ap.cool_c_d = HVAC.get_cool_c_d(num_speeds, cooling_system.cooling_efficiency_seer)
+        clg_ap.cool_closs_fplr_spec = [HVAC.calc_plr_coefficients(clg_ap.cool_c_d)] * num_speeds
+        clg_ap.cool_rated_cfm_per_ton, clg_ap.cool_capacity_ratios, clg_ap.cool_shrs_rated_gross = HVAC.calc_mshp_cfms_ton_cooling(min_cooling_capacity, max_cooling_capacity, min_cooling_airflow_rate, max_cooling_airflow_rate, num_speeds, cooling_system.cooling_shr)
+        clg_ap.cool_rated_eirs = HVAC.calc_mshp_cool_rated_eirs(cooling_system.cooling_efficiency_seer, clg_ap.fan_power_rated, clg_ap.cool_c_d, num_speeds, clg_ap.cool_capacity_ratios, clg_ap.cool_rated_cfm_per_ton, clg_ap.cool_eir_ft_spec, clg_ap.cool_cap_ft_spec)
+
+        # Down-select to speed indices
+        clg_ap.cool_cap_ft_spec = clg_ap.cool_cap_ft_spec.select.with_index { |x, i| clg_ap.speed_indices.include? i }
+        clg_ap.cool_eir_ft_spec = clg_ap.cool_eir_ft_spec.select.with_index { |x, i| clg_ap.speed_indices.include? i }
+        clg_ap.cool_cap_fflow_spec = clg_ap.cool_cap_fflow_spec.select.with_index { |x, i| clg_ap.speed_indices.include? i }
+        clg_ap.cool_eir_fflow_spec = clg_ap.cool_eir_fflow_spec.select.with_index { |x, i| clg_ap.speed_indices.include? i }
+        clg_ap.cool_closs_fplr_spec = clg_ap.cool_closs_fplr_spec.select.with_index { |x, i| clg_ap.speed_indices.include? i }
+        clg_ap.cool_rated_cfm_per_ton = clg_ap.cool_rated_cfm_per_ton.select.with_index { |x, i| clg_ap.speed_indices.include? i }
+        clg_ap.cool_capacity_ratios = clg_ap.cool_capacity_ratios.select.with_index { |x, i| clg_ap.speed_indices.include? i }
+        clg_ap.cool_shrs_rated_gross = clg_ap.cool_shrs_rated_gross.select.with_index { |x, i| clg_ap.speed_indices.include? i }
+        clg_ap.cool_rated_eirs = clg_ap.cool_rated_eirs.select.with_index { |x, i| clg_ap.speed_indices.include? i }
+        clg_ap.cool_fan_speed_ratios = []
+        for i in 0..(clg_ap.speed_indices.size - 1)
+          clg_ap.cool_fan_speed_ratios << clg_ap.cool_rated_cfm_per_ton[i] / clg_ap.cool_rated_cfm_per_ton[-1]
+        end
+      elsif [HPXML::HVACTypeEvaporativeCooler].include? cooling_system.cooling_system_type
+        clg_ap.effectiveness = 0.72 # Assumption from HEScore
+      end
+    end
+    hpxml.heating_systems.each do |heating_system|
+      htg_ap = heating_system.additional_properties
+      next unless [HPXML::HVACTypeStove,
+                   HPXML::HVACTypePortableHeater,
+                   HPXML::HVACTypeFixedHeater,
+                   HPXML::HVACTypeWallFurnace,
+                   HPXML::HVACTypeFloorFurnace,
+                   HPXML::HVACTypeFireplace].include? heating_system.heating_system_type
+      htg_ap.heat_rated_cfm_per_ton = [350.0]
+    end
+    hpxml.heat_pumps.each do |heat_pump|
+      hp_ap = heat_pump.additional_properties
+      if [HPXML::HVACTypeHeatPumpAirToAir].include? heat_pump.heat_pump_type
+        hp_ap.num_speeds = HVAC.get_num_speeds_from_compressor_type(heat_pump.compressor_type)
+        hp_ap.fan_power_rated = HVAC.get_fan_power_rated(heat_pump.cooling_efficiency_seer)
+        if heat_pump.fraction_heat_load_served <= 0
+          hp_ap.crankcase_kw, hp_ap.crankcase_temp = 0, nil
+        else
+          hp_ap.crankcase_kw, hp_ap.crankcase_temp = HVAC.get_crankcase_assumptions(heat_pump.fraction_cool_load_served)
+        end
+        hp_ap.hp_min_temp, hp_ap.supp_max_temp = HVAC.get_heat_pump_temp_assumptions(heat_pump)
+
+        hp_ap.cool_c_d = HVAC.get_cool_c_d(hp_ap.num_speeds, heat_pump.cooling_efficiency_seer)
+        hp_ap.cool_rated_airflow_rate, hp_ap.cool_fan_speed_ratios, hp_ap.cool_capacity_ratios, hp_ap.cool_shrs, hp_ap.cool_eers, hp_ap.cool_cap_ft_spec, hp_ap.cool_eir_ft_spec, hp_ap.cool_cap_fflow_spec, hp_ap.cool_eir_fflow_spec = HVAC.get_hp_clg_curves(heat_pump)
+        hp_ap.cool_rated_cfm_per_ton = HVAC.calc_cfms_ton_rated(hp_ap.cool_rated_airflow_rate, hp_ap.cool_fan_speed_ratios, hp_ap.cool_capacity_ratios)
+        hp_ap.cool_shrs_rated_gross = HVAC.calc_shrs_rated_gross(hp_ap.num_speeds, hp_ap.cool_shrs, hp_ap.fan_power_rated, hp_ap.cool_rated_cfm_per_ton)
+        hp_ap.cool_rated_eirs = HVAC.calc_cool_rated_eirs(hp_ap.num_speeds, hp_ap.cool_eers, hp_ap.fan_power_rated)
+        hp_ap.cool_closs_fplr_spec = [HVAC.calc_plr_coefficients(hp_ap.cool_c_d)] * hp_ap.num_speeds
+
+        hp_ap.heat_c_d = HVAC.get_heat_c_d(hp_ap.num_speeds, heat_pump.heating_efficiency_hspf)
+        hp_ap.heat_rated_airflow_rate, hp_ap.heat_fan_speed_ratios, hp_ap.heat_capacity_ratios, hp_ap.heat_cops, hp_ap.heat_cap_ft_spec, hp_ap.heat_eir_ft_spec, hp_ap.heat_cap_fflow_spec, hp_ap.heat_eir_fflow_spec = HVAC.get_hp_htg_curves(heat_pump)
+        hp_ap.heat_rated_cfm_per_ton = HVAC.calc_cfms_ton_rated(hp_ap.heat_rated_airflow_rate, hp_ap.heat_fan_speed_ratios, hp_ap.heat_capacity_ratios)
+        hp_ap.heat_rated_eirs = HVAC.calc_heat_rated_eirs(hp_ap.num_speeds, hp_ap.heat_cops, hp_ap.fan_power_rated)
+        hp_ap.heat_closs_fplr_spec = [HVAC.calc_plr_coefficients(hp_ap.heat_c_d)] * hp_ap.num_speeds
+      elsif [HPXML::HVACTypeHeatPumpMiniSplit].include? heat_pump.heat_pump_type
+        # FUTURE: Move some of this code into hvac.rb; combine w/ MSAC
+        num_speeds = 10
+        hp_ap.speed_indices = [1, 3, 5, 9]
+        hp_ap.num_speeds = hp_ap.speed_indices.size # Number of speeds we model
+        hp_ap.crankcase_kw, hp_ap.crankcase_temp = 0, nil
+        if not heat_pump.distribution_system.nil?
+          # Ducted, installed fan power may differ from rated fan power
+          hp_ap.fan_power_rated = 0.18 # W/cfm, ducted
+        else
+          # Ductless, installed and rated value should be equal
+          hp_ap.fan_power_rated = 0.07 # W/cfm
+          heat_pump.fan_watts_per_cfm = hp_ap.fan_power_rated # W/cfm
+        end
+        hp_ap.hp_min_temp, hp_ap.supp_max_temp = HVAC.get_heat_pump_temp_assumptions(heat_pump)
+
+        min_cooling_capacity = 0.4 # frac
+        max_cooling_capacity = 1.2 # frac
+        min_cooling_airflow_rate = 200.0
+        max_cooling_airflow_rate = 425.0
+
+        hp_ap.cool_cap_ft_spec = [[0.7531983499655835, 0.003618193903031667, 0.0, 0.006574385031351544, -6.87181191015432e-05, 0.0]] * num_speeds
+        hp_ap.cool_eir_ft_spec = [[-0.06376924779982301, -0.0013360593470367282, 1.413060577993827e-05, 0.019433076486584752, -4.91395947154321e-05, -4.909341249475308e-05]] * num_speeds
+        hp_ap.cool_cap_fflow_spec = [[1, 0, 0]] * num_speeds
+        hp_ap.cool_eir_fflow_spec = [[1, 0, 0]] * num_speeds
+        hp_ap.cool_c_d = HVAC.get_cool_c_d(num_speeds, heat_pump.cooling_efficiency_seer)
+        hp_ap.cool_closs_fplr_spec = [HVAC.calc_plr_coefficients(hp_ap.cool_c_d)] * num_speeds
+        hp_ap.cool_rated_cfm_per_ton, hp_ap.cool_capacity_ratios, hp_ap.cool_shrs_rated_gross = HVAC.calc_mshp_cfms_ton_cooling(min_cooling_capacity, max_cooling_capacity, min_cooling_airflow_rate, max_cooling_airflow_rate, num_speeds, heat_pump.cooling_shr)
+        hp_ap.cool_rated_eirs = HVAC.calc_mshp_cool_rated_eirs(heat_pump.cooling_efficiency_seer, hp_ap.fan_power_rated, hp_ap.cool_c_d, num_speeds, hp_ap.cool_capacity_ratios, hp_ap.cool_rated_cfm_per_ton, hp_ap.cool_eir_ft_spec, hp_ap.cool_cap_ft_spec)
+
+        # Down-select to speed indices
+        hp_ap.cool_cap_ft_spec = hp_ap.cool_cap_ft_spec.select.with_index { |x, i| hp_ap.speed_indices.include? i }
+        hp_ap.cool_eir_ft_spec = hp_ap.cool_eir_ft_spec.select.with_index { |x, i| hp_ap.speed_indices.include? i }
+        hp_ap.cool_cap_fflow_spec = hp_ap.cool_cap_fflow_spec.select.with_index { |x, i| hp_ap.speed_indices.include? i }
+        hp_ap.cool_eir_fflow_spec = hp_ap.cool_eir_fflow_spec.select.with_index { |x, i| hp_ap.speed_indices.include? i }
+        hp_ap.cool_closs_fplr_spec = hp_ap.cool_closs_fplr_spec.select.with_index { |x, i| hp_ap.speed_indices.include? i }
+        hp_ap.cool_rated_cfm_per_ton = hp_ap.cool_rated_cfm_per_ton.select.with_index { |x, i| hp_ap.speed_indices.include? i }
+        hp_ap.cool_capacity_ratios = hp_ap.cool_capacity_ratios.select.with_index { |x, i| hp_ap.speed_indices.include? i }
+        hp_ap.cool_shrs_rated_gross = hp_ap.cool_shrs_rated_gross.select.with_index { |x, i| hp_ap.speed_indices.include? i }
+        hp_ap.cool_rated_eirs = hp_ap.cool_rated_eirs.select.with_index { |x, i| hp_ap.speed_indices.include? i }
+        hp_ap.cool_fan_speed_ratios = []
+        for i in 0..(hp_ap.speed_indices.size - 1)
+          hp_ap.cool_fan_speed_ratios << hp_ap.cool_rated_cfm_per_ton[i] / hp_ap.cool_rated_cfm_per_ton[-1]
+        end
+
+        min_heating_capacity = 0.3 # frac
+        max_heating_capacity = 1.2 # frac
+        min_heating_airflow_rate = 200.0
+        max_heating_airflow_rate = 400.0
+
+        # COP/EIR as a function of temperature
+        # Generic curves (=Daikin from lab data)
+        hp_ap.heat_eir_ft_spec = [[0.9999941697687026, 0.004684593830254383, 5.901286675833333e-05, -0.0028624467783091973, 1.3041120194135802e-05, -0.00016172918478765433]] * num_speeds
+        hp_ap.heat_cap_fflow_spec = [[1, 0, 0]] * num_speeds
+        hp_ap.heat_eir_fflow_spec = [[1, 0, 0]] * num_speeds
+
+        # Derive coefficients from user input for capacity retention at outdoor drybulb temperature X [C].
+        if heat_pump.heating_capacity_17F.nil? || ((heat_pump.heating_capacity_17F == 0) && (heat_pump.heating_capacity == 0))
+          cap_retention_frac = 0.25 # frac
+          cap_retention_temp = -5.0 # deg-F
+        else
+          cap_retention_frac = heat_pump.heating_capacity_17F / heat_pump.heating_capacity
+          cap_retention_temp = 17.0 # deg-F
+        end
+
+        # Biquadratic: capacity multiplier = a + b*IAT + c*IAT^2 + d*OAT + e*OAT^2 + f*IAT*OAT
+        x_A = UnitConversions.convert(cap_retention_temp, 'F', 'C')
+        y_A = cap_retention_frac
+        x_B = UnitConversions.convert(47.0, 'F', 'C') # 47F is the rating point
+        y_B = 1.0 # Maximum capacity factor is 1 at the rating point, by definition (this is maximum capacity, not nominal capacity)
+        oat_slope = (y_B - y_A) / (x_B - x_A)
+        oat_intercept = y_A - (x_A * oat_slope)
+
+        # Coefficients for the indoor temperature relationship are retained from the generic curve (Daikin lab data).
+        iat_slope = -0.010386676170938
+        iat_intercept = 0.219274275
+        a = oat_intercept + iat_intercept
+        b = iat_slope
+        c = 0
+        d = oat_slope
+        e = 0
+        f = 0
+        hp_ap.heat_cap_ft_spec = [HVAC.convert_curve_biquadratic([a, b, c, d, e, f], false)] * num_speeds
+
+        hp_ap.heat_c_d = HVAC.get_heat_c_d(num_speeds, heat_pump.heating_efficiency_hspf)
+        hp_ap.heat_closs_fplr_spec = [HVAC.calc_plr_coefficients(hp_ap.heat_c_d)] * num_speeds
+        hp_ap.heat_rated_cfm_per_ton, hp_ap.heat_capacity_ratios = HVAC.calc_mshp_cfms_ton_heating(min_heating_capacity, max_heating_capacity, min_heating_airflow_rate, max_heating_airflow_rate, num_speeds)
+        hp_ap.heat_rated_eirs = HVAC.calc_mshp_heat_rated_eirs(heat_pump.heating_efficiency_hspf, hp_ap.fan_power_rated, hp_ap.hp_min_temp, hp_ap.heat_c_d, hp_ap.heat_rated_cfm_per_ton, num_speeds, hp_ap.heat_capacity_ratios, hp_ap.heat_rated_cfm_per_ton, hp_ap.heat_eir_ft_spec, hp_ap.heat_cap_ft_spec)
+
+        # Down-select to speed indices
+        hp_ap.heat_eir_ft_spec = hp_ap.heat_eir_ft_spec.select.with_index { |x, i| hp_ap.speed_indices.include? i }
+        hp_ap.heat_cap_fflow_spec = hp_ap.heat_cap_fflow_spec.select.with_index { |x, i| hp_ap.speed_indices.include? i }
+        hp_ap.heat_eir_fflow_spec = hp_ap.heat_eir_fflow_spec.select.with_index { |x, i| hp_ap.speed_indices.include? i }
+        hp_ap.heat_cap_ft_spec = hp_ap.heat_cap_ft_spec.select.with_index { |x, i| hp_ap.speed_indices.include? i }
+        hp_ap.heat_closs_fplr_spec = hp_ap.heat_closs_fplr_spec.select.with_index { |x, i| hp_ap.speed_indices.include? i }
+        hp_ap.heat_rated_cfm_per_ton = hp_ap.heat_rated_cfm_per_ton.select.with_index { |x, i| hp_ap.speed_indices.include? i }
+        hp_ap.heat_capacity_ratios = hp_ap.heat_capacity_ratios.select.with_index { |x, i| hp_ap.speed_indices.include? i }
+        hp_ap.heat_rated_eirs = hp_ap.heat_rated_eirs.select.with_index { |x, i| hp_ap.speed_indices.include? i }
+        hp_ap.heat_fan_speed_ratios = []
+        for i in 0..(hp_ap.speed_indices.size - 1)
+          hp_ap.heat_fan_speed_ratios << hp_ap.heat_rated_cfm_per_ton[i] / hp_ap.heat_rated_cfm_per_ton[-1]
+        end
+      elsif [HPXML::HVACTypeHeatPumpGroundToAir].include? heat_pump.heat_pump_type
+        hp_ap.design_chw = [85.0, weather.design.CoolingDrybulb - 15.0, weather.data.AnnualAvgDrybulb + 10.0].max # Temperature of water entering indoor coil,use 85F as lower bound
+        hp_ap.design_delta_t = 10.0
+        hp_ap.fluid_type = Constants.FluidPropyleneGlycol
+        hp_ap.frac_glycol = 0.3
+        if hp_ap.fluid_type == Constants.FluidWater
+          hp_ap.design_hw = [45.0, weather.design.HeatingDrybulb + 35.0, weather.data.AnnualAvgDrybulb - 10.0].max # Temperature of fluid entering indoor coil, use 45F as lower bound for water
+        else
+          hp_ap.design_hw = [35.0, weather.design.HeatingDrybulb + 35.0, weather.data.AnnualAvgDrybulb - 10.0].min # Temperature of fluid entering indoor coil, use 35F as upper bound
+        end
+        hp_ap.ground_conductivity = 0.6 # Btu/h-ft-R
+        hp_ap.ground_diffusivity = 0.0208
+        hp_ap.grout_conductivity = 0.4 # Btu/h-ft-R
+        hp_ap.bore_diameter = 5.0 # in
+        hp_ap.pipe_size = 0.75 # in
+        # Pipe nominal size conversion to pipe outside diameter and inside diameter,
+        # only pipe sizes <= 2" are used here with DR11 (dimension ratio),
+        if hp_ap.pipe_size == 0.75 # 3/4" pipe
+          hp_ap.pipe_od = 1.050 # in
+          hp_ap.pipe_id = 0.859 # in
+        elsif hp_ap.pipe_size == 1.0 # 1" pipe
+          hp_ap.pipe_od = 1.315 # in
+          hp_ap.pipe_id = 1.076 # in
+        elsif hp_ap.pipe_size == 1.25 # 1-1/4" pipe
+          hp_ap.pipe_od = 1.660 # in
+          hp_ap.pipe_id = 1.358 # in
+        end
+        hp_ap.pipe_cond = 0.23 # Btu/h-ft-R; Pipe thermal conductivity, default to high density polyethylene
+        hp_ap.u_tube_spacing_type = 'b'
+        # Calculate distance between pipes
+        if hp_ap.u_tube_spacing_type == 'as'
+          # Two tubes, spaced 1/8” apart at the center of the borehole
+          hp_ap.u_tube_spacing = 0.125
+        elsif hp_ap.u_tube_spacing_type == 'b'
+          # Two tubes equally spaced between the borehole edges
+          hp_ap.u_tube_spacing = 0.9661
+        elsif hp_ap.u_tube_spacing_type == 'c'
+          # Both tubes placed against outer edge of borehole
+          hp_ap.u_tube_spacing = hp_ap.bore_diameter - 2 * hp_ap.pipe_od
+        end
+        hp_ap.shank_spacing = hp_ap.u_tube_spacing + hp_ap.pipe_od # Distance from center of pipe to center of pipe
+
+        # E+ equation fit coil coefficients from Tang's thesis:
+        # See Appendix B of  https://hvac.okstate.edu/sites/default/files/pubs/theses/MS/27-Tang_Thesis_05.pdf
+        # Coefficients generated by catalog data
+        hp_ap.cool_cap_ft_spec = [[-1.27373428, 3.73053580, -1.75023168, 0.04789060, 0.015777882]]
+        hp_ap.cool_power_ft_spec = [[-7.66308745, 1.13961086, 7.57407956, 0.30151440, -0.091186547]]
+        hp_ap.cool_sh_ft_spec = [[4.27615968, 13.90195633, -17.28090511, -0.70050924, 0.51366014, 0.017194205]]
+        hp_ap.cool_shrs_rated_gross = [heat_pump.cooling_shr]
+        # FUTURE: Reconcile these fan/pump adjustments with ANSI/RESNET/ICC 301-2019 Section 4.4.5
+        fan_adjust_kw = UnitConversions.convert(400.0, 'Btu/hr', 'ton') * UnitConversions.convert(1.0, 'cfm', 'm^3/s') * 1000.0 * 0.35 * 249.0 / 300.0 # Adjustment per ISO 13256-1 Internal pressure drop across heat pump assumed to be 0.5 in. w.g.
+        pump_adjust_kw = UnitConversions.convert(3.0, 'Btu/hr', 'ton') * UnitConversions.convert(1.0, 'gal/min', 'm^3/s') * 1000.0 * 6.0 * 2990.0 / 3000.0 # Adjustment per ISO 13256-1 Internal Pressure drop across heat pump coil assumed to be 11ft w.g.
+        cool_eir = UnitConversions.convert((1.0 - heat_pump.cooling_efficiency_eer * (fan_adjust_kw + pump_adjust_kw)) / (heat_pump.cooling_efficiency_eer * (1.0 + UnitConversions.convert(fan_adjust_kw, 'Wh', 'Btu'))), 'Wh', 'Btu')
+        hp_ap.cool_rated_eirs = [cool_eir]
+
+        # E+ equation fit coil coefficients from Tang's thesis:
+        # See Appendix B Figure B.3 of  https://hvac.okstate.edu/sites/default/files/pubs/theses/MS/27-Tang_Thesis_05.pdf
+        # Coefficients generated by catalog data
+        hp_ap.heat_cap_ft_spec = [[-5.12650150, -0.93997630, 7.21443206, 0.121065721, 0.051809805]]
+        hp_ap.heat_power_ft_spec = [[-7.73235249, 6.43390775, 2.29152262, -0.175598629, 0.005888871]]
+        heat_eir = (1.0 - heat_pump.heating_efficiency_cop * (fan_adjust_kw + pump_adjust_kw)) / (heat_pump.heating_efficiency_cop * (1.0 - fan_adjust_kw))
+        hp_ap.heat_rated_eirs = [heat_eir]
+      end
+    end
   end
 
   def self.apply_hvac_control(hpxml)
@@ -1531,6 +1813,122 @@ class HPXMLDefaults
         fuel_load.usage_multiplier = 1.0
         fuel_load.usage_multiplier_isdefaulted = true
       end
+    end
+  end
+
+  def self.apply_hvac_sizing(hpxml, runner, weather, cfa, nbeds)
+    hvac_systems = HVAC.get_hpxml_hvac_systems(hpxml)
+
+    # Calculate building design loads and equipment capacities/airflows
+    bldg_design_loads, all_hvac_sizing_values = HVACSizing.calculate(runner, weather, hpxml, cfa, nbeds, hvac_systems)
+
+    hvacpl = hpxml.hvac_plant
+    tol = 10 # Btuh
+
+    # Assign heating design loads back to HPXML object
+    hvacpl.hdl_total = bldg_design_loads.Heat_Tot.round
+    hvacpl.hdl_walls = bldg_design_loads.Heat_Walls.round
+    hvacpl.hdl_ceilings = bldg_design_loads.Heat_Ceilings.round
+    hvacpl.hdl_roofs = bldg_design_loads.Heat_Roofs.round
+    hvacpl.hdl_floors = bldg_design_loads.Heat_Floors.round
+    hvacpl.hdl_slabs = bldg_design_loads.Heat_Slabs.round
+    hvacpl.hdl_windows = bldg_design_loads.Heat_Windows.round
+    hvacpl.hdl_skylights = bldg_design_loads.Heat_Skylights.round
+    hvacpl.hdl_doors = bldg_design_loads.Heat_Doors.round
+    hvacpl.hdl_infilvent = bldg_design_loads.Heat_InfilVent.round
+    hvacpl.hdl_ducts = bldg_design_loads.Heat_Ducts.round
+    hdl_sum = (hvacpl.hdl_walls + hvacpl.hdl_ceilings + hvacpl.hdl_roofs +
+               hvacpl.hdl_floors + hvacpl.hdl_slabs + hvacpl.hdl_windows +
+               hvacpl.hdl_skylights + hvacpl.hdl_doors + hvacpl.hdl_infilvent +
+               hvacpl.hdl_ducts)
+    if (hdl_sum - hvacpl.hdl_total).abs > tol
+      runner.registerWarning('Heating design loads do not sum to total.')
+    end
+
+    # Cooling sensible design loads back to HPXML object
+    hvacpl.cdl_sens_total = bldg_design_loads.Cool_Sens.round
+    hvacpl.cdl_sens_walls = bldg_design_loads.Cool_Walls.round
+    hvacpl.cdl_sens_ceilings = bldg_design_loads.Cool_Ceilings.round
+    hvacpl.cdl_sens_roofs = bldg_design_loads.Cool_Roofs.round
+    hvacpl.cdl_sens_floors = bldg_design_loads.Cool_Floors.round
+    hvacpl.cdl_sens_slabs = 0.0
+    hvacpl.cdl_sens_windows = bldg_design_loads.Cool_Windows.round
+    hvacpl.cdl_sens_skylights = bldg_design_loads.Cool_Skylights.round
+    hvacpl.cdl_sens_doors = bldg_design_loads.Cool_Doors.round
+    hvacpl.cdl_sens_infilvent = bldg_design_loads.Cool_Infil_Sens.round
+    hvacpl.cdl_sens_ducts = bldg_design_loads.Cool_Ducts_Sens.round
+    hvacpl.cdl_sens_intgains = bldg_design_loads.Cool_IntGains_Sens.round
+    cdl_sens_sum = (hvacpl.cdl_sens_walls + hvacpl.cdl_sens_ceilings +
+                    hvacpl.cdl_sens_roofs + hvacpl.cdl_sens_floors +
+                    hvacpl.cdl_sens_slabs + hvacpl.cdl_sens_windows +
+                    hvacpl.cdl_sens_skylights + hvacpl.cdl_sens_doors +
+                    hvacpl.cdl_sens_infilvent + hvacpl.cdl_sens_ducts +
+                    hvacpl.cdl_sens_intgains)
+    if (cdl_sens_sum - hvacpl.cdl_sens_total).abs > tol
+      runner.registerWarning('Cooling sensible design loads do not sum to total.')
+    end
+
+    # Cooling latent design loads back to HPXML object
+    hvacpl.cdl_lat_total = bldg_design_loads.Cool_Lat.round
+    hvacpl.cdl_lat_ducts = bldg_design_loads.Cool_Ducts_Lat.round
+    hvacpl.cdl_lat_infilvent = bldg_design_loads.Cool_Infil_Lat.round
+    hvacpl.cdl_lat_intgains = bldg_design_loads.Cool_IntGains_Lat.round
+    cdl_lat_sum = (hvacpl.cdl_lat_ducts + hvacpl.cdl_lat_infilvent +
+                   hvacpl.cdl_lat_intgains)
+    if (cdl_lat_sum - hvacpl.cdl_lat_total).abs > tol
+      runner.registerWarning('Cooling latent design loads do not sum to total.')
+    end
+
+    # Assign sizing values back to HPXML objects
+    all_hvac_sizing_values.each do |hvac_system, hvac_sizing_values|
+      htg_sys = hvac_system[:heating]
+      clg_sys = hvac_system[:cooling]
+
+      # Heating system
+      if not htg_sys.nil?
+
+        # Heating capacities
+        if htg_sys.heating_capacity.nil? || ((htg_sys.heating_capacity - hvac_sizing_values.Heat_Capacity).abs >= 1.0)
+          htg_sys.heating_capacity = hvac_sizing_values.Heat_Capacity.round
+          htg_sys.heating_capacity_isdefaulted = true
+        end
+        if htg_sys.respond_to? :backup_heating_capacity
+          if not htg_sys.backup_heating_fuel.nil? # If there is a backup heating source
+            if htg_sys.backup_heating_capacity.nil? || ((htg_sys.backup_heating_capacity - hvac_sizing_values.Heat_Capacity_Supp).abs >= 1.0)
+              htg_sys.backup_heating_capacity = hvac_sizing_values.Heat_Capacity_Supp.round
+              htg_sys.backup_heating_capacity_isdefaulted = true
+            end
+          else
+            htg_sys.backup_heating_capacity = 0.0
+          end
+        end
+
+        # Heating airflow
+        htg_sys.heating_airflow_cfm = hvac_sizing_values.Heat_Airflow.round
+        htg_sys.heating_airflow_cfm_isdefaulted = true
+
+        # Heating GSHP loop
+        if htg_sys.is_a? HPXML::HeatPump
+          htg_sys.additional_properties.GSHP_Loop_flow = hvac_sizing_values.GSHP_Loop_flow
+          htg_sys.additional_properties.GSHP_Bore_Depth = hvac_sizing_values.GSHP_Bore_Depth
+          htg_sys.additional_properties.GSHP_Bore_Holes = hvac_sizing_values.GSHP_Bore_Holes
+          htg_sys.additional_properties.GSHP_G_Functions = hvac_sizing_values.GSHP_G_Functions
+        end
+      end
+
+      # Cooling system
+      next unless not clg_sys.nil?
+
+      # Cooling capacities
+      if clg_sys.cooling_capacity.nil? || ((clg_sys.cooling_capacity - hvac_sizing_values.Cool_Capacity).abs >= 1.0)
+        clg_sys.cooling_capacity = hvac_sizing_values.Cool_Capacity.round
+        clg_sys.cooling_capacity_isdefaulted = true
+      end
+      clg_sys.additional_properties.cooling_capacity_sensible = hvac_sizing_values.Cool_Capacity_Sens.round
+
+      # Cooling airflow
+      clg_sys.cooling_airflow_cfm = hvac_sizing_values.Cool_Airflow.round
+      clg_sys.cooling_airflow_cfm_isdefaulted = true
     end
   end
 end
