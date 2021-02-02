@@ -43,11 +43,10 @@ HPXML files submitted to OpenStudio-HPXML should undergo a two step validation p
 Input Defaults
 **************
 
-An increasing number of elements in the HPXML file are being made optional with "smart" defaults.
+A large number of elements in the HPXML file are optional and can be defaulted.
 Default values, equations, and logic are described throughout this documentation.
 
-Most defaults can also be seen by using the ``debug`` argument/flag when running the workflow on an actual HPXML file.
-This will create a new HPXML file (``in.xml`` in the run directory) where additional fields are populated for inspection.
+Defaults can also be seen in the ``in.xml`` file generated in the run directory, where additional fields are populated for inspection.
 
 For example, suppose a HPXML file has a window defined as follows:
 
@@ -83,9 +82,9 @@ In the ``in.xml`` file, the window would have additional elements like so:
 
 .. note::
 
-  The OpenStudio-HPXML workflow generally treats missing HPXML objects differently than missing properties.
-  For example, if there is a ``Window`` with no ``Overhangs`` object defined, the window will be interpreted as having no overhangs and modeled this way.
-  On the other hand, if there is a ``Window`` element with no ``FractionOperable`` property defined, it is assumed that the operable property of the window is unknown and will be defaulted in the model according to :ref:`windowinputs`.
+  The OpenStudio-HPXML workflow generally treats missing elements differently than missing values.
+  For example, if there is a ``Window`` with no ``Overhangs`` element defined, the window will be interpreted as having no overhangs and modeled this way.
+  On the other hand, if there is a ``Window`` with no ``FractionOperable`` value defined, it is assumed that the operable property of the window is unknown and will be defaulted in the model according to :ref:`windowinputs`.
 
 HPXML Software Info
 -------------------
@@ -845,14 +844,15 @@ Mini-Split
 
 If a mini-split is specified, additional information is entered in ``CoolingSystem``.
 
-  =================================  ========  ======  ===========  ========  =========  ===============================================
-  Element                            Type      Units   Constraints  Required  Default    Notes
-  =================================  ========  ======  ===========  ========  =========  ===============================================
-  ``DistributionSystem``             idref             See [#]_     No                   ID of attached distribution system
-  ``CoolingCapacity``                double    Btu/hr  >= 0         No        autosized  Cooling capacity
-  ``SensibleHeatFraction``           double    frac    0 - 1        No                   Sensible heat fraction
-  ``extension/ChargeDefectRatio``    double    frac    > -1         No        0.0        Deviation between design/installed charges [#]_
-  =================================  ========  ======  ===========  ========  =========  ===============================================
+  ===============================================  ========  ======  ===========  ========  =========  ===============================================
+  Element                                          Type      Units   Constraints  Required  Default    Notes
+  ===============================================  ========  ======  ===========  ========  =========  ===============================================
+  ``DistributionSystem``                           idref             See [#]_     No                   ID of attached distribution system
+  ``AnnualCoolingEfficiency[Units="SEER"]/Value``  double    Btu/Wh  > 0          Yes                  Rated cooling efficiency
+  ``CoolingCapacity``                              double    Btu/hr  >= 0         No        autosized  Cooling capacity
+  ``SensibleHeatFraction``                         double    frac    0 - 1        No                   Sensible heat fraction
+  ``extension/ChargeDefectRatio``                  double    frac    > -1         No        0.0        Deviation between design/installed charges [#]_
+  ===============================================  ========  ======  ===========  ========  =========  ===============================================
 
   .. [#] If provided, HVACDistribution type must be AirDistribution or DSE.
   .. [#] ChargeDefectRatio is defined as (InstalledCharge - DesignCharge) / DesignCharge; a value of zero means no refrigerant charge defect.
@@ -1136,7 +1136,7 @@ Each separate HVAC distribution system is entered as a ``/HPXML/Building/Buildin
   ==============================  =======  =======  ===========  ========  =========  =============================
 
   .. [#] DistributionSystemType child element choices are ``AirDistribution``, ``HydronicDistribution``, ``HydronicAndAirDistribution``, or ``Other=DSE``.
-  .. [#] ConditionedFloorAreaServed is required for AirDistribution and HydronicAndAir types.
+  .. [#] ConditionedFloorAreaServed is required for AirDistribution and HydronicAndAirDistribution types.
 
 .. note::
   
@@ -1151,34 +1151,33 @@ Air Distribution
 
 To define an air distribution system, additional information is entered in ``HVACDistribution/DistributionSystemType/AirDistribution``.
 
-  ===========================  =======  =======  ===========  ========  =========  ===========================================
-  Element                      Type     Units    Constraints  Required  Default    Notes
-  ===========================  =======  =======  ===========  ========  =========  ===========================================
-  ``DuctLeakageMeasurement``   element           >= 0         No        <none>     Presence of supply/return duct leakage [#]_
-  ``Ducts``                    element           >= 0         No        <none>     Presence of supply/return ducts [#]_
-  ``NumberofReturnRegisters``  integer           >= 0         No        See [#]_   Number of return registers
-  ===========================  =======  =======  ===========  ========  =========  ===========================================
+  =============================================  =======  =======  ===========  ========  =========  ==========================
+  Element                                        Type     Units    Constraints  Required  Default    Notes
+  =============================================  =======  =======  ===========  ========  =========  ==========================
+  ``DuctLeakageMeasurement[DuctType="supply"]``  element           1            Yes                  Supply duct leakage value
+  ``DuctLeakageMeasurement[DuctType="return"]``  element           1            Yes                  Return duct leakage value
+  ``Ducts``                                      element           >= 0         No                   Supply/return ducts [#]_
+  ``NumberofReturnRegisters``                    integer           >= 0         No        See [#]_   Number of return registers
+  =============================================  =======  =======  ===========  ========  =========  ==========================
   
-  .. [#] Provide one DuctLeakageMeasurement element for any supply ducts and one for any return ducts.
-  .. [#] Provide one or more Ducts elements for any supply ducts and one or more for any return ducts.
+  .. [#] Provide a Ducts element for each supply duct and each return duct.
   .. [#] If NumberofReturnRegisters not provided, defaults to one return register per conditioned floor per `ASHRAE Standard 152 <https://www.energy.gov/eere/buildings/downloads/ashrae-standard-152-spreadsheet>`_, rounded up to the nearest integer if needed.
 
-If there is supply or return duct leakage, additional information is entered in a ``DuctLeakageMeasurement``.
+Additional information is entered in each ``DuctLeakageMeasurement``.
 
   ================================  =======  =======  ===========  ========  =========  =========================================================
   Element                           Type     Units    Constraints  Required  Default    Notes
   ================================  =======  =======  ===========  ========  =========  =========================================================
-  ``DuctType``                      string            See [#]_     Yes                  Supply or return ducts
   ``DuctLeakage/Units``             string            See [#]_     Yes                  Duct leakage units
-  ``DuctLeakage/Value``             double            >= 0         Yes                  Duct leakage value
+  ``DuctLeakage/Value``             double            >= 0         Yes                  Duct leakage value [#]_
   ``DuctLeakage/TotalOrToOutside``  string            See [#]_     Yes                  Type of duct leakage (outside conditioned space vs total)
   ================================  =======  =======  ===========  ========  =========  =========================================================
   
-  .. [#] DuctType choices are "supply" or "return".
   .. [#] Units choices are "CFM25" or "Percent".
+  .. [#] If the HVAC system has no return ducts (e.g., a ducted evaporative cooler), use zero for the Value.
   .. [#] TotalOrToOutside only choice is "to outside".
 
-If there are supply or return ducts, additional information is entered in a ``Ducts``.
+Additional information is entered in each ``Ducts``.
 
   ========================  =======  ============  ===========  ========  =========  ===============================
   Element                   Type     Units         Constraints  Required  Default    Notes
@@ -1230,7 +1229,7 @@ To define an air and hydronic distribution system, additional information is ent
 
   .. [#] HydronicAndAirDistributionType choices are "fan coil" or "water loop heat pump".
 
-In addition, if the system is ducted, all of the elements from the :ref:`air_distribution` Section can be entered in this ``HydronicAndAirDistribution`` element too (e.g., ``DuctLeakageMeasurement`` and ``Ducts``).
+In addition, all of the elements from the :ref:`air_distribution` Section are available here too (e.g., ``DuctLeakageMeasurement`` and ``Ducts``) to describe ducted systems.
 
 Distribution System Efficiency (DSE)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1984,7 +1983,7 @@ If not entered, the simulation will not include a standalone freezer.
 HPXML Dehumidifier
 ******************
 
-A single dehumidifier can be entered as a ``/HPXML/Building/BuildingDetails/Appliances/Dehumidifier``.
+Each dehumidifier can be entered as a ``/HPXML/Building/BuildingDetails/Appliances/Dehumidifier``.
 If not entered, the simulation will not include a dehumidifier.
 
   ==============================================  ==========  ==========  ===========  ========  =======  ========================================
@@ -1995,12 +1994,14 @@ If not entered, the simulation will not include a dehumidifier.
   ``Location``                                    string                  See [#]_     Yes                Location of dehumidifier
   ``Capacity``                                    double      pints/day   > 0          Yes                Dehumidification capacity
   ``IntegratedEnergyFactor`` or ``EnergyFactor``  double      liters/kWh  > 0          Yes                Rated efficiency
-  ``DehumidistatSetpoint``                        double      frac        0 - 1        Yes                Relative humidity setpoint
-  ``FractionDehumidificationLoadServed``          double      frac        0 - 1        Yes                Fraction of dehumidification load served
+  ``DehumidistatSetpoint``                        double      frac        0 - 1 [#]_   Yes                Relative humidity setpoint
+  ``FractionDehumidificationLoadServed``          double      frac        0 - 1 [#]_   Yes                Fraction of dehumidification load served
   ==============================================  ==========  ==========  ===========  ========  =======  ========================================
   
   .. [#] Type choices are "portable" or "whole-home".
   .. [#] Location only choice is "living space".
+  .. [#] If multiple dehumidifiers are entered, they must all have the same setpoint or an error will be generated.
+  .. [#] The sum of all ``FractionDehumidificationLoadServed`` (across all Dehumidifiers) must be less than or equal to 1.
 
 .. note::
 

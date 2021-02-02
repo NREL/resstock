@@ -457,7 +457,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('floor_assembly_r', true)
     arg.setDisplayName('Floor: Assembly R-value')
     arg.setUnits('h-ft^2-R/Btu')
-    arg.setDescription('Assembly R-value for the floor (foundation ceiling). Ignored if a slab foundation.')
+    arg.setDescription('Assembly R-value for the floor (foundation ceiling). Ignored if the building has a slab foundation.')
     arg.setDefaultValue(30)
     args << arg
 
@@ -975,6 +975,10 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     cooling_system_type_choices << HPXML::HVACTypeEvaporativeCooler
     cooling_system_type_choices << HPXML::HVACTypeMiniSplitAirConditioner
 
+    cooling_efficiency_type_choices = OpenStudio::StringVector.new
+    cooling_efficiency_type_choices << HPXML::UnitsSEER
+    cooling_efficiency_type_choices << HPXML::UnitsEER
+
     compressor_type_choices = OpenStudio::StringVector.new
     compressor_type_choices << HPXML::HVACCompressorTypeSingleStage
     compressor_type_choices << HPXML::HVACCompressorTypeTwoStage
@@ -1025,18 +1029,17 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(HPXML::HVACTypeCentralAirConditioner)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('cooling_system_cooling_efficiency_seer', true)
-    arg.setDisplayName('Cooling System: Rated SEER')
-    arg.setUnits('SEER')
-    arg.setDescription("The rated efficiency value of the #{HPXML::HVACTypeCentralAirConditioner} cooling system.")
-    arg.setDefaultValue(13.0)
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('cooling_system_cooling_efficiency_type', cooling_efficiency_type_choices, true)
+    arg.setDisplayName('Cooling System: Efficiency Type')
+    arg.setDescription("The efficiency type of the cooling system. System types #{HPXML::HVACTypeCentralAirConditioner} and #{HPXML::HVACTypeMiniSplitAirConditioner} use #{HPXML::UnitsSEER}. System type #{HPXML::HVACTypeRoomAirConditioner} uses #{HPXML::UnitsEER}. Ignored for system type #{HPXML::HVACTypeEvaporativeCooler}.")
+    arg.setDefaultValue(HPXML::UnitsSEER)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('cooling_system_cooling_efficiency_eer', true)
-    arg.setDisplayName('Cooling System: Rated EER')
-    arg.setUnits('EER')
-    arg.setDescription("The rated efficiency value of the #{HPXML::HVACTypeRoomAirConditioner} cooling system.")
-    arg.setDefaultValue(8.5)
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('cooling_system_cooling_efficiency', true)
+    arg.setDisplayName('Cooling System: Efficiency')
+    arg.setUnits("#{HPXML::UnitsSEER} or #{HPXML::UnitsEER}")
+    arg.setDescription("The rated efficiency value of the cooling system. Ignored for #{HPXML::HVACTypeEvaporativeCooler}.")
+    arg.setDefaultValue(13.0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('cooling_system_cooling_compressor_type', compressor_type_choices, false)
@@ -1046,13 +1049,13 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('cooling_system_cooling_sensible_heat_fraction', false)
     arg.setDisplayName('Cooling System: Cooling Sensible Heat Fraction')
-    arg.setDescription('The sensible heat fraction of the cooling system. Ignored for evaporative cooler.')
+    arg.setDescription("The sensible heat fraction of the cooling system. Ignored for #{HPXML::HVACTypeEvaporativeCooler}.")
     arg.setUnits('Frac')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('cooling_system_cooling_capacity', true)
     arg.setDisplayName('Cooling System: Cooling Capacity')
-    arg.setDescription("The output cooling capacity of the cooling system. If using '#{Constants.Auto}', the autosizing algorithm will use ACCA Manual J/S to set the capacity to meet its load served. Ignored for evaporative cooler.")
+    arg.setDescription("The output cooling capacity of the cooling system. If using '#{Constants.Auto}', the autosizing algorithm will use ACCA Manual J/S to set the capacity to meet its load served. Ignored for #{HPXML::HVACTypeEvaporativeCooler}.")
     arg.setUnits('tons')
     arg.setDefaultValue(Constants.Auto)
     args << arg
@@ -1088,6 +1091,10 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     heat_pump_type_choices << HPXML::HVACTypeHeatPumpMiniSplit
     heat_pump_type_choices << HPXML::HVACTypeHeatPumpGroundToAir
 
+    heat_pump_heating_efficiency_type_choices = OpenStudio::StringVector.new
+    heat_pump_heating_efficiency_type_choices << HPXML::UnitsHSPF
+    heat_pump_heating_efficiency_type_choices << HPXML::UnitsCOP
+
     heat_pump_fuel_choices = OpenStudio::StringVector.new
     heat_pump_fuel_choices << HPXML::FuelTypeElectricity
 
@@ -1104,32 +1111,30 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue('none')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_heating_efficiency_hspf', true)
-    arg.setDisplayName('Heat Pump: Rated Heating HSPF')
-    arg.setUnits('HSPF')
-    arg.setDescription("The rated heating efficiency value of the #{HPXML::HVACTypeHeatPumpAirToAir}/#{HPXML::HVACTypeHeatPumpMiniSplit} heat pump.")
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('heat_pump_heating_efficiency_type', heat_pump_heating_efficiency_type_choices, true)
+    arg.setDisplayName('Heat Pump: Heating Efficiency Type')
+    arg.setDescription("The heating efficiency type of heat pump. System types #{HPXML::HVACTypeHeatPumpAirToAir} and #{HPXML::HVACTypeHeatPumpMiniSplit} use #{HPXML::UnitsHSPF}. System type #{HPXML::HVACTypeHeatPumpGroundToAir} uses #{HPXML::UnitsCOP}.")
+    arg.setDefaultValue(HPXML::UnitsHSPF)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_heating_efficiency', true)
+    arg.setDisplayName('Heat Pump: Heating Efficiency')
+    arg.setUnits("#{HPXML::UnitsHSPF} or #{HPXML::UnitsCOP}")
+    arg.setDescription('The rated heating efficiency value of the heat pump.')
     arg.setDefaultValue(7.7)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_heating_efficiency_cop', true)
-    arg.setDisplayName('Heat Pump: Rated Heating COP')
-    arg.setUnits('COP')
-    arg.setDescription("The rated heating efficiency value of the #{HPXML::HVACTypeHeatPumpGroundToAir} heat pump.")
-    arg.setDefaultValue(3.6)
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('heat_pump_cooling_efficiency_type', cooling_efficiency_type_choices, true)
+    arg.setDisplayName('Heat Pump: Cooling Efficiency Type')
+    arg.setDescription("The cooling efficiency type of heat pump. System types #{HPXML::HVACTypeHeatPumpAirToAir} and #{HPXML::HVACTypeHeatPumpMiniSplit} use #{HPXML::UnitsSEER}. System type #{HPXML::HVACTypeHeatPumpGroundToAir} uses #{HPXML::UnitsEER}.")
+    arg.setDefaultValue(HPXML::UnitsSEER)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_cooling_efficiency_seer', true)
-    arg.setDisplayName('Heat Pump: Rated Cooling SEER')
-    arg.setUnits('SEER')
-    arg.setDescription("The rated cooling efficiency value of the #{HPXML::HVACTypeHeatPumpAirToAir}/#{HPXML::HVACTypeHeatPumpMiniSplit} heat pump.")
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_cooling_efficiency', true)
+    arg.setDisplayName('Heat Pump: Cooling Efficiency')
+    arg.setUnits("#{HPXML::UnitsSEER} or #{HPXML::UnitsEER}")
+    arg.setDescription('The rated cooling efficiency value of the heat pump.')
     arg.setDefaultValue(13.0)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_cooling_efficiency_eer', true)
-    arg.setDisplayName('Heat Pump: Rated Cooling EER')
-    arg.setUnits('EER')
-    arg.setDescription("The rated cooling efficiency value of the #{HPXML::HVACTypeHeatPumpGroundToAir} heat pump.")
-    arg.setDefaultValue(16.6)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('heat_pump_cooling_compressor_type', compressor_type_choices, false)
@@ -1218,6 +1223,49 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDisplayName('Heat Pump: Charge Defect Ratio')
     arg.setDescription('The refrigerant charge defect ratio, defined as (InstalledCharge - DesignCharge) / DesignCharge, of the heat pump per ANSI/RESNET/ACCA Standard 310. A value of zero means no refrigerant charge defect. Applies to all heat pump types.')
     arg.setUnits('Frac')
+    args << arg
+
+    heating_system_type_2_choices = OpenStudio::StringVector.new
+    heating_system_type_2_choices << 'none'
+    heating_system_type_2_choices << HPXML::HVACTypeWallFurnace
+    heating_system_type_2_choices << HPXML::HVACTypeFloorFurnace
+    heating_system_type_2_choices << HPXML::HVACTypeBoiler
+    heating_system_type_2_choices << HPXML::HVACTypeElectricResistance
+    heating_system_type_2_choices << HPXML::HVACTypeStove
+    heating_system_type_2_choices << HPXML::HVACTypePortableHeater
+    heating_system_type_2_choices << HPXML::HVACTypeFireplace
+
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('heating_system_type_2', heating_system_type_2_choices, true)
+    arg.setDisplayName('Heating System 2: Type')
+    arg.setDescription('The type of the second heating system.')
+    arg.setDefaultValue('none')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('heating_system_fuel_2', heating_system_fuel_choices, true)
+    arg.setDisplayName('Heating System 2: Fuel Type')
+    arg.setDescription("The fuel type of the second heating system. Ignored for #{HPXML::HVACTypeElectricResistance}.")
+    arg.setDefaultValue(HPXML::FuelTypeElectricity)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heating_system_heating_efficiency_2', true)
+    arg.setDisplayName('Heating System 2: Rated AFUE or Percent')
+    arg.setUnits('Frac')
+    arg.setDescription('For Furnace/WallFurnace/FloorFurnace/Boiler second heating system, the rated AFUE value. For ElectricResistance/Stove/PortableHeater/Fireplace, the rated Percent value.')
+    arg.setDefaultValue(1.0)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('heating_system_heating_capacity_2', true)
+    arg.setDisplayName('Heating System 2: Heating Capacity')
+    arg.setDescription("The output heating capacity of the second heating system. If using '#{Constants.Auto}', the autosizing algorithm will use ACCA Manual J/S to set the capacity to meet its load served.")
+    arg.setUnits('Btu/hr')
+    arg.setDefaultValue(Constants.Auto)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heating_system_fraction_heat_load_served_2', true)
+    arg.setDisplayName('Heating System 2: Fraction Heat Load Served')
+    arg.setDescription('The heat load served fraction of the second heating system.')
+    arg.setUnits('Frac')
+    arg.setDefaultValue(0.25)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('setpoint_heating_weekday', true)
@@ -1342,49 +1390,6 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(Constants.Auto)
     args << arg
 
-    heating_system_type_2_choices = OpenStudio::StringVector.new
-    heating_system_type_2_choices << 'none'
-    heating_system_type_2_choices << HPXML::HVACTypeWallFurnace
-    heating_system_type_2_choices << HPXML::HVACTypeFloorFurnace
-    heating_system_type_2_choices << HPXML::HVACTypeBoiler
-    heating_system_type_2_choices << HPXML::HVACTypeElectricResistance
-    heating_system_type_2_choices << HPXML::HVACTypeStove
-    heating_system_type_2_choices << HPXML::HVACTypePortableHeater
-    heating_system_type_2_choices << HPXML::HVACTypeFireplace
-
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('heating_system_type_2', heating_system_type_2_choices, true)
-    arg.setDisplayName('Heating System 2: Type')
-    arg.setDescription('The type of the second heating system.')
-    arg.setDefaultValue('none')
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('heating_system_fuel_2', heating_system_fuel_choices, true)
-    arg.setDisplayName('Heating System 2: Fuel Type')
-    arg.setDescription('The fuel type of the second heating system. Ignored for ElectricResistance.')
-    arg.setDefaultValue(HPXML::FuelTypeElectricity)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heating_system_heating_efficiency_2', true)
-    arg.setDisplayName('Heating System 2: Rated AFUE or Percent')
-    arg.setUnits('Frac')
-    arg.setDescription('For Furnace/WallFurnace/FloorFurnace/Boiler second heating system, the rated AFUE value. For ElectricResistance/Stove/PortableHeater/Fireplace, the rated Percent value.')
-    arg.setDefaultValue(1.0)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument('heating_system_heating_capacity_2', true)
-    arg.setDisplayName('Heating System 2: Heating Capacity')
-    arg.setDescription("The output heating capacity of the second heating system. If using '#{Constants.Auto}', the autosizing algorithm will use ACCA Manual J/S to set the capacity to meet its load served.")
-    arg.setUnits('Btu/hr')
-    arg.setDefaultValue(Constants.Auto)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heating_system_fraction_heat_load_served_2', true)
-    arg.setDisplayName('Heating System 2: Fraction Heat Load Served')
-    arg.setDescription('The heat load served fraction of the second heating system.')
-    arg.setUnits('Frac')
-    arg.setDefaultValue(0.25)
-    args << arg
-
     mech_vent_fan_type_choices = OpenStudio::StringVector.new
     mech_vent_fan_type_choices << 'none'
     mech_vent_fan_type_choices << HPXML::MechVentTypeExhaust
@@ -1418,7 +1423,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(24)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('mech_vent_total_recovery_efficiency_type', mech_vent_recovery_efficiency_type_choices, true)
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('mech_vent_recovery_efficiency_type', mech_vent_recovery_efficiency_type_choices, true)
     arg.setDisplayName('Mechanical Ventilation: Total Recovery Efficiency Type')
     arg.setDescription('The total recovery efficiency type of the mechanical ventilation.')
     arg.setDefaultValue('Unadjusted')
@@ -1426,20 +1431,14 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('mech_vent_total_recovery_efficiency', true)
     arg.setDisplayName('Mechanical Ventilation: Total Recovery Efficiency')
-    arg.setDescription('The Unadjusted or Adjusted total recovery efficiency of the mechanical ventilation.')
+    arg.setDescription("The Unadjusted or Adjusted total recovery efficiency of the mechanical ventilation. Applies to #{HPXML::MechVentTypeERV}.")
     arg.setUnits('Frac')
     arg.setDefaultValue(0.48)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('mech_vent_sensible_recovery_efficiency_type', mech_vent_recovery_efficiency_type_choices, true)
-    arg.setDisplayName('Mechanical Ventilation: Sensible Recovery Efficiency Type')
-    arg.setDescription('The sensible recovery efficiency type of the mechanical ventilation.')
-    arg.setDefaultValue('Unadjusted')
-    args << arg
-
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('mech_vent_sensible_recovery_efficiency', true)
     arg.setDisplayName('Mechanical Ventilation: Sensible Recovery Efficiency')
-    arg.setDescription('The Unadjusted or Adjusted sensible recovery efficiency of the mechanical ventilation.')
+    arg.setDescription("The Unadjusted or Adjusted sensible recovery efficiency of the mechanical ventilation. Applies to #{HPXML::MechVentTypeERV} and #{HPXML::MechVentTypeHRV}.")
     arg.setUnits('Frac')
     arg.setDefaultValue(0.72)
     args << arg
@@ -1521,7 +1520,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(24)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('mech_vent_total_recovery_efficiency_type_2', mech_vent_recovery_efficiency_type_choices, true)
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('mech_vent_recovery_efficiency_type_2', mech_vent_recovery_efficiency_type_choices, true)
     arg.setDisplayName('Mechanical Ventilation 2: Total Recovery Efficiency Type')
     arg.setDescription('The total recovery efficiency type of the second mechanical ventilation.')
     arg.setDefaultValue('Unadjusted')
@@ -1529,20 +1528,14 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('mech_vent_total_recovery_efficiency_2', true)
     arg.setDisplayName('Mechanical Ventilation 2: Total Recovery Efficiency')
-    arg.setDescription('The Unadjusted or Adjusted total recovery efficiency of the second mechanical ventilation.')
+    arg.setDescription("The Unadjusted or Adjusted total recovery efficiency of the second mechanical ventilation. Applies to #{HPXML::MechVentTypeERV}.")
     arg.setUnits('Frac')
     arg.setDefaultValue(0.48)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('mech_vent_sensible_recovery_efficiency_type_2', mech_vent_recovery_efficiency_type_choices, true)
-    arg.setDisplayName('Mechanical Ventilation 2: Sensible Recovery Efficiency Type')
-    arg.setDescription('The sensible recovery efficiency type of the second mechanical ventilation.')
-    arg.setDefaultValue('Unadjusted')
-    args << arg
-
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('mech_vent_sensible_recovery_efficiency_2', true)
     arg.setDisplayName('Mechanical Ventilation 2: Sensible Recovery Efficiency')
-    arg.setDescription('The Unadjusted or Adjusted sensible recovery efficiency of the second mechanical ventilation.')
+    arg.setDescription("The Unadjusted or Adjusted sensible recovery efficiency of the second mechanical ventilation. Applies to #{HPXML::MechVentTypeERV} and #{HPXML::MechVentTypeHRV}.")
     arg.setUnits('Frac')
     arg.setDefaultValue(0.72)
     args << arg
@@ -1700,7 +1693,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('water_heater_tank_volume', true)
     arg.setDisplayName('Water Heater: Tank Volume')
-    arg.setDescription("Nominal volume of water heater tank. Set to #{Constants.Auto} to have volume autosized. Only applies to #{HPXML::WaterHeaterTypeStorage}, #{HPXML::WaterHeaterTypeHeatPump}, and #{HPXML::WaterHeaterTypeCombiStorage}.")
+    arg.setDescription("Nominal volume of water heater tank. Set to '#{Constants.Auto}' to have volume autosized. Only applies to #{HPXML::WaterHeaterTypeStorage}, #{HPXML::WaterHeaterTypeHeatPump}, and #{HPXML::WaterHeaterTypeCombiStorage}.")
     arg.setUnits('gal')
     arg.setDefaultValue(Constants.Auto)
     args << arg
@@ -2260,21 +2253,14 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('clothes_washer_efficiency_type', clothes_washer_efficiency_type_choices, true)
     arg.setDisplayName('Clothes Washer: Efficiency Type')
-    arg.setDescription('The efficiency type of clothes washer.')
+    arg.setDescription('The efficiency type of the clothes washer.')
     arg.setDefaultValue('IntegratedModifiedEnergyFactor')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument('clothes_washer_efficiency_mef', true)
-    arg.setDisplayName('Clothes Washer: Modified Energy Factor')
-    arg.setUnits('ft^3/kWh-cycle')
-    arg.setDescription('The Modified Energy Factor (MEF) is the capacity of the clothes container divided by the total clothes washer energy consumption per cycle, where the energy consumption is the sum of the machine electrical energy consumption, the hot water energy consumption, the energy required for removal of the remaining moisture in the wash load, standby energy, and off-mode energy consumption.')
-    arg.setDefaultValue(Constants.Auto)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument('clothes_washer_efficiency_imef', true)
-    arg.setDisplayName('Clothes Washer: Integrated Modified Energy Factor')
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('clothes_washer_efficiency', true)
+    arg.setDisplayName('Clothes Washer: Efficiency')
     arg.setUnits('ft^3/kWh-cyc')
-    arg.setDescription('The energy performance metric for ENERGY STAR certified residential clothes washers as of March 7, 2015.')
+    arg.setDescription('The efficiency of the clothes washer.')
     arg.setDefaultValue(Constants.Auto)
     args << arg
 
@@ -2357,7 +2343,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('clothes_dryer_efficiency_type', clothes_dryer_efficiency_type_choices, true)
     arg.setDisplayName('Clothes Dryer: Efficiency Type')
-    arg.setDescription('The efficiency type of clothes dryer.')
+    arg.setDescription('The efficiency type of the clothes dryer.')
     arg.setDefaultValue('CombinedEnergyFactor')
     args << arg
 
@@ -2403,17 +2389,11 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue('RatedAnnualkWh')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument('dishwasher_efficiency_kwh', true)
-    arg.setDisplayName('Dishwasher: Rated Annual kWh')
-    arg.setUnits('kWh/yr')
-    arg.setDescription('The rated annual kWh of the dishwasher.')
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('dishwasher_efficiency', true)
+    arg.setDisplayName('Dishwasher: Efficiency')
+    arg.setUnits('RatedAnnualkWh or EnergyFactor')
+    arg.setDescription('The efficiency of the dishwasher.')
     arg.setDefaultValue(Constants.Auto)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('dishwasher_efficiency_ef', true)
-    arg.setDisplayName('Dishwasher: Energy Factor')
-    arg.setDescription('The energy factor of the dishwasher.')
-    arg.setDefaultValue(0.46)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('dishwasher_label_electric_rate', true)
@@ -2864,6 +2844,8 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
       return false
     end
 
+    Geometry.tear_down_model(model, runner)
+
     Version.check_openstudio_version()
 
     # assign the user inputs to variables
@@ -3016,9 +2998,29 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     error = ((args[:water_heater_type] == HPXML::WaterHeaterTypeCombiStorage) || (args[:water_heater_type] == HPXML::WaterHeaterTypeCombiTankless)) && (args[:heating_system_type] != HPXML::HVACTypeBoiler)
     errors << "water_heater_type=#{args[:water_heater_type]} and heating_system_type=#{args[:heating_system_type]}" if error
 
-    # no plug loads but specifying usage multipliers
-    warning = (args[:plug_loads_television_annual_kwh] == 0.0 && args[:plug_loads_television_usage_multiplier] != 0.0) || (args[:plug_loads_other_annual_kwh] == 0.0 && args[:plug_loads_other_usage_multiplier] != 0.0) || (!args[:plug_loads_well_pump_present] && args[:plug_loads_well_pump_usage_multiplier] != 0.0) || (!args[:plug_loads_vehicle_present] && args[:plug_loads_vehicle_usage_multiplier] != 0.0)
-    warnings << "plug_loads_television_annual_kwh=#{args[:plug_loads_television_annual_kwh]} and plug_loads_television_usage_multiplier=#{args[:plug_loads_television_usage_multiplier]} and plug_loads_other_annual_kwh=#{args[:plug_loads_other_annual_kwh]} and plug_loads_other_usage_multiplier=#{args[:plug_loads_other_usage_multiplier]} and plug_loads_well_pump_present=#{args[:plug_loads_well_pump_present]} and plug_loads_well_pump_usage_multiplier=#{args[:plug_loads_well_pump_usage_multiplier]} and plug_loads_vehicle_present=#{args[:plug_loads_vehicle_present]} and plug_loads_vehicle_usage_multiplier=#{args[:plug_loads_vehicle_usage_multiplier]}" if warning
+    # no tv plug loads but specifying usage multipliers
+    if args[:plug_loads_television_annual_kwh] != Constants.Auto
+      warning = (args[:plug_loads_television_annual_kwh].to_f == 0.0 && args[:plug_loads_television_usage_multiplier] != 0.0)
+      warnings << "plug_loads_television_annual_kwh=#{args[:plug_loads_television_annual_kwh]} and plug_loads_television_usage_multiplier=#{args[:plug_loads_television_usage_multiplier]}" if warning
+    end
+
+    # no other plug loads but specifying usage multipliers
+    if args[:plug_loads_other_annual_kwh] != Constants.Auto
+      warning = (args[:plug_loads_other_annual_kwh].to_f == 0.0 && args[:plug_loads_other_usage_multiplier] != 0.0)
+      warnings << "plug_loads_other_annual_kwh=#{args[:plug_loads_other_annual_kwh]} and plug_loads_other_usage_multiplier=#{args[:plug_loads_other_usage_multiplier]}" if warning
+    end
+
+    # no well pump plug loads but specifying usage multipliers
+    if args[:plug_loads_well_pump_annual_kwh] != Constants.Auto
+      warning = (args[:plug_loads_well_pump_annual_kwh].to_f == 0.0 && args[:plug_loads_well_pump_usage_multiplier] != 0.0)
+      warnings << "plug_loads_well_pump_annual_kwh=#{args[:plug_loads_well_pump_annual_kwh]} and plug_loads_well_pump_usage_multiplier=#{args[:plug_loads_well_pump_usage_multiplier]}" if warning
+    end
+
+    # no vehicle plug loads but specifying usage multipliers
+    if args[:plug_loads_vehicle_annual_kwh] != Constants.Auto
+      warning = (args[:plug_loads_vehicle_annual_kwh].to_f && args[:plug_loads_vehicle_usage_multiplier] != 0.0)
+      warnings << "plug_loads_vehicle_annual_kwh=#{args[:plug_loads_vehicle_annual_kwh]} and plug_loads_vehicle_usage_multiplier=#{args[:plug_loads_vehicle_usage_multiplier]}" if warning
+    end
 
     # no fuel loads but specifying usage multipliers
     warning = (!args[:fuel_loads_grill_present] && args[:fuel_loads_grill_usage_multiplier] != 0.0) || (!args[:fuel_loads_lighting_present] && args[:fuel_loads_lighting_usage_multiplier] != 0.0) || (!args[:fuel_loads_fireplace_present] && args[:fuel_loads_fireplace_usage_multiplier] != 0.0)
@@ -3056,9 +3058,7 @@ end
 
 class HPXMLFile
   def self.create(runner, model, args, epw_file)
-    model_geometry = OpenStudio::Model::Model.new
-
-    success = create_geometry_envelope(runner, model_geometry, args)
+    success = create_geometry_envelope(runner, model, args)
     return false if not success
 
     success = create_schedules(runner, model, epw_file, args)
@@ -3073,20 +3073,23 @@ class HPXMLFile
     set_building_construction(hpxml, runner, args)
     set_climate_and_risk_zones(hpxml, runner, args, epw_file)
     set_air_infiltration_measurements(hpxml, runner, args)
-    set_attics(hpxml, runner, model_geometry, args)
-    set_foundations(hpxml, runner, model_geometry, args)
-    set_roofs(hpxml, runner, model_geometry, args)
-    set_rim_joists(hpxml, runner, model_geometry, args)
-    set_walls(hpxml, runner, model_geometry, args)
-    set_foundation_walls(hpxml, runner, model_geometry, args)
-    set_frame_floors(hpxml, runner, model_geometry, args)
-    set_slabs(hpxml, runner, model_geometry, args)
-    set_windows(hpxml, runner, model_geometry, args)
-    set_skylights(hpxml, runner, model_geometry, args)
-    set_doors(hpxml, runner, model_geometry, args)
+
+    set_attics(hpxml, runner, model, args)
+    set_foundations(hpxml, runner, model, args)
+    set_roofs(hpxml, runner, model, args)
+    set_rim_joists(hpxml, runner, model, args)
+    set_walls(hpxml, runner, model, args)
+    set_foundation_walls(hpxml, runner, model, args)
+    set_frame_floors(hpxml, runner, model, args)
+    set_slabs(hpxml, runner, model, args)
+    set_windows(hpxml, runner, model, args)
+    set_skylights(hpxml, runner, model, args)
+    set_doors(hpxml, runner, model, args)
+
     set_heating_systems(hpxml, runner, args)
     set_cooling_systems(hpxml, runner, args)
     set_heat_pumps(hpxml, runner, args)
+    set_secondary_heating_systems(hpxml, runner, args)
     set_hvac_distribution(hpxml, runner, args)
     set_hvac_control(hpxml, runner, args)
     set_ventilation_fans(hpxml, runner, args)
@@ -3882,34 +3885,6 @@ class HPXMLFile
                               heating_efficiency_afue: heating_efficiency_afue,
                               heating_efficiency_percent: heating_efficiency_percent,
                               airflow_defect_ratio: airflow_defect_ratio)
-
-    heating_system_type_2 = args[:heating_system_type_2]
-
-    return if heating_system_type_2 == 'none'
-
-    if args[:heating_system_heating_capacity_2] != Constants.Auto
-      heating_capacity_2 = args[:heating_system_heating_capacity_2]
-    end
-
-    if args[:heating_system_fuel_2] == HPXML::HVACTypeElectricResistance
-      heating_system_fuel_2 = HPXML::FuelTypeElectricity
-    else
-      heating_system_fuel_2 = args[:heating_system_fuel_2]
-    end
-
-    if [HPXML::HVACTypeFurnace, HPXML::HVACTypeWallFurnace, HPXML::HVACTypeFloorFurnace, HPXML::HVACTypeBoiler].include? heating_system_type_2
-      heating_efficiency_afue_2 = args[:heating_system_heating_efficiency_2]
-    elsif [HPXML::HVACTypeElectricResistance, HPXML::HVACTypeStove, HPXML::HVACTypePortableHeater, HPXML::HVACTypeFireplace].include? heating_system_type_2
-      heating_efficiency_percent_2 = args[:heating_system_heating_efficiency_2]
-    end
-
-    hpxml.heating_systems.add(id: 'SecondHeatingSystem',
-                              heating_system_type: heating_system_type_2,
-                              heating_system_fuel: heating_system_fuel_2,
-                              heating_capacity: heating_capacity_2,
-                              fraction_heat_load_served: args[:heating_system_fraction_heat_load_served_2],
-                              heating_efficiency_afue: heating_efficiency_afue_2,
-                              heating_efficiency_percent: heating_efficiency_percent_2)
   end
 
   def self.set_cooling_systems(hpxml, runner, args)
@@ -3935,10 +3910,10 @@ class HPXMLFile
       end
     end
 
-    if [HPXML::HVACTypeCentralAirConditioner, HPXML::HVACTypeMiniSplitAirConditioner].include? cooling_system_type
-      cooling_efficiency_seer = args[:cooling_system_cooling_efficiency_seer]
-    elsif [HPXML::HVACTypeRoomAirConditioner].include? cooling_system_type
-      cooling_efficiency_eer = args[:cooling_system_cooling_efficiency_eer]
+    if args[:cooling_system_cooling_efficiency_type] == HPXML::UnitsSEER
+      cooling_efficiency_seer = args[:cooling_system_cooling_efficiency]
+    elsif args[:cooling_system_cooling_efficiency_type] == HPXML::UnitsEER
+      cooling_efficiency_eer = args[:cooling_system_cooling_efficiency]
     end
 
     if args[:cooling_system_airflow_defect_ratio].is_initialized
@@ -4014,12 +3989,16 @@ class HPXMLFile
       cooling_shr = args[:heat_pump_cooling_sensible_heat_fraction].get
     end
 
-    if [HPXML::HVACTypeHeatPumpAirToAir, HPXML::HVACTypeHeatPumpMiniSplit].include? heat_pump_type
-      heating_efficiency_hspf = args[:heat_pump_heating_efficiency_hspf]
-      cooling_efficiency_seer = args[:heat_pump_cooling_efficiency_seer]
-    elsif [HPXML::HVACTypeHeatPumpGroundToAir].include? heat_pump_type
-      heating_efficiency_cop = args[:heat_pump_heating_efficiency_cop]
-      cooling_efficiency_eer = args[:heat_pump_cooling_efficiency_eer]
+    if args[:heat_pump_heating_efficiency_type] == HPXML::UnitsHSPF
+      heating_efficiency_hspf = args[:heat_pump_heating_efficiency]
+    elsif args[:heat_pump_heating_efficiency_type] == HPXML::UnitsCOP
+      heating_efficiency_cop = args[:heat_pump_heating_efficiency]
+    end
+
+    if args[:heat_pump_cooling_efficiency_type] == HPXML::UnitsSEER
+      cooling_efficiency_seer = args[:heat_pump_cooling_efficiency]
+    elsif args[:heat_pump_cooling_efficiency_type] == HPXML::UnitsEER
+      cooling_efficiency_eer = args[:heat_pump_cooling_efficiency]
     end
 
     if args[:heat_pump_airflow_defect_ratio].is_initialized
@@ -4053,6 +4032,36 @@ class HPXMLFile
                          cooling_efficiency_eer: cooling_efficiency_eer,
                          airflow_defect_ratio: airflow_defect_ratio,
                          charge_defect_ratio: charge_defect_ratio)
+  end
+
+  def self.set_secondary_heating_systems(hpxml, runner, args)
+    heating_system_type_2 = args[:heating_system_type_2]
+
+    return if heating_system_type_2 == 'none'
+
+    if args[:heating_system_heating_capacity_2] != Constants.Auto
+      heating_capacity_2 = args[:heating_system_heating_capacity_2]
+    end
+
+    if args[:heating_system_fuel_2] == HPXML::HVACTypeElectricResistance
+      heating_system_fuel_2 = HPXML::FuelTypeElectricity
+    else
+      heating_system_fuel_2 = args[:heating_system_fuel_2]
+    end
+
+    if [HPXML::HVACTypeFurnace, HPXML::HVACTypeWallFurnace, HPXML::HVACTypeFloorFurnace, HPXML::HVACTypeBoiler].include? heating_system_type_2
+      heating_efficiency_afue_2 = args[:heating_system_heating_efficiency_2]
+    elsif [HPXML::HVACTypeElectricResistance, HPXML::HVACTypeStove, HPXML::HVACTypePortableHeater, HPXML::HVACTypeFireplace].include? heating_system_type_2
+      heating_efficiency_percent_2 = args[:heating_system_heating_efficiency_2]
+    end
+
+    hpxml.heating_systems.add(id: 'SecondHeatingSystem',
+                              heating_system_type: heating_system_type_2,
+                              heating_system_fuel: heating_system_fuel_2,
+                              heating_capacity: heating_capacity_2,
+                              fraction_heat_load_served: args[:heating_system_fraction_heat_load_served_2],
+                              heating_efficiency_afue: heating_efficiency_afue_2,
+                              heating_efficiency_percent: heating_efficiency_percent_2)
   end
 
   def self.set_hvac_distribution(hpxml, runner, args)
@@ -4112,13 +4121,10 @@ class HPXMLFile
                                                                duct_leakage_value: args[:ducts_supply_leakage_value],
                                                                duct_leakage_total_or_to_outside: HPXML::DuctLeakageToOutside)
 
-    if not ([HPXML::HVACTypeEvaporativeCooler].include?(args[:cooling_system_type]) && args[:cooling_system_is_ducted])
-
-      hpxml.hvac_distributions[-1].duct_leakage_measurements.add(duct_type: HPXML::DuctTypeReturn,
-                                                                 duct_leakage_units: args[:ducts_return_leakage_units],
-                                                                 duct_leakage_value: args[:ducts_return_leakage_value],
-                                                                 duct_leakage_total_or_to_outside: HPXML::DuctLeakageToOutside)
-    end
+    hpxml.hvac_distributions[-1].duct_leakage_measurements.add(duct_type: HPXML::DuctTypeReturn,
+                                                               duct_leakage_units: args[:ducts_return_leakage_units],
+                                                               duct_leakage_value: args[:ducts_return_leakage_value],
+                                                               duct_leakage_total_or_to_outside: HPXML::DuctLeakageToOutside)
 
     # Ducts
     if args[:ducts_supply_location] != Constants.Auto
@@ -4189,24 +4195,20 @@ class HPXMLFile
   def self.set_ventilation_fans(hpxml, runner, args)
     if args[:mech_vent_fan_type] != 'none'
 
-      if args[:mech_vent_fan_type].include? 'recovery ventilator'
-
-        if args[:mech_vent_fan_type].include? 'energy'
-
-          if args[:mech_vent_total_recovery_efficiency_type] == 'Unadjusted'
-            total_recovery_efficiency = args[:mech_vent_total_recovery_efficiency]
-          elsif args[:mech_vent_total_recovery_efficiency_type] == 'Adjusted'
-            total_recovery_efficiency_adjusted = args[:mech_vent_total_recovery_efficiency]
-          end
-
-        end
-
-        if args[:mech_vent_sensible_recovery_efficiency_type] == 'Unadjusted'
+      if [HPXML::MechVentTypeERV].include?(args[:mech_vent_fan_type])
+        if args[:mech_vent_recovery_efficiency_type] == 'Unadjusted'
+          total_recovery_efficiency = args[:mech_vent_total_recovery_efficiency]
           sensible_recovery_efficiency = args[:mech_vent_sensible_recovery_efficiency]
-        elsif args[:mech_vent_sensible_recovery_efficiency_type] == 'Adjusted'
+        elsif args[:mech_vent_recovery_efficiency_type] == 'Adjusted'
+          total_recovery_efficiency_adjusted = args[:mech_vent_total_recovery_efficiency]
           sensible_recovery_efficiency_adjusted = args[:mech_vent_sensible_recovery_efficiency]
         end
-
+      elsif [HPXML::MechVentTypeHRV].include?(args[:mech_vent_fan_type])
+        if args[:mech_vent_recovery_efficiency_type] == 'Unadjusted'
+          sensible_recovery_efficiency = args[:mech_vent_sensible_recovery_efficiency]
+        elsif args[:mech_vent_recovery_efficiency_type] == 'Adjusted'
+          sensible_recovery_efficiency_adjusted = args[:mech_vent_sensible_recovery_efficiency]
+        end
       end
 
       distribution_system_idref = nil
@@ -4258,24 +4260,21 @@ class HPXMLFile
 
     if args[:mech_vent_fan_type_2] != 'none'
 
-      if args[:mech_vent_fan_type_2].include? 'recovery ventilator'
+      if [HPXML::MechVentTypeERV].include?(args[:mech_vent_fan_type_2])
 
-        if args[:mech_vent_fan_type_2].include? 'energy'
-
-          if args[:mech_vent_total_recovery_efficiency_type_2] == 'Unadjusted'
-            total_recovery_efficiency = args[:mech_vent_total_recovery_efficiency_2]
-          elsif args[:mech_vent_total_recovery_efficiency_type_2] == 'Adjusted'
-            total_recovery_efficiency_adjusted = args[:mech_vent_total_recovery_efficiency_2]
-          end
-
-        end
-
-        if args[:mech_vent_sensible_recovery_efficiency_type_2] == 'Unadjusted'
+        if args[:mech_vent_recovery_efficiency_type_2] == 'Unadjusted'
+          total_recovery_efficiency = args[:mech_vent_total_recovery_efficiency_2]
           sensible_recovery_efficiency = args[:mech_vent_sensible_recovery_efficiency_2]
-        elsif args[:mech_vent_sensible_recovery_efficiency_type_2] == 'Adjusted'
+        elsif args[:mech_vent_recovery_efficiency_type_2] == 'Adjusted'
+          total_recovery_efficiency_adjusted = args[:mech_vent_total_recovery_efficiency_2]
           sensible_recovery_efficiency_adjusted = args[:mech_vent_sensible_recovery_efficiency_2]
         end
-
+      elsif [HPXML::MechVentTypeHRV].include?(args[:mech_vent_fan_type_2])
+        if args[:mech_vent_recovery_efficiency_type_2] == 'Unadjusted'
+          sensible_recovery_efficiency = args[:mech_vent_sensible_recovery_efficiency_2]
+        elsif args[:mech_vent_recovery_efficiency_type_2] == 'Adjusted'
+          sensible_recovery_efficiency_adjusted = args[:mech_vent_sensible_recovery_efficiency_2]
+        end
       end
 
       distribution_system_idref = nil
@@ -4753,13 +4752,11 @@ class HPXMLFile
       location = args[:clothes_washer_location]
     end
 
-    if args[:clothes_washer_efficiency_type] == 'ModifiedEnergyFactor'
-      if args[:clothes_washer_efficiency_mef] != Constants.Auto
-        modified_energy_factor = args[:clothes_washer_efficiency_mef]
-      end
-    elsif args[:clothes_washer_efficiency_type] == 'IntegratedModifiedEnergyFactor'
-      if args[:clothes_washer_efficiency_imef] != Constants.Auto
-        integrated_modified_energy_factor = args[:clothes_washer_efficiency_imef]
+    if args[:clothes_washer_efficiency] != Constants.Auto
+      if args[:clothes_washer_efficiency_type] == 'ModifiedEnergyFactor'
+        modified_energy_factor = args[:clothes_washer_efficiency].to_f
+      elsif args[:clothes_washer_efficiency_type] == 'IntegratedModifiedEnergyFactor'
+        integrated_modified_energy_factor = args[:clothes_washer_efficiency].to_f
       end
     end
 
@@ -4851,11 +4848,11 @@ class HPXMLFile
     end
 
     if args[:dishwasher_efficiency_type] == 'RatedAnnualkWh'
-      if args[:dishwasher_efficiency_kwh] != Constants.Auto
-        rated_annual_kwh = args[:dishwasher_efficiency_kwh]
+      if args[:dishwasher_efficiency] != Constants.Auto
+        rated_annual_kwh = args[:dishwasher_efficiency]
       end
     elsif args[:dishwasher_efficiency_type] == 'EnergyFactor'
-      energy_factor = args[:dishwasher_efficiency_ef]
+      energy_factor = args[:dishwasher_efficiency]
     end
 
     if args[:dishwasher_label_electric_rate] != Constants.Auto

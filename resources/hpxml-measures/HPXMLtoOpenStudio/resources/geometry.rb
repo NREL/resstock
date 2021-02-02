@@ -208,4 +208,17 @@ class Geometry
     lat_frac = lat_gains / tot_gains
     return heat_gain, hrs_per_day, sens_frac, lat_frac
   end
+
+  def self.tear_down_model(model, runner)
+    # Tear down the existing model if it exists
+    has_existing_objects = (model.getThermalZones.size > 0)
+    handles = OpenStudio::UUIDVector.new
+    model.objects.each do |obj|
+      handles << obj.handle
+    end
+    model.removeObjects(handles)
+    if has_existing_objects
+      runner.registerWarning('The model contains existing objects and is being reset.')
+    end
+  end
 end

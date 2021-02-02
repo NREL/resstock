@@ -3,8 +3,10 @@
 __New Features__
 - **Breaking change**: `Type` is now a required input for dehumidifiers; can be "portable" or "whole-home".
 - **Breaking change**: `Location` is now a required input for dehumidifiers; must be "living space" as dehumidifiers are currently modeled as located in living space.
-- **Breaking Change**: `Type` is now a required input for Pool, PoolPump, HotTub, and HotTubPump.
+- **Breaking change**: `Type` is now a required input for Pool, PoolPump, HotTub, and HotTubPump.
+- **Breaking change**: Both supply and return duct leakage to outside are now required inputs for AirDistribution systems.
 - Allows modeling airflow/charge defects for air conditioners, heat pumps, and furnaces (RESNET Standard 310).
+- Allows modeling *multiple* dehumidifiers (previously only one allowed).
 - Allows modeling generators (generic on-site power production).
 - Allows detailed heating/cooling setpoints to be specified: 24-hour weekday & weekend values.
 - Allows modeling window/skylight *exterior* shading via summer/winter shading coefficients.
@@ -13,6 +15,7 @@ __New Features__
 - Allows requesting timeseries unmet heating/cooling loads.
 - Allows skipping schema/schematron validation (for speed); should only be used if the HPXML was already validated upstream.
 - Includes hot water loads (in addition to heating/cooling loads) when timeseries total loads are requested.
+- The `in.xml` HPXML file is now always produced for inspection of default values. **Breaking change**: The `output_dir` HPXMLtoOpenStudio measure argument is now required.
 - Overhauls documentation to be more comprehensive and standardized.
 - `run_simulation.rb` now returns exit code 1 if not successful (i.e., either invalid inputs or simulation fails).
 

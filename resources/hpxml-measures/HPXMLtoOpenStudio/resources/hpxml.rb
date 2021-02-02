@@ -5264,6 +5264,12 @@ class HPXML < Object
       errors << "Expected FractionHeatLoadServed to sum to <= 1, but calculated sum is #{total_fraction_heat_load_served.round(2)}."
     end
 
+    # Check sum of dehumidifier FractionDehumidificationLoadServed <= 1
+    total_fraction_dehum_load_served = @dehumidifiers.map { |d| d.fraction_served }.sum(0.0)
+    if total_fraction_dehum_load_served > 1.01 # Use 1.01 in case of rounding
+      errors << "Expected FractionDehumidificationLoadServed to sum to <= 1, but calculated sum is #{total_fraction_dehum_load_served.round(2)}."
+    end
+
     # Check sum of HVAC FractionDHWLoadServed == 1
     frac_dhw_load = @water_heating_systems.map { |dhw| dhw.fraction_dhw_load_served.to_f }.sum(0.0)
     if (frac_dhw_load > 0) && ((frac_dhw_load < 0.99) || (frac_dhw_load > 1.01)) # Use 0.99/1.01 in case of rounding

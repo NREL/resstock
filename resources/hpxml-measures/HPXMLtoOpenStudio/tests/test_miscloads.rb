@@ -199,6 +199,7 @@ class HPXMLtoOpenStudioMiscLoadsTest < MiniTest::Test
     model = OpenStudio::Model::Model.new
 
     # get arguments
+    args_hash['output_dir'] = 'tests'
     arguments = measure.arguments(model)
     argument_map = OpenStudio::Measure.convertOSArgumentVectorToMap(arguments)
 
@@ -222,6 +223,8 @@ class HPXMLtoOpenStudioMiscLoadsTest < MiniTest::Test
     assert_equal('Success', result.value.valueName)
 
     hpxml = HPXML.new(hpxml_path: args_hash['hpxml_path'])
+
+    File.delete(File.join(File.dirname(__FILE__), 'in.xml'))
 
     return model, hpxml
   end
