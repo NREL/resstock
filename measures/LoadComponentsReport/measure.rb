@@ -279,8 +279,8 @@ class LoadComponentsReport < OpenStudio::Measure::ReportingMeasure
         hvac_transfer_vals.each_with_index do |hvac_energy_transfer, i|
           if hvac_energy_transfer > 0 # heating
             # during heating, all heat gains are "reducing" the heating that the HVAC needs to provide, so reverse sign
-            heating_demand['windows conduction'] -= heat_transfer_vectors['Zone Window Convection Heat Transfer Energy'].to_a[i]
-            heating_demand['doors conduction'] -= heat_transfer_vectors['Zone Door Convection Heat Transfer Energy'].to_a[i]
+            heating_demand['windows convection'] -= heat_transfer_vectors['Zone Window Convection Heat Transfer Energy'].to_a[i]
+            heating_demand['doors convection'] -= heat_transfer_vectors['Zone Door Convection Heat Transfer Energy'].to_a[i]
             heating_demand['windows solar'] -= heat_transfer_vectors['Zone Window Radiation Heat Transfer Energy'].to_a[i]
             heating_demand['wall'] -= heat_transfer_vectors['Zone Wall Convection Heat Transfer Energy'].to_a[i]
             heating_demand['foundation wall'] -= heat_transfer_vectors['Zone Foundation Wall Convection Heat Transfer Energy'].to_a[i]
@@ -296,8 +296,8 @@ class LoadComponentsReport < OpenStudio::Measure::ReportingMeasure
             heating_demand['other gain'] -= heat_transfer_vectors['Zone Other Convection Heat Transfer Energy'].to_a[i]
           elsif hvac_energy_transfer < 0 # cooling
             # during cooling, all heat gains are "increasing" the cooling that the HVAC needs to provide, so sign matches convention
-            cooling_demand['windows conduction'] += heat_transfer_vectors['Zone Window Convection Heat Transfer Energy'].to_a[i]
-            cooling_demand['doors conduction'] += heat_transfer_vectors['Zone Door Convection Heat Transfer Energy'].to_a[i]
+            cooling_demand['windows convection'] += heat_transfer_vectors['Zone Window Convection Heat Transfer Energy'].to_a[i]
+            cooling_demand['doors convection'] += heat_transfer_vectors['Zone Door Convection Heat Transfer Energy'].to_a[i]
             cooling_demand['windows solar'] += heat_transfer_vectors['Zone Window Radiation Heat Transfer Energy'].to_a[i]
             cooling_demand['wall'] += heat_transfer_vectors['Zone Wall Convection Heat Transfer Energy'].to_a[i]
             cooling_demand['foundation wall'] += heat_transfer_vectors['Zone Foundation Wall Convection Heat Transfer Energy'].to_a[i]
@@ -324,9 +324,9 @@ class LoadComponentsReport < OpenStudio::Measure::ReportingMeasure
       end
     end
 
-    report_sim_output(runner, "cond_windows_heating", heating_demand['windows conduction'], "J", total_site_units)
+    report_sim_output(runner, "conv_windows_heating", heating_demand['windows convection'], "J", total_site_units)
     report_sim_output(runner, "solar_windows_heating", heating_demand['windows solar'], "J", total_site_units)
-    report_sim_output(runner, "cond_doors_heating", heating_demand['doors conduction'], "J", total_site_units)
+    report_sim_output(runner, "conv_doors_heating", heating_demand['doors convection'], "J", total_site_units)
     report_sim_output(runner, "conv_walls_heating", heating_demand['wall'], "J", total_site_units)
     report_sim_output(runner, "conv_ceiling_heating", heating_demand['ceiling'], "J", total_site_units)
     report_sim_output(runner, "conv_roof_heating", heating_demand['roof'], "J", total_site_units)
@@ -339,9 +339,9 @@ class LoadComponentsReport < OpenStudio::Measure::ReportingMeasure
     report_sim_output(runner, "lighting_heating", heating_demand['lighting gain'], "J", total_site_units)
     report_sim_output(runner, "ventilation_heating", heating_demand['ventilation'], "J", total_site_units)
     report_sim_output(runner, "conv_other_heating", heating_demand['other gain'], "J", total_site_units)
-    report_sim_output(runner, "cond_windows_cooling", cooling_demand['windows conduction'], "J", total_site_units)
+    report_sim_output(runner, "conv_windows_cooling", cooling_demand['windows convection'], "J", total_site_units)
     report_sim_output(runner, "solar_windows_cooling", cooling_demand['windows solar'], "J", total_site_units)
-    report_sim_output(runner, "cond_doors_cooling", cooling_demand['doors conduction'], "J", total_site_units)
+    report_sim_output(runner, "conv_doors_cooling", cooling_demand['doors convection'], "J", total_site_units)
     report_sim_output(runner, "conv_walls_cooling", cooling_demand['wall'], "J", total_site_units)
     report_sim_output(runner, "conv_ceiling_cooling", cooling_demand['ceiling'], "J", total_site_units)
     report_sim_output(runner, "conv_roof_cooling", cooling_demand['roof'], "J", total_site_units)
@@ -367,8 +367,8 @@ class LoadComponentsReport < OpenStudio::Measure::ReportingMeasure
     hd += heating_demand['ventilation']
     hd += heating_demand['lighting gain']
     hd += heating_demand['windows solar']
-    hd += heating_demand['windows conduction']
-    hd += heating_demand['doors conduction']
+    hd += heating_demand['windows convection']
+    hd += heating_demand['doors convection']
     hd += heating_demand['other gain']
     cd = cooling_demand['wall']
     cd += cooling_demand['foundation wall']
@@ -382,8 +382,8 @@ class LoadComponentsReport < OpenStudio::Measure::ReportingMeasure
     cd += cooling_demand['ventilation']
     cd += cooling_demand['lighting gain']
     cd += cooling_demand['windows solar']
-    cd += cooling_demand['windows conduction']
-    cd += cooling_demand['doors conduction']
+    cd += cooling_demand['windows convection']
+    cd += cooling_demand['doors convection']
     cd += cooling_demand['other gain']
     report_sim_output(runner, "heating_demand", hd, "J", total_site_units)
     report_sim_output(runner, "cooling_demand", cd, "J", total_site_units)
