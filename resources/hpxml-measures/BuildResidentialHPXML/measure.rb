@@ -3682,6 +3682,7 @@ class HPXMLFile
         has_foundation_walls = true
       end
       exposed_perimeter = Geometry.calculate_exposed_perimeter(model, [surface], has_foundation_walls).round
+      next if exposed_perimeter == 0 # this could be, e.g., the foundation floor of an interior corridor
 
       if [HPXML::LocationLivingSpace, HPXML::LocationGarage].include? interior_adjacent_to
         depth_below_grade = 0

@@ -1713,7 +1713,6 @@ class Geometry
         foundation_space_type = OpenStudio::Model::SpaceType.new(model)
         foundation_space_type.setStandardsSpaceType(foundation_space_name)
         foundation_space.setSpaceType(foundation_space_type)
-        runner.registerInfo("Set #{foundation_space_name}.")
 
         # set these to the foundation zone
         foundation_space.setThermalZone(foundation_zone)
@@ -1781,7 +1780,6 @@ class Geometry
       attic_space_type = OpenStudio::Model::SpaceType.new(model)
       attic_space_type.setStandardsSpaceType(attic_space_name)
       attic_space.setSpaceType(attic_space_type)
-      runner.registerInfo("Set #{attic_space_name}.")
     end
 
     # Adiabatic surfaces for attic walls
@@ -2285,7 +2283,6 @@ class Geometry
         foundation_space_type = OpenStudio::Model::SpaceType.new(model)
         foundation_space_type.setStandardsSpaceType(foundation_space_name)
         foundation_space.setSpaceType(foundation_space_type)
-        runner.registerInfo("Set #{foundation_space_name}.")
 
         # set these to the foundation zone
         foundation_space.setThermalZone(foundation_zone)
