@@ -23,6 +23,7 @@ class WorkflowTest < MiniTest::Test
 
       RunOSWs.add_simulation_output_report(osw)
       out_osw, result = RunOSWs.run_and_check(osw, parent_dir)
+      result['OSW'] = File.basename(osw)
       all_results << result
 
       # Check workflow was successful

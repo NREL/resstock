@@ -455,7 +455,6 @@ class RunOSWs
     out_osw = File.join(parent_dir, 'out.osw')
 
     data_point_out = File.join(parent_dir, 'run/data_point_out.json')
-    # result = { 'OSW' => File.basename(in_osw) }
     result = {}
     rows = {}
     if File.exist?(File.expand_path(data_point_out))
