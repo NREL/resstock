@@ -556,6 +556,7 @@ class Geometry
         wall_s.setSpace(garage_attic_space)
 
         if attic_type == HPXML::AtticTypeConditioned
+          garage_attic_space_name = attic_space_name
           garage_attic_space.setThermalZone(living_zone)
         else
           if num_floors > 1
@@ -616,8 +617,10 @@ class Geometry
             next if surface2.surfaceType != 'RoofCeiling'
             next if surface1 == surface2
 
-            surface1.remove if has_same_vertices(surface1, surface2)
-            surface2.remove if has_same_vertices(surface1, surface2)
+            if has_same_vertices(surface1, surface2)
+              surface1.remove
+              surface2.remove
+            end
           end
         end
 
@@ -657,8 +660,8 @@ class Geometry
 
   def self.has_same_vertices(surface1, surface2)
     if getSurfaceXValues([surface1]) == getSurfaceXValues([surface2]) &&
-       getSurfaceYValues([surface1]) == getSurfaceYValues([surface2])
-      getSurfaceZValues([surface1]) == getSurfaceZValues([surface2])
+       getSurfaceYValues([surface1]) == getSurfaceYValues([surface2]) &&
+       getSurfaceZValues([surface1]) == getSurfaceZValues([surface2])
       return true
     end
     return false
