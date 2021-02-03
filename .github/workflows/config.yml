@@ -42,20 +42,18 @@ jobs:
       - name: Store example osws
         uses: actions/upload-artifact@v2
         with:
-          path: workflows/results/results.csv
-          name: example_osws.csv          
+          path: workflows/results
+          name: example_osws          
 
       - name: Store measures osws
         uses: actions/upload-artifact@v2
         with:
-          path: test/test_measures_osw/results/results.csv
-          name: measures_osws.csv
-
-      - name: Store buildstock csv
-        uses: actions/upload-artifact@v2
-        with:
-          path: test/test_measures_osw/buildstock.csv
-          name: buildstock.csv
+          path: |
+            test/test_measures_osw/buildstock.csv
+            test/test_measures_osw/results/results.csv
+            test/test_measures_osw/osw
+            test/test_measures_osw/xml
+          name: measures_osw
 
   docs:
     # The type of runner that the job will run on

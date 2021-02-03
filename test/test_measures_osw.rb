@@ -39,7 +39,7 @@ class TestResStockMeasuresOSW < MiniTest::Test
         # Check workflow was successful
         assert(File.exist?(out_osw))
         data_hash = JSON.parse(File.read(out_osw))
-        assert_equal(data_hash['completed_status'], 'Success')
+        result['completed_status'] = data_hash['completed_status']
 
         # Save existing/upgraded osws and xmls
         ['existing', 'upgraded'].each do |scenario|

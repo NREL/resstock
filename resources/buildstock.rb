@@ -455,8 +455,13 @@ class RunOSWs
     out_osw = File.join(parent_dir, 'out.osw')
 
     data_point_out = File.join(parent_dir, 'run/data_point_out.json')
-    result = { 'OSW' => File.basename(in_osw) }
-    rows = JSON.parse(File.read(File.expand_path(data_point_out)))
+    # result = { 'OSW' => File.basename(in_osw) }
+    result = {}
+    rows = {}
+    if File.exist?(File.expand_path(data_point_out))
+      rows = JSON.parse(File.read(File.expand_path(data_point_out)))
+    end
+
     result = get_measure_results(rows, result, 'BuildExistingModel')
     result = get_measure_results(rows, result, 'SimulationOutputReport')
     result = get_measure_results(rows, result, 'UpgradeCosts')

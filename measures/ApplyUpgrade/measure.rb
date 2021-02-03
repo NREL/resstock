@@ -346,7 +346,12 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
       # Retain HVAC capacities
       if (not upgrade_heating_system) || (not upgrade_supp_heating_system) || (not upgrade_cooling_system) || (not upgrade_heat_pump)
         hpxml_path = File.expand_path('../in.xml') # this is the defaulted hpxml
-        hpxml = HPXML.new(hpxml_path: hpxml_path)
+        if File.exist?(hpxml_path)
+          hpxml = HPXML.new(hpxml_path: hpxml_path)
+        else
+          runner.registerWarning("ApplyUpgrade measure could not find '#{hpxml_path}'.")
+          return true
+        end
       end
 
       unless upgrade_heating_system
