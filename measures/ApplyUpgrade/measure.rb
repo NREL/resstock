@@ -321,7 +321,7 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
 
       # Get the absolute paths relative to this meta measure in the run directory
       new_runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
-      if not apply_child_measures(measures_dir, { 'ResStockArguments' => measures['ResStockArguments'] }, new_runner, model, workflow_json, 'measures-upgrade.osw', true)
+      if not apply_child_measures(measures_dir, { 'ResStockArguments' => measures['ResStockArguments'] }, new_runner, model, workflow_json, 'upgraded.osw', true)
         return false
       end
 
