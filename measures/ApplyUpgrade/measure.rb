@@ -218,6 +218,9 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
     upgrade_cooling_system = false
     upgrade_heat_pump = false
 
+    # Register the upgrade name
+    register_value(runner, 'upgrade_name', upgrade_name)
+
     measures = {}
     if apply_package_upgrade
 
@@ -319,8 +322,15 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
         end
       end
 
+      if measures.size == 0
+        # Upgrade not applied; don't re-run existing home simulation
+        runner.haltWorkflow('Invalid')
+        return false
+      end
+
       # Get the absolute paths relative to this meta measure in the run directory
       new_runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
+
       if not apply_child_measures(measures_dir, { 'ResStockArguments' => measures['ResStockArguments'] }, new_runner, model, workflow_json, 'upgraded.osw', true)
         return false
       end
@@ -429,15 +439,6 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
       end
 
     end # apply_package_upgrade
-
-    # Register the upgrade name
-    register_value(runner, 'upgrade_name', upgrade_name)
-
-    if measures.size == 0
-      # Upgrade not applied; don't re-run existing home simulation
-      runner.haltWorkflow('Invalid')
-      return false
-    end
 
     return true
   end
