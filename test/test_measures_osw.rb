@@ -10,7 +10,7 @@ require_relative '../resources/buildstock'
 class TestResStockMeasuresOSW < MiniTest::Test
   def test_measures_osw
     project_dir = 'project_testing'
-    num_samples = 10
+    num_samples = 3
 
     if project_dir == 'project_national'
       parent_dir = File.absolute_path(File.join(File.dirname(__FILE__), '..'))
@@ -27,7 +27,7 @@ class TestResStockMeasuresOSW < MiniTest::Test
     buildstock_csv = create_buildstock_csv(project_dir, num_samples)
     lib_dir = create_lib_folder(parent_dir, project_dir, buildstock_csv)
 
-    Dir["#{parent_dir}/workflow*.osw"].each do |osw|
+    Dir["#{parent_dir}/workflow-sec*.osw"].each do |osw|
       osw_basename = File.basename(osw)
       puts "\nWorkflow: #{osw_basename} ...\n"
 

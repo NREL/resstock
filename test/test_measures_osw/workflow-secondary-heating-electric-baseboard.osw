@@ -15,14 +15,16 @@
       "measure_dir_name": "ApplyUpgrade",
       "arguments": {
         "run_measure": 1,
-        "upgrade_name": "High Efficiency Central Air Conditioner",
-        "option_1": "HVAC Cooling Efficiency|AC, SEER 24.5",
-        "option_1_apply_logic": "!HVAC Cooling Type|None",
-        "option_1_lifetime": 20,
-        "option_1_cost_1_value": 2000.0,
+        "upgrade_name": "Secondary Electric Baseboard",
+        "option_1": "HVAC Secondary Heating Efficiency|Electric Baseboard, 100% Efficiency",
+        "option_1_apply_logic": "(!HVAC Heating Type|None)&&(HVAC Secondary Heating Type And Fuel|None None)",
+        "option_1_lifetime": 30,
+        "option_1_cost_1_value": 500.0,
         "option_1_cost_1_multiplier": "Fixed (1)",
         "option_1_cost_2_value": 80.0,
-        "option_1_cost_2_multiplier": "Size, Cooling System (kBtu/h)"
+        "option_1_cost_2_multiplier": "Size, Heating Secondary System (kBtu/h)",
+        "option_2": "HVAC Secondary Heating Type And Fuel|Electricity Baseboard",
+        "option_2_apply_logic": "(!HVAC Heating Type|None)&&(HVAC Secondary Heating Type And Fuel|None None)"
       }
     },
     {
