@@ -27,7 +27,7 @@ class TestResStockMeasuresOSW < MiniTest::Test
     buildstock_csv = create_buildstock_csv(project_dir, num_samples)
     lib_dir = create_lib_folder(parent_dir, project_dir, buildstock_csv)
 
-    Dir["#{parent_dir}/workflow-sec*.osw"].each do |osw|
+    Dir["#{parent_dir}/workflow*.osw"].each do |osw|
       osw_basename = File.basename(osw)
       puts "\nWorkflow: #{osw_basename} ...\n"
 
