@@ -13,10 +13,12 @@ class TestResStockMeasuresOSW < MiniTest::Test
     num_samples = 10
 
     if project_dir == 'project_national'
-      parent_dir = File.absolute_path(File.join(File.dirname(__FILE__)))
-      cli_path = OpenStudio.getOpenStudioCLI
-      command = "cd #{parent_dir}/.. && \"#{cli_path}\" tasks.rb download_weather"
-      system(command)
+      parent_dir = File.absolute_path(File.join(File.dirname(__FILE__), '..'))
+      if Dir["#{parent_dir}/weather/*.epw"].size < 10
+        cli_path = OpenStudio.getOpenStudioCLI
+        command = "cd #{parent_dir} && \"#{cli_path}\" tasks.rb download_weather"
+        system(command)
+      end
     end
 
     all_results = []
