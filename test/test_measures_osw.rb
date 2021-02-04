@@ -10,7 +10,7 @@ require_relative '../resources/buildstock'
 class TestResStockMeasuresOSW < MiniTest::Test
   def test_measures_osw
     project_dir = 'project_testing'
-    num_samples = 3
+    num_samples = 10
 
     if project_dir == 'project_national'
       parent_dir = File.absolute_path(File.join(File.dirname(__FILE__), '..'))
