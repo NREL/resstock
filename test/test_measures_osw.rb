@@ -12,6 +12,13 @@ class TestResStockMeasuresOSW < MiniTest::Test
     project_dir = 'project_testing'
     num_samples = 10
 
+    if project_dir == 'project_national'
+      parent_dir = File.absolute_path(File.join(File.dirname(__FILE__)))
+      cli_path = OpenStudio.getOpenStudioCLI
+      command = "cd #{parent_dir}/.. && \"#{cli_path}\" tasks.rb download_weather"
+      system(command)
+    end
+
     all_results = []
     parent_dir = File.absolute_path(File.join(File.dirname(__FILE__), 'test_measures_osw'))
 

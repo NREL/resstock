@@ -130,7 +130,7 @@ def download_epws
   require 'tempfile'
   tmpfile = Tempfile.new('epw')
 
-  UrlResolver.fetch('https://data.nrel.gov/system/files/128/ResStock_TMY3.zip', tmpfile)
+  UrlResolver.fetch('https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip', tmpfile)
 
   puts 'Extracting weather files...'
   weather_dir = File.join(File.dirname(__FILE__), 'weather')
