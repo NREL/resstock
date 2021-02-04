@@ -370,6 +370,8 @@ def create_osws
     'invalid_files/slab-non-zero-foundation-height-above-grade.osw' => 'base.osw',
     'invalid_files/ducts-location-and-areas-not-same-type.osw' => 'base.osw',
     'invalid_files/second-heating-system-serves-majority-heat.osw' => 'base.osw',
+    'invalid_files/second-heating-system-serves-total-heat-load.osw' => 'base.osw',
+    'invalid_files/second-heating-system-but-no-primary-heating.osw' => 'base.osw',
     'invalid_files/single-family-attached-no-building-orientation.osw' => 'base-bldgtype-single-family-attached.osw',
     'invalid_files/multifamily-no-building-orientation.osw' => 'base-bldgtype-multifamily.osw',
     'invalid_files/vented-crawlspace-with-wall-and-ceiling-insulation.osw' => 'base.osw',
@@ -2230,6 +2232,12 @@ def get_values(osw_file, step)
     step.setArgument('heating_system_fraction_heat_load_served', 0.4)
     step.setArgument('heating_system_type_2', HPXML::HVACTypeFireplace)
     step.setArgument('heating_system_fraction_heat_load_served_2', 0.6)
+  elsif ['invalid_files/second-heating-system-serves-total-heat-load.osw'].include? osw_file
+    step.setArgument('heating_system_type_2', HPXML::HVACTypeFireplace)
+    step.setArgument('heating_system_fraction_heat_load_served_2', 1.0)
+  elsif ['invalid_files/second-heating-system-but-no-primary-heating.osw'].include? osw_file
+    step.setArgument('heating_system_type', 'none')
+    step.setArgument('heating_system_type_2', HPXML::HVACTypeFireplace)
   elsif ['invalid_files/single-family-attached-no-building-orientation.osw'].include? osw_file
     step.removeArgument('geometry_building_num_units')
     step.removeArgument('geometry_horizontal_location')

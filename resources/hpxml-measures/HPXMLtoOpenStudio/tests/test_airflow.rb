@@ -92,7 +92,7 @@ class HPXMLtoOpenStudioAirflowTest < MiniTest::Test
     # Check infiltration/ventilation program
     program_values = get_ems_values(model.getEnergyManagementSystemPrograms, "#{Constants.ObjectNameInfiltration} program")
     assert_in_epsilon(0.0436, program_values['c'].sum, 0.01)
-    assert_in_epsilon(0.0818, program_values['Cs'].sum, 0.01)
+    assert_in_epsilon(0.0661, program_values['Cs'].sum, 0.01)
     assert_in_epsilon(0.1323, program_values['Cw'].sum, 0.01)
   end
 

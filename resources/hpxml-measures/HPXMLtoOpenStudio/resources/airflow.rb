@@ -2,7 +2,7 @@
 
 class Airflow
   def self.apply(model, runner, weather, spaces, air_infils, vent_fans, clothes_dryers, nbeds,
-                 duct_systems, infil_volume, infil_height, open_window_area,
+                 ncfl_ag, duct_systems, infil_volume, infil_height, open_window_area,
                  nv_clg_ssn_sensor, min_neighbor_distance, vented_attic, vented_crawl,
                  site_type, shelter_coef, has_flue_chimney, hvac_map, eri_version,
                  apply_ashrae140_assumptions, schedules_file)
@@ -11,12 +11,12 @@ class Airflow
 
     @runner = runner
     @spaces = spaces
-    @building_height = Geometry.get_max_z_of_spaces(model.getSpaces)
     @infil_volume = infil_volume
     @infil_height = infil_height
     @living_space = spaces[HPXML::LocationLivingSpace]
     @living_zone = @living_space.thermalZone.get
     @nbeds = nbeds
+    @ncfl_ag = ncfl_ag
     @eri_version = eri_version
     @apply_ashrae140_assumptions = apply_ashrae140_assumptions
     @cfa = UnitConversions.convert(@living_space.floorArea, 'm^2', 'ft^2')
@@ -1717,11 +1717,9 @@ class Airflow
 
       if has_flue_chimney
         y_i = 0.2 # Fraction of leakage through the flue; 0.2 is a "typical" value according to THE ALBERTA AIR INFIL1RATION MODEL, Walker and Wilson, 1990
-        flue_height = @building_height + 2.0 # ft
         s_wflue = 1.0 # Flue Shelter Coefficient
       else
         y_i = 0.0 # Fraction of leakage through the flu
-        flue_height = 0.0 # ft
         s_wflue = 0.0 # Flue Shelter Coefficient
       end
 
@@ -1742,7 +1740,6 @@ class Airflow
       x_i = (leakage_ceiling - leakage_floor)
       r_i *= (1 - y_i)
       x_i *= (1 - y_i)
-      z_f = flue_height / (@infil_height + Geometry.get_z_origin_for_zone(@living_zone))
 
       # Calculate Stack Coefficient
       m_o = (x_i + (2.0 * n_i + 1.0) * y_i)**2.0 / (2 - r_i)
@@ -1752,6 +1749,11 @@ class Airflow
         m_i = 1.0 # eq. 11
       end
       if has_flue_chimney
+        if @ncfl_ag <= 0
+          z_f = 1.0
+        else
+          z_f = (@ncfl_ag + 0.5) / @ncfl_ag # Typical value is 1.5 according to THE ALBERTA AIR INFIL1RATION MODEL, Walker and Wilson, 1990, presumably for a single story home
+        end
         x_c = r_i + (2.0 * (1.0 - r_i - y_i)) / (n_i + 1.0) - 2.0 * y_i * (z_f - 1.0)**n_i # Eq. 13
         f_i = n_i * y_i * (z_f - 1.0)**((3.0 * n_i - 1.0) / 3.0) * (1.0 - (3.0 * (x_c - x_i)**2.0 * r_i**(1 - n_i)) / (2.0 * (z_f + 1.0))) # Additive flue function, Eq. 12
       else
