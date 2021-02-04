@@ -2966,8 +2966,16 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     errors << "ducts_supply_location=#{args[:ducts_supply_location]} and ducts_supply_surface_area=#{args[:ducts_supply_surface_area]} and ducts_return_location=#{args[:ducts_return_location]} and ducts_return_surface_area=#{args[:ducts_return_surface_area]}" if error
 
     # second heating system fraction heat load served non less than 50%
-    warning = (args[:heating_system_type_2] != 'none') && (args[:heating_system_fraction_heat_load_served_2] >= 0.5)
+    warning = (args[:heating_system_type_2] != 'none') && (args[:heating_system_fraction_heat_load_served_2] >= 0.5) && (args[:heating_system_fraction_heat_load_served_2] < 1.0)
     warnings << "heating_system_type_2=#{args[:heating_system_type_2]} and heating_system_fraction_heat_load_served_2=#{args[:heating_system_fraction_heat_load_served_2]}" if warning
+
+    # second heating system fraction heat load served is 100%
+    error = (args[:heating_system_type_2] != 'none') && (args[:heating_system_fraction_heat_load_served_2] == 1.0)
+    errors << "heating_system_type_2=#{args[:heating_system_type_2]} and heating_system_fraction_heat_load_served_2=#{args[:heating_system_fraction_heat_load_served_2]}" if error
+
+    # second heating system but no primary heating system
+    error = (args[:heating_system_type] == 'none') && (args[:heat_pump_type] == 'none') && (args[:heating_system_type_2] != 'none')
+    errors << "heating_system_type=#{args[:heating_system_type]} and heat_pump_type=#{args[:heat_pump_type]} and heating_system_type_2=#{args[:heating_system_type_2]}" if error
 
     # single-family attached and num units, horizontal location not specified
     error = (args[:geometry_unit_type] == HPXML::ResidentialTypeSFA) && (!args[:geometry_building_num_units].is_initialized || !args[:geometry_horizontal_location].is_initialized)
@@ -3878,11 +3886,16 @@ class HPXMLFile
       end
     end
 
+    fraction_heat_load_served = args[:heating_system_fraction_heat_load_served]
+    if args[:heating_system_type_2] != 'none' && fraction_heat_load_served + args[:heating_system_fraction_heat_load_served_2] > 1.0
+      fraction_heat_load_served = 1.0 - args[:heating_system_fraction_heat_load_served_2]
+    end
+
     hpxml.heating_systems.add(id: 'HeatingSystem',
                               heating_system_type: heating_system_type,
                               heating_system_fuel: heating_system_fuel,
                               heating_capacity: heating_capacity,
-                              fraction_heat_load_served: args[:heating_system_fraction_heat_load_served],
+                              fraction_heat_load_served: fraction_heat_load_served,
                               heating_efficiency_afue: heating_efficiency_afue,
                               heating_efficiency_percent: heating_efficiency_percent,
                               airflow_defect_ratio: airflow_defect_ratio)
@@ -4012,6 +4025,11 @@ class HPXMLFile
       charge_defect_ratio = args[:heat_pump_charge_defect_ratio].get
     end
 
+    fraction_heat_load_served = args[:heat_pump_fraction_heat_load_served]
+    if args[:heating_system_type_2] != 'none' && fraction_heat_load_served + args[:heating_system_fraction_heat_load_served_2] > 1.0
+      fraction_heat_load_served = 1.0 - args[:heating_system_fraction_heat_load_served_2]
+    end
+
     hpxml.heat_pumps.add(id: 'HeatPump',
                          heat_pump_type: heat_pump_type,
                          heat_pump_fuel: HPXML::FuelTypeElectricity,
@@ -4020,7 +4038,7 @@ class HPXMLFile
                          compressor_type: compressor_type,
                          cooling_shr: cooling_shr,
                          cooling_capacity: cooling_capacity,
-                         fraction_heat_load_served: args[:heat_pump_fraction_heat_load_served],
+                         fraction_heat_load_served: fraction_heat_load_served,
                          fraction_cool_load_served: args[:heat_pump_fraction_cool_load_served],
                          backup_heating_fuel: backup_heating_fuel,
                          backup_heating_capacity: backup_heating_capacity,

@@ -32,6 +32,7 @@ __Bugfixes__
 - HVAC sizing improvements for floors above crawlspaces/basements and walls.
 - Now recognizes Type="none" to prevent modeling of pools and hot tubs (pumps and heaters).
 - Fixes error for overhangs with zero depth.
+- Fixes possible error where the normalized flue height for the AIM-2 infiltration model is negative.
 - Slight adjustment of default water heater recovery efficiency equation to prevent errors from values being too high.
 - Fixes schematron file not being valid per ISO Schematron standard.
 
