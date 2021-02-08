@@ -6,7 +6,7 @@ require 'minitest/autorun'
 require_relative '../../resources/hpxml-measures/HPXMLtoOpenStudio/resources/minitest_helper'
 require_relative '../../resources/buildstock'
 
-class WorkflowTest < MiniTest::Test
+class RegressionWorkflowTest < MiniTest::Test
   def test_examples_osw
     all_results = []
     parent_dir = File.absolute_path(File.join(File.dirname(__FILE__), '..'))
