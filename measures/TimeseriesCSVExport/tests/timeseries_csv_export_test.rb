@@ -8,8 +8,8 @@ require 'fileutils'
 class TimeseriesCSVExportTest < MiniTest::Test
   # "EnduseTimeseriesWidth" => num_time_indexes + num_electricity + num_natural_gas + num_fuel_oil + num_propane + num_wood + num_energy + num_output_variables
   @@include_enduse_subcategories = {
-    "false" => 3 + 19 + 5 + 4 + 5 + 2 + 1,
-    "true" => 3 + 37 + 11 + 4 + 6 + 2 + 1
+    "false" => 3 + 15 + 4 + 3 + 4 + 2 + 1,
+    "true" => 3 + 33 + 10 + 3 + 5 + 2 + 1
   }
 
   def test_leap_year_timestep_and_subcategories

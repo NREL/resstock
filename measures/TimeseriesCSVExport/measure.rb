@@ -249,10 +249,8 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
 
     report_ts_output(runner, timeseries, "total_site_electricity_kwh", electricity.total_end_uses + electricity.photovoltaics, "GJ", elec_site_units)
     report_ts_output(runner, timeseries, "electricity_heating_kwh", electricity.heating, "GJ", elec_site_units)
-    report_ts_output(runner, timeseries, "electricity_central_system_heating_kwh", electricity.central_heating, "GJ", elec_site_units)
     report_ts_output(runner, timeseries, "electricity_heating_supplemental_kwh", electricity.heating_supplemental, "GJ", elec_site_units)
     report_ts_output(runner, timeseries, "electricity_cooling_kwh", electricity.cooling, "GJ", elec_site_units)
-    report_ts_output(runner, timeseries, "electricity_central_system_cooling_kwh", electricity.central_cooling, "GJ", elec_site_units)
     report_ts_output(runner, timeseries, "electricity_interior_lighting_kwh", electricity.interior_lighting, "GJ", elec_site_units)
     report_ts_output(runner, timeseries, "electricity_exterior_lighting_kwh", electricity.exterior_lighting, "GJ", elec_site_units)
     report_ts_output(runner, timeseries, "electricity_exterior_holiday_lighting_kwh", electricity.exterior_holiday_lighting, "GJ", elec_site_units)
@@ -283,9 +281,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     report_ts_output(runner, timeseries, "electricity_fans_heating_kwh", electricity.fans_heating, "GJ", elec_site_units)
     report_ts_output(runner, timeseries, "electricity_fans_cooling_kwh", electricity.fans_cooling, "GJ", elec_site_units)
     report_ts_output(runner, timeseries, "electricity_pumps_heating_kwh", electricity.pumps_heating, "GJ", elec_site_units)
-    report_ts_output(runner, timeseries, "electricity_central_system_pumps_heating_kwh", electricity.central_pumps_heating, "GJ", elec_site_units)
     report_ts_output(runner, timeseries, "electricity_pumps_cooling_kwh", electricity.pumps_cooling, "GJ", elec_site_units)
-    report_ts_output(runner, timeseries, "electricity_central_system_pumps_cooling_kwh", electricity.central_pumps_cooling, "GJ", elec_site_units)
     report_ts_output(runner, timeseries, "electricity_water_systems_kwh", electricity.water_systems, "GJ", elec_site_units)
     report_ts_output(runner, timeseries, "electricity_pv_kwh", electricity.photovoltaics, "GJ", elec_site_units)
 
@@ -293,7 +289,6 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
 
     report_ts_output(runner, timeseries, "total_site_natural_gas_therm", natural_gas.total_end_uses, "GJ", gas_site_units)
     report_ts_output(runner, timeseries, "natural_gas_heating_therm", natural_gas.heating, "GJ", gas_site_units)
-    report_ts_output(runner, timeseries, "natural_gas_central_system_heating_therm", natural_gas.central_heating, "GJ", gas_site_units)
     if include_enduse_subcategories
       report_ts_output(runner, timeseries, "natural_gas_clothes_dryer_therm", natural_gas.clothes_dryer, "GJ", gas_site_units)
       report_ts_output(runner, timeseries, "natural_gas_cooking_range_therm", natural_gas.cooking_range, "GJ", gas_site_units)
@@ -311,14 +306,12 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
 
     report_ts_output(runner, timeseries, "total_site_fuel_oil_mbtu", fuel_oil.total_end_uses, "GJ", other_fuel_site_units)
     report_ts_output(runner, timeseries, "fuel_oil_heating_mbtu", fuel_oil.heating, "GJ", other_fuel_site_units)
-    report_ts_output(runner, timeseries, "fuel_oil_central_system_heating_mbtu", fuel_oil.central_heating, "GJ", other_fuel_site_units)
     report_ts_output(runner, timeseries, "fuel_oil_water_systems_mbtu", fuel_oil.water_systems, "GJ", other_fuel_site_units)
 
     # PROPANE
 
     report_ts_output(runner, timeseries, "total_site_propane_mbtu", propane.total_end_uses, "GJ", other_fuel_site_units)
     report_ts_output(runner, timeseries, "propane_heating_mbtu", propane.heating, "GJ", other_fuel_site_units)
-    report_ts_output(runner, timeseries, "propane_central_system_heating_mbtu", propane.central_heating, "GJ", other_fuel_site_units)
     if include_enduse_subcategories
       report_ts_output(runner, timeseries, "propane_clothes_dryer_mbtu", propane.clothes_dryer, "GJ", other_fuel_site_units)
       report_ts_output(runner, timeseries, "propane_cooking_range_mbtu", propane.cooking_range, "GJ", other_fuel_site_units)
