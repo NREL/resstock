@@ -60,15 +60,6 @@ class Geometry
     return maxzs.max - minzs.min
   end
 
-  def self.get_max_z_of_spaces(spaces)
-    maxzs = []
-    spaces.each do |space|
-      zvalues = getSurfaceZValues(space.surfaces)
-      maxzs << zvalues.max + UnitConversions.convert(space.zOrigin, 'm', 'ft')
-    end
-    return maxzs.max
-  end
-
   # Return an array of z values for surfaces passed in. The values will be relative to the parent origin. This was intended for spaces.
   def self.getSurfaceZValues(surfaceArray)
     zValueArray = []

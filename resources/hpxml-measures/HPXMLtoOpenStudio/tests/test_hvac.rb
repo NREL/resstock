@@ -779,7 +779,7 @@ class HPXMLtoOpenStudioHVACTest < MiniTest::Test
   end
 
   def test_install_quality_ground_to_air_heat_pump_ratio
-    # FIXME: TODO
+    # TODO
   end
 
   def test_install_quality_mini_split_air_conditioner_ratio

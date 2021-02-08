@@ -1,25 +1,23 @@
 # frozen_string_literal: true
 
 class Airflow
-  def self.apply(model, runner, weather, spaces, air_infils, vent_fans, clothes_dryers, nbeds,
-                 duct_systems, infil_volume, infil_height, open_window_area,
-                 nv_clg_ssn_sensor, min_neighbor_distance, vented_attic, vented_crawl,
-                 site_type, shelter_coef, has_flue_chimney, hvac_map, eri_version,
-                 apply_ashrae140_assumptions, schedules_file)
+  def self.apply(model, runner, weather, spaces, hpxml, cfa, nbeds,
+                 ncfl_ag, duct_systems, nv_clg_ssn_sensor, hvac_map, eri_version,
+                 frac_windows_operable, apply_ashrae140_assumptions, schedules_file)
 
     # Global variables
 
     @runner = runner
     @spaces = spaces
-    @building_height = Geometry.get_max_z_of_spaces(model.getSpaces)
-    @infil_volume = infil_volume
-    @infil_height = infil_height
+    @infil_volume = hpxml.air_infiltration_measurements.select { |i| !i.infiltration_volume.nil? }[0].infiltration_volume
+    @infil_height = hpxml.inferred_infiltration_height(@infil_volume)
     @living_space = spaces[HPXML::LocationLivingSpace]
     @living_zone = @living_space.thermalZone.get
     @nbeds = nbeds
+    @ncfl_ag = ncfl_ag
     @eri_version = eri_version
     @apply_ashrae140_assumptions = apply_ashrae140_assumptions
-    @cfa = UnitConversions.convert(@living_space.floorArea, 'm^2', 'ft^2')
+    @cfa = cfa
 
     # Global sensors
 
@@ -57,7 +55,7 @@ class Airflow
     vent_fans_kitchen = []
     vent_fans_bath = []
     vent_fans_whf = []
-    vent_fans.each do |vent_fan|
+    hpxml.ventilation_fans.each do |vent_fan|
       if vent_fan.used_for_whole_building_ventilation
         vent_fans_mech << vent_fan
       elsif vent_fan.used_for_seasonal_cooling_load_reduction
@@ -72,7 +70,7 @@ class Airflow
     end
 
     # Vented clothes dryers in conditioned space
-    vented_dryers = clothes_dryers.select { |cd| cd.is_vented && cd.vented_flow_rate.to_f > 0 && [HPXML::LocationLivingSpace, HPXML::LocationBasementConditioned].include?(cd.location) }
+    vented_dryers = hpxml.clothes_dryers.select { |cd| cd.is_vented && cd.vented_flow_rate.to_f > 0 && [HPXML::LocationLivingSpace, HPXML::LocationBasementConditioned].include?(cd.location) }
 
     # Initialization
     initialize_cfis(model, vent_fans_mech, hvac_map)
@@ -91,10 +89,27 @@ class Airflow
 
     # Apply infiltration/ventilation
 
-    @wind_speed = set_wind_speed_correction(model, site_type, shelter_coef, min_neighbor_distance)
+    @wind_speed = set_wind_speed_correction(model, hpxml.site.site_type, hpxml.site.shelter_coefficient)
+    window_area = hpxml.windows.map { |w| w.area }.sum(0.0)
+    open_window_area = window_area * frac_windows_operable * 0.5 * 0.2 # Assume A) 50% of the area of an operable window can be open, and B) 20% of openable window area is actually open
+
+    vented_attic = nil
+    hpxml.attics.each do |attic|
+      next unless attic.attic_type == HPXML::AtticTypeVented
+
+      vented_attic = attic
+    end
+    vented_crawl = nil
+    hpxml.foundations.each do |foundation|
+      next unless foundation.foundation_type == HPXML::FoundationTypeCrawlspaceVented
+
+      vented_crawl = foundation
+    end
+
     apply_natural_ventilation_and_whole_house_fan(model, weather, vent_fans_whf, open_window_area, nv_clg_ssn_sensor)
     apply_infiltration_and_ventilation_fans(model, weather, vent_fans_mech, vent_fans_kitchen, vent_fans_bath, vented_dryers,
-                                            has_flue_chimney, air_infils, vented_attic, vented_crawl, hvac_map, schedules_file)
+                                            hpxml.building_construction.has_flue_or_chimney, hpxml.air_infiltration_measurements,
+                                            vented_attic, vented_crawl, hvac_map, schedules_file)
   end
 
   def self.get_default_shelter_coefficient()
@@ -137,7 +152,7 @@ class Airflow
 
   private
 
-  def self.set_wind_speed_correction(model, site_type, shelter_coef, min_neighbor_distance)
+  def self.set_wind_speed_correction(model, site_type, shelter_coef)
     site_map = { HPXML::SiteTypeRural => 'Country',    # Flat, open country
                  HPXML::SiteTypeSuburban => 'Suburbs', # Rough, wooded country, suburbs
                  HPXML::SiteTypeUrban => 'City' }      # Towns, city outskirts, center of large cities
@@ -170,22 +185,7 @@ class Airflow
     end
 
     # Local Shielding
-    if shelter_coef.nil?
-      # FIXME: Move into HPXML defaults
-      if min_neighbor_distance.nil?
-        # Typical shelter for isolated rural house
-        wind_speed.S_wo = 0.90
-      elsif min_neighbor_distance > @building_height
-        # Typical shelter caused by other building across the street
-        wind_speed.S_wo = 0.70
-      else
-        # Typical shelter for urban buildings where sheltering obstacles
-        # are less than one building height away.
-        wind_speed.S_wo = 0.50
-      end
-    else
-      wind_speed.S_wo = Float(shelter_coef)
-    end
+    wind_speed.S_wo = Float(shelter_coef)
 
     # S-G Shielding Coefficients are roughly 1/3 of AIM2 Shelter Coefficients
     wind_speed.shielding_coef = wind_speed.S_wo / 3.0
@@ -573,12 +573,6 @@ class Airflow
       if (not duct.leakage_cfm25.nil?) && (duct.leakage_cfm25 < 0)
         fail 'Ducts: Leakage CFM25 must be greater than or equal to 0.'
       end
-      if duct.rvalue < 0
-        fail 'Ducts: Insulation Nominal R-Value must be greater than or equal to 0.'
-      end
-      if duct.area < 0
-        fail 'Ducts: Surface Area must be greater than or equal to 0.'
-      end
     end
 
     ducts.each do |duct|
@@ -593,17 +587,6 @@ class Airflow
         duct.location = HPXML::LocationOutside
         duct.zone = nil
       end
-    end
-
-    if ducts.size > 0
-      # Store info for HVAC Sizing measure
-      object.additionalProperties.setFeature(Constants.SizingInfoDuctExist, true)
-      object.additionalProperties.setFeature(Constants.SizingInfoDuctSides, ducts.map { |duct| duct.side }.join(','))
-      object.additionalProperties.setFeature(Constants.SizingInfoDuctLocations, ducts.map { |duct| duct.location.to_s }.join(','))
-      object.additionalProperties.setFeature(Constants.SizingInfoDuctLeakageFracs, ducts.map { |duct| duct.leakage_frac.to_f }.join(','))
-      object.additionalProperties.setFeature(Constants.SizingInfoDuctLeakageCFM25s, ducts.map { |duct| duct.leakage_cfm25.to_f }.join(','))
-      object.additionalProperties.setFeature(Constants.SizingInfoDuctAreas, ducts.map { |duct| duct.area.to_f }.join(','))
-      object.additionalProperties.setFeature(Constants.SizingInfoDuctRvalues, ducts.map { |duct| duct.rvalue.to_f }.join(','))
     end
 
     return if ducts.size == 0 # No ducts
@@ -1134,9 +1117,6 @@ class Airflow
     ach = 0.1 # Assumption
     cfm = ach / UnitConversions.convert(1.0, 'hr', 'min') * volume
     apply_infiltration_to_unconditioned_space(model, space, ach, nil, nil, nil)
-
-    # Store info for HVAC Sizing measure
-    space.thermalZone.get.additionalProperties.setFeature(Constants.SizingInfoZoneInfiltrationCFM, cfm.to_f)
   end
 
   def self.apply_infiltration_to_vented_crawlspace(model, weather, vented_crawl)
@@ -1148,9 +1128,6 @@ class Airflow
     ach = get_infiltration_ACH_from_SLA(sla, 8.202, weather)
     cfm = ach / UnitConversions.convert(1.0, 'hr', 'min') * volume
     apply_infiltration_to_unconditioned_space(model, space, ach, nil, nil, nil)
-
-    # Store info for HVAC Sizing measure
-    space.thermalZone.get.additionalProperties.setFeature(Constants.SizingInfoZoneInfiltrationCFM, cfm.to_f)
   end
 
   def self.apply_infiltration_to_unvented_crawlspace(model, weather)
@@ -1162,9 +1139,6 @@ class Airflow
     ach = get_infiltration_ACH_from_SLA(sla, 8.202, weather)
     cfm = ach / UnitConversions.convert(1.0, 'hr', 'min') * volume
     apply_infiltration_to_unconditioned_space(model, space, ach, nil, nil, nil)
-
-    # Store info for HVAC Sizing measure
-    space.thermalZone.get.additionalProperties.setFeature(Constants.SizingInfoZoneInfiltrationCFM, cfm.to_f)
   end
 
   def self.apply_infiltration_to_vented_attic(model, weather, vented_attic)
@@ -1197,9 +1171,6 @@ class Airflow
       cfm = ach / UnitConversions.convert(1.0, 'hr', 'min') * volume
       apply_infiltration_to_unconditioned_space(model, space, ach, nil, nil, nil)
     end
-
-    # Store info for HVAC Sizing measure
-    space.thermalZone.get.additionalProperties.setFeature(Constants.SizingInfoZoneInfiltrationCFM, cfm.to_f)
   end
 
   def self.apply_infiltration_to_unvented_attic(model, weather)
@@ -1216,9 +1187,6 @@ class Airflow
     cfm = ach / UnitConversions.convert(1.0, 'hr', 'min') * volume
     c_w_SG, c_s_SG = calc_wind_stack_coeffs(hor_lk_frac, neutral_level, space)
     apply_infiltration_to_unconditioned_space(model, space, nil, ela, c_w_SG, c_s_SG)
-
-    # Store info for HVAC Sizing measure
-    space.thermalZone.get.additionalProperties.setFeature(Constants.SizingInfoZoneInfiltrationCFM, cfm.to_f)
   end
 
   def self.apply_local_ventilation(model, vent_object_array, obj_type_name)
@@ -1641,39 +1609,9 @@ class Airflow
     exh_cfm_tot = vent_mech_exh_tot.map { |vent_mech| vent_mech.average_total_unit_flow_rate }.sum(0.0)
     bal_cfm_tot = vent_mech_bal_tot.map { |vent_mech| vent_mech.average_total_unit_flow_rate }.sum(0.0)
     erv_hrv_cfm_tot = vent_mech_erv_hrv_tot.map { |vent_mech| vent_mech.average_total_unit_flow_rate }.sum(0.0)
-    cfis_cfm_tot = vent_mech_cfis_tot.map { |vent_mech| vent_mech.average_total_unit_flow_rate }.sum(0.0)
-
-    # Average preconditioned oa air cfms (only oa, recirculation will be addressed below for all shared systems)
-    oa_cfm_preheat = vent_mech_preheat.map { |vent_mech| vent_mech.average_oa_unit_flow_rate * vent_mech.preheating_fraction_load_served }.sum(0.0)
-    oa_cfm_precool = vent_mech_precool.map { |vent_mech| vent_mech.average_oa_unit_flow_rate * vent_mech.precooling_fraction_load_served }.sum(0.0)
-    recirc_cfm_shared = vent_mech_shared.map { |vent_mech| vent_mech.average_total_unit_flow_rate - vent_mech.average_oa_unit_flow_rate }.sum(0.0)
-
-    # HVAC Sizing data
-    tot_sup_cfm = sup_cfm_tot + bal_cfm_tot + erv_hrv_cfm_tot + cfis_cfm_tot
-    tot_exh_cfm = exh_cfm_tot + bal_cfm_tot + erv_hrv_cfm_tot
-    tot_unbal_cfm = (tot_sup_cfm - tot_exh_cfm).abs
-    tot_bal_cfm = [tot_exh_cfm, tot_sup_cfm].min
 
     # Calculate effectivenesses for all ERV/HRV and store results in a hash
     hrv_erv_effectiveness_map = calc_hrv_erv_effectiveness(vent_mech_erv_hrv_tot)
-
-    # Calculate cfm weighted average effectivenesses for the combined balanced airflow
-    weighted_vent_mech_lat_eff = 0.0
-    weighted_vent_mech_apparent_sens_eff = 0.0
-    vent_mech_erv_hrv_unprecond = vent_mech_erv_hrv_tot.select { |vent_mech| vent_mech.preheating_efficiency_cop.nil? && vent_mech.precooling_efficiency_cop.nil? }
-    vent_mech_erv_hrv_unprecond.each do |vent_mech|
-      weighted_vent_mech_lat_eff += vent_mech.average_oa_unit_flow_rate / tot_bal_cfm * hrv_erv_effectiveness_map[vent_mech][:vent_mech_lat_eff]
-      weighted_vent_mech_apparent_sens_eff += vent_mech.average_oa_unit_flow_rate / tot_bal_cfm * hrv_erv_effectiveness_map[vent_mech][:vent_mech_apparent_sens_eff]
-    end
-    # Store info for HVAC Sizing measure
-    model.getBuilding.additionalProperties.setFeature(Constants.SizingInfoMechVentLatentEffectiveness, weighted_vent_mech_lat_eff)
-    model.getBuilding.additionalProperties.setFeature(Constants.SizingInfoMechVentApparentSensibleEffectiveness, weighted_vent_mech_apparent_sens_eff)
-    model.getBuilding.additionalProperties.setFeature(Constants.SizingInfoMechVentWholeHouseRateBalanced, tot_bal_cfm)
-    model.getBuilding.additionalProperties.setFeature(Constants.SizingInfoMechVentWholeHouseRateUnbalanced, tot_unbal_cfm)
-    model.getBuilding.additionalProperties.setFeature(Constants.SizingInfoMechVentWholeHouseRatePreHeated, oa_cfm_preheat)
-    model.getBuilding.additionalProperties.setFeature(Constants.SizingInfoMechVentWholeHouseRatePreCooled, oa_cfm_precool)
-    model.getBuilding.additionalProperties.setFeature(Constants.SizingInfoMechVentWholeHouseRateRecirculated, recirc_cfm_shared)
-    model.getBuilding.additionalProperties.setFeature(Constants.SizingInfoMechVentExist, (not vent_fans_mech.empty?))
 
     infil_flow = OpenStudio::Model::SpaceInfiltrationDesignFlowRate.new(model)
     infil_flow.setName(Constants.ObjectNameInfiltration + ' flow')
@@ -1726,11 +1664,11 @@ class Airflow
     living_const_ach = nil
     air_infils.each do |air_infil|
       if (air_infil.unit_of_measure == HPXML::UnitsACH) && !air_infil.house_pressure.nil?
-        living_ach = air_infil.air_leakage
-        living_ach50 = calc_air_leakage_at_diff_pressure(0.65, living_ach, air_infil.house_pressure, 50.0)
+        living_achXX = air_infil.air_leakage
+        living_ach50 = calc_air_leakage_at_diff_pressure(0.65, living_achXX, air_infil.house_pressure, 50.0)
       elsif (air_infil.unit_of_measure == HPXML::UnitsCFM) && !air_infil.house_pressure.nil?
-        living_ach = air_infil.air_leakage * 60.0 / @infil_volume # Convert CFM to ACH
-        living_ach50 = calc_air_leakage_at_diff_pressure(0.65, living_ach, air_infil.house_pressure, 50.0)
+        living_achXX = air_infil.air_leakage * 60.0 / @infil_volume # Convert CFM to ACH
+        living_ach50 = calc_air_leakage_at_diff_pressure(0.65, living_achXX, air_infil.house_pressure, 50.0)
       elsif air_infil.unit_of_measure == HPXML::UnitsACHNatural
         if @apply_ashrae140_assumptions
           living_const_ach = air_infil.air_leakage
@@ -1779,11 +1717,9 @@ class Airflow
 
       if has_flue_chimney
         y_i = 0.2 # Fraction of leakage through the flue; 0.2 is a "typical" value according to THE ALBERTA AIR INFIL1RATION MODEL, Walker and Wilson, 1990
-        flue_height = @building_height + 2.0 # ft
         s_wflue = 1.0 # Flue Shelter Coefficient
       else
         y_i = 0.0 # Fraction of leakage through the flu
-        flue_height = 0.0 # ft
         s_wflue = 0.0 # Flue Shelter Coefficient
       end
 
@@ -1804,7 +1740,6 @@ class Airflow
       x_i = (leakage_ceiling - leakage_floor)
       r_i *= (1 - y_i)
       x_i *= (1 - y_i)
-      z_f = flue_height / (@infil_height + Geometry.get_z_origin_for_zone(@living_zone))
 
       # Calculate Stack Coefficient
       m_o = (x_i + (2.0 * n_i + 1.0) * y_i)**2.0 / (2 - r_i)
@@ -1814,6 +1749,11 @@ class Airflow
         m_i = 1.0 # eq. 11
       end
       if has_flue_chimney
+        if @ncfl_ag <= 0
+          z_f = 1.0
+        else
+          z_f = (@ncfl_ag + 0.5) / @ncfl_ag # Typical value is 1.5 according to THE ALBERTA AIR INFIL1RATION MODEL, Walker and Wilson, 1990, presumably for a single story home
+        end
         x_c = r_i + (2.0 * (1.0 - r_i - y_i)) / (n_i + 1.0) - 2.0 * y_i * (z_f - 1.0)**n_i # Eq. 13
         f_i = n_i * y_i * (z_f - 1.0)**((3.0 * n_i - 1.0) / 3.0) * (1.0 - (3.0 * (x_c - x_i)**2.0 * r_i**(1 - n_i)) / (2.0 * (z_f + 1.0))) # Additive flue function, Eq. 12
       else
@@ -1870,10 +1810,6 @@ class Airflow
     else
       infil_program.addLine('Set Qinf = 0')
     end
-
-    # Store info for HVAC Sizing measure
-    @living_zone.additionalProperties.setFeature(Constants.SizingInfoZoneInfiltrationCFM, living_cfm.to_f)
-    @living_zone.additionalProperties.setFeature(Constants.SizingInfoZoneInfiltrationACH, living_ach.to_f)
   end
 
   def self.calc_wind_stack_coeffs(hor_lk_frac, neutral_level, space, space_height = nil)
