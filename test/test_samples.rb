@@ -14,7 +14,7 @@ class IntegrationWorkflowTest < MiniTest::Test
 
   def test_samples_osw_baseline
     project_dir = 'project_testing'
-    num_samples = 1
+    num_samples = 100
 
     if project_dir == 'project_national'
       parent_dir = File.absolute_path(File.join(File.dirname(__FILE__), '..'))
@@ -89,7 +89,7 @@ class IntegrationWorkflowTest < MiniTest::Test
 
   def test_samples_osw_upgrades
     project_dir = 'project_testing'
-    num_samples = 1
+    num_samples = 10
 
     if project_dir == 'project_national'
       parent_dir = File.absolute_path(File.join(File.dirname(__FILE__), '..'))
