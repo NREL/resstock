@@ -18,7 +18,7 @@ def get_measures(workflow_json, include_only = nil)
   return result
 end
 
-def apply_child_measures(measures_dir, measures, runner, model, workflow_json = nil, osw_out = nil, show_measure_calls = true)
+def apply_child_measures(measures_dir, measures, runner, model, workflow_json = nil, osw_out = nil, show_measure_calls = true, parent_measure_runner = {})
   require 'openstudio'
 
   workflow_order = []
@@ -72,9 +72,22 @@ def apply_child_measures(measures_dir, measures, runner, model, workflow_json = 
         print_measure_call(args, measure_subdir, runner)
       end
 
+      measure_start = Time.now
       if not run_measure(model, measure_instance, argument_map, runner)
         return false
       end
+
+      next if parent_measure_runner.empty?
+      measure_time = (Time.now - measure_start).round(1)
+      parent_measure = parent_measure_runner.keys[0]
+      parent_runner = parent_measure_runner[parent_measure]
+      time_str = "time_#{measure_subdir}"
+      if parent_measure == 'BuildExistingModel'
+        time_str += '_1'
+      elsif parent_measure == 'ApplyUpgrade'
+        time_str += '_2'
+      end
+      parent_runner.registerValue(time_str, measure_time)
     end
   end
 

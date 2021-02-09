@@ -449,9 +449,9 @@ class RunOSWs
     # Run workflow
     cli_path = OpenStudio.getOpenStudioCLI
     command = "cd #{parent_dir} && \"#{cli_path}\" run -w #{in_osw}"
-    simulation_start = Time.now
+    workflow_start = Time.now
     system(command)
-    sim_time = (Time.now - simulation_start).round(1)
+    workflow_time = (Time.now - workflow_start).round(1)
     out_osw = File.join(parent_dir, 'out.osw')
 
     data_point_out = File.join(parent_dir, 'run/data_point_out.json')
@@ -462,14 +462,22 @@ class RunOSWs
     end
 
     result = get_measure_results(rows, result, 'BuildExistingModel')
+    result = get_measure_results(rows, result, 'ApplyUpgrade')
     result = get_measure_results(rows, result, 'SimulationOutputReport')
     result = get_measure_results(rows, result, 'UpgradeCosts')
-    result['simulation_time'] = sim_time
+    result['time_workflow'] = workflow_time
     return out_osw, result
   end
 
   def self.get_measure_results(rows, result, measure)
-    if rows.keys.include? measure
+    if rows.keys.include?(measure)
+      if measure == 'ApplyUpgrade'
+        rows[measure].keys.each do |key|
+          unless key.include?('time_')
+            rows[measure].delete(key)
+          end
+        end
+      end
       result = result.merge(rows[measure])
       result.delete('applicable')
     end
