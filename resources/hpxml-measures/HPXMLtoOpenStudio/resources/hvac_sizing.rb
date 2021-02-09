@@ -1,12 +1,11 @@
 # frozen_string_literal: true
 
 class HVACSizing
-  def self.calculate(runner, weather, hpxml, cfa, nbeds, hvac_systems)
+  def self.calculate(weather, hpxml, cfa, nbeds, hvac_systems)
     # Calculates heating/cooling design loads, and selects equipment
     # values (e.g., capacities, airflows) specific to each HVAC system.
     # Calculations generally follow ACCA Manual J/S.
 
-    @runner = runner
     @hpxml = hpxml
 
     process_site_calcs_and_design_temps(weather)
@@ -436,13 +435,11 @@ class HVACSizing
       if latitude < 20.0
         psf_lat << psf[cnt][0]
         if cnt == 0
-          @runner.registerWarning('Latitude of 20 was assumed for Manual J solar load calculations.')
           psf_lat_horiz = psf_horiz[0]
         end
       elsif latitude >= 64.0
         psf_lat << psf[cnt][11]
         if cnt == 0
-          @runner.registerWarning('Latitude of 64 was assumed for Manual J solar load calculations.') if latitude > 64.0
           psf_lat_horiz = psf_horiz[11]
         end
       else
@@ -953,10 +950,10 @@ class HVACSizing
     Heating and Cooling Loads: Infiltration & Ventilation
     '''
 
-    # FIXME: Consolidate code w/ airflow.rb
+    # FUTURE: Consolidate code w/ airflow.rb
     infil_volume = @hpxml.air_infiltration_measurements.select { |i| !i.infiltration_volume.nil? }[0].infiltration_volume
     infil_height = @hpxml.inferred_infiltration_height(infil_volume)
-    ach_nat = nil
+    sla = nil
     @hpxml.air_infiltration_measurements.each do |measurement|
       if [HPXML::UnitsACH, HPXML::UnitsCFM].include?(measurement.unit_of_measure) && !measurement.house_pressure.nil?
         if measurement.unit_of_measure == HPXML::UnitsACH
@@ -966,19 +963,25 @@ class HVACSizing
           ach50 = Airflow.calc_air_leakage_at_diff_pressure(0.65, achXX, measurement.house_pressure, 50.0)
         end
         sla = Airflow.get_infiltration_SLA_from_ACH50(ach50, 0.65, cfa, infil_volume)
-        ach_nat = Airflow.get_infiltration_ACH_from_SLA(sla, infil_height, weather)
       elsif measurement.unit_of_measure == HPXML::UnitsACHNatural
         sla = Airflow.get_infiltration_SLA_from_ACH(measurement.air_leakage, infil_height, weather)
-        ach_nat = Airflow.get_infiltration_ACH_from_SLA(sla, infil_height, weather)
       end
     end
+    ela = sla * cfa
 
-    # Per ANSI/RESNET/ICC 301
-    ach_Cooling = 1.2 * ach_nat
-    ach_Heating = 1.6 * ach_nat
+    ncfl_ag = @hpxml.building_construction.number_of_conditioned_floors_above_grade
 
-    icfm_Cooling = ach_Cooling / UnitConversions.convert(1.0, 'hr', 'min') * infil_volume
-    icfm_Heating = ach_Heating / UnitConversions.convert(1.0, 'hr', 'min') * infil_volume
+    # Set stack/wind coefficients from Tables 5D/5E
+    c_s = 0.015 * ncfl_ag
+    c_w_base = [0.0133 * @hpxml.site.shelter_coefficient - 0.0027, 0.0].max # Linear relationship between shelter coefficient and c_w coefficients by shielding class
+    c_w = c_w_base * ncfl_ag**0.4
+
+    ela_in2 = UnitConversions.convert(ela, 'ft^2', 'in^2')
+    windspeed_cooling_mph = 7.5 # Table 5D/5E Wind Velocity Value footnote
+    windspeed_heating_mph = 15.0 # Table 5D/5E Wind Velocity Value footnote
+
+    icfm_Cooling = ela_in2 * (c_s * @ctd + c_w * windspeed_cooling_mph**2)**0.5
+    icfm_Heating = ela_in2 * (c_s * @htd + c_w * windspeed_heating_mph**2)**0.5
 
     q_unb_cfm, q_preheat, q_precool, q_recirc, q_bal_Sens, q_bal_Lat = get_ventilation_rates()
 
@@ -1061,11 +1064,13 @@ class HVACSizing
     end
 
     # Calculate Supply Air Temperature
-    # FIXME: Reverse the logic and specify 105F for HPs, 120F for everything else?
-    if hvac.HeatType == HPXML::HVACTypeFurnace
-      hvac.SupplyAirTemp = 120.0 # F
-    else
+    if [HPXML::HVACTypeHeatPumpAirToAir,
+        HPXML::HVACTypeHeatPumpMiniSplit,
+        HPXML::HVACTypeHeatPumpGroundToAir,
+        HPXML::HVACTypeHeatPumpWaterLoopToAir].include? hvac.HeatType
       hvac.SupplyAirTemp = 105.0 # F
+    else
+      hvac.SupplyAirTemp = 120.0 # F
     end
   end
 
@@ -1315,7 +1320,6 @@ class HVACSizing
     elsif [HPXML::HVACTypeCentralAirConditioner,
            HPXML::HVACTypeHeatPumpAirToAir].include? hvac.CoolType
 
-      hvac.SizingSpeed = get_sizing_speed(hvac)
       enteringTemp = weather.design.CoolingDrybulb
       coefficients = hvac.COOL_CAP_FT_SPEC[hvac.SizingSpeed]
 
@@ -1417,7 +1421,6 @@ class HVACSizing
     elsif [HPXML::HVACTypeHeatPumpMiniSplit,
            HPXML::HVACTypeMiniSplitAirConditioner].include? hvac.CoolType
 
-      hvac.SizingSpeed = get_sizing_speed(hvac)
       enteringTemp = weather.design.CoolingDrybulb
       coefficients = hvac.COOL_CAP_FT_SPEC[hvac.SizingSpeed]
 
@@ -1425,21 +1428,20 @@ class HVACSizing
 
       hvac_sizing_values.Cool_Capacity = (hvac_sizing_values.Cool_Load_Tot / totalCap_CurveValue)
       hvac_sizing_values.Cool_Capacity_Sens = hvac_sizing_values.Cool_Capacity * hvac.SHRRated[hvac.SizingSpeed]
-      hvac_sizing_values.Cool_Airflow = hvac.RatedCFMperTonCooling[-1] * UnitConversions.convert(hvac_sizing_values.Cool_Capacity, 'Btu/hr', 'ton')
+      # FIXME: Why not use calc_airflow_rate?
+      hvac_sizing_values.Cool_Airflow = hvac.RatedCFMperTonCooling[-1] * hvac.CapacityRatioCooling[-1] * UnitConversions.convert(hvac_sizing_values.Cool_Capacity, 'Btu/hr', 'ton')
 
     elsif hvac.CoolType == HPXML::HVACTypeRoomAirConditioner
 
-      hvac.SizingSpeed = 0
       enteringTemp = weather.design.CoolingDrybulb
       totalCap_CurveValue = MathTools.biquadratic(@wetbulb_indoor_cooling, enteringTemp, hvac.COOL_CAP_FT_SPEC[hvac.SizingSpeed])
 
       hvac_sizing_values.Cool_Capacity = hvac_sizing_values.Cool_Load_Tot / totalCap_CurveValue
       hvac_sizing_values.Cool_Capacity_Sens = hvac_sizing_values.Cool_Capacity * hvac.SHRRated[hvac.SizingSpeed]
+      # FIXME: Why not use calc_airflow_rate?
       hvac_sizing_values.Cool_Airflow = hvac.RatedCFMperTonCooling[hvac.SizingSpeed] * UnitConversions.convert(hvac_sizing_values.Cool_Capacity, 'Btu/hr', 'ton')
 
     elsif hvac.CoolType == HPXML::HVACTypeHeatPumpGroundToAir
-
-      hvac.SizingSpeed = 0
       coil_bf = gshp_coil_bf
       enteringTemp = hvac.GSHP_design_chw
 
@@ -1515,9 +1517,8 @@ class HVACSizing
 
     elsif hvac.HeatType == HPXML::HVACTypeHeatPumpAirToAir
 
-      process_heat_pump_adjustment(hvac_sizing_values, weather, hvac, totalCap_CurveValue)
-
       if hvac_sizing_values.Cool_Capacity > 0
+        process_heat_pump_adjustment(hvac_sizing_values, weather, hvac, totalCap_CurveValue)
         hvac_sizing_values.Heat_Capacity = hvac_sizing_values.Cool_Capacity
         hvac_sizing_values.Heat_Capacity_Supp = hvac_sizing_values.Heat_Load
       else
@@ -1528,16 +1529,16 @@ class HVACSizing
 
     elsif hvac.HeatType == HPXML::HVACTypeHeatPumpMiniSplit
 
-      process_heat_pump_adjustment(hvac_sizing_values, weather, hvac, totalCap_CurveValue)
-
       if hvac_sizing_values.Cool_Capacity > 0
+        process_heat_pump_adjustment(hvac_sizing_values, weather, hvac, totalCap_CurveValue)
         hvac_sizing_values.Heat_Capacity = hvac_sizing_values.Cool_Capacity
         hvac_sizing_values.Heat_Capacity_Supp = hvac_sizing_values.Heat_Load
       else
         hvac_sizing_values.Heat_Capacity = hvac_sizing_values.Heat_Load
         hvac_sizing_values.Heat_Capacity_Supp = hvac_sizing_values.Heat_Load
       end
-      hvac_sizing_values.Heat_Airflow = hvac.RatedCFMperTonHeating[-1] * UnitConversions.convert(hvac_sizing_values.Heat_Capacity, 'Btu/hr', 'ton') # Maximum air flow under heating operation
+      # FIXME: Why not use calc_airflow_rate?
+      hvac_sizing_values.Heat_Airflow = hvac.RatedCFMperTonHeating[-1] * hvac.CapacityRatioHeating[-1] * UnitConversions.convert(hvac_sizing_values.Heat_Capacity, 'Btu/hr', 'ton') # Maximum air flow under heating operation
 
     elsif hvac.HeatType == HPXML::HVACTypeHeatPumpGroundToAir
 
@@ -1594,6 +1595,7 @@ class HVACSizing
 
       if hvac.RatedCFMperTonHeating[0] > 0
         # Fixed airflow rate
+        # FIXME: Is this still needed?
         hvac_sizing_values.Heat_Airflow = UnitConversions.convert(hvac_sizing_values.Heat_Capacity, 'Btu/hr', 'ton') * hvac.RatedCFMperTonHeating[0]
       else
         # Autosized airflow rate
@@ -1639,191 +1641,179 @@ class HVACSizing
     tout_heat = UnitConversions.convert(weather.design.HeatingDrybulb, 'F', 'C')
 
     if hvac.CoolType == HPXML::HVACTypeHeatPumpGroundToAir
-      # Cooling
-      coil_bf = gshp_coil_bf
-      # Calculate curve point w/ and w/o defect ratios
-      design_wb_temp = UnitConversions.convert(@wetbulb_indoor_cooling, 'f', 'k')
-      design_db_temp = UnitConversions.convert(@cool_setpoint, 'f', 'k')
-      design_w_temp = UnitConversions.convert(hvac.GSHP_design_chw, 'f', 'k')
-      design_vfr_air = UnitConversions.convert(hvac_sizing_values.Cool_Airflow, 'cfm', 'm^3/s')
-      design_vfr_air_defect = UnitConversions.convert(hvac_sizing_values.Cool_Airflow, 'cfm', 'm^3/s') * (1 + hvac.AirflowDefectRatioCooling)
-      # calculate water flow based on current capacity.
-      loop_flow = [1.0, UnitConversions.convert([hvac_sizing_values.Heat_Capacity, hvac_sizing_values.Cool_Capacity].max, 'Btu/hr', 'ton')].max.floor * 3.0
-      loop_flow_m3s = UnitConversions.convert(loop_flow, 'gal/min', 'm^3/s')
+      if hvac.CoolingLoadFraction > 0
+        # Cooling
+        coil_bf = gshp_coil_bf
+        # Calculate curve point w/ and w/o defect ratios
+        design_wb_temp = UnitConversions.convert(@wetbulb_indoor_cooling, 'f', 'k')
+        design_db_temp = UnitConversions.convert(@cool_setpoint, 'f', 'k')
+        design_w_temp = UnitConversions.convert(hvac.GSHP_design_chw, 'f', 'k')
+        design_vfr_air = UnitConversions.convert(hvac_sizing_values.Cool_Airflow, 'cfm', 'm^3/s')
+        design_vfr_air_defect = UnitConversions.convert(hvac_sizing_values.Cool_Airflow, 'cfm', 'm^3/s') * (1 + hvac.AirflowDefectRatioCooling)
+        # calculate water flow based on current capacity.
+        loop_flow = [1.0, UnitConversions.convert([hvac_sizing_values.Heat_Capacity, hvac_sizing_values.Cool_Capacity].max, 'Btu/hr', 'ton')].max.floor * 3.0
+        loop_flow_m3s = UnitConversions.convert(loop_flow, 'gal/min', 'm^3/s')
 
-      totalCap_CurveValue, sensibleCap_CurveValue = calc_gshp_clg_curve_value(hvac, design_wb_temp, design_db_temp, design_w_temp, design_vfr_air, loop_flow_m3s)
-      totalCap_CurveValue_d, sensibleCap_CurveValue_d = calc_gshp_clg_curve_value(hvac, design_wb_temp, design_db_temp, design_w_temp, design_vfr_air_defect, loop_flow_m3s)
+        totalCap_CurveValue, sensibleCap_CurveValue = calc_gshp_clg_curve_value(hvac, design_wb_temp, design_db_temp, design_w_temp, design_vfr_air, loop_flow_m3s)
+        totalCap_CurveValue_d, sensibleCap_CurveValue_d = calc_gshp_clg_curve_value(hvac, design_wb_temp, design_db_temp, design_w_temp, design_vfr_air_defect, loop_flow_m3s)
 
-      cap_clg_ratio = 1 / (totalCap_CurveValue_d / totalCap_CurveValue)
-      if cap_clg_ratio > 1
-        hvac_sizing_values.Cool_Capacity *= cap_clg_ratio
-        hvac_sizing_values.Cool_Capacity_Sens = hvac_sizing_values.Cool_Capacity * hvac.SHRRated[hvac.SizingSpeed]
-        bypassFactor_CurveValue = MathTools.biquadratic(@wetbulb_indoor_cooling, @cool_setpoint, gshp_coil_bf_ft_spec)
+        cap_clg_ratio = 1 / (totalCap_CurveValue_d / totalCap_CurveValue)
+        if cap_clg_ratio > 1
+          hvac_sizing_values.Cool_Capacity *= cap_clg_ratio
+          hvac_sizing_values.Cool_Capacity_Sens = hvac_sizing_values.Cool_Capacity * hvac.SHRRated[hvac.SizingSpeed]
+          bypassFactor_CurveValue = MathTools.biquadratic(@wetbulb_indoor_cooling, @cool_setpoint, gshp_coil_bf_ft_spec)
 
-        cool_Load_SensCap_Design = (hvac_sizing_values.Cool_Capacity_Sens * sensibleCap_CurveValue /
-                                   (1.0 + (1.0 - coil_bf * bypassFactor_CurveValue) *
-                                   (80.0 - @cool_setpoint) / (@cool_setpoint - hvac.LeavingAirTemp)))
-        hvac_sizing_values.Cool_Airflow = calc_airflow_rate(cool_Load_SensCap_Design, (@cool_setpoint - hvac.LeavingAirTemp))
+          cool_Load_SensCap_Design = (hvac_sizing_values.Cool_Capacity_Sens * sensibleCap_CurveValue /
+                                     (1.0 + (1.0 - coil_bf * bypassFactor_CurveValue) *
+                                     (80.0 - @cool_setpoint) / (@cool_setpoint - hvac.LeavingAirTemp)))
+          hvac_sizing_values.Cool_Airflow = calc_airflow_rate(cool_Load_SensCap_Design, (@cool_setpoint - hvac.LeavingAirTemp))
+        end
       end
 
       # Heating
-      # Calculate curve point w/ and w/o defect ratios
-      design_db_temp = UnitConversions.convert(@heat_setpoint, 'f', 'k')
-      design_w_temp = UnitConversions.convert(hvac.GSHP_design_chw, 'f', 'k')
-      design_vfr_air = UnitConversions.convert(hvac_sizing_values.Heat_Airflow, 'cfm', 'm^3/s')
-      design_vfr_air_defect = UnitConversions.convert(hvac_sizing_values.Heat_Airflow, 'cfm', 'm^3/s') * (1 + hvac.AirflowDefectRatioHeating)
-      # calculate water flow based on current capacity.
-      loop_flow = [1.0, UnitConversions.convert([hvac_sizing_values.Heat_Capacity, hvac_sizing_values.Cool_Capacity].max, 'Btu/hr', 'ton')].max.floor * 3.0
-      loop_flow_m3s = UnitConversions.convert(loop_flow, 'gal/min', 'm^3/s')
+      if hvac.HeatingLoadFraction > 0
+        # Calculate curve point w/ and w/o defect ratios
+        design_db_temp = UnitConversions.convert(@heat_setpoint, 'f', 'k')
+        design_w_temp = UnitConversions.convert(hvac.GSHP_design_chw, 'f', 'k')
+        design_vfr_air = UnitConversions.convert(hvac_sizing_values.Heat_Airflow, 'cfm', 'm^3/s')
+        design_vfr_air_defect = UnitConversions.convert(hvac_sizing_values.Heat_Airflow, 'cfm', 'm^3/s') * (1 + hvac.AirflowDefectRatioHeating)
+        # calculate water flow based on current capacity.
+        loop_flow = [1.0, UnitConversions.convert([hvac_sizing_values.Heat_Capacity, hvac_sizing_values.Cool_Capacity].max, 'Btu/hr', 'ton')].max.floor * 3.0
+        loop_flow_m3s = UnitConversions.convert(loop_flow, 'gal/min', 'm^3/s')
 
-      totalCap_CurveValue = calc_gshp_htg_curve_value(hvac, design_db_temp, design_w_temp, design_vfr_air, loop_flow_m3s)
-      totalCap_CurveValue_d = calc_gshp_htg_curve_value(hvac, design_db_temp, design_w_temp, design_vfr_air_defect, loop_flow_m3s)
+        totalCap_CurveValue = calc_gshp_htg_curve_value(hvac, design_db_temp, design_w_temp, design_vfr_air, loop_flow_m3s)
+        totalCap_CurveValue_d = calc_gshp_htg_curve_value(hvac, design_db_temp, design_w_temp, design_vfr_air_defect, loop_flow_m3s)
 
-      cap_htg_ratio = 1 / (totalCap_CurveValue_d / totalCap_CurveValue)
-      if cap_htg_ratio > 1
-        hvac_sizing_values.Heat_Capacity *= cap_htg_ratio
-        hvac_sizing_values.Heat_Airflow = calc_airflow_rate(hvac_sizing_values.Heat_Capacity, (hvac.SupplyAirTemp - @heat_setpoint))
+        cap_htg_ratio = 1 / (totalCap_CurveValue_d / totalCap_CurveValue)
+        if cap_htg_ratio > 1
+          hvac_sizing_values.Heat_Capacity *= cap_htg_ratio
+          hvac_sizing_values.Heat_Airflow = calc_airflow_rate(hvac_sizing_values.Heat_Capacity, (hvac.SupplyAirTemp - @heat_setpoint))
+        end
       end
     else
       f_ch = hvac.ChargeDefectRatio.round(3)
 
       # Cooling
-      cool_airflow_rated_defect_ratio = []
-      cool_airflow_rated_ratio = []
-      cool_cfm_m3s = UnitConversions.convert(hvac_sizing_values.Cool_Airflow, 'cfm', 'm^3/s')
-      for speed in 0..(hvac.NumSpeedsCooling - 1)
-        if [HPXML::HVACTypeHeatPumpAirToAir,
-            HPXML::HVACTypeCentralAirConditioner].include? hvac.CoolType
-          cool_airflow_rated_ratio << cool_cfm_m3s / HVAC.calc_rated_airflow_clg(hvac_sizing_values.Cool_Capacity, hvac.RatedCFMperTonCooling[speed], hvac.CapacityRatioCooling[speed])
-          cool_airflow_rated_defect_ratio << cool_cfm_m3s * (1 + hvac.AirflowDefectRatioCooling) / HVAC.calc_rated_airflow_clg(hvac_sizing_values.Cool_Capacity, hvac.RatedCFMperTonCooling[speed], hvac.CapacityRatioCooling[speed])
-        else [HPXML::HVACTypeHeatPumpMiniSplit,
-              HPXML::HVACTypeMiniSplitAirConditioner].include? hvac.CoolType
-             cool_airflow_rated_ratio << cool_cfm_m3s / HVAC.calc_rated_airflow_clg(hvac_sizing_values.Cool_Capacity, hvac.RatedCFMperTonCooling[speed])
-             cool_airflow_rated_defect_ratio << cool_cfm_m3s * (1 + hvac.AirflowDefectRatioCooling) / HVAC.calc_rated_airflow_clg(hvac_sizing_values.Cool_Capacity, hvac.RatedCFMperTonCooling[speed])
-        end
-      end
-      if not cool_airflow_rated_defect_ratio.empty?
-        cap_clg_ratios = []
+      if [HPXML::HVACTypeHeatPumpAirToAir,
+          HPXML::HVACTypeCentralAirConditioner,
+          HPXML::HVACTypeHeatPumpMiniSplit,
+          HPXML::HVACTypeMiniSplitAirConditioner].include?(hvac.CoolType) && hvac.CoolingLoadFraction > 0
+        cool_airflow_rated_defect_ratio = []
+        cool_airflow_rated_ratio = []
+        cool_cfm_m3s = UnitConversions.convert(hvac_sizing_values.Cool_Airflow, 'cfm', 'm^3/s')
         for speed in 0..(hvac.NumSpeedsCooling - 1)
-          # NOTE: heat pump (cooling) curves don't exhibit expected trends at extreme faults;
-          a1_AF_Qgr_c = hvac.COOL_CAP_FFLOW_SPEC[speed][0]
-          a2_AF_Qgr_c = hvac.COOL_CAP_FFLOW_SPEC[speed][1]
-          a3_AF_Qgr_c = hvac.COOL_CAP_FFLOW_SPEC[speed][2]
-
-          # FIXME: Get coefficients from HVAC.rb to ensure consistency
-          if f_ch <= 0
-            qgr_values = [-9.46E-01, 4.93E-02, -1.18E-03, -1.15E+00]
-          else
-            qgr_values = [-1.63E-01, 1.14E-02, -2.10E-04, -1.40E-01]
-          end
-
-          a1_CH_Qgr_c = qgr_values[0]
-          a2_CH_Qgr_c = qgr_values[1]
-          a3_CH_Qgr_c = qgr_values[2]
-          a4_CH_Qgr_c = qgr_values[3]
-
-          # FIXME: Get coefficients from HVAC.rb to ensure consistency
-          ff_ch_c = (1.0 / (1.0 + (qgr_values[0] + (qgr_values[1] * 26.67) + (qgr_values[2] * 35.0) + (qgr_values[3] * f_ch)) * f_ch)).round(3)
-
-          q0_CH = a1_CH_Qgr_c
-          q1_CH = a2_CH_Qgr_c * tin_cool
-          q2_CH = a3_CH_Qgr_c * tout_cool
-          q3_CH = a4_CH_Qgr_c * f_ch
-          y_CH_Q_c = 1 + ((q0_CH + q1_CH + q2_CH + q3_CH) * f_ch)
-
-          q0_AF_CH = a1_AF_Qgr_c
-          q1_AF_CH = a2_AF_Qgr_c * ff_ch_c
-          q2_AF_CH = a3_AF_Qgr_c * ff_ch_c * ff_ch_c
-          p_CH_Q_c = y_CH_Q_c / (q0_AF_CH + q1_AF_CH + q2_AF_CH)
-
-          ff_AF_c = cool_airflow_rated_defect_ratio[speed].round(3)
-          ff_AF_c_nodefect = cool_airflow_rated_ratio[speed].round(3)
-          ff_AF_comb_c = ff_ch_c * ff_AF_c
-
-          q0_AF_comb = a1_AF_Qgr_c
-          q1_AF_comb = a2_AF_Qgr_c * ff_AF_comb_c
-          q2_AF_comb = a3_AF_Qgr_c * ff_AF_comb_c * ff_AF_comb_c
-          p_AF_Q_c = q0_AF_comb + q1_AF_comb + q2_AF_comb
-
-          cool_cap_fff = (p_CH_Q_c * p_AF_Q_c)
-          cool_cap_fff_nodefect = a1_AF_Qgr_c + a2_AF_Qgr_c * ff_AF_c_nodefect + a3_AF_Qgr_c * ff_AF_c_nodefect * ff_AF_c_nodefect
-          cap_clg_ratio = 1 / (cool_cap_fff / cool_cap_fff_nodefect)
-          cap_clg_ratios << cap_clg_ratio
+          cool_airflow_rated_ratio << cool_cfm_m3s / HVAC.calc_rated_airflow(hvac_sizing_values.Cool_Capacity, hvac.RatedCFMperTonCooling[speed], hvac.CapacityRatioCooling[speed])
+          cool_airflow_rated_defect_ratio << cool_cfm_m3s * (1 + hvac.AirflowDefectRatioCooling) / HVAC.calc_rated_airflow(hvac_sizing_values.Cool_Capacity, hvac.RatedCFMperTonCooling[speed], hvac.CapacityRatioCooling[speed])
         end
-        prev_capacity = hvac_sizing_values.Cool_Capacity
-        hvac_sizing_values.Cool_Capacity *= cap_clg_ratios.max
-        hvac_sizing_values.Cool_Capacity_Sens = hvac_sizing_values.Cool_Capacity * hvac.SHRRated[hvac.SizingSpeed]
-        if prev_capacity > 0 # Preserve cfm/ton
-          hvac_sizing_values.Cool_Airflow = hvac_sizing_values.Cool_Airflow * hvac_sizing_values.Cool_Capacity / prev_capacity
-        else
-          hvac_sizing_values.Cool_Airflow = 0.0
+        if not cool_airflow_rated_defect_ratio.empty?
+          cap_clg_ratios = []
+          for speed in 0..(hvac.NumSpeedsCooling - 1)
+            # NOTE: heat pump (cooling) curves don't exhibit expected trends at extreme faults;
+            a1_AF_Qgr_c = hvac.COOL_CAP_FFLOW_SPEC[speed][0]
+            a2_AF_Qgr_c = hvac.COOL_CAP_FFLOW_SPEC[speed][1]
+            a3_AF_Qgr_c = hvac.COOL_CAP_FFLOW_SPEC[speed][2]
+
+            p_values, qgr_values, ff_chg_values = HVAC.get_installation_quality_cooling_coeff(f_ch)
+
+            a1_CH_Qgr_c = qgr_values[0]
+            a2_CH_Qgr_c = qgr_values[1]
+            a3_CH_Qgr_c = qgr_values[2]
+            a4_CH_Qgr_c = qgr_values[3]
+
+            ff_ch_c = (1.0 / (1.0 + (qgr_values[0] + (qgr_values[1] * ff_chg_values[0]) + (qgr_values[2] * ff_chg_values[1]) + (qgr_values[3] * f_ch)) * f_ch)).round(3)
+
+            q0_CH = a1_CH_Qgr_c
+            q1_CH = a2_CH_Qgr_c * tin_cool
+            q2_CH = a3_CH_Qgr_c * tout_cool
+            q3_CH = a4_CH_Qgr_c * f_ch
+            y_CH_Q_c = 1 + ((q0_CH + q1_CH + q2_CH + q3_CH) * f_ch)
+
+            q0_AF_CH = a1_AF_Qgr_c
+            q1_AF_CH = a2_AF_Qgr_c * ff_ch_c
+            q2_AF_CH = a3_AF_Qgr_c * ff_ch_c * ff_ch_c
+            p_CH_Q_c = y_CH_Q_c / (q0_AF_CH + q1_AF_CH + q2_AF_CH)
+
+            ff_AF_c = cool_airflow_rated_defect_ratio[speed].round(3)
+            ff_AF_c_nodefect = cool_airflow_rated_ratio[speed].round(3)
+            ff_AF_comb_c = ff_ch_c * ff_AF_c
+
+            q0_AF_comb = a1_AF_Qgr_c
+            q1_AF_comb = a2_AF_Qgr_c * ff_AF_comb_c
+            q2_AF_comb = a3_AF_Qgr_c * ff_AF_comb_c * ff_AF_comb_c
+            p_AF_Q_c = q0_AF_comb + q1_AF_comb + q2_AF_comb
+
+            cool_cap_fff = (p_CH_Q_c * p_AF_Q_c)
+            cool_cap_fff_nodefect = a1_AF_Qgr_c + a2_AF_Qgr_c * ff_AF_c_nodefect + a3_AF_Qgr_c * ff_AF_c_nodefect * ff_AF_c_nodefect
+            cap_clg_ratio = 1 / (cool_cap_fff / cool_cap_fff_nodefect)
+            cap_clg_ratios << cap_clg_ratio
+          end
+          prev_capacity = hvac_sizing_values.Cool_Capacity
+          hvac_sizing_values.Cool_Capacity *= cap_clg_ratios.max
+          hvac_sizing_values.Cool_Capacity_Sens = hvac_sizing_values.Cool_Capacity * hvac.SHRRated[hvac.SizingSpeed]
+          if prev_capacity > 0 # Preserve cfm/ton
+            hvac_sizing_values.Cool_Airflow = hvac_sizing_values.Cool_Airflow * hvac_sizing_values.Cool_Capacity / prev_capacity
+          else
+            hvac_sizing_values.Cool_Airflow = 0.0
+          end
         end
       end
 
       # Heating
-      heat_airflow_rated_defect_ratio = []
-      heat_airflow_rated_ratio = []
-      heat_cfm_m3s = UnitConversions.convert(hvac_sizing_values.Heat_Airflow, 'cfm', 'm^3/s')
-      for speed in 0..(hvac.NumSpeedsHeating - 1)
-        if [HPXML::HVACTypeHeatPumpAirToAir].include? hvac.HeatType
-          heat_airflow_rated_ratio << heat_cfm_m3s / HVAC.calc_rated_airflow_htg(hvac_sizing_values.Heat_Capacity, hvac.RatedCFMperTonHeating[speed], hvac.CapacityRatioHeating[speed])
-          heat_airflow_rated_defect_ratio << heat_cfm_m3s * (1 + hvac.AirflowDefectRatioHeating) / HVAC.calc_rated_airflow_htg(hvac_sizing_values.Heat_Capacity, hvac.RatedCFMperTonHeating[speed], hvac.CapacityRatioHeating[speed])
-        elsif [HPXML::HVACTypeHeatPumpMiniSplit].include? hvac.HeatType
-          heat_airflow_rated_ratio << heat_cfm_m3s / HVAC.calc_rated_airflow_htg(hvac_sizing_values.Heat_Capacity, hvac.RatedCFMperTonHeating[speed])
-          heat_airflow_rated_defect_ratio << heat_cfm_m3s * (1 + hvac.AirflowDefectRatioHeating) / HVAC.calc_rated_airflow_htg(hvac_sizing_values.Heat_Capacity, hvac.RatedCFMperTonHeating[speed])
-        end
-      end
-      if not heat_airflow_rated_defect_ratio.empty?
-        cap_htg_ratios = []
+      if [HPXML::HVACTypeHeatPumpAirToAir,
+          HPXML::HVACTypeHeatPumpMiniSplit].include?(hvac.HeatType) && hvac.HeatingLoadFraction > 0
+        heat_airflow_rated_defect_ratio = []
+        heat_airflow_rated_ratio = []
+        heat_cfm_m3s = UnitConversions.convert(hvac_sizing_values.Heat_Airflow, 'cfm', 'm^3/s')
         for speed in 0..(hvac.NumSpeedsHeating - 1)
-          a1_AF_Qgr_h = hvac.HEAT_CAP_FFLOW_SPEC[speed][0]
-          a2_AF_Qgr_h = hvac.HEAT_CAP_FFLOW_SPEC[speed][1]
-          a3_AF_Qgr_h = hvac.HEAT_CAP_FFLOW_SPEC[speed][2]
-
-          # FIXME: Get coefficients from HVAC.rb to ensure consistency
-          if f_ch <= 0
-            qgr_values = [-0.0338595, 0.0202827, -2.6226343]
-          else
-            qgr_values = [-0.0029514, 0.0007379, -0.0064112]
-          end
-
-          a1_CH_Qgr_h = qgr_values[0]
-          a2_CH_Qgr_h = qgr_values[1]
-          a3_CH_Qgr_h = qgr_values[2]
-
-          # FIXME: Get coefficients from HVAC.rb to ensure consistency
-          ff_ch_h = (1 / (1 + (qgr_values[0] + qgr_values[1] * 8.33 + qgr_values[2] * f_ch) * f_ch)).round(3)
-
-          qh1_CH = a1_CH_Qgr_h
-          qh2_CH = a2_CH_Qgr_h * tout_heat
-          qh3_CH = a3_CH_Qgr_h * f_ch
-          y_CH_Q_h = 1 + ((qh1_CH + qh2_CH + qh3_CH) * f_ch)
-
-          qh0_AF_CH = a1_AF_Qgr_h
-          qh1_AF_CH = a2_AF_Qgr_h * ff_ch_h
-          qh2_AF_CH = a3_AF_Qgr_h * ff_ch_h * ff_ch_h
-          p_CH_Q_h = y_CH_Q_h / (qh0_AF_CH + qh1_AF_CH + qh2_AF_CH)
-
-          ff_AF_h = heat_airflow_rated_defect_ratio[speed].round(3)
-          ff_AF_h_nodefect = heat_airflow_rated_ratio[speed].round(3)
-          ff_AF_comb_h = ff_ch_h * ff_AF_h
-
-          qh0_AF_comb = a1_AF_Qgr_h
-          qh1_AF_comb = a2_AF_Qgr_h * ff_AF_comb_h
-          qh2_AF_comb = a3_AF_Qgr_h * ff_AF_comb_h * ff_AF_comb_h
-          p_AF_Q_h = qh0_AF_comb + qh1_AF_comb + qh2_AF_comb
-
-          heat_cap_fff = (p_CH_Q_h * p_AF_Q_h)
-          heat_cap_fff_nodefect = a1_AF_Qgr_h + a2_AF_Qgr_h * ff_AF_h_nodefect + a3_AF_Qgr_h * ff_AF_h_nodefect * ff_AF_h_nodefect
-          cap_htg_ratio = 1 / (heat_cap_fff / heat_cap_fff_nodefect)
-          cap_htg_ratios << cap_htg_ratio
+          heat_airflow_rated_ratio << heat_cfm_m3s / HVAC.calc_rated_airflow(hvac_sizing_values.Heat_Capacity, hvac.RatedCFMperTonHeating[speed], hvac.CapacityRatioHeating[speed])
+          heat_airflow_rated_defect_ratio << heat_cfm_m3s * (1 + hvac.AirflowDefectRatioHeating) / HVAC.calc_rated_airflow(hvac_sizing_values.Heat_Capacity, hvac.RatedCFMperTonHeating[speed], hvac.CapacityRatioHeating[speed])
         end
-        prev_capacity = hvac_sizing_values.Heat_Capacity
-        hvac_sizing_values.Heat_Capacity *= cap_htg_ratios.max
-        if prev_capacity > 0 # Preserve cfm/ton
-          hvac_sizing_values.Heat_Airflow = hvac_sizing_values.Heat_Airflow * hvac_sizing_values.Heat_Capacity / prev_capacity
-        else
-          hvac_sizing_values.Heat_Airflow = 0.0
+        if not heat_airflow_rated_defect_ratio.empty?
+          cap_htg_ratios = []
+          for speed in 0..(hvac.NumSpeedsHeating - 1)
+            a1_AF_Qgr_h = hvac.HEAT_CAP_FFLOW_SPEC[speed][0]
+            a2_AF_Qgr_h = hvac.HEAT_CAP_FFLOW_SPEC[speed][1]
+            a3_AF_Qgr_h = hvac.HEAT_CAP_FFLOW_SPEC[speed][2]
+
+            p_values, qgr_values, ff_chg_values = HVAC.get_installation_quality_heating_coeff(f_ch)
+
+            a1_CH_Qgr_h = qgr_values[0]
+            a2_CH_Qgr_h = qgr_values[1]
+            a3_CH_Qgr_h = qgr_values[2]
+
+            ff_ch_h = (1 / (1 + (qgr_values[0] + qgr_values[1] * ff_chg_values[0] + qgr_values[2] * f_ch) * f_ch)).round(3)
+
+            qh1_CH = a1_CH_Qgr_h
+            qh2_CH = a2_CH_Qgr_h * tout_heat
+            qh3_CH = a3_CH_Qgr_h * f_ch
+            y_CH_Q_h = 1 + ((qh1_CH + qh2_CH + qh3_CH) * f_ch)
+
+            qh0_AF_CH = a1_AF_Qgr_h
+            qh1_AF_CH = a2_AF_Qgr_h * ff_ch_h
+            qh2_AF_CH = a3_AF_Qgr_h * ff_ch_h * ff_ch_h
+            p_CH_Q_h = y_CH_Q_h / (qh0_AF_CH + qh1_AF_CH + qh2_AF_CH)
+
+            ff_AF_h = heat_airflow_rated_defect_ratio[speed].round(3)
+            ff_AF_h_nodefect = heat_airflow_rated_ratio[speed].round(3)
+            ff_AF_comb_h = ff_ch_h * ff_AF_h
+
+            qh0_AF_comb = a1_AF_Qgr_h
+            qh1_AF_comb = a2_AF_Qgr_h * ff_AF_comb_h
+            qh2_AF_comb = a3_AF_Qgr_h * ff_AF_comb_h * ff_AF_comb_h
+            p_AF_Q_h = qh0_AF_comb + qh1_AF_comb + qh2_AF_comb
+
+            heat_cap_fff = (p_CH_Q_h * p_AF_Q_h)
+            heat_cap_fff_nodefect = a1_AF_Qgr_h + a2_AF_Qgr_h * ff_AF_h_nodefect + a3_AF_Qgr_h * ff_AF_h_nodefect * ff_AF_h_nodefect
+            cap_htg_ratio = 1 / (heat_cap_fff / heat_cap_fff_nodefect)
+            cap_htg_ratios << cap_htg_ratio
+          end
+          prev_capacity = hvac_sizing_values.Heat_Capacity
+          hvac_sizing_values.Heat_Capacity *= cap_htg_ratios.max
+          if prev_capacity > 0 # Preserve cfm/ton
+            hvac_sizing_values.Heat_Airflow = hvac_sizing_values.Heat_Airflow * hvac_sizing_values.Heat_Capacity / prev_capacity
+          else
+            hvac_sizing_values.Heat_Airflow = 0.0
+          end
         end
       end
     end
@@ -1924,7 +1914,6 @@ class HVACSizing
       # Any configuration with a max_valid_configs value can accept any number of bores up to the maximum
       if max_valid_configs.keys.include? bore_config
         max_num_bore_holes = max_valid_configs[bore_config]
-        @runner.registerWarning("Maximum number of bore holes for '#{bore_config}' bore configuration is #{max_num_bore_holes}. Overriding value of #{num_bore_holes} bore holes to #{max_num_bore_holes}.")
         num_bore_holes = max_num_bore_holes
       else
         # Search for first valid bore field
@@ -1938,7 +1927,6 @@ class HVACSizing
           break
         end
         if valid_field_found
-          @runner.registerWarning("Bore field '#{bore_config}' with #{num_bore_holes.to_i} bore holes is an invalid configuration. Changing layout to '#{new_bore_config}' configuration.")
           bore_config = new_bore_config
         else
           fail 'Could not construct a valid GSHP bore field configuration.'
@@ -1975,8 +1963,6 @@ class HVACSizing
     '''
     Adjust heat pump sizing
     '''
-    return if hvac_sizing_values.Cool_Capacity == 0 # FIXME: Double-check this; if true, remove this line and move where it's called to inside if statement
-
     if hvac.NumSpeedsHeating > 1
       coefficients = hvac.HEAT_CAP_FT_SPEC[hvac.NumSpeedsHeating - 1]
       capacity_ratio = hvac.CapacityRatioHeating[hvac.NumSpeedsHeating - 1]
@@ -1987,9 +1973,7 @@ class HVACSizing
 
     heatCap_Rated = (hvac_sizing_values.Heat_Load / MathTools.biquadratic(@heat_setpoint, weather.design.HeatingDrybulb, coefficients)) / capacity_ratio
 
-    if heatCap_Rated < hvac_sizing_values.Cool_Capacity
-      hvac_sizing_values.Heat_Capacity = hvac_sizing_values.Cool_Capacity
-    else
+    if heatCap_Rated >= hvac_sizing_values.Cool_Capacity
       cfm_per_btuh = hvac_sizing_values.Cool_Airflow / hvac_sizing_values.Cool_Capacity
       load_shr = hvac_sizing_values.Cool_Load_Sens / hvac_sizing_values.Cool_Load_Tot
       if ((weather.data.HDD65F / weather.data.CDD50F) < 2.0) || (load_shr < 0.95)
@@ -2002,9 +1986,8 @@ class HVACSizing
       if hvac.HeatType == HPXML::HVACTypeHeatPumpAirToAir
         hvac_sizing_values.Cool_Airflow = cfm_per_btuh * hvac_sizing_values.Cool_Capacity
       elsif hvac.HeatType == HPXML::HVACTypeHeatPumpMiniSplit
-        hvac_sizing_values.Cool_Airflow = hvac.RatedCFMperTonCooling[-1] * UnitConversions.convert(hvac_sizing_values.Cool_Capacity, 'Btu/hr', 'ton')
+        hvac_sizing_values.Cool_Airflow = hvac.RatedCFMperTonCooling[-1] * hvac.CapacityRatioCooling[-1] * UnitConversions.convert(hvac_sizing_values.Cool_Capacity, 'Btu/hr', 'ton')
       end
-      hvac_sizing_values.Heat_Capacity = hvac_sizing_values.Cool_Capacity
     end
   end
 
@@ -2272,7 +2255,7 @@ class HVACSizing
   end
 
   def self.get_hvac_information(hvac_system)
-    # FIXME: Remove this method and use hvac_system objects directly.
+    # FUTURE: Remove this method and use hvac_system objects directly.
     hvac = HVACInfo.new
 
     hpxml_hvacs = []
@@ -2285,6 +2268,8 @@ class HVACSizing
 
     # Get heating/cooling system info from HPXML objects
     hpxml_hvacs.uniq.each do |hpxml_hvac|
+      hpxml_hvac_ap = hpxml_hvac.additional_properties
+
       # System type
       if hpxml_hvac.respond_to? :heating_system_type
         hvac.HeatType = hpxml_hvac.heating_system_type
@@ -2317,8 +2302,8 @@ class HVACSizing
       # Number of speeds
       if hpxml_hvac.is_a?(HPXML::CoolingSystem) || hpxml_hvac.is_a?(HPXML::HeatPump)
         # Cooling
-        if hpxml_hvac.additional_properties.respond_to? :num_speeds
-          num_speeds = hpxml_hvac.additional_properties.num_speeds
+        if hpxml_hvac_ap.respond_to? :num_speeds
+          num_speeds = hpxml_hvac_ap.num_speeds
         end
         num_speeds = 1 if num_speeds.nil?
         hvac.NumSpeedsCooling = num_speeds
@@ -2330,8 +2315,8 @@ class HVACSizing
       end
       if hpxml_hvac.is_a?(HPXML::HeatingSystem) || hpxml_hvac.is_a?(HPXML::HeatPump)
         # Heating
-        if hpxml_hvac.additional_properties.respond_to? :num_speeds
-          num_speeds = hpxml_hvac.additional_properties.num_speeds
+        if hpxml_hvac_ap.respond_to? :num_speeds
+          num_speeds = hpxml_hvac_ap.num_speeds
         end
         num_speeds = 1 if num_speeds.nil?
         hvac.NumSpeedsHeating = num_speeds
@@ -2370,72 +2355,75 @@ class HVACSizing
       end
 
       # Rated airflow rates
-      if hpxml_hvac.additional_properties.respond_to? :cool_rated_cfm_per_ton
-        hvac.RatedCFMperTonCooling = hpxml_hvac.additional_properties.cool_rated_cfm_per_ton
+      if hpxml_hvac_ap.respond_to? :cool_rated_cfm_per_ton
+        hvac.RatedCFMperTonCooling = hpxml_hvac_ap.cool_rated_cfm_per_ton
       end
-      if hpxml_hvac.additional_properties.respond_to? :heat_rated_cfm_per_ton
-        hvac.RatedCFMperTonHeating = hpxml_hvac.additional_properties.heat_rated_cfm_per_ton
+      if hpxml_hvac_ap.respond_to? :heat_rated_cfm_per_ton
+        hvac.RatedCFMperTonHeating = hpxml_hvac_ap.heat_rated_cfm_per_ton
       end
 
       # Capacity ratios
-      if hpxml_hvac.additional_properties.respond_to? :cool_capacity_ratios
-        hvac.CapacityRatioCooling = hpxml_hvac.additional_properties.cool_capacity_ratios
+      if hpxml_hvac_ap.respond_to? :cool_capacity_ratios
+        hvac.CapacityRatioCooling = hpxml_hvac_ap.cool_capacity_ratios
       end
-      if hpxml_hvac.additional_properties.respond_to? :heat_capacity_ratios
-        hvac.CapacityRatioHeating = hpxml_hvac.additional_properties.heat_capacity_ratios
+      if hpxml_hvac_ap.respond_to? :heat_capacity_ratios
+        hvac.CapacityRatioHeating = hpxml_hvac_ap.heat_capacity_ratios
       end
 
+      # Sizing speed
+      hvac.SizingSpeed = get_sizing_speed(hvac.NumSpeedsCooling, hvac.CapacityRatioCooling)
+
       # Rated SHRs
-      if hpxml_hvac.additional_properties.respond_to? :cool_shrs_rated_gross
-        hvac.SHRRated = hpxml_hvac.additional_properties.cool_shrs_rated_gross
+      if hpxml_hvac_ap.respond_to? :cool_rated_shrs_gross
+        hvac.SHRRated = hpxml_hvac_ap.cool_rated_shrs_gross
       end
 
       # Performance curves
-      if hpxml_hvac.additional_properties.respond_to? :cool_cap_ft_spec
-        hvac.COOL_CAP_FT_SPEC = hpxml_hvac.additional_properties.cool_cap_ft_spec
+      if hpxml_hvac_ap.respond_to? :cool_cap_ft_spec
+        hvac.COOL_CAP_FT_SPEC = hpxml_hvac_ap.cool_cap_ft_spec
       end
-      if hpxml_hvac.additional_properties.respond_to? :cool_sh_ft_spec
-        hvac.COOL_SH_FT_SPEC = hpxml_hvac.additional_properties.cool_sh_ft_spec
+      if hpxml_hvac_ap.respond_to? :cool_sh_ft_spec
+        hvac.COOL_SH_FT_SPEC = hpxml_hvac_ap.cool_sh_ft_spec
       end
-      if hpxml_hvac.additional_properties.respond_to? :heat_cap_ft_spec
-        hvac.HEAT_CAP_FT_SPEC = hpxml_hvac.additional_properties.heat_cap_ft_spec
+      if hpxml_hvac_ap.respond_to? :heat_cap_ft_spec
+        hvac.HEAT_CAP_FT_SPEC = hpxml_hvac_ap.heat_cap_ft_spec
       end
-      if hpxml_hvac.additional_properties.respond_to? :cool_cap_fflow_spec
-        hvac.COOL_CAP_FFLOW_SPEC = hpxml_hvac.additional_properties.cool_cap_fflow_spec
+      if hpxml_hvac_ap.respond_to? :cool_cap_fflow_spec
+        hvac.COOL_CAP_FFLOW_SPEC = hpxml_hvac_ap.cool_cap_fflow_spec
       end
-      if hpxml_hvac.additional_properties.respond_to? :heat_cap_fflow_spec
-        hvac.HEAT_CAP_FFLOW_SPEC = hpxml_hvac.additional_properties.heat_cap_fflow_spec
+      if hpxml_hvac_ap.respond_to? :heat_cap_fflow_spec
+        hvac.HEAT_CAP_FFLOW_SPEC = hpxml_hvac_ap.heat_cap_fflow_spec
       end
 
       # GSHP
-      if hpxml_hvac.additional_properties.respond_to? :u_tube_spacing_type
-        hvac.GSHP_SpacingType = hpxml_hvac.additional_properties.u_tube_spacing_type
+      if hpxml_hvac_ap.respond_to? :u_tube_spacing_type
+        hvac.GSHP_SpacingType = hpxml_hvac_ap.u_tube_spacing_type
       end
-      if hpxml_hvac.additional_properties.respond_to? :cool_rated_eirs
-        hvac.CoolingEIR = hpxml_hvac.additional_properties.cool_rated_eirs[0]
+      if hpxml_hvac_ap.respond_to? :cool_rated_eirs
+        hvac.CoolingEIR = hpxml_hvac_ap.cool_rated_eirs[0]
       end
-      if hpxml_hvac.additional_properties.respond_to? :heat_rated_eirs
-        hvac.HeatingEIR = hpxml_hvac.additional_properties.heat_rated_eirs[0]
+      if hpxml_hvac_ap.respond_to? :heat_rated_eirs
+        hvac.HeatingEIR = hpxml_hvac_ap.heat_rated_eirs[0]
       end
       if hvac.HeatType == HPXML::HVACTypeHeatPumpGroundToAir
-        hvac.GSHP_design_chw = hpxml_hvac.additional_properties.design_chw
-        hvac.GSHP_design_delta_t = hpxml_hvac.additional_properties.design_delta_t
-        hvac.GSHP_design_hw = hpxml_hvac.additional_properties.design_hw
-        hvac.GSHP_bore_d = hpxml_hvac.additional_properties.bore_diameter
-        hvac.GSHP_pipe_od = hpxml_hvac.additional_properties.pipe_od
-        hvac.GSHP_pipe_id = hpxml_hvac.additional_properties.pipe_id
-        hvac.GSHP_pipe_cond = hpxml_hvac.additional_properties.pipe_cond
-        hvac.GSHP_ground_k = hpxml_hvac.additional_properties.ground_conductivity
-        hvac.GSHP_grout_k = hpxml_hvac.additional_properties.grout_conductivity
+        hvac.GSHP_design_chw = hpxml_hvac_ap.design_chw
+        hvac.GSHP_design_delta_t = hpxml_hvac_ap.design_delta_t
+        hvac.GSHP_design_hw = hpxml_hvac_ap.design_hw
+        hvac.GSHP_bore_d = hpxml_hvac_ap.bore_diameter
+        hvac.GSHP_pipe_od = hpxml_hvac_ap.pipe_od
+        hvac.GSHP_pipe_id = hpxml_hvac_ap.pipe_id
+        hvac.GSHP_pipe_cond = hpxml_hvac_ap.pipe_cond
+        hvac.GSHP_ground_k = hpxml_hvac_ap.ground_conductivity
+        hvac.GSHP_grout_k = hpxml_hvac_ap.grout_conductivity
       end
 
       # Evaporative cooler
-      if hpxml_hvac.additional_properties.respond_to? :effectiveness
-        hvac.EvapCoolerEffectiveness = hpxml_hvac.additional_properties.effectiveness
+      if hpxml_hvac_ap.respond_to? :effectiveness
+        hvac.EvapCoolerEffectiveness = hpxml_hvac_ap.effectiveness
       end
 
       # Ducts
-      # FIXME: Consolidate w/ ducts code in measure.rb
+      # FUTURE: Consolidate w/ ducts code in measure.rb
       hvac.Ducts = []
       next unless not hpxml_hvac.distribution_system.nil?
       lto = { supply_percent: nil, supply_cfm25: nil, return_percent: nil, return_cfm25: nil }
@@ -2515,13 +2503,13 @@ class HVACSizing
     return [1.08464364, 0.002096954, 0, -0.005766327, 0, -0.000011147]
   end
 
-  def self.get_sizing_speed(hvac)
-    if hvac.NumSpeedsCooling > 1
-      sizingSpeed = hvac.NumSpeedsCooling # Default
+  def self.get_sizing_speed(num_speeds_cooling, capacity_ratios_cooling)
+    if num_speeds_cooling > 1
+      sizingSpeed = num_speeds_cooling # Default
       sizingSpeed_Test = 10 # Initialize
-      for speed in 0..(hvac.NumSpeedsCooling - 1)
+      for speed in 0..(num_speeds_cooling - 1)
         # Select curves for sizing using the speed with the capacity ratio closest to 1
-        temp = (hvac.CapacityRatioCooling[speed] - 1).abs
+        temp = (capacity_ratios_cooling[speed] - 1).abs
         if temp <= sizingSpeed_Test
           sizingSpeed = speed
           sizingSpeed_Test = temp
@@ -2583,7 +2571,7 @@ class HVACSizing
     else # Unvented space
       ach = 0.1 # Assumption
     end
-    # FIXME: Reuse code from measure.rb set_zone_volumes()
+    # FUTURE: Reuse code from measure.rb set_zone_volumes()
     if [HPXML::LocationAtticVented, HPXML::LocationAtticUnvented].include? space_type
       floor_area = @hpxml.frame_floors.select { |f| [f.interior_adjacent_to, f.exterior_adjacent_to].include? space_type }.map { |s| s.area }.sum(0.0)
       roofs = @hpxml.roofs.select { |r| r.interior_adjacent_to == space_type }

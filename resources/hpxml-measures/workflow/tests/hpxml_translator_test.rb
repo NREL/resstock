@@ -405,8 +405,27 @@ class HPXMLTest < MiniTest::Test
     end
 
     assert(!results.empty?)
-    # FIXME: Add tests to make sure capacities/airflows are zero as appropriate (FractionLoadServed == 0)
-    # FIXME: Add tests to make sure duct design loads are zero as appropriate (no ducts, FractionLoadServed == 0)
+
+    if (hpxml.heating_systems + hpxml.heat_pumps).select { |h| h.fraction_heat_load_served.to_f > 0 }.empty?
+      # No heating equipment; check for zero heating capacities/airflows/duct loads
+      assert_equal(0.0, results['heating_capacity [Btuh]'])
+      assert_equal(0.0, results['heating_backup_capacity [Btuh]'])
+      assert_equal(0.0, results['heating_airflow [cfm]'])
+      assert_equal(0.0, results['heating_load_ducts [Btuh]'])
+    end
+    if (hpxml.cooling_systems + hpxml.heat_pumps).select { |c| c.fraction_cool_load_served.to_f > 0 }.empty?
+      # No cooling equipment; check for zero cooling capacities/airflows/duct loads
+      assert_equal(0.0, results['cooling_capacity [Btuh]'])
+      assert_equal(0.0, results['cooling_airflow [cfm]'])
+      assert_equal(0.0, results['cooling_load_sens_ducts [Btuh]'])
+      assert_equal(0.0, results['cooling_load_lat_ducts [Btuh]'])
+    end
+    if hpxml.hvac_distributions.map { |dist| dist.ducts.size }.empty?
+      # No ducts; check for zero duct loads
+      assert_equal(0.0, results['heating_load_ducts [Btuh]'])
+      assert_equal(0.0, results['cooling_load_sens_ducts [Btuh]'])
+      assert_equal(0.0, results['cooling_load_lat_ducts [Btuh]'])
+    end
 
     return results
   end

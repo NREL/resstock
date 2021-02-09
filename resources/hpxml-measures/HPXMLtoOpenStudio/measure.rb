@@ -304,16 +304,10 @@ class OSModel
     @ncfl = @hpxml.building_construction.number_of_conditioned_floors
     @ncfl_ag = @hpxml.building_construction.number_of_conditioned_floors_above_grade
     @nbeds = @hpxml.building_construction.number_of_bedrooms
-    @min_neighbor_distance = get_min_neighbor_distance()
     @default_azimuths = get_default_azimuths()
-    @has_uncond_bsmnt = @hpxml.has_space_type(HPXML::LocationBasementUnconditioned)
-
-    if @hpxml.building_construction.use_only_ideal_air_system.nil?
-      @hpxml.building_construction.use_only_ideal_air_system = false
-    end
 
     # Apply defaults to HPXML object
-    HPXMLDefaults.apply(@hpxml, runner, epw_file, weather, @cfa, @nbeds, @ncfl, @ncfl_ag, @has_uncond_bsmnt, @eri_version)
+    HPXMLDefaults.apply(@hpxml, @eri_version, weather, epw_file)
 
     @frac_windows_operable = @hpxml.fraction_of_windows_operable()
 
@@ -1967,10 +1961,11 @@ class OSModel
     end
 
     # Water Heater
+    has_uncond_bsmnt = @hpxml.has_space_type(HPXML::LocationBasementUnconditioned)
     @hpxml.water_heating_systems.each do |water_heating_system|
       loc_space, loc_schedule = get_space_or_schedule_from_location(water_heating_system.location, 'WaterHeatingSystem', model, spaces)
 
-      ec_adj = HotWaterAndAppliances.get_dist_energy_consumption_adjustment(@has_uncond_bsmnt, @cfa, @ncfl, water_heating_system, hot_water_distribution)
+      ec_adj = HotWaterAndAppliances.get_dist_energy_consumption_adjustment(has_uncond_bsmnt, @cfa, @ncfl, water_heating_system, hot_water_distribution)
 
       if water_heating_system.water_heater_type == HPXML::WaterHeaterTypeStorage
 
@@ -2002,11 +1997,7 @@ class OSModel
     end
 
     # Hot water fixtures and appliances
-    HotWaterAndAppliances.apply(model, runner, weather, spaces[HPXML::LocationLivingSpace],
-                                @cfa, @nbeds, @ncfl, @has_uncond_bsmnt, @hpxml.clothes_washers,
-                                @hpxml.clothes_dryers, @hpxml.dishwashers, @hpxml.refrigerators,
-                                @hpxml.freezers, @hpxml.cooking_ranges, @hpxml.ovens, @hpxml.water_heating,
-                                @hpxml.water_heating_systems, hot_water_distribution, @hpxml.water_fixtures,
+    HotWaterAndAppliances.apply(model, runner, @hpxml, weather, spaces, hot_water_distribution,
                                 solar_thermal_system, @eri_version, @dhw_map, @schedules_file)
 
     if (not solar_thermal_system.nil?) && (not solar_thermal_system.collector_area.nil?) # Detailed solar water heater
@@ -2338,22 +2329,6 @@ class OSModel
   end
 
   def self.add_airflow(runner, model, weather, spaces)
-    # Vented Attic
-    vented_attic = nil
-    @hpxml.attics.each do |attic|
-      next unless attic.attic_type == HPXML::AtticTypeVented
-
-      vented_attic = attic
-    end
-
-    # Vented Crawlspace
-    vented_crawl = nil
-    @hpxml.foundations.each do |foundation|
-      next unless foundation.foundation_type == HPXML::FoundationTypeCrawlspaceVented
-
-      vented_crawl = foundation
-    end
-
     # Ducts
     duct_systems = {}
     @hpxml.hvac_distributions.each do |hvac_distribution|
@@ -2399,18 +2374,9 @@ class OSModel
       end
     end
 
-    window_area = @hpxml.windows.map { |w| w.area }.sum(0.0)
-    open_window_area = window_area * @frac_windows_operable * 0.5 * 0.2 # Assume A) 50% of the area of an operable window can be open, and B) 20% of openable window area is actually open
-    site_type = @hpxml.site.site_type
-    shelter_coef = @hpxml.site.shelter_coefficient
-    air_infils = @hpxml.air_infiltration_measurements
-    @infil_volume = air_infils.select { |i| !i.infiltration_volume.nil? }[0].infiltration_volume
-    infil_height = @hpxml.inferred_infiltration_height(@infil_volume)
-    Airflow.apply(model, runner, weather, spaces, air_infils, @hpxml.ventilation_fans, @hpxml.clothes_dryers, @nbeds,
-                  @ncfl_ag, duct_systems, @infil_volume, infil_height, open_window_area,
-                  @clg_ssn_sensor, @min_neighbor_distance, vented_attic, vented_crawl,
-                  site_type, shelter_coef, @hpxml.building_construction.has_flue_or_chimney, @hvac_map, @eri_version,
-                  @apply_ashrae140_assumptions, @schedules_file)
+    Airflow.apply(model, runner, weather, spaces, @hpxml, @cfa, @nbeds,
+                  @ncfl_ag, duct_systems, @clg_ssn_sensor, @hvac_map, @eri_version,
+                  @frac_windows_operable, @apply_ashrae140_assumptions, @schedules_file)
   end
 
   def self.create_ducts(runner, model, hvac_distribution, spaces)
@@ -3617,19 +3583,6 @@ class OSModel
     else
       set_surface_exterior(model, spaces, surface, hpxml_surface)
     end
-  end
-
-  def self.get_min_neighbor_distance()
-    min_neighbor_distance = nil
-    @hpxml.neighbor_buildings.each do |neighbor_building|
-      if min_neighbor_distance.nil?
-        min_neighbor_distance = 9e99
-      end
-      if neighbor_building.distance < min_neighbor_distance
-        min_neighbor_distance = neighbor_building.distance
-      end
-    end
-    return min_neighbor_distance
   end
 
   def self.get_kiva_instances(fnd_walls, slabs)

@@ -1012,7 +1012,7 @@ class HPXML < Object
       XMLHelper.add_element(building_construction, 'NumberofBathrooms', @number_of_bathrooms, :integer, @number_of_bathrooms_isdefaulted) unless @number_of_bathrooms.nil?
       XMLHelper.add_element(building_construction, 'ConditionedFloorArea', @conditioned_floor_area, :float) unless @conditioned_floor_area.nil?
       XMLHelper.add_element(building_construction, 'ConditionedBuildingVolume', @conditioned_building_volume, :float, @conditioned_building_volume_isdefaulted) unless @conditioned_building_volume.nil?
-      XMLHelper.add_extension(building_construction, 'UseOnlyIdealAirSystem', @use_only_ideal_air_system, :boolean) unless @use_only_ideal_air_system.nil?
+      XMLHelper.add_extension(building_construction, 'UseOnlyIdealAirSystem', @use_only_ideal_air_system, :boolean, @use_only_ideal_air_system_isdefaulted) unless @use_only_ideal_air_system.nil?
       XMLHelper.add_extension(building_construction, 'HasFlueOrChimney', @has_flue_or_chimney, :boolean, @has_flue_or_chimney_isdefaulted) unless @has_flue_or_chimney.nil?
     end
 

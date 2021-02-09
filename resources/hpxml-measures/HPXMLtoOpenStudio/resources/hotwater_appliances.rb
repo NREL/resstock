@@ -1,28 +1,31 @@
 # frozen_string_literal: true
 
 class HotWaterAndAppliances
-  def self.apply(model, runner, weather, living_space,
-                 cfa, nbeds, ncfl, has_uncond_bsmnt, clothes_washers,
-                 clothes_dryers, dishwashers, refrigerators,
-                 freezers, cooking_ranges, ovens, water_heating,
-                 water_heating_systems, hot_water_distribution, water_fixtures,
+  def self.apply(model, runner, hpxml, weather, spaces, hot_water_distribution,
                  solar_thermal_system, eri_version, dhw_map, schedules_file)
 
-    # Get appliances
-    if not clothes_washers.empty?
-      clothes_washer = clothes_washers[0]
+    cfa = hpxml.building_construction.conditioned_floor_area
+    nbeds = hpxml.building_construction.number_of_bedrooms
+    ncfl = hpxml.building_construction.number_of_conditioned_floors
+    has_uncond_bsmnt = hpxml.has_space_type(HPXML::LocationBasementUnconditioned)
+    fixtures_usage_multiplier = hpxml.water_heating.water_fixtures_usage_multiplier
+    living_space = spaces[HPXML::LocationLivingSpace]
+
+    # Get appliances, etc.
+    if not hpxml.clothes_washers.empty?
+      clothes_washer = hpxml.clothes_washers[0]
     end
-    if not clothes_dryers.empty?
-      clothes_dryer = clothes_dryers[0]
+    if not hpxml.clothes_dryers.empty?
+      clothes_dryer = hpxml.clothes_dryers[0]
     end
-    if not dishwashers.empty?
-      dishwasher = dishwashers[0]
+    if not hpxml.dishwashers.empty?
+      dishwasher = hpxml.dishwashers[0]
     end
-    if not cooking_ranges.empty?
-      cooking_range = cooking_ranges[0]
+    if not hpxml.cooking_ranges.empty?
+      cooking_range = hpxml.cooking_ranges[0]
     end
-    if not ovens.empty?
-      oven = ovens[0]
+    if not hpxml.ovens.empty?
+      oven = hpxml.ovens[0]
     end
 
     # For each water heater (plant loop):
@@ -106,7 +109,7 @@ class HotWaterAndAppliances
     end
 
     # Refrigerator(s) energy
-    refrigerators.each do |refrigerator|
+    hpxml.refrigerators.each do |refrigerator|
       rf_annual_kwh, rf_frac_sens, rf_frac_lat = calc_refrigerator_or_freezer_energy(refrigerator, refrigerator.additional_properties.space.nil?)
 
       if not schedules_file.nil?
@@ -127,7 +130,7 @@ class HotWaterAndAppliances
     end
 
     # Freezer(s) energy
-    freezers.each do |freezer|
+    hpxml.freezers.each do |freezer|
       fz_annual_kwh, fz_frac_sens, fz_frac_lat = calc_refrigerator_or_freezer_energy(freezer, freezer.additional_properties.space.nil?)
 
       if not schedules_file.nil?
@@ -173,7 +176,7 @@ class HotWaterAndAppliances
 
     if not hot_water_distribution.nil?
       fixtures_all_low_flow = true
-      water_fixtures.each do |water_fixture|
+      hpxml.water_fixtures.each do |water_fixture|
         next unless [HPXML::WaterFixtureTypeShowerhead, HPXML::WaterFixtureTypeFaucet].include? water_fixture.water_fixture_type
 
         fixtures_all_low_flow = false if not water_fixture.low_flow
@@ -182,7 +185,7 @@ class HotWaterAndAppliances
       # Calculate mixed water fractions
       t_mix = 105.0 # F, Temperature of mixed water at fixtures
       avg_setpoint_temp = 0.0 # WH Setpoint: Weighted average by fraction DHW load served
-      water_heating_systems.each do |water_heating_system|
+      hpxml.water_heating_systems.each do |water_heating_system|
         avg_setpoint_temp += water_heating_system.temperature * water_heating_system.fraction_dhw_load_served
       end
       daily_wh_inlet_temperatures = calc_water_heater_daily_inlet_temperatures(weather, nbeds, hot_water_distribution, fixtures_all_low_flow)
@@ -210,14 +213,14 @@ class HotWaterAndAppliances
       end
     end
 
-    water_heating_systems.each do |water_heating_system|
+    hpxml.water_heating_systems.each do |water_heating_system|
       non_solar_fraction = 1.0 - Waterheater.get_water_heater_solar_fraction(water_heating_system, solar_thermal_system)
 
       gpd_frac = water_heating_system.fraction_dhw_load_served # Fixtures fraction
       if gpd_frac > 0
 
-        fx_gpd = get_fixtures_gpd(eri_version, nbeds, fixtures_all_low_flow, daily_mw_fractions, water_heating.water_fixtures_usage_multiplier)
-        w_gpd = get_dist_waste_gpd(eri_version, nbeds, has_uncond_bsmnt, cfa, ncfl, hot_water_distribution, fixtures_all_low_flow, water_heating.water_fixtures_usage_multiplier)
+        fx_gpd = get_fixtures_gpd(eri_version, nbeds, fixtures_all_low_flow, daily_mw_fractions, fixtures_usage_multiplier)
+        w_gpd = get_dist_waste_gpd(eri_version, nbeds, has_uncond_bsmnt, cfa, ncfl, hot_water_distribution, fixtures_all_low_flow, fixtures_usage_multiplier)
 
         if not schedules_file.nil?
           fx_peak_flow = schedules_file.calc_peak_flow_from_daily_gpm(col_name: 'fixtures', daily_water: fx_gpd)

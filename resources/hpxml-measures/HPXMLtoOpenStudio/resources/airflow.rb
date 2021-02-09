@@ -1,25 +1,23 @@
 # frozen_string_literal: true
 
 class Airflow
-  def self.apply(model, runner, weather, spaces, air_infils, vent_fans, clothes_dryers, nbeds,
-                 ncfl_ag, duct_systems, infil_volume, infil_height, open_window_area,
-                 nv_clg_ssn_sensor, min_neighbor_distance, vented_attic, vented_crawl,
-                 site_type, shelter_coef, has_flue_chimney, hvac_map, eri_version,
-                 apply_ashrae140_assumptions, schedules_file)
+  def self.apply(model, runner, weather, spaces, hpxml, cfa, nbeds,
+                 ncfl_ag, duct_systems, nv_clg_ssn_sensor, hvac_map, eri_version,
+                 frac_windows_operable, apply_ashrae140_assumptions, schedules_file)
 
     # Global variables
 
     @runner = runner
     @spaces = spaces
-    @infil_volume = infil_volume
-    @infil_height = infil_height
+    @infil_volume = hpxml.air_infiltration_measurements.select { |i| !i.infiltration_volume.nil? }[0].infiltration_volume
+    @infil_height = hpxml.inferred_infiltration_height(@infil_volume)
     @living_space = spaces[HPXML::LocationLivingSpace]
     @living_zone = @living_space.thermalZone.get
     @nbeds = nbeds
     @ncfl_ag = ncfl_ag
     @eri_version = eri_version
     @apply_ashrae140_assumptions = apply_ashrae140_assumptions
-    @cfa = UnitConversions.convert(@living_space.floorArea, 'm^2', 'ft^2')
+    @cfa = cfa
 
     # Global sensors
 
@@ -57,7 +55,7 @@ class Airflow
     vent_fans_kitchen = []
     vent_fans_bath = []
     vent_fans_whf = []
-    vent_fans.each do |vent_fan|
+    hpxml.ventilation_fans.each do |vent_fan|
       if vent_fan.used_for_whole_building_ventilation
         vent_fans_mech << vent_fan
       elsif vent_fan.used_for_seasonal_cooling_load_reduction
@@ -72,7 +70,7 @@ class Airflow
     end
 
     # Vented clothes dryers in conditioned space
-    vented_dryers = clothes_dryers.select { |cd| cd.is_vented && cd.vented_flow_rate.to_f > 0 && [HPXML::LocationLivingSpace, HPXML::LocationBasementConditioned].include?(cd.location) }
+    vented_dryers = hpxml.clothes_dryers.select { |cd| cd.is_vented && cd.vented_flow_rate.to_f > 0 && [HPXML::LocationLivingSpace, HPXML::LocationBasementConditioned].include?(cd.location) }
 
     # Initialization
     initialize_cfis(model, vent_fans_mech, hvac_map)
@@ -91,10 +89,27 @@ class Airflow
 
     # Apply infiltration/ventilation
 
-    @wind_speed = set_wind_speed_correction(model, site_type, shelter_coef, min_neighbor_distance)
+    @wind_speed = set_wind_speed_correction(model, hpxml.site.site_type, hpxml.site.shelter_coefficient)
+    window_area = hpxml.windows.map { |w| w.area }.sum(0.0)
+    open_window_area = window_area * frac_windows_operable * 0.5 * 0.2 # Assume A) 50% of the area of an operable window can be open, and B) 20% of openable window area is actually open
+
+    vented_attic = nil
+    hpxml.attics.each do |attic|
+      next unless attic.attic_type == HPXML::AtticTypeVented
+
+      vented_attic = attic
+    end
+    vented_crawl = nil
+    hpxml.foundations.each do |foundation|
+      next unless foundation.foundation_type == HPXML::FoundationTypeCrawlspaceVented
+
+      vented_crawl = foundation
+    end
+
     apply_natural_ventilation_and_whole_house_fan(model, weather, vent_fans_whf, open_window_area, nv_clg_ssn_sensor)
     apply_infiltration_and_ventilation_fans(model, weather, vent_fans_mech, vent_fans_kitchen, vent_fans_bath, vented_dryers,
-                                            has_flue_chimney, air_infils, vented_attic, vented_crawl, hvac_map, schedules_file)
+                                            hpxml.building_construction.has_flue_or_chimney, hpxml.air_infiltration_measurements,
+                                            vented_attic, vented_crawl, hvac_map, schedules_file)
   end
 
   def self.get_default_shelter_coefficient()
@@ -137,7 +152,7 @@ class Airflow
 
   private
 
-  def self.set_wind_speed_correction(model, site_type, shelter_coef, min_neighbor_distance)
+  def self.set_wind_speed_correction(model, site_type, shelter_coef)
     site_map = { HPXML::SiteTypeRural => 'Country',    # Flat, open country
                  HPXML::SiteTypeSuburban => 'Suburbs', # Rough, wooded country, suburbs
                  HPXML::SiteTypeUrban => 'City' }      # Towns, city outskirts, center of large cities
@@ -170,22 +185,7 @@ class Airflow
     end
 
     # Local Shielding
-    if shelter_coef.nil?
-      # FIXME: Move into HPXML defaults
-      if min_neighbor_distance.nil?
-        # Typical shelter for isolated rural house
-        wind_speed.S_wo = 0.90
-      elsif min_neighbor_distance > @building_height
-        # Typical shelter caused by other building across the street
-        wind_speed.S_wo = 0.70
-      else
-        # Typical shelter for urban buildings where sheltering obstacles
-        # are less than one building height away.
-        wind_speed.S_wo = 0.50
-      end
-    else
-      wind_speed.S_wo = Float(shelter_coef)
-    end
+    wind_speed.S_wo = Float(shelter_coef)
 
     # S-G Shielding Coefficients are roughly 1/3 of AIM2 Shelter Coefficients
     wind_speed.shielding_coef = wind_speed.S_wo / 3.0

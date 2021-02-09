@@ -26,32 +26,32 @@ class IntegrationWorkflowTest < MiniTest::Test
 
   def test_baseline
     results_csv = samples_osw('baseline')
-    
+
     rows = CSV.read(File.expand_path(results_csv))
-    
+
     assert_equal(num_samples_baseline, rows.length - 1)
-    
+
     cols = rows.transpose
     cols.each do |col|
       next if col[0] != 'completed_status'
 
-      assert(col[1..-1].all? {|x| x == 'Success'})
+      assert(col[1..-1].all? { |x| x == 'Success' })
     end
   end
 
   def test_upgrades
     results_csv = samples_osw('upgrades')
-    
+
     rows = CSV.read(File.expand_path(results_csv))
-    
+
     num_upgrades = Dir["#{top_dir}/workflow*.osw"].length - 1
     assert_equal(num_samples_upgrades * num_upgrades, rows.length - 1)
-    
+
     cols = rows.transpose
     cols.each do |col|
       next if col[0] != 'completed_status'
 
-      assert(col[1..-1].all? {|x| x != 'Fail'})
+      assert(col[1..-1].all? { |x| x != 'Fail' })
     end
   end
 
@@ -168,14 +168,13 @@ class IntegrationWorkflowTest < MiniTest::Test
 
     data_hash['steps'].each do |step|
       return result unless step.keys.include?('result')
-      
+
       step_time_str = "time_#{OpenStudio::toUnderscoreCase(step['measure_dir_name'])}"
 
-      if step['result'].keys.include?('started_at') && step['result'].keys.include?('completed_at')
-        started_at = DateTime.strptime(step['result']['started_at'], '%Y%m%dT%H%M%SZ')
-        completed_at = DateTime.strptime(step['result']['completed_at'], '%Y%m%dT%H%M%SZ')
-        result[step_time_str] = ((completed_at - started_at) * 24 * 3600).to_i
-      end
+      next unless step['result'].keys.include?('started_at') && step['result'].keys.include?('completed_at')
+      started_at = DateTime.strptime(step['result']['started_at'], '%Y%m%dT%H%M%SZ')
+      completed_at = DateTime.strptime(step['result']['completed_at'], '%Y%m%dT%H%M%SZ')
+      result[step_time_str] = ((completed_at - started_at) * 24 * 3600).to_i
     end
 
     return result
