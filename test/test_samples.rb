@@ -25,7 +25,7 @@ class IntegrationWorkflowTest < MiniTest::Test
   end
 
   def test_baseline
-    results_csv = samples_osw('baseline')
+    results_csv = samples_osw('baseline', num_samples_baseline)
 
     rows = CSV.read(File.expand_path(results_csv))
 
@@ -40,7 +40,7 @@ class IntegrationWorkflowTest < MiniTest::Test
   end
 
   def test_upgrades
-    results_csv = samples_osw('upgrades')
+    results_csv = samples_osw('upgrades', num_samples_upgrades)
 
     rows = CSV.read(File.expand_path(results_csv))
 
@@ -57,7 +57,7 @@ class IntegrationWorkflowTest < MiniTest::Test
 
   private
 
-  def samples_osw(scenario)
+  def samples_osw(scenario, num_samples)
     if project_dir == 'project_national'
       parent_dir = File.absolute_path(File.join(File.dirname(__FILE__), '..'))
       if Dir["#{parent_dir}/weather/*.epw"].size < 10
@@ -86,7 +86,7 @@ class IntegrationWorkflowTest < MiniTest::Test
       xml_dir = File.join(parent_dir, 'xml')
       Dir.mkdir(xml_dir) unless File.exist?(xml_dir)
 
-      (1..num_samples_upgrades).to_a.each do |building_unit_id|
+      (1..num_samples).to_a.each do |building_unit_id|
         puts "\n\tBuilding Unit ID: #{building_unit_id} ...\n\n"
 
         change_building_unit_id(osw, building_unit_id)
