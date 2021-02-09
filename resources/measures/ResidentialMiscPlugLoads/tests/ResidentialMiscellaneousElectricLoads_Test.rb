@@ -112,25 +112,25 @@ class ResidentialMiscElectricLoadsTest < MiniTest::Test
   end
 
   def test_single_family_attached_new_construction
-    num_units = 4
+    num_units = 1
     num_fin_spaces = num_units * 2
     args_hash = {}
     args_hash["energy_mult"] = 1.0
     expected_num_del_objects = {}
     expected_num_new_objects = { "ElectricEquipment" => num_fin_spaces, "ElectricEquipmentDefinition" => num_fin_spaces, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 2003 * num_units }
-    _test_measure("SFA_4units_1story_FB_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
+    _test_measure("SFA_4units_1story_FB_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 0)
   end
 
   def test_multifamily_new_construction
-    num_units = 8
+    num_units = 1
     num_fin_spaces = num_units
     args_hash = {}
     args_hash["energy_mult"] = 1.0
     expected_num_del_objects = {}
     expected_num_new_objects = { "ElectricEquipment" => num_fin_spaces, "ElectricEquipmentDefinition" => num_fin_spaces, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 1841 * num_units }
-    _test_measure("MF_8units_1story_SL_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
+    _test_measure("MF_8units_1story_SL_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 0)
   end
 
   private

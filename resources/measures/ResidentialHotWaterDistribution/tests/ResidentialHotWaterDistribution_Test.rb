@@ -398,7 +398,7 @@ class ResidentialHotWaterDistributionTest < MiniTest::Test
   end
 
   def test_single_family_attached_new_construction
-    num_units = 4
+    num_units = 1
     args_hash = {}
     args_hash["pipe_mat"] = Constants.MaterialCopper
     args_hash["dist_layout"] = Constants.PipeTypeTrunkBranch
@@ -407,12 +407,12 @@ class ResidentialHotWaterDistributionTest < MiniTest::Test
     args_hash["dist_ins"] = 0
     expected_num_del_objects = {}
     expected_num_new_objects = { "WaterUseEquipmentDefinition" => 3 * num_units, "WaterUseEquipment" => 3 * num_units, "ScheduleRuleset" => num_units, "OtherEquipmentDefinition" => num_units, "OtherEquipment" => num_units }
-    expected_values = { "ShowerDailyWater_gpd" => 112.04, "SinkDailyWater_gpd" => 99.92, "BathDailyWater_gpd" => 28.04, "InternalLoadAnnual_MBtu" => 6.21, "RecircPumpAnnual_kWh" => 0, "RecircPumpFractionLost" => 0 }
-    _test_measure("SFA_4units_1story_FB_UA_3Beds_2Baths_Denver_WHTank_HWFixtures.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
+    expected_values = { "ShowerDailyWater_gpd" => 28.01 * num_units, "SinkDailyWater_gpd" => 24.98 * num_units, "BathDailyWater_gpd" => 7.01 * num_units, "InternalLoadAnnual_MBtu" => 1.55 * num_units, "RecircPumpAnnual_kWh" => 0, "RecircPumpFractionLost" => 0 }
+    _test_measure("SFA_4units_1story_FB_UA_3Beds_2Baths_Denver_WHTank_HWFixtures.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 0)
   end
 
   def test_multifamily_new_construction
-    num_units = 8
+    num_units = 1
     args_hash = {}
     args_hash["pipe_mat"] = Constants.MaterialCopper
     args_hash["dist_layout"] = Constants.PipeTypeTrunkBranch
@@ -421,8 +421,8 @@ class ResidentialHotWaterDistributionTest < MiniTest::Test
     args_hash["dist_ins"] = 0
     expected_num_del_objects = {}
     expected_num_new_objects = { "WaterUseEquipmentDefinition" => 3 * num_units, "WaterUseEquipment" => 3 * num_units, "ScheduleRuleset" => num_units, "OtherEquipmentDefinition" => num_units, "OtherEquipment" => num_units }
-    expected_values = { "ShowerDailyWater_gpd" => 224.1, "SinkDailyWater_gpd" => 199.85, "BathDailyWater_gpd" => 56.08, "InternalLoadAnnual_MBtu" => 12.42, "RecircPumpAnnual_kWh" => 0, "RecircPumpFractionLost" => 0 }
-    _test_measure("MF_8units_1story_SL_3Beds_2Baths_Denver_WHTank_HWFixtures.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
+    expected_values = { "ShowerDailyWater_gpd" => 28.01 * num_units, "SinkDailyWater_gpd" => 24.98 * num_units, "BathDailyWater_gpd" => 7.01 * num_units, "InternalLoadAnnual_MBtu" => 1.55 * num_units, "RecircPumpAnnual_kWh" => 0, "RecircPumpFractionLost" => 0 }
+    _test_measure("MF_8units_1story_SL_3Beds_2Baths_Denver_WHTank_HWFixtures.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 0)
   end
 
   private

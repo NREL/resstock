@@ -1,4 +1,11 @@
+## ResStock v2.5.0 (pending)
+
+Features
+
+- Model multifamily and single-family attached buildings as individual dwelling units ([#439](https://github.com/NREL/resstock/pull/439))
+
 ## ResStock v2.4.0
+
 ###### January 27, 2021 - [Diff](https://github.com/NREL/OpenStudio-BuildStock/compare/v2.3.0...v2.4.0)
 
 Features

@@ -284,41 +284,41 @@ class ResidentialDishwasherTest < MiniTest::Test
   end
 
   def test_single_family_attached_new_construction
-    num_units = 4
+    num_units = 1
     args_hash = {}
     expected_num_del_objects = {}
     expected_num_new_objects = { "ElectricEquipment" => num_units, "ElectricEquipmentDefinition" => num_units, "ScheduleConstant" => num_units, "ScheduleFile" => 2, "WaterUseEquipment" => num_units, "WaterUseEquipmentDefinition" => num_units }
     expected_values = { "Annual_kwh" => num_units * 83.09, "HotWater_gpd" => num_units * 1.65, "Location" => args_hash["location"] }
-    _test_measure("SFA_4units_1story_FB_UA_3Beds_2Baths_Denver_WHTank.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
+    _test_measure("SFA_4units_1story_FB_UA_3Beds_2Baths_Denver_WHTank.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 0)
   end
 
   def test_single_family_attached_new_construction_finished_basement
-    num_units = 4
+    num_units = 1
     args_hash = {}
     args_hash["location"] = Constants.SpaceTypeFinishedBasement
     expected_num_del_objects = {}
     expected_num_new_objects = { "ElectricEquipment" => num_units, "ElectricEquipmentDefinition" => num_units, "ScheduleConstant" => num_units, "ScheduleFile" => 2, "WaterUseEquipment" => num_units, "WaterUseEquipmentDefinition" => num_units }
     expected_values = { "Annual_kwh" => num_units * 83.09, "HotWater_gpd" => num_units * 1.65, "Location" => args_hash["location"] }
-    _test_measure("SFA_4units_1story_FB_UA_3Beds_2Baths_Denver_WHTank.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
+    _test_measure("SFA_4units_1story_FB_UA_3Beds_2Baths_Denver_WHTank.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 0)
   end
 
   def test_single_family_attached_new_construction_unfinished_basement
-    num_units = 4
+    num_units = 1
     args_hash = {}
     args_hash["location"] = Constants.SpaceTypeUnfinishedBasement
     expected_num_del_objects = {}
     expected_num_new_objects = { "ElectricEquipment" => num_units, "ElectricEquipmentDefinition" => num_units, "ScheduleConstant" => num_units, "ScheduleFile" => 2, "WaterUseEquipment" => num_units, "WaterUseEquipmentDefinition" => num_units }
     expected_values = { "Annual_kwh" => num_units * 83.09, "HotWater_gpd" => num_units * 1.65, "Location" => args_hash["location"] }
-    _test_measure("SFA_4units_1story_UB_UA_3Beds_2Baths_Denver_WHTank.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
+    _test_measure("SFA_4units_1story_UB_UA_3Beds_2Baths_Denver_WHTank.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 0)
   end
 
   def test_multifamily_new_construction
-    num_units = 8
+    num_units = 1
     args_hash = {}
     expected_num_del_objects = {}
     expected_num_new_objects = { "ElectricEquipment" => num_units, "ElectricEquipmentDefinition" => num_units, "ScheduleConstant" => num_units, "ScheduleFile" => 2, "WaterUseEquipment" => num_units, "WaterUseEquipmentDefinition" => num_units }
-    expected_values = { "Annual_kwh" => 664.69, "HotWater_gpd" => 13.21, "Location" => args_hash["location"] }
-    _test_measure("MF_8units_1story_SL_3Beds_2Baths_Denver_WHTank.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
+    expected_values = { "Annual_kwh" => num_units * 83.09, "HotWater_gpd" => num_units * 1.65, "Location" => args_hash["location"] }
+    _test_measure("MF_8units_1story_SL_3Beds_2Baths_Denver_WHTank.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 0)
   end
 
   private

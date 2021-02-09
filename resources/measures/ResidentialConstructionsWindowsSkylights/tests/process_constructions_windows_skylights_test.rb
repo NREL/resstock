@@ -37,7 +37,7 @@ class ProcessConstructionsWindowsSkylightsTest < MiniTest::Test
     args_hash = {}
     expected_num_del_objects = {}
     expected_num_new_objects = { "SimpleGlazing" => 1, "Construction" => 1, "ShadingControl" => 1, "WindowMaterialShade" => 1, "ScheduleRuleset" => 1 }
-    expected_values = { "shgc" => 0.3 * 0.7, "ufactor" => 0.37, "SubSurfacesWithConstructions" => 36, "SubSurfacesWithShadingControls" => 36 }
+    expected_values = { "shgc" => 0.3 * 0.7, "ufactor" => 0.37, "SubSurfacesWithConstructions" => 12, "SubSurfacesWithShadingControls" => 12 }
     _test_measure("SFA_4units_1story_SL_UA_Denver_Windows_Doors.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
@@ -45,7 +45,7 @@ class ProcessConstructionsWindowsSkylightsTest < MiniTest::Test
     args_hash = {}
     expected_num_del_objects = {}
     expected_num_new_objects = { "SimpleGlazing" => 1, "Construction" => 1, "ShadingControl" => 1, "WindowMaterialShade" => 1, "ScheduleRuleset" => 1 }
-    expected_values = { "shgc" => 0.3 * 0.7, "ufactor" => 0.37, "SubSurfacesWithConstructions" => 48, "SubSurfacesWithShadingControls" => 48 }
+    expected_values = { "shgc" => 0.3 * 0.7, "ufactor" => 0.37, "SubSurfacesWithConstructions" => 9, "SubSurfacesWithShadingControls" => 9 }
     _test_measure("MF_8units_1story_SL_Denver_Windows_Doors.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 

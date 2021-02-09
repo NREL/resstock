@@ -295,45 +295,45 @@ class ResidentialLightingInteriorTest < MiniTest::Test
   end
 
   def test_single_family_attached_new_construction
-    num_units = 4
+    num_units = 1
     num_ltg_spaces = num_units * 2
     args_hash = {}
     expected_num_del_objects = {}
     expected_num_new_objects = { "Lights" => num_ltg_spaces, "LightsDefinition" => num_ltg_spaces, "ScheduleFile" => 1 }
-    expected_values = { "Annual_kwh" => 3288 }
-    _test_measure("SFA_4units_1story_FB_UA_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
+    expected_values = { "Annual_kwh" => num_units * 822 }
+    _test_measure("SFA_4units_1story_FB_UA_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 0)
   end
 
   def test_single_family_attached_new_construction_double_lamps_used
-    num_units = 4
+    num_units = 1
     num_ltg_spaces = num_units * 2
     args_hash = {}
     args_hash["mult"] = 2
     expected_num_del_objects = {}
     expected_num_new_objects = { "Lights" => num_ltg_spaces, "LightsDefinition" => num_ltg_spaces, "ScheduleFile" => 1 }
-    expected_values = { "Annual_kwh" => 3288 * 2 }
-    _test_measure("SFA_4units_1story_FB_UA_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
+    expected_values = { "Annual_kwh" => num_units * 822 * 2 }
+    _test_measure("SFA_4units_1story_FB_UA_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 0)
   end
 
   def test_multifamily_new_construction
-    num_units = 8
+    num_units = 1
     num_ltg_spaces = num_units
     args_hash = {}
     expected_num_del_objects = {}
     expected_num_new_objects = { "Lights" => num_ltg_spaces, "LightsDefinition" => num_ltg_spaces, "ScheduleFile" => 1 }
-    expected_values = { "Annual_kwh" => 6576 }
-    _test_measure("MF_8units_1story_SL_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
+    expected_values = { "Annual_kwh" => num_units * 822 }
+    _test_measure("MF_8units_1story_SL_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 0)
   end
 
   def test_multifamily_new_construction_tenth_lamps_used
-    num_units = 8
+    num_units = 1
     num_ltg_spaces = num_units
     args_hash = {}
     args_hash["mult"] = 0.1
     expected_num_del_objects = {}
     expected_num_new_objects = { "Lights" => num_ltg_spaces, "LightsDefinition" => num_ltg_spaces, "ScheduleFile" => 1 }
-    expected_values = { "Annual_kwh" => 6576 / 10 }
-    _test_measure("MF_8units_1story_SL_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
+    expected_values = { "Annual_kwh" => num_units * 822 / 10 }
+    _test_measure("MF_8units_1story_SL_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 0)
   end
 
   private
