@@ -326,7 +326,7 @@ class ResidentialHotWaterSolarTest < MiniTest::Test
   end
 
   def test_faces_south_single_family_attached_new_construction
-    num_units = 4
+    num_units = 1
     args_hash = {}
     expected_num_del_objects = {}
     expected_num_new_objects = { "ShadingSurfaceGroup" => num_units, "ShadingSurface" => num_units, "SizingPlant" => num_units, "PumpConstantSpeed" => num_units, "AvailabilityManagerDifferentialThermostat" => num_units, "WaterHeaterStratified" => num_units, "SetpointManagerScheduled" => num_units, "SolarCollectorFlatPlateWater" => num_units, "PlantLoop" => num_units, "SolarCollectorPerformanceFlatPlate" => num_units }
@@ -335,7 +335,7 @@ class ResidentialHotWaterSolarTest < MiniTest::Test
   end
 
   def test_faces_south_multifamily_new_construction
-    num_units = 8
+    num_units = 1
     args_hash = {}
     expected_num_del_objects = {}
     expected_num_new_objects = { "ShadingSurfaceGroup" => num_units, "ShadingSurface" => num_units, "SizingPlant" => num_units, "PumpConstantSpeed" => num_units, "AvailabilityManagerDifferentialThermostat" => num_units, "WaterHeaterStratified" => num_units, "SetpointManagerScheduled" => num_units, "SolarCollectorFlatPlateWater" => num_units, "PlantLoop" => num_units, "SolarCollectorPerformanceFlatPlate" => num_units }

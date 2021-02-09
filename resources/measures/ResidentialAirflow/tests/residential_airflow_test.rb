@@ -545,215 +545,75 @@ class ResidentialAirflowTest < MiniTest::Test
   end
 
   def test_single_family_attached_new_construction_furnace_central_air_conditioner
-    num_units = 4
+    num_units = 1
     num_airloops = 2
     args_hash = {}
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ScheduleRuleset" => num_units * 4, "EnergyManagementSystemSubroutine" => num_units * num_airloops, "EnergyManagementSystemProgramCallingManager" => num_units * (1 + num_airloops), "EnergyManagementSystemProgram" => num_units * (2 + num_airloops), "EnergyManagementSystemSensor" => 111, "EnergyManagementSystemActuator" => num_units * (5 + 12 * num_airloops), "EnergyManagementSystemGlobalVariable" => num_units * 23 * num_airloops, "SpaceInfiltrationDesignFlowRate" => num_units * 2, "ZoneMixing" => num_units * 2 * num_airloops, "OtherEquipment" => num_units * 10 * num_airloops, "OtherEquipmentDefinition" => num_units * 10 * num_airloops, "SpaceInfiltrationEffectiveLeakageArea" => 1, "Construction" => 1, "Surface" => num_units * 6 * num_airloops, "Space" => num_units * num_airloops, "ThermalZone" => num_units * num_airloops, "AirLoopHVACReturnPlenum" => num_units * 2, "Material" => 1, "ElectricEquipmentDefinition" => num_units * 3, "ElectricEquipment" => num_units * 3, "SurfacePropertyConvectionCoefficients" => num_units * 6 * num_airloops }
+    expected_num_new_objects = { "ScheduleRuleset" => num_units * 4, "EnergyManagementSystemSubroutine" => num_units * num_airloops, "EnergyManagementSystemProgramCallingManager" => num_units * (1 + num_airloops), "EnergyManagementSystemProgram" => num_units * (2 + num_airloops), "EnergyManagementSystemSensor" => 27 * num_units + 3, "EnergyManagementSystemActuator" => num_units * (5 + 12 * num_airloops), "EnergyManagementSystemGlobalVariable" => num_units * 23 * num_airloops, "SpaceInfiltrationDesignFlowRate" => num_units * 2, "ZoneMixing" => num_units * 2 * num_airloops, "OtherEquipment" => num_units * 10 * num_airloops, "OtherEquipmentDefinition" => num_units * 10 * num_airloops, "SpaceInfiltrationEffectiveLeakageArea" => 1, "Construction" => 1, "Surface" => num_units * 6 * num_airloops, "Space" => num_units * num_airloops, "ThermalZone" => num_units * num_airloops, "AirLoopHVACReturnPlenum" => num_units * 2, "Material" => 1, "ElectricEquipmentDefinition" => num_units * 3, "ElectricEquipment" => num_units * 3, "SurfacePropertyConvectionCoefficients" => num_units * 6 * num_airloops }
     expected_values = { "res_infil_1_program" => { "c" => 0.042099, "Cs" => 0.066417, "Cw" => 0.128435, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_1_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, "res_ds_res_fur_gas_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0.099800 }, "res_ds_res_ac_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0.099800 }, \
-                        "res_infil_2_program" => { "c" => 0.020801, "Cs" => 0.066417, "Cw" => 0.128435, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_2_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, "res_ds_res_fur_gas_unit_2_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0.099800 }, "res_ds_res_ac_unit_2_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0.099800 }, \
-                        "res_infil_3_program" => { "c" => 0.020801, "Cs" => 0.066417, "Cw" => 0.128435, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_3_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, "res_ds_res_fur_gas_unit_3_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0.099800 }, "res_ds_res_ac_unit_3_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0.099800 }, \
-                        "res_infil_4_program" => { "c" => 0.042099, "Cs" => 0.066417, "Cw" => 0.128435, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_4_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, "res_ds_res_fur_gas_unit_4_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0.099800 }, "res_ds_res_ac_unit_4_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0.099800 }, \
                         "TerrainType" => "Suburbs", "DuctLocation" => "unfinished attic zone" }
     model, result = _test_measure("SFA_4units_1story_SL_UA_3Beds_2Baths_Denver_Furnace_CentralAC.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__, num_units * num_airloops, num_units)
   end
 
-  def test_single_family_attached_new_construction_furnace_central_air_conditioner_collapsed
-    num_units = 3
-    num_airloops = 2
-    args_hash = {}
-    expected_num_del_objects = {}
-    expected_num_new_objects = { "ScheduleRuleset" => num_units * 4, "EnergyManagementSystemSubroutine" => num_units * num_airloops, "EnergyManagementSystemProgramCallingManager" => num_units * (1 + num_airloops), "EnergyManagementSystemProgram" => num_units * (2 + num_airloops), "EnergyManagementSystemSensor" => 84, "EnergyManagementSystemActuator" => num_units * (5 + 12 * num_airloops), "EnergyManagementSystemGlobalVariable" => num_units * 23 * num_airloops, "SpaceInfiltrationDesignFlowRate" => num_units * 2, "ZoneMixing" => num_units * 2 * num_airloops, "OtherEquipment" => num_units * 10 * num_airloops, "OtherEquipmentDefinition" => num_units * 10 * num_airloops, "SpaceInfiltrationEffectiveLeakageArea" => 1, "Construction" => 1, "Surface" => num_units * 6 * num_airloops, "Space" => num_units * num_airloops, "ThermalZone" => num_units * num_airloops, "AirLoopHVACReturnPlenum" => num_units * 2, "Material" => 1, "ElectricEquipmentDefinition" => num_units * 3, "ElectricEquipment" => num_units * 3, "SurfacePropertyConvectionCoefficients" => num_units * 6 * num_airloops }
-    expected_values = { "res_infil_1_program" => { "c" => 0.042099, "Cs" => 0.066417, "Cw" => 0.128435, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_1_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, "res_ds_res_fur_gas_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0.099800 }, "res_ds_res_ac_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0.099800 }, \
-                        "res_infil_2_program" => { "c" => 0.020801, "Cs" => 0.066417, "Cw" => 0.128435, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_2_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, "res_ds_res_fur_gas_unit_2_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0.099800 }, "res_ds_res_ac_unit_2_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0.099800 }, \
-                        "res_infil_3_program" => { "c" => 0.042099, "Cs" => 0.066417, "Cw" => 0.128435, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_3_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, "res_ds_res_fur_gas_unit_3_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0.099800 }, "res_ds_res_ac_unit_3_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0.099800 }, \
-                        "TerrainType" => "Suburbs", "DuctLocation" => "unfinished attic zone" }
-    model, result = _test_measure("SFA_4units_1story_SL_UA_3Beds_2Baths_Denver_Furnace_CentralAC_Collapsed.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__, num_units * num_airloops, num_units)
-  end
-
   def test_single_family_attached_new_construction_central_system_boiler_baseboards
-    num_units = 4
+    num_units = 1
     num_airloops = 0
     args_hash = {}
     expected_num_del_objects = {}
     expected_num_new_objects = { "ScheduleRuleset" => num_units * 4, "EnergyManagementSystemProgramCallingManager" => num_units * (1 + num_airloops), "EnergyManagementSystemProgram" => num_units * (2 + num_airloops), "EnergyManagementSystemSensor" => num_units * 7 + 3, "EnergyManagementSystemActuator" => num_units * (5 + 12 * num_airloops), "SpaceInfiltrationDesignFlowRate" => num_units * 2, "SpaceInfiltrationEffectiveLeakageArea" => 1, "Construction" => 1, "Material" => 1, "ElectricEquipmentDefinition" => num_units * 3, "ElectricEquipment" => num_units * 3 }
-    expected_values = { "res_infil_1_program" => { "c" => 0.042099, "Cs" => 0.066417, "Cw" => 0.128435, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_1_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, \
-                        "res_infil_2_program" => { "c" => 0.020801, "Cs" => 0.066417, "Cw" => 0.128435, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_2_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, \
-                        "res_infil_3_program" => { "c" => 0.020801, "Cs" => 0.066417, "Cw" => 0.128435, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_3_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, \
-                        "res_infil_4_program" => { "c" => 0.042099, "Cs" => 0.066417, "Cw" => 0.128435, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_4_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, \
-                        "TerrainType" => "Suburbs" }
-    _test_measure("SFA_4units_1story_SL_UA_3Beds_2Baths_Denver_Central_System_Boiler_Baseboards.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__, num_units, 5)
-  end
-
-  def test_single_family_attached_new_construction_central_system_boiler_baseboards_collapsed
-    num_units = 3
-    num_airloops = 0
-    args_hash = {}
-    expected_num_del_objects = {}
-    expected_num_new_objects = { "ScheduleRuleset" => num_units * 4, "EnergyManagementSystemProgramCallingManager" => num_units * (1 + num_airloops), "EnergyManagementSystemProgram" => num_units * (2 + num_airloops), "EnergyManagementSystemSensor" => num_units * 7 + 3, "EnergyManagementSystemActuator" => num_units * (5 + 12 * num_airloops), "SpaceInfiltrationDesignFlowRate" => num_units * 2, "SpaceInfiltrationEffectiveLeakageArea" => 1, "Construction" => 1, "Material" => 1, "ElectricEquipmentDefinition" => num_units * 3, "ElectricEquipment" => num_units * 3 }
-    expected_values = { "res_infil_1_program" => { "c" => 0.042099, "Cs" => 0.066417, "Cw" => 0.128435, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_1_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, \
-                        "res_infil_2_program" => { "c" => 0.020801, "Cs" => 0.066417, "Cw" => 0.128435, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_2_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, \
-                        "res_infil_3_program" => { "c" => 0.042099, "Cs" => 0.066417, "Cw" => 0.128435, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_3_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, \
-                        "TerrainType" => "Suburbs" }
-    _test_measure("SFA_4units_1story_SL_UA_3Beds_2Baths_Denver_Central_System_Boiler_Baseboards_Collapsed.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__, num_units, num_units + 1)
+    expected_values = { "res_infil_1_program" => { "c" => 0.042099, "Cs" => 0.066417, "Cw" => 0.128435, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_1_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, "TerrainType" => "Suburbs" }
+    _test_measure("SFA_4units_1story_SL_UA_3Beds_2Baths_Denver_Central_System_Boiler_Baseboards.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__, num_units, num_units + 1)
   end
 
   def test_single_family_attached_new_construction_central_system_fan_coil
-    num_units = 4
+    num_units = 1
     num_airloops = 0
     args_hash = {}
     expected_num_del_objects = {}
     expected_num_new_objects = { "ScheduleRuleset" => num_units * 4, "EnergyManagementSystemProgramCallingManager" => num_units * (1 + num_airloops), "EnergyManagementSystemProgram" => num_units * (2 + num_airloops), "EnergyManagementSystemSensor" => num_units * 7 + 3, "EnergyManagementSystemActuator" => num_units * (5 + 12 * num_airloops), "SpaceInfiltrationDesignFlowRate" => num_units * 2, "SpaceInfiltrationEffectiveLeakageArea" => 1, "Construction" => 1, "Material" => 1, "ElectricEquipmentDefinition" => num_units * 3, "ElectricEquipment" => num_units * 3 }
-    expected_values = { "res_infil_1_program" => { "c" => 0.042099, "Cs" => 0.066417, "Cw" => 0.128435, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_1_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, \
-                        "res_infil_2_program" => { "c" => 0.020801, "Cs" => 0.066417, "Cw" => 0.128435, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_2_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, \
-                        "res_infil_3_program" => { "c" => 0.020801, "Cs" => 0.066417, "Cw" => 0.128435, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_3_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, \
-                        "res_infil_4_program" => { "c" => 0.042099, "Cs" => 0.066417, "Cw" => 0.128435, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_4_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, \
-                        "TerrainType" => "Suburbs" }
-    _test_measure("SFA_4units_1story_SL_UA_3Beds_2Baths_Denver_Central_System_Fan_Coil.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__, num_units, 5)
-  end
-
-  def test_single_family_attached_new_construction_central_system_fan_coil_collapsed
-    num_units = 3
-    num_airloops = 0
-    args_hash = {}
-    expected_num_del_objects = {}
-    expected_num_new_objects = { "ScheduleRuleset" => num_units * 4, "EnergyManagementSystemProgramCallingManager" => num_units * (1 + num_airloops), "EnergyManagementSystemProgram" => num_units * (2 + num_airloops), "EnergyManagementSystemSensor" => num_units * 7 + 3, "EnergyManagementSystemActuator" => num_units * (5 + 12 * num_airloops), "SpaceInfiltrationDesignFlowRate" => num_units * 2, "SpaceInfiltrationEffectiveLeakageArea" => 1, "Construction" => 1, "Material" => 1, "ElectricEquipmentDefinition" => num_units * 3, "ElectricEquipment" => num_units * 3 }
-    expected_values = { "res_infil_1_program" => { "c" => 0.042099, "Cs" => 0.066417, "Cw" => 0.128435, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_1_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, \
-                        "res_infil_2_program" => { "c" => 0.020801, "Cs" => 0.066417, "Cw" => 0.128435, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_2_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, \
-                        "res_infil_3_program" => { "c" => 0.042099, "Cs" => 0.066417, "Cw" => 0.128435, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_3_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, \
-                        "TerrainType" => "Suburbs" }
-    _test_measure("SFA_4units_1story_SL_UA_3Beds_2Baths_Denver_Central_System_Fan_Coil_Collapsed.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__, num_units, num_units + 1)
+    expected_values = { "res_infil_1_program" => { "c" => 0.042099, "Cs" => 0.066417, "Cw" => 0.128435, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_1_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, "TerrainType" => "Suburbs" }
+    _test_measure("SFA_4units_1story_SL_UA_3Beds_2Baths_Denver_Central_System_Fan_Coil.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__, num_units, num_units + 1)
   end
 
   def test_single_family_attached_new_construction_central_system_ptac
-    num_units = 4
+    num_units = 1
     num_airloops = 0
     args_hash = {}
     expected_num_del_objects = {}
     expected_num_new_objects = { "ScheduleRuleset" => num_units * 4, "EnergyManagementSystemProgramCallingManager" => num_units * (1 + num_airloops), "EnergyManagementSystemProgram" => num_units * (2 + num_airloops), "EnergyManagementSystemSensor" => num_units * 7 + 3, "EnergyManagementSystemActuator" => num_units * (5 + 12 * num_airloops), "SpaceInfiltrationDesignFlowRate" => num_units * 2, "SpaceInfiltrationEffectiveLeakageArea" => 1, "Construction" => 1, "Material" => 1, "ElectricEquipmentDefinition" => num_units * 3, "ElectricEquipment" => num_units * 3 }
-    expected_values = { "res_infil_1_program" => { "c" => 0.042099, "Cs" => 0.066417, "Cw" => 0.128435, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_1_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, \
-                        "res_infil_2_program" => { "c" => 0.020801, "Cs" => 0.066417, "Cw" => 0.128435, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_2_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, \
-                        "res_infil_3_program" => { "c" => 0.020801, "Cs" => 0.066417, "Cw" => 0.128435, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_3_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, \
-                        "res_infil_4_program" => { "c" => 0.042099, "Cs" => 0.066417, "Cw" => 0.128435, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_4_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, \
-                        "TerrainType" => "Suburbs" }
-    _test_measure("SFA_4units_1story_SL_UA_3Beds_2Baths_Denver_Central_System_PTAC.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__, num_units, 5)
-  end
-
-  def test_single_family_attached_new_construction_central_system_ptac_collapsed
-    num_units = 3
-    num_airloops = 0
-    args_hash = {}
-    expected_num_del_objects = {}
-    expected_num_new_objects = { "ScheduleRuleset" => num_units * 4, "EnergyManagementSystemProgramCallingManager" => num_units * (1 + num_airloops), "EnergyManagementSystemProgram" => num_units * (2 + num_airloops), "EnergyManagementSystemSensor" => num_units * 7 + 3, "EnergyManagementSystemActuator" => num_units * (5 + 12 * num_airloops), "SpaceInfiltrationDesignFlowRate" => num_units * 2, "SpaceInfiltrationEffectiveLeakageArea" => 1, "Construction" => 1, "Material" => 1, "ElectricEquipmentDefinition" => num_units * 3, "ElectricEquipment" => num_units * 3 }
-    expected_values = { "res_infil_1_program" => { "c" => 0.042099, "Cs" => 0.066417, "Cw" => 0.128435, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_1_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, \
-                        "res_infil_2_program" => { "c" => 0.020801, "Cs" => 0.066417, "Cw" => 0.128435, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_2_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, \
-                        "res_infil_3_program" => { "c" => 0.042099, "Cs" => 0.066417, "Cw" => 0.128435, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_3_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, \
-                        "TerrainType" => "Suburbs" }
-    _test_measure("SFA_4units_1story_SL_UA_3Beds_2Baths_Denver_Central_System_PTAC_Collapsed.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__, num_units, num_units + 1)
+    expected_values = { "res_infil_1_program" => { "c" => 0.042099, "Cs" => 0.066417, "Cw" => 0.128435, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_1_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, "TerrainType" => "Suburbs" }
+    _test_measure("SFA_4units_1story_SL_UA_3Beds_2Baths_Denver_Central_System_PTAC.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__, num_units, num_units + 1)
   end
 
   def test_multifamily_slab_new_construction_furnace_central_air_conditioner
-    num_units = 8
+    num_units = 1
     num_airloops = 2
     args_hash = {}
     expected_num_del_objects = {}
     expected_num_new_objects = { "ScheduleRuleset" => num_units * 4, "EnergyManagementSystemProgramCallingManager" => num_units, "EnergyManagementSystemProgram" => num_units * 2, "EnergyManagementSystemSensor" => 3 + (num_units * 9), "EnergyManagementSystemActuator" => num_units * 5, "SpaceInfiltrationDesignFlowRate" => num_units * 2, "ElectricEquipmentDefinition" => num_units * 3, "ElectricEquipment" => num_units * 3, "Material" => 1, "Construction" => 1 }
-    expected_values = { "res_infil_1_program" => { "c" => 0.047360, "Cs" => 0.049758, "Cw" => 0.128435, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_1_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, \
-                        "res_infil_2_program" => { "c" => 0.047360, "Cs" => 0.049758, "Cw" => 0.128435, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_2_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, \
-                        "res_infil_3_program" => { "c" => 0.015540, "Cs" => 0.049758, "Cw" => 0.128435, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_3_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, \
-                        "res_infil_4_program" => { "c" => 0.015540, "Cs" => 0.049758, "Cw" => 0.128435, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_4_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, \
-                        "res_infil_5_program" => { "c" => 0.015540, "Cs" => 0.049758, "Cw" => 0.128435, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_5_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, \
-                        "res_infil_6_program" => { "c" => 0.015540, "Cs" => 0.049758, "Cw" => 0.128435, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_6_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, \
-                        "res_infil_7_program" => { "c" => 0.047360, "Cs" => 0.049758, "Cw" => 0.128435, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_7_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, \
-                        "res_infil_8_program" => { "c" => 0.047360, "Cs" => 0.049758, "Cw" => 0.128435, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_8_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, \
-                        "TerrainType" => "Suburbs" }
+    expected_values = { "res_infil_1_program" => { "c" => 0.047360, "Cs" => 0.049758, "Cw" => 0.128435, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_1_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, "TerrainType" => "Suburbs" }
     model, result = _test_measure("MF_8units_1story_SL_3Beds_2Baths_Denver_Furnace_CentralAC.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__, num_units, num_units)
   end
 
-  def test_multifamily_slab_new_construction_furnace_central_air_conditioner_collapsed
-    num_units = 6
-    num_airloops = 2
-    args_hash = {}
-    expected_num_del_objects = {}
-    expected_num_new_objects = { "ScheduleRuleset" => num_units * 4, "EnergyManagementSystemProgramCallingManager" => num_units, "EnergyManagementSystemProgram" => num_units * 2, "EnergyManagementSystemSensor" => 3 + (num_units * 9), "EnergyManagementSystemActuator" => num_units * 5, "SpaceInfiltrationDesignFlowRate" => num_units * 2, "ElectricEquipmentDefinition" => num_units * 3, "ElectricEquipment" => num_units * 3, "Material" => 1, "Construction" => 1 }
-    expected_values = { "res_infil_1_program" => { "c" => 0.047360, "Cs" => 0.049758, "Cw" => 0.128435, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_1_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, \
-                        "res_infil_2_program" => { "c" => 0.047360, "Cs" => 0.049758, "Cw" => 0.128435, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_2_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, \
-                        "res_infil_3_program" => { "c" => 0.015540, "Cs" => 0.049758, "Cw" => 0.128435, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_3_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, \
-                        "res_infil_4_program" => { "c" => 0.015540, "Cs" => 0.049758, "Cw" => 0.128435, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_4_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, \
-                        "res_infil_5_program" => { "c" => 0.047360, "Cs" => 0.049758, "Cw" => 0.128435, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_5_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, \
-                        "res_infil_6_program" => { "c" => 0.047360, "Cs" => 0.049758, "Cw" => 0.128435, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_6_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, \
-                        "TerrainType" => "Suburbs" }
-    model, result = _test_measure("MF_8units_1story_SL_3Beds_2Baths_Denver_Furnace_CentralAC_Collapsed.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__, num_units, num_units)
-  end
-
   def test_multifamily_cs_new_construction_furnace_central_air_conditioner
-    num_units = 8
+    num_units = 1
     num_airloops = 2
     args_hash = {}
     args_hash["crawl_ach"] = 0.1
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ScheduleRuleset" => num_units * 4, "EnergyManagementSystemSubroutine" => num_units * num_airloops, "EnergyManagementSystemProgramCallingManager" => num_units * (1 + num_airloops), "EnergyManagementSystemProgram" => num_units * (2 + num_airloops), "EnergyManagementSystemSensor" => 219, "EnergyManagementSystemActuator" => num_units * (5 + 12 * num_airloops), "EnergyManagementSystemGlobalVariable" => num_units * 23 * num_airloops, "SpaceInfiltrationDesignFlowRate" => num_units * 2 + 1, "ZoneMixing" => num_units * 2 * num_airloops, "OtherEquipment" => num_units * 10 * num_airloops, "OtherEquipmentDefinition" => num_units * 10 * num_airloops, "Construction" => 1, "Surface" => num_units * 6 * num_airloops, "Space" => num_units * num_airloops, "ThermalZone" => num_units * num_airloops, "AirLoopHVACReturnPlenum" => num_units * 2, "Material" => 1, "ElectricEquipmentDefinition" => num_units * 3, "ElectricEquipment" => num_units * 3, "SurfacePropertyConvectionCoefficients" => num_units * 6 * num_airloops }
-    expected_values = { "res_infil_1_program" => { "c" => 0.047360, "Cs" => 0.0543, "Cw" => 0.1089, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_1_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, "res_ds_res_fur_gas_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0.099800 }, "res_ds_res_ac_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0.099800 }, \
-                        "res_infil_2_program" => { "c" => 0.047360, "Cs" => 0.0543, "Cw" => 0.1089, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_2_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, "res_ds_res_fur_gas_unit_2_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0.099800 }, "res_ds_res_ac_unit_2_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0.099800 }, \
-                        "res_infil_3_program" => { "c" => 0.015540, "Cs" => 0.0543, "Cw" => 0.1089, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_3_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, "res_ds_res_fur_gas_unit_3_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0.099800 }, "res_ds_res_ac_unit_3_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0.099800 }, \
-                        "res_infil_4_program" => { "c" => 0.015540, "Cs" => 0.0543, "Cw" => 0.1089, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_4_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, "res_ds_res_fur_gas_unit_4_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0.099800 }, "res_ds_res_ac_unit_4_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0.099800 }, \
-                        "res_infil_5_program" => { "c" => 0.015540, "Cs" => 0.0543, "Cw" => 0.1089, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_5_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, "res_ds_res_fur_gas_unit_5_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0.099800 }, "res_ds_res_ac_unit_5_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0.099800 }, \
-                        "res_infil_6_program" => { "c" => 0.015540, "Cs" => 0.0543, "Cw" => 0.1089, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_6_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, "res_ds_res_fur_gas_unit_6_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0.099800 }, "res_ds_res_ac_unit_6_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0.099800 }, \
-                        "res_infil_7_program" => { "c" => 0.047360, "Cs" => 0.0543, "Cw" => 0.1089, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_7_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, "res_ds_res_fur_gas_unit_7_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0.099800 }, "res_ds_res_ac_unit_7_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0.099800 }, \
-                        "res_infil_8_program" => { "c" => 0.047360, "Cs" => 0.0543, "Cw" => 0.1089, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_8_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, "res_ds_res_fur_gas_unit_8_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0.099800 }, "res_ds_res_ac_unit_8_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0.099800 }, \
-                        "TerrainType" => "Suburbs", "DuctLocation" => "crawl zone" }
+    expected_num_new_objects = { "ScheduleRuleset" => num_units * 4, "EnergyManagementSystemSubroutine" => num_units * num_airloops, "EnergyManagementSystemProgramCallingManager" => num_units * (1 + num_airloops), "EnergyManagementSystemProgram" => num_units * (2 + num_airloops), "EnergyManagementSystemSensor" => 3 + (num_units * 27), "EnergyManagementSystemActuator" => num_units * (5 + 12 * num_airloops), "EnergyManagementSystemGlobalVariable" => num_units * 23 * num_airloops, "SpaceInfiltrationDesignFlowRate" => num_units * 2 + 2, "ZoneMixing" => num_units * 2 * num_airloops, "OtherEquipment" => num_units * 10 * num_airloops, "OtherEquipmentDefinition" => num_units * 10 * num_airloops, "Construction" => 1, "Surface" => num_units * 6 * num_airloops, "Space" => num_units * num_airloops, "ThermalZone" => num_units * num_airloops, "AirLoopHVACReturnPlenum" => num_units * 2, "Material" => 1, "ElectricEquipmentDefinition" => num_units * 3, "ElectricEquipment" => num_units * 3, "SurfacePropertyConvectionCoefficients" => num_units * 6 * num_airloops }
+    expected_values = { "res_infil_1_program" => { "c" => 0.047360, "Cs" => 0.0543, "Cw" => 0.1089, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_1_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, "res_ds_res_fur_gas_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0.099800 }, "res_ds_res_ac_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0.099800 }, "TerrainType" => "Suburbs", "DuctLocation" => "crawl zone" }
     model, result = _test_measure("MF_8units_1story_CS_3Beds_2Baths_Denver_Furnace_CentralAC.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__, num_units * num_airloops, num_units)
   end
 
-  def test_multifamily_cs_new_construction_furnace_central_air_conditioner_collapsed
-    num_units = 6
-    num_airloops = 2
-    args_hash = {}
-    args_hash["crawl_ach"] = 0.1
-    expected_num_del_objects = {}
-    expected_num_new_objects = { "ScheduleRuleset" => num_units * 4, "EnergyManagementSystemSubroutine" => num_units * num_airloops, "EnergyManagementSystemProgramCallingManager" => num_units * (1 + num_airloops), "EnergyManagementSystemProgram" => num_units * (2 + num_airloops), "EnergyManagementSystemSensor" => num_units * 27 + 3, "EnergyManagementSystemActuator" => num_units * (5 + 12 * num_airloops), "EnergyManagementSystemGlobalVariable" => num_units * 23 * num_airloops, "SpaceInfiltrationDesignFlowRate" => num_units * 2 + 1, "ZoneMixing" => num_units * 2 * num_airloops, "OtherEquipment" => num_units * 10 * num_airloops, "OtherEquipmentDefinition" => num_units * 10 * num_airloops, "Construction" => 1, "Surface" => num_units * 6 * num_airloops, "Space" => num_units * num_airloops, "ThermalZone" => num_units * num_airloops, "AirLoopHVACReturnPlenum" => num_units * 2, "Material" => 1, "ElectricEquipmentDefinition" => num_units * 3, "ElectricEquipment" => num_units * 3, "SurfacePropertyConvectionCoefficients" => num_units * 6 * num_airloops }
-    expected_values = { "res_infil_1_program" => { "c" => 0.047360, "Cs" => 0.0543, "Cw" => 0.1089, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_1_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, "res_ds_res_fur_gas_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0.099800 }, "res_ds_res_ac_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0.099800 }, \
-                        "res_infil_2_program" => { "c" => 0.047360, "Cs" => 0.0543, "Cw" => 0.1089, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_2_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, "res_ds_res_fur_gas_unit_2_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0.099800 }, "res_ds_res_ac_unit_2_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0.099800 }, \
-                        "res_infil_3_program" => { "c" => 0.015540, "Cs" => 0.0543, "Cw" => 0.1089, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_3_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, "res_ds_res_fur_gas_unit_3_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0.099800 }, "res_ds_res_ac_unit_3_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0.099800 }, \
-                        "res_infil_4_program" => { "c" => 0.015540, "Cs" => 0.0543, "Cw" => 0.1089, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_4_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, "res_ds_res_fur_gas_unit_4_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0.099800 }, "res_ds_res_ac_unit_4_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0.099800 }, \
-                        "res_infil_5_program" => { "c" => 0.047360, "Cs" => 0.0543, "Cw" => 0.1089, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_5_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, "res_ds_res_fur_gas_unit_5_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0.099800 }, "res_ds_res_ac_unit_5_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0.099800 }, \
-                        "res_infil_6_program" => { "c" => 0.047360, "Cs" => 0.0543, "Cw" => 0.1089, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_6_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, "res_ds_res_fur_gas_unit_6_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0.099800 }, "res_ds_res_ac_unit_6_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0.099800 }, \
-                        "TerrainType" => "Suburbs", "DuctLocation" => "crawl zone" }
-    model, result = _test_measure("MF_8units_1story_CS_3Beds_2Baths_Denver_Furnace_CentralAC_Collapsed.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__, num_units * num_airloops, num_units)
-  end
-
   def test_multifamily_ub_new_construction_furnace_central_air_conditioner
-    num_units = 8
+    num_units = 1
     num_airloops = 2
     args_hash = {}
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ScheduleRuleset" => num_units * 4, "EnergyManagementSystemSubroutine" => num_units * num_airloops, "EnergyManagementSystemProgramCallingManager" => num_units * (1 + num_airloops), "EnergyManagementSystemProgram" => num_units * (2 + num_airloops), "EnergyManagementSystemSensor" => 219, "EnergyManagementSystemActuator" => num_units * (5 + 12 * num_airloops), "EnergyManagementSystemGlobalVariable" => num_units * 23 * num_airloops, "SpaceInfiltrationDesignFlowRate" => num_units * 2 + 1, "ZoneMixing" => num_units * 2 * num_airloops, "OtherEquipment" => num_units * 10 * num_airloops, "OtherEquipmentDefinition" => num_units * 10 * num_airloops, "Construction" => 1, "Surface" => num_units * 6 * num_airloops, "Space" => num_units * num_airloops, "ThermalZone" => num_units * num_airloops, "AirLoopHVACReturnPlenum" => num_units * 2, "Material" => 1, "ElectricEquipmentDefinition" => num_units * 3, "ElectricEquipment" => num_units * 3, "SurfacePropertyConvectionCoefficients" => num_units * 6 * num_airloops }
-    expected_values = { "res_infil_1_program" => { "c" => 0.047360, "Cs" => 0.0498, "Cw" => 0.1284, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_1_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, "res_ds_res_fur_gas_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0 }, "res_ds_res_ac_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0 }, \
-                        "res_infil_2_program" => { "c" => 0.047360, "Cs" => 0.0498, "Cw" => 0.1284, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_2_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, "res_ds_res_fur_gas_unit_2_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0 }, "res_ds_res_ac_unit_2_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0 }, \
-                        "res_infil_3_program" => { "c" => 0.015540, "Cs" => 0.0498, "Cw" => 0.1284, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_3_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, "res_ds_res_fur_gas_unit_3_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0 }, "res_ds_res_ac_unit_3_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0 }, \
-                        "res_infil_4_program" => { "c" => 0.015540, "Cs" => 0.0498, "Cw" => 0.1284, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_4_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, "res_ds_res_fur_gas_unit_4_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0 }, "res_ds_res_ac_unit_4_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0 }, \
-                        "res_infil_5_program" => { "c" => 0.015540, "Cs" => 0.0498, "Cw" => 0.1284, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_5_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, "res_ds_res_fur_gas_unit_5_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0 }, "res_ds_res_ac_unit_5_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0 }, \
-                        "res_infil_6_program" => { "c" => 0.015540, "Cs" => 0.0498, "Cw" => 0.1284, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_6_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, "res_ds_res_fur_gas_unit_6_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0 }, "res_ds_res_ac_unit_6_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0 }, \
-                        "res_infil_7_program" => { "c" => 0.047360, "Cs" => 0.0498, "Cw" => 0.1284, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_7_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, "res_ds_res_fur_gas_unit_7_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0 }, "res_ds_res_ac_unit_7_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0 }, \
-                        "res_infil_8_program" => { "c" => 0.047360, "Cs" => 0.0498, "Cw" => 0.1284, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_8_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, "res_ds_res_fur_gas_unit_8_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0 }, "res_ds_res_ac_unit_8_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0 }, \
-                        "TerrainType" => "Suburbs", "DuctLocation" => "unfinished basement zone" }
+    expected_num_new_objects = { "ScheduleRuleset" => num_units * 4, "EnergyManagementSystemSubroutine" => num_units * num_airloops, "EnergyManagementSystemProgramCallingManager" => num_units * (1 + num_airloops), "EnergyManagementSystemProgram" => num_units * (2 + num_airloops), "EnergyManagementSystemSensor" => 3 + (num_units * 27), "EnergyManagementSystemActuator" => num_units * (5 + 12 * num_airloops), "EnergyManagementSystemGlobalVariable" => num_units * 23 * num_airloops, "SpaceInfiltrationDesignFlowRate" => num_units * 2 + 2, "ZoneMixing" => num_units * 2 * num_airloops, "OtherEquipment" => num_units * 10 * num_airloops, "OtherEquipmentDefinition" => num_units * 10 * num_airloops, "Construction" => 1, "Surface" => num_units * 6 * num_airloops, "Space" => num_units * num_airloops, "ThermalZone" => num_units * num_airloops, "AirLoopHVACReturnPlenum" => num_units * 2, "Material" => 1, "ElectricEquipmentDefinition" => num_units * 3, "ElectricEquipment" => num_units * 3, "SurfacePropertyConvectionCoefficients" => num_units * 6 * num_airloops }
+    expected_values = { "res_infil_1_program" => { "c" => 0.047360, "Cs" => 0.0498, "Cw" => 0.1284, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_1_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, "res_ds_res_fur_gas_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0 }, "res_ds_res_ac_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0 }, "TerrainType" => "Suburbs", "DuctLocation" => "unfinished basement zone" }
     model, result = _test_measure("MF_8units_1story_UB_3Beds_2Baths_Denver_Furnace_CentralAC.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__, num_units * num_airloops, num_units)
-  end
-
-  def test_multifamily_ub_new_construction_furnace_central_air_conditioner_collapsed
-    num_units = 6
-    num_airloops = 2
-    args_hash = {}
-    expected_num_del_objects = {}
-    expected_num_new_objects = { "ScheduleRuleset" => num_units * 4, "EnergyManagementSystemSubroutine" => num_units * num_airloops, "EnergyManagementSystemProgramCallingManager" => num_units * (1 + num_airloops), "EnergyManagementSystemProgram" => num_units * (2 + num_airloops), "EnergyManagementSystemSensor" => num_units * 27 + 3, "EnergyManagementSystemActuator" => num_units * (5 + 12 * num_airloops), "EnergyManagementSystemGlobalVariable" => num_units * 23 * num_airloops, "SpaceInfiltrationDesignFlowRate" => num_units * 2 + 1, "ZoneMixing" => num_units * 2 * num_airloops, "OtherEquipment" => num_units * 10 * num_airloops, "OtherEquipmentDefinition" => num_units * 10 * num_airloops, "Construction" => 1, "Surface" => num_units * 6 * num_airloops, "Space" => num_units * num_airloops, "ThermalZone" => num_units * num_airloops, "AirLoopHVACReturnPlenum" => num_units * 2, "Material" => 1, "ElectricEquipmentDefinition" => num_units * 3, "ElectricEquipment" => num_units * 3, "SurfacePropertyConvectionCoefficients" => num_units * 6 * num_airloops }
-    expected_values = { "res_infil_1_program" => { "c" => 0.047360, "Cs" => 0.0498, "Cw" => 0.1284, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_1_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, "res_ds_res_fur_gas_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0 }, "res_ds_res_ac_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0 }, \
-                        "res_infil_2_program" => { "c" => 0.047360, "Cs" => 0.0498, "Cw" => 0.1284, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_2_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, "res_ds_res_fur_gas_unit_2_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0 }, "res_ds_res_ac_unit_2_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0 }, \
-                        "res_infil_3_program" => { "c" => 0.015540, "Cs" => 0.0498, "Cw" => 0.1284, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_3_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, "res_ds_res_fur_gas_unit_3_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0 }, "res_ds_res_ac_unit_3_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0 }, \
-                        "res_infil_4_program" => { "c" => 0.015540, "Cs" => 0.0498, "Cw" => 0.1284, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_4_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, "res_ds_res_fur_gas_unit_4_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0 }, "res_ds_res_ac_unit_4_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0 }, \
-                        "res_infil_5_program" => { "c" => 0.047360, "Cs" => 0.0498, "Cw" => 0.1284, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_5_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, "res_ds_res_fur_gas_unit_5_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0 }, "res_ds_res_ac_unit_5_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0 }, \
-                        "res_infil_6_program" => { "c" => 0.047360, "Cs" => 0.0498, "Cw" => 0.1284, "faneff_wh" => 0.943894, "faneff_sp" => 0.471947 }, "res_nv_6_program" => { "Cs" => 0.000089, "Cw" => 0.000199 }, "res_ds_res_fur_gas_unit_6_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0 }, "res_ds_res_ac_unit_6_asys_lk_subrout" => { "f_sup" => 0.199900, "f_ret" => 0.100099, "f_OA" => 0 }, \
-                        "TerrainType" => "Suburbs", "DuctLocation" => "unfinished basement zone" }
-    model, result = _test_measure("MF_8units_1story_UB_3Beds_2Baths_Denver_Furnace_CentralAC_Collapsed.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__, num_units * num_airloops, num_units)
   end
 
   private

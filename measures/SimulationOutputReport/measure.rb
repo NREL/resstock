@@ -156,10 +156,8 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
     report_sim_output(runner, "total_site_electricity_kwh", electricity.total_end_uses[0] + electricity.photovoltaics[0], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_heating_kwh", electricity.heating[0], "GJ", elec_site_units)
-    report_sim_output(runner, "electricity_central_system_heating_kwh", electricity.central_heating[0], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_heating_supplemental_kwh", electricity.heating_supplemental[0], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_cooling_kwh", electricity.cooling[0], "GJ", elec_site_units)
-    report_sim_output(runner, "electricity_central_system_cooling_kwh", electricity.central_cooling[0], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_interior_lighting_kwh", electricity.interior_lighting[0], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_exterior_lighting_kwh", electricity.exterior_lighting[0], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_exterior_holiday_lighting_kwh", electricity.exterior_holiday_lighting[0], "GJ", elec_site_units)
@@ -184,18 +182,14 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       return false
     end
 
-    total_units_represented = 0
     units.each do |unit|
       unit_name = unit.name.to_s.upcase
-      total_units_represented += output_meters.get_units_represented(unit)
 
-      modeledElectricityFansHeating = output_meters.add_unit(sqlFile, modeledElectricityFansHeating, 1, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYFANSHEATING') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
-      modeledElectricityFansCooling = output_meters.add_unit(sqlFile, modeledElectricityFansCooling, 1, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYFANSCOOLING') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
-      modeledElectricityPumpsHeating = output_meters.add_unit(sqlFile, modeledElectricityPumpsHeating, 1, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYPUMPSHEATING') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
-      modeledElectricityPumpsCooling = output_meters.add_unit(sqlFile, modeledElectricityPumpsCooling, 1, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYPUMPSCOOLING') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
+      modeledElectricityFansHeating = output_meters.add_unit(sqlFile, modeledElectricityFansHeating, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYFANSHEATING') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
+      modeledElectricityFansCooling = output_meters.add_unit(sqlFile, modeledElectricityFansCooling, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYFANSCOOLING') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
+      modeledElectricityPumpsHeating = output_meters.add_unit(sqlFile, modeledElectricityPumpsHeating, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYPUMPSHEATING') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
+      modeledElectricityPumpsCooling = output_meters.add_unit(sqlFile, modeledElectricityPumpsCooling, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYPUMPSCOOLING') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
     end
-    modeledElectricityPumpsHeating = output_meters.add_unit(sqlFile, modeledElectricityPumpsHeating, 1, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:ELECTRICITYPUMPSHEATING') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
-    modeledElectricityPumpsCooling = output_meters.add_unit(sqlFile, modeledElectricityPumpsCooling, 1, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:ELECTRICITYPUMPSCOOLING') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
 
     electricityFans = 0.0
     unless sqlFile.electricityFans.empty?
@@ -221,9 +215,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       return false
     end
     report_sim_output(runner, "electricity_pumps_heating_kwh", electricity.pumps_heating[0], "GJ", elec_site_units)
-    report_sim_output(runner, "electricity_central_system_pumps_heating_kwh", electricity.central_pumps_heating[0], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_pumps_cooling_kwh", electricity.pumps_cooling[0], "GJ", elec_site_units)
-    report_sim_output(runner, "electricity_central_system_pumps_cooling_kwh", electricity.central_pumps_cooling[0], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_water_systems_kwh", electricity.water_systems[0], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_pv_kwh", electricity.photovoltaics[0], "GJ", elec_site_units)
 
@@ -231,7 +223,6 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
     report_sim_output(runner, "total_site_natural_gas_therm", natural_gas.total_end_uses[0], "GJ", gas_site_units)
     report_sim_output(runner, "natural_gas_heating_therm", natural_gas.heating[0], "GJ", gas_site_units)
-    report_sim_output(runner, "natural_gas_central_system_heating_therm", natural_gas.central_heating[0], "GJ", gas_site_units)
     unless include_enduse_subcategories
       report_sim_output(runner, "natural_gas_interior_equipment_therm", natural_gas.interior_equipment[0], "GJ", gas_site_units)
     end
@@ -241,14 +232,12 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
     report_sim_output(runner, "total_site_fuel_oil_mbtu", fuel_oil.total_end_uses[0], "GJ", other_fuel_site_units)
     report_sim_output(runner, "fuel_oil_heating_mbtu", fuel_oil.heating[0], "GJ", other_fuel_site_units)
-    report_sim_output(runner, "fuel_oil_central_system_heating_mbtu", fuel_oil.central_heating[0], "GJ", other_fuel_site_units)
     report_sim_output(runner, "fuel_oil_water_systems_mbtu", fuel_oil.water_systems[0], "GJ", other_fuel_site_units)
 
     # PROPANE
 
     report_sim_output(runner, "total_site_propane_mbtu", propane.total_end_uses[0], "GJ", other_fuel_site_units)
     report_sim_output(runner, "propane_heating_mbtu", propane.heating[0], "GJ", other_fuel_site_units)
-    report_sim_output(runner, "propane_central_system_heating_mbtu", propane.central_heating[0], "GJ", other_fuel_site_units)
     unless include_enduse_subcategories
       report_sim_output(runner, "propane_interior_equipment_mbtu", propane.interior_equipment[0], "GJ", other_fuel_site_units)
     end
@@ -267,13 +256,6 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
                       propane.total_end_uses[0] +
                       wood.total_end_uses[0]
 
-    if units.length == total_units_represented
-      err = totalSiteEnergy - sqlFile.totalSiteEnergy.get
-      if err.abs > 0.5
-        runner.registerError("Disaggregated total site energy (#{totalSiteEnergy} GJ) relative to building total site energy (#{sqlFile.totalSiteEnergy.get} GJ): #{err} GJ.")
-        return false
-      end
-    end
     report_sim_output(runner, "total_site_energy_mbtu", totalSiteEnergy + electricity.photovoltaics[0], "GJ", total_site_units)
 
     # LOADS NOT MET
@@ -499,11 +481,6 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     total_cost_mult = 0.0
     units.each do |unit|
       next if unit.spaces.empty?
-
-      units_represented = 1
-      if unit.additionalProperties.getFeatureAsInteger("Units Represented").is_initialized
-        units_represented = unit.additionalProperties.getFeatureAsInteger("Units Represented").get
-      end
 
       cost_mult = 0.0
       if cost_mult_type == "Fixed (1)"
@@ -849,21 +826,9 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
         end
       end # spaces
 
-      cost_mult *= units_represented
       total_cost_mult += cost_mult
     end # units
     cost_mult = total_cost_mult
-
-    total_units_represented = 0
-    units.each do |unit|
-      units_represented = 1
-      if unit.additionalProperties.getFeatureAsInteger("Units Represented").is_initialized
-        units_represented = unit.additionalProperties.getFeatureAsInteger("Units Represented").get
-      end
-      total_units_represented += units_represented
-    end
-
-    collapsed_factor = Float(total_units_represented) / units.length
 
     if cost_mult_type == "Wall Area, Above-Grade, Conditioned (ft^2)"
       # Walls between conditioned space and 1) outdoors or 2) unconditioned space
@@ -901,34 +866,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
         next if surface.surfaceType.downcase != "wall"
         next if surface.outsideBoundaryCondition.downcase != "ground" and surface.outsideBoundaryCondition.downcase != "foundation"
 
-        foundation_walls << surface
-        # Collapsed foundation wall area (walls below units + corridor)
         cost_mult += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
-      end
-
-      model.getSurfaces.each do |surface|
-        space = surface.space.get
-        next if surface.surfaceType.downcase != "floor"
-        next if surface.outsideBoundaryCondition.downcase == "ground" or surface.outsideBoundaryCondition.downcase == "foundation"
-        next if space.zOrigin != 0
-
-        floor_surface = surface
-
-        units_represented = 1
-        if space.buildingUnit.is_initialized
-          unit = space.buildingUnit.get
-          if unit.additionalProperties.getFeatureAsInteger("Units Represented").is_initialized
-            units_represented = unit.additionalProperties.getFeatureAsInteger("Units Represented").get
-          end
-        end
-
-        next if units_represented <= 1 # Walls under collapsed units are already added
-
-        connected_found_walls = Geometry.get_walls_connected_to_floor(foundation_walls, floor_surface, same_space = false)
-        connected_found_walls.each do |surface|
-          # Add the collapsed walls below units
-          cost_mult += UnitConversions.convert(surface.grossArea, "m^2", "ft^2") * (units_represented - 1)
-        end
       end
 
     elsif cost_mult_type == "Floor Area, Conditioned (ft^2)"
@@ -958,7 +896,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
         next if adjacent_space.nil?
         next if not is_space_conditioned(adjacent_space)
 
-        cost_mult += UnitConversions.convert(surface.grossArea, "m^2", "ft^2") * collapsed_factor
+        cost_mult += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
       end
 
     elsif cost_mult_type == "Floor Area, Lighting (ft^2)"
@@ -981,7 +919,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
         next if surface.surfaceType.downcase != "roofceiling"
         next if surface.outsideBoundaryCondition.downcase != "outdoors"
 
-        cost_mult += UnitConversions.convert(surface.grossArea, "m^2", "ft^2") * collapsed_factor
+        cost_mult += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
       end
 
     elsif cost_mult_type == "Window Area (ft^2)"
@@ -1008,7 +946,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
         surface.subSurfaces.each do |sub_surface|
           next if not sub_surface.subSurfaceType.downcase.include? "door"
 
-          cost_mult += UnitConversions.convert(sub_surface.grossArea, "m^2", "ft^2") * collapsed_factor
+          cost_mult += UnitConversions.convert(sub_surface.grossArea, "m^2", "ft^2")
         end
       end
 

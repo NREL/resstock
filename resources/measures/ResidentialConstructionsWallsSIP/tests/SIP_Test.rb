@@ -82,7 +82,7 @@ class ProcessConstructionsWallsSIPTest < MiniTest::Test
     args_hash["sheathing_type"] = Constants.MaterialOSB
     args_hash["sheathing_thick_in"] = 0.44
     expected_num_del_objects = {}
-    expected_num_new_objects = { "Material" => 10, "Construction" => 9, "InternalMass" => 8, "InternalMassDefinition" => 8 }
+    expected_num_new_objects = { "Material" => 11, "Construction" => 6, "InternalMass" => 2, "InternalMassDefinition" => 2 }
     ext_finish_r = 0.009525 / 0.089435
     osb_r = 0.0127 / 0.1154577
     drywall_r = 0.0127 / 0.1602906
@@ -102,7 +102,7 @@ class ProcessConstructionsWallsSIPTest < MiniTest::Test
     args_hash["sheathing_type"] = Constants.MaterialOSB
     args_hash["sheathing_thick_in"] = 0.44
     expected_num_del_objects = {}
-    expected_num_new_objects = { "Material" => 11, "Construction" => 14, "InternalMass" => 16, "InternalMassDefinition" => 16 }
+    expected_num_new_objects = { "Material" => 11, "Construction" => 6, "InternalMass" => 2, "InternalMassDefinition" => 2 }
     ext_finish_r = 0.009525 / 0.089435
     osb_r = 0.0127 / 0.1154577
     drywall_r = 0.0127 / 0.1602906

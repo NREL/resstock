@@ -149,7 +149,6 @@ class ProcessConstructionsUnfinishedBasement < OpenStudio::Measure::ModelMeasure
 
     walls_by_type = SurfaceTypes.get_walls(model, runner)
     floors_by_type = SurfaceTypes.get_floors(model, runner)
-
     # Get Inputs
     wall_ins_height = runner.getDoubleArgumentValue("wall_ins_height", user_arguments)
     wall_cavity_r = runner.getDoubleArgumentValue("wall_cavity_r", user_arguments)
