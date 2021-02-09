@@ -24,77 +24,40 @@ class IntegrationWorkflowTest < MiniTest::Test
     return File.absolute_path(File.join(File.dirname(__FILE__), 'test_samples_osw'))
   end
 
-  def test_samples_osw_baseline
-    if project_dir == 'project_national'
-      parent_dir = File.absolute_path(File.join(File.dirname(__FILE__), '..'))
-      if Dir["#{parent_dir}/weather/*.epw"].size < 10
-        cli_path = OpenStudio.getOpenStudioCLI
-        command = "cd #{parent_dir} && \"#{cli_path}\" tasks.rb download_weather"
-        system(command)
-      end
+  def test_baseline
+    results_csv = samples_osw('baseline')
+    
+    rows = CSV.read(File.expand_path(results_csv))
+    
+    assert_equal(num_samples_baseline, rows.length - 1)
+    
+    cols = rows.transpose
+    cols.each do |col|
+      next if col[0] != 'completed_status'
+
+      assert(col[1..-1].all? {|x| x == 'Success'})
     end
-
-    all_results = []
-    parent_dir = File.join(top_dir, 'baseline')
-    Dir.mkdir(parent_dir) unless File.exist?(parent_dir)
-
-    buildstock_csv = create_buildstock_csv(project_dir, num_samples_baseline)
-    lib_dir = create_lib_folder(top_dir, project_dir, buildstock_csv)
-
-    Dir["#{top_dir}/workflow-base.osw"].each do |osw|
-      osw_basename = File.basename(osw)
-      puts "\nWorkflow: #{osw_basename} ...\n"
-
-      osw_dir = File.join(parent_dir, 'osw')
-      Dir.mkdir(osw_dir) unless File.exist?(osw_dir)
-
-      xml_dir = File.join(parent_dir, 'xml')
-      Dir.mkdir(xml_dir) unless File.exist?(xml_dir)
-
-      (1..num_samples_baseline).to_a.each do |building_unit_id|
-        puts "\n\tBuilding Unit ID: #{building_unit_id} ...\n\n"
-
-        change_building_unit_id(osw, building_unit_id)
-        out_osw, result = RunOSWs.run_and_check(osw, top_dir)
-        result['OSW'] = "#{building_unit_id}.osw"
-        all_results << result
-
-        # Check workflow was successful
-        result = check_out_osw(result, out_osw)
-
-        # Save existing osws and xmls
-        ['existing'].each do |scenario|
-          ['osw', 'xml'].each do |type|
-            from = File.join(top_dir, 'run', "#{scenario}.#{type}")
-
-            dir = osw_dir
-            if type == 'xml'
-              dir = xml_dir
-            end
-            to = File.join(dir, "#{building_unit_id}-#{osw_basename.gsub('.osw', '')}-#{scenario}.#{type}")
-
-            if File.exist?(from)
-              FileUtils.mv(from, to)
-            end
-          end
-        end
-      end
-    end
-
-    Dir["#{parent_dir}/workflow*.osw"].each do |osw|
-      change_building_unit_id(osw, 1)
-    end
-
-    remove_folders_and_files(lib_dir)
-
-    results_dir = File.join(parent_dir, 'results')
-    RunOSWs._rm_path(results_dir)
-    RunOSWs.write_summary_results(results_dir, all_results)
-
-    # TODO: assertions on results csv
   end
 
-  def test_samples_osw_upgrades
+  def test_upgrades
+    results_csv = samples_osw('upgrades')
+    
+    rows = CSV.read(File.expand_path(results_csv))
+    
+    num_upgrades = Dir["#{top_dir}/workflow*.osw"].length - 1
+    assert_equal(num_samples_upgrades * num_upgrades, rows.length - 1)
+    
+    cols = rows.transpose
+    cols.each do |col|
+      next if col[0] != 'completed_status'
+
+      assert(col[1..-1].all? {|x| x != 'Fail'})
+    end
+  end
+
+  private
+
+  def samples_osw(scenario)
     if project_dir == 'project_national'
       parent_dir = File.absolute_path(File.join(File.dirname(__FILE__), '..'))
       if Dir["#{parent_dir}/weather/*.epw"].size < 10
@@ -105,14 +68,14 @@ class IntegrationWorkflowTest < MiniTest::Test
     end
 
     all_results = []
-    parent_dir = File.join(top_dir, 'upgrades')
+    parent_dir = File.join(top_dir, scenario)
     Dir.mkdir(parent_dir) unless File.exist?(parent_dir)
 
     buildstock_csv = create_buildstock_csv(project_dir, num_samples_upgrades)
     lib_dir = create_lib_folder(top_dir, project_dir, buildstock_csv)
 
     Dir["#{top_dir}/workflow*.osw"].each do |osw|
-      next if osw.include?('base')
+      next unless osw.include?(scenario)
 
       osw_basename = File.basename(osw)
       puts "\nWorkflow: #{osw_basename} ...\n"
@@ -131,19 +94,18 @@ class IntegrationWorkflowTest < MiniTest::Test
         result['OSW'] = "#{building_unit_id}.osw"
         all_results << result
 
-        # Check workflow was successful
         result = check_out_osw(result, out_osw)
 
         # Save existing/upgraded osws and xmls
-        ['existing', 'upgraded'].each do |scenario|
+        ['existing', 'upgraded'].each do |scen|
           ['osw', 'xml'].each do |type|
-            from = File.join(top_dir, 'run', "#{scenario}.#{type}")
+            from = File.join(top_dir, 'run', "#{scen}.#{type}")
 
             dir = osw_dir
             if type == 'xml'
               dir = xml_dir
             end
-            to = File.join(dir, "#{building_unit_id}-#{osw_basename.gsub('.osw', '')}-#{scenario}.#{type}")
+            to = File.join(dir, "#{building_unit_id}-#{osw_basename.gsub('.osw', '')}-#{scen}.#{type}")
 
             if File.exist?(from)
               FileUtils.mv(from, to)
@@ -161,12 +123,10 @@ class IntegrationWorkflowTest < MiniTest::Test
 
     results_dir = File.join(parent_dir, 'results')
     RunOSWs._rm_path(results_dir)
-    RunOSWs.write_summary_results(results_dir, all_results)
+    csv_out = RunOSWs.write_summary_results(results_dir, all_results)
 
-    # TODO: assertions on results csv
+    return csv_out
   end
-
-  private
 
   def create_buildstock_csv(project_dir, num_samples)
     outfile = File.join('..', 'test', 'test_samples_osw', 'buildstock.csv')
@@ -202,13 +162,22 @@ class IntegrationWorkflowTest < MiniTest::Test
   def check_out_osw(result, out_osw)
     assert(File.exist?(out_osw))
     data_hash = JSON.parse(File.read(out_osw))
-    result['completed_status'] = data_hash['completed_status']
+
+    completed_status = data_hash['completed_status']
+    result['completed_status'] = completed_status
+
     data_hash['steps'].each do |step|
+      return result unless step.keys.include?('result')
+      
       step_time_str = "time_#{OpenStudio::toUnderscoreCase(step['measure_dir_name'])}"
-      started_at = DateTime.strptime(step['result']['started_at'], '%Y%m%dT%H%M%SZ')
-      completed_at = DateTime.strptime(step['result']['completed_at'], '%Y%m%dT%H%M%SZ')
-      result[step_time_str] = ((completed_at - started_at) * 24 * 3600).to_i
+
+      if step['result'].keys.include?('started_at') && step['result'].keys.include?('completed_at')
+        started_at = DateTime.strptime(step['result']['started_at'], '%Y%m%dT%H%M%SZ')
+        completed_at = DateTime.strptime(step['result']['completed_at'], '%Y%m%dT%H%M%SZ')
+        result[step_time_str] = ((completed_at - started_at) * 24 * 3600).to_i
+      end
     end
+
     return result
   end
 
@@ -218,5 +187,6 @@ class IntegrationWorkflowTest < MiniTest::Test
     FileUtils.rm_rf(File.join(top_dir, 'reports'))
     FileUtils.rm_rf(File.join(top_dir, 'generated_files'))
     FileUtils.rm(File.join(top_dir, 'out.osw'))
+    FileUtils.rm(File.join(top_dir, 'buildstock.csv'))
   end
 end

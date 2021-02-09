@@ -512,6 +512,8 @@ class RunOSWs
         csv << csv_row
       end
     end
+
+    return csv_out
   end
 
   def self._rm_path(path)
