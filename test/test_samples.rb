@@ -8,28 +8,26 @@ require_relative '../resources/run_sampling'
 require_relative '../resources/buildstock'
 
 class IntegrationWorkflowTest < MiniTest::Test
-  def project_dir
-    return 'project_testing'
+  def before_setup
+    @project_dir = 'project_testing'
+    @num_samples_baseline = 100
+    @num_samples_upgrades = 10
+    @outfile = File.join('..', 'test', 'test_samples_osw', 'buildstock.csv')
+    @top_dir = File.absolute_path(File.join(File.dirname(__FILE__), 'test_samples_osw'))
+    @lib_dir = File.join(@top_dir, '..', '..', 'lib')
+    @resources_dir = File.join(@top_dir, '..', '..', 'resources')
   end
 
-  def num_samples_baseline
-    return 100
-  end
-
-  def num_samples_upgrades
-    return 10
-  end
-
-  def top_dir
-    return File.absolute_path(File.join(File.dirname(__FILE__), 'test_samples_osw'))
+  def after_teardown
+    remove_folders_and_files
   end
 
   def test_baseline
-    results_csv = samples_osw('baseline', num_samples_baseline)
+    results_csv = samples_osw('baseline', @num_samples_baseline)
 
     rows = CSV.read(File.expand_path(results_csv))
 
-    assert_equal(num_samples_baseline, rows.length - 1)
+    assert_equal(@num_samples_baseline, rows.length - 1)
 
     cols = rows.transpose
     cols.each do |col|
@@ -40,12 +38,12 @@ class IntegrationWorkflowTest < MiniTest::Test
   end
 
   def test_upgrades
-    results_csv = samples_osw('upgrades', num_samples_upgrades)
+    results_csv = samples_osw('upgrades', @num_samples_upgrades)
 
     rows = CSV.read(File.expand_path(results_csv))
 
-    num_upgrades = Dir["#{top_dir}/workflow*.osw"].length - 1
-    assert_equal(num_samples_upgrades * num_upgrades, rows.length - 1)
+    num_upgrades = Dir["#{@top_dir}/workflow-upgrades*.osw"].length
+    assert_equal(@num_samples_upgrades * num_upgrades, rows.length - 1)
 
     cols = rows.transpose
     cols.each do |col|
@@ -58,7 +56,7 @@ class IntegrationWorkflowTest < MiniTest::Test
   private
 
   def samples_osw(scenario, num_samples)
-    if project_dir == 'project_national'
+    if @project_dir == 'project_national'
       parent_dir = File.absolute_path(File.join(File.dirname(__FILE__), '..'))
       if Dir["#{parent_dir}/weather/*.epw"].size < 10
         cli_path = OpenStudio.getOpenStudioCLI
@@ -68,13 +66,13 @@ class IntegrationWorkflowTest < MiniTest::Test
     end
 
     all_results = []
-    parent_dir = File.join(top_dir, scenario)
+    parent_dir = File.join(@top_dir, scenario)
     Dir.mkdir(parent_dir) unless File.exist?(parent_dir)
 
-    buildstock_csv = create_buildstock_csv(project_dir, num_samples_upgrades)
-    lib_dir = create_lib_folder(top_dir, project_dir, buildstock_csv)
+    create_buildstock_csv(@project_dir, num_samples)
+    create_lib_folder(@project_dir)
 
-    Dir["#{top_dir}/workflow*.osw"].each do |osw|
+    Dir["#{@top_dir}/workflow*.osw"].each do |osw|
       next unless osw.include?(scenario)
 
       osw_basename = File.basename(osw)
@@ -90,7 +88,7 @@ class IntegrationWorkflowTest < MiniTest::Test
         puts "\n\tBuilding Unit ID: #{building_unit_id} ...\n\n"
 
         change_building_unit_id(osw, building_unit_id)
-        out_osw, result = RunOSWs.run_and_check(osw, top_dir)
+        out_osw, result = RunOSWs.run_and_check(osw, @top_dir)
         result['OSW'] = "#{building_unit_id}.osw"
         all_results << result
 
@@ -99,7 +97,7 @@ class IntegrationWorkflowTest < MiniTest::Test
         # Save existing/upgraded osws and xmls
         ['existing', 'upgraded'].each do |scen|
           ['osw', 'xml'].each do |type|
-            from = File.join(top_dir, 'run', "#{scen}.#{type}")
+            from = File.join(@top_dir, 'run', "#{scen}.#{type}")
 
             dir = osw_dir
             if type == 'xml'
@@ -119,8 +117,6 @@ class IntegrationWorkflowTest < MiniTest::Test
       change_building_unit_id(osw, 1)
     end
 
-    remove_folders_and_files(lib_dir)
-
     results_dir = File.join(parent_dir, 'results')
     RunOSWs._rm_path(results_dir)
     csv_out = RunOSWs.write_summary_results(results_dir, all_results)
@@ -129,22 +125,16 @@ class IntegrationWorkflowTest < MiniTest::Test
   end
 
   def create_buildstock_csv(project_dir, num_samples)
-    outfile = File.join('..', 'test', 'test_samples_osw', 'buildstock.csv')
     r = RunSampling.new
-    r.run(project_dir, num_samples, outfile)
-
-    return outfile
+    r.run(project_dir, num_samples, @outfile)
   end
 
-  def create_lib_folder(top_dir, project_dir, buildstock_csv)
-    lib_dir = File.join(top_dir, '..', '..', 'lib') # at top level
-    resources_dir = File.join(top_dir, '..', '..', 'resources')
-    housing_characteristics_dir = File.join(top_dir, '..', '..', project_dir, 'housing_characteristics')
-    Dir.mkdir(lib_dir) unless File.exist?(lib_dir)
-    FileUtils.cp_r(resources_dir, lib_dir)
-    FileUtils.cp_r(housing_characteristics_dir, lib_dir)
-    FileUtils.cp(File.join(resources_dir, buildstock_csv), File.join(lib_dir, 'housing_characteristics'))
-    return lib_dir
+  def create_lib_folder(project_dir)
+    housing_characteristics_dir = File.join(@top_dir, '..', '..', project_dir, 'housing_characteristics')
+    Dir.mkdir(@lib_dir) unless File.exist?(@lib_dir)
+    FileUtils.cp_r(@resources_dir, @lib_dir)
+    FileUtils.cp_r(housing_characteristics_dir, @lib_dir)
+    FileUtils.cp(File.join(@resources_dir, @outfile), File.join(@lib_dir, 'housing_characteristics'))
   end
 
   def change_building_unit_id(osw, building_unit_id)
@@ -180,12 +170,12 @@ class IntegrationWorkflowTest < MiniTest::Test
     return result
   end
 
-  def remove_folders_and_files(lib_dir)
-    FileUtils.rm_rf(lib_dir) if File.exist?(lib_dir)
-    FileUtils.rm_rf(File.join(top_dir, 'run'))
-    FileUtils.rm_rf(File.join(top_dir, 'reports'))
-    FileUtils.rm_rf(File.join(top_dir, 'generated_files'))
-    FileUtils.rm(File.join(top_dir, 'out.osw'))
-    FileUtils.rm(File.join(top_dir, 'buildstock.csv'))
+  def remove_folders_and_files
+    FileUtils.rm_rf(@lib_dir) if File.exist?(@lib_dir)
+    FileUtils.rm_rf(File.join(@top_dir, 'run'))
+    FileUtils.rm_rf(File.join(@top_dir, 'reports'))
+    FileUtils.rm_rf(File.join(@top_dir, 'generated_files'))
+    FileUtils.rm(File.join(@top_dir, 'out.osw'))
+    FileUtils.rm(File.join(@top_dir, 'buildstock.csv'))
   end
 end
