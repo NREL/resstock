@@ -28,6 +28,8 @@ class Constants
       'Size, Heating Secondary System (kBtu/h)',
       'Size, Cooling System (kBtu/h)',
       'Size, Water Heater (gal)',
+      'Flow Rate, Mechanical Ventilation (cfm)',
+      'Slab Perimeter, Exposed, Conditioned (ft)',
     ]
   end
 end

@@ -257,6 +257,18 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
 
         cost_mult += water_heating_system.tank_volume
       end
+    elsif cost_mult_type == 'Flow Rate, Mechanical Ventilation (cfm)'
+      hpxml.ventilation_fans.each do |ventilation_fan|
+        next unless ventilation_fan.used_for_whole_building_ventilation
+
+        cost_mult += ventilation_fan.rated_flow_rate
+      end
+    elsif cost_mult_type == 'Slab Perimeter, Exposed, Conditioned (ft)'
+      hpxml.slabs.each do |slab|
+        next unless slab.is_exterior_thermal_boundary
+
+        cost_mult += slab.exposed_perimeter
+      end    
     end
     return cost_mult
   end # end get_cost_multiplier
