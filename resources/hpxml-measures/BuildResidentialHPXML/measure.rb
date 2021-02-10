@@ -1054,7 +1054,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('cooling_system_cooling_capacity', true)
     arg.setDisplayName('Cooling System: Cooling Capacity')
-    arg.setDescription("The output cooling capacity of the cooling system. If using '#{Constants.Auto}', the autosizing algorithm will use ACCA Manual J/S to set the capacity to meet its load served. Ignored for #{HPXML::HVACTypeEvaporativeCooler}.")
+    arg.setDescription("The output cooling capacity of the cooling system. If using '#{Constants.Auto}', the autosizing algorithm will use ACCA Manual J/S to set the capacity to meet its load served.")
     arg.setUnits('tons')
     arg.setDefaultValue(Constants.Auto)
     args << arg
@@ -3906,10 +3906,8 @@ class HPXMLFile
 
     return if cooling_system_type == 'none'
 
-    if cooling_system_type != HPXML::HVACTypeEvaporativeCooler
-      if args[:cooling_system_cooling_capacity] != Constants.Auto
-        cooling_capacity = args[:cooling_system_cooling_capacity]
-      end
+    if args[:cooling_system_cooling_capacity] != Constants.Auto
+      cooling_capacity = args[:cooling_system_cooling_capacity]
     end
 
     if args[:cooling_system_cooling_compressor_type].is_initialized
