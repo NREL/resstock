@@ -474,11 +474,11 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(0)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('foundation_wall_insulation_distance_to_bottom', true)
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('foundation_wall_insulation_distance_to_bottom', true)
     arg.setDisplayName('Foundation: Wall Insulation Distance To Bottom')
     arg.setUnits('ft')
-    arg.setDescription('The distance from the top of the foundation wall to the bottom of the foundation wall insulation. Only applies to basements/crawlspaces.')
-    arg.setDefaultValue(0)
+    arg.setDescription("The distance from the top of the foundation wall to the bottom of the foundation wall insulation. Only applies to basements/crawlspaces. A value of '#{Constants.Auto}' will use the same height as the foundation.")
+    arg.setDefaultValue(Constants.Auto)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('foundation_wall_assembly_r', false)
@@ -3033,6 +3033,12 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     warning = (!args[:fuel_loads_grill_present] && args[:fuel_loads_grill_usage_multiplier] != 0.0) || (!args[:fuel_loads_lighting_present] && args[:fuel_loads_lighting_usage_multiplier] != 0.0) || (!args[:fuel_loads_fireplace_present] && args[:fuel_loads_fireplace_usage_multiplier] != 0.0)
     warnings << "fuel_loads_grill_present=#{args[:fuel_loads_grill_present]} and fuel_loads_grill_usage_multiplier=#{args[:fuel_loads_grill_usage_multiplier]} and fuel_loads_lighting_present=#{args[:fuel_loads_lighting_present]} and fuel_loads_lighting_usage_multiplier=#{args[:fuel_loads_lighting_usage_multiplier]} and fuel_loads_fireplace_present=#{args[:fuel_loads_fireplace_present]} and fuel_loads_fireplace_usage_multiplier=#{args[:fuel_loads_fireplace_usage_multiplier]}" if warning
 
+    # foundation wall insulation distance to bottom is greater than foundation wall height
+    if args[:foundation_wall_insulation_distance_to_bottom] != Constants.Auto
+      error = (args[:foundation_wall_insulation_distance_to_bottom].to_f > args[:geometry_foundation_height])
+      errors << "foundation_wall_insulation_distance_to_bottom=#{args[:foundation_wall_insulation_distance_to_bottom]} and geometry_foundation_height=#{args[:geometry_foundation_height]}" if error
+    end
+
     return warnings, errors
   end
 
@@ -3600,6 +3606,9 @@ class HPXMLFile
           insulation_exterior_r_value = args[:foundation_wall_insulation_r]
           insulation_exterior_distance_to_top = args[:foundation_wall_insulation_distance_to_top]
           insulation_exterior_distance_to_bottom = args[:foundation_wall_insulation_distance_to_bottom]
+          if insulation_exterior_distance_to_bottom == Constants.Auto
+            insulation_exterior_distance_to_bottom = args[:geometry_foundation_height]
+          end
         end
         insulation_interior_r_value = 0
         insulation_interior_distance_to_top = 0

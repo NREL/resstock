@@ -127,7 +127,8 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       'second-heating-system-but-no-primary-heating.osw' => 'heating_system_type=none and heat_pump_type=none and heating_system_type_2=Fireplace',
       'single-family-attached-no-building-orientation.osw' => 'geometry_unit_type=single-family attached and geometry_building_num_units=false and geometry_horizontal_location=false',
       'multifamily-no-building-orientation.osw' => 'geometry_unit_type=apartment unit and geometry_building_num_units=false and geometry_level=false and geometry_horizontal_location=false',
-      'dhw-indirect-without-boiler.osw' => 'water_heater_type=space-heating boiler with storage tank and heating_system_type=Furnace'
+      'dhw-indirect-without-boiler.osw' => 'water_heater_type=space-heating boiler with storage tank and heating_system_type=Furnace',
+      'foundation-wall-insulation-greater-than-height.osw' => 'foundation_wall_insulation_distance_to_bottom=6.0 and geometry_foundation_height=4.0'
     }
 
     measures = {}
