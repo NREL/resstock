@@ -1530,6 +1530,10 @@ class Geometry
       runner.registerError('Invalid horizontal location entered.')
       return false
     end
+    if (unit_width == 1) && (horizontal_location != 'None')
+      runner.registerWarning("No #{horizontal_location} location exists, setting horizontal_location to 'None'")
+      horizontal_location = 'None'
+    end
 
     # Convert to SI
     cfa = UnitConversions.convert(cfa, 'ft^2', 'm^2')
@@ -1580,25 +1584,11 @@ class Geometry
     living_spaces_front << living_space
 
     # Adiabatic surfaces for walls
-    ##############################################################################################
     # Map unit location to adiabatic surfaces (#if `key` unit then make `value(s)` adiabatic)
     horz_hash = { 'Left' => ['right'], 'Right' => ['left'], 'Middle' => ['left', 'right'], 'None' => [] }
     adb_facade = horz_hash[horizontal_location]
     if (has_rear_units == true)
       adb_facade += ['back']
-    end
-
-    if adb_facade.include? 'left'
-      left_neighbor_offset = 0
-    end
-    if adb_facade.include? 'right'
-      right_neighbor_offset = 0
-    end
-    if adb_facade.include? 'back'
-      back_neighbor_offset = 0
-    end
-    if adb_facade.include? 'front'
-      front_neighbor_offset = 0
     end
 
     adiabatic_surf = adb_facade
@@ -1616,7 +1606,6 @@ class Geometry
         surface.setOutsideBoundaryCondition('Adiabatic')
       end
     end
-    ##############################################################################################
 
     attic_space_front = nil
     attic_space_back = nil
@@ -1749,10 +1738,6 @@ class Geometry
 
     if [HPXML::AtticTypeVented, HPXML::AtticTypeUnvented].include?(attic_type) && (roof_type != 'flat')
       if offset == 0
-        # x *= num_units
-        # if has_rear_units
-        #   x /= 2
-        # end
         attic_spaces.each do |attic_space|
           attic_space.remove
         end
@@ -1783,8 +1768,6 @@ class Geometry
     end
 
     # Adiabatic surfaces for attic walls
-    ################################################################
-    # Make surfaces adiabatic
     attic_space.surfaces.each do |surface|
       os_facade = get_facade_for_surface(surface)
       next unless surface.surfaceType == 'Wall'
@@ -1796,7 +1779,6 @@ class Geometry
 
       surface.setOutsideBoundaryCondition('Adiabatic')
     end
-    ################################################################
 
     # put all of the spaces in the model into a vector
     spaces = OpenStudio::Model::SpaceVector.new
@@ -1820,75 +1802,28 @@ class Geometry
 
   def self.get_attic_space(model, x, y, wall_height, num_floors, num_units, roof_pitch, roof_type, has_rear_units = false)
     y_rear = 0
-    if has_rear_units
-      y_tot = y * 2
-      y_peak = 0
-      x_tot = (x * num_units) / 2
-    else
-      y_peak = -y / 2
-      y_tot = y
-      x_tot = x * num_units
-    end
-    # if y > 0
+    y_peak = -y / 2
+    y_tot = y
+    x_tot = x * num_units
+
     nw_point = OpenStudio::Point3d.new(0, 0, wall_height * num_floors)
     ne_point = OpenStudio::Point3d.new(x, 0, wall_height * num_floors)
     sw_point = OpenStudio::Point3d.new(0, -y, wall_height * num_floors)
     se_point = OpenStudio::Point3d.new(x, -y, wall_height * num_floors)
-    # else
-    #   nw_point = OpenStudio::Point3d.new(0, -y, wall_height * num_floors)
-    #   ne_point = OpenStudio::Point3d.new(x, -y, wall_height * num_floors)
-    #   sw_point = OpenStudio::Point3d.new(0, 0, wall_height * num_floors)
-    #   se_point = OpenStudio::Point3d.new(x, 0, wall_height * num_floors)
-    # end
     attic_polygon = make_polygon(sw_point, nw_point, ne_point, se_point)
-
-    # if y_tot >= x_tot
-    #   attic_height = (x_tot / 2.0) * roof_pitch
-    # else
-    #   attic_height = (y_tot / 2.0) * roof_pitch
-    # end
 
     attic_height = (y_tot / 2.0) * roof_pitch # Roof always has same orientation
 
     side_type = nil
     if roof_type == 'gable'
-      # if y > 0
-      # if x <= (y + y_rear)
-      # roof_n_point = OpenStudio::Point3d.new(x / 2.0, y_rear, wall_height * num_floors + attic_height)
-      # roof_s_point = OpenStudio::Point3d.new(x / 2.0, -y, wall_height * num_floors + attic_height)
-      # polygon_w_roof = make_polygon(roof_n_point, nw_point, sw_point, roof_s_point)
-      # polygon_e_roof = make_polygon(roof_s_point, se_point, ne_point, roof_n_point)
-      # polygon_s_wall = make_polygon(roof_s_point, sw_point, se_point)
-      # polygon_n_wall = make_polygon(roof_n_point, ne_point, nw_point)
-      # else
-      # roof_w_point = OpenStudio::Point3d.new(0, (y_rear - y) / 2.0, wall_height * num_floors + attic_height)
-      # roof_e_point = OpenStudio::Point3d.new(x, (y_rear - y) / 2.0, wall_height * num_floors + attic_height)
       roof_w_point = OpenStudio::Point3d.new(0, y_peak, wall_height * num_floors + attic_height)
       roof_e_point = OpenStudio::Point3d.new(x, y_peak, wall_height * num_floors + attic_height)
       polygon_w_roof = make_polygon(roof_w_point, roof_e_point, ne_point, nw_point)
       polygon_e_roof = make_polygon(roof_e_point, roof_w_point, sw_point, se_point)
       polygon_s_wall = make_polygon(roof_w_point, nw_point, sw_point)
       polygon_n_wall = make_polygon(roof_e_point, se_point, ne_point)
-      # end
-      # else
-      #   if x <= y.abs
-      #     roof_n_point = OpenStudio::Point3d.new(x / 2.0, -y, wall_height * num_floors + attic_height)
-      #     roof_s_point = OpenStudio::Point3d.new(x / 2.0, 0, wall_height * num_floors + attic_height)
-      #     polygon_w_roof = make_polygon(roof_n_point, nw_point, sw_point, roof_s_point)
-      #     polygon_e_roof = make_polygon(roof_s_point, se_point, ne_point, roof_n_point)
-      #     polygon_s_wall = make_polygon(roof_s_point, sw_point, se_point)
-      #     polygon_n_wall = make_polygon(roof_n_point, ne_point, nw_point)
-      #   else
-      #     roof_w_point = OpenStudio::Point3d.new(0, -y / 2.0, wall_height * num_floors + attic_height)
-      #     roof_e_point = OpenStudio::Point3d.new(x, -y / 2.0, wall_height * num_floors + attic_height)
-      #     polygon_w_roof = make_polygon(roof_w_point, roof_e_point, ne_point, nw_point)
-      #     polygon_e_roof = make_polygon(roof_e_point, roof_w_point, sw_point, se_point)
-      #     polygon_s_wall = make_polygon(roof_w_point, nw_point, sw_point)
-      #     polygon_n_wall = make_polygon(roof_e_point, se_point, ne_point)
-      #   end
-      # end
       side_type = 'Wall'
-    elsif roof_type == 'hip' # TO-DO: not yet implemented for single unit approach
+    elsif roof_type == 'hip'
       if y > 0
         if x <= (y + y_rear)
           roof_n_point = OpenStudio::Point3d.new(x / 2.0, y_rear - x / 2.0, wall_height * num_floors + attic_height)
@@ -1930,11 +1865,7 @@ class Geometry
     surface_floor.setOutsideBoundaryCondition('Surface')
     surface_w_roof = OpenStudio::Model::Surface.new(polygon_w_roof, model)
     surface_w_roof.setSurfaceType('RoofCeiling')
-    if has_rear_units
-      surface_w_roof.setOutsideBoundaryCondition('Adiabatic') ###
-    else
-      surface_w_roof.setOutsideBoundaryCondition('Outdoors') ###
-    end
+    surface_w_roof.setOutsideBoundaryCondition('Outdoors')
     surface_e_roof = OpenStudio::Model::Surface.new(polygon_e_roof, model)
     surface_e_roof.setSurfaceType('RoofCeiling')
     surface_e_roof.setOutsideBoundaryCondition('Outdoors')
