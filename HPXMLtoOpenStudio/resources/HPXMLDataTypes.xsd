@@ -2750,6 +2750,7 @@
 			<xs:enumeration value="baseboard"/>
 			<xs:enumeration value="radiant floor"/>
 			<xs:enumeration value="radiant ceiling"/>
+			<xs:enumeration value="water loop"/>
 			<xs:enumeration value="other"/>
 		</xs:restriction>
 	</xs:simpleType>
@@ -2765,25 +2766,12 @@
 			<xs:enumeration value="regular velocity"/>
 			<xs:enumeration value="high velocity"/>
 			<xs:enumeration value="gravity"/>
+			<xs:enumeration value="fan coil"/>
 		</xs:restriction>
 	</xs:simpleType>
 	<xs:complexType name="AirDistributionType">
 		<xs:simpleContent>
 			<xs:extension base="AirDistributionType_simple">
-				<xs:attribute name="dataSource" type="DataSource"/>
-			</xs:extension>
-		</xs:simpleContent>
-	</xs:complexType>
-	<xs:simpleType name="HydronicAndAirDistributionType_simple">
-		<xs:restriction base="xs:string">
-			<xs:enumeration value="fan coil"/>
-			<xs:enumeration value="water loop heat pump"/>
-			<xs:enumeration value="other"/>
-		</xs:restriction>
-	</xs:simpleType>
-	<xs:complexType name="HydronicAndAirDistributionType">
-		<xs:simpleContent>
-			<xs:extension base="HydronicAndAirDistributionType_simple">
 				<xs:attribute name="dataSource" type="DataSource"/>
 			</xs:extension>
 		</xs:simpleContent>

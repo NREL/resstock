@@ -419,21 +419,32 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     # Test inputs not overridden by defaults
     hpxml = _create_hpxml('base-hvac-room-ac-only.xml')
     hpxml.cooling_systems[0].cooling_shr = 0.88
-    hpxml.cooling_systems[0].charge_defect_ratio = -0.11
-    hpxml.cooling_systems[0].airflow_defect_ratio = -0.22
     hpxml.cooling_systems[0].cooling_capacity = 12345
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_room_air_conditioner_values(hpxml_default, 0.88, -0.11, -0.22, 12345)
+    _test_default_room_air_conditioner_values(hpxml_default, 0.88, 12345)
 
     # Test defaults
     hpxml.cooling_systems[0].cooling_shr = nil
-    hpxml.cooling_systems[0].charge_defect_ratio = nil
-    hpxml.cooling_systems[0].airflow_defect_ratio = nil
     hpxml.cooling_systems[0].cooling_capacity = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_room_air_conditioner_values(hpxml_default, 0.65, 0, 0, nil)
+    _test_default_room_air_conditioner_values(hpxml_default, 0.65, nil)
+  end
+
+  def test_evaporative_coolers
+    # Test inputs not overridden by defaults
+    hpxml = _create_hpxml('base-hvac-evap-cooler-only.xml')
+    hpxml.cooling_systems[0].cooling_capacity = 12345
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    _test_default_evap_cooler_values(hpxml_default, 12345)
+
+    # Test defaults
+    hpxml.cooling_systems[0].cooling_capacity = nil
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    _test_default_evap_cooler_values(hpxml_default, nil)
   end
 
   def test_mini_split_air_conditioners
@@ -2019,13 +2030,20 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     end
   end
 
-  def _test_default_room_air_conditioner_values(hpxml, shr, charge_defect_ratio, airflow_defect_ratio,
-                                                cooling_capacity)
+  def _test_default_room_air_conditioner_values(hpxml, shr, cooling_capacity)
     cooling_system = hpxml.cooling_systems[0]
 
     assert_equal(shr, cooling_system.cooling_shr)
-    assert_equal(charge_defect_ratio, cooling_system.charge_defect_ratio)
-    assert_equal(airflow_defect_ratio, cooling_system.airflow_defect_ratio)
+    if cooling_capacity.nil?
+      assert(cooling_system.cooling_capacity > 0)
+    else
+      assert_equal(cooling_system.cooling_capacity, cooling_capacity)
+    end
+  end
+
+  def _test_default_evap_cooler_values(hpxml, cooling_capacity)
+    cooling_system = hpxml.cooling_systems[0]
+
     if cooling_capacity.nil?
       assert(cooling_system.cooling_capacity > 0)
     else
@@ -2238,7 +2256,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     supply_duct_idx = 0
     return_duct_idx = 0
     hpxml.hvac_distributions.each do |hvac_distribution|
-      next unless [HPXML::HVACDistributionTypeAir, HPXML::HVACDistributionTypeHydronicAndAir].include? hvac_distribution.distribution_system_type
+      next unless [HPXML::HVACDistributionTypeAir].include? hvac_distribution.distribution_system_type
 
       assert_equal(n_return_registers, hvac_distribution.number_of_return_registers)
       hvac_distribution.ducts.each do |duct|

@@ -1079,6 +1079,11 @@ class HVACSizing
 
     # Heating
     hvac_sizing_values.Heat_Load = bldg_design_loads.Heat_Tot * hvac.HeatingLoadFraction
+    if hvac.HeatType == HPXML::HVACTypeHeatPumpWaterLoopToAir
+      # Size to meet original fraction load served (not adjusted value from HVAC.apply_shared_heating_systems()
+      # This ensures, e.g., that an appropriate heating airflow is used for duct losses.
+      hvac_sizing_values.Heat_Load = hvac_sizing_values.Heat_Load / (1.0 / hvac.HeatingCOP)
+    end
 
     # Cooling
     hvac_sizing_values.Cool_Load_Tot = bldg_design_loads.Cool_Tot * hvac.CoolingLoadFraction
@@ -1831,7 +1836,7 @@ class HVACSizing
       if @hpxml.header.allow_increased_fixed_capacities
         hvac_sizing_values.Cool_Capacity = [hvac_sizing_values.Cool_Capacity, prev_capacity].max
       end
-      hvac_sizing_values.Cool_Capacity_Sens = hvac_sizing_values.Cool_Capacity * hvac.SHRRated[hvac.SizingSpeed]
+      hvac_sizing_values.Cool_Capacity_Sens = hvac_sizing_values.Cool_Capacity_Sens * hvac_sizing_values.Cool_Capacity / prev_capacity
       hvac_sizing_values.Cool_Airflow = hvac_sizing_values.Cool_Airflow * hvac_sizing_values.Cool_Capacity / prev_capacity
     end
     if (not hvac.FixedHeatingCapacity.nil?) && (hvac_sizing_values.Heat_Capacity > 0)
@@ -2393,6 +2398,11 @@ class HVACSizing
       end
       if hpxml_hvac_ap.respond_to? :heat_cap_fflow_spec
         hvac.HEAT_CAP_FFLOW_SPEC = hpxml_hvac_ap.heat_cap_fflow_spec
+      end
+
+      # WLHP
+      if hpxml_hvac.respond_to? :heating_efficiency_cop
+        hvac.HeatingCOP = hpxml_hvac.heating_efficiency_cop
       end
 
       # GSHP
@@ -3370,7 +3380,7 @@ class HVACInfo
                 :COOL_CAP_FFLOW_SPEC, :HEAT_CAP_FFLOW_SPEC,
                 :SHRRated, :CapacityRatioCooling, :CapacityRatioHeating,
                 :OverSizeLimit, :OverSizeDelta,
-                :HeatingEIR, :CoolingEIR, :SizingSpeed,
+                :HeatingEIR, :CoolingEIR, :SizingSpeed, :HeatingCOP,
                 :GSHP_SpacingType, :EvapCoolerEffectiveness,
                 :HeatingLoadFraction, :CoolingLoadFraction, :SupplyAirTemp, :LeavingAirTemp,
                 :GSHP_design_chw, :GSHP_design_delta_t, :GSHP_design_hw, :GSHP_bore_d,

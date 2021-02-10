@@ -10,7 +10,7 @@ require_relative '../HPXMLtoOpenStudio/resources/version'
 
 basedir = File.expand_path(File.dirname(__FILE__))
 
-def run_workflow(basedir, rundir, hpxml, debug, timeseries_output_freq, timeseries_outputs, skip_validation, output_format)
+def run_workflow(basedir, rundir, hpxml, debug, timeseries_output_freq, timeseries_outputs, skip_validation, output_format, building_id)
   measures_dir = File.join(basedir, '..')
 
   measures = {}
@@ -22,6 +22,7 @@ def run_workflow(basedir, rundir, hpxml, debug, timeseries_output_freq, timeseri
   args['output_dir'] = rundir
   args['debug'] = debug
   args['skip_validation'] = skip_validation
+  args['building_id'] = building_id
   update_args_hash(measures, measure_subdir, args)
 
   # Add reporting measure to workflow
@@ -84,8 +85,12 @@ OptionParser.new do |opts|
   end
 
   options[:skip_validation] = false
-  opts.on('-s', '--skip-validation') do |t|
+  opts.on('-s', '--skip-validation', 'Skip Schema/Schematron validation') do |t|
     options[:skip_validation] = true
+  end
+
+  opts.on('-b', '--building-id <ID>', 'ID of Building to simulate (required when multiple HPXML Building elements)') do |t|
+    options[:building_id] = t
   end
 
   options[:version] = false
@@ -166,7 +171,8 @@ rundir = File.join(options[:output_dir], 'run')
 
 # Run design
 puts "HPXML: #{options[:hpxml]}"
-success = run_workflow(basedir, rundir, options[:hpxml], options[:debug], timeseries_output_freq, timeseries_outputs, options[:skip_validation], options[:output_format])
+success = run_workflow(basedir, rundir, options[:hpxml], options[:debug], timeseries_output_freq, timeseries_outputs,
+                       options[:skip_validation], options[:output_format], options[:building_id])
 
 if not success
   exit! 1

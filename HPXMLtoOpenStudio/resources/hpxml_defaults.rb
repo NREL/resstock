@@ -412,6 +412,8 @@ class HPXMLDefaults
   end
 
   def self.apply_hvac(hpxml, weather)
+    HVAC.apply_shared_systems(hpxml)
+
     # Default AC/HP compressor type
     hpxml.cooling_systems.each do |cooling_system|
       next unless cooling_system.compressor_type.nil?
@@ -428,10 +430,11 @@ class HPXMLDefaults
 
     # Default boiler EAE
     hpxml.heating_systems.each do |heating_system|
-      if heating_system.electric_auxiliary_energy.nil?
-        heating_system.electric_auxiliary_energy_isdefaulted = true
-        heating_system.electric_auxiliary_energy = HVAC.get_default_boiler_eae(heating_system)
-      end
+      next unless heating_system.electric_auxiliary_energy.nil?
+      heating_system.electric_auxiliary_energy_isdefaulted = true
+      heating_system.electric_auxiliary_energy = HVAC.get_default_boiler_eae(heating_system)
+      heating_system.shared_loop_watts = nil
+      heating_system.fan_coil_watts = nil
     end
 
     # Default AC/HP sensible heat ratio
@@ -488,8 +491,7 @@ class HPXMLDefaults
     # Charge defect ratio
     hpxml.cooling_systems.each do |cooling_system|
       next unless [HPXML::HVACTypeCentralAirConditioner,
-                   HPXML::HVACTypeMiniSplitAirConditioner,
-                   HPXML::HVACTypeRoomAirConditioner].include? cooling_system.cooling_system_type
+                   HPXML::HVACTypeMiniSplitAirConditioner].include? cooling_system.cooling_system_type
       next unless cooling_system.charge_defect_ratio.nil?
 
       cooling_system.charge_defect_ratio = 0.0
@@ -497,7 +499,8 @@ class HPXMLDefaults
     end
     hpxml.heat_pumps.each do |heat_pump|
       next unless [HPXML::HVACTypeHeatPumpAirToAir,
-                   HPXML::HVACTypeHeatPumpMiniSplit].include? heat_pump.heat_pump_type
+                   HPXML::HVACTypeHeatPumpMiniSplit,
+                   HPXML::HVACTypeHeatPumpGroundToAir].include? heat_pump.heat_pump_type
       next unless heat_pump.charge_defect_ratio.nil?
 
       heat_pump.charge_defect_ratio = 0.0
@@ -514,8 +517,7 @@ class HPXMLDefaults
     end
     hpxml.cooling_systems.each do |cooling_system|
       next unless [HPXML::HVACTypeCentralAirConditioner,
-                   HPXML::HVACTypeMiniSplitAirConditioner,
-                   HPXML::HVACTypeRoomAirConditioner].include? cooling_system.cooling_system_type
+                   HPXML::HVACTypeMiniSplitAirConditioner].include? cooling_system.cooling_system_type
       if cooling_system.cooling_system_type == HPXML::HVACTypeMiniSplitAirConditioner && cooling_system.distribution_system_idref.nil?
         next # Ducted mini-splits only
       end
@@ -611,38 +613,6 @@ class HPXMLDefaults
           heat_pump.fan_watts_per_cfm = mini_split_ducted_watts_per_cfm
         end
         heat_pump.fan_watts_per_cfm_isdefaulted = true
-      end
-    end
-
-    # HVAC capacities
-    # Transition capacity elements from -1 (old approach) to nil (new approach)
-    hpxml.heating_systems.each do |heating_system|
-      if (not heating_system.heating_capacity.nil?) && (heating_system.heating_capacity < 0)
-        heating_system.heating_capacity = nil
-      end
-    end
-    hpxml.cooling_systems.each do |cooling_system|
-      if (not cooling_system.cooling_capacity.nil?) && (cooling_system.cooling_capacity < 0)
-        cooling_system.cooling_capacity = nil
-      end
-    end
-    hpxml.heat_pumps.each do |heat_pump|
-      if (not heat_pump.cooling_capacity.nil?) && (heat_pump.cooling_capacity < 0)
-        heat_pump.cooling_capacity = nil
-      end
-      if (not heat_pump.heating_capacity.nil?) && (heat_pump.heating_capacity < 0)
-        heat_pump.heating_capacity = nil
-      end
-      if (not heat_pump.heating_capacity_17F.nil?) && (heat_pump.heating_capacity_17F < 0)
-        heat_pump.heating_capacity_17F = nil
-      end
-      if (not heat_pump.backup_heating_capacity.nil?) && (heat_pump.backup_heating_capacity < 0)
-        heat_pump.backup_heating_capacity = nil
-      end
-      if heat_pump.cooling_capacity.nil? && (not heat_pump.heating_capacity.nil?)
-        heat_pump.cooling_capacity = heat_pump.heating_capacity
-      elsif heat_pump.heating_capacity.nil? && (not heat_pump.cooling_capacity.nil?)
-        heat_pump.heating_capacity = heat_pump.cooling_capacity
       end
     end
 
@@ -775,7 +745,7 @@ class HPXMLDefaults
     end
 
     hpxml.hvac_distributions.each do |hvac_distribution|
-      next unless [HPXML::HVACDistributionTypeAir, HPXML::HVACDistributionTypeHydronicAndAir].include? hvac_distribution.distribution_system_type
+      next unless [HPXML::HVACDistributionTypeAir].include? hvac_distribution.distribution_system_type
 
       # Default return registers
       if hvac_distribution.number_of_return_registers.nil?
@@ -1253,6 +1223,8 @@ class HPXMLDefaults
   end
 
   def self.apply_lighting(hpxml)
+    return if hpxml.lighting_groups.empty?
+
     if hpxml.lighting.interior_usage_multiplier.nil?
       hpxml.lighting.interior_usage_multiplier = 1.0
       hpxml.lighting.interior_usage_multiplier_isdefaulted = true

@@ -1,10 +1,11 @@
-## OpenStudio-HPXML v1.1.0 (pending)
+## OpenStudio-HPXML v1.1.0
 
 __New Features__
 - **Breaking change**: `Type` is now a required input for dehumidifiers; can be "portable" or "whole-home".
 - **Breaking change**: `Location` is now a required input for dehumidifiers; must be "living space" as dehumidifiers are currently modeled as located in living space.
 - **Breaking change**: `Type` is now a required input for Pool, PoolPump, HotTub, and HotTubPump.
 - **Breaking change**: Both supply and return duct leakage to outside are now required inputs for AirDistribution systems.
+- **Breaking change**: Simplifies inputs for fan coils and water loop heat pumps by A) removing HydronicAndAirDistribution element and B) moving WLHP inputs from extension elements to HeatPump element.
 - Allows modeling airflow/charge defects for air conditioners, heat pumps, and furnaces (RESNET Standard 310).
 - Allows modeling *multiple* dehumidifiers (previously only one allowed).
 - Allows modeling generators (generic on-site power production).
@@ -14,6 +15,7 @@ __New Features__
 - Allows more defaulting (optional inputs) for a variety of HPXML elements.
 - Allows requesting timeseries unmet heating/cooling loads.
 - Allows skipping schema/schematron validation (for speed); should only be used if the HPXML was already validated upstream.
+- Allows HPXML files w/ multiple `Building` elements; requires providing the ID of the single building to be simulated.
 - Includes hot water loads (in addition to heating/cooling loads) when timeseries total loads are requested.
 - The `in.xml` HPXML file is now always produced for inspection of default values (e.g., autosized HVAC capacities). **Breaking change**: The `output_dir` HPXMLtoOpenStudio measure argument is now required.
 - Overhauls documentation to be more comprehensive and standardized.
