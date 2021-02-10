@@ -35,111 +35,142 @@ class AddIntervalScheduleFromFileLDRD < OpenStudio::Measure::ModelMeasure
     measure_dir = File.dirname(__FILE__)
     puts "measure_dir == #{measure_dir}"
     cluster = runner.getStringArgumentValue('cluster', user_arguments)
-    cluster_dir = File.join(measure_dir, 'clusters/' + cluster + '/')
-
-    # get files
-    file_path_weekday = File.join(cluster_dir, 'weekday.csv')
-    puts "file_path_weekday = #{file_path_weekday}"
-    file_path_weekend = File.join(cluster_dir, 'weekday.csv')
-    puts "file_path_weekend = #{file_path_weekend}"
-    # file_path_pre_schedule = File.expand_path(File.join(measure_dir, '../../../workflows/generated_files/schedules.csv'))
-    file_path_pre_schedule = File.expand_path("../")
-    puts "file_path_pre_schedule = #{file_path_pre_schedule}"
-
-    puts " file_path_pre_schedule directory === #{File.dirname(file_path_pre_schedule)}"
-
-    # load CSVs
-    profiles_weekend = CSV.read(file_path_weekend, converters: [CSV::Converters[:float]], headers: true)
-    profiles_weekday = CSV.read(file_path_weekday, converters: [CSV::Converters[:float]], headers: true)
-    pre_schedules = CSV.read(file_path_pre_schedule + "/schedules.csv", converters: [CSV::Converters[:float]], :headers => true)
+    
 
     # get time interval from model
     timesteps_per_hour = model.getTimestep.numberOfTimestepsPerHour
     time_interval = (60 / timesteps_per_hour).to_s
     puts "time_interval ====  #{time_interval.class}"
     puts "time_interval ====  #{time_interval}"
+    
+    # file_path_pre_schedule = File.expand_path(File.join(measure_dir, '../../../workflows/generated_files/schedules.csv'))
+    file_path_pre_schedule = File.expand_path("../")
+    puts "file_path_pre_schedule = #{file_path_pre_schedule}"
+    puts " file_path_pre_schedule directory === #{File.dirname(file_path_pre_schedule)}"
+    pre_schedules = CSV.read(file_path_pre_schedule + "/schedules.csv", converters: [CSV::Converters[:float]], :headers => true)
 
-    # random occupancy generator with weight
-    def random_weighted(weighted)
-      # puts weighted
-      max = sum_of_weights(weighted)
-      # target = rand(1..max)
-      target = rand()
-      weighted.each do |item, weight|
-        return item if target <= weight
 
-        target -= weight
+    puts "cluster = #{cluster}"
+    puts "cluster class = #{cluster.class}"
+
+    if cluster != 'None'
+      
+      cluster_dir = File.join(measure_dir, 'clusters/' + cluster + '/')
+
+      # get files
+      file_path_weekday = File.join(cluster_dir, 'weekday.csv')
+      puts "file_path_weekday = #{file_path_weekday}"
+      file_path_weekend = File.join(cluster_dir, 'weekend.csv')
+      puts "file_path_weekend = #{file_path_weekend}"
+
+      # load CSVs
+      profiles_weekend = CSV.read(file_path_weekend, converters: [CSV::Converters[:float]], headers: true)
+      profiles_weekday = CSV.read(file_path_weekday, converters: [CSV::Converters[:float]], headers: true)
+    
+      # random occupancy generator with weight
+      def random_weighted(weighted)
+        # puts weighted
+        max = sum_of_weights(weighted)
+        # target = rand(1..max)
+        target = rand()
+        weighted.each do |item, weight|
+          return item if target <= weight
+
+          target -= weight
+        end
       end
-    end
 
-    def sum_of_weights(weighted)
-      weighted.inject(0) { |sum, (item, weight)| sum + weight }
-    end
-    ## putting number of peoles in to an array
-    peoplecaps = []
-    people_instances = model.getPeoples
-    people_instances.each do |people|
-      next unless !people.numberOfPeople.empty?
+      def sum_of_weights(weighted)
+        weighted.inject(0) { |sum, (item, weight)| sum + weight }
+      end
+      ## putting number of peoles in to an array
+      peoplecaps = []
+      people_instances = model.getPeoples
+      people_instances.each do |people|
+        next unless !people.numberOfPeople.empty?
 
-      peoplecap = people.numberOfPeople.get.to_f
-      peoplecaps << peoplecap
-    end
+        peoplecap = people.numberOfPeople.get.to_f
+        peoplecaps << peoplecap
+      end
 
-    # calcualte the total number of people
-    people_cap = peoplecaps.inject(0) { |sum, x| sum + x } # adding the total number of people in the house
-    runner.registerInfo("peoplecap = '#{people_cap}' ")
-    if people_cap < 2.0
-      profile_weekday = profiles_weekday['Occ_1']
-      profile_weekend = profiles_weekend['Occ_1']
-    elsif people_cap < 3.0
-      profile_weekday = profiles_weekday['Occ_2']
-      profile_weekend = profiles_weekend['Occ_2']
-    else
-      profile_weekday = profiles_weekday['Occ_3']
-      profile_weekend = profiles_weekend['Occ_3']
-    end
-
-    occ_yearly = []
-    total_days_in_year = 365
-    start_day = DateTime.new(2018, 1, 1)
-    timesteps = 60 / time_interval.to_f
-    total_days_in_year.times do |day|
-      today = start_day + day
-      day_of_week = today.wday
-      if [0, 6].include?(day_of_week)
-        # Weekend
-        day_type = "weekend"
-        profile = profile_weekend
+      # calcualte the total number of people
+      people_cap = peoplecaps.inject(0) { |sum, x| sum + x } # adding the total number of people in the house
+      runner.registerInfo("peoplecap = '#{people_cap}' ")
+      if people_cap < 2.0
+        profile_weekday = profiles_weekday['Occ_1']
+        profile_weekend = profiles_weekend['Occ_1']
+      elsif people_cap < 3.0
+        profile_weekday = profiles_weekday['Occ_2']
+        profile_weekend = profiles_weekend['Occ_2']
       else
-        # weekday
-        day_type = "weekday"
-        profile = profile_weekday
+        profile_weekday = profiles_weekday['Occ_3']
+        profile_weekend = profiles_weekend['Occ_3']
       end
-      # puts profile
-      profile.each do |p|
-        timesteps.to_i.times do |t|
-          occ_value = random_weighted(occ: p, unocc: 1 - p)
-          puts "AT timestep #{t} and probability #{p} ..... occupancy ==== #{occ_value}"
 
-          occ_yearly << occ_value
-        end
-      end
-    end
-
-    importedPlug = pre_schedules['plug_loads']
-    importedlight = pre_schedules['lighting_interior']
-    CSV.open(File.dirname(file_path_pre_schedule) + "/new_schedules.csv", "w") do |csv|
-      csv << ['OccSch', 'lightSch', 'equipSch', 'thermostat_clg', 'thermostat_htg']
-      ct = 0
-      occ_yearly.each do |p|
-        # puts p.class
-        if p.to_s.include? "unocc"
-          csv <<  [0, 0, 0.75*importedPlug[ct], 27, 18]
+      occ_yearly = []
+      total_days_in_year = 365
+      start_day = DateTime.new(2018, 1, 1)
+      timesteps = 60 / time_interval.to_f
+      total_days_in_year.times do |day|
+        today = start_day + day
+        day_of_week = today.wday
+        if [0, 6].include?(day_of_week)
+          # Weekend
+          day_type = "weekend"
+          profile = profile_weekend
         else
-          csv <<  [1, importedlight[ct], importedPlug[ct], 23, 21]
+          # weekday
+          day_type = "weekday"
+          profile = profile_weekday
         end
-        ct += 1
+        # puts profile
+        profile.each do |p|
+          timesteps.to_i.times do |t|
+            occ_value = random_weighted(occ: p, unocc: 1 - p)
+            puts "AT timestep #{t} and probability #{p} ..... occupancy ==== #{occ_value}"
+
+            occ_yearly << occ_value
+          end
+        end
       end
+
+      importedPlug = pre_schedules['plug_loads']
+      importedlight = pre_schedules['lighting_interior']
+      CSV.open(File.dirname(file_path_pre_schedule) + "/new_schedules.csv", "w") do |csv|
+        csv << ['OccSch', 'lightSch', 'equipSch', 'thermostat_clg', 'thermostat_htg']
+        ct = 0
+        occ_yearly.each do |p|
+          # puts p.class
+          if p.to_s.include? "unocc"
+            csv <<  [0, 0, 0.75*importedPlug[ct], 27, 18]
+          else
+            csv <<  [1, importedlight[ct], importedPlug[ct], 23, 21]
+          end
+          ct += 1
+        end
+      end
+    
+    # else argument is None
+    else
+
+      importedOcc = pre_schedules['occupants']
+      importedPlug = pre_schedules['plug_loads']
+      importedlight = pre_schedules['lighting_interior']
+      CSV.open(File.dirname(file_path_pre_schedule) + "/new_schedules.csv", "w") do |csv|
+        csv << ['OccSch', 'lightSch', 'equipSch', 'thermostat_clg', 'thermostat_htg']
+        ct = 0
+        importedOcc.each do |p|
+          # puts p.class
+          if p == 0
+            csv <<  [0, 0, 0.75*importedPlug[ct], 27, 18]
+          else
+            # cooling_stpnt = 73F / heating_stpnt = 70F
+            csv <<  [p, importedlight[ct], importedPlug[ct], 22.7778, 21.11]
+          end
+          ct += 1
+        end
+      end
+
     end
 
     apply_to_all_zones = true
