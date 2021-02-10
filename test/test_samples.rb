@@ -19,7 +19,12 @@ class IntegrationWorkflowTest < MiniTest::Test
   end
 
   def after_teardown
-    remove_folders_and_files
+    FileUtils.rm_rf(@lib_dir) if File.exist?(@lib_dir)
+    FileUtils.rm_rf(File.join(@top_dir, 'run'))
+    FileUtils.rm_rf(File.join(@top_dir, 'reports'))
+    FileUtils.rm_rf(File.join(@top_dir, 'generated_files'))
+    FileUtils.rm(File.join(@top_dir, 'out.osw'))
+    FileUtils.rm(File.join(@top_dir, 'buildstock.csv'))
   end
 
   def test_baseline
@@ -168,14 +173,5 @@ class IntegrationWorkflowTest < MiniTest::Test
     end
 
     return result
-  end
-
-  def remove_folders_and_files
-    FileUtils.rm_rf(@lib_dir) if File.exist?(@lib_dir)
-    FileUtils.rm_rf(File.join(@top_dir, 'run'))
-    FileUtils.rm_rf(File.join(@top_dir, 'reports'))
-    FileUtils.rm_rf(File.join(@top_dir, 'generated_files'))
-    FileUtils.rm(File.join(@top_dir, 'out.osw'))
-    FileUtils.rm(File.join(@top_dir, 'buildstock.csv'))
   end
 end

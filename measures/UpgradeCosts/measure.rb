@@ -268,7 +268,7 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
         next unless slab.is_exterior_thermal_boundary
 
         cost_mult += slab.exposed_perimeter
-      end    
+      end
     end
     return cost_mult
   end # end get_cost_multiplier
