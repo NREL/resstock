@@ -435,6 +435,9 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
       FileUtils.rm_rf(File.expand_path('../../generated_files')) if File.exist?(File.expand_path('../../generated_files'))
 
       if not apply_child_measures(hpxml_measures_dir, { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'], 'HPXMLtoOpenStudio' => measures['HPXMLtoOpenStudio'] }, new_runner, model, workflow_json, nil, true, { 'ApplyUpgrade' => runner })
+        new_runner.result.errors.each do |error|
+          runner.registerError(error.logMessage)
+        end
         return false
       end
 

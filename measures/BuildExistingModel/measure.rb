@@ -243,6 +243,9 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     measures['BuildResidentialHPXML'][0]['schedules_random_seed'] = args['building_unit_id']
 
     if not apply_child_measures(hpxml_measures_dir, { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'], 'HPXMLtoOpenStudio' => measures['HPXMLtoOpenStudio'] }, new_runner, model, workflow_json, nil, true, { 'BuildExistingModel' => runner })
+      new_runner.result.errors.each do |error|
+        runner.registerError(error.logMessage)
+      end
       return false
     end
 
