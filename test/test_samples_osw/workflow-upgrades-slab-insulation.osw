@@ -1,0 +1,38 @@
+{
+  "measure_paths": [
+    "../../measures",
+    "../../resources/hpxml-measures"
+  ],
+  "steps": [
+    {
+      "measure_dir_name": "BuildExistingModel",
+      "arguments": {
+        "building_unit_id": "1",
+        "workflow_json": "measure-info.json"
+      }
+    },
+    {
+      "measure_dir_name": "ApplyUpgrade",
+      "arguments": {
+        "run_measure": 1,
+        "upgrade_name": "R-5 Perimeter Insulation",
+        "option_1": "Insulation Slab|2ft R5 Perimeter, Vertical",
+        "option_1_apply_logic": "Geometry Foundation Type|Slab",
+        "option_1_lifetime": 999,
+        "option_1_cost_1_value": 2.63,
+        "option_1_cost_1_multiplier": "Slab Perimeter, Exposed, Conditioned (ft)"
+      }
+    },
+    {
+      "measure_dir_name": "SimulationOutputReport"
+    },
+    {
+      "measure_dir_name": "UpgradeCosts"
+    }
+  ],
+  "run_options": {
+    "fast": false,
+    "skip_expand_objects": true,
+    "skip_energyplus_preprocess": true
+  }
+}
