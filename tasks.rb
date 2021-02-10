@@ -397,7 +397,8 @@ def create_osws
     'invalid_files/multipliers-without-other-plug-loads.osw' => 'base.osw',
     'invalid_files/multipliers-without-well-pump-plug-loads.osw' => 'base.osw',
     'invalid_files/multipliers-without-vehicle-plug-loads.osw' => 'base.osw',
-    'invalid_files/multipliers-without-fuel-loads.osw' => 'base.osw'
+    'invalid_files/multipliers-without-fuel-loads.osw' => 'base.osw',
+    'invalid_files/foundation-wall-insulation-greater-than-height.osw' => 'base-foundation-vented-crawlspace.osw'
   }
 
   puts "Generating #{osws_files.size} OSW files..."
@@ -507,7 +508,7 @@ def get_values(osw_file, step)
     step.setArgument('floor_assembly_r', 0)
     step.setArgument('foundation_wall_insulation_r', 8.9)
     step.setArgument('foundation_wall_insulation_distance_to_top', 0.0)
-    step.setArgument('foundation_wall_insulation_distance_to_bottom', 8.0)
+    step.setArgument('foundation_wall_insulation_distance_to_bottom', Constants.Auto)
     step.setArgument('foundation_wall_thickness', '8.0')
     step.setArgument('slab_perimeter_insulation_r', 0)
     step.setArgument('slab_perimeter_depth', 0)
@@ -2316,6 +2317,9 @@ def get_values(osw_file, step)
     step.setArgument('fuel_loads_grill_usage_multiplier', 1.0)
     step.setArgument('fuel_loads_lighting_usage_multiplier', 1.0)
     step.setArgument('fuel_loads_fireplace_usage_multiplier', 1.0)
+  elsif ['invalid_files/foundation-wall-insulation-greater-than-height.osw'].include? osw_file
+    step.setArgument('floor_assembly_r', 0)
+    step.setArgument('foundation_wall_insulation_distance_to_bottom', 6.0)
   end
   return step
 end
