@@ -280,6 +280,7 @@ def create_osws
     'extra-enclosure-windows-shading.osw' => 'base.osw',
     'extra-enclosure-garage-partially-protruded.osw' => 'base.osw',
     'extra-enclosure-garage-atticroof-conditioned.osw' => 'base-enclosure-garage.osw',
+    'extra-enclosure-atticroof-conditioned.osw' => 'base-foundation-slab.osw',
     'extra-vacancy-6-months.osw' => 'base-schedules-stochastic.osw',
     'extra-schedules-random-seed.osw' => 'base-schedules-stochastic.osw',
 
@@ -856,26 +857,6 @@ def get_values(osw_file, step)
     step.setArgument('clothes_dryer_control_type', HPXML::ClothesDryerControlTypeMoisture)
     step.setArgument('clothes_dryer_vented_flow_rate', Constants.Auto)
     step.setArgument('cooking_range_oven_fuel_type', HPXML::FuelTypeWoodCord)
-  elsif ['base-atticroof-cathedral.osw'].include? osw_file
-    step.setArgument('geometry_attic_type', HPXML::AtticTypeConditioned)
-    step.setArgument('roof_assembly_r', 25.8)
-    step.setArgument('ducts_supply_location', HPXML::LocationLivingSpace)
-    step.setArgument('ducts_return_location', HPXML::LocationLivingSpace)
-    step.setArgument('ducts_supply_leakage_value', 0.0)
-    step.setArgument('ducts_return_leakage_value', 0.0)
-  elsif ['base-atticroof-conditioned.osw'].include? osw_file
-    step.setArgument('geometry_cfa', 3600.0)
-    step.setArgument('geometry_num_floors_above_grade', 2)
-    step.setArgument('geometry_attic_type', HPXML::AtticTypeConditioned)
-    step.setArgument('roof_assembly_r', 25.8)
-    step.setArgument('ducts_supply_location', HPXML::LocationLivingSpace)
-    step.setArgument('ducts_return_location', HPXML::LocationLivingSpace)
-    step.setArgument('ducts_supply_leakage_value', 0.0)
-    step.setArgument('ducts_return_leakage_value', 0.0)
-    step.setArgument('water_heater_location', HPXML::LocationBasementConditioned)
-    step.setArgument('clothes_washer_location', HPXML::LocationBasementConditioned)
-    step.setArgument('clothes_dryer_location', HPXML::LocationBasementConditioned)
-    step.setArgument('refrigerator_location', HPXML::LocationBasementConditioned)
   elsif ['base-atticroof-flat.osw'].include? osw_file
     step.setArgument('geometry_roof_type', 'flat')
     step.setArgument('roof_assembly_r', 25.8)
@@ -2005,6 +1986,10 @@ def get_values(osw_file, step)
   elsif ['extra-enclosure-garage-atticroof-conditioned.osw'].include? osw_file
     step.setArgument('geometry_cfa', 4500.0)
     step.setArgument('geometry_attic_type', HPXML::AtticTypeConditioned)
+  elsif ['extra-enclosure-atticroof-conditioned.osw'].include? osw_file
+    step.setArgument('geometry_cfa', 3500.0)
+    step.setArgument('geometry_attic_type', HPXML::AtticTypeConditioned)
+    step.setArgument('geometry_eaves_depth', 2)
   elsif ['extra-vacancy-6-months.osw'].include? osw_file
     step.setArgument('schedules_vacancy_begin_month', 1)
     step.setArgument('schedules_vacancy_begin_day_of_month', 1)

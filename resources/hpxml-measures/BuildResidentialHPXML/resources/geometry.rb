@@ -1986,7 +1986,7 @@ class Geometry
       balcony_depth = 0
     end
     if (unit_width == 1) && (horz_location != 'None')
-      runner.registerWarning("No #{horz_location} location exists, setting horz_location to 'None'")
+      runner.registerWarning("No #{horz_location} location exists, setting horizontal location to 'None'")
       horz_location = 'None'
     end
     if (unit_width > 1) && (horz_location == 'None')
