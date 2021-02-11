@@ -10,7 +10,7 @@ require_relative '../resources/buildstock'
 class IntegrationWorkflowTest < MiniTest::Test
   def before_setup
     @project_dir = 'project_testing'
-    @num_samples_baseline = 1
+    @num_samples_baseline = 10
     @num_samples_upgrades = 1
     @outfile = File.join('..', 'test', 'test_samples_osw', 'buildstock.csv')
     @top_dir = File.absolute_path(File.join(File.dirname(__FILE__), 'test_samples_osw'))
@@ -30,7 +30,7 @@ class IntegrationWorkflowTest < MiniTest::Test
   def test_baseline
     results_csv = samples_osw('baseline', @num_samples_baseline)
 
-    rows = CSV.read(File.expand_path(results_csv))
+    rows = CSV.read(results_csv)
 
     assert_equal(@num_samples_baseline, rows.length - 1)
 
@@ -40,12 +40,15 @@ class IntegrationWorkflowTest < MiniTest::Test
 
       assert(col[1..-1].all? { |x| x == 'Success' })
     end
+
+    feature_results = File.join(@top_dir, '..', 'results', "#{@project_dir}_feature.csv")
+    FileUtils.mv(results_csv, feature_results)
   end
 
   def test_upgrades
     results_csv = samples_osw('upgrades', @num_samples_upgrades)
 
-    rows = CSV.read(File.expand_path(results_csv))
+    rows = CSV.read(results_csv)
 
     num_upgrades = Dir["#{@top_dir}/workflow-upgrades*.osw"].length
     assert_equal(@num_samples_upgrades * num_upgrades, rows.length - 1)
@@ -164,7 +167,7 @@ class IntegrationWorkflowTest < MiniTest::Test
     data_hash['steps'].each do |step|
       return result unless step.keys.include?('result')
 
-      step_time_str = "time_#{OpenStudio::toUnderscoreCase(step['measure_dir_name'])}"
+      step_time_str = "#{OpenStudio::toUnderscoreCase(step['measure_dir_name'])}.time"
 
       next unless step['result'].keys.include?('started_at') && step['result'].keys.include?('completed_at')
       started_at = DateTime.strptime(step['result']['started_at'], '%Y%m%dT%H%M%SZ')
