@@ -82,11 +82,11 @@ class res_results_csv_comparisons:
     def create_output_directories(self):
         """Create output directories for the figures and queried data."""
         # Directory for the queried data
-        create_path = os.path.join(
-            'resstock_data'
-        )
-        if not os.path.exists(create_path):
-            os.makedirs(create_path)
+        # create_path = os.path.join(
+            # 'resstock_data'
+        # )
+        # if not os.path.exists(create_path):
+            # os.makedirs(create_path)
 
         # Directory for the queried data
         create_path = os.path.join(
