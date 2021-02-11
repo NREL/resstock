@@ -458,14 +458,22 @@ class RunOSWs
     result = {}
     rows = {}
     if File.exist?(File.expand_path(data_point_out))
-      rows = JSON.parse(File.read(File.expand_path(data_point_out)))
+      old_rows = JSON.parse(File.read(File.expand_path(data_point_out)))
+    end
+
+    rows = {}
+    old_rows.each do |measure, values|
+      rows[measure] = {}
+      values.each do |arg, val|
+        rows[measure]["#{OpenStudio::toUnderscoreCase(measure)}.#{arg}"] = val
+      end
     end
 
     result = get_measure_results(rows, result, 'BuildExistingModel')
     result = get_measure_results(rows, result, 'ApplyUpgrade')
     result = get_measure_results(rows, result, 'SimulationOutputReport')
     result = get_measure_results(rows, result, 'UpgradeCosts')
-    result['time_workflow'] = workflow_time
+    result['workflow.time'] = workflow_time
     return out_osw, result
   end
 
