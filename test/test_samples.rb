@@ -41,8 +41,8 @@ class IntegrationWorkflowTest < MiniTest::Test
       assert(col[1..-1].all? { |x| x == 'Success' })
     end
 
-    feature_results = File.join(@top_dir, '..', 'results', "#{@project_dir}_feature.csv")
-    FileUtils.mv(results_csv, feature_results)
+    # feature_results = File.join(@top_dir, '..', 'results', "#{@project_dir}_feature.csv")
+    # FileUtils.mv(results_csv, feature_results)
   end
 
   def test_upgrades
