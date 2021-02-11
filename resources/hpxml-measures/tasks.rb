@@ -280,9 +280,14 @@ def create_osws
     'extra-enclosure-windows-shading.osw' => 'base.osw',
     'extra-enclosure-garage-partially-protruded.osw' => 'base.osw',
     'extra-enclosure-garage-atticroof-conditioned.osw' => 'base-enclosure-garage.osw',
-    'extra-enclosure-atticroof-conditioned.osw' => 'base-foundation-slab.osw',
+    'extra-enclosure-atticroof-conditioned-eaves-gable.osw' => 'base-foundation-slab.osw',
+    'extra-enclosure-atticroof-conditioned-eaves-hip.osw' => 'extra-enclosure-atticroof-conditioned-eaves-gable.osw',
     'extra-vacancy-6-months.osw' => 'base-schedules-stochastic.osw',
     'extra-schedules-random-seed.osw' => 'base-schedules-stochastic.osw',
+
+    'extra-bldgtype-single-family-attached-atticroof-conditioned-eaves-gable.osw' => 'extra-bldgtype-single-family-attached-slab.osw',
+    'extra-bldgtype-single-family-attached-atticroof-conditioned-eaves-hip.osw' => 'extra-bldgtype-single-family-attached-atticroof-conditioned-eaves-gable.osw',
+    'extra-bldgtype-multifamily-eaves.osw' => 'extra-bldgtype-multifamily-slab.osw',
 
     'extra-bldgtype-single-family-attached-slab.osw' => 'base-bldgtype-single-family-attached.osw',
     'extra-bldgtype-single-family-attached-vented-crawlspace.osw' => 'base-bldgtype-single-family-attached.osw',
@@ -1986,10 +1991,11 @@ def get_values(osw_file, step)
   elsif ['extra-enclosure-garage-atticroof-conditioned.osw'].include? osw_file
     step.setArgument('geometry_cfa', 4500.0)
     step.setArgument('geometry_attic_type', HPXML::AtticTypeConditioned)
-  elsif ['extra-enclosure-atticroof-conditioned.osw'].include? osw_file
-    step.setArgument('geometry_cfa', 3500.0)
+  elsif ['extra-enclosure-atticroof-conditioned-eaves-gable.osw'].include? osw_file
     step.setArgument('geometry_attic_type', HPXML::AtticTypeConditioned)
     step.setArgument('geometry_eaves_depth', 2)
+  elsif ['extra-enclosure-atticroof-conditioned-eaves-hip.osw'].include? osw_file
+    step.setArgument('geometry_roof_type', 'hip')
   elsif ['extra-vacancy-6-months.osw'].include? osw_file
     step.setArgument('schedules_vacancy_begin_month', 1)
     step.setArgument('schedules_vacancy_begin_day_of_month', 1)
@@ -1997,6 +2003,14 @@ def get_values(osw_file, step)
     step.setArgument('schedules_vacancy_end_day_of_month', 30)
   elsif ['extra-schedules-random-seed.osw'].include? osw_file
     step.setArgument('schedules_random_seed', 123)
+
+  elsif ['extra-bldgtype-single-family-attached-atticroof-conditioned-eaves-gable.osw'].include? osw_file
+    step.setArgument('geometry_attic_type', HPXML::AtticTypeConditioned)
+    step.setArgument('geometry_eaves_depth', 2)
+  elsif ['extra-bldgtype-single-family-attached-atticroof-conditioned-eaves-hip.osw'].include? osw_file
+    step.setArgument('geometry_roof_type', 'hip')
+  elsif ['extra-bldgtype-multifamily-eaves.osw'].include? osw_file
+    step.setArgument('geometry_eaves_depth', 2)
 
   elsif ['extra-bldgtype-single-family-attached-slab.osw'].include? osw_file
     step.setArgument('geometry_foundation_type', HPXML::FoundationTypeSlab)

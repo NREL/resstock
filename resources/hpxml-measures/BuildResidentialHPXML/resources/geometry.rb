@@ -2587,4 +2587,29 @@ class Geometry
     zrange = zvalues.max - zvalues.min
     return zrange
   end
+
+  def self.get_conditioned_attic_height(spaces)
+    # gable roof type
+    get_conditioned_spaces(spaces).each do |space|
+      space.surfaces.each do |surface|
+        next if surface.vertices.size != 3
+        next if surface.outsideBoundaryCondition != 'Outdoors'
+        next if surface.surfaceType != 'Wall'
+
+        return get_height_of_spaces([space])
+      end
+    end
+
+    # hip roof type
+    get_conditioned_spaces(spaces).each do |space|
+      space.surfaces.each do |surface|
+        next if surface.outsideBoundaryCondition != 'Outdoors'
+        next if surface.surfaceType != 'RoofCeiling'
+
+        return get_height_of_spaces([space])
+      end
+    end
+
+    return false
+  end
 end

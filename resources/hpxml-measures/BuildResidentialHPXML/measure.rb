@@ -3773,18 +3773,10 @@ class HPXMLFile
           overhangs_distance_to_top_of_window = args[:overhangs_right_distance_to_top_of_window]
           overhangs_distance_to_bottom_of_window = (overhangs_distance_to_top_of_window + sub_surface_height).round
         elsif args[:geometry_eaves_depth] > 0
-          # Get max z coordinate (eaves) of above-ground spaces
-          eaves_z = 0.0
+          # Get max z coordinate of eaves
+          eaves_z = args[:geometry_wall_height] * args[:geometry_num_floors_above_grade]
           if args[:geometry_attic_type] == HPXML::AtticTypeConditioned
-            above_ground_spaces = []
-            model.getSpaces.each do |space|
-              st = space.spaceType.get
-              space_type = st.standardsSpaceType.get
-              next unless [HPXML::LocationAtticUnconditioned, HPXML::LocationAtticUnvented, HPXML::LocationAtticVented, HPXML::LocationLivingSpace].include?(space_type)
-
-              above_ground_spaces << space
-            end
-            eaves_z += Geometry.get_height_of_spaces(above_ground_spaces)
+            eaves_z += Geometry.get_conditioned_attic_height(model.getSpaces)
           end
           if args[:geometry_foundation_type] == HPXML::FoundationTypeAmbient
             eaves_z += args[:geometry_foundation_height]
