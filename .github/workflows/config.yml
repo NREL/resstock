@@ -51,7 +51,6 @@ jobs:
           name: samples
 
   integration-results:
-    if: contains(github.event.pull_request.labels.*.name, 'Ready for Comparison')
     runs-on: ubuntu-latest
     needs: integration-tests
     steps:
@@ -72,7 +71,8 @@ jobs:
         shell: bash
         run: |
           ls samples
-          mv samples/test/test_samples_osw/baseline/results/results.csv test/results/project_testing_feature.csv
+          ls samples/baseline
+          mv samples/baseline/results/results.csv test/results/project_testing_feature.csv
           python test/res_results_csv_comparison.py
 
       - name: Upload comparison figures
