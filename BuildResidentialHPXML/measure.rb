@@ -211,7 +211,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('geometry_num_floors_above_grade', true)
     arg.setDisplayName('Geometry: Number of Floors')
     arg.setUnits('#')
-    arg.setDescription("The number of floors above grade (in the unit if #{HPXML::ResidentialTypeSFD} or #{HPXML::ResidentialTypeSFA}, and in the building if #{HPXML::ResidentialTypeApartment}).")
+    arg.setDescription("The number of floors above grade (in the unit if #{HPXML::ResidentialTypeSFD} or #{HPXML::ResidentialTypeSFA}, and in the building if #{HPXML::ResidentialTypeApartment}). Conditioned attics are included.")
     arg.setDefaultValue(2)
     args << arg
 
@@ -3039,6 +3039,10 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
       errors << "foundation_wall_insulation_distance_to_bottom=#{args[:foundation_wall_insulation_distance_to_bottom]} and geometry_foundation_height=#{args[:geometry_foundation_height]}" if error
     end
 
+    # conditioned attic but only one above-grade floor
+    error = (args[:geometry_num_floors_above_grade] == 1 && args[:geometry_attic_type] == HPXML::AtticTypeConditioned)
+    errors << "geometry_num_floors_above_grade=#{args[:geometry_num_floors_above_grade]} and geometry_attic_type=#{args[:geometry_attic_type]}" if error
+
     return warnings, errors
   end
 
@@ -3148,10 +3152,9 @@ class HPXMLFile
       args[:geometry_foundation_height_above_grade] = 0.0
     end
 
-    # TODO: figure out if "above-grade floors" should contain conditioned attics or not
-    # if args[:geometry_attic_type] == HPXML::AtticTypeConditioned
-    # args[:geometry_num_floors_above_grade] -= 1
-    # end
+    if args[:geometry_attic_type] == HPXML::AtticTypeConditioned
+      args[:geometry_num_floors_above_grade] -= 1
+    end
 
     if args[:geometry_unit_type] == HPXML::ResidentialTypeSFD
       success = Geometry.create_single_family_detached(runner: runner, model: model, **args)

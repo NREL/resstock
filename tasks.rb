@@ -404,7 +404,8 @@ def create_osws
     'invalid_files/multipliers-without-well-pump-plug-loads.osw' => 'base.osw',
     'invalid_files/multipliers-without-vehicle-plug-loads.osw' => 'base.osw',
     'invalid_files/multipliers-without-fuel-loads.osw' => 'base.osw',
-    'invalid_files/foundation-wall-insulation-greater-than-height.osw' => 'base-foundation-vented-crawlspace.osw'
+    'invalid_files/foundation-wall-insulation-greater-than-height.osw' => 'base-foundation-vented-crawlspace.osw',
+    'invalid_files/conditioned-attic-with-one-floor-above-grade.osw' => 'base.osw'
   }
 
   puts "Generating #{osws_files.size} OSW files..."
@@ -1990,8 +1991,10 @@ def get_values(osw_file, step)
     step.setArgument('geometry_garage_protrusion', 0.5)
   elsif ['extra-enclosure-garage-atticroof-conditioned.osw'].include? osw_file
     step.setArgument('geometry_cfa', 4500.0)
+    step.setArgument('geometry_num_floors_above_grade', 2)
     step.setArgument('geometry_attic_type', HPXML::AtticTypeConditioned)
   elsif ['extra-enclosure-atticroof-conditioned-eaves-gable.osw'].include? osw_file
+    step.setArgument('geometry_num_floors_above_grade', 2)
     step.setArgument('geometry_attic_type', HPXML::AtticTypeConditioned)
     step.setArgument('geometry_eaves_depth', 2)
   elsif ['extra-enclosure-atticroof-conditioned-eaves-hip.osw'].include? osw_file
@@ -2005,6 +2008,7 @@ def get_values(osw_file, step)
     step.setArgument('schedules_random_seed', 123)
 
   elsif ['extra-bldgtype-single-family-attached-atticroof-conditioned-eaves-gable.osw'].include? osw_file
+    step.setArgument('geometry_num_floors_above_grade', 2)
     step.setArgument('geometry_attic_type', HPXML::AtticTypeConditioned)
     step.setArgument('geometry_eaves_depth', 2)
   elsif ['extra-bldgtype-single-family-attached-atticroof-conditioned-eaves-hip.osw'].include? osw_file
@@ -2299,6 +2303,7 @@ def get_values(osw_file, step)
     step.setArgument('geometry_foundation_type', HPXML::FoundationTypeBasementConditioned)
     step.setArgument('floor_assembly_r', 10)
   elsif ['invalid_files/conditioned-attic-with-floor-insulation.osw'].include? osw_file
+    step.setArgument('geometry_num_floors_above_grade', 2)
     step.setArgument('geometry_attic_type', HPXML::AtticTypeConditioned)
   elsif ['invalid_files/dhw-indirect-without-boiler.osw'].include? osw_file
     step.setArgument('water_heater_type', HPXML::WaterHeaterTypeCombiStorage)
@@ -2319,6 +2324,8 @@ def get_values(osw_file, step)
   elsif ['invalid_files/foundation-wall-insulation-greater-than-height.osw'].include? osw_file
     step.setArgument('floor_assembly_r', 0)
     step.setArgument('foundation_wall_insulation_distance_to_bottom', 6.0)
+  elsif ['invalid_files/conditioned-attic-with-one-floor-above-grade.osw'].include? osw_file
+    step.setArgument('geometry_attic_type', HPXML::AtticTypeConditioned)
   end
   return step
 end
