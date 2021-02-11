@@ -41,23 +41,23 @@ jobs:
             test/test_samples_osw/upgrades
           name: samples
 
-      - name: Make plot comparisons
-        #shell: python
+      - name: Make comparison figures
+        shell: python
         run: |
-          date +%s > report.txt
+          python test/res_results_csv_comparison.py
 
-      - name: Store plot comparisons
+      - name: Store comparison figures
         uses: actions/upload-artifact@v2
         with:
           path: |
-            report.txt
-          name: plot
+            test/results/figures
+          name: figures
 
-      - name: Commit plot comparisons
-        #if: contains(github.event.pull_request.labels.*.name, 'Ready for Comparison')
+      - name: Commit comparison figures
+        if: contains(github.event.pull_request.labels.*.name, 'Ready for Comparison')
         run: |
-          git add report.txt
-          git commit -m "Plot comparisons"
+          git add test/results/figures
+          git commit -m "Figure comparisons."
           git push
 
   regression:
