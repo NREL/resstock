@@ -3148,6 +3148,11 @@ class HPXMLFile
       args[:geometry_foundation_height_above_grade] = 0.0
     end
 
+    # TODO: figure out if "above-grade floors" should contain conditioned attics or not
+    # if args[:geometry_attic_type] == HPXML::AtticTypeConditioned
+      # args[:geometry_num_floors_above_grade] -= 1
+    # end
+
     if args[:geometry_unit_type] == HPXML::ResidentialTypeSFD
       success = Geometry.create_single_family_detached(runner: runner, model: model, **args)
     elsif args[:geometry_unit_type] == HPXML::ResidentialTypeSFA
@@ -3768,10 +3773,24 @@ class HPXMLFile
           overhangs_distance_to_top_of_window = args[:overhangs_right_distance_to_top_of_window]
           overhangs_distance_to_bottom_of_window = (overhangs_distance_to_top_of_window + sub_surface_height).round
         elsif args[:geometry_eaves_depth] > 0
-          eaves_z = args[:geometry_wall_height] * args[:geometry_num_floors_above_grade]
+          # Get max z coordinate (eaves) of above-ground spaces
+          eaves_z = 0.0
+          if args[:geometry_attic_type] == HPXML::AtticTypeConditioned
+            above_ground_spaces = []
+            model.getSpaces.each do |space|
+              st = space.spaceType.get
+              space_type = st.standardsSpaceType.get
+              next unless [HPXML::LocationAtticUnconditioned, HPXML::LocationAtticUnvented, HPXML::LocationAtticVented, HPXML::LocationLivingSpace].include?(space_type)
+
+              above_ground_spaces << space
+            end
+            eaves_z += Geometry.get_height_of_spaces(above_ground_spaces)
+          end
           if args[:geometry_foundation_type] == HPXML::FoundationTypeAmbient
             eaves_z += args[:geometry_foundation_height]
           end
+
+          # Get max z coordinate of this window
           sub_surface_z = -9e99
           space = sub_surface.space.get
           z_origin = space.zOrigin
@@ -3782,8 +3801,9 @@ class HPXMLFile
             sub_surface_z = z
           end
           sub_surface_z = UnitConversions.convert(sub_surface_z, 'm', 'ft')
+
           overhangs_depth = args[:geometry_eaves_depth]
-          overhangs_distance_to_top_of_window = eaves_z - sub_surface_z
+          overhangs_distance_to_top_of_window = eaves_z - sub_surface_z # difference between max z coordinates of eaves and this window
           overhangs_distance_to_bottom_of_window = (overhangs_distance_to_top_of_window + sub_surface_height).round
         end
 
