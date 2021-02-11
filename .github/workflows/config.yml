@@ -41,6 +41,13 @@ jobs:
             test/test_samples_osw/upgrades
           name: samples
 
+      - name: Make plot comparisons
+        if contains(github.event.pull_request.labels.*.name, 'Ready for Comparison')
+        run: |
+          date +%s > report.txt
+          git commit -m "Plot comparisons"
+          git push
+
   regression:
     runs-on: ubuntu-latest
     needs: build
