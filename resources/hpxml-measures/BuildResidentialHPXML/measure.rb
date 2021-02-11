@@ -3150,7 +3150,7 @@ class HPXMLFile
 
     # TODO: figure out if "above-grade floors" should contain conditioned attics or not
     # if args[:geometry_attic_type] == HPXML::AtticTypeConditioned
-      # args[:geometry_num_floors_above_grade] -= 1
+    # args[:geometry_num_floors_above_grade] -= 1
     # end
 
     if args[:geometry_unit_type] == HPXML::ResidentialTypeSFD
