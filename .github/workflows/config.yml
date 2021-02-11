@@ -1,5 +1,5 @@
 name: ci
-on: [push, pull_request]
+on: [pull_request]
 jobs:
   build:
     if: "!(contains(github.event.head_commit.message, '[ci skip]'))"
@@ -65,14 +65,14 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           path: |
-            test/test_samples_osw/baseline
-            test/test_samples_osw/upgrades
+            samples
           name: samples
 
       - name: Make comparison figures
         shell: bash
         run: |
-          mv test/test_samples_osw/baseline/results/results.csv test/results/project_testing_feature.csv
+          ls samples
+          mv samples/test/test_samples_osw/baseline/results/results.csv test/results/project_testing_feature.csv
           python test/res_results_csv_comparison.py
 
       - name: Upload comparison figures
@@ -90,7 +90,7 @@ jobs:
           git push
 
   regression-tests:
-    if: contains(github.event.pull_request.labels.*.name, 'Ready for Testing')
+    if: contains(github.event.pull_request.labels.*.name, 'FIXMEReady for Testing')
     runs-on: ubuntu-latest
     needs: build
     container:
