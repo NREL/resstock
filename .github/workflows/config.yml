@@ -26,7 +26,7 @@ jobs:
           rake unit_tests:measure_tests
 
   integration:
-    if: contains(github.event.pull_request.labels.*.name, 'Ready for Testing')
+    # if: contains(github.event.pull_request.labels.*.name, 'Ready for Testing')
     runs-on: ubuntu-latest
     needs: build
     container:
@@ -49,6 +49,14 @@ jobs:
             test/test_samples_osw/baseline
             test/test_samples_osw/upgrades
           name: samples
+
+      - name: Verify PR Labels
+        shell: python
+        run: |
+          import json
+          labels = json.loads("""${{ toJson(github.event.pull_request.labels) }}""")
+          labels = [x['name'] for x in labels]
+          print("PR labels: {}".format(labels))
 
       - name: Make comparison figures
         if: contains(github.event.pull_request.labels.*.name, 'Ready for Comparison')
