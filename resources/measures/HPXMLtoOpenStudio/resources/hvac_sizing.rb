@@ -302,12 +302,12 @@ class HVACSizing
           has_radiant_barrier = false if has_radiant_barrier.nil?
 
           if not is_vented
+
             if not has_radiant_barrier
               cool_temp += (150 + (weather.design.CoolingDrybulb - 95) + mj8.daily_range_temp_adjust[mj8.daily_range_num]) * surface.netArea
             else
               cool_temp += (130 + (weather.design.CoolingDrybulb - 95) + mj8.daily_range_temp_adjust[mj8.daily_range_num]) * surface.netArea
             end
-
           else # is_vented
 
             if not has_radiant_barrier
@@ -343,7 +343,6 @@ class HVACSizing
                 runner.registerWarning("Specified roofing material (#{roof_material}) is not supported by BEopt Manual J calculations. Assuming dark asphalt shingles")
                 cool_temp += 130 * surface.netArea
               end
-
             else # with a radiant barrier
               if [Constants.RoofMaterialAsphaltShingles, Constants.RoofMaterialTarGravel].include?(roof_material)
                 if roof_color == Constants.ColorDark
@@ -396,7 +395,6 @@ class HVACSizing
     else
       # Unfinished basement, Crawlspace
       cool_temp = calculate_space_design_temps(runner, space, weather, unit, @finished_cool_design_temp, weather.design.CoolingDrybulb, weather.data.GroundMonthlyTemps.max)
-
     end
 
     return cool_temp
@@ -1085,7 +1083,6 @@ class HVACSizing
     '''
     Heating, Cooling, and Dehumidification Loads: Floors
     '''
-
     return nil if mj8.nil? or zone_loads.nil?
 
     zone_loads.Heat_Floors = 0
@@ -1093,6 +1090,7 @@ class HVACSizing
     zone_loads.Dehumid_Floors = 0
 
     # Exterior Floors
+    floor_ufactor = nil
     Geometry.get_spaces_above_grade_exterior_floors(thermal_zone.spaces).each do |floor|
       floor_ufactor = get_surface_ufactor(runner, floor, floor.surfaceType, true)
       return nil if floor_ufactor.nil?
@@ -1256,7 +1254,6 @@ class HVACSizing
         zone_loads.Heat_Doors + zone_loads.Heat_Walls +
         zone_loads.Heat_Floors + zone_loads.Heat_Roofs, 0].max +
                              zone_loads.Heat_Infil
-
       # Cooling
       unit_init.Cool_Load_Sens += zone_loads.Cool_Windows + zone_loads.Cool_Skylights +
                                   zone_loads.Cool_Doors + zone_loads.Cool_Walls +
@@ -2436,8 +2433,7 @@ class HVACSizing
     neighbor_offset_ft = Geometry.get_closest_neighbor_distance(model)
 
     unit_height_ft = Geometry.get_height_of_spaces(Geometry.get_finished_spaces(unit.spaces))
-    exposed_wall_ratio = Geometry.calculate_above_grade_exterior_wall_area(unit.spaces) /
-                         Geometry.calculate_above_grade_wall_area(unit.spaces)
+    exposed_wall_ratio = Geometry.calculate_above_grade_exterior_wall_area(unit.spaces) / Geometry.calculate_above_grade_wall_area(unit.spaces)
 
     if exposed_wall_ratio > 0.5 # 3 or 4 exposures; Table 5D
       if neighbor_offset_ft == 0

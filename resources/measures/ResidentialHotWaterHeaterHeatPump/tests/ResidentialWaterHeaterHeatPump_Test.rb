@@ -282,7 +282,7 @@ class ResidentialHotWaterHeaterHeatPumpTest < MiniTest::Test
   end
 
   def test_single_family_attached_new_construction
-    num_units = 4
+    num_units = 1
     args_hash = {}
     expected_num_del_objects = {}
     expected_num_new_objects = { "WaterHeaterStratified" => 1 * num_units, "PlantLoop" => 1 * num_units, "PumpVariableSpeed" => 1 * num_units, "WaterHeaterHeatPumpWrappedCondenser" => 1 * num_units, "CoilWaterHeatingAirToWaterHeatPumpWrapped" => 1 * num_units, "FanOnOff" => 1 * num_units, "OtherEquipment" => 2 * num_units, "OtherEquipmentDefinition" => 2 * num_units, "EnergyManagementSystemSensor" => 9 * num_units, "EnergyManagementSystemActuator" => 7 * num_units, "EnergyManagementSystemTrendVariable" => 3 * num_units, "EnergyManagementSystemProgram" => 2 * num_units, "EnergyManagementSystemProgramCallingManager" => 1 * num_units, "ScheduleConstant" => 6 * num_units + 1, "ScheduleRuleset" => 7 * num_units }
@@ -291,7 +291,7 @@ class ResidentialHotWaterHeaterHeatPumpTest < MiniTest::Test
   end
 
   def test_multifamily_new_construction
-    num_units = 8
+    num_units = 1
     args_hash = {}
     expected_num_del_objects = {}
     expected_num_new_objects = { "WaterHeaterStratified" => 1 * num_units, "PlantLoop" => 1 * num_units, "PumpVariableSpeed" => 1 * num_units, "WaterHeaterHeatPumpWrappedCondenser" => 1 * num_units, "CoilWaterHeatingAirToWaterHeatPumpWrapped" => 1 * num_units, "FanOnOff" => 1 * num_units, "OtherEquipment" => 2 * num_units, "OtherEquipmentDefinition" => 2 * num_units, "EnergyManagementSystemSensor" => 9 * num_units, "EnergyManagementSystemActuator" => 7 * num_units, "EnergyManagementSystemTrendVariable" => 3 * num_units, "EnergyManagementSystemProgram" => 2 * num_units, "EnergyManagementSystemProgramCallingManager" => 1 * num_units, "ScheduleConstant" => 6 * num_units + 1, "ScheduleRuleset" => 7 * num_units }

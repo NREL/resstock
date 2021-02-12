@@ -8,8 +8,8 @@ require 'fileutils'
 class TimeseriesCSVExportTest < MiniTest::Test
   # "EnduseTimeseriesWidth" => num_time_indexes + num_electricity + num_natural_gas + num_fuel_oil + num_propane + num_wood + num_energy + num_output_variables
   @@include_enduse_subcategories = {
-    "false" => 3 + 19 + 5 + 4 + 5 + 2 + 1,
-    "true" => 3 + 37 + 11 + 4 + 6 + 2 + 1
+    "false" => 3 + 15 + 4 + 3 + 4 + 2 + 1,
+    "true" => 3 + 33 + 10 + 3 + 5 + 2 + 1
   }
 
   def test_leap_year_timestep_and_subcategories
@@ -110,8 +110,8 @@ class TimeseriesCSVExportTest < MiniTest::Test
   end
 
   def test_tmy_daily_and_subcategories_mf
-    num_units = 2
-    num_output_requests = 51 + 3
+    num_units = 1
+    num_output_requests = 27 + 3
     measure = TimeseriesCSVExport.new
     args_hash = {}
     args_hash["reporting_frequency"] = "Daily"
