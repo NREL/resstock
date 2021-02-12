@@ -472,6 +472,14 @@ class Geometry
   def self.space_is_below_grade(space)
     space.surfaces.each do |surface|
       next if surface.surfaceType.downcase != "wall"
+
+      z_vertex = []
+      surface.vertices.each do |vertex|
+        z_vertex << vertex.z
+      end
+      if z_vertex.min < -1e-9
+        return true
+      end
       if surface.outsideBoundaryCondition.downcase == "foundation"
         return true
       end
@@ -1128,8 +1136,8 @@ class Geometry
   end
 
   def self.get_closest_neighbor_distance(model)
+    # House surfaces
     house_points = []
-    neighbor_points = []
     model.getSurfaces.each do |surface|
       next unless surface.surfaceType.downcase == "wall"
 
@@ -1137,19 +1145,38 @@ class Geometry
         house_points << OpenStudio::Point3d.new(vertex)
       end
     end
+
+    # Neighbor surfaces
+    neighbor_points = {}
     model.getShadingSurfaces.each do |shading_surface|
       next unless shading_surface.name.to_s.downcase.include? "neighbor"
 
+      xs, ys = [], []
       shading_surface.vertices.each do |vertex|
-        neighbor_points << OpenStudio::Point3d.new(vertex)
+        xs << vertex.x
+        ys << vertex.y
+      end
+      xs, ys = xs.uniq, ys.uniq
+      neighbor_points[shading_surface.name.to_s] = {}
+      if xs.length == 1 # Shading surface on x plane
+        neighbor_points[shading_surface.name.to_s]['x'] = xs[0]
+      elsif ys.length == 1 # Shading surface on y plane
+        neighbor_points[shading_surface.name.to_s]['y'] = ys[0]
       end
     end
+
+    # Calculate offset
     neighbor_offsets = []
     house_points.each do |house_point|
-      neighbor_points.each do |neighbor_point|
-        neighbor_offsets << OpenStudio::getDistance(house_point, neighbor_point)
+      neighbor_points.each_value do |neighbor_point|
+        if neighbor_point['x'] # On x plane
+          neighbor_offsets << (house_point.x - neighbor_point['x']).abs
+        elsif neighbor_point['y'] # On y plane
+          neighbor_offsets << (house_point.y - neighbor_point['y']).abs
+        end
       end
     end
+
     if neighbor_offsets.empty?
       return 0
     end
@@ -1438,7 +1465,6 @@ class Geometry
 
   def self.process_occupants(model, runner, num_occ, occ_gain, sens_frac, lat_frac, schedules_file)
     num_occ = num_occ.split(",").map(&:strip)
-
     # Error checking
     if occ_gain < 0
       runner.registerError("Internal gains cannot be negative.")
@@ -1668,9 +1694,12 @@ class Geometry
       next unless roof_surface.outsideBoundaryCondition.downcase == "outdoors"
 
       if roof_structure == Constants.RoofStructureTrussCantilever
-
         l, w, h = self.get_surface_dimensions(roof_surface)
-        lift = (h / [l, w].min) * eaves_depth
+        if get_building_type(model) == Constants.BuildingTypeSingleFamilyAttached
+          lift = (h / w) * eaves_depth
+        else
+          lift = (h / [l, w].min) * eaves_depth
+        end
 
         m = self.initialize_transformation_matrix(OpenStudio::Matrix.new(4, 4, 0))
         m[2, 3] = lift
@@ -1845,8 +1874,7 @@ class Geometry
         end
 
         polygon = OpenStudio::subtract(roof_surface_vertices, [new_shading_vertices], 0.001)[0]
-
-        if OpenStudio::getArea(roof_surface_vertices).get - OpenStudio::getArea(polygon).get > 0.001
+        if not polygon.nil? and (OpenStudio::getArea(roof_surface_vertices).get - OpenStudio::getArea(polygon).get > 0.001)
           shading_surfaces_to_remove << shading_surface
         end
       end
@@ -1942,6 +1970,33 @@ class Geometry
       end
     end
 
+    # Neighbors for multifamily buildings
+    if get_building_type(model) == Constants.BuildingTypeMultifamily
+      num_floors = model.getBuilding.additionalProperties.getFeatureAsInteger("num_floors").get
+      level = model.getBuilding.additionalProperties.getFeatureAsString("level").get
+      has_rear_units = model.getBuilding.additionalProperties.getFeatureAsBoolean("has_rear_units").get
+
+      model_spaces = model.getSpaces
+      spaces = []
+      model_spaces.each do |space|
+        next unless Geometry.space_is_above_grade(space)
+
+        spaces << space
+      end
+      unit_height = UnitConversions.convert(Geometry.get_height_of_spaces(spaces), "ft", "m")
+      floor_mults = { "Bottom" => num_floors - 1, "Middle" => (num_floors / 2).floor, "Top" => 0 }
+      greatest_z += unit_height * floor_mults[level]
+
+      unit_length = greatest_y - least_y
+      unit_width = greatest_x - least_x
+      if has_rear_units
+        greatest_y += unit_length
+      end
+
+      # FIXME: does not check where the unit is horizontally (for front and back neighbors)
+      # greatest_x += unit_width
+    end
+
     directions = [[Constants.FacadeLeft, left_neighbor_offset], [Constants.FacadeRight, right_neighbor_offset], [Constants.FacadeBack, back_neighbor_offset], [Constants.FacadeFront, front_neighbor_offset]]
 
     shading_surface_group = OpenStudio::Model::ShadingSurfaceGroup.new(model)
@@ -1954,6 +2009,7 @@ class Geometry
       vertices = OpenStudio::Point3dVector.new
       m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4, 4, 0))
       transformation = OpenStudio::Transformation.new(m)
+
       if facade == Constants.FacadeLeft
         vertices << OpenStudio::Point3d.new(least_x - neighbor_offset, least_y, 0)
         vertices << OpenStudio::Point3d.new(least_x - neighbor_offset, least_y, greatest_z)

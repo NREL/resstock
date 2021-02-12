@@ -1489,7 +1489,9 @@ class FoundationConstructions
 
     # Assign surfaces to Kiva foundation
     wall_surfaces.each do |wall_surface|
-      wall_surface.setAdjacentFoundation(foundation)
+      if wall_surface.outsideBoundaryCondition != "Adiabatic"
+        wall_surface.setAdjacentFoundation(foundation)
+      end
     end
 
     if not apply_slab(runner, model, slab_surface, slab_constr_name,
@@ -1583,14 +1585,15 @@ class FoundationConstructions
     if exposed_perimeter.nil?
       exposed_perimeter = Geometry.calculate_exposed_perimeter(model, [surface], has_fnd_walls)
     end
-    if exposed_perimeter <= 0
-      runner.registerError("Calculated an exposed perimeter <= 0 for slab '#{surface.name.to_s}'.")
-      return false
+    if surface.outsideBoundaryCondition.downcase == "foundation"
+      if exposed_perimeter <= 0
+        runner.registerError("Calculated an exposed perimeter <= 0 for slab '#{surface.name.to_s}'.")
+        return false
+      end
+      # Assign surface to Kiva foundation
+      surface.setAdjacentFoundation(foundation)
+      surface.createSurfacePropertyExposedFoundationPerimeter("TotalExposedPerimeter", UnitConversions.convert(exposed_perimeter, "ft", "m"))
     end
-
-    # Assign surface to Kiva foundation
-    surface.setAdjacentFoundation(foundation)
-    surface.createSurfacePropertyExposedFoundationPerimeter("TotalExposedPerimeter", UnitConversions.convert(exposed_perimeter, "ft", "m"))
 
     return true
   end
@@ -2567,7 +2570,7 @@ class SurfaceTypes
         elsif not is_finished and obc_is_exterior
           surfaces[Constants.SurfaceTypeWallExtUninsUnfin] << surface
 
-        # Interior finished uninsulated finished
+        # Interior finished uninsulated finished (shared walls)
         elsif is_finished and obc_is_adjacent and Geometry.space_is_finished(adjacent_space)
           surfaces[Constants.SurfaceTypeWallIntFinUninsFin] << surface
 
@@ -2580,15 +2583,15 @@ class SurfaceTypes
           surfaces[Constants.SurfaceTypeWallIntFinInsUnfin] << surface
 
         # Exterior finished basement
-        elsif Geometry.is_finished_basement(space) and obc_is_foundation
+        elsif Geometry.is_finished_basement(space) and (obc_is_foundation or obc_is_adiabatic)
           surfaces[Constants.SurfaceTypeWallFndGrndFinB] << surface
 
         # Exterior unfinished basement
-        elsif Geometry.is_unfinished_basement(space) and obc_is_foundation
+        elsif Geometry.is_unfinished_basement(space) and (obc_is_foundation or obc_is_adiabatic)
           surfaces[Constants.SurfaceTypeWallFndGrndUnfinB] << surface
 
         # Exterior crawlspace
-        elsif Geometry.is_crawl(space) and obc_is_foundation
+        elsif Geometry.is_crawl(space) and (obc_is_foundation or obc_is_adiabatic)
           surfaces[Constants.SurfaceTypeWallFndGrndCS] << surface
 
         # Adiabatic finished
@@ -2611,6 +2614,7 @@ class SurfaceTypes
       Constants.SurfaceTypeRoofFinInsExt => [],
       Constants.SurfaceTypeRoofUnfinInsExt => [],
       Constants.SurfaceTypeRoofUnfinUninsExt => [],
+      Constants.SurfaceTypeRoofAdiabatic => [],
     }
 
     model.getSpaces.each do |space|
@@ -2641,10 +2645,8 @@ class SurfaceTypes
         elsif obc_is_exterior
           surfaces[Constants.SurfaceTypeRoofUnfinUninsExt] << surface
 
-        # Adiabatic
         elsif obc_is_adiabatic
-          surfaces[Constants.SurfaceTypeRoofUnfinUninsExt] << surface
-
+          surfaces[Constants.SurfaceTypeRoofAdiabatic] << surface
         end
       end
     end
@@ -2704,6 +2706,7 @@ class SurfaceTypes
       end
     end
 
+    building_type = Geometry.get_building_type(model)
     # Floors
     model.getSpaces.each do |space|
       is_finished = Geometry.space_is_finished(space)
@@ -2727,32 +2730,36 @@ class SurfaceTypes
         if obc_is_adjacent and Geometry.is_unfinished_attic(space) and Geometry.space_is_finished(adjacent_space)
           surfaces[Constants.SurfaceTypeFloorFinInsUnfinAttic] << surface
 
-        # Floor between finished spaces
-        elsif is_finished and obc_is_adjacent and Geometry.space_is_finished(adjacent_space)
+        # Floor between finished spaces [SFD/SFA]
+        elsif (building_type == Constants.BuildingTypeSingleFamilyDetached or building_type == Constants.BuildingTypeSingleFamilyAttached) and is_finished and obc_is_adjacent and Geometry.space_is_finished(adjacent_space)
           surfaces[Constants.SurfaceTypeFloorFinUninsFin] << surface
 
-        # Floor between unfinished spaces
-        elsif not is_finished and obc_is_adjacent and not Geometry.space_is_finished(adjacent_space)
+        # Floor between finished spaces [MF]
+        elsif is_finished and obc_is_adiabatic
+          surfaces[Constants.SurfaceTypeFloorFinUninsFin] << surface
+
+        # Floor between unfinished spaces (eg, corridor floor)
+        elsif not is_finished and (obc_is_adjacent and not Geometry.space_is_finished(adjacent_space)) or (obc_is_adiabatic and not Geometry.is_foundation(space))
           surfaces[Constants.SurfaceTypeFloorUnfinUninsUnfin] << surface
 
         # Finished basement floor
-        elsif Geometry.is_finished_basement(space) and obc_is_foundation
+        elsif Geometry.is_finished_basement(space) and (obc_is_foundation or obc_is_adiabatic)
           surfaces[Constants.SurfaceTypeFloorFndGrndFinB] << surface
 
         # Unfinished basement floor
-        elsif Geometry.is_unfinished_basement(space) and obc_is_foundation
+        elsif Geometry.is_unfinished_basement(space) and (obc_is_foundation or obc_is_adiabatic)
           surfaces[Constants.SurfaceTypeFloorFndGrndUnfinB] << surface
 
         # Crawlspace floor
-        elsif Geometry.is_crawl(space) and obc_is_foundation
+        elsif Geometry.is_crawl(space) and (obc_is_foundation or obc_is_adiabatic)
           surfaces[Constants.SurfaceTypeFloorFndGrndCS] << surface
 
         # Finished slab
-        elsif above_grade and is_finished and obc_is_foundation
+        elsif above_grade and is_finished and (obc_is_foundation or obc_is_adiabatic)
           surfaces[Constants.SurfaceTypeFloorFndGrndFinSlab] << surface
 
         # Unfinished slab
-        elsif above_grade and not is_finished and obc_is_foundation
+        elsif above_grade and not is_finished and (obc_is_foundation or obc_is_adiabatic)
           surfaces[Constants.SurfaceTypeFloorFndGrndUnfinSlab] << surface
 
         # Interzonal floor

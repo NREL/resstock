@@ -37,21 +37,21 @@ class DoorAreaTest < MiniTest::Test
   end
 
   def test_single_family_attached_new_construction
-    num_units = 4
+    num_units = 1
     args_hash = {}
     expected_values = { "Constructions" => 0 }
     _test_measure("SFA_4units_1story_FB_UA_Denver.osm", args_hash, 0, 20 * num_units, 0, expected_values)
   end
 
   def test_multifamily_new_construction_interior_corridor
-    num_units = 8
+    num_units = 1
     args_hash = {}
     expected_values = { "Constructions" => 0 }
     _test_measure("MF_8units_1story_SL_Denver.osm", args_hash, 0, 0, 20 * num_units, expected_values)
   end
 
   def test_multifamily_new_construction_exterior_corridor
-    num_units = 8
+    num_units = 1
     args_hash = {}
     expected_values = { "Constructions" => 0 }
     _test_measure("MF_8units_1story_SL_Denver_ExteriorCorridor.osm", args_hash, 0, 20 * num_units, 0, expected_values)

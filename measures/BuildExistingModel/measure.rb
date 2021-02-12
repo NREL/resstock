@@ -209,8 +209,6 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
         runner.registerInfo("The weather station WMO has not been set appropriately in the EPW weather file header.")
       end
     end
-    register_value(runner, "units_represented", "#{model.getBuilding.additionalProperties.getFeatureAsInteger("Total Units Represented").get}")
-    register_value(runner, "units_modeled", "#{model.getBuilding.additionalProperties.getFeatureAsInteger("Total Units Modeled").get}")
 
     # Determine weight
     if number_of_buildings_represented.is_initialized

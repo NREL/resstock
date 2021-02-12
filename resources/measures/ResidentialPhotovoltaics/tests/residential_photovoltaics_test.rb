@@ -324,7 +324,7 @@ class ResidentialPhotovoltaicsTest < MiniTest::Test
   end
 
   def test_faces_south_single_family_attached_new_construction
-    num_units = 4
+    num_units = 1
     args_hash = {}
     expected_num_del_objects = {}
     expected_num_new_objects = { "GeneratorPVWatts" => 1, "ElectricLoadCenterInverterPVWatts" => 1, "ElectricLoadCenterDistribution" => 1 }
@@ -333,7 +333,7 @@ class ResidentialPhotovoltaicsTest < MiniTest::Test
   end
 
   def test_faces_south_multifamily_new_construction
-    num_units = 8
+    num_units = 1
     args_hash = {}
     expected_num_del_objects = {}
     expected_num_new_objects = { "GeneratorPVWatts" => 1, "ElectricLoadCenterInverterPVWatts" => 1, "ElectricLoadCenterDistribution" => 1 }
