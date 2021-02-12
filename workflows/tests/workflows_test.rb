@@ -33,7 +33,7 @@ class RegressionWorkflowTest < MiniTest::Test
     Dir["#{@top_dir}/*.osw"].each do |osw|
       next if File.basename(osw).include? 'out'
 
-      puts "\nOSW: #{osw} ...\n"
+      puts "\n\tOSW: #{osw} ...\n"
 
       RunOSWs.add_simulation_output_report(osw)
       out_osw, result = RunOSWs.run_and_check(osw, @top_dir)
@@ -56,7 +56,8 @@ class RegressionWorkflowTest < MiniTest::Test
 
     results_dir = File.join(@top_dir, 'results')
     RunOSWs._rm_path(results_dir)
-    RunOSWs.write_summary_results(results_dir, all_results, 'feature.csv')
+    csv_out = RunOSWs.write_summary_results(results_dir, all_results, 'feature.csv')
+    puts "\nWrote: #{csv_out}\n\n"
   end
 
   private

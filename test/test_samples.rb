@@ -90,7 +90,7 @@ class IntegrationWorkflowTest < MiniTest::Test
       Dir.mkdir(xml_dir) unless File.exist?(xml_dir)
 
       (1..num_samples).to_a.each do |building_unit_id|
-        puts "\n\tBuilding Unit ID: #{building_unit_id} ...\n\n"
+        puts "\n\tBuilding Unit ID: #{building_unit_id} ...\n"
 
         change_building_unit_id(osw, building_unit_id)
         out_osw, result = RunOSWs.run_and_check(osw, @top_dir)
@@ -125,6 +125,7 @@ class IntegrationWorkflowTest < MiniTest::Test
     results_dir = File.join(parent_dir, 'results')
     RunOSWs._rm_path(results_dir)
     csv_out = RunOSWs.write_summary_results(results_dir, all_results)
+    puts "\nWrote: #{csv_out}\n\n"
 
     return csv_out
   end
