@@ -84,9 +84,14 @@ jobs:
         with:
           python-version: '3.8.x'
 
-      - name: Setup python deps
+      - name: Setup git branch and python deps
         shell: bash
         run: |
+          branch_name="${{ github.head_ref }}"
+          echo "Checking out branch: $branch_name"
+          git checkout -b $branch_name || git checkout $branch_name
+          git status
+
           pip install numpy
           pip install pandas
           pip install seaborn
@@ -121,14 +126,19 @@ jobs:
       - name: Commit latest results and comparison figures
         shell: bash        
         run: |
+          git status
           git config --global user.email "github-action@users.noreply.github.com"
           git config --global user.name "GitHub Action"
+
           git add test/test_samples_osw/results/project_testing_feature.csv
           git add test/test_samples_osw/results/figures
           git add workflows/results/feature.csv
           git add workflows/results/figures
+
           git commit -m "Figure comparisons."
-          git push
+          branch_name="${{ github.head_ref }}"
+          echo "Pushing to branch: $branch_name"
+          git push -u origin $branch_name
 
   docs:
     runs-on: ubuntu-latest
