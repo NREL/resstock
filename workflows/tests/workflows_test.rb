@@ -26,7 +26,7 @@ class RegressionWorkflowTest < MiniTest::Test
 
     cli_path = OpenStudio.getOpenStudioCLI
     command = "cd #{@top_dir}/.. && \"#{cli_path}\" tasks.rb update_measures"
-    # system(command)
+    system(command)
 
     create_lib_folder
 
