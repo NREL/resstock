@@ -90,6 +90,7 @@ jobs:
           branch_name="${{ github.head_ref }}"
           echo "Checking out branch: $branch_name"
           git checkout -b $branch_name || git checkout $branch_name
+          git pull origin $branch_name
           git status
 
           pip install numpy
