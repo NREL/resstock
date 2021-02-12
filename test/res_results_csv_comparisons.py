@@ -9,7 +9,7 @@ A class to compare two resstock runs and the resulting differences in the result
 """
 
 # Import Modules
-import os
+import os, sys
 # import boto3
 # import logging
 import numpy as np
@@ -89,9 +89,7 @@ class res_results_csv_comparisons:
             # os.makedirs(create_path)
 
         # Directory for the queried data
-        create_path = os.path.join(
-            'test/results/figures'
-        )
+        create_path = os.path.join(os.path.dirname(self.base_table_name), 'figures')
         if not os.path.exists(create_path):
             os.makedirs(create_path)
 
@@ -334,10 +332,7 @@ class res_results_csv_comparisons:
                 ax[i].set_title("%s\n%s" % (model_type, col))
                 i += 1
             plt.tight_layout()
-            output_path = os.path.join(
-                'test/results/figures',
-                col + '.png'
-            )
+            output_path = os.path.join(os.path.dirname(self.base_table_name), 'figures', col + '.png')
             plt.savefig(output_path, bbox_inches='tight')
             if show_plots:
                 plt.show()
@@ -347,8 +342,8 @@ class res_results_csv_comparisons:
 if __name__ == '__main__':
 
     # Inputs
-    base_table_name = 'test/results/project_testing_develop.csv'
-    feature_table_name = 'test/results/project_testing_feature.csv'
+    base_table_name = sys.argv[1]
+    feature_table_name = sys.argv[2]
     groupby = [
         'build_existing_model.geometry_building_type_recs',  # Needed to split out by models
         'build_existing_model.county'  # Choose any other characteristic(s)
