@@ -115,9 +115,7 @@ jobs:
       - name: Make regression comparison figures
         shell: bash
         run: |
-          ls examples
-          ls examples/results
-          cp examples/results/feature.csv workflows/results/feature.csv
+          cp examples/feature.csv workflows/results/feature.csv
           python test/res_results_csv_comparisons.py workflows/results/develop.csv workflows/results/feature.csv
 
       - name: Commit latest results and comparison figures
