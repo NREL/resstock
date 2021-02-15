@@ -30,7 +30,7 @@ class RegressionWorkflowTest < MiniTest::Test
 
     create_lib_folder
 
-    Dir["#{@top_dir}/*.osw"].each do |osw|
+    Dir["#{@top_dir}/*.osw"].sort.each do |osw|
       next if File.basename(osw).include? 'out'
 
       puts "\n\tOSW: #{osw} ...\n"
