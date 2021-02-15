@@ -11,19 +11,19 @@ jobs:
 
       - name: Install gems
         run: |
-          #rm -f Gemfile.lock && bundle install
+          rm -f Gemfile.lock && bundle install
 
       - name: Run integrity checks for all projects
         run: |
-          #rake unit_tests:project_integrity_checks
+          rake unit_tests:project_integrity_checks
 
       - name: Run all integrity check unit tests
         run: |
-          #rake unit_tests:integrity_check_tests
+          rake unit_tests:integrity_check_tests
 
       - name: Run all measure tests
         run: |
-          #rake unit_tests:measure_tests
+          rake unit_tests:measure_tests
 
   integration-tests:
     if: contains(github.event.pull_request.labels.*.name, 'Ready for Testing')
