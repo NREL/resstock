@@ -118,7 +118,7 @@ class IntegrationWorkflowTest < MiniTest::Test
       end
     end
 
-    Dir["#{parent_dir}/workflow*.osw"].each do |osw|
+    Dir["#{@top_dir}/workflow*.osw"].each do |osw|
       change_building_unit_id(osw, 1)
     end
 
