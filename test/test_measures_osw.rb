@@ -34,13 +34,13 @@ class TestResStockMeasuresOSW < MiniTest::Test
         end
       end
 
-      (1..num_samples).to_a.each do |building_unit_id|
-        puts "\nBuilding Unit ID: #{building_unit_id} ...\n"
+      (1..num_samples).to_a.each do |building_id|
+        puts "\nBuilding Unit ID: #{building_id} ...\n"
 
-        change_building_unit_id(osw, building_unit_id)
+        change_building_id(osw, building_id)
         RunOSWs.add_simulation_output_report(osw)
         out_osw, result = RunOSWs.run_and_check(osw, parent_dir)
-        result['OSW'] = "#{building_unit_id}.osw"
+        result['OSW'] = "#{building_id}.osw"
         all_results << result
 
         # Check workflow was successful
@@ -51,21 +51,21 @@ class TestResStockMeasuresOSW < MiniTest::Test
         # Save measures.osw
         unless measures_osw_dir.nil?
           measures_osw = File.join(parent_dir, 'run', 'measures.osw')
-          new_measures_osw = File.join(measures_osw_dir, "#{building_unit_id}.osw")
+          new_measures_osw = File.join(measures_osw_dir, "#{building_id}.osw")
           FileUtils.mv(measures_osw, new_measures_osw)
         end
 
         # Save measures-upgrade.osw
         next if measures_upgrade_osw_dir.nil?
         measures_upgrade_osw = File.join(parent_dir, 'run', 'measures-upgrade.osw')
-        new_measures_upgrade_osw = File.join(measures_upgrade_osw_dir, "#{building_unit_id}.osw")
+        new_measures_upgrade_osw = File.join(measures_upgrade_osw_dir, "#{building_id}.osw")
 
         FileUtils.mv(measures_upgrade_osw, new_measures_upgrade_osw)
       end
     end
 
     Dir["#{parent_dir}/workflow.osw"].each do |osw|
-      change_building_unit_id(osw, 1)
+      change_building_id(osw, 1)
     end
 
     FileUtils.rm_rf(lib_dir) if File.exist?(lib_dir)
@@ -98,12 +98,12 @@ class TestResStockMeasuresOSW < MiniTest::Test
     return lib_dir
   end
 
-  def change_building_unit_id(osw, building_unit_id)
+  def change_building_id(osw, building_id)
     json = JSON.parse(File.read(osw), symbolize_names: true)
     json[:steps].each do |measure|
       next if measure[:measure_dir_name] != 'BuildExistingModel'
 
-      measure[:arguments][:building_unit_id] = "#{building_unit_id}"
+      measure[:arguments][:building_id] = "#{building_id}"
     end
     File.open(osw, 'w') do |f|
       f.write(JSON.pretty_generate(json))
