@@ -139,7 +139,7 @@ def integrity_check(project_dir_name, housing_characteristics_dir = 'housing_cha
   parameters_options = {}
   CSV.foreach(output_file, headers: true).each do |row|
     row.each do |parameter_name, option_name|
-      next if parameter_name == 'Building Unit'
+      next if parameter_name == 'Building'
 
       unless parameters_options.keys.include? parameter_name
         parameters_options[parameter_name] = []
@@ -161,7 +161,7 @@ def integrity_check(project_dir_name, housing_characteristics_dir = 'housing_cha
   err = ''
   CSV.foreach(output_file, headers: true).each do |row|
     row.each do |parameter_name, option_name|
-      next if parameter_name == 'Building Unit'
+      next if parameter_name == 'Building'
 
       parameters_options_measure_args[parameter_name][option_name].each do |measure_name, args|
         parameters_options_measure_args.each do |parameter_name_2, options|
