@@ -89,12 +89,12 @@ class IntegrationWorkflowTest < MiniTest::Test
       xml_dir = File.join(parent_dir, 'xml')
       Dir.mkdir(xml_dir) unless File.exist?(xml_dir)
 
-      (1..num_samples).to_a.each do |building_unit_id|
-        puts "\n\tBuilding Unit ID: #{building_unit_id} ...\n\n"
+      (1..num_samples).to_a.each do |building_id|
+        puts "\n\tBuilding Unit ID: #{building_id} ...\n\n"
 
-        change_building_unit_id(osw, building_unit_id)
+        change_building_id(osw, building_id)
         out_osw, result = RunOSWs.run_and_check(osw, @top_dir)
-        result['OSW'] = "#{building_unit_id}.osw"
+        result['OSW'] = "#{building_id}.osw"
         all_results << result
 
         result = check_out_osw(result, out_osw)
@@ -108,7 +108,7 @@ class IntegrationWorkflowTest < MiniTest::Test
             if type == 'xml'
               dir = xml_dir
             end
-            to = File.join(dir, "#{building_unit_id}-#{osw_basename.gsub('.osw', '')}-#{scen}.#{type}")
+            to = File.join(dir, "#{building_id}-#{osw_basename.gsub('.osw', '')}-#{scen}.#{type}")
 
             if File.exist?(from)
               FileUtils.mv(from, to)
@@ -119,7 +119,7 @@ class IntegrationWorkflowTest < MiniTest::Test
     end
 
     Dir["#{parent_dir}/workflow*.osw"].each do |osw|
-      change_building_unit_id(osw, 1)
+      change_building_id(osw, 1)
     end
 
     results_dir = File.join(parent_dir, 'results')
@@ -142,12 +142,12 @@ class IntegrationWorkflowTest < MiniTest::Test
     FileUtils.cp(File.join(@resources_dir, @outfile), File.join(@lib_dir, 'housing_characteristics'))
   end
 
-  def change_building_unit_id(osw, building_unit_id)
+  def change_building_id(osw, building_id)
     json = JSON.parse(File.read(osw), symbolize_names: true)
     json[:steps].each do |measure|
       next if measure[:measure_dir_name] != 'BuildExistingModel'
 
-      measure[:arguments][:building_unit_id] = "#{building_unit_id}"
+      measure[:arguments][:building_id] = "#{building_id}"
     end
     File.open(osw, 'w') do |f|
       f.write(JSON.pretty_generate(json))

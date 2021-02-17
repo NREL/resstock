@@ -40,7 +40,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
   def arguments(model)
     args = OpenStudio::Ruleset::OSArgumentVector.new
 
-    arg = OpenStudio::Ruleset::OSArgument.makeIntegerArgument('building_unit_id', true)
+    arg = OpenStudio::Ruleset::OSArgument.makeIntegerArgument('building_id', true)
     arg.setDisplayName('Building Unit ID')
     arg.setDescription('The building unit number (between 1 and the number of samples).')
     args << arg
@@ -147,19 +147,19 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     check_file_exists(buildstock_csv, runner)
 
     # Retrieve all data associated with sample number
-    bldg_data = get_data_for_sample(buildstock_csv, args['building_unit_id'], runner)
+    bldg_data = get_data_for_sample(buildstock_csv, args['building_id'], runner)
 
     # Retrieve order of parameters to run
     parameters_ordered = get_parameters_ordered_from_options_lookup_tsv(lookup_file, characteristics_dir)
 
-    # Retrieve options that have been selected for this building_unit_id
+    # Retrieve options that have been selected for this building_id
     parameters_ordered.each do |parameter_name|
       # Register the option chosen for parameter_name with the runner
       option_name = bldg_data[parameter_name]
       register_value(runner, parameter_name, option_name)
     end
 
-    # Determine whether this building_unit_id has been downselected based on the
+    # Determine whether this building_id has been downselected based on the
     # {parameter_name: option_name} pairs
     if args['downselect_logic'].is_initialized
 
@@ -240,7 +240,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     measures['BuildResidentialHPXML'][0]['simulation_control_run_period_calendar_year'] = args['simulation_control_run_period_calendar_year'].get if args['simulation_control_run_period_calendar_year'].is_initialized
 
     # Get the schedules random seed
-    measures['BuildResidentialHPXML'][0]['schedules_random_seed'] = args['building_unit_id']
+    measures['BuildResidentialHPXML'][0]['schedules_random_seed'] = args['building_id']
 
     if not apply_child_measures(hpxml_measures_dir, { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'], 'HPXMLtoOpenStudio' => measures['HPXMLtoOpenStudio'] }, new_runner, model, workflow_json, nil, true, { 'BuildExistingModel' => runner })
       new_runner.result.errors.each do |error|
@@ -293,14 +293,14 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     return true
   end
 
-  def get_data_for_sample(buildstock_csv, building_unit_id, runner)
+  def get_data_for_sample(buildstock_csv, building_id, runner)
     CSV.foreach(buildstock_csv, headers: true) do |sample|
-      next if sample['Building'].to_i != building_unit_id
+      next if sample['Building'].to_i != building_id
 
       return sample
     end
     # If we got this far, couldn't find the sample #
-    msg = "Could not find row for #{building_unit_id} in #{File.basename(buildstock_csv)}."
+    msg = "Could not find row for #{building_id} in #{File.basename(buildstock_csv)}."
     runner.registerError(msg)
     fail msg
   end
