@@ -295,7 +295,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
 
   def get_data_for_sample(buildstock_csv, building_unit_id, runner)
     CSV.foreach(buildstock_csv, headers: true) do |sample|
-      next if sample['Building Unit'].to_i != building_unit_id
+      next if sample['Building'].to_i != building_unit_id
 
       return sample
     end
