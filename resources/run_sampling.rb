@@ -55,8 +55,8 @@ class RunSampling
     results_data = []
     results_data_cols = {}
 
-    # Add building unit numbers
-    results_data_bldgs = ['Building Unit'] + Array(1..num_samples)
+    # Add building numbers
+    results_data_bldgs = ['Building'] + Array(1..num_samples)
     results_data << results_data_bldgs
     results_data_cols[results_data_bldgs[0]] = results_data.size - 1
 
