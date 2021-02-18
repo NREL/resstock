@@ -4,6 +4,7 @@ Features
 
 - Model multifamily and single-family attached buildings as individual dwelling units ([#439](https://github.com/NREL/resstock/pull/439))
 - Reduce vacant unit heating setpoints to 55F ([#541](https://github.com/NREL/resstock/pull/541))
+- Introduce a CEC Building Climate Zone tag for samples in California ([#548](https://github.com/NREL/resstock/pull/548))
 - Increase LED saturation to approximately 2019 levels ([#545](https://github.com/NREL/resstock/pull/545))
 
 Fixes
