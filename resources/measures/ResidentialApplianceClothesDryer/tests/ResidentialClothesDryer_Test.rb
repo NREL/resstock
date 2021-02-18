@@ -272,45 +272,45 @@ class ResidentialClothesDryerTest < MiniTest::Test
   end
 
   def test_single_family_attached_new_construction
-    num_units = 4
+    num_units = 1
     args_hash = {}
     args_hash["fuel_type"] = Constants.FuelTypeGas
     expected_num_del_objects = {}
     expected_num_new_objects = { "OtherEquipment" => num_units, "OtherEquipmentDefinition" => num_units, "ElectricEquipment" => num_units, "ElectricEquipmentDefinition" => num_units, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => num_units * 80.98, "Annual_therm" => num_units * 36.71, "Annual_gal" => 0, "FuelType" => Constants.FuelTypeGas, "Location" => args_hash["location"] }
-    _test_measure("SFA_4units_1story_FB_UA_3Beds_2Baths_Denver_WHTank_ClothesWasher.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
+    _test_measure("SFA_4units_1story_FB_UA_3Beds_2Baths_Denver_WHTank_ClothesWasher.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 0)
   end
 
   def test_single_family_attached_new_construction_finished_basement
-    num_units = 4
+    num_units = 1
     args_hash = {}
     args_hash["fuel_type"] = Constants.FuelTypeGas
     args_hash["location"] = Constants.SpaceTypeFinishedBasement
     expected_num_del_objects = {}
     expected_num_new_objects = { "OtherEquipment" => num_units, "OtherEquipmentDefinition" => num_units, "ElectricEquipment" => num_units, "ElectricEquipmentDefinition" => num_units, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => num_units * 80.98, "Annual_therm" => num_units * 36.71, "Annual_gal" => 0, "FuelType" => Constants.FuelTypeGas, "Location" => args_hash["location"] }
-    _test_measure("SFA_4units_1story_FB_UA_3Beds_2Baths_Denver_WHTank_ClothesWasher.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
+    _test_measure("SFA_4units_1story_FB_UA_3Beds_2Baths_Denver_WHTank_ClothesWasher.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 0)
   end
 
   def test_single_family_attached_new_construction_unfinished_basement
-    num_units = 4
+    num_units = 1
     args_hash = {}
     args_hash["fuel_type"] = Constants.FuelTypeGas
     args_hash["location"] = Constants.SpaceTypeUnfinishedBasement
     expected_num_del_objects = {}
     expected_num_new_objects = { "OtherEquipment" => num_units, "OtherEquipmentDefinition" => num_units, "ElectricEquipment" => num_units, "ElectricEquipmentDefinition" => num_units, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => num_units * 80.98, "Annual_therm" => num_units * 36.71, "Annual_gal" => 0, "FuelType" => Constants.FuelTypeGas, "Location" => args_hash["location"] }
-    _test_measure("SFA_4units_1story_UB_UA_3Beds_2Baths_Denver_WHTank_ClothesWasher.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
+    _test_measure("SFA_4units_1story_UB_UA_3Beds_2Baths_Denver_WHTank_ClothesWasher.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 0)
   end
 
   def test_multifamily_new_construction
-    num_units = 8
+    num_units = 1
     args_hash = {}
     args_hash["fuel_type"] = Constants.FuelTypeGas
     expected_num_del_objects = {}
     expected_num_new_objects = { "OtherEquipment" => num_units, "OtherEquipmentDefinition" => num_units, "ElectricEquipment" => num_units, "ElectricEquipmentDefinition" => num_units, "ScheduleFile" => 1 }
-    expected_values = { "Annual_kwh" => 647.81, "Annual_therm" => 293.69, "Annual_gal" => 0, "FuelType" => Constants.FuelTypeGas, "Location" => args_hash["location"] }
-    _test_measure("MF_8units_1story_SL_3Beds_2Baths_Denver_WHTank_ClothesWasher.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
+    expected_values = { "Annual_kwh" => num_units * 80.98, "Annual_therm" => num_units * 36.71, "Annual_gal" => 0, "FuelType" => Constants.FuelTypeGas, "Location" => args_hash["location"] }
+    _test_measure("MF_8units_1story_SL_3Beds_2Baths_Denver_WHTank_ClothesWasher.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 0)
   end
 
   private

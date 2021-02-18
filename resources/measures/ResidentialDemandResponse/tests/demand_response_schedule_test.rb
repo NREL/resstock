@@ -208,6 +208,7 @@ class DemandResponseScheduleTest < MiniTest::Test
   end
 
   def test_normal_tsp_MF
+    num_units = 1
     args_hash = {}
     args_hash["offset_magnitude_heat"] = 4
     args_hash["offset_magnitude_cool"] = 3
@@ -222,7 +223,7 @@ class DemandResponseScheduleTest < MiniTest::Test
                         "cool_tsp_non_dr" => 76, # default
                         "cool_tsp_dr_plus" => 79,
                         "cool_tsp_dr_minus" => 73 }
-    _test_measure("MF_40units_4story_SL_3Beds_2Baths_Denver_Furnace_CentralAC.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 84)
+    _test_measure("MF_40units_4story_SL_3Beds_2Baths_Denver_Furnace_CentralAC.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 2 * num_units + 4)
     # 84 assertions: 2 DR sched found, 2 Thermostat found, 40 setting cooling TSP, 40 setting heating TSP
   end
 

@@ -317,7 +317,7 @@ def get_measure_args_from_option_names(lookup_file, option_names, parameter_name
         options_measure_args[current_option][measure_dir] = args
       end
     else
-      break if found_options.all? { |elem| elem == true }
+      break if found_options.values.all? { |elem| elem == true }
     end
   end
   option_names.each do |option_name|

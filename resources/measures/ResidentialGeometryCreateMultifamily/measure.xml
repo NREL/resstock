@@ -2,13 +2,13 @@
   <schema_version>3.0</schema_version>
   <name>create_residential_multifamily_geometry</name>
   <uid>9bc07973-98a4-46fc-b643-e280628817c5</uid>
-  <version_id>bf0744c0-e959-4293-a2ba-10aa67ca0b1e</version_id>
-  <version_modified>20200515T170006Z</version_modified>
+  <version_id>421aae15-69ac-44a6-b20c-f03d126b64c0</version_id>
+  <version_modified>20210218T225956Z</version_modified>
   <xml_checksum>2AF3A68E</xml_checksum>
   <class_name>CreateResidentialMultifamilyGeometry</class_name>
-  <display_name>Create Residential Multifamily Geometry</display_name>
-  <description>Sets the basic geometry for the multifamily building, where all units are 1 story and stacked if the building is multiple stories. Sets the number of bedrooms, bathrooms, and occupants in the building. See https://github.com/NREL/resstock#workflows for supported workflows using this measure.</description>
-  <modeler_description>Creates multifamily geometry. Also, sets (or replaces) BuildingUnit objects that store the number of bedrooms and bathrooms associated with the model. Sets (or replaces) the People object for each finished space in the model.</modeler_description>
+  <display_name>CreateResidentialMultifamilyGeometry</display_name>
+  <description>Sets the geometry for a single unit in a multifamily building based on the user-specified location of the unit. Sets the number of bedrooms, bathrooms, and occupants in the unit. See https://github.com/NREL/resstock#workflows for supported workflows using this measure.</description>
+  <modeler_description>Creates multifamily geometry for a single unit. Also, sets (or replaces) BuildingUnit objects that store the number of bedrooms and bathrooms associated with the model. Sets (or replaces) the People object for each finished space in the model.</modeler_description>
   <arguments>
     <argument>
       <name>unit_ffa</name>
@@ -258,21 +258,56 @@
       <default_value>180</default_value>
     </argument>
     <argument>
-      <name>minimal_collapsed</name>
-      <display_name>Minimal Collapsed Building</display_name>
-      <description>Collapse the building down into only corner, end, and/or middle units.</description>
-      <type>Boolean</type>
+      <name>level</name>
+      <display_name>Unit Level</display_name>
+      <description>The level of the unit (Top, Middle, Bottom)</description>
+      <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>false</default_value>
+      <default_value>Bottom</default_value>
       <choices>
         <choice>
-          <value>true</value>
-          <display_name>true</display_name>
+          <value>Bottom</value>
+          <display_name>Bottom</display_name>
         </choice>
         <choice>
-          <value>false</value>
-          <display_name>false</display_name>
+          <value>Middle</value>
+          <display_name>Middle</display_name>
+        </choice>
+        <choice>
+          <value>Top</value>
+          <display_name>Top</display_name>
+        </choice>
+        <choice>
+          <value>None</value>
+          <display_name>None</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>horz_location</name>
+      <display_name>Horizontal Location of the Unit</display_name>
+      <description>The horizontal location of the unit when viewing the front of the building (Left, Middle, Right)</description>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>Left</default_value>
+      <choices>
+        <choice>
+          <value>Right</value>
+          <display_name>Right</display_name>
+        </choice>
+        <choice>
+          <value>Middle</value>
+          <display_name>Middle</display_name>
+        </choice>
+        <choice>
+          <value>Left</value>
+          <display_name>Left</display_name>
+        </choice>
+        <choice>
+          <value>None</value>
+          <display_name>None</display_name>
         </choice>
       </choices>
     </argument>
@@ -306,21 +341,21 @@
   </attributes>
   <files>
     <file>
+      <filename>create_residential_multifamily_geometry_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>42BF77AE</checksum>
+    </file>
+    <file>
       <version>
         <software_program>OpenStudio</software_program>
-        <identifier>1.12.2</identifier>
-        <min_compatible>2.0.4</min_compatible>
+        <identifier>2.7.0</identifier>
+        <min_compatible>2.7.0</min_compatible>
       </version>
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>A96A827A</checksum>
-    </file>
-    <file>
-      <filename>create_residential_multifamily_geometry_test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>D4168322</checksum>
+      <checksum>664E2B46</checksum>
     </file>
   </files>
 </measure>

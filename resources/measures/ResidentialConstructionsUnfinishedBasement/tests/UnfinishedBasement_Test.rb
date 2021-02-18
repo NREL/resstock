@@ -135,38 +135,38 @@ class ProcessConstructionsUnfinishedBasementTest < MiniTest::Test
   end
 
   def test_single_family_attached_new_construction
-    num_units = 4
+    num_units = 1
     args_hash = {}
     expected_num_del_objects = {}
-    expected_num_new_objects = { "Material" => 10, "Construction" => 10, "FoundationKiva" => num_units, "FoundationKivaSettings" => 1, "SurfacePropertyExposedFoundationPerimeter" => num_units }
-    expected_values = { "ExposedPerimeter" => 254.558 }
+    expected_num_new_objects = { "Material" => 7, "Construction" => 4, "FoundationKiva" => num_units, "FoundationKivaSettings" => 1, "SurfacePropertyExposedFoundationPerimeter" => num_units }
+    expected_values = { "ExposedPerimeter" => 21.21 + 21.21 + 42.43 }
     _test_measure("SFA_4units_1story_UB_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
   def test_single_family_attached_new_construction2
-    num_units = 10
+    num_units = 1
     args_hash = {}
     expected_num_del_objects = {}
-    expected_num_new_objects = { "Material" => 16, "Construction" => 22, "FoundationKiva" => num_units, "FoundationKivaSettings" => 1, "SurfacePropertyExposedFoundationPerimeter" => num_units }
-    expected_values = { "ExposedPerimeter" => 360 }
+    expected_num_new_objects = { "Material" => 7, "Construction" => 4, "FoundationKiva" => num_units, "FoundationKivaSettings" => 1, "SurfacePropertyExposedFoundationPerimeter" => num_units }
+    expected_values = { "ExposedPerimeter" => 15 + 15 + 30 }
     _test_measure("SFA_10units_2story_UB_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
   def test_multifamily_new_construction
-    num_units = 8 + 1
+    num_units = 1 + 1
     args_hash = {}
     expected_num_del_objects = {}
-    expected_num_new_objects = { "Material" => 15, "Construction" => 20, "FoundationKiva" => num_units, "FoundationKivaSettings" => 1, "SurfacePropertyExposedFoundationPerimeter" => num_units }
-    expected_values = { "ExposedPerimeter" => 359.411 }
+    expected_num_new_objects = { "Material" => 8, "Construction" => 6, "FoundationKiva" => num_units, "FoundationKivaSettings" => 1, "SurfacePropertyExposedFoundationPerimeter" => 2 }
+    expected_values = { "ExposedPerimeter" => 42.43 + 21.21 + 5 }
     _test_measure("MF_8units_1story_UB_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
   def test_multifamily_new_construction2
-    num_units = 10 + 1
+    num_units = 1 + 1
     args_hash = {}
     expected_num_del_objects = {}
-    expected_num_new_objects = { "Material" => 17, "Construction" => 24, "FoundationKiva" => num_units, "FoundationKivaSettings" => 1, "SurfacePropertyExposedFoundationPerimeter" => num_units }
-    expected_values = { "ExposedPerimeter" => 401.8 }
+    expected_num_new_objects = { "Material" => 8, "Construction" => 6, "FoundationKiva" => num_units, "FoundationKivaSettings" => 1, "SurfacePropertyExposedFoundationPerimeter" => 2 }
+    expected_values = { "ExposedPerimeter" => 42.43 + 21.21 + 5 }
     _test_measure("MF_40units_4story_UB_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
