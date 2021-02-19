@@ -798,6 +798,7 @@ class ScheduleGenerator
                  model:,
                  weather:,
                  building_id: nil,
+                 state:,
                  num_occupants:,
                  vacancy_start_date:,
                  vacancy_end_date:,
@@ -808,6 +809,7 @@ class ScheduleGenerator
     @model = model
     @weather = weather
     @building_id = building_id
+    @state = state
     @num_occupants = num_occupants
     @vacancy_start_date = vacancy_start_date
     @vacancy_end_date = vacancy_end_date
