@@ -34,7 +34,7 @@ workflow_generator:
       include_timeseries_weather: true
 
 baseline:
-  n_buildings_represented: 80000000
+  n_buildings_represented: 110000000
 
 upgrades:
   - upgrade_name: Triple-Pane Windows
@@ -44,6 +44,16 @@ upgrades:
           - value: 45.77
             multiplier: Window Area (ft^2)
         lifetime: 30
+
+eagle:
+  n_jobs: 2
+  minutes_per_sim: 1
+  account: <account you are authorized to use>
+  sampling:
+    time: 10
+  postprocessing:
+    time: 10
+    n_workers: 1
 
 postprocessing:
   aggregate_timeseries: true
