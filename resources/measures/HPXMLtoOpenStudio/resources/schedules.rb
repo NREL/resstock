@@ -878,10 +878,9 @@ class ScheduleGenerator
   end
 
   def create
-    minutes_per_steps, steps_in_day, mkc_ts_per_day, mkc_ts_per_hour, total_days_in_year = get_simulation_parameters
+    minutes_per_steps, steps_in_day, mkc_ts_per_day, mkc_ts_per_hour, @total_days_in_year = get_simulation_parameters
     building_id = get_building_id
-
-    @schedules = initialize_schedules(num_ts: total_days_in_year * steps_in_day)
+    @schedules = initialize_schedules(num_ts: @total_days_in_year * steps_in_day)
 
     # initialize a random number generator using building_id
     prng = Random.new(building_id)
@@ -894,7 +893,8 @@ class ScheduleGenerator
     event_duration_prob_map = read_event_duration_probs()
     activity_duration_prob_map = read_activity_duration_prob()
     appliance_power_dist_map = read_appliance_power_dist()
-
+    @weekday_monthly_shift_dict = read_monthly_shift_minutes('weekday')
+    @weekend_monthly_shift_dict = read_monthly_shift_minutes('weekend')
     all_simulated_values = [] # holds the markov-chain state for each of the seven simulated states for each occupant.
     # States are: 'sleeping', 'shower', 'laundry', 'cooking', 'dishwashing', 'absent', 'nothingAtHome'
     # if num_occupants = 2, period_in_a_year = 35040,  num_of_states = 7, then
@@ -917,9 +917,9 @@ class ScheduleGenerator
 
       simulated_values = []
       sim_year = @model.getYearDescription.calendarYear.get
-      start_day = DateTime.new(sim_year, 1, 1)
-      total_days_in_year.times do |day|
-        today = start_day + day
+      @sim_start_day = DateTime.new(sim_year, 1, 1)
+      @total_days_in_year.times do |day|
+        today = @sim_start_day + day
         day_of_week = today.wday
         if [0, 6].include?(day_of_week)
           # Weekend
@@ -978,9 +978,8 @@ class ScheduleGenerator
     # fill in the yearly time_step resolution schedule for plug/lighting and ceiling fan based on weekday/weekend sch
     # # States are: 0='sleeping', 1='shower', 2='laundry', 3='cooking', 4='dishwashing', 5='absent', 6='nothingAtHome'
     sim_year = @model.getYearDescription.calendarYear.get
-    start_day = DateTime.new(sim_year, 1, 1)
-    total_days_in_year.times do |day|
-      today = start_day + day
+    @total_days_in_year.times do |day|
+      today = @sim_start_day + day
       month = today.month
       day_of_week = today.wday
       [0, 6].include?(day_of_week) ? is_weekday = false : is_weekday = true
@@ -1020,10 +1019,10 @@ class ScheduleGenerator
     #      ii. Add the time occupied by event to invalid_index
     #      ii. if more events, offset by fixed wait time and goto c
     #   d. if more cluster, go to 4.
-    mins_in_year = 1440 * total_days_in_year
-    mkc_steps_in_a_year = total_days_in_year * mkc_ts_per_day
+    mins_in_year = 1440 * @total_days_in_year
+    mkc_steps_in_a_year = @total_days_in_year * mkc_ts_per_day
     sink_activtiy_probable_mins = [0] * mkc_steps_in_a_year # 0 indicates sink activity cannot happen at that time
-    sink_activity_sch = [0] * 1440 * total_days_in_year
+    sink_activity_sch = [0] * 1440 * @total_days_in_year
     # mark minutes when at least one occupant is doing nothing at home as possible sink activity time
     # States are: 0='sleeping', 1='shower', 2='laundry', 3='cooking', 4='dishwashing', 5='absent', 6='nothingAtHome'
     mkc_steps_in_a_year.times do |step|
@@ -1040,11 +1039,11 @@ class ScheduleGenerator
     hourly_onset_prob = schedule_config["sink"]["hourly_onset_prob"]
     total_clusters = schedule_config["sink"]["total_annual_cluster"]
     sink_between_event_gap = schedule_config["sink"]["between_event_gap"]
-    cluster_per_day = total_clusters / total_days_in_year
+    cluster_per_day = total_clusters / @total_days_in_year
     sink_flow_rate_mean = schedule_config["sink"]["flow_rate_mean"]
     sink_flow_rate_std = schedule_config["sink"]["flow_rate_std"]
     sink_flow_rate = gaussian_rand(prng, sink_flow_rate_mean, sink_flow_rate_std, 0.1)
-    total_days_in_year.times do |day|
+    @total_days_in_year.times do |day|
       cluster_per_day.times do |cluster_count|
         todays_probable_steps = sink_activtiy_probable_mins[(day) * mkc_ts_per_day...((day + 1) * mkc_ts_per_day)]
         todays_probablities = todays_probable_steps.map.with_index { |p, i| p * hourly_onset_prob[i / mkc_ts_per_hour] }
@@ -1318,47 +1317,56 @@ class ScheduleGenerator
     offset_range = 30
     random_offset = (prng.rand * 2 * offset_range).to_i - offset_range
     sink_activity_sch = sink_activity_sch.rotate(-4 * 60 + random_offset) # 4 am shifting
+    sink_activity_sch = apply_monthly_offsets(sink_activity_sch)
     sink_activity_sch = aggregate_array(sink_activity_sch, minutes_per_steps)
     @schedules["sinks"] = sink_activity_sch.map { |flow| flow / Constants.PeakFlowRate }
 
     random_offset = (prng.rand * 2 * offset_range).to_i - offset_range
     dw_activity_sch = dw_activity_sch.rotate(random_offset)
+    dw_activity_sch = apply_monthly_offsets(dw_activity_sch)
     dw_activity_sch = aggregate_array(dw_activity_sch, minutes_per_steps)
     @schedules["dishwasher"] = dw_activity_sch.map { |flow| flow / Constants.PeakFlowRate }
 
     random_offset = (prng.rand * 2 * offset_range).to_i - offset_range
     cw_activity_sch = cw_activity_sch.rotate(random_offset)
+    cw_activity_sch = apply_monthly_offsets(cw_activity_sch)
     cw_activity_sch = aggregate_array(cw_activity_sch, minutes_per_steps)
     @schedules["clothes_washer"] = cw_activity_sch.map { |flow| flow / Constants.PeakFlowRate }
 
     random_offset = (prng.rand * 2 * offset_range).to_i - offset_range
     shower_activity_sch = shower_activity_sch.rotate(random_offset)
+    shower_activity_sch = apply_monthly_offsets(shower_activity_sch)
     shower_activity_sch = aggregate_array(shower_activity_sch, minutes_per_steps)
     @schedules["showers"] = shower_activity_sch.map { |flow| flow / Constants.PeakFlowRate }
 
     random_offset = (prng.rand * 2 * offset_range).to_i - offset_range
     bath_activity_sch = bath_activity_sch.rotate(random_offset)
+    bath_activity_sch = apply_monthly_offsets(bath_activity_sch)
     bath_activity_sch = aggregate_array(bath_activity_sch, minutes_per_steps)
     @schedules["baths"] = bath_activity_sch.map { |flow| flow / Constants.PeakFlowRate }
 
     random_offset = (prng.rand * 2 * offset_range).to_i - offset_range
     cooking_power_sch = cooking_power_sch.rotate(random_offset)
+    cooking_power_sch = apply_monthly_offsets(cooking_power_sch)
     cooking_power_sch = aggregate_array(cooking_power_sch, minutes_per_steps)
     @schedules["cooking_range"] = cooking_power_sch.map { |power| power / Constants.PeakPower }
 
     random_offset = (prng.rand * 2 * offset_range).to_i - offset_range
     cw_power_sch = cw_power_sch.rotate(random_offset)
+    cw_power_sch = apply_monthly_offsets(cw_power_sch)
     cw_power_sch = aggregate_array(cw_power_sch, minutes_per_steps)
     @schedules["clothes_washer_power"] = cw_power_sch.map { |power| power / Constants.PeakPower }
 
     random_offset = (prng.rand * 2 * offset_range).to_i - offset_range
     cd_power_sch = cd_power_sch.rotate(random_offset)
+    cd_power_sch = apply_monthly_offsets(cd_power_sch)
     cd_power_sch = aggregate_array(cd_power_sch, minutes_per_steps)
     @schedules["clothes_dryer"] = cd_power_sch.map { |power| power / Constants.PeakPower }
     @schedules["clothes_dryer_exhaust"] = @schedules["clothes_dryer"]
 
     random_offset = (prng.rand * 2 * offset_range).to_i - offset_range
     dw_power_sch = dw_power_sch.rotate(random_offset)
+    dw_power_sch = apply_monthly_offsets(dw_power_sch)
     dw_power_sch = aggregate_array(dw_power_sch, minutes_per_steps)
     @schedules["dishwasher_power"] = dw_power_sch.map { |power| power / Constants.PeakPower }
 
@@ -1403,6 +1411,35 @@ class ScheduleGenerator
       new_array[j] = array[(j * group_size)...(j + 1) * group_size].reduce(0, :+)
     end
     return new_array
+  end
+
+  def apply_monthly_offsets(array)
+    @total_days_in_year.times do |day|
+      today = @sim_start_day + day
+      day_of_week = today.wday
+      month_strs = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'July', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+      month = month_strs[today.month-1]
+      if [0, 6].include?(day_of_week)
+        # Weekend
+        lead = @weekend_monthly_shift_dict[month]
+      else
+        # weekday
+        lead = @weekday_monthly_shift_dict[month]
+      end
+      array[day*1440,(day+1)*1440] = array[day*1440,(day+1)*1440].rotate(lead)
+    end
+    return array
+  end
+
+  def read_monthly_shift_minutes(daytype)
+    shift_file = @schedules_path + "/#{daytype}/state_and_monthly_schedule_shift.csv"
+    shifts = CSV.read(shift_file)
+    state_index = shifts[0].find_index('State')
+    lead_index = shifts[0].find_index('Lead')
+    month_index = shifts[0].find_index('Month')
+    state_shifts = shifts.select {|row| row[state_index] == @state}
+    monthly_shifts_dict = Hash[state_shifts.map { |row| [row[month_index], row[lead_index].to_i]}]
+    return monthly_shifts_dict
   end
 
   def read_appliance_power_dist()
@@ -1591,9 +1628,8 @@ class ScheduleGenerator
   def get_holiday_lighting_sch(model, runner, holiday_sch)
     holiday_start_day = 332 # November 27
     holiday_end_day = 6 # Jan 6
-    @model.getYearDescription.isLeapYear ? total_days_in_year = 366 : total_days_in_year = 365
-    sch = [0] * 24 * total_days_in_year
-    final_days = total_days_in_year - holiday_start_day + 1
+    sch = [0] * 24 * @total_days_in_year
+    final_days = @total_days_in_year - holiday_start_day + 1
     beginning_days = holiday_end_day
     sch[0...(holiday_end_day) * 24] = holiday_sch * beginning_days
     sch[(holiday_start_day - 1) * 24..-1] = holiday_sch * final_days
