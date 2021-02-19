@@ -1418,7 +1418,7 @@ class ScheduleGenerator
       today = @sim_start_day + day
       day_of_week = today.wday
       month_strs = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'July', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-      month = month_strs[today.month-1]
+      month = month_strs[today.month - 1]
       if [0, 6].include?(day_of_week)
         # Weekend
         lead = @weekend_monthly_shift_dict[month]
@@ -1426,7 +1426,7 @@ class ScheduleGenerator
         # weekday
         lead = @weekday_monthly_shift_dict[month]
       end
-      array[day*1440,(day+1)*1440] = array[day*1440,(day+1)*1440].rotate(lead)
+      array[day * 1440, (day + 1) * 1440] = array[day * 1440, (day + 1) * 1440].rotate(lead)
     end
     return array
   end
@@ -1437,8 +1437,8 @@ class ScheduleGenerator
     state_index = shifts[0].find_index('State')
     lead_index = shifts[0].find_index('Lead')
     month_index = shifts[0].find_index('Month')
-    state_shifts = shifts.select {|row| row[state_index] == @state}
-    monthly_shifts_dict = Hash[state_shifts.map { |row| [row[month_index], row[lead_index].to_i]}]
+    state_shifts = shifts.select { |row| row[state_index] == @state }
+    monthly_shifts_dict = Hash[state_shifts.map { |row| [row[month_index], row[lead_index].to_i] }]
     return monthly_shifts_dict
   end
 
