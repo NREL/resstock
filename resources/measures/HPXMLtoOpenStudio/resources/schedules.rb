@@ -816,7 +816,7 @@ class ScheduleGenerator
     @schedules_path = schedules_path
     if @state.strip.empty?
       @runner.registerWarning("State is empty for ScheduleGenerator. Setting it to CO")
-      @state='CO'
+      @state = 'CO'
     end
   end
 
