@@ -815,7 +815,8 @@ class ScheduleGenerator
     @vacancy_end_date = vacancy_end_date
     @schedules_path = schedules_path
     if @state.strip.empty?
-      raise("state cannot be empty for ScheduleGenerator")
+      @runner.registerWarning("State is empty for ScheduleGenerator. Setting it to CO")
+      @state='CO'
     end
   end
 
