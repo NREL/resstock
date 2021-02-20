@@ -814,6 +814,9 @@ class ScheduleGenerator
     @vacancy_start_date = vacancy_start_date
     @vacancy_end_date = vacancy_end_date
     @schedules_path = schedules_path
+    if @state.strip.empty?
+      raise("state cannot be empty for ScheduleGenerator")
+    end
   end
 
   def get_simulation_parameters
@@ -1425,6 +1428,9 @@ class ScheduleGenerator
       else
         # weekday
         lead = @weekday_monthly_shift_dict[month]
+      end
+      if lead.nil?
+        raise "Could not find the entry for month #{month}, day #{day_of_week} and state #{@state}"
       end
       array[day * 1440, (day + 1) * 1440] = array[day * 1440, (day + 1) * 1440].rotate(lead)
     end
