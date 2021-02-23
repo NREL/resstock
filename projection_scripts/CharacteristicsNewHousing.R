@@ -143,9 +143,10 @@ for (p in 26:33) { # which projects do these changes apply to? in this case all 
 }
 
 # Num Units HL #############
-NUHL<-read_tsv('project_national/housing_characteristics/Geometry Building Number Units HL.tsv',col_names = TRUE)
-NUHL<-NUHL[1:81,1:10] # remove comment at bottom, and count and weight columns
+NUHL<-read_tsv('../project_national/housing_characteristics/Geometry Building Number Units HL.tsv',col_names = TRUE)
+NUHL<-NUHL[1:81,1:11] # remove comment at bottom, and count and weight columns
 # this is one characteristics that I don't intend to change at all, apart from adding the column names for new vintages
+# I am not sure if it influences the resstock simulation or not.
 nu2020<-NUHL[NUHL$`Dependency=Vintage`=="2010s",]
 nu2020$`Dependency=Vintage`<-"2020s"
 # define NU made in 2030s 2040s and 2050s as the same as those made in 2020s
@@ -155,14 +156,14 @@ nu2030$`Dependency=Vintage`<-"2030s"
 nu2040$`Dependency=Vintage`<-"2040s"
 nu2050$`Dependency=Vintage`<-"2050s"
 
-NUHL_new<-as.data.frame(rbind(NUHL,nu2020,nu2030,nu2040,nu2050))
-# save same file to all new projects (Excl 2020)
+NUHL_new<-as.data.frame(rbind(nu2020,nu2030,nu2040,nu2050))
+# save same file to all new projects 
 for (p in 2:33) { # which projects do these changes apply to? in this case all projects
   fol_fn<-paste(projects[p],'/housing_characteristics/Geometry Building Number Units HL.tsv',sep = "")
-  write.table(format(NUHL_new,nsmall=6),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+  write.table(format(NUHL_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
 # Garage ###########
-gar<-read_tsv('project_national/housing_characteristics/Geometry Garage.tsv',col_names = TRUE)
+gar<-read_tsv('../project_national/housing_characteristics/Geometry Garage.tsv',col_names = TRUE)
 gar<-gar[1:900,1:8]
 # seeing as multifamily already have no garage, make no change for future cohorts
 gar2020<-gar[gar$`Dependency=Vintage`=="2010s",]
@@ -173,10 +174,10 @@ gar2030<-gar2040<-gar2050<-gar2020
 gar2030$`Dependency=Vintage`<-"2030s"
 gar2040$`Dependency=Vintage`<-"2040s"
 gar2050$`Dependency=Vintage`<-"2050s"
-gar_new<-as.data.frame(rbind(gar,gar2020,gar2030,gar2040,gar2050))
+gar_new<-as.data.frame(rbind(gar2020,gar2030,gar2040,gar2050))
 for (p in 2:33) { # which projects do these changes apply to? in this case all projects
   fol_fn<-paste(projects[p],'/housing_characteristics/Geometry Garage.tsv',sep = "")
-  write.table(format(gar_new,nsmall=6),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+  write.table(format(gar_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
 # Cooling Efficiency ###########
 ceff<-read_tsv('project_national/housing_characteristics/HVAC Cooling Efficiency.tsv',col_names = TRUE)
