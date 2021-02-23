@@ -175,7 +175,7 @@ class res_results_csv_comparisons:
         plt.title('Number of failures')
         plt.ylabel('Failures')
 
-        output_path = os.path.join(os.path.dirname(self.base_table_name), 'figures', 'failures.png')
+        output_path = os.path.join(os.path.dirname(self.base_table_name), 'figures', 'failures.svg')
         plt.savefig(output_path, bbox_inches='tight')
         plt.close()
 
@@ -233,8 +233,8 @@ class res_results_csv_comparisons:
                 fig.update_yaxes(title_text=self.feature_table_name, row=1, col=col)
 
             fig['layout'].update(title=fuel_use, template='plotly_white')
-            fig.update_layout(width=1800, height=600, autosize=False)
-            output_path = os.path.join(os.path.dirname(self.base_table_name), 'figures', fuel_use + '.png')
+            fig.update_layout(width=3200, height=1000, autosize=False, font=dict(size=16))
+            output_path = os.path.join(os.path.dirname(self.base_table_name), 'figures', fuel_use + '.svg')
             # plotly.offline.plot(fig, filename=output_path, auto_open=False) # html
             fig.write_image(output_path)
 
