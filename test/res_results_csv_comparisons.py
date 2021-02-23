@@ -10,31 +10,24 @@ A class to compare two resstock runs and the resulting differences in the result
 
 # Import Modules
 import os, sys
-# import boto3
-# import logging
 import numpy as np
 import pandas as pd
 import seaborn as sns
+import matplotlib
 import matplotlib.pyplot as plt
-# from eulpda.smart_query.EULPAthena import EULPAthena
-
-# Plot theme
-# sns.set_theme()
-# sns.set(font_scale=1.5)
-
-# Create logger for AWS queries
-# logging.basicConfig(level=logging.INFO)
-# logger = logging.getLogger(__name__)
+import plotly
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 
 
 class res_results_csv_comparisons:
     def __init__(self, base_table_name, feature_table_name, groupby):
         """
-        A class to query Athena and compare a baseline ResStock run to a new feature ResStock run. \
+        A class to compare a baseline ResStock run to a new feature ResStock run.
         The comparisons are performed on the results.csv from each run
         Args:
-            base_table_name (string): The name of the baseline table to query on AWS Athena.
-            feature_table_name (string): The name of the new feature table to query on AWS Athena.
+            base_table_name (string): The name of the baseline table.
+            feature_table_name (string): The name of the new feature table.
             groupby (list[str]): List of characteristics to query and group by.
         """
 
@@ -47,29 +40,6 @@ class res_results_csv_comparisons:
         # Create output directories
         self.create_output_directories()
 
-        self.baseline_athena = None
-        if not os.path.exists(self.base_table_name):
-            # Initialize EULPAthena object for queries
-            self.baseline_athena = EULPAthena(
-                workgroup='eulp',
-                db_name='enduse',
-                buildstock_type='resstock',
-                table_name=self.base_table_name
-            )
-
-        self.feature_athena = None
-        if not os.path.exists(self.feature_table_name):
-            self.feature_athena = EULPAthena(
-                workgroup='eulp',
-                db_name='enduse',
-                buildstock_type='resstock',
-                table_name=self.feature_table_name
-            )
-
-        if self.baseline_athena or self.feature_athena:
-            # Initialize s3 client
-            self.s3_client = boto3.client('s3')
-
         # Get fields
         self.get_common_output_fields()
 
@@ -80,13 +50,9 @@ class res_results_csv_comparisons:
         self.format_queried_data()
 
     def create_output_directories(self):
-        """Create output directories for the figures and queried data."""
-        # Directory for the queried data
-        # create_path = os.path.join(
-            # 'resstock_data'
-        # )
-        # if not os.path.exists(create_path):
-            # os.makedirs(create_path)
+        """
+        Create output directories for the figures and queried data.
+        """
 
         # Directory for the queried data
         create_path = os.path.join(os.path.dirname(self.base_table_name), 'figures')
@@ -94,24 +60,13 @@ class res_results_csv_comparisons:
             os.makedirs(create_path)
 
     def get_common_output_fields(self):
-        """Get the common output fields for comparison."""
+        """
+        Get the common output fields for comparison.
+        """
         print('Getting Common Fields...')
 
-        if self.baseline_athena or self.feature_athena:
-            # Get base table fields
-            query = 'SHOW COLUMNS IN enduse.%s_baseline' % self.base_table_name
-            result = self.baseline_athena.execute(query)
-            self.base_fields = list(result[result.columns.values[0]])
-            self.base_fields.append(result.columns.values[0])
-
-            # Get feature table fields
-            query = 'SHOW COLUMNS IN enduse.%s_baseline' % self.feature_table_name
-            result = self.feature_athena.execute(query)
-            self.feature_fields = list(result[result.columns.values[0]])
-            self.feature_fields.append(result.columns.values[0])
-        else:
-            self.base_fields = pd.read_csv(self.base_table_name, index_col=0, nrows=0).columns.tolist()
-            self.feature_fields = pd.read_csv(self.feature_table_name, index_col=0, nrows=0).columns.tolist()
+        self.base_fields = pd.read_csv(self.base_table_name, index_col=0, nrows=0).columns.tolist()
+        self.feature_fields = pd.read_csv(self.feature_table_name, index_col=0, nrows=0).columns.tolist()
 
         # Get common fields
         self.common_fields = list(set(self.base_fields) & set(self.feature_fields))
@@ -147,90 +102,32 @@ class res_results_csv_comparisons:
         self.saved_fields = [col.split('.')[1] for col in self.common_result_columns]
 
     def query_data(self):
-        """Query the result.csvs if they do not already exist. Load queried or local data into memory."""
+        """
+        Query the result.csvs if they do not already exist. Load queried or local data into memory.
+        """
         print('Querying/Loading Data...')
 
         # Query/Load Base Table Data
-        if self.baseline_athena:
-            base_data_path = os.path.join(
-                'resstock_data',
-                self.base_table_name + '.csv'
-            )
-        else:
-            base_data_path = self.base_table_name
+        base_data_path = self.base_table_name
 
-        if not os.path.exists(base_data_path):
-            print('  Querying %s Data...' % self.base_table_name)
-            os.makedirs('resstock_data', exist_ok=True)
+        print('  Loading %s Data...' % self.base_table_name)
+        self.base_df = pd.read_csv(base_data_path)
 
-            self.base_df = self.baseline_athena.aggregate_annual(
-                enduses=self.common_result_columns,
-                group_by=self.groupby
-            )
-
-            self.base_df.dropna(inplace=True)
-            self.base_df.to_csv(base_data_path, index=False)
-        else:
-            print('  Loading %s Data...' % self.base_table_name)
-            self.base_df = pd.read_csv(base_data_path)
-
-            if not self.baseline_athena:
-                for col in self.base_df.columns.tolist():
-                    if not 'simulation_output_report' in col:
-                        continue
-                    self.base_df = self.base_df.rename(columns={col: col.split('.')[1]})
+        for col in self.base_df.columns.tolist():
+            if not 'simulation_output_report' in col:
+                continue
+            self.base_df = self.base_df.rename(columns={col: col.split('.')[1]})
 
         # Query/Load Feature Table Data
-        if self.feature_athena:
-            feature_data_path = os.path.join(
-                'resstock_data',
-                self.feature_table_name + '.csv'
-            )
-        else:
-            feature_data_path = self.feature_table_name
+        feature_data_path = self.feature_table_name
 
-        if not os.path.exists(feature_data_path):
-            print('  Querying %s Data...' % self.feature_table_name)
-            os.makedirs('resstock_data', exist_ok=True)
+        print('  Loading %s Data...' % self.feature_table_name)
+        self.feature_df = pd.read_csv(feature_data_path)
 
-            self.feature_df = self.feature_athena.aggregate_annual(
-                enduses=self.common_result_columns,
-                group_by=self.groupby
-            )
-
-            self.feature_df.dropna(inplace=True)
-            self.feature_df.to_csv(feature_data_path, index=False)
-        else:
-            print('  Loading %s Data...' % self.feature_table_name)
-            self.feature_df = pd.read_csv(feature_data_path)
-
-            if not self.feature_athena: 
-                for col in self.feature_df.columns.tolist():
-                    if not 'simulation_output_report' in col:
-                        continue
-                    self.feature_df = self.feature_df.rename(columns={col: col.split('.')[1]})
-
-    def shift_central_system_energy(self, base_df, feature_df):
-        """
-        This function removes the central system energy from the feature_df that is in the base_df.
-        Args:
-            base_df (pandas.core.dataframe): Baseline DataFrame with central system energy
-            feature_df (pandas.core.dataframe): Feature DataFrame that needs the central system energy removed
-        """
-        # Electricity
-        feature_df['electricity_cooling_kwh'] -= base_df['electricity_central_system_cooling_kwh']
-        feature_df['electricity_heating_kwh'] -= base_df['electricity_central_system_heating_kwh']
-
-        # Fuel Oil
-        feature_df['fuel_oil_heating_mbtu'] -= base_df['fuel_oil_central_system_heating_mbtu']
-
-        # Natural Gas
-        feature_df['natural_gas_heating_therm'] -= base_df['natural_gas_central_system_heating_therm']
-
-        # Propane
-        feature_df['propane_heating_mbtu'] -= base_df['propane_central_system_heating_mbtu']
-
-        return feature_df
+        for col in self.feature_df.columns.tolist():
+            if not 'simulation_output_report' in col:
+                continue
+            self.feature_df = self.feature_df.rename(columns={col: col.split('.')[1]})
 
     def format_queried_data(self):
         """
@@ -252,17 +149,20 @@ class res_results_csv_comparisons:
         self.base_df = self.base_df.groupby(self.groupby).sum().reset_index()
         self.feature_df = self.feature_df.groupby(self.groupby).sum().reset_index()
 
-    def plot_failures(self, n_expected_baseline, n_expected_feature, show_plot=False):
+    def plot_failures(self):
         """
         Bar chart of the number of failures.
-        Args:
-            n_expected_baseline (int): The number of simulations expected in the baseline run.
-            n_expected_feature (int): The number of simulations expected in the feature run.
-            show_plots (bool): True if in notebook, false if in command line.
         """
-        # Calculate the number of failures
-        n_base = n_expected_baseline - self.base_df['raw_count'].sum()
-        n_feature = n_expected_feature - self.feature_df['raw_count'].sum()
+        # Read DataFrames
+        base_df = pd.read_csv(self.base_table_name)
+        feature_df = pd.read_csv(self.feature_table_name)
+
+        if not 'completed_status' in base_df.columns.tolist():
+            return
+
+        n_base = base_df[base_df['completed_status']=='Fail'].shape[0]
+        n_feature = feature_df[feature_df['completed_status']=='Fail'].shape[0]
+
         print('Plotting number of failures...')
         print('  Failures %s: %d' % (self.base_table_name, n_base))
         print('  Failures %s: %d' % (self.feature_table_name, n_feature))
@@ -271,40 +171,30 @@ class res_results_csv_comparisons:
         plt.bar([0, 1], [n_base, n_feature])
         plt.xlim([-1, 2])
         plt.ylim([0, 1.2 * np.max([n_base, n_feature])])
-        plt.xticks(ticks=[0, 1], labels=[self.base_table_name, self.feature_table_name], rotation=30, ha='right')
+        plt.xticks(ticks=[0, 1], labels=[os.path.basename(self.base_table_name), os.path.basename(self.feature_table_name)], rotation=30, ha='right')
         plt.title('Number of failures')
         plt.ylabel('Failures')
 
-        output_path = os.path.join(
-            'figures',
-            'failures.png'
-        )
+        output_path = os.path.join(os.path.dirname(self.base_table_name), 'figures', 'failures.png')
         plt.savefig(output_path, bbox_inches='tight')
-        if show_plot:
-            plt.show()
         plt.close()
 
-    def regression_scatterplots(self, per_unit_tf, show_plots=False, shift_central_system_energy=False):
+    def regression_scatterplots(self):
         """
         Scatterplot for each model type and simulation_outupt_report value.
-        Args:
-            per_unit_tf (bool): True if the scatterplots are to be per unit values, false if totals
-            show_plots (bool): True if in notebook, false if in command line.
-            shift_central_system_energy (bool): Shift central system energy from baseline to feature
         """
         # Copy DataFrames
         base_df = self.base_df.copy()
         feature_df = self.feature_df.copy()
 
-        # Remove Central System Energy From Feature if desired
-        if shift_central_system_energy:
-            feature_df = shift_central_system_energy(base_df, feature_df)
-
         print('Plotting regression scatterplots...')
         model_types = ['Single-Family Detached', 'Single-Family Attached', 'Multi-Family']
-        for col in self.saved_fields:
-            fig, ax = plt.subplots(1, 3, figsize=(15, 5))
-            i = 0
+        colors = list(matplotlib.colors.get_named_colors_mapping().values())
+        for fuel_use in self.saved_fields:
+            if not 'fuel_use' in fuel_use:
+                continue
+
+            fig = make_subplots(rows=1, cols=3, subplot_titles=model_types)
             for model_type in model_types:
                 # Get model specific data
                 btype_col = 'build_existing_model.geometry_building_type_recs'
@@ -313,30 +203,33 @@ class res_results_csv_comparisons:
                 tmp_feature_df = feature_df.loc[feature_df[btype_col] == model_type, :]
                 tmp_feature_df.set_index(self.groupby, inplace=True)
 
-                # Make all simulation_output_report values per unit
-                if per_unit_tf:
-                    tmp_base_df[col] = tmp_base_df[col] / tmp_base_df['scaled_unit_count']
-                    tmp_feature_df[col] = tmp_feature_df[col] / tmp_feature_df['scaled_unit_count']
+                names = fuel_use.split('_')
+                fuel_type = names[2]
+                if names[3] in ['gas', 'oil']:
+                    fuel_type += '_{}'.format(names[3])
 
-                # Scatterplot
-                ax[i].scatter(tmp_base_df[col], tmp_feature_df[col])
+                for i, end_use in enumerate(self.saved_fields):
+                    if not 'end_use' in end_use:
+                        continue
+                    if not fuel_type in end_use:
+                        continue
+                    
+                    col = model_types.index(model_type) + 1
+                    showlegend = False
+                    if col == 1:
+                        showlegend = True
 
-                # Equal line
-                max_value = 1.1 * np.max([tmp_base_df[col].max(), tmp_feature_df[col].max()])
-                min_value = 0.9 * np.min([tmp_base_df[col].min(), tmp_feature_df[col].min()])
-                ax[i].plot([min_value, max_value], [min_value, max_value], '-k')
+                    min_value = 0.9 * np.min([tmp_base_df[end_use].min(), tmp_feature_df[end_use].min()])
+                    max_value = 1.1 * np.max([tmp_base_df[end_use].max(), tmp_feature_df[end_use].max()])
 
-                # Labels
-                ax[i].set_xlabel(self.base_table_name)
-                ax[i].set_ylabel(self.feature_table_name)
-                ax[i].set_title("%s\n%s" % (model_type, col))
-                i += 1
-            plt.tight_layout()
-            output_path = os.path.join(os.path.dirname(self.base_table_name), 'figures', col + '.png')
-            plt.savefig(output_path, bbox_inches='tight')
-            if show_plots:
-                plt.show()
-            plt.close()
+                    fig.add_trace(go.Scatter(x=tmp_base_df[end_use], y=tmp_feature_df[end_use], marker=dict(size=10, color=colors[i]), mode='markers', name=end_use, legendgroup=end_use, showlegend=showlegend), row=1, col=col)
+                    fig.add_trace(go.Scatter(x=[min_value, max_value], y=[min_value, max_value], line=dict(color='black', dash='dash', width=0.1), mode='lines', showlegend=False), row=1, col=col)
+                    fig.update_xaxes(title_text=self.base_table_name, row=1, col=col, range=[min_value, max_value])
+                    fig.update_yaxes(title_text=self.feature_table_name, row=1, col=col, range=[min_value, max_value])
+
+            fig['layout'].update(title=fuel_use, height=800, autosize=True, template='plotly_white')
+            output_path = os.path.join(os.path.dirname(self.base_table_name), 'figures', fuel_use + '.html')
+            plotly.offline.plot(fig, filename=output_path, auto_open=False)
 
 
 if __name__ == '__main__':
@@ -357,16 +250,7 @@ if __name__ == '__main__':
     )
 
     # Plot the number of failures for each run
-    n_expected = 550000
-    if not os.path.exists(base_table_name) and not os.path.exists(feature_table_name):
-        results_csv_comparison.plot_failures(
-            n_expected_baseline=n_expected,
-            n_expected_feature=n_expected,
-        )
+    results_csv_comparison.plot_failures()
 
     # Generate scatterplots for each model type and simulation_output_report field
-    results_csv_comparison.regression_scatterplots(
-        per_unit_tf=False,
-        show_plots=False,
-        shift_central_system_energy=False
-    )
+    results_csv_comparison.regression_scatterplots()
