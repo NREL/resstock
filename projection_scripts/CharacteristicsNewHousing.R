@@ -260,141 +260,139 @@ hss<-hss[1:900,1:8] # remove comments and count and weight columns
 hss2020<-hss[hss$`Dependency=Vintage`=="2010s",]
 hss2020$`Dependency=Vintage`<-"2020s"
 # No changes to this characteristic
-# define hass made in 2030s 2040s and 2050s as the same as those made in 2020s
+# define hss made in 2030s 2040s and 2050s as the same as those made in 2020s
 hss2030<-hss2040<-hss2050<-hss2020
 # define vintage names
 hss2030$`Dependency=Vintage`<-"2030s"
 hss2040$`Dependency=Vintage`<-"2040s"
 hss2050$`Dependency=Vintage`<-"2050s"
-hss_new<-as.data.frame(rbind(hss,hss2020,hss2030,hss2040,hss2050))
+hss_new<-as.data.frame(rbind(hss2020,hss2030,hss2040,hss2050))
 for (p in 2:33) { # which projects do these changes apply to? in this case all projects
   fol_fn<-paste(projects[p],'/housing_characteristics/HVAC Has Shared System.tsv',sep = "")
-  write.table(format(hss_new,nsmall=6),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+  write.table(format(hss_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
 
 # HVAC heating type ########
-htt<-read_tsv('project_national/housing_characteristics/HVAC Heating Type.tsv',col_names = TRUE)
+htt<-read_tsv('../project_national/housing_characteristics/HVAC Heating Type.tsv',col_names = TRUE)
 htt<-htt[1:810,1:8] # remove comments and count and weight columns
 htt2020<-htt[htt$`Dependency=Vintage`=="2010s",] 
 htt2020$`Dependency=Vintage`<-"2020s"
 # Here is the place to increase the % of electrically heated homes that use heat pumps
 # this file is a dependency for heating efficiency, determining the detailed conversion device type
-# based on trends from characteristics of new construction for sf and mf homes, 1999-2019
-# make changes to 2020 Heat type here. I do so by groups of IECC CZ that correspond closely to census regions, for which the stats are given
+# based on trends from Census characteristics of new housing for sf and mf homes, 1999-2019: https://www.census.gov/construction/chars/xls/heatfuelbysystem_cust.xls
+# make changes to 2020s Heat type here. I do so by groups of IECC CZ that correspond closely to census regions, for which the stats are given in CNH
 # First cz in the South. where HP are very dominant, especially in SF homes. I represent an increasing share in ductless (minisplit) HPs, as they are expected to grow in market share.
-# NB this share has way more HP than the 2010s shares, which are based on RECS 2009
+# NB this share has far more HP than the ResStock 2010s shares, which are based on RECS 2009. Throughout the 2010s, 88% (77%) of new electric heated SF (MF) homes in the South used HP heating
 htt2020[htt2020$`Dependency=Heating Fuel`=="Electricity" & (htt2020$`Dependency=ASHRAE IECC Climate Zone 2004` == "1A" | htt2020$`Dependency=ASHRAE IECC Climate Zone 2004` == "2A" | htt2020$`Dependency=ASHRAE IECC Climate Zone 2004` == "3A"),
-        c("Option=Ducted Heat Pump" , "Option=Ducted Heating"  ,"Option=Non-Ducted Heat Pump","Option=Non-Ducted Heating")]<-matrix(rep(c(0.8,0.14,0.05,0.01),each=3),3,4)
-# Second CZ in the West excluding very cold zone 7. Here resistance heating is surprisingly high, especially in MF. Still, HP are around 60%, and furances aroudn 18%, and other around 25% (2010s)
+        c("Option=Ducted Heat Pump" , "Option=Ducted Heating"  ,"Option=Non-Ducted Heat Pump","Option=Non-Ducted Heating")]<-matrix(rep(c(0.83,0.12,0.05,0),each=3),3,4)
+# Second CZ in the West excluding very cold zone 7. Here resistance heating is surprisingly high, especially in MF. 
+# In the entire West through the 2010s, of new electric homes, 66% (41%) of SF (MF) used HP, 21% (15%) used air furnaces, and 13% (40%) used electric resistance
 htt2020[htt2020$`Dependency=Heating Fuel`=="Electricity" & (htt2020$`Dependency=ASHRAE IECC Climate Zone 2004` == "2B" | htt2020$`Dependency=ASHRAE IECC Climate Zone 2004` == "3B" | 
                                                               htt2020$`Dependency=ASHRAE IECC Climate Zone 2004` == "3C" | htt2020$`Dependency=ASHRAE IECC Climate Zone 2004` == "4B" |
-                                                              htt2020$`Dependency=ASHRAE IECC Climate Zone 2004` == "4C" |htt2020$`Dependency=ASHRAE IECC Climate Zone 2004` == "5B"),
-        c("Option=Ducted Heat Pump" , "Option=Ducted Heating"  ,"Option=Non-Ducted Heat Pump","Option=Non-Ducted Heating")]<-matrix(rep(c(0.58,0.18,0.04,0.2),each=6),6,4)
-# Third CZ in the MW excluding very cold zone 7. HP not so common here, around 50%. Furnace share much higher, around 40%
-htt2020[htt2020$`Dependency=Heating Fuel`=="Electricity" & (htt2020$`Dependency=ASHRAE IECC Climate Zone 2004` == "6A" | htt2020$`Dependency=ASHRAE IECC Climate Zone 2004` == "6B"),
-        c("Option=Ducted Heat Pump" , "Option=Ducted Heating"  ,"Option=Non-Ducted Heat Pump","Option=Non-Ducted Heating")]<-matrix(rep(c(0.48,0.41,0.01,0.1),each=2),2,4)
-# Fourth for CZ 4A, which we assume is a mix between South and NE, with higher Southern representation (also some MW here). Heat pumps around 60% in NE, and around 85% in the south . Go with 74%. Other (Resistance, non-ducted) around 25% in NE and dropping, 1% in S. go with 9%. Leaves around 17% for furnace
+                                                              htt2020$`Dependency=ASHRAE IECC Climate Zone 2004` == "4C" |htt2020$`Dependency=ASHRAE IECC Climate Zone 2004` == "5B" | 
+                                                              htt2020$`Dependency=ASHRAE IECC Climate Zone 2004` == "6B"),
+        c("Option=Ducted Heat Pump" , "Option=Ducted Heating"  ,"Option=Non-Ducted Heat Pump","Option=Non-Ducted Heating")]<-matrix(rep(c(0.6,0.17,0.02,0.21),each=7),7,4)
+# Third CZ in the MW excluding very cold zone 7. HP less common here, around 55% (27%) in SF (MF) in the second half of 2010s. Furnace share much higher, around 36% (64%). Some elec resistance: 5-10%
+htt2020[htt2020$`Dependency=Heating Fuel`=="Electricity" & (htt2020$`Dependency=ASHRAE IECC Climate Zone 2004` == "6A"),
+        c("Option=Ducted Heat Pump" , "Option=Ducted Heating"  ,"Option=Non-Ducted Heat Pump","Option=Non-Ducted Heating")]<-matrix(rep(c(0.54,0.4,0.01,0.05),each=1),1,4)
+# Fourth for CZ 4A, which is a mix between South and NE, with higher Southern representation (also some MW here). Heat pumps around 60% in NE, and over 85% in the south . Go with 75%. Other (Resistance, non-ducted) around 25% in NE and dropping, 1% in S. assume 9%. Leaves around 16% for furnace
 htt2020[htt2020$`Dependency=Heating Fuel`=="Electricity" & (htt2020$`Dependency=ASHRAE IECC Climate Zone 2004` == "4A"),
-        c("Option=Ducted Heat Pump" , "Option=Ducted Heating"  ,"Option=Non-Ducted Heat Pump","Option=Non-Ducted Heating")]<-matrix(rep(c(0.70,0.17,0.04,0.09),each=1),1,4)
-# Fifth for CZ 5A, which we assume is a mix between MW and NE, with higher MW representation. Heat pump share actually quite similar, go with 53%. 33% furnace, and 14% other (Resistance)
+        c("Option=Ducted Heat Pump" , "Option=Ducted Heating"  ,"Option=Non-Ducted Heat Pump","Option=Non-Ducted Heating")]<-matrix(rep(c(0.71,0.16,0.04,0.09),each=1),1,4)
+# Fifth for CZ 5A, which we assume is a mix between MW and NE, with higher MW representation. Heat pump share in SF quite similar in NE/MW (around 60%), but quite lower in MF (around 40%), go with 55%. 32% furnace, and 13% other (Resistance) which is relatively high in NE, 22% (31%) in SF (MF)
 htt2020[htt2020$`Dependency=Heating Fuel`=="Electricity" & (htt2020$`Dependency=ASHRAE IECC Climate Zone 2004` == "5A"),
-        c("Option=Ducted Heat Pump" , "Option=Ducted Heating"  ,"Option=Non-Ducted Heat Pump","Option=Non-Ducted Heating")]<-matrix(rep(c(0.5,0.33,0.03,0.14),each=1),1,4)
-# Last the two cold climate 7A and 7B, where heat pumps will be less common
+        c("Option=Ducted Heat Pump" , "Option=Ducted Heating"  ,"Option=Non-Ducted Heat Pump","Option=Non-Ducted Heating")]<-matrix(rep(c(0.52,0.32,0.03,0.13),each=1),1,4)
+# Last the two cold climate 7A and 7B, where heat pumps will be less common. ResStock value for 2010s is 100% electric resistance (non-ducted heating). Reduce to 80% in 2020s. Assume a higher share of HP are minisplit, non-ducted, than in other regions
 htt2020[htt2020$`Dependency=Heating Fuel`=="Electricity" & (htt2020$`Dependency=ASHRAE IECC Climate Zone 2004` == "7A" | htt2020$`Dependency=ASHRAE IECC Climate Zone 2004` == "7B"),
-        c("Option=Ducted Heat Pump" , "Option=Ducted Heating"  ,"Option=Non-Ducted Heat Pump","Option=Non-Ducted Heating")]<-matrix(rep(c(0.18,0.25,0.02,0.55),each=2),2,4)
+        c("Option=Ducted Heat Pump" , "Option=Ducted Heating"  ,"Option=Non-Ducted Heat Pump","Option=Non-Ducted Heating")]<-matrix(rep(c(0.1,0.05,0.05,0.8),each=2),2,4)
 
 # now for combustion fuels. Based on NRC data, almost all new heating systems are ducted air furnaces. Water/steam systems are rare, except for in MF homes in the NE and W, where they make up almost 30%
 # Define all values here based on SF-MF split except for W and NE MF. They can be overwritten afterwards in the bs.csv
-# First South, 96% ducted
+# First South (SF and MF), 97% ducted
 htt2020[htt2020$`Dependency=Heating Fuel`!="Electricity" & htt2020$`Dependency=Heating Fuel`!="None"  & (htt2020$`Dependency=ASHRAE IECC Climate Zone 2004` == "1A" | htt2020$`Dependency=ASHRAE IECC Climate Zone 2004` == "2A" | htt2020$`Dependency=ASHRAE IECC Climate Zone 2004` == "3A"),
-        c("Option=Ducted Heating"  ,"Option=Non-Ducted Heating")]<-matrix(rep(c(0.96,0.04),each=12),12,2)
+        c("Option=Ducted Heating"  ,"Option=Non-Ducted Heating")]<-matrix(rep(c(0.97,0.03),each=12),12,2)
 # Second West (excl MF), 99% ducted
 htt2020[htt2020$`Dependency=Heating Fuel`!="Electricity" & htt2020$`Dependency=Heating Fuel`!="None"  & (htt2020$`Dependency=ASHRAE IECC Climate Zone 2004` == "2B" | htt2020$`Dependency=ASHRAE IECC Climate Zone 2004` == "3B" |
                                                                                                            htt2020$`Dependency=ASHRAE IECC Climate Zone 2004` == "3C" | htt2020$`Dependency=ASHRAE IECC Climate Zone 2004` == "4B" |
-                                                                                                           htt2020$`Dependency=ASHRAE IECC Climate Zone 2004` == "4C" |htt2020$`Dependency=ASHRAE IECC Climate Zone 2004` == "5B"),
-        c("Option=Ducted Heating"  ,"Option=Non-Ducted Heating")]<-matrix(rep(c(0.99,0.01),each=24),24,2)
-# Third MW, excl cold region 7, including CZ 5a 96% ducted
-htt2020[htt2020$`Dependency=Heating Fuel`!="Electricity" & htt2020$`Dependency=Heating Fuel`!="None"  & (htt2020$`Dependency=ASHRAE IECC Climate Zone 2004` == "5A" |htt2020$`Dependency=ASHRAE IECC Climate Zone 2004` == "6A" | htt2020$`Dependency=ASHRAE IECC Climate Zone 2004` == "6B"),
-       c("Option=Ducted Heating"  ,"Option=Non-Ducted Heating")]<-matrix(rep(c(0.96,0.04),each=12),12,2)
+                                                                                                           htt2020$`Dependency=ASHRAE IECC Climate Zone 2004` == "4C" |htt2020$`Dependency=ASHRAE IECC Climate Zone 2004` == "5B" | htt2020$`Dependency=ASHRAE IECC Climate Zone 2004` == "6B"),
+        c("Option=Ducted Heating"  ,"Option=Non-Ducted Heating")]<-matrix(rep(c(0.99,0.01),each=28),28,2)
+# Third MW, excl cold region 7, including CZ 5A, 96% ducted
+htt2020[htt2020$`Dependency=Heating Fuel`!="Electricity" & htt2020$`Dependency=Heating Fuel`!="None"  & (htt2020$`Dependency=ASHRAE IECC Climate Zone 2004` == "5A" |htt2020$`Dependency=ASHRAE IECC Climate Zone 2004` == "6A" ),
+       c("Option=Ducted Heating"  ,"Option=Non-Ducted Heating")]<-matrix(rep(c(0.96,0.04),each=8),8,2)
 # Fourth for CZ 4A, which we assume is a mix between South and NE, with higher Southern representation (also some MW here). 97% ducted
 htt2020[htt2020$`Dependency=Heating Fuel`!="Electricity" & htt2020$`Dependency=Heating Fuel`!="None"  & (htt2020$`Dependency=ASHRAE IECC Climate Zone 2004` == "4A"),
         c("Option=Ducted Heating"  ,"Option=Non-Ducted Heating")]<-matrix(rep(c(0.97,0.03),each=4),4,2)
 # Last the two cold regions 7, where steam/hot water is still more common
 htt2020[htt2020$`Dependency=Heating Fuel`!="Electricity" & htt2020$`Dependency=Heating Fuel`!="None"  & (htt2020$`Dependency=ASHRAE IECC Climate Zone 2004` == "7A" | htt2020$`Dependency=ASHRAE IECC Climate Zone 2004` == "7B"),
-        c("Option=Ducted Heating"  ,"Option=Non-Ducted Heating")]<-matrix(rep(c(0.75,0.25),each=8),8,2)
+        c("Option=Ducted Heating"  ,"Option=Non-Ducted Heating")]<-matrix(rep(c(0.7,0.3),each=8),8,2)
 
-htt2030<-htt2040<-htt2050<-htt2020
+htt2030<-htt2020
 # define vintage names
 htt2030$`Dependency=Vintage`<-"2030s"
-htt2040$`Dependency=Vintage`<-"2040s"
-htt2050$`Dependency=Vintage`<-"2050s"
-htt_new<-as.data.frame(rbind(htt,htt2020))
-for (p in 2:9) { # which projects do these changes apply to? in this case all projects
-  fol_fn<-paste(projects[p],'/housing_characteristics/HVAC Heating Type.tsv',sep = "")
-  write.table(format(htt_new,nsmall=6),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
-}
+
 # update 2030s data
 # First cz in the South.
 htt2030[htt2030$`Dependency=Heating Fuel`=="Electricity" & (htt2030$`Dependency=ASHRAE IECC Climate Zone 2004` == "1A" | htt2030$`Dependency=ASHRAE IECC Climate Zone 2004` == "2A" | htt2030$`Dependency=ASHRAE IECC Climate Zone 2004` == "3A"),
-        c("Option=Ducted Heat Pump" , "Option=Ducted Heating"  ,"Option=Non-Ducted Heat Pump","Option=Non-Ducted Heating")]<-matrix(rep(c(0.82,0.11,0.07,0),each=3),3,4)
-# Second CZ in the West excluding very cold zone 7. Here resistance heating is surprisingly high, especially in MF. Still, HP are around 60%, and furances aroudn 18%, and other around 25% (2010s)
+        c("Option=Ducted Heat Pump" , "Option=Ducted Heating"  ,"Option=Non-Ducted Heat Pump","Option=Non-Ducted Heating")]<-matrix(rep(c(0.85,0.09,0.06,0),each=3),3,4)
+# Second CZ in the West excluding very cold zone 7
 htt2030[htt2030$`Dependency=Heating Fuel`=="Electricity" & (htt2030$`Dependency=ASHRAE IECC Climate Zone 2004` == "2B" | htt2030$`Dependency=ASHRAE IECC Climate Zone 2004` == "3B" | 
                                                               htt2030$`Dependency=ASHRAE IECC Climate Zone 2004` == "3C" | htt2030$`Dependency=ASHRAE IECC Climate Zone 2004` == "4B" |
-                                                              htt2030$`Dependency=ASHRAE IECC Climate Zone 2004` == "4C" |htt2030$`Dependency=ASHRAE IECC Climate Zone 2004` == "5B"),
-        c("Option=Ducted Heat Pump" , "Option=Ducted Heating"  ,"Option=Non-Ducted Heat Pump","Option=Non-Ducted Heating")]<-matrix(rep(c(0.61,0.14,0.09,0.16),each=6),6,4)
+                                                              htt2030$`Dependency=ASHRAE IECC Climate Zone 2004` == "4C" |htt2030$`Dependency=ASHRAE IECC Climate Zone 2004` == "5B"| htt2030$`Dependency=ASHRAE IECC Climate Zone 2004` == "6B"),
+        c("Option=Ducted Heat Pump" , "Option=Ducted Heating"  ,"Option=Non-Ducted Heat Pump","Option=Non-Ducted Heating")]<-matrix(rep(c(0.62,0.14,0.08,0.16),each=7),7,4)
 # Third CZ in the MW excluding very cold zone 7. 
-htt2030[htt2030$`Dependency=Heating Fuel`=="Electricity" & (htt2030$`Dependency=ASHRAE IECC Climate Zone 2004` == "6A" | htt2030$`Dependency=ASHRAE IECC Climate Zone 2004` == "6B"),
-        c("Option=Ducted Heat Pump" , "Option=Ducted Heating"  ,"Option=Non-Ducted Heat Pump","Option=Non-Ducted Heating")]<-matrix(rep(c(0.52,0.36,0.04,0.08),each=2),2,4)
+htt2030[htt2030$`Dependency=Heating Fuel`=="Electricity" & (htt2030$`Dependency=ASHRAE IECC Climate Zone 2004` == "6A"),
+        c("Option=Ducted Heat Pump" , "Option=Ducted Heating"  ,"Option=Non-Ducted Heat Pump","Option=Non-Ducted Heating")]<-matrix(rep(c(0.57,0.36,0.05,0.02),each=1),1,4)
 # Fourth for CZ 4A, which we assume is a mix between South and NE, with higher Southern representation (also some MW here). 
 htt2030[htt2030$`Dependency=Heating Fuel`=="Electricity" & (htt2030$`Dependency=ASHRAE IECC Climate Zone 2004` == "4A"),
-        c("Option=Ducted Heat Pump" , "Option=Ducted Heating"  ,"Option=Non-Ducted Heat Pump","Option=Non-Ducted Heating")]<-matrix(rep(c(0.72,0.14,0.07,0.07),each=1),1,4)
+        c("Option=Ducted Heat Pump" , "Option=Ducted Heating"  ,"Option=Non-Ducted Heat Pump","Option=Non-Ducted Heating")]<-matrix(rep(c(0.73,0.14,0.07,0.06),each=1),1,4)
 # Fifth for CZ 5A, which we assume is a mix between MW and NE, with higher MW representation.
 htt2030[htt2030$`Dependency=Heating Fuel`=="Electricity" & (htt2030$`Dependency=ASHRAE IECC Climate Zone 2004` == "5A"),
-        c("Option=Ducted Heat Pump" , "Option=Ducted Heating"  ,"Option=Non-Ducted Heat Pump","Option=Non-Ducted Heating")]<-matrix(rep(c(0.59,0.23,0.07,0.11),each=1),1,4)
+        c("Option=Ducted Heat Pump" , "Option=Ducted Heating"  ,"Option=Non-Ducted Heat Pump","Option=Non-Ducted Heating")]<-matrix(rep(c(0.57,0.26,0.07,0.1),each=1),1,4)
 # Last the two cold climate 7A and 7B, where heat pumps will be less common
 htt2030[htt2030$`Dependency=Heating Fuel`=="Electricity" & (htt2030$`Dependency=ASHRAE IECC Climate Zone 2004` == "7A" | htt2030$`Dependency=ASHRAE IECC Climate Zone 2004` == "7B"),
-        c("Option=Ducted Heat Pump" , "Option=Ducted Heating"  ,"Option=Non-Ducted Heat Pump","Option=Non-Ducted Heating")]<-matrix(rep(c(0.33,0.24,0.03,0.40),each=2),2,4)
+        c("Option=Ducted Heat Pump" , "Option=Ducted Heating"  ,"Option=Non-Ducted Heat Pump","Option=Non-Ducted Heating")]<-matrix(rep(c(0.2,0.05,0.1,0.65),each=2),2,4)
 
-# now for combustion fuels. Based on NRC data, almost all new heating systems are ducted air furnaces. Water/steam systems are rare, except for in MF homes in the NE and W, where they make up almost 30%
-# Define all values here based on SF-MF split except for W and NE MF. They can be overwritten afterwards in the bs.csv
+# now for combustion fuels. 
 # First South, 99% ducted
 htt2030[htt2030$`Dependency=Heating Fuel`!="Electricity" & htt2030$`Dependency=Heating Fuel`!="None"  & (htt2030$`Dependency=ASHRAE IECC Climate Zone 2004` == "1A" | htt2030$`Dependency=ASHRAE IECC Climate Zone 2004` == "2A" | htt2030$`Dependency=ASHRAE IECC Climate Zone 2004` == "3A"),
         c("Option=Ducted Heating"  ,"Option=Non-Ducted Heating")]<-matrix(rep(c(0.99,0.01),each=12),12,2)
 # Second West (excl MF), 100% ducted
 htt2030[htt2030$`Dependency=Heating Fuel`!="Electricity" & htt2030$`Dependency=Heating Fuel`!="None"  & (htt2030$`Dependency=ASHRAE IECC Climate Zone 2004` == "2B" | htt2030$`Dependency=ASHRAE IECC Climate Zone 2004` == "3B" |
                                                                                                            htt2030$`Dependency=ASHRAE IECC Climate Zone 2004` == "3C" | htt2030$`Dependency=ASHRAE IECC Climate Zone 2004` == "4B" |
-                                                                                                           htt2030$`Dependency=ASHRAE IECC Climate Zone 2004` == "4C" |htt2030$`Dependency=ASHRAE IECC Climate Zone 2004` == "5B"),
-        c("Option=Ducted Heating"  ,"Option=Non-Ducted Heating")]<-matrix(rep(c(1,0),each=24),24,2)
+                                                                                                           htt2030$`Dependency=ASHRAE IECC Climate Zone 2004` == "4C" |htt2030$`Dependency=ASHRAE IECC Climate Zone 2004` == "5B" | htt2030$`Dependency=ASHRAE IECC Climate Zone 2004` == "6B"),
+        c("Option=Ducted Heating"  ,"Option=Non-Ducted Heating")]<-matrix(rep(c(1,0),each=28),28,2)
 # Third MW, excl cold region 7, including CZ 5a 98% ducted
-htt2030[htt2030$`Dependency=Heating Fuel`!="Electricity" & htt2030$`Dependency=Heating Fuel`!="None"  & (htt2030$`Dependency=ASHRAE IECC Climate Zone 2004` == "5A" |htt2030$`Dependency=ASHRAE IECC Climate Zone 2004` == "6A" | htt2030$`Dependency=ASHRAE IECC Climate Zone 2004` == "6B"),
-        c("Option=Ducted Heating"  ,"Option=Non-Ducted Heating")]<-matrix(rep(c(0.98,0.02),each=12),12,2)
+htt2030[htt2030$`Dependency=Heating Fuel`!="Electricity" & htt2030$`Dependency=Heating Fuel`!="None"  & (htt2030$`Dependency=ASHRAE IECC Climate Zone 2004` == "5A" |htt2030$`Dependency=ASHRAE IECC Climate Zone 2004` == "6A"),
+        c("Option=Ducted Heating"  ,"Option=Non-Ducted Heating")]<-matrix(rep(c(0.98,0.02),each=8),8,2)
 # Fourth for CZ 4A, which we assume is a mix between South and NE, with higher Southern representation (also some MW here). 99% ducted
 htt2030[htt2030$`Dependency=Heating Fuel`!="Electricity" & htt2030$`Dependency=Heating Fuel`!="None"  & (htt2030$`Dependency=ASHRAE IECC Climate Zone 2004` == "4A"),
         c("Option=Ducted Heating"  ,"Option=Non-Ducted Heating")]<-matrix(rep(c(0.99,0.01),each=4),4,2)
 # Last the two cold regions 7, where steam/hot water is still more common
 htt2030[htt2030$`Dependency=Heating Fuel`!="Electricity" & htt2030$`Dependency=Heating Fuel`!="None"  & (htt2030$`Dependency=ASHRAE IECC Climate Zone 2004` == "7A" | htt2030$`Dependency=ASHRAE IECC Climate Zone 2004` == "7B"),
-        c("Option=Ducted Heating"  ,"Option=Non-Ducted Heating")]<-matrix(rep(c(0.75,0.25),each=8),8,2)
+        c("Option=Ducted Heating"  ,"Option=Non-Ducted Heating")]<-matrix(rep(c(0.7,0.3),each=8),8,2)
 # update 2040s data
+htt2040<-htt2030
+# define vintage names
+htt2040$`Dependency=Vintage`<-"2040s"
 # First cz in the South.
 htt2040[htt2040$`Dependency=Heating Fuel`=="Electricity" & (htt2040$`Dependency=ASHRAE IECC Climate Zone 2004` == "1A" | htt2040$`Dependency=ASHRAE IECC Climate Zone 2004` == "2A" | htt2040$`Dependency=ASHRAE IECC Climate Zone 2004` == "3A"),
-        c("Option=Ducted Heat Pump" , "Option=Ducted Heating"  ,"Option=Non-Ducted Heat Pump","Option=Non-Ducted Heating")]<-matrix(rep(c(0.83,0.04,0.13,0),each=3),3,4)
-# Second CZ in the West excluding very cold zone 7. Here resistance heating is surprisingly high, especially in MF.
+        c("Option=Ducted Heat Pump" , "Option=Ducted Heating"  ,"Option=Non-Ducted Heat Pump","Option=Non-Ducted Heating")]<-matrix(rep(c(0.89,0.02,0.09,0),each=3),3,4)
+# Second CZ in the West excluding very cold zone 7. 
 htt2040[htt2040$`Dependency=Heating Fuel`=="Electricity" & (htt2040$`Dependency=ASHRAE IECC Climate Zone 2004` == "2B" | htt2040$`Dependency=ASHRAE IECC Climate Zone 2004` == "3B" | 
                                                               htt2040$`Dependency=ASHRAE IECC Climate Zone 2004` == "3C" | htt2040$`Dependency=ASHRAE IECC Climate Zone 2004` == "4B" |
-                                                              htt2040$`Dependency=ASHRAE IECC Climate Zone 2004` == "4C" |htt2040$`Dependency=ASHRAE IECC Climate Zone 2004` == "5B"),
-        c("Option=Ducted Heat Pump" , "Option=Ducted Heating"  ,"Option=Non-Ducted Heat Pump","Option=Non-Ducted Heating")]<-matrix(rep(c(0.67,0.08,0.14,0.11),each=6),6,4)
+                                                              htt2040$`Dependency=ASHRAE IECC Climate Zone 2004` == "4C" |htt2040$`Dependency=ASHRAE IECC Climate Zone 2004` == "5B"| htt2040$`Dependency=ASHRAE IECC Climate Zone 2004` == "6B"),
+        c("Option=Ducted Heat Pump" , "Option=Ducted Heating"  ,"Option=Non-Ducted Heat Pump","Option=Non-Ducted Heating")]<-matrix(rep(c(0.67,0.08,0.14,0.11),each=7),7,4)
 # Third CZ in the MW excluding very cold zone 7. 
-htt2040[htt2040$`Dependency=Heating Fuel`=="Electricity" & (htt2040$`Dependency=ASHRAE IECC Climate Zone 2004` == "6A" | htt2040$`Dependency=ASHRAE IECC Climate Zone 2004` == "6B"),
-        c("Option=Ducted Heat Pump" , "Option=Ducted Heating"  ,"Option=Non-Ducted Heat Pump","Option=Non-Ducted Heating")]<-matrix(rep(c(0.57,0.28,0.1,0.05),each=2),2,4)
-# Fourth for CZ 4A, which we assume is a mix between South and NE, with higher Southern representation (also some MW here). 
+htt2040[htt2040$`Dependency=Heating Fuel`=="Electricity" & (htt2040$`Dependency=ASHRAE IECC Climate Zone 2004` == "6A" ),
+        c("Option=Ducted Heat Pump" , "Option=Ducted Heating"  ,"Option=Non-Ducted Heat Pump","Option=Non-Ducted Heating")]<-matrix(rep(c(0.59,0.3,0.1,0.01),each=1),1,4)
+# Fourth for CZ 4A, which is a mix between South and NE, with higher Southern representation (also some MW here). 
 htt2040[htt2040$`Dependency=Heating Fuel`=="Electricity" & (htt2040$`Dependency=ASHRAE IECC Climate Zone 2004` == "4A"),
-        c("Option=Ducted Heat Pump" , "Option=Ducted Heating"  ,"Option=Non-Ducted Heat Pump","Option=Non-Ducted Heating")]<-matrix(rep(c(0.8,0.05,0.11,0.04),each=1),1,4)
-# Fifth for CZ 5A, which we assume is a mix between MW and NE, with higher MW representation.
+        c("Option=Ducted Heat Pump" , "Option=Ducted Heating"  ,"Option=Non-Ducted Heat Pump","Option=Non-Ducted Heating")]<-matrix(rep(c(0.8,0.07,0.1,0.03),each=1),1,4)
+# Fifth for CZ 5A, which is a mix between MW and NE, with higher MW representation.
 htt2040[htt2040$`Dependency=Heating Fuel`=="Electricity" & (htt2040$`Dependency=ASHRAE IECC Climate Zone 2004` == "5A"),
-        c("Option=Ducted Heat Pump" , "Option=Ducted Heating"  ,"Option=Non-Ducted Heat Pump","Option=Non-Ducted Heating")]<-matrix(rep(c(0.61,0.21,0.1,0.08),each=1),1,4)
+        c("Option=Ducted Heat Pump" , "Option=Ducted Heating"  ,"Option=Non-Ducted Heat Pump","Option=Non-Ducted Heating")]<-matrix(rep(c(0.61,0.22,0.11,0.06),each=1),1,4)
 # Last the two cold climate 7A and 7B, where heat pumps will be less common
 htt2040[htt2040$`Dependency=Heating Fuel`=="Electricity" & (htt2040$`Dependency=ASHRAE IECC Climate Zone 2004` == "7A" | htt2040$`Dependency=ASHRAE IECC Climate Zone 2004` == "7B"),
-        c("Option=Ducted Heat Pump" , "Option=Ducted Heating"  ,"Option=Non-Ducted Heat Pump","Option=Non-Ducted Heating")]<-matrix(rep(c(0.35,0.22,0.05,0.38),each=2),2,4)
+        c("Option=Ducted Heat Pump" , "Option=Ducted Heating"  ,"Option=Non-Ducted Heat Pump","Option=Non-Ducted Heating")]<-matrix(rep(c(0.25,0,0.15,0.6),each=2),2,4)
 
 # now for combustion fuels. Based on NRC data, almost all new heating systems are ducted air furnaces. Water/steam systems are rare, except for in MF homes in the NE and W, where they make up almost 30%
 # Define all values here based on SF-MF split except for W and NE MF. They can be overwritten afterwards in the bs.csv
@@ -404,15 +402,15 @@ htt2040[htt2040$`Dependency=Heating Fuel`!="Electricity" & htt2040$`Dependency=H
 # Second West (excl MF), 100% ducted
 htt2040[htt2040$`Dependency=Heating Fuel`!="Electricity" & htt2040$`Dependency=Heating Fuel`!="None"  & (htt2040$`Dependency=ASHRAE IECC Climate Zone 2004` == "2B" | htt2040$`Dependency=ASHRAE IECC Climate Zone 2004` == "3B" |
                                                                                                            htt2040$`Dependency=ASHRAE IECC Climate Zone 2004` == "3C" | htt2040$`Dependency=ASHRAE IECC Climate Zone 2004` == "4B" |
-                                                                                                           htt2040$`Dependency=ASHRAE IECC Climate Zone 2004` == "4C" |htt2040$`Dependency=ASHRAE IECC Climate Zone 2004` == "5B"),
-        c("Option=Ducted Heating"  ,"Option=Non-Ducted Heating")]<-matrix(rep(c(1,0),each=24),24,2)
+                                                                                                           htt2040$`Dependency=ASHRAE IECC Climate Zone 2004` == "4C" |htt2040$`Dependency=ASHRAE IECC Climate Zone 2004` == "5B" | htt2040$`Dependency=ASHRAE IECC Climate Zone 2004` == "6B"),
+        c("Option=Ducted Heating"  ,"Option=Non-Ducted Heating")]<-matrix(rep(c(1,0),each=28),28,2)
 # Third MW, excl cold region 7, including CZ 5a 99% ducted
-htt2040[htt2040$`Dependency=Heating Fuel`!="Electricity" & htt2040$`Dependency=Heating Fuel`!="None"  & (htt2040$`Dependency=ASHRAE IECC Climate Zone 2004` == "5A" |htt2040$`Dependency=ASHRAE IECC Climate Zone 2004` == "6A" | htt2040$`Dependency=ASHRAE IECC Climate Zone 2004` == "6B"),
-        c("Option=Ducted Heating"  ,"Option=Non-Ducted Heating")]<-matrix(rep(c(0.99,0.01),each=12),12,2)
-# Fourth for CZ 4A, which we assume is a mix between South and NE, with higher Southern representation (also some MW here). 100% ducted
+htt2040[htt2040$`Dependency=Heating Fuel`!="Electricity" & htt2040$`Dependency=Heating Fuel`!="None"  & (htt2040$`Dependency=ASHRAE IECC Climate Zone 2004` == "5A" |htt2040$`Dependency=ASHRAE IECC Climate Zone 2004` == "6A"),
+        c("Option=Ducted Heating"  ,"Option=Non-Ducted Heating")]<-matrix(rep(c(0.99,0.01),each=8),8,2)
+# Fourth for CZ 4A, which is a mix between South and NE, with higher Southern representation (also some MW here). 100% ducted
 htt2040[htt2040$`Dependency=Heating Fuel`!="Electricity" & htt2040$`Dependency=Heating Fuel`!="None"  & (htt2040$`Dependency=ASHRAE IECC Climate Zone 2004` == "4A"),
         c("Option=Ducted Heating"  ,"Option=Non-Ducted Heating")]<-matrix(rep(c(1,0),each=4),4,2)
-# Last the two cold regions 7, where steam/hot water is still more common
+# Last the two cold regions 7, where steam/hot water is still more common. Climate change may make ducted systems more common as the temperatures rise
 htt2040[htt2040$`Dependency=Heating Fuel`!="Electricity" & htt2040$`Dependency=Heating Fuel`!="None"  & (htt2040$`Dependency=ASHRAE IECC Climate Zone 2004` == "7A" | htt2040$`Dependency=ASHRAE IECC Climate Zone 2004` == "7B"),
         c("Option=Ducted Heating"  ,"Option=Non-Ducted Heating")]<-matrix(rep(c(0.75,0.25),each=8),8,2)
 htt2050<-htt2040
@@ -420,39 +418,45 @@ htt2050$`Dependency=Vintage`<-"2050s"
 # update 2050s data, changing only the elec share, fuels stay the same
 # First cz in the South.
 htt2050[htt2050$`Dependency=Heating Fuel`=="Electricity" & (htt2050$`Dependency=ASHRAE IECC Climate Zone 2004` == "1A" | htt2050$`Dependency=ASHRAE IECC Climate Zone 2004` == "2A" | htt2050$`Dependency=ASHRAE IECC Climate Zone 2004` == "3A"),
-        c("Option=Ducted Heat Pump" , "Option=Ducted Heating"  ,"Option=Non-Ducted Heat Pump","Option=Non-Ducted Heating")]<-matrix(rep(c(0.85,0.01,0.14,0),each=3),3,4)
-# Second CZ in the West excluding very cold zone 7. Here resistance heating is surprisingly high, especially in MF.
+        c("Option=Ducted Heat Pump" , "Option=Ducted Heating"  ,"Option=Non-Ducted Heat Pump","Option=Non-Ducted Heating")]<-matrix(rep(c(0.89,0.01,0.1,0),each=3),3,4)
+# Second CZ in the West excluding very cold zone 7.
 htt2050[htt2050$`Dependency=Heating Fuel`=="Electricity" & (htt2050$`Dependency=ASHRAE IECC Climate Zone 2004` == "2B" | htt2050$`Dependency=ASHRAE IECC Climate Zone 2004` == "3B" | 
                                                               htt2050$`Dependency=ASHRAE IECC Climate Zone 2004` == "3C" | htt2050$`Dependency=ASHRAE IECC Climate Zone 2004` == "4B" |
-                                                              htt2050$`Dependency=ASHRAE IECC Climate Zone 2004` == "4C" |htt2050$`Dependency=ASHRAE IECC Climate Zone 2004` == "5B"),
-        c("Option=Ducted Heat Pump" , "Option=Ducted Heating"  ,"Option=Non-Ducted Heat Pump","Option=Non-Ducted Heating")]<-matrix(rep(c(0.71,0.05,0.18,0.06),each=6),6,4)
+                                                              htt2050$`Dependency=ASHRAE IECC Climate Zone 2004` == "4C" |htt2050$`Dependency=ASHRAE IECC Climate Zone 2004` == "5B"| htt2050$`Dependency=ASHRAE IECC Climate Zone 2004` == "6B"),
+        c("Option=Ducted Heat Pump" , "Option=Ducted Heating"  ,"Option=Non-Ducted Heat Pump","Option=Non-Ducted Heating")]<-matrix(rep(c(0.71,0.05,0.19,0.05),each=7),7,4)
 # Third CZ in the MW excluding very cold zone 7. 
-htt2050[htt2050$`Dependency=Heating Fuel`=="Electricity" & (htt2050$`Dependency=ASHRAE IECC Climate Zone 2004` == "6A" | htt2050$`Dependency=ASHRAE IECC Climate Zone 2004` == "6B"),
-        c("Option=Ducted Heat Pump" , "Option=Ducted Heating"  ,"Option=Non-Ducted Heat Pump","Option=Non-Ducted Heating")]<-matrix(rep(c(0.67,0.16,0.15,0.02),each=2),2,4)
+htt2050[htt2050$`Dependency=Heating Fuel`=="Electricity" & (htt2050$`Dependency=ASHRAE IECC Climate Zone 2004` == "6A"),
+        c("Option=Ducted Heat Pump" , "Option=Ducted Heating"  ,"Option=Non-Ducted Heat Pump","Option=Non-Ducted Heating")]<-matrix(rep(c(0.68,0.15,0.16,0.01),each=1),1,4)
 # Fourth for CZ 4A, which we assume is a mix between South and NE, with higher Southern representation (also some MW here). 
 htt2050[htt2050$`Dependency=Heating Fuel`=="Electricity" & (htt2050$`Dependency=ASHRAE IECC Climate Zone 2004` == "4A"),
         c("Option=Ducted Heat Pump" , "Option=Ducted Heating"  ,"Option=Non-Ducted Heat Pump","Option=Non-Ducted Heating")]<-matrix(rep(c(0.83,0.02,0.14,0.01),each=1),1,4)
 # Fifth for CZ 5A, which we assume is a mix between MW and NE, with higher MW representation.
 htt2050[htt2050$`Dependency=Heating Fuel`=="Electricity" & (htt2050$`Dependency=ASHRAE IECC Climate Zone 2004` == "5A"),
-        c("Option=Ducted Heat Pump" , "Option=Ducted Heating"  ,"Option=Non-Ducted Heat Pump","Option=Non-Ducted Heating")]<-matrix(rep(c(0.63,0.16,0.19,0.02),each=1),1,4)
-# Last the two cold climate 7A and 7B, where heat pumps will be less common
+        c("Option=Ducted Heat Pump" , "Option=Ducted Heating"  ,"Option=Non-Ducted Heat Pump","Option=Non-Ducted Heating")]<-matrix(rep(c(0.64,0.15,0.19,0.02),each=1),1,4)
+# Last the two cold climate 7A and 7B. Here, both warming due to climate chanage, and improved cold climate HP technology raise the HP share, but resistance heating is still common.
 htt2050[htt2050$`Dependency=Heating Fuel`=="Electricity" & (htt2050$`Dependency=ASHRAE IECC Climate Zone 2004` == "7A" | htt2050$`Dependency=ASHRAE IECC Climate Zone 2004` == "7B"),
-        c("Option=Ducted Heat Pump" , "Option=Ducted Heating"  ,"Option=Non-Ducted Heat Pump","Option=Non-Ducted Heating")]<-matrix(rep(c(0.37,0.17,0.09,0.37),each=2),2,4)
-# now save changes for 2030s-2050s
-htt_new<-as.data.frame(rbind(htt,htt2020,htt2030))
-for (p in 10:17) { # which projects do these changes apply to? in this case all projects
+        c("Option=Ducted Heat Pump" , "Option=Ducted Heating"  ,"Option=Non-Ducted Heat Pump","Option=Non-Ducted Heating")]<-matrix(rep(c(0.3,0,0.2,0.5),each=2),2,4)
+# now save changes for 2020s
+htt_new<-as.data.frame(htt2020)
+for (p in 2:9) { # which projects do these changes apply to? in this case 2025 and 2030s
   fol_fn<-paste(projects[p],'/housing_characteristics/HVAC Heating Type.tsv',sep = "")
-  write.table(format(htt_new,nsmall=6),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+  write.table(format(htt_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
-htt_new<-as.data.frame(rbind(htt,htt2020,htt2030,htt2040))
+# now save changes for 2030s
+htt_new<-as.data.frame(htt2030)
+for (p in 10:17) { # which projects do these changes apply to? in this case 2035 and 2040s
+  fol_fn<-paste(projects[p],'/housing_characteristics/HVAC Heating Type.tsv',sep = "")
+  write.table(format(htt_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+}
+htt_new<-as.data.frame(htt2040)
 for (p in 18:25) { # which projects do these changes apply to? in this case all projects
   fol_fn<-paste(projects[p],'/housing_characteristics/HVAC Heating Type.tsv',sep = "")
-  write.table(format(htt_new,nsmall=6),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+  write.table(format(htt_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
 htt_new<-as.data.frame(rbind(htt,htt2020,htt2030,htt2040,htt2050))
 for (p in 26:33) { # which projects do these changes apply to? in this case all projects
   fol_fn<-paste(projects[p],'/housing_characteristics/HVAC Heating Type.tsv',sep = "")
-  write.table(format(htt_new,nsmall=6),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+  write.table(format(htt_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
 
 # HVAC Cooling type ######
@@ -578,7 +582,7 @@ for (p in 26:33) { # which projects do these changes apply to? in this case all 
 }
 
 # Heating fuel #################
-load("../StockModelCode/buildstock100.RData")
+load("../../StockModelCode/buildstock100.RData")
 rp<-as.data.frame(table(rs$Census.Region,rs$PUMA))
 rpp<-rp[rp$Freq>0,]
 rpp<-rpp[,1:2]
@@ -1887,3 +1891,6 @@ for (p in 2:33) { # which projects do these changes apply to? in this case all
   fol_fn<-paste(projects[p],'/housing_characteristics/Vintage ACS.tsv',sep = "")
   write.table(format(vacs_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
+### tables to check correspondences between regions #####
+load("../../StockModelCode/buildstock100.RData")
+table(rs$ASHRAE.IECC.Climate.Zone.2004,rs$Census.Region)
