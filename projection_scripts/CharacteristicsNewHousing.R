@@ -179,11 +179,12 @@ for (p in 2:33) { # which projects do these changes apply to? in this case all p
   fol_fn<-paste(projects[p],'/housing_characteristics/Geometry Garage.tsv',sep = "")
   write.table(format(gar_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
+
 # Cooling Efficiency ###########
-ceff<-read_tsv('project_national/housing_characteristics/HVAC Cooling Efficiency.tsv',col_names = TRUE)
+ceff<-read_tsv('../project_national/housing_characteristics/HVAC Cooling Efficiency.tsv',col_names = TRUE)
 ceff<-ceff[1:144,1:14] # remove comments and count and weight columns
 # add columes for AC, SEER 18. Current max efficiency for Room AC (EER 12) should be sufficient, can move distribution into this category as time goes on)
-ceff$`Option=AC, SEER 18`<-0
+ceff$`Option=AC, SEER 18`<-0 # this already exists in options_lookup
 ceff<-ceff[,c(1:7,15,8:14)]
 ceff2020<-ceff[ceff$`Dependency=Vintage`=="2010s",]
 ceff2020$`Dependency=Vintage`<-"2020s"
@@ -191,18 +192,13 @@ ceff2020$`Dependency=Vintage`<-"2020s"
 # There is no geo dependence here, but AC efficiencies will are and will be higher in southern states (https://www.ecfr.gov/cgi-bin/text-idx?rgn=div8&node=10:3.0.1.4.18.3.9.2)
 # Make changes in the bs.csv after generation to represent higher efficiencies in those states
 # for national baseline, increase the penetration of SEER 15 and SEER 18 units
+# efficiency of heat pump based cooling is defined in elsewhere in HVAC Heating Efficiency
 ceff2020[ceff2020$`Dependency=HVAC Cooling Type`=="Central AC" & (ceff2020$`Dependency=HVAC Has Shared System`=="Heating Only" | ceff2020$`Dependency=HVAC Has Shared System`=="None"),
          c("Option=AC, SEER 10","Option=AC, SEER 13","Option=AC, SEER 15","Option=AC, SEER 18")]<-matrix(rep(c(0,0.6,0.38,0.02),each=2),2,4)
 # for room ACs, increase the penetration of ACs with EER>10
 ceff2020[ceff2020$`Dependency=HVAC Cooling Type`=="Room AC" & (ceff2020$`Dependency=HVAC Has Shared System`=="Heating Only" | ceff2020$`Dependency=HVAC Has Shared System`=="None"),
          c("Option=Room AC, EER 8.5","Option=Room AC, EER 9.8","Option=Room AC, EER 10.7","Option=Room AC, EER 12.0")]<-matrix(rep(c(0,0.15,0.65,0.2),each=2),2,4)
 
-# then save the new cooling efficiency file complete with new 2020 characteristics
-ceff_new<-as.data.frame(rbind(ceff,ceff2020))
-for (p in 2:9) { # which projects do these changes apply to? in this case all 2025 and 2030 projects
-  fol_fn<-paste(projects[p],'/housing_characteristics/HVAC Cooling Efficiency.tsv',sep = "")
-  write.table(format(ceff_new,nsmall=6),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
-}
 # initially define cooling equipment made in 2030s 2040s and 2050s as the same as those made in 2020s
 ceff2030<-ceff2040<-ceff2050<-ceff2020
 # define vintage names
@@ -222,42 +218,48 @@ ceff2040[ceff2040$`Dependency=HVAC Cooling Type`=="Central AC" & (ceff2040$`Depe
          c("Option=AC, SEER 10","Option=AC, SEER 13","Option=AC, SEER 15","Option=AC, SEER 18")]<-matrix(rep(c(0,0.39,0.44,0.17),each=2),2,4)
 # for room ACs, reduce EEC<10 to 0, with almost all increase going to EER=12
 ceff2040[ceff2040$`Dependency=HVAC Cooling Type`=="Room AC" & (ceff2040$`Dependency=HVAC Has Shared System`=="Heating Only" | ceff2040$`Dependency=HVAC Has Shared System`=="None"),
-         c("Option=Room AC, EER 8.5","Option=Room AC, EER 9.8","Option=Room AC, EER 10.7","Option=Room AC, EER 12.0")]<-matrix(rep(c(0,0,0.55,0.45),each=2),2,4)
+         c("Option=Room AC, EER 8.5","Option=Room AC, EER 9.8","Option=Room AC, EER 10.7","Option=Room AC, EER 12.0")]<-matrix(rep(c(0,0,0.5,0.5),each=2),2,4)
 # make changes to 2050s ceff here
 # for national baseline, increase the penetration of SEER 15 and SEER 18 units more drastically, very few SEER 13 now
 ceff2050[ceff2050$`Dependency=HVAC Cooling Type`=="Central AC" & (ceff2050$`Dependency=HVAC Has Shared System`=="Heating Only" | ceff2050$`Dependency=HVAC Has Shared System`=="None"),
          c("Option=AC, SEER 10","Option=AC, SEER 13","Option=AC, SEER 15","Option=AC, SEER 18")]<-matrix(rep(c(0,0.1,0.4,0.5),each=2),2,4)
 # for room ACs, most new homes now have EER=12
 ceff2050[ceff2050$`Dependency=HVAC Cooling Type`=="Room AC" & (ceff2050$`Dependency=HVAC Has Shared System`=="Heating Only" | ceff2050$`Dependency=HVAC Has Shared System`=="None"),
-         c("Option=Room AC, EER 8.5","Option=Room AC, EER 9.8","Option=Room AC, EER 10.7","Option=Room AC, EER 12.0")]<-matrix(rep(c(0,0,0.3,0.7),each=2),2,4)
+         c("Option=Room AC, EER 8.5","Option=Room AC, EER 9.8","Option=Room AC, EER 10.7","Option=Room AC, EER 12.0")]<-matrix(rep(c(0,0,0.25,0.75),each=2),2,4)
 
+# then save the new cooling efficiency file complete with new 2020 characteristics
+ceff_new<-as.data.frame(ceff2020)
+for (p in 2:9) { # which projects do these changes apply to? in this case all 2025 and 2030 projects
+  fol_fn<-paste(projects[p],'/housing_characteristics/HVAC Cooling Efficiency.tsv',sep = "")
+  write.table(format(ceff_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+}
 # save 2030s ceff
-ceff_new<-as.data.frame(rbind(ceff,ceff2020,ceff2030))
+ceff_new<-as.data.frame(ceff2030)
 for (p in 10:17) { # which projects do these changes apply to? in this case all 2035 and 2040 projects
   fol_fn<-paste(projects[p],'/housing_characteristics/HVAC Cooling Efficiency.tsv',sep = "")
-  write.table(format(ceff_new,nsmall=6),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+  write.table(format(ceff_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
 
 # save 2040s ceff
-ceff_new<-as.data.frame(rbind(ceff,ceff2020,ceff2030,ceff2040))
+ceff_new<-as.data.frame(ceff2040)
 for (p in 18:25) { # which projects do these changes apply to? in this case all 2045 and 2050 projects
   fol_fn<-paste(projects[p],'/housing_characteristics/HVAC Cooling Efficiency.tsv',sep = "")
-  write.table(format(ceff_new,nsmall=6),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+  write.table(format(ceff_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
 
 # save 2050s ceff
-ceff_new<-as.data.frame(rbind(ceff,ceff2020,ceff2030,ceff2040,ceff2050))
+ceff_new<-as.data.frame(ceff2050)
 for (p in 26:33) { # which projects do these changes apply to? in this case all 2055 and 2060 projects
   fol_fn<-paste(projects[p],'/housing_characteristics/HVAC Cooling Efficiency.tsv',sep = "")
-  write.table(format(ceff_new,nsmall=6),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+  write.table(format(ceff_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
 
 # HVAC shared system ###########
-hss<-read_tsv('project_national/housing_characteristics/HVAC Has Shared System.tsv',col_names = TRUE)
+hss<-read_tsv('../project_national/housing_characteristics/HVAC Has Shared System.tsv',col_names = TRUE)
 hss<-hss[1:900,1:8] # remove comments and count and weight columns
 hss2020<-hss[hss$`Dependency=Vintage`=="2010s",]
 hss2020$`Dependency=Vintage`<-"2020s"
-# dont plan to make any changes to this characteristic
+# No changes to this characteristic
 # define hass made in 2030s 2040s and 2050s as the same as those made in 2020s
 hss2030<-hss2040<-hss2050<-hss2020
 # define vintage names
