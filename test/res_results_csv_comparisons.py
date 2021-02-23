@@ -208,6 +208,8 @@ class res_results_csv_comparisons:
                 if names[3] in ['gas', 'oil']:
                     fuel_type += '_{}'.format(names[3])
 
+                min_value = 0
+                max_value = 0
                 for i, end_use in enumerate(self.saved_fields):
                     if not 'end_use' in end_use:
                         continue
@@ -219,17 +221,22 @@ class res_results_csv_comparisons:
                     if col == 1:
                         showlegend = True
 
-                    min_value = 0.9 * np.min([tmp_base_df[end_use].min(), tmp_feature_df[end_use].min()])
-                    max_value = 1.1 * np.max([tmp_base_df[end_use].max(), tmp_feature_df[end_use].max()])
+                    if 0.9 * np.min([tmp_base_df[end_use].min(), tmp_feature_df[end_use].min()]) < min_value:
+                        min_value = 0.9 * np.min([tmp_base_df[end_use].min(), tmp_feature_df[end_use].min()])
+                    if 1.1 * np.max([tmp_base_df[end_use].max(), tmp_feature_df[end_use].max()]) > max_value:
+                        max_value = 1.1 * np.max([tmp_base_df[end_use].max(), tmp_feature_df[end_use].max()])
 
                     fig.add_trace(go.Scatter(x=tmp_base_df[end_use], y=tmp_feature_df[end_use], marker=dict(size=10, color=colors[i]), mode='markers', name=end_use, legendgroup=end_use, showlegend=showlegend), row=1, col=col)
-                    fig.add_trace(go.Scatter(x=[min_value, max_value], y=[min_value, max_value], line=dict(color='black', dash='dash', width=0.1), mode='lines', showlegend=False), row=1, col=col)
-                    fig.update_xaxes(title_text=self.base_table_name, row=1, col=col, range=[min_value, max_value])
-                    fig.update_yaxes(title_text=self.feature_table_name, row=1, col=col, range=[min_value, max_value])
 
-            fig['layout'].update(title=fuel_use, height=800, autosize=True, template='plotly_white')
-            output_path = os.path.join(os.path.dirname(self.base_table_name), 'figures', fuel_use + '.html')
-            plotly.offline.plot(fig, filename=output_path, auto_open=False)
+                fig.add_trace(go.Scatter(x=[min_value, max_value], y=[min_value, max_value], line=dict(color='black', dash='dash', width=0.5), mode='lines', showlegend=False), row=1, col=col)
+                fig.update_xaxes(title_text=self.base_table_name, row=1, col=col)
+                fig.update_yaxes(title_text=self.feature_table_name, row=1, col=col)
+
+            fig['layout'].update(title=fuel_use, template='plotly_white')
+            fig.update_layout(width=1800, height=600, autosize=False)
+            output_path = os.path.join(os.path.dirname(self.base_table_name), 'figures', fuel_use + '.png')
+            # plotly.offline.plot(fig, filename=output_path, auto_open=False) # html
+            fig.write_image(output_path)
 
 
 if __name__ == '__main__':
@@ -239,7 +246,7 @@ if __name__ == '__main__':
     feature_table_name = sys.argv[2]
     groupby = [
         'build_existing_model.geometry_building_type_recs',  # Needed to split out by models
-        'build_existing_model.county'  # Choose any other characteristic(s)
+        # 'build_existing_model.county'  # Choose any other characteristic(s)
     ]
 
     # Initialize object
