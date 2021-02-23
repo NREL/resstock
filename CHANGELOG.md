@@ -6,6 +6,7 @@ Features
 - Reduce vacant unit heating setpoints to 55F ([#541](https://github.com/NREL/resstock/pull/541))
 - Introduce a CEC Building Climate Zone tag for samples in California ([#548](https://github.com/NREL/resstock/pull/548))
 - Increase LED saturation to approximately 2019 levels ([#545](https://github.com/NREL/resstock/pull/545))
+- Introduce GEB capabilities for water heaters, including the ability to schedule setpoint and HPWH operating mode ([#483] (https://github.com/NREL/resstock/pull/483))
 
 Fixes
 - Fixes significant runtime bottleneck in TSV fetching in BuildExistingModel & ApplyUpgrade measures ([#543](https://github.com/NREL/resstock/pull/543))
