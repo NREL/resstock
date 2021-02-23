@@ -594,8 +594,7 @@ rpp<-rp[rp$Freq>0,]
 rpp<-rpp[,1:2]
 names(rpp)<-c("Region","puma")
 
-
-hf<-read_tsv('project_national/housing_characteristics/Heating Fuel.tsv',col_names = TRUE)
+hf<-read_tsv('../project_national/housing_characteristics/Heating Fuel.tsv',col_names = TRUE)
 hf<-hf[1:105120,1:9] # remove comments and additional columns
 hf2020<-hf[hf$`Dependency=Vintage`=="2010s",]
 hf2010<-hf[hf$`Dependency=Vintage`=="2010s",]
@@ -603,62 +602,99 @@ hf2010<-hf[hf$`Dependency=Vintage`=="2010s",]
 hf2020$`Dependency=Vintage`<-"2020s"
 
 hf2020<-merge(hf2020,rpp,by.x = "Dependency=PUMA",by.y="puma")
-# make changes to 2020 heating fuel here, I will most certainly be making changes here, reflecting increased electrification, would like to approach with with geo resolution of divisions or at least regions
-for (l in 1:nrow(hf2020)) { # solution to model growth in AC. Pick up from here!
-  if (hf2020$`Region`[l] == "Northeast") {
+# define an alternative which will be used to model more advanced electrification
+hf2020adv<-hf2020
+# make changes to 2020 heating fuel here, I will most certainly be making changes here, reflecting increased electrification, with geo resolution of census regions, which captures major differences in projected price differentials b/w gas and electricity
+for (l in 1:nrow(hf2020)) {
+  if (hf2020$`Region`[l] == "Northeast") { # in the Northeast, the move away from gas is the slowest, due to higher priced electricity
     gas0<-hf2020$`Option=Natural Gas`[l]
     lpg0<-hf2020$`Option=Propane`[l]
     oil0<-hf2020$`Option=Fuel Oil`[l]
     
-    hf2020$`Option=Electricity`[l]<-hf2020$`Option=Electricity`[l]+0.03*gas0+0.03*lpg0+0.1*oil0
-    hf2020$`Option=Natural Gas`[l]<-0.97*hf2020$`Option=Natural Gas`[l]+0.75*oil0
-    hf2020$`Option=Propane`[l]<-0.97*hf2020$`Option=Propane`[l]+0.1*oil0
-    hf2020$`Option=Fuel Oil`[l]<-0.05*hf2020$`Option=Fuel Oil`[l]
+    hf2020$`Option=Electricity`[l]<-hf2020$`Option=Electricity`[l]+0.03*gas0+0.03*lpg0+0.15*oil0 # 3% of gas/lpg becomes electric, 15% of oil becomes electric
+    hf2020$`Option=Natural Gas`[l]<-0.97*hf2020$`Option=Natural Gas`[l]+0.65*oil0 # 3% of gas becomes electric, 65% of oil becomes gas
+    hf2020$`Option=Propane`[l]<-0.97*hf2020$`Option=Propane`[l]+0.1*oil0 # 3% of lpg becomes electric, 10% of oil becomes lpg
+    hf2020$`Option=Fuel Oil`[l]<-0.1*hf2020$`Option=Fuel Oil`[l] # 65% of oil becomes gas, 15% becomes electric, 10% becomes lpg
+    # advanced electrification scenario
+    hf2020adv$`Option=Electricity`[l]<-hf2020adv$`Option=Electricity`[l]+0.2*gas0+0.2*lpg0+0.8*oil0 # 20% of gas/lpg becomes electric, 80% of oil becomes electric
+    hf2020adv$`Option=Natural Gas`[l]<-0.8*hf2020adv$`Option=Natural Gas`[l]+0.15*oil0 # 20% of gas becomes electric, 15% of oil becomes gas
+    hf2020adv$`Option=Propane`[l]<-0.8*hf2020adv$`Option=Propane`[l]+0.05*oil0 # 20% of lpg becomes electric, 5% of oil becomes lpg
+    hf2020adv$`Option=Fuel Oil`[l]<-0 # no more oil
   }
 
-  if (hf2020$`Region`[l] == "Midwest") {
-    oil0<-hf2020$`Option=Fuel Oil`[l]
+  if (hf2020$`Region`[l] == "Midwest") { # similar rates as West, but a little bit slower in the 2020s
+    oil0<-hf2020$`Option=Fuel Oil`[l] 
+    gas0<-hf2020$`Option=Natural Gas`[l]
+    lpg0<-hf2020$`Option=Propane`[l]
     
-    hf2020$`Option=Electricity`[l]<-hf2020$`Option=Electricity`[l]+0.1*oil0
-    hf2020$`Option=Natural Gas`[l]<-hf2020$`Option=Natural Gas`[l]+0.75*oil0
-    hf2020$`Option=Propane`[l]<-hf2020$`Option=Propane`[l]+0.1*oil0
-    hf2020$`Option=Fuel Oil`[l]<-0.05*hf2020$`Option=Fuel Oil`[l]
+    hf2020$`Option=Electricity`[l]<-hf2020$`Option=Electricity`[l]+0.04*gas0+0.04*lpg0+0.15*oil0 # 4% of gas/lpg becomes electric, 15% of oil becomes electric
+    hf2020$`Option=Natural Gas`[l]<-0.96*hf2020$`Option=Natural Gas`[l]+0.7*oil0 # 4% of gas becomes electric, 70% of oil becomes gas
+    hf2020$`Option=Propane`[l]<-0.96*hf2020$`Option=Propane`[l]+0.1*oil0 # 4% of gas becomes electric, 10% of oil becomes lpg
+    hf2020$`Option=Fuel Oil`[l]<-0.05*hf2020$`Option=Fuel Oil`[l] # 70% of oil becomes gas, 15% becomes electric, 10% becomes lpg
+    # advanced electrification scenario
+    hf2020adv$`Option=Electricity`[l]<-hf2020adv$`Option=Electricity`[l]+0.3*gas0+0.3*lpg0+0.9*oil0 # 30% of gas/lpg becomes electric, 90% of oil becomes electric
+    hf2020adv$`Option=Natural Gas`[l]<-0.7*hf2020adv$`Option=Natural Gas`[l]+0.1*oil0 # 30% of gas becomes electric, 10% of oil becomes gas
+    hf2020adv$`Option=Propane`[l]<-0.7*hf2020adv$`Option=Propane`[l]# 30% of lpg becomes electric
+    hf2020adv$`Option=Fuel Oil`[l]<-0 # no more oil
+    
   }
   
-  if (hf2020$`Region`[l] == "South") {
+  if (hf2020$`Region`[l] == "South") { # higest rate of electrification here.
     gas0<-hf2020$`Option=Natural Gas`[l]
     lpg0<-hf2020$`Option=Propane`[l]
     oil0<-hf2020$`Option=Fuel Oil`[l]
     
-    hf2020$`Option=Electricity`[l]<-hf2020$`Option=Electricity`[l]+0.05*gas0+0.05*lpg0+0.9*oil0
-    hf2020$`Option=Natural Gas`[l]<-0.95*hf2020$`Option=Natural Gas`[l]
-    hf2020$`Option=Propane`[l]<-0.95*hf2020$`Option=Propane`[l]
-    hf2020$`Option=Fuel Oil`[l]<-0.1*hf2020$`Option=Fuel Oil`[l]
+    hf2020$`Option=Electricity`[l]<-hf2020$`Option=Electricity`[l]+0.1*gas0+0.1*lpg0+0.9*oil0 # 10% of gas/lpg becomes electric, 90% of oil becomes electric
+    hf2020$`Option=Natural Gas`[l]<-0.9*hf2020$`Option=Natural Gas`[l] # 10% of gas becomes electric
+    hf2020$`Option=Propane`[l]<-0.9*hf2020$`Option=Propane`[l] # 10% of lpg becomes electric
+    hf2020$`Option=Fuel Oil`[l]<-0.1*hf2020$`Option=Fuel Oil`[l] # 90% of oil becomes electric
+    # advanced electrification scenario
+    hf2020adv$`Option=Electricity`[l]<-hf2020adv$`Option=Electricity`[l]+0.5*gas0+0.5*lpg0+oil0 # 50% of gas/lpg becomes electric, 100% of oil becomes electric
+    hf2020adv$`Option=Natural Gas`[l]<-0.5*hf2020adv$`Option=Natural Gas`[l] # 30% of gas becomes electric, 
+    hf2020adv$`Option=Propane`[l]<-0.5*hf2020adv$`Option=Propane`[l]# 30% of lpg becomes electric
+    hf2020adv$`Option=Fuel Oil`[l]<-0 # no more oil
   }
   
-  if (hf2020$`Region`[l] == "West") {
+  if (hf2020$`Region`[l] == "West") { # similar rates as MidWest, but a little bit faster in the 2020s
     gas0<-hf2020$`Option=Natural Gas`[l]
     lpg0<-hf2020$`Option=Propane`[l]
     oil0<-hf2020$`Option=Fuel Oil`[l]
     
-    hf2020$`Option=Electricity`[l]<-hf2020$`Option=Electricity`[l]+0.05*gas0+0.05*lpg0+0.3*oil0
-    hf2020$`Option=Natural Gas`[l]<-0.95*hf2020$`Option=Natural Gas`[l]+0.5*oil0
-    hf2020$`Option=Propane`[l]<-0.95*hf2020$`Option=Propane`[l]+0.2*oil0
-    hf2020$`Option=Fuel Oil`[l]<-0
+    hf2020$`Option=Electricity`[l]<-hf2020$`Option=Electricity`[l]+0.05*gas0+0.05*lpg0+0.25*oil0 # 5% of gas/lpg becomes electric, 25% of oil becomes electric
+    hf2020$`Option=Natural Gas`[l]<-0.95*hf2020$`Option=Natural Gas`[l]+0.5*oil0 # 5% of gas becomes electric, 50% of oil becomes gas
+    hf2020$`Option=Propane`[l]<-0.95*hf2020$`Option=Propane`[l]+0.25*oil0 # 5% of lpg becomes electric, 25% of oil becomes lpg
+    hf2020$`Option=Fuel Oil`[l]<-0 # no more oil
+    # advanced electrification scenario
+    hf2020adv$`Option=Electricity`[l]<-hf2020adv$`Option=Electricity`[l]+0.35*gas0+0.35*lpg0+0.95*oil0 # 35% of gas/lpg becomes electric, 95% of oil becomes electric
+    hf2020adv$`Option=Natural Gas`[l]<-0.65*hf2020adv$`Option=Natural Gas`[l]+0.05*oil0 # 35% of gas becomes electric, 5% of oil becomes gas
+    hf2020adv$`Option=Propane`[l]<-0.65*hf2020adv$`Option=Propane`[l]# 35% of lpg becomes electric
+    hf2020adv$`Option=Fuel Oil`[l]<-0 # no more oil
   }
 }
+# check if rowsums are  = 1
+# hf2020$rs<-rowSums(hf2020[,4:9])
+# hf2020adv$rs<-rowSums(hf2020adv[,4:9])
+# define 2030s distributions
 hf2030<-hf2020
-hf2030$`Dependency=Vintage`<-"2030s"
+hf2030adv<-hf2020adv
+hf2030adv$`Dependency=Vintage`<-hf2030$`Dependency=Vintage`<-"2030s"
 for (l in 1:nrow(hf2030)) {
-  if (hf2030$`Region`[l] == "Northeast") {
+  if (hf2030$`Region`[l] == "Northeast") {  # in the Northeast, the move away from gas is the slowest, due to higher priced electricity
     gas0<-hf2030$`Option=Natural Gas`[l]
     lpg0<-hf2030$`Option=Propane`[l]
     oil0<-hf2030$`Option=Fuel Oil`[l]
     
-    hf2030$`Option=Electricity`[l]<-hf2030$`Option=Electricity`[l]+0.1*gas0+0.1*lpg0+0.5*oil0
-    hf2030$`Option=Natural Gas`[l]<-0.9*hf2030$`Option=Natural Gas`[l]+0.4*oil0
-    hf2030$`Option=Propane`[l]<-0.9*hf2030$`Option=Propane`[l]+0.1*oil0
-    hf2030$`Option=Fuel Oil`[l]<-0
+    hf2030$`Option=Electricity`[l]<-hf2030$`Option=Electricity`[l]+0.07*gas0+0.07*lpg0+0.6*oil0
+    hf2030$`Option=Natural Gas`[l]<-0.93*hf2030$`Option=Natural Gas`[l]+0.3*oil0
+    hf2030$`Option=Propane`[l]<-0.93*hf2030$`Option=Propane`[l]+0.05*oil0
+    hf2030$`Option=Fuel Oil`[l]<-0.05*hf2030$`Option=Fuel Oil`[l]
+    # adv elec scenario
+    gas0<-hf2030adv$`Option=Natural Gas`[l]
+    lpg0<-hf2030adv$`Option=Propane`[l]
+    
+    hf2030adv$`Option=Electricity`[l]<-hf2030adv$`Option=Electricity`[l]+0.65*gas0+0.65*lpg0
+    hf2030adv$`Option=Natural Gas`[l]<-0.35*hf2030adv$`Option=Natural Gas`[l]
+    hf2030adv$`Option=Propane`[l]<-0.35*hf2030adv$`Option=Propane`[l]
   }
   
   if (hf2030$`Region`[l] == "Midwest") {
@@ -666,10 +702,17 @@ for (l in 1:nrow(hf2030)) {
     lpg0<-hf2030$`Option=Propane`[l]
     oil0<-hf2030$`Option=Fuel Oil`[l]
     
-    hf2030$`Option=Electricity`[l]<-hf2030$`Option=Electricity`[l]+0.05*gas0+0.05*lpg0+0.5*oil0
-    hf2030$`Option=Natural Gas`[l]<-0.95*hf2030$`Option=Natural Gas`[l]+0.4*oil0
-    hf2030$`Option=Propane`[l]<-0.95*hf2030$`Option=Propane`[l]+0.1*oil0
-    hf2030$`Option=Fuel Oil`[l]<-0
+    hf2030$`Option=Electricity`[l]<-hf2030$`Option=Electricity`[l]+0.1*gas0+0.1*lpg0+0.8*oil0
+    hf2030$`Option=Natural Gas`[l]<-0.9*hf2030$`Option=Natural Gas`[l]+0.15*oil0
+    hf2030$`Option=Propane`[l]<-0.9*hf2030$`Option=Propane`[l]+0.05*oil0
+    hf2030$`Option=Fuel Oil`[l]<-0 # no more oil
+    # adv elec scenario
+    gas0<-hf2030adv$`Option=Natural Gas`[l]
+    lpg0<-hf2030adv$`Option=Propane`[l]
+    
+    hf2030adv$`Option=Electricity`[l]<-hf2030adv$`Option=Electricity`[l]+gas0+lpg0 # all electric
+    hf2030adv$`Option=Natural Gas`[l]<-0 # no more gas
+    hf2030adv$`Option=Propane`[l]<-0 # no more lpg
   }
   
   if (hf2030$`Region`[l] == "South") {
@@ -677,32 +720,58 @@ for (l in 1:nrow(hf2030)) {
     lpg0<-hf2030$`Option=Propane`[l]
     oil0<-hf2030$`Option=Fuel Oil`[l]
     
-    hf2030$`Option=Electricity`[l]<-hf2030$`Option=Electricity`[l]+0.2*gas0+0.2*lpg0+0.5*oil0
-    hf2030$`Option=Natural Gas`[l]<-0.8*hf2030$`Option=Natural Gas`[l]+0.4*oil0
-    hf2030$`Option=Propane`[l]<-0.8*hf2030$`Option=Propane`[l]+0.1*oil0
+    hf2030$`Option=Electricity`[l]<-hf2030$`Option=Electricity`[l]+0.2*gas0+0.2*lpg0+oil0
+    hf2030$`Option=Natural Gas`[l]<-0.8*hf2030$`Option=Natural Gas`[l]
+    hf2030$`Option=Propane`[l]<-0.8*hf2030$`Option=Propane`[l]
     hf2030$`Option=Fuel Oil`[l]<-0
+    # adv elec scenario
+    gas0<-hf2030adv$`Option=Natural Gas`[l]
+    lpg0<-hf2030adv$`Option=Propane`[l]
+    
+    hf2030adv$`Option=Electricity`[l]<-hf2030adv$`Option=Electricity`[l]+gas0+lpg0 # all electric
+    hf2030adv$`Option=Natural Gas`[l]<-0 # no more gas
+    hf2030adv$`Option=Propane`[l]<-0 # no more lpg
   }
   
   if (hf2030$`Region`[l] == "West") {
     gas0<-hf2030$`Option=Natural Gas`[l]
     lpg0<-hf2030$`Option=Propane`[l]
     
-    hf2030$`Option=Electricity`[l]<-hf2030$`Option=Electricity`[l]+0.2*gas0+0.2*lpg0
-    hf2030$`Option=Natural Gas`[l]<-0.8*hf2030$`Option=Natural Gas`[l]
-    hf2030$`Option=Propane`[l]<-0.8*hf2030$`Option=Propane`[l]
+    hf2030$`Option=Electricity`[l]<-hf2030$`Option=Electricity`[l]+0.12*gas0+0.12*lpg0
+    hf2030$`Option=Natural Gas`[l]<-0.88*hf2030$`Option=Natural Gas`[l]
+    hf2030$`Option=Propane`[l]<-0.88*hf2030$`Option=Propane`[l]
+    # adv elec scenario
+    gas0<-hf2030adv$`Option=Natural Gas`[l]
+    lpg0<-hf2030adv$`Option=Propane`[l]
+    
+    hf2030adv$`Option=Electricity`[l]<-hf2030adv$`Option=Electricity`[l]+gas0+lpg0 # all electric
+    hf2030adv$`Option=Natural Gas`[l]<-0 # no more gas
+    hf2030adv$`Option=Propane`[l]<-0 # no more lpg
   }
 } 
-
+# check if rowsums are  = 1
+# hf2030$rs<-rowSums(hf2030[,4:9])
+# hf2030adv$rs<-rowSums(hf2030adv[,4:9])
 hf2040<-hf2030
-hf2040$`Dependency=Vintage`<-"2040s"
+hf2040adv<-hf2030adv
+hf2040adv$`Dependency=Vintage`<-hf2040$`Dependency=Vintage`<-"2040s"
 for (l in 1:nrow(hf2040)) {
   if (hf2040$`Region`[l] == "Northeast") {
     gas0<-hf2040$`Option=Natural Gas`[l]
     lpg0<-hf2040$`Option=Propane`[l]
+    oil0<-hf2040$`Option=Fuel Oil`[l]
     
-    hf2040$`Option=Electricity`[l]<-hf2040$`Option=Electricity`[l]+0.2*gas0+0.2*lpg0
-    hf2040$`Option=Natural Gas`[l]<-0.8*hf2040$`Option=Natural Gas`[l]
-    hf2040$`Option=Propane`[l]<-0.8*hf2040$`Option=Propane`[l]
+    hf2040$`Option=Electricity`[l]<-hf2040$`Option=Electricity`[l]+0.1*gas0+0.1*lpg0+oil0
+    hf2040$`Option=Natural Gas`[l]<-0.9*hf2040$`Option=Natural Gas`[l]
+    hf2040$`Option=Propane`[l]<-0.9*hf2040$`Option=Propane`[l]
+    hf2040$`Option=Fuel Oil`[l]<-0 # no more oil
+    # adv elec scenario
+    gas0<-hf2040adv$`Option=Natural Gas`[l]
+    lpg0<-hf2040adv$`Option=Propane`[l]
+    
+    hf2040adv$`Option=Electricity`[l]<-hf2040adv$`Option=Electricity`[l]+gas0+lpg0 # all electric
+    hf2040adv$`Option=Natural Gas`[l]<-0 # no more gas
+    hf2040adv$`Option=Propane`[l]<-0 # no more lpg
   }
   
   if (hf2040$`Region`[l] == "Midwest") {
@@ -718,25 +787,37 @@ for (l in 1:nrow(hf2040)) {
     gas0<-hf2040$`Option=Natural Gas`[l]
     lpg0<-hf2040$`Option=Propane`[l]
     
-    hf2040$`Option=Electricity`[l]<-hf2040$`Option=Electricity`[l]+0.3*gas0+0.3*lpg0
-    hf2040$`Option=Natural Gas`[l]<-0.7*hf2040$`Option=Natural Gas`[l]
-    hf2040$`Option=Propane`[l]<-0.7*hf2040$`Option=Propane`[l]
+    hf2040$`Option=Electricity`[l]<-hf2040$`Option=Electricity`[l]+0.25*gas0+0.25*lpg0
+    hf2040$`Option=Natural Gas`[l]<-0.75*hf2040$`Option=Natural Gas`[l]
+    hf2040$`Option=Propane`[l]<-0.75*hf2040$`Option=Propane`[l]
   }
   
   if (hf2040$`Region`[l] == "West") {
     gas0<-hf2040$`Option=Natural Gas`[l]
     lpg0<-hf2040$`Option=Propane`[l]
     
-    hf2040$`Option=Electricity`[l]<-hf2040$`Option=Electricity`[l]+0.3*gas0+0.3*lpg0
-    hf2040$`Option=Natural Gas`[l]<-0.7*hf2040$`Option=Natural Gas`[l]
-    hf2040$`Option=Propane`[l]<-0.7*hf2040$`Option=Propane`[l]
+    hf2040$`Option=Electricity`[l]<-hf2040$`Option=Electricity`[l]+0.15*gas0+0.15*lpg0
+    hf2040$`Option=Natural Gas`[l]<-0.85*hf2040$`Option=Natural Gas`[l]
+    hf2040$`Option=Propane`[l]<-0.85*hf2040$`Option=Propane`[l]
   }
 } 
-
+# check if rowsums are  = 1
+# hf2040$rs<-rowSums(hf2040[,4:9])
+# hf2040adv$rs<-rowSums(hf2040adv[,4:9])
 hf2050<-hf2040
-hf2050$`Dependency=Vintage`<-"2050s"
+hf2050adv<-hf2040adv
+hf2050adv$`Dependency=Vintage`<-hf2050$`Dependency=Vintage`<-"2050s"
 for (l in 1:nrow(hf2050)) {
   if (hf2050$`Region`[l] == "Northeast") {
+    gas0<-hf2050$`Option=Natural Gas`[l]
+    lpg0<-hf2050$`Option=Propane`[l]
+    
+    hf2050$`Option=Electricity`[l]<-hf2050$`Option=Electricity`[l]+0.12*gas0+0.12*lpg0
+    hf2050$`Option=Natural Gas`[l]<-0.88*hf2050$`Option=Natural Gas`[l]
+    hf2050$`Option=Propane`[l]<-0.88*hf2050$`Option=Propane`[l]
+  }
+  
+  if (hf2050$`Region`[l] == "Midwest") {
     gas0<-hf2050$`Option=Natural Gas`[l]
     lpg0<-hf2050$`Option=Propane`[l]
     
@@ -745,44 +826,41 @@ for (l in 1:nrow(hf2050)) {
     hf2050$`Option=Propane`[l]<-0.8*hf2050$`Option=Propane`[l]
   }
   
-  if (hf2050$`Region`[l] == "Midwest") {
-    gas0<-hf2050$`Option=Natural Gas`[l]
-    lpg0<-hf2050$`Option=Propane`[l]
-    
-    hf2050$`Option=Electricity`[l]<-hf2050$`Option=Electricity`[l]+0.15*gas0+0.15*lpg0
-    hf2050$`Option=Natural Gas`[l]<-0.85*hf2050$`Option=Natural Gas`[l]
-    hf2050$`Option=Propane`[l]<-0.85*hf2050$`Option=Propane`[l]
-  }
-  
   if (hf2050$`Region`[l] == "South") {
     gas0<-hf2050$`Option=Natural Gas`[l]
     lpg0<-hf2050$`Option=Propane`[l]
     
-    hf2050$`Option=Electricity`[l]<-hf2050$`Option=Electricity`[l]+0.3*gas0+0.3*lpg0
-    hf2050$`Option=Natural Gas`[l]<-0.7*hf2050$`Option=Natural Gas`[l]
-    hf2050$`Option=Propane`[l]<-0.7*hf2050$`Option=Propane`[l]
+    hf2050$`Option=Electricity`[l]<-hf2050$`Option=Electricity`[l]+0.4*gas0+0.4*lpg0
+    hf2050$`Option=Natural Gas`[l]<-0.6*hf2050$`Option=Natural Gas`[l]
+    hf2050$`Option=Propane`[l]<-0.6*hf2050$`Option=Propane`[l]
   }
   
   if (hf2050$`Region`[l] == "West") {
     gas0<-hf2050$`Option=Natural Gas`[l]
     lpg0<-hf2050$`Option=Propane`[l]
     
-    hf2050$`Option=Electricity`[l]<-hf2050$`Option=Electricity`[l]+0.3*gas0+0.3*lpg0
-    hf2050$`Option=Natural Gas`[l]<-0.7*hf2050$`Option=Natural Gas`[l]
-    hf2050$`Option=Propane`[l]<-0.7*hf2050$`Option=Propane`[l]
+    hf2050$`Option=Electricity`[l]<-hf2050$`Option=Electricity`[l]+0.2*gas0+0.2*lpg0
+    hf2050$`Option=Natural Gas`[l]<-0.8*hf2050$`Option=Natural Gas`[l]
+    hf2050$`Option=Propane`[l]<-0.8*hf2050$`Option=Propane`[l]
   }
 } 
-
+# check if rowsums are  = 1
+# hf2050$rs<-rowSums(hf2050[,4:9])
+# hf2050adv$rs<-rowSums(hf2050adv[,4:9])
 # now save the new heat fuel files complete with new 2020 characteristics
 hf_new<-as.data.frame(hf2020[,1:9]) # save only the single vintage file, to save space. Should also be doing this for other nc tsvs?
 for (p in 2:9) { # which projects do these changes apply to? in this case all 2025 and 2030 projects
   fol_fn<-paste(projects[p],'/housing_characteristics/Heating Fuel.tsv',sep = "")
+  write.table(format(hf_new,nsmall=6,digits=1,scientific = FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+  fol_fn<-paste(projects[p],'/scenario_dependent_characteristics/Unchanged/Heating Fuel.tsv',sep = "")
   write.table(format(hf_new,nsmall=6,digits=1,scientific = FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
 # save 2030s ceff
 hf_new<-as.data.frame(hf2030)
 for (p in 10:17) { # which projects do these changes apply to? in this case all 2035 and 2040 projects
   fol_fn<-paste(projects[p],'/housing_characteristics/Heating Fuel.tsv',sep = "")
+  write.table(format(hf_new,nsmall=6,digits=1,scientific = FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+  fol_fn<-paste(projects[p],'/scenario_dependent_characteristics/Unchanged/Heating Fuel.tsv',sep = "")
   write.table(format(hf_new,nsmall=6,digits=1,scientific = FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
 
@@ -800,6 +878,32 @@ for (p in 26:33) { # which projects do these changes apply to? in this case all 
   write.table(format(hf_new,nsmall=6,digits=1,scientific = FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
 
+# save advanced elec chars
+hf_new<-as.data.frame(hf2020adv[,1:9]) # save only the single vintage file, to save space. Should also be doing this for other nc tsvs?
+for (p in 2:9) { # which projects do these changes apply to? in this case all 2025 and 2030 projects
+  fol_fn<-paste(projects[p],'/scenario_dependent_characteristics/Deep_Electrification/Heating Fuel.tsv',sep = "")
+  write.table(format(hf_new,nsmall=6,digits=1,scientific = FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+}
+# save 2030s ceff
+hf_new<-as.data.frame(hf2030adv)
+for (p in 10:17) { # which projects do these changes apply to? in this case all 2035 and 2040 projects
+  fol_fn<-paste(projects[p],'/scenario_dependent_characteristics/Deep_Electrification/Heating Fuel.tsv',sep = "")
+  write.table(format(hf_new,nsmall=6,digits=1,scientific = FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+}
+
+# save 2040s hf
+hf_new<-as.data.frame(hf2040adv)
+for (p in 18:25) { # which projects do these changes apply to? in this case all 2045 and 2050 projects
+  fol_fn<-paste(projects[p],'/scenario_dependent_characteristics/Deep_Electrification/Heating Fuel.tsv',sep = "")
+  write.table(format(hf_new,nsmall=6,digits=1,scientific = FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+}
+
+# save 2050s hf
+hf_new<-as.data.frame(hf2050adv)
+for (p in 26:33) { # which projects do these changes apply to? in this case all 2055 and 2060 projects
+  fol_fn<-paste(projects[p],'/scenario_dependent_characteristics/Deep_Electrification/Heating Fuel.tsv',sep = "")
+  write.table(format(hf_new,nsmall=6,digits=1,scientific = FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+}
 # Hot Water Distribution #############
 hwd<-read_tsv('project_national/housing_characteristics/Hot Water Distribution.tsv',col_names = TRUE)
 hwd<-hwd[1:9,]
