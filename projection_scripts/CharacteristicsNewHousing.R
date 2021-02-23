@@ -453,37 +453,44 @@ for (p in 18:25) { # which projects do these changes apply to? in this case all 
   fol_fn<-paste(projects[p],'/housing_characteristics/HVAC Heating Type.tsv',sep = "")
   write.table(format(htt_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
-htt_new<-as.data.frame(rbind(htt,htt2020,htt2030,htt2040,htt2050))
+htt_new<-as.data.frame(htt2050)
 for (p in 26:33) { # which projects do these changes apply to? in this case all projects
   fol_fn<-paste(projects[p],'/housing_characteristics/HVAC Heating Type.tsv',sep = "")
   write.table(format(htt_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
 
 # HVAC Cooling type ######
-hct<-read_tsv('project_national/housing_characteristics/HVAC Cooling Type.tsv',col_names = TRUE)
+hct<-read_tsv('../project_national/housing_characteristics/HVAC Cooling Type.tsv',col_names = TRUE)
 hct<-hct[1:2250,1:8] # remove comments and count/weight columns
-hct2020<-hct[hct$`Dependency=Vintage ACS`=="2010s",] # this is dependent on Vintage ACS now
+hct2020<-hct[hct$`Dependency=Vintage ACS`=="2010s",] # this file is dependent on Vintage ACS
 hct2010<-hct2020
 hct2020$`Dependency=Vintage ACS`<-"2020s"
-Cold<-c("6A","6B","7A","7B")
-Slow<-c("3B","3C","4A","4B","4C","5A","5B")
+# roughly divide climate regions into Cold climates, where AC access grows most slowly, Slow AC growth climates (moderate climates), and Moderate AC growth (hot) climates. 
+# Based on Characteristics of New Housing surveys (https://www.census.gov/construction/chars/xls/aircond_cust.xls; https://www.census.gov/construction/chars/xls/mfu_aircond_cust.xls),
+# few new homes in the South are built without AC now
+Cold<-c("6A","6B","7A","7B","4C")
+Slow<-c("3B","3C","4A","4B","5A","5B")
 Mod<-c("1A","2A","2B","3A")
-for (l in 1:nrow(hct2020)) { # solution to model growth in AC. Pick up from here!
+# Here we only change cooling types between None, Central AC, and Room AC, basically reducing the share of homes with no AC to represent further growth of AC access.
+# House using HP based cooling are automatcically assigned a HP AC system based on them having a HP, which is defined elsewhere, in HVAC Heating Type.
+# About one fifth of homes or less in the NE and W are built without AC
+for (l in 1:nrow(hct2020)) { # solution to model growth in AC
   if (hct2020$`Dependency=ASHRAE IECC Climate Zone 2004`[l] %in% Cold) {
   none<-hct2020$`Option=None`[l]
-  hct2020$`Option=None`[l]<-0.9*none
+  hct2020$`Option=None`[l]<-0.9*none # reduce the share of housing that have no AC by 10%
+  # then add those deducted shares in a 50:50 split to central and room AC
   hct2020$`Option=Central AC`[l]<- hct2020$`Option=Central AC`[l]+0.05*none
   hct2020$`Option=Room AC`[l]<- hct2020$`Option=Room AC`[l]+0.05*none
   }
   if (hct2020$`Dependency=ASHRAE IECC Climate Zone 2004`[l] %in% Slow) {
     none<-hct2020$`Option=None`[l]
-    hct2020$`Option=None`[l]<-0.75*none
+    hct2020$`Option=None`[l]<-0.75*none # reduce the share of housing that have no AC by 25%, assign a higher share to Central AC
     hct2020$`Option=Central AC`[l]<- hct2020$`Option=Central AC`[l]+0.2*none
     hct2020$`Option=Room AC`[l]<- hct2020$`Option=Room AC`[l]+0.05*none
   }
   if (hct2020$`Dependency=ASHRAE IECC Climate Zone 2004`[l] %in% Mod) {
     none<-hct2020$`Option=None`[l]
-    hct2020$`Option=None`[l]<-0.5*none
+    hct2020$`Option=None`[l]<-0.5*none # reduce the share of housing that have no AC by 50%, assign a higher share to Central AC
     hct2020$`Option=Central AC`[l]<- hct2020$`Option=Central AC`[l]+0.35*none
     hct2020$`Option=Room AC`[l]<- hct2020$`Option=Room AC`[l]+0.15*none
   }
@@ -491,7 +498,7 @@ for (l in 1:nrow(hct2020)) { # solution to model growth in AC. Pick up from here
 # Apply the same growth rates to 2030s, 2040s, 2050s
 hct2030<-hct2020
 hct2030$`Dependency=Vintage ACS`<-"2030s"
-for (l in 1:nrow(hct2030)) { # solution to model growth in AC. Pick up from here!
+for (l in 1:nrow(hct2030)) { 
   if (hct2030$`Dependency=ASHRAE IECC Climate Zone 2004`[l] %in% Cold) {
     none<-hct2030$`Option=None`[l]
     hct2030$`Option=None`[l]<-0.9*none
@@ -513,7 +520,7 @@ for (l in 1:nrow(hct2030)) { # solution to model growth in AC. Pick up from here
 }
 hct2040<-hct2030
 hct2040$`Dependency=Vintage ACS`<-"2040s"
-for (l in 1:nrow(hct2040)) { # solution to model growth in AC. Pick up from here!
+for (l in 1:nrow(hct2040)) { 
   if (hct2040$`Dependency=ASHRAE IECC Climate Zone 2004`[l] %in% Cold) {
     none<-hct2040$`Option=None`[l]
     hct2040$`Option=None`[l]<-0.9*none
@@ -556,26 +563,25 @@ for (l in 1:nrow(hct2050)) { # solution to model growth in AC. Pick up from here
   }
 }
 # then save the new hvac cooling file complete with new 2020 characteristics
-hct_new<-as.data.frame(rbind(hct,hct2020))
+hct_new<-as.data.frame(hct2020)
 for (p in 2:9) { # which projects do these changes apply to? in this case all 2025 and 2030 projects
   fol_fn<-paste(projects[p],'/housing_characteristics/HVAC Cooling Type.tsv',sep = "")
   write.table(format(hct_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
 # save 2030s hct
-hct_new<-as.data.frame(rbind(hct,hct2020,hct2030))
+hct_new<-as.data.frame(hct2030)
 for (p in 10:17) { # which projects do these changes apply to? in this case all 2035 and 2040 projects
   fol_fn<-paste(projects[p],'/housing_characteristics/HVAC Cooling Type.tsv',sep = "")
   write.table(format(hct_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
-
 # save 2040s hct
-hct_new<-as.data.frame(rbind(hct,hct2020,hct2030,hct2040))
+hct_new<-as.data.frame(hct2040)
 for (p in 18:25) { # which projects do these changes apply to? in this case all 2045 and 2050 projects
   fol_fn<-paste(projects[p],'/housing_characteristics/HVAC Cooling Type.tsv',sep = "")
   write.table(format(hct_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
 # save 2050s hct
-hct_new<-as.data.frame(rbind(hct,hct2020,hct2030,hct2040,hct2050))
+hct_new<-as.data.frame(hct2050)
 for (p in 26:33) { # which projects do these changes apply to? in this case all 2055 and 2060 projects
   fol_fn<-paste(projects[p],'/housing_characteristics/HVAC Cooling Type.tsv',sep = "")
   write.table(format(hct_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
