@@ -1745,7 +1745,7 @@ for (p in 2:33) { # which projects do these changes apply to? in this case all p
   
 }
 # Geometry Foundation Type #########
-gft<-read_tsv('project_national/housing_characteristics/Geometry Foundation Type.tsv',col_names = TRUE)
+gft<-read_tsv('../project_national/housing_characteristics/Geometry Foundation Type.tsv',col_names = TRUE)
 gft<-gft[1:450,1:8]
 gft2020<-gft[gft$`Dependency=Vintage ACS`=="2010s",]
 gft2020$`Dependency=Vintage ACS`<-"2020s"
@@ -1756,7 +1756,7 @@ gft2030<-gft2040<-gft2050<-gft2020
 gft2030$`Dependency=Vintage ACS`<-"2030s"
 gft2040$`Dependency=Vintage ACS`<-"2040s"
 gft2050$`Dependency=Vintage ACS`<-"2050s"
-gft_new<-as.data.frame(rbind(gft,gft2020,gft2030,gft2040,gft2050))
+gft_new<-as.data.frame(rbind(gft2020,gft2030,gft2040,gft2050))
 for (p in 2:33) { # which projects do these changes apply to? in this case all projects
   fol_fn<-paste(projects[p],'/housing_characteristics/Geometry Foundation Type.tsv',sep = "")
   write.table(format(gft_new,nsmall=6),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
