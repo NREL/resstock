@@ -214,7 +214,7 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
     end
 
     upgrade_heating_system = false
-    upgrade_supp_heating_system = false
+    upgrade_second_heating_system = false
     upgrade_cooling_system = false
     upgrade_heat_pump = false
 
@@ -275,10 +275,10 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
             end
           end
 
-          # Detect whether we are upgrading the supplemental heating system
+          # Detect whether we are upgrading the secondary heating system
           args_hash.each do |arg, value|
             if arg.include?('heating_system_type_2') || arg.include?('heating_system_fuel_2') || arg.include?('heating_system_heating_efficiency_2') || arg.include?('heating_system_fraction_heat_load_served_2')
-              upgrade_supp_heating_system = true
+              upgrade_second_heating_system = true
             end
           end
 
@@ -354,7 +354,7 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
       end
 
       # Retain HVAC capacities
-      if (not upgrade_heating_system) || (not upgrade_supp_heating_system) || (not upgrade_cooling_system) || (not upgrade_heat_pump)
+      if (not upgrade_heating_system) || (not upgrade_second_heating_system) || (not upgrade_cooling_system) || (not upgrade_heat_pump)
         hpxml_path = File.expand_path('../in.xml') # this is the defaulted hpxml
         if File.exist?(hpxml_path)
           hpxml = HPXML.new(hpxml_path: hpxml_path)
@@ -366,23 +366,19 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
 
       unless upgrade_heating_system
         hpxml.heating_systems.each do |heating_system|
-          next if heating_system.heating_system_type != measures['BuildResidentialHPXML'][0]['heating_system_type']
-          next if heating_system.heating_system_fuel != measures['BuildResidentialHPXML'][0]['heating_system_fuel']
-          next if heating_system.fraction_heat_load_served != measures['BuildResidentialHPXML'][0]['heating_system_fraction_heat_load_served']
+          next if heating_system.id != 'HeatingSystem'
 
-          # if we made it this far, this is the correct heating_system
+          # if we made it this far, this is the correct heating system
           runner.registerInfo("Not upgrading heating system '#{heating_system.id}', so retaining calculated heating capacity.")
           measures['BuildResidentialHPXML'][0]['heating_system_heating_capacity'] = heating_system.heating_capacity
         end
       end
 
-      unless upgrade_supp_heating_system
+      unless upgrade_second_heating_system
         hpxml.heating_systems.each do |heating_system|
-          next if heating_system.heating_system_type != measures['BuildResidentialHPXML'][0]['heating_system_type_2']
-          next if heating_system.heating_system_fuel != measures['BuildResidentialHPXML'][0]['heating_system_fuel_2']
-          next if heating_system.fraction_heat_load_served != measures['BuildResidentialHPXML'][0]['heating_system_fraction_heat_load_served_2']
+          next if heating_system.id != 'SecondHeatingSystem'
 
-          # if we made it this far, this is the correct supplemental heating_system
+          # if we made it this far, this is the correct (secondary) heating system
           runner.registerInfo("Not upgrading secondary heating system '#{heating_system.id}', so retaining calculated secondary heating capacity.")
           measures['BuildResidentialHPXML'][0]['heating_system_heating_capacity_2'] = heating_system.heating_capacity
         end
@@ -390,10 +386,6 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
 
       unless upgrade_cooling_system
         hpxml.cooling_systems.each do |cooling_system|
-          next if cooling_system.cooling_system_type != measures['BuildResidentialHPXML'][0]['cooling_system_type']
-          next if cooling_system.fraction_cool_load_served != measures['BuildResidentialHPXML'][0]['cooling_system_fraction_cool_load_served']
-
-          # if we made it this far, this is the correct cooling_system
           runner.registerInfo("Not upgrading cooling system '#{cooling_system.id}', so retaining calculated cooling capacity.")
           measures['BuildResidentialHPXML'][0]['cooling_system_cooling_capacity'] = cooling_system.cooling_capacity
         end
@@ -401,11 +393,6 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
 
       unless upgrade_heat_pump
         hpxml.heat_pumps.each do |heat_pump|
-          next if heat_pump.heat_pump_type != measures['BuildResidentialHPXML'][0]['heat_pump_type']
-          next if heat_pump.fraction_heat_load_served != measures['BuildResidentialHPXML'][0]['heat_pump_fraction_heat_load_served']
-          next if heat_pump.fraction_cool_load_served != measures['BuildResidentialHPXML'][0]['heat_pump_fraction_cool_load_served']
-
-          # if we made it this far, this is the correct heat_pump
           runner.registerInfo("Not upgrading heat pump '#{heat_pump.id}', so retaining calculated heat pump capacity.")
           measures['BuildResidentialHPXML'][0]['heat_pump_heating_capacity'] = heat_pump.heating_capacity
           measures['BuildResidentialHPXML'][0]['heat_pump_cooling_capacity'] = heat_pump.cooling_capacity
