@@ -1434,7 +1434,7 @@ class ScheduleGenerator
         raise "Could not find the entry for month #{month}, day #{day_of_week} and state #{@state}"
       end
 
-      array[day * 1440, (day + 1) * 1440] = array[day * 1440, (day + 1) * 1440].rotate(lead)
+      array[day * 1440, 1440] = array[day * 1440, 1440].rotate(lead)
     end
     return array
   end
