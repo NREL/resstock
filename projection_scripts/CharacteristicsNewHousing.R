@@ -2071,10 +2071,144 @@ for (p in 2:33) { # which projects do these changes apply to? in this case all
   write.table(format(htf_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
 
+# HVAC heating efficiency ##########
+hhe<-read_tsv('../project_national/housing_characteristics/HVAC Heating Efficiency.tsv',col_names = TRUE)
+hhe<-hhe[1:120,1:25]
+# add new options
+names(hhe)[which(names(hhe)=="Option=MSHP, SEER 29.3, 14 HSPF")]<-"MSHP, SEER 25, 12.7 HSPF" # replace the hi-eff MSHP with a more reasonably hi-eff option
+hhe$`Option=ASHP, SEER 16, 9.0 HSPF`<-hhe$`Option=ASHP, SEER 18, 9.3 HSPF`<-hhe$`Option=ASHP, SEER 22, 10 HSPF`<-
+  hhe$`Option=MSHP, SEER 17, 9.5 HSPF`<-hhe$`Option=Fuel Boiler, 96% AFUE`<-0
+hhe<-hhe[,c(1:6,30,29,28,7:13,26,14:20,27,21:25)]
+hhe2020<-hhe
+# define updates for 2020s
+#ASHPs
+hhe2020[hhe2020$`Dependency=Heating Fuel`=="Electricity" & hhe2020$`Dependency=HVAC Heating Type`=="Ducted Heat Pump"&hhe2020$`Dependency=HVAC Has Shared System` %in% c("Cooling Only","None"),4:9]<-
+  matrix(rep(c(0.04,0.7,0.2,0.06,0,0),each=2),2,6)
+#MSHPs
+hhe2020[hhe2020$`Dependency=Heating Fuel`=="Electricity" & hhe2020$`Dependency=HVAC Heating Type`=="Non-Ducted Heat Pump"&hhe2020$`Dependency=HVAC Has Shared System` %in% c("Cooling Only","None"),24:26]<-
+  matrix(rep(c(0.5,0.48,0.02),each=2),2,3)
+# Fuel Oil Furnaces
+hhe2020[hhe2020$`Dependency=Heating Fuel`=="Fuel Oil" & hhe2020$`Dependency=HVAC Heating Type`=="Ducted Heating"&hhe2020$`Dependency=HVAC Has Shared System` %in% c("Cooling Only","None"),18:21]<-
+  matrix(rep(c(0,0,0.9,0.1),each=2),2,4) # 10% condensing furnaces
+# Fuel Oil Non-Ducted
+hhe2020[hhe2020$`Dependency=Heating Fuel`=="Fuel Oil" & hhe2020$`Dependency=HVAC Heating Type`=="Non-Ducted Heating"&hhe2020$`Dependency=HVAC Has Shared System` %in% c("Cooling Only","None"),c(14:17,22,23)]<-
+  matrix(rep(c(0,0.65,0.3,0,0.01,0.04),each=2),2,6) # 30% condensing boilers
+# Natural Gas Furnaces
+hhe2020[hhe2020$`Dependency=Heating Fuel`=="Natural Gas" & hhe2020$`Dependency=HVAC Heating Type`=="Ducted Heating"&hhe2020$`Dependency=HVAC Has Shared System` %in% c("Cooling Only","None"),18:21]<-
+  matrix(rep(c(0,0,0.6,0.4),each=2),2,4) # 40% condensing furnaces
+# Natural Gas Non-Ducted
+hhe2020[hhe2020$`Dependency=Heating Fuel`=="Natural Gas" & hhe2020$`Dependency=HVAC Heating Type`=="Non-Ducted Heating"&hhe2020$`Dependency=HVAC Has Shared System` %in% c("Cooling Only","None"),c(14:17,22,23)]<-
+  matrix(rep(c(0,0.4,0.15,0,0.05,0.4),each=2),2,6) # 15% condensing boilers
+# Propane Furnaces
+hhe2020[hhe2020$`Dependency=Heating Fuel`=="Propane" & hhe2020$`Dependency=HVAC Heating Type`=="Ducted Heating"&hhe2020$`Dependency=HVAC Has Shared System` %in% c("Cooling Only","None"),18:21]<-
+  matrix(rep(c(0,0,0.65,0.35),each=2),2,4) # 35% condensing furnaces
+# Propane Non-Ducted
+hhe2020[hhe2020$`Dependency=Heating Fuel`=="Propane" & hhe2020$`Dependency=HVAC Heating Type`=="Non-Ducted Heating"&hhe2020$`Dependency=HVAC Has Shared System` %in% c("Cooling Only","None"),c(14:17,22,23)]<-
+  matrix(rep(c(0,0.1,0.15,0,0.15,0.6),each=2),2,6) # 15% condensing boilers
+# no change to non-heat pump electric efficiencies
+hhe_new<-as.data.frame(hhe2020)
+for (p in 2:9) { # which projects do these changes apply to? in this case 2025 and 2030
+  fol_fn<-paste(projects[p],'/housing_characteristics/HVAC Heating Efficiency.tsv',sep = "")
+  write.table(format(hhe_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+}
+hhe2030<-hhe2020
+# define updates for 2030s
+#ASHPs
+hhe2030[hhe2030$`Dependency=Heating Fuel`=="Electricity" & hhe2030$`Dependency=HVAC Heating Type`=="Ducted Heat Pump"&hhe2030$`Dependency=HVAC Has Shared System` %in% c("Cooling Only","None"),4:9]<-
+  matrix(rep(c(0,0.5,0.25,0.15,0.1,0),each=2),2,6) # 50:25:15:10 SEER 13:15:16:18
+#MSHPs
+hhe2030[hhe2030$`Dependency=Heating Fuel`=="Electricity" & hhe2030$`Dependency=HVAC Heating Type`=="Non-Ducted Heat Pump"&hhe2030$`Dependency=HVAC Has Shared System` %in% c("Cooling Only","None"),24:26]<-
+  matrix(rep(c(0.3,0.6,0.1),each=2),2,3) # 30:60:10 SEER 14.5:17:25
+# Fuel Oil Furnaces
+hhe2030[hhe2030$`Dependency=Heating Fuel`=="Fuel Oil" & hhe2030$`Dependency=HVAC Heating Type`=="Ducted Heating"&hhe2030$`Dependency=HVAC Has Shared System` %in% c("Cooling Only","None"),18:21]<-
+  matrix(rep(c(0,0,0.55,0.45),each=2),2,4) # 45% condensing furnaces
+# Fuel Oil Non-Ducted
+hhe2030[hhe2030$`Dependency=Heating Fuel`=="Fuel Oil" & hhe2030$`Dependency=HVAC Heating Type`=="Non-Ducted Heating"&hhe2030$`Dependency=HVAC Has Shared System` %in% c("Cooling Only","None"),c(14:17,22,23)]<-
+  matrix(rep(c(0,0.45,0.53,0,0,0.02),each=2),2,6) # 53% condensing boilers
+# Natural Gas Furnaces
+hhe2030[hhe2030$`Dependency=Heating Fuel`=="Natural Gas" & hhe2030$`Dependency=HVAC Heating Type`=="Ducted Heating"&hhe2030$`Dependency=HVAC Has Shared System` %in% c("Cooling Only","None"),18:21]<-
+  matrix(rep(c(0,0,0.35,0.65),each=2),2,4) # 65% condensing furnaces
+# Natural Gas Non-Ducted
+hhe2030[hhe2030$`Dependency=Heating Fuel`=="Natural Gas" & hhe2030$`Dependency=HVAC Heating Type`=="Non-Ducted Heating"&hhe2030$`Dependency=HVAC Has Shared System` %in% c("Cooling Only","None"),c(14:17,22,23)]<-
+  matrix(rep(c(0,0.2,0.5,0,0,0.3),each=2),2,6) # 50% condensing boilers
+# Propane Furnaces
+hhe2030[hhe2030$`Dependency=Heating Fuel`=="Propane" & hhe2030$`Dependency=HVAC Heating Type`=="Ducted Heating"&hhe2030$`Dependency=HVAC Has Shared System` %in% c("Cooling Only","None"),18:21]<-
+  matrix(rep(c(0,0,0.45,0.55),each=2),2,4) # 55% condensing furnaces
+# Propane Non-Ducted
+hhe2030[hhe2030$`Dependency=Heating Fuel`=="Propane" & hhe2030$`Dependency=HVAC Heating Type`=="Non-Ducted Heating"&hhe2030$`Dependency=HVAC Has Shared System` %in% c("Cooling Only","None"),c(14:17,22,23)]<-
+  matrix(rep(c(0,0,0.35,0,0,0.65),each=2),2,6) # 35% condensing boilers
+# no change to non-heat pump electric efficiencies
+hhe_new<-as.data.frame(hhe2030)
+for (p in 10:17) { # which projects do these changes apply to? in this case 2035 and 2040
+  fol_fn<-paste(projects[p],'/housing_characteristics/HVAC Heating Efficiency.tsv',sep = "")
+  write.table(format(hhe_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+}
 
+hhe2040<-hhe2030
+# define updates for 2040s
+#ASHPs
+hhe2040[hhe2040$`Dependency=Heating Fuel`=="Electricity" & hhe2040$`Dependency=HVAC Heating Type`=="Ducted Heat Pump"&hhe2040$`Dependency=HVAC Has Shared System` %in% c("Cooling Only","None"),4:9]<-
+  matrix(rep(c(0,0.3,0.3,0.15,0.15,0.1),each=2),2,6) # 30:30:15:15:10 SEER 13:15:16:18:22
+#MSHPs
+hhe2040[hhe2040$`Dependency=Heating Fuel`=="Electricity" & hhe2040$`Dependency=HVAC Heating Type`=="Non-Ducted Heat Pump"&hhe2040$`Dependency=HVAC Has Shared System` %in% c("Cooling Only","None"),24:26]<-
+  matrix(rep(c(0.1,0.75,0.15),each=2),2,3) # 10:70:15 SEER 14.5:17:25
+# Fuel Oil Furnaces
+hhe2040[hhe2040$`Dependency=Heating Fuel`=="Fuel Oil" & hhe2040$`Dependency=HVAC Heating Type`=="Ducted Heating"&hhe2040$`Dependency=HVAC Has Shared System` %in% c("Cooling Only","None"),18:21]<-
+  matrix(rep(c(0,0,0.15,0.85),each=2),2,4) # 85% condensing furnaces
+# Fuel Oil Non-Ducted
+hhe2040[hhe2040$`Dependency=Heating Fuel`=="Fuel Oil" & hhe2040$`Dependency=HVAC Heating Type`=="Non-Ducted Heating"&hhe2040$`Dependency=HVAC Has Shared System` %in% c("Cooling Only","None"),c(14:17,22,23)]<-
+  matrix(rep(c(0,0.15,0.85,0,0,0),each=2),2,6) # 85% condensing boilers
+# Natural Gas Furnaces
+hhe2040[hhe2040$`Dependency=Heating Fuel`=="Natural Gas" & hhe2040$`Dependency=HVAC Heating Type`=="Ducted Heating"&hhe2040$`Dependency=HVAC Has Shared System` %in% c("Cooling Only","None"),18:21]<-
+  matrix(rep(c(0,0,0.15,0.85),each=2),2,4) # 85% condensing furnaces
+# Natural Gas Non-Ducted
+hhe2040[hhe2040$`Dependency=Heating Fuel`=="Natural Gas" & hhe2040$`Dependency=HVAC Heating Type`=="Non-Ducted Heating"&hhe2040$`Dependency=HVAC Has Shared System` %in% c("Cooling Only","None"),c(14:17,22,23)]<-
+  matrix(rep(c(0,0.05,0.75,0,0,0.2),each=2),2,6) # 75% condensing boilers
+# Propane Furnaces
+hhe2040[hhe2040$`Dependency=Heating Fuel`=="Propane" & hhe2040$`Dependency=HVAC Heating Type`=="Ducted Heating"&hhe2040$`Dependency=HVAC Has Shared System` %in% c("Cooling Only","None"),18:21]<-
+  matrix(rep(c(0,0,0.2,0.8),each=2),2,4) # 80% condensing furnaces
+# Propane Non-Ducted
+hhe2040[hhe2040$`Dependency=Heating Fuel`=="Propane" & hhe2040$`Dependency=HVAC Heating Type`=="Non-Ducted Heating"&hhe2040$`Dependency=HVAC Has Shared System` %in% c("Cooling Only","None"),c(14:17,22,23)]<-
+  matrix(rep(c(0,0,0.65,0,0,0.35),each=2),2,6) # 65% condensing boilers
+# no change to non-heat pump electric efficiencies
+hhe_new<-as.data.frame(hhe2040)
+for (p in 18:25) { # which projects do these changes apply to? in this case 2045 and 2050
+  fol_fn<-paste(projects[p],'/housing_characteristics/HVAC Heating Efficiency.tsv',sep = "")
+  write.table(format(hhe_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+}
 
-
-
+hhe2050<-hhe2040
+# define updates for 2050s
+#ASHPs
+hhe2050[hhe2050$`Dependency=Heating Fuel`=="Electricity" & hhe2050$`Dependency=HVAC Heating Type`=="Ducted Heat Pump"&hhe2050$`Dependency=HVAC Has Shared System` %in% c("Cooling Only","None"),4:9]<-
+  matrix(rep(c(0,0.05,0.4,0.2,0.2,0.15),each=2),2,6) # 5:40:20:20:15 SEER 13:15:16:18:22
+#MSHPs
+hhe2050[hhe2050$`Dependency=Heating Fuel`=="Electricity" & hhe2050$`Dependency=HVAC Heating Type`=="Non-Ducted Heat Pump"&hhe2050$`Dependency=HVAC Has Shared System` %in% c("Cooling Only","None"),24:26]<-
+  matrix(rep(c(0,0.65,0.35),each=2),2,3) # 0:65:35 SEER 14.5:17:25
+# Fuel Oil Furnaces
+hhe2050[hhe2050$`Dependency=Heating Fuel`=="Fuel Oil" & hhe2050$`Dependency=HVAC Heating Type`=="Ducted Heating"&hhe2050$`Dependency=HVAC Has Shared System` %in% c("Cooling Only","None"),18:21]<-
+  matrix(rep(c(0,0,0,1),each=2),2,4) # 100% condensing furnaces
+# Fuel Oil Non-Ducted
+hhe2050[hhe2050$`Dependency=Heating Fuel`=="Fuel Oil" & hhe2050$`Dependency=HVAC Heating Type`=="Non-Ducted Heating"&hhe2050$`Dependency=HVAC Has Shared System` %in% c("Cooling Only","None"),c(14:17,22,23)]<-
+  matrix(rep(c(0,0,0.5,0.5,0,0),each=2),2,6) # 100% condensing boilers
+# Natural Gas Furnaces
+hhe2050[hhe2050$`Dependency=Heating Fuel`=="Natural Gas" & hhe2050$`Dependency=HVAC Heating Type`=="Ducted Heating"&hhe2050$`Dependency=HVAC Has Shared System` %in% c("Cooling Only","None"),18:21]<-
+  matrix(rep(c(0,0,0,1),each=2),2,4) # 100% condensing furnaces
+# Natural Gas Non-Ducted
+hhe2050[hhe2050$`Dependency=Heating Fuel`=="Natural Gas" & hhe2050$`Dependency=HVAC Heating Type`=="Non-Ducted Heating"&hhe2050$`Dependency=HVAC Has Shared System` %in% c("Cooling Only","None"),c(14:17,22,23)]<-
+  matrix(rep(c(0,0,0.55,0.4,0,0.05),each=2),2,6) # 95% condensing boilers
+# Propane Furnaces
+hhe2050[hhe2050$`Dependency=Heating Fuel`=="Propane" & hhe2050$`Dependency=HVAC Heating Type`=="Ducted Heating"&hhe2050$`Dependency=HVAC Has Shared System` %in% c("Cooling Only","None"),18:21]<-
+  matrix(rep(c(0,0,0,1),each=2),2,4) # 100% condensing furnaces
+# Propane Non-Ducted
+hhe2050[hhe2050$`Dependency=Heating Fuel`=="Propane" & hhe2050$`Dependency=HVAC Heating Type`=="Non-Ducted Heating"&hhe2050$`Dependency=HVAC Has Shared System` %in% c("Cooling Only","None"),c(14:17,22,23)]<-
+  matrix(rep(c(0,0,0.4,0.5,0,0.1),each=2),2,6) # 90% condensing boilers
+# no change to non-heat pump electric efficiencies
+hhe_new<-as.data.frame(hhe2050)
+for (p in 26:33) { # which projects do these changes apply to? in this case 2055 and 2060
+  fol_fn<-paste(projects[p],'/housing_characteristics/HVAC Heating Efficiency.tsv',sep = "")
+  write.table(format(hhe_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+}
 
 # # vintage ACS ####### already fixed
 # vacs<-read_tsv('project_national/housing_characteristics/Vintage ACS.tsv',col_names = TRUE)
