@@ -179,6 +179,37 @@ class res_results_csv_comparisons:
         plt.savefig(output_path, bbox_inches='tight')
         plt.close()
 
+    def condense_end_uses(self):
+        """
+        TODO
+        """
+        groups = {
+         'end_use_electricity_cooling_m_btu': ['end_use_electricity_cooling_m_btu', 'end_use_electricity_cooling_fans_pumps_m_btu'],
+         'end_use_electricity_heating_m_btu': ['end_use_electricity_heating_m_btu', 'end_use_electricity_heating_fans_pumps_m_btu'],
+         'end_use_electricity_hot_water_m_btu': ['end_use_electricity_hot_water_m_btu', 'end_use_electricity_hot_water_recirc_pump_m_btu', 'end_use_electricity_hot_water_solar_thermal_pump_m_btu'],
+         'end_use_electricity_lighting_m_btu': ['end_use_electricity_lighting_exterior_m_btu', 'end_use_electricity_lighting_garage_m_btu', 'end_use_electricity_lighting_interior_m_btu'],
+         'end_use_electricity_mech_vent_m_btu': ['end_use_electricity_mech_vent_m_btu', 'end_use_electricity_mech_vent_precooling_m_btu', 'end_use_electricity_mech_vent_preheating_m_btu'],
+         'end_use_electricity_pool_hot_tub_m_btu': ['end_use_electricity_pool_heater_m_btu', 'end_use_electricity_pool_pump_m_btu', 'end_use_electricity_hot_tub_heater_m_btu', 'end_use_electricity_hot_tub_pump_m_btu']
+        }
+
+        for new_col, old_cols in groups.items():
+            self.base_df[new_col] = self.base_df[old_cols].sum(axis=1)
+            self.feature_df[new_col] = self.feature_df[old_cols].sum(axis=1)
+
+            for old_col in old_cols:
+                if new_col == old_col:
+                    old_cols.remove(old_col)
+
+            self.base_df = self.base_df.drop(old_cols, axis = 1)
+            self.feature_df = self.feature_df.drop(old_cols, axis = 1)
+
+            for old_col in old_cols:
+                self.saved_fields.remove(old_col)
+            if not new_col in self.saved_fields:
+                self.saved_fields.append(new_col)
+
+        self.saved_fields = sorted(self.saved_fields)
+
     def regression_scatterplots(self):
         """
         Scatterplot for each model type and simulation_outupt_report value.
@@ -229,11 +260,13 @@ class res_results_csv_comparisons:
                     fig.add_trace(go.Scatter(x=tmp_base_df[end_use], y=tmp_feature_df[end_use], marker=dict(size=10, color=colors[i]), mode='markers', name=end_use, legendgroup=end_use, showlegend=showlegend), row=1, col=col)
 
                 fig.add_trace(go.Scatter(x=[min_value, max_value], y=[min_value, max_value], line=dict(color='black', dash='dash', width=0.5), mode='lines', showlegend=False), row=1, col=col)
-                fig.update_xaxes(title_text=self.base_table_name, row=1, col=col)
-                fig.update_yaxes(title_text=self.feature_table_name, row=1, col=col)
+                fig.update_xaxes(title_text=os.path.basename(self.base_table_name), row=1, col=col)
+                fig.update_yaxes(title_text=os.path.basename(self.feature_table_name), row=1, col=col)
 
             fig['layout'].update(title=fuel_use, template='plotly_white')
-            fig.update_layout(width=3200, height=1000, autosize=False, font=dict(size=16))
+            fig.update_layout(width=3600, height=1100, autosize=False, font=dict(size=24))
+            for i in fig['layout']['annotations']:
+                i['font'] = dict(size=30)
             output_path = os.path.join(os.path.dirname(self.base_table_name), 'figures', fuel_use + '.svg')
             # plotly.offline.plot(fig, filename=output_path, auto_open=False) # html
             fig.write_image(output_path)
@@ -258,6 +291,9 @@ if __name__ == '__main__':
 
     # Plot the number of failures for each run
     results_csv_comparison.plot_failures()
+
+    # Condense some end uses
+    results_csv_comparison.condense_end_uses()
 
     # Generate scatterplots for each model type and simulation_output_report field
     results_csv_comparison.regression_scatterplots()
