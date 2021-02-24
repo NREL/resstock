@@ -1207,83 +1207,83 @@ for (p in 26:33) { # which projects do these changes apply to? in this case all 
 }
 
 # Insulation Interzonal Floor #############  no changes
-inif<-read_tsv('project_national/housing_characteristics/Insulation Interzonal Floor.tsv',col_names = TRUE)
+inif<-read_tsv('../project_national/housing_characteristics/Insulation Interzonal Floor.tsv',col_names = TRUE)
 inif<-inif[1:90,]
 inif2020<-inif[inif$`Dependency=Vintage`=="2010s",]
 inif2020$`Dependency=Vintage`<-"2020s"
 
-# then save the new infiltration file complete with new 2020 characteristics
-inif_new<-as.data.frame(rbind(inif2020))
-for (p in 2:9) { # which projects do these changes apply to? in this case all 2025 and 2030 projects
-  fol_fn<-paste(projects[p],'/housing_characteristics/Insulation Interzonal Floor.tsv',sep = "")
-  write.table(format(inif_new,nsmall=6),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
-}
-# initially define hvac cooling made in 2030s 2040s and 2050s as the same as those made in 2020s
+# define hvac characteristics in 2030s 2040s and 2050s as the same as those in 2020s
 inif2030<-inif2040<-inif2050<-inif2020
 # define vintage names
 inif2030$`Dependency=Vintage`<-"2030s"
 inif2040$`Dependency=Vintage`<-"2040s"
 inif2050$`Dependency=Vintage`<-"2050s"
 
+# save 2020s inif
+inif_new<-as.data.frame(rbind(inif2020))
+for (p in 2:9) { # which projects do these changes apply to? in this case all 2025 and 2030 projects
+  fol_fn<-paste(projects[p],'/housing_characteristics/Insulation Interzonal Floor.tsv',sep = "")
+  write.table(format(inif_new,nsmall=6,digits = 1, scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+}
 # save 2030s inif
 inif_new<-as.data.frame(inif2030)
 for (p in 10:17) { # which projects do these changes apply to? in this case all 2035 and 2040 projects
   fol_fn<-paste(projects[p],'/housing_characteristics/Insulation Interzonal Floor.tsv',sep = "")
-  write.table(format(inif_new,nsmall=6),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+  write.table(format(inif_new,nsmall=6,digits = 1, scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
 
 # save 2040s inif
 inif_new<-as.data.frame(inif2040)
 for (p in 18:25) { # which projects do these changes apply to? in this case all 2045 and 2050 projects
   fol_fn<-paste(projects[p],'/housing_characteristics/Insulation Interzonal Floor.tsv',sep = "")
-  write.table(format(inif_new,nsmall=6),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+  write.table(format(inif_new,nsmall=6,digits = 1, scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
 
 # save 2050s inif
 inif_new<-as.data.frame(inif2050)
 for (p in 26:33) { # which projects do these changes apply to? in this case all 2055 and 2060 projects
   fol_fn<-paste(projects[p],'/housing_characteristics/Insulation Interzonal Floor.tsv',sep = "")
-  write.table(format(inif_new,nsmall=6),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+  write.table(format(inif_new,nsmall=6,digits = 1, scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
 
 # Insulation Pier Beam ################ # no changes
-inpb<-read_tsv('project_national/housing_characteristics/Insulation Pier Beam.tsv',col_names = TRUE)
+inpb<-read_tsv('../project_national/housing_characteristics/Insulation Pier Beam.tsv',col_names = TRUE)
 inpb<-inpb[1:2250,] # remove comments
 inpb2020<-inpb[inpb$`Dependency=Vintage`=="2010s",]
 inpb2020$`Dependency=Vintage`<-"2020s"
 
-# then save the new infiltration file complete with new 2020 characteristics
-inpb_new<-as.data.frame(inpb2020)
-for (p in 2:9) { # which projects do these changes apply to? in this case all 2025 and 2030 projects
-  fol_fn<-paste(projects[p],'/housing_characteristics/Insulation Pier Beam.tsv',sep = "")
-  write.table(format(inpb_new,nsmall=6),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
-}
-# initially define hvac cooling made in 2030s 2040s and 2050s as the same as those made in 2020s
+# initially define inpb made in 2030s 2040s and 2050s as the same as those made in 2020s
 inpb2030<-inpb2040<-inpb2050<-inpb2020
 # define vintage names
 inpb2030$`Dependency=Vintage`<-"2030s"
 inpb2040$`Dependency=Vintage`<-"2040s"
 inpb2050$`Dependency=Vintage`<-"2050s"
 
+# save 2020s inpb
+inpb_new<-as.data.frame(inpb2020)
+for (p in 2:9) { # which projects do these changes apply to? in this case all 2025 and 2030 projects
+  fol_fn<-paste(projects[p],'/housing_characteristics/Insulation Pier Beam.tsv',sep = "")
+  write.table(format(inpb_new,nsmall=6,digits = 1, scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+}
 # save 2030s inpb
 inpb_new<-as.data.frame(inpb2030)
 for (p in 10:17) { # which projects do these changes apply to? in this case all 2035 and 2040 projects
   fol_fn<-paste(projects[p],'/housing_characteristics/Insulation Pier Beam.tsv',sep = "")
-  write.table(format(inpb_new,nsmall=6),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+  write.table(format(inpb_new,nsmall=6,digits = 1, scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
 
 # save 2040s inpb
 inpb_new<-as.data.frame(inpb2040)
 for (p in 18:25) { # which projects do these changes apply to? in this case all 2045 and 2050 projects
   fol_fn<-paste(projects[p],'/housing_characteristics/Insulation Pier Beam.tsv',sep = "")
-  write.table(format(inpb_new,nsmall=6),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+  write.table(format(inpb_new,nsmall=6,digits = 1, scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
 
 # save 2050s inpb
 inpb_new<-as.data.frame(inpb2050)
 for (p in 26:33) { # which projects do these changes apply to? in this case all 2055 and 2060 projects
   fol_fn<-paste(projects[p],'/housing_characteristics/Insulation Pier Beam.tsv',sep = "")
-  write.table(format(inpb_new,nsmall=6),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+  write.table(format(inpb_new,nsmall=6,digits = 1, scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
 
 # Insulation Slab ###########
