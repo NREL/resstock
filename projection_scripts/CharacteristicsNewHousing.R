@@ -1271,14 +1271,12 @@ for (p in 10:17) { # which projects do these changes apply to? in this case all 
   fol_fn<-paste(projects[p],'/housing_characteristics/Insulation Pier Beam.tsv',sep = "")
   write.table(format(inpb_new,nsmall=6,digits = 1, scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
-
 # save 2040s inpb
 inpb_new<-as.data.frame(inpb2040)
 for (p in 18:25) { # which projects do these changes apply to? in this case all 2045 and 2050 projects
   fol_fn<-paste(projects[p],'/housing_characteristics/Insulation Pier Beam.tsv',sep = "")
   write.table(format(inpb_new,nsmall=6,digits = 1, scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
-
 # save 2050s inpb
 inpb_new<-as.data.frame(inpb2050)
 for (p in 26:33) { # which projects do these changes apply to? in this case all 2055 and 2060 projects
@@ -1288,14 +1286,14 @@ for (p in 26:33) { # which projects do these changes apply to? in this case all 
 
 # Insulation Slab ###########
 # some changes b/w/ IECC 2015 and IECC 2021
-insl<-read_tsv('project_national/housing_characteristics/Insulation Slab.tsv',col_names = TRUE)
+insl<-read_tsv('../project_national/housing_characteristics/Insulation Slab.tsv',col_names = TRUE)
 insl<-insl[1:2250,] # remove comments
 insl2020<-insl[insl$`Dependency=Vintage`=="2010s",]
 insl2020$`Dependency=Vintage`<-"2020s"
 # make changes to 2020 insulation here
-# add new option, also added in options lookup
+# add new options, also added in options lookup
 insl2020$`Option=4ft R10 Perimeter, R10 Gap`<-insl2020$`Option=4ft R10 Exterior`<-0
-insl2020<-insl2020[,c(1:7,12,8,9,11,10)]
+insl2020<-insl2020[,c(1:7,12,8,9,11,10)] # reorder columns
 # which resstock custom regions make it to IECC 2015 by 2020s? CR3 (CZ5A), CR6 (CZ4C), CR11 (CZ3C), as well as the states TX, FL, NY, NE, DE, MD (these will be adjusted in the bs.csv)
 # no code requirement for climate zone 3
 for (l in 1:nrow(insl2020)) {
@@ -1397,13 +1395,13 @@ for (p in 26:33) { # which projects do these changes apply to? in this case all 
 }
 
 # Insulation Unfinished Attic ############
-inua<-read_tsv('project_national/housing_characteristics/Insulation Unfinished Attic.tsv',col_names = TRUE)
+inua<-read_tsv('../project_national/housing_characteristics/Insulation Unfinished Attic.tsv',col_names = TRUE)
 inua<-inua[1:450,]
 inua2020<-inua[inua$`Dependency=Vintage`=="2010s",]
 inua2020$`Dependency=Vintage`<-"2020s"
 
 # make changes to 2020 insulation here, I will be making changes here
-# first add option for R-60 insulation (only used from the 2021 code onwards)
+# first add option for R-60 insulation (only used from the 2021 code onwards). Already exists in options lookup so no need for changes there
 inua2020$`Option=Ceiling R-60, Vented`<-0
 # which resstock custom regions make it to IECC 2015 by 2020s? CR3 (CZ5A), CR6 (CZ4C), CR11 (CZ3C), as well as the states TX, FL, NY, NE, DE, MD (these will be adjusted in the bs.csv)
 for (l in 1:nrow(inua2020)) {
@@ -1419,7 +1417,7 @@ for (l in 1:nrow(inua2020)) {
 inua2030<-inua2020
 inua2030$`Dependency=Vintage`<-"2030s" 
 # which resstock custom regions make it to IECC 2015 by 2030s? CR2 (CZ6A), CR4 (CZ5A), CR5 (CZ5B), CR7 (CZ 5A). All require R-49
-# which regions makes it to 2021? CR6 (CZ 4C) requires R-60, CR11 (CZ 3C) require R-49 and the rogue states
+# which regions makes it to 2021? CR6 (CZ 4C) requires R-60, CR11 (CZ 3C) require R-49, and the rogue states (TX, FL, NY, NE, DE, MD )
 for (l in 1:nrow(inua2030)) {
   # all are in CZ 5 or 6, same regulations apply
   if (inua2030$`Dependency=Location Region`[l]=="CR02"|inua2030$`Dependency=Location Region`[l]=="CR04"|inua2030$`Dependency=Location Region`[l]=="CR05"|
@@ -1446,8 +1444,8 @@ for (l in 1:nrow(inua2040)) {
     inua2040[l,5:10]<-0 # set all below R-49 to 0
   }
   if (inua2040$`Dependency=Location Region`[l]=="CR03") { # cz 5 (iecc 2021)
-    inua2040$`Option=Ceiling R-60, Vented`[l]<-sum(inua2040[l,5:12]) # set all to R-49
-    inua2040[l,5:11]<-0 # set all below R-49 to 0
+    inua2040$`Option=Ceiling R-60, Vented`[l]<-sum(inua2040[l,5:12]) # set all to R-60
+    inua2040[l,5:11]<-0 # set all below R-60 to 0
   }
 }
 inua2050<-inua2040
@@ -1492,7 +1490,7 @@ for (p in 26:33) { # which projects do these changes apply to? in this case all 
 
 # Insulation Unfinished Basement ############
 # No difference between IECC 2015 and 2021
-inub<-read_tsv('project_national/housing_characteristics/Insulation Unfinished Basement.tsv',col_names = TRUE)
+inub<-read_tsv('../project_national/housing_characteristics/Insulation Unfinished Basement.tsv',col_names = TRUE)
 inub<-inub[1:2250,]
 inub2020<-inub[inub$`Dependency=Vintage`=="2010s",]
 inub2020$`Dependency=Vintage`<-"2020s"
