@@ -1558,16 +1558,16 @@ for (p in 26:33) { # which projects do these changes apply to? in this case all 
 
 # Insulation Wall ###########
 # no difference between IECC 2015 and 2021
-inw<-read_tsv('project_national/housing_characteristics/Insulation Wall.tsv',col_names = TRUE)
+inw<-read_tsv('../project_national/housing_characteristics/Insulation Wall.tsv',col_names = TRUE)
 inw<-inw[1:180,]
 
 inw2020<-inw[inw$`Dependency=Vintage`=="2010s",] # note that none of this cohort have wood, CMU, or brick walls that are completely uninsulated
 inw2020$`Dependency=Vintage`<-"2020s"
 
 # make changes to 2020 insulation here
-# first add extra option
+# first add extra option, already exists in options lookup so no need for changes there
 inw2020$`Option=Wood Stud, R-19, R-5 Sheathing`<-0
-inw2020<-inw2020[,c(1:8,15,9:14)]
+inw2020<-inw2020[,c(1:8,15,9:14)] # reorder columns
 # which resstock custom regions make it to IECC 2015 by 2020s? CR3 (CZ5A), CR6 (CZ4C), CR11 (CZ3C), as well as the states TX, FL, NY, NE, DE, MD (these will be adjusted in the bs.csv)
 # climate zone 3,4,5, all wood go to R-20, approximated by R-19. Masonry CZ3 goes to R-8 (approx. 11, but no change) and CZ 4C, 5 goes to 13 (approx 15)
 for (l in 1:nrow(inw2020)) {
@@ -1660,12 +1660,13 @@ for (p in 26:33) { # which projects do these changes apply to? in this case all 
 }
 
 # Insulation Finshed Roof #############
-# NB there are not vintage dependencies here, and this applies to MF homes only.
+# NB there are no vintage dependencies here, and this characteristics applies to MF homes only.
 # From 2020s on, no homes with Roof less than R30. This is true even with IECC 2009.
-infr<-read_tsv('project_national/housing_characteristics/Insulation Finished Roof.tsv',col_names = TRUE)
+# Future distributions are based on assumptions of increased efficienc, but do not relate to specific code updates.
+infr<-read_tsv('../project_national/housing_characteristics/Insulation Finished Roof.tsv',col_names = TRUE)
 infr2020<-infr[1:5,]
-infr2020$`Option=R-60`<-0 # add new option
-infr2020<-infr2020[,c(1:8,10,9)]
+infr2020$`Option=R-60`<-0 # add new option, this does not previously exist in options lookup, and needs to be added.
+infr2020<-infr2020[,c(1:8,10,9)] # reorder columns
 # set all below R-30 to 0
 infr2020[,2:5]<-0
 infr2020[4:5,6:9]<-matrix(rep(c(0.05,0.45,0.5,0),each =2),2,4) # set  R-30:38:49:60 in 2020s
