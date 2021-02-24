@@ -1802,7 +1802,7 @@ for (p in 2:33) { # which projects do these changes apply to? in this case all p
 # Clothes Dryers ########
 cdr<-read_tsv('../project_national/housing_characteristics/Clothes Dryer.tsv',col_names = TRUE)
 cdr<-cdr[1:5760,1:15]
-# add new options here and in options_lookup
+# add new options here and in options_lookup. Make sure correct spelling in options_lookup
 cdr$`Option=Electric, Premium, 80% Usage`<-cdr$`Option=Electric, Premium, 120% Usage`<-cdr$`Option=Electric, Premium, 100% Usage`<-
   cdr$`Option=Gas, Premium, 80% Usage`<-cdr$`Option=Gas, Premium, 120% Usage`<-cdr$`Option=Gas, Premium, 100% Usage`<-0
 # in line with the new standard effective 2015, define all gas and electric dryers in new construction as premium efficiency. This applies to all future years.
@@ -1833,7 +1833,7 @@ for (p in 2:33) { # which projects do these changes apply to? in this case all p
 }
 
 # Clothes Washers ############
-cw<-read_tsv('project_national/housing_characteristics/Clothes Washer.tsv',col_names = TRUE)
+cw<-read_tsv('../project_national/housing_characteristics/Clothes Washer.tsv',col_names = TRUE)
 cw<-cw[1:8,]
 cw[5:8,7:9]<-cw[5:8,7:9]+cw[5:8,4:6] # make all clothes washers energy star which gives imef=2.07, lower (less efficient) than what ES products are standard sold today
 cw[5:8,4:6]<-0
@@ -1842,15 +1842,14 @@ for (p in 2:33) { # which projects do these changes apply to? in this case all p
   fol_fn<-paste(projects[p],'/housing_characteristics/Clothes Washer.tsv',sep = "")
   write.table(format(cw_new,nsmall=6,digits = 1,scientific = FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
-# don't change heating setpoint to remain consistent with existing housing stock
 
-# Lighting. # Reflect higher shares of efficienct lighting
-
-lgt<-read_tsv('project_national/housing_characteristics/Lighting.tsv',col_names = TRUE)
+# Lighting. # Reflect higher shares of efficient lighting ######
+lgt<-read_tsv('../project_national/housing_characteristics/Lighting.tsv',col_names = TRUE)
 lgt<-lgt[1:50,1:5]
 for (l in 1:nrow(lgt)) {
   inc<-lgt$`Option=100% Incandescent`[l]
   cfl<-lgt$`Option=100% CFL`[l]
+  # add 80% of CFL and 60% Incandescent to LED
   lgt$`Option=100% LED`[l]<-lgt$`Option=100% LED`[l]+0.8*lgt$`Option=100% CFL`[l]+0.6*lgt$`Option=100% Incandescent`[l]
   lgt$`Option=100% CFL`[l]<-0.2*lgt$`Option=100% CFL`[l]
   lgt$`Option=100% Incandescent`[l]<-0.4*lgt$`Option=100% Incandescent`[l]
