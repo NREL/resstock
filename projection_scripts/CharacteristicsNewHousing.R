@@ -1869,26 +1869,26 @@ for (p in 10:33) { # which projects do these changes apply to? in this case 2035
   write.table(format(lgt_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
 # water heater efficiency #########
-whe<-read_tsv('project_national/housing_characteristics/Water Heater Efficiency.tsv',col_names = TRUE)
+whe<-read_tsv('../project_national/housing_characteristics/Water Heater Efficiency.tsv',col_names = TRUE)
 whe2020<-whe[1:50,1:16]
 # define improvement rates that are steady for each cohort
 for (l in 1:nrow(whe2020)) {
       elst<-whe2020$`Option=Electric Standard`[l]
-      # reduce the fraction that is standard and increase the other fractions as followed
-      whe2020$`Option=Electric Standard`[l]<-0.8*elst
+      # reduce the fraction that is standard and increase the other fractions as follows
+      whe2020$`Option=Electric Standard`[l]<-0.8*elst # elec standard reduced by 20%, add this fraction to HP (4%), elec prem (15%), and elec tankless (1%)
       whe2020$`Option=Electric Heat Pump, 80 gal`[l]<-whe2020$`Option=Electric Heat Pump, 80 gal`[l]+0.04*elst
       whe2020$`Option=Electric Premium`[l]<-whe2020$`Option=Electric Premium`[l]+0.15*elst
       whe2020$`Option=Electric Tankless`[l]<-whe2020$`Option=Electric Tankless`[l]+0.01*elst
-      
+      # reduce the fraction that is standard and increase the other fractions as follows
       ngst<-whe2020$`Option=Natural Gas Standard`[l]
-      whe2020$`Option=Natural Gas Standard`[l]<-0.85*ngst
+      whe2020$`Option=Natural Gas Standard`[l]<-0.85*ngst  # gas standard reduced by 15%, add this fraction to gas  prem (13%), and gas tankless (2%)
       whe2020$`Option=Natural Gas Premium`[l]<-whe2020$`Option=Natural Gas Premium`[l]+0.13*ngst
       whe2020$`Option=Natural Gas Tankless`[l]<-whe2020$`Option=Natural Gas Tankless`[l]+0.02*ngst
       
       prst<-whe2020$`Option=Propane Standard`[l]
-      whe2020$`Option=Propane Standard`[l]<-0.8*prst
-      whe2020$`Option=Propane Premium`[l]<-whe2020$`Option=Propane Premium`[l]+0.1*prst
-      whe2020$`Option=Propane Tankless`[l]<-whe2020$`Option=Propane Tankless`[l]+0.1*prst
+      whe2020$`Option=Propane Standard`[l]<-0.9*prst # lpg standard reduced by 10%, add this fraction to lpg prem (7%), and lpg tankless (3%)
+      whe2020$`Option=Propane Premium`[l]<-whe2020$`Option=Propane Premium`[l]+0.07*prst
+      whe2020$`Option=Propane Tankless`[l]<-whe2020$`Option=Propane Tankless`[l]+0.03*prst
 }
 whe_new<-as.data.frame(whe2020)
 for (p in 2:9) { # which projects do these changes apply to? in this case 2025 and 2030
@@ -1910,9 +1910,9 @@ for (l in 1:nrow(whe2030)) {
   whe2030$`Option=Natural Gas Tankless`[l]<-whe2030$`Option=Natural Gas Tankless`[l]+0.02*ngst
   
   prst<-whe2030$`Option=Propane Standard`[l]
-  whe2030$`Option=Propane Standard`[l]<-0.8*prst
-  whe2030$`Option=Propane Premium`[l]<-whe2030$`Option=Propane Premium`[l]+0.1*prst
-  whe2030$`Option=Propane Tankless`[l]<-whe2030$`Option=Propane Tankless`[l]+0.1*prst
+  whe2030$`Option=Propane Standard`[l]<-0.9*prst
+  whe2030$`Option=Propane Premium`[l]<-whe2030$`Option=Propane Premium`[l]+0.07*prst
+  whe2030$`Option=Propane Tankless`[l]<-whe2030$`Option=Propane Tankless`[l]+0.03*prst
 }
 whe_new<-as.data.frame(whe2030)
 for (p in 10:17) { # which projects do these changes apply to? in this case 2035 and 2040
@@ -1935,16 +1935,16 @@ for (l in 1:nrow(whe2040)) {
   whe2040$`Option=Natural Gas Tankless`[l]<-whe2040$`Option=Natural Gas Tankless`[l]+0.02*ngst
   
   prst<-whe2040$`Option=Propane Standard`[l]
-  whe2040$`Option=Propane Standard`[l]<-0.8*prst
-  whe2040$`Option=Propane Premium`[l]<-whe2040$`Option=Propane Premium`[l]+0.1*prst
-  whe2040$`Option=Propane Tankless`[l]<-whe2040$`Option=Propane Tankless`[l]+0.1*prst
+  whe2040$`Option=Propane Standard`[l]<-0.9*prst
+  whe2040$`Option=Propane Premium`[l]<-whe2040$`Option=Propane Premium`[l]+0.07*prst
+  whe2040$`Option=Propane Tankless`[l]<-whe2040$`Option=Propane Tankless`[l]+0.03*prst
 }
 whe_new<-as.data.frame(whe2040)
 for (p in 18:25) { # which projects do these changes apply to? in this case 2045 and 2050
   fol_fn<-paste(projects[p],'/housing_characteristics/Water Heater Efficiency.tsv',sep = "")
   write.table(format(whe_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
-# accelerate the change for the 1950s
+# accelerate the change for the 2050s
 whe2050<-whe2040
 for (l in 1:nrow(whe2050)) {
   elst<-whe2050$`Option=Electric Standard`[l]
@@ -1961,8 +1961,8 @@ for (l in 1:nrow(whe2050)) {
   
   prst<-whe2050$`Option=Propane Standard`[l]
   whe2050$`Option=Propane Standard`[l]<-0.5*prst
-  whe2050$`Option=Propane Premium`[l]<-whe2050$`Option=Propane Premium`[l]+0.3*prst
-  whe2050$`Option=Propane Tankless`[l]<-whe2050$`Option=Propane Tankless`[l]+0.2*prst
+  whe2050$`Option=Propane Premium`[l]<-whe2050$`Option=Propane Premium`[l]+0.35*prst
+  whe2050$`Option=Propane Tankless`[l]<-whe2050$`Option=Propane Tankless`[l]+0.15*prst
 }
 whe_new<-as.data.frame(whe2050)
 for (p in 26:33) { # which projects do these changes apply to? in this case 2055 and 2060
@@ -1971,8 +1971,9 @@ for (p in 26:33) { # which projects do these changes apply to? in this case 2055
 }
 
 # water heater fuel #########
-whf<-read_tsv('project_national/housing_characteristics/Water Heater Fuel.tsv',col_names = TRUE)
+whf<-read_tsv('../project_national/housing_characteristics/Water Heater Fuel.tsv',col_names = TRUE)
 whf2020<-whf[1:300,1:8]
+# assumptions. Reduce new builds with fuel oil
 for (l in 1:nrow(whf2020)) {
   fo<-whf2020$`Option=Fuel Oil`[l]
   whf2020$`Option=Fuel Oil`[l]<-0.03*fo # greatly reduce new builds with fuel oil water heat
@@ -1985,6 +1986,8 @@ whf_new<-as.data.frame(whf2020)
 for (p in 2:9) { # which projects do these changes apply to? in this case 2025 and 2030
   fol_fn<-paste(projects[p],'/housing_characteristics/Water Heater Fuel.tsv',sep = "")
   write.table(format(whf_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+  fol_fn<-paste(projects[p],'/scenario_dependent_characteristics/Unchanged/Water Heater Fuel.tsv',sep = "")
+  write.table(format(whf_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
 whf2030<-whf2020
 # for rest of years. turn oil to electricity
@@ -1995,7 +1998,21 @@ whf_new<-as.data.frame(whf2030)
 for (p in 10:33) { # which projects do these changes apply to? in this case 2035 onwards
   fol_fn<-paste(projects[p],'/housing_characteristics/Water Heater Fuel.tsv',sep = "")
   write.table(format(whf_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+  fol_fn<-paste(projects[p],'/scenario_dependent_characteristics/Unchanged/Water Heater Fuel.tsv',sep = "")
+  write.table(format(whf_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
+
+## deep electrification 
+whf_de<-whf_new # all years based of the 2030 base, i.e. no more oil, all becomes elec
+# turn all houses with electric space heating into houses with electric water heating
+whf_de[whf_de$`Dependency=Heating Fuel`=="Electricity",]$`Option=Electricity`<-1
+whf_de[whf_de$`Dependency=Heating Fuel`=="Electricity",5:8]<-0
+
+for (p in 2:33) { # which projects do these changes apply to? in this case 2035 onwards
+  fol_fn<-paste(projects[p],'/scenario_dependent_characteristics/Deep_Electrification/Water Heater Fuel.tsv',sep = "")
+  write.table(format(whf_de,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+}
+
 # Refrigerators ########
 rfg<-read_tsv('project_national/housing_characteristics/Refrigerator.tsv',col_names = TRUE)
 rfg<-rfg[1:20,1:7]
