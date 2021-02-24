@@ -2286,6 +2286,39 @@ for (p in 26:33) { # which projects do these changes apply to? in this case 2055
   fol_fn<-paste(projects[p],'/housing_characteristics/HVAC Heating Efficiency.tsv',sep = "")
   write.table(format(hhe_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
+# cooking range ##########
+# set to complete conformity with heating fuel for advanced electrification scenarios
+cr<-read_tsv('../project_national/housing_characteristics/Cooking Range.tsv',col_names = TRUE)
+cr<-cr[1:240,]
+
+cr_de<-cr
+cr_de[cr_de$`Dependency=Heating Fuel`=="Electricity",]$`Option=Electric, 100% Usage`<-
+  cr_de[cr_de$`Dependency=Heating Fuel`=="Electricity",]$`Option=Electric, 100% Usage`+cr_de[cr_de$`Dependency=Heating Fuel`=="Electricity",]$`Option=Gas, 100% Usage`+
+  cr_de[cr_de$`Dependency=Heating Fuel`=="Electricity",]$`Option=Propane, 100% Usage`
+cr_de[cr_de$`Dependency=Heating Fuel`=="Electricity",]$`Option=Gas, 100% Usage`<-cr_de[cr_de$`Dependency=Heating Fuel`=="Electricity",]$`Option=Propane, 100% Usage`<-0
+
+cr_de[cr_de$`Dependency=Heating Fuel`=="Electricity",]$`Option=Electric, 80% Usage`<-
+  cr_de[cr_de$`Dependency=Heating Fuel`=="Electricity",]$`Option=Electric, 80% Usage`+cr_de[cr_de$`Dependency=Heating Fuel`=="Electricity",]$`Option=Gas, 80% Usage`+
+  cr_de[cr_de$`Dependency=Heating Fuel`=="Electricity",]$`Option=Propane, 80% Usage`
+cr_de[cr_de$`Dependency=Heating Fuel`=="Electricity",]$`Option=Gas, 80% Usage`<-cr_de[cr_de$`Dependency=Heating Fuel`=="Electricity",]$`Option=Propane, 80% Usage`<-0
+
+cr_de[cr_de$`Dependency=Heating Fuel`=="Electricity",]$`Option=Electric, 120% Usage`<-
+  cr_de[cr_de$`Dependency=Heating Fuel`=="Electricity",]$`Option=Electric, 120% Usage`+cr_de[cr_de$`Dependency=Heating Fuel`=="Electricity",]$`Option=Gas, 120% Usage`+
+  cr_de[cr_de$`Dependency=Heating Fuel`=="Electricity",]$`Option=Propane, 120% Usage`
+cr_de[cr_de$`Dependency=Heating Fuel`=="Electricity",]$`Option=Gas, 120% Usage`<-cr_de[cr_de$`Dependency=Heating Fuel`=="Electricity",]$`Option=Propane, 120% Usage`<-0
+
+cr_new<-as.data.frame(cr_de)
+for (p in 2:33) { # which projects do these changes apply to? in this case all
+  fol_fn<-paste(projects[p],'/scenario_dependent_characteristics/Deep_Electrification/Cooking Range.tsv',sep = "")
+  write.table(format(cr_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+} 
+
+cr_new<-as.data.frame(cr)
+for (p in 2:33) { # which projects do these changes apply to? in this case all
+  fol_fn<-paste(projects[p],'/scenario_dependent_characteristics/Unchanged/Cooking Range.tsv',sep = "")
+  write.table(format(cr_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+} 
+  
 
 # # vintage ACS ####### already fixed
 # vacs<-read_tsv('project_national/housing_characteristics/Vintage ACS.tsv',col_names = TRUE)
