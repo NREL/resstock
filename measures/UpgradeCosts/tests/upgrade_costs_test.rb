@@ -540,7 +540,6 @@ class UpgradeCostsTest < MiniTest::Test
     require 'json'
 
     this_dir = File.dirname(__FILE__)
-
     osw = File.absolute_path("#{this_dir}/#{osw_file}")
 
     measures = {}

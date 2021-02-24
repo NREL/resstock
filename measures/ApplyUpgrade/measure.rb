@@ -11,7 +11,7 @@ require_relative 'resources/constants'
 # environment with resstock/resources/buildstock.rb loaded
 
 # start the measure
-class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
+class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
   # human readable name
   def name
     return 'Apply Upgrade'
