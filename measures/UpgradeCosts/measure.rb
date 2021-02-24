@@ -272,24 +272,6 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
     end
     return cost_mult
   end # end get_cost_multiplier
-
-  def get_heating_systems(hpxml)
-    systems = {}
-
-    hpxml.heating_systems.each do |heating_system|
-      next if heating_system.fraction_heat_load_served == 0 || heating_system.heating_capacity == 0
-
-      systems[heating_system] = heating_system.fraction_heat_load_served
-    end
-
-    hpxml.heat_pumps.each do |heat_pump|
-      next if heat_pump.fraction_heat_load_served == 0 || heat_pump.heating_capacity == 0
-
-      systems[heat_pump] = heat_pump.fraction_heat_load_served
-    end
-
-    return systems
-  end
 end
 
 # register the measure to be used by the application
