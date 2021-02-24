@@ -2014,52 +2014,81 @@ for (p in 2:33) { # which projects do these changes apply to? in this case 2035 
 }
 
 # Refrigerators ########
-rfg<-read_tsv('project_national/housing_characteristics/Refrigerator.tsv',col_names = TRUE)
+rfg<-read_tsv('../project_national/housing_characteristics/Refrigerator.tsv',col_names = TRUE)
 rfg<-rfg[1:20,1:7]
-rfg$`Option=EF 21.9`<-rfg$`Option=EF 19.9`<-0
+rfg$`Option=EF 21.9`<-rfg$`Option=EF 19.9`<-0 # add two more efficient radiators. Already exist in options lookup
 rfg<-rfg[,c(1,2,7,3:6,8,9)]
-rfg[,3:9]<-0 # set to 0
-rfg[,6:9]<-matrix(rep(c(0.05,0.25,0.6,0.1),each=20),20,4)
+rfg[,3:9]<-0 # set all values to 0
+rfg[,6:9]<-matrix(rep(c(0.05,0.25,0.6,0.1),each=20),20,4) # define distributions so that most homes have the 19.9 EF refrigerator
 rfg_new<-as.data.frame(rfg)
 for (p in 2:9) { # which projects do these changes apply to? in this case 2025 and 2030
   fol_fn<-paste(projects[p],'/housing_characteristics/Refrigerator.tsv',sep = "")
   write.table(format(rfg_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
 # update for 2030s
-rfg[,6:9]<-matrix(rep(c(0,0.15,0.6,0.25),each=20),20,4)
+rfg[,6:9]<-matrix(rep(c(0,0.15,0.6,0.25),each=20),20,4) # increase the proportion of 21.9
 rfg_new<-as.data.frame(rfg)
 for (p in 10:17) { # which projects do these changes apply to? in this case 2035 and 2040
   fol_fn<-paste(projects[p],'/housing_characteristics/Refrigerator.tsv',sep = "")
   write.table(format(rfg_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
 # update for 2040s
-rfg[,6:9]<-matrix(rep(c(0,0.05,0.6,0.35),each=20),20,4)
+rfg[,6:9]<-matrix(rep(c(0,0.05,0.6,0.35),each=20),20,4) # increase the proportion of 21.9
 rfg_new<-as.data.frame(rfg)
 for (p in 18:25) { # which projects do these changes apply to? in this case 2045 and 2050
   fol_fn<-paste(projects[p],'/housing_characteristics/Refrigerator.tsv',sep = "")
   write.table(format(rfg_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
 # update for 2050s
-rfg[,6:9]<-matrix(rep(c(0,0,0.4,0.6),each=20),20,4)
+rfg[,6:9]<-matrix(rep(c(0,0,0.4,0.6),each=20),20,4) # majority of homes now use 21.9
 rfg_new<-as.data.frame(rfg)
 for (p in 26:33) { # which projects do these changes apply to? in this case 2045 and 2050
   fol_fn<-paste(projects[p],'/housing_characteristics/Refrigerator.tsv',sep = "")
   write.table(format(rfg_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
 
-# vintage ACS #######
-vacs<-read_tsv('project_national/housing_characteristics/Vintage ACS.tsv',col_names = TRUE)
-vacs<-vacs[1:9,1:7]
-vacs$`Option=2050s`<-vacs$`Option=2040s`<-vacs$`Option=2030s`<-vacs$`Option=2020s`<-0
-vacs<-rbind(vacs,vacs[5:8,])
-vacs[10:13,1]<-c("2020s","2030s","2040s","2050s")
-vacs[10:13,2:11]<-0
-vacs[10:13,8:11]<-diag(4)
-vacs_new<-as.data.frame(vacs)
+# add the new heating efficiency options in HVAC Heating Type and Fuel ################
+htf<-read_tsv('../project_national/housing_characteristics/HVAC Heating Type and Fuel.tsv',col_names = TRUE)
+htf<-htf[1:132,]
+htf[htf$`Dependency=HVAC Heating Efficiency`=="MSHP, SEER 29.3, 14 HSPF",]$`Dependency=HVAC Heating Efficiency`<-"MSHP, SEER 25, 12.7 HSPF" # replace the hi-eff MSHP with a more reasonably hi-eff option
+# define htfe, the htf extra combinations which don't currently exist
+htfe<-htf[1:7,]
+htfe$`Dependency=Heating Fuel`<-c(rep("Electricity",4),"Natural Gas","Fuel Oil","Propane")
+htfe$`Dependency=HVAC Heating Efficiency`<-c("ASHP, SEER 16, 9.0 HSPF","ASHP, SEER 18, 9.3 HSPF","ASHP, SEER 22, 10 HSPF",
+                                             "MSHP, SEER 17, 9.5 HSPF","Fuel Boiler, 96% AFUE","Fuel Boiler, 96% AFUE","Fuel Boiler, 96% AFUE")
+htfe[,3:29]<-0
+htfe$`Option=Electricity ASHP`<-c(1,1,1,0,0,0,0)
+htfe$`Option=Electricity MSHP`<-c(0,0,0,1,0,0,0)
+htfe$`Option=Natural Gas Fuel Boiler`<-c(0,0,0,0,1,0,0)
+htfe$`Option=Fuel Oil Fuel Boiler`<-c(0,0,0,0,0,1,0)
+htfe$`Option=Propane Fuel Boiler`<-c(0,0,0,0,0,0,1)
+htf<-rbind(htf,htfe)
+htf<-htf[order(htf$`Dependency=Heating Fuel`,htf$`Dependency=HVAC Heating Efficiency`),]
+htf_new<-as.data.frame(htf)
+
 for (p in 2:33) { # which projects do these changes apply to? in this case all
-  fol_fn<-paste(projects[p],'/housing_characteristics/Vintage ACS.tsv',sep = "")
-  write.table(format(vacs_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+  fol_fn<-paste(projects[p],'/housing_characteristics/HVAC Heating Type and Fuel.tsv',sep = "")
+  write.table(format(htf_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
+
+
+
+
+
+
+# # vintage ACS ####### already fixed
+# vacs<-read_tsv('project_national/housing_characteristics/Vintage ACS.tsv',col_names = TRUE)
+# vacs<-vacs[1:9,1:7]
+# vacs$`Option=2050s`<-vacs$`Option=2040s`<-vacs$`Option=2030s`<-vacs$`Option=2020s`<-0
+# vacs<-rbind(vacs,vacs[5:8,])
+# vacs[10:13,1]<-c("2020s","2030s","2040s","2050s")
+# vacs[10:13,2:11]<-0
+# vacs[10:13,8:11]<-diag(4)
+# vacs_new<-as.data.frame(vacs)
+# for (p in 2:33) { # which projects do these changes apply to? in this case all
+#   fol_fn<-paste(projects[p],'/housing_characteristics/Vintage ACS.tsv',sep = "")
+#   write.table(format(vacs_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+# }
 ### tables to check correspondences between regions #####
 load("../../StockModelCode/buildstock100.RData")
 table(rs$ASHRAE.IECC.Climate.Zone.2004,rs$Census.Region)
