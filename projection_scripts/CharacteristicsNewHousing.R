@@ -441,23 +441,100 @@ htt_new<-as.data.frame(htt2020)
 for (p in 2:9) { # which projects do these changes apply to? in this case 2025 and 2030s
   fol_fn<-paste(projects[p],'/housing_characteristics/HVAC Heating Type.tsv',sep = "")
   write.table(format(htt_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+  fol_fn<-paste(projects[p],'/scenario_dependent_characteristics/Unchanged/HVAC Heating Type.tsv',sep = "")
+  write.table(format(htt_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
 # now save changes for 2030s
 htt_new<-as.data.frame(htt2030)
 for (p in 10:17) { # which projects do these changes apply to? in this case 2035 and 2040s
   fol_fn<-paste(projects[p],'/housing_characteristics/HVAC Heating Type.tsv',sep = "")
   write.table(format(htt_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+  fol_fn<-paste(projects[p],'/scenario_dependent_characteristics/Unchanged/HVAC Heating Type.tsv',sep = "")
+  write.table(format(htt_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
 htt_new<-as.data.frame(htt2040)
 for (p in 18:25) { # which projects do these changes apply to? in this case all projects
   fol_fn<-paste(projects[p],'/housing_characteristics/HVAC Heating Type.tsv',sep = "")
+  write.table(format(htt_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+  fol_fn<-paste(projects[p],'/scenario_dependent_characteristics/Unchanged/HVAC Heating Type.tsv',sep = "")
   write.table(format(htt_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
 htt_new<-as.data.frame(htt2050)
 for (p in 26:33) { # which projects do these changes apply to? in this case all projects
   fol_fn<-paste(projects[p],'/housing_characteristics/HVAC Heating Type.tsv',sep = "")
   write.table(format(htt_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+  fol_fn<-paste(projects[p],'/scenario_dependent_characteristics/Unchanged/HVAC Heating Type.tsv',sep = "")
+  write.table(format(htt_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
+# add scenario dependent files for deep electrification, incorporating a higher share of heat pumps
+# make the same proportional changes for all construction cohorts
+# 2020s
+htt2020_de<-htt2020
+# allocate half of the electric ducted heating shares to ducted heat pumps
+htt2020_de[htt2020_de$`Dependency=Heating Fuel`=="Electricity",]$`Option=Ducted Heat Pump`<-
+  htt2020_de[htt2020_de$`Dependency=Heating Fuel`=="Electricity",]$`Option=Ducted Heat Pump`+0.5*htt2020_de[htt2020_de$`Dependency=Heating Fuel`=="Electricity",]$`Option=Ducted Heating`
+htt2020_de[htt2020_de$`Dependency=Heating Fuel`=="Electricity",]$`Option=Ducted Heating`<-0.5*htt2020_de[htt2020_de$`Dependency=Heating Fuel`=="Electricity",]$`Option=Ducted Heating`
+
+# allocate 30% of the electric non-ducted heating shares to non-ducted heat pumps
+htt2020_de[htt2020_de$`Dependency=Heating Fuel`=="Electricity",]$`Option=Non-Ducted Heat Pump`<-
+  htt2020_de[htt2020_de$`Dependency=Heating Fuel`=="Electricity",]$`Option=Non-Ducted Heat Pump`+0.3*htt2020_de[htt2020_de$`Dependency=Heating Fuel`=="Electricity",]$`Option=Non-Ducted Heating`
+htt2020_de[htt2020_de$`Dependency=Heating Fuel`=="Electricity",]$`Option=Non-Ducted Heating`<-0.7*htt2020_de[htt2020_de$`Dependency=Heating Fuel`=="Electricity",]$`Option=Non-Ducted Heating`
+# 2030s
+htt2030_de<-htt2030
+# allocate half of the electric ducted heating shares to ducted heat pumps
+htt2030_de[htt2030_de$`Dependency=Heating Fuel`=="Electricity",]$`Option=Ducted Heat Pump`<-
+  htt2030_de[htt2030_de$`Dependency=Heating Fuel`=="Electricity",]$`Option=Ducted Heat Pump`+0.5*htt2030_de[htt2030_de$`Dependency=Heating Fuel`=="Electricity",]$`Option=Ducted Heating`
+htt2030_de[htt2030_de$`Dependency=Heating Fuel`=="Electricity",]$`Option=Ducted Heating`<-0.5*htt2030_de[htt2030_de$`Dependency=Heating Fuel`=="Electricity",]$`Option=Ducted Heating`
+
+# allocate 30% of the electric non-ducted heating shares to non-ducted heat pumps
+htt2030_de[htt2030_de$`Dependency=Heating Fuel`=="Electricity",]$`Option=Non-Ducted Heat Pump`<-
+  htt2030_de[htt2030_de$`Dependency=Heating Fuel`=="Electricity",]$`Option=Non-Ducted Heat Pump`+0.3*htt2030_de[htt2030_de$`Dependency=Heating Fuel`=="Electricity",]$`Option=Non-Ducted Heating`
+htt2030_de[htt2030_de$`Dependency=Heating Fuel`=="Electricity",]$`Option=Non-Ducted Heating`<-0.7*htt2030_de[htt2030_de$`Dependency=Heating Fuel`=="Electricity",]$`Option=Non-Ducted Heating`
+# 2040s
+htt2040_de<-htt2040
+# allocate half of the electric ducted heating shares to ducted heat pumps
+htt2040_de[htt2040_de$`Dependency=Heating Fuel`=="Electricity",]$`Option=Ducted Heat Pump`<-
+  htt2040_de[htt2040_de$`Dependency=Heating Fuel`=="Electricity",]$`Option=Ducted Heat Pump`+0.5*htt2040_de[htt2040_de$`Dependency=Heating Fuel`=="Electricity",]$`Option=Ducted Heating`
+htt2040_de[htt2040_de$`Dependency=Heating Fuel`=="Electricity",]$`Option=Ducted Heating`<-0.5*htt2040_de[htt2040_de$`Dependency=Heating Fuel`=="Electricity",]$`Option=Ducted Heating`
+
+# allocate 30% of the electric non-ducted heating shares to non-ducted heat pumps
+htt2040_de[htt2040_de$`Dependency=Heating Fuel`=="Electricity",]$`Option=Non-Ducted Heat Pump`<-
+  htt2040_de[htt2040_de$`Dependency=Heating Fuel`=="Electricity",]$`Option=Non-Ducted Heat Pump`+0.3*htt2040_de[htt2040_de$`Dependency=Heating Fuel`=="Electricity",]$`Option=Non-Ducted Heating`
+htt2040_de[htt2040_de$`Dependency=Heating Fuel`=="Electricity",]$`Option=Non-Ducted Heating`<-0.7*htt2040_de[htt2040_de$`Dependency=Heating Fuel`=="Electricity",]$`Option=Non-Ducted Heating`
+# 2050s
+htt2050_de<-htt2050
+# allocate half of the electric ducted heating shares to ducted heat pumps
+htt2050_de[htt2050_de$`Dependency=Heating Fuel`=="Electricity",]$`Option=Ducted Heat Pump`<-
+  htt2050_de[htt2050_de$`Dependency=Heating Fuel`=="Electricity",]$`Option=Ducted Heat Pump`+0.5*htt2050_de[htt2050_de$`Dependency=Heating Fuel`=="Electricity",]$`Option=Ducted Heating`
+htt2050_de[htt2050_de$`Dependency=Heating Fuel`=="Electricity",]$`Option=Ducted Heating`<-0.5*htt2050_de[htt2050_de$`Dependency=Heating Fuel`=="Electricity",]$`Option=Ducted Heating`
+
+# allocate 30% of the electric non-ducted heating shares to non-ducted heat pumps
+htt2050_de[htt2050_de$`Dependency=Heating Fuel`=="Electricity",]$`Option=Non-Ducted Heat Pump`<-
+  htt2050_de[htt2050_de$`Dependency=Heating Fuel`=="Electricity",]$`Option=Non-Ducted Heat Pump`+0.3*htt2050_de[htt2050_de$`Dependency=Heating Fuel`=="Electricity",]$`Option=Non-Ducted Heating`
+htt2050_de[htt2050_de$`Dependency=Heating Fuel`=="Electricity",]$`Option=Non-Ducted Heating`<-0.7*htt2050_de[htt2050_de$`Dependency=Heating Fuel`=="Electricity",]$`Option=Non-Ducted Heating`
+# save deep electrification files
+htt_new<-as.data.frame(htt2020_de)
+for (p in 2:9) { # which projects do these changes apply to? in this case 2025 and 2030s
+  fol_fn<-paste(projects[p],'/scenario_dependent_characteristics/Deep_Electrification/HVAC Heating Type.tsv',sep = "")
+  write.table(format(htt_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+}
+# now save changes for 2030s
+htt_new<-as.data.frame(htt2030_de)
+for (p in 10:17) { # which projects do these changes apply to? in this case 2035 and 2040s
+  fol_fn<-paste(projects[p],'/scenario_dependent_characteristics/Deep_Electrification/HVAC Heating Type.tsv',sep = "")
+  write.table(format(htt_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+}
+htt_new<-as.data.frame(htt2040_de)
+for (p in 18:25) { # which projects do these changes apply to? in this case all projects
+  fol_fn<-paste(projects[p],'/scenario_dependent_characteristics/Deep_Electrification/HVAC Heating Type.tsv',sep = "")
+  write.table(format(htt_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+}
+htt_new<-as.data.frame(htt2050_de)
+for (p in 26:33) { # which projects do these changes apply to? in this case all projects
+  fol_fn<-paste(projects[p],'/scenario_dependent_characteristics/Deep_Electrification/HVAC Heating Type.tsv',sep = "")
+  write.table(format(htt_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+}
+
 
 # HVAC Cooling type ######
 hct<-read_tsv('../project_national/housing_characteristics/HVAC Cooling Type.tsv',col_names = TRUE)
