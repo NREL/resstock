@@ -1726,9 +1726,9 @@ gfa2050$`Dependency=Vintage ACS`<-"2050s"
 gfa_new<-as.data.frame(rbind(gfa2020,gfa2030,gfa2040,gfa2050))
 for (p in 2:33) { # which projects do these changes apply to? in this case all projects
   fol_fn<-paste(projects[p],'/housing_characteristics/Geometry Floor Area.tsv',sep = "")
-  write.table(format(gfa_new,nsmall=6),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+  write.table(format(gfa_new,nsmall=6,digits = 1,scientific = FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
   fol_fn<-paste(projects[p],'/scenario_dependent_characteristics/Unchanged/Geometry Floor Area.tsv',sep = "")
-  write.table(format(gfa_new,nsmall=6),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+  write.table(format(gfa_new,nsmall=6,digits = 1,scientific = FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
   
 }
 # reduced floor area scenario file
@@ -1741,7 +1741,7 @@ for (l in 1:nrow(gfa_rfa)) {
 # save reduced floor area characteristics
 for (p in 2:33) { # which projects do these changes apply to? in this case all projects
   fol_fn<-paste(projects[p],'/scenario_dependent_characteristics/Reduced_FloorArea/Geometry Floor Area.tsv',sep = "")
-  write.table(format(gfa_rfa,nsmall=6),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+  write.table(format(gfa_rfa,nsmall=6,digits = 1,scientific = FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
   
 }
 # Geometry Foundation Type #########
@@ -1759,14 +1759,14 @@ gft2050$`Dependency=Vintage ACS`<-"2050s"
 gft_new<-as.data.frame(rbind(gft2020,gft2030,gft2040,gft2050))
 for (p in 2:33) { # which projects do these changes apply to? in this case all projects
   fol_fn<-paste(projects[p],'/housing_characteristics/Geometry Foundation Type.tsv',sep = "")
-  write.table(format(gft_new,nsmall=6),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+  write.table(format(gft_new,nsmall=6,digits = 1,scientific = FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
 
 # Geometry Stories ############
-gs<-read_tsv('project_national/housing_characteristics/Geometry Stories.tsv',col_names = TRUE)
+gs<-read_tsv('../project_national/housing_characteristics/Geometry Stories.tsv',col_names = TRUE)
 gs<-gs[1:120,1:6]
 gs2020<-gs[gs$`Dependency=Vintage ACS`=="2010s",]
-# I don't plan to make any changes here
+# No changes here
 gs2020$`Dependency=Vintage ACS`<-"2020s"
 # define stories made in 2030s 2040s and 2050s as the same as those made in 2020s
 gs2030<-gs2040<-gs2050<-gs2020
@@ -1774,14 +1774,14 @@ gs2030<-gs2040<-gs2050<-gs2020
 gs2030$`Dependency=Vintage ACS`<-"2030s"
 gs2040$`Dependency=Vintage ACS`<-"2040s"
 gs2050$`Dependency=Vintage ACS`<-"2050s"
-gs_new<-as.data.frame(rbind(gs,gs2020,gs2030,gs2040,gs2050))
+gs_new<-as.data.frame(rbind(gs2020,gs2030,gs2040,gs2050))
 for (p in 2:33) { # which projects do these changes apply to? in this case all projects
   fol_fn<-paste(projects[p],'/housing_characteristics/Geometry Stories.tsv',sep = "")
-  write.table(format(gs_new,nsmall=6),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+  write.table(format(gs_new,nsmall=6,digits = 1,scientific = FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
 
 # Water Heater In Units ############
-whiu<-read_tsv('project_national/housing_characteristics/Water Heater In Unit.tsv',col_names = TRUE)
+whiu<-read_tsv('../project_national/housing_characteristics/Water Heater In Unit.tsv',col_names = TRUE)
 whiu<-whiu[1:300,1:5]
 whiu2020<-whiu[whiu$`Dependency=Vintage ACS`=="2010s",]
 # Make no changes
@@ -1792,20 +1792,20 @@ whiu2030<-whiu2040<-whiu2050<-whiu2020
 whiu2030$`Dependency=Vintage ACS`<-"2030s"
 whiu2040$`Dependency=Vintage ACS`<-"2040s"
 whiu2050$`Dependency=Vintage ACS`<-"2050s"
-whiu_new<-as.data.frame(rbind(whiu,whiu2020,whiu2030,whiu2040,whiu2050))
+whiu_new<-as.data.frame(rbind(whiu2020,whiu2030,whiu2040,whiu2050))
 for (p in 2:33) { # which projects do these changes apply to? in this case all projects
   fol_fn<-paste(projects[p],'/housing_characteristics/Water Heater In Unit.tsv',sep = "")
-  write.table(format(whiu_new,nsmall=6),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+  write.table(format(whiu_new,nsmall=6,digits = 1,scientific = FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
 
 # non vintage related characteristics ########
-# Clothes Dryers
-cdr<-read_tsv('project_national/housing_characteristics/Clothes Dryer.tsv',col_names = TRUE)
+# Clothes Dryers ########
+cdr<-read_tsv('../project_national/housing_characteristics/Clothes Dryer.tsv',col_names = TRUE)
 cdr<-cdr[1:5760,1:15]
 # add new options here and in options_lookup
 cdr$`Option=Electric, Premium, 80% Usage`<-cdr$`Option=Electric, Premium, 120% Usage`<-cdr$`Option=Electric, Premium, 100% Usage`<-
   cdr$`Option=Gas, Premium, 80% Usage`<-cdr$`Option=Gas, Premium, 120% Usage`<-cdr$`Option=Gas, Premium, 100% Usage`<-0
-# in line with the new standard effective 2015, define all gas and electric dryers in new construction as premium efficiency
+# in line with the new standard effective 2015, define all gas and electric dryers in new construction as premium efficiency. This applies to all future years.
 cdr[,19:21]<-cdr[,6:8] # replace electric standard with electric premium
 cdr[,6:8]<-0
 cdr[,16:18]<-cdr[,9:11] # replace gas standard with gas premium
@@ -1814,9 +1814,25 @@ cdr[9:11]<-0
 cdr_new<-as.data.frame(cdr)
 for (p in 2:33) { # which projects do these changes apply to? in this case all projects
   fol_fn<-paste(projects[p],'/housing_characteristics/Clothes Dryer.tsv',sep = "")
-  write.table(format(cdr_new,nsmall=6),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+  write.table(format(cdr_new,nsmall=6,digits = 1,scientific = FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+  fol_fn<-paste(projects[p],'/scenario_dependent_characteristics/Unchanged/Clothes Dryer.tsv',sep = "")
+  write.table(format(cdr_new,nsmall=6,digits = 1,scientific = FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
-# Clothes Washers
+# deep electrification scenario
+# remove propane and gas dryers, convert to electric
+cdr_de<-cdr_new
+cdr_de$`Option=Electric, Premium, 100% Usage`<-cdr_de$`Option=Electric, Premium, 100% Usage`+cdr_de$`Option=Gas, Premium, 100% Usage`+cdr_de$`Option=Propane, 100% Usage`
+cdr_de$`Option=Gas, Premium, 100% Usage`<-cdr_de$`Option=Propane, 100% Usage`<-0
+cdr_de$`Option=Electric, Premium, 80% Usage`<-cdr_de$`Option=Electric, Premium, 80% Usage`+cdr_de$`Option=Gas, Premium, 80% Usage`+cdr_de$`Option=Propane, 80% Usage`
+cdr_de$`Option=Gas, Premium, 80% Usage`<-cdr_de$`Option=Propane, 80% Usage`<-0
+cdr_de$`Option=Electric, Premium, 120% Usage`<-cdr_de$`Option=Electric, Premium, 120% Usage`+cdr_de$`Option=Gas, Premium, 120% Usage`+cdr_de$`Option=Propane, 120% Usage`
+cdr_de$`Option=Gas, Premium, 120% Usage`<-cdr_de$`Option=Propane, 120% Usage`<-0
+for (p in 2:33) { # which projects do these changes apply to? in this case all projects
+  fol_fn<-paste(projects[p],'/scenario_dependent_characteristics/Deep_Electrification/Clothes Dryer.tsv',sep = "")
+  write.table(format(cdr_de,nsmall=6,digits = 1,scientific = FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+}
+
+# Clothes Washers ############
 cw<-read_tsv('project_national/housing_characteristics/Clothes Washer.tsv',col_names = TRUE)
 cw<-cw[1:8,]
 cw[5:8,7:9]<-cw[5:8,7:9]+cw[5:8,4:6] # make all clothes washers energy star which gives imef=2.07, lower (less efficient) than what ES products are standard sold today
@@ -1824,7 +1840,7 @@ cw[5:8,4:6]<-0
 cw_new<-as.data.frame(cw)
 for (p in 2:33) { # which projects do these changes apply to? in this case all projects
   fol_fn<-paste(projects[p],'/housing_characteristics/Clothes Washer.tsv',sep = "")
-  write.table(format(cw_new,nsmall=6),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+  write.table(format(cw_new,nsmall=6,digits = 1,scientific = FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
 # don't change heating setpoint to remain consistent with existing housing stock
 
