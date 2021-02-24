@@ -1704,10 +1704,18 @@ for (p in 26:33) { # which projects do these changes apply to? in this case all 
 
 ## change files dependent on Vintage ACS #############
 # Geometry Floor Area
-gfa<-read_tsv('project_national/housing_characteristics/Geometry Floor Area.tsv',col_names = TRUE)
-gfa<-gfa[1:720,1:12] # remove comments additional columns
+# For this characteristics, we will define alternative versions for the reduced floor area scenario.
+gfa<-read_tsv('../project_national/housing_characteristics/Geometry Floor Area.tsv',col_names = TRUE)
+gfa<-gfa[1:720,] # remove comments additional columns
 gfa2020<-gfa[gfa$`Dependency=Vintage ACS`=="2010s",]
 gfa2020$`Dependency=Vintage ACS`<-"2020s"
+# replace distributions for MH with no sample count to the distribution for the observation with most sample obsv:  "Non-CBSA West South Central"
+# This prevents unrealistic sampling of mobile homes with floor area over 3000 or 4000
+# do the same adjustment for Non-CBSA Pacific MH, which has few sample points and skeptically large proportion of large MH
+gfa2020[gfa2020$`Dependency=Geometry Building Type RECS`=="Mobile Home"&gfa2020$`Dependency=AHS Region`=="Non-CBSA Pacific",4:12]<-
+  gfa2020[gfa2020$sample_count==0&gfa2020$`Dependency=Geometry Building Type RECS`=="Mobile Home",4:12]<-
+  gfa2020[gfa2020$`Dependency=Geometry Building Type RECS`=="Mobile Home"&gfa2020$`Dependency=AHS Region`=="Non-CBSA West South Central",4:12]
+gfa2020<-gfa2020[,1:12] # remove the sample count/weight columns
 # Define no changes
 # define floor area made in 2030s 2040s and 2050s as the same as those made in 2020s
 gfa2030<-gfa2040<-gfa2050<-gfa2020
@@ -1715,12 +1723,27 @@ gfa2030<-gfa2040<-gfa2050<-gfa2020
 gfa2030$`Dependency=Vintage ACS`<-"2030s"
 gfa2040$`Dependency=Vintage ACS`<-"2040s"
 gfa2050$`Dependency=Vintage ACS`<-"2050s"
-gfa_new<-as.data.frame(rbind(gfa,gfa2020,gfa2030,gfa2040,gfa2050))
+gfa_new<-as.data.frame(rbind(gfa2020,gfa2030,gfa2040,gfa2050))
 for (p in 2:33) { # which projects do these changes apply to? in this case all projects
   fol_fn<-paste(projects[p],'/housing_characteristics/Geometry Floor Area.tsv',sep = "")
   write.table(format(gfa_new,nsmall=6),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+  fol_fn<-paste(projects[p],'/scenario_dependent_characteristics/Unchanged/Geometry Floor Area.tsv',sep = "")
+  write.table(format(gfa_new,nsmall=6),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+  
 }
-
+# reduced floor area scenario file
+gfa_rfa<-gfa_new
+for (l in 1:nrow(gfa_rfa)) {
+  big<-sum(gfa_rfa[l,11:12]) 
+  gfa_rfa[l,11:12]<-0
+  gfa_rfa[l,9:10]<-gfa_rfa[l,9:10]+0.5*big
+}
+# save reduced floor area characteristics
+for (p in 2:33) { # which projects do these changes apply to? in this case all projects
+  fol_fn<-paste(projects[p],'/scenario_dependent_characteristics/Reduced_FloorArea/Geometry Floor Area.tsv',sep = "")
+  write.table(format(gfa_rfa,nsmall=6),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+  
+}
 # Geometry Foundation Type #########
 gft<-read_tsv('project_national/housing_characteristics/Geometry Foundation Type.tsv',col_names = TRUE)
 gft<-gft[1:450,1:8]
