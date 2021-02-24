@@ -869,12 +869,16 @@ hf_new<-as.data.frame(hf2040)
 for (p in 18:25) { # which projects do these changes apply to? in this case all 2045 and 2050 projects
   fol_fn<-paste(projects[p],'/housing_characteristics/Heating Fuel.tsv',sep = "")
   write.table(format(hf_new,nsmall=6,digits=1,scientific = FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+  fol_fn<-paste(projects[p],'/scenario_dependent_characteristics/Unchanged/Heating Fuel.tsv',sep = "")
+  write.table(format(hf_new,nsmall=6,digits=1,scientific = FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
 
 # save 2050s hf
 hf_new<-as.data.frame(hf2050)
 for (p in 26:33) { # which projects do these changes apply to? in this case all 2055 and 2060 projects
   fol_fn<-paste(projects[p],'/housing_characteristics/Heating Fuel.tsv',sep = "")
+  write.table(format(hf_new,nsmall=6,digits=1,scientific = FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+  fol_fn<-paste(projects[p],'/scenario_dependent_characteristics/Unchanged/Heating Fuel.tsv',sep = "")
   write.table(format(hf_new,nsmall=6,digits=1,scientific = FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
 
@@ -904,8 +908,9 @@ for (p in 26:33) { # which projects do these changes apply to? in this case all 
   fol_fn<-paste(projects[p],'/scenario_dependent_characteristics/Deep_Electrification/Heating Fuel.tsv',sep = "")
   write.table(format(hf_new,nsmall=6,digits=1,scientific = FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
+
 # Hot Water Distribution #############
-hwd<-read_tsv('project_national/housing_characteristics/Hot Water Distribution.tsv',col_names = TRUE)
+hwd<-read_tsv('../project_national/housing_characteristics/Hot Water Distribution.tsv',col_names = TRUE)
 hwd<-hwd[1:9,]
 hwd2020<-hwd[hwd$`Dependency=Vintage`=="2010s",]
 hwd2020$`Dependency=Vintage`<-"2020s"
@@ -918,10 +923,10 @@ hwd2030$`Dependency=Vintage`<-"2030s"
 hwd2040$`Dependency=Vintage`<-"2040s"
 
 # make changes here for each vintage depending on adoption of IECC 2015 or higher, will need to aggregate to national average values.
-hwd2030$`Option=R-2, HomeRun, PEX`<-0.5 # add insulated option, assume 50% of buildings covered in 2030s
+hwd2030$`Option=R-2, HomeRun, PEX`<-0.5 # assume 50% of buildings covered in 2030s
 hwd2030$`Option=Uninsulated, HomeRun, PEX`<-0.5
 
-hwd2040$`Option=R-2, HomeRun, PEX`<-1 # add insulated option, assume 100% of buildings covered in 2040s
+hwd2040$`Option=R-2, HomeRun, PEX`<-1 # assume 100% of buildings covered in 2040s
 hwd2040$`Option=Uninsulated, HomeRun, PEX`<-0
 
 hwd2050<-hwd2040
@@ -930,11 +935,11 @@ hwd2050$`Dependency=Vintage`<-"2050s"
 hwd_new<-as.data.frame(rbind(hwd2020,hwd2030,hwd2040,hwd2050))
 for (p in 2:33) { # which projects do these changes apply to? in this case all projects
   fol_fn<-paste(projects[p],'/housing_characteristics/Hot Water Distribution.tsv',sep = "")
-  write.table(format(hwd_new,nsmall=6),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+  write.table(format(hwd_new,nsmall=6,digits=1,scientific = FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
 
 # Infiltration ######
-inf<-read_tsv('project_national/housing_characteristics/Infiltration.tsv',col_names = TRUE)
+inf<-read_tsv('../project_national/housing_characteristics/Infiltration.tsv',col_names = TRUE)
 inf<-inf[1:1215,]
 inf2020<-inf[inf$`Dependency=Vintage`=="2010s",]
 inf2020$`Dependency=Vintage`<-"2020s"
@@ -979,7 +984,7 @@ for (l in 1:nrow(inf2040)) {
 
 inf2050<-inf2040
 inf2050$`Dependency=Vintage`<-"2050s"
-
+# climate zones which are required to have either ach3 or ach5 in IECC 2015 and higher
 ach3zones<-c("3A","3B","3C","4A","4B","4C","5A","5B","6A","6B","7A","7B")
 ach5zones<-c("1A","2A","2B")
 
