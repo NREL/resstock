@@ -1028,15 +1028,15 @@ for (p in 26:33) { # which projects do these changes apply to? in this case all 
 
 # Insulation Crawlspace ############
 # no diff b/w IECC 2015 and IECC 2021
-incr<-read_tsv('project_national/housing_characteristics/Insulation Crawlspace.tsv',col_names = TRUE)
+incr<-read_tsv('../project_national/housing_characteristics/Insulation Crawlspace.tsv',col_names = TRUE)
 incr<-incr[1:2250,] # remove comment row
 incr2020<-incr[incr$`Dependency=Vintage`=="2010s",]
 incr2020$`Dependency=Vintage`<-"2020s"
 
 # make changes to 2020 insulation here
-# first add new insulation options. This required additions to options looup (R15, R19). THese refer to rigid continuous insulation levels
+# first add new insulation option. This required addition to options lookup (R15, Unvented). This refers to rigid continuous insulation levels
 incr2020$`Option=Wall R-15, Unvented`<-0
-incr2020<-incr2020[,c(1:7,11,8:10)]
+incr2020<-incr2020[,c(1:7,11,8:10)] # bring the new option into the right place (column)
 # which resstock custom regions make it to IECC 2015 by 2020s? CR3 (CZ5A), CR6 (CZ4C), CR11 (CZ3C), as well as the states TX, FL, NY, NE, DE, MD (these will be adjusted in the bs.csv)
 # in CZ 3 make sure insulation is at least R-5
 for (l in 1:nrow(incr2020)) {
@@ -1070,7 +1070,7 @@ for (l in 1:nrow(incr2030)) {
 }
 incr2040<-incr2030
 incr2040$`Dependency=Vintage`<-"2040s"
-# which resstock custom regions make it to IECC 2015 by 2040s? CR08 (CZ4A), CR9 (CZ 3A) CR10 (CZ2A). No restricture for CR10 (CZ 2A)
+# which resstock custom regions make it to IECC 2015 by 2040s? CR08 (CZ4A), CR9 (CZ 3A) CR10 (CZ2A). No restriction for CR10 (CZ 2A)
 for (l in 1:nrow(incr2040)) {
   if (incr2040$`Dependency=Location Region`[l]=="CR09") { # climate zone 3c
     unin<-incr2040$`Option=Uninsulated, Vented`[l]
@@ -1087,7 +1087,7 @@ for (l in 1:nrow(incr2040)) {
 }
 incr2050<-incr2040
 incr2050$`Dependency=Vintage`<-"2050s"
-# for 2050s, we don't know about code changes, but we reflect increased code stringency and adoption by increasing the most efficienct option by 50% of the other options
+# for 2050s, we don't know about code changes, but we reflect increased code stringency and adoption by increasing the most efficient option by 50% of the other options
 for (l in 1:nrow(incr2050)) {
   incr2050$`Option=Wall R-15, Unvented`[l]<-incr2050$`Option=Wall R-15, Unvented`[l]+0.5*incr2050$`Option=Wall R-5, Unvented`[l]+0.5*incr2050$`Option=Wall R-10, Unvented`[l]
   incr2050$`Option=Wall R-5, Unvented`[l]<-0.5*incr2050$`Option=Wall R-5, Unvented`[l]
@@ -1125,9 +1125,9 @@ for (p in 26:33) { # which projects do these changes apply to? in this case all 
   write.table(format(incr_new,nsmall=6,digits = 1, scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
 
-# Insulation Finished Basement New ############
+# Insulation Finished Basement ############
 # no diff b/w IECC 2015 and 2021
-infb<-read_tsv('project_national/housing_characteristics/Insulation Finished Basement.tsv',col_names = TRUE)
+infb<-read_tsv('../project_national/housing_characteristics/Insulation Finished Basement.tsv',col_names = TRUE)
 infb<-infb[1:2250,] # remove comment row
 infb2020<-infb[infb$`Dependency=Vintage`=="2010s",]
 infb2020$`Dependency=Vintage`<-"2020s"
@@ -1160,12 +1160,12 @@ infb2040<-infb2030
 infb2040$`Dependency=Vintage`<-"2040s"
 # which resstock custom regions make it to IECC 2015 by 2040s? CR08 (CZ4A), CR9 (CZ 3A) CR10 (CZ2A). No restriction for CR10 (CZ 2A)
 for (l in 1:nrow(infb2040)) {
-  if (infb2040$`Dependency=Location Region`[l]=="CR09"&infb2040$`Dependency=Geometry Foundation Type`[l]=="Heated Basement") { # climate zone 3c
+  if (infb2040$`Dependency=Location Region`[l]=="CR09"&infb2040$`Dependency=Geometry Foundation Type`[l]=="Heated Basement") { # climate zone 3a
     unin<-infb2040$`Option=Uninsulated`[l]
     infb2040$`Option=Wall R-5`[l]<-infb2040$`Option=Wall R-5`[l]+unin # add the uninsulated fraction to the min allowable level
     infb2040$`Option=Uninsulated`[l]<-0
   }
-  if (infb2040$`Dependency=Location Region`[l]=="CR08"&infb2040$`Dependency=Geometry Foundation Type`[l]=="Heated Basement") { # cz 4
+  if (infb2040$`Dependency=Location Region`[l]=="CR08"&infb2040$`Dependency=Geometry Foundation Type`[l]=="Heated Basement") { # cz 4a
     infb2040$`Option=Wall R-10`[l]<-infb2040$`Option=Wall R-10`[l]+infb2040$`Option=Wall R-5`[l]+infb2040$`Option=Uninsulated`[l] # make all insulation at least R-10
     infb2040$`Option=Wall R-5`[l]<-infb2040$`Option=Uninsulated`[l]<-0 # turn the R5 and uninsulated fractions to 0
   }
