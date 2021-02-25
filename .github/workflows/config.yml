@@ -95,14 +95,12 @@ jobs:
       - name: Setup git branch and python deps
         shell: bash
         run: |
-          git status
           branch_name=""
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
             branch_name="${{ github.head_ref }}"
             echo "Checking out branch: $branch_name"
             git checkout -b $branch_name || git checkout $branch_name
           fi
-          git status
 
           pip install numpy
           pip install pandas
@@ -121,8 +119,8 @@ jobs:
       - name: Make integration comparison figures
         shell: bash
         run: |
-          cp samples/baseline/results/results.csv test/test_samples_osw/results/project_testing_feature.csv
-          python test/res_results_csv_comparisons.py test/test_samples_osw/results/project_testing_develop.csv test/test_samples_osw/results/project_testing_feature.csv
+          cp samples/baseline/results/results.csv test/test_samples_osw/results/project_national_feature.csv
+          python test/res_results_csv_comparisons.py test/test_samples_osw/results/project_national_feature.csv test/test_samples_osw/results/project_national_feature.csv
 
       - name: Download regression results
         uses: actions/download-artifact@v2
@@ -141,7 +139,7 @@ jobs:
         shell: bash        
         run: |
           git status
-          git add test/test_samples_osw/results/project_testing_feature.csv
+          git add test/test_samples_osw/results/project_national_feature.csv
           git add test/test_samples_osw/results/figures
           git add workflows/results/feature.csv
           git add workflows/results/figures

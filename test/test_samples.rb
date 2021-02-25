@@ -9,7 +9,7 @@ require_relative '../resources/buildstock'
 
 class IntegrationWorkflowTest < MiniTest::Test
   def before_setup
-    @project_dir = 'project_testing'
+    @project_dir = 'project_national'
     @num_samples_baseline = 100
     @num_samples_upgrades = 10
     @outfile = File.join('..', 'test', 'test_samples_osw', 'buildstock.csv')
