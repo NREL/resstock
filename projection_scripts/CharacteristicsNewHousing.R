@@ -2319,6 +2319,19 @@ for (p in 2:33) { # which projects do these changes apply to? in this case all
   write.table(format(cr_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 } 
   
+## vacancy ##########
+# Finally, change all units to occupied
+vac<-read_tsv('../project_national/housing_characteristics/Vacancy Status.tsv',col_names = TRUE)
+vac<-vac[1:11680,1:4] # remove comment at bottom, and count and weight columns
+vac$`Option=Occupied`<-1
+vac$`Option=Vacant`<-0
+
+vac_new<-as.data.frame(vac)
+# save same file to all new projects 
+for (p in 2:33) { # which projects do these changes apply to? in this case all projects
+  fol_fn<-paste(projects[p],'/housing_characteristics/Geometry Building Number Units HL.tsv',sep = "")
+  write.table(format(NUHL_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+}
 
 # # vintage ACS ####### already fixed
 # vacs<-read_tsv('project_national/housing_characteristics/Vintage ACS.tsv',col_names = TRUE)
