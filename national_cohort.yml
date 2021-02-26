@@ -1,0 +1,47 @@
+schema_version: 0.2
+stock_type: residential
+buildstock_directory: ../../resstock_v2.4 # Relative to this file or absolute
+project_directory: project_national # Relative to buildstock_directory
+output_directory: /scratch/peterberrill/outputs_v2.52/project_national_2050s
+weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
+baseline:
+  n_datapoints: 200
+  n_buildings_represented: 133172057
+  sampling_algorithm: precomputed
+  precomputed_sample: ../resources/cohorts/bs2.4_2050s_200.csv
+  
+residential_simulation_controls:
+  timesteps_per_hr: 4
+  begin_month: 1
+  begin_day_of_month: 1
+  end_month: 12
+  end_day_of_month: 31
+  calendar_year: 2007
+
+simulation_output:
+  include_enduse_subcategories: true
+
+#timeseries_csv_export:
+ # reporting_frequency: Hourly
+  #include_enduse_subcategories: true
+
+eagle:
+  n_jobs: 8
+  minutes_per_sim: 30
+  account: enduse
+  postprocessing:
+    time: 240
+    n_workers: 10
+  sampling:
+    time: 240
+
+#postprocessing:
+ # aws:
+  #  region_name: 'us-west-2'
+   # s3:
+    #  bucket: resbldg-datasets
+     # prefix: resstock
+   #  athena:
+   #   glue_service_role: service-role/AWSGlueServiceRole-default
+   #   database_name: resstock
+   #   max_crawling_time: 300 #time to wait for the crawler to complete before aborting it
