@@ -9,7 +9,7 @@ require_relative '../resources/buildstock'
 
 class IntegrationWorkflowTest < MiniTest::Test
   def before_setup
-    @project_dir = 'project_testing'
+    @project_dir = 'project_national'
     @num_samples_baseline = 100
     @num_samples_upgrades = 10
     @outfile = File.join('..', 'test', 'test_samples_osw', 'buildstock.csv')
@@ -30,7 +30,7 @@ class IntegrationWorkflowTest < MiniTest::Test
   def test_baseline
     results_csv = samples_osw('baseline', @num_samples_baseline)
 
-    rows = CSV.read(File.expand_path(results_csv))
+    rows = CSV.read(results_csv)
 
     assert_equal(@num_samples_baseline, rows.length - 1)
 
@@ -45,7 +45,7 @@ class IntegrationWorkflowTest < MiniTest::Test
   def test_upgrades
     results_csv = samples_osw('upgrades', @num_samples_upgrades)
 
-    rows = CSV.read(File.expand_path(results_csv))
+    rows = CSV.read(results_csv)
 
     num_upgrades = Dir["#{@top_dir}/workflow-upgrades*.osw"].length
     assert_equal(@num_samples_upgrades * num_upgrades, rows.length - 1)
@@ -90,7 +90,7 @@ class IntegrationWorkflowTest < MiniTest::Test
       Dir.mkdir(xml_dir) unless File.exist?(xml_dir)
 
       (1..num_samples).to_a.each do |building_id|
-        puts "\n\tBuilding Unit ID: #{building_id} ...\n\n"
+        puts "\n\tBuilding Unit ID: #{building_id} ...\n"
 
         change_building_id(osw, building_id)
         out_osw, result = RunOSWs.run_and_check(osw, @top_dir)
@@ -118,13 +118,14 @@ class IntegrationWorkflowTest < MiniTest::Test
       end
     end
 
-    Dir["#{parent_dir}/workflow*.osw"].each do |osw|
+    Dir["#{@top_dir}/workflow*.osw"].each do |osw|
       change_building_id(osw, 1)
     end
 
     results_dir = File.join(parent_dir, 'results')
     RunOSWs._rm_path(results_dir)
     csv_out = RunOSWs.write_summary_results(results_dir, all_results)
+    puts "\nWrote: #{csv_out}\n\n"
 
     return csv_out
   end
@@ -164,7 +165,7 @@ class IntegrationWorkflowTest < MiniTest::Test
     data_hash['steps'].each do |step|
       return result unless step.keys.include?('result')
 
-      step_time_str = "time_#{OpenStudio::toUnderscoreCase(step['measure_dir_name'])}"
+      step_time_str = "#{OpenStudio::toUnderscoreCase(step['measure_dir_name'])}.time"
 
       next unless step['result'].keys.include?('started_at') && step['result'].keys.include?('completed_at')
       started_at = DateTime.strptime(step['result']['started_at'], '%Y%m%dT%H%M%SZ')

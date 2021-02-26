@@ -454,18 +454,25 @@ class RunOSWs
     workflow_time = (Time.now - workflow_start).round(1)
     out_osw = File.join(parent_dir, 'out.osw')
 
-    data_point_out = File.join(parent_dir, 'run/data_point_out.json')
     result = {}
     rows = {}
+
+    data_point_out = File.join(parent_dir, 'run/data_point_out.json')
     if File.exist?(File.expand_path(data_point_out))
-      rows = JSON.parse(File.read(File.expand_path(data_point_out)))
+      old_rows = JSON.parse(File.read(File.expand_path(data_point_out)))
+      old_rows.each do |measure, values|
+        rows[measure] = {}
+        values.each do |arg, val|
+          rows[measure]["#{OpenStudio::toUnderscoreCase(measure)}.#{arg}"] = val
+        end
+      end
     end
 
     result = get_measure_results(rows, result, 'BuildExistingModel')
     result = get_measure_results(rows, result, 'ApplyUpgrade')
     result = get_measure_results(rows, result, 'SimulationOutputReport')
     result = get_measure_results(rows, result, 'UpgradeCosts')
-    result['time_workflow'] = workflow_time
+    result['workflow.time'] = workflow_time
     return out_osw, result
   end
 
@@ -484,9 +491,9 @@ class RunOSWs
     return result
   end
 
-  def self.write_summary_results(results_dir, results)
+  def self.write_summary_results(results_dir, results, filename = 'results.csv')
     Dir.mkdir(results_dir)
-    csv_out = File.join(results_dir, 'results.csv')
+    csv_out = File.join(results_dir, filename)
 
     column_headers = []
     results.each do |result|

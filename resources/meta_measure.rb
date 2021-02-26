@@ -82,11 +82,6 @@ def apply_child_measures(measures_dir, measures, runner, model, workflow_json = 
       parent_measure = parent_measure_runner.keys[0]
       parent_runner = parent_measure_runner[parent_measure]
       time_str = "time_#{measure_subdir}"
-      if parent_measure == 'BuildExistingModel'
-        time_str += '_1'
-      elsif parent_measure == 'ApplyUpgrade'
-        time_str += '_2'
-      end
       parent_runner.registerValue(time_str, measure_time)
     end
   end
