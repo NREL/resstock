@@ -65,7 +65,7 @@ class LoadComponentsReport < OpenStudio::Measure::ReportingMeasure
 
   def demand_outputs
     demands = []
-    gains = ["conv", "infiltration", "people", "equipment", "solar_windows", "cond_windows", "cond_doors", "ventilation", "lighting"]
+    gains = ["conv", "infiltration", "people", "equipment", "other_equipment", "solar_windows", "cond_windows", "cond_doors", "ventilation", "lighting"]
     supplies = ["heating", "cooling"]
     surfaces = ["walls", "fwalls", "roof", "floor", "ground", "ceiling", "other"]
     gains.each do |gain|
@@ -292,6 +292,7 @@ class LoadComponentsReport < OpenStudio::Measure::ReportingMeasure
             heating_demand['ventilation'] -= heat_transfer_vectors['Zone Ventilation Gains'].to_a[i]
             heating_demand['people gain'] -= heat_transfer_vectors['Zone People Convective Heating Energy'].to_a[i]
             heating_demand['equipment gain'] -= heat_transfer_vectors['Zone Equipment Internal Gains'].to_a[i]
+            heating_demand['other equipment gain'] -= heat_transfer_vectors['Zone Equipment Other Internal Gains'].to_a[i]
             heating_demand['lighting gain'] -= heat_transfer_vectors['Zone Lights Convective Heating Energy'].to_a[i]
             heating_demand['other gain'] -= heat_transfer_vectors['Zone Other Convection Heat Transfer Energy'].to_a[i]
           elsif hvac_energy_transfer < 0 # cooling
@@ -309,6 +310,7 @@ class LoadComponentsReport < OpenStudio::Measure::ReportingMeasure
             cooling_demand['ventilation'] += heat_transfer_vectors['Zone Ventilation Gains'].to_a[i]
             cooling_demand['people gain'] += heat_transfer_vectors['Zone People Convective Heating Energy'].to_a[i]
             cooling_demand['equipment gain'] += heat_transfer_vectors['Zone Equipment Internal Gains'].to_a[i]
+            cooling_demand['other equipment gain'] += heat_transfer_vectors['Zone Equipment Other Internal Gains'].to_a[i]
             cooling_demand['lighting gain'] += heat_transfer_vectors['Zone Lights Convective Heating Energy'].to_a[i]
             cooling_demand['other gain'] += heat_transfer_vectors['Zone Other Convection Heat Transfer Energy'].to_a[i]
           end
@@ -336,6 +338,7 @@ class LoadComponentsReport < OpenStudio::Measure::ReportingMeasure
     report_sim_output(runner, "infiltration_heating", heating_demand['infiltration'], "J", total_site_units)
     report_sim_output(runner, "people_heating", heating_demand['people gain'], "J", total_site_units)
     report_sim_output(runner, "equipment_heating", heating_demand['equipment gain'], "J", total_site_units)
+    report_sim_output(runner, "other_equipment_heating", heating_demand['other equipment gain'], "J", total_site_units)
     report_sim_output(runner, "lighting_heating", heating_demand['lighting gain'], "J", total_site_units)
     report_sim_output(runner, "ventilation_heating", heating_demand['ventilation'], "J", total_site_units)
     report_sim_output(runner, "conv_other_heating", heating_demand['other gain'], "J", total_site_units)
@@ -351,6 +354,7 @@ class LoadComponentsReport < OpenStudio::Measure::ReportingMeasure
     report_sim_output(runner, "infiltration_cooling", cooling_demand['infiltration'], "J", total_site_units)
     report_sim_output(runner, "people_cooling", cooling_demand['people gain'], "J", total_site_units)
     report_sim_output(runner, "equipment_cooling", cooling_demand['equipment gain'], "J", total_site_units)
+    report_sim_output(runner, "other_equipment_cooling", cooling_demand['other equipment gain'], "J", total_site_units)
     report_sim_output(runner, "lighting_cooling", cooling_demand['lighting gain'], "J", total_site_units)
     report_sim_output(runner, "ventilation_cooling", cooling_demand['ventilation'], "J", total_site_units)
     report_sim_output(runner, "conv_other_cooling", cooling_demand['other gain'], "J", total_site_units)
@@ -364,6 +368,7 @@ class LoadComponentsReport < OpenStudio::Measure::ReportingMeasure
     hd += heating_demand['infiltration']
     hd += heating_demand['people gain']
     hd += heating_demand['equipment gain']
+    hd += heating_demand['other equipment gain']
     hd += heating_demand['ventilation']
     hd += heating_demand['lighting gain']
     hd += heating_demand['windows solar']
@@ -379,6 +384,7 @@ class LoadComponentsReport < OpenStudio::Measure::ReportingMeasure
     cd += cooling_demand['infiltration']
     cd += cooling_demand['people gain']
     cd += cooling_demand['equipment gain']
+    cd += cooling_demand['other equipment gain']
     cd += cooling_demand['ventilation']
     cd += cooling_demand['lighting gain']
     cd += cooling_demand['windows solar']

@@ -47,7 +47,7 @@ module OsLib_HeatTransfer
     ]
   end
 
-  def self.other_internal_gain_outputs
+  def self.wh_internal_gain_outputs
     return [
       'Water Heater Heat Loss Energy'
     ]
@@ -135,7 +135,7 @@ module OsLib_HeatTransfer
     outputs += internal_gain_outputs
 
     # other internal gain outputs
-    outputs += other_internal_gain_outputs
+    outputs += wh_internal_gain_outputs
 
     # infiltration gain outputs
     outputs += infiltration_gain_outputs
@@ -280,8 +280,8 @@ module OsLib_HeatTransfer
       total_internal_gains += vect
     end
 
-    # Other internal gains
-    other_internal_gain_outputs.each do |output|
+    # WH internal gains
+    wh_internal_gain_outputs.each do |output|
       heat_transfer_vectors[output] = Vector.elements(Array.new(num_ts, 0.0))
       zone.model.getWaterHeaterMixeds.each do |wh|
         next if wh.ambientTemperatureThermalZone.get != zone
@@ -302,8 +302,10 @@ module OsLib_HeatTransfer
     # Report out combined electric and gas equipment
     heat_transfer_vectors['Zone Equipment Internal Gains'] = heat_transfer_vectors['Zone Electric Equipment Convective Heating Energy']
     heat_transfer_vectors['Zone Equipment Internal Gains'] += heat_transfer_vectors['Zone Gas Equipment Convective Heating Energy']
-    heat_transfer_vectors['Zone Equipment Internal Gains'] += heat_transfer_vectors['Zone Other Equipment Convective Heating Energy']
     heat_transfer_vectors['Zone Equipment Internal Gains'] += heat_transfer_vectors['Water Heater Heat Loss Energy']
+
+    # Includes duct losses, water fixture heat gains, and electric loads for NG dryers
+    heat_transfer_vectors['Zone Equipment Other Internal Gains'] = heat_transfer_vectors['Zone Other Equipment Convective Heating Energy']
 
     # Compare Internal gains to EnergyPlus zone air heat balance
     true_total_internal_gains = sec_per_step * Vector.elements(OsLib_SqlFile.get_timeseries_array(runner, sql, ann_env_pd, freq, 'Zone Air Heat Balance Internal Convective Heat Gain Rate', zone_name, num_ts, watts))
