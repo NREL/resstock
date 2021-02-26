@@ -449,35 +449,38 @@ class RunOSWs
     # Run workflow
     cli_path = OpenStudio.getOpenStudioCLI
     command = "cd #{parent_dir} && \"#{cli_path}\" run -w #{in_osw}"
-    simulation_start = Time.now
+    workflow_start = Time.now
     system(command)
-    sim_time = (Time.now - simulation_start).round(1)
+    workflow_time = (Time.now - workflow_start).round(1)
     out_osw = File.join(parent_dir, 'out.osw')
 
     data_point_out = File.join(parent_dir, 'run/data_point_out.json')
-    result = { 'OSW' => File.basename(in_osw) }
-    rows = JSON.parse(File.read(File.expand_path(data_point_out)))
-    if rows.keys.include? 'BuildExistingModel'
-      result = get_build_existing_model(result, rows)
+    result = {}
+    rows = {}
+    if File.exist?(File.expand_path(data_point_out))
+      rows = JSON.parse(File.read(File.expand_path(data_point_out)))
     end
-    if rows.keys.include? 'SimulationOutputReport'
-      result = get_simulation_output_report(result, rows)
-    end
-    result['simulation_time'] = sim_time
+
+    result = get_measure_results(rows, result, 'BuildExistingModel')
+    result = get_measure_results(rows, result, 'ApplyUpgrade')
+    result = get_measure_results(rows, result, 'SimulationOutputReport')
+    result = get_measure_results(rows, result, 'UpgradeCosts')
+    result['time_workflow'] = workflow_time
     return out_osw, result
   end
 
-  def self.get_build_existing_model(result, rows)
-    result = result.merge(rows['BuildExistingModel'])
-    result.delete('applicable')
-    return result
-  end
-
-  def self.get_simulation_output_report(result, rows)
-    result = result.merge(rows['SimulationOutputReport'])
-    result.delete('applicable')
-    result.delete('upgrade_name')
-    result.delete('upgrade_cost_usd')
+  def self.get_measure_results(rows, result, measure)
+    if rows.keys.include?(measure)
+      if measure == 'ApplyUpgrade'
+        rows[measure].keys.each do |key|
+          unless key.include?('time_')
+            rows[measure].delete(key)
+          end
+        end
+      end
+      result = result.merge(rows[measure])
+      result.delete('applicable')
+    end
     return result
   end
 
@@ -485,17 +488,32 @@ class RunOSWs
     Dir.mkdir(results_dir)
     csv_out = File.join(results_dir, 'results.csv')
 
-    column_headers = results[0].keys.sort
+    column_headers = []
+    results.each do |result|
+      result.keys.each do |column_header|
+        unless column_headers.include?(column_header)
+          column_headers << column_header
+        end
+      end
+    end
+    column_headers = column_headers.sort
+
     CSV.open(csv_out, 'wb') do |csv|
       csv << column_headers
       results.each do |result|
         csv_row = []
         column_headers.each do |column_header|
-          csv_row << result[column_header]
+          if result.keys.include?(column_header)
+            csv_row << result[column_header]
+          else
+            csv_row << ''
+          end
         end
         csv << csv_row
       end
     end
+
+    return csv_out
   end
 
   def self._rm_path(path)

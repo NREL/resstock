@@ -1,0 +1,42 @@
+{
+  "measure_paths": [
+    "../../measures",
+    "../../resources/hpxml-measures"
+  ],
+  "steps": [
+    {
+      "measure_dir_name": "BuildExistingModel",
+      "arguments": {
+        "building_id": "1",
+        "workflow_json": "measure-info.json"
+      }
+    },
+    {
+      "measure_dir_name": "ApplyUpgrade",
+      "arguments": {
+        "run_measure": 1,
+        "upgrade_name": "Secondary Electric Baseboard",
+        "option_1": "HVAC Secondary Heating Type And Fuel|Electricity Baseboard",
+        "option_1_apply_logic": "(HVAC Heating Type And Fuel|Natural Gas Fuel Furnace)&&(HVAC Secondary Heating Type And Fuel|None None)",
+        "option_1_lifetime": 30,
+        "option_1_cost_1_value": 500.0,
+        "option_1_cost_1_multiplier": "Fixed (1)",
+        "option_1_cost_2_value": 80.0,
+        "option_1_cost_2_multiplier": "Size, Secondary Heating System (kBtu/h)",
+        "option_2": "HVAC Secondary Heating Efficiency|Electric Baseboard, 100% Efficiency",
+        "option_2_apply_logic": "(HVAC Heating Type And Fuel|Natural Gas Fuel Furnace)&&(HVAC Secondary Heating Type And Fuel|None None)"
+      }
+    },
+    {
+      "measure_dir_name": "SimulationOutputReport"
+    },
+    {
+      "measure_dir_name": "UpgradeCosts"
+    }
+  ],
+  "run_options": {
+    "fast": false,
+    "skip_expand_objects": true,
+    "skip_energyplus_preprocess": true
+  }
+}

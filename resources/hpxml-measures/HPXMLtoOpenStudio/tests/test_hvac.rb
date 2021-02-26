@@ -582,7 +582,8 @@ class HPXMLtoOpenStudioHVACTest < MiniTest::Test
     afue = heating_system.heating_efficiency_afue
     capacity = UnitConversions.convert(heating_system.heating_capacity.to_f, 'Btu/hr', 'W')
     fuel = heating_system.heating_system_fuel
-    wlhp_cop = heating_system.wlhp_heating_efficiency_cop
+    heat_pump = hpxml.heat_pumps[0]
+    wlhp_cop = heat_pump.heating_efficiency_cop
 
     # Check boiler
     assert_equal(1, model.getBoilerHotWaters.size)

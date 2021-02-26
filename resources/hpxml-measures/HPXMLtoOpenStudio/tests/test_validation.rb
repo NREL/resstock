@@ -22,7 +22,7 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
     @hpxml_docs = {}
     hpxml_file_dirs.each do |hpxml_file_dir|
       Dir["#{hpxml_file_dir}/*.xml"].sort.each do |xml|
-        @hpxml_docs[File.basename(xml)] = HPXML.new(hpxml_path: File.join(hpxml_file_dir, File.basename(xml))).to_oga()
+        @hpxml_docs[File.basename(xml)] = HPXML.new(hpxml_path: File.join(hpxml_file_dir, File.basename(xml)), building_id: 'MyBuilding').to_oga()
       end
     end
 
@@ -193,6 +193,10 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
 
     # Find a HPXML file that contains the specified elements.
     @hpxml_docs.each do |xml, hpxml_doc|
+      if context_xpath.include? 'HeatPump[HeatPumpType="water-loop-to-air"]'
+        next unless xml.include? 'boiler-only'
+      end
+
       parent_elements = XMLHelper.get_elements(hpxml_doc, context_xpath)
       next if parent_elements.nil?
 

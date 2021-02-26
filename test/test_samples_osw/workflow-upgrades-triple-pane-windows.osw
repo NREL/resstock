@@ -1,0 +1,37 @@
+{
+  "measure_paths": [
+    "../../measures",
+    "../../resources/hpxml-measures"
+  ],
+  "steps": [
+    {
+      "measure_dir_name": "BuildExistingModel",
+      "arguments": {
+        "building_id": "1",
+        "workflow_json": "measure-info.json"
+      }
+    },
+    {
+      "measure_dir_name": "ApplyUpgrade",
+      "arguments": {
+        "run_measure": 1,
+        "upgrade_name": "Triple-Pane Windows",
+        "option_1": "Windows|Low-E, Triple, Non-metal, Air, L-Gain",
+        "option_1_lifetime": 30,
+        "option_1_cost_1_value": 45.77,
+        "option_1_cost_1_multiplier": "Window Area (ft^2)"
+      }
+    },
+    {
+      "measure_dir_name": "SimulationOutputReport"
+    },
+    {
+      "measure_dir_name": "UpgradeCosts"
+    }
+  ],
+  "run_options": {
+    "fast": false,
+    "skip_expand_objects": true,
+    "skip_energyplus_preprocess": true
+  }
+}

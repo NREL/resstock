@@ -1,0 +1,39 @@
+{
+  "measure_paths": [
+    "../../measures",
+    "../../resources/hpxml-measures"
+  ],
+  "steps": [
+    {
+      "measure_dir_name": "BuildExistingModel",
+      "arguments": {
+        "building_id": "1",
+        "workflow_json": "measure-info.json"
+      }
+    },
+    {
+      "measure_dir_name": "ApplyUpgrade",
+      "arguments": {
+        "run_measure": 1,
+        "upgrade_name": "Heat Pump Water Heater",
+        "option_1": "Water Heater Efficiency|Electric Heat Pump, 50 gal",
+        "option_1_lifetime": 15,
+        "option_1_cost_1_value": 1500.0,
+        "option_1_cost_1_multiplier": "Fixed (1)",
+        "option_1_cost_2_value": 25.0,
+        "option_1_cost_2_multiplier": "Size, Water Heater (gal)"
+      }
+    },
+    {
+      "measure_dir_name": "SimulationOutputReport"
+    },
+    {
+      "measure_dir_name": "UpgradeCosts"
+    }
+  ],
+  "run_options": {
+    "fast": false,
+    "skip_expand_objects": true,
+    "skip_energyplus_preprocess": true
+  }
+}

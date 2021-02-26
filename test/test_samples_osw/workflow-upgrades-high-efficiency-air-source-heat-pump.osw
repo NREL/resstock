@@ -1,0 +1,41 @@
+{
+  "measure_paths": [
+    "../../measures",
+    "../../resources/hpxml-measures"
+  ],
+  "steps": [
+    {
+      "measure_dir_name": "BuildExistingModel",
+      "arguments": {
+        "building_id": "1",
+        "workflow_json": "measure-info.json"
+      }
+    },
+    {
+      "measure_dir_name": "ApplyUpgrade",
+      "arguments": {
+        "run_measure": 1,
+        "upgrade_name": "High Efficiency Air Source Heat Pump",
+        "option_1": "HVAC Heating Type And Fuel|Electricity ASHP",
+        "option_1_lifetime": 30,
+        "option_1_cost_1_value": 3000.0,
+        "option_1_cost_1_multiplier": "Fixed (1)",
+        "option_1_cost_2_value": 120.0,
+        "option_1_cost_2_multiplier": "Size, Heating System (kBtu/h)",
+        "option_2": "HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF",
+        "option_3": "HVAC Cooling Efficiency|None"
+      }
+    },
+    {
+      "measure_dir_name": "SimulationOutputReport"
+    },
+    {
+      "measure_dir_name": "UpgradeCosts"
+    }
+  ],
+  "run_options": {
+    "fast": false,
+    "skip_expand_objects": true,
+    "skip_energyplus_preprocess": true
+  }
+}

@@ -6,7 +6,7 @@ require 'minitest/autorun'
 require_relative '../../resources/hpxml-measures/HPXMLtoOpenStudio/resources/minitest_helper'
 require_relative '../../resources/buildstock'
 
-class WorkflowTest < MiniTest::Test
+class RegressionWorkflowTest < MiniTest::Test
   def test_examples_osw
     all_results = []
     parent_dir = File.absolute_path(File.join(File.dirname(__FILE__), '..'))
@@ -23,6 +23,7 @@ class WorkflowTest < MiniTest::Test
 
       RunOSWs.add_simulation_output_report(osw)
       out_osw, result = RunOSWs.run_and_check(osw, parent_dir)
+      result['OSW'] = File.basename(osw)
       all_results << result
 
       # Check workflow was successful

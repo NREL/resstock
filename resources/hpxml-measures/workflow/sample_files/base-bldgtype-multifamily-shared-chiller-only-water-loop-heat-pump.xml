@@ -204,15 +204,19 @@
               </AnnualCoolingEfficiency>
               <extension>
                 <SharedLoopWatts>600.0</SharedLoopWatts>
-                <WaterLoopHeatPump>
-                  <CoolingCapacity>24000.0</CoolingCapacity>
-                  <AnnualCoolingEfficiency>
-                    <Units>EER</Units>
-                    <Value>12.8</Value>
-                  </AnnualCoolingEfficiency>
-                </WaterLoopHeatPump>
               </extension>
             </CoolingSystem>
+            <HeatPump>
+              <SystemIdentifier id='WLHP'/>
+              <DistributionSystem idref='HVACDistributionWLHP'/>
+              <HeatPumpType>water-loop-to-air</HeatPumpType>
+              <HeatPumpFuel>electricity</HeatPumpFuel>
+              <CoolingCapacity>24000.0</CoolingCapacity>
+              <AnnualCoolingEfficiency>
+                <Units>EER</Units>
+                <Value>12.8</Value>
+              </AnnualCoolingEfficiency>
+            </HeatPump>
           </HVACPlant>
           <HVACControl>
             <SystemIdentifier id='HVACControl'/>
@@ -223,8 +227,15 @@
           <HVACDistribution>
             <SystemIdentifier id='HVACDistribution'/>
             <DistributionSystemType>
-              <HydronicAndAirDistribution>
-                <HydronicAndAirDistributionType>water loop heat pump</HydronicAndAirDistributionType>
+              <HydronicDistribution>
+                <HydronicDistributionType>water loop</HydronicDistributionType>
+              </HydronicDistribution>
+            </DistributionSystemType>
+          </HVACDistribution>
+          <HVACDistribution>
+            <SystemIdentifier id='HVACDistributionWLHP'/>
+            <DistributionSystemType>
+              <AirDistribution>
                 <DuctLeakageMeasurement>
                   <DuctType>supply</DuctType>
                   <DuctLeakage>
@@ -254,7 +265,7 @@
                   <DuctSurfaceArea>20.0</DuctSurfaceArea>
                 </Ducts>
                 <NumberofReturnRegisters>3</NumberofReturnRegisters>
-              </HydronicAndAirDistribution>
+              </AirDistribution>
             </DistributionSystemType>
             <ConditionedFloorAreaServed>900.0</ConditionedFloorAreaServed>
           </HVACDistribution>

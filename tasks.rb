@@ -219,11 +219,11 @@ if ARGV[0].to_sym == :update_measures
   example_osws.each do |weather_year, weather_station|
     include_args = {
       'BuildResidentialHPXML' => {
-        'hpxml_path' => File.expand_path(File.join(File.dirname(__FILE__), 'workflows/run/in.xml')),
+        'hpxml_path' => File.expand_path(File.join(File.dirname(__FILE__), 'workflows/run/existing.xml')),
         'schedules_type' => 'stochastic'
       },
       'HPXMLtoOpenStudio' => {
-        'hpxml_path' => File.expand_path(File.join(File.dirname(__FILE__), 'workflows/run/in.xml')),
+        'hpxml_path' => File.expand_path(File.join(File.dirname(__FILE__), 'workflows/run/existing.xml')),
         'output_dir' => File.expand_path(File.join(File.dirname(__FILE__), 'workflows/run'))
       }
     }
