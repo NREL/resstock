@@ -224,24 +224,24 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
         end
       end
     elsif cost_mult_type == 'Size, Heating System (kBtu/h)'
-      heating_systems = get_heating_systems(hpxml)
+      hpxml.heating_systems.each do |heating_system|
+        next if heating_system.id != 'HeatingSystem'
 
-      if heating_systems.size == 1 # no secondary heating system
-        cost_mult += UnitConversions.convert(heating_systems.keys[0].heating_capacity, 'btu/hr', 'kbtu/hr')
-      elsif heating_systems.size == 2 # has secondary heating system
-        heating_systems = heating_systems.sort_by { |k, v| v }.to_h # sort smallest frac to largest frac
-        cost_mult += UnitConversions.convert(heating_systems.keys[1].heating_capacity, 'btu/hr', 'kbtu/hr')
+        cost_mult += UnitConversions.convert(heating_system.heating_capacity, 'btu/hr', 'kbtu/hr')
       end
-    elsif cost_mult_type == 'Size, Heating Backup System (kBtu/h)'
+
+      hpxml.heat_pumps.each do |heat_pump|
+        cost_mult += UnitConversions.convert(heat_pump.heating_capacity, 'btu/hr', 'kbtu/hr')
+      end
+    elsif cost_mult_type == 'Size, Secondary Heating System (kBtu/h)'
+      hpxml.heating_systems.each do |heating_system|
+        next if heating_system.id != 'SecondHeatingSystem'
+
+        cost_mult += UnitConversions.convert(heating_system.heating_capacity, 'btu/hr', 'kbtu/hr')
+      end
+    elsif cost_mult_type == 'Size, Heat Pump Backup (kBtu/h)'
       hpxml.heat_pumps.each do |heat_pump|
         cost_mult += UnitConversions.convert(heat_pump.backup_heating_capacity, 'btu/hr', 'kbtu/hr')
-      end
-    elsif cost_mult_type == 'Size, Heating Secondary System (kBtu/h)'
-      heating_systems = get_heating_systems(hpxml)
-
-      if heating_systems.size == 2 # has secondary heating system
-        heating_systems = heating_systems.sort_by { |k, v| v }.to_h # sort smallest frac to largest frac
-        cost_mult += UnitConversions.convert(heating_systems.keys[0].heating_capacity, 'btu/hr', 'kbtu/hr')
       end
     elsif cost_mult_type == 'Size, Cooling System (kBtu/h)'
       hpxml.cooling_systems.each do |cooling_system|
@@ -272,24 +272,6 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
     end
     return cost_mult
   end # end get_cost_multiplier
-
-  def get_heating_systems(hpxml)
-    systems = {}
-
-    hpxml.heating_systems.each do |heating_system|
-      next if heating_system.fraction_heat_load_served == 0 || heating_system.heating_capacity == 0
-
-      systems[heating_system] = heating_system.fraction_heat_load_served
-    end
-
-    hpxml.heat_pumps.each do |heat_pump|
-      next if heat_pump.fraction_heat_load_served == 0 || heat_pump.heating_capacity == 0
-
-      systems[heat_pump] = heat_pump.fraction_heat_load_served
-    end
-
-    return systems
-  end
 end
 
 # register the measure to be used by the application
