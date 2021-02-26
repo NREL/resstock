@@ -114,7 +114,7 @@ def create_osws
     'base-dhw-tank-oil.osw' => 'base.osw',
     'base-dhw-tank-wood.osw' => 'base.osw',
     'base-enclosure-2stories.osw' => 'base.osw',
-    'base-enclosure-2stories-garage.osw' => 'base.osw',
+    'base-enclosure-2stories-garage.osw' => 'base-enclosure-2stories.osw',
     'base-enclosure-beds-1.osw' => 'base.osw',
     'base-enclosure-beds-2.osw' => 'base.osw',
     'base-enclosure-beds-4.osw' => 'base.osw',
@@ -231,10 +231,14 @@ def create_osws
     'base-lighting-detailed.osw' => 'base.osw',
     # 'base-lighting-none.osw' => 'base.osw',
     'base-location-AMY-2012.osw' => 'base.osw',
-    'base-location-baltimore-md.osw' => 'base.osw',
+    'base-location-baltimore-md.osw' => 'base-foundation-unvented-crawlspace.osw',
     'base-location-dallas-tx.osw' => 'base-foundation-slab.osw',
-    'base-location-duluth-mn.osw' => 'base.osw',
+    'base-location-duluth-mn.osw' => 'base-foundation-unconditioned-basement.osw',
+    'base-location-helena-mt.osw' => 'base.osw',
+    'base-location-honolulu-hi.osw' => 'base-foundation-slab.osw',
     'base-location-miami-fl.osw' => 'base-foundation-slab.osw',
+    'base-location-phoenix-az.osw' => 'base-foundation-slab.osw',
+    'base-location-portland-or.osw' => 'base-foundation-vented-crawlspace.osw',
     'base-mechvent-balanced.osw' => 'base.osw',
     'base-mechvent-bath-kitchen-fans.osw' => 'base.osw',
     'base-mechvent-cfis.osw' => 'base.osw',
@@ -622,7 +626,7 @@ def get_values(osw_file, step)
     step.setArgument('ducts_return_location', HPXML::LocationAtticUnvented)
     step.setArgument('ducts_supply_surface_area', '150.0')
     step.setArgument('ducts_return_surface_area', '50.0')
-    step.setArgument('ducts_number_of_return_registers', Constants.Auto)
+    step.setArgument('ducts_number_of_return_registers', '2')
     step.setArgument('heating_system_type_2', 'none')
     step.setArgument('heating_system_fuel_2', HPXML::FuelTypeElectricity)
     step.setArgument('heating_system_heating_efficiency_2', 1.0)
@@ -920,6 +924,7 @@ def get_values(osw_file, step)
     step.setArgument('ducts_return_location', HPXML::LocationLivingSpace)
     step.setArgument('ducts_supply_insulation_r', 0.0)
     step.setArgument('ducts_return_insulation_r', 0.0)
+    step.setArgument('ducts_number_of_return_registers', '1')
     step.setArgument('door_area', 20.0)
     step.setArgument('plug_loads_other_annual_kwh', '819.0')
   elsif ['base-bldgtype-multifamily-shared-mechvent.osw'].include? osw_file
@@ -1145,15 +1150,11 @@ def get_values(osw_file, step)
     step.setArgument('window_area_back', 216.0)
     step.setArgument('window_area_left', 144.0)
     step.setArgument('window_area_right', 144.0)
+    step.setArgument('ducts_number_of_return_registers', '3')
     step.setArgument('plug_loads_other_annual_kwh', '3685.5')
   elsif ['base-enclosure-2stories-garage.osw'].include? osw_file
     step.setArgument('geometry_cfa', 3250.0)
-    step.setArgument('geometry_num_floors_above_grade', 2)
     step.setArgument('geometry_garage_width', 20.0)
-    step.setArgument('window_area_front', 216.0)
-    step.setArgument('window_area_back', 216.0)
-    step.setArgument('window_area_left', 144.0)
-    step.setArgument('window_area_right', 144.0)
     step.setArgument('ducts_supply_surface_area', '112.5')
     step.setArgument('ducts_return_surface_area', '37.5')
     step.setArgument('plug_loads_other_annual_kwh', '2957.5')
@@ -1258,6 +1259,7 @@ def get_values(osw_file, step)
     step.setArgument('geometry_cfa', 1350.0)
     step.setArgument('geometry_foundation_type', HPXML::FoundationTypeAmbient)
     step.setArgument('floor_assembly_r', 18.7)
+    step.setArgument('ducts_number_of_return_registers', '1')
     step.setArgument('plug_loads_other_annual_kwh', '1228.5')
   elsif ['base-foundation-conditioned-basement-slab-insulation.osw'].include? osw_file
     step.setArgument('slab_under_insulation_r', 10)
@@ -1276,6 +1278,7 @@ def get_values(osw_file, step)
     step.setArgument('slab_carpet_r', '2.5')
     step.setArgument('ducts_supply_location', HPXML::LocationUnderSlab)
     step.setArgument('ducts_return_location', HPXML::LocationUnderSlab)
+    step.setArgument('ducts_number_of_return_registers', '1')
     step.setArgument('plug_loads_other_annual_kwh', '1228.5')
   elsif ['base-foundation-unconditioned-basement.osw'].include? osw_file
     step.setArgument('geometry_cfa', 1350.0)
@@ -1285,6 +1288,7 @@ def get_values(osw_file, step)
     step.setArgument('foundation_wall_insulation_distance_to_bottom', 0)
     step.setArgument('ducts_supply_location', HPXML::LocationBasementUnconditioned)
     step.setArgument('ducts_return_location', HPXML::LocationBasementUnconditioned)
+    step.setArgument('ducts_number_of_return_registers', '1')
     step.setArgument('water_heater_location', HPXML::LocationBasementUnconditioned)
     step.setArgument('clothes_washer_location', HPXML::LocationBasementUnconditioned)
     step.setArgument('clothes_dryer_location', HPXML::LocationBasementUnconditioned)
@@ -1322,6 +1326,7 @@ def get_values(osw_file, step)
     step.setArgument('slab_carpet_r', '2.5')
     step.setArgument('ducts_supply_location', HPXML::LocationCrawlspaceUnvented)
     step.setArgument('ducts_return_location', HPXML::LocationCrawlspaceUnvented)
+    step.setArgument('ducts_number_of_return_registers', '1')
     step.setArgument('water_heater_location', HPXML::LocationCrawlspaceUnvented)
     step.setArgument('plug_loads_other_annual_kwh', '1228.5')
   elsif ['base-foundation-vented-crawlspace.osw'].include? osw_file
@@ -1333,6 +1338,7 @@ def get_values(osw_file, step)
     step.setArgument('slab_carpet_r', '2.5')
     step.setArgument('ducts_supply_location', HPXML::LocationCrawlspaceVented)
     step.setArgument('ducts_return_location', HPXML::LocationCrawlspaceVented)
+    step.setArgument('ducts_number_of_return_registers', '1')
     step.setArgument('water_heater_location', HPXML::LocationCrawlspaceVented)
     step.setArgument('plug_loads_other_annual_kwh', '1228.5')
   elsif ['base-foundation-walkout-basement.osw'].include? osw_file
@@ -1385,7 +1391,6 @@ def get_values(osw_file, step)
     step.setArgument('cooling_system_type', 'none')
   elsif ['base-hvac-boiler-gas-central-ac-1-speed.osw'].include? osw_file
     step.setArgument('heating_system_type', HPXML::HVACTypeBoiler)
-    step.setArgument('ducts_number_of_return_registers', '3')
   elsif ['base-hvac-boiler-gas-only.osw'].include? osw_file
     step.setArgument('heating_system_type', HPXML::HVACTypeBoiler)
     step.setArgument('cooling_system_type', 'none')
@@ -1690,8 +1695,16 @@ def get_values(osw_file, step)
     step.setArgument('weather_station_epw_filepath', 'USA_TX_Dallas-Fort.Worth.Intl.AP.722590_TMY3.epw')
   elsif ['base-location-duluth-mn.osw'].include? osw_file
     step.setArgument('weather_station_epw_filepath', 'USA_MN_Duluth.Intl.AP.727450_TMY3.epw')
+  elsif ['base-location-helena-mt.osw'].include? osw_file
+    step.setArgument('weather_station_epw_filepath', 'USA_MT_Helena.Rgnl.AP.727720_TMY3.epw')
+  elsif ['base-location-honolulu-hi.osw'].include? osw_file
+    step.setArgument('weather_station_epw_filepath', 'USA_HI_Honolulu.Intl.AP.911820_TMY3.epw')
   elsif ['base-location-miami-fl.osw'].include? osw_file
     step.setArgument('weather_station_epw_filepath', 'USA_FL_Miami.Intl.AP.722020_TMY3.epw')
+  elsif ['base-location-phoenix-az.osw'].include? osw_file
+    step.setArgument('weather_station_epw_filepath', 'USA_AZ_Phoenix-Sky.Harbor.Intl.AP.722780_TMY3.epw')
+  elsif ['base-location-portland-or.osw'].include? osw_file
+    step.setArgument('weather_station_epw_filepath', 'USA_OR_Portland.Intl.AP.726980_TMY3.epw')
   elsif ['base-mechvent-balanced.osw'].include? osw_file
     step.setArgument('mech_vent_fan_type', HPXML::MechVentTypeBalanced)
     step.setArgument('mech_vent_fan_power', 60)
@@ -2326,6 +2339,7 @@ def get_values(osw_file, step)
     step.setArgument('foundation_wall_insulation_distance_to_bottom', 6.0)
   elsif ['invalid_files/conditioned-attic-with-one-floor-above-grade.osw'].include? osw_file
     step.setArgument('geometry_attic_type', HPXML::AtticTypeConditioned)
+    step.setArgument('ceiling_assembly_r', 0.0)
   end
   return step
 end
@@ -2335,6 +2349,7 @@ def create_hpxmls
   require_relative 'HPXMLtoOpenStudio/resources/constants'
   require_relative 'HPXMLtoOpenStudio/resources/hotwater_appliances'
   require_relative 'HPXMLtoOpenStudio/resources/hpxml'
+  require_relative 'HPXMLtoOpenStudio/resources/location'
   require_relative 'HPXMLtoOpenStudio/resources/misc_loads'
   require_relative 'HPXMLtoOpenStudio/resources/waterheater'
   require_relative 'HPXMLtoOpenStudio/resources/xmlhelper'
@@ -2722,10 +2737,14 @@ def create_hpxmls
     'base-lighting-detailed.xml' => 'base.xml',
     'base-lighting-none.xml' => 'base.xml',
     'base-location-AMY-2012.xml' => 'base.xml',
-    'base-location-baltimore-md.xml' => 'base.xml',
+    'base-location-baltimore-md.xml' => 'base-foundation-unvented-crawlspace.xml',
     'base-location-dallas-tx.xml' => 'base-foundation-slab.xml',
-    'base-location-duluth-mn.xml' => 'base.xml',
+    'base-location-duluth-mn.xml' => 'base-foundation-unconditioned-basement.xml',
+    'base-location-helena-mt.xml' => 'base.xml',
+    'base-location-honolulu-hi.xml' => 'base-foundation-slab.xml',
     'base-location-miami-fl.xml' => 'base-foundation-slab.xml',
+    'base-location-phoenix-az.xml' => 'base-foundation-slab.xml',
+    'base-location-portland-or.xml' => 'base-foundation-vented-crawlspace.xml',
     'base-mechvent-balanced.xml' => 'base.xml',
     'base-mechvent-bath-kitchen-fans.xml' => 'base.xml',
     'base-mechvent-cfis.xml' => 'base.xml',
@@ -3097,30 +3116,50 @@ def set_hpxml_climate_and_risk_zones(hpxml_file, hpxml)
     hpxml.climate_and_risk_zones.weather_station_name = 'Las Vegas, NV'
     hpxml.climate_and_risk_zones.weather_station_epw_filepath = 'USA_NV_Las.Vegas-McCarran.Intl.AP.723860_TMY3.epw'
   elsif ['base.xml'].include? hpxml_file
-    hpxml.climate_and_risk_zones.iecc_zone = '5B'
+    hpxml.climate_and_risk_zones.iecc_zone = Location.get_climate_zone_iecc(725650)
     hpxml.climate_and_risk_zones.weather_station_name = 'Denver, CO'
     hpxml.climate_and_risk_zones.weather_station_epw_filepath = 'USA_CO_Denver.Intl.AP.725650_TMY3.epw'
     hpxml.header.state_code = 'CO'
   elsif ['base-location-baltimore-md.xml'].include? hpxml_file
-    hpxml.climate_and_risk_zones.iecc_zone = '4A'
+    hpxml.climate_and_risk_zones.iecc_zone = Location.get_climate_zone_iecc(724060)
     hpxml.climate_and_risk_zones.weather_station_name = 'Baltimore, MD'
     hpxml.climate_and_risk_zones.weather_station_epw_filepath = 'USA_MD_Baltimore-Washington.Intl.AP.724060_TMY3.epw'
     hpxml.header.state_code = 'MD'
   elsif ['base-location-dallas-tx.xml'].include? hpxml_file
-    hpxml.climate_and_risk_zones.iecc_zone = '3A'
+    hpxml.climate_and_risk_zones.iecc_zone = Location.get_climate_zone_iecc(722590)
     hpxml.climate_and_risk_zones.weather_station_name = 'Dallas, TX'
     hpxml.climate_and_risk_zones.weather_station_epw_filepath = 'USA_TX_Dallas-Fort.Worth.Intl.AP.722590_TMY3.epw'
     hpxml.header.state_code = 'TX'
   elsif ['base-location-duluth-mn.xml'].include? hpxml_file
-    hpxml.climate_and_risk_zones.iecc_zone = '7'
+    hpxml.climate_and_risk_zones.iecc_zone = Location.get_climate_zone_iecc(727450)
     hpxml.climate_and_risk_zones.weather_station_name = 'Duluth, MN'
     hpxml.climate_and_risk_zones.weather_station_epw_filepath = 'USA_MN_Duluth.Intl.AP.727450_TMY3.epw'
     hpxml.header.state_code = 'MN'
+  elsif ['base-location-helena-mt.xml'].include? hpxml_file
+    hpxml.climate_and_risk_zones.iecc_zone = Location.get_climate_zone_iecc(727720)
+    hpxml.climate_and_risk_zones.weather_station_name = 'Helena, MT'
+    hpxml.climate_and_risk_zones.weather_station_epw_filepath = 'USA_MT_Helena.Rgnl.AP.727720_TMY3.epw'
+    hpxml.header.state_code = 'MT'
+  elsif ['base-location-honolulu-hi.xml'].include? hpxml_file
+    hpxml.climate_and_risk_zones.iecc_zone = Location.get_climate_zone_iecc(911820)
+    hpxml.climate_and_risk_zones.weather_station_name = 'Honolulu, HI'
+    hpxml.climate_and_risk_zones.weather_station_epw_filepath = 'USA_HI_Honolulu.Intl.AP.911820_TMY3.epw'
+    hpxml.header.state_code = 'HI'
   elsif ['base-location-miami-fl.xml'].include? hpxml_file
-    hpxml.climate_and_risk_zones.iecc_zone = '1A'
+    hpxml.climate_and_risk_zones.iecc_zone = Location.get_climate_zone_iecc(722020)
     hpxml.climate_and_risk_zones.weather_station_name = 'Miami, FL'
     hpxml.climate_and_risk_zones.weather_station_epw_filepath = 'USA_FL_Miami.Intl.AP.722020_TMY3.epw'
     hpxml.header.state_code = 'FL'
+  elsif ['base-location-phoenix-az.xml'].include? hpxml_file
+    hpxml.climate_and_risk_zones.iecc_zone = Location.get_climate_zone_iecc(722780)
+    hpxml.climate_and_risk_zones.weather_station_name = 'Phoenix, AZ'
+    hpxml.climate_and_risk_zones.weather_station_epw_filepath = 'USA_AZ_Phoenix-Sky.Harbor.Intl.AP.722780_TMY3.epw'
+    hpxml.header.state_code = 'AZ'
+  elsif ['base-location-portland-or.xml'].include? hpxml_file
+    hpxml.climate_and_risk_zones.iecc_zone = Location.get_climate_zone_iecc(726980)
+    hpxml.climate_and_risk_zones.weather_station_name = 'Portland, OR'
+    hpxml.climate_and_risk_zones.weather_station_epw_filepath = 'USA_OR_Portland.Intl.AP.726980_TMY3.epw'
+    hpxml.header.state_code = 'OR'
   elsif ['base-location-AMY-2012.xml'].include? hpxml_file
     hpxml.climate_and_risk_zones.weather_station_name = 'Boulder, CO'
     hpxml.climate_and_risk_zones.weather_station_epw_filepath = 'US_CO_Boulder_AMY_2012.epw'
@@ -5933,8 +5972,7 @@ def set_hpxml_hvac_distributions(hpxml_file, hpxml)
     hpxml.hvac_distributions[0].duct_leakage_measurements.clear
     hpxml.hvac_distributions[0].ducts.clear
     hpxml.hvac_distributions.add(id: 'HVACDistribution2',
-                                 distribution_system_type: HPXML::HVACDistributionTypeAir,
-                                 number_of_return_registers: 3)
+                                 distribution_system_type: HPXML::HVACDistributionTypeAir)
     hpxml.hvac_distributions[-1].duct_leakage_measurements.add(duct_type: HPXML::DuctTypeSupply,
                                                                duct_leakage_units: HPXML::UnitsCFM25,
                                                                duct_leakage_value: 75,
@@ -6176,7 +6214,6 @@ def set_hpxml_hvac_distributions(hpxml_file, hpxml)
       hpxml.hvac_distributions[0].hydronic_type = HPXML::HydronicTypeWaterLoop
       hpxml.hvac_distributions.add(id: 'HVACDistributionWLHP',
                                    distribution_system_type: HPXML::HVACDistributionTypeAir)
-      hpxml.hvac_distributions[-1].number_of_return_registers = 3
       hpxml.hvac_distributions[-1].duct_leakage_measurements.add(duct_type: HPXML::DuctTypeSupply,
                                                                  duct_leakage_units: HPXML::UnitsCFM25,
                                                                  duct_leakage_value: 15,
@@ -6244,6 +6281,16 @@ def set_hpxml_hvac_distributions(hpxml_file, hpxml)
   end
   if ['invalid_files/invalid-distribution-cfa-served.xml'].include? hpxml_file
     hpxml.hvac_distributions[0].conditioned_floor_area_served = hpxml.building_construction.conditioned_floor_area + 0.1
+  end
+
+  # Set number of return registers
+  if not ['base-misc-defaults.xml'].include? hpxml_file
+    hpxml.hvac_distributions.each do |hvac_distribution|
+      next unless hvac_distribution.distribution_system_type == HPXML::HVACDistributionTypeAir
+      next unless hvac_distribution.ducts.select { |d| d.duct_type == HPXML::DuctTypeReturn }.size > 0
+
+      hvac_distribution.number_of_return_registers = hpxml.building_construction.number_of_conditioned_floors.ceil
+    end
   end
 end
 

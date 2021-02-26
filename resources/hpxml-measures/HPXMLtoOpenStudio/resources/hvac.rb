@@ -1608,32 +1608,36 @@ class HVAC
     sensors = { 'clg' => clg_object_sensor,
                 'primary_htg' => htg_object_sensor,
                 'backup_htg' => backup_htg_object_sensor }
+    sensors = sensors.select { |m, s| !s.nil? }
 
     fan_or_pump_var = fan_or_pump.name.to_s.gsub(' ', '_')
 
     # Disaggregate electric fan/pump energy
     fan_or_pump_program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
     fan_or_pump_program.setName("#{fan_or_pump_var} disaggregate program")
-    sensors.each do |mode, sensor|
-      next if sensor.nil?
-
-      fan_or_pump_program.addLine("Set #{fan_or_pump_var}_#{mode} = 0")
-    end
-    i = 0
-    sensors.each do |mode, sensor|
-      next if sensor.nil?
-
-      if i == 0
-        fan_or_pump_program.addLine("If #{sensor.name} > 0")
-      elsif i == 2
-        fan_or_pump_program.addLine('Else')
-      else
-        fan_or_pump_program.addLine("ElseIf #{sensor.name} > 0")
+    if htg_object.is_a?(OpenStudio::Model::ZoneHVACBaseboardConvectiveWater) || htg_object.is_a?(OpenStudio::Model::ZoneHVACFourPipeFanCoil)
+      # Pump may occassionally run when baseboard isn't, so just assign all pump energy here
+      mode, sensor = sensors.first
+      if (sensors.size != 1) || (mode != 'primary_htg')
+        fail 'Unexpected situation.'
       end
       fan_or_pump_program.addLine("  Set #{fan_or_pump_var}_#{mode} = #{fan_or_pump_sensor.name}")
-      i += 1
+    else
+      sensors.each do |mode, sensor|
+        fan_or_pump_program.addLine("Set #{fan_or_pump_var}_#{mode} = 0")
+      end
+      sensors.each_with_index do |(mode, sensor), i|
+        if i == 0
+          fan_or_pump_program.addLine("If #{sensor.name} > 0")
+        elsif i == 2
+          fan_or_pump_program.addLine('Else')
+        else
+          fan_or_pump_program.addLine("ElseIf #{sensor.name} > 0")
+        end
+        fan_or_pump_program.addLine("  Set #{fan_or_pump_var}_#{mode} = #{fan_or_pump_sensor.name}")
+      end
+      fan_or_pump_program.addLine('EndIf')
     end
-    fan_or_pump_program.addLine('EndIf')
     hvac_objects << fan_or_pump_program
 
     fan_or_pump_program_calling_manager = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
@@ -1655,12 +1659,6 @@ class HVAC
       fan_or_pump_ems_output_var.setEMSProgramOrSubroutineName(fan_or_pump_program)
       fan_or_pump_ems_output_var.setUnits('J')
       hvac_objects << fan_or_pump_ems_output_var
-
-      # Used by HEScore
-      # TODO: Move to HEScore project or reporting measure
-      outputVariable = OpenStudio::Model::OutputVariable.new(fan_or_pump_ems_output_var.name.to_s, model)
-      outputVariable.setReportingFrequency('monthly')
-      outputVariable.setKeyValue('*')
     end
 
     return hvac_objects

@@ -78,21 +78,34 @@ class Location
     dgts.setAllMonthlyTemperatures([UnitConversions.convert(weather.data.AnnualAvgDrybulb, 'F', 'C')] * 12)
   end
 
-  def self.get_climate_zone_ba(wmo)
-    ba_zone = nil
+  def self.get_climate_zones
     zones_csv = File.join(File.dirname(__FILE__), 'data_climate_zones.csv')
     if not File.exist?(zones_csv)
       fail 'Could not find data_climate_zones.csv'
     end
 
+    return zones_csv
+  end
+
+  def self.get_climate_zone_iecc(wmo)
+    zones_csv = get_climate_zones
+
     require 'csv'
     CSV.foreach(zones_csv) do |row|
-      if row[0].to_s == wmo.to_s
-        ba_zone = row[5].to_s
-        break
-      end
+      return row[6].to_s if row[0].to_s == wmo.to_s
     end
 
-    return ba_zone
+    return
+  end
+
+  def self.get_climate_zone_ba(wmo)
+    zones_csv = get_climate_zones
+
+    require 'csv'
+    CSV.foreach(zones_csv) do |row|
+      return row[5].to_s if row[0].to_s == wmo.to_s
+    end
+
+    return
   end
 end
