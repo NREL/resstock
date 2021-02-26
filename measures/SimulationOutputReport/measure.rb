@@ -157,10 +157,8 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
     report_sim_output(runner, "total_site_electricity_kwh", electricity.total_end_uses[0] + electricity.photovoltaics[0], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_heating_kwh", electricity.heating[0], "GJ", elec_site_units)
-    report_sim_output(runner, "electricity_central_system_heating_kwh", electricity.central_heating[0], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_heating_supplemental_kwh", electricity.heating_supplemental[0], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_cooling_kwh", electricity.cooling[0], "GJ", elec_site_units)
-    report_sim_output(runner, "electricity_central_system_cooling_kwh", electricity.central_cooling[0], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_interior_lighting_kwh", electricity.interior_lighting[0], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_exterior_lighting_kwh", electricity.exterior_lighting[0], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_exterior_holiday_lighting_kwh", electricity.exterior_holiday_lighting[0], "GJ", elec_site_units)
@@ -193,8 +191,6 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       modeledElectricityPumpsHeating = output_meters.add_unit(sqlFile, modeledElectricityPumpsHeating, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYPUMPSHEATING') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
       modeledElectricityPumpsCooling = output_meters.add_unit(sqlFile, modeledElectricityPumpsCooling, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYPUMPSCOOLING') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
     end
-    modeledElectricityPumpsHeating = output_meters.add_unit(sqlFile, modeledElectricityPumpsHeating, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:ELECTRICITYPUMPSHEATING') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
-    modeledElectricityPumpsCooling = output_meters.add_unit(sqlFile, modeledElectricityPumpsCooling, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('CENTRAL:ELECTRICITYPUMPSCOOLING') AND ReportingFrequency='Run Period' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
 
     electricityFans = 0.0
     unless sqlFile.electricityFans.empty?
@@ -220,9 +216,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       return false
     end
     report_sim_output(runner, "electricity_pumps_heating_kwh", electricity.pumps_heating[0], "GJ", elec_site_units)
-    report_sim_output(runner, "electricity_central_system_pumps_heating_kwh", electricity.central_pumps_heating[0], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_pumps_cooling_kwh", electricity.pumps_cooling[0], "GJ", elec_site_units)
-    report_sim_output(runner, "electricity_central_system_pumps_cooling_kwh", electricity.central_pumps_cooling[0], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_water_systems_kwh", electricity.water_systems[0], "GJ", elec_site_units)
     report_sim_output(runner, "electricity_pv_kwh", electricity.photovoltaics[0], "GJ", elec_site_units)
 
@@ -230,7 +224,6 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
     report_sim_output(runner, "total_site_natural_gas_therm", natural_gas.total_end_uses[0], "GJ", gas_site_units)
     report_sim_output(runner, "natural_gas_heating_therm", natural_gas.heating[0], "GJ", gas_site_units)
-    report_sim_output(runner, "natural_gas_central_system_heating_therm", natural_gas.central_heating[0], "GJ", gas_site_units)
     unless include_enduse_subcategories
       report_sim_output(runner, "natural_gas_interior_equipment_therm", natural_gas.interior_equipment[0], "GJ", gas_site_units)
     end
@@ -240,14 +233,12 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
     report_sim_output(runner, "total_site_fuel_oil_mbtu", fuel_oil.total_end_uses[0], "GJ", other_fuel_site_units)
     report_sim_output(runner, "fuel_oil_heating_mbtu", fuel_oil.heating[0], "GJ", other_fuel_site_units)
-    report_sim_output(runner, "fuel_oil_central_system_heating_mbtu", fuel_oil.central_heating[0], "GJ", other_fuel_site_units)
     report_sim_output(runner, "fuel_oil_water_systems_mbtu", fuel_oil.water_systems[0], "GJ", other_fuel_site_units)
 
     # PROPANE
 
     report_sim_output(runner, "total_site_propane_mbtu", propane.total_end_uses[0], "GJ", other_fuel_site_units)
     report_sim_output(runner, "propane_heating_mbtu", propane.heating[0], "GJ", other_fuel_site_units)
-    report_sim_output(runner, "propane_central_system_heating_mbtu", propane.central_heating[0], "GJ", other_fuel_site_units)
     unless include_enduse_subcategories
       report_sim_output(runner, "propane_interior_equipment_mbtu", propane.interior_equipment[0], "GJ", other_fuel_site_units)
     end
