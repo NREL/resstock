@@ -755,7 +755,6 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
   def test_hvac_distribution
     # Test inputs not overridden by defaults
     hpxml = _create_hpxml('base.xml')
-    hpxml.hvac_distributions[0].number_of_return_registers = hpxml.building_construction.number_of_conditioned_floors
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     expected_supply_locations = ['attic - unvented']

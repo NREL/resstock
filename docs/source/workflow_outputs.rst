@@ -28,7 +28,7 @@ The file includes the following sections of output:
 Annual Energy Consumption by Fuel Use
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Current fuel uses are: 
+Current fuel uses are listed below.
 
    ==================================== ===========================
    Type                                 Notes
@@ -46,22 +46,25 @@ Current fuel uses are:
 Annual Energy Consumption By End Use
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Current end uses are:
+Current end uses are listed below.
+
+Note that all end uses are mutually exclusive -- the "Electricity: Heating" end use, for example, excludes energy reported in the "Electricity: Heating Fans/Pumps" end use.
+So the sum of all end uses for a given fuel (e.g., sum of all "End Use: Natural Gas: *") equal the above reported fuel use (e.g., "Fuel Use: Natural Gas: Total").
 
    =================================================================== ====================================================
    Type                                                                Notes
    =================================================================== ====================================================
-   End Use: Electricity: Heating (MBtu)
+   End Use: Electricity: Heating (MBtu)                                Excludes fans/pumps
    End Use: Electricity: Heating Fans/Pumps (MBtu)
-   End Use: Electricity: Cooling (MBtu)
+   End Use: Electricity: Cooling (MBtu)                                Excludes fans/pumps
    End Use: Electricity: Cooling Fans/Pumps (MBtu)
-   End Use: Electricity: Hot Water (MBtu)
+   End Use: Electricity: Hot Water (MBtu)                              Excludes recirc pump and solar thermal pump
    End Use: Electricity: Hot Water Recirc Pump (MBtu)
    End Use: Electricity: Hot Water Solar Thermal Pump (MBtu)
    End Use: Electricity: Lighting Interior (MBtu)
    End Use: Electricity: Lighting Garage (MBtu)
    End Use: Electricity: Lighting Exterior (MBtu)
-   End Use: Electricity: Mech Vent (MBtu)
+   End Use: Electricity: Mech Vent (MBtu)                              Excludes preheating/precooling
    End Use: Electricity: Mech Vent Preheating (MBtu)
    End Use: Electricity: Mech Vent Precooling (MBtu)
    End Use: Electricity: Whole House Fan (MBtu)
@@ -74,7 +77,7 @@ Current end uses are:
    End Use: Electricity: Range/Oven (MBtu)
    End Use: Electricity: Ceiling Fan (MBtu)
    End Use: Electricity: Television (MBtu)
-   End Use: Electricity: Plug Loads (MBtu)
+   End Use: Electricity: Plug Loads (MBtu)                             Excludes independently reported plug loads (e.g., well pump)
    End Use: Electricity: Electric Vehicle Charging (MBtu)
    End Use: Electricity: Well Pump (MBtu)
    End Use: Electricity: Pool Heater (MBtu)
@@ -82,7 +85,7 @@ Current end uses are:
    End Use: Electricity: Hot Tub Heater (MBtu)
    End Use: Electricity: Hot Tub Pump (MBtu)
    End Use: Electricity: PV (MBtu)                                     Negative value for any power produced
-   End Use: Electricity: Generator (MBtu)                              Negative value for power produced
+   End Use: Electricity: Generator (MBtu)                              Negative value for any power produced
    End Use: Natural Gas: Heating (MBtu)
    End Use: Natural Gas: Hot Water (MBtu)
    End Use: Natural Gas: Clothes Dryer (MBtu)
@@ -146,7 +149,7 @@ Current end uses are:
 Annual Building Loads
 ~~~~~~~~~~~~~~~~~~~~~
 
-Current annual building loads are:
+Current annual building loads are listed below.
 
    ===================================== ==================================================================
    Type                                  Notes
@@ -162,7 +165,7 @@ Current annual building loads are:
 Annual Unmet Building Loads
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Current annual unmet building loads are:
+Current annual unmet building loads are listed below.
 
    ========================== =====
    Type                       Notes
@@ -181,7 +184,7 @@ Rather, the unmet load is only the amount of load that the room AC *should* be s
 Peak Building Electricity
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Current peak building electricity outputs are:
+Current peak building electricity outputs are listed below.
 
    ================================== =========================================================
    Type                               Notes
@@ -193,7 +196,7 @@ Current peak building electricity outputs are:
 Peak Building Loads
 ~~~~~~~~~~~~~~~~~~~
 
-Current peak building loads are:
+Current peak building loads are listed below.
 
    ========================== ==================================
    Type                       Notes
@@ -207,7 +210,7 @@ Annual Component Building Loads
 
 Component loads represent the estimated contribution of different building components to the annual heating/cooling building loads.
 The sum of component loads for heating (or cooling) will roughly equal the annual heating (or cooling) building load reported above.
-Current component loads disaggregated by Heating/Cooling are:
+Current component loads disaggregated by Heating/Cooling are listed below.
    
    ================================================= =========================================================================================================
    Type                                              Notes
@@ -234,7 +237,7 @@ Current component loads disaggregated by Heating/Cooling are:
 Annual Hot Water Uses
 ~~~~~~~~~~~~~~~~~~~~~
 
-Current annual hot water uses are:
+Current annual hot water uses are listed below.
 
    =================================== ====================
    Type                                Notes
