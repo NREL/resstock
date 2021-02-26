@@ -319,12 +319,12 @@ bs_hiDR_all$Building<-1:nrow(bs_hiDR_all)
 bs_hiMF_all<-rbind(bs_hiMF,bs_hiMFDE,bs_hiMFRFA,bs_hiMFDERFA)
 bs_hiMF_all$Building<-1:nrow(bs_hiMF_all)
 # bs_hiMF_unique<-distinct(bs_hiMF_all[,-c(1,114,115,116)]) # not currently worth the (row-tracking) effort of removing duplicates here, will see later if it will be necessary with a bigger sample
-
+rssave<-rm_dot2(rs[,1:113])
 
 # save csvs ready for simulation
-bs_base_sim<-bs_base_all[,1:113]
-bs_hiDR_sim<-bs_hiDR_all[,1:113]
-bs_hiMF_sim<-bs_hiMF_all[,1:113]
+bs_base_sim<-rm_dot2(bs_base_all[,1:113])
+bs_hiDR_sim<-rm_dot2(bs_hiDR_all[,1:113])
+bs_hiMF_sim<-rm_dot2(bs_hiMF_all[,1:113])
 
 write.csv(bs_base_sim,file='../scen_bscsv_sim/bs_base.csv', row.names = FALSE)
 write.csv(bs_hiDR_sim,file='../scen_bscsv_sim/bs_hiDR.csv', row.names = FALSE)
