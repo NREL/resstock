@@ -330,7 +330,9 @@ write.csv(bs_base_sim,file='../scen_bscsv_sim/bs_base.csv', row.names = FALSE)
 write.csv(bs_hiDR_sim,file='../scen_bscsv_sim/bs_hiDR.csv', row.names = FALSE)
 write.csv(bs_hiMF_sim,file='../scen_bscsv_sim/bs_hiMF.csv', row.names = FALSE)
 
+# also save the full bs files and the identification of duplicate rows
 
+save(bs_base_all,bs_hiDR_all,bs_hiMF_all,list=(ls(pattern = "dupe*")),file="../Intermediate_results/agg_bscsv.RData")
 
 
 
