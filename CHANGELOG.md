@@ -12,6 +12,7 @@ Features
 
 Fixes
 - Fixes significant runtime bottleneck in TSV fetching in BuildExistingModel & ApplyUpgrade measures ([#543](https://github.com/NREL/resstock/pull/543))
+- Dwelling units that are 0-499 ft2 are constrainted to a maximum of 2 bedrooms ([#553](https://github.com/NREL/resstock/pull/553))
 
 ## ResStock v2.4.0
 
