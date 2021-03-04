@@ -35,6 +35,12 @@ class ResidentialScheduleGenerator < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(2)
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument("state", true)
+    arg.setDisplayName("State")
+    arg.setDescription("Specify the state for which the schedule is to be generated")
+    arg.setDefaultValue("")
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument.makeStringArgument("vacancy_start_date", true)
     arg.setDisplayName("Vacancy Start Date")
     arg.setDescription("Set to 'NA' if never vacant.")
@@ -61,6 +67,7 @@ class ResidentialScheduleGenerator < OpenStudio::Measure::ModelMeasure
 
     # assign the user inputs to variables
     args = { :num_occupants => runner.getIntegerArgumentValue("num_occupants", user_arguments),
+             :state => runner.getStringArgumentValue("state", user_arguments),
              :vacancy_start_date => runner.getStringArgumentValue("vacancy_start_date", user_arguments),
              :vacancy_end_date => runner.getStringArgumentValue("vacancy_end_date", user_arguments) }
 

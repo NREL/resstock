@@ -124,6 +124,7 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
 
   def test_error_invalid_vacancy
     args_hash = {}
+    args_hash['state'] = 'CO'
     args_hash["vacancy_start_date"] = "April 31"
     result = _test_error_or_NA("Denver.osm", args_hash)
     assert(result.errors.size == 1)
@@ -133,6 +134,7 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
 
   def test_NA_vacancy
     args_hash = {}
+    args_hash['state'] = 'CO'
     args_hash["vacancy_start_date"] = "NA"
     args_hash["vacancy_end_date"] = "NA"
     expected_num_del_objects = {}
@@ -143,11 +145,13 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
 
   def test_change_vacancy
     args_hash = {}
+    args_hash['state'] = 'CO'
     expected_num_del_objects = {}
     expected_num_new_objects = { "Building" => 1 }
     expected_values = {}
     model = _test_measure("Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 2, 1)
     args_hash = {}
+    args_hash['state'] = 'CO'
     args_hash["vacancy_start_date"] = "April 8"
     args_hash["vacancy_end_date"] = "October 27"
     expected_num_del_objects = {}
@@ -181,6 +185,7 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
     model = get_model(File.dirname(__FILE__), osm_file_or_model)
 
     args_hash[:schedules_path] = File.join(File.dirname(__FILE__), "../../HPXMLtoOpenStudio/resources/schedules")
+    args_hash[:state] = 'CO' # use an arbitrary state for testing
 
     if "#{test_name}".include? "8760"
       schedules_path = File.join(File.dirname(__FILE__), "../../../../files/8760.csv")
