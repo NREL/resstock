@@ -19,6 +19,8 @@ import plotly
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
+model_types = ['Single-Family Detached', 'Single-Family Attached', 'Multi-Family']
+
 
 class res_results_csv_comparisons:
     def __init__(self, base_table_name, feature_table_name, groupby):
@@ -55,7 +57,7 @@ class res_results_csv_comparisons:
         """
 
         # Directory for the queried data
-        create_path = os.path.join(os.path.dirname(self.base_table_name), 'figures')
+        create_path = os.path.join(os.path.dirname(self.base_table_name), 'comparisons')
         if not os.path.exists(create_path):
             os.makedirs(create_path)
 
@@ -175,7 +177,7 @@ class res_results_csv_comparisons:
         plt.title('Number of failures')
         plt.ylabel('Failures')
 
-        output_path = os.path.join(os.path.dirname(self.base_table_name), 'figures', 'failures.svg')
+        output_path = os.path.join(os.path.dirname(self.base_table_name), 'comparisons', 'failures.svg')
         plt.savefig(output_path, bbox_inches='tight')
         plt.close()
 
@@ -218,7 +220,6 @@ class res_results_csv_comparisons:
         feature_df = self.feature_df.copy()
 
         print('Plotting regression scatterplots...')
-        model_types = ['Single-Family Detached', 'Single-Family Attached', 'Multi-Family']
         colors = list(matplotlib.colors.get_named_colors_mapping().values())
         for fuel_use in self.saved_fields:
             if not 'fuel_use' in fuel_use:
@@ -266,9 +267,30 @@ class res_results_csv_comparisons:
             fig.update_layout(width=3600, height=1100, autosize=False, font=dict(size=24))
             for i in fig['layout']['annotations']:
                 i['font'] = dict(size=30)
-            output_path = os.path.join(os.path.dirname(self.base_table_name), 'figures', fuel_use + '.svg')
+            output_path = os.path.join(os.path.dirname(self.base_table_name), 'comparisons', fuel_use + '.svg')
             # plotly.offline.plot(fig, filename=output_path, auto_open=False) # html
             fig.write_image(output_path)
+
+    def regression_tables(self):
+        """
+        Scatterplot for each model type and simulation_output_report value.
+        """
+        # Copy DataFrames
+        base_df = self.base_df.copy()
+        feature_df = self.feature_df.copy()
+
+        base_df = base_df.set_index('build_existing_model.geometry_building_type_recs')[self.saved_fields]
+        feature_df = feature_df.set_index('build_existing_model.geometry_building_type_recs')[self.saved_fields]
+
+        included_model_types = base_df.index.unique()
+        sorted_model_types = model_types
+        for model_type in model_types:
+            if not model_type in included_model_types:
+                sorted_model_types.remove(model_type)
+
+        print('Creating regression tables...')
+        output_path = os.path.join(os.path.dirname(self.base_table_name), 'comparisons', 'deltas.csv')
+        feature_df.sub(base_df).transpose()[sorted_model_types].to_csv(output_path)
 
 
 if __name__ == '__main__':
@@ -296,3 +318,6 @@ if __name__ == '__main__':
 
     # Generate scatterplots for each model type and simulation_output_report field
     results_csv_comparison.regression_scatterplots()
+
+    # Generate tables for each model type and simulation_output_report field
+    results_csv_comparison.regression_tables()
