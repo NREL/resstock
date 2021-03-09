@@ -1,4 +1,5 @@
 # update bs csvs in ways that was not possible when modifying the tsv housing characteristics files
+
 rm(list=ls()) # clear workspace i.e. remove saved variables
 cat("\014") # clear console
 library(dplyr)
@@ -38,7 +39,7 @@ for (yr in seq(2025,2060,5)) { print(yr)
 # for (yr in 2025) {
   
   for (scen in 1:12) { print(scenarios[scen])
-    fn<-paste("../scen_bscsv/bs",yr,scenarios[scen],"_15k.csv",sep="")# update filename ending as appropriate
+    fn<-paste("../scen_bscsv/bs",yr,scenarios[scen],"_25.csv",sep="")# update filename ending as appropriate
     rs<-read.csv(fn)
   
 
@@ -152,7 +153,7 @@ for (i in 1:nrow(rs)) { # this will only work with the new construction cohorts,
 }
 rssave<-rm_dot2(rs[,1:113])
 # all.equal(names(rs2),names(rssave)) # to check if the colnames are the same
-fnsave<-paste("../scen_bscsv_adj/bs",yr,scenarios[scen],"_15k.csv",sep="")# update filename ending as appropriate
+fnsave<-paste("../scen_bscsv_adj/bs",yr,scenarios[scen],"_25.csv",sep="")# update filename ending as appropriate
 write.csv(rssave,file=fnsave, row.names = FALSE)
   }
 }
@@ -161,99 +162,149 @@ write.csv(rssave,file=fnsave, row.names = FALSE)
 ### now combine into less files and remove redundant rows ###########
 
 rm(list=ls()) # clear workspace i.e. remove saved variables
-bsall<- list.files(path = "../scen_bscsv_adj/",pattern = "*.csv") # list all csv files
+bsall<- list.files(path = "../scen_bscsv_adj/")
 for (k in 1:length(bsall)) {
   fn<-bsall[k]
   rs<-read.csv(paste("../scen_bscsv_adj/",fn,sep = ""))
   rs$sim_year<-as.numeric(substr(fn,3,6))
-  rs$scen<-substr(fn,7,nchar(fn)-8)
+  rs$scen<-substr(fn,7,nchar(fn)-7)
   assign(gsub('*.csv','',fn),rs)
 }
-rm_dot2<-function(df) {
-  cn<-names(df)
-  cn<-gsub("Dependency.", "Dependency=",cn)
-  cn<-gsub("Option..1940", "Option=<1940",cn)
-  cn<-gsub("Option.", "Option=",cn)
-  cn<-gsub("\\.", " ",cn)
-  cn<-gsub("Single.","Single-",cn)
-  names(df)<-cn
-  df
-}
-
+# base2055_60<-base2045_50<-base2035_40<-base2025_30<-rep(0,nrow(rs))
+# for (i in 1:nrow(rs)) {
+#   if(all(bs2025base_25[i,2:113]==bs2030base_25[i,2:113])) {
+#   base2025_30[i]<-i
+#   }
+#   if(all(bs2035base_25[i,2:113]==bs2040base_25[i,2:113])) {
+#     base2035_40[i]<-i
+#   }
+#   if(all(bs2045base_25[i,2:113]==bs2050base_25[i,2:113])) {
+#     base2045_50[i]<-i
+#   }
+#   if(all(bs2055base_25[i,2:113]==bs2060base_25[i,2:113])) {
+#     base2055_60[i]<-i
+#   }
+# }
+# base2025_30<-base2025_30[base2025_30>0]
+# base2035_40<-base2035_40[base2035_40>0]
+# base2045_50<-base2045_50[base2045_50>0]
+# base2055_60<-base2055_60[base2055_60>0]
+# 
+# # hiDR
+# hiDR2055_60<-hiDR2045_50<-hiDR2035_40<-hiDR2025_30<-rep(0,nrow(rs))
+# for (i in 1:nrow(rs)) {
+#   if(all(bs2025hiDR_25[i,2:113]==bs2030hiDR_25[i,2:113])) {
+#     hiDR2025_30[i]<-i
+#   }
+#   if(all(bs2035hiDR_25[i,2:113]==bs2040hiDR_25[i,2:113])) {
+#     hiDR2035_40[i]<-i
+#   }
+#   if(all(bs2045hiDR_25[i,2:113]==bs2050hiDR_25[i,2:113])) {
+#     hiDR2045_50[i]<-i
+#   }
+#   if(all(bs2055hiDR_25[i,2:113]==bs2060hiDR_25[i,2:113])) {
+#     hiDR2055_60[i]<-i
+#   }
+# }
+# hiDR2025_30<-hiDR2025_30[hiDR2025_30>0]
+# hiDR2035_40<-hiDR2035_40[hiDR2035_40>0]
+# hiDR2045_50<-hiDR2045_50[hiDR2045_50>0]
+# hiDR2055_60<-hiDR2055_60[hiDR2055_60>0]
+# 
+# # hiMF
+# hiMF2055_60<-hiMF2045_50<-hiMF2035_40<-hiMF2025_30<-rep(0,nrow(rs))
+# for (i in 1:nrow(rs)) {
+#   if(all(bs2025hiMF_25[i,2:113]==bs2030hiMF_25[i,2:113])) {
+#     hiMF2025_30[i]<-i
+#   }
+#   if(all(bs2035hiMF_25[i,2:113]==bs2040hiMF_25[i,2:113])) {
+#     hiMF2035_40[i]<-i
+#   }
+#   if(all(bs2045hiMF_25[i,2:113]==bs2050hiMF_25[i,2:113])) {
+#     hiMF2045_50[i]<-i
+#   }
+#   if(all(bs2055hiMF_25[i,2:113]==bs2060hiMF_25[i,2:113])) {
+#     hiMF2055_60[i]<-i
+#   }
+# }
+# hiMF2025_30<-hiMF2025_30[hiMF2025_30>0]
+# hiMF2035_40<-hiMF2035_40[hiMF2035_40>0]
+# hiMF2045_50<-hiMF2045_50[hiMF2045_50>0]
+# hiMF2055_60<-hiMF2055_60[hiMF2055_60>0]
 # identify and remove base duplicates ########
-bs_base<-rbind(bs2025base_15k, bs2030base_15k, bs2035base_15k, bs2040base_15k, bs2045base_15k, bs2050base_15k, bs2055base_15k, bs2060base_15k)
+bs_base<-rbind(bs2025base_25, bs2030base_25, bs2035base_25, bs2040base_25, bs2045base_25, bs2050base_25, bs2055base_25, bs2060base_25)
 bs_base$Building_id<-bs_base$Building # preserve original building id
 bs_base$Building<-1:nrow(bs_base)
-dupe_base<-which(duplicated(bs_base[,2:113])) # this is 0 for the large 15k samples, the geographies are different within cohorts (e.g. comparing 2025 and 2030)
-if (length(dupe_base)>0) {bs_base<-bs_base[!duplicated(bs_base[,2:113]),]}
+dupe_base<-which(duplicated(bs_base[,2:113]))
+bs_base<-bs_base[!duplicated(bs_base[,2:113]),]
 
-bs_baseDE<-rbind(bs2025baseDE_15k, bs2030baseDE_15k, bs2035baseDE_15k, bs2040baseDE_15k, bs2045baseDE_15k, bs2050baseDE_15k, bs2055baseDE_15k, bs2060baseDE_15k)
+bs_baseDE<-rbind(bs2025baseDE_25, bs2030baseDE_25, bs2035baseDE_25, bs2040baseDE_25, bs2045baseDE_25, bs2050baseDE_25, bs2055baseDE_25, bs2060baseDE_25)
 bs_baseDE$Building_id<-bs_baseDE$Building # preserve original building id
 bs_baseDE$Building<-1:nrow(bs_baseDE)
 dupe_baseDE<-which(duplicated(bs_baseDE[,2:113]))
-if (length(dupe_baseDE)>0) {bs_baseDE<-bs_baseDE[!duplicated(bs_baseDE[,2:113]),]}
+bs_baseDE<-bs_baseDE[!duplicated(bs_baseDE[,2:113]),]
 
-bs_baseRFA<-rbind(bs2025baseRFA_15k, bs2030baseRFA_15k, bs2035baseRFA_15k, bs2040baseRFA_15k, bs2045baseRFA_15k, bs2050baseRFA_15k, bs2055baseRFA_15k, bs2060baseRFA_15k)
+bs_baseRFA<-rbind(bs2025baseRFA_25, bs2030baseRFA_25, bs2035baseRFA_25, bs2040baseRFA_25, bs2045baseRFA_25, bs2050baseRFA_25, bs2055baseRFA_25, bs2060baseRFA_25)
 bs_baseRFA$Building_id<-bs_baseRFA$Building # preserve original building id
 bs_baseRFA$Building<-1:nrow(bs_baseRFA)
 dupe_baseRFA<-which(duplicated(bs_baseRFA[,2:113]))
-if (length(dupe_baseRFA)>0) {bs_baseRFA<-bs_baseRFA[!duplicated(bs_baseRFA[,2:113]),]}
+bs_baseRFA<-bs_baseRFA[!duplicated(bs_baseRFA[,2:113]),]
 
-bs_baseDERFA<-rbind(bs2025baseDERFA_15k, bs2030baseDERFA_15k, bs2035baseDERFA_15k, bs2040baseDERFA_15k, bs2045baseDERFA_15k, bs2050baseDERFA_15k, bs2055baseDERFA_15k, bs2060baseDERFA_15k)
+bs_baseDERFA<-rbind(bs2025baseDERFA_25, bs2030baseDERFA_25, bs2035baseDERFA_25, bs2040baseDERFA_25, bs2045baseDERFA_25, bs2050baseDERFA_25, bs2055baseDERFA_25, bs2060baseDERFA_25)
 bs_baseDERFA$Building_id<-bs_baseDERFA$Building # preserve original building id
 bs_baseDERFA$Building<-1:nrow(bs_baseDERFA)
 dupe_baseDERFA<-which(duplicated(bs_baseDERFA[,2:113]))
-if (length(dupe_baseDERFA)>0) {bs_baseDERFA<-bs_baseDERFA[!duplicated(bs_baseDERFA[,2:113]),]}
+bs_baseDERFA<-bs_baseDERFA[!duplicated(bs_baseDERFA[,2:113]),]
 
 # identify and remove hiDR duplicates ##########
-bs_hiDR<-rbind(bs2025hiDR_15k, bs2030hiDR_15k, bs2035hiDR_15k, bs2040hiDR_15k, bs2045hiDR_15k, bs2050hiDR_15k, bs2055hiDR_15k, bs2060hiDR_15k)
+bs_hiDR<-rbind(bs2025hiDR_25, bs2030hiDR_25, bs2035hiDR_25, bs2040hiDR_25, bs2045hiDR_25, bs2050hiDR_25, bs2055hiDR_25, bs2060hiDR_25)
 bs_hiDR$Building_id<-bs_hiDR$Building # preserve original building id
 bs_hiDR$Building<-1:nrow(bs_hiDR)
 dupe_hiDR<-which(duplicated(bs_hiDR[,2:113]))
-# bs_hiDR<-bs_hiDR[!duplicated(bs_hiDR[,2:113]),]
+bs_hiDR<-bs_hiDR[!duplicated(bs_hiDR[,2:113]),]
 
-bs_hiDRDE<-rbind(bs2025hiDRDE_15k, bs2030hiDRDE_15k, bs2035hiDRDE_15k, bs2040hiDRDE_15k, bs2045hiDRDE_15k, bs2050hiDRDE_15k, bs2055hiDRDE_15k, bs2060hiDRDE_15k)
+bs_hiDRDE<-rbind(bs2025hiDRDE_25, bs2030hiDRDE_25, bs2035hiDRDE_25, bs2040hiDRDE_25, bs2045hiDRDE_25, bs2050hiDRDE_25, bs2055hiDRDE_25, bs2060hiDRDE_25)
 bs_hiDRDE$Building_id<-bs_hiDRDE$Building # preserve original building id
 bs_hiDRDE$Building<-1:nrow(bs_hiDRDE)
 dupe_hiDRDE<-which(duplicated(bs_hiDRDE[,2:113]))
-# bs_hiDRDE<-bs_hiDRDE[!duplicated(bs_hiDRDE[,2:113]),]
+bs_hiDRDE<-bs_hiDRDE[!duplicated(bs_hiDRDE[,2:113]),]
 
-bs_hiDRRFA<-rbind(bs2025hiDRRFA_15k, bs2030hiDRRFA_15k, bs2035hiDRRFA_15k, bs2040hiDRRFA_15k, bs2045hiDRRFA_15k, bs2050hiDRRFA_15k, bs2055hiDRRFA_15k, bs2060hiDRRFA_15k)
+bs_hiDRRFA<-rbind(bs2025hiDRRFA_25, bs2030hiDRRFA_25, bs2035hiDRRFA_25, bs2040hiDRRFA_25, bs2045hiDRRFA_25, bs2050hiDRRFA_25, bs2055hiDRRFA_25, bs2060hiDRRFA_25)
 bs_hiDRRFA$Building_id<-bs_hiDRRFA$Building # preserve original building id
 bs_hiDRRFA$Building<-1:nrow(bs_hiDRRFA)
 dupe_hiDRRFA<-which(duplicated(bs_hiDRRFA[,2:113]))
-# bs_hiDRRFA<-bs_hiDRRFA[!duplicated(bs_hiDRRFA[,2:113]),]
+bs_hiDRRFA<-bs_hiDRRFA[!duplicated(bs_hiDRRFA[,2:113]),]
 
-bs_hiDRDERFA<-rbind(bs2025hiDRDERFA_15k, bs2030hiDRDERFA_15k, bs2035hiDRDERFA_15k, bs2040hiDRDERFA_15k, bs2045hiDRDERFA_15k, bs2050hiDRDERFA_15k, bs2055hiDRDERFA_15k, bs2060hiDRDERFA_15k)
+bs_hiDRDERFA<-rbind(bs2025hiDRDERFA_25, bs2030hiDRDERFA_25, bs2035hiDRDERFA_25, bs2040hiDRDERFA_25, bs2045hiDRDERFA_25, bs2050hiDRDERFA_25, bs2055hiDRDERFA_25, bs2060hiDRDERFA_25)
 bs_hiDRDERFA$Building_id<-bs_hiDRDERFA$Building # preserve original building id
 bs_hiDRDERFA$Building<-1:nrow(bs_hiDRDERFA)
 dupe_hiDRDERFA<-which(duplicated(bs_hiDRDERFA[,2:113]))
-# bs_hiDRDERFA<-bs_hiDRDERFA[!duplicated(bs_hiDRDERFA[,2:113]),]
+bs_hiDRDERFA<-bs_hiDRDERFA[!duplicated(bs_hiDRDERFA[,2:113]),]
 
 # identify and remove hiMF duplicates ##########
-bs_hiMF<-rbind(bs2025hiMF_15k, bs2030hiMF_15k, bs2035hiMF_15k, bs2040hiMF_15k, bs2045hiMF_15k, bs2050hiMF_15k, bs2055hiMF_15k, bs2060hiMF_15k)
+bs_hiMF<-rbind(bs2025hiMF_25, bs2030hiMF_25, bs2035hiMF_25, bs2040hiMF_25, bs2045hiMF_25, bs2050hiMF_25, bs2055hiMF_25, bs2060hiMF_25)
 bs_hiMF$Building_id<-bs_hiMF$Building # preserve original building id
 bs_hiMF$Building<-1:nrow(bs_hiMF)
 dupe_hiMF<-which(duplicated(bs_hiMF[,2:113]))
-# bs_hiMF<-bs_hiMF[!duplicated(bs_hiMF[,2:113]),]
+bs_hiMF<-bs_hiMF[!duplicated(bs_hiMF[,2:113]),]
 
-bs_hiMFDE<-rbind(bs2025hiMFDE_15k, bs2030hiMFDE_15k, bs2035hiMFDE_15k, bs2040hiMFDE_15k, bs2045hiMFDE_15k, bs2050hiMFDE_15k, bs2055hiMFDE_15k, bs2060hiMFDE_15k)
+bs_hiMFDE<-rbind(bs2025hiMFDE_25, bs2030hiMFDE_25, bs2035hiMFDE_25, bs2040hiMFDE_25, bs2045hiMFDE_25, bs2050hiMFDE_25, bs2055hiMFDE_25, bs2060hiMFDE_25)
 bs_hiMFDE$Building_id<-bs_hiMFDE$Building # preserve original building id
 bs_hiMFDE$Building<-1:nrow(bs_hiMFDE)
 dupe_hiMFDE<-which(duplicated(bs_hiMFDE[,2:113]))
-# bs_hiMFDE<-bs_hiMFDE[!duplicated(bs_hiMFDE[,2:113]),]
+bs_hiMFDE<-bs_hiMFDE[!duplicated(bs_hiMFDE[,2:113]),]
 
-bs_hiMFRFA<-rbind(bs2025hiMFRFA_15k, bs2030hiMFRFA_15k, bs2035hiMFRFA_15k, bs2040hiMFRFA_15k, bs2045hiMFRFA_15k, bs2050hiMFRFA_15k, bs2055hiMFRFA_15k, bs2060hiMFRFA_15k)
+bs_hiMFRFA<-rbind(bs2025hiMFRFA_25, bs2030hiMFRFA_25, bs2035hiMFRFA_25, bs2040hiMFRFA_25, bs2045hiMFRFA_25, bs2050hiMFRFA_25, bs2055hiMFRFA_25, bs2060hiMFRFA_25)
 bs_hiMFRFA$Building_id<-bs_hiMFRFA$Building # preserve original building id
 bs_hiMFRFA$Building<-1:nrow(bs_hiMFRFA)
 dupe_hiMFRFA<-which(duplicated(bs_hiMFRFA[,2:113]))
-# bs_hiMFRFA<-bs_hiMFRFA[!duplicated(bs_hiMFRFA[,2:113]),]
+bs_hiMFRFA<-bs_hiMFRFA[!duplicated(bs_hiMFRFA[,2:113]),]
 
-bs_hiMFDERFA<-rbind(bs2025hiMFDERFA_15k, bs2030hiMFDERFA_15k, bs2035hiMFDERFA_15k, bs2040hiMFDERFA_15k, bs2045hiMFDERFA_15k, bs2050hiMFDERFA_15k, bs2055hiMFDERFA_15k, bs2060hiMFDERFA_15k)
+bs_hiMFDERFA<-rbind(bs2025hiMFDERFA_25, bs2030hiMFDERFA_25, bs2035hiMFDERFA_25, bs2040hiMFDERFA_25, bs2045hiMFDERFA_25, bs2050hiMFDERFA_25, bs2055hiMFDERFA_25, bs2060hiMFDERFA_25)
 bs_hiMFDERFA$Building_id<-bs_hiMFDERFA$Building # preserve original building id
 bs_hiMFDERFA$Building<-1:nrow(bs_hiMFDERFA)
 dupe_hiMFDERFA<-which(duplicated(bs_hiMFDERFA[,2:113]))
-# bs_hiMFDERFA<-bs_hiMFDERFA[!duplicated(bs_hiMFDERFA[,2:113]),]
+bs_hiMFDERFA<-bs_hiMFDERFA[!duplicated(bs_hiMFDERFA[,2:113]),]
 
 ### next stage #######
 # combine scenario csvs
@@ -268,7 +319,7 @@ bs_hiDR_all$Building<-1:nrow(bs_hiDR_all)
 bs_hiMF_all<-rbind(bs_hiMF,bs_hiMFDE,bs_hiMFRFA,bs_hiMFDERFA)
 bs_hiMF_all$Building<-1:nrow(bs_hiMF_all)
 # bs_hiMF_unique<-distinct(bs_hiMF_all[,-c(1,114,115,116)]) # not currently worth the (row-tracking) effort of removing duplicates here, will see later if it will be necessary with a bigger sample
-
+rssave<-rm_dot2(rs[,1:113])
 
 # save csvs ready for simulation
 bs_base_sim<-rm_dot2(bs_base_all[,1:113])
@@ -280,80 +331,63 @@ write.csv(bs_hiDR_sim,file='../scen_bscsv_sim/bs_hiDR.csv', row.names = FALSE)
 write.csv(bs_hiMF_sim,file='../scen_bscsv_sim/bs_hiMF.csv', row.names = FALSE)
 
 # also save the full bs files and the identification of duplicate rows
-# save(bs_base_all,bs_hiDR_all,bs_hiMF_all,list=(ls(pattern = "dupe*")),file="../Intermediate_results/agg_bscsv.RData")
-save(bs_base_all,bs_hiDR_all,bs_hiMF_all,file="../Intermediate_results/agg_bscsv.RData")
 
-# save the data frame needed for the HSM analysis
-save(bs_baseRFA,file="../../HSM_github/Resstock_outputs/bs_baseRFA.RData")
+save(bs_base_all,bs_hiDR_all,bs_hiMF_all,list=(ls(pattern = "dupe*")),file="../Intermediate_results/agg_bscsv.RData")
 
-# show the difference between bs_base_base and bs_baseRFA and bshiMF ###############
-bs_base<-bs_base_all[bs_base_all$scen=="base",]
-bs_base$`House Type`<-bs_base$Geometry.Building.Type.RECS
-bs_base$`House Type`<-gsub(" with",",",bs_base$`House Type`)
 
-bs_hiMF<-bs_hiMF_all[bs_hiMF_all$scen=="hiMF",]
-bs_hiMF$`House Type`<-bs_hiMF$Geometry.Building.Type.RECS
-bs_hiMF$`House Type`<-gsub(" with",",",bs_hiMF$`House Type`)
 
-bs_baseRFA<-bs_base_all[bs_base_all$scen=="baseRFA",]
-bs_baseRFA$`House Type`<-bs_baseRFA$Geometry.Building.Type.RECS
-bs_baseRFA$`House Type`<-gsub(" with",",",bs_baseRFA$`House Type`)
+# bs_baseDE<-rbind(bs2025baseDE_25, bs2030baseDE_25, bs2035baseDE_25, bs2040baseDE_25, bs2045baseDE_25, bs2050baseDE_25, bs2055baseDE_25, bs2060baseDE_25)
+# bs_baseRFA<-rbind(bs2025baseRFA_25, bs2030baseRFA_25, bs2035baseRFA_25, bs2040baseRFA_25, bs2045baseRFA_25, bs2050baseRFA_25, bs2055baseRFA_25, bs2060baseRFA_25)
+# bs_baseDERFA<-rbind(bs2025baseDERFA_25, bs2030baseDERFA_25, bs2035baseDERFA_25, bs2040baseDERFA_25, bs2045baseDERFA_25, bs2050baseDERFA_25, bs2055baseDERFA_25, bs2060baseDERFA_25)
+# bs_base_all<-rbind(bs_base,bs_baseDE,bs_baseRFA,bs_baseDERFA)
+# bs_base_unique<-distinct(bs_base_all[,-c(1,114,115,116)])
+# 
+# base_dupe<-matrix(0,nrow(bs_base_all),nrow(bs_base_all))
+# # this seems a very slow inefficienct way to find which rows are duplicates of which other rows. Would be far too slow for the big samples
+# for (r in 1:nrow(bs_base_all)) {
+#   for (c in 1:nrow(bs_base_all)) {
+#     base_dupe[r,c]<-as.numeric(all(bs_base_all[r,2:113]==bs_base_all[c,2:113]))
+#   }
+# }
 
-library(ggplot2)
-
-bs_hiMF$count<-bs_base$count<-bs_baseRFA$count<-1
-bs_hiMF$or<-bs_base$or<-bs_baseRFA$or<-1
-bs_base[bs_base$Geometry.Floor.Area=="500-749",]$or<-2
-bs_base[bs_base$Geometry.Floor.Area=="750-999",]$or<-3
-bs_base[bs_base$Geometry.Floor.Area=="1000-1499",]$or<-4
-bs_base[bs_base$Geometry.Floor.Area=="1500-1999",]$or<-5
-bs_base[bs_base$Geometry.Floor.Area=="2000-2499",]$or<-6
-bs_base[bs_base$Geometry.Floor.Area=="2500-2999",]$or<-7
-bs_base[bs_base$Geometry.Floor.Area=="3000-3999",]$or<-8
-bs_base[bs_base$Geometry.Floor.Area=="4000+",]$or<-9
-windows(10,6.3)
-ggplot(bs_base, aes(x = reorder(Geometry.Floor.Area,or), y = count/120000))+
-  geom_col(aes(fill = `House Type`), width = 0.75) + theme_bw() +
-  labs(title = "New Housing by Type and Floor Area, 2020-2060",y="Percentage of homes",x="Floor Area Bin (sqft)",subtitle = "Scenario: 1. Baseline") + 
-  scale_y_continuous(labels=scales::percent_format(accuracy = 1),limits=c(0,0.25)) + 
-  theme(axis.text=element_text(size=11),
-        axis.title=element_text(size=12,face = "bold"),
-        plot.title = element_text(size = 14, face = "bold")) + scale_fill_brewer(palette="Dark2") 
-# RFA
-bs_baseRFA[bs_baseRFA$Geometry.Floor.Area=="500-749",]$or<-2
-bs_baseRFA[bs_baseRFA$Geometry.Floor.Area=="750-999",]$or<-3
-bs_baseRFA[bs_baseRFA$Geometry.Floor.Area=="1000-1499",]$or<-4
-bs_baseRFA[bs_baseRFA$Geometry.Floor.Area=="1500-1999",]$or<-5
-bs_baseRFA[bs_baseRFA$Geometry.Floor.Area=="2000-2499",]$or<-6
-bs_baseRFA[bs_baseRFA$Geometry.Floor.Area=="2500-2999",]$or<-7
-bs_baseRFA[bs_baseRFA$Geometry.Floor.Area=="3000-3999",]$or<-8
-bs_baseRFA[bs_baseRFA$Geometry.Floor.Area=="4000+",]$or<-9
-
-windows(8.6,6.3)
-ggplot(bs_baseRFA, aes(x = reorder(Geometry.Floor.Area,or), y = count/120000))+
-  geom_col(aes(fill = `House Type`), width = 0.75) + theme_bw() +
-  labs(title = "New Housing by Type and Floor Area, 2020-2060",y="Percentage of homes",x="Floor Area Bin (sqft)",subtitle = "Scenario: 5. Reduced Floor Area") + 
-  scale_y_continuous(labels=scales::percent_format(accuracy = 1),limits=c(0,0.25)) + 
-  theme(axis.text=element_text(size=11),
-        axis.title=element_text(size=12,face = "bold"),
-        plot.title = element_text(size = 14, face = "bold")) + scale_fill_brewer(palette="Dark2") 
-
-# hiMF
-bs_hiMF[bs_hiMF$Geometry.Floor.Area=="500-749",]$or<-2
-bs_hiMF[bs_hiMF$Geometry.Floor.Area=="750-999",]$or<-3
-bs_hiMF[bs_hiMF$Geometry.Floor.Area=="1000-1499",]$or<-4
-bs_hiMF[bs_hiMF$Geometry.Floor.Area=="1500-1999",]$or<-5
-bs_hiMF[bs_hiMF$Geometry.Floor.Area=="2000-2499",]$or<-6
-bs_hiMF[bs_hiMF$Geometry.Floor.Area=="2500-2999",]$or<-7
-bs_hiMF[bs_hiMF$Geometry.Floor.Area=="3000-3999",]$or<-8
-bs_hiMF[bs_hiMF$Geometry.Floor.Area=="4000+",]$or<-9
-
-windows(10,6.3)
-ggplot(bs_hiMF, aes(x = reorder(Geometry.Floor.Area,or), y = count/120000))+
-  geom_col(aes(fill = `House Type`), width = 0.75) + theme_bw() +
-  labs(title = "New Housing by Type and Floor Area, 2020-2060",y="Percentage of homes",x="Floor Area Bin (sqft)",subtitle = "Scenario: 3.High Multifamily") + 
-  scale_y_continuous(labels=scales::percent_format(accuracy = 1),limits=c(0,0.25)) + 
-  theme(axis.text=element_text(size=11),
-        axis.title=element_text(size=12,face = "bold"),
-        plot.title = element_text(size = 14, face = "bold")) + scale_fill_brewer(palette="Dark2") 
-
+# RFA_DERFA<-DE_DERFA<-DE_RFA<-baseRFA<-baseDERFA<-baseDE<-matrix(0,200,1)
+# for (l in 1:200) {
+#   # baseDE[l]<-as.numeric(all(bs_base[l,2:113]==bs_baseDE[l,2:113]))
+#   # baseRFA[l]<-as.numeric(all(bs_base[l,2:113]==bs_baseRFA[l,2:113]))
+#   # baseDERFA[l]<-as.numeric(all(bs_base[l,2:113]==bs_baseDERFA[l,2:113]))
+#   
+#   DE_RFA[l]<-as.numeric(all(bs_baseDE[l,2:113]==bs_baseRFA[l,2:113]))
+#   DE_DERFA[l]<-as.numeric(all(bs_baseDE[l,2:113]==bs_baseDERFA[l,2:113]))
+#   
+#   RFA_DERFA[l]<-as.numeric(all(bs_baseRFA[l,2:113]==bs_baseDERFA[l,2:113]))
+# }
+# dupes<-which(duplicated(bs_base_all[,2:113]))
+# dupmat<-matrix(0,nrow(bs_base_all),length(dupes))
+# for (r in 1:nrow(bs_base_all)) {
+#   for (c in 1:length(dupes)) {
+#     dupmat[r,c]<-as.numeric(all(bs_base_all[r,2:113]==bs_base_all[dupes[c],2:113]))
+#   }
+# }
+# colnames(dupmat)<-dupes
+# chk<-rep(0,800)
+# for (i in 1:800) {
+#   chk[i]<-all(bs_base_all[i,2:113]==bs_base_all[76,2:113])
+# }
+# which(chk>0)
+# dms<-matrix(0,25,25)
+# for (r in 1:25) {
+#   for (c in 1:25) {
+    # dms[r,c]<-as.numeric(all(bs2025base_25[r,1:113]==bs2030base_25[c,1:113]))
+    # dms[r,c]<-as.numeric(all(bs2035base_25[r,1:113]==bs2040base_25[c,1:113])) # this is the only one that gives duplicates. I don't know why.
+    # dms[r,c]<-as.numeric(all(bs2045base_25[r,1:113]==bs2050base_25[c,1:113]))
+    # dms[r,c]<-as.numeric(all(bs2055base_25[r,1:113]==bs2060base_25[c,1:113]))
+    
+    
+#   }
+# }
+#########
+# rs1<-read.csv("../scen_bscsv/bs2035base_25.csv")
+# rs2<-read.csv("../scen_bscsv/bs2040base_25.csv")
+# 
+# rs3<-read.csv("../resources/bs2035base_25.csv")
+# rs4<-read.csv("../resources/bs2040base_25.csv")
