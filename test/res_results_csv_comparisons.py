@@ -183,7 +183,7 @@ class res_results_csv_comparisons:
 
     def condense_end_uses(self):
         """
-        TODO
+        col_to_add: [cols_to_lump]
         """
         groups = {
          'end_use_electricity_cooling_m_btu': ['end_use_electricity_cooling_m_btu', 'end_use_electricity_cooling_fans_pumps_m_btu', 'end_use_electricity_mech_vent_precooling_m_btu'],
@@ -273,7 +273,7 @@ class res_results_csv_comparisons:
 
     def regression_tables(self):
         """
-        Scatterplot for each model type and simulation_output_report value.
+        Values for each model type and simulation_output_report value.
         """
         # Copy DataFrames
         base_df = self.base_df.copy()
@@ -290,7 +290,7 @@ class res_results_csv_comparisons:
 
         print('Creating regression tables...')
         output_path = os.path.join(os.path.dirname(self.base_table_name), 'comparisons', 'deltas.csv')
-        feature_df.sub(base_df).transpose()[sorted_model_types].to_csv(output_path)
+        feature_df.sub(base_df).round(2).transpose()[sorted_model_types].to_csv(output_path)
 
 
 if __name__ == '__main__':
@@ -313,11 +313,11 @@ if __name__ == '__main__':
     # Plot the number of failures for each run
     results_csv_comparison.plot_failures()
 
+    # Generate tables for each model type and simulation_output_report field
+    results_csv_comparison.regression_tables()
+
     # Condense some end uses
     results_csv_comparison.condense_end_uses()
 
     # Generate scatterplots for each model type and simulation_output_report field
     results_csv_comparison.regression_scatterplots()
-
-    # Generate tables for each model type and simulation_output_report field
-    results_csv_comparison.regression_tables()
