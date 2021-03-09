@@ -11,7 +11,7 @@ setwd("~/Yale Courses/Research/Final Paper/resstock_scenarios/projection_scripts
 
 load("~/Yale Courses/Research/US Housing/AHS/RenovationStats_new.RData") # produced by script AHS_new_ren2.R
 load('../../StockModelCode/rencombs.RData') # produced by older version of this script. Combinations of heat fuel/efficiencies, water heat fuel/efficiencies, cooling efficiencies, insulation types
-rs<-read.csv("../scen_bscsv/bs2020_180k.csv") # load in most recent sample of 2020 housing stock
+rs<-read.csv("../scen_bscsv_sim/bs2020_180k.csv") # load in most recent sample of 2020 housing stock
 nms<-names(rs) # see which columns can be removed, none until after the RS simulations have been done
 
 # create columns for indicating the year of the most recent renovation
