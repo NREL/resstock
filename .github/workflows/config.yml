@@ -116,7 +116,7 @@ jobs:
             samples
           name: samples
 
-      - name: Make integration comparison figures
+      - name: Make integration comparisons
         shell: bash
         run: |
           cp samples/baseline/results/results.csv test/test_samples_osw/results/project_national_feature.csv
@@ -129,20 +129,20 @@ jobs:
             examples
           name: examples
 
-      - name: Make regression comparison figures
+      - name: Make regression comparisons
         shell: bash
         run: |
           cp examples/feature.csv workflows/results/feature.csv
           python test/res_results_csv_comparisons.py workflows/results/develop.csv workflows/results/feature.csv
 
-      - name: Commit latest results and comparison figures
+      - name: Commit latest results and comparisons
         shell: bash        
         run: |
           git status
           git add test/test_samples_osw/results/project_national_feature.csv
-          git add test/test_samples_osw/results/figures
+          git add test/test_samples_osw/results/comparisons
           git add workflows/results/feature.csv
-          git add workflows/results/figures
+          git add workflows/results/comparisons
 
           git status
           if [[ $(git diff --cached --exit-code) ]]; then

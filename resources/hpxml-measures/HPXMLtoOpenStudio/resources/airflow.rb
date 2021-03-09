@@ -125,11 +125,11 @@ class Airflow
   end
 
   def self.get_default_vented_attic_sla()
-    return 1.0 / 300.0 # Table 4.2.2(1) - Attics
+    return (1.0 / 300.0).round(6) # Table 4.2.2(1) - Attics
   end
 
   def self.get_default_vented_crawl_sla()
-    return 1.0 / 150.0 # Table 4.2.2(1) - Crawlspaces
+    return (1.0 / 150.0).round(6) # Table 4.2.2(1) - Crawlspaces
   end
 
   def self.get_default_mech_vent_fan_power(vent_fan)

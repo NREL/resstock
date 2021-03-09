@@ -20,6 +20,8 @@ import plotly.graph_objects as go
 import argparse
 from plotly.subplots import make_subplots
 
+model_types = ['Single-Family Detached', 'Single-Family Attached', 'Multi-Family']
+
 
 class res_results_csv_comparisons:
     def __init__(self, base_table_name, feature_table_name, groupby, cols_to_use=None):
@@ -57,7 +59,7 @@ class res_results_csv_comparisons:
         """
 
         # Directory for the queried data
-        create_path = os.path.join(os.path.dirname(self.base_table_name), 'figures')
+        create_path = os.path.join(os.path.dirname(self.base_table_name), 'comparisons')
         if not os.path.exists(create_path):
             os.makedirs(create_path)
 
@@ -201,13 +203,13 @@ class res_results_csv_comparisons:
         plt.title('Number of failures')
         plt.ylabel('Failures')
 
-        output_path = os.path.join(os.path.dirname(self.base_table_name), 'figures', 'failures.svg')
+        output_path = os.path.join(os.path.dirname(self.base_table_name), 'comparisons', 'failures.svg')
         plt.savefig(output_path, bbox_inches='tight')
         plt.close()
 
     def condense_end_uses(self):
         """
-        TODO
+        col_to_add: [cols_to_lump]
         """
         groups = {
          'end_use_electricity_cooling_m_btu': ['end_use_electricity_cooling_m_btu', 'end_use_electricity_cooling_fans_pumps_m_btu', 'end_use_electricity_mech_vent_precooling_m_btu'],
@@ -254,7 +256,6 @@ class res_results_csv_comparisons:
         feature_df = self.feature_df.copy()
 
         print('Plotting regression scatterplots...')
-        model_types = ['Single-Family Detached', 'Single-Family Attached', 'Multi-Family']
         colors = list(matplotlib.colors.get_named_colors_mapping().values())
         for fuel_use in self.saved_fields:
             if not 'fuel_use' in fuel_use:
@@ -302,9 +303,30 @@ class res_results_csv_comparisons:
             fig.update_layout(width=3600, height=1100, autosize=False, font=dict(size=24))
             for i in fig['layout']['annotations']:
                 i['font'] = dict(size=30)
-            output_path = os.path.join(os.path.dirname(self.base_table_name), 'figures', fuel_use + '.svg')
+            output_path = os.path.join(os.path.dirname(self.base_table_name), 'comparisons', fuel_use + '.svg')
             # plotly.offline.plot(fig, filename=output_path, auto_open=False) # html
             fig.write_image(output_path)
+
+    def regression_tables(self):
+        """
+        Values for each model type and simulation_output_report value.
+        """
+        # Copy DataFrames
+        base_df = self.base_df.copy()
+        feature_df = self.feature_df.copy()
+
+        base_df = base_df.set_index('build_existing_model.geometry_building_type_recs')[self.saved_fields]
+        feature_df = feature_df.set_index('build_existing_model.geometry_building_type_recs')[self.saved_fields]
+
+        included_model_types = base_df.index.unique()
+        sorted_model_types = model_types
+        for model_type in model_types:
+            if not model_type in included_model_types:
+                sorted_model_types.remove(model_type)
+
+        print('Creating regression tables...')
+        output_path = os.path.join(os.path.dirname(self.base_table_name), 'comparisons', 'deltas.csv')
+        feature_df.sub(base_df).round(2).transpose()[sorted_model_types].to_csv(output_path)
 
 
 if __name__ == '__main__':
@@ -340,6 +362,9 @@ if __name__ == '__main__':
 
     # Plot the number of failures for each run
     results_csv_comparison.plot_failures()
+
+    # Generate tables for each model type and simulation_output_report field
+    results_csv_comparison.regression_tables()
 
     # Condense some end uses
     results_csv_comparison.condense_end_uses()

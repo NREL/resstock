@@ -49,7 +49,7 @@ Annual Energy Consumption By End Use
 Current end uses are listed below.
 
 Note that all end uses are mutually exclusive -- the "Electricity: Heating" end use, for example, excludes energy reported in the "Electricity: Heating Fans/Pumps" end use.
-So the sum of all end uses for a given fuel (e.g., sum of all "End Use: Natural Gas: *") equal the above reported fuel use (e.g., "Fuel Use: Natural Gas: Total").
+So the sum of all end uses for a given fuel (e.g., sum of all "End Use: Natural Gas: \*") equal the above reported fuel use (e.g., "Fuel Use: Natural Gas: Total").
 
    =================================================================== ====================================================
    Type                                                                Notes

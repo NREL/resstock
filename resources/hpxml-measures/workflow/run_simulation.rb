@@ -41,7 +41,7 @@ def run_workflow(basedir, rundir, hpxml, debug, timeseries_output_freq, timeseri
   args['include_timeseries_weather'] = timeseries_outputs.include? 'weather'
   update_args_hash(measures, measure_subdir, args)
 
-  results = run_hpxml_workflow(rundir, hpxml, measures, measures_dir, debug: debug)
+  results = run_hpxml_workflow(rundir, measures, measures_dir, debug: debug)
 
   return results[:success]
 end
