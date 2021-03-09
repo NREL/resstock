@@ -326,8 +326,16 @@ class res_results_csv_comparisons:
 
         print('Creating regression tables...')
         output_path = os.path.join(os.path.dirname(self.base_table_name), 'comparisons', 'deltas.csv')
-        feature_df.sub(base_df).round(2).transpose()[sorted_model_types].to_csv(output_path)
+        deltas = pd.DataFrame()
 
+        diff_cols = [btype + ' Diff' for btype in sorted_model_types]
+        deltas[diff_cols] = feature_df.sub(base_df).transpose()[sorted_model_types]
+        for btype in sorted_model_types:
+            deltas[btype + ' % Diff'] = (100*deltas[btype + ' Diff'].div(base_df.transpose()[btype]))
+        deltas.fillna(0, inplace=True)
+        deltas = deltas.round(2)
+                
+        deltas.to_csv(output_path)
 
 if __name__ == '__main__':
 
@@ -335,7 +343,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("base_table_name", help="Filepath to base results table", type=str)
     parser.add_argument("feature_table_name", help="Filepath to feature results table", type=str)
-    parser.add_argument("--use_cols", help="Which table uses the latest column headers (int)", type=int)
+    parser.add_argument("--use_cols", help="Which table's variable names to use (int)", type=int)  # Only can map from old to new right now
     args = parser.parse_args()
 
     base_table_name = args.base_table_name
