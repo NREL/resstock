@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>build_residential_hpxml</name>
   <uid>a13a8983-2b01-4930-8af2-42030b6e4233</uid>
-  <version_id>3de08c93-7d4d-415f-b9e0-cfafd23afe07</version_id>
-  <version_modified>20210225T213853Z</version_modified>
+  <version_id>cf7f6482-a3a5-468d-afff-731d11847516</version_id>
+  <version_modified>20210308T224313Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>BuildResidentialHPXML</class_name>
   <display_name>HPXML Builder</display_name>
@@ -306,7 +306,7 @@
     <argument>
       <name>geometry_orientation</name>
       <display_name>Geometry: Orientation</display_name>
-      <description>The house's orientation is measured clockwise from due south when viewed from above (e.g., North=0, East=90, South=180, West=270).</description>
+      <description>The unit's orientation is measured clockwise from due south when viewed from above (e.g., North=0, East=90, South=180, West=270).</description>
       <type>Double</type>
       <units>degrees</units>
       <required>true</required>
@@ -998,7 +998,7 @@
     <argument>
       <name>neighbor_front_distance</name>
       <display_name>Neighbor: Front Distance</display_name>
-      <description>The minimum distance between the simulated house and the neighboring house to the front (not including eaves). A value of zero indicates no neighbors.</description>
+      <description>The minimum distance between the simulated unit and the neighboring building to the front (not including eaves). A value of zero indicates no neighbors.</description>
       <type>Double</type>
       <units>ft</units>
       <required>true</required>
@@ -1008,7 +1008,7 @@
     <argument>
       <name>neighbor_back_distance</name>
       <display_name>Neighbor: Back Distance</display_name>
-      <description>The minimum distance between the simulated house and the neighboring house to the back (not including eaves). A value of zero indicates no neighbors.</description>
+      <description>The minimum distance between the simulated unit and the neighboring building to the back (not including eaves). A value of zero indicates no neighbors.</description>
       <type>Double</type>
       <units>ft</units>
       <required>true</required>
@@ -1018,7 +1018,7 @@
     <argument>
       <name>neighbor_left_distance</name>
       <display_name>Neighbor: Left Distance</display_name>
-      <description>The minimum distance between the simulated house and the neighboring house to the left (not including eaves). A value of zero indicates no neighbors.</description>
+      <description>The minimum distance between the simulated unit and the neighboring building to the left (not including eaves). A value of zero indicates no neighbors.</description>
       <type>Double</type>
       <units>ft</units>
       <required>true</required>
@@ -1028,7 +1028,7 @@
     <argument>
       <name>neighbor_right_distance</name>
       <display_name>Neighbor: Right Distance</display_name>
-      <description>The minimum distance between the simulated house and the neighboring house to the right (not including eaves). A value of zero indicates no neighbors.</description>
+      <description>The minimum distance between the simulated unit and the neighboring building to the right (not including eaves). A value of zero indicates no neighbors.</description>
       <type>Double</type>
       <units>ft</units>
       <required>true</required>
@@ -1230,7 +1230,7 @@
     <argument>
       <name>window_front_wwr</name>
       <display_name>Windows: Front Window-to-Wall Ratio</display_name>
-      <description>The ratio of window area to wall area for the building's front facade. Enter 0 if specifying Front Window Area instead.</description>
+      <description>The ratio of window area to wall area for the unit's front facade. Enter 0 if specifying Front Window Area instead.</description>
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -1239,7 +1239,7 @@
     <argument>
       <name>window_back_wwr</name>
       <display_name>Windows: Back Window-to-Wall Ratio</display_name>
-      <description>The ratio of window area to wall area for the building's back facade. Enter 0 if specifying Back Window Area instead.</description>
+      <description>The ratio of window area to wall area for the unit's back facade. Enter 0 if specifying Back Window Area instead.</description>
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -1248,7 +1248,7 @@
     <argument>
       <name>window_left_wwr</name>
       <display_name>Windows: Left Window-to-Wall Ratio</display_name>
-      <description>The ratio of window area to wall area for the building's left facade. Enter 0 if specifying Left Window Area instead.</description>
+      <description>The ratio of window area to wall area for the unit's left facade (when viewed from the front). Enter 0 if specifying Left Window Area instead.</description>
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -1257,7 +1257,7 @@
     <argument>
       <name>window_right_wwr</name>
       <display_name>Windows: Right Window-to-Wall Ratio</display_name>
-      <description>The ratio of window area to wall area for the building's right facade. Enter 0 if specifying Right Window Area instead.</description>
+      <description>The ratio of window area to wall area for the unit's right facade (when viewed from the front). Enter 0 if specifying Right Window Area instead.</description>
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -1266,7 +1266,7 @@
     <argument>
       <name>window_area_front</name>
       <display_name>Windows: Front Window Area</display_name>
-      <description>The amount of window area on the building's front facade. Enter 0 if specifying Front Window-to-Wall Ratio instead.</description>
+      <description>The amount of window area on the unit's front facade. Enter 0 if specifying Front Window-to-Wall Ratio instead.</description>
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -1275,7 +1275,7 @@
     <argument>
       <name>window_area_back</name>
       <display_name>Windows: Back Window Area</display_name>
-      <description>The amount of window area on the building's back facade. Enter 0 if specifying Back Window-to-Wall Ratio instead.</description>
+      <description>The amount of window area on the unit's back facade. Enter 0 if specifying Back Window-to-Wall Ratio instead.</description>
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -1284,7 +1284,7 @@
     <argument>
       <name>window_area_left</name>
       <display_name>Windows: Left Window Area</display_name>
-      <description>The amount of window area on the building's left facade. Enter 0 if specifying Left Window-to-Wall Ratio instead.</description>
+      <description>The amount of window area on the unit's left facade (when viewed from the front). Enter 0 if specifying Left Window-to-Wall Ratio instead.</description>
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -1293,7 +1293,7 @@
     <argument>
       <name>window_area_right</name>
       <display_name>Windows: Right Window Area</display_name>
-      <description>The amount of window area on the building's right facade. Enter 0 if specifying Right Window-to-Wall Ratio instead.</description>
+      <description>The amount of window area on the unit's right facade (when viewed from the front). Enter 0 if specifying Right Window-to-Wall Ratio instead.</description>
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -1442,7 +1442,7 @@
     <argument>
       <name>skylight_area_front</name>
       <display_name>Skylights: Front Roof Area</display_name>
-      <description>The amount of skylight area on the building's front conditioned roof facade.</description>
+      <description>The amount of skylight area on the unit's front conditioned roof facade.</description>
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -1451,7 +1451,7 @@
     <argument>
       <name>skylight_area_back</name>
       <display_name>Skylights: Back Roof Area</display_name>
-      <description>The amount of skylight area on the building's back conditioned roof facade.</description>
+      <description>The amount of skylight area on the unit's back conditioned roof facade.</description>
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -1460,7 +1460,7 @@
     <argument>
       <name>skylight_area_left</name>
       <display_name>Skylights: Left Roof Area</display_name>
-      <description>The amount of skylight area on the building's left conditioned roof facade.</description>
+      <description>The amount of skylight area on the unit's left conditioned roof facade (when viewed from the front).</description>
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -1469,7 +1469,7 @@
     <argument>
       <name>skylight_area_right</name>
       <display_name>Skylights: Right Roof Area</display_name>
-      <description>The amount of skylight area on the building's right conditioned roof facade.</description>
+      <description>The amount of skylight area on the unit's right conditioned roof facade (when viewed from the front).</description>
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -6265,12 +6265,6 @@
       <checksum>64DD9D54</checksum>
     </file>
     <file>
-      <filename>schedules.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>9ED612C8</checksum>
-    </file>
-    <file>
       <filename>constants.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
@@ -7537,23 +7531,6 @@
       <checksum>26780CD9</checksum>
     </file>
     <file>
-      <filename>build_residential_hpxml_test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>6EC2BD04</checksum>
-    </file>
-    <file>
-      <version>
-        <software_program>OpenStudio</software_program>
-        <identifier>2.9.0</identifier>
-        <min_compatible>2.9.0</min_compatible>
-      </version>
-      <filename>measure.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>script</usage_type>
-      <checksum>AFAF7BCC</checksum>
-    </file>
-    <file>
       <filename>extra-bldgtype-multifamily-double-exterior.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
@@ -8056,6 +8033,53 @@
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
       <checksum>0C9837FB</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekday_state_and_monthly_schedule_shift.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>FFDA057E</checksum>
+    </file>
+    <file>
+      <filename>schedules_weekend_state_and_monthly_schedule_shift.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>5FC694CF</checksum>
+    </file>
+    <file>
+      <filename>build_residential_hpxml_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>30D725F1</checksum>
+    </file>
+    <file>
+      <filename>schedules.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>3B954F0A</checksum>
+    </file>
+    <file>
+      <filename>test_measure.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>8E0A0723</checksum>
+    </file>
+    <file>
+      <filename>test_rakefile.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>F3778D1E</checksum>
+    </file>
+    <file>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>2.9.0</identifier>
+        <min_compatible>2.9.0</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>script</usage_type>
+      <checksum>740DA201</checksum>
     </file>
   </files>
 </measure>
