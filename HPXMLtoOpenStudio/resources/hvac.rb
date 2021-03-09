@@ -4212,4 +4212,21 @@ class HVAC
       end
     end
   end
+
+  def self.get_dehumidifier_default_values(capacity)
+    rh_setpoint = 0.6
+    if capacity <= 25.0
+      ief = 0.79
+    elsif capacity <= 35.0
+      ief = 0.95
+    elsif capacity <= 54.0
+      ief = 1.04
+    elsif capacity < 75.0
+      ief = 1.20
+    else
+      ief = 1.82
+    end
+
+    return { rh_setpoint: rh_setpoint, ief: ief }
+  end
 end

@@ -2,7 +2,7 @@
 
 require 'fileutils'
 
-def run_hpxml_workflow(rundir, hpxml, measures, measures_dir, debug: false, output_vars: [],
+def run_hpxml_workflow(rundir, measures, measures_dir, debug: false, output_vars: [],
                        output_meters: [], run_measures_only: false, print_prefix: '')
   rm_path(rundir)
   FileUtils.mkdir_p(rundir)

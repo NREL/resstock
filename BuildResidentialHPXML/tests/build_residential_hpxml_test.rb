@@ -204,7 +204,6 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       hpxml.header.schedules_path = nil
       hpxml.site.fuels = [] # Not used by model
       hpxml.climate_and_risk_zones.weather_station_name = nil
-      hpxml.header.state_code = nil
       hpxml.building_construction.conditioned_building_volume = nil
       hpxml.building_construction.average_ceiling_height = nil # Comparing conditioned volume instead
       hpxml.air_infiltration_measurements[0].infiltration_volume = nil

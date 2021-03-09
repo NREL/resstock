@@ -1941,13 +1941,13 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
   def _test_default_attic_values(hpxml, sla)
     attic = hpxml.attics[0]
 
-    assert_equal(sla, attic.vented_attic_sla)
+    assert_in_epsilon(sla, attic.vented_attic_sla, 0.001)
   end
 
   def _test_default_foundation_values(hpxml, sla)
     foundation = hpxml.foundations[0]
 
-    assert_equal(sla, foundation.vented_crawlspace_sla)
+    assert_in_epsilon(sla, foundation.vented_crawlspace_sla, 0.001)
   end
 
   def _test_default_roof_values(hpxml, roof_type, solar_absorptance, roof_color, emittance, radiant_barrier)
