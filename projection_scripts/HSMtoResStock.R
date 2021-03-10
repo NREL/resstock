@@ -110,8 +110,8 @@ for (l in which(vrs==0)) { # make sure there are no rows with a 0 row sum
   }
 }
 
-vin<-format(vintage_new,nsmall=6,digits=1,scientific=FALSE)
-ty<-format(type_new,nsmall=6,digits=1,scientific=FALSE)
+vin<-format(vintage_new,nsmall=6,digits=0,scientific=FALSE)
+ty<-format(type_new,nsmall=6,digits=0,scientific=FALSE)
 # save the 2020 vintage and geometry type acs
 write.table(vin,'../project_national_2020/housing_characteristics/Vintage.tsv',append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 write.table(ty,'../project_national_2020/housing_characteristics/Geometry Building Type ACS.tsv',append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
@@ -140,7 +140,7 @@ iecc_new[1,1:15]<-rowSums(cz_cty)/sum(cz_cty)
 iecc_new[1,16]<-0
 iecc_new[1,17]<-sum(cz_cty)
 
-cty<-format(as.data.frame(cty_new),nsmall=6,digits=1,scientific=FALSE)
+cty<-format(as.data.frame(cty_new),nsmall=6,digits=0,scientific=FALSE)
 ie<-format(iecc_new,nsmall=6,digits=0,scientific=FALSE)
 # save the 2020 county and IECC Cz
 write.table(cty,'../project_national_2020/housing_characteristics/County.tsv',append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
@@ -237,8 +237,8 @@ type_new[i,2:10]<-tcn$sample_weight/sum(tcn$sample_weight) # use counts of housi
 # vintage_new[vintage_new$`Dependency=PUMA`==puma_i,3:15]<-vint_prob
 }
 
-vin<-format(vintage_new,nsmall=6,digits=1,scientific=FALSE)
-ty<-format(type_new,nsmall=6,digits=1,scientific=FALSE)
+vin<-format(vintage_new,nsmall=6,digits=0,scientific=FALSE)
+ty<-format(type_new,nsmall=6,digits=0,scientific=FALSE)
 fol<-paste('../project_national_',scen,sep="")
 write.table(vin,paste(fol,'/housing_characteristics/Vintage.tsv',sep=""),append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 write.table(ty,paste(fol,'/housing_characteristics/Geometry Building Type ACS.tsv',sep=""),append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
@@ -256,7 +256,7 @@ iecc_new[1,1:15]<-rowSums(cz_cty)/sum(cz_cty)
 iecc_new[1,16]<-0 # turn sample count to 0
 iecc_new[1,17]<-sum(cz_cty)
 
-cty<-format(as.data.frame(cty_new),nsmall=6,digits=1,scientific=FALSE)
+cty<-format(as.data.frame(cty_new),nsmall=6,digits=0,scientific=FALSE) # this needs to be zero
 ie<-format(iecc_new,nsmall=6,digits=0,scientific=FALSE)
 
 write.table(cty,paste(fol,'/housing_characteristics/County.tsv',sep=""),append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
