@@ -266,12 +266,13 @@ hss2030$`Dependency=Vintage`<-"2030s"
 hss2040$`Dependency=Vintage`<-"2040s"
 hss2050$`Dependency=Vintage`<-"2050s"
 hss_new<-as.data.frame(rbind(hss2020,hss2030,hss2040,hss2050))
-for (p in 2:33) { # which projects do these changes apply to? in this case all projects
+for (p in 2:25) { # which projects do these changes apply to? in this case all projects
   fol_fn<-paste(projects[p],'/housing_characteristics/HVAC Has Shared System.tsv',sep = "")
   write.table(format(hss_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
 
 # HVAC heating type ########
+# need to create, in each project folder, the scenario_dependent_characteristics subdirectory, and sub-subdirectories of Unchanged, Deep_Electrification, and Reduced_FloorArea before defining htt
 htt<-read_tsv('../project_national/housing_characteristics/HVAC Heating Type.tsv',col_names = TRUE)
 htt<-htt[1:810,1:8] # remove comments and count and weight columns
 htt2020<-htt[htt$`Dependency=Vintage`=="2010s",] 
@@ -529,7 +530,7 @@ for (p in 14:19) { # which projects do these changes apply to? in this case all 
   write.table(format(htt_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
 htt_new<-as.data.frame(htt2050_de)
-for (p in 26:33) { # which projects do these changes apply to? in this case all projects
+for (p in 20:25) { # which projects do these changes apply to? in this case all projects
   fol_fn<-paste(projects[p],'/scenario_dependent_characteristics/Deep_Electrification/HVAC Heating Type.tsv',sep = "")
   write.table(format(htt_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
@@ -1815,7 +1816,7 @@ for (l in 1:nrow(gfa_rfa)) {
   gfa_rfa[l,9:10]<-gfa_rfa[l,9:10]+0.5*big
 }
 # save reduced floor area characteristics
-for (p in 2:33) { # which projects do these changes apply to? in this case all projects
+for (p in 2:25) { # which projects do these changes apply to? in this case all projects
   fol_fn<-paste(projects[p],'/scenario_dependent_characteristics/Reduced_FloorArea/Geometry Floor Area.tsv',sep = "")
   write.table(format(gfa_rfa,nsmall=6,digits = 1,scientific = FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
   
