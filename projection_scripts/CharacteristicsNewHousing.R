@@ -155,7 +155,7 @@ nu2030$`Dependency=Vintage`<-"2030s"
 nu2040$`Dependency=Vintage`<-"2040s"
 nu2050$`Dependency=Vintage`<-"2050s"
 
-NUHL_new<-as.data.frame(rbind(nu2020,nu2030,nu2040,nu2050))
+NUHL_new<-as.data.frame(rbind(NUHL,nu2020,nu2030,nu2040,nu2050))
 # save same file to all new projects 
 for (p in 2:25) { # which projects do these changes apply to? in this case all projects
   fol_fn<-paste(projects[p],'/housing_characteristics/Geometry Building Number Units HL.tsv',sep = "")
@@ -2080,7 +2080,7 @@ whf2030$`Option=Electricity`<-whf2030$`Option=Electricity`+whf2030$`Option=Fuel 
 whf2030$`Option=Fuel Oil` <-0
 
 whf_new<-as.data.frame(whf2030)
-for (p in 10:33) { # which projects do these changes apply to? in this case 2035 onwards
+for (p in 10:25) { # which projects do these changes apply to? in this case 2035 onwards
   fol_fn<-paste(projects[p],'/housing_characteristics/Water Heater Fuel.tsv',sep = "")
   write.table(format(whf_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
   fol_fn<-paste(projects[p],'/scenario_dependent_characteristics/Unchanged/Water Heater Fuel.tsv',sep = "")
@@ -2093,7 +2093,7 @@ whf_de<-whf_new # all years based of the 2030 base, i.e. no more oil, all become
 whf_de[whf_de$`Dependency=Heating Fuel`=="Electricity",]$`Option=Electricity`<-1
 whf_de[whf_de$`Dependency=Heating Fuel`=="Electricity",5:8]<-0
 
-for (p in 2:25) { # which projects do these changes apply to? in this case 2035 onwards
+for (p in 2:25) { # which projects do these changes apply to? in this case all
   fol_fn<-paste(projects[p],'/scenario_dependent_characteristics/Deep_Electrification/Water Heater Fuel.tsv',sep = "")
   write.table(format(whf_de,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
@@ -2354,6 +2354,3 @@ for (p in 1:33) { # which projects do these changes apply to? in this case all p
 #   fol_fn<-paste(projects[p],'/housing_characteristics/Vintage ACS.tsv',sep = "")
 #   write.table(format(vacs_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 # }
-### tables to check correspondences between regions #####
-load("../../StockModelCode/buildstock100.RData")
-table(rs$ASHRAE.IECC.Climate.Zone.2004,rs$Census.Region)
