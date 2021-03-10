@@ -535,7 +535,6 @@ for (p in 20:25) { # which projects do these changes apply to? in this case all 
   write.table(format(htt_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
 
-
 # HVAC Cooling type ######
 hct<-read_tsv('../project_national/housing_characteristics/HVAC Cooling Type.tsv',col_names = TRUE)
 hct<-hct[1:2250,1:8] # remove comments and count/weight columns
@@ -653,13 +652,13 @@ for (p in 8:13) { # which projects do these changes apply to? in this case all 2
 }
 # save 2040s hct
 hct_new<-as.data.frame(hct2040)
-for (p in 18:25) { # which projects do these changes apply to? in this case all 2045 and 2050 projects
+for (p in 14:19) { # which projects do these changes apply to? in this case all 2045 and 2050 projects
   fol_fn<-paste(projects[p],'/housing_characteristics/HVAC Cooling Type.tsv',sep = "")
   write.table(format(hct_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
 # save 2050s hct
 hct_new<-as.data.frame(hct2050)
-for (p in 26:33) { # which projects do these changes apply to? in this case all 2055 and 2060 projects
+for (p in 20:25) { # which projects do these changes apply to? in this case all 2055 and 2060 projects
   fol_fn<-paste(projects[p],'/housing_characteristics/HVAC Cooling Type.tsv',sep = "")
   write.table(format(hct_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
@@ -678,10 +677,10 @@ hf2010<-hf[hf$`Dependency=Vintage`=="2010s",]
 
 hf2020$`Dependency=Vintage`<-"2020s"
 
-hf2020<-merge(hf2020,rpp,by.x = "Dependency=PUMA",by.y="puma")
+hf2020<-merge(hf2020,rpp,by.x = "Dependency=PUMA",by.y="puma") # add census region to the heating fuel files
 # define an alternative which will be used to model more advanced electrification
 hf2020adv<-hf2020
-# make changes to 2020 heating fuel here, I will most certainly be making changes here, reflecting increased electrification, with geo resolution of census regions, which captures major differences in projected price differentials b/w gas and electricity
+# make changes to 2020 heating fuel here, I will show increased electrification, with geo resolution of census regions, which captures major differences in projected price differentials b/w gas and electricity
 for (l in 1:nrow(hf2020)) {
   if (hf2020$`Region`[l] == "Northeast") { # in the Northeast, the move away from gas is the slowest, due to higher priced electricity
     gas0<-hf2020$`Option=Natural Gas`[l]
@@ -943,7 +942,7 @@ for (p in 8:13) { # which projects do these changes apply to? in this case all 2
 
 # save 2040s hf
 hf_new<-as.data.frame(hf2040)
-for (p in 18:25) { # which projects do these changes apply to? in this case all 2045 and 2050 projects
+for (p in 14:19) { # which projects do these changes apply to? in this case all 2045 and 2050 projects
   fol_fn<-paste(projects[p],'/housing_characteristics/Heating Fuel.tsv',sep = "")
   write.table(format(hf_new,nsmall=6,digits=1,scientific = FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
   fol_fn<-paste(projects[p],'/scenario_dependent_characteristics/Unchanged/Heating Fuel.tsv',sep = "")
@@ -952,7 +951,7 @@ for (p in 18:25) { # which projects do these changes apply to? in this case all 
 
 # save 2050s hf
 hf_new<-as.data.frame(hf2050)
-for (p in 26:33) { # which projects do these changes apply to? in this case all 2055 and 2060 projects
+for (p in 20:25) { # which projects do these changes apply to? in this case all 2055 and 2060 projects
   fol_fn<-paste(projects[p],'/housing_characteristics/Heating Fuel.tsv',sep = "")
   write.table(format(hf_new,nsmall=6,digits=1,scientific = FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
   fol_fn<-paste(projects[p],'/scenario_dependent_characteristics/Unchanged/Heating Fuel.tsv',sep = "")
@@ -974,14 +973,14 @@ for (p in 8:13) { # which projects do these changes apply to? in this case all 2
 
 # save 2040s hf
 hf_new<-as.data.frame(hf2040adv)
-for (p in 18:25) { # which projects do these changes apply to? in this case all 2045 and 2050 projects
+for (p in 14:19) { # which projects do these changes apply to? in this case all 2045 and 2050 projects
   fol_fn<-paste(projects[p],'/scenario_dependent_characteristics/Deep_Electrification/Heating Fuel.tsv',sep = "")
   write.table(format(hf_new,nsmall=6,digits=1,scientific = FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
 
 # save 2050s hf
 hf_new<-as.data.frame(hf2050adv)
-for (p in 26:33) { # which projects do these changes apply to? in this case all 2055 and 2060 projects
+for (p in 20:25) { # which projects do these changes apply to? in this case all 2055 and 2060 projects
   fol_fn<-paste(projects[p],'/scenario_dependent_characteristics/Deep_Electrification/Heating Fuel.tsv',sep = "")
   write.table(format(hf_new,nsmall=6,digits=1,scientific = FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
@@ -1010,7 +1009,7 @@ hwd2050<-hwd2040
 hwd2050$`Dependency=Vintage`<-"2050s"
 # then save the new heat fuel file complete with new 2020 characteristics
 hwd_new<-as.data.frame(rbind(hwd2020,hwd2030,hwd2040,hwd2050))
-for (p in 2:33) { # which projects do these changes apply to? in this case all projects
+for (p in 2:25) { # which projects do these changes apply to? in this case all projects
   fol_fn<-paste(projects[p],'/housing_characteristics/Hot Water Distribution.tsv',sep = "")
   write.table(format(hwd_new,nsmall=6,digits=1,scientific = FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
@@ -1091,14 +1090,14 @@ for (p in 8:13) { # which projects do these changes apply to? in this case all 2
 
 # save 2040s inf
 inf_new<-as.data.frame(inf2040)
-for (p in 18:25) { # which projects do these changes apply to? in this case all 2045 and 2050 projects
+for (p in 14:19) { # which projects do these changes apply to? in this case all 2045 and 2050 projects
   fol_fn<-paste(projects[p],'/housing_characteristics/Infiltration.tsv',sep = "")
   write.table(format(inf_new,nsmall=6,digits = 1,scientific = FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
 
 # save 2050s inf
 inf_new<-as.data.frame(inf2050)
-for (p in 26:33) { # which projects do these changes apply to? in this case all 2055 and 2060 projects
+for (p in 20:25) { # which projects do these changes apply to? in this case all 2055 and 2060 projects
   fol_fn<-paste(projects[p],'/housing_characteristics/Infiltration.tsv',sep = "")
   write.table(format(inf_new,nsmall=6,digits = 1,scientific = FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
@@ -1190,14 +1189,14 @@ for (p in 8:13) { # which projects do these changes apply to? in this case all 2
 
 # save 2040s incr
 incr_new<-as.data.frame(incr2040)
-for (p in 18:25) { # which projects do these changes apply to? in this case all 2045 and 2050 projects
+for (p in 14:19) { # which projects do these changes apply to? in this case all 2045 and 2050 projects
   fol_fn<-paste(projects[p],'/housing_characteristics/Insulation Crawlspace.tsv',sep = "")
   write.table(format(incr_new,nsmall=6,digits = 1, scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
 
 # save 2050s incr
 incr_new<-as.data.frame(incr2050)
-for (p in 26:33) { # which projects do these changes apply to? in this case all 2055 and 2060 projects
+for (p in 20:25) { # which projects do these changes apply to? in this case all 2055 and 2060 projects
   fol_fn<-paste(projects[p],'/housing_characteristics/Insulation Crawlspace.tsv',sep = "")
   write.table(format(incr_new,nsmall=6,digits = 1, scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
@@ -1271,14 +1270,14 @@ for (p in 8:13) { # which projects do these changes apply to? in this case all 2
 
 # save 2040s infb
 infb_new<-as.data.frame(infb2040)
-for (p in 18:25) { # which projects do these changes apply to? in this case all 2045 and 2050 projects
+for (p in 14:19) { # which projects do these changes apply to? in this case all 2045 and 2050 projects
   fol_fn<-paste(projects[p],'/housing_characteristics/Insulation Finished Basement.tsv',sep = "")
   write.table(format(infb_new,nsmall=6,digits = 1, scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
 
 # save 2050s infb
 infb_new<-as.data.frame(infb2050)
-for (p in 26:33) { # which projects do these changes apply to? in this case all 2055 and 2060 projects
+for (p in 20:25) { # which projects do these changes apply to? in this case all 2055 and 2060 projects
   fol_fn<-paste(projects[p],'/housing_characteristics/Insulation Finished Basement.tsv',sep = "")
   write.table(format(infb_new,nsmall=6,digits = 1, scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
@@ -1311,14 +1310,14 @@ for (p in 8:13) { # which projects do these changes apply to? in this case all 2
 
 # save 2040s inif
 inif_new<-as.data.frame(inif2040)
-for (p in 18:25) { # which projects do these changes apply to? in this case all 2045 and 2050 projects
+for (p in 14:19) { # which projects do these changes apply to? in this case all 2045 and 2050 projects
   fol_fn<-paste(projects[p],'/housing_characteristics/Insulation Interzonal Floor.tsv',sep = "")
   write.table(format(inif_new,nsmall=6,digits = 1, scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
 
 # save 2050s inif
 inif_new<-as.data.frame(inif2050)
-for (p in 26:33) { # which projects do these changes apply to? in this case all 2055 and 2060 projects
+for (p in 20:25) { # which projects do these changes apply to? in this case all 2055 and 2060 projects
   fol_fn<-paste(projects[p],'/housing_characteristics/Insulation Interzonal Floor.tsv',sep = "")
   write.table(format(inif_new,nsmall=6,digits = 1, scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
@@ -1350,13 +1349,13 @@ for (p in 8:13) { # which projects do these changes apply to? in this case all 2
 }
 # save 2040s inpb
 inpb_new<-as.data.frame(inpb2040)
-for (p in 18:25) { # which projects do these changes apply to? in this case all 2045 and 2050 projects
+for (p in 14:19) { # which projects do these changes apply to? in this case all 2045 and 2050 projects
   fol_fn<-paste(projects[p],'/housing_characteristics/Insulation Pier Beam.tsv',sep = "")
   write.table(format(inpb_new,nsmall=6,digits = 1, scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
 # save 2050s inpb
 inpb_new<-as.data.frame(inpb2050)
-for (p in 26:33) { # which projects do these changes apply to? in this case all 2055 and 2060 projects
+for (p in 20:25) { # which projects do these changes apply to? in this case all 2055 and 2060 projects
   fol_fn<-paste(projects[p],'/housing_characteristics/Insulation Pier Beam.tsv',sep = "")
   write.table(format(inpb_new,nsmall=6,digits = 1, scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
@@ -1460,13 +1459,13 @@ for (p in 8:13) { # which projects do these changes apply to? in this case all 2
 }
 # save 2040s insl
 insl_new<-as.data.frame(insl2040)
-for (p in 18:25) { # which projects do these changes apply to? in this case all 2045 and 2050 projects
+for (p in 14:19) { # which projects do these changes apply to? in this case all 2045 and 2050 projects
   fol_fn<-paste(projects[p],'/housing_characteristics/Insulation Slab.tsv',sep = "")
   write.table(format(insl_new,nsmall=6,digits = 1,scientific = FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
 # save 2050s insl
 insl_new<-as.data.frame(insl2050)
-for (p in 26:33) { # which projects do these changes apply to? in this case all 2055 and 2060 projects
+for (p in 20:25) { # which projects do these changes apply to? in this case all 2055 and 2060 projects
   fol_fn<-paste(projects[p],'/housing_characteristics/Insulation Slab.tsv',sep = "")
   write.table(format(insl_new,nsmall=6,digits = 1,scientific = FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
@@ -1553,14 +1552,14 @@ for (p in 8:13) { # which projects do these changes apply to? in this case all 2
 }
 # save 2040s inua
 inua_new<-as.data.frame(inua2040)
-for (p in 18:25) { # which projects do these changes apply to? in this case all 2045 and 2050 projects
+for (p in 14:19) { # which projects do these changes apply to? in this case all 2045 and 2050 projects
   fol_fn<-paste(projects[p],'/housing_characteristics/Insulation Unfinished Attic.tsv',sep = "")
   write.table(format(inua_new,nsmall=6,digits = 1,scientific = FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
 
 # save 2050s inua
 inua_new<-as.data.frame(inua2050)
-for (p in 26:33) { # which projects do these changes apply to? in this case all 2055 and 2060 projects
+for (p in 20:25) { # which projects do these changes apply to? in this case all 2055 and 2060 projects
   fol_fn<-paste(projects[p],'/housing_characteristics/Insulation Unfinished Attic.tsv',sep = "")
   write.table(format(inua_new,nsmall=6,digits = 1,scientific = FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
@@ -1622,13 +1621,13 @@ for (p in 8:13) { # which projects do these changes apply to? in this case all 2
 }
 # save 2040s inub
 inub_new<-as.data.frame(inub2040)
-for (p in 18:25) { # which projects do these changes apply to? in this case all 2045 and 2050 projects
+for (p in 14:19) { # which projects do these changes apply to? in this case all 2045 and 2050 projects
   fol_fn<-paste(projects[p],'/housing_characteristics/Insulation Unfinished Basement.tsv',sep = "")
   write.table(format(inub_new,nsmall=6,digits = 1,scientific = FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
 # save 2050s inub
 inub_new<-as.data.frame(inub2050)
-for (p in 26:33) { # which projects do these changes apply to? in this case all 2055 and 2060 projects
+for (p in 20:25) { # which projects do these changes apply to? in this case all 2055 and 2060 projects
   fol_fn<-paste(projects[p],'/housing_characteristics/Insulation Unfinished Basement.tsv',sep = "")
   write.table(format(inub_new,nsmall=6,digits = 1,scientific = FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
@@ -1724,14 +1723,14 @@ for (p in 8:13) { # which projects do these changes apply to? in this case all 2
 
 # save 2040s inw
 inw_new<-as.data.frame(inw2040)
-for (p in 18:25) { # which projects do these changes apply to? in this case all 2045 and 2050 projects
+for (p in 14:19) { # which projects do these changes apply to? in this case all 2045 and 2050 projects
   fol_fn<-paste(projects[p],'/housing_characteristics/Insulation Wall.tsv',sep = "")
   write.table(format(inw_new,nsmall=6,digits = 1,scientific = FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
 
 # save 2050s inw
 inw_new<-as.data.frame(inw2050)
-for (p in 26:33) { # which projects do these changes apply to? in this case all 2055 and 2060 projects
+for (p in 20:25) { # which projects do these changes apply to? in this case all 2055 and 2060 projects
   fol_fn<-paste(projects[p],'/housing_characteristics/Insulation Wall.tsv',sep = "")
   write.table(format(inw_new,nsmall=6,digits = 1,scientific = FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
@@ -1765,7 +1764,7 @@ infr2040<-infr2030
 infr2040[4:5,6:9]<-matrix(rep(c(0,0.35,0.5,0.15),each =2),2,4) # set  R-30:38:49:60 in 2050s
 
 infr_new<-as.data.frame(infr2040)
-for (p in 18:25) { # which projects do these changes apply to? in this case all 2045 and 2050 projects
+for (p in 14:19) { # which projects do these changes apply to? in this case all 2045 and 2050 projects
   fol_fn<-paste(projects[p],'/housing_characteristics/Insulation Finished Roof.tsv',sep = "")
   write.table(format(infr_new,nsmall=6,digits = 1,scientific = FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
@@ -1774,7 +1773,7 @@ infr2050<-infr2040
 infr2050[4:5,6:9]<-matrix(rep(c(0,0.15,0.55,0.3),each =2),2,4) # set  R-30:38:49:60 in 2050s
 
 infr_new<-as.data.frame(infr2050)
-for (p in 26:33) { # which projects do these changes apply to? in this case all 2055 and 2060 projects
+for (p in 20:25) { # which projects do these changes apply to? in this case all 2055 and 2060 projects
   fol_fn<-paste(projects[p],'/housing_characteristics/Insulation Finished Roof.tsv',sep = "")
   write.table(format(infr_new,nsmall=6,digits = 1,scientific = FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
@@ -1801,7 +1800,7 @@ gfa2030$`Dependency=Vintage ACS`<-"2030s"
 gfa2040$`Dependency=Vintage ACS`<-"2040s"
 gfa2050$`Dependency=Vintage ACS`<-"2050s"
 gfa_new<-as.data.frame(rbind(gfa2020,gfa2030,gfa2040,gfa2050))
-for (p in 2:33) { # which projects do these changes apply to? in this case all projects
+for (p in 2:25) { # which projects do these changes apply to? in this case all projects
   fol_fn<-paste(projects[p],'/housing_characteristics/Geometry Floor Area.tsv',sep = "")
   write.table(format(gfa_new,nsmall=6,digits = 1,scientific = FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
   fol_fn<-paste(projects[p],'/scenario_dependent_characteristics/Unchanged/Geometry Floor Area.tsv',sep = "")
@@ -1834,7 +1833,7 @@ gft2030$`Dependency=Vintage ACS`<-"2030s"
 gft2040$`Dependency=Vintage ACS`<-"2040s"
 gft2050$`Dependency=Vintage ACS`<-"2050s"
 gft_new<-as.data.frame(rbind(gft2020,gft2030,gft2040,gft2050))
-for (p in 2:33) { # which projects do these changes apply to? in this case all projects
+for (p in 2:25) { # which projects do these changes apply to? in this case all projects
   fol_fn<-paste(projects[p],'/housing_characteristics/Geometry Foundation Type.tsv',sep = "")
   write.table(format(gft_new,nsmall=6,digits = 1,scientific = FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
@@ -1852,7 +1851,7 @@ gs2030$`Dependency=Vintage ACS`<-"2030s"
 gs2040$`Dependency=Vintage ACS`<-"2040s"
 gs2050$`Dependency=Vintage ACS`<-"2050s"
 gs_new<-as.data.frame(rbind(gs2020,gs2030,gs2040,gs2050))
-for (p in 2:33) { # which projects do these changes apply to? in this case all projects
+for (p in 2:25) { # which projects do these changes apply to? in this case all projects
   fol_fn<-paste(projects[p],'/housing_characteristics/Geometry Stories.tsv',sep = "")
   write.table(format(gs_new,nsmall=6,digits = 1,scientific = FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
@@ -1870,7 +1869,7 @@ whiu2030$`Dependency=Vintage ACS`<-"2030s"
 whiu2040$`Dependency=Vintage ACS`<-"2040s"
 whiu2050$`Dependency=Vintage ACS`<-"2050s"
 whiu_new<-as.data.frame(rbind(whiu2020,whiu2030,whiu2040,whiu2050))
-for (p in 2:33) { # which projects do these changes apply to? in this case all projects
+for (p in 2:25) { # which projects do these changes apply to? in this case all projects
   fol_fn<-paste(projects[p],'/housing_characteristics/Water Heater In Unit.tsv',sep = "")
   write.table(format(whiu_new,nsmall=6,digits = 1,scientific = FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
@@ -1889,7 +1888,7 @@ cdr[,16:18]<-cdr[,9:11] # replace gas standard with gas premium
 cdr[9:11]<-0
 # save new clothes dryer characteristics
 cdr_new<-as.data.frame(cdr)
-for (p in 2:33) { # which projects do these changes apply to? in this case all projects
+for (p in 2:25) { # which projects do these changes apply to? in this case all projects
   fol_fn<-paste(projects[p],'/housing_characteristics/Clothes Dryer.tsv',sep = "")
   write.table(format(cdr_new,nsmall=6,digits = 1,scientific = FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
   fol_fn<-paste(projects[p],'/scenario_dependent_characteristics/Unchanged/Clothes Dryer.tsv',sep = "")
@@ -1904,7 +1903,7 @@ cdr_de$`Option=Electric, Premium, 80% Usage`<-cdr_de$`Option=Electric, Premium, 
 cdr_de$`Option=Gas, Premium, 80% Usage`<-cdr_de$`Option=Propane, 80% Usage`<-0
 cdr_de$`Option=Electric, Premium, 120% Usage`<-cdr_de$`Option=Electric, Premium, 120% Usage`+cdr_de$`Option=Gas, Premium, 120% Usage`+cdr_de$`Option=Propane, 120% Usage`
 cdr_de$`Option=Gas, Premium, 120% Usage`<-cdr_de$`Option=Propane, 120% Usage`<-0
-for (p in 2:33) { # which projects do these changes apply to? in this case all projects
+for (p in 2:25) { # which projects do these changes apply to? in this case all projects
   fol_fn<-paste(projects[p],'/scenario_dependent_characteristics/Deep_Electrification/Clothes Dryer.tsv',sep = "")
   write.table(format(cdr_de,nsmall=6,digits = 1,scientific = FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
@@ -1915,7 +1914,7 @@ cw<-cw[1:8,]
 cw[5:8,7:9]<-cw[5:8,7:9]+cw[5:8,4:6] # make all clothes washers energy star which gives imef=2.07, lower (less efficient) than what ES products are standard sold today
 cw[5:8,4:6]<-0
 cw_new<-as.data.frame(cw)
-for (p in 2:33) { # which projects do these changes apply to? in this case all projects
+for (p in 2:25) { # which projects do these changes apply to? in this case all projects
   fol_fn<-paste(projects[p],'/housing_characteristics/Clothes Washer.tsv',sep = "")
   write.table(format(cw_new,nsmall=6,digits = 1,scientific = FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
@@ -2017,7 +2016,7 @@ for (l in 1:nrow(whe2040)) {
   whe2040$`Option=Propane Tankless`[l]<-whe2040$`Option=Propane Tankless`[l]+0.03*prst
 }
 whe_new<-as.data.frame(whe2040)
-for (p in 18:25) { # which projects do these changes apply to? in this case 2045 and 2050
+for (p in 14:19) { # which projects do these changes apply to? in this case 2045 and 2050
   fol_fn<-paste(projects[p],'/housing_characteristics/Water Heater Efficiency.tsv',sep = "")
   write.table(format(whe_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
@@ -2042,7 +2041,7 @@ for (l in 1:nrow(whe2050)) {
   whe2050$`Option=Propane Tankless`[l]<-whe2050$`Option=Propane Tankless`[l]+0.15*prst
 }
 whe_new<-as.data.frame(whe2050)
-for (p in 26:33) { # which projects do these changes apply to? in this case 2055 and 2060
+for (p in 20:25) { # which projects do these changes apply to? in this case 2055 and 2060
   fol_fn<-paste(projects[p],'/housing_characteristics/Water Heater Efficiency.tsv',sep = "")
   write.table(format(whe_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
@@ -2085,7 +2084,7 @@ whf_de<-whf_new # all years based of the 2030 base, i.e. no more oil, all become
 whf_de[whf_de$`Dependency=Heating Fuel`=="Electricity",]$`Option=Electricity`<-1
 whf_de[whf_de$`Dependency=Heating Fuel`=="Electricity",5:8]<-0
 
-for (p in 2:33) { # which projects do these changes apply to? in this case 2035 onwards
+for (p in 2:25) { # which projects do these changes apply to? in this case 2035 onwards
   fol_fn<-paste(projects[p],'/scenario_dependent_characteristics/Deep_Electrification/Water Heater Fuel.tsv',sep = "")
   write.table(format(whf_de,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
@@ -2112,14 +2111,14 @@ for (p in 8:13) { # which projects do these changes apply to? in this case 2035 
 # update for 2040s
 rfg[,6:9]<-matrix(rep(c(0,0.05,0.6,0.35),each=20),20,4) # increase the proportion of 21.9
 rfg_new<-as.data.frame(rfg)
-for (p in 18:25) { # which projects do these changes apply to? in this case 2045 and 2050
+for (p in 14:19) { # which projects do these changes apply to? in this case 2045 and 2050
   fol_fn<-paste(projects[p],'/housing_characteristics/Refrigerator.tsv',sep = "")
   write.table(format(rfg_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
 # update for 2050s
 rfg[,6:9]<-matrix(rep(c(0,0,0.4,0.6),each=20),20,4) # majority of homes now use 21.9
 rfg_new<-as.data.frame(rfg)
-for (p in 26:33) { # which projects do these changes apply to? in this case 2045 and 2050
+for (p in 20:25) { # which projects do these changes apply to? in this case 2045 and 2050
   fol_fn<-paste(projects[p],'/housing_characteristics/Refrigerator.tsv',sep = "")
   write.table(format(rfg_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
@@ -2143,7 +2142,7 @@ htf<-rbind(htf,htfe)
 htf<-htf[order(htf$`Dependency=Heating Fuel`,htf$`Dependency=HVAC Heating Efficiency`),]
 htf_new<-as.data.frame(htf)
 
-for (p in 2:33) { # which projects do these changes apply to? in this case all
+for (p in 2:25) { # which projects do these changes apply to? in this case all
   fol_fn<-paste(projects[p],'/housing_characteristics/HVAC Heating Type and Fuel.tsv',sep = "")
   write.table(format(htf_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
@@ -2249,7 +2248,7 @@ hhe2040[hhe2040$`Dependency=Heating Fuel`=="Propane" & hhe2040$`Dependency=HVAC 
   matrix(rep(c(0,0,0.65,0,0,0.35),each=2),2,6) # 65% condensing boilers
 # no change to non-heat pump electric efficiencies
 hhe_new<-as.data.frame(hhe2040)
-for (p in 18:25) { # which projects do these changes apply to? in this case 2045 and 2050
+for (p in 14:19) { # which projects do these changes apply to? in this case 2045 and 2050
   fol_fn<-paste(projects[p],'/housing_characteristics/HVAC Heating Efficiency.tsv',sep = "")
   write.table(format(hhe_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
@@ -2282,7 +2281,7 @@ hhe2050[hhe2050$`Dependency=Heating Fuel`=="Propane" & hhe2050$`Dependency=HVAC 
   matrix(rep(c(0,0,0.4,0.5,0,0.1),each=2),2,6) # 90% condensing boilers
 # no change to non-heat pump electric efficiencies
 hhe_new<-as.data.frame(hhe2050)
-for (p in 26:33) { # which projects do these changes apply to? in this case 2055 and 2060
+for (p in 20:25) { # which projects do these changes apply to? in this case 2055 and 2060
   fol_fn<-paste(projects[p],'/housing_characteristics/HVAC Heating Efficiency.tsv',sep = "")
   write.table(format(hhe_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
@@ -2308,13 +2307,13 @@ cr_de[cr_de$`Dependency=Heating Fuel`=="Electricity",]$`Option=Electric, 120% Us
 cr_de[cr_de$`Dependency=Heating Fuel`=="Electricity",]$`Option=Gas, 120% Usage`<-cr_de[cr_de$`Dependency=Heating Fuel`=="Electricity",]$`Option=Propane, 120% Usage`<-0
 
 cr_new<-as.data.frame(cr_de)
-for (p in 2:33) { # which projects do these changes apply to? in this case all
+for (p in 2:25) { # which projects do these changes apply to? in this case all
   fol_fn<-paste(projects[p],'/scenario_dependent_characteristics/Deep_Electrification/Cooking Range.tsv',sep = "")
   write.table(format(cr_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 } 
 
 cr_new<-as.data.frame(cr)
-for (p in 2:33) { # which projects do these changes apply to? in this case all
+for (p in 2:25) { # which projects do these changes apply to? in this case all
   fol_fn<-paste(projects[p],'/scenario_dependent_characteristics/Unchanged/Cooking Range.tsv',sep = "")
   write.table(format(cr_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 } 
@@ -2342,7 +2341,7 @@ for (p in 1:33) { # which projects do these changes apply to? in this case all p
 # vacs[10:13,2:11]<-0
 # vacs[10:13,8:11]<-diag(4)
 # vacs_new<-as.data.frame(vacs)
-# for (p in 2:33) { # which projects do these changes apply to? in this case all
+# for (p in 2:25) { # which projects do these changes apply to? in this case all
 #   fol_fn<-paste(projects[p],'/housing_characteristics/Vintage ACS.tsv',sep = "")
 #   write.table(format(vacs_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 # }
