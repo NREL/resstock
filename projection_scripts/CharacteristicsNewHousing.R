@@ -1817,6 +1817,7 @@ for (p in 2:25) { # which projects do these changes apply to? in this case all p
 }
 # reduced floor area scenario file
 gfa_rfa<-gfa_new
+# remove floor area greater than 3000 sqft, add those large homes to either 2000-2499 or 2500-2999 in 50:50 ratio
 for (l in 1:nrow(gfa_rfa)) {
   big<-sum(gfa_rfa[l,11:12]) 
   gfa_rfa[l,11:12]<-0
