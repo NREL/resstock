@@ -1785,12 +1785,20 @@ gfa<-read_tsv('../project_national/housing_characteristics/Geometry Floor Area.t
 gfa<-gfa[1:720,] # remove comments additional columns
 gfa2020<-gfa[gfa$`Dependency=Vintage ACS`=="2010s",]
 gfa2020$`Dependency=Vintage ACS`<-"2020s"
-# replace distributions for MH with no sample count to the distribution for the observation with most sample obsv:  "Non-CBSA West South Central"
+# replace distributions for MH with very low (<4) sample count to the distribution for the observation with most sample obsv:  "Non-CBSA West South Central"
 # This prevents unrealistic sampling of mobile homes with floor area over 3000 or 4000
-# do the same adjustment for Non-CBSA Pacific MH, which has few sample points and skeptically large proportion of large MH
-gfa2020[gfa2020$`Dependency=Geometry Building Type RECS`=="Mobile Home"&gfa2020$`Dependency=AHS Region`=="Non-CBSA Pacific",4:12]<-
-  gfa2020[gfa2020$sample_count==0&gfa2020$`Dependency=Geometry Building Type RECS`=="Mobile Home",4:12]<-
+gfa2020[gfa2020$sample_count<4&gfa2020$`Dependency=Geometry Building Type RECS`=="Mobile Home",4:12]<-
   gfa2020[gfa2020$`Dependency=Geometry Building Type RECS`=="Mobile Home"&gfa2020$`Dependency=AHS Region`=="Non-CBSA West South Central",4:12]
+# do the same for MF 2-4, using "Non-CBSA South Atlantic" as representative for regions with no/low sample counts
+gfa2020[gfa2020$sample_count<4&gfa2020$`Dependency=Geometry Building Type RECS`=="Multi-Family with 2 - 4 Units",4:12]<-
+  gfa2020[gfa2020$`Dependency=Geometry Building Type RECS`=="Multi-Family with 2 - 4 Units"&gfa2020$`Dependency=AHS Region`=="Non-CBSA South Atlantic",4:12]
+# do the same for SFA, using "CBSA Washington-Arlington-Alexandria, DC-VA-MD-WV" as representative for regions with no/low sample counts
+gfa2020[gfa2020$sample_count<4&gfa2020$`Dependency=Geometry Building Type RECS`=="Single-Family Attached",4:12]<-
+  gfa2020[gfa2020$`Dependency=Geometry Building Type RECS`=="Single-Family Attached"&gfa2020$`Dependency=AHS Region`=="CBSA Washington-Arlington-Alexandria, DC-VA-MD-WV",4:12]
+# for SFD, only region affected is "CBSA New York-Newark-Jersey City, NY-NJ-PA". Here using the 2000s distribution to represent 2020s onwards. This has a lot more sample points than 2010s
+gfa2020[gfa2020$sample_count<4&gfa2020$`Dependency=Geometry Building Type RECS`=="Single-Family Detached",4:12]<-
+  gfa[gfa$`Dependency=Vintage ACS`=="2000-09" & gfa$`Dependency=Geometry Building Type RECS`=="Single-Family Detached" & gfa$`Dependency=AHS Region`=="CBSA New York-Newark-Jersey City, NY-NJ-PA",4:12]
+
 gfa2020<-gfa2020[,1:12] # remove the sample count/weight columns
 # Define no changes
 # define floor area made in 2030s 2040s and 2050s as the same as those made in 2020s
@@ -2150,7 +2158,7 @@ for (p in 2:25) { # which projects do these changes apply to? in this case all
 # HVAC heating efficiency ##########
 hhe<-read_tsv('../project_national/housing_characteristics/HVAC Heating Efficiency.tsv',col_names = TRUE)
 hhe<-hhe[1:120,1:25]
-# add new options
+# add new options, all already exist in options lookup
 names(hhe)[which(names(hhe)=="Option=MSHP, SEER 29.3, 14 HSPF")]<-"MSHP, SEER 25, 12.7 HSPF" # replace the hi-eff MSHP with a more reasonably hi-eff option
 hhe$`Option=ASHP, SEER 16, 9.0 HSPF`<-hhe$`Option=ASHP, SEER 18, 9.3 HSPF`<-hhe$`Option=ASHP, SEER 22, 10 HSPF`<-
   hhe$`Option=MSHP, SEER 17, 9.5 HSPF`<-hhe$`Option=Fuel Boiler, 96% AFUE`<-0
