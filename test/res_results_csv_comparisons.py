@@ -326,15 +326,21 @@ class res_results_csv_comparisons:
 
         print('Creating regression tables...')
         output_path = os.path.join(os.path.dirname(self.base_table_name), 'comparisons', 'deltas.csv')
-        deltas = pd.DataFrame()
 
-        diff_cols = [btype + ' Diff' for btype in sorted_model_types]
-        deltas[diff_cols] = feature_df.sub(base_df).transpose()[sorted_model_types]
-        for btype in sorted_model_types:
-            deltas[btype + ' % Diff'] = (100*deltas[btype + ' Diff'].div(base_df.transpose()[btype]))
+        base_df = base_df.stack()
+        feature_df = feature_df.stack()
+
+        deltas = pd.DataFrame()
+        deltas['base'] = base_df
+        deltas['feature'] = feature_df
+        deltas['diff'] = deltas['feature'] - deltas['base']
+        deltas['% diff'] = 100*(deltas['diff']/deltas['base'])
         deltas.fillna(0, inplace=True)
         deltas = deltas.round(2)
-                
+        
+        deltas.reset_index('build_existing_model.geometry_building_type_recs', inplace=True)
+        model_type_map = {'Single-Family Detached':'SFD', 'Single-Family Attached':'SFA', 'Multi-Family':'MF'}
+        deltas['build_existing_model.geometry_building_type_recs'] = deltas['build_existing_model.geometry_building_type_recs'].map(model_type_map)
         deltas.to_csv(output_path)
 
 if __name__ == '__main__':
