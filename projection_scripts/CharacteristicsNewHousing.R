@@ -1949,7 +1949,7 @@ lgt$`Option=100% LED`<-0.98
 lgt$`Option=100% CFL`<-0.01
 lgt$`Option=100% Incandescent`<-0.01
 lgt_new<-as.data.frame(lgt)
-for (p in 10:33) { # which projects do these changes apply to? in this case 2035 onwards
+for (p in 10:25) { # which projects do these changes apply to? in this case 2035 onwards
   fol_fn<-paste(projects[p],'/housing_characteristics/Lighting.tsv',sep = "")
   write.table(format(lgt_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
