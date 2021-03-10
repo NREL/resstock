@@ -25,14 +25,13 @@ load("~/Yale Courses/Research/Final Paper/HSM_github/Intermediate_results/ctycod
 h20pc<-merge(h20pc,ctycode)
 h20pc<-h20pc[,c(1,2,76,3:75)] # bring RS_ID to the third colum
 
-# puma<-read.delim('~/Yale Courses/Research/Final Paper/resstock_scenarios/project_national/housing_characteristics/PUMA.tsv', header = TRUE, sep = "\t")
-puma<-read_tsv('~/Yale Courses/Research/Final Paper/resstock_scenarios/project_national/housing_characteristics/PUMA.tsv',col_names = TRUE)
+puma<-read_tsv('~/Yale Courses/Research/Final Paper/resstock_projections/project_national/housing_characteristics/PUMA.tsv',col_names = TRUE)
 puma<-puma[1:3108,] # remove comments at bottom
-type_acs<-read_tsv('~/Yale Courses/Research/Final Paper/resstock_scenarios/project_national/housing_characteristics/Geometry Building Type ACS.tsv',col_names = TRUE)
+type_acs<-read_tsv('~/Yale Courses/Research/Final Paper/resstock_projections/project_national/housing_characteristics/Geometry Building Type ACS.tsv',col_names = TRUE)
 type_acs<-type_acs[1:(dim(type_acs)[1]-2),] # remove comments at bottom
 type_new<-as.data.frame(type_acs)
 type_new[,2:12]<-0
-vintage<-read_tsv('~/Yale Courses/Research/Final Paper/resstock_scenarios/project_national/housing_characteristics/Vintage.tsv',col_names = TRUE)
+vintage<-read_tsv('~/Yale Courses/Research/Final Paper/resstock_projections/project_national/housing_characteristics/Vintage.tsv',col_names = TRUE)
 vintage<-vintage[1:(dim(vintage)[1]-2),] # remove comments at 
 vintage_new<-as.data.frame(vintage)
 vintage_new[,3:13]<-0
@@ -110,18 +109,15 @@ for (l in which(vrs==0)) { # make sure there are no rows with a 0 row sum
     vintage_new[l,3:11]<-1/ncol(vintage_new[,3:11])
   }
 }
-# vintage_new<-rm_dot(vintage_new)
-# type_new<-rm_dot(type_new)
 
 vin<-format(vintage_new,nsmall=6,digits=1,scientific=FALSE)
 ty<-format(type_new,nsmall=6,digits=1,scientific=FALSE)
 # save the 2020 vintage and geometry type acs
-# write.table(vin,'../project_national_2020/housing_characteristics/Vintage.tsv',append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
-# write.table(ty,'../project_national_2020/housing_characteristics/Geometry Building Type ACS.tsv',append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+write.table(vin,'../project_national_2020/housing_characteristics/Vintage.tsv',append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+write.table(ty,'../project_national_2020/housing_characteristics/Geometry Building Type ACS.tsv',append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 tc_pumaold<-tc_puma
 
 ## generate new county and IECC climate zone tsv files
-# county<-read.delim('~/Yale Courses/Research/Final Paper/resstock_scenarios/project_national/housing_characteristics/County.tsv', header = TRUE, sep = "\t")
 county<-read_tsv('../project_national/housing_characteristics/County.tsv',col_names = TRUE)
 county<-county[1:(dim(county)[1]-3),] # remove comments at bottom
 # iecc<-read.delim('../project_national/housing_characteristics/ASHRAE IECC Climate Zone 2004.tsv', header = TRUE, sep = "\t")
