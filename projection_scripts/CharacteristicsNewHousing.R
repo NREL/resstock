@@ -924,7 +924,7 @@ for (l in 1:nrow(hf2050)) {
 # hf2050$rs<-rowSums(hf2050[,4:9])
 # hf2050adv$rs<-rowSums(hf2050adv[,4:9])
 # now save the new heat fuel files complete with new 2020 characteristics
-hf_new<-as.data.frame(hf2020[,1:9]) # save only the single vintage file, to save space. Should also be doing this for other nc tsvs?
+hf_new<-as.data.frame(hf2020[,1:9]) # save only the single vintage file, to save space. 
 for (p in 2:7) { # which projects do these changes apply to? in this case all 2025 and 2030 projects
   fol_fn<-paste(projects[p],'/housing_characteristics/Heating Fuel.tsv',sep = "")
   write.table(format(hf_new,nsmall=6,digits=1,scientific = FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
