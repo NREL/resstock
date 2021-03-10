@@ -1799,7 +1799,23 @@ gfa2020[gfa2020$sample_count<4&gfa2020$`Dependency=Geometry Building Type RECS`=
 gfa2020[gfa2020$sample_count<4&gfa2020$`Dependency=Geometry Building Type RECS`=="Single-Family Detached",4:12]<-
   gfa[gfa$`Dependency=Vintage ACS`=="2000-09" & gfa$`Dependency=Geometry Building Type RECS`=="Single-Family Detached" & gfa$`Dependency=AHS Region`=="CBSA New York-Newark-Jersey City, NY-NJ-PA",4:12]
 
-gfa2020<-gfa2020[,1:12] # remove the sample count/weight columns
+# also modity small-sample gfa characteristics for the 2020 stock
+# based on avg characteristics of Non-CBSA Mountain and Non-CBSA South Atlantic
+nr<-nrow(gfa[gfa$sample_count<3 & gfa$`Dependency=Geometry Building Type RECS`=="Mobile Home" & gfa$`Dependency=Vintage ACS` %in% c("<1940","1940-59"),4:12])
+gfa[gfa$sample_count<3 & gfa$`Dependency=Geometry Building Type RECS`=="Mobile Home" & gfa$`Dependency=Vintage ACS` %in% c("<1940","1940-59"),4:12]<-
+  matrix(rep(c(0.197,0.397,0.098,0.229,0.079,0,0,0,0),each=nr),nr,9)
+gfa[gfa$`Dependency=Geometry Building Type RECS`=="Single-Family Attached"&gfa$`Dependency=Vintage ACS`=="<1940" & gfa$`Dependency=AHS Region`=="CBSA Atlanta-Sandy Springs-Roswell, GA",4:12]<-
+  gfa[gfa$`Dependency=Geometry Building Type RECS`=="Single-Family Attached"&gfa$`Dependency=Vintage ACS`=="1940-59" & gfa$`Dependency=AHS Region`=="CBSA Atlanta-Sandy Springs-Roswell, GA",4:12]  
+
+gfa2010<-gfa2020<-gfa2020[,1:12] # remove the sample count/weight columns, define 2010s with same floor area distributin modifications applied to 2020s
+gfa2010$`Dependency=Vintage ACS`<-"2010s"
+gfa<-gfa[!gfa$`Dependency=Vintage ACS`=="2010s",1:12]
+gfa<-rbind(gfa,gfa2010)
+gfa_new<-as.data.frame(gfa)
+for (p in 1) { # which projects do these changes apply to? in this case 2020 only
+  fol_fn<-paste(projects[p],'/housing_characteristics/Geometry Floor Area.tsv',sep = "")
+  write.table(format(gfa_new,nsmall=6,digits = 1,scientific = FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+}
 # Define no changes
 # define floor area made in 2030s 2040s and 2050s as the same as those made in 2020s
 gfa2030<-gfa2040<-gfa2050<-gfa2020
@@ -1807,7 +1823,7 @@ gfa2030<-gfa2040<-gfa2050<-gfa2020
 gfa2030$`Dependency=Vintage ACS`<-"2030s"
 gfa2040$`Dependency=Vintage ACS`<-"2040s"
 gfa2050$`Dependency=Vintage ACS`<-"2050s"
-gfa_new<-as.data.frame(rbind(gfa2020,gfa2030,gfa2040,gfa2050))
+gfa_new<-as.data.frame(rbind(gfa,gfa2020,gfa2030,gfa2040,gfa2050))
 for (p in 2:25) { # which projects do these changes apply to? in this case all projects
   fol_fn<-paste(projects[p],'/housing_characteristics/Geometry Floor Area.tsv',sep = "")
   write.table(format(gfa_new,nsmall=6,digits = 1,scientific = FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
@@ -1815,6 +1831,7 @@ for (p in 2:25) { # which projects do these changes apply to? in this case all p
   write.table(format(gfa_new,nsmall=6,digits = 1,scientific = FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
   
 }
+
 # reduced floor area scenario file
 gfa_rfa<-gfa_new
 # remove floor area greater than 3000 sqft, add those large homes to either 2000-2499 or 2500-2999 in 50:50 ratio
