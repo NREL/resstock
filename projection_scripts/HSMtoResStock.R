@@ -120,7 +120,7 @@ tc_pumaold<-tc_puma
 ## generate new county and IECC climate zone tsv files
 county<-read_tsv('../project_national/housing_characteristics/County.tsv',col_names = TRUE)
 county<-county[1:(dim(county)[1]-3),] # remove comments at bottom
-# iecc<-read.delim('../project_national/housing_characteristics/ASHRAE IECC Climate Zone 2004.tsv', header = TRUE, sep = "\t")
+
 iecc<-read_tsv('../project_national/housing_characteristics/ASHRAE IECC Climate Zone 2004.tsv',col_names = TRUE)
 iecc<-iecc[1:(dim(iecc)[1]-4),] # remove comments at bottom
 iecc[1]<-as.numeric(iecc[1]) # convert from character to numeric
@@ -134,29 +134,23 @@ cty_new[,2:3109]<-cz_cty_pc
 cty_new[,3111]<-rowSums(cz_cty) # this is the sample weight, i.e. total housing units per climate zone. will be used to define iecc
 
 cty_cn<-names(cty_new)[2:3109]
-# for (k in 1:length(cty_cn)) { # put comma after the state abb.
-#   cty_cn[k]<-paste(substr(cty_cn[k],1,9),",",substr(cty_cn[k],11,nchar(cty_cn[k])),sep="")
-# }
-# names(cty_new)[2:3109]<-cty_cn
 
 iecc_new<-as.data.frame(iecc)
 iecc_new[1,1:15]<-rowSums(cz_cty)/sum(cz_cty)
 iecc_new[1,16]<-0
 iecc_new[1,17]<-sum(cz_cty)
 
-# cty_new<-rm_dot(cty_new)
-# iecc_new<-rm_dot(iecc_new)
 cty<-format(as.data.frame(cty_new),nsmall=6,digits=1,scientific=FALSE)
 ie<-format(iecc_new,nsmall=6,digits=0,scientific=FALSE)
 # save the 2020 county and IECC Cz
-# write.table(cty,'../project_national_2020/housing_characteristics/County.tsv',append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
-# write.table(ie,'../project_national_2020/housing_characteristics/ASHRAE IECC Climate Zone 2004.tsv',append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+write.table(cty,'../project_national_2020/housing_characteristics/County.tsv',append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+write.table(ie,'../project_national_2020/housing_characteristics/ASHRAE IECC Climate Zone 2004.tsv',append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 
 # now run for scenarios 2025-2060 ############
 load("../../HSM_github/HSM_results/County_Scenario_SM_Results.RData") # path to outputs of stock model scenario runs, see HSM github page
-scenarios<-paste(as.character(rep(seq(2025,2060,5),each=4)), c("base","hiDR","hiMF","hiDRMF"),sep="_")
+scenarios<-paste(as.character(rep(seq(2025,2060,5),each=3)), c("base","hiDR","hiMF"),sep="_")
 Years<-c(2020:2060)
-for (s in 1:32) {
+for (s in 1:24) {
   scen<-scenarios[s]
   year<-as.numeric(substr(scen,1,4))
   stock<-substr(scen,6,nchar(scen))
@@ -167,7 +161,7 @@ for (s in 1:32) {
   }
   hstockold<-hstock
   hstockold[,2:32]<-0
-  if (s>4) {
+  if (s>3) {
     for (j in 1:3142) {
       hstockold[j,]<-as.data.frame(get(paste("smop",stock,sep = "_"))[[3]][[j]][which(Years==(year-5)),c(1,2,110:119,130:139,150:159)])
     }
@@ -187,10 +181,10 @@ for (s in 1:32) {
   # tc_puma<-t(as.matrix(total[,77:106]))%*%y # only for the 2020 version
   rownames(tc_puma)<-rownames(tc_pumaold) # this is needed
   # total$TotOccUnits<-rowSums(total[,c(10:13,20:23,30:33)]) # sum up housing units from new, post-2020 cohorts only. by individual cohort depending on the year
-  if (s<9) {total$TotOccUnits<-rowSums(total[,c(10,20,30)])} # 2020s cohort
-  if (s>8 & s<17) {total$TotOccUnits<-rowSums(total[,c(11,21,31)])} # 2030s cohort
-  if (s>16 & s<25) {total$TotOccUnits<-rowSums(total[,c(12,22,32)])} # 2040s cohort
-  if (s>24) {total$TotOccUnits<-rowSums(total[,c(13,23,33)])} # 2030s cohort
+  if (s<7) {total$TotOccUnits<-rowSums(total[,c(10,20,30)])} # 2020s cohort
+  if (s>6 & s<13) {total$TotOccUnits<-rowSums(total[,c(11,21,31)])} # 2030s cohort
+  if (s>12 & s<19) {total$TotOccUnits<-rowSums(total[,c(12,22,32)])} # 2040s cohort
+  if (s>18) {total$TotOccUnits<-rowSums(total[,c(13,23,33)])} # 2050s cohort
   x<-total$TotOccUnits # total new occ housing units by county 
 
   type_new<-as.data.frame(type_acs)
@@ -203,10 +197,10 @@ for (s in 1:32) {
   tcn<-vintage_new[1:9,] # create template for the type cohort new matrix
   tcn[,3:17]<-0
   # with new approach, all new units are strictly within cohort.
-  if (s<9) {vintage_new$`Option=2020s`<-1}
-  if (s>8 & s<17) {vintage_new$`Option=2030s`<-1}
-  if (s>16 & s<25) {vintage_new$`Option=2040s`<-1}
-  if (s>24) {vintage_new$`Option=2050s`<-1}
+  if (s<7) {vintage_new$`Option=2020s`<-1}
+  if (s>6 & s<13) {vintage_new$`Option=2030s`<-1}
+  if (s>12 & s<19) {vintage_new$`Option=2040s`<-1}
+  if (s>18) {vintage_new$`Option=2050s`<-1}
 
 # make this a function to create vintage and type files, arguments are 'all', 'vintage'. 
 for (i in 1:length(puma_list)) { # need to figure this function out, and bring it into the world of new vintages.? For 2020 its fine. For future years will need an equivalent of h20pc and an assumption of the breakout of specific MF types (prob use 2010 split)
@@ -222,29 +216,19 @@ for (a in 1:length(rows)) { # for mf, mh, and sf
 tcn$`Dependency=PUMA`<-puma_i # this seems redundant now, actually maybe not
 tcn[,3:17]<-0 # bringing this back too
 # add if statements to make sure only within cohort new construction is considered
-if (s<9) { tcn[mf_row,c("Option=2020s")]<-tc_puma[which(row.names(tc_puma)=="MF_2020"),i]*tc[mf_row,c("Option=2010s")]/sum(tc[mf_row,c("Option=2010s")]);  # use 2010s split of MF types for tc_puma future MF splits
+if (s<7) { tcn[mf_row,c("Option=2020s")]<-tc_puma[which(row.names(tc_puma)=="MF_2020"),i]*tc[mf_row,c("Option=2010s")]/sum(tc[mf_row,c("Option=2010s")]);  # use 2010s split of MF types for tc_puma future MF splits
             tcn[sf_row,c("Option=2020s")]<-tc_puma[which(row.names(tc_puma)=="SF_2020"),i]*tc[sf_row,c("Option=2010s")]/sum(tc[sf_row,c("Option=2010s")]); # use 2010s split of SF types for all future SF splits
             tcn[mh_row,c("Option=2020s")]<-tc_puma[which(row.names(tc_puma)=="MH_2020"),i]}
-if (s>8 & s<17) {tcn[mf_row,c("Option=2030s")]<-tc_puma[which(row.names(tc_puma)=="MF_2030"),i]*tc[mf_row,c("Option=2010s")]/sum(tc[mf_row,c("Option=2010s")]);
+if (s>6 & s<13) {tcn[mf_row,c("Option=2030s")]<-tc_puma[which(row.names(tc_puma)=="MF_2030"),i]*tc[mf_row,c("Option=2010s")]/sum(tc[mf_row,c("Option=2010s")]);
                   tcn[sf_row,c("Option=2030s")]<-tc_puma[which(row.names(tc_puma)=="SF_2030"),i]*tc[sf_row,c("Option=2010s")]/sum(tc[sf_row,c("Option=2010s")]);
                   tcn[mh_row,c("Option=2030s")]<-tc_puma[which(row.names(tc_puma)=="MH_2030"),i]}
 
-if (s>16 & s<25) { tcn[mf_row,c("Option=2040s")]<-tc_puma[which(row.names(tc_puma)=="MF_2040"),i]*tc[mf_row,c("Option=2010s")]/sum(tc[mf_row,c("Option=2010s")]);
+if (s>12 & s<19) { tcn[mf_row,c("Option=2040s")]<-tc_puma[which(row.names(tc_puma)=="MF_2040"),i]*tc[mf_row,c("Option=2010s")]/sum(tc[mf_row,c("Option=2010s")]);
                     tcn[sf_row,c("Option=2040s")]<-tc_puma[which(row.names(tc_puma)=="SF_2040"),i]*tc[sf_row,c("Option=2010s")]/sum(tc[sf_row,c("Option=2010s")]);
                     tcn[mh_row,c("Option=2040s")]<-tc_puma[which(row.names(tc_puma)=="MH_2040"),i]}
-if (s>24) {tcn[mf_row,c("Option=2050s")]<-tc_puma[which(row.names(tc_puma)=="MF_2050"),i]*tc[mf_row,c("Option=2010s")]/sum(tc[mf_row,c("Option=2010s")]);
+if (s>18) {tcn[mf_row,c("Option=2050s")]<-tc_puma[which(row.names(tc_puma)=="MF_2050"),i]*tc[mf_row,c("Option=2010s")]/sum(tc[mf_row,c("Option=2010s")]);
                     tcn[sf_row,c("Option=2050s")]<-tc_puma[which(row.names(tc_puma)=="SF_2050"),i]*tc[sf_row,c("Option=2010s")]/sum(tc[sf_row,c("Option=2010s")]);
                     tcn[mh_row,c("Option=2050s")]<-tc_puma[which(row.names(tc_puma)=="MH_2050"),i]}
-
-# tcn[sf_row,c("Option.2020s")]<-all[which(row.names(all)=="SF_2020"),i]*tc[sf_row,c("Option.2010s")]/sum(tc[sf_row,c("Option.2010s")]) 
-# tcn[sf_row,c("Option.2030s")]<-all[which(row.names(all)=="SF_2030"),i]*tc[sf_row,c("Option.2010s")]/sum(tc[sf_row,c("Option.2010s")])
-# tcn[sf_row,c("Option.2040s")]<-all[which(row.names(all)=="SF_2040"),i]*tc[sf_row,c("Option.2010s")]/sum(tc[sf_row,c("Option.2010s")])
-# tcn[sf_row,c("Option.2050s")]<-all[which(row.names(all)=="SF_2050"),i]*tc[sf_row,c("Option.2010s")]/sum(tc[sf_row,c("Option.2010s")])
-# # the second half of the RHS is not needed for MH, no split among MH to consider
-# tcn[mh_row,c("Option.2020s")]<-all[which(row.names(all)=="MH_2020"),i]
-# tcn[mh_row,c("Option.2030s")]<-all[which(row.names(all)=="MH_2030"),i]
-# tcn[mh_row,c("Option.2040s")]<-all[which(row.names(all)=="MH_2040"),i]
-# tcn[mh_row,c("Option.2050s")]<-all[which(row.names(all)=="MH_2050"),i]
 
 tcn$sample_weight<-rowSums(tcn[,3:15]) # get sums of housing units by Type ACS
 type_new[i,2:10]<-tcn$sample_weight/sum(tcn$sample_weight) # use counts of housing units by Type ACS to define the type split for this puma for this cohort-year
@@ -253,8 +237,6 @@ type_new[i,2:10]<-tcn$sample_weight/sum(tcn$sample_weight) # use counts of housi
 # vintage_new[vintage_new$`Dependency=PUMA`==puma_i,3:15]<-vint_prob
 }
 
-# vintage_new<-rm_dot(vintage_new)
-# type_new<-rm_dot(type_new)
 vin<-format(vintage_new,nsmall=6,digits=1,scientific=FALSE)
 ty<-format(type_new,nsmall=6,digits=1,scientific=FALSE)
 fol<-paste('../project_national_',scen,sep="")
@@ -268,21 +250,12 @@ cz_cty<-as.matrix(cty_new[,2:3109])%*%diag(x) # creates a 15x3108 matrix of occu
 cz_cty_pc<-cz_cty/rowSums(cz_cty) # creates a matrix of occupied units by climate zone and county, normalized by climate zone. each cell tells us what percentage of cz x is in cty y
 cty_new[,2:3109]<-cz_cty_pc
 cty_new[,3111]<-rowSums(cz_cty) # this is the sample weight, i.e. total housing units per climate zone. will be used to define iecc
-# sum(cty_new$sample_weight) should equal the number of new simulations per year and stock scenario. It is lower than what is estimated by the HSM, due to exclusion of AK and HI
-
-# cty_cn<-names(cty_new)[2:3109]
-# for (k in 1:length(cty_cn)) { # put comma after the state abb.
-#   cty_cn[k]<-paste(substr(cty_cn[k],1,9),",",substr(cty_cn[k],11,nchar(cty_cn[k])),sep="")
-# }
-# names(cty_new)[2:3109]<-cty_cn
 
 iecc_new<-as.data.frame(iecc)
 iecc_new[1,1:15]<-rowSums(cz_cty)/sum(cz_cty)
 iecc_new[1,16]<-0 # turn sample count to 0
 iecc_new[1,17]<-sum(cz_cty)
 
-# cty_new<-rm_dot(cty_new)
-# iecc_new<-rm_dot(iecc_new)
 cty<-format(as.data.frame(cty_new),nsmall=6,digits=1,scientific=FALSE)
 ie<-format(iecc_new,nsmall=6,digits=0,scientific=FALSE)
 
