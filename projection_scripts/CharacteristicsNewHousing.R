@@ -41,7 +41,6 @@ w2040[w2040$`Dependency=Location Region`=="CR08"|w2040$`Dependency=Location Regi
 w2050<-w2040
 w2050$`Dependency=Vintage`<-"2050s"
 # save tsvs for each year/scenario project
-# windows_new<-as.data.frame(rbind(windows,w2020))
 # 2020s
 windows_new<-as.data.frame(w2020)
 for (p in 2:7) { # which projects do these changes apply to? in this case all 2025 and 2030 projects
@@ -175,7 +174,7 @@ gar2030$`Dependency=Vintage`<-"2030s"
 gar2040$`Dependency=Vintage`<-"2040s"
 gar2050$`Dependency=Vintage`<-"2050s"
 gar_new<-as.data.frame(rbind(gar2020,gar2030,gar2040,gar2050))
-for (p in 2:33) { # which projects do these changes apply to? in this case all projects
+for (p in 2:25) { # which projects do these changes apply to? in this case all projects
   fol_fn<-paste(projects[p],'/housing_characteristics/Geometry Garage.tsv',sep = "")
   write.table(format(gar_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
@@ -259,7 +258,7 @@ hss<-read_tsv('../project_national/housing_characteristics/HVAC Has Shared Syste
 hss<-hss[1:900,1:8] # remove comments and count and weight columns
 hss2020<-hss[hss$`Dependency=Vintage`=="2010s",]
 hss2020$`Dependency=Vintage`<-"2020s"
-# No changes to this characteristic
+# Unclear how this may change in future, so no changes to this characteristic
 # define hss made in 2030s 2040s and 2050s as the same as those made in 2020s
 hss2030<-hss2040<-hss2050<-hss2020
 # define vintage names
