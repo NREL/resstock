@@ -2322,7 +2322,15 @@ for (p in 20:25) { # which projects do these changes apply to? in this case 2055
 
 # HVAC Has Zonal Electric Heating ###############
 ZHE<-read_tsv('../project_national/housing_characteristics/HVAC Has Zonal Electric Heating.tsv',col_names = TRUE)
-
+hhe_types<-names(hhe_new)[4:30]
+ZHE_new<-data.frame(`Dependency=HVAC Heating Efficiency`=hhe_types,`Option=Yes`=0,`Option=No`=1)
+names(ZHE_new)<-names(ZHE)
+ZHE_new[ZHE_new$`Dependency=HVAC Heating Efficiency`=="Option=Electric Baseboard, 100% Efficiency",2:3]<-c(1,0)
+ZHE_new<-as.data.frame(ZHE_new)
+for (p in 2:25) { # which projects do these changes apply to? in this case all
+  fol_fn<-paste(projects[p],'/housing_characteristics/HVAC Has Zonal Electric Heating.tsv',sep = "")
+  write.table(format(ZHE_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
+}
 
 # cooking range ##########
 # set to complete conformity with heating fuel for advanced electrification scenarios
