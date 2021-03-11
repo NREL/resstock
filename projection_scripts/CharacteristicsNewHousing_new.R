@@ -2374,7 +2374,7 @@ vac$`Option=Vacant`<-0
 
 vac_new<-as.data.frame(vac)
 # save same file to all new projects 
-for (p in 1:33) { # which projects do these changes apply to? in this case all projects, including 2020
+for (p in 1:25) { # which projects do these changes apply to? in this case all projects, including 2020
   fol_fn<-paste(projects[p],'/housing_characteristics/Vacancy Status.tsv',sep = "")
   write.table(format(vac_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
 }
