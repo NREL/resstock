@@ -76,7 +76,7 @@ class res_results_csv_comparisons:
         self.common_fields.sort()
 
         # Get common result columns
-        self.common_result_columns = [field for field in self.common_fields if 'simulation_output_report' in field]
+        self.common_result_columns = [field for field in self.common_fields if ('simulation_output_report' in field) or ('upgrade_costs' in field)]
 
         # Remove fields if exist
         fields = [
@@ -114,9 +114,9 @@ class res_results_csv_comparisons:
         for col in df.columns:
             units = col.split('_')[-1]
             if units == 'kwh':
-                df[col] *= 3412.14/1000000
+                df[col] *= 3412.14/1000000  # to mbtu
             elif units == 'therm':
-                df[col] *= 0.1
+                df[col] *= 0.1  # to mbtu
 
         df.rename(columns=map_dict, inplace=True)
 
@@ -152,12 +152,12 @@ class res_results_csv_comparisons:
         Format the queried data for plotting.
         """
         for col in self.base_df.columns.tolist():
-            if not 'simulation_output_report' in col:
+            if ('simulation_output_report' not in col) and ('upgrade_costs' not in col):
                 continue
             self.base_df = self.base_df.rename(columns={col: col.split('.')[1]})
 
         for col in self.feature_df.columns.tolist():
-            if not 'simulation_output_report' in col:
+            if ('simulation_output_report' not in col) and ('upgrade_costs' not in col):
                 continue
             self.feature_df = self.feature_df.rename(columns={col: col.split('.')[1]})
 
@@ -346,6 +346,7 @@ class res_results_csv_comparisons:
 if __name__ == '__main__':
 
     # Inputs
+    # Example usage: python test/res_results_csv_comparisons.py test/test_samples_osw/results/develop_test_run.csv test/test_samples_osw/results/project_national_develop.csv --use_cols 2 
     parser = argparse.ArgumentParser()
     parser.add_argument("base_table_name", help="Filepath to base results table", type=str)
     parser.add_argument("feature_table_name", help="Filepath to feature results table", type=str)
