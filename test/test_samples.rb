@@ -9,9 +9,12 @@ require_relative '../resources/buildstock'
 
 class IntegrationWorkflowTest < MiniTest::Test
   def before_setup
-    @project_dir = 'project_national'
+    @project_dir_baseline = 'project_national'
     @num_samples_baseline = 100
+
+    @project_dir_upgrades = 'project_testing'
     @num_samples_upgrades = 10
+
     @outfile = File.join('..', 'test', 'test_samples_osw', 'buildstock.csv')
     @top_dir = File.absolute_path(File.join(File.dirname(__FILE__), 'test_samples_osw'))
     @lib_dir = File.join(@top_dir, '..', '..', 'lib')
@@ -28,7 +31,7 @@ class IntegrationWorkflowTest < MiniTest::Test
   end
 
   def test_baseline
-    results_csv = samples_osw('baseline', @num_samples_baseline)
+    results_csv = samples_osw('baseline', @project_dir_baseline, @num_samples_baseline)
 
     rows = CSV.read(results_csv)
 
@@ -43,7 +46,7 @@ class IntegrationWorkflowTest < MiniTest::Test
   end
 
   def test_upgrades
-    results_csv = samples_osw('upgrades', @num_samples_upgrades)
+    results_csv = samples_osw('upgrades', @project_dir_upgrades, @num_samples_upgrades)
 
     rows = CSV.read(results_csv)
 
@@ -60,8 +63,8 @@ class IntegrationWorkflowTest < MiniTest::Test
 
   private
 
-  def samples_osw(scenario, num_samples)
-    if @project_dir == 'project_national'
+  def samples_osw(scenario, project_dir, num_samples)
+    if project_dir == 'project_national'
       parent_dir = File.absolute_path(File.join(File.dirname(__FILE__), '..'))
       if Dir["#{parent_dir}/weather/*.epw"].size < 10
         cli_path = OpenStudio.getOpenStudioCLI
@@ -74,8 +77,8 @@ class IntegrationWorkflowTest < MiniTest::Test
     parent_dir = File.join(@top_dir, scenario)
     Dir.mkdir(parent_dir) unless File.exist?(parent_dir)
 
-    create_buildstock_csv(@project_dir, num_samples)
-    create_lib_folder(@project_dir)
+    create_buildstock_csv(project_dir, num_samples)
+    create_lib_folder(project_dir)
 
     Dir["#{@top_dir}/workflow*.osw"].each do |osw|
       next unless osw.include?(scenario)
