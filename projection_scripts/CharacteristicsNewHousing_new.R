@@ -2185,7 +2185,7 @@ for (p in 2:25) { # which projects do these changes apply to? in this case all
 hhe<-read_tsv('../project_national/housing_characteristics/HVAC Heating Efficiency.tsv',col_names = TRUE)
 hhe<-hhe[1:120,1:25]
 # add new options, all already exist in options lookup
-names(hhe)[which(names(hhe)=="Option=MSHP, SEER 29.3, 14 HSPF")]<-"MSHP, SEER 25, 12.7 HSPF" # replace the hi-eff MSHP with a more reasonably hi-eff option
+names(hhe)[which(names(hhe)=="Option=MSHP, SEER 29.3, 14 HSPF")]<-"Option=MSHP, SEER 25, 12.7 HSPF" # replace the hi-eff MSHP with a more reasonably hi-eff option
 hhe$`Option=ASHP, SEER 16, 9.0 HSPF`<-hhe$`Option=ASHP, SEER 18, 9.3 HSPF`<-hhe$`Option=ASHP, SEER 22, 10 HSPF`<-
   hhe$`Option=MSHP, SEER 17, 9.5 HSPF`<-hhe$`Option=Fuel Boiler, 96% AFUE`<-0
 hhe<-hhe[,c(1:6,30,29,28,7:13,26,14:20,27,21:25)]
