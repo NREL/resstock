@@ -33,10 +33,12 @@ w2030<-w2040<-w2050<-w2020
 # who newly makes it into the IECC 2015+ club in the 2030s? custom regions 2,4,5,7, corresponding to climate regions 6 and 5, meaning they can have high SHGC 
 w2030$`Dependency=Vintage`<-"2030s"
 w2030[w2030$`Dependency=Location Region`=="CR02"|w2030$`Dependency=Location Region`=="CR04"|w2030$`Dependency=Location Region`=="CR05"|w2030$`Dependency=Location Region`=="CR07",]$`Option=Low-E, Double, High-Gain`<-1
+w2030[w2030$`Dependency=Location Region`=="CR02"|w2030$`Dependency=Location Region`=="CR04"|w2030$`Dependency=Location Region`=="CR05"|w2030$`Dependency=Location Region`=="CR07",]$`Option=2+ Pane`<-0
 
 # who newly makes it into the IECC 2015+ club in the 2040s? custom regions 8,9,10, corresponding to climate regions 4,3,2, meaning they can have low SHGC 
 w2040$`Dependency=Vintage`<-"2040s"
 w2040[w2040$`Dependency=Location Region`=="CR08"|w2040$`Dependency=Location Region`=="CR09"|w2040$`Dependency=Location Region`=="CR10",]$`Option=Low-E, Double, Low-Gain`<-1
+w2040[w2040$`Dependency=Location Region`=="CR08"|w2040$`Dependency=Location Region`=="CR09"|w2040$`Dependency=Location Region`=="CR10",]$`Option=2+ Pane`<-0
 # no changes between 2040s and 2050s
 w2050<-w2040
 w2050$`Dependency=Vintage`<-"2050s"
