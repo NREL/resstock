@@ -2166,15 +2166,28 @@ htfe<-htf[1:7,]
 htfe$`Dependency=Heating Fuel`<-c(rep("Electricity",4),"Natural Gas","Fuel Oil","Propane")
 htfe$`Dependency=HVAC Heating Efficiency`<-c("ASHP, SEER 16, 9.0 HSPF","ASHP, SEER 18, 9.3 HSPF","ASHP, SEER 22, 10 HSPF",
                                              "MSHP, SEER 17, 9.5 HSPF","Fuel Boiler, 96% AFUE","Fuel Boiler, 96% AFUE","Fuel Boiler, 96% AFUE")
+htfe<-htf[1:30,]
+htfe$`Dependency=Heating Fuel`<-rep(unique(htf$`Dependency=Heating Fuel`),each=5)
+htfe$`Dependency=HVAC Heating Efficiency`<-rep(c("ASHP, SEER 16, 9.0 HSPF","ASHP, SEER 18, 9.3 HSPF","ASHP, SEER 22, 10 HSPF","Fuel Boiler, 96% AFUE","MSHP, SEER 17, 9.5 HSPF"),6)
 htfe[,3:29]<-0
-htfe$`Option=Electricity ASHP`<-c(1,1,1,0,0,0,0)
-htfe$`Option=Electricity MSHP`<-c(0,0,0,1,0,0,0)
-htfe$`Option=Natural Gas Fuel Boiler`<-c(0,0,0,0,1,0,0)
-htfe$`Option=Fuel Oil Fuel Boiler`<-c(0,0,0,0,0,1,0)
-htfe$`Option=Propane Fuel Boiler`<-c(0,0,0,0,0,0,1)
+htfe[1:3,]$`Option=Electricity ASHP`<-1  # electric ASHPs
+htfe[4,]$`Option=Void`<-1 # electric fuel boiler 
+htfe[5,]$`Option=Electricity MSHP`<-1 # electric MSHP
+htfe[c(6:8,10),]$`Option=Void`<-1 # fuel oil HPs
+htfe[9,]$`Option=Fuel Oil Fuel Boiler`<-1 # FO fuel boiler
+htfe[c(11:13,15),]$`Option=Void`<-1 # nat gas HPs
+htfe[14,]$`Option=Natural Gas Fuel Boiler`<-1 # nat gas fuel boiler
+htfe[16:20,]$`Option=Void`<-1 # none
+htfe[c(21:23,25),]$`Option=Void`<-1 # other fuel HPs
+htfe[24,]$`Option=Other Fuel Fuel Boiler`<-1 # other fuel fuel boiler
+htfe[c(26:28,30),]$`Option=Void`<-1 # propane HPs
+htfe[29,]$`Option=Propane Fuel Boiler`<-1 # propane fuel boiler
+# rowSums(htfe[,3:29]) # check if all are 1
+
 htf<-rbind(htf,htfe)
 htf<-htf[order(htf$`Dependency=Heating Fuel`,htf$`Dependency=HVAC Heating Efficiency`),]
 htf_new<-as.data.frame(htf)
+
 
 for (p in 2:25) { # which projects do these changes apply to? in this case all
   fol_fn<-paste(projects[p],'/housing_characteristics/HVAC Heating Type and Fuel.tsv',sep = "")
@@ -2323,9 +2336,10 @@ for (p in 20:25) { # which projects do these changes apply to? in this case 2055
 # HVAC Has Zonal Electric Heating ###############
 ZHE<-read_tsv('../project_national/housing_characteristics/HVAC Has Zonal Electric Heating.tsv',col_names = TRUE)
 hhe_types<-names(hhe_new)[4:30]
+hhe_types<-gsub("Option=","",hhe_types)
 ZHE_new<-data.frame(`Dependency=HVAC Heating Efficiency`=hhe_types,`Option=Yes`=0,`Option=No`=1)
 names(ZHE_new)<-names(ZHE)
-ZHE_new[ZHE_new$`Dependency=HVAC Heating Efficiency`=="Option=Electric Baseboard, 100% Efficiency",2:3]<-c(1,0)
+ZHE_new[ZHE_new$`Dependency=HVAC Heating Efficiency`=="Electric Baseboard, 100% Efficiency",2:3]<-c(1,0)
 ZHE_new<-as.data.frame(ZHE_new)
 for (p in 2:25) { # which projects do these changes apply to? in this case all
   fol_fn<-paste(projects[p],'/housing_characteristics/HVAC Has Zonal Electric Heating.tsv',sep = "")
