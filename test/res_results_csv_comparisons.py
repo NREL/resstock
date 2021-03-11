@@ -346,8 +346,8 @@ class res_results_csv_comparisons:
 if __name__ == '__main__':
 
     # Inputs
-    # Example usage: python test/res_results_csv_comparisons.py test/test_samples_osw/results/develop_test_run.csv test/test_samples_osw/results/project_national_develop.csv --use_cols 2 
-    parser = argparse.ArgumentParser()
+    example_use = 'python res_results_csv_comparisons.py <base_results.csv> <feature_results.csv> --use_cols 2'
+    parser = argparse.ArgumentParser(epilog=f'Example usage (uses feature columns):\n{example_use}', formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument("base_table_name", help="Filepath to base results table", type=str)
     parser.add_argument("feature_table_name", help="Filepath to feature results table", type=str)
     parser.add_argument("--use_cols", help="Which table's variable names to use (int)", type=int)  # Only can map from old to new right now
