@@ -175,7 +175,7 @@ gar2030<-gar2040<-gar2050<-gar2020
 gar2030$`Dependency=Vintage`<-"2030s"
 gar2040$`Dependency=Vintage`<-"2040s"
 gar2050$`Dependency=Vintage`<-"2050s"
-gar_new<-as.data.frame(rbind(gar2020,gar2030,gar2040,gar2050))
+gar_new<-as.data.frame(rbind(gar,gar2020,gar2030,gar2040,gar2050))
 for (p in 2:25) { # which projects do these changes apply to? in this case all projects
   fol_fn<-paste(projects[p],'/housing_characteristics/Geometry Garage.tsv',sep = "")
   write.table(format(gar_new,nsmall=6,digits=1,scientific=FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
