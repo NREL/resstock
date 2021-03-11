@@ -94,7 +94,8 @@ class res_results_csv_comparisons:
             'simulation_output_report.include_timeseries_weather',
             'simulation_output_report.include_timeseries_zone_temperatures',
             'simulation_output_report.time',
-            'simulation_output_report.timeseries_frequency'
+            'simulation_output_report.timeseries_frequency',
+            'upgrade_costs.applicable'
         ]
 
         for field in fields:
@@ -335,7 +336,6 @@ class res_results_csv_comparisons:
         deltas['feature'] = feature_df
         deltas['diff'] = deltas['feature'] - deltas['base']
         deltas['% diff'] = 100*(deltas['diff']/deltas['base'])
-        deltas.fillna(0, inplace=True)
         deltas = deltas.round(2)
         
         deltas.reset_index('build_existing_model.geometry_building_type_recs', inplace=True)
@@ -350,17 +350,17 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(epilog=f'Example usage (uses feature columns):\n{example_use}', formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument("base_table_name", help="Filepath to base results table", type=str)
     parser.add_argument("feature_table_name", help="Filepath to feature results table", type=str)
-    parser.add_argument("--use_cols", help="Which table's variable names to use (int)", type=int)  # Only can map from old to new right now
+    parser.add_argument("--use_cols", help="Which table's variable names to use (base or feature)", type=str)  # Only can map from old to new right now
     args = parser.parse_args()
 
     base_table_name = args.base_table_name
     feature_table_name = args.feature_table_name
-    if args.use_cols==1:
-        cols_to_use = 'base'
-    elif args.use_cols==2:
-        cols_to_use = 'feature'
-    else:
-        cols_to_use = None
+    # if args.use_cols==1:
+    #     cols_to_use = 'base'
+    # elif args.use_cols==2:
+    #     cols_to_use = 'feature'
+    # else:
+    #     cols_to_use = None
 
     groupby = [
         'build_existing_model.geometry_building_type_recs',  # Needed to split out by models
@@ -372,7 +372,7 @@ if __name__ == '__main__':
         base_table_name=base_table_name,
         feature_table_name=feature_table_name,
         groupby=groupby,
-        cols_to_use=cols_to_use 
+        cols_to_use=args.use_cols 
     )
 
     # Plot the number of failures for each run
