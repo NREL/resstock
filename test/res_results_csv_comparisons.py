@@ -17,13 +17,14 @@ import matplotlib
 import matplotlib.pyplot as plt
 import plotly
 import plotly.graph_objects as go
+import argparse
 from plotly.subplots import make_subplots
 
 model_types = ['Single-Family Detached', 'Single-Family Attached', 'Multi-Family']
 
 
 class res_results_csv_comparisons:
-    def __init__(self, base_table_name, feature_table_name, groupby):
+    def __init__(self, base_table_name, feature_table_name, groupby, cols_to_use=None):
         """
         A class to compare a baseline ResStock run to a new feature ResStock run.
         The comparisons are performed on the results.csv from each run
@@ -38,15 +39,16 @@ class res_results_csv_comparisons:
         self.base_table_name = base_table_name
         self.feature_table_name = feature_table_name
         self.groupby = groupby
+        self.cols_to_use = cols_to_use
 
         # Create output directories
         self.create_output_directories()
 
-        # Get fields
-        self.get_common_output_fields()
-
         # Download data or load into memory
         self.query_data()
+
+        # Get fields
+        self.get_common_output_fields()
 
         # Format queried data
         self.format_queried_data()
@@ -66,16 +68,15 @@ class res_results_csv_comparisons:
         Get the common output fields for comparison.
         """
         print('Getting Common Fields...')
-
-        self.base_fields = pd.read_csv(self.base_table_name, index_col=0, nrows=0).columns.tolist()
-        self.feature_fields = pd.read_csv(self.feature_table_name, index_col=0, nrows=0).columns.tolist()
+        self.base_fields = self.base_df.columns.tolist()
+        self.feature_fields = self.feature_df.columns.tolist()
 
         # Get common fields
         self.common_fields = list(set(self.base_fields) & set(self.feature_fields))
         self.common_fields.sort()
 
         # Get common result columns
-        self.common_result_columns = [field for field in self.common_fields if 'simulation_output_report' in field]
+        self.common_result_columns = [field for field in self.common_fields if ('simulation_output_report' in field) or ('upgrade_costs' in field)]
 
         # Remove fields if exist
         fields = [
@@ -93,15 +94,37 @@ class res_results_csv_comparisons:
             'simulation_output_report.include_timeseries_weather',
             'simulation_output_report.include_timeseries_zone_temperatures',
             'simulation_output_report.time',
-            'simulation_output_report.timeseries_frequency'
-
+            'simulation_output_report.timeseries_frequency',
+            'upgrade_costs.applicable'
         ]
+
         for field in fields:
             if field in self.common_result_columns:
                 self.common_result_columns.remove(field)
 
         # Get saved field names
         self.saved_fields = [col.split('.')[1] for col in self.common_result_columns]
+
+    def map_end_uses(self, df):
+        print("Mapping end uses...")
+        cwd = os.path.dirname(os.path.realpath(__file__))
+        map_df = pd.read_csv(os.path.join(cwd, 'column_mapping.csv'), usecols=['restructure_cols','develop_cols'])
+        map_df = map_df.dropna(axis=0)
+        map_dict = {k:v for k,v in zip(map_df['develop_cols'], map_df['restructure_cols'])}
+
+        for col in df.columns:
+            units = col.split('_')[-1]
+            if units == 'kwh':
+                df[col] *= 3412.14/1000000  # to mbtu
+            elif units == 'therm':
+                df[col] *= 0.1  # to mbtu
+
+        df.rename(columns=map_dict, inplace=True)
+
+        df['simulation_output_report.end_use_electricity_cooling_fans_pumps_m_btu'] = df['simulation_output_report.electricity_fans_cooling_kwh'] + df['simulation_output_report.electricity_pumps_cooling_kwh']
+        df['simulation_output_report.end_use_electricity_heating_fans_pumps_m_btu'] = df['simulation_output_report.electricity_fans_heating_kwh'] + df['simulation_output_report.electricity_pumps_heating_kwh']      
+
+        return(df)
 
     def query_data(self):
         """
@@ -111,30 +134,34 @@ class res_results_csv_comparisons:
 
         # Query/Load Base Table Data
         base_data_path = self.base_table_name
-
         print('  Loading %s Data...' % self.base_table_name)
         self.base_df = pd.read_csv(base_data_path)
 
-        for col in self.base_df.columns.tolist():
-            if not 'simulation_output_report' in col:
-                continue
-            self.base_df = self.base_df.rename(columns={col: col.split('.')[1]})
-
         # Query/Load Feature Table Data
         feature_data_path = self.feature_table_name
-
         print('  Loading %s Data...' % self.feature_table_name)
         self.feature_df = pd.read_csv(feature_data_path)
 
-        for col in self.feature_df.columns.tolist():
-            if not 'simulation_output_report' in col:
-                continue
-            self.feature_df = self.feature_df.rename(columns={col: col.split('.')[1]})
+        # Map old columns to new columns
+        if self.cols_to_use=='feature':
+            self.base_df = self.map_end_uses(self.base_df)
+        elif self.cols_to_use=='base':
+            self.feature_df = self.map_end_uses(self.feature_df)
 
     def format_queried_data(self):
         """
         Format the queried data for plotting.
         """
+        for col in self.base_df.columns.tolist():
+            if ('simulation_output_report' not in col) and ('upgrade_costs' not in col):
+                continue
+            self.base_df = self.base_df.rename(columns={col: col.split('.')[1]})
+
+        for col in self.feature_df.columns.tolist():
+            if ('simulation_output_report' not in col) and ('upgrade_costs' not in col):
+                continue
+            self.feature_df = self.feature_df.rename(columns={col: col.split('.')[1]})
+
         # Format data frames
         model_map = {
             'Mobile Home': 'Single-Family Detached',
@@ -148,8 +175,8 @@ class res_results_csv_comparisons:
         self.feature_df[col] = self.feature_df[col].map(model_map)
 
         # Set Index
-        self.base_df = self.base_df.groupby(self.groupby).sum().reset_index()
-        self.feature_df = self.feature_df.groupby(self.groupby).sum().reset_index()
+        self.base_df = self.base_df.groupby(self.groupby).mean().reset_index()
+        self.feature_df = self.feature_df.groupby(self.groupby).mean().reset_index()
 
     def plot_failures(self):
         """
@@ -192,6 +219,16 @@ class res_results_csv_comparisons:
          'end_use_electricity_lighting_m_btu': ['end_use_electricity_lighting_exterior_m_btu', 'end_use_electricity_lighting_garage_m_btu', 'end_use_electricity_lighting_interior_m_btu'],
          'end_use_electricity_pool_hot_tub_m_btu': ['end_use_electricity_pool_heater_m_btu', 'end_use_electricity_pool_pump_m_btu', 'end_use_electricity_hot_tub_heater_m_btu', 'end_use_electricity_hot_tub_pump_m_btu']
         }
+
+        # Omit variables that are not present in original SimOutputReport
+        if self.cols_to_use:
+            groups = {
+            'end_use_electricity_cooling_m_btu': ['end_use_electricity_cooling_m_btu', 'end_use_electricity_cooling_fans_pumps_m_btu'],
+            'end_use_electricity_heating_m_btu': ['end_use_electricity_heating_m_btu', 'end_use_electricity_heating_fans_pumps_m_btu'],
+            'end_use_electricity_hot_water_m_btu': ['end_use_electricity_hot_water_m_btu'],
+            'end_use_electricity_lighting_m_btu': ['end_use_electricity_lighting_exterior_m_btu', 'end_use_electricity_lighting_garage_m_btu', 'end_use_electricity_lighting_interior_m_btu'],
+            'end_use_electricity_pool_hot_tub_m_btu': ['end_use_electricity_pool_heater_m_btu', 'end_use_electricity_pool_pump_m_btu', 'end_use_electricity_hot_tub_heater_m_btu', 'end_use_electricity_hot_tub_pump_m_btu']
+            }
 
         for new_col, old_cols in groups.items():
             self.base_df[new_col] = self.base_df[old_cols].sum(axis=1)
@@ -290,14 +327,35 @@ class res_results_csv_comparisons:
 
         print('Creating regression tables...')
         output_path = os.path.join(os.path.dirname(self.base_table_name), 'comparisons', 'deltas.csv')
-        feature_df.sub(base_df).round(2).transpose()[sorted_model_types].to_csv(output_path)
 
+        base_df = base_df.stack()
+        feature_df = feature_df.stack()
+
+        deltas = pd.DataFrame()
+        deltas['base'] = base_df
+        deltas['feature'] = feature_df
+        deltas['diff'] = deltas['feature'] - deltas['base']
+        deltas['% diff'] = 100*(deltas['diff']/deltas['base'])
+        deltas = deltas.round(2)
+        
+        deltas.reset_index('build_existing_model.geometry_building_type_recs', inplace=True)
+        model_type_map = {'Single-Family Detached':'SFD', 'Single-Family Attached':'SFA', 'Multi-Family':'MF'}
+        deltas['build_existing_model.geometry_building_type_recs'] = deltas['build_existing_model.geometry_building_type_recs'].map(model_type_map)
+        deltas.to_csv(output_path)
 
 if __name__ == '__main__':
 
     # Inputs
-    base_table_name = sys.argv[1]
-    feature_table_name = sys.argv[2]
+    example_use = 'python res_results_csv_comparisons.py <base_results.csv> <feature_results.csv> --use_cols 2'
+    parser = argparse.ArgumentParser(epilog=f'Example usage (uses feature columns):\n{example_use}', formatter_class=argparse.RawTextHelpFormatter)
+    parser.add_argument("base_table_name", help="Filepath to base results table", type=str)
+    parser.add_argument("feature_table_name", help="Filepath to feature results table", type=str)
+    parser.add_argument("--use_cols", help="Which table's variable names to use (base or feature)", type=str)  # Only can map from old to new right now
+    args = parser.parse_args()
+
+    base_table_name = args.base_table_name
+    feature_table_name = args.feature_table_name
+
     groupby = [
         'build_existing_model.geometry_building_type_recs',  # Needed to split out by models
         # 'build_existing_model.county'  # Choose any other characteristic(s)
@@ -307,7 +365,8 @@ if __name__ == '__main__':
     results_csv_comparison = res_results_csv_comparisons(
         base_table_name=base_table_name,
         feature_table_name=feature_table_name,
-        groupby=groupby
+        groupby=groupby,
+        cols_to_use=args.use_cols 
     )
 
     # Plot the number of failures for each run
