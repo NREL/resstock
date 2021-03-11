@@ -1707,7 +1707,7 @@ inw2050<-inw2040
 inw2050$`Dependency=Vintage`<-"2050s"
 # in 2050s set some of CR3 and CR5 to the higher insulation level for wood frame, seeing as they contain some of CZ6 and 7
 for (l in 1:nrow(inw2050)) {
-  if (inw2050$`Dependency=Location Region`[l]=="CR03"|inw2050$`Dependency=Location Region`[l]=="CR05") { 
+  if ((inw2050$`Dependency=Location Region`[l]=="CR03"|inw2050$`Dependency=Location Region`[l]=="CR05")&inw2050$`Dependency=Geometry Wall Type`[l]=="WoodStud") { 
     inw2050$`Option=Wood Stud, R-19, R-5 Sheathing`[l]<-0.15
     inw2050$`Option=Wood Stud, R-19`[l]<-0.85
   }
