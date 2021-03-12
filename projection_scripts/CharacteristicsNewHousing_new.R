@@ -981,7 +981,7 @@ for (p in 2:25) { # which projects do these changes apply to? in this case all 2
 # }
 # 
 # # save 2050s hf
-# hf_new<-as.data.frame(rbind(hf,hf2020adv[,1:9],hf2030adv[,1:9],hf2040adv[,1:9],hf2050adv[,1:9]))
+hf_new<-as.data.frame(rbind(hf,hf2020adv[,1:9],hf2030adv[,1:9],hf2040adv[,1:9],hf2050adv[,1:9]))
 for (p in 2:25) { # which projects do these changes apply to? in this case all 2055 and 2060 projects
   fol_fn<-paste(projects[p],'/scenario_dependent_characteristics/Deep_Electrification/Heating Fuel.tsv',sep = "")
   write.table(format(hf_new,nsmall=6,digits=1,scientific = FALSE),fol_fn,append = FALSE,quote = FALSE, row.names = FALSE, col.names = TRUE,sep='\t')
