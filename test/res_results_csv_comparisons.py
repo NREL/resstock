@@ -24,7 +24,7 @@ model_types = ['Single-Family Detached', 'Single-Family Attached', 'Multi-Family
 
 
 class res_results_csv_comparisons:
-    def __init__(self, base_table_name, feature_table_name, groupby, cols_to_use=None):
+    def __init__(self, base_table_name, feature_table_name, groupby, cols_to_use=None, out_dir=None):
         """
         A class to compare a baseline ResStock run to a new feature ResStock run.
         The comparisons are performed on the results.csv from each run
@@ -40,6 +40,7 @@ class res_results_csv_comparisons:
         self.feature_table_name = feature_table_name
         self.groupby = groupby
         self.cols_to_use = cols_to_use
+        self.out_dir = out_dir
 
         # Create output directories
         self.create_output_directories()
@@ -59,7 +60,10 @@ class res_results_csv_comparisons:
         """
 
         # Directory for the queried data
-        create_path = os.path.join(os.path.dirname(self.base_table_name), 'comparisons')
+        if self.out_dir:
+            create_path = os.path.join(self.out_dir, 'comparisons')
+        else:
+            create_path = os.path.join(os.path.dirname(self.base_table_name), 'comparisons')
         if not os.path.exists(create_path):
             os.makedirs(create_path)
 
@@ -112,18 +116,32 @@ class res_results_csv_comparisons:
         map_df = map_df.dropna(axis=0)
         map_dict = {k:v for k,v in zip(map_df['develop_cols'], map_df['restructure_cols'])}
 
+        # Unit conversions
         for col in df.columns:
             units = col.split('_')[-1]
             if units == 'kwh':
-                df[col] *= 3412.14/1000000  # to mbtu
+                if col == 'simulation_output_report.electricity_heating_supplemental_kwh':
+                    df[col] *= 3412.14/1000 # to kbtu
+                else:
+                    df[col] *= 3412.14/1000000  # to mbtu
             elif units == 'therm':
                 df[col] *= 0.1  # to mbtu
 
+        # Aggregate variables w/ multiple cols
+        for cols, map_to in map_dict.items():
+            cols = cols.split(',')
+            if len(cols)>1:
+                df[map_to] = df[cols].sum(axis=1)
+
+        # Remove central systems from total site
+        # central_htg_cond = ((df['build_existing_model.hvac_has_shared_system'] == 'Heating and Cooling') |
+        #                     (df['build_existing_model.hvac_has_shared_system'] == 'Heating Only'))
+        # central_clg_cond = ((df['build_existing_model.hvac_has_shared_system'] == 'Heating and Cooling') |
+        #                     (df['build_existing_model.hvac_has_shared_system'] == 'Cooling Only'))
+        # df.loc[central_htg_cond, 'simulation_output_report.total_site_electricity_kwh'] -= df.loc[central_htg_cond,'simulation_output_report.electricity_heating_kwh']
+        # df.loc[central_clg_cond, 'simulation_output_report.total_site_electricity_kwh'] -= df.loc[central_clg_cond, 'simulation_output_report.electricity_cooling_kwh']
+
         df.rename(columns=map_dict, inplace=True)
-
-        df['simulation_output_report.end_use_electricity_cooling_fans_pumps_m_btu'] = df['simulation_output_report.electricity_fans_cooling_kwh'] + df['simulation_output_report.electricity_pumps_cooling_kwh']
-        df['simulation_output_report.end_use_electricity_heating_fans_pumps_m_btu'] = df['simulation_output_report.electricity_fans_heating_kwh'] + df['simulation_output_report.electricity_pumps_heating_kwh']      
-
         return(df)
 
     def query_data(self):
@@ -152,6 +170,18 @@ class res_results_csv_comparisons:
         """
         Format the queried data for plotting.
         """
+
+        # Filter out buildings w/ central systems
+        base_central = ((self.base_df['build_existing_model.hvac_has_shared_system'] == 'Heating and Cooling') |
+                            (self.base_df['build_existing_model.hvac_has_shared_system'] == 'Cooling Only') |
+                            (self.base_df['build_existing_model.hvac_has_shared_system'] == 'Heating Only'))
+        feature_central = ((self.feature_df['build_existing_model.hvac_has_shared_system'] == 'Heating and Cooling') |
+                            (self.feature_df['build_existing_model.hvac_has_shared_system'] == 'Cooling Only') |
+                            (self.feature_df['build_existing_model.hvac_has_shared_system'] == 'Heating Only'))
+
+        self.base_df = self.base_df[~base_central]
+        self.feature_df = self.feature_df[~feature_central]
+
         for col in self.base_df.columns.tolist():
             if ('simulation_output_report' not in col) and ('upgrade_costs' not in col):
                 continue
@@ -200,11 +230,14 @@ class res_results_csv_comparisons:
         plt.bar([0, 1], [n_base, n_feature])
         plt.xlim([-1, 2])
         plt.ylim([0, 1.2 * np.max([n_base, n_feature])])
-        plt.xticks(ticks=[0, 1], labels=[os.path.basename(self.base_table_name), os.path.basename(self.feature_table_name)], rotation=30, ha='right')
+        plt.xticks(ticks=[0, 1], labels=[os.path.basename(f'{self.base_table_name} (base)'), os.path.basename(f'{self.feature_table_name} (feature)')], rotation=30, ha='right')
         plt.title('Number of failures')
         plt.ylabel('Failures')
 
-        output_path = os.path.join(os.path.dirname(self.base_table_name), 'comparisons', 'failures.svg')
+        if self.out_dir:
+            output_path = os.path.join(self.out_dir, 'comparisons', 'failures.svg')
+        else:
+            output_path = os.path.join(os.path.dirname(self.base_table_name), 'comparisons', 'failures.svg')
         plt.savefig(output_path, bbox_inches='tight')
         plt.close()
 
@@ -294,17 +327,20 @@ class res_results_csv_comparisons:
                     if 1.1 * np.max([tmp_base_df[end_use].max(), tmp_feature_df[end_use].max()]) > max_value:
                         max_value = 1.1 * np.max([tmp_base_df[end_use].max(), tmp_feature_df[end_use].max()])
 
-                    fig.add_trace(go.Scatter(x=tmp_base_df[end_use], y=tmp_feature_df[end_use], marker=dict(size=10, color=colors[i]), mode='markers', name=end_use, legendgroup=end_use, showlegend=showlegend), row=1, col=col)
+                    fig.add_trace(go.Scatter(x=tmp_base_df[end_use], y=tmp_feature_df[end_use], marker=dict(size=15, color=colors[i]), mode='markers', name=end_use, legendgroup=end_use, showlegend=showlegend), row=1, col=col)
 
                 fig.add_trace(go.Scatter(x=[min_value, max_value], y=[min_value, max_value], line=dict(color='black', dash='dash', width=0.5), mode='lines', showlegend=False), row=1, col=col)
-                fig.update_xaxes(title_text=os.path.basename(self.base_table_name), row=1, col=col)
-                fig.update_yaxes(title_text=os.path.basename(self.feature_table_name), row=1, col=col)
+                fig.update_xaxes(title_text=os.path.basename(f'{self.base_table_name} (base)'), row=1, col=col)
+                fig.update_yaxes(title_text=os.path.basename(f'{self.feature_table_name} (feature)'), row=1, col=col)
 
             fig['layout'].update(title=fuel_use, template='plotly_white')
             fig.update_layout(width=3600, height=1100, autosize=False, font=dict(size=24))
             for i in fig['layout']['annotations']:
                 i['font'] = dict(size=30)
-            output_path = os.path.join(os.path.dirname(self.base_table_name), 'comparisons', fuel_use + '.svg')
+            if self.out_dir:
+                output_path = os.path.join(self.out_dir, 'comparisons', fuel_use + '.svg')
+            else:
+                output_path = os.path.join(os.path.dirname(self.base_table_name), 'comparisons', fuel_use + '.svg')
             # plotly.offline.plot(fig, filename=output_path, auto_open=False) # html
             fig.write_image(output_path)
 
@@ -326,8 +362,7 @@ class res_results_csv_comparisons:
                 sorted_model_types.remove(model_type)
 
         print('Creating regression tables...')
-        output_path = os.path.join(os.path.dirname(self.base_table_name), 'comparisons', 'deltas.csv')
-
+    
         base_df = base_df.stack()
         feature_df = feature_df.stack()
 
@@ -341,6 +376,10 @@ class res_results_csv_comparisons:
         deltas.reset_index('build_existing_model.geometry_building_type_recs', inplace=True)
         model_type_map = {'Single-Family Detached':'SFD', 'Single-Family Attached':'SFA', 'Multi-Family':'MF'}
         deltas['build_existing_model.geometry_building_type_recs'] = deltas['build_existing_model.geometry_building_type_recs'].map(model_type_map)
+        if self.out_dir:
+            output_path = os.path.join(self.out_dir, 'comparisons', 'deltas.csv')
+        else:
+            output_path = os.path.join(os.path.dirname(self.base_table_name), 'comparisons', 'deltas.csv')
         deltas.to_csv(output_path)
 
 if __name__ == '__main__':
@@ -351,10 +390,13 @@ if __name__ == '__main__':
     parser.add_argument("base_table_name", help="Filepath to base results table", type=str)
     parser.add_argument("feature_table_name", help="Filepath to feature results table", type=str)
     parser.add_argument("--use_cols", help="Which table's variable names to use (base or feature)", type=str)  # Only can map from old to new right now
+    parser.add_argument("--out_dir", help="Filepath to output directory", type=str)
     args = parser.parse_args()
 
     base_table_name = args.base_table_name
     feature_table_name = args.feature_table_name
+    cols_to_use = args.use_cols
+    out_dir = args.out_dir 
 
     groupby = [
         'build_existing_model.geometry_building_type_recs',  # Needed to split out by models
@@ -366,7 +408,8 @@ if __name__ == '__main__':
         base_table_name=base_table_name,
         feature_table_name=feature_table_name,
         groupby=groupby,
-        cols_to_use=args.use_cols
+        cols_to_use=cols_to_use,
+        out_dir=out_dir
     )
 
     # Plot the number of failures for each run
