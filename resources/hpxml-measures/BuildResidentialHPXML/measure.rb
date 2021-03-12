@@ -939,10 +939,15 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(3)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument('air_leakage_shelter_coefficient', true)
-    arg.setDisplayName('Air Leakage: Shelter Coefficient')
-    arg.setUnits('Frac')
-    arg.setDescription('The local shelter coefficient (AIM-2 infiltration model) accounts for nearby buildings, trees, and obstructions.')
+    air_leakage_shielding_of_home_choices = OpenStudio::StringVector.new
+    air_leakage_shielding_of_home_choices << Constants.Auto
+    air_leakage_shielding_of_home_choices << HPXML::ShieldingExposed
+    air_leakage_shielding_of_home_choices << HPXML::ShieldingNormal
+    air_leakage_shielding_of_home_choices << HPXML::ShieldingWellShielded
+
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('air_leakage_shielding_of_home', air_leakage_shielding_of_home_choices, true)
+    arg.setDisplayName('Air Leakage: Shielding of Home')
+    arg.setDescription('Presence of nearby buildings, trees, obstructions for infiltration model.')
     arg.setDefaultValue(Constants.Auto)
     args << arg
 
@@ -3223,7 +3228,7 @@ class HPXMLFile
     return false if not success
 
     # export the schedule
-    args[:schedules_path] = '../schedules.csv'
+    args[:schedules_path] = "../#{File.basename(args[:hpxml_path], '.xml')}_schedules.csv"
     success = schedule_generator.export(schedules_path: File.expand_path(args[:schedules_path]))
     return false if not success
 
@@ -3288,15 +3293,15 @@ class HPXMLFile
   end
 
   def self.set_site(hpxml, runner, args)
-    if args[:air_leakage_shelter_coefficient] != Constants.Auto
-      shelter_coefficient = args[:air_leakage_shelter_coefficient]
+    if args[:air_leakage_shielding_of_home] != Constants.Auto
+      shielding_of_home = args[:air_leakage_shielding_of_home]
     end
 
     if args[:site_type].is_initialized
       hpxml.site.site_type = args[:site_type].get
     end
 
-    hpxml.site.shelter_coefficient = shelter_coefficient
+    hpxml.site.shielding_of_home = shielding_of_home
   end
 
   def self.set_neighbor_buildings(hpxml, runner, args)
@@ -4788,6 +4793,7 @@ class HPXMLFile
 
     if args[:clothes_washer_rated_annual_kwh] != Constants.Auto
       rated_annual_kwh = args[:clothes_washer_rated_annual_kwh]
+      return if Float(rated_annual_kwh) == 0
     end
 
     if args[:clothes_washer_location] != Constants.Auto
@@ -4892,6 +4898,7 @@ class HPXMLFile
     if args[:dishwasher_efficiency_type] == 'RatedAnnualkWh'
       if args[:dishwasher_efficiency] != Constants.Auto
         rated_annual_kwh = args[:dishwasher_efficiency]
+        return if Float(rated_annual_kwh) == 0
       end
     elsif args[:dishwasher_efficiency_type] == 'EnergyFactor'
       energy_factor = args[:dishwasher_efficiency]
@@ -4937,7 +4944,8 @@ class HPXMLFile
     return if args[:refrigerator_location] == 'none'
 
     if args[:refrigerator_rated_annual_kwh] != Constants.Auto
-      refrigerator_rated_annual_kwh = args[:refrigerator_rated_annual_kwh]
+      rated_annual_kwh = args[:refrigerator_rated_annual_kwh]
+      return if Float(rated_annual_kwh) == 0
     end
 
     if args[:refrigerator_location] != Constants.Auto
@@ -4954,7 +4962,7 @@ class HPXMLFile
 
     hpxml.refrigerators.add(id: 'Refrigerator',
                             location: location,
-                            rated_annual_kwh: refrigerator_rated_annual_kwh,
+                            rated_annual_kwh: rated_annual_kwh,
                             primary_indicator: primary_indicator,
                             usage_multiplier: usage_multiplier)
   end
@@ -4964,6 +4972,7 @@ class HPXMLFile
 
     if args[:extra_refrigerator_rated_annual_kwh] != Constants.Auto
       rated_annual_kwh = args[:extra_refrigerator_rated_annual_kwh]
+      return if Float(rated_annual_kwh) == 0
     end
 
     if args[:extra_refrigerator_location] != Constants.Auto
@@ -4986,6 +4995,7 @@ class HPXMLFile
 
     if args[:freezer_rated_annual_kwh] != Constants.Auto
       rated_annual_kwh = args[:freezer_rated_annual_kwh]
+      return if Float(rated_annual_kwh) == 0
     end
 
     if args[:freezer_location] != Constants.Auto

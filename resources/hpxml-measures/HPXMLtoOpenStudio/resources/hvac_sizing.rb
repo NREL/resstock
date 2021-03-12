@@ -973,7 +973,7 @@ class HVACSizing
 
     # Set stack/wind coefficients from Tables 5D/5E
     c_s = 0.015 * ncfl_ag
-    c_w_base = [0.0133 * @hpxml.site.shelter_coefficient - 0.0027, 0.0].max # Linear relationship between shelter coefficient and c_w coefficients by shielding class
+    c_w_base = [0.0133 * @hpxml.site.additional_properties.aim2_shelter_coeff - 0.0027, 0.0].max # Linear relationship between shelter coefficient and c_w coefficients by shielding class
     c_w = c_w_base * ncfl_ag**0.4
 
     ela_in2 = UnitConversions.convert(ela, 'ft^2', 'in^2')
@@ -2568,6 +2568,7 @@ class HVACSizing
 
     # Infiltration UA
     infiltration_cfm = nil
+    ach = nil
     if [HPXML::LocationCrawlspaceVented, HPXML::LocationAtticVented].include? space_type
       # Vented space
       if space_type == HPXML::LocationCrawlspaceVented
@@ -2575,9 +2576,13 @@ class HVACSizing
         sla = vented_crawl.vented_crawlspace_sla
       else
         vented_attic = @hpxml.attics.select { |f| f.attic_type == HPXML::AtticTypeVented }[0]
-        sla = vented_attic.vented_attic_sla
+        if not vented_attic.vented_attic_sla.nil?
+          sla = vented_attic.vented_attic_sla
+        else
+          ach = vented_attic.vented_attic_ach
+        end
       end
-      ach = Airflow.get_infiltration_ACH_from_SLA(sla, 8.202, weather)
+      ach = Airflow.get_infiltration_ACH_from_SLA(sla, 8.202, weather) if ach.nil?
     else # Unvented space
       ach = 0.1 # Assumption
     end

@@ -145,29 +145,38 @@ class HPXMLTest < MiniTest::Test
     sample_files_dir = File.join(@this_dir, '..', 'sample_files')
 
     expected_error_msgs = { 'cfis-with-hydronic-distribution.xml' => ["Attached HVAC distribution system 'HVACDistribution' cannot be hydronic for ventilation fan 'MechanicalVentilation'."],
-                            'clothes-dryer-location.xml' => ["ClothesDryer location is 'garage' but building does not have this location specified."],
-                            'clothes-washer-location.xml' => ["ClothesWasher location is 'garage' but building does not have this location specified."],
-                            'cooking-range-location.xml' => ["CookingRange location is 'garage' but building does not have this location specified."],
+                            'clothes-dryer-location.xml' => ['A location is specified as "garage" but no surfaces were found adjacent to this space type.'],
+                            'clothes-washer-location.xml' => ['A location is specified as "garage" but no surfaces were found adjacent to this space type.'],
+                            'cooking-range-location.xml' => ['A location is specified as "garage" but no surfaces were found adjacent to this space type.'],
                             'dehumidifier-fraction-served.xml' => ['Expected FractionDehumidificationLoadServed to sum to <= 1, but calculated sum is 1.1.'],
                             'dehumidifier-setpoints.xml' => ['All dehumidifiers must have the same setpoint but multiple setpoints were specified.'],
-                            'dishwasher-location.xml' => ["Dishwasher location is 'garage' but building does not have this location specified."],
+                            'dishwasher-location.xml' => ['A location is specified as "garage" but no surfaces were found adjacent to this space type.'],
                             'dhw-frac-load-served.xml' => ['Expected FractionDHWLoadServed to sum to 1, but calculated sum is 1.15.'],
                             'dhw-invalid-ef-tank.xml' => ['Expected EnergyFactor to be less than 1 [context: /HPXML/Building/BuildingDetails/Systems/WaterHeating/WaterHeatingSystem[WaterHeaterType="storage water heater"]]'],
                             'dhw-invalid-uef-tank-heat-pump.xml' => ['Expected UniformEnergyFactor to be greater than 1 [context: /HPXML/Building/BuildingDetails/Systems/WaterHeating/WaterHeatingSystem[WaterHeaterType="heat pump water heater"]]'],
-                            'duct-location.xml' => ["Duct location is 'garage' but building does not have this location specified."],
+                            'duct-leakage-cfm25.xml' => ['Expected Value to be greater than or equal to 0 [context: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACDistribution/DistributionSystemType/AirDistribution/DuctLeakageMeasurement/DuctLeakage[Units="CFM25"]]'],
+                            'duct-leakage-percent.xml' => ['Expected Value to be less than 1 [context: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACDistribution/DistributionSystemType/AirDistribution/DuctLeakageMeasurement/DuctLeakage[Units="Percent"]]'],
+                            'duct-location.xml' => ['A location is specified as "garage" but no surfaces were found adjacent to this space type.'],
                             'duct-location-unconditioned-space.xml' => ["Expected DuctLocation to be 'living space' or 'basement - conditioned' or 'basement - unconditioned' or 'crawlspace - vented' or 'crawlspace - unvented' or 'attic - vented' or 'attic - unvented' or 'garage' or 'exterior wall' or 'under slab' or 'roof deck' or 'outside' or 'other housing unit' or 'other heated space' or 'other multifamily buffer space' or 'other non-freezing space' [context: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACDistribution/DistributionSystemType/*/Ducts]"],
                             'duplicate-id.xml' => ["Duplicate SystemIdentifier IDs detected for 'WindowNorth'."],
-                            'enclosure-attic-missing-roof.xml' => ['There must be at least one roof adjacent to attic - unvented. [context: /HPXML/Building/BuildingDetails/Enclosure[*/*[InteriorAdjacentTo="attic - unvented" or ExteriorAdjacentTo="attic - unvented"]]]'],
-                            'enclosure-basement-missing-exterior-foundation-wall.xml' => ['There must be at least one exterior foundation wall adjacent to basement - unconditioned. [context: /HPXML/Building/BuildingDetails/Enclosure[*/*[InteriorAdjacentTo="basement - unconditioned" or ExteriorAdjacentTo="basement - unconditioned"]]]'],
-                            'enclosure-basement-missing-slab.xml' => ['There must be at least one slab adjacent to basement - unconditioned. [context: /HPXML/Building/BuildingDetails/Enclosure[*/*[InteriorAdjacentTo="basement - unconditioned" or ExteriorAdjacentTo="basement - unconditioned"]]]'],
-                            'enclosure-floor-area-exceeds-cfa.xml' => ['Sum of floor/slab area adjacent to conditioned space (1350.0) is greater than conditioned floor area (540.0).'],
-                            'enclosure-garage-missing-exterior-wall.xml' => ['There must be at least one exterior wall/foundation wall adjacent to garage. [context: /HPXML/Building/BuildingDetails/Enclosure[*/*[InteriorAdjacentTo="garage" or ExteriorAdjacentTo="garage"]]]'],
-                            'enclosure-garage-missing-roof-ceiling.xml' => ['There must be at least one roof/ceiling adjacent to garage. [context: /HPXML/Building/BuildingDetails/Enclosure[*/*[InteriorAdjacentTo="garage" or ExteriorAdjacentTo="garage"]]]'],
-                            'enclosure-garage-missing-slab.xml' => ['There must be at least one slab adjacent to garage. [context: /HPXML/Building/BuildingDetails/Enclosure[*/*[InteriorAdjacentTo="garage" or ExteriorAdjacentTo="garage"]]]'],
+                            'enclosure-attic-missing-roof.xml' => ['There must be at least one roof adjacent to "attic - unvented". [context: /HPXML/Building/BuildingDetails/Enclosure[*/*[InteriorAdjacentTo="attic - unvented" or ExteriorAdjacentTo="attic - unvented"]]]'],
+                            'enclosure-basement-missing-exterior-foundation-wall.xml' => ['There must be at least one exterior foundation wall adjacent to "basement - unconditioned". [context: /HPXML/Building/BuildingDetails/Enclosure[*/*[InteriorAdjacentTo="basement - unconditioned" or ExteriorAdjacentTo="basement - unconditioned"]]]'],
+                            'enclosure-basement-missing-slab.xml' => ['There must be at least one slab adjacent to "basement - unconditioned". [context: /HPXML/Building/BuildingDetails/Enclosure[*/*[InteriorAdjacentTo="basement - unconditioned" or ExteriorAdjacentTo="basement - unconditioned"]]]'],
+                            'enclosure-floor-area-exceeds-cfa.xml' => ['Expected ConditionedFloorArea to be greater than or equal to the sum of conditioned slab/floor areas. [context: /HPXML/Building/BuildingDetails/BuildingSummary/BuildingConstruction]'],
+                            'enclosure-floor-area-exceeds-cfa2.xml' => ['Expected ConditionedFloorArea to be greater than or equal to the sum of conditioned slab/floor areas. [context: /HPXML/Building/BuildingDetails/BuildingSummary/BuildingConstruction]'],
+                            'enclosure-garage-missing-exterior-wall.xml' => ['There must be at least one exterior wall/foundation wall adjacent to "garage". [context: /HPXML/Building/BuildingDetails/Enclosure[*/*[InteriorAdjacentTo="garage" or ExteriorAdjacentTo="garage"]]]'],
+                            'enclosure-garage-missing-roof-ceiling.xml' => ['There must be at least one roof/ceiling adjacent to "garage". [context: /HPXML/Building/BuildingDetails/Enclosure[*/*[InteriorAdjacentTo="garage" or ExteriorAdjacentTo="garage"]]]'],
+                            'enclosure-garage-missing-slab.xml' => ['There must be at least one slab adjacent to "garage". [context: /HPXML/Building/BuildingDetails/Enclosure[*/*[InteriorAdjacentTo="garage" or ExteriorAdjacentTo="garage"]]]'],
                             'enclosure-living-missing-ceiling-roof.xml' => ['There must be at least one ceiling/roof adjacent to conditioned space. [context: /HPXML/Building/BuildingDetails/Enclosure[*/*[InteriorAdjacentTo="living space"]]]',
-                                                                            'There must be at least one floor adjacent to attic - unvented. [context: /HPXML/Building/BuildingDetails/Enclosure[*/*[InteriorAdjacentTo="attic - unvented" or ExteriorAdjacentTo="attic - unvented"]]]'],
+                                                                            'There must be at least one floor adjacent to "attic - unvented". [context: /HPXML/Building/BuildingDetails/Enclosure[*/*[InteriorAdjacentTo="attic - unvented" or ExteriorAdjacentTo="attic - unvented"]]]'],
                             'enclosure-living-missing-exterior-wall.xml' => ['There must be at least one exterior wall adjacent to conditioned space. [context: /HPXML/Building/BuildingDetails/Enclosure[*/*[InteriorAdjacentTo="living space"]]]'],
                             'enclosure-living-missing-floor-slab.xml' => ['There must be at least one floor/slab adjacent to conditioned space. [context: /HPXML/Building/BuildingDetails/Enclosure[*/*[InteriorAdjacentTo="living space"]]]'],
+                            'frac-sensible-plug-load.xml' => ['Expected extension/FracSensible to be greater than or equal to 0 [context: /HPXML/Building/BuildingDetails/MiscLoads/PlugLoad[PlugLoadType="other" or PlugLoadType="TV other" or PlugLoadType="electric vehicle charging" or PlugLoadType="well pump"]]'],
+                            'frac-total-plug-load.xml' => ['Expected sum of extension/FracSensible and extension/FracLatent to be less than or equal to 1 [context: /HPXML/Building/BuildingDetails/MiscLoads/PlugLoad[PlugLoadType="other" or PlugLoadType="TV other" or PlugLoadType="electric vehicle charging" or PlugLoadType="well pump"]]'],
+                            'frac-sensible-fuel-load.xml' => ['Expected extension/FracSensible to be greater than or equal to 0 [context: /HPXML/Building/BuildingDetails/MiscLoads/FuelLoad[FuelLoadType="grill" or FuelLoadType="lighting" or FuelLoadType="fireplace"]]'],
+                            'frac-total-fuel-load.xml' => ['Expected sum of extension/FracSensible and extension/FracLatent to be less than or equal to 1 [context: /HPXML/Building/BuildingDetails/MiscLoads/FuelLoad[FuelLoadType="grill" or FuelLoadType="lighting" or FuelLoadType="fireplace"]]'],
+                            'generator-output-greater-than-consumption.xml' => ['Expected AnnualConsumptionkBtu to be greater than AnnualOutputkWh*3412 [context: /HPXML/Building/BuildingDetails/Systems/extension/Generators/Generator]'],
+                            'generator-number-of-bedrooms-served.xml' => ['Expected NumberofBedroomsServed to be greater than ../../../../BuildingSummary/BuildingConstruction/NumberofBedrooms [context: /HPXML/Building/BuildingDetails/Systems/extension/Generators/Generator[IsSharedSystem="true"]]'],
                             'heat-pump-mixed-fixed-and-autosize-capacities.xml' => ['Expected 0 or 2 element(s) for xpath: HeatingCapacity | BackupHeatingCapacity [context: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACPlant/HeatPump[BackupSystemFuel]]'],
                             'hvac-invalid-distribution-system-type.xml' => ["Incorrect HVAC distribution system type for HVAC type: 'Furnace'. Should be one of: ["],
                             'hvac-distribution-multiple-attached-cooling.xml' => ["Multiple cooling systems found attached to distribution system 'HVACDistribution2'."],
@@ -176,7 +185,7 @@ class HPXMLTest < MiniTest::Test
                             'hvac-dse-multiple-attached-heating.xml' => ["Multiple heating systems found attached to distribution system 'HVACDistribution'."],
                             'hvac-frac-load-served.xml' => ['Expected FractionCoolLoadServed to sum to <= 1, but calculated sum is 1.2.',
                                                             'Expected FractionHeatLoadServed to sum to <= 1, but calculated sum is 1.1.'],
-                            'hvac-distribution-return-duct-leakage-missing.xml' => ['Expected 1 element(s) for xpath: DuctLeakageMeasurement[DuctType="return"]/DuctLeakage[(Units="CFM25" or Units="Percent") and TotalOrToOutside="to outside"]/Value [context: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACDistribution/DistributionSystemType/AirDistribution]'],
+                            'hvac-distribution-return-duct-leakage-missing.xml' => ['Expected 1 element(s) for xpath: DuctLeakageMeasurement[DuctType="return"]/DuctLeakage[(Units="CFM25" or Units="Percent") and TotalOrToOutside="to outside"] [context: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACDistribution/DistributionSystemType/AirDistribution]'],
                             'hvac-inconsistent-fan-powers.xml' => ["Fan powers for heating system 'HeatingSystem' and cooling system 'CoolingSystem' are attached to a single distribution system and therefore must be the same."],
                             'invalid-assembly-effective-rvalue.xml' => ['Expected Insulation/AssemblyEffectiveRValue to be greater than 0 [context: /HPXML/Building/BuildingDetails/Enclosure/Walls/Wall]'],
                             'invalid-datatype-boolean.xml' => ["Cannot convert 'FOOBAR' to boolean."],
@@ -236,9 +245,9 @@ class HPXMLTest < MiniTest::Test
                             'multiple-shared-heating-systems.xml' => ['More than one shared heating system found.'],
                             'net-area-negative-wall.xml' => ["Calculated a negative net surface area for surface 'Wall'."],
                             'net-area-negative-roof.xml' => ["Calculated a negative net surface area for surface 'Roof'."],
-                            'num-bedrooms-exceeds-limit.xml' => ['Number of bedrooms (40) exceeds limit of (CFA-120)/70=36.9.'],
+                            'num-bedrooms-exceeds-limit.xml' => ['Expected NumberofBedrooms to be less than or equal to (ConditionedFloorArea-120)/70 [context: /HPXML/Building/BuildingDetails/BuildingSummary/BuildingConstruction]'],
                             'orphaned-hvac-distribution.xml' => ["Distribution system 'HVACDistribution' found but no HVAC system attached to it."],
-                            'refrigerator-location.xml' => ["Refrigerator location is 'garage' but building does not have this location specified."],
+                            'refrigerator-location.xml' => ['A location is specified as "garage" but no surfaces were found adjacent to this space type.'],
                             'repeated-relatedhvac-dhw-indirect.xml' => ["RelatedHVACSystem 'HeatingSystem' is attached to multiple water heating systems."],
                             'repeated-relatedhvac-desuperheater.xml' => ["RelatedHVACSystem 'CoolingSystem' is attached to multiple water heating systems."],
                             'slab-zero-exposed-perimeter.xml' => ['Expected ExposedPerimeter to be greater than 0 [context: /HPXML/Building/BuildingDetails/Enclosure/Slabs/Slab]'],
@@ -253,7 +262,7 @@ class HPXMLTest < MiniTest::Test
                             'unattached-shared-clothes-washer-water-heater.xml' => ["Attached water heating system 'foobar' not found for clothes washer"],
                             'unattached-shared-dishwasher-water-heater.xml' => ["Attached water heating system 'foobar' not found for dishwasher"],
                             'unattached-window.xml' => ["Attached wall 'foobar' not found for window 'WindowNorth'."],
-                            'water-heater-location.xml' => ["WaterHeatingSystem location is 'crawlspace - vented' but building does not have this location specified."],
+                            'water-heater-location.xml' => ['A location is specified as "crawlspace - vented" but no surfaces were found adjacent to this space type.'],
                             'water-heater-location-other.xml' => ["Expected Location to be 'living space' or 'basement - unconditioned' or 'basement - conditioned' or 'attic - unvented' or 'attic - vented' or 'garage' or 'crawlspace - unvented' or 'crawlspace - vented' or 'other exterior' or 'other housing unit' or 'other heated space' or 'other multifamily buffer space' or 'other non-freezing space' [context: /HPXML/Building/BuildingDetails/Systems/WaterHeating/WaterHeatingSystem]"],
                             'refrigerators-multiple-primary.xml' => ['More than one refrigerator designated as the primary.'],
                             'refrigerators-no-primary.xml' => ['Could not find a primary refrigerator.'] }
@@ -485,13 +494,13 @@ class HPXMLTest < MiniTest::Test
         next if log_line.include? 'No cooking range specified, the model will not include cooking range/oven energy use.'
       end
       if hpxml.water_heating_systems.empty?
-        next if log_line.include? 'No water heater specified, the model will not include water heating energy use.'
+        next if log_line.include? 'No water heating specified, the model will not include water heating energy use.'
       end
       if (hpxml.heating_systems + hpxml.heat_pumps).select { |h| h.fraction_heat_load_served.to_f > 0 }.empty?
-        next if log_line.include? 'No heating system specified, the model will not include space heating energy use.'
+        next if log_line.include? 'No space heating specified, the model will not include space heating energy use.'
       end
       if (hpxml.cooling_systems + hpxml.heat_pumps).select { |c| c.fraction_cool_load_served.to_f > 0 }.empty?
-        next if log_line.include? 'No cooling system specified, the model will not include space cooling energy use.'
+        next if log_line.include? 'No space cooling specified, the model will not include space cooling energy use.'
       end
       if hpxml.plug_loads.select { |p| p.plug_load_type == HPXML::PlugLoadTypeOther }.empty?
         next if log_line.include? "No '#{HPXML::PlugLoadTypeOther}' plug loads specified, the model will not include misc plug load energy use."

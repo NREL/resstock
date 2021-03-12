@@ -8,9 +8,7 @@ class PV
       max_power = pv_system.max_power_output
     else
       # Apportion to single dwelling unit by # bedrooms
-      if pv_system.number_of_bedrooms_served.to_f <= nbeds.to_f
-        fail "Shared PV system number of bedrooms served (#{pv_system.number_of_bedrooms_served}) must be greater than the number of bedrooms in the dwelling unit (#{nbeds})."
-      end
+      fail if pv_system.number_of_bedrooms_served.to_f <= nbeds.to_f # EPvalidator.xml should prevent this
       max_power = pv_system.max_power_output * nbeds.to_f / pv_system.number_of_bedrooms_served.to_f
     end
 
