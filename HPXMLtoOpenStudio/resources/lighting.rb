@@ -8,7 +8,6 @@ class Lighting
     end
 
     if fractions[[HPXML::LocationInterior, HPXML::LightingTypeCFL]].nil? # Not the lighting group(s) we're interested in
-      runner.registerWarning('No lighting specified, the model will not include lighting energy use.')
       return
     end
 
@@ -120,6 +119,7 @@ class Lighting
       ltg_def = OpenStudio::Model::ExteriorLightsDefinition.new(model)
       ltg = OpenStudio::Model::ExteriorLights.new(ltg_def)
       ltg.setName(Constants.ObjectNameExteriorLighting)
+      ltg.setEndUseSubcategory(Constants.ObjectNameExteriorLighting)
       ltg_def.setName(Constants.ObjectNameExteriorLighting)
       ltg_def.setDesignLevel(design_level)
       ltg.setSchedule(exterior_sch)
@@ -139,6 +139,7 @@ class Lighting
       ltg_def = OpenStudio::Model::ExteriorLightsDefinition.new(model)
       ltg = OpenStudio::Model::ExteriorLights.new(ltg_def)
       ltg.setName(Constants.ObjectNameLightingExteriorHoliday)
+      ltg.setEndUseSubcategory(Constants.ObjectNameLightingExteriorHoliday)
       ltg_def.setName(Constants.ObjectNameLightingExteriorHoliday)
       ltg_def.setDesignLevel(design_level)
       ltg.setSchedule(exterior_holiday_sch)

@@ -89,7 +89,7 @@ class Airflow
 
     # Apply infiltration/ventilation
 
-    @wind_speed = set_wind_speed_correction(model, hpxml.site.site_type, hpxml.site.shelter_coefficient)
+    set_wind_speed_correction(model, hpxml.site)
     window_area = hpxml.windows.map { |w| w.area }.sum(0.0)
     open_window_area = window_area * frac_windows_operable * 0.5 * 0.2 # Assume A) 50% of the area of an operable window can be open, and B) 20% of openable window area is actually open
 
@@ -106,14 +106,10 @@ class Airflow
       vented_crawl = foundation
     end
 
-    apply_natural_ventilation_and_whole_house_fan(model, weather, vent_fans_whf, open_window_area, nv_clg_ssn_sensor)
-    apply_infiltration_and_ventilation_fans(model, weather, vent_fans_mech, vent_fans_kitchen, vent_fans_bath, vented_dryers,
+    apply_natural_ventilation_and_whole_house_fan(model, weather, hpxml.site, vent_fans_whf, open_window_area, nv_clg_ssn_sensor)
+    apply_infiltration_and_ventilation_fans(model, weather, hpxml.site, vent_fans_mech, vent_fans_kitchen, vent_fans_bath, vented_dryers,
                                             hpxml.building_construction.has_flue_or_chimney, hpxml.air_infiltration_measurements,
                                             vented_attic, vented_crawl, hvac_map, schedules_file)
-  end
-
-  def self.get_default_shelter_coefficient()
-    return 0.5 # Table 4.2.2(1)(g)
   end
 
   def self.get_default_fraction_of_windows_operable()
@@ -152,45 +148,53 @@ class Airflow
 
   private
 
-  def self.set_wind_speed_correction(model, site_type, shelter_coef)
+  def self.set_wind_speed_correction(model, site)
+    site_ap = site.additional_properties
+
     site_map = { HPXML::SiteTypeRural => 'Country',    # Flat, open country
                  HPXML::SiteTypeSuburban => 'Suburbs', # Rough, wooded country, suburbs
                  HPXML::SiteTypeUrban => 'City' }      # Towns, city outskirts, center of large cities
-    model.getSite.setTerrain(site_map[site_type])
+    model.getSite.setTerrain(site_map[site.site_type])
 
-    wind_speed = WindSpeed.new
-    wind_speed.height = 32.8 # ft (Standard weather station height)
+    site_ap.height = 32.8 # ft (Standard weather station height)
 
     # Open, Unrestricted at Weather Station
-    wind_speed.terrain_multiplier = 1.0
-    wind_speed.terrain_exponent = 0.15
-    wind_speed.ashrae_terrain_thickness = 270
-    wind_speed.ashrae_terrain_exponent = 0.14
+    site_ap.terrain_multiplier = 1.0
+    site_ap.terrain_exponent = 0.15
+    site_ap.ashrae_terrain_thickness = 270
+    site_ap.ashrae_terrain_exponent = 0.14
 
-    if site_type == HPXML::SiteTypeRural
-      wind_speed.site_terrain_multiplier = 0.85
-      wind_speed.site_terrain_exponent = 0.20
-      wind_speed.ashrae_site_terrain_thickness = 270 # Flat, open country
-      wind_speed.ashrae_site_terrain_exponent = 0.14 # Flat, open country
-    elsif site_type == HPXML::SiteTypeSuburban
-      wind_speed.site_terrain_multiplier = 0.67
-      wind_speed.site_terrain_exponent = 0.25
-      wind_speed.ashrae_site_terrain_thickness = 370 # Rough, wooded country, suburbs
-      wind_speed.ashrae_site_terrain_exponent = 0.22 # Rough, wooded country, suburbs
-    elsif site_type == HPXML::SiteTypeUrban
-      wind_speed.site_terrain_multiplier = 0.47
-      wind_speed.site_terrain_exponent = 0.35
-      wind_speed.ashrae_site_terrain_thickness = 460 # Towns, city outskirts, center of large cities
-      wind_speed.ashrae_site_terrain_exponent = 0.33 # Towns, city outskirts, center of large cities
+    if site.site_type == HPXML::SiteTypeRural
+      site_ap.site_terrain_multiplier = 0.85
+      site_ap.site_terrain_exponent = 0.20
+      site_ap.ashrae_site_terrain_thickness = 270 # Flat, open country
+      site_ap.ashrae_site_terrain_exponent = 0.14 # Flat, open country
+    elsif site.site_type == HPXML::SiteTypeSuburban
+      site_ap.site_terrain_multiplier = 0.67
+      site_ap.site_terrain_exponent = 0.25
+      site_ap.ashrae_site_terrain_thickness = 370 # Rough, wooded country, suburbs
+      site_ap.ashrae_site_terrain_exponent = 0.22 # Rough, wooded country, suburbs
+    elsif site.site_type == HPXML::SiteTypeUrban
+      site_ap.site_terrain_multiplier = 0.47
+      site_ap.site_terrain_exponent = 0.35
+      site_ap.ashrae_site_terrain_thickness = 460 # Towns, city outskirts, center of large cities
+      site_ap.ashrae_site_terrain_exponent = 0.33 # Towns, city outskirts, center of large cities
     end
 
-    # Local Shielding
-    wind_speed.S_wo = Float(shelter_coef)
-
     # S-G Shielding Coefficients are roughly 1/3 of AIM2 Shelter Coefficients
-    wind_speed.shielding_coef = wind_speed.S_wo / 3.0
+    site_ap.s_g_shielding_coef = site_ap.aim2_shelter_coeff / 3.0
+  end
 
-    return wind_speed
+  def self.get_aim2_shelter_coefficient(shielding_of_home)
+    # Mapping based on AIM-2 Model by Walker/Wilson
+    # Table 2: Estimates of Shelter Coefficient S_wo for No Flue
+    if shielding_of_home == HPXML::ShieldingNormal
+      return 0.50 # Class 4: "Very heavy shielding, many large obstructions within one house height"
+    elsif shielding_of_home == HPXML::ShieldingExposed
+      return 0.90 # Class 2: "Light local shielding with few obstructions within two house heights"
+    elsif shielding_of_home == HPXML::ShieldingWellShielded
+      return 0.30 # Class 5: "Complete shielding, with large buildings immediately adjacent"
+    end
   end
 
   def self.apply_infiltration_to_unconditioned_space(model, space, ach = nil, ela = nil, c_w_SG = nil, c_s_SG = nil)
@@ -218,7 +222,7 @@ class Airflow
     end
   end
 
-  def self.apply_natural_ventilation_and_whole_house_fan(model, weather, vent_fans_whf, open_window_area, nv_clg_ssn_sensor)
+  def self.apply_natural_ventilation_and_whole_house_fan(model, weather, site, vent_fans_whf, open_window_area, nv_clg_ssn_sensor)
     if @living_zone.thermostatSetpointDualSetpoint.is_initialized
       thermostat = @living_zone.thermostatSetpointDualSetpoint.get
       htg_sch = thermostat.heatingSetpointTemperatureSchedule.get
@@ -310,7 +314,7 @@ class Airflow
     max_flow_rate = max_rate * @infil_volume / UnitConversions.convert(1.0, 'hr', 'min')
     neutral_level = 0.5
     hor_lk_frac = 0.0
-    c_w, c_s = calc_wind_stack_coeffs(hor_lk_frac, neutral_level, @living_space, @infil_height)
+    c_w, c_s = calc_wind_stack_coeffs(site, hor_lk_frac, neutral_level, @living_space, @infil_height)
     max_oa_hr = 0.0115 # From BA HSP
     max_oa_rh = 0.7 # From BA HSP
 
@@ -566,12 +570,6 @@ class Airflow
     ducts.each do |duct|
       if duct.leakage_frac.nil? == duct.leakage_cfm25.nil?
         fail 'Ducts: Must provide either leakage fraction or cfm25, but not both.'
-      end
-      if (not duct.leakage_frac.nil?) && ((duct.leakage_frac < 0) || (duct.leakage_frac > 1))
-        fail 'Ducts: Leakage Fraction must be greater than or equal to 0 and less than or equal to 1.'
-      end
-      if (not duct.leakage_cfm25.nil?) && (duct.leakage_cfm25 < 0)
-        fail 'Ducts: Leakage CFM25 must be greater than or equal to 0.'
       end
     end
 
@@ -1093,7 +1091,7 @@ class Airflow
     end
   end
 
-  def self.apply_infiltration_to_garage(model, weather, ach50)
+  def self.apply_infiltration_to_garage(model, weather, site, ach50)
     return if @spaces[HPXML::LocationGarage].nil?
 
     space = @spaces[HPXML::LocationGarage]
@@ -1105,7 +1103,7 @@ class Airflow
     ela = sla * area
     ach = get_infiltration_ACH_from_SLA(sla, 8.202, weather)
     cfm = ach / UnitConversions.convert(1.0, 'hr', 'min') * volume
-    c_w_SG, c_s_SG = calc_wind_stack_coeffs(hor_lk_frac, neutral_level, space)
+    c_w_SG, c_s_SG = calc_wind_stack_coeffs(site, hor_lk_frac, neutral_level, space)
     apply_infiltration_to_unconditioned_space(model, space, nil, ela, c_w_SG, c_s_SG)
   end
 
@@ -1141,7 +1139,7 @@ class Airflow
     apply_infiltration_to_unconditioned_space(model, space, ach, nil, nil, nil)
   end
 
-  def self.apply_infiltration_to_vented_attic(model, weather, vented_attic)
+  def self.apply_infiltration_to_vented_attic(model, weather, site, vented_attic)
     return if @spaces[HPXML::LocationAtticVented].nil?
 
     if not vented_attic.vented_attic_sla.nil?
@@ -1164,7 +1162,7 @@ class Airflow
       ach = get_infiltration_ACH_from_SLA(sla, 8.202, weather)
       ela = sla * vented_attic_area
       cfm = ach / UnitConversions.convert(1.0, 'hr', 'min') * volume
-      c_w_SG, c_s_SG = calc_wind_stack_coeffs(hor_lk_frac, neutral_level, space)
+      c_w_SG, c_s_SG = calc_wind_stack_coeffs(site, hor_lk_frac, neutral_level, space)
       apply_infiltration_to_unconditioned_space(model, space, nil, ela, c_w_SG, c_s_SG)
     elsif not vented_attic_const_ach.nil?
       ach = vented_attic_const_ach
@@ -1173,7 +1171,7 @@ class Airflow
     end
   end
 
-  def self.apply_infiltration_to_unvented_attic(model, weather)
+  def self.apply_infiltration_to_unvented_attic(model, weather, site)
     return if @spaces[HPXML::LocationAtticUnvented].nil?
 
     space = @spaces[HPXML::LocationAtticUnvented]
@@ -1185,7 +1183,7 @@ class Airflow
     ach = get_infiltration_ACH_from_SLA(sla, 8.202, weather)
     ela = sla * area
     cfm = ach / UnitConversions.convert(1.0, 'hr', 'min') * volume
-    c_w_SG, c_s_SG = calc_wind_stack_coeffs(hor_lk_frac, neutral_level, space)
+    c_w_SG, c_s_SG = calc_wind_stack_coeffs(site, hor_lk_frac, neutral_level, space)
     apply_infiltration_to_unconditioned_space(model, space, nil, ela, c_w_SG, c_s_SG)
   end
 
@@ -1573,8 +1571,8 @@ class Airflow
     end
   end
 
-  def self.apply_mechanical_ventilation(model, vent_fans_mech, living_ach50, living_const_ach, weather, vent_fans_kitchen, vent_fans_bath, vented_dryers,
-                                        range_sch_sensors_map, bath_sch_sensors_map, dryer_exhaust_sch_sensors_map, has_flue_chimney, hvac_map)
+  def self.apply_infiltration_and_mechanical_ventilation(model, site, vent_fans_mech, living_ach50, living_const_ach, weather, vent_fans_kitchen, vent_fans_bath, vented_dryers,
+                                                         range_sch_sensors_map, bath_sch_sensors_map, dryer_exhaust_sch_sensors_map, has_flue_chimney, hvac_map)
     # Categorize fans into different types
     vent_mech_preheat = vent_fans_mech.select { |vent_mech| (not vent_mech.preheating_efficiency_cop.nil?) }
     vent_mech_precool = vent_fans_mech.select { |vent_mech| (not vent_mech.precooling_efficiency_cop.nil?) }
@@ -1625,7 +1623,7 @@ class Airflow
     infil_program.setName(Constants.ObjectNameInfiltration + ' program')
 
     # Calculate infiltration without adjustment by ventilation
-    apply_infiltration_to_living(living_ach50, living_const_ach, infil_program, weather, has_flue_chimney)
+    apply_infiltration_to_living(site, living_ach50, living_const_ach, infil_program, weather, has_flue_chimney)
 
     # Common variable and load actuators across multiple mech vent calculations, create only once
     fan_sens_load_actuator, fan_lat_load_actuator = setup_mech_vent_vars_actuators(model: model, program: infil_program)
@@ -1657,7 +1655,7 @@ class Airflow
     program_calling_manager.addProgram(infil_program)
   end
 
-  def self.apply_infiltration_and_ventilation_fans(model, weather, vent_fans_mech, vent_fans_kitchen, vent_fans_bath, vented_dryers,
+  def self.apply_infiltration_and_ventilation_fans(model, weather, site, vent_fans_mech, vent_fans_kitchen, vent_fans_bath, vented_dryers,
                                                    has_flue_chimney, air_infils, vented_attic, vented_crawl, hvac_map, schedules_file)
     # Get living space infiltration
     living_ach50 = nil
@@ -1680,12 +1678,12 @@ class Airflow
     end
 
     # Infiltration for unconditioned spaces
-    apply_infiltration_to_garage(model, weather, living_ach50)
+    apply_infiltration_to_garage(model, weather, site, living_ach50)
     apply_infiltration_to_unconditioned_basement(model, weather)
     apply_infiltration_to_vented_crawlspace(model, weather, vented_crawl)
     apply_infiltration_to_unvented_crawlspace(model, weather)
-    apply_infiltration_to_vented_attic(model, weather, vented_attic)
-    apply_infiltration_to_unvented_attic(model, weather)
+    apply_infiltration_to_vented_attic(model, weather, site, vented_attic)
+    apply_infiltration_to_unvented_attic(model, weather, site)
 
     # Local ventilation
     range_sch_sensors_map = apply_local_ventilation(model, vent_fans_kitchen, Constants.ObjectNameMechanicalVentilationRangeFan)
@@ -1695,11 +1693,13 @@ class Airflow
     dryer_exhaust_sch_sensors_map = apply_dryer_exhaust(model, vented_dryers, schedules_file)
 
     # Get mechanical ventilation
-    apply_mechanical_ventilation(model, vent_fans_mech, living_ach50, living_const_ach, weather, vent_fans_kitchen, vent_fans_bath, vented_dryers,
-                                 range_sch_sensors_map, bath_sch_sensors_map, dryer_exhaust_sch_sensors_map, has_flue_chimney, hvac_map)
+    apply_infiltration_and_mechanical_ventilation(model, site, vent_fans_mech, living_ach50, living_const_ach, weather, vent_fans_kitchen, vent_fans_bath, vented_dryers,
+                                                  range_sch_sensors_map, bath_sch_sensors_map, dryer_exhaust_sch_sensors_map, has_flue_chimney, hvac_map)
   end
 
-  def self.apply_infiltration_to_living(living_ach50, living_const_ach, infil_program, weather, has_flue_chimney)
+  def self.apply_infiltration_to_living(site, living_ach50, living_const_ach, infil_program, weather, has_flue_chimney)
+    site_ap = site.additional_properties
+
     if living_ach50.to_f > 0
       # Based on "Field Validation of Algebraic Equations for Stack and
       # Wind Driven Air Infiltration Calculations" by Walker and Wilson (1998)
@@ -1783,11 +1783,11 @@ class Airflow
       living_ach = get_infiltration_ACH_from_SLA(living_sla, @infil_height, weather)
       living_cfm = living_ach / UnitConversions.convert(1.0, 'hr', 'min') * @infil_volume
 
-      infil_program.addLine("Set p_m = #{@wind_speed.ashrae_terrain_exponent}")
-      infil_program.addLine("Set p_s = #{@wind_speed.ashrae_site_terrain_exponent}")
-      infil_program.addLine("Set s_m = #{@wind_speed.ashrae_terrain_thickness}")
-      infil_program.addLine("Set s_s = #{@wind_speed.ashrae_site_terrain_thickness}")
-      infil_program.addLine("Set z_m = #{UnitConversions.convert(@wind_speed.height, 'ft', 'm')}")
+      infil_program.addLine("Set p_m = #{site_ap.ashrae_terrain_exponent}")
+      infil_program.addLine("Set p_s = #{site_ap.ashrae_site_terrain_exponent}")
+      infil_program.addLine("Set s_m = #{site_ap.ashrae_terrain_thickness}")
+      infil_program.addLine("Set s_s = #{site_ap.ashrae_site_terrain_thickness}")
+      infil_program.addLine("Set z_m = #{UnitConversions.convert(site_ap.height, 'ft', 'm')}")
       infil_program.addLine("Set z_s = #{UnitConversions.convert(@infil_height, 'ft', 'm')}")
       infil_program.addLine('Set f_t = (((s_m/z_m)^p_m)*((z_s/s_s)^p_s))')
       infil_program.addLine("Set Tdiff = #{@tin_sensor.name}-#{@tout_sensor.name}")
@@ -1796,7 +1796,7 @@ class Airflow
       infil_program.addLine("Set Cs = #{(stack_coef * (UnitConversions.convert(1.0, 'inH2O/R', 'Pa/K')**n_i)).round(4)}")
       infil_program.addLine("Set Cw = #{(wind_coef * (UnitConversions.convert(1.0, 'inH2O/mph^2', 'Pa*s^2/m^2')**n_i)).round(4)}")
       infil_program.addLine("Set n = #{n_i}")
-      infil_program.addLine("Set sft = (f_t*#{(((@wind_speed.S_wo * (1.0 - y_i)) + (s_wflue * (1.5 * y_i))))})")
+      infil_program.addLine("Set sft = (f_t*#{(((site_ap.aim2_shelter_coeff * (1.0 - y_i)) + (s_wflue * (1.5 * y_i))))})")
       infil_program.addLine("Set temp1 = ((c*Cw)*((sft*#{@vwind_sensor.name})^(2*n)))^2")
       infil_program.addLine('Set Qinf = (((c*Cs*(dT^n))^2)+temp1)^0.5')
       infil_program.addLine('Set Qinf = (@Max Qinf 0)')
@@ -1812,14 +1812,15 @@ class Airflow
     end
   end
 
-  def self.calc_wind_stack_coeffs(hor_lk_frac, neutral_level, space, space_height = nil)
+  def self.calc_wind_stack_coeffs(site, hor_lk_frac, neutral_level, space, space_height = nil)
+    site_ap = site.additional_properties
     if space_height.nil?
       space_height = Geometry.get_height_of_spaces([space])
     end
     coord_z = Geometry.get_z_origin_for_zone(space.thermalZone.get)
-    f_t_SG = @wind_speed.site_terrain_multiplier * ((space_height + coord_z) / 32.8)**@wind_speed.site_terrain_exponent / (@wind_speed.terrain_multiplier * (@wind_speed.height / 32.8)**@wind_speed.terrain_exponent)
+    f_t_SG = site_ap.site_terrain_multiplier * ((space_height + coord_z) / 32.8)**site_ap.site_terrain_exponent / (site_ap.terrain_multiplier * (site_ap.height / 32.8)**site_ap.terrain_exponent)
     f_s_SG = 2.0 / 3.0 * (1 + hor_lk_frac / 2.0) * (2.0 * neutral_level * (1.0 - neutral_level))**0.5 / (neutral_level**0.5 + (1.0 - neutral_level)**0.5)
-    f_w_SG = @wind_speed.shielding_coef * (1.0 - hor_lk_frac)**(1.0 / 3.0) * f_t_SG
+    f_w_SG = site_ap.s_g_shielding_coef * (1.0 - hor_lk_frac)**(1.0 / 3.0) * f_t_SG
     c_s_SG = f_s_SG**2.0 * Constants.g * space_height / (Constants.AssumedInsideTemp + 460.0)
     c_w_SG = f_w_SG**2.0
     return c_w_SG, c_s_SG
@@ -1904,10 +1905,4 @@ class Duct
     @rvalue = rvalue
   end
   attr_accessor(:side, :loc_space, :loc_schedule, :leakage_frac, :leakage_cfm25, :area, :rvalue, :zone, :location)
-end
-
-class WindSpeed
-  def initialize
-  end
-  attr_accessor(:height, :terrain_multiplier, :terrain_exponent, :ashrae_terrain_thickness, :ashrae_terrain_exponent, :site_terrain_multiplier, :site_terrain_exponent, :ashrae_site_terrain_thickness, :ashrae_site_terrain_exponent, :S_wo, :shielding_coef)
 end

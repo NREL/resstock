@@ -128,8 +128,16 @@ class Geometry
     end
   end
 
-  def self.process_occupants(model, num_occ, occ_gain, sens_frac, lat_frac, weekday_sch, weekend_sch, monthly_sch,
-                             cfa, nbeds, space, schedules_file)
+  def self.process_occupants(model, num_occ, cfa, space, schedules_file)
+    occ_gain, hrs_per_day, sens_frac, lat_frac = Geometry.get_occupancy_default_values()
+    weekday_sch = Schedule.OccupantsWeekdayFractions
+    weekday_sch_sum = weekday_sch.split(',').map(&:to_f).sum(0.0)
+    if (weekday_sch_sum - hrs_per_day).abs > 0.1
+      fail 'Occupancy schedule inconsistent with hrs_per_day.'
+    end
+
+    weekend_sch = Schedule.OccupantsWeekendFractions
+    monthly_sch = Schedule.OccupantsMonthlyMultipliers
 
     # Error checking
     if (sens_frac < 0) || (sens_frac > 1)

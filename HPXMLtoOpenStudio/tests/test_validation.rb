@@ -48,8 +48,8 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
           @expected_assertions_by_addition[key] = _get_expected_error_msg(context_xpath, assertion_message, 'addition')
         elsif assertion_message.include?("Expected #{element_name} to be")
           @expected_assertions_by_alteration[key] = _get_expected_error_msg(context_xpath, assertion_message, 'alteration')
-        elsif assertion_message.include?('There must be at least one')
-          # Skip these rules
+        elsif assertion_message.include?('There must be at least one') || assertion_message.include?('A location is specified as') || assertion_message.include?('sum of')
+          # Skip these complex rules
         else
           fail "Unexpected assertion: '#{assertion_message}'."
         end
