@@ -346,7 +346,7 @@ class res_results_csv_comparisons:
 if __name__ == '__main__':
 
     # Inputs
-    example_use = 'python res_results_csv_comparisons.py <base_results.csv> <feature_results.csv> --use_cols 2'
+    example_use = 'python res_results_csv_comparisons.py <base_results.csv> <feature_results.csv> --use_cols feature'
     parser = argparse.ArgumentParser(epilog=f'Example usage (uses feature columns):\n{example_use}', formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument("base_table_name", help="Filepath to base results table", type=str)
     parser.add_argument("feature_table_name", help="Filepath to feature results table", type=str)
@@ -366,7 +366,7 @@ if __name__ == '__main__':
         base_table_name=base_table_name,
         feature_table_name=feature_table_name,
         groupby=groupby,
-        cols_to_use=args.use_cols 
+        cols_to_use=args.use_cols
     )
 
     # Plot the number of failures for each run
