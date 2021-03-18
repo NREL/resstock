@@ -8,11 +8,12 @@ Features
 - Increase LED saturation to approximately 2019 levels ([#545](https://github.com/NREL/resstock/pull/545))
 - Include HVAC cooling type as a dependency to cooling setpoint ([#551](https://github.com/NREL/resstock/pull/551))
 - Include electric zonal heating equipment as a dependency in heating setpoint-related tsvs ([#549](https://github.com/NREL/resstock/pull/549))
-- Geo-temporal shifting of the stochastic load model schedules using the American Time Use Servey ([#550](https://github.com/NREL/resstock/pull/550))
+- Geo-temporal shifting of the stochastic load model schedules using the American Time Use Survey ([#550](https://github.com/NREL/resstock/pull/550))
 
 Fixes
 - Fixes significant runtime bottleneck in TSV fetching in BuildExistingModel & ApplyUpgrade measures ([#543](https://github.com/NREL/resstock/pull/543))
 - Dwelling units that are 0-499 ft2 are limited to a maximum of 2 bedrooms ([#553](https://github.com/NREL/resstock/pull/553))
+- Reverses the material layers of the unfinished attic floor construction so that they are correctly ordered outside-to-inside ([#556](https://github.com/NREL/resstock/pull/556))
 
 ## ResStock v2.4.0
 
