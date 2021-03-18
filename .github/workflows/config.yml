@@ -1,5 +1,12 @@
 name: ci
-on: [pull_request]
+
+on:
+  push:
+    branches: [ master, develop ]
+  pull_request:
+    types: [ synchronize, labeled ]
+  workflow_dispatch:
+
 jobs:
   build:
     if: "!(contains(github.event.head_commit.message, '[ci skip]'))"
