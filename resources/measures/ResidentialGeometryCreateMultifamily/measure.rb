@@ -304,7 +304,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
       return false
     end
 
-    if num_units_per_floor >= 4  # assume double-loaded corridor
+    if num_units_per_floor >= 4 # assume double-loaded corridor
       unit_depth = 2
       unit_width = num_units_per_floor / 2.0
       has_rear_units = true
