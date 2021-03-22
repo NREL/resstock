@@ -1,14 +1,14 @@
 schema_version: '0.3'
 buildstock_directory: ../../resstock # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
-output_directory: outputs
+output_directory: /lustre/eaglefs/projects/enduse/resstock-hpxml/test_1/restructure_5k
 # weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
-weather_files_path: c:/OpenStudio/BuildStock_TMY3_FIPS.zip
+weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
 
 sampler:
   type: residential_quota
   args:
-    n_datapoints: 4
+    n_datapoints: 5000
 
 workflow_generator:
   type: residential_hpxml
@@ -19,10 +19,10 @@ workflow_generator:
       simulation_control_run_period_begin_day_of_month: 1
       simulation_control_run_period_end_month: 12
       simulation_control_run_period_end_day_of_month: 31
-      simulation_control_run_period_calendar_year: 2007
+      simulation_control_run_period_calendar_year: 2017
 
     simulation_output_report:
-      timeseries_frequency: timestep
+      timeseries_frequency: none
       include_timeseries_fuel_consumptions: true
       include_timeseries_end_use_consumptions: true
       include_timeseries_hot_water_uses: false
@@ -34,16 +34,16 @@ workflow_generator:
       include_timeseries_weather: false
 
 baseline:
-  n_buildings_represented: 110000000
+  n_buildings_represented: 5000
 
 eagle:
-  n_jobs: 2
-  minutes_per_sim: 1
-  account: <account you are authorized to use>
+  n_jobs: 25
+  minutes_per_sim: 5
+  account: enduse
   sampling:
-    time: 10
+    time: 30
   postprocessing:
-    time: 10
+    time: 45
     n_workers: 1
 
 postprocessing:
