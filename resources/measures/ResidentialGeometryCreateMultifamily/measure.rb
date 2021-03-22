@@ -286,7 +286,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     elsif foundation_type == "unfinished basement"
       foundation_height = 8.0
     end
-    num_units_per_floor = num_units / num_floors
+    num_units_per_floor = num_units.to_f / num_floors.to_f
     num_units_per_floor_actual = num_units_per_floor
     above_ground_floors = num_floors
 
@@ -304,9 +304,9 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
       return false
     end
 
-    if (num_units_per_floor % 2 == 0) and (corridor_position == "Double-Loaded Interior" or corridor_position == "Double Exterior")
+    if num_units_per_floor >= 4  # assume double-loaded corridor
       unit_depth = 2
-      unit_width = num_units_per_floor / 2
+      unit_width = num_units_per_floor / 2.0
       has_rear_units = true
     else
       unit_depth = 1
@@ -322,10 +322,6 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     # Commented out to allow for 0ft crawlspace on non-ground floor units
     if foundation_type == "crawlspace" and (foundation_height < 1.5 or foundation_height > 5.0) and level == "Bottom"
       runner.registerError("The crawlspace height can be set between 1.5 and 5 ft.")
-      return false
-    end
-    if num_units % num_floors != 0
-      runner.registerError("The number of units must be divisible by the number of floors.")
       return false
     end
     if (!has_rear_units) and (corridor_position == "Double-Loaded Interior" or corridor_position == "Double Exterior")
@@ -350,15 +346,15 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
       runner.registerWarning("Specified a balcony, but there is no inset.")
       balcony_depth = 0
     end
-    if unit_width == 1 and horz_location != "None"
+    if unit_width < 2 and horz_location != "None"
       runner.registerWarning("No #{horz_location} location exists, setting horz_location to 'None'")
       horz_location = "None"
     end
-    if unit_width > 1 and horz_location == "None"
+    if unit_width >= 2 and horz_location == "None"
       runner.registerError("Specified incompatible horizontal location for the corridor and unit configuration.")
       return false
     end
-    if unit_width < 3 and horz_location == "Middle"
+    if unit_width <= 2 and horz_location == "Middle"
       runner.registerError("Invalid horizontal location entered, no middle location exists.")
       return false
     end
@@ -378,7 +374,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     x = Math.sqrt(footprint / unit_aspect_ratio)
     y = footprint / x
 
-    story_hash = { "Bottom" => 0, "Middle" => 1, "Top" => num_floors - 1 }
+    story_hash = { "Bottom" => 0, "Middle" => (num_floors - 1) / 2.0, "Top" => num_floors - 1 }
     z = wall_height * story_hash[level]
 
     foundation_corr_polygon = nil
