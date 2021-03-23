@@ -1273,12 +1273,12 @@ class FloorConstructions
     # Define construction
     constr = Construction.new(constr_name, path_fracs)
     constr.add_layer(Material.AirFilmFloorAverage)
-    if not mat_addtl_ins.nil?
-      constr.add_layer(mat_addtl_ins)
-    end
-    constr.add_layer([mat_framing, mat_cavity, mat_gap], "FloorUATrussandIns")
     if drywall_thick_in > 0
       constr.add_layer(Material.GypsumWall(drywall_thick_in))
+    end
+    constr.add_layer([mat_framing, mat_cavity, mat_gap], "FloorUATrussandIns")
+    if not mat_addtl_ins.nil?
+      constr.add_layer(mat_addtl_ins)
     end
     constr.add_layer(Material.AirFilmFloorAverage)
 
