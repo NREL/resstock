@@ -169,6 +169,34 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       measures.delete("ResidentialGeometryCreateSingleFamilyAttached")
     end
 
+    # FIXME: Hack to run the correct ResStock foundation construction measure
+    if ["Ambient"].include? bldg_data["Geometry Foundation Type"]
+      measures.delete("ResidentialConstructionsSlab")
+      measures.delete("ResidentialConstructionsCrawlspace")
+      measures.delete("ResidentialConstructionsUnfinishedBasement")
+      measures.delete("ResidentialConstructionsFinishedBasement")
+    elsif ["Unheated Basement"].include? bldg_data["Geometry Foundation Type"]
+      measures.delete("ResidentialConstructionsPierBeam")
+      measures.delete("ResidentialConstructionsSlab")
+      measures.delete("ResidentialConstructionsCrawlspace")
+      measures.delete("ResidentialConstructionsFinishedBasement")
+    elsif ["Heated Basement"].include? bldg_data["Geometry Foundation Type"]
+      measures.delete("ResidentialConstructionsPierBeam")
+      measures.delete("ResidentialConstructionsSlab")
+      measures.delete("ResidentialConstructionsCrawlspace")
+      measures.delete("ResidentialConstructionsUnfinishedBasement")
+    elsif ["Vented Crawlspace", "Unvented Crawlspace"].include? bldg_data["Geometry Foundation Type"]
+      measures.delete("ResidentialConstructionsPierBeam")
+      measures.delete("ResidentialConstructionsSlab")
+      measures.delete("ResidentialConstructionsUnfinishedBasement")
+      measures.delete("ResidentialConstructionsFinishedBasement")
+    elsif ["Slab"].include? bldg_data["Geometry Foundation Type"]
+      measures.delete("ResidentialConstructionsPierBeam")
+      measures.delete("ResidentialConstructionsCrawlspace")
+      measures.delete("ResidentialConstructionsUnfinishedBasement")
+      measures.delete("ResidentialConstructionsFinishedBasement")
+    end
+
     # Remove any measures_to_ignore from the list of measures to run
     if measures_to_ignore.is_initialized
       measures_to_ignore = measures_to_ignore.get
