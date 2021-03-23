@@ -8,12 +8,15 @@ require 'minitest/autorun'
 class TestResStockMeasuresOSW < MiniTest::Test
   def test_measures_osw
     project_dir = 'project_testing'
-    num_samples = 5
+    num_samples = 10
 
     all_results = []
     parent_dir = File.absolute_path(File.join(File.dirname(__FILE__), 'test_measures_osw'))
 
-    buildstock_csv = create_buildstock_csv(project_dir, num_samples)
+    buildstock_csv = '../test/test_measures_osw/buildstock.csv'
+    unless File.exist?(File.expand_path('test/test_measures_osw/buildstock.csv'))
+      buildstock_csv = create_buildstock_csv(project_dir, num_samples)
+    end
     lib_dir = create_lib_folder(parent_dir, project_dir, buildstock_csv)
     weather_dir = create_weather_folder(parent_dir, project_dir)
 
