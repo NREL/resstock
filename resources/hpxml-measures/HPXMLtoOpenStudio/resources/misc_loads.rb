@@ -30,17 +30,6 @@ class MiscLoads
     sens_frac = plug_load.frac_sensible
     lat_frac = plug_load.frac_latent
 
-    # check for valid inputs
-    if (sens_frac < 0) || (sens_frac > 1)
-      fail 'Sensible fraction must be greater than or equal to 0 and less than or equal to 1.'
-    end
-    if (lat_frac < 0) || (lat_frac > 1)
-      fail 'Latent fraction must be greater than or equal to 0 and less than or equal to 1.'
-    end
-    if lat_frac + sens_frac > 1
-      fail 'Sum of sensible and latent fractions must be less than or equal to 1.'
-    end
-
     if apply_ashrae140_assumptions
       # ASHRAE 140, Table 7-9. Sensible loads are 70% radiative and 30% convective.
       rad_frac = 0.7 * sens_frac
@@ -88,17 +77,6 @@ class MiscLoads
 
     sens_frac = fuel_load.frac_sensible
     lat_frac = fuel_load.frac_latent
-
-    # check for valid inputs
-    if (sens_frac < 0) || (sens_frac > 1)
-      fail 'Sensible fraction must be greater than or equal to 0 and less than or equal to 1.'
-    end
-    if (lat_frac < 0) || (lat_frac > 1)
-      fail 'Latent fraction must be greater than or equal to 0 and less than or equal to 1.'
-    end
-    if lat_frac + sens_frac > 1
-      fail 'Sum of sensible and latent fractions must be less than or equal to 1.'
-    end
 
     # Add other equipment for the mfl
     mfl_def = OpenStudio::Model::OtherEquipmentDefinition.new(model)

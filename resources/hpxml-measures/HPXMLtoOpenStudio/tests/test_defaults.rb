@@ -92,17 +92,17 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     # Test inputs not overridden by defaults
     hpxml = _create_hpxml('base.xml')
     hpxml.site.site_type = HPXML::SiteTypeRural
-    hpxml.site.shelter_coefficient = 0.3
+    hpxml.site.shielding_of_home = HPXML::ShieldingExposed
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_site_values(hpxml_default, HPXML::SiteTypeRural, 0.3)
+    _test_default_site_values(hpxml_default, HPXML::SiteTypeRural, HPXML::ShieldingExposed)
 
     # Test defaults
     hpxml.site.site_type = nil
-    hpxml.site.shelter_coefficient = nil
+    hpxml.site.shielding_of_home = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_site_values(hpxml_default, HPXML::SiteTypeSuburban, 0.5)
+    _test_default_site_values(hpxml_default, HPXML::SiteTypeSuburban, HPXML::ShieldingNormal)
   end
 
   def test_occupancy
@@ -1292,41 +1292,39 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.water_heating_systems[0].fraction_dhw_load_served = 0
     hpxml.clothes_dryers[0].location = HPXML::LocationBasementConditioned
     hpxml.clothes_dryers[0].is_shared_appliance = true
-    hpxml.clothes_dryers[0].control_type = HPXML::ClothesDryerControlTypeMoisture
     hpxml.clothes_dryers[0].combined_energy_factor = 3.33
     hpxml.clothes_dryers[0].usage_multiplier = 1.1
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_clothes_dryer_values(hpxml_default, true, HPXML::LocationBasementConditioned, HPXML::ClothesDryerControlTypeMoisture, 3.33, 1.1)
+    _test_default_clothes_dryer_values(hpxml_default, true, HPXML::LocationBasementConditioned, 3.33, 1.1)
 
     # Test defaults w/ electric clothes dryer
     hpxml.clothes_dryers[0].location = nil
     hpxml.clothes_dryers[0].is_shared_appliance = nil
-    hpxml.clothes_dryers[0].control_type = nil
     hpxml.clothes_dryers[0].combined_energy_factor = nil
     hpxml.clothes_dryers[0].usage_multiplier = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_clothes_dryer_values(hpxml_default, false, HPXML::LocationLivingSpace, HPXML::ClothesDryerControlTypeTimer, 3.01, 1.0)
+    _test_default_clothes_dryer_values(hpxml_default, false, HPXML::LocationLivingSpace, 3.01, 1.0)
 
     # Test defaults w/ gas clothes dryer
     hpxml.clothes_dryers[0].fuel_type = HPXML::FuelTypeNaturalGas
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_clothes_dryer_values(hpxml_default, false, HPXML::LocationLivingSpace, HPXML::ClothesDryerControlTypeTimer, 3.01, 1.0)
+    _test_default_clothes_dryer_values(hpxml_default, false, HPXML::LocationLivingSpace, 3.01, 1.0)
 
     # Test defaults w/ electric clothes dryer before 301-2019 Addendum A
     hpxml.header.eri_calculation_version = '2019'
     hpxml.clothes_dryers[0].fuel_type = HPXML::FuelTypeElectricity
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_clothes_dryer_values(hpxml_default, false, HPXML::LocationLivingSpace, HPXML::ClothesDryerControlTypeTimer, 2.62, 1.0)
+    _test_default_clothes_dryer_values(hpxml_default, false, HPXML::LocationLivingSpace, 2.62, 1.0)
 
     # Test defaults w/ gas clothes dryer before 301-2019 Addendum A
     hpxml.clothes_dryers[0].fuel_type = HPXML::FuelTypeNaturalGas
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_clothes_dryer_values(hpxml_default, false, HPXML::LocationLivingSpace, HPXML::ClothesDryerControlTypeTimer, 2.32, 1.0)
+    _test_default_clothes_dryer_values(hpxml_default, false, HPXML::LocationLivingSpace, 2.32, 1.0)
   end
 
   def test_clothes_dryer_exhaust
@@ -1916,9 +1914,9 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     assert_equal(allow_increased_fixed_capacities, hpxml.header.allow_increased_fixed_capacities)
   end
 
-  def _test_default_site_values(hpxml, site_type, shelter_coefficient)
+  def _test_default_site_values(hpxml, site_type, shielding_of_home)
     assert_equal(site_type, hpxml.site.site_type)
-    assert_equal(shelter_coefficient, hpxml.site.shelter_coefficient)
+    assert_equal(shielding_of_home, hpxml.site.shielding_of_home)
   end
 
   def _test_default_occupancy_values(hpxml, num_occupants)
@@ -2387,12 +2385,11 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     assert_equal(usage_multiplier, clothes_washer.usage_multiplier)
   end
 
-  def _test_default_clothes_dryer_values(hpxml, is_shared, location, control_type, cef, usage_multiplier)
+  def _test_default_clothes_dryer_values(hpxml, is_shared, location, cef, usage_multiplier)
     clothes_dryer = hpxml.clothes_dryers[0]
 
     assert_equal(is_shared, clothes_dryer.is_shared_appliance)
     assert_equal(location, clothes_dryer.location)
-    assert_equal(control_type, clothes_dryer.control_type)
     assert_equal(cef, clothes_dryer.combined_energy_factor)
     assert_equal(usage_multiplier, clothes_dryer.usage_multiplier)
   end

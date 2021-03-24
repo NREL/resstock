@@ -1399,8 +1399,6 @@ class Waterheater
       location_hierarchy = [HPXML::LocationBasementConditioned,
                             HPXML::LocationBasementUnconditioned,
                             HPXML::LocationLivingSpace]
-    else
-      fail "Unexpected IECC climate zone: '#{iecc_zone}'."
     end
     location_hierarchy.each do |space_type|
       if hpxml.has_space_type(space_type)

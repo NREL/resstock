@@ -43,6 +43,7 @@ XMLHelper.write_file(hpxml.to_oga, "out.xml")
 '''
 
 require_relative 'version'
+require 'ostruct'
 
 # FUTURE: Remove all idref attributes, make object attributes instead
 #         E.g., in class Window, :wall_idref => :wall
@@ -60,6 +61,7 @@ class HPXML < Object
   attr_reader(*HPXML_ATTRS, :doc, :errors, :warnings)
 
   # Constants
+  # FUTURE: Move some of these to within child classes (e.g., HPXML::Attic class)
   AirTypeFanCoil = 'fan coil'
   AtticTypeCathedral = 'CathedralCeiling'
   AtticTypeConditioned = 'ConditionedAttic'
@@ -218,6 +220,9 @@ class HPXML < Object
   RoofTypeMetal = 'metal surfacing'
   RoofTypePlasticRubber = 'plastic/rubber/synthetic sheeting'
   RoofTypeWoodShingles = 'wood shingles or shakes'
+  ShieldingExposed = 'exposed'
+  ShieldingNormal = 'normal'
+  ShieldingWellShielded = 'well-shielded'
   SidingTypeAluminum = 'aluminum siding'
   SidingTypeBrick = 'brick veneer'
   SidingTypeFiberCement = 'fiber cement siding'
@@ -906,7 +911,7 @@ class HPXML < Object
   end
 
   class Site < BaseElement
-    ATTRS = [:site_type, :surroundings, :orientation_of_front_of_home, :fuels, :shelter_coefficient]
+    ATTRS = [:site_type, :surroundings, :shielding_of_home, :orientation_of_front_of_home, :fuels]
     attr_accessor(*ATTRS)
 
     def check_for_errors
@@ -920,6 +925,7 @@ class HPXML < Object
       site = XMLHelper.create_elements_as_needed(doc, ['HPXML', 'Building', 'BuildingDetails', 'BuildingSummary', 'Site'])
       XMLHelper.add_element(site, 'SiteType', @site_type, :string, @site_type_isdefaulted) unless @site_type.nil?
       XMLHelper.add_element(site, 'Surroundings', @surroundings, :string) unless @surroundings.nil?
+      XMLHelper.add_element(site, 'ShieldingofHome', @shielding_of_home, :string, @shielding_of_home_isdefaulted) unless @shielding_of_home.nil?
       XMLHelper.add_element(site, 'OrientationOfFrontOfHome', @orientation_of_front_of_home, :string) unless @orientation_of_front_of_home.nil?
       if (not @fuels.nil?) && (not @fuels.empty?)
         fuel_types_available = XMLHelper.add_element(site, 'FuelTypesAvailable')
@@ -927,7 +933,6 @@ class HPXML < Object
           XMLHelper.add_element(fuel_types_available, 'Fuel', fuel, :string)
         end
       end
-      XMLHelper.add_extension(site, 'ShelterCoefficient', @shelter_coefficient, :float, shelter_coefficient_isdefaulted) unless @shelter_coefficient.nil?
     end
 
     def from_oga(hpxml)
@@ -938,9 +943,9 @@ class HPXML < Object
 
       @site_type = XMLHelper.get_value(site, 'SiteType', :string)
       @surroundings = XMLHelper.get_value(site, 'Surroundings', :string)
+      @shielding_of_home = XMLHelper.get_value(site, 'ShieldingofHome', :string)
       @orientation_of_front_of_home = XMLHelper.get_value(site, 'OrientationOfFrontOfHome', :string)
       @fuels = XMLHelper.get_values(site, 'FuelTypesAvailable/Fuel', :string)
-      @shelter_coefficient = XMLHelper.get_value(site, 'extension/ShelterCoefficient', :float)
     end
   end
 
@@ -1015,8 +1020,8 @@ class HPXML < Object
   class BuildingConstruction < BaseElement
     ATTRS = [:year_built, :number_of_conditioned_floors, :number_of_conditioned_floors_above_grade,
              :average_ceiling_height, :number_of_bedrooms, :number_of_bathrooms,
-             :conditioned_floor_area, :conditioned_building_volume, :use_only_ideal_air_system,
-             :residential_facility_type, :has_flue_or_chimney]
+             :conditioned_floor_area, :conditioned_building_volume, :residential_facility_type,
+             :has_flue_or_chimney]
     attr_accessor(*ATTRS)
 
     def check_for_errors
@@ -1037,7 +1042,6 @@ class HPXML < Object
       XMLHelper.add_element(building_construction, 'NumberofBathrooms', @number_of_bathrooms, :integer, @number_of_bathrooms_isdefaulted) unless @number_of_bathrooms.nil?
       XMLHelper.add_element(building_construction, 'ConditionedFloorArea', @conditioned_floor_area, :float) unless @conditioned_floor_area.nil?
       XMLHelper.add_element(building_construction, 'ConditionedBuildingVolume', @conditioned_building_volume, :float, @conditioned_building_volume_isdefaulted) unless @conditioned_building_volume.nil?
-      XMLHelper.add_extension(building_construction, 'UseOnlyIdealAirSystem', @use_only_ideal_air_system, :boolean, @use_only_ideal_air_system_isdefaulted) unless @use_only_ideal_air_system.nil?
       XMLHelper.add_extension(building_construction, 'HasFlueOrChimney', @has_flue_or_chimney, :boolean, @has_flue_or_chimney_isdefaulted) unless @has_flue_or_chimney.nil?
     end
 
@@ -1056,7 +1060,6 @@ class HPXML < Object
       @number_of_bathrooms = XMLHelper.get_value(building_construction, 'NumberofBathrooms', :integer)
       @conditioned_floor_area = XMLHelper.get_value(building_construction, 'ConditionedFloorArea', :float)
       @conditioned_building_volume = XMLHelper.get_value(building_construction, 'ConditionedBuildingVolume', :float)
-      @use_only_ideal_air_system = XMLHelper.get_value(building_construction, 'extension/UseOnlyIdealAirSystem', :boolean)
       @has_flue_or_chimney = XMLHelper.get_value(building_construction, 'extension/HasFlueOrChimney', :boolean)
     end
   end
@@ -5441,7 +5444,7 @@ class HPXML < Object
         sys_ids[obj.id] = 0 if sys_ids[obj.id].nil?
         sys_ids[obj.id] += 1
 
-        errors << "Empty SystemIdentifier ID ('#{obj.id}') detected for #{attribute}." if obj.id.size == 0
+        errors << "Empty SystemIdentifier ID ('#{obj.id}') detected for #{attribute}." if !obj.id || obj.id.size == 0
       end
     end
     sys_ids.each do |sys_id, cnt|
@@ -5479,7 +5482,7 @@ class HPXML < Object
       ltg_fracs[lighting_group.location] += lighting_group.fraction_of_units_in_location
     end
     ltg_fracs.each do |location, sum|
-      next if sum <= 1
+      next if sum <= 1.01 # Use 1.01 in case of rounding
 
       errors << "Sum of fractions of #{location} lighting (#{sum}) is greater than 1."
     end
@@ -5515,10 +5518,10 @@ class HPXML < Object
       end
       heating_total_dist_cfa_served = heating_dist.map { |htg_dist| htg_dist.conditioned_floor_area_served.to_f }.sum(0.0)
       cooling_total_dist_cfa_served = cooling_dist.map { |clg_dist| clg_dist.conditioned_floor_area_served.to_f }.sum(0.0)
-      if (heating_total_dist_cfa_served > @building_construction.conditioned_floor_area)
+      if (heating_total_dist_cfa_served > @building_construction.conditioned_floor_area + 1.0) # Allow 1 ft2 of tolerance
         errors << 'The total conditioned floor area served by the HVAC distribution system(s) for heating is larger than the conditioned floor area of the building.'
       end
-      if (cooling_total_dist_cfa_served > @building_construction.conditioned_floor_area)
+      if (cooling_total_dist_cfa_served > @building_construction.conditioned_floor_area + 1.0) # Allow 1 ft2 of tolerance
         errors << 'The total conditioned floor area served by the HVAC distribution system(s) for cooling is larger than the conditioned floor area of the building.'
       end
     end

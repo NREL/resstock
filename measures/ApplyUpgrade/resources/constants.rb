@@ -30,6 +30,7 @@ class Constants
       'Size, Water Heater (gal)',
       'Flow Rate, Mechanical Ventilation (cfm)',
       'Slab Perimeter, Exposed, Conditioned (ft)',
+      'Rim Joist Area, Above-Grade, Exterior (ft^2)'
     ]
   end
 

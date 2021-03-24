@@ -345,6 +345,13 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(0.0)
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('geometry_rim_joist_height', true)
+    arg.setDisplayName('Geometry: Rim Joist Height')
+    arg.setUnits('in')
+    arg.setDescription('The height of the rim joists. Only applies to basements/crawlspaces.')
+    arg.setDefaultValue(9.25)
+    args << arg
+
     roof_type_choices = OpenStudio::StringVector.new
     roof_type_choices << 'gable'
     roof_type_choices << 'hip'
@@ -493,6 +500,13 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(Constants.Auto)
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('rim_joist_assembly_r', true)
+    arg.setDisplayName('Rim Joist: Assembly R-value')
+    arg.setUnits('h-ft^2-R/Btu')
+    arg.setDescription('Assembly R-value for the rim joists. Only applies to basements/crawlspaces.')
+    arg.setDefaultValue(23)
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('slab_perimeter_insulation_r', true)
     arg.setDisplayName('Slab: Perimeter Insulation Nominal R-value')
     arg.setUnits('h-ft^2-R/Btu')
@@ -562,7 +576,6 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     args << arg
 
     color_choices = OpenStudio::StringVector.new
-    color_choices << Constants.Auto
     color_choices << HPXML::ColorDark
     color_choices << HPXML::ColorLight
     color_choices << HPXML::ColorMedium
@@ -572,7 +585,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('roof_color', color_choices, true)
     arg.setDisplayName('Roof: Color')
     arg.setDescription('The color of the roof.')
-    arg.setDefaultValue(Constants.Auto)
+    arg.setDefaultValue(HPXML::ColorMedium)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('roof_assembly_r', true)
@@ -582,22 +595,10 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(2.3)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument('roof_solar_absorptance', true)
-    arg.setDisplayName('Roof: Solar Absorptance')
-    arg.setDescription('The solar absorptance of the roof.')
-    arg.setDefaultValue(Constants.Auto)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument('roof_emittance', true)
-    arg.setDisplayName('Roof: Emittance')
-    arg.setDescription('The emittance of the roof.')
-    arg.setDefaultValue(Constants.Auto)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument('roof_radiant_barrier', true)
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('roof_radiant_barrier', true)
     arg.setDisplayName('Roof: Has Radiant Barrier')
     arg.setDescription('Specifies whether the attic has a radiant barrier.')
-    arg.setDefaultValue(Constants.Auto)
+    arg.setDefaultValue(false)
     args << arg
 
     roof_radiant_barrier_grade_choices = OpenStudio::StringVector.new
@@ -696,13 +697,13 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('wall_siding_type', wall_siding_type_choices, false)
     arg.setDisplayName('Wall: Siding Type')
-    arg.setDescription('The siding type of the exterior walls.')
+    arg.setDescription('The siding type of the exterior walls. Also applies to rim joists.')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('wall_color', color_choices, true)
     arg.setDisplayName('Wall: Color')
-    arg.setDescription('The color of the exterior walls.')
-    arg.setDefaultValue(Constants.Auto)
+    arg.setDescription('The color of the exterior walls. Also applies to rim joists.')
+    arg.setDefaultValue(HPXML::ColorMedium)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('wall_assembly_r', true)
@@ -710,18 +711,6 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setUnits('h-ft^2-R/Btu')
     arg.setDescription('Assembly R-value of the exterior walls.')
     arg.setDefaultValue(13)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument('wall_solar_absorptance', true)
-    arg.setDisplayName('Wall: Solar Absorptance')
-    arg.setDescription('The solar absorptance of the exterior walls.')
-    arg.setDefaultValue(Constants.Auto)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument('wall_emittance', true)
-    arg.setDisplayName('Wall: Emittance')
-    arg.setDescription('The emittance of the exterior walls.')
-    arg.setDefaultValue(Constants.Auto)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('window_front_wwr', true)
@@ -939,10 +928,15 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(3)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument('air_leakage_shelter_coefficient', true)
-    arg.setDisplayName('Air Leakage: Shelter Coefficient')
-    arg.setUnits('Frac')
-    arg.setDescription('The local shelter coefficient (AIM-2 infiltration model) accounts for nearby buildings, trees, and obstructions.')
+    air_leakage_shielding_of_home_choices = OpenStudio::StringVector.new
+    air_leakage_shielding_of_home_choices << Constants.Auto
+    air_leakage_shielding_of_home_choices << HPXML::ShieldingExposed
+    air_leakage_shielding_of_home_choices << HPXML::ShieldingNormal
+    air_leakage_shielding_of_home_choices << HPXML::ShieldingWellShielded
+
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('air_leakage_shielding_of_home', air_leakage_shielding_of_home_choices, true)
+    arg.setDisplayName('Air Leakage: Shielding of Home')
+    arg.setDescription('Presence of nearby buildings, trees, obstructions for infiltration model.')
     arg.setDefaultValue(Constants.Auto)
     args << arg
 
@@ -2325,11 +2319,6 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     clothes_dryer_fuel_choices << HPXML::FuelTypeWoodCord
     clothes_dryer_fuel_choices << HPXML::FuelTypeCoal
 
-    clothes_dryer_control_type_choices = OpenStudio::StringVector.new
-    clothes_dryer_control_type_choices << Constants.Auto
-    clothes_dryer_control_type_choices << HPXML::ClothesDryerControlTypeTimer
-    clothes_dryer_control_type_choices << HPXML::ClothesDryerControlTypeMoisture
-
     clothes_dryer_efficiency_type_choices = OpenStudio::StringVector.new
     clothes_dryer_efficiency_type_choices << 'EnergyFactor'
     clothes_dryer_efficiency_type_choices << 'CombinedEnergyFactor'
@@ -2350,12 +2339,6 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDisplayName('Clothes Dryer: Efficiency')
     arg.setUnits('lb/kWh')
     arg.setDescription('The efficiency of the clothes dryer.')
-    arg.setDefaultValue(Constants.Auto)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('clothes_dryer_control_type', clothes_dryer_control_type_choices, true)
-    arg.setDisplayName('Clothes Dryer: Control Type')
-    arg.setDescription('Type of control used by the clothes dryer.')
     arg.setDefaultValue(Constants.Auto)
     args << arg
 
@@ -2850,6 +2833,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     # assign the user inputs to variables
     args = get_argument_values(runner, arguments(model), user_arguments)
     args = Hash[args.collect { |k, v| [k.to_sym, v] }]
+    args[:geometry_rim_joist_height] /= 12.0
     args[:geometry_roof_pitch] = { '1:12' => 1.0 / 12.0, '2:12' => 2.0 / 12.0, '3:12' => 3.0 / 12.0, '4:12' => 4.0 / 12.0, '5:12' => 5.0 / 12.0, '6:12' => 6.0 / 12.0, '7:12' => 7.0 / 12.0, '8:12' => 8.0 / 12.0, '9:12' => 9.0 / 12.0, '10:12' => 10.0 / 12.0, '11:12' => 11.0 / 12.0, '12:12' => 12.0 / 12.0 }[args[:geometry_roof_pitch]]
 
     # Argument error checks
@@ -3150,6 +3134,9 @@ class HPXMLFile
     if args[:geometry_foundation_type] == HPXML::FoundationTypeSlab
       args[:geometry_foundation_height] = 0.0
       args[:geometry_foundation_height_above_grade] = 0.0
+      args[:geometry_rim_joist_height] = 0.0
+    elsif args[:geometry_foundation_type] == HPXML::FoundationTypeAmbient
+      args[:geometry_rim_joist_height] = 0.0
     end
 
     if args[:geometry_attic_type] == HPXML::AtticTypeConditioned
@@ -3223,7 +3210,7 @@ class HPXMLFile
     return false if not success
 
     # export the schedule
-    args[:schedules_path] = '../schedules.csv'
+    args[:schedules_path] = "../#{File.basename(args[:hpxml_path], '.xml')}_schedules.csv"
     success = schedule_generator.export(schedules_path: File.expand_path(args[:schedules_path]))
     return false if not success
 
@@ -3288,15 +3275,15 @@ class HPXMLFile
   end
 
   def self.set_site(hpxml, runner, args)
-    if args[:air_leakage_shelter_coefficient] != Constants.Auto
-      shelter_coefficient = args[:air_leakage_shelter_coefficient]
+    if args[:air_leakage_shielding_of_home] != Constants.Auto
+      shielding_of_home = args[:air_leakage_shielding_of_home]
     end
 
     if args[:site_type].is_initialized
       hpxml.site.site_type = args[:site_type].get
     end
 
-    hpxml.site.shelter_coefficient = shelter_coefficient
+    hpxml.site.shielding_of_home = shielding_of_home
   end
 
   def self.set_neighbor_buildings(hpxml, runner, args)
@@ -3394,7 +3381,6 @@ class HPXMLFile
 
   def self.set_attics(hpxml, runner, model, args)
     return if args[:geometry_unit_type] == HPXML::ResidentialTypeApartment
-    return if args[:geometry_unit_type] == HPXML::ResidentialTypeSFA # TODO: remove when we can model single-family attached units
 
     if args[:geometry_roof_type] == 'flat'
       hpxml.attics.add(id: HPXML::AtticTypeFlatRoof,
@@ -3429,27 +3415,13 @@ class HPXMLFile
         roof_type = args[:roof_material_type].get
       end
 
-      if args[:roof_color] == Constants.Auto && args[:roof_solar_absorptance] == Constants.Auto
-        solar_absorptance = 0.7
-      end
-
       if args[:roof_color] != Constants.Auto
         roof_color = args[:roof_color]
       end
 
-      if args[:roof_solar_absorptance] != Constants.Auto
-        solar_absorptance = args[:roof_solar_absorptance]
-      end
-
-      if args[:roof_emittance] != Constants.Auto
-        emittance = args[:roof_emittance]
-      end
-
-      if args[:roof_radiant_barrier] != Constants.Auto
-        radiant_barrier = args[:roof_radiant_barrier]
-        if to_boolean(radiant_barrier)
-          radiant_barrier_grade = args[:roof_radiant_barrier_grade]
-        end
+      radiant_barrier = args[:roof_radiant_barrier]
+      if args[:roof_radiant_barrier]
+        radiant_barrier_grade = args[:roof_radiant_barrier_grade]
       end
 
       if args[:geometry_roof_type] == 'flat'
@@ -3464,8 +3436,6 @@ class HPXMLFile
                       area: UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2').round,
                       roof_type: roof_type,
                       roof_color: roof_color,
-                      solar_absorptance: solar_absorptance,
-                      emittance: emittance,
                       pitch: args[:geometry_roof_pitch],
                       radiant_barrier: radiant_barrier,
                       radiant_barrier_grade: radiant_barrier_grade,
@@ -3475,8 +3445,59 @@ class HPXMLFile
 
   def self.set_rim_joists(hpxml, runner, model, args)
     model.getSurfaces.sort.each do |surface|
-      # TODO
+      next if surface.surfaceType != 'Wall'
+      next unless ['Outdoors', 'Adiabatic'].include? surface.outsideBoundaryCondition
+      next unless Geometry.surface_is_rim_joist(surface, args[:geometry_rim_joist_height])
+
+      interior_adjacent_to = get_adjacent_to(surface)
+      next unless [HPXML::LocationBasementConditioned, HPXML::LocationBasementUnconditioned, HPXML::LocationCrawlspaceUnvented, HPXML::LocationCrawlspaceVented].include? interior_adjacent_to
+
+      exterior_adjacent_to = HPXML::LocationOutside
+      if surface.outsideBoundaryCondition == 'Adiabatic' # can be adjacent to foundation space
+        adjacent_surface = get_adiabatic_adjacent_surface(model, surface)
+        if adjacent_surface.nil? # adjacent to a space that is not explicitly in the model
+          unless [HPXML::ResidentialTypeSFD].include?(args[:geometry_unit_type])
+            exterior_adjacent_to = interior_adjacent_to
+            if exterior_adjacent_to == HPXML::LocationLivingSpace # living adjacent to living
+              exterior_adjacent_to = HPXML::LocationOtherHousingUnit
+            end
+          end
+        else # adjacent to a space that is explicitly in the model, e.g., corridor
+          exterior_adjacent_to = get_adjacent_to(adjacent_surface)
+        end
+      end
+
+      if exterior_adjacent_to == HPXML::LocationOutside && args[:wall_siding_type].is_initialized
+        siding = args[:wall_siding_type].get
+      end
+
+      if args[:wall_color] != Constants.Auto
+        color = args[:wall_color]
+      end
+
+      if interior_adjacent_to == exterior_adjacent_to
+        insulation_assembly_r_value = 4.0 # Uninsulated
+      else
+        insulation_assembly_r_value = args[:rim_joist_assembly_r]
+      end
+
+      hpxml.rim_joists.add(id: valid_attr(surface.name),
+                           exterior_adjacent_to: exterior_adjacent_to,
+                           interior_adjacent_to: interior_adjacent_to,
+                           area: UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2').round(1),
+                           siding: siding,
+                           color: color,
+                           insulation_assembly_r_value: insulation_assembly_r_value)
     end
+  end
+
+  def self.get_unexposed_garage_perimeter(hpxml, args)
+    # this is perimeter adjacent to a 100% protruding garage that is not exposed
+    # we need this because it's difficult to set this surface to Adiabatic using our geometry methods
+    if (args[:geometry_garage_protrusion] == 1.0) && (args[:geometry_garage_width] * args[:geometry_garage_depth] > 0)
+      return args[:geometry_garage_width]
+    end
+    return 0
   end
 
   def self.get_adiabatic_adjacent_surface(model, surface)
@@ -3505,6 +3526,7 @@ class HPXMLFile
   def self.set_walls(hpxml, runner, model, args)
     model.getSurfaces.sort.each do |surface|
       next if surface.surfaceType != 'Wall'
+      next if Geometry.surface_is_rim_joist(surface, args[:geometry_rim_joist_height])
 
       interior_adjacent_to = get_adjacent_to(surface)
       next unless [HPXML::LocationLivingSpace, HPXML::LocationAtticUnvented, HPXML::LocationAtticVented, HPXML::LocationGarage].include? interior_adjacent_to
@@ -3585,19 +3607,20 @@ class HPXMLFile
     model.getSurfaces.sort.each do |surface|
       next if surface.surfaceType != 'Wall'
       next unless ['Foundation', 'Adiabatic'].include? surface.outsideBoundaryCondition
+      next if Geometry.surface_is_rim_joist(surface, args[:geometry_rim_joist_height])
 
       interior_adjacent_to = get_adjacent_to(surface)
       next unless [HPXML::LocationBasementConditioned, HPXML::LocationBasementUnconditioned, HPXML::LocationCrawlspaceUnvented, HPXML::LocationCrawlspaceVented].include? interior_adjacent_to
 
       exterior_adjacent_to = HPXML::LocationGround
       if surface.outsideBoundaryCondition == 'Adiabatic' # can be adjacent to foundation space
-        next if [HPXML::ResidentialTypeSFD].include? args[:geometry_unit_type] # these are surfaces for kiva
-
         adjacent_surface = get_adiabatic_adjacent_surface(model, surface)
         if adjacent_surface.nil? # adjacent to a space that is not explicitly in the model
-          exterior_adjacent_to = interior_adjacent_to
-          if exterior_adjacent_to == HPXML::LocationLivingSpace # living adjacent to living
-            exterior_adjacent_to = HPXML::LocationOtherHousingUnit
+          unless [HPXML::ResidentialTypeSFD].include?(args[:geometry_unit_type])
+            exterior_adjacent_to = interior_adjacent_to
+            if exterior_adjacent_to == HPXML::LocationLivingSpace # living adjacent to living
+              exterior_adjacent_to = HPXML::LocationOtherHousingUnit
+            end
           end
         else # adjacent to a space that is explicitly in the model, e.g., corridor
           exterior_adjacent_to = get_adjacent_to(adjacent_surface)
@@ -3710,6 +3733,10 @@ class HPXMLFile
       exposed_perimeter = Geometry.calculate_exposed_perimeter(model, [surface], has_foundation_walls).round
       next if exposed_perimeter == 0 # this could be, e.g., the foundation floor of an interior corridor
 
+      if [HPXML::LocationCrawlspaceVented, HPXML::LocationCrawlspaceUnvented, HPXML::LocationBasementUnconditioned, HPXML::LocationBasementConditioned].include? interior_adjacent_to
+        exposed_perimeter -= get_unexposed_garage_perimeter(hpxml, args)
+      end
+
       if [HPXML::LocationLivingSpace, HPXML::LocationGarage].include? interior_adjacent_to
         depth_below_grade = 0
       end
@@ -3778,7 +3805,7 @@ class HPXMLFile
           overhangs_distance_to_bottom_of_window = (overhangs_distance_to_top_of_window + sub_surface_height).round
         elsif args[:geometry_eaves_depth] > 0
           # Get max z coordinate of eaves
-          eaves_z = args[:geometry_wall_height] * args[:geometry_num_floors_above_grade]
+          eaves_z = args[:geometry_wall_height] * args[:geometry_num_floors_above_grade] + args[:geometry_rim_joist_height]
           if args[:geometry_attic_type] == HPXML::AtticTypeConditioned
             eaves_z += Geometry.get_conditioned_attic_height(model.getSpaces)
           end
@@ -3787,16 +3814,7 @@ class HPXMLFile
           end
 
           # Get max z coordinate of this window
-          sub_surface_z = -9e99
-          space = sub_surface.space.get
-          z_origin = space.zOrigin
-          sub_surface.vertices.each do |vertex|
-            z = vertex.z + z_origin
-            next if z < sub_surface_z
-
-            sub_surface_z = z
-          end
-          sub_surface_z = UnitConversions.convert(sub_surface_z, 'm', 'ft')
+          sub_surface_z = Geometry.getSurfaceZValues([surface]).max + UnitConversions.convert(sub_surface.space.get.zOrigin, 'm', 'ft')
 
           overhangs_depth = args[:geometry_eaves_depth]
           overhangs_distance_to_top_of_window = eaves_z - sub_surface_z # difference between max z coordinates of eaves and this window
@@ -4788,6 +4806,7 @@ class HPXMLFile
 
     if args[:clothes_washer_rated_annual_kwh] != Constants.Auto
       rated_annual_kwh = args[:clothes_washer_rated_annual_kwh]
+      return if Float(rated_annual_kwh) == 0
     end
 
     if args[:clothes_washer_location] != Constants.Auto
@@ -4855,10 +4874,6 @@ class HPXMLFile
       location = args[:clothes_dryer_location]
     end
 
-    if args[:clothes_dryer_control_type] != Constants.Auto
-      control_type = args[:clothes_dryer_control_type]
-    end
-
     if args[:clothes_dryer_vented_flow_rate] != Constants.Auto
       is_vented = false
       if Float(args[:clothes_dryer_vented_flow_rate]) > 0
@@ -4876,7 +4891,6 @@ class HPXMLFile
                              fuel_type: args[:clothes_dryer_fuel_type],
                              energy_factor: energy_factor,
                              combined_energy_factor: combined_energy_factor,
-                             control_type: control_type,
                              is_vented: is_vented,
                              vented_flow_rate: vented_flow_rate,
                              usage_multiplier: usage_multiplier)
@@ -4892,6 +4906,7 @@ class HPXMLFile
     if args[:dishwasher_efficiency_type] == 'RatedAnnualkWh'
       if args[:dishwasher_efficiency] != Constants.Auto
         rated_annual_kwh = args[:dishwasher_efficiency]
+        return if Float(rated_annual_kwh) == 0
       end
     elsif args[:dishwasher_efficiency_type] == 'EnergyFactor'
       energy_factor = args[:dishwasher_efficiency]
@@ -4937,7 +4952,8 @@ class HPXMLFile
     return if args[:refrigerator_location] == 'none'
 
     if args[:refrigerator_rated_annual_kwh] != Constants.Auto
-      refrigerator_rated_annual_kwh = args[:refrigerator_rated_annual_kwh]
+      rated_annual_kwh = args[:refrigerator_rated_annual_kwh]
+      return if Float(rated_annual_kwh) == 0
     end
 
     if args[:refrigerator_location] != Constants.Auto
@@ -4954,7 +4970,7 @@ class HPXMLFile
 
     hpxml.refrigerators.add(id: 'Refrigerator',
                             location: location,
-                            rated_annual_kwh: refrigerator_rated_annual_kwh,
+                            rated_annual_kwh: rated_annual_kwh,
                             primary_indicator: primary_indicator,
                             usage_multiplier: usage_multiplier)
   end
@@ -4964,6 +4980,7 @@ class HPXMLFile
 
     if args[:extra_refrigerator_rated_annual_kwh] != Constants.Auto
       rated_annual_kwh = args[:extra_refrigerator_rated_annual_kwh]
+      return if Float(rated_annual_kwh) == 0
     end
 
     if args[:extra_refrigerator_location] != Constants.Auto
@@ -4986,6 +5003,7 @@ class HPXMLFile
 
     if args[:freezer_rated_annual_kwh] != Constants.Auto
       rated_annual_kwh = args[:freezer_rated_annual_kwh]
+      return if Float(rated_annual_kwh) == 0
     end
 
     if args[:freezer_location] != Constants.Auto

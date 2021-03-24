@@ -69,7 +69,7 @@ class HPXMLtoOpenStudioHotWaterApplianceTest < MiniTest::Test
     if fuel.empty?
       return
     elsif fuel.uniq.size != 1
-      fail 'different fuels'
+      flunk 'different fuels'
     else
       return fuel[0]
     end

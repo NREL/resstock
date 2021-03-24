@@ -8,11 +8,11 @@ class XMLHelper
     parent.children << added
     if not value.nil?
       if datatype == :integer
-        value = to_integer(value)
+        value = to_integer(value, parent, element_name)
       elsif datatype == :float
-        value = to_float(value)
+        value = to_float(value, parent, element_name)
       elsif datatype == :boolean
-        value = to_boolean(value)
+        value = to_boolean(value, parent, element_name)
       elsif datatype != :string
         # If value provided, datatype required
         fail 'Unexpected datatype.'
@@ -65,11 +65,11 @@ class XMLHelper
     value = element.text
 
     if datatype == :integer
-      value = to_integer_or_nil(value)
+      value = to_integer_or_nil(value, parent, element_name)
     elsif datatype == :float
-      value = to_float_or_nil(value)
+      value = to_float_or_nil(value, parent, element_name)
     elsif datatype == :boolean
-      value = to_boolean_or_nil(value)
+      value = to_boolean_or_nil(value, parent, element_name)
     elsif datatype != :string
       fail 'Unexpected datatype.'
     end
@@ -84,11 +84,11 @@ class XMLHelper
       value = value.text
 
       if datatype == :integer
-        value = to_integer_or_nil(value)
+        value = to_integer_or_nil(value, parent, element_name)
       elsif datatype == :float
-        value = to_float_or_nil(value)
+        value = to_float_or_nil(value, parent, element_name)
       elsif datatype == :boolean
-        value = to_boolean_or_nil(value)
+        value = to_boolean_or_nil(value, parent, element_name)
       elsif datatype != :string
         fail 'Unexpected datatype.'
       end
@@ -139,6 +139,12 @@ class XMLHelper
     return if element.nil?
 
     return element.get(attr_name)
+  end
+
+  def self.delete_attribute(element, attr_name)
+    return if element.nil?
+
+    element.unset(attr_name)
   end
 
   def self.validate(doc, xsd_path, runner = nil)
@@ -215,28 +221,28 @@ class XMLHelper
   end
 end
 
-def to_float(value)
+def to_float(value, parent, element_name)
   begin
     return Float(value)
   rescue
-    fail "Cannot convert '#{value}' to float."
+    fail "Cannot convert '#{value}' to float for #{parent.name}/#{element_name}."
   end
 end
 
-def to_integer(value)
+def to_integer(value, parent, element_name)
   begin
     value = Float(value)
   rescue
-    fail "Cannot convert '#{value}' to integer."
+    fail "Cannot convert '#{value}' to integer for #{parent.name}/#{element_name}."
   end
   if value % 1 == 0
     return Integer(value)
   else
-    fail "Cannot convert '#{value}' to integer."
+    fail "Cannot convert '#{value}' to integer for #{parent.name}/#{element_name}."
   end
 end
 
-def to_boolean(value)
+def to_boolean(value, parent = nil, element_name = nil)
   if value.is_a? TrueClass
     return true
   elsif value.is_a? FalseClass
@@ -247,23 +253,25 @@ def to_boolean(value)
     return false
   end
 
-  fail "Cannot convert '#{value}' to boolean."
+  if (not parent.nil?) && (not element_name.nil?)
+    fail "Cannot convert '#{value}' to boolean for #{parent.name}/#{element_name}."
+  end
 end
 
-def to_float_or_nil(value)
+def to_float_or_nil(value, parent, element_name)
   return if value.nil?
 
-  return to_float(value)
+  return to_float(value, parent, element_name)
 end
 
-def to_integer_or_nil(value)
+def to_integer_or_nil(value, parent, element_name)
   return if value.nil?
 
-  return to_integer(value)
+  return to_integer(value, parent, element_name)
 end
 
-def to_boolean_or_nil(value)
+def to_boolean_or_nil(value, parent, element_name)
   return if value.nil?
 
-  return to_boolean(value)
+  return to_boolean(value, parent, element_name)
 end

@@ -135,10 +135,11 @@ class HPXMLDefaults
       hpxml.site.site_type_isdefaulted = true
     end
 
-    if hpxml.site.shelter_coefficient.nil?
-      hpxml.site.shelter_coefficient = Airflow.get_default_shelter_coefficient()
-      hpxml.site.shelter_coefficient_isdefaulted = true
+    if hpxml.site.shielding_of_home.nil?
+      hpxml.site.shielding_of_home = HPXML::ShieldingNormal
+      hpxml.site.shielding_of_home_isdefaulted = true
     end
+    hpxml.site.additional_properties.aim2_shelter_coeff = Airflow.get_aim2_shelter_coefficient(hpxml.site.shielding_of_home)
   end
 
   def self.apply_building_occupancy(hpxml, nbeds)
@@ -195,11 +196,6 @@ class HPXMLDefaults
         hpxml.building_construction.has_flue_or_chimney = true
       end
     end
-
-    if hpxml.building_construction.use_only_ideal_air_system.nil?
-      hpxml.building_construction.use_only_ideal_air_system = false
-      hpxml.building_construction.use_only_ideal_air_system_isdefaulted = true
-    end
   end
 
   def self.apply_infiltration(hpxml)
@@ -230,19 +226,30 @@ class HPXMLDefaults
   def self.apply_attics(hpxml)
     return unless hpxml.has_space_type(HPXML::LocationAtticVented)
 
-    vented_attic = nil
+    vented_attics = []
+    default_sla = Airflow.get_default_vented_attic_sla()
+    default_ach = nil
     hpxml.attics.each do |attic|
       next unless attic.attic_type == HPXML::AtticTypeVented
+      # check existing sla and ach
+      default_sla = attic.vented_attic_sla unless attic.vented_attic_sla.nil?
+      default_ach = attic.vented_attic_ach unless attic.vented_attic_ach.nil?
 
-      vented_attic = attic
+      vented_attics << attic
     end
-    if vented_attic.nil?
+    if vented_attics.empty?
       hpxml.attics.add(id: 'VentedAttic',
-                       attic_type: HPXML::AtticTypeVented)
-      vented_attic = hpxml.attics[-1]
+                       attic_type: HPXML::AtticTypeVented,
+                       vented_attic_sla: default_sla)
+      hpxml.attics[-1].vented_attic_sla_isdefaulted = true
     end
-    if vented_attic.vented_attic_sla.nil? && vented_attic.vented_attic_ach.nil?
-      vented_attic.vented_attic_sla = Airflow.get_default_vented_attic_sla()
+    vented_attics.each do |vented_attic|
+      next unless (vented_attic.vented_attic_sla.nil? && vented_attic.vented_attic_ach.nil?)
+      if not default_ach.nil? # ACH specified
+        vented_attic.vented_attic_ach = default_ach
+      else # Use SLA
+        vented_attic.vented_attic_sla = default_sla
+      end
       vented_attic.vented_attic_sla_isdefaulted = true
     end
   end
@@ -250,19 +257,24 @@ class HPXMLDefaults
   def self.apply_foundations(hpxml)
     return unless hpxml.has_space_type(HPXML::LocationCrawlspaceVented)
 
-    vented_crawl = nil
+    vented_crawls = []
+    default_sla = Airflow.get_default_vented_crawl_sla()
     hpxml.foundations.each do |foundation|
       next unless foundation.foundation_type == HPXML::FoundationTypeCrawlspaceVented
+      # check existing sla
+      default_sla = foundation.vented_crawlspace_sla unless foundation.vented_crawlspace_sla.nil?
 
-      vented_crawl = foundation
+      vented_crawls << foundation
     end
-    if vented_crawl.nil?
+    if vented_crawls.empty?
       hpxml.foundations.add(id: 'VentedCrawlspace',
-                            foundation_type: HPXML::FoundationTypeCrawlspaceVented)
-      vented_crawl = hpxml.foundations[-1]
+                            foundation_type: HPXML::FoundationTypeCrawlspaceVented,
+                            vented_crawlspace_sla: default_sla)
+      hpxml.foundations[-1].vented_crawlspace_sla_isdefaulted = true
     end
-    if vented_crawl.vented_crawlspace_sla.nil?
-      vented_crawl.vented_crawlspace_sla = Airflow.get_default_vented_crawl_sla()
+    vented_crawls.each do |vented_crawl|
+      next unless vented_crawl.vented_crawlspace_sla.nil?
+      vented_crawl.vented_crawlspace_sla = default_sla
       vented_crawl.vented_crawlspace_sla_isdefaulted = true
     end
   end
@@ -740,9 +752,7 @@ class HPXMLDefaults
       n_ducts += hvac_distribution.ducts.size
       n_ducts_to_be_defaulted += hvac_distribution.ducts.select { |duct| duct.duct_surface_area.nil? && duct.duct_location.nil? }.size
     end
-    if n_ducts_to_be_defaulted > 0 && (n_ducts != n_ducts_to_be_defaulted)
-      fail 'The location and surface area of all ducts must be provided or blank.'
-    end
+    fail if n_ducts_to_be_defaulted > 0 && (n_ducts != n_ducts_to_be_defaulted) # EPvalidator.xml should prevent this
 
     hpxml.hvac_distributions.each do |hvac_distribution|
       next unless [HPXML::HVACDistributionTypeAir].include? hvac_distribution.distribution_system_type
@@ -1042,12 +1052,15 @@ class HPXMLDefaults
         clothes_dryer.location = HPXML::LocationLivingSpace
         clothes_dryer.location_isdefaulted = true
       end
+      if clothes_dryer.combined_energy_factor.nil? && clothes_dryer.energy_factor.nil?
+        default_values = HotWaterAndAppliances.get_clothes_dryer_default_values(eri_version, clothes_dryer.fuel_type)
+        clothes_dryer.combined_energy_factor = default_values[:combined_energy_factor]
+        clothes_dryer.combined_energy_factor_isdefaulted = true
+      end
       if clothes_dryer.control_type.nil?
         default_values = HotWaterAndAppliances.get_clothes_dryer_default_values(eri_version, clothes_dryer.fuel_type)
         clothes_dryer.control_type = default_values[:control_type]
         clothes_dryer.control_type_isdefaulted = true
-        clothes_dryer.combined_energy_factor = default_values[:combined_energy_factor]
-        clothes_dryer.combined_energy_factor_isdefaulted = true
       end
       if clothes_dryer.usage_multiplier.nil?
         clothes_dryer.usage_multiplier = 1.0
