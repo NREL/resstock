@@ -438,8 +438,7 @@ class HotWaterAndAppliances
 
   def self.get_clothes_dryer_default_values(eri_version, fuel_type)
     if Constants.ERIVersions.index(eri_version) >= Constants.ERIVersions.index('2019A')
-      return { combined_energy_factor: 3.01,
-               control_type: HPXML::ClothesDryerControlTypeTimer }
+      return { combined_energy_factor: 3.01 }
     else
       if fuel_type == HPXML::FuelTypeElectricity
         return { combined_energy_factor: 2.62,
