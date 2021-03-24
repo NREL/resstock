@@ -247,10 +247,10 @@ class Geometry
       else # first floor without garage or above first floor
 
         if has_garage
-          garage_se_point = OpenStudio::Point3d.new(garage_se_point.x, garage_se_point.y, wall_height * floor + foundation_offset)
-          garage_sw_point = OpenStudio::Point3d.new(garage_sw_point.x, garage_sw_point.y, wall_height * floor + foundation_offset)
-          garage_nw_point = OpenStudio::Point3d.new(garage_nw_point.x, garage_nw_point.y, wall_height * floor + foundation_offset)
-          garage_ne_point = OpenStudio::Point3d.new(garage_ne_point.x, garage_ne_point.y, wall_height * floor + foundation_offset)
+          garage_se_point = OpenStudio::Point3d.new(garage_se_point.x, garage_se_point.y, z)
+          garage_sw_point = OpenStudio::Point3d.new(garage_sw_point.x, garage_sw_point.y, z)
+          garage_nw_point = OpenStudio::Point3d.new(garage_nw_point.x, garage_nw_point.y, z)
+          garage_ne_point = OpenStudio::Point3d.new(garage_ne_point.x, garage_ne_point.y, z)
           if garage_position == 'Right'
             sw_point = OpenStudio::Point3d.new(0, 0, z)
             nw_point = OpenStudio::Point3d.new(0, width, z)
@@ -540,10 +540,10 @@ class Geometry
             se_point = OpenStudio::Point3d.new(se_point.x, se_point.y, se_point.z - living_space.zOrigin)
           end
         else
-          nw_point = OpenStudio::Point3d.new(nw_point.x, nw_point.y, num_floors * nw_point.z)
-          ne_point = OpenStudio::Point3d.new(ne_point.x, ne_point.y, num_floors * ne_point.z)
-          sw_point = OpenStudio::Point3d.new(sw_point.x, sw_point.y, num_floors * sw_point.z)
-          se_point = OpenStudio::Point3d.new(se_point.x, se_point.y, num_floors * se_point.z)
+          nw_point = OpenStudio::Point3d.new(nw_point.x, nw_point.y, num_floors * nw_point.z + rim_joist_height)
+          ne_point = OpenStudio::Point3d.new(ne_point.x, ne_point.y, num_floors * ne_point.z + rim_joist_height)
+          sw_point = OpenStudio::Point3d.new(sw_point.x, sw_point.y, num_floors * sw_point.z + rim_joist_height)
+          se_point = OpenStudio::Point3d.new(se_point.x, se_point.y, num_floors * se_point.z + rim_joist_height)
         end
 
         garage_attic_height = (ne_point.x - nw_point.x) / 2 * roof_pitch
@@ -564,8 +564,8 @@ class Geometry
             roof_s_point = OpenStudio::Point3d.new((sw_point.x + se_point.x) / 2, sw_point.y, garage_attic_height + wall_height)
           end
         else
-          roof_n_point = OpenStudio::Point3d.new((nw_point.x + ne_point.x) / 2, nw_point.y + garage_attic_height / roof_pitch, num_floors * wall_height + garage_attic_height)
-          roof_s_point = OpenStudio::Point3d.new((sw_point.x + se_point.x) / 2, sw_point.y, num_floors * wall_height + garage_attic_height)
+          roof_n_point = OpenStudio::Point3d.new((nw_point.x + ne_point.x) / 2, nw_point.y + garage_attic_height / roof_pitch, num_floors * wall_height + garage_attic_height + rim_joist_height)
+          roof_s_point = OpenStudio::Point3d.new((sw_point.x + se_point.x) / 2, sw_point.y, num_floors * wall_height + garage_attic_height + rim_joist_height)
         end
 
         polygon_w_roof = make_polygon(nw_point, sw_point, roof_s_point, roof_n_point)
@@ -2082,30 +2082,30 @@ class Geometry
     if inset_width * inset_depth > 0
       if inset_position == 'Right'
         # unit footprint
-        inset_point = OpenStudio::Point3d.new(x - inset_width, inset_depth - y, 0)
-        front_point = OpenStudio::Point3d.new(x - inset_width, -y, 0)
-        side_point = OpenStudio::Point3d.new(x, inset_depth - y, 0)
+        inset_point = OpenStudio::Point3d.new(x - inset_width, inset_depth - y, rim_joist_height)
+        front_point = OpenStudio::Point3d.new(x - inset_width, -y, rim_joist_height)
+        side_point = OpenStudio::Point3d.new(x, inset_depth - y, rim_joist_height)
         living_polygon = make_polygon(sw_point, nw_point, ne_point, side_point, inset_point, front_point)
         # unit balcony
         if balcony_depth > 0
-          inset_point = OpenStudio::Point3d.new(x - inset_width, inset_depth - y, wall_height)
-          side_point = OpenStudio::Point3d.new(x, inset_depth - y, wall_height)
-          se_point = OpenStudio::Point3d.new(x, inset_depth - y - balcony_depth, wall_height)
-          front_point = OpenStudio::Point3d.new(x - inset_width, inset_depth - y - balcony_depth, wall_height)
+          inset_point = OpenStudio::Point3d.new(x - inset_width, inset_depth - y, wall_height + rim_joist_height)
+          side_point = OpenStudio::Point3d.new(x, inset_depth - y, wall_height + rim_joist_height)
+          se_point = OpenStudio::Point3d.new(x, inset_depth - y - balcony_depth, wall_height + rim_joist_height)
+          front_point = OpenStudio::Point3d.new(x - inset_width, inset_depth - y - balcony_depth, wall_height + rim_joist_height)
           shading_surface = OpenStudio::Model::ShadingSurface.new(OpenStudio::Point3dVector.new([front_point, se_point, side_point, inset_point]), model)
         end
       else
         # unit footprint
-        inset_point = OpenStudio::Point3d.new(inset_width, inset_depth - y, 0)
-        front_point = OpenStudio::Point3d.new(inset_width, -y, 0)
-        side_point = OpenStudio::Point3d.new(0, inset_depth - y, 0)
+        inset_point = OpenStudio::Point3d.new(inset_width, inset_depth - y, rim_joist_height)
+        front_point = OpenStudio::Point3d.new(inset_width, -y, rim_joist_height)
+        side_point = OpenStudio::Point3d.new(0, inset_depth - y, rim_joist_height)
         living_polygon = make_polygon(side_point, nw_point, ne_point, se_point, front_point, inset_point)
         # unit balcony
         if balcony_depth > 0
-          inset_point = OpenStudio::Point3d.new(inset_width, inset_depth - y, wall_height)
-          side_point = OpenStudio::Point3d.new(0, inset_depth - y, wall_height)
-          sw_point = OpenStudio::Point3d.new(0, inset_depth - y - balcony_depth, wall_height)
-          front_point = OpenStudio::Point3d.new(inset_width, inset_depth - y - balcony_depth, wall_height)
+          inset_point = OpenStudio::Point3d.new(inset_width, inset_depth - y, wall_height + rim_joist_height)
+          side_point = OpenStudio::Point3d.new(0, inset_depth - y, wall_height + rim_joist_height)
+          sw_point = OpenStudio::Point3d.new(0, inset_depth - y - balcony_depth, wall_height + rim_joist_height)
+          front_point = OpenStudio::Point3d.new(inset_width, inset_depth - y - balcony_depth, wall_height + rim_joist_height)
           shading_surface = OpenStudio::Model::ShadingSurface.new(OpenStudio::Point3dVector.new([front_point, sw_point, side_point, inset_point]), model)
         end
       end
@@ -2182,10 +2182,10 @@ class Geometry
       # corridors
       if corridor_width > 0
         # create the prototype corridor
-        nw_point = OpenStudio::Point3d.new(0, interior_corridor_width, 0)
-        ne_point = OpenStudio::Point3d.new(x, interior_corridor_width, 0)
-        sw_point = OpenStudio::Point3d.new(0, 0, 0)
-        se_point = OpenStudio::Point3d.new(x, 0, 0)
+        nw_point = OpenStudio::Point3d.new(0, interior_corridor_width, rim_joist_height)
+        ne_point = OpenStudio::Point3d.new(x, interior_corridor_width, rim_joist_height)
+        sw_point = OpenStudio::Point3d.new(0, 0, rim_joist_height)
+        se_point = OpenStudio::Point3d.new(x, 0, rim_joist_height)
         corr_polygon = make_polygon(sw_point, nw_point, ne_point, se_point)
 
         if (foundation_height > 0) && foundation_corr_polygon.nil?
@@ -2208,10 +2208,10 @@ class Geometry
     elsif (corridor_position == 'Double Exterior') || (corridor_position == 'Single Exterior (Front)')
       interior_corridor_width = 0
       # front access
-      nw_point = OpenStudio::Point3d.new(0, -y, wall_height)
-      sw_point = OpenStudio::Point3d.new(0, -y - corridor_width, wall_height)
-      ne_point = OpenStudio::Point3d.new(x, -y, wall_height)
-      se_point = OpenStudio::Point3d.new(x, -y - corridor_width, wall_height)
+      nw_point = OpenStudio::Point3d.new(0, -y, wall_height + rim_joist_height)
+      sw_point = OpenStudio::Point3d.new(0, -y - corridor_width, wall_height + rim_joist_height)
+      ne_point = OpenStudio::Point3d.new(x, -y, wall_height + rim_joist_height)
+      se_point = OpenStudio::Point3d.new(x, -y - corridor_width, wall_height + rim_joist_height)
 
       shading_surface = OpenStudio::Model::ShadingSurface.new(OpenStudio::Point3dVector.new([sw_point, se_point, ne_point, nw_point]), model)
       shading_surface_group = OpenStudio::Model::ShadingSurfaceGroup.new(model)
@@ -2229,12 +2229,15 @@ class Geometry
         foundation_corridor_space = OpenStudio::Model::Space::fromFloorPrint(foundation_corr_polygon, foundation_height, model)
         foundation_corridor_space = foundation_corridor_space.get
         m = initialize_transformation_matrix(OpenStudio::Matrix.new(4, 4, 0))
-        m[2, 3] = foundation_height
+        m[2, 3] = foundation_height + rim_joist_height
         foundation_corridor_space.changeTransformation(OpenStudio::Transformation.new(m))
         foundation_corridor_space.setXOrigin(0)
         foundation_corridor_space.setYOrigin(0)
         foundation_corridor_space.setZOrigin(0)
         foundation_spaces << foundation_corridor_space
+
+        # Rim Joist
+        add_rim_joist(model, foundation_corr_polygon, foundation_corridor_space, rim_joist_height, 0)
       end
 
       # foundation front
@@ -2242,7 +2245,7 @@ class Geometry
       foundation_space = OpenStudio::Model::Space::fromFloorPrint(foundation_front_polygon, foundation_height, model)
       foundation_space = foundation_space.get
       m = initialize_transformation_matrix(OpenStudio::Matrix.new(4, 4, 0))
-      m[2, 3] = foundation_height
+      m[2, 3] = foundation_height + rim_joist_height
       foundation_space.changeTransformation(OpenStudio::Transformation.new(m))
       foundation_space.setXOrigin(0)
       foundation_space.setYOrigin(0)
