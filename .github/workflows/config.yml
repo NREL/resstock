@@ -32,6 +32,17 @@ jobs:
         run: |
           rake unit_tests:measure_tests
 
+      - name: Run regression tests for all example osws
+        run: |
+          rake regression:workflow_tests
+
+      - name: Upload regression results
+        uses: actions/upload-artifact@v2
+        with:
+          path: |
+            workflows/results
+          name: examples
+
   integration-tests:
     if: contains(github.event.pull_request.labels.*.name, 'Ready for Testing')
     runs-on: ubuntu-latest
@@ -56,30 +67,6 @@ jobs:
             test/test_samples_osw/baseline
             test/test_samples_osw/upgrades
           name: samples
-
-  regression-tests:
-    if: contains(github.event.pull_request.labels.*.name, 'Ready for Testing')
-    runs-on: ubuntu-latest
-    needs: build
-    container:
-      image: docker://nrel/openstudio:3.1.0
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Install gems
-        run: |
-          rm -f Gemfile.lock && bundle install
-
-      - name: Run regression tests for all example osws
-        run: |
-          rake regression:workflow_tests
-
-      - name: Upload regression results
-        uses: actions/upload-artifact@v2
-        with:
-          path: |
-            workflows/results
-          name: examples 
 
   tests-results:
     runs-on: ubuntu-latest
@@ -129,27 +116,12 @@ jobs:
           cp samples/baseline/results/results.csv test/test_samples_osw/results/project_national_feature.csv
           python test/res_results_csv_comparisons.py test/test_samples_osw/results/project_national_develop.csv test/test_samples_osw/results/project_national_feature.csv
 
-      - name: Download regression results
-        uses: actions/download-artifact@v2
-        with:
-          path: |
-            examples
-          name: examples
-
-      - name: Make regression comparisons
-        shell: bash
-        run: |
-          cp examples/feature.csv workflows/results/feature.csv
-          python test/res_results_csv_comparisons.py workflows/results/develop.csv workflows/results/feature.csv
-
       - name: Commit latest results and comparisons
         shell: bash        
         run: |
           git status
           git add test/test_samples_osw/results/project_national_feature.csv
           git add test/test_samples_osw/results/comparisons
-          git add workflows/results/feature.csv
-          git add workflows/results/comparisons
 
           git status
           if [[ $(git diff --cached --exit-code) ]]; then
