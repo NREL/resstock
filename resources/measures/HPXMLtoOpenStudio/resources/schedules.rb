@@ -874,6 +874,22 @@ class ScheduleGenerator
       "vacancy" => Array.new(num_ts, 0.0)
     }
 
+    # FIXME: need to initialize and default:
+    # refrigerator
+    # extra_refrigerator
+    # freezer
+    # plug_loads_vehicle
+    # plug_loads_well_pump
+    # fuel_loads_grill
+    # fuel_loads_lighting
+    # fuel_loads_fireplace
+    # pool_pump
+    # pool_heater
+    # hot_tub_pump
+    # hot_tub_heater
+
+    # so that vacancy applies when using stochastic schedules
+
     return schedules
   end
 
