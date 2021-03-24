@@ -133,14 +133,6 @@ class res_results_csv_comparisons:
             if len(cols)>1:
                 df[map_to] = df[cols].sum(axis=1)
 
-        # Remove central systems from total site
-        # central_htg_cond = ((df['build_existing_model.hvac_has_shared_system'] == 'Heating and Cooling') |
-        #                     (df['build_existing_model.hvac_has_shared_system'] == 'Heating Only'))
-        # central_clg_cond = ((df['build_existing_model.hvac_has_shared_system'] == 'Heating and Cooling') |
-        #                     (df['build_existing_model.hvac_has_shared_system'] == 'Cooling Only'))
-        # df.loc[central_htg_cond, 'simulation_output_report.total_site_electricity_kwh'] -= df.loc[central_htg_cond,'simulation_output_report.electricity_heating_kwh']
-        # df.loc[central_clg_cond, 'simulation_output_report.total_site_electricity_kwh'] -= df.loc[central_clg_cond, 'simulation_output_report.electricity_cooling_kwh']
-
         df.rename(columns=map_dict, inplace=True)
         return(df)
 
@@ -205,8 +197,8 @@ class res_results_csv_comparisons:
         self.feature_df[col] = self.feature_df[col].map(model_map)
 
         # Set Index
-        self.base_df = self.base_df.groupby(self.groupby).mean().reset_index()
-        self.feature_df = self.feature_df.groupby(self.groupby).mean().reset_index()
+        self.base_df_grp = self.base_df.groupby(self.groupby).mean().reset_index()
+        self.feature_df_grp = self.feature_df.groupby(self.groupby).mean().reset_index()
 
     def plot_failures(self):
         """
@@ -264,15 +256,15 @@ class res_results_csv_comparisons:
             }
 
         for new_col, old_cols in groups.items():
-            self.base_df[new_col] = self.base_df[old_cols].sum(axis=1)
-            self.feature_df[new_col] = self.feature_df[old_cols].sum(axis=1)
+            self.base_df_grp[new_col] = self.base_df_grp[old_cols].sum(axis=1)
+            self.feature_df_grp[new_col] = self.feature_df_grp[old_cols].sum(axis=1)
 
             for old_col in old_cols:
                 if new_col == old_col:
                     old_cols.remove(old_col)
 
-            self.base_df = self.base_df.drop(old_cols, axis = 1)
-            self.feature_df = self.feature_df.drop(old_cols, axis = 1)
+            self.base_df_grp = self.base_df_grp.drop(old_cols, axis = 1)
+            self.feature_df_grp = self.feature_df_grp.drop(old_cols, axis = 1)
 
             for old_col in old_cols:
                 self.saved_fields.remove(old_col)
@@ -286,15 +278,67 @@ class res_results_csv_comparisons:
         Scatterplot for each model type and simulation_outupt_report value.
         """
         # Copy DataFrames
-        base_df = self.base_df.copy()
-        feature_df = self.feature_df.copy()
+        base_df = self.base_df_grp.copy()
+        feature_df = self.feature_df_grp.copy()
 
         print('Plotting regression scatterplots...')
         colors = list(matplotlib.colors.get_named_colors_mapping().values())
+        fuel_uses = []
         for fuel_use in self.saved_fields:
             if not 'fuel_use' in fuel_use:
                 continue
+            fuel_uses.append(fuel_use)
+        
+        # Scatter Plots - Fuel Use, Grouped by State + Building Type
+        fig = make_subplots(rows=len(fuel_uses), cols=3, subplot_titles=model_types*len(fuel_uses), row_titles=[f'<b>{f}</b>' for f in fuel_uses], vertical_spacing = 0.05)
+        btype_col = 'build_existing_model.geometry_building_type_recs'
+        tmp_base_df = self.base_df.groupby(['build_existing_model.state', btype_col]).mean()
+        tmp_feature_df = self.feature_df.groupby(['build_existing_model.state', btype_col]).mean()
 
+        row = 0
+        for fuel_use in fuel_uses:
+            row += 1
+            for model_type in model_types:
+                col = model_types.index(model_type) + 1
+                showlegend = False
+                if col == 1 and row == 1:
+                    showlegend = True
+                
+                x = self.base_df.loc[self.base_df[btype_col] == model_type, :]
+                y = self.feature_df.loc[self.feature_df[btype_col] == model_type, :]
+                x = x.groupby('build_existing_model.state').mean()
+                y = y.groupby('build_existing_model.state').mean()
+
+                fig.add_trace(go.Scatter(x=x[fuel_use], y=y[fuel_use], marker=dict(size=15, color=colors[col-1]), mode='markers', name=fuel_use, legendgroup=fuel_use, showlegend=False), row=row, col=col)
+
+                min_value = 0
+                max_value = 0
+                if 0.9 * np.min([x[fuel_use].min(), y[fuel_use].min()]) < min_value:
+                            min_value = 0.9 * np.min([x[fuel_use].min(), y[fuel_use].min()])
+                if 1.1 * np.max([x[fuel_use].max(), y[fuel_use].max()]) > max_value:
+                            max_value = 1.1 * np.max([x[fuel_use].max(), y[fuel_use].max()])
+                fig.add_trace(go.Scatter(x=[min_value, max_value], y=[min_value, max_value], line=dict(color='black', dash='dash', width=1), mode='lines', showlegend=showlegend, name='0% Error'), row=row, col=col)
+                fig.add_trace(go.Scatter(x=[min_value, max_value], y=[0.9*min_value, 0.9*max_value], line=dict(color='black', dash='dashdot', width=1), mode='lines', showlegend=showlegend, name='+/- 10% Error'), row=row, col=col)
+                fig.add_trace(go.Scatter(x=[min_value, max_value], y=[1.1*min_value, 1.1*max_value], line=dict(color='black', dash='dashdot', width=1), mode='lines', showlegend=False), row=row, col=col)
+                
+                fig.update_xaxes(title_text=os.path.basename(f'{self.base_table_name} (base)'), row=row, col=col)
+                fig.update_yaxes(title_text=os.path.basename(f'{self.feature_table_name} (feature)'), row=row, col=col)
+
+        fig['layout'].update(title='Fuel Uses By State', template='plotly_white')
+        fig.update_layout(width=3600, height=1100*len(fuel_uses), autosize=False, font=dict(size=24))
+        for i in fig['layout']['annotations']:
+                if i['text'] in fuel_uses:
+                    i['font'] = dict(size=45)
+                else:
+                    i['font'] = dict(size=30)
+        if self.out_dir:
+            output_path = os.path.join(self.out_dir, 'comparisons', 'total_fuel_uses_by_state.svg')
+        else:
+            output_path = os.path.join(os.path.dirname(self.base_table_name), 'comparisons', 'Fuel_use_by_state.svg')
+        fig.write_image(output_path)
+
+        # Scatter Plots - End Use, Grouped by Building Type
+        for fuel_use in fuel_uses:
             fig = make_subplots(rows=1, cols=3, subplot_titles=model_types)
             for model_type in model_types:
                 # Get model specific data
@@ -329,7 +373,9 @@ class res_results_csv_comparisons:
 
                     fig.add_trace(go.Scatter(x=tmp_base_df[end_use], y=tmp_feature_df[end_use], marker=dict(size=15, color=colors[i]), mode='markers', name=end_use, legendgroup=end_use, showlegend=showlegend), row=1, col=col)
 
-                fig.add_trace(go.Scatter(x=[min_value, max_value], y=[min_value, max_value], line=dict(color='black', dash='dash', width=0.5), mode='lines', showlegend=False), row=1, col=col)
+                fig.add_trace(go.Scatter(x=[min_value, max_value], y=[min_value, max_value], line=dict(color='black', dash='dash', width=1), mode='lines', showlegend=showlegend, name='0% Error'), row=1, col=col)
+                fig.add_trace(go.Scatter(x=[min_value, max_value], y=[0.9*min_value, 0.9*max_value], line=dict(color='black', dash='dashdot', width=1), mode='lines', showlegend=showlegend, name='+/- 10% Error'), row=1, col=col)
+                fig.add_trace(go.Scatter(x=[min_value, max_value], y=[1.1*min_value, 1.1*max_value], line=dict(color='black', dash='dashdot', width=1), mode='lines', showlegend=False), row=1, col=col)
                 fig.update_xaxes(title_text=os.path.basename(f'{self.base_table_name} (base)'), row=1, col=col)
                 fig.update_yaxes(title_text=os.path.basename(f'{self.feature_table_name} (feature)'), row=1, col=col)
 
@@ -349,8 +395,8 @@ class res_results_csv_comparisons:
         Values for each model type and simulation_output_report value.
         """
         # Copy DataFrames
-        base_df = self.base_df.copy()
-        feature_df = self.feature_df.copy()
+        base_df = self.base_df_grp.copy()
+        feature_df = self.feature_df_grp.copy()
 
         base_df = base_df.set_index('build_existing_model.geometry_building_type_recs')[self.saved_fields]
         feature_df = feature_df.set_index('build_existing_model.geometry_building_type_recs')[self.saved_fields]
@@ -389,7 +435,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(epilog=f'Example usage (uses feature columns):\n{example_use}', formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument("base_table_name", help="Filepath to base results table", type=str)
     parser.add_argument("feature_table_name", help="Filepath to feature results table", type=str)
-    parser.add_argument("--use_cols", help="Which table's variable names to use (base or feature)", type=str)  # Only can map from old to new right now
+    parser.add_argument("--use_cols", help="Which table's variable names to use (base or feature)", type=str)  # Only can map from old (develop) to new (restructure) right now
     parser.add_argument("--out_dir", help="Filepath to output directory", type=str)
     args = parser.parse_args()
 
