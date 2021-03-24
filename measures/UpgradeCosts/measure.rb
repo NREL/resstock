@@ -269,6 +269,10 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
 
         cost_mult += slab.exposed_perimeter
       end
+    elsif cost_mult_type == 'Rim Joist Area, Above-Grade, Exterior (ft^2)'
+      hpxml.rim_joists.each do |rim_joist|
+        cost_mult += rim_joist.area
+      end
     end
     return cost_mult
   end # end get_cost_multiplier
