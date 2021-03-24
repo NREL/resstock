@@ -233,7 +233,7 @@ class UpgradeCostsTest < MiniTest::Test
     _test_cost_multipliers('SFD_2story_FB_UA_GRG_AC1_UnitHeater_FuelTankWH.osw', cost_multipliers)
   end
 
-  def test_SFD_2story_FB_UA_GRG_GSHP_ElecTanklessWH ###
+  def test_SFD_2story_FB_UA_GRG_GSHP_ElecTanklessWH
     cost_multipliers = {
       'Fixed (1)' => 1,
       'Wall Area, Above-Grade, Conditioned (ft^2)' => 139.0 + 96.0 * 4 + 326.0 * 2 + 235.0 * 2 + 422.0 * 2 + 331.0,
