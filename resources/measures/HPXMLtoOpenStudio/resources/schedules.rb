@@ -851,28 +851,48 @@ class ScheduleGenerator
     return building_id
   end
 
+  def self.col_names
+    return [
+      'occupants',
+      'lighting_interior',
+      'lighting_exterior',
+      'lighting_garage',
+      'lighting_exterior_holiday',
+      'cooking_range',
+      'refrigerator',
+      'extra_refrigerator',
+      'freezer',
+      'dishwasher',
+      'dishwasher_power',
+      'clothes_washer',
+      'clothes_washer_power',
+      'clothes_dryer',
+      'clothes_dryer_exhaust',
+      'baths',
+      'showers',
+      'sinks',
+      'ceiling_fan',
+      'plug_loads',
+      'plug_loads_vehicle',
+      'plug_loads_well_pump',
+      'fuel_loads_grill',
+      'fuel_loads_lighting',
+      'fuel_loads_fireplace',
+      'pool_pump',
+      'pool_heater',
+      'hot_tub_pump',
+      'hot_tub_heater',
+      'sleep',
+      'vacancy'
+    ]
+  end
+
   def initialize_schedules(num_ts:)
-    schedules = {
-      "occupants" => Array.new(num_ts, 0.0),
-      "cooking_range" => Array.new(num_ts, 0.0),
-      "plug_loads" => Array.new(num_ts, 0.0),
-      "lighting_interior" => Array.new(num_ts, 0.0),
-      "lighting_exterior" => Array.new(num_ts, 0.0),
-      "lighting_garage" => Array.new(num_ts, 0.0),
-      "lighting_exterior_holiday" => Array.new(num_ts, 0.0),
-      "clothes_washer" => Array.new(num_ts, 0.0),
-      "clothes_dryer" => Array.new(num_ts, 0.0),
-      "dishwasher" => Array.new(num_ts, 0.0),
-      "baths" => Array.new(num_ts, 0.0),
-      "showers" => Array.new(num_ts, 0.0),
-      "sinks" => Array.new(num_ts, 0.0),
-      "ceiling_fan" => Array.new(num_ts, 0.0),
-      "clothes_dryer_exhaust" => Array.new(num_ts, 0.0),
-      "clothes_washer_power" => Array.new(num_ts, 0.0),
-      "dishwasher_power" => Array.new(num_ts, 0.0),
-      "sleep" => Array.new(num_ts, 0.0),
-      "vacancy" => Array.new(num_ts, 0.0)
-    }
+    schedules = {}
+
+    ScheduleGenerator.col_names.each do |col_name|
+      schedules[col_name] = Array.new(num_ts, 0.0)
+    end
 
     # FIXME: need to initialize and default:
     # refrigerator
@@ -899,8 +919,27 @@ class ScheduleGenerator
 
   def create
     minutes_per_steps, steps_in_day, mkc_ts_per_day, mkc_ts_per_hour, @total_days_in_year = get_simulation_parameters
-    building_id = get_building_id
     @schedules = initialize_schedules(num_ts: @total_days_in_year * steps_in_day)
+
+    success = create_average_schedules
+    return false if not success
+
+    success = create_stochastic_schedules
+    return false if not success
+
+    success = set_vacancy(min_per_step: minutes_per_steps, sim_year: @model.getYearDescription.calendarYear.get)
+    return false if not success
+
+    return true
+  end
+
+  def create_average_schedules
+  
+  end
+
+  def create_stochastic_schedules
+    minutes_per_steps, steps_in_day, mkc_ts_per_day, mkc_ts_per_hour, @total_days_in_year = get_simulation_parameters
+    building_id = get_building_id
 
     # initialize a random number generator using building_id
     prng = Random.new(building_id)
@@ -1391,9 +1430,6 @@ class ScheduleGenerator
     @schedules["dishwasher_power"] = dw_power_sch.map { |power| power / Constants.PeakPower }
 
     @schedules["occupants"] = away_schedule.map { |i| 1.0 - i }
-
-    success = set_vacancy(min_per_step: minutes_per_steps, sim_year: sim_year)
-    return false if not success
 
     return true
   end
