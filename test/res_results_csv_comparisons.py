@@ -133,14 +133,6 @@ class res_results_csv_comparisons:
             if len(cols)>1:
                 df[map_to] = df[cols].sum(axis=1)
 
-        # Remove central systems from total site
-        # central_htg_cond = ((df['build_existing_model.hvac_has_shared_system'] == 'Heating and Cooling') |
-        #                     (df['build_existing_model.hvac_has_shared_system'] == 'Heating Only'))
-        # central_clg_cond = ((df['build_existing_model.hvac_has_shared_system'] == 'Heating and Cooling') |
-        #                     (df['build_existing_model.hvac_has_shared_system'] == 'Cooling Only'))
-        # df.loc[central_htg_cond, 'simulation_output_report.total_site_electricity_kwh'] -= df.loc[central_htg_cond,'simulation_output_report.electricity_heating_kwh']
-        # df.loc[central_clg_cond, 'simulation_output_report.total_site_electricity_kwh'] -= df.loc[central_clg_cond, 'simulation_output_report.electricity_cooling_kwh']
-
         df.rename(columns=map_dict, inplace=True)
         return(df)
 
@@ -329,7 +321,9 @@ class res_results_csv_comparisons:
 
                     fig.add_trace(go.Scatter(x=tmp_base_df[end_use], y=tmp_feature_df[end_use], marker=dict(size=15, color=colors[i]), mode='markers', name=end_use, legendgroup=end_use, showlegend=showlegend), row=1, col=col)
 
-                fig.add_trace(go.Scatter(x=[min_value, max_value], y=[min_value, max_value], line=dict(color='black', dash='dash', width=0.5), mode='lines', showlegend=False), row=1, col=col)
+                fig.add_trace(go.Scatter(x=[min_value, max_value], y=[min_value, max_value], line=dict(color='black', dash='dash', width=1), mode='lines', showlegend=showlegend, name='0% Error'), row=1, col=col)
+                fig.add_trace(go.Scatter(x=[min_value, max_value], y=[0.9*min_value, 0.9*max_value], line=dict(color='black', dash='dashdot', width=1), mode='lines', showlegend=showlegend, name='+/- 10% Error'), row=1, col=col)
+                fig.add_trace(go.Scatter(x=[min_value, max_value], y=[1.1*min_value, 1.1*max_value], line=dict(color='black', dash='dashdot', width=1), mode='lines', showlegend=False), row=1, col=col)
                 fig.update_xaxes(title_text=os.path.basename(f'{self.base_table_name} (base)'), row=1, col=col)
                 fig.update_yaxes(title_text=os.path.basename(f'{self.feature_table_name} (feature)'), row=1, col=col)
 
@@ -389,7 +383,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(epilog=f'Example usage (uses feature columns):\n{example_use}', formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument("base_table_name", help="Filepath to base results table", type=str)
     parser.add_argument("feature_table_name", help="Filepath to feature results table", type=str)
-    parser.add_argument("--use_cols", help="Which table's variable names to use (base or feature)", type=str)  # Only can map from old to new right now
+    parser.add_argument("--use_cols", help="Which table's variable names to use (base or feature)", type=str)  # Only can map from old (develop) to new (restructure) right now
     parser.add_argument("--out_dir", help="Filepath to output directory", type=str)
     args = parser.parse_args()
 
