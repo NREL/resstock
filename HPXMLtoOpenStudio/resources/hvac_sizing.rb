@@ -938,6 +938,7 @@ class HVACSizing
         length = slab.exposed_perimeter / 4.0 + Math.sqrt(sqrt_term) / 4.0
         width = slab.exposed_perimeter / 4.0 - Math.sqrt(sqrt_term) / 4.0
         w_b = [length, width].min
+        w_b = [w_b, 1.0].max # handle zero exposed perimeter
         u_avg_bf = (2.0 * k_soil / (Math::PI * w_b)) * (Math::log(w_b / 2.0 + z_f / 2.0 + (k_soil * r_other) / Math::PI) - Math::log(z_f / 2.0 + (k_soil * r_other) / Math::PI))
         u_value_mj8 = 0.85 * u_avg_bf
         bldg_design_loads.Heat_Slabs += u_value_mj8 * slab.area * @htd

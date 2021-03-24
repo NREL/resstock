@@ -162,6 +162,24 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
     puts
   end
 
+  def test_schematron_validation
+    # Check that the schematron file is valid
+
+    hpxml_stron_path = File.join(@root_path, 'HPXMLtoOpenStudio', 'resources', 'HPXMLvalidator.xml')
+
+    begin
+      require 'schematron-nokogiri'
+
+      [@stron_path, hpxml_stron_path].each do |s_path|
+        xml_doc = Nokogiri::XML(File.open(s_path)) do |config|
+          config.options = Nokogiri::XML::ParseOptions::STRICT
+        end
+        stron_doc = SchematronNokogiri::Schema.new(xml_doc)
+      end
+    rescue LoadError
+    end
+  end
+
   private
 
   def _test_schematron_validation(hpxml_doc, expected_error_msg = nil)
