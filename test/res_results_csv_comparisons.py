@@ -461,15 +461,25 @@ class res_results_csv_comparisons:
         feature_df = feature_df.stack()
 
         deltas = pd.DataFrame()
+        deltas.index.name = 'enduse'
         deltas['base'] = base_df
         deltas['feature'] = feature_df
         deltas['diff'] = deltas['feature'] - deltas['base']
         deltas['% diff'] = 100*(deltas['diff']/deltas['base'])
-        deltas = deltas.round(2)
+        deltas = deltas.round(2)                          
         
         deltas.reset_index('build_existing_model.geometry_building_type_recs', inplace=True)
         model_type_map = {'Single-Family Detached':'SFD', 'Single-Family Attached':'SFA', 'Multi-Family':'MF'}
         deltas['build_existing_model.geometry_building_type_recs'] = deltas['build_existing_model.geometry_building_type_recs'].map(model_type_map)
+
+        sims_df = pd.DataFrame({'build_existing_model.geometry_building_type_recs':'n/a',
+                                'base':len(self.base_df),
+                                'feature':len(self.feature_df),
+                                'diff':'n/a',
+                                '% diff':'n/a'},
+                                index=['simulation_count'])
+        deltas = pd.concat([sims_df, deltas])
+
         if self.out_dir:
             output_path = os.path.join(self.out_dir, 'comparisons', 'deltas.csv')
         else:
