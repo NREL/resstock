@@ -109,7 +109,7 @@ class res_results_csv_comparisons:
         # Get saved field names
         self.saved_fields = [col.split('.')[1] for col in self.common_result_columns]
 
-    def map_end_uses(self, df):
+    def map_end_uses(self, df_to_map, df_to_keep):
         print("Mapping end uses...")
         cwd = os.path.dirname(os.path.realpath(__file__))
         map_df = pd.read_csv(os.path.join(cwd, 'column_mapping.csv'), usecols=['restructure_cols','develop_cols'])
@@ -117,28 +117,35 @@ class res_results_csv_comparisons:
         map_dict = {k:v for k,v in zip(map_df['develop_cols'], map_df['restructure_cols'])}
 
         # Unit conversions
-        for col in df.columns:
+        for col in df_to_map.columns:
             units = col.split('_')[-1]
             if units == 'kwh':
                 if col == 'simulation_output_report.electricity_heating_supplemental_kwh':
-                    df[col] *= 3412.14/1000 # to kbtu
+                    df_to_map[col] *= 3412.14/1000 # to kbtu
                 else:
-                    df[col] *= 3412.14/1000000  # to mbtu
+                    df_to_map[col] *= 3412.14/1000000  # to mbtu
             elif units == 'therm':
-                df[col] *= 0.1  # to mbtu
+                df_to_map[col] *= 0.1  # to mbtu
 
         # Aggregate variables w/ multiple cols
         del_cols = []
         for cols, map_to in map_dict.items():
+            map_to_s = map_to.split(',')
+            if len(map_to_s) > 1: # Sum columns and use first parameter as col name
+                map_to = map_to_s[0]
+                df_to_keep[map_to] = df_to_keep[map_to_s].sum(axis=1)
+                map_dict[cols] = map_to
+                
             cols_s = cols.split(',')
             if len(cols_s)>1:
-                df[map_to] = df[cols_s].sum(axis=1)
+                df_to_map[map_to] = df_to_map[cols_s].sum(axis=1)
                 del_cols.append(cols)
+
         for col in del_cols:
             del map_dict[col]
 
-        df.rename(columns=map_dict, inplace=True)
-        return(df)
+        df_to_map.rename(columns=map_dict, inplace=True)
+        return(df_to_map, df_to_keep)
 
     def query_data(self):
         """
@@ -158,9 +165,9 @@ class res_results_csv_comparisons:
 
         # Map old columns to new columns
         if self.cols_to_use=='feature':
-            self.base_df = self.map_end_uses(self.base_df)
+            self.base_df, self.feature_df = self.map_end_uses(df_to_map=self.base_df, df_to_keep=self.feature_df)
         elif self.cols_to_use=='base':
-            self.feature_df = self.map_end_uses(self.feature_df)
+            self.feature_df, self.base_df = self.map_end_uses(df_to_map=self.feature_df, df_to_keep=self.base_df)
 
     def format_queried_data(self):
         """
