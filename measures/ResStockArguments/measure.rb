@@ -241,10 +241,18 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     args_to_delete = args.keys - arg_names # these are the extra ones added in the arguments section
 
     # Plug Loads
-    args['plug_loads_television_usage_multiplier'] *= args['plug_loads_television_usage_multiplier_2']
+    args['plug_loads_television_usage_multiplier'] *= 0.0 # "other" now accounts for television
     args['plug_loads_other_usage_multiplier'] *= args['plug_loads_other_usage_multiplier_2']
     args['plug_loads_well_pump_usage_multiplier'] *= args['plug_loads_well_pump_usage_multiplier_2']
     args['plug_loads_vehicle_usage_multiplier'] *= args['plug_loads_vehicle_usage_multiplier_2']
+
+    if [HPXML::ResidentialTypeSFD].include?(args['geometry_unit_type'])
+      args['plug_loads_other_annual_kwh'] = (1146.95 + 296.94 * Float(args['geometry_num_occupants']) + 0.3 * args['geometry_cfa']) * args['plug_loads_other_usage_multiplier'] # RECS 2015
+    elsif [HPXML::ResidentialTypeSFA].include?(args['geometry_unit_type'])
+      args['plug_loads_other_annual_kwh'] = (1395.84 + 136.53 * Float(args['geometry_num_occupants']) + 0.16 * args['geometry_cfa']) * args['plug_loads_other_usage_multiplier'] # RECS 2015
+    elsif [HPXML::ResidentialTypeApartment].include?(args['geometry_unit_type'])
+      args['plug_loads_other_annual_kwh'] = (875.22 + 184.11 * Float(args['geometry_num_occupants']) + 0.38 * args['geometry_cfa']) * args['plug_loads_other_usage_multiplier'] # RECS 2015
+    end
 
     # Setpoints
     weekday_heating_setpoints = [args['setpoint_heating_weekday_temp']] * 24
