@@ -246,12 +246,18 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     args['plug_loads_well_pump_usage_multiplier'] *= args['plug_loads_well_pump_usage_multiplier_2']
     args['plug_loads_vehicle_usage_multiplier'] *= args['plug_loads_vehicle_usage_multiplier_2']
 
+    if args['geometry_num_occupants'] == Constants.Auto
+      args['geometry_num_occupants'] = Geometry.get_occupancy_default_num(args['geometry_num_bedrooms'])
+    else
+      args['geometry_num_occupants'] = Integer(args['geometry_num_occupants'])
+    end
+
     if [HPXML::ResidentialTypeSFD].include?(args['geometry_unit_type'])
-      args['plug_loads_other_annual_kwh'] = (1146.95 + 296.94 * Float(args['geometry_num_occupants']) + 0.3 * args['geometry_cfa']) * args['plug_loads_other_usage_multiplier'] # RECS 2015
+      args['plug_loads_other_annual_kwh'] = (1146.95 + 296.94 * args['geometry_num_occupants'] + 0.3 * args['geometry_cfa']) * args['plug_loads_other_usage_multiplier'] # RECS 2015
     elsif [HPXML::ResidentialTypeSFA].include?(args['geometry_unit_type'])
-      args['plug_loads_other_annual_kwh'] = (1395.84 + 136.53 * Float(args['geometry_num_occupants']) + 0.16 * args['geometry_cfa']) * args['plug_loads_other_usage_multiplier'] # RECS 2015
+      args['plug_loads_other_annual_kwh'] = (1395.84 + 136.53 * args['geometry_num_occupants'] + 0.16 * args['geometry_cfa']) * args['plug_loads_other_usage_multiplier'] # RECS 2015
     elsif [HPXML::ResidentialTypeApartment].include?(args['geometry_unit_type'])
-      args['plug_loads_other_annual_kwh'] = (875.22 + 184.11 * Float(args['geometry_num_occupants']) + 0.38 * args['geometry_cfa']) * args['plug_loads_other_usage_multiplier'] # RECS 2015
+      args['plug_loads_other_annual_kwh'] = (875.22 + 184.11 * args['geometry_num_occupants'] + 0.38 * args['geometry_cfa']) * args['plug_loads_other_usage_multiplier'] # RECS 2015
     end
 
     # Setpoints
