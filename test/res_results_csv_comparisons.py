@@ -135,7 +135,7 @@ class res_results_csv_comparisons:
                 map_to = map_to_s[0]
                 df_to_keep[map_to] = df_to_keep[map_to_s].sum(axis=1)
                 map_dict[cols] = map_to
-                
+
             cols_s = cols.split(',')
             if len(cols_s)>1:
                 df_to_map[map_to] = df_to_map[cols_s].sum(axis=1)
@@ -315,41 +315,45 @@ class res_results_csv_comparisons:
         colors = list(matplotlib.colors.get_named_colors_mapping().values())
         btype_col = 'build_existing_model.geometry_building_type_recs'
         
-        ## Scatter Plots - 1:1 Electricity End uses
-        end_uses = []
-        for end_use in self.saved_fields:
-            if not 'electricity' in end_use:
-                continue
-            end_uses.append(end_use)
+        ## Scatter Plots - 1:1 Electricity and Geometry
+        cols_dict = {'electricity': [], 'natural gas': [], 'geometry':[]}
+        for col in self.saved_fields:
+            if 'electricity' in col:
+                cols_dict['electricity'].append(col)
+            elif 'natural_gas' in col:
+                cols_dict['natural gas'].append(col)
+            elif '_ft' in col:
+                cols_dict['geometry'].append(col)
+              
+        for category, end_uses in cols_dict.items():
+            fig = make_subplots(rows=len(end_uses), cols=3, subplot_titles=model_types*len(end_uses), row_titles=[f'<b>{f}</b>' for f in end_uses], vertical_spacing = 0.015)
+            row = 0
+            for end_use in end_uses:
+                row += 1
+                for model_type in model_types:
+                    col = model_types.index(model_type) + 1
+                    showlegend = False
+                    if col == 1 and row == 1: showlegend = True
+                
+                    x = self.base_df.loc[self.base_df[btype_col] == model_type, :]
+                    y = self.feature_df.loc[self.feature_df[btype_col] == model_type, :]
 
-        fig = make_subplots(rows=len(end_uses), cols=3, subplot_titles=model_types*len(end_uses), row_titles=[f'<b>{f}</b>' for f in end_uses], vertical_spacing = 0.01)
-        row = 0
-        for end_use in end_uses:
-            row += 1
-            for model_type in model_types:
-                col = model_types.index(model_type) + 1
-                showlegend = False
-                if col == 1 and row == 1: showlegend = True
+                    fig.add_trace(go.Scatter(x=x[end_use], y=y[end_use], marker=dict(size=15, color=colors[col-1]), mode='markers', name=end_use, legendgroup=end_use, showlegend=False), row=row, col=col)
             
-                x = self.base_df.loc[self.base_df[btype_col] == model_type, :]
-                y = self.feature_df.loc[self.feature_df[btype_col] == model_type, :]
+                    min_value, max_value = get_min_max(x[end_use], y[end_use], 0, 0)
+                    add_error_lines(fig, showlegend, row, col, min_value, max_value)
+                    fig.update_xaxes(title_text=os.path.basename(f'{self.base_table_name} (base)'), row=row, col=col)
+                    fig.update_yaxes(title_text=os.path.basename(f'{self.feature_table_name} (feature)'), row=row, col=col)
 
-                fig.add_trace(go.Scatter(x=x[end_use], y=y[end_use], marker=dict(size=15, color=colors[col-1]), mode='markers', name=end_use, legendgroup=end_use, showlegend=False), row=row, col=col)
-        
-                min_value, max_value = get_min_max(x[end_use], y[end_use], 0, 0)
-                add_error_lines(fig, showlegend, row, col, min_value, max_value)
-                fig.update_xaxes(title_text=os.path.basename(f'{self.base_table_name} (base)'), row=row, col=col)
-                fig.update_yaxes(title_text=os.path.basename(f'{self.feature_table_name} (feature)'), row=row, col=col)
-
-        fig['layout'].update(title='Electricity Enduses', template='plotly_white')
-        fig.update_layout(width=3600, height=1100*len(end_uses), autosize=False, font=dict(size=24))
-        for i in fig['layout']['annotations']:
-            i['font'] = dict(size=45) if i['text'] in end_uses else dict(size=30)
-        if self.out_dir:
-            output_path = os.path.join(self.out_dir, 'comparisons', 'endsuses_electricity.svg')
-        else:
-            output_path = os.path.join(os.path.dirname(self.base_table_name), 'comparisons', 'endsuses_electricity.svg')
-        fig.write_image(output_path)
+            fig['layout'].update(title=f'{category} enduses', template='plotly_white')
+            fig.update_layout(width=3600, height=1100*len(end_uses), autosize=False, font=dict(size=24))
+            for i in fig['layout']['annotations']:
+                i['font'] = dict(size=45) if i['text'] in end_uses else dict(size=30)
+            if self.out_dir:
+                output_path = os.path.join(self.out_dir, 'comparisons', f'enduses_{category}.svg')
+            else:
+                output_path = os.path.join(os.path.dirname(self.base_table_name), 'comparisons', f'enduses_{category}.svg')
+            fig.write_image(output_path)
 
         ## Scatter Plots - Average Fuel Use, Grouped by State + Building Type
         fuel_uses = []
