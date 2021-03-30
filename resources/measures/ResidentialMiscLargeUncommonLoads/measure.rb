@@ -653,7 +653,7 @@ class ResidentialMiscLargeUncommonLoads < OpenStudio::Measure::ModelMeasure
           unit_obj_name = Constants.ObjectNameExtraRefrigerator(unit.name.to_s)
           success, ann_e, fridge_sch = MiscLoads.apply_electric(model, unit, runner, fridge_rated_annual_energy, fridge_mult,
                                                                 fridge_weekday_sch, fridge_weekend_sch, fridge_monthly_sch,
-                                                                fridge_sch, space, unit_obj_name, false)
+                                                                fridge_sch, space, unit_obj_name, false, nil)
 
           return false if not success
 
@@ -676,7 +676,7 @@ class ResidentialMiscLargeUncommonLoads < OpenStudio::Measure::ModelMeasure
           unit_obj_name = Constants.ObjectNameFreezer(unit.name.to_s)
           success, ann_e, freezer_sch = MiscLoads.apply_electric(model, unit, runner, freezer_rated_annual_energy, freezer_mult,
                                                                  freezer_weekday_sch, freezer_weekend_sch, freezer_monthly_sch,
-                                                                 freezer_sch, space, unit_obj_name, false)
+                                                                 freezer_sch, space, unit_obj_name, false, nil)
 
           return false if not success
 
@@ -697,7 +697,7 @@ class ResidentialMiscLargeUncommonLoads < OpenStudio::Measure::ModelMeasure
         success, ann_e, pool_sch = MiscLoads.apply_electric(model, unit, runner, pool_heater_elec_annual_energy,
                                                             pool_heater_elec_mult, pool_weekday_sch, pool_weekend_sch,
                                                             pool_monthly_sch, pool_sch, nil, unit_obj_name,
-                                                            pool_scale_energy)
+                                                            pool_scale_energy, nil)
 
         return false if not success
 
@@ -716,7 +716,7 @@ class ResidentialMiscLargeUncommonLoads < OpenStudio::Measure::ModelMeasure
         success, ann_g, pool_sch = MiscLoads.apply_gas(model, unit, runner, pool_heater_gas_annual_energy,
                                                        pool_heater_gas_mult, pool_weekday_sch, pool_weekend_sch,
                                                        pool_monthly_sch, pool_sch, nil, unit_obj_name,
-                                                       pool_scale_energy)
+                                                       pool_scale_energy, nil)
 
         return false if not success
 
@@ -735,7 +735,7 @@ class ResidentialMiscLargeUncommonLoads < OpenStudio::Measure::ModelMeasure
         success, ann_e, pool_sch = MiscLoads.apply_electric(model, unit, runner, pool_pump_annual_energy,
                                                             pool_pump_mult, pool_weekday_sch, pool_weekend_sch,
                                                             pool_monthly_sch, pool_sch, nil, unit_obj_name,
-                                                            pool_scale_energy)
+                                                            pool_scale_energy, nil)
 
         return false if not success
 
@@ -754,7 +754,7 @@ class ResidentialMiscLargeUncommonLoads < OpenStudio::Measure::ModelMeasure
         success, ann_e, hot_tub_sch = MiscLoads.apply_electric(model, unit, runner, hot_tub_heater_elec_annual_energy,
                                                                hot_tub_heater_elec_mult, hot_tub_weekday_sch,
                                                                hot_tub_weekend_sch, hot_tub_monthly_sch, hot_tub_sch,
-                                                               nil, unit_obj_name, hot_tub_scale_energy)
+                                                               nil, unit_obj_name, hot_tub_scale_energy, nil)
 
         return false if not success
 
@@ -773,7 +773,7 @@ class ResidentialMiscLargeUncommonLoads < OpenStudio::Measure::ModelMeasure
         success, ann_g, hot_tub_sch = MiscLoads.apply_gas(model, unit, runner, hot_tub_heater_gas_annual_energy,
                                                           hot_tub_heater_gas_mult, hot_tub_weekday_sch,
                                                           hot_tub_weekend_sch, hot_tub_monthly_sch, hot_tub_sch,
-                                                          nil, unit_obj_name, hot_tub_scale_energy)
+                                                          nil, unit_obj_name, hot_tub_scale_energy, nil)
 
         return false if not success
 
@@ -791,7 +791,7 @@ class ResidentialMiscLargeUncommonLoads < OpenStudio::Measure::ModelMeasure
         unit_obj_name = Constants.ObjectNameHotTubPump(unit.name.to_s)
         success, ann_e, hot_tub_sch = MiscLoads.apply_electric(model, unit, runner, hot_tub_pump_annual_energy, hot_tub_pump_mult,
                                                                hot_tub_weekday_sch, hot_tub_weekend_sch, hot_tub_monthly_sch,
-                                                               hot_tub_sch, nil, unit_obj_name, hot_tub_scale_energy)
+                                                               hot_tub_sch, nil, unit_obj_name, hot_tub_scale_energy, nil)
 
         return false if not success
 

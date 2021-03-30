@@ -144,20 +144,22 @@ class MiscLoads
         # Create schedule
         if unit_obj_name.include? Constants.ObjectNameElectricVehicle
           col_name = "plug_loads_vehicle"
-          sch = schedules_file.create_schedule_file(col_name: col_name)
-          design_level = schedules_file.calc_design_level_from_daily_kwh(col_name: col_name, daily_kwh: ann_e / num_days_in_year)
         elsif unit_obj_name.include? Constants.ObjectNameWellPump
           col_name = "plug_loads_well_pump"
-          sch = schedules_file.create_schedule_file(col_name: col_name)
-          design_level = schedules_file.calc_design_level_from_daily_kwh(col_name: col_name, daily_kwh: ann_e / num_days_in_year)
         else
           sch = MonthWeekdayWeekendSchedule.new(model, runner, unit_obj_name + " schedule", weekday_sch, weekend_sch, monthly_sch, mult_weekday = 1.0, mult_weekend = 1.0, normalize_values = true, create_sch_object = true, winter_design_day_sch, summer_design_day_sch)
           if not sch.validated?
             return false
           end
-          design_level = sch.calcDesignLevelFromDailykWh(ann_e / num_days_in_year)
-          sch = sch.schedule
         end
+      end
+
+      if schedules_file.nil?
+        design_level = sch.calcDesignLevelFromDailykWh(ann_e / num_days_in_year)
+        schedule = sch.schedule
+      else
+        design_level = schedules_file.calc_design_level_from_daily_kwh(col_name: col_name, daily_kwh: ann_e / num_days_in_year)
+        schedule = schedules_file.create_schedule_file(col_name: col_name)
       end
 
       # Add electric equipment for the load
@@ -181,7 +183,7 @@ class MiscLoads
       load_def.setFractionLatent(0)
       load_def.setName(unit_obj_name)
       load_def.setDesignLevel(design_level)
-      load.setSchedule(sch)
+      load.setSchedule(schedule)
 
     end
 
@@ -246,24 +248,24 @@ class MiscLoads
         # Create schedule
         if unit_obj_name.include? Constants.ObjectNameGasGrill
           col_name = "fuel_loads_grill"
-          sch = schedules_file.create_schedule_file(col_name: col_name)
-          design_level = schedules_file.calc_design_level_from_daily_therm(col_name: col_name, daily_therm: ann_g / num_days_in_year)
         elsif unit_obj_name.include? Constants.ObjectNameGasLighting
           col_name = "fuel_loads_lighting"
-          sch = schedules_file.create_schedule_file(col_name: col_name)
-          design_level = schedules_file.calc_design_level_from_daily_therm(col_name: col_name, daily_therm: ann_g / num_days_in_year)
         elsif unit_obj_name.include? Constants.ObjectNameGasFireplace
           col_name = "fuel_loads_fireplace"
-          sch = schedules_file.create_schedule_file(col_name: col_name)
-          design_level = schedules_file.calc_design_level_from_daily_therm(col_name: col_name, daily_therm: ann_g / num_days_in_year)
         else
           sch = MonthWeekdayWeekendSchedule.new(model, runner, unit_obj_name + " schedule", weekday_sch, weekend_sch, monthly_sch, mult_weekday = 1.0, mult_weekend = 1.0, normalize_values = true, create_sch_object = true, winter_design_day_sch, summer_design_day_sch)
           if not sch.validated?
             return false
           end
-          design_level = sch.calcDesignLevelFromDailyTherm(ann_g / num_days_in_year)
-          sch = sch.schedule
         end
+      end
+
+      if schedules_file.nil?
+        design_level = sch.calcDesignLevelFromDailyTherm(ann_g / num_days_in_year)
+        schedule = sch.schedule
+      else
+        design_level = schedules_file.calc_design_level_from_daily_therm(col_name: col_name, daily_therm: ann_g / num_days_in_year)
+        schedule = schedules_file.create_schedule_file(col_name: col_name)
       end
 
       # Add gas equipment for the load
@@ -287,7 +289,7 @@ class MiscLoads
       load_def.setFractionLatent(0)
       load_def.setName(unit_obj_name)
       load_def.setDesignLevel(design_level)
-      load.setSchedule(sch)
+      load.setSchedule(schedule)
 
     end
 
