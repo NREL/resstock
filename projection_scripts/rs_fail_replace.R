@@ -19,11 +19,11 @@ rm_dot2<-function(df) {
 }
 
 bs<-read.csv("../scen_bscsv/bs2020_180k.csv")
-failed<-read.csv("../Eagle_outputs/results_2020.csv")
+failed<-read.csv("../Eagle_outputs/RawResults/results_2020.csv")
 fail<-failed[failed$completed_status=="Fail",]
 f<-fail$building_id
 
-success<-read.csv("../Eagle_outputs/res_2020_fail_success.csv")
+success<-read.csv("../Eagle_outputs/RawResults/res_2020_fail_success.csv")
 f2<-success$building_id
 
 fr <- f[which(f %in% f2 == FALSE)]
@@ -54,30 +54,45 @@ table(bspumaTX$County,bspumaTX$Geometry.Building.Type.RECS)
 
 # puma0<-failed[failed$build_existing_model.puma=="TX, 02600",]
 
-TX_repl_SF<-failed[failed$build_existing_model.county %in% c("TX, Scurry County","TX, Mitchell County") & failed$build_existing_model.geometry_building_type_recs=="Single-Family Detached",]
+# TX_repl_SF<-failed[failed$build_existing_model.county %in% c("TX, Scurry County","TX, Mitchell County") & failed$build_existing_model.geometry_building_type_recs=="Single-Family Detached",]
+# TX_repl_SF<-failed[failed$build_existing_model.county %in% c("TX, Scurry County") & failed$build_existing_model.geometry_building_type_recs=="Single-Family Detached",]
+# TX_repl_MH<-failed[failed$build_existing_model.county %in% c("TX, Scurry County") & failed$build_existing_model.geometry_building_type_recs=="Single-Family Detached",]
+
+TX_repl_SF<-failed[failed$build_existing_model.puma == "TX, 02600" & failed$build_existing_model.ashrae_iecc_climate_zone_2004 =="3B" & failed$build_existing_model.geometry_building_type_recs=="Single-Family Detached",]
 TX_repl_MH<-failed[failed$build_existing_model.puma == "TX, 02600" & failed$build_existing_model.ashrae_iecc_climate_zone_2004 =="3B" & failed$build_existing_model.geometry_building_type_recs=="Mobile Home",]
 
-for (r in 1:length(fr)) {
+failrep<-data.frame(fail=fr,replace=0)
+failrep$Type<-bs[fr,]$Geometry.Building.Type.RECS
+failrep$Vintage<-bs[fr,]$Vintage
+failrep$FA<-bs[fr,]$Geometry.Floor.Area
+failrep$HeatFuel<-bs[fr,]$Heating.Fuel
 
-rs_fail<-failed[fr[r],]
-if (bs[bs$Building==rs_fail$building_id,]$Geometry.Building.Type.RECS %in% c("Single-Family Detached","Single-Family Attached")) {
-  rns<-sample(1:nrow(TX_repl_SF),1)
-  rs_fail[,5:204]<-TX_repl_SF[rns,5:204]
-  rs_fail$build_existing_model.county<-bs[bs$Building==rs_fail$building_id,]$County
-}
+# use these FEW queries to find appropriate replacements
+TX_repl_SF$building_id[which(TX_repl_SF$build_existing_model.vintage=="1950s"  & TX_repl_SF$build_existing_model.geometry_floor_area=="1000-1499" & TX_repl_SF$build_existing_model.heating_fuel=="Natural Gas")]
 
-if (bs[bs$Building==rs_fail$building_id,]$Geometry.Building.Type.RECS %in% c("Mobile Home")) {
-  rns<-sample(1:nrow(TX_repl_MH),1)
-  rs_fail[,5:204]<-TX_repl_MH[rns,5:204]
-  rs_fail$build_existing_model.county<-bs[bs$Building==rs_fail$building_id,]$County
-}
+TX_repl_SF[TX_repl_SF$building_id==120433,c("build_existing_model.vintage","build_existing_model.geometry_floor_area","build_existing_model.heating_fuel","build_existing_model.water_heater_fuel")]
 
-# failr[failr$building_id==fr[r],]<-rs_fail
-# fail[fail$building_id==fr[r],]<-rs_fail
-failed[failed$building_id==fr[r],]<-rs_fail
+TX_repl_MH[TX_repl_MH$building_id==22459,c("build_existing_model.vintage","build_existing_model.geometry_floor_area","build_existing_model.heating_fuel")]
+
+
+failrep$replace<-c(26009,22459,141434,17128,145756,5031,120433,96358,69365,138402,120433)
+save(failrep,file="../Intermediate_results/FailReplace.RData")
+for (r in 1:nrow(failrep)) {
+
+  failed[failrep$fail[r],5:204]<-failed[failrep$replace[r],5:204]
+  failed[failrep$fail[r],"build_existing_model.county"]<-failedTX$County[r]
 }
 
 fail_fixed2<-failed[f,]
+# some extra checks
+table(fail_fixed2$build_existing_model.vintage)
+table(bs[f,]$Vintage)
+
+table(fail_fixed2$build_existing_model.geometry_floor_area) # not exact, but close
+table(bs[f,]$Geometry.Floor.Area)
+
+table(fail_fixed2$build_existing_model.heating_fuel) # not exact, but close
+table(bs[f,]$Heating.Fuel)
 
 failed_save<-rm_dot2(failed)
 
@@ -85,25 +100,25 @@ write.csv(failed_save,file="../Eagle_outputs/res_2020_complete.csv",row.names = 
 
 # now do the same for the RR_2030 sims ####
 
-rm(list=ls()) # clear workspace i.e. remove saved variables
-cat("\014") # clear console
-rm_dot2<-function(df) {
-  cn<-names(df)
-  cn<-gsub("Dependency.", "Dependency=",cn)
-  cn<-gsub("Option..1940", "Option=<1940",cn)
-  cn<-gsub("Option.", "Option=",cn)
-  cn<-gsub("\\.", " ",cn)
-  cn<-gsub("Single.","Single-",cn)
-  names(df)<-cn
-  df
-}
+# rm(list=ls()) # clear workspace i.e. remove saved variables
+# cat("\014") # clear console
+# rm_dot2<-function(df) {
+#   cn<-names(df)
+#   cn<-gsub("Dependency.", "Dependency=",cn)
+#   cn<-gsub("Option..1940", "Option=<1940",cn)
+#   cn<-gsub("Option.", "Option=",cn)
+#   cn<-gsub("\\.", " ",cn)
+#   cn<-gsub("Single.","Single-",cn)
+#   names(df)<-cn
+#   df
+# }
 
 bs<-read.csv("../scen_bscsv_sim/bs_RR_2030.csv")
-failed<-read.csv("../Eagle_outputs/res_RR_2030.csv")
+failed<-read.csv("../Eagle_outputs/RawResults/res_RR_2030.csv")
 fail<-failed[failed$completed_status=="Fail",]
 f<-fail$building_id
 
-success<-read.csv("../Eagle_outputs/res_RR_2030_fail_success.csv")
+success<-read.csv("../Eagle_outputs/RawResults/res_RR_2030_fail_success.csv")
 f2<-success$building_id
 
 fr <- f[which(f %in% f2 == FALSE)]
@@ -122,40 +137,47 @@ for (j in 1:nrow(success)) {
 }
 
 fail_fixed<-failed[which(failed$building_id %in% f),]
-# Now fix the TX sims ########
-failedTX<-bs[bs$County %in% c("TX, Fisher County", "TX, Nolan County","TX, Stonewall County"),]
-# check that all the remaining failed simulations are from the three TX counties with no weather files
-all.equal(failedTX$Building, fr)
-# see all the sim outputs (fail and success) from TX, 02600 & CZ 3B
-# pumaTX<-failed[failed$build_existing_model.puma=="TX, 02600" & failed$build_existing_model.ashrae_iecc_climate_zone_2004=="3B",]
+# # Now fix the TX sims ######## skipping this for now, it will be done in replacing the complete renovation history in the RS_results
+# failedTX<-bs[bs$County %in% c("TX, Fisher County", "TX, Nolan County","TX, Stonewall County"),]
+# # check that all the remaining failed simulations are from the three TX counties with no weather files
+# all.equal(failedTX$Building, fr)
+# 
+# for (r in 1:length(fr)) {
+#   
+#   if (which(failed$building_id==failrep[which(failrep$fail==fr[r]),]$replace)>0) {
+#   failed[which(failed$building_id==failrep[which(failrep$fail==fr[r]),]$fail),5:204]<-failed[which(failed$building_id==failrep[which(failrep$fail==fr[r]),]$replace),5:204]
+#   failed[which(failed$building_id==failrep$fail[r]),"build_existing_model.county"]<-failedTX$County[r]
+#   } else 
+#   
+# }
 
-bspumaTX<-bs[bs$PUMA=="TX, 02600" & bs$ASHRAE.IECC.Climate.Zone.2004=="3B",]
-table(bspumaTX$County,bspumaTX$Geometry.Building.Type.RECS)
-
-# puma0<-failed[failed$build_existing_model.puma=="TX, 02600",]
-
-TX_repl_SF<-failed[failed$build_existing_model.county %in% c("TX, Scurry County","TX, Mitchell County") & failed$build_existing_model.geometry_building_type_recs=="Single-Family Detached",]
-TX_repl_MH<-failed[failed$build_existing_model.puma == "TX, 02600" & failed$build_existing_model.ashrae_iecc_climate_zone_2004 =="3B" & failed$build_existing_model.geometry_building_type_recs=="Mobile Home",]
-
-for (r in 1:length(fr)) {
-  
-  rs_fail<-failed[failed$building_id==fr[r],]
-  if (bs[bs$Building==rs_fail$building_id,]$Geometry.Building.Type.RECS %in% c("Single-Family Detached","Single-Family Attached")) {
-    rns<-sample(1:nrow(TX_repl_SF),1)
-    rs_fail[,5:204]<-TX_repl_SF[rns,5:204]
-    rs_fail$build_existing_model.county<-bs[bs$Building==rs_fail$building_id,]$County
-  }
-  
-  if (bs[bs$Building==rs_fail$building_id,]$Geometry.Building.Type.RECS %in% c("Mobile Home")) {
-    rns<-sample(1:nrow(TX_repl_MH),1)
-    rs_fail[,5:204]<-TX_repl_MH[rns,5:204]
-    rs_fail$build_existing_model.county<-bs[bs$Building==rs_fail$building_id,]$County
-  }
-  
-  # failr[failr$building_id==fr[r],]<-rs_fail
-  # fail[fail$building_id==fr[r],]<-rs_fail
-  failed[failed$building_id==fr[r],]<-rs_fail
-}
+# bspumaTX<-bs[bs$PUMA=="TX, 02600" & bs$ASHRAE.IECC.Climate.Zone.2004=="3B",]
+# table(bspumaTX$County,bspumaTX$Geometry.Building.Type.RECS)
+# 
+# # puma0<-failed[failed$build_existing_model.puma=="TX, 02600",]
+# 
+# TX_repl_SF<-failed[failed$build_existing_model.county %in% c("TX, Scurry County","TX, Mitchell County") & failed$build_existing_model.geometry_building_type_recs=="Single-Family Detached",]
+# TX_repl_MH<-failed[failed$build_existing_model.puma == "TX, 02600" & failed$build_existing_model.ashrae_iecc_climate_zone_2004 =="3B" & failed$build_existing_model.geometry_building_type_recs=="Mobile Home",]
+# 
+# for (r in 1:length(fr)) {
+#   
+#   rs_fail<-failed[failed$building_id==fr[r],]
+#   if (bs[bs$Building==rs_fail$building_id,]$Geometry.Building.Type.RECS %in% c("Single-Family Detached","Single-Family Attached")) {
+#     rns<-sample(1:nrow(TX_repl_SF),1)
+#     rs_fail[,5:204]<-TX_repl_SF[rns,5:204]
+#     rs_fail$build_existing_model.county<-bs[bs$Building==rs_fail$building_id,]$County
+#   }
+#   
+#   if (bs[bs$Building==rs_fail$building_id,]$Geometry.Building.Type.RECS %in% c("Mobile Home")) {
+#     rns<-sample(1:nrow(TX_repl_MH),1)
+#     rs_fail[,5:204]<-TX_repl_MH[rns,5:204]
+#     rs_fail$build_existing_model.county<-bs[bs$Building==rs_fail$building_id,]$County
+#   }
+#   
+#   # failr[failr$building_id==fr[r],]<-rs_fail
+#   # fail[fail$building_id==fr[r],]<-rs_fail
+#   failed[failed$building_id==fr[r],]<-rs_fail
+# }
 
 fail_fixed2<-failed[which(failed$building_id %in% f),]
 
@@ -165,25 +187,25 @@ write.csv(failed_save,file="../Eagle_outputs/res_RR_2030_complete.csv",row.names
 
 # now do the same for the RR_2060 sims ####
 
-rm(list=ls()) # clear workspace i.e. remove saved variables
-cat("\014") # clear console
-rm_dot2<-function(df) {
-  cn<-names(df)
-  cn<-gsub("Dependency.", "Dependency=",cn)
-  cn<-gsub("Option..1940", "Option=<1940",cn)
-  cn<-gsub("Option.", "Option=",cn)
-  cn<-gsub("\\.", " ",cn)
-  cn<-gsub("Single.","Single-",cn)
-  names(df)<-cn
-  df
-}
+# rm(list=ls()) # clear workspace i.e. remove saved variables
+# cat("\014") # clear console
+# rm_dot2<-function(df) {
+#   cn<-names(df)
+#   cn<-gsub("Dependency.", "Dependency=",cn)
+#   cn<-gsub("Option..1940", "Option=<1940",cn)
+#   cn<-gsub("Option.", "Option=",cn)
+#   cn<-gsub("\\.", " ",cn)
+#   cn<-gsub("Single.","Single-",cn)
+#   names(df)<-cn
+#   df
+# }
 
 bs<-read.csv("../scen_bscsv_sim/bs_RR_2060.csv")
-failed<-read.csv("../Eagle_outputs/res_RR_2060.csv")
+failed<-read.csv("../Eagle_outputs/RawResults/res_RR_2060.csv")
 fail<-failed[failed$completed_status=="Fail",]
 f<-fail$building_id
 
-success<-read.csv("../Eagle_outputs/res_RR_2060_fail_success.csv")
+success<-read.csv("../Eagle_outputs/RawResults/res_RR_2060_fail_success.csv")
 f2<-success$building_id
 
 fr <- f[which(f %in% f2 == FALSE)]
@@ -203,39 +225,39 @@ for (j in 1:nrow(success)) {
 
 fail_fixed<-failed[which(failed$building_id %in% f),]
 # Now fix the TX sims ########
-failedTX<-bs[bs$County %in% c("TX, Fisher County", "TX, Nolan County","TX, Stonewall County"),]
-# check that all the remaining failed simulations are from the three TX counties with no weather files
-all.equal(failedTX$Building, fr)
-# see all the sim outputs (fail and success) from TX, 02600 & CZ 3B
-# pumaTX<-failed[failed$build_existing_model.puma=="TX, 02600" & failed$build_existing_model.ashrae_iecc_climate_zone_2004=="3B",]
-
-bspumaTX<-bs[bs$PUMA=="TX, 02600" & bs$ASHRAE.IECC.Climate.Zone.2004=="3B",]
-table(bspumaTX$County,bspumaTX$Geometry.Building.Type.RECS)
-
-# puma0<-failed[failed$build_existing_model.puma=="TX, 02600",]
-
-TX_repl_SF<-failed[failed$build_existing_model.county %in% c("TX, Scurry County","TX, Mitchell County") & failed$build_existing_model.geometry_building_type_recs=="Single-Family Detached",]
-TX_repl_MH<-failed[failed$build_existing_model.puma == "TX, 02600" & failed$build_existing_model.ashrae_iecc_climate_zone_2004 =="3B" & failed$build_existing_model.geometry_building_type_recs=="Mobile Home",]
-
-for (r in 1:length(fr)) {
-  
-  rs_fail<-failed[failed$building_id==fr[r],]
-  if (bs[bs$Building==rs_fail$building_id,]$Geometry.Building.Type.RECS %in% c("Single-Family Detached","Single-Family Attached")) {
-    rns<-sample(1:nrow(TX_repl_SF),1)
-    rs_fail[,5:204]<-TX_repl_SF[rns,5:204]
-    rs_fail$build_existing_model.county<-bs[bs$Building==rs_fail$building_id,]$County
-  }
-  
-  if (bs[bs$Building==rs_fail$building_id,]$Geometry.Building.Type.RECS %in% c("Mobile Home")) {
-    rns<-sample(1:nrow(TX_repl_MH),1)
-    rs_fail[,5:204]<-TX_repl_MH[rns,5:204]
-    rs_fail$build_existing_model.county<-bs[bs$Building==rs_fail$building_id,]$County
-  }
-  
-  # failr[failr$building_id==fr[r],]<-rs_fail
-  # fail[fail$building_id==fr[r],]<-rs_fail
-  failed[failed$building_id==fr[r],]<-rs_fail
-}
+# failedTX<-bs[bs$County %in% c("TX, Fisher County", "TX, Nolan County","TX, Stonewall County"),]
+# # check that all the remaining failed simulations are from the three TX counties with no weather files
+# all.equal(failedTX$Building, fr)
+# # see all the sim outputs (fail and success) from TX, 02600 & CZ 3B
+# # pumaTX<-failed[failed$build_existing_model.puma=="TX, 02600" & failed$build_existing_model.ashrae_iecc_climate_zone_2004=="3B",]
+# 
+# bspumaTX<-bs[bs$PUMA=="TX, 02600" & bs$ASHRAE.IECC.Climate.Zone.2004=="3B",]
+# table(bspumaTX$County,bspumaTX$Geometry.Building.Type.RECS)
+# 
+# # puma0<-failed[failed$build_existing_model.puma=="TX, 02600",]
+# 
+# TX_repl_SF<-failed[failed$build_existing_model.county %in% c("TX, Scurry County","TX, Mitchell County") & failed$build_existing_model.geometry_building_type_recs=="Single-Family Detached",]
+# TX_repl_MH<-failed[failed$build_existing_model.puma == "TX, 02600" & failed$build_existing_model.ashrae_iecc_climate_zone_2004 =="3B" & failed$build_existing_model.geometry_building_type_recs=="Mobile Home",]
+# 
+# for (r in 1:length(fr)) {
+#   
+#   rs_fail<-failed[failed$building_id==fr[r],]
+#   if (bs[bs$Building==rs_fail$building_id,]$Geometry.Building.Type.RECS %in% c("Single-Family Detached","Single-Family Attached")) {
+#     rns<-sample(1:nrow(TX_repl_SF),1)
+#     rs_fail[,5:204]<-TX_repl_SF[rns,5:204]
+#     rs_fail$build_existing_model.county<-bs[bs$Building==rs_fail$building_id,]$County
+#   }
+#   
+#   if (bs[bs$Building==rs_fail$building_id,]$Geometry.Building.Type.RECS %in% c("Mobile Home")) {
+#     rns<-sample(1:nrow(TX_repl_MH),1)
+#     rs_fail[,5:204]<-TX_repl_MH[rns,5:204]
+#     rs_fail$build_existing_model.county<-bs[bs$Building==rs_fail$building_id,]$County
+#   }
+#   
+#   # failr[failr$building_id==fr[r],]<-rs_fail
+#   # fail[fail$building_id==fr[r],]<-rs_fail
+#   failed[failed$building_id==fr[r],]<-rs_fail
+# }
 
 fail_fixed2<-failed[which(failed$building_id %in% f),]
 
