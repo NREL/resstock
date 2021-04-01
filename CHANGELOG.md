@@ -15,6 +15,7 @@ Fixes
 - Dwelling units that are 0-499 ft2 are limited to a maximum of 2 bedrooms ([#553](https://github.com/NREL/resstock/pull/553))
 - Reverses the material layers of the unfinished attic floor construction so that they are correctly ordered outside-to-inside ([#556](https://github.com/NREL/resstock/pull/556))
 - Fixes invalid garage and living space dimension errors ([#560](https://github.com/NREL/resstock/pull/560))
+- Set all mini-split heat pump supplimental capacity to autosize ([#564](https://github.com/NREL/resstock/pull/564))
 
 ## ResStock v2.4.0
 
