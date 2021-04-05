@@ -236,6 +236,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
     # Plug Loads
     args['plug_loads_television_annual_kwh'] = 0.0 # "other" now accounts for television
+    args['plug_loads_television_usage_multiplier'] = 0.0 # "other" now accounts for television
     args['plug_loads_other_usage_multiplier'] *= args['plug_loads_other_usage_multiplier_2']
     args['plug_loads_well_pump_usage_multiplier'] *= args['plug_loads_well_pump_usage_multiplier_2']
     args['plug_loads_vehicle_usage_multiplier'] *= args['plug_loads_vehicle_usage_multiplier_2']
