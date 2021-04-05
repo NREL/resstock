@@ -49,12 +49,6 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       args << arg
     end
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('plug_loads_television_usage_multiplier_2', true)
-    arg.setDisplayName('Plug Loads: Television Usage Multiplier 2')
-    arg.setDefaultValue(1.0)
-    arg.setDescription('Additional multiplier on the television energy usage that can reflect, e.g., high/low usage occupants.')
-    args << arg
-
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('plug_loads_other_usage_multiplier_2', true)
     arg.setDisplayName('Plug Loads: Other Usage Multiplier 2')
     arg.setDescription('Additional multiplier on the other energy usage that can reflect, e.g., high/low usage occupants.')
@@ -241,7 +235,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     args_to_delete = args.keys - arg_names # these are the extra ones added in the arguments section
 
     # Plug Loads
-    args['plug_loads_television_usage_multiplier'] *= 0.0 # "other" now accounts for television
+    args['plug_loads_television_annual_kwh'] = 0.0 # "other" now accounts for television
     args['plug_loads_other_usage_multiplier'] *= args['plug_loads_other_usage_multiplier_2']
     args['plug_loads_well_pump_usage_multiplier'] *= args['plug_loads_well_pump_usage_multiplier_2']
     args['plug_loads_vehicle_usage_multiplier'] *= args['plug_loads_vehicle_usage_multiplier_2']
@@ -253,11 +247,11 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     end
 
     if [HPXML::ResidentialTypeSFD].include?(args['geometry_unit_type'])
-      args['plug_loads_other_annual_kwh'] = (1146.95 + 296.94 * args['geometry_num_occupants'] + 0.3 * args['geometry_cfa']) * args['plug_loads_other_usage_multiplier'] # RECS 2015
+      args['plug_loads_other_annual_kwh'] = 1146.95 + 296.94 * args['geometry_num_occupants'] + 0.3 * args['geometry_cfa'] # RECS 2015
     elsif [HPXML::ResidentialTypeSFA].include?(args['geometry_unit_type'])
-      args['plug_loads_other_annual_kwh'] = (1395.84 + 136.53 * args['geometry_num_occupants'] + 0.16 * args['geometry_cfa']) * args['plug_loads_other_usage_multiplier'] # RECS 2015
+      args['plug_loads_other_annual_kwh'] = 1395.84 + 136.53 * args['geometry_num_occupants'] + 0.16 * args['geometry_cfa'] # RECS 2015
     elsif [HPXML::ResidentialTypeApartment].include?(args['geometry_unit_type'])
-      args['plug_loads_other_annual_kwh'] = (875.22 + 184.11 * args['geometry_num_occupants'] + 0.38 * args['geometry_cfa']) * args['plug_loads_other_usage_multiplier'] # RECS 2015
+      args['plug_loads_other_annual_kwh'] = 875.22 + 184.11 * args['geometry_num_occupants'] + 0.38 * args['geometry_cfa'] # RECS 2015
     end
 
     # Setpoints
