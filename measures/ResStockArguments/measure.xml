@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>res_stock_arguments</name>
   <uid>c984bb9e-4ac4-4930-a399-9d23f8f6936a</uid>
-  <version_id>c29e8d78-7b12-49fc-80bb-5a8001fc6081</version_id>
-  <version_modified>20210126T232503Z</version_modified>
+  <version_id>fdbd767e-5fae-467a-be1f-44eab79de6d2</version_id>
+  <version_modified>20210405T201826Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>ResStockArguments</class_name>
   <display_name>ResStock Arguments</display_name>
@@ -236,10 +236,6 @@
       <default_value>single-family detached</default_value>
       <choices>
         <choice>
-          <value>manufactured home</value>
-          <display_name>manufactured home</display_name>
-        </choice>
-        <choice>
           <value>single-family detached</value>
           <display_name>single-family detached</display_name>
         </choice>
@@ -266,7 +262,7 @@
     <argument>
       <name>geometry_num_floors_above_grade</name>
       <display_name>Geometry: Number of Floors</display_name>
-      <description>The number of floors above grade (in the unit if single-family attached, and in the building if apartment unit).</description>
+      <description>The number of floors above grade (in the unit if single-family detached or single-family attached, and in the building if apartment unit). Conditioned attics are included.</description>
       <type>Integer</type>
       <units>#</units>
       <required>true</required>
@@ -286,7 +282,7 @@
     <argument>
       <name>geometry_orientation</name>
       <display_name>Geometry: Orientation</display_name>
-      <description>The house's orientation is measured clockwise from due south when viewed from above (e.g., North=0, East=90, South=180, West=270).</description>
+      <description>The unit's orientation is measured clockwise from due south when viewed from above (e.g., North=0, East=90, South=180, West=270).</description>
       <type>Double</type>
       <units>degrees</units>
       <required>true</required>
@@ -306,7 +302,7 @@
     <argument>
       <name>geometry_corridor_position</name>
       <display_name>Geometry: Corridor Position</display_name>
-      <description>The position of the corridor.</description>
+      <description>The position of the corridor. Only applies to single-family attached and apartment unit units.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -333,7 +329,7 @@
     <argument>
       <name>geometry_corridor_width</name>
       <display_name>Geometry: Corridor Width</display_name>
-      <description>The width of the corridor.</description>
+      <description>The width of the corridor. Only applies to apartment unit units.</description>
       <type>Double</type>
       <units>ft</units>
       <required>true</required>
@@ -343,7 +339,7 @@
     <argument>
       <name>geometry_inset_width</name>
       <display_name>Geometry: Inset Width</display_name>
-      <description>The width of the inset.</description>
+      <description>The width of the inset. Only applies to apartment unit units.</description>
       <type>Double</type>
       <units>ft</units>
       <required>true</required>
@@ -353,7 +349,7 @@
     <argument>
       <name>geometry_inset_depth</name>
       <display_name>Geometry: Inset Depth</display_name>
-      <description>The depth of the inset.</description>
+      <description>The depth of the inset. Only applies to apartment unit units.</description>
       <type>Double</type>
       <units>ft</units>
       <required>true</required>
@@ -363,7 +359,7 @@
     <argument>
       <name>geometry_inset_position</name>
       <display_name>Geometry: Inset Position</display_name>
-      <description>The position of the inset.</description>
+      <description>The position of the inset. Only applies to apartment unit units.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -382,7 +378,7 @@
     <argument>
       <name>geometry_balcony_depth</name>
       <display_name>Geometry: Balcony Depth</display_name>
-      <description>The depth of the balcony.</description>
+      <description>The depth of the balcony. Only applies to apartment unit units.</description>
       <type>Double</type>
       <units>ft</units>
       <required>true</required>
@@ -392,7 +388,7 @@
     <argument>
       <name>geometry_garage_width</name>
       <display_name>Geometry: Garage Width</display_name>
-      <description>The width of the garage. Enter zero for no garage.</description>
+      <description>The width of the garage. Enter zero for no garage. Only applies to single-family detached units.</description>
       <type>Double</type>
       <units>ft</units>
       <required>true</required>
@@ -402,7 +398,7 @@
     <argument>
       <name>geometry_garage_depth</name>
       <display_name>Geometry: Garage Depth</display_name>
-      <description>The depth of the garage.</description>
+      <description>The depth of the garage. Only applies to single-family detached units.</description>
       <type>Double</type>
       <units>ft</units>
       <required>true</required>
@@ -412,7 +408,7 @@
     <argument>
       <name>geometry_garage_protrusion</name>
       <display_name>Geometry: Garage Protrusion</display_name>
-      <description>The fraction of the garage that is protruding from the living space.</description>
+      <description>The fraction of the garage that is protruding from the living space. Only applies to single-family detached units.</description>
       <type>Double</type>
       <units>frac</units>
       <required>true</required>
@@ -422,7 +418,7 @@
     <argument>
       <name>geometry_garage_position</name>
       <display_name>Geometry: Garage Position</display_name>
-      <description>The position of the garage.</description>
+      <description>The position of the garage. Only applies to single-family detached units.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -494,9 +490,19 @@
       <default_value>0</default_value>
     </argument>
     <argument>
+      <name>geometry_rim_joist_height</name>
+      <display_name>Geometry: Rim Joist Height</display_name>
+      <description>The height of the rim joists. Only applies to basements/crawlspaces.</description>
+      <type>Double</type>
+      <units>in</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>9.25</default_value>
+    </argument>
+    <argument>
       <name>geometry_roof_type</name>
       <display_name>Geometry: Roof Type</display_name>
-      <description>The roof type of the building.</description>
+      <description>The roof type of the building. Assumed flat for apartment unit units.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -685,7 +691,7 @@
     <argument>
       <name>geometry_building_num_units</name>
       <display_name>Geometry: Building Number of Units</display_name>
-      <description>The number of units in the building. This is required for single-family attached and apartment unit buildings.</description>
+      <description>The number of units in the building. This is required for single-family attached and apartment unit units.</description>
       <type>Integer</type>
       <units>#</units>
       <required>false</required>
@@ -694,7 +700,7 @@
     <argument>
       <name>geometry_building_num_bedrooms</name>
       <display_name>Geometry: Building Number of Bedrooms</display_name>
-      <description>The number of bedrooms in the building. This is required for single-family attached and apartment unit buildings with shared PV systems.</description>
+      <description>The number of bedrooms in the building. This is required for single-family attached and apartment unit units with shared PV systems.</description>
       <type>Integer</type>
       <units>#</units>
       <required>false</required>
@@ -703,7 +709,7 @@
     <argument>
       <name>floor_assembly_r</name>
       <display_name>Floor: Assembly R-value</display_name>
-      <description>Assembly R-value for the floor (foundation ceiling). Ignored if a slab foundation.</description>
+      <description>Assembly R-value for the floor (foundation ceiling). Ignored if the building has a slab foundation.</description>
       <type>Double</type>
       <units>h-ft^2-R/Btu</units>
       <required>true</required>
@@ -733,12 +739,12 @@
     <argument>
       <name>foundation_wall_insulation_distance_to_bottom</name>
       <display_name>Foundation: Wall Insulation Distance To Bottom</display_name>
-      <description>The distance from the top of the foundation wall to the bottom of the foundation wall insulation. Only applies to basements/crawlspaces.</description>
-      <type>Double</type>
+      <description>The distance from the top of the foundation wall to the bottom of the foundation wall insulation. Only applies to basements/crawlspaces. A value of 'auto' will use the same height as the foundation.</description>
+      <type>String</type>
       <units>ft</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>0</default_value>
+      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>foundation_wall_assembly_r</name>
@@ -757,6 +763,16 @@
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>auto</default_value>
+    </argument>
+    <argument>
+      <name>rim_joist_assembly_r</name>
+      <display_name>Rim Joist: Assembly R-value</display_name>
+      <description>Assembly R-value for the rim joists. Only applies to basements/crawlspaces.</description>
+      <type>Double</type>
+      <units>h-ft^2-R/Btu</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>23</default_value>
     </argument>
     <argument>
       <name>slab_perimeter_insulation_r</name>
@@ -878,12 +894,8 @@
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
+      <default_value>medium</default_value>
       <choices>
-        <choice>
-          <value>auto</value>
-          <display_name>auto</display_name>
-        </choice>
         <choice>
           <value>dark</value>
           <display_name>dark</display_name>
@@ -917,31 +929,23 @@
       <default_value>2.3</default_value>
     </argument>
     <argument>
-      <name>roof_solar_absorptance</name>
-      <display_name>Roof: Solar Absorptance</display_name>
-      <description>The solar absorptance of the roof.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
-      <name>roof_emittance</name>
-      <display_name>Roof: Emittance</display_name>
-      <description>The emittance of the roof.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
       <name>roof_radiant_barrier</name>
       <display_name>Roof: Has Radiant Barrier</display_name>
       <description>Specifies whether the attic has a radiant barrier.</description>
-      <type>String</type>
+      <type>Boolean</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>roof_radiant_barrier_grade</name>
@@ -969,7 +973,7 @@
     <argument>
       <name>neighbor_front_distance</name>
       <display_name>Neighbor: Front Distance</display_name>
-      <description>The minimum distance between the simulated house and the neighboring house to the front (not including eaves). A value of zero indicates no neighbors.</description>
+      <description>The minimum distance between the simulated unit and the neighboring building to the front (not including eaves). A value of zero indicates no neighbors.</description>
       <type>Double</type>
       <units>ft</units>
       <required>true</required>
@@ -979,7 +983,7 @@
     <argument>
       <name>neighbor_back_distance</name>
       <display_name>Neighbor: Back Distance</display_name>
-      <description>The minimum distance between the simulated house and the neighboring house to the back (not including eaves). A value of zero indicates no neighbors.</description>
+      <description>The minimum distance between the simulated unit and the neighboring building to the back (not including eaves). A value of zero indicates no neighbors.</description>
       <type>Double</type>
       <units>ft</units>
       <required>true</required>
@@ -989,7 +993,7 @@
     <argument>
       <name>neighbor_left_distance</name>
       <display_name>Neighbor: Left Distance</display_name>
-      <description>The minimum distance between the simulated house and the neighboring house to the left (not including eaves). A value of zero indicates no neighbors.</description>
+      <description>The minimum distance between the simulated unit and the neighboring building to the left (not including eaves). A value of zero indicates no neighbors.</description>
       <type>Double</type>
       <units>ft</units>
       <required>true</required>
@@ -999,7 +1003,7 @@
     <argument>
       <name>neighbor_right_distance</name>
       <display_name>Neighbor: Right Distance</display_name>
-      <description>The minimum distance between the simulated house and the neighboring house to the right (not including eaves). A value of zero indicates no neighbors.</description>
+      <description>The minimum distance between the simulated unit and the neighboring building to the right (not including eaves). A value of zero indicates no neighbors.</description>
       <type>Double</type>
       <units>ft</units>
       <required>true</required>
@@ -1104,7 +1108,7 @@
     <argument>
       <name>wall_siding_type</name>
       <display_name>Wall: Siding Type</display_name>
-      <description>The siding type of the exterior walls.</description>
+      <description>The siding type of the exterior walls. Also applies to rim joists.</description>
       <type>Choice</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -1138,16 +1142,12 @@
     <argument>
       <name>wall_color</name>
       <display_name>Wall: Color</display_name>
-      <description>The color of the exterior walls.</description>
+      <description>The color of the exterior walls. Also applies to rim joists.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
+      <default_value>medium</default_value>
       <choices>
-        <choice>
-          <value>auto</value>
-          <display_name>auto</display_name>
-        </choice>
         <choice>
           <value>dark</value>
           <display_name>dark</display_name>
@@ -1181,27 +1181,9 @@
       <default_value>13</default_value>
     </argument>
     <argument>
-      <name>wall_solar_absorptance</name>
-      <display_name>Wall: Solar Absorptance</display_name>
-      <description>The solar absorptance of the exterior walls.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
-      <name>wall_emittance</name>
-      <display_name>Wall: Emittance</display_name>
-      <description>The emittance of the exterior walls.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
       <name>window_front_wwr</name>
       <display_name>Windows: Front Window-to-Wall Ratio</display_name>
-      <description>The ratio of window area to wall area for the building's front facade. Enter 0 if specifying Front Window Area instead.</description>
+      <description>The ratio of window area to wall area for the unit's front facade. Enter 0 if specifying Front Window Area instead.</description>
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -1210,7 +1192,7 @@
     <argument>
       <name>window_back_wwr</name>
       <display_name>Windows: Back Window-to-Wall Ratio</display_name>
-      <description>The ratio of window area to wall area for the building's back facade. Enter 0 if specifying Back Window Area instead.</description>
+      <description>The ratio of window area to wall area for the unit's back facade. Enter 0 if specifying Back Window Area instead.</description>
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -1219,7 +1201,7 @@
     <argument>
       <name>window_left_wwr</name>
       <display_name>Windows: Left Window-to-Wall Ratio</display_name>
-      <description>The ratio of window area to wall area for the building's left facade. Enter 0 if specifying Left Window Area instead.</description>
+      <description>The ratio of window area to wall area for the unit's left facade (when viewed from the front). Enter 0 if specifying Left Window Area instead.</description>
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -1228,7 +1210,7 @@
     <argument>
       <name>window_right_wwr</name>
       <display_name>Windows: Right Window-to-Wall Ratio</display_name>
-      <description>The ratio of window area to wall area for the building's right facade. Enter 0 if specifying Right Window Area instead.</description>
+      <description>The ratio of window area to wall area for the unit's right facade (when viewed from the front). Enter 0 if specifying Right Window Area instead.</description>
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -1237,7 +1219,7 @@
     <argument>
       <name>window_area_front</name>
       <display_name>Windows: Front Window Area</display_name>
-      <description>The amount of window area on the building's front facade. Enter 0 if specifying Front Window-to-Wall Ratio instead.</description>
+      <description>The amount of window area on the unit's front facade. Enter 0 if specifying Front Window-to-Wall Ratio instead.</description>
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -1246,7 +1228,7 @@
     <argument>
       <name>window_area_back</name>
       <display_name>Windows: Back Window Area</display_name>
-      <description>The amount of window area on the building's back facade. Enter 0 if specifying Back Window-to-Wall Ratio instead.</description>
+      <description>The amount of window area on the unit's back facade. Enter 0 if specifying Back Window-to-Wall Ratio instead.</description>
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -1255,7 +1237,7 @@
     <argument>
       <name>window_area_left</name>
       <display_name>Windows: Left Window Area</display_name>
-      <description>The amount of window area on the building's left facade. Enter 0 if specifying Left Window-to-Wall Ratio instead.</description>
+      <description>The amount of window area on the unit's left facade (when viewed from the front). Enter 0 if specifying Left Window-to-Wall Ratio instead.</description>
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -1264,7 +1246,7 @@
     <argument>
       <name>window_area_right</name>
       <display_name>Windows: Right Window Area</display_name>
-      <description>The amount of window area on the building's right facade. Enter 0 if specifying Right Window-to-Wall Ratio instead.</description>
+      <description>The amount of window area on the unit's right facade (when viewed from the front). Enter 0 if specifying Right Window-to-Wall Ratio instead.</description>
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -1413,7 +1395,7 @@
     <argument>
       <name>skylight_area_front</name>
       <display_name>Skylights: Front Roof Area</display_name>
-      <description>The amount of skylight area on the building's front conditioned roof facade.</description>
+      <description>The amount of skylight area on the unit's front conditioned roof facade.</description>
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -1422,7 +1404,7 @@
     <argument>
       <name>skylight_area_back</name>
       <display_name>Skylights: Back Roof Area</display_name>
-      <description>The amount of skylight area on the building's back conditioned roof facade.</description>
+      <description>The amount of skylight area on the unit's back conditioned roof facade.</description>
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -1431,7 +1413,7 @@
     <argument>
       <name>skylight_area_left</name>
       <display_name>Skylights: Left Roof Area</display_name>
-      <description>The amount of skylight area on the building's left conditioned roof facade.</description>
+      <description>The amount of skylight area on the unit's left conditioned roof facade (when viewed from the front).</description>
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -1440,7 +1422,7 @@
     <argument>
       <name>skylight_area_right</name>
       <display_name>Skylights: Right Roof Area</display_name>
-      <description>The amount of skylight area on the building's right conditioned roof facade.</description>
+      <description>The amount of skylight area on the unit's right conditioned roof facade (when viewed from the front).</description>
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -1528,14 +1510,31 @@
       <default_value>3</default_value>
     </argument>
     <argument>
-      <name>air_leakage_shelter_coefficient</name>
-      <display_name>Air Leakage: Shelter Coefficient</display_name>
-      <description>The local shelter coefficient (AIM-2 infiltration model) accounts for nearby buildings, trees, and obstructions.</description>
-      <type>String</type>
-      <units>Frac</units>
+      <name>air_leakage_shielding_of_home</name>
+      <display_name>Air Leakage: Shielding of Home</display_name>
+      <description>Presence of nearby buildings, trees, obstructions for infiltration model.</description>
+      <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>auto</default_value>
+      <choices>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+        <choice>
+          <value>exposed</value>
+          <display_name>exposed</display_name>
+        </choice>
+        <choice>
+          <value>normal</value>
+          <display_name>normal</display_name>
+        </choice>
+        <choice>
+          <value>well-shielded</value>
+          <display_name>well-shielded</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>heating_system_type</name>
@@ -1689,24 +1688,33 @@
       </choices>
     </argument>
     <argument>
-      <name>cooling_system_cooling_efficiency_seer</name>
-      <display_name>Cooling System: Rated SEER</display_name>
-      <description>The rated efficiency value of the central air conditioner cooling system.</description>
+      <name>cooling_system_cooling_efficiency_type</name>
+      <display_name>Cooling System: Efficiency Type</display_name>
+      <description>The efficiency type of the cooling system. System types central air conditioner and mini-split use SEER. System type room air conditioner uses EER. Ignored for system type evaporative cooler.</description>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>SEER</default_value>
+      <choices>
+        <choice>
+          <value>SEER</value>
+          <display_name>SEER</display_name>
+        </choice>
+        <choice>
+          <value>EER</value>
+          <display_name>EER</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>cooling_system_cooling_efficiency</name>
+      <display_name>Cooling System: Efficiency</display_name>
+      <description>The rated efficiency value of the cooling system. Ignored for evaporative cooler.</description>
       <type>Double</type>
-      <units>SEER</units>
+      <units>SEER or EER</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>13</default_value>
-    </argument>
-    <argument>
-      <name>cooling_system_cooling_efficiency_eer</name>
-      <display_name>Cooling System: Rated EER</display_name>
-      <description>The rated efficiency value of the room air conditioner cooling system.</description>
-      <type>Double</type>
-      <units>EER</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>8.5</default_value>
     </argument>
     <argument>
       <name>cooling_system_cooling_compressor_type</name>
@@ -1742,7 +1750,7 @@
     <argument>
       <name>cooling_system_cooling_capacity</name>
       <display_name>Cooling System: Cooling Capacity</display_name>
-      <description>The output cooling capacity of the cooling system. If using 'auto', the autosizing algorithm will use ACCA Manual J/S to set the capacity to meet its load served. Ignored for evaporative cooler.</description>
+      <description>The output cooling capacity of the cooling system. If using 'auto', the autosizing algorithm will use ACCA Manual J/S to set the capacity to meet its load served.</description>
       <type>String</type>
       <units>tons</units>
       <required>true</required>
@@ -1806,44 +1814,62 @@
       </choices>
     </argument>
     <argument>
-      <name>heat_pump_heating_efficiency_hspf</name>
-      <display_name>Heat Pump: Rated Heating HSPF</display_name>
-      <description>The rated heating efficiency value of the air-to-air/mini-split heat pump.</description>
+      <name>heat_pump_heating_efficiency_type</name>
+      <display_name>Heat Pump: Heating Efficiency Type</display_name>
+      <description>The heating efficiency type of heat pump. System types air-to-air and mini-split use HSPF. System type ground-to-air uses COP.</description>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>HSPF</default_value>
+      <choices>
+        <choice>
+          <value>HSPF</value>
+          <display_name>HSPF</display_name>
+        </choice>
+        <choice>
+          <value>COP</value>
+          <display_name>COP</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>heat_pump_heating_efficiency</name>
+      <display_name>Heat Pump: Heating Efficiency</display_name>
+      <description>The rated heating efficiency value of the heat pump.</description>
       <type>Double</type>
-      <units>HSPF</units>
+      <units>HSPF or COP</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>7.7</default_value>
     </argument>
     <argument>
-      <name>heat_pump_heating_efficiency_cop</name>
-      <display_name>Heat Pump: Rated Heating COP</display_name>
-      <description>The rated heating efficiency value of the ground-to-air heat pump.</description>
-      <type>Double</type>
-      <units>COP</units>
+      <name>heat_pump_cooling_efficiency_type</name>
+      <display_name>Heat Pump: Cooling Efficiency Type</display_name>
+      <description>The cooling efficiency type of heat pump. System types air-to-air and mini-split use SEER. System type ground-to-air uses EER.</description>
+      <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>3.6</default_value>
+      <default_value>SEER</default_value>
+      <choices>
+        <choice>
+          <value>SEER</value>
+          <display_name>SEER</display_name>
+        </choice>
+        <choice>
+          <value>EER</value>
+          <display_name>EER</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
-      <name>heat_pump_cooling_efficiency_seer</name>
-      <display_name>Heat Pump: Rated Cooling SEER</display_name>
-      <description>The rated cooling efficiency value of the air-to-air/mini-split heat pump.</description>
+      <name>heat_pump_cooling_efficiency</name>
+      <display_name>Heat Pump: Cooling Efficiency</display_name>
+      <description>The rated cooling efficiency value of the heat pump.</description>
       <type>Double</type>
-      <units>SEER</units>
+      <units>SEER or EER</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>13</default_value>
-    </argument>
-    <argument>
-      <name>heat_pump_cooling_efficiency_eer</name>
-      <display_name>Heat Pump: Rated Cooling EER</display_name>
-      <description>The rated cooling efficiency value of the ground-to-air heat pump.</description>
-      <type>Double</type>
-      <units>EER</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>16.6</default_value>
     </argument>
     <argument>
       <name>heat_pump_cooling_compressor_type</name>
@@ -2002,6 +2028,118 @@
           <display_name>false</display_name>
         </choice>
       </choices>
+    </argument>
+    <argument>
+      <name>heating_system_type_2</name>
+      <display_name>Heating System 2: Type</display_name>
+      <description>The type of the second heating system.</description>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>none</default_value>
+      <choices>
+        <choice>
+          <value>none</value>
+          <display_name>none</display_name>
+        </choice>
+        <choice>
+          <value>WallFurnace</value>
+          <display_name>WallFurnace</display_name>
+        </choice>
+        <choice>
+          <value>FloorFurnace</value>
+          <display_name>FloorFurnace</display_name>
+        </choice>
+        <choice>
+          <value>Boiler</value>
+          <display_name>Boiler</display_name>
+        </choice>
+        <choice>
+          <value>ElectricResistance</value>
+          <display_name>ElectricResistance</display_name>
+        </choice>
+        <choice>
+          <value>Stove</value>
+          <display_name>Stove</display_name>
+        </choice>
+        <choice>
+          <value>PortableHeater</value>
+          <display_name>PortableHeater</display_name>
+        </choice>
+        <choice>
+          <value>Fireplace</value>
+          <display_name>Fireplace</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>heating_system_fuel_2</name>
+      <display_name>Heating System 2: Fuel Type</display_name>
+      <description>The fuel type of the second heating system. Ignored for ElectricResistance.</description>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>electricity</default_value>
+      <choices>
+        <choice>
+          <value>electricity</value>
+          <display_name>electricity</display_name>
+        </choice>
+        <choice>
+          <value>natural gas</value>
+          <display_name>natural gas</display_name>
+        </choice>
+        <choice>
+          <value>fuel oil</value>
+          <display_name>fuel oil</display_name>
+        </choice>
+        <choice>
+          <value>propane</value>
+          <display_name>propane</display_name>
+        </choice>
+        <choice>
+          <value>wood</value>
+          <display_name>wood</display_name>
+        </choice>
+        <choice>
+          <value>wood pellets</value>
+          <display_name>wood pellets</display_name>
+        </choice>
+        <choice>
+          <value>coal</value>
+          <display_name>coal</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>heating_system_heating_efficiency_2</name>
+      <display_name>Heating System 2: Rated AFUE or Percent</display_name>
+      <description>For Furnace/WallFurnace/FloorFurnace/Boiler second heating system, the rated AFUE value. For ElectricResistance/Stove/PortableHeater/Fireplace, the rated Percent value.</description>
+      <type>Double</type>
+      <units>Frac</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>1</default_value>
+    </argument>
+    <argument>
+      <name>heating_system_heating_capacity_2</name>
+      <display_name>Heating System 2: Heating Capacity</display_name>
+      <description>The output heating capacity of the second heating system. If using 'auto', the autosizing algorithm will use ACCA Manual J/S to set the capacity to meet its load served.</description>
+      <type>String</type>
+      <units>Btu/hr</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>auto</default_value>
+    </argument>
+    <argument>
+      <name>heating_system_fraction_heat_load_served_2</name>
+      <display_name>Heating System 2: Fraction Heat Load Served</display_name>
+      <description>The heat load served fraction of the second heating system.</description>
+      <type>Double</type>
+      <units>Frac</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0.25</default_value>
     </argument>
     <argument>
       <name>ducts_supply_leakage_units</name>
@@ -2268,118 +2406,6 @@
       <default_value>auto</default_value>
     </argument>
     <argument>
-      <name>heating_system_type_2</name>
-      <display_name>Heating System 2: Type</display_name>
-      <description>The type of the second heating system.</description>
-      <type>Choice</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>none</default_value>
-      <choices>
-        <choice>
-          <value>none</value>
-          <display_name>none</display_name>
-        </choice>
-        <choice>
-          <value>WallFurnace</value>
-          <display_name>WallFurnace</display_name>
-        </choice>
-        <choice>
-          <value>FloorFurnace</value>
-          <display_name>FloorFurnace</display_name>
-        </choice>
-        <choice>
-          <value>Boiler</value>
-          <display_name>Boiler</display_name>
-        </choice>
-        <choice>
-          <value>ElectricResistance</value>
-          <display_name>ElectricResistance</display_name>
-        </choice>
-        <choice>
-          <value>Stove</value>
-          <display_name>Stove</display_name>
-        </choice>
-        <choice>
-          <value>PortableHeater</value>
-          <display_name>PortableHeater</display_name>
-        </choice>
-        <choice>
-          <value>Fireplace</value>
-          <display_name>Fireplace</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
-      <name>heating_system_fuel_2</name>
-      <display_name>Heating System 2: Fuel Type</display_name>
-      <description>The fuel type of the second heating system. Ignored for ElectricResistance.</description>
-      <type>Choice</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>electricity</default_value>
-      <choices>
-        <choice>
-          <value>electricity</value>
-          <display_name>electricity</display_name>
-        </choice>
-        <choice>
-          <value>natural gas</value>
-          <display_name>natural gas</display_name>
-        </choice>
-        <choice>
-          <value>fuel oil</value>
-          <display_name>fuel oil</display_name>
-        </choice>
-        <choice>
-          <value>propane</value>
-          <display_name>propane</display_name>
-        </choice>
-        <choice>
-          <value>wood</value>
-          <display_name>wood</display_name>
-        </choice>
-        <choice>
-          <value>wood pellets</value>
-          <display_name>wood pellets</display_name>
-        </choice>
-        <choice>
-          <value>coal</value>
-          <display_name>coal</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
-      <name>heating_system_heating_efficiency_2</name>
-      <display_name>Heating System 2: Rated AFUE or Percent</display_name>
-      <description>For Furnace/WallFurnace/FloorFurnace/Boiler second heating system, the rated AFUE value. For ElectricResistance/Stove/PortableHeater/Fireplace, the rated Percent value.</description>
-      <type>Double</type>
-      <units>Frac</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>1</default_value>
-    </argument>
-    <argument>
-      <name>heating_system_heating_capacity_2</name>
-      <display_name>Heating System 2: Heating Capacity</display_name>
-      <description>The output heating capacity of the second heating system. If using 'auto', the autosizing algorithm will use ACCA Manual J/S to set the capacity to meet its load served.</description>
-      <type>String</type>
-      <units>Btu/hr</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
-      <name>heating_system_fraction_heat_load_served_2</name>
-      <display_name>Heating System 2: Fraction Heat Load Served</display_name>
-      <description>The heat load served fraction of the second heating system.</description>
-      <type>Double</type>
-      <units>Frac</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>0.25</default_value>
-    </argument>
-    <argument>
       <name>mech_vent_fan_type</name>
       <display_name>Mechanical Ventilation: Fan Type</display_name>
       <description>The type of the mechanical ventilation. Use 'none' if there is no mechanical ventilation system.</description>
@@ -2439,7 +2465,7 @@
       <default_value>24</default_value>
     </argument>
     <argument>
-      <name>mech_vent_total_recovery_efficiency_type</name>
+      <name>mech_vent_recovery_efficiency_type</name>
       <display_name>Mechanical Ventilation: Total Recovery Efficiency Type</display_name>
       <description>The total recovery efficiency type of the mechanical ventilation.</description>
       <type>Choice</type>
@@ -2460,7 +2486,7 @@
     <argument>
       <name>mech_vent_total_recovery_efficiency</name>
       <display_name>Mechanical Ventilation: Total Recovery Efficiency</display_name>
-      <description>The Unadjusted or Adjusted total recovery efficiency of the mechanical ventilation.</description>
+      <description>The Unadjusted or Adjusted total recovery efficiency of the mechanical ventilation. Applies to energy recovery ventilator.</description>
       <type>Double</type>
       <units>Frac</units>
       <required>true</required>
@@ -2468,28 +2494,9 @@
       <default_value>0.48</default_value>
     </argument>
     <argument>
-      <name>mech_vent_sensible_recovery_efficiency_type</name>
-      <display_name>Mechanical Ventilation: Sensible Recovery Efficiency Type</display_name>
-      <description>The sensible recovery efficiency type of the mechanical ventilation.</description>
-      <type>Choice</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>Unadjusted</default_value>
-      <choices>
-        <choice>
-          <value>Unadjusted</value>
-          <display_name>Unadjusted</display_name>
-        </choice>
-        <choice>
-          <value>Adjusted</value>
-          <display_name>Adjusted</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
       <name>mech_vent_sensible_recovery_efficiency</name>
       <display_name>Mechanical Ventilation: Sensible Recovery Efficiency</display_name>
-      <description>The Unadjusted or Adjusted sensible recovery efficiency of the mechanical ventilation.</description>
+      <description>The Unadjusted or Adjusted sensible recovery efficiency of the mechanical ventilation. Applies to energy recovery ventilator and heat recovery ventilator.</description>
       <type>Double</type>
       <units>Frac</units>
       <required>true</required>
@@ -2673,7 +2680,7 @@
       <default_value>24</default_value>
     </argument>
     <argument>
-      <name>mech_vent_total_recovery_efficiency_type_2</name>
+      <name>mech_vent_recovery_efficiency_type_2</name>
       <display_name>Mechanical Ventilation 2: Total Recovery Efficiency Type</display_name>
       <description>The total recovery efficiency type of the second mechanical ventilation.</description>
       <type>Choice</type>
@@ -2694,7 +2701,7 @@
     <argument>
       <name>mech_vent_total_recovery_efficiency_2</name>
       <display_name>Mechanical Ventilation 2: Total Recovery Efficiency</display_name>
-      <description>The Unadjusted or Adjusted total recovery efficiency of the second mechanical ventilation.</description>
+      <description>The Unadjusted or Adjusted total recovery efficiency of the second mechanical ventilation. Applies to energy recovery ventilator.</description>
       <type>Double</type>
       <units>Frac</units>
       <required>true</required>
@@ -2702,28 +2709,9 @@
       <default_value>0.48</default_value>
     </argument>
     <argument>
-      <name>mech_vent_sensible_recovery_efficiency_type_2</name>
-      <display_name>Mechanical Ventilation 2: Sensible Recovery Efficiency Type</display_name>
-      <description>The sensible recovery efficiency type of the second mechanical ventilation.</description>
-      <type>Choice</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>Unadjusted</default_value>
-      <choices>
-        <choice>
-          <value>Unadjusted</value>
-          <display_name>Unadjusted</display_name>
-        </choice>
-        <choice>
-          <value>Adjusted</value>
-          <display_name>Adjusted</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
       <name>mech_vent_sensible_recovery_efficiency_2</name>
       <display_name>Mechanical Ventilation 2: Sensible Recovery Efficiency</display_name>
-      <description>The Unadjusted or Adjusted sensible recovery efficiency of the second mechanical ventilation.</description>
+      <description>The Unadjusted or Adjusted sensible recovery efficiency of the second mechanical ventilation. Applies to energy recovery ventilator and heat recovery ventilator.</description>
       <type>Double</type>
       <units>Frac</units>
       <required>true</required>
@@ -3019,7 +3007,7 @@
     <argument>
       <name>water_heater_tank_volume</name>
       <display_name>Water Heater: Tank Volume</display_name>
-      <description>Nominal volume of water heater tank. Set to auto to have volume autosized. Only applies to storage water heater, heat pump water heater, and space-heating boiler with storage tank.</description>
+      <description>Nominal volume of water heater tank. Set to 'auto' to have volume autosized. Only applies to storage water heater, heat pump water heater, and space-heating boiler with storage tank.</description>
       <type>String</type>
       <units>gal</units>
       <required>true</required>
@@ -4049,7 +4037,7 @@
     <argument>
       <name>clothes_washer_efficiency_type</name>
       <display_name>Clothes Washer: Efficiency Type</display_name>
-      <description>The efficiency type of clothes washer.</description>
+      <description>The efficiency type of the clothes washer.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -4066,19 +4054,9 @@
       </choices>
     </argument>
     <argument>
-      <name>clothes_washer_efficiency_mef</name>
-      <display_name>Clothes Washer: Modified Energy Factor</display_name>
-      <description>The Modified Energy Factor (MEF) is the capacity of the clothes container divided by the total clothes washer energy consumption per cycle, where the energy consumption is the sum of the machine electrical energy consumption, the hot water energy consumption, the energy required for removal of the remaining moisture in the wash load, standby energy, and off-mode energy consumption.</description>
-      <type>String</type>
-      <units>ft^3/kWh-cycle</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
-      <name>clothes_washer_efficiency_imef</name>
-      <display_name>Clothes Washer: Integrated Modified Energy Factor</display_name>
-      <description>The energy performance metric for ENERGY STAR certified residential clothes washers as of March 7, 2015.</description>
+      <name>clothes_washer_efficiency</name>
+      <display_name>Clothes Washer: Efficiency</display_name>
+      <description>The efficiency of the clothes washer.</description>
       <type>String</type>
       <units>ft^3/kWh-cyc</units>
       <required>true</required>
@@ -4243,7 +4221,7 @@
     <argument>
       <name>clothes_dryer_efficiency_type</name>
       <display_name>Clothes Dryer: Efficiency Type</display_name>
-      <description>The efficiency type of clothes dryer.</description>
+      <description>The efficiency type of the clothes dryer.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -4268,29 +4246,6 @@
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>auto</default_value>
-    </argument>
-    <argument>
-      <name>clothes_dryer_control_type</name>
-      <display_name>Clothes Dryer: Control Type</display_name>
-      <description>Type of control used by the clothes dryer.</description>
-      <type>Choice</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-      <choices>
-        <choice>
-          <value>auto</value>
-          <display_name>auto</display_name>
-        </choice>
-        <choice>
-          <value>timer</value>
-          <display_name>timer</display_name>
-        </choice>
-        <choice>
-          <value>moisture</value>
-          <display_name>moisture</display_name>
-        </choice>
-      </choices>
     </argument>
     <argument>
       <name>clothes_dryer_vented_flow_rate</name>
@@ -4382,23 +4337,14 @@
       </choices>
     </argument>
     <argument>
-      <name>dishwasher_efficiency_kwh</name>
-      <display_name>Dishwasher: Rated Annual kWh</display_name>
-      <description>The rated annual kWh of the dishwasher.</description>
+      <name>dishwasher_efficiency</name>
+      <display_name>Dishwasher: Efficiency</display_name>
+      <description>The efficiency of the dishwasher.</description>
       <type>String</type>
-      <units>kWh/yr</units>
+      <units>RatedAnnualkWh or EnergyFactor</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>auto</default_value>
-    </argument>
-    <argument>
-      <name>dishwasher_efficiency_ef</name>
-      <display_name>Dishwasher: Energy Factor</display_name>
-      <description>The energy factor of the dishwasher.</description>
-      <type>Double</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>0.46</default_value>
     </argument>
     <argument>
       <name>dishwasher_label_electric_rate</name>
@@ -4848,25 +4794,6 @@
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>0.5</default_value>
-    </argument>
-    <argument>
-      <name>plug_loads_television_annual_kwh</name>
-      <display_name>Plug Loads: Television Annual kWh</display_name>
-      <description>The annual energy consumption of the television plug loads.</description>
-      <type>String</type>
-      <units>kWh/yr</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
-      <name>plug_loads_television_usage_multiplier</name>
-      <display_name>Plug Loads: Television Usage Multiplier</display_name>
-      <description>Multiplier on the television energy usage that can reflect, e.g., high/low usage occupants.</description>
-      <type>Double</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>1</default_value>
     </argument>
     <argument>
       <name>plug_loads_other_annual_kwh</name>
@@ -5399,15 +5326,6 @@
       <default_value>1</default_value>
     </argument>
     <argument>
-      <name>plug_loads_television_usage_multiplier_2</name>
-      <display_name>Plug Loads: Television Usage Multiplier 2</display_name>
-      <description>Additional multiplier on the television energy usage that can reflect, e.g., high/low usage occupants.</description>
-      <type>Double</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>1</default_value>
-    </argument>
-    <argument>
       <name>plug_loads_other_usage_multiplier_2</name>
       <display_name>Plug Loads: Other Usage Multiplier 2</display_name>
       <description>Additional multiplier on the other energy usage that can reflect, e.g., high/low usage occupants.</description>
@@ -5659,7 +5577,7 @@
       <filename>constants.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>7D40C91D</checksum>
+      <checksum>A81BB72E</checksum>
     </file>
     <file>
       <version>
@@ -5670,7 +5588,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>2FC8C2DC</checksum>
+      <checksum>FD7D3D61</checksum>
     </file>
   </files>
 </measure>
