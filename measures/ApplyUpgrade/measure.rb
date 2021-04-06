@@ -320,7 +320,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       schedules_type = measures['BuildResidentialHPXML'][0]['schedules_type']
       if schedules_type == 'stochastic' # avoid re-running the stochastic schedule generator
         measures['BuildResidentialHPXML'][0]['schedules_type'] = 'user-specified'
-        measures['BuildResidentialHPXML'][0]['schedules_path'] = File.expand_path('../schedules.csv')
+        measures['BuildResidentialHPXML'][0]['schedules_path'] = File.expand_path('../existing_schedules.csv')
       end
 
       # Retain HVAC capacities
