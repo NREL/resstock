@@ -2,12 +2,12 @@
   <schema_version>3.0</schema_version>
   <name>residential_misc_electric_loads</name>
   <uid>3ac41688-ef52-4679-b79c-8cbdf7cbd0e7</uid>
-  <version_id>50a2db43-5c27-4f01-a711-265f17219099</version_id>
-  <version_modified>20191016T181811Z</version_modified>
+  <version_id>4b3bd8e6-cc49-43be-83b1-18961a77d8df</version_id>
+  <version_modified>20201211T165357Z</version_modified>
   <xml_checksum>126F1C43</xml_checksum>
   <class_name>ResidentialMiscElectricLoads</class_name>
   <display_name>Set Residential Plug Loads</display_name>
-  <description>Adds (or replaces) residential plug loads with the specified efficiency and schedule in all finished spaces. For multifamily buildings, the plug loads can be set for all units of the building. See https://github.com/NREL/OpenStudio-BuildStock#workflows for supported workflows using this measure.</description>
+  <description>Adds (or replaces) residential plug loads with the specified efficiency and schedule in all finished spaces. For multifamily buildings, the plug loads can be set for all units of the building. See https://github.com/NREL/resstock#workflows for supported workflows using this measure.</description>
   <modeler_description>Since there is no Plug Loads object in OpenStudio/EnergyPlus, we look for an ElectricEquipment object with the name that denotes it is residential plug loads. If one is found, it is replaced with the specified properties. Otherwise, a new such object is added to the model. Note: This measure requires the number of bedrooms/bathrooms to have already been assigned.</modeler_description>
   <arguments>
     <argument>
@@ -30,9 +30,18 @@
       </choices>
     </argument>
     <argument>
-      <name>mult</name>
-      <display_name>Multiplier</display_name>
-      <description>A multiplier on the national average energy use, which is calculated as: (1108.1 + 180.2 * Nbeds + 0.2785 * FFA), where Nbeds is the number of bedrooms and FFA is the finished floor area in sqft.</description>
+      <name>energy_mult</name>
+      <display_name>Energy: Multiplier</display_name>
+      <description>A multiplier on the national average energy use, which is calculated as: (1146.95 + 296.94 * Noccupants + 0.3 * FFA) for single-family detached, (1395.84 + 136.53 * Noccupants + 0.16 * FFA) for single-family attached, and (875.22 + 184.11 * Noccupants + 0.38 * FFA) for multifamily, where Noccupants is the number of occupants and FFA is the finished floor area in sqft.</description>
+      <type>Double</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>1</default_value>
+    </argument>
+    <argument>
+      <name>diversity_mult</name>
+      <display_name>Diversity: Multiplier</display_name>
+      <description>A diversity multiplier on the energy mutliplier.</description>
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -66,33 +75,6 @@
       <model_dependent>false</model_dependent>
       <default_value>0.021</default_value>
     </argument>
-    <argument>
-      <name>weekday_sch</name>
-      <display_name>Weekday schedule</display_name>
-      <description>Specify the 24-hour weekday schedule.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>0.035, 0.033, 0.032, 0.031, 0.032, 0.033, 0.037, 0.042, 0.043, 0.043, 0.043, 0.044, 0.045, 0.045, 0.044, 0.046, 0.048, 0.052, 0.053, 0.05, 0.047, 0.045, 0.04, 0.036</default_value>
-    </argument>
-    <argument>
-      <name>weekend_sch</name>
-      <display_name>Weekend schedule</display_name>
-      <description>Specify the 24-hour weekend schedule.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>0.035, 0.033, 0.032, 0.031, 0.032, 0.033, 0.037, 0.042, 0.043, 0.043, 0.043, 0.044, 0.045, 0.045, 0.044, 0.046, 0.048, 0.052, 0.053, 0.05, 0.047, 0.045, 0.04, 0.036</default_value>
-    </argument>
-    <argument>
-      <name>monthly_sch</name>
-      <display_name>Month schedule</display_name>
-      <description>Specify the 12-month schedule.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>1.248, 1.257, 0.993, 0.989, 0.993, 0.827, 0.821, 0.821, 0.827, 0.99, 0.987, 1.248</default_value>
-    </argument>
   </arguments>
   <outputs/>
   <provenances/>
@@ -113,12 +95,6 @@
   </attributes>
   <files>
     <file>
-      <filename>ResidentialMiscellaneousElectricLoads_Test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>0618DC7F</checksum>
-    </file>
-    <file>
       <version>
         <software_program>OpenStudio</software_program>
         <identifier>1.4.0</identifier>
@@ -127,7 +103,13 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>E8EBB03C</checksum>
+      <checksum>27FB4FFC</checksum>
+    </file>
+    <file>
+      <filename>ResidentialMiscellaneousElectricLoads_Test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>D34371F9</checksum>
     </file>
   </files>
 </measure>

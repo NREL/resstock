@@ -19,6 +19,8 @@ class TsvFile
     full_header = nil
     rows = []
     CSV.foreach(@full_path, { :col_sep => "\t" }) do |row|
+      next if row[0].start_with? "\#"
+
       row.delete_if { |x| x.nil? or x.size == 0 } # purge trailing empty fields
 
       # Store one header line
@@ -60,7 +62,7 @@ class TsvFile
     dependency_cols.each do |dependency, col|
       dependency_options[dependency] = []
       rows.each do |row|
-        next if row[0].start_with? "Created by:"
+        next if row[0].start_with? "\#"
         next if dependency_options[dependency].include? row[col]
 
         dependency_options[dependency] << row[col]
@@ -74,7 +76,7 @@ class TsvFile
     # Caches data for faster tsv lookups
     rows_keys_s = []
     @rows.each_with_index do |row, rownum|
-      next if row[0].start_with? "Created by:"
+      next if row[0].start_with? "\#"
 
       row_key_values = {}
       @dependency_cols.each do |dep, dep_col|
@@ -114,9 +116,12 @@ class TsvFile
     end
 
     rownum = @rows_keys_s.index(key_s_downcase)
-
     row = @rows[rownum]
 
+    if row[0].start_with? "\#"
+      rownum += 1
+      row = @rows[rownum]
+    end
     # Convert data to numeric row values
     rowvals = {}
     @option_cols.each do |option_name, option_col|
@@ -312,7 +317,7 @@ def get_measure_args_from_option_names(lookup_file, option_names, parameter_name
         options_measure_args[current_option][measure_dir] = args
       end
     else
-      break if found_options.all? { |elem| elem == true }
+      break if found_options.values.all? { |elem| elem == true }
     end
   end
   option_names.each do |option_name|
@@ -397,4 +402,90 @@ def evaluate_logic(option_apply_logic, runner, past_results = true)
     return nil
   end
   return result
+end
+
+class RunOSWs
+  require 'csv'
+  require 'json'
+
+  def self.add_simulation_output_report(osw)
+    json = JSON.parse(File.read(osw), symbolize_names: true)
+    measures = []
+    json[:steps].each do |measure|
+      measures << measure[:measure_dir_name]
+    end
+
+    unless measures.include? 'SimulationOutputReport'
+      simulation_output_report = { measure_dir_name: 'SimulationOutputReport' }
+      json[:steps] << simulation_output_report
+    end
+
+    File.open(osw, 'w') do |f|
+      f.write(JSON.pretty_generate(json))
+    end
+  end
+
+  def self.run_and_check(in_osw, parent_dir)
+    # Run workflow
+    cli_path = OpenStudio.getOpenStudioCLI
+    command = "cd #{parent_dir} && \"#{cli_path}\" run -w #{in_osw}"
+    simulation_start = Time.now
+    system(command)
+    sim_time = (Time.now - simulation_start).round(1)
+    out_osw = File.join(parent_dir, 'out.osw')
+
+    data_point_out = File.join(parent_dir, 'run/data_point_out.json')
+    result = { 'OSW' => File.basename(in_osw) }
+    rows = JSON.parse(File.read(File.expand_path(data_point_out)))
+    if rows.keys.include? 'BuildExistingModel'
+      result = get_build_existing_model(result, rows)
+    end
+    if rows.keys.include? 'SimulationOutputReport'
+      result = get_simulation_output_report(result, rows)
+    end
+    result['simulation_time'] = sim_time
+    return out_osw, result
+  end
+
+  def self.get_build_existing_model(result, rows)
+    result = result.merge(rows['BuildExistingModel'])
+    result.delete('applicable')
+    return result
+  end
+
+  def self.get_simulation_output_report(result, rows)
+    result = result.merge(rows['SimulationOutputReport'])
+    result.delete('applicable')
+    result.delete('upgrade_name')
+    result.delete('upgrade_cost_usd')
+    return result
+  end
+
+  def self.write_summary_results(results_dir, results)
+    Dir.mkdir(results_dir)
+    csv_out = File.join(results_dir, 'results.csv')
+
+    column_headers = results[0].keys.sort
+    CSV.open(csv_out, 'wb') do |csv|
+      csv << column_headers
+      results.each do |result|
+        csv_row = []
+        column_headers.each do |column_header|
+          csv_row << result[column_header]
+        end
+        csv << csv_row
+      end
+    end
+  end
+
+  def self._rm_path(path)
+    if Dir.exist?(path)
+      FileUtils.rm_r(path)
+    end
+    while true
+      break if not Dir.exist?(path)
+
+      sleep(0.01)
+    end
+  end
 end

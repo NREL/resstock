@@ -2,12 +2,12 @@
   <schema_version>3.0</schema_version>
   <name>process_boiler</name>
   <uid>42909b35-edc9-41b3-ba59-de138eac3c85</uid>
-  <version_id>fcbd2a8c-1085-421e-bbc5-2e2c42616a27</version_id>
-  <version_modified>20190701T173019Z</version_modified>
+  <version_id>a920a3cf-eab7-4de8-b089-2206919e7e56</version_id>
+  <version_modified>20200618T230345Z</version_modified>
   <xml_checksum>470FC630</xml_checksum>
   <class_name>ProcessBoiler</class_name>
   <display_name>Set Residential Boiler</display_name>
-  <description>This measure removes any existing HVAC heating components from the building and adds a boiler along with constant speed pump and water baseboard coils to a hot water plant loop. For multifamily buildings, the supply components on the plant loop can be set for all units of the building. See https://github.com/NREL/OpenStudio-BuildStock#workflows for supported workflows using this measure.</description>
+  <description>This measure removes any existing HVAC heating components from the building and adds a boiler along with constant speed pump and water baseboard coils to a hot water plant loop. For multifamily buildings, the supply components on the plant loop can be set for all units of the building. See https://github.com/NREL/resstock#workflows for supported workflows using this measure.</description>
   <modeler_description>Any heating components or baseboard convective electrics/waters are removed from any existing air/plant loops or zones. A boiler along with constant speed pump and water baseboard coils are added to a hot water plant loop.</modeler_description>
   <arguments>
     <argument>
@@ -154,6 +154,25 @@
       <model_dependent>false</model_dependent>
       <default_value>NA</default_value>
     </argument>
+    <argument>
+      <name>has_hvac_flue</name>
+      <display_name>Air Leakage: Has Open HVAC Flue</display_name>
+      <description>Specifies whether the building has an open flue associated with the HVAC system.</description>
+      <type>Boolean</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
   </arguments>
   <outputs/>
   <provenances/>
@@ -192,13 +211,13 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>3ED063BD</checksum>
+      <checksum>2F41C245</checksum>
     </file>
     <file>
       <filename>process_boiler_test.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
-      <checksum>B60121D1</checksum>
+      <checksum>A01BA14F</checksum>
     </file>
   </files>
 </measure>

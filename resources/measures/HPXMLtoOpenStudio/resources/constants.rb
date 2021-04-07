@@ -71,6 +71,14 @@ class Constants
     return 1e-9
   end
 
+  def self.PeakFlowRate
+    return 500 # gal/min
+  end
+
+  def self.PeakPower
+    return 100 # kWh
+  end
+
   # Strings --------------------
 
   def self.AirFilm
@@ -203,6 +211,10 @@ class Constants
 
   def self.BuildingUnitFeatureNumBedrooms
     return 'NumberOfBedrooms'
+  end
+
+  def self.BuildingUnitFeatureNumOccupants
+    return 'NumberOfOccupants'
   end
 
   def self.BuildingUnitTypeResidential
@@ -1330,6 +1342,10 @@ class Constants
     return 'RoofUnfinUninsExt'
   end
 
+  def self.SurfaceTypeRoofAdiabatic # shared ceiling, single unit model
+    return 'SurfaceTypeRoofAdiabatic'
+  end
+
   def self.SurfaceTypeRoofUnfinInsExt # unfinished attic roof
     return 'RoofUnfinInsExt'
   end
@@ -1475,7 +1491,7 @@ class Constants
   end
 
   def self.WorkflowDescription
-    return ' See https://github.com/NREL/OpenStudio-BuildStock#workflows for supported workflows using this measure.'
+    return ' See https://github.com/NREL/resstock#workflows for supported workflows using this measure.'
   end
 
   def self.ExpectedSpaceTypes

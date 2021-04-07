@@ -2,12 +2,12 @@
   <schema_version>3.0</schema_version>
   <name>residential_dishwasher</name>
   <uid>09ea4570-4666-4a55-812f-5e90091f5325</uid>
-  <version_id>fd0e8bc7-1467-4b74-9422-1c6feee23e09</version_id>
-  <version_modified>20200131T180119Z</version_modified>
+  <version_id>58405ce2-d36e-493b-8395-ad738fe5664e</version_id>
+  <version_modified>20200804T161342Z</version_modified>
   <xml_checksum>126F1C43</xml_checksum>
   <class_name>ResidentialDishwasher</class_name>
   <display_name>Set Residential Dishwasher</display_name>
-  <description>Adds (or replaces) a residential dishwasher with the specified efficiency, operation, and schedule. For multifamily buildings, the dishwasher can be set for all units of the building. See https://github.com/NREL/OpenStudio-BuildStock#workflows for supported workflows using this measure.</description>
+  <description>Adds (or replaces) a residential dishwasher with the specified efficiency, operation, and schedule. For multifamily buildings, the dishwasher can be set for all units of the building. See https://github.com/NREL/resstock#workflows for supported workflows using this measure.</description>
   <modeler_description>Since there is no Dishwasher object in OpenStudio/EnergyPlus, we look for an ElectricEquipment object with the name that denotes it is a residential dishwasher. If one is found, it is replaced with the specified properties. Otherwise, a new such object is added to the model. Note: This measure requires the number of bedrooms/bathrooms to have already been assigned.</modeler_description>
   <arguments>
     <argument>
@@ -145,34 +145,6 @@
         </choice>
       </choices>
     </argument>
-    <argument>
-      <name>schedule_day_shift</name>
-      <display_name>Schedule Day Shift</display_name>
-      <description>Draw profiles are shifted to prevent coincident hot water events when performing portfolio analyses. For multifamily buildings, draw profiles for each unit are automatically shifted by one week.</description>
-      <type>Integer</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>0</default_value>
-    </argument>
-    <argument>
-      <name>draw_profile_type</name>
-      <display_name>Draw Profile Type</display_name>
-      <description>The 'smooth' option uses the BA HSP smooth 24 hour curves, and the 'realistic' uses the DHWESG draw profiles.</description>
-      <type>Choice</type>
-      <required>true</required>
-      <model_dependent>true</model_dependent>
-      <default_value>realistic</default_value>
-      <choices>
-        <choice>
-          <value>realistic</value>
-          <display_name>realistic</display_name>
-        </choice>
-        <choice>
-          <value>smooth</value>
-          <display_name>smooth</display_name>
-        </choice>
-      </choices>
-    </argument>
   </arguments>
   <outputs/>
   <provenances/>
@@ -201,13 +173,13 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>502ED2BF</checksum>
+      <checksum>A0EF5257</checksum>
     </file>
     <file>
       <filename>ResidentialDishwasher_Test.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
-      <checksum>139B7A44</checksum>
+      <checksum>C8115908</checksum>
     </file>
   </files>
 </measure>

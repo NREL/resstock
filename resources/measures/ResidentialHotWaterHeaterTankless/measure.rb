@@ -128,6 +128,13 @@ class ResidentialHotWaterHeaterTankless < OpenStudio::Measure::ModelMeasure
     oncyc_power.setDefaultValue(65.0)
     args << oncyc_power
 
+    # make a bool argument for open water heater flue
+    has_water_heater_flue = OpenStudio::Measure::OSArgument::makeBoolArgument("has_water_heater_flue", true)
+    has_water_heater_flue.setDisplayName("Air Leakage: Has Open Water Heater Flue")
+    has_water_heater_flue.setDescription("Specifies whether the building has an open flue associated with the water heater.")
+    has_water_heater_flue.setDefaultValue(false)
+    args << has_water_heater_flue
+
     return args
   end # end the arguments method
 
@@ -147,6 +154,7 @@ class ResidentialHotWaterHeaterTankless < OpenStudio::Measure::ModelMeasure
     setpoint_schedule = runner.getStringArgumentValue("setpoint_schedule", user_arguments)
     oncycle_power = runner.getDoubleArgumentValue("oncyc_power", user_arguments)
     offcycle_power = runner.getDoubleArgumentValue("offcyc_power", user_arguments)
+    model.getBuilding.additionalProperties.setFeature("has_water_heater_flue", runner.getBoolArgumentValue("has_water_heater_flue", user_arguments))
 
     # Validate inputs
     if not runner.validateUserArguments(arguments(model), user_arguments)

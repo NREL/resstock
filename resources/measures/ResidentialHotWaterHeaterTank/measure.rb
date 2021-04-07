@@ -146,6 +146,12 @@ class ResidentialHotWaterHeaterTank < OpenStudio::Measure::ModelMeasure
     tank_model_type.setDescription("Type of tank model to use. The '#{Constants.WaterHeaterTypeTankModelTypeStratified}' tank generally provide more accurate results, but may significantly increase run time.")
     tank_model_type.setDefaultValue(Constants.WaterHeaterTypeTankModelTypeMixed)
     args << tank_model_type
+    # make a bool argument for open water heater flue
+    has_water_heater_flue = OpenStudio::Measure::OSArgument::makeBoolArgument("has_water_heater_flue", true)
+    has_water_heater_flue.setDisplayName("Air Leakage: Has Open Water Heater Flue")
+    has_water_heater_flue.setDescription("Specifies whether the building has an open flue associated with the water heater.")
+    has_water_heater_flue.setDefaultValue(false)
+    args << has_water_heater_flue
 
     return args
   end # end the arguments method
@@ -168,6 +174,7 @@ class ResidentialHotWaterHeaterTank < OpenStudio::Measure::ModelMeasure
     oncycle_power = runner.getDoubleArgumentValue("oncyc_power", user_arguments)
     offcycle_power = runner.getDoubleArgumentValue("offcyc_power", user_arguments)
     tank_model_type = runner.getStringArgumentValue("tank_model_type", user_arguments)
+    model.getBuilding.additionalProperties.setFeature("has_water_heater_flue", runner.getBoolArgumentValue("has_water_heater_flue", user_arguments))
 
     # Validate inputs
     if not runner.validateUserArguments(arguments(model), user_arguments)

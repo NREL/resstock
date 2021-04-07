@@ -2,12 +2,12 @@
   <schema_version>3.0</schema_version>
   <name>residential_hot_water_solar</name>
   <uid>b969f216-f3c0-4301-9b85-34ce2b45f551</uid>
-  <version_id>1a41c1c1-0873-4bfd-9a3b-f8b31a9f9c81</version_id>
-  <version_modified>20200131T180120Z</version_modified>
+  <version_id>77d36ea4-c67c-4e42-b983-fe013fa1665c</version_id>
+  <version_modified>20200423T160824Z</version_modified>
   <xml_checksum>F33F6E26</xml_checksum>
   <class_name>ResidentialHotWaterSolar</class_name>
   <display_name>Set Residential Solar Water Heating</display_name>
-  <description>Adds (or replaces) residential solar water heating to the model based on user inputs. For both single-family detached and multifamily buildings, the added storage tank and collector plate provide pre-heated water to the (existing) conventional water heater. See https://github.com/NREL/OpenStudio-BuildStock#workflows for supported workflows using this measure.</description>
+  <description>Adds (or replaces) residential solar water heating to the model based on user inputs. For both single-family detached and multifamily buildings, the added storage tank and collector plate provide pre-heated water to the (existing) conventional water heater. See https://github.com/NREL/resstock#workflows for supported workflows using this measure.</description>
   <modeler_description>Any supply or demand components, including collector plate surface, are removed along with corresponding plant loop. A stratified storage tank demand branch, flat plate collector supply branch, and constant speed pump are added to a new plant loop. The existing water heater is added to the outlet node of the storage tank. A differential thermostat, with collector plate outlet as the hot node and storage tank outlet as the cold node, represents the availability manager on the plant loop.</modeler_description>
   <arguments>
     <argument>
@@ -183,12 +183,6 @@
   </attributes>
   <files>
     <file>
-      <filename>residential_hot_water_solar_test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>EDB767E1</checksum>
-    </file>
-    <file>
       <version>
         <software_program>OpenStudio</software_program>
         <identifier>2.1.0</identifier>
@@ -197,7 +191,13 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>BA534BE8</checksum>
+      <checksum>E2A79037</checksum>
+    </file>
+    <file>
+      <filename>residential_hot_water_solar_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>5222E272</checksum>
     </file>
   </files>
 </measure>

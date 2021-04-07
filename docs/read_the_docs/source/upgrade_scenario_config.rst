@@ -3,8 +3,6 @@ Upgrade Scenario Configuration
 
 There is quite a bit more flexibility and capability in defining an upgrade scenario than was discussed in the :ref:`tutorial <tutorial-apply-upgrade>`. Here we will go through each field in the **Apply Upgrade** measure and discuss how it can be used to build more complicated real-life scenarios for upgrades.
 
-.. image:: images/upgrade_scenario_config.png
-
 Upgrade Name
 ============
 
@@ -13,7 +11,7 @@ This is a human readable name for the upgrade scenario. Something like, "Replace
 Option <#>
 ==========
 
-In this field we enter the parameter and option combination to be applied. In the upgrade scenario simulations, this option will replace the option for the corresponding parameter in the baseline run. These can be found and referenced in the ``resources/options_lookup.tsv`` file in your local git repository. (You can see the most updated version `on github here <https://github.com/NREL/OpenStudio-BuildStock/blob/master/resources/options_lookup.tsv>`_, but it's recommended to use your local version as it will be synchronized with your project.) The file can be opened in a spreadsheet editor like Excel for viewing. 
+In this field we enter the parameter and option combination to be applied. In the upgrade scenario simulations, this option will replace the option for the corresponding parameter in the baseline run. These can be found and referenced in the ``resources/options_lookup.tsv`` file in your local git repository. (You can see the most updated version `on github here <https://github.com/NREL/resstock/blob/master/resources/options_lookup.tsv>`_, but it's recommended to use your local version as it will be synchronized with your project.) The file can be opened in a spreadsheet editor like Excel for viewing. 
 
 The text to enter in the field will be the Parameter Name followed by the Option Name separated by a pipe character.
 

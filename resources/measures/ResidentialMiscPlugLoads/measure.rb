@@ -47,11 +47,18 @@ class ResidentialMiscElectricLoads < OpenStudio::Measure::ModelMeasure
     args << option_type
 
     # make a double argument for BA Benchmark multiplier
-    mult = OpenStudio::Measure::OSArgument::makeDoubleArgument("mult", true)
-    mult.setDisplayName("#{Constants.OptionTypePlugLoadsMultiplier}")
-    mult.setDefaultValue(1)
-    mult.setDescription("A multiplier on the national average energy use, which is calculated as: (1108.1 + 180.2 * Nbeds + 0.2785 * FFA), where Nbeds is the number of bedrooms and FFA is the finished floor area in sqft.")
-    args << mult
+    energy_mult = OpenStudio::Measure::OSArgument::makeDoubleArgument("energy_mult", true)
+    energy_mult.setDisplayName("Energy: #{Constants.OptionTypePlugLoadsMultiplier}")
+    energy_mult.setDefaultValue(1)
+    energy_mult.setDescription("A multiplier on the national average energy use, which is calculated as: (1146.95 + 296.94 * Noccupants + 0.3 * FFA) for single-family detached, (1395.84 + 136.53 * Noccupants + 0.16 * FFA) for single-family attached, and (875.22 + 184.11 * Noccupants + 0.38 * FFA) for multifamily, where Noccupants is the number of occupants and FFA is the finished floor area in sqft.")
+    args << energy_mult
+
+    # make a double argument for diversity multiplier
+    diversity_mult = OpenStudio::Measure::OSArgument::makeDoubleArgument("diversity_mult", true)
+    diversity_mult.setDisplayName("Diversity: #{Constants.OptionTypePlugLoadsMultiplier}")
+    diversity_mult.setDefaultValue(1)
+    diversity_mult.setDescription("A diversity multiplier on the energy mutliplier.")
+    args << diversity_mult
 
     # make a double argument for annual energy use
     energy_use = OpenStudio::Measure::OSArgument::makeDoubleArgument("energy_use", true)
@@ -75,27 +82,6 @@ class ResidentialMiscElectricLoads < OpenStudio::Measure::ModelMeasure
     lat_frac.setDefaultValue(0.021)
     args << lat_frac
 
-    # Make a string argument for 24 weekday schedule values
-    weekday_sch = OpenStudio::Measure::OSArgument::makeStringArgument("weekday_sch", true)
-    weekday_sch.setDisplayName("Weekday schedule")
-    weekday_sch.setDescription("Specify the 24-hour weekday schedule.")
-    weekday_sch.setDefaultValue("0.035, 0.033, 0.032, 0.031, 0.032, 0.033, 0.037, 0.042, 0.043, 0.043, 0.043, 0.044, 0.045, 0.045, 0.044, 0.046, 0.048, 0.052, 0.053, 0.05, 0.047, 0.045, 0.04, 0.036")
-    args << weekday_sch
-
-    # Make a string argument for 24 weekend schedule values
-    weekend_sch = OpenStudio::Measure::OSArgument::makeStringArgument("weekend_sch", true)
-    weekend_sch.setDisplayName("Weekend schedule")
-    weekend_sch.setDescription("Specify the 24-hour weekend schedule.")
-    weekend_sch.setDefaultValue("0.035, 0.033, 0.032, 0.031, 0.032, 0.033, 0.037, 0.042, 0.043, 0.043, 0.043, 0.044, 0.045, 0.045, 0.044, 0.046, 0.048, 0.052, 0.053, 0.05, 0.047, 0.045, 0.04, 0.036")
-    args << weekend_sch
-
-    # Make a string argument for 12 monthly schedule values
-    monthly_sch = OpenStudio::Measure::OSArgument::makeStringArgument("monthly_sch", true)
-    monthly_sch.setDisplayName("Month schedule")
-    monthly_sch.setDescription("Specify the 12-month schedule.")
-    monthly_sch.setDefaultValue("1.248, 1.257, 0.993, 0.989, 0.993, 0.827, 0.821, 0.821, 0.827, 0.99, 0.987, 1.248")
-    args << monthly_sch
-
     return args
   end # end the arguments method
 
@@ -110,13 +96,11 @@ class ResidentialMiscElectricLoads < OpenStudio::Measure::ModelMeasure
 
     # assign the user inputs to variables
     option_type = runner.getStringArgumentValue("option_type", user_arguments)
-    mult = runner.getDoubleArgumentValue("mult", user_arguments)
+    energy_mult = runner.getDoubleArgumentValue("energy_mult", user_arguments)
+    diversity_mult = runner.getDoubleArgumentValue("diversity_mult", user_arguments)
     energy_use = runner.getDoubleArgumentValue("energy_use", user_arguments)
     sens_frac = runner.getDoubleArgumentValue("sens_frac", user_arguments)
     lat_frac = runner.getDoubleArgumentValue("lat_frac", user_arguments)
-    weekday_sch = runner.getStringArgumentValue("weekday_sch", user_arguments)
-    weekend_sch = runner.getStringArgumentValue("weekend_sch", user_arguments)
-    monthly_sch = runner.getStringArgumentValue("monthly_sch", user_arguments)
 
     # Get building units
     units = Geometry.get_building_units(model, runner)
@@ -129,17 +113,24 @@ class ResidentialMiscElectricLoads < OpenStudio::Measure::ModelMeasure
       MiscLoads.remove(runner, space, [Constants.ObjectNameMiscPlugLoads])
     end
 
+    schedules_file = SchedulesFile.new(runner: runner, model: model)
+    if not schedules_file.validated?
+      return false
+    end
+
     tot_mel_ann = 0
     msgs = []
     sch = nil
     units.each do |unit|
       # Calculate electric mel daily energy use
       if option_type == Constants.OptionTypePlugLoadsMultiplier
-        # Get unit beds/baths
+        # Get unit beds/baths/occupants
         nbeds, nbaths = Geometry.get_unit_beds_baths(model, unit, runner)
         if nbeds.nil? or nbaths.nil?
           return false
         end
+
+        noccupants = Geometry.get_unit_occupants(model, unit, runner)
 
         # Get unit ffa
         ffa = Geometry.get_finished_floor_area_from_spaces(unit.spaces, runner)
@@ -147,14 +138,20 @@ class ResidentialMiscElectricLoads < OpenStudio::Measure::ModelMeasure
           return false
         end
 
-        mel_ann = (1108.1 + 180.2 * nbeds + 0.2785 * ffa) * mult
+        mult = energy_mult * diversity_mult
+
+        if [Constants.BuildingTypeSingleFamilyDetached].include? Geometry.get_building_type(model) # single-family detached equation
+          mel_ann = (1146.95 + 296.94 * noccupants + 0.3 * ffa) * mult # RECS 2015
+        elsif [Constants.BuildingTypeSingleFamilyAttached].include? Geometry.get_building_type(model) # single-family attached equation
+          mel_ann = (1395.84 + 136.53 * noccupants + 0.16 * ffa) * mult # RECS 2015
+        elsif [Constants.BuildingTypeMultifamily].include? Geometry.get_building_type(model) # multifamily equation
+          mel_ann = (875.22 + 184.11 * noccupants + 0.38 * ffa) * mult # RECS 2015
+        end
       elsif option_type == Constants.OptionTypePlugLoadsEnergyUse
         mel_ann = energy_use
       end
 
-      success, sch = MiscLoads.apply_plug(model, unit, runner, mel_ann,
-                                          sens_frac, lat_frac, weekday_sch,
-                                          weekend_sch, monthly_sch, sch)
+      success, sch = MiscLoads.apply_plug(model, unit, runner, mel_ann, sens_frac, lat_frac, sch, schedules_file)
 
       return false if not success
 
@@ -163,6 +160,8 @@ class ResidentialMiscElectricLoads < OpenStudio::Measure::ModelMeasure
         tot_mel_ann += mel_ann
       end
     end
+
+    schedules_file.set_vacancy(col_name: "plug_loads")
 
     # Reporting
     if msgs.size > 1

@@ -66,23 +66,6 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
     plant_loop.setDefaultValue(Constants.Auto)
     args << plant_loop
 
-    # make an argument for the number of days to shift the draw profile by
-    schedule_day_shift = OpenStudio::Measure::OSArgument::makeIntegerArgument("schedule_day_shift", true)
-    schedule_day_shift.setDisplayName("Schedule Day Shift")
-    schedule_day_shift.setDescription("Draw profiles are shifted to prevent coincident hot water events when performing portfolio analyses. For multifamily buildings, draw profiles for each unit are automatically shifted by one week.")
-    schedule_day_shift.setDefaultValue(0)
-    args << schedule_day_shift
-
-    # make an argument for whether to use smooth or realistic draw profiles
-    draw_profile_types = OpenStudio::StringVector.new
-    draw_profile_types << Constants.WaterHeaterDrawProfileTypeRealistic
-    draw_profile_types << Constants.WaterHeaterDrawProfileTypeSmooth
-    draw_profile_type = OpenStudio::Measure::OSArgument::makeChoiceArgument("draw_profile_type", draw_profile_types, true, true)
-    draw_profile_type.setDisplayName("Draw Profile Type")
-    draw_profile_type.setDescription("The '#{Constants.WaterHeaterDrawProfileTypeSmooth}' option uses the BA HSP smooth 24 hour curves, and the '#{Constants.WaterHeaterDrawProfileTypeRealistic}' uses the DHWESG draw profiles.")
-    draw_profile_type.setDefaultValue(Constants.WaterHeaterDrawProfileTypeRealistic)
-    args << draw_profile_type
-
     return args
   end # end the arguments method
 
@@ -100,8 +83,6 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
     s_mult = runner.getDoubleArgumentValue("sink_mult", user_arguments)
     b_mult = runner.getDoubleArgumentValue("bath_mult", user_arguments)
     plant_loop_s = runner.getStringArgumentValue("plant_loop", user_arguments)
-    d_sh = runner.getIntegerArgumentValue("schedule_day_shift", user_arguments)
-    prof_type = runner.getStringArgumentValue("draw_profile_type", user_arguments)
 
     # Check for valid and reasonable inputs
     if sh_mult < 0
@@ -116,39 +97,17 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
       runner.registerError("Bath hot water usage multiplier must be greater than or equal to 0.")
       return false
     end
-    if d_sh < 0 or d_sh > 364
-      runner.registerError("Hot water draw profile can only be shifted by 0-364 days.")
-      return false
-    end
 
-    # Get building units
-    units = Geometry.get_building_units(model, runner)
-    if units.nil?
-      return false
-    end
-
-    # Remove all existing objects
-    obj_names = [Constants.ObjectNameShower,
-                 Constants.ObjectNameSink,
-                 Constants.ObjectNameBath]
-    model.getSpaces.each do |space|
-      remove_existing(model, runner, space, obj_names)
-    end
-
-    location_hierarchy = [Constants.SpaceTypeBathroom,
-                          Constants.SpaceTypeLiving,
-                          Constants.SpaceTypeFinishedBasement]
-
-    tot_sh_gpd = 0
-    tot_s_gpd = 0
-    tot_b_gpd = 0
-    msgs = []
+    sch_s = nil
+    sch_b = nil
     units.each_with_index do |unit, unit_index|
-      # Get unit beds/baths
+      # Get unit beds/baths/occupants
       nbeds, nbaths = Geometry.get_unit_beds_baths(model, unit, runner)
       if nbeds.nil? or nbaths.nil?
         return false
       end
+
+      noccupants = Geometry.get_unit_occupants(model, unit, runner)
 
       # Get space
       space = Geometry.get_space_from_location(unit, Constants.Auto, location_hierarchy)
@@ -156,9 +115,8 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
 
       # Get plant loop
       plant_loop = Waterheater.get_plant_loop_from_string(model, runner, plant_loop_s, unit)
-
       if plant_loop.nil?
-        return false
+        next
       end
 
       obj_name_sh = Constants.ObjectNameShower(unit.name.to_s)
@@ -166,30 +124,53 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
       obj_name_b = Constants.ObjectNameBath(unit.name.to_s)
       obj_name_recirc_pump = Constants.ObjectNameHotWaterRecircPump(unit.name.to_s)
 
-      mixed_use_t = Constants.MixedUseT # F
+      if [Constants.BuildingTypeMultifamily, Constants.BuildingTypeSingleFamilyAttached].include? Geometry.get_building_type(model) # multifamily equation
+        # Calc daily gpm and annual gain of each end use
+        sh_gpd = (14.0 + 4.67 * (-0.68 + 1.09 * noccupants)) * sh_mult
+        s_gpd = (12.5 + 4.16 * (-0.68 + 1.09 * noccupants)) * s_mult
+        b_gpd = (3.5 + 1.17 * (-0.68 + 1.09 * noccupants)) * b_mult
 
-      # Calc daily gpm and annual gain of each end use
-      sh_gpd = (14.0 + 4.67 * nbeds) * sh_mult
-      s_gpd = (12.5 + 4.16 * nbeds) * s_mult
-      b_gpd = (3.5 + 1.17 * nbeds) * b_mult
+        # Shower internal gains
+        sh_sens_load = (741 + 247 * (-0.68 + 1.09 * noccupants)) * sh_mult # Btu/day
+        sh_lat_load = (703 + 235 * (-0.68 + 1.09 * noccupants)) * sh_mult # Btu/day
+        sh_tot_load = UnitConversions.convert(sh_sens_load + sh_lat_load, "Btu", "kWh") # kWh/day
+        sh_lat = sh_lat_load / (sh_lat_load + sh_sens_load)
 
-      # Shower internal gains
-      sh_sens_load = (741 + 247 * nbeds) * sh_mult # Btu/day
-      sh_lat_load = (703 + 235 * nbeds) * sh_mult # Btu/day
-      sh_tot_load = UnitConversions.convert(sh_sens_load + sh_lat_load, "Btu", "kWh") # kWh/day
-      sh_lat = sh_lat_load / (sh_lat_load + sh_sens_load)
+        # Sink internal gains
+        s_sens_load = (310 + 103 * (-0.68 + 1.09 * noccupants)) * s_mult # Btu/day
+        s_lat_load = (140 + 47 * (-0.68 + 1.09 * noccupants)) * s_mult # Btu/day
+        s_tot_load = UnitConversions.convert(s_sens_load + s_lat_load, "Btu", "kWh") # kWh/day
+        s_lat = s_lat_load / (s_lat_load + s_sens_load)
 
-      # Sink internal gains
-      s_sens_load = (310 + 103 * nbeds) * s_mult # Btu/day
-      s_lat_load = (140 + 47 * nbeds) * s_mult # Btu/day
-      s_tot_load = UnitConversions.convert(s_sens_load + s_lat_load, "Btu", "kWh") # kWh/day
-      s_lat = s_lat_load / (s_lat_load + s_sens_load)
+        # Bath internal gains
+        b_sens_load = (185 + 62 * (-0.68 + 1.09 * noccupants)) * b_mult # Btu/day
+        b_lat_load = 0 # Btu/day
+        b_tot_load = UnitConversions.convert(b_sens_load + b_lat_load, "Btu", "kWh") # kWh/day
+        b_lat = b_lat_load / (b_lat_load + b_sens_load)
+      elsif [Constants.BuildingTypeSingleFamilyDetached].include? Geometry.get_building_type(model) # single-family equation
+        # Calc daily gpm and annual gain of each end use
+        sh_gpd = (14.0 + 4.67 * (-1.47 + 1.69 * noccupants)) * sh_mult
+        s_gpd = (12.5 + 4.16 * (-1.47 + 1.69 * noccupants)) * s_mult
+        b_gpd = (3.5 + 1.17 * (-1.47 + 1.69 * noccupants)) * b_mult
 
-      # Bath internal gains
-      b_sens_load = (185 + 62 * nbeds) * b_mult # Btu/day
-      b_lat_load = 0 # Btu/day
-      b_tot_load = UnitConversions.convert(b_sens_load + b_lat_load, "Btu", "kWh") # kWh/day
-      b_lat = b_lat_load / (b_lat_load + b_sens_load)
+        # Shower internal gains
+        sh_sens_load = (741 + 247 * (-1.47 + 1.69 * noccupants)) * sh_mult # Btu/day
+        sh_lat_load = (703 + 235 * (-1.47 + 1.69 * noccupants)) * sh_mult # Btu/day
+        sh_tot_load = UnitConversions.convert(sh_sens_load + sh_lat_load, "Btu", "kWh") # kWh/day
+        sh_lat = sh_lat_load / (sh_lat_load + sh_sens_load)
+
+        # Sink internal gains
+        s_sens_load = (310 + 103 * (-1.47 + 1.69 * noccupants)) * s_mult # Btu/day
+        s_lat_load = (140 + 47 * (-1.47 + 1.69 * noccupants)) * s_mult # Btu/day
+        s_tot_load = UnitConversions.convert(s_sens_load + s_lat_load, "Btu", "kWh") # kWh/day
+        s_lat = s_lat_load / (s_lat_load + s_sens_load)
+
+        # Bath internal gains
+        b_sens_load = (185 + 62 * (-1.47 + 1.69 * noccupants)) * b_mult # Btu/day
+        b_lat_load = 0 # Btu/day
+        b_tot_load = UnitConversions.convert(b_sens_load + b_lat_load, "Btu", "kWh") # kWh/day
+        b_lat = b_lat_load / (b_lat_load + b_sens_load)
+      end
 
       if sh_gpd > 0 or s_gpd > 0 or b_gpd > 0
 
@@ -212,14 +193,14 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
       # Showers
       if sh_gpd > 0
 
-        # Create schedule
-        sch_sh = HotWaterSchedule.new(model, runner, Constants.ObjectNameShower + " schedule", Constants.ObjectNameShower + " temperature schedule", nbeds, d_sh, "Shower", mixed_use_t, prof_type, create_sch_object = true, schedule_type_limits_name = Constants.ScheduleTypeLimitsFraction)
-        if not sch_sh.validated?
-          return false
+        col_name = "showers"
+        if sch_sh.nil?
+          # Create schedule
+          sch_sh = schedules_file.create_schedule_file(col_name: col_name)
         end
 
-        sh_peak_flow = sch_sh.calcPeakFlowFromDailygpm(sh_gpd)
-        sh_design_level = sch_sh.calcDesignLevelFromDailykWh(sh_tot_load)
+        sh_peak_flow = schedules_file.calc_peak_flow_from_daily_gpm(col_name: col_name, daily_water: sh_gpd)
+        sh_design_level = schedules_file.calc_design_level_from_daily_kwh(col_name: col_name, daily_kwh: sh_tot_load)
 
         # Add water use equipment objects
         sh_wu_def = OpenStudio::Model::WaterUseEquipmentDefinition.new(model)
@@ -229,8 +210,8 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
         sh_wu_def.setName(obj_name_sh)
         sh_wu_def.setPeakFlowRate(sh_peak_flow)
         sh_wu_def.setEndUseSubcategory(obj_name_sh)
-        sh_wu.setFlowRateFractionSchedule(sch_sh.schedule)
-        sh_wu_def.setTargetTemperatureSchedule(sch_sh.temperatureSchedule)
+        sh_wu.setFlowRateFractionSchedule(sch_sh)
+        sh_wu_def.setTargetTemperatureSchedule(temperature_sch)
         water_use_connection.addWaterUseEquipment(sh_wu)
 
         # Add other equipment
@@ -243,7 +224,7 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
         sh_oe_def.setFractionRadiant(0)
         sh_oe_def.setFractionLatent(sh_lat)
         sh_oe_def.setFractionLost(0)
-        sh_oe.setSchedule(sch_sh.schedule)
+        sh_oe.setSchedule(sch_sh)
 
         # Re-assign recirc pump schedule if needed
         recirc_pump = nil
@@ -335,14 +316,14 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
       # Sinks
       if s_gpd > 0
 
-        # Create schedule
-        sch_s = HotWaterSchedule.new(model, runner, Constants.ObjectNameSink + " schedule", Constants.ObjectNameSink + " temperature schedule", nbeds, d_sh, "Sink", mixed_use_t, prof_type, create_sch_object = true, schedule_type_limits_name = Constants.ScheduleTypeLimitsFraction)
-        if not sch_s.validated?
-          return false
+        col_name = "sinks"
+        if sch_s.nil?
+          # Create schedule
+          sch_s = schedules_file.create_schedule_file(col_name: col_name)
         end
 
-        s_peak_flow = sch_s.calcPeakFlowFromDailygpm(s_gpd)
-        s_design_level = sch_s.calcDesignLevelFromDailykWh(s_tot_load)
+        s_peak_flow = schedules_file.calc_peak_flow_from_daily_gpm(col_name: col_name, daily_water: s_gpd)
+        s_design_level = schedules_file.calc_design_level_from_daily_kwh(col_name: col_name, daily_kwh: s_tot_load)
 
         # Add water use equipment objects
         s_wu_def = OpenStudio::Model::WaterUseEquipmentDefinition.new(model)
@@ -352,8 +333,8 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
         s_wu_def.setName(obj_name_s)
         s_wu_def.setPeakFlowRate(s_peak_flow)
         s_wu_def.setEndUseSubcategory(obj_name_s)
-        s_wu.setFlowRateFractionSchedule(sch_s.schedule)
-        s_wu_def.setTargetTemperatureSchedule(sch_s.temperatureSchedule)
+        s_wu.setFlowRateFractionSchedule(sch_s)
+        s_wu_def.setTargetTemperatureSchedule(temperature_sch)
         water_use_connection.addWaterUseEquipment(s_wu)
 
         # Add other equipment
@@ -366,7 +347,7 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
         s_oe_def.setFractionRadiant(0)
         s_oe_def.setFractionLatent(s_lat)
         s_oe_def.setFractionLost(0)
-        s_oe.setSchedule(sch_s.schedule)
+        s_oe.setSchedule(sch_s)
 
         tot_s_gpd += s_gpd
       end
@@ -374,14 +355,14 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
       # Baths
       if b_gpd > 0
 
-        # Create schedule
-        sch_b = HotWaterSchedule.new(model, runner, Constants.ObjectNameBath + " schedule", Constants.ObjectNameBath + " temperature schedule", nbeds, d_sh, "Bath", mixed_use_t, prof_type, create_sch_object = true, schedule_type_limits_name = Constants.ScheduleTypeLimitsFraction)
-        if not sch_b.validated?
-          return false
+        col_name = "baths"
+        if sch_b.nil?
+          # Create schedule
+          sch_b = schedules_file.create_schedule_file(col_name: col_name)
         end
 
-        b_peak_flow = sch_b.calcPeakFlowFromDailygpm(b_gpd)
-        b_design_level = sch_b.calcDesignLevelFromDailykWh(b_tot_load)
+        b_peak_flow = schedules_file.calc_peak_flow_from_daily_gpm(col_name: col_name, daily_water: b_gpd)
+        b_design_level = schedules_file.calc_design_level_from_daily_kwh(col_name: col_name, daily_kwh: b_tot_load)
 
         # Add water use equipment objects
         b_wu_def = OpenStudio::Model::WaterUseEquipmentDefinition.new(model)
@@ -391,8 +372,8 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
         b_wu_def.setName(obj_name_b)
         b_wu_def.setPeakFlowRate(b_peak_flow)
         b_wu_def.setEndUseSubcategory(obj_name_b)
-        b_wu.setFlowRateFractionSchedule(sch_b.schedule)
-        b_wu_def.setTargetTemperatureSchedule(sch_b.temperatureSchedule)
+        b_wu.setFlowRateFractionSchedule(sch_b)
+        b_wu_def.setTargetTemperatureSchedule(temperature_sch)
         water_use_connection.addWaterUseEquipment(b_wu)
 
         # Add other equipment
@@ -405,7 +386,7 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
         b_oe_def.setFractionRadiant(0)
         b_oe_def.setFractionLatent(b_lat)
         b_oe_def.setFractionLost(0)
-        b_oe.setSchedule(sch_b.schedule)
+        b_oe.setSchedule(sch_b)
 
         tot_b_gpd += b_gpd
       end
@@ -414,6 +395,10 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
         msgs << "Shower, sinks, and bath fixtures drawing #{sh_gpd.round(1)}, #{s_gpd.round(1)}, and #{b_gpd.round(1)} gal/day respectively have been added to plant loop '#{plant_loop.name}' and assigned to space '#{space.name.to_s}'."
       end
     end
+
+    schedules_file.set_vacancy(col_name: "showers")
+    schedules_file.set_vacancy(col_name: "sinks")
+    schedules_file.set_vacancy(col_name: "baths")
 
     # Reporting
     if msgs.size > 1
@@ -453,7 +438,7 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
       found = false
       obj_names.each do |obj_name|
         next if not space_equipment.name.to_s.start_with? obj_name
-        next if space_equipment.name.to_s.include? "=" # TODO: Skip dummy distribution objects; can remove once we are using AdditionalProperties
+        next if space_equipment.additionalProperties.getFeatureAsDouble('dist_hw').is_initialized # TODO: Skip dummy distribution objects; can remove once we are using AdditionalProperties instead of the objects
 
         found = true
       end

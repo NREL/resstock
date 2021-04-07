@@ -126,7 +126,23 @@ class ProcessConstructionsSlab < OpenStudio::Measure::ModelMeasure
 
     # Get geometry values
     surfaces = floors_by_type[Constants.SurfaceTypeFloorFndGrndFinSlab]
-    slabArea = Geometry.calculate_total_area_from_surfaces(surfaces)
+    space_surfaces = []
+    living_space = nil
+    surfaces.each do |surface|
+      next if not Geometry.is_living(surface.space.get)
+
+      living_space = surface.space.get
+      break
+    end
+
+    surfaces.each do |surface|
+      if surface.space.get == living_space
+        space_surfaces << surface
+      end
+    end
+
+    # Calculate slab area based on one unit
+    slabArea = Geometry.calculate_total_area_from_surfaces(space_surfaces)
 
     # Define materials
     slabCarpetPerimeterConduction, slabBarePerimeterConduction = SlabPerimeterConductancesByType(perimeter_r, gap_r, perimeter_width, exterior_r, whole_r, exterior_depth)
@@ -135,7 +151,6 @@ class ProcessConstructionsSlab < OpenStudio::Measure::ModelMeasure
 
     surfaces.each do |surface|
       slabExtPerimeter = Geometry.calculate_exposed_perimeter(model, [surface], false)
-
       if slabExtPerimeter > 0
         effective_slab_Rvalue = slabArea / (slabExtPerimeter * slab_perimeter_conduction)
       else

@@ -19,10 +19,12 @@ class ResidentialHotWaterSolarTest < MiniTest::Test
     assert_includes(result.errors.map { |x| x.logMessage }, "Invalid azimuth entered.")
   end
 
-  def test_error_no_water_heater
+  def test_warning_no_water_heater
     args_hash = {}
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash)
-    assert_includes(result.errors.map { |x| x.logMessage }, "Model must have a water heater.")
+    expected_num_del_objects = {}
+    expected_num_new_objects = {}
+    expected_values = {}
+    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 0, 1)
   end
 
   def test_faces_south_hpwh_hardcoded_volume
@@ -325,7 +327,7 @@ class ResidentialHotWaterSolarTest < MiniTest::Test
   end
 
   def test_faces_south_single_family_attached_new_construction
-    num_units = 4
+    num_units = 1
     args_hash = {}
     expected_num_del_objects = {}
     expected_num_new_objects = { "ShadingSurfaceGroup" => num_units, "ShadingSurface" => num_units, "SizingPlant" => num_units, "PumpConstantSpeed" => num_units, "AvailabilityManagerDifferentialThermostat" => num_units, "WaterHeaterStratified" => num_units, "SetpointManagerScheduled" => num_units, "SolarCollectorFlatPlateWater" => num_units, "PlantLoop" => num_units, "SolarCollectorPerformanceFlatPlate" => num_units }
@@ -334,7 +336,7 @@ class ResidentialHotWaterSolarTest < MiniTest::Test
   end
 
   def test_faces_south_multifamily_new_construction
-    num_units = 8
+    num_units = 1
     args_hash = {}
     expected_num_del_objects = {}
     expected_num_new_objects = { "ShadingSurfaceGroup" => num_units, "ShadingSurface" => num_units, "SizingPlant" => num_units, "PumpConstantSpeed" => num_units, "AvailabilityManagerDifferentialThermostat" => num_units, "WaterHeaterStratified" => num_units, "SetpointManagerScheduled" => num_units, "SolarCollectorFlatPlateWater" => num_units, "PlantLoop" => num_units, "SolarCollectorPerformanceFlatPlate" => num_units }

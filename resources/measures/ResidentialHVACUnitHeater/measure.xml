@@ -2,12 +2,12 @@
   <schema_version>3.0</schema_version>
   <name>process_unit_heater</name>
   <uid>6f0c92ae-8ca7-4ee8-a370-ff9281269d53</uid>
-  <version_id>fa0b174b-2208-46d6-83b0-e4021b6e9004</version_id>
-  <version_modified>20190701T173020Z</version_modified>
+  <version_id>13a51822-91dc-4d54-b3d6-b27641386f94</version_id>
+  <version_modified>20200618T230346Z</version_modified>
   <xml_checksum>470FC630</xml_checksum>
   <class_name>ProcessUnitHeater</class_name>
   <display_name>Set Residential Unit Heater</display_name>
-  <description>This measure removes any existing HVAC heating components from the building and adds a unit heater along with an optional on/off fan. For multifamily buildings, the unit heater can be set for all units of the building. See https://github.com/NREL/OpenStudio-BuildStock#workflows for supported workflows using this measure.</description>
+  <description>This measure removes any existing HVAC heating components from the building and adds a unit heater along with an optional on/off fan. For multifamily buildings, the unit heater can be set for all units of the building. See https://github.com/NREL/resstock#workflows for supported workflows using this measure.</description>
   <modeler_description>Any heating components or baseboard convective electrics/waters are removed from any existing air/plant loops or zones. Any existing air/plant loops are also removed. A unitary system with a fuel heating coil and an optional on/off fan are added to each zone.</modeler_description>
   <arguments>
     <argument>
@@ -77,6 +77,25 @@
       <model_dependent>false</model_dependent>
       <default_value>autosize</default_value>
     </argument>
+    <argument>
+      <name>has_hvac_flue</name>
+      <display_name>Air Leakage: Has Open HVAC Flue</display_name>
+      <description>Specifies whether the building has an open flue associated with the HVAC system.</description>
+      <type>Boolean</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
   </arguments>
   <outputs/>
   <provenances/>
@@ -115,13 +134,13 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>2CE9E242</checksum>
+      <checksum>A6B7DDB6</checksum>
     </file>
     <file>
       <filename>process_unit_heater_test.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
-      <checksum>39EFA55B</checksum>
+      <checksum>FA6E916E</checksum>
     </file>
   </files>
 </measure>

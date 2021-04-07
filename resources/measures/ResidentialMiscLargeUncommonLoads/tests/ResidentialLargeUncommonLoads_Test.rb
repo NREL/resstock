@@ -198,18 +198,18 @@ class ResidentialMiscLargeUncommonLoadsTest < MiniTest::Test
   end
 
   def test_fridge_single_family_attached_new_construction
-    num_units = 4
+    num_units = 1
     args_hash = {}
     args_hash["has_fridge"] = true
     args_hash["fridge_rated_annual_energy"] = 1102.0
     expected_num_del_objects = {}
     expected_num_new_objects = { "ElectricEquipmentDefinition" => num_units, "ElectricEquipment" => num_units, "ScheduleRuleset" => 1 }
     expected_values = { "Annual_kwh" => num_units * 1102.0, "fridge_location" => args_hash["fridge_location"] }
-    _test_measure("SFA_4units_1story_FB_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
+    _test_measure("SFA_4units_1story_FB_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 0)
   end
 
   def test_fridge_single_family_attached_new_construction_finished_basement
-    num_units = 4
+    num_units = 1
     args_hash = {}
     args_hash["has_fridge"] = true
     args_hash["fridge_rated_annual_energy"] = 1102.0
@@ -217,11 +217,11 @@ class ResidentialMiscLargeUncommonLoadsTest < MiniTest::Test
     expected_num_del_objects = {}
     expected_num_new_objects = { "ElectricEquipment" => num_units, "ElectricEquipmentDefinition" => num_units, "ScheduleRuleset" => 1 }
     expected_values = { "Annual_kwh" => num_units * 1102.0, "fridge_location" => args_hash["fridge_location"] }
-    _test_measure("SFA_4units_1story_FB_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
+    _test_measure("SFA_4units_1story_FB_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 0)
   end
 
   def test_fridge_single_family_attached_new_construction_unfinished_basement
-    num_units = 4
+    num_units = 1
     args_hash = {}
     args_hash["has_fridge"] = true
     args_hash["fridge_rated_annual_energy"] = 1102.0
@@ -229,18 +229,18 @@ class ResidentialMiscLargeUncommonLoadsTest < MiniTest::Test
     expected_num_del_objects = {}
     expected_num_new_objects = { "ElectricEquipment" => num_units, "ElectricEquipmentDefinition" => num_units, "ScheduleRuleset" => 1 }
     expected_values = { "Annual_kwh" => num_units * 1102.0, "fridge_location" => args_hash["fridge_location"] }
-    _test_measure("SFA_4units_1story_UB_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
+    _test_measure("SFA_4units_1story_UB_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 0)
   end
 
   def test_fridge_multifamily_new_construction
-    num_units = 8
+    num_units = 1
     args_hash = {}
     args_hash["has_fridge"] = true
     args_hash["fridge_rated_annual_energy"] = 1102.0
     expected_num_del_objects = {}
     expected_num_new_objects = { "ElectricEquipment" => num_units, "ElectricEquipmentDefinition" => num_units, "ScheduleRuleset" => 1 }
     expected_values = { "Annual_kwh" => num_units * 1102.0, "fridge_location" => args_hash["fridge_location"] }
-    _test_measure("MF_8units_1story_SL_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
+    _test_measure("MF_8units_1story_SL_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 0)
   end
 
   # Freezer
@@ -421,18 +421,18 @@ class ResidentialMiscLargeUncommonLoadsTest < MiniTest::Test
   end
 
   def test_freezer_single_family_attached_new_construction
-    num_units = 4
+    num_units = 1
     args_hash = {}
     args_hash["has_freezer"] = true
     args_hash["freezer_rated_annual_energy"] = 935.0
     expected_num_del_objects = {}
     expected_num_new_objects = { "ElectricEquipmentDefinition" => num_units, "ElectricEquipment" => num_units, "ScheduleRuleset" => 1 }
     expected_values = { "Annual_kwh" => num_units * 935.0, "freezer_location" => args_hash["freezer_location"] }
-    _test_measure("SFA_4units_1story_FB_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
+    _test_measure("SFA_4units_1story_FB_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 0)
   end
 
   def test_freezer_single_family_attached_new_construction_finished_basement
-    num_units = 4
+    num_units = 1
     args_hash = {}
     args_hash["has_freezer"] = true
     args_hash["freezer_rated_annual_energy"] = 935.0
@@ -440,11 +440,11 @@ class ResidentialMiscLargeUncommonLoadsTest < MiniTest::Test
     expected_num_del_objects = {}
     expected_num_new_objects = { "ElectricEquipment" => num_units, "ElectricEquipmentDefinition" => num_units, "ScheduleRuleset" => 1 }
     expected_values = { "Annual_kwh" => num_units * 935.0, "freezer_location" => args_hash["freezer_location"] }
-    _test_measure("SFA_4units_1story_FB_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
+    _test_measure("SFA_4units_1story_FB_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 0)
   end
 
   def test_freezer_single_family_attached_new_construction_unfinished_basement
-    num_units = 4
+    num_units = 1
     args_hash = {}
     args_hash["has_freezer"] = true
     args_hash["freezer_rated_annual_energy"] = 935.0
@@ -452,18 +452,18 @@ class ResidentialMiscLargeUncommonLoadsTest < MiniTest::Test
     expected_num_del_objects = {}
     expected_num_new_objects = { "ElectricEquipment" => num_units, "ElectricEquipmentDefinition" => num_units, "ScheduleRuleset" => 1 }
     expected_values = { "Annual_kwh" => num_units * 935.0, "freezer_location" => args_hash["freezer_location"] }
-    _test_measure("SFA_4units_1story_UB_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
+    _test_measure("SFA_4units_1story_UB_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 0)
   end
 
   def test_freezer_multifamily_new_construction
-    num_units = 8
+    num_units = 1
     args_hash = {}
     args_hash["has_freezer"] = true
     args_hash["freezer_rated_annual_energy"] = 935.0
     expected_num_del_objects = {}
     expected_num_new_objects = { "ElectricEquipment" => num_units, "ElectricEquipmentDefinition" => num_units, "ScheduleRuleset" => 1 }
     expected_values = { "Annual_kwh" => num_units * 935.0, "freezer_location" => args_hash["freezer_location"] }
-    _test_measure("MF_8units_1story_SL_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
+    _test_measure("MF_8units_1story_SL_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 0)
   end
 
   # Pool
@@ -674,25 +674,25 @@ class ResidentialMiscLargeUncommonLoadsTest < MiniTest::Test
   end
 
   def test_pool_single_family_attached_new_construction
-    num_units = 4
+    num_units = 1
     args_hash = {}
     args_hash["has_pool_heater_elec"] = true
     args_hash["pool_heater_elec_annual_energy"] = 2300.0
     expected_num_del_objects = {}
     expected_num_new_objects = { "ElectricEquipment" => num_units, "ElectricEquipmentDefinition" => num_units, "ScheduleRuleset" => 1 }
-    expected_values = { "Annual_kwh" => 7972.8, "Annual_therm" => 0 }
-    _test_measure("SFA_4units_1story_FB_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
+    expected_values = { "Annual_kwh" => 1993.2 * num_units, "Annual_therm" => 0 }
+    _test_measure("SFA_4units_1story_FB_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 0)
   end
 
   def test_pool_multifamily_new_construction
-    num_units = 8
+    num_units = 1
     args_hash = {}
     args_hash["has_pool_heater_elec"] = true
     args_hash["pool_heater_elec_annual_energy"] = 2300.0
     expected_num_del_objects = {}
     expected_num_new_objects = { "ElectricEquipment" => num_units, "ElectricEquipmentDefinition" => num_units, "ScheduleRuleset" => 1 }
-    expected_values = { "Annual_kwh" => 15945.6, "Annual_therm" => 0 }
-    _test_measure("MF_8units_1story_SL_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
+    expected_values = { "Annual_kwh" => 1993.2 * num_units, "Annual_therm" => 0 }
+    _test_measure("MF_8units_1story_SL_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 0)
   end
 
   # Hot Tub
@@ -903,25 +903,25 @@ class ResidentialMiscLargeUncommonLoadsTest < MiniTest::Test
   end
 
   def test_hot_tub_single_family_attached_new_construction
-    num_units = 4
+    num_units = 1
     args_hash = {}
     args_hash["has_hot_tub_heater_elec"] = true
     args_hash["hot_tub_heater_elec_annual_energy"] = 1027.3
     expected_num_del_objects = {}
     expected_num_new_objects = { "ElectricEquipment" => num_units, "ElectricEquipmentDefinition" => num_units, "ScheduleRuleset" => 1 }
-    expected_values = { "Annual_kwh" => 3566.32, "Annual_therm" => 0 }
-    _test_measure("SFA_4units_1story_FB_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
+    expected_values = { "Annual_kwh" => 891.58 * num_units, "Annual_therm" => 0 }
+    _test_measure("SFA_4units_1story_FB_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 0)
   end
 
   def test_hot_tub_multifamily_new_construction
-    num_units = 8
+    num_units = 1
     args_hash = {}
     args_hash["has_hot_tub_heater_elec"] = true
     args_hash["hot_tub_heater_elec_annual_energy"] = 1027.3
     expected_num_del_objects = {}
     expected_num_new_objects = { "ElectricEquipment" => num_units, "ElectricEquipmentDefinition" => num_units, "ScheduleRuleset" => 1 }
-    expected_values = { "Annual_kwh" => 7132.65, "Annual_therm" => 0 }
-    _test_measure("MF_8units_1story_SL_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
+    expected_values = { "Annual_kwh" => 891.58 * num_units, "Annual_therm" => 0 }
+    _test_measure("MF_8units_1story_SL_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 0)
   end
 
   # Well Pump
@@ -953,7 +953,7 @@ class ResidentialMiscLargeUncommonLoadsTest < MiniTest::Test
     args_hash["has_well_pump"] = true
     args_hash["well_pump_annual_energy"] = 400.0
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 404.2, "Annual_therm" => 0 }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
@@ -964,21 +964,8 @@ class ResidentialMiscLargeUncommonLoadsTest < MiniTest::Test
     args_hash["well_pump_annual_energy"] = 400.0
     args_hash["well_pump_mult"] = 0.127
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 51.3, "Annual_therm" => 0 }
-    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
-  end
-
-  def test_well_pump_new_construction_modified_schedule
-    args_hash = {}
-    args_hash["has_well_pump"] = true
-    args_hash["well_pump_annual_energy"] = 400.0
-    args_hash["well_pump_weekday_sch"] = "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24"
-    args_hash["well_pump_weekend_sch"] = "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24"
-    args_hash["well_pump_monthly_sch"] = "1,2,3,4,5,6,7,8,9,10,11,12"
-    expected_num_del_objects = {}
-    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
-    expected_values = { "Annual_kwh" => 404.2, "Annual_therm" => 0 }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
@@ -988,7 +975,7 @@ class ResidentialMiscLargeUncommonLoadsTest < MiniTest::Test
     args_hash["well_pump_annual_energy"] = 400.0
     args_hash["well_pump_scale_energy"] = false
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 400.0, "Annual_therm" => 0 }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
@@ -998,14 +985,14 @@ class ResidentialMiscLargeUncommonLoadsTest < MiniTest::Test
     args_hash["has_well_pump"] = true
     args_hash["well_pump_annual_energy"] = 400.0
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 404.2, "Annual_therm" => 0 }
     model = _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
     args_hash = {}
     args_hash["has_well_pump"] = true
     args_hash["well_pump_annual_energy"] = 200.0
-    expected_num_del_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
-    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_del_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleFile" => 1 }
+    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 202.1, "Annual_therm" => 0 }
     _test_measure(model, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
@@ -1015,13 +1002,13 @@ class ResidentialMiscLargeUncommonLoadsTest < MiniTest::Test
     args_hash["has_well_pump"] = true
     args_hash["well_pump_annual_energy"] = 400.0
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 404.2, "Annual_therm" => 0 }
     model = _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
     args_hash = {}
     args_hash["has_well_pump"] = true
     args_hash["well_pump_annual_energy"] = 0.0
-    expected_num_del_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_del_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleFile" => 1 }
     expected_num_new_objects = {}
     expected_values = { "Annual_kwh" => 0.0, "Annual_therm" => 0 }
     _test_measure(model, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
@@ -1043,74 +1030,26 @@ class ResidentialMiscLargeUncommonLoadsTest < MiniTest::Test
     assert_equal(result.errors.map { |x| x.logMessage }[0], "Energy multiplier must be greater than or equal to 0.")
   end
 
-  def test_well_pump_argument_error_weekday_sch_wrong_number_of_values
-    args_hash = {}
-    args_hash["has_well_pump"] = true
-    args_hash["well_pump_weekday_sch"] = "1,1"
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "A comma-separated string of 24 numbers must be entered for the weekday schedule.")
-  end
-
-  def test_well_pump_argument_error_weekday_sch_not_number
-    args_hash = {}
-    args_hash["has_well_pump"] = true
-    args_hash["well_pump_weekday_sch"] = "str,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1"
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "A comma-separated string of 24 numbers must be entered for the weekday schedule.")
-  end
-
-  def test_well_pump_argument_error_weekend_sch_wrong_number_of_values
-    args_hash = {}
-    args_hash["has_well_pump"] = true
-    args_hash["well_pump_weekend_sch"] = "1,1"
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "A comma-separated string of 24 numbers must be entered for the weekend schedule.")
-  end
-
-  def test_well_pump_argument_error_weekend_sch_not_number
-    args_hash = {}
-    args_hash["has_well_pump"] = true
-    args_hash["well_pump_weekend_sch"] = "str,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1"
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "A comma-separated string of 24 numbers must be entered for the weekend schedule.")
-  end
-
-  def test_well_pump_argument_error_monthly_sch_wrong_number_of_values
-    args_hash = {}
-    args_hash["has_well_pump"] = true
-    args_hash["well_pump_monthly_sch"] = "1,1"
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "A comma-separated string of 12 numbers must be entered for the monthly schedule.")
-  end
-
-  def test_well_pump_argument_error_monthly_sch_not_number
-    args_hash = {}
-    args_hash["has_well_pump"] = true
-    args_hash["well_pump_monthly_sch"] = "str,1,1,1,1,1,1,1,1,1,1,1"
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "A comma-separated string of 12 numbers must be entered for the monthly schedule.")
-  end
-
   def test_well_pump_single_family_attached_new_construction
-    num_units = 4
+    num_units = 1
     args_hash = {}
     args_hash["has_well_pump"] = true
     args_hash["well_pump_annual_energy"] = 400.0
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ElectricEquipment" => num_units, "ElectricEquipmentDefinition" => num_units, "ScheduleRuleset" => 1 }
-    expected_values = { "Annual_kwh" => 1386.57, "Annual_therm" => 0 }
-    _test_measure("SFA_4units_1story_FB_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
+    expected_num_new_objects = { "ElectricEquipment" => num_units, "ElectricEquipmentDefinition" => num_units, "ScheduleFile" => 1 }
+    expected_values = { "Annual_kwh" => 346.64 * num_units, "Annual_therm" => 0 }
+    _test_measure("SFA_4units_1story_FB_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 0)
   end
 
   def test_well_pump_multifamily_new_construction
-    num_units = 8
+    num_units = 1
     args_hash = {}
     args_hash["has_well_pump"] = true
     args_hash["well_pump_annual_energy"] = 400.0
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ElectricEquipment" => num_units, "ElectricEquipmentDefinition" => num_units, "ScheduleRuleset" => 1 }
-    expected_values = { "Annual_kwh" => 2773.15, "Annual_therm" => 0 }
-    _test_measure("MF_8units_1story_SL_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
+    expected_num_new_objects = { "ElectricEquipment" => num_units, "ElectricEquipmentDefinition" => num_units, "ScheduleFile" => 1 }
+    expected_values = { "Annual_kwh" => 346.64 * num_units, "Annual_therm" => 0 }
+    _test_measure("MF_8units_1story_SL_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 0)
   end
 
   # Electric Vehicle
@@ -1142,7 +1081,7 @@ class ResidentialMiscLargeUncommonLoadsTest < MiniTest::Test
     args_hash["has_electric_vehicle"] = true
     args_hash["ev_annual_energy"] = 2000.0
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 2000, "Annual_therm" => 0 }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
@@ -1152,14 +1091,14 @@ class ResidentialMiscLargeUncommonLoadsTest < MiniTest::Test
     args_hash["has_electric_vehicle"] = true
     args_hash["ev_annual_energy"] = 2000.0
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 2000, "Annual_therm" => 0 }
     model = _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
     args_hash = {}
     args_hash["has_electric_vehicle"] = true
     args_hash["ev_annual_energy"] = 2500.0
-    expected_num_del_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
-    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_del_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleFile" => 1 }
+    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 2500, "Annual_therm" => 0 }
     _test_measure(model, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
@@ -1169,13 +1108,13 @@ class ResidentialMiscLargeUncommonLoadsTest < MiniTest::Test
     args_hash["has_electric_vehicle"] = true
     args_hash["ev_annual_energy"] = 2000.0
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 2000, "Annual_therm" => 0 }
     model = _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
     args_hash = {}
     args_hash["has_electric_vehicle"] = false
     args_hash["ev_annual_energy"] = 2000.0
-    expected_num_del_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_del_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleFile" => 1 }
     expected_num_new_objects = {}
     expected_values = { "Annual_kwh" => 0.0, "Annual_therm" => 0 }
     _test_measure(model, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
@@ -1187,14 +1126,14 @@ class ResidentialMiscLargeUncommonLoadsTest < MiniTest::Test
     args_hash["ev_annual_energy"] = 2000.0
     args_hash["ev_charger_mult"] = 1
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 2000, "Annual_therm" => 0 }
     model = _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
     args_hash["ev_charger_mult"] = 2
-    expected_num_del_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_del_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleFile" => 1 }
     # This test passes, so it must be deleting the above objects appropriately and building new ones. The following line doesn't do anything,
     # but it does help developers understand that it's making new objects again, even though the variable is identical to the one above.
-    # expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    # expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 4000.0, "Annual_therm" => 0 }
     _test_measure(model, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
@@ -1223,13 +1162,13 @@ class ResidentialMiscLargeUncommonLoadsTest < MiniTest::Test
     args_hash["has_electric_vehicle"] = true
     args_hash["ev_annual_energy"] = 2000.0
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 2000, "Annual_therm" => 0 }
     model = _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
     args_hash = {}
     args_hash["has_electric_vehicle"] = true
     args_hash["ev_annual_energy"] = 0.0
-    expected_num_del_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_del_objects = { "ElectricEquipmentDefinition" => 1, "ElectricEquipment" => 1, "ScheduleFile" => 1 }
     expected_num_new_objects = {}
     expected_values = { "Annual_kwh" => 0.0, "Annual_therm" => 0 }
     _test_measure(model, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
@@ -1272,7 +1211,7 @@ class ResidentialMiscLargeUncommonLoadsTest < MiniTest::Test
     args_hash["has_gas_fireplace"] = true
     args_hash["gas_fireplace_annual_energy"] = 60.0
     expected_num_del_objects = {}
-    expected_num_new_objects = { "GasEquipmentDefinition" => 1, "GasEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "GasEquipmentDefinition" => 1, "GasEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 0, "Annual_therm" => 60.6, "gas_fireplace_location" => args_hash["gas_fireplace_location"] }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
@@ -1283,21 +1222,8 @@ class ResidentialMiscLargeUncommonLoadsTest < MiniTest::Test
     args_hash["gas_fireplace_annual_energy"] = 60.0
     args_hash["gas_fireplace_mult"] = 0.032
     expected_num_del_objects = {}
-    expected_num_new_objects = { "GasEquipmentDefinition" => 1, "GasEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "GasEquipmentDefinition" => 1, "GasEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 0, "Annual_therm" => 1.94, "gas_fireplace_location" => args_hash["gas_fireplace_location"] }
-    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
-  end
-
-  def test_gas_fireplace_new_construction_modified_schedule
-    args_hash = {}
-    args_hash["has_gas_fireplace"] = true
-    args_hash["gas_fireplace_annual_energy"] = 60.0
-    args_hash["gas_fireplace_weekday_sch"] = "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24"
-    args_hash["gas_fireplace_weekend_sch"] = "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24"
-    args_hash["gas_fireplace_monthly_sch"] = "1,2,3,4,5,6,7,8,9,10,11,12"
-    expected_num_del_objects = {}
-    expected_num_new_objects = { "GasEquipmentDefinition" => 1, "GasEquipment" => 1, "ScheduleRuleset" => 1 }
-    expected_values = { "Annual_kwh" => 0, "Annual_therm" => 60.6, "gas_fireplace_location" => args_hash["gas_fireplace_location"] }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
@@ -1307,7 +1233,7 @@ class ResidentialMiscLargeUncommonLoadsTest < MiniTest::Test
     args_hash["gas_fireplace_annual_energy"] = 60.0
     args_hash["gas_fireplace_scale_energy"] = false
     expected_num_del_objects = {}
-    expected_num_new_objects = { "GasEquipmentDefinition" => 1, "GasEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "GasEquipmentDefinition" => 1, "GasEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 0, "Annual_therm" => 60.0, "gas_fireplace_location" => args_hash["gas_fireplace_location"] }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
@@ -1318,7 +1244,7 @@ class ResidentialMiscLargeUncommonLoadsTest < MiniTest::Test
     args_hash["gas_fireplace_annual_energy"] = 60.0
     args_hash["gas_fireplace_location"] = Constants.SpaceTypeFinishedBasement
     expected_num_del_objects = {}
-    expected_num_new_objects = { "GasEquipmentDefinition" => 1, "GasEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "GasEquipmentDefinition" => 1, "GasEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 0, "Annual_therm" => 60.6, "gas_fireplace_location" => args_hash["gas_fireplace_location"] }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
@@ -1329,7 +1255,7 @@ class ResidentialMiscLargeUncommonLoadsTest < MiniTest::Test
     args_hash["gas_fireplace_annual_energy"] = 60.0
     args_hash["gas_fireplace_location"] = Constants.SpaceTypeGarage
     expected_num_del_objects = {}
-    expected_num_new_objects = { "GasEquipmentDefinition" => 1, "GasEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "GasEquipmentDefinition" => 1, "GasEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 0, "Annual_therm" => 60.6, "gas_fireplace_location" => args_hash["gas_fireplace_location"] }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
@@ -1339,14 +1265,14 @@ class ResidentialMiscLargeUncommonLoadsTest < MiniTest::Test
     args_hash["has_gas_fireplace"] = true
     args_hash["gas_fireplace_annual_energy"] = 60.0
     expected_num_del_objects = {}
-    expected_num_new_objects = { "GasEquipmentDefinition" => 1, "GasEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "GasEquipmentDefinition" => 1, "GasEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 0, "Annual_therm" => 60.6, "gas_fireplace_location" => args_hash["gas_fireplace_location"] }
     model = _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
     args_hash = {}
     args_hash["has_gas_fireplace"] = true
     args_hash["gas_fireplace_annual_energy"] = 30.0
-    expected_num_del_objects = { "GasEquipmentDefinition" => 1, "GasEquipment" => 1, "ScheduleRuleset" => 1 }
-    expected_num_new_objects = { "GasEquipmentDefinition" => 1, "GasEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_del_objects = { "GasEquipmentDefinition" => 1, "GasEquipment" => 1, "ScheduleFile" => 1 }
+    expected_num_new_objects = { "GasEquipmentDefinition" => 1, "GasEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 0, "Annual_therm" => 30.3, "gas_fireplace_location" => args_hash["gas_fireplace_location"] }
     _test_measure(model, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
@@ -1356,13 +1282,13 @@ class ResidentialMiscLargeUncommonLoadsTest < MiniTest::Test
     args_hash["has_gas_fireplace"] = true
     args_hash["gas_fireplace_annual_energy"] = 60.0
     expected_num_del_objects = {}
-    expected_num_new_objects = { "GasEquipmentDefinition" => 1, "GasEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "GasEquipmentDefinition" => 1, "GasEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 0, "Annual_therm" => 60.6, "gas_fireplace_location" => args_hash["gas_fireplace_location"] }
     model = _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
     args_hash = {}
     args_hash["has_gas_fireplace"] = true
     args_hash["gas_fireplace_annual_energy"] = 0.0
-    expected_num_del_objects = { "GasEquipmentDefinition" => 1, "GasEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_del_objects = { "GasEquipmentDefinition" => 1, "GasEquipment" => 1, "ScheduleFile" => 1 }
     expected_num_new_objects = {}
     expected_values = { "Annual_kwh" => 0, "Annual_therm" => 0, "gas_fireplace_location" => args_hash["gas_fireplace_location"] }
     _test_measure(model, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
@@ -1384,98 +1310,50 @@ class ResidentialMiscLargeUncommonLoadsTest < MiniTest::Test
     assert_equal(result.errors.map { |x| x.logMessage }[0], "Energy multiplier must be greater than or equal to 0.")
   end
 
-  def test_gas_fireplace_argument_error_weekday_sch_wrong_number_of_values
-    args_hash = {}
-    args_hash["has_gas_fireplace"] = true
-    args_hash["gas_fireplace_weekday_sch"] = "1,1"
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "A comma-separated string of 24 numbers must be entered for the weekday schedule.")
-  end
-
-  def test_gas_fireplace_argument_error_weekday_sch_not_number
-    args_hash = {}
-    args_hash["has_gas_fireplace"] = true
-    args_hash["gas_fireplace_weekday_sch"] = "str,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1"
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "A comma-separated string of 24 numbers must be entered for the weekday schedule.")
-  end
-
-  def test_gas_fireplace_argument_error_weekend_sch_wrong_number_of_values
-    args_hash = {}
-    args_hash["has_gas_fireplace"] = true
-    args_hash["gas_fireplace_weekend_sch"] = "1,1"
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "A comma-separated string of 24 numbers must be entered for the weekend schedule.")
-  end
-
-  def test_gas_fireplace_argument_error_weekend_sch_not_number
-    args_hash = {}
-    args_hash["has_gas_fireplace"] = true
-    args_hash["gas_fireplace_weekend_sch"] = "str,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1"
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "A comma-separated string of 24 numbers must be entered for the weekend schedule.")
-  end
-
-  def test_gas_fireplace_argument_error_monthly_sch_wrong_number_of_values
-    args_hash = {}
-    args_hash["has_gas_fireplace"] = true
-    args_hash["gas_fireplace_monthly_sch"] = "1,1"
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "A comma-separated string of 12 numbers must be entered for the monthly schedule.")
-  end
-
-  def test_gas_fireplace_argument_error_monthly_sch_not_number
-    args_hash = {}
-    args_hash["has_gas_fireplace"] = true
-    args_hash["gas_fireplace_monthly_sch"] = "str,1,1,1,1,1,1,1,1,1,1,1"
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "A comma-separated string of 12 numbers must be entered for the monthly schedule.")
-  end
-
   def test_gas_fireplace_single_family_attached_new_construction
-    num_units = 4
+    num_units = 1
     args_hash = {}
     args_hash["has_gas_fireplace"] = true
     args_hash["gas_fireplace_annual_energy"] = 60.0
     expected_num_del_objects = {}
-    expected_num_new_objects = { "GasEquipmentDefinition" => num_units, "GasEquipment" => num_units, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "GasEquipmentDefinition" => num_units, "GasEquipment" => num_units, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 0, "Annual_therm" => num_units * 52.0, "gas_fireplace_location" => args_hash["gas_fireplace_location"] }
-    _test_measure("SFA_4units_1story_FB_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
+    _test_measure("SFA_4units_1story_FB_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 0)
   end
 
   def test_gas_fireplace_single_family_attached_new_construction_finished_basement
-    num_units = 4
+    num_units = 1
     args_hash = {}
     args_hash["has_gas_fireplace"] = true
     args_hash["gas_fireplace_annual_energy"] = 60.0
     args_hash["gas_fireplace_location"] = Constants.SpaceTypeFinishedBasement
     expected_num_del_objects = {}
-    expected_num_new_objects = { "GasEquipment" => num_units, "GasEquipmentDefinition" => num_units, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "GasEquipment" => num_units, "GasEquipmentDefinition" => num_units, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 0, "Annual_therm" => 52.0 * num_units, "gas_fireplace_location" => args_hash["gas_fireplace_location"] }
-    _test_measure("SFA_4units_1story_FB_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
+    _test_measure("SFA_4units_1story_FB_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 0)
   end
 
   def test_gas_fireplace_single_family_attached_new_construction_unfinished_basement
-    num_units = 4
+    num_units = 1
     args_hash = {}
     args_hash["has_gas_fireplace"] = true
     args_hash["gas_fireplace_annual_energy"] = 60.0
     args_hash["gas_fireplace_location"] = Constants.SpaceTypeUnfinishedBasement
     expected_num_del_objects = {}
-    expected_num_new_objects = { "GasEquipment" => num_units, "GasEquipmentDefinition" => num_units, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "GasEquipment" => num_units, "GasEquipmentDefinition" => num_units, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 0, "Annual_therm" => 52.0 * num_units, "gas_fireplace_location" => args_hash["gas_fireplace_location"] }
-    _test_measure("SFA_4units_1story_UB_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
+    _test_measure("SFA_4units_1story_UB_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 0)
   end
 
   def test_gas_fireplace_multifamily_new_construction
-    num_units = 8
+    num_units = 1
     args_hash = {}
     args_hash["has_gas_fireplace"] = true
     args_hash["gas_fireplace_annual_energy"] = 60.0
     expected_num_del_objects = {}
-    expected_num_new_objects = { "GasEquipment" => num_units, "GasEquipmentDefinition" => num_units, "ScheduleRuleset" => 1 }
-    expected_values = { "Annual_kwh" => 0, "Annual_therm" => 415.97, "gas_fireplace_location" => args_hash["gas_fireplace_location"] }
-    _test_measure("MF_8units_1story_SL_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
+    expected_num_new_objects = { "GasEquipment" => num_units, "GasEquipmentDefinition" => num_units, "ScheduleFile" => 1 }
+    expected_values = { "Annual_kwh" => 0, "Annual_therm" => 52.0 * num_units, "gas_fireplace_location" => args_hash["gas_fireplace_location"] }
+    _test_measure("MF_8units_1story_SL_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 0)
   end
 
   # Gas Grill
@@ -1507,7 +1385,7 @@ class ResidentialMiscLargeUncommonLoadsTest < MiniTest::Test
     args_hash["has_gas_grill"] = true
     args_hash["gas_grill_annual_energy"] = 30.0
     expected_num_del_objects = {}
-    expected_num_new_objects = { "GasEquipmentDefinition" => 1, "GasEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "GasEquipmentDefinition" => 1, "GasEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 0, "Annual_therm" => 30.3 }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
@@ -1518,21 +1396,8 @@ class ResidentialMiscLargeUncommonLoadsTest < MiniTest::Test
     args_hash["gas_grill_annual_energy"] = 30.0
     args_hash["gas_grill_mult"] = 0.029
     expected_num_del_objects = {}
-    expected_num_new_objects = { "GasEquipmentDefinition" => 1, "GasEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "GasEquipmentDefinition" => 1, "GasEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 0, "Annual_therm" => 0.88 }
-    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
-  end
-
-  def test_gas_grill_new_construction_modified_schedule
-    args_hash = {}
-    args_hash["has_gas_grill"] = true
-    args_hash["gas_grill_annual_energy"] = 30.0
-    args_hash["gas_grill_weekday_sch"] = "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24"
-    args_hash["gas_grill_weekend_sch"] = "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24"
-    args_hash["gas_grill_monthly_sch"] = "1,2,3,4,5,6,7,8,9,10,11,12"
-    expected_num_del_objects = {}
-    expected_num_new_objects = { "GasEquipmentDefinition" => 1, "GasEquipment" => 1, "ScheduleRuleset" => 1 }
-    expected_values = { "Annual_kwh" => 0, "Annual_therm" => 30.3 }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
@@ -1542,7 +1407,7 @@ class ResidentialMiscLargeUncommonLoadsTest < MiniTest::Test
     args_hash["gas_grill_annual_energy"] = 30.0
     args_hash["gas_grill_scale_energy"] = false
     expected_num_del_objects = {}
-    expected_num_new_objects = { "GasEquipmentDefinition" => 1, "GasEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "GasEquipmentDefinition" => 1, "GasEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 0, "Annual_therm" => 30.0 }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
@@ -1552,14 +1417,14 @@ class ResidentialMiscLargeUncommonLoadsTest < MiniTest::Test
     args_hash["has_gas_grill"] = true
     args_hash["gas_grill_annual_energy"] = 30.0
     expected_num_del_objects = {}
-    expected_num_new_objects = { "GasEquipmentDefinition" => 1, "GasEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "GasEquipmentDefinition" => 1, "GasEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 0, "Annual_therm" => 30.3 }
     model = _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
     args_hash = {}
     args_hash["has_gas_grill"] = true
     args_hash["gas_grill_annual_energy"] = 15.0
-    expected_num_del_objects = { "GasEquipmentDefinition" => 1, "GasEquipment" => 1, "ScheduleRuleset" => 1 }
-    expected_num_new_objects = { "GasEquipmentDefinition" => 1, "GasEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_del_objects = { "GasEquipmentDefinition" => 1, "GasEquipment" => 1, "ScheduleFile" => 1 }
+    expected_num_new_objects = { "GasEquipmentDefinition" => 1, "GasEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 0, "Annual_therm" => 15.15 }
     _test_measure(model, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
@@ -1569,13 +1434,13 @@ class ResidentialMiscLargeUncommonLoadsTest < MiniTest::Test
     args_hash["has_gas_grill"] = true
     args_hash["gas_grill_annual_energy"] = 30.0
     expected_num_del_objects = {}
-    expected_num_new_objects = { "GasEquipmentDefinition" => 1, "GasEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "GasEquipmentDefinition" => 1, "GasEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 0, "Annual_therm" => 30.3 }
     model = _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
     args_hash = {}
     args_hash["has_gas_grill"] = true
     args_hash["gas_grill_annual_energy"] = 0.0
-    expected_num_del_objects = { "GasEquipmentDefinition" => 1, "GasEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_del_objects = { "GasEquipmentDefinition" => 1, "GasEquipment" => 1, "ScheduleFile" => 1 }
     expected_num_new_objects = {}
     expected_values = { "Annual_kwh" => 0, "Annual_therm" => 0 }
     _test_measure(model, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
@@ -1597,74 +1462,26 @@ class ResidentialMiscLargeUncommonLoadsTest < MiniTest::Test
     assert_equal(result.errors.map { |x| x.logMessage }[0], "Energy multiplier must be greater than or equal to 0.")
   end
 
-  def test_gas_grill_argument_error_weekday_sch_wrong_number_of_values
-    args_hash = {}
-    args_hash["has_gas_grill"] = true
-    args_hash["gas_grill_weekday_sch"] = "1,1"
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "A comma-separated string of 24 numbers must be entered for the weekday schedule.")
-  end
-
-  def test_gas_grill_argument_error_weekday_sch_not_number
-    args_hash = {}
-    args_hash["has_gas_grill"] = true
-    args_hash["gas_grill_weekday_sch"] = "str,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1"
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "A comma-separated string of 24 numbers must be entered for the weekday schedule.")
-  end
-
-  def test_gas_grill_argument_error_weekend_sch_wrong_number_of_values
-    args_hash = {}
-    args_hash["has_gas_grill"] = true
-    args_hash["gas_grill_weekend_sch"] = "1,1"
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "A comma-separated string of 24 numbers must be entered for the weekend schedule.")
-  end
-
-  def test_gas_grill_argument_error_weekend_sch_not_number
-    args_hash = {}
-    args_hash["has_gas_grill"] = true
-    args_hash["gas_grill_weekend_sch"] = "str,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1"
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "A comma-separated string of 24 numbers must be entered for the weekend schedule.")
-  end
-
-  def test_gas_grill_argument_error_monthly_sch_wrong_number_of_values
-    args_hash = {}
-    args_hash["has_gas_grill"] = true
-    args_hash["gas_grill_monthly_sch"] = "1,1"
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "A comma-separated string of 12 numbers must be entered for the monthly schedule.")
-  end
-
-  def test_gas_grill_argument_error_monthly_sch_not_number
-    args_hash = {}
-    args_hash["has_gas_grill"] = true
-    args_hash["gas_grill_monthly_sch"] = "str,1,1,1,1,1,1,1,1,1,1,1"
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "A comma-separated string of 12 numbers must be entered for the monthly schedule.")
-  end
-
   def test_gas_grill_single_family_attached_new_construction
-    num_units = 4
+    num_units = 1
     args_hash = {}
     args_hash["has_gas_grill"] = true
     args_hash["gas_grill_annual_energy"] = 30.0
     expected_num_del_objects = {}
-    expected_num_new_objects = { "GasEquipmentDefinition" => num_units, "GasEquipment" => num_units, "ScheduleRuleset" => 1 }
-    expected_values = { "Annual_kwh" => 0, "Annual_therm" => 104.02 }
-    _test_measure("SFA_4units_1story_FB_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
+    expected_num_new_objects = { "GasEquipmentDefinition" => num_units, "GasEquipment" => num_units, "ScheduleFile" => 1 }
+    expected_values = { "Annual_kwh" => 0, "Annual_therm" => 26.0 * num_units }
+    _test_measure("SFA_4units_1story_FB_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 0)
   end
 
   def test_gas_grill_multifamily_new_construction
-    num_units = 8
+    num_units = 1
     args_hash = {}
     args_hash["has_gas_grill"] = true
     args_hash["gas_grill_annual_energy"] = 30.0
     expected_num_del_objects = {}
-    expected_num_new_objects = { "GasEquipment" => num_units, "GasEquipmentDefinition" => num_units, "ScheduleRuleset" => 1 }
-    expected_values = { "Annual_kwh" => 0, "Annual_therm" => 208.0 }
-    _test_measure("MF_8units_1story_SL_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
+    expected_num_new_objects = { "GasEquipment" => num_units, "GasEquipmentDefinition" => num_units, "ScheduleFile" => 1 }
+    expected_values = { "Annual_kwh" => 0, "Annual_therm" => 26.0 * num_units }
+    _test_measure("MF_8units_1story_SL_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 0)
   end
 
   # Gas Lighting
@@ -1696,7 +1513,7 @@ class ResidentialMiscLargeUncommonLoadsTest < MiniTest::Test
     args_hash["has_gas_lighting"] = true
     args_hash["gas_lighting_annual_energy"] = 19.0
     expected_num_del_objects = {}
-    expected_num_new_objects = { "GasEquipmentDefinition" => 1, "GasEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "GasEquipmentDefinition" => 1, "GasEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 0, "Annual_therm" => 19.2 }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
@@ -1707,21 +1524,8 @@ class ResidentialMiscLargeUncommonLoadsTest < MiniTest::Test
     args_hash["gas_lighting_annual_energy"] = 19.0
     args_hash["gas_lighting_mult"] = 0.012
     expected_num_del_objects = {}
-    expected_num_new_objects = { "GasEquipmentDefinition" => 1, "GasEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "GasEquipmentDefinition" => 1, "GasEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 0, "Annual_therm" => 0.23 }
-    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
-  end
-
-  def test_gas_lighting_new_construction_modified_schedule
-    args_hash = {}
-    args_hash["has_gas_lighting"] = true
-    args_hash["gas_lighting_annual_energy"] = 19.0
-    args_hash["gas_lighting_weekday_sch"] = "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24"
-    args_hash["gas_lighting_weekend_sch"] = "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24"
-    args_hash["gas_lighting_monthly_sch"] = "1,2,3,4,5,6,7,8,9,10,11,12"
-    expected_num_del_objects = {}
-    expected_num_new_objects = { "GasEquipmentDefinition" => 1, "GasEquipment" => 1, "ScheduleRuleset" => 1 }
-    expected_values = { "Annual_kwh" => 0, "Annual_therm" => 19.2 }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
@@ -1731,7 +1535,7 @@ class ResidentialMiscLargeUncommonLoadsTest < MiniTest::Test
     args_hash["gas_lighting_annual_energy"] = 19.0
     args_hash["gas_lighting_scale_energy"] = false
     expected_num_del_objects = {}
-    expected_num_new_objects = { "GasEquipmentDefinition" => 1, "GasEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "GasEquipmentDefinition" => 1, "GasEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 0, "Annual_therm" => 19.0 }
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
@@ -1741,14 +1545,14 @@ class ResidentialMiscLargeUncommonLoadsTest < MiniTest::Test
     args_hash["has_gas_lighting"] = true
     args_hash["gas_lighting_annual_energy"] = 19.0
     expected_num_del_objects = {}
-    expected_num_new_objects = { "GasEquipmentDefinition" => 1, "GasEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "GasEquipmentDefinition" => 1, "GasEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 0, "Annual_therm" => 19.2 }
     model = _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
     args_hash = {}
     args_hash["has_gas_lighting"] = true
     args_hash["gas_lighting_annual_energy"] = 9.5
-    expected_num_del_objects = { "GasEquipmentDefinition" => 1, "GasEquipment" => 1, "ScheduleRuleset" => 1 }
-    expected_num_new_objects = { "GasEquipmentDefinition" => 1, "GasEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_del_objects = { "GasEquipmentDefinition" => 1, "GasEquipment" => 1, "ScheduleFile" => 1 }
+    expected_num_new_objects = { "GasEquipmentDefinition" => 1, "GasEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 0, "Annual_therm" => 9.6 }
     _test_measure(model, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
@@ -1758,13 +1562,13 @@ class ResidentialMiscLargeUncommonLoadsTest < MiniTest::Test
     args_hash["has_gas_lighting"] = true
     args_hash["gas_lighting_annual_energy"] = 19.0
     expected_num_del_objects = {}
-    expected_num_new_objects = { "GasEquipmentDefinition" => 1, "GasEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_new_objects = { "GasEquipmentDefinition" => 1, "GasEquipment" => 1, "ScheduleFile" => 1 }
     expected_values = { "Annual_kwh" => 0, "Annual_therm" => 19.2 }
     model = _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
     args_hash = {}
     args_hash["has_gas_lighting"] = true
     args_hash["gas_lighting_annual_energy"] = 0.0
-    expected_num_del_objects = { "GasEquipmentDefinition" => 1, "GasEquipment" => 1, "ScheduleRuleset" => 1 }
+    expected_num_del_objects = { "GasEquipmentDefinition" => 1, "GasEquipment" => 1, "ScheduleFile" => 1 }
     expected_num_new_objects = {}
     expected_values = { "Annual_kwh" => 0, "Annual_therm" => 0 }
     _test_measure(model, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
@@ -1786,74 +1590,26 @@ class ResidentialMiscLargeUncommonLoadsTest < MiniTest::Test
     assert_equal(result.errors.map { |x| x.logMessage }[0], "Energy multiplier must be greater than or equal to 0.")
   end
 
-  def test_gas_lighting_argument_error_weekday_sch_wrong_number_of_values
-    args_hash = {}
-    args_hash["has_gas_lighting"] = true
-    args_hash["gas_lighting_weekday_sch"] = "1,1"
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "A comma-separated string of 24 numbers must be entered for the weekday schedule.")
-  end
-
-  def test_gas_lighting_argument_error_weekday_sch_not_number
-    args_hash = {}
-    args_hash["has_gas_lighting"] = true
-    args_hash["gas_lighting_weekday_sch"] = "str,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1"
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "A comma-separated string of 24 numbers must be entered for the weekday schedule.")
-  end
-
-  def test_gas_lighting_argument_error_weekend_sch_wrong_number_of_values
-    args_hash = {}
-    args_hash["has_gas_lighting"] = true
-    args_hash["gas_lighting_weekend_sch"] = "1,1"
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "A comma-separated string of 24 numbers must be entered for the weekend schedule.")
-  end
-
-  def test_gas_lighting_argument_error_weekend_sch_not_number
-    args_hash = {}
-    args_hash["has_gas_lighting"] = true
-    args_hash["gas_lighting_weekend_sch"] = "str,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1"
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "A comma-separated string of 24 numbers must be entered for the weekend schedule.")
-  end
-
-  def test_gas_lighting_argument_error_monthly_sch_wrong_number_of_values
-    args_hash = {}
-    args_hash["has_gas_lighting"] = true
-    args_hash["gas_lighting_monthly_sch"] = "1,1"
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "A comma-separated string of 12 numbers must be entered for the monthly schedule.")
-  end
-
-  def test_gas_lighting_argument_error_monthly_sch_not_number
-    args_hash = {}
-    args_hash["has_gas_lighting"] = true
-    args_hash["gas_lighting_monthly_sch"] = "str,1,1,1,1,1,1,1,1,1,1,1"
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "A comma-separated string of 12 numbers must be entered for the monthly schedule.")
-  end
-
   def test_gas_lighting_single_family_attached_new_construction
-    num_units = 4
+    num_units = 1
     args_hash = {}
     args_hash["has_gas_lighting"] = true
     args_hash["gas_lighting_annual_energy"] = 19.0
     expected_num_del_objects = {}
-    expected_num_new_objects = { "GasEquipmentDefinition" => num_units, "GasEquipment" => num_units, "ScheduleRuleset" => 1 }
-    expected_values = { "Annual_kwh" => 0, "Annual_therm" => 65.86, "Space" => args_hash["space"] }
-    _test_measure("SFA_4units_1story_FB_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
+    expected_num_new_objects = { "GasEquipmentDefinition" => num_units, "GasEquipment" => num_units, "ScheduleFile" => 1 }
+    expected_values = { "Annual_kwh" => 0, "Annual_therm" => 16.47 * num_units, "Space" => args_hash["space"] }
+    _test_measure("SFA_4units_1story_FB_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 0)
   end
 
   def test_gas_lighting_multifamily_new_construction
-    num_units = 8
+    num_units = 1
     args_hash = {}
     args_hash["has_gas_lighting"] = true
     args_hash["gas_lighting_annual_energy"] = 19.0
     expected_num_del_objects = {}
-    expected_num_new_objects = { "GasEquipment" => num_units, "GasEquipmentDefinition" => num_units, "ScheduleRuleset" => 1 }
-    expected_values = { "Annual_kwh" => 0, "Annual_therm" => 131.72, "Space" => args_hash["space"] }
-    _test_measure("MF_8units_1story_SL_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
+    expected_num_new_objects = { "GasEquipment" => num_units, "GasEquipmentDefinition" => num_units, "ScheduleFile" => 1 }
+    expected_values = { "Annual_kwh" => 0, "Annual_therm" => 16.47 * num_units, "Space" => args_hash["space"] }
+    _test_measure("MF_8units_1story_SL_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 0)
   end
 
   private
@@ -1950,13 +1706,22 @@ class ResidentialMiscLargeUncommonLoadsTest < MiniTest::Test
     check_num_objects(all_del_objects, expected_num_del_objects, "deleted")
 
     actual_values = { "Annual_kwh" => 0, "Annual_therm" => 0, "fridge_location" => [], "freezer_location" => [], "gas_fireplace_location" => [] }
+    schedules_file = nil
     all_new_objects.each do |obj_type, new_objects|
       new_objects.each do |new_object|
         next if not new_object.respond_to?("to_#{obj_type}")
 
         new_object = new_object.public_send("to_#{obj_type}").get
         if obj_type == "ElectricEquipment"
-          full_load_hrs = Schedule.annual_equivalent_full_load_hrs(model.getYearDescription, new_object.schedule.get)
+          if new_object.name.to_s.include? Constants.ObjectNameWellPump or new_object.name.to_s.include? Constants.ObjectNameElectricVehicle
+            if schedules_file.nil?
+              schedule_file = new_object.schedule.get.to_ScheduleFile.get
+              schedules_file = SchedulesFile.new(runner: runner, model: model)
+            end
+            full_load_hrs = schedules_file.annual_equivalent_full_load_hrs(col_name: schedule_file.name.to_s)
+          else
+            full_load_hrs = Schedule.annual_equivalent_full_load_hrs(model.getYearDescription, new_object.schedule.get)
+          end
           actual_values["Annual_kwh"] += UnitConversions.convert(full_load_hrs * new_object.designLevel.get * new_object.multiplier, "Wh", "kWh")
           if new_object.name.to_s.start_with? Constants.ObjectNameExtraRefrigerator
             actual_values["fridge_location"] << new_object.space.get.spaceType.get.standardsSpaceType.get
@@ -1964,7 +1729,15 @@ class ResidentialMiscLargeUncommonLoadsTest < MiniTest::Test
             actual_values["freezer_location"] << new_object.space.get.spaceType.get.standardsSpaceType.get
           end
         elsif obj_type == "GasEquipment"
-          full_load_hrs = Schedule.annual_equivalent_full_load_hrs(model.getYearDescription, new_object.schedule.get)
+          if new_object.name.to_s.include? Constants.ObjectNameGasFireplace or new_object.name.to_s.include? Constants.ObjectNameGasGrill or new_object.name.to_s.include? Constants.ObjectNameGasLighting
+            if schedules_file.nil?
+              schedule_file = new_object.schedule.get.to_ScheduleFile.get
+              schedules_file = SchedulesFile.new(runner: runner, model: model)
+            end
+            full_load_hrs = schedules_file.annual_equivalent_full_load_hrs(col_name: schedule_file.name.to_s)
+          else
+            full_load_hrs = Schedule.annual_equivalent_full_load_hrs(model.getYearDescription, new_object.schedule.get)
+          end
           actual_values["Annual_therm"] += UnitConversions.convert(full_load_hrs * new_object.designLevel.get * new_object.multiplier, "Wh", "therm")
           if new_object.name.to_s.start_with? Constants.ObjectNameGasFireplace
             actual_values["gas_fireplace_location"] << new_object.space.get.spaceType.get.standardsSpaceType.get

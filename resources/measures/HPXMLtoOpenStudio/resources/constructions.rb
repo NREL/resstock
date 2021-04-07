@@ -1084,10 +1084,19 @@ class RoofConstructions
     mats << Material.RoofingTileLight
     mats << Material.RoofingTileWhite
     mats << Material.RoofingMetalDark
+    mats << Material.RoofingMetalCool
     mats << Material.RoofingMetalMed
     mats << Material.RoofingMetalLight
     mats << Material.RoofingMetalWhite
     mats << Material.RoofingGalvanizedSteel
+    mats << Material.RoofingTileClayorCeramic
+    mats << Material.RoofingTileClayorCeramicWhiteCool
+    mats << Material.RoofingWoodShingles
+    mats << Material.RoofingCompositionShingles
+    mats << Material.RoofingCompositionShinglesWhiteCool
+    mats << Material.RoofingTileConcrete
+    mats << Material.RoofingTileConcreteWhiteCool
+    mats << Material.RoofingSlate
     return mats
   end
 
@@ -1121,6 +1130,8 @@ class RoofConstructions
       return Constants.ColorWhite
     elsif name == Material.RoofingMetalDark.name
       return Constants.ColorDark
+    elsif name == Material.RoofingMetalCool.name
+      return Constants.ColorWhite
     elsif name == Material.RoofingMetalMed.name
       return Constants.ColorMedium
     elsif name == Material.RoofingMetalLight.name
@@ -1129,6 +1140,22 @@ class RoofConstructions
       return Constants.ColorWhite
     elsif name == Material.RoofingGalvanizedSteel.name
       return Constants.ColorLight
+    elsif name == Material.RoofingTileClayorCeramic.name
+      return Constants.ColorMedium
+    elsif name == Material.RoofingTileClayorCeramicWhiteCool.name
+      return Constants.ColorWhite
+    elsif name == Material.RoofingWoodShingles.name
+      return Constants.ColorMedium
+    elsif name == Material.RoofingCompositionShingles.name
+      return Constants.ColorMedium
+    elsif name == Material.RoofingCompositionShinglesWhiteCool.name
+      return Constants.ColorWhite
+    elsif name == Material.RoofingTileConcrete.name
+      return Constants.ColorMedium
+    elsif name == Material.RoofingTileConcreteWhiteCool.name
+      return Constants.ColorWhite
+    elsif name == Material.RoofingSlate.name
+      return Constants.ColorMedium
     end
 
     return nil
@@ -1153,6 +1180,8 @@ class RoofConstructions
       return Constants.RoofMaterialTile
     elsif name == Material.RoofingMetalDark.name
       return Constants.RoofMaterialMetal
+    elsif name == Material.RoofingMetalCool.name
+      return Constants.RoofMaterialMetal
     elsif name == Material.RoofingMetalMed.name
       return Constants.RoofMaterialMetal
     elsif name == Material.RoofingMetalLight.name
@@ -1161,6 +1190,22 @@ class RoofConstructions
       return Constants.RoofMaterialMetal
     elsif name == Material.RoofingGalvanizedSteel.name
       return Constants.RoofMaterialMetal
+    elsif name == Material.RoofingTileClayorCeramic.name
+      return Constants.RoofMaterialTile
+    elsif name == Material.RoofingTileClayorCeramicWhiteCool.name
+      return Constants.RoofMaterialTile
+    elsif name == Material.RoofingWoodShingles.name
+      return Constants.RoofMaterialWoodShakes
+    elsif name == Material.RoofingCompositionShingles.name
+      return Constants.RoofMaterialAsphaltShingles
+    elsif name == Material.RoofingCompositionShinglesWhiteCool.name
+      return Constants.RoofMaterialAsphaltShingles
+    elsif name == Material.RoofingTileConcrete.name
+      return Constants.RoofMaterialTile
+    elsif name == Material.RoofingTileConcreteWhiteCool.name
+      return Constants.RoofMaterialTile
+    elsif name == Material.RoofingSlate.name
+      return Constants.RoofMaterialTile
     end
 
     return nil
@@ -1228,12 +1273,12 @@ class FloorConstructions
     # Define construction
     constr = Construction.new(constr_name, path_fracs)
     constr.add_layer(Material.AirFilmFloorAverage)
-    if not mat_addtl_ins.nil?
-      constr.add_layer(mat_addtl_ins)
-    end
-    constr.add_layer([mat_framing, mat_cavity, mat_gap], "FloorUATrussandIns")
     if drywall_thick_in > 0
       constr.add_layer(Material.GypsumWall(drywall_thick_in))
+    end
+    constr.add_layer([mat_framing, mat_cavity, mat_gap], "FloorUATrussandIns")
+    if not mat_addtl_ins.nil?
+      constr.add_layer(mat_addtl_ins)
     end
     constr.add_layer(Material.AirFilmFloorAverage)
 
@@ -1444,7 +1489,9 @@ class FoundationConstructions
 
     # Assign surfaces to Kiva foundation
     wall_surfaces.each do |wall_surface|
-      wall_surface.setAdjacentFoundation(foundation)
+      if wall_surface.outsideBoundaryCondition != "Adiabatic"
+        wall_surface.setAdjacentFoundation(foundation)
+      end
     end
 
     if not apply_slab(runner, model, slab_surface, slab_constr_name,
@@ -1538,14 +1585,15 @@ class FoundationConstructions
     if exposed_perimeter.nil?
       exposed_perimeter = Geometry.calculate_exposed_perimeter(model, [surface], has_fnd_walls)
     end
-    if exposed_perimeter <= 0
-      runner.registerError("Calculated an exposed perimeter <= 0 for slab '#{surface.name.to_s}'.")
-      return false
+    if surface.outsideBoundaryCondition.downcase == "foundation"
+      if exposed_perimeter <= 0
+        runner.registerError("Calculated an exposed perimeter <= 0 for slab '#{surface.name.to_s}'.")
+        return false
+      end
+      # Assign surface to Kiva foundation
+      surface.setAdjacentFoundation(foundation)
+      surface.createSurfacePropertyExposedFoundationPerimeter("TotalExposedPerimeter", UnitConversions.convert(exposed_perimeter, "ft", "m"))
     end
-
-    # Assign surface to Kiva foundation
-    surface.setAdjacentFoundation(foundation)
-    surface.createSurfacePropertyExposedFoundationPerimeter("TotalExposedPerimeter", UnitConversions.convert(exposed_perimeter, "ft", "m"))
 
     return true
   end
@@ -2000,14 +2048,8 @@ class ThermalMassConstructions
 
     imdefs = []
     spaces.each do |space|
-      # Determine existing partition wall mass in space
-      existing_surface_area = 0
-      surfaces.each do |surface|
-        existing_surface_area += surface.grossArea
-      end
-
-      # Determine additional partition wall mass required
-      addtl_surface_area = frac_of_ffa * space.floorArea - existing_surface_area * 2 / spaces.size.to_f
+      # Determine partition wall area (frac_of_ffa = 1 includes both sides of partition wall)
+      part_surface_area = frac_of_ffa * space.floorArea
 
       # Remove any existing internal mass
       space.internalMass.each do |im|
@@ -2018,19 +2060,17 @@ class ThermalMassConstructions
         imdef.remove
       end
 
-      if addtl_surface_area > 0
-        # Add remaining partition walls within spaces (those without geometric representation)
-        # as internal mass object.
-        imdef = OpenStudio::Model::InternalMassDefinition.new(model)
-        imdef.setName("#{space.name.to_s} Partition")
-        imdef.setSurfaceArea(addtl_surface_area)
-        imdefs << imdef
+      # Add partition walls within spaces (those without geometric representation)
+      # as internal mass object.
+      imdef = OpenStudio::Model::InternalMassDefinition.new(model)
+      imdef.setName("#{space.name.to_s} Partition")
+      imdef.setSurfaceArea(part_surface_area)
+      imdefs << imdef
 
-        im = OpenStudio::Model::InternalMass.new(imdef)
-        im.setName("#{space.name.to_s} Partition")
-        im.setSpace(space)
-        runner.registerInfo("Added internal mass object '#{im.name.to_s}' to space '#{space.name.to_s}'")
-      end
+      im = OpenStudio::Model::InternalMass.new(imdef)
+      im.setName("#{space.name.to_s} Partition")
+      im.setSpace(space)
+      runner.registerInfo("Added internal mass object '#{im.name.to_s}' to space '#{space.name.to_s}'")
     end
 
     if not WallConstructions.apply_wood_stud(runner, model,
@@ -2530,7 +2570,7 @@ class SurfaceTypes
         elsif not is_finished and obc_is_exterior
           surfaces[Constants.SurfaceTypeWallExtUninsUnfin] << surface
 
-        # Interior finished uninsulated finished
+        # Interior finished uninsulated finished (shared walls)
         elsif is_finished and obc_is_adjacent and Geometry.space_is_finished(adjacent_space)
           surfaces[Constants.SurfaceTypeWallIntFinUninsFin] << surface
 
@@ -2543,15 +2583,15 @@ class SurfaceTypes
           surfaces[Constants.SurfaceTypeWallIntFinInsUnfin] << surface
 
         # Exterior finished basement
-        elsif Geometry.is_finished_basement(space) and obc_is_foundation
+        elsif Geometry.is_finished_basement(space) and (obc_is_foundation or obc_is_adiabatic)
           surfaces[Constants.SurfaceTypeWallFndGrndFinB] << surface
 
         # Exterior unfinished basement
-        elsif Geometry.is_unfinished_basement(space) and obc_is_foundation
+        elsif Geometry.is_unfinished_basement(space) and (obc_is_foundation or obc_is_adiabatic)
           surfaces[Constants.SurfaceTypeWallFndGrndUnfinB] << surface
 
         # Exterior crawlspace
-        elsif Geometry.is_crawl(space) and obc_is_foundation
+        elsif Geometry.is_crawl(space) and (obc_is_foundation or obc_is_adiabatic)
           surfaces[Constants.SurfaceTypeWallFndGrndCS] << surface
 
         # Adiabatic finished
@@ -2574,6 +2614,7 @@ class SurfaceTypes
       Constants.SurfaceTypeRoofFinInsExt => [],
       Constants.SurfaceTypeRoofUnfinInsExt => [],
       Constants.SurfaceTypeRoofUnfinUninsExt => [],
+      Constants.SurfaceTypeRoofAdiabatic => [],
     }
 
     model.getSpaces.each do |space|
@@ -2604,10 +2645,8 @@ class SurfaceTypes
         elsif obc_is_exterior
           surfaces[Constants.SurfaceTypeRoofUnfinUninsExt] << surface
 
-        # Adiabatic
         elsif obc_is_adiabatic
-          surfaces[Constants.SurfaceTypeRoofUnfinUninsExt] << surface
-
+          surfaces[Constants.SurfaceTypeRoofAdiabatic] << surface
         end
       end
     end
@@ -2667,6 +2706,7 @@ class SurfaceTypes
       end
     end
 
+    building_type = Geometry.get_building_type(model)
     # Floors
     model.getSpaces.each do |space|
       is_finished = Geometry.space_is_finished(space)
@@ -2690,32 +2730,36 @@ class SurfaceTypes
         if obc_is_adjacent and Geometry.is_unfinished_attic(space) and Geometry.space_is_finished(adjacent_space)
           surfaces[Constants.SurfaceTypeFloorFinInsUnfinAttic] << surface
 
-        # Floor between finished spaces
-        elsif is_finished and obc_is_adjacent and Geometry.space_is_finished(adjacent_space)
+        # Floor between finished spaces [SFD/SFA]
+        elsif (building_type == Constants.BuildingTypeSingleFamilyDetached or building_type == Constants.BuildingTypeSingleFamilyAttached) and is_finished and obc_is_adjacent and Geometry.space_is_finished(adjacent_space)
           surfaces[Constants.SurfaceTypeFloorFinUninsFin] << surface
 
-        # Floor between unfinished spaces
-        elsif not is_finished and obc_is_adjacent and not Geometry.space_is_finished(adjacent_space)
+        # Floor between finished spaces [MF]
+        elsif is_finished and obc_is_adiabatic
+          surfaces[Constants.SurfaceTypeFloorFinUninsFin] << surface
+
+        # Floor between unfinished spaces (eg, corridor floor)
+        elsif not is_finished and (obc_is_adjacent and not Geometry.space_is_finished(adjacent_space)) or (obc_is_adiabatic and not Geometry.is_foundation(space))
           surfaces[Constants.SurfaceTypeFloorUnfinUninsUnfin] << surface
 
         # Finished basement floor
-        elsif Geometry.is_finished_basement(space) and obc_is_foundation
+        elsif Geometry.is_finished_basement(space) and (obc_is_foundation or obc_is_adiabatic)
           surfaces[Constants.SurfaceTypeFloorFndGrndFinB] << surface
 
         # Unfinished basement floor
-        elsif Geometry.is_unfinished_basement(space) and obc_is_foundation
+        elsif Geometry.is_unfinished_basement(space) and (obc_is_foundation or obc_is_adiabatic)
           surfaces[Constants.SurfaceTypeFloorFndGrndUnfinB] << surface
 
         # Crawlspace floor
-        elsif Geometry.is_crawl(space) and obc_is_foundation
+        elsif Geometry.is_crawl(space) and (obc_is_foundation or obc_is_adiabatic)
           surfaces[Constants.SurfaceTypeFloorFndGrndCS] << surface
 
         # Finished slab
-        elsif above_grade and is_finished and obc_is_foundation
+        elsif above_grade and is_finished and (obc_is_foundation or obc_is_adiabatic)
           surfaces[Constants.SurfaceTypeFloorFndGrndFinSlab] << surface
 
         # Unfinished slab
-        elsif above_grade and not is_finished and obc_is_foundation
+        elsif above_grade and not is_finished and (obc_is_foundation or obc_is_adiabatic)
           surfaces[Constants.SurfaceTypeFloorFndGrndUnfinSlab] << surface
 
         # Interzonal floor

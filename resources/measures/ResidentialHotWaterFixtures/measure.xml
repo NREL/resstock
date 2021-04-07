@@ -2,12 +2,12 @@
   <schema_version>3.0</schema_version>
   <name>residential_hot_water_fixtures</name>
   <uid>6159fd36-6bfa-4907-9200-9cb852d50799</uid>
-  <version_id>3e48c2f1-690c-4c3d-92ee-5815bdb055d5</version_id>
-  <version_modified>20190725T163150Z</version_modified>
+  <version_id>8c7caead-ced3-431b-8a6e-3d5758b96fb3</version_id>
+  <version_modified>20200804T161343Z</version_modified>
   <xml_checksum>A6ACD89C</xml_checksum>
   <class_name>ResidentialHotWaterFixtures</class_name>
   <display_name>Set Residential Hot Water Fixtures</display_name>
-  <description>Adds (or replaces) residential hot water fixtures -- showers, sinks, and baths. For multifamily buildings, the hot water fixtures can be set for all units of the building. See https://github.com/NREL/OpenStudio-BuildStock#workflows for supported workflows using this measure.</description>
+  <description>Adds (or replaces) residential hot water fixtures -- showers, sinks, and baths. For multifamily buildings, the hot water fixtures can be set for all units of the building. See https://github.com/NREL/resstock#workflows for supported workflows using this measure.</description>
   <modeler_description>Creates three new WaterUse:Equipment objects to represent showers, sinks, and baths in a home. OtherEquipment objects are also added to take into account the heat gain in the space due to hot water use.</modeler_description>
   <arguments>
     <argument>
@@ -52,34 +52,6 @@
         </choice>
       </choices>
     </argument>
-    <argument>
-      <name>schedule_day_shift</name>
-      <display_name>Schedule Day Shift</display_name>
-      <description>Draw profiles are shifted to prevent coincident hot water events when performing portfolio analyses. For multifamily buildings, draw profiles for each unit are automatically shifted by one week.</description>
-      <type>Integer</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>0</default_value>
-    </argument>
-    <argument>
-      <name>draw_profile_type</name>
-      <display_name>Draw Profile Type</display_name>
-      <description>The 'smooth' option uses the BA HSP smooth 24 hour curves, and the 'realistic' uses the DHWESG draw profiles.</description>
-      <type>Choice</type>
-      <required>true</required>
-      <model_dependent>true</model_dependent>
-      <default_value>realistic</default_value>
-      <choices>
-        <choice>
-          <value>realistic</value>
-          <display_name>realistic</display_name>
-        </choice>
-        <choice>
-          <value>smooth</value>
-          <display_name>smooth</display_name>
-        </choice>
-      </choices>
-    </argument>
   </arguments>
   <outputs/>
   <provenances/>
@@ -100,6 +72,12 @@
   </attributes>
   <files>
     <file>
+      <filename>ResidentialHotWaterFixtures_Test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>78348957</checksum>
+    </file>
+    <file>
       <version>
         <software_program>OpenStudio</software_program>
         <identifier>1.4.1</identifier>
@@ -108,13 +86,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>8C720A0F</checksum>
-    </file>
-    <file>
-      <filename>ResidentialHotWaterFixtures_Test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>8E0BD235</checksum>
+      <checksum>4C160DC0</checksum>
     </file>
   </files>
 </measure>
