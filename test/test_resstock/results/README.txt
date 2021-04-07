@@ -1,4 +1,4 @@
 Regression test tracking spreadsheet is found here: https://nrel-my.sharepoint.com/:x:/g/personal/aspeake_nrel_gov/EYO6JxfPQbtBhtJZBVAJEfwBso6ES3mk0YXMaVt4Nvp7rQ?e=Mvjhfc
 
-project_national_develop.csv: 1k sim results from develop, Test #1
-project_national_feature.csv: 1k sim results from restrucutre-v3, Test #1
+project_national_develop.csv: 1k sim results from sync-tsvs, Test #2
+project_national_feature.csv: 1k sim results from restrucutre-v3-lookup, Test #2
